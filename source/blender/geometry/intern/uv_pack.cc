@@ -264,6 +264,44 @@ static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
   *r_max_v = next_v1;
 }
 
+/* Wrapper around #BLI_box_pack_2d. */
+static void pack_island_box_pack_2d(const Span<UVAABBIsland *> aabbs,
+                                    const Span<PackIsland *> islands,
+                                    const float scale,
+                                    const float margin,
+                                    float *r_max_u,
+                                    float *r_max_v)
+{
+  /* Allocate storage. */
+  BoxPack *box_array = static_cast<BoxPack *>(
+      MEM_mallocN(sizeof(*box_array) * islands.size(), __func__));
+
+  /* Prepare for box_pack_2d. */
+  for (const int64_t i : islands.index_range()) {
+    PackIsland *island = islands[aabbs[i]->index];
+    BoxPack *box = box_array + i;
+    box->w = BLI_rctf_size_x(&island->bounds_rect) * scale + 2 * margin;
+    box->h = BLI_rctf_size_y(&island->bounds_rect) * scale + 2 * margin;
+  }
+
+  const bool sort_boxes = false; /* Use existing ordering from `aabbs`. */
+
+  /* \note Writes to `*r_max_u` and `*r_max_v`. */
+  BLI_box_pack_2d(box_array, int(islands.size()), sort_boxes, r_max_u, r_max_v);
+
+  /* Write back box_pack UVs. */
+  for (const int64_t i : islands.index_range()) {
+    PackIsland *island = islands[aabbs[i]->index];
+    BoxPack *box = box_array + i;
+    island->angle = 0.0f; /* #BLI_box_pack_2d never rotates. */
+    island->pre_translate.x = (box->x + margin) / scale - island->bounds_rect.xmin;
+    island->pre_translate.y = (box->y + margin) / scale - island->bounds_rect.ymin;
+  }
+
+  /* Housekeeping. */
+  MEM_freeN(box_array);
+}
+
 /**
  * Helper class for the `xatlas` strategy.
  * Accelerates geometry queries by approximating exact queries with a bitmap.
@@ -498,7 +536,6 @@ static float guess_initial_scale(const Span<PackIsland *> islands,
  */
 static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
                                const Span<PackIsland *> islands,
-                               BoxPack *box_array,
                                const float scale,
                                const float margin,
                                float *r_max_u,
@@ -545,21 +582,23 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
 
       /* Redraw already placed islands. (Greedy.) */
       for (int j = 0; j < i; j++) {
-        BoxPack *box = box_array + j;
-        occupancy.trace_island(
-            islands[island_indices[j]->index], scale, margin, float2(box->x, box->y), true);
+        PackIsland *other = islands[island_indices[j]->index];
+        float2 where(other->bounds_rect.xmin * scale - margin,
+                     other->bounds_rect.ymin * scale - margin);
+        occupancy.trace_island(islands[island_indices[j]->index], scale, margin, where, true);
       }
       continue;
     }
 
     /* Place island. */
-    BoxPack *box = box_array + i;
-    box->x = best.x;
-    box->y = best.y;
-    max_u = std::max(box->x + BLI_rctf_size_x(&island->bounds_rect) * scale + 2 * margin, max_u);
-    max_v = std::max(box->y + BLI_rctf_size_y(&island->bounds_rect) * scale + 2 * margin, max_v);
-    occupancy.trace_island(island, scale, margin, float2(box->x, box->y), true);
+    island->angle = 0.0f;
+    island->pre_translate.x = (best.x + margin) / scale - island->bounds_rect.xmin;
+    island->pre_translate.y = (best.y + margin) / scale - island->bounds_rect.ymin;
+    occupancy.trace_island(island, scale, margin, best, true);
     i++; /* Next island. */
+
+    max_u = std::max(best.x + BLI_rctf_size_x(&island->bounds_rect) * scale + 2 * margin, max_u);
+    max_v = std::max(best.y + BLI_rctf_size_y(&island->bounds_rect) * scale + 2 * margin, max_v);
 
     if (i < 128 || (i & 31) == 16) {
       scan_line = 0; /* Restart completely. */
@@ -723,14 +762,12 @@ static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
 /**
  * Pack islands using a mix of other strategies.
  * \param islands: The islands to be packed. Will be modified with results.
- * \param box_array: Transition storage, will soon be removed.
  * \param scale: Scale islands by `scale` before packing.
  * \param margin: Add `margin` units around islands before packing.
  * \param params: Additional parameters. Scale and margin information is ignored.
  * \return Size of square covering the resulting packed UVs. The maximum `u` or `v` co-ordinate.
  */
 static float pack_islands_scale_margin(const Span<PackIsland *> islands,
-                                       BoxPack *box_array,
                                        const float scale,
                                        const float margin,
                                        const UVPackIsland_Params &params)
@@ -811,41 +848,19 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   }
   const int64_t max_box_pack = std::min(alpaca_cutoff, islands.size());
 
-  /* Prepare for box_pack_2d. */
-  for (const int64_t i : islands.index_range()) {
-    UVAABBIsland *aabb = aabbs[i];
-    BoxPack *box = &box_array[i];
-    box->index = int(aabb->index);
-    box->w = aabb->uv_diagonal.x;
-    box->h = aabb->uv_diagonal.y;
-  }
-
   /* Call box_pack_2d (slow for large N.) */
   float max_u = 0.0f;
   float max_v = 0.0f;
   switch (params.shape_method) {
     case ED_UVPACK_SHAPE_CONVEX:
     case ED_UVPACK_SHAPE_CONCAVE:
-      pack_island_xatlas(aabbs.as_span().take_front(max_box_pack),
-                         islands,
-                         box_array,
-                         scale,
-                         margin,
-                         &max_u,
-                         &max_v);
+      pack_island_xatlas(
+          aabbs.as_span().take_front(max_box_pack), islands, scale, margin, &max_u, &max_v);
       break;
     default:
-      BLI_box_pack_2d(box_array, int(max_box_pack), false, &max_u, &max_v);
+      pack_island_box_pack_2d(
+          aabbs.as_span().take_front(max_box_pack), islands, scale, margin, &max_u, &max_v);
       break;
-  }
-
-  /* Write back box_pack UVs. */
-  for (int64_t i = 0; i < max_box_pack; i++) {
-    PackIsland *pack_island = islands[aabbs[i]->index];
-    BoxPack *box = box_array + i;
-    pack_island->angle = 0.0f;
-    pack_island->pre_translate.x = (box->x + margin) / scale - pack_island->bounds_rect.xmin;
-    pack_island->pre_translate.y = (box->y + margin) / scale - pack_island->bounds_rect.ymin;
   }
 
   /* At this stage, `max_u` and `max_v` contain the box_pack UVs. */
@@ -893,7 +908,6 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
  * returns largest scale that will pack `islands` into the unit square.
  */
 static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vector,
-                                          BoxPack *box_array,
                                           const float margin_fraction,
                                           const UVPackIsland_Params &params)
 {
@@ -963,7 +977,7 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vecto
     /* Evaluate our `f`. */
     scale_last = scale;
     const float max_uv = pack_islands_scale_margin(
-        island_vector, box_array, scale_last, margin_fraction, params);
+        island_vector, scale_last, margin_fraction, params);
     const float value = sqrtf(max_uv) - 1.0f;
 
     if (value <= 0.0f) {
@@ -987,7 +1001,7 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vecto
     if (scale_last != scale_low) {
       scale_last = scale_low;
       const float max_uv = pack_islands_scale_margin(
-          island_vector, box_array, scale_last, margin_fraction, params);
+          island_vector, scale_last, margin_fraction, params);
       BLI_assert(max_uv == value_low);
       UNUSED_VARS(max_uv);
       /* TODO (?): `if (max_uv < 1.0f) { scale_last /= max_uv; }` */
@@ -1014,30 +1028,26 @@ static float calc_margin_from_aabb_length_sum(const Span<PackIsland *> &island_v
 /* -------------------------------------------------------------------- */
 /** \name Implement `pack_islands`
  *
- * Smooth differences between old API and new API by converting between storage representations.
  * \{ */
 
-static BoxPack *pack_islands_box_array(const Span<PackIsland *> &islands,
-                                       const UVPackIsland_Params &params,
-                                       float r_scale[2])
+void pack_islands(const Span<PackIsland *> &islands,
+                  const UVPackIsland_Params &params,
+                  float r_scale[2])
 {
-  BoxPack *box_array = static_cast<BoxPack *>(
-      MEM_mallocN(sizeof(*box_array) * islands.size(), __func__));
-
   if (params.margin == 0.0f) {
     /* Special case for zero margin. Margin_method is ignored as all formulas give same result. */
-    const float max_uv = pack_islands_scale_margin(islands, box_array, 1.0f, 0.0f, params);
+    const float max_uv = pack_islands_scale_margin(islands, 1.0f, 0.0f, params);
     r_scale[0] = 1.0f / max_uv;
     r_scale[1] = r_scale[0];
-    return box_array;
+    return;
   }
 
   if (params.margin_method == ED_UVPACK_MARGIN_FRACTION) {
     /* Uses a line search on scale. ~10x slower than other method. */
-    const float scale = pack_islands_margin_fraction(islands, box_array, params.margin, params);
+    const float scale = pack_islands_margin_fraction(islands, params.margin, params);
     r_scale[0] = scale;
     r_scale[1] = scale;
-    return box_array;
+    return;
   }
 
   float margin = params.margin;
@@ -1054,19 +1064,9 @@ static BoxPack *pack_islands_box_array(const Span<PackIsland *> &islands,
       BLI_assert_unreachable();
   }
 
-  const float max_uv = pack_islands_scale_margin(islands, box_array, 1.0f, margin, params);
+  const float max_uv = pack_islands_scale_margin(islands, 1.0f, margin, params);
   r_scale[0] = 1.0f / max_uv;
   r_scale[1] = r_scale[0];
-
-  return box_array;
-}
-
-void pack_islands(const Span<PackIsland *> &islands,
-                  const UVPackIsland_Params &params,
-                  float r_scale[2])
-{
-  BoxPack *box_array = pack_islands_box_array(islands, params, r_scale);
-  MEM_freeN(box_array);
 }
 
 /** \} */
