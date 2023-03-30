@@ -225,8 +225,8 @@ static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
 
   /* Visit every island in order. */
   for (UVAABBIsland *island : islands) {
-    float dsm_u = island->uv_diagonal.x;
-    float dsm_v = island->uv_diagonal.y;
+    const float dsm_u = island->uv_diagonal.x;
+    const float dsm_v = island->uv_diagonal.y;
 
     bool restart = false;
     if (zigzag) {
@@ -720,6 +720,15 @@ static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
   *r_max_v = next_v1;
 }
 
+/**
+ * Pack islands using a mix of other strategies.
+ * \param islands: The islands to be packed. Will be modified with results.
+ * \param box_array: Transition storage, will soon be removed.
+ * \param scale: Scale islands by `scale` before packing.
+ * \param margin: Add `margin` units around islands before packing.
+ * \param params: Additional parameters. Scale and margin information is ignored.
+ * \return Size of square covering the resulting packed UVs. The maximum `u` or `v` co-ordinate.
+ */
 static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                                        BoxPack *box_array,
                                        const float scale,
@@ -830,6 +839,15 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
       break;
   }
 
+  /* Write back box_pack UVs. */
+  for (int64_t i = 0; i < max_box_pack; i++) {
+    PackIsland *pack_island = islands[aabbs[i]->index];
+    BoxPack *box = box_array + i;
+    pack_island->angle = 0.0f;
+    pack_island->pre_translate.x = (box->x + margin) / scale - pack_island->bounds_rect.xmin;
+    pack_island->pre_translate.y = (box->y + margin) / scale - pack_island->bounds_rect.ymin;
+  }
+
   /* At this stage, `max_u` and `max_v` contain the box_pack UVs. */
 
   /* Call Alpaca. */
@@ -843,12 +861,22 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   /* Write back Alpaca UVs. */
   for (int64_t i = max_box_pack; i < aabbs.size(); i++) {
     UVAABBIsland *aabb = aabbs[i];
-    BoxPack *box = &box_array[i];
-    box->x = aabb->uv_placement.x;
-    box->y = aabb->uv_placement.y;
-
     PackIsland *pack_island = islands[aabb->index];
     pack_island->angle = aabb->angle;
+    if (aabb->angle) {
+      pack_island->pre_translate.x = (aabb->uv_placement.y + margin) / scale /
+                                         -pack_island->aspect_y -
+                                     pack_island->bounds_rect.xmax;
+      pack_island->pre_translate.y = (aabb->uv_placement.x + margin) / scale *
+                                         pack_island->aspect_y -
+                                     pack_island->bounds_rect.ymin;
+    }
+    else {
+      pack_island->pre_translate.x = (aabb->uv_placement.x + margin) / scale -
+                                     pack_island->bounds_rect.xmin;
+      pack_island->pre_translate.y = (aabb->uv_placement.y + margin) / scale -
+                                     pack_island->bounds_rect.ymin;
+    }
   }
 
   /* Memory management. */
@@ -861,6 +889,9 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   return std::max(max_u, max_v);
 }
 
+/** Find the optimal scale to pack islands into the unit square.
+ * returns largest scale that will pack `islands` into the unit square.
+ */
 static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vector,
                                           BoxPack *box_array,
                                           const float margin_fraction,
@@ -952,7 +983,7 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vecto
 
   const bool flush = true;
   if (flush) {
-    /* Write back best pack as a side-effect. First get best pack. */
+    /* Write back best pack as a side-effect. */
     if (scale_last != scale_low) {
       scale_last = scale_low;
       const float max_uv = pack_islands_scale_margin(
@@ -960,16 +991,6 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vecto
       BLI_assert(max_uv == value_low);
       UNUSED_VARS(max_uv);
       /* TODO (?): `if (max_uv < 1.0f) { scale_last /= max_uv; }` */
-    }
-
-    /* Then expand PackIslands by the correct amount. */
-    for (const int64_t index : island_vector.index_range()) {
-      BoxPack *box = &box_array[index];
-      box->x /= scale_last;
-      box->y /= scale_last;
-      PackIsland *island = island_vector[index];
-      BLI_rctf_pad(
-          &island->bounds_rect, margin_fraction / scale_last, margin_fraction / scale_last);
     }
   }
   return scale_last;
@@ -1016,7 +1037,6 @@ static BoxPack *pack_islands_box_array(const Span<PackIsland *> &islands,
     const float scale = pack_islands_margin_fraction(islands, box_array, params.margin, params);
     r_scale[0] = scale;
     r_scale[1] = scale;
-    /* pack_islands_margin_fraction will pad PackIslands, return early. */
     return box_array;
   }
 
@@ -1038,10 +1058,6 @@ static BoxPack *pack_islands_box_array(const Span<PackIsland *> &islands,
   r_scale[0] = 1.0f / max_uv;
   r_scale[1] = r_scale[0];
 
-  for (int index = 0; index < islands.size(); index++) {
-    PackIsland *island = islands[index];
-    BLI_rctf_pad(&island->bounds_rect, margin, margin);
-  }
   return box_array;
 }
 
@@ -1050,21 +1066,6 @@ void pack_islands(const Span<PackIsland *> &islands,
                   float r_scale[2])
 {
   BoxPack *box_array = pack_islands_box_array(islands, params, r_scale);
-
-  for (int64_t i : islands.index_range()) {
-    BoxPack *box = box_array + i;
-    PackIsland *island = islands[box->index];
-    if (island->angle) {
-      /* TODO: Apply proper rotation. */
-      island->pre_translate.x = (-box->y / island->aspect_y) - island->bounds_rect.xmax;
-      island->pre_translate.y = (box->x * island->aspect_y) - island->bounds_rect.ymin;
-    }
-    else {
-      island->pre_translate.x = box->x - island->bounds_rect.xmin;
-      island->pre_translate.y = box->y - island->bounds_rect.ymin;
-    }
-  }
-
   MEM_freeN(box_array);
 }
 
