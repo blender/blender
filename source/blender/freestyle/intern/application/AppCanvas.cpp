@@ -213,8 +213,6 @@ void AppCanvas::RenderStroke(Stroke *iStroke)
   }
 }
 
-void AppCanvas::update()
-{
-}
+void AppCanvas::update() {}
 
 } /* namespace Freestyle */

@@ -318,7 +318,7 @@ static const EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C,
       ED_view3d_viewcontext_init(C, &vc, depsgraph);
       me = BKE_mesh_from_object(vc.obact);
       const blender::Span<MPoly> polys = me->polys();
-      const blender::Span<MLoop> loops = me->loops();
+      const blender::Span<int> corner_verts = me->corner_verts();
       const MDeformVert *dverts = BKE_mesh_deform_verts(me);
 
       if (me && dverts && vc.v3d && vc.rv3d && me->vertex_group_names.first) {
@@ -348,7 +348,7 @@ static const EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C,
             uint fidx = poly.totloop - 1;
 
             do {
-              const MDeformVert *dvert = &dverts[loops[poly.loopstart + fidx].v];
+              const MDeformVert *dvert = &dverts[corner_verts[poly.loopstart + fidx]];
               found |= weight_paint_sample_enum_itemf__helper(dvert, defbase_tot, groups);
             } while (fidx--);
           }
@@ -446,7 +446,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
   const short paint_selmode = ME_EDIT_PAINT_SEL_MODE(me);
 
   const blender::Span<MPoly> polys = me->polys();
-  const blender::Span<MLoop> loops = me->loops();
+  const blender::Span<int> corner_verts = me->corner_verts();
   MDeformVert *dvert = BKE_mesh_deform_verts_for_write(me);
 
   if (me->totpoly == 0 || dvert == nullptr) {
@@ -477,7 +477,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
     }
 
     do {
-      uint vidx = loops[poly.loopstart + fidx].v;
+      const int vidx = corner_verts[poly.loopstart + fidx];
 
       if (!dvert[vidx].flag) {
         if ((paint_selmode == SCE_SELECT_VERTEX) && !(select_vert && select_vert[vidx])) {

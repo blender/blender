@@ -40,6 +40,25 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="3.5" date="2023-03-29">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Real-Time compositor</li>
+                    <li>Vector displacement sculpting</li>
+                    <li>Built-in hair node groups</li>
+                    <li>Cycles many light sampling</li>
+                    <li>Metal Viewport for macOS</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Support for importing and exporting compressed .USDZ files</li>
+                    <li>New Ease operator in the graph editor</li>
+                    <li>New Geometry Nodes, like Image Info and Blur Attribute</li>
+                    <li>Font previews now differentiate better between Korean, Japanese, Simplified and Traditional Chinese</li>
+                </ul>
+            </description>
+        </release>
         <release version="3.4" date="2022-12-07">
             <description>
                 <p>New features:</p>

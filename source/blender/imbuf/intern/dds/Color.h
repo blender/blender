@@ -18,9 +18,7 @@
 /** 32 bit color stored as BGRA. */
 class Color32 {
  public:
-  Color32()
-  {
-  }
+  Color32() {}
   Color32(const Color32 &) = default;
 
   Color32(unsigned char R, unsigned char G, unsigned char B)
@@ -45,9 +43,7 @@ class Color32 {
     setRGBA(uint(R * 255), uint(G * 255), uint(B * 255), uint(A * 255));
   }
 #endif
-  Color32(unsigned int U) : u(U)
-  {
-  }
+  Color32(unsigned int U) : u(U) {}
 
   void setRGBA(unsigned char R, unsigned char G, unsigned char B, unsigned char A)
   {
@@ -81,15 +77,9 @@ class Color32 {
 /** 16 bit 565 BGR color. */
 class Color16 {
  public:
-  Color16()
-  {
-  }
-  Color16(const Color16 &c) : u(c.u)
-  {
-  }
-  explicit Color16(unsigned short U) : u(U)
-  {
-  }
+  Color16() {}
+  Color16(const Color16 &c) : u(c.u) {}
+  explicit Color16(unsigned short U) : u(U) {}
 
   union {
     struct {

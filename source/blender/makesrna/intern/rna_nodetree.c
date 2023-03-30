@@ -2679,9 +2679,7 @@ static void rna_Node_width_range(
   *max = *softmax = node->typeinfo->maxwidth;
 }
 
-static void rna_Node_width_hidden_set(PointerRNA *UNUSED(ptr), float UNUSED(value))
-{
-}
+static void rna_Node_width_hidden_set(PointerRNA *UNUSED(ptr), float UNUSED(value)) {}
 
 static float rna_Node_width_hidden_get(PointerRNA *UNUSED(ptr))
 {
@@ -4751,9 +4749,7 @@ static const EnumPropertyItem prop_image_extension[] = {
 
 /* -- Common nodes ---------------------------------------------------------- */
 
-static void def_group_input(StructRNA *UNUSED(srna))
-{
-}
+static void def_group_input(StructRNA *UNUSED(srna)) {}
 
 static void def_group_output(StructRNA *srna)
 {
@@ -6731,7 +6727,7 @@ static void def_cmp_map_range(StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
-  RNA_def_property_ui_text(prop, "Clamp", "Clamp result of the node to 0.0 to 1.0 range");
+  RNA_def_property_ui_text(prop, "Clamp", "Clamp the result of the node to the target range");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -8583,9 +8579,7 @@ static void def_cmp_switch(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_cmp_switch_view(StructRNA *UNUSED(srna))
-{
-}
+static void def_cmp_switch_view(StructRNA *UNUSED(srna)) {}
 
 static void def_cmp_colorcorrection(StructRNA *srna)
 {

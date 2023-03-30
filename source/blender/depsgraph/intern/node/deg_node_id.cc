@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -41,9 +41,7 @@ const char *linkedStateAsString(eDepsNode_LinkedState_Type linked_state)
   return "UNKNOWN";
 }
 
-IDNode::ComponentIDKey::ComponentIDKey(NodeType type, const char *name) : type(type), name(name)
-{
-}
+IDNode::ComponentIDKey::ComponentIDKey(NodeType type, const char *name) : type(type), name(name) {}
 
 bool IDNode::ComponentIDKey::operator==(const ComponentIDKey &other) const
 {

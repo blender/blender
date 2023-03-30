@@ -234,7 +234,7 @@ class TestPropArrayDynamicAssign(unittest.TestCase):
 
 class TestPropArrayDynamicArg(unittest.TestCase):
     """
-    Index array, a dynamic array argument which defines it's own length.
+    Index array, a dynamic array argument which defines its own length.
     """
 
     dims = 8

@@ -412,7 +412,6 @@ static double isperrboundA, isperrboundB, isperrboundC;
  *
  *  Don't change this routine unless you fully understand it.
  */
-
 void exactinit()
 {
   double half;

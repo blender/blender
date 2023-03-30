@@ -22,9 +22,9 @@ int calculate_evaluated_num(const int points_num, const bool cyclic, const int r
   return eval_num + 1;
 }
 
-/* Adapted from Cycles #catmull_rom_basis_eval function. */
 void calculate_basis(const float parameter, float4 &r_weights)
 {
+  /* Adapted from Cycles #catmull_rom_basis_eval function. */
   const float t = parameter;
   const float s = 1.0f - parameter;
   r_weights[0] = -t * s * s;

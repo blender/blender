@@ -25,9 +25,7 @@ class ProgressBar {
     _progress = 0;
   }
 
-  virtual ~ProgressBar()
-  {
-  }
+  virtual ~ProgressBar() {}
 
   virtual void reset()
   {

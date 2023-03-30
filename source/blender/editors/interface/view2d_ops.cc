@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edinterface
@@ -1353,9 +1353,7 @@ static void VIEW2D_OT_zoom(wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 /** \name Border Zoom Operator
- * \{ */
-
-/**
+ *
  * The user defines a rect using standard box select tools, and we use this rect to
  * define the new zoom-level of the view in the following ways:
  *
@@ -1363,8 +1361,8 @@ static void VIEW2D_OT_zoom(wmOperatorType *ot)
  * -# RIGHTMOUSE - zoom out of view
  *
  * Currently, these key mappings are hardcoded, but it shouldn't be too important to
- * have custom keymappings for this...
- */
+ * have custom keymappings for this.
+ * \{ */
 
 static int view_borderzoom_exec(bContext *C, wmOperator *op)
 {

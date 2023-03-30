@@ -15,9 +15,7 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
   SpaceImage *sima;
 
  public:
-  SpaceImageAccessor(SpaceImage *sima) : sima(sima)
-  {
-  }
+  SpaceImageAccessor(SpaceImage *sima) : sima(sima) {}
 
   Image *get_image(Main * /*bmain*/) override
   {
@@ -88,14 +86,19 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
   }
 
   void init_ss_to_texture_matrix(const ARegion *region,
-                                 const float /*image_resolution*/[2],
+                                 const float image_offset[2],
+                                 const float image_resolution[2],
                                  float r_uv_to_texture[4][4]) const override
   {
     unit_m4(r_uv_to_texture);
     float scale_x = 1.0 / BLI_rctf_size_x(&region->v2d.cur);
     float scale_y = 1.0 / BLI_rctf_size_y(&region->v2d.cur);
-    float translate_x = scale_x * -region->v2d.cur.xmin;
-    float translate_y = scale_y * -region->v2d.cur.ymin;
+
+    float display_offset_x = scale_x * image_offset[0] / image_resolution[0];
+    float display_offset_y = scale_y * image_offset[1] / image_resolution[1];
+
+    float translate_x = scale_x * -region->v2d.cur.xmin + display_offset_x;
+    float translate_y = scale_y * -region->v2d.cur.ymin + display_offset_y;
 
     r_uv_to_texture[0][0] = scale_x;
     r_uv_to_texture[1][1] = scale_y;

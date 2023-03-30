@@ -244,9 +244,7 @@ void DRW_globals_update(void)
 
 /* ********************************* SHGROUP ************************************* */
 
-void DRW_globals_free(void)
-{
-}
+void DRW_globals_free(void) {}
 
 DRWView *DRW_view_create_with_zoffset(const DRWView *parent_view,
                                       const RegionView3D *rv3d,

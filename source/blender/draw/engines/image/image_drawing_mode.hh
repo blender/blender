@@ -43,9 +43,7 @@ template<size_t Divisions> class ScreenTileTextures {
   IMAGE_InstanceData *instance_data;
 
  public:
-  ScreenTileTextures(IMAGE_InstanceData *instance_data) : instance_data(instance_data)
-  {
-  }
+  ScreenTileTextures(IMAGE_InstanceData *instance_data) : instance_data(instance_data) {}
 
   /**
    * \brief Ensure enough texture infos are allocated in `instance_data`.

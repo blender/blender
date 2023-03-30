@@ -65,9 +65,7 @@ struct packed_int3 {
   ccl_device_inline_method packed_int3(const int px, const int py, const int pz)
       : x(px), y(py), z(pz){};
 
-  ccl_device_inline_method packed_int3(const int3 &a) : x(a.x), y(a.y), z(a.z)
-  {
-  }
+  ccl_device_inline_method packed_int3(const int3 &a) : x(a.x), y(a.y), z(a.z) {}
 
   ccl_device_inline_method operator int3() const
   {

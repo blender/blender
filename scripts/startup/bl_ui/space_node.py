@@ -318,9 +318,9 @@ class NODE_MT_node(Menu):
 
         layout.separator()
         layout.operator("node.clipboard_copy", text="Copy")
-        row = layout.row()
-        row.operator_context = 'EXEC_DEFAULT'
-        row.operator("node.clipboard_paste", text="Paste")
+        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator("node.clipboard_paste", text="Paste")
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("node.duplicate_move")
         layout.operator("node.duplicate_move_linked")
         layout.operator("node.delete")

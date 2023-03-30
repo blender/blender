@@ -41,7 +41,7 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
   {
     const Span<float3> positions = mesh.vert_positions();
     const Span<MPoly> polys = mesh.polys();
-    const Span<MLoop> loops = mesh.loops();
+    const Span<int> corner_verts = mesh.corner_verts();
     const Span<float3> poly_normals = mesh.poly_normals();
 
     bke::MeshFieldContext context{mesh, ATTR_DOMAIN_FACE};
@@ -50,20 +50,19 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
     evaluator.evaluate();
     const VArray<float> thresholds = evaluator.get_evaluated<float>(0);
 
-    auto planar_fn = [positions, polys, loops, thresholds, poly_normals](const int i) -> bool {
+    auto planar_fn =
+        [positions, polys, corner_verts, thresholds, poly_normals](const int i) -> bool {
       const MPoly &poly = polys[i];
       if (poly.totloop <= 3) {
         return true;
       }
-      const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
       const float3 &reference_normal = poly_normals[i];
 
       float min = FLT_MAX;
       float max = -FLT_MAX;
 
-      for (const int i_loop : poly_loops.index_range()) {
-        const float3 &vert = positions[poly_loops[i_loop].v];
-        float dot = math::dot(reference_normal, vert);
+      for (const int vert : corner_verts.slice(poly.loopstart, poly.totloop)) {
+        float dot = math::dot(reference_normal, positions[vert]);
         if (dot > max) {
           max = dot;
         }

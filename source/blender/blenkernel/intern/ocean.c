@@ -1634,9 +1634,7 @@ bool BKE_ocean_init(struct Ocean *UNUSED(o),
   return false;
 }
 
-void BKE_ocean_free_data(struct Ocean *UNUSED(oc))
-{
-}
+void BKE_ocean_free_data(struct Ocean *UNUSED(oc)) {}
 
 void BKE_ocean_free(struct Ocean *oc)
 {
@@ -1688,9 +1686,7 @@ OceanCache *BKE_ocean_init_cache(const char *UNUSED(bakepath),
   return och;
 }
 
-void BKE_ocean_simulate_cache(struct OceanCache *UNUSED(och), int UNUSED(frame))
-{
-}
+void BKE_ocean_simulate_cache(struct OceanCache *UNUSED(och), int UNUSED(frame)) {}
 
 void BKE_ocean_bake(struct Ocean *UNUSED(o),
                     struct OceanCache *UNUSED(och),

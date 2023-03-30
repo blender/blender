@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
@@ -31,10 +31,6 @@ static void compare_item_with_path(const AssetCatalogPath &expected_path,
   EXPECT_EQ(expected_parent_count, actual_item.count_parents());
 }
 
-/**
- * Recursively iterate over all tree items using #AssetCatalogTree::foreach_item() and check if
- * the items map exactly to \a expected_paths.
- */
 void AssetCatalogTreeTestFunctions::expect_tree_items(
     AssetCatalogTree *tree, const std::vector<AssetCatalogPath> &expected_paths)
 {
@@ -47,11 +43,6 @@ void AssetCatalogTreeTestFunctions::expect_tree_items(
   });
 }
 
-/**
- * Iterate over the root items of \a tree and check if the items map exactly to \a
- * expected_paths. Similar to #assert_expected_tree_items() but calls
- * #AssetCatalogTree::foreach_root_item() instead of #AssetCatalogTree::foreach_item().
- */
 void AssetCatalogTreeTestFunctions::expect_tree_root_items(
     AssetCatalogTree *tree, const std::vector<AssetCatalogPath> &expected_paths)
 {
@@ -65,11 +56,6 @@ void AssetCatalogTreeTestFunctions::expect_tree_root_items(
   });
 }
 
-/**
- * Iterate over the child items of \a parent_item and check if the items map exactly to \a
- * expected_paths. Similar to #assert_expected_tree_items() but calls
- * #AssetCatalogTreeItem::foreach_child() instead of #AssetCatalogTree::foreach_item().
- */
 void AssetCatalogTreeTestFunctions::expect_tree_item_child_items(
     AssetCatalogTreeItem *parent_item, const std::vector<AssetCatalogPath> &expected_paths)
 {

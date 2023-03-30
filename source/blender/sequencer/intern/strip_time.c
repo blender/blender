@@ -159,7 +159,6 @@ void seq_update_sound_bounds_recursive(const Scene *scene, Sequence *metaseq)
       scene, metaseq, metaseq_start(metaseq), metaseq_end(metaseq));
 }
 
-/* Update meta strip content start and end, update sound playback range. */
 void SEQ_time_update_meta_strip_range(const Scene *scene, Sequence *seq_meta)
 {
   if (seq_meta == NULL) {
@@ -228,7 +227,6 @@ void seq_time_effect_range_set(const Scene *scene, Sequence *seq)
   seq->len = seq->enddisp - seq->startdisp;
 }
 
-/* Update strip startdisp and enddisp (n-input effects have no len to calculate these). */
 void seq_time_update_effects_strip_range(const Scene *scene, SeqCollection *effects)
 {
   if (effects == NULL) {

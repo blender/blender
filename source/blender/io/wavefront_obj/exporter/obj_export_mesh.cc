@@ -43,7 +43,7 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
     mesh_positions_ = export_mesh_->vert_positions();
     mesh_edges_ = export_mesh_->edges();
     mesh_polys_ = export_mesh_->polys();
-    mesh_loops_ = export_mesh_->loops();
+    mesh_corner_verts_ = export_mesh_->corner_verts();
     sharp_faces_ = export_mesh_->attributes().lookup_or_default<bool>(
         "sharp_face", ATTR_DOMAIN_FACE, false);
   }
@@ -77,7 +77,7 @@ void OBJMesh::set_mesh(Mesh *mesh)
   mesh_positions_ = mesh->vert_positions();
   mesh_edges_ = mesh->edges();
   mesh_polys_ = mesh->polys();
-  mesh_loops_ = mesh->loops();
+  mesh_corner_verts_ = mesh->corner_verts();
   sharp_faces_ = export_mesh_->attributes().lookup_or_default<bool>(
       "sharp_face", ATTR_DOMAIN_FACE, false);
 }
@@ -89,7 +89,7 @@ void OBJMesh::clear()
     owned_export_mesh_ = nullptr;
   }
   export_mesh_ = nullptr;
-  uv_indices_.clear_and_shrink();
+  loop_to_uv_index_.clear_and_shrink();
   uv_coords_.clear_and_shrink();
   loop_to_normal_index_.clear_and_shrink();
   normal_coords_.clear_and_shrink();
@@ -162,7 +162,7 @@ int OBJMesh::tot_polygons() const
 
 int OBJMesh::tot_uv_vertices() const
 {
-  return tot_uv_vertices_;
+  return int(uv_coords_.size());
 }
 
 int OBJMesh::tot_edges() const
@@ -203,8 +203,8 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
   poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
                                                    mesh_polys_.data(),
                                                    mesh_polys_.size(),
-                                                   mesh_loops_.data(),
-                                                   mesh_loops_.size(),
+                                                   export_mesh_->corner_edges().data(),
+                                                   export_mesh_->totloop,
                                                    sharp_edges,
                                                    sharp_faces,
                                                    &tot_smooth_groups_,
@@ -282,88 +282,62 @@ float3 OBJMesh::calc_vertex_coords(const int vert_index, const float global_scal
   return r_coords;
 }
 
-Vector<int> OBJMesh::calc_poly_vertex_indices(const int poly_index) const
+Span<int> OBJMesh::calc_poly_vertex_indices(const int poly_index) const
 {
   const MPoly &poly = mesh_polys_[poly_index];
-  const MLoop *mloop = &mesh_loops_[poly.loopstart];
-  const int totloop = poly.totloop;
-  Vector<int> r_poly_vertex_indices(totloop);
-  for (int loop_index = 0; loop_index < totloop; loop_index++) {
-    r_poly_vertex_indices[loop_index] = mloop[loop_index].v;
-  }
-  return r_poly_vertex_indices;
+  return mesh_corner_verts_.slice(poly.loopstart, poly.totloop);
 }
 
 void OBJMesh::store_uv_coords_and_indices()
 {
-  const int totvert = export_mesh_->totvert;
   const StringRef active_uv_name = CustomData_get_active_layer_name(&export_mesh_->ldata,
                                                                     CD_PROP_FLOAT2);
   if (active_uv_name.is_empty()) {
-    tot_uv_vertices_ = 0;
+    uv_coords_.clear();
     return;
   }
   const bke::AttributeAccessor attributes = export_mesh_->attributes();
   const VArraySpan<float2> uv_map = attributes.lookup<float2>(active_uv_name, ATTR_DOMAIN_CORNER);
-
-  const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
-
-  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
-      mesh_polys_.data(),
-      nullptr,
-      nullptr,
-      mesh_loops_.data(),
-      reinterpret_cast<const float(*)[2]>(uv_map.data()),
-      mesh_polys_.size(),
-      totvert,
-      limit,
-      false,
-      false);
-
-  uv_indices_.resize(mesh_polys_.size());
-  /* At least total vertices of a mesh will be present in its texture map. So
-   * reserve minimum space early. */
-  uv_coords_.reserve(totvert);
-
-  tot_uv_vertices_ = 0;
-  for (int vertex_index = 0; vertex_index < totvert; vertex_index++) {
-    const UvMapVert *uv_vert = BKE_mesh_uv_vert_map_get_vert(uv_vert_map, vertex_index);
-    for (; uv_vert; uv_vert = uv_vert->next) {
-      if (uv_vert->separate) {
-        tot_uv_vertices_ += 1;
-      }
-      const int verts_in_poly = mesh_polys_[uv_vert->poly_index].totloop;
-
-      /* Store UV vertex coordinates. */
-      uv_coords_.resize(tot_uv_vertices_);
-      const int loopstart = mesh_polys_[uv_vert->poly_index].loopstart;
-      Span<float> vert_uv_coords(uv_map[loopstart + uv_vert->loop_of_poly_index], 2);
-      uv_coords_[tot_uv_vertices_ - 1] = float2(vert_uv_coords[0], vert_uv_coords[1]);
-
-      /* Store UV vertex indices. */
-      uv_indices_[uv_vert->poly_index].resize(verts_in_poly);
-      /* Keep indices zero-based and let the writer handle the "+ 1" as per OBJ spec. */
-      uv_indices_[uv_vert->poly_index][uv_vert->loop_of_poly_index] = tot_uv_vertices_ - 1;
-    }
+  if (uv_map.is_empty()) {
+    uv_coords_.clear();
+    return;
   }
-  BKE_mesh_uv_vert_map_free(uv_vert_map);
+
+  Map<float2, int> uv_to_index;
+
+  /* We don't know how many unique UVs there will be, but this is a guess. */
+  uv_to_index.reserve(export_mesh_->totvert);
+  uv_coords_.reserve(export_mesh_->totvert);
+
+  loop_to_uv_index_.resize(uv_map.size());
+
+  for (int index = 0; index < int(uv_map.size()); index++) {
+    float2 uv = uv_map[index];
+    int uv_index = uv_to_index.lookup_default(uv, -1);
+    if (uv_index == -1) {
+      uv_index = uv_to_index.size();
+      uv_to_index.add(uv, uv_index);
+      uv_coords_.append(uv);
+    }
+    loop_to_uv_index_[index] = uv_index;
+  }
 }
 
 Span<int> OBJMesh::calc_poly_uv_indices(const int poly_index) const
 {
-  if (uv_indices_.size() <= 0) {
+  if (uv_coords_.is_empty()) {
     return {};
   }
   BLI_assert(poly_index < export_mesh_->totpoly);
-  BLI_assert(poly_index < uv_indices_.size());
-  return uv_indices_[poly_index];
+  const MPoly &poly = mesh_polys_[poly_index];
+  return loop_to_uv_index_.as_span().slice(poly.loopstart, poly.totloop);
 }
 
 float3 OBJMesh::calc_poly_normal(const int poly_index) const
 {
   const MPoly &poly = mesh_polys_[poly_index];
   float3 r_poly_normal = bke::mesh::poly_normal_calc(
-      mesh_positions_, mesh_loops_.slice(poly.loopstart, poly.totloop));
+      mesh_positions_, mesh_corner_verts_.slice(poly.loopstart, poly.totloop));
   mul_m3_v3(world_and_axes_normal_transform_, r_poly_normal);
   normalize_v3(r_poly_normal);
   return r_poly_normal;
@@ -477,9 +451,8 @@ int16_t OBJMesh::get_poly_deform_group_index(const int poly_index,
   group_weights.fill(0);
   bool found_any_group = false;
   const MPoly &poly = mesh_polys_[poly_index];
-  const MLoop *mloop = &mesh_loops_[poly.loopstart];
-  for (int loop_i = 0; loop_i < poly.totloop; ++loop_i, ++mloop) {
-    const MDeformVert &dv = dverts[mloop->v];
+  for (const int vert : mesh_corner_verts_.slice(poly.loopstart, poly.totloop)) {
+    const MDeformVert &dv = dverts[vert];
     for (int weight_i = 0; weight_i < dv.totweight; ++weight_i) {
       const auto group = dv.dw[weight_i].def_nr;
       if (group < group_weights.size()) {

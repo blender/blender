@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
+# Copyright 2006 Blender Foundation
 
 # WITH_OPENGL limits the visibility of the opengl headers to just GPU and bg_gpu,
 # to more easily highlight code-paths in other libraries that need to be refactored,
@@ -42,8 +42,17 @@ set(INC
   ../../../intern/mantaflow/extern
 )
 
+if(WITH_RENDERDOC)
+  list(APPEND INC
+    ../../../extern/renderdoc/include
+    ../../../intern/renderdoc_dynload/include
+  )
+  add_definitions(-DWITH_RENDERDOC)
+endif()
+
 set(INC_SYS
   ${Epoxy_INCLUDE_DIRS}
+  ${IMATH_INCLUDE_DIR}
 )
 
 set(SRC
@@ -195,6 +204,8 @@ set(VULKAN_SRC
   vulkan/vk_command_buffer.cc
   vulkan/vk_common.cc
   vulkan/vk_context.cc
+  vulkan/vk_data_conversion.cc
+  vulkan/vk_debug.cc
   vulkan/vk_descriptor_pools.cc
   vulkan/vk_descriptor_set.cc
   vulkan/vk_drawlist.cc
@@ -207,6 +218,7 @@ set(VULKAN_SRC
   vulkan/vk_pixel_buffer.cc
   vulkan/vk_push_constants.cc
   vulkan/vk_query.cc
+  vulkan/vk_resource_tracker.cc
   vulkan/vk_shader.cc
   vulkan/vk_shader_interface.cc
   vulkan/vk_shader_log.cc
@@ -222,6 +234,7 @@ set(VULKAN_SRC
   vulkan/vk_command_buffer.hh
   vulkan/vk_common.hh
   vulkan/vk_context.hh
+  vulkan/vk_data_conversion.hh
   vulkan/vk_descriptor_pools.hh
   vulkan/vk_descriptor_set.hh
   vulkan/vk_drawlist.hh
@@ -234,6 +247,7 @@ set(VULKAN_SRC
   vulkan/vk_pixel_buffer.hh
   vulkan/vk_push_constants.hh
   vulkan/vk_query.hh
+  vulkan/vk_resource_tracker.hh
   vulkan/vk_shader.hh
   vulkan/vk_shader_interface.hh
   vulkan/vk_shader_log.hh
@@ -423,6 +437,7 @@ set(GLSL_SRC
   shaders/common/gpu_shader_math_matrix_lib.glsl
   shaders/common/gpu_shader_math_rotation_lib.glsl
   shaders/common/gpu_shader_math_vector_lib.glsl
+  shaders/common/gpu_shader_smaa_lib.glsl
   shaders/common/gpu_shader_test_lib.glsl
   shaders/common/gpu_shader_utildefines_lib.glsl
 
@@ -742,6 +757,10 @@ if(WITH_OPENCOLORIO)
   target_link_libraries(bf_gpu PUBLIC bf_ocio_shaders)
 endif()
 
+if(WITH_RENDERDOC)
+  target_link_libraries(bf_gpu PUBLIC bf_intern_renderdoc_dynload)
+endif()
+
 
 if(CXX_WARN_NO_SUGGEST_OVERRIDE)
   target_compile_options(bf_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wsuggest-override>)
@@ -781,6 +800,8 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
     bf_blenlib
     bf_intern_ghost
     ${PLATFORM_LINKLIBS}
+    ${IMATH_LIBRARIES}
+    ${IMATH_LIBRARY}
   )
   target_include_directories(shader_builder PRIVATE ${INC} ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -811,6 +832,7 @@ if(WITH_GTESTS)
     set(TEST_SRC
       tests/gpu_testing.cc
 
+      tests/framebuffer_test.cc
       tests/index_buffer_test.cc
       tests/push_constants_test.cc
       tests/shader_test.cc

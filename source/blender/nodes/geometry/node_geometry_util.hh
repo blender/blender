@@ -4,6 +4,7 @@
 
 #include <string.h>
 
+#include "BLI_bounds_types.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
@@ -69,6 +70,15 @@ Mesh *create_cylinder_or_cone_mesh(float radius_top,
                                    int fill_segments,
                                    GeometryNodeMeshCircleFillType fill_type,
                                    ConeAttributeOutputs &attribute_outputs);
+
+/**
+ * Calculates the bounds of a radial primitive.
+ * The algorithm assumes X-axis symmetry of primitives.
+ */
+Bounds<float3> calculate_bounds_radial_primitive(float radius_top,
+                                                 float radius_bottom,
+                                                 int segments,
+                                                 float height);
 
 /**
  * Returns the parts of the geometry that are on the selection for the given domain. If the domain

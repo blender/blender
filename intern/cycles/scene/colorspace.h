@@ -43,6 +43,12 @@ class ColorSpaceManager {
   /* Clear memory when the application exits. Invalidates all processors. */
   static void free_memory();
 
+  /* Create a fallback color space configuration.
+   *
+   * This may be useful to allow regression test to create a configuration which is considered
+   * valid without knowing the actual configuration used by the final application. */
+  static void init_fallback_config();
+
  private:
   static void is_builtin_colorspace(ustring colorspace, bool &is_no_op, bool &is_srgb);
 };

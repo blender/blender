@@ -85,7 +85,7 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
     info.vertex_inputs_.clear();
   }
   else if (do_fragment_attrib_load && !info.vertex_out_interfaces_.is_empty()) {
-    /* Codegen outputs only one interface. */
+    /* Code-generation outputs only one interface. */
     const StageInterfaceInfo &iface = *info.vertex_out_interfaces_.first();
     /* Globals the attrib_load() can write to when it is in the fragment shader. */
     attr_load << "struct " << iface.name << " {\n";

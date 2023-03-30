@@ -54,6 +54,9 @@ const char *no_procedural_access_message =
 
 bool allow_procedural_attribute_access(StringRef attribute_name)
 {
+  if (attribute_name.startswith(".corner")) {
+    return false;
+  }
   if (attribute_name.startswith(".select")) {
     return false;
   }
@@ -475,9 +478,10 @@ GAttributeWriter CustomDataAttributeProvider::try_get_for_write(
     if (!custom_data_layer_matches_attribute_id(layer, attribute_id)) {
       continue;
     }
-    CustomData_get_layer_named_for_write(custom_data, layer.type, layer.name, element_num);
+    CustomData_get_layer_named_for_write(
+        custom_data, eCustomDataType(layer.type), layer.name, element_num);
 
-    const CPPType *type = custom_data_type_to_cpp_type((eCustomDataType)layer.type);
+    const CPPType *type = custom_data_type_to_cpp_type(eCustomDataType(layer.type));
     if (type == nullptr) {
       continue;
     }
@@ -499,7 +503,7 @@ bool CustomDataAttributeProvider::try_delete(void *owner, const AttributeIDRef &
     const CustomDataLayer &layer = custom_data->layers[i];
     if (this->type_is_supported((eCustomDataType)layer.type) &&
         custom_data_layer_matches_attribute_id(layer, attribute_id)) {
-      CustomData_free_layer(custom_data, layer.type, element_num, i);
+      CustomData_free_layer(custom_data, eCustomDataType(layer.type), element_num, i);
       return true;
     }
   }
@@ -665,7 +669,7 @@ bool CustomDataAttributes::remove(const AttributeIDRef &attribute_id)
   for (const int i : IndexRange(data.totlayer)) {
     const CustomDataLayer &layer = data.layers[i];
     if (custom_data_layer_matches_attribute_id(layer, attribute_id)) {
-      CustomData_free_layer(&data, layer.type, size_, i);
+      CustomData_free_layer(&data, eCustomDataType(layer.type), size_, i);
       return true;
     }
   }

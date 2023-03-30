@@ -21,9 +21,7 @@ class BaseObject {
     _ref_counter = 0;
   }
 
-  virtual ~BaseObject()
-  {
-  }
+  virtual ~BaseObject() {}
 
   /** At least makes a release on this.
    *  The BaseObject::destroy method must be explicitly called at the end of any overloaded destroy

@@ -62,6 +62,12 @@ void AbstractView::update_from_old(uiBlock &new_block)
 /** \name Default implementations of virtual functions
  * \{ */
 
+std::unique_ptr<AbstractViewDropTarget> AbstractView::create_drop_target()
+{
+  /* There's no drop target (and hence no drop support) by default. */
+  return nullptr;
+}
+
 bool AbstractView::listen(const wmNotifier & /*notifier*/) const
 {
   /* Nothing by default. */
@@ -102,6 +108,23 @@ Span<char> AbstractView::get_rename_buffer() const
 MutableSpan<char> AbstractView::get_rename_buffer()
 {
   return *rename_buffer_;
+}
+
+std::optional<rcti> AbstractView::get_bounds() const
+{
+  return bounds_;
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name General API functions
+ * \{ */
+
+std::unique_ptr<DropTargetInterface> view_drop_target(uiViewHandle *view_handle)
+{
+  AbstractView &view = reinterpret_cast<AbstractView &>(*view_handle);
+  return view.create_drop_target();
 }
 
 /** \} */

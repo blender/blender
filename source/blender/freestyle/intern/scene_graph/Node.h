@@ -25,18 +25,14 @@ using namespace Geometry;
 
 class Node : public BaseObject {
  public:
-  inline Node() : BaseObject()
-  {
-  }
+  inline Node() : BaseObject() {}
 
   inline Node(const Node &iBrother) : BaseObject()
   {
     _BBox = iBrother.bbox();
   }
 
-  virtual ~Node()
-  {
-  }
+  virtual ~Node() {}
 
   /** Accept the corresponding visitor
    *  Each inherited node must overload this method

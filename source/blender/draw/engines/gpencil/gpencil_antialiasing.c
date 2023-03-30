@@ -9,7 +9,7 @@
 
 #include "gpencil_engine.h"
 
-#include "smaa_textures.h"
+#include "BLI_smaa_textures.h"
 
 void GPENCIL_antialiasing_init(struct GPENCIL_Data *vedata)
 {

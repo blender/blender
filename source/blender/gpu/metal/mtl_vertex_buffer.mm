@@ -8,9 +8,7 @@
 
 namespace blender::gpu {
 
-MTLVertBuf::MTLVertBuf() : VertBuf()
-{
-}
+MTLVertBuf::MTLVertBuf() : VertBuf() {}
 
 MTLVertBuf::~MTLVertBuf()
 {

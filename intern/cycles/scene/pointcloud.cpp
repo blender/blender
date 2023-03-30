@@ -93,13 +93,9 @@ NODE_DEFINE(PointCloud)
   return type;
 }
 
-PointCloud::PointCloud() : Geometry(node_type, Geometry::POINTCLOUD)
-{
-}
+PointCloud::PointCloud() : Geometry(node_type, Geometry::POINTCLOUD) {}
 
-PointCloud::~PointCloud()
-{
-}
+PointCloud::~PointCloud() {}
 
 void PointCloud::resize(int numpoints)
 {

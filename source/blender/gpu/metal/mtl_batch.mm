@@ -583,9 +583,7 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_first, uint v_count, uint i_fi
   return rec;
 }
 
-void MTLBatch::unbind()
-{
-}
+void MTLBatch::unbind() {}
 
 void MTLBatch::prepare_vertex_descriptor_and_bindings(
     MTLVertBuf **buffers, int &num_buffers, int v_first, int v_count, int i_first, int i_count)

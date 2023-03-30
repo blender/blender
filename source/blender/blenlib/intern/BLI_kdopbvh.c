@@ -453,9 +453,9 @@ static void node_join(BVHTree *tree, BVHNode *node)
 
 #ifdef USE_PRINT_TREE
 
-/**
- * Debug and information functions
- */
+/* -------------------------------------------------------------------- */
+/** \name * Debug and Information Functions
+ * \{ */
 
 static void bvhtree_print_tree(BVHTree *tree, BVHNode *node, int depth)
 {
@@ -500,6 +500,9 @@ static void bvhtree_info(BVHTree *tree)
 
   bvhtree_print_tree(tree, tree->nodes[tree->leaf_num], 0);
 }
+
+/** \} */
+
 #endif /* USE_PRINT_TREE */
 
 #ifdef USE_VERIFY_TREE

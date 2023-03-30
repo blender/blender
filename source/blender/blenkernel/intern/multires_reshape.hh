@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -17,7 +17,6 @@ struct GridPaintMask;
 struct MDisps;
 struct MEdge;
 struct Mesh;
-struct MLoop;
 struct MPoly;
 struct MultiresModifierData;
 struct Object;
@@ -37,7 +36,8 @@ struct MultiresReshapeContext {
   const float (*base_positions)[3];
   blender::Span<MEdge> base_edges;
   blender::Span<MPoly> base_polys;
-  blender::Span<MLoop> base_loops;
+  blender::Span<int> base_corner_verts;
+  blender::Span<int> base_corner_edges;
 
   /* Subdivision surface created for multires modifier.
    *

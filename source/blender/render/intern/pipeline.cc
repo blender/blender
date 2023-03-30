@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup render
@@ -163,21 +163,11 @@ static bool do_write_image_or_movie(Render *re,
                                     const char *name_override);
 
 /* default callbacks, set in each new render */
-static void result_nothing(void * /*arg*/, RenderResult * /*rr*/)
-{
-}
-static void result_rcti_nothing(void * /*arg*/, RenderResult * /*rr*/, struct rcti * /*rect*/)
-{
-}
-static void current_scene_nothing(void * /*arg*/, Scene * /*scene*/)
-{
-}
-static void stats_nothing(void * /*arg*/, RenderStats * /*rs*/)
-{
-}
-static void float_nothing(void * /*arg*/, float /*val*/)
-{
-}
+static void result_nothing(void * /*arg*/, RenderResult * /*rr*/) {}
+static void result_rcti_nothing(void * /*arg*/, RenderResult * /*rr*/, struct rcti * /*rect*/) {}
+static void current_scene_nothing(void * /*arg*/, Scene * /*scene*/) {}
+static void stats_nothing(void * /*arg*/, RenderStats * /*rs*/) {}
+static void float_nothing(void * /*arg*/, float /*val*/) {}
 static bool default_break(void * /*arg*/)
 {
   return G.is_break == true;

@@ -36,9 +36,7 @@ class FormatHandler : NonCopyable, NonMovable {
   size_t buffer_chunk_size_;
 
  public:
-  FormatHandler(size_t buffer_chunk_size = 64 * 1024) : buffer_chunk_size_(buffer_chunk_size)
-  {
-  }
+  FormatHandler(size_t buffer_chunk_size = 64 * 1024) : buffer_chunk_size_(buffer_chunk_size) {}
 
   /* Write contents to the buffer(s) into a file, and clear the buffers. */
   void write_to_file(FILE *f)

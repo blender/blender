@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup edmesh
@@ -316,10 +316,11 @@ const bool *ED_mesh_uv_map_vert_select_layer_get(const Mesh *mesh, const int uv_
   return mesh_loop_boolean_custom_data_get_by_name(
       *mesh, BKE_uv_map_vert_select_name_get(uv_name, buffer));
 }
-/* UV map edge selections are stored on face corners (loops) and not on edges
- * because we need selections per face edge, even when the edge is split in UV space. */
 const bool *ED_mesh_uv_map_edge_select_layer_get(const Mesh *mesh, const int uv_index)
 {
+  /* UV map edge selections are stored on face corners (loops) and not on edges
+   * because we need selections per face edge, even when the edge is split in UV space. */
+
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
   const char *uv_name = CustomData_get_layer_name(&mesh->ldata, CD_PROP_FLOAT2, uv_index);
@@ -595,7 +596,9 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 
 /* *** CustomData clear functions, we need an operator for each *** */
 
-static int mesh_customdata_clear_exec__internal(bContext *C, char htype, int type)
+static int mesh_customdata_clear_exec__internal(bContext *C,
+                                                char htype,
+                                                const eCustomDataType type)
 {
   Mesh *me = ED_mesh_context(C);
 
@@ -620,7 +623,7 @@ static int mesh_customdata_clear_exec__internal(bContext *C, char htype, int typ
   return OPERATOR_CANCELLED;
 }
 
-static int mesh_customdata_add_exec__internal(bContext *C, char htype, int type)
+static int mesh_customdata_add_exec__internal(bContext *C, char htype, const eCustomDataType type)
 {
   Mesh *mesh = ED_mesh_context(C);
 
@@ -800,7 +803,8 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
       const bool *sharp_faces = static_cast<const bool *>(
           CustomData_get_layer_named(&me->pdata, CD_PROP_BOOL, "sharp_face"));
       bke::mesh::edges_sharp_from_angle_set(me->polys(),
-                                            me->loops(),
+                                            me->corner_verts(),
+                                            me->corner_edges(),
                                             me->poly_normals(),
                                             sharp_faces,
                                             me->smoothresh,
@@ -1209,8 +1213,11 @@ static void mesh_add_loops(Mesh *mesh, int len)
   CustomData_copy(&mesh->ldata, &ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
   CustomData_copy_data(&mesh->ldata, &ldata, 0, 0, mesh->totloop);
 
-  if (!CustomData_has_layer(&ldata, CD_MLOOP)) {
-    CustomData_add_layer(&ldata, CD_MLOOP, CD_SET_DEFAULT, totloop);
+  if (!CustomData_get_layer_named(&ldata, CD_PROP_INT32, ".corner_vert")) {
+    CustomData_add_layer_named(&ldata, CD_PROP_INT32, CD_SET_DEFAULT, totloop, ".corner_vert");
+  }
+  if (!CustomData_get_layer_named(&ldata, CD_PROP_INT32, ".corner_edge")) {
+    CustomData_add_layer_named(&ldata, CD_PROP_INT32, CD_SET_DEFAULT, totloop, ".corner_edge");
   }
 
   BKE_mesh_runtime_clear_cache(mesh);
@@ -1459,7 +1466,8 @@ void ED_mesh_split_faces(Mesh *mesh)
 {
   using namespace blender;
   const Span<MPoly> polys = mesh->polys();
-  const Span<MLoop> loops = mesh->loops();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const Span<int> corner_edges = mesh->corner_edges();
   const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : float(M_PI);
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> mesh_sharp_edges = attributes.lookup_or_default<bool>(
@@ -1470,15 +1478,20 @@ void ED_mesh_split_faces(Mesh *mesh)
   Array<bool> sharp_edges(mesh->totedge);
   mesh_sharp_edges.materialize(sharp_edges);
 
-  bke::mesh::edges_sharp_from_angle_set(
-      polys, loops, mesh->poly_normals(), sharp_faces, split_angle, sharp_edges);
+  bke::mesh::edges_sharp_from_angle_set(polys,
+                                        corner_verts,
+                                        corner_edges,
+                                        mesh->poly_normals(),
+                                        sharp_faces,
+                                        split_angle,
+                                        sharp_edges);
 
   threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
     for (const int poly_i : range) {
       const MPoly &poly = polys[poly_i];
       if (sharp_faces && sharp_faces[poly_i]) {
-        for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-          sharp_edges[loop.e] = true;
+        for (const int edge : corner_edges.slice(poly.loopstart, poly.totloop)) {
+          sharp_edges[edge] = true;
         }
       }
     }

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -759,7 +759,8 @@ inline size_t to_bytesize(eGPUTextureFormat tex_format, eGPUDataFormat data_form
 }
 
 /* Definitely not complete, edit according to the gl specification. */
-inline bool validate_data_format(eGPUTextureFormat tex_format, eGPUDataFormat data_format)
+constexpr inline bool validate_data_format(eGPUTextureFormat tex_format,
+                                           eGPUDataFormat data_format)
 {
   switch (tex_format) {
     /* Formats texture & render-buffer */

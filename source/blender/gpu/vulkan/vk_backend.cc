@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -52,13 +52,9 @@ void VKBackend::platform_exit()
   GPG.clear();
 }
 
-void VKBackend::delete_resources()
-{
-}
+void VKBackend::delete_resources() {}
 
-void VKBackend::samplers_update()
-{
-}
+void VKBackend::samplers_update() {}
 
 void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)
 {
@@ -66,19 +62,18 @@ void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_
   VKShader *shader = static_cast<VKShader *>(context.shader);
   VKCommandBuffer &command_buffer = context.command_buffer_get();
   VKPipeline &pipeline = shader->pipeline_get();
-  VKDescriptorSet &descriptor_set = pipeline.descriptor_set_get();
+  VKDescriptorSetTracker &descriptor_set = pipeline.descriptor_set_get();
   VKPushConstants &push_constants = pipeline.push_constants_get();
 
   push_constants.update(context);
-  descriptor_set.update(context.device_get());
-  command_buffer.bind(
-      descriptor_set, shader->vk_pipeline_layout_get(), VK_PIPELINE_BIND_POINT_COMPUTE);
+  descriptor_set.update(context);
+  command_buffer.bind(*descriptor_set.active_descriptor_set(),
+                      shader->vk_pipeline_layout_get(),
+                      VK_PIPELINE_BIND_POINT_COMPUTE);
   command_buffer.dispatch(groups_x_len, groups_y_len, groups_z_len);
 }
 
-void VKBackend::compute_dispatch_indirect(StorageBuf * /*indirect_buf*/)
-{
-}
+void VKBackend::compute_dispatch_indirect(StorageBuf * /*indirect_buf*/) {}
 
 Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
 {
@@ -145,17 +140,11 @@ VertBuf *VKBackend::vertbuf_alloc()
   return new VKVertexBuffer();
 }
 
-void VKBackend::render_begin()
-{
-}
+void VKBackend::render_begin() {}
 
-void VKBackend::render_end()
-{
-}
+void VKBackend::render_end() {}
 
-void VKBackend::render_step()
-{
-}
+void VKBackend::render_step() {}
 
 shaderc::Compiler &VKBackend::get_shaderc_compiler()
 {

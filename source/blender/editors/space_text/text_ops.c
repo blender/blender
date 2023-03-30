@@ -159,6 +159,22 @@ BLI_INLINE int text_pixel_x_to_column(SpaceText *st, const int x)
   return (x + (st->runtime.cwidth_px / 2)) / st->runtime.cwidth_px;
 }
 
+static void text_select_update_primary_clipboard(const Text *text)
+{
+  if ((WM_capabilities_flag() & WM_CAPABILITY_PRIMARY_CLIPBOARD) == 0) {
+    return;
+  }
+  if (!txt_has_sel(text)) {
+    return;
+  }
+  char *buf = txt_sel_to_buf(text, NULL);
+  if (buf == NULL) {
+    return;
+  }
+  WM_clipboard_text_set(buf, true);
+  MEM_freeN(buf);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -954,11 +970,13 @@ void TEXT_OT_paste(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_boolean(ot->srna,
-                  "selection",
-                  0,
-                  "Selection",
-                  "Paste text selected elsewhere rather than copied (X11 only)");
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(ot->srna,
+                         "selection",
+                         0,
+                         "Selection",
+                         "Paste text selected elsewhere rather than copied (X11/Wayland only)");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -1499,6 +1517,8 @@ static int text_select_all_exec(bContext *C, wmOperator *UNUSED(op))
   txt_sel_all(text);
 
   text_update_cursor_moved(C);
+  text_select_update_primary_clipboard(text);
+
   WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
   return OPERATOR_FINISHED;
@@ -1529,6 +1549,8 @@ static int text_select_line_exec(bContext *C, wmOperator *UNUSED(op))
   txt_sel_line(text);
 
   text_update_cursor_moved(C);
+  text_select_update_primary_clipboard(text);
+
   WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
   return OPERATOR_FINISHED;
@@ -1562,6 +1584,8 @@ static int text_select_word_exec(bContext *C, wmOperator *UNUSED(op))
   txt_jump_right(text, true, use_init_step);
 
   text_update_cursor_moved(C);
+  text_select_update_primary_clipboard(text);
+
   WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
   return OPERATOR_FINISHED;
@@ -2246,6 +2270,10 @@ static int text_move_cursor(bContext *C, int type, bool select)
   }
 
   text_update_cursor_moved(C);
+  if (select) {
+    text_select_update_primary_clipboard(st->text);
+  }
+
   WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
 
   return OPERATOR_FINISHED;
@@ -3243,17 +3271,11 @@ static void text_cursor_set_apply(bContext *C, wmOperator *op, const wmEvent *ev
 static void text_cursor_set_exit(bContext *C, wmOperator *op)
 {
   SpaceText *st = CTX_wm_space_text(C);
-  Text *text = st->text;
   SetSelection *ssel = op->customdata;
-  char *buffer;
-
-  if (txt_has_sel(text)) {
-    buffer = txt_sel_to_buf(text, NULL);
-    WM_clipboard_text_set(buffer, 1);
-    MEM_freeN(buffer);
-  }
 
   text_update_cursor_moved(C);
+  text_select_update_primary_clipboard(st->text);
+
   WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
 
   text_cursor_timer_remove(C, ssel);

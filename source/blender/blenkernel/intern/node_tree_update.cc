@@ -172,9 +172,7 @@ struct NodeTreeRelations {
   std::optional<MultiValueMap<bNodeTree *, ObjectModifierPair>> modifiers_users_;
 
  public:
-  NodeTreeRelations(Main *bmain) : bmain_(bmain)
-  {
-  }
+  NodeTreeRelations(Main *bmain) : bmain_(bmain) {}
 
   void ensure_all_trees()
   {

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -21,8 +21,8 @@
 
 namespace blender::gpu::shader {
 
-#ifndef GPU_SHADER_CREATE_INFO
 /* Helps intellisense / auto-completion. */
+#ifndef GPU_SHADER_CREATE_INFO
 #  define GPU_SHADER_INTERFACE_INFO(_interface, _inst_name) \
     StageInterfaceInfo _interface(#_interface, _inst_name); \
     _interface

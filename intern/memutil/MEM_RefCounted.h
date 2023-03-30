@@ -27,9 +27,7 @@ class MEM_RefCounted {
   /**
    * Constructs a shared object.
    */
-  MEM_RefCounted() : m_refCount(1)
-  {
-  }
+  MEM_RefCounted() : m_refCount(1) {}
 
   /**
    * Returns the reference count of this object.
@@ -55,9 +53,7 @@ class MEM_RefCounted {
    * Destructs a shared object.
    * The destructor is protected to force the use of incRef and decRef.
    */
-  virtual ~MEM_RefCounted()
-  {
-  }
+  virtual ~MEM_RefCounted() {}
 
  protected:
   /** The reference count. */

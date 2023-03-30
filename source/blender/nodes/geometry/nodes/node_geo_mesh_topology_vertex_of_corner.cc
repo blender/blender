@@ -19,11 +19,6 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("The vertex the corner is attached to"));
 }
 
-static int get_loop_vert(const MLoop &loop)
-{
-  return loop.v;
-}
-
 class CornerVertFieldInput final : public bke::MeshFieldInput {
  public:
   CornerVertFieldInput() : bke::MeshFieldInput(CPPType::get<int>(), "Corner Vertex")
@@ -38,7 +33,7 @@ class CornerVertFieldInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_CORNER) {
       return {};
     }
-    return VArray<int>::ForDerivedSpan<MLoop, get_loop_vert>(mesh.loops());
+    return VArray<int>::ForSpan(mesh.corner_verts());
   }
 
   uint64_t hash() const final

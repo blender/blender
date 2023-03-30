@@ -98,7 +98,7 @@ void initialize_volume_component_from_points(GeoNodeExecParams &params,
     return;
   }
 
-  float voxel_size;
+  float voxel_size = 0.0f;
   if (storage.resolution_mode == GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE) {
     voxel_size = params.get_input<float>("Voxel Size");
   }
@@ -106,6 +106,9 @@ void initialize_volume_component_from_points(GeoNodeExecParams &params,
     const float voxel_amount = params.get_input<float>("Voxel Amount");
     const float max_radius = *std::max_element(radii.begin(), radii.end());
     voxel_size = compute_voxel_size_from_amount(voxel_amount, positions, max_radius);
+  }
+  else {
+    BLI_assert_msg(0, "Unknown volume resolution mode");
   }
 
   const double determinant = std::pow(double(voxel_size), 3.0);

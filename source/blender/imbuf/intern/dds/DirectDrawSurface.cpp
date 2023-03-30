@@ -523,7 +523,7 @@ const FormatDescriptor s_d3dFormats[] = {
     {D3DFMT_L16, 16, 16, 0, 0, 0}, /* DXGI_FORMAT_R16_UNORM */
 };
 
-const uint s_d3dFormatCount = sizeof(s_d3dFormats) / sizeof(s_d3dFormats[0]);
+const uint s_d3dFormatCount = ARRAY_SIZE(s_d3dFormats);
 
 } /* namespace */
 

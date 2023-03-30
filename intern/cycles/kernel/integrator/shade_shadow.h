@@ -35,7 +35,7 @@ ccl_device_inline Spectrum integrate_transparent_surface_shadow(KernelGlobals kg
   integrator_state_read_shadow_isect(state, &isect, hit);
 
   Ray ray ccl_optional_struct_init;
-  integrator_state_read_shadow_ray(kg, state, &ray);
+  integrator_state_read_shadow_ray(state, &ray);
 
   shader_setup_from_ray(kg, shadow_sd, &ray, &isect);
 
@@ -70,7 +70,7 @@ ccl_device_inline void integrate_transparent_volume_shadow(KernelGlobals kg,
 
   /* Setup shader data. */
   Ray ray ccl_optional_struct_init;
-  integrator_state_read_shadow_ray(kg, state, &ray);
+  integrator_state_read_shadow_ray(state, &ray);
   ray.self.object = OBJECT_NONE;
   ray.self.prim = PRIM_NONE;
   ray.self.light_object = OBJECT_NONE;

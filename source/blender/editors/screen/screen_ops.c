@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edscr
@@ -4346,6 +4346,7 @@ static void ed_screens_statusbar_menu_create(uiLayout *layout, void *UNUSED(arg)
 
   RNA_pointer_create(NULL, &RNA_PreferencesView, &U, &ptr);
   uiItemR(layout, &ptr, "show_statusbar_stats", 0, IFACE_("Scene Statistics"), ICON_NONE);
+  uiItemR(layout, &ptr, "show_statusbar_scene_duration", 0, IFACE_("Scene Duration"), ICON_NONE);
   uiItemR(layout, &ptr, "show_statusbar_memory", 0, IFACE_("System Memory"), ICON_NONE);
   if (GPU_mem_stats_supported()) {
     uiItemR(layout, &ptr, "show_statusbar_vram", 0, IFACE_("Video Memory"), ICON_NONE);

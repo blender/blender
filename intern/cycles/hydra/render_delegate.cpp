@@ -131,9 +131,7 @@ HdCyclesDelegate::HdCyclesDelegate(const HdRenderSettingsMap &settingsMap,
   }
 }
 
-HdCyclesDelegate::~HdCyclesDelegate()
-{
-}
+HdCyclesDelegate::~HdCyclesDelegate() {}
 
 void HdCyclesDelegate::SetDrivers(const HdDriverVector &drivers)
 {

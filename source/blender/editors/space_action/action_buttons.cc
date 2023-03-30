@@ -1,34 +1,34 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. All rights reserved. */
+ * Copyright 2016 Blender Foundation */
 
 /** \file
  * \ingroup spaction
  */
 
-#include <float.h>
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "action_intern.h" /* own include */
+#include "action_intern.hh" /* own include */
 
 /* ******************* action editor space & buttons ************** */
 
 /* ******************* general ******************************** */
 
-void action_buttons_register(ARegionType *UNUSED(art))
+void action_buttons_register(ARegionType * /*art*/)
 {
 #if 0
   PanelType *pt;
 
   /* TODO: AnimData / Actions List */
 
-  pt = MEM_callocN(sizeof(PanelType), "spacetype action panel properties");
+  pt = MEM_cnew<PanelType>("spacetype action panel properties");
   strcpy(pt->idname, "ACTION_PT_properties");
   strcpy(pt->label, N_("Active F-Curve"));
   strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
@@ -36,7 +36,7 @@ void action_buttons_register(ARegionType *UNUSED(art))
   pt->poll = action_anim_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_callocN(sizeof(PanelType), "spacetype action panel properties");
+  pt = MEM_cnew<PanelType>("spacetype action panel properties");
   strcpy(pt->idname, "ACTION_PT_key_properties");
   strcpy(pt->label, N_("Active Keyframe"));
   strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);

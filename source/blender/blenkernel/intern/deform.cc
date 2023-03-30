@@ -1074,7 +1074,7 @@ void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
 void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int verts_num,
-                                               const MLoop *loops,
+                                               const int *corner_verts,
                                                const int loops_num,
                                                const bool invert_vgroup,
                                                float *r_weights)
@@ -1088,9 +1088,7 @@ void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
         dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
 
     while (i--) {
-      const MLoop *ml = &loops[i];
-
-      r_weights[i] = tmp_weights[ml->v];
+      r_weights[i] = tmp_weights[corner_verts[i]];
     }
 
     MEM_freeN(tmp_weights);
@@ -1103,7 +1101,7 @@ void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
 void BKE_defvert_extract_vgroup_to_polyweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int verts_num,
-                                               const MLoop *loops,
+                                               const int *corner_verts,
                                                const int /*loops_num*/,
                                                const MPoly *polys,
                                                const int polys_num,
@@ -1120,12 +1118,12 @@ void BKE_defvert_extract_vgroup_to_polyweights(const MDeformVert *dvert,
 
     while (i--) {
       const MPoly &poly = polys[i];
-      const MLoop *ml = &loops[poly.loopstart];
+      const int *corner_vert = &corner_verts[poly.loopstart];
       int j = poly.totloop;
       float w = 0.0f;
 
-      for (; j--; ml++) {
-        w += tmp_weights[ml->v];
+      for (; j--; corner_vert++) {
+        w += tmp_weights[*corner_vert];
       }
       r_weights[i] = w / float(poly.totloop);
     }

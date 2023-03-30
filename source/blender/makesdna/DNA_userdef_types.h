@@ -1180,6 +1180,7 @@ typedef enum eUserpref_StatusBar_Flag {
   STATUSBAR_SHOW_VRAM = (1 << 1),
   STATUSBAR_SHOW_STATS = (1 << 2),
   STATUSBAR_SHOW_VERSION = (1 << 3),
+  STATUSBAR_SHOW_SCENE_DURATION = (1 << 4),
 } eUserpref_StatusBar_Flag;
 
 /**

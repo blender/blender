@@ -12,9 +12,7 @@ class TestBaseClass {
 };
 
 class TestChildClass : public TestBaseClass {
-  void mymethod() override
-  {
-  }
+  void mymethod() override {}
 };
 
 static_assert(is_convertible_pointer_v<int *, int *>);

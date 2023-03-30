@@ -157,8 +157,6 @@ class AbstractGridView : public AbstractView {
  * \{ */
 
 class GridViewBuilder {
-  uiBlock &block_;
-
  public:
   GridViewBuilder(uiBlock &block);
 

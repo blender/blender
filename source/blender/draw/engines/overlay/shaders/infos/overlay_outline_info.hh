@@ -3,7 +3,7 @@
 #include "gpu_shader_create_info.hh"
 
 /* -------------------------------------------------------------------- */
-/** \name Outline Prepass
+/** \name Outline Pre-pass
  * \{ */
 
 GPU_SHADER_INTERFACE_INFO(overlay_outline_prepass_iface, "interp").flat(Type::UINT, "ob_id");

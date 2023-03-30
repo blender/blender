@@ -14,9 +14,7 @@
 
 namespace blender::compositor {
 
-NodeConverter::NodeConverter(NodeOperationBuilder *builder) : builder_(builder)
-{
-}
+NodeConverter::NodeConverter(NodeOperationBuilder *builder) : builder_(builder) {}
 
 void NodeConverter::add_operation(NodeOperation *operation)
 {

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup modifiers
@@ -53,7 +53,6 @@ void MOD_init_texture(MappingInfoModifierData *dmd, const ModifierEvalContext *c
   }
 }
 
-/* TODO: to be renamed to get_texture_coords once we are done with moving modifiers to Mesh. */
 void MOD_get_texture_coords(MappingInfoModifierData *dmd,
                             const ModifierEvalContext * /*ctx*/,
                             Object *ob,
@@ -61,6 +60,9 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
                             float (*cos)[3],
                             float (*r_texco)[3])
 {
+  /* TODO: to be renamed to `get_texture_coords` once we are done with moving modifiers to Mesh. */
+
+  using namespace blender;
   const int verts_num = mesh->totvert;
   int i;
   int texmapping = dmd->texmapping;
@@ -93,7 +95,7 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
   if (texmapping == MOD_DISP_MAP_UV) {
     if (CustomData_has_layer(&mesh->ldata, CD_PROP_FLOAT2)) {
       const blender::Span<MPoly> polys = mesh->polys();
-      const blender::Span<MLoop> loops = mesh->loops();
+      const Span<int> corner_verts = mesh->corner_verts();
       BLI_bitmap *done = BLI_BITMAP_NEW(verts_num, __func__);
       char uvname[MAX_CUSTOMDATA_LAYER_NAME];
       CustomData_validate_layer_name(&mesh->ldata, CD_PROP_FLOAT2, dmd->uvlayer_name, uvname);
@@ -107,7 +109,7 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
 
         do {
           uint lidx = poly.loopstart + fidx;
-          uint vidx = loops[lidx].v;
+          const int vidx = corner_verts[lidx];
 
           if (!BLI_BITMAP_TEST(done, vidx)) {
             /* remap UVs from [0, 1] to [-1, 1] */

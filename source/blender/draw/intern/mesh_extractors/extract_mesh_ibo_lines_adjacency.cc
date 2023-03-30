@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -123,9 +123,9 @@ static void extract_lines_adjacency_iter_looptri_mesh(const MeshRenderData *mr,
   if (hidden) {
     return;
   }
-  lines_adjacency_triangle(mr->loops[mlt->tri[0]].v,
-                           mr->loops[mlt->tri[1]].v,
-                           mr->loops[mlt->tri[2]].v,
+  lines_adjacency_triangle(mr->corner_verts[mlt->tri[0]],
+                           mr->corner_verts[mlt->tri[1]],
+                           mr->corner_verts[mlt->tri[2]],
                            mlt->tri[0],
                            mlt->tri[1],
                            mlt->tri[2],

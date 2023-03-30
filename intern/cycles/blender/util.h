@@ -702,9 +702,7 @@ static inline bool object_need_motion_attribute(BObjectInfo &b_ob_info, Scene *s
 
 class EdgeMap {
  public:
-  EdgeMap()
-  {
-  }
+  EdgeMap() {}
 
   void clear()
   {

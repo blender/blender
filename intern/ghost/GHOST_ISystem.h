@@ -154,17 +154,13 @@ class GHOST_ISystem {
    * Constructor.
    * Protected default constructor to force use of static createSystem member.
    */
-  GHOST_ISystem()
-  {
-  }
+  GHOST_ISystem() {}
 
   /**
    * Destructor.
    * Protected default constructor to force use of static dispose member.
    */
-  virtual ~GHOST_ISystem()
-  {
-  }
+  virtual ~GHOST_ISystem() {}
 
  public:
   /***************************************************************************************
@@ -304,28 +300,25 @@ class GHOST_ISystem {
    * Ends full screen mode.
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess endFullScreen(void) = 0;
+  virtual GHOST_TSuccess endFullScreen() = 0;
 
   /**
    * Returns current full screen mode status.
    * \return The current status.
    */
-  virtual bool getFullScreen(void) = 0;
+  virtual bool getFullScreen() = 0;
 
   /**
    * Native pixel size support (MacBook 'retina').
    */
-  virtual bool useNativePixel(void) = 0;
+  virtual bool useNativePixel() = 0;
 
   /**
-   * Return true when warping the cursor is supported.
+   * Return features supported by the system back-end.
+   *
+   * The resulting value doesn't change at run-time.
    */
-  virtual bool supportsCursorWarp() = 0;
-
-  /**
-   * Return true getting/setting the window position is supported.
-   */
-  virtual bool supportsWindowPosition() = 0;
+  virtual GHOST_TCapabilityFlag getCapabilities() const = 0;
 
   /**
    * Focus window after opening, or put them in the background.

@@ -79,9 +79,7 @@ class CurvePointIterator : public Interface0DIteratorNested {
     return *this;
   }
 
-  virtual ~CurvePointIterator()
-  {
-  }
+  virtual ~CurvePointIterator() {}
 
  protected:
   inline CurvePointIterator(Curve::vertex_container::iterator iA,

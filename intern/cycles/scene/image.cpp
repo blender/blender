@@ -80,9 +80,7 @@ const char *name_from_type(ImageDataType type)
 
 /* Image Handle */
 
-ImageHandle::ImageHandle() : manager(NULL)
-{
-}
+ImageHandle::ImageHandle() : manager(NULL) {}
 
 ImageHandle::ImageHandle(const ImageHandle &other)
     : tile_slots(other.tile_slots), manager(other.manager)
@@ -290,9 +288,7 @@ void ImageMetaData::detect_colorspace()
 
 /* Image Loader */
 
-ImageLoader::ImageLoader()
-{
-}
+ImageLoader::ImageLoader() {}
 
 ustring ImageLoader::osl_filepath() const
 {

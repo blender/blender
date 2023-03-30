@@ -19,9 +19,7 @@ namespace Freestyle {
 
 class Iterator {
  public:
-  virtual ~Iterator()
-  {
-  }
+  virtual ~Iterator() {}
 
   virtual string getExactTypeName() const
   {

@@ -212,7 +212,7 @@ GPUBatch *drw_cache_procedural_triangles_get(void)
   return SHC.drw_procedural_tris;
 }
 
-GPUBatch *drw_cache_procedural_triangle_strips_get()
+GPUBatch *drw_cache_procedural_triangle_strips_get(void)
 {
   if (!SHC.drw_procedural_tri_strips) {
     /* TODO(fclem): get rid of this dummy VBO. */

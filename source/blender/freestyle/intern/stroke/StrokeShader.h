@@ -58,9 +58,7 @@ class StrokeShader {
   }
 
   /** Destructor. */
-  virtual ~StrokeShader()
-  {
-  }
+  virtual ~StrokeShader() {}
 
   /** Returns the string corresponding to the shader's name. */
   virtual string getName() const

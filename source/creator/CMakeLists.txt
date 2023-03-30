@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
+# Copyright 2006 Blender Foundation
 
 set(INC
   ../../intern/clog
@@ -352,10 +352,12 @@ elseif(WIN32)
     set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/bpy/${BLENDER_VERSION})
     # Important the DLL's are next to `__init__.pyd` otherwise it won't load.
     set(TARGETDIR_LIB ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/bpy)
+    set(TARGETDIR_EXE ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/bpy)
   else()
     set(TARGETDIR_VER ${BLENDER_VERSION})
     set(TARGETDIR_TEXT .)
-    set(TARGETDIR_LIB .)
+    set(TARGETDIR_LIB ./blender.shared)
+    set(TARGETDIR_EXE .)
   endif()
 elseif(APPLE)
   if(WITH_PYTHON_MODULE)
@@ -414,6 +416,7 @@ if(WITH_PYTHON)
     DESTINATION ${TARGETDIR_VER}
     PATTERN ".git" EXCLUDE
     PATTERN ".gitignore" EXCLUDE
+    PATTERN ".gitea" EXCLUDE
     PATTERN ".github" EXCLUDE
     PATTERN ".arcconfig" EXCLUDE
     PATTERN "__pycache__" EXCLUDE
@@ -535,6 +538,9 @@ macro(install_dir from to)
     DESTINATION ${to}
     # Irrelevant files and caches.
     PATTERN ".git" EXCLUDE
+    PATTERN ".gitignore" EXCLUDE
+    PATTERN ".gitea" EXCLUDE
+    PATTERN ".github" EXCLUDE
     PATTERN ".svn" EXCLUDE
     PATTERN "*.pyc" EXCLUDE
     PATTERN "*.pyo" EXCLUDE
@@ -1001,7 +1007,7 @@ elseif(WIN32)
           FILES
             ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}.dll
             ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python3.dll
-          DESTINATION ${TARGETDIR_LIB}
+          DESTINATION ${TARGETDIR_EXE}
           CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
         )
 
@@ -1009,7 +1015,7 @@ elseif(WIN32)
           FILES
             ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}_d.dll
             ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python3_d.dll
-          DESTINATION ${TARGETDIR_LIB}
+          DESTINATION ${TARGETDIR_EXE}
           CONFIGURATIONS Debug
         )
       endif()
@@ -1257,7 +1263,7 @@ elseif(WIN32)
         ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_factory_startup.cmd
         ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_oculus.cmd
         ${CMAKE_SOURCE_DIR}/release/windows/batch/oculus.json
-      DESTINATION ${TARGETDIR_LIB}
+      DESTINATION ${TARGETDIR_EXE}
     )
   endif()
 
@@ -1285,7 +1291,7 @@ elseif(WIN32)
   if(PLATFORM_BUNDLED_LIBRARIES)
     install(
       FILES ${PLATFORM_BUNDLED_LIBRARIES}
-      DESTINATION ${TARGETDIR_LIB}
+      DESTINATION ${TARGETDIR_EXE}
     )
   endif()
 elseif(APPLE)
@@ -1293,33 +1299,6 @@ elseif(APPLE)
     # Uppercase name for app bundle.
     set_target_properties(blender PROPERTIES OUTPUT_NAME Blender)
   endif()
-
-  # Handy install macro to exclude files, we use \$ escape for the "to"
-  # argument when calling so `${BUILD_TYPE}` does not get expanded.
-  macro(install_dir from to)
-    install(
-      DIRECTORY ${from}
-      DESTINATION ${to}
-      PATTERN ".git" EXCLUDE
-      PATTERN ".svn" EXCLUDE
-      PATTERN "*.pyc" EXCLUDE
-      PATTERN "*.pyo" EXCLUDE
-      PATTERN "*.orig" EXCLUDE
-      PATTERN "*.rej" EXCLUDE
-      PATTERN "__pycache__" EXCLUDE
-      PATTERN "__MACOSX" EXCLUDE
-      PATTERN ".DS_Store" EXCLUDE
-      PATTERN "config-${PYTHON_VERSION}/*.a" EXCLUDE  # static lib
-      PATTERN "lib2to3" EXCLUDE                   # ./lib2to3
-      PATTERN "tkinter" EXCLUDE                   # ./tkinter
-      PATTERN "lib-dynload/_tkinter.*" EXCLUDE    # ./lib-dynload/_tkinter.co
-      PATTERN "idlelib" EXCLUDE                   # ./idlelib
-      PATTERN "test" EXCLUDE                      # ./test
-      PATTERN "turtledemo" EXCLUDE                # ./turtledemo
-      PATTERN "turtle.py" EXCLUDE                 # ./turtle.py
-      PATTERN "wininst*.exe" EXCLUDE              # from distutils, avoid malware false positive
-    )
-  endmacro()
 
   set(OSX_APP_SOURCEDIR ${CMAKE_SOURCE_DIR}/release/darwin/Blender.app)
 
@@ -1545,7 +1524,7 @@ if((DEFINED LIBDIR) AND TARGETDIR_LIB)
       )
       install(DIRECTORY
         ${USD_LIBRARY_DIR}/usd
-        DESTINATION "./blender.shared"
+        DESTINATION ${TARGETDIR_LIB}
       )
     elseif(USD_PYTHON_SUPPORT)
       install(DIRECTORY

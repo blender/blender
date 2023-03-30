@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -339,12 +339,6 @@ void GLTexture::update_sub(int offset[3],
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
-/**
- * This will create the mipmap images and populate them with filtered data from base level.
- *
- * WARNING: Depth textures are not populated but they have their mips correctly defined.
- * WARNING: This resets the mipmap range.
- */
 void GLTexture::generate_mipmap()
 {
   /* Allow users to provide mipmaps stored in compressed textures.

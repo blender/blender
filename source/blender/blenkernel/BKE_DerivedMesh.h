@@ -8,34 +8,34 @@
  *
  * Basic design of the DerivedMesh system:
  *
- * DerivedMesh is a common set of interfaces for mesh systems.
+ * #DerivedMesh is a common set of interfaces for mesh systems.
  *
  * There are three main mesh data structures in Blender:
  * #Mesh, #CDDerivedMesh and #BMesh.
  *
- * These, and a few others, all implement DerivedMesh interfaces,
+ * These, and a few others, all implement #DerivedMesh interfaces,
  * which contains unified drawing interfaces, a few utility interfaces,
  * and a bunch of read-only interfaces intended mostly for conversion from
  * one format to another.
  *
- * All Mesh structures in blender make use of CustomData, which is used to store
- * per-element attributes and interpolate them (e.g. uvs, vcols, vgroups, etc).
+ * All Mesh structures in blender make use of #CustomData, which is used to store
+ * per-element attributes and interpolate them (e.g. UVs, vertex-colors, vertex-groups, etc).
  *
  * Mesh is the "serialized" structure, used for storing object-mode mesh data
- * and also for saving stuff to disk.  Its interfaces are also what DerivedMesh
+ * and also for saving stuff to disk. Its interfaces are also what #DerivedMesh
  * uses to communicate with.
  *
- * CDDM is a little mesh library, that uses Mesh data structures in the backend.
+ * #CDDM is a little mesh library, that uses Mesh data structures in the backend.
  * It's mostly used for modifiers, and has the advantages of not taking much
  * resources.
  *
- * BMesh is a full-on BREP, used for edit-mode, some modifiers, etc.  It's much
- * more capable (if memory-intensive) then CDDM.
+ * #BMesh is a full-on BREP, used for edit-mode, some modifiers, etc.
+ * It's much more capable (if memory-intensive) then CDDM.
  *
- * DerivedMesh is somewhat hackish.  Many places assumes that a DerivedMesh is
+ * #DerivedMesh is somewhat hackish. Many places assumes that a #DerivedMesh is
  * a CDDM (most of the time by simply copying it and converting it to one).
  * CDDM is the original structure for modifiers, but has since been superseded
- * by BMesh, at least for the foreseeable future.
+ * by #BMesh, at least for the foreseeable future.
  */
 
 /*
@@ -129,7 +129,8 @@ struct DerivedMesh {
    */
   float *(*getVertArray)(DerivedMesh *dm);
   struct MEdge *(*getEdgeArray)(DerivedMesh *dm);
-  struct MLoop *(*getLoopArray)(DerivedMesh *dm);
+  int *(*getCornerVertArray)(DerivedMesh *dm);
+  int *(*getCornerEdgeArray)(DerivedMesh *dm);
   struct MPoly *(*getPolyArray)(DerivedMesh *dm);
 
   /** Copy all verts/edges/faces from the derived mesh into
@@ -137,17 +138,18 @@ struct DerivedMesh {
    */
   void (*copyVertArray)(DerivedMesh *dm, float (*r_positions)[3]);
   void (*copyEdgeArray)(DerivedMesh *dm, struct MEdge *r_edge);
-  void (*copyLoopArray)(DerivedMesh *dm, struct MLoop *r_loop);
+  void (*copyCornerVertArray)(DerivedMesh *dm, int *r_corner_verts);
+  void (*copyCornerEdgeArray)(DerivedMesh *dm, int *r_corner_edges);
   void (*copyPolyArray)(DerivedMesh *dm, struct MPoly *r_poly);
 
   /** Return a pointer to the entire array of vert/edge/face custom data
    * from the derived mesh (this gives a pointer to the actual data, not
    * a copy)
    */
-  void *(*getVertDataArray)(DerivedMesh *dm, int type);
-  void *(*getEdgeDataArray)(DerivedMesh *dm, int type);
-  void *(*getLoopDataArray)(DerivedMesh *dm, int type);
-  void *(*getPolyDataArray)(DerivedMesh *dm, int type);
+  void *(*getVertDataArray)(DerivedMesh *dm, eCustomDataType type);
+  void *(*getEdgeDataArray)(DerivedMesh *dm, eCustomDataType type);
+  void *(*getLoopDataArray)(DerivedMesh *dm, eCustomDataType type);
+  void *(*getPolyDataArray)(DerivedMesh *dm, eCustomDataType type);
 
   /** Optional grid access for subsurf */
   int (*getNumGrids)(DerivedMesh *dm);
@@ -226,10 +228,10 @@ void DM_set_only_copy(DerivedMesh *dm, const struct CustomData_MeshMasks *mask);
  * \note these return pointers - any change modifies the internals of the mesh.
  * \{ */
 
-void *DM_get_vert_data_layer(struct DerivedMesh *dm, int type);
-void *DM_get_edge_data_layer(struct DerivedMesh *dm, int type);
-void *DM_get_poly_data_layer(struct DerivedMesh *dm, int type);
-void *DM_get_loop_data_layer(struct DerivedMesh *dm, int type);
+void *DM_get_vert_data_layer(struct DerivedMesh *dm, eCustomDataType type);
+void *DM_get_edge_data_layer(struct DerivedMesh *dm, eCustomDataType type);
+void *DM_get_poly_data_layer(struct DerivedMesh *dm, eCustomDataType type);
+void *DM_get_loop_data_layer(struct DerivedMesh *dm, eCustomDataType type);
 
 /** \} */
 

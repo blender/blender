@@ -23,9 +23,7 @@ class WSFillGrid {
     _polygon_id = 0;
   }
 
-  virtual ~WSFillGrid()
-  {
-  }
+  virtual ~WSFillGrid() {}
 
   void fillGrid();
 

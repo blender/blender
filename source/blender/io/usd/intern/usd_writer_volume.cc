@@ -23,9 +23,7 @@
 
 namespace blender::io::usd {
 
-USDVolumeWriter::USDVolumeWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
-{
-}
+USDVolumeWriter::USDVolumeWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
 bool USDVolumeWriter::check_is_animated(const HierarchyContext &context) const
 {

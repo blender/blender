@@ -17,9 +17,7 @@ OIIOOutputDriver::OIIOOutputDriver(const string_view filepath,
 {
 }
 
-OIIOOutputDriver::~OIIOOutputDriver()
-{
-}
+OIIOOutputDriver::~OIIOOutputDriver() {}
 
 void OIIOOutputDriver::write_render_tile(const Tile &tile)
 {

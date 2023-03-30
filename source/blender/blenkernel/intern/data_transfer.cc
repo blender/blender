@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. All rights reserved. */
+ * Copyright 2014 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -256,7 +256,7 @@ int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type)
  * is set).
  */
 static void data_transfer_mesh_attributes_transfer_active_color_string(
-    Mesh *mesh_dst, Mesh *mesh_src, const eAttrDomainMask mask_domain, const int data_type)
+    Mesh *mesh_dst, const Mesh *mesh_src, const eAttrDomainMask mask_domain, const int data_type)
 {
   if (mesh_dst->active_color_attribute) {
     return;
@@ -264,14 +264,17 @@ static void data_transfer_mesh_attributes_transfer_active_color_string(
 
   const char *active_color_src = BKE_id_attributes_active_color_name(&mesh_src->id);
 
-  if ((data_type == CD_PROP_COLOR) &&
-      !BKE_id_attribute_search(
-          &mesh_src->id, active_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+  if ((data_type == CD_PROP_COLOR) && !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
+                                                               active_color_src,
+                                                               CD_MASK_PROP_COLOR,
+                                                               ATTR_DOMAIN_MASK_COLOR)) {
     return;
   }
   else if ((data_type == CD_PROP_BYTE_COLOR) &&
-           !BKE_id_attribute_search(
-               &mesh_src->id, active_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+           !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
+                                    active_color_src,
+                                    CD_MASK_PROP_BYTE_COLOR,
+                                    ATTR_DOMAIN_MASK_COLOR)) {
     return;
   }
 
@@ -300,7 +303,7 @@ static void data_transfer_mesh_attributes_transfer_active_color_string(
  * is set).
  */
 static void data_transfer_mesh_attributes_transfer_default_color_string(
-    Mesh *mesh_dst, Mesh *mesh_src, const eAttrDomainMask mask_domain, const int data_type)
+    Mesh *mesh_dst, const Mesh *mesh_src, const eAttrDomainMask mask_domain, const int data_type)
 {
   if (mesh_dst->default_color_attribute) {
     return;
@@ -308,15 +311,17 @@ static void data_transfer_mesh_attributes_transfer_default_color_string(
 
   const char *default_color_src = BKE_id_attributes_default_color_name(&mesh_src->id);
 
-  if ((data_type == CD_PROP_COLOR) &&
-      !BKE_id_attribute_search(
-          &mesh_src->id, default_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+  if ((data_type == CD_PROP_COLOR) && !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
+                                                               default_color_src,
+                                                               CD_MASK_PROP_COLOR,
+                                                               ATTR_DOMAIN_MASK_COLOR)) {
     return;
   }
-  else if ((data_type == CD_PROP_BYTE_COLOR) && !BKE_id_attribute_search(&mesh_src->id,
-                                                                         default_color_src,
-                                                                         CD_MASK_PROP_BYTE_COLOR,
-                                                                         ATTR_DOMAIN_MASK_COLOR)) {
+  else if ((data_type == CD_PROP_BYTE_COLOR) &&
+           !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
+                                    default_color_src,
+                                    CD_MASK_PROP_BYTE_COLOR,
+                                    ATTR_DOMAIN_MASK_COLOR)) {
     return;
   }
 
@@ -344,7 +349,7 @@ static void data_transfer_mesh_attributes_transfer_default_color_string(
 
 /* Generic pre/post processing, only used by custom loop normals currently. */
 
-static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
+static void data_transfer_dtdata_type_preprocess(const Mesh *me_src,
                                                  Mesh *me_dst,
                                                  const int dtdata_type,
                                                  const bool dirty_nors_dst)
@@ -380,7 +385,8 @@ static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
       blender::bke::mesh::normals_calc_loop(me_dst->vert_positions(),
                                             me_dst->edges(),
                                             me_dst->polys(),
-                                            me_dst->loops(),
+                                            me_dst->corner_verts(),
+                                            me_dst->corner_edges(),
                                             {},
                                             me_dst->vert_normals(),
                                             me_dst->poly_normals(),
@@ -395,10 +401,7 @@ static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
   }
 }
 
-static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
-                                                  Object * /*ob_dst*/,
-                                                  Mesh * /*me_src*/,
-                                                  Mesh *me_dst,
+static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
                                                   const int dtdata_type,
                                                   const bool changed)
 {
@@ -429,7 +432,8 @@ static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
     blender::bke::mesh::normals_loop_custom_set(me_dst->vert_positions(),
                                                 me_dst->edges(),
                                                 me_dst->polys(),
-                                                me_dst->loops(),
+                                                me_dst->corner_verts(),
+                                                me_dst->corner_edges(),
                                                 me_dst->vert_normals(),
                                                 me_dst->poly_normals(),
                                                 sharp_faces,
@@ -512,7 +516,7 @@ void data_transfer_layersmapping_add_item(ListBase *r_map,
 
   BLI_assert(data_dst != nullptr);
 
-  item->data_type = cddata_type;
+  item->data_type = eCustomDataType(cddata_type);
   item->mix_mode = mix_mode;
   item->mix_factor = mix_factor;
   item->mix_weights = mix_weights;
@@ -577,7 +581,7 @@ static void data_transfer_layersmapping_add_item_cd(ListBase *r_map,
  * according to given parameters.
  */
 static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map,
-                                                                 const int cddata_type,
+                                                                 const eCustomDataType cddata_type,
                                                                  const int mix_mode,
                                                                  const float mix_factor,
                                                                  const float *mix_weights,
@@ -726,7 +730,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
 }
 
 static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
-                                                 const int cddata_type,
+                                                 const eCustomDataType cddata_type,
                                                  const int mix_mode,
                                                  const float mix_factor,
                                                  const float *mix_weights,
@@ -852,7 +856,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
     }
   }
   else if (fromlayers == DT_LAYERS_ALL_SRC) {
-    int num_src = CustomData_number_of_layers(cd_src, cddata_type);
+    int num_src = CustomData_number_of_layers(cd_src, eCustomDataType(cddata_type));
     bool *use_layers_src = num_src ? static_cast<bool *>(MEM_mallocN(
                                          sizeof(*use_layers_src) * size_t(num_src), __func__)) :
                                      nullptr;
@@ -893,7 +897,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
 static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                  Object *ob_src,
                                                  Object *ob_dst,
-                                                 Mesh *me_src,
+                                                 const Mesh *me_src,
                                                  Mesh *me_dst,
                                                  const int elem_type,
                                                  int cddata_type,
@@ -907,7 +911,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                  const int tolayers,
                                                  SpaceTransform *space_transform)
 {
-  CustomData *cd_src, *cd_dst;
+  const CustomData *cd_src;
+  CustomData *cd_dst;
 
   cd_datatransfer_interp interp = nullptr;
   void *interp_data = nullptr;
@@ -918,7 +923,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       cd_dst = &me_dst->vdata;
 
       if (!data_transfer_layersmapping_cdlayers(r_map,
-                                                cddata_type,
+                                                eCustomDataType(cddata_type),
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,
@@ -970,7 +975,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       cd_dst = &me_dst->edata;
 
       if (!data_transfer_layersmapping_cdlayers(r_map,
-                                                cddata_type,
+                                                eCustomDataType(cddata_type),
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,
@@ -1043,7 +1048,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       cd_dst = &me_dst->ldata;
 
       if (!data_transfer_layersmapping_cdlayers(r_map,
-                                                cddata_type,
+                                                eCustomDataType(cddata_type),
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,
@@ -1074,7 +1079,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       cd_dst = &me_dst->pdata;
 
       if (!data_transfer_layersmapping_cdlayers(r_map,
-                                                cddata_type,
+                                                eCustomDataType(cddata_type),
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,
@@ -1297,7 +1302,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
 
   SpaceTransform auto_space_transform;
 
-  Mesh *me_src;
+  const Mesh *me_src;
   /* Assumed always true if not using an evaluated mesh as destination. */
   bool dirty_nors_dst = true;
 
@@ -1354,7 +1359,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   if (!me_src) {
     return changed;
   }
-  BKE_mesh_wrapper_ensure_mdata(me_src);
+  BKE_mesh_wrapper_ensure_mdata(const_cast<Mesh *>(me_src));
 
   if (auto_transform) {
     if (space_transform == nullptr) {
@@ -1563,7 +1568,8 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
       const int num_verts_dst = me_dst->totvert;
       const blender::Span<MEdge> edges_dst = me_dst->edges();
       const blender::Span<MPoly> polys_dst = me_dst->polys();
-      const blender::Span<MLoop> loops_dst = me_dst->loops();
+      const blender::Span<int> corner_verts_dst = me_dst->corner_verts();
+      const blender::Span<int> corner_edges_dst = me_dst->corner_edges();
       CustomData *ldata_dst = &me_dst->ldata;
 
       MeshRemapIslandsCalc island_callback = data_transfer_get_loop_islands_generator(cddata_type);
@@ -1571,7 +1577,8 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
       if (!geom_map_init[LDATA]) {
         const int num_loops_src = me_src->totloop;
 
-        if ((map_loop_mode == MREMAP_MODE_TOPOLOGY) && (loops_dst.size() != num_loops_src)) {
+        if ((map_loop_mode == MREMAP_MODE_TOPOLOGY) &&
+            (corner_verts_dst.size() != num_loops_src)) {
           BKE_report(reports,
                      RPT_ERROR,
                      "Source and destination meshes do not have the same amount of face corners, "
@@ -1585,7 +1592,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                      "None of the 'Edge' mappings can be used in this case");
           continue;
         }
-        if (ELEM(0, loops_dst.size(), num_loops_src)) {
+        if (ELEM(0, corner_verts_dst.size(), num_loops_src)) {
           BKE_report(
               reports,
               RPT_ERROR,
@@ -1602,8 +1609,9 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                             num_verts_dst,
                                             edges_dst.data(),
                                             edges_dst.size(),
-                                            loops_dst.data(),
-                                            loops_dst.size(),
+                                            corner_verts_dst.data(),
+                                            corner_edges_dst.data(),
+                                            corner_verts_dst.size(),
                                             polys_dst.data(),
                                             polys_dst.size(),
                                             ldata_dst,
@@ -1619,12 +1627,12 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
 
       if (mdef && vg_idx != -1 && !weights[LDATA]) {
         weights[LDATA] = static_cast<float *>(
-            MEM_mallocN(sizeof(*weights[LDATA]) * size_t(loops_dst.size()), __func__));
+            MEM_mallocN(sizeof(*weights[LDATA]) * size_t(corner_verts_dst.size()), __func__));
         BKE_defvert_extract_vgroup_to_loopweights(mdef,
                                                   vg_idx,
                                                   num_verts_dst,
-                                                  loops_dst.data(),
-                                                  loops_dst.size(),
+                                                  corner_verts_dst.data(),
+                                                  corner_verts_dst.size(),
                                                   invert_vgroup,
                                                   weights[LDATA]);
       }
@@ -1639,7 +1647,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                                mix_mode,
                                                mix_factor,
                                                weights[LDATA],
-                                               loops_dst.size(),
+                                               corner_verts_dst.size(),
                                                use_create,
                                                use_delete,
                                                fromlayers,
@@ -1661,7 +1669,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
       const float(*positions_dst)[3] = BKE_mesh_vert_positions(me_dst);
       const int num_verts_dst = me_dst->totvert;
       const blender::Span<MPoly> polys_dst = me_dst->polys();
-      const blender::Span<MLoop> loops_dst = me_dst->loops();
+      const blender::Span<int> corner_verts_dst = me_dst->corner_verts();
 
       if (!geom_map_init[PDATA]) {
         const int num_polys_src = me_src->totpoly;
@@ -1695,7 +1703,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                             me_dst,
                                             positions_dst,
                                             num_verts_dst,
-                                            loops_dst.data(),
+                                            corner_verts_dst.data(),
                                             polys_dst.data(),
                                             polys_dst.size(),
                                             me_src,
@@ -1709,8 +1717,8 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
         BKE_defvert_extract_vgroup_to_polyweights(mdef,
                                                   vg_idx,
                                                   num_verts_dst,
-                                                  loops_dst.data(),
-                                                  loops_dst.size(),
+                                                  corner_verts_dst.data(),
+                                                  corner_verts_dst.size(),
                                                   polys_dst.data(),
                                                   polys_dst.size(),
                                                   invert_vgroup,
@@ -1746,7 +1754,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
       }
     }
 
-    data_transfer_dtdata_type_postprocess(ob_src, ob_dst, me_src, me_dst, dtdata_type, changed);
+    data_transfer_dtdata_type_postprocess(me_dst, dtdata_type, changed);
   }
 
   for (int i = 0; i < DATAMAX; i++) {

@@ -12,13 +12,9 @@
 #include "GHOST_DisplayManager.h"
 #include "GHOST_Debug.h"
 
-GHOST_DisplayManager::GHOST_DisplayManager() : m_settingsInitialized(false)
-{
-}
+GHOST_DisplayManager::GHOST_DisplayManager() : m_settingsInitialized(false) {}
 
-GHOST_DisplayManager::~GHOST_DisplayManager()
-{
-}
+GHOST_DisplayManager::~GHOST_DisplayManager() {}
 
 GHOST_TSuccess GHOST_DisplayManager::initialize()
 {

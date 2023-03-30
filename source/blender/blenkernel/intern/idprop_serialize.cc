@@ -102,9 +102,7 @@ struct DictionaryEntryParser {
   const DictionaryValue::Lookup lookup;
 
  public:
-  explicit DictionaryEntryParser(const DictionaryValue &value) : lookup(value.create_lookup())
-  {
-  }
+  explicit DictionaryEntryParser(const DictionaryValue &value) : lookup(value.create_lookup()) {}
 
   std::optional<eIDPropertyType> get_type() const
   {

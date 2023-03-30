@@ -181,7 +181,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
       BKE_mesh_calc_relative_deform(
           BKE_mesh_polys(me),
           me->totpoly,
-          BKE_mesh_loops(me),
+          BKE_mesh_corner_verts(me),
           me->totvert,
           BKE_mesh_vert_positions(me),       /* From the original Mesh. */
           (const float(*)[3])vertexCos_Real, /* the input we've been given (shape keys!) */

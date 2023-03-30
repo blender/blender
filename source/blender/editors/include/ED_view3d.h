@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup editors
@@ -1327,6 +1327,14 @@ void ED_view3d_shade_update(struct Main *bmain, struct View3D *v3d, struct ScrAr
 #define XRAY_FLAG_ENABLED(v3d) SHADING_XRAY_FLAG_ENABLED((v3d)->shading)
 #define XRAY_ENABLED(v3d) SHADING_XRAY_ENABLED((v3d)->shading)
 #define XRAY_ACTIVE(v3d) SHADING_XRAY_ACTIVE((v3d)->shading)
+
+#define OVERLAY_RETOPOLOGY_ENABLED(overlay) \
+  (((overlay).edit_flag & V3D_OVERLAY_EDIT_RETOPOLOGY) != 0)
+#define OVERLAY_RETOPOLOGY_OFFSET(overlay) \
+  (OVERLAY_RETOPOLOGY_ENABLED(overlay) ? max_ff((overlay).retopology_offset, FLT_EPSILON) : 0.0f)
+
+#define RETOPOLOGY_ENABLED(v3d) (OVERLAY_RETOPOLOGY_ENABLED((v3d)->overlay))
+#define RETOPOLOGY_OFFSET(v3d) (OVERLAY_RETOPOLOGY_OFFSET((v3d)->overlay))
 
 /* view3d_draw_legacy.c */
 

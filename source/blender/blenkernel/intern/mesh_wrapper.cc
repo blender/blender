@@ -7,7 +7,7 @@
  * output of a modified mesh.
  *
  * This API handles the case when the modifier stack outputs a mesh which does not have
- * #Mesh data (#MPoly, #MLoop, #MEdge, etc).
+ * #Mesh data (#MPoly, corner verts, corner edges, #MEdge, etc).
  * Currently this is used so the resulting mesh can have #BMEditMesh data,
  * postponing the converting until it's needed or avoiding conversion entirely
  * which can be an expensive operation.

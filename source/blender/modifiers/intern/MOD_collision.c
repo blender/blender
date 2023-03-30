@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup modifiers
@@ -159,11 +159,11 @@ static void deformVerts(ModifierData *md,
       collmd->mvert_num = mvert_num;
 
       {
-        const MLoop *mloop = BKE_mesh_loops(mesh_src);
         const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh_src);
         collmd->tri_num = BKE_mesh_runtime_looptri_len(mesh_src);
         MVertTri *tri = MEM_mallocN(sizeof(*tri) * collmd->tri_num, __func__);
-        BKE_mesh_runtime_verttri_from_looptri(tri, mloop, looptri, collmd->tri_num);
+        BKE_mesh_runtime_verttri_from_looptri(
+            tri, BKE_mesh_corner_verts(mesh_src), looptri, collmd->tri_num);
         collmd->tri = tri;
       }
 

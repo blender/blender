@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -8,6 +8,7 @@
 #include "vk_command_buffer.hh"
 #include "vk_buffer.hh"
 #include "vk_context.hh"
+#include "vk_framebuffer.hh"
 #include "vk_memory.hh"
 #include "vk_pipeline.hh"
 #include "vk_texture.hh"
@@ -32,6 +33,7 @@ void VKCommandBuffer::init(const VkDevice vk_device,
   vk_device_ = vk_device;
   vk_queue_ = vk_queue;
   vk_command_buffer_ = vk_command_buffer;
+  submission_id_.reset();
 
   if (vk_fence_ == VK_NULL_HANDLE) {
     VK_ALLOCATION_CALLBACKS;
@@ -72,6 +74,21 @@ void VKCommandBuffer::bind(const VKDescriptorSet &descriptor_set,
       vk_command_buffer_, bind_point, vk_pipeline_layout, 0, 1, &vk_descriptor_set, 0, 0);
 }
 
+void VKCommandBuffer::begin_render_pass(const VKFrameBuffer &framebuffer)
+{
+  VkRenderPassBeginInfo render_pass_begin_info = {};
+  render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+  render_pass_begin_info.renderPass = framebuffer.vk_render_pass_get();
+  render_pass_begin_info.framebuffer = framebuffer.vk_framebuffer_get();
+  render_pass_begin_info.renderArea = framebuffer.vk_render_area_get();
+  vkCmdBeginRenderPass(vk_command_buffer_, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
+}
+
+void VKCommandBuffer::end_render_pass(const VKFrameBuffer & /*framebuffer*/)
+{
+  vkCmdEndRenderPass(vk_command_buffer_);
+}
+
 void VKCommandBuffer::push_constants(const VKPushConstants &push_constants,
                                      const VkPipelineLayout vk_pipeline_layout,
                                      const VkShaderStageFlags vk_shader_stages)
@@ -97,10 +114,40 @@ void VKCommandBuffer::copy(VKBuffer &dst_buffer,
 {
   vkCmdCopyImageToBuffer(vk_command_buffer_,
                          src_texture.vk_image_handle(),
-                         VK_IMAGE_LAYOUT_GENERAL,
+                         src_texture.current_layout_get(),
                          dst_buffer.vk_handle(),
                          regions.size(),
                          regions.data());
+}
+void VKCommandBuffer::copy(VKTexture &dst_texture,
+                           VKBuffer &src_buffer,
+                           Span<VkBufferImageCopy> regions)
+{
+  vkCmdCopyBufferToImage(vk_command_buffer_,
+                         src_buffer.vk_handle(),
+                         dst_texture.vk_image_handle(),
+                         dst_texture.current_layout_get(),
+                         regions.size(),
+                         regions.data());
+}
+
+void VKCommandBuffer::clear(VkImage vk_image,
+                            VkImageLayout vk_image_layout,
+                            const VkClearColorValue &vk_clear_color,
+                            Span<VkImageSubresourceRange> ranges)
+{
+  vkCmdClearColorImage(vk_command_buffer_,
+                       vk_image,
+                       vk_image_layout,
+                       &vk_clear_color,
+                       ranges.size(),
+                       ranges.data());
+}
+
+void VKCommandBuffer::clear(Span<VkClearAttachment> attachments, Span<VkClearRect> areas)
+{
+  vkCmdClearAttachments(
+      vk_command_buffer_, attachments.size(), attachments.data(), areas.size(), areas.data());
 }
 
 void VKCommandBuffer::pipeline_barrier(VkPipelineStageFlags source_stages,
@@ -160,6 +207,7 @@ void VKCommandBuffer::submit_encoded_commands()
   submit_info.pCommandBuffers = &vk_command_buffer_;
 
   vkQueueSubmit(vk_queue_, 1, &submit_info, vk_fence_);
+  submission_id_.next();
 }
 
 }  // namespace blender::gpu

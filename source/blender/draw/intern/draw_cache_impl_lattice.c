@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+ * Copyright 2017 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -400,6 +400,7 @@ static GPUIndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata,
     else {
       BLI_assert(edge_len_real == edge_len);
     }
+    UNUSED_VARS_NDEBUG(edge_len_real);
 
     cache->edges = GPU_indexbuf_build(&elb);
   }

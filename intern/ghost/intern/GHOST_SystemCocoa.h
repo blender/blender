@@ -193,6 +193,8 @@ class GHOST_SystemCocoa : public GHOST_System {
    */
   GHOST_TSuccess getButtons(GHOST_Buttons &buttons) const;
 
+  GHOST_TCapabilityFlag getCapabilities() const;
+
   /**
    * Returns Clipboard data
    * \param selection: Indicate which buffer to return.

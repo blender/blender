@@ -381,7 +381,7 @@ void StereoProjection(float left,
 class Application : public GHOST_IEventConsumer {
  public:
   Application(GHOST_ISystem *system);
-  ~Application(void);
+  ~Application();
   virtual bool processEvent(GHOST_IEvent *event);
 
   GHOST_ISystem *m_system;
@@ -431,7 +431,7 @@ Application::Application(GHOST_ISystem *system)
   m_gearsTimer = system->installTimer(0 /*delay*/, 20 /*interval*/, gearsTimerProc, m_mainWindow);
 }
 
-Application::~Application(void)
+Application::~Application()
 {
   // Dispose windows
   if (m_system->validWindow(m_mainWindow)) {

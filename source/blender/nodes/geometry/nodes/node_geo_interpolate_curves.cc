@@ -74,9 +74,9 @@ static Map<int, int> compute_points_per_curve_by_group(
   const OffsetIndices points_by_curve = guide_curves.points_by_curve();
   Map<int, int> points_per_curve_by_group;
   for (const auto &[group, guide_curve_indices] : guides_by_group.items()) {
-    int group_control_points = points_by_curve.size(guide_curve_indices[0]);
+    int group_control_points = points_by_curve[guide_curve_indices[0]].size();
     for (const int guide_curve_i : guide_curve_indices.as_span().drop_front(1)) {
-      const int control_points = points_by_curve.size(guide_curve_i);
+      const int control_points = points_by_curve[guide_curve_i].size();
       if (group_control_points != control_points) {
         group_control_points = -1;
         break;
@@ -260,7 +260,7 @@ static void compute_point_counts_per_child(const bke::CurvesGeometry &guide_curv
       for (const int neighbor_i : IndexRange(neighbor_count)) {
         const int neighbor_index = neighbor_indices[neighbor_i];
         const float neighbor_weight = neighbor_weights[neighbor_i];
-        const int neighbor_points = guide_points_by_curve.size(neighbor_index);
+        const int neighbor_points = guide_points_by_curve[neighbor_index].size();
         neighbor_points_weighted_sum += neighbor_weight * float(neighbor_points);
       }
       const int points_in_child = std::max<int>(1, roundf(neighbor_points_weighted_sum));
@@ -282,7 +282,7 @@ static void parameterize_guide_curves(const bke::CurvesGeometry &guide_curves,
   threading::parallel_for(guide_curves.curves_range(), 1024, [&](const IndexRange range) {
     for (const int guide_curve_i : range) {
       r_parameterized_guide_offsets[guide_curve_i] = length_parameterize::segments_num(
-          guide_points_by_curve.size(guide_curve_i), false);
+          guide_points_by_curve[guide_curve_i].size(), false);
     }
   });
   offset_indices::accumulate_counts_to_offsets(r_parameterized_guide_offsets);

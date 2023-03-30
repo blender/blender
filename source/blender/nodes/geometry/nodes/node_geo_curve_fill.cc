@@ -83,7 +83,7 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
+  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   for (const int i : IndexRange(result.vert.size())) {
     positions[i] = float3(float(result.vert[i].x), float(result.vert[i].y), 0.0f);
@@ -97,7 +97,7 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
     polys[i].loopstart = i_loop;
     polys[i].totloop = result.face[i].size();
     for (const int j : result.face[i].index_range()) {
-      loops[i_loop].v = result.face[i][j];
+      corner_verts[i_loop] = result.face[i][j];
       i_loop++;
     }
   }

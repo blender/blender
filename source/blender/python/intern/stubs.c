@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup pythonintern
@@ -25,13 +25,9 @@ void BPY_pyconstraint_exec(struct bPythonConstraint *con,
                            struct ListBase *targets)
 {
 }
-void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct)
-{
-}
+void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct) {}
 bool BPY_is_pyconstraint(struct Text *text)
 {
   return 0;
 }
-void BPY_pyconstraint_update(struct Object *owner, struct bConstraint *con)
-{
-}
+void BPY_pyconstraint_update(struct Object *owner, struct bConstraint *con) {}

@@ -1,11 +1,13 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spview3d
  */
 
 #pragma once
+
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,6 +30,7 @@ struct View3D;
 struct bContext;
 struct rcti;
 struct wmEvent;
+struct wmOperator;
 
 enum eV3D_OpPropFlag {
   V3D_OP_PROP_MOUSE_CO = (1 << 0),
@@ -55,6 +58,7 @@ enum {
 };
 
 enum eViewOpsFlag {
+  VIEWOPS_FLAG_NONE = 0,
   /** When enabled, rotate around the selection. */
   VIEWOPS_FLAG_ORBIT_SELECT = (1 << 0),
   /** When enabled, use the depth under the cursor for navigation. */
@@ -68,6 +72,7 @@ enum eViewOpsFlag {
   /** When set, ignore any options that depend on initial cursor location. */
   VIEWOPS_FLAG_USE_MOUSE_INIT = (1 << 3),
 };
+ENUM_OPERATORS(eViewOpsFlag, VIEWOPS_FLAG_USE_MOUSE_INIT);
 
 /** Generic View Operator Custom-Data */
 typedef struct ViewOpsData {
@@ -148,11 +153,13 @@ typedef struct ViewOpsData {
   bool use_dyn_ofs;
 } ViewOpsData;
 
-/* view3d_navigate.c */
+/* view3d_navigate.cc */
 
 bool view3d_location_poll(struct bContext *C);
 bool view3d_rotation_poll(struct bContext *C);
 bool view3d_zoom_or_dolly_poll(struct bContext *C);
+
+void view3d_navigate_cancel_fn(struct bContext *C, struct wmOperator *op);
 
 enum eViewOpsFlag viewops_flag_from_prefs(void);
 void calctrackballvec(const struct rcti *rect, const int event_xy[2], float r_dir[3]);

@@ -94,9 +94,7 @@
 #define TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH (UI_UNIT_X * 6)
 #define TEMPLATE_SEARCH_TEXTBUT_HEIGHT UI_UNIT_Y
 
-void UI_template_fix_linking(void)
-{
-}
+void UI_template_fix_linking(void) {}
 
 /* -------------------------------------------------------------------- */
 /** \name Header Template
@@ -574,9 +572,6 @@ static uiBlock *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
 
 static void template_id_cb(bContext *C, void *arg_litem, void *arg_event);
 
-/**
- * This is for browsing and editing the ID-blocks used.
- */
 void UI_context_active_but_prop_get_templateID(bContext *C,
                                                PointerRNA *r_ptr,
                                                PropertyRNA **r_prop)
@@ -6123,6 +6118,8 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
   ScrArea *area = CTX_wm_area(C);
   void *owner = nullptr;
   int handle_event, icon = 0;
+  const char *op_name = nullptr;
+  const char *op_description = nullptr;
 
   uiBlock *block = uiLayoutGetBlock(layout);
   UI_block_layout_set_current(block, layout);
@@ -6184,6 +6181,10 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
     if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER)) {
       handle_event = B_STOPRENDER;
       icon = ICON_SCENE;
+      if (U.render_display_type != USER_RENDER_DISPLAY_NONE) {
+        op_name = "RENDER_OT_view_show";
+        op_description = "Show the render window";
+      }
       break;
     }
     if (WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE)) {
@@ -6240,12 +6241,26 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 
     const char *name = active ? WM_jobs_name(wm, owner) : "Canceling...";
 
-    /* job name and icon */
+    /* job icon as a button */
+    if (op_name) {
+      uiDefIconButO(block,
+                    UI_BTYPE_BUT,
+                    op_name,
+                    WM_OP_INVOKE_DEFAULT,
+                    icon,
+                    0,
+                    0,
+                    UI_UNIT_X,
+                    UI_UNIT_Y,
+                    TIP_(op_description));
+    }
+
+    /* job name and icon if not previously set */
     const int textwidth = UI_fontstyle_string_width(fstyle, name);
     uiDefIconTextBut(block,
                      UI_BTYPE_LABEL,
                      0,
-                     icon,
+                     op_name ? 0 : icon,
                      name,
                      0,
                      0,

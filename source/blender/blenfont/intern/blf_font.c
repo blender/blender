@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup blf
@@ -1348,9 +1348,6 @@ static void blf_font_fill(FontBLF *font)
   font->buf_info.col_init[3] = 0;
 }
 
-/**
- * Create an FT_Face for this font if not already existing.
- */
 bool blf_ensure_face(FontBLF *font)
 {
   if (font->face) {
@@ -1479,7 +1476,7 @@ struct FaceDetails {
 /* Details about the fallback fonts we ship, so that we can load only when needed. */
 static const struct FaceDetails static_face_details[] = {
     {"lastresort.woff2", UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX},
-    {"Noto Sans CJK Regular.woff2", 0x30000083L, 0x2BDF3C10L, 0x16L, 0},
+    {"Noto Sans CJK Regular.woff2", 0x30000083L, 0x29DF3C10L, 0x16L, 0},
     {"NotoEmoji-VariableFont_wght.woff2", 0x80000003L, 0x241E4ACL, 0x14000000L, 0x4000000L},
     {"NotoSansArabic-VariableFont_wdth,wght.woff2",
      TT_UCR_ARABIC,
@@ -1506,11 +1503,6 @@ static const struct FaceDetails static_face_details[] = {
     {"NotoSansThai-VariableFont_wdth,wght.woff2", TT_UCR_THAI, 0, 0, 0},
 };
 
-/**
- * Create a new font from filename OR memory pointer.
- * For normal operation pass NULL as FT_Library object. Pass a custom FT_Library if you
- * want to use the font without its lifetime being managed by the FreeType cache subsystem.
- */
 FontBLF *blf_font_new_ex(const char *name,
                          const char *filepath,
                          const uchar *mem,

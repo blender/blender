@@ -50,9 +50,7 @@ class FrsMaterial {
   inline FrsMaterial(const FrsMaterial &m);
 
   /** Destructor */
-  virtual ~FrsMaterial()
-  {
-  }
+  virtual ~FrsMaterial() {}
 
   /** Returns the line color as a 4 float array */
   inline const float *line() const

@@ -108,9 +108,7 @@ class BlendFile : public AbstractFile {
   StringRefNull file_path_;
 
  public:
-  BlendFile(StringRefNull file_path) : file_path_(file_path)
-  {
-  }
+  BlendFile(StringRefNull file_path) : file_path_(file_path) {}
 
   uint64_t hash() const
   {
@@ -147,9 +145,7 @@ struct AssetEntryReader {
   }
 
  public:
-  AssetEntryReader(const DictionaryValue &entry) : lookup(entry.create_lookup())
-  {
-  }
+  AssetEntryReader(const DictionaryValue &entry) : lookup(entry.create_lookup()) {}
 
   ID_Type get_idcode() const
   {
@@ -251,9 +247,7 @@ struct AssetEntryWriter {
   DictionaryValue::Items &attributes;
 
  public:
-  AssetEntryWriter(DictionaryValue &entry) : attributes(entry.elements())
-  {
-  }
+  AssetEntryWriter(DictionaryValue &entry) : attributes(entry.elements()) {}
 
   /**
    * \brief add id + name to the attributes.
@@ -674,9 +668,7 @@ struct AssetIndex {
    * Constructor when reading an asset index file.
    * #AssetIndex.contents are read from the given \p value.
    */
-  AssetIndex(std::unique_ptr<Value> &value) : contents(std::move(value))
-  {
-  }
+  AssetIndex(std::unique_ptr<Value> &value) : contents(std::move(value)) {}
 
   int get_version() const
   {

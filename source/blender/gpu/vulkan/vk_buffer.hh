@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -10,9 +10,9 @@
 #include "gpu_context_private.hh"
 
 #include "vk_common.hh"
-#include "vk_context.hh"
 
 namespace blender::gpu {
+class VKContext;
 
 /**
  * Class for handing vulkan buffers (allocation/updating/binding).

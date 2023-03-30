@@ -66,7 +66,6 @@ static Scene *scene_add(Main *bmain, Scene *scene_old, eSceneCopyMethod method)
   return scene_new;
 }
 
-/** Add a new scene in the sequence editor. */
 Scene *ED_scene_sequencer_add(Main *bmain,
                               bContext *C,
                               eSceneCopyMethod method,

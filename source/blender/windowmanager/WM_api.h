@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 #pragma once
 
 /** \file
@@ -129,6 +129,11 @@ typedef enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_CURSOR_WARP = (1 << 0),
   /** Ability to access window positions & move them. */
   WM_CAPABILITY_WINDOW_POSITION = (1 << 1),
+  /**
+   * The windowing system supports a separate primary clipboard
+   * (typically set when interactively selecting text).
+   */
+  WM_CAPABILITY_PRIMARY_CLIPBOARD = (1 << 2),
 } eWM_CapabilitiesFlag;
 
 eWM_CapabilitiesFlag WM_capabilities_flag(void);
@@ -1662,7 +1667,16 @@ char WM_event_utf8_to_ascii(const struct wmEvent *event) ATTR_NONNULL(1) ATTR_WA
  */
 bool WM_cursor_test_motion_and_update(const int mval[2]) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
+/**
+ * Return true if this event type is a candidate for being flagged as consecutive.
+ *
+ * See: #WM_EVENT_IS_CONSECUTIVE doc-string.
+ */
 bool WM_event_consecutive_gesture_test(const wmEvent *event);
+/**
+ * Return true if this event should break the chain of consecutive gestures.
+ * Practically all intentional user input should, key presses or button clicks.
+ */
 bool WM_event_consecutive_gesture_test_break(const wmWindow *win, const wmEvent *event);
 
 int WM_event_drag_threshold(const struct wmEvent *event);

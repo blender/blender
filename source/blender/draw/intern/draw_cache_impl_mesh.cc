@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+ * Copyright 2017 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -575,15 +575,13 @@ static bool mesh_batch_cache_valid(Object *object, Mesh *me)
 
 static void mesh_batch_cache_init(Object *object, Mesh *me)
 {
-  MeshBatchCache *cache = static_cast<MeshBatchCache *>(me->runtime->batch_cache);
-
-  if (!cache) {
-    me->runtime->batch_cache = MEM_cnew<MeshBatchCache>(__func__);
-    cache = static_cast<MeshBatchCache *>(me->runtime->batch_cache);
+  if (!me->runtime->batch_cache) {
+    me->runtime->batch_cache = MEM_new<MeshBatchCache>(__func__);
   }
   else {
-    memset(cache, 0, sizeof(*cache));
+    *static_cast<MeshBatchCache *>(me->runtime->batch_cache) = {};
   }
+  MeshBatchCache *cache = static_cast<MeshBatchCache *>(me->runtime->batch_cache);
 
   cache->is_editmode = me->edit_mesh != nullptr;
 
@@ -798,14 +796,8 @@ static void mesh_buffer_cache_clear(MeshBufferCache *mbc)
 {
   mesh_buffer_list_clear(&mbc->buff);
 
-  MEM_SAFE_FREE(mbc->loose_geom.verts);
-  MEM_SAFE_FREE(mbc->loose_geom.edges);
-  mbc->loose_geom.edge_len = 0;
-  mbc->loose_geom.vert_len = 0;
-
-  MEM_SAFE_FREE(mbc->poly_sorted.tri_first_index);
-  MEM_SAFE_FREE(mbc->poly_sorted.mat_tri_len);
-  mbc->poly_sorted.visible_tri_len = 0;
+  mbc->loose_geom = {};
+  mbc->poly_sorted = {};
 }
 
 static void mesh_batch_cache_free_subdiv_cache(MeshBatchCache *cache)
@@ -846,10 +838,9 @@ static void mesh_batch_cache_clear(MeshBatchCache *cache)
 
 void DRW_mesh_batch_cache_free(void *batch_cache)
 {
-  if (batch_cache) {
-    mesh_batch_cache_clear(static_cast<MeshBatchCache *>(batch_cache));
-    MEM_freeN(batch_cache);
-  }
+  MeshBatchCache *cache = static_cast<MeshBatchCache *>(batch_cache);
+  mesh_batch_cache_clear(cache);
+  MEM_delete(cache);
 }
 
 /** \} */

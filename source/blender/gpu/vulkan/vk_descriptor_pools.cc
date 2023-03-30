@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -9,9 +9,7 @@
 #include "vk_memory.hh"
 
 namespace blender::gpu {
-VKDescriptorPools::VKDescriptorPools()
-{
-}
+VKDescriptorPools::VKDescriptorPools() {}
 
 VKDescriptorPools::~VKDescriptorPools()
 {
@@ -80,7 +78,8 @@ bool VKDescriptorPools::is_last_pool_active()
   return active_pool_index_ == pools_.size() - 1;
 }
 
-VKDescriptorSet VKDescriptorPools::allocate(const VkDescriptorSetLayout &descriptor_set_layout)
+std::unique_ptr<VKDescriptorSet> VKDescriptorPools::allocate(
+    const VkDescriptorSetLayout &descriptor_set_layout)
 {
   VkDescriptorSetAllocateInfo allocate_info = {};
   VkDescriptorPool pool = active_pool_get();
@@ -102,7 +101,7 @@ VKDescriptorSet VKDescriptorPools::allocate(const VkDescriptorSetLayout &descrip
     return allocate(descriptor_set_layout);
   }
 
-  return VKDescriptorSet(pool, vk_descriptor_set);
+  return std::make_unique<VKDescriptorSet>(pool, vk_descriptor_set);
 }
 
 void VKDescriptorPools::free(VKDescriptorSet &descriptor_set)

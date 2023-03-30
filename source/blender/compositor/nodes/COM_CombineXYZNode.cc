@@ -7,9 +7,7 @@
 
 namespace blender::compositor {
 
-CombineXYZNode::CombineXYZNode(bNode *editor_node) : Node(editor_node)
-{
-}
+CombineXYZNode::CombineXYZNode(bNode *editor_node) : Node(editor_node) {}
 
 void CombineXYZNode::convert_to_operations(NodeConverter &converter,
                                            const CompositorContext & /*context*/) const

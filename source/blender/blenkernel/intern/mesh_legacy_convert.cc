@@ -209,18 +209,18 @@ void BKE_mesh_calc_edges_legacy(Mesh *me)
   const Span<MVert> verts(static_cast<const MVert *>(CustomData_get_layer(&me->vdata, CD_MVERT)),
                           me->totvert);
   const Span<MPoly> polys = me->polys();
-  MutableSpan<MLoop> loops = me->loops_for_write();
 
-  mesh_calc_edges_mdata(verts.data(),
-                        (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE),
-                        loops.data(),
-                        polys.data(),
-                        verts.size(),
-                        me->totface,
-                        loops.size(),
-                        polys.size(),
-                        &edges,
-                        &totedge);
+  mesh_calc_edges_mdata(
+      verts.data(),
+      (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE),
+      static_cast<MLoop *>(CustomData_get_layer_for_write(&me->ldata, CD_MLOOP, me->totloop)),
+      polys.data(),
+      verts.size(),
+      me->totface,
+      me->totloop,
+      polys.size(),
+      &edges,
+      &totedge);
 
   if (totedge == 0) {
     /* flag that mesh has edges */
@@ -705,6 +705,7 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
                            &mesh->totpoly);
 
   mesh_ensure_tessellation_customdata(mesh);
+  BKE_mesh_legacy_convert_loops_to_corners(mesh);
 }
 
 /**
@@ -964,7 +965,6 @@ static int mesh_tessface_calc(Mesh &mesh,
   const int looptri_num = poly_to_tri_count(totpoly, totloop);
 
   const MPoly *poly, *mpoly;
-  const MLoop *ml, *mloop;
   MFace *mface, *mf;
   MemArena *arena = nullptr;
   int *mface_to_poly_map;
@@ -973,7 +973,7 @@ static int mesh_tessface_calc(Mesh &mesh,
   uint j;
 
   mpoly = (const MPoly *)CustomData_get_layer(pdata, CD_MPOLY);
-  mloop = (const MLoop *)CustomData_get_layer(ldata, CD_MLOOP);
+  const Span<int> corner_verts = mesh.corner_verts();
   const int *material_indices = static_cast<const int *>(
       CustomData_get_layer_named(pdata, CD_PROP_INT32, "material_index"));
   const bool *sharp_faces = static_cast<const bool *>(
@@ -1008,9 +1008,9 @@ static int mesh_tessface_calc(Mesh &mesh,
     l1 = mp_loopstart + i1; \
     l2 = mp_loopstart + i2; \
     l3 = mp_loopstart + i3; \
-    mf->v1 = mloop[l1].v; \
-    mf->v2 = mloop[l2].v; \
-    mf->v3 = mloop[l3].v; \
+    mf->v1 = corner_verts[l1]; \
+    mf->v2 = corner_verts[l2]; \
+    mf->v3 = corner_verts[l3]; \
     mf->v4 = 0; \
     lidx[0] = l1; \
     lidx[1] = l2; \
@@ -1031,10 +1031,10 @@ static int mesh_tessface_calc(Mesh &mesh,
     l2 = mp_loopstart + 1; /* EXCEPTION */ \
     l3 = mp_loopstart + 2; /* EXCEPTION */ \
     l4 = mp_loopstart + 3; /* EXCEPTION */ \
-    mf->v1 = mloop[l1].v; \
-    mf->v2 = mloop[l2].v; \
-    mf->v3 = mloop[l3].v; \
-    mf->v4 = mloop[l4].v; \
+    mf->v1 = corner_verts[l1]; \
+    mf->v2 = corner_verts[l2]; \
+    mf->v3 = corner_verts[l3]; \
+    mf->v4 = corner_verts[l4]; \
     lidx[0] = l1; \
     lidx[1] = l2; \
     lidx[2] = l3; \
@@ -1081,10 +1081,10 @@ static int mesh_tessface_calc(Mesh &mesh,
       zero_v3(normal);
 
       /* Calculate the normal, flipped: to get a positive 2D cross product. */
-      ml = mloop + mp_loopstart;
-      co_prev = positions[ml[mp_totloop - 1].v];
-      for (j = 0; j < mp_totloop; j++, ml++) {
-        co_curr = positions[ml->v];
+      co_prev = positions[corner_verts[mp_loopstart + mp_totloop - 1]];
+      for (j = 0; j < mp_totloop; j++) {
+        const int vert = corner_verts[mp_loopstart + j];
+        co_curr = positions[vert];
         add_newell_cross_v3_v3v3(normal, co_prev, co_curr);
         co_prev = co_curr;
       }
@@ -1095,9 +1095,9 @@ static int mesh_tessface_calc(Mesh &mesh,
       /* Project verts to 2D. */
       axis_dominant_v3_to_m3_negate(axis_mat, normal);
 
-      ml = mloop + mp_loopstart;
-      for (j = 0; j < mp_totloop; j++, ml++) {
-        mul_v2_m3v3(projverts[j], axis_mat, positions[ml->v]);
+      for (j = 0; j < mp_totloop; j++) {
+        const int vert = corner_verts[mp_loopstart + j];
+        mul_v2_m3v3(projverts[j], axis_mat, positions[vert]);
       }
 
       BLI_polyfill_calc_arena(projverts, mp_totloop, 1, tris, arena);
@@ -1115,9 +1115,9 @@ static int mesh_tessface_calc(Mesh &mesh,
         l2 = mp_loopstart + tri[1];
         l3 = mp_loopstart + tri[2];
 
-        mf->v1 = mloop[l1].v;
-        mf->v2 = mloop[l2].v;
-        mf->v3 = mloop[l3].v;
+        mf->v1 = corner_verts[l1];
+        mf->v2 = corner_verts[l2];
+        mf->v3 = corner_verts[l3];
         mf->v4 = 0;
 
         lidx[0] = l1;
@@ -2135,6 +2135,64 @@ void BKE_mesh_legacy_attribute_strings_to_flags(Mesh *mesh)
       ldata->layers[i].flag |= CD_FLAG_COLOR_RENDER;
     }
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Face Corner Conversion
+ * \{ */
+
+MLoop *BKE_mesh_legacy_convert_corners_to_loops(
+    Mesh *mesh,
+    blender::ResourceScope &temp_arrays_for_convert,
+    blender::Vector<CustomDataLayer, 16> &loop_layers_to_write)
+{
+  using namespace blender;
+  const Span<int> corner_verts = mesh->corner_verts();
+  const Span<int> corner_edges = mesh->corner_edges();
+
+  CustomDataLayer mloop_layer{};
+  mloop_layer.type = CD_MLOOP;
+  MutableSpan<MLoop> loops = temp_arrays_for_convert.construct<Array<MLoop>>(mesh->totloop);
+  mloop_layer.data = loops.data();
+
+  threading::parallel_for(loops.index_range(), 2048, [&](IndexRange range) {
+    for (const int i : range) {
+      loops[i].v = corner_verts[i];
+      loops[i].e = corner_edges[i];
+    }
+  });
+
+  loop_layers_to_write.append(mloop_layer);
+  return loops.data();
+}
+
+void BKE_mesh_legacy_convert_loops_to_corners(Mesh *mesh)
+{
+  using namespace blender;
+  if (CustomData_get_layer_named(&mesh->ldata, CD_PROP_INT32, ".corner_vert") &&
+      CustomData_get_layer_named(&mesh->ldata, CD_PROP_INT32, ".corner_edge")) {
+    return;
+  }
+  const Span<MLoop> loops(static_cast<const MLoop *>(CustomData_get_layer(&mesh->ldata, CD_MLOOP)),
+                          mesh->totloop);
+  MutableSpan<int> corner_verts(
+      static_cast<int *>(CustomData_add_layer_named(
+          &mesh->ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh->totloop, ".corner_vert")),
+      mesh->totloop);
+  MutableSpan<int> corner_edges(
+      static_cast<int *>(CustomData_add_layer_named(
+          &mesh->ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh->totloop, ".corner_edge")),
+      mesh->totloop);
+  threading::parallel_for(loops.index_range(), 2048, [&](IndexRange range) {
+    for (const int i : range) {
+      corner_verts[i] = loops[i].v;
+      corner_edges[i] = loops[i].e;
+    }
+  });
+
+  CustomData_free_layers(&mesh->ldata, CD_MLOOP, mesh->totloop);
 }
 
 /** \} */

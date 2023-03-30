@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup cmpnodes
@@ -135,7 +135,7 @@ void register_node_type_cmp_valtorgb()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, CMP_NODE_VALTORGB, "Color Ramp", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_valtorgb_declare;
   node_type_size(&ntype, 240, 200, 320);
   ntype.initfunc = file_ns::node_composit_init_valtorgb;

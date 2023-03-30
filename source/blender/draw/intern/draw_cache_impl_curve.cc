@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+ * Copyright 2017 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -111,7 +111,7 @@ static void curve_eval_render_wire_verts_edges_len_get(const blender::bke::Curve
   *r_vert_len = points_by_curve.total_size();
   *r_edge_len = 0;
   for (const int i : curves.curves_range()) {
-    *r_edge_len += blender::bke::curves::segments_num(points_by_curve.size(i), cyclic[i]);
+    *r_edge_len += blender::bke::curves::segments_num(points_by_curve[i].size(), cyclic[i]);
   }
 }
 

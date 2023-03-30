@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+ * Copyright 2012 Blender Foundation */
 
 /** \file
  * \ingroup imbuf
@@ -73,6 +73,7 @@ static int global_tot_view = 0;
 static int global_tot_looks = 0;
 
 /* Luma coefficients and XYZ to RGB to be initialized by OCIO. */
+
 float imbuf_luma_coefficients[3] = {0.0f};
 float imbuf_scene_linear_to_xyz[3][3] = {{0.0f}};
 float imbuf_xyz_to_scene_linear[3][3] = {{0.0f}};
@@ -1416,7 +1417,7 @@ bool IMB_colormanagement_space_name_is_srgb(const char *name)
   return (colorspace && IMB_colormanagement_space_is_srgb(colorspace));
 }
 
-const float *IMB_colormanagement_get_xyz_to_scene_linear()
+const float *IMB_colormanagement_get_xyz_to_scene_linear(void)
 {
   return &imbuf_xyz_to_scene_linear[0][0];
 }

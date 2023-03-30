@@ -1545,7 +1545,9 @@ static bool ui_but_event_property_operator_string(const bContext *C,
 
 /** \} */
 
-/**
+/* -------------------------------------------------------------------- */
+/** \name Pie Menu Direction
+ *
  * This goes in a seemingly weird pattern:
  *
  * <pre>
@@ -1569,7 +1571,8 @@ static bool ui_but_event_property_operator_string(const bContext *C,
  * subdividing the rest of the angles for the last 4 items.
  *
  * --Matt 07/2006
- */
+ * \{ */
+
 const char ui_radial_dir_order[8] = {
     UI_RADIAL_W,
     UI_RADIAL_E,
@@ -1589,6 +1592,8 @@ static void ui_but_pie_direction_string(uiBut *but, char *buf, int size)
   BLI_assert(but->pie_dir < ARRAY_SIZE(ui_radial_dir_to_numpad));
   BLI_snprintf(buf, size, "%d", ui_radial_dir_to_numpad[but->pie_dir]);
 }
+
+/** \} */
 
 static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 {
@@ -2017,6 +2022,12 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
     case UI_BLOCK_BOUNDS_POPUP_MENU:
       ui_block_bounds_calc_popup(window, block, block->bounds_type, xy, r_xy);
       break;
+  }
+
+  /* Update bounds of all views in this block. If this block is a panel, this will be done later in
+   * #UI_panels_end(), because buttons are offset there. */
+  if (!block->panel) {
+    ui_block_views_bounds_calc(block);
   }
 
   if (block->rect.xmin == 0.0f && block->rect.xmax == 0.0f) {

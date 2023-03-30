@@ -41,7 +41,7 @@ typedef struct CustomDataLayer {
   int active_clone;
   /** Number of the layer to render. */
   int active_mask;
-  /** Shape keyblock unique id reference. */
+  /** Shape key-block unique id reference. */
   int uid;
   /** Layer name, MAX_CUSTOMDATA_LAYER_NAME. */
   char name[68];
@@ -84,7 +84,7 @@ typedef struct CustomData {
   int totsize;
   /** (BMesh Only): Memory pool for allocation of blocks. */
   struct BLI_mempool *pool;
-  /** External file storing customdata layers. */
+  /** External file storing custom-data layers. */
   CustomDataExternal *external;
 } CustomData;
 
@@ -191,7 +191,6 @@ typedef enum eCustomDataType {
 // #define CD_MASK_RECAST (1 << CD_RECAST)  /* DEPRECATED */
 
 #define CD_MASK_MPOLY (1 << CD_MPOLY)
-#define CD_MASK_MLOOP (1 << CD_MLOOP)
 #define CD_MASK_SHAPE_KEYINDEX (1 << CD_SHAPE_KEYINDEX)
 #define CD_MASK_SHAPEKEY (1 << CD_SHAPEKEY)
 #define CD_MASK_BWEIGHT (1 << CD_BWEIGHT)

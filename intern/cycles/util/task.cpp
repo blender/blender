@@ -11,9 +11,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Task Pool */
 
-TaskPool::TaskPool() : start_time(time_dt()), num_tasks_pushed(0)
-{
-}
+TaskPool::TaskPool() : start_time(time_dt()), num_tasks_pushed(0) {}
 
 TaskPool::~TaskPool()
 {

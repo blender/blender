@@ -203,12 +203,6 @@ static int viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void viewmove_cancel(bContext *C, wmOperator *op)
-{
-  viewops_data_free(C, op->customdata);
-  op->customdata = NULL;
-}
-
 void VIEW3D_OT_move(wmOperatorType *ot)
 {
 
@@ -221,7 +215,7 @@ void VIEW3D_OT_move(wmOperatorType *ot)
   ot->invoke = viewmove_invoke;
   ot->modal = viewmove_modal;
   ot->poll = view3d_location_poll;
-  ot->cancel = viewmove_cancel;
+  ot->cancel = view3d_navigate_cancel_fn;
 
   /* flags */
   ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;

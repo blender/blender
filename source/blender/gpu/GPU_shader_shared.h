@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -11,7 +11,7 @@
 typedef struct TestOutputRawData TestOutputRawData;
 #endif
 
-/* NOTE: float3 has differing stride and alignment rules across different GPU backends. If 12 byte
+/* NOTE: float3 has differing stride and alignment rules across different GPU back-ends. If 12 byte
  * stride and alignment is essential, use `packed_float3` to avoid data read issues. This is
  * required in the common use-case where a float3 and an int/float are paired together for optimal
  * data transfer. */

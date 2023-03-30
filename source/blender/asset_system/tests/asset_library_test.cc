@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 #include "AS_asset_catalog.hh"
 #include "AS_asset_library.h"
@@ -43,7 +43,7 @@ TEST_F(AssetLibraryTest, AS_asset_library_load)
 
   /* Load the asset library. */
   const std::string library_path = test_files_dir + "/" + "asset_library";
-  ::AssetLibrary *library_c_ptr = AS_asset_library_load(library_path.data());
+  ::AssetLibrary *library_c_ptr = AS_asset_library_load(__func__, library_path.data());
   ASSERT_NE(nullptr, library_c_ptr);
 
   /* Check that it can be cast to the C++ type and has a Catalog Service. */
@@ -71,7 +71,7 @@ TEST_F(AssetLibraryTest, load_nonexistent_directory)
   /* Load the asset library. */
   const std::string library_path = test_files_dir + "/" +
                                    "asset_library/this/subdir/does/not/exist";
-  ::AssetLibrary *library_c_ptr = AS_asset_library_load(library_path.data());
+  ::AssetLibrary *library_c_ptr = AS_asset_library_load(__func__, library_path.data());
   ASSERT_NE(nullptr, library_c_ptr);
 
   /* Check that it can be cast to the C++ type and has a Catalog Service. */

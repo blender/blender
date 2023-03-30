@@ -179,8 +179,8 @@ ccl_device_inline void surface_shader_validate_bsdf_sample(const KernelGlobals k
                                                            const float2 org_roughness,
                                                            const float org_eta)
 {
-  /* Validate the the bsdf_label and bsdf_roughness_eta functions
-   * by estimating the values after a bsdf sample. */
+  /* Validate the #bsdf_label and #bsdf_roughness_eta functions
+   * by estimating the values after a BSDF sample. */
   const int comp_label = bsdf_label(kg, sc, wo);
   kernel_assert(org_label == comp_label);
 

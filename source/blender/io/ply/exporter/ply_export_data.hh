@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include "ply_data.hh"
-#include "ply_file_buffer.hh"
-
 namespace blender::io::ply {
+
+class FileBuffer;
+struct PlyData;
 
 void write_vertices(FileBuffer &buffer, const PlyData &ply_data);
 

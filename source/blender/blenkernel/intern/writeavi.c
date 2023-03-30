@@ -38,9 +38,7 @@ static int start_stub(void *UNUSED(context_v),
   return 0;
 }
 
-static void end_stub(void *UNUSED(context_v))
-{
-}
+static void end_stub(void *UNUSED(context_v)) {}
 
 static int append_stub(void *UNUSED(context_v),
                        RenderData *UNUSED(rd),
@@ -60,9 +58,7 @@ static void *context_create_stub(void)
   return NULL;
 }
 
-static void context_free_stub(void *UNUSED(context_v))
-{
-}
+static void context_free_stub(void *UNUSED(context_v)) {}
 
 #ifdef WITH_AVI
 #  include "AVI_avi.h"

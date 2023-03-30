@@ -188,7 +188,7 @@ bool DRW_object_is_renderable(const Object *ob)
   if (ob->type == OB_MESH) {
     if ((ob == DST.draw_ctx.object_edit) || DRW_object_is_in_edit_mode(ob)) {
       View3D *v3d = DST.draw_ctx.v3d;
-      if (v3d && v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_RETOPOLOGY) {
+      if (v3d && RETOPOLOGY_ENABLED(v3d)) {
         return false;
       }
     }
@@ -2598,9 +2598,6 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
 #endif /* USE_GPU_SELECT */
 }
 
-/**
- * object mode select-loop, see: ED_view3d_draw_depth_loop (legacy drawing).
- */
 void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
                          ARegion *region,
                          View3D *v3d,
@@ -3281,35 +3278,38 @@ void DRW_gpu_render_context_disable(void *UNUSED(re_gpu_context))
 
 #ifdef WITH_XR_OPENXR
 
-/* XXX
- * There should really be no such getter, but for VR we currently can't easily avoid it. OpenXR
- * needs some low level info for the OpenGL context that will be used for submitting the
- * final framebuffer. VR could in theory create its own context, but that would mean we have to
- * switch to it just to submit the final frame, which has notable performance impact.
- *
- * We could "inject" a context through DRW_opengl_render_context_enable(), but that would have to
- * work from the main thread, which is tricky to get working too. The preferable solution would
- * be using a separate thread for VR drawing where a single context can stay active. */
 void *DRW_xr_opengl_context_get(void)
 {
+  /* XXX: There should really be no such getter, but for VR we currently can't easily avoid it.
+   * OpenXR needs some low level info for the OpenGL context that will be used for submitting the
+   * final frame-buffer. VR could in theory create its own context, but that would mean we have to
+   * switch to it just to submit the final frame, which has notable performance impact.
+   *
+   * We could "inject" a context through DRW_opengl_render_context_enable(), but that would have to
+   * work from the main thread, which is tricky to get working too. The preferable solution would
+   * be using a separate thread for VR drawing where a single context can stay active. */
+
   return DST.gl_context;
 }
 
-/* XXX See comment on DRW_xr_opengl_context_get(). */
 void *DRW_xr_gpu_context_get(void)
 {
+  /* XXX: See comment on #DRW_xr_opengl_context_get(). */
+
   return DST.gpu_context;
 }
 
-/* XXX See comment on DRW_xr_opengl_context_get(). */
 void DRW_xr_drawing_begin(void)
 {
+  /* XXX: See comment on #DRW_xr_opengl_context_get(). */
+
   BLI_ticket_mutex_lock(DST.gl_context_mutex);
 }
 
-/* XXX See comment on DRW_xr_opengl_context_get(). */
 void DRW_xr_drawing_end(void)
 {
+  /* XXX: See comment on #DRW_xr_opengl_context_get(). */
+
   BLI_ticket_mutex_unlock(DST.gl_context_mutex);
 }
 

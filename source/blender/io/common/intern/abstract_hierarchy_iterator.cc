@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 #include "IO_abstract_hierarchy_iterator.h"
 #include "dupli_parent_finder.hh"
 
@@ -84,9 +84,7 @@ bool HierarchyContext::is_object_visible(const enum eEvaluationMode evaluation_m
   return (visibility & OB_VISIBLE_SELF) != 0;
 }
 
-EnsuredWriter::EnsuredWriter() : writer_(nullptr), newly_created_(false)
-{
-}
+EnsuredWriter::EnsuredWriter() : writer_(nullptr), newly_created_(false) {}
 
 EnsuredWriter::EnsuredWriter(AbstractHierarchyWriter *writer, bool newly_created)
     : writer_(writer), newly_created_(newly_created)

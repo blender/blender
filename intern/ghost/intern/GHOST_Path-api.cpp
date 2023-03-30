@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2010 Blender Foundation. All rights reserved. */
+ * Copyright 2010 Blender Foundation */
 
 /** \file
  * \ingroup GHOST
@@ -12,12 +12,12 @@
 #include "GHOST_Types.h"
 #include "intern/GHOST_Debug.h"
 
-GHOST_TSuccess GHOST_CreateSystemPaths(void)
+GHOST_TSuccess GHOST_CreateSystemPaths()
 {
   return GHOST_ISystemPaths::create();
 }
 
-GHOST_TSuccess GHOST_DisposeSystemPaths(void)
+GHOST_TSuccess GHOST_DisposeSystemPaths()
 {
   return GHOST_ISystemPaths::dispose();
 }

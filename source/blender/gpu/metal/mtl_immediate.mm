@@ -26,9 +26,7 @@ MTLImmediate::MTLImmediate(MTLContext *ctx)
   context_ = ctx;
 }
 
-MTLImmediate::~MTLImmediate()
-{
-}
+MTLImmediate::~MTLImmediate() {}
 
 uchar *MTLImmediate::begin()
 {

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -43,9 +43,7 @@ void VKStorageBuffer::bind(int slot)
   shader->pipeline_get().descriptor_set_get().bind(*this, location);
 }
 
-void VKStorageBuffer::unbind()
-{
-}
+void VKStorageBuffer::unbind() {}
 
 void VKStorageBuffer::clear(uint32_t clear_value)
 {

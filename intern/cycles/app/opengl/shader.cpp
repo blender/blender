@@ -149,9 +149,7 @@ void OpenGLShader::bind(int width, int height)
   glUniform2f(fullscreen_location_, width, height);
 }
 
-void OpenGLShader::unbind()
-{
-}
+void OpenGLShader::unbind() {}
 
 uint OpenGLShader::get_shader_program()
 {

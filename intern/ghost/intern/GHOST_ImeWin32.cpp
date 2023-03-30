@@ -30,9 +30,7 @@ GHOST_ImeWin32::GHOST_ImeWin32()
 {
 }
 
-GHOST_ImeWin32::~GHOST_ImeWin32()
-{
-}
+GHOST_ImeWin32::~GHOST_ImeWin32() {}
 
 void GHOST_ImeWin32::UpdateInputLanguage()
 {

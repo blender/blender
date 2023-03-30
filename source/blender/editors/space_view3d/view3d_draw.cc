@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spview3d
@@ -1386,8 +1386,7 @@ static void draw_selected_name(
     }
 
     /* color depends on whether there is a keyframe */
-    if (id_frame_has_keyframe(
-            (ID *)ob, /* BKE_scene_ctime_get(scene) */ float(cfra), ANIMFILTER_KEYS_LOCAL)) {
+    if (id_frame_has_keyframe((ID *)ob, /* BKE_scene_ctime_get(scene) */ float(cfra))) {
       UI_FontThemeColor(font_id, TH_TIME_KEYFRAME);
     }
     else if (ED_gpencil_has_keyframe_v3d(scene, ob, cfra)) {

@@ -25,9 +25,7 @@ class Tile {
   int window_x = 0, window_y = 0;
   int window_width = 0, window_height = 0;
 
-  Tile()
-  {
-  }
+  Tile() {}
 };
 
 /* --------------------------------------------------------------------

@@ -11,6 +11,16 @@
 #include "DNA_uuid_types.h"
 
 #ifdef __cplusplus
+#  include <memory>
+
+namespace blender::asset_system {
+class AssetLibrary;
+class AssetIdentifier;
+}  // namespace blender::asset_system
+
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -133,6 +143,48 @@ typedef struct AssetLibraryReference {
    */
   int custom_library_index;
 } AssetLibraryReference;
+
+/**
+ * Information to refer to an asset (may be stored in files) on a "best effort" basis. It should
+ * work well enough for many common cases, but can break. For example when the location of the
+ * asset changes, the available asset libraries in the Preferences change, an asset library is
+ * renamed, or when a file storing this is opened on a different system (with different
+ * Preferences).
+ *
+ * #AssetWeakReference is similar to #AssetIdentifier, but is designed for file storage, not for
+ * runtime references.
+ *
+ * It has two main components:
+ * - A reference to the asset library: The #eAssetLibraryType and if that is not enough to identify
+ *   the library, a library name (typically given by the user, but may change).
+ * - An identifier for the asset within the library: A relative path currently, which can break if
+ *   the asset is moved. Could also be a unique key for a database for example.
+ *
+ * \note Needs freeing through the destructor, so either use a smart pointer or #MEM_delete() for
+ *       explicit freeing.
+ */
+typedef struct AssetWeakReference {
+  char _pad[6];
+
+  short asset_library_type; /* #eAssetLibraryType */
+  /** If #asset_library_type is not enough to identify the asset library, this string can provide
+   * further location info (allocated string). Null otherwise. */
+  const char *asset_library_identifier;
+
+  const char *relative_asset_identifier;
+
+#ifdef __cplusplus
+  AssetWeakReference();
+  AssetWeakReference(AssetWeakReference &&);
+  AssetWeakReference(const AssetWeakReference &) = delete;
+  /** Enables use with `std::unique_ptr<AssetWeakReference>`. */
+  ~AssetWeakReference();
+
+  static std::unique_ptr<AssetWeakReference> make_reference(
+      const blender::asset_system::AssetLibrary &library,
+      const blender::asset_system::AssetIdentifier &asset_identifier);
+#endif
+} AssetWeakReference;
 
 /**
  * To be replaced by #AssetRepresentation!

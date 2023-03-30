@@ -93,9 +93,7 @@ bool device_metal_init()
   return false;
 }
 
-void device_metal_info(vector<DeviceInfo> &devices)
-{
-}
+void device_metal_info(vector<DeviceInfo> &devices) {}
 
 string device_metal_capabilities()
 {

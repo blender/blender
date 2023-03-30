@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
+# Copyright 2006 Blender Foundation
 
 if(HAVE_EXECINFO_H)
   add_definitions(-DHAVE_EXECINFO_H)
@@ -13,11 +13,12 @@ set(INC
   ../../../intern/atomic
   ../../../intern/eigen
   ../../../intern/guardedalloc
-  ../../../extern/wcwidth
-  ../../../extern/json/include
 )
 
 set(INC_SYS
+  ../../../extern/wcwidth
+  ../../../extern/json/include
+
   ${EIGEN3_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
   ${ZSTD_INCLUDE_DIRS}
@@ -130,6 +131,7 @@ set(SRC
   intern/scanfill_utils.c
   intern/serialize.cc
   intern/session_uuid.c
+  intern/smaa_textures.c
   intern/smallhash.c
   intern/sort.c
   intern/sort_utils.c
@@ -146,6 +148,7 @@ set(SRC
   intern/task_pool.cc
   intern/task_range.cc
   intern/task_scheduler.cc
+  intern/tempfile.c
   intern/threads.cc
   intern/time.c
   intern/timecode.c
@@ -240,6 +243,8 @@ set(SRC
   BLI_hash_tables.hh
   BLI_heap.h
   BLI_heap_simple.h
+  BLI_implicit_sharing.hh
+  BLI_implicit_sharing_ptr.hh
   BLI_index_mask.hh
   BLI_index_mask_ops.hh
   BLI_index_range.hh
@@ -328,6 +333,7 @@ set(SRC
   BLI_set_slots.hh
   BLI_shared_cache.hh
   BLI_simd.h
+  BLI_smaa_textures.h
   BLI_smallhash.h
   BLI_sort.h
   BLI_sort.hh
@@ -346,11 +352,11 @@ set(SRC
   BLI_system.h
   BLI_task.h
   BLI_task.hh
+  BLI_tempfile.h
   BLI_threads.h
   BLI_timecode.h
   BLI_timeit.hh
   BLI_timer.h
-  BLI_user_counter.hh
   BLI_utildefines.h
   BLI_utildefines_iter.h
   BLI_utildefines_stack.h
@@ -488,6 +494,7 @@ if(WITH_GTESTS)
     tests/BLI_hash_mm2a_test.cc
     tests/BLI_heap_simple_test.cc
     tests/BLI_heap_test.cc
+    tests/BLI_implicit_sharing_test.cc
     tests/BLI_index_mask_test.cc
     tests/BLI_index_range_test.cc
     tests/BLI_inplace_priority_queue_test.cc
@@ -532,6 +539,7 @@ if(WITH_GTESTS)
     tests/BLI_string_utf8_test.cc
     tests/BLI_task_graph_test.cc
     tests/BLI_task_test.cc
+    tests/BLI_tempfile_test.cc
     tests/BLI_uuid_test.cc
     tests/BLI_vector_set_test.cc
     tests/BLI_vector_test.cc

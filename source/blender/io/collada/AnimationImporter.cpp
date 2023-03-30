@@ -1000,7 +1000,7 @@ void AnimationImporter::translate_Animations(
     ob = armature_importer->get_armature_for_joint(root);
   }
   else {
-    ob = object_map.find(uid) == object_map.end() ? NULL : object_map.find(uid)->second;
+    ob = object_map.find(uid) == object_map.end() ? nullptr : object_map.find(uid)->second;
   }
 
   if (!ob) {

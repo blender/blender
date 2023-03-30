@@ -1,19 +1,19 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spaction
  */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 #include "DNA_space_types.h"
 
 #include "ED_anim_api.h"
 #include "ED_transform.h"
 
-#include "action_intern.h"
+#include "action_intern.hh"
 
 #include "RNA_access.h"
 

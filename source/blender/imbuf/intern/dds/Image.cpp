@@ -18,9 +18,7 @@
 
 #include <cstdio> /* printf */
 
-Image::Image() : m_width(0), m_height(0), m_format(Format_RGB), m_data(nullptr)
-{
-}
+Image::Image() : m_width(0), m_height(0), m_format(Format_RGB), m_data(nullptr) {}
 
 Image::~Image()
 {

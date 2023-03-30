@@ -15,6 +15,8 @@
  * This design allows some function overloads to be more efficient with certain types.
  */
 
+#include <iostream>
+
 #include "BLI_math_base.hh"
 
 namespace blender::math {

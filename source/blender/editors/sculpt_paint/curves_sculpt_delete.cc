@@ -84,9 +84,7 @@ struct DeleteOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  DeleteOperationExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  DeleteOperationExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(DeleteOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {

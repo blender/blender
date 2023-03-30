@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup blf
@@ -41,7 +41,6 @@
   } \
   ((void)0)
 
-/* Font array. */
 FontBLF *global_font[BLF_MAX_FONT] = {NULL};
 
 /* XXX: should these be made into global_font_'s too? */
@@ -868,9 +867,7 @@ void blf_draw_buffer__start(FontBLF *font)
     srgb_to_linearrgb_v4(buf_info->col_float, buf_info->col_init);
   }
 }
-void blf_draw_buffer__end(void)
-{
-}
+void blf_draw_buffer__end(void) {}
 
 void BLF_draw_buffer_ex(int fontid,
                         const char *str,

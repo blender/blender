@@ -21,9 +21,7 @@ class NodeViewLayer : public Node {
       : Node(), _Scene(scene), _ViewLayer(view_layer)
   {
   }
-  virtual ~NodeViewLayer()
-  {
-  }
+  virtual ~NodeViewLayer() {}
 
   inline struct Scene &scene() const
   {

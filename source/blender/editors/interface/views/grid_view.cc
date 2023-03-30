@@ -90,15 +90,11 @@ void AbstractGridView::set_tile_size(int tile_width, int tile_height)
   style_.tile_height = tile_height;
 }
 
-GridViewStyle::GridViewStyle(int width, int height) : tile_width(width), tile_height(height)
-{
-}
+GridViewStyle::GridViewStyle(int width, int height) : tile_width(width), tile_height(height) {}
 
 /* ---------------------------------------------------------------------- */
 
-AbstractGridViewItem::AbstractGridViewItem(StringRef identifier) : identifier_(identifier)
-{
-}
+AbstractGridViewItem::AbstractGridViewItem(StringRef identifier) : identifier_(identifier) {}
 
 bool AbstractGridViewItem::matches(const AbstractViewItem &other) const
 {
@@ -395,9 +391,7 @@ uiLayout *GridViewLayoutBuilder::current_layout() const
 
 /* ---------------------------------------------------------------------- */
 
-GridViewBuilder::GridViewBuilder(uiBlock &block) : block_(block)
-{
-}
+GridViewBuilder::GridViewBuilder(uiBlock & /*block*/) {}
 
 void GridViewBuilder::build_grid_view(AbstractGridView &grid_view,
                                       const View2D &v2d,

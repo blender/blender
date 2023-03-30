@@ -26,9 +26,7 @@ using namespace Geometry;
 
 class NodeShape : public Node {
  public:
-  inline NodeShape() : Node()
-  {
-  }
+  inline NodeShape() : Node() {}
 
   virtual ~NodeShape();
 

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2016 Blender Foundation. All rights reserved.
+# Copyright 2016 Blender Foundation
 
 # Too noisy for code we don't maintain.
 if(CMAKE_COMPILER_IS_GNUCC)

@@ -160,15 +160,11 @@ class ShaderNode : public Node {
   virtual void compile(OSLCompiler &compiler) = 0;
 
   /* Expand node into additional nodes. */
-  virtual void expand(ShaderGraph * /* graph */)
-  {
-  }
+  virtual void expand(ShaderGraph * /* graph */) {}
 
   /* ** Node optimization ** */
   /* Check whether the node can be replaced with single constant. */
-  virtual void constant_fold(const ConstantFolder & /*folder*/)
-  {
-  }
+  virtual void constant_fold(const ConstantFolder & /*folder*/) {}
 
   /* Simplify settings used by artists to the ones which are simpler to
    * evaluate in the kernel but keep the final result unchanged.

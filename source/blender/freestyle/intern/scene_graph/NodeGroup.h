@@ -21,12 +21,8 @@ namespace Freestyle {
 
 class NodeGroup : public Node {
  public:
-  inline NodeGroup() : Node()
-  {
-  }
-  virtual ~NodeGroup()
-  {
-  }
+  inline NodeGroup() : Node() {}
+  virtual ~NodeGroup() {}
 
   /** Adds a child. Makes a addRef on the iChild reference counter */
   virtual void AddChild(Node *iChild);

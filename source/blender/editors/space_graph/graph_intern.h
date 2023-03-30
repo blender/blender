@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spgraph
@@ -116,6 +116,7 @@ void GRAPH_OT_breakdown(struct wmOperatorType *ot);
 void GRAPH_OT_ease(struct wmOperatorType *ot);
 void GRAPH_OT_decimate(struct wmOperatorType *ot);
 void GRAPH_OT_blend_to_default(struct wmOperatorType *ot);
+void GRAPH_OT_gaussian_smooth(struct wmOperatorType *ot);
 void GRAPH_OT_sample(struct wmOperatorType *ot);
 void GRAPH_OT_bake(struct wmOperatorType *ot);
 void GRAPH_OT_unbake(struct wmOperatorType *ot);

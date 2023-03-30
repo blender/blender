@@ -120,9 +120,7 @@ class BCSampleFrameContainer {
   BCSampleFrameMap sample_frames;
 
  public:
-  ~BCSampleFrameContainer()
-  {
-  }
+  ~BCSampleFrameContainer() {}
 
   BCSample &add(Object *ob, int frame_index);
   /** Return either the #BCSampleFrame or NULL if frame does not exist. */

@@ -18,9 +18,7 @@
 
 namespace blender::gpu {
 
-MTLUniformBuf::MTLUniformBuf(size_t size, const char *name) : UniformBuf(size, name)
-{
-}
+MTLUniformBuf::MTLUniformBuf(size_t size, const char *name) : UniformBuf(size, name) {}
 
 MTLUniformBuf::~MTLUniformBuf()
 {

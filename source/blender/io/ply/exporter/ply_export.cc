@@ -9,7 +9,9 @@
 #include "DNA_collection_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_context.h"
 #include "BLI_memory_utils.hh"
+#include "IO_ply.h"
 
 #include "ply_data.hh"
 #include "ply_export.hh"

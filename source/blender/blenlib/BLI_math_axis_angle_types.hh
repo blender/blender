@@ -18,6 +18,8 @@
  * the fastest and more correct option.
  */
 
+#include <iostream>
+
 #include "BLI_math_angle_types.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_basis_types.hh"

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup spnode
@@ -468,7 +468,7 @@ static char *node_add_group_asset_get_description(struct bContext *C,
   if (!asset_data.description) {
     return nullptr;
   }
-  return BLI_strdup(asset_data.description);
+  return BLI_strdup(DATA_(asset_data.description));
 }
 
 void NODE_OT_add_group_asset(wmOperatorType *ot)

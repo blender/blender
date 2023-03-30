@@ -51,9 +51,7 @@ class FEdgeXDetector {
     _creaseAngle = 0.7;  // angle of 134.43 degrees
   }
 
-  virtual ~FEdgeXDetector()
-  {
-  }
+  virtual ~FEdgeXDetector() {}
 
   /** Process shapes from a WingedEdge containing a list of WShapes */
   virtual void processShapes(WingedEdge &);

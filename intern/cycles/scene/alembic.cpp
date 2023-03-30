@@ -433,9 +433,7 @@ AlembicObject::AlembicObject() : Node(get_node_type())
   schema_type = INVALID;
 }
 
-AlembicObject::~AlembicObject()
-{
-}
+AlembicObject::~AlembicObject() {}
 
 void AlembicObject::set_object(Object *object_)
 {

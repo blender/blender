@@ -88,7 +88,6 @@ const EnumPropertyItem rna_enum_object_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-/* Same as above, but with names that distinguish grease pencil. */
 const EnumPropertyItem rna_enum_workspace_object_mode_items[] = {
     {OB_MODE_OBJECT, "OBJECT", ICON_OBJECT_DATAMODE, "Object Mode", ""},
     {OB_MODE_EDIT, "EDIT", ICON_EDITMODE_HLT, "Edit Mode", ""},
@@ -1498,9 +1497,7 @@ static PointerRNA rna_Object_material_slots_get(CollectionPropertyIterator *iter
   return ptr;
 }
 
-static void rna_Object_material_slots_end(CollectionPropertyIterator *UNUSED(iter))
-{
-}
+static void rna_Object_material_slots_end(CollectionPropertyIterator *UNUSED(iter)) {}
 
 static PointerRNA rna_Object_display_get(PointerRNA *ptr)
 {
@@ -2242,8 +2239,7 @@ bool rna_GPencil_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 
 bool rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
 {
-  SculptSession *ss = ((Object *)ptr->owner_id)->sculpt;
-  return (ss && ss->bm);
+  return BKE_object_sculpt_use_dyntopo((Object *)ptr->owner_id);
 }
 
 static void rna_object_lineart_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

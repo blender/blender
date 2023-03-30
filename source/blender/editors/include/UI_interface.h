@@ -647,6 +647,8 @@ typedef struct uiPopupMenu uiPopupMenu;
 
 uiPopupMenu *UI_popup_menu_begin(struct bContext *C, const char *title, int icon) ATTR_NONNULL();
 /**
+ * Directly create a popup menu that is not refreshed on redraw.
+ *
  * Only return handler, and set optional title.
  * \param block_name: Assigned to uiBlock.name (useful info for debugging).
  */
@@ -3013,6 +3015,8 @@ void UI_context_active_but_prop_get_filebrowser(const struct bContext *C,
                                                 bool *r_is_userdef);
 /**
  * For new/open operators.
+ *
+ * This is for browsing and editing the ID-blocks used.
  */
 void UI_context_active_but_prop_get_templateID(struct bContext *C,
                                                struct PointerRNA *r_ptr,
@@ -3257,6 +3261,7 @@ void UI_interface_tag_script_reload(void);
 /* Support click-drag motion which presses the button and closes a popover (like a menu). */
 #define USE_UI_POPOVER_ONCE
 
+bool UI_view_item_is_interactive(const uiViewItemHandle *item_handle);
 bool UI_view_item_is_active(const uiViewItemHandle *item_handle);
 bool UI_view_item_matches(const uiViewItemHandle *a_handle, const uiViewItemHandle *b_handle);
 /**
@@ -3277,18 +3282,12 @@ void UI_view_item_context_menu_build(struct bContext *C,
  * \return True if dragging started successfully, otherwise false.
  */
 bool UI_view_item_drag_start(struct bContext *C, const uiViewItemHandle *item_);
-bool UI_view_item_can_drop(const uiViewItemHandle *item_,
-                           const struct wmDrag *drag,
-                           const char **r_disabled_hint);
-char *UI_view_item_drop_tooltip(const uiViewItemHandle *item, const struct wmDrag *drag);
-/**
- * Let a view item handle a drop event.
- * \return True if the drop was handled by the view item.
- */
-bool UI_view_item_drop_handle(struct bContext *C,
-                              const uiViewItemHandle *item_,
-                              const struct ListBase *drags);
 
+/**
+ * \param xy: Coordinate to find a view item at, in window space.
+ * \param pad: Extra padding added to the bounding box of the view.
+ */
+uiViewHandle *UI_region_view_find_at(const struct ARegion *region, const int xy[2], int pad);
 /**
  * \param xy: Coordinate to find a view item at, in window space.
  */

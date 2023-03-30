@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2020 Blender Foundation. All rights reserved.
+# Copyright 2020 Blender Foundation
 
 if(WITH_GTESTS)
   set(TEST_SRC

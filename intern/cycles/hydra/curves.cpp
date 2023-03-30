@@ -25,9 +25,7 @@ HdCyclesCurves::HdCyclesCurves(const SdfPath &rprimId
 {
 }
 
-HdCyclesCurves::~HdCyclesCurves()
-{
-}
+HdCyclesCurves::~HdCyclesCurves() {}
 
 HdDirtyBits HdCyclesCurves::GetInitialDirtyBitsMask() const
 {

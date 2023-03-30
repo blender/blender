@@ -526,7 +526,7 @@ static int py_to_array(PyObject *seq,
   // totdim = RNA_property_array_dimension(ptr, prop, dim_size); /* UNUSED */
   const int flag = RNA_property_flag(prop);
 
-  /* Use #ParameterDynAlloc which defines it's own array length. */
+  /* Use #ParameterDynAlloc which defines its own array length. */
   const bool prop_is_param_dyn_alloc = param_data && (flag & PROP_DYNAMIC);
 
   if (validate_array(seq,

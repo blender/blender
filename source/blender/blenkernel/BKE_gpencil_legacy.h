@@ -679,6 +679,11 @@ extern void (*BKE_gpencil_batch_cache_free_cb)(struct bGPdata *gpd);
 void BKE_gpencil_frame_original_pointers_update(const struct bGPDframe *gpf_orig,
                                                 const struct bGPDframe *gpf_eval);
 
+/**
+ * Update original pointers in evaluated layer.
+ * \param gpl_orig: Original grease-pencil layer.
+ * \param gpl_eval: Evaluated grease pencil layer.
+ */
 void BKE_gpencil_layer_original_pointers_update(const struct bGPDlayer *gpl_orig,
                                                 const struct bGPDlayer *gpl_eval);
 /**
@@ -728,6 +733,12 @@ void BKE_gpencil_blend_read_data(struct BlendDataReader *reader, struct bGPdata 
 bool BKE_gpencil_can_avoid_full_copy_on_write(const struct Depsgraph *depsgraph,
                                               struct bGPdata *gpd);
 
+/**
+ * Update the geometry of the evaluated bGPdata.
+ * This function will:
+ *    1) Copy the original data over to the evaluated object.
+ *    2) Update the original pointers in the runtime structs.
+ */
 void BKE_gpencil_update_on_write(struct bGPdata *gpd_orig, struct bGPdata *gpd_eval);
 
 #ifdef __cplusplus

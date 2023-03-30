@@ -9,9 +9,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-PathTraceDisplay::PathTraceDisplay(unique_ptr<DisplayDriver> driver) : driver_(move(driver))
-{
-}
+PathTraceDisplay::PathTraceDisplay(unique_ptr<DisplayDriver> driver) : driver_(move(driver)) {}
 
 void PathTraceDisplay::reset(const BufferParams &buffer_params, const bool reset_rendering)
 {

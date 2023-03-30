@@ -16,4 +16,14 @@ namespace blender::asset_system::utils {
  */
 std::string normalize_directory_path(StringRef directory);
 
+/**
+ * Normalize the given `path` (remove 'parent directory' and double-slashes element etc., and
+ * convert to native path separators).
+ *
+ * If \a max_len is not #StringRef::not_found (default value), only the first part of the given
+ * string up to the given length is processed, the rest remains unchanged. Needed to avoid
+ * modifying ID name part of linked library paths.
+ */
+std::string normalize_path(StringRefNull path, int64_t max_len = StringRef::not_found);
+
 }  // namespace blender::asset_system::utils

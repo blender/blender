@@ -10,7 +10,6 @@
 
 /* included as Light::set_shader defined through NODE_SOCKET_API does not select
  * the right Node::set overload as it does not know that Shader is a Node */
-#include "scene/light_tree.h"
 #include "scene/shader.h"
 
 #include "util/ies.h"

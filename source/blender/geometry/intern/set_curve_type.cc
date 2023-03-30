@@ -301,7 +301,7 @@ static bke::CurvesGeometry convert_curves_to_bezier(
       dst_offsets[i] = to_bezier_size(CurveType(src_types[i]),
                                       src_cyclic[i],
                                       KnotsMode(src_knot_modes[i]),
-                                      src_points_by_curve.size(i));
+                                      src_points_by_curve[i].size());
     }
   });
   offset_indices::accumulate_counts_to_offsets(dst_offsets);
@@ -489,7 +489,7 @@ static bke::CurvesGeometry convert_curves_to_nurbs(
   bke::curves::copy_curve_sizes(src_points_by_curve, unselected_ranges, dst_offsets);
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
     for (const int i : selection.slice(range)) {
-      dst_offsets[i] = to_nurbs_size(CurveType(src_types[i]), src_points_by_curve.size(i));
+      dst_offsets[i] = to_nurbs_size(CurveType(src_types[i]), src_points_by_curve[i].size());
     }
   });
   offset_indices::accumulate_counts_to_offsets(dst_offsets);

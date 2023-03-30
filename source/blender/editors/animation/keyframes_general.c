@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edanimation
@@ -85,8 +85,9 @@ bool duplicate_fcurve_keys(FCurve *fcu)
   return changed;
 }
 
-/* **************************************************** */
-/* Various Tools */
+/* -------------------------------------------------------------------- */
+/** \name Various Tools
+ * \{ */
 
 void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, bool cleardefault)
 {
@@ -281,6 +282,12 @@ static bool find_fcurve_segment(FCurve *fcu,
 ListBase find_fcurve_segments(FCurve *fcu)
 {
   ListBase segments = {NULL, NULL};
+
+  /* Ignore baked curves. */
+  if (!fcu->bezt) {
+    return segments;
+  }
+
   int segment_start_idx = 0;
   int segment_len = 0;
   int current_index = 0;
@@ -369,8 +376,6 @@ float get_default_rna_value(FCurve *fcu, PropertyRNA *prop, PointerRNA *ptr)
   return default_value;
 }
 
-/* This function blends the selected keyframes to the default value of the property the fcurve
- * drives. */
 void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, const float factor)
 {
   PointerRNA ptr;
@@ -392,7 +397,56 @@ void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, const float factor
     move_key(&fcu->bezt[i], key_y_value);
   }
 }
+/* ---------------- */
 
+void ED_ANIM_get_1d_gauss_kernel(const float sigma, const int kernel_size, double *r_kernel)
+{
+  BLI_assert(sigma > 0.0f);
+  BLI_assert(kernel_size > 0);
+  const double sigma_sq = 2.0 * sigma * sigma;
+  double sum = 0.0;
+
+  for (int i = 0; i < kernel_size; i++) {
+    const double normalized_index = (double)i / (kernel_size - 1);
+    r_kernel[i] = exp(-normalized_index * normalized_index / sigma_sq);
+    if (i == 0) {
+      sum += r_kernel[i];
+    }
+    else {
+      /* We only calculate half the kernel,
+       * the normalization needs to take that into account. */
+      sum += r_kernel[i] * 2;
+    }
+  }
+
+  /* Normalize kernel values. */
+  for (int i = 0; i < kernel_size; i++) {
+    r_kernel[i] /= sum;
+  }
+}
+
+void smooth_fcurve_segment(FCurve *fcu,
+                           FCurveSegment *segment,
+                           float *samples,
+                           const float factor,
+                           const int kernel_size,
+                           double *kernel)
+{
+  const int segment_end_index = segment->start_index + segment->length;
+  const int segment_start_x = fcu->bezt[segment->start_index].vec[1][0];
+  for (int i = segment->start_index; i < segment_end_index; i++) {
+    const int sample_index = (int)(fcu->bezt[i].vec[1][0] - segment_start_x) + kernel_size;
+    /* Apply the kernel. */
+    double filter_result = samples[sample_index] * kernel[0];
+    for (int j = 1; j <= kernel_size; j++) {
+      const double kernel_value = kernel[j];
+      filter_result += samples[sample_index + j] * kernel_value;
+      filter_result += samples[sample_index - j] * kernel_value;
+    }
+    const float key_y_value = interpf((float)filter_result, samples[sample_index], factor);
+    move_key(&fcu->bezt[i], key_y_value);
+  }
+}
 /* ---------------- */
 
 void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
@@ -448,7 +502,11 @@ void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float f
   }
 }
 
-/* ---------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name FCurve Decimate
+ * \{ */
 
 /* Check if the keyframe interpolation type is supported */
 static bool prepare_for_decimate(FCurve *fcu, int i)
@@ -569,7 +627,11 @@ bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
   return can_decimate_all_selected;
 }
 
-/* ---------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name FCurve Smooth
+ * \{ */
 
 /* temp struct used for smooth_fcurve */
 typedef struct tSmooth_Bezt {
@@ -673,12 +735,26 @@ void smooth_fcurve(FCurve *fcu)
   BKE_fcurve_handles_recalc(fcu);
 }
 
-/* ---------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name FCurve Sample
+ * \{ */
 
 /* little cache for values... */
 typedef struct TempFrameValCache {
   float frame, val;
 } TempFrameValCache;
+
+void sample_fcurve_segment(FCurve *fcu,
+                           const float start_frame,
+                           float *samples,
+                           const int sample_count)
+{
+  for (int i = 0; i < sample_count; i++) {
+    samples[i] = evaluate_fcurve(fcu, start_frame + i);
+  }
+}
 
 void sample_fcurve(FCurve *fcu)
 {
@@ -756,15 +832,18 @@ void sample_fcurve(FCurve *fcu)
   BKE_fcurve_handles_recalc(fcu);
 }
 
-/* **************************************************** */
-/* Copy/Paste Tools:
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Copy/Paste Tools
+ *
  * - The copy/paste buffer currently stores a set of temporary F-Curves containing only the
  *   keyframes that were selected in each of the original F-Curves.
  * - All pasted frames are offset by the same amount.
  *   This is calculated as the difference in the times of the current frame and the
- *   'first keyframe' (i.e. the earliest one in all channels).
+ *   `first keyframe` (i.e. the earliest one in all channels).
  * - The earliest frame is calculated per copy operation.
- */
+ * \{ */
 
 /* globals for copy/paste data (like for other copy/paste buffers) */
 static ListBase animcopybuf = {NULL, NULL};
@@ -1405,4 +1484,4 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
   return KEYFRAME_PASTE_OK;
 }
 
-/* **************************************************** */
+/** \} */

@@ -1355,26 +1355,24 @@ void psys_update_particle_tree(ParticleSystem *psys, float cfra)
 {
   if (psys) {
     PARTICLE_P;
-    int totpart = 0;
 
     if (!psys->tree || psys->tree_frame != cfra) {
+      int totpart = 0;
       LOOP_SHOWN_PARTICLES
       {
-        totpart++;
+        if (pa->alive == PARS_ALIVE) {
+          totpart++;
+        }
       }
 
       BLI_kdtree_3d_free(psys->tree);
-      psys->tree = BLI_kdtree_3d_new(psys->totpart);
+      psys->tree = BLI_kdtree_3d_new(totpart);
 
       LOOP_SHOWN_PARTICLES
       {
         if (pa->alive == PARS_ALIVE) {
-          if (pa->state.time == cfra) {
-            BLI_kdtree_3d_insert(psys->tree, p, pa->prev_state.co);
-          }
-          else {
-            BLI_kdtree_3d_insert(psys->tree, p, pa->state.co);
-          }
+          const float *co = (pa->state.time == cfra) ? pa->prev_state.co : pa->state.co;
+          BLI_kdtree_3d_insert(psys->tree, p, co);
         }
       }
       BLI_kdtree_3d_balance(psys->tree);

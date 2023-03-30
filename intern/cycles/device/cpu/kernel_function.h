@@ -40,9 +40,7 @@ template<typename FunctionType> class CPUKernelFunction {
    * pointer. */
   class KernelInfo {
    public:
-    KernelInfo() : KernelInfo("", nullptr)
-    {
-    }
+    KernelInfo() : KernelInfo("", nullptr) {}
 
     /* TODO(sergey): Use string view, to have higher-level functionality (i.e. comparison) without
      * memory allocation. */

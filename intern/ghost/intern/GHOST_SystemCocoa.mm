@@ -530,9 +530,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
   m_last_warp_timestamp = 0;
 }
 
-GHOST_SystemCocoa::~GHOST_SystemCocoa()
-{
-}
+GHOST_SystemCocoa::~GHOST_SystemCocoa() {}
 
 GHOST_TSuccess GHOST_SystemCocoa::init()
 {
@@ -898,6 +896,14 @@ GHOST_TSuccess GHOST_SystemCocoa::getButtons(GHOST_Buttons &buttons) const
   buttons.set(GHOST_kButtonMaskButton4, button_state & (1 << 3));
   buttons.set(GHOST_kButtonMaskButton5, button_state & (1 << 4));
   return GHOST_kSuccess;
+}
+
+GHOST_TCapabilityFlag GHOST_SystemCocoa::getCapabilities() const
+{
+  return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL &
+                               ~(
+                                   /* Cocoa has no support for a primary selection clipboard. */
+                                   GHOST_kCapabilityPrimaryClipboard));
 }
 
 #pragma mark Event handlers

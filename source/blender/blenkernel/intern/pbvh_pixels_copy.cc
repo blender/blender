@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation. */
 
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
@@ -93,8 +93,7 @@ static const Edge<CoordSpace::Tile> convert_coord_space(const Edge<CoordSpace::U
   };
 }
 
-class NonManifoldTileEdges : public Vector<Edge<CoordSpace::Tile>> {
-};
+class NonManifoldTileEdges : public Vector<Edge<CoordSpace::Tile>> {};
 
 class NonManifoldUVEdges : public Vector<Edge<CoordSpace::UV>> {
  public:
@@ -157,9 +156,9 @@ class NonManifoldUVEdges : public Vector<Edge<CoordSpace::UV>> {
                         int vertex_i)
   {
     for (int i = 0; i < 3; i++) {
-      int loop_i = loop_tri.tri[i];
-      const MLoop &loop = mesh_data.loops[loop_i];
-      if (loop.v == vertex_i) {
+      const int loop_i = loop_tri.tri[i];
+      const int vert = mesh_data.corner_verts[loop_i];
+      if (vert == vertex_i) {
         return mesh_data.uv_map[loop_i];
       }
     }

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -15,13 +15,9 @@
 
 namespace blender::deg {
 
-GPencilBackup::GPencilBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph)
-{
-}
+GPencilBackup::GPencilBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph) {}
 
-void GPencilBackup::init_from_gpencil(bGPdata * /*gpd*/)
-{
-}
+void GPencilBackup::init_from_gpencil(bGPdata * /*gpd*/) {}
 
 void GPencilBackup::restore_to_gpencil(bGPdata *gpd)
 {

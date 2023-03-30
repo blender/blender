@@ -22,18 +22,18 @@ static void node_declare(NodeDeclarationBuilder &b)
 static VArray<int> construct_neighbor_count_varray(const Mesh &mesh, const eAttrDomain domain)
 {
   const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const Span<int> corner_edges = mesh.corner_edges();
 
   Array<int> edge_count(mesh.totedge, 0);
-  for (const MLoop &loop : loops) {
-    edge_count[loop.e]++;
+  for (const int edge : corner_edges) {
+    edge_count[edge]++;
   }
 
   Array<int> poly_count(polys.size(), 0);
   for (const int poly_index : polys.index_range()) {
     const MPoly &poly = polys[poly_index];
-    for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-      poly_count[poly_index] += edge_count[loop.e] - 1;
+    for (const int edge : corner_edges.slice(poly.loopstart, poly.totloop)) {
+      poly_count[poly_index] += edge_count[edge] - 1;
     }
   }
 
