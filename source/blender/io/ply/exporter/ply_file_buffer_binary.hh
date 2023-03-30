@@ -6,19 +6,7 @@
 
 #pragma once
 
-#include <string>
-#include <type_traits>
-
-#include "BLI_array.hh"
-#include "BLI_compiler_attrs.h"
-#include "BLI_fileops.h"
-#include "BLI_math_vector_types.hh"
-#include "BLI_string_ref.hh"
-#include "BLI_utility_mixins.hh"
-
 #include "ply_file_buffer.hh"
-
-#include <bitset>
 
 namespace blender::io::ply {
 class FileBufferBinary : public FileBuffer {

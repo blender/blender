@@ -4,37 +4,27 @@
  * \ingroup ply
  */
 
-#include "BLI_array.hh"
-#include "BLI_math.h"
+#include "ply_export_load_plydata.hh"
+#include "IO_ply.h"
+#include "ply_data.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.h"
-
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
+#include "BLI_hash.hh"
+#include "BLI_math.h"
+#include "BLI_vector.hh"
 #include "DEG_depsgraph_query.h"
-
 #include "DNA_layer_types.h"
-
-#include "IO_ply.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
-
 #include <tools/bmesh_triangulate.h>
-
-#include "ply_data.hh"
-#include "ply_export_load_plydata.hh"
 
 namespace blender::io::ply {
 
-float world_and_axes_transform_[4][4];
-float world_and_axes_normal_transform_[3][3];
-bool mirrored_transform_;
-
-Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation)
+static Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation)
 {
   const BMeshCreateParams bm_create_params = {false};
   BMeshFromMeshParams bm_convert_params{};
@@ -49,28 +39,110 @@ Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation)
   return temp_mesh;
 }
 
-void set_world_axes_transform(Object *object, const eIOAxis forward, const eIOAxis up)
+static void set_world_axes_transform(Object *object,
+                                     const eIOAxis forward,
+                                     const eIOAxis up,
+                                     float r_world_and_axes_transform[4][4],
+                                     float r_world_and_axes_normal_transform[3][3])
 {
   float axes_transform[3][3];
   unit_m3(axes_transform);
   /* +Y-forward and +Z-up are the default Blender axis settings. */
   mat3_from_axis_conversion(forward, up, IO_AXIS_Y, IO_AXIS_Z, axes_transform);
-  mul_m4_m3m4(world_and_axes_transform_, axes_transform, object->object_to_world);
+  mul_m4_m3m4(r_world_and_axes_transform, axes_transform, object->object_to_world);
   /* mul_m4_m3m4 does not transform last row of obmat, i.e. location data. */
-  mul_v3_m3v3(world_and_axes_transform_[3], axes_transform, object->object_to_world[3]);
-  world_and_axes_transform_[3][3] = object->object_to_world[3][3];
+  mul_v3_m3v3(r_world_and_axes_transform[3], axes_transform, object->object_to_world[3]);
+  r_world_and_axes_transform[3][3] = object->object_to_world[3][3];
 
   /* Normals need inverse transpose of the regular matrix to handle non-uniform scale. */
   float normal_matrix[3][3];
-  copy_m3_m4(normal_matrix, world_and_axes_transform_);
-  invert_m3_m3(world_and_axes_normal_transform_, normal_matrix);
-  transpose_m3(world_and_axes_normal_transform_);
-  mirrored_transform_ = is_negative_m3(world_and_axes_normal_transform_);
+  copy_m3_m4(normal_matrix, r_world_and_axes_transform);
+  invert_m3_m3(r_world_and_axes_normal_transform, normal_matrix);
+  transpose_m3(r_world_and_axes_normal_transform);
+}
+
+struct uv_vertex_key {
+  float2 uv;
+  int vertex_index;
+
+  bool operator==(const uv_vertex_key &r) const
+  {
+    return (uv == r.uv && vertex_index == r.vertex_index);
+  }
+
+  uint64_t hash() const
+  {
+    return get_default_hash_3(uv.x, uv.y, vertex_index);
+  }
+};
+
+static void generate_vertex_map(const Mesh *mesh,
+                                const PLYExportParams &export_params,
+                                Vector<int> &r_ply_to_vertex,
+                                Vector<int> &r_vertex_to_ply,
+                                Vector<int> &r_loop_to_ply,
+                                Vector<float2> &r_uvs)
+{
+  bool export_uv = false;
+  VArraySpan<float2> uv_map;
+  if (export_params.export_uv) {
+    const StringRef uv_name = CustomData_get_active_layer_name(&mesh->ldata, CD_PROP_FLOAT2);
+    if (!uv_name.is_empty()) {
+      const bke::AttributeAccessor attributes = mesh->attributes();
+      uv_map = attributes.lookup<float2>(uv_name, ATTR_DOMAIN_CORNER);
+      export_uv = !uv_map.is_empty();
+    }
+  }
+
+  const Span<int> corner_verts = mesh->corner_verts();
+  r_vertex_to_ply.resize(mesh->totvert, -1);
+  r_loop_to_ply.resize(mesh->totloop, -1);
+
+  /* If we do not export or have UVs, then mapping of vertex indices is simple. */
+  if (!export_uv) {
+    r_ply_to_vertex.resize(mesh->totvert);
+    for (int index = 0; index < mesh->totvert; index++) {
+      r_vertex_to_ply[index] = index;
+      r_ply_to_vertex[index] = index;
+    }
+    for (int index = 0; index < mesh->totloop; index++) {
+      r_loop_to_ply[index] = corner_verts[index];
+    }
+    return;
+  }
+
+  /* We are exporting UVs. Need to build mappings of what
+   * any unique (vertex, UV) values will map into the PLY data. */
+  Map<uv_vertex_key, int> vertex_map;
+  vertex_map.reserve(mesh->totvert);
+  r_ply_to_vertex.reserve(mesh->totvert);
+  r_uvs.reserve(mesh->totvert);
+
+  for (int loop_index = 0; loop_index < int(corner_verts.size()); loop_index++) {
+    int vertex_index = corner_verts[loop_index];
+    uv_vertex_key key{uv_map[loop_index], vertex_index};
+    int ply_index = vertex_map.lookup_or_add(key, int(vertex_map.size()));
+    r_vertex_to_ply[vertex_index] = ply_index;
+    r_loop_to_ply[loop_index] = ply_index;
+    while (r_uvs.size() <= ply_index) {
+      r_uvs.append(key.uv);
+      r_ply_to_vertex.append(key.vertex_index);
+    }
+  }
+
+  /* Add zero UVs for any loose vertices. */
+  for (int vertex_index = 0; vertex_index < mesh->totvert; vertex_index++) {
+    if (r_vertex_to_ply[vertex_index] != -1)
+      continue;
+    int ply_index = int(r_uvs.size());
+    r_vertex_to_ply[vertex_index] = ply_index;
+    r_uvs.append({0, 0});
+    r_ply_to_vertex.append(vertex_index);
+  }
 }
 
 void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams &export_params)
 {
-
   DEGObjectIterSettings deg_iter_settings{};
   deg_iter_settings.depsgraph = depsgraph;
   deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
@@ -114,8 +186,13 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     Vector<float2> uvs;
     generate_vertex_map(mesh, export_params, ply_to_vertex, vertex_to_ply, loop_to_ply, uvs);
 
-    set_world_axes_transform(
-        &export_object_eval_, export_params.forward_axis, export_params.up_axis);
+    float world_and_axes_transform[4][4];
+    float world_and_axes_normal_transform[3][3];
+    set_world_axes_transform(&export_object_eval_,
+                             export_params.forward_axis,
+                             export_params.up_axis,
+                             world_and_axes_transform,
+                             world_and_axes_normal_transform);
 
     /* Face data. */
     plyData.face_vertices.reserve(mesh->totloop);
@@ -136,7 +213,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     Span<float3> vert_positions = mesh->vert_positions();
     for (int vertex_index : ply_to_vertex) {
       float3 pos = vert_positions[vertex_index];
-      mul_m4_v3(world_and_axes_transform_, pos);
+      mul_m4_v3(world_and_axes_transform, pos);
       mul_v3_fl(pos, export_params.global_scale);
       plyData.vertices.append(pos);
     }
@@ -153,7 +230,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       const Span<float3> vert_normals = mesh->vert_normals();
       for (int vertex_index : ply_to_vertex) {
         float3 normal = vert_normals[vertex_index];
-        mul_m3_v3(world_and_axes_normal_transform_, normal);
+        mul_m3_v3(world_and_axes_normal_transform, normal);
         plyData.vertex_normals.append(normal);
       }
     }
@@ -199,71 +276,6 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
   }
 
   DEG_OBJECT_ITER_END;
-}
-
-void generate_vertex_map(const Mesh *mesh,
-                         const PLYExportParams &export_params,
-                         Vector<int> &r_ply_to_vertex,
-                         Vector<int> &r_vertex_to_ply,
-                         Vector<int> &r_loop_to_ply,
-                         Vector<float2> &r_uvs)
-{
-  bool export_uv = false;
-  VArraySpan<float2> uv_map;
-  if (export_params.export_uv) {
-    const StringRef uv_name = CustomData_get_active_layer_name(&mesh->ldata, CD_PROP_FLOAT2);
-    if (!uv_name.is_empty()) {
-      const bke::AttributeAccessor attributes = mesh->attributes();
-      uv_map = attributes.lookup<float2>(uv_name, ATTR_DOMAIN_CORNER);
-      export_uv = !uv_map.is_empty();
-    }
-  }
-
-  const Span<int> corner_verts = mesh->corner_verts();
-  r_vertex_to_ply.resize(mesh->totvert, -1);
-  r_loop_to_ply.resize(mesh->totloop, -1);
-
-  /* If we do not export or have UVs, then mapping of vertex indices is simple. */
-  if (!export_uv) {
-    r_ply_to_vertex.resize(mesh->totvert);
-    for (int index = 0; index < mesh->totvert; index++) {
-      r_vertex_to_ply[index] = index;
-      r_ply_to_vertex[index] = index;
-    }
-    for (int index = 0; index < mesh->totloop; index++) {
-      r_loop_to_ply[index] = corner_verts[index];
-    }
-    return;
-  }
-
-  /* We are exporting UVs. Need to build mappings of what
-   * any unique (vertex, UV) values will map into the PLY data. */
-  Map<UV_vertex_key, int> vertex_map;
-  vertex_map.reserve(mesh->totvert);
-  r_ply_to_vertex.reserve(mesh->totvert);
-  r_uvs.reserve(mesh->totvert);
-
-  for (int loop_index = 0; loop_index < int(corner_verts.size()); loop_index++) {
-    int vertex_index = corner_verts[loop_index];
-    UV_vertex_key key = UV_vertex_key(uv_map[loop_index], vertex_index);
-    int ply_index = vertex_map.lookup_or_add(key, int(vertex_map.size()));
-    r_vertex_to_ply[vertex_index] = ply_index;
-    r_loop_to_ply[loop_index] = ply_index;
-    while (r_uvs.size() <= ply_index) {
-      r_uvs.append(key.UV);
-      r_ply_to_vertex.append(key.mesh_vertex_index);
-    }
-  }
-
-  /* Add zero UVs for any loose vertices. */
-  for (int vertex_index = 0; vertex_index < mesh->totvert; vertex_index++) {
-    if (r_vertex_to_ply[vertex_index] != -1)
-      continue;
-    int ply_index = int(r_uvs.size());
-    r_vertex_to_ply[vertex_index] = ply_index;
-    r_uvs.append({0, 0});
-    r_ply_to_vertex.append(vertex_index);
-  }
 }
 
 }  // namespace blender::io::ply
