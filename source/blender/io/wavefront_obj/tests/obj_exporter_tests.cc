@@ -113,25 +113,6 @@ TEST(obj_exporter_utils, append_positive_frame_to_filename)
   EXPECT_EQ_ARRAY(path_with_frame, path_truth, BLI_strlen_utf8(path_truth));
 }
 
-static std::unique_ptr<OBJWriter> init_writer(const OBJExportParams &params,
-                                              const std::string out_filepath)
-{
-  try {
-    auto writer = std::make_unique<OBJWriter>(out_filepath.c_str(), params);
-    return writer;
-  }
-  catch (const std::system_error &ex) {
-    std::cerr << ex.code().category().name() << ": " << ex.what() << ": " << ex.code().message()
-              << std::endl;
-    return nullptr;
-  }
-}
-
-/* The following is relative to BKE_tempdir_base.
- * Use Latin Capital Letter A with Ogonek, Cyrillic Capital Letter Zhe
- * at the end, to test I/O on non-English file names. */
-const char *const temp_file_path = "output\xc4\x84\xd0\x96.OBJ";
-
 static std::string read_temp_file_in_string(const std::string &file_path)
 {
   std::string res;
@@ -144,11 +125,47 @@ static std::string read_temp_file_in_string(const std::string &file_path)
   return res;
 }
 
-TEST(obj_exporter_writer, header)
+class ObjExporterWriterTest : public testing::Test {
+ protected:
+  void SetUp() override
+  {
+    BKE_tempdir_init("");
+  }
+
+  void TearDown() override
+  {
+    BKE_tempdir_session_purge();
+  }
+
+  std::string get_temp_obj_filename()
+  {
+    /* Use Latin Capital Letter A with Ogonek, Cyrillic Capital Letter Zhe
+     * at the end, to test I/O on non-English file names. */
+    const char *const temp_file_path = "output\xc4\x84\xd0\x96.OBJ";
+
+    return std::string(BKE_tempdir_session()) + SEP_STR + std::string(temp_file_path);
+  }
+
+  std::unique_ptr<OBJWriter> init_writer(const OBJExportParams &params,
+                                         const std::string out_filepath)
+  {
+    try {
+      auto writer = std::make_unique<OBJWriter>(out_filepath.c_str(), params);
+      return writer;
+    }
+    catch (const std::system_error &ex) {
+      std::cerr << ex.code().category().name() << ": " << ex.what() << ": " << ex.code().message()
+                << std::endl;
+      return nullptr;
+    }
+  }
+};
+
+TEST_F(ObjExporterWriterTest, header)
 {
   /* Because testing doesn't fully initialize Blender, we need the following. */
   BKE_tempdir_init(nullptr);
-  std::string out_file_path = blender::tests::flags_test_release_dir() + SEP_STR + temp_file_path;
+  std::string out_file_path = get_temp_obj_filename();
   {
     OBJExportParamsDefault _export;
     std::unique_ptr<OBJWriter> writer = init_writer(_export.params, out_file_path);
@@ -161,12 +178,11 @@ TEST(obj_exporter_writer, header)
   const std::string result = read_temp_file_in_string(out_file_path);
   using namespace std::string_literals;
   ASSERT_EQ(result, "# Blender "s + BKE_blender_version_string() + "\n" + "# www.blender.org\n");
-  BLI_delete(out_file_path.c_str(), false, false);
 }
 
-TEST(obj_exporter_writer, mtllib)
+TEST_F(ObjExporterWriterTest, mtllib)
 {
-  std::string out_file_path = blender::tests::flags_test_release_dir() + SEP_STR + temp_file_path;
+  std::string out_file_path = get_temp_obj_filename();
   {
     OBJExportParamsDefault _export;
     std::unique_ptr<OBJWriter> writer = init_writer(_export.params, out_file_path);
@@ -179,7 +195,6 @@ TEST(obj_exporter_writer, mtllib)
   }
   const std::string result = read_temp_file_in_string(out_file_path);
   ASSERT_EQ(result, "mtllib blah.mtl\nmtllib blah.mtl\n");
-  BLI_delete(out_file_path.c_str(), false, false);
 }
 
 TEST(obj_exporter_writer, format_handler_buffer_chunking)
