@@ -187,7 +187,8 @@ bool AS_asset_representation_is_local_id(const AssetRepresentation *asset_handle
   return asset->is_local_id();
 }
 
-AssetWeakReference *AS_asset_representation_weak_reference_create(const AssetRepresentation *asset_handle)
+AssetWeakReference *AS_asset_representation_weak_reference_create(
+    const AssetRepresentation *asset_handle)
 {
   const asset_system::AssetRepresentation *asset =
       reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
