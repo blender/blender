@@ -216,21 +216,24 @@ static bool node_needs_own_transform_relation(const bNode &node)
 
 static void process_nodes_for_depsgraph(const bNodeTree &tree,
                                         Set<ID *> &ids,
-                                        bool &r_needs_own_transform_relation)
+                                        bool &r_needs_own_transform_relation,
+                                        Set<const bNodeTree *> &checked_groups)
 {
-  Set<const bNodeTree *> handled_groups;
+  if (!checked_groups.add(&tree)) {
+    return;
+  }
 
-  LISTBASE_FOREACH (const bNode *, node, &tree.nodes) {
+  tree.ensure_topology_cache();
+  for (const bNode *node : tree.all_nodes()) {
     add_used_ids_from_sockets(node->inputs, ids);
     add_used_ids_from_sockets(node->outputs, ids);
-
-    if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
-      const bNodeTree *group = (bNodeTree *)node->id;
-      if (group != nullptr && handled_groups.add(group)) {
-        process_nodes_for_depsgraph(*group, ids, r_needs_own_transform_relation);
-      }
-    }
     r_needs_own_transform_relation |= node_needs_own_transform_relation(*node);
+  }
+
+  for (const bNode *node : tree.group_nodes()) {
+    if (const bNodeTree *sub_tree = reinterpret_cast<const bNodeTree *>(node->id)) {
+      process_nodes_for_depsgraph(*sub_tree, ids, r_needs_own_transform_relation, checked_groups);
+    }
   }
 }
 
@@ -289,7 +292,9 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   bool needs_own_transform_relation = false;
   Set<ID *> used_ids;
   find_used_ids_from_settings(nmd->settings, used_ids);
-  process_nodes_for_depsgraph(*nmd->node_group, used_ids, needs_own_transform_relation);
+  Set<const bNodeTree *> checked_groups;
+  process_nodes_for_depsgraph(
+      *nmd->node_group, used_ids, needs_own_transform_relation, checked_groups);
 
   if (ctx->object->type == OB_CURVES) {
     Curves *curves_id = static_cast<Curves *>(ctx->object->data);
@@ -328,19 +333,18 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static bool check_tree_for_time_node(const bNodeTree &tree,
-                                     Set<const bNodeTree *> &r_checked_trees)
+static bool check_tree_for_time_node(const bNodeTree &tree, Set<const bNodeTree *> &checked_groups)
 {
-  if (!r_checked_trees.add(&tree)) {
+  if (!checked_groups.add(&tree)) {
     return false;
   }
-  LISTBASE_FOREACH (const bNode *, node, &tree.nodes) {
-    if (node->type == GEO_NODE_INPUT_SCENE_TIME) {
-      return true;
-    }
-    if (node->type == NODE_GROUP) {
-      const bNodeTree *sub_tree = reinterpret_cast<const bNodeTree *>(node->id);
-      if (sub_tree && check_tree_for_time_node(*sub_tree, r_checked_trees)) {
+  tree.ensure_topology_cache();
+  if (!tree.nodes_by_type("GeometryNodeInputSceneTime").is_empty()) {
+    return true;
+  }
+  for (const bNode *node : tree.group_nodes()) {
+    if (const bNodeTree *sub_tree = reinterpret_cast<const bNodeTree *>(node->id)) {
+      if (check_tree_for_time_node(*sub_tree, checked_groups)) {
         return true;
       }
     }
@@ -355,8 +359,8 @@ static bool dependsOnTime(struct Scene * /*scene*/, ModifierData *md)
   if (tree == nullptr) {
     return false;
   }
-  Set<const bNodeTree *> checked_trees;
-  return check_tree_for_time_node(*tree, checked_trees);
+  Set<const bNodeTree *> checked_groups;
+  return check_tree_for_time_node(*tree, checked_groups);
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
