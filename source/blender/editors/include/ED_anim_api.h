@@ -676,6 +676,8 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
                                       eAnimChannel_Settings setting,
                                       eAnimChannels_SetFlag mode);
 
+void ANIM_frame_channel_y_extents(struct bContext *C, bAnimContext *ac);
+
 /**
  * Set selection state of all animation channels in the context.
  */

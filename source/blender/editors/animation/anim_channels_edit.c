@@ -142,7 +142,7 @@ static bool get_channel_bounds(bAnimContext *ac,
 
 /* Pad the given rctf with regions that could block the view.
  * For example Markers and Time Scrubbing. */
-static void add_region_padding(bContext *C, bAnimContext *ac, rctf *bounds)
+static void add_region_padding(bContext *C, ARegion *region, rctf *bounds)
 {
   BLI_rctf_scale(bounds, 1.1f);
 
@@ -150,9 +150,8 @@ static void add_region_padding(bContext *C, bAnimContext *ac, rctf *bounds)
   const float pad_bottom = BLI_listbase_is_empty(ED_context_get_markers(C)) ?
                                V2D_SCROLL_HANDLE_HEIGHT :
                                UI_MARKER_MARGIN_Y;
-  BLI_rctf_pad_y(bounds, ac->region->winy, pad_bottom, pad_top);
+  BLI_rctf_pad_y(bounds, region->winy, pad_bottom, pad_top);
 }
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -731,6 +730,45 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
   anim_flush_channel_setting_down(ac, setting, mode, match, matchLevel);
 }
 
+void ANIM_frame_channel_y_extents(bContext *C, bAnimContext *ac)
+{
+
+  ARegion *window_region = BKE_area_find_region_type(ac->area, RGN_TYPE_WINDOW);
+
+  if (!window_region) {
+    return;
+  }
+
+  ListBase anim_data = {NULL, NULL};
+  const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
+                      ANIMFILTER_FCURVESONLY);
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+
+  rctf bounds = {.xmin = FLT_MAX, .xmax = -FLT_MAX, .ymin = FLT_MAX, .ymax = -FLT_MAX};
+  const bool include_handles = false;
+  const float frame_range[2] = {window_region->v2d.cur.xmin, window_region->v2d.cur.xmax};
+
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    rctf channel_bounds;
+    const bool found_bounds = get_channel_bounds(
+        ac, ale, frame_range, include_handles, &channel_bounds);
+    if (found_bounds) {
+      BLI_rctf_union(&bounds, &channel_bounds);
+    }
+  }
+
+  if (!BLI_rctf_is_valid(&bounds)) {
+    ANIM_animdata_freelist(&anim_data);
+    return;
+  }
+
+  add_region_padding(C, window_region, &bounds);
+
+  window_region->v2d.cur.ymin = bounds.ymin;
+  window_region->v2d.cur.ymax = bounds.ymax;
+
+  ANIM_animdata_freelist(&anim_data);
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -3805,7 +3843,7 @@ static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  add_region_padding(C, &ac, &bounds);
+  add_region_padding(C, window_region, &bounds);
 
   if (ac.spacetype == SPACE_ACTION) {
     bounds.ymin = window_region->v2d.cur.ymin;
@@ -3893,7 +3931,7 @@ static int graphkeys_channel_view_pick_invoke(bContext *C, wmOperator *op, const
     return OPERATOR_CANCELLED;
   }
 
-  add_region_padding(C, &ac, &bounds);
+  add_region_padding(C, window_region, &bounds);
 
   if (ac.spacetype == SPACE_ACTION) {
     bounds.ymin = window_region->v2d.cur.ymin;
