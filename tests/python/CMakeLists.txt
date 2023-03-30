@@ -736,8 +736,9 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
         set(_cycles_render_tests bake;${render_tests};osl)
 
         foreach(render_test ${_cycles_render_tests})
+          set(_cycles_test_name "cycles_${render_test}_${_cycles_device_lower}")
           add_python_test(
-            cycles_${render_test}_${_cycles_device_lower}
+            ${_cycles_test_name}
             ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
             -blender "${TEST_BLENDER_EXE}"
             -testdir "${TEST_SRC_DIR}/render/${render_test}"
@@ -746,6 +747,11 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
             -device ${_cycles_device}
             -blacklist ${_cycles_blacklist}
           )
+
+          if(NOT("${_cycles_device_lower}" STREQUAL "cpu"))
+            set_tests_properties(${_cycles_test_name} PROPERTIES RUN_SERIAL TRUE)
+          endif()
+          unset(_cycles_test_name)
         endforeach()
       endforeach()
       unset(_cycles_blacklist)
