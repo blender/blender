@@ -29,9 +29,10 @@ void workbench_opaque_engine_init(WORKBENCH_Data *data)
   /* Reused the same textures format for transparent pipeline to share the textures. */
   const eGPUTextureFormat col_tex_format = GPU_RGBA16F;
   const eGPUTextureFormat nor_tex_format = NORMAL_ENCODING_ENABLED() ? GPU_RG16F : GPU_RGBA16F;
+  const eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
 
-  wpd->material_buffer_tx = DRW_texture_pool_query_fullscreen(col_tex_format, owner);
-  wpd->normal_buffer_tx = DRW_texture_pool_query_fullscreen(nor_tex_format, owner);
+  wpd->material_buffer_tx = DRW_texture_pool_query_fullscreen_ex(col_tex_format, usage, owner);
+  wpd->normal_buffer_tx = DRW_texture_pool_query_fullscreen_ex(nor_tex_format, usage, owner);
 
   GPU_framebuffer_ensure_config(&fbl->opaque_fb,
                                 {
