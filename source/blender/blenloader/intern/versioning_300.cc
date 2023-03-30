@@ -4177,19 +4177,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         version_geometry_nodes_extrude_smooth_propagation(*ntree);
       }
     }
-  }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -4229,5 +4217,18 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       workspace->asset_library_ref.type = ASSET_LIBRARY_ALL;
       workspace->asset_library_ref.custom_library_index = -1;
     }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }
