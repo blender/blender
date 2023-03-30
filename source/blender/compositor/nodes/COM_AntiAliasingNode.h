@@ -13,9 +13,7 @@ namespace blender::compositor {
  */
 class AntiAliasingNode : public Node {
  public:
-  AntiAliasingNode(bNode *editor_node) : Node(editor_node)
-  {
-  }
+  AntiAliasingNode(bNode *editor_node) : Node(editor_node) {}
   void convert_to_operations(NodeConverter &converter,
                              const CompositorContext &context) const override;
 };

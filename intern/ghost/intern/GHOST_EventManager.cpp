@@ -13,9 +13,7 @@
 #include "GHOST_Debug.h"
 #include <algorithm>
 
-GHOST_EventManager::GHOST_EventManager()
-{
-}
+GHOST_EventManager::GHOST_EventManager() {}
 
 GHOST_EventManager::~GHOST_EventManager()
 {

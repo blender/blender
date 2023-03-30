@@ -18,9 +18,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-BVHStackEntry::BVHStackEntry(const BVHNode *n, int i) : node(n), idx(i)
-{
-}
+BVHStackEntry::BVHStackEntry(const BVHNode *n, int i) : node(n), idx(i) {}
 
 int BVHStackEntry::encodeIdx() const
 {

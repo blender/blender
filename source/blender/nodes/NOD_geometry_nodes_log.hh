@@ -89,9 +89,7 @@ class GenericValueLog : public ValueLog {
    */
   GMutablePointer value;
 
-  GenericValueLog(const GMutablePointer value) : value(value)
-  {
-  }
+  GenericValueLog(const GMutablePointer value) : value(value) {}
 
   ~GenericValueLog();
 };

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+ * Copyright 2017 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -52,9 +52,7 @@ struct ExtractorRunData {
   void *buffer = nullptr;
   uint32_t data_offset = 0;
 
-  ExtractorRunData(const MeshExtract *extractor) : extractor(extractor)
-  {
-  }
+  ExtractorRunData(const MeshExtract *extractor) : extractor(extractor) {}
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("DRAW:ExtractorRunData")

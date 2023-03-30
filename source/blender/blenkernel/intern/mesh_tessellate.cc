@@ -94,7 +94,7 @@ BLI_INLINE void mesh_calc_tessellation_for_face_impl(const Span<int> corner_vert
         zero_v3(normal);
 
         /* Calc normal, flipped: to get a positive 2D cross product. */
-        co_prev = positions[corner_verts[mp_totloop - 1]];
+        co_prev = positions[corner_verts[mp_loopstart + mp_totloop - 1]];
         for (uint j = 0; j < mp_totloop; j++) {
           co_curr = positions[corner_verts[mp_loopstart + j]];
           add_newell_cross_v3_v3v3(normal, co_prev, co_curr);

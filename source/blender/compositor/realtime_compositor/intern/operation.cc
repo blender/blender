@@ -21,9 +21,7 @@
 
 namespace blender::realtime_compositor {
 
-Operation::Operation(Context &context) : context_(context)
-{
-}
+Operation::Operation(Context &context) : context_(context) {}
 
 Operation::~Operation() = default;
 

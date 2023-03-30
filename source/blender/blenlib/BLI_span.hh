@@ -118,13 +118,9 @@ template<typename T> class Span {
   {
   }
 
-  constexpr Span(const std::vector<T> &vector) : Span(vector.data(), int64_t(vector.size()))
-  {
-  }
+  constexpr Span(const std::vector<T> &vector) : Span(vector.data(), int64_t(vector.size())) {}
 
-  template<std::size_t N> constexpr Span(const std::array<T, N> &array) : Span(array.data(), N)
-  {
-  }
+  template<std::size_t N> constexpr Span(const std::array<T, N> &array) : Span(array.data(), N) {}
 
   /**
    * Support implicit conversions like the one below:
@@ -497,13 +493,9 @@ template<typename T> class MutableSpan {
  public:
   constexpr MutableSpan() = default;
 
-  constexpr MutableSpan(T *start, const int64_t size) : data_(start), size_(size)
-  {
-  }
+  constexpr MutableSpan(T *start, const int64_t size) : data_(start), size_(size) {}
 
-  constexpr MutableSpan(std::vector<T> &vector) : MutableSpan(vector.data(), vector.size())
-  {
-  }
+  constexpr MutableSpan(std::vector<T> &vector) : MutableSpan(vector.data(), vector.size()) {}
 
   template<std::size_t N>
   constexpr MutableSpan(std::array<T, N> &array) : MutableSpan(array.data(), N)

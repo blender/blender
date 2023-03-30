@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spview3d
@@ -30,6 +30,7 @@ struct View3D;
 struct bContext;
 struct rcti;
 struct wmEvent;
+struct wmOperator;
 
 enum eV3D_OpPropFlag {
   V3D_OP_PROP_MOUSE_CO = (1 << 0),
@@ -157,6 +158,8 @@ typedef struct ViewOpsData {
 bool view3d_location_poll(struct bContext *C);
 bool view3d_rotation_poll(struct bContext *C);
 bool view3d_zoom_or_dolly_poll(struct bContext *C);
+
+void view3d_navigate_cancel_fn(struct bContext *C, struct wmOperator *op);
 
 enum eViewOpsFlag viewops_flag_from_prefs(void);
 void calctrackballvec(const struct rcti *rect, const int event_xy[2], float r_dir[3]);

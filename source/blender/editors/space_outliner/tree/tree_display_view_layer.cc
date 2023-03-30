@@ -200,9 +200,7 @@ void TreeDisplayViewLayer::add_layer_collection_objects_children(TreeElement &co
  *
  * \{ */
 
-ObjectsChildrenBuilder::ObjectsChildrenBuilder(SpaceOutliner &outliner) : outliner_(outliner)
-{
-}
+ObjectsChildrenBuilder::ObjectsChildrenBuilder(SpaceOutliner &outliner) : outliner_(outliner) {}
 
 void ObjectsChildrenBuilder::operator()(TreeElement &collection_tree_elem)
 {

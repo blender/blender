@@ -96,9 +96,7 @@ template<typename T> void uninitialized_fill_n(T *dst, int64_t n, const T &value
 template<typename T> struct DestructValueAtAddress {
   DestructValueAtAddress() = default;
 
-  template<typename U> DestructValueAtAddress(const U &)
-  {
-  }
+  template<typename U> DestructValueAtAddress(const U &) {}
 
   void operator()(T *ptr)
   {

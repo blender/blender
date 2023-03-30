@@ -11,9 +11,7 @@
 
 namespace blender::realtime_compositor {
 
-Context::Context(TexturePool &texture_pool) : texture_pool_(texture_pool)
-{
-}
+Context::Context(TexturePool &texture_pool) : texture_pool_(texture_pool) {}
 
 int2 Context::get_compositing_region_size() const
 {

@@ -15,9 +15,7 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
   SpaceImage *sima;
 
  public:
-  SpaceImageAccessor(SpaceImage *sima) : sima(sima)
-  {
-  }
+  SpaceImageAccessor(SpaceImage *sima) : sima(sima) {}
 
   Image *get_image(Main * /*bmain*/) override
   {

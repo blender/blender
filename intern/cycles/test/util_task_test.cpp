@@ -9,9 +9,7 @@ CCL_NAMESPACE_BEGIN
 
 namespace {
 
-void task_run()
-{
-}
+void task_run() {}
 
 }  // namespace
 

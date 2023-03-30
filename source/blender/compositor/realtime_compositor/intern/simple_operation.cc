@@ -20,9 +20,7 @@ void SimpleOperation::map_input_to_result(Result *result)
   Operation::map_input_to_result(input_identifier_, result);
 }
 
-void SimpleOperation::add_and_evaluate_input_processors()
-{
-}
+void SimpleOperation::add_and_evaluate_input_processors() {}
 
 Result &SimpleOperation::get_input()
 {

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -417,9 +417,7 @@ bool GLContext::debug_capture_scope_begin(void * /*scope*/)
   return false;
 }
 
-void GLContext::debug_capture_scope_end(void * /*scope*/)
-{
-}
+void GLContext::debug_capture_scope_end(void * /*scope*/) {}
 
 /** \} */
 

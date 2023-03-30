@@ -120,9 +120,7 @@ struct SlideOperationExecutor {
 
   std::atomic<bool> found_invalid_uv_mapping_{false};
 
-  SlideOperationExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  SlideOperationExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(SlideOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {

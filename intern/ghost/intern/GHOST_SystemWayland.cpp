@@ -205,6 +205,14 @@ static bool use_gnome_confine_hack = false;
 
 #define WL_NAME_UNSET uint32_t(-1)
 
+/**
+ * Initializer for GHOST integer coordinates from `wl_fixed_t`,
+ * taking window scale into account.
+ */
+#define WL_FIXED_TO_INT_FOR_WINDOW_V2(win, xy) \
+  wl_fixed_to_int((win)->wl_fixed_to_window((xy)[0])), \
+      wl_fixed_to_int((win)->wl_fixed_to_window((xy)[1])),
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1925,8 +1933,6 @@ static void relative_pointer_handle_relative_motion_impl(GWL_Seat *seat,
                                                          GHOST_WindowWayland *win,
                                                          const wl_fixed_t xy[2])
 {
-  const wl_fixed_t scale = win->scale();
-
   seat->pointer.xy[0] = xy[0];
   seat->pointer.xy[1] = xy[1];
 
@@ -1937,21 +1943,19 @@ static void relative_pointer_handle_relative_motion_impl(GWL_Seat *seat,
     /* Needed or the cursor is considered outside the window and doesn't restore the location. */
     bounds.m_r -= 1;
     bounds.m_b -= 1;
-
-    bounds.m_l = wl_fixed_from_int(bounds.m_l) / scale;
-    bounds.m_t = wl_fixed_from_int(bounds.m_t) / scale;
-    bounds.m_r = wl_fixed_from_int(bounds.m_r) / scale;
-    bounds.m_b = wl_fixed_from_int(bounds.m_b) / scale;
+    bounds.m_l = win->wl_fixed_from_window(wl_fixed_from_int(bounds.m_l));
+    bounds.m_t = win->wl_fixed_from_window(wl_fixed_from_int(bounds.m_t));
+    bounds.m_r = win->wl_fixed_from_window(wl_fixed_from_int(bounds.m_r));
+    bounds.m_b = win->wl_fixed_from_window(wl_fixed_from_int(bounds.m_b));
     bounds.clampPoint(UNPACK2(seat->pointer.xy));
   }
 #endif
-  seat->system->pushEvent_maybe_pending(
-      new GHOST_EventCursor(seat->system->getMilliSeconds(),
-                            GHOST_kEventCursorMove,
-                            win,
-                            wl_fixed_to_int(scale * seat->pointer.xy[0]),
-                            wl_fixed_to_int(scale * seat->pointer.xy[1]),
-                            GHOST_TABLET_DATA_NONE));
+  const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->pointer.xy)};
+  seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(seat->system->getMilliSeconds(),
+                                                              GHOST_kEventCursorMove,
+                                                              win,
+                                                              UNPACK2(event_xy),
+                                                              GHOST_TABLET_DATA_NONE));
 }
 
 static void relative_pointer_handle_relative_motion(
@@ -1968,10 +1972,9 @@ static void relative_pointer_handle_relative_motion(
   if (wl_surface *wl_surface_focus = seat->pointer.wl_surface_window) {
     CLOG_INFO(LOG, 2, "relative_motion");
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    const wl_fixed_t scale = win->scale();
     const wl_fixed_t xy_next[2] = {
-        seat->pointer.xy[0] + (dx / scale),
-        seat->pointer.xy[1] + (dy / scale),
+        seat->pointer.xy[0] + win->wl_fixed_from_window(dx),
+        seat->pointer.xy[1] + win->wl_fixed_from_window(dy),
     };
     relative_pointer_handle_relative_motion_impl(seat, win, xy_next);
   }
@@ -2000,12 +2003,7 @@ static void dnd_events(const GWL_Seat *const seat, const GHOST_TEventType event)
   /* NOTE: `seat->data_offer_dnd_mutex` must already be locked. */
   if (wl_surface *wl_surface_focus = seat->wl_surface_window_focus_dnd) {
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    const wl_fixed_t scale = win->scale();
-    const int event_xy[2] = {
-        wl_fixed_to_int(scale * seat->data_offer_dnd->dnd.xy[0]),
-        wl_fixed_to_int(scale * seat->data_offer_dnd->dnd.xy[1]),
-    };
-
+    const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->data_offer_dnd->dnd.xy)};
     const uint64_t time = seat->system->getMilliSeconds();
     for (size_t i = 0; i < ARRAY_SIZE(ghost_wl_mime_preference_order_type); i++) {
       const GHOST_TDragnDropTypes type = ghost_wl_mime_preference_order_type[i];
@@ -2477,13 +2475,12 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
       }
 
       CLOG_INFO(LOG, 2, "drop_read_uris_fn file_count=%d", flist->count);
-      const wl_fixed_t scale = win->scale();
+      const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, xy)};
       system->pushEvent_maybe_pending(new GHOST_EventDragnDrop(system->getMilliSeconds(),
                                                                GHOST_kEventDraggingDropDone,
                                                                GHOST_kDragnDropTypeFilenames,
                                                                win,
-                                                               wl_fixed_to_int(scale * xy[0]),
-                                                               wl_fixed_to_int(scale * xy[1]),
+                                                               UNPACK2(event_xy),
                                                                flist));
     }
     else if (ELEM(mime_receive, ghost_wl_mime_text_plain, ghost_wl_mime_text_utf8)) {
@@ -2685,14 +2682,12 @@ static void pointer_handle_enter(void *data,
 
   seat->system->cursor_shape_set(win->getCursorShape());
 
-  const wl_fixed_t scale = win->scale();
-  seat->system->pushEvent_maybe_pending(
-      new GHOST_EventCursor(seat->system->getMilliSeconds(),
-                            GHOST_kEventCursorMove,
-                            win,
-                            wl_fixed_to_int(scale * seat->pointer.xy[0]),
-                            wl_fixed_to_int(scale * seat->pointer.xy[1]),
-                            GHOST_TABLET_DATA_NONE));
+  const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->pointer.xy)};
+  seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(seat->system->getMilliSeconds(),
+                                                              GHOST_kEventCursorMove,
+                                                              win,
+                                                              UNPACK2(event_xy),
+                                                              GHOST_TABLET_DATA_NONE));
 }
 
 static void pointer_handle_leave(void *data,
@@ -2723,14 +2718,12 @@ static void pointer_handle_motion(void *data,
   if (wl_surface *wl_surface_focus = seat->pointer.wl_surface_window) {
     CLOG_INFO(LOG, 2, "motion");
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    const wl_fixed_t scale = win->scale();
-    seat->system->pushEvent_maybe_pending(
-        new GHOST_EventCursor(seat->system->getMilliSeconds(),
-                              GHOST_kEventCursorMove,
-                              win,
-                              wl_fixed_to_int(scale * seat->pointer.xy[0]),
-                              wl_fixed_to_int(scale * seat->pointer.xy[1]),
-                              GHOST_TABLET_DATA_NONE));
+    const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->pointer.xy)};
+    seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(seat->system->getMilliSeconds(),
+                                                                GHOST_kEventCursorMove,
+                                                                win,
+                                                                UNPACK2(event_xy),
+                                                                GHOST_TABLET_DATA_NONE));
   }
   else {
     CLOG_INFO(LOG, 2, "motion (skipped)");
@@ -2849,13 +2842,12 @@ static void pointer_handle_frame(void *data, struct wl_pointer * /*wl_pointer*/)
   if (seat->pointer_scroll.smooth_xy[0] || seat->pointer_scroll.smooth_xy[1]) {
     if (wl_surface *wl_surface_focus = seat->pointer.wl_surface_window) {
       GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-      const wl_fixed_t scale = win->scale();
+      const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->pointer.xy)};
       seat->system->pushEvent_maybe_pending(new GHOST_EventTrackpad(
           seat->system->getMilliSeconds(),
           win,
           GHOST_kTrackpadEventScroll,
-          wl_fixed_to_int(scale * seat->pointer.xy[0]),
-          wl_fixed_to_int(scale * seat->pointer.xy[1]),
+          UNPACK2(event_xy),
           /* NOTE: scaling the delta doesn't seem necessary.
            * NOTE: inverting delta gives correct results, see: QTBUG-85767.
            * NOTE: the preference to invert scrolling (in GNOME at least)
@@ -3082,11 +3074,7 @@ static void gesture_pinch_handle_update(void *data,
       &seat->pointer_gesture_pinch.rotation, rotation);
 
   if (win) {
-    const wl_fixed_t win_scale = win->scale();
-    const int32_t event_xy[2] = {
-        wl_fixed_to_int(win_scale * seat->pointer.xy[0]),
-        wl_fixed_to_int(win_scale * seat->pointer.xy[1]),
-    };
+    const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->pointer.xy)};
     if (scale_as_delta_px) {
       seat->system->pushEvent_maybe_pending(
           new GHOST_EventTrackpad(seat->system->getMilliSeconds(),
@@ -3566,14 +3554,12 @@ static void tablet_tool_handle_frame(void *data,
   /* No need to check the surfaces origin, it's already known to be owned by GHOST. */
   if (wl_surface *wl_surface_focus = seat->tablet.wl_surface_window) {
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-    const wl_fixed_t scale = win->scale();
-    seat->system->pushEvent_maybe_pending(
-        new GHOST_EventCursor(seat->system->getMilliSeconds(),
-                              GHOST_kEventCursorMove,
-                              win,
-                              wl_fixed_to_int(scale * seat->tablet.xy[0]),
-                              wl_fixed_to_int(scale * seat->tablet.xy[1]),
-                              tablet_tool->data));
+    const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->tablet.xy)};
+    seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(seat->system->getMilliSeconds(),
+                                                                GHOST_kEventCursorMove,
+                                                                win,
+                                                                UNPACK2(event_xy),
+                                                                tablet_tool->data));
     if (tablet_tool->proximity == false) {
       seat->system->cursor_shape_set(win->getCursorShape());
     }
@@ -6020,7 +6006,6 @@ static GHOST_TSuccess getCursorPositionClientRelative_impl(
     int32_t &x,
     int32_t &y)
 {
-  const wl_fixed_t scale = win->scale();
 
   if (win->getCursorGrabModeIsWarp()) {
     /* As the cursor is restored at the warped location,
@@ -6037,18 +6022,19 @@ static GHOST_TSuccess getCursorPositionClientRelative_impl(
     };
 
     GHOST_Rect wrap_bounds_scale;
-    wrap_bounds_scale.m_l = wl_fixed_from_int(wrap_bounds.m_l) / scale;
-    wrap_bounds_scale.m_t = wl_fixed_from_int(wrap_bounds.m_t) / scale;
-    wrap_bounds_scale.m_r = wl_fixed_from_int(wrap_bounds.m_r) / scale;
-    wrap_bounds_scale.m_b = wl_fixed_from_int(wrap_bounds.m_b) / scale;
+
+    wrap_bounds_scale.m_l = win->wl_fixed_from_window(wl_fixed_from_int(wrap_bounds.m_l));
+    wrap_bounds_scale.m_t = win->wl_fixed_from_window(wl_fixed_from_int(wrap_bounds.m_t));
+    wrap_bounds_scale.m_r = win->wl_fixed_from_window(wl_fixed_from_int(wrap_bounds.m_r));
+    wrap_bounds_scale.m_b = win->wl_fixed_from_window(wl_fixed_from_int(wrap_bounds.m_b));
     wrap_bounds_scale.wrapPoint(UNPACK2(xy_wrap), 0, win->getCursorGrabAxis());
 
-    x = wl_fixed_to_int(scale * xy_wrap[0]);
-    y = wl_fixed_to_int(scale * xy_wrap[1]);
+    x = wl_fixed_to_int(win->wl_fixed_to_window(xy_wrap[0]));
+    y = wl_fixed_to_int(win->wl_fixed_to_window(xy_wrap[1]));
   }
   else {
-    x = wl_fixed_to_int(scale * seat_state_pointer->xy[0]);
-    y = wl_fixed_to_int(scale * seat_state_pointer->xy[1]);
+    x = win->wl_fixed_to_window(seat_state_pointer->xy[0]);
+    y = win->wl_fixed_to_window(seat_state_pointer->xy[1]);
   }
 
   return GHOST_kSuccess;
@@ -6065,10 +6051,9 @@ static GHOST_TSuccess setCursorPositionClientRelative_impl(GWL_Seat *seat,
   if (!seat->wp_relative_pointer) {
     return GHOST_kFailure;
   }
-  const wl_fixed_t scale = win->scale();
-  const wl_fixed_t xy_next[2] = {
-      wl_fixed_from_int(x) / scale,
-      wl_fixed_from_int(y) / scale,
+  const wl_fixed_t xy_next[2]{
+      win->wl_fixed_from_window(wl_fixed_from_int(x)),
+      win->wl_fixed_from_window(wl_fixed_from_int(y)),
   };
 
   /* As the cursor was "warped" generate an event at the new location. */

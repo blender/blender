@@ -123,13 +123,9 @@ NODE_DEFINE(Film)
   return type;
 }
 
-Film::Film() : Node(get_node_type()), filter_table_offset_(TABLE_OFFSET_INVALID)
-{
-}
+Film::Film() : Node(get_node_type()), filter_table_offset_(TABLE_OFFSET_INVALID) {}
 
-Film::~Film()
-{
-}
+Film::~Film() {}
 
 void Film::add_default(Scene *scene)
 {

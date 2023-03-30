@@ -26,9 +26,7 @@ class SharedDataContainer {
   ImplicitSharingPtr<ImplicitlySharedData> data_;
 
  public:
-  SharedDataContainer() : data_(MEM_new<ImplicitlySharedData>(__func__))
-  {
-  }
+  SharedDataContainer() : data_(MEM_new<ImplicitlySharedData>(__func__)) {}
 
   const ImplicitlySharedData *get_for_read() const
   {

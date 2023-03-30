@@ -607,12 +607,6 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_FINISHED;
 }
 
-static void viewzoom_cancel(bContext *C, wmOperator *op)
-{
-  viewops_data_free(C, op->customdata);
-  op->customdata = NULL;
-}
-
 void VIEW3D_OT_zoom(wmOperatorType *ot)
 {
   /* identifiers */
@@ -625,7 +619,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
   ot->exec = viewzoom_exec;
   ot->modal = viewzoom_modal;
   ot->poll = view3d_zoom_or_dolly_poll;
-  ot->cancel = viewzoom_cancel;
+  ot->cancel = view3d_navigate_cancel_fn;
 
   /* flags */
   ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;

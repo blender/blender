@@ -649,9 +649,7 @@ static void attr_create_subd_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, 
 /* Compare vertices by sum of their coordinates. */
 class VertexAverageComparator {
  public:
-  VertexAverageComparator(const array<float3> &verts) : verts_(verts)
-  {
-  }
+  VertexAverageComparator(const array<float3> &verts) : verts_(verts) {}
 
   bool operator()(const int &vert_idx_a, const int &vert_idx_b)
   {

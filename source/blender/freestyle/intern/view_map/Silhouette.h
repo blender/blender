@@ -581,9 +581,7 @@ class FEdge : public Interface1D {
   }
 
   /** Destructor */
-  virtual ~FEdge()
-  {
-  }
+  virtual ~FEdge() {}
 
   /** Cloning method. */
   virtual FEdge *duplicate()
@@ -1171,9 +1169,7 @@ class FEdgeSharp : public FEdge {
   }
 
   /** Destructor. */
-  virtual ~FEdgeSharp()
-  {
-  }
+  virtual ~FEdgeSharp() {}
 
   /** Cloning method. */
   virtual FEdge *duplicate()
@@ -1326,9 +1322,7 @@ class FEdgeSmooth : public FEdge {
   }
 
   /** Destructor. */
-  virtual ~FEdgeSmooth()
-  {
-  }
+  virtual ~FEdgeSmooth() {}
 
   /** Cloning method. */
   virtual FEdge *duplicate()

@@ -308,9 +308,7 @@ class ViewVertex : public Interface0D {
 
  public:
   /** Destructor. */
-  virtual ~ViewVertex()
-  {
-  }
+  virtual ~ViewVertex() {}
 
   /* accessors */
   /** Returns the nature of the vertex. */
@@ -327,9 +325,7 @@ class ViewVertex : public Interface0D {
   }
 
   /* Replaces old edge by new edge */
-  virtual void Replace(ViewEdge *, ViewEdge *)
-  {
-  }
+  virtual void Replace(ViewEdge *, ViewEdge *) {}
 
  public:
   /* iterators access */
@@ -779,9 +775,7 @@ class NonTVertex : public ViewVertex {
 
  public:
   /** destructor. */
-  virtual ~NonTVertex()
-  {
-  }
+  virtual ~NonTVertex() {}
 
   /* accessors */
   /** Returns the SVertex on top of which this NonTVertex is built. */

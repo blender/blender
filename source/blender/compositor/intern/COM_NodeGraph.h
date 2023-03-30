@@ -26,9 +26,7 @@ class NodeGraph {
     NodeOutput *from;
     NodeInput *to;
 
-    Link(NodeOutput *from, NodeInput *to) : from(from), to(to)
-    {
-    }
+    Link(NodeOutput *from, NodeInput *to) : from(from), to(to) {}
   };
 
  private:

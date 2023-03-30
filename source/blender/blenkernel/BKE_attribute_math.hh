@@ -368,13 +368,9 @@ class BooleanPropagationMixer {
   /**
    * Does not do anything, since the mixing is trivial.
    */
-  void finalize()
-  {
-  }
+  void finalize() {}
 
-  void finalize(const IndexMask /*mask*/)
-  {
-  }
+  void finalize(const IndexMask /*mask*/) {}
 };
 
 /**

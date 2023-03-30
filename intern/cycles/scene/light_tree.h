@@ -23,9 +23,7 @@ struct OrientationBounds {
   float theta_o; /* angle bounding the normals */
   float theta_e; /* angle bounding the light emissions */
 
-  __forceinline OrientationBounds()
-  {
-  }
+  __forceinline OrientationBounds() {}
 
   __forceinline OrientationBounds(const float3 &axis_, float theta_o_, float theta_e_)
       : axis(axis_), theta_o(theta_o_), theta_e(theta_e_)
@@ -69,9 +67,7 @@ struct LightTreePrimitivesMeasure {
 
   __forceinline LightTreePrimitivesMeasure() = default;
 
-  __forceinline LightTreePrimitivesMeasure(empty_t)
-  {
-  }
+  __forceinline LightTreePrimitivesMeasure(empty_t) {}
 
   __forceinline LightTreePrimitivesMeasure(const BoundBox &bbox,
                                            const OrientationBounds &bcone,

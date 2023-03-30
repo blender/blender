@@ -131,7 +131,8 @@ void PackIsland::finalize_geometry(const UVPackIsland_Params &params, MemArena *
   if (shape_method == ED_UVPACK_SHAPE_CONVEX) {
     /* Compute convex hull of existing triangles. */
     if (triangle_vertices_.size() <= 3) {
-      return; /* Trivial case, nothing to do. */
+      calculate_pivot();
+      return; /* Trivial case, calculate pivot only. */
     }
 
     int vert_count = int(triangle_vertices_.size());
@@ -156,7 +157,11 @@ void PackIsland::finalize_geometry(const UVPackIsland_Params &params, MemArena *
 
     BLI_heap_clear(heap, nullptr);
   }
+  calculate_pivot();
+}
 
+void PackIsland::calculate_pivot()
+{
   Bounds<float2> triangle_bounds = *bounds::min_max(triangle_vertices_.as_span());
   float2 aabb_min = triangle_bounds.min;
   float2 aabb_max = triangle_bounds.max;
@@ -821,7 +826,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                          &max_v);
       break;
     default:
-      BLI_box_pack_2d(box_array, int(max_box_pack), &max_u, &max_v);
+      BLI_box_pack_2d(box_array, int(max_box_pack), false, &max_u, &max_v);
       break;
   }
 

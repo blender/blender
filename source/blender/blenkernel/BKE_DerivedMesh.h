@@ -146,10 +146,10 @@ struct DerivedMesh {
    * from the derived mesh (this gives a pointer to the actual data, not
    * a copy)
    */
-  void *(*getVertDataArray)(DerivedMesh *dm, int type);
-  void *(*getEdgeDataArray)(DerivedMesh *dm, int type);
-  void *(*getLoopDataArray)(DerivedMesh *dm, int type);
-  void *(*getPolyDataArray)(DerivedMesh *dm, int type);
+  void *(*getVertDataArray)(DerivedMesh *dm, eCustomDataType type);
+  void *(*getEdgeDataArray)(DerivedMesh *dm, eCustomDataType type);
+  void *(*getLoopDataArray)(DerivedMesh *dm, eCustomDataType type);
+  void *(*getPolyDataArray)(DerivedMesh *dm, eCustomDataType type);
 
   /** Optional grid access for subsurf */
   int (*getNumGrids)(DerivedMesh *dm);
@@ -228,10 +228,10 @@ void DM_set_only_copy(DerivedMesh *dm, const struct CustomData_MeshMasks *mask);
  * \note these return pointers - any change modifies the internals of the mesh.
  * \{ */
 
-void *DM_get_vert_data_layer(struct DerivedMesh *dm, int type);
-void *DM_get_edge_data_layer(struct DerivedMesh *dm, int type);
-void *DM_get_poly_data_layer(struct DerivedMesh *dm, int type);
-void *DM_get_loop_data_layer(struct DerivedMesh *dm, int type);
+void *DM_get_vert_data_layer(struct DerivedMesh *dm, eCustomDataType type);
+void *DM_get_edge_data_layer(struct DerivedMesh *dm, eCustomDataType type);
+void *DM_get_poly_data_layer(struct DerivedMesh *dm, eCustomDataType type);
+void *DM_get_loop_data_layer(struct DerivedMesh *dm, eCustomDataType type);
 
 /** \} */
 

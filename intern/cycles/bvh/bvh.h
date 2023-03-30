@@ -70,9 +70,7 @@ class BVH {
                      const vector<Geometry *> &geometry,
                      const vector<Object *> &objects,
                      Device *device);
-  virtual ~BVH()
-  {
-  }
+  virtual ~BVH() {}
 
   virtual void replace_geometry(const vector<Geometry *> &geometry,
                                 const vector<Object *> &objects)

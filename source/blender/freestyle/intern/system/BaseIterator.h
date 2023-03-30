@@ -64,9 +64,7 @@ class BidirectionalIteratorTag_Traits {
 
 template<class Traits, class IteratorTagTraits> class IteratorBase {
  public:
-  virtual ~IteratorBase()
-  {
-  }
+  virtual ~IteratorBase() {}
 
   virtual bool begin() const = 0;
   virtual bool end() const = 0;
@@ -78,9 +76,7 @@ template<class Traits, class IteratorTagTraits> class IteratorBase {
   typedef typename Traits::reference reference;
 
  protected:
-  IteratorBase()
-  {
-  }
+  IteratorBase() {}
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:IteratorBase")

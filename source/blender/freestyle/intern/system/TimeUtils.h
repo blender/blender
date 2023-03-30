@@ -17,12 +17,8 @@ namespace Freestyle {
 
 class Chronometer {
  public:
-  inline Chronometer()
-  {
-  }
-  inline ~Chronometer()
-  {
-  }
+  inline Chronometer() {}
+  inline ~Chronometer() {}
 
   inline clock_t start()
   {

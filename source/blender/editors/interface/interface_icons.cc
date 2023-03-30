@@ -1114,9 +1114,7 @@ static void free_iconfile_list(ListBase *list)
 
 #else
 
-void UI_icons_reload_internal_textures()
-{
-}
+void UI_icons_reload_internal_textures() {}
 
 #endif /* WITH_HEADLESS */
 

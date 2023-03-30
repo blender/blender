@@ -82,7 +82,7 @@ class AssetLibraryService {
   /**
    * Return the start position of the last blendfile extension in given path, or std::string::npos
    * if not found. Works with both kind of path separators. */
-  size_t rfind_blendfile_extension(StringRef path);
+  int64_t rfind_blendfile_extension(StringRef path);
   /**
    * Return a normalized version of #AssetWeakReference.relative_asset_identifier.
    * Special care is required here because slahes or backslashes should not be converted in the ID
@@ -93,7 +93,13 @@ class AssetLibraryService {
    * asset. */
   std::string resolve_asset_weak_reference_to_library_path(
       const AssetWeakReference &asset_reference);
-  /* See #AS_asset_full_path_resolve_from_weak_ref(). */
+  /**
+   * Attempt to build a full path to an asset based on the currently available (not necessary
+   * loaded) asset libraries. The path is not guaranteed to exist. The returned path will be
+   * normalized and using native slashes.
+   *
+   * \note Only works for asset libraries on disk (others can't be resolved).
+   */
   std::string resolve_asset_weak_reference_to_full_path(const AssetWeakReference &asset_reference);
   /** Struct to hold results from path explosion functions
    * (#resolve_asset_weak_reference_to_exploded_path()). */

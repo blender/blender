@@ -178,9 +178,7 @@ class Device {
   }
 
   /* Request cancellation of any long-running work. */
-  virtual void cancel()
-  {
-  }
+  virtual void cancel() {}
 
   /* Report status and return true if device is ready for rendering. */
   virtual bool is_ready(string & /*status*/) const
@@ -218,9 +216,7 @@ class Device {
   }
 
   /* Called after kernel texture setup, and prior to integrator state setup. */
-  virtual void optimize_for_scene(Scene * /*scene*/)
-  {
-  }
+  virtual void optimize_for_scene(Scene * /*scene*/) {}
 
   virtual bool is_resident(device_ptr /*key*/, Device *sub_device)
   {
@@ -350,9 +346,7 @@ class GPUDevice : public Device {
   typedef unsigned long long texMemObject;
   typedef unsigned long long arrayMemObject;
   struct Mem {
-    Mem() : texobject(0), array(0), use_mapped_host(false)
-    {
-    }
+    Mem() : texobject(0), array(0), use_mapped_host(false) {}
 
     texMemObject texobject;
     arrayMemObject array;

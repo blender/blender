@@ -20,13 +20,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-ParticleCurveData::ParticleCurveData()
-{
-}
+ParticleCurveData::ParticleCurveData() {}
 
-ParticleCurveData::~ParticleCurveData()
-{
-}
+ParticleCurveData::~ParticleCurveData() {}
 
 static float shaperadius(float shape, float root, float tip, float time)
 {

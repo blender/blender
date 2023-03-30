@@ -29,9 +29,7 @@ namespace blender::io::alembic {
 
 const std::string ABC_CURVE_RESOLUTION_U_PROPNAME("blender:resolution");
 
-ABCCurveWriter::ABCCurveWriter(const ABCWriterConstructorArgs &args) : ABCAbstractWriter(args)
-{
-}
+ABCCurveWriter::ABCCurveWriter(const ABCWriterConstructorArgs &args) : ABCAbstractWriter(args) {}
 
 void ABCCurveWriter::create_alembic_objects(const HierarchyContext *context)
 {

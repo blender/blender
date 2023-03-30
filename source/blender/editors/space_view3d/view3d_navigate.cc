@@ -75,6 +75,18 @@ bool view3d_zoom_or_dolly_poll(bContext *C)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Generic Callbacks
+ * \{ */
+
+void view3d_navigate_cancel_fn(bContext *C, wmOperator *op)
+{
+  viewops_data_free(C, (ViewOpsData *)op->customdata);
+  op->customdata = NULL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Generic View Operator Properties
  * \{ */
 

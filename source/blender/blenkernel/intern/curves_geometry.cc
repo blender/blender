@@ -48,9 +48,7 @@ static const std::string ATTR_SURFACE_UV_COORDINATE = "surface_uv_coordinate";
 /** \name Constructors/Destructor
  * \{ */
 
-CurvesGeometry::CurvesGeometry() : CurvesGeometry(0, 0)
-{
-}
+CurvesGeometry::CurvesGeometry() : CurvesGeometry(0, 0) {}
 
 CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
 {
@@ -981,9 +979,7 @@ void CurvesGeometry::tag_normals_changed()
 {
   this->runtime->evaluated_normal_cache.tag_dirty();
 }
-void CurvesGeometry::tag_radii_changed()
-{
-}
+void CurvesGeometry::tag_radii_changed() {}
 
 static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
 {

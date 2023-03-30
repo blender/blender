@@ -570,9 +570,7 @@ bool GLComputeEvaluator::EvalPatches(GLuint srcBuffer,
 }
 // ---------------------------------------------------------------------------
 
-GLComputeEvaluator::_StencilKernel::_StencilKernel() : program(0)
-{
-}
+GLComputeEvaluator::_StencilKernel::_StencilKernel() : program(0) {}
 GLComputeEvaluator::_StencilKernel::~_StencilKernel()
 {
   if (program) {
@@ -617,9 +615,7 @@ bool GLComputeEvaluator::_StencilKernel::Compile(BufferDescriptor const &srcDesc
 
 // ---------------------------------------------------------------------------
 
-GLComputeEvaluator::_PatchKernel::_PatchKernel() : program(0)
-{
-}
+GLComputeEvaluator::_PatchKernel::_PatchKernel() : program(0) {}
 GLComputeEvaluator::_PatchKernel::~_PatchKernel()
 {
   if (program) {

@@ -6,10 +6,12 @@
 
 #pragma once
 
-#include "ply_data.hh"
-#include "ply_file_buffer.hh"
+struct PLYExportParams;
 
 namespace blender::io::ply {
+
+class FileBuffer;
+struct PlyData;
 
 void write_header(FileBuffer &buffer,
                   const PlyData &ply_data,

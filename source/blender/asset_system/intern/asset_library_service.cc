@@ -283,21 +283,25 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_library_path(
   return normalized_library_path;
 }
 
-size_t AssetLibraryService::rfind_blendfile_extension(StringRef path)
+int64_t AssetLibraryService::rfind_blendfile_extension(StringRef path)
 {
-  const std::vector<std::string> blendfile_extensions = {".blend" SEP_STR,
-                                                         ".blend.gz" SEP_STR,
-                                                         ".ble" SEP_STR,
-                                                         ".blend" ALTSEP_STR,
-                                                         ".blend.gz" ALTSEP_STR,
-                                                         ".ble" ALTSEP_STR};
-  size_t blendfile_extension_pos = std::string::npos;
+  const std::vector<StringRefNull> blendfile_extensions = {".blend" SEP_STR,
+                                                           ".blend.gz" SEP_STR,
+                                                           ".ble" SEP_STR,
+                                                           ".blend" ALTSEP_STR,
+                                                           ".blend.gz" ALTSEP_STR,
+                                                           ".ble" ALTSEP_STR};
+  int64_t blendfile_extension_pos = StringRef::not_found;
 
-  for (const std::string &blendfile_ext : blendfile_extensions) {
-    const size_t ext_pos = size_t(path.rfind(blendfile_ext));
-    if (ext_pos != std::string::npos &&
-        (blendfile_extension_pos < ext_pos || blendfile_extension_pos == std::string::npos)) {
-      blendfile_extension_pos = ext_pos;
+  for (StringRefNull blendfile_ext : blendfile_extensions) {
+    const int64_t iter_ext_pos = path.rfind(blendfile_ext);
+    if (iter_ext_pos == StringRef::not_found) {
+      continue;
+    }
+
+    if ((blendfile_extension_pos == StringRef::not_found) ||
+        (blendfile_extension_pos < iter_ext_pos)) {
+      blendfile_extension_pos = iter_ext_pos;
     }
   }
 
@@ -308,28 +312,31 @@ std::string AssetLibraryService::normalize_asset_weak_reference_relative_asset_i
     const AssetWeakReference &asset_reference)
 {
   StringRefNull relative_asset_identifier = asset_reference.relative_asset_identifier;
-  size_t offset = rfind_blendfile_extension(asset_reference.relative_asset_identifier);
 
-  uint64_t alt_group_len;
-  int64_t group_len;
-  if (offset != std::string::npos) {
-    alt_group_len = uint64_t(relative_asset_identifier.find(ALTSEP, int64_t(offset)));
-    group_len = int64_t(
-        std::min(uint64_t(relative_asset_identifier.find(SEP, int64_t(offset))), alt_group_len));
+  int64_t blend_ext_pos = rfind_blendfile_extension(asset_reference.relative_asset_identifier);
+  const bool has_blend_ext = blend_ext_pos != StringRef::not_found;
+
+  int64_t blend_path_len = 0;
+  /* Get the position of the path separator after the blend file extension. */
+  if (has_blend_ext) {
+    blend_path_len = relative_asset_identifier.find_first_of(SEP_STR ALTSEP_STR, blend_ext_pos);
+
     /* If there is a blend file in the relative asset path, then there should be group and id name
      * after it. */
-    BLI_assert(uint64_t(group_len) != std::string::npos);
-    offset = size_t(group_len + 1);
-  }
-  else {
-    offset = 0;
+    BLI_assert(blend_path_len != StringRef::not_found);
+    /* Skip slash. */
+    blend_path_len += 1;
   }
 
-  alt_group_len = uint64_t(relative_asset_identifier.find(ALTSEP, int64_t(offset)));
-  group_len = int64_t(
-      std::min(uint64_t(relative_asset_identifier.find(SEP, int64_t(offset))), alt_group_len));
+  /* Find the first path separator (after the blend file extension if any). This will be the one
+   * separating the group from the name. */
+  const int64_t group_name_sep_pos = relative_asset_identifier.find_first_of(SEP_STR ALTSEP_STR,
+                                                                             blend_path_len);
 
-  return utils::normalize_path(relative_asset_identifier, size_t(group_len) + 1);
+  return utils::normalize_path(relative_asset_identifier,
+                               (group_name_sep_pos == StringRef::not_found) ?
+                                   StringRef::not_found :
+                                   group_name_sep_pos + 1);
 }
 
 /* TODO currently only works for asset libraries on disk (custom or essentials asset libraries).
@@ -378,13 +385,14 @@ std::optional<AssetLibraryService::ExplodedPath> AssetLibraryService::
     case ASSET_LIBRARY_CUSTOM:
     case ASSET_LIBRARY_ESSENTIALS: {
       std::string full_path = resolve_asset_weak_reference_to_full_path(asset_reference);
+      /* #full_path uses native slashes, so others don't need to be considered in the following. */
 
       if (full_path.empty()) {
         return std::nullopt;
       }
 
-      size_t blendfile_extension_pos = rfind_blendfile_extension(full_path);
-      BLI_assert(blendfile_extension_pos != std::string::npos);
+      int64_t blendfile_extension_pos = rfind_blendfile_extension(full_path);
+      BLI_assert(blendfile_extension_pos != StringRef::not_found);
 
       size_t group_pos = full_path.find(SEP, blendfile_extension_pos);
       BLI_assert(group_pos != std::string::npos);

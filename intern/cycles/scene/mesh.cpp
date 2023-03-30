@@ -192,9 +192,7 @@ Mesh::Mesh(const NodeType *node_type, Type geom_type_)
   patch_table = NULL;
 }
 
-Mesh::Mesh() : Mesh(get_node_type(), Geometry::MESH)
-{
-}
+Mesh::Mesh() : Mesh(get_node_type(), Geometry::MESH) {}
 
 Mesh::~Mesh()
 {

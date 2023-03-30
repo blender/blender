@@ -64,9 +64,7 @@ struct AttributeFallbacksArray {
    */
   Array<const void *> array;
 
-  AttributeFallbacksArray(int size) : array(size, nullptr)
-  {
-  }
+  AttributeFallbacksArray(int size) : array(size, nullptr) {}
 };
 
 struct PointCloudRealizeInfo {

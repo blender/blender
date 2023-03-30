@@ -45,9 +45,7 @@ class UnaryPredicate1D {
   }
 
   /** Destructor. */
-  virtual ~UnaryPredicate1D()
-  {
-  }
+  virtual ~UnaryPredicate1D() {}
 
   /** Returns the string of the name of the UnaryPredicate1D. */
   virtual string getName() const
@@ -89,9 +87,7 @@ class BinaryPredicate1D {
   }
 
   /** Destructor. */
-  virtual ~BinaryPredicate1D()
-  {
-  }
+  virtual ~BinaryPredicate1D() {}
 
   /** Returns the string of the name of the binary predicate. */
   virtual string getName() const
@@ -126,9 +122,7 @@ namespace Predicates1D {
 class TrueUP1D : public UnaryPredicate1D {
  public:
   /** Constructor */
-  TrueUP1D()
-  {
-  }
+  TrueUP1D() {}
 
   /** Returns the string "TrueUP1D". */
   string getName() const
@@ -149,9 +143,7 @@ class TrueUP1D : public UnaryPredicate1D {
 class FalseUP1D : public UnaryPredicate1D {
  public:
   /** Constructor */
-  FalseUP1D()
-  {
-  }
+  FalseUP1D() {}
 
   /** Returns the string "FalseUP1D". */
   string getName() const
@@ -177,9 +169,7 @@ class QuantitativeInvisibilityUP1D : public UnaryPredicate1D {
    *  \param qi:
    *    The Quantitative Invisibility you want the Interface1D to have
    */
-  QuantitativeInvisibilityUP1D(unsigned qi = 0) : _qi(qi)
-  {
-  }
+  QuantitativeInvisibilityUP1D(unsigned qi = 0) : _qi(qi) {}
 
   /** Returns the string "QuantitativeInvisibilityUP1D" */
   string getName() const

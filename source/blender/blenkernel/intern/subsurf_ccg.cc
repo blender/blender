@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -1207,7 +1207,7 @@ static void ccgDM_release(DerivedMesh *dm)
   }
 }
 
-static void *ccgDM_get_vert_data_layer(DerivedMesh *dm, int type)
+static void *ccgDM_get_vert_data_layer(DerivedMesh *dm, const eCustomDataType type)
 {
   if (type == CD_ORIGINDEX) {
     /* create origindex on demand to save memory */
@@ -1249,7 +1249,7 @@ static void *ccgDM_get_vert_data_layer(DerivedMesh *dm, int type)
   return DM_get_vert_data_layer(dm, type);
 }
 
-static void *ccgDM_get_edge_data_layer(DerivedMesh *dm, int type)
+static void *ccgDM_get_edge_data_layer(DerivedMesh *dm, const eCustomDataType type)
 {
   if (type == CD_ORIGINDEX) {
     /* create origindex on demand to save memory */
@@ -1292,7 +1292,7 @@ static void *ccgDM_get_edge_data_layer(DerivedMesh *dm, int type)
   return DM_get_edge_data_layer(dm, type);
 }
 
-static void *ccgDM_get_poly_data_layer(DerivedMesh *dm, int type)
+static void *ccgDM_get_poly_data_layer(DerivedMesh *dm, const eCustomDataType type)
 {
   if (type == CD_ORIGINDEX) {
     /* create origindex on demand to save memory */

@@ -362,9 +362,7 @@ template<typename T> inline T *MEM_cnew(const char *allocation_name, const T &ot
     } \
     /* This is the matching delete operator to the placement-new operator above. Both parameters \
      * will have the same value. Without this, we get the warning C4291 on windows. */ \
-    void operator delete(void * /*ptr_to_free*/, void * /*ptr*/) \
-    { \
-    }
+    void operator delete(void * /*ptr_to_free*/, void * /*ptr*/) {}
 
 #endif /* __cplusplus */
 

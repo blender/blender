@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -9,9 +9,7 @@
 #include "vk_memory.hh"
 
 namespace blender::gpu {
-VKDescriptorPools::VKDescriptorPools()
-{
-}
+VKDescriptorPools::VKDescriptorPools() {}
 
 VKDescriptorPools::~VKDescriptorPools()
 {

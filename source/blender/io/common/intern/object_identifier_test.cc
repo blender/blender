@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 #include "IO_abstract_hierarchy_iterator.h"
 
 #include "testing/testing.h"
@@ -44,12 +44,8 @@ class TestPersistentID : public PersistentID {
       : TestPersistentID(value0, value1, value2, INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX)
   {
   }
-  TestPersistentID(int value0, int value1) : TestPersistentID(value0, value1, INT_MAX)
-  {
-  }
-  explicit TestPersistentID(int value0) : TestPersistentID(value0, INT_MAX)
-  {
-  }
+  TestPersistentID(int value0, int value1) : TestPersistentID(value0, value1, INT_MAX) {}
+  explicit TestPersistentID(int value0) : TestPersistentID(value0, INT_MAX) {}
 };
 
 /* ObjectIdentifier subclass for use in tests, making it easier to construct test values. */

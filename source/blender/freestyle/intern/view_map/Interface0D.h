@@ -41,9 +41,7 @@ class TVertex;
 class Interface0D {
  public:
   /** Default constructor */
-  Interface0D()
-  {
-  }
+  Interface0D() {}
 
   /** Destructor */
   virtual ~Interface0D(){};
@@ -114,9 +112,7 @@ class Interface0D {
 
 class Interface0DIteratorNested : public Iterator {
  public:
-  virtual ~Interface0DIteratorNested()
-  {
-  }
+  virtual ~Interface0DIteratorNested() {}
 
   virtual string getExactTypeName() const
   {

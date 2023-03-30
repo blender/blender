@@ -56,9 +56,7 @@ struct SmoothOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  SmoothOperationExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  SmoothOperationExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(SmoothOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {

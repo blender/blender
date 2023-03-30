@@ -131,9 +131,7 @@ class DualConInputReader : public ModelReader {
   }
 
   /* stubs */
-  void printInfo()
-  {
-  }
+  void printInfo() {}
   int getMemory()
   {
     return sizeof(DualConInputReader);

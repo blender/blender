@@ -112,9 +112,7 @@ void HdCyclesDisplayDriver::gl_context_dispose()
 #endif
 }
 
-void HdCyclesDisplayDriver::next_tile_begin()
-{
-}
+void HdCyclesDisplayDriver::next_tile_begin() {}
 
 bool HdCyclesDisplayDriver::update_begin(const Params &params,
                                          int texture_width,

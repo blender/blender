@@ -6,9 +6,7 @@
 
 namespace blender::compositor {
 
-GaussianYBlurOperation::GaussianYBlurOperation() : GaussianBlurBaseOperation(eDimension::Y)
-{
-}
+GaussianYBlurOperation::GaussianYBlurOperation() : GaussianBlurBaseOperation(eDimension::Y) {}
 
 void *GaussianYBlurOperation::initialize_tile_data(rcti * /*rect*/)
 {

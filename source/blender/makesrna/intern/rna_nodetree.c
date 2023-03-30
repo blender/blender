@@ -2679,9 +2679,7 @@ static void rna_Node_width_range(
   *max = *softmax = node->typeinfo->maxwidth;
 }
 
-static void rna_Node_width_hidden_set(PointerRNA *UNUSED(ptr), float UNUSED(value))
-{
-}
+static void rna_Node_width_hidden_set(PointerRNA *UNUSED(ptr), float UNUSED(value)) {}
 
 static float rna_Node_width_hidden_get(PointerRNA *UNUSED(ptr))
 {
@@ -4751,9 +4749,7 @@ static const EnumPropertyItem prop_image_extension[] = {
 
 /* -- Common nodes ---------------------------------------------------------- */
 
-static void def_group_input(StructRNA *UNUSED(srna))
-{
-}
+static void def_group_input(StructRNA *UNUSED(srna)) {}
 
 static void def_group_output(StructRNA *srna)
 {
@@ -8583,9 +8579,7 @@ static void def_cmp_switch(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_cmp_switch_view(StructRNA *UNUSED(srna))
-{
-}
+static void def_cmp_switch_view(StructRNA *UNUSED(srna)) {}
 
 static void def_cmp_colorcorrection(StructRNA *srna)
 {

@@ -180,18 +180,14 @@ std::unique_ptr<AbstractViewItemDropTarget> AbstractViewItem::create_drop_target
   return nullptr;
 }
 
-AbstractViewItemDragController::AbstractViewItemDragController(AbstractView &view) : view_(view)
-{
-}
+AbstractViewItemDragController::AbstractViewItemDragController(AbstractView &view) : view_(view) {}
 
 void AbstractViewItemDragController::on_drag_start()
 {
   /* Do nothing by default. */
 }
 
-AbstractViewItemDropTarget::AbstractViewItemDropTarget(AbstractView &view) : view_(view)
-{
-}
+AbstractViewItemDropTarget::AbstractViewItemDropTarget(AbstractView &view) : view_(view) {}
 
 /** \} */
 

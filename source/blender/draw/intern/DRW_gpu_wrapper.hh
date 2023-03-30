@@ -484,9 +484,7 @@ class Texture : NonCopyable {
   const char *name_;
 
  public:
-  Texture(const char *name = "gpu::Texture") : name_(name)
-  {
-  }
+  Texture(const char *name = "gpu::Texture") : name_(name) {}
 
   Texture(const char *name,
           eGPUTextureFormat format,

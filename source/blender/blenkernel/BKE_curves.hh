@@ -416,9 +416,7 @@ class CurvesEditHints {
    */
   std::optional<Array<float3x3>> deform_mats;
 
-  CurvesEditHints(const Curves &curves_id_orig) : curves_id_orig(curves_id_orig)
-  {
-  }
+  CurvesEditHints(const Curves &curves_id_orig) : curves_id_orig(curves_id_orig) {}
 
   /**
    * The edit hints have to correspond to the original curves, i.e. the number of deformed points

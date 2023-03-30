@@ -49,9 +49,7 @@ BVHBuild::BVHBuild(const vector<Object *> &objects_,
   spatial_min_overlap = 0.0f;
 }
 
-BVHBuild::~BVHBuild()
-{
-}
+BVHBuild::~BVHBuild() {}
 
 /* Adding References */
 

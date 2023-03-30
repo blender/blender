@@ -530,9 +530,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
   m_last_warp_timestamp = 0;
 }
 
-GHOST_SystemCocoa::~GHOST_SystemCocoa()
-{
-}
+GHOST_SystemCocoa::~GHOST_SystemCocoa() {}
 
 GHOST_TSuccess GHOST_SystemCocoa::init()
 {

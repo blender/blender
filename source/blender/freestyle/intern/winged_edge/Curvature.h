@@ -79,9 +79,7 @@ class CurvatureInfo {
 
 class Face_Curvature_Info {
  public:
-  Face_Curvature_Info()
-  {
-  }
+  Face_Curvature_Info() {}
 
   ~Face_Curvature_Info()
   {

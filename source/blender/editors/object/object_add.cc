@@ -3748,9 +3748,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
     Base *base_src = nullptr;
     Object *object_new = nullptr;
 
-    DuplicateObjectLink(Base *base_src) : base_src(base_src)
-    {
-    }
+    DuplicateObjectLink(Base *base_src) : base_src(base_src) {}
   };
 
   blender::Vector<DuplicateObjectLink> object_base_links;

@@ -1013,15 +1013,14 @@ static PChart **p_split_charts(ParamHandle *handle, PChart *chart, int ncharts)
 static PFace *p_face_add(ParamHandle *handle)
 {
   PFace *f;
-  PEdge *e1, *e2, *e3;
 
   /* allocate */
   f = (PFace *)BLI_memarena_alloc(handle->arena, sizeof(*f));
   f->flag = 0; /* init ! */
 
-  e1 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof(*e1));
-  e2 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof(*e2));
-  e3 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof(*e3));
+  PEdge *e1 = (PEdge *)BLI_memarena_calloc(handle->arena, sizeof(*e1));
+  PEdge *e2 = (PEdge *)BLI_memarena_calloc(handle->arena, sizeof(*e2));
+  PEdge *e3 = (PEdge *)BLI_memarena_calloc(handle->arena, sizeof(*e3));
 
   /* set up edges */
   f->edge = e1;
@@ -1030,14 +1029,6 @@ static PFace *p_face_add(ParamHandle *handle)
   e1->next = e2;
   e2->next = e3;
   e3->next = e1;
-
-  e1->pair = nullptr;
-  e2->pair = nullptr;
-  e3->pair = nullptr;
-
-  e1->flag = 0;
-  e2->flag = 0;
-  e3->flag = 0;
 
   return f;
 }

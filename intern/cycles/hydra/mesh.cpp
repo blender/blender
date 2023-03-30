@@ -94,9 +94,7 @@ HdCyclesMesh::HdCyclesMesh(const SdfPath &rprimId
 {
 }
 
-HdCyclesMesh::~HdCyclesMesh()
-{
-}
+HdCyclesMesh::~HdCyclesMesh() {}
 
 HdDirtyBits HdCyclesMesh::GetInitialDirtyBitsMask() const
 {

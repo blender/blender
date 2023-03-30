@@ -15,9 +15,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 class InstanceRotationFieldInput final : public bke::InstancesFieldInput {
  public:
-  InstanceRotationFieldInput() : bke::InstancesFieldInput(CPPType::get<float3>(), "Rotation")
-  {
-  }
+  InstanceRotationFieldInput() : bke::InstancesFieldInput(CPPType::get<float3>(), "Rotation") {}
 
   GVArray get_varray_for_context(const bke::Instances &instances, IndexMask /*mask*/) const final
   {

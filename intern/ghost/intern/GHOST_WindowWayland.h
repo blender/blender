@@ -144,6 +144,9 @@ class GHOST_WindowWayland : public GHOST_Window {
   struct wl_surface *wl_surface() const;
   const std::vector<GWL_Output *> &outputs();
 
+  wl_fixed_t wl_fixed_from_window(wl_fixed_t value) const;
+  wl_fixed_t wl_fixed_to_window(wl_fixed_t value) const;
+
   /* WAYLAND window-level functions. */
 
   GHOST_TSuccess close();

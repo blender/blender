@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup spnode
@@ -1171,9 +1171,7 @@ void ED_node_init_butfuncs()
   NODE_TYPES_END;
 }
 
-void ED_init_custom_node_type(bNodeType * /*ntype*/)
-{
-}
+void ED_init_custom_node_type(bNodeType * /*ntype*/) {}
 
 void ED_init_custom_node_socket_type(bNodeSocketType *stype)
 {

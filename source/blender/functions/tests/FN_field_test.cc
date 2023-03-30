@@ -30,9 +30,7 @@ TEST(field, ConstantFunction)
 
 class IndexFieldInput final : public FieldInput {
  public:
-  IndexFieldInput() : FieldInput(CPPType::get<int>(), "Index")
-  {
-  }
+  IndexFieldInput() : FieldInput(CPPType::get<int>(), "Index") {}
 
   GVArray get_varray_for_context(const FieldContext & /*context*/,
                                  IndexMask mask,

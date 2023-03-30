@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2020 Blender Foundation. All rights reserved.
+# Copyright 2020 Blender Foundation
 
 # Build the test runner. This runner takes care of running all GTests, i.e.
 # the code that was built using the blender_add_test_lib() CMake macro (see

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -24,9 +24,7 @@ class VKTexture : public Texture {
   VkImageLayout current_layout_ = VK_IMAGE_LAYOUT_UNDEFINED;
 
  public:
-  VKTexture(const char *name) : Texture(name)
-  {
-  }
+  VKTexture(const char *name) : Texture(name) {}
   virtual ~VKTexture() override;
 
   void generate_mipmap() override;

@@ -515,9 +515,7 @@ static void spreadsheet_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void spreadsheet_header_region_free(ARegion * /*region*/)
-{
-}
+static void spreadsheet_header_region_free(ARegion * /*region*/) {}
 
 static void spreadsheet_header_region_listener(const wmRegionListenerParams *params)
 {
@@ -602,13 +600,9 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
   UI_block_draw(C, block);
 }
 
-static void spreadsheet_footer_region_free(ARegion * /*region*/)
-{
-}
+static void spreadsheet_footer_region_free(ARegion * /*region*/) {}
 
-static void spreadsheet_footer_region_listener(const wmRegionListenerParams * /*params*/)
-{
-}
+static void spreadsheet_footer_region_listener(const wmRegionListenerParams * /*params*/) {}
 
 static void spreadsheet_dataset_region_listener(const wmRegionListenerParams *params)
 {
@@ -648,13 +642,9 @@ static void spreadsheet_sidebar_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
-static void spreadsheet_right_region_free(ARegion * /*region*/)
-{
-}
+static void spreadsheet_right_region_free(ARegion * /*region*/) {}
 
-static void spreadsheet_right_region_listener(const wmRegionListenerParams * /*params*/)
-{
-}
+static void spreadsheet_right_region_listener(const wmRegionListenerParams * /*params*/) {}
 
 static void spreadsheet_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {

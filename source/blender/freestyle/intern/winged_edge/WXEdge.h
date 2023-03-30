@@ -135,9 +135,7 @@ class WXEdge : public WEdge {
     return clone;
   }
 
-  virtual ~WXEdge()
-  {
-  }
+  virtual ~WXEdge() {}
 
   virtual void Reset()
   {
@@ -230,9 +228,7 @@ class WXSmoothEdge {
     _front = iBrother._front;
   }
 
-  ~WXSmoothEdge()
-  {
-  }
+  ~WXSmoothEdge() {}
 
   inline WOEdge *woea()
   {
@@ -722,9 +718,7 @@ class WXShape : public WShape {
     return clone;
   }
 
-  virtual ~WXShape()
-  {
-  }
+  virtual ~WXShape() {}
 
   inline bool getComputeViewIndependentFlag() const
   {

@@ -17,12 +17,8 @@ namespace Freestyle {
 
 class NodeDrawingStyle : public NodeGroup {
  public:
-  inline NodeDrawingStyle() : NodeGroup()
-  {
-  }
-  virtual ~NodeDrawingStyle()
-  {
-  }
+  inline NodeDrawingStyle() : NodeGroup() {}
+  virtual ~NodeDrawingStyle() {}
 
   inline const DrawingStyle &drawingStyle() const
   {

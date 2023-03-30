@@ -1404,8 +1404,9 @@ static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlis
       return NULL; /* exception set */
     }
 
+    const bool sort_boxes = true; /* Caution: BLI_box_pack_2d sorting is non-deterministic. */
     /* Non Python function */
-    BLI_box_pack_2d(boxarray, len, &tot_width, &tot_height);
+    BLI_box_pack_2d(boxarray, len, sort_boxes, &tot_width, &tot_height);
 
     boxPack_ToPyObject(boxlist, boxarray);
     MEM_freeN(boxarray);

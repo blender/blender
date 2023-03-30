@@ -31,9 +31,7 @@ class Device {
    * \brief Declaration of the virtual destructor
    * \note resolve warning gcc 4.7
    */
-  virtual ~Device()
-  {
-  }
+  virtual ~Device() {}
 
   /**
    * \brief execute a WorkPackage

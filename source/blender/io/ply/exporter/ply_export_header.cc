@@ -5,7 +5,6 @@
  */
 
 #include "BKE_blender_version.h"
-#include "BKE_customdata.h"
 
 #include "IO_ply.h"
 #include "ply_data.hh"

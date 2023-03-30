@@ -1,4 +1,4 @@
-// Copyright 2018 Blender Foundation. All rights reserved.
+// Copyright 2018 Blender Foundation
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,18 +28,14 @@ OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
   return NULL;
 }
 
-void openSubdiv_deleteEvaluator(OpenSubdiv_Evaluator * /*evaluator*/)
-{
-}
+void openSubdiv_deleteEvaluator(OpenSubdiv_Evaluator * /*evaluator*/) {}
 
 OpenSubdiv_EvaluatorCache *openSubdiv_createEvaluatorCache(eOpenSubdivEvaluator /*evaluator_type*/)
 {
   return NULL;
 }
 
-void openSubdiv_deleteEvaluatorCache(OpenSubdiv_EvaluatorCache * /*evaluator_cache*/)
-{
-}
+void openSubdiv_deleteEvaluatorCache(OpenSubdiv_EvaluatorCache * /*evaluator_cache*/) {}
 
 const char *openSubdiv_getGLSLPatchBasisSource()
 {

@@ -7,9 +7,7 @@
 
 namespace blender::compositor {
 
-CombineColorNodeLegacy::CombineColorNodeLegacy(bNode *editor_node) : Node(editor_node)
-{
-}
+CombineColorNodeLegacy::CombineColorNodeLegacy(bNode *editor_node) : Node(editor_node) {}
 
 void CombineColorNodeLegacy::convert_to_operations(NodeConverter &converter,
                                                    const CompositorContext &context) const

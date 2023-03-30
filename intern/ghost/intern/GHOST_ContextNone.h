@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup GHOST
@@ -13,9 +13,7 @@
 
 class GHOST_ContextNone : public GHOST_Context {
  public:
-  GHOST_ContextNone(bool stereoVisual) : GHOST_Context(stereoVisual), m_swapInterval(1)
-  {
-  }
+  GHOST_ContextNone(bool stereoVisual) : GHOST_Context(stereoVisual), m_swapInterval(1) {}
 
   /**
    * Dummy function

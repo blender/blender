@@ -561,9 +561,7 @@ static void get_loop_normals(struct Mesh *mesh,
   }
 }
 
-ABCMeshWriter::ABCMeshWriter(const ABCWriterConstructorArgs &args) : ABCGenericMeshWriter(args)
-{
-}
+ABCMeshWriter::ABCMeshWriter(const ABCWriterConstructorArgs &args) : ABCGenericMeshWriter(args) {}
 
 Mesh *ABCMeshWriter::get_export_mesh(Object *object_eval, bool & /*r_needsfree*/)
 {

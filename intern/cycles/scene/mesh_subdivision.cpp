@@ -150,9 +150,7 @@ using namespace OpenSubdiv;
 template<typename T> struct OsdValue {
   T value;
 
-  OsdValue()
-  {
-  }
+  OsdValue() {}
 
   void Clear(void * = 0)
   {
@@ -182,9 +180,7 @@ class OsdData {
   Far::PatchMap *patch_map;
 
  public:
-  OsdData() : mesh(NULL), refiner(NULL), patch_table(NULL), patch_map(NULL)
-  {
-  }
+  OsdData() : mesh(NULL), refiner(NULL), patch_table(NULL), patch_map(NULL) {}
 
   ~OsdData()
   {
@@ -353,12 +349,8 @@ class OsdData {
 struct OsdPatch : Patch {
   OsdData *osd_data;
 
-  OsdPatch()
-  {
-  }
-  OsdPatch(OsdData *data) : osd_data(data)
-  {
-  }
+  OsdPatch() {}
+  OsdPatch(OsdData *data) : osd_data(data) {}
 
   void eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, float u, float v)
   {

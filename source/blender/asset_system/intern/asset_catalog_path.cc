@@ -12,17 +12,11 @@ namespace blender::asset_system {
 
 const char AssetCatalogPath::SEPARATOR = '/';
 
-AssetCatalogPath::AssetCatalogPath(std::string path) : path_(std::move(path))
-{
-}
+AssetCatalogPath::AssetCatalogPath(std::string path) : path_(std::move(path)) {}
 
-AssetCatalogPath::AssetCatalogPath(StringRef path) : path_(path)
-{
-}
+AssetCatalogPath::AssetCatalogPath(StringRef path) : path_(path) {}
 
-AssetCatalogPath::AssetCatalogPath(const char *path) : path_(path)
-{
-}
+AssetCatalogPath::AssetCatalogPath(const char *path) : path_(path) {}
 
 AssetCatalogPath::AssetCatalogPath(AssetCatalogPath &&other_path) noexcept
     : path_(std::move(other_path.path_))

@@ -19,9 +19,7 @@ template<typename Key> class GValueMap {
   Map<Key, GMutablePointer> values_;
 
  public:
-  GValueMap(LinearAllocator<> &allocator) : allocator_(allocator)
-  {
-  }
+  GValueMap(LinearAllocator<> &allocator) : allocator_(allocator) {}
 
   ~GValueMap()
   {

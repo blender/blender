@@ -34,9 +34,7 @@ class AssetTemporaryIDConsumer : NonCopyable, NonMovable {
   TempLibraryContext *temp_lib_context_ = nullptr;
 
  public:
-  AssetTemporaryIDConsumer(const AssetRepresentation *asset) : asset_(asset)
-  {
-  }
+  AssetTemporaryIDConsumer(const AssetRepresentation *asset) : asset_(asset) {}
   ~AssetTemporaryIDConsumer()
   {
     if (temp_lib_context_) {

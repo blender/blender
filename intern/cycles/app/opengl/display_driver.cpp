@@ -22,9 +22,7 @@ OpenGLDisplayDriver::OpenGLDisplayDriver(const function<bool()> &gl_context_enab
 {
 }
 
-OpenGLDisplayDriver::~OpenGLDisplayDriver()
-{
-}
+OpenGLDisplayDriver::~OpenGLDisplayDriver() {}
 
 /* --------------------------------------------------------------------
  * Update procedure.

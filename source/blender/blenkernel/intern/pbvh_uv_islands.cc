@@ -1286,9 +1286,7 @@ void UVBorderCorner::print_debug() const
 /** \name UVPrimitive
  * \{ */
 
-UVPrimitive::UVPrimitive(const int primitive_i) : primitive_i(primitive_i)
-{
-}
+UVPrimitive::UVPrimitive(const int primitive_i) : primitive_i(primitive_i) {}
 
 Vector<std::pair<UVEdge *, UVEdge *>> UVPrimitive::shared_edges(UVPrimitive &other)
 {

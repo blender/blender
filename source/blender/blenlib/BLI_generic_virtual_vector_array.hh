@@ -21,9 +21,7 @@ class GVVectorArray {
   int64_t size_;
 
  public:
-  GVVectorArray(const CPPType &type, const int64_t size) : type_(&type), size_(size)
-  {
-  }
+  GVVectorArray(const CPPType &type, const int64_t size) : type_(&type), size_(size) {}
 
   virtual ~GVVectorArray() = default;
 

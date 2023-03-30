@@ -68,9 +68,7 @@ template<class T> class UnaryFunction1D {
   }
 
   /** destructor. */
-  virtual ~UnaryFunction1D()
-  {
-  }
+  virtual ~UnaryFunction1D() {}
 
   /** returns the string "UnaryFunction1D". */
   virtual string getName() const
@@ -123,9 +121,7 @@ class UnaryFunction1D_void {
     _integration = iType;
   }
 
-  virtual ~UnaryFunction1D_void()
-  {
-  }
+  virtual ~UnaryFunction1D_void() {}
 
   virtual string getName() const
   {
@@ -174,9 +170,7 @@ class GetXF1D : public UnaryFunction1D<double> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    */
-  GetXF1D(IntegrationType iType) : UnaryFunction1D<double>(iType)
-  {
-  }
+  GetXF1D(IntegrationType iType) : UnaryFunction1D<double>(iType) {}
 
   /** Returns the string "GetXF1D" */
   string getName() const
@@ -199,9 +193,7 @@ class GetYF1D : public UnaryFunction1D<double> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    */
-  GetYF1D(IntegrationType iType = MEAN) : UnaryFunction1D<double>(iType)
-  {
-  }
+  GetYF1D(IntegrationType iType = MEAN) : UnaryFunction1D<double>(iType) {}
 
   /** Returns the string "GetYF1D" */
   string getName() const
@@ -224,9 +216,7 @@ class GetZF1D : public UnaryFunction1D<double> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    */
-  GetZF1D(IntegrationType iType = MEAN) : UnaryFunction1D<double>(iType)
-  {
-  }
+  GetZF1D(IntegrationType iType = MEAN) : UnaryFunction1D<double>(iType) {}
 
   /** Returns the string "GetZF1D" */
   string getName() const
@@ -249,9 +239,7 @@ class GetProjectedXF1D : public UnaryFunction1D<double> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    */
-  GetProjectedXF1D(IntegrationType iType = MEAN) : UnaryFunction1D<double>(iType)
-  {
-  }
+  GetProjectedXF1D(IntegrationType iType = MEAN) : UnaryFunction1D<double>(iType) {}
 
   /** Returns the string "GetProjectedXF1D" */
   string getName() const
@@ -274,9 +262,7 @@ class GetProjectedYF1D : public UnaryFunction1D<double> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    */
-  GetProjectedYF1D(IntegrationType iType = MEAN) : UnaryFunction1D<double>(iType)
-  {
-  }
+  GetProjectedYF1D(IntegrationType iType = MEAN) : UnaryFunction1D<double>(iType) {}
 
   /** Returns the string "GetProjectedYF1D" */
   string getName() const
@@ -299,9 +285,7 @@ class GetProjectedZF1D : public UnaryFunction1D<double> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    */
-  GetProjectedZF1D(IntegrationType iType = MEAN) : UnaryFunction1D<double>(iType)
-  {
-  }
+  GetProjectedZF1D(IntegrationType iType = MEAN) : UnaryFunction1D<double>(iType) {}
 
   /** Returns the string "GetProjectedZF1D" */
   string getName() const
@@ -324,9 +308,7 @@ class Orientation2DF1D : public UnaryFunction1D<Vec2f> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    */
-  Orientation2DF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Vec2f>(iType)
-  {
-  }
+  Orientation2DF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Vec2f>(iType) {}
 
   /** Returns the string "Orientation2DF1D" */
   string getName() const
@@ -349,9 +331,7 @@ class Orientation3DF1D : public UnaryFunction1D<Vec3f> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    */
-  Orientation3DF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Vec3f>(iType)
-  {
-  }
+  Orientation3DF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Vec3f>(iType) {}
 
   /** Returns the string "Orientation3DF1D" */
   string getName() const
@@ -378,9 +358,7 @@ class ZDiscontinuityF1D : public UnaryFunction1D<double> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    */
-  ZDiscontinuityF1D(IntegrationType iType = MEAN) : UnaryFunction1D<double>(iType)
-  {
-  }
+  ZDiscontinuityF1D(IntegrationType iType = MEAN) : UnaryFunction1D<double>(iType) {}
 
   /** Returns the string "ZDiscontinuityF1D" */
   string getName() const
@@ -437,9 +415,7 @@ class CurveNatureF1D : public UnaryFunction1D<Nature::EdgeNature> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    */
-  CurveNatureF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Nature::EdgeNature>(iType)
-  {
-  }
+  CurveNatureF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Nature::EdgeNature>(iType) {}
 
   /** Returns the string "CurveNatureF1D" */
   string getName() const
@@ -501,9 +477,7 @@ class Curvature2DAngleF1D : public UnaryFunction1D<double> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    */
-  Curvature2DAngleF1D(IntegrationType iType = MEAN) : UnaryFunction1D<double>(iType)
-  {
-  }
+  Curvature2DAngleF1D(IntegrationType iType = MEAN) : UnaryFunction1D<double>(iType) {}
 
   /** Returns the string "Curvature2DAngleF1D" */
   string getName() const
@@ -530,9 +504,7 @@ class Normal2DF1D : public UnaryFunction1D<Vec2f> {
    *  \param iType:
    *    The integration method used to compute a single value from a set of values.
    */
-  Normal2DF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Vec2f>(iType)
-  {
-  }
+  Normal2DF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Vec2f>(iType) {}
 
   /** Returns the string "Normal2DF1D" */
   string getName() const
@@ -556,9 +528,7 @@ class Normal2DF1D : public UnaryFunction1D<Vec2f> {
 class GetShapeF1D : public UnaryFunction1D<std::vector<ViewShape *>> {
  public:
   /** Builds the functor. */
-  GetShapeF1D() : UnaryFunction1D<std::vector<ViewShape *>>()
-  {
-  }
+  GetShapeF1D() : UnaryFunction1D<std::vector<ViewShape *>>() {}
 
   /** Returns the string "GetShapeF1D" */
   string getName() const
@@ -575,9 +545,7 @@ class GetShapeF1D : public UnaryFunction1D<std::vector<ViewShape *>> {
 class GetOccludersF1D : public UnaryFunction1D<std::vector<ViewShape *>> {
  public:
   /** Builds the functor. */
-  GetOccludersF1D() : UnaryFunction1D<std::vector<ViewShape *>>()
-  {
-  }
+  GetOccludersF1D() : UnaryFunction1D<std::vector<ViewShape *>>() {}
 
   /** Returns the string "GetOccludersF1D" */
   string getName() const
@@ -594,9 +562,7 @@ class GetOccludersF1D : public UnaryFunction1D<std::vector<ViewShape *>> {
 class GetOccludeeF1D : public UnaryFunction1D<std::vector<ViewShape *>> {
  public:
   /** Builds the functor. */
-  GetOccludeeF1D() : UnaryFunction1D<std::vector<ViewShape *>>()
-  {
-  }
+  GetOccludeeF1D() : UnaryFunction1D<std::vector<ViewShape *>>() {}
 
   /** Returns the string "GetOccludeeF1D" */
   string getName() const

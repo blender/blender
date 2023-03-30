@@ -22,9 +22,7 @@ class RenderMonitor {
     _re = re;
   }
 
-  virtual ~RenderMonitor()
-  {
-  }
+  virtual ~RenderMonitor() {}
 
   inline void setInfo(string info)
   {

@@ -22,9 +22,7 @@ using blender::GVArray;
 /** \name Geometry Component Implementation
  * \{ */
 
-CurveComponent::CurveComponent() : GeometryComponent(GEO_COMPONENT_TYPE_CURVE)
-{
-}
+CurveComponent::CurveComponent() : GeometryComponent(GEO_COMPONENT_TYPE_CURVE) {}
 
 CurveComponent::~CurveComponent()
 {

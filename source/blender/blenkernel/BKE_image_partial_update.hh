@@ -121,17 +121,11 @@ class AbstractTileData {
  */
 class NoTileData : AbstractTileData {
  public:
-  NoTileData(Image * /*image*/, ImageUser * /*image_user*/)
-  {
-  }
+  NoTileData(Image * /*image*/, ImageUser * /*image_user*/) {}
 
-  void init_data(TileNumber /*new_tile_number*/) override
-  {
-  }
+  void init_data(TileNumber /*new_tile_number*/) override {}
 
-  void free_data() override
-  {
-  }
+  void free_data() override {}
 };
 
 /**

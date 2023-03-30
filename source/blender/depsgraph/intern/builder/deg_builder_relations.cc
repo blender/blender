@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -481,9 +481,7 @@ Depsgraph *DepsgraphRelationBuilder::getGraph()
 
 /* **** Functions to build relations between entities  **** */
 
-void DepsgraphRelationBuilder::begin_build()
-{
-}
+void DepsgraphRelationBuilder::begin_build() {}
 
 void DepsgraphRelationBuilder::build_id(ID *id)
 {
