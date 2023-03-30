@@ -1388,6 +1388,16 @@ wl_fixed_t GHOST_WindowWayland::scale_fractional() const
   return window_->scale_fractional;
 }
 
+wl_fixed_t GHOST_WindowWayland::wl_fixed_from_window(wl_fixed_t value) const
+{
+  return value / window_->scale;
+}
+
+wl_fixed_t GHOST_WindowWayland::wl_fixed_to_window(wl_fixed_t value) const
+{
+  return value * window_->scale;
+}
+
 wl_surface *GHOST_WindowWayland::wl_surface() const
 {
   return window_->wl_surface;
