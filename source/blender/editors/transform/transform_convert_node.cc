@@ -48,11 +48,15 @@ static void create_transform_data_for_node(TransData &td,
 
   /* account for parents (nested nodes) */
   if (node.parent) {
-    nodeToView(node.parent, node.locx + node.offsetx, node.locy + node.offsety, &locx, &locy);
+    nodeToView(node.parent,
+               node.locx + roundf(node.offsetx),
+               node.locy + roundf(node.offsety),
+               &locx,
+               &locy);
   }
   else {
-    locx = node.locx + node.offsetx;
-    locy = node.locy + node.offsety;
+    locx = node.locx + roundf(node.offsetx);
+    locy = node.locy + roundf(node.offsety);
   }
 
   /* use top-left corner as the transform origin for nodes */
@@ -245,14 +249,14 @@ static void flushTransNodes(TransInfo *t)
       /* account for parents (nested nodes) */
       if (node->parent) {
         nodeFromView(node->parent,
-                     loc[0] - node->offsetx,
-                     loc[1] - node->offsety,
+                     loc[0] - roundf(node->offsetx),
+                     loc[1] - roundf(node->offsety),
                      &node->locx,
                      &node->locy);
       }
       else {
-        node->locx = loc[0] - node->offsetx;
-        node->locy = loc[1] - node->offsety;
+        node->locx = loc[0] - roundf(node->offsetx);
+        node->locy = loc[1] - roundf(node->offsety);
       }
     }
 
