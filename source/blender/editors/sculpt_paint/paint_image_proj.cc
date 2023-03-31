@@ -4043,6 +4043,10 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   CustomData_MeshMasks cddata_masks = scene_eval->customdata_mask;
   cddata_masks.fmask |= CD_MASK_MTFACE;
   cddata_masks.lmask |= CD_MASK_PROP_FLOAT2;
+  cddata_masks.vmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
+  cddata_masks.emask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
+  cddata_masks.pmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
+  cddata_masks.lmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
   if (ps->do_face_sel) {
     cddata_masks.vmask |= CD_MASK_ORIGINDEX;
     cddata_masks.emask |= CD_MASK_ORIGINDEX;
