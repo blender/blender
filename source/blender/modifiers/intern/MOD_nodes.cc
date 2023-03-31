@@ -800,38 +800,37 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
 }
 
-static void initialize_group_input(NodesModifierData &nmd,
-                                   const bNodeSocket &interface_socket,
+static void initialize_group_input(const bNodeTree &tree,
+                                   const IDProperty *properties,
                                    const int input_index,
                                    void *r_value)
 {
-  const bNodeSocketType &socket_type = *interface_socket.typeinfo;
-  const eNodeSocketDatatype socket_data_type = static_cast<eNodeSocketDatatype>(
-      interface_socket.type);
-  if (nmd.settings.properties == nullptr) {
-    socket_type.get_geometry_nodes_cpp_value(interface_socket, r_value);
+  const bNodeSocket &io_input = *tree.interface_inputs()[input_index];
+  const bNodeSocketType &socket_type = *io_input.typeinfo;
+  const eNodeSocketDatatype socket_data_type = static_cast<eNodeSocketDatatype>(io_input.type);
+  if (properties == nullptr) {
+    socket_type.get_geometry_nodes_cpp_value(io_input, r_value);
     return;
   }
-  const IDProperty *property = IDP_GetPropertyFromGroup(nmd.settings.properties,
-                                                        interface_socket.identifier);
+  const IDProperty *property = IDP_GetPropertyFromGroup(properties, io_input.identifier);
   if (property == nullptr) {
-    socket_type.get_geometry_nodes_cpp_value(interface_socket, r_value);
+    socket_type.get_geometry_nodes_cpp_value(io_input, r_value);
     return;
   }
-  if (!id_property_type_matches_socket(interface_socket, *property)) {
-    socket_type.get_geometry_nodes_cpp_value(interface_socket, r_value);
+  if (!id_property_type_matches_socket(io_input, *property)) {
+    socket_type.get_geometry_nodes_cpp_value(io_input, r_value);
     return;
   }
 
-  if (!input_has_attribute_toggle(*nmd.node_group, input_index)) {
+  if (!input_has_attribute_toggle(tree, input_index)) {
     init_socket_cpp_value_from_property(*property, socket_data_type, r_value);
     return;
   }
 
   const IDProperty *property_use_attribute = IDP_GetPropertyFromGroup(
-      nmd.settings.properties, (interface_socket.identifier + use_attribute_suffix).c_str());
+      properties, (io_input.identifier + use_attribute_suffix).c_str());
   const IDProperty *property_attribute_name = IDP_GetPropertyFromGroup(
-      nmd.settings.properties, (interface_socket.identifier + attribute_name_suffix).c_str());
+      properties, (io_input.identifier + attribute_name_suffix).c_str());
   if (property_use_attribute == nullptr || property_attribute_name == nullptr) {
     init_socket_cpp_value_from_property(*property, socket_data_type, r_value);
     return;
@@ -1016,7 +1015,10 @@ struct OutputAttributeToStore {
  * can be evaluated together.
  */
 static MultiValueMap<eAttrDomain, OutputAttributeInfo> find_output_attributes_to_store(
-    const NodesModifierData &nmd, const bNode &output_node, Span<GMutablePointer> output_values)
+    const bNodeTree &tree,
+    const IDProperty *properties,
+    const bNode &output_node,
+    Span<GMutablePointer> output_values)
 {
   MultiValueMap<eAttrDomain, OutputAttributeInfo> outputs_by_domain;
   for (const bNodeSocket *socket : output_node.input_sockets().drop_front(1).drop_back(1)) {
@@ -1025,7 +1027,7 @@ static MultiValueMap<eAttrDomain, OutputAttributeInfo> find_output_attributes_to
     }
 
     const std::string prop_name = socket->identifier + attribute_name_suffix;
-    const IDProperty *prop = IDP_GetPropertyFromGroup(nmd.settings.properties, prop_name.c_str());
+    const IDProperty *prop = IDP_GetPropertyFromGroup(properties, prop_name.c_str());
     if (prop == nullptr) {
       continue;
     }
@@ -1043,8 +1045,7 @@ static MultiValueMap<eAttrDomain, OutputAttributeInfo> find_output_attributes_to
     BLI_assert(value_or_field_type != nullptr);
     const GField field = value_or_field_type->as_field(value.get());
 
-    const bNodeSocket *interface_socket = (const bNodeSocket *)BLI_findlink(
-        &nmd.node_group->outputs, index);
+    const bNodeSocket *interface_socket = (const bNodeSocket *)BLI_findlink(&tree.outputs, index);
     const eAttrDomain domain = (eAttrDomain)interface_socket->attribute_domain;
     OutputAttributeInfo output_info;
     output_info.field = std::move(field);
@@ -1141,14 +1142,15 @@ static void store_computed_output_attributes(
 }
 
 static void store_output_attributes(GeometrySet &geometry,
-                                    const NodesModifierData &nmd,
+                                    const bNodeTree &tree,
+                                    const IDProperty *properties,
                                     const bNode &output_node,
                                     Span<GMutablePointer> output_values)
 {
   /* All new attribute values have to be computed before the geometry is actually changed. This is
    * necessary because some fields might depend on attributes that are overwritten. */
   MultiValueMap<eAttrDomain, OutputAttributeInfo> outputs_by_domain =
-      find_output_attributes_to_store(nmd, output_node, output_values);
+      find_output_attributes_to_store(tree, properties, output_node, output_values);
   Vector<OutputAttributeToStore> attributes_to_store = compute_attributes_to_store(
       geometry, outputs_by_domain);
   store_computed_output_attributes(geometry, attributes_to_store);
@@ -1208,6 +1210,7 @@ static GeometrySet compute_geometry(
   blender::LinearAllocator<> allocator;
   Vector<GMutablePointer> inputs_to_destruct;
 
+  const IDProperty *properties = nmd->settings.properties;
   int input_index = -1;
   for (const int i : btree.interface_inputs().index_range()) {
     input_index++;
@@ -1220,7 +1223,7 @@ static GeometrySet compute_geometry(
     const CPPType *type = interface_socket.typeinfo->geometry_nodes_cpp_type;
     BLI_assert(type != nullptr);
     void *value = allocator.allocate(type->size(), type->alignment());
-    initialize_group_input(*nmd, interface_socket, i, value);
+    initialize_group_input(btree, properties, i, value);
     param_inputs[input_index] = {type, value};
     inputs_to_destruct.append({type, value});
   }
@@ -1262,7 +1265,7 @@ static GeometrySet compute_geometry(
   }
 
   GeometrySet output_geometry_set = std::move(*static_cast<GeometrySet *>(param_outputs[0].get()));
-  store_output_attributes(output_geometry_set, *nmd, output_node, param_outputs);
+  store_output_attributes(output_geometry_set, btree, properties, output_node, param_outputs);
 
   for (GMutablePointer &ptr : param_outputs) {
     ptr.destruct();
