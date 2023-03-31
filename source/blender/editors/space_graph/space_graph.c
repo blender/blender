@@ -182,6 +182,28 @@ static void graph_main_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
+/* Draw a darker area above 1 and below -1. */
+static void draw_normalization_borders(Scene *scene, View2D *v2d)
+{
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  GPUVertFormat *format = immVertexFormat();
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformThemeColorShadeAlpha(TH_BACK, -25, -180);
+
+  if (v2d->cur.ymax >= 1) {
+    immRectf(pos, scene->r.sfra, 1, scene->r.efra, v2d->cur.ymax);
+  }
+  if (v2d->cur.ymin <= -1) {
+    immRectf(pos, scene->r.sfra, v2d->cur.ymin, scene->r.efra, -1);
+  }
+
+  GPU_blend(GPU_BLEND_NONE);
+  immUnbindProgram();
+}
+
 static void graph_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
@@ -205,6 +227,10 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   /* start and end frame (in F-Curve mode only) */
   if (sipo->mode != SIPO_MODE_DRIVERS) {
     ANIM_draw_framerange(scene, v2d);
+  }
+
+  if (sipo->mode == SIPO_MODE_ANIMATION && (sipo->flag & SIPO_NORMALIZE)) {
+    draw_normalization_borders(scene, v2d);
   }
 
   /* draw data */
