@@ -4146,15 +4146,11 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
   MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
   Heap *heap = BLI_heap_new();
 
-  int unpacked = 0;
   for (int i = 0; i < handle->ncharts; i++) {
     PChart *chart = handle->charts[i];
-
     if (ignore_pinned && chart->has_pins) {
-      unpacked++;
       continue;
     }
-    (void)unpacked; /* Quiet set-but-unused warning (may be removed). */
 
     geometry::PackIsland *pack_island = new geometry::PackIsland();
     pack_island->caller_index = i;
@@ -4182,17 +4178,9 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     PChart *chart = handle->charts[pack_island->caller_index];
 
     float matrix[2][2];
-    float b[2];
-    const float cos_angle = cosf(pack_island->angle);
-    const float sin_angle = sinf(pack_island->angle);
-    matrix[0][0] = cos_angle * scale[0];
-    matrix[0][1] = -sin_angle * scale[0] * pack_island->aspect_y;
-    matrix[1][0] = sin_angle * scale[1] / pack_island->aspect_y;
-    matrix[1][1] = cos_angle * scale[1];
-    b[0] = pack_island->pre_translate.x;
-    b[1] = pack_island->pre_translate.y;
+    pack_island->build_transformation(scale[0], pack_island->angle, matrix);
     for (PVert *v = chart->verts; v; v = v->nextlink) {
-      blender::geometry::mul_v2_m2_add_v2v2(v->uv, matrix, v->uv, b);
+      blender::geometry::mul_v2_m2_add_v2v2(v->uv, matrix, v->uv, pack_island->pre_translate);
     }
 
     pack_island_vector[i] = nullptr;

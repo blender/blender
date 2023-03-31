@@ -72,8 +72,6 @@ class UVPackIsland_Params {
 
 class PackIsland {
  public:
-  /** Calculated automatically. */
-  rctf bounds_rect;
   /** Aspect ratio, required for rotation. */
   float aspect_y;
   /** Output pre-translation. */
@@ -87,8 +85,16 @@ class PackIsland {
   void add_polygon(const blender::Span<float2> uvs, MemArena *arena, Heap *heap);
   void finalize_geometry(const UVPackIsland_Params &params, MemArena *arena, Heap *heap);
 
+  void build_transformation(const float scale, const float angle, float r_matrix[2][2]);
+  void build_inverse_transformation(const float scale, const float angle, float r_matrix[2][2]);
+
+  /** Center of AABB and inside-or-touching the convex hull. */
+  float2 pivot_;
+  /** Half of the diagonal of the AABB. */
+  float2 half_diagonal_;
+
  private:
-  void calculate_pivot(); /* Choose a pivot based on triangles. */
+  void calculate_pivot(); /* Calculate `pivot_` and `half_diagonal_` based on added triangles. */
   blender::Vector<float2> triangle_vertices_;
   friend class Occupancy;
 };

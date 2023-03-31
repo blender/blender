@@ -1457,12 +1457,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
   for (int64_t i : pack_island_vector.index_range()) {
     blender::geometry::PackIsland *pack_island = pack_island_vector[i];
     FaceIsland *island = island_vector[pack_island->caller_index];
-    const float cos_angle = cosf(pack_island->angle);
-    const float sin_angle = sinf(pack_island->angle);
-    matrix[0][0] = cos_angle * scale[0];
-    matrix[0][1] = -sin_angle * scale[0] * pack_island->aspect_y;
-    matrix[1][0] = sin_angle * scale[1] / pack_island->aspect_y;
-    matrix[1][1] = cos_angle * scale[1];
+    pack_island->build_transformation(scale[0], pack_island->angle, matrix);
     invert_m2_m2(matrix_inverse, matrix);
 
     /* Add base_offset, post transform. */
