@@ -419,6 +419,11 @@ void paintface_select_linked(struct bContext *C,
                              struct Object *ob,
                              const int mval[2],
                              bool select);
+/** Grow the selection of faces.
+ * \param face_step If true will also select faces that only touch on the corner.
+ */
+void paintface_select_more(struct Mesh *mesh, bool face_step);
+void paintface_select_less(struct Mesh *mesh, bool face_step);
 bool paintface_minmax(struct Object *ob, float r_min[3], float r_max[3]);
 
 void paintface_hide(struct bContext *C, struct Object *ob, bool unselected);

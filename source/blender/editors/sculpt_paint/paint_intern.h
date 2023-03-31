@@ -378,6 +378,8 @@ void BRUSH_OT_sculpt_curves_falloff_preset(struct wmOperatorType *ot);
 void PAINT_OT_face_select_linked(struct wmOperatorType *ot);
 void PAINT_OT_face_select_linked_pick(struct wmOperatorType *ot);
 void PAINT_OT_face_select_all(struct wmOperatorType *ot);
+void PAINT_OT_face_select_more(struct wmOperatorType *ot);
+void PAINT_OT_face_select_less(struct wmOperatorType *ot);
 void PAINT_OT_face_select_hide(struct wmOperatorType *ot);
 
 void PAINT_OT_face_vert_reveal(struct wmOperatorType *ot);

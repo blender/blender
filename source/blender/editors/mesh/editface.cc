@@ -351,6 +351,131 @@ void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const b
   paintface_flush_flags(C, ob, true, false);
 }
 
+static bool poly_has_selected_neighbor(blender::Span<int> poly_edges,
+                                       blender::Span<MEdge> edges,
+                                       blender::Span<bool> select_vert,
+                                       const bool face_step)
+{
+  for (const int edge_index : poly_edges) {
+    const MEdge &edge = edges[edge_index];
+    /* If a poly is selected, all of its verts are selected too, meaning that neighboring faces
+     * will have some vertices selected. */
+    if (face_step) {
+      if (select_vert[edge.v1] || select_vert[edge.v2]) {
+        return true;
+      }
+    }
+    else {
+      if (select_vert[edge.v1] && select_vert[edge.v2]) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+void paintface_select_more(Mesh *mesh, const bool face_step)
+{
+  using namespace blender;
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
+      ".select_poly", ATTR_DOMAIN_FACE);
+  bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
+      ".select_vert", ATTR_DOMAIN_POINT);
+  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
+      ".hide_poly", ATTR_DOMAIN_FACE, false);
+
+  const Span<MPoly> polys = mesh->polys();
+  const Span<int> corner_edges = mesh->corner_edges();
+  const Span<MEdge> edges = mesh->edges();
+
+  threading::parallel_for(select_poly.span.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      if (select_poly.span[i] || hide_poly[i]) {
+        continue;
+      }
+      const MPoly &poly = polys[i];
+      if (poly_has_selected_neighbor(corner_edges.slice(poly.loopstart, poly.totloop),
+                                     edges,
+                                     select_vert.span,
+                                     face_step)) {
+        select_poly.span[i] = true;
+      }
+    }
+  });
+
+  select_poly.finish();
+  select_vert.finish();
+}
+
+static bool poly_has_unselected_neighbor(blender::Span<int> poly_edges,
+                                         blender::Span<MEdge> edges,
+                                         blender::BitSpan verts_of_unselected_faces,
+                                         const bool face_step)
+{
+  for (const int edge_index : poly_edges) {
+    const MEdge &edge = edges[edge_index];
+    if (face_step) {
+      if (verts_of_unselected_faces[edge.v1] || verts_of_unselected_faces[edge.v2]) {
+        return true;
+      }
+    }
+    else {
+      if (verts_of_unselected_faces[edge.v1] && verts_of_unselected_faces[edge.v2]) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+void paintface_select_less(Mesh *mesh, const bool face_step)
+{
+  using namespace blender;
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
+      ".select_poly", ATTR_DOMAIN_FACE);
+  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
+      ".hide_poly", ATTR_DOMAIN_FACE, false);
+
+  const Span<MPoly> polys = mesh->polys();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const Span<int> corner_edges = mesh->corner_edges();
+  const Span<MEdge> edges = mesh->edges();
+
+  BitVector<> verts_of_unselected_faces(mesh->totvert);
+
+  /* Find all vertices of unselected faces to help find neighboring faces after. */
+  for (const int i : polys.index_range()) {
+    if (select_poly.span[i]) {
+      continue;
+    }
+    const MPoly &poly = polys[i];
+    for (const int vert : corner_verts.slice(poly.loopstart, poly.totloop)) {
+      verts_of_unselected_faces[vert].set(true);
+    }
+  }
+
+  threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      if (!select_poly.span[i] || hide_poly[i]) {
+        continue;
+      }
+      const MPoly &poly = polys[i];
+      if (poly_has_unselected_neighbor(corner_edges.slice(poly.loopstart, poly.totloop),
+                                       edges,
+                                       verts_of_unselected_faces,
+                                       face_step)) {
+        select_poly.span[i] = false;
+      }
+    }
+  });
+
+  select_poly.finish();
+}
+
 bool paintface_deselect_all_visible(bContext *C, Object *ob, int action, bool flush_flags)
 {
   using namespace blender;
