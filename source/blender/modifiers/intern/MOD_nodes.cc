@@ -843,9 +843,8 @@ static void initialize_group_input(const bNodeTree &tree,
       init_socket_cpp_value_from_property(*property, socket_data_type, r_value);
       return;
     }
-    auto attribute_input = std::make_shared<blender::bke::AttributeFieldInput>(
-        attribute_name, *socket_type.base_cpp_type);
-    GField attribute_field{std::move(attribute_input), 0};
+    GField attribute_field = blender::bke::AttributeFieldInput::Create(attribute_name,
+                                                                       *socket_type.base_cpp_type);
     const auto *value_or_field_cpp_type = ValueOrFieldCPPType::get_from_self(
         *socket_type.geometry_nodes_cpp_type);
     BLI_assert(value_or_field_cpp_type != nullptr);
