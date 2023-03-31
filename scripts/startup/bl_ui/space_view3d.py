@@ -7053,13 +7053,16 @@ class VIEW3D_PT_snapping(Panel):
 
             col.prop(tool_settings, "use_snap_backface_culling")
 
-            if 'FACE' in snap_elements:
-                col.prop(tool_settings, "use_snap_project")
+            is_face_nearest_enabled = 'FACE_NEAREST' in snap_elements
+            if is_face_nearest_enabled or 'FACE' in snap_elements:
+                sub = col.column()
+                sub.active = not is_face_nearest_enabled
+                sub.prop(tool_settings, "use_snap_project")
 
-            if 'FACE_NEAREST' in snap_elements:
-                col.prop(tool_settings, "use_snap_to_same_target")
-                if object_mode == 'EDIT':
-                    col.prop(tool_settings, "snap_face_nearest_steps")
+                if is_face_nearest_enabled:
+                    col.prop(tool_settings, "use_snap_to_same_target")
+                    if object_mode == 'EDIT':
+                        col.prop(tool_settings, "snap_face_nearest_steps")
 
             if 'VOLUME' in snap_elements:
                 col.prop(tool_settings, "use_snap_peel_object")
