@@ -61,6 +61,10 @@
 #include <tablet-unstable-v2-client-protocol.h>
 #include <xdg-activation-v1-client-protocol.h>
 #include <xdg-output-unstable-v1-client-protocol.h>
+#ifdef WITH_GHOST_WAYLAND_FRACTIONAL_SCALE
+#  include <fractional-scale-v1-client-protocol.h>
+#  include <viewporter-client-protocol.h>
+#endif
 
 /* Decorations `xdg_decor`. */
 #include <xdg-decoration-unstable-v1-client-protocol.h>
@@ -944,6 +948,10 @@ struct GWL_Display {
   struct zwp_relative_pointer_manager_v1 *wp_relative_pointer_manager = nullptr;
   struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_device_manager = nullptr;
   struct xdg_activation_v1 *xdg_activation_manager = nullptr;
+#ifdef WITH_GHOST_WAYLAND_FRACTIONAL_SCALE
+  struct wp_fractional_scale_manager_v1 *wp_fractional_scale_manager = nullptr;
+  struct wp_viewporter *wp_viewporter = nullptr;
+#endif
 
   struct zwp_pointer_constraints_v1 *wp_pointer_constraints = nullptr;
   struct zwp_pointer_gestures_v1 *wp_pointer_gestures = nullptr;
@@ -3006,19 +3014,6 @@ static void gesture_pinch_handle_begin(void *data,
   if (wl_surface *wl_surface_focus = seat->pointer.wl_surface_window) {
     win = ghost_wl_surface_user_data(wl_surface_focus);
   }
-  /* NOTE(@ideasman42): Blender's use of track-pad coordinates is inconsistent and needs work.
-   * This isn't specific to WAYLAND, in practice they tend to work well enough in most cases.
-   * Some operators scale by the UI scale, some don't.
-   * Even this window scale is not correct because it doesn't account for:
-   * 1) Fractional window scale.
-   * 2) Blender's UI scale preference (which GHOST doesn't know about).
-   *
-   * If support for this were all that was needed it could be handled in GHOST,
-   * however as the operators are not even using coordinates compatible with each other,
-   * it would be better to resolve this by passing rotation & zoom levels directly,
-   * instead of attempting to handle them as cursor coordinates.
-   */
-  const wl_fixed_t win_scale = win ? win->scale() : 1;
 
   /* NOTE(@ideasman42): Scale factors match Blender's operators & default preferences.
    * For these values to work correctly, operator logic will need to be changed not to scale input
@@ -3033,10 +3028,30 @@ static void gesture_pinch_handle_begin(void *data,
   seat->pointer_gesture_pinch.scale.value = wl_fixed_from_int(1);
   /* The value 300 matches a value used in clip & image zoom operators.
    * It seems OK for the 3D view too. */
-  seat->pointer_gesture_pinch.scale.factor = 300 * win_scale;
+  seat->pointer_gesture_pinch.scale.factor = 300;
   /* The value 5 is used on macOS and roughly maps 1:1 with turntable rotation,
    * although preferences can scale the sensitivity (which would be skipped ideally). */
-  seat->pointer_gesture_pinch.rotation.factor = 5 * win_scale;
+  seat->pointer_gesture_pinch.rotation.factor = 5;
+
+  if (win) {
+    /* NOTE(@ideasman42): Blender's use of track-pad coordinates is inconsistent and needs work.
+     * This isn't specific to WAYLAND, in practice they tend to work well enough in most cases.
+     * Some operators scale by the UI scale, some don't.
+     * Even this window scale is not correct because it doesn't account for:
+     * 1) Fractional window scale.
+     * 2) Blender's UI scale preference (which GHOST doesn't know about).
+     *
+     * If support for this were all that was needed it could be handled in GHOST,
+     * however as the operators are not even using coordinates compatible with each other,
+     * it would be better to resolve this by passing rotation & zoom levels directly,
+     * instead of attempting to handle them as cursor coordinates.
+     */
+    const struct GWL_WindowScaleParams &scale_params = win->scale_params();
+    seat->pointer_gesture_pinch.scale.factor = gwl_window_scale_int_to(
+        scale_params, seat->pointer_gesture_pinch.scale.factor);
+    seat->pointer_gesture_pinch.rotation.factor = gwl_window_scale_int_to(
+        scale_params, seat->pointer_gesture_pinch.rotation.factor);
+  }
 }
 
 static void gesture_pinch_handle_update(void *data,
@@ -5167,6 +5182,47 @@ static void gwl_registry_xdg_activation_remove(GWL_Display *display,
   *value_p = nullptr;
 }
 
+/* #GWL_Display.wp_fractional_scale_manger */
+
+#ifdef WITH_GHOST_WAYLAND_FRACTIONAL_SCALE
+
+static void gwl_registry_wp_fractional_scale_manager_add(GWL_Display *display,
+                                                         const GWL_RegisteryAdd_Params *params)
+{
+  display->wp_fractional_scale_manager = static_cast<wp_fractional_scale_manager_v1 *>(
+      wl_registry_bind(
+          display->wl_registry, params->name, &wp_fractional_scale_manager_v1_interface, 1));
+  gwl_registry_entry_add(display, params, nullptr);
+}
+static void gwl_registry_wp_fractional_scale_manager_remove(GWL_Display *display,
+                                                            void * /*user_data*/,
+                                                            const bool /*on_exit*/)
+{
+  struct wp_fractional_scale_manager_v1 **value_p = &display->wp_fractional_scale_manager;
+  wp_fractional_scale_manager_v1_destroy(*value_p);
+  *value_p = nullptr;
+}
+
+/* #GWL_Display.wl_viewport */
+
+static void gwl_registry_wp_viewporter_add(GWL_Display *display,
+                                           const GWL_RegisteryAdd_Params *params)
+{
+  display->wp_viewporter = static_cast<wp_viewporter *>(
+      wl_registry_bind(display->wl_registry, params->name, &wp_viewporter_interface, 1));
+  gwl_registry_entry_add(display, params, nullptr);
+}
+static void gwl_registry_wp_viewporter_remove(GWL_Display *display,
+                                              void * /*user_data*/,
+                                              const bool /*on_exit*/)
+{
+  struct wp_viewporter **value_p = &display->wp_viewporter;
+  wp_viewporter_destroy(*value_p);
+  *value_p = nullptr;
+}
+
+#endif /* WITH_GHOST_WAYLAND_FRACTIONAL_SCALE */
+
 /* #GWL_Display.wp_primary_selection_device_manager */
 
 static void gwl_registry_wp_primary_selection_device_manager_add(
@@ -5276,6 +5332,20 @@ static const GWL_RegistryHandler gwl_registry_handlers[] = {
         /*update_fn*/ nullptr,
         /*remove_fn*/ gwl_registry_xdg_activation_remove,
     },
+#ifdef WITH_GHOST_WAYLAND_FRACTIONAL_SCALE
+    {
+        /*interface_p*/ &wp_fractional_scale_manager_v1_interface.name,
+        /*add_fn*/ gwl_registry_wp_fractional_scale_manager_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_wp_fractional_scale_manager_remove,
+    },
+    {
+        /*interface_p*/ &wp_viewporter_interface.name,
+        /*add_fn*/ gwl_registry_wp_viewporter_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_wp_viewporter_remove,
+    },
+#endif /* WITH_GHOST_WAYLAND_FRACTIONAL_SCALE */
     /* Display outputs. */
     {
         /*interface_p*/ &wl_output_interface.name,
@@ -6840,6 +6910,17 @@ struct xdg_activation_v1 *GHOST_SystemWayland::xdg_activation_manager()
   return display_->xdg_activation_manager;
 }
 
+#ifdef WITH_GHOST_WAYLAND_FRACTIONAL_SCALE
+struct wp_fractional_scale_manager_v1 *GHOST_SystemWayland::wp_fractional_scale_manager()
+{
+  return display_->wp_fractional_scale_manager;
+}
+struct wp_viewporter *GHOST_SystemWayland::wp_viewporter()
+{
+  return display_->wp_viewporter;
+}
+#endif /* WITH_GHOST_WAYLAND_FRACTIONAL_SCALE */
+
 struct zwp_pointer_gestures_v1 *GHOST_SystemWayland::wp_pointer_gestures()
 {
   return display_->wp_pointer_gestures;
@@ -7055,7 +7136,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
                                                  const GHOST_Rect *wrap_bounds,
                                                  const GHOST_TAxisFlag wrap_axis,
                                                  wl_surface *wl_surface,
-                                                 const int scale)
+                                                 const struct GWL_WindowScaleParams &scale_params)
 {
   /* Caller must lock `server_mutex`. */
 
@@ -7115,10 +7196,14 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
 
         GHOST_Rect bounds_scale;
 
-        bounds_scale.m_l = wl_fixed_from_int(wrap_bounds->m_l) / scale;
-        bounds_scale.m_t = wl_fixed_from_int(wrap_bounds->m_t) / scale;
-        bounds_scale.m_r = wl_fixed_from_int(wrap_bounds->m_r) / scale;
-        bounds_scale.m_b = wl_fixed_from_int(wrap_bounds->m_b) / scale;
+        bounds_scale.m_l = gwl_window_scale_wl_fixed_from(scale_params,
+                                                          wl_fixed_from_int(wrap_bounds->m_l));
+        bounds_scale.m_t = gwl_window_scale_wl_fixed_from(scale_params,
+                                                          wl_fixed_from_int(wrap_bounds->m_t));
+        bounds_scale.m_r = gwl_window_scale_wl_fixed_from(scale_params,
+                                                          wl_fixed_from_int(wrap_bounds->m_r));
+        bounds_scale.m_b = gwl_window_scale_wl_fixed_from(scale_params,
+                                                          wl_fixed_from_int(wrap_bounds->m_b));
 
         bounds_scale.wrapPoint(UNPACK2(xy_next), 0, wrap_axis);
 
@@ -7138,8 +7223,8 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
         if ((init_grab_xy[0] != seat->grab_lock_xy[0]) ||
             (init_grab_xy[1] != seat->grab_lock_xy[1])) {
           const wl_fixed_t xy_next[2] = {
-              wl_fixed_from_int(init_grab_xy[0]) / scale,
-              wl_fixed_from_int(init_grab_xy[1]) / scale,
+              gwl_window_scale_wl_fixed_from(scale_params, wl_fixed_from_int(init_grab_xy[0])),
+              gwl_window_scale_wl_fixed_from(scale_params, wl_fixed_from_int(init_grab_xy[1])),
           };
           zwp_locked_pointer_v1_set_cursor_position_hint(seat->wp_locked_pointer,
                                                          UNPACK2(xy_next));
@@ -7164,13 +7249,13 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
 #endif
 
       if (xy_motion_create_event) {
-        seat->system->pushEvent_maybe_pending(
-            new GHOST_EventCursor(seat->system->getMilliSeconds(),
-                                  GHOST_kEventCursorMove,
-                                  ghost_wl_surface_user_data(wl_surface),
-                                  wl_fixed_to_int(scale * xy_motion[0]),
-                                  wl_fixed_to_int(scale * xy_motion[1]),
-                                  GHOST_TABLET_DATA_NONE));
+        seat->system->pushEvent_maybe_pending(new GHOST_EventCursor(
+            seat->system->getMilliSeconds(),
+            GHOST_kEventCursorMove,
+            ghost_wl_surface_user_data(wl_surface),
+            wl_fixed_to_int(gwl_window_scale_wl_fixed_to(scale_params, xy_motion[0])),
+            wl_fixed_to_int(gwl_window_scale_wl_fixed_to(scale_params, xy_motion[1])),
+            GHOST_TABLET_DATA_NONE));
       }
 
       zwp_locked_pointer_v1_destroy(seat->wp_locked_pointer);
@@ -7206,8 +7291,10 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
       if (mode == GHOST_kGrabHide) {
         /* Set the initial position to detect any changes when un-grabbing,
          * otherwise the unlocked cursor defaults to un-locking in-place. */
-        init_grab_xy[0] = wl_fixed_to_int(scale * seat->pointer.xy[0]);
-        init_grab_xy[1] = wl_fixed_to_int(scale * seat->pointer.xy[1]);
+        init_grab_xy[0] = wl_fixed_to_int(
+            gwl_window_scale_wl_fixed_to(scale_params, seat->pointer.xy[0]));
+        init_grab_xy[1] = wl_fixed_to_int(
+            gwl_window_scale_wl_fixed_to(scale_params, seat->pointer.xy[1]));
         seat->grab_lock_xy[0] = init_grab_xy[0];
         seat->grab_lock_xy[1] = init_grab_xy[1];
       }
