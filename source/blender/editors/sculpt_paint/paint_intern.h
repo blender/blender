@@ -387,6 +387,8 @@ void PAINT_OT_vert_select_ungrouped(struct wmOperatorType *ot);
 void PAINT_OT_vert_select_hide(struct wmOperatorType *ot);
 void PAINT_OT_vert_select_linked(struct wmOperatorType *ot);
 void PAINT_OT_vert_select_linked_pick(struct wmOperatorType *ot);
+void PAINT_OT_vert_select_more(struct wmOperatorType *ot);
+void PAINT_OT_vert_select_less(struct wmOperatorType *ot);
 
 bool vert_paint_poll(struct bContext *C);
 bool mask_paint_poll(struct bContext *C);

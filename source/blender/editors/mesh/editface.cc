@@ -24,6 +24,7 @@
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
 
 #include "ED_mesh.h"
@@ -658,6 +659,126 @@ void paintvert_select_linked(bContext *C, Object *ob)
   }
   select_vert.finish();
   paintvert_select_linked_vertices(C, ob, indices, true);
+}
+
+void paintvert_select_more(Mesh *mesh, const bool face_step)
+{
+  using namespace blender;
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
+      ".select_vert", ATTR_DOMAIN_POINT);
+  const VArray<bool> hide_edge = attributes.lookup_or_default<bool>(
+      ".hide_edge", ATTR_DOMAIN_EDGE, false);
+  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
+      ".hide_poly", ATTR_DOMAIN_FACE, false);
+
+  const Span<MPoly> polys = mesh->polys();
+  const Span<int> corner_edges = mesh->corner_edges();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const Span<MEdge> edges = mesh->edges();
+
+  Array<Vector<int, 2>> edge_to_face_map;
+  if (face_step) {
+    edge_to_face_map = bke::mesh_topology::build_edge_to_poly_map(
+        polys, corner_edges, mesh->totedge);
+  }
+
+  /* Need a copy of the selected verts that we can read from and is not modified. */
+  BitVector<> select_vert_original(mesh->totvert, false);
+  for (int i = 0; i < mesh->totvert; i++) {
+    select_vert_original[i].set(select_vert.span[i]);
+  }
+
+  /* If we iterated over polys we wouldn't extend the selection through edges that have no face
+   * attached to them. */
+  for (const int i : edges.index_range()) {
+    const MEdge &edge = edges[i];
+    if ((!select_vert_original[edge.v1] && !select_vert_original[edge.v2]) || hide_edge[i]) {
+      continue;
+    }
+    select_vert.span[edge.v1] = true;
+    select_vert.span[edge.v2] = true;
+    if (!face_step) {
+      continue;
+    }
+    const Span<int> neighbor_polys = edge_to_face_map[i];
+    for (const int poly_i : neighbor_polys) {
+      if (hide_poly[poly_i]) {
+        continue;
+      }
+      const MPoly &poly = polys[poly_i];
+      for (const int vert : corner_verts.slice(poly.loopstart, poly.totloop)) {
+        select_vert.span[vert] = true;
+      }
+    }
+  }
+
+  select_vert.finish();
+}
+
+void paintvert_select_less(Mesh *mesh, const bool face_step)
+{
+  using namespace blender;
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
+      ".select_vert", ATTR_DOMAIN_POINT);
+  const VArray<bool> hide_edge = attributes.lookup_or_default<bool>(
+      ".hide_edge", ATTR_DOMAIN_EDGE, false);
+  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
+      ".hide_poly", ATTR_DOMAIN_FACE, false);
+
+  const Span<MPoly> polys = mesh->polys();
+  const Span<int> corner_edges = mesh->corner_edges();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const Span<MEdge> edges = mesh->edges();
+
+  MeshElemMap *edge_poly_map;
+  int *edge_poly_mem = nullptr;
+  if (face_step) {
+    BKE_mesh_edge_poly_map_create(&edge_poly_map,
+                                  &edge_poly_mem,
+                                  edges.size(),
+                                  polys.data(),
+                                  polys.size(),
+                                  corner_edges.data(),
+                                  corner_edges.size());
+  }
+
+  /* Need a copy of the selected verts that we can read from and is not modified. */
+  BitVector<> select_vert_original(mesh->totvert);
+  for (int i = 0; i < mesh->totvert; i++) {
+    select_vert_original[i].set(select_vert.span[i]);
+  }
+
+  for (const int i : edges.index_range()) {
+    const MEdge &edge = edges[i];
+    if ((select_vert_original[edge.v1] && select_vert_original[edge.v2]) && !hide_edge[i]) {
+      continue;
+    }
+    select_vert.span[edge.v1] = false;
+    select_vert.span[edge.v2] = false;
+
+    if (!face_step) {
+      continue;
+    }
+    const Span<int> neighbor_polys(edge_poly_map[i].indices, edge_poly_map[i].count);
+    for (const int poly_i : neighbor_polys) {
+      if (hide_poly[poly_i]) {
+        continue;
+      }
+      const MPoly &poly = polys[poly_i];
+      for (const int vert : corner_verts.slice(poly.loopstart, poly.totloop)) {
+        select_vert.span[vert] = false;
+      }
+    }
+  }
+  if (edge_poly_mem) {
+    MEM_freeN(edge_poly_map);
+    MEM_freeN(edge_poly_mem);
+  }
+  select_vert.finish();
 }
 
 void paintvert_tag_select_update(bContext *C, Object *ob)

@@ -4437,6 +4437,8 @@ def km_weight_paint_vertex_selection(params):
          {"properties": [("select", True)]}),
         ("paint.vert_select_linked_pick", {"type": 'L', "value": 'PRESS', "shift": True},
          {"properties": [("select", False)]}),
+        ("paint.vert_select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True}, None),
+        ("paint.vert_select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True}, None),
     ])
 
     return keymap
