@@ -731,6 +731,11 @@ static eSnapTargetOP snap_target_select_from_spacetype(TransInfo *t)
 
 static void initSnappingMode(TransInfo *t)
 {
+  if (!transformModeUseSnap(t)) {
+    /* In this case, snapping is always disabled by default. */
+    t->modifiers &= ~MOD_SNAP;
+  }
+
   if (doForceIncrementSnap(t)) {
     t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
   }
@@ -881,9 +886,9 @@ void initSnapping(TransInfo *t, wmOperator *op)
 
   t->tsnap.source_operation = snap_source;
 
-  transform_snap_flag_from_modifiers_set(t);
-
   initSnappingMode(t);
+
+  transform_snap_flag_from_modifiers_set(t);
 }
 
 void freeSnapping(TransInfo *t)
