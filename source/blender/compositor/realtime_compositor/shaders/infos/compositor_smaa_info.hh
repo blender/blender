@@ -5,11 +5,12 @@
 GPU_SHADER_CREATE_INFO(compositor_smaa_edge_detection)
     .local_group_size(16, 16)
     .define("SMAA_GLSL_3")
-    .define("SMAA_LUMA_WEIGHT", "float4(1.0, 1.0, 1.0, 1.0)")
     .define("SMAA_RT_METRICS",
             "vec4(1.0 / vec2(textureSize(input_tx, 0)), vec2(textureSize(input_tx, 0)))")
+    .define("SMAA_LUMA_WEIGHT", "vec4(luminance_coefficients, 0.0)")
     .define("SMAA_THRESHOLD", "smaa_threshold")
     .define("SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR", "smaa_local_contrast_adaptation_factor")
+    .push_constant(Type::VEC3, "luminance_coefficients")
     .push_constant(Type::FLOAT, "smaa_threshold")
     .push_constant(Type::FLOAT, "smaa_local_contrast_adaptation_factor")
     .sampler(0, ImageType::FLOAT_2D, "input_tx")

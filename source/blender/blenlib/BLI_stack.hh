@@ -123,9 +123,7 @@ class Stack {
     size_ = 0;
   }
 
-  Stack(NoExceptConstructor, Allocator allocator = {}) noexcept : Stack(allocator)
-  {
-  }
+  Stack(NoExceptConstructor, Allocator allocator = {}) noexcept : Stack(allocator) {}
 
   /**
    * Create a new stack that contains the given elements. The values are pushed to the stack in

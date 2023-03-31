@@ -188,9 +188,7 @@ Camera::Camera() : Node(get_node_type())
   memset((void *)&kernel_camera, 0, sizeof(kernel_camera));
 }
 
-Camera::~Camera()
-{
-}
+Camera::~Camera() {}
 
 void Camera::compute_auto_viewplane()
 {

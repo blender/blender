@@ -180,18 +180,14 @@ std::unique_ptr<AbstractViewItemDropTarget> AbstractViewItem::create_drop_target
   return nullptr;
 }
 
-AbstractViewItemDragController::AbstractViewItemDragController(AbstractView &view) : view_(view)
-{
-}
+AbstractViewItemDragController::AbstractViewItemDragController(AbstractView &view) : view_(view) {}
 
 void AbstractViewItemDragController::on_drag_start()
 {
   /* Do nothing by default. */
 }
 
-AbstractViewItemDropTarget::AbstractViewItemDropTarget(AbstractView &view) : view_(view)
-{
-}
+AbstractViewItemDropTarget::AbstractViewItemDropTarget(AbstractView &view) : view_(view) {}
 
 /** \} */
 
@@ -206,6 +202,16 @@ AbstractView &AbstractViewItem::get_view() const
         "Invalid state, item must be registered through AbstractView::register_item()");
   }
   return *view_;
+}
+
+void AbstractViewItem::disable_interaction()
+{
+  is_interactive_ = false;
+}
+
+bool AbstractViewItem::is_interactive() const
+{
+  return is_interactive_;
 }
 
 bool AbstractViewItem::is_active() const
@@ -281,6 +287,12 @@ class ViewItemAPIWrapper {
 }  // namespace blender::ui
 
 using namespace blender::ui;
+
+bool UI_view_item_is_interactive(const uiViewItemHandle *item_handle)
+{
+  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_handle);
+  return item.is_interactive();
+}
 
 bool UI_view_item_is_active(const uiViewItemHandle *item_handle)
 {

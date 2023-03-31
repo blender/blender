@@ -25,9 +25,7 @@ GHOST_DropTargetWin32::GHOST_DropTargetWin32(GHOST_WindowWin32 *window, GHOST_Sy
   m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
 }
 
-GHOST_DropTargetWin32::~GHOST_DropTargetWin32()
-{
-}
+GHOST_DropTargetWin32::~GHOST_DropTargetWin32() {}
 
 /*
  * IUnknown::QueryInterface

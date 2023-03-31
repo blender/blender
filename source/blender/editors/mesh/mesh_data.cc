@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup edmesh
@@ -318,10 +318,11 @@ const bool *ED_mesh_uv_map_vert_select_layer_get(const Mesh *mesh, const int uv_
   return mesh_loop_boolean_custom_data_get_by_name(
       *mesh, BKE_uv_map_vert_select_name_get(uv_name, buffer));
 }
-/* UV map edge selections are stored on face corners (loops) and not on edges
- * because we need selections per face edge, even when the edge is split in UV space. */
 const bool *ED_mesh_uv_map_edge_select_layer_get(const Mesh *mesh, const int uv_index)
 {
+  /* UV map edge selections are stored on face corners (loops) and not on edges
+   * because we need selections per face edge, even when the edge is split in UV space. */
+
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
   const char *uv_name = CustomData_get_layer_name(&mesh->ldata, CD_PROP_FLOAT2, uv_index);
@@ -597,7 +598,9 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 
 /* *** CustomData clear functions, we need an operator for each *** */
 
-static int mesh_customdata_clear_exec__internal(bContext *C, char htype, int type)
+static int mesh_customdata_clear_exec__internal(bContext *C,
+                                                char htype,
+                                                const eCustomDataType type)
 {
   Mesh *me = ED_mesh_context(C);
 
@@ -622,7 +625,7 @@ static int mesh_customdata_clear_exec__internal(bContext *C, char htype, int typ
   return OPERATOR_CANCELLED;
 }
 
-static int mesh_customdata_add_exec__internal(bContext *C, char htype, int type)
+static int mesh_customdata_add_exec__internal(bContext *C, char htype, const eCustomDataType type)
 {
   Mesh *mesh = ED_mesh_context(C);
 

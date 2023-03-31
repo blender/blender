@@ -305,9 +305,7 @@ template<typename T> class device_only_memory : public device_memory {
     data_elements = max(device_type_traits<T>::num_elements, size_t(1));
   }
 
-  device_only_memory(device_only_memory &&other) noexcept : device_memory(std::move(other))
-  {
-  }
+  device_only_memory(device_only_memory &&other) noexcept : device_memory(std::move(other)) {}
 
   virtual ~device_only_memory()
   {

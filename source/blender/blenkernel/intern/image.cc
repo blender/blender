@@ -3625,10 +3625,11 @@ void BKE_image_set_filepath_from_tile_number(char *filepath,
   }
 }
 
-/* if layer or pass changes, we need an index for the imbufs list */
-/* note it is called for rendered results, but it doesn't use the index! */
 RenderPass *BKE_image_multilayer_index(RenderResult *rr, ImageUser *iuser)
 {
+  /* If layer or pass changes, we need an index for the imbufs list. */
+  /* NOTE: it is called for rendered results, but it doesn't use the index! */
+
   RenderLayer *rl;
   RenderPass *rpass = nullptr;
 
@@ -3679,10 +3680,11 @@ void BKE_image_multiview_index(const Image *ima, ImageUser *iuser)
   }
 }
 
-/* if layer or pass changes, we need an index for the imbufs list */
-/* note it is called for rendered results, but it doesn't use the index! */
 bool BKE_image_is_multilayer(const Image *ima)
 {
+  /* If layer or pass changes, we need an index for the imbufs list. */
+  /* NOTE:  it is called for rendered results, but it doesn't use the index! */
+
   if (ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_SEQUENCE, IMA_SRC_TILED)) {
     if (ima->type == IMA_TYPE_MULTILAYER) {
       return true;

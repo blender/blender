@@ -437,6 +437,7 @@ static SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
       rkey = key;
     }
   }
+  (void)total_count; /* Quiet set-but-unused warning (may be removed). */
 
   finalkey = seq_cache_choose_key(scene, lkey, rkey);
 

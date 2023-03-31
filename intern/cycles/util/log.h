@@ -24,12 +24,8 @@ class StubStream {
 
 class LogMessageVoidify {
  public:
-  LogMessageVoidify()
-  {
-  }
-  void operator&(const StubStream &)
-  {
-  }
+  LogMessageVoidify() {}
+  void operator&(const StubStream &) {}
 };
 
 #  define LOG_SUPPRESS() (true) ? ((void)0) : LogMessageVoidify() & StubStream()

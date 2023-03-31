@@ -22,17 +22,11 @@ CCL_NAMESPACE_BEGIN
 
 /* Shader Manager */
 
-SVMShaderManager::SVMShaderManager()
-{
-}
+SVMShaderManager::SVMShaderManager() {}
 
-SVMShaderManager::~SVMShaderManager()
-{
-}
+SVMShaderManager::~SVMShaderManager() {}
 
-void SVMShaderManager::reset(Scene * /*scene*/)
-{
-}
+void SVMShaderManager::reset(Scene * /*scene*/) {}
 
 void SVMShaderManager::device_update_shader(Scene *scene,
                                             Shader *shader,

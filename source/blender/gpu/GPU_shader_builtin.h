@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -12,7 +12,7 @@
  * `INST` suffix means instance, which means the shader is build to leverage instancing
  * capabilities to reduce the number of draw-calls.
  *
- * For full list of parameters, search for the the associated #ShaderCreateInfo.
+ * For full list of parameters, search for the associated #ShaderCreateInfo.
  * Example: `GPU_SHADER_ICON` is defined by `GPU_SHADER_CREATE_INFO(gpu_shader_icon)`
  * Some parameters are builtins and are set automatically (ex: `ModelViewProjectionMatrix`).
  */

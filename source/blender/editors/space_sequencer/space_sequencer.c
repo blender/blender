@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spseq
@@ -232,9 +232,7 @@ static void sequencer_free(SpaceLink *sl)
 }
 
 /* Space-type init callback. */
-static void sequencer_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
-{
-}
+static void sequencer_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static void sequencer_refresh(const bContext *C, ScrArea *area)
 {

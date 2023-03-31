@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 #ifdef __GNUC__
 /* I can't even *cast* signed ints in gcc's sign-conversion warning? gcc 10.3.0 -joeedh */

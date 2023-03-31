@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup editors
@@ -675,6 +675,8 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
                                       bAnimListElem *ale_setting,
                                       eAnimChannel_Settings setting,
                                       eAnimChannels_SetFlag mode);
+
+void ANIM_frame_channel_y_extents(struct bContext *C, bAnimContext *ac);
 
 /**
  * Set selection state of all animation channels in the context.

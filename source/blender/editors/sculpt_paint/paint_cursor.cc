@@ -1091,6 +1091,7 @@ static void cursor_draw_tiling_preview(const uint gpuattr,
       }
     }
   }
+  (void)tile_pass; /* Quiet set-but-unused warning (may be removed). */
 }
 
 static void cursor_draw_point_with_symmetry(const uint gpuattr,

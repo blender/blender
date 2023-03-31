@@ -19,36 +19,28 @@ class CombineColorNodeLegacy : public Node {
 
 class CombineRGBANode : public CombineColorNodeLegacy {
  public:
-  CombineRGBANode(bNode *editor_node) : CombineColorNodeLegacy(editor_node)
-  {
-  }
+  CombineRGBANode(bNode *editor_node) : CombineColorNodeLegacy(editor_node) {}
 
   NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };
 
 class CombineHSVANode : public CombineColorNodeLegacy {
  public:
-  CombineHSVANode(bNode *editor_node) : CombineColorNodeLegacy(editor_node)
-  {
-  }
+  CombineHSVANode(bNode *editor_node) : CombineColorNodeLegacy(editor_node) {}
 
   NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };
 
 class CombineYCCANode : public CombineColorNodeLegacy {
  public:
-  CombineYCCANode(bNode *editor_node) : CombineColorNodeLegacy(editor_node)
-  {
-  }
+  CombineYCCANode(bNode *editor_node) : CombineColorNodeLegacy(editor_node) {}
 
   NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };
 
 class CombineYUVANode : public CombineColorNodeLegacy {
  public:
-  CombineYUVANode(bNode *editor_node) : CombineColorNodeLegacy(editor_node)
-  {
-  }
+  CombineYUVANode(bNode *editor_node) : CombineColorNodeLegacy(editor_node) {}
 
   NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };

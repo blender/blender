@@ -6,6 +6,8 @@
 
 #include "ply_file_buffer_binary.hh"
 
+#include "BLI_math_vector_types.hh"
+
 namespace blender::io::ply {
 void FileBufferBinary::write_vertex(float x, float y, float z)
 {

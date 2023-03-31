@@ -7,9 +7,7 @@
 
 namespace blender::compositor {
 
-SeparateColorNode::SeparateColorNode(bNode *editor_node) : Node(editor_node)
-{
-}
+SeparateColorNode::SeparateColorNode(bNode *editor_node) : Node(editor_node) {}
 
 void SeparateColorNode::convert_to_operations(NodeConverter &converter,
                                               const CompositorContext & /*context*/) const

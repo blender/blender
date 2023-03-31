@@ -432,6 +432,12 @@ eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
     }
   }
 
+  if (needs_update) {
+    flag = *SCULPT_vertex_attr_get<eSculptCorner *>(vertex, ss->attrs.boundary_flags);
+  }
+
+  flag &= cornertype;
+
   return flag & (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM |
                  SCULPT_CORNER_SHARP | SCULPT_CORNER_UV);
 }
@@ -502,73 +508,14 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
     }
   }
 
+  if (needs_update) {
+    flag = eSculptBoundary(*SCULPT_vertex_attr_get<int *>(vertex, ss->attrs.boundary_flags));
+  }
+
+  flag &= boundary_types;
+
   return flag & (SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM |
                  SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_UV);
-}
-
-bool SCULPT_attr_ensure_layer(SculptSession *ss,
-                              Object *ob,
-                              eAttrDomain domain,
-                              int proptype,
-                              const char *name,
-                              SculptAttributeParams *params)
-{
-  bool is_newlayer = !BKE_sculpt_attribute_exists(ob, domain, (eCustomDataType)proptype, name);
-  BKE_sculpt_attribute_ensure(ob, domain, (eCustomDataType)proptype, name, params);
-
-  return is_newlayer;
-}
-
-/* TODO: thoroughly test this function */
-bool SCULPT_attr_has_layer(SculptSession *ss, eAttrDomain domain, int proptype, const char *name)
-{
-  CustomData *vdata = nullptr, *pdata = nullptr, *data = nullptr;
-
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_BMESH:
-      vdata = &ss->bm->vdata;
-      pdata = &ss->bm->pdata;
-      break;
-    case PBVH_FACES:
-      pdata = ss->pdata;
-      vdata = ss->vdata;
-      break;
-    case PBVH_GRIDS:
-      pdata = ss->pdata;
-      break;
-  }
-
-  switch (domain) {
-    case ATTR_DOMAIN_POINT:
-      data = vdata;
-      break;
-    case ATTR_DOMAIN_FACE:
-      data = pdata;
-      break;
-    default:
-      return false;
-  }
-
-  if (data) {
-    return CustomData_get_named_layer_index(data, proptype, name) >= 0;
-  }
-
-  return false;
-}
-
-bool SCULPT_attr_release_layer(SculptSession *ss, Object *ob, SculptAttribute *scl)
-{
-  return BKE_sculpt_attribute_destroy(ob, scl);
-}
-
-SculptAttribute *SCULPT_attr_get_layer(SculptSession *ss,
-                                       Object *ob,
-                                       eAttrDomain domain,
-                                       int proptype,
-                                       const char *name,
-                                       SculptAttributeParams *params)
-{
-  return BKE_sculpt_attribute_ensure(ob, domain, (eCustomDataType)proptype, name, params);
 }
 
 bool SCULPT_vertex_check_origdata(SculptSession *ss, PBVHVertRef vertex)

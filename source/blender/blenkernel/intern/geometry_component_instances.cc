@@ -37,9 +37,7 @@ using blender::bke::Instances;
 /** \name Geometry Component Implementation
  * \{ */
 
-InstancesComponent::InstancesComponent() : GeometryComponent(GEO_COMPONENT_TYPE_INSTANCES)
-{
-}
+InstancesComponent::InstancesComponent() : GeometryComponent(GEO_COMPONENT_TYPE_INSTANCES) {}
 
 InstancesComponent::~InstancesComponent()
 {

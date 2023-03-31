@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 #include "usd_writer_mesh.h"
 #include "usd_hierarchy_iterator.h"
 
@@ -497,9 +497,7 @@ void USDGenericMeshWriter::write_surface_velocity(const Mesh *mesh, pxr::UsdGeom
   usd_mesh.CreateVelocitiesAttr().Set(usd_velocities, timecode);
 }
 
-USDMeshWriter::USDMeshWriter(const USDExporterContext &ctx) : USDGenericMeshWriter(ctx)
-{
-}
+USDMeshWriter::USDMeshWriter(const USDExporterContext &ctx) : USDGenericMeshWriter(ctx) {}
 
 Mesh *USDMeshWriter::get_export_mesh(Object *object_eval, bool & /*r_needsfree*/)
 {

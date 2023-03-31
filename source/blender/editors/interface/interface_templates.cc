@@ -94,9 +94,7 @@
 #define TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH (UI_UNIT_X * 6)
 #define TEMPLATE_SEARCH_TEXTBUT_HEIGHT UI_UNIT_Y
 
-void UI_template_fix_linking(void)
-{
-}
+void UI_template_fix_linking(void) {}
 
 /* -------------------------------------------------------------------- */
 /** \name Header Template
@@ -574,9 +572,6 @@ static uiBlock *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
 
 static void template_id_cb(bContext *C, void *arg_litem, void *arg_event);
 
-/**
- * This is for browsing and editing the ID-blocks used.
- */
 void UI_context_active_but_prop_get_templateID(bContext *C,
                                                PointerRNA *r_ptr,
                                                PropertyRNA **r_prop)

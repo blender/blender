@@ -80,8 +80,6 @@
 // TODO: figure out bad cross module refs
 void SCULPT_undo_ensure_bmlog(Object *ob);
 
-static void init_sculptvert_layer(SculptSession *ss, PBVH *pbvh, int totvert);
-
 using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
@@ -2782,72 +2780,6 @@ extern "C" bool BKE_sculptsession_check_sculptverts(Object *ob, struct PBVH *pbv
   return false;
 }
 
-static void init_sculptvert_layer_faces(SculptSession *ss, PBVH *pbvh, int totvert)
-{
-  BKE_pbvh_set_sculpt_verts(pbvh, ss->msculptverts);
-
-  MSculptVert *mv = ss->msculptverts;
-  const bool is_grid = BKE_pbvh_type(pbvh) == PBVH_GRIDS;
-
-  for (int i = 0; i < totvert; i++, mv++) {
-    MV_ADD_FLAG(mv, SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT);
-    mv->stroke_id = -1;
-
-    PBVHVertRef vertex = {i};
-
-    BKE_sculpt_boundary_flag_update(ss, vertex);
-
-    copy_v3_v3(mv->origco, ss->vert_positions[i]);
-
-    BKE_pbvh_update_vert_boundary_faces(static_cast<int *>(ss->attrs.boundary_flags->data),
-                                        ss->face_sets,
-                                        ss->hide_poly,
-                                        ss->vert_positions,
-                                        ss->edges.data(),
-                                        ss->corner_verts.data(),
-                                        ss->corner_edges.data(),
-                                        ss->polys.data(),
-                                        ss->msculptverts,
-                                        ss->pmap->pmap,
-                                        vertex,
-                                        ss->sharp_edge,
-                                        ss->seam_edge);
-
-    /* Can't fully update boundary here, so still flag for update. */
-    BKE_sculpt_boundary_flag_update(ss, vertex);
-  }
-}
-
-static void init_sculptvert_layer_grids(SculptSession *ss, PBVH *pbvh, int totvert)
-{
-  BKE_pbvh_set_sculpt_verts(pbvh, ss->msculptverts);
-
-  MSculptVert *mv = ss->msculptverts;
-
-  for (int i = 0; i < totvert; i++, mv++) {
-    MV_ADD_FLAG(mv, SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT);
-    mv->stroke_id = -1;
-
-    PBVHVertRef vertex = {i};
-
-    BKE_sculpt_boundary_flag_update(ss, vertex);
-    BKE_pbvh_update_vert_boundary_grids(pbvh, ss->subdiv_ccg, vertex);
-
-    // can't fully update boundary here, so still flag for update
-    BKE_sculpt_boundary_flag_update(ss, vertex);
-  }
-}
-
-static void init_sculptvert_layer(SculptSession *ss, PBVH *pbvh, int totvert)
-{
-  if (BKE_pbvh_type(pbvh) == PBVH_FACES) {
-    init_sculptvert_layer_faces(ss, pbvh, totvert);
-  }
-  else if (BKE_pbvh_type(pbvh) == PBVH_GRIDS) {
-    init_sculptvert_layer_grids(ss, pbvh, totvert);
-  }
-}
-
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 {
   if (ob == nullptr || ob->sculpt == nullptr) {
@@ -3115,7 +3047,7 @@ void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me)
         continue;
       }
 
-      int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
+      int idx = CustomData_get_named_layer_index(data2, eCustomDataType(cl1->type), cl1->name);
       if (idx < 0) {
         newlayers.append(cl1);
       }
@@ -3137,7 +3069,7 @@ void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me)
         continue;
       }
 
-      int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
+      int idx = CustomData_get_named_layer_index(data2, eCustomDataType(cl1->type), cl1->name);
 
       if (idx == -1) {
         continue;
@@ -3168,7 +3100,7 @@ void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me)
       typemap[cl1->type] = true;
 
       // find first layer
-      int baseidx = CustomData_get_layer_index(data2, cl1->type);
+      int baseidx = CustomData_get_layer_index(data2, eCustomDataType(cl1->type));
 
       if (baseidx < 0) {
         modified |= true;
@@ -3177,25 +3109,29 @@ void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me)
 
       CustomDataLayer *cl2 = data2->layers + baseidx;
 
-      int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active].name);
+      int idx = CustomData_get_named_layer_index(
+          data2, eCustomDataType(cl1->type), cl1[cl1->active].name);
       if (idx >= 0) {
         modified |= idx - baseidx != cl2->active;
         cl2->active = idx - baseidx;
       }
 
-      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active_rnd].name);
+      idx = CustomData_get_named_layer_index(
+          data2, eCustomDataType(cl1->type), cl1[cl1->active_rnd].name);
       if (idx >= 0) {
         modified |= idx - baseidx != cl2->active_rnd;
         cl2->active_rnd = idx - baseidx;
       }
 
-      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active_mask].name);
+      idx = CustomData_get_named_layer_index(
+          data2, eCustomDataType(cl1->type), cl1[cl1->active_mask].name);
       if (idx >= 0) {
         modified |= idx - baseidx != cl2->active_mask;
         cl2->active_mask = idx - baseidx;
       }
 
-      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active_clone].name);
+      idx = CustomData_get_named_layer_index(
+          data2, eCustomDataType(cl1->type), cl1[cl1->active_clone].name);
       if (idx >= 0) {
         modified |= idx - baseidx != cl2->active_clone;
         cl2->active_clone = idx - baseidx;
@@ -3804,7 +3740,8 @@ static void update_bmesh_offsets(Mesh *me, SculptSession *ss)
     eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
 
     CustomData *cdata = domain == ATTR_DOMAIN_POINT ? &ss->bm->vdata : &ss->bm->ldata;
-    int layer_i = CustomData_get_named_layer_index(cdata, layer->type, layer->name);
+    int layer_i = CustomData_get_named_layer_index(
+        cdata, eCustomDataType(layer->type), layer->name);
 
     ss->cd_vcol_offset = layer_i != -1 ? cdata->layers[layer_i].offset : -1;
   }
@@ -3947,7 +3884,8 @@ bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)
     /* We may have been called after destroying ss->bm in which case attr->layer
      * might be invalid.
      */
-    int layer_i = CustomData_get_named_layer_index(cdata, attr->proptype, attr->name);
+    int layer_i = CustomData_get_named_layer_index(
+        cdata, eCustomDataType(attr->proptype), attr->name);
     if (layer_i != 0) {
       CustomData_free_layer(cdata, attr->proptype, totelem, layer_i);
     }

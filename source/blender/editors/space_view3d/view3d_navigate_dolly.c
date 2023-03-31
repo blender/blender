@@ -336,12 +336,6 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_FINISHED;
 }
 
-static void viewdolly_cancel(bContext *C, wmOperator *op)
-{
-  viewops_data_free(C, op->customdata);
-  op->customdata = NULL;
-}
-
 void VIEW3D_OT_dolly(wmOperatorType *ot)
 {
   /* identifiers */
@@ -354,7 +348,7 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
   ot->exec = viewdolly_exec;
   ot->modal = viewdolly_modal;
   ot->poll = view3d_rotation_poll;
-  ot->cancel = viewdolly_cancel;
+  ot->cancel = view3d_navigate_cancel_fn;
 
   /* flags */
   ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY | OPTYPE_DEPENDS_ON_CURSOR;

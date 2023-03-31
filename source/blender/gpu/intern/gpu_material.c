@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -787,9 +787,10 @@ eGPUMaterialFlag GPU_material_flag(const GPUMaterial *mat)
   return mat->flag;
 }
 
-/* NOTE: Consumes the flags. */
 bool GPU_material_recalc_flag_get(GPUMaterial *mat)
 {
+  /* NOTE: Consumes the flags. */
+
   bool updated = (mat->flag & GPU_MATFLAG_UPDATED) != 0;
   mat->flag &= ~GPU_MATFLAG_UPDATED;
   return updated;

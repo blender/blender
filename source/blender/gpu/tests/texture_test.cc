@@ -17,7 +17,7 @@
 #define RUN_UNSUPPORTED false
 
 /* Skip tests that haven't been developed yet due to non standard data types or it needs an
- * framebuffer to create the texture. */
+ * frame-buffer to create the texture. */
 #define RUN_SRGB_UNIMPLEMENTED false
 #define RUN_NON_STANDARD_UNIMPLEMENTED false
 #define RUN_COMPONENT_UNIMPLEMENTED false
@@ -168,7 +168,7 @@ static void texture_create_upload_read_pixel()
 }
 
 /* -------------------------------------------------------------------- */
-/** \name Roundtrip testing GPU_DATA_FLOAT
+/** \name Round-trip testing GPU_DATA_FLOAT
  * \{ */
 static void test_texture_roundtrip__GPU_DATA_FLOAT__GPU_RGBA8()
 {
@@ -422,7 +422,7 @@ GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH_COMPONENT16);
 /* \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Roundtrip testing GPU_DATA_HALF_FLOAT
+/** \name Round-trip testing GPU_DATA_HALF_FLOAT
  * \{ */
 
 static void test_texture_roundtrip__GPU_DATA_HALF_FLOAT__GPU_RGBA16F()
@@ -454,7 +454,7 @@ GPU_TEST(texture_roundtrip__GPU_DATA_HALF_FLOAT__GPU_RGB16F);
 /* \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Roundtrip testing GPU_DATA_INT
+/** \name Round-trip testing GPU_DATA_INT
  * \{ */
 
 static void test_texture_roundtrip__GPU_DATA_INT__GPU_RGBA8I()
@@ -534,7 +534,7 @@ GPU_TEST(texture_roundtrip__GPU_DATA_INT__GPU_RGB32I);
 /* \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Roundtrip testing GPU_DATA_UINT
+/** \name Round-trip testing GPU_DATA_UINT
  * \{ */
 
 static void test_texture_roundtrip__GPU_DATA_UINT__GPU_RGBA8UI()
@@ -648,7 +648,7 @@ GPU_TEST(texture_roundtrip__GPU_DATA_UINT__GPU_DEPTH_COMPONENT16);
 /* \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Roundtrip testing GPU_DATA_UBYTE
+/** \name Round-trip testing GPU_DATA_UBYTE
  * \{ */
 
 static void test_texture_roundtrip__GPU_DATA_UBYTE__GPU_RGBA8UI()
@@ -717,7 +717,7 @@ GPU_TEST(texture_roundtrip__GPU_DATA_UBYTE__GPU_SRGB8);
 /* \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Roundtrip testing GPU_DATA_UINT_24_8
+/** \name Round-trip testing GPU_DATA_UINT_24_8
  * \{ */
 
 #if RUN_UNSUPPORTED
@@ -737,7 +737,7 @@ GPU_TEST(texture_roundtrip__GPU_DATA_UINT_24_8__GPU_DEPTH24_STENCIL8);
 /* \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Roundtrip testing GPU_DATA_10_11_11_REV
+/** \name Round-trip testing GPU_DATA_10_11_11_REV
  * \{ */
 
 static void test_texture_roundtrip__GPU_DATA_10_11_11_REV__GPU_R11F_G11F_B10F()
@@ -749,7 +749,7 @@ GPU_TEST(texture_roundtrip__GPU_DATA_10_11_11_REV__GPU_R11F_G11F_B10F);
 /* \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Roundtrip testing GPU_DATA_2_10_10_10_REV
+/** \name Round-trip testing GPU_DATA_2_10_10_10_REV
  * \{ */
 
 static void test_texture_roundtrip__GPU_DATA_2_10_10_10_REV__GPU_RGB10_A2()

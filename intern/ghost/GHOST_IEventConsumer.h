@@ -23,9 +23,7 @@ class GHOST_IEventConsumer {
   /**
    * Destructor.
    */
-  virtual ~GHOST_IEventConsumer()
-  {
-  }
+  virtual ~GHOST_IEventConsumer() {}
 
   /**
    * This method is called by the system when it has events to dispatch.

@@ -138,7 +138,7 @@ typedef struct UndoSculpt {
 
 typedef struct SculptAttrRef {
   eAttrDomain domain;
-  int type;
+  eCustomDataType type;
   char name[MAX_CUSTOMDATA_LAYER_NAME];
   bool was_set;
 } SculptAttrRef;
@@ -656,7 +656,6 @@ static bool sculpt_undo_restore_face_sets(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  Mesh *me = BKE_object_get_original_mesh(ob);
   SculptSession *ss = ob->sculpt;
 
   ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
@@ -782,7 +781,9 @@ static void bmesh_undo_full_mesh(void *userdata)
   data->do_full_recalc = true;
 }
 
-static void bmesh_undo_on_edge_change(BMEdge *v, void *userdata, void *old_customdata)
+static void bmesh_undo_on_edge_change(BMEdge * /*v*/,
+                                      void * /*userdata*/,
+                                      void * /*old_customdata*/)
 {
 }
 
@@ -1446,6 +1447,9 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     }
 
     switch (unode->type) {
+      case SCULPT_UNDO_NO_TYPE:
+        BLI_assert_unreachable();
+        break;
       case SCULPT_UNDO_COORDS:
         if (sculpt_undo_restore_coords(C, depsgraph, unode)) {
           update = true;
@@ -1692,27 +1696,6 @@ static bool sculpt_undo_cleanup(bContext *C, ListBase *lb)
 }
 #endif
 
-static int hash_sculpt_colors(SculptUndoNode *node)
-{
-  if (!node->col) {
-    return -1;
-  }
-
-  int i = 0;
-  int hash = 0;
-
-  for (i = 0; i < node->totvert; i++) {
-    float *col = node->col[i];
-
-    for (int j = 0; j < 4; j++) {
-      hash = hash ^ (int)(col[j] * 2048.0f * 2048.0f);
-      hash += (1 << 23) - 1;
-    }
-  }
-
-  return hash;
-}
-
 SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
@@ -1721,7 +1704,7 @@ SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type)
     return nullptr;
   }
 
-  if (type < 0) {
+  if (type == SCULPT_UNDO_NO_TYPE) {
     return (SculptUndoNode *)BLI_findptr(&usculpt->nodes, node, offsetof(SculptUndoNode, node));
   }
 
@@ -1864,6 +1847,9 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
   }
 
   switch (type) {
+    case SCULPT_UNDO_NO_TYPE:
+      BLI_assert_unreachable();
+      break;
     case SCULPT_UNDO_COORDS: {
       size_t alloc_size = sizeof(*unode->co) * size_t(allvert);
       unode->co = static_cast<float(*)[3]>(MEM_callocN(alloc_size, "SculptUndoNode.co"));
@@ -2481,6 +2467,9 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
   }
 
   switch (type) {
+    case SCULPT_UNDO_NO_TYPE:
+      BLI_assert_unreachable();
+      break;
     case SCULPT_UNDO_COORDS:
       sculpt_undo_store_coords(ob, unode);
       break;
@@ -2538,7 +2527,7 @@ static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr)
   if (ob && me && (layer = BKE_id_attributes_active_get((ID *)me))) {
     attr->domain = BKE_id_attribute_domain((ID *)me, layer);
     BLI_strncpy(attr->name, layer->name, sizeof(attr->name));
-    attr->type = layer->type;
+    attr->type = eCustomDataType(layer->type);
   }
   else {
     attr->domain = NO_ACTIVE_LAYER;
@@ -2560,7 +2549,7 @@ static void sculpt_save_active_attribute_color(Object *ob, SculptAttrRef *attr)
                                        ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER))) {
     attr->domain = BKE_id_attribute_domain((ID *)me, layer);
     BLI_strncpy(attr->name, layer->name, sizeof(attr->name));
-    attr->type = layer->type;
+    attr->type = eCustomDataType(layer->type);
   }
   else {
     attr->domain = NO_ACTIVE_LAYER;
@@ -2776,14 +2765,14 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
   }
 }
 
-static void sculpt_undosys_step_encode_init(struct bContext *C, UndoStep *us_p)
+static void sculpt_undosys_step_encode_init(struct bContext * /*C*/, UndoStep *us_p)
 {
   SculptUndoStep *us = (SculptUndoStep *)us_p;
   /* Dummy, memory is cleared anyway. */
   BLI_listbase_clear(&us->data.nodes);
 }
 
-static bool sculpt_undosys_step_encode(struct bContext *C, struct Main *bmain, UndoStep *us_p)
+static bool sculpt_undosys_step_encode(struct bContext * /*C*/, struct Main *bmain, UndoStep *us_p)
 {
   /* Dummy, encoding is done along the way by adding tiles
    * to the current 'SculptUndoStep' added by encode_init. */
@@ -3099,94 +3088,9 @@ void ED_sculpt_undo_push_multires_mesh_end(bContext *C, const char *str)
 }
 
 /** \} */
-
-#ifdef _
-#  undef _
-#endif
-#define _(type) \
-  case type: \
-    return #type;
-static const char *undo_type_to_str(int type)
+extern "C" void SCULPT_substep_undo(bContext * /*C*/, int /*dir*/)
 {
-  switch (type) {
-    _(SCULPT_UNDO_DYNTOPO_BEGIN)
-    _(SCULPT_UNDO_DYNTOPO_END)
-    _(SCULPT_UNDO_COORDS)
-    _(SCULPT_UNDO_GEOMETRY)
-    _(SCULPT_UNDO_DYNTOPO_SYMMETRIZE)
-    _(SCULPT_UNDO_FACE_SETS)
-    _(SCULPT_UNDO_HIDDEN)
-    _(SCULPT_UNDO_MASK)
-    _(SCULPT_UNDO_COLOR)
-    default:
-      return "unknown node type";
-  }
-}
-#undef _
-
-static int nodeidgen = 1;
-
-static void print_sculpt_node(SculptUndoNode *node)
-{
-  int hash = hash_sculpt_colors(node);
-
-  // if (node->lasthash == 0) {
-  //  node->lasthash = hash;
-  // }
-
-  printf("    %s:%s {applied=%d gen=%d hash=%d}\n",
-         undo_type_to_str(node->type),
-         node->idname,
-         node->applied,
-         0,  // node->gen,
-         hash /*- node->lasthash*/);
-  if (node->bm_entry) {
-    BM_log_print_entry(nullptr, node->bm_entry);
-  }
-}
-
-static void print_sculpt_undo_step(UndoStep *us, UndoStep *active, int i)
-{
-  SculptUndoNode *node;
-
-  if (us->type != BKE_UNDOSYS_TYPE_SCULPT) {
-    printf("%d %s (non-sculpt): '%s', type:%s, use_memfile_step:%s\n",
-           i,
-           us == active ? "->" : "  ",
-           us->name,
-           us->type->name,
-           us->use_memfile_step ? "true" : "false");
-    return;
-  }
-
-  int id = -1;
-
-  SculptUndoStep *su = (SculptUndoStep *)us;
-  if (!su->id) {
-    su->id = nodeidgen++;
-  }
-
-  id = su->id;
-
-  printf("id=%d %s %d %s (use_memfile_step=%s)\n",
-         id,
-         us == active ? "->" : "  ",
-         i,
-         us->name,
-         us->use_memfile_step ? "true" : "false");
-
-  if (us->type == BKE_UNDOSYS_TYPE_SCULPT) {
-    UndoSculpt *usculpt = sculpt_undosys_step_get_nodes(us);
-
-    for (node = (SculptUndoNode *)usculpt->nodes.first; node; node = node->next) {
-      print_sculpt_node(node);
-    }
-  }
-}
-
-extern "C" void SCULPT_substep_undo(bContext *C, int dir)
-{
-  printf("%s: not working!\n");
+  printf("%s: not working!\n", __func__);
 #if 0  // XXX
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);

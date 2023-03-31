@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -1027,7 +1027,7 @@ void ED_view3d_cursor_snap_data_update(V3DSnapCursorState *state,
   }
 }
 
-V3DSnapCursorData *ED_view3d_cursor_snap_data_get()
+V3DSnapCursorData *ED_view3d_cursor_snap_data_get(void)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   return &data_intern->snap_data;

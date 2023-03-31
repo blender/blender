@@ -127,7 +127,8 @@ using blender::Vector;
 
 /* This is an exact copy of the define in `rna_light.c`
  * kept here because of linking order.
- * Icons are only defined here */
+ * Icons are only defined here. */
+
 const EnumPropertyItem rna_enum_light_type_items[] = {
     {LA_LOCAL, "POINT", ICON_LIGHT_POINT, "Point", "Omnidirectional point light source"},
     {LA_SUN, "SUN", ICON_LIGHT_SUN, "Sun", "Constant direction parallel ray light source"},
@@ -3747,9 +3748,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
     Base *base_src = nullptr;
     Object *object_new = nullptr;
 
-    DuplicateObjectLink(Base *base_src) : base_src(base_src)
-    {
-    }
+    DuplicateObjectLink(Base *base_src) : base_src(base_src) {}
   };
 
   blender::Vector<DuplicateObjectLink> object_base_links;

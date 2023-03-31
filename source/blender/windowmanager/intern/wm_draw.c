@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -181,7 +181,7 @@ struct GrabState {
 static bool wm_software_cursor_needed(void)
 {
   if (UNLIKELY(g_software_cursor.enabled == -1)) {
-    g_software_cursor.enabled = !GHOST_SupportsCursorWarp();
+    g_software_cursor.enabled = !(WM_capabilities_flag() & WM_CAPABILITY_CURSOR_WARP);
   }
   return g_software_cursor.enabled;
 }

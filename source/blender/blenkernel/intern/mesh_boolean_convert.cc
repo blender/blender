@@ -374,7 +374,7 @@ static void copy_vert_attributes(Mesh *dest_mesh,
   CustomData *target_cd = &dest_mesh->vdata;
   const CustomData *source_cd = &orig_me->vdata;
   for (int source_layer_i = 0; source_layer_i < source_cd->totlayer; ++source_layer_i) {
-    int ty = source_cd->layers[source_layer_i].type;
+    const eCustomDataType ty = eCustomDataType(source_cd->layers[source_layer_i].type);
     if (StringRef(source_cd->layers->name) == "position") {
       continue;
     }
@@ -400,7 +400,7 @@ static void copy_poly_attributes(Mesh *dest_mesh,
   CustomData *target_cd = &dest_mesh->pdata;
   const CustomData *source_cd = &orig_me->pdata;
   for (int source_layer_i = 0; source_layer_i < source_cd->totlayer; ++source_layer_i) {
-    int ty = source_cd->layers[source_layer_i].type;
+    const eCustomDataType ty = eCustomDataType(source_cd->layers[source_layer_i].type);
     if (ty == CD_MPOLY) {
       continue;
     }
@@ -435,7 +435,7 @@ static void copy_edge_attributes(Mesh *dest_mesh,
   CustomData *target_cd = &dest_mesh->edata;
   const CustomData *source_cd = &orig_me->edata;
   for (int source_layer_i = 0; source_layer_i < source_cd->totlayer; ++source_layer_i) {
-    int ty = source_cd->layers[source_layer_i].type;
+    const eCustomDataType ty = eCustomDataType(source_cd->layers[source_layer_i].type);
     if (ty == CD_MEDGE) {
       continue;
     }
@@ -602,7 +602,7 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
       interp_weights_poly_v2(weights.data(), cos_2d, orig_poly->totloop, co);
     }
     for (int source_layer_i = 0; source_layer_i < source_cd->totlayer; ++source_layer_i) {
-      int ty = source_cd->layers[source_layer_i].type;
+      const eCustomDataType ty = eCustomDataType(source_cd->layers[source_layer_i].type);
       if (STR_ELEM(source_cd->layers[source_layer_i].name, ".corner_vert", ".corner_edge")) {
         continue;
       }

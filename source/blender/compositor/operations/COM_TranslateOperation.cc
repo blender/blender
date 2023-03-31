@@ -5,9 +5,7 @@
 
 namespace blender::compositor {
 
-TranslateOperation::TranslateOperation() : TranslateOperation(DataType::Color)
-{
-}
+TranslateOperation::TranslateOperation() : TranslateOperation(DataType::Color) {}
 TranslateOperation::TranslateOperation(DataType data_type, ResizeMode resize_mode)
 {
   this->add_input_socket(data_type, resize_mode);

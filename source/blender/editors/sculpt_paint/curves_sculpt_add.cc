@@ -107,9 +107,7 @@ struct AddOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  AddOperationExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  AddOperationExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(AddOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {

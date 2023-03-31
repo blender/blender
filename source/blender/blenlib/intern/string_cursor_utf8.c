@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. All rights reserved. */
+ * Copyright 2011 Blender Foundation */
 
 /** \file
  * \ingroup bli
@@ -96,9 +96,10 @@ static eStrCursorDelimType cursor_delim_type_utf8(const char *ch_utf8,
   return cursor_delim_type_unicode(uch);
 }
 
-/* Keep in sync with BLI_str_cursor_step_next_utf32. */
 bool BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, int *pos)
 {
+  /* NOTE: Keep in sync with #BLI_str_cursor_step_next_utf32. */
+
   if ((*pos) >= (int)maxlen) {
     return false;
   }
@@ -116,9 +117,10 @@ bool BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, int *pos)
   return true;
 }
 
-/* Keep in sync with BLI_str_cursor_step_prev_utf32. */
 bool BLI_str_cursor_step_prev_utf8(const char *str, size_t maxlen, int *pos)
 {
+  /* NOTE: Keep in sync with #BLI_str_cursor_step_prev_utf32. */
+
   if ((*pos) > 0 && (*pos) <= maxlen) {
     const char *str_pos = str + (*pos);
     const char *str_prev = str_pos;
@@ -210,9 +212,10 @@ void BLI_str_cursor_step_utf8(const char *str,
   }
 }
 
-/* Keep in sync with BLI_str_cursor_step_next_utf8. */
 bool BLI_str_cursor_step_next_utf32(const char32_t *str, size_t maxlen, int *pos)
 {
+  /* NOTE: Keep in sync with #BLI_str_cursor_step_next_utf8. */
+
   if ((*pos) >= (int)maxlen) {
     return false;
   }
@@ -223,9 +226,10 @@ bool BLI_str_cursor_step_next_utf32(const char32_t *str, size_t maxlen, int *pos
   return true;
 }
 
-/* Keep in sync with BLI_str_cursor_step_prev_utf8. */
 bool BLI_str_cursor_step_prev_utf32(const char32_t *str, size_t UNUSED(maxlen), int *pos)
 {
+  /* NOTE: Keep in sync with #BLI_str_cursor_step_prev_utf8. */
+
   if ((*pos) <= 0) {
     return false;
   }

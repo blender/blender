@@ -346,7 +346,8 @@ extern const bTheme U_theme_default;
 #define SDNA_DEFAULT_DECL_EX(struct_name, struct_path) \
   [SDNA_TYPE_FROM_STRUCT(struct_name)] = SDNA_TYPE_CHECKED(DNA_DEFAULT_##struct_path, struct_name)
 
-/** Keep headers sorted. */
+/* NOTE: Keep headers sorted. */
+
 const void *DNA_default_table[SDNA_TYPE_MAX] = {
 
     /* DNA_asset_defaults.h */

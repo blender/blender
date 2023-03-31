@@ -79,9 +79,7 @@ struct PuffOperationExecutor {
   Span<float3> corner_normals_su_;
   BVHTreeFromMesh surface_bvh_;
 
-  PuffOperationExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  PuffOperationExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(PuffOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {

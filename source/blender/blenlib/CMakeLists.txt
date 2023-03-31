@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
+# Copyright 2006 Blender Foundation
 
 if(HAVE_EXECINFO_H)
   add_definitions(-DHAVE_EXECINFO_H)
@@ -246,6 +246,8 @@ set(SRC
   BLI_heap.h
   BLI_heap_simple.h
   BLI_heap_minmax.hh
+  BLI_implicit_sharing.hh
+  BLI_implicit_sharing_ptr.hh
   BLI_index_mask.hh
   BLI_index_mask_ops.hh
   BLI_index_range.hh
@@ -359,7 +361,6 @@ set(SRC
   BLI_timecode.h
   BLI_timeit.hh
   BLI_timer.h
-  BLI_user_counter.hh
   BLI_utildefines.h
   BLI_utildefines_iter.h
   BLI_utildefines_stack.h
@@ -497,6 +498,7 @@ if(WITH_GTESTS)
     tests/BLI_hash_mm2a_test.cc
     tests/BLI_heap_simple_test.cc
     tests/BLI_heap_test.cc
+    tests/BLI_implicit_sharing_test.cc
     tests/BLI_index_mask_test.cc
     tests/BLI_index_range_test.cc
     tests/BLI_inplace_priority_queue_test.cc

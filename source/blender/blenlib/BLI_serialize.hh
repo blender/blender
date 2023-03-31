@@ -116,9 +116,7 @@ class Value {
 
  protected:
   Value() = delete;
-  explicit Value(eValueType type) : type_(type)
-  {
-  }
+  explicit Value(eValueType type) : type_(type) {}
 
  public:
   virtual ~Value() = default;
@@ -177,9 +175,7 @@ class PrimitiveValue : public Value {
   T inner_value_{};
 
  public:
-  explicit PrimitiveValue(const T value) : Value(V), inner_value_(value)
-  {
-  }
+  explicit PrimitiveValue(const T value) : Value(V), inner_value_(value) {}
 
   const T value() const
   {
@@ -189,9 +185,7 @@ class PrimitiveValue : public Value {
 
 class NullValue : public Value {
  public:
-  NullValue() : Value(eValueType::Null)
-  {
-  }
+  NullValue() : Value(eValueType::Null) {}
 };
 
 class StringValue : public Value {
@@ -199,9 +193,7 @@ class StringValue : public Value {
   std::string string_;
 
  public:
-  StringValue(const StringRef string) : Value(eValueType::String), string_(string)
-  {
-  }
+  StringValue(const StringRef string) : Value(eValueType::String), string_(string) {}
 
   const std::string &value() const
   {
@@ -232,9 +224,7 @@ class ContainerValue : public Value {
   Container inner_value_;
 
  public:
-  ContainerValue() : Value(V)
-  {
-  }
+  ContainerValue() : Value(V) {}
 
   const Container &elements() const
   {

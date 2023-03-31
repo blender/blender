@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -341,9 +341,10 @@ void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint typ
   BLI_addtail(&wm->notifier_queue, note);
 }
 
-/* XXX: in future, which notifiers to send to other windows? */
 void WM_event_add_notifier(const bContext *C, uint type, void *reference)
 {
+  /* XXX: in future, which notifiers to send to other windows? */
+
   WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), type, reference);
 }
 
@@ -5165,7 +5166,8 @@ static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *g
 static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *event)
 {
   /* If GHOST doesn't support window positioning, don't use this feature at all. */
-  const static int8_t supports_window_position = GHOST_SupportsWindowPosition();
+  const static int8_t supports_window_position = (WM_capabilities_flag() &
+                                                  WM_CAPABILITY_WINDOW_POSITION) != 0;
   if (!supports_window_position) {
     return nullptr;
   }

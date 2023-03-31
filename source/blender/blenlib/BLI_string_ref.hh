@@ -422,9 +422,7 @@ constexpr StringRef StringRefBase::trim(StringRef characters_to_remove) const
 /** \name #StringRefNull Inline Methods
  * \{ */
 
-constexpr StringRefNull::StringRefNull() : StringRefBase("", 0)
-{
-}
+constexpr StringRefNull::StringRefNull() : StringRefBase("", 0) {}
 
 /**
  * Construct a StringRefNull from a null terminated c-string. This invokes undefined behavior
@@ -450,9 +448,7 @@ inline StringRefNull::StringRefNull(const char *str) : StringRefBase(str, int64_
  * Reference a std::string. Remember that when the std::string is destructed, the StringRefNull
  * will point to uninitialized memory.
  */
-inline StringRefNull::StringRefNull(const std::string &str) : StringRefNull(str.c_str())
-{
-}
+inline StringRefNull::StringRefNull(const std::string &str) : StringRefNull(str.c_str()) {}
 
 /**
  * Get the char at the given index.
@@ -481,16 +477,12 @@ constexpr const char *StringRefNull::c_str() const
 /** \name #StringRef Inline Methods
  * \{ */
 
-constexpr StringRef::StringRef() : StringRefBase(nullptr, 0)
-{
-}
+constexpr StringRef::StringRef() : StringRefBase(nullptr, 0) {}
 
 /**
  * StringRefNull can be converted into StringRef, but not the other way around.
  */
-constexpr StringRef::StringRef(StringRefNull other) : StringRefBase(other.data(), other.size())
-{
-}
+constexpr StringRef::StringRef(StringRefNull other) : StringRefBase(other.data(), other.size()) {}
 
 /**
  * Create a StringRef from a null-terminated c-string.

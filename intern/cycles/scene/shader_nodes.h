@@ -53,9 +53,7 @@ class TextureMapping {
 
 class TextureNode : public ShaderNode {
  public:
-  explicit TextureNode(const NodeType *node_type) : ShaderNode(node_type)
-  {
-  }
+  explicit TextureNode(const NodeType *node_type) : ShaderNode(node_type) {}
   TextureMapping tex_mapping;
   NODE_SOCKET_API_STRUCT_MEMBER(float3, tex_mapping, translation)
   NODE_SOCKET_API_STRUCT_MEMBER(float3, tex_mapping, rotation)

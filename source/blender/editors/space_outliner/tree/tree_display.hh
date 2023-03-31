@@ -61,9 +61,7 @@ struct TreeSourceData {
  */
 class AbstractTreeDisplay {
  public:
-  AbstractTreeDisplay(SpaceOutliner &space_outliner) : space_outliner_(space_outliner)
-  {
-  }
+  AbstractTreeDisplay(SpaceOutliner &space_outliner) : space_outliner_(space_outliner) {}
   virtual ~AbstractTreeDisplay() = default;
 
   static std::unique_ptr<AbstractTreeDisplay> createFromDisplayMode(

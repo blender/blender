@@ -91,9 +91,7 @@ NodeOrthographicCamera::NodeOrthographicCamera(
   projection_matrix_[11] = -(zFar + zNear) / (zFar - zNear);
 }
 
-NodePerspectiveCamera::NodePerspectiveCamera() : NodeCamera(NodeCamera::PERSPECTIVE)
-{
-}
+NodePerspectiveCamera::NodePerspectiveCamera() : NodeCamera(NodeCamera::PERSPECTIVE) {}
 
 NodePerspectiveCamera::NodePerspectiveCamera(double fovy, double aspect, double zNear, double zFar)
     : NodeCamera(NodeCamera::PERSPECTIVE)

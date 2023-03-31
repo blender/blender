@@ -418,21 +418,6 @@ void GHOST_System::setAutoFocus(const bool auto_focus)
   m_autoFocus = auto_focus;
 }
 
-bool GHOST_System::supportsCursorWarp()
-{
-  return true;
-}
-
-bool GHOST_System::supportsWindowPosition()
-{
-  return true;
-}
-
-bool GHOST_System::supportsPrimaryClipboard()
-{
-  return false;
-}
-
 void GHOST_System::initDebug(GHOST_Debug debug)
 {
   m_is_debug_enabled = debug.flags & GHOST_kDebugDefault;

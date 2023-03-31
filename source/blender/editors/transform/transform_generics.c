@@ -1159,8 +1159,6 @@ void calculateCenter(TransInfo *t)
   calculateZfac(t);
 }
 
-/* Called every time the view changes due to navigation.
- * Adjusts the mouse position relative to the object. */
 void tranformViewUpdate(TransInfo *t)
 {
   float zoom_prev = t->zfac;

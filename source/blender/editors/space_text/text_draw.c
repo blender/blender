@@ -60,9 +60,7 @@ static void text_font_begin(const TextDrawContext *tdc)
   BLF_size(tdc->font_id, (float)tdc->lheight_px);
 }
 
-static void text_font_end(const TextDrawContext *UNUSED(tdc))
-{
-}
+static void text_font_end(const TextDrawContext *UNUSED(tdc)) {}
 
 static int text_font_draw(const TextDrawContext *tdc, int x, int y, const char *str)
 {

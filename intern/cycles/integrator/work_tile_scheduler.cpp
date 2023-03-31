@@ -11,9 +11,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-WorkTileScheduler::WorkTileScheduler()
-{
-}
+WorkTileScheduler::WorkTileScheduler() {}
 
 void WorkTileScheduler::set_accelerated_rt(bool accelerated_rt)
 {

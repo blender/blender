@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -24,5 +24,6 @@ VkFormat to_vk_format(const eGPUTextureFormat format);
 VkComponentMapping to_vk_component_mapping(const eGPUTextureFormat format);
 VkImageViewType to_vk_image_view_type(const eGPUTextureType type);
 VkImageType to_vk_image_type(const eGPUTextureType type);
+VkClearColorValue to_vk_clear_color_value(const eGPUDataFormat format, const void *data);
 
 }  // namespace blender::gpu

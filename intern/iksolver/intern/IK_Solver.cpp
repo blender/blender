@@ -17,9 +17,7 @@ using namespace std;
 class IK_QSolver {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  IK_QSolver() : root(NULL)
-  {
-  }
+  IK_QSolver() : root(NULL) {}
 
   IK_QJacobianSolver solver;
   IK_QSegment *root;

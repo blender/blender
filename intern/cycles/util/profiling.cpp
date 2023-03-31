@@ -8,9 +8,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-Profiler::Profiler() : do_stop_worker(true), worker(NULL)
-{
-}
+Profiler::Profiler() : do_stop_worker(true), worker(NULL) {}
 
 Profiler::~Profiler()
 {

@@ -13,9 +13,7 @@ namespace blender::compositor {
  */
 class MathNode : public Node {
  public:
-  MathNode(bNode *editor_node) : Node(editor_node)
-  {
-  }
+  MathNode(bNode *editor_node) : Node(editor_node) {}
   void convert_to_operations(NodeConverter &converter,
                              const CompositorContext &context) const override;
 };

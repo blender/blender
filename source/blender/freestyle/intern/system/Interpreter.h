@@ -24,9 +24,7 @@ class Interpreter {
     _language = "Unknown";
   }
 
-  virtual ~Interpreter()
-  {
-  }
+  virtual ~Interpreter() {}
 
   virtual int interpretFile(const string &filename) = 0;
 

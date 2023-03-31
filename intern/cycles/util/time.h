@@ -52,9 +52,7 @@ class scoped_callback_timer {
  public:
   using callback_type = function<void(double)>;
 
-  explicit scoped_callback_timer(callback_type cb) : cb(cb)
-  {
-  }
+  explicit scoped_callback_timer(callback_type cb) : cb(cb) {}
 
   ~scoped_callback_timer()
   {

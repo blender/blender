@@ -26,9 +26,7 @@
  */
 class CBlendThumb : public IInitializeWithStream, public IThumbnailProvider {
  public:
-  CBlendThumb() : _cRef(1), _pStream(nullptr)
-  {
-  }
+  CBlendThumb() : _cRef(1), _pStream(nullptr) {}
 
   virtual ~CBlendThumb()
   {

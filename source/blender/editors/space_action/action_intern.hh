@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation. */
 
 /** \file
  * \ingroup spaction
@@ -35,7 +35,7 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region);
  */
 void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region);
 
-void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene);
+void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Scene *scene);
 
 /* ***************************************** */
 /* action_select.c */

@@ -1,6 +1,7 @@
-#pragma once
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation. */
+
+#pragma once
 
 #include "renderdoc_app.h"
 
@@ -36,7 +37,7 @@ class Renderdoc {
  private:
   /**
    * Check if renderdoc has been loaded.
-   * 
+   *
    * When not loaded it tries to load the API, but only tries to do it once.
    */
   bool check_loaded();

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2016 Blender Foundation. All rights reserved.
+# Copyright 2016 Blender Foundation
 
 # Libraries configuration for any *nix system including Linux and Unix (excluding APPLE).
 
@@ -394,6 +394,7 @@ if(WITH_BOOST)
       list(APPEND __boost_packages python${PYTHON_VERSION_NO_DOTS})
     endif()
     list(APPEND __boost_packages system)
+    set(Boost_NO_WARN_NEW_VERSIONS ON)
     find_package(Boost 1.48 COMPONENTS ${__boost_packages})
     if(NOT Boost_FOUND)
       # try to find non-multithreaded if -mt not found, this flag
@@ -645,7 +646,7 @@ if(WITH_GHOST_WAYLAND)
   else()
     # Rocky8 packages have too old a version, a newer version exist in the pre-compiled libraries.
     find_path(WAYLAND_PROTOCOLS_DIR
-      NAMES unstable/xdg-decoration/xdg-decoration-unstable-v1.xml
+      NAMES staging/xdg-activation/xdg-activation-v1.xml
       PATH_SUFFIXES share/wayland-protocols
       PATHS ${LIBDIR}/wayland-protocols
     )

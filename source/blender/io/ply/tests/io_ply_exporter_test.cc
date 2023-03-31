@@ -484,30 +484,30 @@ TEST_F(ply_exporter_ply_data_test, CubeLooseEdgesLoadPLYDataUV)
   PlyData plyData = load_ply_data_from_blendfile(
       "io_tests/blend_geometry/cube_loose_edges_verts.blend", params);
   float3 exp_vertices[] = {
-      {1, 1, 1},
+      {-1, 1, -1},
       {1, 1, -1},
-      {1, -1, 1},
       {1, -1, -1},
-      {-1, 1, 1},
-      {-1, 1, -1},
-      {-1, 1, -1},
-      {-1, -1, 1},
       {-1, -1, -1},
+      {-1, 1, -1},
+      {-1, 1, 1},
+      {1, 1, 1},
+      {1, -1, 1},
+      {-1, -1, 1},
   };
   float2 exp_uv[] = {
-      {0.625f, 0.5f},
-      {0.375f, 0.5f},
-      {0, 0},
-      {0.375f, 0.75f},
-      {0.625f, 0.25f},
       {0.125f, 0.5f},
-      {0.375f, 0.25f},
-      {0, 0},
+      {0.375f, 0.5f},
+      {0.375f, 0.75f},
       {0.125f, 0.75f},
+      {0.375f, 0.25f},
+      {0.625f, 0.25f},
+      {0.625f, 0.5f},
+      {0, 0},
+      {0, 0},
   };
-  std::pair<int, int> exp_edges[] = {{8, 7}, {7, 4}};
+  std::pair<int, int> exp_edges[] = {{3, 8}, {8, 5}};
   uint32_t exp_face_sizes[] = {4, 4};
-  uint32_t exp_faces[] = {5, 1, 3, 8, 6, 4, 0, 1};
+  uint32_t exp_faces[] = {0, 1, 2, 3, 4, 5, 6, 1};
   EXPECT_EQ(plyData.vertices.size(), 9);
   EXPECT_EQ(plyData.uv_coordinates.size(), 9);
   EXPECT_EQ(plyData.edges.size(), ARRAY_SIZE(exp_edges));

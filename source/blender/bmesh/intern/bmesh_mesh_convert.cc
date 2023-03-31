@@ -1676,10 +1676,11 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   }
 }
 
-/* NOTE: The function is called from multiple threads with the same input BMesh and different
- * mesh objects. */
 void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *cd_mask_extra)
 {
+  /* NOTE: The function is called from multiple threads with the same input BMesh and different
+   * mesh objects. */
+
   using namespace blender;
   /* Must be an empty mesh. */
   BLI_assert(me->totvert == 0);

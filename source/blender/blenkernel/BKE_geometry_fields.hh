@@ -62,9 +62,7 @@ class PointCloudFieldContext : public fn::FieldContext {
   const PointCloud &pointcloud_;
 
  public:
-  PointCloudFieldContext(const PointCloud &pointcloud) : pointcloud_(pointcloud)
-  {
-  }
+  PointCloudFieldContext(const PointCloud &pointcloud) : pointcloud_(pointcloud) {}
 
   const PointCloud &pointcloud() const
   {
@@ -77,9 +75,7 @@ class InstancesFieldContext : public fn::FieldContext {
   const Instances &instances_;
 
  public:
-  InstancesFieldContext(const Instances &instances) : instances_(instances)
-  {
-  }
+  InstancesFieldContext(const Instances &instances) : instances_(instances) {}
 
   const Instances &instances() const
   {

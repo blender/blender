@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation. All rights reserved. */
+ * Copyright Blender Foundation */
 
 /** \file
  * \ingroup modifiers
@@ -139,9 +139,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 #else  /* WITH_OCEANSIM */
-static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks * /*r_cddata_masks*/)
-{
-}
+static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks * /*r_cddata_masks*/) {}
 #endif /* WITH_OCEANSIM */
 
 static bool dependsOnNormals(ModifierData *md)

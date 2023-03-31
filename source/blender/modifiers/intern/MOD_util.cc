@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup modifiers
@@ -53,7 +53,6 @@ void MOD_init_texture(MappingInfoModifierData *dmd, const ModifierEvalContext *c
   }
 }
 
-/* TODO: to be renamed to get_texture_coords once we are done with moving modifiers to Mesh. */
 void MOD_get_texture_coords(MappingInfoModifierData *dmd,
                             const ModifierEvalContext * /*ctx*/,
                             Object *ob,
@@ -61,6 +60,8 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
                             float (*cos)[3],
                             float (*r_texco)[3])
 {
+  /* TODO: to be renamed to `get_texture_coords` once we are done with moving modifiers to Mesh. */
+
   using namespace blender;
   const int verts_num = mesh->totvert;
   int i;

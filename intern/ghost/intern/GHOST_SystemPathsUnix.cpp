@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2010 Blender Foundation. All rights reserved. */
+ * Copyright 2010 Blender Foundation */
 
 /** \file
  * \ingroup GHOST
@@ -26,13 +26,9 @@ static const char *static_path = PREFIX "/share";
 static const char *static_path = nullptr;
 #endif
 
-GHOST_SystemPathsUnix::GHOST_SystemPathsUnix()
-{
-}
+GHOST_SystemPathsUnix::GHOST_SystemPathsUnix() {}
 
-GHOST_SystemPathsUnix::~GHOST_SystemPathsUnix()
-{
-}
+GHOST_SystemPathsUnix::~GHOST_SystemPathsUnix() {}
 
 const char *GHOST_SystemPathsUnix::getSystemDir(int /*version*/, const char *versionstr) const
 {

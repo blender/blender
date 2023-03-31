@@ -163,6 +163,7 @@ enum eBoundaryAutomaskMode {
 };
 
 enum SculptUndoType {
+  SCULPT_UNDO_NO_TYPE = 0,
   SCULPT_UNDO_COORDS = 1 << 0,
   SCULPT_UNDO_HIDDEN = 1 << 1,
   SCULPT_UNDO_MASK = 1 << 2,
@@ -1197,8 +1198,8 @@ int SCULPT_vertex_count_get(const SculptSession *ss);
 const float *SCULPT_vertex_co_get(SculptSession *ss, PBVHVertRef vertex);
 void SCULPT_vertex_co_set(SculptSession *ss, PBVHVertRef vertex, const float *co);
 void SCULPT_vertex_normal_get(SculptSession *ss, PBVHVertRef vertex, float no[3]);
-float *SCULPT_vertex_origco_get(SculptSession *ss, PBVHVertRef vertex);
-float *SCULPT_vertex_origno_get(SculptSession *ss, PBVHVertRef vertex);
+const float *SCULPT_vertex_origco_get(SculptSession *ss, PBVHVertRef vertex);
+const float *SCULPT_vertex_origno_get(SculptSession *ss, PBVHVertRef vertex);
 
 const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, PBVHVertRef vertex);
 void SCULPT_vertex_persistent_normal_get(SculptSession *ss, PBVHVertRef vertex, float no[3]);

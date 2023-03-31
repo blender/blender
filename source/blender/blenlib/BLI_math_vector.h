@@ -689,11 +689,9 @@ MINLINE void clamp_v4_v4v4(float vec[4], const float min[4], const float max[4])
 
 /* -------------------------------------------------------------------- */
 /** \name Array Functions
- * \{ */
-
-/**
+ *
  * Follow fixed length vector function conventions.
- */
+ * \{ */
 
 double dot_vn_vn(const float *array_src_a,
                  const float *array_src_b,

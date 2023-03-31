@@ -180,7 +180,7 @@ MSculptVert *SCULPT_vertex_get_sculptvert(const SculptSession *ss, PBVHVertRef v
   return nullptr;
 }
 
-float *SCULPT_vertex_origco_get(SculptSession *ss, PBVHVertRef vertex)
+const float *SCULPT_vertex_origco_get(SculptSession *ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
@@ -197,7 +197,7 @@ float *SCULPT_vertex_origco_get(SculptSession *ss, PBVHVertRef vertex)
   return nullptr;
 }
 
-float *SCULPT_vertex_origno_get(SculptSession *ss, PBVHVertRef vertex)
+const float *SCULPT_vertex_origno_get(SculptSession *ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
@@ -6804,9 +6804,7 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent 
   return paint_stroke_modal(C, op, event, (PaintStroke **)&op->customdata);
 }
 
-static void sculpt_redo_empty_ui(bContext * /*C*/, wmOperator * /*op*/)
-{
-}
+static void sculpt_redo_empty_ui(bContext * /*C*/, wmOperator * /*op*/) {}
 
 void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 {

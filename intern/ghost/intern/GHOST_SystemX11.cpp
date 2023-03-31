@@ -497,7 +497,7 @@ GHOST_WindowX11 *GHOST_SystemX11::findGhostWindow(Window xwind) const
     return nullptr;
   }
 
-  /* It is not entirely safe to do this as the backptr may point
+  /* It is not entirely safe to do this as the back-pointer may point
    * to a window that has recently been removed.
    * We should always check the window manager's list of windows
    * and only process events on these windows. */
@@ -1740,9 +1740,9 @@ GHOST_TSuccess GHOST_SystemX11::setCursorPosition(int32_t x, int32_t y)
   return GHOST_kSuccess;
 }
 
-bool GHOST_SystemX11::supportsPrimaryClipboard()
+GHOST_TCapabilityFlag GHOST_SystemX11::getCapabilities() const
 {
-  return true;
+  return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL);
 }
 
 void GHOST_SystemX11::addDirtyWindow(GHOST_WindowX11 *bad_wind)

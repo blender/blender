@@ -19,36 +19,28 @@ class SeparateColorNodeLegacy : public Node {
 
 class SeparateRGBANode : public SeparateColorNodeLegacy {
  public:
-  SeparateRGBANode(bNode *editor_node) : SeparateColorNodeLegacy(editor_node)
-  {
-  }
+  SeparateRGBANode(bNode *editor_node) : SeparateColorNodeLegacy(editor_node) {}
 
   NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };
 
 class SeparateHSVANode : public SeparateColorNodeLegacy {
  public:
-  SeparateHSVANode(bNode *editor_node) : SeparateColorNodeLegacy(editor_node)
-  {
-  }
+  SeparateHSVANode(bNode *editor_node) : SeparateColorNodeLegacy(editor_node) {}
 
   NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };
 
 class SeparateYCCANode : public SeparateColorNodeLegacy {
  public:
-  SeparateYCCANode(bNode *editor_node) : SeparateColorNodeLegacy(editor_node)
-  {
-  }
+  SeparateYCCANode(bNode *editor_node) : SeparateColorNodeLegacy(editor_node) {}
 
   NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };
 
 class SeparateYUVANode : public SeparateColorNodeLegacy {
  public:
-  SeparateYUVANode(bNode *editor_node) : SeparateColorNodeLegacy(editor_node)
-  {
-  }
+  SeparateYUVANode(bNode *editor_node) : SeparateColorNodeLegacy(editor_node) {}
 
   NodeOperation *get_color_converter(const CompositorContext &context) const override;
 };

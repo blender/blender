@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'3962d9b931f1')\n"
+"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-20 13:37:56\n"
+"POT-Creation-Date: 2023-03-27 16:38:19\n"
 "PO-Revision-Date: 2016-10-13 03:05+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese Translation Team (https://sites.google.com/site/blugjp/blender-translators)\n"
@@ -1143,6 +1143,14 @@ msgid "Custom tags (name tokens) for the asset, used for filtering and general a
 msgstr ""
 "アセット用のカスタムタグ（名前のトークン）\n"
 "フィルタリングとアセット管理全般で使用されます"
+
+
+msgid "Asset Representation"
+msgstr "アセットの情報"
+
+
+msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
+msgstr "アセットシステムにてその要素がアセットとして処理できるようにする、要素についての情報"
 
 
 msgid "Asset Tag"
@@ -19400,7 +19408,7 @@ msgstr "伝播ステップ"
 
 
 msgid "Distance where boundary edge automasking is going to protect vertices from the fully masked edge"
-msgstr "完全にマスクされた辺の頂点を守るため、境界の辺の自動マスキングが行われる距離"
+msgstr "境界の辺の自動マスクを行う場合に、完全にマスク済みの辺の頂点を保護するための距離"
 
 
 msgid "Blur Steps"
@@ -28896,7 +28904,7 @@ msgstr "端の処理"
 
 
 msgid "How the image is extrapolated past its original bounds"
-msgstr "画像の範囲外の外挿方法"
+msgstr "画像の範囲外の処理方法"
 
 
 msgctxt "Image"
@@ -33973,6 +33981,10 @@ msgstr "マスキングレイヤーのアクティブスプライン"
 
 msgid "Active Point"
 msgstr "アクティブポイント"
+
+
+msgid "Active point of masking layer"
+msgstr "マスキングレイヤーのアクティブポイント"
 
 
 msgid "Grease Pencil Color"
@@ -45182,6 +45194,10 @@ msgid "Is Face Planar"
 msgstr "平面判定"
 
 
+msgid "Retrieve whether all triangles in a face are on the same plane, i.e. whether they have the same normal"
+msgstr "一つの面内の全三角形が同一平面上にあるかどうか（同じ法線かどうか）を取得します"
+
+
 msgid "Face Neighbors"
 msgstr "面情報"
 
@@ -48863,7 +48879,7 @@ msgstr "キーフレームをコピー"
 
 
 msgid "Copy selected keyframes to the copy/paste buffer"
-msgstr "キーフレームをコピー・ペーストバッファーにコピーします"
+msgstr "キーフレームをコピー/貼り付けバッファーにコピーします"
 
 
 msgctxt "Operator"
@@ -54460,6 +54476,16 @@ msgid "-Z Axis"
 msgstr "-Z軸"
 
 
+msgid "Prioritize Active Color"
+msgstr "アクティブカラーを優先"
+
+
+msgid "Make sure active color will be exported first. Could be important since some other software can discard other color attributes besides the first one"
+msgstr ""
+"アクティブカラーが最初にエクスポートされるようにします\n"
+"（一部のソフトウェアでは最初のカラー属性以外は無視されるため）"
+
+
 msgid "Secondary Bone Axis"
 msgstr "セカンダリボーン軸"
 
@@ -57019,7 +57045,7 @@ msgstr "シーケンスを補間"
 
 
 msgid "Generate 'in-betweens' to smoothly interpolate between Grease Pencil frames"
-msgstr "複数の「インビトウィーン（中割）」を生成し、グリースペンシルフレーム間をスムーズに補間します"
+msgstr "複数の「中割」を生成し、グリースペンシルフレーム間をスムーズに補間します"
 
 
 msgctxt "GPencil"
@@ -60572,7 +60598,7 @@ msgstr "フェザーウェイトのクリア"
 
 
 msgid "Reset the feather weight to zero"
-msgstr "フェザーウェイトを0にリセットします"
+msgstr "フェザーウェイトを０にリセットします"
 
 
 msgctxt "Operator"
@@ -60580,9 +60606,17 @@ msgid "Clear Restrict View"
 msgstr "ビューの制限を解除"
 
 
+msgid "Reveal temporarily hidden mask layers"
+msgstr "一時的に非表示にしたマスクレイヤーを再表示します"
+
+
 msgctxt "Operator"
 msgid "Set Restrict View"
 msgstr "ビューの制限を設定"
+
+
+msgid "Temporarily hide mask layers"
+msgstr "一時的にマスクレイヤーを非表示にします"
 
 
 msgctxt "Operator"
@@ -66196,7 +66230,7 @@ msgstr "オブジェクトを隠す"
 
 
 msgid "Temporarily hide objects from the viewport"
-msgstr "一時的にビューポートからオブジェクトを隠します"
+msgstr "一時的にビューポートでオブジェクトを非表示にします"
 
 
 msgid "Hide unselected rather than selected objects"
@@ -71032,7 +71066,7 @@ msgstr "同じ方向を維持しつつ、希望の回転にするためクォー
 
 msgctxt "Operator"
 msgid "Relax Pose to Breakdown"
-msgstr "中割方向にポーズをリラックス"
+msgstr "中割にポーズをリラックス"
 
 
 msgid "Make the current pose more similar to its breakdown pose"
@@ -87876,6 +87910,14 @@ msgid "Mini Axes Type"
 msgstr "ミニ軸のタイプ"
 
 
+msgid "Show small rotating 3D axes in the top right corner of the 3D viewport"
+msgstr "3Dビューポートの右上の隅に、回転する小さな3D座標軸を表示します"
+
+
+msgid "Simple Axes"
+msgstr "シンプルな軸"
+
+
 msgid "Interactive Navigation"
 msgstr "インタラクティブナビゲーション"
 
@@ -98935,35 +98977,35 @@ msgstr "選択中のキーフレーム境界の色"
 
 
 msgid "Breakdown Keyframe"
-msgstr "中割キーフレーム"
+msgstr "ブレイクダウンキーフレーム"
 
 
 msgid "Color of breakdown keyframe"
-msgstr "中割タグのキーフレームの色"
+msgstr "ブレイクダウンタグのキーフレームの色"
 
 
 msgid "Breakdown Keyframe Selected"
-msgstr "選択中の中割キーフレーム"
+msgstr "選択中のブレイクダウンキーフレーム"
 
 
 msgid "Color of selected breakdown keyframe"
-msgstr "選択中の中割キーフレームの色"
+msgstr "選択中のブレイクダウンキーフレームの色"
 
 
 msgid "Extreme Keyframe"
-msgstr "極端キーフレーム"
+msgstr "エクストリームキーフレーム"
 
 
 msgid "Color of extreme keyframe"
-msgstr "極端タグのキーフレームの色"
+msgstr "エクストリームタグのキーフレームの色"
 
 
 msgid "Extreme Keyframe Selected"
-msgstr "選択中の極端キーフレーム"
+msgstr "選択中のエクストリームキーフレーム"
 
 
 msgid "Color of selected extreme keyframe"
-msgstr "選択中の極端キーフレームの色"
+msgstr "選択中のエクストリームキーフレームの色"
 
 
 msgid "Jitter Keyframe"
@@ -111110,7 +111152,7 @@ msgstr "IDデータ"
 
 msgctxt "Operator"
 msgid "Paste Data-Blocks"
-msgstr "データブロックをペースト"
+msgstr "データブロックを貼り付け"
 
 
 msgid "All View Layers"
@@ -112392,6 +112434,10 @@ msgstr "ビュー名"
 
 msgid "Playback Frame Rate (FPS)"
 msgstr "再生フレームレート（FPS）"
+
+
+msgid "3D Viewport Axes"
+msgstr "3Dビューポートの軸"
 
 
 msgid "Smooth Wires"
@@ -117229,7 +117275,7 @@ msgstr "カスタム補間カーブがありません"
 
 
 msgid "Expected current frame to be a breakdown"
-msgstr "現在のフレームを中割フレームにしてください"
+msgstr "現在のフレームをブレイクダウンにしてください"
 
 
 msgid "Nothing to merge"
@@ -120733,7 +120779,7 @@ msgstr "アクション「%s」は保存されません。残すならフェイ�
 
 
 msgid "No keyframes copied to keyframes copy/paste buffer"
-msgstr "コピー・ペーストバッファーにコピーするキーフレームがありません"
+msgstr "コピー/貼り付けバッファーにコピーするキーフレームがありません"
 
 
 msgid "Keyframe pasting is not available for mask mode"

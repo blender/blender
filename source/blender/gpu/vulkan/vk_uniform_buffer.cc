@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -24,20 +24,12 @@ void VKUniformBuffer::allocate(VKContext &context)
   buffer_.create(context, size_in_bytes_, GPU_USAGE_STATIC, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 }
 
-void VKUniformBuffer::clear_to_zero()
-{
-}
+void VKUniformBuffer::clear_to_zero() {}
 
-void VKUniformBuffer::bind(int /*slot*/)
-{
-}
+void VKUniformBuffer::bind(int /*slot*/) {}
 
-void VKUniformBuffer::bind_as_ssbo(int /*slot*/)
-{
-}
+void VKUniformBuffer::bind_as_ssbo(int /*slot*/) {}
 
-void VKUniformBuffer::unbind()
-{
-}
+void VKUniformBuffer::unbind() {}
 
 }  // namespace blender::gpu

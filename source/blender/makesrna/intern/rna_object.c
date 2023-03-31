@@ -88,7 +88,6 @@ const EnumPropertyItem rna_enum_object_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-/* Same as above, but with names that distinguish grease pencil. */
 const EnumPropertyItem rna_enum_workspace_object_mode_items[] = {
     {OB_MODE_OBJECT, "OBJECT", ICON_OBJECT_DATAMODE, "Object Mode", ""},
     {OB_MODE_EDIT, "EDIT", ICON_EDITMODE_HLT, "Edit Mode", ""},
@@ -1498,9 +1497,7 @@ static PointerRNA rna_Object_material_slots_get(CollectionPropertyIterator *iter
   return ptr;
 }
 
-static void rna_Object_material_slots_end(CollectionPropertyIterator *UNUSED(iter))
-{
-}
+static void rna_Object_material_slots_end(CollectionPropertyIterator *UNUSED(iter)) {}
 
 static PointerRNA rna_Object_display_get(PointerRNA *ptr)
 {

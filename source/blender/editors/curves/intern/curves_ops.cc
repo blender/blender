@@ -695,6 +695,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
     }
   }
 
+  curves.tag_positions_changed();
   DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
 }
 

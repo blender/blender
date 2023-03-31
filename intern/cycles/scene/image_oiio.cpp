@@ -9,13 +9,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-OIIOImageLoader::OIIOImageLoader(const string &filepath) : filepath(filepath)
-{
-}
+OIIOImageLoader::OIIOImageLoader(const string &filepath) : filepath(filepath) {}
 
-OIIOImageLoader::~OIIOImageLoader()
-{
-}
+OIIOImageLoader::~OIIOImageLoader() {}
 
 bool OIIOImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
                                     ImageMetaData &metadata)

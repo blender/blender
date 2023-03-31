@@ -69,9 +69,7 @@ template<class Edge> class Intersection {
 
 template<class T, class Point> class Segment {
  public:
-  Segment()
-  {
-  }
+  Segment() {}
 
   Segment(T &s, const Point &iA, const Point &iB)
   {
@@ -180,15 +178,9 @@ template<class T, class Point> class Segment {
  * intersection between 2 edges must be computed
  */
 template<class T1, class T2> struct binary_rule {
-  binary_rule()
-  {
-  }
-  template<class T3, class T4> binary_rule(const binary_rule<T3, T4> & /*brother*/)
-  {
-  }
-  virtual ~binary_rule()
-  {
-  }
+  binary_rule() {}
+  template<class T3, class T4> binary_rule(const binary_rule<T3, T4> & /*brother*/) {}
+  virtual ~binary_rule() {}
 
   virtual bool operator()(T1 &, T2 &)
   {
@@ -198,9 +190,7 @@ template<class T1, class T2> struct binary_rule {
 
 template<class T, class Point> class SweepLine {
  public:
-  SweepLine()
-  {
-  }
+  SweepLine() {}
   ~SweepLine()
   {
     for (typename vector<Intersection<Segment<T, Point>> *>::iterator i = _Intersections.begin(),

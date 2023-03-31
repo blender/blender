@@ -56,9 +56,7 @@ NODE_DEFINE(BufferPass)
   return type;
 }
 
-BufferPass::BufferPass() : Node(get_node_type())
-{
-}
+BufferPass::BufferPass() : Node(get_node_type()) {}
 
 BufferPass::BufferPass(const Pass *scene_pass)
     : Node(get_node_type()),
@@ -262,9 +260,7 @@ bool BufferParams::modified(const BufferParams &other) const
  * Render Buffers.
  */
 
-RenderBuffers::RenderBuffers(Device *device) : buffer(device, "RenderBuffers", MEM_READ_WRITE)
-{
-}
+RenderBuffers::RenderBuffers(Device *device) : buffer(device, "RenderBuffers", MEM_READ_WRITE) {}
 
 RenderBuffers::~RenderBuffers()
 {

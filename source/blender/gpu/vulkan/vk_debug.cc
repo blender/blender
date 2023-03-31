@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation. */
 
 /** \file
  * \ingroup gpu
@@ -9,13 +9,9 @@
 #include "vk_context.hh"
 
 namespace blender::gpu {
-void VKContext::debug_group_begin(const char *, int)
-{
-}
+void VKContext::debug_group_begin(const char *, int) {}
 
-void VKContext::debug_group_end()
-{
-}
+void VKContext::debug_group_end() {}
 
 bool VKContext::debug_capture_begin()
 {
@@ -56,7 +52,5 @@ bool VKContext::debug_capture_scope_begin(void * /*scope*/)
   return false;
 }
 
-void VKContext::debug_capture_scope_end(void * /*scope*/)
-{
-}
+void VKContext::debug_capture_scope_end(void * /*scope*/) {}
 }  // namespace blender::gpu

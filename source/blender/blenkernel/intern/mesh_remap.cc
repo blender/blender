@@ -112,7 +112,7 @@ static bool mesh_remap_bvhtree_query_raycast(BVHTreeFromMesh *treedata,
 float BKE_mesh_remap_calc_difference_from_mesh(const SpaceTransform *space_transform,
                                                const float (*vert_positions_dst)[3],
                                                const int numverts_dst,
-                                               Mesh *me_src)
+                                               const Mesh *me_src)
 {
   BVHTreeFromMesh treedata = {nullptr};
   BVHTreeNearest nearest = {0};
@@ -241,7 +241,7 @@ static void mesh_calc_eigen_matrix(const float (*positions)[3],
 
 void BKE_mesh_remap_find_best_match_from_mesh(const float (*vert_positions_dst)[3],
                                               const int numverts_dst,
-                                              Mesh *me_src,
+                                              const Mesh *me_src,
                                               SpaceTransform *r_space_transform)
 {
   /* Note that those are done so that we successively get actual mirror matrix
@@ -463,7 +463,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
                                          const float (*vert_positions_dst)[3],
                                          const int numverts_dst,
                                          const bool /*dirty_nors_dst*/,
-                                         Mesh *me_src,
+                                         const Mesh *me_src,
                                          Mesh *me_dst,
                                          MeshPairRemap *r_map)
 {
@@ -686,7 +686,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
                                          const MEdge *edges_dst,
                                          const int numedges_dst,
                                          const bool /*dirty_nors_dst*/,
-                                         Mesh *me_src,
+                                         const Mesh *me_src,
                                          Mesh *me_dst,
                                          MeshPairRemap *r_map)
 {
@@ -1239,7 +1239,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                          const bool use_split_nors_dst,
                                          const float split_angle_dst,
                                          const bool dirty_nors_dst,
-                                         Mesh *me_src,
+                                         const Mesh *me_src,
                                          MeshRemapIslandsCalc gen_islands_src,
                                          const float islands_precision_src,
                                          MeshPairRemap *r_map)
@@ -2151,7 +2151,7 @@ void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
                                          const int *corner_verts_dst,
                                          const MPoly *polys_dst,
                                          const int numpolys_dst,
-                                         Mesh *me_src,
+                                         const Mesh *me_src,
                                          MeshPairRemap *r_map)
 {
   const float full_weight = 1.0f;

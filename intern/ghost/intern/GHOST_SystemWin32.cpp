@@ -496,6 +496,14 @@ GHOST_TSuccess GHOST_SystemWin32::getButtons(GHOST_Buttons &buttons) const
   return GHOST_kSuccess;
 }
 
+GHOST_TCapabilityFlag GHOST_SystemWin32::getCapabilities() const
+{
+  return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL &
+                               ~(
+                                   /* WIN32 has no support for a primary selection clipboard. */
+                                   GHOST_kCapabilityPrimaryClipboard));
+}
+
 GHOST_TSuccess GHOST_SystemWin32::init()
 {
   GHOST_TSuccess success = GHOST_System::init();

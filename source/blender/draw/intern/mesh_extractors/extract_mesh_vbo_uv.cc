@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -95,7 +95,8 @@ static void extract_uv_init(const MeshRenderData *mr,
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, v_len);
 
-  MutableSpan<float2> uv_data(static_cast<float2 *>(GPU_vertbuf_get_data(vbo)), v_len);
+  MutableSpan<float2> uv_data(static_cast<float2 *>(GPU_vertbuf_get_data(vbo)),
+                              v_len * format.attr_len);
   int vbo_index = 0;
   for (const int i : IndexRange(MAX_MTFACE)) {
     if (uv_layers & (1 << i)) {

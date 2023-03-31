@@ -65,9 +65,7 @@ class WVertex {
   /** Copy constructor */
   WVertex(WVertex &iBrother);
   virtual WVertex *duplicate();
-  virtual ~WVertex()
-  {
-  }
+  virtual ~WVertex() {}
 
   /** accessors */
   inline Vec3f &GetVertex()
@@ -710,9 +708,7 @@ class WFace {
   /** copy constructor */
   WFace(WFace &iBrother);
   virtual WFace *duplicate();
-  virtual ~WFace()
-  {
-  }
+  virtual ~WFace() {}
 
   /** accessors */
   inline const vector<WOEdge *> &getEdgeList()

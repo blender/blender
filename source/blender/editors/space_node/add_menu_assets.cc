@@ -53,8 +53,6 @@ struct LibraryAsset {
 struct AssetItemTree {
   asset_system::AssetCatalogTree catalogs;
   MultiValueMap<asset_system::AssetCatalogPath, LibraryAsset> assets_per_path;
-  Map<const asset_system::AssetCatalogTreeItem *, asset_system::AssetCatalogPath>
-      full_catalog_per_tree_item;
 };
 
 static AssetLibraryReference all_library_reference()
@@ -69,6 +67,34 @@ static bool all_loading_finished()
 {
   AssetLibraryReference all_library_ref = all_library_reference();
   return ED_assetlist_is_loaded(&all_library_ref);
+}
+
+static asset_system::AssetLibrary *get_all_library_once_available()
+{
+  const AssetLibraryReference all_library_ref = all_library_reference();
+  return ED_assetlist_library_get_once_available(all_library_ref);
+}
+
+/**
+ * The menus want to pass catalog paths to context and for this they need persistent pointers to
+ * the paths. Rather than keeping some local path storage, get a pointer into the asset system
+ * directly, which is persistent until the library is reloaded and can safely be held by context.
+ */
+static PointerRNA persistent_catalog_path_rna_pointer(
+    bScreen &owner_screen,
+    const asset_system::AssetLibrary &library,
+    const asset_system::AssetCatalogTreeItem &item)
+{
+  const asset_system::AssetCatalog *catalog = library.catalog_service->find_catalog_by_path(
+      item.catalog_path());
+  if (!catalog) {
+    return PointerRNA_NULL;
+  }
+
+  const asset_system::AssetCatalogPath &path = catalog->path;
+  return {&owner_screen.id,
+          &RNA_AssetCatalogPath,
+          const_cast<asset_system::AssetCatalogPath *>(&path)};
 }
 
 static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node_tree)
@@ -88,8 +114,7 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
   ED_assetlist_storage_fetch(&all_library_ref, &C);
   ED_assetlist_ensure_previews_job(&all_library_ref, &C);
 
-  asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
-      all_library_ref);
+  asset_system::AssetLibrary *all_library = get_all_library_once_available();
   if (!all_library) {
     return {};
   }
@@ -132,18 +157,7 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
     catalogs_with_node_assets.insert_item(*catalog);
   });
 
-  /* Build another map storing full asset paths for each tree item, in order to have stable
-   * pointers to asset catalog paths to use for context pointers. This is necessary because
-   * #asset_system::AssetCatalogTreeItem doesn't store its full path directly. */
-  Map<const asset_system::AssetCatalogTreeItem *, asset_system::AssetCatalogPath>
-      full_catalog_per_tree_item;
-  catalogs_with_node_assets.foreach_item([&](asset_system::AssetCatalogTreeItem &item) {
-    full_catalog_per_tree_item.add_new(&item, item.catalog_path());
-  });
-
-  return {std::move(catalogs_with_node_assets),
-          std::move(assets_per_path),
-          std::move(full_catalog_per_tree_item)};
+  return {std::move(catalogs_with_node_assets), std::move(assets_per_path)};
 }
 
 static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
@@ -195,14 +209,21 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
             "NODE_OT_add_group_asset");
   }
 
+  asset_system::AssetLibrary *all_library = get_all_library_once_available();
+  if (!all_library) {
+    return;
+  }
+
   catalog_item->foreach_child([&](asset_system::AssetCatalogTreeItem &child_item) {
-    const asset_system::AssetCatalogPath &path = tree.full_catalog_per_tree_item.lookup(
-        &child_item);
-    PointerRNA path_ptr{
-        &screen.id, &RNA_AssetCatalogPath, const_cast<asset_system::AssetCatalogPath *>(&path)};
+    PointerRNA path_ptr = persistent_catalog_path_rna_pointer(screen, *all_library, child_item);
+    if (path_ptr.data == nullptr) {
+      return;
+    }
+
     uiLayout *col = uiLayoutColumn(layout, false);
     uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);
-    uiItemM(col, "NODE_MT_node_add_catalog_assets", IFACE_(path.name().c_str()), ICON_NONE);
+    uiItemM(
+        col, "NODE_MT_node_add_catalog_assets", IFACE_(child_item.get_name().c_str()), ICON_NONE);
   });
 }
 
@@ -263,16 +284,22 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
     return menus;
   }();
 
+  asset_system::AssetLibrary *all_library = get_all_library_once_available();
+  if (!all_library) {
+    return;
+  }
+
   tree.catalogs.foreach_root_item([&](asset_system::AssetCatalogTreeItem &item) {
     if (all_builtin_menus.contains(item.get_name())) {
       return;
     }
-    const asset_system::AssetCatalogPath &path = tree.full_catalog_per_tree_item.lookup(&item);
-    PointerRNA path_ptr{
-        &screen.id, &RNA_AssetCatalogPath, const_cast<asset_system::AssetCatalogPath *>(&path)};
+    PointerRNA path_ptr = persistent_catalog_path_rna_pointer(screen, *all_library, item);
+    if (path_ptr.data == nullptr) {
+      return;
+    }
     uiLayout *col = uiLayoutColumn(layout, false);
     uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);
-    uiItemM(col, "NODE_MT_node_add_catalog_assets", IFACE_(path.name().c_str()), ICON_NONE);
+    uiItemM(col, "NODE_MT_node_add_catalog_assets", IFACE_(item.get_name().c_str()), ICON_NONE);
   });
 }
 
@@ -310,9 +337,17 @@ void uiTemplateNodeAssetMenuItems(uiLayout *layout, bContext *C, const char *cat
   if (!item) {
     return;
   }
-  const asset_system::AssetCatalogPath &path = tree.full_catalog_per_tree_item.lookup(item);
-  PointerRNA path_ptr{
-      &screen.id, &RNA_AssetCatalogPath, const_cast<asset_system::AssetCatalogPath *>(&path)};
+
+  asset_system::AssetLibrary *all_library = get_all_library_once_available();
+  if (!all_library) {
+    return;
+  }
+
+  PointerRNA path_ptr = persistent_catalog_path_rna_pointer(screen, *all_library, *item);
+  if (path_ptr.data == nullptr) {
+    return;
+  }
+
   uiItemS(layout);
   uiLayout *col = uiLayoutColumn(layout, false);
   uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);

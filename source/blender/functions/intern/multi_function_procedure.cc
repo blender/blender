@@ -553,9 +553,7 @@ class ProcedureDotExport {
   Map<const Instruction *, dot::Node *> dot_nodes_by_end_;
 
  public:
-  ProcedureDotExport(const Procedure &procedure) : procedure_(procedure)
-  {
-  }
+  ProcedureDotExport(const Procedure &procedure) : procedure_(procedure) {}
 
   std::string generate()
   {

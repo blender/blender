@@ -16,12 +16,8 @@ namespace Freestyle {
 
 class WXEdgeBuilder : public WingedEdgeBuilder {
  public:
-  WXEdgeBuilder() : WingedEdgeBuilder()
-  {
-  }
-  virtual ~WXEdgeBuilder()
-  {
-  }
+  WXEdgeBuilder() : WingedEdgeBuilder() {}
+  virtual ~WXEdgeBuilder() {}
   VISIT_DECL(IndexedFaceSet);
 
  protected:

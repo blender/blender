@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup spnode
@@ -198,16 +198,18 @@ static void edge_pan_apply_delta(bContext *C, View2DEdgePanData *vpd, float dx, 
     v2d->cur.ymax += dy;
   }
 
-  /* Inform v2d about changes after this operation. */
-  UI_view2d_curRect_changed(C, v2d);
+  if (dx != 0.0f || dy != 0.0f) {
+    /* Inform v2d about changes after this operation. */
+    UI_view2d_curRect_changed(C, v2d);
 
-  /* Don't rebuild full tree in outliner, since we're just changing our view. */
-  ED_region_tag_redraw_no_rebuild(vpd->region);
+    /* Don't rebuild full tree in outliner, since we're just changing our view. */
+    ED_region_tag_redraw_no_rebuild(vpd->region);
 
-  /* Request updates to be done. */
-  WM_event_add_mousemove(CTX_wm_window(C));
+    /* Request updates to be done. */
+    WM_event_add_mousemove(CTX_wm_window(C));
 
-  UI_view2d_sync(vpd->screen, vpd->area, v2d, V2D_LOCK_COPY);
+    UI_view2d_sync(vpd->screen, vpd->area, v2d, V2D_LOCK_COPY);
+  }
 }
 
 void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, const int xy[2])

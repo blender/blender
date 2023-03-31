@@ -2753,9 +2753,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
   id_us_ensure_real(&lib->id);
 }
 
-static void lib_link_library(BlendLibReader * /*reader*/, Library * /*lib*/)
-{
-}
+static void lib_link_library(BlendLibReader * /*reader*/, Library * /*lib*/) {}
 
 /* Always call this once you have loaded new library data to set the relative paths correctly
  * in relation to the blend file. */

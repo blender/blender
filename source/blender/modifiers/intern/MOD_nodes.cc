@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup modifiers
@@ -216,21 +216,24 @@ static bool node_needs_own_transform_relation(const bNode &node)
 
 static void process_nodes_for_depsgraph(const bNodeTree &tree,
                                         Set<ID *> &ids,
-                                        bool &r_needs_own_transform_relation)
+                                        bool &r_needs_own_transform_relation,
+                                        Set<const bNodeTree *> &checked_groups)
 {
-  Set<const bNodeTree *> handled_groups;
+  if (!checked_groups.add(&tree)) {
+    return;
+  }
 
-  LISTBASE_FOREACH (const bNode *, node, &tree.nodes) {
+  tree.ensure_topology_cache();
+  for (const bNode *node : tree.all_nodes()) {
     add_used_ids_from_sockets(node->inputs, ids);
     add_used_ids_from_sockets(node->outputs, ids);
-
-    if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
-      const bNodeTree *group = (bNodeTree *)node->id;
-      if (group != nullptr && handled_groups.add(group)) {
-        process_nodes_for_depsgraph(*group, ids, r_needs_own_transform_relation);
-      }
-    }
     r_needs_own_transform_relation |= node_needs_own_transform_relation(*node);
+  }
+
+  for (const bNode *node : tree.group_nodes()) {
+    if (const bNodeTree *sub_tree = reinterpret_cast<const bNodeTree *>(node->id)) {
+      process_nodes_for_depsgraph(*sub_tree, ids, r_needs_own_transform_relation, checked_groups);
+    }
   }
 }
 
@@ -289,7 +292,9 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   bool needs_own_transform_relation = false;
   Set<ID *> used_ids;
   find_used_ids_from_settings(nmd->settings, used_ids);
-  process_nodes_for_depsgraph(*nmd->node_group, used_ids, needs_own_transform_relation);
+  Set<const bNodeTree *> checked_groups;
+  process_nodes_for_depsgraph(
+      *nmd->node_group, used_ids, needs_own_transform_relation, checked_groups);
 
   if (ctx->object->type == OB_CURVES) {
     Curves *curves_id = static_cast<Curves *>(ctx->object->data);
@@ -328,19 +333,18 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static bool check_tree_for_time_node(const bNodeTree &tree,
-                                     Set<const bNodeTree *> &r_checked_trees)
+static bool check_tree_for_time_node(const bNodeTree &tree, Set<const bNodeTree *> &checked_groups)
 {
-  if (!r_checked_trees.add(&tree)) {
+  if (!checked_groups.add(&tree)) {
     return false;
   }
-  LISTBASE_FOREACH (const bNode *, node, &tree.nodes) {
-    if (node->type == GEO_NODE_INPUT_SCENE_TIME) {
-      return true;
-    }
-    if (node->type == NODE_GROUP) {
-      const bNodeTree *sub_tree = reinterpret_cast<const bNodeTree *>(node->id);
-      if (sub_tree && check_tree_for_time_node(*sub_tree, r_checked_trees)) {
+  tree.ensure_topology_cache();
+  if (!tree.nodes_by_type("GeometryNodeInputSceneTime").is_empty()) {
+    return true;
+  }
+  for (const bNode *node : tree.group_nodes()) {
+    if (const bNodeTree *sub_tree = reinterpret_cast<const bNodeTree *>(node->id)) {
+      if (check_tree_for_time_node(*sub_tree, checked_groups)) {
         return true;
       }
     }
@@ -355,8 +359,8 @@ static bool dependsOnTime(struct Scene * /*scene*/, ModifierData *md)
   if (tree == nullptr) {
     return false;
   }
-  Set<const bNodeTree *> checked_trees;
-  return check_tree_for_time_node(*tree, checked_trees);
+  Set<const bNodeTree *> checked_groups;
+  return check_tree_for_time_node(*tree, checked_groups);
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
@@ -648,43 +652,33 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
   }
 }
 
-void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
+static void update_input_properties_from_node_tree(const bNodeTree &tree,
+                                                   const IDProperty *old_properties,
+                                                   IDProperty &properties)
 {
-  if (nmd->node_group == nullptr) {
-    if (nmd->settings.properties) {
-      IDP_FreeProperty(nmd->settings.properties);
-      nmd->settings.properties = nullptr;
-    }
-    return;
-  }
-
-  IDProperty *old_properties = nmd->settings.properties;
-  {
-    IDPropertyTemplate idprop = {0};
-    nmd->settings.properties = IDP_New(IDP_GROUP, &idprop, "Nodes Modifier Settings");
-  }
-
-  int socket_index;
-  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &nmd->node_group->inputs, socket_index) {
-    IDProperty *new_prop = id_property_create_from_socket(*socket).release();
+  tree.ensure_topology_cache();
+  const Span<const bNodeSocket *> tree_inputs = tree.interface_inputs();
+  for (const int i : tree_inputs.index_range()) {
+    const bNodeSocket &socket = *tree_inputs[i];
+    IDProperty *new_prop = id_property_create_from_socket(socket).release();
     if (new_prop == nullptr) {
       /* Out of the set of supported input sockets, only
        * geometry sockets aren't added to the modifier. */
-      BLI_assert(socket->type == SOCK_GEOMETRY);
+      BLI_assert(socket.type == SOCK_GEOMETRY);
       continue;
     }
 
     new_prop->flag |= IDP_FLAG_OVERRIDABLE_LIBRARY;
-    if (socket->description[0] != '\0') {
+    if (socket.description[0] != '\0') {
       IDPropertyUIData *ui_data = IDP_ui_data_ensure(new_prop);
-      ui_data->description = BLI_strdup(socket->description);
+      ui_data->description = BLI_strdup(socket.description);
     }
-    IDP_AddToGroup(nmd->settings.properties, new_prop);
+    IDP_AddToGroup(&properties, new_prop);
 
     if (old_properties != nullptr) {
-      IDProperty *old_prop = IDP_GetPropertyFromGroup(old_properties, socket->identifier);
+      const IDProperty *old_prop = IDP_GetPropertyFromGroup(old_properties, socket.identifier);
       if (old_prop != nullptr) {
-        if (id_property_type_matches_socket(*socket, *old_prop)) {
+        if (id_property_type_matches_socket(socket, *old_prop)) {
           /* #IDP_CopyPropertyContent replaces the UI data as well, which we don't (we only
            * want to replace the values). So release it temporarily and replace it after. */
           IDPropertyUIData *ui_data = new_prop->ui_data;
@@ -703,20 +697,20 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
       }
     }
 
-    if (socket_type_has_attribute_toggle(*socket)) {
-      const std::string use_attribute_id = socket->identifier + use_attribute_suffix;
-      const std::string attribute_name_id = socket->identifier + attribute_name_suffix;
+    if (socket_type_has_attribute_toggle(socket)) {
+      const std::string use_attribute_id = socket.identifier + use_attribute_suffix;
+      const std::string attribute_name_id = socket.identifier + attribute_name_suffix;
 
       IDPropertyTemplate idprop = {0};
       IDProperty *use_attribute_prop = IDP_New(IDP_INT, &idprop, use_attribute_id.c_str());
-      IDP_AddToGroup(nmd->settings.properties, use_attribute_prop);
+      IDP_AddToGroup(&properties, use_attribute_prop);
 
       IDProperty *attribute_prop = IDP_New(IDP_STRING, &idprop, attribute_name_id.c_str());
-      IDP_AddToGroup(nmd->settings.properties, attribute_prop);
+      IDP_AddToGroup(&properties, attribute_prop);
 
       if (old_properties == nullptr) {
-        if (socket->default_attribute_name && socket->default_attribute_name[0] != '\0') {
-          IDP_AssignString(attribute_prop, socket->default_attribute_name, MAX_NAME);
+        if (socket.default_attribute_name && socket.default_attribute_name[0] != '\0') {
+          IDP_AssignString(attribute_prop, socket.default_attribute_name, MAX_NAME);
           IDP_Int(use_attribute_prop) = 1;
         }
       }
@@ -735,23 +729,31 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
       }
     }
   }
+}
 
-  LISTBASE_FOREACH (bNodeSocket *, socket, &nmd->node_group->outputs) {
-    if (!socket_type_has_attribute_toggle(*socket)) {
+static void update_output_properties_from_node_tree(const bNodeTree &tree,
+                                                    const IDProperty *old_properties,
+                                                    IDProperty &properties)
+{
+  tree.ensure_topology_cache();
+  const Span<const bNodeSocket *> tree_outputs = tree.interface_outputs();
+  for (const int i : tree_outputs.index_range()) {
+    const bNodeSocket &socket = *tree_outputs[i];
+    if (!socket_type_has_attribute_toggle(socket)) {
       continue;
     }
 
-    const std::string idprop_name = socket->identifier + attribute_name_suffix;
+    const std::string idprop_name = socket.identifier + attribute_name_suffix;
     IDProperty *new_prop = IDP_NewString("", idprop_name.c_str(), MAX_NAME);
-    if (socket->description[0] != '\0') {
+    if (socket.description[0] != '\0') {
       IDPropertyUIData *ui_data = IDP_ui_data_ensure(new_prop);
-      ui_data->description = BLI_strdup(socket->description);
+      ui_data->description = BLI_strdup(socket.description);
     }
-    IDP_AddToGroup(nmd->settings.properties, new_prop);
+    IDP_AddToGroup(&properties, new_prop);
 
     if (old_properties == nullptr) {
-      if (socket->default_attribute_name && socket->default_attribute_name[0] != '\0') {
-        IDP_AssignString(new_prop, socket->default_attribute_name, MAX_NAME);
+      if (socket.default_attribute_name && socket.default_attribute_name[0] != '\0') {
+        IDP_AssignString(new_prop, socket.default_attribute_name, MAX_NAME);
       }
     }
     else {
@@ -769,6 +771,27 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
       }
     }
   }
+}
+
+void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
+{
+  if (nmd->node_group == nullptr) {
+    if (nmd->settings.properties) {
+      IDP_FreeProperty(nmd->settings.properties);
+      nmd->settings.properties = nullptr;
+    }
+    return;
+  }
+
+  IDProperty *old_properties = nmd->settings.properties;
+  {
+    IDPropertyTemplate idprop = {0};
+    nmd->settings.properties = IDP_New(IDP_GROUP, &idprop, "Nodes Modifier Settings");
+  }
+  IDProperty *new_properties = nmd->settings.properties;
+
+  update_input_properties_from_node_tree(*nmd->node_group, old_properties, *new_properties);
+  update_output_properties_from_node_tree(*nmd->node_group, old_properties, *new_properties);
 
   if (old_properties != nullptr) {
     IDP_FreeProperty(old_properties);

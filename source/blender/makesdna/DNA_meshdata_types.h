@@ -438,7 +438,6 @@ enum {
 /**
  * Deprecated mesh vertex data structure. Now stored with generic attributes.
  */
-
 typedef struct MVert {
   float co_legacy[3];
   /**

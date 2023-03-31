@@ -22,9 +22,7 @@ class GHOST_IContext {
   /**
    * Destructor.
    */
-  virtual ~GHOST_IContext()
-  {
-  }
+  virtual ~GHOST_IContext() {}
 
   /**
    * Activates the drawing context.
@@ -44,7 +42,7 @@ class GHOST_IContext {
    * Get Vulkan handles for the given context.
    *
    * These handles are the same for a given context.
-   * Should should only be called when using a Vulkan context.
+   * Should only be called when using a Vulkan context.
    * Other contexts will not return any handles and leave the
    * handles where the parameters are referring to unmodified.
    *

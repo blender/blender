@@ -924,19 +924,9 @@ extern bool GHOST_setConsoleWindowState(GHOST_TConsoleWindowState action);
 extern bool GHOST_UseNativePixels(void);
 
 /**
- * Warp the cursor, if supported.
+ * Return features which are supported by the GHOST back-end.
  */
-extern bool GHOST_SupportsCursorWarp(void);
-
-/**
- * Support positioning windows (when false `wmWindow.x,y` are meaningless).
- */
-extern bool GHOST_SupportsWindowPosition(void);
-
-/**
- * Support a separate primary clipboard.
- */
-extern bool GHOST_SupportsPrimaryClipboard(void);
+extern GHOST_TCapabilityFlag GHOST_GetCapabilities(void);
 
 /**
  * Assign the callback which generates a back-trace (may be NULL).
@@ -1208,7 +1198,7 @@ int GHOST_XrGetControllerModelData(GHOST_XrContextHandle xr_context,
  * Get Vulkan handles for the given context.
  *
  * These handles are the same for a given context.
- * Should should only be called when using a Vulkan context.
+ * Should only be called when using a Vulkan context.
  * Other contexts will not return any handles and leave the
  * handles where the parameters are referring to unmodified.
  *
@@ -1244,7 +1234,7 @@ void GHOST_GetVulkanHandles(GHOST_ContextHandle context,
  * At the start of each frame the correct command buffer should be
  * retrieved with this function.
  *
- * Should should only be called when using a Vulkan context.
+ * Should only be called when using a Vulkan context.
  * Other contexts will not return any handles and leave the
  * handles where the parameters are referring to unmodified.
  *
@@ -1261,7 +1251,7 @@ void GHOST_GetVulkanCommandBuffer(GHOST_ContextHandle context, void *r_command_b
  * Gets the Vulkan back-buffer related resource handles associated with the Vulkan context.
  * Needs to be called after each swap event as the back-buffer will change.
  *
- * Should should only be called when using a Vulkan context with an active swap chain.
+ * Should only be called when using a Vulkan context with an active swap chain.
  * Other contexts will not return any handles and leave the
  * handles where the parameters are referring to unmodified.
  *

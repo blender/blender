@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 
 /** \file
  * \ingroup edmesh
@@ -591,7 +591,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
         }
         break;
       case PBVH_BMESH: {
-        const int cd_fset = CustomData_get_named_offset(
+        const int cd_fset = CustomData_get_offset_named(
             &ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
         const int cd_boundary_flag = CustomData_get_offset_named(
             &ss->bm->vdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(boundary_flags));

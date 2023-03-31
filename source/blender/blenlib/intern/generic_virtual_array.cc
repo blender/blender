@@ -650,13 +650,9 @@ GVArray::GVArray(const GVArray &other) = default;
 
 GVArray::GVArray(GVArray &&other) noexcept = default;
 
-GVArray::GVArray(const GVArrayImpl *impl) : GVArrayCommon(impl)
-{
-}
+GVArray::GVArray(const GVArrayImpl *impl) : GVArrayCommon(impl) {}
 
-GVArray::GVArray(std::shared_ptr<const GVArrayImpl> impl) : GVArrayCommon(std::move(impl))
-{
-}
+GVArray::GVArray(std::shared_ptr<const GVArrayImpl> impl) : GVArrayCommon(std::move(impl)) {}
 
 GVArray::GVArray(varray_tag::single /* tag */,
                  const CPPType &type,
@@ -747,9 +743,7 @@ GVArray &GVArray::operator=(GVArray &&other) noexcept
 GVMutableArray::GVMutableArray(const GVMutableArray &other) = default;
 GVMutableArray::GVMutableArray(GVMutableArray &&other) noexcept = default;
 
-GVMutableArray::GVMutableArray(GVMutableArrayImpl *impl) : GVArrayCommon(impl)
-{
-}
+GVMutableArray::GVMutableArray(GVMutableArrayImpl *impl) : GVArrayCommon(impl) {}
 
 GVMutableArray::GVMutableArray(std::shared_ptr<GVMutableArrayImpl> impl)
     : GVArrayCommon(std::move(impl))

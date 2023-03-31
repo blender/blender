@@ -130,7 +130,7 @@ PenaltyReturnTypeOnItsOwnLine: 10000
 #
 PenaltyBreakAssignment: 100
 
-AllowShortFunctionsOnASingleLine: None
+AllowShortFunctionsOnASingleLine: Empty
 
 SortIncludes: true
 

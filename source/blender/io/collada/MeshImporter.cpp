@@ -83,9 +83,7 @@ static const char *bc_geomTypeToStr(COLLADAFW::Geometry::GeometryType type)
   }
 }
 
-UVDataWrapper::UVDataWrapper(COLLADAFW::MeshVertexData &vdata) : mVData(&vdata)
-{
-}
+UVDataWrapper::UVDataWrapper(COLLADAFW::MeshVertexData &vdata) : mVData(&vdata) {}
 
 #ifdef COLLADA_DEBUG
 void WVDataWrapper::print()
@@ -145,9 +143,7 @@ void UVDataWrapper::getUV(int uv_index, float *uv)
   }
 }
 
-VCOLDataWrapper::VCOLDataWrapper(COLLADAFW::MeshVertexData &vdata) : mVData(&vdata)
-{
-}
+VCOLDataWrapper::VCOLDataWrapper(COLLADAFW::MeshVertexData &vdata) : mVData(&vdata) {}
 
 template<typename T>
 static void colladaAddColor(T values, MLoopCol *mloopcol, int v_index, int stride)

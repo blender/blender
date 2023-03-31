@@ -57,7 +57,9 @@ void workbench_engine_init(void *ved)
   wpd->dummy_image_tx = txl->dummy_image_tx;
 
   if (OBJECT_ID_PASS_ENABLED(wpd)) {
-    wpd->object_id_tx = DRW_texture_pool_query_fullscreen(GPU_R16UI, &draw_engine_workbench);
+    const eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+    wpd->object_id_tx = DRW_texture_pool_query_fullscreen_ex(
+        GPU_R16UI, usage, &draw_engine_workbench);
   }
   else {
     /* Don't free because it's a pool texture. */

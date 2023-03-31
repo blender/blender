@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup edsculpt
@@ -320,7 +320,7 @@ bool SCULPT_dyntopo_check_disk_sort(SculptSession *ss, PBVHVertRef vertex)
 Copies the bmesh, but orders the elements
 according to PBVH node to improve memory locality
 */
-void SCULPT_reorder_bmesh(SculptSession *ss)
+void SCULPT_reorder_bmesh(SculptSession * /*ss*/)
 {
 #if 0
   SCULPT_face_random_access_ensure(ss);
@@ -431,7 +431,7 @@ void SCULPT_dynamic_topology_triangulate(SculptSession *ss, BMesh *bm)
   //      nullptr, nullptr);
 }
 
-void SCULPT_pbvh_clear(Object *ob, bool cache_pbvh)
+void SCULPT_pbvh_clear(Object *ob, bool /*cache_pbvh*/)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -475,13 +475,16 @@ static void customdata_strip_templayers(CustomData *cdata, int totelem)
     CustomDataLayer *layer = cdata->layers + i;
 
     if (layer->flag & CD_FLAG_TEMPORARY) {
-      CustomData_free_layer(cdata, layer->type, totelem, i);
+      CustomData_free_layer(cdata, eCustomDataType(layer->type), totelem, i);
       i--;
     }
   }
 }
 
-void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
+void SCULPT_dynamic_topology_enable_ex(Main *bmain,
+                                       Depsgraph *depsgraph,
+                                       Scene * /*scene*/,
+                                       Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
@@ -644,7 +647,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
  * If 'unode' is given, the BMesh's data is copied out to the unode
  * before the BMesh is deleted so that it can be restored from. */
 static void SCULPT_dynamic_topology_disable_ex(
-    Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, SculptUndoNode *unode)
+    Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, SculptUndoNode * /*unode*/)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = static_cast<Mesh *>(ob->data);
@@ -769,7 +772,7 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int dyntopo_error_popup(bContext *C, wmOperatorType *ot, enum eDynTopoWarnFlag flag)
+static int dyntopo_error_popup(bContext *C, wmOperatorType * /*ot*/, enum eDynTopoWarnFlag flag)
 {
   uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Error!"), ICON_ERROR);
   uiLayout *layout = UI_popup_menu_layout(pup);

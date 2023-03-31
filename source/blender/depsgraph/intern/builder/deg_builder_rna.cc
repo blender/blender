@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -39,9 +39,7 @@ namespace blender::deg {
 
 class RNANodeQueryIDData {
  public:
-  explicit RNANodeQueryIDData(const ID *id) : id_(id)
-  {
-  }
+  explicit RNANodeQueryIDData(const ID *id) : id_(id) {}
 
   ~RNANodeQueryIDData()
   {

@@ -139,13 +139,9 @@ NODE_DEFINE(Integrator)
   return type;
 }
 
-Integrator::Integrator() : Node(get_node_type())
-{
-}
+Integrator::Integrator() : Node(get_node_type()) {}
 
-Integrator::~Integrator()
-{
-}
+Integrator::~Integrator() {}
 
 void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 {

@@ -246,9 +246,7 @@ class IMesh {
 
  public:
   IMesh() = default;
-  IMesh(Span<Face *> faces) : face_(faces)
-  {
-  }
+  IMesh(Span<Face *> faces) : face_(faces) {}
 
   void set_faces(Span<Face *> faces);
   Face *face(int index) const
@@ -338,9 +336,7 @@ struct BoundingBox {
   float3 max{-FLT_MAX, -FLT_MAX, -FLT_MAX};
 
   BoundingBox() = default;
-  BoundingBox(const float3 &min, const float3 &max) : min(min), max(max)
-  {
-  }
+  BoundingBox(const float3 &min, const float3 &max) : min(min), max(max) {}
 
   void combine(const float3 &p)
   {

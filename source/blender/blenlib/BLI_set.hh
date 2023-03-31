@@ -175,9 +175,7 @@ class Set {
   {
   }
 
-  Set(NoExceptConstructor, Allocator allocator = {}) noexcept : Set(allocator)
-  {
-  }
+  Set(NoExceptConstructor, Allocator allocator = {}) noexcept : Set(allocator) {}
 
   Set(Span<Key> values, Allocator allocator = {}) : Set(NoExceptConstructor(), allocator)
   {
@@ -187,9 +185,7 @@ class Set {
   /**
    * Construct a set that contains the given keys. Duplicates will be removed automatically.
    */
-  Set(const std::initializer_list<Key> &values) : Set(Span<Key>(values))
-  {
-  }
+  Set(const std::initializer_list<Key> &values) : Set(Span<Key>(values)) {}
 
   ~Set() = default;
 
@@ -644,6 +640,24 @@ class Set {
   static bool Disjoint(const Set &a, const Set &b)
   {
     return !Intersects(a, b);
+  }
+
+  friend bool operator==(const Set &a, const Set &b)
+  {
+    if (a.size() != b.size()) {
+      return false;
+    }
+    for (const Key &key : a) {
+      if (!b.contains(key)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  friend bool operator!=(const Set &a, const Set &b)
+  {
+    return !(a == b);
   }
 
  private:

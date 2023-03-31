@@ -67,6 +67,15 @@ const AssetIdentifier &AssetRepresentation::get_identifier() const
   return identifier_;
 }
 
+std::unique_ptr<AssetWeakReference> AssetRepresentation::make_weak_reference() const
+{
+  if (!owner_asset_library_) {
+    return nullptr;
+  }
+
+  return AssetWeakReference::make_reference(*owner_asset_library_, identifier_);
+}
+
 StringRefNull AssetRepresentation::get_name() const
 {
   if (is_local_id_) {
@@ -176,6 +185,15 @@ bool AS_asset_representation_is_local_id(const AssetRepresentation *asset_handle
   const asset_system::AssetRepresentation *asset =
       reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
   return asset->is_local_id();
+}
+
+AssetWeakReference *AS_asset_representation_weak_reference_create(
+    const AssetRepresentation *asset_handle)
+{
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
+  std::unique_ptr<AssetWeakReference> weak_ref = asset->make_weak_reference();
+  return MEM_new<AssetWeakReference>(__func__, std::move(*weak_ref));
 }
 
 /** \} */

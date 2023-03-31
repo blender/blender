@@ -81,9 +81,7 @@ Canvas::~Canvas()
   delete _steerableViewMap;
 }
 
-void Canvas::preDraw()
-{
-}
+void Canvas::preDraw() {}
 
 void Canvas::Draw()
 {

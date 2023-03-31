@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
+# Copyright 2006 Blender Foundation
 
 set(INC
   .
@@ -74,6 +74,7 @@ set(SRC
   intern/armature_selection.cc
   intern/armature_update.c
   intern/asset.cc
+  intern/asset_weak_reference.cc
   intern/attribute.cc
   intern/attribute_access.cc
   intern/attribute_math.cc

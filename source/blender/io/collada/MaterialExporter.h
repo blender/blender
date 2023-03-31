@@ -41,9 +41,7 @@ template<class Functor> class ForEachMaterialFunctor {
   Functor *f;
 
  public:
-  ForEachMaterialFunctor(Functor *f) : f(f)
-  {
-  }
+  ForEachMaterialFunctor(Functor *f) : f(f) {}
 
   void operator()(Object *ob)
   {

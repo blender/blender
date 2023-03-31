@@ -29,7 +29,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-Main *BKE_main_new()
+Main *BKE_main_new(void)
 {
   Main *bmain = MEM_callocN(sizeof(Main), "new main");
   bmain->lock = MEM_mallocN(sizeof(SpinLock), "main lock");

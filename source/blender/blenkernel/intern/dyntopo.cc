@@ -102,7 +102,7 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
   zero_v3(co);
   zero_v3(origco);
 
-  // this is a manual edge walk
+  /* This is a manual edge walk. */
 
   BMEdge *e = v->e;
   if (!e) {
@@ -112,8 +112,6 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
   if (pbvh_boundary_needs_update_bmesh(pbvh, v)) {
     pbvh_check_vert_boundary(pbvh, v);
   }
-
-  // pbvh_check_vert_boundary(pbvh, v);
 
   const int cd_sculpt_vert = pbvh->cd_sculpt_vert;
   const int boundflag = BM_ELEM_CD_GET_INT(v, pbvh->cd_boundary_flag);
@@ -131,8 +129,9 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
   do {
     BMVert *v2 = e->v1 == v ? e->v2 : e->v1;
 
-    // can't check for boundary here, thread
-    // pbvh_check_vert_boundary(pbvh, v2);
+    /* Note: we can't validate the boundary flags from with a thread
+     * so they may not be up to date.
+     */
 
     MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v2);
     int boundflag2 = BM_ELEM_CD_GET_INT(v2, pbvh->cd_boundary_flag);
@@ -208,18 +207,13 @@ static float maskcb_get(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
     float w1 = eq_ctx->mask_cb(sv1, eq_ctx->mask_cb_data);
     float w2 = eq_ctx->mask_cb(sv2, eq_ctx->mask_cb_data);
 
-    // float limit = 0.5;
-    // if (w1 > limit || w2 > limit) {
     return min_ff(w1, w2);
-    //}
-
-    // return (w1 + w2) * 0.5f;
   }
 
   return 1.0f;
 }
 
-BLI_INLINE float calc_edge_length(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
+BLI_INLINE float calc_edge_length(EdgeQueueContext * /*eq_ctx*/, BMVert *v1, BMVert *v2)
 {
   return len_squared_v3v3(v1->co, v2->co);
 }
@@ -256,7 +250,6 @@ static void edge_queue_insert_unified(EdgeQueueContext *eq_ctx, BMEdge *e)
 
 static void edge_queue_insert_val34_vert(EdgeQueueContext *eq_ctx, BMVert *v)
 {
-  // BLI_table_gset_add(eq_ctx->used_verts, v);
   eq_ctx->tot_used_verts++;
 
   if (!eq_ctx->used_verts || eq_ctx->tot_used_verts >= eq_ctx->used_verts_size) {
@@ -274,23 +267,6 @@ static void edge_queue_insert_val34_vert(EdgeQueueContext *eq_ctx, BMVert *v)
   }
 
   eq_ctx->used_verts[eq_ctx->tot_used_verts - 1] = v;
-}
-
-BLI_INLINE float calc_curvature_weight(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
-{
-#ifdef WITH_ADAPTIVE_CURVATURE
-  MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(eq_ctx->cd_sculpt_vert, v1);
-  MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(eq_ctx->cd_sculpt_vert, v2);
-
-  float c1 = (float)mv1->curv / 65535.0f;
-  float c2 = (float)mv2->curv / 65535.0f;
-  float fac = 1.0f + powf((c1 + c2) * 100.0, 4.0f);
-  fac = min_ff(fac, 4.0f);
-
-  return fac;
-#else
-  return 1.0;
-#endif
 }
 
 static bool edge_queue_vert_in_sphere(const EdgeQueueContext *eq_ctx, BMVert *v)
@@ -453,7 +429,7 @@ static bool edge_queue_tri_in_sphere(const EdgeQueueContext *q, BMVert *vs[3], f
   return dis <= q->radius_squared;
 }
 
-static bool edge_queue_tri_in_circle(const EdgeQueueContext *q, BMVert *v_tri[3], float no[3])
+static bool edge_queue_tri_in_circle(const EdgeQueueContext *q, BMVert *v_tri[3], float /*no*/[3])
 {
   float c[3];
   float tri_proj[3][3];
@@ -632,7 +608,7 @@ static void long_edge_queue_edge_add_recursive_2(EdgeQueueThreadData *tdata,
 
 BLI_INLINE int dyntopo_thread_rand(int seed)
 {
-  // glibc
+  /* glibc linear congruel random number generator. */
   const uint32_t multiplier = 1103515245;
   const uint32_t addend = 12345;
   const uint32_t mask = (1 << 30) - 1;
@@ -642,7 +618,7 @@ BLI_INLINE int dyntopo_thread_rand(int seed)
 
 static void unified_edge_queue_task_cb(void *__restrict userdata,
                                        const int n,
-                                       const TaskParallelTLS *__restrict tls)
+                                       const TaskParallelTLS *__restrict /*tls*/)
 {
   EdgeQueueThreadData *tdata = ((EdgeQueueThreadData *)userdata) + n;
   PBVH *pbvh = tdata->pbvh;
@@ -662,7 +638,7 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
 
 #if 1
 #  if 0
-  // try to be nice to branch predictor
+  /* Try to be nice to branch predictor. */
   int off = (seed = dyntopo_thread_rand(seed));
   int stepi = off & 65535;
 #  endif
@@ -865,7 +841,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
       continue;
     }
 
-    // detect new edges
+    /* Detect new edges. */
     BMLoop *l = f2->l_first;
     do {
       if (l->e->head.index == -1) {
@@ -1193,7 +1169,7 @@ static void edge_queue_init(EdgeQueueContext *eq_ctx,
 #endif
 }
 
-static bool edge_queue_test(EdgeQueueContext *eq_ctx, PBVH *pbvh, BMEdge *e)
+static bool edge_queue_test(EdgeQueueContext *eq_ctx, PBVH * /*pbvh*/, BMEdge *e)
 {
   float len = len_squared_v3v3(e->v1->co, e->v2->co);
   float min = eq_ctx->limit_len_min_sqr;
@@ -1323,7 +1299,7 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
       e->head.hflag &= ~BM_ELEM_TAG;
 
       if (e->l && e->l != e->l->radial_next->radial_next) {
-        // deal with non-manifold iffyness
+        /* Deal with non-manifold iffyness. */
         destroy_nonmanifold_fins(pbvh, e);
         push_subentry = true;
 
@@ -1342,14 +1318,6 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
       if (mv2->flag & SCULPTVERT_NEED_VALENCE) {
         BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, {(intptr_t)e->v2});
       }
-
-      // check_vert_fan_are_tris(pbvh, e->v1);
-      // check_vert_fan_are_tris(pbvh, e->v2);
-
-      // float w = -calc_weighted_edge_split(eq_ctx, e->v1, e->v2);
-      // float w2 = maskcb_get(eq_ctx, e);
-
-      // w *= w2 * w2;
 
       if (eq_ctx->use_view_normal && (dot_v3v3(e->v1->no, eq_ctx->view_normal) < 0.0f &&
                                       dot_v3v3(e->v2->no, eq_ctx->view_normal) < 0.0f)) {
@@ -1389,7 +1357,7 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
 
 static void short_edge_queue_task_cb_local(void *__restrict userdata,
                                            const int n,
-                                           const TaskParallelTLS *__restrict tls)
+                                           const TaskParallelTLS *__restrict /*tls*/)
 {
   EdgeQueueThreadData *tdata = ((EdgeQueueThreadData *)userdata) + n;
   PBVHNode *node = tdata->node;
@@ -1422,7 +1390,7 @@ static void short_edge_queue_task_cb_local(void *__restrict userdata,
 static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
                                     PBVH *pbvh,
                                     const float center[3],
-                                    const float view_normal[3],
+                                    const float /*view_normal*/[3],
                                     float radius,
                                     const bool use_frontface,
                                     const bool use_projected,
@@ -1464,7 +1432,6 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
   BLI_task_parallel_range(
       0, count, (void *)tdata.data(), short_edge_queue_task_cb_local, &settings);
 
-  const int cd_sculpt_vert = pbvh->cd_sculpt_vert;
   Vector<float> lens;
   Vector<BMEdge *> edges;
 
@@ -1523,7 +1490,7 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
     lens.append(len);
   }
 
-  // make sure tags around border edges are unmarked
+  /* Make sure tags around border edges are unmarked. */
   for (int i = 0; i < edges.size(); i++) {
     BMEdge *e = edges[i];
 
@@ -1539,14 +1506,14 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
     }
   }
 
-  // re-tag edge list
+  /* Re-tag edge list. */
   for (int i = 0; i < edges.size(); i++) {
     edges[i]->head.hflag |= BM_ELEM_TAG;
   }
 
   int totstep = 3;
 
-  // blur lengths
+  /* Blur edge lengths. */
   for (int step = 0; step < totstep; step++) {
     for (int i = 0; i < edges.size(); i++) {
       BMEdge *e = edges[i];
@@ -1582,12 +1549,8 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
 
   for (int i = 0; i < edges.size(); i++) {
     BMEdge *e = edges[i];
-    MSculptVert *mv1, *mv2;
 
     e->head.hflag &= ~BM_ELEM_TAG;
-
-    mv1 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, e->v1);
-    mv2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, e->v2);
 
     pbvh_check_vert_boundary(pbvh, e->v1);
     pbvh_check_vert_boundary(pbvh, e->v2);
@@ -1603,7 +1566,7 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
       continue;
     }
 
-    // check seam/sharp flags here
+    /* Check seam/sharp flags here. */
     // if (!(e->head.hflag & BM_ELEM_SMOOTH) || e->head.hflag & BM_ELEM_SEAM) {
     //  continue;
     // }
@@ -1628,9 +1591,6 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
 
   for (int i = 0; i < edges.size(); i++) {
     BMEdge *e = edges[i];
-
-    MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, e->v1);
-    MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, e->v2);
 
     int boundflag1 = BM_ELEM_CD_GET_INT(e->v1, pbvh->cd_boundary_flag);
     int boundflag2 = BM_ELEM_CD_GET_INT(e->v2, pbvh->cd_boundary_flag);
@@ -1669,28 +1629,22 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
   }
 }
 
-// need to file a CLANG bug, getting weird behavior here
-#ifdef __clang__
-__attribute__((optnone))
-#endif
-
-static bool
-cleanup_valence_3_4(EdgeQueueContext *ectx,
-                    PBVH *pbvh,
-                    const float center[3],
-                    const float view_normal[3],
-                    float radius,
-                    const bool use_frontface,
-                    const bool use_projected)
+static bool cleanup_valence_3_4(EdgeQueueContext *ectx,
+                                PBVH *pbvh,
+                                const float center[3],
+                                const float /*view_normal*/[3],
+                                float radius,
+                                const bool /*use_frontface*/,
+                                const bool /*use_projected*/)
 {
-  return false;  // XXX not working with local collapse/subdivide mode
+  return false; /* XXX not working with local collapse/subdivide mode. */
   bool modified = false;
 
   bm_logstack_push();
 
   bm_log_message("  == cleanup_valence_3_4 == ");
 
-  // push log subentry
+  /* Push log subentry. */
   BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
 
   float radius2 = radius * 1.25;
@@ -1703,7 +1657,6 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
   for (int i = 0; i < ectx->tot_used_verts; i++) {
     BMVert *v = ectx->used_verts[i];
 
-    // TGSET_ITER (v, ectx->used_verts) {
     if (bm_elem_is_free((BMElem *)v, BM_VERT)) {
       continue;
     }
@@ -1735,7 +1688,7 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
     validate_vert(pbvh, pbvh->header.bm, v, true, true);
 
 #if 0
-    // check valence again
+    /* Check valence again. */
     val = BM_vert_edge_count(v);
     if (val != 4 && val != 3) {
       printf("pbvh valence error\n");
@@ -1798,7 +1751,7 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
       }
 
       if (l->radial_next != l && l->radial_next->v == l->v) {
-        bad = true;  // bad normals
+        bad = true; /* Bad normals. */
         break;
       }
 
@@ -1813,7 +1766,7 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
           }
         }
 
-        // check for non-manifold edges
+        /* Check for non-manifold edges. */
         if (ls[k] != ls[k]->radial_next->radial_next) {
           bad = true;
           break;
@@ -1835,7 +1788,7 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
     if (ni < 0) {
       printf("cleanup_valence_3_4 error!\n");
 
-      // attempt to recover
+      /* Attempt to recover. */
 
       BMFace *f;
       BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
@@ -1878,8 +1831,9 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
     l = v->e->l;
 
     if (val == 4) {
-      // check which quad diagonal to use to split quad
-      // try to preserve hard edges
+      /* Check which quad diagonal to use to split quad;
+       * try to preserve hard edges.
+       */
 
       float n1[3], n2[3], th1, th2;
       normal_tri_v3(n1, ls[0]->v->co, ls[1]->v->co, ls[2]->v->co);
@@ -1930,9 +1884,6 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
 
       validate_face(pbvh, pbvh->header.bm, f1, false, false);
     }
-    else {
-      // printf("eek1!\n");
-    }
 
     BMFace *f2 = nullptr;
 
@@ -1965,8 +1916,10 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
 
       f2 = pbvh_bmesh_face_create(pbvh, n, vs, nullptr, example, true, false);
 
-      CustomData_bmesh_swap_data_simple(
-          &pbvh->header.bm->ldata, &f2->l_first->prev->head.data, &ls[3]->head.data);
+      CustomData_bmesh_swap_data_simple(&pbvh->header.bm->ldata,
+                                        &f2->l_first->prev->head.data,
+                                        &ls[3]->head.data,
+                                        pbvh->bm_idmap->cd_id_off[BM_LOOP]);
       CustomData_bmesh_copy_data(&pbvh->header.bm->ldata,
                                  &pbvh->header.bm->ldata,
                                  ls[0]->head.data,
@@ -1984,12 +1937,18 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
     }
 
     if (f1) {
-      CustomData_bmesh_swap_data_simple(
-          &pbvh->header.bm->ldata, &f1->l_first->head.data, &ls[0]->head.data);
-      CustomData_bmesh_swap_data_simple(
-          &pbvh->header.bm->ldata, &f1->l_first->next->head.data, &ls[1]->head.data);
-      CustomData_bmesh_swap_data_simple(
-          &pbvh->header.bm->ldata, &f1->l_first->prev->head.data, &ls[2]->head.data);
+      CustomData_bmesh_swap_data_simple(&pbvh->header.bm->ldata,
+                                        &f1->l_first->head.data,
+                                        &ls[0]->head.data,
+                                        pbvh->bm_idmap->cd_id_off[BM_LOOP]);
+      CustomData_bmesh_swap_data_simple(&pbvh->header.bm->ldata,
+                                        &f1->l_first->next->head.data,
+                                        &ls[1]->head.data,
+                                        pbvh->bm_idmap->cd_id_off[BM_LOOP]);
+      CustomData_bmesh_swap_data_simple(&pbvh->header.bm->ldata,
+                                        &f1->l_first->prev->head.data,
+                                        &ls[2]->head.data,
+                                        pbvh->bm_idmap->cd_id_off[BM_LOOP]);
 
       BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f1);
     }
@@ -2009,9 +1968,6 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
       }
     }
   }
-#ifdef DYNTOPO_USE_MINMAX_HEAP
-  // TGSET_ITER_END;
-#endif
 
   if (modified) {
     pbvh->header.bm->elem_index_dirty |= BM_VERT | BM_FACE | BM_EDGE;
@@ -2021,62 +1977,6 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
   bm_logstack_pop();
 
   return modified;
-}
-
-//#define DEFRAGMENT_MEMORY
-bool BM_defragment_vertex(BMesh *bm,
-                          BMVert *v,
-                          RNG *rand,
-                          void (*on_vert_swap)(BMVert *a, BMVert *b, void *userdata),
-                          void *userdata);
-
-typedef struct SwapData {
-  PBVH *pbvh;
-} SwapData;
-
-void pbvh_tribuf_swap_verts(
-    PBVH *pbvh, PBVHNode *node, PBVHNode *node2, PBVHTriBuf *tribuf, BMVert *v1, BMVert *v2)
-{
-
-  void *val;
-
-  bool ok = BLI_smallhash_remove_p(&tribuf->vertmap, (uintptr_t)v1, &val);
-
-  if (!ok) {
-    // printf("eek, missing vertex!");
-    return;
-  }
-
-  int idx = POINTER_AS_INT(val);
-
-  tribuf->verts[idx].i = (intptr_t)v2;
-
-  void **val2;
-  if (BLI_smallhash_ensure_p(&tribuf->vertmap, (intptr_t)v2, &val2)) {
-    // v2 was already in hash? add v1 back in then with v2's index
-
-    int idx2 = POINTER_AS_INT(*val2);
-    BLI_smallhash_insert(&tribuf->vertmap, (intptr_t)v1, POINTER_FROM_INT(idx2));
-  }
-
-  *val2 = POINTER_FROM_INT(idx);
-}
-
-void pbvh_node_tribuf_swap_verts(
-    PBVH *pbvh, PBVHNode *node, PBVHNode *node2, BMVert *v1, BMVert *v2)
-{
-  if (node != node2) {
-    BLI_table_gset_remove(node->bm_unique_verts, v1, nullptr);
-    BLI_table_gset_add(node->bm_unique_verts, v2);
-  }
-
-  if (node->tribuf) {
-    pbvh_tribuf_swap_verts(pbvh, node, node2, node->tribuf, v1, v2);
-  }
-
-  for (int i = 0; i < node->tot_tri_buffers; i++) {
-    pbvh_tribuf_swap_verts(pbvh, node, node2, node->tri_buffers + i, v1, v2);
-  }
 }
 
 static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx,
@@ -2135,7 +2035,7 @@ static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx,
   return modified;
 }
 
-float mask_cb_nop(PBVHVertRef vertex, void *userdata)
+float mask_cb_nop(PBVHVertRef /*vertex*/, void * /*userdata*/)
 {
   return 1.0f;
 }
@@ -2148,7 +2048,7 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                                float radius,
                                                const bool use_frontface,
                                                const bool use_projected,
-                                               int sym_axis,
+                                               int /*sym_axis*/,
                                                bool updatePBVH,
                                                DyntopoMaskCB mask_cb,
                                                void *mask_cb_data,
@@ -2290,8 +2190,9 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   }
 
 #ifdef SKINNY_EDGE_FIX
-  // prevent remesher thrashing by throttling edge splitting in pathological case of skinny
-  // edges
+  /* Prevent remesher thrashing by throttling edge splitting in pathological case of skinny
+   * edges.
+   */
   float avg_elen = eq_ctx.avg_elen;
   if (eq_ctx.totedge > 0.0f) {
     avg_elen /= eq_ctx.totedge;
@@ -2444,7 +2345,10 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
         // BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
         break;
       }
-      default:
+      case PBVH_LocalSubdivide:
+      case PBVH_LocalCollapse:
+      case PBVH_Cleanup:
+        BLI_assert_unreachable();
         break;
     }
 
@@ -2472,7 +2376,7 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   }
 
   if (modified) {
-    // avoid potential infinite loops
+    /* Avoid potential infinite loops. */
     const int totnode = pbvh->totnode;
 
     for (int i = 0; i < totnode; i++) {
@@ -2517,7 +2421,7 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   pbvh_bmesh_verify(pbvh);
 #endif
 
-  // ensure triangulations are all up to date
+  /* Ensure triangulations are all up to date. */
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;
 
@@ -3234,13 +3138,13 @@ DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
 
   pbvh->header.bm = bm;
 
-  pbvh->cd_vert_node_offset = CustomData_get_named_offset(
+  pbvh->cd_vert_node_offset = CustomData_get_offset_named(
       &bm->vdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_vertex));
 
-  pbvh->cd_face_node_offset = CustomData_get_named_offset(
+  pbvh->cd_face_node_offset = CustomData_get_offset_named(
       &bm->pdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_face));
 
-  pbvh->cd_face_area = CustomData_get_named_offset(
+  pbvh->cd_face_area = CustomData_get_offset_named(
       &bm->pdata, CD_PROP_FLOAT2, SCULPT_ATTRIBUTE_NAME(face_areas));
 
   pbvh->cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
@@ -3401,8 +3305,6 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
     BKE_pbvh_update_normals(ds->pbvh, nullptr);
 
     BM_ITER_MESH (v, &iter, ds->pbvh->header.bm, BM_VERTS_OF_MESH) {
-      MSculptVert *mv = BKE_PBVH_SCULPTVERT(ds->pbvh->cd_sculpt_vert, v);
-
       pbvh_check_vert_boundary(ds->pbvh, v);
       int boundflag = BM_ELEM_CD_GET_INT(v, ds->pbvh->cd_boundary_flag);
 
@@ -3425,7 +3327,6 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
       BMEdge *e = v->e;
       do {
         BMVert *v2 = BM_edge_other_vert(e, v);
-        MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(ds->pbvh->cd_sculpt_vert, v2);
 
         pbvh_check_vert_boundary(ds->pbvh, v2);
         int boundflag2 = BM_ELEM_CD_GET_INT(v2, ds->pbvh->cd_boundary_flag);
@@ -3498,7 +3399,7 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
     return;
   }
 
-  // look for node in surrounding geometry
+  /* Look for node in surrounding geometry. */
   BMLoop *l = f->l_first;
   do {
     ni = BM_ELEM_CD_GET_INT(l->radial_next->f, pbvh->cd_face_node_offset);

@@ -65,9 +65,7 @@ class AdjacencyIterator : public Iterator {
     return *this;
   }
 
-  virtual ~AdjacencyIterator()
-  {
-  }
+  virtual ~AdjacencyIterator() {}
 
   virtual string getExactTypeName() const
   {
@@ -269,9 +267,7 @@ class ChainSilhouetteIterator : public ChainingIterator {
   }
 
   /** Copy constructor */
-  ChainSilhouetteIterator(const ChainSilhouetteIterator &brother) : ChainingIterator(brother)
-  {
-  }
+  ChainSilhouetteIterator(const ChainSilhouetteIterator &brother) : ChainingIterator(brother) {}
 
   /** Returns the string "ChainSilhouetteIterator" */
   virtual string getExactTypeName() const

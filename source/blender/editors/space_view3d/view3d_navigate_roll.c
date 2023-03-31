@@ -277,12 +277,6 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_FINISHED;
 }
 
-static void viewroll_cancel(bContext *C, wmOperator *op)
-{
-  viewops_data_free(C, op->customdata);
-  op->customdata = NULL;
-}
-
 void VIEW3D_OT_view_roll(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -297,7 +291,7 @@ void VIEW3D_OT_view_roll(wmOperatorType *ot)
   ot->exec = viewroll_exec;
   ot->modal = viewroll_modal;
   ot->poll = ED_operator_rv3d_user_region_poll;
-  ot->cancel = viewroll_cancel;
+  ot->cancel = view3d_navigate_cancel_fn;
 
   /* flags */
   ot->flag = 0;

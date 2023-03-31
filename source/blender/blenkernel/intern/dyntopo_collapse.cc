@@ -135,76 +135,6 @@ inline bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
   return false;
 }
 
-/* Faces *outside* the ring region are tagged with facetag, used to detect
- * border edges.
- */
-static void vert_ring_do_tag(BMVert *v, int tag, int facetag, int depth)
-{
-
-  BMEdge *e = v->e;
-  do {
-    BMVert *v2 = BM_edge_other_vert(e, v);
-
-    if (depth > 0) {
-      vert_ring_do_tag(v2, tag, facetag, depth - 1);
-    }
-
-    e->head.hflag |= tag;
-    v2->head.hflag |= tag;
-
-    if (!e->l) {
-      continue;
-    }
-
-    BMLoop *l = e->l;
-    do {
-      l->f->head.hflag |= tag;
-
-      BMLoop *l2 = l;
-      do {
-        l2->v->head.hflag |= tag;
-        l2->e->head.hflag |= tag;
-        l2->f->head.hflag |= tag;
-
-        /*set up face tags for faces outside this region*/
-        BMLoop *l3 = l2->radial_next;
-
-        do {
-          l3->f->head.hflag |= facetag;
-        } while ((l3 = l3->radial_next) != l2);
-
-      } while ((l2 = l2->next) != l);
-    } while ((l = l->radial_next) != e->l);
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-}
-
-static void vert_ring_untag_inner_faces(BMVert *v, int tag, int facetag, int depth)
-{
-  if (!v->e) {
-    return;
-  }
-
-  BMEdge *e = v->e;
-
-  /* untag faces inside this region with facetag */
-  do {
-    BMLoop *l = e->l;
-
-    if (depth > 0) {
-      BMVert *v2 = BM_edge_other_vert(e, v);
-      vert_ring_untag_inner_faces(v2, tag, facetag, depth - 1);
-    }
-
-    if (!l) {
-      continue;
-    }
-
-    do {
-      l->f->head.hflag &= ~facetag;
-    } while ((l = l->radial_next) != e->l);
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-}
-
 void vert_ring_do_apply(BMVert *v,
                         std::function<void(BMElem *elem, void *userdata)> callback,
                         void *userdata,
@@ -299,7 +229,7 @@ static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
 
 static void check_new_elem_id(BMElem *elem, TraceData *data)
 {
-  int id = BM_ELEM_CD_GET_INT(elem, data->pbvh->bm_idmap->cd_id_off[elem->head.htype]);
+  int id = BM_ELEM_CD_GET_INT(elem, data->pbvh->bm_idmap->cd_id_off[int(elem->head.htype)]);
   if (id != BM_ID_NONE) {
     BMElem *existing = id < data->pbvh->bm_idmap->map_size ?
                            BM_idmap_lookup(data->pbvh->bm_idmap, id) :
@@ -354,31 +284,13 @@ static void collapse_ring_callback_post(BMElem *elem, void *userdata)
   }
 }
 
-static void edge_ring_do_old(BMEdge *e,
-                             std::function<void(BMElem *elem, void *userdata)> callback,
-                             void *userdata,
-                             int tag,
-                             int facetag,
-                             int depth)
-{
-
-  vert_ring_do_tag(e->v1, tag, facetag, depth);
-  vert_ring_do_tag(e->v2, tag, facetag, depth);
-
-  vert_ring_untag_inner_faces(e->v1, tag, facetag, depth);
-  vert_ring_untag_inner_faces(e->v2, tag, facetag, depth);
-
-  vert_ring_do_apply(e->v1, callback, userdata, tag, facetag, depth);
-  vert_ring_do_apply(e->v2, callback, userdata, tag, facetag, depth);
-}
-
 static void vert_ring_do(BMVert *v,
                          BMVert *v_extra,
                          void (*callback)(BMElem *elem, void *userdata),
                          void *userdata,
-                         int tag,
-                         int facetag,
-                         int depth)
+                         int /*tag*/,
+                         int /*facetag*/,
+                         int /*depth*/)
 {
   blender::Set<BMFace *, 128> faces;
 
@@ -469,12 +381,10 @@ static void vert_ring_do(BMVert *v,
 }
 
 bool pbvh_bmesh_collapse_edge_uvs(
-    PBVH *pbvh, BMEdge *e, BMVert *v_conn, BMVert *v_del, EdgeQueueContext *eq_ctx)
+    PBVH *pbvh, BMEdge *e, BMVert *v_conn, BMVert *v_del, EdgeQueueContext * /*eq_ctx*/)
 {
   bm_logstack_push();
 
-  MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v_conn);
-  MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v_del);
   int boundflag1 = BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_boundary_flag);
   int boundflag2 = BM_ELEM_CD_GET_INT(v_del, pbvh->cd_boundary_flag);
 
@@ -633,7 +543,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
                                  BMVert *v1,
                                  BMVert *v2,
                                  GHash *deleted_verts,
-                                 BLI_Buffer *deleted_faces,
+                                 BLI_Buffer * /*deleted_faces*/,
                                  EdgeQueueContext *eq_ctx)
 {
   bm_logstack_push();

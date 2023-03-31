@@ -779,7 +779,7 @@ IDProperty *IDP_CopyProperty(const IDProperty *prop)
   return IDP_CopyProperty_ex(prop, 0);
 }
 
-void IDP_CopyPropertyContent(IDProperty *dst, IDProperty *src)
+void IDP_CopyPropertyContent(IDProperty *dst, const IDProperty *src)
 {
   IDProperty *idprop_tmp = IDP_CopyProperty(src);
   idprop_tmp->prev = dst->prev;
@@ -805,7 +805,9 @@ IDProperty *IDP_GetProperties(ID *id, const bool create_if_needed)
   return id->properties;
 }
 
-bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is_strict)
+bool IDP_EqualsProperties_ex(const IDProperty *prop1,
+                             const IDProperty *prop2,
+                             const bool is_strict)
 {
   if (prop1 == NULL && prop2 == NULL) {
     return true;
@@ -859,8 +861,8 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
         return false;
       }
 
-      LISTBASE_FOREACH (IDProperty *, link1, &prop1->data.group) {
-        IDProperty *link2 = IDP_GetPropertyFromGroup(prop2, link1->name);
+      LISTBASE_FOREACH (const IDProperty *, link1, &prop1->data.group) {
+        const IDProperty *link2 = IDP_GetPropertyFromGroup(prop2, link1->name);
 
         if (!IDP_EqualsProperties_ex(link1, link2, is_strict)) {
           return false;
@@ -870,8 +872,8 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
       return true;
     }
     case IDP_IDPARRAY: {
-      IDProperty *array1 = IDP_IDPArray(prop1);
-      IDProperty *array2 = IDP_IDPArray(prop2);
+      const IDProperty *array1 = IDP_IDPArray(prop1);
+      const IDProperty *array2 = IDP_IDPArray(prop2);
 
       if (prop1->len != prop2->len) {
         return false;
@@ -894,7 +896,7 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
   return true;
 }
 
-bool IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
+bool IDP_EqualsProperties(const IDProperty *prop1, const IDProperty *prop2)
 {
   return IDP_EqualsProperties_ex(prop1, prop2, true);
 }

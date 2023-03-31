@@ -1540,7 +1540,9 @@ static bool ui_but_event_property_operator_string(const bContext *C,
 
 /** \} */
 
-/**
+/* -------------------------------------------------------------------- */
+/** \name Pie Menu Direction
+ *
  * This goes in a seemingly weird pattern:
  *
  * <pre>
@@ -1564,7 +1566,8 @@ static bool ui_but_event_property_operator_string(const bContext *C,
  * subdividing the rest of the angles for the last 4 items.
  *
  * --Matt 07/2006
- */
+ * \{ */
+
 const char ui_radial_dir_order[8] = {
     UI_RADIAL_W,
     UI_RADIAL_E,
@@ -1584,6 +1587,8 @@ static void ui_but_pie_direction_string(uiBut *but, char *buf, int size)
   BLI_assert(but->pie_dir < ARRAY_SIZE(ui_radial_dir_to_numpad));
   BLI_snprintf(buf, size, "%d", ui_radial_dir_to_numpad[but->pie_dir]);
 }
+
+/** \} */
 
 static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 {

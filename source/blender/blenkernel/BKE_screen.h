@@ -559,6 +559,7 @@ bool BKE_screen_area_map_blend_read_data(struct BlendDataReader *reader,
                                          struct ScrAreaMap *area_map);
 /**
  * And as patch for 2.48 and older.
+ * For the saved 2.50 files without `regiondata`.
  */
 void BKE_screen_view3d_do_versions_250(struct View3D *v3d, ListBase *regions);
 void BKE_screen_area_blend_read_lib(struct BlendLibReader *reader,

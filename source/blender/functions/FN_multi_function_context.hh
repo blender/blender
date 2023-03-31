@@ -25,9 +25,7 @@ class ContextBuilder {
 
 class Context {
  public:
-  Context(ContextBuilder & /*builder*/)
-  {
-  }
+  Context(ContextBuilder & /*builder*/) {}
 };
 
 }  // namespace blender::fn::multi_function

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spview3d
@@ -330,9 +330,7 @@ static void view3d_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void view3d_init(wmWindowManager * /*wm*/, ScrArea * /*area*/)
-{
-}
+static void view3d_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static void view3d_exit(wmWindowManager * /*wm*/, ScrArea *area)
 {

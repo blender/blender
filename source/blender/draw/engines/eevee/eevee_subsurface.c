@@ -19,9 +19,7 @@
 
 #include "eevee_private.h"
 
-void EEVEE_subsurface_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *UNUSED(vedata))
-{
-}
+void EEVEE_subsurface_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *UNUSED(vedata)) {}
 
 void EEVEE_subsurface_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
