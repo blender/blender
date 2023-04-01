@@ -2307,7 +2307,7 @@ typedef enum eSnapMode {
 /* Due to dependency conflicts with Cycles, header cannot directly include `BLI_utildefines.h`. */
 /* TODO: move this macro to a more general place. */
 #ifdef ENUM_OPERATORS
-ENUM_OPERATORS(eSnapMode, SCE_SNAP_MODE_GRID)
+ENUM_OPERATORS(eSnapMode, SCE_SNAP_MODE_FACE_NEAREST)
 #endif
 
 #define SCE_SNAP_MODE_GEOM \

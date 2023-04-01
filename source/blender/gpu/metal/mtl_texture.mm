@@ -1041,14 +1041,17 @@ void gpu::MTLTexture::update_sub(
       if (texture_.storageMode == MTLStorageModeManaged) {
         [blit_encoder synchronizeResource:texture_];
       }
+      [blit_encoder optimizeContentsForGPUAccess:texture_];
     }
     else {
       /* Textures which use MTLStorageModeManaged need to have updated contents
        * synced back to CPU to avoid an automatic flush overwriting contents. */
+      blit_encoder = ctx->main_command_buffer.ensure_begin_blit_encoder();
       if (texture_.storageMode == MTLStorageModeManaged) {
-        blit_encoder = ctx->main_command_buffer.ensure_begin_blit_encoder();
+
         [blit_encoder synchronizeResource:texture_];
       }
+      [blit_encoder optimizeContentsForGPUAccess:texture_];
     }
 
     /* Decrement texture reference counts. This ensures temporary texture views are released. */
@@ -1110,6 +1113,7 @@ void MTLTexture::update_sub(int offset[3],
     if (texture_.storageMode == MTLStorageModeManaged) {
       [blit_encoder synchronizeResource:texture_];
     }
+    [blit_encoder optimizeContentsForGPUAccess:texture_];
   }
   else {
     BLI_assert(false);
@@ -1230,6 +1234,7 @@ void gpu::MTLTexture::copy_to(Texture *dst)
         BLI_assert(mt_dst->d_ == d_);
         [blit_encoder copyFromTexture:this->get_metal_handle_base()
                             toTexture:mt_dst->get_metal_handle_base()];
+        [blit_encoder optimizeContentsForGPUAccess:mt_dst->get_metal_handle_base()];
       } break;
       default: {
         int slice = 0;

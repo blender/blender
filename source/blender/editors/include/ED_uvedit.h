@@ -361,12 +361,6 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
                             const float aspect_y,
                             BMUVOffsets offsets);
 
-struct UVMapUDIM_Params {
-  const struct Image *image;
-  /** Copied from #SpaceImage.tile_grid_shape */
-  int grid_shape[2];
-};
-
 /**
  * Returns true if UV coordinates lie on a valid tile in UDIM grid or tiled image.
  */

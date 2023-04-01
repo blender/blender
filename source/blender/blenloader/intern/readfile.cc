@@ -2271,19 +2271,6 @@ static int lib_link_main_data_restore_cb(LibraryIDLinkCallbackData *cb_data)
     return IDWALK_RET_NOP;
   }
 
-  /* Special ugly case here, thanks again for those non-IDs IDs... */
-  /* We probably need to add more cases here (hint: nodetrees),
-   * but will wait for changes from D5559 to get in first. */
-  if (GS((*id_pointer)->name) == ID_GR) {
-    Collection *collection = reinterpret_cast<Collection *>(*id_pointer);
-    if (collection->flag & COLLECTION_IS_MASTER) {
-      /* We should never reach that point anymore, since master collection private ID should be
-       * properly tagged with IDWALK_CB_EMBEDDED. */
-      BLI_assert_unreachable();
-      return IDWALK_RET_NOP;
-    }
-  }
-
   IDNameLib_Map *id_map = static_cast<IDNameLib_Map *>(cb_data->user_data);
 
   /* NOTE: Handling of user-count here is really bad, defining its own system...

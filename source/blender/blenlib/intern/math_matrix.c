@@ -1101,8 +1101,8 @@ double determinant_m3_array_db(const double m[3][3])
 
 bool invert_m2_m2(float inverse[2][2], const float mat[2][2])
 {
+  const float det = determinant_m2(mat[0][0], mat[1][0], mat[0][1], mat[1][1]);
   adjoint_m2_m2(inverse, mat);
-  float det = determinant_m2(mat[0][0], mat[1][0], mat[0][1], mat[1][1]);
 
   bool success = (det != 0.0f);
   if (success) {
@@ -1957,11 +1957,15 @@ void normalize_m4_m4(float rmat[4][4], const float mat[4][4])
 
 void adjoint_m2_m2(float R[2][2], const float M[2][2])
 {
-  BLI_assert(R != M);
-  R[0][0] = M[1][1];
-  R[0][1] = -M[0][1];
-  R[1][0] = -M[1][0];
-  R[1][1] = M[0][0];
+  const float r00 = M[1][1];
+  const float r01 = -M[0][1];
+  const float r10 = -M[1][0];
+  const float r11 = M[0][0];
+
+  R[0][0] = r00;
+  R[0][1] = r01;
+  R[1][0] = r10;
+  R[1][1] = r11;
 }
 
 void adjoint_m3_m3(float R[3][3], const float M[3][3])
@@ -2026,9 +2030,8 @@ void adjoint_m4_m4(float R[4][4], const float M[4][4]) /* out = ADJ(in) */
   R[3][3] = determinant_m3(a1, a2, a3, b1, b2, b3, c1, c2, c3);
 }
 
-float determinant_m2(float a, float b, float c, float d)
+float determinant_m2(const float a, const float b, const float c, const float d)
 {
-
   return a * d - b * c;
 }
 

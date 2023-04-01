@@ -468,6 +468,40 @@ struct CartesianBasis {
                           from_orthonormal_axes(b_forward, b_up));
 }
 
+template<typename T>
+[[nodiscard]] inline VecBase<T, 3> transform_point(const CartesianBasis &basis,
+                                                   const VecBase<T, 3> &v)
+{
+  VecBase<T, 3> result;
+  result[basis.x().axis().as_int()] = basis.x().is_negative() ? -v[0] : v[0];
+  result[basis.y().axis().as_int()] = basis.y().is_negative() ? -v[1] : v[1];
+  result[basis.z().axis().as_int()] = basis.z().is_negative() ? -v[2] : v[2];
+  return result;
+}
+
+/**
+ * Return the inverse transformation represented by the given basis.
+ * This is conceptually the equivalent to a rotation matrix transpose, but much faster.
+ */
+[[nodiscard]] inline CartesianBasis invert(const CartesianBasis &basis)
+{
+  /* Returns the column where the `axis` is found in. The sign is taken from the axis value. */
+  auto search_axis = [](const CartesianBasis &basis, const Axis axis) {
+    if (basis.x().axis() == axis) {
+      return basis.x().is_negative() ? AxisSigned::X_NEG : AxisSigned::X_POS;
+    }
+    if (basis.y().axis() == axis) {
+      return basis.y().is_negative() ? AxisSigned::Y_NEG : AxisSigned::Y_POS;
+    }
+    return basis.z().is_negative() ? AxisSigned::Z_NEG : AxisSigned::Z_POS;
+  };
+  CartesianBasis result;
+  result.x() = search_axis(basis, Axis::X);
+  result.y() = search_axis(basis, Axis::Y);
+  result.z() = search_axis(basis, Axis::Z);
+  return result;
+}
+
 /** \} */
 
 }  // namespace blender::math

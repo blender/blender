@@ -394,6 +394,7 @@ if(WITH_BOOST)
       list(APPEND __boost_packages python${PYTHON_VERSION_NO_DOTS})
     endif()
     list(APPEND __boost_packages system)
+    set(Boost_NO_WARN_NEW_VERSIONS ON)
     find_package(Boost 1.48 COMPONENTS ${__boost_packages})
     if(NOT Boost_FOUND)
       # try to find non-multithreaded if -mt not found, this flag

@@ -185,17 +185,17 @@ struct IDProperty *IDP_CopyProperty_ex(const struct IDProperty *prop,
  * Copy content from source #IDProperty into destination one,
  * freeing destination property's content first.
  */
-void IDP_CopyPropertyContent(struct IDProperty *dst, struct IDProperty *src) ATTR_NONNULL();
+void IDP_CopyPropertyContent(struct IDProperty *dst, const struct IDProperty *src) ATTR_NONNULL();
 
 /**
  * \param is_strict: When false treat missing items as a match.
  */
-bool IDP_EqualsProperties_ex(struct IDProperty *prop1,
-                             struct IDProperty *prop2,
+bool IDP_EqualsProperties_ex(const struct IDProperty *prop1,
+                             const struct IDProperty *prop2,
                              bool is_strict) ATTR_WARN_UNUSED_RESULT;
 
-bool IDP_EqualsProperties(struct IDProperty *prop1,
-                          struct IDProperty *prop2) ATTR_WARN_UNUSED_RESULT;
+bool IDP_EqualsProperties(const struct IDProperty *prop1,
+                          const struct IDProperty *prop2) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Allocate a new ID.
