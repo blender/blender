@@ -164,30 +164,30 @@ void BKE_material_defaults_free_gpu()
 /** \name Stubs of BKE_customdata.h
  * \{ */
 
-int CustomData_get_offset(const struct CustomData * /*data*/, int /*type*/)
+int CustomData_get_offset(const struct CustomData * /*data*/, eCustomDataType /*type*/)
 {
   BLI_assert_unreachable();
   return 0;
 }
 
 int CustomData_get_named_layer_index(const struct CustomData * /*data*/,
-                                     int /*type*/,
+                                     eCustomDataType /*type*/,
                                      const char * /*name*/)
 {
   return -1;
 }
 
-int CustomData_get_active_layer_index(const struct CustomData * /*data*/, int /*type*/)
+int CustomData_get_active_layer_index(const struct CustomData * /*data*/, eCustomDataType /*type*/)
 {
   return -1;
 }
 
-int CustomData_get_render_layer_index(const struct CustomData * /*data*/, int /*type*/)
+int CustomData_get_render_layer_index(const struct CustomData * /*data*/, eCustomDataType /*type*/)
 {
   return -1;
 }
 
-bool CustomData_has_layer(const struct CustomData * /*data*/, int /*type*/)
+bool CustomData_has_layer(const struct CustomData * /*data*/, eCustomDataType /*type*/)
 {
   return false;
 }
