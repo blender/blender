@@ -213,6 +213,7 @@ class UVAABBIsland {
   float2 uv_placement;
   int64_t index;
   float angle;
+  float aspect_y;
 };
 
 /**
@@ -767,8 +768,9 @@ static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
 
   /* Visit every island in order. */
   for (UVAABBIsland *island : islands) {
-    float min_dsm = std::min(island->uv_diagonal.x, island->uv_diagonal.y);
-    float max_dsm = std::max(island->uv_diagonal.x, island->uv_diagonal.y);
+    const float uvdiag_x = island->uv_diagonal.x * island->aspect_y;
+    float min_dsm = std::min(uvdiag_x, island->uv_diagonal.y);
+    float max_dsm = std::max(uvdiag_x, island->uv_diagonal.y);
 
     if (min_dsm < hole_diagonal.x && max_dsm < hole_diagonal.y) {
       /* Place island in the hole. */
@@ -776,20 +778,20 @@ static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
       island->uv_placement.y = hole[1];
       if (hole_rotate == (min_dsm == island->uv_diagonal.x)) {
         island->angle = DEG2RADF(90.0f);
-        island->uv_placement.x += max_dsm * 0.5f;
-        island->uv_placement.y += min_dsm * 0.5f;
+        island->uv_placement.x += island->uv_diagonal.y * 0.5f / island->aspect_y;
+        island->uv_placement.y += island->uv_diagonal.x * 0.5f * island->aspect_y;
       }
       else {
         island->angle = 0.0f;
-        island->uv_placement.x += min_dsm * 0.5f;
-        island->uv_placement.y += max_dsm * 0.5f;
+        island->uv_placement.x += island->uv_diagonal.x * 0.5f;
+        island->uv_placement.y += island->uv_diagonal.y * 0.5f;
       }
 
       /* Update space left in the hole. */
       float p[6];
       p[0] = hole[0];
       p[1] = hole[1];
-      p[2] = hole[0] + (hole_rotate ? max_dsm : min_dsm);
+      p[2] = hole[0] + (hole_rotate ? max_dsm : min_dsm) / island->aspect_y;
       p[3] = hole[1] + (hole_rotate ? min_dsm : max_dsm);
       p[4] = hole[0] + (hole_rotate ? hole_diagonal.y : hole_diagonal.x);
       p[5] = hole[1] + (hole_rotate ? hole_diagonal.x : hole_diagonal.y);
@@ -806,7 +808,7 @@ static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
       restart = (next_v1 < v0 + min_dsm);
     }
     else {
-      restart = (next_u1 < u0 + min_dsm);
+      restart = (next_u1 < u0 + min_dsm / island->aspect_y);
     }
     if (restart) {
       update_hole_rotate(hole, hole_diagonal, hole_rotate, u0, v0, next_u1, next_v1);
@@ -819,27 +821,27 @@ static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
     /* Place the island. */
     island->uv_placement.x = u0;
     island->uv_placement.y = v0;
-    if (zigzag == (min_dsm == island->uv_diagonal.x)) {
+    if (zigzag == (min_dsm == uvdiag_x)) {
       island->angle = DEG2RADF(90.0f);
-      island->uv_placement.x += max_dsm * 0.5f;
-      island->uv_placement.y += min_dsm * 0.5f;
+      island->uv_placement.x += island->uv_diagonal.y * 0.5f / island->aspect_y;
+      island->uv_placement.y += island->uv_diagonal.x * 0.5f * island->aspect_y;
     }
     else {
       island->angle = 0.0f;
-      island->uv_placement.x += min_dsm * 0.5f;
-      island->uv_placement.y += max_dsm * 0.5f;
+      island->uv_placement.x += island->uv_diagonal.x * 0.5f;
+      island->uv_placement.y += island->uv_diagonal.y * 0.5f;
     }
 
     /* Move according to the "Alpaca rules", with rotation. */
     if (zigzag) {
       /* Move upwards. */
       v0 += min_dsm;
-      next_u1 = max_ff(next_u1, u0 + max_dsm);
+      next_u1 = max_ff(next_u1, u0 + max_dsm / island->aspect_y);
       next_v1 = max_ff(next_v1, v0);
     }
     else {
       /* Move sideways. */
-      u0 += min_dsm;
+      u0 += min_dsm / island->aspect_y;
       next_v1 = max_ff(next_v1, v0 + max_dsm);
       next_u1 = max_ff(next_u1, u0);
     }
@@ -879,9 +881,6 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
    * - Combine results.
    */
 
-  /* Workaround bug in #pack_islands_alpaca_rotate with non-square islands. */
-  bool contains_non_square_islands = false;
-
   /* First, copy information from our input into the AABB structure. */
   Array<UVAABBIsland *> aabbs(islands.size());
   for (const int64_t i : islands.index_range()) {
@@ -890,10 +889,8 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
     aabb->index = i;
     aabb->uv_diagonal.x = pack_island->half_diagonal_.x * 2 * scale + 2 * margin;
     aabb->uv_diagonal.y = pack_island->half_diagonal_.y * 2 * scale + 2 * margin;
+    aabb->aspect_y = pack_island->aspect_y;
     aabbs[i] = aabb;
-    if (pack_island->aspect_y != 1.0f) {
-      contains_non_square_islands = true;
-    }
   }
 
   /* Sort from "biggest" to "smallest". */
@@ -901,9 +898,9 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   if (params.rotate) {
     std::stable_sort(aabbs.begin(), aabbs.end(), [](const UVAABBIsland *a, const UVAABBIsland *b) {
       /* Choose the AABB with the longest large edge. */
-      float a_u = a->uv_diagonal.x;
+      float a_u = a->uv_diagonal.x * a->aspect_y;
       float a_v = a->uv_diagonal.y;
-      float b_u = b->uv_diagonal.x;
+      float b_u = b->uv_diagonal.x * b->aspect_y;
       float b_v = b->uv_diagonal.y;
       if (a_u > a_v) {
         std::swap(a_u, a_v);
@@ -967,7 +964,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   /* At this stage, `max_u` and `max_v` contain the box_pack/xatlas UVs. */
 
   /* Call Alpaca. */
-  if (params.rotate && !contains_non_square_islands) {
+  if (params.rotate) {
     pack_islands_alpaca_rotate(
         aabbs.as_mutable_span().drop_front(max_box_pack), params.target_aspect_y, &max_u, &max_v);
   }
