@@ -753,7 +753,8 @@ def dump_py_messages(msgs, reports, addons, settings, addons_only=False):
             return []
         if os.path.isdir(path):
             return [os.path.join(dpath, fn) for dpath, _, fnames in os.walk(path) for fn in fnames
-                    if not fn.startswith("_") and fn.endswith(".py")]
+                    if fn.endswith(".py") and (fn == "__init__.py"
+                                               or not fn.startswith("_"))]
         return [path]
 
     files = []
