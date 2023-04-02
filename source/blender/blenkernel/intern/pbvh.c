@@ -1134,10 +1134,6 @@ PBVH *BKE_pbvh_new(PBVHType type)
 
 void BKE_pbvh_free(PBVH *pbvh)
 {
-#ifdef WITH_PBVH_CACHE
-  BKE_pbvh_cache_remove(pbvh);
-#endif
-
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = &pbvh->nodes[i];
 
@@ -1798,7 +1794,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   CustomDataLayer *vcol_layer = NULL;
   eAttrDomain vcol_domain;
 
-  BKE_pbvh_get_color_layer(me, &vcol_layer, &vcol_domain);
+  BKE_pbvh_get_color_layer(pbvh, me, &vcol_layer, &vcol_domain);
 
   CustomData *vdata, *ldata;
 
@@ -4305,9 +4301,7 @@ void BKE_pbvh_free_proxyarray(PBVH *pbvh, PBVHNode *node)
   memset(p, 0, sizeof(*p));
 }
 
-void BKE_pbvh_update_proxyvert(PBVH *pbvh, PBVHNode *node, ProxyVertUpdateRec *rec)
-{
-}
+void BKE_pbvh_update_proxyvert(PBVH *pbvh, PBVHNode *node, ProxyVertUpdateRec *rec) {}
 
 ProxyVertArray *BKE_pbvh_get_proxyarrays(PBVH *pbvh, PBVHNode *node)
 {
@@ -5102,14 +5096,6 @@ void BKE_pbvh_invalidate_cache(Object *ob)
 
   char key[PBVH_CACHE_KEY_SIZE];
   pbvh_make_cached_key(ob_orig, key);
-
-#ifdef WITH_PBVH_CACHE
-  PBVH *pbvh = BLI_ghash_lookup(cached_pbvhs, key);
-
-  if (pbvh) {
-    BKE_pbvh_cache_remove(pbvh);
-  }
-#endif
 }
 
 PBVH *BKE_pbvh_get_or_free_cached(Object *ob, Mesh *me, PBVHType pbvh_type)
@@ -5288,17 +5274,6 @@ void BKE_pbvh_free_bmesh(PBVH *pbvh, BMesh *bm)
 BMLog *BKE_pbvh_get_bm_log(PBVH *pbvh)
 {
   return pbvh->bm_log;
-}
-
-void BKE_pbvh_system_init()
-{
-  cached_pbvhs = BLI_ghash_str_new("pbvh cache ghash");
-}
-
-void BKE_pbvh_system_exit()
-{
-  pbvh_clear_cached_pbvhs(NULL);
-  BLI_ghash_free(cached_pbvhs, NULL, NULL);
 }
 
 SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me)
@@ -5604,7 +5579,7 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
       }
 
       /* TODO: BMesh doesn't yet use .hide_poly. */
-      fd->hide = nullptr; 
+      fd->hide = nullptr;
 
       pbvh_face_iter_verts_reserve(fd, f->len);
       int vertex_i = 0;

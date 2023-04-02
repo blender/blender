@@ -354,12 +354,8 @@ BLI_INLINE bool BLI_ghashIterator_done(const GHashIterator *ghi)
 
 typedef struct GSet GSet;
 
-struct SmallHash;
-
-#include "BLI_smallhash.h"
-
 typedef struct TableGSet {
-  struct SmallHash ptr_to_idx;
+  void *ptr_to_idx;
   void **elems;
   int size, length;
   int cur;

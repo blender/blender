@@ -1916,7 +1916,7 @@ static BMOpDefine bmo_inset_individual_def = {
   },
   bmo_inset_individual_exec,
   /* caller needs to handle BMO_OPTYPE_FLAG_SELECT_FLUSH */
-  (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_UNTAN_MULTIRES),
+  (BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
 /*
@@ -1945,7 +1945,7 @@ static BMOpDefine bmo_inset_region_def = {
   },
   bmo_inset_region_exec,
   (BMO_OPTYPE_FLAG_NORMALS_CALC |
-   BMO_OPTYPE_FLAG_SELECT_FLUSH | BMO_OPTYPE_FLAG_UNTAN_MULTIRES),
+   BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
 /*

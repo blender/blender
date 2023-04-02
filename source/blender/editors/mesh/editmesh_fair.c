@@ -86,15 +86,6 @@ static EnumPropertyItem prop_edit_mesh_fair_selection_mode_items[] = {
         "Tangency",
         "Fair tangency",
     },
-    /*
-    {
-        MESH_FAIRING_DEPTH_CURVATURE,
-        "CURVATURE",
-        0,
-        "Curvature",
-        "Fair curvature",
-    },
-    */
     {0, NULL, 0, NULL, NULL},
 };
 

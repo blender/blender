@@ -341,7 +341,6 @@ void CustomData_copy_data_named(const struct CustomData *source,
                                 int dest_index,
                                 int count);
 
-// ignores CD_MESH_ID layer if it exists
 void CustomData_bmesh_swap_data(struct CustomData *source,
                                 struct CustomData *dest,
                                 void *src_block,
@@ -833,17 +832,6 @@ void CustomData_regen_active_refs(CustomData *data);
 
 void CustomData_bmesh_asan_poison(const CustomData *data, void *block);
 void CustomData_bmesh_asan_unpoison(const CustomData *data, void *block);
-
-void CustomData_setDefaultData(eCustomDataType type, void *block, int totelem);
-size_t CustomData_getTypeSize(eCustomDataType type);
-void CustomData_freeData(eCustomDataType type, void *block, int totelem);
-void CustomData_interpData(eCustomDataType type,
-                           void *block,
-                           int tot,
-                           const void **srcs,
-                           const float *ws,
-                           const float *sub_ws);
-size_t CustomData_get_elem_size(const struct CustomDataLayer *layer);
 
 #ifndef NDEBUG
 struct DynStr;

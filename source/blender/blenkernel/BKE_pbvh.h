@@ -18,6 +18,8 @@
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
 
+#include "BLI_smallhash.h"
+
 #include <stdint.h>
 
 //#define DEFRAGMENT_MEMORY
@@ -43,8 +45,6 @@ typedef struct SculptLoopRef {
 #ifdef DEFRAGMENT_MEMORY
 #  include "BLI_smallhash.h"
 #endif
-
-//#define WITH_PBVH_CACHE
 
 struct BMesh;
 struct BMVert;
@@ -1071,7 +1071,13 @@ bool *BKE_pbvh_get_vert_hide_for_write(PBVH *pbvh);
 
 const bool *BKE_pbvh_get_poly_hide(const PBVH *pbvh);
 
-bool BKE_pbvh_get_color_layer(const struct Mesh *me,
+/* Get active color attribute; if pbvh is non-null
+ * and is of type PBVH_BMESH the layer inside of
+ * pbvh->header.bm will be returned, otherwise the
+ * layer will be looked up inside of me.
+ */
+bool BKE_pbvh_get_color_layer(const PBVH *pbvh,
+                              const struct Mesh *me,
                               CustomDataLayer **r_layer,
                               eAttrDomain *r_attr);
 
@@ -1399,17 +1405,6 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
 void BKE_pbvh_set_vemap(PBVH *pbvh, struct MeshElemMap *vemap);
 
 void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value);
-bool BKE_pbvh_cache_is_valid(const struct Object *ob,
-                             const struct Mesh *me,
-                             const PBVH *pbvh,
-                             int pbvh_type);
-
-#ifdef WITH_PBVH_CACHE
-bool BKE_pbvh_cache(const struct Mesh *me, PBVH *pbvh);
-PBVH *BKE_pbvh_get_or_free_cached(struct Object *ob, struct Mesh *me, PBVHType pbvh_type);
-void BKE_pbvh_invalidate_cache(struct Object *ob);
-void BKE_pbvh_set_cached(struct Object *ob, PBVH *pbvh);
-#endif
 
 void BKE_pbvh_set_face_areas(PBVH *pbvh, float *face_areas);
 void BKE_pbvh_set_sculpt_verts(PBVH *pbvh, struct MSculptVert *sverts);
@@ -1418,8 +1413,6 @@ SculptPMap *BKE_pbvh_get_pmap(PBVH *pbvh);
 void BKE_pbvh_cache_remove(PBVH *pbvh);
 void BKE_pbvh_set_bmesh(PBVH *pbvh, struct BMesh *bm);
 void BKE_pbvh_free_bmesh(PBVH *pbvh, struct BMesh *bm);
-void BKE_pbvh_system_init(void);
-void BKE_pbvh_system_exit(void);
 
 SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me);
 void BKE_pbvh_pmap_aquire(SculptPMap *pmap);

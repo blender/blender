@@ -67,8 +67,6 @@ set(SRC
   intern/bmesh_construct.h
   intern/bmesh_core.c
   intern/bmesh_core.h
-  intern/bmesh_data_attr.h
-  intern/bmesh_data_attr.cc
   intern/bmesh_delete.c
   intern/bmesh_delete.h
   intern/bmesh_edgeloop.c
@@ -180,7 +178,7 @@ set(LIB
   bf_blenlib
   extern_rangetree
 )
-
+ 
 if(WITH_BULLET)
   list(APPEND INC_SYS
     ${BULLET_INCLUDE_DIRS}

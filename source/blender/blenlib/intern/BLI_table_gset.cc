@@ -8,28 +8,41 @@
 
 #include "BLI_ghash.h"
 
-//#define PTR_TO_IDX(ts) ((GHash *)ts->ptr_to_idx.buckets)
-#define PTR_TO_IDX(ts) &(ts)->ptr_to_idx
+#ifdef USE_TGSET_SMALLHASH
+#  include "BLI_smallhash.h"
+#  define PTR_TO_IDX(ts) static_cast<SmallHash *>((ts)->ptr_to_idx)
+#else
+#  include "BLI_map.hh"
+#  define PTR_TO_IDX(ts) static_cast<blender::Map<void *, int> *>((ts)->ptr_to_idx)
+#endif
 
 TableGSet *BLI_table_gset_new(const char *info)
 {
-  TableGSet *ts = MEM_callocN(sizeof(TableGSet), info);
+  TableGSet *ts = MEM_new<TableGSet>(info);
 
-  // ts->ptr_to_idx.buckets = (void *)BLI_ghash_ptr_new(info);
-  BLI_smallhash_init(&ts->ptr_to_idx);
+#ifdef USE_TGSET_SMALLHASH
+  ts->ptr_to_idx = static_cast<void *>(MEM_cnew<SmallHash>("table gset smallhash"));
+  BLI_smallhash_init(PTR_TO_IDX(->ptr_to_idx));
+#else
+  ts->ptr_to_idx = static_cast<void *>(MEM_new<blender::Map<void *, int>>("ts->ptr_to_idx"));
+#endif
 
   return ts;
 }
 
 TableGSet *BLI_table_gset_new_ex(const char *info, int size)
 {
-  TableGSet *ts = MEM_callocN(sizeof(TableGSet), info);
+  TableGSet *ts = MEM_new<TableGSet>(info);
 
-  // ts->ptr_to_idx.buckets = (void *)BLI_ghash_ptr_new_ex(info, (uint)size);
-  BLI_smallhash_init_ex(&ts->ptr_to_idx, size);
+#ifdef USE_TGSET_SMALLHASH
+  ts->ptr_to_idx = static_cast<void *>(MEM_cnew<SmallHash>("table gset smallhash"));
+  BLI_smallhash_init(PTR_TO_IDX(->ptr_to_idx));
+#else
+  ts->ptr_to_idx = static_cast<void *>(MEM_new<blender::Map<void *, int>>("ts->ptr_to_idx"));
+#endif
 
   if (size) {
-    ts->elems = MEM_callocN(sizeof(void *) * (uint)size, info);
+    ts->elems = static_cast<void **>(MEM_callocN(sizeof(void *) * (uint)size, info));
     ts->size = size;
     ts->length = 0;
     ts->cur = 0;
@@ -40,16 +53,14 @@ TableGSet *BLI_table_gset_new_ex(const char *info, int size)
 
 void BLI_table_gset_free(TableGSet *ts, GHashKeyFreeFP freefp)
 {
-  if (!PTR_TO_IDX(ts)) {
-    return;
-  }
+  MEM_SAFE_FREE(ts->elems);
 
-  if (ts->elems) {
-    MEM_freeN(ts->elems);
-  }
-
-  // BLI_ghash_free(PTR_TO_IDX(ts), freefp, NULL);
-  BLI_smallhash_release(&ts->ptr_to_idx);
+#ifdef USE_TGSET_SMALLHASH
+  BLI_smallhash_release(PTR_TO_IDX(ts->ptr_to_idx));
+  MEM_freeN(ts->ptr_to_idx);
+#else
+  MEM_delete<blender::Map<void *, int>>(PTR_TO_IDX(ts));
+#endif
 
   MEM_freeN(ts);
 }
@@ -62,25 +73,26 @@ static void table_gset_resize(TableGSet *ts)
     newsize = MAX2(newsize, 8U);
 
     if (!ts->elems) {
-      ts->elems = (void *)MEM_mallocN(sizeof(void *) * newsize, "ts->elems");
+      ts->elems = static_cast<void **>(MEM_mallocN(sizeof(void *) * newsize, "ts->elems"));
     }
     else {
-      ts->elems = (void *)MEM_reallocN(ts->elems, newsize * sizeof(void *));
+      ts->elems = static_cast<void **>(MEM_reallocN(ts->elems, newsize * sizeof(void *)));
     }
 
-    // BLI_smallhash_clear(PTR_TO_IDX(ts), 0ULL);
-
-    // compact
+    /* Compact. */
     int i = 0, j = 0;
     for (i = 0; i < ts->cur; i++) {
       void *elem2 = ts->elems[i];
 
       if (elem2) {
+#ifdef USE_TGSET_SMALLHASH
         void **val;
         BLI_smallhash_ensure_p(PTR_TO_IDX(ts), (uintptr_t)elem2, &val);
-
         // BLI_smallhash_insert(PTR_TO_IDX(ts), elem2, (void *)j);
         *val = POINTER_FROM_INT(j);
+#else
+        PTR_TO_IDX(ts)->add_overwrite(elem2, j);
+#endif
 
         ts->elems[j++] = elem2;
       }
@@ -93,9 +105,10 @@ static void table_gset_resize(TableGSet *ts)
 
 bool BLI_table_gset_add(TableGSet *ts, void *elem)
 {
-  void **val;
-
   table_gset_resize(ts);
+
+#ifdef USE_TGSET_SMALLHASH
+  void **val;
 
   bool ret = BLI_smallhash_ensure_p(PTR_TO_IDX(ts), (uintptr_t)elem, &val);
 
@@ -107,13 +120,27 @@ bool BLI_table_gset_add(TableGSet *ts, void *elem)
   }
 
   return ret;
+#else
+  auto createfn = [&](int *value) {
+    *value = ts->cur;
+    ts->elems[ts->cur++] = elem;
+    return true;
+  };
+  auto modifyfn = [&](int *value) { return false; };
+
+  return PTR_TO_IDX(ts)->add_or_modify(elem, createfn, modifyfn);
+#endif
 }
 
 void BLI_table_gset_insert(TableGSet *ts, void *elem)
 {
   table_gset_resize(ts);
 
+#ifdef USE_TGSET_SMALLHASH
   BLI_smallhash_insert(PTR_TO_IDX(ts), (uintptr_t)elem, (void *)ts->cur);
+#else
+  PTR_TO_IDX(ts)->add(elem, ts->cur);
+#endif
 
   ts->elems[ts->cur++] = elem;
   ts->length++;
@@ -125,26 +152,39 @@ void BLI_table_gset_remove(TableGSet *ts, void *elem, GHashKeyFreeFP freefp)
     return;
   }
 
+#ifdef USE_TGSET_SMALLHASH
   int *idx = (int *)BLI_smallhash_lookup_p(PTR_TO_IDX(ts), (uintptr_t)elem);
   if (!idx) {
     return;
   }
 
-  int idx2 = *idx;
-
   BLI_smallhash_remove(PTR_TO_IDX(ts), (uintptr_t)elem);
+#else
+  int *idx = PTR_TO_IDX(ts)->lookup_ptr(elem);
+  if (!idx) {
+    return;
+  }
+
+  PTR_TO_IDX(ts)->remove(elem);
+#endif
+
+  int idx2 = *idx;
 
   if (!ts->elems || ts->elems[idx2] != elem) {
     return;
   }
 
   ts->length--;
-  ts->elems[idx2] = NULL;
+  ts->elems[idx2] = nullptr;
 }
 
 bool BLI_table_gset_haskey(TableGSet *ts, void *elem)
 {
+#ifdef USE_TGSET_SMALLHASH
   return BLI_smallhash_haskey(PTR_TO_IDX(ts), (uintptr_t)elem);
+#else
+  return PTR_TO_IDX(ts)->contains(elem);
+#endif
 }
 
 int BLI_table_gset_len(TableGSet *ts)

@@ -814,12 +814,6 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
     return false;
   }
 
-#ifdef WITH_PBVH_CACHE
-  if (ob->type == OB_MESH) {
-    BKE_pbvh_invalidate_cache(ob);
-  }
-#endif
-
   ob->restore_mode = ob->mode;
 
   ob->mode = OB_MODE_EDIT;

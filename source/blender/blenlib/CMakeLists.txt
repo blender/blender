@@ -160,7 +160,7 @@ set(SRC
   intern/voxel.c
   intern/winstuff.c
   intern/winstuff_dir.c
-  intern/BLI_table_gset.c
+  intern/BLI_table_gset.cc
 
   # Private headers.
   intern/BLI_mempool_private.h

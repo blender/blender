@@ -1176,10 +1176,6 @@ PBVH *BKE_pbvh_new(PBVHType type)
 
 void BKE_pbvh_free(PBVH *pbvh)
 {
-#ifdef WITH_PBVH_CACHE
-  BKE_pbvh_cache_remove(pbvh);
-#endif
-
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = &pbvh->nodes[i];
 
@@ -1795,7 +1791,10 @@ void pbvh_update_BB_redraw(PBVH *pbvh, PBVHNode **nodes, int totnode, int flag)
   BLI_task_parallel_range(0, totnode, &data, pbvh_update_BB_redraw_task_cb, &settings);
 }
 
-bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, eAttrDomain *r_attr)
+bool BKE_pbvh_get_color_layer(const PBVH *pbvh,
+                              const Mesh *me,
+                              CustomDataLayer **r_layer,
+                              eAttrDomain *r_attr)
 {
   CustomDataLayer *layer = BKE_id_attributes_color_find(&me->id, me->active_color_attribute);
 
@@ -1811,6 +1810,29 @@ bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, eAttrDo
     *r_layer = nullptr;
     *r_attr = ATTR_DOMAIN_POINT;
     return false;
+  }
+
+  if (BKE_pbvh_type(pbvh) == PBVH_BMESH) {
+    CustomData *data;
+
+    if (domain == ATTR_DOMAIN_POINT) {
+      data = &pbvh->header.bm->vdata;
+    }
+    else if (domain == ATTR_DOMAIN_CORNER) {
+      data = &pbvh->header.bm->ldata;
+    }
+
+    int layer_i = CustomData_get_named_layer_index(
+        data, eCustomDataType(layer->type), layer->name);
+    if (layer_i == -1) {
+      printf("%s: bmesh lacks color attribute %s\n", __func__, layer->name);
+
+      *r_layer = nullptr;
+      *r_attr = ATTR_DOMAIN_POINT;
+      return false;
+    }
+
+    layer = &data->layers[layer_i];
   }
 
   *r_layer = layer;
@@ -1834,30 +1856,17 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   CustomDataLayer *vcol_layer = nullptr;
   eAttrDomain vcol_domain;
 
-  BKE_pbvh_get_color_layer(me, &vcol_layer, &vcol_domain);
+  BKE_pbvh_get_color_layer(pbvh, me, &vcol_layer, &vcol_domain);
 
   CustomData *vdata, *ldata;
 
-  if (!pbvh->header.bm) {
+  if (pbvh->header.bm) {
+    vdata = &pbvh->header.bm->vdata;
+    ldata = &pbvh->header.bm->ldata;
+  }
+  else {
     vdata = pbvh->vdata ? pbvh->vdata : &me->vdata;
     ldata = pbvh->ldata ? pbvh->ldata : &me->ldata;
-  }
-  else {
-    vdata = &pbvh->header.bm->vdata;
-    ldata = &pbvh->header.bm->ldata;
-  }
-
-  Mesh me_query;
-  BKE_id_attribute_copy_domains_temp(ID_ME, vdata, nullptr, ldata, nullptr, nullptr, &me_query.id);
-  me_query.active_color_attribute = me->active_color_attribute;
-
-  if (!pbvh->header.bm) {
-    vdata = pbvh->vdata;
-    ldata = pbvh->ldata;
-  }
-  else {
-    vdata = &pbvh->header.bm->vdata;
-    ldata = &pbvh->header.bm->ldata;
   }
 
   if (node->flag & PBVH_RebuildDrawBuffers) {
@@ -4515,295 +4524,6 @@ void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value)
   pbvh_boundaries_flag_update(pbvh);
 }
 
-bool BKE_pbvh_cache(const struct Mesh *me, PBVH *pbvh)
-{
-  memset(&pbvh->cached_data, 0, sizeof(pbvh->cached_data));
-
-  if (pbvh->invalid) {
-    printf("invalid pbvh!\n");
-    return false;
-  }
-
-  switch (pbvh->header.type) {
-    case PBVH_BMESH:
-      if (!pbvh->header.bm) {
-        return false;
-      }
-
-      pbvh->cached_data.bm = pbvh->header.bm;
-
-      pbvh->cached_data.vdata = pbvh->header.bm->vdata;
-      pbvh->cached_data.edata = pbvh->header.bm->edata;
-      pbvh->cached_data.ldata = pbvh->header.bm->ldata;
-      pbvh->cached_data.pdata = pbvh->header.bm->pdata;
-
-      pbvh->cached_data.totvert = pbvh->header.bm->totvert;
-      pbvh->cached_data.totedge = pbvh->header.bm->totedge;
-      pbvh->cached_data.totloop = pbvh->header.bm->totloop;
-      pbvh->cached_data.totpoly = pbvh->header.bm->totface;
-      break;
-    case PBVH_GRIDS: {
-      pbvh->cached_data.vdata = me->vdata;
-      pbvh->cached_data.edata = me->edata;
-      pbvh->cached_data.ldata = me->ldata;
-      pbvh->cached_data.pdata = me->pdata;
-
-      int grid_side = pbvh->gridkey.grid_size;
-
-      pbvh->cached_data.totvert = pbvh->totgrid * grid_side * grid_side;
-      pbvh->cached_data.totedge = me->totedge;
-      pbvh->cached_data.totloop = me->totloop;
-      pbvh->cached_data.totpoly = pbvh->totgrid * (grid_side - 1) * (grid_side - 1);
-      break;
-    }
-    case PBVH_FACES:
-      pbvh->cached_data.vdata = me->vdata;
-      pbvh->cached_data.edata = me->edata;
-      pbvh->cached_data.ldata = me->ldata;
-      pbvh->cached_data.pdata = me->pdata;
-
-      pbvh->cached_data.totvert = me->totvert;
-      pbvh->cached_data.totedge = me->totedge;
-      pbvh->cached_data.totloop = me->totloop;
-      pbvh->cached_data.totpoly = me->totpoly;
-      break;
-  }
-
-  return true;
-}
-
-static bool customdata_is_same(const CustomData *a, const CustomData *b)
-{
-  return memcmp(a, b, sizeof(CustomData)) == 0;
-}
-
-bool BKE_pbvh_cache_is_valid(const struct Object *ob,
-                             const struct Mesh *me,
-                             const PBVH *pbvh,
-                             int pbvh_type)
-{
-  if (pbvh->invalid) {
-    printf("pbvh invalid!\n");
-    return false;
-  }
-
-  if (pbvh->header.type != pbvh_type) {
-    return false;
-  }
-
-  bool ok = true;
-  int totvert = 0, totedge = 0, totloop = 0, totpoly = 0;
-  const CustomData *vdata, *edata, *ldata, *pdata;
-
-  MultiresModifierData *mmd = nullptr;
-
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (md->type == eModifierType_Multires) {
-      mmd = (MultiresModifierData *)md;
-      break;
-    }
-  }
-
-  if (mmd && (mmd->flags & eModifierMode_Realtime)) {
-    // return false;
-  }
-
-  switch (pbvh_type) {
-    case PBVH_BMESH:
-      if (!pbvh->header.bm || pbvh->header.bm != pbvh->cached_data.bm) {
-        return false;
-      }
-
-      totvert = pbvh->header.bm->totvert;
-      totedge = pbvh->header.bm->totedge;
-      totloop = pbvh->header.bm->totloop;
-      totpoly = pbvh->header.bm->totface;
-
-      vdata = &pbvh->header.bm->vdata;
-      edata = &pbvh->header.bm->edata;
-      ldata = &pbvh->header.bm->ldata;
-      pdata = &pbvh->header.bm->pdata;
-      break;
-    case PBVH_FACES:
-      totvert = me->totvert;
-      totedge = me->totedge;
-      totloop = me->totloop;
-      totpoly = me->totpoly;
-
-      vdata = &me->vdata;
-      edata = &me->edata;
-      ldata = &me->ldata;
-      pdata = &me->pdata;
-      break;
-    case PBVH_GRIDS: {
-      if (!mmd) {
-        return false;
-      }
-
-      int grid_side = 1 + (1 << (mmd->sculptlvl - 1));
-
-      totvert = me->totloop * grid_side * grid_side;
-      totedge = me->totedge;
-      totloop = me->totloop;
-      totpoly = me->totloop * (grid_side - 1) * (grid_side - 1);
-
-      vdata = &me->vdata;
-      edata = &me->edata;
-      ldata = &me->ldata;
-      pdata = &me->pdata;
-      break;
-    }
-  }
-
-  ok = ok && totvert == pbvh->cached_data.totvert;
-  ok = ok && totedge == pbvh->cached_data.totedge;
-  ok = ok && totloop == pbvh->cached_data.totloop;
-  ok = ok && totpoly == pbvh->cached_data.totpoly;
-
-  ok = ok && customdata_is_same(vdata, &pbvh->cached_data.vdata);
-  ok = ok && customdata_is_same(edata, &pbvh->cached_data.edata);
-  ok = ok && customdata_is_same(ldata, &pbvh->cached_data.ldata);
-  ok = ok && customdata_is_same(pdata, &pbvh->cached_data.pdata);
-
-  return ok;
-}
-
-static GHash *cached_pbvhs = nullptr;
-static void pbvh_clear_cached_pbvhs(PBVH *exclude)
-{
-  Vector<PBVH *, 8> pbvhs;
-
-  GHashIterator iter;
-  GHASH_ITER (iter, cached_pbvhs) {
-    PBVH *pbvh = (PBVH *)BLI_ghashIterator_getValue(&iter);
-
-    if (pbvh != exclude) {
-      pbvhs.append(pbvh);
-    }
-  }
-
-  for (int i = 0; i < pbvhs.size(); i++) {
-    PBVH *pbvh = pbvhs[i];
-
-    if (pbvh->header.bm) {
-      BM_mesh_free(pbvh->header.bm);
-    }
-
-    BKE_pbvh_free(pbvh);
-  }
-
-  BLI_ghash_clear(cached_pbvhs, MEM_freeN, nullptr);
-}
-
-void BKE_pbvh_clear_cache(PBVH *preserve)
-{
-  pbvh_clear_cached_pbvhs(nullptr);
-}
-
-#define PBVH_CACHE_KEY_SIZE 1024
-
-static void pbvh_make_cached_key(Object *ob, char out[PBVH_CACHE_KEY_SIZE])
-{
-  sprintf(out, "%s:%p", ob->id.name, G.main);
-}
-
-void BKE_pbvh_invalidate_cache(Object *ob)
-{
-  Object *ob_orig = DEG_get_original_object(ob);
-
-  char key[PBVH_CACHE_KEY_SIZE];
-  pbvh_make_cached_key(ob_orig, key);
-
-#ifdef WITH_PBVH_CACHE
-  PBVH *pbvh = BLI_ghash_lookup(cached_pbvhs, key);
-
-  if (pbvh) {
-    BKE_pbvh_cache_remove(pbvh);
-  }
-#endif
-}
-
-PBVH *BKE_pbvh_get_or_free_cached(Object *ob, Mesh *me, PBVHType pbvh_type)
-{
-  Object *ob_orig = DEG_get_original_object(ob);
-
-  char key[PBVH_CACHE_KEY_SIZE];
-  pbvh_make_cached_key(ob_orig, key);
-
-  PBVH *pbvh = (PBVH *)BLI_ghash_lookup(cached_pbvhs, key);
-
-  if (!pbvh) {
-    return nullptr;
-  }
-
-  if (BKE_pbvh_cache_is_valid(ob, me, pbvh, pbvh_type)) {
-    switch (pbvh_type) {
-      case PBVH_BMESH:
-        break;
-      case PBVH_FACES:
-        pbvh->vert_normals = BKE_mesh_vert_normals_for_write(me);
-      case PBVH_GRIDS:
-        if (!pbvh->deformed) {
-          pbvh->vert_positions = BKE_mesh_vert_positions_for_write(me);
-        }
-
-        pbvh->corner_verts = me->corner_verts().data();
-        pbvh->corner_edges = me->corner_edges().data();
-        pbvh->polys = me->polys().data();
-        pbvh->vdata = &me->vdata;
-        pbvh->ldata = &me->ldata;
-        pbvh->pdata = &me->pdata;
-
-        pbvh->face_sets = (int *)CustomData_get_layer_named(
-            &me->pdata, CD_PROP_INT32, ".sculpt_face_set");
-
-        break;
-    }
-
-    BKE_pbvh_update_active_vcol(pbvh, me);
-
-    return pbvh;
-  }
-
-  pbvh_clear_cached_pbvhs(nullptr);
-  return nullptr;
-}
-
-void BKE_pbvh_set_cached(Object *ob, PBVH *pbvh)
-{
-  if (!pbvh) {
-    return;
-  }
-
-  Object *ob_orig = DEG_get_original_object(ob);
-
-  char key[PBVH_CACHE_KEY_SIZE];
-  pbvh_make_cached_key(ob_orig, key);
-
-  PBVH *exist = (PBVH *)BLI_ghash_lookup(cached_pbvhs, key);
-
-  if (pbvh->invalid) {
-    printf("pbvh invalid!");
-  }
-
-  if (exist && exist->invalid) {
-    printf("pbvh invalid!");
-  }
-
-  if (!exist || exist != pbvh) {
-    pbvh_clear_cached_pbvhs(pbvh);
-
-    char key[PBVH_CACHE_KEY_SIZE];
-    pbvh_make_cached_key(ob_orig, key);
-
-    BLI_ghash_insert(cached_pbvhs, BLI_strdup(key), pbvh);
-  }
-
-#ifdef WITH_PBVH_CACHE
-  BKE_pbvh_cache(BKE_object_get_original_mesh(ob_orig), pbvh);
-#endif
-}
-
 struct SculptPMap *BKE_pbvh_get_pmap(PBVH *pbvh)
 {
   return pbvh->pmap;
@@ -4818,90 +4538,14 @@ void BKE_pbvh_set_pmap(PBVH *pbvh, SculptPMap *pmap)
   pbvh->pmap = pmap;
 }
 
-/** Does not free pbvh itself. */
-void BKE_pbvh_cache_remove(PBVH *pbvh)
-{
-  Vector<char *, 32> keys;
-
-  GHashIterator iter;
-  GHASH_ITER (iter, cached_pbvhs) {
-    PBVH *pbvh2 = (PBVH *)BLI_ghashIterator_getValue(&iter);
-
-    if (pbvh2 == pbvh) {
-      keys.append((char *)BLI_ghashIterator_getKey(&iter));
-      break;
-    }
-  }
-
-  for (int i = 0; i < keys.size(); i++) {
-    BLI_ghash_remove(cached_pbvhs, keys[i], MEM_freeN, nullptr);
-  }
-}
-
 void BKE_pbvh_set_bmesh(PBVH *pbvh, BMesh *bm)
 {
   pbvh->header.bm = bm;
 }
 
-void BKE_pbvh_free_bmesh(PBVH *pbvh, BMesh *bm)
-{
-  if (pbvh) {
-    pbvh->header.bm = nullptr;
-  }
-
-  BM_mesh_free(bm);
-
-  GHashIterator iter;
-  Vector<char *, 32> keys;
-  Vector<PBVH *, 8> pbvhs;
-
-  GHASH_ITER (iter, cached_pbvhs) {
-    PBVH *pbvh2 = (PBVH *)BLI_ghashIterator_getValue(&iter);
-
-    if (pbvh2->header.bm == bm) {
-      pbvh2->header.bm = nullptr;
-
-      if (pbvh2 != pbvh) {
-        bool ok = true;
-
-        for (int i = 0; i < pbvhs.size(); i++) {
-          if (pbvhs[i] == pbvh2) {
-            ok = false;
-          }
-        }
-
-        if (ok) {
-          pbvhs.append(pbvh2);
-        }
-      }
-
-      keys.append((char *)BLI_ghashIterator_getKey(&iter));
-    }
-  }
-
-  for (int i = 0; i < keys.size(); i++) {
-    BLI_ghash_remove(cached_pbvhs, keys[i], MEM_freeN, nullptr);
-  }
-
-  for (int i = 0; i < pbvhs.size(); i++) {
-    BKE_pbvh_free(pbvhs[i]);
-  }
-}
-
 BMLog *BKE_pbvh_get_bm_log(PBVH *pbvh)
 {
   return pbvh->bm_log;
-}
-
-void BKE_pbvh_system_init()
-{
-  cached_pbvhs = BLI_ghash_str_new("pbvh cache ghash");
-}
-
-void BKE_pbvh_system_exit()
-{
-  pbvh_clear_cached_pbvhs(nullptr);
-  BLI_ghash_free(cached_pbvhs, nullptr, nullptr);
 }
 
 SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me)
@@ -4934,11 +4578,7 @@ bool BKE_pbvh_pmap_release(SculptPMap *pmap)
 
   pmap->refcount--;
 
-  // if (pmap->refcount < 0) {
-  //  printf("%s: error!\n", __func__);
-  //}
-
-  if (1 && pmap->refcount == 0) {
+  if (pmap->refcount <= 0) {
     MEM_SAFE_FREE(pmap->pmap);
     MEM_SAFE_FREE(pmap->pmap_mem);
     MEM_SAFE_FREE(pmap);
@@ -4978,24 +4618,9 @@ void BKE_pbvh_update_active_vcol(PBVH *pbvh, const Mesh *mesh)
 {
   CustomDataLayer *last_layer = pbvh->color_layer;
 
-  Mesh me_query;
-  const CustomData *vdata, *ldata;
+  BKE_pbvh_get_color_layer(pbvh, mesh, &pbvh->color_layer, &pbvh->color_domain);
 
-  if (pbvh->header.type == PBVH_BMESH && pbvh->header.bm) {
-    vdata = &pbvh->header.bm->vdata;
-    ldata = &pbvh->header.bm->ldata;
-  }
-  else {
-    vdata = &mesh->vdata;
-    ldata = &mesh->ldata;
-  }
-
-  BKE_id_attribute_copy_domains_temp(ID_ME, vdata, nullptr, ldata, nullptr, nullptr, &me_query.id);
-  me_query.active_color_attribute = mesh->active_color_attribute;
-
-  BKE_pbvh_get_color_layer(&me_query, &pbvh->color_layer, &pbvh->color_domain);
-
-  if (pbvh->color_layer && pbvh->header.bm) {
+  if (pbvh->color_layer) {
     pbvh->cd_vcol_offset = pbvh->color_layer->offset;
   }
   else {
@@ -5004,7 +4629,7 @@ void BKE_pbvh_update_active_vcol(PBVH *pbvh, const Mesh *mesh)
 
   if (pbvh->color_layer != last_layer) {
     for (int i = 0; i < pbvh->totnode; i++) {
-      PBVHNode *node = pbvh->nodes + i;
+      PBVHNode *node = &pbvh->nodes[i];
 
       if (node->flag & PBVH_Leaf) {
         BKE_pbvh_node_mark_update_color(node);

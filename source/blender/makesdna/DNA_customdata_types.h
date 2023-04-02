@@ -77,19 +77,16 @@ typedef struct CustomData {
    * MUST be >= CD_NUMTYPES, but we can't use a define here.
    * Correct size is ensured in CustomData_update_typemap assert().
    */
-  int typemap[55];
+  int typemap[54];
 
   /** Number of layers, size of layers array. */
   int totlayer, maxlayer;
   /** In editmode, total size of all data layers. */
-  int totsize;
+  int totsize, _pad[1];
   /** (BMesh Only): Memory pool for allocation of blocks. */
   struct BLI_mempool *pool;
   /** External file storing custom-data layers. */
   CustomDataExternal *external;
-
-  /** for use with USE_BMESH_PAGE_CUSTOMDATA test, remove later*/
-  void *bm_attrs, *_pad[1];
 } CustomData;
 
 /** #CustomData.type */
@@ -166,10 +163,9 @@ typedef enum eCustomDataType {
   CD_PROP_BOOL = 50,
 
   CD_HAIRLENGTH = 51,
-  CD_MESH_ID = 52,
-  CD_DYNTOPO_VERT = 53,
-  CD_TOOLFLAGS = 54,
-  CD_NUMTYPES = 55,
+  CD_DYNTOPO_VERT = 52,
+  CD_TOOLFLAGS = 53,
+  CD_NUMTYPES = 54,
 } eCustomDataType;
 
 /* Bits for eCustomDataMask */
@@ -220,7 +216,6 @@ typedef enum eCustomDataType {
 #define CD_MASK_PROP_INT8 (1ULL << CD_PROP_INT8)
 
 #define CD_MASK_DYNTOPO_VERT (1ULL << CD_DYNTOPO_VERT)
-#define CD_MASK_MESH_ID (1ULL << CD_MESH_ID)
 #define CD_MASK_HAIRLENGTH (1ULL << CD_HAIRLENGTH)
 #define CD_MASK_TOOLFLAGS (1ULL << CD_TOOLFLAGS)
 

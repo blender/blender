@@ -506,28 +506,28 @@ void BM_elem_attrs_copy_ex(BMesh *bm_src,
                          bm_dst,
                          (const BMVert *)ele_src,
                          (BMVert *)ele_dst,
-                         cd_mask_exclude | CD_MASK_MESH_ID | CD_MASK_TOOLFLAGS);
+                         cd_mask_exclude | CD_MASK_TOOLFLAGS);
       break;
     case BM_EDGE:
       bm_edge_attrs_copy(bm_src,
                          bm_dst,
                          (const BMEdge *)ele_src,
                          (BMEdge *)ele_dst,
-                         cd_mask_exclude | CD_MASK_MESH_ID | CD_MASK_TOOLFLAGS);
+                         cd_mask_exclude | CD_MASK_TOOLFLAGS);
       break;
     case BM_LOOP:
       bm_loop_attrs_copy(bm_src,
                          bm_dst,
                          (const BMLoop *)ele_src,
                          (BMLoop *)ele_dst,
-                         cd_mask_exclude | CD_MASK_MESH_ID | CD_MASK_TOOLFLAGS);
+                         cd_mask_exclude | CD_MASK_TOOLFLAGS);
       break;
     case BM_FACE:
       bm_face_attrs_copy(bm_src,
                          bm_dst,
                          (const BMFace *)ele_src,
                          (BMFace *)ele_dst,
-                         cd_mask_exclude | CD_MASK_MESH_ID | CD_MASK_TOOLFLAGS);
+                         cd_mask_exclude | CD_MASK_TOOLFLAGS);
       break;
     default:
       BLI_assert(0);
@@ -657,14 +657,10 @@ void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTem
     allocsize = &bm_mesh_allocsize_default;
   }
 
-  CustomData_copy(
-      &bm_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask | CD_MASK_MESH_ID, CD_SET_DEFAULT, 0);
-  CustomData_copy(
-      &bm_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask | CD_MASK_MESH_ID, CD_SET_DEFAULT, 0);
-  CustomData_copy(
-      &bm_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask | CD_MASK_MESH_ID, CD_SET_DEFAULT, 0);
-  CustomData_copy(
-      &bm_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask | CD_MASK_MESH_ID, CD_SET_DEFAULT, 0);
+  CustomData_copy(&bm_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
+  CustomData_copy(&bm_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_SET_DEFAULT, 0);
+  CustomData_copy(&bm_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_SET_DEFAULT, 0);
+  CustomData_copy(&bm_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
 
   CustomData *srcdatas[4] = {&bm_src->vdata, &bm_src->edata, &bm_src->ldata, &bm_src->pdata};
   CustomData *dstdatas[4] = {&bm_dst->vdata, &bm_dst->edata, &bm_dst->ldata, &bm_dst->pdata};

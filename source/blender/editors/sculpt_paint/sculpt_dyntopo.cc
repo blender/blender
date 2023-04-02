@@ -440,18 +440,7 @@ void SCULPT_pbvh_clear(Object *ob, bool /*cache_pbvh*/)
 
   /* Clear out any existing DM and PBVH. */
   if (ss->pbvh) {
-#ifdef WITH_PBVH_CACHE
-    if (cache_pbvh) {
-      BKE_pbvh_set_cached(ob, ss->pbvh);
-    }
-    else {
-      BKE_pbvh_cache_remove(ss->pbvh);
-      BKE_pbvh_free(ss->pbvh);
-    }
-#else
     BKE_pbvh_free(ss->pbvh);
-#endif
-
     ss->pbvh = nullptr;
   }
 
@@ -497,34 +486,6 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
       BKE_pbvh_pmap_release(ss->pmap);
       ss->pmap = nullptr;
     }
-
-#ifdef WITH_PBVH_CACHE
-    /* Remove existing pbvh so we can free it ourselves. */
-    BKE_pbvh_cache_remove(ss->pbvh);
-
-    /* Free any other pbvhs */
-    BKE_pbvh_clear_cache(nullptr);
-#endif
-  }
-
-  if (ss->bm) {
-    bool ok = ss->bm->totvert == me->totvert && ss->bm->totedge == me->totedge &&
-              ss->bm->totloop == me->totloop && ss->bm->totface == me->totpoly;
-
-    if (!ok) {
-#ifdef WITH_PBVH_CACHE
-      /* Ensure ss->pbvh is in the cache so it can be destroyed in BKE_pbvh_free_bmesh. */
-      if (ss->pbvh) {
-        BKE_pbvh_set_cached(ob, ss->pbvh);
-      }
-#endif
-
-      /* Destroy all cached PBVHs with this bmesh. */
-      BKE_pbvh_free_bmesh(nullptr, ss->bm);
-
-      ss->pbvh = nullptr;
-      ss->bm = nullptr;
-    }
   }
 
   if (!ss->bm || !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
@@ -546,11 +507,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
   }
 #endif
 
-#ifdef WITH_PBVH_CACHE
-  PBVH *pbvh = BKE_pbvh_get_or_free_cached(ob, BKE_object_get_original_mesh(ob), PBVH_BMESH);
-#else
   PBVH *pbvh = ss->pbvh;
-#endif
 
   if (pbvh) {
     BMesh *bm = BKE_pbvh_get_bmesh(pbvh);

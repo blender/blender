@@ -414,7 +414,8 @@ int ED_mesh_color_add(
         BM_data_layer_copy(&bm, &bm.ldata, CD_PROP_BYTE_COLOR, src_i, dst_i);
       }
       else {
-        memcpy(layer->data, active_layer->data, CustomData_get_elem_size(layer) * me->totloop);
+        memcpy(
+            layer->data, active_layer->data, CustomData_sizeof(CD_PROP_BYTE_COLOR) * me->totloop);
       }
     }
   }
@@ -493,7 +494,7 @@ int ED_mesh_sculpt_color_add(Mesh *me, const char *name, const bool do_init, Rep
         BM_data_layer_copy(&bm, &bm.vdata, CD_PROP_COLOR, src_i, dst_i);
       }
       else {
-        memcpy(layer->data, active_layer->data, CustomData_get_elem_size(layer) * me->totloop);
+        memcpy(layer->data, active_layer->data, CustomData_sizeof(CD_PROP_COLOR) * me->totloop);
       }
     }
   }

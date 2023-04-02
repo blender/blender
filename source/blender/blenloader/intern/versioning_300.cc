@@ -4271,6 +4271,23 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  /* Delete any mesh id layers from old versions of sculpt-dev. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 1)) {
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      CustomData *data = &mesh->vdata;
+
+      for (int i = 0; i < 4; i++, data++) {
+        for (int j = 0; j < data->totlayer; j++) {
+          /* CD_DYNTOPO_VERT used to be CD_MESH_ID. */
+          if (data->layers[j].type == CD_DYNTOPO_VERT) {
+            CustomData_free_layer(data, CD_DYNTOPO_VERT, 0, 0);
+            j--;
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

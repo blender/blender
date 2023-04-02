@@ -2636,12 +2636,6 @@ static void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_firs
       BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
     }
   }
-
-#ifdef WITH_PBVH_CACHE
-  if (ss->pbvh) {
-    BKE_pbvh_set_cached(ob, ss->pbvh);
-  }
-#endif
 }
 
 void SCULPT_undo_push_begin_ex(Object *ob, const char *name)
@@ -3152,15 +3146,13 @@ void ED_sculpt_fast_save_bmesh(Object *ob)
   }
 
 #if 1
-  struct BMeshToMeshParams params = {0};
+  struct BMeshToMeshParams params = {};
 
   void BM_mesh_bm_to_me_threaded(
       Main * bmain, Object * ob, BMesh * bm, Mesh * me, const struct BMeshToMeshParams *params);
 
   params.update_shapekey_indices = true;
-  params.cd_mask_extra.vmask = CD_MASK_MESH_ID | CD_MASK_DYNTOPO_VERT;
-  params.cd_mask_extra.emask = CD_MASK_MESH_ID;
-  params.cd_mask_extra.pmask = CD_MASK_MESH_ID;
+  params.cd_mask_extra.vmask = CD_MASK_DYNTOPO_VERT;
 
   // BM_mesh_bm_to_me_threaded(nullptr, ob, bm, (Mesh *)ob->data, &params);
   BM_mesh_bm_to_me(nullptr, bm, (Mesh *)ob->data, &params);

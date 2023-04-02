@@ -2575,8 +2575,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   BKE_pbvh_parallel_range_settings(&settings, true, totleaf);
   BLI_task_parallel_range(0, totleaf, &tdata, pbvh_bmesh_create_leaf_fast_task_cb, &settings);
 
-  //  pbvh_bmesh_create_leaf_fast(pbvh, nodeinfo, bbc_array, leaves[i]);
-
   /* take root node and visit and populate children recursively */
   pbvh_bmesh_create_nodes_fast_recursive_final(pbvh, nodeinfo, bbc_array, &rootnode);
 
@@ -2584,11 +2582,11 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   MEM_freeN(bbc_array);
   MEM_freeN(nodeinfo);
 
-  if (me) {  // ensure pbvh->vcol_type, vcol_domain and cd_vcol_offset are up to date
+  if (me) { /* Ensure pbvh->vcol_type, vcol_domain and cd_vcol_offset are up to date. */
     CustomDataLayer *cl;
     eAttrDomain domain;
 
-    BKE_pbvh_get_color_layer(me, &cl, &domain);
+    BKE_pbvh_get_color_layer(pbvh, me, &cl, &domain);
   }
 
   /*final check that nodes are sufficiently subdivided*/

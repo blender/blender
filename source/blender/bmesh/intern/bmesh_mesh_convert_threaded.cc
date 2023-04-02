@@ -1033,7 +1033,7 @@ void BM_mesh_bm_to_me_threaded(
 
   CustomData_MeshMasks mask = CD_MASK_MESH;
   CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
-  eCustomDataMask extra2 = !params->ignore_mesh_id_layers ? CD_MASK_MESH_ID : 0;
+  eCustomDataMask extra2 = 0;
   CustomData *srcdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
   int id_flags[4] = {-1, -1, -1, -1};
 

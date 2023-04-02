@@ -1607,16 +1607,6 @@ static void layerInterp_noop(const void **, const float *, const float *, int, v
   // do nothing
 }
 
-static void layerDefault_mesh_id(void *data, int count)
-{
-  int *val = (int *)data;
-
-  for (int i = 0; i < count; i++) {
-    // val[i] = -1;
-    val[i] = 0;
-  }
-}
-
 static bool layerEqual_propfloat2(const void *data1, const void *data2)
 {
   const float2 &a = *static_cast<const float2 *>(data1);
@@ -2083,17 +2073,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr},
     /* 51: CD_HAIRLENGTH */
     {sizeof(float), "float", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
-    /*52 CD_MESH_ID */
-    {sizeof(unsigned int),
-     "MIntProperty",
-     1,
-     nullptr,  // flag singleton layer
-     nullptr,
-     nullptr,
-     layerInterp_noop,
-     nullptr,
-     layerDefault_mesh_id},
-    /* 53 CD_DYNTOPO_VERT */
+    /* 52 CD_DYNTOPO_VERT */
     {sizeof(MSculptVert),
      "MSculptVert",
      1,
@@ -2101,7 +2081,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      layerDynTopoVert_copy,
      nullptr,
      layerDynTopoVert_interp},
-    /*54 CD_BMESH_TOOLFLAGS */
+    /*53 CD_BMESH_TOOLFLAGS */
     {sizeof(MToolFlags),
      "MToolFlags",
      1,
@@ -2178,7 +2158,6 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {/*   0-4 */
                                                   "CDPropBoolean",
                                                   /*51-53*/
                                                   "CDHairLength",
-                                                  "CDMeshID",
                                                   "CDDyntopoVert",
                                                   "CDPropInt16"};
 
@@ -5930,64 +5909,6 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
 
   CustomData_update_typemap(data);
   CustomData_regen_active_refs(data);  // check for corrupted active layer refs
-}
-
-size_t CustomData_getTypeSize(eCustomDataType type)
-{
-  const LayerTypeInfo *info = layerType_getInfo(type);
-
-  return info ? info->size : 0ULL;
-}
-
-void CustomData_setDefaultData(eCustomDataType type, void *block, int totelem)
-{
-  const LayerTypeInfo *info = layerType_getInfo(type);
-
-  if (info->set_default_value) {
-    info->set_default_value(block, totelem);
-  }
-  else {
-    memset(block, 0, info->size * totelem);
-  }
-}
-
-void CustomData_freeData(eCustomDataType type, void *block, int totelem)
-{
-  const LayerTypeInfo *info = layerType_getInfo(type);
-
-  if (info->free) {
-    info->free(block, totelem, info->size);
-  }
-}
-
-#include "BLI_alloca.h"
-
-void CustomData_interpData(eCustomDataType type,
-                           void *block,
-                           int tot,
-                           const void **srcs,
-                           const float *ws,
-                           const float *sub_ws)
-{
-  const LayerTypeInfo *info = layerType_getInfo(type);
-
-  if (!info->interp) {
-    return;
-  }
-
-  if (!ws) {
-    float *ws2 = static_cast<float *>(BLI_array_alloca(ws2, tot));
-    float w = 1.0f / (float)tot;
-
-    for (int i = 0; i < tot; i++) {
-      ws2[i] = w;
-    }
-
-    info->interp(srcs, ws2, sub_ws, 1, block);
-  }
-  else {
-    info->interp(srcs, ws, sub_ws, 1, block);
-  }
 }
 
 /** \} */

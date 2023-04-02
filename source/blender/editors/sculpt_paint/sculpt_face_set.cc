@@ -1620,7 +1620,6 @@ static EnumPropertyItem prop_sculpt_face_sets_edit_types[] = {
         "Creates a smooth as possible geometry patch from the Face Set minimizing changes in "
         "vertex tangents",
     },
-    /*
     {
         SCULPT_FACE_SET_EDIT_FAIR_CURVATURE,
         "FAIR_CURVATURE",
@@ -1629,7 +1628,6 @@ static EnumPropertyItem prop_sculpt_face_sets_edit_types[] = {
         "Creates a smooth as possible geometry patch from the Face Set minimizing changes in "
         "surface curvature",
     },
-    */
     {
         SCULPT_FACE_SET_EDIT_FILL_COMPONENT,
         "FILL_COMPONENT",

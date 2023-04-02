@@ -198,7 +198,7 @@ static Vector<MeshToBMeshLayerInfo> mesh_to_bm_copy_info_calc(const CustomData &
     info.type = type;
     info.bmesh_offset = bm_layer.offset;
     info.mesh_data = (mesh_layer_index == -1) ? nullptr : mesh_data.layers[mesh_layer_index].data;
-    info.elem_size = CustomData_get_elem_size(&bm_layer);
+    info.elem_size = CustomData_sizeof(type);
     infos.append(info);
 
     per_type_index[type]++;
@@ -1154,7 +1154,7 @@ static Vector<BMeshToMeshLayerInfo> bm_to_mesh_copy_info_calc(const CustomData &
     info.n = per_type_index[type];
     info.bmesh_offset = bm_layer.offset;
     info.mesh_data = mesh_layer.data;
-    info.elem_size = CustomData_get_elem_size(&mesh_layer);
+    info.elem_size = CustomData_sizeof(type);
     infos.append(info);
 
     per_type_index[type]++;
