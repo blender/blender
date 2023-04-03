@@ -1881,6 +1881,7 @@ void draw_subdiv_build_lines_loose_buffer(const DRWSubdivCache *cache,
 void draw_subdiv_build_edge_fac_buffer(const DRWSubdivCache *cache,
                                        GPUVertBuf *pos_nor,
                                        GPUVertBuf *edge_draw_flag,
+                                       GPUVertBuf *poly_other_map,
                                        GPUVertBuf *edge_fac)
 {
   GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_EDGE_FAC);
@@ -1889,6 +1890,7 @@ void draw_subdiv_build_edge_fac_buffer(const DRWSubdivCache *cache,
   int binding_point = 0;
   GPU_vertbuf_bind_as_ssbo(pos_nor, binding_point++);
   GPU_vertbuf_bind_as_ssbo(edge_draw_flag, binding_point++);
+  GPU_vertbuf_bind_as_ssbo(poly_other_map, binding_point++);
   GPU_vertbuf_bind_as_ssbo(edge_fac, binding_point++);
   BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);
 
