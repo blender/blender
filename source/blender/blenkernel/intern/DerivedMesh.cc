@@ -391,12 +391,12 @@ void *DM_get_loop_data_layer(DerivedMesh *dm, const eCustomDataType type)
 }
 
 void DM_copy_vert_data(
-    DerivedMesh *source, DerivedMesh *dest, int source_index, int dest_index, int count)
+    const DerivedMesh *source, DerivedMesh *dest, int source_index, int dest_index, int count)
 {
   CustomData_copy_data(&source->vertData, &dest->vertData, source_index, dest_index, count);
 }
 
-void DM_interp_vert_data(DerivedMesh *source,
+void DM_interp_vert_data(const DerivedMesh *source,
                          DerivedMesh *dest,
                          int *src_indices,
                          float *weights,

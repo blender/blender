@@ -240,7 +240,7 @@ void *DM_get_loop_data_layer(struct DerivedMesh *dm, eCustomDataType type);
  * copy count elements from source_index in source to dest_index in dest
  * these copy all layers for which the CD_FLAG_NOCOPY flag is not set.
  */
-void DM_copy_vert_data(struct DerivedMesh *source,
+void DM_copy_vert_data(const struct DerivedMesh *source,
                        struct DerivedMesh *dest,
                        int source_index,
                        int dest_index,
@@ -259,7 +259,7 @@ void DM_ensure_looptri_data(DerivedMesh *dm);
  * source mesh using the given weights and stores the result in the vertex
  * indexed by `dest_index` in the `dest` mesh.
  */
-void DM_interp_vert_data(struct DerivedMesh *source,
+void DM_interp_vert_data(const struct DerivedMesh *source,
                          struct DerivedMesh *dest,
                          int *src_indices,
                          float *weights,
