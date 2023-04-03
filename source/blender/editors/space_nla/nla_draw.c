@@ -487,7 +487,8 @@ static void nla_draw_strip(SpaceNla *snla,
   }
 
   /* draw 'inside' of strip itself */
-  if (solo && is_nlastrip_enabled(adt, nlt, strip)) {
+  if (solo && is_nlastrip_enabled(adt, nlt, strip) &&
+      !(strip->flag & NLASTRIP_FLAG_INVALID_LOCATION)) {
     immUnbindProgram();
 
     /* strip is in normal track */
@@ -534,7 +535,11 @@ static void nla_draw_strip(SpaceNla *snla,
   /* draw strip outline
    * - color used here is to indicate active vs non-active
    */
-  if (strip->flag & (NLASTRIP_FLAG_ACTIVE | NLASTRIP_FLAG_SELECT)) {
+  if (strip->flag & NLASTRIP_FLAG_INVALID_LOCATION) {
+    color[0] = 1.0f;
+    color[1] = color[2] = 0.15f;
+  }
+  else if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
     /* strip should appear 'sunken', so draw a light border around it */
     color[0] = color[1] = color[2] = 1.0f; /* FIXME: hardcoded temp-hack colors */
   }
