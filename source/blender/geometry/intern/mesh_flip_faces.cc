@@ -61,7 +61,7 @@ void flip_faces(Mesh &mesh, const IndexMask &selection)
         return true;
       });
 
-  BKE_mesh_tag_topology_changed(&mesh);
+  BKE_mesh_tag_face_winding_changed(&mesh);
 }
 
 }  // namespace blender::geometry

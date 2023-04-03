@@ -243,6 +243,12 @@ void BKE_mesh_tag_edges_split(struct Mesh *mesh)
   }
 }
 
+void BKE_mesh_tag_face_winding_changed(Mesh *mesh)
+{
+  mesh->runtime->vert_normals_dirty = true;
+  mesh->runtime->poly_normals_dirty = true;
+}
+
 void BKE_mesh_tag_positions_changed(Mesh *mesh)
 {
   mesh->runtime->vert_normals_dirty = true;

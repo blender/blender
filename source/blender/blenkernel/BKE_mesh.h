@@ -72,6 +72,11 @@ void BKE_mesh_tag_topology_changed(struct Mesh *mesh);
  */
 void BKE_mesh_tag_edges_split(struct Mesh *mesh);
 
+/**
+ * Call when face vertex order has changed but positions and faces haven't changed
+ */
+void BKE_mesh_tag_face_winding_changed(struct Mesh *mesh);
+
 /* *** mesh.c *** */
 
 struct BMesh *BKE_mesh_to_bmesh_ex(const struct Mesh *me,
