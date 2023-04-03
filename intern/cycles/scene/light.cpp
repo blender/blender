@@ -437,11 +437,6 @@ void LightManager::device_update_tree(Device *,
   KernelIntegrator *kintegrator = &dscene->data.integrator;
 
   if (!kintegrator->use_light_tree) {
-    dscene->light_tree_nodes.free();
-    dscene->light_tree_emitters.free();
-    dscene->light_to_tree.free();
-    dscene->object_lookup_offset.free();
-    dscene->triangle_to_tree.free();
     return;
   }
 
@@ -1173,10 +1168,10 @@ void LightManager::device_update(Device *device,
 
 void LightManager::device_free(Device *, DeviceScene *dscene, const bool free_background)
 {
-  /* TODO: check if the light tree member variables need to be wrapped in a conditional too. */
   dscene->light_tree_nodes.free();
   dscene->light_tree_emitters.free();
   dscene->light_to_tree.free();
+  dscene->object_lookup_offset.free();
   dscene->triangle_to_tree.free();
 
   dscene->light_distribution.free();
