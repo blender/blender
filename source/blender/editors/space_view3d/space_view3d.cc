@@ -1928,7 +1928,7 @@ static void view3d_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
   wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 
-  ED_asset_shelf_region_init(region);
+  ED_asset_shelf_region_init(wm, region);
 }
 
 /* area (not region) level listener */
@@ -2256,8 +2256,7 @@ void ED_spacetype_view3d()
   art = MEM_cnew<ARegionType>("spacetype view3d asset shelf region");
   art->regionid = RGN_TYPE_ASSET_SHELF;
   art->prefsizey = ED_asset_shelf_region_prefsizey();
-  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES |
-                    ED_KEYMAP_HEADER;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_FRAMES;
   art->listener = ED_asset_shelf_region_listen;
   art->snap_size = ED_asset_shelf_region_snap;
   art->context = view3d_asset_shelf_context;

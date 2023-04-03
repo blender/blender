@@ -1306,7 +1306,10 @@ static void region_rect_recursive(
     }
   }
 
-  if (const int snap_flags = ED_region_snap_size_test(region)) {
+  if (region->flag & RGN_FLAG_HIDDEN) {
+    /* Pass. */
+  }
+  else if (const int snap_flags = ED_region_snap_size_test(region)) {
     /* Apply snapping, which updates #ARegion.sizex/sizey values. */
     ED_region_snap_size_apply(region, snap_flags);
   }

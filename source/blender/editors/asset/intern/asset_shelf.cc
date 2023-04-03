@@ -80,14 +80,9 @@ void ED_asset_shelf_region_listen(const wmRegionListenerParams *params)
   }
 }
 
-void ED_asset_shelf_region_init(ARegion *region)
+void ED_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
 {
-  View2D &v2d = region->v2d;
-
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
-  /* Only allow scrolling in vertical direction. */
-  v2d.scroll = V2D_SCROLL_RIGHT;
-  v2d.keepofs = V2D_LOCKOFS_X;
+  ED_region_panels_init(wm, region);
 }
 
 static constexpr int main_region_padding_y_not_scaled()
@@ -114,22 +109,25 @@ int ED_asset_shelf_region_snap(const ARegion *region, const int size, const int 
 
   const int size_scaled = size * UI_SCALE_FAC;
 
-  /* Using X axis avoids slight feedback loop when adjusting Y. */
-  const float aspect = BLI_rctf_size_x(&region->v2d.cur) /
-                       (BLI_rcti_size_x(&region->v2d.mask) + 1);
-  const float tile_size = ED_asset_shelf_region_default_tile_height() / aspect;
+  const float tile_height = ED_asset_shelf_default_tile_height() *
+                            UI_view2d_scale_get_y(&region->v2d);
   const int region_padding = main_region_padding_y_scaled();
 
   /* How many rows fit into the region (accounting for padding). */
-  const int rows = std::max(1, int((size_scaled - 2 * region_padding) / tile_size));
+  const int rows = std::max(1, int((size_scaled - 2 * region_padding) / tile_height));
 
-  const int new_size_scaled = (rows * tile_size + 2 * region_padding);
+  const int new_size_scaled = (rows * tile_height + 2 * region_padding);
   return new_size_scaled / UI_SCALE_FAC;
 }
 
-int ED_asset_shelf_region_default_tile_height()
+int ED_asset_shelf_default_tile_width()
 {
   return UI_preview_tile_size_x() * 0.8f;
+}
+
+int ED_asset_shelf_default_tile_height()
+{
+  return UI_preview_tile_size_y() * 0.8f;
 }
 
 int ED_asset_shelf_region_prefsizey()
@@ -137,7 +135,7 @@ int ED_asset_shelf_region_prefsizey()
   /* Can't account for DPI here since this is expected to be called on region type initialization
    * at startup, when #U isn't available yet. */
 
-  return ED_asset_shelf_region_default_tile_height() + 2 * main_region_padding_y_not_scaled();
+  return ED_asset_shelf_default_tile_width() + 2 * main_region_padding_y_not_scaled();
 }
 
 /**
@@ -177,12 +175,13 @@ void ED_asset_shelf_region_draw(const bContext *C,
   const uiStyle *style = UI_style_get();
   const float padding_y = main_region_padding_y_scaled();
   const float padding_x = main_region_padding_x_scaled();
+  const float scale_x = UI_view2d_scale_get_x(&region->v2d);
   uiLayout *layout = UI_block_layout(block,
                                      UI_LAYOUT_VERTICAL,
                                      UI_LAYOUT_PANEL,
                                      padding_x,
                                      -padding_y,
-                                     region->winx - 2 * padding_x,
+                                     (region->winx - 2 * padding_x) / scale_x,
                                      1,
                                      0,
                                      style);

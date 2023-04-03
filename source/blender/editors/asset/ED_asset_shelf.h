@@ -23,13 +23,14 @@ struct wmWindowManager;
 /* Asset Shelf Regions */
 
 /** Only needed for #RGN_TYPE_ASSET_SHELF (not #RGN_TYPE_ASSET_SHELF_FOOTER). */
-void ED_asset_shelf_region_init(ARegion *region);
-int ED_asset_shelf_region_snap(const ARegion *region, int size, int axis);
+void ED_asset_shelf_region_init(struct wmWindowManager *wm, struct ARegion *region);
+int ED_asset_shelf_region_snap(const struct ARegion *region, int size, int axis);
 void ED_asset_shelf_region_listen(const struct wmRegionListenerParams *params);
 void ED_asset_shelf_region_draw(const bContext *C,
                                 struct ARegion *region,
                                 struct AssetShelfSettings *shelf_settings);
-int ED_asset_shelf_region_default_tile_height(void);
+int ED_asset_shelf_default_tile_width(void);
+int ED_asset_shelf_default_tile_height(void);
 int ED_asset_shelf_region_prefsizey(void);
 
 void ED_asset_shelf_footer_region_init(struct wmWindowManager *wm, struct ARegion *region);
