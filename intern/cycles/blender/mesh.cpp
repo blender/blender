@@ -412,43 +412,58 @@ static void attr_create_generic(Scene *scene,
     switch (b_data_type) {
       case BL::Attribute::data_type_FLOAT: {
         BL::FloatAttribute b_float_attribute{b_attribute};
+        if (b_float_attribute.data.length() == 0) {
+          continue;
+        }
+        const float *src = static_cast<const float *>(b_float_attribute.data[0].ptr.data);
         Attribute *attr = attributes.add(name, TypeFloat, element);
         float *data = attr->data_float();
-        fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
-          return b_float_attribute.data[i].value();
-        });
+        fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) { return src[i]; });
         break;
       }
       case BL::Attribute::data_type_BOOLEAN: {
         BL::BoolAttribute b_bool_attribute{b_attribute};
+        if (b_bool_attribute.data.length() == 0) {
+          continue;
+        }
+        const bool *src = static_cast<const bool *>(b_bool_attribute.data[0].ptr.data);
         Attribute *attr = attributes.add(name, TypeFloat, element);
         float *data = attr->data_float();
-        fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
-          return (float)b_bool_attribute.data[i].value();
-        });
+        fill_generic_attribute(
+            b_mesh, data, b_domain, subdivision, [&](int i) { return (float)src[i]; });
         break;
       }
       case BL::Attribute::data_type_INT: {
         BL::IntAttribute b_int_attribute{b_attribute};
+        if (b_int_attribute.data.length() == 0) {
+          continue;
+        }
+        const int *src = static_cast<const int *>(b_int_attribute.data[0].ptr.data);
         Attribute *attr = attributes.add(name, TypeFloat, element);
         float *data = attr->data_float();
-        fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
-          return (float)b_int_attribute.data[i].value();
-        });
+        fill_generic_attribute(
+            b_mesh, data, b_domain, subdivision, [&](int i) { return (float)src[i]; });
         break;
       }
       case BL::Attribute::data_type_FLOAT_VECTOR: {
         BL::FloatVectorAttribute b_vector_attribute{b_attribute};
+        if (b_vector_attribute.data.length() == 0) {
+          continue;
+        }
+        const float(*src)[3] = static_cast<const float(*)[3]>(b_vector_attribute.data[0].ptr.data);
         Attribute *attr = attributes.add(name, TypeVector, element);
         float3 *data = attr->data_float3();
         fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
-          BL::Array<float, 3> v = b_vector_attribute.data[i].vector();
-          return make_float3(v[0], v[1], v[2]);
+          return make_float3(src[i][0], src[i][1], src[i][2]);
         });
         break;
       }
       case BL::Attribute::data_type_BYTE_COLOR: {
         BL::ByteColorAttribute b_color_attribute{b_attribute};
+        if (b_color_attribute.data.length() == 0) {
+          continue;
+        }
+        const uchar(*src)[4] = static_cast<const uchar(*)[4]>(b_color_attribute.data[0].ptr.data);
 
         if (element == ATTR_ELEMENT_CORNER) {
           element = ATTR_ELEMENT_CORNER_BYTE;
@@ -462,21 +477,26 @@ static void attr_create_generic(Scene *scene,
           uchar4 *data = attr->data_uchar4();
           fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
             /* Compress/encode vertex color using the sRGB curve. */
-            const float4 c = get_float4(b_color_attribute.data[i].color());
-            return color_float4_to_uchar4(color_linear_to_srgb_v4(c));
+            return make_uchar4(src[i][0], src[i][1], src[i][2], src[i][3]);
           });
         }
         else {
           float4 *data = attr->data_float4();
           fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
-            BL::Array<float, 4> v = b_color_attribute.data[i].color();
-            return make_float4(v[0], v[1], v[2], v[3]);
+            return make_float4(color_srgb_to_linear(byte_to_float(src[i][0])),
+                               color_srgb_to_linear(byte_to_float(src[i][1])),
+                               color_srgb_to_linear(byte_to_float(src[i][2])),
+                               color_srgb_to_linear(byte_to_float(src[i][3])));
           });
         }
         break;
       }
       case BL::Attribute::data_type_FLOAT_COLOR: {
         BL::FloatColorAttribute b_color_attribute{b_attribute};
+        if (b_color_attribute.data.length() == 0) {
+          continue;
+        }
+        const float(*src)[4] = static_cast<const float(*)[4]>(b_color_attribute.data[0].ptr.data);
 
         Attribute *attr = attributes.add(name, TypeRGBA, element);
         if (is_render_color) {
@@ -485,18 +505,20 @@ static void attr_create_generic(Scene *scene,
 
         float4 *data = attr->data_float4();
         fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
-          BL::Array<float, 4> v = b_color_attribute.data[i].color();
-          return make_float4(v[0], v[1], v[2], v[3]);
+          return make_float4(src[i][0], src[i][1], src[i][2], src[i][3]);
         });
         break;
       }
       case BL::Attribute::data_type_FLOAT2: {
         BL::Float2Attribute b_float2_attribute{b_attribute};
+        if (b_float2_attribute.data.length() == 0) {
+          continue;
+        }
+        const float(*src)[2] = static_cast<const float(*)[2]>(b_float2_attribute.data[0].ptr.data);
         Attribute *attr = attributes.add(name, TypeFloat2, element);
         float2 *data = attr->data_float2();
         fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
-          BL::Array<float, 2> v = b_float2_attribute.data[i].vector();
-          return make_float2(v[0], v[1]);
+          return make_float2(src[i][0], src[i][1]);
         });
         break;
       }
@@ -816,7 +838,7 @@ static void attr_create_pointiness(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, b
   }
 }
 
-static std::optional<BL::IntAttribute> find_corner_vert_attribute(BL::Mesh b_mesh)
+static const int *find_corner_vert_attribute(BL::Mesh b_mesh)
 {
   for (BL::Attribute &b_attribute : b_mesh.attributes) {
     if (b_attribute.domain() != BL::Attribute::domain_CORNER) {
@@ -828,9 +850,13 @@ static std::optional<BL::IntAttribute> find_corner_vert_attribute(BL::Mesh b_mes
     if (b_attribute.name() != ".corner_vert") {
       continue;
     }
-    return BL::IntAttribute{b_attribute};
+    BL::IntAttribute b_int_attribute{b_attribute};
+    if (b_int_attribute.data.length() == 0) {
+      return nullptr;
+    }
+    return static_cast<const int *>(b_int_attribute.data[0].ptr.data);
   }
-  return std::nullopt;
+  return nullptr;
 }
 
 /* The Random Per Island attribute is a random float associated with each
@@ -852,7 +878,6 @@ static void attr_create_random_per_island(Scene *scene,
     return;
   }
 
-  const int polys_num = b_mesh.polygons.length();
   int number_of_vertices = b_mesh.vertices.length();
   if (number_of_vertices == 0) {
     return;
@@ -862,6 +887,7 @@ static void attr_create_random_per_island(Scene *scene,
 
   const MEdge *edges = static_cast<MEdge *>(b_mesh.edges[0].ptr.data);
   const int edges_num = b_mesh.edges.length();
+  const int *corner_verts = find_corner_vert_attribute(b_mesh);
 
   for (int i = 0; i < edges_num; i++) {
     vertices_sets.join(edges[i].v1, edges[i].v2);
@@ -872,17 +898,22 @@ static void attr_create_random_per_island(Scene *scene,
   float *data = attribute->data_float();
 
   if (!subdivision) {
-    for (BL::MeshLoopTriangle &t : b_mesh.loop_triangles) {
-      data[t.index()] = hash_uint_to_float(vertices_sets.find(t.vertices()[0]));
+    const int tris_num = b_mesh.loop_triangles.length();
+    if (tris_num != 0) {
+      const MLoopTri *looptris = static_cast<const MLoopTri *>(b_mesh.loop_triangles[0].ptr.data);
+      for (int i = 0; i < tris_num; i++) {
+        const int vert = corner_verts[looptris[i].tri[0]];
+        data[i] = hash_uint_to_float(vertices_sets.find(vert));
+      }
     }
   }
   else {
+    const int polys_num = b_mesh.polygons.length();
     if (polys_num != 0) {
       const MPoly *polys = static_cast<const MPoly *>(b_mesh.polygons[0].ptr.data);
-      BL::IntAttribute corner_verts = *find_corner_vert_attribute(b_mesh);
       for (int i = 0; i < polys_num; i++) {
         const MPoly &b_poly = polys[i];
-        const int vert = corner_verts.data[b_poly.loopstart].value();
+        const int vert = corner_verts[b_poly.loopstart];
         data[i] = hash_uint_to_float(vertices_sets.find(vert));
       }
     }
@@ -891,7 +922,7 @@ static void attr_create_random_per_island(Scene *scene,
 
 /* Create Mesh */
 
-static std::optional<BL::IntAttribute> find_material_index_attribute(BL::Mesh b_mesh)
+static const int *find_material_index_attribute(BL::Mesh b_mesh)
 {
   for (BL::Attribute &b_attribute : b_mesh.attributes) {
     if (b_attribute.domain() != BL::Attribute::domain_FACE) {
@@ -903,12 +934,16 @@ static std::optional<BL::IntAttribute> find_material_index_attribute(BL::Mesh b_
     if (b_attribute.name() != "material_index") {
       continue;
     }
-    return BL::IntAttribute{b_attribute};
+    BL::IntAttribute b_int_attribute{b_attribute};
+    if (b_int_attribute.data.length() == 0) {
+      return nullptr;
+    }
+    return static_cast<const int *>(b_int_attribute.data[0].ptr.data);
   }
-  return std::nullopt;
+  return nullptr;
 }
 
-static std::optional<BL::BoolAttribute> find_sharp_face_attribute(BL::Mesh b_mesh)
+static const bool *find_sharp_face_attribute(BL::Mesh b_mesh)
 {
   for (BL::Attribute &b_attribute : b_mesh.attributes) {
     if (b_attribute.domain() != BL::Attribute::domain_FACE) {
@@ -920,9 +955,13 @@ static std::optional<BL::BoolAttribute> find_sharp_face_attribute(BL::Mesh b_mes
     if (b_attribute.name() != "sharp_face") {
       continue;
     }
-    return BL::BoolAttribute{b_attribute};
+    BL::IntAttribute b_int_attribute{b_attribute};
+    if (b_int_attribute.data.length() == 0) {
+      return nullptr;
+    }
+    return static_cast<const bool *>(b_int_attribute.data[0].ptr.data);
   }
-  return std::nullopt;
+  return nullptr;
 }
 
 static void create_mesh(Scene *scene,
@@ -934,13 +973,10 @@ static void create_mesh(Scene *scene,
                         const bool subdivision = false,
                         const bool subdivide_uvs = true)
 {
-  /* count vertices and faces */
-  int numverts = b_mesh.vertices.length();
+  const int numverts = b_mesh.vertices.length();
   const int polys_num = b_mesh.polygons.length();
   int numfaces = (!subdivision) ? b_mesh.loop_triangles.length() : b_mesh.polygons.length();
-  int numtris = 0;
-  int numcorners = 0;
-  int numngons = 0;
+  const int numcorners = b_mesh.loops.length();
   bool use_loop_normals = b_mesh.use_auto_smooth() &&
                           (mesh->get_subdivision_type() != Mesh::SUBDIVISION_CATMULL_CLARK);
 
@@ -950,7 +986,16 @@ static void create_mesh(Scene *scene,
   }
 
   const float(*positions)[3] = static_cast<const float(*)[3]>(b_mesh.vertices[0].ptr.data);
+  const int *corner_verts = find_corner_vert_attribute(b_mesh);
+  const int *material_indices = find_material_index_attribute(b_mesh);
+  const bool *sharp_faces = find_sharp_face_attribute(b_mesh);
+  const float(*corner_normals)[3] = nullptr;
+  if (use_loop_normals) {
+    corner_normals = static_cast<const float(*)[3]>(b_mesh.corner_normals[0].ptr.data);
+  }
 
+  int numngons = 0;
+  int numtris = 0;
   if (!subdivision) {
     numtris = numfaces;
   }
@@ -959,27 +1004,25 @@ static void create_mesh(Scene *scene,
     for (int i = 0; i < polys_num; i++) {
       const MPoly &b_poly = polys[i];
       numngons += (b_poly.totloop == 4) ? 0 : 1;
-      numcorners += b_poly.totloop;
     }
   }
 
   /* allocate memory */
   if (subdivision) {
-    mesh->reserve_subd_faces(numfaces, numngons, numcorners);
+    mesh->resize_subd_faces(numfaces, numngons, numcorners);
   }
+  mesh->resize_mesh(numverts, numtris);
 
-  mesh->reserve_mesh(numverts, numtris);
-
-  /* create vertex coordinates and normals */
+  float3 *verts = mesh->get_verts().data();
   for (int i = 0; i < numverts; i++) {
-    mesh->add_vertex(make_float3(positions[i][0], positions[i][1], positions[i][2]));
+    verts[i] = make_float3(positions[i][0], positions[i][1], positions[i][2]);
   }
 
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
   Attribute *attr_N = attributes.add(ATTR_STD_VERTEX_NORMAL);
   float3 *N = attr_N->data_float3();
 
-  if (subdivision || !use_loop_normals) {
+  if (subdivision || !(use_loop_normals && corner_normals)) {
     const float(*b_vert_normals)[3] = static_cast<const float(*)[3]>(
         b_mesh.vertex_normals[0].ptr.data);
     for (int i = 0; i < numverts; i++) {
@@ -1007,67 +1050,105 @@ static void create_mesh(Scene *scene,
     }
   }
 
-  std::optional<BL::IntAttribute> material_indices = find_material_index_attribute(b_mesh);
-  auto get_material_index = [&](const int poly_index) -> int {
-    if (material_indices) {
-      return clamp(material_indices->data[poly_index].value(), 0, used_shaders.size() - 1);
-    }
-    return 0;
-  };
-
-  std::optional<BL::BoolAttribute> sharp_faces = find_sharp_face_attribute(b_mesh);
-  auto get_face_sharp = [&](const int poly_index) -> bool {
-    if (sharp_faces) {
-      return sharp_faces->data[poly_index].value();
-    }
-    return false;
+  auto clamp_material_index = [&](const int material_index) -> int {
+    return clamp(material_index, 0, used_shaders.size() - 1);
   };
 
   /* create faces */
   if (!subdivision) {
-    for (BL::MeshLoopTriangle &t : b_mesh.loop_triangles) {
-      const int poly_index = t.polygon_index();
-      int3 vi = get_int3(t.vertices());
+    int *triangles = mesh->get_triangles().data();
+    bool *smooth = mesh->get_smooth().data();
+    int *shader = mesh->get_shader().data();
 
-      int shader = get_material_index(poly_index);
-      bool smooth = !get_face_sharp(poly_index) || use_loop_normals;
+    const MLoopTri *looptris = static_cast<const MLoopTri *>(b_mesh.loop_triangles[0].ptr.data);
+    for (int i = 0; i < numtris; i++) {
+      const MLoopTri &tri = looptris[i];
+      triangles[i * 3 + 0] = corner_verts[tri.tri[0]];
+      triangles[i * 3 + 1] = corner_verts[tri.tri[1]];
+      triangles[i * 3 + 2] = corner_verts[tri.tri[2]];
+    }
 
-      if (use_loop_normals) {
-        BL::Array<float, 9> loop_normals = t.split_normals();
+    if (material_indices) {
+      for (int i = 0; i < numtris; i++) {
+        const int poly_index = looptris[i].poly;
+        shader[i] = clamp_material_index(material_indices[poly_index]);
+      }
+    }
+    else {
+      std::fill(shader, shader + numtris, 0);
+    }
+
+    if (sharp_faces && !(use_loop_normals && corner_normals)) {
+      for (int i = 0; i < numtris; i++) {
+        const int poly_index = looptris[i].poly;
+        smooth[i] = !sharp_faces[poly_index];
+      }
+    }
+    else {
+      std::fill(smooth, smooth + numtris, true);
+    }
+
+    if (use_loop_normals && corner_normals) {
+      for (int i = 0; i < numtris; i++) {
+        const MLoopTri &tri = looptris[i];
         for (int i = 0; i < 3; i++) {
-          N[vi[i]] = make_float3(
-              loop_normals[i * 3], loop_normals[i * 3 + 1], loop_normals[i * 3 + 2]);
+          const int corner = tri.tri[i];
+          const int vert = corner_verts[corner];
+          const float *normal = corner_normals[corner];
+          N[vert] = make_float3(normal[0], normal[1], normal[2]);
         }
       }
-
-      /* Create triangles.
-       *
-       * NOTE: Autosmooth is already taken care about.
-       */
-      mesh->add_triangle(vi[0], vi[1], vi[2], shader, smooth);
     }
+
+    mesh->tag_triangles_modified();
+    mesh->tag_shader_modified();
+    mesh->tag_smooth_modified();
   }
   else {
-    vector<int> vi;
+    int *subd_start_corner = mesh->get_subd_start_corner().data();
+    int *subd_num_corners = mesh->get_subd_num_corners().data();
+    int *subd_shader = mesh->get_subd_shader().data();
+    bool *subd_smooth = mesh->get_subd_smooth().data();
+    int *subd_ptex_offset = mesh->get_subd_ptex_offset().data();
+    int *subd_face_corners = mesh->get_subd_face_corners().data();
+
+    if (sharp_faces && !use_loop_normals) {
+      for (int i = 0; i < numfaces; i++) {
+        subd_smooth[i] = !sharp_faces[i];
+      }
+    }
+    else {
+      std::fill(subd_smooth, subd_smooth + numfaces, true);
+    }
+
+    if (material_indices) {
+      for (int i = 0; i < numfaces; i++) {
+        subd_shader[i] = clamp_material_index(material_indices[i]);
+      }
+    }
+    else {
+      std::fill(subd_shader, subd_shader + numfaces, 0);
+    }
+
+    std::copy(corner_verts, corner_verts + numcorners, subd_face_corners);
 
     const MPoly *polys = static_cast<const MPoly *>(b_mesh.polygons[0].ptr.data);
-    std::optional<BL::IntAttribute> corner_verts = find_corner_vert_attribute(b_mesh);
-
+    int ptex_offset = 0;
     for (int i = 0; i < numfaces; i++) {
       const MPoly &b_poly = polys[i];
-      int n = b_poly.totloop;
-      int shader = get_material_index(i);
-      bool smooth = !get_face_sharp(i) || use_loop_normals;
-
-      vi.resize(n);
-      for (int i = 0; i < n; i++) {
-        /* NOTE: Autosmooth is already taken care about. */
-        vi[i] = corner_verts->data[b_poly.loopstart + i].value();
-      }
-
-      /* create subd faces */
-      mesh->add_subd_face(&vi[0], n, shader, smooth);
+      subd_start_corner[i] = b_poly.loopstart;
+      subd_num_corners[i] = b_poly.totloop;
+      subd_ptex_offset[i] = ptex_offset;
+      const int num_ptex = (b_poly.totloop == 4) ? 1 : b_poly.totloop;
+      ptex_offset += num_ptex;
     }
+
+    mesh->tag_subd_face_corners_modified();
+    mesh->tag_subd_start_corner_modified();
+    mesh->tag_subd_num_corners_modified();
+    mesh->tag_subd_shader_modified();
+    mesh->tag_subd_smooth_modified();
+    mesh->tag_subd_ptex_offset_modified();
   }
 
   /* Create all needed attributes.
@@ -1118,11 +1199,11 @@ static void create_subd_mesh(Scene *scene,
   const int edges_num = b_mesh.edges.length();
 
   if (edges_num != 0 && b_mesh.edge_creases.length() > 0) {
-    BL::MeshEdgeCreaseLayer creases = b_mesh.edge_creases[0];
+    const float *creases = static_cast<const float *>(b_mesh.edge_creases[0].data[0].ptr.data);
 
     size_t num_creases = 0;
     for (int i = 0; i < edges_num; i++) {
-      if (creases.data[i].value() != 0.0f) {
+      if (creases[i] != 0.0f) {
         num_creases++;
       }
     }
@@ -1131,7 +1212,7 @@ static void create_subd_mesh(Scene *scene,
 
     const MEdge *edges = static_cast<MEdge *>(b_mesh.edges[0].ptr.data);
     for (int i = 0; i < edges_num; i++) {
-      const float crease = creases.data[i].value();
+      const float crease = creases[i];
       if (crease != 0.0f) {
         const MEdge &b_edge = edges[i];
         mesh->add_edge_crease(b_edge.v1, b_edge.v2, crease);
@@ -1139,10 +1220,11 @@ static void create_subd_mesh(Scene *scene,
     }
   }
 
-  for (BL::MeshVertexCreaseLayer &c : b_mesh.vertex_creases) {
-    for (int i = 0; i < c.data.length(); ++i) {
-      if (c.data[i].value() != 0.0f) {
-        mesh->add_vertex_crease(i, c.data[i].value());
+  for (BL::MeshVertexCreaseLayer &layer : b_mesh.vertex_creases) {
+    const float *creases = static_cast<const float *>(layer.data[0].ptr.data);
+    for (int i = 0; i < layer.data.length(); ++i) {
+      if (creases[i] != 0.0f) {
+        mesh->add_vertex_crease(i, creases[i]);
       }
     }
   }

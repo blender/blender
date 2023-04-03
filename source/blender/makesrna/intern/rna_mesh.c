@@ -2096,6 +2096,40 @@ int rna_Mesh_poly_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_p
   return true;
 }
 
+static void rna_Mesh_corner_normals_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const float(*normals)[3] = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
+  if (!normals) {
+    iter->valid = false;
+    return;
+  }
+  rna_iterator_array_begin(iter, (void *)normals, sizeof(float[3]), mesh->totloop, false, NULL);
+}
+
+static int rna_Mesh_corner_normals_length(PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  if (!CustomData_has_layer(&mesh->ldata, CD_NORMAL)) {
+    return 0;
+  }
+  return mesh->totloop;
+}
+
+int rna_Mesh_corner_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const float(*normals)[3] = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
+  if (index < 0 || index >= mesh->totloop || !normals) {
+    return false;
+  }
+  /* Casting away const is okay because this RNA type doesn't allow changing the value. */
+  r_ptr->owner_id = (ID *)&mesh->id;
+  r_ptr->type = &RNA_MeshNormalValue;
+  r_ptr->data = (float *)normals[index];
+  return true;
+}
+
 static char *rna_MeshUVLoop_path(const PointerRNA *ptr)
 {
   return rna_LoopCustomData_data_path(ptr, "uv_layers", CD_PROP_FLOAT2);
@@ -4215,6 +4249,24 @@ static void rna_def_mesh(BlenderRNA *brna)
                                     "rna_iterator_array_get",
                                     "rna_Mesh_poly_normals_length",
                                     "rna_Mesh_poly_normals_lookup_int",
+                                    NULL,
+                                    NULL);
+
+  prop = RNA_def_property(srna, "corner_normals", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "MeshNormalValue");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_ui_text(
+      prop,
+      "Corner Normals",
+      "The \"slit\" normal direction of each face corner, influenced by vertex normals, "
+      "sharp faces, sharp edges, and custom normals. May be empty");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Mesh_corner_normals_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_Mesh_corner_normals_length",
+                                    "rna_Mesh_corner_normals_lookup_int",
                                     NULL,
                                     NULL);
 

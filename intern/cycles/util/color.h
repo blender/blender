@@ -19,6 +19,11 @@ ccl_device uchar float_to_byte(float val)
                           ((val > (1.0f - 0.5f / 255.0f)) ? 255 : (uchar)((255.0f * val) + 0.5f)));
 }
 
+ccl_device float byte_to_float(uchar val)
+{
+  return val * (1.0f / 255.0f);
+}
+
 ccl_device uchar4 color_float_to_byte(float3 c)
 {
   uchar r, g, b;
