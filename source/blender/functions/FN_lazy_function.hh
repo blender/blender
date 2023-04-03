@@ -250,7 +250,7 @@ struct Output {
  */
 class LazyFunction {
  protected:
-  const char *debug_name_ = "<unknown>";
+  const char *debug_name_ = "unknown";
   Vector<Input> inputs_;
   Vector<Output> outputs_;
   /**

@@ -105,6 +105,9 @@ class Object : public Node {
   /* Compute step size from attributes, shaders, transforms. */
   float compute_volume_step_size() const;
 
+  /* Check whether this object can be used as light-emissive. */
+  bool usable_as_light() const;
+
  protected:
   /* Specifies the position of the object in scene->objects and
    * in the device vectors. Gets set in device_update. */

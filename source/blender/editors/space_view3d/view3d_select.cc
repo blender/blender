@@ -3480,7 +3480,7 @@ static void do_nurbs_box_select__doSelect(void *userData,
     }
   }
 }
-static bool do_nurbs_box_select(ViewContext *vc, rcti *rect, const eSelectOp sel_op)
+static bool do_nurbs_box_select(ViewContext *vc, const rcti *rect, const eSelectOp sel_op)
 {
   const bool deselect_all = (sel_op == SEL_OP_SET);
   BoxSelectUserData data;
@@ -3520,7 +3520,7 @@ static void do_lattice_box_select__doSelect(void *userData, BPoint *bp, const fl
     data->is_changed = true;
   }
 }
-static bool do_lattice_box_select(ViewContext *vc, rcti *rect, const eSelectOp sel_op)
+static bool do_lattice_box_select(ViewContext *vc, const rcti *rect, const eSelectOp sel_op)
 {
   BoxSelectUserData data;
 
@@ -3855,7 +3855,10 @@ static int opengl_bone_select_buffer_cmp(const void *sel_a_p, const void *sel_b_
   return 0;
 }
 
-static bool do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const eSelectOp sel_op)
+static bool do_object_box_select(bContext *C,
+                                 ViewContext *vc,
+                                 const rcti *rect,
+                                 const eSelectOp sel_op)
 {
   View3D *v3d = vc->v3d;
   int totobj = MAXPICKELEMS; /* XXX solve later */
@@ -3928,7 +3931,10 @@ finally:
   return changed;
 }
 
-static bool do_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, const eSelectOp sel_op)
+static bool do_pose_box_select(bContext *C,
+                               ViewContext *vc,
+                               const rcti *rect,
+                               const eSelectOp sel_op)
 {
   blender::Vector<Base *> bases = do_pose_tag_select_op_prepare(vc);
 

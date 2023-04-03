@@ -196,11 +196,14 @@ class AttributeFieldInput : public GeometryFieldInput {
     category_ = Category::NamedAttribute;
   }
 
+  static fn::GField Create(std::string name, const CPPType &type)
+  {
+    auto field_input = std::make_shared<AttributeFieldInput>(std::move(name), type);
+    return fn::GField(field_input);
+  }
   template<typename T> static fn::Field<T> Create(std::string name)
   {
-    const CPPType &type = CPPType::get<T>();
-    auto field_input = std::make_shared<AttributeFieldInput>(std::move(name), type);
-    return fn::Field<T>{field_input};
+    return fn::Field<T>(Create(std::move(name), CPPType::get<T>()));
   }
 
   StringRefNull attribute_name() const

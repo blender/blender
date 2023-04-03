@@ -93,6 +93,9 @@ static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
       }
     }
   }
+
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+      data, wm->xr.session_settings.base_pose_object, IDWALK_CB_USER_ONE);
 }
 
 static void write_wm_xr_data(BlendWriter *writer, wmXrData *xr_data)

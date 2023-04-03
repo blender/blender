@@ -47,6 +47,26 @@ void ghost_wl_surface_tag_cursor_pointer(struct wl_surface *surface);
 bool ghost_wl_surface_own_cursor_tablet(const struct wl_surface *surface);
 void ghost_wl_surface_tag_cursor_tablet(struct wl_surface *surface);
 
+/* Scaling to: translates from WAYLAND into GHOST (viewport local) coordinates.
+ * Scaling from: performs the reverse translation.
+ *
+ * Scaling "to" is used to map WAYLAND location cursor coordinates to GHOST coordinates.
+ * Scaling "from" is used to clamp cursor coordinates in WAYLAND local coordinates. */
+
+struct GWL_WindowScaleParams;
+wl_fixed_t gwl_window_scale_wl_fixed_to(const GWL_WindowScaleParams &scale_params,
+                                        wl_fixed_t value);
+wl_fixed_t gwl_window_scale_wl_fixed_from(const GWL_WindowScaleParams &scale_params,
+                                          wl_fixed_t value);
+
+/* Avoid this where possible as scaling integers often incurs rounding errors.
+ * Scale #wl_fixed_t where possible.
+ *
+ * In general scale by large values where this is less likely to be a problem. */
+
+int gwl_window_scale_int_to(const GWL_WindowScaleParams &scale_params, int value);
+int gwl_window_scale_int_from(const GWL_WindowScaleParams &scale_params, int value);
+
 #ifdef WITH_GHOST_WAYLAND_DYNLOAD
 /**
  * Return true when all required WAYLAND libraries are present,
@@ -181,6 +201,10 @@ class GHOST_SystemWayland : public GHOST_System {
   struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_manager();
   struct xdg_activation_v1 *xdg_activation_manager();
   struct zwp_pointer_gestures_v1 *wp_pointer_gestures();
+#ifdef WITH_GHOST_WAYLAND_FRACTIONAL_SCALE
+  struct wp_fractional_scale_manager_v1 *wp_fractional_scale_manager();
+  struct wp_viewporter *wp_viewporter();
+#endif
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   libdecor *libdecor_context();
@@ -234,7 +258,7 @@ class GHOST_SystemWayland : public GHOST_System {
                               const GHOST_Rect *wrap_bounds,
                               GHOST_TAxisFlag wrap_axis,
                               wl_surface *wl_surface,
-                              int scale);
+                              const struct GWL_WindowScaleParams &scale_params);
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   static bool use_libdecor_runtime();

@@ -352,7 +352,7 @@ void ShadowPass::init(const SceneState &scene_state, SceneResources &resources)
   float4x4 view_matrix;
   DRW_view_viewmat_get(nullptr, view_matrix.ptr(), false);
   resources.world_buf.shadow_direction_vs = float4(
-      math::transform_direction(view_matrix, direction_ws));
+      math::transform_direction(view_matrix, direction_ws), 0.0f);
 
   /* Clamp to avoid overshadowing and shading errors. */
   float focus = clamp_f(scene.display.shadow_focus, 0.0001f, 0.99999f);

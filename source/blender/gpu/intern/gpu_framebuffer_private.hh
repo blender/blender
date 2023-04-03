@@ -137,10 +137,20 @@ class FrameBuffer {
                             void *userData);
   uint get_bits_per_pixel();
 
+  /* Sets the size after creation. */
   inline void size_set(int width, int height)
   {
     width_ = width;
     height_ = height;
+    dirty_state_ = true;
+  }
+
+  /* Sets the size for frame-buffer with no attachments. */
+  inline void default_size_set(int width, int height)
+  {
+    width_ = width;
+    height_ = height;
+    dirty_attachments_ = true;
     dirty_state_ = true;
   }
 

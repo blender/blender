@@ -1501,6 +1501,8 @@ void ED_operatortypes_paint(void)
   WM_operatortype_append(PAINT_OT_vert_select_hide);
   WM_operatortype_append(PAINT_OT_vert_select_linked);
   WM_operatortype_append(PAINT_OT_vert_select_linked_pick);
+  WM_operatortype_append(PAINT_OT_vert_select_more);
+  WM_operatortype_append(PAINT_OT_vert_select_less);
 
   /* vertex */
   WM_operatortype_append(PAINT_OT_vertex_paint_toggle);
@@ -1518,6 +1520,8 @@ void ED_operatortypes_paint(void)
   WM_operatortype_append(PAINT_OT_face_select_linked);
   WM_operatortype_append(PAINT_OT_face_select_linked_pick);
   WM_operatortype_append(PAINT_OT_face_select_all);
+  WM_operatortype_append(PAINT_OT_face_select_more);
+  WM_operatortype_append(PAINT_OT_face_select_less);
   WM_operatortype_append(PAINT_OT_face_select_hide);
 
   WM_operatortype_append(PAINT_OT_face_vert_reveal);
