@@ -30,6 +30,7 @@
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
 
+#include "BLI_set.hh"
 #include "BLT_translation.h"
 
 #include "DEG_depsgraph.h"
@@ -2109,7 +2110,7 @@ void NODE_OT_node_copy_color(wmOperatorType *ot)
 /** \name Node-Tree Add Interface Socket Operator
  * \{ */
 
-static bNodeSocket *ntree_get_active_interface_socket(ListBase *lb)
+static bNodeSocket *ntree_get_active_interface_socket(const ListBase *lb)
 {
   LISTBASE_FOREACH (bNodeSocket *, socket, lb) {
     if (socket->flag & SELECT) {
@@ -2254,7 +2255,6 @@ static int ntree_socket_change_type_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  /* Don't handle sub-types for now. */
   nodeModifySocketType(ntree, nullptr, iosock, socket_type->idname);
 
   /* Need the extra update here because the loop above does not check for valid links in the node
@@ -2329,6 +2329,155 @@ void NODE_OT_tree_socket_change_type(wmOperatorType *ot)
   prop = RNA_def_enum(ot->srna, "socket_type", DummyRNA_DEFAULT_items, 0, "Socket Type", "");
   RNA_def_enum_funcs(prop, socket_change_type_itemf);
   ot->prop = prop;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Node-Tree Change Interface Socket Subtype Operator
+ * \{ */
+
+static int ntree_socket_change_subtype_exec(bContext *C, wmOperator *op)
+{
+  Main *main = CTX_data_main(C);
+  const int socket_subtype = RNA_enum_get(op->ptr, "socket_subtype");
+
+  PointerRNA io_socket_ptr = CTX_data_pointer_get_type(
+      C, "interface_socket", &RNA_NodeSocketInterface);
+  bNodeSocket *io_socket = static_cast<bNodeSocket *>(io_socket_ptr.data);
+  if (!io_socket) {
+    return OPERATOR_CANCELLED;
+  }
+
+  bNodeTree &node_tree = *reinterpret_cast<bNodeTree *>(io_socket_ptr.owner_id);
+
+  ListBase *sockets;
+  if (node_tree.interface_inputs().contains(io_socket)) {
+    sockets = &node_tree.inputs;
+  }
+  else if (node_tree.interface_outputs().contains(io_socket)) {
+    sockets = &node_tree.outputs;
+  }
+  else {
+    /* The interface socket should be in the inputs or outputs. */
+    BLI_assert_unreachable();
+    return OPERATOR_CANCELLED;
+  }
+
+  nodeModifySocketTypeStatic(&node_tree, nullptr, io_socket, io_socket->type, socket_subtype);
+
+  /* Deactivate sockets. */
+  LISTBASE_FOREACH (bNodeSocket *, socket_iter, sockets) {
+    socket_iter->flag &= ~SELECT;
+  }
+  /* Make the new socket active. */
+  io_socket->flag |= SELECT;
+
+  BKE_ntree_update_tag_interface(&node_tree);
+  ED_node_tree_propagate_change(C, main, &node_tree);
+
+  return OPERATOR_FINISHED;
+}
+
+static Set<int> socket_type_get_subtypes(const eNodeSocketDatatype type)
+{
+  switch (type) {
+    case SOCK_FLOAT:
+      return {PROP_PERCENTAGE,
+              PROP_FACTOR,
+              PROP_ANGLE,
+              PROP_TIME,
+              PROP_TIME_ABSOLUTE,
+              PROP_DISTANCE,
+              PROP_NONE};
+    case SOCK_INT:
+      return {PROP_PERCENTAGE, PROP_FACTOR, PROP_NONE};
+    case SOCK_VECTOR:
+      return {PROP_TRANSLATION,
+              /* Direction doesn't seem to work. */
+              // PROP_DIRECTION,
+              PROP_VELOCITY,
+              PROP_ACCELERATION,
+              PROP_EULER,
+              PROP_XYZ,
+              PROP_NONE};
+    default:
+      return {};
+  }
+}
+
+static const EnumPropertyItem *socket_change_subtype_itemf(bContext *C,
+                                                           PointerRNA * /*ptr*/,
+                                                           PropertyRNA * /*prop*/,
+                                                           bool *r_free)
+{
+  if (!C) {
+    return DummyRNA_NULL_items;
+  }
+  SpaceNode *snode = CTX_wm_space_node(C);
+  if (!snode || !snode->edittree) {
+    return DummyRNA_NULL_items;
+  }
+
+  PointerRNA active_socket_ptr = CTX_data_pointer_get_type(
+      C, "interface_socket", &RNA_NodeSocketInterface);
+  const bNodeSocket *active_socket = static_cast<const bNodeSocket *>(active_socket_ptr.data);
+  if (!active_socket) {
+    return DummyRNA_NULL_items;
+  }
+
+  const Set<int> subtypes = socket_type_get_subtypes(eNodeSocketDatatype(active_socket->type));
+  if (subtypes.is_empty()) {
+    return DummyRNA_NULL_items;
+  }
+
+  EnumPropertyItem *items = NULL;
+  int items_count = 0;
+  for (const EnumPropertyItem *item = rna_enum_property_subtype_items; item->name != NULL;
+       item++) {
+    if (subtypes.contains(item->value)) {
+      RNA_enum_item_add(&items, &items_count, item);
+    }
+  }
+
+  if (items_count == 0) {
+    return DummyRNA_NULL_items;
+  }
+
+  RNA_enum_item_end(&items, &items_count);
+  *r_free = true;
+  return items;
+}
+
+static bool ntree_socket_change_subtype_poll(bContext *C)
+{
+  if (!ED_operator_node_editable(C)) {
+    return false;
+  }
+  PointerRNA io_socket_ptr = CTX_data_pointer_get_type(
+      C, "interface_socket", &RNA_NodeSocketInterface);
+  const bNodeSocket *io_socket = static_cast<const bNodeSocket *>(io_socket_ptr.data);
+  if (!io_socket) {
+    return false;
+  }
+  return !socket_type_get_subtypes(eNodeSocketDatatype(io_socket->type)).is_empty();
+}
+
+void NODE_OT_tree_socket_change_subtype(wmOperatorType *ot)
+{
+  ot->name = "Change Node Tree Socket Subtype";
+  ot->description = "Change the subtype of a socket of the active node tree";
+  ot->idname = "NODE_OT_tree_socket_change_subtype";
+
+  ot->invoke = WM_menu_invoke;
+  ot->exec = ntree_socket_change_subtype_exec;
+  ot->poll = ntree_socket_change_subtype_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(
+      ot->srna, "socket_subtype", DummyRNA_DEFAULT_items, 0, "Socket Subtype", "");
+  RNA_def_enum_funcs(ot->prop, socket_change_subtype_itemf);
 }
 
 /** \} */

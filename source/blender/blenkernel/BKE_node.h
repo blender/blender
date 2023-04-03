@@ -158,6 +158,8 @@ typedef struct bNodeSocketType {
   char idname[64];
   /* Type label */
   char label[64];
+  /* Subtype label */
+  char subtype_label[64];
 
   void (*draw)(struct bContext *C,
                struct uiLayout *layout,
@@ -634,6 +636,7 @@ bool nodeIsStaticSocketType(const struct bNodeSocketType *stype);
 const char *nodeStaticSocketType(int type, int subtype);
 const char *nodeStaticSocketInterfaceType(int type, int subtype);
 const char *nodeStaticSocketLabel(int type, int subtype);
+const char *nodeSocketSubTypeLabel(int subtype);
 
 /* Helper macros for iterating over node types. */
 #define NODE_SOCKET_TYPES_BEGIN(stype) \

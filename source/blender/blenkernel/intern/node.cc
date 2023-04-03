@@ -68,6 +68,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 #include "RNA_prototypes.h"
 
 #include "NOD_common.h"
@@ -1466,6 +1467,15 @@ const char *nodeSocketTypeLabel(const bNodeSocketType *stype)
   return stype->label[0] != '\0' ? stype->label : RNA_struct_ui_name(stype->ext_socket.srna);
 }
 
+const char *nodeSocketSubTypeLabel(int subtype)
+{
+  const char *name;
+  if (RNA_enum_name(rna_enum_property_subtype_items, subtype, &name)) {
+    return name;
+  }
+  return "";
+}
+
 bNodeSocket *nodeFindSocket(const bNode *node,
                             const eNodeSocketInOut in_out,
                             const char *identifier)
@@ -1673,9 +1683,47 @@ void nodeModifySocketType(bNodeTree *ntree,
   }
 
   if (sock->default_value) {
-    socket_id_user_decrement(sock);
-    MEM_freeN(sock->default_value);
-    sock->default_value = nullptr;
+    if (sock->type != socktype->type) {
+      /* Only reallocate the default value if the type changed so that UI data like min and max
+       * isn't removed. This assumes that the default value is stored in the same format for all
+       * socket types with the same #eNodeSocketDatatype.  */
+      socket_id_user_decrement(sock);
+      MEM_freeN(sock->default_value);
+      sock->default_value = nullptr;
+    }
+    else {
+      /* Update the socket subtype when the storage isn't freed and recreated. */
+      switch (eNodeSocketDatatype(sock->type)) {
+        case SOCK_FLOAT: {
+          sock->default_value_typed<bNodeSocketValueFloat>()->subtype = socktype->subtype;
+          break;
+        }
+        case SOCK_VECTOR: {
+          sock->default_value_typed<bNodeSocketValueVector>()->subtype = socktype->subtype;
+          break;
+        }
+        case SOCK_INT: {
+          sock->default_value_typed<bNodeSocketValueInt>()->subtype = socktype->subtype;
+          break;
+        }
+        case SOCK_STRING: {
+          sock->default_value_typed<bNodeSocketValueString>()->subtype = socktype->subtype;
+          break;
+        }
+        case SOCK_RGBA:
+        case SOCK_SHADER:
+        case SOCK_BOOLEAN:
+        case SOCK_CUSTOM:
+        case __SOCK_MESH:
+        case SOCK_OBJECT:
+        case SOCK_IMAGE:
+        case SOCK_GEOMETRY:
+        case SOCK_COLLECTION:
+        case SOCK_TEXTURE:
+        case SOCK_MATERIAL:
+          break;
+      }
+    }
   }
 
   BLI_strncpy(sock->idname, idname, sizeof(sock->idname));
