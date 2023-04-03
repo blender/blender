@@ -239,34 +239,6 @@ void LightManager::test_enabled_lights(Scene *scene)
   }
 }
 
-bool LightManager::object_usable_as_light(Object *object)
-{
-  Geometry *geom = object->get_geometry();
-  if (geom->geometry_type != Geometry::MESH && geom->geometry_type != Geometry::VOLUME) {
-    return false;
-  }
-  /* Skip objects with NaNs */
-  if (!object->bounds.valid()) {
-    return false;
-  }
-  /* Skip if we are not visible for BSDFs. */
-  if (!(object->get_visibility() & (PATH_RAY_DIFFUSE | PATH_RAY_GLOSSY | PATH_RAY_TRANSMIT))) {
-    return false;
-  }
-  /* Skip if we have no emission shaders. */
-  /* TODO(sergey): Ideally we want to avoid such duplicated loop, since it'll
-   * iterate all geometry shaders twice (when counting and when calculating
-   * triangle area.
-   */
-  foreach (Node *node, geom->get_used_shaders()) {
-    Shader *shader = static_cast<Shader *>(node);
-    if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
-      return true;
-    }
-  }
-  return false;
-}
-
 void LightManager::device_update_distribution(Device *,
                                               DeviceScene *dscene,
                                               Scene *scene,
@@ -284,7 +256,7 @@ void LightManager::device_update_distribution(Device *,
     if (progress.get_cancel())
       return;
 
-    if (!object_usable_as_light(object)) {
+    if (!object->usable_as_light()) {
       continue;
     }
 
@@ -329,7 +301,7 @@ void LightManager::device_update_distribution(Device *,
     if (progress.get_cancel())
       return;
 
-    if (!object_usable_as_light(object)) {
+    if (!object->usable_as_light()) {
       j++;
       continue;
     }
@@ -465,11 +437,6 @@ void LightManager::device_update_tree(Device *,
   KernelIntegrator *kintegrator = &dscene->data.integrator;
 
   if (!kintegrator->use_light_tree) {
-    dscene->light_tree_nodes.free();
-    dscene->light_tree_emitters.free();
-    dscene->light_to_tree.free();
-    dscene->object_lookup_offset.free();
-    dscene->triangle_to_tree.free();
     return;
   }
 
@@ -510,7 +477,7 @@ void LightManager::device_update_tree(Device *,
     if (progress.get_cancel())
       return;
 
-    if (!object_usable_as_light(object)) {
+    if (!object->usable_as_light()) {
       object_id++;
       continue;
     }
@@ -1201,10 +1168,10 @@ void LightManager::device_update(Device *device,
 
 void LightManager::device_free(Device *, DeviceScene *dscene, const bool free_background)
 {
-  /* TODO: check if the light tree member variables need to be wrapped in a conditional too. */
   dscene->light_tree_nodes.free();
   dscene->light_tree_emitters.free();
   dscene->light_to_tree.free();
+  dscene->object_lookup_offset.free();
   dscene->triangle_to_tree.free();
 
   dscene->light_distribution.free();

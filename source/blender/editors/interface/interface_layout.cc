@@ -3203,7 +3203,7 @@ void uiItemPopoverPanel_ptr(
     pt->draw_header(C, &panel);
   }
   uiBut *but = ui_item_menu(
-      layout, name, icon, ui_item_paneltype_func, pt, nullptr, pt->description, true);
+      layout, name, icon, ui_item_paneltype_func, pt, nullptr, TIP_(pt->description), true);
   but->type = UI_BTYPE_POPOVER;
   if (!ok) {
     but->flag |= UI_BUT_DISABLED;

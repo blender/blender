@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -6455,6 +6455,10 @@ msgid "Limit"
 msgstr "Ograniczenie"
 
 
+msgid "Sigma"
+msgstr "Sigma"
+
+
 msgid "Add a constraint to the active object"
 msgstr "Dodaj ogranicznik do aktywnego obiektu"
 
@@ -6626,6 +6630,11 @@ msgstr "Temperatura"
 msgctxt "Image"
 msgid "New"
 msgstr "Nowy"
+
+
+msgctxt "Operator"
+msgid "Online Manual"
+msgstr "Instrukcja Obsługi online"
 
 
 msgid "Slot %d"
@@ -7648,11 +7657,6 @@ msgstr "Resetuj pojedynczy do domyślnego"
 msgctxt "Operator"
 msgid "Remove Shortcut"
 msgstr "Usuń Skrót"
-
-
-msgctxt "Operator"
-msgid "Online Manual"
-msgstr "Instrukcja Obsługi online"
 
 
 msgctxt "Operator"
@@ -8688,10 +8692,6 @@ msgstr "|%i obiektów z powiązanych bibliotek"
 
 msgid "|%i multiuser armature object(s)"
 msgstr "|%i obiektów szkielet z wieloma użytkownikami"
-
-
-msgid "This operator does not support an active mirror modifier"
-msgstr "Ten operator nie obsługuje aktywnego modyfikatora lustro"
 
 
 msgid "Editmode lattice is not supported yet"
@@ -10966,10 +10966,6 @@ msgid "RoughnessV"
 msgstr "SzorstkośćV"
 
 
-msgid "Sigma"
-msgstr "Sigma"
-
-
 msgid "View Vector"
 msgstr "Wektor widoku"
 
@@ -11206,36 +11202,8 @@ msgid "Context window not set"
 msgstr "Nie ustalono okna kontekstu"
 
 
-msgid "Cannot read file '%s': %s"
-msgstr "Nie udało się odczytać pliku '%s': %s"
-
-
-msgid "File format is not supported in file '%s'"
-msgstr "Nieobsługiwany format w pliku '%s'"
-
-
-msgid "File path '%s' invalid"
-msgstr "Ścieżka '%s' nieprawidłowa"
-
-
-msgid "Unknown error loading '%s'"
-msgstr "Nieznany błąd podczas odczytu '%s'"
-
-
-msgid "Could not read '%s'"
-msgstr "Nie udało się odczytać '%s'"
-
-
-msgid "Cannot save blend file, path '%s' is not writable"
-msgstr "Nie udało się zapisać pliku blend, ścieżka '%s' nie możliwa do zapisu"
-
-
 msgid "Cannot overwrite used library '%.240s'"
 msgstr "Nie udało się nadpisać używanej biblioteki '%.240s'"
-
-
-msgid "Can't read alternative start-up file: '%s'"
-msgstr "Nie udało się odczytać alternatywnego pliku startowego: '%s'"
 
 
 msgid "Not a library"

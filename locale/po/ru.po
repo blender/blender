@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://www.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -1988,6 +1988,10 @@ msgstr "Ключи формы"
 
 msgid "Shape Key data-blocks"
 msgstr "Датаблоки ключей формы"
+
+
+msgid "Simulations"
+msgstr "Симуляции"
 
 
 msgid "Sounds"
@@ -11825,10 +11829,6 @@ msgstr "Показать/скрыть датаблоки облаков точе
 
 msgid "Show Scene data-blocks"
 msgstr "Показать датаблоки сцен"
-
-
-msgid "Simulations"
-msgstr "Симуляции"
 
 
 msgid "Show Simulation data-blocks"
@@ -23925,6 +23925,10 @@ msgid "Active Movie Clip"
 msgstr "Акт. видеофрагмент"
 
 
+msgid "Mirror Object"
+msgstr "Объект симметрии"
+
+
 msgid "Distance Model"
 msgstr "Модель расстояния"
 
@@ -29667,6 +29671,10 @@ msgid "Curve Context Menu"
 msgstr "Контекстное меню кривых"
 
 
+msgid "Select More/Less"
+msgstr "Выделить больше/меньше"
+
+
 msgid "Special Characters"
 msgstr "Спецсимволы"
 
@@ -29705,10 +29713,6 @@ msgstr "Выделить петли"
 
 msgid "Mesh Select Mode"
 msgstr "Режим выделения меша"
-
-
-msgid "Select More/Less"
-msgstr "Выделить больше/меньше"
 
 
 msgid "Select Similar"
@@ -32149,10 +32153,6 @@ msgstr "Модификатор симметрии"
 
 msgid "Distance within which mirrored vertices are merged"
 msgstr "Расстояние, на котором симметричные вершины объединяются"
-
-
-msgid "Mirror Object"
-msgstr "Объект симметрии"
 
 
 msgid "Object to use as mirror"
@@ -36940,10 +36940,6 @@ msgid "Wrap all pixels on both axes"
 msgstr "Оборачивать все пиксели по обеим осям"
 
 
-msgid "ColorRamp"
-msgstr "Градиентная карта"
-
-
 msgid "Vector Blur"
 msgstr "Векторное размытие"
 
@@ -39187,6 +39183,14 @@ msgstr "Выделить все ключевые кадры канала под 
 
 msgid "Extend selection"
 msgstr "Расширить выделение"
+
+
+msgid "Include Handles"
+msgstr "Включить рукоятки"
+
+
+msgid "Include handles of keyframes when calculating extents"
+msgstr "Включить рукоятки ключевых кадров при расчёте размеров"
 
 
 msgctxt "Operator"
@@ -41756,6 +41760,10 @@ msgid "Paste text from clipboard"
 msgstr "Вставить текст из буфера обмена"
 
 
+msgid "Selection"
+msgstr "Выделение"
+
+
 msgctxt "Operator"
 msgid "Scrollback Append"
 msgstr "Добавить к прокручиваемому тексту"
@@ -44055,10 +44063,6 @@ msgid "Amount to decrease or increase character spacing with"
 msgstr "Величина, на которую необходимо увеличить межсимвольный интервал"
 
 
-msgid "Selection"
-msgstr "Выделение"
-
-
 msgid "Next or Selection"
 msgstr "Следующий или выделенное"
 
@@ -45784,6 +45788,14 @@ msgid "Place the cursor on the midpoint of selected keyframes"
 msgstr "Поместить курсор в центре выделенных ключевых кадров"
 
 
+msgid "Filter Width"
+msgstr "Ширина фильтра"
+
+
+msgid "Sigma"
+msgstr "Сигма"
+
+
 msgctxt "Operator"
 msgid "Clear Ghost Curves"
 msgstr "Очистить кривые-призраки"
@@ -45850,10 +45862,6 @@ msgstr "Отобразить скрытые кривые"
 
 msgid "Make previously hidden curves visible again in Graph Editor view"
 msgstr "Отобразить ранее скрытые кривые в редакторе графов"
-
-
-msgid "Include Handles"
-msgstr "Включить рукоятки"
 
 
 msgid "Are handles tested individually against the selection criteria"
@@ -45936,10 +45944,6 @@ msgstr "Суммировать амплитуды кривой оболочки 
 
 msgid "The output is a square curve (negative values always result in -1, and positive ones in 1)"
 msgstr "Выводить прямоугольную кривую (отрицательные значения всегда дают −1, а положительные — +1)"
-
-
-msgid "Include handles of keyframes when calculating extents"
-msgstr "Включить рукоятки ключевых кадров при расчёте размеров"
 
 
 msgid "Reset viewable area to show selected keyframe range"
@@ -53103,31 +53107,6 @@ msgid "Replace vertex groups of selected objects by vertex groups of active obje
 msgstr "Заменить группы вершин выделенных объектов группами вершин активного объекта"
 
 
-msgctxt "Operator"
-msgid "Fix Vertex Group Deform"
-msgstr "Исправить деформацию группы вершин"
-
-
-msgid "Modify the position of selected vertices by changing only their respective groups' weights (this tool may be slow for many vertices)"
-msgstr "Исправить положение выделенных вершин, изменив соответствующие веса в группах (этот инструмент может работать медленно, если вершин много)"
-
-
-msgid "Change Sensitivity"
-msgstr "Чувствительность к изменению"
-
-
-msgid "Change the amount weights are altered with each iteration: lower values are slower"
-msgstr "Количество весов, изменяемых с каждой итерацией: чем меньше значение, тем медленнее"
-
-
-msgid "The distance to move to"
-msgstr "Расстояние перемещения"
-
-
-msgid "The distance moved can be changed by this multiplier"
-msgstr "Расстояние смещения может быть изменено по этому множителю"
-
-
 msgid "Invert active vertex group's weights"
 msgstr "Инвертировать веса активной группы вершин"
 
@@ -58443,10 +58422,6 @@ msgid "Toggle overwrite while typing"
 msgstr "Переключить перезапись при вводе"
 
 
-msgid "Paste text selected elsewhere rather than copied (X11 only)"
-msgstr "Вставить выделенный текста, а не скопированный (только для X11)"
-
-
 msgctxt "Operator"
 msgid "Refresh PyConstraints"
 msgstr "Обновить ограничители Python"
@@ -58839,10 +58814,6 @@ msgid "Sequence Slide"
 msgstr "Сдвинуть последовательность"
 
 
-msgid "Axis Ortho"
-msgstr "Ортографические оси"
-
-
 msgctxt "Operator"
 msgid "Shear"
 msgstr "Скос"
@@ -58850,6 +58821,10 @@ msgstr "Скос"
 
 msgid "Shear selected items along the horizontal screen axis"
 msgstr "Скосить выделенные элементы вдоль горизонтальной оси экрана"
+
+
+msgid "Axis Ortho"
+msgstr "Ортографические оси"
 
 
 msgctxt "Operator"
@@ -65936,6 +65911,10 @@ msgid "Color of texture overlay"
 msgstr "Цвет текстуры верхнего слоя"
 
 
+msgid "Only keyframes of selected F-Curves are visible and editable"
+msgstr "Отображать и редактировать ключевые кадры только для выделенных F-кривых"
+
+
 msgid "Undo Memory Size"
 msgstr "Размер памяти для отменяемых действий"
 
@@ -68094,10 +68073,6 @@ msgstr "Порог шероховатости в прозрачности"
 
 msgid "For transparent transmission, keep surfaces with roughness above the threshold opaque"
 msgstr "Для светопропускаемости, оставлять поверхности с шероховатостью более порога прозрачности"
-
-
-msgid "Filter Width"
-msgstr "Ширина фильтра"
 
 
 msgid "Pixel filter width"
@@ -73671,24 +73646,8 @@ msgid "Automatically recalculate curve normalization on every curve edit"
 msgstr "Автоматически пересчитывать нормализацию кривой при каждом её изменении"
 
 
-msgid "Use High Quality Display"
-msgstr "Использовать высококачественное отображение"
-
-
-msgid "Display F-Curves using Anti-Aliasing and other fancy effects (disable for better performance)"
-msgstr "Отображать F-кривые со сглаживанием и другими красивыми эффектами (отключите для повышения производительности)"
-
-
 msgid "Use Normalization"
 msgstr "С нормализацией"
-
-
-msgid "Only Selected Curve Keyframes"
-msgstr "Только ключевые кадры выделенных кривых"
-
-
-msgid "Only keyframes of selected F-Curves are visible and editable"
-msgstr "Отображать и редактировать ключевые кадры только для выделенных F-кривых"
 
 
 msgid "Only Selected Keyframes Handles"
@@ -77264,10 +77223,6 @@ msgid "Consider objects as whole when finding volume center"
 msgstr "Рассматривать объекты как единое целое при нахождении центра объёма"
 
 
-msgid "Project individual elements on the surface of other objects"
-msgstr "Проецировать отдельные элементы на поверхности других объектов"
-
-
 msgid "Use Snap for Rotation"
 msgstr "Использовать привязку для вращения"
 
@@ -77930,14 +77885,6 @@ msgstr "Центральные точки всех объектов"
 
 msgid "Show the object origin center dot for all (selected and unselected) objects"
 msgstr "Показать центральные точки для всех объектов (выделенных и невыделенных)"
-
-
-msgid "Hidden Wire"
-msgstr "Только сетка"
-
-
-msgid "Use hidden wireframe display"
-msgstr "Показывать только сетку от редактируемых объектов"
 
 
 msgid "Show the Onion Skinning Overlay"
@@ -82356,6 +82303,11 @@ msgid "Make and Replace Links"
 msgstr "Создать и заменить связи"
 
 
+msgctxt "Operator"
+msgid "Online Manual"
+msgstr "Онлайн-руководство"
+
+
 msgid "Inputs:"
 msgstr "Входы:"
 
@@ -83892,11 +83844,6 @@ msgstr "Общее ограничение"
 
 
 msgctxt "Operator"
-msgid "Fix Deforms"
-msgstr "Исправить искажения"
-
-
-msgctxt "Operator"
 msgid "Hide Masked"
 msgstr "Скрыть замаскированное"
 
@@ -85030,10 +84977,6 @@ msgstr "Файл создан в более новой версии Blender (%d.
 
 msgid "Loading failed: "
 msgstr "Ошибка при загрузке: "
-
-
-msgid "Loading '%s' failed: "
-msgstr "Ошибка при загрузке «%s»: "
 
 
 msgid "Linking or appending from a very old .blend file format (%d.%d), no animation conversion will be done! You may want to re-save your lib file with current Blender"
@@ -86702,11 +86645,6 @@ msgstr "Удалить сочетание клавиш"
 
 
 msgctxt "Operator"
-msgid "Online Manual"
-msgstr "Онлайн-руководство"
-
-
-msgctxt "Operator"
 msgid "Online Python Reference"
 msgstr "Онлайн-руководство Python"
 
@@ -88209,10 +88147,6 @@ msgstr "Нет групп вершин, с которыми можно взаи�
 
 msgid "All groups are locked"
 msgstr "Все группы заблокированы"
-
-
-msgid "This operator does not support an active mirror modifier"
-msgstr "Этот оператор не поддерживает активный модификатор симметрии"
 
 
 msgid "Editmode lattice is not supported yet"
@@ -91802,10 +91736,6 @@ msgid "Clearcoat Normal"
 msgstr "Нормаль лака"
 
 
-msgid "Sigma"
-msgstr "Сигма"
-
-
 msgid "View Vector"
 msgstr "Вектор вида"
 
@@ -92228,44 +92158,12 @@ msgid "Engine '%s' not available for scene '%s' (an add-on may need to be instal
 msgstr "Движок «%s» не доступен для сцены «%s» (аддон должен быть установлен и включён)"
 
 
-msgid "Cannot read file '%s': %s"
-msgstr "Не удалось прочитать файл «%s»: %s"
-
-
-msgid "File format is not supported in file '%s'"
-msgstr "Формат файла не поддерживается для файла «%s»"
-
-
-msgid "File path '%s' invalid"
-msgstr "Путь к файлу «%s» неверен"
-
-
-msgid "Unknown error loading '%s'"
-msgstr "Неизвестная ошибка загрузки «%s»"
-
-
-msgid "Application Template '%s' not found"
-msgstr "Шаблон приложения «%s» не найден"
-
-
-msgid "Could not read '%s'"
-msgstr "Не удалось прочитать «%s»"
-
-
-msgid "Cannot save blend file, path '%s' is not writable"
-msgstr "Невозможно сохранить blend-файл, так как путь «%s» недоступен для записи"
-
-
 msgid "Cannot overwrite used library '%.240s'"
 msgstr "Невозможно перезаписать используемую библиотеку «%.240s»"
 
 
 msgid "Saved \"%s\""
 msgstr " «%s» сохранено"
-
-
-msgid "Can't read alternative start-up file: '%s'"
-msgstr "Не удалось прочитать альтернативный стартовый файл: «%s»"
 
 
 msgid "Not a library"

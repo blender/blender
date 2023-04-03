@@ -841,7 +841,7 @@ float ED_scene_grid_scale(const Scene *scene, const char **r_grid_unit)
     if (usys) {
       int i = BKE_unit_base_get(usys);
       if (r_grid_unit) {
-        *r_grid_unit = BKE_unit_display_name_get(usys, i);
+        *r_grid_unit = IFACE_(BKE_unit_display_name_get(usys, i));
       }
       return float(BKE_unit_scalar_get(usys, i)) / scene->unit.scale_length;
     }
@@ -928,7 +928,7 @@ float ED_view3d_grid_view_scale(Scene *scene,
       BKE_unit_system_get(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
 
       if (usys) {
-        *r_grid_unit = BKE_unit_display_name_get(usys, len - i - 1);
+        *r_grid_unit = IFACE_(BKE_unit_display_name_get(usys, len - i - 1));
       }
     }
   }

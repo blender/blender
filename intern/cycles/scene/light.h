@@ -21,7 +21,6 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 class DeviceScene;
-class Object;
 class Progress;
 class Scene;
 class Shader;
@@ -139,9 +138,6 @@ class LightManager {
                                 Scene *scene,
                                 Progress &progress);
   void device_update_ies(DeviceScene *dscene);
-
-  /* Check whether light manager can use the object as a light-emissive. */
-  bool object_usable_as_light(Object *object);
 
   struct IESSlot {
     IESFile ies;

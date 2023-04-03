@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -1876,6 +1876,10 @@ msgstr "Formschlüssel"
 
 msgid "Shape Key data-blocks"
 msgstr "Formschlüssel-Datenblöcke"
+
+
+msgid "Simulations"
+msgstr "Simulationen"
 
 
 msgid "Sounds"
@@ -7851,6 +7855,10 @@ msgid "Bone Name"
 msgstr "Knochenname"
 
 
+msgid "Active Scene"
+msgstr "Aktive Szene"
+
+
 msgid "Data Path"
 msgstr "Datenpfad"
 
@@ -9838,10 +9846,6 @@ msgstr "Punkt Wolken-Datenblöcke anzeigen/verstecken"
 
 msgid "Show Scene data-blocks"
 msgstr "Szenen-Datenblöcke anzeigen"
-
-
-msgid "Simulations"
-msgstr "Simulationen"
 
 
 msgid "Show Simulation data-blocks"
@@ -17031,6 +17035,10 @@ msgid "Active Movie Clip"
 msgstr "Aktiver Filmclip"
 
 
+msgid "Mirror Object"
+msgstr "Spiegel-Objekt"
+
+
 msgid "Distance Model"
 msgstr "Entfernungsmodell"
 
@@ -21075,6 +21083,10 @@ msgid "Curve Context Menu"
 msgstr "Kurven Kontextmenü"
 
 
+msgid "Select More/Less"
+msgstr "Mehr/weniger anzeigen"
+
+
 msgid "Special Characters"
 msgstr "Sonderzeichen"
 
@@ -21105,10 +21117,6 @@ msgstr "Schleifen auswählen"
 
 msgid "Mesh Select Mode"
 msgstr "Maschenauswahlmodus"
-
-
-msgid "Select More/Less"
-msgstr "Mehr/weniger anzeigen"
 
 
 msgid "Select Similar"
@@ -22453,10 +22461,6 @@ msgstr "Volumen füllen"
 
 msgid "Mirroring modifier"
 msgstr "Spiegel-Modifikator"
-
-
-msgid "Mirror Object"
-msgstr "Spiegel-Objekt"
 
 
 msgid "Object to use as mirror"
@@ -25508,10 +25512,6 @@ msgid "Map Range"
 msgstr "Bereich"
 
 
-msgid "Clamp result of the node to 0.0 to 1.0 range"
-msgstr "Resultat der Knoten in einer Spanne von 0.0 bis 1.0 halten"
-
-
 msgid "Map Value"
 msgstr "Map Wert"
 
@@ -25707,6 +25707,10 @@ msgstr "Konvertiere von Grad zu Radiant"
 
 msgid "Convert from radians to degrees"
 msgstr "Konvertiere von Radiant zu Grad"
+
+
+msgid "Clamp result of the node to 0.0 to 1.0 range"
+msgstr "Resultat der Knoten in einer Spanne von 0.0 bis 1.0 halten"
 
 
 msgid "Include alpha of second input in this operation"
@@ -25923,10 +25927,6 @@ msgstr "Beide Achsen"
 
 msgid "Wrap all pixels on both axes"
 msgstr "Verpacke alle Pixel an beiden Achsen"
-
-
-msgid "ColorRamp"
-msgstr "Farbregler"
 
 
 msgid "Vector Blur"
@@ -29662,6 +29662,10 @@ msgid "Paste text from clipboard"
 msgstr "Text aus der Zwischenablage einfügen"
 
 
+msgid "Selection"
+msgstr "Auswahl"
+
+
 msgid "Information"
 msgstr "Information"
 
@@ -30774,10 +30778,6 @@ msgid "Animation settings"
 msgstr "Animationseinstellungen"
 
 
-msgid "Active Scene"
-msgstr "Aktive Szene"
-
-
 msgid "Loose Points"
 msgstr "Lose Punkte"
 
@@ -31213,10 +31213,6 @@ msgstr "Delta"
 msgctxt "Operator"
 msgid "Change Spacing"
 msgstr "Leerzeichen ändern"
-
-
-msgid "Selection"
-msgstr "Auswahl"
 
 
 msgctxt "Operator"
@@ -32533,6 +32529,14 @@ msgstr "F-Modifikator einfügen"
 
 msgid "Place the cursor on the midpoint of selected keyframes"
 msgstr "Drehpunkt um den Mittelpunkt der ausgewählten Objekte"
+
+
+msgid "Filter Width"
+msgstr "Filterbreite"
+
+
+msgid "Sigma"
+msgstr "Sigma"
 
 
 msgctxt "Operator"
@@ -36944,11 +36948,6 @@ msgid "Copy Vertex Group to Selected"
 msgstr "Knotengruppe zur Auswahl kopieren"
 
 
-msgctxt "Operator"
-msgid "Fix Vertex Group Deform"
-msgstr "Knotengruppen-Deformation fixieren"
-
-
 msgid "Invert active vertex group's weights"
 msgstr "Gewichte der aktiven Knotengruppe umkehren"
 
@@ -41074,6 +41073,10 @@ msgstr "Stärke"
 msgctxt "Operator"
 msgid "Pack Islands"
 msgstr "Bild einpacken"
+
+
+msgid "Bounding box"
+msgstr "Begrenzungsrahmen"
 
 
 msgctxt "Operator"
@@ -46828,10 +46831,6 @@ msgid "Transparent Glass"
 msgstr "Transparentes Glas"
 
 
-msgid "Filter Width"
-msgstr "Filterbreite"
-
-
 msgid "Pixel filter width"
 msgstr "Pixelfilterbreite"
 
@@ -50183,16 +50182,8 @@ msgid "Auto Normalization"
 msgstr "Automatische Normalisierung"
 
 
-msgid "Use High Quality Display"
-msgstr "Hohe Anzeigequalität verwenden"
-
-
 msgid "Use Normalization"
 msgstr "Normalisierung verwenden"
-
-
-msgid "Only Selected Curve Keyframes"
-msgstr "Nur ausgewählte Kurven-Schlüsselbilder"
 
 
 msgid "Only Selected Keyframes Handles"
@@ -57750,6 +57741,11 @@ msgid "Make and Replace Links"
 msgstr "Verknüpfungen ersetzen und erzeugen"
 
 
+msgctxt "Operator"
+msgid "Online Manual"
+msgstr "Online-Handbuch"
+
+
 msgid "Inputs:"
 msgstr "Eingaben:"
 
@@ -59414,13 +59410,13 @@ msgid "Limit Total"
 msgstr "Totale Grenze"
 
 
-msgctxt "Operator"
-msgid "Fix Deforms"
-msgstr "Verformung fixieren"
-
-
 msgid "Locks"
 msgstr "Sperren"
+
+
+msgctxt "Operator"
+msgid "Invert Visible"
+msgstr "Sichtbares vertauschen"
 
 
 msgctxt "Operator"
@@ -59779,11 +59775,6 @@ msgstr "Fülltransformation zurücksetzen"
 msgctxt "Operator"
 msgid "View Selected"
 msgstr "Ausgewählte zeigen"
-
-
-msgctxt "Operator"
-msgid "Invert Visible"
-msgstr "Sichtbares vertauschen"
 
 
 msgid "Local Camera"
@@ -60537,10 +60528,6 @@ msgstr "Datei wurden von neuer Blender binary (%d.%d) geschrieben, rechne mit Da
 
 msgid "Loading failed: "
 msgstr "Laden fehlgeschlagen: "
-
-
-msgid "Loading '%s' failed: "
-msgstr "Laden von '%s' fehlgeschlagen: "
 
 
 msgid "Linked Data"
@@ -61605,11 +61592,6 @@ msgstr "Hinzufügen zum Schnellzugriff"
 msgctxt "Operator"
 msgid "Remove Shortcut"
 msgstr "Tastenkürzel entfernen"
-
-
-msgctxt "Operator"
-msgid "Online Manual"
-msgstr "Online-Handbuch"
 
 
 msgctxt "Operator"
@@ -64937,10 +64919,6 @@ msgid "Fac"
 msgstr "Faktor"
 
 
-msgid "Bounding box"
-msgstr "Begrenzungsrahmen"
-
-
 msgid "Color Space:"
 msgstr "Farbraum:"
 
@@ -65377,10 +65355,6 @@ msgid "Clearcoat Normal"
 msgstr "Klarlack-Normale"
 
 
-msgid "Sigma"
-msgstr "Sigma"
-
-
 msgid "View Vector"
 msgstr "Ansicht Vektor"
 
@@ -65789,44 +65763,12 @@ msgid "Engine '%s' not available for scene '%s' (an add-on may need to be instal
 msgstr "Engine '%s' ist nicht verfügbar für Szene '%s' (möglicherweise muss ein Addon installiert oder aktiviert werden)"
 
 
-msgid "Cannot read file '%s': %s"
-msgstr "Datei '%s' kann nicht gelesen werden: %s"
-
-
-msgid "File format is not supported in file '%s'"
-msgstr "Dateiformat wird nicht in Datei: '%s' unterstützt."
-
-
-msgid "File path '%s' invalid"
-msgstr "Dateipfad '%s' ist ungültig"
-
-
-msgid "Unknown error loading '%s'"
-msgstr "Unbekannter Ladefehler: '%s'."
-
-
-msgid "Application Template '%s' not found"
-msgstr "Anwendungstemplate '%s' konnte nicht gefunden werden"
-
-
-msgid "Could not read '%s'"
-msgstr "'%s' konnte nicht gelesen werden"
-
-
-msgid "Cannot save blend file, path '%s' is not writable"
-msgstr "Blend-Datei konnte nicht gespeichert werden, Pfad '%s' ist nicht beschreibbar"
-
-
 msgid "Cannot overwrite used library '%.240s'"
 msgstr "Kann die genutzte Bibliothek  '%.240s' nicht überschreiben"
 
 
 msgid "Saved \"%s\""
 msgstr "Gespeichert \"%s\""
-
-
-msgid "Can't read alternative start-up file: '%s'"
-msgstr "Alternative Startdatei '%s' konnte nicht gelesen werden."
 
 
 msgid "Not a library"

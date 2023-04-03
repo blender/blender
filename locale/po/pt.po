@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: 2017-09-08 21:24-0300\n"
 "Last-Translator: Ivan Paulos Tomé <greylica@gmail.com>\n"
 "Language-Team: Ivan Paulos Tomé, Inês Almeida, João Brandão (ULISBOA), Paulo Martins <ivan.paulos.tome@yandex.com>\n"
@@ -15945,6 +15945,10 @@ msgid "Active Movie Clip"
 msgstr "Clipe de filme ativo"
 
 
+msgid "Mirror Object"
+msgstr "Objeto para espelhamento"
+
+
 msgid "Distance Model"
 msgstr "Modelo de distância"
 
@@ -20983,6 +20987,10 @@ msgid "Bone Roll"
 msgstr "Rolagem do osso"
 
 
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
 msgid "Special Characters"
 msgstr "Caracteres especiais"
 
@@ -20997,10 +21005,6 @@ msgstr "Selecionar todos por características..."
 
 msgid "Mesh Select Mode"
 msgstr "Modo de seleção de malhas"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
 
 
 msgid "Select Similar"
@@ -23101,10 +23105,6 @@ msgstr "Modificador para espelhamento."
 
 msgid "Distance within which mirrored vertices are merged"
 msgstr "Distância dentro da qual os vértices espelhados são fundidos."
-
-
-msgid "Mirror Object"
-msgstr "Objeto para espelhamento"
 
 
 msgid "Object to use as mirror"
@@ -27427,10 +27427,6 @@ msgid "Wrap all pixels on both axes"
 msgstr "Envolve todos os pixeis em ambos os eixos."
 
 
-msgid "ColorRamp"
-msgstr "Gradiente de cores"
-
-
 msgid "Vector Blur"
 msgstr "Desfocagem vetorial"
 
@@ -29272,6 +29268,14 @@ msgstr "Seleciona todos os fotogramas chave do canal sob o ponteiro do rato."
 
 msgid "Extend selection"
 msgstr "Estender a seleção"
+
+
+msgid "Include Handles"
+msgstr "Incluir manípulos"
+
+
+msgid "Include handles of keyframes when calculating extents"
+msgstr "Inclui as hastes dos fotogramas chave durante o cálculo das extensões."
 
 
 msgctxt "Operator"
@@ -31660,6 +31664,10 @@ msgid "Paste text from clipboard"
 msgstr "Cola o texto a partir da área de transferência."
 
 
+msgid "Selection"
+msgstr "Seleção"
+
+
 msgctxt "Operator"
 msgid "Scrollback Append"
 msgstr "Anexar rolagem para trás"
@@ -33441,10 +33449,6 @@ msgid "Amount to decrease or increase character spacing with"
 msgstr "Quantidade com a qual aumentar ou diminuir o espaçamento entre os caracteres."
 
 
-msgid "Selection"
-msgstr "Seleção"
-
-
 msgid "Next or Selection"
 msgstr "Próximo ou seleção"
 
@@ -34547,6 +34551,14 @@ msgid "Place the cursor on the midpoint of selected keyframes"
 msgstr "Posiciona o cursor no ponto mediano dos fotogramas chave selecionados."
 
 
+msgid "Filter Width"
+msgstr "Largura do filtro"
+
+
+msgid "Sigma"
+msgstr "Sigma"
+
+
 msgctxt "Operator"
 msgid "Clear Ghost Curves"
 msgstr "Limpar curvas fantasmas"
@@ -34609,10 +34621,6 @@ msgstr "Revelar curvas"
 
 msgid "Make previously hidden curves visible again in Graph Editor view"
 msgstr "Torna as curvas previamente ocultadas novamente visíveis na visualização do editor gráfico."
-
-
-msgid "Include Handles"
-msgstr "Incluir manípulos"
 
 
 msgid "Are handles tested individually against the selection criteria"
@@ -34691,10 +34699,6 @@ msgstr "As amplitudes da curva convexa são sumarizadas (ou, quando \"Acumular\"
 
 msgid "The output is a square curve (negative values always result in -1, and positive ones in 1)"
 msgstr "A saída é uma curva quadrada (valores negativos sempre resultam em -1, e positivos em 1)."
-
-
-msgid "Include handles of keyframes when calculating extents"
-msgstr "Inclui as hastes dos fotogramas chave durante o cálculo das extensões."
 
 
 msgid "Reset viewable area to show selected keyframe range"
@@ -40216,31 +40220,6 @@ msgid "Replace vertex groups of selected objects by vertex groups of active obje
 msgstr "Substitui os grupos de vértices dos objetos selecionados pelos grupos de vértices do objeto ativo."
 
 
-msgctxt "Operator"
-msgid "Fix Vertex Group Deform"
-msgstr "Consertar a deformação do grupo de vértices"
-
-
-msgid "Modify the position of selected vertices by changing only their respective groups' weights (this tool may be slow for many vertices)"
-msgstr "Modifica a posição dos vértices selecionados somente pela alteração de seus pesos de grupo respectivos (esta ferramenta pode ser lenta para muitos vértices)."
-
-
-msgid "Change Sensitivity"
-msgstr "Alterar a sensibilidade"
-
-
-msgid "Change the amount weights are altered with each iteration: lower values are slower"
-msgstr "Altera o quanto os pesos são alterados com cada interação: valores mais baixos são mais lentos."
-
-
-msgid "The distance to move to"
-msgstr "A distância para mover-se"
-
-
-msgid "The distance moved can be changed by this multiplier"
-msgstr "A distância movida pode ser alterada por este multiplicador."
-
-
 msgid "Invert active vertex group's weights"
 msgstr "Inverte o peso do grupo de vértices ativo."
 
@@ -44523,10 +44502,6 @@ msgstr "Alternar substituição"
 
 msgid "Toggle overwrite while typing"
 msgstr "Alterna a substituição de escrita durante a digitação."
-
-
-msgid "Paste text selected elsewhere rather than copied (X11 only)"
-msgstr "Cola o texto selecionado em algum outro local diferente do copiado. Funciona somente no sistema de janelas do Linux (X11)."
 
 
 msgctxt "Operator"
@@ -49954,6 +49929,10 @@ msgid "Color of texture overlay"
 msgstr "Cor da textura de sobreposição."
 
 
+msgid "Only keyframes of selected F-Curves are visible and editable"
+msgstr "Somente os fotogramas chave das curvas-f selecionadas são visíveis e editáveis."
+
+
 msgid "Undo Memory Size"
 msgstr "Quantidade de memória para desfazer ações"
 
@@ -51452,10 +51431,6 @@ msgstr "Permite usar as funcionalidades experimentais e incompletas que podem es
 
 msgid "Image brightness scale"
 msgstr "Escala de brilho da imagem"
-
-
-msgid "Filter Width"
-msgstr "Largura do filtro"
 
 
 msgid "Pixel filter width"
@@ -55571,14 +55546,6 @@ msgid "Use Normalization"
 msgstr "Usar a normalização"
 
 
-msgid "Only Selected Curve Keyframes"
-msgstr "Somente os fotogramas chave das curvas selecionadas"
-
-
-msgid "Only keyframes of selected F-Curves are visible and editable"
-msgstr "Somente os fotogramas chave das curvas-f selecionadas são visíveis e editáveis."
-
-
 msgid "Only Selected Keyframes Handles"
 msgstr "Somente as hastes dos fotogramas chave selecionados"
 
@@ -58327,10 +58294,6 @@ msgid "Consider objects as whole when finding volume center"
 msgstr "Considera os objetos como um todo durante a localização do centro do volume."
 
 
-msgid "Project individual elements on the surface of other objects"
-msgstr "Projeta elementos individuais na superfície de outros objetos."
-
-
 msgid "UV Sync Selection"
 msgstr "Sincronizar seleção com a UV"
 
@@ -58769,14 +58732,6 @@ msgstr "Todas as origens dos objetos"
 
 msgid "Show the object origin center dot for all (selected and unselected) objects"
 msgstr "Mostra o ponto da origem do centro dos objetos em todos os objetos (selecionados e não selecionados)."
-
-
-msgid "Hidden Wire"
-msgstr "Aramado oculto"
-
-
-msgid "Use hidden wireframe display"
-msgstr "Usa um mostrador de aramado oculto."
 
 
 msgid "Outline Selected"
@@ -61114,6 +61069,11 @@ msgid "Make and Replace Links"
 msgstr "Criar e substituir vínculos"
 
 
+msgctxt "Operator"
+msgid "Online Manual"
+msgstr "Manual na internet"
+
+
 msgid "Inputs:"
 msgstr "Entradas:"
 
@@ -61880,11 +61840,6 @@ msgstr "Limitar total"
 
 
 msgctxt "Operator"
-msgid "Fix Deforms"
-msgstr "Consertar deformações"
-
-
-msgctxt "Operator"
 msgid "Hide Masked"
 msgstr "Ocultar os que estão com máscara"
 
@@ -62347,10 +62302,6 @@ msgstr "Ficheiro escrito por um executável Blender mais novo: (%d.%d), espere p
 
 msgid "Loading failed: "
 msgstr "Falha durante o carregamento:"
-
-
-msgid "Loading '%s' failed: "
-msgstr "Falha de carregamento de '%s': "
 
 
 msgid "Linking or appending from a very old .blend file format (%d.%d), no animation conversion will be done! You may want to re-save your lib file with current Blender"
@@ -63591,11 +63542,6 @@ msgstr "Remover atalho"
 
 
 msgctxt "Operator"
-msgid "Online Manual"
-msgstr "Manual na internet"
-
-
-msgctxt "Operator"
 msgid "Online Python Reference"
 msgstr "Referência de Python na internet"
 
@@ -64696,10 +64642,6 @@ msgstr "Nenhum grupo de vértices nos quais executar as operações."
 
 msgid "All groups are locked"
 msgstr "Todos os grupos estão bloqueados."
-
-
-msgid "This operator does not support an active mirror modifier"
-msgstr "Este operador não suporta um modificador de espelho ativo."
 
 
 msgid "Editmode lattice is not supported yet"
@@ -67391,10 +67333,6 @@ msgid "Clearcoat Normal"
 msgstr "Tinta protetiva normal"
 
 
-msgid "Sigma"
-msgstr "Sigma"
-
-
 msgid "View Vector"
 msgstr "Vetor de visualização"
 
@@ -67721,36 +67659,8 @@ msgid "Engine '%s' not available for scene '%s' (an add-on may need to be instal
 msgstr "O motor '%s' não está disponível para a cena '%s' (pode ser necessário que complementos sejam instalados ou ativos)."
 
 
-msgid "Cannot read file '%s': %s"
-msgstr "Não foi possível ler o ficheiro: '%s': %s"
-
-
-msgid "File format is not supported in file '%s'"
-msgstr "Dados ilegíveis ou formato não suportado no ficheiro '%s'"
-
-
-msgid "File path '%s' invalid"
-msgstr "Caminho de ficheiro inválido '%s'"
-
-
-msgid "Unknown error loading '%s'"
-msgstr "Erro desconhecido carregando '%s'"
-
-
-msgid "Could not read '%s'"
-msgstr "Não é possível ler '%s'"
-
-
-msgid "Cannot save blend file, path '%s' is not writable"
-msgstr "Não é possível guardar ficheiro Blender, o caminho '%s' não permite escrita."
-
-
 msgid "Cannot overwrite used library '%.240s'"
 msgstr "Não é possível sobrescrever a biblioteca usada '%.240s'"
-
-
-msgid "Can't read alternative start-up file: '%s'"
-msgstr "Não é possível ler o ficheiro de inicialização alternativo: '%s'"
 
 
 msgid "Not a library"
