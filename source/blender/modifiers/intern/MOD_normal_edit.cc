@@ -184,7 +184,7 @@ static bool polygons_check_flip(blender::MutableSpan<int> corner_verts,
                                 blender::float3 *nos,
                                 CustomData *ldata,
                                 const blender::Span<MPoly> polys,
-                                float (*poly_normals)[3])
+                                const blender::Span<blender::float3> poly_normals)
 {
   MDisps *mdisp = static_cast<MDisps *>(
       CustomData_get_layer_for_write(ldata, CD_MDISPS, corner_verts.size()));
@@ -211,7 +211,6 @@ static bool polygons_check_flip(blender::MutableSpan<int> corner_verts,
                                reinterpret_cast<float(*)[3]>(nos),
                                mdisp,
                                true);
-      negate_v3(poly_normals[i]);
       flipped = true;
     }
   }
@@ -324,13 +323,10 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                 nos.data());
   }
 
-  if (do_polynors_fix && polygons_check_flip(corner_verts,
-                                             corner_edges,
-                                             nos.data(),
-                                             &mesh->ldata,
-                                             polys,
-                                             BKE_mesh_poly_normals_for_write(mesh))) {
-    mesh->runtime->vert_normals_dirty = true;
+  if (do_polynors_fix &&
+      polygons_check_flip(
+          corner_verts, corner_edges, nos.data(), &mesh->ldata, polys, mesh->poly_normals())) {
+    BKE_mesh_tag_face_winding_changed(mesh);
   }
   const bool *sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));
@@ -434,13 +430,10 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                 nos.data());
   }
 
-  if (do_polynors_fix && polygons_check_flip(corner_verts,
-                                             corner_edges,
-                                             nos.data(),
-                                             &mesh->ldata,
-                                             polys,
-                                             BKE_mesh_poly_normals_for_write(mesh))) {
-    mesh->runtime->vert_normals_dirty = true;
+  if (do_polynors_fix &&
+      polygons_check_flip(
+          corner_verts, corner_edges, nos.data(), &mesh->ldata, polys, mesh->poly_normals())) {
+    BKE_mesh_tag_face_winding_changed(mesh);
   }
   const bool *sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));

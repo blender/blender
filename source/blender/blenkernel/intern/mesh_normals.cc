@@ -106,22 +106,10 @@ float (*BKE_mesh_vert_normals_for_write(Mesh *mesh))[3]
   return reinterpret_cast<float(*)[3]>(mesh->runtime->vert_normals.data());
 }
 
-float (*BKE_mesh_poly_normals_for_write(Mesh *mesh))[3]
-{
-  mesh->runtime->poly_normals.reinitialize(mesh->totpoly);
-  return reinterpret_cast<float(*)[3]>(mesh->runtime->poly_normals.data());
-}
-
 void BKE_mesh_vert_normals_clear_dirty(Mesh *mesh)
 {
   mesh->runtime->vert_normals_dirty = false;
   BLI_assert(mesh->runtime->vert_normals.size() == mesh->totvert);
-}
-
-void BKE_mesh_poly_normals_clear_dirty(Mesh *mesh)
-{
-  mesh->runtime->poly_normals_dirty = false;
-  BLI_assert(mesh->runtime->poly_normals.size() == mesh->totpoly);
 }
 
 bool BKE_mesh_vert_normals_are_dirty(const Mesh *mesh)
