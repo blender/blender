@@ -303,7 +303,8 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
 
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_ASSET_SHELF;
-  region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
+  region->alignment = RGN_ALIGN_BOTTOM;
+  region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
   region = MEM_cnew<ARegion>("main region for view3d");
@@ -2254,10 +2255,11 @@ void ED_spacetype_view3d()
   /* regions: asset shelf */
   art = MEM_cnew<ARegionType>("spacetype view3d asset shelf region");
   art->regionid = RGN_TYPE_ASSET_SHELF;
-  art->prefsizey = HEADERY * 3.5f;
+  art->prefsizey = ED_asset_shelf_region_prefsizey();
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES |
                     ED_KEYMAP_HEADER;
   art->listener = ED_asset_shelf_region_listen;
+  art->snap_size = ED_asset_shelf_region_snap;
   art->context = view3d_asset_shelf_context;
   art->init = view3d_asset_shelf_region_init;
   art->draw = view3d_asset_shelf_region_draw;

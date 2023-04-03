@@ -17,6 +17,7 @@
 #include "ED_asset_handle.h"
 #include "ED_asset_list.h"
 #include "ED_asset_list.hh"
+#include "ED_asset_shelf.h"
 
 #include "UI_grid_view.hh"
 #include "UI_interface.h"
@@ -184,9 +185,13 @@ void build_asset_view(uiLayout &layout,
     return;
   }
 
+  /* TODO deduplicate from #ED_asset_shelf_region_snap() */
+  const float aspect = BLI_rctf_size_x(&region.v2d.cur) / (BLI_rcti_size_x(&region.v2d.mask) + 1);
+  const float tile_size = ED_asset_shelf_region_default_tile_height() / aspect;
+
   std::unique_ptr asset_view = std::make_unique<AssetView>(library_ref, const_cast<bContext &>(C));
   asset_view->set_catalog_filter(catalog_filter_from_shelf_settings(shelf_settings, *library));
-  asset_view->set_tile_size(UI_preview_tile_size_x() * 0.8, UI_preview_tile_size_y() * 0.8);
+  asset_view->set_tile_size(tile_size, tile_size);
 
   uiBlock *block = uiLayoutGetBlock(&layout);
   ui::AbstractGridView *grid_view = UI_block_add_view(

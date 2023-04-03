@@ -4184,6 +4184,26 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
           if (sl->spacetype == SPACE_VIEW3D) {
             ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
                                                                    &sl->regionbase;
+
+            /* TODO for old files saved with the branch only. */
+            {
+              SpaceType *space_type = BKE_spacetype_from_id(sl->spacetype);
+
+              if (ARegion *asset_shelf = BKE_region_find_in_listbase_by_type(
+                      regionbase, RGN_TYPE_ASSET_SHELF)) {
+                BLI_remlink(regionbase, asset_shelf);
+                BKE_area_region_free(space_type, asset_shelf);
+                MEM_freeN(asset_shelf);
+              }
+
+              if (ARegion *asset_shelf_footer = BKE_region_find_in_listbase_by_type(
+                      regionbase, RGN_TYPE_ASSET_SHELF_FOOTER)) {
+                BLI_remlink(regionbase, asset_shelf_footer);
+                BKE_area_region_free(space_type, asset_shelf_footer);
+                MEM_freeN(asset_shelf_footer);
+              }
+            }
+
             {
               ARegion *new_asset_shelf_footer = do_versions_add_region_if_not_found(
                   regionbase,
@@ -4196,14 +4216,20 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
               }
             }
             {
-              ARegion *new_asset_shelf = do_versions_add_region_if_not_found(
-                  regionbase,
-                  RGN_TYPE_ASSET_SHELF,
-                  "asset shelf for view3d (versioning)",
-                  RGN_TYPE_ASSET_SHELF_FOOTER);
-              if (new_asset_shelf != nullptr) {
-                new_asset_shelf->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-                new_asset_shelf->flag |= RGN_FLAG_DYNAMIC_SIZE;
+              ARegion *asset_shelf = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                         RGN_TYPE_ASSET_SHELF);
+              /* TODO for old files saved with the branch only. */
+              if (asset_shelf) {
+                asset_shelf->flag &= ~RGN_FLAG_DYNAMIC_SIZE;
+              }
+              else {
+                ARegion *new_asset_shelf = do_versions_add_region_if_not_found(
+                    regionbase,
+                    RGN_TYPE_ASSET_SHELF,
+                    "asset shelf for view3d (versioning)",
+                    RGN_TYPE_ASSET_SHELF_FOOTER);
+                new_asset_shelf->alignment = RGN_ALIGN_BOTTOM;
+                new_asset_shelf->flag |= RGN_FLAG_HIDDEN;
               }
             }
           }
