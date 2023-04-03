@@ -58,7 +58,11 @@ typedef struct View2D {
   /* Usually set externally (as in, not in view2d files). */
   /** Alpha of vertical and horizontal scroll-bars (range is [0, 255]). */
   char alpha_vert, alpha_hor;
-  char _pad[6];
+
+  char _pad[2];
+  /** When set (not 0), determines how many pixels to scroll when scrolling an entire page.
+   * Otherwise the height of #View2D.mask is used. */
+  float page_size_y;
 
   /* animated smooth view */
   struct SmoothView2DStore *sms;

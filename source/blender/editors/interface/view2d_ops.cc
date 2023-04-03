@@ -504,8 +504,10 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "page");
   if (RNA_property_is_set(op->ptr, prop) && RNA_property_boolean_get(op->ptr, prop)) {
-    ARegion *region = CTX_wm_region(C);
-    RNA_int_set(op->ptr, "deltay", region->v2d.mask.ymin - region->v2d.mask.ymax);
+    const ARegion *region = CTX_wm_region(C);
+    const int page_size = vpd->v2d->page_size_y ? -region->v2d.page_size_y :
+                                                  region->v2d.mask.ymin - region->v2d.mask.ymax;
+    RNA_int_set(op->ptr, "deltay", page_size);
   }
 
   /* apply movement, then we're done */
@@ -555,8 +557,10 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "page");
   if (RNA_property_is_set(op->ptr, prop) && RNA_property_boolean_get(op->ptr, prop)) {
-    ARegion *region = CTX_wm_region(C);
-    RNA_int_set(op->ptr, "deltay", BLI_rcti_size_y(&region->v2d.mask));
+    const ARegion *region = CTX_wm_region(C);
+    const int page_size = vpd->v2d->page_size_y ? region->v2d.page_size_y :
+                                                  BLI_rcti_size_y(&region->v2d.mask);
+    RNA_int_set(op->ptr, "deltay", page_size);
   }
 
   /* apply movement, then we're done */

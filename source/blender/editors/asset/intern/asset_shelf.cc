@@ -83,6 +83,7 @@ void ED_asset_shelf_region_listen(const wmRegionListenerParams *params)
 void ED_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
 {
   ED_region_panels_init(wm, region);
+  region->v2d.page_size_y = ED_asset_shelf_default_tile_height();
 }
 
 static constexpr int main_region_padding_y_not_scaled()
