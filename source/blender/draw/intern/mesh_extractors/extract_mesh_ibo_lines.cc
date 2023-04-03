@@ -17,23 +17,57 @@ namespace blender::draw {
 /** \name Extract Edges Indices
  * \{ */
 
+struct MeshExtract_LinesData {
+  GPUIndexBufBuilder elb;
+  BitSpan optimal_display_edges;
+  const int *e_origindex;
+  const bool *hide_edge;
+  bool test_visibility;
+};
+
+BLI_INLINE bool is_edge_visible(const MeshExtract_LinesData *data, const int edge)
+{
+  if (data->hide_edge && data->hide_edge[edge]) {
+    return false;
+  }
+  if (data->e_origindex && data->e_origindex[edge] == ORIGINDEX_NONE) {
+    return false;
+  }
+  if (!data->optimal_display_edges.is_empty() && !data->optimal_display_edges[edge]) {
+    return false;
+  }
+  return true;
+}
+
 static void extract_lines_init(const MeshRenderData *mr,
                                MeshBatchCache * /*cache*/,
                                void * /*buf*/,
                                void *tls_data)
 {
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(tls_data);
+  MeshExtract_LinesData *data = static_cast<MeshExtract_LinesData *>(tls_data);
   /* Put loose edges at the end. */
-  GPU_indexbuf_init(
-      elb, GPU_PRIM_LINES, mr->edge_len + mr->edge_loose_len, mr->loop_len + mr->loop_loose_len);
+  GPU_indexbuf_init(&data->elb,
+                    GPU_PRIM_LINES,
+                    mr->edge_len + mr->edge_loose_len,
+                    mr->loop_len + mr->loop_loose_len);
+
+  if (mr->extract_type == MR_EXTRACT_MESH) {
+    data->optimal_display_edges = mr->me->runtime->subsurf_optimal_display_edges;
+    data->e_origindex = mr->hide_unmapped_edges ? mr->e_origindex : nullptr;
+    data->hide_edge = mr->use_hide ? mr->hide_edge : nullptr;
+
+    data->test_visibility = !data->optimal_display_edges.is_empty() || data->e_origindex ||
+                            data->hide_edge;
+  }
 }
 
 static void extract_lines_iter_poly_bm(const MeshRenderData * /*mr*/,
                                        const BMFace *f,
                                        const int /*f_index*/,
-                                       void *data)
+                                       void *tls_data)
 {
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
+  MeshExtract_LinesData *data = static_cast<MeshExtract_LinesData *>(tls_data);
+  GPUIndexBufBuilder *elb = &data->elb;
   BMLoop *l_iter, *l_first;
   /* Use #BMLoop.prev to match mesh order (to avoid minor differences in data extraction). */
   l_iter = l_first = BM_FACE_FIRST_LOOP(f)->prev;
@@ -53,18 +87,17 @@ static void extract_lines_iter_poly_bm(const MeshRenderData * /*mr*/,
 static void extract_lines_iter_poly_mesh(const MeshRenderData *mr,
                                          const MPoly *poly,
                                          const int /*poly_index*/,
-                                         void *data)
+                                         void *tls_data)
 {
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
+  MeshExtract_LinesData *data = static_cast<MeshExtract_LinesData *>(tls_data);
+  GPUIndexBufBuilder *elb = &data->elb;
   /* Using poly & loop iterator would complicate accessing the adjacent loop. */
-  const int *e_origindex = (mr->hide_unmapped_edges) ? mr->e_origindex : nullptr;
-  if (mr->use_hide || (e_origindex != nullptr)) {
+  if (data->test_visibility) {
     const int ml_index_last = poly->loopstart + (poly->totloop - 1);
     int ml_index = ml_index_last, ml_index_next = poly->loopstart;
     do {
       const int edge = mr->corner_edges[ml_index];
-      if (!((mr->use_hide && mr->hide_edge && mr->hide_edge[edge]) ||
-            ((e_origindex) && (e_origindex[edge] == ORIGINDEX_NONE)))) {
+      if (is_edge_visible(data, edge)) {
         GPU_indexbuf_set_line_verts(elb, edge, ml_index, ml_index_next);
       }
       else {
@@ -85,9 +118,10 @@ static void extract_lines_iter_poly_mesh(const MeshRenderData *mr,
 static void extract_lines_iter_loose_edge_bm(const MeshRenderData *mr,
                                              const BMEdge *eed,
                                              const int ledge_index,
-                                             void *data)
+                                             void *tls_data)
 {
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
+  MeshExtract_LinesData *data = static_cast<MeshExtract_LinesData *>(tls_data);
+  GPUIndexBufBuilder *elb = &data->elb;
   const int l_index_offset = mr->edge_len + ledge_index;
   if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
     const int l_index = mr->loop_len + ledge_index * 2;
@@ -101,16 +135,15 @@ static void extract_lines_iter_loose_edge_bm(const MeshRenderData *mr,
 }
 
 static void extract_lines_iter_loose_edge_mesh(const MeshRenderData *mr,
-                                               const MEdge *edge,
+                                               const MEdge * /*edge*/,
                                                const int ledge_index,
-                                               void *data)
+                                               void *tls_data)
 {
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
+  MeshExtract_LinesData *data = static_cast<MeshExtract_LinesData *>(tls_data);
+  GPUIndexBufBuilder *elb = &data->elb;
   const int l_index_offset = mr->edge_len + ledge_index;
   const int e_index = mr->loose_edges[ledge_index];
-  const int *e_origindex = (mr->hide_unmapped_edges) ? mr->e_origindex : nullptr;
-  if (!((mr->use_hide && mr->hide_edge && mr->hide_edge[edge - mr->edges.data()]) ||
-        ((e_origindex) && (e_origindex[e_index] == ORIGINDEX_NONE)))) {
+  if (is_edge_visible(data, e_index)) {
     const int l_index = mr->loop_len + ledge_index * 2;
     GPU_indexbuf_set_line_verts(elb, l_index_offset, l_index, l_index + 1);
   }
@@ -131,9 +164,10 @@ static void extract_lines_task_reduce(void *_userdata_to, void *_userdata_from)
 static void extract_lines_finish(const MeshRenderData * /*mr*/,
                                  MeshBatchCache * /*cache*/,
                                  void *buf,
-                                 void *data)
+                                 void *tls_data)
 {
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
+  MeshExtract_LinesData *data = static_cast<MeshExtract_LinesData *>(tls_data);
+  GPUIndexBufBuilder *elb = &data->elb;
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
 }
@@ -251,7 +285,7 @@ constexpr MeshExtract create_extractor_lines()
   extractor.task_reduce = extract_lines_task_reduce;
   extractor.finish = extract_lines_finish;
   extractor.data_type = MR_DATA_NONE;
-  extractor.data_size = sizeof(GPUIndexBufBuilder);
+  extractor.data_size = sizeof(MeshExtract_LinesData);
   extractor.use_threading = true;
   extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.lines);
   return extractor;
@@ -277,9 +311,10 @@ static void extract_lines_loose_subbuffer(const MeshRenderData *mr, MeshBatchCac
 static void extract_lines_with_lines_loose_finish(const MeshRenderData *mr,
                                                   MeshBatchCache *cache,
                                                   void *buf,
-                                                  void *data)
+                                                  void *tls_data)
 {
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
+  MeshExtract_LinesData *data = static_cast<MeshExtract_LinesData *>(tls_data);
+  GPUIndexBufBuilder *elb = &data->elb;
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
   extract_lines_loose_subbuffer(mr, cache);
@@ -313,7 +348,7 @@ constexpr MeshExtract create_extractor_lines_with_lines_loose()
   extractor.iter_loose_geom_subdiv = extract_lines_loose_geom_subdiv;
   extractor.finish_subdiv = extract_lines_with_lines_loose_finish_subdiv;
   extractor.data_type = MR_DATA_NONE;
-  extractor.data_size = sizeof(GPUIndexBufBuilder);
+  extractor.data_size = sizeof(MeshExtract_LinesData);
   extractor.use_threading = true;
   extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.lines);
   return extractor;
