@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -3847,6 +3847,10 @@ msgid "Modifier"
 msgstr "संशोधक"
 
 
+msgid "Sigma"
+msgstr "सिग्मा"
+
+
 msgid "Create a new image"
 msgstr "एक नई छवि बनाएँ"
 
@@ -6229,10 +6233,6 @@ msgid "Loading failed: "
 msgstr "उद्भरण में विफल: "
 
 
-msgid "Loading '%s' failed: "
-msgstr "उद्भरण में  '%s' विफल: "
-
-
 msgid "Not enough free memory"
 msgstr "मुक्त स्मृति पर्याप्त नहीं है"
 
@@ -7068,10 +7068,6 @@ msgstr "बीएसडीएफ़"
 
 msgid "IOR"
 msgstr "आईओआर"
-
-
-msgid "Sigma"
-msgstr "सिग्मा"
 
 
 msgid "W1"

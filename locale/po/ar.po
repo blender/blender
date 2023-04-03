@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -13703,6 +13703,10 @@ msgid "Active Movie Clip"
 msgstr "ﺔﻟﺎﻌﻔﻟﺍ ﻢﻠﻔﻟﺍ ﺔﺻﺎﺼﻗ"
 
 
+msgid "Mirror Object"
+msgstr "ﺔﻠﺛﺎﻤﻤﻟﺍ ﻦﺋﺎﻛ"
+
+
 msgid "Distance Model"
 msgstr "ﺔﻓﺎﺴﻤﻟﺍ ﻂﻤﻧ"
 
@@ -17184,6 +17188,10 @@ msgid "Bone Roll"
 msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
 
 
+msgid "Select More/Less"
+msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
+
+
 msgid "Special Characters"
 msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
 
@@ -17194,10 +17202,6 @@ msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
 
 msgid "Select All by Trait"
 msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
-
-
-msgid "Select More/Less"
-msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
 
 
 msgid "Select Similar"
@@ -18198,10 +18202,6 @@ msgstr "ﻢﺴﺠﻤﻟﺍ ﻊﻳﻮﻄﺗ ﺮﻴﻐﻣ"
 
 msgid "Mesh object to deform with"
 msgstr "ﻊﻳﻮﻄﺘﻟﺍ ﻦﺋﺎﻛ ﻢﺴﺠﻣ"
-
-
-msgid "Mirror Object"
-msgstr "ﺔﻠﺛﺎﻤﻤﻟﺍ ﻦﺋﺎﻛ"
 
 
 msgid "Object to use as mirror"
@@ -20742,10 +20742,6 @@ msgstr "X ﺭﻮﺤﻣ"
 
 msgid "Y Axis"
 msgstr "Y ﺭﻮﺤﻣ"
-
-
-msgid "ColorRamp"
-msgstr "ﻥﻮﻠﻟﺍ ﻢﻠﺳ"
 
 
 msgid "Vector Blur"
@@ -24182,6 +24178,14 @@ msgid "Place the cursor on the midpoint of selected keyframes"
 msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﺮﺻﺎﻨﻌﻟﺍ ﺰﻛﺮﻤﻟ ﺮﺷﺆﻤﻟﺍ ﻱﺫﺎﺣ"
 
 
+msgid "Filter Width"
+msgstr "ﻲﻔﺼﻤﻟﺍ ﺽﺮﻋ"
+
+
+msgid "Sigma"
+msgstr "ﺎﻤﻐﻴﺳ"
+
+
 msgctxt "Operator"
 msgid "Clear Ghost Curves"
 msgstr "ﻝﺎﻴﺨﻟﺍ ﺕﺎﻴﻨﺤﻨﻣ ﻝﺯﺍ"
@@ -26972,11 +26976,6 @@ msgstr "ﺔﻟﺎﻌﻔﻟﺍ ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﺦﺴﻧﺍ"
 msgctxt "Operator"
 msgid "Copy Vertex Group to Selected"
 msgstr "ﺓﺭﺎﺘﺨﻤﻠﻟ ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﺦﺴﻧﺍ"
-
-
-msgctxt "Operator"
-msgid "Fix Vertex Group Deform"
-msgstr "ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﻩﻮّﺸﺗ ﺢﻠﺻﺍ"
 
 
 msgid "Invert active vertex group's weights"
@@ -32894,10 +32893,6 @@ msgid "Image brightness scale"
 msgstr "ﺓﺭﻮﺼﻟﺍ ﻉﻮﻄﺳ ﻢﺠﺣ"
 
 
-msgid "Filter Width"
-msgstr "ﻲﻔﺼﻤﻟﺍ ﺽﺮﻋ"
-
-
 msgid "Glossy Bounces"
 msgstr "ﻥﺎﻌﻤﻠﻟﺍ ﺕﺍﺩﺍﺪﺗﺭﺍ"
 
@@ -36018,10 +36013,6 @@ msgid "Consider objects as whole when finding volume center"
 msgstr "ﻢﺠﺤﻟﺍ ﺰﻛﺮﻣ ﻰﻠﻋ ﺭﻮﺜﻌﻟﺍ ﺪﻨﻋ ﻞﻜﻛ ﺕﺎﻨﺋﺎﻜﻟﺍ ﺮﺒﺘﻋﺇ"
 
 
-msgid "Project individual elements on the surface of other objects"
-msgstr "ﻯﺮﺧﻷ﻿ﺍ ﺕﺎﻨﺋﺎﻜﻟﺍ ﻪﺟﻭ ﻰﻠﻋ ﺔﻳﺩﺮﻔﻟﺍ ﺮﺻﺎﻨﻌﻟﺍ ﻂﻘﺳﺃ"
-
-
 msgid "UV Sync Selection"
 msgstr " UV ﺭﺎﻴﺘﺧﺍ ﺔﻨﻣﺍﺰﻣ"
 
@@ -37776,6 +37767,11 @@ msgid "Make and Replace Links"
 msgstr "ﻂﺑﺍﻭﺮﻟﺍ ﻞﻳﺪﺒﺗ ﻭ ﻞﻌﺟ"
 
 
+msgctxt "Operator"
+msgid "Online Manual"
+msgstr "ﺖﻧﺮﺘﻧﻻ﻿ﺍ ﻰﻠﻋ ﻡﺍﺪﺨﺘﺴﻤﻟﺍ ﻞﻴﻟﺩ"
+
+
 msgid "Inputs:"
 msgstr ":ﻞﺧﺍﺪﻤﻟﺍ"
 
@@ -38368,11 +38364,6 @@ msgstr "ﺢﺴﻣ"
 msgctxt "Operator"
 msgid "Limit Total"
 msgstr "ﻢﺠﺤﻟﺍ ﺩﺪﺣ"
-
-
-msgctxt "Operator"
-msgid "Fix Deforms"
-msgstr "ﺕﺎﻫﻮﺸﺘﻟﺍ ﺢﻠﺻﺃ"
 
 
 msgctxt "Operator"
@@ -39148,11 +39139,6 @@ msgstr "ﺔﺿﺮﺘﻔﻤﻟﺍ ﺔﻤﻴﻘﻠﻟ ﺍﺩﺮﻔﻨﻣ ﻂﺒﻀ
 msgctxt "Operator"
 msgid "Remove Shortcut"
 msgstr "ﺭﺎﺼﺘﺧﻹ﻿ﺍ ﻑﺬﺣﺍ"
-
-
-msgctxt "Operator"
-msgid "Online Manual"
-msgstr "ﺖﻧﺮﺘﻧﻻ﻿ﺍ ﻰﻠﻋ ﻡﺍﺪﺨﺘﺴﻤﻟﺍ ﻞﻴﻟﺩ"
 
 
 msgctxt "Operator"
@@ -40612,10 +40598,6 @@ msgid "Anisotropic"
 msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
 
 
-msgid "Sigma"
-msgstr "ﺎﻤﻐﻴﺳ"
-
-
 msgid "View Vector"
 msgstr "ﻪﺠﺘﻤﻟﺍ ﺮﻬﻇﺍ"
 
@@ -40846,22 +40828,6 @@ msgstr "ﻒﻠﻤﻟﺍ ﺢﺘﻓ ﻰﻠﻋ ﺭﺩﺎﻗ ﺮﻴﻏ"
 
 msgid "Context window not set"
 msgstr "ﻕﺎﻴﺴﻟﺎﺑ ﺔﻃﻭﺮﺸﻣ ﺓﺭﺄﻓ"
-
-
-msgid "Cannot read file '%s': %s"
-msgstr ".%s‬\", ‪%s‬‪\" :ﻒﻠﻤﻟﺍ ﺓءﺍﺮﻗ ﻦﻜﻤﻳ ﻻ﻿"
-
-
-msgid "File format is not supported in file '%s'"
-msgstr ".\"%s‬‪\" :ﻒﻠﻤﻟﺍ ﻲﻓ ﻡﻮﻋﺪﻣ ﺮﻴﻏ ﻖﻴﺴﻨﺘﻟﺍ"
-
-
-msgid "File path '%s' invalid"
-msgstr ".\"%s‬‪\" :ﺢﻟﺎﺻ ﺮﻴﻏ ﻒﻠﻤﻟﺍ ﺭﺎﺴﻣ"
-
-
-msgid "Unknown error loading '%s'"
-msgstr ".\"%s‬‪\" :ﻞﻴﻤﺤﺗ ءﺎﻨﺛﺃ ﻑﻭﺮﻌﻣ ﺮﻴﻏ ﺄﻄﺧ"
 
 
 msgid "Not a library"
