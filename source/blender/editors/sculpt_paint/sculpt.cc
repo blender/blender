@@ -4077,16 +4077,16 @@ bool SCULPT_needs_area_normal(SculptSession *ss, Sculpt *sd, Brush *brush)
 /* Note: we do the topology update before any brush actions to avoid
  * issues with the proxies. The size of the proxy can't change, so
  * topology must be updated first. */
-static void sculpt_topology_update(Sculpt *sd,
-                                   Object *ob,
-                                   Brush *brush,
-                                   UnifiedPaintSettings * /* ups */,
-                                   PaintModeSettings * /*paint_mode_settings*/)
+ATTR_NO_OPT static void sculpt_topology_update(Sculpt *sd,
+                                               Object *ob,
+                                               Brush *brush,
+                                               UnifiedPaintSettings * /* ups */,
+                                               PaintModeSettings * /*paint_mode_settings*/)
 {
   SculptSession *ss = ob->sculpt;
 
   /* build brush radius scale */
-  float radius_scale = 1.0f;
+  float radius_scale = ss->cached_dyntopo.radius_scale;
 
   if ((brush->dyntopo.flag & DYNTOPO_DISABLED) || !(sd->flags & SCULPT_DYNTOPO_ENABLED)) {
     return;
@@ -4133,9 +4133,9 @@ static void sculpt_topology_update(Sculpt *sd,
   }
 
   /* Force both subdivide and collapse for simplify brush. */
-  //XXX done with inherit flags now
+  // XXX done with inherit flags now
   if (brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY) {
-    //mode |= PBVH_Collapse | PBVH_Subdivide;
+    // mode |= PBVH_Collapse | PBVH_Subdivide;
   }
 
   SculptSearchSphereData sdata{};
@@ -6570,16 +6570,34 @@ static void sculpt_stroke_update_step(bContext *C,
   float dyntopo_spacing = float(ss->cached_dyntopo.spacing) / 50.0f;
 
   bool do_dyntopo = SCULPT_stroke_is_dynamic_topology(ss, brush);
-  do_dyntopo = do_dyntopo &&
-               (ss->cache->stroke_distance_t - ss->cache->last_dyntopo_t) > dyntopo_spacing;
+
+  if (dyntopo_spacing > 0.0f) {
+    do_dyntopo = do_dyntopo &&
+                 (ss->cache->stroke_distance_t - ss->cache->last_dyntopo_t) > dyntopo_spacing;
+  }
 
   if (do_dyntopo) {
     ss->cache->last_dyntopo_t = ss->cache->stroke_distance_t;
+
+    /* Note: dyntopo repeats happen after the dab. */
     do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups, &tool_settings->paint_mode);
   }
 
   do_symmetrical_brush_actions(sd, ob, do_brush_action, ups, &tool_settings->paint_mode);
   sculpt_combine_proxies(sd, ob);
+
+  if (do_dyntopo && ss->cached_dyntopo.repeat) {
+    float3 location = ss->cache->true_location;
+
+    add_v3_v3(cache->true_location, cache->grab_delta);
+
+    for (int i = 0; i < ss->cached_dyntopo.repeat; i++) {
+      do_symmetrical_brush_actions(
+          sd, ob, sculpt_topology_update, ups, &tool_settings->paint_mode);
+    }
+
+    copy_v3_v3(ss->cache->true_location, location);
+  }
 
   /* Hack to fix noise texture tearing mesh. */
   sculpt_fix_noise_tear(sd, ob);

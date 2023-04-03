@@ -1817,11 +1817,13 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->alpha = 1.0f;
       br->rake_factor = 1.0f;
       br->dyntopo.inherit = ~(DYNTOPO_INHERIT_SPACING | DYNTOPO_INHERIT_SUBDIVIDE |
-                              DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_DETAIL_RANGE);
+                              DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_DETAIL_RANGE |
+                              DYNTOPO_INHERIT_RADIUS_SCALE | DYNTOPO_INHERIT_REPEAT);
       br->dyntopo.flag |= DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE;
       br->dyntopo.detail_range = 0.4f;
-      br->dyntopo.spacing = 5;
-      br->dyntopo.radius_scale = 1.15;
+      br->dyntopo.spacing = 0;
+      br->dyntopo.radius_scale = 1.25;
+      br->dyntopo.repeat = 1;
       break;
     case SCULPT_TOOL_THUMB:
       br->size = 75;

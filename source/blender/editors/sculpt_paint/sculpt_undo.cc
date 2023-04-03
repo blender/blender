@@ -168,6 +168,8 @@ typedef struct SculptUndoStep {
 #endif
 } SculptUndoStep;
 
+extern "C" void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh);
+
 static UndoSculpt *sculpt_undo_get_nodes(void);
 static bool sculpt_attribute_ref_equals(SculptAttrRef *a, SculptAttrRef *b);
 static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr);
@@ -714,7 +716,9 @@ static void bmesh_undo_on_vert_add(BMVert *v, void *userdata)
 
   data->balance_pbvh = true;
 
-  // let face add vert
+  /* Flag vert as unassigned to a PBVH node; it'll be added to pbvh when
+   * its owning faces are.
+   */
   BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
 
   *(int *)BM_ELEM_CD_GET_VOID_P(v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
@@ -736,6 +740,13 @@ static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
     BKE_pbvh_bmesh_mark_node_regen(data->pbvh, node);
   }
 
+  BMLoop *l = f->l_first;
+  do {
+    MSculptVert *mv = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, l->v);
+    MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+    *(int *)BM_ELEM_CD_GET_VOID_P(l->v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+  } while ((l = l->next) != f->l_first);
+
   // data->do_full_recalc = true;
   data->balance_pbvh = true;
 }
@@ -756,7 +767,11 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
     *(int *)BM_ELEM_CD_GET_VOID_P(l->v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, l->v);
-    MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT);
+    MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+
+    if (f->len > 3) {
+      MV_ADD_FLAG(mv, SCULPTVERT_NEED_TRIANGULATE);
+    }
 
     int ni_l = BM_ELEM_CD_GET_INT(l->v, data->cd_vert_node_offset);
 
@@ -949,6 +964,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
     unode->applied = true;
   }
 
+  BKE_pbvh_bmesh_check_nodes(ss->pbvh);
   update_unode_bmesh_memsize(unode);
 
   if (!data.do_full_recalc) {
@@ -1062,6 +1078,7 @@ static void sculpt_undo_bmesh_restore_begin(
 #endif
     }
 
+    BKE_pbvh_bmesh_check_nodes(ss->pbvh);
     SCULPT_dynamic_topology_disable(C, unode);
     unode->applied = false;
   }
@@ -1086,6 +1103,7 @@ static void sculpt_undo_bmesh_restore_begin(
   }
 
   if (ss->bm) {
+    BKE_pbvh_bmesh_check_nodes(ss->pbvh);
     BM_mesh_elem_index_ensure(ss->bm, BM_VERT | BM_FACE);
   }
 }
@@ -1112,6 +1130,7 @@ static void sculpt_undo_bmesh_restore_end(
 #endif
 
     unode->applied = false;
+    BKE_pbvh_bmesh_check_nodes(ss->pbvh);
   }
   else {
 #if 1
@@ -1126,6 +1145,8 @@ static void sculpt_undo_bmesh_restore_end(
       else {
         BM_log_redo_skip(ss->bm, ss->bm_log);
       }
+
+      BKE_pbvh_bmesh_check_nodes(ss->pbvh);
     }
 #endif
 
@@ -2343,7 +2364,9 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
     unode->nodemap_size = newsize;
   }
 
-  if (unode->nodemap[n] & (1 << type)) {
+  bool check = !((type | extraType) & (SCULPT_UNDO_COORDS | SCULPT_UNDO_COLOR | SCULPT_UNDO_MASK |
+                                       SCULPT_UNDO_FACE_SETS));
+  if (check && unode->nodemap[n] & (1 << type)) {
     return false;
   }
 

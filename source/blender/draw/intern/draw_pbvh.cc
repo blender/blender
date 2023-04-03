@@ -1154,7 +1154,9 @@ struct PBVHBatches {
         GPU_vertformat_attr_add(&format, "msk", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
         break;
       case CD_PBVH_ID_TYPE:
+        name = "vertex_id";
         GPU_vertformat_attr_add(&format, "eid", GPU_COMP_I32, 1, GPU_FETCH_INT);
+        need_aliases = false;
         break;
       case CD_PROP_FLOAT:
         GPU_vertformat_attr_add(&format, "f", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);

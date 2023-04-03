@@ -1409,7 +1409,7 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
     attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_FSET_TYPE;
   }
 
-  if (1||use_id) {
+  if (use_id) {
     attrs[attrs_num].type = (eCustomDataType)CD_PBVH_ID_TYPE;
     attrs[attrs_num].domain = ATTR_DOMAIN_POINT;
     attrs_num++;

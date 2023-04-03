@@ -64,7 +64,8 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
 
   if (use_pbvh) {
-    DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true, true, false, false, false);
+    bool use_ids = draw_ctx->v3d->overlay.sculpt_flag & V3D_OVERLAY_SCULPT_SHOW_IDS;
+    DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true, true, false, false, use_ids);
   }
   else {
     sculpt_overlays = DRW_mesh_batch_cache_get_sculpt_overlays(static_cast<Mesh *>(ob->data));

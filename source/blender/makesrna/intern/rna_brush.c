@@ -400,6 +400,11 @@ static EnumPropertyItem rna_enum_brush_dyntopo_inherit[] = {
     {DYNTOPO_CLEANUP, "CLEANUP", ICON_NONE, "Cleanup", ""},
     {DYNTOPO_INHERIT_DETAIL_SIZE, "DETAIL_SIZE", ICON_NONE, "Detail Size", ""},
     {DYNTOPO_INHERIT_RADIUS_SCALE, "RADIUS_SCALE", ICON_NONE, "Radius Scale", ""},
+    {DYNTOPO_INHERIT_REPEAT,
+     "REPEAT",
+     ICON_NONE,
+     "Repeat",
+     "How many extra times to run the dyntopo remesher."},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1259,10 +1264,12 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "spacing", PROP_INT, PROP_PERCENTAGE);
   RNA_def_property_int_sdna(prop, NULL, "spacing");
-  RNA_def_property_range(prop, 1, 1000);
-  RNA_def_property_ui_range(prop, 1, 500, 5, -1);
-  RNA_def_property_ui_text(
-      prop, "Spacing", "Spacing between DynTopo daubs as a percentage of brush diameter");
+  RNA_def_property_range(prop, 0, 1000);
+  RNA_def_property_ui_range(prop, 0, 500, 5, -1);
+  RNA_def_property_ui_text(prop,
+                           "Spacing",
+                           "Spacing between DynTopo daubs as a percentage of brush diameter; if "
+                           "zero will use brush spacing");
   RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 
   prop = RNA_def_property(srna, "detail_percent", PROP_FLOAT, PROP_PERCENTAGE);
@@ -1358,11 +1365,17 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_ui_text(prop, "Inherit", "Which default dyntopo settings to use");
 
-  prop = RNA_def_property(srna, "radius_scale", PROP_FLOAT, PROP_PERCENTAGE);
+  prop = RNA_def_property(srna, "radius_scale", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "radius_scale");
   RNA_def_property_range(prop, 0.0f, 15.0f);
   RNA_def_property_ui_range(prop, 0.0f, 2.0f, 0.001, 4);
   RNA_def_property_ui_text(prop, "Scale dyntopo radius", "");
+  RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
+
+  prop = RNA_def_property(srna, "repeat", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "repeat");
+  RNA_def_property_range(prop, 0.0f, 15.0f);
+  RNA_def_property_ui_text(prop, "Repeat", "How many times to run the dyntopo remesher.");
   RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 }
 

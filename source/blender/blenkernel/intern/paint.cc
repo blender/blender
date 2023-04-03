@@ -2430,12 +2430,8 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
     sd->detail_size = 8.0f;
   }
 
-  if (!sd->dyntopo_radius_scale) {
-    sd->dyntopo_radius_scale = 1.0f;
-  }
-
   /* We check these flags here in case versioning code fails. */
-  if (!sd->detail_range || !sd->dyntopo_spacing) {
+  if (!sd->detail_range || !sd->dyntopo.spacing) {
     sd->flags |= SCULPT_DYNTOPO_ENABLED;
   }
 
@@ -2447,14 +2443,8 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
     sd->detail_percent = 25;
   }
 
-  sd->dyntopo = *DNA_struct_default_get(DynTopoSettings);
-
-  if (!sd->dyntopo_spacing) {
-    sd->dyntopo_spacing = 35;
-  }
-
-  if (sd->constant_detail == 0.0f) {
-    sd->constant_detail = 3.0f;
+  if (!sd->dyntopo.constant_detail) {
+    sd->dyntopo = *DNA_struct_default_get(DynTopoSettings);
   }
 
   if (!sd->automasking_start_normal_limit) {

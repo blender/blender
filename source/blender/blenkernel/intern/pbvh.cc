@@ -1812,7 +1812,7 @@ bool BKE_pbvh_get_color_layer(const PBVH *pbvh,
     return false;
   }
 
-  if (BKE_pbvh_type(pbvh) == PBVH_BMESH) {
+  if (pbvh && BKE_pbvh_type(pbvh) == PBVH_BMESH) {
     CustomData *data;
 
     if (domain == ATTR_DOMAIN_POINT) {

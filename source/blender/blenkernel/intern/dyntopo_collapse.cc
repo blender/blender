@@ -206,6 +206,9 @@ static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
     case BM_VERT: {
       BMVert *v = reinterpret_cast<BMVert *>(elem);
 
+      MSculptVert *mv = BM_ELEM_CD_PTR<MSculptVert *>(v, data->pbvh->cd_sculpt_vert);
+      MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+
       BM_log_vert_removed(bm, data->pbvh->bm_log, v);
       pbvh_bmesh_vert_remove(data->pbvh, v);
       BM_idmap_release(data->pbvh->bm_idmap, elem, false);
@@ -259,8 +262,8 @@ static void collapse_ring_callback_post(BMElem *elem, void *userdata)
     case BM_VERT: {
       BMVert *v = reinterpret_cast<BMVert *>(elem);
 
-      MSculptVert *mv = (MSculptVert *)BM_ELEM_CD_GET_VOID_P(v, data->pbvh->cd_sculpt_vert);
-      mv->flag |= SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT;
+      MSculptVert *mv = BM_ELEM_CD_PTR<MSculptVert *>(v, data->pbvh->cd_sculpt_vert);
+      MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
 
       check_new_elem_id(elem, data);
       BM_log_vert_added(bm, data->pbvh->bm_log, v);

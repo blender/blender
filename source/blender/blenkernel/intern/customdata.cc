@@ -1548,6 +1548,16 @@ static bool layerValidate_propfloat2(void *data, const uint totitems, const bool
   return has_errors;
 }
 
+static void layerDynTopoVert_default(void *dest, int count)
+{
+  MSculptVert *mv = static_cast<MSculptVert *>(dest);
+
+  for (int i = 0; i < count; i++, mv++) {
+    memset(static_cast<void *>(mv), 0, sizeof(MSculptVert));
+    mv->flag = SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE;
+  }
+}
+
 static void layerDynTopoVert_copy(const void *source, void *dest, int count)
 {
   memcpy(dest, source, count * sizeof(MSculptVert));
@@ -2080,7 +2090,9 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,  // flag singleton layer
      layerDynTopoVert_copy,
      nullptr,
-     layerDynTopoVert_interp},
+     layerDynTopoVert_interp,
+     nullptr,
+     layerDynTopoVert_default},
     /*53 CD_BMESH_TOOLFLAGS */
     {sizeof(MToolFlags),
      "MToolFlags",
@@ -2159,7 +2171,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {/*   0-4 */
                                                   /*51-53*/
                                                   "CDHairLength",
                                                   "CDDyntopoVert",
-                                                  "CDPropInt16"};
+                                                  "CDMToolFlags"};
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {
     /*vmask*/ CD_MASK_PROP_FLOAT3,
@@ -4473,12 +4485,25 @@ ATTR_NO_OPT void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *so
   /* copies a layer at a time */
   int dest_i = 0;
   for (int src_i = 0; src_i < source->totlayer; src_i++) {
+    if (source->layers[src_i].flag & CD_FLAG_ELEM_NOCOPY) {
+      continue;
+    }
 
     /* find the first dest layer with type >= the source type
      * (this should work because layers are ordered by type)
      */
     while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
       if (was_new) {
+        CustomData_bmesh_set_default_n(dest, dest_block, dest_i);
+      }
+      dest_i++;
+    }
+
+    while (dest_i < dest->totlayer && dest->layers[dest_i].type == source->layers[src_i].type) {
+      if (STREQ(dest->layers[dest_i].name, source->layers[src_i].name)) {
+        break;
+      }
+      else if (was_new) {
         CustomData_bmesh_set_default_n(dest, dest_block, dest_i);
       }
       dest_i++;
@@ -4493,10 +4518,6 @@ ATTR_NO_OPT void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *so
     if (dest->layers[dest_i].type == source->layers[src_i].type &&
         STREQ(dest->layers[dest_i].name, source->layers[src_i].name)) {
       if (no_mask || ((CD_TYPE_AS_MASK(dest->layers[dest_i].type) & mask_exclude) == 0)) {
-        if (dest->layers[dest_i].flag & CD_FLAG_ELEM_NOCOPY) {
-          break;
-        }
-
         const void *src_data = POINTER_OFFSET(src_block, source->layers[src_i].offset);
         void *dest_data = POINTER_OFFSET(*dest_block, dest->layers[dest_i].offset);
         const LayerTypeInfo *typeInfo = layerType_getInfo(

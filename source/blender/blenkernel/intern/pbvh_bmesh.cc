@@ -240,10 +240,12 @@ ATTR_NO_OPT void pbvh_bmesh_check_nodes(PBVH *pbvh)
   }
 }
 
-ATTR_NO_OPT void pbvh_bmesh_pbvh_bmesh_check_nodes(PBVH *pbvh)
+ATTR_NO_OPT extern "C" void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh)
 {
   pbvh_bmesh_check_nodes(pbvh);
 }
+#else
+ATTR_NO_OPT extern "C" void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh) {}
 #endif
 
 /** \} */
@@ -625,7 +627,7 @@ void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
 
   PBVHNode *v_node = pbvh_bmesh_node_from_vert(pbvh, v);
 
-  if (v_node) {
+  if (v_node && v_node->bm_unique_verts) {
     BLI_table_gset_remove(v_node->bm_unique_verts, v, nullptr);
     v_node->flag |= (PBVHNodeFlags)updateflag;
   }
@@ -1025,8 +1027,6 @@ bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
   TableGSet *bm_faces = pbvh->nodes[node_index].bm_faces;
   const int bm_faces_size = BLI_table_gset_len(bm_faces);
 
-  // pbvh_bmesh_check_nodes(pbvh);
-
   if (bm_faces_size <= pbvh->leaf_limit ||
       pbvh->nodes[node_index].depth >= PBVH_STACK_FIXED_DEPTH) {
     /* Node limit not exceeded */
@@ -1074,8 +1074,6 @@ bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
   pbvh_bmesh_node_split(pbvh, bbc_array, node_index, false, 0);
 
   MEM_freeN(bbc_array);
-
-  // pbvh_bmesh_check_nodes(pbvh);
 
   return true;
 }
@@ -2696,7 +2694,7 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                             updatePBVH,
                                             mask_cb,
                                             mask_cb_data,
-                                            0,  // is_snake_hook ? 40960 : 0,
+                                            4096, //is_snake_hook ? 4096 : 4096,
                                             disable_surface_relax,
                                             is_snake_hook);
 
@@ -3322,6 +3320,12 @@ static void BKE_pbvh_bmesh_correct_tree(PBVH *pbvh, PBVHNode *node, PBVHNode *pa
     BMFace *f;
     TGSET_ITER (f, node->bm_faces) {
       BMLoop *l = f->l_first;
+
+      if (BM_elem_is_free((BMElem *)f, BM_FACE)) {
+        printf("%s: corrupted face %p.\n", __func__, f);
+        BLI_table_gset_remove(node->bm_faces, f, nullptr);
+        continue;
+      }
 
       BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, DYNTOPO_NODE_NONE);
 

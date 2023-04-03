@@ -631,4 +631,5 @@ void SCULPT_apply_dyntopo_settings(SculptSession *ss, Sculpt *sculpt, Brush *bru
   ds_final->radius_scale = ds_final->inherit & DYNTOPO_INHERIT_RADIUS_SCALE ? ds2->radius_scale :
                                                                               ds1->radius_scale;
   ds_final->spacing = ds_final->inherit & DYNTOPO_INHERIT_SPACING ? ds2->spacing : ds1->spacing;
+  ds_final->repeat = ds_final->inherit & DYNTOPO_INHERIT_REPEAT ? ds2->repeat : ds1->repeat;
 }

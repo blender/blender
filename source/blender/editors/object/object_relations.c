@@ -2843,7 +2843,7 @@ static void drop_named_material_face_set_slots_update(bContext *C,
   const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
 
   int *face_sets = (int *)CustomData_get_layer_named(
-      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_sets");
+      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set");
   int *mat_nr = (int *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index");
 
   if (!mat_nr) {

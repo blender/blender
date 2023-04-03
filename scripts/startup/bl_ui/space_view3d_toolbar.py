@@ -946,6 +946,20 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
             "spacing",
             expand=True
         )
+        UnifiedPaintPanel.prop_unified_dyntopo(
+            sub,
+            context,
+            brush,
+            "radius_scale",
+            expand=True
+        )
+        UnifiedPaintPanel.prop_unified_dyntopo(
+            sub,
+            context,
+            brush,
+            "repeat",
+            expand=True
+        )
 
         col.prop(sculpt, "use_smooth_shading")
         col.prop(sculpt, "use_flat_vcol_shading")
