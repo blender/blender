@@ -97,6 +97,12 @@ template<typename T> class OffsetIndices {
  */
 void accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets, int start_offset = 0);
 
+/**
+ * Create a map from indexed elements to the source indices, in other words from the larger array
+ * to the smaller array.
+ */
+void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map);
+
 }  // namespace blender::offset_indices
 
 namespace blender {

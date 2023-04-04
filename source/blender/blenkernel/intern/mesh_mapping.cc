@@ -526,11 +526,7 @@ namespace blender::bke::mesh_topology {
 Array<int> build_loop_to_poly_map(const OffsetIndices<int> polys)
 {
   Array<int> map(polys.total_size());
-  threading::parallel_for(polys.index_range(), 1024, [&](IndexRange range) {
-    for (const int64_t poly_i : range) {
-      map.as_mutable_span().slice(polys[poly_i]).fill(int(poly_i));
-    }
-  });
+  offset_indices::build_reverse_map(polys, map);
   return map;
 }
 
