@@ -61,17 +61,6 @@ void Renderdoc::load()
     RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_1_2, (void **)&renderdoc_api_);
   }
 #endif
-
-  if (renderdoc_api_ != nullptr) {
-    int major;
-    int minor;
-    int patch;
-    renderdoc_api_->GetAPIVersion(&major, &minor, &patch);
-    std::cout << "Found renderdoc API [" << major << "." << minor << "." << patch << "]";
-  }
-  else {
-    std::cerr << "Unable to load renderdoc API.\n";
-  }
 }
 
 }  // namespace renderdoc::api

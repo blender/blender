@@ -54,6 +54,10 @@ if(WITH_VULKAN_BACKEND)
   add_definitions(-DWITH_VULKAN_BACKEND)
 endif()
 
+if(WITH_RENDERDOC)
+  add_definitions(-DWITH_RENDERDOC)
+endif()
+
 if(WITH_CODEC_FFMPEG)
   add_definitions(-DWITH_FFMPEG)
 endif()
