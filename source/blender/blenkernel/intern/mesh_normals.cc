@@ -16,7 +16,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array_utils.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
@@ -1472,13 +1472,7 @@ void normals_calc_loop(const Span<float3> vert_positions,
 
   /* Pre-populate all loop normals as if their verts were all smooth.
    * This way we don't have to compute those later! */
-  threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
-    for (const int poly_i : range) {
-      for (const int loop_i : polys[poly_i]) {
-        copy_v3_v3(r_loop_normals[loop_i], vert_normals[corner_verts[loop_i]]);
-      }
-    }
-  });
+  array_utils::gather(vert_normals, corner_verts, r_loop_normals, 1024);
 
   /* This first loop check which edges are actually smooth, and compute edge vectors. */
   mesh_edges_sharp_tag(polys,
