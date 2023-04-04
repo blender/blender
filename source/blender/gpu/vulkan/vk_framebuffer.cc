@@ -330,7 +330,7 @@ void VKFrameBuffer::render_pass_create()
   VkSubpassDescription subpass = {};
   subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
   subpass.colorAttachmentCount = color_attachment_len;
-  subpass.pColorAttachments = attachment_references.begin();
+  subpass.pColorAttachments = attachment_references.data();
   if (has_depth_attachment) {
     subpass.pDepthStencilAttachment = &attachment_references[depth_location];
   }
@@ -351,7 +351,7 @@ void VKFrameBuffer::render_pass_create()
   framebuffer_create_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
   framebuffer_create_info.renderPass = vk_render_pass_;
   framebuffer_create_info.attachmentCount = attachment_len;
-  framebuffer_create_info.pAttachments = image_views.begin();
+  framebuffer_create_info.pAttachments = image_views.data();
   framebuffer_create_info.width = width_;
   framebuffer_create_info.height = height_;
   framebuffer_create_info.layers = 1;
