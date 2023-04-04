@@ -1630,7 +1630,7 @@ void BKE_mesh_legacy_convert_mpoly_to_material_indices(Mesh *mesh)
   using namespace blender;
   using namespace blender::bke;
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  if (!mesh->mpoly || attributes.contains("material_index")) {
+  if (!CustomData_has_layer(&mesh->pdata, CD_MPOLY) || attributes.contains("material_index")) {
     return;
   }
   const Span<MPoly> polys(static_cast<const MPoly *>(CustomData_get_layer(&mesh->pdata, CD_MPOLY)),
