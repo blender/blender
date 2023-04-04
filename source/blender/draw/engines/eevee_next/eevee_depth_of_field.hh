@@ -44,11 +44,6 @@ class DepthOfField {
  private:
   class Instance &inst_;
 
-  /** Samplers */
-  static constexpr GPUSamplerState gather_bilinear = {GPU_SAMPLER_FILTERING_MIPMAP |
-                                                      GPU_SAMPLER_FILTERING_LINEAR};
-  static constexpr GPUSamplerState gather_nearest = {GPU_SAMPLER_FILTERING_MIPMAP};
-
   /** Input/Output texture references. */
   GPUTexture *input_color_tx_ = nullptr;
   GPUTexture *output_color_tx_ = nullptr;
