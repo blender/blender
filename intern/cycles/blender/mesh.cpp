@@ -257,12 +257,14 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
         }
       }
       else {
-        for (BL::MeshLoopTriangle &t : b_mesh.loop_triangles) {
-          const int index = t.index() * 3;
-          BL::Array<int, 3> loops = t.loops();
-          data[index] = get_value_at_index(loops[0]);
-          data[index + 1] = get_value_at_index(loops[1]);
-          data[index + 2] = get_value_at_index(loops[2]);
+        const int tris_num = b_mesh.loop_triangles.length();
+        const MLoopTri *looptris = static_cast<const MLoopTri *>(
+            b_mesh.loop_triangles[0].ptr.data);
+        for (int i = 0; i < tris_num; i++) {
+          const MLoopTri &tri = looptris[i];
+          data[i * 3 + 0] = get_value_at_index(tri.tri[0]);
+          data[i * 3 + 1] = get_value_at_index(tri.tri[1]);
+          data[i * 3 + 2] = get_value_at_index(tri.tri[2]);
         }
       }
       break;
@@ -316,8 +318,11 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
         }
       }
       else {
-        for (BL::MeshLoopTriangle &t : b_mesh.loop_triangles) {
-          data[t.index()] = get_value_at_index(t.polygon_index());
+        const int tris_num = b_mesh.loop_triangles.length();
+        const MLoopTri *looptris = static_cast<const MLoopTri *>(
+            b_mesh.loop_triangles[0].ptr.data);
+        for (int i = 0; i < tris_num; i++) {
+          data[i] = get_value_at_index(looptris[i].poly);
         }
       }
       break;
@@ -534,6 +539,9 @@ static void attr_create_generic(Scene *scene,
 static void attr_create_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh)
 {
   if (!b_mesh.uv_layers.empty()) {
+    const int tris_num = b_mesh.loop_triangles.length();
+    const MLoopTri *looptris = static_cast<const MLoopTri *>(b_mesh.loop_triangles[0].ptr.data);
+
     for (BL::MeshUVLoopLayer &l : b_mesh.uv_layers) {
       const bool active_render = l.active_render();
       AttributeStandard uv_std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
@@ -561,14 +569,13 @@ static void attr_create_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh)
           uv_attr = mesh->attributes.add(uv_name, TypeFloat2, ATTR_ELEMENT_CORNER);
         }
 
+        const float(*b_uv_map)[2] = static_cast<const float(*)[2]>(l.uv[0].ptr.data);
         float2 *fdata = uv_attr->data_float2();
-
-        for (BL::MeshLoopTriangle &t : b_mesh.loop_triangles) {
-          int3 li = get_int3(t.loops());
-          fdata[0] = get_float2(l.data[li[0]].uv());
-          fdata[1] = get_float2(l.data[li[1]].uv());
-          fdata[2] = get_float2(l.data[li[2]].uv());
-          fdata += 3;
+        for (int i = 0; i < tris_num; i++) {
+          const MLoopTri &tri = looptris[i];
+          fdata[i * 3 + 0] = make_float2(b_uv_map[tri.tri[0]][0], b_uv_map[tri.tri[0]][1]);
+          fdata[i * 3 + 1] = make_float2(b_uv_map[tri.tri[1]][0], b_uv_map[tri.tri[1]][1]);
+          fdata[i * 3 + 2] = make_float2(b_uv_map[tri.tri[2]][0], b_uv_map[tri.tri[2]][1]);
         }
       }
 
