@@ -150,8 +150,15 @@ enum eGWL_PendingWindowActions {
    * this window is visible on may have changed. Recalculate the windows scale.
    */
   PENDING_OUTPUT_SCALE_UPDATE,
+  /**
+   * The surface needs a commit to run.
+   * Use this to avoid committing immediately which can cause flickering when other operations
+   * have not yet been performed - such as refreshing the window size.
+   */
+  PENDING_WINDOW_SURFACE_COMMIT,
+
 };
-#  define PENDING_NUM (PENDING_OUTPUT_SCALE_UPDATE + 1)
+#  define PENDING_NUM (PENDING_WINDOW_SURFACE_COMMIT + 1)
 
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 
@@ -168,6 +175,8 @@ struct GWL_WindowFrame {
   bool is_active = false;
   /** Disable when the fractional scale is a whole number. */
   int fractional_scale = 0;
+  /** The scale passed to #wl_surface_set_buffer_scale. */
+  int buffer_scale = 0;
 };
 
 struct GWL_Window {
@@ -182,19 +191,14 @@ struct GWL_Window {
    */
   std::vector<GWL_Output *> outputs;
 
-  /** The scale value written to #wl_surface_set_buffer_scale. */
-  int scale = 0;
-  /**
-   * The scale value to be used in the case fractional scale is disable.
-   * In general this should only be used when changing states
-   * (when disabling fractional scale).
-   */
-  int scale_on_output = 0;
-
   /** A temporary token used for the window to be notified of it's activation. */
   struct xdg_activation_token_v1 *xdg_activation_token = nullptr;
 
   struct wp_viewport *viewport = nullptr;
+  /**
+   * When set, only respond to the #wp_fractional_scale_v1_listener::preferred_scale callback
+   * and ignore updated scale based on #wl_surface_listener::enter & exit events.
+   */
   struct wp_fractional_scale_v1 *fractional_scale_handle = nullptr;
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
@@ -428,9 +432,9 @@ static bool gwl_window_viewport_set(GWL_Window *win, bool *r_surface_needs_commi
   }
 
   /* Set the buffer scale to 1 since a viewport will be used. */
-  if (win->scale != 1) {
-    win->scale = 1;
-    wl_surface_set_buffer_scale(win->wl_surface, win->scale);
+  if (win->frame.buffer_scale != 1) {
+    win->frame.buffer_scale = 1;
+    wl_surface_set_buffer_scale(win->wl_surface, win->frame.buffer_scale);
     if (r_surface_needs_commit) {
       *r_surface_needs_commit = true;
     }
@@ -451,10 +455,10 @@ static bool gwl_window_viewport_unset(GWL_Window *win, bool *r_surface_needs_com
   wp_viewport_destroy(win->viewport);
   win->viewport = nullptr;
 
-  GHOST_ASSERT(win->scale == 1, "Unexpected scale!");
-  if (win->scale != win->scale_on_output) {
-    win->scale = win->scale_on_output;
-    wl_surface_set_buffer_scale(win->wl_surface, win->scale);
+  GHOST_ASSERT(win->frame.buffer_scale == 1, "Unexpected scale!");
+  if (win->frame_pending.buffer_scale != win->frame.buffer_scale) {
+    win->frame.buffer_scale = win->frame_pending.buffer_scale;
+    wl_surface_set_buffer_scale(win->wl_surface, win->frame.buffer_scale);
     if (r_surface_needs_commit) {
       *r_surface_needs_commit = true;
     }
@@ -546,17 +550,30 @@ static void gwl_window_activate(GWL_Window *win)
 static void gwl_window_frame_pending_fractional_scale_set(GWL_Window *win,
                                                           bool *r_surface_needs_commit)
 {
-  if (win->frame_pending.fractional_scale == win->frame.fractional_scale) {
+  if (win->frame_pending.fractional_scale == win->frame.fractional_scale &&
+      win->frame_pending.buffer_scale == win->frame.buffer_scale) {
     return;
   }
 
-  win->frame.fractional_scale = win->frame_pending.fractional_scale;
   if (win->frame_pending.fractional_scale) {
+    win->frame.fractional_scale = win->frame_pending.fractional_scale;
     gwl_window_viewport_set(win, r_surface_needs_commit);
     gwl_window_viewport_size_update(win);
   }
   else {
-    gwl_window_viewport_unset(win, r_surface_needs_commit);
+    if (win->viewport) {
+      gwl_window_viewport_unset(win, r_surface_needs_commit);
+    }
+    else {
+      win->frame.buffer_scale = win->frame_pending.buffer_scale;
+      wl_surface_set_buffer_scale(win->wl_surface, win->frame.buffer_scale);
+      if (r_surface_needs_commit) {
+        *r_surface_needs_commit = true;
+      }
+      else {
+        wl_surface_commit(win->wl_surface);
+      }
+    }
   }
 }
 
@@ -569,7 +586,8 @@ static void gwl_window_frame_pending_size_set(GWL_Window *win, bool *r_surface_n
   win->frame.size[0] = win->frame_pending.size[0];
   win->frame.size[1] = win->frame_pending.size[1];
 
-  if (win->frame_pending.fractional_scale != win->frame.fractional_scale) {
+  if (win->frame_pending.fractional_scale != win->frame.fractional_scale ||
+      win->frame_pending.buffer_scale != win->frame.buffer_scale) {
     gwl_window_frame_pending_fractional_scale_set(win, r_surface_needs_commit);
   }
   else {
@@ -596,20 +614,33 @@ static void gwl_window_pending_actions_tag(GWL_Window *win, enum eGWL_PendingWin
 
 static void gwl_window_pending_actions_handle(GWL_Window *win)
 {
-  if (win->pending_actions[PENDING_WINDOW_FRAME_CONFIGURE].exchange(false)) {
+  /* Ensure pending actions always use the state when the function starts
+   * because one actions may trigger other pending actions an in that case
+   * exact behavior depends on the order functions are called here.
+   * Without this, configuring the frame will trigger the surface
+   * commit immediately instead of the next time pending actions are handled. */
+  bool actions[PENDING_NUM];
+  for (size_t i = 0; i < ARRAY_SIZE(actions); i++) {
+    actions[i] = win->pending_actions[i].exchange(false);
+  }
+
+  if (actions[PENDING_WINDOW_FRAME_CONFIGURE]) {
     gwl_window_frame_update_from_pending(win);
   }
-  if (win->pending_actions[PENDING_EGL_WINDOW_RESIZE].exchange(false)) {
+  if (actions[PENDING_EGL_WINDOW_RESIZE]) {
     gwl_window_viewport_size_update(win);
     wl_egl_window_resize(win->egl_window, UNPACK2(win->frame.size), 0, 0);
   }
 #  ifdef GHOST_OPENGL_ALPHA
-  if (win->pending_actions[PENDING_OPAQUE_SET].exchange(false)) {
+  if (actions[PENDING_OPAQUE_SET]) {
     win->ghost_window->setOpaque();
   }
 #  endif
-  if (win->pending_actions[PENDING_OUTPUT_SCALE_UPDATE].exchange(false)) {
+  if (actions[PENDING_OUTPUT_SCALE_UPDATE]) {
     win->ghost_window->outputs_changed_update_scale();
+  }
+  if (actions[PENDING_WINDOW_SURFACE_COMMIT]) {
+    wl_surface_commit(win->wl_surface);
   }
 }
 
@@ -637,12 +668,17 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
     }
   }
 
-  if (win->frame_pending.fractional_scale != win->frame.fractional_scale) {
+  if (win->fractional_scale_handle) {
     gwl_window_frame_pending_fractional_scale_set(win, &surface_needs_commit);
   }
 
   if (surface_needs_commit) {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+    /* Postponing the commit avoids flickering when moving between monitors of different scale. */
+    gwl_window_pending_actions_tag(win, PENDING_WINDOW_SURFACE_COMMIT);
+#else
     wl_surface_commit(win->wl_surface);
+#endif
   }
 
   if (dpi_changed) {
@@ -742,8 +778,8 @@ static void xdg_toplevel_handle_configure(void *data,
     win->frame_pending.size[1] = gwl_window_fractional_to_viewport_round(win->frame, height);
   }
   else {
-    win->frame_pending.size[0] = width * win->scale;
-    win->frame_pending.size[1] = height * win->scale;
+    win->frame_pending.size[0] = width * win->frame.buffer_scale;
+    win->frame_pending.size[1] = height * win->frame.buffer_scale;
   }
 
   win->frame_pending.is_maximised = false;
@@ -831,36 +867,44 @@ static CLG_LogRef LOG_WL_FRACTIONAL_SCALE = {"ghost.wl.handle.fractional_scale"}
 static void wp_fractional_scale_handle_preferred_scale(
     void *data, struct wp_fractional_scale_v1 * /*wp_fractional_scale_v1*/, uint preferred_scale)
 {
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_frame_guard{static_cast<GWL_Window *>(data)->frame_pending_mutex};
+#endif
   CLOG_INFO(LOG,
             2,
             "preferred_scale (preferred_scale=%.6f)",
             double(preferred_scale) / FRACTIONAL_DENOMINATOR);
+
   GWL_Window *win = static_cast<GWL_Window *>(data);
   const bool is_fractional = (preferred_scale % FRACTIONAL_DENOMINATOR) != 0;
+
   /* When non-fractional, never use fractional scaling! */
   win->frame_pending.fractional_scale = is_fractional ? preferred_scale : 0;
+  win->frame_pending.buffer_scale = is_fractional ? 1 : preferred_scale / FRACTIONAL_DENOMINATOR;
 
-  if (win->frame.fractional_scale != win->frame_pending.fractional_scale) {
+  const int scale_prev = win->frame.fractional_scale ?
+                             win->frame.fractional_scale :
+                             win->frame.buffer_scale * FRACTIONAL_DENOMINATOR;
+  const int scale_next = preferred_scale;
 
+  if (scale_prev != scale_next) {
     /* Resize the window failing to do so results in severe flickering with a
      * multi-monitor setup when multiple monitors have different scales.
      *
      * NOTE: some flickering is still possible even when resizing this
      * happens when dragging the right hand side of the title-bar in KDE
      * as expanding changed the size on the RHS, this may be up to the compositor to fix. */
-    const int scale_prev = win->frame.fractional_scale ?
-                               win->frame.fractional_scale :
-                               win->scale_on_output * FRACTIONAL_DENOMINATOR;
-    const int scale_next = win->frame_pending.fractional_scale ?
-                               win->frame_pending.fractional_scale :
-                               win->scale_on_output * FRACTIONAL_DENOMINATOR;
     for (size_t i = 0; i < ARRAY_SIZE(win->frame_pending.size); i++) {
       const int value = win->frame_pending.size[i] ? win->frame_pending.size[i] :
                                                      win->frame.size[i];
       win->frame_pending.size[i] = lroundf(value * (double(scale_next) / double(scale_prev)));
     }
 
+#ifdef USE_EVENT_BACKGROUND_THREAD
     gwl_window_pending_actions_tag(win, PENDING_WINDOW_FRAME_CONFIGURE);
+#else
+    gwl_window_frame_update_from_pending(win);
+#endif
   }
 }
 
@@ -897,7 +941,7 @@ static void frame_handle_configure(struct libdecor_frame *frame,
   int size_next[2];
   {
     GWL_Window *win = static_cast<GWL_Window *>(data);
-    const int scale = win->scale;
+    const int scale = win->frame.buffer_scale;
     if (!libdecor_configuration_get_content_size(
             configuration, frame, &size_next[0], &size_next[1])) {
       size_next[0] = win->frame.size[0] / scale;
@@ -1153,16 +1197,18 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    *
    * Using the maximum scale is best as it results in the window first being smaller,
    * avoiding a large window flashing before it's made smaller. */
-  window_->scale = outputs_max_scale_or_default(system_->outputs(), 1);
-  window_->scale_on_output = window_->scale;
+  window_->frame.buffer_scale = outputs_max_scale_or_default(system_->outputs(), 1);
+  window_->frame_pending.buffer_scale = window_->frame.buffer_scale;
 
   window_->frame.size[0] = int32_t(width);
   window_->frame.size[1] = int32_t(height);
 
   /* The window surface must be rounded to the scale,
    * failing to do so causes the WAYLAND-server to close the window immediately. */
-  window_->frame.size[0] = (window_->frame.size[0] / window_->scale) * window_->scale;
-  window_->frame.size[1] = (window_->frame.size[1] / window_->scale) * window_->scale;
+  window_->frame.size[0] = (window_->frame.size[0] / window_->frame.buffer_scale) *
+                           window_->frame.buffer_scale;
+  window_->frame.size[1] = (window_->frame.size[1] / window_->frame.buffer_scale) *
+                           window_->frame.buffer_scale;
 
   window_->is_dialog = is_dialog;
 
@@ -1170,7 +1216,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   window_->wl_surface = wl_compositor_create_surface(system_->wl_compositor());
   ghost_wl_surface_tag(window_->wl_surface);
 
-  wl_surface_set_buffer_scale(window_->wl_surface, window_->scale);
+  wl_surface_set_buffer_scale(window_->wl_surface, window_->frame.buffer_scale);
 
   wl_surface_add_listener(window_->wl_surface, &wl_surface_listener, window_);
 
@@ -1189,7 +1235,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   /* NOTE: The limit is in points (not pixels) so Hi-DPI will limit to larger number of pixels.
    * This has the advantage that the size limit is the same when moving the window between monitors
    * with different scales set. If it was important to limit in pixels it could be re-calculated
-   * when the `window_->scale` changed. */
+   * when the `window_->frame.buffer_scale` changed. */
   const int32_t size_min[2] = {320, 240};
 
   const char *xdg_app_id = GHOST_SystemWayland::xdg_app_id();
@@ -1478,7 +1524,7 @@ uint16_t GHOST_WindowWayland::getDPIHint()
     return gwl_window_fractional_to_viewport(window_->frame, base_dpi);
   }
 
-  return window_->scale * base_dpi;
+  return window_->frame.buffer_scale * base_dpi;
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorVisibility(bool visible)
@@ -1648,7 +1694,7 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
 
 int GHOST_WindowWayland::scale() const
 {
-  return window_->scale;
+  return window_->frame.buffer_scale;
 }
 
 const struct GWL_WindowScaleParams &GHOST_WindowWayland::scale_params() const
@@ -1658,7 +1704,7 @@ const struct GWL_WindowScaleParams &GHOST_WindowWayland::scale_params() const
   GWL_WindowScaleParams *scale_params = &window_->scale_params;
   scale_params->is_fractional = (window_->frame.fractional_scale != 0);
   scale_params->scale = scale_params->is_fractional ? window_->frame.fractional_scale :
-                                                      window_->scale;
+                                                      window_->frame.buffer_scale;
   return *scale_params;
 }
 
@@ -1667,7 +1713,7 @@ wl_fixed_t GHOST_WindowWayland::wl_fixed_from_window(wl_fixed_t value) const
   if (window_->frame.fractional_scale) {
     return gwl_window_fractional_from_viewport(window_->frame, value);
   }
-  return value / window_->scale;
+  return value / window_->frame.buffer_scale;
 }
 
 wl_fixed_t GHOST_WindowWayland::wl_fixed_to_window(wl_fixed_t value) const
@@ -1675,7 +1721,7 @@ wl_fixed_t GHOST_WindowWayland::wl_fixed_to_window(wl_fixed_t value) const
   if (window_->frame.fractional_scale) {
     return gwl_window_fractional_to_viewport(window_->frame, value);
   }
-  return value * window_->scale;
+  return value * window_->frame.buffer_scale;
 }
 
 wl_surface *GHOST_WindowWayland::wl_surface() const
@@ -1793,22 +1839,21 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
   }
 #endif
 
+  if (window_->fractional_scale_handle) {
+    /* Let the #wp_fractional_scale_v1_listener::preferred_scale callback handle
+     * changes to the windows scale. */
+    return false;
+  }
+
   const int scale_next = outputs_max_scale_or_default(outputs(), 0);
   if (UNLIKELY(scale_next == 0)) {
     return false;
   }
-
-  if (window_->frame.fractional_scale) {
-    GHOST_ASSERT(window_->scale == 1, "Scale is expected to be 1 for fractional scaling!");
-    window_->scale_on_output = scale_next;
-    return false;
-  }
-
-  const int scale_curr = window_->scale;
+  const int scale_curr = window_->frame.buffer_scale;
   bool changed = false;
 
   if (scale_next != scale_curr) {
-    window_->scale = scale_next;
+    window_->frame.buffer_scale = scale_next;
     wl_surface_set_buffer_scale(window_->wl_surface, scale_next);
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
@@ -1836,9 +1881,6 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
 
     changed = true;
   }
-
-  /* Ensure both are always set. */
-  window_->scale_on_output = window_->scale;
 
   return changed;
 }
