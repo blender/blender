@@ -45,7 +45,7 @@ OrientationBounds merge(const OrientationBounds &cone_a, const OrientationBounds
 
   /* Return axis and theta_o of a if it already contains b. */
   /* This should also be called when b is empty. */
-  if (a->theta_o >= fminf(M_PI_F, theta_d + b->theta_o)) {
+  if (a->theta_o + 5e-4f >= fminf(M_PI_F, theta_d + b->theta_o)) {
     return OrientationBounds({a->axis, a->theta_o, theta_e});
   }
 
@@ -65,7 +65,7 @@ OrientationBounds merge(const OrientationBounds &cone_a, const OrientationBounds
   }
   else {
     float theta_r = theta_o - a->theta_o;
-    float3 ortho = normalize(b->axis - a->axis * cos_a_b);
+    float3 ortho = safe_normalize(b->axis - a->axis * cos_a_b);
     new_axis = a->axis * cosf(theta_r) + ortho * sinf(theta_r);
   }
 
