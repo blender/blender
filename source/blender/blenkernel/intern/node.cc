@@ -2477,9 +2477,19 @@ void node_socket_move_default_value(Main &bmain,
       }
       break;
     }
+    case SOCK_CUSTOM:
+    case SOCK_SHADER:
+    case SOCK_GEOMETRY: {
+      /* Unmovable types. */
+      return;
+    }
     default: {
       break;
     }
+  }
+
+  if (dst_values.is_empty() || src_socket_value == nullptr) {
+    return;
   }
 
   for (ID **dst_value : dst_values) {
