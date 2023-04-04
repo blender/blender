@@ -1149,7 +1149,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
         PyErr_SetString(PyExc_ValueError, "BMElem[layer]: layer is from another mesh");
         return NULL;
       }
-      ret = BPy_BMLoopUV_CreatePyObject(py_ele->bm, (BMLoop *)py_ele->ele);
+      ret = BPy_BMLoopUV_CreatePyObject(py_ele->bm, (BMLoop *)py_ele->ele, py_layer->index);
       break;
     }
     case CD_PROP_BYTE_COLOR: {

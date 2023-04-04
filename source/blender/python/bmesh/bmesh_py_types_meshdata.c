@@ -209,11 +209,11 @@ int BPy_BMLoopUV_AssignPyObject(struct BMesh *bm, BMLoop *loop, PyObject *value)
   return 0;
 }
 
-PyObject *BPy_BMLoopUV_CreatePyObject(struct BMesh *bm, BMLoop *loop)
+PyObject *BPy_BMLoopUV_CreatePyObject(struct BMesh *bm, BMLoop *loop, int layer)
 {
   BPy_BMLoopUV *self = PyObject_New(BPy_BMLoopUV, &BPy_BMLoopUV_Type);
 
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets offsets = BM_uv_map_get_offsets_n(bm, layer);
 
   self->uv = BM_ELEM_CD_GET_FLOAT_P(loop, offsets.uv);
   self->vert_select = offsets.select_vert >= 0 ? BM_ELEM_CD_GET_BOOL_P(loop, offsets.select_vert) :
