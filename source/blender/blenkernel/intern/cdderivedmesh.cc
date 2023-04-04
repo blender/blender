@@ -131,10 +131,9 @@ static void cdDM_release(DerivedMesh *dm)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 
-  if (DM_release(dm)) {
-    cdDM_free_internal(cddm);
-    MEM_freeN(cddm);
-  }
+  DM_release(dm);
+  cdDM_free_internal(cddm);
+  MEM_freeN(cddm);
 }
 
 /**************** CDDM interface functions ****************/
@@ -184,11 +183,6 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
           0 /* `mesh->totface` */,
           mesh->totloop,
           mesh->totpoly);
-
-  /* This should actually be dm->deformedOnly = mesh->runtime.deformed_only,
-   * but only if the original mesh had its deformed_only flag correctly set
-   * (which isn't generally the case). */
-  dm->deformedOnly = 1;
 
   CustomData_merge(&mesh->vdata, &dm->vertData, cddata_masks.vmask, alloctype, mesh->totvert);
   CustomData_merge(&mesh->edata, &dm->edgeData, cddata_masks.emask, alloctype, mesh->totedge);

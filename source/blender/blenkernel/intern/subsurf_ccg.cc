@@ -1140,73 +1140,72 @@ static void ccgDM_release(DerivedMesh *dm)
 {
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
 
-  if (DM_release(dm)) {
-    /* Before freeing, need to update the displacement map */
-    if (ccgdm->multires.modified_flags) {
-      /* Check that mmd still exists */
-      if (!ccgdm->multires.local_mmd &&
-          BLI_findindex(&ccgdm->multires.ob->modifiers, ccgdm->multires.mmd) < 0) {
-        ccgdm->multires.mmd = nullptr;
+  DM_release(dm);
+  /* Before freeing, need to update the displacement map */
+  if (ccgdm->multires.modified_flags) {
+    /* Check that mmd still exists */
+    if (!ccgdm->multires.local_mmd &&
+        BLI_findindex(&ccgdm->multires.ob->modifiers, ccgdm->multires.mmd) < 0) {
+      ccgdm->multires.mmd = nullptr;
+    }
+
+    if (ccgdm->multires.mmd) {
+      if (ccgdm->multires.modified_flags & MULTIRES_COORDS_MODIFIED) {
+        multires_modifier_update_mdisps(dm, nullptr);
       }
-
-      if (ccgdm->multires.mmd) {
-        if (ccgdm->multires.modified_flags & MULTIRES_COORDS_MODIFIED) {
-          multires_modifier_update_mdisps(dm, nullptr);
-        }
-        if (ccgdm->multires.modified_flags & MULTIRES_HIDDEN_MODIFIED) {
-          multires_modifier_update_hidden(dm);
-        }
+      if (ccgdm->multires.modified_flags & MULTIRES_HIDDEN_MODIFIED) {
+        multires_modifier_update_hidden(dm);
       }
     }
-
-    if (ccgdm->ehash) {
-      BLI_edgehash_free(ccgdm->ehash, nullptr);
-    }
-
-    if (ccgdm->reverseFaceMap) {
-      MEM_freeN(ccgdm->reverseFaceMap);
-    }
-    if (ccgdm->gridFaces) {
-      MEM_freeN(ccgdm->gridFaces);
-    }
-    if (ccgdm->gridData) {
-      MEM_freeN(ccgdm->gridData);
-    }
-    if (ccgdm->gridOffset) {
-      MEM_freeN(ccgdm->gridOffset);
-    }
-    if (ccgdm->gridFlagMats) {
-      MEM_freeN(ccgdm->gridFlagMats);
-    }
-    if (ccgdm->gridHidden) {
-      /* Using dm->getNumGrids(dm) accesses freed memory */
-      uint numGrids = ccgdm->numGrid;
-      for (uint i = 0; i < numGrids; i++) {
-        if (ccgdm->gridHidden[i]) {
-          MEM_freeN(ccgdm->gridHidden[i]);
-        }
-      }
-      MEM_freeN(ccgdm->gridHidden);
-    }
-    if (ccgdm->freeSS) {
-      ccgSubSurf_free(ccgdm->ss);
-    }
-    if (ccgdm->pmap) {
-      MEM_freeN(ccgdm->pmap);
-    }
-    if (ccgdm->pmap_mem) {
-      MEM_freeN(ccgdm->pmap_mem);
-    }
-    MEM_freeN(ccgdm->faceFlags);
-    MEM_freeN(ccgdm->vertMap);
-    MEM_freeN(ccgdm->edgeMap);
-    MEM_freeN(ccgdm->faceMap);
-
-    BLI_mutex_end(&ccgdm->loops_cache_lock);
-    BLI_rw_mutex_end(&ccgdm->origindex_cache_rwlock);
-
-    MEM_freeN(ccgdm);
   }
+
+  if (ccgdm->ehash) {
+    BLI_edgehash_free(ccgdm->ehash, nullptr);
+  }
+
+  if (ccgdm->reverseFaceMap) {
+    MEM_freeN(ccgdm->reverseFaceMap);
+  }
+  if (ccgdm->gridFaces) {
+    MEM_freeN(ccgdm->gridFaces);
+  }
+  if (ccgdm->gridData) {
+    MEM_freeN(ccgdm->gridData);
+  }
+  if (ccgdm->gridOffset) {
+    MEM_freeN(ccgdm->gridOffset);
+  }
+  if (ccgdm->gridFlagMats) {
+    MEM_freeN(ccgdm->gridFlagMats);
+  }
+  if (ccgdm->gridHidden) {
+    /* Using dm->getNumGrids(dm) accesses freed memory */
+    uint numGrids = ccgdm->numGrid;
+    for (uint i = 0; i < numGrids; i++) {
+      if (ccgdm->gridHidden[i]) {
+        MEM_freeN(ccgdm->gridHidden[i]);
+      }
+    }
+    MEM_freeN(ccgdm->gridHidden);
+  }
+  if (ccgdm->freeSS) {
+    ccgSubSurf_free(ccgdm->ss);
+  }
+  if (ccgdm->pmap) {
+    MEM_freeN(ccgdm->pmap);
+  }
+  if (ccgdm->pmap_mem) {
+    MEM_freeN(ccgdm->pmap_mem);
+  }
+  MEM_freeN(ccgdm->faceFlags);
+  MEM_freeN(ccgdm->vertMap);
+  MEM_freeN(ccgdm->edgeMap);
+  MEM_freeN(ccgdm->faceMap);
+
+  BLI_mutex_end(&ccgdm->loops_cache_lock);
+  BLI_rw_mutex_end(&ccgdm->origindex_cache_rwlock);
+
+  MEM_freeN(ccgdm);
 }
 
 static void *ccgDM_get_vert_data_layer(DerivedMesh *dm, const eCustomDataType type)

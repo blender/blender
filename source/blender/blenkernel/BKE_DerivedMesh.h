@@ -87,8 +87,6 @@ struct DerivedMesh {
   /** Private DerivedMesh data, only for internal DerivedMesh use */
   CustomData vertData, edgeData, faceData, loopData, polyData;
   int numVertData, numEdgeData, numTessFaceData, numLoopData, numPolyData;
-  int needsFree;    /* checked on ->release, is set to 0 for cached results */
-  int deformedOnly; /* set by modifier stack if only deformed from original */
   DerivedMeshType type;
   /* Always owned by this object. */
   int *poly_offsets;
@@ -191,11 +189,7 @@ void DM_from_template(DerivedMesh *dm,
                       int numLoops,
                       int numPolys);
 
-/**
- * Utility function to release a DerivedMesh's layers
- * returns true if DerivedMesh has to be released by the backend, false otherwise.
- */
-bool DM_release(DerivedMesh *dm);
+void DM_release(DerivedMesh *dm);
 
 /**
  * set the #CD_FLAG_NOCOPY flag in custom data layers where the mask is

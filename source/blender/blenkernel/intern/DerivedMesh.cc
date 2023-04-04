@@ -189,8 +189,6 @@ void DM_init(DerivedMesh *dm,
 
   DM_init_funcs(dm);
 
-  dm->needsFree = 1;
-
   /* Don't use #CustomData_reset because we don't want to touch custom-data. */
   copy_vn_i(dm->vertData.typemap, CD_NUMTYPES, -1);
   copy_vn_i(dm->edgeData.typemap, CD_NUMTYPES, -1);
@@ -224,30 +222,16 @@ void DM_from_template(DerivedMesh *dm,
   dm->numPolyData = numPolys;
 
   DM_init_funcs(dm);
-
-  dm->needsFree = 1;
 }
 
-bool DM_release(DerivedMesh *dm)
+void DM_release(DerivedMesh *dm)
 {
+  CustomData_free(&dm->vertData, dm->numVertData);
+  CustomData_free(&dm->edgeData, dm->numEdgeData);
+  CustomData_free(&dm->faceData, dm->numTessFaceData);
+  CustomData_free(&dm->loopData, dm->numLoopData);
+  CustomData_free(&dm->polyData, dm->numPolyData);
   MEM_SAFE_FREE(dm->poly_offsets);
-  if (dm->needsFree) {
-    CustomData_free(&dm->vertData, dm->numVertData);
-    CustomData_free(&dm->edgeData, dm->numEdgeData);
-    CustomData_free(&dm->faceData, dm->numTessFaceData);
-    CustomData_free(&dm->loopData, dm->numLoopData);
-    CustomData_free(&dm->polyData, dm->numPolyData);
-
-    return true;
-  }
-
-  CustomData_free_temporary(&dm->vertData, dm->numVertData);
-  CustomData_free_temporary(&dm->edgeData, dm->numEdgeData);
-  CustomData_free_temporary(&dm->faceData, dm->numTessFaceData);
-  CustomData_free_temporary(&dm->loopData, dm->numLoopData);
-  CustomData_free_temporary(&dm->polyData, dm->numPolyData);
-
-  return false;
 }
 
 void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *me, KeyBlock *kb)
