@@ -15,6 +15,8 @@
 #include "BLI_string_utils.h"
 #include "BLI_vector.hh"
 
+#include "BKE_global.h"
+
 using namespace blender::gpu::shader;
 
 extern "C" char datatoc_glsl_shader_defines_glsl[];
@@ -523,6 +525,10 @@ Vector<uint32_t> VKShader::compile_glsl_to_spirv(Span<const char *> sources,
   shaderc::Compiler &compiler = backend.get_shaderc_compiler();
   shaderc::CompileOptions options;
   options.SetOptimizationLevel(shaderc_optimization_level_performance);
+  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
+    options.SetOptimizationLevel(shaderc_optimization_level_zero);
+    options.SetGenerateDebugInfo();
+  }
 
   shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(
       combined_sources, stage, name, options);
