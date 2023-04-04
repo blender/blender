@@ -278,7 +278,7 @@ LightTree::LightTree(Scene *scene,
   dscene->object_lookup_offset.copy_to_device();
 }
 
-LightTreeNode *LightTree::build(Scene *scene, DeviceScene *dscene)
+LightTreeNode *LightTree::build(Scene * /* scene */, DeviceScene * /* dscene */)
 {
   if (emitters_.empty() && distant_lights_.empty()) {
     return nullptr;
