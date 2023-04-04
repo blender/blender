@@ -201,10 +201,8 @@ class GHOST_SystemWayland : public GHOST_System {
   struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_manager();
   struct xdg_activation_v1 *xdg_activation_manager();
   struct zwp_pointer_gestures_v1 *wp_pointer_gestures();
-#ifdef WITH_GHOST_WAYLAND_FRACTIONAL_SCALE
   struct wp_fractional_scale_manager_v1 *wp_fractional_scale_manager();
   struct wp_viewporter *wp_viewporter();
-#endif
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   libdecor *libdecor_context();

@@ -646,7 +646,10 @@ if(WITH_GHOST_WAYLAND)
   else()
     # Rocky8 packages have too old a version, a newer version exist in the pre-compiled libraries.
     find_path(WAYLAND_PROTOCOLS_DIR
-      NAMES staging/xdg-activation/xdg-activation-v1.xml
+      # NOTE: this file must always refer to the newest API which is used, so older
+      # `wayland-protocols` are never found and used which then fail to locate required protocols.
+      NAMES staging/fractional-scale/fractional-scale-v1.xml
+
       PATH_SUFFIXES share/wayland-protocols
       PATHS ${LIBDIR}/wayland-protocols
     )
