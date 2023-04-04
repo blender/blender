@@ -104,19 +104,6 @@ static void cdDM_copyPolyArray(DerivedMesh *dm, int *r_poly_offsets)
   memcpy(r_poly_offsets, dm->poly_offsets, sizeof(int) * (dm->numPolyData + 1));
 }
 
-static void cdDM_getVertCo(DerivedMesh *dm, int index, float r_co[3])
-{
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-
-  copy_v3_v3(r_co, cddm->vert_positions[index]);
-}
-
-static void cdDM_getVertNo(DerivedMesh *dm, int index, float r_no[3])
-{
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  copy_v3_v3(r_no, cddm->vert_normals[index]);
-}
-
 static void cdDM_free_internal(CDDerivedMesh *cddm)
 {
   if (cddm->pmap) {
@@ -155,9 +142,6 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 
   dm->getVertDataArray = DM_get_vert_data_layer;
   dm->getEdgeDataArray = DM_get_edge_data_layer;
-
-  dm->getVertCo = cdDM_getVertCo;
-  dm->getVertNo = cdDM_getVertNo;
 
   dm->release = cdDM_release;
 

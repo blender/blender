@@ -146,12 +146,6 @@ struct DerivedMesh {
    * - Can be undefined
    * - Must be defined for modifiers that only deform however */
 
-  /** Get vertex location, undefined if index is not valid */
-  void (*getVertCo)(DerivedMesh *dm, int index, float r_co[3]);
-
-  /** Get smooth vertex normal, undefined if index is not valid */
-  void (*getVertNo)(DerivedMesh *dm, int index, float r_no[3]);
-
   /** Release reference to the DerivedMesh. This function decides internally
    * if the DerivedMesh will be freed, or cached for later use. */
   void (*release)(DerivedMesh *dm);

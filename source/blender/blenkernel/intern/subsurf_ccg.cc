@@ -747,103 +747,6 @@ static int ccgDM_getNumLoops(DerivedMesh *dm)
   return 4 * ccgSubSurf_getNumFinalFaces(ccgdm->ss);
 }
 
-static CCGElem *get_vertex_elem(CCGDerivedMesh *ccgdm, int vertNum)
-{
-  CCGSubSurf *ss = ccgdm->ss;
-  int i;
-
-  if ((vertNum < ccgdm->edgeMap[0].startVert) && (ccgSubSurf_getNumFaces(ss) > 0)) {
-    /* this vert comes from face data */
-    int lastface = ccgSubSurf_getNumFaces(ss) - 1;
-    CCGFace *f;
-    int x, y, grid, numVerts;
-    int offset;
-    int gridSize = ccgSubSurf_getGridSize(ss);
-    int gridSideVerts;
-    int gridInternalVerts;
-    int gridSideEnd;
-    int gridInternalEnd;
-
-    i = 0;
-    while (i < lastface && vertNum >= ccgdm->faceMap[i + 1].startVert) {
-      i++;
-    }
-
-    f = ccgdm->faceMap[i].face;
-    numVerts = ccgSubSurf_getFaceNumVerts(f);
-
-    gridSideVerts = gridSize - 2;
-    gridInternalVerts = gridSideVerts * gridSideVerts;
-
-    gridSideEnd = 1 + numVerts * gridSideVerts;
-    gridInternalEnd = gridSideEnd + numVerts * gridInternalVerts;
-
-    offset = vertNum - ccgdm->faceMap[i].startVert;
-    if (offset < 1) {
-      return static_cast<CCGElem *>(ccgSubSurf_getFaceCenterData(f));
-    }
-    if (offset < gridSideEnd) {
-      offset -= 1;
-      grid = offset / gridSideVerts;
-      x = offset % gridSideVerts + 1;
-      return static_cast<CCGElem *>(ccgSubSurf_getFaceGridEdgeData(ss, f, grid, x));
-    }
-    if (offset < gridInternalEnd) {
-      offset -= gridSideEnd;
-      grid = offset / gridInternalVerts;
-      offset %= gridInternalVerts;
-      y = offset / gridSideVerts + 1;
-      x = offset % gridSideVerts + 1;
-      return static_cast<CCGElem *>(ccgSubSurf_getFaceGridData(ss, f, grid, x, y));
-    }
-  }
-  if ((vertNum < ccgdm->vertMap[0].startVert) && (ccgSubSurf_getNumEdges(ss) > 0)) {
-    /* this vert comes from edge data */
-    CCGEdge *e;
-    int lastedge = ccgSubSurf_getNumEdges(ss) - 1;
-    int x;
-
-    i = 0;
-    while (i < lastedge && vertNum >= ccgdm->edgeMap[i + 1].startVert) {
-      i++;
-    }
-
-    e = ccgdm->edgeMap[i].edge;
-
-    x = vertNum - ccgdm->edgeMap[i].startVert + 1;
-    return static_cast<CCGElem *>(ccgSubSurf_getEdgeData(ss, e, x));
-  }
-
-  /* this vert comes from vert data */
-  CCGVert *v;
-  i = vertNum - ccgdm->vertMap[0].startVert;
-
-  v = ccgdm->vertMap[i].vert;
-  return static_cast<CCGElem *>(ccgSubSurf_getVertData(ss, v));
-}
-
-static void ccgDM_getFinalVertCo(DerivedMesh *dm, int vertNum, float r_co[3])
-{
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-  CCGSubSurf *ss = ccgdm->ss;
-
-  CCGElem *vd = get_vertex_elem(ccgdm, vertNum);
-  CCGKey key;
-  CCG_key_top_level(&key, ss);
-  copy_v3_v3(r_co, CCG_elem_co(&key, vd));
-}
-
-static void ccgDM_getFinalVertNo(DerivedMesh *dm, int vertNum, float r_no[3])
-{
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-  CCGSubSurf *ss = ccgdm->ss;
-
-  CCGElem *vd = get_vertex_elem(ccgdm, vertNum);
-  CCGKey key;
-  CCG_key_top_level(&key, ss);
-  copy_v3_v3(r_no, CCG_elem_no(&key, vd));
-}
-
 /* utility function */
 BLI_INLINE void ccgDM_to_MVert(float mv[3], const CCGKey *key, CCGElem *elem)
 {
@@ -1453,9 +1356,6 @@ static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
   ccgdm->dm.getNumEdges = ccgDM_getNumEdges;
   ccgdm->dm.getNumLoops = ccgDM_getNumLoops;
   ccgdm->dm.getNumPolys = ccgDM_getNumPolys;
-
-  ccgdm->dm.getVertCo = ccgDM_getFinalVertCo;
-  ccgdm->dm.getVertNo = ccgDM_getFinalVertNo;
 
   ccgdm->dm.copyVertArray = ccgDM_copyFinalVertArray;
   ccgdm->dm.copyEdgeArray = ccgDM_copyFinalEdgeArray;
