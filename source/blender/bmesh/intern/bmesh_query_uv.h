@@ -11,9 +11,11 @@ extern "C" {
 #endif
 
 /**
- * Retrieve the custom data offsets for layers used for user interaction with the active UV map.
+ * Retrieve the custom data offsets for layers used for user interaction with a UV map, returns the
+ * active uv map if layer is -1.
  */
 BMUVOffsets BM_uv_map_get_offsets(const BMesh *bm);
+BMUVOffsets BM_uv_map_get_offsets_n(const BMesh *bm, int layer);
 
 float BM_loop_uv_calc_edge_length_squared(const BMLoop *l,
                                           int cd_loop_uv_offset) ATTR_WARN_UNUSED_RESULT
