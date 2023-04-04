@@ -150,7 +150,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
         grp, "randomScale", effects->reflection_trace_full ? 0.0f : 0.5f);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
 
-    eGPUSamplerState no_filter = GPU_SAMPLER_DEFAULT;
+    GPUSamplerState no_filter = GPU_SAMPLER_DEFAULT;
 
     if (effects->use_split_ssr_pass) {
       /* Prepare passes for split reflections resolve variant. */

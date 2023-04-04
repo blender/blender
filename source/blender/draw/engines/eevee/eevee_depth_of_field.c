@@ -329,8 +329,10 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata),
   return 0;
 }
 
-#define WITH_FILTERING (GPU_SAMPLER_MIPMAP | GPU_SAMPLER_FILTER)
-#define NO_FILTERING GPU_SAMPLER_MIPMAP
+const static GPUSamplerState WITH_FILTERING = {GPU_SAMPLER_FILTERING_MIPMAP |
+                                               GPU_SAMPLER_FILTERING_LINEAR};
+const static GPUSamplerState NO_FILTERING = {GPU_SAMPLER_FILTERING_MIPMAP};
+
 #define COLOR_FORMAT fx->dof_color_format
 #define FG_TILE_FORMAT GPU_RGBA16F
 #define BG_TILE_FORMAT GPU_R11F_G11F_B10F

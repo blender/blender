@@ -1624,7 +1624,7 @@ static void icon_draw_cache_texture_flush_ex(GPUTexture *texture,
   GPU_uniformbuf_bind(ubo, data_binding);
 
   const int img_binding = GPU_shader_get_sampler_binding(shader, "image");
-  GPU_texture_bind_ex(texture, GPU_SAMPLER_ICON, img_binding);
+  GPU_texture_bind_ex(texture, GPUSamplerState::icon_sampler(), img_binding);
 
   GPUBatch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
@@ -1816,7 +1816,7 @@ static void icon_draw_texture(float x,
   GPU_shader_uniform_float_ex(shader, rect_geom_loc, 4, 1, geom_color);
   GPU_shader_uniform_1f(shader, "text_width", text_width);
 
-  GPU_texture_bind_ex(texture, GPU_SAMPLER_ICON, img_binding);
+  GPU_texture_bind_ex(texture, GPUSamplerState::icon_sampler(), img_binding);
 
   GPUBatch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);

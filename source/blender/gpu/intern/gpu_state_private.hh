@@ -149,7 +149,7 @@ class StateManager {
 
   virtual void issue_barrier(eGPUBarrier barrier_bits) = 0;
 
-  virtual void texture_bind(Texture *tex, eGPUSamplerState sampler, int unit) = 0;
+  virtual void texture_bind(Texture *tex, GPUSamplerState sampler, int unit) = 0;
   virtual void texture_unbind(Texture *tex) = 0;
   virtual void texture_unbind_all() = 0;
 

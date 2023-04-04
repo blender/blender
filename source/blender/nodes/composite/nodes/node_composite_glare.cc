@@ -398,7 +398,8 @@ class GlareOperation : public NodeOperation {
 
       input_streak_result.bind_as_texture(shader, "input_streak_tx");
       GPU_texture_filter_mode(input_streak_result.texture(), true);
-      GPU_texture_wrap_mode(input_streak_result.texture(), false, false);
+      GPU_texture_extend_mode(input_streak_result.texture(),
+                              GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
 
       output_streak_result.bind_as_image(shader, "output_streak_img");
 
@@ -585,11 +586,11 @@ class GlareOperation : public NodeOperation {
 
     small_ghost_result.bind_as_texture(shader, "small_ghost_tx");
     GPU_texture_filter_mode(small_ghost_result.texture(), true);
-    GPU_texture_wrap_mode(small_ghost_result.texture(), false, false);
+    GPU_texture_extend_mode(small_ghost_result.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
 
     big_ghost_result.bind_as_texture(shader, "big_ghost_tx");
     GPU_texture_filter_mode(big_ghost_result.texture(), true);
-    GPU_texture_wrap_mode(big_ghost_result.texture(), false, false);
+    GPU_texture_extend_mode(big_ghost_result.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
 
     const int2 glare_size = get_glare_size();
     Result base_ghost_result = Result::Temporary(ResultType::Color, texture_pool());

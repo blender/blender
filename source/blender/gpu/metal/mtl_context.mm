@@ -223,13 +223,7 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
   }
 
   /* Initialize samplers. */
-  for (uint i = 0; i < GPU_SAMPLER_ICON; i++) {
-    MTLSamplerState state;
-    state.state = static_cast<eGPUSamplerState>(i);
-    sampler_state_cache_[i] = this->generate_sampler_from_state(state);
-  }
-  /* Special sampler for icons. */
-  sampler_state_cache_[GPU_SAMPLER_ICON] = this->generate_icon_sampler();
+  this->sampler_state_cache_init();
 }
 
 MTLContext::~MTLContext()
@@ -278,10 +272,22 @@ MTLContext::~MTLContext()
   this->free_dummy_resources();
 
   /* Release Sampler States. */
-  for (int i = 0; i < GPU_SAMPLER_MAX; i++) {
-    if (sampler_state_cache_[i] != nil) {
-      [sampler_state_cache_[i] release];
-      sampler_state_cache_[i] = nil;
+  for (int extend_yz_i = 0; extend_yz_i < GPU_SAMPLER_EXTEND_MODES_COUNT; extend_yz_i++) {
+    for (int extend_x_i = 0; extend_x_i < GPU_SAMPLER_EXTEND_MODES_COUNT; extend_x_i++) {
+      for (int filtering_i = 0; filtering_i < GPU_SAMPLER_FILTERING_TYPES_COUNT; filtering_i++) {
+        if (sampler_state_cache_[extend_yz_i][extend_x_i][filtering_i] != nil) {
+          [sampler_state_cache_[extend_yz_i][extend_x_i][filtering_i] release];
+          sampler_state_cache_[extend_yz_i][extend_x_i][filtering_i] = nil;
+        }
+      }
+    }
+  }
+
+  /* Release Custom Sampler States. */
+  for (int i = 0; i < GPU_SAMPLER_CUSTOM_TYPES_COUNT; i++) {
+    if (custom_sampler_state_cache_[i] != nil) {
+      [custom_sampler_state_cache_[i] release];
+      custom_sampler_state_cache_[i] = nil;
     }
   }
 
@@ -2021,73 +2027,118 @@ void MTLContext::texture_unbind_all()
 
 id<MTLSamplerState> MTLContext::get_sampler_from_state(MTLSamplerState sampler_state)
 {
-  BLI_assert((uint)sampler_state >= 0 && ((uint)sampler_state) < GPU_SAMPLER_MAX);
-  return sampler_state_cache_[(uint)sampler_state];
+  /* Internal sampler states are signal values and do not correspond to actual samplers. */
+  BLI_assert(sampler_state.state.type != GPU_SAMPLER_STATE_TYPE_INTERNAL);
+
+  if (sampler_state.state.type == GPU_SAMPLER_STATE_TYPE_CUSTOM) {
+    return custom_sampler_state_cache_[sampler_state.state.custom_type];
+  }
+
+  return sampler_state_cache_[sampler_state.state.extend_yz][sampler_state.state.extend_x]
+                             [sampler_state.state.filtering];
 }
 
-id<MTLSamplerState> MTLContext::generate_sampler_from_state(MTLSamplerState sampler_state)
+/** A function that maps GPUSamplerExtendMode values to their Metal enum counterparts. */
+static inline MTLSamplerAddressMode to_mtl_type(GPUSamplerExtendMode wrap_mode)
 {
-  MTLSamplerDescriptor *descriptor = [[MTLSamplerDescriptor alloc] init];
-  descriptor.normalizedCoordinates = true;
-
-  MTLSamplerAddressMode clamp_type = (sampler_state.state & GPU_SAMPLER_CLAMP_BORDER) ?
-                                         MTLSamplerAddressModeClampToBorderColor :
-                                         MTLSamplerAddressModeClampToEdge;
-  MTLSamplerAddressMode repeat_type = (sampler_state.state & GPU_SAMPLER_MIRROR_REPEAT) ?
-                                          MTLSamplerAddressModeMirrorRepeat :
-                                          MTLSamplerAddressModeRepeat;
-  descriptor.rAddressMode = (sampler_state.state & GPU_SAMPLER_REPEAT_R) ? repeat_type :
-                                                                           clamp_type;
-  descriptor.sAddressMode = (sampler_state.state & GPU_SAMPLER_REPEAT_S) ? repeat_type :
-                                                                           clamp_type;
-  descriptor.tAddressMode = (sampler_state.state & GPU_SAMPLER_REPEAT_T) ? repeat_type :
-                                                                           clamp_type;
-  descriptor.borderColor = MTLSamplerBorderColorTransparentBlack;
-  descriptor.minFilter = (sampler_state.state & GPU_SAMPLER_FILTER) ?
-                             MTLSamplerMinMagFilterLinear :
-                             MTLSamplerMinMagFilterNearest;
-  descriptor.magFilter = (sampler_state.state & GPU_SAMPLER_FILTER) ?
-                             MTLSamplerMinMagFilterLinear :
-                             MTLSamplerMinMagFilterNearest;
-  descriptor.mipFilter = (sampler_state.state & GPU_SAMPLER_MIPMAP) ?
-                             MTLSamplerMipFilterLinear :
-                             MTLSamplerMipFilterNotMipmapped;
-  descriptor.lodMinClamp = -1000;
-  descriptor.lodMaxClamp = 1000;
-  float aniso_filter = max_ff(16, U.anisotropic_filter);
-  descriptor.maxAnisotropy = (sampler_state.state & GPU_SAMPLER_MIPMAP) ? aniso_filter : 1;
-  descriptor.compareFunction = (sampler_state.state & GPU_SAMPLER_COMPARE) ?
-                                   MTLCompareFunctionLessEqual :
-                                   MTLCompareFunctionAlways;
-  descriptor.supportArgumentBuffers = true;
-
-  id<MTLSamplerState> state = [this->device newSamplerStateWithDescriptor:descriptor];
-  sampler_state_cache_[(uint)sampler_state] = state;
-
-  BLI_assert(state != nil);
-  [descriptor autorelease];
-  return state;
+  switch (wrap_mode) {
+    case GPU_SAMPLER_EXTEND_MODE_EXTEND:
+      return MTLSamplerAddressModeClampToEdge;
+    case GPU_SAMPLER_EXTEND_MODE_REPEAT:
+      return MTLSamplerAddressModeRepeat;
+    case GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT:
+      return MTLSamplerAddressModeMirrorRepeat;
+    case GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER:
+      return MTLSamplerAddressModeClampToBorderColor;
+    default:
+      BLI_assert_unreachable();
+      return MTLSamplerAddressModeClampToEdge;
+  }
 }
 
-id<MTLSamplerState> MTLContext::generate_icon_sampler()
+void MTLContext::sampler_state_cache_init()
 {
-  MTLSamplerDescriptor *descriptor = [[MTLSamplerDescriptor alloc] init];
-  descriptor.minFilter = MTLSamplerMinMagFilterLinear;
-  descriptor.magFilter = MTLSamplerMinMagFilterLinear;
-  descriptor.mipFilter = MTLSamplerMipFilterNearest;
-  descriptor.lodMinClamp = 0;
-  descriptor.lodMaxClamp = 1;
+  for (int extend_yz_i = 0; extend_yz_i < GPU_SAMPLER_EXTEND_MODES_COUNT; extend_yz_i++) {
+    const GPUSamplerExtendMode extend_yz = static_cast<GPUSamplerExtendMode>(extend_yz_i);
+    const MTLSamplerAddressMode extend_t = to_mtl_type(extend_yz);
 
-  id<MTLSamplerState> icon_state = [this->device newSamplerStateWithDescriptor:descriptor];
-  BLI_assert(icon_state != nil);
-  [descriptor autorelease];
-  return icon_state;
+    for (int extend_x_i = 0; extend_x_i < GPU_SAMPLER_EXTEND_MODES_COUNT; extend_x_i++) {
+      const GPUSamplerExtendMode extend_x = static_cast<GPUSamplerExtendMode>(extend_x_i);
+      const MTLSamplerAddressMode extend_s = to_mtl_type(extend_x);
+
+      for (int filtering_i = 0; filtering_i < GPU_SAMPLER_FILTERING_TYPES_COUNT; filtering_i++) {
+        const GPUSamplerFiltering filtering = GPUSamplerFiltering(filtering_i);
+
+        MTLSamplerDescriptor *descriptor = [[MTLSamplerDescriptor alloc] init];
+        descriptor.normalizedCoordinates = true;
+        descriptor.sAddressMode = extend_s;
+        descriptor.tAddressMode = extend_t;
+        descriptor.rAddressMode = extend_t;
+        descriptor.borderColor = MTLSamplerBorderColorTransparentBlack;
+        descriptor.minFilter = (filtering & GPU_SAMPLER_FILTERING_LINEAR) ?
+                                   MTLSamplerMinMagFilterLinear :
+                                   MTLSamplerMinMagFilterNearest;
+        descriptor.magFilter = (filtering & GPU_SAMPLER_FILTERING_LINEAR) ?
+                                   MTLSamplerMinMagFilterLinear :
+                                   MTLSamplerMinMagFilterNearest;
+        descriptor.mipFilter = (filtering & GPU_SAMPLER_FILTERING_MIPMAP) ?
+                                   MTLSamplerMipFilterLinear :
+                                   MTLSamplerMipFilterNotMipmapped;
+        descriptor.lodMinClamp = -1000;
+        descriptor.lodMaxClamp = 1000;
+        float aniso_filter = max_ff(16, U.anisotropic_filter);
+        descriptor.maxAnisotropy = (filtering & GPU_SAMPLER_FILTERING_MIPMAP) ? aniso_filter : 1;
+        descriptor.compareFunction = MTLCompareFunctionAlways;
+        descriptor.supportArgumentBuffers = true;
+
+        id<MTLSamplerState> state = [this->device newSamplerStateWithDescriptor:descriptor];
+        sampler_state_cache_[extend_yz_i][extend_x_i][filtering_i] = state;
+
+        BLI_assert(state != nil);
+        [descriptor autorelease];
+      }
+    }
+  }
+
+  /* Compare sampler for depth textures. */
+  {
+    MTLSamplerDescriptor *descriptor = [[MTLSamplerDescriptor alloc] init];
+    descriptor.minFilter = MTLSamplerMinMagFilterLinear;
+    descriptor.magFilter = MTLSamplerMinMagFilterLinear;
+    descriptor.compareFunction = MTLCompareFunctionLessEqual;
+    descriptor.lodMinClamp = -1000;
+    descriptor.lodMaxClamp = 1000;
+    descriptor.supportArgumentBuffers = true;
+
+    id<MTLSamplerState> compare_state = [this->device newSamplerStateWithDescriptor:descriptor];
+    custom_sampler_state_cache_[GPU_SAMPLER_CUSTOM_COMPARE] = compare_state;
+
+    BLI_assert(compare_state != nil);
+    [descriptor autorelease];
+  }
+
+  /* Custom sampler for icons. The icon texture is sampled within the shader using a -0.5f LOD
+   * bias. */
+  {
+    MTLSamplerDescriptor *descriptor = [[MTLSamplerDescriptor alloc] init];
+    descriptor.minFilter = MTLSamplerMinMagFilterLinear;
+    descriptor.magFilter = MTLSamplerMinMagFilterLinear;
+    descriptor.mipFilter = MTLSamplerMipFilterNearest;
+    descriptor.lodMinClamp = 0;
+    descriptor.lodMaxClamp = 1;
+
+    id<MTLSamplerState> icon_state = [this->device newSamplerStateWithDescriptor:descriptor];
+    custom_sampler_state_cache_[GPU_SAMPLER_CUSTOM_ICON] = icon_state;
+
+    BLI_assert(icon_state != nil);
+    [descriptor autorelease];
+  }
 }
 
 id<MTLSamplerState> MTLContext::get_default_sampler_state()
 {
   if (default_sampler_state_ == nil) {
-    default_sampler_state_ = this->get_sampler_from_state(DEFAULT_SAMPLER_STATE);
+    default_sampler_state_ = this->get_sampler_from_state({GPUSamplerState::default_sampler()});
   }
   return default_sampler_state_;
 }
@@ -2231,4 +2282,4 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
 
 /** \} */
 
-}  // blender::gpu
+}  // namespace blender::gpu

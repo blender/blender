@@ -26,8 +26,8 @@ class ShadowPunctual;
 
 using namespace draw;
 
-constexpr eGPUSamplerState no_filter = GPU_SAMPLER_DEFAULT;
-constexpr eGPUSamplerState with_filter = GPU_SAMPLER_FILTER;
+constexpr GPUSamplerState no_filter = GPUSamplerState::default_sampler();
+constexpr GPUSamplerState with_filter = {GPU_SAMPLER_FILTERING_LINEAR};
 
 #endif
 

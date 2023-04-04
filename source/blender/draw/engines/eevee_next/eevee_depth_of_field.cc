@@ -446,7 +446,7 @@ void DepthOfField::hole_fill_pass_sync()
 
 void DepthOfField::resolve_pass_sync()
 {
-  eGPUSamplerState with_filter = GPU_SAMPLER_FILTER;
+  GPUSamplerState with_filter = {GPU_SAMPLER_FILTERING_LINEAR};
   RenderBuffers &render_buffers = inst_.render_buffers;
   eShaderType sh_type = use_bokeh_lut_ ? DOF_RESOLVE_LUT : DOF_RESOLVE;
 

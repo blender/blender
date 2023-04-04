@@ -132,7 +132,7 @@ void MotionBlurModule::sync()
     return;
   }
 
-  eGPUSamplerState no_filter = GPU_SAMPLER_DEFAULT;
+  GPUSamplerState no_filter = GPUSamplerState::default_sampler();
   RenderBuffers &render_buffers = inst_.render_buffers;
 
   motion_blur_ps_.init();

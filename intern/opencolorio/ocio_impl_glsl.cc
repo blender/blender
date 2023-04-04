@@ -349,7 +349,7 @@ static bool addGPULut1D2D(OCIO_GPUTextures &textures,
   }
 
   GPU_texture_filter_mode(lut.texture, interpolation != INTERP_NEAREST);
-  GPU_texture_wrap_mode(lut.texture, false, true);
+  GPU_texture_extend_mode(lut.texture, GPU_SAMPLER_EXTEND_MODE_EXTEND);
 
   lut.sampler_name = sampler_name;
 
@@ -387,7 +387,7 @@ static bool addGPULut3D(OCIO_GPUTextures &textures,
   }
 
   GPU_texture_filter_mode(lut.texture, interpolation != INTERP_NEAREST);
-  GPU_texture_wrap_mode(lut.texture, false, true);
+  GPU_texture_extend_mode(lut.texture, GPU_SAMPLER_EXTEND_MODE_EXTEND);
 
   lut.sampler_name = sampler_name;
 
@@ -453,7 +453,7 @@ static bool createGPUCurveMapping(OCIO_GPUCurveMappping &curvemap,
     curvemap.texture = GPU_texture_create_1d(
         "OCIOCurveMap", lut_size, 1, GPU_RGBA16F, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
     GPU_texture_filter_mode(curvemap.texture, false);
-    GPU_texture_wrap_mode(curvemap.texture, false, true);
+    GPU_texture_extend_mode(curvemap.texture, GPU_SAMPLER_EXTEND_MODE_EXTEND);
 
     curvemap.buffer = GPU_uniformbuf_create(sizeof(OCIO_GPUCurveMappingParameters));
 
