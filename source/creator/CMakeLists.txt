@@ -1293,10 +1293,7 @@ elseif(WIN32)
   endif()
 
   if(PLATFORM_BUNDLED_LIBRARIES)
-    install(
-      FILES ${PLATFORM_BUNDLED_LIBRARIES}
-      DESTINATION ${TARGETDIR_EXE}
-    )
+    windows_process_platform_bundled_libraries("${PLATFORM_BUNDLED_LIBRARIES}")
   endif()
 elseif(APPLE)
   if(NOT WITH_PYTHON_MODULE)

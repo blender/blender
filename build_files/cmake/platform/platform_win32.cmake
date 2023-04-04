@@ -1040,8 +1040,9 @@ if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
     ${SYCL_ROOT_DIR}/bin/sycl[0-9].dll
   )
   foreach(sycl_runtime_library IN LISTS _sycl_runtime_libraries_glob)
-    string(REPLACE ".dll" "$<$<CONFIG:Debug>:d>.dll" sycl_runtime_library ${sycl_runtime_library})
-    list(APPEND _sycl_runtime_libraries ${sycl_runtime_library})
+    string(REPLACE ".dll" "_d.dll" sycl_runtime_library_debug ${sycl_runtime_library})
+    list(APPEND _sycl_runtime_libraries RELEASE ${sycl_runtime_library})
+    list(APPEND _sycl_runtime_libraries DEBUG ${sycl_runtime_library_debug})
   endforeach()
   unset(_sycl_runtime_libraries_glob)
 
