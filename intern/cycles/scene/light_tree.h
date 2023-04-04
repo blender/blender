@@ -187,35 +187,44 @@ struct LightTreeNode {
  * and considers additional orientation and energy information */
 class LightTree {
   unique_ptr<LightTreeNode> root_;
-  std::atomic<int> num_nodes_ = 0;
+
+  vector<LightTreeEmitter> emitters_;
+  vector<LightTreeEmitter> distant_lights_;
+
+  Progress &progress_;
+
   uint max_lights_in_leaf_;
 
  public:
+  std::atomic<int> num_nodes = 0;
+  size_t num_triangles = 0;
+
   /* Left or right child of an inner node. */
   enum Child {
     left = 0,
     right = 1,
   };
 
-  LightTree(vector<LightTreeEmitter> &emitters,
-            const int &num_distant_lights,
-            uint max_lights_in_leaf);
+  LightTree(Scene *scene, DeviceScene *dscene, Progress &progress, uint max_lights_in_leaf);
 
-  int size() const
-  {
-    return num_nodes_;
-  };
-
-  LightTreeNode *get_root() const
-  {
-    return root_.get();
-  };
+  /* Returns a pointer to the root node. */
+  LightTreeNode *build(Scene *scene, DeviceScene *dscene);
 
   /* NOTE: Always use this function to create a new node so the number of nodes is in sync. */
   unique_ptr<LightTreeNode> create_node(const LightTreeMeasure &measure, const uint &bit_trial)
   {
-    num_nodes_++;
+    num_nodes++;
     return make_unique<LightTreeNode>(measure, bit_trial);
+  }
+
+  size_t num_emitters()
+  {
+    return emitters_.size();
+  }
+
+  const LightTreeEmitter &get_emitter(int index) const
+  {
+    return emitters_.at(index);
   }
 
  private:
@@ -228,16 +237,15 @@ class LightTree {
                        LightTreeNode *parent,
                        int start,
                        int end,
-                       vector<LightTreeEmitter> *emitters,
+                       LightTreeEmitter *emitters,
                        uint bit_trail,
                        int depth);
 
-  bool should_split(const vector<LightTreeEmitter> &emitters,
+  bool should_split(LightTreeEmitter *emitters,
                     const int start,
                     int &middle,
                     const int end,
                     LightTreeMeasure &measure,
-                    const BoundBox &centroid_bbox,
                     int &split_dim);
 };
 

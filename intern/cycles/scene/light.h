@@ -81,6 +81,7 @@ class Light : public Node {
   bool has_contribution(Scene *scene);
 
   friend class LightManager;
+  friend class LightTree;
 };
 
 class LightManager {

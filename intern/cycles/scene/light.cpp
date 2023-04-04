@@ -445,90 +445,23 @@ void LightManager::device_update_tree(Device *,
   /* Update light tree. */
   progress.set_status("Updating Lights", "Computing tree");
 
-  /* Add both lights and emissive triangles to this vector for light tree construction. */
-  vector<LightTreeEmitter> emitters;
-  emitters.reserve(kintegrator->num_distribution);
-  vector<LightTreeEmitter> distant_lights;
-  distant_lights.reserve(kintegrator->num_distant_lights);
-  vector<uint> object_lookup_offsets(scene->objects.size());
-
-  /* When we keep track of the light index, only contributing lights will be added to the device.
-   * Therefore, we want to keep track of the light's index on the device.
-   * However, we also need the light's index in the scene when we're constructing the tree. */
-  int device_light_index = 0;
-  int scene_light_index = 0;
-  foreach (Light *light, scene->lights) {
-    if (light->is_enabled) {
-      if (light->light_type == LIGHT_BACKGROUND || light->light_type == LIGHT_DISTANT) {
-        distant_lights.emplace_back(scene, ~device_light_index, scene_light_index);
-      }
-      else {
-        emitters.emplace_back(scene, ~device_light_index, scene_light_index);
-      }
-
-      device_light_index++;
-    }
-
-    scene_light_index++;
-  }
-
-  /* Similarly, we also want to keep track of the index of triangles that are emissive. */
-  size_t total_triangles = 0;
-  int object_id = 0;
-  foreach (Object *object, scene->objects) {
-    if (progress.get_cancel())
-      return;
-
-    if (!object->usable_as_light()) {
-      object_id++;
-      continue;
-    }
-
-    object_lookup_offsets[object_id] = total_triangles;
-
-    /* Count emissive triangles. */
-    Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
-    size_t mesh_num_triangles = mesh->num_triangles();
-
-    for (size_t i = 0; i < mesh_num_triangles; i++) {
-      int shader_index = mesh->get_shader()[i];
-      Shader *shader = (shader_index < mesh->get_used_shaders().size()) ?
-                           static_cast<Shader *>(mesh->get_used_shaders()[shader_index]) :
-                           scene->default_surface;
-
-      if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
-        emitters.emplace_back(scene, i, object_id);
-      }
-    }
-
-    total_triangles += mesh_num_triangles;
-    object_id++;
-  }
-
-  /* Append distant lights to the end of `emitters` */
-  std::move(distant_lights.begin(), distant_lights.end(), std::back_inserter(emitters));
-
-  /* Update integrator state. */
-  kintegrator->use_direct_light = !emitters.empty();
-
   /* TODO: For now, we'll start with a smaller number of max lights in a node.
    * More benchmarking is needed to determine what number works best. */
-  LightTree light_tree(emitters, kintegrator->num_distant_lights, 8);
+  LightTree light_tree(scene, dscene, progress, 8);
+  LightTreeNode *root = light_tree.build(scene, dscene);
 
   /* We want to create separate arrays corresponding to triangles and lights,
    * which will be used to index back into the light tree for PDF calculations. */
-  const size_t num_lights = kintegrator->num_lights;
-  uint *light_array = dscene->light_to_tree.alloc(num_lights);
-  uint *object_offsets = dscene->object_lookup_offset.alloc(object_lookup_offsets.size());
-  uint *triangle_array = dscene->triangle_to_tree.alloc(total_triangles);
-
-  for (int i = 0; i < object_lookup_offsets.size(); i++) {
-    object_offsets[i] = object_lookup_offsets[i];
-  }
+  uint *light_array = dscene->light_to_tree.alloc(kintegrator->num_lights);
+  uint *triangle_array = dscene->triangle_to_tree.alloc(light_tree.num_triangles);
 
   /* First initialize the light tree's nodes. */
-  KernelLightTreeNode *light_tree_nodes = dscene->light_tree_nodes.alloc(light_tree.size());
-  KernelLightTreeEmitter *light_tree_emitters = dscene->light_tree_emitters.alloc(emitters.size());
+  const size_t num_emitters = light_tree.num_emitters();
+  KernelLightTreeNode *light_tree_nodes = dscene->light_tree_nodes.alloc(light_tree.num_nodes);
+  KernelLightTreeEmitter *light_tree_emitters = dscene->light_tree_emitters.alloc(num_emitters);
+
+  /* Update integrator state. */
+  kintegrator->use_direct_light = num_emitters > 0;
 
   /* Copy the light tree nodes to an array in the device. */
   /* The nodes are arranged in a depth-first order, meaning the left child of each inner node
@@ -543,8 +476,8 @@ void LightManager::device_update_tree(Device *,
   int left_index_stack[32]; /* `sizeof(bit_trail) * 8 == 32`. */
   LightTreeNode *right_node_stack[32];
   int stack_id = 0;
-  const LightTreeNode *node = light_tree.get_root();
-  for (int node_index = 0; node_index < light_tree.size(); node_index++) {
+  const LightTreeNode *node = root;
+  for (int node_index = 0; node_index < light_tree.num_nodes; node_index++) {
     light_tree_nodes[node_index].energy = node->measure.energy;
 
     light_tree_nodes[node_index].bbox.min = node->measure.bbox.min;
@@ -563,7 +496,7 @@ void LightManager::device_update_tree(Device *,
 
       for (int i = 0; i < node->num_emitters; i++) {
         int emitter_index = i + node->first_emitter_index;
-        LightTreeEmitter &emitter = emitters[emitter_index];
+        const LightTreeEmitter &emitter = light_tree.get_emitter(emitter_index);
 
         light_tree_emitters[emitter_index].energy = emitter.measure.energy;
         light_tree_emitters[emitter_index].theta_o = emitter.measure.bcone.theta_o;
@@ -600,7 +533,7 @@ void LightManager::device_update_tree(Device *,
           light_tree_emitters[emitter_index].prim_id = emitter.prim_id + mesh->prim_offset;
           light_tree_emitters[emitter_index].mesh_light.shader_flag = shader_flag;
           light_tree_emitters[emitter_index].emission_sampling = shader->emission_sampling;
-          triangle_array[emitter.prim_id + object_lookup_offsets[emitter.object_id]] =
+          triangle_array[emitter.prim_id + dscene->object_lookup_offset[emitter.object_id]] =
               emitter_index;
         }
         else {
@@ -634,7 +567,6 @@ void LightManager::device_update_tree(Device *,
   dscene->light_tree_nodes.copy_to_device();
   dscene->light_tree_emitters.copy_to_device();
   dscene->light_to_tree.copy_to_device();
-  dscene->object_lookup_offset.copy_to_device();
   dscene->triangle_to_tree.copy_to_device();
 }
 
