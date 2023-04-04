@@ -641,18 +641,29 @@ if(WITH_GHOST_WAYLAND)
     pkg_check_modules(wayland-egl wayland-egl)
     pkg_check_modules(wayland-scanner wayland-scanner)
     pkg_check_modules(wayland-cursor wayland-cursor)
-    pkg_check_modules(wayland-protocols wayland-protocols>=1.15)
+    pkg_check_modules(wayland-protocols wayland-protocols>=1.31)
     pkg_get_variable(WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
   else()
+    # NOTE: this file must always refer to the newest API which is used, so older
+    # `wayland-protocols` are never found and used which then fail to locate required protocols.
+    set(_wayland_protocols_reference_file "staging/fractional-scale/fractional-scale-v1.xml")
+
+    # Reset the protocols directory the reference file from `wayland-protocols` is not found.
+    # This avoids developers having build failures when a cached directory is used that no
+    # longer contains the required file.
+    if(DEFINED WAYLAND_PROTOCOLS_DIR)
+      if(NOT EXISTS "${WAYLAND_PROTOCOLS_DIR}/${_wayland_protocols_reference_file}")
+        unset(WAYLAND_PROTOCOLS_DIR CACHE)
+      endif()
+    endif()
+
     # Rocky8 packages have too old a version, a newer version exist in the pre-compiled libraries.
     find_path(WAYLAND_PROTOCOLS_DIR
-      # NOTE: this file must always refer to the newest API which is used, so older
-      # `wayland-protocols` are never found and used which then fail to locate required protocols.
-      NAMES staging/fractional-scale/fractional-scale-v1.xml
-
+      NAMES ${_wayland_protocols_reference_file}
       PATH_SUFFIXES share/wayland-protocols
       PATHS ${LIBDIR}/wayland-protocols
     )
+    unset(_wayland_protocols_reference_file)
 
     if(EXISTS ${WAYLAND_PROTOCOLS_DIR})
       set(wayland-protocols_FOUND ON)
