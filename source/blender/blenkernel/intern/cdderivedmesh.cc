@@ -119,27 +119,6 @@ static void cdDM_getVertNo(DerivedMesh *dm, int index, float r_no[3])
   copy_v3_v3(r_no, cddm->vert_normals[index]);
 }
 
-static void cdDM_recalc_looptri(DerivedMesh *dm)
-{
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  const uint totpoly = dm->numPolyData;
-  const uint totloop = dm->numLoopData;
-
-  DM_ensure_looptri_data(dm);
-  BLI_assert(totpoly == 0 || cddm->dm.looptris.array_wip != NULL);
-
-  blender::bke::mesh::looptris_calc(
-      {reinterpret_cast<const blender::float3 *>(cddm->vert_positions), dm->numVertData},
-      {cddm->mpoly, totpoly},
-      {cddm->corner_verts, totloop},
-      {dm->looptris.array_wip, dm->looptris.num});
-
-  BLI_assert(cddm->dm.looptris.array == NULL);
-  atomic_cas_ptr(
-      (void **)&cddm->dm.looptris.array, cddm->dm.looptris.array, cddm->dm.looptris.array_wip);
-  cddm->dm.looptris.array_wip = nullptr;
-}
-
 static void cdDM_free_internal(CDDerivedMesh *cddm)
 {
   if (cddm->pmap) {
@@ -179,8 +158,6 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 
   dm->getVertDataArray = DM_get_vert_data_layer;
   dm->getEdgeDataArray = DM_get_edge_data_layer;
-
-  dm->recalcLoopTri = cdDM_recalc_looptri;
 
   dm->getVertCo = cdDM_getVertCo;
   dm->getVertNo = cdDM_getVertNo;

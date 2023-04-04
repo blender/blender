@@ -82,8 +82,6 @@ using blender::VArray;
 #  define ASSERT_IS_VALID_MESH(mesh)
 #endif
 
-static ThreadRWMutex loops_cache_lock = PTHREAD_RWLOCK_INITIALIZER;
-
 static void mesh_init_origspace(Mesh *mesh);
 static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
                                                   const CustomData_MeshMasks *final_datamask);
@@ -165,37 +163,6 @@ static MPoly *dm_getPolyArray(DerivedMesh *dm)
   return mpoly;
 }
 
-static int dm_getNumLoopTri(DerivedMesh *dm)
-{
-  const int numlooptris = poly_to_tri_count(dm->getNumPolys(dm), dm->getNumLoops(dm));
-  BLI_assert(ELEM(dm->looptris.num, 0, numlooptris));
-  return numlooptris;
-}
-
-static const MLoopTri *dm_getLoopTriArray(DerivedMesh *dm)
-{
-  MLoopTri *looptri;
-
-  BLI_rw_mutex_lock(&loops_cache_lock, THREAD_LOCK_READ);
-  looptri = dm->looptris.array;
-  BLI_rw_mutex_unlock(&loops_cache_lock);
-
-  if (looptri != nullptr) {
-    BLI_assert(dm->getNumLoopTri(dm) == dm->looptris.num);
-  }
-  else {
-    BLI_rw_mutex_lock(&loops_cache_lock, THREAD_LOCK_WRITE);
-    /* We need to ensure array is still nullptr inside mutex-protected code,
-     * some other thread might have already recomputed those looptris. */
-    if (dm->looptris.array == nullptr) {
-      dm->recalcLoopTri(dm);
-    }
-    looptri = dm->looptris.array;
-    BLI_rw_mutex_unlock(&loops_cache_lock);
-  }
-  return looptri;
-}
-
 void DM_init_funcs(DerivedMesh *dm)
 {
   /* default function implementations */
@@ -204,11 +171,6 @@ void DM_init_funcs(DerivedMesh *dm)
   dm->getCornerVertArray = dm_getCornerVertArray;
   dm->getCornerEdgeArray = dm_getCornerEdgeArray;
   dm->getPolyArray = dm_getPolyArray;
-
-  dm->getLoopTriArray = dm_getLoopTriArray;
-
-  /* Sub-types handle getting actual data. */
-  dm->getNumLoopTri = dm_getNumLoopTri;
 
   dm->getVertDataArray = DM_get_vert_data_layer;
   dm->getEdgeDataArray = DM_get_edge_data_layer;
@@ -280,10 +242,6 @@ bool DM_release(DerivedMesh *dm)
     CustomData_free(&dm->loopData, dm->numLoopData);
     CustomData_free(&dm->polyData, dm->numPolyData);
 
-    MEM_SAFE_FREE(dm->looptris.array);
-    dm->looptris.num = 0;
-    dm->looptris.num_alloc = 0;
-
     return true;
   }
 
@@ -294,34 +252,6 @@ bool DM_release(DerivedMesh *dm)
   CustomData_free_temporary(&dm->polyData, dm->numPolyData);
 
   return false;
-}
-
-void DM_ensure_looptri_data(DerivedMesh *dm)
-{
-  const uint totpoly = dm->numPolyData;
-  const uint totloop = dm->numLoopData;
-  const int looptris_num = poly_to_tri_count(totpoly, totloop);
-
-  BLI_assert(dm->looptris.array_wip == nullptr);
-
-  std::swap(dm->looptris.array, dm->looptris.array_wip);
-
-  if ((looptris_num > dm->looptris.num_alloc) || (looptris_num < dm->looptris.num_alloc * 2) ||
-      (totpoly == 0)) {
-    MEM_SAFE_FREE(dm->looptris.array_wip);
-    dm->looptris.num_alloc = 0;
-    dm->looptris.num = 0;
-  }
-
-  if (totpoly) {
-    if (dm->looptris.array_wip == nullptr) {
-      dm->looptris.array_wip = (MLoopTri *)MEM_malloc_arrayN(
-          looptris_num, sizeof(*dm->looptris.array_wip), __func__);
-      dm->looptris.num_alloc = looptris_num;
-    }
-
-    dm->looptris.num = looptris_num;
-  }
 }
 
 void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *me, KeyBlock *kb)

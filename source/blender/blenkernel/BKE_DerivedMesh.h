@@ -91,25 +91,7 @@ struct DerivedMesh {
   int deformedOnly; /* set by modifier stack if only deformed from original */
   DerivedMeshType type;
 
-  /**
-   * \warning Typical access is done via #getLoopTriArray, #getNumLoopTri.
-   */
-  struct {
-    /* WARNING! swapping between array (ready-to-be-used data) and array_wip
-     * (where data is actually computed) shall always be protected by same
-     * lock as one used for looptris computing. */
-    struct MLoopTri *array, *array_wip;
-    int num;
-    int num_alloc;
-  } looptris;
-
   short tangent_mask; /* which tangent layers are calculated */
-
-  /** Loop tessellation cache (WARNING! Only call inside threading-protected code!) */
-  void (*recalcLoopTri)(DerivedMesh *dm);
-  /** accessor functions */
-  const struct MLoopTri *(*getLoopTriArray)(DerivedMesh *dm);
-  int (*getNumLoopTri)(DerivedMesh *dm);
 
   /* Misc. Queries */
 
@@ -245,14 +227,6 @@ void DM_copy_vert_data(const struct DerivedMesh *source,
                        int source_index,
                        int dest_index,
                        int count);
-
-/**
- * Ensure the array is large enough.
- *
- * \note This function must always be thread-protected by caller.
- * It should only be used by internal code.
- */
-void DM_ensure_looptri_data(DerivedMesh *dm);
 
 /**
  * Interpolates vertex data from the vertices indexed by `src_indices` in the
