@@ -249,6 +249,12 @@ static void detect_workarounds()
     return;
   }
 
+  /* Only use main context when running inside renderdoc. Renderdoc requires that all calls are
+   * from the same context.*/
+  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
+    GCaps.use_main_context_workaround = true;
+  }
+
   /* Limit support for GL_ARB_base_instance to OpenGL 4.0 and higher. NVIDIA Quadro FX 4800
    * (TeraScale) report that they support GL_ARB_base_instance, but the driver does not support
    * GLEW_ARB_draw_indirect as it has an OpenGL3 context what also matches the minimum needed
