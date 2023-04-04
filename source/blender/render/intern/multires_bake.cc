@@ -42,7 +42,7 @@
 
 using MPassKnownData = void (*)(blender::Span<blender::float3> vert_positions,
                                 blender::Span<blender::float3> vert_normals,
-                                blender::Span<MPoly> polys,
+                                blender::OffsetIndices<int> polys,
                                 blender::Span<int> corner_verts,
                                 blender::Span<MLoopTri> looptris,
                                 blender::Span<blender::float2> uv_map,
@@ -67,7 +67,7 @@ struct MultiresBakeResult {
 struct MResolvePixelData {
   /* Data from low-resolution mesh. */
   blender::Span<blender::float3> vert_positions;
-  blender::Span<MPoly> polys;
+  blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
   blender::Span<MLoopTri> looptris;
   blender::Span<blender::float3> vert_normals;
@@ -496,12 +496,12 @@ static void do_multires_bake(MultiresBakeRender *bkr,
   temp_mesh->vert_positions_for_write().copy_from(
       {reinterpret_cast<const blender::float3 *>(dm->getVertArray(dm)), temp_mesh->totvert});
   temp_mesh->edges_for_write().copy_from({dm->getEdgeArray(dm), temp_mesh->totedge});
-  temp_mesh->polys_for_write().copy_from({dm->getPolyArray(dm), temp_mesh->totpoly});
+  temp_mesh->poly_offsets_for_write().copy_from({dm->getPolyArray(dm), temp_mesh->totpoly + 1});
   temp_mesh->corner_verts_for_write().copy_from({dm->getCornerVertArray(dm), temp_mesh->totloop});
   temp_mesh->corner_edges_for_write().copy_from({dm->getCornerEdgeArray(dm), temp_mesh->totloop});
 
   const blender::Span<blender::float3> positions = temp_mesh->vert_positions();
-  const blender::Span<MPoly> polys = temp_mesh->polys();
+  const blender::OffsetIndices polys = temp_mesh->polys();
   const blender::Span<int> corner_verts = temp_mesh->corner_verts();
   const blender::Span<blender::float3> vert_normals = temp_mesh->vert_normals();
   const blender::Span<blender::float3> poly_normals = temp_mesh->poly_normals();
@@ -511,8 +511,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
       BKE_mesh_calc_loop_tangent_ex(
           reinterpret_cast<const float(*)[3]>(positions.data()),
-          dm->getPolyArray(dm),
-          dm->getNumPolys(dm),
+          polys,
           dm->getCornerVertArray(dm),
           looptris.data(),
           looptris.size(),
@@ -654,7 +653,7 @@ static void interp_bilinear_grid(
   interp_bilinear_quad_v3(data, u, v, res);
 }
 
-static void get_ccgdm_data(const blender::Span<MPoly> lores_polys,
+static void get_ccgdm_data(const blender::OffsetIndices<int> lores_polys,
                            DerivedMesh *hidm,
                            const int *index_mp_to_orig,
                            const int lvl,
@@ -679,10 +678,13 @@ static void get_ccgdm_data(const blender::Span<MPoly> lores_polys,
   if (lvl == 0) {
     face_side = (grid_size << 1) - 1;
 
-    const MPoly &poly = lores_polys[poly_index];
     g_index = grid_offset[poly_index];
-    S = mdisp_rot_face_to_crn(
-        &poly, face_side, u * (face_side - 1), v * (face_side - 1), &crn_x, &crn_y);
+    S = mdisp_rot_face_to_crn(lores_polys[poly_index].size(),
+                              face_side,
+                              u * (face_side - 1),
+                              v * (face_side - 1),
+                              &crn_x,
+                              &crn_y);
   }
   else {
     /* number of faces per grid side */
@@ -726,7 +728,7 @@ static void get_ccgdm_data(const blender::Span<MPoly> lores_polys,
 static void interp_bilinear_mpoly(const blender::Span<blender::float3> vert_positions,
                                   const blender::Span<blender::float3> vert_normals,
                                   const blender::Span<int> corner_verts,
-                                  const MPoly &poly,
+                                  const blender::IndexRange poly,
                                   const float u,
                                   const float v,
                                   const int mode,
@@ -735,16 +737,16 @@ static void interp_bilinear_mpoly(const blender::Span<blender::float3> vert_posi
   float data[4][3];
 
   if (mode == 0) {
-    copy_v3_v3(data[0], vert_normals[corner_verts[poly.loopstart]]);
-    copy_v3_v3(data[1], vert_normals[corner_verts[poly.loopstart + 1]]);
-    copy_v3_v3(data[2], vert_normals[corner_verts[poly.loopstart + 2]]);
-    copy_v3_v3(data[3], vert_normals[corner_verts[poly.loopstart + 3]]);
+    copy_v3_v3(data[0], vert_normals[corner_verts[poly[0]]]);
+    copy_v3_v3(data[1], vert_normals[corner_verts[poly[1]]]);
+    copy_v3_v3(data[2], vert_normals[corner_verts[poly[2]]]);
+    copy_v3_v3(data[3], vert_normals[corner_verts[poly[3]]]);
   }
   else {
-    copy_v3_v3(data[0], vert_positions[corner_verts[poly.loopstart]]);
-    copy_v3_v3(data[1], vert_positions[corner_verts[poly.loopstart + 1]]);
-    copy_v3_v3(data[2], vert_positions[corner_verts[poly.loopstart + 2]]);
-    copy_v3_v3(data[3], vert_positions[corner_verts[poly.loopstart + 3]]);
+    copy_v3_v3(data[0], vert_positions[corner_verts[poly[0]]]);
+    copy_v3_v3(data[1], vert_positions[corner_verts[poly[1]]]);
+    copy_v3_v3(data[2], vert_positions[corner_verts[poly[2]]]);
+    copy_v3_v3(data[3], vert_positions[corner_verts[poly[3]]]);
   }
 
   interp_bilinear_quad_v3(data, u, v, res);
@@ -834,7 +836,7 @@ static void free_heights_data(void *bake_data)
  *   - height wound be dot(n, p1-p0) */
 static void apply_heights_callback(const blender::Span<blender::float3> vert_positions,
                                    const blender::Span<blender::float3> vert_normals,
-                                   const blender::Span<MPoly> polys,
+                                   const blender::OffsetIndices<int> polys,
                                    const blender::Span<int> corner_verts,
                                    const blender::Span<MLoopTri> looptris,
                                    const blender::Span<blender::float2> uv_map,
@@ -850,7 +852,7 @@ static void apply_heights_callback(const blender::Span<blender::float3> vert_pos
                                    const int y)
 {
   const MLoopTri *lt = &looptris[tri_index];
-  const MPoly &poly = polys[lt->poly];
+  const blender::IndexRange poly = polys[lt->poly];
   MHeightBakeData *height_data = (MHeightBakeData *)bake_data;
   MultiresBakeThread *thread_data = (MultiresBakeThread *)thread_data_v;
   float uv[2];
@@ -860,11 +862,11 @@ static void apply_heights_callback(const blender::Span<blender::float3> vert_pos
 
   /* ideally we would work on triangles only, however, we rely on quads to get orthogonal
    * coordinates for use in grid space (triangle barycentric is not orthogonal) */
-  if (poly.totloop == 4) {
-    st0 = uv_map[poly.loopstart];
-    st1 = uv_map[poly.loopstart + 1];
-    st2 = uv_map[poly.loopstart + 2];
-    st3 = uv_map[poly.loopstart + 3];
+  if (poly.size() == 4) {
+    st0 = uv_map[poly[0]];
+    st1 = uv_map[poly[1]];
+    st2 = uv_map[poly[2]];
+    st3 = uv_map[poly[3]];
     resolve_quad_uv_v2(uv, st, st0, st1, st2, st3);
   }
   else {
@@ -884,7 +886,7 @@ static void apply_heights_callback(const blender::Span<blender::float3> vert_pos
         polys, height_data->ssdm, height_data->orig_index_mp_to_orig, 0, lt, uv[0], uv[1], p0, n);
   }
   else {
-    if (poly.totloop == 4) {
+    if (poly.size() == 4) {
       interp_bilinear_mpoly(vert_positions, vert_normals, corner_verts, poly, uv[0], uv[1], 1, p0);
       interp_bilinear_mpoly(vert_positions, vert_normals, corner_verts, poly, uv[0], uv[1], 0, n);
     }
@@ -948,7 +950,7 @@ static void free_normal_data(void *bake_data)
  */
 static void apply_tangmat_callback(const blender::Span<blender::float3> /*vert_positions*/,
                                    const blender::Span<blender::float3> /*vert_normals*/,
-                                   const blender::Span<MPoly> polys,
+                                   const blender::OffsetIndices<int> polys,
                                    const blender::Span<int> /*corner_verts*/,
                                    const blender::Span<MLoopTri> looptris,
                                    const blender::Span<blender::float2> uv_map,
@@ -964,7 +966,7 @@ static void apply_tangmat_callback(const blender::Span<blender::float3> /*vert_p
                                    const int y)
 {
   const MLoopTri *lt = &looptris[tri_index];
-  const MPoly &poly = polys[lt->poly];
+  const blender::IndexRange poly = polys[lt->poly];
   MNormalBakeData *normal_data = (MNormalBakeData *)bake_data;
   float uv[2];
   const float *st0, *st1, *st2, *st3;
@@ -973,11 +975,11 @@ static void apply_tangmat_callback(const blender::Span<blender::float3> /*vert_p
 
   /* ideally we would work on triangles only, however, we rely on quads to get orthogonal
    * coordinates for use in grid space (triangle barycentric is not orthogonal) */
-  if (poly.totloop == 4) {
-    st0 = uv_map[poly.loopstart];
-    st1 = uv_map[poly.loopstart + 1];
-    st2 = uv_map[poly.loopstart + 2];
-    st3 = uv_map[poly.loopstart + 3];
+  if (poly.size() == 4) {
+    st0 = uv_map[poly[0]];
+    st1 = uv_map[poly[1]];
+    st2 = uv_map[poly[2]];
+    st3 = uv_map[poly[3]];
     resolve_quad_uv_v2(uv, st, st0, st1, st2, st3);
   }
   else {
@@ -1225,7 +1227,6 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
                               const int y)
 {
   const MLoopTri *lt = lores_dm->getLoopTriArray(lores_dm) + tri_index;
- const MPoly &poly = lores_dm->getPolyArray(lores_dm) [lt->poly];
   float (*mloopuv)[2] = lores_dm->getLoopDataArray(lores_dm, CD_PROP_FLOAT2);
   MAOBakeData *ao_data = (MAOBakeData *)bake_data;
 
@@ -1240,11 +1241,11 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
 
   /* ideally we would work on triangles only, however, we rely on quads to get orthogonal
    * coordinates for use in grid space (triangle barycentric is not orthogonal) */
-  if (poly.totloop == 4) {
-    st0 = mloopuv[poly.loopstart];
-    st1 = mloopuv[poly.loopstart + 1];
-    st2 = mloopuv[poly.loopstart + 2];
-    st3 = mloopuv[poly.loopstart + 3];
+  if (poly.size() == 4) {
+    st0 = mloopuv[poly[0]];
+    st1 = mloopuv[poly[1]];
+    st2 = mloopuv[poly[2]];
+    st3 = mloopuv[poly[3]];
     resolve_quad_uv_v2(uv, st, st0, st1, st2, st3);
   }
   else {

@@ -176,7 +176,7 @@ void ABCGenericMeshWriter::do_write(HierarchyContext &context)
 
   m_custom_data_config.pack_uvs = args_.export_params->packuv;
   m_custom_data_config.mesh = mesh;
-  m_custom_data_config.polys = mesh->polys_for_write().data();
+  m_custom_data_config.poly_offsets = mesh->poly_offsets_for_write().data();
   m_custom_data_config.corner_verts = mesh->corner_verts_for_write().data();
   m_custom_data_config.totpoly = mesh->totpoly;
   m_custom_data_config.totloop = mesh->totloop;
@@ -449,7 +449,7 @@ static void get_topology(struct Mesh *mesh,
                          std::vector<int32_t> &loop_counts,
                          bool &r_has_flat_shaded_poly)
 {
-  const Span<MPoly> polys = mesh->polys();
+  const OffsetIndices polys = mesh->polys();
   const Span<int> corner_verts = mesh->corner_verts();
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
@@ -468,11 +468,11 @@ static void get_topology(struct Mesh *mesh,
 
   /* NOTE: data needs to be written in the reverse order. */
   for (const int i : polys.index_range()) {
-    const MPoly &poly = polys[i];
-    loop_counts.push_back(poly.totloop);
+    const IndexRange poly = polys[i];
+    loop_counts.push_back(poly.size());
 
-    int corner = poly.loopstart + (poly.totloop - 1);
-    for (int j = 0; j < poly.totloop; j++, corner--) {
+    int corner = poly.start() + (poly.size() - 1);
+    for (int j = 0; j < poly.size(); j++, corner--) {
       poly_verts.push_back(corner_verts[corner]);
     }
   }
@@ -550,12 +550,12 @@ static void get_loop_normals(struct Mesh *mesh,
 
   /* NOTE: data needs to be written in the reverse order. */
   int abc_index = 0;
-  const Span<MPoly> polys = mesh->polys();
+  const OffsetIndices polys = mesh->polys();
 
   for (const int i : polys.index_range()) {
-    const MPoly &poly = polys[i];
-    for (int j = poly.totloop - 1; j >= 0; j--, abc_index++) {
-      int blender_index = poly.loopstart + j;
+    const IndexRange poly = polys[i];
+    for (int j = poly.size() - 1; j >= 0; j--, abc_index++) {
+      int blender_index = poly[j];
       copy_yup_from_zup(normals[abc_index].getValue(), lnors[blender_index]);
     }
   }

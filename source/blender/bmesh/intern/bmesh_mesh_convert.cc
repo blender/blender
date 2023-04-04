@@ -487,7 +487,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     bm->elem_index_dirty &= ~BM_EDGE; /* Added in order, clear dirty flag. */
   }
 
-  const Span<MPoly> polys = me->polys();
+  const blender::OffsetIndices polys = me->polys();
   const Span<int> corner_verts = me->corner_verts();
   const Span<int> corner_edges = me->corner_edges();
 
@@ -500,11 +500,9 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
 
   int totloops = 0;
   for (const int i : polys.index_range()) {
-    BMFace *f = bm_face_create_from_mpoly(*bm,
-                                          corner_verts.slice(polys[i].loopstart, polys[i].totloop),
-                                          corner_edges.slice(polys[i].loopstart, polys[i].totloop),
-                                          vtable,
-                                          etable);
+    const IndexRange poly = polys[i];
+    BMFace *f = bm_face_create_from_mpoly(
+        *bm, corner_verts.slice(poly), corner_edges.slice(poly), vtable, etable);
     if (!ftable.is_empty()) {
       ftable[i] = f;
     }
@@ -538,7 +536,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
       bm->act_face = f;
     }
 
-    int j = polys[i].loopstart;
+    int j = poly.start();
     BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
     BMLoop *l_iter = l_first;
     do {
@@ -1328,15 +1326,13 @@ static void bm_to_mesh_faces(const BMesh &bm,
                              MutableSpan<bool> sharp_faces,
                              MutableSpan<int> material_indices)
 {
-  CustomData_add_layer(&mesh.pdata, CD_MPOLY, CD_CONSTRUCT, mesh.totpoly);
+  BKE_mesh_poly_offsets_ensure_alloc(&mesh);
   const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.pdata, mesh.pdata);
-  MutableSpan<MPoly> dst_polys = mesh.polys_for_write();
-  threading::parallel_for(dst_polys.index_range(), 1024, [&](const IndexRange range) {
+  MutableSpan<int> dst_poly_offsets = mesh.poly_offsets_for_write();
+  threading::parallel_for(bm_faces.index_range(), 1024, [&](const IndexRange range) {
     for (const int face_i : range) {
       const BMFace &src_face = *bm_faces[face_i];
-      MPoly &dst_poly = dst_polys[face_i];
-      dst_poly.totloop = src_face.len;
-      dst_poly.loopstart = BM_elem_index_get(BM_FACE_FIRST_LOOP(&src_face));
+      dst_poly_offsets[face_i] = BM_elem_index_get(BM_FACE_FIRST_LOOP(&src_face));
       bmesh_block_copy_to_mesh_attributes(info, face_i, src_face.head.data);
     }
     if (!select_poly.is_empty()) {
@@ -1391,6 +1387,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   CustomData_free(&me->fdata, me->totface);
   CustomData_free(&me->ldata, me->totloop);
   CustomData_free(&me->pdata, me->totpoly);
+  MEM_SAFE_FREE(me->poly_offset_indices);
   BKE_mesh_runtime_clear_geometry(me);
 
   me->totvert = bm->totvert;

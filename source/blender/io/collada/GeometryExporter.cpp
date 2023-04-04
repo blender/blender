@@ -292,7 +292,7 @@ static bool collect_vertex_counts_per_poly(Mesh *me,
                                            int material_index,
                                            std::vector<ulong> &vcount_list)
 {
-  const Span<MPoly> polys = me->polys();
+  const blender::OffsetIndices polys = me->polys();
   const blender::bke::AttributeAccessor attributes = me->attributes();
   const blender::VArray<int> material_indices = attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
@@ -301,8 +301,7 @@ static bool collect_vertex_counts_per_poly(Mesh *me,
   /* Expecting that the material index is always 0 if the mesh has no materials assigned */
   for (const int i : polys.index_range()) {
     if (material_indices[i] == material_index) {
-      const MPoly &poly = polys[i];
-      const int vertex_count = poly.totloop;
+      const int vertex_count = polys[i].size();
       vcount_list.push_back(vertex_count);
       if (vertex_count != 3) {
         is_triangulated = false;
@@ -327,7 +326,7 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
                                                   std::string &geom_id,
                                                   std::vector<BCPolygonNormalsIndices> &norind)
 {
-  const Span<MPoly> polys = me->polys();
+  const blender::OffsetIndices polys = me->polys();
   const Span<int> corner_verts = me->corner_verts();
 
   std::vector<ulong> vcount_list;
@@ -411,14 +410,14 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
   /* <p> */
   int texindex = 0;
   for (const int i : polys.index_range()) {
-    const MPoly *poly = &polys[i];
-    int loop_count = poly->totloop;
+    const blender::IndexRange poly = polys[i];
+    int loop_count = poly.size();
 
     if (material_indices[i] == material_index) {
       BCPolygonNormalsIndices normal_indices = norind[i];
 
       for (int j = 0; j < loop_count; j++) {
-        const int vert = corner_verts[poly->loopstart + j];
+        const int vert = corner_verts[poly[j]];
         primitive_list->appendValues(vert);
         primitive_list->appendValues(normal_indices[j]);
         if (has_uvs) {
@@ -507,11 +506,10 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 
     source.prepareToAppendValues();
 
-    const Span<MPoly> polys = me->polys();
+    const blender::OffsetIndices polys = me->polys();
     for (const int i : polys.index_range()) {
-      const MPoly &poly = polys[i];
-      const MLoopCol *mlc = mloopcol + poly.loopstart;
-      for (int j = 0; j < poly.totloop; j++, mlc++) {
+      for (const int corner : polys[i]) {
+        const MLoopCol *mlc = &mloopcol[corner];
         source.appendValues(mlc->r / 255.0f, mlc->g / 255.0f, mlc->b / 255.0f, mlc->a / 255.0f);
       }
     }
@@ -537,7 +535,7 @@ std::string GeometryExporter::makeTexcoordSourceId(std::string &geom_id,
 void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 {
   int totuv = me->totloop;
-  const Span<MPoly> polys = me->polys();
+  const blender::OffsetIndices polys = me->polys();
 
   int num_layers = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
 
@@ -565,10 +563,8 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
       source.prepareToAppendValues();
 
       for (const int i : polys.index_range()) {
-        const MPoly *poly = &polys[i];
-        const blender::float2 *mloop = uv_map + poly->loopstart;
-        for (int j = 0; j < poly->totloop; j++) {
-          source.appendValues(mloop[j][0], mloop[j][1]);
+        for (const int corner : polys[i]) {
+          source.appendValues(uv_map[corner][0], uv_map[corner][1]);
         }
       }
 
@@ -621,7 +617,7 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
 
   const Span<float3> positions = me->vert_positions();
   const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(me);
-  const Span<MPoly> polys = me->polys();
+  const blender::OffsetIndices polys = me->polys();
   const Span<int> corner_verts = me->corner_verts();
   const float(*lnors)[3] = nullptr;
   bool use_custom_normals = false;
@@ -637,14 +633,14 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
   }
 
   for (const int poly_index : polys.index_range()) {
-    const MPoly *poly = &polys[poly_index];
+    const IndexRange poly = polys[poly_index];
     bool use_vert_normals = use_custom_normals || !sharp_faces[poly_index];
 
     if (!use_vert_normals) {
       /* For flat faces use face normal as vertex normal: */
 
-      const float3 vector = blender::bke::mesh::poly_normal_calc(
-          positions, corner_verts.slice(poly->loopstart, poly->totloop));
+      const float3 vector = blender::bke::mesh::poly_normal_calc(positions,
+                                                                 corner_verts.slice(poly));
 
       Normal n = {vector[0], vector[1], vector[2]};
       normals.push_back(n);
@@ -652,16 +648,15 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
     }
 
     BCPolygonNormalsIndices poly_indices;
-    for (int loop_index = 0; loop_index < poly->totloop; loop_index++) {
-      uint loop_idx = poly->loopstart + loop_index;
+    for (const int corner : poly) {
       if (use_vert_normals) {
         float normalized[3];
 
         if (use_custom_normals) {
-          normalize_v3_v3(normalized, lnors[loop_idx]);
+          normalize_v3_v3(normalized, lnors[corner]);
         }
         else {
-          copy_v3_v3(normalized, vert_normals[corner_verts[loop_index]]);
+          copy_v3_v3(normalized, vert_normals[corner_verts[corner]]);
           normalize_v3(normalized);
         }
         Normal n = {normalized[0], normalized[1], normalized[2]};

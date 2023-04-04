@@ -74,11 +74,9 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   int *pmap_mem;
   BKE_mesh_vert_poly_map_create(&pmap,
                                 &pmap_mem,
-                                reshape_context->base_polys.data(),
+                                reshape_context->base_polys,
                                 reshape_context->base_corner_verts.data(),
-                                base_mesh->totvert,
-                                base_mesh->totpoly,
-                                base_mesh->totloop);
+                                base_mesh->totvert);
 
   float(*origco)[3] = static_cast<float(*)[3]>(
       MEM_calloc_arrayN(base_mesh->totvert, sizeof(float[3]), __func__));
@@ -97,11 +95,11 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
     /* Find center. */
     int tot = 0;
     for (int j = 0; j < pmap[i].count; j++) {
-      const MPoly &poly = reshape_context->base_polys[pmap[i].indices[j]];
+      const blender::IndexRange poly = reshape_context->base_polys[pmap[i].indices[j]];
 
       /* This double counts, not sure if that's bad or good. */
-      for (int k = 0; k < poly.totloop; k++) {
-        const int vndx = reshape_context->base_corner_verts[poly.loopstart + k];
+      for (const int corner : poly) {
+        const int vndx = reshape_context->base_corner_verts[corner];
         if (vndx != i) {
           add_v3_v3(center, origco[vndx]);
           tot++;
@@ -112,14 +110,14 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
 
     /* Find normal. */
     for (int j = 0; j < pmap[i].count; j++) {
-      const MPoly &poly = reshape_context->base_polys[pmap[i].indices[j]];
+      const blender::IndexRange poly = reshape_context->base_polys[pmap[i].indices[j]];
 
       /* Set up poly, loops, and coords in order to call #bke::mesh::poly_normal_calc(). */
-      blender::Array<int> poly_verts(poly.totloop);
-      blender::Array<blender::float3> fake_co(poly.totloop);
+      blender::Array<int> poly_verts(poly.size());
+      blender::Array<blender::float3> fake_co(poly.size());
 
-      for (int k = 0; k < poly.totloop; k++) {
-        const int vndx = reshape_context->base_corner_verts[poly.loopstart + k];
+      for (int k = 0; k < poly.size(); k++) {
+        const int vndx = reshape_context->base_corner_verts[poly[k]];
 
         poly_verts[k] = k;
 

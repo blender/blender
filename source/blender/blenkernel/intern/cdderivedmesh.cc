@@ -44,7 +44,6 @@ struct CDDerivedMesh {
   MFace *mface;
   int *corner_verts;
   int *corner_edges;
-  MPoly *mpoly;
 
   /* Cached */
   struct PBVH *pbvh;
@@ -100,10 +99,9 @@ static void cdDM_copyCornerEdgeArray(DerivedMesh *dm, int *r_corner_edges)
   memcpy(r_corner_edges, cddm->corner_edges, sizeof(*r_corner_edges) * dm->numLoopData);
 }
 
-static void cdDM_copyPolyArray(DerivedMesh *dm, MPoly *r_poly)
+static void cdDM_copyPolyArray(DerivedMesh *dm, int *r_poly_offsets)
 {
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  memcpy(r_poly, cddm->mpoly, sizeof(*r_poly) * dm->numPolyData);
+  memcpy(r_poly_offsets, dm->poly_offsets, sizeof(int) * (dm->numPolyData + 1));
 }
 
 static void cdDM_getVertCo(DerivedMesh *dm, int index, float r_co[3])
@@ -213,8 +211,7 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
       &dm->loopData, CD_PROP_INT32, ".corner_vert", mesh->totloop));
   cddm->corner_edges = static_cast<int *>(CustomData_get_layer_named_for_write(
       &dm->loopData, CD_PROP_INT32, ".corner_edge", mesh->totloop));
-  cddm->mpoly = static_cast<MPoly *>(
-      CustomData_get_layer_for_write(&dm->polyData, CD_MPOLY, mesh->totpoly));
+  dm->poly_offsets = static_cast<int *>(MEM_dupallocN(mesh->poly_offset_indices));
 #if 0
   cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 #else

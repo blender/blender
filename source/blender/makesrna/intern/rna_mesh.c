@@ -385,8 +385,8 @@ static int rna_MeshEdge_index_get(PointerRNA *ptr)
 static int rna_MeshPolygon_index_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const MPoly *poly = (MPoly *)ptr->data;
-  const int index = (int)(poly - BKE_mesh_polys(mesh));
+  const int *poly_offset = (const int *)ptr->data;
+  const int index = (int)(poly_offset - BKE_mesh_poly_offsets(mesh));
   BLI_assert(index >= 0);
   BLI_assert(index < mesh->totpoly);
   return index;
@@ -651,11 +651,11 @@ static void rna_MeshLoop_bitangent_get(PointerRNA *ptr, float *values)
 static void rna_MeshPolygon_normal_get(PointerRNA *ptr, float *values)
 {
   Mesh *me = rna_mesh(ptr);
-  MPoly *poly = (MPoly *)ptr->data;
+  const int poly_start = *((const int *)ptr->data);
+  const int poly_size = *(((const int *)ptr->data) + 1) - poly_start;
   const float(*positions)[3] = BKE_mesh_vert_positions(me);
   const int *corner_verts = BKE_mesh_corner_verts(me);
-  BKE_mesh_calc_poly_normal(
-      &corner_verts[poly->loopstart], poly->totloop, positions, me->totvert, values);
+  BKE_mesh_calc_poly_normal(&corner_verts[poly_start], poly_size, positions, me->totvert, values);
 }
 
 static bool rna_MeshPolygon_hide_get(PointerRNA *ptr)
@@ -755,29 +755,32 @@ static void rna_MeshPolygon_material_index_set(PointerRNA *ptr, int value)
 static void rna_MeshPolygon_center_get(PointerRNA *ptr, float *values)
 {
   Mesh *me = rna_mesh(ptr);
-  MPoly *poly = (MPoly *)ptr->data;
+  const int poly_start = *((const int *)ptr->data);
+  const int poly_size = *(((const int *)ptr->data) + 1) - poly_start;
   const float(*positions)[3] = BKE_mesh_vert_positions(me);
   const int *corner_verts = BKE_mesh_corner_verts(me);
-  BKE_mesh_calc_poly_center(
-      &corner_verts[poly->loopstart], poly->totloop, positions, me->totvert, values);
+  BKE_mesh_calc_poly_center(&corner_verts[poly_start], poly_size, positions, me->totvert, values);
 }
 
 static float rna_MeshPolygon_area_get(PointerRNA *ptr)
 {
   Mesh *me = (Mesh *)ptr->owner_id;
-  MPoly *poly = (MPoly *)ptr->data;
+  const int poly_start = *((const int *)ptr->data);
+  const int poly_size = *(((const int *)ptr->data) + 1) - poly_start;
   const float(*positions)[3] = BKE_mesh_vert_positions(me);
   const int *corner_verts = BKE_mesh_corner_verts(me);
-  return BKE_mesh_calc_poly_area(
-      &corner_verts[poly->loopstart], poly->totloop, positions, me->totvert);
+  return BKE_mesh_calc_poly_area(&corner_verts[poly_start], poly_size, positions, me->totvert);
 }
 
-static void rna_MeshPolygon_flip(ID *id, MPoly *poly)
+static void rna_MeshPolygon_flip(ID *id, MIntProperty *poly_offset_p)
 {
   Mesh *me = (Mesh *)id;
+  const int poly_start = *((const int *)poly_offset_p);
+  const int poly_size = *(((const int *)poly_offset_p) + 1) - poly_start;
   int *corner_verts = BKE_mesh_corner_verts_for_write(me);
   int *corner_edges = BKE_mesh_corner_edges_for_write(me);
-  BKE_mesh_polygon_flip(poly, corner_verts, corner_edges, &me->ldata, me->totloop);
+  BKE_mesh_polygon_flip(
+      poly_start, poly_size, corner_verts, corner_edges, &me->ldata, me->totloop);
   BKE_mesh_tessface_clear(me);
   BKE_mesh_runtime_clear_geometry(me);
 }
@@ -1661,25 +1664,46 @@ static void rna_Mesh_face_map_remove(struct Mesh *me,
 static int rna_MeshPoly_vertices_get_length(const PointerRNA *ptr,
                                             int length[RNA_MAX_ARRAY_DIMENSION])
 {
-  const MPoly *poly = (MPoly *)ptr->data;
+  const int *poly_offset_p = (const int *)ptr->data;
+  const int poly_start = *poly_offset_p;
+  const int poly_size = *(poly_offset_p + 1) - poly_start;
   /* NOTE: raw access uses dummy item, this _could_ crash,
    * watch out for this, #MFace uses it but it can't work here. */
-  return (length[0] = poly->totloop);
+  return (length[0] = poly_size);
 }
 
 static void rna_MeshPoly_vertices_get(PointerRNA *ptr, int *values)
 {
   const Mesh *me = rna_mesh(ptr);
-  const MPoly *poly = (const MPoly *)ptr->data;
-  memcpy(values, BKE_mesh_corner_verts(me) + poly->loopstart, sizeof(int) * poly->totloop);
+  const int *poly_offset_p = (const int *)ptr->data;
+  const int poly_start = *poly_offset_p;
+  const int poly_size = *(poly_offset_p + 1) - poly_start;
+  memcpy(values, BKE_mesh_corner_verts(me) + poly_start, sizeof(int) * poly_size);
+}
+
+static int rna_MeshPolygon_loop_start_get(PointerRNA *ptr)
+{
+  return *(const int *)ptr->data;
+}
+
+static void rna_MeshPolygon_loop_start_set(PointerRNA *ptr, int value)
+{
+  *(int *)ptr->data = value;
+}
+
+static int rna_MeshPolygon_loop_total_get(PointerRNA *ptr)
+{
+  const int *data = (const int *)ptr->data;
+  return *(data + 1) - *data;
 }
 
 static void rna_MeshPoly_vertices_set(PointerRNA *ptr, const int *values)
 {
   Mesh *me = rna_mesh(ptr);
-  const MPoly *poly = (const MPoly *)ptr->data;
-  memcpy(
-      BKE_mesh_corner_verts_for_write(me) + poly->loopstart, values, sizeof(int) * poly->totloop);
+  const int *poly_offset_p = (const int *)ptr->data;
+  const int poly_start = *poly_offset_p;
+  const int poly_size = *(poly_offset_p + 1) - poly_start;
+  memcpy(BKE_mesh_corner_verts_for_write(me) + poly_start, values, sizeof(int) * poly_size);
 }
 
 /* disabling, some importers don't know the total material count when assigning materials */
@@ -2002,7 +2026,7 @@ static void rna_Mesh_polygons_begin(CollectionPropertyIterator *iter, PointerRNA
 {
   Mesh *mesh = rna_mesh(ptr);
   rna_iterator_array_begin(
-      iter, BKE_mesh_polys_for_write(mesh), sizeof(MPoly), mesh->totpoly, false, NULL);
+      iter, BKE_mesh_poly_offsets_for_write(mesh), sizeof(int), mesh->totpoly, false, NULL);
 }
 static int rna_Mesh_polygons_length(PointerRNA *ptr)
 {
@@ -2017,7 +2041,7 @@ int rna_Mesh_polygons_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
   }
   r_ptr->owner_id = &mesh->id;
   r_ptr->type = &RNA_MeshPolygon;
-  r_ptr->data = &BKE_mesh_polys_for_write(mesh)[index];
+  r_ptr->data = &BKE_mesh_poly_offsets_for_write(mesh)[index];
   return true;
 }
 
@@ -2975,7 +2999,7 @@ static void rna_def_mpolygon(BlenderRNA *brna)
   FunctionRNA *func;
 
   srna = RNA_def_struct(brna, "MeshPolygon", NULL);
-  RNA_def_struct_sdna(srna, "MPoly");
+  RNA_def_struct_sdna(srna, "MIntProperty");
   RNA_def_struct_ui_text(srna, "Mesh Polygon", "Polygon in a Mesh data-block");
   RNA_def_struct_path_func(srna, "rna_MeshPolygon_path");
   RNA_def_struct_ui_icon(srna, ICON_FACESEL);
@@ -2994,11 +3018,13 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 
   /* these are both very low level access */
   prop = RNA_def_property(srna, "loop_start", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_sdna(prop, NULL, "loopstart");
+  RNA_def_property_int_funcs(
+      prop, "rna_MeshPolygon_loop_start_get", "rna_MeshPolygon_loop_start_set", NULL);
   RNA_def_property_ui_text(prop, "Loop Start", "Index of the first loop of this polygon");
   /* also low level */
   prop = RNA_def_property(srna, "loop_total", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_sdna(prop, NULL, "totloop");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_int_funcs(prop, "rna_MeshPolygon_loop_total_get", NULL, NULL);
   RNA_def_property_ui_text(prop, "Loop Total", "Number of loops used by this polygon");
 
   prop = RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);

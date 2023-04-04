@@ -18,13 +18,13 @@ void flip_faces(Mesh &mesh, const IndexMask &selection)
     return;
   }
 
-  const Span<MPoly> polys = mesh.polys();
+  const OffsetIndices polys = mesh.polys();
   MutableSpan<int> corner_verts = mesh.corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh.corner_edges_for_write();
 
   threading::parallel_for(selection.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : selection.slice(range)) {
-      const IndexRange poly(polys[i].loopstart, polys[i].totloop);
+      const IndexRange poly = polys[i];
       for (const int j : IndexRange(poly.size() / 2)) {
         const int a = poly[j + 1];
         const int b = poly.last(j);
@@ -52,8 +52,7 @@ void flip_faces(Mesh &mesh, const IndexMask &selection)
           MutableSpan<T> dst_span = attribute.span.typed<T>();
           threading::parallel_for(selection.index_range(), 1024, [&](const IndexRange range) {
             for (const int i : selection.slice(range)) {
-              const IndexRange poly(polys[i].loopstart, polys[i].totloop);
-              dst_span.slice(poly.drop_front(1)).reverse();
+              dst_span.slice(polys[i].drop_front(1)).reverse();
             }
           });
         });

@@ -148,19 +148,13 @@ static int *dm_getCornerEdgeArray(DerivedMesh *dm)
   return corner_edges;
 }
 
-static MPoly *dm_getPolyArray(DerivedMesh *dm)
+static int *dm_getPolyArray(DerivedMesh *dm)
 {
-  MPoly *mpoly = (MPoly *)CustomData_get_layer_for_write(
-      &dm->polyData, CD_MPOLY, dm->getNumPolys(dm));
-
-  if (!mpoly) {
-    mpoly = (MPoly *)CustomData_add_layer(
-        &dm->polyData, CD_MPOLY, CD_SET_DEFAULT, dm->getNumPolys(dm));
-    CustomData_set_layer_flag(&dm->polyData, CD_MPOLY, CD_FLAG_TEMPORARY);
-    dm->copyPolyArray(dm, mpoly);
+  if (!dm->poly_offsets) {
+    dm->poly_offsets = MEM_cnew_array<int>(dm->getNumPolys(dm) + 1, __func__);
+    dm->copyPolyArray(dm, dm->poly_offsets);
   }
-
-  return mpoly;
+  return dm->poly_offsets;
 }
 
 void DM_init_funcs(DerivedMesh *dm)
@@ -220,6 +214,7 @@ void DM_from_template(DerivedMesh *dm,
   CustomData_copy(&source->faceData, &dm->faceData, mask->fmask, CD_SET_DEFAULT, numTessFaces);
   CustomData_copy(&source->loopData, &dm->loopData, mask->lmask, CD_SET_DEFAULT, numLoops);
   CustomData_copy(&source->polyData, &dm->polyData, mask->pmask, CD_SET_DEFAULT, numPolys);
+  dm->poly_offsets = static_cast<int *>(MEM_dupallocN(source->poly_offsets));
 
   dm->type = type;
   dm->numVertData = numVerts;
@@ -235,6 +230,7 @@ void DM_from_template(DerivedMesh *dm,
 
 bool DM_release(DerivedMesh *dm)
 {
+  MEM_SAFE_FREE(dm->poly_offsets);
   if (dm->needsFree) {
     CustomData_free(&dm->vertData, dm->numVertData);
     CustomData_free(&dm->edgeData, dm->numEdgeData);
@@ -1835,7 +1831,7 @@ static void mesh_init_origspace(Mesh *mesh)
   OrigSpaceLoop *lof_array = (OrigSpaceLoop *)CustomData_get_layer_for_write(
       &mesh->ldata, CD_ORIGSPACE_MLOOP, mesh->totloop);
   const Span<float3> positions = mesh->vert_positions();
-  const Span<MPoly> polys = mesh->polys();
+  const blender::OffsetIndices polys = mesh->polys();
   const Span<int> corner_verts = mesh->corner_verts();
 
   int j, k;
@@ -1843,11 +1839,11 @@ static void mesh_init_origspace(Mesh *mesh)
   blender::Vector<blender::float2, 64> vcos_2d;
 
   for (const int i : polys.index_range()) {
-    const MPoly &poly = polys[i];
-    OrigSpaceLoop *lof = lof_array + poly.loopstart;
+    const blender::IndexRange poly = polys[i];
+    OrigSpaceLoop *lof = lof_array + poly.start();
 
-    if (ELEM(poly.totloop, 3, 4)) {
-      for (j = 0; j < poly.totloop; j++, lof++) {
+    if (ELEM(poly.size(), 3, 4)) {
+      for (j = 0; j < poly.size(); j++, lof++) {
         copy_v2_v2(lof->uv, default_osf[j]);
       }
     }
@@ -1858,14 +1854,14 @@ static void mesh_init_origspace(Mesh *mesh)
       float min[2] = {FLT_MAX, FLT_MAX}, max[2] = {-FLT_MAX, -FLT_MAX};
       float translate[2], scale[2];
 
-      const float3 p_nor = blender::bke::mesh::poly_normal_calc(
-          positions, corner_verts.slice(poly.loopstart, poly.totloop));
+      const float3 p_nor = blender::bke::mesh::poly_normal_calc(positions,
+                                                                corner_verts.slice(poly));
 
       axis_dominant_v3_to_m3(mat, p_nor);
 
-      vcos_2d.resize(poly.totloop);
-      for (j = 0; j < poly.totloop; j++) {
-        mul_v3_m3v3(co, mat, positions[corner_verts[poly.loopstart + j]]);
+      vcos_2d.resize(poly.size());
+      for (j = 0; j < poly.size(); j++) {
+        mul_v3_m3v3(co, mat, positions[corner_verts[poly[j]]]);
         copy_v2_v2(vcos_2d[j], co);
 
         for (k = 0; k < 2; k++) {
@@ -1893,7 +1889,7 @@ static void mesh_init_origspace(Mesh *mesh)
 
       /* Finally, transform all vcos_2d into ((0, 0), (1, 1))
        * square and assign them as origspace. */
-      for (j = 0; j < poly.totloop; j++, lof++) {
+      for (j = 0; j < poly.size(); j++, lof++) {
         add_v2_v2v2(lof->uv, vcos_2d[j], translate);
         mul_v2_v2(lof->uv, scale);
       }

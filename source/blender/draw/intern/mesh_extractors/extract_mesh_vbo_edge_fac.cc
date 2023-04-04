@@ -109,15 +109,14 @@ static void extract_edge_fac_iter_poly_bm(const MeshRenderData *mr,
 }
 
 static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
-                                            const MPoly *poly,
                                             const int poly_index,
                                             void *_data)
 {
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
+  const IndexRange poly = mr->polys[poly_index];
   const BitSpan optimal_display_edges = mr->me->runtime->subsurf_optimal_display_edges;
 
-  const int ml_index_end = poly->loopstart + poly->totloop;
-  for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
+  for (const int ml_index : poly) {
     const int edge = mr->corner_edges[ml_index];
 
     if (data->use_edge_render && !optimal_display_edges[edge]) {

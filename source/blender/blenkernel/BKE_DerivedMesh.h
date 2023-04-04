@@ -68,10 +68,10 @@ struct Scene;
 
 /*
  * NOTE: all #MFace interfaces now officially operate on tessellated data.
- *       Also, the #MFace orig-index layer indexes #MPoly, not #MFace.
+ *       Also, the #MFace orig-index layer indexes polys, not #MFace.
  */
 
-/* keep in sync with MFace/MPoly types */
+/* keep in sync with MFace type */
 typedef struct DMFlagMat {
   short mat_nr;
   bool sharp;
@@ -90,6 +90,8 @@ struct DerivedMesh {
   int needsFree;    /* checked on ->release, is set to 0 for cached results */
   int deformedOnly; /* set by modifier stack if only deformed from original */
   DerivedMeshType type;
+  /* Always owned by this object. */
+  int *poly_offsets;
 
   short tangent_mask; /* which tangent layers are calculated */
 
@@ -113,7 +115,7 @@ struct DerivedMesh {
   struct MEdge *(*getEdgeArray)(DerivedMesh *dm);
   int *(*getCornerVertArray)(DerivedMesh *dm);
   int *(*getCornerEdgeArray)(DerivedMesh *dm);
-  struct MPoly *(*getPolyArray)(DerivedMesh *dm);
+  int *(*getPolyArray)(DerivedMesh *dm);
 
   /** Copy all verts/edges/faces from the derived mesh into
    * *{vert/edge/face}_r (must point to a buffer large enough)
@@ -122,7 +124,7 @@ struct DerivedMesh {
   void (*copyEdgeArray)(DerivedMesh *dm, struct MEdge *r_edge);
   void (*copyCornerVertArray)(DerivedMesh *dm, int *r_corner_verts);
   void (*copyCornerEdgeArray)(DerivedMesh *dm, int *r_corner_edges);
-  void (*copyPolyArray)(DerivedMesh *dm, struct MPoly *r_poly);
+  void (*copyPolyArray)(DerivedMesh *dm, int *r_poly_offsets);
 
   /** Return a pointer to the entire array of vert/edge/face custom data
    * from the derived mesh (this gives a pointer to the actual data, not

@@ -621,7 +621,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
   const float(*subsurfedPositions)[3] = BKE_mesh_vert_positions(subdiv_mesh);
   const blender::Span<MEdge> subsurf_edges = subdiv_mesh->edges();
-  const blender::Span<MPoly> subsurf_polys = subdiv_mesh->polys();
+  const blender::OffsetIndices subsurf_polys = subdiv_mesh->polys();
   const blender::Span<int> subsurf_corner_verts = subdiv_mesh->corner_verts();
 
   const int *origVertIndices = static_cast<const int *>(
@@ -654,8 +654,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   }
 
   /* Prepare and feed faces to the solver. */
-  for (const int64_t i : subsurf_polys.index_range()) {
-    const MPoly &poly = subsurf_polys[i];
+  for (const int i : subsurf_polys.index_range()) {
     ParamKey key, vkeys[4];
     bool pin[4], select[4];
     const float *co[4];
@@ -674,10 +673,10 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
       }
     }
 
-    const int *poly_corner_verts = &subsurf_corner_verts[poly.loopstart];
+    const blender::Span<int> poly_corner_verts = subsurf_corner_verts.slice(subsurf_polys[i]);
 
     /* We will not check for v4 here. Sub-surface faces always have 4 vertices. */
-    BLI_assert(poly.totloop == 4);
+    BLI_assert(poly_corner_verts.size() == 4);
     key = (ParamKey)i;
     vkeys[0] = (ParamKey)poly_corner_verts[0];
     vkeys[1] = (ParamKey)poly_corner_verts[1];

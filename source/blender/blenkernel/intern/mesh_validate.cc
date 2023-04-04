@@ -42,7 +42,7 @@ using blender::Span;
 
 static CLG_LogRef LOG = {"bke.mesh"};
 
-void mesh_strip_polysloops(Mesh *me);
+void strip_loose_polysloops(Mesh *me, blender::BitSpan polys_to_remove);
 void mesh_strip_edges(Mesh *me);
 
 /* -------------------------------------------------------------------- */
@@ -219,7 +219,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
                               int *corner_verts,
                               int *corner_edges,
                               uint totloop,
-                              MPoly *polys,
+                              int *poly_offsets,
                               uint totpoly,
                               MDeformVert *dverts, /* assume totvert length */
                               const bool do_verbose,
@@ -240,16 +240,18 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     free_flag.polyloops = do_fixes; \
   } \
   (void)0
-#define REMOVE_POLY_TAG(_mp) \
-  { \
-    _mp->totloop *= -1; \
-    free_flag.polyloops = do_fixes; \
-  } \
-  (void)0
+  blender::BitVector<> polys_to_remove(totpoly);
 
   blender::bke::AttributeWriter<int> material_indices =
       mesh->attributes_for_write().lookup_for_write<int>("material_index");
   blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
+
+#if 0
+  const blender::OffsetIndices<int> polys({poly_offsets, totpoly + 1});
+  for (const int i : polys.index_range()) {
+    BLI_assert(polys[i].size() > 2);
+  }
+#endif
 
   MEdge *edge;
   uint i, j;
@@ -346,7 +348,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     }
   }
 
-  if (mfaces && !polys) {
+  if (mfaces && !poly_offsets) {
 #define REMOVE_FACE_TAG(_mf) \
   { \
     _mf->v3 = 0; \
@@ -531,8 +533,8 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     int prev_end;
 
     for (const int64_t i : blender::IndexRange(totpoly)) {
-      const MPoly &poly = polys[i];
-
+      const int poly_start = poly_offsets[i];
+      const int poly_size = poly_offsets[i + 1] - poly_start;
       sp->index = i;
 
       /* Material index, isolated from other tests here. While large indices are clamped,
@@ -545,22 +547,20 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         }
       }
 
-      if (poly.loopstart < 0 || poly.totloop < 3) {
+      if (poly_start < 0 || poly_size < 3) {
         /* Invalid loop data. */
-        PRINT_ERR("\tPoly %u is invalid (loopstart: %d, totloop: %d)",
-                  sp->index,
-                  poly.loopstart,
-                  poly.totloop);
+        PRINT_ERR(
+            "\tPoly %u is invalid (loopstart: %d, totloop: %d)", sp->index, poly_start, poly_size);
         sp->invalid = true;
       }
-      else if (poly.loopstart + poly.totloop > totloop) {
+      else if (poly_start + poly_size > totloop) {
         /* Invalid loop data. */
         PRINT_ERR(
             "\tPoly %u uses loops out of range "
             "(loopstart: %d, loopend: %d, max number of loops: %u)",
             sp->index,
-            poly.loopstart,
-            poly.loopstart + poly.totloop - 1,
+            poly_start,
+            poly_start + poly_size - 1,
             totloop - 1);
         sp->invalid = true;
       }
@@ -568,14 +568,14 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         /* Poly itself is valid, for now. */
         int v1, v2; /* v1 is prev loop vert idx, v2 is current loop one. */
         sp->invalid = false;
-        sp->verts = v = (int *)MEM_mallocN(sizeof(int) * poly.totloop, "Vert idx of SortPoly");
-        sp->numverts = poly.totloop;
-        sp->loopstart = poly.loopstart;
+        sp->verts = v = (int *)MEM_mallocN(sizeof(int) * poly_size, "Vert idx of SortPoly");
+        sp->numverts = poly_size;
+        sp->loopstart = poly_start;
 
         /* Ideally we would only have to do that once on all vertices
          * before we start checking each poly, but several polys can use same vert,
          * so we have to ensure here all verts of current poly are cleared. */
-        for (j = 0; j < poly.totloop; j++) {
+        for (j = 0; j < poly_size; j++) {
           const int vert = corner_verts[sp->loopstart + j];
           if (vert < totvert) {
             BLI_BITMAP_DISABLE(vert_tag, vert);
@@ -583,7 +583,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         }
 
         /* Test all poly's loops' vert idx. */
-        for (j = 0; j < poly.totloop; j++, v++) {
+        for (j = 0; j < poly_size; j++, v++) {
           const int vert = corner_verts[sp->loopstart + j];
           if (vert >= totvert) {
             /* Invalid vert idx. */
@@ -606,12 +606,12 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         }
 
         /* Test all poly's loops. */
-        for (j = 0; j < poly.totloop; j++) {
+        for (j = 0; j < poly_size; j++) {
           const int corner = sp->loopstart + j;
           const int vert = corner_verts[corner];
           const int edge_i = corner_edges[corner];
           v1 = vert;
-          v2 = corner_verts[sp->loopstart + (j + 1) % poly.totloop];
+          v2 = corner_verts[sp->loopstart + (j + 1) % poly_size];
           if (!BLI_edgehash_haskey(edge_hash, v1, v2)) {
             /* Edge not existing. */
             PRINT_ERR("\tPoly %u needs missing edge (%d, %d)", sp->index, v1, v2);
@@ -726,7 +726,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
        */
       if (sp->invalid) {
         if (do_fixes) {
-          REMOVE_POLY_TAG((&polys[sp->index]));
+          polys_to_remove[sp->index].set();
           /* DO NOT REMOVE ITS LOOPS!!!
            * As already invalid polys are at the end of the SortPoly list, the loops they
            * were the only users have already been tagged as "to remove" during previous
@@ -757,7 +757,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
                     prev_end,
                     sp->index);
           if (do_fixes) {
-            REMOVE_POLY_TAG((&polys[sp->index]));
+            polys_to_remove[sp->index].set();
             /* DO NOT REMOVE ITS LOOPS!!!
              * They might be used by some next, valid poly!
              * Just not updating prev_end/prev_sp vars is enough to ensure the loops
@@ -843,7 +843,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     }
 
     if (free_flag.polyloops) {
-      mesh_strip_polysloops(mesh);
+      strip_loose_polysloops(mesh, polys_to_remove);
     }
 
     if (free_flag.edges) {
@@ -1091,7 +1091,7 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
                                    &changed);
   MutableSpan<float3> positions = me->vert_positions_for_write();
   MutableSpan<MEdge> edges = me->edges_for_write();
-  MutableSpan<MPoly> polys = me->polys_for_write();
+  MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
   MutableSpan<int> corner_verts = me->corner_verts_for_write();
   MutableSpan<int> corner_edges = me->corner_edges_for_write();
 
@@ -1106,8 +1106,8 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
       corner_verts.data(),
       corner_edges.data(),
       corner_verts.size(),
-      polys.data(),
-      polys.size(),
+      poly_offsets.data(),
+      me->totpoly,
       me->deform_verts_for_write().data(),
       do_verbose,
       true,
@@ -1145,7 +1145,7 @@ bool BKE_mesh_is_valid(Mesh *me)
 
   MutableSpan<float3> positions = me->vert_positions_for_write();
   MutableSpan<MEdge> edges = me->edges_for_write();
-  MutableSpan<MPoly> polys = me->polys_for_write();
+  MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
   MutableSpan<int> corner_verts = me->corner_verts_for_write();
   MutableSpan<int> corner_edges = me->corner_edges_for_write();
 
@@ -1160,8 +1160,8 @@ bool BKE_mesh_is_valid(Mesh *me)
       corner_verts.data(),
       corner_edges.data(),
       corner_verts.size(),
-      polys.data(),
-      polys.size(),
+      poly_offsets.data(),
+      me->totpoly,
       me->deform_verts_for_write().data(),
       do_verbose,
       do_fixes,
@@ -1225,9 +1225,9 @@ void BKE_mesh_strip_loose_faces(Mesh *me)
   }
 }
 
-void mesh_strip_polysloops(Mesh *me)
+void strip_loose_polysloops(Mesh *me, blender::BitSpan polys_to_remove)
 {
-  MutableSpan<MPoly> polys = me->polys_for_write();
+  MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
   MutableSpan<int> corner_edges = me->corner_edges_for_write();
 
   int a, b;
@@ -1235,26 +1235,26 @@ void mesh_strip_polysloops(Mesh *me)
   int *new_idx = (int *)MEM_mallocN(sizeof(int) * me->totloop, __func__);
 
   for (a = b = 0; a < me->totpoly; a++) {
-    const MPoly &poly = polys[a];
     bool invalid = false;
-    int i = poly.loopstart;
-    int stop = i + poly.totloop;
+    int start = poly_offsets[a];
+    int size = poly_offsets[a + 1] - start;
+    int stop = start + size;
 
-    if (stop > me->totloop || stop < i || poly.loopstart < 0) {
+    if (polys_to_remove[a]) {
+      invalid = true;
+    }
+    else if (stop > me->totloop || stop < start || size < 0) {
       invalid = true;
     }
     else {
       /* If one of the poly's loops is invalid, the whole poly is invalid! */
-      if (corner_edges.slice(poly.loopstart, poly.totloop)
-              .as_span()
-              .contains(INVALID_LOOP_EDGE_MARKER)) {
+      if (corner_edges.slice(start, size).as_span().contains(INVALID_LOOP_EDGE_MARKER)) {
         invalid = true;
       }
     }
 
-    if (poly.totloop >= 3 && !invalid) {
+    if (size >= 3 && !invalid) {
       if (a != b) {
-        memcpy(&polys[b], &poly, sizeof(polys[b]));
         CustomData_copy_data(&me->pdata, &me->pdata, a, b, 1);
       }
       b++;
@@ -1286,10 +1286,13 @@ void mesh_strip_polysloops(Mesh *me)
     me->totloop = b;
   }
 
+  poly_offsets[me->totpoly] = me->totloop;
+
   /* And now, update polys' start loop index. */
   /* NOTE: At this point, there should never be any poly using a striped loop! */
-  for (const int i : polys.index_range()) {
-    polys[i].loopstart = new_idx[polys[i].loopstart];
+  for (const int i : blender::IndexRange(me->totpoly)) {
+    poly_offsets[i] = new_idx[poly_offsets[i]];
+    BLI_assert(poly_offsets[i] >= 0);
   }
 
   MEM_freeN(new_idx);

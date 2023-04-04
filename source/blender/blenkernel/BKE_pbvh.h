@@ -10,6 +10,9 @@
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
+#ifdef __cplusplus
+#  include "BLI_offset_indices.hh"
+#endif
 
 #include "bmesh.h"
 
@@ -30,7 +33,6 @@ struct CustomData;
 struct DMFlagMat;
 struct IsectRayPrecalc;
 struct MLoopTri;
-struct MPoly;
 struct Mesh;
 struct MeshElemMap;
 struct PBVH;
@@ -280,6 +282,9 @@ typedef void (*BKE_pbvh_SearchNearestCallback)(PBVHNode *node, void *data, float
 /* Building */
 
 PBVH *BKE_pbvh_new(PBVHType type);
+
+#ifdef __cplusplus
+
 /**
  * Do a full rebuild with on Mesh data structure.
  *
@@ -288,7 +293,7 @@ PBVH *BKE_pbvh_new(PBVHType type);
  */
 void BKE_pbvh_build_mesh(PBVH *pbvh,
                          struct Mesh *mesh,
-                         const struct MPoly *polys,
+                         blender::OffsetIndices<int> polys,
                          const int *corner_verts,
                          float (*vert_positions)[3],
                          int totvert,
@@ -297,6 +302,9 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          struct CustomData *pdata,
                          const struct MLoopTri *looptri,
                          int looptri_num);
+
+#endif
+
 /**
  * Do a full rebuild with on Grids data structure.
  */
@@ -735,7 +743,7 @@ typedef struct PBVHFaceIter {
   int cd_hide_poly_, cd_face_set_;
   bool *hide_poly_;
   int *face_sets_;
-  const struct MPoly *polys_;
+  const int *poly_offsets_;
   const struct MLoopTri *looptri_;
   const int *corner_verts_;
   int prim_index_;

@@ -133,13 +133,11 @@ static void extract_weights_iter_poly_bm(const MeshRenderData * /*mr*/,
 }
 
 static void extract_weights_iter_poly_mesh(const MeshRenderData *mr,
-                                           const MPoly *poly,
-                                           const int /*poly_index*/,
+                                           const int poly_index,
                                            void *_data)
 {
   MeshExtract_Weight_Data *data = static_cast<MeshExtract_Weight_Data *>(_data);
-  const int ml_index_end = poly->loopstart + poly->totloop;
-  for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
+  for (const int ml_index : mr->polys[poly_index]) {
     const int vert = mr->corner_verts[ml_index];
     if (data->dvert != nullptr) {
       const MDeformVert *dvert = &data->dvert[vert];
@@ -171,10 +169,9 @@ static void extract_weights_init_subdiv(const DRWSubdivCache *subdiv_cache,
   extract_weights_init(mr, cache, coarse_weights, _data);
 
   if (mr->extract_type != MR_EXTRACT_BMESH) {
-    const Span<MPoly> coarse_polys = coarse_mesh->polys();
+    const OffsetIndices coarse_polys = coarse_mesh->polys();
     for (const int i : coarse_polys.index_range()) {
-      const MPoly &poly = coarse_polys[i];
-      extract_weights_iter_poly_mesh(mr, &poly, i, _data);
+      extract_weights_iter_poly_mesh(mr, i, _data);
     }
   }
   else {

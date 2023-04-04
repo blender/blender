@@ -183,7 +183,7 @@ static bool polygons_check_flip(blender::MutableSpan<int> corner_verts,
                                 blender::MutableSpan<int> corner_edges,
                                 blender::float3 *nos,
                                 CustomData *ldata,
-                                const blender::Span<MPoly> polys,
+                                const blender::OffsetIndices<int> polys,
                                 const blender::Span<blender::float3> poly_normals)
 {
   MDisps *mdisp = static_cast<MDisps *>(
@@ -191,20 +191,20 @@ static bool polygons_check_flip(blender::MutableSpan<int> corner_verts,
   bool flipped = false;
 
   for (const int i : polys.index_range()) {
-    const MPoly &poly = polys[i];
+    const blender::IndexRange poly = polys[i];
     float norsum[3] = {0.0f};
 
-    for (const int64_t j : blender::IndexRange(poly.loopstart, poly.totloop)) {
+    for (const int64_t j : poly) {
       add_v3_v3(norsum, nos[j]);
     }
-
     if (!normalize_v3(norsum)) {
       continue;
     }
 
     /* If average of new loop normals is opposed to polygon normal, flip polygon. */
     if (dot_v3v3(poly_normals[i], norsum) < 0.0f) {
-      BKE_mesh_polygon_flip_ex(&poly,
+      BKE_mesh_polygon_flip_ex(poly.start(),
+                               poly.size(),
                                corner_verts.data(),
                                corner_edges.data(),
                                ldata,
@@ -235,7 +235,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                          blender::MutableSpan<bool> sharp_edges,
                                          blender::MutableSpan<int> corner_verts,
                                          blender::MutableSpan<int> corner_edges,
-                                         const blender::Span<MPoly> polys)
+                                         const blender::OffsetIndices<int> polys)
 {
   Object *ob_target = enmd->target;
 
@@ -363,7 +363,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                               blender::MutableSpan<bool> sharp_edges,
                                               blender::MutableSpan<int> corner_verts,
                                               blender::MutableSpan<int> corner_edges,
-                                              const blender::Span<MPoly> polys)
+                                              const blender::OffsetIndices<int> polys)
 {
   Object *ob_target = enmd->target;
 
@@ -515,7 +515,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   const blender::Span<blender::float3> positions = result->vert_positions();
   const blender::Span<MEdge> edges = result->edges();
-  const blender::Span<MPoly> polys = result->polys();
+  const OffsetIndices polys = result->polys();
   blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
 

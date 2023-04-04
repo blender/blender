@@ -648,8 +648,7 @@ static void foreach_vertex(const SubdivForeachContext *foreach_context,
   const int face_index = multires_reshape_grid_to_face_index(reshape_context,
                                                              grid_coord.grid_index);
 
-  const MPoly &base_poly = reshape_context->base_polys[face_index];
-  const int num_corners = base_poly.totloop;
+  const int num_corners = reshape_context->base_polys[face_index].size();
   const int start_grid_index = reshape_context->face_start_grid_index[face_index];
   const int corner = grid_coord.grid_index - start_grid_index;
 
@@ -849,7 +848,7 @@ static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshap
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
   const Mesh *base_mesh = reshape_context->base_mesh;
-  const blender::Span<MPoly> base_polys = reshape_context->base_polys;
+  const blender::OffsetIndices base_polys = reshape_context->base_polys;
   const blender::Span<int> base_corner_edges = reshape_context->base_corner_edges;
 
   reshape_smooth_context->non_loose_base_edge_map = BLI_BITMAP_NEW(base_mesh->totedge,
@@ -857,8 +856,7 @@ static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshap
 
   int num_used_edges = 0;
   for (const int poly_index : base_polys.index_range()) {
-    const MPoly &base_poly = base_polys[poly_index];
-    for (const int edge : base_corner_edges.slice(base_poly.loopstart, base_poly.totloop)) {
+    for (const int edge : base_corner_edges.slice(base_polys[poly_index])) {
       if (!BLI_BITMAP_TEST_BOOL(reshape_smooth_context->non_loose_base_edge_map, edge)) {
         BLI_BITMAP_ENABLE(reshape_smooth_context->non_loose_base_edge_map, edge);
 

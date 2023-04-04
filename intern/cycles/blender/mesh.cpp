@@ -246,11 +246,12 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
         if (polys_num == 0) {
           return;
         }
-        const MPoly *polys = static_cast<const MPoly *>(b_mesh.polygons[0].ptr.data);
+        const int *poly_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
         for (int i = 0; i < polys_num; i++) {
-          const MPoly &b_poly = polys[i];
-          for (int j = 0; j < b_poly.totloop; j++) {
-            *data = get_value_at_index(b_poly.loopstart + j);
+          const int poly_start = poly_offsets[i];
+          const int poly_size = poly_offsets[i + 1] - poly_start;
+          for (int j = 0; j < poly_size; j++) {
+            *data = get_value_at_index(poly_start + j);
             data++;
           }
         }
@@ -600,7 +601,7 @@ static void attr_create_subd_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, 
   if (polys_num == 0) {
     return;
   }
-  const MPoly *polys = static_cast<const MPoly *>(b_mesh.polygons[0].ptr.data);
+  const int *poly_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
 
   if (!b_mesh.uv_layers.empty()) {
     BL::Mesh::uv_layers_iterator l;
@@ -636,9 +637,10 @@ static void attr_create_subd_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, 
         float2 *fdata = uv_attr->data_float2();
 
         for (int i = 0; i < polys_num; i++) {
-          const MPoly &b_poly = polys[i];
-          for (int j = 0; j < b_poly.totloop; j++) {
-            *(fdata++) = get_float2(l->data[b_poly.loopstart + j].uv());
+          const int poly_start = poly_offsets[i];
+          const int poly_size = poly_offsets[i + 1] - poly_start;
+          for (int j = 0; j < poly_size; j++) {
+            *(fdata++) = get_float2(l->data[poly_start + j].uv());
           }
         }
       }
@@ -910,10 +912,9 @@ static void attr_create_random_per_island(Scene *scene,
   else {
     const int polys_num = b_mesh.polygons.length();
     if (polys_num != 0) {
-      const MPoly *polys = static_cast<const MPoly *>(b_mesh.polygons[0].ptr.data);
+      const int *poly_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
       for (int i = 0; i < polys_num; i++) {
-        const MPoly &b_poly = polys[i];
-        const int vert = corner_verts[b_poly.loopstart];
+        const int vert = corner_verts[poly_offsets[i]];
         data[i] = hash_uint_to_float(vertices_sets.find(vert));
       }
     }
@@ -1000,10 +1001,11 @@ static void create_mesh(Scene *scene,
     numtris = numfaces;
   }
   else {
-    const MPoly *polys = static_cast<const MPoly *>(b_mesh.polygons[0].ptr.data);
+    const int *poly_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
     for (int i = 0; i < polys_num; i++) {
-      const MPoly &b_poly = polys[i];
-      numngons += (b_poly.totloop == 4) ? 0 : 1;
+      const int poly_start = poly_offsets[i];
+      const int poly_size = poly_offsets[i + 1] - poly_start;
+      numngons += (poly_size == 4) ? 0 : 1;
     }
   }
 
@@ -1132,14 +1134,16 @@ static void create_mesh(Scene *scene,
 
     std::copy(corner_verts, corner_verts + numcorners, subd_face_corners);
 
-    const MPoly *polys = static_cast<const MPoly *>(b_mesh.polygons[0].ptr.data);
+    const int *poly_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
     int ptex_offset = 0;
     for (int i = 0; i < numfaces; i++) {
-      const MPoly &b_poly = polys[i];
-      subd_start_corner[i] = b_poly.loopstart;
-      subd_num_corners[i] = b_poly.totloop;
+      const int poly_start = poly_offsets[i];
+      const int poly_size = poly_offsets[i + 1] - poly_start;
+
+      subd_start_corner[i] = poly_start;
+      subd_num_corners[i] = poly_size;
       subd_ptex_offset[i] = ptex_offset;
-      const int num_ptex = (b_poly.totloop == 4) ? 1 : b_poly.totloop;
+      const int num_ptex = (poly_size == 4) ? 1 : poly_size;
       ptex_offset += num_ptex;
     }
 
