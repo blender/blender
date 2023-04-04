@@ -670,8 +670,7 @@ typedef struct RenderData {
   /** Frames to jump during render/playback. */
   int frame_step;
 
-  /** Standalone player stereo settings. */ /* XXX deprecated since .2.5 */
-  short stereomode DNA_DEPRECATED;
+  char _pad10[2];
 
   /** For the dimensions presets menu. */
   short dimensionspreset;

@@ -2140,8 +2140,8 @@ void main_args_setup(bContext *C, bArgs *ba)
   BLI_args_add(ba, NULL, "--log-show-timestamp", CB(arg_handle_log_show_timestamp_set), ba);
   BLI_args_add(ba, NULL, "--log-file", CB(arg_handle_log_file_set), ba);
 
-  /* GPU backend selection should be part of ARG_PASS_ENVIRONMENT for correct GPU context selection
-   * for anim player. */
+  /* GPU backend selection should be part of #ARG_PASS_ENVIRONMENT for correct GPU context
+   * selection for animation player. */
   BLI_args_add(ba, NULL, "--gpu-backend", CB(arg_handle_gpu_backend_set), NULL);
 
   /* Pass: Background Mode & Settings

@@ -849,7 +849,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
   if (bmain->versionfile <= 224) {
     bSound *sound;
-    Scene *sce;
     Mesh *me;
     bScreen *screen;
 
@@ -867,10 +866,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       if ((me->flag & ME_SUBSURF) && (me->subdivr == 0)) {
         me->subdivr = me->subdiv;
       }
-    }
-
-    for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
-      sce->r.stereomode = 1; /* no stereo */
     }
 
     /* some oldfile patch, moved from set_func_space */
