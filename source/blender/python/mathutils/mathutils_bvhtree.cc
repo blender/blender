@@ -1214,7 +1214,7 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
 /** \name Module & Type definition
  * \{ */
 
-#ifdef __GNUC__
+#if (defined(__GNUC__) && !defined(__clang__))
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
@@ -1252,7 +1252,7 @@ static PyMethodDef py_bvhtree_methods[] = {
     {nullptr, nullptr, 0, nullptr},
 };
 
-#ifdef __GNUC__
+#if (defined(__GNUC__) && !defined(__clang__))
 #  pragma GCC diagnostic pop
 #endif
 
