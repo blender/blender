@@ -21,6 +21,7 @@
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
@@ -32,7 +33,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "multires_reshape.hh"
-#include "multires_unsubdivide.h"
+#include "multires_unsubdivide.hh"
 
 /* This is done in the following steps:
  *
@@ -948,15 +949,7 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
     BM_elem_flag_set(v, BM_ELEM_TAG, true);
   }
 
-  /* Create a map from loop index to poly index for the original mesh. */
-  context->loop_to_face_map = static_cast<int *>(
-      MEM_calloc_arrayN(original_mesh->totloop, sizeof(int), "loop map"));
-
-  for (int i = 0; i < original_mesh->totpoly; i++) {
-    for (const int corner : original_polys[i]) {
-      context->loop_to_face_map[corner] = i;
-    }
-  }
+  context->loop_to_face_map = blender::bke::mesh_topology::build_loop_to_poly_map(original_polys);
 }
 
 /**
@@ -1106,7 +1099,6 @@ static void multires_unsubdivide_private_extract_data_free(MultiresUnsubdivideCo
   if (context->bm_original_mesh != nullptr) {
     BM_mesh_free(context->bm_original_mesh);
   }
-  MEM_SAFE_FREE(context->loop_to_face_map);
 }
 
 void multires_unsubdivide_context_init(MultiresUnsubdivideContext *context,
@@ -1222,8 +1214,8 @@ int multiresModifier_rebuild_subdiv(Depsgraph *depsgraph,
 
   multires_force_sculpt_rebuild(object);
 
-  MultiresUnsubdivideContext unsubdiv_context = {0};
-  MultiresReshapeContext reshape_context = {0};
+  MultiresUnsubdivideContext unsubdiv_context{};
+  MultiresReshapeContext reshape_context{};
 
   multires_unsubdivide_context_init(&unsubdiv_context, mesh, mmd);
 
