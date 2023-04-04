@@ -4,6 +4,12 @@
 
 #ifdef _WIN32
 // Include first to avoid "NOGDI" definition set in Cycles headers
+#  ifndef NOMINMAX
+#    define NOMINMAX
+#  endif
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
 #  include <Windows.h>
 #endif
 
