@@ -974,7 +974,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
                                        const bool use_seams,
                                        const bool do_islands)
 {
-  /* In uv sync selection, all UVs are visible. */
+  /* In uv sync selection, all UVs (from unhidden geometry) are visible. */
   const bool face_selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION);
 
   BMVert *ev;
