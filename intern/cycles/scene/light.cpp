@@ -446,9 +446,9 @@ void LightManager::device_update_tree(Device *,
   progress.set_status("Updating Lights", "Computing tree");
 
   /* Add both lights and emissive triangles to this vector for light tree construction. */
-  vector<LightTreePrimitive> light_prims;
-  light_prims.reserve(kintegrator->num_distribution);
-  vector<LightTreePrimitive> distant_lights;
+  vector<LightTreeEmitter> emitters;
+  emitters.reserve(kintegrator->num_distribution);
+  vector<LightTreeEmitter> distant_lights;
   distant_lights.reserve(kintegrator->num_distant_lights);
   vector<uint> object_lookup_offsets(scene->objects.size());
 
@@ -463,7 +463,7 @@ void LightManager::device_update_tree(Device *,
         distant_lights.emplace_back(scene, ~device_light_index, scene_light_index);
       }
       else {
-        light_prims.emplace_back(scene, ~device_light_index, scene_light_index);
+        emitters.emplace_back(scene, ~device_light_index, scene_light_index);
       }
 
       device_light_index++;
@@ -497,7 +497,7 @@ void LightManager::device_update_tree(Device *,
                            scene->default_surface;
 
       if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
-        light_prims.emplace_back(scene, i, object_id);
+        emitters.emplace_back(scene, i, object_id);
       }
     }
 
@@ -505,15 +505,15 @@ void LightManager::device_update_tree(Device *,
     object_id++;
   }
 
-  /* Append distant lights to the end of `light_prims` */
-  std::move(distant_lights.begin(), distant_lights.end(), std::back_inserter(light_prims));
+  /* Append distant lights to the end of `emitters` */
+  std::move(distant_lights.begin(), distant_lights.end(), std::back_inserter(emitters));
 
   /* Update integrator state. */
-  kintegrator->use_direct_light = !light_prims.empty();
+  kintegrator->use_direct_light = !emitters.empty();
 
   /* TODO: For now, we'll start with a smaller number of max lights in a node.
    * More benchmarking is needed to determine what number works best. */
-  LightTree light_tree(light_prims, kintegrator->num_distant_lights, 8);
+  LightTree light_tree(emitters, kintegrator->num_distant_lights, 8);
 
   /* We want to create separate arrays corresponding to triangles and lights,
    * which will be used to index back into the light tree for PDF calculations. */
@@ -528,8 +528,7 @@ void LightManager::device_update_tree(Device *,
 
   /* First initialize the light tree's nodes. */
   KernelLightTreeNode *light_tree_nodes = dscene->light_tree_nodes.alloc(light_tree.size());
-  KernelLightTreeEmitter *light_tree_emitters = dscene->light_tree_emitters.alloc(
-      light_prims.size());
+  KernelLightTreeEmitter *light_tree_emitters = dscene->light_tree_emitters.alloc(emitters.size());
 
   /* Copy the light tree nodes to an array in the device. */
   /* The nodes are arranged in a depth-first order, meaning the left child of each inner node
@@ -545,39 +544,39 @@ void LightManager::device_update_tree(Device *,
   LightTreeNode *right_node_stack[32];
   int stack_id = 0;
   const LightTreeNode *node = light_tree.get_root();
-  for (int index = 0; index < light_tree.size(); index++) {
-    light_tree_nodes[index].energy = node->measure.energy;
+  for (int node_index = 0; node_index < light_tree.size(); node_index++) {
+    light_tree_nodes[node_index].energy = node->measure.energy;
 
-    light_tree_nodes[index].bbox.min = node->measure.bbox.min;
-    light_tree_nodes[index].bbox.max = node->measure.bbox.max;
+    light_tree_nodes[node_index].bbox.min = node->measure.bbox.min;
+    light_tree_nodes[node_index].bbox.max = node->measure.bbox.max;
 
-    light_tree_nodes[index].bcone.axis = node->measure.bcone.axis;
-    light_tree_nodes[index].bcone.theta_o = node->measure.bcone.theta_o;
-    light_tree_nodes[index].bcone.theta_e = node->measure.bcone.theta_e;
+    light_tree_nodes[node_index].bcone.axis = node->measure.bcone.axis;
+    light_tree_nodes[node_index].bcone.theta_o = node->measure.bcone.theta_o;
+    light_tree_nodes[node_index].bcone.theta_e = node->measure.bcone.theta_e;
 
-    light_tree_nodes[index].bit_trail = node->bit_trail;
-    light_tree_nodes[index].num_prims = node->num_prims;
+    light_tree_nodes[node_index].bit_trail = node->bit_trail;
+    light_tree_nodes[node_index].num_emitters = node->num_emitters;
 
     /* Here we need to make a distinction between interior and leaf nodes. */
     if (node->is_leaf()) {
-      light_tree_nodes[index].child_index = -node->first_prim_index;
+      light_tree_nodes[node_index].child_index = -node->first_emitter_index;
 
-      for (int i = 0; i < node->num_prims; i++) {
-        int emitter_index = i + node->first_prim_index;
-        LightTreePrimitive &prim = light_prims[emitter_index];
+      for (int i = 0; i < node->num_emitters; i++) {
+        int emitter_index = i + node->first_emitter_index;
+        LightTreeEmitter &emitter = emitters[emitter_index];
 
-        light_tree_emitters[emitter_index].energy = prim.measure.energy;
-        light_tree_emitters[emitter_index].theta_o = prim.measure.bcone.theta_o;
-        light_tree_emitters[emitter_index].theta_e = prim.measure.bcone.theta_e;
+        light_tree_emitters[emitter_index].energy = emitter.measure.energy;
+        light_tree_emitters[emitter_index].theta_o = emitter.measure.bcone.theta_o;
+        light_tree_emitters[emitter_index].theta_e = emitter.measure.bcone.theta_e;
 
-        if (prim.is_triangle()) {
-          light_tree_emitters[emitter_index].mesh_light.object_id = prim.object_id;
+        if (emitter.is_triangle()) {
+          light_tree_emitters[emitter_index].mesh_light.object_id = emitter.object_id;
 
           int shader_flag = 0;
-          Object *object = scene->objects[prim.object_id];
+          Object *object = scene->objects[emitter.object_id];
           Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
           Shader *shader = static_cast<Shader *>(
-              mesh->get_used_shaders()[mesh->get_shader()[prim.prim_id]]);
+              mesh->get_used_shaders()[mesh->get_shader()[emitter.prim_id]]);
 
           if (!(object->get_visibility() & PATH_RAY_CAMERA)) {
             shader_flag |= SHADER_EXCLUDE_CAMERA;
@@ -598,19 +597,20 @@ void LightManager::device_update_tree(Device *,
             shader_flag |= SHADER_EXCLUDE_SHADOW_CATCHER;
           }
 
-          light_tree_emitters[emitter_index].prim = prim.prim_id + mesh->prim_offset;
+          light_tree_emitters[emitter_index].prim_id = emitter.prim_id + mesh->prim_offset;
           light_tree_emitters[emitter_index].mesh_light.shader_flag = shader_flag;
           light_tree_emitters[emitter_index].emission_sampling = shader->emission_sampling;
-          triangle_array[prim.prim_id + object_lookup_offsets[prim.object_id]] = emitter_index;
+          triangle_array[emitter.prim_id + object_lookup_offsets[emitter.object_id]] =
+              emitter_index;
         }
         else {
-          light_tree_emitters[emitter_index].prim = prim.prim_id;
+          light_tree_emitters[emitter_index].prim_id = emitter.prim_id;
           light_tree_emitters[emitter_index].mesh_light.shader_flag = 0;
           light_tree_emitters[emitter_index].mesh_light.object_id = OBJECT_NONE;
           light_tree_emitters[emitter_index].emission_sampling = EMISSION_SAMPLING_FRONT_BACK;
-          light_array[~prim.prim_id] = emitter_index;
+          light_array[~emitter.prim_id] = emitter_index;
         }
-        light_tree_emitters[emitter_index].parent_index = index;
+        light_tree_emitters[emitter_index].parent_index = node_index;
       }
 
       /* Retrieve from the stacks. */
@@ -618,12 +618,12 @@ void LightManager::device_update_tree(Device *,
         break;
       }
       stack_id--;
-      light_tree_nodes[left_index_stack[stack_id]].child_index = index + 1;
+      light_tree_nodes[left_index_stack[stack_id]].child_index = node_index + 1;
       node = right_node_stack[stack_id];
     }
     else {
       /* Fill in the stacks. */
-      left_index_stack[stack_id] = index;
+      left_index_stack[stack_id] = node_index;
       right_node_stack[stack_id] = node->children[LightTree::right].get();
       node = node->children[LightTree::left].get();
       stack_id++;
