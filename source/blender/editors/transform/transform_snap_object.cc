@@ -3270,7 +3270,9 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
     }
   }
 
-  if (snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST) {
+  bool use_occlusion_test = params->use_occlusion_test && !XRAY_ENABLED(v3d);
+
+  if ((snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST) || use_occlusion_test) {
     float ray_start[3], ray_normal[3];
     if (!ED_view3d_win_to_ray_clipped_ex(
             depsgraph, region, v3d, mval, nullptr, ray_normal, ray_start, true)) {
