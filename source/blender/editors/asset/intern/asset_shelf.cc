@@ -46,6 +46,26 @@ void send_redraw_notifier(const bContext &C)
 /** \name Asset Shelf Regions
  * \{ */
 
+static bool asset_shelf_poll(const bContext *C, const SpaceLink *space_link)
+{
+  const SpaceType *space_type = BKE_spacetype_from_id(space_link->spacetype);
+
+  /* Is there any asset shelf type registered that returns true for it's poll? */
+  LISTBASE_FOREACH (AssetShelfType *, shelf_type, &space_type->asset_shelf_types) {
+    if (shelf_type->poll && shelf_type->poll(C, shelf_type)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool ED_asset_shelf_poll(const RegionPollParams *params)
+{
+  return asset_shelf_poll(params->context,
+                          static_cast<SpaceLink *>(params->area->spacedata.first));
+}
+
 static void asset_shelf_region_listen(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
@@ -83,17 +103,7 @@ void ED_asset_shelf_region_listen(const wmRegionListenerParams *params)
  */
 static bool asset_shelf_region_header_type_poll(const bContext *C, HeaderType * /*header_type*/)
 {
-  const SpaceLink *space_link = CTX_wm_space_data(C);
-  const SpaceType *space_type = BKE_spacetype_from_id(space_link->spacetype);
-
-  /* Is there any asset shelf type registered that returns true for it's poll? */
-  LISTBASE_FOREACH (AssetShelfType *, shelf_type, &space_type->asset_shelf_types) {
-    if (shelf_type->poll && shelf_type->poll(C, shelf_type)) {
-      return true;
-    }
-  }
-
-  return false;
+  return asset_shelf_poll(C, CTX_wm_space_data(C));
 }
 
 void ED_asset_shelf_region_draw(const bContext *C, ARegion *region)
