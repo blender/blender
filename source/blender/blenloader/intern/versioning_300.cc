@@ -2289,7 +2289,6 @@ static void version_ensure_missing_regions(ScrArea *area, SpaceLink *sl)
                                          "versioning: preview region for sequencer",
                                          RGN_TYPE_CHANNELS);
       sequencer_init_preview_region(region);
-      region->flag &= ~RGN_FLAG_HIDDEN;
 
       break;
     }
