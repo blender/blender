@@ -714,7 +714,7 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
     copy_v3fl_v3db(positions[vi], v->co);
   }
 
-  /* Set the loopstart and totloop for each output poly,
+  /* Set the loop-start and total-loops for each output poly,
    * and set the vertices in the appropriate loops. */
   bke::SpanAttributeWriter<int> dst_material_indices =
       result->attributes_for_write().lookup_or_add_for_write_only_span<int>("material_index",

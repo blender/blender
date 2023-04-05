@@ -2192,7 +2192,7 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
     /* Release synchronization primitive for current frame to avoid cross-frame dependencies.
      * We require MTLEvents to ensure correct ordering of workload submissions within a frame,
      * however, we should not create long chains of dependencies spanning several drawables as any
-     * temporary stalls can then trigger erroneous GPU timeouts in non-dependent submsisions.  */
+     * temporary stalls can then trigger erroneous GPU timeouts in non-dependent submissions.  */
     [MTLCommandBufferManager::sync_event release];
     MTLCommandBufferManager::sync_event = nil;
     MTLCommandBufferManager::event_signal_val = 0;

@@ -375,7 +375,7 @@ static bool gwl_window_state_set(GWL_Window *win, const GHOST_TWindowState state
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Internal #GWL_Window Viewport Setup/Teardown
+/** \name Internal #GWL_Window Viewport Setup/Tear-down
  *
  * A viewport is needed to implement fractional scale,
  * as the outputs scale may change at runtime, support creating & clearing the viewport as needed.

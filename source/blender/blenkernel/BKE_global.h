@@ -201,7 +201,7 @@ enum {
   G_DEBUG_IO = (1 << 17),                     /* IO Debugging (for Collada, ...). */
   G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 18),  /* force gpu workarounds bypassing detections. */
   G_DEBUG_GPU_FORCE_DISABLE_SSBO = (1 << 19), /* force disabling usage of SSBO's */
-  G_DEBUG_GPU_RENDERDOC = (1 << 20),          /* Enable Renderdoc integration. */
+  G_DEBUG_GPU_RENDERDOC = (1 << 20),          /* Enable RenderDoc integration. */
   G_DEBUG_XR = (1 << 21),                     /* XR/OpenXR messages */
   G_DEBUG_XR_TIME = (1 << 22),                /* XR/OpenXR timing messages */
 

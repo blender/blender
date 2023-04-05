@@ -154,11 +154,11 @@ typedef struct CPPTypeHandle CPPTypeHandle;
  * Defines the appearance and behavior of a socket in the UI.
  */
 typedef struct bNodeSocketType {
-  /* Identifier name */
+  /** Identifier name. */
   char idname[64];
-  /* Type label */
+  /** Type label. */
   char label[64];
-  /* Subtype label */
+  /** Sub-type label. */
   char subtype_label[64];
 
   void (*draw)(struct bContext *C,

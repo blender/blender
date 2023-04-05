@@ -249,8 +249,8 @@ static void detect_workarounds()
     return;
   }
 
-  /* Only use main context when running inside renderdoc. Renderdoc requires that all calls are
-   * from the same context.*/
+  /* Only use main context when running inside RenderDoc.
+   * RenderDoc requires that all calls are* from the same context. */
   if (G.debug & G_DEBUG_GPU_RENDERDOC) {
     GCaps.use_main_context_workaround = true;
   }

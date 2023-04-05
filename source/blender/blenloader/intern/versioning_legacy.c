@@ -890,9 +890,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     bScreen *screen;
     Object *ob;
 
-    /* As of now, this insures that the transition from the old Track system
-     * to the new full constraint Track is painless for everyone. - theeth
-     */
+    /* NOTE(@theeth): As of now, this insures that the transition from the old Track system
+     * to the new full constraint Track is painless for everyone. */
     ob = bmain->objects.first;
 
     while (ob) {

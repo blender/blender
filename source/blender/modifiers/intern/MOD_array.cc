@@ -322,7 +322,7 @@ static void mesh_merge_transform(Mesh *result,
     edge->v2 += cap_verts_index;
   }
 
-  /* adjust cap poly loopstart indices */
+  /* Adjust cap poly loop-start indices. */
   for (i = 0; i < cap_npolys; i++) {
     result_poly_offsets[cap_polys_index + i] = cap_poly_offsets[i] + cap_loops_index;
   }

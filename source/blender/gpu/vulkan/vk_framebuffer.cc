@@ -241,7 +241,7 @@ void VKFrameBuffer::render_pass_create()
 
   VK_ALLOCATION_CALLBACKS
 
-  /* Track first attachment for size.*/
+  /* Track first attachment for size. */
   GPUAttachmentType first_attachment = GPU_FB_MAX_ATTACHMENT;
 
   std::array<VkAttachmentDescription, GPU_FB_MAX_ATTACHMENT> attachment_descriptions;
@@ -276,7 +276,7 @@ void VKFrameBuffer::render_pass_create()
                                                                  depth_location;
 
     if (attachment.tex) {
-      /* Ensure texture is allocated to ensure the image view.*/
+      /* Ensure texture is allocated to ensure the image view. */
       VKTexture &texture = *static_cast<VKTexture *>(unwrap(attachment.tex));
       texture.ensure_allocated();
       image_views[attachment_location] = texture.vk_image_view_handle();
@@ -346,7 +346,7 @@ void VKFrameBuffer::render_pass_create()
   vkCreateRenderPass(
       context.device_get(), &render_pass_info, vk_allocation_callbacks, &vk_render_pass_);
 
-  /* We might want to split framebuffer and render pass....*/
+  /* We might want to split frame-buffer and render pass. */
   VkFramebufferCreateInfo framebuffer_create_info = {};
   framebuffer_create_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
   framebuffer_create_info.renderPass = vk_render_pass_;

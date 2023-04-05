@@ -136,7 +136,7 @@ class VKDescriptorSetTracker : protected VKResourceTracker<VKDescriptorSet> {
   };
 
  private:
-  /** A list of bindings that needs to be updated.*/
+  /** A list of bindings that needs to be updated. */
   Vector<Binding> bindings_;
   VkDescriptorSetLayout layout_;
 
