@@ -1463,7 +1463,11 @@ install(
 # -----------------------------------------------------------------------------
 # Bundle assets
 
-set(ASSET_BUNDLE_DIR ${CMAKE_SOURCE_DIR}/../lib/assets/publish/)
+set(ASSET_BUNDLE_DIR ${CMAKE_SOURCE_DIR}/release/datafiles/assets/publish/)
+
+if(NOT EXISTS "${ASSET_BUNDLE_DIR}")
+  set(ASSET_BUNDLE_DIR ${CMAKE_SOURCE_DIR}/../lib/assets/publish/)
+endif()
 
 if(EXISTS "${ASSET_BUNDLE_DIR}")
   install(
