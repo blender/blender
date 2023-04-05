@@ -850,7 +850,7 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Resolution",
                            "Maximum edge length for dynamic topology sculpting (as divisor "
-                           "of blender unit - higher value means smaller edge length)");
+                           "of Blender unit - higher value means smaller edge length)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   prop = RNA_def_property(srna, "use_smooth_shading", PROP_BOOLEAN, PROP_NONE);

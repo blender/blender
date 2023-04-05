@@ -3334,7 +3334,7 @@ void TEXT_OT_selection_set(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Set Selection";
   ot->idname = "TEXT_OT_selection_set";
-  ot->description = "Set cursor selection";
+  ot->description = "Set text selection";
 
   /* api callbacks */
   ot->invoke = text_selection_set_invoke;

@@ -110,7 +110,7 @@ static const EnumPropertyItem rna_enum_rigidbody_constraint_spring_type_items[] 
      "SPRING1",
      ICON_NONE,
      "Blender 2.7",
-     "Spring implementation used in blender 2.7. Damping is capped at 1.0"},
+     "Spring implementation used in Blender 2.7. Damping is capped at 1.0"},
     {RBC_SPRING_TYPE2,
      "SPRING2",
      ICON_NONE,
