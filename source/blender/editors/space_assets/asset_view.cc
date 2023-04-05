@@ -96,7 +96,7 @@ void asset_view_create_in_layout(const bContext &C,
                                       CTX_wm_message_bus(&C)));
 
   ui::GridViewBuilder builder(*block);
-  builder.build_grid_view(*grid_view, v2d);
+  builder.build_grid_view(*grid_view, v2d, layout);
 }
 
 }  // namespace blender::ed::asset_browser

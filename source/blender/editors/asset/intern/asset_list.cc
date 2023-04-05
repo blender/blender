@@ -95,7 +95,7 @@ class AssetList : NonCopyable {
   void setCatalogFilterSettings(const AssetCatalogFilterSettings &settings);
   void clear(bContext *C);
 
-  AssetHandle asset_get_by_index(int index) const;
+  AssetHandle *asset_get_by_index(int index) const;
 
   bool needsRefetch() const;
   bool isLoaded() const;
@@ -225,9 +225,13 @@ void AssetList::clear(bContext *C)
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST, nullptr);
 }
 
-AssetHandle AssetList::asset_get_by_index(int index) const
+AssetHandle *AssetList::asset_get_by_index(int index) const
 {
-  return {filelist_file(filelist_, index)};
+  FileDirEntry *file = filelist_file(filelist_, index);
+  if (!file) {
+    return nullptr;
+  }
+  return &asset_handle_from_file(*file);
 }
 
 /**
@@ -459,8 +463,8 @@ asset_system::AssetLibrary *ED_assetlist_library_get_once_available(
   return list->asset_library();
 }
 
-AssetHandle ED_assetlist_asset_get_by_index(const AssetLibraryReference *library_reference,
-                                            int asset_index)
+AssetHandle *ED_assetlist_asset_get_by_index(const AssetLibraryReference *library_reference,
+                                             int asset_index)
 {
   const AssetList *list = AssetListStorage::lookup_list(*library_reference);
   return list->asset_get_by_index(asset_index);
@@ -505,29 +509,6 @@ ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)
   }
 
   return filelist_geticon_image_ex(asset_handle->file_data);
-}
-
-AssetHandle *ED_assetlist_asset_get_from_index(const AssetLibraryReference *library_reference,
-                                               const int index)
-{
-  AssetList *list = AssetListStorage::lookup_list(*library_reference);
-  if (!list) {
-    return nullptr;
-  }
-
-  AssetHandle *asset = nullptr;
-
-  int i = 0;
-  list->iterate([&](AssetHandle &iter_asset) {
-    if (i == index) {
-      asset = &iter_asset;
-      return false;
-    }
-    i++;
-    return true;
-  });
-
-  return asset;
 }
 
 AssetLibrary *ED_assetlist_library_get(const AssetLibraryReference *library_reference)

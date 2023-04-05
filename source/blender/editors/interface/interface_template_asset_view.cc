@@ -80,7 +80,8 @@ static void asset_view_draw_item(uiList *ui_list,
 {
   AssetViewListData *list_data = (AssetViewListData *)ui_list->dyn_data->customdata;
 
-  AssetHandle asset_handle = ED_assetlist_asset_get_by_index(&list_data->asset_library_ref, index);
+  AssetHandle asset_handle = *ED_assetlist_asset_get_by_index(&list_data->asset_library_ref,
+                                                              index);
 
   PointerRNA file_ptr;
   RNA_pointer_create(&list_data->screen->id,
@@ -93,26 +94,29 @@ static void asset_view_draw_item(uiList *ui_list,
   const bool show_names = list_data->show_names;
   const int size_x = UI_preview_tile_size_x();
   const int size_y = show_names ? UI_preview_tile_size_y() : UI_preview_tile_size_y_no_label();
-  uiBut *but = uiDefIconTextBut(block,
-                                UI_BTYPE_PREVIEW_TILE,
-                                0,
-                                ED_assetlist_asset_preview_icon_id_request(&list_data->asset_library_ref, asset_handle),
-                                show_names ? ED_asset_handle_get_name(&asset_handle) : "",
-                                0,
-                                0,
-                                size_x,
-                                size_y,
-                                nullptr,
-                                0,
-                                0,
-                                0,
-                                0,
-                                "");
-  ui_def_but_icon(but,ED_assetlist_asset_preview_icon_id_request(&list_data->asset_library_ref, asset_handle),
-                  /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
-                  UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+  uiBut *but = uiDefIconTextBut(
+      block,
+      UI_BTYPE_PREVIEW_TILE,
+      0,
+      ED_assetlist_asset_preview_icon_id_request(&list_data->asset_library_ref, &asset_handle),
+      show_names ? ED_asset_handle_get_name(&asset_handle) : "",
+      0,
+      0,
+      size_x,
+      size_y,
+      nullptr,
+      0,
+      0,
+      0,
+      0,
+      "");
+  ui_def_but_icon(
+      but,
+      ED_assetlist_asset_preview_icon_id_request(&list_data->asset_library_ref, &asset_handle),
+      /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
+      UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
   if (!ui_list->dyn_data->custom_drag_optype) {
-    asset_view_item_but_drag_set(but, &asset_handle);
+    asset_view_item_but_drag_set(but, list_data, &asset_handle);
   }
 }
 
@@ -131,8 +135,8 @@ static void asset_view_filter_items(uiList *ui_list,
       C,
       [&name_filter, list_data, &filter_settings](
           const PointerRNA &itemptr, blender::StringRefNull name, int index) {
-        AssetHandle asset = ED_assetlist_asset_get_by_index(&list_data->asset_library_ref, index);
-        if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
+        AssetHandle *asset = ED_assetlist_asset_get_by_index(&list_data->asset_library_ref, index);
+        if (!ED_asset_filter_matches_asset(&filter_settings, asset)) {
           return UI_LIST_ITEM_NEVER_SHOW;
         }
         return name_filter(itemptr, name, index);
@@ -140,8 +144,8 @@ static void asset_view_filter_items(uiList *ui_list,
       dataptr,
       propname,
       [list_data](const PointerRNA & /*itemptr*/, int index) -> std::string {
-        AssetHandle asset = ED_assetlist_asset_get_by_index(&list_data->asset_library_ref, index);
-        return ED_asset_handle_get_name(&asset);
+        AssetHandle *asset = ED_assetlist_asset_get_by_index(&list_data->asset_library_ref, index);
+        return ED_asset_handle_get_name(asset);
       });
 }
 

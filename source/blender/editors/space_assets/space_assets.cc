@@ -85,13 +85,9 @@ static SpaceLink *asset_browser_create(const ScrArea * /*area*/, const Scene * /
   return (SpaceLink *)assets_space;
 }
 
-static void asset_browser_free(SpaceLink * /*sl*/)
-{
-}
+static void asset_browser_free(SpaceLink * /*sl*/) {}
 
-static void asset_browser_init(wmWindowManager * /*wm*/, ScrArea * /*area*/)
-{
-}
+static void asset_browser_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *asset_browser_duplicate(SpaceLink *sl)
 {
@@ -133,8 +129,8 @@ static int /*eContextResult*/ asset_browser_context(const bContext *C,
   }
 
   if (CTX_data_equals(member, "asset_handle")) {
-    AssetHandle *asset = ED_assetlist_asset_get_from_index(&assets_space->asset_library_ref,
-                                                           assets_space->active_asset_idx);
+    AssetHandle *asset = ED_assetlist_asset_get_by_index(&assets_space->asset_library_ref,
+                                                         assets_space->active_asset_idx);
     if (!asset) {
       return CTX_RESULT_NO_DATA;
     }
@@ -204,9 +200,7 @@ static void asset_browser_header_init(wmWindowManager * /*wm*/, ARegion *region)
   ED_region_header_init(region);
 }
 
-static void asset_browser_header_listener(const wmRegionListenerParams * /*params*/)
-{
-}
+static void asset_browser_header_listener(const wmRegionListenerParams * /*params*/) {}
 
 /* ---------------------------------------------------------------------- */
 /* Navigation Region */
