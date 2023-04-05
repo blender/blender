@@ -82,8 +82,6 @@ using blender::VArray;
 #  define ASSERT_IS_VALID_MESH(mesh)
 #endif
 
-static ThreadRWMutex loops_cache_lock = PTHREAD_RWLOCK_INITIALIZER;
-
 static void mesh_init_origspace(Mesh *mesh);
 static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
                                                   const CustomData_MeshMasks *final_datamask);
@@ -150,50 +148,13 @@ static int *dm_getCornerEdgeArray(DerivedMesh *dm)
   return corner_edges;
 }
 
-static MPoly *dm_getPolyArray(DerivedMesh *dm)
+static int *dm_getPolyArray(DerivedMesh *dm)
 {
-  MPoly *mpoly = (MPoly *)CustomData_get_layer_for_write(
-      &dm->polyData, CD_MPOLY, dm->getNumPolys(dm));
-
-  if (!mpoly) {
-    mpoly = (MPoly *)CustomData_add_layer(
-        &dm->polyData, CD_MPOLY, CD_SET_DEFAULT, dm->getNumPolys(dm));
-    CustomData_set_layer_flag(&dm->polyData, CD_MPOLY, CD_FLAG_TEMPORARY);
-    dm->copyPolyArray(dm, mpoly);
+  if (!dm->poly_offsets) {
+    dm->poly_offsets = MEM_cnew_array<int>(dm->getNumPolys(dm) + 1, __func__);
+    dm->copyPolyArray(dm, dm->poly_offsets);
   }
-
-  return mpoly;
-}
-
-static int dm_getNumLoopTri(DerivedMesh *dm)
-{
-  const int numlooptris = poly_to_tri_count(dm->getNumPolys(dm), dm->getNumLoops(dm));
-  BLI_assert(ELEM(dm->looptris.num, 0, numlooptris));
-  return numlooptris;
-}
-
-static const MLoopTri *dm_getLoopTriArray(DerivedMesh *dm)
-{
-  MLoopTri *looptri;
-
-  BLI_rw_mutex_lock(&loops_cache_lock, THREAD_LOCK_READ);
-  looptri = dm->looptris.array;
-  BLI_rw_mutex_unlock(&loops_cache_lock);
-
-  if (looptri != nullptr) {
-    BLI_assert(dm->getNumLoopTri(dm) == dm->looptris.num);
-  }
-  else {
-    BLI_rw_mutex_lock(&loops_cache_lock, THREAD_LOCK_WRITE);
-    /* We need to ensure array is still nullptr inside mutex-protected code,
-     * some other thread might have already recomputed those looptris. */
-    if (dm->looptris.array == nullptr) {
-      dm->recalcLoopTri(dm);
-    }
-    looptri = dm->looptris.array;
-    BLI_rw_mutex_unlock(&loops_cache_lock);
-  }
-  return looptri;
+  return dm->poly_offsets;
 }
 
 void DM_init_funcs(DerivedMesh *dm)
@@ -204,11 +165,6 @@ void DM_init_funcs(DerivedMesh *dm)
   dm->getCornerVertArray = dm_getCornerVertArray;
   dm->getCornerEdgeArray = dm_getCornerEdgeArray;
   dm->getPolyArray = dm_getPolyArray;
-
-  dm->getLoopTriArray = dm_getLoopTriArray;
-
-  /* Sub-types handle getting actual data. */
-  dm->getNumLoopTri = dm_getNumLoopTri;
 
   dm->getVertDataArray = DM_get_vert_data_layer;
   dm->getEdgeDataArray = DM_get_edge_data_layer;
@@ -233,8 +189,6 @@ void DM_init(DerivedMesh *dm,
 
   DM_init_funcs(dm);
 
-  dm->needsFree = 1;
-
   /* Don't use #CustomData_reset because we don't want to touch custom-data. */
   copy_vn_i(dm->vertData.typemap, CD_NUMTYPES, -1);
   copy_vn_i(dm->edgeData.typemap, CD_NUMTYPES, -1);
@@ -258,6 +212,7 @@ void DM_from_template(DerivedMesh *dm,
   CustomData_copy(&source->faceData, &dm->faceData, mask->fmask, CD_SET_DEFAULT, numTessFaces);
   CustomData_copy(&source->loopData, &dm->loopData, mask->lmask, CD_SET_DEFAULT, numLoops);
   CustomData_copy(&source->polyData, &dm->polyData, mask->pmask, CD_SET_DEFAULT, numPolys);
+  dm->poly_offsets = static_cast<int *>(MEM_dupallocN(source->poly_offsets));
 
   dm->type = type;
   dm->numVertData = numVerts;
@@ -267,61 +222,16 @@ void DM_from_template(DerivedMesh *dm,
   dm->numPolyData = numPolys;
 
   DM_init_funcs(dm);
-
-  dm->needsFree = 1;
 }
 
-bool DM_release(DerivedMesh *dm)
+void DM_release(DerivedMesh *dm)
 {
-  if (dm->needsFree) {
-    CustomData_free(&dm->vertData, dm->numVertData);
-    CustomData_free(&dm->edgeData, dm->numEdgeData);
-    CustomData_free(&dm->faceData, dm->numTessFaceData);
-    CustomData_free(&dm->loopData, dm->numLoopData);
-    CustomData_free(&dm->polyData, dm->numPolyData);
-
-    MEM_SAFE_FREE(dm->looptris.array);
-    dm->looptris.num = 0;
-    dm->looptris.num_alloc = 0;
-
-    return true;
-  }
-
-  CustomData_free_temporary(&dm->vertData, dm->numVertData);
-  CustomData_free_temporary(&dm->edgeData, dm->numEdgeData);
-  CustomData_free_temporary(&dm->faceData, dm->numTessFaceData);
-  CustomData_free_temporary(&dm->loopData, dm->numLoopData);
-  CustomData_free_temporary(&dm->polyData, dm->numPolyData);
-
-  return false;
-}
-
-void DM_ensure_looptri_data(DerivedMesh *dm)
-{
-  const uint totpoly = dm->numPolyData;
-  const uint totloop = dm->numLoopData;
-  const int looptris_num = poly_to_tri_count(totpoly, totloop);
-
-  BLI_assert(dm->looptris.array_wip == nullptr);
-
-  std::swap(dm->looptris.array, dm->looptris.array_wip);
-
-  if ((looptris_num > dm->looptris.num_alloc) || (looptris_num < dm->looptris.num_alloc * 2) ||
-      (totpoly == 0)) {
-    MEM_SAFE_FREE(dm->looptris.array_wip);
-    dm->looptris.num_alloc = 0;
-    dm->looptris.num = 0;
-  }
-
-  if (totpoly) {
-    if (dm->looptris.array_wip == nullptr) {
-      dm->looptris.array_wip = (MLoopTri *)MEM_malloc_arrayN(
-          looptris_num, sizeof(*dm->looptris.array_wip), __func__);
-      dm->looptris.num_alloc = looptris_num;
-    }
-
-    dm->looptris.num = looptris_num;
-  }
+  CustomData_free(&dm->vertData, dm->numVertData);
+  CustomData_free(&dm->edgeData, dm->numEdgeData);
+  CustomData_free(&dm->faceData, dm->numTessFaceData);
+  CustomData_free(&dm->loopData, dm->numLoopData);
+  CustomData_free(&dm->polyData, dm->numPolyData);
+  MEM_SAFE_FREE(dm->poly_offsets);
 }
 
 void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *me, KeyBlock *kb)
@@ -391,12 +301,12 @@ void *DM_get_loop_data_layer(DerivedMesh *dm, const eCustomDataType type)
 }
 
 void DM_copy_vert_data(
-    DerivedMesh *source, DerivedMesh *dest, int source_index, int dest_index, int count)
+    const DerivedMesh *source, DerivedMesh *dest, int source_index, int dest_index, int count)
 {
   CustomData_copy_data(&source->vertData, &dest->vertData, source_index, dest_index, count);
 }
 
-void DM_interp_vert_data(DerivedMesh *source,
+void DM_interp_vert_data(const DerivedMesh *source,
                          DerivedMesh *dest,
                          int *src_indices,
                          float *weights,
@@ -1905,7 +1815,7 @@ static void mesh_init_origspace(Mesh *mesh)
   OrigSpaceLoop *lof_array = (OrigSpaceLoop *)CustomData_get_layer_for_write(
       &mesh->ldata, CD_ORIGSPACE_MLOOP, mesh->totloop);
   const Span<float3> positions = mesh->vert_positions();
-  const Span<MPoly> polys = mesh->polys();
+  const blender::OffsetIndices polys = mesh->polys();
   const Span<int> corner_verts = mesh->corner_verts();
 
   int j, k;
@@ -1913,11 +1823,11 @@ static void mesh_init_origspace(Mesh *mesh)
   blender::Vector<blender::float2, 64> vcos_2d;
 
   for (const int i : polys.index_range()) {
-    const MPoly &poly = polys[i];
-    OrigSpaceLoop *lof = lof_array + poly.loopstart;
+    const blender::IndexRange poly = polys[i];
+    OrigSpaceLoop *lof = lof_array + poly.start();
 
-    if (ELEM(poly.totloop, 3, 4)) {
-      for (j = 0; j < poly.totloop; j++, lof++) {
+    if (ELEM(poly.size(), 3, 4)) {
+      for (j = 0; j < poly.size(); j++, lof++) {
         copy_v2_v2(lof->uv, default_osf[j]);
       }
     }
@@ -1928,14 +1838,14 @@ static void mesh_init_origspace(Mesh *mesh)
       float min[2] = {FLT_MAX, FLT_MAX}, max[2] = {-FLT_MAX, -FLT_MAX};
       float translate[2], scale[2];
 
-      const float3 p_nor = blender::bke::mesh::poly_normal_calc(
-          positions, corner_verts.slice(poly.loopstart, poly.totloop));
+      const float3 p_nor = blender::bke::mesh::poly_normal_calc(positions,
+                                                                corner_verts.slice(poly));
 
       axis_dominant_v3_to_m3(mat, p_nor);
 
-      vcos_2d.resize(poly.totloop);
-      for (j = 0; j < poly.totloop; j++) {
-        mul_v3_m3v3(co, mat, positions[corner_verts[poly.loopstart + j]]);
+      vcos_2d.resize(poly.size());
+      for (j = 0; j < poly.size(); j++) {
+        mul_v3_m3v3(co, mat, positions[corner_verts[poly[j]]]);
         copy_v2_v2(vcos_2d[j], co);
 
         for (k = 0; k < 2; k++) {
@@ -1963,7 +1873,7 @@ static void mesh_init_origspace(Mesh *mesh)
 
       /* Finally, transform all vcos_2d into ((0, 0), (1, 1))
        * square and assign them as origspace. */
-      for (j = 0; j < poly.totloop; j++, lof++) {
+      for (j = 0; j < poly.size(); j++, lof++) {
         add_v2_v2v2(lof->uv, vcos_2d[j], translate);
         mul_v2_v2(lof->uv, scale);
       }

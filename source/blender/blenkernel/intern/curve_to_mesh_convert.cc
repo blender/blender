@@ -30,7 +30,7 @@ static void fill_mesh_topology(const int vert_offset,
                                MutableSpan<MEdge> edges,
                                MutableSpan<int> corner_verts,
                                MutableSpan<int> corner_edges,
-                               MutableSpan<MPoly> polys)
+                               MutableSpan<int> poly_offsets)
 {
   const int main_segment_num = curves::segments_num(main_point_num, main_cyclic);
   const int profile_segment_num = curves::segments_num(profile_point_num, profile_cyclic);
@@ -101,9 +101,7 @@ static void fill_mesh_topology(const int vert_offset,
       const int main_edge_start = main_edges_start + main_segment_num * i_profile;
       const int next_main_edge_start = main_edges_start + main_segment_num * i_next_profile;
 
-      MPoly &poly = polys[ring_poly_offset + i_profile];
-      poly.loopstart = ring_segment_loop_offset;
-      poly.totloop = 4;
+      poly_offsets[ring_poly_offset + i_profile] = ring_segment_loop_offset;
 
       corner_verts[ring_segment_loop_offset] = ring_vert_offset + i_profile;
       corner_edges[ring_segment_loop_offset] = ring_edge_start + i_profile;
@@ -125,12 +123,8 @@ static void fill_mesh_topology(const int vert_offset,
     const int cap_loop_offset = loop_offset + poly_num * 4;
     const int cap_poly_offset = poly_offset + poly_num;
 
-    MPoly &poly_start = polys[cap_poly_offset];
-    poly_start.loopstart = cap_loop_offset;
-    poly_start.totloop = profile_segment_num;
-    MPoly &poly_end = polys[cap_poly_offset + 1];
-    poly_end.loopstart = cap_loop_offset + profile_segment_num;
-    poly_end.totloop = profile_segment_num;
+    poly_offsets[cap_poly_offset] = cap_loop_offset;
+    poly_offsets[cap_poly_offset + 1] = cap_loop_offset + profile_segment_num;
 
     const int last_ring_index = main_point_num - 1;
     const int last_ring_vert_offset = vert_offset + profile_point_num * last_ring_index;
@@ -702,7 +696,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   mesh->smoothresh = DEG2RADF(180.0f);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
-  MutableSpan<MPoly> polys = mesh->polys_for_write();
+  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
   MutableAttributeAccessor mesh_attributes = mesh->attributes_for_write();
@@ -720,7 +714,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
                        edges,
                        corner_verts,
                        corner_edges,
-                       polys);
+                       poly_offsets);
   });
 
   if (fill_caps) {

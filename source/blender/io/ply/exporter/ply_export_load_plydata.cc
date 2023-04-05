@@ -168,8 +168,9 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
                      BKE_object_get_pre_modified_mesh(&export_object_eval_);
 
     bool force_triangulation = false;
-    for (const MPoly poly : mesh->polys()) {
-      if (poly.totloop > 255) {
+    const OffsetIndices polys = mesh->polys();
+    for (const int i : polys.index_range()) {
+      if (polys[i].size() > 255) {
         force_triangulation = true;
         break;
       }
@@ -197,15 +198,14 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     /* Face data. */
     plyData.face_vertices.reserve(mesh->totloop);
     plyData.face_sizes.reserve(mesh->totpoly);
-    int loop_offset = 0;
-    for (const MPoly &poly : mesh->polys()) {
-      for (int i = 0; i < poly.totloop; ++i) {
-        int ply_index = loop_to_ply[i + loop_offset];
+    for (const int i : polys.index_range()) {
+      const IndexRange poly = polys[i];
+      for (const int corner : poly) {
+        int ply_index = loop_to_ply[corner];
         BLI_assert(ply_index >= 0 && ply_index < ply_to_vertex.size());
         plyData.face_vertices.append(ply_index + vertex_offset);
       }
-      loop_offset += poly.totloop;
-      plyData.face_sizes.append(poly.totloop);
+      plyData.face_sizes.append(poly.size());
     }
 
     /* Vertices */

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -1631,6 +1631,10 @@ msgstr "Kunci Bentuk"
 
 msgid "Shape Key data-blocks"
 msgstr "Kunci Bentuk data-blok"
+
+
+msgid "Simulations"
+msgstr "Simulasi"
 
 
 msgid "Sounds"
@@ -7422,10 +7426,6 @@ msgid "Show Scene data-blocks"
 msgstr "Tampilkan Adegan data-blok"
 
 
-msgid "Simulations"
-msgstr "Simulasi"
-
-
 msgid "Show Simulation data-blocks"
 msgstr "Tampilkan Simulasi data-blok"
 
@@ -10255,6 +10255,10 @@ msgid "Size Deflect"
 msgstr "Seleksi"
 
 
+msgid "Mirror Object"
+msgstr "Sunting Objek"
+
+
 msgid "Distance Model"
 msgstr "Modus Sunting"
 
@@ -12344,10 +12348,6 @@ msgid "Resolution Mode"
 msgstr "Mode Resoulsi"
 
 
-msgid "Mirror Object"
-msgstr "Sunting Objek"
-
-
 msgid "Sculpt Levels"
 msgstr "Modus Pahat"
 
@@ -14243,10 +14243,6 @@ msgid "Y Axis"
 msgstr "Axis Y"
 
 
-msgid "ColorRamp"
-msgstr "WarnaRamp"
-
-
 msgid "Vector Blur"
 msgstr "Blur Vektor"
 
@@ -15981,6 +15977,10 @@ msgid "Paste F-Modifiers"
 msgstr "Modus Sunting"
 
 
+msgid "Sigma"
+msgstr "Sigma"
+
+
 msgctxt "Operator"
 msgid "Clear Ghost Curves"
 msgstr "Hapus"
@@ -17631,11 +17631,6 @@ msgstr "Warna Standar"
 
 msgctxt "Operator"
 msgid "Copy Vertex Group to Selected"
-msgstr "Warna Standar"
-
-
-msgctxt "Operator"
-msgid "Fix Vertex Group Deform"
 msgstr "Warna Standar"
 
 
@@ -21769,10 +21764,6 @@ msgid "Object details, including empty wire, cameras and other visual guides"
 msgstr "Detaail objek, termasuk kabel, kamera dan panduan visual lainnya yang kosong"
 
 
-msgid "Hidden Wire"
-msgstr "Kabel Tersembunyi"
-
-
 msgid "Display Grid"
 msgstr "Tampilkan Grid"
 
@@ -24513,6 +24504,11 @@ msgid "Search..."
 msgstr "Cari..."
 
 
+msgctxt "Operator"
+msgid "Online Manual"
+msgstr "Material"
+
+
 msgid "Inputs:"
 msgstr "Input:"
 
@@ -25581,11 +25577,6 @@ msgstr "Tekstur"
 msgctxt "Operator"
 msgid "Remove Shortcut"
 msgstr "Induk"
-
-
-msgctxt "Operator"
-msgid "Online Manual"
-msgstr "Material"
 
 
 msgid "(Gamma Corrected)"
@@ -26769,10 +26760,6 @@ msgid "Random Roughness"
 msgstr "Kekasaran Acak"
 
 
-msgid "Sigma"
-msgstr "Sigma"
-
-
 msgid "View Vector"
 msgstr "Tampilkan Vektor"
 
@@ -26971,10 +26958,6 @@ msgstr "Mengaktifkan skrip"
 
 msgid "Context window not set"
 msgstr "Warna Standar"
-
-
-msgid "Cannot read file '%s': %s"
-msgstr "Tidak dapat membaca '%s': %s"
 
 
 msgid "Saved \"%s\""

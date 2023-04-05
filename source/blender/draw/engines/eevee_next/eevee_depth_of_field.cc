@@ -361,6 +361,10 @@ void DepthOfField::tiles_dilate_pass_sync()
 
 void DepthOfField::gather_pass_sync()
 {
+  const GPUSamplerState gather_bilinear = {GPU_SAMPLER_FILTERING_MIPMAP |
+                                           GPU_SAMPLER_FILTERING_LINEAR};
+  const GPUSamplerState gather_nearest = {GPU_SAMPLER_FILTERING_MIPMAP};
+
   for (int pass = 0; pass < 2; pass++) {
     PassSimple &drw_pass = (pass == 0) ? gather_fg_ps_ : gather_bg_ps_;
     SwapChain<TextureFromPool, 2> &color_chain = (pass == 0) ? color_fg_tx_ : color_bg_tx_;
@@ -429,6 +433,10 @@ void DepthOfField::scatter_pass_sync()
 
 void DepthOfField::hole_fill_pass_sync()
 {
+  const GPUSamplerState gather_bilinear = {GPU_SAMPLER_FILTERING_MIPMAP |
+                                           GPU_SAMPLER_FILTERING_LINEAR};
+  const GPUSamplerState gather_nearest = {GPU_SAMPLER_FILTERING_MIPMAP};
+
   hole_fill_ps_.init();
   inst_.sampling.bind_resources(&hole_fill_ps_);
   hole_fill_ps_.shader_set(inst_.shaders.static_shader_get(DOF_GATHER_HOLE_FILL));
@@ -446,7 +454,7 @@ void DepthOfField::hole_fill_pass_sync()
 
 void DepthOfField::resolve_pass_sync()
 {
-  eGPUSamplerState with_filter = GPU_SAMPLER_FILTER;
+  GPUSamplerState with_filter = {GPU_SAMPLER_FILTERING_LINEAR};
   RenderBuffers &render_buffers = inst_.render_buffers;
   eShaderType sh_type = use_bokeh_lut_ ? DOF_RESOLVE_LUT : DOF_RESOLVE;
 

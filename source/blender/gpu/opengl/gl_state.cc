@@ -444,7 +444,7 @@ void GLStateManager::set_blend(const eGPUBlend value)
 /** \name Texture State Management
  * \{ */
 
-void GLStateManager::texture_bind(Texture *tex_, eGPUSamplerState sampler_type, int unit)
+void GLStateManager::texture_bind(Texture *tex_, GPUSamplerState sampler_state, int unit)
 {
   BLI_assert(unit < GPU_max_textures());
   GLTexture *tex = static_cast<GLTexture *>(tex_);
@@ -453,12 +453,12 @@ void GLStateManager::texture_bind(Texture *tex_, eGPUSamplerState sampler_type, 
   }
   /* Eliminate redundant binds. */
   if ((textures_[unit] == tex->tex_id_) &&
-      (samplers_[unit] == GLTexture::samplers_[sampler_type])) {
+      (samplers_[unit] == GLTexture::get_sampler(sampler_state))) {
     return;
   }
   targets_[unit] = tex->target_;
   textures_[unit] = tex->tex_id_;
-  samplers_[unit] = GLTexture::samplers_[sampler_type];
+  samplers_[unit] = GLTexture::get_sampler(sampler_state);
   tex->is_bound_ = true;
   dirty_texture_binds_ |= 1ULL << unit;
 }

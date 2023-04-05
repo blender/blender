@@ -205,11 +205,11 @@ MeshImporter::MeshImporter(UnitConverter *unitconv,
   /* pass */
 }
 
-bool MeshImporter::set_poly_indices(
-    MPoly *poly, int *poly_verts, int loop_index, const uint *indices, int loop_count)
+bool MeshImporter::set_poly_indices(int *poly_verts,
+                                    int loop_index,
+                                    const uint *indices,
+                                    int loop_count)
 {
-  poly->loopstart = loop_index;
-  poly->totloop = loop_count;
   bool broken_loop = false;
   for (int index = 0; index < loop_count; index++) {
 
@@ -451,7 +451,7 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
   if (total_poly_count > 0) {
     me->totpoly = total_poly_count;
     me->totloop = total_loop_count;
-    CustomData_add_layer(&me->pdata, CD_MPOLY, CD_SET_DEFAULT, me->totpoly);
+    BKE_mesh_poly_offsets_ensure_alloc(me);
     CustomData_add_layer_named(
         &me->ldata, CD_PROP_INT32, CD_SET_DEFAULT, me->totloop, ".corner_vert");
 
@@ -604,7 +604,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
   UVDataWrapper uvs(collada_mesh->getUVCoords());
   VCOLDataWrapper vcol(collada_mesh->getColors());
 
-  MutableSpan<MPoly> polys = me->polys_for_write();
+  MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
   MutableSpan<int> corner_verts = me->corner_verts_for_write();
   int poly_index = 0;
   int loop_index = 0;
@@ -655,11 +655,8 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
           /* For each triangle store indices of its 3 vertices */
           uint triangle_vertex_indices[3] = {
               first_vertex, position_indices[1], position_indices[2]};
-          set_poly_indices(&polys[poly_index],
-                           &corner_verts[loop_index],
-                           loop_index,
-                           triangle_vertex_indices,
-                           3);
+          poly_offsets[poly_index] = loop_index;
+          set_poly_indices(&corner_verts[loop_index], loop_index, triangle_vertex_indices, 3);
 
           if (mp_has_normals) { /* vertex normals, same implementation as for the triangles */
             /* The same for vertices normals. */
@@ -701,8 +698,9 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
           continue; /* TODO: add support for holes */
         }
 
+        poly_offsets[poly_index] = loop_index;
         bool broken_loop = set_poly_indices(
-            &polys[poly_index], &corner_verts[loop_index], loop_index, position_indices, vcount);
+            &corner_verts[loop_index], loop_index, position_indices, vcount);
         if (broken_loop) {
           invalid_loop_holes += 1;
         }
@@ -729,7 +727,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
         }
 
         if (mp_has_normals) {
-          /* If it turns out that we have complete custom normals for each MPoly
+          /* If it turns out that we have complete custom normals for each poly
            * and we want to use custom normals, this will be overridden. */
           sharp_faces[poly_index] = is_flat_face(normal_indices, nor, vcount);
 

@@ -292,7 +292,8 @@ void ED_screen_draw_edges(struct wmWindow *win);
  * for file read and first use, for scaling window, area moves.
  */
 void ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
-void ED_screen_ensure_updated(struct wmWindowManager *wm,
+void ED_screen_ensure_updated(struct bContext *C,
+                              struct wmWindowManager *wm,
                               struct wmWindow *win,
                               struct bScreen *screen);
 void ED_screen_do_listen(struct bContext *C, const struct wmNotifier *note);

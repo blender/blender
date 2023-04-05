@@ -821,7 +821,7 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
   ID *newid = NULL;
   PointerRNA idptr;
 
-  if (id) {
+  if (id && (ID_REAL_USERS(id) > 1)) {
     /* If property isn't editable,
      * we're going to have an extra block hanging around until we save. */
     if (RNA_property_editable(ptr, prop)) {

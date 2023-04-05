@@ -114,6 +114,9 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
   /* Unhide the socket for the new input in the new node and make a connection to it. */
   socket->flag &= ~SOCK_HIDDEN;
   nodeAddLink(&params.node_tree, &group_input, socket, &params.node, &params.socket);
+
+  bke::node_socket_move_default_value(
+      *CTX_data_main(&params.C), params.node_tree, params.socket, *socket);
 }
 
 static void add_existing_group_input_fn(nodes::LinkSearchOpParams &params,

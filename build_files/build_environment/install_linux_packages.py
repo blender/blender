@@ -75,6 +75,7 @@ class Package:
         #     (typically, because it is included in a parent package already).
         "distro_package_names",
     )
+
     def __init__(self, name, is_group=False, is_mandatory=False,
                  version=None, version_short=None, version_min=None, version_mex=None,
                  sub_packages=(), distro_package_names={}):
@@ -91,7 +92,7 @@ class Package:
 
 
 # Absolute minimal required tools to build Blender.
-BASICS_BUILD_MANDATORY_SUBPACKAGES = (
+BUILD_MANDATORY_SUBPACKAGES = (
     Package(name="Build Essentials", is_group=True,
             sub_packages=(
                 Package(name="GCC",
@@ -99,378 +100,378 @@ BASICS_BUILD_MANDATORY_SUBPACKAGES = (
                                               DISTRO_ID_FEDORA: "gcc",
                                               DISTRO_ID_SUSE: "gcc",
                                               DISTRO_ID_ARCH: ...,
-                                             },
-                ),
+                                              },
+                        ),
                 Package(name="GCC-C++",
                         distro_package_names={DISTRO_ID_DEBIAN: ...,
                                               DISTRO_ID_FEDORA: "gcc-c++",
                                               DISTRO_ID_SUSE: "gcc-c++",
                                               DISTRO_ID_ARCH: ...,
-                                             },
-                ),
+                                              },
+                        ),
                 Package(name="make",
                         distro_package_names={DISTRO_ID_DEBIAN: ...,
                                               DISTRO_ID_FEDORA: "make",
                                               DISTRO_ID_SUSE: "make",
                                               DISTRO_ID_ARCH: ...,
-                                             },
-                ),
+                                              },
+                        ),
                 Package(name="glibc",
                         distro_package_names={DISTRO_ID_DEBIAN: ...,
                                               DISTRO_ID_FEDORA: "glibc-devel",
                                               DISTRO_ID_SUSE: "glibc-devel",
                                               DISTRO_ID_ARCH: ...,
-                                             },
-                ),
+                                              },
+                        ),
             ),
             distro_package_names={DISTRO_ID_DEBIAN: "build-essential",
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: ...,
                                   DISTRO_ID_ARCH: "base-devel",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Git",
             distro_package_names={DISTRO_ID_DEBIAN: "git",
                                   DISTRO_ID_FEDORA: "git",
                                   DISTRO_ID_SUSE: None,
                                   DISTRO_ID_ARCH: "git",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Subversion (aka svn)",
             distro_package_names={DISTRO_ID_DEBIAN: "subversion",
                                   DISTRO_ID_FEDORA: "subversion",
                                   DISTRO_ID_SUSE: "subversion",
                                   DISTRO_ID_ARCH: "subversion",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="CMake",
             distro_package_names={DISTRO_ID_DEBIAN: "cmake",
                                   DISTRO_ID_FEDORA: "cmake",
                                   DISTRO_ID_SUSE: "cmake",
                                   DISTRO_ID_ARCH: "cmake",
-                                 },
-           ),
+                                  },
+            ),
 )
 
 
 # Fairly common additional tools useful to build Blender.
-BASICS_BUILD_OPTIONAL_SUBPACKAGES = (
+BUILD_OPTIONAL_SUBPACKAGES = (
     Package(name="Ninja Builder",
             distro_package_names={DISTRO_ID_DEBIAN: "ninja-build",
                                   DISTRO_ID_FEDORA: "ninja-build",
                                   DISTRO_ID_SUSE: "ninja",
                                   DISTRO_ID_ARCH: "ninja",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="CMake commandline GUI",
             distro_package_names={DISTRO_ID_DEBIAN: "cmake-curses-gui",
                                   DISTRO_ID_FEDORA: None,
                                   DISTRO_ID_SUSE: None,
                                   DISTRO_ID_ARCH: None,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="CMake GUI",
             distro_package_names={DISTRO_ID_DEBIAN: "cmake-gui",
                                   DISTRO_ID_FEDORA: "cmake-gui",
                                   DISTRO_ID_SUSE: "cmake-gui",
                                   DISTRO_ID_ARCH: None,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Patch",
             distro_package_names={DISTRO_ID_DEBIAN: "patch",
                                   DISTRO_ID_FEDORA: "patch",
                                   DISTRO_ID_SUSE: "patch",
                                   DISTRO_ID_ARCH: "patch",
-                                 },
-           ),
+                                  },
+            ),
 )
 
 
 # Library dependencies that are not provided by precompiled libraries.
-BASIC_DEPS_CRITICAL_SUBPACKAGES = (
+DEPS_CRITICAL_SUBPACKAGES = (
     Package(name="X11 library",
             distro_package_names={DISTRO_ID_DEBIAN: "libx11-dev",
                                   DISTRO_ID_FEDORA: "libX11-devel",
                                   DISTRO_ID_SUSE: "libX11-devel",
                                   DISTRO_ID_ARCH: "libx11",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Xxf86vm Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libxxf86vm-dev",
                                   DISTRO_ID_FEDORA: "libXxf86vm-devel",
                                   DISTRO_ID_SUSE: "libXxf86vm-devel",
                                   DISTRO_ID_ARCH: "libxxf86vm",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="XCursor Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libxcursor-dev",
                                   DISTRO_ID_FEDORA: "libXcursor-devel",
                                   DISTRO_ID_SUSE: "libXcursor-devel",
                                   DISTRO_ID_ARCH: "libxcursor",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Xi Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libxi-dev",
                                   DISTRO_ID_FEDORA: "libXi-devel",
                                   DISTRO_ID_SUSE: "libXi-devel",
                                   DISTRO_ID_ARCH: "libxi",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="XRandr Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libxrandr-dev",
                                   DISTRO_ID_FEDORA: "libXrandr-devel",
                                   DISTRO_ID_SUSE: "libXrandr-devel",
                                   DISTRO_ID_ARCH: "libxrandr",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Xinerama Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libxinerama-dev",
                                   DISTRO_ID_FEDORA: "libXinerama-devel",
                                   DISTRO_ID_SUSE: "libXinerama-devel",
                                   DISTRO_ID_ARCH: "libxinerama",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="XKbCommon Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libxkbcommon-dev",
                                   DISTRO_ID_FEDORA: "libxkbcommon-devel",
                                   DISTRO_ID_SUSE: "libxkbcommon-devel",
                                   DISTRO_ID_ARCH: "libxkbcommon",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Wayland Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libwayland-dev",
                                   DISTRO_ID_FEDORA: "wayland-devel",
                                   DISTRO_ID_SUSE: "wayland-devel",
                                   DISTRO_ID_ARCH: "wayland",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Decor Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libdecor-0-dev",
                                   DISTRO_ID_FEDORA: "libdecor-devel",
                                   DISTRO_ID_SUSE: "libdecor-devel",
                                   DISTRO_ID_ARCH: "libdecor",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Wayland Protocols",
             distro_package_names={DISTRO_ID_DEBIAN: "wayland-protocols",
                                   DISTRO_ID_FEDORA: "wayland-protocols-devel",
                                   DISTRO_ID_SUSE: "wayland-protocols-devel",
                                   DISTRO_ID_ARCH: "wayland-protocols",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="DBus Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libdbus-1-dev",
                                   DISTRO_ID_FEDORA: "dbus-devel",
                                   DISTRO_ID_SUSE: "dbus-1-devel",
                                   DISTRO_ID_ARCH: "dbus",
-                                 },
-           ),
+                                  },
+            ),
 )
 
 
 # Basic mandatory set of common libraries to build Blender, which are also available as pre-conmpiled libraries.
-BASIC_DEPS_MANDATORY_SUBPACKAGES = (
+DEPS_MANDATORY_SUBPACKAGES = (
     Package(name="JPEG Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libjpeg-dev",
                                   DISTRO_ID_FEDORA: "libjpeg-turbo-devel",
                                   DISTRO_ID_SUSE: "libjpeg8-devel",
                                   DISTRO_ID_ARCH: "libjpeg-turbo",
                                   },
-           ),
+            ),
     Package(name="PNG Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libpng-dev",
                                   DISTRO_ID_FEDORA: "libpng-devel",
                                   DISTRO_ID_SUSE: "libpng16-compat-devel",
                                   DISTRO_ID_ARCH: "libpng",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="FreeType Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libfreetype6-dev",
                                   DISTRO_ID_FEDORA: "freetype-devel",
                                   DISTRO_ID_SUSE: "freetype2-devel",
                                   DISTRO_ID_ARCH: "freetype2",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="FontConfig Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libfontconfig-dev",
                                   DISTRO_ID_FEDORA: "fontconfig",
                                   DISTRO_ID_SUSE: "fontconfig",
                                   DISTRO_ID_ARCH: "fontconfig",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="ZStandard Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libzstd-dev",
                                   DISTRO_ID_FEDORA: "libzstd-devel",
                                   DISTRO_ID_SUSE: "libzstd-devel",
                                   DISTRO_ID_ARCH: "zstd",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="BZ2 Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libbz2-dev",
                                   DISTRO_ID_FEDORA: "bzip2-devel",
                                   DISTRO_ID_SUSE: "libbz2-devel",
                                   DISTRO_ID_ARCH: "bzip2",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="LZMA Library",
             distro_package_names={DISTRO_ID_DEBIAN: "liblzma-dev",
                                   DISTRO_ID_FEDORA: "lzma-sdk-devel",  # ???
                                   DISTRO_ID_SUSE: "lzma-sdk-devel",  # ???
                                   DISTRO_ID_ARCH: "xz",  # ???
-                                 },
-           ),
+                                  },
+            ),
     Package(name="SDL2 Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libsdl2-dev",
                                   DISTRO_ID_FEDORA: "SDL2-devel",
                                   DISTRO_ID_SUSE: "SDL2-devel",
                                   DISTRO_ID_ARCH: "sdl2",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="ShaderC Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libshaderc-dev",
                                   DISTRO_ID_FEDORA: "libshaderc-devel",
                                   DISTRO_ID_SUSE: "shaderc-devel",
                                   DISTRO_ID_ARCH: "shaderc",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Epoxy Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libepoxy-dev",
                                   DISTRO_ID_FEDORA: "libepoxy-devel",
                                   DISTRO_ID_SUSE: "libepoxy-devel",
                                   DISTRO_ID_ARCH: "libepoxy",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="XML2 Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libxml2-dev",
                                   DISTRO_ID_FEDORA: "libxml2-devel",
                                   DISTRO_ID_SUSE: "libxml2-devel",
                                   DISTRO_ID_ARCH: "libxml2",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Haru Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libhpdf-dev",
                                   DISTRO_ID_FEDORA: "libharu-devel",
                                   DISTRO_ID_SUSE: "libharu-devel",
                                   DISTRO_ID_ARCH: "libharu",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="PyString Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libpystring-dev",
                                   DISTRO_ID_FEDORA: "pystring-devel",
                                   DISTRO_ID_SUSE: "pystring-devel",
                                   DISTRO_ID_ARCH: "pystring",
-                                 },
-           ),
+                                  },
+            ),
 )
 
 
 # Basic optional set of common libraries to build Blender, which are also available as pre-conmpiled libraries.
-BASIC_DEPS_OPTIONAL_SUBPACKAGES = (
+DEPS_OPTIONAL_SUBPACKAGES = (
     Package(name="OpenJPG Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libopenjp2-7-dev",
                                   DISTRO_ID_FEDORA: "openjpeg2-devel",
                                   DISTRO_ID_SUSE: "openjpeg2-devel",
                                   DISTRO_ID_ARCH: "openjpeg2",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="TIFF Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libtiff-dev",
                                   DISTRO_ID_FEDORA: "libtiff-devel",
                                   DISTRO_ID_SUSE: "libtiff-devel",
                                   DISTRO_ID_ARCH: "libtiff",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Jack2 Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libjack-jackd2-dev",
                                   DISTRO_ID_FEDORA: "jack-audio-connection-kit-devel",
                                   DISTRO_ID_SUSE: None,
                                   DISTRO_ID_ARCH: "jack2",
                                   },
-           ),
+            ),
     Package(name="Pulse Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libpulse-dev",
                                   DISTRO_ID_FEDORA: "pulseaudio-libs-devel",
                                   DISTRO_ID_SUSE: "libpulse-devel",
                                   DISTRO_ID_ARCH: "libpulse",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="OpenAL Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libopenal-dev",
                                   DISTRO_ID_FEDORA: "openal-soft-devel",
                                   DISTRO_ID_SUSE: None,
                                   DISTRO_ID_ARCH: "openal",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="SndFile Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libsndfile1-dev",
                                   DISTRO_ID_FEDORA: "libsndfile-devel",
                                   DISTRO_ID_SUSE: None,
                                   DISTRO_ID_ARCH: "libsndfile",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="JEMalloc Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libjemalloc-dev",
                                   DISTRO_ID_FEDORA: "jemalloc-devel",
                                   DISTRO_ID_SUSE: "jemalloc-devel",
                                   DISTRO_ID_ARCH: "jemalloc",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Vulkan Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libvulkan-dev",
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: ...,
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Vulkan Headers",
             distro_package_names={DISTRO_ID_DEBIAN: ...,
                                   DISTRO_ID_FEDORA: "vulkan-headers",
                                   DISTRO_ID_SUSE: "vulkan-headers",
                                   DISTRO_ID_ARCH: "vulkan-headers",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Vulkan ICD Loader",
             distro_package_names={DISTRO_ID_DEBIAN: ...,
                                   DISTRO_ID_FEDORA: "vulkan-loader-devel",
                                   DISTRO_ID_SUSE: ...,
                                   DISTRO_ID_ARCH: "vulkan-icd-loader",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="GMP Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libgmp-dev",
                                   DISTRO_ID_FEDORA: "gmp-devel",
                                   DISTRO_ID_SUSE: "gmp-devel",
                                   DISTRO_ID_ARCH: "gmp",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="PugiXML Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libpugixml-dev",
                                   DISTRO_ID_FEDORA: "pugixml-devel",
                                   DISTRO_ID_SUSE: "pugixml-devel",
                                   DISTRO_ID_ARCH: "pugixml",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="FFTW3 Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libfftw3-dev",
                                   DISTRO_ID_FEDORA: "fftw-devel",
                                   DISTRO_ID_SUSE: "fftw-devel",
                                   DISTRO_ID_ARCH: "fftw",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="POTrace Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libpotrace-dev",
                                   DISTRO_ID_FEDORA: "potrace-devel",
                                   DISTRO_ID_SUSE: "potrace-devel",
                                   DISTRO_ID_ARCH: "potrace",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Yaml CPP Library",
             distro_package_names={DISTRO_ID_DEBIAN: "libyaml-cpp-dev",
                                   DISTRO_ID_FEDORA: "yaml-cpp-devel",
                                   DISTRO_ID_SUSE: "yaml-cpp-devel",
                                   DISTRO_ID_ARCH: "yaml-cpp",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Pcre Library Devel",
             sub_packages=(
                 Package(name="Pcre Library", is_mandatory=False,
@@ -478,15 +479,15 @@ BASIC_DEPS_OPTIONAL_SUBPACKAGES = (
                                               DISTRO_ID_FEDORA: ...,
                                               DISTRO_ID_SUSE: "libpcre1",  # this is... a dependency joke?
                                               DISTRO_ID_ARCH: ...,
-                                             },
-                ),
+                                              },
+                        ),
             ),
             distro_package_names={DISTRO_ID_DEBIAN: ...,
                                   DISTRO_ID_FEDORA: "pcre-devel",  # Missing dependency of collada package?
                                   DISTRO_ID_SUSE: "pcre-devel",  # Missing dependency of collada package?
                                   DISTRO_ID_ARCH: ...,
-                                 },
-    ),
+                                  },
+            ),
 )
 
 
@@ -499,70 +500,72 @@ def suse_pypackages_name_gen(name):
             v = "".join(str(i) for i in PackageInstaller.version_tokenize(pp.version_installed)[0][:2])
             return "python" + v + "-" + name
     return _gen
+
+
 PYTHON_SUBPACKAGES = (
     Package(name="Cython", version="0.29", version_short="0.29", version_min="0.20", version_mex="1.0",
             distro_package_names={DISTRO_ID_DEBIAN: "cython3",
                                   DISTRO_ID_FEDORA: "python3-Cython",
                                   DISTRO_ID_SUSE: suse_pypackages_name_gen("Cython"),
                                   DISTRO_ID_ARCH: "cython",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="IDNA", version="3.3", version_short="3.3", version_min="2.0", version_mex="4.0",
             distro_package_names={DISTRO_ID_DEBIAN: "python3-idna",
                                   DISTRO_ID_FEDORA: "python3-idna",
                                   DISTRO_ID_SUSE: suse_pypackages_name_gen("idna"),
                                   DISTRO_ID_ARCH: "python-idna",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Charset Normalizer", version="2.0.10", version_short="2.0", version_min="2.0.6", version_mex="4.0.0",
             distro_package_names={DISTRO_ID_DEBIAN: "python3-charset-normalizer",
                                   DISTRO_ID_FEDORA: "python3-charset-normalizer",
                                   DISTRO_ID_SUSE: suse_pypackages_name_gen("charset-normalizer"),
                                   DISTRO_ID_ARCH: "python-charset-normalizer",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="URLLib", version="1.26.8", version_short="1.26", version_min="1.0", version_mex="2.0",
             distro_package_names={DISTRO_ID_DEBIAN: "python3-urllib3",
                                   DISTRO_ID_FEDORA: "python3-urllib3",
                                   DISTRO_ID_SUSE: suse_pypackages_name_gen("urllib3"),
                                   DISTRO_ID_ARCH: "python-urllib3",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Certifi", version="2021.10.08", version_short="2021.10", version_min="2021.0", version_mex="2023.0",
             distro_package_names={DISTRO_ID_DEBIAN: "python3-certifi",
                                   DISTRO_ID_FEDORA: "python3-certifi",
                                   DISTRO_ID_SUSE: suse_pypackages_name_gen("certifi"),
                                   DISTRO_ID_ARCH: "python-certifi",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Requests", version="2.27.1", version_short="2.27", version_min="2.0", version_mex="3.0",
             distro_package_names={DISTRO_ID_DEBIAN: "python3-requests",
                                   DISTRO_ID_FEDORA: "python3-requests",
                                   DISTRO_ID_SUSE: suse_pypackages_name_gen("requests"),
                                   DISTRO_ID_ARCH: "python-requests",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="ZStandard", version="0.16.0", version_short="0.16", version_min="0.15.2", version_mex="1.0.0",
             distro_package_names={DISTRO_ID_DEBIAN: "python3-zstandard",
                                   DISTRO_ID_FEDORA: "python3-zstandard",
                                   DISTRO_ID_SUSE: suse_pypackages_name_gen("zstandard"),
                                   DISTRO_ID_ARCH: "python-zstandard",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="NumPy", version="1.23.5", version_short="1.23", version_min="1.14", version_mex="2.0",
             distro_package_names={DISTRO_ID_DEBIAN: "python3-numpy",
                                   DISTRO_ID_FEDORA: "python3-numpy",
                                   DISTRO_ID_SUSE: suse_pypackages_name_gen("numpy"),
                                   DISTRO_ID_ARCH: "python-numpy",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="NumPy Devel", version="1.23.5", version_short="1.23", version_min="1.14", version_mex="2.0",
             distro_package_names={DISTRO_ID_DEBIAN: ...,
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: suse_pypackages_name_gen("numpy-devel"),
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
 )
 
 
@@ -573,167 +576,167 @@ BOOST_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: "libboost_filesystem-devel",
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="LibBoost Locale", is_mandatory=True,
             distro_package_names={DISTRO_ID_DEBIAN: "libboost-locale-dev",
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: "libboost_locale-devel",
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="LibBoost Thread", is_mandatory=True,
             distro_package_names={DISTRO_ID_DEBIAN: "libboost-thread-dev",
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: "libboost_thread-devel",
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="LibBoost Regex", is_mandatory=True,
             distro_package_names={DISTRO_ID_DEBIAN: "libboost-regex-dev",
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: "libboost_regex-devel",
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="LibBoost System", is_mandatory=True,
             distro_package_names={DISTRO_ID_DEBIAN: "libboost-system-dev",
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: "libboost_system-devel",
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="LibBoost Date/Time", is_mandatory=True,
             distro_package_names={DISTRO_ID_DEBIAN: "libboost-date-time-dev",
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: "libboost_date_time-devel",
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="LibBoost Wave", is_mandatory=True,
             distro_package_names={DISTRO_ID_DEBIAN: "libboost-wave-dev",
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: "libboost_wave-devel",
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="LibBoost Atomic", is_mandatory=True,
             distro_package_names={DISTRO_ID_DEBIAN: "libboost-atomic-dev",
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: "libboost_atomic-devel",
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="LibBoost Serialization", is_mandatory=True,
             distro_package_names={DISTRO_ID_DEBIAN: "libboost-serialization-dev",
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: "libboost_serialization-devel",
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="LibBoost ProgramOptions", is_mandatory=True,
             distro_package_names={DISTRO_ID_DEBIAN: "libboost-program-options-dev",
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: "libboost_program_options-devel",
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="LibBoost IOStreams", is_mandatory=True,
             distro_package_names={DISTRO_ID_DEBIAN: "libboost-iostreams-dev",
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: "libboost_iostreams-devel",
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="LibBoost Python", is_mandatory=True,
             distro_package_names={DISTRO_ID_DEBIAN: "libboost-python-dev",
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: "libboost_python3-devel",
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
     Package(name="LibBoost Numpy", is_mandatory=True,
             distro_package_names={DISTRO_ID_DEBIAN: "libboost-numpy-dev",
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: "libboost_numpy3-devel",
                                   DISTRO_ID_ARCH: ...,
-                                 },
-           ),
+                                  },
+            ),
 )
 
 
 # Packages required to build Blender, which are not included in the precompiled libraries.
 PACKAGES_BASICS_BUILD = (
-    Package(name="Basics Mandatory Build", is_group=True, is_mandatory=True, sub_packages=BASICS_BUILD_MANDATORY_SUBPACKAGES),
-    Package(name="Basics Optional Build", is_group=True, is_mandatory=False, sub_packages=BASICS_BUILD_OPTIONAL_SUBPACKAGES),
-    Package(name="Basic Critical Dependencies", is_group=True, is_mandatory=True, sub_packages=BASIC_DEPS_CRITICAL_SUBPACKAGES),
+    Package(name="Basics Mandatory Build", is_group=True, is_mandatory=True, sub_packages=BUILD_MANDATORY_SUBPACKAGES),
+    Package(name="Basics Optional Build", is_group=True, is_mandatory=False, sub_packages=BUILD_OPTIONAL_SUBPACKAGES),
+    Package(name="Basic Critical Deps", is_group=True, is_mandatory=True, sub_packages=DEPS_CRITICAL_SUBPACKAGES),
 )
 
 
 # All packages, required or 'nice to have', to build Blender.
 # Also covers (as best as possible) the dependencies provided by the precompiled libraries.
 PACKAGES_ALL = (
-    Package(name="Basics Mandatory Build", is_group=True, is_mandatory=True, sub_packages=BASICS_BUILD_MANDATORY_SUBPACKAGES),
-    Package(name="Basics Optional Build", is_group=True, is_mandatory=False, sub_packages=BASICS_BUILD_OPTIONAL_SUBPACKAGES),
-    Package(name="Basic Critical Dependencies", is_group=True, is_mandatory=True, sub_packages=BASIC_DEPS_CRITICAL_SUBPACKAGES),
-    Package(name="Basic Mandatory Dependencies", is_group=True, is_mandatory=True, sub_packages=BASIC_DEPS_MANDATORY_SUBPACKAGES),
-    Package(name="Basic Optional Dependencies", is_group=True, is_mandatory=False, sub_packages=BASIC_DEPS_OPTIONAL_SUBPACKAGES),
+    Package(name="Basics Mandatory Build", is_group=True, is_mandatory=True, sub_packages=BUILD_MANDATORY_SUBPACKAGES),
+    Package(name="Basics Optional Build", is_group=True, is_mandatory=False, sub_packages=BUILD_OPTIONAL_SUBPACKAGES),
+    Package(name="Basic Critical Deps", is_group=True, is_mandatory=True, sub_packages=DEPS_CRITICAL_SUBPACKAGES),
+    Package(name="Basic Mandatory Deps", is_group=True, is_mandatory=True, sub_packages=DEPS_MANDATORY_SUBPACKAGES),
+    Package(name="Basic Optional Deps", is_group=True, is_mandatory=False, sub_packages=DEPS_OPTIONAL_SUBPACKAGES),
 
     Package(name="Clang Format", version="10.0", version_short="10.0", version_min="6.0", version_mex="15.0",
             distro_package_names={DISTRO_ID_DEBIAN: "clang-format",
-                                  DISTRO_ID_FEDORA: "clang",  # On Fedora clang-format is part of the main clang package.
-                                  DISTRO_ID_SUSE: "clang",  # On Suse clang-format is part of the main clang package.
-                                  DISTRO_ID_ARCH: "clang",  # On Arch clang-format is part of the main clang package.
-                                 },
-           ),
+                                  DISTRO_ID_FEDORA: "clang",  # clang-format is part of the main clang package.
+                                  DISTRO_ID_SUSE: "clang",  # clang-format is part of the main clang package.
+                                  DISTRO_ID_ARCH: "clang",  # clang-format is part of the main clang package.
+                                  },
+            ),
     Package(name="Python", is_mandatory=True, version="3.10.9", version_short="3.10", version_min="3.10", version_mex="3.12",
             sub_packages=PYTHON_SUBPACKAGES,
             distro_package_names={DISTRO_ID_DEBIAN: "python3-dev",
                                   DISTRO_ID_FEDORA: "python3-devel",
                                   DISTRO_ID_SUSE: "python3-devel",
                                   DISTRO_ID_ARCH: "python",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Boost Libraries", is_mandatory=True, version="1.80.0", version_short="1.80", version_min="1.49", version_mex="2.0",
             sub_packages=BOOST_SUBPACKAGES,
             distro_package_names={DISTRO_ID_DEBIAN: "libboost-dev",
                                   DISTRO_ID_FEDORA: "boost-devel",
                                   DISTRO_ID_SUSE: "boost-devel",
                                   DISTRO_ID_ARCH: "boost",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="TBB Library", is_mandatory=True, version="2020", version_short="2020", version_min="2018", version_mex="2022",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: "libtbb-dev",
                                   DISTRO_ID_FEDORA: "tbb-devel",
                                   DISTRO_ID_SUSE: "tbb-devel",
                                   DISTRO_ID_ARCH: "intel-oneapi-tbb",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="OpenColorIO Library", is_mandatory=False, version="2.2.0", version_short="2.2", version_min="2.0", version_mex="3.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: "libopencolorio-dev",
                                   DISTRO_ID_FEDORA: "OpenColorIO-devel",
                                   DISTRO_ID_SUSE: "OpenColorIO-devel",
                                   DISTRO_ID_ARCH: "opencolorio",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="IMath Library", is_mandatory=False, version="3.1.5", version_short="3.1", version_min="3.0", version_mex="4.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: "libimath-dev",
                                   DISTRO_ID_FEDORA: "imath-devel",
                                   DISTRO_ID_SUSE: "Imath-devel",
                                   DISTRO_ID_ARCH: "imath",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="OpenEXR Library", is_mandatory=False, version="3.1.5", version_short="3.1", version_min="3.0", version_mex="4.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: "libopenexr-dev",
                                   DISTRO_ID_FEDORA: "openexr-devel",
                                   DISTRO_ID_SUSE: "openexr-devel",
                                   DISTRO_ID_ARCH: "openexr",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="OpenImageIO Library", is_mandatory=True, version="2.4.9.0", version_short="2.4", version_min="2.2.0", version_mex="2.5.0",
             sub_packages=(
                 Package(name="OpenImageIO Tools", is_mandatory=False,
@@ -741,15 +744,15 @@ PACKAGES_ALL = (
                                               DISTRO_ID_FEDORA: "OpenImageIO-utils",
                                               DISTRO_ID_SUSE: "OpenImageIO",  # ???
                                               DISTRO_ID_ARCH: ...,
-                                             },
-                ),
+                                              },
+                        ),
             ),
             distro_package_names={DISTRO_ID_DEBIAN: "libopenimageio-dev",
                                   DISTRO_ID_FEDORA: "OpenImageIO-devel",
                                   DISTRO_ID_SUSE: "OpenImageIO-devel",
                                   DISTRO_ID_ARCH: "openimageio",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="LLVM Library", is_mandatory=False, version="12.0.0", version_short="12.0", version_min="11.0", version_mex="16.0",
             sub_packages=(
                 Package(name="Clang Compiler", is_mandatory=False,
@@ -757,38 +760,38 @@ PACKAGES_ALL = (
                                               DISTRO_ID_FEDORA: "clang-devel",
                                               DISTRO_ID_SUSE: "clang-devel",
                                               DISTRO_ID_ARCH: "clang",
-                                             },
-                ),
+                                              },
+                        ),
                 Package(name="Clang Library", is_mandatory=False,
                         distro_package_names={DISTRO_ID_DEBIAN: "libclang-dev",
                                               DISTRO_ID_FEDORA: ...,
                                               DISTRO_ID_SUSE: ...,
                                               DISTRO_ID_ARCH: ...,
-                                             },
-                ),
+                                              },
+                        ),
             ),
             distro_package_names={DISTRO_ID_DEBIAN: "llvm-dev",
                                   DISTRO_ID_FEDORA: "llvm-devel",
                                   DISTRO_ID_SUSE: "llvm-devel",
                                   DISTRO_ID_ARCH: "llvm",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="OpenShadingLanguage Library", is_mandatory=False, version="1.13.0.2", version_short="1.13", version_min="1.11", version_mex="2.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: None,  # No package currently.
                                   DISTRO_ID_FEDORA: "openshadinglanguage-devel",
                                   DISTRO_ID_SUSE: "OpenShadingLanguage-devel",
                                   DISTRO_ID_ARCH: "openshadinglanguage",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="OpenSubDiv Library", is_mandatory=False, version="3.5.0", version_short="3.5", version_min="3.5", version_mex="4.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: "libosd-dev",
                                   DISTRO_ID_FEDORA: "opensubdiv-devel",
                                   DISTRO_ID_SUSE: None,
                                   DISTRO_ID_ARCH: "opensubdiv",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="OpenVDB Library", is_mandatory=False, version="10.0.0", version_short="10.0", version_min="10.0", version_mex="11.0",
             sub_packages=(
                 # Assume packaged versions of the dependencies are compatible with OpenVDB package.
@@ -799,95 +802,95 @@ PACKAGES_ALL = (
                                                           DISTRO_ID_FEDORA: "blosc-devel",
                                                           DISTRO_ID_SUSE: "blosc-devel",
                                                           DISTRO_ID_ARCH: "blosc",
-                                                         },
-                            ),
+                                                          },
+                                    ),
                             Package(name="NanoVDB Library", is_mandatory=False,
                                     distro_package_names={DISTRO_ID_DEBIAN: "libnanovdb-dev",
                                                           DISTRO_ID_FEDORA: ...,  # Part of openvdb package.
                                                           DISTRO_ID_SUSE: None,
                                                           DISTRO_ID_ARCH: ...,   # Part of openvdb package.
-                                                         },
-                            ),
+                                                          },
+                                    ),
                         ),
-                ),
+                        ),
             ),
             distro_package_names={DISTRO_ID_DEBIAN: "libopenvdb-dev",
                                   DISTRO_ID_FEDORA: "openvdb-devel",
                                   DISTRO_ID_SUSE: None,  # No known package yet.
                                   DISTRO_ID_ARCH: "openvdb",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Alembic Library", is_mandatory=False, version="1.8.3", version_short="1.8", version_min="1.7", version_mex="2.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: None,
                                   DISTRO_ID_FEDORA: "alembic-devel",
                                   DISTRO_ID_SUSE: "alembic-devel",
                                   DISTRO_ID_ARCH: "alembic",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="MaterialX Library", is_mandatory=False, version="1.38.6", version_short="1.38", version_min="1.38", version_mex="1.40",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: None,
                                   DISTRO_ID_FEDORA: None,
                                   DISTRO_ID_SUSE: None,
                                   DISTRO_ID_ARCH: "materialx-git",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="USD Library", is_mandatory=False, version="22.11", version_short="22.11", version_min="20.05", version_mex="23.00",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: None,
                                   DISTRO_ID_FEDORA: "usd-devel",
                                   DISTRO_ID_SUSE: None,
                                   DISTRO_ID_ARCH: "usd",  # No official package, in AUR only currently.
-                                 },
-           ),
+                                  },
+            ),
     Package(name="OpenCollada Library", is_mandatory=False, version="1.6.68", version_short="1.6", version_min="1.6.68", version_mex="1.7",
             distro_package_names={DISTRO_ID_DEBIAN: "opencollada-dev",  # Useless, very old!
                                   DISTRO_ID_FEDORA: "openCOLLADA-devel",
                                   DISTRO_ID_SUSE: "libopenCOLLADA-devel",
                                   DISTRO_ID_ARCH: "opencollada",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Embree Library", is_mandatory=False, version="3.13.4", version_short="3.13", version_min="3.13", version_mex="5.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: "libembree-dev",
                                   DISTRO_ID_FEDORA: "embree-devel",
                                   DISTRO_ID_SUSE: "embree-devel",
                                   DISTRO_ID_ARCH: "embree",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="OpenImageDenoiser Library", is_mandatory=False, version="1.4.3", version_short="1.4", version_min="1.4.0", version_mex="1.5",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: None,
                                   DISTRO_ID_FEDORA: "oidn-devel",
                                   DISTRO_ID_SUSE: "OpenImageDenoise-devel",
                                   DISTRO_ID_ARCH: "openimagedenoise",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="Level Zero Library", is_mandatory=False, version="1.7.15", version_short="1.7", version_min="1.7", version_mex="2.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: None,
                                   DISTRO_ID_FEDORA: "oneapi-level-zero-devel",
                                   DISTRO_ID_SUSE: None,
                                   DISTRO_ID_ARCH: "level-zero-headers",  # ???
-                                 },
-           ),
+                                  },
+            ),
     Package(name="OpenPGL Library", is_mandatory=False, version="0.4.1", version_short="0.4", version_min="0.4.1", version_mex="0.5",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: None,
                                   DISTRO_ID_FEDORA: "openpgl-devel",
                                   DISTRO_ID_SUSE: None,
                                   DISTRO_ID_ARCH: "openpgl",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="XROpenXR Library", is_mandatory=False, version="1.0.22", version_short="1.0", version_min="1.0.8", version_mex="2.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: "libopenxr-dev",
                                   DISTRO_ID_FEDORA: None,
                                   DISTRO_ID_SUSE: None,
                                   DISTRO_ID_ARCH: "openxr",
-                                 },
-           ),
+                                  },
+            ),
     Package(name="FFMPEG Library", is_mandatory=False, version="5.1.2", version_short="5.1", version_min="4.0", version_mex="7.0",
             sub_packages=(
                 Package(name="AVDevice FFMPEG Library", is_mandatory=False,
@@ -895,20 +898,21 @@ PACKAGES_ALL = (
                                               DISTRO_ID_FEDORA: ...,
                                               DISTRO_ID_SUSE: ...,
                                               DISTRO_ID_ARCH: ...,
-                                             },
-                ),
+                                              },
+                        ),
             ),
             distro_package_names={DISTRO_ID_DEBIAN: "ffmpeg",
                                   DISTRO_ID_FEDORA: "ffmpeg-free-devel",
                                   DISTRO_ID_SUSE: "ffmpeg-devel",
                                   DISTRO_ID_ARCH: "ffmpeg",
-                                 },
-           ),
+                                  },
+            ),
 )
 
 
 class ProgressBar:
     """Very basic progress bar printing in the console."""
+
     def __init__(self, min_value=0, max_value=100, print_len=80, is_known_limit=True):
         self.value = 0
         self.min_value = min_value
@@ -965,7 +969,11 @@ class PackageInstaller:
             pbar.update(steps=2)
             time.sleep(0.05)
         pbar.finish()
-        return subprocess.CompletedProcess(args=command, returncode=p.returncode, stdout=p.stdout.read(), stderr=p.stderr.read())
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=p.returncode,
+            stdout=p.stdout.read(),
+            stderr=p.stderr.read())
 
     @property
     def can_install(self):
@@ -1019,6 +1027,9 @@ class PackageInstaller:
                 versions_set.add(version)
                 yield version
         MEX_RANGE_DIFF = 5
+        VERSION_FACTOR_MAX = 100
+        VERSION_FACTOR_MINRANGE_MULTIPLIER = 2
+        VERSION_FACTOR_STEP_DIVIDER = 10
 
         version = cls.version_tokenize(package.version)[0][:2]
         version_min = cls.version_tokenize(package.version_min)[0][:2]
@@ -1040,18 +1051,20 @@ class PackageInstaller:
             yield from do_yield(str(version_major), versions_set)
             return
 
-        version_minor_fac = 1
         version_minor = version[1]
         version_minor_min = 0 if len(version_min) < 2 else version_min[1]
-        version_minor_mex = 0 if len(version_mex) < 2 else version_mex[0]
-        if ((version_minor >= 100  or version_minor_min >= 100 or version_minor_mex >= 100) and
-                 (version_major_min != version_major_mex or version_minor_mex - version_minor_min >= 200)
-                 and version_minor // 100 == 0):
-            version_minor_fac = 100
-        elif ((version_minor >= 10  or version_minor_min >= 10 or version_minor_mex >= 10) and
-                 (version_major_min != version_major_mex or version_minor_mex - version_minor_min >= 20)
-                 and version_minor // 10 == 0):
-            version_minor_fac = 10
+        version_minor_mex = 0 if len(version_mex) < 2 else version_mex[1]
+        version_minor_fac = 1
+        vfac = VERSION_FACTOR_MAX
+        while vfac > 1:
+            version_minor_minrange = vfac * VERSION_FACTOR_MINRANGE_MULTIPLIER
+            is_vfac_in_range = (version_minor >= vfac or version_minor_min >= vfac or version_minor_mex >= vfac)
+            is_version_range_big_enough = (version_major_min != version_major_mex or
+                                           version_minor_mex - version_minor_min >= version_minor_minrange)
+            if (is_vfac_in_range and is_version_range_big_enough and version_minor % vfac == 0):
+                version_minor_fac = vfac
+                break
+            vfac = vfac // VERSION_FACTOR_STEP_DIVIDER
         yield from do_yield(str(version_major) + "." + str(version_minor), versions_set)
         yield from do_yield(str(version_major) + str(version_minor), versions_set)
         for i in range(1, MEX_RANGE_DIFF):
@@ -1211,8 +1224,9 @@ class PackageInstaller:
             package_distro_name = self.package_distro_name(package, parent_packages)[0]
             if package_distro_name is None:
                 if package.is_mandatory:
-                    self.settings.logger.warning(f"Mandatory package {info_name} is not defined for {distro_id} distribution, "
-                                                 "Blender will likely not build at all without it.\n")
+                    self.settings.logger.warning(
+                        f"Mandatory package {info_name} is not defined for {distro_id} distribution, "
+                        "Blender will likely not build at all without it.\n")
                 else:
                     self.settings.logger.info(f"Package {info_name} is not defined for {distro_id} distribution.\n")
                 continue
@@ -1223,7 +1237,8 @@ class PackageInstaller:
             # Inherit parent version info if needed and possible.
             if package.version is None:
                 if not parent_packages:
-                    self.settings.logger.critical(f"Package {info_name} ({package_distro_name}) has no version information.")
+                    self.settings.logger.critical(
+                        f"Package {info_name} ({package_distro_name}) has no version information.")
                     exit(1)
                 package.version = parent_packages[-1].version
                 package.version_short = parent_packages[-1].version_short
@@ -1249,8 +1264,9 @@ class PackageInstaller:
         package_name = self.package_find(package, package_distro_name)
         if package_name is None:
             if package.is_mandatory:
-                self.settings.logger.critical(f"\tFailed to find a matching mandatory {package_distro_name} "
-                                              f"(withing versions range [{package.version_min}, {package.version_mex}[).")
+                self.settings.logger.critical(
+                    f"\tFailed to find a matching mandatory {package_distro_name} "
+                    f"(withing versions range [{package.version_min}, {package.version_mex}[).")
                 exit(1)
             self.settings.logger.warning(f"\tFailed to find a matching {package_distro_name} "
                                          f"(withing versions range [{package.version_min}, {package.version_mex}[).")
@@ -1290,11 +1306,13 @@ class PackageInstaller:
             # Only from PackageInstaller base class.
             assert self.__class__ is PackageInstaller
             packages_info_names = ',\n\t\t\t'.join(packages_distro_names)
-            self.settings.logger.info(f"\tWould install group of packages {package.name}:\n\t\t\t{packages_info_names}.")
+            self.settings.logger.info(
+                f"\tWould install group of packages {package.name}:\n\t\t\t{packages_info_names}.")
             return True
 
         if self.settings.no_sudo:
-            self.settings.logger.warning(f"\t--no-sudo enabled, impossible to run apt-get install for {packages_distro_names}.")
+            self.settings.logger.warning(
+                f"\t--no-sudo enabled, impossible to run apt-get install for {packages_distro_names}.")
             return True
 
         if not packages_distro_names:
@@ -1308,7 +1326,8 @@ class PackageInstaller:
                 self.settings.logger.critical(f"\tFailed to install packages:\n\t{repr(result)}")
                 exit(1)
             else:
-                self.settings.logger.warning(f"\tFailed to find install all of {packages_distro_names}:\n\t{repr(result)}")
+                self.settings.logger.warning(
+                    f"\tFailed to find install all of {packages_distro_names}:\n\t{repr(result)}")
         self.settings.logger.debug(repr(result))
         return result.returncode == 0
 
@@ -1363,19 +1382,35 @@ class PackageInstallerDebian(PackageInstaller):
         version = self._re_version_candidate.search(str(result.stdout))
         return version["version"] if version is not None else None
 
-    def package_name_version_gen(self, package, package_distro_name, version=..., suffix="", do_range_version_names=False):
+    def package_name_version_gen(
+            self,
+            package,
+            package_distro_name,
+            version=...,
+            suffix="",
+            do_range_version_names=False):
         if version is ...:
             version = package.version_short
         # Generate versions variants with version between main name and '-dev' suffix, if any.
         tmp_package_name = package_distro_name.removesuffix("-dev")
         if tmp_package_name != package_distro_name:
-            for pn in self.package_name_version_gen(package, tmp_package_name, version, suffix="-dev" + suffix, do_range_version_names=do_range_version_names):
+            for pn in self.package_name_version_gen(
+                    package,
+                    tmp_package_name,
+                    version,
+                    suffix="-dev" + suffix,
+                    do_range_version_names=do_range_version_names):
                 yield pn
         # Strip any 'version-like' numbers at the end of the package name (already stripped of '-dev' suffix)
         # and generate versions variants out of it.
         tmp_package_name = tmp_package_name.rstrip("0123456789.-")
         if tmp_package_name != package_distro_name:
-            for pn in self.package_name_version_gen(package, tmp_package_name, version, suffix=suffix, do_range_version_names=do_range_version_names):
+            for pn in self.package_name_version_gen(
+                    package,
+                    tmp_package_name,
+                    version,
+                    suffix=suffix,
+                    do_range_version_names=do_range_version_names):
                 yield pn
         # Generate version variants from given package name.
         versions = [version]
@@ -1413,19 +1448,35 @@ class PackageInstallerFedora(PackageInstaller):
     def package_query_version_get_impl(self, package_distro_name):
         return self.package_version_get(["sudo", "dnf", "info", "--all", package_distro_name])
 
-    def package_name_version_gen(self, package, package_distro_name, version=..., suffix="", do_range_version_names=False):
+    def package_name_version_gen(
+            self,
+            package,
+            package_distro_name,
+            version=...,
+            suffix="",
+            do_range_version_names=False):
         if version is ...:
             version = package.version_short
         # Generate versions variants with version between main name and '-devel' suffix, if any.
         tmp_package_name = package_distro_name.removesuffix("-devel")
         if tmp_package_name != package_distro_name:
-            for pn in self.package_name_version_gen(package, tmp_package_name, version, suffix="-devel" + suffix, do_range_version_names=do_range_version_names):
+            for pn in self.package_name_version_gen(
+                    package,
+                    tmp_package_name,
+                    version,
+                    suffix="-devel" + suffix,
+                    do_range_version_names=do_range_version_names):
                 yield pn
         # Strip any 'version-like' numbers at the end of the package name (already stripped of '-devel' suffix)
         # and generate versions variants out of it.
         tmp_package_name = tmp_package_name.rstrip("0123456789.-")
         if tmp_package_name != package_distro_name:
-            for pn in self.package_name_version_gen(package, tmp_package_name, version, suffix=suffix, do_range_version_names=do_range_version_names):
+            for pn in self.package_name_version_gen(
+                    package,
+                    tmp_package_name,
+                    version,
+                    suffix=suffix,
+                    do_range_version_names=do_range_version_names):
                 yield pn
         # Generate version variants from given package name.
         versions = [version]
@@ -1466,19 +1517,35 @@ class PackageInstallerSuse(PackageInstaller):
         result = self.run_command(["sudo", "zypper", "info", package_distro_name])
         return self.package_version_get(result)
 
-    def package_name_version_gen(self, package, package_distro_name, version=..., suffix="", do_range_version_names=False):
+    def package_name_version_gen(
+            self,
+            package,
+            package_distro_name,
+            version=...,
+            suffix="",
+            do_range_version_names=False):
         if version is ...:
             version = package.version_short
         # Generate versions variants with version between main name and '-devel' suffix, if any.
         tmp_package_name = package_distro_name.removesuffix("-devel")
         if tmp_package_name != package_distro_name:
-            for pn in self.package_name_version_gen(package, tmp_package_name, version, suffix="-devel" + suffix, do_range_version_names=do_range_version_names):
+            for pn in self.package_name_version_gen(
+                    package,
+                    tmp_package_name,
+                    version,
+                    suffix="-devel" + suffix,
+                    do_range_version_names=do_range_version_names):
                 yield pn
         # Strip any 'version-like' numbers at the end of the package name (already stripped of '-devel' suffix)
         # and generate versions variants out of it.
         tmp_package_name = tmp_package_name.rstrip("0123456789.-")
         if tmp_package_name != package_distro_name:
-            for pn in self.package_name_version_gen(package, tmp_package_name, version, suffix=suffix, do_range_version_names=do_range_version_names):
+            for pn in self.package_name_version_gen(
+                    package,
+                    tmp_package_name,
+                    version,
+                    suffix=suffix,
+                    do_range_version_names=do_range_version_names):
                 yield pn
         # Generate version variants from given package name.
         versions = [version]
@@ -1502,7 +1569,7 @@ class PackageInstallerArch(PackageInstaller):
 
     _re_version = re.compile(r"Version\s*:\s*(?:[0-9]+:)?(?P<version>([0-9]+\.?)+([0-9]+)).*")
 
-    _install_command = ["sudo", "pacman", "-S", "--needed",  "--noconfirm"]
+    _install_command = ["sudo", "pacman", "-S", "--needed", "--noconfirm"]
     _update_command = ["sudo", "pacman", "-Sy"]
 
     def package_version_get(self, command):
@@ -1516,7 +1583,13 @@ class PackageInstallerArch(PackageInstaller):
     def package_query_version_get_impl(self, package_distro_name):
         return self.package_version_get(["pacman", "-Si", package_distro_name])
 
-    def package_name_version_gen(self, package, package_distro_name, version=..., suffix="", do_range_version_names=False):
+    def package_name_version_gen(
+            self,
+            package,
+            package_distro_name,
+            version=...,
+            suffix="",
+            do_range_version_names=False):
         if version is ...:
             version = package.version_short
         # Generate versions variants with version after the main name.
@@ -1525,7 +1598,12 @@ class PackageInstallerArch(PackageInstaller):
         # and generate versions variants out of it.
         tmp_package_name = tmp_package_name.rstrip("0123456789.-")
         if tmp_package_name != package_distro_name:
-            for pn in self.package_name_version_gen(package, tmp_package_name, version, suffix=suffix, do_range_version_names=do_range_version_names):
+            for pn in self.package_name_version_gen(
+                    package,
+                    tmp_package_name,
+                    version,
+                    suffix=suffix,
+                    do_range_version_names=do_range_version_names):
                 yield pn
         # Generate version variants from given package name.
         versions = [version]
@@ -1550,7 +1628,7 @@ DISTRO_IDS_INSTALLERS = {
 def get_distro(settings):
     if settings.distro_id is not ...:
         settings.logger.info(f"Distribution identifier forced by user to {settings.distro_id}.")
-        return 
+        return
     import platform
     info = platform.freedesktop_os_release()
     ids = [info["ID"]]
@@ -1643,7 +1721,8 @@ def main():
     logger.addHandler(stdout_handler)
     settings.logger = logger
 
-    distro_package_installer = PackageInstaller(settings) if settings.show_deps else get_distro_package_installer(settings)
+    distro_package_installer = (PackageInstaller(settings) if settings.show_deps
+                                else get_distro_package_installer(settings))
     distro_package_installer.packages_database_update()
 
     if settings.all:

@@ -242,7 +242,7 @@ static void snap_object_data_mesh_get(SnapObjectContext *sctx,
                                       BVHTreeFromMesh *r_treedata)
 {
   const Span<float3> vert_positions = me_eval->vert_positions();
-  const Span<MPoly> polys = me_eval->polys();
+  const blender::OffsetIndices polys = me_eval->polys();
   const Span<int> corner_verts = me_eval->corner_verts();
 
   if (ob_eval->type == OB_MESH) {
@@ -1785,13 +1785,13 @@ static eSnapMode snap_mesh_polygon(SnapObjectContext *sctx,
                              params->use_backface_culling,
                              &nearest2d);
 
-    const MPoly &poly = mesh->polys()[sctx->ret.index];
+    const blender::IndexRange poly = mesh->polys()[sctx->ret.index];
 
     if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_EDGE) {
       elem = SCE_SNAP_MODE_EDGE;
       BLI_assert(nearest2d.edges != nullptr);
-      const int *poly_edges = &nearest2d.corner_edges[poly.loopstart];
-      for (int i = poly.totloop; i--;) {
+      const int *poly_edges = &nearest2d.corner_edges[poly.start()];
+      for (int i = poly.size(); i--;) {
         cb_snap_edge(&nearest2d,
                      poly_edges[i],
                      &neasrest_precalc,
@@ -1802,8 +1802,8 @@ static eSnapMode snap_mesh_polygon(SnapObjectContext *sctx,
     }
     else {
       elem = SCE_SNAP_MODE_VERTEX;
-      const int *poly_verts = &nearest2d.corner_verts[poly.loopstart];
-      for (int i = poly.totloop; i--;) {
+      const int *poly_verts = &nearest2d.corner_verts[poly.start()];
+      for (int i = poly.size(); i--;) {
         cb_snap_vert(&nearest2d,
                      poly_verts[i],
                      &neasrest_precalc,
@@ -3275,7 +3275,9 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
     }
   }
 
-  if (snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST) {
+  bool use_occlusion_test = params->use_occlusion_test && !XRAY_ENABLED(v3d);
+
+  if ((snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST) || use_occlusion_test) {
     float ray_start[3], ray_normal[3];
     if (!ED_view3d_win_to_ray_clipped_ex(
             depsgraph, region, v3d, mval, nullptr, ray_normal, ray_start, true)) {

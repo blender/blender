@@ -330,6 +330,7 @@ if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
   endforeach()
   set(EMBREE_LIBRARIES ${_embree_libraries_force_load})
 endif()
+add_bundled_libraries(embree/lib)
 
 if(WITH_OPENIMAGEDENOISE)
   find_package(OpenImageDenoise REQUIRED)

@@ -1763,13 +1763,8 @@ static void sculpt_update_object(
   sculpt_update_persistent_base(ob);
 
   if (need_pmap && ob->type == OB_MESH && !ss->pmap) {
-    BKE_mesh_vert_poly_map_create(&ss->pmap,
-                                  &ss->pmap_mem,
-                                  me->polys().data(),
-                                  me->corner_verts().data(),
-                                  me->totvert,
-                                  me->totpoly,
-                                  me->totloop);
+    BKE_mesh_vert_poly_map_create(
+        &ss->pmap, &ss->pmap_mem, me->polys(), me->corner_verts().data(), me->totvert);
 
     if (ss->pbvh) {
       BKE_pbvh_pmap_set(ss->pbvh, ss->pmap);
@@ -1992,7 +1987,7 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
                                   MultiresModifierData *mmd)
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
-  const Span<MPoly> polys = me->polys();
+  const blender::OffsetIndices polys = me->polys();
   const Span<int> corner_verts = me->corner_verts();
   int ret = 0;
 
@@ -2021,17 +2016,17 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
     /* If vertices already have mask, copy into multires data. */
     if (paint_mask) {
       for (const int i : polys.index_range()) {
-        const MPoly &poly = polys[i];
+        const blender::IndexRange poly = polys[i];
 
         /* Mask center. */
         float avg = 0.0f;
-        for (const int vert : corner_verts.slice(poly.loopstart, poly.totloop)) {
+        for (const int vert : corner_verts.slice(poly)) {
           avg += paint_mask[vert];
         }
-        avg /= float(poly.totloop);
+        avg /= float(poly.size());
 
         /* Fill in multires mask corner. */
-        for (const int corner : blender::IndexRange(poly.loopstart, poly.totloop)) {
+        for (const int corner : poly) {
           GridPaintMask *gpm = &gmask[corner];
           const int vert = corner_verts[corner];
           const int prev = corner_verts[blender::bke::mesh::poly_corner_prev(poly, vert)];
@@ -2187,7 +2182,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
   BKE_pbvh_respect_hide_set(pbvh, respect_hide);
 
   MutableSpan<float3> positions = me->vert_positions_for_write();
-  const Span<MPoly> polys = me->polys();
+  const blender::OffsetIndices polys = me->polys();
   const Span<int> corner_verts = me->corner_verts();
 
   MLoopTri *looptri = static_cast<MLoopTri *>(
@@ -2197,7 +2192,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 
   BKE_pbvh_build_mesh(pbvh,
                       me,
-                      polys.data(),
+                      polys,
                       corner_verts.data(),
                       reinterpret_cast<float(*)[3]>(positions.data()),
                       me->totvert,

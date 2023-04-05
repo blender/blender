@@ -2258,6 +2258,7 @@ void ED_spacetype_view3d()
   art->prefsizey = ED_asset_shelf_region_prefsizey();
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_FRAMES;
   art->listener = ED_asset_shelf_region_listen;
+  art->poll = ED_asset_shelf_poll;
   art->snap_size = ED_asset_shelf_region_snap;
   art->context = view3d_asset_shelf_context;
   art->init = view3d_asset_shelf_region_init;
@@ -2270,6 +2271,7 @@ void ED_spacetype_view3d()
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
   art->init = ED_asset_shelf_footer_region_init;
+  art->poll = ED_asset_shelf_poll;
   art->draw = ED_asset_shelf_footer_region;
   art->listener = ED_asset_shelf_footer_region_listen;
   art->context = view3d_asset_shelf_context;

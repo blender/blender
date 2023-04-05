@@ -124,7 +124,7 @@ static Mesh *create_mesh_from_volume_grids(Span<openvdb::GridBase::ConstPtr> gri
   Mesh *mesh = BKE_mesh_new_nomain(vert_offset, 0, loop_offset, poly_offset);
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<MPoly> polys = mesh->polys_for_write();
+  MutableSpan<int> dst_poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   for (const int i : grids.index_range()) {
@@ -136,7 +136,7 @@ static Mesh *create_mesh_from_volume_grids(Span<openvdb::GridBase::ConstPtr> gri
                                      poly_offsets[i],
                                      loop_offsets[i],
                                      positions,
-                                     polys,
+                                     dst_poly_offsets,
                                      corner_verts);
   }
 

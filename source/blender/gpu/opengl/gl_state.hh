@@ -64,7 +64,7 @@ class GLStateManager : public StateManager {
 
   void issue_barrier(eGPUBarrier barrier_bits) override;
 
-  void texture_bind(Texture *tex, eGPUSamplerState sampler, int unit) override;
+  void texture_bind(Texture *tex, GPUSamplerState sampler, int unit) override;
   /**
    * Bind the texture to slot 0 for editing purpose. Used by legacy pipeline.
    */

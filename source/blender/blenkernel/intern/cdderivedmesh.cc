@@ -39,12 +39,10 @@ struct CDDerivedMesh {
   /* these point to data in the DerivedMesh custom data layers,
    * they are only here for efficiency and convenience */
   float (*vert_positions)[3];
-  const blender::float3 *vert_normals;
   MEdge *medge;
   MFace *mface;
   int *corner_verts;
   int *corner_edges;
-  MPoly *mpoly;
 
   /* Cached */
   struct PBVH *pbvh;
@@ -100,44 +98,9 @@ static void cdDM_copyCornerEdgeArray(DerivedMesh *dm, int *r_corner_edges)
   memcpy(r_corner_edges, cddm->corner_edges, sizeof(*r_corner_edges) * dm->numLoopData);
 }
 
-static void cdDM_copyPolyArray(DerivedMesh *dm, MPoly *r_poly)
+static void cdDM_copyPolyArray(DerivedMesh *dm, int *r_poly_offsets)
 {
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  memcpy(r_poly, cddm->mpoly, sizeof(*r_poly) * dm->numPolyData);
-}
-
-static void cdDM_getVertCo(DerivedMesh *dm, int index, float r_co[3])
-{
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-
-  copy_v3_v3(r_co, cddm->vert_positions[index]);
-}
-
-static void cdDM_getVertNo(DerivedMesh *dm, int index, float r_no[3])
-{
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  copy_v3_v3(r_no, cddm->vert_normals[index]);
-}
-
-static void cdDM_recalc_looptri(DerivedMesh *dm)
-{
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  const uint totpoly = dm->numPolyData;
-  const uint totloop = dm->numLoopData;
-
-  DM_ensure_looptri_data(dm);
-  BLI_assert(totpoly == 0 || cddm->dm.looptris.array_wip != NULL);
-
-  blender::bke::mesh::looptris_calc(
-      {reinterpret_cast<const blender::float3 *>(cddm->vert_positions), dm->numVertData},
-      {cddm->mpoly, totpoly},
-      {cddm->corner_verts, totloop},
-      {dm->looptris.array_wip, dm->looptris.num});
-
-  BLI_assert(cddm->dm.looptris.array == NULL);
-  atomic_cas_ptr(
-      (void **)&cddm->dm.looptris.array, cddm->dm.looptris.array, cddm->dm.looptris.array_wip);
-  cddm->dm.looptris.array_wip = nullptr;
+  memcpy(r_poly_offsets, dm->poly_offsets, sizeof(int) * (dm->numPolyData + 1));
 }
 
 static void cdDM_free_internal(CDDerivedMesh *cddm)
@@ -154,10 +117,9 @@ static void cdDM_release(DerivedMesh *dm)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 
-  if (DM_release(dm)) {
-    cdDM_free_internal(cddm);
-    MEM_freeN(cddm);
-  }
+  DM_release(dm);
+  cdDM_free_internal(cddm);
+  MEM_freeN(cddm);
 }
 
 /**************** CDDM interface functions ****************/
@@ -179,11 +141,6 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 
   dm->getVertDataArray = DM_get_vert_data_layer;
   dm->getEdgeDataArray = DM_get_edge_data_layer;
-
-  dm->recalcLoopTri = cdDM_recalc_looptri;
-
-  dm->getVertCo = cdDM_getVertCo;
-  dm->getVertNo = cdDM_getVertNo;
 
   dm->release = cdDM_release;
 
@@ -210,11 +167,6 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
           mesh->totloop,
           mesh->totpoly);
 
-  /* This should actually be dm->deformedOnly = mesh->runtime.deformed_only,
-   * but only if the original mesh had its deformed_only flag correctly set
-   * (which isn't generally the case). */
-  dm->deformedOnly = 1;
-
   CustomData_merge(&mesh->vdata, &dm->vertData, cddata_masks.vmask, alloctype, mesh->totvert);
   CustomData_merge(&mesh->edata, &dm->edgeData, cddata_masks.emask, alloctype, mesh->totedge);
   CustomData_merge(&mesh->fdata,
@@ -227,17 +179,13 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
 
   cddm->vert_positions = static_cast<float(*)[3]>(CustomData_get_layer_named_for_write(
       &dm->vertData, CD_PROP_FLOAT3, "position", mesh->totvert));
-  /* Though this may be an unnecessary calculation, simply retrieving the layer may return nothing
-   * or dirty normals. */
-  cddm->vert_normals = mesh->vert_normals().data();
   cddm->medge = static_cast<MEdge *>(
       CustomData_get_layer_for_write(&dm->edgeData, CD_MEDGE, mesh->totedge));
   cddm->corner_verts = static_cast<int *>(CustomData_get_layer_named_for_write(
       &dm->loopData, CD_PROP_INT32, ".corner_vert", mesh->totloop));
   cddm->corner_edges = static_cast<int *>(CustomData_get_layer_named_for_write(
       &dm->loopData, CD_PROP_INT32, ".corner_edge", mesh->totloop));
-  cddm->mpoly = static_cast<MPoly *>(
-      CustomData_get_layer_for_write(&dm->polyData, CD_MPOLY, mesh->totpoly));
+  dm->poly_offsets = static_cast<int *>(MEM_dupallocN(mesh->poly_offset_indices));
 #if 0
   cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 #else

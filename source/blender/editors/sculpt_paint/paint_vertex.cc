@@ -1240,7 +1240,7 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
   }
 
   Mesh *me = (Mesh *)ob->data;
-  const Span<MPoly> polys = me->polys();
+  const blender::OffsetIndices polys = me->polys();
   const Span<int> corner_verts = me->corner_verts();
 
   if (gmap->vert_to_loop == nullptr) {
@@ -1248,20 +1248,10 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
     gmap->vert_to_loop = nullptr;
     gmap->poly_map_mem = nullptr;
     gmap->vert_to_poly = nullptr;
-    BKE_mesh_vert_loop_map_create(&gmap->vert_to_loop,
-                                  &gmap->vert_map_mem,
-                                  polys.data(),
-                                  corner_verts.data(),
-                                  me->totvert,
-                                  me->totpoly,
-                                  me->totloop);
-    BKE_mesh_vert_poly_map_create(&gmap->vert_to_poly,
-                                  &gmap->poly_map_mem,
-                                  polys.data(),
-                                  corner_verts.data(),
-                                  me->totvert,
-                                  me->totpoly,
-                                  me->totloop);
+    BKE_mesh_vert_loop_map_create(
+        &gmap->vert_to_loop, &gmap->vert_map_mem, polys, corner_verts.data(), me->totvert);
+    BKE_mesh_vert_poly_map_create(
+        &gmap->vert_to_poly, &gmap->poly_map_mem, polys, corner_verts.data(), me->totvert);
   }
 
   /* Create average brush arrays */
@@ -1982,13 +1972,11 @@ static void do_wpaint_brush_blur_task_cb_ex(void *__restrict userdata,
         float weight_final = 0.0f;
         for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
           const int p_index = gmap->vert_to_poly[v_index].indices[j];
-          const MPoly &poly = ss->polys[p_index];
+          const blender::IndexRange poly = ss->polys[p_index];
 
-          total_hit_loops += poly.totloop;
-          for (int k = 0; k < poly.totloop; k++) {
-            const int l_index = poly.loopstart + k;
-            const int vert_i = ss->corner_verts[l_index];
-            weight_final += data->wpd->precomputed_weight[vert_i];
+          total_hit_loops += poly.size();
+          for (const int vert : ss->corner_verts.slice(poly)) {
+            weight_final += data->wpd->precomputed_weight[vert];
           }
         }
 
@@ -2096,10 +2084,7 @@ static void do_wpaint_brush_smear_task_cb_ex(void *__restrict userdata,
             float weight_final = 0.0;
             for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
               const int p_index = gmap->vert_to_poly[v_index].indices[j];
-              const MPoly &poly = ss->polys[p_index];
-              for (int k = 0; k < poly.totloop; k++) {
-                const int other_corner_i = poly.loopstart + k;
-                const int v_other_index = ss->corner_verts[other_corner_i];
+              for (const int v_other_index : ss->corner_verts.slice(ss->polys[p_index])) {
                 if (v_other_index != v_index) {
                   const float3 &mv_other = ss->vert_positions[v_other_index];
 
@@ -3034,12 +3019,11 @@ static void do_vpaint_brush_blur_loops(bContext *C,
 
               for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
                 int p_index = gmap->vert_to_poly[v_index].indices[j];
-                const MPoly &poly = ss->polys[p_index];
                 if (!use_face_sel || select_poly[p_index]) {
-                  total_hit_loops += poly.totloop;
-                  for (int k = 0; k < poly.totloop; k++) {
-                    const uint l_index = poly.loopstart + k;
-                    Color *col = lcol + l_index;
+                  const blender::IndexRange poly = ss->polys[p_index];
+                  total_hit_loops += poly.size();
+                  for (const int corner : poly) {
+                    Color *col = lcol + corner;
 
                     /* Color is squared to compensate the sqrt color encoding. */
                     blend[0] += (Blend)col->r * (Blend)col->r;
@@ -3179,14 +3163,11 @@ static void do_vpaint_brush_blur_verts(bContext *C,
 
               for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
                 int p_index = gmap->vert_to_poly[v_index].indices[j];
-                const MPoly &poly = ss->polys[p_index];
                 if (!use_face_sel || select_poly[p_index]) {
-                  total_hit_loops += poly.totloop;
-                  for (int k = 0; k < poly.totloop; k++) {
-                    const uint l_index = poly.loopstart + k;
-                    const uint v_index = ss->corner_verts[l_index];
-
-                    Color *col = lcol + v_index;
+                  const blender::IndexRange poly = ss->polys[p_index];
+                  total_hit_loops += poly.size();
+                  for (const int vert : ss->corner_verts.slice(poly)) {
+                    Color *col = lcol + vert;
 
                     /* Color is squared to compensate the sqrt color encoding. */
                     blend[0] += (Blend)col->r * (Blend)col->r;
@@ -3342,11 +3323,9 @@ static void do_vpaint_brush_smear(bContext *C,
                   const int l_index = gmap->vert_to_loop[v_index].indices[j];
                   BLI_assert(ss->corner_verts[l_index] == v_index);
                   UNUSED_VARS_NDEBUG(l_index);
-                  const MPoly &poly = ss->polys[p_index];
                   if (!use_face_sel || select_poly[p_index]) {
-                    for (int k = 0; k < poly.totloop; k++) {
-                      const int other_corner_i = poly.loopstart + k;
-                      const int v_other_index = ss->corner_verts[other_corner_i];
+                    for (const int corner : ss->polys[p_index]) {
+                      const int v_other_index = ss->corner_verts[corner];
                       if (v_other_index != v_index) {
                         const float3 &mv_other = &ss->vert_positions[v_other_index];
 
@@ -3365,7 +3344,7 @@ static void do_vpaint_brush_smear(bContext *C,
                           elem_index = v_other_index;
                         }
                         else {
-                          elem_index = poly.loopstart + k;
+                          elem_index = corner;
                         }
 
                         if (stroke_dot > stroke_dot_max) {
@@ -4123,29 +4102,25 @@ static void fill_mesh_face_or_corner_attribute(Mesh &mesh,
   const VArray<bool> select_poly = mesh.attributes().lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
-  const Span<MPoly> polys = mesh.polys();
+  const OffsetIndices polys = mesh.polys();
   const Span<int> corner_verts = mesh.corner_verts();
 
   for (const int i : polys.index_range()) {
     if (use_face_sel && !select_poly[i]) {
       continue;
     }
-    const MPoly &poly = polys[i];
-
-    int j = 0;
-    do {
-      const int vidx = corner_verts[poly.loopstart + j];
-
-      if (!(use_vert_sel && !(select_vert[vidx]))) {
-        if (domain == ATTR_DOMAIN_CORNER) {
-          data[poly.loopstart + j] = value;
-        }
-        else {
-          data[vidx] = value;
-        }
+    for (const int corner : polys[i]) {
+      const int vert = corner_verts[corner];
+      if (use_vert_sel && !select_vert[vert]) {
+        continue;
       }
-      j++;
-    } while (j < poly.totloop);
+      if (domain == ATTR_DOMAIN_CORNER) {
+        data[corner] = value;
+      }
+      else {
+        data[vert] = value;
+      }
+    }
   }
 
   BKE_mesh_tessface_clear(&mesh);

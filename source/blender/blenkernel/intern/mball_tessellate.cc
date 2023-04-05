@@ -1459,8 +1459,8 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   mesh->vert_positions_for_write().copy_from(process.co);
 
   mesh->totpoly = int(process.curindex);
-  MPoly *polys = static_cast<MPoly *>(
-      CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CONSTRUCT, mesh->totpoly));
+  BKE_mesh_poly_offsets_ensure_alloc(mesh);
+  blender::MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   int *corner_verts = static_cast<int *>(CustomData_add_layer_named(
       &mesh->ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh->totpoly * 4, ".corner_vert"));
 
@@ -1469,8 +1469,7 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
     const int *indices = process.indices[i];
 
     const int count = indices[2] != indices[3] ? 4 : 3;
-    polys[i].loopstart = loop_offset;
-    polys[i].totloop = count;
+    poly_offsets[i] = loop_offset;
 
     corner_verts[loop_offset] = indices[0];
     corner_verts[loop_offset + 1] = indices[1];
@@ -1492,6 +1491,7 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   BKE_mesh_vert_normals_clear_dirty(mesh);
 
   mesh->totloop = loop_offset;
+  poly_offsets.last() = loop_offset;
 
   BKE_mesh_calc_edges(mesh, false, false);
 

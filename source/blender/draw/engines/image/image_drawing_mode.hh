@@ -198,7 +198,8 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     for (const TextureInfo &info : instance_data->texture_infos) {
       DRWShadingGroup *shgrp_sub = DRW_shgroup_create_sub(shgrp);
       DRW_shgroup_uniform_ivec2_copy(shgrp_sub, "offset", info.offset());
-      DRW_shgroup_uniform_texture_ex(shgrp_sub, "imageTexture", info.texture, GPU_SAMPLER_DEFAULT);
+      DRW_shgroup_uniform_texture_ex(
+          shgrp_sub, "imageTexture", info.texture, GPUSamplerState::default_sampler());
       DRW_shgroup_call_obmat(shgrp_sub, info.batch, image_mat);
     }
   }

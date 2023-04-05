@@ -259,6 +259,7 @@ void draw_subdiv_extract_uvs(const DRWSubdivCache *cache,
 void draw_subdiv_build_edge_fac_buffer(const DRWSubdivCache *cache,
                                        struct GPUVertBuf *pos_nor,
                                        struct GPUVertBuf *edge_draw_flag,
+                                       struct GPUVertBuf *poly_other_map,
                                        struct GPUVertBuf *edge_fac);
 
 void draw_subdiv_build_tris_buffer(const DRWSubdivCache *cache,

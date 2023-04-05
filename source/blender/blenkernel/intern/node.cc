@@ -68,6 +68,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 #include "RNA_prototypes.h"
 
 #include "NOD_common.h"
@@ -924,7 +925,7 @@ void ntreeBlendReadLib(BlendLibReader *reader, bNodeTree *ntree)
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       /* Don't update node groups here because they may depend on other node groups which are not
        * fully versioned yet and don't have `typeinfo` pointers set. */
-      if (node->type != NODE_GROUP) {
+      if (!node->is_group()) {
         node_verify_sockets(ntree, node, false);
       }
     }
@@ -1466,6 +1467,15 @@ const char *nodeSocketTypeLabel(const bNodeSocketType *stype)
   return stype->label[0] != '\0' ? stype->label : RNA_struct_ui_name(stype->ext_socket.srna);
 }
 
+const char *nodeSocketSubTypeLabel(int subtype)
+{
+  const char *name;
+  if (RNA_enum_name(rna_enum_property_subtype_items, subtype, &name)) {
+    return name;
+  }
+  return "";
+}
+
 bNodeSocket *nodeFindSocket(const bNode *node,
                             const eNodeSocketInOut in_out,
                             const char *identifier)
@@ -1673,9 +1683,47 @@ void nodeModifySocketType(bNodeTree *ntree,
   }
 
   if (sock->default_value) {
-    socket_id_user_decrement(sock);
-    MEM_freeN(sock->default_value);
-    sock->default_value = nullptr;
+    if (sock->type != socktype->type) {
+      /* Only reallocate the default value if the type changed so that UI data like min and max
+       * isn't removed. This assumes that the default value is stored in the same format for all
+       * socket types with the same #eNodeSocketDatatype.  */
+      socket_id_user_decrement(sock);
+      MEM_freeN(sock->default_value);
+      sock->default_value = nullptr;
+    }
+    else {
+      /* Update the socket subtype when the storage isn't freed and recreated. */
+      switch (eNodeSocketDatatype(sock->type)) {
+        case SOCK_FLOAT: {
+          sock->default_value_typed<bNodeSocketValueFloat>()->subtype = socktype->subtype;
+          break;
+        }
+        case SOCK_VECTOR: {
+          sock->default_value_typed<bNodeSocketValueVector>()->subtype = socktype->subtype;
+          break;
+        }
+        case SOCK_INT: {
+          sock->default_value_typed<bNodeSocketValueInt>()->subtype = socktype->subtype;
+          break;
+        }
+        case SOCK_STRING: {
+          sock->default_value_typed<bNodeSocketValueString>()->subtype = socktype->subtype;
+          break;
+        }
+        case SOCK_RGBA:
+        case SOCK_SHADER:
+        case SOCK_BOOLEAN:
+        case SOCK_CUSTOM:
+        case __SOCK_MESH:
+        case SOCK_OBJECT:
+        case SOCK_IMAGE:
+        case SOCK_GEOMETRY:
+        case SOCK_COLLECTION:
+        case SOCK_TEXTURE:
+        case SOCK_MATERIAL:
+          break;
+      }
+    }
   }
 
   BLI_strncpy(sock->idname, idname, sizeof(sock->idname));
@@ -2353,6 +2401,104 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
   }
 
   return node_dst;
+}
+
+static void for_each_node_group_instance(Main &bmain,
+                                         const bNodeTree &node_group,
+                                         const Span<int> tree_types_to_lookup,
+                                         const FunctionRef<void(bNode &)> func)
+{
+  LISTBASE_FOREACH (bNodeTree *, other_group, &bmain.nodetrees) {
+    if (!tree_types_to_lookup.contains(other_group->type)) {
+      continue;
+    }
+    if (other_group == &node_group) {
+      continue;
+    }
+
+    other_group->ensure_topology_cache();
+    for (bNode *node : other_group->group_nodes()) {
+      if (node->id == &node_group.id) {
+        func(*node);
+      }
+    }
+  }
+}
+
+void node_socket_move_default_value(Main &bmain,
+                                    bNodeTree &tree,
+                                    bNodeSocket &src,
+                                    bNodeSocket &dst)
+{
+  tree.ensure_topology_cache();
+
+  bNode &dst_node = dst.owner_node();
+  bNode &src_node = src.owner_node();
+
+  if (src.is_multi_input()) {
+    /* Multi input sockets no have value. */
+    return;
+  }
+  if (ELEM(NODE_REROUTE, dst_node.type, src_node.type)) {
+    /* Reroute node can't have ownership of socket value directly. */
+    return;
+  }
+  if (dst.type != src.type) {
+    /* It could be possible to support conversion in future. */
+    return;
+  }
+
+  ID **src_socket_value = nullptr;
+  Vector<ID **> dst_values;
+  switch (dst.type) {
+    case SOCK_IMAGE: {
+      Image **tmp_socket_value = &src.default_value_typed<bNodeSocketValueImage>()->value;
+      src_socket_value = reinterpret_cast<ID **>(tmp_socket_value);
+      if (*src_socket_value == nullptr) {
+        break;
+      }
+
+      switch (dst_node.type) {
+        case GEO_NODE_IMAGE: {
+          dst_values.append(&dst_node.id);
+          break;
+        }
+        case NODE_GROUP_INPUT: {
+          for_each_node_group_instance(bmain, tree, {NTREE_GEOMETRY}, [&](bNode &node_group) {
+            bNodeSocket &socket = node_group.input_by_identifier(dst.identifier);
+            Image **tmp_dst_value = &socket.default_value_typed<bNodeSocketValueImage>()->value;
+            dst_values.append(reinterpret_cast<ID **>(tmp_dst_value));
+          });
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+      break;
+    }
+    case SOCK_CUSTOM:
+    case SOCK_SHADER:
+    case SOCK_GEOMETRY: {
+      /* Unmovable types. */
+      return;
+    }
+    default: {
+      break;
+    }
+  }
+
+  if (dst_values.is_empty() || src_socket_value == nullptr) {
+    return;
+  }
+
+  for (ID **dst_value : dst_values) {
+    *dst_value = *src_socket_value;
+    id_us_plus(*dst_value);
+  }
+
+  id_us_min(*src_socket_value);
+  *src_socket_value = nullptr;
 }
 
 bNode *node_copy(bNodeTree *dst_tree, const bNode &src_node, const int flag, const bool use_unique)

@@ -164,7 +164,7 @@ get_blender_version()
 # Declare Options
 
 # Blender internal features
-option(WITH_BLENDER "Build blender (disable to build only the blender player)" ON)
+option(WITH_BLENDER "Build blender (disable to build only Cycles stand-alone)." ON)
 mark_as_advanced(WITH_BLENDER)
 
 if(WIN32)

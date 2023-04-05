@@ -895,6 +895,9 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 
     /* Compute UI layouts for dynamically size regions. */
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+      if (region->flag & RGN_FLAG_POLL_FAILED) {
+        continue;
+      }
       /* Dynamic region may have been flagged as too small because their size on init is 0.
        * ARegion.visible is false then, as expected. The layout should still be created then, so
        * the region size can be updated (it may turn out to be not too small then). */
@@ -1380,7 +1383,7 @@ void wm_draw_update(bContext *C)
       wm_window_make_drawable(wm, win);
 
       /* notifiers for screen redraw */
-      ED_screen_ensure_updated(wm, win, screen);
+      ED_screen_ensure_updated(C, wm, win, screen);
 
       wm_draw_window(C, win);
       wm_draw_update_clear_window(C, win);

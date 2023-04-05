@@ -158,6 +158,15 @@ typedef struct wmRegionMessageSubscribeParams {
   struct ARegion *region;
 } wmRegionMessageSubscribeParams;
 
+typedef struct RegionPollParams {
+  const struct bScreen *screen;
+  const struct ScrArea *area;
+  const struct ARegion *region;
+
+  /* Full context, if WM context above is not enough. */
+  const struct bContext *context;
+} RegionPollParams;
+
 typedef struct ARegionType {
   struct ARegionType *next, *prev;
 
@@ -167,6 +176,13 @@ typedef struct ARegionType {
   void (*init)(struct wmWindowManager *wm, struct ARegion *region);
   /* exit is called when the region is hidden or removed */
   void (*exit)(struct wmWindowManager *wm, struct ARegion *region);
+  /**
+   * Optional callback to decide whether the region should be treated as existing given the
+   * current context. When returning false, the region will be kept in storage, but is not
+   * available to the user in any way. Callbacks can assume that context has the owning area and
+   * space-data set.
+   */
+  bool (*poll)(const RegionPollParams *params);
   /* draw entirely, view changes should be handled here */
   void (*draw)(const struct bContext *C, struct ARegion *region);
   /**

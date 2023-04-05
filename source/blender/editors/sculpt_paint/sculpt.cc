@@ -725,9 +725,9 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss
   const MeshElemMap *vert_map = &ss->pmap[v1];
   int p1 = -1, p2 = -1;
   for (int i = 0; i < vert_map->count; i++) {
-    const MPoly &poly = ss->polys[vert_map->indices[i]];
-    for (int l = 0; l < poly.totloop; l++) {
-      if (ss->corner_verts[poly.loopstart + l] == v2) {
+    const int poly_i = vert_map->indices[i];
+    for (const int corner : ss->polys[poly_i]) {
+      if (ss->corner_verts[corner] == v2) {
         if (p1 == -1) {
           p1 = vert_map->indices[i];
           break;
@@ -768,13 +768,7 @@ bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex)
       coord.y = vertex_index / key->grid_size;
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg,
-          &coord,
-          ss->corner_verts.data(),
-          ss->corner_verts.size(),
-          ss->polys.data(),
-          &v1,
-          &v2);
+          ss->subdiv_ccg, &coord, ss->corner_verts, ss->polys, &v1, &v2);
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:
           return sculpt_check_unique_face_set_in_base_mesh(ss, v1);
@@ -893,7 +887,7 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
       /* Skip connectivity from hidden faces. */
       continue;
     }
-    const MPoly &poly = ss->polys[vert_map->indices[i]];
+    const blender::IndexRange poly = ss->polys[vert_map->indices[i]];
     const blender::int2 f_adj_v = blender::bke::mesh::poly_find_adjecent_verts(
         poly, ss->corner_verts, vertex.i);
     for (int j = 0; j < 2; j++) {
@@ -1008,13 +1002,7 @@ bool SCULPT_vertex_is_boundary(const SculptSession *ss, const PBVHVertRef vertex
       coord.y = vertex_index / key->grid_size;
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg,
-          &coord,
-          ss->corner_verts.data(),
-          ss->corner_verts.size(),
-          ss->polys.data(),
-          &v1,
-          &v2);
+          ss->subdiv_ccg, &coord, ss->corner_verts, ss->polys, &v1, &v2);
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:
           return sculpt_check_boundary_vertex_in_base_mesh(ss, v1);
@@ -6212,18 +6200,16 @@ void SCULPT_boundary_info_ensure(Object *object)
 
   Mesh *base_mesh = BKE_mesh_from_object(object);
   const blender::Span<MEdge> edges = base_mesh->edges();
-  const blender::Span<MPoly> polys = base_mesh->polys();
+  const OffsetIndices polys = base_mesh->polys();
   const Span<int> corner_edges = base_mesh->corner_edges();
 
   ss->vertex_info.boundary = BLI_BITMAP_NEW(base_mesh->totvert, "Boundary info");
   int *adjacent_faces_edge_count = static_cast<int *>(
       MEM_calloc_arrayN(base_mesh->totedge, sizeof(int), "Adjacent face edge count"));
 
-  for (const int p : polys.index_range()) {
-    const MPoly &poly = polys[p];
-    for (int l = 0; l < poly.totloop; l++) {
-      const int edge_i = corner_edges[poly.loopstart + l];
-      adjacent_faces_edge_count[edge_i]++;
+  for (const int i : polys.index_range()) {
+    for (const int edge : corner_edges.slice(polys[i])) {
+      adjacent_faces_edge_count[edge]++;
     }
   }
 

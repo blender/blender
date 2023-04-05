@@ -649,7 +649,7 @@ void heat_bone_weighting(Object *ob,
   bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
   const blender::Span<blender::float3> vert_positions = me->vert_positions();
-  const blender::Span<MPoly> polys = me->polys();
+  const blender::OffsetIndices polys = me->polys();
   const blender::Span<int> corner_verts = me->corner_verts();
   bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
   bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
@@ -669,7 +669,7 @@ void heat_bone_weighting(Object *ob,
           &me->vdata, CD_PROP_BOOL, ".select_vert");
       if (select_vert) {
         for (const int i : polys.index_range()) {
-          for (const int vert : corner_verts.slice(polys[i].loopstart, polys[i].totloop)) {
+          for (const int vert : corner_verts.slice(polys[i])) {
             mask[vert] = select_vert[vert];
           }
         }
@@ -681,7 +681,7 @@ void heat_bone_weighting(Object *ob,
       if (select_poly) {
         for (const int i : polys.index_range()) {
           if (select_poly[i]) {
-            for (const int vert : corner_verts.slice(polys[i].loopstart, polys[i].totloop)) {
+            for (const int vert : corner_verts.slice(polys[i])) {
               mask[vert] = 1;
             }
           }
@@ -871,11 +871,11 @@ typedef struct MDefBoundIsect {
   float co[3];
   /* non-facing intersections are considered interior */
   bool facing;
-  /* ray-cast index aligned with MPoly (ray-hit-triangle isn't needed) */
+  /* ray-cast index aligned with polygons (ray-hit-triangle isn't needed) */
   int poly_index;
   /* distance from 'co' to the ray-cast start (clamped to avoid zero division) */
   float len;
-  /* weights aligned with the MPoly's loop indices */
+  /* weights aligned with the polygons's loop indices */
   float poly_weights[0];
 } MDefBoundIsect;
 
@@ -918,7 +918,7 @@ typedef struct MeshDeformBind {
 
   /* avoid DM function calls during intersections */
   struct {
-    blender::Span<MPoly> polys;
+    blender::OffsetIndices<int> polys;
     blender::Span<int> corner_verts;
     blender::Span<MLoopTri> looptris;
     blender::Span<blender::float3> poly_normals;
@@ -1026,16 +1026,16 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
                               BVH_RAYCAST_WATERTIGHT) != -1) {
     const blender::Span<int> corner_verts = mdb->cagemesh_cache.corner_verts;
     const MLoopTri *lt = &mdb->cagemesh_cache.looptris[hit.index];
-    const MPoly &poly = mdb->cagemesh_cache.polys[lt->poly];
+    const blender::IndexRange poly = mdb->cagemesh_cache.polys[lt->poly];
     const float(*cagecos)[3] = mdb->cagecos;
     const float len = isect_mdef.lambda;
     MDefBoundIsect *isect;
 
-    blender::Array<blender::float3, 64> mp_cagecos(poly.totloop);
+    blender::Array<blender::float3, 64> mp_cagecos(poly.size());
 
     /* create MDefBoundIsect, and extra for 'poly_weights[]' */
     isect = static_cast<MDefBoundIsect *>(
-        BLI_memarena_alloc(mdb->memarena, sizeof(*isect) + (sizeof(float) * poly.totloop)));
+        BLI_memarena_alloc(mdb->memarena, sizeof(*isect) + (sizeof(float) * poly.size())));
 
     /* compute intersection coordinate */
     madd_v3_v3v3fl(isect->co, co1, isect_mdef.vec, len);
@@ -1047,13 +1047,13 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
     isect->len = max_ff(len_v3v3(co1, isect->co), MESHDEFORM_LEN_THRESHOLD);
 
     /* compute mean value coordinates for interpolation */
-    for (int i = 0; i < poly.totloop; i++) {
-      copy_v3_v3(mp_cagecos[i], cagecos[corner_verts[poly.loopstart + i]]);
+    for (int i = 0; i < poly.size(); i++) {
+      copy_v3_v3(mp_cagecos[i], cagecos[corner_verts[poly[i]]]);
     }
 
     interp_weights_poly_v3(isect->poly_weights,
                            reinterpret_cast<float(*)[3]>(mp_cagecos.data()),
-                           poly.totloop,
+                           poly.size(),
                            isect->co);
 
     return isect;
@@ -1217,11 +1217,11 @@ static float meshdeform_boundary_phi(const MeshDeformBind *mdb,
                                      const MDefBoundIsect *isect,
                                      int cagevert)
 {
+  const blender::IndexRange poly = mdb->cagemesh_cache.polys[isect->poly_index];
   const blender::Span<int> corner_verts = mdb->cagemesh_cache.corner_verts;
-  const MPoly &poly = mdb->cagemesh_cache.polys[isect->poly_index];
 
-  for (int i = 0; i < poly.totloop; i++) {
-    if (corner_verts[poly.loopstart + i] == cagevert) {
+  for (int i = 0; i < poly.size(); i++) {
+    if (corner_verts[poly[i]] == cagevert) {
       return isect->poly_weights[i];
     }
   }

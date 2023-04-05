@@ -61,7 +61,7 @@ void get_material_image(Object *ob,
                         int material_index,
                         ::Image *&image,
                         ImageUser *&iuser,
-                        eGPUSamplerState &sampler_state)
+                        GPUSamplerState &sampler_state)
 {
   const ::bNode *node = nullptr;
 
@@ -71,19 +71,32 @@ void get_material_image(Object *ob,
       case SH_NODE_TEX_IMAGE: {
         const NodeTexImage *storage = static_cast<NodeTexImage *>(node->storage);
         const bool use_filter = (storage->interpolation != SHD_INTERP_CLOSEST);
-        const bool use_mirror = (storage->extension == SHD_IMAGE_EXTENSION_MIRROR);
-        const bool use_repeat = use_mirror || (storage->extension == SHD_IMAGE_EXTENSION_REPEAT);
-        const bool use_clip = (storage->extension == SHD_IMAGE_EXTENSION_CLIP);
-        SET_FLAG_FROM_TEST(sampler_state, use_filter, GPU_SAMPLER_FILTER);
-        SET_FLAG_FROM_TEST(sampler_state, use_repeat, GPU_SAMPLER_REPEAT);
-        SET_FLAG_FROM_TEST(sampler_state, use_clip, GPU_SAMPLER_CLAMP_BORDER);
-        SET_FLAG_FROM_TEST(sampler_state, use_mirror, GPU_SAMPLER_MIRROR_REPEAT);
+        sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR, use_filter);
+        switch (storage->extension) {
+          case SHD_IMAGE_EXTENSION_EXTEND:
+          default:
+            sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_EXTEND;
+            sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_EXTEND;
+            break;
+          case SHD_IMAGE_EXTENSION_REPEAT:
+            sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_REPEAT;
+            sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_REPEAT;
+            break;
+          case SHD_IMAGE_EXTENSION_MIRROR:
+            sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT;
+            sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT;
+            break;
+          case SHD_IMAGE_EXTENSION_CLIP:
+            sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER;
+            sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER;
+            break;
+        }
         break;
       }
       case SH_NODE_TEX_ENVIRONMENT: {
         const NodeTexEnvironment *storage = static_cast<NodeTexEnvironment *>(node->storage);
         const bool use_filter = (storage->interpolation != SHD_INTERP_CLOSEST);
-        SET_FLAG_FROM_TEST(sampler_state, use_filter, GPU_SAMPLER_FILTER);
+        sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR, use_filter);
         break;
       }
       default:

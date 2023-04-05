@@ -5,6 +5,8 @@
 #include "scene/mesh.h"
 #include "scene/object.h"
 
+#include "util/progress.h"
+
 CCL_NAMESPACE_BEGIN
 
 float OrientationBounds::calculate_measure() const
@@ -45,7 +47,7 @@ OrientationBounds merge(const OrientationBounds &cone_a, const OrientationBounds
 
   /* Return axis and theta_o of a if it already contains b. */
   /* This should also be called when b is empty. */
-  if (a->theta_o >= fminf(M_PI_F, theta_d + b->theta_o)) {
+  if (a->theta_o + 5e-4f >= fminf(M_PI_F, theta_d + b->theta_o)) {
     return OrientationBounds({a->axis, a->theta_o, theta_e});
   }
 
@@ -65,14 +67,14 @@ OrientationBounds merge(const OrientationBounds &cone_a, const OrientationBounds
   }
   else {
     float theta_r = theta_o - a->theta_o;
-    float3 ortho = normalize(b->axis - a->axis * cos_a_b);
+    float3 ortho = safe_normalize(b->axis - a->axis * cos_a_b);
     new_axis = a->axis * cosf(theta_r) + ortho * sinf(theta_r);
   }
 
   return OrientationBounds({new_axis, theta_o, theta_e});
 }
 
-LightTreePrimitive::LightTreePrimitive(Scene *scene, int prim_id, int object_id)
+LightTreeEmitter::LightTreeEmitter(Scene *scene, int prim_id, int object_id)
     : prim_id(prim_id), object_id(object_id)
 {
   if (is_triangle()) {
@@ -100,7 +102,7 @@ LightTreePrimitive::LightTreePrimitive(Scene *scene, int prim_id, int object_id)
     float area = triangle_area(vertices[0], vertices[1], vertices[2]);
     measure.energy = area * average(shader->emission_estimate);
 
-    /* NOTE: the original implementation used the bounding box centroid, but primitive centroid
+    /* NOTE: the original implementation used the bounding box centroid, but triangle centroid
      * seems to work fine */
     centroid = (vertices[0] + vertices[1] + vertices[2]) / 3.0f;
 
@@ -208,80 +210,151 @@ LightTreePrimitive::LightTreePrimitive(Scene *scene, int prim_id, int object_id)
   }
 }
 
-LightTree::LightTree(vector<LightTreePrimitive> &prims,
-                     const int &num_distant_lights,
+LightTree::LightTree(Scene *scene,
+                     DeviceScene *dscene,
+                     Progress &progress,
                      uint max_lights_in_leaf)
+    : progress_(progress), max_lights_in_leaf_(max_lights_in_leaf)
 {
-  if (prims.empty()) {
-    return;
+  KernelIntegrator *kintegrator = &dscene->data.integrator;
+
+  /* Add both lights and emissive triangles to this vector for light tree construction. */
+  emitters_.reserve(kintegrator->num_distribution);
+  distant_lights_.reserve(kintegrator->num_distant_lights);
+  uint *object_offsets = dscene->object_lookup_offset.alloc(scene->objects.size());
+
+  /* When we keep track of the light index, only contributing lights will be added to the device.
+   * Therefore, we want to keep track of the light's index on the device.
+   * However, we also need the light's index in the scene when we're constructing the tree. */
+  int device_light_index = 0;
+  int scene_light_index = 0;
+  for (Light *light : scene->lights) {
+    if (light->is_enabled) {
+      if (light->light_type == LIGHT_BACKGROUND || light->light_type == LIGHT_DISTANT) {
+        distant_lights_.emplace_back(scene, ~device_light_index, scene_light_index);
+      }
+      else {
+        emitters_.emplace_back(scene, ~device_light_index, scene_light_index);
+      }
+
+      device_light_index++;
+    }
+
+    scene_light_index++;
   }
 
-  max_lights_in_leaf_ = max_lights_in_leaf;
-  const int num_prims = prims.size();
-  const int num_local_lights = num_prims - num_distant_lights;
+  /* Similarly, we also want to keep track of the index of triangles that are emissive. */
+  int object_id = 0;
+  for (Object *object : scene->objects) {
+    if (progress_.get_cancel()) {
+      return;
+    }
 
-  root_ = create_node(LightTreePrimitivesMeasure::empty, 0);
+    if (!object->usable_as_light()) {
+      object_id++;
+      continue;
+    }
+
+    object_offsets[object_id] = num_triangles;
+
+    /* Count emissive triangles. */
+    Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
+    size_t mesh_num_triangles = mesh->num_triangles();
+    for (size_t i = 0; i < mesh_num_triangles; i++) {
+      int shader_index = mesh->get_shader()[i];
+      Shader *shader = (shader_index < mesh->get_used_shaders().size()) ?
+                           static_cast<Shader *>(mesh->get_used_shaders()[shader_index]) :
+                           scene->default_surface;
+
+      if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
+        emitters_.emplace_back(scene, i, object_id);
+      }
+    }
+    num_triangles += mesh_num_triangles;
+    object_id++;
+  }
+
+  /* Copy array to device. */
+  dscene->object_lookup_offset.copy_to_device();
+}
+
+LightTreeNode *LightTree::build(Scene * /* scene */, DeviceScene * /* dscene */)
+{
+  if (emitters_.empty() && distant_lights_.empty()) {
+    return nullptr;
+  }
+
+  /* At this stage `emitters_` only contains local lights, the distant lights will be merged
+   * into `emitters_` when Light Tree building is finished. */
+  const int num_local_lights = emitters_.size();
+  const int num_distant_lights = distant_lights_.size();
+
+  root_ = create_node(LightTreeMeasure::empty, 0);
 
   /* All local lights are grouped to the left child as an inner node. */
-  recursive_build(left, root_.get(), 0, num_local_lights, &prims, 0, 1);
+  recursive_build(left, root_.get(), 0, num_local_lights, emitters_.data(), 0, 1);
   task_pool.wait_work();
 
   /* All distant lights are grouped to the right child as a leaf node. */
-  root_->children[right] = create_node(LightTreePrimitivesMeasure::empty, 1);
-  for (int i = num_local_lights; i < num_prims; i++) {
-    root_->children[right]->add(prims[i]);
+  root_->children[right] = create_node(LightTreeMeasure::empty, 1);
+  for (int i = 0; i < num_distant_lights; i++) {
+    root_->children[right]->add(distant_lights_[i]);
   }
   root_->children[right]->make_leaf(num_local_lights, num_distant_lights);
+
+  /* Append distant lights to the end of `light_prims` */
+  std::move(distant_lights_.begin(), distant_lights_.end(), std::back_inserter(emitters_));
+
+  return root_.get();
 }
 
 void LightTree::recursive_build(const Child child,
                                 LightTreeNode *parent,
                                 const int start,
                                 const int end,
-                                vector<LightTreePrimitive> *prims,
+                                LightTreeEmitter *emitters,
                                 const uint bit_trail,
                                 const int depth)
 {
-  BoundBox centroid_bounds = BoundBox::empty;
-  for (int i = start; i < end; i++) {
-    centroid_bounds.grow((*prims)[i].centroid);
+  if (progress_.get_cancel()) {
+    return;
   }
 
-  parent->children[child] = create_node(LightTreePrimitivesMeasure::empty, bit_trail);
+  parent->children[child] = create_node(LightTreeMeasure::empty, bit_trail);
   LightTreeNode *node = parent->children[child].get();
 
-  /* Find the best place to split the primitives into 2 nodes.
+  /* Find the best place to split the emitters into 2 nodes.
    * If the best split cost is no better than making a leaf node, make a leaf instead. */
   int split_dim = -1, middle;
-  if (should_split(*prims, start, middle, end, node->measure, centroid_bounds, split_dim)) {
+  if (should_split(emitters, start, middle, end, node->measure, split_dim)) {
 
     if (split_dim != -1) {
-      /* Partition the primitives between start and end based on the centroids.  */
-      std::nth_element(prims->begin() + start,
-                       prims->begin() + middle,
-                       prims->begin() + end,
-                       [split_dim](const LightTreePrimitive &l, const LightTreePrimitive &r) {
+      /* Partition the emitters between start and end based on the centroids.  */
+      std::nth_element(emitters + start,
+                       emitters + middle,
+                       emitters + end,
+                       [split_dim](const LightTreeEmitter &l, const LightTreeEmitter &r) {
                          return l.centroid[split_dim] < r.centroid[split_dim];
                        });
     }
 
     /* Recursively build the left branch. */
-    if (middle - start > MIN_PRIMS_PER_THREAD) {
+    if (middle - start > MIN_EMITTERS_PER_THREAD) {
       task_pool.push(
-          [=] { recursive_build(left, node, start, middle, prims, bit_trail, depth + 1); });
+          [=] { recursive_build(left, node, start, middle, emitters, bit_trail, depth + 1); });
     }
     else {
-      recursive_build(left, node, start, middle, prims, bit_trail, depth + 1);
+      recursive_build(left, node, start, middle, emitters, bit_trail, depth + 1);
     }
 
     /* Recursively build the right branch. */
-    if (end - middle > MIN_PRIMS_PER_THREAD) {
+    if (end - middle > MIN_EMITTERS_PER_THREAD) {
       task_pool.push([=] {
-        recursive_build(right, node, middle, end, prims, bit_trail | (1u << depth), depth + 1);
+        recursive_build(right, node, middle, end, emitters, bit_trail | (1u << depth), depth + 1);
       });
     }
     else {
-      recursive_build(right, node, middle, end, prims, bit_trail | (1u << depth), depth + 1);
+      recursive_build(right, node, middle, end, emitters, bit_trail | (1u << depth), depth + 1);
     }
   }
   else {
@@ -289,16 +362,27 @@ void LightTree::recursive_build(const Child child,
   }
 }
 
-bool LightTree::should_split(const vector<LightTreePrimitive> &prims,
+bool LightTree::should_split(LightTreeEmitter *emitters,
                              const int start,
                              int &middle,
                              const int end,
-                             LightTreePrimitivesMeasure &measure,
-                             const BoundBox &centroid_bbox,
+                             LightTreeMeasure &measure,
                              int &split_dim)
 {
+  const int num_emitters = end - start;
+  if (num_emitters == 1) {
+    /* Do not try to split if there is only one emitter. */
+    measure = (emitters + start)->measure;
+    return false;
+  }
+
   middle = (start + end) / 2;
-  const int num_prims = end - start;
+
+  BoundBox centroid_bbox = BoundBox::empty;
+  for (int i = start; i < end; i++) {
+    centroid_bbox.grow((emitters + i)->centroid);
+  }
+
   const float3 extent = centroid_bbox.size();
   const float max_extent = max4(extent.x, extent.y, extent.z, 0.0f);
 
@@ -313,18 +397,18 @@ bool LightTree::should_split(const vector<LightTreePrimitive> &prims,
 
     const float inv_extent = 1 / (centroid_bbox.size()[dim]);
 
-    /* Fill in buckets with primitives. */
+    /* Fill in buckets with emitters. */
     std::array<LightTreeBucket, LightTreeBucket::num_buckets> buckets;
     for (int i = start; i < end; i++) {
-      const LightTreePrimitive &prim = prims[i];
+      const LightTreeEmitter *emitter = emitters + i;
 
-      /* Place primitive into the appropriate bucket, where the centroid box is split into equal
+      /* Place emitter into the appropriate bucket, where the centroid box is split into equal
        * partitions. */
       int bucket_idx = LightTreeBucket::num_buckets *
-                       (prim.centroid[dim] - centroid_bbox.min[dim]) * inv_extent;
+                       (emitter->centroid[dim] - centroid_bbox.min[dim]) * inv_extent;
       bucket_idx = clamp(bucket_idx, 0, LightTreeBucket::num_buckets - 1);
 
-      buckets[bucket_idx].add(prim);
+      buckets[bucket_idx].add(*emitter);
     }
 
     /* Precompute the left bucket measure cumulatively. */
@@ -338,12 +422,7 @@ bool LightTree::should_split(const vector<LightTreePrimitive> &prims,
       /* Calculate node measure by summing up the bucket measure. */
       measure = left_buckets.back().measure + buckets.back().measure;
 
-      /* Do not try to split if there are only one primitive. */
-      if (num_prims < 2) {
-        return false;
-      }
-
-      /* Degenerate case with co-located primitives. */
+      /* Degenerate case with co-located emitters. */
       if (is_zero(centroid_bbox.size())) {
         break;
       }
@@ -375,13 +454,12 @@ bool LightTree::should_split(const vector<LightTreePrimitive> &prims,
       }
     }
   }
-  return min_cost < total_cost || num_prims > max_lights_in_leaf_;
+  return min_cost < total_cost || num_emitters > max_lights_in_leaf_;
 }
 
-__forceinline LightTreePrimitivesMeasure operator+(const LightTreePrimitivesMeasure &a,
-                                                   const LightTreePrimitivesMeasure &b)
+__forceinline LightTreeMeasure operator+(const LightTreeMeasure &a, const LightTreeMeasure &b)
 {
-  LightTreePrimitivesMeasure c(a);
+  LightTreeMeasure c(a);
   c.add(b);
   return c;
 }

@@ -43,7 +43,7 @@ class MTLStateManager : public StateManager {
 
   void issue_barrier(eGPUBarrier barrier_bits) override;
 
-  void texture_bind(Texture *tex, eGPUSamplerState sampler, int unit) override;
+  void texture_bind(Texture *tex, GPUSamplerState sampler, int unit) override;
   void texture_unbind(Texture *tex) override;
   void texture_unbind_all() override;
 

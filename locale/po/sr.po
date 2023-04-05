@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -7730,6 +7730,10 @@ msgid "Active Movie Clip"
 msgstr "Активни филмски исечак"
 
 
+msgid "Mirror Object"
+msgstr "Објекат као огледало"
+
+
 msgid "Inverse"
 msgstr "Обрнуто"
 
@@ -10243,10 +10247,6 @@ msgid "Time Mode"
 msgstr "Мод времена"
 
 
-msgid "Mirror Object"
-msgstr "Објекат као огледало"
-
-
 msgid "Object to use as mirror"
 msgstr "Објекат који се користи као огледало"
 
@@ -12477,6 +12477,10 @@ msgid "Interactively change the current frame number"
 msgstr "Интерактивно мења број текућег кадра"
 
 
+msgid "Include Handles"
+msgstr "Укључи ручке"
+
+
 msgctxt "Operator"
 msgid "Mouse Click on Channels"
 msgstr "Клик мишем на канале"
@@ -13723,6 +13727,10 @@ msgid "Paste text from clipboard"
 msgstr "Убаци текст из оставе"
 
 
+msgid "Selection"
+msgstr "Избор"
+
+
 msgctxt "Operator"
 msgid "Scrollback Append"
 msgstr "Додај на препис"
@@ -14655,10 +14663,6 @@ msgid "Change Spacing"
 msgstr "Промени размак"
 
 
-msgid "Selection"
-msgstr "Избор"
-
-
 msgctxt "Operator"
 msgid "Line Break"
 msgstr "Прелом редова"
@@ -15126,8 +15130,8 @@ msgid "Only Active"
 msgstr "Само активне"
 
 
-msgid "Include Handles"
-msgstr "Укључи ручке"
+msgid "Sigma"
+msgstr "Сигма"
 
 
 msgctxt "Operator"
@@ -17680,15 +17684,6 @@ msgstr "Придружује изабрана темена новој групи
 
 msgid "Make a copy of the active vertex group"
 msgstr "Поставља активну групу темена"
-
-
-msgctxt "Operator"
-msgid "Fix Vertex Group Deform"
-msgstr "Исправи деформацију групе темена"
-
-
-msgid "Change Sensitivity"
-msgstr "Промени осетљивост"
 
 
 msgid "Add Weights"
@@ -25728,6 +25723,11 @@ msgid "Make and Replace Links"
 msgstr "Створи и замени везе"
 
 
+msgctxt "Operator"
+msgid "Online Manual"
+msgstr "Упутство на интернету"
+
+
 msgid "Slot %d"
 msgstr "Слот %d"
 
@@ -26765,11 +26765,6 @@ msgstr "Врати један на почетну вредност"
 msgctxt "Operator"
 msgid "Remove Shortcut"
 msgstr "Уклони пречицу"
-
-
-msgctxt "Operator"
-msgid "Online Manual"
-msgstr "Упутство на интернету"
 
 
 msgctxt "Operator"
@@ -27950,10 +27945,6 @@ msgid "Subsurface"
 msgstr "Издељена површ"
 
 
-msgid "Sigma"
-msgstr "Сигма"
-
-
 msgid "View Vector"
 msgstr "Вектор погледа"
 
@@ -28151,22 +28142,6 @@ msgstr "Blender-ов преглед датотека"
 
 msgid "unable to open the file"
 msgstr "Не могу да отворим датотеку"
-
-
-msgid "Cannot read file '%s': %s"
-msgstr "Не могу да прочитам датотеку '%s': %s"
-
-
-msgid "File format is not supported in file '%s'"
-msgstr "Формат није подржан у датотеци '%s'"
-
-
-msgid "File path '%s' invalid"
-msgstr "Путања '%s' није исправна"
-
-
-msgid "Unknown error loading '%s'"
-msgstr "Непозната грешака приликом учитавања: '%s'"
 
 
 msgid "Not a library"

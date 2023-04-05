@@ -18,9 +18,12 @@ struct bContextDataResult;
 struct BlendDataReader;
 struct BlendWriter;
 struct wmWindowManager;
+struct RegionPollParams;
 
 /* -------------------------------------------------------------------- */
 /* Asset Shelf Regions */
+
+bool ED_asset_shelf_poll(const struct RegionPollParams *params);
 
 /** Only needed for #RGN_TYPE_ASSET_SHELF (not #RGN_TYPE_ASSET_SHELF_FOOTER). */
 void ED_asset_shelf_region_init(struct wmWindowManager *wm, struct ARegion *region);

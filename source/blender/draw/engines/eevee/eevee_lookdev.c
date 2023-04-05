@@ -227,7 +227,9 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
 
     if (probe_render) {
       /* Avoid artifact with equirectangular mapping. */
-      eGPUSamplerState state = (GPU_SAMPLER_FILTER | GPU_SAMPLER_REPEAT_S);
+      GPUSamplerState state = {GPU_SAMPLER_FILTERING_LINEAR,
+                               GPU_SAMPLER_EXTEND_MODE_REPEAT,
+                               GPU_SAMPLER_EXTEND_MODE_EXTEND};
       DRW_shgroup_uniform_float_copy(grp, "studioLightIntensity", shading->studiolight_intensity);
       BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE);
       DRW_shgroup_uniform_texture_ex(grp, "studioLight", sl->equirect_radiance_gputexture, state);

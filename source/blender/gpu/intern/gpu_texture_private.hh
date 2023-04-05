@@ -83,7 +83,7 @@ ENUM_OPERATORS(eGPUSamplerFormat, GPU_SAMPLER_TYPE_UINT)
 class Texture {
  public:
   /** Internal Sampler state. */
-  eGPUSamplerState sampler_state = GPU_SAMPLER_DEFAULT;
+  GPUSamplerState sampler_state = GPUSamplerState::default_sampler();
   /** Reference counter. */
   int refcount = 1;
   /** Width & Height (of source data), optional. */

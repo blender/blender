@@ -178,21 +178,20 @@ static Array<Vector<int>> build_edge_to_edge_by_vert_map(const Span<MEdge> edges
   return map;
 }
 
-static Array<Vector<int>> build_face_to_edge_by_loop_map(const Span<MPoly> polys,
+static Array<Vector<int>> build_face_to_edge_by_loop_map(const OffsetIndices<int> polys,
                                                          const Span<int> corner_edges,
                                                          const int edges_num)
 {
   Array<Vector<int>> map(edges_num);
   for (const int i : polys.index_range()) {
-    const MPoly &poly = polys[i];
-    for (const int edge : corner_edges.slice(poly.loopstart, poly.totloop)) {
+    for (const int edge : corner_edges.slice(polys[i])) {
       map[edge].append(i);
     }
   }
   return map;
 }
 
-static Array<Vector<int>> build_face_to_face_by_edge_map(const Span<MPoly> polys,
+static Array<Vector<int>> build_face_to_face_by_edge_map(const OffsetIndices<int> polys,
                                                          const Span<int> corner_edges,
                                                          const int edges_num,
                                                          const IndexMask poly_mask)
@@ -203,8 +202,7 @@ static Array<Vector<int>> build_face_to_face_by_edge_map(const Span<MPoly> polys
 
   threading::parallel_for(poly_mask.index_range(), 1024, [&](IndexRange range) {
     for (const int poly_i : poly_mask.slice(range)) {
-      const MPoly &poly = polys[poly_i];
-      for (const int edge : corner_edges.slice(poly.loopstart, poly.totloop)) {
+      for (const int edge : corner_edges.slice(polys[poly_i])) {
         if (faces_by_edge[edge].size() > 1) {
           for (const int neighbor : faces_by_edge[edge]) {
             if (neighbor != poly_i) {
@@ -234,7 +232,7 @@ static Array<Vector<int>> create_mesh_map(const Mesh &mesh,
       return build_edge_to_edge_by_vert_map(edges, verts_num, mask);
     }
     case ATTR_DOMAIN_FACE: {
-      const Span<MPoly> polys = mesh.polys();
+      const OffsetIndices polys = mesh.polys();
       const int edges_num = mesh.totedge;
       return build_face_to_face_by_edge_map(polys, mesh.corner_edges(), edges_num, mask);
     }

@@ -21,6 +21,9 @@ class DenoiserGPU : public Denoiser {
                               bool allow_inplace_modification) override;
 
  protected:
+  class DenoisePass;
+  class DenoiseContext;
+
   /* All the parameters needed to perform buffer denoising on a device.
    * Is not really a task in its canonical terms (as in, is not an asynchronous running task). Is
    * more like a wrapper for all the arguments and parameters needed to perform denoising. Is a
@@ -41,12 +44,105 @@ class DenoiserGPU : public Denoiser {
     bool allow_inplace_modification;
   };
 
+  /* Read input color pass from the render buffer into the memory which corresponds to the noisy
+   * input within the given context. Pixels are scaled to the number of samples, but are not
+   * preprocessed yet. */
+  void denoise_color_read(const DenoiseContext &context, const DenoisePass &pass);
+
+  /* Run corresponding filter kernels, preparing data for the denoiser or copying data from the
+   * denoiser result to the render buffer. */
+  bool denoise_filter_color_preprocess(const DenoiseContext &context, const DenoisePass &pass);
+  bool denoise_filter_color_postprocess(const DenoiseContext &context, const DenoisePass &pass);
+  bool denoise_filter_guiding_set_fake_albedo(const DenoiseContext &context);
+
+  void denoise_pass(DenoiseContext &context, PassType pass_type);
+
   /* Returns true if task is fully handled. */
   virtual bool denoise_buffer(const DenoiseTask & /*task*/) = 0;
+  virtual bool denoise_run(const DenoiseContext &context, const DenoisePass &pass) = 0;
 
   virtual Device *ensure_denoiser_device(Progress *progress) override;
 
   unique_ptr<DeviceQueue> denoiser_queue_;
+
+  class DenoisePass {
+   public:
+    DenoisePass(const PassType type, const BufferParams &buffer_params) : type(type)
+    {
+      noisy_offset = buffer_params.get_pass_offset(type, PassMode::NOISY);
+      denoised_offset = buffer_params.get_pass_offset(type, PassMode::DENOISED);
+
+      const PassInfo pass_info = Pass::get_info(type);
+      num_components = pass_info.num_components;
+      use_compositing = pass_info.use_compositing;
+      use_denoising_albedo = pass_info.use_denoising_albedo;
+    }
+
+    PassType type;
+
+    int noisy_offset;
+    int denoised_offset;
+
+    int num_components;
+    bool use_compositing;
+    bool use_denoising_albedo;
+  };
+
+  class DenoiseContext {
+   public:
+    explicit DenoiseContext(Device *device, const DenoiseTask &task);
+
+    const DenoiseParams &denoise_params;
+
+    RenderBuffers *render_buffers = nullptr;
+    const BufferParams &buffer_params;
+
+    /* Previous output. */
+    struct {
+      device_ptr device_pointer = 0;
+
+      int offset = PASS_UNUSED;
+
+      int stride = -1;
+      int pass_stride = -1;
+    } prev_output;
+
+    /* Device-side storage of the guiding passes. */
+    device_only_memory<float> guiding_buffer;
+
+    struct {
+      device_ptr device_pointer = 0;
+
+      /* NOTE: Are only initialized when the corresponding guiding pass is enabled. */
+      int pass_albedo = PASS_UNUSED;
+      int pass_normal = PASS_UNUSED;
+      int pass_flow = PASS_UNUSED;
+
+      int stride = -1;
+      int pass_stride = -1;
+    } guiding_params;
+
+    /* Number of input passes. Including the color and extra auxiliary passes. */
+    int num_input_passes = 0;
+    bool use_guiding_passes = false;
+    bool use_pass_albedo = false;
+    bool use_pass_normal = false;
+    bool use_pass_motion = false;
+
+    int num_samples = 0;
+
+    int pass_sample_count = PASS_UNUSED;
+
+    /* NOTE: Are only initialized when the corresponding guiding pass is enabled. */
+    int pass_denoising_albedo = PASS_UNUSED;
+    int pass_denoising_normal = PASS_UNUSED;
+    int pass_motion = PASS_UNUSED;
+
+    /* For passes which don't need albedo channel for denoising we replace the actual albedo with
+     * the (0.5, 0.5, 0.5). This flag indicates that the real albedo pass has been replaced with
+     * the fake values and denoising of passes which do need albedo can no longer happen. */
+    bool albedo_replaced_with_fake = false;
+  };
 };
 
 CCL_NAMESPACE_END

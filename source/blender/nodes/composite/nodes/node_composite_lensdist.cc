@@ -102,7 +102,7 @@ class LensDistortionOperation : public NodeOperation {
     input_image.bind_as_texture(shader, "input_tx");
 
     GPU_texture_filter_mode(input_image.texture(), true);
-    GPU_texture_wrap_mode(input_image.texture(), false, false);
+    GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
 
     const Domain domain = compute_domain();
 
@@ -129,7 +129,7 @@ class LensDistortionOperation : public NodeOperation {
     input_image.bind_as_texture(shader, "input_tx");
 
     GPU_texture_filter_mode(input_image.texture(), true);
-    GPU_texture_wrap_mode(input_image.texture(), false, false);
+    GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
 
     const Domain domain = compute_domain();
 

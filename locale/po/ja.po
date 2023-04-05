@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: 2016-10-13 03:05+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese Translation Team (https://sites.google.com/site/blugjp/blender-translators)\n"
@@ -2161,6 +2161,10 @@ msgstr "シェイプキー"
 
 msgid "Shape Key data-blocks"
 msgstr "シェイプキーデータブロック"
+
+
+msgid "Simulations"
+msgstr "シミュレーション"
 
 
 msgid "Sounds"
@@ -9759,6 +9763,14 @@ msgid "Name of PoseBone to use as target"
 msgstr "ターゲットとして使用されるポーズボーンの名前"
 
 
+msgid "Active Scene"
+msgstr "アクティブシーン"
+
+
+msgid "Active View Layer"
+msgstr "アクティブビューレイヤー"
+
+
 msgid "Data Path"
 msgstr "データパス"
 
@@ -12631,10 +12643,6 @@ msgstr "ポイントクラウドデータブロックを表示/隠します"
 
 msgid "Show Scene data-blocks"
 msgstr "シーンデータブロックを表示します"
-
-
-msgid "Simulations"
-msgstr "シミュレーション"
 
 
 msgid "Show Simulation data-blocks"
@@ -27720,6 +27728,10 @@ msgstr ""
 "またはカメラの背景画像に使用可能なアクティブ動画クリップ"
 
 
+msgid "Mirror Object"
+msgstr "ミラーオブジェクト"
+
+
 msgid "Distance Model"
 msgstr "距離モデル"
 
@@ -34774,6 +34786,10 @@ msgid "Curve Context Menu"
 msgstr "カーブコンテクストメニュー"
 
 
+msgid "Select More/Less"
+msgstr "選択の拡大縮小"
+
+
 msgid "Special Characters"
 msgstr "特殊文字"
 
@@ -34812,10 +34828,6 @@ msgstr "ループ選択"
 
 msgid "Mesh Select Mode"
 msgstr "メッシュ選択モード"
-
-
-msgid "Select More/Less"
-msgstr "選択の拡大縮小"
 
 
 msgid "Select Similar"
@@ -37972,10 +37984,6 @@ msgstr "二分割する平面からの、頂点を削除する距離"
 
 msgid "Distance within which mirrored vertices are merged"
 msgstr "この距離内にある対称の頂点を結合します"
-
-
-msgid "Mirror Object"
-msgstr "ミラーオブジェクト"
 
 
 msgid "Object to use as mirror"
@@ -43298,10 +43306,6 @@ msgid "Map Range"
 msgstr "範囲マッピング"
 
 
-msgid "Clamp result of the node to 0.0 to 1.0 range"
-msgstr "結果を0.0から1.0の範囲に収めます"
-
-
 msgid "Map UV"
 msgstr "UVマッピング"
 
@@ -43733,6 +43737,10 @@ msgid "Convert from radians to degrees"
 msgstr "ラジアンから度に変換します"
 
 
+msgid "Clamp result of the node to 0.0 to 1.0 range"
+msgstr "結果を0.0から1.0の範囲に収めます"
+
+
 msgid "Include alpha of second input in this operation"
 msgstr "この演算の二つめの入力にアルファを含めます"
 
@@ -44071,10 +44079,6 @@ msgstr "両方の軸"
 
 msgid "Wrap all pixels on both axes"
 msgstr "全ピクセルを両方の軸でラップします"
-
-
-msgid "ColorRamp"
-msgstr "カラーランプ"
 
 
 msgid "Vector Blur"
@@ -45474,12 +45478,12 @@ msgid "Create a point in the point cloud for each selected face corner"
 msgstr "選択中の各面の角からポイントクラウド内にポイントを生成します"
 
 
-msgid "Create a fog volume with the shape of the input mesh's surface"
-msgstr "入力メッシュの形状でフォグボリュームを生成します"
-
-
 msgid "How the voxel size is specified"
 msgstr "ボクセルサイズを指定する方法"
+
+
+msgid "Create a fog volume with the shape of the input mesh's surface"
+msgstr "入力メッシュの形状でフォグボリュームを生成します"
 
 
 msgid "UV Sphere"
@@ -45538,6 +45542,14 @@ msgid "Retrieve a point index within a curve"
 msgstr "カーブ内でのポイントインデックスを取得します"
 
 
+msgid "Specify the approximate number of voxels along the diagonal"
+msgstr "対角線を元に概算したボクセル数を指定します"
+
+
+msgid "Specify the voxel side length"
+msgstr "ボクセルの辺の長さを指定します"
+
+
 msgid "Points to Vertices"
 msgstr "ポイントの頂点化"
 
@@ -45552,14 +45564,6 @@ msgstr "ポイントのボリューム化"
 
 msgid "Generate a fog volume sphere around every point"
 msgstr "ポイント毎にフォグボリューム球を生成します"
-
-
-msgid "Specify the approximate number of voxels along the diagonal"
-msgstr "対角線を元に概算したボクセル数を指定します"
-
-
-msgid "Specify the voxel side length"
-msgstr "ボクセルの辺の長さを指定します"
 
 
 msgid "Geometry Proximity"
@@ -49515,6 +49519,14 @@ msgid "Extend selection"
 msgstr "選択の追加"
 
 
+msgid "Include Handles"
+msgstr "ハンドルを含む"
+
+
+msgid "Include handles of keyframes when calculating extents"
+msgstr "範囲の計算にキーフレームのハンドルを含めます"
+
+
 msgctxt "Operator"
 msgid "Remove Empty Animation Data"
 msgstr "空のアニメーションデータを削除"
@@ -52596,6 +52608,10 @@ msgid "Paste text from clipboard"
 msgstr "クリップボードからテキストを貼り付けます"
 
 
+msgid "Selection"
+msgstr "選択"
+
+
 msgctxt "Operator"
 msgid "Scrollback Append"
 msgstr "スクロールバックのアペンド"
@@ -54671,14 +54687,6 @@ msgid "Legal rights and conditions for the model"
 msgstr "モデルの法的な権利と条件"
 
 
-msgid "Use Current Frame"
-msgstr "現在のフレームを使用"
-
-
-msgid "Export the scene in the current animation frame"
-msgstr "シーンを現在のアニメーションフレームでエクスポートします"
-
-
 msgid "Export Deformation Bones Only"
 msgstr "変形ボーンのみ"
 
@@ -54896,17 +54904,6 @@ msgid "Export vertex tangents with shape keys (morph targets)"
 msgstr "頂点のタンジェントをシェイプキー（モーフターゲット）と共にエクスポートします"
 
 
-msgid "Group by NLA Track"
-msgstr "NLAトラックでグループ化"
-
-
-msgid "When on, multiple actions become part of the same glTF animation if they're pushed onto NLA tracks with the same name. When off, all the currently assigned actions become one glTF animation"
-msgstr ""
-"有効時、もし複数のアクションが同じ名前の NLA トラック上にストリップ化されていれば\n"
-"同じ glTF アニメーションの一部になります\n"
-"無効時、現在割り当て中の全アクションが一つの glTF アニメーションになります"
-
-
 msgid "Merged Animation Name"
 msgstr "アニメーション名を統合"
 
@@ -55015,10 +55012,6 @@ msgstr "入れ子のインスタンスも含む"
 
 msgid "Include active collection and nested collections"
 msgstr "アクティブコレクションと入れ子のコレクションを含めます"
-
-
-msgid "Active Scene"
-msgstr "アクティブシーン"
 
 
 msgid "Export active scene only"
@@ -55884,10 +55877,6 @@ msgstr "フォントの間隔を変更します"
 
 msgid "Amount to decrease or increase character spacing with"
 msgstr "字間の量を増減します"
-
-
-msgid "Selection"
-msgstr "選択"
 
 
 msgid "Next or Selection"
@@ -58880,6 +58869,14 @@ msgid "Place the cursor on the midpoint of selected keyframes"
 msgstr "選択中のキーフレームの中間点にカーソルを移動します"
 
 
+msgid "Filter Width"
+msgstr "フィルター幅"
+
+
+msgid "Sigma"
+msgstr "シグマ"
+
+
 msgctxt "Operator"
 msgid "Clear Ghost Curves"
 msgstr "ゴーストカーブをクリア"
@@ -58962,10 +58959,6 @@ msgstr "カーブを再表示"
 
 msgid "Make previously hidden curves visible again in Graph Editor view"
 msgstr "以前に隠したカーブをグラフエディター上に再び表示します"
-
-
-msgid "Include Handles"
-msgstr "ハンドルを含む"
 
 
 msgid "Are handles tested individually against the selection criteria"
@@ -59094,10 +59087,6 @@ msgstr "カーブをベイク解除"
 
 msgid "Un-Bake selected F-Points to F-Curves"
 msgstr "選択中の F ポイントを F カーブにベイク解除します"
-
-
-msgid "Include handles of keyframes when calculating extents"
-msgstr "範囲の計算にキーフレームのハンドルを含めます"
 
 
 msgid "Reset viewable area to show selected keyframe range"
@@ -65645,10 +65634,6 @@ msgid "Curve from Mesh or Text objects"
 msgstr "メッシュ/テキストからカーブ"
 
 
-msgid "Mesh from Curve, Surface, Metaball, or Text objects"
-msgstr "カーブ/サーフェス/メタボール/テキストからメッシュ"
-
-
 msgid "Grease Pencil from Curve or Mesh objects"
 msgstr "カーブ/メッシュからグリースペンシル"
 
@@ -68241,31 +68226,6 @@ msgstr "頂点グループを選択した物にコピー"
 
 msgid "Replace vertex groups of selected objects by vertex groups of active object"
 msgstr "選択中のオブジェクトの頂点グループをアクティブオブジェクトの物で置き換えます"
-
-
-msgctxt "Operator"
-msgid "Fix Vertex Group Deform"
-msgstr "頂点グループの変形修正"
-
-
-msgid "Modify the position of selected vertices by changing only their respective groups' weights (this tool may be slow for many vertices)"
-msgstr "選択中の頂点のそれぞれのグループのウェイトの変化のみで位置を変更します（頂点が多い場合遅くなります）"
-
-
-msgid "Change Sensitivity"
-msgstr "感度を変更"
-
-
-msgid "Change the amount weights are altered with each iteration: lower values are slower"
-msgstr "繰り返し毎に修正されるウェイト量を変更します。小さな値で遅くなります"
-
-
-msgid "The distance to move to"
-msgstr "移動する距離"
-
-
-msgid "The distance moved can be changed by this multiplier"
-msgstr "この乗数により変更可能な移動距離"
 
 
 msgid "Invert active vertex group's weights"
@@ -75798,10 +75758,6 @@ msgid "Toggle overwrite while typing"
 msgstr "入力中の上書きのON/OFF"
 
 
-msgid "Paste text selected elsewhere rather than copied (X11 only)"
-msgstr "選択文字列をどこかにコピーする代わりに貼り付けます（X11のみ）"
-
-
 msgctxt "Operator"
 msgid "Refresh PyConstraints"
 msgstr "Pyコンストレイントを更新"
@@ -76269,10 +76225,6 @@ msgid "Sequence Slide"
 msgstr "シーケンスをスライド"
 
 
-msgid "Axis Ortho"
-msgstr "平行の軸"
-
-
 msgid "Edge Pan"
 msgstr "エッジパン"
 
@@ -76288,6 +76240,10 @@ msgstr "せん断"
 
 msgid "Shear selected items along the horizontal screen axis"
 msgstr "画面の水平方向に選択物をせん断します"
+
+
+msgid "Axis Ortho"
+msgstr "平行の軸"
 
 
 msgctxt "Operator"
@@ -77117,15 +77073,6 @@ msgstr "プロパティをクリアし、デフォルト値またはオペレー
 
 
 msgctxt "Operator"
-msgid "View drop"
-msgstr "ビュードロップ"
-
-
-msgid "Drag and drop items onto a data-set item"
-msgstr "データセットアイテム上にアイテムをドラッグアンドドロップします"
-
-
-msgctxt "Operator"
 msgid "Rename View Item"
 msgstr "ビューアイテムをリネーム"
 
@@ -77587,6 +77534,10 @@ msgstr "最終的な UV 出力の正確な割合を指定します"
 
 msgid "Rotate islands for best fit"
 msgstr "ベストフィットさせるためアイランドを回転します"
+
+
+msgid "Bounding box"
+msgstr "バウンディングボックス"
 
 
 msgid "Pack to"
@@ -86072,6 +86023,10 @@ msgid "Color of texture overlay"
 msgstr "テクスチャオーバーレイの色"
 
 
+msgid "Only keyframes of selected F-Curves are visible and editable"
+msgstr "選択中のFカーブのキーフレームのみ表示・編集可能にします"
+
+
 msgid "Undo Memory Size"
 msgstr "アンドゥのメモリサイズ"
 
@@ -89311,10 +89266,6 @@ msgstr "透過する粗さのしきい値"
 
 msgid "For transparent transmission, keep surfaces with roughness above the threshold opaque"
 msgstr "光が透過する部分を、しきい値以上の粗さの部分だけ不透明のままにします"
-
-
-msgid "Filter Width"
-msgstr "フィルター幅"
 
 
 msgid "Pixel filter width"
@@ -93785,10 +93736,6 @@ msgid "Sequence strip to load one or more images"
 msgstr "1枚または多数の画像を読み込むシーケンスストリップ"
 
 
-msgid "Multiply playback speed"
-msgstr "再生速度の乗数"
-
-
 msgid "Mask Sequence"
 msgstr "マスクシーケンス"
 
@@ -93932,6 +93879,10 @@ msgstr "ストリップ内に音声の波形を表示します"
 
 msgid "Sound data-block used by this sequence"
 msgstr "このシーケンスに使う音声データブロック"
+
+
+msgid "Multiply playback speed"
+msgstr "再生速度の乗数"
 
 
 msgid "Playback volume of the sound"
@@ -96126,14 +96077,6 @@ msgid "Automatically recalculate curve normalization on every curve edit"
 msgstr "カーブ編集毎にカーブの正規化を自動的に計算します"
 
 
-msgid "Use High Quality Display"
-msgstr "高品質表示を使用"
-
-
-msgid "Display F-Curves using Anti-Aliasing and other fancy effects (disable for better performance)"
-msgstr "アンチエイリアシングとその他のエフェクトを使用してFカーブを表示します（速度を向上したい時はOFF）"
-
-
 msgid "Use Normalization"
 msgstr "正規化を使用"
 
@@ -96142,14 +96085,6 @@ msgid "Display curves in normalized range from -1 to 1, for easier editing of mu
 msgstr ""
 "-1から1までの範囲に正規化されたカーブを表示します。\n"
 "複数のカーブの、別々の範囲での編集が楽になります"
-
-
-msgid "Only Selected Curve Keyframes"
-msgstr "選択中のカーブのキーフレームのみ表示"
-
-
-msgid "Only keyframes of selected F-Curves are visible and editable"
-msgstr "選択中のFカーブのキーフレームのみ表示・編集可能にします"
 
 
 msgid "Only Selected Keyframes Handles"
@@ -100942,10 +100877,6 @@ msgid "Consider objects as whole when finding volume center"
 msgstr "ボリュームの中心を探す時、オブジェクト群を全体とみなします"
 
 
-msgid "Project individual elements on the surface of other objects"
-msgstr "各要素を他のオブジェクトのサーフェス上に投影します"
-
-
 msgid "Use Snap for Rotation"
 msgstr "回転にスナップを使用"
 
@@ -101925,14 +101856,6 @@ msgstr "全てのオブジェクトの原点"
 
 msgid "Show the object origin center dot for all (selected and unselected) objects"
 msgstr "オブジェクト原点のドットをすべて(選択・非選択両方)のオブジェクトで表示します"
-
-
-msgid "Hidden Wire"
-msgstr "陰線ワイヤ"
-
-
-msgid "Use hidden wireframe display"
-msgstr "陰線処理をしたワイヤフレーム表示を使用します"
 
 
 msgid "Show the Onion Skinning Overlay"
@@ -103086,10 +103009,6 @@ msgstr "スクリーン"
 
 msgid "Active workspace screen showing in the window"
 msgstr "ウィンドウ内に表示中のアクティブなワークスペーススクリーン"
-
-
-msgid "Active View Layer"
-msgstr "アクティブビューレイヤー"
 
 
 msgid "The active workspace view layer showing in the window"
@@ -106296,12 +106215,12 @@ msgid "Requires NVIDIA GPU with compute capability %s"
 msgstr "Compute Capability %s の NVIDIA GPU が必要です"
 
 
-msgid "Requires AMD GPU with Vega or RDNA architecture"
-msgstr "Vega や RDNA アーキテクチャの AMD GPU カードと"
-
-
 msgid "and NVIDIA driver version %s or newer"
 msgstr "NVIDIA ドライバー Ver.%s 以降が必要です"
+
+
+msgid "Requires AMD GPU with Vega or RDNA architecture"
+msgstr "Vega や RDNA アーキテクチャの AMD GPU カードと"
 
 
 msgid "Requires Intel GPU with Xe-HPG architecture"
@@ -106320,10 +106239,6 @@ msgid "and AMD Radeon Pro %s driver or newer"
 msgstr "AMD Radeon Pro %s 以降のドライバが必要です"
 
 
-msgid "and AMD driver version %s or newer"
-msgstr "AMD ドライバー Ver.%s 以降が必要です"
-
-
 msgid "and Windows driver version %s or newer"
 msgstr "Windows ドライバー Ver.%s 以降が必要です"
 
@@ -106334,6 +106249,10 @@ msgstr "Apple Silicon と macOS %s 以降、"
 
 msgid "or AMD with macOS %s or newer"
 msgstr "または AMD と macOS %s 以降が必要です"
+
+
+msgid "and AMD driver version %s or newer"
+msgstr "AMD ドライバー Ver.%s 以降が必要です"
 
 
 msgid "  - intel-level-zero-gpu version %s or newer"
@@ -111054,6 +110973,11 @@ msgid "Link to Viewer"
 msgstr "ビューアーにリンク"
 
 
+msgctxt "Operator"
+msgid "Online Manual"
+msgstr "オンラインマニュアル"
+
+
 msgid "Inputs:"
 msgstr "入力:"
 
@@ -113188,11 +113112,6 @@ msgid "Limit Total"
 msgstr "合計を制限"
 
 
-msgctxt "Operator"
-msgid "Fix Deforms"
-msgstr "変形を修正"
-
-
 msgid "Locks"
 msgstr "ロック"
 
@@ -113200,6 +113119,11 @@ msgstr "ロック"
 msgctxt "Operator"
 msgid "Box Show"
 msgstr "ボックス表示"
+
+
+msgctxt "Operator"
+msgid "Invert Visible"
+msgstr "表示を反転"
 
 
 msgctxt "Operator"
@@ -113704,11 +113628,6 @@ msgstr "ギズモを表示"
 
 msgid "Toggle Overlays"
 msgstr "オーバーレイ切り替え"
-
-
-msgctxt "Operator"
-msgid "Invert Visible"
-msgstr "表示を反転"
 
 
 msgid "Local Camera"
@@ -114899,10 +114818,6 @@ msgstr "ファイルが読み込みできません。重大なデータ破損が
 
 msgid "Loading failed: "
 msgstr "読み込み失敗: "
-
-
-msgid "Loading '%s' failed: "
-msgstr "「%s」の読み込み失敗: "
 
 
 msgid "Linked Data"
@@ -117613,11 +117528,6 @@ msgstr "ショートカット削除"
 
 
 msgctxt "Operator"
-msgid "Online Manual"
-msgstr "オンラインマニュアル"
-
-
-msgctxt "Operator"
 msgid "Online Python Reference"
 msgstr "Blender PythonAPI リファレンス"
 
@@ -119897,10 +119807,6 @@ msgid "All groups are locked"
 msgstr "全グループがロックされています"
 
 
-msgid "This operator does not support an active mirror modifier"
-msgstr "このオペレーターはアクティブミラーモディファイアーに対応していません"
-
-
 msgid "Editmode lattice is not supported yet"
 msgstr "編集モードでのラティスは未対応です"
 
@@ -119935,14 +119841,6 @@ msgstr "オブジェクトタイプ「%s」に編集可能なデータがあり�
 
 msgid "Object has no vertex groups"
 msgstr "オブジェクトに頂点グループがありません"
-
-
-msgid "Only mesh objects are supported"
-msgstr "メッシュオブジェクトのみ対応しています"
-
-
-msgid "The active mesh object has no vertex group data"
-msgstr "アクティブメッシュオブジェクトに頂点グループデータがありません"
 
 
 msgid "Vertex select needs to be enabled in weight paint mode"
@@ -125859,16 +125757,8 @@ msgid "Fac"
 msgstr "係数"
 
 
-msgid "Node not supported in the Viewport compositor"
-msgstr "ビューポートコンポジターで未対応のノードです"
-
-
 msgid "Determinator"
 msgstr "境界決定ソース"
-
-
-msgid "Bounding box"
-msgstr "バウンディングボックス"
 
 
 msgid "Color Space:"
@@ -125901,6 +125791,10 @@ msgstr "ハイライト"
 
 msgid "Midtones"
 msgstr "中間色"
+
+
+msgid "Node not supported in the Viewport compositor"
+msgstr "ビューポートコンポジターで未対応のノードです"
 
 
 msgid "Upper Left"
@@ -127573,10 +127467,6 @@ msgid "Clearcoat Normal"
 msgstr "クリアコート法線"
 
 
-msgid "Sigma"
-msgstr "シグマ"
-
-
 msgid "View Vector"
 msgstr "ビューベクトル"
 
@@ -128115,10 +128005,6 @@ msgid "Engine '%s' not available for scene '%s' (an add-on may need to be instal
 msgstr "エンジン「%s」がシーン「%s」で利用できません（アドオンのインストールまたは有効化が必要）"
 
 
-msgid "Library %s needs overrides resync"
-msgstr "ライブラリ「%s」はオーバーライドの再同期が必要です"
-
-
 msgid "%d libraries and %d linked data-blocks are missing (including %d ObjectData and %d Proxies), please check the Info and Outliner editors for details"
 msgstr "%d 個のライブラリと %d 個のデータブロックがありません（%d 個のオブジェクトデータと %d 個のプロキシを含む）。情報エディターとアウトライナーをチェックしてください"
 
@@ -128131,44 +128017,12 @@ msgid "%d sequence strips were not read because they were in a channel larger th
 msgstr "%d 個のシーケンスストリップが読み込みできません。チャンネル一つの最大数は %d 個です"
 
 
-msgid "Cannot read file '%s': %s"
-msgstr "ファイル「%s」が読めません: %s"
-
-
-msgid "File format is not supported in file '%s'"
-msgstr "未対応のファイルフォーマットです:「%s」"
-
-
-msgid "File path '%s' invalid"
-msgstr "ファイルパス「%s」は無効です"
-
-
-msgid "Unknown error loading '%s'"
-msgstr "読み込み時にエラーが発生:「%s」"
-
-
-msgid "Application Template '%s' not found"
-msgstr "アプリケーションテンプレート「%s」が見つかりません"
-
-
-msgid "Could not read '%s'"
-msgstr "「%s」が読み込みできません"
-
-
-msgid "Cannot save blend file, path '%s' is not writable"
-msgstr "blend ファイルが保存できません。パス「%s」は書き込み不可です"
-
-
 msgid "Cannot overwrite used library '%.240s'"
 msgstr "使用中のライブラリ '%.240s' が上書きできません"
 
 
 msgid "Saved \"%s\""
 msgstr "「%s」を保存"
-
-
-msgid "Can't read alternative start-up file: '%s'"
-msgstr "代替スタートアップファイル「%s」が読み込みできません"
 
 
 msgid "The \"filepath\" property was not an absolute path: \"%s\""

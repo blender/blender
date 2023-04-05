@@ -18,6 +18,7 @@
 
 #  include "BLI_bounds_types.hh"
 #  include "BLI_math_vector_types.hh"
+#  include "BLI_offset_indices.hh"
 
 namespace blender {
 template<typename T> class Span;
@@ -69,10 +70,16 @@ typedef struct Mesh {
   int totvert;
   /** The number of edges (#MEdge) in the mesh, and the size of #edata. */
   int totedge;
-  /** The number of polygons/faces (#MPoly) in the mesh, and the size of #pdata. */
+  /** The number of polygons/faces in the mesh, and the size of #pdata. */
   int totpoly;
   /** The number of face corners in the mesh, and the size of #ldata. */
   int totloop;
+
+  /**
+   * Array owned by mesh. May be null of there are no polygons. Index of the first corner of each
+   * polygon, with the total number of corners at the end. See #Mesh::polys() and #OffsetIndices.
+   */
+  int *poly_offset_indices;
 
   CustomData vdata, edata, pdata, ldata;
 
@@ -226,7 +233,7 @@ typedef struct Mesh {
   blender::MutableSpan<blender::float3> vert_positions_for_write();
   /**
    * Array of edges, containing vertex indices. For simple triangle or quad meshes, edges could be
-   * calculated from the #MPoly and "corner edge" arrays, however, edges need to be stored
+   * calculated from the polygon and "corner edge" arrays, however, edges need to be stored
    * explicitly to edge domain attributes and to support loose edges that aren't connected to
    * faces.
    */
@@ -234,11 +241,15 @@ typedef struct Mesh {
   /** Write access to edge data. */
   blender::MutableSpan<MEdge> edges_for_write();
   /**
-   * Face topology storage of the size and offset of each face's section of the face corners.
+   * Face topology storage of the offset of each face's section of the face corners. The size of
+   * each polygon is encoded using the next offset value. Can be used to slice the #corner_verts or
+   * #corner_edges arrays to find the vertices or edges that make up each face.
    */
-  blender::Span<MPoly> polys() const;
-  /** Write access to polygon data. */
-  blender::MutableSpan<MPoly> polys_for_write();
+  blender::OffsetIndices<int> polys() const;
+  /** The first corner index of every polygon. */
+  blender::Span<int> poly_offsets() const;
+  /** Write access to #poly_offsets data. */
+  blender::MutableSpan<int> poly_offsets_for_write();
 
   /**
    * Array of vertices for every face corner,  stored in the ".corner_vert" integer attribute.

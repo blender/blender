@@ -1242,13 +1242,12 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   BLI_polyfill_calc(screen_points, tot_screen_points, 0, r_tris);
 
   /* Write the front face triangle indices. */
-  blender::MutableSpan<MPoly> polys = trim_operation->mesh->polys_for_write();
+  blender::MutableSpan<int> poly_offsets = trim_operation->mesh->poly_offsets_for_write();
   blender::MutableSpan<int> corner_verts = trim_operation->mesh->corner_verts_for_write();
   int poly_index = 0;
   int loop_index = 0;
   for (int i = 0; i < tot_tris_face; i++) {
-    polys[poly_index].loopstart = loop_index;
-    polys[poly_index].totloop = 3;
+    poly_offsets[poly_index] = loop_index;
     corner_verts[loop_index + 0] = r_tris[i][0];
     corner_verts[loop_index + 1] = r_tris[i][1];
     corner_verts[loop_index + 2] = r_tris[i][2];
@@ -1258,8 +1257,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   /* Write the back face triangle indices. */
   for (int i = 0; i < tot_tris_face; i++) {
-    polys[poly_index].loopstart = loop_index;
-    polys[poly_index].totloop = 3;
+    poly_offsets[poly_index] = loop_index;
     corner_verts[loop_index + 0] = r_tris[i][0] + tot_screen_points;
     corner_verts[loop_index + 1] = r_tris[i][1] + tot_screen_points;
     corner_verts[loop_index + 2] = r_tris[i][2] + tot_screen_points;
@@ -1271,8 +1269,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   /* Write the indices for the lateral triangles. */
   for (int i = 0; i < tot_screen_points; i++) {
-    polys[poly_index].loopstart = loop_index;
-    polys[poly_index].totloop = 3;
+    poly_offsets[poly_index] = loop_index;
     int current_index = i;
     int next_index = current_index + 1;
     if (next_index >= tot_screen_points) {
@@ -1286,8 +1283,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   }
 
   for (int i = 0; i < tot_screen_points; i++) {
-    polys[poly_index].loopstart = loop_index;
-    polys[poly_index].totloop = 3;
+    poly_offsets[poly_index] = loop_index;
     int current_index = i;
     int next_index = current_index + 1;
     if (next_index >= tot_screen_points) {

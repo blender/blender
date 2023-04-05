@@ -74,8 +74,8 @@ static void drw_volume_globals_init()
       "dummy_zero", 1, 1, 1, 1, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, zero);
   g_data.dummy_one = GPU_texture_create_3d(
       "dummy_one", 1, 1, 1, 1, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, one);
-  GPU_texture_wrap_mode(g_data.dummy_zero, true, true);
-  GPU_texture_wrap_mode(g_data.dummy_one, true, true);
+  GPU_texture_extend_mode(g_data.dummy_zero, GPU_SAMPLER_EXTEND_MODE_REPEAT);
+  GPU_texture_extend_mode(g_data.dummy_one, GPU_SAMPLER_EXTEND_MODE_REPEAT);
 
   memset(g_data.dummy_grid_mat, 0, sizeof(g_data.dummy_grid_mat));
 }

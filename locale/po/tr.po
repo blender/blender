@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: 2023-02-05 22:00+0300\n"
 "Last-Translator: Emir SARI <emir_sari@îcloud.com>\n"
 "Language-Team: Turkish <>\n"
@@ -2123,6 +2123,10 @@ msgstr "Şekil Anahtarları"
 
 msgid "Shape Key data-blocks"
 msgstr "Şekil Anahtarı veri blokları"
+
+
+msgid "Simulations"
+msgstr "Benzetimler"
 
 
 msgid "Sounds"
@@ -4345,10 +4349,6 @@ msgstr "Boyut"
 
 msgid "Use Global Coordinates"
 msgstr "Evrensel Kordinatları Kullan"
-
-
-msgid "Simulations"
-msgstr "Benzetimler"
 
 
 msgid "Save"

@@ -190,7 +190,6 @@ typedef enum eCustomDataType {
 #define CD_MASK_CLOTH_ORCO (1 << CD_CLOTH_ORCO)
 // #define CD_MASK_RECAST (1 << CD_RECAST)  /* DEPRECATED */
 
-#define CD_MASK_MPOLY (1 << CD_MPOLY)
 #define CD_MASK_SHAPE_KEYINDEX (1 << CD_SHAPE_KEYINDEX)
 #define CD_MASK_SHAPEKEY (1 << CD_SHAPEKEY)
 #define CD_MASK_BWEIGHT (1 << CD_BWEIGHT)

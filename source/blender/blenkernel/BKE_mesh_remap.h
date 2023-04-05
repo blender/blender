@@ -7,6 +7,10 @@
  */
 
 #ifdef __cplusplus
+#  include "BLI_offset_indices.hh"
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -193,6 +197,12 @@ void BKE_mesh_remap_calc_edges_from_mesh(int mode,
                                          struct Mesh *me_dst,
                                          MeshPairRemap *r_map);
 
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+
 void BKE_mesh_remap_calc_loops_from_mesh(int mode,
                                          const struct SpaceTransform *space_transform,
                                          float max_dist,
@@ -205,8 +215,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(int mode,
                                          const int *corner_verts_dst,
                                          const int *corner_edges_dst,
                                          int numloops_dst,
-                                         const struct MPoly *polys_dst,
-                                         int numpolys_dst,
+                                         const blender::OffsetIndices<int> polys_dst,
                                          struct CustomData *ldata_dst,
                                          bool use_split_nors_dst,
                                          float split_angle_dst,
@@ -224,11 +233,8 @@ void BKE_mesh_remap_calc_polys_from_mesh(int mode,
                                          const float (*vert_positions_dst)[3],
                                          int numverts_dst,
                                          const int *corner_verts,
-                                         const struct MPoly *polys_dst,
-                                         int numpolys_dst,
+                                         const blender::OffsetIndices<int> polys_dst,
                                          const struct Mesh *me_src,
                                          struct MeshPairRemap *r_map);
 
-#ifdef __cplusplus
-}
 #endif

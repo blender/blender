@@ -1567,7 +1567,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
       const float(*positions_dst)[3] = BKE_mesh_vert_positions(me_dst);
       const int num_verts_dst = me_dst->totvert;
       const blender::Span<MEdge> edges_dst = me_dst->edges();
-      const blender::Span<MPoly> polys_dst = me_dst->polys();
+      const blender::OffsetIndices polys_dst = me_dst->polys();
       const blender::Span<int> corner_verts_dst = me_dst->corner_verts();
       const blender::Span<int> corner_edges_dst = me_dst->corner_edges();
       CustomData *ldata_dst = &me_dst->ldata;
@@ -1612,8 +1612,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                             corner_verts_dst.data(),
                                             corner_edges_dst.data(),
                                             corner_verts_dst.size(),
-                                            polys_dst.data(),
-                                            polys_dst.size(),
+                                            polys_dst,
                                             ldata_dst,
                                             (me_dst->flag & ME_AUTOSMOOTH) != 0,
                                             me_dst->smoothresh,
@@ -1668,7 +1667,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
     if (DT_DATATYPE_IS_POLY(dtdata_type)) {
       const float(*positions_dst)[3] = BKE_mesh_vert_positions(me_dst);
       const int num_verts_dst = me_dst->totvert;
-      const blender::Span<MPoly> polys_dst = me_dst->polys();
+      const blender::OffsetIndices polys_dst = me_dst->polys();
       const blender::Span<int> corner_verts_dst = me_dst->corner_verts();
 
       if (!geom_map_init[PDATA]) {
@@ -1704,8 +1703,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                             positions_dst,
                                             num_verts_dst,
                                             corner_verts_dst.data(),
-                                            polys_dst.data(),
-                                            polys_dst.size(),
+                                            polys_dst,
                                             me_src,
                                             &geom_map[PDATA]);
         geom_map_init[PDATA] = true;
@@ -1713,14 +1711,13 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
 
       if (mdef && vg_idx != -1 && !weights[PDATA]) {
         weights[PDATA] = static_cast<float *>(
-            MEM_mallocN(sizeof(*weights[PDATA]) * size_t(polys_dst.size()), __func__));
+            MEM_mallocN(sizeof(*weights[PDATA]) * polys_dst.size(), __func__));
         BKE_defvert_extract_vgroup_to_polyweights(mdef,
                                                   vg_idx,
                                                   num_verts_dst,
                                                   corner_verts_dst.data(),
                                                   corner_verts_dst.size(),
-                                                  polys_dst.data(),
-                                                  polys_dst.size(),
+                                                  polys_dst,
                                                   invert_vgroup,
                                                   weights[PDATA]);
       }

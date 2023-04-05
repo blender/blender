@@ -144,8 +144,12 @@ static void workbench_cache_texpaint_populate(WORKBENCH_PrivateData *wpd, Object
     struct GPUBatch *geom = DRW_cache_mesh_surface_texpaint_single_get(ob);
     if (geom) {
       Image *ima = imapaint->canvas;
-      eGPUSamplerState state = GPU_SAMPLER_REPEAT;
-      SET_FLAG_FROM_TEST(state, imapaint->interp == IMAGEPAINT_INTERP_LINEAR, GPU_SAMPLER_FILTER);
+
+      const GPUSamplerFiltering filtering = imapaint->interp == IMAGEPAINT_INTERP_LINEAR ?
+                                                GPU_SAMPLER_FILTERING_LINEAR :
+                                                GPU_SAMPLER_FILTERING_DEFAULT;
+      GPUSamplerState state = {
+          filtering, GPU_SAMPLER_EXTEND_MODE_REPEAT, GPU_SAMPLER_EXTEND_MODE_REPEAT};
 
       DRWShadingGroup *grp = workbench_image_setup(wpd, ob, 0, ima, NULL, state);
       workbench_object_drawcall(grp, geom, ob);
@@ -159,7 +163,8 @@ static void workbench_cache_texpaint_populate(WORKBENCH_PrivateData *wpd, Object
         if (geoms[i] == NULL) {
           continue;
         }
-        DRWShadingGroup *grp = workbench_image_setup(wpd, ob, i + 1, NULL, NULL, 0);
+        DRWShadingGroup *grp = workbench_image_setup(
+            wpd, ob, i + 1, NULL, NULL, GPU_SAMPLER_DEFAULT);
         workbench_object_drawcall(grp, geoms[i], ob);
       }
     }
@@ -224,8 +229,9 @@ static void workbench_cache_hair_populate(WORKBENCH_PrivateData *wpd,
 
   const ImagePaintSettings *imapaint = use_texpaint_mode ? &scene->toolsettings->imapaint : NULL;
   Image *ima = (imapaint && imapaint->mode == IMAGEPAINT_MODE_IMAGE) ? imapaint->canvas : NULL;
-  eGPUSamplerState state = 0;
-  state |= (imapaint && imapaint->interp == IMAGEPAINT_INTERP_LINEAR) ? GPU_SAMPLER_FILTER : 0;
+  GPUSamplerState state = {imapaint && imapaint->interp == IMAGEPAINT_INTERP_LINEAR ?
+                               GPU_SAMPLER_FILTERING_LINEAR :
+                               GPU_SAMPLER_FILTERING_DEFAULT};
   DRWShadingGroup *grp = (use_texpaint_mode) ?
                              workbench_image_hair_setup(wpd, ob, matnr, ima, NULL, state) :
                              workbench_material_hair_setup(wpd, ob, matnr, color_type);

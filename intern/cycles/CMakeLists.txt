@@ -281,6 +281,7 @@ endif()
 
 if(WITH_CYCLES_EMBREE)
   add_definitions(-DWITH_EMBREE)
+  add_definitions(-DEMBREE_MAJOR_VERSION=${EMBREE_MAJOR_VERSION})
   include_directories(
     SYSTEM
     ${EMBREE_INCLUDE_DIRS}
@@ -391,6 +392,10 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_check_cxx_compiler_flag(CMAKE_CXX_FLAGS _has_no_error_unused_macros "-Wno-error=unused-macros")
   unset(_has_no_error_unused_macros)
+endif()
+
+if(WITH_USD)
+  add_definitions(-DWITH_USD)
 endif()
 
 if(WITH_CYCLES_HYDRA_RENDER_DELEGATE AND (NOT WITH_USD))

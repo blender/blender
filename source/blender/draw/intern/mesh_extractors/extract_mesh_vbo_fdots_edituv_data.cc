@@ -51,7 +51,6 @@ static void extract_fdots_edituv_data_iter_poly_bm(const MeshRenderData *mr,
 }
 
 static void extract_fdots_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
-                                                     const MPoly * /*poly*/,
                                                      const int poly_index,
                                                      void *_data)
 {
