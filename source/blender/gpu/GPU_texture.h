@@ -394,7 +394,7 @@ typedef struct GPUSamplerState {
 
 #ifndef __cplusplus
 /** Identical to GPUSamplerState::default_sampler for non C++ users. */
-const static GPUSamplerState GPU_SAMPLER_DEFAULT = {GPU_SAMPLER_FILTERING_DEFAULT,
+static const GPUSamplerState GPU_SAMPLER_DEFAULT = {GPU_SAMPLER_FILTERING_DEFAULT,
                                                     GPU_SAMPLER_EXTEND_MODE_EXTEND,
                                                     GPU_SAMPLER_EXTEND_MODE_EXTEND,
                                                     GPU_SAMPLER_CUSTOM_COMPARE,

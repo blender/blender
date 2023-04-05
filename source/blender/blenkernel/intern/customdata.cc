@@ -4820,7 +4820,7 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
     return;
   }
 
-  if (data_type & CD_FAKE) {
+  if (int(data_type) & CD_FAKE) {
     data_size = laymap->data_size;
   }
   else {
@@ -4891,7 +4891,7 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
       copy_bit_flag(data_dst, tmp_dst, data_size, data_flag);
     }
   }
-  else if (!(data_type & CD_FAKE)) {
+  else if (!(int(data_type) & CD_FAKE)) {
     CustomData_data_mix_value(data_type, tmp_dst, data_dst, mix_mode, mix_factor);
   }
   /* Else we can do nothing by default, needs custom interp func!
@@ -4970,7 +4970,7 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
         tmp_buff_size, sizeof(*tmp_data_src), __func__);
   }
 
-  if (data_type & CD_FAKE) {
+  if (int(data_type) & CD_FAKE) {
     data_step = laymap->elem_size;
     data_size = laymap->data_size;
     data_offset = laymap->data_offset;
