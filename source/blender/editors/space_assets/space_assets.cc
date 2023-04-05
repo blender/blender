@@ -290,7 +290,7 @@ void ED_spacetype_assets(void)
   /* Navigation region */
   art = MEM_cnew<ARegionType>("spacetype asset browser navigation region");
   art->regionid = RGN_TYPE_NAV_BAR;
-  art->prefsizex = UI_COMPACT_PANEL_WIDTH;
+  art->prefsizex = 240;
   art->init = asset_browser_navigation_region_init;
   art->draw = asset_browser_navigation_region_draw;
   art->listener = asset_browser_navigation_region_listener;
