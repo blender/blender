@@ -369,11 +369,27 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 
   RE_SetReports(re, nullptr);
 
+  const bool cancelled = G.is_break;
+
+  if (cancelled) {
+    RenderResult *rr = RE_AcquireResultRead(re);
+    if (rr && rr->error) {
+      /* NOTE(@ideasman42): Report, otherwise the error is entirely hidden from script authors.
+       * This is only done for the #wmOperatorType::exec function because it's assumed users
+       * rendering interactively will view the render and see the error message there. */
+      BKE_report(op->reports, RPT_ERROR, rr->error);
+    }
+    RE_ReleaseResult(re);
+  }
+
   /* No redraw needed, we leave state as we entered it. */
   ED_update_for_newframe(mainp, CTX_data_depsgraph_pointer(C));
 
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, scene);
 
+  if (cancelled) {
+    return OPERATOR_CANCELLED;
+  }
   return OPERATOR_FINISHED;
 }
 
