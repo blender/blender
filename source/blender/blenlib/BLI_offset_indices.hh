@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <algorithm>
+
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
 
@@ -24,31 +26,35 @@ template<typename T> class OffsetIndices {
   Span<T> offsets_;
 
  public:
+  OffsetIndices() = default;
   OffsetIndices(const Span<T> offsets) : offsets_(offsets)
   {
     BLI_assert(std::is_sorted(offsets_.begin(), offsets_.end()));
   }
 
-  T size(const int64_t index) const
-  {
-    BLI_assert(index >= 0);
-    BLI_assert(index < offsets_.size() - 1);
-    const int64_t begin = offsets_[index];
-    const int64_t end = offsets_[index + 1];
-    const int64_t size = end - begin;
-    return size;
-  }
-
-  /** Return the total number of elements in the the referenced arrays. */
+  /** Return the total number of elements in the referenced arrays. */
   T total_size() const
   {
-    return offsets_.last();
+    return offsets_.size() == 1 ? 0 : offsets_.last();
   }
 
-  /** Return the number of ranges encoded by the offsets. */
-  T ranges_num() const
+  /**
+   * Return the number of ranges encoded by the offsets, not including the last value used
+   * internally.
+   */
+  int64_t size() const
   {
-    return offsets_.size() - 1;
+    return std::max<int64_t>(offsets_.size() - 1, 0);
+  }
+
+  bool is_empty() const
+  {
+    return this->size() == 0;
+  }
+
+  IndexRange index_range() const
+  {
+    return IndexRange(this->size());
   }
 
   IndexRange operator[](const int64_t index) const
@@ -79,12 +85,23 @@ template<typename T> class OffsetIndices {
     BLI_assert(offsets_.index_range().drop_back(1).contains(range.last()));
     return OffsetIndices(offsets_.slice(range.start(), range.one_after_last()));
   }
+
+  const T *data() const
+  {
+    return offsets_.data();
+  }
 };
 
 /**
  * Turn an array of sizes into the offset at each index including all previous sizes.
  */
 void accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets, int start_offset = 0);
+
+/**
+ * Create a map from indexed elements to the source indices, in other words from the larger array
+ * to the smaller array.
+ */
+void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map);
 
 }  // namespace blender::offset_indices
 

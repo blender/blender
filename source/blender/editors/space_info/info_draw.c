@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2010 Blender Foundation. All rights reserved. */
+ * Copyright 2010 Blender Foundation */
 
 /** \file
  * \ingroup spinfo
@@ -190,7 +190,7 @@ static int info_textview_main__internal(const SpaceInfo *sinfo,
   /* view */
   tvc.sel_start = 0;
   tvc.sel_end = 0;
-  tvc.lheight = 17 * UI_DPI_FAC;
+  tvc.lheight = 17 * UI_SCALE_FAC;
   tvc.row_vpadding = 0.4 * tvc.lheight;
   tvc.scroll_ymin = v2d->cur.ymin;
   tvc.scroll_ymax = v2d->cur.ymax;

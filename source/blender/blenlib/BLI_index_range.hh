@@ -80,9 +80,7 @@ class IndexRange {
     int64_t current_;
 
    public:
-    constexpr explicit Iterator(int64_t current) : current_(current)
-    {
-    }
+    constexpr explicit Iterator(int64_t current) : current_(current) {}
 
     constexpr Iterator &operator++()
     {

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup editors
@@ -42,6 +42,8 @@ void ED_text_undosys_type(struct UndoType *ut);
 struct UndoStep *ED_text_undo_push_init(struct bContext *C);
 
 /* text_format.c */
+
+const char *ED_text_format_comment_line_prefix(struct Text *text);
 
 bool ED_text_is_syntax_highlight_supported(struct Text *text);
 

@@ -657,7 +657,7 @@ void OBJECT_OT_hook_add_selob(wmOperatorType *ot)
                   "use_bone",
                   false,
                   "Active Bone",
-                  "Assign the hook to the hook objects active bone");
+                  "Assign the hook to the hook object's active bone");
 }
 
 static int object_add_hook_newob_exec(bContext *C, wmOperator *op)

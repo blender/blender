@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edanimation
@@ -8,7 +8,7 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -177,8 +177,8 @@ void ANIM_draw_action_framerange(
 
   immUniform4f("color1", color[0], color[1], color[2], color[3]);
   immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
-  immUniform1i("size1", 2 * U.dpi_fac);
-  immUniform1i("size2", 4 * U.dpi_fac);
+  immUniform1i("size1", 2 * UI_SCALE_FAC);
+  immUniform1i("size2", 4 * UI_SCALE_FAC);
 
   if (sfra < efra) {
     immRectf(pos, v2d->cur.xmin, ymin, sfra, ymax);

@@ -11,7 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_collection_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -1511,6 +1511,11 @@ AssetHandle *CTX_wm_asset_handle_ptr(const bContext *C)
 {
   return static_cast<AssetHandle *>(
       CTX_data_pointer_get_type(C, "asset_handle", &RNA_AssetHandle).data);
+}
+
+AssetRepresentation *CTX_wm_asset(const bContext *C)
+{
+  return static_cast<AssetRepresentation *>(ctx_data_pointer_get(C, "asset"));
 }
 
 Depsgraph *CTX_data_depsgraph_pointer(const bContext *C)

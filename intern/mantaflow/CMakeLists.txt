@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2019 Blender Foundation. All rights reserved.
+# Copyright 2019 Blender Foundation
 # The Original Code is: all of this file.
 # Contributor(s): Sebastian Barschkis (sebbas).
 
@@ -13,6 +13,13 @@ endif()
 
 if(WIN32)
   add_definitions(-D_USE_MATH_DEFINES)
+endif()
+
+if(WIN32)
+  # Some files in extern are being included which brings up a bunch of
+  # "unreferenced formal parameter" warnings.
+  # So restore warn C4100 (unreferenced formal parameter) back to w4
+  remove_cc_flag(/w34100)
 endif()
 
 

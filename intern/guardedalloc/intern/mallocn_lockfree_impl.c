@@ -213,10 +213,10 @@ void *MEM_lockfree_callocN(size_t len, const char *str)
 
     return PTR_FROM_MEMHEAD(memh);
   }
-  print_error("Calloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
+  print_error("Calloc returns null: len=" SIZET_FORMAT " in %s, total " SIZET_FORMAT "\n",
               SIZET_ARG(len),
               str,
-              (uint)memory_usage_current());
+              memory_usage_current());
   return NULL;
 }
 
@@ -226,11 +226,11 @@ void *MEM_lockfree_calloc_arrayN(size_t len, size_t size, const char *str)
   if (UNLIKELY(!MEM_size_safe_multiply(len, size, &total_size))) {
     print_error(
         "Calloc array aborted due to integer overflow: "
-        "len=" SIZET_FORMAT "x" SIZET_FORMAT " in %s, total %u\n",
+        "len=" SIZET_FORMAT "x" SIZET_FORMAT " in %s, total " SIZET_FORMAT "\n",
         SIZET_ARG(len),
         SIZET_ARG(size),
         str,
-        (unsigned int)memory_usage_current());
+        memory_usage_current());
     abort();
     return NULL;
   }
@@ -256,10 +256,10 @@ void *MEM_lockfree_mallocN(size_t len, const char *str)
 
     return PTR_FROM_MEMHEAD(memh);
   }
-  print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
+  print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total " SIZET_FORMAT "\n",
               SIZET_ARG(len),
               str,
-              (uint)memory_usage_current());
+              memory_usage_current());
   return NULL;
 }
 
@@ -269,11 +269,11 @@ void *MEM_lockfree_malloc_arrayN(size_t len, size_t size, const char *str)
   if (UNLIKELY(!MEM_size_safe_multiply(len, size, &total_size))) {
     print_error(
         "Malloc array aborted due to integer overflow: "
-        "len=" SIZET_FORMAT "x" SIZET_FORMAT " in %s, total %u\n",
+        "len=" SIZET_FORMAT "x" SIZET_FORMAT " in %s, total " SIZET_FORMAT "\n",
         SIZET_ARG(len),
         SIZET_ARG(size),
         str,
-        (uint)memory_usage_current());
+        memory_usage_current());
     abort();
     return NULL;
   }
@@ -325,20 +325,16 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
 
     return PTR_FROM_MEMHEAD(memh);
   }
-  print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
+  print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total " SIZET_FORMAT "\n",
               SIZET_ARG(len),
               str,
-              (uint)memory_usage_current());
+              memory_usage_current());
   return NULL;
 }
 
-void MEM_lockfree_printmemlist_pydict(void)
-{
-}
+void MEM_lockfree_printmemlist_pydict(void) {}
 
-void MEM_lockfree_printmemlist(void)
-{
-}
+void MEM_lockfree_printmemlist(void) {}
 
 /* unused */
 void MEM_lockfree_callbackmemlist(void (*func)(void *))
@@ -406,7 +402,5 @@ const char *MEM_lockfree_name_ptr(void *vmemh)
   return "MEM_lockfree_name_ptr(NULL)";
 }
 
-void MEM_lockfree_name_ptr_set(void *UNUSED(vmemh), const char *UNUSED(str))
-{
-}
+void MEM_lockfree_name_ptr_set(void *UNUSED(vmemh), const char *UNUSED(str)) {}
 #endif /* NDEBUG */

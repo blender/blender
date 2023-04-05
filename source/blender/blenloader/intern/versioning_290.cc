@@ -20,8 +20,8 @@
 #include "DNA_curves_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_genfile.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_light_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -45,10 +45,11 @@
 #include "BKE_cryptomatte.h"
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
+#include "BKE_mesh_legacy_convert.h"
 #include "BKE_multires.h"
 #include "BKE_node.h"
 
@@ -410,7 +411,7 @@ static void version_node_socket_duplicate(bNodeTree *ntree,
   }
 }
 
-void do_versions_after_linking_290(Main *bmain, ReportList * /*reports*/)
+void do_versions_after_linking_290(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_ATLEAST(bmain, 290, 1)) {
     /* Patch old grease pencil modifiers material filter. */
@@ -553,7 +554,7 @@ void do_versions_after_linking_290(Main *bmain, ReportList * /*reports*/)
     Scene *scene = static_cast<Scene *>(bmain->scenes.first);
     if (scene != nullptr) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-        if (ob->type != OB_GPENCIL) {
+        if (ob->type != OB_GPENCIL_LEGACY) {
           continue;
         }
         bGPdata *gpd = static_cast<bGPdata *>(ob->data);
@@ -816,20 +817,24 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
   if (MAIN_VERSION_ATLEAST(bmain, 290, 2) && MAIN_VERSION_OLDER(bmain, 291, 1)) {
     /* In this range, the extrude manifold could generate meshes with degenerated face. */
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
-      for (const MPoly *mp = BKE_mesh_polys(me), *mp_end = mp + me->totpoly; mp < mp_end; mp++) {
-        if (mp->totloop == 2) {
+      const MPoly *polys = static_cast<const MPoly *>(CustomData_get_layer(&me->pdata, CD_MPOLY));
+      for (const int i : blender::IndexRange(me->totpoly)) {
+        if (polys[i].totloop == 2) {
           bool changed;
+          BKE_mesh_legacy_convert_loops_to_corners(me);
+          BKE_mesh_legacy_convert_polys_to_offsets(me);
           BKE_mesh_validate_arrays(
               me,
               BKE_mesh_vert_positions_for_write(me),
               me->totvert,
-              BKE_mesh_edges_for_write(me),
+              me->edges_for_write().data(),
               me->totedge,
               (MFace *)CustomData_get_layer_for_write(&me->fdata, CD_MFACE, me->totface),
               me->totface,
-              BKE_mesh_loops_for_write(me),
+              me->corner_verts_for_write().data(),
+              me->corner_edges_for_write().data(),
               me->totloop,
-              BKE_mesh_polys_for_write(me),
+              BKE_mesh_poly_offsets_for_write(me),
               me->totpoly,
               BKE_mesh_deform_verts_for_write(me),
               false,

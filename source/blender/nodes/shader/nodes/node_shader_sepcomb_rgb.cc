@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup shdnodes
@@ -80,6 +80,7 @@ void register_node_type_sh_seprgb()
   ntype.gpu_fn = file_ns::gpu_shader_seprgb;
   ntype.build_multi_function = file_ns::sh_node_seprgb_build_multi_function;
   ntype.gather_link_search_ops = nullptr;
+  ntype.gather_add_node_search_ops = nullptr;
 
   nodeRegisterType(&ntype);
 }
@@ -125,6 +126,7 @@ void register_node_type_sh_combrgb()
   ntype.gpu_fn = file_ns::gpu_shader_combrgb;
   ntype.build_multi_function = file_ns::sh_node_combrgb_build_multi_function;
   ntype.gather_link_search_ops = nullptr;
+  ntype.gather_add_node_search_ops = nullptr;
 
   nodeRegisterType(&ntype);
 }

@@ -16,9 +16,7 @@
 
 #include <multimon.h>
 
-GHOST_DisplayManagerWin32::GHOST_DisplayManagerWin32(void)
-{
-}
+GHOST_DisplayManagerWin32::GHOST_DisplayManagerWin32(void) {}
 
 GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplays(uint8_t &numDisplays) const
 {

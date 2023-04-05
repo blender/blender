@@ -134,9 +134,7 @@ NODE_DEFINE(Pass)
   return type;
 }
 
-Pass::Pass() : Node(get_node_type()), is_auto_(false)
-{
-}
+Pass::Pass() : Node(get_node_type()), is_auto_(false) {}
 
 PassInfo Pass::get_info() const
 {

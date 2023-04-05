@@ -280,8 +280,8 @@ void View::compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool d
   /* TODO(fclem): Resize to nearest pow2 to reduce fragmentation. */
   visibility_buf_.resize(words_len);
 
-  uint32_t data = 0xFFFFFFFFu;
-  GPU_storagebuf_clear(visibility_buf_, GPU_R32UI, GPU_DATA_UINT, &data);
+  const uint32_t data = 0xFFFFFFFFu;
+  GPU_storagebuf_clear(visibility_buf_, data);
 
   if (do_visibility_) {
     GPUShader *shader = DRW_shader_draw_visibility_compute_get();

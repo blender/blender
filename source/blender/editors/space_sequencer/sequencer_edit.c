@@ -1851,6 +1851,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
         seq_new->start = start_ofs;
         seq_new->type = SEQ_TYPE_IMAGE;
         seq_new->len = 1;
+        seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
         seq_new->endofs = 1 - step;
 
         /* New strip. */
@@ -2918,6 +2919,13 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
       RNA_END;
     }
 
+    if (len == 1) {
+      seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
+    }
+    else {
+      seq->flag &= ~SEQ_SINGLE_FRAME_CONTENT;
+    }
+
     /* Reset these else we won't see all the images. */
     seq->anim_startofs = seq->anim_endofs = 0;
 
@@ -3269,6 +3277,9 @@ static int sequencer_set_range_to_strips_exec(bContext *C, wmOperator *op)
     if (seq->flag & SELECT) {
       selected = true;
       sfra = min_ii(sfra, SEQ_time_left_handle_frame_get(scene, seq));
+      /* Offset of -1 is needed because in VSE every frame has width. Range from 1 to 1 is drawn
+       * as range 1 to 2, because 1 frame long strip starts at frame 1 and ends at frame 2.
+       * See #106480. */
       efra = max_ii(efra, SEQ_time_right_handle_frame_get(scene, seq) - 1);
     }
   }

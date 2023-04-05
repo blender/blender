@@ -23,9 +23,7 @@ class BufferedStyleModule : public StyleModule {
     _buffer = buffer;
   }
 
-  virtual ~BufferedStyleModule()
-  {
-  }
+  virtual ~BufferedStyleModule() {}
 
  protected:
   virtual int interpret()
@@ -51,9 +49,7 @@ class BlenderStyleModule : public StyleModule {
     _text = text;
   }
 
-  virtual ~BlenderStyleModule()
-  {
-  }
+  virtual ~BlenderStyleModule() {}
 
  protected:
   virtual int interpret()

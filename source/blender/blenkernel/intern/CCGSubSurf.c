@@ -189,6 +189,7 @@ static CCGFace *_face_new(
   byte *userData;
 
   f->numVerts = numVerts;
+  BLI_assert(numVerts > 2);
   f->fHDL = fHDL;
   f->flags = 0;
 

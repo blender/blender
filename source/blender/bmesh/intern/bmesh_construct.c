@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup bmesh
@@ -591,8 +591,7 @@ void BM_mesh_copy_init_customdata_all_layers(BMesh *bm_dst,
     const int size = *(&allocsize->totvert + i);
 
     for (int l = 0; l < src->totlayer; l++) {
-      CustomData_add_layer_named(
-          dst, src->layers[l].type, CD_SET_DEFAULT, NULL, 0, src->layers[l].name);
+      CustomData_add_layer_named(dst, src->layers[l].type, CD_SET_DEFAULT, 0, src->layers[l].name);
     }
     CustomData_bmesh_init_pool(dst, size, htypes[i]);
   }

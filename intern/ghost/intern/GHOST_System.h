@@ -135,23 +135,20 @@ class GHOST_System : public GHOST_ISystem {
    * Ends full screen mode.
    * \return Indication of success.
    */
-  GHOST_TSuccess endFullScreen(void);
+  GHOST_TSuccess endFullScreen();
 
   /**
    * Returns current full screen mode status.
    * \return The current status.
    */
-  bool getFullScreen(void);
+  bool getFullScreen();
 
   /**
    * Native pixel size support (MacBook 'retina').
    * \return The pixel size in float.
    */
-  bool useNativePixel(void);
+  bool useNativePixel();
   bool m_nativePixel;
-
-  bool supportsCursorWarp(void);
-  bool supportsWindowPosition(void);
 
   /**
    * Focus window after opening, or put them in the background.
@@ -159,6 +156,12 @@ class GHOST_System : public GHOST_ISystem {
   void useWindowFocus(const bool use_focus);
 
   bool m_windowFocus;
+
+  /**
+   * Focus and raise windows on mouse hover.
+   */
+  void setAutoFocus(const bool auto_focus);
+  bool m_autoFocus;
 
   /**
    * Get the Window under the cursor.

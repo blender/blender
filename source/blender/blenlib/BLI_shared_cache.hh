@@ -64,6 +64,22 @@ template<typename T> class SharedCache {
     BLI_assert(cache_->mutex.is_cached());
     return cache_->data;
   }
+
+  /**
+   * Return true if the cache currently does not exist or has been invalidated.
+   */
+  bool is_dirty() const
+  {
+    return cache_->mutex.is_dirty();
+  }
+
+  /**
+   * Return true if the cache exists and is valid.
+   */
+  bool is_cached() const
+  {
+    return cache_->mutex.is_cached();
+  }
 };
 
 }  // namespace blender

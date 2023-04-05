@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2010 Blender Foundation. All rights reserved. */
+ * Copyright 2010 Blender Foundation */
 
 #import <Foundation/Foundation.h>
 
@@ -8,13 +8,9 @@
 
 #pragma mark initialization/finalization
 
-GHOST_SystemPathsCocoa::GHOST_SystemPathsCocoa()
-{
-}
+GHOST_SystemPathsCocoa::GHOST_SystemPathsCocoa() {}
 
-GHOST_SystemPathsCocoa::~GHOST_SystemPathsCocoa()
-{
-}
+GHOST_SystemPathsCocoa::~GHOST_SystemPathsCocoa() {}
 
 #pragma mark Base directories retrieval
 

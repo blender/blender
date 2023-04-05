@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -37,7 +37,9 @@ void *vk_memory_reallocation(void *user_data,
 
 void vk_memory_free(void * /*user_data*/, void *memory)
 {
-  MEM_freeN(memory);
+  if (memory != nullptr) {
+    MEM_freeN(memory);
+  }
 }
 
 #endif

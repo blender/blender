@@ -48,9 +48,7 @@ class DensityF1D : public UnaryFunction1D<double> {
   }
 
   /** Destructor */
-  virtual ~DensityF1D()
-  {
-  }
+  virtual ~DensityF1D() {}
 
   /** Returns the string "DensityF1D". */
   string getName() const
@@ -219,9 +217,7 @@ class GetSteerableViewMapDensityF1D : public UnaryFunction1D<double> {
   }
 
   /** Destructor */
-  virtual ~GetSteerableViewMapDensityF1D()
-  {
-  }
+  virtual ~GetSteerableViewMapDensityF1D() {}
 
   /** Returns the string "GetSteerableViewMapDensityF1D" */
   string getName() const

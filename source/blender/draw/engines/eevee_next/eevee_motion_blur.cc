@@ -132,7 +132,7 @@ void MotionBlurModule::sync()
     return;
   }
 
-  eGPUSamplerState no_filter = GPU_SAMPLER_DEFAULT;
+  GPUSamplerState no_filter = GPUSamplerState::default_sampler();
   RenderBuffers &render_buffers = inst_.render_buffers;
 
   motion_blur_ps_.init();
@@ -233,7 +233,7 @@ void MotionBlurModule::render(View &view, GPUTexture **input_tx, GPUTexture **ou
 
   tiles_tx_.acquire(tiles_extent, GPU_RGBA16F);
 
-  GPU_storagebuf_clear_to_zero(tile_indirection_buf_);
+  tile_indirection_buf_.clear_to_zero();
 
   inst_.manager->submit(motion_blur_ps_, view);
 

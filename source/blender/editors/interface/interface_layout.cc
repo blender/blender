@@ -1658,8 +1658,11 @@ void uiItemsFullEnumO(uiLayout *layout,
 #endif
     }
     else {
-      RNA_property_enum_items_gettexted(
-          static_cast<bContext *>(block->evil_C), &ptr, prop, &item_array, &totitem, &free);
+      bContext *C = static_cast<bContext *>(block->evil_C);
+      bContextStore *previous_ctx = CTX_store_get(C);
+      CTX_store_set(C, layout->context);
+      RNA_property_enum_items_gettexted(C, &ptr, prop, &item_array, &totitem, &free);
+      CTX_store_set(C, previous_ctx);
     }
 
     /* add items */
@@ -3203,7 +3206,7 @@ void uiItemPopoverPanel_ptr(
     pt->draw_header(C, &panel);
   }
   uiBut *but = ui_item_menu(
-      layout, name, icon, ui_item_paneltype_func, pt, nullptr, pt->description, true);
+      layout, name, icon, ui_item_paneltype_func, pt, nullptr, TIP_(pt->description), true);
   but->type = UI_BTYPE_POPOVER;
   if (!ok) {
     but->flag |= UI_BUT_DISABLED;
@@ -3962,7 +3965,7 @@ static void ui_litem_layout_radial(uiLayout *litem)
    * for radiation, see http://mattebb.com/weblog/radiation/
    * also the old code at #5103. */
 
-  const int pie_radius = U.pie_menu_radius * UI_DPI_FAC;
+  const int pie_radius = U.pie_menu_radius * UI_SCALE_FAC;
 
   const int x = litem->x;
   const int y = litem->y;
@@ -4046,7 +4049,7 @@ static void ui_litem_layout_root_radial(uiLayout *litem)
     ui_item_size(item, &itemw, &itemh);
 
     ui_item_position(
-        item, x - itemw / 2, y + U.dpi_fac * (U.pie_menu_threshold + 9.0f), itemw, itemh);
+        item, x - itemw / 2, y + UI_SCALE_FAC * (U.pie_menu_threshold + 9.0f), itemw, itemh);
   }
 }
 
@@ -5809,7 +5812,6 @@ void uiLayoutSetTooltipFunc(uiLayout *layout,
     if (copy_arg != nullptr && arg_used) {
       arg = copy_arg(arg);
     }
-    arg_used = true;
 
     if (item->type == ITEM_BUTTON) {
       uiButtonItem *bitem = (uiButtonItem *)item;
@@ -5817,9 +5819,11 @@ void uiLayoutSetTooltipFunc(uiLayout *layout,
         continue;
       }
       UI_but_func_tooltip_set(bitem->but, func, arg, free_arg);
+      arg_used = true;
     }
     else {
       uiLayoutSetTooltipFunc((uiLayout *)item, func, arg, copy_arg, free_arg);
+      arg_used = true;
     }
   }
 
@@ -5912,7 +5916,8 @@ static bool ui_layout_has_panel_label(const uiLayout *layout, const PanelType *p
   LISTBASE_FOREACH (uiItem *, subitem, &layout->items) {
     if (subitem->type == ITEM_BUTTON) {
       uiButtonItem *bitem = (uiButtonItem *)subitem;
-      if (!(bitem->but->flag & UI_HIDDEN) && STREQ(bitem->but->str, pt->label)) {
+      if (!(bitem->but->flag & UI_HIDDEN) &&
+          STREQ(bitem->but->str, CTX_IFACE_(pt->translation_context, pt->label))) {
         return true;
       }
     }
@@ -6123,13 +6128,13 @@ const char *UI_layout_introspect(uiLayout *layout)
 uiLayout *uiItemsAlertBox(uiBlock *block, const int size, const eAlertIcon icon)
 {
   const uiStyle *style = UI_style_get_dpi();
-  const short icon_size = 64 * U.dpi_fac;
+  const short icon_size = 64 * UI_SCALE_FAC;
   const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
-  const int dialog_width = icon_size + (text_points_max * size * U.dpi_fac);
+  const int dialog_width = icon_size + (text_points_max * size * UI_SCALE_FAC);
   /* By default, the space between icon and text/buttons will be equal to the 'columnspace',
    * this extra padding will add some space by increasing the left column width,
    * making the icon placement more symmetrical, between the block edge and the text. */
-  const float icon_padding = 5.0f * U.dpi_fac;
+  const float icon_padding = 5.0f * UI_SCALE_FAC;
   /* Calculate the factor of the fixed icon column depending on the block width. */
   const float split_factor = (float(icon_size) + icon_padding) /
                              float(dialog_width - style->columnspace);

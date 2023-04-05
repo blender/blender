@@ -3,7 +3,7 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_bvhutils.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 
 #include "UI_interface.h"
@@ -164,8 +164,8 @@ static void get_closest_mesh_corners(const Mesh &mesh,
                                      const MutableSpan<float3> r_positions)
 {
   const Span<float3> vert_positions = mesh.vert_positions();
-  const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const OffsetIndices polys = mesh.polys();
+  const Span<int> corner_verts = mesh.corner_verts();
 
   BLI_assert(mesh.totloop > 0);
   Array<int> poly_indices(positions.size());
@@ -174,15 +174,13 @@ static void get_closest_mesh_corners(const Mesh &mesh,
   for (const int i : mask) {
     const float3 position = positions[i];
     const int poly_index = poly_indices[i];
-    const MPoly &poly = polys[poly_index];
 
     /* Find the closest vertex in the polygon. */
     float min_distance_sq = FLT_MAX;
     int closest_vert_index = 0;
     int closest_loop_index = 0;
-    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-      const MLoop &loop = loops[loop_index];
-      const int vertex_index = loop.v;
+    for (const int loop_index : polys[poly_index]) {
+      const int vertex_index = corner_verts[loop_index];
       const float distance_sq = math::distance_squared(position, vert_positions[vertex_index]);
       if (distance_sq < min_distance_sq) {
         min_distance_sq = distance_sq;

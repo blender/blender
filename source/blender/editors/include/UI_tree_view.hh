@@ -108,6 +108,8 @@ using TreeViewOrItem = TreeViewItemContainer;
  * \{ */
 
 class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
+  int min_rows_ = 0;
+
   friend class AbstractTreeViewItem;
   friend class TreeViewBuilder;
 
@@ -115,6 +117,12 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   virtual ~AbstractTreeView() = default;
 
   void foreach_item(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
+
+  /** Visual feature: Define a number of item rows the view will always show at minimum. If there
+   * are fewer items, empty dummy items will be added. These contribute to the view bounds, so the
+   * drop target of the view includes them, but they are not interactive (e.g. no mouse-hover
+   * highlight). */
+  void set_min_rows(int min_rows);
 
  protected:
   virtual void build_tree() = 0;
@@ -306,12 +314,11 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
  * \{ */
 
 class TreeViewBuilder {
-  uiBlock &block_;
-
  public:
-  TreeViewBuilder(uiBlock &block);
+  static void build_tree_view(AbstractTreeView &tree_view, uiLayout &layout);
 
-  void build_tree_view(AbstractTreeView &tree_view);
+ private:
+  static void ensure_min_rows_items(AbstractTreeView &tree_view);
 };
 
 /** \} */

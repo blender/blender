@@ -30,9 +30,7 @@ class Noise {
   Noise(long seed = -1);
 
   /** Destructor */
-  ~Noise()
-  {
-  }
+  ~Noise() {}
 
   /** Returns a noise value for a 1D element */
   float turbulence1(float arg, float freq, float amp, unsigned oct = 4);

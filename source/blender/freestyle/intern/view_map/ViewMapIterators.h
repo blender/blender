@@ -60,9 +60,7 @@ class orientedViewEdgeIterator : public Iterator {
 
  public:
   /** Default constructor */
-  inline orientedViewEdgeIterator()
-  {
-  }
+  inline orientedViewEdgeIterator() {}
 
   inline orientedViewEdgeIterator(Nature::VertexNature iNature)
   {
@@ -85,9 +83,7 @@ class orientedViewEdgeIterator : public Iterator {
     }
   }
 
-  virtual ~orientedViewEdgeIterator()
-  {
-  }
+  virtual ~orientedViewEdgeIterator() {}
 
  public:
   inline orientedViewEdgeIterator(edge_pointers_container::iterator begin,
@@ -275,9 +271,7 @@ class SVertexIterator : public Interface0DIteratorNested {
     return *this;
   }
 
-  virtual ~SVertexIterator()
-  {
-  }
+  virtual ~SVertexIterator() {}
 
   virtual string getExactTypeName() const
   {
@@ -431,9 +425,7 @@ class ViewEdgeIterator : public Iterator {
     _begin = it._begin;
   }
 
-  virtual ~ViewEdgeIterator()
-  {
-  }
+  virtual ~ViewEdgeIterator() {}
 
   /** Returns the string "ViewEdgeIterator" */
   virtual string getExactTypeName() const

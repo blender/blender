@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup editors
@@ -148,6 +148,7 @@ typedef enum eKeyframeIterFlags {
    * iterator callbacks then. */
   KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE = (1 << 3),
 } eKeyframeIterFlags;
+ENUM_OPERATORS(eKeyframeIterFlags, KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE)
 
 /** \} */
 
@@ -217,6 +218,19 @@ typedef enum eKeyPasteOffset {
   /* paste keys from original time */
   KEYFRAME_PASTE_OFFSET_NONE,
 } eKeyPasteOffset;
+
+typedef enum eKeyPasteValueOffset {
+  /* Paste keys with the first key matching the key left of the cursor. */
+  KEYFRAME_PASTE_VALUE_OFFSET_LEFT_KEY,
+  /* Paste keys with the last key matching the key right of the cursor. */
+  KEYFRAME_PASTE_VALUE_OFFSET_RIGHT_KEY,
+  /* Paste keys relative to the value of the curve under the cursor. */
+  KEYFRAME_PASTE_VALUE_OFFSET_CFRA,
+  /* Paste values relative to the cursor position. */
+  KEYFRAME_PASTE_VALUE_OFFSET_CURSOR,
+  /* Paste keys with the exact copied value. */
+  KEYFRAME_PASTE_VALUE_OFFSET_NONE,
+} eKeyPasteValueOffset;
 
 typedef enum eKeyMergeMode {
   /* overlay existing with new keys */
@@ -411,14 +425,34 @@ void blend_to_neighbor_fcurve_segment(struct FCurve *fcu,
                                       struct FCurveSegment *segment,
                                       float factor);
 void breakdown_fcurve_segment(struct FCurve *fcu, struct FCurveSegment *segment, float factor);
+/**
+ * Get a 1D gauss kernel. Since the kernel is symmetrical, only calculates the positive side.
+ * \param sigma: The shape of the gauss distribution.
+ * \param kernel_size: How long the kernel array is.
+ */
+void ED_ANIM_get_1d_gauss_kernel(const float sigma, int kernel_size, double *r_kernel);
+void smooth_fcurve_segment(struct FCurve *fcu,
+                           struct FCurveSegment *segment,
+                           float *samples,
+                           float factor,
+                           int kernel_size,
+                           double *kernel);
 void ease_fcurve_segment(struct FCurve *fcu, struct FCurveSegment *segment, float factor);
 bool decimate_fcurve(struct bAnimListElem *ale, float remove_ratio, float error_sq_max);
+
+/**
+ * Blends the selected keyframes to the default value of the property the F-curve drives.
+ */
 void blend_to_default_fcurve(struct PointerRNA *id_ptr, struct FCurve *fcu, float factor);
 /**
  * Use a weighted moving-means method to reduce intensity of fluctuations.
  */
 void smooth_fcurve(struct FCurve *fcu);
 void sample_fcurve(struct FCurve *fcu);
+void sample_fcurve_segment(struct FCurve *fcu,
+                           float start_frame,
+                           float *r_samples,
+                           int sample_count);
 
 /* ----------- */
 
@@ -427,6 +461,7 @@ short copy_animedit_keys(struct bAnimContext *ac, ListBase *anim_data);
 eKeyPasteError paste_animedit_keys(struct bAnimContext *ac,
                                    ListBase *anim_data,
                                    eKeyPasteOffset offset_mode,
+                                   eKeyPasteValueOffset value_offset_mode,
                                    eKeyMergeMode merge_mode,
                                    bool flip);
 

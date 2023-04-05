@@ -386,7 +386,7 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
     BKE_report(reports, RPT_ERROR, "Mesh has no UV data");
     return;
   }
-  BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+  BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR POLYS */
 
   if (ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
     if (particle->num < modifier->mesh_final->totface) {
@@ -526,7 +526,7 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
   int totvert;
   int num = -1;
 
-  BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+  BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR POLYS */
   totface = modifier->mesh_final->totface;
   totvert = modifier->mesh_final->totvert;
 
@@ -2948,6 +2948,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_range(prop, 0, 1000000, 1, -1);
   RNA_def_property_ui_text(prop, "Number", "Total number of particles");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_AMOUNT);
   RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
   prop = RNA_def_property(

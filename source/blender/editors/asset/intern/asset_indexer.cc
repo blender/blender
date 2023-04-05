@@ -56,13 +56,16 @@ using namespace blender::bke::idprop;
  *     "catalog_name": "<catalog_name>",
  *     "description": "<description>",
  *     "author": "<author>",
+ *     "copyright": "<copyright>",
+ *     "license": "<license>",
  *     "tags": ["<tag>"],
  *     "properties": [..]
  *   }]
  * }
  * \endcode
  *
- * NOTE: entries, author, description, tags and properties are optional attributes.
+ * NOTE: entries, author, description, copyright, license, tags and properties are optional
+ * attributes.
  *
  * NOTE: File browser uses name and idcode separate. Inside the index they are joined together like
  * #ID.name.
@@ -75,6 +78,8 @@ constexpr StringRef ATTRIBUTE_ENTRIES_CATALOG_ID("catalog_id");
 constexpr StringRef ATTRIBUTE_ENTRIES_CATALOG_NAME("catalog_name");
 constexpr StringRef ATTRIBUTE_ENTRIES_DESCRIPTION("description");
 constexpr StringRef ATTRIBUTE_ENTRIES_AUTHOR("author");
+constexpr StringRef ATTRIBUTE_ENTRIES_COPYRIGHT("copyright");
+constexpr StringRef ATTRIBUTE_ENTRIES_LICENSE("license");
 constexpr StringRef ATTRIBUTE_ENTRIES_TAGS("tags");
 constexpr StringRef ATTRIBUTE_ENTRIES_PROPERTIES("properties");
 
@@ -103,9 +108,7 @@ class BlendFile : public AbstractFile {
   StringRefNull file_path_;
 
  public:
-  BlendFile(StringRefNull file_path) : file_path_(file_path)
-  {
-  }
+  BlendFile(StringRefNull file_path) : file_path_(file_path) {}
 
   uint64_t hash() const
   {
@@ -142,9 +145,7 @@ struct AssetEntryReader {
   }
 
  public:
-  AssetEntryReader(const DictionaryValue &entry) : lookup(entry.create_lookup())
-  {
-  }
+  AssetEntryReader(const DictionaryValue &entry) : lookup(entry.create_lookup()) {}
 
   ID_Type get_idcode() const
   {
@@ -176,6 +177,26 @@ struct AssetEntryReader {
   StringRefNull get_author() const
   {
     return lookup.lookup(ATTRIBUTE_ENTRIES_AUTHOR)->as_string_value()->value();
+  }
+
+  bool has_copyright() const
+  {
+    return lookup.contains(ATTRIBUTE_ENTRIES_COPYRIGHT);
+  }
+
+  StringRefNull get_copyright() const
+  {
+    return lookup.lookup(ATTRIBUTE_ENTRIES_COPYRIGHT)->as_string_value()->value();
+  }
+
+  bool has_license() const
+  {
+    return lookup.contains(ATTRIBUTE_ENTRIES_LICENSE);
+  }
+
+  StringRefNull get_license() const
+  {
+    return lookup.lookup(ATTRIBUTE_ENTRIES_LICENSE)->as_string_value()->value();
   }
 
   StringRefNull get_catalog_name() const
@@ -226,9 +247,7 @@ struct AssetEntryWriter {
   DictionaryValue::Items &attributes;
 
  public:
-  AssetEntryWriter(DictionaryValue &entry) : attributes(entry.elements())
-  {
-  }
+  AssetEntryWriter(DictionaryValue &entry) : attributes(entry.elements()) {}
 
   /**
    * \brief add id + name to the attributes.
@@ -265,6 +284,16 @@ struct AssetEntryWriter {
   void add_author(const StringRefNull author)
   {
     attributes.append_as(std::pair(ATTRIBUTE_ENTRIES_AUTHOR, new StringValue(author)));
+  }
+
+  void add_copyright(const StringRefNull copyright)
+  {
+    attributes.append_as(std::pair(ATTRIBUTE_ENTRIES_COPYRIGHT, new StringValue(copyright)));
+  }
+
+  void add_license(const StringRefNull license)
+  {
+    attributes.append_as(std::pair(ATTRIBUTE_ENTRIES_LICENSE, new StringValue(license)));
   }
 
   void add_tags(const ListBase /* AssetTag */ *asset_tags)
@@ -304,6 +333,12 @@ static void init_value_from_file_indexer_entry(AssetEntryWriter &result,
   }
   if (asset_data.author != nullptr) {
     result.add_author(asset_data.author);
+  }
+  if (asset_data.copyright != nullptr) {
+    result.add_copyright(asset_data.copyright);
+  }
+  if (asset_data.license != nullptr) {
+    result.add_license(asset_data.license);
   }
 
   if (!BLI_listbase_is_empty(&asset_data.tags)) {
@@ -371,6 +406,18 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
     char *author_c_str = static_cast<char *>(MEM_mallocN(author.size() + 1, __func__));
     BLI_strncpy(author_c_str, author.c_str(), author.size() + 1);
     asset_data->author = author_c_str;
+  }
+  if (entry.has_copyright()) {
+    const StringRefNull copyright = entry.get_copyright();
+    char *copyright_c_str = static_cast<char *>(MEM_mallocN(copyright.size() + 1, __func__));
+    BLI_strncpy(copyright_c_str, copyright.c_str(), copyright.size() + 1);
+    asset_data->copyright = copyright_c_str;
+  }
+  if (entry.has_license()) {
+    const StringRefNull license = entry.get_license();
+    char *license_c_str = static_cast<char *>(MEM_mallocN(license.size() + 1, __func__));
+    BLI_strncpy(license_c_str, license.c_str(), license.size() + 1);
+    asset_data->license = license_c_str;
   }
 
   const StringRefNull catalog_name = entry.get_catalog_name();
@@ -621,9 +668,7 @@ struct AssetIndex {
    * Constructor when reading an asset index file.
    * #AssetIndex.contents are read from the given \p value.
    */
-  AssetIndex(std::unique_ptr<Value> &value) : contents(std::move(value))
-  {
-  }
+  AssetIndex(std::unique_ptr<Value> &value) : contents(std::move(value)) {}
 
   int get_version() const
   {

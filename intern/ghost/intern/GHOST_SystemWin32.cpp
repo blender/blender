@@ -217,7 +217,7 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
                                                uint32_t height,
                                                GHOST_TWindowState state,
                                                GHOST_GLSettings glSettings,
-                                               const bool exclusive,
+                                               const bool /*exclusive*/,
                                                const bool is_dialog,
                                                const GHOST_IWindow *parentWindow)
 {
@@ -496,6 +496,14 @@ GHOST_TSuccess GHOST_SystemWin32::getButtons(GHOST_Buttons &buttons) const
   return GHOST_kSuccess;
 }
 
+GHOST_TCapabilityFlag GHOST_SystemWin32::getCapabilities() const
+{
+  return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL &
+                               ~(
+                                   /* WIN32 has no support for a primary selection clipboard. */
+                                   GHOST_kCapabilityPrimaryClipboard));
+}
+
 GHOST_TSuccess GHOST_SystemWin32::init()
 {
   GHOST_TSuccess success = GHOST_System::init();
@@ -568,7 +576,7 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, bool *r_key_down)
  * This function was added in response to bug #25715.
  * This is going to be a long list #42426.
  */
-GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short scanCode) const
+GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short /*scanCode*/) const
 {
   GHOST_TKey key = GHOST_kKeyUnknown;
   if (vKey == 0xFF) {
@@ -1148,7 +1156,9 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
                                GHOST_TABLET_DATA_NONE);
 }
 
-void GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam)
+void GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window,
+                                          WPARAM wParam,
+                                          LPARAM /*lParam*/)
 {
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
@@ -1826,7 +1836,13 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           if (!window->m_mousePresent) {
             WINTAB_PRINTF("HWND %p mouse enter\n", window->getHWND());
             TRACKMOUSEEVENT tme = {sizeof(tme)};
+            /* Request WM_MOUSELEAVE message when the cursor leaves the client area. */
             tme.dwFlags = TME_LEAVE;
+            if (system->m_autoFocus) {
+              /* Request WM_MOUSEHOVER message after 100ms when in the client area. */
+              tme.dwFlags |= TME_HOVER;
+              tme.dwHoverTime = 100;
+            }
             tme.hwndTrack = hwnd;
             TrackMouseEvent(&tme);
             window->m_mousePresent = true;
@@ -1841,6 +1857,35 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           window->clientToScreen(UNPACK2(window_co), UNPACK2(screen_co));
           event = processCursorEvent(window, screen_co);
 
+          break;
+        }
+        case WM_MOUSEHOVER: {
+          /* Mouse Tracking is now off. TrackMouseEvent restarts in MouseMove. */
+          window->m_mousePresent = false;
+
+          /* Auto-focus only occurs within Blender windows, not with _other_ applications. */
+          HWND old_hwnd = ::GetFocus();
+          if (hwnd != old_hwnd) {
+            HWND new_parent = ::GetParent(hwnd);
+            HWND old_parent = ::GetParent(old_hwnd);
+            if (hwnd == old_parent || old_hwnd == new_parent) {
+              /* Child to its parent, parent to its child. */
+              ::SetFocus(hwnd);
+            }
+            else if (new_parent != HWND_DESKTOP && new_parent == old_parent) {
+              /* Between siblings of same parent. */
+              ::SetFocus(hwnd);
+            }
+            else if (!new_parent && !old_parent) {
+              /* Between main windows that don't overlap. */
+              RECT new_rect, old_rect, dest_rect;
+              ::GetWindowRect(hwnd, &new_rect);
+              ::GetWindowRect(old_hwnd, &old_rect);
+              if (!IntersectRect(&dest_rect, &new_rect, &old_rect)) {
+                ::SetFocus(hwnd);
+              }
+            }
+          }
           break;
         }
         case WM_MOUSEWHEEL: {
@@ -2181,7 +2226,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
   return lResult;
 }
 
-char *GHOST_SystemWin32::getClipboard(bool selection) const
+char *GHOST_SystemWin32::getClipboard(bool /*selection*/) const
 {
   if (IsClipboardFormatAvailable(CF_UNICODETEXT) && OpenClipboard(NULL)) {
     wchar_t *buffer;

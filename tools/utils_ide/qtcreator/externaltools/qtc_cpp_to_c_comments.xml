@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<externaltool id="qtc_cpp_to_c_comments">
+    <description>Convert blocks of C++ comments into C style comments.</description>
+    <displayname>C++ to C (Comments)</displayname>
+    <category>Formatting</category>
+    <executable output="replaceselection" error="showinpane" modifiesdocument="no">
+        <path>qtc_cpp_to_c_comments.py</path>
+        <input>%{CurrentDocument:Selection}</input>
+        <workingdirectory>%{CurrentDocument:Path}</workingdirectory>
+    </executable>
+</externaltool>

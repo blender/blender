@@ -6,7 +6,7 @@
  */
 
 #include "DNA_anim_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_mask_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -17,7 +17,7 @@
 
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_mask.h"

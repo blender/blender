@@ -73,7 +73,7 @@ void main()
 
     if (interp_size == 1) {
       /* NOTE(Metal): Declaring constant array in function scope to avoid increasing local shader
-       * memory pressure.*/
+       * memory pressure. */
       const vec2 offsets4[4] = vec2[4](
           vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(-0.5, -0.5), vec2(-0.5, -0.5));
 
@@ -87,7 +87,7 @@ void main()
     }
     else {
       /* NOTE(Metal): Declaring constant array in function scope to avoid increasing local shader
-       * memory pressure.*/
+       * memory pressure. */
       const vec2 offsets16[16] = vec2[16](vec2(-1.5, 1.5),
                                           vec2(-0.5, 1.5),
                                           vec2(0.5, 1.5),

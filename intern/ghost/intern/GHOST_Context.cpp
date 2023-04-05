@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup GHOST
@@ -103,6 +103,9 @@ bool win32_chk(bool result, const char *file, int line, const char *text)
     _ftprintf(
         stderr, "%s:%d: [%s] -> Win32 Error# (%lu): %s", file, line, text, ulong(error), msg);
 #  else
+    (void)file;
+    (void)line;
+    (void)text;
     _ftprintf(stderr, "Win32 Error# (%lu): %s", ulong(error), msg);
 #  endif
 

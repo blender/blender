@@ -72,7 +72,7 @@ class DeviceScene {
   device_vector<packed_float3> tri_verts;
   device_vector<uint> tri_shader;
   device_vector<packed_float3> tri_vnormal;
-  device_vector<uint4> tri_vindex;
+  device_vector<packed_uint3> tri_vindex;
   device_vector<uint> tri_patch;
   device_vector<float2> tri_patch_uv;
 
@@ -351,7 +351,7 @@ class Scene : public NodeOwner {
   /* Get maximum number of closures to be used in kernel. */
   int get_max_closure_count();
 
-  /* Get size of a volume stack needed to render this scene.  */
+  /* Get size of a volume stack needed to render this scene. */
   int get_volume_stack_size() const;
 
   template<typename T> void delete_node_impl(T *node)

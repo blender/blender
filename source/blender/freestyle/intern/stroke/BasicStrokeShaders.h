@@ -48,9 +48,7 @@ class ConstantThicknessShader : public StrokeShader {
   }
 
   /** Destructor. */
-  virtual ~ConstantThicknessShader()
-  {
-  }
+  virtual ~ConstantThicknessShader() {}
 
   /** Returns the string "ConstantThicknessShader". */
   virtual string getName() const
@@ -77,9 +75,7 @@ class ConstantExternThicknessShader : public StrokeShader {
     _thickness = thickness;
   }
 
-  virtual ~ConstantExternThicknessShader()
-  {
-  }
+  virtual ~ConstantExternThicknessShader() {}
 
   virtual string getName() const
   {
@@ -113,9 +109,7 @@ class IncreasingThicknessShader : public StrokeShader {
   }
 
   /** Destructor. */
-  virtual ~IncreasingThicknessShader()
-  {
-  }
+  virtual ~IncreasingThicknessShader() {}
 
   virtual string getName() const
   {
@@ -158,9 +152,7 @@ class ConstrainedIncreasingThicknessShader : public StrokeShader {
   }
 
   /** Destructor. */
-  virtual ~ConstrainedIncreasingThicknessShader()
-  {
-  }
+  virtual ~ConstrainedIncreasingThicknessShader() {}
 
   virtual string getName() const
   {
@@ -191,9 +183,7 @@ class LengthDependingThicknessShader : public StrokeShader {
     _maxThickness = iMaxThickness;
   }
 
-  virtual ~LengthDependingThicknessShader()
-  {
-  }
+  virtual ~LengthDependingThicknessShader() {}
 
   virtual string getName() const
   {
@@ -560,9 +550,7 @@ class TipRemoverShader : public StrokeShader {
   TipRemoverShader(real tipLength);
 
   /** Destructor. */
-  virtual ~TipRemoverShader()
-  {
-  }
+  virtual ~TipRemoverShader() {}
 
   /** The shading method */
   virtual string getName() const

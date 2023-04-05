@@ -113,6 +113,8 @@ static struct {
   /* Screen Space Reflection */
   struct GPUShader *reflection_trace;
   struct GPUShader *reflection_resolve;
+  struct GPUShader *reflection_resolve_probe;
+  struct GPUShader *reflection_resolve_raytrace;
 
   /* Shadows */
   struct GPUShader *shadow_sh;
@@ -656,6 +658,24 @@ struct GPUShader *EEVEE_shaders_effect_reflection_resolve_sh_get(void)
         "eevee_legacy_effect_reflection_resolve");
   }
   return e_data.reflection_resolve;
+}
+
+struct GPUShader *EEVEE_shaders_effect_reflection_resolve_probe_sh_get(void)
+{
+  if (e_data.reflection_resolve_probe == nullptr) {
+    e_data.reflection_resolve_probe = DRW_shader_create_from_info_name(
+        "eevee_legacy_effect_reflection_resolve_probe");
+  }
+  return e_data.reflection_resolve_probe;
+}
+
+struct GPUShader *EEVEE_shaders_effect_reflection_resolve_refl_sh_get(void)
+{
+  if (e_data.reflection_resolve_raytrace == nullptr) {
+    e_data.reflection_resolve_raytrace = DRW_shader_create_from_info_name(
+        "eevee_legacy_effect_reflection_resolve_ssr");
+  }
+  return e_data.reflection_resolve_raytrace;
 }
 
 /** \} */
@@ -1281,8 +1301,8 @@ static char *eevee_get_defines(int options)
   /* Global EEVEE defines included for CreateInfo shaders via `engine_eevee_shared_defines.h` in
    * eevee_legacy_common_lib CreateInfo. */
 
-  /* Defines which affect bindings are instead injected via CreateInfo permutations. To specify new
-   * permutations, references to GPUShaderCreateInfo variants should be fetched in:
+  /* Defines which affect bindings are instead injected via CreateInfo permutations. To specify
+   * new permutations, references to GPUShaderCreateInfo variants should be fetched in:
    * `eevee_get_vert/geom/frag_info(..)`
    *
    * CreateInfo's for EEVEE materials are declared in:
@@ -1400,7 +1420,7 @@ struct GPUMaterial *EEVEE_material_get(
     case GPU_MAT_QUEUED: {
       vedata->stl->g_data->queued_shaders_count++;
       GPUMaterial *default_mat = EEVEE_material_default_get(scene, ma, options);
-      /* Mark pending material with its default material for future cache warming.*/
+      /* Mark pending material with its default material for future cache warming. */
       GPU_material_set_default(mat, default_mat);
       /* Return default material. */
       mat = default_mat;
@@ -1504,6 +1524,8 @@ void EEVEE_shaders_free(void)
   }
   DRW_SHADER_FREE_SAFE(e_data.reflection_trace);
   DRW_SHADER_FREE_SAFE(e_data.reflection_resolve);
+  DRW_SHADER_FREE_SAFE(e_data.reflection_resolve_probe);
+  DRW_SHADER_FREE_SAFE(e_data.reflection_resolve_raytrace);
   DRW_SHADER_LIB_FREE_SAFE(e_data.lib);
 
   if (e_data.default_world) {

@@ -10,6 +10,9 @@
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
+#ifdef __cplusplus
+#  include "BLI_offset_indices.hh"
+#endif
 
 #include "bmesh.h"
 
@@ -29,15 +32,14 @@ struct CCGKey;
 struct CustomData;
 struct DMFlagMat;
 struct IsectRayPrecalc;
-struct MLoop;
 struct MLoopTri;
-struct MPoly;
 struct Mesh;
 struct MeshElemMap;
 struct PBVH;
 struct PBVHBatches;
 struct PBVHNode;
 struct PBVH_GPU_Args;
+struct SculptSession;
 struct SubdivCCG;
 struct TaskParallelSettings;
 struct Image;
@@ -280,16 +282,19 @@ typedef void (*BKE_pbvh_SearchNearestCallback)(PBVHNode *node, void *data, float
 /* Building */
 
 PBVH *BKE_pbvh_new(PBVHType type);
+
+#ifdef __cplusplus
+
 /**
  * Do a full rebuild with on Mesh data structure.
  *
- * \note Unlike mpoly/mloop/verts, looptri is *totally owned* by PBVH
+ * \note Unlike mpoly/corner_verts/verts, looptri is *totally owned* by PBVH
  * (which means it may rewrite it if needed, see #BKE_pbvh_vert_coords_apply().
  */
 void BKE_pbvh_build_mesh(PBVH *pbvh,
                          struct Mesh *mesh,
-                         const struct MPoly *mpoly,
-                         const struct MLoop *mloop,
+                         blender::OffsetIndices<int> polys,
+                         const int *corner_verts,
                          float (*vert_positions)[3],
                          int totvert,
                          struct CustomData *vdata,
@@ -297,6 +302,9 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          struct CustomData *pdata,
                          const struct MLoopTri *looptri,
                          int looptri_num);
+
+#endif
+
 /**
  * Do a full rebuild with on Grids data structure.
  */
@@ -510,7 +518,7 @@ const int *BKE_pbvh_node_get_vert_indices(PBVHNode *node);
 void BKE_pbvh_node_get_loops(PBVH *pbvh,
                              PBVHNode *node,
                              const int **r_loop_indices,
-                             const struct MLoop **r_loops);
+                             const int **r_corner_verts);
 
 /* Get number of faces in the mesh; for PBVH_GRIDS the
  * number of base mesh faces is returned.
@@ -735,9 +743,9 @@ typedef struct PBVHFaceIter {
   int cd_hide_poly_, cd_face_set_;
   bool *hide_poly_;
   int *face_sets_;
-  const struct MPoly *mpoly_;
+  const int *poly_offsets_;
   const struct MLoopTri *looptri_;
-  const struct MLoop *mloop_;
+  const int *corner_verts_;
   int prim_index_;
   const struct SubdivCCG *subdiv_ccg_;
   const struct BMesh *bm;
@@ -783,10 +791,8 @@ bool BKE_pbvh_node_has_vert_with_normal_update_tag(PBVH *pbvh, PBVHNode *node);
 // void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
 
 bool pbvh_has_mask(const PBVH *pbvh);
-void pbvh_show_mask_set(PBVH *pbvh, bool show_mask);
 
 bool pbvh_has_face_sets(PBVH *pbvh);
-void pbvh_show_face_sets_set(PBVH *pbvh, bool show_face_sets);
 
 /* Parallelization. */
 

@@ -805,7 +805,7 @@ static bool image_undosys_step_encode(struct bContext *C, struct Main * /*bmain*
       us_reference = reinterpret_cast<ImageUndoStep *>(us_reference->step.prev);
     }
 
-    /* Initialize undo tiles from ptiles (if they exist). */
+    /* Initialize undo tiles from paint-tiles (if they exist). */
     for (PaintTile *ptile : us->paint_tile_map->map.values()) {
       if (ptile->valid) {
         UndoImageHandle *uh = uhandle_ensure(&us->handles, ptile->image, &ptile->iuser);

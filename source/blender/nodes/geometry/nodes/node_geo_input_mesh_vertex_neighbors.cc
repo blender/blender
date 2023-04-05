@@ -3,7 +3,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 
@@ -67,12 +67,11 @@ class VertexCountFieldInput final : public bke::MeshFieldInput {
 
 static VArray<int> construct_face_count_gvarray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const Span<MLoop> loops = mesh.loops();
+  const Span<int> corner_verts = mesh.corner_verts();
   if (domain == ATTR_DOMAIN_POINT) {
     Array<int> vertices(mesh.totvert, 0);
-    for (const int i : loops.index_range()) {
-      int vertex = loops[i].v;
-      vertices[vertex]++;
+    for (const int vert : corner_verts) {
+      vertices[vert]++;
     }
     return VArray<int>::ForContainer(std::move(vertices));
   }

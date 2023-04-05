@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edinterface
@@ -38,7 +38,7 @@
 /* Compute display grid resolution
  ********************************************************/
 
-#define MIN_MAJOR_LINE_DISTANCE (U.v2d_min_gridsize * UI_DPI_FAC)
+#define MIN_MAJOR_LINE_DISTANCE (U.v2d_min_gridsize * UI_SCALE_FAC)
 
 static float select_major_distance(const float *possible_distances,
                                    uint amount,
@@ -102,17 +102,16 @@ static float view2d_major_step_x__time(const View2D *v2d, const Scene *scene)
   for (int step = 1; step < fps; step *= 2) {
     possible_distances.append(step);
   }
-  possible_distances.append(fps);
-  possible_distances.append(2 * fps);
-  possible_distances.append(5 * fps);
-  possible_distances.append(10 * fps);
-  possible_distances.append(30 * fps);
-  possible_distances.append(60 * fps);
-  possible_distances.append(2 * 60 * fps);
-  possible_distances.append(5 * 60 * fps);
-  possible_distances.append(10 * 60 * fps);
-  possible_distances.append(30 * 60 * fps);
-  possible_distances.append(60 * 60 * fps);
+
+  for (int i = 0; i <= 5; i++) {
+    uint fac = pow(60, i);
+    possible_distances.append(fac * fps);
+    possible_distances.append(fac * 2 * fps);
+    possible_distances.append(fac * 5 * fps);
+    possible_distances.append(fac * 10 * fps);
+    possible_distances.append(fac * 30 * fps);
+    possible_distances.append(fac * 60 * fps);
+  }
 
   float distance = select_major_distance(possible_distances.data(),
                                          possible_distances.size(),
@@ -304,7 +303,7 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
 
   BLF_batch_draw_begin();
 
-  const float ypos = rect->ymin + 4 * UI_DPI_FAC;
+  const float ypos = rect->ymin + 4 * UI_SCALE_FAC;
   const float xmin = rect->xmin;
   const float xmax = rect->xmax;
 
@@ -384,7 +383,7 @@ static void draw_vertical_scale_indicators(const ARegion *region,
   BLF_shadow_offset(font_id, 1, -1);
 
   const float x_offset = 8.0f;
-  const float xpos = (rect->xmin + x_offset) * UI_DPI_FAC;
+  const float xpos = (rect->xmin + x_offset) * UI_SCALE_FAC;
   const float ymin = rect->ymin;
   const float ymax = rect->ymax;
   const float y_offset = (BLF_height(font_id, "0", 1) / 2.0f) - U.pixelsize;

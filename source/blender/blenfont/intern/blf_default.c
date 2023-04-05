@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup blf
@@ -45,7 +45,7 @@ int BLF_set_default(void)
 {
   ASSERT_DEFAULT_SET;
 
-  BLF_size(global_font_default, global_font_size * U.dpi_fac);
+  BLF_size(global_font_default, global_font_size * UI_SCALE_FAC);
 
   return global_font_default;
 }
@@ -53,7 +53,7 @@ int BLF_set_default(void)
 void BLF_draw_default(float x, float y, float z, const char *str, const size_t str_len)
 {
   ASSERT_DEFAULT_SET;
-  BLF_size(global_font_default, global_font_size * U.dpi_fac);
+  BLF_size(global_font_default, global_font_size * UI_SCALE_FAC);
   BLF_position(global_font_default, x, y, z);
   BLF_draw(global_font_default, str, str_len);
 }

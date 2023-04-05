@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup modifiers
@@ -24,7 +24,7 @@
 #include "BKE_editmesh_cache.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -144,9 +144,9 @@ static void waveModifier_do(WaveModifierData *md,
   float falloff_fac = 1.0f; /* when falloff == 0.0f this stays at 1.0f */
   const bool invert_group = (wmd->flag & MOD_WAVE_INVERT_VGROUP) != 0;
 
-  const float(*vert_normals)[3] = nullptr;
+  blender::Span<blender::float3> vert_normals;
   if ((wmd->flag & MOD_WAVE_NORM) && (mesh != nullptr)) {
-    vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
+    vert_normals = mesh->vert_normals();
   }
 
   if (wmd->objectcenter != nullptr) {
@@ -266,7 +266,7 @@ static void waveModifier_do(WaveModifierData *md,
         /* Apply weight & falloff. */
         amplit *= def_weight * falloff_fac;
 
-        if (vert_normals) {
+        if (!vert_normals.is_empty()) {
           /* move along normals */
           if (wmd->flag & MOD_WAVE_NORM_X) {
             co[0] += (lifefac * amplit) * vert_normals[i][0];

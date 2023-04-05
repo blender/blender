@@ -140,11 +140,9 @@ TEST(obj_import_string_utils, parse_float_invalid)
   EXPECT_EQ(val, -1.0f);
   EXPECT_STRREF_EQ("..5", parse_float("..5", -2.0f, val));
   EXPECT_EQ(val, -2.0f);
-  /* Out of float range. Current float parser (fast_float)
-   * clamps out of range numbers to +/- infinity, so this
-   * one gets a +inf instead of fallback -3.0. */
+  /* Out of float range. */
   EXPECT_STRREF_EQ(" a", parse_float("9.0e500 a", -3.0f, val));
-  EXPECT_EQ(val, std::numeric_limits<float>::infinity());
+  EXPECT_EQ(val, -3.0f);
   /* Has leading white-space when we don't expect it */
   EXPECT_STRREF_EQ(" 1", parse_float(" 1", -4.0f, val, false));
   EXPECT_EQ(val, -4.0f);

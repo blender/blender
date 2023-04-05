@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup spseq
@@ -439,7 +439,7 @@ void draw_seq_strip_thumbnail(View2D *v2d,
   }
 
   /* If width of the strip too small ignore drawing thumbnails. */
-  if ((y2 - y1) / pixely <= 20 * U.dpi_fac) {
+  if ((y2 - y1) / pixely <= 20 * UI_SCALE_FAC) {
     return;
   }
 

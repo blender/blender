@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup bli
@@ -116,9 +116,7 @@ void BLI_threadapi_init()
   mainid = pthread_self();
 }
 
-void BLI_threadapi_exit()
-{
-}
+void BLI_threadapi_exit() {}
 
 void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 {

@@ -33,9 +33,7 @@ class PointsFieldContext : public FieldContext {
   int points_num_;
 
  public:
-  PointsFieldContext(const int points_num) : points_num_(points_num)
-  {
-  }
+  PointsFieldContext(const int points_num) : points_num_(points_num) {}
 
   int64_t points_num() const
   {

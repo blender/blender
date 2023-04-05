@@ -150,9 +150,7 @@ using namespace OpenSubdiv;
 template<typename T> struct OsdValue {
   T value;
 
-  OsdValue()
-  {
-  }
+  OsdValue() {}
 
   void Clear(void * = 0)
   {
@@ -182,9 +180,7 @@ class OsdData {
   Far::PatchMap *patch_map;
 
  public:
-  OsdData() : mesh(NULL), refiner(NULL), patch_table(NULL), patch_map(NULL)
-  {
-  }
+  OsdData() : mesh(NULL), refiner(NULL), patch_table(NULL), patch_map(NULL) {}
 
   ~OsdData()
   {
@@ -262,9 +258,14 @@ class OsdData {
         }
         else if (attr.same_storage(attr.type, TypeFloat2)) {
           primvar_refiner.Interpolate(i + 1, (OsdValue<float2> *)src, (OsdValue<float2> *&)dest);
+          // float3 is not interchangeable with float4 and so needs to be handled
+          // separately
+        }
+        else if (attr.same_storage(attr.type, TypeFloat4)) {
+          primvar_refiner.Interpolate(i + 1, (OsdValue<float4> *)src, (OsdValue<float4> *&)dest);
         }
         else {
-          primvar_refiner.Interpolate(i + 1, (OsdValue<float4> *)src, (OsdValue<float4> *&)dest);
+          primvar_refiner.Interpolate(i + 1, (OsdValue<float3> *)src, (OsdValue<float3> *&)dest);
         }
 
         src = dest;
@@ -281,10 +282,19 @@ class OsdData {
               (OsdValue<float2> *)&attr.buffer[0],
               (OsdValue<float2> *)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
         }
-        else {
+        else if (attr.same_storage(attr.type, TypeFloat4)) {
+          // float3 is not interchangeable with float4 and so needs to be handled
+          // separately
           patch_table->ComputeLocalPointValues(
               (OsdValue<float4> *)&attr.buffer[0],
               (OsdValue<float4> *)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
+        }
+        else {
+          // float3 is not interchangeable with float4 and so needs to be handled
+          // separately
+          patch_table->ComputeLocalPointValues(
+              (OsdValue<float3> *)&attr.buffer[0],
+              (OsdValue<float3> *)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
         }
       }
     }
@@ -339,12 +349,8 @@ class OsdData {
 struct OsdPatch : Patch {
   OsdData *osd_data;
 
-  OsdPatch()
-  {
-  }
-  OsdPatch(OsdData *data) : osd_data(data)
-  {
-  }
+  OsdPatch() {}
+  OsdPatch(OsdData *data) : osd_data(data) {}
 
   void eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, float u, float v)
   {

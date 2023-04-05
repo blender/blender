@@ -81,7 +81,7 @@ class MeshImporter : public MeshImporterBase {
    * it holds a portion of Mesh faces and corresponds to a DAE primitive list
    * (<triangles>, <polylist>, etc.) */
   struct Primitive {
-    MPoly *mpoly;
+    int poly_index;
     int *material_indices;
     unsigned int totpoly;
   };
@@ -92,8 +92,10 @@ class MeshImporter : public MeshImporterBase {
    * A pair/of geom UID and mat UID, one geometry can have several materials. */
   std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId> materials_mapped_to_geom;
 
-  bool set_poly_indices(
-      MPoly *mpoly, MLoop *mloop, int loop_index, const unsigned int *indices, int loop_count);
+  bool set_poly_indices(int *poly_verts,
+                        int loop_index,
+                        const unsigned int *indices,
+                        int loop_count);
 
   void set_face_uv(blender::float2 *mloopuv,
                    UVDataWrapper &uvs,

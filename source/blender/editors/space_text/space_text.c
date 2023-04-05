@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup sptext
@@ -93,9 +93,7 @@ static void text_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void text_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
-{
-}
+static void text_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static SpaceLink *text_duplicate(SpaceLink *sl)
 {
@@ -303,8 +301,8 @@ static void text_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 static bool text_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   if (drag->type == WM_DRAG_PATH) {
-    /* rule might not work? */
-    if (ELEM(drag->icon, ICON_FILE_SCRIPT, ICON_FILE_TEXT, ICON_FILE_BLANK)) {
+    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    if (ELEM(file_type, 0, FILE_TYPE_PYSCRIPT, FILE_TYPE_TEXT)) {
       return true;
     }
   }
@@ -314,7 +312,7 @@ static bool text_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNU
 static void text_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   /* copy drag path to properties */
-  RNA_string_set(drop->ptr, "filepath", drag->path);
+  RNA_string_set(drop->ptr, "filepath", WM_drag_get_path(drag));
 }
 
 static bool text_drop_paste_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))

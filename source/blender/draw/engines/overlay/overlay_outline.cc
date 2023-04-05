@@ -8,11 +8,11 @@
 #include "DRW_render.h"
 
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 
 #include "BKE_object.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "UI_resources.h"
 
@@ -311,7 +311,7 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
     return;
   }
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     OVERLAY_outline_gpencil(pd, ob);
     return;
   }

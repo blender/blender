@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -9,26 +9,30 @@
 
 #include "gpu_context_private.hh"
 
-#include "vk_mem_alloc.h"
-
-#ifdef __APPLE__
-#  include <MoltenVK/vk_mvk_moltenvk.h>
-#else
-#  include <vulkan/vulkan.h>
-#endif
+#include "vk_command_buffer.hh"
+#include "vk_descriptor_pools.hh"
 
 namespace blender::gpu {
+class VKFrameBuffer;
 
 class VKContext : public Context {
  private:
   /** Copies of the handles owned by the GHOST context. */
-  VkInstance instance_ = VK_NULL_HANDLE;
-  VkPhysicalDevice physical_device_ = VK_NULL_HANDLE;
-  VkDevice device_ = VK_NULL_HANDLE;
-  uint32_t graphic_queue_family_ = 0;
+  VkInstance vk_instance_ = VK_NULL_HANDLE;
+  VkPhysicalDevice vk_physical_device_ = VK_NULL_HANDLE;
+  VkDevice vk_device_ = VK_NULL_HANDLE;
+  VKCommandBuffer command_buffer_;
+  uint32_t vk_queue_family_ = 0;
+  VkQueue vk_queue_ = VK_NULL_HANDLE;
 
   /** Allocator used for texture and buffers and other resources. */
   VmaAllocator mem_allocator_ = VK_NULL_HANDLE;
+  VKDescriptorPools descriptor_pools_;
+
+  /** Limits of the device linked to this context. */
+  VkPhysicalDeviceLimits vk_physical_device_limits_;
+
+  void *ghost_context_;
 
  public:
   VKContext(void *ghost_window, void *ghost_context);
@@ -46,21 +50,64 @@ class VKContext : public Context {
 
   void debug_group_begin(const char *, int) override;
   void debug_group_end() override;
+  bool debug_capture_begin() override;
+  void debug_capture_end() override;
+  void *debug_capture_scope_create(const char *name) override;
+  bool debug_capture_scope_begin(void *scope) override;
+  void debug_capture_scope_end(void *scope) override;
+
+  void activate_framebuffer(VKFrameBuffer &framebuffer);
+  void deactivate_framebuffer();
 
   static VKContext *get(void)
   {
     return static_cast<VKContext *>(Context::get());
   }
 
+  VkPhysicalDevice physical_device_get() const
+  {
+    return vk_physical_device_;
+  }
+
+  const VkPhysicalDeviceLimits &physical_device_limits_get() const
+  {
+    return vk_physical_device_limits_;
+  }
+
   VkDevice device_get() const
   {
-    return device_;
+    return vk_device_;
+  }
+
+  VKCommandBuffer &command_buffer_get()
+  {
+    return command_buffer_;
+  }
+
+  VkQueue queue_get() const
+  {
+    return vk_queue_;
+  }
+
+  const uint32_t *queue_family_ptr_get() const
+  {
+    return &vk_queue_family_;
+  }
+
+  VKDescriptorPools &descriptor_pools_get()
+  {
+    return descriptor_pools_;
   }
 
   VmaAllocator mem_allocator_get() const
   {
     return mem_allocator_;
   }
+
+ private:
+  void init_physical_device_limits();
+
+  bool has_active_framebuffer() const;
 };
 
 }  // namespace blender::gpu

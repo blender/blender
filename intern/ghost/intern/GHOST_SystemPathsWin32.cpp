@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. All rights reserved. */
+ * Copyright 2011 Blender Foundation */
 
 /** \file
  * \ingroup GHOST
@@ -14,13 +14,9 @@
 #include "utfconv.h"
 #include <shlobj.h>
 
-GHOST_SystemPathsWin32::GHOST_SystemPathsWin32()
-{
-}
+GHOST_SystemPathsWin32::GHOST_SystemPathsWin32() {}
 
-GHOST_SystemPathsWin32::~GHOST_SystemPathsWin32()
-{
-}
+GHOST_SystemPathsWin32::~GHOST_SystemPathsWin32() {}
 
 const char *GHOST_SystemPathsWin32::getSystemDir(int, const char *versionstr) const
 {

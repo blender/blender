@@ -332,6 +332,8 @@ class RenderScheduler {
   };
 
   struct {
+    bool user_is_navigating = false;
+
     int resolution_divider = 1;
 
     /* Number of rendered samples on top of the start sample. */

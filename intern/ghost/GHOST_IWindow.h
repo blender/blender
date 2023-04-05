@@ -35,9 +35,7 @@ class GHOST_IWindow {
   /**
    * Destructor.
    */
-  virtual ~GHOST_IWindow()
-  {
-  }
+  virtual ~GHOST_IWindow() {}
 
   /**
    * Returns indication as to whether the window is valid.
@@ -215,12 +213,8 @@ class GHOST_IWindow {
    * Needs to be called after each swap events as the framebuffer will change.
    * \return  A boolean success indicator.
    */
-  virtual GHOST_TSuccess getVulkanBackbuffer(void *image,
-                                             void *framebuffer,
-                                             void *command_buffer,
-                                             void *render_pass,
-                                             void *extent,
-                                             uint32_t *fb_id) = 0;
+  virtual GHOST_TSuccess getVulkanBackbuffer(
+      void *image, void *framebuffer, void *render_pass, void *extent, uint32_t *fb_id) = 0;
 
   /**
    * Invalidates the contents of this window.
@@ -337,7 +331,7 @@ class GHOST_IWindow {
   virtual GHOST_TSuccess beginFullScreen() const = 0;
   virtual GHOST_TSuccess endFullScreen() const = 0;
 
-  virtual float getNativePixelSize(void) = 0;
+  virtual float getNativePixelSize() = 0;
 
   /**
    * Returns the recommended DPI for this window.

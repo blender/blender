@@ -458,9 +458,7 @@ int BLI_delete_soft(const char *file, const char **error_message)
   return err;
 }
 
-/* Not used anywhere! */
-#  if 0
-int BLI_move(const char *file, const char *to)
+int BLI_path_move(const char *file, const char *to)
 {
   char str[MAXPATHLEN + 12];
   int err;
@@ -490,7 +488,6 @@ int BLI_move(const char *file, const char *to)
 
   return err;
 }
-#  endif
 
 int BLI_copy(const char *file, const char *to)
 {
@@ -1123,8 +1120,6 @@ static int copy_single_file(const char *from, const char *to)
   return RecursiveOp_Callback_OK;
 }
 
-/* Not used anywhere! */
-#  if 0
 static int move_callback_pre(const char *from, const char *to)
 {
   int ret = rename(from, to);
@@ -1147,19 +1142,16 @@ static int move_single_file(const char *from, const char *to)
   return RecursiveOp_Callback_OK;
 }
 
-/* if *file represents a directory, moves all its contents into *to, else renames
- * file itself to *to. */
-int BLI_move(const char *file, const char *to)
+int BLI_path_move(const char *path, const char *to)
 {
-  int ret = recursive_operation(file, to, move_callback_pre, move_single_file, NULL);
+  int ret = recursive_operation(path, to, move_callback_pre, move_single_file, NULL);
 
   if (ret && ret != -1) {
-    return recursive_operation(file, NULL, NULL, delete_single_file, delete_callback_post);
+    return recursive_operation(path, NULL, NULL, delete_single_file, delete_callback_post);
   }
 
   return ret;
 }
-#  endif
 
 static const char *check_destination(const char *file, const char *to)
 {

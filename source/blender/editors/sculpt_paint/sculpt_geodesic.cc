@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup edsculpt
@@ -21,7 +21,7 @@
 
 #include "BKE_ccg.h"
 #include "BKE_context.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -87,19 +87,21 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   const float limit_radius_sq = limit_radius * limit_radius;
 
   float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
-  const MEdge *edges = BKE_mesh_edges(mesh);
-  const MPoly *polys = BKE_mesh_polys(mesh);
-  const MLoop *loops = BKE_mesh_loops(mesh);
+  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::OffsetIndices polys = mesh->polys();
+  const blender::Span<int> corner_verts = mesh->corner_verts();
+  const blender::Span<int> corner_edges = mesh->corner_edges();
 
   float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), __func__));
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
 
   if (!ss->epmap) {
     BKE_mesh_edge_poly_map_create(
-        &ss->epmap, &ss->epmap_mem, mesh->totedge, polys, mesh->totpoly, loops, mesh->totloop);
+        &ss->epmap, &ss->epmap_mem, edges.size(), polys, corner_edges.data(), corner_edges.size());
   }
   if (!ss->vemap) {
-    BKE_mesh_vert_edge_map_create(&ss->vemap, &ss->vemap_mem, edges, mesh->totvert, mesh->totedge);
+    BKE_mesh_vert_edge_map_create(
+        &ss->vemap, &ss->vemap_mem, edges.data(), mesh->totvert, edges.size());
   }
 
   /* Both contain edge indices encoded as *void. */
@@ -175,11 +177,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
           if (ss->hide_poly && ss->hide_poly[poly]) {
             continue;
           }
-          const MPoly *mpoly = &polys[poly];
-
-          for (int loop_index = 0; loop_index < mpoly->totloop; loop_index++) {
-            const MLoop *mloop = &loops[loop_index + mpoly->loopstart];
-            const int v_other = mloop->v;
+          for (const int v_other : corner_verts.slice(polys[poly])) {
             if (ELEM(v_other, v1, v2)) {
               continue;
             }

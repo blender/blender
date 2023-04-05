@@ -20,7 +20,7 @@
 
 #include "BLI_jitter_2d.h"
 
-#include "smaa_textures.h"
+#include "BLI_smaa_textures.h"
 
 #include "workbench_private.h"
 
@@ -236,11 +236,11 @@ void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
 
     /* TODO: could be shared for all viewports. */
     if (txl->smaa_search_tx == NULL) {
-      txl->smaa_search_tx = GPU_texture_create_2d_ex(
+      txl->smaa_search_tx = GPU_texture_create_2d(
           "smaa_search", SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, 1, GPU_R8, usage, NULL);
       GPU_texture_update(txl->smaa_search_tx, GPU_DATA_UBYTE, searchTexBytes);
 
-      txl->smaa_area_tx = GPU_texture_create_2d_ex(
+      txl->smaa_area_tx = GPU_texture_create_2d(
           "smaa_area", AREATEX_WIDTH, AREATEX_HEIGHT, 1, GPU_RG8, usage, NULL);
       GPU_texture_update(txl->smaa_area_tx, GPU_DATA_UBYTE, areaTexBytes);
 

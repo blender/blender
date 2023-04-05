@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -247,6 +247,12 @@ static void detect_workarounds()
     GLContext::texture_storage_support = false;
     GLContext::vertex_attrib_binding_support = false;
     return;
+  }
+
+  /* Only use main context when running inside RenderDoc.
+   * RenderDoc requires that all calls are* from the same context. */
+  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
+    GCaps.use_main_context_workaround = true;
   }
 
   /* Limit support for GL_ARB_base_instance to OpenGL 4.0 and higher. NVIDIA Quadro FX 4800

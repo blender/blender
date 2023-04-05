@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup blf
@@ -300,7 +300,7 @@ typedef struct FontBLF {
   /** Font size. */
   float size;
 
-  /** Axes data for Adobe MM, TrueType GX, or OpenType variation fonts.  */
+  /** Axes data for Adobe MM, TrueType GX, or OpenType variation fonts. */
   FT_MM_Var *variations;
 
   /** Character variation; 0=default, -1=min, +1=max. */

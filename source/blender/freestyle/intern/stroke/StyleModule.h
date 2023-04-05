@@ -37,9 +37,7 @@ class StyleModule {
     _inter = inter;
   }
 
-  virtual ~StyleModule()
-  {
-  }
+  virtual ~StyleModule() {}
 
   StrokeLayer *execute()
   {

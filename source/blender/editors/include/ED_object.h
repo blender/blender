@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup editors
@@ -40,7 +40,7 @@ struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
 
-/* object_edit.c */
+/* object_edit.cc */
 
 /** `context.object` */
 struct Object *ED_object_context(const struct bContext *C);
@@ -164,7 +164,9 @@ typedef enum eObClearParentTypes {
 } eObClearParentTypes;
 
 #ifdef __RNA_TYPES_H__
+/** Operator Property: `OBJECT_OT_parent_clear`. */
 extern struct EnumPropertyItem prop_clear_parent_types[];
+/** Operator Property: `OBJECT_OT_parent_set`. */
 extern struct EnumPropertyItem prop_make_parent_types[];
 #endif
 
@@ -737,7 +739,7 @@ void ED_object_facemap_face_add(struct Object *ob, struct bFaceMap *fmap, int fa
  */
 void ED_object_facemap_face_remove(struct Object *ob, struct bFaceMap *fmap, int facenum);
 
-/* object_data_transform.c */
+/* object_data_transform.cc */
 
 struct XFormObjectData *ED_object_data_xform_create_ex(struct ID *id, bool is_edit_mode);
 struct XFormObjectData *ED_object_data_xform_create(struct ID *id);

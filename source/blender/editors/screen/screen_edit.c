@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edscr
@@ -377,7 +377,7 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
     return false;
   }
 
-  /* Areas that are _smaller_ than minimum sizes, sharing an edge to be moved. See #100772.  */
+  /* Areas that are _smaller_ than minimum sizes, sharing an edge to be moved. See #100772. */
   if (SCREEN_DIR_IS_VERTICAL(dir)) {
     const short xmin = MIN2(sa1->v1->vec.x, sa2->v1->vec.x);
     const short xmax = MAX2(sa1->v3->vec.x, sa2->v3->vec.x);
@@ -713,8 +713,52 @@ void ED_screens_init(Main *bmain, wmWindowManager *wm)
   }
 }
 
-void ED_screen_ensure_updated(wmWindowManager *wm, wmWindow *win, bScreen *screen)
+static bool region_poll(const bScreen *screen, const ScrArea *area, const ARegion *region)
 {
+  if (!region->type || !region->type->poll) {
+    /* Show region by default. */
+    return true;
+  }
+
+  RegionPollParams params = {0};
+  params.screen = screen;
+  params.area = area;
+  params.region = region;
+
+  return region->type->poll(&params);
+}
+
+static void screen_regions_poll(bContext *C, const wmWindow *win, bScreen *screen)
+{
+  bool any_changed = false;
+  ED_screen_areas_iter (win, screen, area) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+      const int old_region_flag = region->flag;
+
+      region->flag &= ~RGN_FLAG_POLL_FAILED;
+
+      if (region_poll(screen, area, region) == false) {
+        region->flag |= RGN_FLAG_POLL_FAILED;
+      }
+
+      if (old_region_flag != region->flag) {
+        any_changed = true;
+
+        /* Enforce complete re-init. */
+        region->v2d.flag &= ~V2D_IS_INIT;
+        ED_region_visibility_change_update(C, area, region);
+      }
+    }
+  }
+
+  if (any_changed) {
+    screen->do_refresh = true;
+  }
+}
+
+void ED_screen_ensure_updated(bContext *C, wmWindowManager *wm, wmWindow *win, bScreen *screen)
+{
+  screen_regions_poll(C, win, screen);
   if (screen->do_refresh) {
     ED_screen_refresh(wm, win);
   }
@@ -1064,7 +1108,7 @@ static void screen_global_area_refresh(wmWindow *win,
 
 static int screen_global_header_size(void)
 {
-  return (int)ceilf(ED_area_headersize() / UI_DPI_FAC);
+  return (int)ceilf(ED_area_headersize() / UI_SCALE_FAC);
 }
 
 static void screen_global_topbar_area_refresh(wmWindow *win, bScreen *screen)

@@ -13,7 +13,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 
@@ -148,8 +148,8 @@ static float4x4 create_single_axis_transform(const float3 &center,
 }
 
 using GetVertexIndicesFn = FunctionRef<void(Span<MEdge> edges,
-                                            Span<MPoly> polys,
-                                            Span<MLoop> loops,
+                                            OffsetIndices<int> polys,
+                                            Span<int> corner_verts,
                                             int element_index,
                                             VectorSet<int> &r_vertex_indices)>;
 
@@ -160,8 +160,8 @@ static void scale_vertex_islands_uniformly(Mesh &mesh,
 {
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
   const Span<MEdge> edges = mesh.edges();
-  const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const OffsetIndices polys = mesh.polys();
+  const Span<int> corner_verts = mesh.corner_verts();
 
   threading::parallel_for(islands.index_range(), 256, [&](const IndexRange range) {
     for (const int island_index : range) {
@@ -172,7 +172,7 @@ static void scale_vertex_islands_uniformly(Mesh &mesh,
 
       VectorSet<int> vertex_indices;
       for (const int poly_index : island.element_indices) {
-        get_vertex_indices(edges, polys, loops, poly_index, vertex_indices);
+        get_vertex_indices(edges, polys, corner_verts, poly_index, vertex_indices);
         center += params.centers[poly_index];
         scale += params.scales[poly_index];
       }
@@ -188,7 +188,7 @@ static void scale_vertex_islands_uniformly(Mesh &mesh,
     }
   });
 
-  BKE_mesh_tag_coords_changed(&mesh);
+  BKE_mesh_tag_positions_changed(&mesh);
 }
 
 static void scale_vertex_islands_on_axis(Mesh &mesh,
@@ -198,8 +198,8 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
 {
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
   const Span<MEdge> edges = mesh.edges();
-  const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const OffsetIndices polys = mesh.polys();
+  const Span<int> corner_verts = mesh.corner_verts();
 
   threading::parallel_for(islands.index_range(), 256, [&](const IndexRange range) {
     for (const int island_index : range) {
@@ -211,7 +211,7 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
 
       VectorSet<int> vertex_indices;
       for (const int poly_index : island.element_indices) {
-        get_vertex_indices(edges, polys, loops, poly_index, vertex_indices);
+        get_vertex_indices(edges, polys, corner_verts, poly_index, vertex_indices);
         center += params.centers[poly_index];
         scale += params.scales[poly_index];
         axis += params.axis_vectors[poly_index];
@@ -234,25 +234,24 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
     }
   });
 
-  BKE_mesh_tag_coords_changed(&mesh);
+  BKE_mesh_tag_positions_changed(&mesh);
 }
 
 static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh, const IndexMask face_selection)
 {
-  const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const OffsetIndices polys = mesh.polys();
+  const Span<int> corner_verts = mesh.corner_verts();
 
   /* Use the disjoint set data structure to determine which vertices have to be scaled together. */
   DisjointSet<int> disjoint_set(mesh.totvert);
   for (const int poly_index : face_selection) {
-    const MPoly &poly = polys[poly_index];
-    const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
-    for (const int loop_index : IndexRange(poly.totloop - 1)) {
-      const int v1 = poly_loops[loop_index].v;
-      const int v2 = poly_loops[loop_index + 1].v;
+    const Span<int> poly_verts = corner_verts.slice(polys[poly_index]);
+    for (const int loop_index : poly_verts.index_range().drop_back(1)) {
+      const int v1 = poly_verts[loop_index];
+      const int v2 = poly_verts[loop_index + 1];
       disjoint_set.join(v1, v2);
     }
-    disjoint_set.join(poly_loops.first().v, poly_loops.last().v);
+    disjoint_set.join(poly_verts.first(), poly_verts.last());
   }
 
   VectorSet<int> island_ids;
@@ -262,9 +261,8 @@ static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh, const IndexM
 
   /* Gather all of the face indices in each island into separate vectors. */
   for (const int poly_index : face_selection) {
-    const MPoly &poly = polys[poly_index];
-    const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
-    const int island_id = disjoint_set.find_root(poly_loops[0].v);
+    const Span<int> poly_verts = corner_verts.slice(polys[poly_index]);
+    const int island_id = disjoint_set.find_root(poly_verts[0]);
     const int island_index = island_ids.index_of_or_add(island_id);
     if (island_index == islands.size()) {
       islands.append_as();
@@ -277,16 +275,12 @@ static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh, const IndexM
 }
 
 static void get_face_verts(const Span<MEdge> /*edges*/,
-                           const Span<MPoly> polys,
-                           const Span<MLoop> loops,
+                           const OffsetIndices<int> polys,
+                           const Span<int> corner_verts,
                            int face_index,
                            VectorSet<int> &r_vertex_indices)
 {
-  const MPoly &poly = polys[face_index];
-  const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
-  for (const MLoop &loop : poly_loops) {
-    r_vertex_indices.add(loop.v);
-  }
+  r_vertex_indices.add_multiple(corner_verts.slice(polys[face_index]));
 }
 
 static AxisScaleParams evaluate_axis_scale_fields(FieldEvaluator &evaluator,
@@ -366,8 +360,8 @@ static Vector<ElementIsland> prepare_edge_islands(const Mesh &mesh, const IndexM
 }
 
 static void get_edge_verts(const Span<MEdge> edges,
-                           const Span<MPoly> /*polys*/,
-                           const Span<MLoop> /*loops*/,
+                           const OffsetIndices<int> /*polys*/,
+                           const Span<int> /*corner_verts*/,
                            int edge_index,
                            VectorSet<int> &r_vertex_indices)
 {

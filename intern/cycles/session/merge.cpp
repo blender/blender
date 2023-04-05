@@ -563,9 +563,7 @@ static void read_layer_samples(vector<MergeImage> &images,
 }
 /* Image Merger */
 
-ImageMerger::ImageMerger()
-{
-}
+ImageMerger::ImageMerger() {}
 
 bool ImageMerger::run()
 {

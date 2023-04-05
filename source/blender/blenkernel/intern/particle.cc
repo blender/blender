@@ -58,7 +58,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -2160,7 +2160,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
   }
 
   orcodata = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh_final->vdata, CD_ORCO));
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh_final);
+  const blender::Span<blender::float3> vert_normals = mesh_final->vert_normals();
 
   if (from == PART_FROM_VERT) {
     const float(*vert_positions)[3] = BKE_mesh_vert_positions(mesh_final);
@@ -2203,7 +2203,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
     if (from == PART_FROM_VOLUME) {
       psys_interpolate_face(mesh_final,
                             vert_positions,
-                            vert_normals,
+                            reinterpret_cast<const float(*)[3]>(vert_normals.data()),
                             mface,
                             mtface,
                             orcodata,
@@ -2226,7 +2226,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
     else {
       psys_interpolate_face(mesh_final,
                             vert_positions,
-                            vert_normals,
+                            reinterpret_cast<const float(*)[3]>(vert_normals.data()),
                             mface,
                             mtface,
                             orcodata,
@@ -5305,6 +5305,7 @@ void psys_apply_hair_lattice(Depsgraph *depsgraph, Scene *scene, Object *ob, Par
 }
 
 /* Draw Engine */
+
 void (*BKE_particle_batch_cache_dirty_tag_cb)(ParticleSystem *psys, int mode) = nullptr;
 void (*BKE_particle_batch_cache_free_cb)(ParticleSystem *psys) = nullptr;
 

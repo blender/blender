@@ -23,6 +23,9 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <sstream>
+
+#include <sys/stat.h>
 
 /* Set to 0 to allow devices that do not have the required features.
  * This allows development on OSX until we really needs these features. */
@@ -78,6 +81,21 @@ static const char *vulkan_error_as_string(VkResult result)
     default:
       return "Unknown Error";
   }
+}
+
+enum class VkLayer : uint8_t { KHRONOS_validation };
+
+static bool vklayer_config_exist(const char *vk_extension_config)
+{
+  const char *ev_val = getenv("VK_LAYER_PATH");
+  if (ev_val == nullptr) {
+    return false;
+  }
+  std::stringstream filename;
+  filename << ev_val;
+  filename << "/" << vk_extension_config;
+  struct stat buffer;
+  return (stat(filename.str().c_str(), &buffer) == 0);
 }
 
 #define __STR(A) "" #A
@@ -288,19 +306,14 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_ContextVK::getVulkanBackbuffer(void *image,
-                                                    void *framebuffer,
-                                                    void *command_buffer,
-                                                    void *render_pass,
-                                                    void *extent,
-                                                    uint32_t *fb_id)
+GHOST_TSuccess GHOST_ContextVK::getVulkanBackbuffer(
+    void *image, void *framebuffer, void *render_pass, void *extent, uint32_t *fb_id)
 {
   if (m_swapchain == VK_NULL_HANDLE) {
     return GHOST_kFailure;
   }
   *((VkImage *)image) = m_swapchain_images[m_currentImage];
   *((VkFramebuffer *)framebuffer) = m_swapchain_framebuffers[m_currentImage];
-  *((VkCommandBuffer *)command_buffer) = m_command_buffers[m_currentImage];
   *((VkRenderPass *)render_pass) = m_render_pass;
   *((VkExtent2D *)extent) = m_render_extent;
   *fb_id = m_swapchain_id * 10 + m_currentFrame;
@@ -311,12 +324,30 @@ GHOST_TSuccess GHOST_ContextVK::getVulkanBackbuffer(void *image,
 GHOST_TSuccess GHOST_ContextVK::getVulkanHandles(void *r_instance,
                                                  void *r_physical_device,
                                                  void *r_device,
-                                                 uint32_t *r_graphic_queue_family)
+                                                 uint32_t *r_graphic_queue_family,
+                                                 void *r_queue)
 {
   *((VkInstance *)r_instance) = m_instance;
   *((VkPhysicalDevice *)r_physical_device) = m_physical_device;
   *((VkDevice *)r_device) = m_device;
   *r_graphic_queue_family = m_queue_family_graphic;
+  *((VkQueue *)r_queue) = m_graphic_queue;
+
+  return GHOST_kSuccess;
+}
+
+GHOST_TSuccess GHOST_ContextVK::getVulkanCommandBuffer(void *r_command_buffer)
+{
+  if (m_command_buffers.empty()) {
+    return GHOST_kFailure;
+  }
+
+  if (m_swapchain == VK_NULL_HANDLE) {
+    *((VkCommandBuffer *)r_command_buffer) = m_command_buffers[0];
+  }
+  else {
+    *((VkCommandBuffer *)r_command_buffer) = m_command_buffers[m_currentImage];
+  }
 
   return GHOST_kSuccess;
 }
@@ -388,14 +419,38 @@ static bool checkLayerSupport(vector<VkLayerProperties> &layers_available, const
 
 static void enableLayer(vector<VkLayerProperties> &layers_available,
                         vector<const char *> &layers_enabled,
-                        const char *layer_name)
+                        const VkLayer layer,
+                        const bool display_warning)
 {
-  if (checkLayerSupport(layers_available, layer_name)) {
-    layers_enabled.push_back(layer_name);
+#define PUSH_VKLAYER(name, name2) \
+  if (vklayer_config_exist("VkLayer_" #name ".json") && \
+      checkLayerSupport(layers_available, "VK_LAYER_" #name2)) { \
+    layers_enabled.push_back("VK_LAYER_" #name2); \
+    enabled = true; \
+  } \
+  else { \
+    warnings << "VK_LAYER_" #name2; \
   }
-  else {
-    fprintf(stderr, "Error: %s not supported.\n", layer_name);
+
+  bool enabled = false;
+  std::stringstream warnings;
+
+  switch (layer) {
+    case VkLayer::KHRONOS_validation:
+      PUSH_VKLAYER(khronos_validation, KHRONOS_validation);
+  };
+
+  if (enabled) {
+    return;
   }
+
+  if (display_warning) {
+    fprintf(stderr,
+            "Warning: Layer requested, but not supported by the platform. [%s] \n",
+            warnings.str().c_str());
+  }
+
+#undef PUSH_VKLAYER
 }
 
 static bool device_extensions_support(VkPhysicalDevice device, vector<const char *> required_exts)
@@ -520,6 +575,9 @@ static GHOST_TSuccess getGraphicQueueFamily(VkPhysicalDevice device, uint32_t *r
 
   *r_queue_index = 0;
   for (const auto &queue_family : queue_families) {
+    /* Every vulkan implementation by spec must have one queue family that support both graphics
+     * and compute pipelines. We select this one; compute only queue family hints at async compute
+     * implementations. */
     if ((queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
         (queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
       return GHOST_kSuccess;
@@ -619,16 +677,36 @@ static GHOST_TSuccess selectPresentMode(VkPhysicalDevice device,
   return GHOST_kFailure;
 }
 
-GHOST_TSuccess GHOST_ContextVK::createCommandBuffers()
+GHOST_TSuccess GHOST_ContextVK::createCommandPools()
 {
-  m_command_buffers.resize(m_swapchain_image_views.size());
-
   VkCommandPoolCreateInfo poolInfo = {};
   poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
   poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
   poolInfo.queueFamilyIndex = m_queue_family_graphic;
 
   VK_CHECK(vkCreateCommandPool(m_device, &poolInfo, NULL, &m_command_pool));
+  return GHOST_kSuccess;
+}
+
+GHOST_TSuccess GHOST_ContextVK::createGraphicsCommandBuffer()
+{
+  assert(m_command_pool != VK_NULL_HANDLE);
+  assert(m_command_buffers.size() == 0);
+  m_command_buffers.resize(1);
+  VkCommandBufferAllocateInfo alloc_info = {};
+  alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  alloc_info.commandPool = m_command_pool;
+  alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  alloc_info.commandBufferCount = static_cast<uint32_t>(m_command_buffers.size());
+
+  VK_CHECK(vkAllocateCommandBuffers(m_device, &alloc_info, m_command_buffers.data()));
+  return GHOST_kSuccess;
+}
+
+GHOST_TSuccess GHOST_ContextVK::createGraphicsCommandBuffers()
+{
+  assert(m_command_pool != VK_NULL_HANDLE);
+  m_command_buffers.resize(m_swapchain_image_views.size());
 
   VkCommandBufferAllocateInfo alloc_info = {};
   alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -637,7 +715,6 @@ GHOST_TSuccess GHOST_ContextVK::createCommandBuffers()
   alloc_info.commandBufferCount = static_cast<uint32_t>(m_command_buffers.size());
 
   VK_CHECK(vkAllocateCommandBuffers(m_device, &alloc_info, m_command_buffers.data()));
-
   return GHOST_kSuccess;
 }
 
@@ -776,7 +853,7 @@ GHOST_TSuccess GHOST_ContextVK::createSwapchain()
     VK_CHECK(vkCreateFence(m_device, &fence_info, NULL, &m_in_flight_fences[i]));
   }
 
-  createCommandBuffers();
+  createGraphicsCommandBuffers();
 
   return GHOST_kSuccess;
 }
@@ -827,7 +904,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 
   vector<const char *> layers_enabled;
   if (m_debug) {
-    enableLayer(layers_available, layers_enabled, "VK_LAYER_KHRONOS_validation");
+    enableLayer(layers_available, layers_enabled, VkLayer::KHRONOS_validation, m_debug);
   }
 
   vector<const char *> extensions_device;
@@ -841,6 +918,13 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 
     extensions_device.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
+  extensions_device.push_back("VK_KHR_dedicated_allocation");
+  extensions_device.push_back("VK_KHR_get_memory_requirements2");
+  /* Enable MoltenVK required instance extensions. */
+#ifdef VK_MVK_MOLTENVK_EXTENSION_NAME
+  requireExtension(
+      extensions_available, extensions_enabled, "VK_KHR_get_physical_device_properties2");
+#endif
 
   VkApplicationInfo app_info = {};
   app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -903,6 +987,15 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     return GHOST_kFailure;
   }
 
+#ifdef VK_MVK_MOLTENVK_EXTENSION_NAME
+  /* According to the Vulkan specs, when `VK_KHR_portability_subset` is available it should be
+   * enabled. See
+   * https://vulkan.lunarg.com/doc/view/1.2.198.1/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451*/
+  if (device_extensions_support(m_physical_device, {VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME})) {
+    extensions_device.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+  }
+#endif
+
   vector<VkDeviceQueueCreateInfo> queue_create_infos;
 
   {
@@ -962,10 +1055,13 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 
   vkGetDeviceQueue(m_device, m_queue_family_graphic, 0, &m_graphic_queue);
 
+  createCommandPools();
   if (use_window_surface) {
     vkGetDeviceQueue(m_device, m_queue_family_present, 0, &m_present_queue);
-
     createSwapchain();
+  }
+  else {
+    createGraphicsCommandBuffer();
   }
   return GHOST_kSuccess;
 }

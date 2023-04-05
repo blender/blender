@@ -736,8 +736,9 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
         set(_cycles_render_tests bake;${render_tests};osl)
 
         foreach(render_test ${_cycles_render_tests})
+          set(_cycles_test_name "cycles_${render_test}_${_cycles_device_lower}")
           add_python_test(
-            cycles_${render_test}_${_cycles_device_lower}
+            ${_cycles_test_name}
             ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
             -blender "${TEST_BLENDER_EXE}"
             -testdir "${TEST_SRC_DIR}/render/${render_test}"
@@ -746,6 +747,11 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
             -device ${_cycles_device}
             -blacklist ${_cycles_blacklist}
           )
+
+          if(NOT("${_cycles_device_lower}" STREQUAL "cpu"))
+            set_tests_properties(${_cycles_test_name} PROPERTIES RUN_SERIAL TRUE)
+          endif()
+          unset(_cycles_test_name)
         endforeach()
       endforeach()
       unset(_cycles_blacklist)
@@ -933,6 +939,49 @@ if(WITH_CODEC_FFMPEG)
   )
 endif()
 
+if(NOT OPENIMAGEIO_IDIFF)
+  message(STATUS "Disabling ImBuf image format tests because OIIO idiff does not exist")
+else()
+  SET(OPTIONAL_FORMATS "")
+  if(WITH_IMAGE_CINEON)
+    set(OPTIONAL_FORMATS "${OPTIONAL_FORMATS} CINEON")
+  endif()
+  if(WITH_IMAGE_HDR)
+    set(OPTIONAL_FORMATS "${OPTIONAL_FORMATS} HDR")
+  endif()
+  if(WITH_IMAGE_OPENEXR)
+    set(OPTIONAL_FORMATS "${OPTIONAL_FORMATS} OPENEXR")
+  endif()
+  if(WITH_IMAGE_OPENJPEG)
+    set(OPTIONAL_FORMATS "${OPTIONAL_FORMATS} OPENJPEG")
+  endif()
+  if(WITH_IMAGE_TIFF)
+    set(OPTIONAL_FORMATS "${OPTIONAL_FORMATS} TIFF")
+  endif()
+  if(WITH_IMAGE_WEBP)
+    set(OPTIONAL_FORMATS "${OPTIONAL_FORMATS} WEBP")
+  endif()
+
+  add_blender_test(
+    bf_imbuf_save
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_imbuf_save.py
+    --
+    -test_dir "${TEST_SRC_DIR}/imbuf_io"
+    -output_dir "${TEST_OUT_DIR}/imbuf_io/save"
+    -idiff "${OPENIMAGEIO_IDIFF}"
+    -optional_formats "${OPTIONAL_FORMATS}"
+  )
+
+  add_blender_test(
+    bf_imbuf_load
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_imbuf_load.py
+    --
+    -test_dir "${TEST_SRC_DIR}/imbuf_io"
+    -output_dir "${TEST_OUT_DIR}/imbuf_io/load"
+    -idiff "${OPENIMAGEIO_IDIFF}"
+    -optional_formats "${OPTIONAL_FORMATS}"
+  )
+endif()
 
 # ------------------------------------------------------------------------------
 # SEQUENCER RENDER TESTS

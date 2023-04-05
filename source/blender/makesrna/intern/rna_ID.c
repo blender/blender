@@ -40,7 +40,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_CU_LEGACY, "CURVE", ICON_CURVE_DATA, "Curve", ""},
     {ID_CV, "CURVES", ICON_CURVES_DATA, "Curves", ""},
     {ID_VF, "FONT", ICON_FONT_DATA, "Font", ""},
-    {ID_GD, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
+    {ID_GD_LEGACY, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
     {ID_IM, "IMAGE", ICON_IMAGE_DATA, "Image", ""},
     {ID_KE, "KEY", ICON_SHAPEKEY_DATA, "Key", ""},
     {ID_LT, "LATTICE", ICON_LATTICE_DATA, "Lattice", ""},
@@ -128,7 +128,7 @@ const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
     {FILTER_ID_CA, "filter_camera", ICON_CAMERA_DATA, "Cameras", "Show Camera data-blocks"},
     {FILTER_ID_CF, "filter_cachefile", ICON_FILE, "Cache Files", "Show Cache File data-blocks"},
     {FILTER_ID_CU_LEGACY, "filter_curve", ICON_CURVE_DATA, "Curves", "Show Curve data-blocks"},
-    {FILTER_ID_GD,
+    {FILTER_ID_GD_LEGACY,
      "filter_grease_pencil",
      ICON_GREASEPENCIL,
      "Grease Pencil",
@@ -361,7 +361,7 @@ short RNA_type_to_ID_code(const StructRNA *type)
     return ID_CU_LEGACY;
   }
   if (base_type == &RNA_GreasePencil) {
-    return ID_GD;
+    return ID_GD_LEGACY;
   }
   if (base_type == &RNA_Collection) {
     return ID_GR;
@@ -482,7 +482,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
       return &RNA_CacheFile;
     case ID_CU_LEGACY:
       return &RNA_Curve;
-    case ID_GD:
+    case ID_GD_LEGACY:
       return &RNA_GreasePencil;
     case ID_GR:
       return &RNA_Collection;
@@ -630,9 +630,10 @@ IDProperty **rna_PropertyGroup_idprops(PointerRNA *ptr)
   return (IDProperty **)&ptr->data;
 }
 
-void rna_PropertyGroup_unregister(Main *UNUSED(bmain), StructRNA *type)
+bool rna_PropertyGroup_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   RNA_struct_free(&BLENDER_RNA, type);
+  return true;
 }
 
 StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain),
@@ -643,13 +644,13 @@ StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain),
                                       StructCallbackFunc UNUSED(call),
                                       StructFreeFunc UNUSED(free))
 {
-  PointerRNA dummyptr;
+  PointerRNA dummy_ptr;
 
   /* create dummy pointer */
-  RNA_pointer_create(NULL, &RNA_PropertyGroup, NULL, &dummyptr);
+  RNA_pointer_create(NULL, &RNA_PropertyGroup, NULL, &dummy_ptr);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, NULL) != 0) {
+  if (validate(&dummy_ptr, data, NULL) != 0) {
     return NULL;
   }
 
@@ -1015,7 +1016,12 @@ static void rna_ID_user_remap(ID *id, Main *bmain, ID *new_id)
 
 static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, bool UNUSED(clear_proxy))
 {
-  BKE_lib_id_make_local(bmain, self, 0);
+  if (ID_IS_LINKED(self)) {
+    BKE_lib_id_make_local(bmain, self, 0);
+  }
+  else if (ID_IS_OVERRIDE_LIBRARY_REAL(self)) {
+    BKE_lib_override_library_make_local(self);
+  }
 
   ID *ret_id = self->newid ? self->newid : self;
   BKE_id_newptr_and_tag_clear(self);
@@ -1488,7 +1494,6 @@ static void rna_def_ID_properties(BlenderRNA *brna)
   /* IDP_BOOLEAN */
   prop = RNA_def_property(srna, "bool", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
-  RNA_def_property_array(prop, 1);
 
   prop = RNA_def_property(srna, "bool_array", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);

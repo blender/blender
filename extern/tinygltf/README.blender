@@ -1,6 +1,5 @@
 Project: TinyGLTF
 URL: https://github.com/syoyo/tinygltf
 License: MIT
-Upstream version: 2.5.0, 19a41d20ec0
-Local modifications: 
-* Silence "enum value not handled in switch" warnings due to JSON dependency.
+Upstream version: 2.8.3, 84a83d39f55d
+Local modifications: None

@@ -15,7 +15,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BLI_memarena.h"
 
@@ -63,7 +63,7 @@ static void merge_uvs_for_vertex(const Span<int> loops_for_vert, Span<float2 *> 
   if (loops_for_vert.size() <= 1) {
     return;
   }
-  /* Manipulate a copy of the loop indices, de-duplicating UVs per layer.  */
+  /* Manipulate a copy of the loop indices, de-duplicating UVs per layer. */
   Vector<int, 32> loops_merge;
   loops_merge.reserve(loops_for_vert.size());
   for (float2 *mloopuv : mloopuv_layers) {
@@ -114,13 +114,8 @@ void BKE_mesh_merge_customdata_for_apply_modifier(Mesh *me)
 
   int *vert_map_mem;
   struct MeshElemMap *vert_to_loop;
-  BKE_mesh_vert_loop_map_create(&vert_to_loop,
-                                &vert_map_mem,
-                                BKE_mesh_polys(me),
-                                BKE_mesh_loops(me),
-                                me->totvert,
-                                me->totpoly,
-                                me->totloop);
+  BKE_mesh_vert_loop_map_create(
+      &vert_to_loop, &vert_map_mem, me->polys(), me->corner_verts().data(), me->totvert);
 
   Vector<float2 *> mloopuv_layers;
   mloopuv_layers.reserve(mloopuv_layers_num);

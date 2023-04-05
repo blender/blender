@@ -17,7 +17,7 @@
 #include "BLI_math_geom.h"
 
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_particle.h"
@@ -124,7 +124,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
       &mesh->fdata, CD_MTFACE, mesh->totface);
   const MFace *mface = (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  const Span<float3> vert_normals = mesh->vert_normals();
 
   if ((!mtface || !mface) && !uv_warning_shown_) {
     std::fprintf(stderr,
@@ -165,7 +165,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
 
           psys_interpolate_face(mesh,
                                 positions,
-                                vert_normals,
+                                reinterpret_cast<const float(*)[3]>(vert_normals.data()),
                                 face,
                                 tface,
                                 nullptr,
@@ -249,7 +249,7 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
   MTFace *mtface = (MTFace *)CustomData_get_layer_for_write(
       &mesh->fdata, CD_MTFACE, mesh->totface);
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  const Span<float3> vert_normals = mesh->vert_normals();
 
   ParticleSystem *psys = context.particle_system;
   ParticleSettings *part = psys->part;
@@ -283,7 +283,7 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
 
       psys_interpolate_face(mesh,
                             positions,
-                            vert_normals,
+                            reinterpret_cast<const float(*)[3]>(vert_normals.data()),
                             face,
                             tface,
                             nullptr,

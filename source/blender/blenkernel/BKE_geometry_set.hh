@@ -12,8 +12,6 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
-#include "BLI_math_vector_types.hh"
-#include "BLI_user_counter.hh"
 #include "BLI_vector_set.hh"
 
 #include "BKE_attribute.hh"
@@ -40,18 +38,13 @@ class CurvesEditHints;
 class Instances;
 }  // namespace blender::bke
 
-class GeometryComponent;
-
 /**
- * This is the base class for specialized geometry component types. A geometry component handles
- * a user count to allow avoiding duplication when it is wrapped with #UserCounter. It also handles
- * the attribute API, which generalizes storing and modifying generic information on a geometry.
+ * This is the base class for specialized geometry component types. A geometry component uses
+ * implicit sharing to avoid read-only copies. It also integrates with attribute API, which
+ * generalizes storing and modifying generic information on a geometry.
  */
-class GeometryComponent {
+class GeometryComponent : public blender::ImplicitSharingMixin {
  private:
-  /* The reference count has two purposes. When it becomes zero, the component is freed. When it is
-   * larger than one, the component becomes immutable. */
-  mutable std::atomic<int> users_ = 1;
   GeometryComponentType type_;
 
  public:
@@ -77,13 +70,12 @@ class GeometryComponent {
   virtual bool owns_direct_data() const = 0;
   virtual void ensure_owns_direct_data() = 0;
 
-  void user_add() const;
-  void user_remove() const;
-  bool is_mutable() const;
-
   GeometryComponentType type() const;
 
   virtual bool is_empty() const;
+
+ private:
+  void delete_self() override;
 };
 
 template<typename T>
@@ -109,7 +101,7 @@ inline constexpr bool is_geometry_component_v = std::is_base_of_v<GeometryCompon
  */
 struct GeometrySet {
  private:
-  using GeometryComponentPtr = blender::UserCounter<class GeometryComponent>;
+  using GeometryComponentPtr = blender::ImplicitSharingPtr<class GeometryComponent>;
   /* Indexed by #GeometryComponentType. */
   std::array<GeometryComponentPtr, GEO_COMPONENT_TYPE_ENUM_SIZE> components_;
 

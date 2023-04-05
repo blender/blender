@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup edgeometry
@@ -16,7 +16,7 @@
 #include "BKE_deform.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
@@ -107,36 +107,6 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void next_color_attribute(ID *id, const StringRefNull name, bool is_render)
-{
-  const CustomDataLayer *layer = BKE_id_attributes_color_find(id, name.c_str());
-  int index = BKE_id_attribute_to_index(id, layer, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
-
-  index++;
-
-  layer = BKE_id_attribute_from_index(id, index, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
-
-  if (!layer) {
-    index = 0;
-    layer = BKE_id_attribute_from_index(id, index, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
-  }
-
-  if (layer) {
-    if (is_render) {
-      BKE_id_attributes_active_color_set(id, layer->name);
-    }
-    else {
-      BKE_id_attributes_default_color_set(id, layer->name);
-    }
-  }
-}
-
-static void next_color_attributes(ID *id, const StringRefNull name)
-{
-  next_color_attribute(id, name, false); /* active */
-  next_color_attribute(id, name, true);  /* render */
-}
-
 void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
 {
   /* identifiers */
@@ -181,8 +151,6 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_context(C);
   ID *id = static_cast<ID *>(ob->data);
   CustomDataLayer *layer = BKE_id_attributes_active_get(id);
-
-  next_color_attributes(id, layer->name);
 
   if (!BKE_id_attribute_remove(id, layer->name, op->reports)) {
     return OPERATOR_CANCELLED;
@@ -436,8 +404,6 @@ static int geometry_color_attribute_remove_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  next_color_attributes(id, active_name);
-
   if (!BKE_id_attribute_remove(id, active_name.c_str(), op->reports)) {
     return OPERATOR_CANCELLED;
   }
@@ -591,9 +557,15 @@ static bool geometry_color_attribute_convert_poll(bContext *C)
   if (GS(id->name) != ID_ME) {
     return false;
   }
-
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
-  if (layer == nullptr) {
+  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
+  const char *name = mesh->active_color_attribute;
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(name);
+  if (!meta_data) {
+    return false;
+  }
+  if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & ATTR_DOMAIN_MASK_COLOR) ||
+      !(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL)) {
     return false;
   }
 
@@ -603,10 +575,10 @@ static bool geometry_color_attribute_convert_poll(bContext *C)
 static int geometry_color_attribute_convert_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
-  ID *ob_data = static_cast<ID *>(ob->data);
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(ob_data);
-  ED_geometry_attribute_convert(static_cast<Mesh *>(ob->data),
-                                layer->name,
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  const char *name = mesh->active_color_attribute;
+  ED_geometry_attribute_convert(mesh,
+                                name,
                                 eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
                                 eAttrDomain(RNA_enum_get(op->ptr, "domain")),
                                 op->reports);
@@ -619,9 +591,8 @@ static int geometry_color_attribute_convert_invoke(bContext *C,
 {
   Object *ob = ED_object_context(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-
-  const bke::AttributeMetaData meta_data = *mesh->attributes().lookup_meta_data(
-      BKE_id_attributes_active_color_get(&mesh->id)->name);
+  const char *name = mesh->active_color_attribute;
+  const bke::AttributeMetaData meta_data = *mesh->attributes().lookup_meta_data(name);
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
   if (!RNA_property_is_set(op->ptr, prop)) {

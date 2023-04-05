@@ -109,7 +109,9 @@ extern "C" char build_hash[];
 
 #include <cerrno>
 
-const char *bc_CustomData_get_layer_name(const struct CustomData *data, int type, int n)
+const char *bc_CustomData_get_layer_name(const struct CustomData *data,
+                                         const eCustomDataType type,
+                                         int n)
 {
   int layer_index = CustomData_get_layer_index(data, type);
   if (layer_index < 0) {
@@ -119,7 +121,7 @@ const char *bc_CustomData_get_layer_name(const struct CustomData *data, int type
   return data->layers[layer_index + n].name;
 }
 
-const char *bc_CustomData_get_active_layer_name(const CustomData *data, int type)
+const char *bc_CustomData_get_active_layer_name(const CustomData *data, const eCustomDataType type)
 {
   /* get the layer index of the active layer of type */
   int layer_index = CustomData_get_active_layer_index(data, type);
@@ -309,9 +311,7 @@ int DocumentExporter::exportCurrentScene()
   return status;
 }
 
-void DocumentExporter::exportScenes(const char *filename)
-{
-}
+void DocumentExporter::exportScenes(const char *filename) {}
 
 /*
  * NOTES:

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup edgpencil
@@ -11,13 +11,13 @@
 
 #include "BLT_translation.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -312,7 +312,7 @@ static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
                         NULL;
 
   if (job->ob_gpencil != NULL) {
-    if (job->ob_gpencil->type != OB_GPENCIL) {
+    if (job->ob_gpencil->type != OB_GPENCIL_LEGACY) {
       BKE_report(op->reports, RPT_WARNING, "Target object not a grease pencil, ignoring!");
       job->ob_gpencil = NULL;
     }

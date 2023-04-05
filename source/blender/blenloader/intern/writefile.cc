@@ -821,7 +821,7 @@ struct RenderInfo {
  * This was originally added for the historic render-daemon feature,
  * now write because it can be easily extracted without reading the whole blend file.
  *
- * See: `release/scripts/modules/blend_render_info.py`
+ * See: `scripts/modules/blend_render_info.py`
  */
 static void write_renderinfo(WriteData *wd, Main *mainvar)
 {
@@ -1139,6 +1139,16 @@ static bool write_file_handle(Main *mainvar,
           /* Forces all linked data to be considered as directly linked.
            * FIXME: Workaround some BAT tool limitations for Heist production, should be removed
            * asap afterward. */
+          id_lib_extern(id_iter);
+        }
+        else if (ID_FAKE_USERS(id_iter) > 0 && id_iter->asset_data == nullptr) {
+          /* Even though fake user is not directly editable by the user on linked data, it is a
+           * common 'work-around' to set it in library files on data-blocks that need to be linked
+           * but typically do not have an actual real user (e.g. texts, etc.).
+           * See e.g. #105687 and #103867.
+           *
+           * Would be good to find a better solution, but for now consider these as directly linked
+           * as well. */
           id_lib_extern(id_iter);
         }
         else {

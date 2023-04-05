@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edutil
@@ -53,7 +53,7 @@
  * #ED_slider_destroy.
  * \{ */
 
-#define SLIDE_PIXEL_DISTANCE (300.0f * U.dpi_fac)
+#define SLIDE_PIXEL_DISTANCE (300.0f * UI_SCALE_FAC)
 #define OVERSHOOT_RANGE_DELTA 0.2f
 
 typedef struct tSlider {
@@ -571,7 +571,7 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *region, void *arg_
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
-  immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+  immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
 
   immUniform1i("colors_len", 0); /* "simple" mode */
   immUniformThemeColor3(TH_VIEW_OVERLAY);
@@ -819,7 +819,7 @@ void ED_region_image_metadata_draw(
   GPU_matrix_translate_2f(x, y);
   GPU_matrix_scale_2f(zoomx, zoomy);
 
-  BLF_size(blf_mono_font, style->widgetlabel.points * U.dpi_fac);
+  BLF_size(blf_mono_font, style->widgetlabel.points * UI_SCALE_FAC);
 
   /* *** upper box*** */
 

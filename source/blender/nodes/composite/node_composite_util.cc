@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup nodes
@@ -7,6 +7,7 @@
 
 #include "BKE_node_runtime.hh"
 
+#include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "node_composite_util.hh"
@@ -35,4 +36,5 @@ void cmp_node_type_base(bNodeType *ntype, int type, const char *name, short ncla
   ntype->updatefunc = cmp_node_update_default;
   ntype->insert_link = node_insert_link_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
+  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
 }

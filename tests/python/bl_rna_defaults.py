@@ -103,8 +103,11 @@ def _test_id_gen(data_attr, args_create=(DUMMY_NAME,), create_method="new"):
 
 test_Action = _test_id_gen("actions")
 test_Armature = _test_id_gen("armatures")
+test_Brush = _test_id_gen("brushes")
 test_Camera = _test_id_gen("cameras")
-test_Group = _test_id_gen("groups")
+test_Collection = _test_id_gen("collections")
+test_GreasePencil = _test_id_gen("grease_pencils")
+test_HairCurves = _test_id_gen("hair_curves")
 test_Lattice = _test_id_gen("lattices")
 test_LineStyle = _test_id_gen("linestyles")
 test_Mask = _test_id_gen("masks")
@@ -115,11 +118,13 @@ test_MovieClip = _test_id_gen("movieclips", args_create=(DUMMY_PATH,), create_me
 test_Object = _test_id_gen("objects", args_create=(DUMMY_NAME, None))
 test_Palette = _test_id_gen("palettes")
 test_Particle = _test_id_gen("particles")
+test_PointCloud = _test_id_gen("pointclouds")
 test_Scene = _test_id_gen("scenes")
 test_Sound = _test_id_gen("sounds", args_create=(DUMMY_PATH,), create_method="load")
 test_Speaker = _test_id_gen("speakers")
 test_Text = _test_id_gen("texts")
 test_VectorFont = _test_id_gen("fonts", args_create=("<builtin>",), create_method="load")
+test_Volume = _test_id_gen("volumes")
 test_World = _test_id_gen("worlds")
 
 ns = globals()
@@ -127,6 +132,8 @@ for t in bpy.data.curves.bl_rna.functions["new"].parameters["type"].enum_items.k
     ns["test_Curve_%s" % t] = _test_id_gen("curves", args_create=(DUMMY_NAME, t))
 for t in bpy.data.lights.bl_rna.functions["new"].parameters["type"].enum_items.keys():
     ns["test_Light_%s" % t] = _test_id_gen("lights", args_create=(DUMMY_NAME, t))
+for t in bpy.data.lightprobes.bl_rna.functions["new"].parameters["type"].enum_items.keys():
+    ns["test_LightProbe_%s" % t] = _test_id_gen("lightprobes", args_create=(DUMMY_NAME, t))
 # types are a dynamic enum, have to hard-code.
 for t in "ShaderNodeTree", "CompositorNodeTree", "TextureNodeTree":
     ns["test_NodeGroup_%s" % t] = _test_id_gen("node_groups", args_create=(DUMMY_NAME, t))

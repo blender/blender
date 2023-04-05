@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spseq
@@ -67,6 +67,12 @@ void sequencer_operatortypes(void)
   WM_operatortype_append(SEQUENCER_OT_strip_color_tag_set);
   WM_operatortype_append(SEQUENCER_OT_cursor_set);
   WM_operatortype_append(SEQUENCER_OT_scene_frame_range_update);
+
+  /* sequencer_retiming.c */
+  WM_operatortype_append(SEQUENCER_OT_retiming_reset);
+  WM_operatortype_append(SEQUENCER_OT_retiming_handle_move);
+  WM_operatortype_append(SEQUENCER_OT_retiming_handle_add);
+  WM_operatortype_append(SEQUENCER_OT_retiming_handle_remove);
 
   /* sequencer_select.c */
   WM_operatortype_append(SEQUENCER_OT_select_all);

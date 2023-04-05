@@ -362,6 +362,8 @@ void MTLShaderInterface::prepare_common_shader_inputs()
   BLI_assert(&inputs_[attr_len_ + ubo_len_ + uniform_len_] >= current_input);
   current_input = &inputs_[attr_len_ + ubo_len_ + uniform_len_];
 
+  this->sort_inputs();
+
   /* Map builtin uniform indices to uniform binding locations. */
   this->map_builtins();
 }

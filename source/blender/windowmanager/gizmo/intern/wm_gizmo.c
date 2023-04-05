@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. All rights reserved. */
+ * Copyright 2014 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -453,7 +453,7 @@ void WM_gizmo_modal_set_while_modal(struct wmGizmoMap *gzmap,
 void wm_gizmo_calculate_scale(wmGizmo *gz, const bContext *C)
 {
   const RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  float scale = UI_DPI_FAC;
+  float scale = UI_SCALE_FAC;
 
   if ((gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_SCALE) == 0) {
     scale *= U.gizmo_size;

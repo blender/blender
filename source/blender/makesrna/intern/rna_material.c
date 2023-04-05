@@ -57,7 +57,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 
 #  include "MEM_guardedalloc.h"
 
-#  include "DNA_gpencil_types.h"
+#  include "DNA_gpencil_legacy_types.h"
 #  include "DNA_node_types.h"
 #  include "DNA_object_types.h"
 #  include "DNA_screen_types.h"
@@ -65,7 +65,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 
 #  include "BKE_colorband.h"
 #  include "BKE_context.h"
-#  include "BKE_gpencil.h"
+#  include "BKE_gpencil_legacy.h"
 #  include "BKE_main.h"
 #  include "BKE_material.h"
 #  include "BKE_node.h"
@@ -110,7 +110,7 @@ static void rna_MaterialGpencil_update(Main *bmain, Scene *scene, PointerRNA *pt
 
   /* Need set all caches as dirty. */
   for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
-    if (ob->type == OB_GPENCIL) {
+    if (ob->type == OB_GPENCIL_LEGACY) {
       bGPdata *gpd = (bGPdata *)ob->data;
       DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
     }

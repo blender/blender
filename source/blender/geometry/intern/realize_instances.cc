@@ -19,7 +19,7 @@
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_type_conversions.hh"
 
@@ -64,9 +64,7 @@ struct AttributeFallbacksArray {
    */
   Array<const void *> array;
 
-  AttributeFallbacksArray(int size) : array(size, nullptr)
-  {
-  }
+  AttributeFallbacksArray(int size) : array(size, nullptr) {}
 };
 
 struct PointCloudRealizeInfo {
@@ -103,8 +101,9 @@ struct MeshRealizeInfo {
   const Mesh *mesh = nullptr;
   Span<float3> positions;
   Span<MEdge> edges;
-  Span<MPoly> polys;
-  Span<MLoop> loops;
+  OffsetIndices<int> polys;
+  Span<int> corner_verts;
+  Span<int> corner_edges;
 
   /** Maps old material indices to new material indices. */
   Array<int> material_index_map;
@@ -154,6 +153,12 @@ struct RealizeCurveInfo {
    * curves.
    */
   VArray<int> resolution;
+
+  /**
+   * The resolution attribute must be filled with the default value if it does not exist on some
+   * curves.
+   */
+  Span<float> nurbs_weight;
 };
 
 /** Start indices in the final output curves data-block. */
@@ -195,6 +200,9 @@ struct AllMeshesInfo {
   VectorSet<Material *> materials;
   bool create_id_attribute = false;
   bool create_material_index_attribute = false;
+
+  /** True if we know that there are no loose edges in any of the input meshes. */
+  bool no_loose_edges_hint = false;
 };
 
 struct AllCurvesInfo {
@@ -208,6 +216,7 @@ struct AllCurvesInfo {
   bool create_handle_postion_attributes = false;
   bool create_radius_attribute = false;
   bool create_resolution_attribute = false;
+  bool create_nurbs_weight_attribute = false;
 };
 
 /** Collects all tasks that need to be executed to realize all instances. */
@@ -218,8 +227,8 @@ struct GatherTasks {
 
   /* Volumes only have very simple support currently. Only the first found volume is put into the
    * output. */
-  UserCounter<const VolumeComponent> first_volume;
-  UserCounter<const GeometryComponentEditData> first_edit_data;
+  ImplicitSharingPtr<const VolumeComponent> first_volume;
+  ImplicitSharingPtr<const GeometryComponentEditData> first_edit_data;
 };
 
 /** Current offsets while during the gather operation. */
@@ -600,7 +609,7 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
       case GEO_COMPONENT_TYPE_VOLUME: {
         const VolumeComponent *volume_component = static_cast<const VolumeComponent *>(component);
         if (!gather_info.r_tasks.first_volume) {
-          volume_component->user_add();
+          volume_component->add_user();
           gather_info.r_tasks.first_volume = volume_component;
         }
         break;
@@ -609,7 +618,7 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
         const GeometryComponentEditData *edit_component =
             static_cast<const GeometryComponentEditData *>(component);
         if (!gather_info.r_tasks.first_edit_data) {
-          edit_component->user_add();
+          edit_component->add_user();
           gather_info.r_tasks.first_edit_data = edit_component;
         }
         break;
@@ -839,7 +848,8 @@ static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
                                                     options.propagation_info,
                                                     attributes_to_propagate);
   attributes_to_propagate.remove("position");
-  attributes_to_propagate.remove("shade_smooth");
+  attributes_to_propagate.remove(".corner_vert");
+  attributes_to_propagate.remove(".corner_edge");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
   r_create_material_index = attributes_to_propagate.pop_try("material_index").has_value();
   OrderedAttributes ordered_attributes;
@@ -894,7 +904,8 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
     mesh_info.positions = mesh->vert_positions();
     mesh_info.edges = mesh->edges();
     mesh_info.polys = mesh->polys();
-    mesh_info.loops = mesh->loops();
+    mesh_info.corner_verts = mesh->corner_verts();
+    mesh_info.corner_edges = mesh->corner_edges();
 
     /* Create material index mapping. */
     mesh_info.material_index_map.reinitialize(std::max<int>(mesh->totcol, 1));
@@ -930,6 +941,12 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
     mesh_info.material_indices = attributes.lookup_or_default<int>(
         "material_index", ATTR_DOMAIN_FACE, 0);
   }
+
+  info.no_loose_edges_hint = std::all_of(
+      info.order.begin(), info.order.end(), [](const Mesh *mesh) {
+        return mesh->runtime->loose_edges_cache.is_cached() && mesh->loose_edges().count == 0;
+      });
+
   return info;
 }
 
@@ -939,8 +956,9 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                       MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
                                       MutableSpan<float3> all_dst_positions,
                                       MutableSpan<MEdge> all_dst_edges,
-                                      MutableSpan<MPoly> all_dst_polys,
-                                      MutableSpan<MLoop> all_dst_loops,
+                                      MutableSpan<int> all_dst_poly_offsets,
+                                      MutableSpan<int> all_dst_corner_verts,
+                                      MutableSpan<int> all_dst_corner_edges,
                                       MutableSpan<int> all_dst_vertex_ids,
                                       MutableSpan<int> all_dst_material_indices)
 {
@@ -949,18 +967,20 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
 
   const Span<float3> src_positions = mesh_info.positions;
   const Span<MEdge> src_edges = mesh_info.edges;
-  const Span<MPoly> src_polys = mesh_info.polys;
-  const Span<MLoop> src_loops = mesh_info.loops;
+  const OffsetIndices src_polys = mesh_info.polys;
+  const Span<int> src_corner_verts = mesh_info.corner_verts;
+  const Span<int> src_corner_edges = mesh_info.corner_edges;
 
   const IndexRange dst_vert_range(task.start_indices.vertex, src_positions.size());
   const IndexRange dst_edge_range(task.start_indices.edge, src_edges.size());
   const IndexRange dst_poly_range(task.start_indices.poly, src_polys.size());
-  const IndexRange dst_loop_range(task.start_indices.loop, src_loops.size());
+  const IndexRange dst_loop_range(task.start_indices.loop, src_corner_verts.size());
 
   MutableSpan<float3> dst_positions = all_dst_positions.slice(dst_vert_range);
   MutableSpan<MEdge> dst_edges = all_dst_edges.slice(dst_edge_range);
-  MutableSpan<MPoly> dst_polys = all_dst_polys.slice(dst_poly_range);
-  MutableSpan<MLoop> dst_loops = all_dst_loops.slice(dst_loop_range);
+  MutableSpan<int> dst_poly_offsets = all_dst_poly_offsets.slice(dst_poly_range);
+  MutableSpan<int> dst_corner_verts = all_dst_corner_verts.slice(dst_loop_range);
+  MutableSpan<int> dst_corner_edges = all_dst_corner_edges.slice(dst_loop_range);
 
   threading::parallel_for(src_positions.index_range(), 1024, [&](const IndexRange vert_range) {
     for (const int i : vert_range) {
@@ -976,21 +996,19 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       dst_edge.v2 += task.start_indices.vertex;
     }
   });
-  threading::parallel_for(src_loops.index_range(), 1024, [&](const IndexRange loop_range) {
+  threading::parallel_for(src_corner_verts.index_range(), 1024, [&](const IndexRange loop_range) {
     for (const int i : loop_range) {
-      const MLoop &src_loop = src_loops[i];
-      MLoop &dst_loop = dst_loops[i];
-      dst_loop = src_loop;
-      dst_loop.v += task.start_indices.vertex;
-      dst_loop.e += task.start_indices.edge;
+      dst_corner_verts[i] = src_corner_verts[i] + task.start_indices.vertex;
+    }
+  });
+  threading::parallel_for(src_corner_edges.index_range(), 1024, [&](const IndexRange loop_range) {
+    for (const int i : loop_range) {
+      dst_corner_edges[i] = src_corner_edges[i] + task.start_indices.edge;
     }
   });
   threading::parallel_for(src_polys.index_range(), 1024, [&](const IndexRange poly_range) {
     for (const int i : poly_range) {
-      const MPoly &src_poly = src_polys[i];
-      MPoly &dst_poly = dst_polys[i];
-      dst_poly = src_poly;
-      dst_poly.loopstart += task.start_indices.loop;
+      dst_poly_offsets[i] = src_polys[i].start() + task.start_indices.loop;
     }
   });
   if (!all_dst_material_indices.is_empty()) {
@@ -1066,14 +1084,15 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   const int tot_loops = last_task.start_indices.loop + last_mesh.totloop;
   const int tot_poly = last_task.start_indices.poly + last_mesh.totpoly;
 
-  Mesh *dst_mesh = BKE_mesh_new_nomain(tot_vertices, tot_edges, 0, tot_loops, tot_poly);
+  Mesh *dst_mesh = BKE_mesh_new_nomain(tot_vertices, tot_edges, tot_loops, tot_poly);
   MeshComponent &dst_component = r_realized_geometry.get_component_for_write<MeshComponent>();
   dst_component.replace(dst_mesh);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
   MutableSpan<float3> dst_positions = dst_mesh->vert_positions_for_write();
   MutableSpan<MEdge> dst_edges = dst_mesh->edges_for_write();
-  MutableSpan<MPoly> dst_polys = dst_mesh->polys_for_write();
-  MutableSpan<MLoop> dst_loops = dst_mesh->loops_for_write();
+  MutableSpan<int> dst_poly_offsets = dst_mesh->poly_offsets_for_write();
+  MutableSpan<int> dst_corner_verts = dst_mesh->corner_verts_for_write();
+  MutableSpan<int> dst_corner_edges = dst_mesh->corner_edges_for_write();
 
   /* Copy settings from the first input geometry set with a mesh. */
   const RealizeMeshTask &first_task = tasks.first();
@@ -1121,8 +1140,9 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
                                 dst_attribute_writers,
                                 dst_positions,
                                 dst_edges,
-                                dst_polys,
-                                dst_loops,
+                                dst_poly_offsets,
+                                dst_corner_verts,
+                                dst_corner_edges,
                                 vertex_ids.span,
                                 material_indices.span);
     }
@@ -1134,6 +1154,10 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   }
   vertex_ids.finish();
   material_indices.finish();
+
+  if (all_meshes_info.no_loose_edges_hint) {
+    dst_mesh->loose_edges_tag_none();
+  }
 }
 
 /** \} */
@@ -1159,6 +1183,7 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
                                                     attributes_to_propagate);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("radius");
+  attributes_to_propagate.remove("nurbs_weight");
   attributes_to_propagate.remove("resolution");
   attributes_to_propagate.remove("handle_right");
   attributes_to_propagate.remove("handle_left");
@@ -1220,20 +1245,20 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
       }
     }
 
-    /* Retrieve the radius attribute, if it exists. */
     if (attributes.contains("radius")) {
       curve_info.radius =
           attributes.lookup<float>("radius", ATTR_DOMAIN_POINT).get_internal_span();
       info.create_radius_attribute = true;
     }
-
-    /* Retrieve the resolution attribute, if it exists. */
+    if (attributes.contains("nurbs_weight")) {
+      curve_info.nurbs_weight =
+          attributes.lookup<float>("nurbs_weight", ATTR_DOMAIN_POINT).get_internal_span();
+      info.create_nurbs_weight_attribute = true;
+    }
     curve_info.resolution = curves.resolution();
     if (attributes.contains("resolution")) {
       info.create_resolution_attribute = true;
     }
-
-    /* Retrieve handle position attributes, if they exist. */
     if (attributes.contains("handle_right")) {
       curve_info.handle_left =
           attributes.lookup<float3>("handle_left", ATTR_DOMAIN_POINT).get_internal_span();
@@ -1255,6 +1280,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
                                        MutableSpan<float3> all_handle_left,
                                        MutableSpan<float3> all_handle_right,
                                        MutableSpan<float> all_radii,
+                                       MutableSpan<float> all_nurbs_weights,
                                        MutableSpan<int> all_resolutions)
 {
   const RealizeCurveInfo &curves_info = *task.curve_info;
@@ -1285,14 +1311,20 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
     }
   }
 
-  /* Copy radius attribute with 1.0 default if it doesn't exist. */
+  auto copy_point_span_with_default =
+      [&](const Span<float> src, MutableSpan<float> all_dst, const float value) {
+        if (src.is_empty()) {
+          all_dst.slice(dst_point_range).fill(value);
+        }
+        else {
+          all_dst.slice(dst_point_range).copy_from(src);
+        }
+      };
   if (all_curves_info.create_radius_attribute) {
-    if (curves_info.radius.is_empty()) {
-      all_radii.slice(dst_point_range).fill(1.0f);
-    }
-    else {
-      all_radii.slice(dst_point_range).copy_from(curves_info.radius);
-    }
+    copy_point_span_with_default(curves_info.radius, all_radii, 1.0f);
+  }
+  if (all_curves_info.create_nurbs_weight_attribute) {
+    copy_point_span_with_default(curves_info.nurbs_weight, all_nurbs_weights, 1.0f);
   }
 
   if (all_curves_info.create_resolution_attribute) {
@@ -1385,13 +1417,15 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
                                                                             ATTR_DOMAIN_POINT);
   }
 
-  /* Prepare radius attribute if necessary. */
   SpanAttributeWriter<float> radius;
   if (all_curves_info.create_radius_attribute) {
     radius = dst_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
   }
-
-  /* Prepare resolution attribute if necessary. */
+  SpanAttributeWriter<float> nurbs_weight;
+  if (all_curves_info.create_nurbs_weight_attribute) {
+    nurbs_weight = dst_attributes.lookup_or_add_for_write_only_span<float>("nurbs_weight",
+                                                                           ATTR_DOMAIN_POINT);
+  }
   SpanAttributeWriter<int> resolution;
   if (all_curves_info.create_resolution_attribute) {
     resolution = dst_attributes.lookup_or_add_for_write_only_span<int>("resolution",
@@ -1412,6 +1446,7 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
                                  handle_left.span,
                                  handle_right.span,
                                  radius.span,
+                                 nurbs_weight.span,
                                  resolution.span);
     }
   });
@@ -1432,6 +1467,7 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   point_ids.finish();
   radius.finish();
   resolution.finish();
+  nurbs_weight.finish();
   handle_left.finish();
   handle_right.finish();
 }

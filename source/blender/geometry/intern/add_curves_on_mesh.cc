@@ -5,7 +5,7 @@
 #include "BLI_task.hh"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_sample.hh"
 
 #include "GEO_add_curves_on_mesh.hh"
@@ -243,7 +243,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   AddCurvesOnMeshOutputs outputs;
 
   const bool use_interpolation = inputs.interpolate_length || inputs.interpolate_point_count ||
-                                 inputs.interpolate_shape;
+                                 inputs.interpolate_shape || inputs.interpolate_resolution;
 
   Vector<float3> root_positions_cu;
   Vector<float3> bary_coords;
@@ -252,7 +252,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   /* Find faces that the passed in uvs belong to. */
   const Span<float3> surface_positions = inputs.surface->vert_positions();
-  const Span<MLoop> surface_loops = inputs.surface->loops();
+  const Span<int> surface_corner_verts = inputs.surface->corner_verts();
   for (const int i : inputs.uvs.index_range()) {
     const float2 &uv = inputs.uvs[i];
     const ReverseUVSampler::Result result = inputs.reverse_uv_sampler->sample(uv);
@@ -265,9 +265,9 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
     looptris.append(&looptri);
     const float3 root_position_su = attribute_math::mix3<float3>(
         result.bary_weights,
-        surface_positions[surface_loops[looptri.tri[0]].v],
-        surface_positions[surface_loops[looptri.tri[1]].v],
-        surface_positions[surface_loops[looptri.tri[2]].v]);
+        surface_positions[surface_corner_verts[looptri.tri[0]]],
+        surface_positions[surface_corner_verts[looptri.tri[1]]],
+        surface_positions[surface_corner_verts[looptri.tri[2]]]);
     root_positions_cu.append(
         math::transform_point(inputs.transforms->surface_to_curves, root_position_su));
     used_uvs.append(uv);
@@ -296,7 +296,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
     interpolate_from_neighbors<int>(
         neighbors_per_curve,
         inputs.fallback_point_count,
-        [&](const int curve_i) { return old_points_by_curve.size(curve_i); },
+        [&](const int curve_i) { return old_points_by_curve[curve_i].size(); },
         new_point_counts_per_curve);
   }
   else {
@@ -380,8 +380,24 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
+  if (bke::SpanAttributeWriter<int> resolution = attributes.lookup_for_write_span<int>(
+          "resolution")) {
+    if (inputs.interpolate_resolution) {
+      interpolate_from_neighbors(
+          neighbors_per_curve,
+          12,
+          [&](const int curve_i) { return resolution.span[curve_i]; },
+          resolution.span.take_back(added_curves_num));
+      resolution.finish();
+    }
+    else {
+      resolution.span.take_back(added_curves_num).fill(12);
+    }
+  }
+
   /* Explicitly set all other attributes besides those processed above to default values. */
-  Set<std::string> attributes_to_skip{{"position", "curve_type", "surface_uv_coordinate"}};
+  Set<std::string> attributes_to_skip{
+      {"position", "curve_type", "surface_uv_coordinate", "resolution"}};
   attributes.for_all(
       [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
         if (attributes_to_skip.contains(id.name())) {

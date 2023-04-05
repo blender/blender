@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -134,6 +134,11 @@ class GLContext : public Context {
 
   void debug_group_begin(const char *name, int index) override;
   void debug_group_end() override;
+  bool debug_capture_begin() override;
+  void debug_capture_end() override;
+  void *debug_capture_scope_create(const char *name) override;
+  bool debug_capture_scope_begin(void *scope) override;
+  void debug_capture_scope_end(void *scope) override;
 
  private:
   static void orphans_add(Vector<GLuint> &orphan_list, std::mutex &list_mutex, GLuint id);

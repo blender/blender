@@ -792,12 +792,12 @@ static PointerRNA rna_Addon_preferences_get(PointerRNA *ptr)
   }
 }
 
-static void rna_AddonPref_unregister(Main *UNUSED(bmain), StructRNA *type)
+static bool rna_AddonPref_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   bAddonPrefType *apt = RNA_struct_blender_type_get(type);
 
   if (!apt) {
-    return;
+    return false;
   }
 
   RNA_struct_free_extension(type, &apt->rna_ext);
@@ -807,6 +807,7 @@ static void rna_AddonPref_unregister(Main *UNUSED(bmain), StructRNA *type)
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, NULL);
+  return true;
 }
 
 static StructRNA *rna_AddonPref_register(Main *bmain,
@@ -817,16 +818,17 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
                                          StructCallbackFunc call,
                                          StructFreeFunc free)
 {
+  const char *error_prefix = "Registering add-on preferences class:";
   bAddonPrefType *apt, dummy_apt = {{'\0'}};
   bAddon dummy_addon = {NULL};
-  PointerRNA dummy_ptr;
-  // int have_function[1];
+  PointerRNA dummy_addon_ptr;
+  // bool have_function[1];
 
   /* Setup dummy add-on preference and it's type to store static properties in. */
-  RNA_pointer_create(NULL, &RNA_AddonPreferences, &dummy_addon, &dummy_ptr);
+  RNA_pointer_create(NULL, &RNA_AddonPreferences, &dummy_addon, &dummy_addon_ptr);
 
   /* validate the python class */
-  if (validate(&dummy_ptr, data, NULL /* have_function */) != 0) {
+  if (validate(&dummy_addon_ptr, data, NULL /* have_function */) != 0) {
     return NULL;
   }
 
@@ -834,7 +836,8 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
   if (strlen(identifier) >= sizeof(dummy_apt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering add-on preferences class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
                 (int)sizeof(dummy_apt.idname));
     return NULL;
@@ -842,8 +845,19 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
 
   /* Check if we have registered this add-on preference type before, and remove it. */
   apt = BKE_addon_pref_type_find(dummy_addon.module, true);
-  if (apt && apt->rna_ext.srna) {
-    rna_AddonPref_unregister(bmain, apt->rna_ext.srna);
+  if (apt) {
+    StructRNA *srna = apt->rna_ext.srna;
+    if (!(srna && rna_AddonPref_unregister(bmain, srna))) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s '%s', bl_idname '%s' %s",
+                  error_prefix,
+                  identifier,
+                  dummy_apt.idname,
+                  srna ? "is built-in" : "could not be unregistered");
+
+      return NULL;
+    }
   }
 
   /* Create a new add-on preference type. */
@@ -1989,6 +2003,11 @@ static void rna_def_userdef_theme_spaces_face(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Freestyle Face Mark", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
+  prop = RNA_def_property(srna, "face_retopology", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_ui_text(prop, "Face Retopology", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
   prop = RNA_def_property(srna, "face_back", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Face Orientation Back", "");
@@ -2198,6 +2217,11 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(
       prop, "Wire Edit", "Color for wireframe when in edit mode, but edge selection is active");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "edge_width", PROP_INT, PROP_PIXEL);
+  RNA_def_property_range(prop, 1, 32);
+  RNA_def_property_ui_text(prop, "Edge Width", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   /* Grease Pencil */
@@ -3062,6 +3086,11 @@ static void rna_def_userdef_theme_space_image(BlenderRNA *brna)
   prop = RNA_def_property(srna, "wire_edit", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Wire Edit", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "edge_width", PROP_INT, PROP_PIXEL);
+  RNA_def_property_range(prop, 1, 32);
+  RNA_def_property_ui_text(prop, "Edge Width", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "edge_select", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -4794,7 +4823,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   /* mini axis */
   static const EnumPropertyItem mini_axis_type_items[] = {
       {USER_MINI_AXIS_TYPE_NONE, "NONE", 0, "Off", ""},
-      {USER_MINI_AXIS_TYPE_MINIMAL, "MINIMAL", 0, "Simple Axis", ""},
+      {USER_MINI_AXIS_TYPE_MINIMAL, "MINIMAL", 0, "Simple Axes", ""},
       {USER_MINI_AXIS_TYPE_GIZMO, "GIZMO", 0, "Interactive Navigation", ""},
       {0, NULL, 0, NULL, NULL},
   };
@@ -4804,7 +4833,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Mini Axes Type",
-      "Show a small rotating 3D axes in the top right corner of the 3D viewport");
+      "Show small rotating 3D axes in the top right corner of the 3D viewport");
   RNA_def_property_update(prop, 0, "rna_userdef_gizmo_update");
 
   prop = RNA_def_property(srna, "mini_axis_size", PROP_INT, PROP_PIXEL);
@@ -4872,8 +4901,8 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_enum_funcs(prop, NULL, "rna_userdef_timecode_style_set", NULL);
   RNA_def_property_ui_text(
       prop,
-      "TimeCode Style",
-      "Format of Time Codes displayed when not displaying timing in terms of frames");
+      "Timecode Style",
+      "Format of timecodes displayed when not displaying timing in terms of frames");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   prop = RNA_def_property(srna, "view_frame_type", PROP_ENUM, PROP_NONE);
@@ -4971,6 +5000,11 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_statusbar_stats", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "statusbar_flag", STATUSBAR_SHOW_STATS);
   RNA_def_property_ui_text(prop, "Show Statistics", "Show scene statistics");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_INFO, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "show_statusbar_scene_duration", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "statusbar_flag", STATUSBAR_SHOW_SCENE_DURATION);
+  RNA_def_property_ui_text(prop, "Show Scene Duration", "Show scene duration");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_INFO, "rna_userdef_update");
 }
 
@@ -5173,6 +5207,23 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
                            "Unselected F-Curve Opacity",
                            "The opacity of unselected F-Curves against the "
                            "background of the Graph Editor");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
+
+  /* FCurve keyframe visibility. */
+  prop = RNA_def_property(srna, "show_only_selected_curve_keyframes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, NULL, "animation_flag", USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS);
+  RNA_def_property_ui_text(prop,
+                           "Only Show Selected F-Curve Keyframes",
+                           "Only keyframes of selected F-Curves are visible and editable");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
+
+  /* Graph Editor line drawing quality. */
+  prop = RNA_def_property(srna, "use_fcurve_high_quality_drawing", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "animation_flag", USER_ANIM_HIGH_QUALITY_DRAWING);
+  RNA_def_property_ui_text(prop,
+                           "F-Curve High Quality Drawing",
+                           "Draw F-Curves using Anti-Aliasing (disable for better performance)");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
   /* grease pencil */
@@ -5480,7 +5531,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "ui_scale", PROP_FLOAT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_float_sdna(prop, NULL, "dpi_fac");
+  RNA_def_property_float_sdna(prop, NULL, "scale_factor");
   RNA_def_property_ui_text(
       prop,
       "UI Scale",

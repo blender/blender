@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2016 Blender Foundation. All rights reserved.
+# Copyright 2016 Blender Foundation
 
 # Libraries configuration for any *nix system including Linux and Unix (excluding APPLE).
 
@@ -317,7 +317,7 @@ if(WITH_CYCLES AND WITH_CYCLES_OSL)
   endif()
 endif()
 
-if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
+if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_SYCL_SUPPORT)))
   set(CYCLES_LEVEL_ZERO ${LIBDIR}/level-zero CACHE PATH "Path to Level Zero installation")
   if(EXISTS ${CYCLES_LEVEL_ZERO} AND NOT LEVEL_ZERO_ROOT_DIR)
     set(LEVEL_ZERO_ROOT_DIR ${CYCLES_LEVEL_ZERO})
@@ -394,6 +394,7 @@ if(WITH_BOOST)
       list(APPEND __boost_packages python${PYTHON_VERSION_NO_DOTS})
     endif()
     list(APPEND __boost_packages system)
+    set(Boost_NO_WARN_NEW_VERSIONS ON)
     find_package(Boost 1.48 COMPONENTS ${__boost_packages})
     if(NOT Boost_FOUND)
       # try to find non-multithreaded if -mt not found, this flag
@@ -438,32 +439,7 @@ if(WITH_IMAGE_WEBP)
   set_and_warn_library_found("WebP" WEBP_FOUND WITH_IMAGE_WEBP)
 endif()
 
-if(WITH_OPENIMAGEIO)
-  find_package_wrapper(OpenImageIO)
-  set(OPENIMAGEIO_LIBRARIES
-    ${OPENIMAGEIO_LIBRARIES}
-    ${PNG_LIBRARIES}
-    ${JPEG_LIBRARIES}
-    ${ZLIB_LIBRARIES}
-  )
-
-  set(OPENIMAGEIO_DEFINITIONS "")
-
-  if(WITH_BOOST)
-    list(APPEND OPENIMAGEIO_LIBRARIES "${BOOST_LIBRARIES}")
-  endif()
-  if(WITH_IMAGE_TIFF)
-    list(APPEND OPENIMAGEIO_LIBRARIES "${TIFF_LIBRARY}")
-  endif()
-  if(WITH_IMAGE_OPENEXR)
-    list(APPEND OPENIMAGEIO_LIBRARIES "${OPENEXR_LIBRARIES}")
-  endif()
-  if(WITH_IMAGE_WEBP)
-    list(APPEND OPENIMAGEIO_LIBRARIES "${WEBP_LIBRARIES}")
-  endif()
-
-  set_and_warn_library_found("OPENIMAGEIO" OPENIMAGEIO_FOUND WITH_OPENIMAGEIO)
-endif()
+find_package_wrapper(OpenImageIO REQUIRED)
 add_bundled_libraries(openimageio/lib)
 
 if(WITH_OPENCOLORIO)
@@ -477,6 +453,7 @@ add_bundled_libraries(opencolorio/lib)
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
   find_package(Embree 3.8.0 REQUIRED)
 endif()
+add_bundled_libraries(embree/lib)
 
 if(WITH_OPENIMAGEDENOISE)
   find_package_wrapper(OpenImageDenoise)
@@ -665,15 +642,29 @@ if(WITH_GHOST_WAYLAND)
     pkg_check_modules(wayland-egl wayland-egl)
     pkg_check_modules(wayland-scanner wayland-scanner)
     pkg_check_modules(wayland-cursor wayland-cursor)
-    pkg_check_modules(wayland-protocols wayland-protocols>=1.15)
+    pkg_check_modules(wayland-protocols wayland-protocols>=1.31)
     pkg_get_variable(WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
   else()
+    # NOTE: this file must always refer to the newest API which is used, so older
+    # `wayland-protocols` are never found and used which then fail to locate required protocols.
+    set(_wayland_protocols_reference_file "staging/fractional-scale/fractional-scale-v1.xml")
+
+    # Reset the protocols directory the reference file from `wayland-protocols` is not found.
+    # This avoids developers having build failures when a cached directory is used that no
+    # longer contains the required file.
+    if(DEFINED WAYLAND_PROTOCOLS_DIR)
+      if(NOT EXISTS "${WAYLAND_PROTOCOLS_DIR}/${_wayland_protocols_reference_file}")
+        unset(WAYLAND_PROTOCOLS_DIR CACHE)
+      endif()
+    endif()
+
     # Rocky8 packages have too old a version, a newer version exist in the pre-compiled libraries.
     find_path(WAYLAND_PROTOCOLS_DIR
-      NAMES unstable/xdg-decoration/xdg-decoration-unstable-v1.xml
+      NAMES ${_wayland_protocols_reference_file}
       PATH_SUFFIXES share/wayland-protocols
       PATHS ${LIBDIR}/wayland-protocols
     )
+    unset(_wayland_protocols_reference_file)
 
     if(EXISTS ${WAYLAND_PROTOCOLS_DIR})
       set(wayland-protocols_FOUND ON)

@@ -74,6 +74,4 @@ void GHOST_Buttons::clear()
   m_Button7 = false;
 }
 
-GHOST_Buttons::~GHOST_Buttons()
-{
-}
+GHOST_Buttons::~GHOST_Buttons() {}

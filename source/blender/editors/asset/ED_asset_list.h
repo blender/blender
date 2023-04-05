@@ -6,13 +6,12 @@
 
 #pragma once
 
+#include "DNA_asset_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct AssetCatalogFilterSettings;
-struct AssetHandle;
-struct AssetLibrary;
 struct AssetLibraryReference;
 struct ID;
 struct bContext;
@@ -51,6 +50,9 @@ void ED_assetlist_storage_id_remap(struct ID *id_old, struct ID *id_new);
  * allocator, it will complain about unfreed memory on exit.
  */
 void ED_assetlist_storage_exit(void);
+
+AssetHandle ED_assetlist_asset_get_by_index(const AssetLibraryReference *library_reference,
+                                            int asset_index);
 
 struct PreviewImage *ED_assetlist_asset_preview_request(
     const struct AssetLibraryReference *library_reference, AssetHandle *asset_handle);

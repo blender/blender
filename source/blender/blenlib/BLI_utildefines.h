@@ -297,13 +297,13 @@ extern "C" {
 /* Float equality checks. */
 
 #define IS_EQ(a, b) \
-  (CHECK_TYPE_INLINE(a, double), \
-   CHECK_TYPE_INLINE(b, double), \
+  (CHECK_TYPE_INLINE_NONCONST(a, double), \
+   CHECK_TYPE_INLINE_NONCONST(b, double), \
    ((fabs((double)((a) - (b))) >= (double)FLT_EPSILON) ? false : true))
 
 #define IS_EQF(a, b) \
-  (CHECK_TYPE_INLINE(a, float), \
-   CHECK_TYPE_INLINE(b, float), \
+  (CHECK_TYPE_INLINE_NONCONST(a, float), \
+   CHECK_TYPE_INLINE_NONCONST(b, float), \
    ((fabsf((float)((a) - (b))) >= (float)FLT_EPSILON) ? false : true))
 
 #define IS_EQT(a, b, c) (((a) > (b)) ? ((((a) - (b)) <= (c))) : (((((b) - (a)) <= (c)))))
@@ -668,6 +668,9 @@ extern bool BLI_memory_is_zero(const void *arr, size_t arr_size);
 /* UNUSED macro, for function argument */
 #  if defined(__GNUC__) || defined(__clang__)
 #    define UNUSED(x) UNUSED_##x __attribute__((__unused__))
+#  elif defined(_MSC_VER)
+/* NOTE: This suppresses the warning for the line, not the attribute. */
+#    define UNUSED(x) UNUSED_##x __pragma(warning(suppress : 4100))
 #  else
 #    define UNUSED(x) UNUSED_##x
 #  endif

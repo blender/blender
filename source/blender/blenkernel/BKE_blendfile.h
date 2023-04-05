@@ -20,6 +20,32 @@ struct UserDef;
 struct bContext;
 
 /**
+ * Check whether given path ends with a blend file compatible extension
+ * (`.blend`, `.ble` or `.blend.gz`).
+ *
+ * \param str: The path to check.
+ * \return true is this path ends with a blender file extension.
+ */
+bool BKE_blendfile_extension_check(const char *str);
+/**
+ * Try to explode given path into its 'library components'
+ * (i.e. a .blend file, id type/group, and data-block itself).
+ *
+ * \param path: the full path to explode.
+ * \param r_dir: the string that'll contain path up to blend file itself ('library' path).
+ * WARNING! Must be at least #FILE_MAX_LIBEXTRA long (it also stores group and name strings)!
+ * \param r_group: a pointer within `r_dir` to the 'group' part of the path, if any ('\0'
+ * terminated). May be NULL.
+ * \param r_name: a pointer within `r_dir` to the data-block name, if any ('\0' terminated). May be
+ * NULL.
+ * \return true if path contains a blend file.
+ */
+bool BKE_blendfile_library_path_explode(const char *path,
+                                        char *r_dir,
+                                        char **r_group,
+                                        char **r_name);
+
+/**
  * Shared setup function that makes the data from `bfd` into the current blend file,
  * replacing the contents of #G.main.
  * This uses the bfd #BKE_blendfile_read and similarly named functions.

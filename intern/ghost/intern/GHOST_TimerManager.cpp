@@ -15,9 +15,7 @@
 
 #include "GHOST_TimerTask.h"
 
-GHOST_TimerManager::GHOST_TimerManager()
-{
-}
+GHOST_TimerManager::GHOST_TimerManager() {}
 
 GHOST_TimerManager::~GHOST_TimerManager()
 {

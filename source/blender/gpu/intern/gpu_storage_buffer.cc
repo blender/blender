@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -89,18 +89,14 @@ void GPU_storagebuf_unbind_all()
   /* FIXME */
 }
 
-void GPU_storagebuf_clear(GPUStorageBuf *ssbo,
-                          eGPUTextureFormat internal_format,
-                          eGPUDataFormat data_format,
-                          void *data)
-{
-  unwrap(ssbo)->clear(internal_format, data_format, data);
-}
-
 void GPU_storagebuf_clear_to_zero(GPUStorageBuf *ssbo)
 {
-  uint32_t data = 0u;
-  GPU_storagebuf_clear(ssbo, GPU_R32UI, GPU_DATA_UINT, &data);
+  GPU_storagebuf_clear(ssbo, 0);
+}
+
+void GPU_storagebuf_clear(GPUStorageBuf *ssbo, uint32_t clear_value)
+{
+  unwrap(ssbo)->clear(clear_value);
 }
 
 void GPU_storagebuf_copy_sub_from_vertbuf(

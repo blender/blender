@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+ * Copyright 2004 Blender Foundation */
 
 #pragma once
 
@@ -39,11 +39,14 @@ void seq_time_gap_info_get(const struct Scene *scene,
                            int initial_frame,
                            struct GapInfo *r_gap_info);
 void seq_time_effect_range_set(const struct Scene *scene, Sequence *seq);
+/**
+ * Update strip `startdisp` and `enddisp` (n-input effects have no length to calculate these).
+ */
 void seq_time_update_effects_strip_range(const struct Scene *scene, struct SeqCollection *effects);
 void seq_time_translate_handles(const struct Scene *scene, struct Sequence *seq, const int offset);
 float seq_time_media_playback_rate_factor_get(const struct Scene *scene,
                                               const struct Sequence *seq);
-float seq_time_playback_rate_factor_get(const struct Scene *scene, const struct Sequence *seq);
+float seq_retiming_evaluate(const struct Sequence *seq, const int frame_index);
 
 #ifdef __cplusplus
 }

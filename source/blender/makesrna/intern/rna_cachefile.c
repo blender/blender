@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. All rights reserved. */
+ * Copyright 2016 Blender Foundation */
 
 /** \file
  * \ingroup RNA
@@ -7,6 +7,8 @@
 
 #include "DNA_cachefile_types.h"
 #include "DNA_scene_types.h"
+
+#include "BLT_translation.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -364,6 +366,7 @@ static void rna_def_cachefile(BlenderRNA *brna)
       "Velocity Unit",
       "Define how the velocity vectors are interpreted with regard to time, 'frame' means "
       "the delta time is 1 frame, 'second' means the delta time is 1 / FPS");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UNIT);
   RNA_def_property_update(prop, 0, "rna_CacheFile_update");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 

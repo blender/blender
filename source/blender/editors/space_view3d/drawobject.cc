@@ -16,7 +16,7 @@
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
 
@@ -70,16 +70,14 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
     GPU_blend(GPU_BLEND_ALPHA);
 
     const float(*positions)[3] = BKE_mesh_vert_positions(me);
-    const MPoly *polys = BKE_mesh_polys(me);
-    const MLoop *loops = BKE_mesh_loops(me);
-
-    int mpoly_len = me->totpoly;
-    int mloop_len = me->totloop;
+    const blender::OffsetIndices polys = me->polys();
+    const blender::Span<int> corner_verts = me->corner_verts();
+    const blender::Span<MLoopTri> looptris = me->looptris();
 
     facemap_data = static_cast<const int *>(CustomData_get_layer(&me->pdata, CD_FACEMAP));
 
     /* Make a batch and free it each time for now. */
-    const int looptris_len = poly_to_tri_count(mpoly_len, mloop_len);
+    const int looptris_len = poly_to_tri_count(polys.size(), corner_verts.size());
     const int vbo_len_capacity = looptris_len * 3;
     int vbo_len_used = 0;
 
@@ -93,46 +91,22 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
     GPUVertBufRaw pos_step;
     GPU_vertbuf_attr_get_raw_data(vbo_pos, pos_id, &pos_step);
 
-    const MPoly *mp;
-    int i;
-    if (BKE_mesh_runtime_looptri_ensure(me)) {
-      const MLoopTri *mlt = BKE_mesh_runtime_looptri_ensure(me);
-      for (mp = polys, i = 0; i < mpoly_len; i++, mp++) {
-        if (facemap_data[i] == facemap) {
-          for (int j = 2; j < mp->totloop; j++) {
-            copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
-                       positions[loops[mlt->tri[0]].v]);
-            copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
-                       positions[loops[mlt->tri[1]].v]);
-            copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
-                       positions[loops[mlt->tri[2]].v]);
-            vbo_len_used += 3;
-            mlt++;
-          }
-        }
-        else {
-          mlt += mp->totloop - 2;
+    int tri_index = 0;
+    for (const int i : polys.index_range()) {
+      if (facemap_data[i] == facemap) {
+        for (int j = 2; j < polys[i].size(); j++) {
+          copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
+                     positions[corner_verts[looptris[tri_index].tri[0]]]);
+          copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
+                     positions[corner_verts[looptris[tri_index].tri[1]]]);
+          copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
+                     positions[corner_verts[looptris[tri_index].tri[2]]]);
+          vbo_len_used += 3;
+          tri_index++;
         }
       }
-    }
-    else {
-      /* No tessellation data, fan-fill. */
-      for (mp = polys, i = 0; i < mpoly_len; i++, mp++) {
-        if (facemap_data[i] == facemap) {
-          const MLoop *ml_start = &loops[mp->loopstart];
-          const MLoop *ml_a = ml_start + 1;
-          const MLoop *ml_b = ml_start + 2;
-          for (int j = 2; j < mp->totloop; j++) {
-            copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
-                       positions[ml_start->v]);
-            copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)), positions[ml_a->v]);
-            copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)), positions[ml_b->v]);
-            vbo_len_used += 3;
-
-            ml_a++;
-            ml_b++;
-          }
-        }
+      else {
+        tri_index += polys[i].size() - 2;
       }
     }
 

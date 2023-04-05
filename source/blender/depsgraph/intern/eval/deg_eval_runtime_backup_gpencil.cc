@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -8,20 +8,16 @@
 #include "intern/eval/deg_eval_runtime_backup_gpencil.h"
 #include "intern/depsgraph.h"
 
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_update_cache.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_update_cache_legacy.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 namespace blender::deg {
 
-GPencilBackup::GPencilBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph)
-{
-}
+GPencilBackup::GPencilBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph) {}
 
-void GPencilBackup::init_from_gpencil(bGPdata * /*gpd*/)
-{
-}
+void GPencilBackup::init_from_gpencil(bGPdata * /*gpd*/) {}
 
 void GPencilBackup::restore_to_gpencil(bGPdata *gpd)
 {

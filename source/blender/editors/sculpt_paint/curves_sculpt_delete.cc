@@ -19,7 +19,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_paint.h"
 
@@ -84,9 +84,7 @@ struct DeleteOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  DeleteOperationExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  DeleteOperationExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(DeleteOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {

@@ -15,7 +15,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 namespace blender::bke::calc_edges {
 
@@ -35,9 +35,7 @@ struct OrderedEdge {
     }
   }
 
-  OrderedEdge(const uint v1, const uint v2) : OrderedEdge(int(v1), int(v2))
-  {
-  }
+  OrderedEdge(const uint v1, const uint v2) : OrderedEdge(int(v1), int(v2)) {}
 
   uint64_t hash() const
   {
@@ -97,23 +95,23 @@ static void add_polygon_edges_to_hash_maps(Mesh *mesh,
                                            MutableSpan<EdgeMap> edge_maps,
                                            uint32_t parallel_mask)
 {
-  const Span<MPoly> polys = mesh->polys();
-  const Span<MLoop> loops = mesh->loops();
+  const OffsetIndices polys = mesh->polys();
+  const Span<int> corner_verts = mesh->corner_verts();
   threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
     const int task_index = &edge_map - edge_maps.data();
-    for (const MPoly &poly : polys) {
-      Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
-      const MLoop *prev_loop = &poly_loops.last();
-      for (const MLoop &next_loop : poly_loops) {
+    for (const int i : polys.index_range()) {
+      const Span<int> poly_verts = corner_verts.slice(polys[i]);
+      int vert_prev = poly_verts.last();
+      for (const int vert : poly_verts) {
         /* Can only be the same when the mesh data is invalid. */
-        if (prev_loop->v != next_loop.v) {
-          OrderedEdge ordered_edge{prev_loop->v, next_loop.v};
+        if (vert_prev != vert) {
+          OrderedEdge ordered_edge{vert_prev, vert};
           /* Only add the edge when it belongs into this map. */
           if (task_index == (parallel_mask & ordered_edge.hash2())) {
             edge_map.lookup_or_add(ordered_edge, {nullptr});
           }
         }
-        prev_loop = &next_loop;
+        vert_prev = vert;
       }
     }
   });
@@ -157,18 +155,20 @@ static void update_edge_indices_in_poly_loops(Mesh *mesh,
                                               Span<EdgeMap> edge_maps,
                                               uint32_t parallel_mask)
 {
-  const Span<MPoly> polys = mesh->polys();
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
+  const OffsetIndices polys = mesh->polys();
+  const Span<int> corner_verts = mesh->corner_verts();
+  MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
   threading::parallel_for(IndexRange(mesh->totpoly), 100, [&](IndexRange range) {
     for (const int poly_index : range) {
-      const MPoly &poly = polys[poly_index];
-      MutableSpan<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
+      const IndexRange poly = polys[poly_index];
+      int prev_corner = poly.last();
+      for (const int next_corner : poly) {
+        const int vert = corner_verts[next_corner];
+        const int vert_prev = corner_verts[prev_corner];
 
-      MLoop *prev_loop = &poly_loops.last();
-      for (MLoop &next_loop : poly_loops) {
         int edge_index;
-        if (prev_loop->v != next_loop.v) {
-          OrderedEdge ordered_edge{prev_loop->v, next_loop.v};
+        if (vert_prev != vert) {
+          OrderedEdge ordered_edge{vert_prev, vert};
           /* Double lookup: First find the map that contains the edge, then lookup the edge. */
           const EdgeMap &edge_map = edge_maps[parallel_mask & ordered_edge.hash2()];
           edge_index = edge_map.lookup(ordered_edge).index;
@@ -179,8 +179,8 @@ static void update_edge_indices_in_poly_loops(Mesh *mesh,
            * #76514. */
           edge_index = 0;
         }
-        prev_loop->e = edge_index;
-        prev_loop = &next_loop;
+        corner_edges[prev_corner] = edge_index;
+        prev_corner = next_corner;
       }
     }
   });
@@ -232,6 +232,10 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
   }
 
   /* Create new edges. */
+  if (!CustomData_get_layer_named(&mesh->ldata, CD_PROP_INT32, ".corner_edge")) {
+    CustomData_add_layer_named(
+        &mesh->ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh->totloop, ".corner_edge");
+  }
   MutableSpan<MEdge> new_edges{
       static_cast<MEdge *>(MEM_calloc_arrayN(new_totedge, sizeof(MEdge), __func__)), new_totedge};
   calc_edges::serialize_and_initialize_deduplicated_edges(edge_maps, new_edges);
@@ -240,7 +244,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
   /* Free old CustomData and assign new one. */
   CustomData_free(&mesh->edata, mesh->totedge);
   CustomData_reset(&mesh->edata);
-  CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_ASSIGN, new_edges.data(), new_totedge);
+  CustomData_add_layer_with_data(&mesh->edata, CD_MEDGE, new_edges.data(), new_totedge);
   mesh->totedge = new_totedge;
 
   if (select_new_edges) {

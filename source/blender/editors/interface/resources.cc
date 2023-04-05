@@ -369,6 +369,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_EDGE:
           cp = ts->edge;
           break;
+        case TH_EDGE_WIDTH:
+          cp = &ts->edge_width;
+          break;
         case TH_EDGE_SELECT:
           cp = ts->edge_select;
           break;
@@ -395,6 +398,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
         case TH_FACE_SELECT:
           cp = ts->face_select;
+          break;
+        case TH_FACE_RETOPOLOGY:
+          cp = ts->face_retopology;
           break;
         case TH_FACE_BACK:
           cp = ts->face_back;
@@ -1465,7 +1471,7 @@ void UI_ThemeClearColor(int colorid)
 int UI_ThemeMenuShadowWidth()
 {
   bTheme *btheme = UI_GetTheme();
-  return int(btheme->tui.menu_shadow_width * UI_DPI_FAC);
+  return int(btheme->tui.menu_shadow_width * UI_SCALE_FAC);
 }
 
 void UI_make_axis_color(const uchar src_col[3], uchar dst_col[3], const char axis)

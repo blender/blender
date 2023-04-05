@@ -17,9 +17,7 @@
 #include "BLI_utildefines.h"
 
 //--------------------------------------------------------------------
-ErrorHandler::ErrorHandler() : mError(false)
-{
-}
+ErrorHandler::ErrorHandler() : mError(false) {}
 
 //--------------------------------------------------------------------
 bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)

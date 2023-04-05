@@ -6,6 +6,7 @@
 #include <mutex>
 
 #include "BLI_cache_mutex.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_resource_scope.hh"
 #include "BLI_utility_mixins.hh"
@@ -174,6 +175,13 @@ class bNodeSocketRuntime : NonCopyable, NonMovable {
    * including dragged node links that aren't actually in the tree.
    */
   short total_inputs = 0;
+
+  /**
+   * The location of the socket in the tree, calculated while drawing the nodes and invalid if the
+   * node tree hasn't been drawn yet. In the node tree's "world space" (the same as
+   * #bNode::runtime::totr).
+   */
+  float2 location;
 
   /** Only valid when #topology_cache_is_dirty is false. */
   Vector<bNodeLink *> directly_linked_links;
@@ -768,6 +776,11 @@ inline const bNodeSocket *bNodeSocket::internal_link_input() const
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
   BLI_assert(this->in_out == SOCK_OUT);
   return this->runtime->internal_link_input;
+}
+
+template<typename T> T *bNodeSocket::default_value_typed()
+{
+  return static_cast<T *>(this->default_value);
 }
 
 template<typename T> const T *bNodeSocket::default_value_typed() const

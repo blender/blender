@@ -58,11 +58,16 @@ void RealizeOnDomainOperation::execute()
                                  Interpolation::Bicubic);
   GPU_texture_filter_mode(input.texture(), use_bilinear);
 
-  /* Make out-of-bound texture access return zero by clamping to border color. And make texture
-   * wrap appropriately if the input repeats. */
-  const bool repeats = input.get_realization_options().repeat_x ||
-                       input.get_realization_options().repeat_y;
-  GPU_texture_wrap_mode(input.texture(), repeats, false);
+  /* If the input repeats, set a repeating wrap mode for out-of-bound texture access. Otherwise,
+   * make out-of-bound texture access return zero by setting a clamp to border extend mode. */
+  GPU_texture_extend_mode_x(input.texture(),
+                            input.get_realization_options().repeat_x ?
+                                GPU_SAMPLER_EXTEND_MODE_REPEAT :
+                                GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+  GPU_texture_extend_mode_y(input.texture(),
+                            input.get_realization_options().repeat_y ?
+                                GPU_SAMPLER_EXTEND_MODE_REPEAT :
+                                GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
 
   input.bind_as_texture(shader, "input_tx");
   result.bind_as_image(shader, "domain_img");
@@ -76,13 +81,25 @@ void RealizeOnDomainOperation::execute()
 
 GPUShader *RealizeOnDomainOperation::get_realization_shader()
 {
-  switch (get_result().type()) {
-    case ResultType::Color:
-      return shader_manager().get("compositor_realize_on_domain_color");
-    case ResultType::Vector:
-      return shader_manager().get("compositor_realize_on_domain_vector");
-    case ResultType::Float:
-      return shader_manager().get("compositor_realize_on_domain_float");
+  if (get_input().get_realization_options().interpolation == Interpolation::Bicubic) {
+    switch (get_result().type()) {
+      case ResultType::Color:
+        return shader_manager().get("compositor_realize_on_domain_bicubic_color");
+      case ResultType::Vector:
+        return shader_manager().get("compositor_realize_on_domain_bicubic_vector");
+      case ResultType::Float:
+        return shader_manager().get("compositor_realize_on_domain_bicubic_float");
+    }
+  }
+  else {
+    switch (get_result().type()) {
+      case ResultType::Color:
+        return shader_manager().get("compositor_realize_on_domain_color");
+      case ResultType::Vector:
+        return shader_manager().get("compositor_realize_on_domain_vector");
+      case ResultType::Float:
+        return shader_manager().get("compositor_realize_on_domain_float");
+    }
   }
 
   BLI_assert_unreachable();

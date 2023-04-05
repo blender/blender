@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup edinterface
@@ -321,20 +321,20 @@ const uiStyle *UI_style_get_dpi(void)
 
   _style = *style;
 
-  _style.paneltitle.shadx = short(UI_DPI_FAC * _style.paneltitle.shadx);
-  _style.paneltitle.shady = short(UI_DPI_FAC * _style.paneltitle.shady);
-  _style.grouplabel.shadx = short(UI_DPI_FAC * _style.grouplabel.shadx);
-  _style.grouplabel.shady = short(UI_DPI_FAC * _style.grouplabel.shady);
-  _style.widgetlabel.shadx = short(UI_DPI_FAC * _style.widgetlabel.shadx);
-  _style.widgetlabel.shady = short(UI_DPI_FAC * _style.widgetlabel.shady);
+  _style.paneltitle.shadx = short(UI_SCALE_FAC * _style.paneltitle.shadx);
+  _style.paneltitle.shady = short(UI_SCALE_FAC * _style.paneltitle.shady);
+  _style.grouplabel.shadx = short(UI_SCALE_FAC * _style.grouplabel.shadx);
+  _style.grouplabel.shady = short(UI_SCALE_FAC * _style.grouplabel.shady);
+  _style.widgetlabel.shadx = short(UI_SCALE_FAC * _style.widgetlabel.shadx);
+  _style.widgetlabel.shady = short(UI_SCALE_FAC * _style.widgetlabel.shady);
 
-  _style.columnspace = short(UI_DPI_FAC * _style.columnspace);
-  _style.templatespace = short(UI_DPI_FAC * _style.templatespace);
-  _style.boxspace = short(UI_DPI_FAC * _style.boxspace);
-  _style.buttonspacex = short(UI_DPI_FAC * _style.buttonspacex);
-  _style.buttonspacey = short(UI_DPI_FAC * _style.buttonspacey);
-  _style.panelspace = short(UI_DPI_FAC * _style.panelspace);
-  _style.panelouter = short(UI_DPI_FAC * _style.panelouter);
+  _style.columnspace = short(UI_SCALE_FAC * _style.columnspace);
+  _style.templatespace = short(UI_SCALE_FAC * _style.templatespace);
+  _style.boxspace = short(UI_SCALE_FAC * _style.boxspace);
+  _style.buttonspacex = short(UI_SCALE_FAC * _style.buttonspacex);
+  _style.buttonspacey = short(UI_SCALE_FAC * _style.buttonspacey);
+  _style.panelspace = short(UI_SCALE_FAC * _style.panelspace);
+  _style.panelouter = short(UI_SCALE_FAC * _style.panelouter);
 
   return &_style;
 }
@@ -351,7 +351,7 @@ int UI_fontstyle_string_width_with_block_aspect(const uiFontStyle *fs,
 {
   /* FIXME(@ideasman42): the final scale of the font is rounded which should be accounted for.
    * Failing to do so causes bad alignment when zoomed out very far in the node-editor. */
-  fontstyle_set_ex(fs, U.dpi_fac / aspect);
+  fontstyle_set_ex(fs, UI_SCALE_FAC / aspect);
   return int(BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX) * aspect);
 }
 
@@ -492,5 +492,5 @@ static void fontstyle_set_ex(const uiFontStyle *fs, const float dpi_fac)
 
 void UI_fontstyle_set(const uiFontStyle *fs)
 {
-  fontstyle_set_ex(fs, U.dpi_fac);
+  fontstyle_set_ex(fs, UI_SCALE_FAC);
 }

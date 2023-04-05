@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edobj
@@ -53,7 +53,7 @@ void ED_object_facemap_face_add(Object *ob, bFaceMap *fmap, int facenum)
 
     /* if there's is no facemap layer then create one */
     if ((facemap = CustomData_get_layer_for_write(&me->pdata, CD_FACEMAP, me->totpoly)) == NULL) {
-      facemap = CustomData_add_layer(&me->pdata, CD_FACEMAP, CD_SET_DEFAULT, NULL, me->totpoly);
+      facemap = CustomData_add_layer(&me->pdata, CD_FACEMAP, CD_SET_DEFAULT, me->totpoly);
     }
 
     facemap[facenum] = fmap_nr;

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 
 /** \file
  * \ingroup editors
@@ -1051,10 +1051,10 @@ void MOD_lineart_chain_clear_picked_flag(LineartCache *lc)
   }
 }
 
-LineartElementLinkNode *lineart_find_matching_eln_obj(ListBase *elns, struct Object *obj)
+LineartElementLinkNode *lineart_find_matching_eln_obj(ListBase *elns, struct Object *ob)
 {
   LISTBASE_FOREACH (LineartElementLinkNode *, eln, elns) {
-    if (eln->object_ref == obj) {
+    if (eln->object_ref == ob) {
       return eln;
     }
   }

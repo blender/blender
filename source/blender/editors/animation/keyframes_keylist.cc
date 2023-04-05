@@ -26,7 +26,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_cachefile_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -926,20 +926,20 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, const i
   bAnimContext ac = {nullptr};
   ListBase anim_data = {nullptr, nullptr};
 
-  bAnimListElem dummychan = {nullptr};
+  bAnimListElem dummy_chan = {nullptr};
 
   if (sce == nullptr) {
     return;
   }
 
   /* create a dummy wrapper data to work with */
-  dummychan.type = ANIMTYPE_SCENE;
-  dummychan.data = sce;
-  dummychan.id = &sce->id;
-  dummychan.adt = sce->adt;
+  dummy_chan.type = ANIMTYPE_SCENE;
+  dummy_chan.data = sce;
+  dummy_chan.id = &sce->id;
+  dummy_chan.adt = sce->adt;
 
   ac.ads = ads;
-  ac.data = &dummychan;
+  ac.data = &dummy_chan;
   ac.datatype = ANIMCONT_CHANNEL;
 
   /* get F-Curves to take keyframes from */
@@ -961,23 +961,23 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, AnimKeylist *keylist, const int 
   bAnimContext ac = {nullptr};
   ListBase anim_data = {nullptr, nullptr};
 
-  bAnimListElem dummychan = {nullptr};
-  Base dummybase = {nullptr};
+  bAnimListElem dummy_chan = {nullptr};
+  Base dummy_base = {nullptr};
 
   if (ob == nullptr) {
     return;
   }
 
   /* create a dummy wrapper data to work with */
-  dummybase.object = ob;
+  dummy_base.object = ob;
 
-  dummychan.type = ANIMTYPE_OBJECT;
-  dummychan.data = &dummybase;
-  dummychan.id = &ob->id;
-  dummychan.adt = ob->adt;
+  dummy_chan.type = ANIMTYPE_OBJECT;
+  dummy_chan.data = &dummy_base;
+  dummy_chan.id = &ob->id;
+  dummy_chan.adt = ob->adt;
 
   ac.ads = ads;
-  ac.data = &dummychan;
+  ac.data = &dummy_chan;
   ac.datatype = ANIMCONT_CHANNEL;
 
   /* get F-Curves to take keyframes from */
@@ -1003,15 +1003,15 @@ void cachefile_to_keylist(bDopeSheet *ads,
   }
 
   /* create a dummy wrapper data to work with */
-  bAnimListElem dummychan = {nullptr};
-  dummychan.type = ANIMTYPE_DSCACHEFILE;
-  dummychan.data = cache_file;
-  dummychan.id = &cache_file->id;
-  dummychan.adt = cache_file->adt;
+  bAnimListElem dummy_chan = {nullptr};
+  dummy_chan.type = ANIMTYPE_DSCACHEFILE;
+  dummy_chan.data = cache_file;
+  dummy_chan.id = &cache_file->id;
+  dummy_chan.adt = cache_file->adt;
 
   bAnimContext ac = {nullptr};
   ac.ads = ads;
-  ac.data = &dummychan;
+  ac.data = &dummy_chan;
   ac.datatype = ANIMCONT_CHANNEL;
 
   /* get F-Curves to take keyframes from */

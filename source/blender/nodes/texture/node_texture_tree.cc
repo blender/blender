@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup nodes
@@ -113,9 +113,7 @@ static void localize(bNodeTree *localtree, bNodeTree * /*ntree*/)
   }
 }
 #else
-static void localize(bNodeTree * /*localtree*/, bNodeTree * /*ntree*/)
-{
-}
+static void localize(bNodeTree * /*localtree*/, bNodeTree * /*ntree*/) {}
 #endif
 
 static void update(bNodeTree *ntree)

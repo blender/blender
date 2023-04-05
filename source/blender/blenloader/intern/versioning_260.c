@@ -456,22 +456,22 @@ static void do_versions_affine_tracker_track(MovieTrackingTrack *track)
 
     if (is_zero_v2(marker->pattern_corners[0]) && is_zero_v2(marker->pattern_corners[1]) &&
         is_zero_v2(marker->pattern_corners[2]) && is_zero_v2(marker->pattern_corners[3])) {
-      marker->pattern_corners[0][0] = track->pat_min[0];
-      marker->pattern_corners[0][1] = track->pat_min[1];
+      marker->pattern_corners[0][0] = track->pat_min_legacy[0];
+      marker->pattern_corners[0][1] = track->pat_min_legacy[1];
 
-      marker->pattern_corners[1][0] = track->pat_max[0];
-      marker->pattern_corners[1][1] = track->pat_min[1];
+      marker->pattern_corners[1][0] = track->pat_max_legacy[0];
+      marker->pattern_corners[1][1] = track->pat_min_legacy[1];
 
-      marker->pattern_corners[2][0] = track->pat_max[0];
-      marker->pattern_corners[2][1] = track->pat_max[1];
+      marker->pattern_corners[2][0] = track->pat_max_legacy[0];
+      marker->pattern_corners[2][1] = track->pat_max_legacy[1];
 
-      marker->pattern_corners[3][0] = track->pat_min[0];
-      marker->pattern_corners[3][1] = track->pat_max[1];
+      marker->pattern_corners[3][0] = track->pat_min_legacy[0];
+      marker->pattern_corners[3][1] = track->pat_max_legacy[1];
     }
 
     if (is_zero_v2(marker->search_min) && is_zero_v2(marker->search_max)) {
-      copy_v2_v2(marker->search_min, track->search_min);
-      copy_v2_v2(marker->search_max, track->search_max);
+      copy_v2_v2(marker->search_min, track->search_min_legacy);
+      copy_v2_v2(marker->search_max, track->search_max_legacy);
     }
   }
 }
@@ -1625,8 +1625,8 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
       for (tracking_object = tracking->objects.first; tracking_object;
            tracking_object = tracking_object->next) {
         if (tracking_object->keyframe1 == 0 && tracking_object->keyframe2 == 0) {
-          tracking_object->keyframe1 = tracking->settings.keyframe1;
-          tracking_object->keyframe2 = tracking->settings.keyframe2;
+          tracking_object->keyframe1 = tracking->settings.keyframe1_legacy;
+          tracking_object->keyframe2 = tracking->settings.keyframe2_legacy;
         }
       }
     }

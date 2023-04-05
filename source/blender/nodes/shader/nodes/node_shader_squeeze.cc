@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup shdnodes
@@ -36,6 +36,7 @@ void register_node_type_sh_squeeze()
 
   sh_node_type_base(&ntype, SH_NODE_SQUEEZE, "Squeeze Value (Legacy)", NODE_CLASS_CONVERTER);
   ntype.gather_link_search_ops = nullptr;
+  ntype.gather_add_node_search_ops = nullptr;
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::gpu_shader_squeeze;
 

@@ -329,8 +329,10 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata),
   return 0;
 }
 
-#define WITH_FILTERING (GPU_SAMPLER_MIPMAP | GPU_SAMPLER_FILTER)
-#define NO_FILTERING GPU_SAMPLER_MIPMAP
+static const GPUSamplerState WITH_FILTERING = {GPU_SAMPLER_FILTERING_MIPMAP |
+                                               GPU_SAMPLER_FILTERING_LINEAR};
+static const GPUSamplerState NO_FILTERING = {GPU_SAMPLER_FILTERING_MIPMAP};
+
 #define COLOR_FORMAT fx->dof_color_format
 #define FG_TILE_FORMAT GPU_RGBA16F
 #define BG_TILE_FORMAT GPU_R11F_G11F_B10F
@@ -639,9 +641,9 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
     /* Do not use texture pool because of needs mipmaps. */
     eGPUTextureUsage tex_flags = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
                                  GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
-    txl->dof_reduced_color = GPU_texture_create_2d_ex(
+    txl->dof_reduced_color = GPU_texture_create_2d(
         "dof_reduced_color", UNPACK2(res), mip_count, GPU_RGBA16F, tex_flags, NULL);
-    txl->dof_reduced_coc = GPU_texture_create_2d_ex(
+    txl->dof_reduced_coc = GPU_texture_create_2d(
         "dof_reduced_coc", UNPACK2(res), mip_count, GPU_R16F, tex_flags, NULL);
   }
 

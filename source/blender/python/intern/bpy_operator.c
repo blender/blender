@@ -7,7 +7,7 @@
  * the ability to inspect and call operators (defined by C or Python).
  *
  * \note
- * This C module is private, it should only be used by `release/scripts/modules/bpy/ops.py` which
+ * This C module is private, it should only be used by `scripts/modules/bpy/ops.py` which
  * exposes operators as dynamically defined modules & callable objects to access all operators.
  */
 
@@ -64,7 +64,7 @@ static void op_context_override_deprecated_warning(const char *action, const cha
 {
   if (PyErr_WarnFormat(
           PyExc_DeprecationWarning,
-          /* Use stack level 2 as this call is wrapped by `release/scripts/modules/bpy/ops.py`,
+          /* Use stack level 2 as this call is wrapped by `scripts/modules/bpy/ops.py`,
            * An extra stack level is needed to show the warning in the authors script. */
           2,
           "Passing in context overrides is deprecated in favor of "

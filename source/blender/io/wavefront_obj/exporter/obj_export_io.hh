@@ -7,14 +7,13 @@
 #pragma once
 
 #include <cstdio>
-#include <string>
 #include <type_traits>
-#include <vector>
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_fileops.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
+#include "BLI_vector.hh"
 
 /* SEP macro from BLI path utils clashes with SEP symbol in fmt headers. */
 #undef SEP
@@ -32,14 +31,12 @@ namespace blender::io::obj {
  */
 class FormatHandler : NonCopyable, NonMovable {
  private:
-  typedef std::vector<char> VectorChar;
-  std::vector<VectorChar> blocks_;
+  using VectorChar = Vector<char>;
+  Vector<VectorChar> blocks_;
   size_t buffer_chunk_size_;
 
  public:
-  FormatHandler(size_t buffer_chunk_size = 64 * 1024) : buffer_chunk_size_(buffer_chunk_size)
-  {
-  }
+  FormatHandler(size_t buffer_chunk_size = 64 * 1024) : buffer_chunk_size_(buffer_chunk_size) {}
 
   /* Write contents to the buffer(s) into a file, and clear the buffers. */
   void write_to_file(FILE *f)
@@ -202,9 +199,9 @@ class FormatHandler : NonCopyable, NonMovable {
    * If not, add a new block with max of block size & the amount of space needed. */
   void ensure_space(size_t at_least)
   {
-    if (blocks_.empty() || (blocks_.back().capacity() - blocks_.back().size() < at_least)) {
-      VectorChar &b = blocks_.emplace_back(VectorChar());
-      b.reserve(std::max(at_least, buffer_chunk_size_));
+    if (blocks_.is_empty() || (blocks_.last().capacity() - blocks_.last().size() < at_least)) {
+      blocks_.append(VectorChar());
+      blocks_.last().reserve(std::max(at_least, buffer_chunk_size_));
     }
   }
 
@@ -215,7 +212,7 @@ class FormatHandler : NonCopyable, NonMovable {
     fmt::format_to(fmt::appender(buf), fmt, std::forward<T>(args)...);
     size_t len = buf.size();
     ensure_space(len);
-    VectorChar &bb = blocks_.back();
+    VectorChar &bb = blocks_.last();
     bb.insert(bb.end(), buf.begin(), buf.end());
   }
 };

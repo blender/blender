@@ -111,7 +111,7 @@ static GPUTexture *gpu_texture_create_tile_mapping(Image *ima, const int multivi
     tile_info[3] = tile_runtime->tilearray_size[1] / array_h;
   }
 
-  GPUTexture *tex = GPU_texture_create_1d_array_ex(
+  GPUTexture *tex = GPU_texture_create_1d_array(
       ima->id.name + 2, width, 2, 1, GPU_RGBA32F, GPU_TEXTURE_USAGE_SHADER_READ, data);
   GPU_texture_mipmap_mode(tex, false, false);
 
@@ -241,7 +241,7 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
   }
 
   if (GPU_mipmap_enabled()) {
-    GPU_texture_generate_mipmap(tex);
+    GPU_texture_update_mipmap_chain(tex);
     GPU_texture_mipmap_mode(tex, true, true);
     if (ima) {
       ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
@@ -336,6 +336,20 @@ static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
   }
 }
 
+void BKE_image_ensure_gpu_texture(Image *image, ImageUser *image_user)
+{
+  if (!image) {
+    return;
+  }
+
+  /* Note that the image can cache both stereo views, so we only invalidate the cache if the view
+   * index is more than 2. */
+  if (image->gpu_pass != image_user->pass || image->gpu_layer != image_user->layer ||
+      (image->gpu_view != image_user->multi_index && image_user->multi_index >= 2)) {
+    BKE_image_partial_update_mark_full_update(image);
+  }
+}
+
 static GPUTexture *image_get_gpu_texture(Image *ima,
                                          ImageUser *iuser,
                                          ImBuf *ibuf,
@@ -365,6 +379,9 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
     ima->gpu_pass = requested_pass;
     ima->gpu_layer = requested_layer;
     ima->gpu_view = requested_view;
+    /* The cache should be invalidated here, but it is intentionally isn't due to possible
+     * performance implications, see the BKE_image_ensure_gpu_texture function for more
+     * information. */
   }
 #undef GPU_FLAGS_TO_CHECK
 
@@ -420,10 +437,10 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
         ima->id.name + 2, ibuf_intern, use_high_bitdepth, store_premultiplied);
 
     if (*tex) {
-      GPU_texture_wrap_mode(*tex, true, false);
+      GPU_texture_extend_mode(*tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
 
       if (GPU_mipmap_enabled()) {
-        GPU_texture_generate_mipmap(*tex);
+        GPU_texture_update_mipmap_chain(*tex);
         if (ima) {
           ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
         }
@@ -436,7 +453,7 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   }
 
   if (*tex) {
-    GPU_texture_orig_size_set(*tex, ibuf_intern->x, ibuf_intern->y);
+    GPU_texture_original_size_set(*tex, ibuf_intern->x, ibuf_intern->y);
   }
 
   if (ibuf != ibuf_intern) {
@@ -820,7 +837,7 @@ static void gpu_texture_update_from_ibuf(
   }
 
   if (GPU_mipmap_enabled()) {
-    GPU_texture_generate_mipmap(tex);
+    GPU_texture_update_mipmap_chain(tex);
   }
   else {
     ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;

@@ -107,14 +107,14 @@ void EEVEE_lookdev_init(EEVEE_Data *vedata)
     /* Make the viewport width scale the lookdev spheres a bit.
      * Scale between 1000px and 2000px. */
     const float viewport_scale = clamp_f(
-        BLI_rcti_size_x(rect) / (2000.0f * U.dpi_fac), 0.5f, 1.0f);
-    const int sphere_size = U.lookdev_sphere_size * U.dpi_fac * viewport_scale;
+        BLI_rcti_size_x(rect) / (2000.0f * UI_SCALE_FAC), 0.5f, 1.0f);
+    const int sphere_size = U.lookdev_sphere_size * UI_SCALE_FAC * viewport_scale;
 
     if (sphere_size != effects->sphere_size || rect->xmax != effects->anchor[0] ||
         rect->ymin != effects->anchor[1]) {
       /* Make sphere resolution adaptive to viewport_scale, DPI and #U.lookdev_sphere_size. */
       float res_scale = clamp_f(
-          (U.lookdev_sphere_size / 400.0f) * viewport_scale * U.dpi_fac, 0.1f, 1.0f);
+          (U.lookdev_sphere_size / 400.0f) * viewport_scale * UI_SCALE_FAC, 0.1f, 1.0f);
 
       if (res_scale > 0.7f) {
         effects->sphere_lod = DRW_LOD_HIGH;
@@ -227,7 +227,9 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
 
     if (probe_render) {
       /* Avoid artifact with equirectangular mapping. */
-      eGPUSamplerState state = (GPU_SAMPLER_FILTER | GPU_SAMPLER_REPEAT_S);
+      GPUSamplerState state = {GPU_SAMPLER_FILTERING_LINEAR,
+                               GPU_SAMPLER_EXTEND_MODE_REPEAT,
+                               GPU_SAMPLER_EXTEND_MODE_EXTEND};
       DRW_shgroup_uniform_float_copy(grp, "studioLightIntensity", shading->studiolight_intensity);
       BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE);
       DRW_shgroup_uniform_texture_ex(grp, "studioLight", sl->equirect_radiance_gputexture, state);

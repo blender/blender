@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+ * Copyright 2012 Blender Foundation */
 
 /** \file
  * \ingroup pybmesh
@@ -380,7 +380,7 @@ void BPy_BM_init_types_select(void)
 
   BPy_BMEditSelSeq_Type.tp_iter = (getiterfunc)bpy_bmeditselseq_iter;
 
-  /* only 1 iteratir so far */
+  /* Only 1 iterator so far. */
   BPy_BMEditSelIter_Type.tp_iternext = (iternextfunc)bpy_bmeditseliter_next;
 
   BPy_BMEditSelSeq_Type.tp_dealloc = NULL;   //(destructor)bpy_bmeditselseq_dealloc;

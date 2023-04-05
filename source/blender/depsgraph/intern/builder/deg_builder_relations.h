@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -171,7 +171,20 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_driver(ID *id, FCurve *fcurve);
   virtual void build_driver_data(ID *id, FCurve *fcurve);
   virtual void build_driver_variables(ID *id, FCurve *fcurve);
-  virtual void build_driver_id_property(ID *id, const char *rna_path);
+
+  /* Build operations of a property value from which is read by a driver target.
+   *
+   * The driver target points to a data-block (or a sub-data-block like View Layer).
+   * This data-block is presented in the interface as a "Prop" and its resolved RNA pointer is
+   * passed here as `target_prop`.
+   *
+   * The tricky part (and a bit confusing naming) is that the driver target accesses a property of
+   * the `target_prop` to get its value. The property which is read to give an actual target value
+   * is denoted by its RNA path relative to the `target_prop`. In the interface it is called "Path"
+   * and here it is called `rna_path_from_target_prop`. */
+  virtual void build_driver_id_property(const PointerRNA &target_prop,
+                                        const char *rna_path_from_target_prop);
+
   virtual void build_parameters(ID *id);
   virtual void build_dimensions(Object *object);
   virtual void build_world(World *world);

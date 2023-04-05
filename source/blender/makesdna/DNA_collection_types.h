@@ -19,6 +19,7 @@ extern "C" {
 
 struct Collection;
 struct Object;
+struct GHash;
 
 typedef struct CollectionObject {
   struct CollectionObject *next, *prev;
@@ -60,6 +61,9 @@ typedef struct Collection_Runtime {
 
   /** List of collections that are a parent of this data-block. */
   ListBase parents;
+
+  /** An optional map for faster lookups on #Collection.gobject */
+  struct GHash *gobject_hash;
 
   uint8_t tag;
 
@@ -124,6 +128,13 @@ enum {
    * Using a generic tag like #LIB_TAG_DOIT for this is just impossible, we need our very own.
    */
   COLLECTION_TAG_RELATION_REBUILD = (1 << 0),
+  /**
+   * Mark the `gobject` list and/or its `runtime.gobject_hash` mapping as dirty, i.e. that their
+   * data is not reliable and should be cleaned-up or updated.
+   *
+   * This should typically only be set by ID remapping code.
+   */
+  COLLECTION_TAG_COLLECTION_OBJECT_DIRTY = (1 << 1),
 };
 
 /** #Collection.color_tag */

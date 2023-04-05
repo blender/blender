@@ -28,7 +28,7 @@ void ED_image_draw_cursor(ARegion *region, const float cursor[2])
 
   UI_view2d_scale_get_inverse(&region->v2d, &zoom[0], &zoom[1]);
 
-  mul_v2_fl(zoom, 256.0f * UI_DPI_FAC);
+  mul_v2_fl(zoom, 256.0f * UI_SCALE_FAC);
   x_fac = zoom[0];
   y_fac = zoom[1];
 
@@ -43,7 +43,7 @@ void ED_image_draw_cursor(ARegion *region, const float cursor[2])
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
-  immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+  immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
 
   immUniform1i("colors_len", 2); /* "advanced" mode */
   immUniform4f("color", 1.0f, 0.0f, 0.0f, 1.0f);

@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 /* Time interpolation of vertex positions and normals */
 
 ccl_device_inline void motion_triangle_verts_for_step(KernelGlobals kg,
-                                                      uint4 tri_vindex,
+                                                      uint3 tri_vindex,
                                                       int offset,
                                                       int numverts,
                                                       int numsteps,
@@ -30,9 +30,9 @@ ccl_device_inline void motion_triangle_verts_for_step(KernelGlobals kg,
 {
   if (step == numsteps) {
     /* center step: regular vertex location */
-    verts[0] = kernel_data_fetch(tri_verts, tri_vindex.w + 0);
-    verts[1] = kernel_data_fetch(tri_verts, tri_vindex.w + 1);
-    verts[2] = kernel_data_fetch(tri_verts, tri_vindex.w + 2);
+    verts[0] = kernel_data_fetch(tri_verts, tri_vindex.x);
+    verts[1] = kernel_data_fetch(tri_verts, tri_vindex.y);
+    verts[2] = kernel_data_fetch(tri_verts, tri_vindex.z);
   }
   else {
     /* center step not store in this array */
@@ -48,7 +48,7 @@ ccl_device_inline void motion_triangle_verts_for_step(KernelGlobals kg,
 }
 
 ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals kg,
-                                                        uint4 tri_vindex,
+                                                        uint3 tri_vindex,
                                                         int offset,
                                                         int numverts,
                                                         int numsteps,
@@ -92,7 +92,8 @@ ccl_device_inline void motion_triangle_vertices(
 
   /* fetch vertex coordinates */
   float3 next_verts[3];
-  uint4 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+
+  uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
 
   motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step, verts);
   motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step + 1, next_verts);
@@ -121,7 +122,8 @@ ccl_device_inline void motion_triangle_vertices_and_normals(
 
   /* Fetch vertex coordinates. */
   float3 next_verts[3];
-  uint4 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+
+  uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
 
   motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step, verts);
   motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step + 1, next_verts);
@@ -167,7 +169,8 @@ ccl_device_inline float3 motion_triangle_smooth_normal(
 
   /* fetch normals */
   float3 normals[3], next_normals[3];
-  uint4 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+
+  uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
 
   motion_triangle_normals_for_step(kg, tri_vindex, offset, numverts, numsteps, step, normals);
   motion_triangle_normals_for_step(

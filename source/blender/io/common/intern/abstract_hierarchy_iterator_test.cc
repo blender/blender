@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 #include "IO_abstract_hierarchy_iterator.h"
 
 #include "tests/blendfile_loading_base_test.h"

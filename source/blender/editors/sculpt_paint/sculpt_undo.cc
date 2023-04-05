@@ -47,7 +47,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -55,7 +55,7 @@
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_multires.h"
 #include "BKE_object.h"
@@ -133,7 +133,7 @@ typedef struct UndoSculpt {
 
 typedef struct SculptAttrRef {
   eAttrDomain domain;
-  int type;
+  eCustomDataType type;
   char name[MAX_CUSTOMDATA_LAYER_NAME];
   bool was_set;
 } SculptAttrRef;
@@ -749,6 +749,7 @@ static void sculpt_undo_geometry_store_data(SculptUndoNodeGeometry *geometry, Ob
   CustomData_copy(&mesh->edata, &geometry->edata, CD_MASK_MESH.emask, CD_DUPLICATE, mesh->totedge);
   CustomData_copy(&mesh->ldata, &geometry->ldata, CD_MASK_MESH.lmask, CD_DUPLICATE, mesh->totloop);
   CustomData_copy(&mesh->pdata, &geometry->pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, mesh->totpoly);
+  geometry->poly_offset_indices = static_cast<int *>(MEM_dupallocN(mesh->poly_offset_indices));
 
   geometry->totvert = mesh->totvert;
   geometry->totedge = mesh->totedge;
@@ -767,6 +768,7 @@ static void sculpt_undo_geometry_restore_data(SculptUndoNodeGeometry *geometry, 
   CustomData_free(&mesh->fdata, mesh->totface);
   CustomData_free(&mesh->ldata, mesh->totloop);
   CustomData_free(&mesh->pdata, mesh->totpoly);
+  MEM_SAFE_FREE(mesh->poly_offset_indices);
 
   mesh->totvert = geometry->totvert;
   mesh->totedge = geometry->totedge;
@@ -782,6 +784,7 @@ static void sculpt_undo_geometry_restore_data(SculptUndoNodeGeometry *geometry, 
       &geometry->ldata, &mesh->ldata, CD_MASK_MESH.lmask, CD_DUPLICATE, geometry->totloop);
   CustomData_copy(
       &geometry->pdata, &mesh->pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, geometry->totpoly);
+  mesh->poly_offset_indices = static_cast<int *>(geometry->poly_offset_indices);
 
   BKE_mesh_runtime_clear_cache(mesh);
 }
@@ -800,6 +803,7 @@ static void sculpt_undo_geometry_free_data(SculptUndoNodeGeometry *geometry)
   if (geometry->totpoly) {
     CustomData_free(&geometry->pdata, geometry->totpoly);
   }
+  MEM_SAFE_FREE(geometry->poly_offset_indices);
 }
 
 static void sculpt_undo_geometry_restore(SculptUndoNode *unode, Object *object)
@@ -1092,7 +1096,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
     if (tag_update) {
       Mesh *mesh = static_cast<Mesh *>(ob->data);
-      BKE_mesh_tag_coords_changed(mesh);
+      BKE_mesh_tag_positions_changed(mesh);
 
       BKE_sculptsession_free_deformMats(ss);
     }
@@ -1731,20 +1735,27 @@ static bool sculpt_attribute_ref_equals(SculptAttrRef *a, SculptAttrRef *b)
 
 static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr)
 {
-  Mesh *me = BKE_object_get_original_mesh(ob);
-  const CustomDataLayer *layer;
-
-  if (ob && me && (layer = BKE_id_attributes_active_color_get((ID *)me))) {
-    attr->domain = BKE_id_attribute_domain((ID *)me, layer);
-    BLI_strncpy(attr->name, layer->name, sizeof(attr->name));
-    attr->type = layer->type;
-  }
-  else {
-    attr->domain = NO_ACTIVE_LAYER;
-    attr->name[0] = 0;
-  }
-
+  using namespace blender;
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
   attr->was_set = true;
+  attr->domain = NO_ACTIVE_LAYER;
+  attr->name[0] = 0;
+  if (!mesh) {
+    return;
+  }
+  const char *name = mesh->active_color_attribute;
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(name);
+  if (!meta_data) {
+    return;
+  }
+  if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & ATTR_DOMAIN_MASK_COLOR) ||
+      !(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL)) {
+    return;
+  }
+  attr->domain = meta_data->domain;
+  BLI_strncpy(attr->name, name, sizeof(attr->name));
+  attr->type = meta_data->data_type;
 }
 
 void SCULPT_undo_push_begin(Object *ob, const wmOperator *op)
@@ -1862,7 +1873,8 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
     CustomData *cdata = attr->domain == ATTR_DOMAIN_POINT ? &me->vdata : &me->ldata;
     int totelem = attr->domain == ATTR_DOMAIN_POINT ? me->totvert : me->totloop;
 
-    CustomData_add_layer_named(cdata, attr->type, CD_SET_DEFAULT, nullptr, totelem, attr->name);
+    CustomData_add_layer_named(
+        cdata, eCustomDataType(attr->type), CD_SET_DEFAULT, totelem, attr->name);
     layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
   }
 

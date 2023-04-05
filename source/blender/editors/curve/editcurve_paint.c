@@ -665,7 +665,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
       selem_prev = selem;
     }
     scale_px = ((len_3d > 0.0f) && (len_2d > 0.0f)) ? (len_3d / len_2d) : 0.0f;
-    float error_threshold = (cps->error_threshold * U.dpi_fac) * scale_px;
+    float error_threshold = (cps->error_threshold * UI_SCALE_FAC) * scale_px;
     RNA_property_float_set(op->ptr, prop, error_threshold);
   }
 
@@ -684,7 +684,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
       }
 
       if (len_squared_v2v2(selem_first->mval, selem_last->mval) <=
-          square_f(STROKE_CYCLIC_DIST_PX * U.dpi_fac)) {
+          square_f(STROKE_CYCLIC_DIST_PX * UI_SCALE_FAC)) {
         use_cyclic = true;
       }
     }

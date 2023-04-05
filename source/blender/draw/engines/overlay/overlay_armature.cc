@@ -18,6 +18,7 @@
 
 #include "DRW_render.h"
 
+#include "BLI_listbase_wrapper.hh"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -45,6 +46,8 @@
 #define BONE_FLAG(eBone, pchan) ((eBone) ? (eBone->flag) : (pchan->bone->flag))
 
 #define PT_DEFAULT_RAD 0.05f /* radius of the point batch. */
+
+using namespace blender;
 
 struct ArmatureDrawContext {
   /* Current armature object */
@@ -2020,6 +2023,20 @@ static void pchan_draw_ik_lines(ArmatureDrawContext *ctx,
   }
 }
 
+static void draw_bone_bone_relationship_line(ArmatureDrawContext *ctx,
+                                             const float bone_head[3],
+                                             const float parent_head[3],
+                                             const float parent_tail[3],
+                                             const eArmature_Flag armature_flags)
+{
+  if (armature_flags & ARM_DRAW_RELATION_FROM_HEAD) {
+    drw_shgroup_bone_relationship_lines(ctx, bone_head, parent_head);
+  }
+  else {
+    drw_shgroup_bone_relationship_lines(ctx, bone_head, parent_tail);
+  }
+}
+
 static void draw_bone_relations(ArmatureDrawContext *ctx,
                                 EditBone *ebone,
                                 bPoseChannel *pchan,
@@ -2033,7 +2050,8 @@ static void draw_bone_relations(ArmatureDrawContext *ctx,
        * since riggers will want to know about the links between bones
        */
       if ((boneflag & BONE_CONNECTED) == 0) {
-        drw_shgroup_bone_relationship_lines(ctx, ebone->head, ebone->parent->tail);
+        draw_bone_bone_relationship_line(
+            ctx, ebone->head, ebone->parent->head, ebone->parent->tail, eArmature_Flag(arm->flag));
       }
     }
   }
@@ -2044,7 +2062,11 @@ static void draw_bone_relations(ArmatureDrawContext *ctx,
       if ((boneflag & BONE_SELECTED) ||
           (pchan->parent->bone && (pchan->parent->bone->flag & BONE_SELECTED))) {
         if ((boneflag & BONE_CONNECTED) == 0) {
-          drw_shgroup_bone_relationship_lines(ctx, pchan->pose_head, pchan->parent->pose_tail);
+          draw_bone_bone_relationship_line(ctx,
+                                           pchan->pose_head,
+                                           pchan->parent->pose_head,
+                                           pchan->parent->pose_tail,
+                                           eArmature_Flag(arm->flag));
         }
       }
     }
@@ -2355,7 +2377,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
     const Object *obact_orig = DEG_get_original_object(draw_ctx->obact);
 
     const ListBase *defbase = BKE_object_defgroup_list(obact_orig);
-    LISTBASE_FOREACH (const bDeformGroup *, dg, defbase) {
+    for (const bDeformGroup *dg : ConstListBaseWrapper<bDeformGroup>(defbase)) {
       if (dg->flag & DG_LOCK_WEIGHT) {
         pchan = BKE_pose_channel_find_name(ob->pose, dg->name);
 
@@ -2437,7 +2459,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
             draw_bone_box(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);
           }
         }
-        else {
+        else if (arm->drawtype == ARM_OCTA) {
           draw_bone_update_disp_matrix_default(nullptr, pchan);
           if (!is_pose_select || pchan_culling_test_octohedral(view, ob, pchan)) {
             draw_bone_octahedral(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);

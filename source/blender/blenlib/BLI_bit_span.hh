@@ -35,9 +35,7 @@ class BitIteratorBase {
 /** Allows iterating over the bits in a memory buffer. */
 class BitIterator : public BitIteratorBase {
  public:
-  BitIterator(const BitInt *data, const int64_t bit_index) : BitIteratorBase(data, bit_index)
-  {
-  }
+  BitIterator(const BitInt *data, const int64_t bit_index) : BitIteratorBase(data, bit_index) {}
 
   BitRef operator*() const
   {
@@ -48,9 +46,7 @@ class BitIterator : public BitIteratorBase {
 /** Allows iterating over the bits in a memory buffer. */
 class MutableBitIterator : public BitIteratorBase {
  public:
-  MutableBitIterator(BitInt *data, const int64_t bit_index) : BitIteratorBase(data, bit_index)
-  {
-  }
+  MutableBitIterator(BitInt *data, const int64_t bit_index) : BitIteratorBase(data, bit_index) {}
 
   MutableBitRef operator*() const
   {
@@ -81,9 +77,7 @@ class BitSpan {
   {
   }
 
-  BitSpan(const BitInt *data, const IndexRange bit_range) : data_(data), bit_range_(bit_range)
-  {
-  }
+  BitSpan(const BitInt *data, const IndexRange bit_range) : data_(data), bit_range_(bit_range) {}
 
   /** Number of bits referenced by the span. */
   int64_t size() const
@@ -143,13 +137,9 @@ class MutableBitSpan {
  public:
   MutableBitSpan() = default;
 
-  MutableBitSpan(BitInt *data, const int64_t size) : data_(data), bit_range_(size)
-  {
-  }
+  MutableBitSpan(BitInt *data, const int64_t size) : data_(data), bit_range_(size) {}
 
-  MutableBitSpan(BitInt *data, const IndexRange bit_range) : data_(data), bit_range_(bit_range)
-  {
-  }
+  MutableBitSpan(BitInt *data, const IndexRange bit_range) : data_(data), bit_range_(bit_range) {}
 
   int64_t size() const
   {
@@ -204,50 +194,10 @@ class MutableBitSpan {
   }
 
   /** Sets all referenced bits to 1. */
-  void set_all()
-  {
-    const AlignedIndexRanges ranges = split_index_range_by_alignment(bit_range_, BitsPerInt);
-    {
-      BitInt &first_int = *int_containing_bit(data_, bit_range_.start());
-      const BitInt first_int_mask = mask_range_bits(ranges.prefix.start() & BitIndexMask,
-                                                    ranges.prefix.size());
-      first_int |= first_int_mask;
-    }
-    {
-      BitInt *start = int_containing_bit(data_, ranges.aligned.start());
-      const int64_t ints_to_fill = ranges.aligned.size() / BitsPerInt;
-      constexpr BitInt fill_value = BitInt(-1);
-      initialized_fill_n(start, ints_to_fill, fill_value);
-    }
-    {
-      BitInt &last_int = *int_containing_bit(data_, bit_range_.one_after_last() - 1);
-      const BitInt last_int_mask = mask_first_n_bits(ranges.suffix.size());
-      last_int |= last_int_mask;
-    }
-  }
+  void set_all();
 
   /** Sets all referenced bits to 0. */
-  void reset_all()
-  {
-    const AlignedIndexRanges ranges = split_index_range_by_alignment(bit_range_, BitsPerInt);
-    {
-      BitInt &first_int = *int_containing_bit(data_, bit_range_.start());
-      const BitInt first_int_mask = mask_range_bits(ranges.prefix.start() & BitIndexMask,
-                                                    ranges.prefix.size());
-      first_int &= ~first_int_mask;
-    }
-    {
-      BitInt *start = int_containing_bit(data_, ranges.aligned.start());
-      const int64_t ints_to_fill = ranges.aligned.size() / BitsPerInt;
-      constexpr BitInt fill_value = 0;
-      initialized_fill_n(start, ints_to_fill, fill_value);
-    }
-    {
-      BitInt &last_int = *int_containing_bit(data_, bit_range_.one_after_last() - 1);
-      const BitInt last_int_mask = mask_first_n_bits(ranges.suffix.size());
-      last_int &= ~last_int_mask;
-    }
-  }
+  void reset_all();
 
   /** Sets all referenced bits to either 0 or 1. */
   void set_all(const bool value)
@@ -267,20 +217,8 @@ class MutableBitSpan {
   }
 };
 
-inline std::ostream &operator<<(std::ostream &stream, const BitSpan &span)
-{
-  stream << "(Size: " << span.size() << ", ";
-  for (const BitRef bit : span) {
-    stream << bit;
-  }
-  stream << ")";
-  return stream;
-}
-
-inline std::ostream &operator<<(std::ostream &stream, const MutableBitSpan &span)
-{
-  return stream << BitSpan(span);
-}
+std::ostream &operator<<(std::ostream &stream, const BitSpan &span);
+std::ostream &operator<<(std::ostream &stream, const MutableBitSpan &span);
 
 }  // namespace blender::bits
 

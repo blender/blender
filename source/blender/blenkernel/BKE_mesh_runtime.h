@@ -17,7 +17,6 @@ extern "C" {
 struct CustomData_MeshMasks;
 struct Depsgraph;
 struct KeyBlock;
-struct MLoop;
 struct MLoopTri;
 struct MVertTri;
 struct Mesh;
@@ -44,7 +43,7 @@ void BKE_mesh_runtime_reset_edit_data(struct Mesh *mesh);
  * directly or making other large changes to topology. It does not need to be called on new meshes.
  *
  * For "smaller" changes to meshes like updating positions, consider calling a more specific update
- * function like #BKE_mesh_tag_coords_changed.
+ * function like #BKE_mesh_tag_positions_changed.
  *
  * Also note that some derived caches like #CD_NORMAL and #CD_TANGENT are stored directly in
  * #CustomData.
@@ -63,7 +62,7 @@ void BKE_mesh_runtime_clear_cache(struct Mesh *mesh);
  * Convert triangles encoded as face corner indices to triangles encoded as vertex indices.
  */
 void BKE_mesh_runtime_verttri_from_looptri(struct MVertTri *r_verttri,
-                                           const struct MLoop *mloop,
+                                           const int *corner_verts,
                                            const struct MLoopTri *looptri,
                                            int looptri_num);
 

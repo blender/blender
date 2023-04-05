@@ -22,9 +22,7 @@ class NodeLight : public Node {
   NodeLight();
   NodeLight(NodeLight &iBrother);
 
-  virtual ~NodeLight()
-  {
-  }
+  virtual ~NodeLight() {}
 
   /** Accept the corresponding visitor */
   virtual void accept(SceneVisitor &v);

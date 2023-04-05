@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edinterface
@@ -288,8 +288,8 @@ static void ui_popup_block_position(wmWindow *window,
 
     /* when you are outside parent button, safety there should be smaller */
 
-    const int s1 = 40 * U.dpi_fac;
-    const int s2 = 3 * U.dpi_fac;
+    const int s1 = 40 * UI_SCALE_FAC;
+    const int s2 = 3 * UI_SCALE_FAC;
 
     /* parent button to left */
     if (midx < block->rect.xmin) {

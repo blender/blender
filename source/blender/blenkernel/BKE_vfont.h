@@ -54,6 +54,10 @@ bool BKE_vfont_is_builtin(const struct VFont *vfont);
 void BKE_vfont_builtin_register(const void *mem, int size);
 
 void BKE_vfont_free_data(struct VFont *vfont);
+/**
+ * Return the built-in #VFont, without adding a user (the user-count may be zero).
+ * The caller is responsible for adding a user.
+ */
 struct VFont *BKE_vfont_builtin_get(void);
 struct VFont *BKE_vfont_load(struct Main *bmain, const char *filepath);
 struct VFont *BKE_vfont_load_exists_ex(struct Main *bmain, const char *filepath, bool *r_exists);

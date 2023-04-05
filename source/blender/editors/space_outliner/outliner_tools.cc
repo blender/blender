@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+ * Copyright 2004 Blender Foundation */
 
 /** \file
  * \ingroup spoutliner
@@ -14,7 +14,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
@@ -153,7 +153,7 @@ static void get_element_operation_type(
       case ID_NT:
       case ID_BR:
       case ID_PA:
-      case ID_GD:
+      case ID_GD_LEGACY:
       case ID_MC:
       case ID_MSK:
       case ID_PAL:
@@ -2861,7 +2861,7 @@ static const EnumPropertyItem outliner_lib_op_type_items[] = {
      "DELETE",
      ICON_X,
      "Delete",
-     "Delete this library and all its item.\n"
+     "Delete this library and all its items.\n"
      "Warning: No undo"},
     {OL_LIB_RELOCATE,
      "RELOCATE",
@@ -3268,6 +3268,11 @@ static bool outliner_data_operation_poll(bContext *C)
   }
   const SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   const TreeElement *te = get_target_element(space_outliner);
+
+  if (te == nullptr) {
+    return false;
+  }
+
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
   get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
   return ELEM(datalevel,

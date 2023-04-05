@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup Alembic
@@ -31,9 +31,7 @@ using Alembic::Abc::OStringArrayProperty;
 
 namespace blender::io::alembic {
 
-CustomPropertiesExporter::CustomPropertiesExporter(ABCAbstractWriter *owner) : owner_(owner)
-{
-}
+CustomPropertiesExporter::CustomPropertiesExporter(ABCAbstractWriter *owner) : owner_(owner) {}
 
 void CustomPropertiesExporter::write_all(const IDProperty *group)
 {

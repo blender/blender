@@ -216,6 +216,9 @@ class ShadowModule {
   int3 dispatch_depth_scan_size_;
   /* Ratio between tile-map pixel world "radius" and film pixel world "radius". */
   float tilemap_projection_ratio_;
+  float pixel_world_radius_;
+  int2 usage_tag_fb_resolution_;
+  int usage_tag_fb_lod_ = 5;
 
   /* Statistics that are read back to CPU after a few frame (to avoid stall). */
   SwapChain<ShadowStatisticsBuf, 5> statistics_buf_;
@@ -338,16 +341,12 @@ class ShadowPunctual : public NonCopyable, NonMovable {
   float size_x_, size_y_;
   /** Shape type. */
   eLightType light_type_;
-  /** Random position on the light. In world space. */
-  float3 random_offset_;
   /** Light position. */
   float3 position_;
   /** Near and far clip distances. */
   float far_, near_;
   /** Number of tile-maps needed to cover the light angular extents. */
   int tilemaps_needed_;
-  /** Visibility cone angle from the light source. */
-  int cone_aperture_;
 
  public:
   ShadowPunctual(ShadowModule &module) : shadows_(module){};

@@ -13,7 +13,7 @@ ccl_device_inline void subd_triangle_patch_uv(KernelGlobals kg,
                                               ccl_private const ShaderData *sd,
                                               float2 uv[3])
 {
-  uint4 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+  uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
 
   uv[0] = kernel_data_fetch(tri_patch_uv, tri_vindex.x);
   uv[1] = kernel_data_fetch(tri_patch_uv, tri_vindex.y);

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+ * Copyright 2004 Blender Foundation */
 
 /** \file
  * \ingroup edmesh
@@ -974,7 +974,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
                                        const bool use_seams,
                                        const bool do_islands)
 {
-  /* In uv sync selection, all UVs are visible. */
+  /* In uv sync selection, all UVs (from unhidden geometry) are visible. */
   const bool face_selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION);
 
   BMVert *ev;

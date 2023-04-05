@@ -69,6 +69,18 @@ void BKE_callback_exec_id_depsgraph(struct Main *bmain,
   BKE_callback_exec(bmain, pointers, 2, evt);
 }
 
+void BKE_callback_exec_string(struct Main *bmain, eCbEvent evt, const char *str)
+{
+  PointerRNA str_ptr;
+  PrimitiveStringRNA data = {NULL};
+  data.value = str;
+  RNA_pointer_create(NULL, &RNA_PrimitiveString, &data, &str_ptr);
+
+  PointerRNA *pointers[1] = {&str_ptr};
+
+  BKE_callback_exec(bmain, pointers, 1, evt);
+}
+
 void BKE_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt)
 {
   ASSERT_CALLBACKS_INITIALIZED();

@@ -241,9 +241,7 @@ struct Output {
    */
   const CPPType *type = nullptr;
 
-  Output(const char *debug_name, const CPPType &type) : debug_name(debug_name), type(&type)
-  {
-  }
+  Output(const char *debug_name, const CPPType &type) : debug_name(debug_name), type(&type) {}
 };
 
 /**
@@ -252,7 +250,7 @@ struct Output {
  */
 class LazyFunction {
  protected:
-  const char *debug_name_ = "<unknown>";
+  const char *debug_name_ = "unknown";
   Vector<Input> inputs_;
   Vector<Output> outputs_;
   /**

@@ -1450,7 +1450,7 @@ char *txt_to_buf(Text *text, size_t *r_buf_strlen)
   return buf;
 }
 
-char *txt_sel_to_buf(Text *text, size_t *r_buf_strlen)
+char *txt_sel_to_buf(const Text *text, size_t *r_buf_strlen)
 {
   char *buf;
   size_t length = 0;
@@ -2124,10 +2124,8 @@ static bool txt_select_unprefix(Text *text, const char *remove, const bool requi
   return changed_any;
 }
 
-void txt_comment(Text *text)
+void txt_comment(Text *text, const char *prefix)
 {
-  const char *prefix = "#";
-
   if (ELEM(NULL, text->curl, text->sell)) {
     return;
   }
@@ -2136,10 +2134,8 @@ void txt_comment(Text *text)
   txt_select_prefix(text, prefix, skip_blank_lines);
 }
 
-bool txt_uncomment(Text *text)
+bool txt_uncomment(Text *text, const char *prefix)
 {
-  const char *prefix = "#";
-
   if (ELEM(NULL, text->curl, text->sell)) {
     return false;
   }

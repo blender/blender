@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -18,8 +18,8 @@
 #include "BKE_customdata.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_eval.h"
-#include "BKE_subdiv_foreach.h"
-#include "BKE_subdiv_mesh.h"
+#include "BKE_subdiv_foreach.hh"
+#include "BKE_subdiv_mesh.hh"
 
 #include "MEM_guardedalloc.h"
 

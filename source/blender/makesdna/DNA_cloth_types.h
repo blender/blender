@@ -24,7 +24,6 @@ extern "C" {
  * as in `stepsPerFrame` compared to the time step in the paper, I've used
  * variables with different names to minimize confusion.
  */
-
 typedef struct ClothSimSettings {
   /** UNUSED. */
   struct LinkNode *cache;

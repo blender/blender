@@ -25,9 +25,7 @@ class DataType {
   Category category_;
   const CPPType *type_;
 
-  DataType(Category category, const CPPType &type) : category_(category), type_(&type)
-  {
-  }
+  DataType(Category category, const CPPType &type) : category_(category), type_(&type) {}
 
  public:
   DataType() = default;

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -51,14 +51,13 @@ static void extract_fdots_edituv_data_iter_poly_bm(const MeshRenderData *mr,
 }
 
 static void extract_fdots_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
-                                                     const MPoly * /*mp*/,
-                                                     const int mp_index,
+                                                     const int poly_index,
                                                      void *_data)
 {
   MeshExtract_EditUVFdotData_Data *data = static_cast<MeshExtract_EditUVFdotData_Data *>(_data);
-  EditLoopData *eldata = &data->vbo_data[mp_index];
+  EditLoopData *eldata = &data->vbo_data[poly_index];
   memset(eldata, 0x0, sizeof(*eldata));
-  BMFace *efa = bm_original_face_get(mr, mp_index);
+  BMFace *efa = bm_original_face_get(mr, poly_index);
   if (efa) {
     mesh_render_data_face_flag(mr, efa, data->offsets, eldata);
   }

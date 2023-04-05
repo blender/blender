@@ -6,7 +6,7 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_geometry_set.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_type_conversions.hh"
 
@@ -54,6 +54,9 @@ const char *no_procedural_access_message =
 
 bool allow_procedural_attribute_access(StringRef attribute_name)
 {
+  if (attribute_name.startswith(".corner")) {
+    return false;
+  }
   if (attribute_name.startswith(".select")) {
     return false;
   }
@@ -61,6 +64,9 @@ bool allow_procedural_attribute_access(StringRef attribute_name)
     return false;
   }
   if (attribute_name.startswith(".hide")) {
+    return false;
+  }
+  if (attribute_name.startswith(".uv")) {
     return false;
   }
   if (attribute_name.startswith("." UV_VERTSEL_NAME ".")) {
@@ -178,18 +184,15 @@ static bool add_builtin_type_custom_data_layer_from_init(CustomData &custom_data
 {
   switch (initializer.type) {
     case AttributeInit::Type::Construct: {
-      void *data = CustomData_add_layer(
-          &custom_data, data_type, CD_CONSTRUCT, nullptr, domain_num);
+      void *data = CustomData_add_layer(&custom_data, data_type, CD_CONSTRUCT, domain_num);
       return data != nullptr;
     }
     case AttributeInit::Type::DefaultValue: {
-      void *data = CustomData_add_layer(
-          &custom_data, data_type, CD_SET_DEFAULT, nullptr, domain_num);
+      void *data = CustomData_add_layer(&custom_data, data_type, CD_SET_DEFAULT, domain_num);
       return data != nullptr;
     }
     case AttributeInit::Type::VArray: {
-      void *data = CustomData_add_layer(
-          &custom_data, data_type, CD_CONSTRUCT, nullptr, domain_num);
+      void *data = CustomData_add_layer(&custom_data, data_type, CD_CONSTRUCT, domain_num);
       if (data == nullptr) {
         return false;
       }
@@ -199,8 +202,8 @@ static bool add_builtin_type_custom_data_layer_from_init(CustomData &custom_data
     }
     case AttributeInit::Type::MoveArray: {
       void *source_data = static_cast<const AttributeInitMoveArray &>(initializer).data;
-      void *data = CustomData_add_layer(
-          &custom_data, data_type, CD_ASSIGN, source_data, domain_num);
+      const void *data = CustomData_add_layer_with_data(
+          &custom_data, data_type, source_data, domain_num);
       if (data == nullptr) {
         MEM_freeN(source_data);
         return false;
@@ -216,19 +219,36 @@ static bool add_builtin_type_custom_data_layer_from_init(CustomData &custom_data
 static void *add_generic_custom_data_layer(CustomData &custom_data,
                                            const eCustomDataType data_type,
                                            const eCDAllocType alloctype,
-                                           void *layer_data,
-                                           const int domain_num,
+                                           const int domain_size,
                                            const AttributeIDRef &attribute_id)
 {
   if (!attribute_id.is_anonymous()) {
     char attribute_name_c[MAX_CUSTOMDATA_LAYER_NAME];
     attribute_id.name().copy(attribute_name_c);
     return CustomData_add_layer_named(
-        &custom_data, data_type, alloctype, layer_data, domain_num, attribute_name_c);
+        &custom_data, data_type, alloctype, domain_size, attribute_name_c);
   }
   const AnonymousAttributeID &anonymous_id = attribute_id.anonymous_id();
   return CustomData_add_layer_anonymous(
-      &custom_data, data_type, alloctype, layer_data, domain_num, &anonymous_id);
+      &custom_data, data_type, alloctype, nullptr, domain_size, &anonymous_id);
+}
+
+static const void *add_generic_custom_data_layer_with_existing_data(
+    CustomData &custom_data,
+    const eCustomDataType data_type,
+    void *layer_data,
+    const int domain_size,
+    const AttributeIDRef &attribute_id)
+{
+  if (!attribute_id.is_anonymous()) {
+    char attribute_name_c[MAX_CUSTOMDATA_LAYER_NAME];
+    attribute_id.name().copy(attribute_name_c);
+    return CustomData_add_layer_named_with_data(
+        &custom_data, data_type, layer_data, domain_size, attribute_name_c);
+  }
+  const AnonymousAttributeID &anonymous_id = attribute_id.anonymous_id();
+  return CustomData_add_layer_anonymous(
+      &custom_data, data_type, CD_ASSIGN, layer_data, domain_size, &anonymous_id);
 }
 
 static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attribute_id,
@@ -241,17 +261,17 @@ static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attr
   switch (initializer.type) {
     case AttributeInit::Type::Construct: {
       add_generic_custom_data_layer(
-          custom_data, data_type, CD_CONSTRUCT, nullptr, domain_num, attribute_id);
+          custom_data, data_type, CD_CONSTRUCT, domain_num, attribute_id);
       break;
     }
     case AttributeInit::Type::DefaultValue: {
       add_generic_custom_data_layer(
-          custom_data, data_type, CD_SET_DEFAULT, nullptr, domain_num, attribute_id);
+          custom_data, data_type, CD_SET_DEFAULT, domain_num, attribute_id);
       break;
     }
     case AttributeInit::Type::VArray: {
       void *data = add_generic_custom_data_layer(
-          custom_data, data_type, CD_CONSTRUCT, nullptr, domain_num, attribute_id);
+          custom_data, data_type, CD_CONSTRUCT, domain_num, attribute_id);
       if (data != nullptr) {
         const GVArray &varray = static_cast<const AttributeInitVArray &>(initializer).varray;
         varray.materialize_to_uninitialized(varray.index_range(), data);
@@ -260,8 +280,8 @@ static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attr
     }
     case AttributeInit::Type::MoveArray: {
       void *source_data = static_cast<const AttributeInitMoveArray &>(initializer).data;
-      add_generic_custom_data_layer(
-          custom_data, data_type, CD_ASSIGN, source_data, domain_num, attribute_id);
+      add_generic_custom_data_layer_with_existing_data(
+          custom_data, data_type, source_data, domain_num, attribute_id);
       break;
     }
   }
@@ -458,9 +478,10 @@ GAttributeWriter CustomDataAttributeProvider::try_get_for_write(
     if (!custom_data_layer_matches_attribute_id(layer, attribute_id)) {
       continue;
     }
-    CustomData_get_layer_named_for_write(custom_data, layer.type, layer.name, element_num);
+    CustomData_get_layer_named_for_write(
+        custom_data, eCustomDataType(layer.type), layer.name, element_num);
 
-    const CPPType *type = custom_data_type_to_cpp_type((eCustomDataType)layer.type);
+    const CPPType *type = custom_data_type_to_cpp_type(eCustomDataType(layer.type));
     if (type == nullptr) {
       continue;
     }
@@ -482,7 +503,7 @@ bool CustomDataAttributeProvider::try_delete(void *owner, const AttributeIDRef &
     const CustomDataLayer &layer = custom_data->layers[i];
     if (this->type_is_supported((eCustomDataType)layer.type) &&
         custom_data_layer_matches_attribute_id(layer, attribute_id)) {
-      CustomData_free_layer(custom_data, layer.type, element_num, i);
+      CustomData_free_layer(custom_data, eCustomDataType(layer.type), element_num, i);
       return true;
     }
   }
@@ -630,7 +651,7 @@ bool CustomDataAttributes::create(const AttributeIDRef &attribute_id,
                                   const eCustomDataType data_type)
 {
   void *result = add_generic_custom_data_layer(
-      data, data_type, CD_SET_DEFAULT, nullptr, size_, attribute_id);
+      data, data_type, CD_SET_DEFAULT, size_, attribute_id);
   return result != nullptr;
 }
 
@@ -638,8 +659,8 @@ bool CustomDataAttributes::create_by_move(const AttributeIDRef &attribute_id,
                                           const eCustomDataType data_type,
                                           void *buffer)
 {
-  void *result = add_generic_custom_data_layer(
-      data, data_type, CD_ASSIGN, buffer, size_, attribute_id);
+  const void *result = add_generic_custom_data_layer_with_existing_data(
+      data, data_type, buffer, size_, attribute_id);
   return result != nullptr;
 }
 
@@ -648,7 +669,7 @@ bool CustomDataAttributes::remove(const AttributeIDRef &attribute_id)
   for (const int i : IndexRange(data.totlayer)) {
     const CustomDataLayer &layer = data.layers[i];
     if (custom_data_layer_matches_attribute_id(layer, attribute_id)) {
-      CustomData_free_layer(&data, layer.type, size_, i);
+      CustomData_free_layer(&data, eCustomDataType(layer.type), size_, i);
       return true;
     }
   }

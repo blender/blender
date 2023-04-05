@@ -5,14 +5,9 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
-#include "BKE_material.h"
-
 #include "NOD_socket_search_link.hh"
 
-#include "FN_multi_function_signature.hh"
+#include "FN_field_cpp_type.hh"
 
 namespace blender::nodes::node_geo_switch_cc {
 
@@ -149,148 +144,132 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-template<typename T> void switch_fields(GeoNodeExecParams &params, const StringRef suffix)
-{
-  if (params.lazy_require_input("Switch")) {
-    return;
+class LazyFunctionForSwitchNode : public LazyFunction {
+ private:
+  bool can_be_field_ = false;
+
+ public:
+  LazyFunctionForSwitchNode(const bNode &node)
+  {
+    const NodeSwitch &storage = node_storage(node);
+    const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.input_type);
+    can_be_field_ = ELEM(data_type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA);
+
+    const bNodeSocketType *socket_type = nullptr;
+    for (const bNodeSocket *socket : node.output_sockets()) {
+      if (socket->type == data_type) {
+        socket_type = socket->typeinfo;
+        break;
+      }
+    }
+    BLI_assert(socket_type != nullptr);
+    const CPPType &cpp_type = *socket_type->geometry_nodes_cpp_type;
+
+    inputs_.append_as("Condition", CPPType::get<ValueOrField<bool>>());
+    inputs_.append_as("False", cpp_type, lf::ValueUsage::Maybe);
+    inputs_.append_as("True", cpp_type, lf::ValueUsage::Maybe);
+    outputs_.append_as("Value", cpp_type);
   }
 
-  const std::string name_false = "False" + suffix;
-  const std::string name_true = "True" + suffix;
-  const std::string name_output = "Output" + suffix;
+  void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
+  {
+    const ValueOrField<bool> condition = params.get_input<ValueOrField<bool>>(0);
+    if (condition.is_field() && can_be_field_) {
+      Field<bool> condition_field = condition.as_field();
+      if (condition_field.node().depends_on_input()) {
+        this->execute_field(condition.as_field(), params);
+        return;
+      }
+      const bool condition_bool = fn::evaluate_constant_field(condition_field);
+      this->execute_single(condition_bool, params);
+      return;
+    }
+    this->execute_single(condition.as_value(), params);
+  }
 
-  Field<bool> switches_field = params.get_input<Field<bool>>("Switch");
-  if (switches_field.node().depends_on_input()) {
-    /* The switch has to be incorporated into the field. Both inputs have to be evaluated. */
-    const bool require_false = params.lazy_require_input(name_false);
-    const bool require_true = params.lazy_require_input(name_true);
-    if (require_false | require_true) {
+  static constexpr int false_input_index = 1;
+  static constexpr int true_input_index = 2;
+
+  void execute_single(const bool condition, lf::Params &params) const
+  {
+    const int input_to_forward = condition ? true_input_index : false_input_index;
+    const int input_to_ignore = condition ? false_input_index : true_input_index;
+
+    params.set_input_unused(input_to_ignore);
+    void *value_to_forward = params.try_get_input_data_ptr_or_request(input_to_forward);
+    if (value_to_forward == nullptr) {
+      /* Try again when the value is available. */
       return;
     }
 
-    Field<T> falses_field = params.extract_input<Field<T>>(name_false);
-    Field<T> trues_field = params.extract_input<Field<T>>(name_true);
+    const CPPType &type = *outputs_[0].type;
+    void *output_ptr = params.get_output_data_ptr(0);
+    type.move_construct(value_to_forward, output_ptr);
+    params.output_set(0);
+  }
 
-    static auto switch_fn = mf::build::SI3_SO<bool, T, T, T>(
-        "Switch", [](bool condition, const T &false_value, const T &true_value) {
-          return condition ? true_value : false_value;
+  void execute_field(Field<bool> condition, lf::Params &params) const
+  {
+    /* When the condition is a non-constant field, we need both inputs. */
+    void *false_value_or_field = params.try_get_input_data_ptr_or_request(false_input_index);
+    void *true_value_or_field = params.try_get_input_data_ptr_or_request(true_input_index);
+    if (ELEM(nullptr, false_value_or_field, true_value_or_field)) {
+      /* Try again when inputs are available. */
+      return;
+    }
+
+    const CPPType &type = *outputs_[0].type;
+    const fn::ValueOrFieldCPPType &value_or_field_type = *fn::ValueOrFieldCPPType::get_from_self(
+        type);
+    const CPPType &value_type = value_or_field_type.value;
+    const MultiFunction &switch_multi_function = this->get_switch_multi_function(value_type);
+
+    GField false_field = value_or_field_type.as_field(false_value_or_field);
+    GField true_field = value_or_field_type.as_field(true_value_or_field);
+
+    GField output_field{FieldOperation::Create(
+        switch_multi_function,
+        {std::move(condition), std::move(false_field), std::move(true_field)})};
+
+    void *output_ptr = params.get_output_data_ptr(0);
+    value_or_field_type.construct_from_field(output_ptr, std::move(output_field));
+    params.output_set(0);
+  }
+
+  const MultiFunction &get_switch_multi_function(const CPPType &type) const
+  {
+    const MultiFunction *switch_multi_function = nullptr;
+    type.to_static_type_tag<float, int, bool, float3, ColorGeometry4f, std::string>(
+        [&](auto type_tag) {
+          using T = typename decltype(type_tag)::type;
+          if constexpr (std::is_void_v<T>) {
+            BLI_assert_unreachable();
+          }
+          else {
+            static auto switch_fn = mf::build::SI3_SO<bool, T, T, T>(
+                "Switch", [](const bool condition, const T &false_value, const T &true_value) {
+                  return condition ? true_value : false_value;
+                });
+            switch_multi_function = &switch_fn;
+          }
         });
-
-    auto switch_op = std::make_shared<FieldOperation>(FieldOperation(
-        std::move(switch_fn),
-        {std::move(switches_field), std::move(falses_field), std::move(trues_field)}));
-
-    params.set_output(name_output, Field<T>(switch_op, 0));
+    BLI_assert(switch_multi_function != nullptr);
+    return *switch_multi_function;
   }
-  else {
-    /* The switch input is constant, so just evaluate and forward one of the inputs. */
-    const bool switch_value = fn::evaluate_constant_field(switches_field);
-    if (switch_value) {
-      params.set_input_unused(name_false);
-      if (params.lazy_require_input(name_true)) {
-        return;
-      }
-      params.set_output(name_output, params.extract_input<Field<T>>(name_true));
-    }
-    else {
-      params.set_input_unused(name_true);
-      if (params.lazy_require_input(name_false)) {
-        return;
-      }
-      params.set_output(name_output, params.extract_input<Field<T>>(name_false));
-    }
-  }
-}
-
-template<typename T> void switch_no_fields(GeoNodeExecParams &params, const StringRef suffix)
-{
-  if (params.lazy_require_input("Switch_001")) {
-    return;
-  }
-  bool switch_value = params.get_input<bool>("Switch_001");
-
-  const std::string name_false = "False" + suffix;
-  const std::string name_true = "True" + suffix;
-  const std::string name_output = "Output" + suffix;
-
-  if (switch_value) {
-    params.set_input_unused(name_false);
-    if (params.lazy_require_input(name_true)) {
-      return;
-    }
-    params.set_output(name_output, params.extract_input<T>(name_true));
-  }
-  else {
-    params.set_input_unused(name_true);
-    if (params.lazy_require_input(name_false)) {
-      return;
-    }
-    params.set_output(name_output, params.extract_input<T>(name_false));
-  }
-}
-
-static void node_geo_exec(GeoNodeExecParams params)
-{
-  const NodeSwitch &storage = node_storage(params.node());
-  const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.input_type);
-
-  switch (data_type) {
-
-    case SOCK_FLOAT: {
-      switch_fields<float>(params, "");
-      break;
-    }
-    case SOCK_INT: {
-      switch_fields<int>(params, "_001");
-      break;
-    }
-    case SOCK_BOOLEAN: {
-      switch_fields<bool>(params, "_002");
-      break;
-    }
-    case SOCK_VECTOR: {
-      switch_fields<float3>(params, "_003");
-      break;
-    }
-    case SOCK_RGBA: {
-      switch_fields<ColorGeometry4f>(params, "_004");
-      break;
-    }
-    case SOCK_STRING: {
-      switch_fields<std::string>(params, "_005");
-      break;
-    }
-    case SOCK_GEOMETRY: {
-      switch_no_fields<GeometrySet>(params, "_006");
-      break;
-    }
-    case SOCK_OBJECT: {
-      switch_no_fields<Object *>(params, "_007");
-      break;
-    }
-    case SOCK_COLLECTION: {
-      switch_no_fields<Collection *>(params, "_008");
-      break;
-    }
-    case SOCK_TEXTURE: {
-      switch_no_fields<Tex *>(params, "_009");
-      break;
-    }
-    case SOCK_MATERIAL: {
-      switch_no_fields<Material *>(params, "_010");
-      break;
-    }
-    case SOCK_IMAGE: {
-      switch_no_fields<Image *>(params, "_011");
-      break;
-    }
-    default:
-      BLI_assert_unreachable();
-      break;
-  }
-}
+};
 
 }  // namespace blender::nodes::node_geo_switch_cc
+
+namespace blender::nodes {
+
+std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node)
+{
+  using namespace node_geo_switch_cc;
+  BLI_assert(node.type == GEO_NODE_SWITCH);
+  return std::make_unique<LazyFunctionForSwitchNode>(node);
+}
+
+}  // namespace blender::nodes
 
 void register_node_type_geo_switch()
 {
@@ -303,8 +282,6 @@ void register_node_type_geo_switch()
   ntype.initfunc = file_ns::node_init;
   ntype.updatefunc = file_ns::node_update;
   node_type_storage(&ntype, "NodeSwitch", node_free_standard_storage, node_copy_standard_storage);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.geometry_node_execute_supports_laziness = true;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);

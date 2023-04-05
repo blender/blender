@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+ * Copyright 2004 Blender Foundation */
 
 /** \file
  * \ingroup edmesh
@@ -24,7 +24,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
 #include "BKE_layer.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_report.h"
 
 #include "WM_api.h"
@@ -3135,7 +3135,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
 #define USE_LINKED_SELECT_DEFAULT_HACK
 
 struct DelimitData {
-  int cd_loop_type;
+  eCustomDataType cd_loop_type;
   int cd_loop_offset;
 };
 
@@ -3219,7 +3219,7 @@ static void select_linked_delimit_validate(BMesh *bm, int *delimit)
 
 static void select_linked_delimit_begin(BMesh *bm, int delimit)
 {
-  DelimitData delimit_data = {0};
+  DelimitData delimit_data{};
 
   if (delimit & BMO_DELIM_UV) {
     delimit_data.cd_loop_type = CD_PROP_FLOAT2;

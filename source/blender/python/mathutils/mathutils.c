@@ -511,6 +511,7 @@ int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)
 
 /*---------------------- EXPP_VectorsAreEqual -------------------------
  * Builds on EXPP_FloatsAreEqual to test vectors */
+
 int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int floatSteps)
 {
   int x;
@@ -570,9 +571,10 @@ int _BaseMathObject_CheckCallback(BaseMathObject *self)
   return -1;
 }
 
-/* use macros to check for NULL */
 int _BaseMathObject_ReadCallback(BaseMathObject *self)
 {
+  /* NOTE: use macros to check for NULL. */
+
   Mathutils_Callback *cb = mathutils_callbacks[self->cb_type];
   if (LIKELY(cb->get(self, self->cb_subtype) != -1)) {
     return 0;
@@ -636,7 +638,8 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self)
       PyExc_TypeError, "%s is not frozen (mutable), call freeze first", Py_TYPE(self)->tp_name);
 }
 
-/* BaseMathObject generic functions for all mathutils types */
+/* #BaseMathObject generic functions for all mathutils types. */
+
 char BaseMathObject_owner_doc[] = "The item this is wrapping or None  (read-only).";
 PyObject *BaseMathObject_owner_get(BaseMathObject *self, void *UNUSED(closure))
 {

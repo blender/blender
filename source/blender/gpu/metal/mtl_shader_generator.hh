@@ -205,6 +205,7 @@ struct MSLUniformBlock {
   std::string name;
   ShaderStage stage;
   bool is_array;
+  uint slot;
 
   bool operator==(const MSLUniformBlock &right) const
   {
@@ -418,6 +419,9 @@ class MSLGeneratorInterface {
   /* Parameters. */
   shader::DepthWrite depth_write;
 
+  /* Bind index trackers. */
+  int max_ubo_slot = -1;
+
   /* Shader buffer bind indices for argument buffers per shader stage.
    * NOTE: Compute stage will re-use index 0. */
   int sampler_argument_buffer_bind_index[3] = {-1, -1, -1};
@@ -486,8 +490,12 @@ class MSLGeneratorInterface {
   std::string generate_msl_uniform_undefs(ShaderStage stage);
   std::string generate_ubo_block_undef_chain(ShaderStage stage);
   std::string generate_msl_texture_vars(ShaderStage shader_stage);
-  void generate_msl_textures_input_string(std::stringstream &out, ShaderStage stage);
-  void generate_msl_uniforms_input_string(std::stringstream &out, ShaderStage stage);
+  void generate_msl_textures_input_string(std::stringstream &out,
+                                          ShaderStage stage,
+                                          bool &is_first_parameter);
+  void generate_msl_uniforms_input_string(std::stringstream &out,
+                                          ShaderStage stage,
+                                          bool &is_first_parameter);
 
   /* Location is not always specified, so this will resolve outstanding locations. */
   void resolve_input_attribute_locations();

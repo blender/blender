@@ -436,13 +436,6 @@ void uvedit_edge_select_set_with_sticky(const Scene *scene,
   }
 }
 
-/**
- * Selects UV edges and shared vertices according to sticky_flag.
- *
- * \param sticky_flag:
- * - SI_STICKY_LOC: selects all UV edges that share the same mesh vertices and UV coordinates.
- * - SI_STICKY_VERTEX: selects all UV edges sharing the same mesh vertices.
- */
 void uvedit_edge_select_shared_vert(const Scene *scene,
                                     BMEditMesh *em,
                                     BMLoop *l,
@@ -476,7 +469,6 @@ void uvedit_edge_select_shared_vert(const Scene *scene,
   } while (((l_iter = l_iter->radial_next) != l) && (sticky_flag != SI_STICKY_LOC));
 }
 
-/* Set edge flags for required UV edges. */
 void uvedit_edge_select_set_noflush(const Scene *scene,
                                     BMLoop *l,
                                     const bool select,
@@ -643,13 +635,6 @@ void uvedit_uv_select_set_with_sticky(const Scene *scene,
   }
 }
 
-/**
- * Selects shared UVs based on #sticky_flag.
- *
- * \param sticky_flag: Type of sticky selection :
- * - SI_STICKY_LOC: selects all UVs sharing same mesh vertex and UV coordinates.
- * - SI_STICKY_VERTEX: selects all UVs sharing same mesh vertex.
- */
 void uvedit_uv_select_shared_vert(const Scene *scene,
                                   BMEditMesh *em,
                                   BMLoop *l,

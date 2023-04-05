@@ -606,17 +606,6 @@ void MTLFrameBuffer::update_attachments(bool update_viewport)
   if (!dirty_attachments_) {
     return;
   }
-
-  /* Cache viewport and scissor (If we have existing attachments). */
-  int t_viewport[4], t_scissor[4];
-  update_viewport = update_viewport &&
-                    (this->get_attachment_count() > 0 && this->has_depth_attachment() &&
-                     this->has_stencil_attachment());
-  if (update_viewport) {
-    this->viewport_get(t_viewport);
-    this->scissor_get(t_scissor);
-  }
-
   /* Clear current attachments state. */
   this->remove_all_attachments();
 
@@ -738,21 +727,24 @@ void MTLFrameBuffer::update_attachments(bool update_viewport)
     }
   }
 
-  /* Check whether the first attachment is SRGB. */
+  /* Extract attachment size and determine if framebuffer is SRGB. */
   if (first_attachment != GPU_FB_MAX_ATTACHMENT) {
-    srgb_ = (first_attachment_mtl.texture->format_get() == GPU_SRGB8_A8);
-  }
-
-  /* Reset viewport and Scissor (If viewport is smaller or equal to the framebuffer size). */
-  if (update_viewport && t_viewport[2] <= width_ && t_viewport[3] <= height_) {
-
-    this->viewport_set(t_viewport);
-    this->scissor_set(t_viewport);
+    /* Ensure size is correctly assigned. */
+    GPUAttachment &attach = attachments_[first_attachment];
+    int size[3];
+    GPU_texture_get_mipmap_size(attach.tex, attach.mip, size);
+    this->size_set(size[0], size[1]);
+    srgb_ = (GPU_texture_format(attach.tex) == GPU_SRGB8_A8);
   }
   else {
-    this->viewport_reset();
-    this->scissor_reset();
+    /* Empty frame-buffer. */
+    width_ = 0;
+    height_ = 0;
   }
+
+  /* Reset viewport and Scissor. */
+  this->viewport_reset();
+  this->scissor_reset();
 
   /* We have now updated our internal structures. */
   dirty_attachments_ = false;
@@ -1754,9 +1746,8 @@ void MTLFrameBuffer::blit(uint read_slot,
                           uint height,
                           eGPUFrameBufferBits blit_buffers)
 {
-  BLI_assert(this);
   BLI_assert(metal_fb_write);
-  if (!(this && metal_fb_write)) {
+  if (!metal_fb_write) {
     return;
   }
   MTLContext *mtl_context = reinterpret_cast<MTLContext *>(GPU_context_active_get());
@@ -1899,4 +1890,4 @@ int MTLFrameBuffer::get_height()
   return height_;
 }
 
-}  // blender::gpu
+}  // namespace blender::gpu

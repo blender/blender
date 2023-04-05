@@ -84,6 +84,7 @@
  * `bpy.app.handler` callbacks for example.
  * Even though this is arguably "correct", it's going to cause problems for existing scripts,
  * so accept having this for the time being. */
+
 BPy_StructRNA *bpy_context_module = NULL; /* for fast access */
 
 static PyObject *pyrna_struct_Subtype(PointerRNA *ptr);
@@ -5256,7 +5257,7 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
 
     target_tot = array_tot * (*r_attr_tot);
 
-    /* rna_access.c - rna_raw_access(...) uses this same method. */
+    /* rna_access.cc - rna_raw_access(...) uses this same method. */
     if (target_tot != (*r_tot)) {
       PyErr_Format(PyExc_TypeError,
                    "foreach_get(attr, sequence) sequence length mismatch given %d, needed %d",
@@ -6515,10 +6516,6 @@ static PyObject *pyrna_func_doc_get(BPy_FunctionRNA *self, void *UNUSED(closure)
   return ret;
 }
 
-/**
- * Sub-classes of #pyrna_struct_Type which support idprop definitions use this as a meta-class.
- * \note tp_base member is set to `&PyType_Type` on initialization.
- */
 PyTypeObject pyrna_struct_meta_idprop_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy_struct_meta_idprop",
@@ -6578,6 +6575,7 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
 };
 
 /*-----------------------BPy_StructRNA method def------------------------------*/
+
 PyTypeObject pyrna_struct_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy_struct",
@@ -6644,6 +6642,7 @@ PyTypeObject pyrna_struct_Type = {
 };
 
 /*-----------------------BPy_PropertyRNA method def------------------------------*/
+
 PyTypeObject pyrna_prop_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy_prop",
@@ -6870,6 +6869,7 @@ static PyTypeObject pyrna_prop_collection_idprop_Type = {
 };
 
 /*-----------------------BPy_PropertyRNA method def------------------------------*/
+
 PyTypeObject pyrna_func_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy_func",
@@ -7082,7 +7082,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
   PyObject_SetAttr(newclass, bpy_intern_str_bl_rna, item);
   Py_DECREF(item);
 
-  /* Add staticmethods and classmethods. */
+  /* Add `staticmethod` and `classmethod` functions. */
   {
     const PointerRNA func_ptr = {NULL, srna, NULL};
     const ListBase *lb;
@@ -7092,7 +7092,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
     for (link = lb->first; link; link = link->next) {
       FunctionRNA *func = (FunctionRNA *)link;
       const int flag = RNA_function_flag(func);
-      if ((flag & FUNC_NO_SELF) &&         /* Is staticmethod or classmethod. */
+      if ((flag & FUNC_NO_SELF) &&         /* Is `staticmethod` or `classmethod`. */
           (flag & FUNC_REGISTER) == false) /* Is not for registration. */
       {
         /* We may want to set the type of this later. */
@@ -7316,6 +7316,7 @@ static PyObject *pyrna_struct_Subtype(PointerRNA *ptr)
 }
 
 /*-----------------------CreatePyObject---------------------------------*/
+
 PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 {
   BPy_StructRNA *pyrna = NULL;
@@ -7405,6 +7406,27 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
   }
 #endif
   return (PyObject *)pyrna;
+}
+
+PyObject *pyrna_struct_CreatePyObject_with_primitive_support(PointerRNA *ptr)
+{
+  if (ptr->type == &RNA_PrimitiveString) {
+    const PrimitiveStringRNA *data = ptr->data;
+    return PyC_UnicodeFromBytes(data->value);
+  }
+  if (ptr->type == &RNA_PrimitiveInt) {
+    const PrimitiveIntRNA *data = ptr->data;
+    return PyLong_FromLong(data->value);
+  }
+  if (ptr->type == &RNA_PrimitiveFloat) {
+    const PrimitiveFloatRNA *data = ptr->data;
+    return PyFloat_FromDouble(data->value);
+  }
+  if (ptr->type == &RNA_PrimitiveBoolean) {
+    const PrimitiveBooleanRNA *data = ptr->data;
+    return PyBool_FromLong(data->value);
+  }
+  return pyrna_struct_CreatePyObject(ptr);
 }
 
 PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop)
@@ -7816,6 +7838,7 @@ int pyrna_struct_as_ptr_or_null_parse(PyObject *o, void *p)
 }
 
 /* Orphan functions, not sure where they should go. */
+
 StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
 {
 
@@ -8093,10 +8116,10 @@ static int rna_function_arg_count(FunctionRNA *func, int *min_count)
   return count;
 }
 
-static int bpy_class_validate_recursive(PointerRNA *dummyptr,
+static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
                                         StructRNA *srna,
                                         void *py_data,
-                                        int *have_function)
+                                        bool *have_function)
 {
   const ListBase *lb;
   Link *link;
@@ -8109,7 +8132,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
   const char *py_class_name = ((PyTypeObject *)py_class)->tp_name; /* __name__ */
 
   if (srna_base) {
-    if (bpy_class_validate_recursive(dummyptr, srna_base, py_data, have_function) != 0) {
+    if (bpy_class_validate_recursive(dummy_ptr, srna_base, py_data, have_function) != 0) {
       return -1;
     }
   }
@@ -8256,7 +8279,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
   { \
     if ((item = PyObject_GetAttr(py_class, py_attr))) { \
       if (item != Py_None) { \
-        if (pyrna_py_to_prop(dummyptr, prop, NULL, item, "validating class:") != 0) { \
+        if (pyrna_py_to_prop(dummy_ptr, prop, NULL, item, "validating class:") != 0) { \
           Py_DECREF(item); \
           return -1; \
         } \
@@ -8287,7 +8310,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
       PyErr_Clear();
     }
     else {
-      if (pyrna_py_to_prop(dummyptr, prop, NULL, item, "validating class:") != 0) {
+      if (pyrna_py_to_prop(dummy_ptr, prop, NULL, item, "validating class:") != 0) {
         Py_DECREF(item);
         return -1;
       }
@@ -8298,9 +8321,9 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
   return 0;
 }
 
-static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_function)
+static int bpy_class_validate(PointerRNA *dummy_ptr, void *py_data, bool *have_function)
 {
-  return bpy_class_validate_recursive(dummyptr, dummyptr->type, py_data, have_function);
+  return bpy_class_validate_recursive(dummy_ptr, dummy_ptr->type, py_data, have_function);
 }
 
 /* TODO: multiple return values like with RNA functions. */
@@ -8659,13 +8682,12 @@ static void bpy_class_free(void *pyob_ptr)
   PyGILState_Release(gilstate);
 }
 
-/**
- * \note This isn't essential to run on startup, since sub-types will lazy initialize.
- * But keep running in debug mode so we get immediate notification of bad class hierarchy
- * or any errors in "bpy_types.py" at load time, so errors don't go unnoticed.
- */
 void pyrna_alloc_types(void)
 {
+  /* NOTE: This isn't essential to run on startup, since sub-types will lazy initialize.
+   * But keep running in debug mode so we get immediate notification of bad class hierarchy
+   * or any errors in "bpy_types.py" at load time, so errors don't go unnoticed. */
+
 #ifdef DEBUG
   PyGILState_STATE gilstate;
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. All rights reserved. */
+ * Copyright 2018 Blender Foundation */
 
 /** \file
  * \ingroup edobj
@@ -12,7 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_shader_fx_types.h"
@@ -60,7 +60,7 @@ ShaderFxData *ED_object_shaderfx_add(
   ShaderFxData *new_fx = NULL;
   const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(type);
 
-  if (ob->type != OB_GPENCIL) {
+  if (ob->type != OB_GPENCIL_LEGACY) {
     BKE_reportf(reports, RPT_WARNING, "Effect cannot be added to object '%s'", ob->id.name + 2);
     return NULL;
   }

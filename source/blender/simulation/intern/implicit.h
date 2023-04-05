@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation. All rights reserved. */
+ * Copyright Blender Foundation */
 
 #pragma once
 
@@ -27,8 +27,8 @@ extern "C" {
 #define CLOTH_FORCE_SPRING_STRUCTURAL
 #define CLOTH_FORCE_SPRING_SHEAR
 #define CLOTH_FORCE_SPRING_BEND
-#define CLOTH_FORCE_SPRING_GOAL
-#define CLOTH_FORCE_EFFECTORS
+// #define CLOTH_FORCE_SPRING_GOAL /* UNUSED. */
+// #define CLOTH_FORCE_EFFECTORS /* UNUSED. */
 
 //#define IMPLICIT_PRINT_SOLVER_INPUT_OUTPUT
 

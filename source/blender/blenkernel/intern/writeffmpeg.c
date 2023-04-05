@@ -383,7 +383,7 @@ static AVFrame *generate_video_frame(FFMpegContext *context, const uint8_t *pixe
     rgb_frame = context->current_frame;
   }
 
-  /* Copy the Blender pixels into the FFmpeg datastructure, taking care of endianness and flipping
+  /* Copy the Blender pixels into the FFMPEG data-structure, taking care of endianness and flipping
    * the image vertically. */
   int linesize = rgb_frame->linesize[0];
   for (int y = 0; y < height; y++) {
@@ -586,7 +586,7 @@ static const AVCodec *get_av1_encoder(
         }
         else {
           /* Is not a square num, set greater side based on longer side, or use a square if both
-             sides are equal. */
+           * sides are equal. */
           int sqrt_p2 = power_of_2_min_i(threads_sqrt);
           if (sqrt_p2 < 2) {
             /* Ensure a default minimum. */
@@ -863,7 +863,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
                                                             255);
   st->avg_frame_rate = av_inv_q(c->time_base);
 
-  if (codec->capabilities & AV_CODEC_CAP_AUTO_THREADS) {
+  if (codec->capabilities & AV_CODEC_CAP_OTHER_THREADS) {
     c->thread_count = 0;
   }
   else {

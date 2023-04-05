@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -70,9 +70,7 @@ AnimationBackup::AnimationBackup(const Depsgraph *depsgraph)
   reset();
 }
 
-void AnimationBackup::reset()
-{
-}
+void AnimationBackup::reset() {}
 
 void AnimationBackup::init_from_id(ID *id)
 {

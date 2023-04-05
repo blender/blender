@@ -19,9 +19,7 @@
 
 #include "eevee_private.h"
 
-void EEVEE_subsurface_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *UNUSED(vedata))
-{
-}
+void EEVEE_subsurface_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *UNUSED(vedata)) {}
 
 void EEVEE_subsurface_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
@@ -193,7 +191,7 @@ void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,
   DRW_shgroup_stencil_mask(shgrp, sss_id);
 
   {
-    eGPUSamplerState state = GPU_SAMPLER_DEFAULT;
+    GPUSamplerState state = GPU_SAMPLER_DEFAULT;
 
     DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_subsurface_first_pass_sh_get(),
                                               psl->sss_blur_ps);

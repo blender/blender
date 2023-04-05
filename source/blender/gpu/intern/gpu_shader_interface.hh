@@ -26,6 +26,14 @@ namespace blender::gpu {
 typedef struct ShaderInput {
   uint32_t name_offset;
   uint32_t name_hash;
+  /**
+   * Location is openGl legacy and its legacy usages should be phased out in Blender 3.7.
+   *
+   * Vulkan backend use location to encode the descriptor set binding. This binding is different
+   * than the binding stored in the binding attribute. In Vulkan the binding inside a descriptor
+   * set must be unique. In future the location will also be used to select the right descriptor
+   * set.
+   */
   int32_t location;
   /** Defined at interface creation or in shader. Only for Samplers, UBOs and Vertex Attributes. */
   int32_t binding;

@@ -45,9 +45,7 @@ uint Device::devices_initialized_mask = 0;
 
 /* Device */
 
-Device::~Device() noexcept(false)
-{
-}
+Device::~Device() noexcept(false) {}
 
 void Device::build_bvh(BVH *bvh, Progress &progress, bool refit)
 {
@@ -452,9 +450,7 @@ void *Device::get_cpu_osl_memory()
   return nullptr;
 }
 
-GPUDevice::~GPUDevice() noexcept(false)
-{
-}
+GPUDevice::~GPUDevice() noexcept(false) {}
 
 bool GPUDevice::load_texture_info()
 {
@@ -648,7 +644,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, size_t pitch_paddin
     }
 
     if (mem_alloc_result) {
-      assert(transform_host_pointer(device_pointer, shared_pointer));
+      transform_host_pointer(device_pointer, shared_pointer);
       map_host_used += size;
       status = " in host memory";
     }

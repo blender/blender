@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup RNA
@@ -20,7 +20,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_gpencil_curve.h"
+#include "BKE_gpencil_curve_legacy.h"
 #include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"

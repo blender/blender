@@ -101,6 +101,7 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
 #endif
 
 #define ccl_gpu_kernel_call(x) ((ONEAPIKernelContext*)kg)->x
+#define ccl_gpu_kernel_within_bounds(i, n) ((i) < (n))
 
 #define ccl_gpu_kernel_lambda(func, ...) \
   struct KernelLambda \
@@ -150,18 +151,18 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
 
 /* Debug defines */
 #if defined(__SYCL_DEVICE_ONLY__)
-#  define CONSTANT __attribute__((opencl_constant))
+#  define CCL_ONEAPI_CONSTANT __attribute__((opencl_constant))
 #else
-#  define CONSTANT
+#  define CCL_ONEAPI_CONSTANT
 #endif
 
 #define sycl_printf(format, ...) {               \
-    static const CONSTANT char fmt[] = format;               \
+    static const CCL_ONEAPI_CONSTANT char fmt[] = format;          \
     sycl::ext::oneapi::experimental::printf(fmt, __VA_ARGS__ );    \
   }
 
 #define sycl_printf_(format) {               \
-    static const CONSTANT char fmt[] = format;               \
+    static const CCL_ONEAPI_CONSTANT char fmt[] = format;          \
     sycl::ext::oneapi::experimental::printf(fmt);                  \
   }
 

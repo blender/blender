@@ -15,9 +15,7 @@ CCL_NAMESPACE_BEGIN
 
 /* CUDADeviceQueue */
 
-OptiXDeviceQueue::OptiXDeviceQueue(OptiXDevice *device) : CUDADeviceQueue(device)
-{
-}
+OptiXDeviceQueue::OptiXDeviceQueue(OptiXDevice *device) : CUDADeviceQueue(device) {}
 
 void OptiXDeviceQueue::init_execution()
 {

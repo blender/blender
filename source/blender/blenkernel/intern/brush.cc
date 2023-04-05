@@ -8,7 +8,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_defaults.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -23,7 +23,7 @@
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -263,6 +263,8 @@ static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   if (brush->gradient) {
     BLO_write_struct(writer, ColorBand, brush->gradient);
   }
+
+  BKE_previewimg_blend_write(writer, brush->preview);
 }
 
 static void brush_blend_read_data(BlendDataReader *reader, ID *id)
@@ -348,7 +350,9 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
     }
   }
 
-  brush->preview = nullptr;
+  BLO_read_data_address(reader, &brush->preview);
+  BKE_previewimg_blend_read(reader, brush->preview);
+
   brush->icon_imbuf = nullptr;
 }
 

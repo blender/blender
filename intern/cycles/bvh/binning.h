@@ -23,9 +23,7 @@ class BVHBuild;
 
 class BVHObjectBinning : public BVHRange {
  public:
-  __forceinline BVHObjectBinning() : leafSAH(FLT_MAX)
-  {
-  }
+  __forceinline BVHObjectBinning() : leafSAH(FLT_MAX) {}
 
   BVHObjectBinning(const BVHRange &job,
                    BVHReference *prims,

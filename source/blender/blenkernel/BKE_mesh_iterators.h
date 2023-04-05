@@ -18,7 +18,7 @@ typedef enum MeshForeachFlag {
 } MeshForeachFlag;
 
 void BKE_mesh_foreach_mapped_vert(
-    struct Mesh *mesh,
+    const struct Mesh *mesh,
     void (*func)(void *userData, int index, const float co[3], const float no[3]),
     void *userData,
     MeshForeachFlag flag);

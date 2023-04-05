@@ -18,7 +18,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_curveprofile_types.h"
 #include "DNA_defaults.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_material_types.h"
@@ -65,7 +65,7 @@
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_freestyle.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
@@ -112,6 +112,8 @@
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
+
+#include "DRW_engine.h"
 
 #include "bmesh.h"
 
@@ -380,9 +382,10 @@ static void scene_free_markers(Scene *scene, bool do_id_user)
 
 static void scene_free_data(ID *id)
 {
-
   Scene *scene = (Scene *)id;
   const bool do_id_user = false;
+
+  DRW_drawdata_free(id);
 
   SEQ_editing_free(scene, do_id_user);
 

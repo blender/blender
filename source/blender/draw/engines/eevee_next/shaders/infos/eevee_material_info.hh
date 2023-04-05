@@ -88,11 +88,11 @@ GPU_SHADER_CREATE_INFO(eevee_aov_out)
 
 GPU_SHADER_CREATE_INFO(eevee_render_pass_out)
     .define("MAT_RENDER_PASS_SUPPORT")
-    .image_out(RBUFS_NORMAL_SLOT, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_normal_img")
-    .image_array_out(RBUFS_LIGHT_SLOT, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_light_img")
-    .image_out(RBUFS_DIFF_COLOR_SLOT, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_diffuse_color_img")
-    .image_out(RBUFS_SPEC_COLOR_SLOT, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_specular_color_img")
-    .image_out(RBUFS_EMISSION_SLOT, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_emission_img");
+    .image_out(RBUFS_NORMAL_SLOT, Qualifier::WRITE, GPU_RGBA16F, "rp_normal_img")
+    .image_array_out(RBUFS_LIGHT_SLOT, Qualifier::WRITE, GPU_RGBA16F, "rp_light_img")
+    .image_out(RBUFS_DIFF_COLOR_SLOT, Qualifier::WRITE, GPU_RGBA16F, "rp_diffuse_color_img")
+    .image_out(RBUFS_SPEC_COLOR_SLOT, Qualifier::WRITE, GPU_RGBA16F, "rp_specular_color_img")
+    .image_out(RBUFS_EMISSION_SLOT, Qualifier::WRITE, GPU_RGBA16F, "rp_emission_img");
 
 GPU_SHADER_CREATE_INFO(eevee_cryptomatte_out)
     .storage_buf(CRYPTOMATTE_BUF_SLOT, Qualifier::READ, "vec2", "cryptomatte_object_buf[]")
@@ -101,23 +101,29 @@ GPU_SHADER_CREATE_INFO(eevee_cryptomatte_out)
 GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     .vertex_out(eevee_surf_iface)
     /* NOTE: This removes the possibility of using gl_FragDepth. */
-    // .early_fragment_test(true)
-    /* Direct output. */
+    .early_fragment_test(true)
+    /* Direct output. (Emissive, Holdout) */
     .fragment_out(0, Type::VEC4, "out_radiance", DualBlend::SRC_0)
     .fragment_out(0, Type::VEC4, "out_transmittance", DualBlend::SRC_1)
-    /* Gbuffer. */
-    // .image_out(0, Qualifier::WRITE, GPU_R11F_G11F_B10F, "gbuff_transmit_color")
-    // .image_out(1, Qualifier::WRITE, GPU_R11F_G11F_B10F, "gbuff_transmit_data")
-    // .image_out(2, Qualifier::WRITE, GPU_RGBA16F, "gbuff_transmit_normal")
-    // .image_out(3, Qualifier::WRITE, GPU_R11F_G11F_B10F, "gbuff_reflection_color")
-    // .image_out(4, Qualifier::WRITE, GPU_RGBA16F, "gbuff_reflection_normal")
-    // .image_out(5, Qualifier::WRITE, GPU_R11F_G11F_B10F, "gbuff_emission")
-    /* Render-passes. */
-    // .image_out(6, Qualifier::READ_WRITE, GPU_RGBA16F, "rpass_volume_light")
+    /* Everything is stored inside a two layered target, one for each format. This is to fit the
+     * limitation of the number of images we can bind on a single shader. */
+    .image_array_out(GBUF_CLOSURE_SLOT, Qualifier::WRITE, GPU_RGBA16, "out_gbuff_closure_img")
+    .image_array_out(GBUF_COLOR_SLOT, Qualifier::WRITE, GPU_RGB10_A2, "out_gbuff_color_img")
+    /* Render-passes need to be declared manually to avoid overlap with the G-buffer which reuse
+     * some of binding points. */
+    .image_out(RBUFS_NORMAL_SLOT, Qualifier::WRITE, GPU_RGBA16F, "rp_normal_img")
+    // .image_array_out(RBUFS_LIGHT_SLOT, Qualifier::WRITE, GPU_RGBA16F, "rp_light_img")
+    /* TODO(fclem): Merge all render-pass into the same texture array. */
+    // .image_out(RBUFS_DIFF_COLOR_SLOT, Qualifier::WRITE, GPU_RGBA16F, "rp_diffuse_color_img")
+    .image_out(RBUFS_SPEC_COLOR_SLOT, Qualifier::WRITE, GPU_RGBA16F, "rp_specular_color_img")
+    .image_out(RBUFS_EMISSION_SLOT, Qualifier::WRITE, GPU_RGBA16F, "rp_emission_img")
     .fragment_source("eevee_surf_deferred_frag.glsl")
     .additional_info("eevee_camera",
                      "eevee_utility_texture",
                      "eevee_sampling_data",
+                     /* Added manually to avoid overlap. */
+                     // "eevee_render_pass_out",
+                     "eevee_cryptomatte_out",
                      "eevee_aov_out");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_forward)

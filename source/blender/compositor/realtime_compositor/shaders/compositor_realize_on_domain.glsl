@@ -1,3 +1,4 @@
+#pragma BLENDER_REQUIRE(gpu_shader_bicubic_sampler_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
 
 void main()
@@ -25,5 +26,5 @@ void main()
    * the sampler's expected [0, 1] range. */
   vec2 normalized_coordinates = (coordinates - offset) / vec2(input_size);
 
-  imageStore(domain_img, texel, texture(input_tx, normalized_coordinates));
+  imageStore(domain_img, texel, SAMPLER_FUNCTION(input_tx, normalized_coordinates));
 }

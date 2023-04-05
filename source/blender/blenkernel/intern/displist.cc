@@ -36,7 +36,7 @@
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_vfont.h"
@@ -738,16 +738,14 @@ static GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
     blender::bke::ScopedModifierTimer modifier_timer{*md};
 
     if (!geometry_set.has_mesh()) {
-      geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0, 0));
+      geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0));
     }
     Mesh *mesh = geometry_set.get_mesh_for_write();
 
     if (mti->type == eModifierTypeType_OnlyDeform) {
-      int totvert;
-      float(*vertex_coords)[3] = BKE_mesh_vert_coords_alloc(mesh, &totvert);
-      mti->deformVerts(md, &mectx_deform, mesh, vertex_coords, totvert);
-      BKE_mesh_vert_coords_apply(mesh, vertex_coords);
-      MEM_freeN(vertex_coords);
+      mti->deformVerts(
+          md, &mectx_deform, mesh, BKE_mesh_vert_positions_for_write(mesh), mesh->totvert);
+      BKE_mesh_tag_positions_changed(mesh);
     }
     else {
       Mesh *output_mesh = mti->modifyMesh(md, &mectx_apply, mesh);
@@ -885,7 +883,7 @@ static GeometrySet evaluate_surface_object(Depsgraph *depsgraph,
   GeometrySet geometry_set = curve_calc_modifiers_post(
       depsgraph, scene, ob, r_dispbase, for_render);
   if (!geometry_set.has_mesh()) {
-    geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0, 0));
+    geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0));
   }
   return geometry_set;
 }

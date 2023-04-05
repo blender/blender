@@ -6,7 +6,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -15,8 +15,8 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -326,7 +326,7 @@ static bool gpencil_transform_fill_poll(bContext *C)
     return false;
   }
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
   bGPdata *gpd = (bGPdata *)ob->data;

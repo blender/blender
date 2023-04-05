@@ -120,6 +120,12 @@ typedef struct Strip {
   ColorManagedColorspaceSettings colorspace_settings;
 } Strip;
 
+typedef struct SeqRetimingHandle {
+  int strip_frame_index;
+  int _pad0[2];
+  float retiming_factor; /* Value between 0-1 mapped to original content range. */
+} SeqRetimingHandle;
+
 typedef struct SequenceRuntime {
   SessionUUID session_uuid;
 } SequenceRuntime;
@@ -164,12 +170,12 @@ typedef struct Sequence {
   float startstill, endstill;
   /** Machine: the strip channel */
   int machine;
-  int _pad3;
+  int _pad;
   /** Starting and ending points of the effect strip. Undefined for other strip types. */
   int startdisp, enddisp;
   float sat;
   float mul;
-  float _pad;
+  float _pad1;
 
   short anim_preseek; /* UNUSED. */
   /** Streamindex for movie or sound files with several streams. */
@@ -231,7 +237,7 @@ typedef struct Sequence {
   int8_t color_tag;
 
   char alpha_mode;
-  char _pad4[2];
+  char _pad2[2];
 
   int cache_flag;
 
@@ -241,7 +247,7 @@ typedef struct Sequence {
 
   /* Multiview */
   char views_format;
-  char _pad1[3];
+  char _pad3[3];
   struct Stereo3dFormat *stereo3d_format;
 
   struct IDProperty *prop;
@@ -251,8 +257,12 @@ typedef struct Sequence {
 
   /* Playback rate of strip content in frames per second. */
   float media_playback_rate;
-  /* Multiply strip playback speed. */
   float speed_factor;
+
+  struct SeqRetimingHandle *retiming_handles;
+  void *_pad5;
+  int retiming_handle_num;
+  char _pad6[4];
 
   SequenceRuntime runtime;
 } Sequence;
@@ -570,7 +580,7 @@ enum {
   SEQ_USE_PROXY = (1 << 15),
   SEQ_IGNORE_CHANNEL_LOCK = (1 << 16),
   SEQ_AUTO_PLAYBACK_RATE = (1 << 17),
-  SEQ_FLAG_UNUSED_18 = (1 << 18), /* cleared */
+  SEQ_SINGLE_FRAME_CONTENT = (1 << 18),
   SEQ_FLAG_UNUSED_19 = (1 << 19), /* cleared */
   SEQ_FLAG_UNUSED_21 = (1 << 21), /* cleared */
 

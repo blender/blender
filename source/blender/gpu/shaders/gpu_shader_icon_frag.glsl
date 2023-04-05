@@ -8,6 +8,10 @@
 
 void main()
 {
+  /* Sample texture with LOD BIAS. Used instead of custom lod bias in GPU_SAMPLER_CUSTOM_ICON. */
+  fragColor = texture(image, texCoord_interp, -0.5) * finalColor;
+
+#ifdef DO_CORNER_MASKING
   /* Top-left rounded corner parameters. */
   const float circle_radius_outer = 0.1;
   const float circle_radius_inner = 0.075;
@@ -18,9 +22,8 @@ void main()
   const float mask_transparency = 0.25;
 
   vec2 circle_center = vec2(circle_radius_outer - text_width, 0.5);
-  fragColor = texture(image, texCoord_interp) * color;
 
-  /* radius in icon space (1 is the icon width).  */
+  /* Radius in icon space (1 is the icon width). */
   float radius = length(mask_coord_interp - circle_center);
   float mask = smoothstep(circle_radius_inner, circle_radius_outer, radius);
 
@@ -39,4 +42,5 @@ void main()
   }
 
   fragColor = mix(vec4(0.0), fragColor, max(mask_transparency, mask));
+#endif
 }

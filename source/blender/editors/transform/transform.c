@@ -9,7 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
@@ -52,6 +52,7 @@
 #include "transform_constraints.h"
 #include "transform_convert.h"
 #include "transform_draw_cursors.h"
+#include "transform_gizmo.h"
 #include "transform_mode.h"
 #include "transform_orientations.h"
 #include "transform_snap.h"
@@ -65,7 +66,8 @@ bool transdata_check_local_islands(TransInfo *t, short around)
   if (t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) {
     return false;
   }
-  return ((around == V3D_AROUND_LOCAL_ORIGINS) && ELEM(t->obedit_type, OB_MESH, OB_GPENCIL));
+  return ((around == V3D_AROUND_LOCAL_ORIGINS) &&
+          ELEM(t->obedit_type, OB_MESH, OB_GPENCIL_LEGACY));
 }
 
 /* ************************** SPACE DEPENDENT CODE **************************** */
@@ -616,9 +618,53 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
     }
     case TFM_MODAL_TRANSLATE:
     case TFM_MODAL_ROTATE:
-    case TFM_MODAL_RESIZE: {
+    case TFM_MODAL_RESIZE:
+    case TFM_MODAL_VERT_EDGE_SLIDE:
+    case TFM_MODAL_TRACKBALL:
+    case TFM_MODAL_ROTATE_NORMALS: {
       if (!transform_mode_is_changeable(t->mode)) {
         return false;
+      }
+      if (value == TFM_MODAL_TRANSLATE && t->mode == TFM_TRANSLATION) {
+        /* The tracking transform in MovieClip has an alternate translate that modifies the offset
+         * of the tracks. */
+        return t->data_type == &TransConvertType_Tracking;
+      }
+      if (value == TFM_MODAL_ROTATE && t->mode == TFM_ROTATION) {
+        return false;
+      }
+      if (value == TFM_MODAL_RESIZE && t->mode == TFM_RESIZE) {
+        return false;
+      }
+      if (value == TFM_MODAL_VERT_EDGE_SLIDE &&
+          (t->data_type != &TransConvertType_Mesh ||
+           /* WORKAROUND: Avoid repeated keys in status bar.
+            *
+            * Previously, `Vert/Edge Slide` and `Move` were triggered by the same modal key.
+            * But now, to fix #100129 (Status bar incorrectly shows "[G] Move"), `Vert/Edge Slide`
+            * has its own modal key. However by default it uses the same key as `Move` (G). So, to
+            * avoid displaying the same key twice (G and G), only display this modal key during the
+            * `Move` operation.
+            *
+            * Ideally we should check if it really uses the same key. */
+           t->mode != TFM_TRANSLATION)) {
+        return false;
+      }
+      if (value == TFM_MODAL_TRACKBALL &&
+          /* WORKAROUND: Avoid repeated keys in status bar.
+           *
+           * Previously, `Trackball` and `Rotate` were triggered by the same modal key.
+           * But to fix the status bar incorrectly showing "[R] Rotate", `Trackball` has now its
+           * own modal key. However by default it uses the same key as `Rotate` (R). So, to avoid
+           * displaying the same key twice (R and R), only display this modal key during the
+           * `Rotate` operation.
+           *
+           * Ideally we should check if it really uses the same key. */
+          t->mode != TFM_ROTATION) {
+        return false;
+      }
+      if (value == TFM_MODAL_ROTATE_NORMALS) {
+        return t->mode == TFM_ROTATION && t->data_type == &TransConvertType_Mesh;
       }
       break;
     }
@@ -666,8 +712,11 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {TFM_MODAL_NODE_ATTACH_ON, "NODE_ATTACH_ON", 0, "Node Attachment", ""},
       {TFM_MODAL_NODE_ATTACH_OFF, "NODE_ATTACH_OFF", 0, "Node Attachment (Off)", ""},
       {TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Move", ""},
+      {TFM_MODAL_VERT_EDGE_SLIDE, "VERT_EDGE_SLIDE", 0, "Vert/Edge Slide", ""},
       {TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
+      {TFM_MODAL_TRACKBALL, "TRACKBALL", 0, "TrackBall", ""},
       {TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
+      {TFM_MODAL_ROTATE_NORMALS, "ROTATE_NORMALS", 0, "Rotate Normals", ""},
       {TFM_MODAL_AUTOCONSTRAINT, "AUTOCONSTRAIN", 0, "Automatic Constraint", ""},
       {TFM_MODAL_AUTOCONSTRAINTPLANE, "AUTOCONSTRAINPLANE", 0, "Automatic Constraint Plane", ""},
       {TFM_MODAL_PRECISION, "PRECISION", 0, "Precision Mode", ""},
@@ -873,8 +922,6 @@ static bool transform_event_modal_constraint(TransInfo *t, short modal_type)
 int transformEvent(TransInfo *t, const wmEvent *event)
 {
   bool handled = false;
-  const int modifiers_prev = t->modifiers;
-  const int mode_prev = t->mode;
 
   /* Handle modal numinput events first, if already activated. */
   if (((event->val == KM_PRESS) || (event->type == EVT_MODAL_MAP)) && hasNumInput(&t->num) &&
@@ -912,110 +959,107 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         handled = true;
         break;
       case TFM_MODAL_TRANSLATE:
-        /* only switch when... */
-        if (t->mode == TFM_TRANSLATION) {
-          if ((t->obedit_type == OB_MESH) && (t->spacetype == SPACE_VIEW3D)) {
-            restoreTransObjects(t);
-            resetTransModal(t);
-            resetTransRestrictions(t);
-
-            /* first try edge slide */
-            transform_mode_init(t, NULL, TFM_EDGE_SLIDE);
-            /* if that fails, do vertex slide */
-            if (t->state == TRANS_CANCEL) {
-              resetTransModal(t);
-              t->state = TRANS_STARTING;
-              transform_mode_init(t, NULL, TFM_VERT_SLIDE);
-            }
-            /* vert slide can fail on unconnected vertices (rare but possible) */
-            if (t->state == TRANS_CANCEL) {
-              resetTransModal(t);
-              t->state = TRANS_STARTING;
-              restoreTransObjects(t);
-              resetTransRestrictions(t);
-              transform_mode_init(t, NULL, TFM_TRANSLATION);
-            }
-            initSnapping(t, NULL); /* need to reinit after mode change */
-            t->redraw |= TREDRAW_HARD;
-            handled = true;
-          }
-          else if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
-            restoreTransObjects(t);
-
-            t->flag ^= T_ALT_TRANSFORM;
-            t->redraw |= TREDRAW_HARD;
-            handled = true;
-          }
-        }
-        else if (transform_mode_is_changeable(t->mode)) {
-          restoreTransObjects(t);
-          resetTransModal(t);
-          resetTransRestrictions(t);
-          transform_mode_init(t, NULL, TFM_TRANSLATION);
-          initSnapping(t, NULL); /* need to reinit after mode change */
-          t->redraw |= TREDRAW_HARD;
-          handled = true;
-        }
-        break;
       case TFM_MODAL_ROTATE:
-        /* only switch when... */
-        if (!(t->options & CTX_TEXTURE_SPACE) && !(t->options & (CTX_MOVIECLIP | CTX_MASK))) {
-          if (transform_mode_is_changeable(t->mode)) {
-            restoreTransObjects(t);
-            resetTransModal(t);
-            resetTransRestrictions(t);
-
-            if (t->mode == TFM_ROTATION) {
-              transform_mode_init(t, NULL, TFM_TRACKBALL);
-            }
-            else {
-              transform_mode_init(t, NULL, TFM_ROTATION);
-            }
-            initSnapping(t, NULL); /* need to reinit after mode change */
-            t->redraw |= TREDRAW_HARD;
-            handled = true;
-          }
-        }
-        break;
       case TFM_MODAL_RESIZE:
+      case TFM_MODAL_TRACKBALL:
+      case TFM_MODAL_ROTATE_NORMALS:
+      case TFM_MODAL_VERT_EDGE_SLIDE:
         /* only switch when... */
-        if (t->mode == TFM_RESIZE) {
-          if (t->options & CTX_MOVIECLIP) {
+        if (!transform_mode_is_changeable(t->mode)) {
+          break;
+        }
+
+        if ((event->val == TFM_MODAL_TRANSLATE && t->mode == TFM_TRANSLATION) ||
+            (event->val == TFM_MODAL_RESIZE && t->mode == TFM_RESIZE)) {
+          if (t->data_type == &TransConvertType_Tracking) {
             restoreTransObjects(t);
 
             t->flag ^= T_ALT_TRANSFORM;
             t->redraw |= TREDRAW_HARD;
             handled = true;
           }
+          break;
         }
-        else if (transform_mode_is_changeable(t->mode)) {
+
+        if ((event->val == TFM_MODAL_ROTATE && t->mode == TFM_ROTATION) ||
+            (event->val == TFM_MODAL_TRACKBALL && t->mode == TFM_TRACKBALL) ||
+            (event->val == TFM_MODAL_ROTATE_NORMALS && t->mode == TFM_NORMAL_ROTATION) ||
+            (event->val == TFM_MODAL_VERT_EDGE_SLIDE &&
+             ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE))) {
+          break;
+        }
+
+        if (event->val == TFM_MODAL_ROTATE_NORMALS && t->data_type != &TransConvertType_Mesh) {
+          break;
+        }
+
+        restoreTransObjects(t);
+        resetTransModal(t);
+        resetTransRestrictions(t);
+
+        if (event->val == TFM_MODAL_TRANSLATE) {
+          transform_mode_init(t, NULL, TFM_TRANSLATION);
+        }
+        else if (event->val == TFM_MODAL_ROTATE) {
+          transform_mode_init(t, NULL, TFM_ROTATION);
+        }
+        else if (event->val == TFM_MODAL_TRACKBALL) {
+          transform_mode_init(t, NULL, TFM_TRACKBALL);
+        }
+        else if (event->val == TFM_MODAL_ROTATE_NORMALS) {
+          transform_mode_init(t, NULL, TFM_NORMAL_ROTATION);
+        }
+        else if (event->val == TFM_MODAL_RESIZE) {
           /* Scale isn't normally very useful after extrude along normals, see #39756 */
           if ((t->con.mode & CON_APPLY) && (t->orient[t->orient_curr].type == V3D_ORIENT_NORMAL)) {
             stopConstraint(t);
           }
-
-          restoreTransObjects(t);
-          resetTransModal(t);
-          resetTransRestrictions(t);
           transform_mode_init(t, NULL, TFM_RESIZE);
-          initSnapping(t, NULL); /* need to reinit after mode change */
+        }
+        else {
+          /* First try Edge Slide. */
+          transform_mode_init(t, NULL, TFM_EDGE_SLIDE);
+          /* If that fails, try Vertex Slide. */
+          if (t->state == TRANS_CANCEL) {
+            resetTransModal(t);
+            t->state = TRANS_STARTING;
+            transform_mode_init(t, NULL, TFM_VERT_SLIDE);
+          }
+          /* Vert Slide can fail on unconnected vertices (rare but possible). */
+          if (t->state == TRANS_CANCEL) {
+            resetTransModal(t);
+            t->state = TRANS_STARTING;
+            resetTransRestrictions(t);
+            transform_mode_init(t, NULL, TFM_TRANSLATION);
+          }
+        }
+
+        /* Need to reinit after mode change. */
+        initSnapping(t, NULL);
+        applyMouseInput(t, &t->mouse, t->mval, t->values);
+        t->redraw |= TREDRAW_HARD;
+        handled = true;
+        break;
+
+      case TFM_MODAL_SNAP_INV_ON:
+        if (!(t->modifiers & MOD_SNAP_INVERT)) {
+          t->modifiers |= MOD_SNAP_INVERT;
+          transform_snap_flag_from_modifiers_set(t);
+          t->redraw |= TREDRAW_HARD;
+        }
+        handled = true;
+        break;
+      case TFM_MODAL_SNAP_INV_OFF:
+        if (t->modifiers & MOD_SNAP_INVERT) {
+          t->modifiers &= ~MOD_SNAP_INVERT;
+          transform_snap_flag_from_modifiers_set(t);
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
         break;
-
-      case TFM_MODAL_SNAP_INV_ON:
-        t->modifiers |= MOD_SNAP_INVERT;
-        t->redraw |= TREDRAW_HARD;
-        handled = true;
-        break;
-      case TFM_MODAL_SNAP_INV_OFF:
-        t->modifiers &= ~MOD_SNAP_INVERT;
-        t->redraw |= TREDRAW_HARD;
-        handled = true;
-        break;
       case TFM_MODAL_SNAP_TOGGLE:
         t->modifiers ^= MOD_SNAP;
+        transform_snap_flag_from_modifiers_set(t);
         t->redraw |= TREDRAW_HARD;
         handled = true;
         break;
@@ -1253,21 +1297,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           handled = true;
         }
         break;
-      case EVT_NKEY:
-        if (event->flag & WM_EVENT_IS_REPEAT) {
-          break;
-        }
-        if (ELEM(t->mode, TFM_ROTATION)) {
-          if ((t->flag & T_EDIT) && t->obedit_type == OB_MESH) {
-            restoreTransObjects(t);
-            resetTransModal(t);
-            resetTransRestrictions(t);
-            transform_mode_init(t, NULL, TFM_NORMAL_ROTATION);
-            t->redraw = TREDRAW_HARD;
-            handled = true;
-          }
-        }
-        break;
       default:
         break;
     }
@@ -1292,12 +1321,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
     if ((t->flag & T_RELEASE_CONFIRM) && event->type == t->launch_event) {
       t->state = TRANS_CONFIRM;
     }
-  }
-
-  /* if we change snap options, get the unsnapped values back */
-  if ((mode_prev != t->mode) || ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) !=
-                                 (modifiers_prev & (MOD_SNAP | MOD_SNAP_INVERT)))) {
-    applyMouseInput(t, &t->mouse, t->mval, t->values);
   }
 
   /* Per transform event, if present */
@@ -1581,7 +1604,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
     if ((prop = RNA_struct_find_property(op->ptr, "snap_elements"))) {
       RNA_property_enum_set(op->ptr, prop, t->tsnap.mode);
-      RNA_boolean_set(op->ptr, "use_snap_project", t->tsnap.project);
+      RNA_boolean_set(op->ptr, "use_snap_project", (t->tsnap.flag & SCE_SNAP_PROJECT) != 0);
       RNA_enum_set(op->ptr, "snap_target", t->tsnap.source_operation);
 
       eSnapTargetOP target = t->tsnap.target_operation;

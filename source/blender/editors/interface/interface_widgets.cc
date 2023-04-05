@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup edinterface
@@ -1354,7 +1354,7 @@ static void widget_draw_icon(
     return;
   }
 
-  const float aspect = but->block->aspect * U.inv_dpi_fac;
+  const float aspect = but->block->aspect * UI_INV_SCALE_FAC;
   const float height = ICON_DEFAULT_HEIGHT / aspect;
 
   /* calculate blend color */
@@ -1447,7 +1447,7 @@ static void widget_draw_submenu_tria(const uiBut *but,
                                      const rcti *rect,
                                      const uiWidgetColors *wcol)
 {
-  const float aspect = but->block->aspect * U.inv_dpi_fac;
+  const float aspect = but->block->aspect * UI_INV_SCALE_FAC;
   const int tria_height = int(ICON_DEFAULT_HEIGHT / aspect);
   const int tria_width = int(ICON_DEFAULT_WIDTH / aspect) - 2 * U.pixelsize;
   const int xs = rect->xmax - tria_width;
@@ -1641,7 +1641,7 @@ static void ui_text_clip_middle(const uiFontStyle *fstyle, uiBut *but, const rct
                          int(UI_TEXT_CLIP_MARGIN + 0.5f);
   const float okwidth = float(max_ii(BLI_rcti_size_x(rect) - border, 0));
   const size_t max_len = sizeof(but->drawstr);
-  const float minwidth = float(UI_DPI_ICON_SIZE) / but->block->aspect * 2.0f;
+  const float minwidth = float(UI_ICON_SIZE) / but->block->aspect * 2.0f;
 
   but->ofs = 0;
   but->strwidth = UI_text_clip_middle_ex(fstyle, but->drawstr, okwidth, minwidth, max_len, '\0');
@@ -1664,7 +1664,7 @@ static void ui_text_clip_middle_protect_right(const uiFontStyle *fstyle,
                          int(UI_TEXT_CLIP_MARGIN + 0.5f);
   const float okwidth = float(max_ii(BLI_rcti_size_x(rect) - border, 0));
   const size_t max_len = sizeof(but->drawstr);
-  const float minwidth = float(UI_DPI_ICON_SIZE) / but->block->aspect * 2.0f;
+  const float minwidth = float(UI_ICON_SIZE) / but->block->aspect * 2.0f;
 
   but->ofs = 0;
   but->strwidth = UI_text_clip_middle_ex(fstyle, but->drawstr, okwidth, minwidth, max_len, rsep);
@@ -2297,8 +2297,8 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
 
     const BIFIconID icon = BIFIconID(ui_but_icon(but));
     const int icon_size_init = is_tool ? ICON_DEFAULT_HEIGHT_TOOLBAR : ICON_DEFAULT_HEIGHT;
-    const float icon_size = icon_size_init / (but->block->aspect * U.inv_dpi_fac);
-    const float icon_padding = 2 * UI_DPI_FAC;
+    const float icon_size = icon_size_init / (but->block->aspect * UI_INV_SCALE_FAC);
+    const float icon_padding = 2 * UI_SCALE_FAC;
 
 #ifdef USE_UI_TOOLBAR_HACK
     if (is_tool) {
@@ -3958,18 +3958,6 @@ static void widget_textbut(uiWidgetColors *wcol,
   widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_preview_tile(uiBut *but,
-                                uiWidgetColors *wcol,
-                                rcti *rect,
-                                const uiWidgetStateInfo * /*state*/,
-                                int /*roundboxalign*/,
-                                const float /*zoom*/)
-{
-  const uiStyle *style = UI_style_get();
-  ui_draw_preview_item_stateless(
-      &style->widget, rect, but->drawstr, but->icon, wcol->text, UI_STYLE_TEXT_CENTER);
-}
-
 static void widget_menuiconbut(uiWidgetColors *wcol,
                                rcti *rect,
                                const uiWidgetStateInfo * /*state*/,
@@ -4092,7 +4080,7 @@ static void widget_menu_radial_itembut(uiBut *but,
 
 static void widget_list_itembut(uiWidgetColors *wcol,
                                 rcti *rect,
-                                const uiWidgetStateInfo * /*state*/,
+                                const uiWidgetStateInfo *state,
                                 int /*roundboxalign*/,
                                 const float zoom)
 {
@@ -4104,7 +4092,25 @@ static void widget_list_itembut(uiWidgetColors *wcol,
   const float rad = widget_radius_from_zoom(zoom, wcol);
   round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
 
+  if (state->but_flag & UI_ACTIVE && !(state->but_flag & UI_SELECT)) {
+    copy_v3_v3_uchar(wcol->inner, wcol->text);
+    wcol->inner[3] = 20;
+  }
+
   widgetbase_draw(&wtb, wcol);
+}
+
+static void widget_preview_tile(uiBut *but,
+                                uiWidgetColors *wcol,
+                                rcti *rect,
+                                const uiWidgetStateInfo *state,
+                                int roundboxalign,
+                                const float zoom)
+{
+  widget_list_itembut(wcol, rect, state, roundboxalign, zoom);
+
+  ui_draw_preview_item_stateless(
+      &UI_style_get()->widget, rect, but->drawstr, but->icon, wcol->text, UI_STYLE_TEXT_CENTER);
 }
 
 static void widget_optionbut(uiWidgetColors *wcol,
@@ -4511,6 +4517,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       /* Drawn via the `custom` callback. */
       wt.text = nullptr;
       wt.custom = widget_preview_tile;
+      wt.wcol_theme = &btheme->tui.wcol_list_item;
       break;
 
     case UI_WTYPE_SWATCH:
@@ -4987,11 +4994,11 @@ static void ui_draw_clip_tri(uiBlock *block, rcti *rect, uiWidgetType *wt)
 
     if (block->flag & UI_BLOCK_CLIPTOP) {
       /* XXX no scaling for UI here yet */
-      UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymax - 6 * U.dpi_fac, 't', draw_color);
+      UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymax - 6 * UI_SCALE_FAC, 't', draw_color);
     }
     if (block->flag & UI_BLOCK_CLIPBOTTOM) {
       /* XXX no scaling for UI here yet */
-      UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymin + 10 * U.dpi_fac, 'v', draw_color);
+      UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymin + 10 * UI_SCALE_FAC, 'v', draw_color);
     }
   }
 }
@@ -5165,8 +5172,8 @@ void ui_draw_pie_center(uiBlock *block)
 
   float *pie_dir = block->pie_data.pie_dir;
 
-  const float pie_radius_internal = U.dpi_fac * U.pie_menu_threshold;
-  const float pie_radius_external = U.dpi_fac * (U.pie_menu_threshold + 7.0f);
+  const float pie_radius_internal = UI_SCALE_FAC * U.pie_menu_threshold;
+  const float pie_radius_external = UI_SCALE_FAC * (U.pie_menu_threshold + 7.0f);
 
   const int subd = 40;
 
@@ -5239,8 +5246,8 @@ void ui_draw_pie_center(uiBlock *block)
 
   if (U.pie_menu_confirm > 0 &&
       !(block->pie_data.flags & (UI_PIE_INVALID_DIR | UI_PIE_CLICK_STYLE))) {
-    const float pie_confirm_radius = U.dpi_fac * (pie_radius_internal + U.pie_menu_confirm);
-    const float pie_confirm_external = U.dpi_fac *
+    const float pie_confirm_radius = UI_SCALE_FAC * (pie_radius_internal + U.pie_menu_confirm);
+    const float pie_confirm_external = UI_SCALE_FAC *
                                        (pie_radius_internal + U.pie_menu_confirm + 7.0f);
 
     const uchar col[4] = {UNPACK3(btheme->tui.wcol_pie_menu.text_sel), 64};
@@ -5354,7 +5361,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
 
       if (separator_type == UI_MENU_ITEM_SEPARATOR_SHORTCUT) {
         /* Shrink rect to exclude the shortcut string. */
-        rect->xmax -= BLF_width(fstyle->uifont_id, cpoin + 1, INT_MAX) + UI_DPI_ICON_SIZE;
+        rect->xmax -= BLF_width(fstyle->uifont_id, cpoin + 1, INT_MAX) + UI_ICON_SIZE;
       }
       else if (separator_type == UI_MENU_ITEM_SEPARATOR_HINT) {
         /* Determine max-width for the hint string to leave the name string un-clipped (if there's
@@ -5383,7 +5390,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
     char drawstr[UI_MAX_DRAW_STR];
     const float okwidth = float(BLI_rcti_size_x(rect));
     const size_t max_len = sizeof(drawstr);
-    const float minwidth = float(UI_DPI_ICON_SIZE);
+    const float minwidth = float(UI_ICON_SIZE);
 
     BLI_strncpy(drawstr, name, sizeof(drawstr));
     if (drawstr[0]) {
@@ -5432,7 +5439,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
       char hint_drawstr[UI_MAX_DRAW_STR];
       {
         const size_t max_len = sizeof(hint_drawstr);
-        const float minwidth = float(UI_DPI_ICON_SIZE);
+        const float minwidth = float(UI_ICON_SIZE);
 
         BLI_strncpy(hint_drawstr, cpoin + 1, sizeof(hint_drawstr));
         if (hint_drawstr[0] && (max_hint_width < INT_MAX)) {
@@ -5485,7 +5492,7 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
     char drawstr[UI_MAX_DRAW_STR];
     const float okwidth = float(BLI_rcti_size_x(&trect));
     const size_t max_len = sizeof(drawstr);
-    const float minwidth = float(UI_DPI_ICON_SIZE);
+    const float minwidth = float(UI_ICON_SIZE);
 
     BLI_strncpy(drawstr, name, sizeof(drawstr));
     UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');

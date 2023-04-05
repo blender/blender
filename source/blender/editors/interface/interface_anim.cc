@@ -94,7 +94,7 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
         cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
       }
 
-      if (fcurve_frame_has_keyframe(fcu, cfra, 0)) {
+      if (fcurve_frame_has_keyframe(fcu, cfra)) {
         but->flag |= UI_BUT_ANIMATED_KEY;
       }
 

@@ -17,11 +17,14 @@
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_task.hh"
 
+#include "BLO_read_write.h"
+
 #include "DNA_curves_types.h"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
+#include "BKE_customdata.h"
 
 namespace blender::bke {
 
@@ -45,9 +48,7 @@ static const std::string ATTR_SURFACE_UV_COORDINATE = "surface_uv_coordinate";
 /** \name Constructors/Destructor
  * \{ */
 
-CurvesGeometry::CurvesGeometry() : CurvesGeometry(0, 0)
-{
-}
+CurvesGeometry::CurvesGeometry() : CurvesGeometry(0, 0) {}
 
 CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
 {
@@ -56,12 +57,8 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
   CustomData_reset(&this->point_data);
   CustomData_reset(&this->curve_data);
 
-  CustomData_add_layer_named(&this->point_data,
-                             CD_PROP_FLOAT3,
-                             CD_CONSTRUCT,
-                             nullptr,
-                             this->point_num,
-                             ATTR_POSITION.c_str());
+  CustomData_add_layer_named(
+      &this->point_data, CD_PROP_FLOAT3, CD_CONSTRUCT, this->point_num, ATTR_POSITION.c_str());
 
   this->curve_offsets = (int *)MEM_malloc_arrayN(this->curve_num + 1, sizeof(int), __func__);
 #ifdef DEBUG
@@ -227,8 +224,7 @@ static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
   if (data != nullptr) {
     return {data, num};
   }
-  data = (T *)CustomData_add_layer_named(
-      &custom_data, type, CD_SET_DEFAULT, nullptr, num, name.c_str());
+  data = (T *)CustomData_add_layer_named(&custom_data, type, CD_SET_DEFAULT, num, name.c_str());
   MutableSpan<T> span = {data, num};
   if (num > 0 && span.first() != default_value) {
     span.fill(default_value);
@@ -469,8 +465,12 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
   const VArray<int> resolution = curves.resolution();
   const VArray<bool> cyclic = curves.cyclic();
 
-  const VArraySpan<int8_t> handle_types_left{curves.handle_types_left()};
-  const VArraySpan<int8_t> handle_types_right{curves.handle_types_right()};
+  VArraySpan<int8_t> handle_types_left;
+  VArraySpan<int8_t> handle_types_right;
+  if (curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+    handle_types_left = curves.handle_types_left();
+    handle_types_right = curves.handle_types_right();
+  }
 
   const VArray<int8_t> nurbs_orders = curves.nurbs_orders();
   const VArray<int8_t> nurbs_knots_modes = curves.nurbs_knots_modes();
@@ -549,13 +549,8 @@ IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
 
 Array<int> CurvesGeometry::point_to_curve_map() const
 {
-  const OffsetIndices points_by_curve = this->points_by_curve();
   Array<int> map(this->points_num());
-  threading::parallel_for(this->curves_range(), 1024, [&](const IndexRange range) {
-    for (const int i_curve : range) {
-      map.as_mutable_span().slice(points_by_curve[i_curve]).fill(i_curve);
-    }
-  });
+  offset_indices::build_reverse_map(this->points_by_curve(), map);
   return map;
 }
 
@@ -862,7 +857,7 @@ void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
   const OffsetIndices points_by_curve = this->points_by_curve();
   const IndexRange points = points_by_curve[curve_index];
   BLI_assert(src.size() == points.size());
-  BLI_assert(dst.size() == this->evaluated_points_by_curve().size(curve_index));
+  BLI_assert(dst.size() == this->evaluated_points_by_curve()[curve_index].size());
   evaluate_generic_data_for_curve(curve_index,
                                   points,
                                   this->curve_types(),
@@ -979,10 +974,7 @@ void CurvesGeometry::tag_normals_changed()
 {
   this->runtime->evaluated_normal_cache.tag_dirty();
 }
-void CurvesGeometry::tag_radii_changed()
-{
-  this->runtime->bounds_cache.tag_dirty();
-}
+void CurvesGeometry::tag_radii_changed() {}
 
 static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
 {
@@ -1036,6 +1028,15 @@ void CurvesGeometry::calculate_bezier_auto_handles()
 
 void CurvesGeometry::translate(const float3 &translation)
 {
+  if (math::is_zero(translation)) {
+    return;
+  }
+
+  std::optional<Bounds<float3>> bounds;
+  if (this->runtime->bounds_cache.is_cached()) {
+    bounds = this->runtime->bounds_cache.data();
+  }
+
   translate_positions(this->positions_for_write(), translation);
   if (!this->handle_positions_left().is_empty()) {
     translate_positions(this->handle_positions_left_for_write(), translation);
@@ -1044,6 +1045,12 @@ void CurvesGeometry::translate(const float3 &translation)
     translate_positions(this->handle_positions_right_for_write(), translation);
   }
   this->tag_positions_changed();
+
+  if (bounds) {
+    bounds->min += translation;
+    bounds->max += translation;
+    this->runtime->bounds_cache.ensure([&](blender::Bounds<float3> &r_data) { r_data = *bounds; });
+  }
 }
 
 void CurvesGeometry::transform(const float4x4 &matrix)
@@ -1064,19 +1071,8 @@ bool CurvesGeometry::bounds_min_max(float3 &min, float3 &max) const
     return false;
   }
 
-  this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
-    const Span<float3> positions = this->evaluated_positions();
-    if (this->attributes().contains("radius")) {
-      const VArraySpan<float> radii = this->attributes().lookup<float>("radius");
-      Array<float> evaluated_radii(this->evaluated_points_num());
-      this->ensure_can_interpolate_to_evaluated();
-      this->interpolate_to_evaluated(radii, evaluated_radii.as_mutable_span());
-      r_bounds = *bounds::min_max_with_radii(positions, evaluated_radii.as_span());
-    }
-    else {
-      r_bounds = *bounds::min_max(positions);
-    }
-  });
+  this->runtime->bounds_cache.ensure(
+      [&](Bounds<float3> &r_bounds) { r_bounds = *bounds::min_max(this->evaluated_positions()); });
 
   const Bounds<float3> &bounds = this->runtime->bounds_cache.data();
   min = math::min(bounds.min, min);
@@ -1576,6 +1572,35 @@ GVArray CurvesGeometry::adapt_domain(const GVArray &varray,
 
   BLI_assert_unreachable();
   return {};
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name File reading/writing.
+ * \{ */
+
+void CurvesGeometry::blend_read(BlendDataReader &reader)
+{
+  CustomData_blend_read(&reader, &this->point_data, this->point_num);
+  CustomData_blend_read(&reader, &this->curve_data, this->curve_num);
+
+  BLO_read_int32_array(&reader, this->curve_num + 1, &this->curve_offsets);
+}
+
+void CurvesGeometry::blend_write(BlendWriter &writer, ID &id)
+{
+  Vector<CustomDataLayer, 16> point_layers;
+  Vector<CustomDataLayer, 16> curve_layers;
+  CustomData_blend_write_prepare(this->point_data, point_layers);
+  CustomData_blend_write_prepare(this->curve_data, curve_layers);
+
+  CustomData_blend_write(
+      &writer, &this->point_data, point_layers, this->point_num, CD_MASK_ALL, &id);
+  CustomData_blend_write(
+      &writer, &this->curve_data, curve_layers, this->curve_num, CD_MASK_ALL, &id);
+
+  BLO_write_int32_array(&writer, this->curve_num + 1, this->curve_offsets);
 }
 
 /** \} */

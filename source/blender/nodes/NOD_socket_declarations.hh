@@ -383,29 +383,17 @@ inline StringBuilder &StringBuilder::default_value(std::string value)
 /** \name #IDSocketDeclaration and Children Inline Methods
  * \{ */
 
-inline IDSocketDeclaration::IDSocketDeclaration(const char *idname) : idname(idname)
-{
-}
+inline IDSocketDeclaration::IDSocketDeclaration(const char *idname) : idname(idname) {}
 
-inline Object::Object() : IDSocketDeclaration("NodeSocketObject")
-{
-}
+inline Object::Object() : IDSocketDeclaration("NodeSocketObject") {}
 
-inline Material::Material() : IDSocketDeclaration("NodeSocketMaterial")
-{
-}
+inline Material::Material() : IDSocketDeclaration("NodeSocketMaterial") {}
 
-inline Collection::Collection() : IDSocketDeclaration("NodeSocketCollection")
-{
-}
+inline Collection::Collection() : IDSocketDeclaration("NodeSocketCollection") {}
 
-inline Texture::Texture() : IDSocketDeclaration("NodeSocketTexture")
-{
-}
+inline Texture::Texture() : IDSocketDeclaration("NodeSocketTexture") {}
 
-inline Image::Image() : IDSocketDeclaration("NodeSocketImage")
-{
-}
+inline Image::Image() : IDSocketDeclaration("NodeSocketImage") {}
 
 /** \} */
 

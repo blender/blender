@@ -3287,7 +3287,7 @@ static bool is_action_track_evaluated_without_nla(const AnimData *adt,
  * sure why. Preferably, it would be as simple as checking for `(adt->act_Track == nlt)` but that
  * doesn't work either, neither does comparing indices.
  *
- *  This function is a temporary work around. The first disabled track is always the tweaked track.
+ * This function is a temporary work around. The first disabled track is always the tweaked track.
  */
 static NlaTrack *nlatrack_find_tweaked(const AnimData *adt)
 {
@@ -3767,12 +3767,12 @@ void BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
   NlaEvalChannelSnapshot *blended_necs = nlaeval_snapshot_ensure_channel(&blended_snapshot, nec);
   memcpy(blended_necs->values, values, sizeof(float) * count);
 
-  /* Force all channels to be remapped for quaternions in a Combine strip, otherwise it will
-   * always fail. See nlaevalchan_combine_quaternion_handle_undefined_blend_values().
+  /* Force all channels to be remapped for quaternions in a Combine or Replace strip, otherwise it
+   * will always fail. See nlaevalchan_combine_quaternion_handle_undefined_blend_values().
    */
   const bool can_force_all = r_force_all != NULL;
   if (blended_necs->channel->mix_mode == NEC_MIX_QUATERNION &&
-      blend_mode == NLASTRIP_MODE_COMBINE && can_force_all) {
+      ELEM(blend_mode, NLASTRIP_MODE_COMBINE, NLASTRIP_MODE_REPLACE) && can_force_all) {
 
     *r_force_all = true;
     index = -1;

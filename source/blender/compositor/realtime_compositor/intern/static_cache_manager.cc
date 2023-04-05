@@ -5,6 +5,7 @@
 #include "BLI_math_vector_types.hh"
 
 #include "COM_morphological_distance_feather_weights.hh"
+#include "COM_smaa_precomputed_textures.hh"
 #include "COM_symmetric_blur_weights.hh"
 #include "COM_symmetric_separable_blur_weights.hh"
 
@@ -22,6 +23,9 @@ void StaticCacheManager::reset()
   symmetric_blur_weights_.remove_if([](auto item) { return !item.value->needed; });
   symmetric_separable_blur_weights_.remove_if([](auto item) { return !item.value->needed; });
   morphological_distance_feather_weights_.remove_if([](auto item) { return !item.value->needed; });
+  if (smaa_precomputed_textures_ && !smaa_precomputed_textures_->needed) {
+    smaa_precomputed_textures_.reset();
+  }
 
   /* Second, reset the needed status of the remaining resources to false to ready them to track
    * their needed status for the next evaluation. */
@@ -33,6 +37,9 @@ void StaticCacheManager::reset()
   }
   for (auto &value : morphological_distance_feather_weights_.values()) {
     value->needed = false;
+  }
+  if (smaa_precomputed_textures_) {
+    smaa_precomputed_textures_->needed = false;
   }
 }
 
@@ -69,6 +76,16 @@ MorphologicalDistanceFeatherWeights &StaticCacheManager::
 
   weights.needed = true;
   return weights;
+}
+
+SMAAPrecomputedTextures &StaticCacheManager::get_smaa_precomputed_textures()
+{
+  if (!smaa_precomputed_textures_) {
+    smaa_precomputed_textures_ = std::make_unique<SMAAPrecomputedTextures>();
+  }
+
+  smaa_precomputed_textures_->needed = true;
+  return *smaa_precomputed_textures_;
 }
 
 }  // namespace blender::realtime_compositor

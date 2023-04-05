@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup editors
@@ -419,6 +419,11 @@ void paintface_select_linked(struct bContext *C,
                              struct Object *ob,
                              const int mval[2],
                              bool select);
+/** Grow the selection of faces.
+ * \param face_step If true will also select faces that only touch on the corner.
+ */
+void paintface_select_more(struct Mesh *mesh, bool face_step);
+void paintface_select_less(struct Mesh *mesh, bool face_step);
 bool paintface_minmax(struct Object *ob, float r_min[3], float r_max[3]);
 
 void paintface_hide(struct bContext *C, struct Object *ob, bool unselected);
@@ -444,6 +449,8 @@ void paintvert_select_linked_pick(struct bContext *C,
                                   struct Object *ob,
                                   const int region_coordinates[2],
                                   bool select);
+void paintvert_select_more(struct Mesh *mesh, bool face_step);
+void paintvert_select_less(struct Mesh *mesh, bool face_step);
 void paintvert_hide(struct bContext *C, struct Object *ob, bool unselected);
 void paintvert_reveal(struct bContext *C, struct Object *ob, bool select);
 
@@ -570,9 +577,6 @@ bool ED_mesh_edge_is_loose(const struct Mesh *mesh, int index);
 void ED_mesh_uv_ensure(struct Mesh *me, const char *name);
 int ED_mesh_uv_add(
     struct Mesh *me, const char *name, bool active_set, bool do_init, struct ReportList *reports);
-bool ED_mesh_uv_remove_index(struct Mesh *me, int n);
-bool ED_mesh_uv_remove_active(struct Mesh *me);
-bool ED_mesh_uv_remove_named(struct Mesh *me, const char *name);
 
 void ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me);
 /**

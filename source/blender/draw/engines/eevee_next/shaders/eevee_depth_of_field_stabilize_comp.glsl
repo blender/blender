@@ -26,9 +26,7 @@ struct DofSample {
 #ifdef GPU_METAL
   /* Explicit constructors -- To support GLSL syntax. */
   inline DofSample() = default;
-  inline DofSample(vec4 in_color, float in_coc) : color(in_color), coc(in_coc)
-  {
-  }
+  inline DofSample(vec4 in_color, float in_coc) : color(in_color), coc(in_coc) {}
 #endif
 };
 
@@ -157,9 +155,7 @@ struct DofNeighborhoodMinMax {
 #ifdef GPU_METAL
   /* Explicit constructors -- To support GLSL syntax. */
   inline DofNeighborhoodMinMax() = default;
-  inline DofNeighborhoodMinMax(DofSample in_min, DofSample in_max) : min(in_min), max(in_max)
-  {
-  }
+  inline DofNeighborhoodMinMax(DofSample in_min, DofSample in_max) : min(in_min), max(in_max) {}
 #endif
 };
 

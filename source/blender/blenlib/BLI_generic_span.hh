@@ -32,17 +32,11 @@ class GSpan {
     BLI_assert(type == nullptr || type->pointer_has_valid_alignment(buffer));
   }
 
-  GSpan(const CPPType &type, const void *buffer, int64_t size) : GSpan(&type, buffer, size)
-  {
-  }
+  GSpan(const CPPType &type, const void *buffer, int64_t size) : GSpan(&type, buffer, size) {}
 
-  GSpan(const CPPType &type) : type_(&type)
-  {
-  }
+  GSpan(const CPPType &type) : type_(&type) {}
 
-  GSpan(const CPPType *type) : type_(type)
-  {
-  }
+  GSpan(const CPPType *type) : type_(type) {}
 
   template<typename T>
   GSpan(Span<T> array)
@@ -156,13 +150,9 @@ class GMutableSpan {
   {
   }
 
-  GMutableSpan(const CPPType &type) : type_(&type)
-  {
-  }
+  GMutableSpan(const CPPType &type) : type_(&type) {}
 
-  GMutableSpan(const CPPType *type) : type_(type)
-  {
-  }
+  GMutableSpan(const CPPType *type) : type_(type) {}
 
   template<typename T>
   GMutableSpan(MutableSpan<T> array)

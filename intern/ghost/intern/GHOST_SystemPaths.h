@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup GHOST
@@ -15,17 +15,13 @@ class GHOST_SystemPaths : public GHOST_ISystemPaths {
    * Constructor.
    * Protected default constructor to force use of static createSystem member.
    */
-  GHOST_SystemPaths()
-  {
-  }
+  GHOST_SystemPaths() {}
 
   /**
    * Destructor.
    * Protected default constructor to force use of static dispose member.
    */
-  virtual ~GHOST_SystemPaths()
-  {
-  }
+  virtual ~GHOST_SystemPaths() {}
 
  public:
   /**

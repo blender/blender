@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+ * Copyright 2004 Blender Foundation */
 
 /** \file
  * \ingroup spoutliner
@@ -8,8 +8,8 @@
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_object_force_types.h"
@@ -30,7 +30,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_deform.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -119,7 +119,7 @@ static bool is_object_data_in_editmode(const ID *id, const Object *obact)
 
   const short id_type = GS(id->name);
 
-  if (id_type == ID_GD && obact && obact->data == id) {
+  if (id_type == ID_GD_LEGACY && obact && obact->data == id) {
     bGPdata *gpd = (bGPdata *)id;
     return GPENCIL_EDIT_MODE(gpd);
   }
@@ -1747,7 +1747,7 @@ static void outliner_draw_userbuts(uiBlock *block,
     uiBut *bt;
     ID *id = tselem->id;
     const char *tip = nullptr;
-    char buf[16] = "";
+    char buf[BLI_STR_FORMAT_INT32_GROUPED_SIZE] = "";
     int but_flag = UI_BUT_DRAG_LOCK;
 
     if (ID_IS_LINKED(id)) {
@@ -1803,7 +1803,7 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
                                              const ListBase *lb,
                                              const int x)
 {
-  const float pad_x = 2.0f * UI_DPI_FAC;
+  const float pad_x = 2.0f * UI_SCALE_FAC;
   const float pad_y = 0.5f * U.pixelsize;
   const float item_max_width = round_fl_to_int(OL_RNA_COL_SIZEX - 2 * pad_x);
   const float item_height = round_fl_to_int(UI_UNIT_Y - 2.0f * pad_y);
@@ -2357,7 +2357,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
         else {
           return ICON_OUTLINER_OB_EMPTY;
         }
-      case OB_GPENCIL:
+      case OB_GPENCIL_LEGACY:
         return ICON_OUTLINER_OB_GREASEPENCIL;
     }
 
@@ -2454,7 +2454,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
       }
     case ID_LS:
       return ICON_LINE_DATA;
-    case ID_GD:
+    case ID_GD_LEGACY:
       return ICON_OUTLINER_DATA_GREASEPENCIL;
     case ID_LP: {
       const LightProbe *lp = (LightProbe *)id;
@@ -2645,7 +2645,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         Object *ob = (Object *)tselem->id;
         data.drag_id = tselem->id;
 
-        if (ob->type != OB_GPENCIL) {
+        if (ob->type != OB_GPENCIL_LEGACY) {
           ModifierData *md = static_cast<ModifierData *>(BLI_findlink(&ob->modifiers, tselem->nr));
           const ModifierTypeInfo *modifier_type = static_cast<const ModifierTypeInfo *>(
               BKE_modifier_get_info((ModifierType)md->type));
@@ -2903,7 +2903,7 @@ static bool tselem_draw_icon(uiBlock *block,
         UI_icon_draw_ex(x,
                         y,
                         data.icon,
-                        U.inv_dpi_fac,
+                        UI_INV_SCALE_FAC,
                         alpha,
                         0.0f,
                         btheme->collection_color[collection->color_tag].color,
@@ -2919,10 +2919,11 @@ static bool tselem_draw_icon(uiBlock *block,
     /* Restrict column clip. it has been coded by simply overdrawing, doesn't work for buttons. */
     uchar color[4];
     if (UI_icon_get_theme_color(data.icon, color)) {
-      UI_icon_draw_ex(x, y, data.icon, U.inv_dpi_fac, alpha, 0.0f, color, true, &text_overlay);
+      UI_icon_draw_ex(x, y, data.icon, UI_INV_SCALE_FAC, alpha, 0.0f, color, true, &text_overlay);
     }
     else {
-      UI_icon_draw_ex(x, y, data.icon, U.inv_dpi_fac, alpha, 0.0f, nullptr, false, &text_overlay);
+      UI_icon_draw_ex(
+          x, y, data.icon, UI_INV_SCALE_FAC, alpha, 0.0f, nullptr, false, &text_overlay);
     }
   }
   else {
@@ -3529,7 +3530,7 @@ static void outliner_draw_hierarchy_lines(SpaceOutliner *space_outliner,
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
-  immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+  immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
   immUniform1i("colors_len", 0); /* "simple"  mode */
   immUniform1f("dash_width", 8.0f);
   UI_GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.4f, col);
@@ -3813,7 +3814,8 @@ static int outliner_width(SpaceOutliner *space_outliner,
                           float right_column_width)
 {
   if (space_outliner->outlinevis == SO_DATA_API) {
-    return outliner_data_api_buttons_start_x(max_tree_width) + OL_RNA_COL_SIZEX + 10 * UI_DPI_FAC;
+    return outliner_data_api_buttons_start_x(max_tree_width) + OL_RNA_COL_SIZEX +
+           10 * UI_SCALE_FAC;
   }
   return max_tree_width + right_column_width;
 }

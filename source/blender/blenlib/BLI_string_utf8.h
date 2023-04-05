@@ -103,6 +103,11 @@ size_t BLI_str_utf8_as_utf32(char32_t *__restrict dst_w,
 size_t BLI_str_utf32_as_utf8(char *__restrict dst, const char32_t *__restrict src, size_t maxncpy)
     ATTR_NONNULL(1, 2);
 /**
+ * \return The UTF-32 len in UTF-8 with a clamped length.
+ */
+size_t BLI_str_utf32_as_utf8_len_ex(const char32_t *src, size_t src_maxlen) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1);
+/**
  * \return The UTF-32 len in UTF-8.
  */
 size_t BLI_str_utf32_as_utf8_len(const char32_t *src) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);

@@ -33,10 +33,13 @@ AssetHandle *ED_assetlist_asset_get_from_index(const AssetLibraryReference *libr
                                                int index);
 
 /* Can return false to stop iterating. */
-using AssetListIterFn = blender::FunctionRef<bool(AssetHandle &)>;
+using AssetListIterFn = blender::FunctionRef<bool(AssetHandle)>;
 /**
  * Iterate the currently loaded assets for the referenced asset library, calling \a fn for each
  * asset. This may be executed while the asset list is loading asynchronously. Assets will then be
  * included as they get done loading.
+ * 
+ * \warning Never keep the asset handle passed to \a fn outside of \a fn's scope. While iterating,
+ * the file data wrapped by the asset handle can be freed, since the file cache has a maximum size.
  */
 void ED_assetlist_iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn);

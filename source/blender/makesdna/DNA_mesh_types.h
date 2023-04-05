@@ -16,7 +16,9 @@
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
 
+#  include "BLI_bounds_types.hh"
 #  include "BLI_math_vector_types.hh"
+#  include "BLI_offset_indices.hh"
 
 namespace blender {
 template<typename T> class Span;
@@ -68,10 +70,16 @@ typedef struct Mesh {
   int totvert;
   /** The number of edges (#MEdge) in the mesh, and the size of #edata. */
   int totedge;
-  /** The number of polygons/faces (#MPoly) in the mesh, and the size of #pdata. */
+  /** The number of polygons/faces in the mesh, and the size of #pdata. */
   int totpoly;
-  /** The number of face corners (#MLoop) in the mesh, and the size of #ldata. */
+  /** The number of face corners in the mesh, and the size of #ldata. */
   int totloop;
+
+  /**
+   * Array owned by mesh. May be null of there are no polygons. Index of the first corner of each
+   * polygon, with the total number of corners at the end. See #Mesh::polys() and #OffsetIndices.
+   */
+  int *poly_offset_indices;
 
   CustomData vdata, edata, pdata, ldata;
 
@@ -225,25 +233,45 @@ typedef struct Mesh {
   blender::MutableSpan<blender::float3> vert_positions_for_write();
   /**
    * Array of edges, containing vertex indices. For simple triangle or quad meshes, edges could be
-   * calculated from the #MPoly and #MLoop arrays, however, edges need to be stored explicitly to
-   * edge domain attributes and to support loose edges that aren't connected to faces.
+   * calculated from the polygon and "corner edge" arrays, however, edges need to be stored
+   * explicitly to edge domain attributes and to support loose edges that aren't connected to
+   * faces.
    */
   blender::Span<MEdge> edges() const;
   /** Write access to edge data. */
   blender::MutableSpan<MEdge> edges_for_write();
   /**
-   * Face topology storage of the size and offset of each face's section of the face corners.
+   * Face topology storage of the offset of each face's section of the face corners. The size of
+   * each polygon is encoded using the next offset value. Can be used to slice the #corner_verts or
+   * #corner_edges arrays to find the vertices or edges that make up each face.
    */
-  blender::Span<MPoly> polys() const;
-  /** Write access to polygon data. */
-  blender::MutableSpan<MPoly> polys_for_write();
+  blender::OffsetIndices<int> polys() const;
+  /** The first corner index of every polygon. */
+  blender::Span<int> poly_offsets() const;
+  /** Write access to #poly_offsets data. */
+  blender::MutableSpan<int> poly_offsets_for_write();
+
   /**
-   * Mesh face corners that "loop" around each face, storing the vertex index and the index of the
-   * subsequent edge.
+   * Array of vertices for every face corner,  stored in the ".corner_vert" integer attribute.
+   * For example, the vertices in a face can be retrieved with the #slice method:
+   * \code{.cc}
+   * const Span<int> poly_verts = corner_verts.slice(poly.loopstart, poly.totloop);
+   * \endcode
+   * Such a span can often be passed as an argument in lieu of a polygon and the entire corner
+   * verts array.
    */
-  blender::Span<MLoop> loops() const;
-  /** Write access to loop data. */
-  blender::MutableSpan<MLoop> loops_for_write();
+  blender::Span<int> corner_verts() const;
+  /** Write access to the #corner_verts data. */
+  blender::MutableSpan<int> corner_verts_for_write();
+
+  /**
+   * Array of edges following every face corner traveling around each face, stored in the
+   * ".corner_edge" attribute. The array sliced the same way as the #corner_verts data. The edge
+   * previous to a corner must be accessed with the index of the previous face corner.
+   */
+  blender::Span<int> corner_edges() const;
+  /** Write access to the #corner_edges data. */
+  blender::MutableSpan<int> corner_edges_for_write();
 
   blender::bke::AttributeAccessor attributes() const;
   blender::bke::MutableAttributeAccessor attributes_for_write();
@@ -261,6 +289,9 @@ typedef struct Mesh {
    */
   blender::Span<MLoopTri> looptris() const;
 
+  /** Set cached mesh bounds to a known-correct value to avoid their lazy calculation later on. */
+  void bounds_set_eager(const blender::Bounds<blender::float3> &bounds);
+
   /**
    * Cached information about loose edges, calculated lazily when necessary.
    */
@@ -275,15 +306,14 @@ typedef struct Mesh {
   void loose_edges_tag_none() const;
 
   /**
-   * Normal direction of every polygon, which is defined by the winding direction of its corners.
+   * Normal direction of polygons, defined by positions and the winding direction of face corners.
    */
   blender::Span<blender::float3> poly_normals() const;
   /**
-   * Normal direction for each vertex, which is defined as the weighted average of the normals
-   * from a vertices surrounding faces, or the normalized position of vertices connected to no
-   * faces.
+   * Normal direction of vertices, defined as the weighted average of face normals
+   * surrounding each vertex and the normalized position for loose vertices.
    */
-  blender::Span<blender::float3> vertex_normals() const;
+  blender::Span<blender::float3> vert_normals() const;
 #endif
 } Mesh;
 

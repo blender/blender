@@ -651,6 +651,18 @@ size_t BLI_str_utf32_as_utf8(char *__restrict dst,
   return len;
 }
 
+size_t BLI_str_utf32_as_utf8_len_ex(const char32_t *src, const size_t src_maxlen)
+{
+  size_t len = 0;
+  const char32_t *src_end = src + src_maxlen;
+
+  while ((src < src_end) && *src) {
+    len += BLI_str_utf8_from_unicode_len((uint)*src++);
+  }
+
+  return len;
+}
+
 size_t BLI_str_utf32_as_utf8_len(const char32_t *src)
 {
   size_t len = 0;

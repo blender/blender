@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edscr
@@ -1207,7 +1207,7 @@ static ScrEdge *screen_area_edge_from_cursor(const bContext *C,
   if (actedge == NULL) {
     return NULL;
   }
-  int borderwidth = (4 * UI_DPI_FAC);
+  int borderwidth = (4 * UI_SCALE_FAC);
   ScrArea *sa1, *sa2;
   if (screen_geom_edge_is_horizontal(actedge)) {
     sa1 = BKE_screen_find_area_xy(
@@ -1638,7 +1638,7 @@ static void area_move_set_limits(wmWindow *win,
       }
     }
     else {
-      int areamin = AREAMINX * U.dpi_fac;
+      int areamin = AREAMINX * UI_SCALE_FAC;
 
       if (area->v1->vec.x > window_rect.xmin) {
         areamin += U.pixelsize;
@@ -1847,7 +1847,7 @@ static void area_move_apply_do(const bContext *C,
       if (area->v1->editflag || area->v2->editflag || area->v3->editflag || area->v4->editflag) {
         if (ED_area_is_global(area)) {
           /* Snap to minimum or maximum for global areas. */
-          int height = round_fl_to_int(screen_geom_area_height(area) / UI_DPI_FAC);
+          int height = round_fl_to_int(screen_geom_area_height(area) / UI_SCALE_FAC);
           if (abs(height - area->global->size_min) < abs(height - area->global->size_max)) {
             area->global->cur_fixed_height = area->global->size_min;
           }
@@ -2061,7 +2061,7 @@ static bool area_split_allowed(const ScrArea *area, const eScreenAxis dir_axis)
     return false;
   }
 
-  if ((dir_axis == SCREEN_AXIS_V && area->winx <= 2 * AREAMINX * U.dpi_fac) ||
+  if ((dir_axis == SCREEN_AXIS_V && area->winx <= 2 * AREAMINX * UI_SCALE_FAC) ||
       (dir_axis == SCREEN_AXIS_H && area->winy <= 2 * ED_area_headersize())) {
     /* Must be at least double minimum sizes to split into two. */
     return false;
@@ -2639,7 +2639,7 @@ static int area_max_regionsize(ScrArea *area, ARegion *scale_region, AZEdge edge
     }
   }
 
-  dist /= UI_DPI_FAC;
+  dist /= UI_SCALE_FAC;
   return dist;
 }
 
@@ -2731,7 +2731,7 @@ static void region_scale_validate_size(RegionMoveData *rmd)
       size = &rmd->region->sizey;
     }
 
-    maxsize = rmd->maxsize - (UI_UNIT_Y / UI_DPI_FAC);
+    maxsize = rmd->maxsize - (UI_UNIT_Y / UI_SCALE_FAC);
 
     if (*size > maxsize && maxsize > 0) {
       *size = maxsize;
@@ -2781,7 +2781,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
 
         /* region sizes now get multiplied */
-        delta /= UI_DPI_FAC;
+        delta /= UI_SCALE_FAC;
 
         const int size_no_snap = rmd->origval + delta;
         rmd->region->sizex = size_no_snap;
@@ -2814,7 +2814,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
 
         /* region sizes now get multiplied */
-        delta /= UI_DPI_FAC;
+        delta /= UI_SCALE_FAC;
 
         const int size_no_snap = rmd->origval + delta;
         rmd->region->sizey = size_no_snap;
@@ -3084,7 +3084,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   if (ob) {
     ob_to_keylist(&ads, ob, keylist, 0);
 
-    if (ob->type == OB_GPENCIL) {
+    if (ob->type == OB_GPENCIL_LEGACY) {
       const bool active = !(scene->flag & SCE_KEYS_NO_SELONLY);
       gpencil_to_keylist(&ads, ob->data, keylist, active);
     }
@@ -4342,6 +4342,7 @@ static void ed_screens_statusbar_menu_create(uiLayout *layout, void *UNUSED(arg)
 
   RNA_pointer_create(NULL, &RNA_PreferencesView, &U, &ptr);
   uiItemR(layout, &ptr, "show_statusbar_stats", 0, IFACE_("Scene Statistics"), ICON_NONE);
+  uiItemR(layout, &ptr, "show_statusbar_scene_duration", 0, IFACE_("Scene Duration"), ICON_NONE);
   uiItemR(layout, &ptr, "show_statusbar_memory", 0, IFACE_("System Memory"), ICON_NONE);
   if (GPU_mem_stats_supported()) {
     uiItemR(layout, &ptr, "show_statusbar_vram", 0, IFACE_("Video Memory"), ICON_NONE);
@@ -5044,8 +5045,8 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
   wmWindow *win_cur = CTX_wm_window(C);
   /* Use eventstate, not event from _invoke, so this can be called through exec(). */
   const wmEvent *event = win_cur->eventstate;
-  int sizex = (500 + UI_NAVIGATION_REGION_WIDTH) * UI_DPI_FAC;
-  int sizey = 520 * UI_DPI_FAC;
+  int sizex = (500 + UI_NAVIGATION_REGION_WIDTH) * UI_SCALE_FAC;
+  int sizey = 520 * UI_SCALE_FAC;
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "section");
   if (prop && RNA_property_is_set(op->ptr, prop)) {
@@ -5077,11 +5078,6 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
     ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 
     region->flag |= RGN_FLAG_HIDDEN;
-    ED_region_visibility_change_update(C, area, region);
-
-    /* And also show the region with "Load & Save" buttons. */
-    region = BKE_area_find_region_type(area, RGN_TYPE_EXECUTE);
-    region->flag &= ~RGN_FLAG_HIDDEN;
     ED_region_visibility_change_update(C, area, region);
 
     return OPERATOR_FINISHED;
@@ -5124,8 +5120,8 @@ static int drivers_editor_show_exec(bContext *C, wmOperator *op)
   /* Use eventstate, not event from _invoke, so this can be called through exec(). */
   const wmEvent *event = win_cur->eventstate;
 
-  int sizex = 900 * UI_DPI_FAC;
-  int sizey = 580 * UI_DPI_FAC;
+  int sizex = 900 * UI_SCALE_FAC;
+  int sizey = 580 * UI_SCALE_FAC;
 
   /* Get active property to show driver for
    * - Need to grab it first, or else this info disappears
@@ -5201,8 +5197,8 @@ static int info_log_show_exec(bContext *C, wmOperator *op)
   wmWindow *win_cur = CTX_wm_window(C);
   /* Use eventstate, not event from _invoke, so this can be called through exec(). */
   const wmEvent *event = win_cur->eventstate;
-  int sizex = 900 * UI_DPI_FAC;
-  int sizey = 580 * UI_DPI_FAC;
+  int sizex = 900 * UI_SCALE_FAC;
+  int sizey = 580 * UI_SCALE_FAC;
   int shift_y = 480;
 
   /* changes context! */
@@ -5749,7 +5745,8 @@ static void keymap_modal_set(wmKeyConfig *keyconf)
 static bool blend_file_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, ICON_FILE_BLEND, ICON_FILE_BACKUP, ICON_BLENDER)) {
+    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    if (ELEM(file_type, FILE_TYPE_BLENDER, FILE_TYPE_BLENDER_BACKUP)) {
       return true;
     }
   }
@@ -5759,7 +5756,7 @@ static bool blend_file_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEven
 static void blend_file_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   /* copy drag path to properties */
-  RNA_string_set(drop->ptr, "filepath", drag->path);
+  RNA_string_set(drop->ptr, "filepath", WM_drag_get_path(drag));
 }
 
 void ED_keymap_screen(wmKeyConfig *keyconf)

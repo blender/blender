@@ -12,7 +12,7 @@
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "BKE_curve_to_mesh.hh"
 
@@ -28,8 +28,9 @@ static void fill_mesh_topology(const int vert_offset,
                                const bool profile_cyclic,
                                const bool fill_caps,
                                MutableSpan<MEdge> edges,
-                               MutableSpan<MLoop> loops,
-                               MutableSpan<MPoly> polys)
+                               MutableSpan<int> corner_verts,
+                               MutableSpan<int> corner_edges,
+                               MutableSpan<int> poly_offsets)
 {
   const int main_segment_num = curves::segments_num(main_point_num, main_cyclic);
   const int profile_segment_num = curves::segments_num(profile_point_num, profile_cyclic);
@@ -100,23 +101,19 @@ static void fill_mesh_topology(const int vert_offset,
       const int main_edge_start = main_edges_start + main_segment_num * i_profile;
       const int next_main_edge_start = main_edges_start + main_segment_num * i_next_profile;
 
-      MPoly &poly = polys[ring_poly_offset + i_profile];
-      poly.loopstart = ring_segment_loop_offset;
-      poly.totloop = 4;
-      poly.flag = ME_SMOOTH;
+      poly_offsets[ring_poly_offset + i_profile] = ring_segment_loop_offset;
 
-      MLoop &loop_a = loops[ring_segment_loop_offset];
-      loop_a.v = ring_vert_offset + i_profile;
-      loop_a.e = ring_edge_start + i_profile;
-      MLoop &loop_b = loops[ring_segment_loop_offset + 1];
-      loop_b.v = ring_vert_offset + i_next_profile;
-      loop_b.e = next_main_edge_start + i_ring;
-      MLoop &loop_c = loops[ring_segment_loop_offset + 2];
-      loop_c.v = next_ring_vert_offset + i_next_profile;
-      loop_c.e = next_ring_edge_offset + i_profile;
-      MLoop &loop_d = loops[ring_segment_loop_offset + 3];
-      loop_d.v = next_ring_vert_offset + i_profile;
-      loop_d.e = main_edge_start + i_ring;
+      corner_verts[ring_segment_loop_offset] = ring_vert_offset + i_profile;
+      corner_edges[ring_segment_loop_offset] = ring_edge_start + i_profile;
+
+      corner_verts[ring_segment_loop_offset + 1] = ring_vert_offset + i_next_profile;
+      corner_edges[ring_segment_loop_offset + 1] = next_main_edge_start + i_ring;
+
+      corner_verts[ring_segment_loop_offset + 2] = next_ring_vert_offset + i_next_profile;
+      corner_edges[ring_segment_loop_offset + 2] = next_ring_edge_offset + i_profile;
+
+      corner_verts[ring_segment_loop_offset + 3] = next_ring_vert_offset + i_profile;
+      corner_edges[ring_segment_loop_offset + 3] = main_edge_start + i_ring;
     }
   }
 
@@ -126,12 +123,8 @@ static void fill_mesh_topology(const int vert_offset,
     const int cap_loop_offset = loop_offset + poly_num * 4;
     const int cap_poly_offset = poly_offset + poly_num;
 
-    MPoly &poly_start = polys[cap_poly_offset];
-    poly_start.loopstart = cap_loop_offset;
-    poly_start.totloop = profile_segment_num;
-    MPoly &poly_end = polys[cap_poly_offset + 1];
-    poly_end.loopstart = cap_loop_offset + profile_segment_num;
-    poly_end.totloop = profile_segment_num;
+    poly_offsets[cap_poly_offset] = cap_loop_offset;
+    poly_offsets[cap_poly_offset + 1] = cap_loop_offset + profile_segment_num;
 
     const int last_ring_index = main_point_num - 1;
     const int last_ring_vert_offset = vert_offset + profile_point_num * last_ring_index;
@@ -139,13 +132,12 @@ static void fill_mesh_topology(const int vert_offset,
 
     for (const int i : IndexRange(profile_segment_num)) {
       const int i_inv = profile_segment_num - i - 1;
-      MLoop &loop_start = loops[cap_loop_offset + i];
-      loop_start.v = vert_offset + i_inv;
-      loop_start.e = profile_edges_start +
-                     ((i == (profile_segment_num - 1)) ? (profile_segment_num - 1) : (i_inv - 1));
-      MLoop &loop_end = loops[cap_loop_offset + profile_segment_num + i];
-      loop_end.v = last_ring_vert_offset + i;
-      loop_end.e = last_ring_edge_offset + i;
+      corner_verts[cap_loop_offset + i] = vert_offset + i_inv;
+      corner_edges[cap_loop_offset + i] = profile_edges_start + ((i == (profile_segment_num - 1)) ?
+                                                                     (profile_segment_num - 1) :
+                                                                     (i_inv - 1));
+      corner_verts[cap_loop_offset + profile_segment_num + i] = last_ring_vert_offset + i;
+      corner_edges[cap_loop_offset + profile_segment_num + i] = last_ring_edge_offset + i;
     }
   }
 }
@@ -220,6 +212,16 @@ static CurvesInfo get_curves_info(const CurvesGeometry &main, const CurvesGeomet
   return {main, profile, main.cyclic(), profile.cyclic()};
 }
 
+static bool offsets_contain_single_point(const OffsetIndices<int> offsets)
+{
+  for (const int64_t i : offsets.index_range()) {
+    if (offsets[i].size() == 1) {
+      return true;
+    }
+  }
+  return false;
+}
+
 struct ResultOffsets {
   /** The total number of curve combinations. */
   int total;
@@ -233,68 +235,90 @@ struct ResultOffsets {
   /* The indices of the main and profile curves that form each combination. */
   Array<int> main_indices;
   Array<int> profile_indices;
+
+  /** Whether any curve in the profile or curve input has only a single evaluated point. */
+  bool any_single_point_curve;
 };
 static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool fill_caps)
 {
   ResultOffsets result;
   result.total = info.main.curves_num() * info.profile.curves_num();
-  result.vert.reinitialize(result.total + 1);
-  result.edge.reinitialize(result.total + 1);
-  result.loop.reinitialize(result.total + 1);
-  result.poly.reinitialize(result.total + 1);
-
-  result.main_indices.reinitialize(result.total);
-  result.profile_indices.reinitialize(result.total);
 
   const OffsetIndices<int> main_offsets = info.main.evaluated_points_by_curve();
   const OffsetIndices<int> profile_offsets = info.profile.evaluated_points_by_curve();
 
-  int mesh_index = 0;
-  int vert_offset = 0;
-  int edge_offset = 0;
-  int loop_offset = 0;
-  int poly_offset = 0;
-  for (const int i_main : info.main.curves_range()) {
-    const bool main_cyclic = info.main_cyclic[i_main];
-    const int main_point_num = main_offsets.size(i_main);
-    const int main_segment_num = curves::segments_num(main_point_num, main_cyclic);
-    for (const int i_profile : info.profile.curves_range()) {
-      result.vert[mesh_index] = vert_offset;
-      result.edge[mesh_index] = edge_offset;
-      result.loop[mesh_index] = loop_offset;
-      result.poly[mesh_index] = poly_offset;
+  threading::parallel_invoke(
+      result.total > 1024,
+      [&]() {
+        result.vert.reinitialize(result.total + 1);
+        result.edge.reinitialize(result.total + 1);
+        result.loop.reinitialize(result.total + 1);
+        result.poly.reinitialize(result.total + 1);
 
-      result.main_indices[mesh_index] = i_main;
-      result.profile_indices[mesh_index] = i_profile;
+        int mesh_index = 0;
+        int vert_offset = 0;
+        int edge_offset = 0;
+        int loop_offset = 0;
+        int poly_offset = 0;
+        for (const int i_main : main_offsets.index_range()) {
+          const bool main_cyclic = info.main_cyclic[i_main];
+          const int main_point_num = main_offsets[i_main].size();
+          const int main_segment_num = curves::segments_num(main_point_num, main_cyclic);
+          for (const int i_profile : profile_offsets.index_range()) {
+            result.vert[mesh_index] = vert_offset;
+            result.edge[mesh_index] = edge_offset;
+            result.loop[mesh_index] = loop_offset;
+            result.poly[mesh_index] = poly_offset;
 
-      const bool profile_cyclic = info.profile_cyclic[i_profile];
-      const int profile_point_num = profile_offsets.size(i_profile);
-      const int profile_segment_num = curves::segments_num(profile_point_num, profile_cyclic);
+            const bool profile_cyclic = info.profile_cyclic[i_profile];
+            const int profile_point_num = profile_offsets[i_profile].size();
+            const int profile_segment_num = curves::segments_num(profile_point_num,
+                                                                 profile_cyclic);
 
-      const bool has_caps = fill_caps && !main_cyclic && profile_cyclic && profile_point_num > 2;
-      const int tube_face_num = main_segment_num * profile_segment_num;
+            const bool has_caps = fill_caps && !main_cyclic && profile_cyclic &&
+                                  profile_point_num > 2;
+            const int tube_face_num = main_segment_num * profile_segment_num;
 
-      vert_offset += main_point_num * profile_point_num;
+            vert_offset += main_point_num * profile_point_num;
 
-      /* Add the ring edges, with one ring for every curve vertex, and the edge loops
-       * that run along the length of the curve, starting on the first profile. */
-      edge_offset += main_point_num * profile_segment_num + main_segment_num * profile_point_num;
+            /* Add the ring edges, with one ring for every curve vertex, and the edge loops
+             * that run along the length of the curve, starting on the first profile. */
+            edge_offset += main_point_num * profile_segment_num +
+                           main_segment_num * profile_point_num;
 
-      /* Add two cap N-gons for every ending. */
-      poly_offset += tube_face_num + (has_caps ? 2 : 0);
+            /* Add two cap N-gons for every ending. */
+            poly_offset += tube_face_num + (has_caps ? 2 : 0);
 
-      /* All faces on the tube are quads, and all cap faces are N-gons with an edge for each
-       * profile edge. */
-      loop_offset += tube_face_num * 4 + (has_caps ? profile_segment_num * 2 : 0);
+            /* All faces on the tube are quads, and all cap faces are N-gons with an edge for each
+             * profile edge. */
+            loop_offset += tube_face_num * 4 + (has_caps ? profile_segment_num * 2 : 0);
 
-      mesh_index++;
-    }
-  }
+            mesh_index++;
+          }
+        }
 
-  result.vert.last() = vert_offset;
-  result.edge.last() = edge_offset;
-  result.loop.last() = loop_offset;
-  result.poly.last() = poly_offset;
+        result.vert.last() = vert_offset;
+        result.edge.last() = edge_offset;
+        result.loop.last() = loop_offset;
+        result.poly.last() = poly_offset;
+      },
+      [&]() {
+        result.main_indices.reinitialize(result.total);
+        result.profile_indices.reinitialize(result.total);
+
+        int mesh_index = 0;
+        for (const int i_main : main_offsets.index_range()) {
+          for (const int i_profile : profile_offsets.index_range()) {
+            result.main_indices[mesh_index] = i_main;
+            result.profile_indices[mesh_index] = i_profile;
+            mesh_index++;
+          }
+        }
+      },
+      [&]() {
+        result.any_single_point_curve = offsets_contain_single_point(main_offsets) ||
+                                        offsets_contain_single_point(profile_offsets);
+      });
 
   return result;
 }
@@ -667,13 +691,15 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(
-      offsets.vert.last(), offsets.edge.last(), 0, offsets.loop.last(), offsets.poly.last());
+      offsets.vert.last(), offsets.edge.last(), offsets.loop.last(), offsets.poly.last());
   mesh->flag |= ME_AUTOSMOOTH;
   mesh->smoothresh = DEG2RADF(180.0f);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
-  MutableSpan<MPoly> polys = mesh->polys_for_write();
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
+  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
+  MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
+  MutableAttributeAccessor mesh_attributes = mesh->attributes_for_write();
 
   foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
     fill_mesh_topology(info.vert_range.start(),
@@ -686,9 +712,27 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
                        info.profile_cyclic,
                        fill_caps,
                        edges,
-                       loops,
-                       polys);
+                       corner_verts,
+                       corner_edges,
+                       poly_offsets);
   });
+
+  if (fill_caps) {
+    /* TODO: This is used to keep the tests passing after refactoring mesh shade smooth flags. It
+     * can be removed if the tests are updated and the final shading results will be the same. */
+    SpanAttributeWriter<bool> sharp_faces = mesh_attributes.lookup_or_add_for_write_span<bool>(
+        "sharp_face", ATTR_DOMAIN_FACE);
+    foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
+      const bool has_caps = fill_caps && !info.main_cyclic && info.profile_cyclic;
+      if (has_caps) {
+        const int poly_num = info.main_segment_num * info.profile_segment_num;
+        const int cap_poly_offset = info.poly_range.start() + poly_num;
+        sharp_faces.span[cap_poly_offset] = true;
+        sharp_faces.span[cap_poly_offset + 1] = true;
+      }
+    });
+    sharp_faces.finish();
+  }
 
   const Span<float3> main_positions = main.evaluated_positions();
   const Span<float3> tangents = main.evaluated_tangents();
@@ -721,7 +765,10 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
                         positions.slice(info.vert_range));
   });
 
-  MutableAttributeAccessor mesh_attributes = mesh->attributes_for_write();
+  if (!offsets.any_single_point_curve) {
+    /* If there are no single point curves, every curve combination will always have faces. */
+    mesh->loose_edges_tag_none();
+  }
 
   SpanAttributeWriter<bool> sharp_edges;
   write_sharp_bezier_edges(curves_info, offsets, mesh_attributes, sharp_edges);

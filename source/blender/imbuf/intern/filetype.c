@@ -14,9 +14,7 @@
 
 #include "IMB_colormanagement.h"
 
-#ifdef WITH_OPENIMAGEIO
-#  include "oiio/openimageio_api.h"
-#endif
+#include "oiio/openimageio_api.h"
 
 #ifdef WITH_OPENEXR
 #  include "openexr/openexr_api.h"
@@ -183,20 +181,18 @@ const ImFileType IMB_FILE_TYPES[] = {
         .default_save_role = COLOR_ROLE_DEFAULT_BYTE,
     },
 #endif
-#ifdef WITH_OPENIMAGEIO
     {
         .init = NULL,
         .exit = NULL,
-        .is_a = imb_is_a_photoshop,
-        .load = NULL,
-        .load_filepath = imb_load_photoshop,
+        .is_a = imb_is_a_psd,
+        .load = imb_load_psd,
+        .load_filepath = NULL,
         .load_filepath_thumbnail = NULL,
         .save = NULL,
         .flag = IM_FTYPE_FLOAT,
         .filetype = IMB_FTYPE_PSD,
         .default_save_role = COLOR_ROLE_DEFAULT_FLOAT,
     },
-#endif
 #ifdef WITH_WEBP
     {
         .init = NULL,

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+ * Copyright 2012 Blender Foundation */
 
 #include <algorithm>
 #include <cstring>
@@ -20,11 +20,13 @@ enum TransformType {
   TRANSFORM_SRGB_TO_LINEAR,
   TRANSFORM_SCALE,
   TRANSFORM_EXPONENT,
+  TRANSFORM_NONE,
   TRANSFORM_UNKNOWN,
 };
 
 #define COLORSPACE_LINEAR ((OCIO_ConstColorSpaceRcPtr *)1)
 #define COLORSPACE_SRGB ((OCIO_ConstColorSpaceRcPtr *)2)
+#define COLORSPACE_DATA ((OCIO_ConstColorSpaceRcPtr *)3)
 
 typedef struct OCIO_PackedImageDescription {
   float *data;
@@ -37,13 +39,9 @@ typedef struct OCIO_PackedImageDescription {
 } OCIO_PackedImageDescription;
 
 struct FallbackTransform {
-  FallbackTransform() : type(TRANSFORM_UNKNOWN), scale(1.0f), exponent(1.0f)
-  {
-  }
+  FallbackTransform() : type(TRANSFORM_UNKNOWN), scale(1.0f), exponent(1.0f) {}
 
-  virtual ~FallbackTransform()
-  {
-  }
+  virtual ~FallbackTransform() {}
 
   void applyRGB(float *pixel)
   {
@@ -88,9 +86,7 @@ struct FallbackTransform {
 };
 
 struct FallbackProcessor {
-  FallbackProcessor(const FallbackTransform &transform) : transform(transform)
-  {
-  }
+  FallbackProcessor(const FallbackTransform &transform) : transform(transform) {}
 
   void applyRGB(float *pixel)
   {
@@ -112,9 +108,7 @@ OCIO_ConstConfigRcPtr *FallbackImpl::getCurrentConfig()
   return CONFIG_DEFAULT;
 }
 
-void FallbackImpl::setCurrentConfig(const OCIO_ConstConfigRcPtr * /*config*/)
-{
-}
+void FallbackImpl::setCurrentConfig(const OCIO_ConstConfigRcPtr * /*config*/) {}
 
 OCIO_ConstConfigRcPtr *FallbackImpl::configCreateFromEnv()
 {
@@ -126,9 +120,7 @@ OCIO_ConstConfigRcPtr *FallbackImpl::configCreateFromFile(const char * /*filenam
   return CONFIG_DEFAULT;
 }
 
-void FallbackImpl::configRelease(OCIO_ConstConfigRcPtr * /*config*/)
-{
-}
+void FallbackImpl::configRelease(OCIO_ConstConfigRcPtr * /*config*/) {}
 
 int FallbackImpl::configGetNumColorSpaces(OCIO_ConstConfigRcPtr * /*config*/)
 {
@@ -165,6 +157,8 @@ OCIO_ConstColorSpaceRcPtr *FallbackImpl::configGetColorSpace(OCIO_ConstConfigRcP
     return COLORSPACE_LINEAR;
   else if (strcmp(name, "sRGB") == 0)
     return COLORSPACE_SRGB;
+  else if (strcmp(name, "data") == 0)
+    return COLORSPACE_DATA;
 
   return NULL;
 }
@@ -178,6 +172,9 @@ int FallbackImpl::configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, con
   }
   else if (cs == COLORSPACE_SRGB) {
     return 1;
+  }
+  else if (cs == COLORSPACE_DATA) {
+    return 2;
   }
   return -1;
 }
@@ -270,9 +267,7 @@ const char *FallbackImpl::lookGetProcessSpace(OCIO_ConstLookRcPtr * /*look*/)
   return NULL;
 }
 
-void FallbackImpl::lookRelease(OCIO_ConstLookRcPtr * /*look*/)
-{
-}
+void FallbackImpl::lookRelease(OCIO_ConstLookRcPtr * /*look*/) {}
 
 int FallbackImpl::colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr * /*cs*/)
 {
@@ -303,9 +298,7 @@ void FallbackImpl::colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr * /*config*/,
   }
 }
 
-void FallbackImpl::colorSpaceRelease(OCIO_ConstColorSpaceRcPtr * /*cs*/)
-{
-}
+void FallbackImpl::colorSpaceRelease(OCIO_ConstColorSpaceRcPtr * /*cs*/) {}
 
 OCIO_ConstProcessorRcPtr *FallbackImpl::configGetProcessorWithNames(OCIO_ConstConfigRcPtr *config,
                                                                     const char *srcName,
@@ -314,7 +307,10 @@ OCIO_ConstProcessorRcPtr *FallbackImpl::configGetProcessorWithNames(OCIO_ConstCo
   OCIO_ConstColorSpaceRcPtr *cs_src = configGetColorSpace(config, srcName);
   OCIO_ConstColorSpaceRcPtr *cs_dst = configGetColorSpace(config, dstName);
   FallbackTransform transform;
-  if (cs_src == COLORSPACE_LINEAR && cs_dst == COLORSPACE_SRGB) {
+  if (cs_src == COLORSPACE_DATA || cs_dst == COLORSPACE_DATA) {
+    transform.type = TRANSFORM_NONE;
+  }
+  else if (cs_src == COLORSPACE_LINEAR && cs_dst == COLORSPACE_SRGB) {
     transform.type = TRANSFORM_LINEAR_TO_SRGB;
   }
   else if (cs_src == COLORSPACE_SRGB && cs_dst == COLORSPACE_LINEAR) {
@@ -432,6 +428,9 @@ const char *FallbackImpl::colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs)
   }
   else if (cs == COLORSPACE_SRGB) {
     return "sRGB";
+  }
+  else if (cs == COLORSPACE_DATA) {
+    return "data";
   }
   return NULL;
 }

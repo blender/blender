@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation. All rights reserved. */
+ * Copyright Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -288,7 +288,7 @@ static bool check_path_length(int k,
 }
 
 void psys_apply_child_modifiers(ParticleThreadContext *ctx,
-                                struct ListBase *modifiers,
+                                struct ListBase *UNUSED(modifiers),
                                 ChildParticle *cpa,
                                 ParticleTexture *ptex,
                                 const float orco[3],
@@ -302,15 +302,13 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx,
   const bool draw_col_ma = (part->draw_col == PART_DRAW_COL_MAT);
   const bool use_length_check = !ELEM(part->kink, PART_KINK_SPIRAL);
 
-  ParticlePathModifier *mod;
+  // ParticlePathModifier *mod;
   ParticleCacheKey *key;
   int totkeys, k;
   float max_length;
 
-  /* TODO: for the future: use true particle modifiers that work on the whole curve. */
-
-  (void)modifiers;
-  (void)mod;
+  /* TODO: for the future: use true particle modifiers that work on the whole curve.
+   * `modifiers` & `mod` are unused. */
 
   if (part->kink == PART_KINK_SPIRAL) {
     do_kink_spiral(

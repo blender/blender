@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spoutliner
@@ -92,9 +92,7 @@ static void outliner_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_scrollers_draw(v2d, nullptr);
 }
 
-static void outliner_main_region_free(ARegion * /*region*/)
-{
-}
+static void outliner_main_region_free(ARegion * /*region*/) {}
 
 static void outliner_main_region_listener(const wmRegionListenerParams *params)
 {
@@ -193,6 +191,11 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
     case NC_ID:
       if (ELEM(wmn->action, NA_RENAME, NA_ADDED, NA_REMOVED)) {
         ED_region_tag_redraw(region);
+      }
+      break;
+    case NC_ASSET:
+      if (ELEM(wmn->action, NA_ADDED, NA_REMOVED)) {
+        ED_region_tag_redraw_no_rebuild(region);
       }
       break;
     case NC_MATERIAL:
@@ -295,9 +298,7 @@ static void outliner_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void outliner_header_region_free(ARegion * /*region*/)
-{
-}
+static void outliner_header_region_free(ARegion * /*region*/) {}
 
 static void outliner_header_region_listener(const wmRegionListenerParams *params)
 {
@@ -521,7 +522,7 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
       /* TODO the mempool could be moved to #SpaceOutliner_Runtime so that #SpaceOutliner could
        * hold the #TreeStore directly. */
 
-      /* Address relative to the tree-store, as noted above.  */
+      /* Address relative to the tree-store, as noted above. */
       void *data_addr = (void *)POINTER_OFFSET(ts, sizeof(void *));
       /* There should be plenty of memory addresses within the mempool data that we can point into,
        * just double-check we don't potentially end up with a memory address that another DNA

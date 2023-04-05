@@ -234,7 +234,7 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
     float xaxis[3];
 
     /* Radians per-pixel. */
-    const float sensitivity = U.view_rotate_sensitivity_turntable / U.dpi_fac;
+    const float sensitivity = U.view_rotate_sensitivity_turntable / UI_SCALE_FAC;
 
     /* Get the 3x3 matrix and its inverse from the quaternion */
     quat_to_mat3(m, vod->curr.viewquat);
@@ -464,12 +464,6 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void viewrotate_cancel(bContext *C, wmOperator *op)
-{
-  viewops_data_free(C, op->customdata);
-  op->customdata = NULL;
-}
-
 void VIEW3D_OT_rotate(wmOperatorType *ot)
 {
   /* identifiers */
@@ -481,7 +475,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
   ot->invoke = viewrotate_invoke;
   ot->modal = viewrotate_modal;
   ot->poll = view3d_rotation_poll;
-  ot->cancel = viewrotate_cancel;
+  ot->cancel = view3d_navigate_cancel_fn;
 
   /* flags */
   ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;

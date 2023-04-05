@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. All rights reserved. */
+ * Copyright 2011 Blender Foundation */
 
 /** \file
  * \ingroup edgpencil
@@ -10,7 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_listBase.h"
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
@@ -19,7 +19,7 @@
 
 #include "BKE_blender_undo.h"
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_undo_system.h"
 
 #include "ED_gpencil.h"

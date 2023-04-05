@@ -47,7 +47,7 @@
 #include "BKE_effect.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_global.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
@@ -55,7 +55,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -124,7 +124,7 @@ static void object_force_modifier_update_for_bind(Depsgraph *depsgraph, Object *
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
     BKE_displist_make_curveTypes(depsgraph, scene_eval, ob_eval, false);
   }
-  else if (ob->type == OB_GPENCIL) {
+  else if (ob->type == OB_GPENCIL_LEGACY) {
     BKE_gpencil_modifiers_calc(depsgraph, scene_eval, ob_eval);
   }
   else if (ob->type == OB_CURVES) {
@@ -651,14 +651,13 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
   me->totvert = verts_num;
   me->totedge = edges_num;
 
-  CustomData_add_layer_named(
-      &me->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, verts_num, "position");
-  CustomData_add_layer(&me->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, edges_num);
-  CustomData_add_layer(&me->fdata, CD_MFACE, CD_SET_DEFAULT, nullptr, 0);
+  CustomData_add_layer_named(&me->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, verts_num, "position");
+  CustomData_add_layer(&me->edata, CD_MEDGE, CD_SET_DEFAULT, edges_num);
+  CustomData_add_layer(&me->fdata, CD_MFACE, CD_SET_DEFAULT, 0);
 
   blender::MutableSpan<float3> positions = me->vert_positions_for_write();
   blender::MutableSpan<MEdge> edges = me->edges_for_write();
-  MEdge *medge = edges.data();
+  MEdge *edge = edges.data();
 
   bke::MutableAttributeAccessor attributes = me->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
@@ -673,9 +672,9 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
     for (int k = 0; k <= kmax; k++, key++, cvert++, vert_index++) {
       positions[vert_index] = key->co;
       if (k) {
-        medge->v1 = cvert - 1;
-        medge->v2 = cvert;
-        medge++;
+        edge->v1 = cvert - 1;
+        edge->v2 = cvert;
+        edge++;
       }
       else {
         /* cheap trick to select the roots */
@@ -691,9 +690,9 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
     for (int k = 0; k <= kmax; k++, key++, cvert++, vert_index++) {
       copy_v3_v3(positions[vert_index], key->co);
       if (k) {
-        medge->v1 = cvert - 1;
-        medge->v2 = cvert;
-        medge++;
+        edge->v1 = cvert - 1;
+        edge->v2 = cvert;
+        edge++;
       }
       else {
         /* cheap trick to select the roots */
@@ -731,8 +730,8 @@ static void add_shapekey_layers(Mesh &mesh_dest, const Mesh &mesh_src)
       memcpy(array, kb->data, sizeof(float[3]) * size_t(mesh_src.totvert));
     }
 
-    CustomData_add_layer_named(
-        &mesh_dest.vdata, CD_SHAPEKEY, CD_ASSIGN, array, mesh_dest.totvert, kb->name);
+    CustomData_add_layer_named_with_data(
+        &mesh_dest.vdata, CD_SHAPEKEY, array, mesh_dest.totvert, kb->name);
     const int ci = CustomData_get_layer_index_n(&mesh_dest.vdata, CD_SHAPEKEY, i);
 
     mesh_dest.vdata.layers[ci].uid = kb->uid;
@@ -2882,7 +2881,7 @@ void OBJECT_OT_skin_radii_equalize(wmOperatorType *ot)
 
 static void skin_armature_bone_create(Object *skin_ob,
                                       const Span<float3> positions,
-                                      const MEdge *medge,
+                                      const MEdge *edges,
                                       bArmature *arm,
                                       BLI_bitmap *edges_visited,
                                       const MeshElemMap *emap,
@@ -2891,7 +2890,7 @@ static void skin_armature_bone_create(Object *skin_ob,
 {
   for (int i = 0; i < emap[parent_v].count; i++) {
     int endx = emap[parent_v].indices[i];
-    const MEdge *e = &medge[endx];
+    const MEdge *edge = &edges[endx];
 
     /* ignore edge if already visited */
     if (BLI_BITMAP_TEST(edges_visited, endx)) {
@@ -2899,7 +2898,7 @@ static void skin_armature_bone_create(Object *skin_ob,
     }
     BLI_BITMAP_ENABLE(edges_visited, endx);
 
-    int v = (e->v1 == parent_v ? e->v2 : e->v1);
+    int v = (edge->v1 == parent_v ? edge->v2 : edge->v1);
 
     EditBone *bone = ED_armature_ebone_add(arm, "Bone");
 
@@ -2920,7 +2919,7 @@ static void skin_armature_bone_create(Object *skin_ob,
       ED_vgroup_vert_add(skin_ob, dg, v, 1, WEIGHT_REPLACE);
     }
 
-    skin_armature_bone_create(skin_ob, positions, medge, arm, edges_visited, emap, bone, v);
+    skin_armature_bone_create(skin_ob, positions, edges, arm, edges_visited, emap, bone, v);
   }
 }
 
@@ -2938,7 +2937,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   const Span<float3> positions_eval = me_eval_deform->vert_positions();
 
   /* add vertex weights to original mesh */
-  CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, me->totvert);
+  CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, me->totvert);
 
   Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);

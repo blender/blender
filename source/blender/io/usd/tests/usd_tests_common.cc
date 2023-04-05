@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 #include "usd_tests_common.h"
 
@@ -36,9 +36,9 @@ std::string register_usd_plugins_for_tests()
   BLI_assert(path_len + 1 < FILE_MAX);
   usd_datafiles_dir[path_len] = '/';
   usd_datafiles_dir[path_len + 1] = '\0';
-  /* if PXR_PYTHON_SUPPORT_ENABLED is defined, we *must* be dynamic and
-     the plugins are placed relative to the USD shared library hence no
-     hinting is required. */
+  /* If #PXR_PYTHON_SUPPORT_ENABLED is defined, we *must* be dynamic and
+   * the plugins are placed relative to the USD shared library hence no
+   * hinting is required. */
 #ifndef PXR_PYTHON_SUPPORT_ENABLED
   pxr::PlugRegistry::GetInstance().RegisterPlugins(usd_datafiles_dir);
 #endif

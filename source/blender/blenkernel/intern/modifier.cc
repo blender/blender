@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -49,12 +49,12 @@
 #include "BKE_effect.h"
 #include "BKE_fluid.h"
 #include "BKE_global.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_multires.h"
 #include "BKE_object.h"
@@ -735,7 +735,7 @@ ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
 
 Object *BKE_modifiers_is_deformed_by_armature(Object *ob)
 {
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     GpencilVirtualModifierData gpencilvirtualModifierData;
     ArmatureGpencilModifierData *agmd = nullptr;
     GpencilModifierData *gmd = BKE_gpencil_modifiers_get_virtual_modifierlist(
@@ -1018,7 +1018,7 @@ void BKE_modifier_deform_verts(ModifierData *md,
   }
   mti->deformVerts(md, ctx, me, vertexCos, numVerts);
   if (me) {
-    BKE_mesh_tag_coords_changed(me);
+    BKE_mesh_tag_positions_changed(me);
   }
 }
 

@@ -9,7 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -49,6 +49,7 @@
 
 #include "transform.h"
 #include "transform_convert.h"
+#include "transform_gizmo.h"
 #include "transform_mode.h"
 #include "transform_orientations.h"
 #include "transform_snap.h"
@@ -704,7 +705,7 @@ void postTrans(bContext *C, TransInfo *t)
   if (t->data_len_all != 0) {
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       /* free data malloced per trans-data */
-      if (ELEM(t->obedit_type, OB_CURVES_LEGACY, OB_SURF, OB_GPENCIL) ||
+      if (ELEM(t->obedit_type, OB_CURVES_LEGACY, OB_SURF, OB_GPENCIL_LEGACY) ||
           (t->spacetype == SPACE_GRAPH)) {
         TransData *td = tc->data;
         for (int a = 0; a < tc->data_len; a++, td++) {
@@ -1158,8 +1159,6 @@ void calculateCenter(TransInfo *t)
   calculateZfac(t);
 }
 
-/* Called every time the view changes due to navigation.
- * Adjusts the mouse position relative to the object. */
 void tranformViewUpdate(TransInfo *t)
 {
   float zoom_prev = t->zfac;

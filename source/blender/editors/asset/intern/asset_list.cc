@@ -95,6 +95,8 @@ class AssetList : NonCopyable {
   void setCatalogFilterSettings(const AssetCatalogFilterSettings &settings);
   void clear(bContext *C);
 
+  AssetHandle asset_get_by_index(int index) const;
+
   bool needsRefetch() const;
   bool isLoaded() const;
   asset_system::AssetLibrary *asset_library() const;
@@ -221,6 +223,11 @@ void AssetList::clear(bContext *C)
   asset_handle_map_.clear();
 
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST, nullptr);
+}
+
+AssetHandle AssetList::asset_get_by_index(int index) const
+{
+  return {filelist_file(filelist_, index)};
 }
 
 /**
@@ -450,6 +457,13 @@ asset_system::AssetLibrary *ED_assetlist_library_get_once_available(
     return nullptr;
   }
   return list->asset_library();
+}
+
+AssetHandle ED_assetlist_asset_get_by_index(const AssetLibraryReference *library_reference,
+                                            int asset_index)
+{
+  const AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  return list->asset_get_by_index(asset_index);
 }
 
 PreviewImage *ED_assetlist_asset_preview_request(const AssetLibraryReference *library_reference,

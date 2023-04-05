@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spview3d
@@ -841,7 +841,7 @@ float ED_scene_grid_scale(const Scene *scene, const char **r_grid_unit)
     if (usys) {
       int i = BKE_unit_base_get(usys);
       if (r_grid_unit) {
-        *r_grid_unit = BKE_unit_display_name_get(usys, i);
+        *r_grid_unit = IFACE_(BKE_unit_display_name_get(usys, i));
       }
       return float(BKE_unit_scalar_get(usys, i)) / scene->unit.scale_length;
     }
@@ -928,7 +928,7 @@ float ED_view3d_grid_view_scale(Scene *scene,
       BKE_unit_system_get(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
 
       if (usys) {
-        *r_grid_unit = BKE_unit_display_name_get(usys, len - i - 1);
+        *r_grid_unit = IFACE_(BKE_unit_display_name_get(usys, len - i - 1));
       }
     }
   }
@@ -1106,6 +1106,7 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
   /* -- draw rotation center -- */
   immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
   immUniform1f("size", 7.0f);
+  immUniform4fv("color", float4(color));
   immBegin(GPU_PRIM_POINTS, 1);
   immAttr4ubv(col, color);
   immVertex3fv(pos, o);
@@ -1385,8 +1386,7 @@ static void draw_selected_name(
     }
 
     /* color depends on whether there is a keyframe */
-    if (id_frame_has_keyframe(
-            (ID *)ob, /* BKE_scene_ctime_get(scene) */ float(cfra), ANIMFILTER_KEYS_LOCAL)) {
+    if (id_frame_has_keyframe((ID *)ob, /* BKE_scene_ctime_get(scene) */ float(cfra))) {
       UI_FontThemeColor(font_id, TH_TIME_KEYFRAME);
     }
     else if (ED_gpencil_has_keyframe_v3d(scene, ob, cfra)) {

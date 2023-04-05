@@ -55,9 +55,7 @@ class LinearProbingStrategy {
   uint64_t hash_;
 
  public:
-  LinearProbingStrategy(const uint64_t hash) : hash_(hash)
-  {
-  }
+  LinearProbingStrategy(const uint64_t hash) : hash_(hash) {}
 
   void next()
   {

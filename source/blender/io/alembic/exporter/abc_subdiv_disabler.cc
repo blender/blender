@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 #include "abc_subdiv_disabler.h"
 
 #include <cstdio>
@@ -19,9 +19,7 @@
 
 namespace blender::io::alembic {
 
-SubdivModifierDisabler::SubdivModifierDisabler(Depsgraph *depsgraph) : depsgraph_(depsgraph)
-{
-}
+SubdivModifierDisabler::SubdivModifierDisabler(Depsgraph *depsgraph) : depsgraph_(depsgraph) {}
 
 SubdivModifierDisabler::~SubdivModifierDisabler()
 {

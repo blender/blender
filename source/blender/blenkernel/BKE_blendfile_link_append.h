@@ -121,6 +121,8 @@ void *BKE_blendfile_link_append_context_item_userdata_get(
     struct BlendfileLinkAppendContext *lapp_context, struct BlendfileLinkAppendContextItem *item);
 struct ID *BKE_blendfile_link_append_context_item_newid_get(
     struct BlendfileLinkAppendContext *lapp_context, struct BlendfileLinkAppendContextItem *item);
+struct ID *BKE_blendfile_link_append_context_item_liboverrideid_get(
+    struct BlendfileLinkAppendContext *lapp_context, struct BlendfileLinkAppendContextItem *item);
 short BKE_blendfile_link_append_context_item_idcode_get(
     struct BlendfileLinkAppendContext *lapp_context, struct BlendfileLinkAppendContextItem *item);
 
@@ -174,6 +176,45 @@ void BKE_blendfile_append(struct BlendfileLinkAppendContext *lapp_context,
  */
 void BKE_blendfile_link(struct BlendfileLinkAppendContext *lapp_context,
                         struct ReportList *reports);
+
+/**
+ * Options controlling the behavior of liboverrides creation.
+ */
+typedef enum eBKELibLinkOverride {
+  BKE_LIBLINK_OVERRIDE_INIT = 0,
+
+  /**
+   * Try to find a matching existing liboverride first, instead of always creating a new one.
+   *
+   * \note Takes into account the #BKE_LIBLINK_CREATE_RUNTIME flag too (i.e. only checks for
+   *       runtime liboverrides if that flag is set, and vice-versa).
+   */
+  BKE_LIBLINK_OVERRIDE_USE_EXISTING_LIBOVERRIDES = 1 << 0,
+  /**
+   * Create (or return an existing) runtime liboverride, instead of a regular saved-in-blendfiles
+   * one. See also the #LIB_TAG_RUNTIME tag of IDs in DNA_ID.h.
+   *
+   * \note Typically, usage of this flag implies that no linked IDs are instantiated, such that
+   * their usages remain indirect.
+   */
+  BKE_LIBLINK_OVERRIDE_CREATE_RUNTIME = 1 << 1,
+} eBKELibLinkOverride;
+
+/**
+ * Create (or find existing) liboverrides from linked data.
+ *
+ * The IDs processed by this functions are the one that have been linked by a previous call to
+ * #BKE_blendfile_link on the same `lapp_context`.
+ *
+ * Control over how liboverrides are created is done through the extra #eBKELibLinkOverride flags.
+ *
+ * \warning Currently this function only performs very (very!) basic liboverrides, with no handling
+ * of dependencies or hierarchies. It is not expected to be directly exposed to users in its
+ * current state, but rather as a helper for specific use-cases like 'presets assets' handling.
+ */
+void BKE_blendfile_override(struct BlendfileLinkAppendContext *lapp_context,
+                            const eBKELibLinkOverride flags,
+                            struct ReportList *reports);
 
 /**
  * Try to relocate all linked IDs added to `lapp_context`, belonging to the given `library`.

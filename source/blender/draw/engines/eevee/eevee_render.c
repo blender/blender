@@ -607,7 +607,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 
     GPU_framebuffer_bind(fbl->main_fb);
     GPU_framebuffer_clear_color_depth_stencil(fbl->main_fb, clear_col, clear_depth, clear_stencil);
-    /* Depth prepass */
+    /* Depth pre-pass. */
     DRW_draw_pass(psl->depth_ps);
     /* Create minmax texture */
     EEVEE_create_minmax_buffer(vedata, dtxl->depth, -1);

@@ -1582,9 +1582,7 @@ template<typename T> class CrossData {
   SymEdge<T> *in;
   SymEdge<T> *out;
 
-  CrossData() : lambda(T(0)), vert(nullptr), in(nullptr), out(nullptr)
-  {
-  }
+  CrossData() : lambda(T(0)), vert(nullptr), in(nullptr), out(nullptr) {}
   CrossData(T l, CDTVert<T> *v, SymEdge<T> *i, SymEdge<T> *o) : lambda(l), vert(v), in(i), out(o)
   {
   }
@@ -2336,9 +2334,7 @@ template<typename T> struct EdgeToSort {
   CDTEdge<T> *e{nullptr};
 
   EdgeToSort() = default;
-  EdgeToSort(const EdgeToSort &other) : len_squared(other.len_squared), e(other.e)
-  {
-  }
+  EdgeToSort(const EdgeToSort &other) : len_squared(other.len_squared), e(other.e) {}
   EdgeToSort(EdgeToSort &&other) noexcept : len_squared(std::move(other.len_squared)), e(other.e)
   {
   }

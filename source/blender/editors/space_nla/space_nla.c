@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spnla
@@ -132,7 +132,8 @@ static void nla_init(struct wmWindowManager *wm, ScrArea *area)
   /* init dopesheet data if non-existent (i.e. for old files) */
   if (snla->ads == NULL) {
     snla->ads = MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
-    snla->ads->source = (wm->winactive) ? (ID *)WM_window_get_active_scene(wm->winactive) : NULL;
+    wmWindow *win = WM_window_find_by_area(wm, area);
+    snla->ads->source = win ? (ID *)WM_window_get_active_scene(win) : NULL;
   }
 
   ED_area_tag_refresh(area);

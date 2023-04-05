@@ -5,7 +5,7 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 
@@ -49,7 +49,7 @@ static void geometry_set_points_to_vertices(
                                                  propagation_info,
                                                  attributes);
 
-  Mesh *mesh = BKE_mesh_new_nomain(selection.size(), 0, 0, 0, 0);
+  Mesh *mesh = BKE_mesh_new_nomain(selection.size(), 0, 0, 0);
   geometry_set.replace_mesh(mesh);
 
   const AttributeAccessor src_attributes = points->attributes();

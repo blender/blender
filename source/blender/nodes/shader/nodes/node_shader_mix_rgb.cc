@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup shdnodes
@@ -156,5 +156,6 @@ void register_node_type_sh_mix_rgb()
   ntype.gpu_fn = file_ns::gpu_shader_mix_rgb;
   ntype.build_multi_function = file_ns::sh_node_mix_rgb_build_multi_function;
   ntype.gather_link_search_ops = nullptr;
+  ntype.gather_add_node_search_ops = nullptr;
   nodeRegisterType(&ntype);
 }

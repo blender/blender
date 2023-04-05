@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 #pragma once
 
@@ -122,11 +122,11 @@ typedef struct PTCacheID {
   /* flags defined in DNA_object_force_types.h */
   unsigned int data_types, info_types;
 
-  /* copies point data to cache data */
+  /* Copies point data to cache data. */
   int (*write_point)(int index, void *calldata, void **data, int cfra);
-  /* copies cache cata to point data */
+  /* Copies cache data to point data. */
   void (*read_point)(int index, void *calldata, void **data, float cfra, const float *old_data);
-  /* interpolated between previously read point data and cache data */
+  /* Interpolated between previously read point data and cache data. */
   void (*interpolate_point)(int index,
                             void *calldata,
                             void **data,
@@ -170,9 +170,9 @@ typedef struct PTCacheBaker {
   struct Scene *scene;
   struct ViewLayer *view_layer;
   struct Depsgraph *depsgraph;
-  int bake;
-  int render;
-  int anim_init;
+  bool bake;
+  bool render;
+  bool anim_init;
   int quick_step;
   struct PTCacheID pid;
 
@@ -329,7 +329,7 @@ int BKE_ptcache_mem_pointers_seek(int point_index,
                                   void *cur[BPHYS_TOT_DATA]);
 
 /**
- * Main cache reading call.
+ * Main cache reading call which reads cache from disk or memory.
  * Possible to get old or interpolated result.
  */
 int BKE_ptcache_read(PTCacheID *pid, float cfra, bool no_extrapolate_old);
@@ -341,11 +341,12 @@ int BKE_ptcache_read(PTCacheID *pid, float cfra, bool no_extrapolate_old);
 int BKE_ptcache_write(PTCacheID *pid, unsigned int cfra);
 
 /******************* Allocate & free ***************/
+
 struct PointCache *BKE_ptcache_add(struct ListBase *ptcaches);
 void BKE_ptcache_free_mem(struct ListBase *mem_cache);
 void BKE_ptcache_free(struct PointCache *cache);
 void BKE_ptcache_free_list(struct ListBase *ptcaches);
-/* returns first point cache */
+/** Returns first point cache. */
 struct PointCache *BKE_ptcache_copy_list(struct ListBase *ptcaches_new,
                                          const struct ListBase *ptcaches_old,
                                          int flag);

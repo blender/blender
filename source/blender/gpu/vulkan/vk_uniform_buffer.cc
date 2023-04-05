@@ -1,32 +1,35 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup gpu
  */
 
 #include "vk_uniform_buffer.hh"
+#include "vk_context.hh"
 
 namespace blender::gpu {
 
-void VKUniformBuffer::update(const void * /*data*/)
+void VKUniformBuffer::update(const void *data)
 {
+  if (!buffer_.is_allocated()) {
+    VKContext &context = *VKContext::get();
+    allocate(context);
+  }
+  buffer_.update(data);
 }
 
-void VKUniformBuffer::clear_to_zero()
+void VKUniformBuffer::allocate(VKContext &context)
 {
+  buffer_.create(context, size_in_bytes_, GPU_USAGE_STATIC, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 }
 
-void VKUniformBuffer::bind(int /*slot*/)
-{
-}
+void VKUniformBuffer::clear_to_zero() {}
 
-void VKUniformBuffer::bind_as_ssbo(int /*slot*/)
-{
-}
+void VKUniformBuffer::bind(int /*slot*/) {}
 
-void VKUniformBuffer::unbind()
-{
-}
+void VKUniformBuffer::bind_as_ssbo(int /*slot*/) {}
+
+void VKUniformBuffer::unbind() {}
 
 }  // namespace blender::gpu

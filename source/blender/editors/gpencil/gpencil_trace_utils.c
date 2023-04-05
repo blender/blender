@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup edgpencil
@@ -14,13 +14,13 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
@@ -252,6 +252,7 @@ void ED_gpencil_trace_data_to_strokes(Main *bmain,
     float start_point[2], last[2];
     start_point[0] = c[n - 1][2].x;
     start_point[1] = c[n - 1][2].y;
+    zero_v2(last);
 
     for (int32_t i = 0; i < n; i++) {
       switch (tag[i]) {

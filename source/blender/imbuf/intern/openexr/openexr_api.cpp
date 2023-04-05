@@ -139,9 +139,7 @@ class IMemStream : public Imf::IStream {
     _exrpos = pos;
   }
 
-  void clear() override
-  {
-  }
+  void clear() override {}
 
  private:
   exr_file_offset_t _exrpos;
@@ -277,9 +275,7 @@ class IFileStream : public Imf::IStream {
 
 class OMemStream : public OStream {
  public:
-  OMemStream(ImBuf *ibuf_) : OStream("<memory>"), ibuf(ibuf_), offset(0)
-  {
-  }
+  OMemStream(ImBuf *ibuf_) : OStream("<memory>"), ibuf(ibuf_), offset(0) {}
 
   void write(const char c[], int n) override
   {
@@ -441,7 +437,7 @@ static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
     IDProperty *prop;
 
     for (prop = (IDProperty *)ibuf->metadata->data.group.first; prop; prop = prop->next) {
-      if (prop->type == IDP_STRING) {
+      if (prop->type == IDP_STRING && !STREQ(prop->name, "compression")) {
         header->insert(prop->name, StringAttribute(IDP_String(prop)));
       }
     }

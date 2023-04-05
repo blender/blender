@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -83,12 +83,13 @@ void FrameBuffer::attachment_set(GPUAttachmentType type, const GPUAttachment &ne
 
   if (new_attachment.tex) {
     if (new_attachment.layer > 0) {
-      BLI_assert(GPU_texture_cube(new_attachment.tex) || GPU_texture_array(new_attachment.tex));
+      BLI_assert(GPU_texture_is_cube(new_attachment.tex) ||
+                 GPU_texture_is_array(new_attachment.tex));
     }
-    if (GPU_texture_stencil(new_attachment.tex)) {
+    if (GPU_texture_has_stencil_format(new_attachment.tex)) {
       BLI_assert(ELEM(type, GPU_FB_DEPTH_STENCIL_ATTACHMENT));
     }
-    else if (GPU_texture_depth(new_attachment.tex)) {
+    else if (GPU_texture_has_depth_format(new_attachment.tex)) {
       BLI_assert(ELEM(type, GPU_FB_DEPTH_ATTACHMENT));
     }
   }
@@ -310,7 +311,9 @@ bool GPU_framebuffer_check_valid(GPUFrameBuffer *gpu_fb, char err_out[256])
   return unwrap(gpu_fb)->check(err_out);
 }
 
-void GPU_framebuffer_texture_attach_ex(GPUFrameBuffer *gpu_fb, GPUAttachment attachment, int slot)
+static void gpu_framebuffer_texture_attach_ex(GPUFrameBuffer *gpu_fb,
+                                              GPUAttachment attachment,
+                                              int slot)
 {
   Texture *tex = reinterpret_cast<Texture *>(attachment.tex);
   GPUAttachmentType type = tex->attachment_type(slot);
@@ -320,21 +323,21 @@ void GPU_framebuffer_texture_attach_ex(GPUFrameBuffer *gpu_fb, GPUAttachment att
 void GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int mip)
 {
   GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_MIP(tex, mip);
-  GPU_framebuffer_texture_attach_ex(fb, attachment, slot);
+  gpu_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
 void GPU_framebuffer_texture_layer_attach(
     GPUFrameBuffer *fb, GPUTexture *tex, int slot, int layer, int mip)
 {
   GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_LAYER_MIP(tex, layer, mip);
-  GPU_framebuffer_texture_attach_ex(fb, attachment, slot);
+  gpu_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
 void GPU_framebuffer_texture_cubeface_attach(
     GPUFrameBuffer *fb, GPUTexture *tex, int slot, int face, int mip)
 {
   GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_CUBEFACE_MIP(tex, face, mip);
-  GPU_framebuffer_texture_attach_ex(fb, attachment, slot);
+  gpu_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
 void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex)
@@ -360,7 +363,7 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
     fb->attachment_set(GPU_FB_DEPTH_ATTACHMENT, depth_attachment);
   }
   else {
-    GPUAttachmentType type = GPU_texture_stencil(depth_attachment.tex) ?
+    GPUAttachmentType type = GPU_texture_has_stencil_format(depth_attachment.tex) ?
                                  GPU_FB_DEPTH_STENCIL_ATTACHMENT :
                                  GPU_FB_DEPTH_ATTACHMENT;
     fb->attachment_set(type, depth_attachment);
@@ -375,7 +378,7 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
 
 void GPU_framebuffer_default_size(GPUFrameBuffer *gpu_fb, int width, int height)
 {
-  unwrap(gpu_fb)->size_set(width, height);
+  unwrap(gpu_fb)->default_size_set(width, height);
 }
 
 /* ---------- Viewport & Scissor Region ----------- */
@@ -405,6 +408,42 @@ void GPU_framebuffer_clear(GPUFrameBuffer *gpu_fb,
                            uint clear_stencil)
 {
   unwrap(gpu_fb)->clear(buffers, clear_col, clear_depth, clear_stencil);
+}
+
+void GPU_framebuffer_clear_color(GPUFrameBuffer *fb, const float clear_col[4])
+{
+  GPU_framebuffer_clear(fb, GPU_COLOR_BIT, clear_col, 0.0f, 0x00);
+}
+
+void GPU_framebuffer_clear_depth(GPUFrameBuffer *fb, float clear_depth)
+{
+  GPU_framebuffer_clear(fb, GPU_DEPTH_BIT, nullptr, clear_depth, 0x00);
+}
+
+void GPU_framebuffer_clear_color_depth(GPUFrameBuffer *fb,
+                                       const float clear_col[4],
+                                       float clear_depth)
+{
+  GPU_framebuffer_clear(fb, GPU_COLOR_BIT | GPU_DEPTH_BIT, clear_col, clear_depth, 0x00);
+}
+
+void GPU_framebuffer_clear_stencil(GPUFrameBuffer *fb, uint clear_stencil)
+{
+  GPU_framebuffer_clear(fb, GPU_STENCIL_BIT, nullptr, 0.0f, clear_stencil);
+}
+
+void GPU_framebuffer_clear_depth_stencil(GPUFrameBuffer *fb, float clear_depth, uint clear_stencil)
+{
+  GPU_framebuffer_clear(fb, GPU_DEPTH_BIT | GPU_STENCIL_BIT, nullptr, clear_depth, clear_stencil);
+}
+
+void GPU_framebuffer_clear_color_depth_stencil(GPUFrameBuffer *fb,
+                                               const float clear_col[4],
+                                               float clear_depth,
+                                               uint clear_stencil)
+{
+  GPU_framebuffer_clear(
+      fb, GPU_COLOR_BIT | GPU_DEPTH_BIT | GPU_STENCIL_BIT, clear_col, clear_depth, clear_stencil);
 }
 
 void GPU_framebuffer_multi_clear(GPUFrameBuffer *gpu_fb, const float (*clear_cols)[4])
@@ -478,11 +517,12 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpufb_read,
   }
 
   if (blit_buffers & GPU_DEPTH_BIT) {
-    BLI_assert(GPU_texture_depth(read_tex) && GPU_texture_depth(write_tex));
+    BLI_assert(GPU_texture_has_depth_format(read_tex) && GPU_texture_has_depth_format(write_tex));
     BLI_assert(GPU_texture_format(read_tex) == GPU_texture_format(write_tex));
   }
   if (blit_buffers & GPU_STENCIL_BIT) {
-    BLI_assert(GPU_texture_stencil(read_tex) && GPU_texture_stencil(write_tex));
+    BLI_assert(GPU_texture_has_stencil_format(read_tex) &&
+               GPU_texture_has_stencil_format(write_tex));
     BLI_assert(GPU_texture_format(read_tex) == GPU_texture_format(write_tex));
   }
 #endif
@@ -623,10 +663,10 @@ GPUOffScreen *GPU_offscreen_create(
   width = max_ii(1, width);
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
-  ofs->color = GPU_texture_create_2d_ex("ofs_color", width, height, 1, format, usage, nullptr);
+  ofs->color = GPU_texture_create_2d("ofs_color", width, height, 1, format, usage, nullptr);
 
   if (depth) {
-    ofs->depth = GPU_texture_create_2d_ex(
+    ofs->depth = GPU_texture_create_2d(
         "ofs_depth", width, height, 1, GPU_DEPTH24_STENCIL8, usage, nullptr);
   }
 

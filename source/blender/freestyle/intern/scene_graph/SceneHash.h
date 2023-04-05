@@ -26,9 +26,7 @@ class SceneHash : public SceneVisitor {
     _sum = 1;
   }
 
-  virtual ~SceneHash()
-  {
-  }
+  virtual ~SceneHash() {}
 
   VISIT_DECL(NodeCamera);
   VISIT_DECL(NodeViewLayer);

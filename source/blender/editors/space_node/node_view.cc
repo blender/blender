@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spnode
@@ -370,7 +370,7 @@ static int backimage_fit_exec(bContext *C, wmOperator * /*op*/)
 
   BKE_image_release_ibuf(ima, ibuf, lock);
 
-  snode->zoom *= min_ff(facx, facy) * U.dpi_fac;
+  snode->zoom *= min_ff(facx, facy) * UI_SCALE_FAC;
 
   snode->xof = 0;
   snode->yof = 0;

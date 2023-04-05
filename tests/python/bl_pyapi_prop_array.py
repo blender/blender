@@ -195,6 +195,76 @@ class TestPropArrayMultiDimensional(unittest.TestCase):
         del id_type.temp
 
 
+class TestPropArrayDynamicAssign(unittest.TestCase):
+    """
+    Pixels are dynamic in the sense the size can change however the assignment does not define the size.
+    """
+
+    dims = 12
+
+    def setUp(self):
+        self.image = bpy.data.images.new("", self.dims, self.dims)
+
+    def tearDown(self):
+        bpy.data.images.remove(self.image)
+        self.image = None
+
+    def test_assign_fixed_under_1px(self):
+        image = self.image
+        with self.assertRaises(ValueError):
+            image.pixels = [1.0, 1.0, 1.0, 1.0]
+
+    def test_assign_fixed_under_0px(self):
+        image = self.image
+        with self.assertRaises(ValueError):
+            image.pixels = []
+
+    def test_assign_fixed_over_by_1px(self):
+        image = self.image
+        with self.assertRaises(ValueError):
+            image.pixels = ([1.0, 1.0, 1.0, 1.0] * (self.dims * self.dims)) + [1.0]
+
+    def test_assign_fixed(self):
+        # Valid assignment, ensure it works as intended.
+        image = self.image
+        values = [1.0, 0.0, 1.0, 0.0] * (self.dims * self.dims)
+        image.pixels = values
+        self.assertEqual(tuple(values), tuple(image.pixels))
+
+
+class TestPropArrayDynamicArg(unittest.TestCase):
+    """
+    Index array, a dynamic array argument which defines its own length.
+    """
+
+    dims = 8
+
+    def setUp(self):
+        self.me = bpy.data.meshes.new("")
+        self.me.vertices.add(self.dims)
+        self.ob = bpy.data.objects.new("", self.me)
+
+    def tearDown(self):
+        bpy.data.objects.remove(self.ob)
+        bpy.data.meshes.remove(self.me)
+        self.me = None
+        self.ob = None
+
+    def test_param_dynamic(self):
+        ob = self.ob
+        vg = ob.vertex_groups.new(name="")
+
+        # Add none.
+        vg.add(index=(), weight=1.0, type='REPLACE')
+        for i in range(self.dims):
+            with self.assertRaises(RuntimeError):
+                vg.weight(i)
+
+        # Add all.
+        vg.add(index=range(self.dims), weight=1.0, type='REPLACE')
+        self.assertEqual(tuple([1.0] * self.dims), tuple([vg.weight(i) for i in range(self.dims)]))
+
+
 if __name__ == '__main__':
     import sys
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edsculpt
@@ -378,6 +378,8 @@ void BRUSH_OT_sculpt_curves_falloff_preset(struct wmOperatorType *ot);
 void PAINT_OT_face_select_linked(struct wmOperatorType *ot);
 void PAINT_OT_face_select_linked_pick(struct wmOperatorType *ot);
 void PAINT_OT_face_select_all(struct wmOperatorType *ot);
+void PAINT_OT_face_select_more(struct wmOperatorType *ot);
+void PAINT_OT_face_select_less(struct wmOperatorType *ot);
 void PAINT_OT_face_select_hide(struct wmOperatorType *ot);
 
 void PAINT_OT_face_vert_reveal(struct wmOperatorType *ot);
@@ -387,6 +389,8 @@ void PAINT_OT_vert_select_ungrouped(struct wmOperatorType *ot);
 void PAINT_OT_vert_select_hide(struct wmOperatorType *ot);
 void PAINT_OT_vert_select_linked(struct wmOperatorType *ot);
 void PAINT_OT_vert_select_linked_pick(struct wmOperatorType *ot);
+void PAINT_OT_vert_select_more(struct wmOperatorType *ot);
+void PAINT_OT_vert_select_less(struct wmOperatorType *ot);
 
 bool vert_paint_poll(struct bContext *C);
 bool mask_paint_poll(struct bContext *C);

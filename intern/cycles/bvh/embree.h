@@ -6,8 +6,13 @@
 
 #ifdef WITH_EMBREE
 
-#  include <embree3/rtcore.h>
-#  include <embree3/rtcore_scene.h>
+#  if EMBREE_MAJOR_VERSION >= 4
+#    include <embree4/rtcore.h>
+#    include <embree4/rtcore_scene.h>
+#  else
+#    include <embree3/rtcore.h>
+#    include <embree3/rtcore_scene.h>
+#  endif
 
 #  include "bvh/bvh.h"
 #  include "bvh/params.h"

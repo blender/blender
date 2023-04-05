@@ -27,7 +27,7 @@ namespace blender::gpu {
  * uint32_t instanceCount;
  * uint32_t vertexStart;
  * uint32_t baseInstance;
-};*/
+ * }; */
 
 /* MTLDrawIndexedPrimitivesIndirectArguments --
  * https://developer.apple.com/documentation/metal/mtldrawindexedprimitivesindirectarguments?language=objc
@@ -38,7 +38,7 @@ namespace blender::gpu {
  * uint32_t indexStart;
  * uint32_t baseVertex;
  * uint32_t baseInstance;
-};*/
+ * }; */
 
 #define MDI_ENABLED (buffer_size_ != 0)
 #define MDI_DISABLED (buffer_size_ == 0)

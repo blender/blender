@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -24,7 +24,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
@@ -189,45 +189,45 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
 
   /* first store two sets of tangent vectors in vertices, we derive it just from the face-edges */
   const Span<float3> positions = me->vert_positions();
-  const Span<MPoly> polys = me->polys();
-  const Span<MLoop> loops = me->loops();
+  const OffsetIndices polys = me->polys();
+  const Span<int> corner_verts = me->corner_verts();
 
   for (int i = 0; i < me->totpoly; i++) {
-    const MPoly *poly = &polys[i];
-    const MLoop *ml_next = &loops[poly->loopstart];
-    const MLoop *ml_curr = &ml_next[poly->totloop - 1];
-    const MLoop *ml_prev = &ml_next[poly->totloop - 2];
+    const IndexRange poly = polys[i];
+    const int *corner_vert_next = &corner_verts[poly.start()];
+    const int *corner_vert_curr = &corner_vert_next[poly.size() - 1];
+    const int *corner_vert_prev = &corner_vert_next[poly.size() - 2];
 
-    for (int j = 0; j < poly->totloop; j++) {
-      if (!BLI_BITMAP_TEST(vert_tag, ml_curr->v)) {
+    for (int j = 0; j < poly.size(); j++) {
+      if (!BLI_BITMAP_TEST(vert_tag, *corner_vert_curr)) {
         const float *co_prev, *co_curr, *co_next; /* orig */
         const float *vd_prev, *vd_curr, *vd_next; /* deform */
 
         /* retrieve mapped coordinates */
-        vd_prev = mappedcos[ml_prev->v];
-        vd_curr = mappedcos[ml_curr->v];
-        vd_next = mappedcos[ml_next->v];
+        vd_prev = mappedcos[*corner_vert_prev];
+        vd_curr = mappedcos[*corner_vert_curr];
+        vd_next = mappedcos[*corner_vert_next];
 
         if (origcos) {
-          co_prev = origcos[ml_prev->v];
-          co_curr = origcos[ml_curr->v];
-          co_next = origcos[ml_next->v];
+          co_prev = origcos[*corner_vert_prev];
+          co_curr = origcos[*corner_vert_curr];
+          co_next = origcos[*corner_vert_next];
         }
         else {
-          co_prev = positions[ml_prev->v];
-          co_curr = positions[ml_curr->v];
-          co_next = positions[ml_next->v];
+          co_prev = positions[*corner_vert_prev];
+          co_curr = positions[*corner_vert_curr];
+          co_next = positions[*corner_vert_next];
         }
 
         set_crazy_vertex_quat(
-            quats[ml_curr->v], co_curr, co_next, co_prev, vd_curr, vd_next, vd_prev);
+            quats[*corner_vert_curr], co_curr, co_next, co_prev, vd_curr, vd_next, vd_prev);
 
-        BLI_BITMAP_ENABLE(vert_tag, ml_curr->v);
+        BLI_BITMAP_ENABLE(vert_tag, *corner_vert_curr);
       }
 
-      ml_prev = ml_curr;
-      ml_curr = ml_next;
-      ml_next++;
+      corner_vert_prev = corner_vert_curr;
+      corner_vert_curr = corner_vert_next;
+      corner_vert_next++;
     }
   }
 

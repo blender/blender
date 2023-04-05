@@ -26,9 +26,7 @@ HdCyclesInstancer::HdCyclesInstancer(HdSceneDelegate *delegate,
 {
 }
 
-HdCyclesInstancer::~HdCyclesInstancer()
-{
-}
+HdCyclesInstancer::~HdCyclesInstancer() {}
 
 #if PXR_VERSION > 2011
 void HdCyclesInstancer::Sync(HdSceneDelegate *sceneDelegate,

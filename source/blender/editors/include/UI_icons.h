@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup editorui
@@ -164,7 +164,7 @@ DEF_ICON(NLA)
 DEF_ICON(PREFERENCES)
 DEF_ICON(TIME)
 DEF_ICON(NODETREE)
-DEF_ICON(GEOMETRY_NODES)
+DEF_ICON_MODIFIER(GEOMETRY_NODES)
 DEF_ICON(CONSOLE)
 DEF_ICON_BLANK(183)
 DEF_ICON(TRACKER)

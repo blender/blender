@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 
 /* \file
  * \ingroup editors
@@ -27,12 +27,12 @@
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_geom.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
@@ -41,7 +41,7 @@
 #include "DEG_depsgraph_query.h"
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -147,9 +147,6 @@ static LineartEdgeSegment *lineart_give_segment(LineartData *ld)
                                                           sizeof(LineartEdgeSegment));
 }
 
-/**
- * Cuts the edge in image space and mark occlusion level for each segment.
- */
 void lineart_edge_cut(LineartData *ld,
                       LineartEdge *e,
                       double start,
@@ -458,11 +455,6 @@ static void lineart_occlusion_worker(TaskPool *__restrict /*pool*/, LineartRende
   }
 }
 
-/**
- * All internal functions starting with lineart_main_ is called inside
- * #MOD_lineart_compute_feature_lines function.
- * This function handles all occlusion calculation.
- */
 void lineart_main_occlusion_begin(LineartData *ld)
 {
   int thread_count = ld->thread_count;
@@ -1207,12 +1199,6 @@ static void lineart_triangle_cull_single(LineartData *ld,
 #undef REMOVE_TRIANGLE_EDGE
 }
 
-/**
- * This function cuts triangles with near- or far-plane. Setting clip_far = true for cutting with
- * far-plane. For triangles that's crossing the plane, it will generate new 1 or 2 triangles with
- * new topology that represents the trimmed triangle. (which then became a triangle or a square
- * formed by two triangles)
- */
 void lineart_main_cull_triangles(LineartData *ld, bool clip_far)
 {
   LineartTriangle *tri;
@@ -1345,10 +1331,6 @@ void lineart_main_cull_triangles(LineartData *ld, bool clip_far)
 #undef LRT_CULL_DECIDE_INSIDE
 }
 
-/**
- * Adjacent data is only used during the initial stages of computing.
- * So we can free it using this function when it is not needed anymore.
- */
 void lineart_main_free_adjacent_data(LineartData *ld)
 {
   LinkData *link;
@@ -1474,13 +1456,14 @@ struct EdgeFeatData {
   LineartData *ld;
   Mesh *me;
   Object *ob_eval; /* For evaluated materials. */
-  const MLoopTri *mlooptri;
   const int *material_indices;
   blender::Span<MEdge> edges;
-  blender::Span<MLoop> loops;
-  blender::Span<MPoly> polys;
+  blender::Span<int> corner_verts;
+  blender::Span<int> corner_edges;
+  blender::Span<MLoopTri> looptris;
   LineartTriangle *tri_array;
   blender::VArray<bool> sharp_edges;
+  blender::VArray<bool> sharp_faces;
   LineartVert *v_array;
   float crease_threshold;
   bool use_auto_smooth;
@@ -1514,7 +1497,7 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
   const int *material_indices = e_feat_data->material_indices;
   Object *ob_eval = e_feat_data->ob_eval;
   LineartEdgeNeighbor *edge_nabr = e_feat_data->edge_nabr;
-  const MLoopTri *mlooptri = e_feat_data->mlooptri;
+  const blender::Span<MLoopTri> looptris = e_feat_data->looptris;
 
   uint16_t edge_flag_result = 0;
 
@@ -1532,10 +1515,10 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
     FreestyleFace *ff1, *ff2;
     int index = e_feat_data->freestyle_face_index;
     if (index > -1) {
-      ff1 = &((FreestyleFace *)me->pdata.layers[index].data)[mlooptri[i / 3].poly];
+      ff1 = &((FreestyleFace *)me->pdata.layers[index].data)[looptris[i / 3].poly];
     }
     if (edge_nabr[i].e > -1) {
-      ff2 = &((FreestyleFace *)me->pdata.layers[index].data)[mlooptri[edge_nabr[i].e / 3].poly];
+      ff2 = &((FreestyleFace *)me->pdata.layers[index].data)[looptris[edge_nabr[i].e / 3].poly];
     }
     else {
       /* Handle mesh boundary cases: We want mesh boundaries to respect
@@ -1648,8 +1631,8 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
     if (ld->conf.use_crease) {
       bool do_crease = true;
       if (!ld->conf.force_crease && !e_feat_data->use_auto_smooth &&
-          (e_feat_data->polys[mlooptri[f1].poly].flag & ME_SMOOTH) &&
-          (e_feat_data->polys[mlooptri[f2].poly].flag & ME_SMOOTH)) {
+          (!e_feat_data->sharp_faces[looptris[f1].poly]) &&
+          (!e_feat_data->sharp_faces[looptris[f2].poly])) {
         do_crease = false;
       }
       if (do_crease && (dot_v3v3_db(tri1->gn, tri2->gn) < e_feat_data->crease_threshold)) {
@@ -1657,8 +1640,8 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
       }
     }
 
-    int mat1 = material_indices ? material_indices[mlooptri[f1].poly] : 0;
-    int mat2 = material_indices ? material_indices[mlooptri[f2].poly] : 0;
+    int mat1 = material_indices ? material_indices[looptris[f1].poly] : 0;
+    int mat2 = material_indices ? material_indices[looptris[f2].poly] : 0;
 
     if (mat1 != mat2) {
       Material *m1 = BKE_object_material_get_eval(ob_eval, mat1 + 1);
@@ -1682,8 +1665,11 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
   }
 
   int real_edges[3];
-  BKE_mesh_looptri_get_real_edges(
-      e_feat_data->edges.data(), e_feat_data->loops.data(), &mlooptri[i / 3], real_edges);
+  BKE_mesh_looptri_get_real_edges(e_feat_data->edges.data(),
+                                  e_feat_data->corner_verts.data(),
+                                  e_feat_data->corner_edges.data(),
+                                  &looptris[i / 3],
+                                  real_edges);
 
   if (real_edges[i % 3] >= 0) {
     if (ld->conf.use_crease && ld->conf.sharp_as_crease &&
@@ -1742,10 +1728,11 @@ static void lineart_add_edge_to_array_thread(LineartObjectInfo *obi, LineartEdge
   lineart_add_edge_to_array(&obi->pending_edges, e);
 }
 
-/* NOTE: For simplicity, this function doesn't actually do anything if you already have data in
- * #pe. */
 void lineart_finalize_object_edge_array_reserve(LineartPendingEdges *pe, int count)
 {
+  /* NOTE: For simplicity, this function doesn't actually do anything
+   * if you already have data in #pe. */
+
   if (pe->max || pe->array || count == 0) {
     return;
   }
@@ -1788,8 +1775,8 @@ static void lineart_triangle_adjacent_assign(LineartTriangle *tri,
 struct TriData {
   LineartObjectInfo *ob_info;
   blender::Span<blender::float3> positions;
-  blender::Span<MLoop> loops;
-  const MLoopTri *mlooptri;
+  blender::Span<int> corner_verts;
+  blender::Span<MLoopTri> looptris;
   const int *material_indices;
   LineartVert *vert_arr;
   LineartTriangle *tri_arr;
@@ -1804,17 +1791,17 @@ static void lineart_load_tri_task(void *__restrict userdata,
   TriData *tri_task_data = (TriData *)userdata;
   LineartObjectInfo *ob_info = tri_task_data->ob_info;
   const blender::Span<blender::float3> positions = tri_task_data->positions;
-  const blender::Span<MLoop> loops = tri_task_data->loops;
-  const MLoopTri *mlooptri = &tri_task_data->mlooptri[i];
+  const blender::Span<int> corner_verts = tri_task_data->corner_verts;
+  const MLoopTri *looptri = &tri_task_data->looptris[i];
   const int *material_indices = tri_task_data->material_indices;
   LineartVert *vert_arr = tri_task_data->vert_arr;
   LineartTriangle *tri = tri_task_data->tri_arr;
 
   tri = (LineartTriangle *)(((uchar *)tri) + tri_task_data->lineart_triangle_size * i);
 
-  int v1 = loops[mlooptri->tri[0]].v;
-  int v2 = loops[mlooptri->tri[1]].v;
-  int v3 = loops[mlooptri->tri[2]].v;
+  int v1 = corner_verts[looptri->tri[0]];
+  int v2 = corner_verts[looptri->tri[1]];
+  int v3 = corner_verts[looptri->tri[2]];
 
   tri->v[0] = &vert_arr[v1];
   tri->v[1] = &vert_arr[v2];
@@ -1822,7 +1809,7 @@ static void lineart_load_tri_task(void *__restrict userdata,
 
   /* Material mask bits and occlusion effectiveness assignment. */
   Material *mat = BKE_object_material_get(
-      ob_info->original_ob_eval, material_indices ? material_indices[mlooptri->poly] + 1 : 1);
+      ob_info->original_ob_eval, material_indices ? material_indices[looptri->poly] + 1 : 1);
   tri->material_mask_bits |= ((mat && (mat->lineart.flags & LRT_MATERIAL_MASK_ENABLED)) ?
                                   mat->lineart.material_mask_bits :
                                   0);
@@ -1862,8 +1849,8 @@ static void lineart_load_tri_task(void *__restrict userdata,
 struct EdgeNeighborData {
   LineartEdgeNeighbor *edge_nabr;
   LineartAdjacentEdge *adj_e;
-  const MLoopTri *mlooptri;
-  const MLoop *mloop;
+  blender::Span<int> corner_verts;
+  blender::Span<MLoopTri> looptris;
 };
 
 static void lineart_edge_neighbor_init_task(void *__restrict userdata,
@@ -1872,13 +1859,13 @@ static void lineart_edge_neighbor_init_task(void *__restrict userdata,
 {
   EdgeNeighborData *en_data = (EdgeNeighborData *)userdata;
   LineartAdjacentEdge *adj_e = &en_data->adj_e[i];
-  const MLoopTri *looptri = &en_data->mlooptri[i / 3];
+  const MLoopTri *looptri = &en_data->looptris[i / 3];
   LineartEdgeNeighbor *edge_nabr = &en_data->edge_nabr[i];
-  const MLoop *mloop = en_data->mloop;
+  const blender::Span<int> corner_verts = en_data->corner_verts;
 
   adj_e->e = i;
-  adj_e->v1 = mloop[looptri->tri[i % 3]].v;
-  adj_e->v2 = mloop[looptri->tri[(i + 1) % 3]].v;
+  adj_e->v1 = corner_verts[looptri->tri[i % 3]];
+  adj_e->v2 = corner_verts[looptri->tri[(i + 1) % 3]];
   if (adj_e->v1 > adj_e->v2) {
     std::swap(adj_e->v1, adj_e->v2);
   }
@@ -1924,8 +1911,8 @@ static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *me, int total_edge
   EdgeNeighborData en_data;
   en_data.adj_e = adj_e;
   en_data.edge_nabr = edge_nabr;
-  en_data.mlooptri = BKE_mesh_runtime_looptri_ensure(me);
-  en_data.mloop = BKE_mesh_loops(me);
+  en_data.corner_verts = me->corner_verts();
+  en_data.looptris = me->looptris();
 
   BLI_task_parallel_range(0, total_edges, &en_data, lineart_edge_neighbor_init_task, &en_settings);
 
@@ -1954,8 +1941,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   }
 
   /* Triangulate. */
-  const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(me);
-  const int tot_tri = BKE_mesh_runtime_looptri_len(me);
+  const blender::Span<MLoopTri> looptris = me->looptris();
 
   const int *material_indices = (const int *)CustomData_get_layer_named(
       &me->pdata, CD_PROP_INT32, "material_index");
@@ -1978,8 +1964,8 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
    * chains containing the same edge. */
   LineartVert *la_v_arr = static_cast<LineartVert *>(
       lineart_mem_acquire_thread(&la_data->render_data_pool, sizeof(LineartVert) * me->totvert));
-  LineartTriangle *la_tri_arr = static_cast<LineartTriangle *>(
-      lineart_mem_acquire_thread(&la_data->render_data_pool, tot_tri * la_data->sizeof_triangle));
+  LineartTriangle *la_tri_arr = static_cast<LineartTriangle *>(lineart_mem_acquire_thread(
+      &la_data->render_data_pool, looptris.size() * la_data->sizeof_triangle));
 
   Object *orig_ob = ob_info->original_ob;
 
@@ -2025,7 +2011,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
 
   int usage = ob_info->usage;
 
-  elem_link_node->element_count = tot_tri;
+  elem_link_node->element_count = looptris.size();
   elem_link_node->object_ref = orig_ob;
   elem_link_node->flags = eLineArtElementNodeFlag(
       elem_link_node->flags |
@@ -2033,7 +2019,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
 
   /* Note this memory is not from pool, will be deleted after culling. */
   LineartTriangleAdjacent *tri_adj = static_cast<LineartTriangleAdjacent *>(
-      MEM_callocN(sizeof(LineartTriangleAdjacent) * tot_tri, "LineartTriangleAdjacent"));
+      MEM_callocN(sizeof(LineartTriangleAdjacent) * looptris.size(), "LineartTriangleAdjacent"));
   /* Link is minimal so we use pool anyway. */
   BLI_spin_lock(&la_data->lock_task);
   lineart_list_append_pointer_pool_thread(
@@ -2065,17 +2051,17 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   TriData tri_data;
   tri_data.ob_info = ob_info;
   tri_data.positions = me->vert_positions();
-  tri_data.mlooptri = mlooptri;
-  tri_data.loops = me->loops();
+  tri_data.looptris = looptris;
+  tri_data.corner_verts = me->corner_verts();
   tri_data.material_indices = material_indices;
   tri_data.vert_arr = la_v_arr;
   tri_data.tri_arr = la_tri_arr;
   tri_data.lineart_triangle_size = la_data->sizeof_triangle;
   tri_data.tri_adj = tri_adj;
 
-  uint32_t total_edges = tot_tri * 3;
+  uint32_t total_edges = looptris.size() * 3;
 
-  BLI_task_parallel_range(0, tot_tri, &tri_data, lineart_load_tri_task, &tri_settings);
+  BLI_task_parallel_range(0, looptris.size(), &tri_data, lineart_load_tri_task, &tri_settings);
 
   /* Check for contour lines in the mesh.
    * IE check if the triangle edges lies in area where the triangles go from front facing to back
@@ -2093,17 +2079,20 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   const bke::AttributeAccessor attributes = me->attributes();
   const VArray<bool> sharp_edges = attributes.lookup_or_default<bool>(
       "sharp_edge", ATTR_DOMAIN_EDGE, false);
+  const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
+      "sharp_face", ATTR_DOMAIN_FACE, false);
 
   EdgeFeatData edge_feat_data = {nullptr};
   edge_feat_data.ld = la_data;
   edge_feat_data.me = me;
   edge_feat_data.ob_eval = ob_info->original_ob_eval;
-  edge_feat_data.mlooptri = mlooptri;
   edge_feat_data.material_indices = material_indices;
   edge_feat_data.edges = me->edges();
-  edge_feat_data.polys = me->polys();
-  edge_feat_data.loops = me->loops();
+  edge_feat_data.corner_verts = me->corner_verts();
+  edge_feat_data.corner_edges = me->corner_edges();
+  edge_feat_data.looptris = looptris;
   edge_feat_data.sharp_edges = sharp_edges;
+  edge_feat_data.sharp_faces = sharp_faces;
   edge_feat_data.edge_nabr = lineart_build_edge_neighbor(me, total_edges);
   edge_feat_data.tri_array = la_tri_arr;
   edge_feat_data.v_array = la_v_arr;
@@ -3431,9 +3420,6 @@ static void lineart_triangle_intersect_in_bounding_area(LineartTriangle *tri,
   }
 }
 
-/**
- * The calculated view vector will point towards the far-plane from the camera position.
- */
 void lineart_main_get_view_vector(LineartData *ld)
 {
   float direction[3] = {0, 0, 1};
@@ -4285,9 +4271,6 @@ void lineart_main_clear_linked_edges(LineartData *ld)
   }
 }
 
-/**
- * Link lines to their respective bounding areas.
- */
 void lineart_main_link_lines(LineartData *ld)
 {
   LRT_ITER_ALL_LINES_BEGIN
@@ -4672,10 +4655,6 @@ static void lineart_create_edges_from_isec_data(LineartIsecData *d)
   }
 }
 
-/**
- * Sequentially add triangles into render buffer, intersection lines between those triangles will
- * also be computed at the same time.
- */
 void lineart_main_add_triangles(LineartData *ld)
 {
   double t_start;
@@ -4708,10 +4687,6 @@ void lineart_main_add_triangles(LineartData *ld)
   }
 }
 
-/**
- * This function gets the tile for the point `e->v1`, and later use #lineart_bounding_area_next()
- * to get next along the way.
- */
 LineartBoundingArea *lineart_edge_first_bounding_area(LineartData *ld,
                                                       double *fbcoord1,
                                                       double *fbcoord2)
@@ -4742,10 +4717,6 @@ LineartBoundingArea *lineart_edge_first_bounding_area(LineartData *ld,
   return lineart_get_bounding_area(ld, data[0], data[1]);
 }
 
-/**
- * This march along one render line in image space and
- * get the next bounding area the line is crossing.
- */
 LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
                                                 double *fbcoord1,
                                                 double *fbcoord2,
@@ -4966,11 +4937,6 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
   return nullptr;
 }
 
-/**
- * This is the entry point of all line art calculations.
- *
- * \return True when a change is made.
- */
 bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
                                        LineartGpencilModifierData *lmd,
                                        LineartCache **cached_result,

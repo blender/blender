@@ -25,9 +25,7 @@ class StrokeTesselator {
     _overloadFrsMaterial = false;
   }
 
-  virtual ~StrokeTesselator()
-  {
-  }
+  virtual ~StrokeTesselator() {}
 
   /** Builds a line rep contained from a Stroke */
   LineRep *Tesselate(Stroke *iStroke);

@@ -6,7 +6,7 @@ void main()
 
   /* transparent outside of point
    * --- 0 ---
-   *  smooth transition
+   * smooth transition
    * --- 1 ---
    * pure point color
    * ...

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -200,9 +200,7 @@ const char *operationCodeAsString(OperationCode opcode)
   return "UNKNOWN";
 }
 
-OperationNode::OperationNode() : name_tag(-1), flag(0)
-{
-}
+OperationNode::OperationNode() : name_tag(-1), flag(0) {}
 
 string OperationNode::identifier() const
 {

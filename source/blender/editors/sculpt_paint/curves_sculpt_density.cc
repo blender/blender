@@ -7,7 +7,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_geometry_set.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_sample.hh"
 #include "BKE_modifier.h"
@@ -91,9 +91,7 @@ struct DensityAddOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  DensityAddOperationExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  DensityAddOperationExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(DensityAddOperation &self,
                const bContext &C,
@@ -275,6 +273,7 @@ struct DensityAddOperationExecutor {
                                    BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE;
     add_inputs.interpolate_point_count = brush_settings_->flag &
                                          BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_POINT_COUNT;
+    add_inputs.interpolate_resolution = curves_orig_->attributes().contains("resolution");
     add_inputs.fallback_curve_length = brush_settings_->curve_length;
     add_inputs.fallback_point_count = std::max(2, brush_settings_->points_per_curve);
     add_inputs.transforms = &transforms_;
@@ -529,9 +528,7 @@ struct DensitySubtractOperationExecutor {
 
   KDTree_3d *root_points_kdtree_;
 
-  DensitySubtractOperationExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  DensitySubtractOperationExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(DensitySubtractOperation &self,
                const bContext &C,

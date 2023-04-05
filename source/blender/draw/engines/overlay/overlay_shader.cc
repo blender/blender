@@ -40,6 +40,7 @@ struct OVERLAY_Shaders {
   GPUShader *edit_mesh_vert;
   GPUShader *edit_mesh_edge;
   GPUShader *edit_mesh_edge_flat;
+  GPUShader *edit_mesh_depth;
   GPUShader *edit_mesh_face;
   GPUShader *edit_mesh_facedot;
   GPUShader *edit_mesh_skin_root;
@@ -151,6 +152,18 @@ GPUShader *OVERLAY_shader_depth_only(void)
                                                        "overlay_depth_only");
   }
   return sh_data->depth_only;
+}
+
+GPUShader *OVERLAY_shader_edit_mesh_depth(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->edit_mesh_depth) {
+    sh_data->edit_mesh_depth = GPU_shader_create_from_info_name(
+        (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "overlay_edit_mesh_depth_clipped" :
+                                                       "overlay_edit_mesh_depth");
+  }
+  return sh_data->edit_mesh_depth;
 }
 
 GPUShader *OVERLAY_shader_edit_mesh_vert(void)
@@ -1152,7 +1165,7 @@ OVERLAY_InstanceFormats *OVERLAY_shader_instance_formats_get(void)
                               {
                                   {"boneStart", DRW_ATTR_FLOAT, 3},
                                   {"boneEnd", DRW_ATTR_FLOAT, 3},
-                                  {"wireColor", DRW_ATTR_FLOAT, 4}, /* TODO: uchar color. */
+                                  {"wireColor", DRW_ATTR_FLOAT, 4}, /* TODO: `uchar` color. */
                                   {"boneColor", DRW_ATTR_FLOAT, 4},
                                   {"headColor", DRW_ATTR_FLOAT, 4},
                                   {"tailColor", DRW_ATTR_FLOAT, 4},

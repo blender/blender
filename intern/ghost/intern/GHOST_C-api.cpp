@@ -895,16 +895,10 @@ bool GHOST_UseNativePixels(void)
   return system->useNativePixel();
 }
 
-bool GHOST_SupportsCursorWarp(void)
+GHOST_TCapabilityFlag GHOST_GetCapabilities(void)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
-  return system->supportsCursorWarp();
-}
-
-bool GHOST_SupportsWindowPosition(void)
-{
-  GHOST_ISystem *system = GHOST_ISystem::getSystem();
-  return system->supportsWindowPosition();
+  return system->getCapabilities();
 }
 
 void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn)
@@ -916,6 +910,12 @@ void GHOST_UseWindowFocus(bool use_focus)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->useWindowFocus(use_focus);
+}
+
+void GHOST_SetAutoFocus(bool auto_focus)
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  system->setAutoFocus(auto_focus);
 }
 
 float GHOST_GetNativePixelSize(GHOST_WindowHandle windowhandle)
@@ -1203,22 +1203,29 @@ void GHOST_GetVulkanHandles(GHOST_ContextHandle contexthandle,
                             void *r_instance,
                             void *r_physical_device,
                             void *r_device,
-                            uint32_t *r_graphic_queue_family)
+                            uint32_t *r_graphic_queue_family,
+                            void *r_queue)
 {
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
-  context->getVulkanHandles(r_instance, r_physical_device, r_device, r_graphic_queue_family);
+  context->getVulkanHandles(
+      r_instance, r_physical_device, r_device, r_graphic_queue_family, r_queue);
+}
+
+void GHOST_GetVulkanCommandBuffer(GHOST_ContextHandle contexthandle, void *r_command_buffer)
+{
+  GHOST_IContext *context = (GHOST_IContext *)contexthandle;
+  context->getVulkanCommandBuffer(r_command_buffer);
 }
 
 void GHOST_GetVulkanBackbuffer(GHOST_WindowHandle windowhandle,
                                void *image,
                                void *framebuffer,
-                               void *command_buffer,
                                void *render_pass,
                                void *extent,
                                uint32_t *fb_id)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
-  window->getVulkanBackbuffer(image, framebuffer, command_buffer, render_pass, extent, fb_id);
+  window->getVulkanBackbuffer(image, framebuffer, render_pass, extent, fb_id);
 }
 
-#endif /* WITH_VULKAN */
+#endif /* WITH_VULKAN_BACKEND */

@@ -33,9 +33,7 @@ namespace StrokeInternal {
 class StrokeVertexIterator : public Interface0DIteratorNested {
  public:
   /** Default constructor. */
-  StrokeVertexIterator()
-  {
-  }
+  StrokeVertexIterator() {}
 
   /** Copy constructor. */
   StrokeVertexIterator(const StrokeVertexIterator &vi)
@@ -54,9 +52,7 @@ class StrokeVertexIterator : public Interface0DIteratorNested {
     _end = end;
   }
 
-  virtual ~StrokeVertexIterator()
-  {
-  }
+  virtual ~StrokeVertexIterator() {}
 
   /** Casts this StrokeVertexIterator into an Interface0DIterator.
    *  Useful for any call to a function of the type UnaryFunction0D.

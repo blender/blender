@@ -14,13 +14,13 @@
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_report.h"
@@ -424,7 +424,7 @@ static bool gpencil_strokes_merge_poll(bContext *C)
 {
   /* only supported with grease pencil objects */
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
 
@@ -459,7 +459,7 @@ static int gpencil_stroke_merge_exec(bContext *C, wmOperator *op)
 
   Object *ob = CTX_data_active_object(C);
   /* sanity checks */
-  if (!ob || ob->type != OB_GPENCIL) {
+  if (!ob || ob->type != OB_GPENCIL_LEGACY) {
     return OPERATOR_CANCELLED;
   }
 
@@ -556,7 +556,7 @@ static bool gpencil_stroke_merge_material_poll(bContext *C)
 {
   /* only supported with grease pencil objects */
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
 

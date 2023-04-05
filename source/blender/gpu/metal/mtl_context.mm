@@ -106,8 +106,8 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
 
       /* Add default texture for cases where no other framebuffer is bound */
       if (!default_fbo_gputexture_) {
-        default_fbo_gputexture_ = static_cast<gpu::MTLTexture *>(
-            unwrap(GPU_texture_create_2d(__func__, 16, 16, 1, GPU_RGBA16F, nullptr)));
+        default_fbo_gputexture_ = static_cast<gpu::MTLTexture *>(unwrap(GPU_texture_create_2d(
+            __func__, 16, 16, 1, GPU_RGBA16F, GPU_TEXTURE_USAGE_GENERAL, nullptr)));
       }
       mtl_back_left->add_color_attachment(default_fbo_gputexture_, 0, 0, 0);
 
@@ -223,11 +223,7 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
   }
 
   /* Initialize samplers. */
-  for (uint i = 0; i < GPU_SAMPLER_MAX; i++) {
-    MTLSamplerState state;
-    state.state = static_cast<eGPUSamplerState>(i);
-    sampler_state_cache_[i] = this->generate_sampler_from_state(state);
-  }
+  this->sampler_state_cache_init();
 }
 
 MTLContext::~MTLContext()
@@ -276,10 +272,22 @@ MTLContext::~MTLContext()
   this->free_dummy_resources();
 
   /* Release Sampler States. */
-  for (int i = 0; i < GPU_SAMPLER_MAX; i++) {
-    if (sampler_state_cache_[i] != nil) {
-      [sampler_state_cache_[i] release];
-      sampler_state_cache_[i] = nil;
+  for (int extend_yz_i = 0; extend_yz_i < GPU_SAMPLER_EXTEND_MODES_COUNT; extend_yz_i++) {
+    for (int extend_x_i = 0; extend_x_i < GPU_SAMPLER_EXTEND_MODES_COUNT; extend_x_i++) {
+      for (int filtering_i = 0; filtering_i < GPU_SAMPLER_FILTERING_TYPES_COUNT; filtering_i++) {
+        if (sampler_state_cache_[extend_yz_i][extend_x_i][filtering_i] != nil) {
+          [sampler_state_cache_[extend_yz_i][extend_x_i][filtering_i] release];
+          sampler_state_cache_[extend_yz_i][extend_x_i][filtering_i] = nil;
+        }
+      }
+    }
+  }
+
+  /* Release Custom Sampler States. */
+  for (int i = 0; i < GPU_SAMPLER_CUSTOM_TYPES_COUNT; i++) {
+    if (custom_sampler_state_cache_[i] != nil) {
+      [custom_sampler_state_cache_[i] release];
+      custom_sampler_state_cache_[i] = nil;
     }
   }
 
@@ -548,27 +556,28 @@ gpu::MTLTexture *MTLContext::get_dummy_texture(eGPUTextureType type,
 
     /* Create dummy texture based on desired type. */
     GPUTexture *tex = nullptr;
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
     switch (type) {
       case GPU_TEXTURE_1D:
-        tex = GPU_texture_create_1d("Dummy 1D", 128, 1, format, nullptr);
+        tex = GPU_texture_create_1d("Dummy 1D", 128, 1, format, usage, nullptr);
         break;
       case GPU_TEXTURE_1D_ARRAY:
-        tex = GPU_texture_create_1d_array("Dummy 1DArray", 128, 1, 1, format, nullptr);
+        tex = GPU_texture_create_1d_array("Dummy 1DArray", 128, 1, 1, format, usage, nullptr);
         break;
       case GPU_TEXTURE_2D:
-        tex = GPU_texture_create_2d("Dummy 2D", 128, 128, 1, format, nullptr);
+        tex = GPU_texture_create_2d("Dummy 2D", 128, 128, 1, format, usage, nullptr);
         break;
       case GPU_TEXTURE_2D_ARRAY:
-        tex = GPU_texture_create_2d_array("Dummy 2DArray", 128, 128, 1, 1, format, nullptr);
+        tex = GPU_texture_create_2d_array("Dummy 2DArray", 128, 128, 1, 1, format, usage, nullptr);
         break;
       case GPU_TEXTURE_3D:
-        tex = GPU_texture_create_3d("Dummy 3D", 128, 128, 1, 1, format, GPU_DATA_UBYTE, nullptr);
+        tex = GPU_texture_create_3d("Dummy 3D", 128, 128, 1, 1, format, usage, nullptr);
         break;
       case GPU_TEXTURE_CUBE:
-        tex = GPU_texture_create_cube("Dummy Cube", 128, 1, format, nullptr);
+        tex = GPU_texture_create_cube("Dummy Cube", 128, 1, format, usage, nullptr);
         break;
       case GPU_TEXTURE_CUBE_ARRAY:
-        tex = GPU_texture_create_cube_array("Dummy CubeArray", 128, 1, 1, format, nullptr);
+        tex = GPU_texture_create_cube_array("Dummy CubeArray", 128, 1, 1, format, usage, nullptr);
         break;
       case GPU_TEXTURE_BUFFER:
         if (!dummy_verts_[sampler_format]) {
@@ -1073,13 +1082,13 @@ bool MTLContext::ensure_uniform_buffer_bindings(
       int ubo_size = 0;
 
       bool bind_dummy_buffer = false;
-      if (this->pipeline_state.ubo_bindings[ubo_index].bound) {
+      if (this->pipeline_state.ubo_bindings[ubo.buffer_index].bound) {
 
         /* Fetch UBO global-binding properties from slot. */
         ubo_offset = 0;
-        ubo_buffer = this->pipeline_state.ubo_bindings[ubo_index].ubo->get_metal_buffer(
+        ubo_buffer = this->pipeline_state.ubo_bindings[ubo.buffer_index].ubo->get_metal_buffer(
             &ubo_offset);
-        ubo_size = this->pipeline_state.ubo_bindings[ubo_index].ubo->get_size();
+        ubo_size = this->pipeline_state.ubo_bindings[ubo.buffer_index].ubo->get_size();
 
         /* Use dummy zero buffer if no buffer assigned -- this is an optimization to avoid
          * allocating zero buffers. */
@@ -1230,13 +1239,13 @@ bool MTLContext::ensure_uniform_buffer_bindings(
       int ubo_size = 0;
 
       bool bind_dummy_buffer = false;
-      if (this->pipeline_state.ubo_bindings[ubo_index].bound) {
+      if (this->pipeline_state.ubo_bindings[ubo.buffer_index].bound) {
 
         /* Fetch UBO global-binding properties from slot. */
         ubo_offset = 0;
-        ubo_buffer = this->pipeline_state.ubo_bindings[ubo_index].ubo->get_metal_buffer(
+        ubo_buffer = this->pipeline_state.ubo_bindings[ubo.buffer_index].ubo->get_metal_buffer(
             &ubo_offset);
-        ubo_size = this->pipeline_state.ubo_bindings[ubo_index].ubo->get_size();
+        ubo_size = this->pipeline_state.ubo_bindings[ubo.buffer_index].ubo->get_size();
         UNUSED_VARS_NDEBUG(ubo_size);
 
         /* Use dummy zero buffer if no buffer assigned -- this is an optimization to avoid
@@ -1524,7 +1533,7 @@ void MTLContext::ensure_texture_bindings(
     int compute_arg_buffer_bind_index = -1;
 
     /* Argument buffers are used for samplers, when the limit of 16 is exceeded.
-     * NOTE: Compute uses vertex argument for arg buffer bind index.*/
+     * NOTE: Compute uses vertex argument for arg buffer bind index. */
     bool use_argument_buffer_for_samplers = shader_interface->uses_argument_buffer_for_samplers();
     compute_arg_buffer_bind_index = shader_interface->get_argument_buffer_bind_index(
         ShaderStage::COMPUTE);
@@ -2018,59 +2027,118 @@ void MTLContext::texture_unbind_all()
 
 id<MTLSamplerState> MTLContext::get_sampler_from_state(MTLSamplerState sampler_state)
 {
-  BLI_assert((uint)sampler_state >= 0 && ((uint)sampler_state) < GPU_SAMPLER_MAX);
-  return sampler_state_cache_[(uint)sampler_state];
+  /* Internal sampler states are signal values and do not correspond to actual samplers. */
+  BLI_assert(sampler_state.state.type != GPU_SAMPLER_STATE_TYPE_INTERNAL);
+
+  if (sampler_state.state.type == GPU_SAMPLER_STATE_TYPE_CUSTOM) {
+    return custom_sampler_state_cache_[sampler_state.state.custom_type];
+  }
+
+  return sampler_state_cache_[sampler_state.state.extend_yz][sampler_state.state.extend_x]
+                             [sampler_state.state.filtering];
 }
 
-id<MTLSamplerState> MTLContext::generate_sampler_from_state(MTLSamplerState sampler_state)
+/** A function that maps GPUSamplerExtendMode values to their Metal enum counterparts. */
+static inline MTLSamplerAddressMode to_mtl_type(GPUSamplerExtendMode wrap_mode)
 {
-  /* Check if sampler already exists for given state. */
-  MTLSamplerDescriptor *descriptor = [[MTLSamplerDescriptor alloc] init];
-  descriptor.normalizedCoordinates = true;
+  switch (wrap_mode) {
+    case GPU_SAMPLER_EXTEND_MODE_EXTEND:
+      return MTLSamplerAddressModeClampToEdge;
+    case GPU_SAMPLER_EXTEND_MODE_REPEAT:
+      return MTLSamplerAddressModeRepeat;
+    case GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT:
+      return MTLSamplerAddressModeMirrorRepeat;
+    case GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER:
+      return MTLSamplerAddressModeClampToBorderColor;
+    default:
+      BLI_assert_unreachable();
+      return MTLSamplerAddressModeClampToEdge;
+  }
+}
 
-  MTLSamplerAddressMode clamp_type = (sampler_state.state & GPU_SAMPLER_CLAMP_BORDER) ?
-                                         MTLSamplerAddressModeClampToBorderColor :
-                                         MTLSamplerAddressModeClampToEdge;
-  MTLSamplerAddressMode repeat_type = (sampler_state.state & GPU_SAMPLER_MIRROR_REPEAT) ?
-                                          MTLSamplerAddressModeMirrorRepeat :
-                                          MTLSamplerAddressModeRepeat;
-  descriptor.rAddressMode = (sampler_state.state & GPU_SAMPLER_REPEAT_R) ? repeat_type :
-                                                                           clamp_type;
-  descriptor.sAddressMode = (sampler_state.state & GPU_SAMPLER_REPEAT_S) ? repeat_type :
-                                                                           clamp_type;
-  descriptor.tAddressMode = (sampler_state.state & GPU_SAMPLER_REPEAT_T) ? repeat_type :
-                                                                           clamp_type;
-  descriptor.borderColor = MTLSamplerBorderColorTransparentBlack;
-  descriptor.minFilter = (sampler_state.state & GPU_SAMPLER_FILTER) ?
-                             MTLSamplerMinMagFilterLinear :
-                             MTLSamplerMinMagFilterNearest;
-  descriptor.magFilter = (sampler_state.state & GPU_SAMPLER_FILTER) ?
-                             MTLSamplerMinMagFilterLinear :
-                             MTLSamplerMinMagFilterNearest;
-  descriptor.mipFilter = (sampler_state.state & GPU_SAMPLER_MIPMAP) ?
-                             MTLSamplerMipFilterLinear :
-                             MTLSamplerMipFilterNotMipmapped;
-  descriptor.lodMinClamp = -1000;
-  descriptor.lodMaxClamp = 1000;
-  float aniso_filter = max_ff(16, U.anisotropic_filter);
-  descriptor.maxAnisotropy = (sampler_state.state & GPU_SAMPLER_MIPMAP) ? aniso_filter : 1;
-  descriptor.compareFunction = (sampler_state.state & GPU_SAMPLER_COMPARE) ?
-                                   MTLCompareFunctionLessEqual :
-                                   MTLCompareFunctionAlways;
-  descriptor.supportArgumentBuffers = true;
+void MTLContext::sampler_state_cache_init()
+{
+  for (int extend_yz_i = 0; extend_yz_i < GPU_SAMPLER_EXTEND_MODES_COUNT; extend_yz_i++) {
+    const GPUSamplerExtendMode extend_yz = static_cast<GPUSamplerExtendMode>(extend_yz_i);
+    const MTLSamplerAddressMode extend_t = to_mtl_type(extend_yz);
 
-  id<MTLSamplerState> state = [this->device newSamplerStateWithDescriptor:descriptor];
-  sampler_state_cache_[(uint)sampler_state] = state;
+    for (int extend_x_i = 0; extend_x_i < GPU_SAMPLER_EXTEND_MODES_COUNT; extend_x_i++) {
+      const GPUSamplerExtendMode extend_x = static_cast<GPUSamplerExtendMode>(extend_x_i);
+      const MTLSamplerAddressMode extend_s = to_mtl_type(extend_x);
 
-  BLI_assert(state != nil);
-  [descriptor autorelease];
-  return state;
+      for (int filtering_i = 0; filtering_i < GPU_SAMPLER_FILTERING_TYPES_COUNT; filtering_i++) {
+        const GPUSamplerFiltering filtering = GPUSamplerFiltering(filtering_i);
+
+        MTLSamplerDescriptor *descriptor = [[MTLSamplerDescriptor alloc] init];
+        descriptor.normalizedCoordinates = true;
+        descriptor.sAddressMode = extend_s;
+        descriptor.tAddressMode = extend_t;
+        descriptor.rAddressMode = extend_t;
+        descriptor.borderColor = MTLSamplerBorderColorTransparentBlack;
+        descriptor.minFilter = (filtering & GPU_SAMPLER_FILTERING_LINEAR) ?
+                                   MTLSamplerMinMagFilterLinear :
+                                   MTLSamplerMinMagFilterNearest;
+        descriptor.magFilter = (filtering & GPU_SAMPLER_FILTERING_LINEAR) ?
+                                   MTLSamplerMinMagFilterLinear :
+                                   MTLSamplerMinMagFilterNearest;
+        descriptor.mipFilter = (filtering & GPU_SAMPLER_FILTERING_MIPMAP) ?
+                                   MTLSamplerMipFilterLinear :
+                                   MTLSamplerMipFilterNotMipmapped;
+        descriptor.lodMinClamp = -1000;
+        descriptor.lodMaxClamp = 1000;
+        float aniso_filter = max_ff(16, U.anisotropic_filter);
+        descriptor.maxAnisotropy = (filtering & GPU_SAMPLER_FILTERING_MIPMAP) ? aniso_filter : 1;
+        descriptor.compareFunction = MTLCompareFunctionAlways;
+        descriptor.supportArgumentBuffers = true;
+
+        id<MTLSamplerState> state = [this->device newSamplerStateWithDescriptor:descriptor];
+        sampler_state_cache_[extend_yz_i][extend_x_i][filtering_i] = state;
+
+        BLI_assert(state != nil);
+        [descriptor autorelease];
+      }
+    }
+  }
+
+  /* Compare sampler for depth textures. */
+  {
+    MTLSamplerDescriptor *descriptor = [[MTLSamplerDescriptor alloc] init];
+    descriptor.minFilter = MTLSamplerMinMagFilterLinear;
+    descriptor.magFilter = MTLSamplerMinMagFilterLinear;
+    descriptor.compareFunction = MTLCompareFunctionLessEqual;
+    descriptor.lodMinClamp = -1000;
+    descriptor.lodMaxClamp = 1000;
+    descriptor.supportArgumentBuffers = true;
+
+    id<MTLSamplerState> compare_state = [this->device newSamplerStateWithDescriptor:descriptor];
+    custom_sampler_state_cache_[GPU_SAMPLER_CUSTOM_COMPARE] = compare_state;
+
+    BLI_assert(compare_state != nil);
+    [descriptor autorelease];
+  }
+
+  /* Custom sampler for icons. The icon texture is sampled within the shader using a -0.5f LOD
+   * bias. */
+  {
+    MTLSamplerDescriptor *descriptor = [[MTLSamplerDescriptor alloc] init];
+    descriptor.minFilter = MTLSamplerMinMagFilterLinear;
+    descriptor.magFilter = MTLSamplerMinMagFilterLinear;
+    descriptor.mipFilter = MTLSamplerMipFilterNearest;
+    descriptor.lodMinClamp = 0;
+    descriptor.lodMaxClamp = 1;
+
+    id<MTLSamplerState> icon_state = [this->device newSamplerStateWithDescriptor:descriptor];
+    custom_sampler_state_cache_[GPU_SAMPLER_CUSTOM_ICON] = icon_state;
+
+    BLI_assert(icon_state != nil);
+    [descriptor autorelease];
+  }
 }
 
 id<MTLSamplerState> MTLContext::get_default_sampler_state()
 {
   if (default_sampler_state_ == nil) {
-    default_sampler_state_ = this->get_sampler_from_state(DEFAULT_SAMPLER_STATE);
+    default_sampler_state_ = this->get_sampler_from_state({GPUSamplerState::default_sampler()});
   }
   return default_sampler_state_;
 }
@@ -2121,9 +2189,13 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
   MTLCommandBufferManager::num_active_cmd_bufs++;
 
   if (MTLCommandBufferManager::sync_event != nil) {
-    /* Ensure command buffer ordering. */
-    [cmdbuf encodeWaitForEvent:MTLCommandBufferManager::sync_event
-                         value:MTLCommandBufferManager::event_signal_val];
+    /* Release synchronization primitive for current frame to avoid cross-frame dependencies.
+     * We require MTLEvents to ensure correct ordering of workload submissions within a frame,
+     * however, we should not create long chains of dependencies spanning several drawables as any
+     * temporary stalls can then trigger erroneous GPU timeouts in non-dependent submissions.  */
+    [MTLCommandBufferManager::sync_event release];
+    MTLCommandBufferManager::sync_event = nil;
+    MTLCommandBufferManager::event_signal_val = 0;
   }
 
   /* Do Present Call and final Blit to MTLDrawable. */
@@ -2175,17 +2247,6 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
                  perf_max_drawables);
   }];
 
-  if (MTLCommandBufferManager::sync_event == nil) {
-    MTLCommandBufferManager::sync_event = [ctx->device newEvent];
-    BLI_assert(MTLCommandBufferManager::sync_event);
-    [MTLCommandBufferManager::sync_event retain];
-  }
-  BLI_assert(MTLCommandBufferManager::sync_event != nil);
-
-  MTLCommandBufferManager::event_signal_val++;
-  [cmdbuf encodeSignalEvent:MTLCommandBufferManager::sync_event
-                      value:MTLCommandBufferManager::event_signal_val];
-
   [cmdbuf commit];
 
   /* When debugging, fetch advanced command buffer errors. */
@@ -2221,4 +2282,4 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
 
 /** \} */
 
-}  // blender::gpu
+}  // namespace blender::gpu

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. All rights reserved. */
+ * Copyright 2011 Blender Foundation */
 
 /** \file
  * \ingroup blf
@@ -92,7 +92,7 @@ static void blf_load_datafiles_dir(void)
   BLI_filelist_free(file_list, file_list_num);
 }
 
-void BLF_load_font_stack()
+void BLF_load_font_stack(void)
 {
   /* Load these if not already, might have been replaced by user custom. */
   BLF_load_default(false);

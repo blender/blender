@@ -822,7 +822,7 @@ PyTypeObject BPy_IDPropertyUIManager_Type = {
     /*tp_vectorcall*/ NULL,
 };
 
-void IDPropertyUIData_Init_Types()
+void IDPropertyUIData_Init_Types(void)
 {
   PyType_Ready(&BPy_IDPropertyUIManager_Type);
 }

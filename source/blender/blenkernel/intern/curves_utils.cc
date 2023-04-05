@@ -16,7 +16,7 @@ void copy_curve_sizes(const OffsetIndices<int> points_by_curve,
 {
   threading::parallel_for(mask.index_range(), 4096, [&](IndexRange ranges_range) {
     for (const int64_t i : mask.slice(ranges_range)) {
-      sizes[i] = points_by_curve.size(i);
+      sizes[i] = points_by_curve[i].size();
     }
   });
 }
@@ -29,7 +29,7 @@ void copy_curve_sizes(const OffsetIndices<int> points_by_curve,
     for (const IndexRange curves_range : curve_ranges.slice(ranges_range)) {
       threading::parallel_for(curves_range, 4096, [&](IndexRange range) {
         for (const int i : range) {
-          sizes[i] = points_by_curve.size(i);
+          sizes[i] = points_by_curve[i].size();
         }
       });
     }

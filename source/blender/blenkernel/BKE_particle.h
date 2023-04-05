@@ -639,7 +639,7 @@ void psys_calc_dmcache(struct Object *ob,
  * This is slow and can be optimized but only for many lookups.
  *
  * \param mesh_final: Final mesh, it may not have the same topology as original mesh.
- * \param mesh_original: Original mesh, use for accessing #MPoly to #MFace mapping.
+ * \param mesh_original: Original mesh, use for accessing poly to #MFace mapping.
  * \param findex_orig: The input tessface index.
  * \param fw: Face weights (position of the particle inside the \a findex_orig tessface).
  * \param poly_nodes: May be NULL, otherwise an array of linked list,

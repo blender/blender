@@ -16,7 +16,7 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
 {
   /* Setup light sample. */
   Intersection isect ccl_optional_struct_init;
-  integrator_state_read_isect(kg, state, &isect);
+  integrator_state_read_isect(state, &isect);
 
   guiding_record_light_surface_segment(kg, state, &isect);
 

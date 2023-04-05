@@ -16,15 +16,9 @@
 namespace Freestyle {
 
 #define VISIT_COMPLETE_DEF(type) \
-  virtual void visit##type(type &) \
-  { \
-  } \
-  virtual void visit##type##Before(type &) \
-  { \
-  } \
-  virtual void visit##type##After(type &) \
-  { \
-  }
+  virtual void visit##type(type &) {} \
+  virtual void visit##type##Before(type &) {} \
+  virtual void visit##type##After(type &) {}
 
 #define VISIT_DECL(type) virtual void visit##type(type &)
 
@@ -53,19 +47,11 @@ class FrsMaterial;
 
 class SceneVisitor {
  public:
-  SceneVisitor()
-  {
-  }
-  virtual ~SceneVisitor()
-  {
-  }
+  SceneVisitor() {}
+  virtual ~SceneVisitor() {}
 
-  virtual void beginScene()
-  {
-  }
-  virtual void endScene()
-  {
-  }
+  virtual void beginScene() {}
+  virtual void endScene() {}
 
   //
   // visitClass methods

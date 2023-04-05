@@ -16,8 +16,8 @@
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -56,9 +56,9 @@
 #include "BKE_effect.h"
 #include "BKE_geometry_set.h"
 #include "BKE_geometry_set.hh"
-#include "BKE_gpencil_curve.h"
-#include "BKE_gpencil_geom.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_curve_legacy.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
@@ -71,7 +71,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_nla.h"
 #include "BKE_node.h"
@@ -127,7 +127,8 @@ using blender::Vector;
 
 /* This is an exact copy of the define in `rna_light.c`
  * kept here because of linking order.
- * Icons are only defined here */
+ * Icons are only defined here. */
+
 const EnumPropertyItem rna_enum_light_type_items[] = {
     {LA_LOCAL, "POINT", ICON_LIGHT_POINT, "Point", "Omnidirectional point light source"},
     {LA_SUN, "SUN", ICON_LIGHT_SUN, "Sun", "Constant direction parallel ray light source"},
@@ -1304,7 +1305,7 @@ static bool object_gpencil_add_poll(bContext *C)
     return false;
   }
 
-  if (obact && obact->type == OB_GPENCIL) {
+  if (obact && obact->type == OB_GPENCIL_LEGACY) {
     if (obact->mode != OB_MODE_OBJECT) {
       return false;
     }
@@ -1316,7 +1317,8 @@ static bool object_gpencil_add_poll(bContext *C)
 static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C), *ob_orig = ob;
-  bGPdata *gpd = (ob && (ob->type == OB_GPENCIL)) ? static_cast<bGPdata *>(ob->data) : nullptr;
+  bGPdata *gpd = (ob && (ob->type == OB_GPENCIL_LEGACY)) ? static_cast<bGPdata *>(ob->data) :
+                                                           nullptr;
 
   const int type = RNA_enum_get(op->ptr, "type");
   const bool use_in_front = RNA_boolean_get(op->ptr, "use_in_front");
@@ -1361,7 +1363,7 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
       }
     }
 
-    ob = ED_object_add_type(C, OB_GPENCIL, ob_name, loc, rot, true, local_view_bits);
+    ob = ED_object_add_type(C, OB_GPENCIL_LEGACY, ob_name, loc, rot, true, local_view_bits);
     gpd = static_cast<bGPdata *>(ob->data);
     newob = true;
   }
@@ -1993,7 +1995,8 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
   {
     /* create new data for NLA hierarchy */
     AnimData *adt = BKE_animdata_ensure_id(&ob->id);
-    NlaTrack *nlt = BKE_nlatrack_add(adt, nullptr, is_liboverride);
+    NlaTrack *nlt = BKE_nlatrack_new_tail(&adt->nla_tracks, is_liboverride);
+    BKE_nlatrack_set_active(&adt->nla_tracks, nlt);
     NlaStrip *strip = BKE_nla_add_soundstrip(bmain, scene, static_cast<Speaker *>(ob->data));
     strip->start = scene->r.cfra;
     strip->end += strip->start;
@@ -2265,7 +2268,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
     }
 
     /* if grease pencil object, set cache as dirty */
-    if (ob->type == OB_GPENCIL) {
+    if (ob->type == OB_GPENCIL_LEGACY) {
       bGPdata *gpd = (bGPdata *)ob->data;
       DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     }
@@ -2760,7 +2763,7 @@ static const EnumPropertyItem convert_target_items[] = {
 #else
      "Mesh from Curve, Surface, Metaball, or Text objects"},
 #endif
-    {OB_GPENCIL,
+    {OB_GPENCIL_LEGACY,
      "GPENCIL",
      ICON_OUTLINER_OB_GREASEPENCIL,
      "Grease Pencil",
@@ -2979,7 +2982,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         if (ob->type == OB_MESH) {
           BKE_object_free_modifiers(ob, 0); /* after derivedmesh calls! */
         }
-        if (ob->type == OB_GPENCIL) {
+        if (ob->type == OB_GPENCIL_LEGACY) {
           BKE_object_free_modifiers(ob, 0); /* after derivedmesh calls! */
           BKE_object_free_shaderfx(ob, 0);
         }
@@ -3012,7 +3015,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         }
       }
     }
-    else if (ob->type == OB_MESH && target == OB_GPENCIL) {
+    else if (ob->type == OB_MESH && target == OB_GPENCIL_LEGACY) {
       ob->flag |= OB_DONE;
 
       /* Create a new grease pencil object and copy transformations. */
@@ -3244,7 +3247,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* Meshes doesn't use the "curve cache". */
         BKE_object_free_curve_cache(newob);
       }
-      else if (target == OB_GPENCIL) {
+      else if (target == OB_GPENCIL_LEGACY) {
         ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
         Object *ob_gpencil = ED_gpencil_add_object(C, newob->loc, local_view_bits);
         copy_v3_v3(ob_gpencil->rot, newob->rot);
@@ -3279,7 +3282,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* Meshes don't use the "curve cache". */
         BKE_object_free_curve_cache(newob);
       }
-      else if (target == OB_GPENCIL) {
+      else if (target == OB_GPENCIL_LEGACY) {
         if (ob->type != OB_CURVES_LEGACY) {
           ob->flag &= ~OB_DONE;
           BKE_report(op->reports, RPT_ERROR, "Convert Surfaces to Grease Pencil is not supported");
@@ -3527,7 +3530,7 @@ static void object_convert_ui(bContext * /*C*/, wmOperator *op)
   if (target == OB_MESH) {
     uiItemR(layout, op->ptr, "merge_customdata", 0, nullptr, ICON_NONE);
   }
-  else if (target == OB_GPENCIL) {
+  else if (target == OB_GPENCIL_LEGACY) {
     uiItemR(layout, op->ptr, "thickness", 0, nullptr, ICON_NONE);
     uiItemR(layout, op->ptr, "angle", 0, nullptr, ICON_NONE);
     uiItemR(layout, op->ptr, "offset", 0, nullptr, ICON_NONE);
@@ -3745,9 +3748,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
     Base *base_src = nullptr;
     Object *object_new = nullptr;
 
-    DuplicateObjectLink(Base *base_src) : base_src(base_src)
-    {
-    }
+    DuplicateObjectLink(Base *base_src) : base_src(base_src) {}
   };
 
   blender::Vector<DuplicateObjectLink> object_base_links;
@@ -4105,7 +4106,7 @@ static bool object_join_poll(bContext *C)
     return false;
   }
 
-  if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_ARMATURE, OB_GPENCIL)) {
+  if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_ARMATURE, OB_GPENCIL_LEGACY)) {
     return ED_operator_screenactive(C);
   }
   return false;
@@ -4132,7 +4133,7 @@ static int object_join_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     bGPdata *gpd = (bGPdata *)ob->data;
     if ((!gpd) || GPENCIL_ANY_MODE(gpd)) {
       BKE_report(op->reports, RPT_ERROR, "This data does not support joining in this mode");
@@ -4150,7 +4151,7 @@ static int object_join_exec(bContext *C, wmOperator *op)
   else if (ob->type == OB_ARMATURE) {
     ret = ED_armature_join_objects_exec(C, op);
   }
-  else if (ob->type == OB_GPENCIL) {
+  else if (ob->type == OB_GPENCIL_LEGACY) {
     ret = ED_gpencil_join_objects_exec(C, op);
   }
 

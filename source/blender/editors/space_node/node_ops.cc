@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spnode
@@ -108,6 +108,7 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_tree_socket_add);
   WM_operatortype_append(NODE_OT_tree_socket_remove);
   WM_operatortype_append(NODE_OT_tree_socket_change_type);
+  WM_operatortype_append(NODE_OT_tree_socket_change_subtype);
   WM_operatortype_append(NODE_OT_tree_socket_move);
 
   WM_operatortype_append(NODE_OT_cryptomatte_layer_add);

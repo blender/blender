@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup edsculpt
@@ -25,7 +25,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -148,8 +148,8 @@ static bool sculpt_expand_is_face_in_active_component(SculptSession *ss,
                                                       ExpandCache *expand_cache,
                                                       const int f)
 {
-  const MLoop *loop = &ss->mloop[ss->mpoly[f].loopstart];
-  return sculpt_expand_is_vert_in_active_component(ss, expand_cache, BKE_pbvh_make_vref(loop->v));
+  const int vert = ss->corner_verts[ss->polys[f].start()];
+  return sculpt_expand_is_vert_in_active_component(ss, expand_cache, BKE_pbvh_make_vref(vert));
 }
 
 /**
@@ -712,9 +712,8 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
     int v_next_i = BKE_pbvh_vertex_to_index(ss->pbvh, v_next);
 
     for (int j = 0; j < ss->pmap[v_next_i].count; j++) {
-      const MPoly *p = &ss->mpoly[ss->pmap[v_next_i].indices[j]];
-      for (int l = 0; l < p->totloop; l++) {
-        const PBVHVertRef neighbor_v = BKE_pbvh_make_vref(ss->mloop[p->loopstart + l].v);
+      for (const int vert : ss->corner_verts.slice(ss->polys[ss->pmap[v_next_i].indices[j]])) {
+        const PBVHVertRef neighbor_v = BKE_pbvh_make_vref(vert);
         if (BLI_BITMAP_TEST(visited_verts, neighbor_v.i)) {
           continue;
         }
@@ -791,35 +790,32 @@ static void sculpt_expand_grids_to_faces_falloff(SculptSession *ss,
                                                  Mesh *mesh,
                                                  ExpandCache *expand_cache)
 {
-  const MPoly *polys = BKE_mesh_polys(mesh);
+  const blender::OffsetIndices polys = mesh->polys();
   const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
 
-  for (int p = 0; p < mesh->totpoly; p++) {
-    const MPoly *poly = &polys[p];
+  for (const int i : polys.index_range()) {
     float accum = 0.0f;
-    for (int l = 0; l < poly->totloop; l++) {
-      const int grid_loop_index = (poly->loopstart + l) * key->grid_area;
+    for (const int corner : polys[i]) {
+      const int grid_loop_index = corner * key->grid_area;
       for (int g = 0; g < key->grid_area; g++) {
         accum += expand_cache->vert_falloff[grid_loop_index + g];
       }
     }
-    expand_cache->face_falloff[p] = accum / (poly->totloop * key->grid_area);
+    expand_cache->face_falloff[i] = accum / (polys[i].size() * key->grid_area);
   }
 }
 
 static void sculpt_expand_vertex_to_faces_falloff(Mesh *mesh, ExpandCache *expand_cache)
 {
-  const MPoly *polys = BKE_mesh_polys(mesh);
-  const MLoop *loops = BKE_mesh_loops(mesh);
+  const blender::OffsetIndices polys = mesh->polys();
+  const blender::Span<int> corner_verts = mesh->corner_verts();
 
-  for (int p = 0; p < mesh->totpoly; p++) {
-    const MPoly *poly = &polys[p];
+  for (const int i : polys.index_range()) {
     float accum = 0.0f;
-    for (int l = 0; l < poly->totloop; l++) {
-      const MLoop *loop = &loops[l + poly->loopstart];
-      accum += expand_cache->vert_falloff[loop->v];
+    for (const int vert : corner_verts.slice(polys[i])) {
+      accum += expand_cache->vert_falloff[vert];
     }
-    expand_cache->face_falloff[p] = accum / poly->totloop;
+    expand_cache->face_falloff[i] = accum / polys[i].size();
   }
 }
 
@@ -1115,18 +1111,16 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
     BLI_gset_add(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
   }
 
-  for (int p = 0; p < totface; p++) {
-    const MPoly *poly = &ss->mpoly[p];
+  for (const int i : ss->polys.index_range()) {
     bool any_disabled = false;
-    for (int l = 0; l < poly->totloop; l++) {
-      const MLoop *loop = &ss->mloop[l + poly->loopstart];
-      if (!BLI_BITMAP_TEST(enabled_verts, loop->v)) {
+    for (const int vert : ss->corner_verts.slice(ss->polys[i])) {
+      if (!BLI_BITMAP_TEST(enabled_verts, vert)) {
         any_disabled = true;
         break;
       }
     }
     if (any_disabled) {
-      const int face_set = expand_cache->original_face_sets[p];
+      const int face_set = expand_cache->original_face_sets[i];
       BLI_gset_remove(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set), nullptr);
     }
   }
@@ -1987,8 +1981,8 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
 {
   const int totface = ss->totfaces;
   MeshElemMap *pmap = ss->pmap;
-  const MPoly *polys = BKE_mesh_polys(mesh);
-  const MLoop *loops = BKE_mesh_loops(mesh);
+  const blender::OffsetIndices polys = mesh->polys();
+  const blender::Span<int> corner_verts = mesh->corner_verts();
 
   /* Check that all the face sets IDs in the mesh are not equal to `delete_id`
    * before attempting to delete it. */
@@ -2023,10 +2017,8 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
     while (BLI_LINKSTACK_SIZE(queue)) {
       const int f_index = POINTER_AS_INT(BLI_LINKSTACK_POP(queue));
       int other_id = delete_id;
-      const MPoly *c_poly = &polys[f_index];
-      for (int l = 0; l < c_poly->totloop; l++) {
-        const MLoop *c_loop = &loops[c_poly->loopstart + l];
-        const MeshElemMap *vert_map = &pmap[c_loop->v];
+      for (const int vert : corner_verts.slice(polys[f_index])) {
+        const MeshElemMap *vert_map = &pmap[vert];
         for (int i = 0; i < vert_map->count; i++) {
 
           const int neighbor_face_index = vert_map->indices[i];

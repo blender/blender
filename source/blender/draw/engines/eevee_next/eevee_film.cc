@@ -416,7 +416,7 @@ void Film::sync()
   RenderBuffers &rbuffers = inst_.render_buffers;
   VelocityModule &velocity = inst_.velocity;
 
-  eGPUSamplerState filter = GPU_SAMPLER_FILTER;
+  GPUSamplerState filter = {GPU_SAMPLER_FILTERING_LINEAR};
 
   /* For viewport, only previous motion is supported.
    * Still bind previous step to avoid undefined behavior. */
@@ -649,7 +649,7 @@ void Film::accumulate(const DRWView *view, GPUTexture *combined_final_tx)
 
   draw::View drw_view("MainView", view);
 
-  DRW_manager_get()->submit(accumulate_ps_, drw_view);
+  inst_.manager->submit(accumulate_ps_, drw_view);
 
   combined_tx_.swap();
   weight_tx_.swap();

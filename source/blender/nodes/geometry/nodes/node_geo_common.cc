@@ -67,4 +67,5 @@ void register_node_type_geo_custom_group(bNodeType *ntype)
   if (ntype->insert_link == nullptr) {
     ntype->insert_link = node_insert_link_default;
   }
+  ntype->declare_dynamic = blender::nodes::node_group_declare_dynamic;
 }

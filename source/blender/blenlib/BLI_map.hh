@@ -171,9 +171,7 @@ class Map {
   {
   }
 
-  Map(NoExceptConstructor, Allocator allocator = {}) noexcept : Map(allocator)
-  {
-  }
+  Map(NoExceptConstructor, Allocator allocator = {}) noexcept : Map(allocator) {}
 
   ~Map() = default;
 
@@ -1341,9 +1339,7 @@ template<typename Key, typename Value> class StdUnorderedMapWrapper {
     map_.clear();
   }
 
-  void print_stats(StringRef /*name*/ = "") const
-  {
-  }
+  void print_stats(StringRef /*name*/ = "") const {}
 };
 
 }  // namespace blender

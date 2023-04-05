@@ -233,9 +233,7 @@ class AssetClearHelper {
   const bool set_fake_user_;
 
  public:
-  AssetClearHelper(const bool set_fake_user) : set_fake_user_(set_fake_user)
-  {
-  }
+  AssetClearHelper(const bool set_fake_user) : set_fake_user_(set_fake_user) {}
 
   void operator()(PointerRNAVec &ids);
 

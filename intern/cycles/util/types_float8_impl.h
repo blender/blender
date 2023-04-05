@@ -11,17 +11,11 @@
 CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_AVX__
-__forceinline vfloat8::vfloat8()
-{
-}
+__forceinline vfloat8::vfloat8() {}
 
-__forceinline vfloat8::vfloat8(const vfloat8 &f) : m256(f.m256)
-{
-}
+__forceinline vfloat8::vfloat8(const vfloat8 &f) : m256(f.m256) {}
 
-__forceinline vfloat8::vfloat8(const __m256 &f) : m256(f)
-{
-}
+__forceinline vfloat8::vfloat8(const __m256 &f) : m256(f) {}
 
 __forceinline vfloat8::operator const __m256 &() const
 {

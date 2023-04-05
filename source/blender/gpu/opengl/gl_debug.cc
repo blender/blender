@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -19,6 +19,7 @@
 
 #include "CLG_log.h"
 
+#include "gl_backend.hh"
 #include "gl_context.hh"
 #include "gl_uniform_buffer.hh"
 
@@ -379,6 +380,47 @@ void GLContext::debug_group_end()
     glPopDebugGroup();
   }
 }
+
+bool GLContext::debug_capture_begin()
+{
+  return GLBackend::get()->debug_capture_begin();
+}
+
+bool GLBackend::debug_capture_begin()
+{
+#ifdef WITH_RENDERDOC
+  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
+    return renderdoc_.start_frame_capture(nullptr, nullptr);
+  }
+#endif
+  return false;
+}
+
+void GLContext::debug_capture_end()
+{
+  GLBackend::get()->debug_capture_end();
+}
+
+void GLBackend::debug_capture_end()
+{
+#ifdef WITH_RENDERDOC
+  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
+    renderdoc_.end_frame_capture(nullptr, nullptr);
+  }
+#endif
+}
+
+void *GLContext::debug_capture_scope_create(const char * /*name*/)
+{
+  return nullptr;
+}
+
+bool GLContext::debug_capture_scope_begin(void * /*scope*/)
+{
+  return false;
+}
+
+void GLContext::debug_capture_scope_end(void * /*scope*/) {}
 
 /** \} */
 

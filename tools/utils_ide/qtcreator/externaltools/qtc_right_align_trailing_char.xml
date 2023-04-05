@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<externaltool id="qtc_right_align_trailing_char">
+    <description>Right align the last character of each line to the existing furthermost character (useful for multi-line macros).</description>
+    <displayname>Right Align Trailing Char</displayname>
+    <category>Formatting</category>
+    <executable output="replaceselection" error="showinpane" modifiesdocument="no">
+        <path>qtc_right_align_trailing_char.py</path>
+        <input>%{CurrentDocument:Selection}</input>
+        <workingdirectory>%{CurrentDocument:Path}</workingdirectory>
+    </executable>
+</externaltool>

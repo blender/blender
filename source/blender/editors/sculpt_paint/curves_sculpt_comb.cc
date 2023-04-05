@@ -23,7 +23,7 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_paint.h"
 
@@ -108,9 +108,7 @@ struct CombOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  CombOperationExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  CombOperationExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(CombOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {

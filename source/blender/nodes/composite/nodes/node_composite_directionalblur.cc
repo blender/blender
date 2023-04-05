@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup cmpnodes
@@ -88,7 +88,7 @@ class DirectionalBlurOperation : public NodeOperation {
     input_image.bind_as_texture(shader, "input_tx");
 
     GPU_texture_filter_mode(input_image.texture(), true);
-    GPU_texture_wrap_mode(input_image.texture(), false, false);
+    GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
 
     const Domain domain = compute_domain();
     Result &output_image = get_result("Image");

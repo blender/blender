@@ -32,7 +32,7 @@
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
@@ -273,7 +273,7 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   if (ob->sculpt != nullptr) {
     BKE_sculptsession_free(ob);
   }
-  ob->sculpt = MEM_cnew<SculptSession>(__func__);
+  ob->sculpt = MEM_new<SculptSession>(__func__);
   ob->sculpt->mode_type = OB_MODE_SCULPT;
 
   /* Trigger evaluation of modifier stack to ensure
@@ -1426,4 +1426,9 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_expand);
   WM_operatortype_append(SCULPT_OT_mask_from_cavity);
   WM_operatortype_append(SCULPT_OT_reveal_all);
+}
+
+void ED_keymap_sculpt(wmKeyConfig *keyconf)
+{
+  filter_mesh_modal_keymap(keyconf);
 }

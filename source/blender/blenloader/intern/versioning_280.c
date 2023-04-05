@@ -29,8 +29,8 @@
 #include "DNA_fluid_types.h"
 #include "DNA_freestyle_types.h"
 #include "DNA_genfile.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_gpu_types.h"
 #include "DNA_key_types.h"
 #include "DNA_layer_types.h"
@@ -65,9 +65,9 @@
 #include "BKE_fcurve_driver.h"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_geom.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
@@ -1171,7 +1171,7 @@ static void do_version_fcurve_hide_viewport_fix(struct ID *UNUSED(id),
   fcu->rna_path = BLI_strdupn("hide_viewport", 13);
 }
 
-void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
+void do_versions_after_linking_280(FileData *fd, Main *bmain)
 {
   bool use_collection_compat_28 = true;
 
@@ -1241,6 +1241,12 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      BLO_read_assert_message(screen->scene == NULL,
+                              ,
+                              (BlendHandle *)fd,
+                              bmain,
+                              "No Screen data-block should ever have a NULL `scene` pointer");
+
       /* same render-layer as do_version_workspaces_after_lib_link will activate,
        * so same layer as BKE_view_layer_default_view would return */
       ViewLayer *layer = screen->scene->view_layers.first;
@@ -1610,7 +1616,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
      * which exact version fully deprecated tessfaces, so think we can keep that one here, no
      * harm to be expected anyway for being over-conservative. */
     for (Mesh *me = bmain->meshes.first; me != NULL; me = me->id.next) {
-      /* Check if we need to convert mfaces to mpolys. */
+      /* Check if we need to convert mfaces to polys. */
       if (me->totface && !me->totpoly) {
         /* temporarily switch main so that reading from
          * external CustomData works */
@@ -2981,7 +2987,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             enum { V3D_OCCLUDE_WIRE = (1 << 14) };
             View3D *v3d = (View3D *)sl;
             if (v3d->flag2 & V3D_OCCLUDE_WIRE) {
-              v3d->overlay.edit_flag |= V3D_OVERLAY_EDIT_OCCLUDE_WIRE;
+              v3d->overlay.edit_flag |= V3D_OVERLAY_EDIT_RETOPOLOGY;
               v3d->flag2 &= ~V3D_OCCLUDE_WIRE;
             }
           }
@@ -3633,7 +3639,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
-      arm->flag &= ~(ARM_FLAG_UNUSED_1 | ARM_FLAG_UNUSED_5 | ARM_FLAG_UNUSED_6 |
+      arm->flag &= ~(ARM_FLAG_UNUSED_1 | ARM_DRAW_RELATION_FROM_HEAD | ARM_FLAG_UNUSED_6 |
                      ARM_FLAG_UNUSED_7 | ARM_FLAG_UNUSED_12);
     }
 
@@ -4659,7 +4665,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
       /* Fix Grease Pencil VFX and modifiers. */
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-        if (ob->type != OB_GPENCIL) {
+        if (ob->type != OB_GPENCIL_LEGACY) {
           continue;
         }
 

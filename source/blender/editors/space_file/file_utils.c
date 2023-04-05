@@ -9,8 +9,8 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 
+#include "BKE_blendfile.h"
 #include "BKE_context.h"
-#include "BLO_readfile.h"
 
 #include "ED_fileselect.h"
 #include "ED_screen.h"
@@ -37,5 +37,5 @@ void file_path_to_ui_path(const char *path, char *r_path, int max_size)
   char tmp_path[PATH_MAX];
   BLI_strncpy(tmp_path, path, sizeof(tmp_path));
   BLI_path_slash_rstrip(tmp_path);
-  BLI_strncpy(r_path, BLO_has_bfile_extension(tmp_path) ? tmp_path : path, max_size);
+  BLI_strncpy(r_path, BKE_blendfile_extension_check(tmp_path) ? tmp_path : path, max_size);
 }

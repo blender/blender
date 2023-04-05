@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -15,7 +15,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "draw_attributes.hh"
 #include "draw_subdivision.h"
@@ -185,8 +185,8 @@ static void fill_vertbuf_with_attribute(const MeshRenderData *mr,
   BLI_assert(custom_data);
   const int layer_index = request.layer_index;
 
-  const MPoly *mpoly = mr->mpoly;
-  const MLoop *mloop = mr->mloop;
+  const Span<int> corner_verts = mr->corner_verts;
+  const Span<int> corner_edges = mr->corner_edges;
 
   const AttributeType *attr_data = static_cast<const AttributeType *>(
       CustomData_get_layer_n(custom_data, request.cd_type, layer_index));
@@ -195,8 +195,8 @@ static void fill_vertbuf_with_attribute(const MeshRenderData *mr,
 
   switch (request.domain) {
     case ATTR_DOMAIN_POINT:
-      for (int ml_index = 0; ml_index < mr->loop_len; ml_index++, vbo_data++, mloop++) {
-        *vbo_data = Converter::convert_value(attr_data[mloop->v]);
+      for (int ml_index = 0; ml_index < mr->loop_len; ml_index++, vbo_data++) {
+        *vbo_data = Converter::convert_value(attr_data[corner_verts[ml_index]]);
       }
       break;
     case ATTR_DOMAIN_CORNER:
@@ -205,15 +205,15 @@ static void fill_vertbuf_with_attribute(const MeshRenderData *mr,
       }
       break;
     case ATTR_DOMAIN_EDGE:
-      for (int ml_index = 0; ml_index < mr->loop_len; ml_index++, vbo_data++, mloop++) {
-        *vbo_data = Converter::convert_value(attr_data[mloop->e]);
+      for (int ml_index = 0; ml_index < mr->loop_len; ml_index++, vbo_data++) {
+        *vbo_data = Converter::convert_value(attr_data[corner_edges[ml_index]]);
       }
       break;
     case ATTR_DOMAIN_FACE:
-      for (int mp_index = 0; mp_index < mr->poly_len; mp_index++) {
-        const MPoly &poly = mpoly[mp_index];
-        const VBOType value = Converter::convert_value(attr_data[mp_index]);
-        for (int l = 0; l < poly.totloop; l++) {
+      for (int poly_index = 0; poly_index < mr->poly_len; poly_index++) {
+        const IndexRange poly = mr->polys[poly_index];
+        const VBOType value = Converter::convert_value(attr_data[poly_index]);
+        for (int l = 0; l < poly.size(); l++) {
           *vbo_data++ = value;
         }
       }

@@ -25,7 +25,7 @@ namespace blender::io::obj {
 struct GlobalVertices {
   Vector<float3> vertices;
   Vector<float2> uv_vertices;
-  Vector<float3> vertex_normals;
+  Vector<float3> vert_normals;
 
   /**
    * Vertex colors might not be present in the file at all, or only
@@ -41,7 +41,7 @@ struct GlobalVertices {
 };
 
 /**
- * A face's corner in an OBJ file. In Blender, it translates to a mloop vertex.
+ * A face's corner in an OBJ file. In Blender, it translates to a corner vertex.
  */
 struct PolyCorner {
   /* These indices range from zero to total vertices in the OBJ file. */

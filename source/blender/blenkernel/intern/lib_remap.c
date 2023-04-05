@@ -325,20 +325,12 @@ static void libblock_remap_data_preprocess(ID *id_owner,
  */
 static void libblock_remap_data_postprocess_object_update(Main *bmain,
                                                           Object *old_ob,
-                                                          Object *new_ob,
+                                                          Object *UNUSED(new_ob),
                                                           const bool do_sync_collection)
 {
-  if (new_ob == NULL) {
-    /* In case we unlinked old_ob (new_ob is NULL), the object has already
-     * been removed from the scenes and their collections. We still have
-     * to remove the NULL children from collections not used in any scene. */
-    BKE_collections_object_remove_nulls(bmain);
-  }
-  else {
-    /* Remapping may have created duplicates of CollectionObject pointing to the same object within
-     * the same collection. */
-    BKE_collections_object_remove_duplicates(bmain);
-  }
+  /* Will only effectively process collections that have been tagged with
+   * #COLLECTION_TAG_COLLECTION_OBJECT_DIRTY. See #collection_foreach_id callback. */
+  BKE_collections_object_remove_invalids(bmain);
 
   if (do_sync_collection) {
     BKE_main_collection_sync_remap(bmain);

@@ -256,13 +256,9 @@ ccl_device_extern ccl_private OSLClosure *osl_allocate_weighted_closure_componen
 #include "kernel/svm/math_util.h"
 #include "kernel/util/color.h"
 
-ccl_device_extern void osl_error(ccl_private ShaderGlobals *sg, const char *format, void *args)
-{
-}
+ccl_device_extern void osl_error(ccl_private ShaderGlobals *sg, const char *format, void *args) {}
 
-ccl_device_extern void osl_printf(ccl_private ShaderGlobals *sg, const char *format, void *args)
-{
-}
+ccl_device_extern void osl_printf(ccl_private ShaderGlobals *sg, const char *format, void *args) {}
 
 ccl_device_extern void osl_warning(ccl_private ShaderGlobals *sg, const char *format, void *args)
 {
@@ -1456,65 +1452,35 @@ ccl_device_extern void osl_texture_set_firstchannel(ccl_private OSLTextureOption
 {
 }
 
-ccl_device_extern void osl_texture_set_swrap_code(ccl_private OSLTextureOptions *opt, int mode)
-{
-}
+ccl_device_extern void osl_texture_set_swrap_code(ccl_private OSLTextureOptions *opt, int mode) {}
 
-ccl_device_extern void osl_texture_set_twrap_code(ccl_private OSLTextureOptions *opt, int mode)
-{
-}
+ccl_device_extern void osl_texture_set_twrap_code(ccl_private OSLTextureOptions *opt, int mode) {}
 
-ccl_device_extern void osl_texture_set_rwrap_code(ccl_private OSLTextureOptions *opt, int mode)
-{
-}
+ccl_device_extern void osl_texture_set_rwrap_code(ccl_private OSLTextureOptions *opt, int mode) {}
 
-ccl_device_extern void osl_texture_set_stwrap_code(ccl_private OSLTextureOptions *opt, int mode)
-{
-}
+ccl_device_extern void osl_texture_set_stwrap_code(ccl_private OSLTextureOptions *opt, int mode) {}
 
-ccl_device_extern void osl_texture_set_sblur(ccl_private OSLTextureOptions *opt, float blur)
-{
-}
+ccl_device_extern void osl_texture_set_sblur(ccl_private OSLTextureOptions *opt, float blur) {}
 
-ccl_device_extern void osl_texture_set_tblur(ccl_private OSLTextureOptions *opt, float blur)
-{
-}
+ccl_device_extern void osl_texture_set_tblur(ccl_private OSLTextureOptions *opt, float blur) {}
 
-ccl_device_extern void osl_texture_set_rblur(ccl_private OSLTextureOptions *opt, float blur)
-{
-}
+ccl_device_extern void osl_texture_set_rblur(ccl_private OSLTextureOptions *opt, float blur) {}
 
-ccl_device_extern void osl_texture_set_stblur(ccl_private OSLTextureOptions *opt, float blur)
-{
-}
+ccl_device_extern void osl_texture_set_stblur(ccl_private OSLTextureOptions *opt, float blur) {}
 
-ccl_device_extern void osl_texture_set_swidth(ccl_private OSLTextureOptions *opt, float width)
-{
-}
+ccl_device_extern void osl_texture_set_swidth(ccl_private OSLTextureOptions *opt, float width) {}
 
-ccl_device_extern void osl_texture_set_twidth(ccl_private OSLTextureOptions *opt, float width)
-{
-}
+ccl_device_extern void osl_texture_set_twidth(ccl_private OSLTextureOptions *opt, float width) {}
 
-ccl_device_extern void osl_texture_set_rwidth(ccl_private OSLTextureOptions *opt, float width)
-{
-}
+ccl_device_extern void osl_texture_set_rwidth(ccl_private OSLTextureOptions *opt, float width) {}
 
-ccl_device_extern void osl_texture_set_stwidth(ccl_private OSLTextureOptions *opt, float width)
-{
-}
+ccl_device_extern void osl_texture_set_stwidth(ccl_private OSLTextureOptions *opt, float width) {}
 
-ccl_device_extern void osl_texture_set_fill(ccl_private OSLTextureOptions *opt, float fill)
-{
-}
+ccl_device_extern void osl_texture_set_fill(ccl_private OSLTextureOptions *opt, float fill) {}
 
-ccl_device_extern void osl_texture_set_time(ccl_private OSLTextureOptions *opt, float time)
-{
-}
+ccl_device_extern void osl_texture_set_time(ccl_private OSLTextureOptions *opt, float time) {}
 
-ccl_device_extern void osl_texture_set_interp_code(ccl_private OSLTextureOptions *opt, int mode)
-{
-}
+ccl_device_extern void osl_texture_set_interp_code(ccl_private OSLTextureOptions *opt, int mode) {}
 
 ccl_device_extern void osl_texture_set_subimage(ccl_private OSLTextureOptions *opt, int subimage)
 {

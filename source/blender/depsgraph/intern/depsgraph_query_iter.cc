@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+ * Copyright 2017 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -435,6 +435,4 @@ void DEG_iterator_ids_next(BLI_Iterator *iter)
   } while (iter->skip);
 }
 
-void DEG_iterator_ids_end(BLI_Iterator * /*iter*/)
-{
-}
+void DEG_iterator_ids_end(BLI_Iterator * /*iter*/) {}

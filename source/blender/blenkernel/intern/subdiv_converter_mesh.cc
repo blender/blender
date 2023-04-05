@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. All rights reserved. */
+ * Copyright 2018 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -16,7 +16,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_subdiv.h"
 
@@ -35,9 +35,10 @@ struct ConverterStorage {
   SubdivSettings settings;
   const Mesh *mesh;
   const float (*vert_positions)[3];
-  const MEdge *edges;
-  const MPoly *polys;
-  const MLoop *loops;
+  blender::Span<MEdge> edges;
+  blender::OffsetIndices<int> polys;
+  blender::Span<int> corner_verts;
+  blender::Span<int> corner_edges;
 
   /* CustomData layer for vertex sharpnesses. */
   const float *cd_vertex_crease;
@@ -126,7 +127,7 @@ static int get_num_vertices(const OpenSubdiv_Converter *converter)
 static int get_num_face_vertices(const OpenSubdiv_Converter *converter, int manifold_face_index)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  return storage->polys[manifold_face_index].totloop;
+  return storage->polys[manifold_face_index].size();
 }
 
 static void get_face_vertices(const OpenSubdiv_Converter *converter,
@@ -134,11 +135,10 @@ static void get_face_vertices(const OpenSubdiv_Converter *converter,
                               int *manifold_face_vertices)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  const MPoly *poly = &storage->polys[manifold_face_index];
-  const MLoop *mloop = storage->loops;
-  for (int corner = 0; corner < poly->totloop; corner++) {
-    manifold_face_vertices[corner] =
-        storage->manifold_vertex_index[mloop[poly->loopstart + corner].v];
+  const blender::IndexRange poly = storage->polys[manifold_face_index];
+  for (int i = 0; i < poly.size(); i++) {
+    const int vert = storage->corner_verts[poly[i]];
+    manifold_face_vertices[i] = storage->manifold_vertex_index[vert];
   }
 }
 
@@ -204,7 +204,6 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
   const Mesh *mesh = storage->mesh;
   const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
       CustomData_get_layer_n(&mesh->ldata, CD_PROP_FLOAT2, layer_index));
-  const int num_poly = mesh->totpoly;
   const int num_vert = mesh->totvert;
   const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
   /* Initialize memory required for the operations. */
@@ -216,9 +215,8 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
       storage->polys,
       (const bool *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, ".hide_poly"),
       (const bool *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, ".select_poly"),
-      storage->loops,
+      storage->corner_verts.data(),
       mloopuv,
-      num_poly,
       num_vert,
       limit,
       false,
@@ -231,8 +229,8 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
       if (uv_vert->separate) {
         storage->num_uv_coordinates++;
       }
-      const MPoly *mp = &storage->polys[uv_vert->poly_index];
-      const int global_loop_index = mp->loopstart + uv_vert->loop_of_poly_index;
+      const blender::IndexRange poly = storage->polys[uv_vert->poly_index];
+      const int global_loop_index = poly.start() + uv_vert->loop_of_poly_index;
       storage->loop_uv_indices[global_loop_index] = storage->num_uv_coordinates;
       uv_vert = uv_vert->next;
     }
@@ -244,9 +242,7 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
   BKE_mesh_uv_vert_map_free(uv_vert_map);
 }
 
-static void finish_uv_layer(const OpenSubdiv_Converter * /*converter*/)
-{
-}
+static void finish_uv_layer(const OpenSubdiv_Converter * /*converter*/) {}
 
 static int get_num_uvs(const OpenSubdiv_Converter *converter)
 {
@@ -259,8 +255,8 @@ static int get_face_corner_uv_index(const OpenSubdiv_Converter *converter,
                                     const int corner)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  const MPoly *mp = &storage->polys[face_index];
-  return storage->loop_uv_indices[mp->loopstart + corner];
+  const blender::IndexRange poly = storage->polys[face_index];
+  return storage->loop_uv_indices[poly.start() + corner];
 }
 
 static void free_user_data(const OpenSubdiv_Converter *converter)
@@ -354,18 +350,17 @@ static void initialize_manifold_index_array(const BLI_bitmap *used_map,
 static void initialize_manifold_indices(ConverterStorage *storage)
 {
   const Mesh *mesh = storage->mesh;
-  const MEdge *medge = storage->edges;
-  const MLoop *mloop = storage->loops;
-  const MPoly *mpoly = storage->polys;
+  const blender::Span<MEdge> edges = storage->edges;
+  const blender::OffsetIndices<int> polys = storage->polys;
+  const blender::Span<int> corner_verts = storage->corner_verts;
+  const blender::Span<int> corner_edges = storage->corner_edges;
   /* Set bits of elements which are not loose. */
   BLI_bitmap *vert_used_map = BLI_BITMAP_NEW(mesh->totvert, "vert used map");
   BLI_bitmap *edge_used_map = BLI_BITMAP_NEW(mesh->totedge, "edge used map");
   for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
-    const MPoly *poly = &mpoly[poly_index];
-    for (int corner = 0; corner < poly->totloop; corner++) {
-      const MLoop *loop = &mloop[poly->loopstart + corner];
-      BLI_BITMAP_ENABLE(vert_used_map, loop->v);
-      BLI_BITMAP_ENABLE(edge_used_map, loop->e);
+    for (const int corner : polys[poly_index]) {
+      BLI_BITMAP_ENABLE(vert_used_map, corner_verts[corner]);
+      BLI_BITMAP_ENABLE(edge_used_map, corner_edges[corner]);
     }
   }
   initialize_manifold_index_array(vert_used_map,
@@ -382,7 +377,7 @@ static void initialize_manifold_indices(ConverterStorage *storage)
   storage->infinite_sharp_vertices_map = BLI_BITMAP_NEW(mesh->totvert, "vert used map");
   for (int edge_index = 0; edge_index < mesh->totedge; edge_index++) {
     if (!BLI_BITMAP_TEST_BOOL(edge_used_map, edge_index)) {
-      const MEdge *edge = &medge[edge_index];
+      const MEdge *edge = &edges[edge_index];
       BLI_BITMAP_ENABLE(storage->infinite_sharp_vertices_map, edge->v1);
       BLI_BITMAP_ENABLE(storage->infinite_sharp_vertices_map, edge->v2);
     }
@@ -396,14 +391,14 @@ static void init_user_data(OpenSubdiv_Converter *converter,
                            const SubdivSettings *settings,
                            const Mesh *mesh)
 {
-  ConverterStorage *user_data = static_cast<ConverterStorage *>(
-      MEM_mallocN(sizeof(ConverterStorage), __func__));
+  ConverterStorage *user_data = MEM_new<ConverterStorage>(__func__);
   user_data->settings = *settings;
   user_data->mesh = mesh;
   user_data->vert_positions = BKE_mesh_vert_positions(mesh);
-  user_data->edges = BKE_mesh_edges(mesh);
-  user_data->polys = BKE_mesh_polys(mesh);
-  user_data->loops = BKE_mesh_loops(mesh);
+  user_data->edges = mesh->edges();
+  user_data->polys = mesh->polys();
+  user_data->corner_verts = mesh->corner_verts();
+  user_data->corner_edges = mesh->corner_edges();
   user_data->cd_vertex_crease = static_cast<const float *>(
       CustomData_get_layer(&mesh->vdata, CD_CREASE));
   user_data->cd_edge_crease = static_cast<const float *>(

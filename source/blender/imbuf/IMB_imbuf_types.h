@@ -59,9 +59,7 @@ enum eImbFileType {
   IMB_FTYPE_BMP = 4,
   IMB_FTYPE_OPENEXR = 5,
   IMB_FTYPE_IMAGIC = 6,
-#ifdef WITH_OPENIMAGEIO
   IMB_FTYPE_PSD = 7,
-#endif
 #ifdef WITH_OPENJPEG
   IMB_FTYPE_JP2 = 8,
 #endif
@@ -319,9 +317,6 @@ enum {
 extern const char *imb_ext_image[];
 extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
-
-/** Image formats that can only be loaded via filepath. */
-extern const char *imb_ext_image_filepath_only[];
 
 /* -------------------------------------------------------------------- */
 /** \name Imbuf Color Management Flag

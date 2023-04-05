@@ -4,19 +4,7 @@
  * \ingroup bmesh
  *
  * BMesh Walker API.
- */
-
-#include <stdlib.h>
-#include <string.h> /* for memcpy */
-
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
-
-#include "bmesh.h"
-
-#include "bmesh_walkers_private.h"
-
-/**
+ *
  * NOTE(@joeedh): Details on design.
  *
  * Original design: walkers directly emulation recursive functions.
@@ -36,6 +24,16 @@
  * - tools should ALWAYS have necessary error handling
  *   for if walkers fail.
  */
+
+#include <stdlib.h>
+#include <string.h> /* for memcpy */
+
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
+#include "bmesh.h"
+
+#include "bmesh_walkers_private.h"
 
 void *BMW_begin(BMWalker *walker, void *start)
 {

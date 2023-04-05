@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation. All rights reserved. */
+ * Copyright Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -23,7 +23,7 @@
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_effect.h"
 #include "BKE_fluid.h"
 #include "BKE_global.h"
@@ -56,7 +56,7 @@
 #  include "BKE_colortools.h"
 #  include "BKE_customdata.h"
 #  include "BKE_deform.h"
-#  include "BKE_mesh.h"
+#  include "BKE_mesh.hh"
 #  include "BKE_mesh_runtime.h"
 #  include "BKE_object.h"
 #  include "BKE_particle.h"
@@ -840,7 +840,7 @@ BLI_INLINE void apply_effector_fields(FluidEffectorSettings * /*fes*/,
 
 static void update_velocities(FluidEffectorSettings *fes,
                               const float (*vert_positions)[3],
-                              const MLoop *mloop,
+                              const int *corner_verts,
                               const MLoopTri *mlooptri,
                               float *velocity_map,
                               int index,
@@ -866,9 +866,9 @@ static void update_velocities(FluidEffectorSettings *fes,
     int v1, v2, v3, f_index = nearest.index;
 
     /* Calculate barycentric weights for nearest point. */
-    v1 = mloop[mlooptri[f_index].tri[0]].v;
-    v2 = mloop[mlooptri[f_index].tri[1]].v;
-    v3 = mloop[mlooptri[f_index].tri[2]].v;
+    v1 = corner_verts[mlooptri[f_index].tri[0]];
+    v2 = corner_verts[mlooptri[f_index].tri[1]];
+    v3 = corner_verts[mlooptri[f_index].tri[2]];
     interp_weights_tri_v3(
         weights, vert_positions[v1], vert_positions[v2], vert_positions[v3], nearest.co);
 
@@ -938,8 +938,8 @@ struct ObstaclesFromDMData {
   FluidEffectorSettings *fes;
 
   const float (*vert_positions)[3];
-  const MLoop *mloop;
-  const MLoopTri *mlooptri;
+  blender::Span<int> corner_verts;
+  blender::Span<MLoopTri> looptris;
 
   BVHTreeFromMesh *tree;
   FluidObjectBB *bb;
@@ -973,8 +973,8 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
       /* Calculate object velocities. Result in bb->velocity. */
       update_velocities(data->fes,
                         data->vert_positions,
-                        data->mloop,
-                        data->mlooptri,
+                        data->corner_verts.data(),
+                        data->looptris.data(),
                         bb->velocity,
                         index,
                         data->tree,
@@ -997,7 +997,6 @@ static void obstacles_from_mesh(Object *coll_ob,
                                 float dt)
 {
   if (fes->mesh) {
-    const MLoopTri *looptri;
     BVHTreeFromMesh tree_data = {nullptr};
     int numverts, i;
 
@@ -1009,8 +1008,8 @@ static void obstacles_from_mesh(Object *coll_ob,
 
     int min[3], max[3], res[3];
 
-    const MLoop *mloop = BKE_mesh_loops(me);
-    looptri = BKE_mesh_runtime_looptri_ensure(me);
+    const blender::Span<int> corner_verts = me->corner_verts();
+    const blender::Span<MLoopTri> looptris = me->looptris();
     numverts = me->totvert;
 
     /* TODO(sebbas): Make initialization of vertex velocities optional? */
@@ -1073,8 +1072,8 @@ static void obstacles_from_mesh(Object *coll_ob,
       ObstaclesFromDMData data{};
       data.fes = fes;
       data.vert_positions = positions;
-      data.mloop = mloop;
-      data.mlooptri = looptri;
+      data.corner_verts = corner_verts;
+      data.looptris = looptris;
       data.tree = &tree_data;
       data.bb = bb;
       data.has_velocity = has_velocity;
@@ -1786,8 +1785,8 @@ static void update_distances(int index,
 
 static void sample_mesh(FluidFlowSettings *ffs,
                         const float (*vert_positions)[3],
-                        const float (*vert_normals)[3],
-                        const MLoop *mloop,
+                        const blender::Span<blender::float3> vert_normals,
+                        const int *corner_verts,
                         const MLoopTri *mlooptri,
                         const float (*mloopuv)[2],
                         float *influence_map,
@@ -1870,9 +1869,9 @@ static void sample_mesh(FluidFlowSettings *ffs,
     float hit_normal[3];
 
     /* Calculate barycentric weights for nearest point. */
-    v1 = mloop[mlooptri[f_index].tri[0]].v;
-    v2 = mloop[mlooptri[f_index].tri[1]].v;
-    v3 = mloop[mlooptri[f_index].tri[2]].v;
+    v1 = corner_verts[mlooptri[f_index].tri[0]];
+    v2 = corner_verts[mlooptri[f_index].tri[1]];
+    v3 = corner_verts[mlooptri[f_index].tri[2]];
     interp_weights_tri_v3(
         weights, vert_positions[v1], vert_positions[v2], vert_positions[v3], nearest.co);
 
@@ -1981,9 +1980,9 @@ struct EmitFromDMData {
   FluidFlowSettings *ffs;
 
   const float (*vert_positions)[3];
-  const float (*vert_normals)[3];
-  const MLoop *mloop;
-  const MLoopTri *mlooptri;
+  blender::Span<blender::float3> vert_normals;
+  blender::Span<int> corner_verts;
+  blender::Span<MLoopTri> looptris;
   const float (*mloopuv)[2];
   const MDeformVert *dvert;
   int defgrp_index;
@@ -2016,8 +2015,8 @@ static void emit_from_mesh_task_cb(void *__restrict userdata,
         sample_mesh(data->ffs,
                     data->vert_positions,
                     data->vert_normals,
-                    data->mloop,
-                    data->mlooptri,
+                    data->corner_verts.data(),
+                    data->looptris.data(),
                     data->mloopuv,
                     bb->influence,
                     bb->velocity,
@@ -2066,8 +2065,8 @@ static void emit_from_mesh(
     Mesh *me = BKE_mesh_copy_for_eval(ffs->mesh, false);
     float(*positions)[3] = BKE_mesh_vert_positions_for_write(me);
 
-    const MLoop *mloop = BKE_mesh_loops(me);
-    const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(me);
+    const blender::Span<int> corner_verts = me->corner_verts();
+    const blender::Span<MLoopTri> looptris = me->looptris();
     const int numverts = me->totvert;
     const MDeformVert *dvert = BKE_mesh_deform_verts(me);
     const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
@@ -2092,17 +2091,10 @@ static void emit_from_mesh(
 
     /* Transform mesh vertices to domain grid space for fast lookups.
      * This is valid because the mesh is copied above. */
-    BKE_mesh_vertex_normals_ensure(me);
-    float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(me);
     for (i = 0; i < numverts; i++) {
       /* Vertex position. */
       mul_m4_v3(flow_ob->object_to_world, positions[i]);
       manta_pos_to_cell(fds, positions[i]);
-
-      /* Vertex normal. */
-      mul_mat3_m4_v3(flow_ob->object_to_world, vert_normals[i]);
-      mul_mat3_m4_v3(fds->imat, vert_normals[i]);
-      normalize_v3(vert_normals[i]);
 
       /* Vertex velocity. */
       if (ffs->flags & FLUID_FLOW_INITVELOCITY) {
@@ -2118,6 +2110,7 @@ static void emit_from_mesh(
       /* Calculate emission map bounds. */
       bb_boundInsert(bb, positions[i]);
     }
+    BKE_mesh_tag_positions_changed(me);
     mul_m4_v3(flow_ob->object_to_world, flow_center);
     manta_pos_to_cell(fds, flow_center);
 
@@ -2142,9 +2135,9 @@ static void emit_from_mesh(
       data.fds = fds;
       data.ffs = ffs;
       data.vert_positions = positions;
-      data.vert_normals = vert_normals;
-      data.mloop = mloop;
-      data.mlooptri = mlooptri;
+      data.vert_normals = me->vert_normals();
+      data.corner_verts = corner_verts;
+      data.looptris = looptris;
       data.mloopuv = mloopuv;
       data.dvert = dvert;
       data.defgrp_index = defgrp_index;
@@ -3209,25 +3202,13 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
                                     Object *ob)
 {
   Mesh *me;
-  MPoly *mpolys;
-  MLoop *mloops;
   float min[3];
   float max[3];
   float size[3];
   float cell_size_scaled[3];
 
-  /* Assign material + flags to new mesh.
-   * If there are no faces in original mesh, keep materials and flags unchanged. */
-  MPoly *mpoly;
-  MPoly mp_example = {0};
-  mpoly = BKE_mesh_polys_for_write(orgmesh);
-  if (mpoly) {
-    mp_example = *mpoly;
-  }
-
   const int *orig_material_indices = BKE_mesh_material_indices(orgmesh);
   const short mp_mat_nr = orig_material_indices ? orig_material_indices[0] : 0;
-  const char mp_flag = mp_example.flag;
 
   int i;
   int num_verts, num_faces;
@@ -3248,13 +3229,17 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
     return nullptr;
   }
 
-  me = BKE_mesh_new_nomain(num_verts, 0, 0, num_faces * 3, num_faces);
+  me = BKE_mesh_new_nomain(num_verts, 0, num_faces * 3, num_faces);
   if (!me) {
     return nullptr;
   }
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(me);
-  mpolys = BKE_mesh_polys_for_write(me);
-  mloops = BKE_mesh_loops_for_write(me);
+  blender::MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
+  blender::MutableSpan<int> corner_verts = me->corner_verts_for_write();
+
+  const bool is_sharp = orgmesh->attributes().lookup_or_default<bool>(
+      "sharp_face", ATTR_DOMAIN_FACE, false)[0];
+  BKE_mesh_smooth_flag_set(me, !is_sharp);
 
   /* Get size (dimension) but considering scaling. */
   copy_v3_v3(cell_size_scaled, fds->cell_size);
@@ -3340,17 +3325,15 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   int *material_indices = BKE_mesh_material_indices_for_write(me);
 
   /* Loop for triangles. */
-  for (i = 0; i < num_faces; i++, mpolys++, mloops += 3) {
+  for (const int i : poly_offsets.index_range().drop_back(1)) {
     /* Initialize from existing face. */
     material_indices[i] = mp_mat_nr;
-    mpolys->flag = mp_flag;
 
-    mpolys->loopstart = i * 3;
-    mpolys->totloop = 3;
+    poly_offsets[i] = i * 3;
 
-    mloops[0].v = manta_liquid_get_triangle_x_at(fds->fluid, i);
-    mloops[1].v = manta_liquid_get_triangle_y_at(fds->fluid, i);
-    mloops[2].v = manta_liquid_get_triangle_z_at(fds->fluid, i);
+    corner_verts[i * 3 + 0] = manta_liquid_get_triangle_x_at(fds->fluid, i);
+    corner_verts[i * 3 + 1] = manta_liquid_get_triangle_y_at(fds->fluid, i);
+    corner_verts[i * 3 + 2] = manta_liquid_get_triangle_z_at(fds->fluid, i);
 #  ifdef DEBUG_PRINT
     /* Debugging: Print mesh faces. */
     printf("mloops[0].v: %d, mloops[1].v: %d, mloops[2].v: %d\n",
@@ -3368,13 +3351,10 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
 static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Object *ob)
 {
   Mesh *result;
-  MPoly *mpolys;
-  MLoop *mloops;
   float min[3];
   float max[3];
   float *co;
-  MPoly *mp;
-  MLoop *ml;
+  int *corner_vert;
 
   int num_verts = 8;
   int num_faces = 6;
@@ -3386,10 +3366,10 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
     return BKE_mesh_copy_for_eval(orgmesh, false);
   }
 
-  result = BKE_mesh_new_nomain(num_verts, 0, 0, num_faces * 4, num_faces);
+  result = BKE_mesh_new_nomain(num_verts, 0, num_faces * 4, num_faces);
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(result);
-  mpolys = BKE_mesh_polys_for_write(result);
-  mloops = BKE_mesh_loops_for_write(result);
+  blender::MutableSpan<int> poly_offsets = result->poly_offsets_for_write();
+  blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
 
   if (num_verts) {
     /* Volume bounds. */
@@ -3432,61 +3412,46 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
     co[1] = max[1];
     co[2] = min[2];
 
+    poly_offsets.fill(4);
+    blender::offset_indices::accumulate_counts_to_offsets(poly_offsets);
+
     /* Create faces. */
     /* Top side. */
-    mp = &mpolys[0];
-    ml = &mloops[0 * 4];
-    mp->loopstart = 0 * 4;
-    mp->totloop = 4;
-    ml[0].v = 0;
-    ml[1].v = 1;
-    ml[2].v = 2;
-    ml[3].v = 3;
+    corner_vert = &corner_verts[0 * 4];
+    corner_vert[0] = 0;
+    corner_vert[1] = 1;
+    corner_vert[2] = 2;
+    corner_vert[3] = 3;
     /* Right side. */
-    mp = &mpolys[1];
-    ml = &mloops[1 * 4];
-    mp->loopstart = 1 * 4;
-    mp->totloop = 4;
-    ml[0].v = 2;
-    ml[1].v = 1;
-    ml[2].v = 5;
-    ml[3].v = 6;
+    corner_vert = &corner_verts[1 * 4];
+    corner_vert[0] = 2;
+    corner_vert[1] = 1;
+    corner_vert[2] = 5;
+    corner_vert[3] = 6;
     /* Bottom side. */
-    mp = &mpolys[2];
-    ml = &mloops[2 * 4];
-    mp->loopstart = 2 * 4;
-    mp->totloop = 4;
-    ml[0].v = 7;
-    ml[1].v = 6;
-    ml[2].v = 5;
-    ml[3].v = 4;
+    corner_vert = &corner_verts[2 * 4];
+    corner_vert[0] = 7;
+    corner_vert[1] = 6;
+    corner_vert[2] = 5;
+    corner_vert[3] = 4;
     /* Left side. */
-    mp = &mpolys[3];
-    ml = &mloops[3 * 4];
-    mp->loopstart = 3 * 4;
-    mp->totloop = 4;
-    ml[0].v = 0;
-    ml[1].v = 3;
-    ml[2].v = 7;
-    ml[3].v = 4;
+    corner_vert = &corner_verts[3 * 4];
+    corner_vert[0] = 0;
+    corner_vert[1] = 3;
+    corner_vert[2] = 7;
+    corner_vert[3] = 4;
     /* Front side. */
-    mp = &mpolys[4];
-    ml = &mloops[4 * 4];
-    mp->loopstart = 4 * 4;
-    mp->totloop = 4;
-    ml[0].v = 3;
-    ml[1].v = 2;
-    ml[2].v = 6;
-    ml[3].v = 7;
+    corner_vert = &corner_verts[4 * 4];
+    corner_vert[0] = 3;
+    corner_vert[1] = 2;
+    corner_vert[2] = 6;
+    corner_vert[3] = 7;
     /* Back side. */
-    mp = &mpolys[5];
-    ml = &mloops[5 * 4];
-    mp->loopstart = 5 * 4;
-    mp->totloop = 4;
-    ml[0].v = 1;
-    ml[1].v = 0;
-    ml[2].v = 4;
-    ml[3].v = 5;
+    corner_vert = &corner_verts[5 * 4];
+    corner_vert[0] = 1;
+    corner_vert[1] = 0;
+    corner_vert[2] = 4;
+    corner_vert[3] = 5;
 
     /* Calculate required shift to match domain's global position
      * it was originally simulated at (if object moves without manta step). */

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -111,6 +111,10 @@ void wm_cursor_position_to_ghost_client_coords(wmWindow *win, int *x, int *y);
 void wm_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complete);
 void wm_window_IME_end(wmWindow *win);
 #endif
+
+/** Effectively remove timers from the list and delete them. Calling this should only be done by
+ * internal WM management code, from specific, safe places. */
+void wm_window_delete_removed_timers(wmWindowManager *wm);
 
 /* *************** window operators ************** */
 

@@ -139,13 +139,9 @@ NODE_DEFINE(Integrator)
   return type;
 }
 
-Integrator::Integrator() : Node(get_node_type())
-{
-}
+Integrator::Integrator() : Node(get_node_type()) {}
 
-Integrator::~Integrator()
-{
-}
+Integrator::~Integrator() {}
 
 void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 {
@@ -255,8 +251,10 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   kintegrator->scrambling_distance = scrambling_distance;
   kintegrator->sobol_index_mask = reverse_integer_bits(next_power_of_two(aa_samples - 1) - 1);
 
-  kintegrator->use_light_tree = scene->integrator->use_light_tree;
-  if (light_sampling_threshold > 0.0f) {
+  /* NOTE: The kintegrator->use_light_tree is assigned to the efficient value in the light manager,
+   * and the synchronization code is expected to tag the light manager for update when the
+   * `use_light_tree` is changed. */
+  if (light_sampling_threshold > 0.0f && !kintegrator->use_light_tree) {
     kintegrator->light_inv_rr_threshold = scene->film->get_exposure() / light_sampling_threshold;
   }
   else {

@@ -19,7 +19,7 @@
 
 #include "BKE_ccg.h"
 #include "BKE_context.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -81,7 +81,7 @@ static void partialvis_update_mesh(Object *ob,
       CustomData_get_layer_named_for_write(&me->vdata, CD_PROP_BOOL, ".hide_vert", me->totvert));
   if (hide_vert == nullptr) {
     hide_vert = static_cast<bool *>(CustomData_add_layer_named(
-        &me->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, nullptr, me->totvert, ".hide_vert"));
+        &me->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, me->totvert, ".hide_vert"));
   }
 
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
@@ -343,7 +343,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   clip_planes_from_rect(C, depsgraph, clip_planes, &rect);
 
   pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
-  BLI_assert(ob->sculpt->pbvh == pbvh);
+  BLI_assert(BKE_object_sculpt_pbvh_get(ob) == pbvh);
 
   get_pbvh_nodes(pbvh, &nodes, &totnode, clip_planes, area);
   pbvh_type = BKE_pbvh_type(pbvh);

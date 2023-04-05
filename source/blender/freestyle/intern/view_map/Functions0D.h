@@ -70,9 +70,7 @@ template<class T> class UnaryFunction0D {
   }
 
   /** Destructor; */
-  virtual ~UnaryFunction0D()
-  {
-  }
+  virtual ~UnaryFunction0D() {}
 
   /** Returns the string "UnaryFunction0D" */
   virtual string getName() const

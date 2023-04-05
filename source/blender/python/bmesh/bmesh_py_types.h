@@ -1,11 +1,15 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+ * Copyright 2012 Blender Foundation */
 
 /** \file
  * \ingroup pybmesh
  */
 
 #pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern PyTypeObject BPy_BMesh_Type;
 extern PyTypeObject BPy_BMVert_Type;
@@ -232,4 +236,8 @@ extern struct PyC_FlagSet bpy_bm_scene_vert_edge_face_flags[];
 extern struct PyC_FlagSet bpy_bm_htype_vert_edge_face_flags[];
 extern struct PyC_FlagSet bpy_bm_htype_all_flags[];
 extern struct PyC_FlagSet bpy_bm_hflag_all_flags[];
+#endif
+
+#ifdef __cplusplus
+}
 #endif

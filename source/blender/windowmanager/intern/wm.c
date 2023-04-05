@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -93,6 +93,9 @@ static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
       }
     }
   }
+
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+      data, wm->xr.session_settings.base_pose_object, IDWALK_CB_USER_ONE);
 }
 
 static void write_wm_xr_data(BlendWriter *writer, wmXrData *xr_data)
@@ -179,6 +182,8 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     win->event_queue_check_click = 0;
     win->event_queue_check_drag = 0;
     win->event_queue_check_drag_handled = 0;
+    win->event_queue_consecutive_gesture_type = 0;
+    win->event_queue_consecutive_gesture_data = NULL;
     BLO_read_data_address(reader, &win->stereo3d_format);
 
     /* Multi-view always fallback to anaglyph at file opening

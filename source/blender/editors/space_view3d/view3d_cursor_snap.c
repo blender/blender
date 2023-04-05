@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -320,7 +320,7 @@ static void v3d_cursor_plane_draw(const RegionView3D *rv3d,
       color_alpha *= max_ff(0.3f, 1.0f - square_f(square_f(1.0f - view_dot)));
     }
 
-    const float scale_mod = U.gizmo_size * 2 * U.dpi_fac / U.pixelsize;
+    const float scale_mod = U.gizmo_size * 2 * UI_SCALE_FAC / U.pixelsize;
 
     float final_scale = (scale_mod * pixel_size);
 
@@ -1027,7 +1027,7 @@ void ED_view3d_cursor_snap_data_update(V3DSnapCursorState *state,
   }
 }
 
-V3DSnapCursorData *ED_view3d_cursor_snap_data_get()
+V3DSnapCursorData *ED_view3d_cursor_snap_data_get(void)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   return &data_intern->snap_data;

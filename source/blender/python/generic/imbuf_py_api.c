@@ -480,7 +480,7 @@ static PyObject *M_imbuf_load(PyObject *UNUSED(self), PyObject *args, PyObject *
     return NULL;
   }
 
-  ImBuf *ibuf = IMB_loadifffile(file, filepath, IB_rect, NULL, filepath);
+  ImBuf *ibuf = IMB_loadifffile(file, IB_rect, NULL, filepath);
 
   close(file);
 

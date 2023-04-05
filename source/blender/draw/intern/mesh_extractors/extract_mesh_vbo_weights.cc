@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -8,7 +8,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_deform.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "draw_subdivision.h"
 #include "extract_mesh.hh"
@@ -133,17 +133,14 @@ static void extract_weights_iter_poly_bm(const MeshRenderData * /*mr*/,
 }
 
 static void extract_weights_iter_poly_mesh(const MeshRenderData *mr,
-                                           const MPoly *mp,
-                                           const int /*mp_index*/,
+                                           const int poly_index,
                                            void *_data)
 {
   MeshExtract_Weight_Data *data = static_cast<MeshExtract_Weight_Data *>(_data);
-  const MLoop *mloop = mr->mloop;
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
+  for (const int ml_index : mr->polys[poly_index]) {
+    const int vert = mr->corner_verts[ml_index];
     if (data->dvert != nullptr) {
-      const MDeformVert *dvert = &data->dvert[ml->v];
+      const MDeformVert *dvert = &data->dvert[vert];
       data->vbo_data[ml_index] = evaluate_vertex_weight(dvert, data->wstate);
     }
     else {
@@ -172,10 +169,9 @@ static void extract_weights_init_subdiv(const DRWSubdivCache *subdiv_cache,
   extract_weights_init(mr, cache, coarse_weights, _data);
 
   if (mr->extract_type != MR_EXTRACT_BMESH) {
-    const Span<MPoly> coarse_polys = coarse_mesh->polys();
+    const OffsetIndices coarse_polys = coarse_mesh->polys();
     for (const int i : coarse_polys.index_range()) {
-      const MPoly *mpoly = &coarse_polys[i];
-      extract_weights_iter_poly_mesh(mr, mpoly, i, _data);
+      extract_weights_iter_poly_mesh(mr, i, _data);
     }
   }
   else {

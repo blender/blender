@@ -507,7 +507,7 @@ void Session::do_delayed_reset()
   params = delayed_reset_.session_params;
   buffer_params_ = delayed_reset_.buffer_params;
 
-  /* Store parameters used for buffers access outside of scene graph.  */
+  /* Store parameters used for buffers access outside of scene graph. */
   buffer_params_.samples = params.samples;
   buffer_params_.exposure = scene->film->get_exposure();
   buffer_params_.use_approximate_shadow_catcher =
@@ -704,6 +704,12 @@ void Session::update_status_time(bool show_pause, bool show_done)
   else {
     substatus = status_append(substatus,
                               string_printf("Sample %d/%d", current_sample, num_samples));
+  }
+
+  /* Append any device-specific status (such as background kernel optimization) */
+  string device_status;
+  if (device->is_ready(device_status) && !device_status.empty()) {
+    substatus += string_printf(" (%s)", device_status.c_str());
   }
 
   /* TODO(sergey): Denoising status from the path trace. */

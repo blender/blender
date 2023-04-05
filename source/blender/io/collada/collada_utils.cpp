@@ -39,7 +39,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_node.h"
@@ -719,7 +719,7 @@ float bc_get_property(Bone *bone, std::string key, float def)
         result = float(IDP_Double(property));
         break;
       case IDP_BOOLEAN:
-        result = (float)(IDP_Bool(property));
+        result = float(IDP_Bool(property));
         break;
       default:
         result = def;

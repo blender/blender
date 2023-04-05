@@ -274,12 +274,8 @@ class GHOST_Window : public GHOST_IWindow {
    * Needs to be called after each swap events as the framebuffer will change.
    * \return  A boolean success indicator.
    */
-  virtual GHOST_TSuccess getVulkanBackbuffer(void *image,
-                                             void *framebuffer,
-                                             void *command_buffer,
-                                             void *render_pass,
-                                             void *extent,
-                                             uint32_t *fb_id) override;
+  virtual GHOST_TSuccess getVulkanBackbuffer(
+      void *image, void *framebuffer, void *render_pass, void *extent, uint32_t *fb_id) override;
 
   /**
    * Returns the window user data.
@@ -299,7 +295,7 @@ class GHOST_Window : public GHOST_IWindow {
     m_userData = userData;
   }
 
-  float getNativePixelSize(void) override
+  float getNativePixelSize() override
   {
     if (m_nativePixelSize > 0.0f) {
       return m_nativePixelSize;

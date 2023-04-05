@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup modifiers
@@ -25,7 +25,7 @@
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -155,7 +155,7 @@ struct DisplaceUserdata {
   float (*tex_co)[3];
   float (*vertexCos)[3];
   float local_mat[4][4];
-  const float (*vert_normals)[3];
+  blender::Span<blender::float3> vert_normals;
   float (*vert_clnors)[3];
 };
 
@@ -311,8 +311,11 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
           CustomData_get_layer_for_write(ldata, CD_NORMAL, mesh->totloop));
       vert_clnors = static_cast<float(*)[3]>(
           MEM_malloc_arrayN(verts_num, sizeof(*vert_clnors), __func__));
-      BKE_mesh_normals_loop_to_vertex(
-          verts_num, BKE_mesh_loops(mesh), mesh->totloop, (const float(*)[3])clnors, vert_clnors);
+      BKE_mesh_normals_loop_to_vertex(verts_num,
+                                      mesh->corner_verts().data(),
+                                      mesh->totloop,
+                                      (const float(*)[3])clnors,
+                                      vert_clnors);
     }
     else {
       direction = MOD_DISP_DIR_NOR;
@@ -336,7 +339,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   data.vertexCos = vertexCos;
   copy_m4_m4(data.local_mat, local_mat);
   if (direction == MOD_DISP_DIR_NOR) {
-    data.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
+    data.vert_normals = mesh->vert_normals();
   }
   data.vert_clnors = vert_clnors;
   if (tex_target != nullptr) {

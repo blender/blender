@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -457,7 +457,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
         if ((has_edited &&
              BLO_write_file(bmain, filepath, fileflags, &blend_file_write_params, nullptr)) ||
             BLO_memfile_write_file(undo_memfile, filepath)) {
-          printf("Saved session recovery to '%s'\n", filepath);
+          printf("Saved session recovery to \"%s\"\n", filepath);
         }
       }
     }

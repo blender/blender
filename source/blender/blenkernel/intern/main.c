@@ -29,7 +29,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-Main *BKE_main_new()
+Main *BKE_main_new(void)
 {
   Main *bmain = MEM_callocN(sizeof(Main), "new main");
   bmain->lock = MEM_mallocN(sizeof(SpinLock), "main lock");
@@ -40,6 +40,13 @@ Main *BKE_main_new()
 
 void BKE_main_free(Main *mainvar)
 {
+  /* In case this is called on a 'split-by-libraries' list of mains.
+   *
+   * Should not happen in typical usages, but can occur e.g. if a file reading is aborted. */
+  if (mainvar->next) {
+    BKE_main_free(mainvar->next);
+  }
+
   /* also call when reading a file, erase all, etc */
   ListBase *lbarray[INDEX_ID_MAX];
   int a;
@@ -618,7 +625,7 @@ ListBase *which_libbase(Main *bmain, short type)
       return &(bmain->particles);
     case ID_WM:
       return &(bmain->wm);
-    case ID_GD:
+    case ID_GD_LEGACY:
       return &(bmain->gpencils);
     case ID_MC:
       return &(bmain->movieclips);
@@ -662,7 +669,7 @@ int set_listbasepointers(Main *bmain, ListBase *lb[/*INDEX_ID_MAX*/])
   lb[INDEX_ID_PAL] = &(bmain->palettes);
 
   /* Referenced by nodes, objects, view, scene etc, before to free after. */
-  lb[INDEX_ID_GD] = &(bmain->gpencils);
+  lb[INDEX_ID_GD_LEGACY] = &(bmain->gpencils);
 
   lb[INDEX_ID_NT] = &(bmain->nodetrees);
   lb[INDEX_ID_IM] = &(bmain->images);

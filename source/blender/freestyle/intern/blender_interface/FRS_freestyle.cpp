@@ -595,9 +595,7 @@ void FRS_init_stroke_renderer(Render *re)
   controller->ResetRenderCount();
 }
 
-void FRS_begin_stroke_rendering(Render * /*re*/)
-{
-}
+void FRS_begin_stroke_rendering(Render * /*re*/) {}
 
 void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
 {

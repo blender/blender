@@ -502,17 +502,11 @@ class TypeConstructMock {
   bool copy_assigned = false;
   bool move_assigned = false;
 
-  TypeConstructMock() : default_constructed(true)
-  {
-  }
+  TypeConstructMock() : default_constructed(true) {}
 
-  TypeConstructMock(const TypeConstructMock & /*other*/) : copy_constructed(true)
-  {
-  }
+  TypeConstructMock(const TypeConstructMock & /*other*/) : copy_constructed(true) {}
 
-  TypeConstructMock(TypeConstructMock && /*other*/) noexcept : move_constructed(true)
-  {
-  }
+  TypeConstructMock(TypeConstructMock && /*other*/) noexcept : move_constructed(true) {}
 
   TypeConstructMock &operator=(const TypeConstructMock &other)
   {
@@ -857,6 +851,16 @@ TEST(vector, RemoveChunkExceptions)
   vec[5].throw_during_move = true;
   EXPECT_ANY_THROW({ vec.remove(2, 3); });
   EXPECT_EQ(vec.size(), 7);
+}
+
+struct RecursiveType {
+  Vector<RecursiveType, 0> my_vector;
+};
+
+TEST(vector, RecursiveStructure)
+{
+  RecursiveType my_recursive_type;
+  my_recursive_type.my_vector.append({});
 }
 
 }  // namespace blender::tests

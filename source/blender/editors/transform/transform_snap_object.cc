@@ -34,7 +34,7 @@
 #include "BKE_geometry_set.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_object.h"
@@ -242,8 +242,8 @@ static void snap_object_data_mesh_get(SnapObjectContext *sctx,
                                       BVHTreeFromMesh *r_treedata)
 {
   const Span<float3> vert_positions = me_eval->vert_positions();
-  const Span<MPoly> polys = me_eval->polys();
-  const Span<MLoop> loops = me_eval->loops();
+  const blender::OffsetIndices polys = me_eval->polys();
+  const Span<int> corner_verts = me_eval->corner_verts();
 
   if (ob_eval->type == OB_MESH) {
     /* Any existing #SnapData_EditMesh is now invalid. */
@@ -256,11 +256,11 @@ static void snap_object_data_mesh_get(SnapObjectContext *sctx,
 
   BLI_assert(reinterpret_cast<const float3 *>(r_treedata->vert_positions) ==
              vert_positions.data());
-  BLI_assert(r_treedata->loop == loops.data());
+  BLI_assert(r_treedata->corner_verts == corner_verts.data());
   BLI_assert(!polys.data() || r_treedata->looptri);
   BLI_assert(!r_treedata->tree || r_treedata->looptri);
 
-  UNUSED_VARS_NDEBUG(vert_positions, polys, loops);
+  UNUSED_VARS_NDEBUG(vert_positions, polys, corner_verts);
 }
 
 /* Searches for the #Mesh_Runtime associated with the object that is most likely to be updated due
@@ -624,9 +624,9 @@ static void mesh_looptri_raycast_backface_culling_cb(void *userdata,
   const float(*vert_positions)[3] = data->vert_positions;
   const MLoopTri *lt = &data->looptri[index];
   const float *vtri_co[3] = {
-      vert_positions[data->loop[lt->tri[0]].v],
-      vert_positions[data->loop[lt->tri[1]].v],
-      vert_positions[data->loop[lt->tri[2]].v],
+      vert_positions[data->corner_verts[lt->tri[0]]],
+      vert_positions[data->corner_verts[lt->tri[1]]],
+      vert_positions[data->corner_verts[lt->tri[2]]],
   };
   float dist = bvhtree_ray_tri_intersection(ray, hit->dist, UNPACK3(vtri_co));
 
@@ -1427,10 +1427,11 @@ struct Nearest2dUserData {
     };
     struct {
       const float (*vert_positions)[3];
-      const float (*vert_normals)[3];
-      const MEdge *edge; /* only used for #BVHTreeFromMeshEdges */
-      const MLoop *loop;
-      const MLoopTri *looptri;
+      const blender::float3 *vert_normals;
+      const MEdge *edges; /* only used for #BVHTreeFromMeshEdges */
+      const int *corner_verts;
+      const int *corner_edges;
+      const MLoopTri *looptris;
     };
   };
 
@@ -1463,7 +1464,7 @@ static void cb_bvert_no_copy(const int index, const Nearest2dUserData *data, flo
 
 static void cb_medge_verts_get(const int index, const Nearest2dUserData *data, int r_v_index[2])
 {
-  const MEdge *edge = &data->edge[index];
+  const MEdge *edge = &data->edges[index];
 
   r_v_index[0] = edge->v1;
   r_v_index[1] = edge->v2;
@@ -1479,15 +1480,16 @@ static void cb_bedge_verts_get(const int index, const Nearest2dUserData *data, i
 
 static void cb_mlooptri_edges_get(const int index, const Nearest2dUserData *data, int r_v_index[3])
 {
-  const MEdge *medge = data->edge;
-  const MLoop *mloop = data->loop;
-  const MLoopTri *lt = &data->looptri[index];
+  const MEdge *edges = data->edges;
+  const int *corner_verts = data->corner_verts;
+  const int *corner_edges = data->corner_edges;
+  const MLoopTri *lt = &data->looptris[index];
   for (int j = 2, j_next = 0; j_next < 3; j = j_next++) {
-    const MEdge *ed = &medge[mloop[lt->tri[j]].e];
-    const uint tri_edge[2] = {mloop[lt->tri[j]].v, mloop[lt->tri[j_next]].v};
-    if (ELEM(ed->v1, tri_edge[0], tri_edge[1]) && ELEM(ed->v2, tri_edge[0], tri_edge[1])) {
+    const MEdge *edge = &edges[corner_edges[lt->tri[j]]];
+    const int tri_edge[2] = {corner_verts[lt->tri[j]], corner_verts[lt->tri[j_next]]};
+    if (ELEM(edge->v1, tri_edge[0], tri_edge[1]) && ELEM(edge->v2, tri_edge[0], tri_edge[1])) {
       // printf("real edge found\n");
-      r_v_index[j] = mloop[lt->tri[j]].e;
+      r_v_index[j] = corner_edges[lt->tri[j]];
     }
     else {
       r_v_index[j] = -1;
@@ -1497,12 +1499,12 @@ static void cb_mlooptri_edges_get(const int index, const Nearest2dUserData *data
 
 static void cb_mlooptri_verts_get(const int index, const Nearest2dUserData *data, int r_v_index[3])
 {
-  const MLoop *loop = data->loop;
-  const MLoopTri *looptri = &data->looptri[index];
+  const int *corner_verts = data->corner_verts;
+  const MLoopTri *looptri = &data->looptris[index];
 
-  r_v_index[0] = loop[looptri->tri[0]].v;
-  r_v_index[1] = loop[looptri->tri[1]].v;
-  r_v_index[2] = loop[looptri->tri[2]].v;
+  r_v_index[0] = corner_verts[looptri->tri[0]];
+  r_v_index[1] = corner_verts[looptri->tri[1]];
+  r_v_index[2] = corner_verts[looptri->tri[2]];
 }
 
 static bool test_projected_vert_dist(const DistProjectedAABBPrecalc *precalc,
@@ -1716,10 +1718,11 @@ static void nearest2d_data_init_mesh(const Mesh *mesh,
   r_nearest2d->get_tri_edges_index = cb_mlooptri_edges_get;
 
   r_nearest2d->vert_positions = BKE_mesh_vert_positions(mesh);
-  r_nearest2d->vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
-  r_nearest2d->edge = mesh->edges().data();
-  r_nearest2d->loop = mesh->loops().data();
-  r_nearest2d->looptri = BKE_mesh_runtime_looptri_ensure(mesh);
+  r_nearest2d->vert_normals = mesh->vert_normals().data();
+  r_nearest2d->edges = mesh->edges().data();
+  r_nearest2d->corner_verts = mesh->corner_verts().data();
+  r_nearest2d->corner_edges = mesh->corner_edges().data();
+  r_nearest2d->looptris = mesh->looptris().data();
 
   r_nearest2d->is_persp = is_persp;
   r_nearest2d->use_backface_culling = use_backface_culling;
@@ -1782,14 +1785,15 @@ static eSnapMode snap_mesh_polygon(SnapObjectContext *sctx,
                              params->use_backface_culling,
                              &nearest2d);
 
-    const MPoly *mp = &mesh->polys()[sctx->ret.index];
-    const MLoop *ml = &nearest2d.loop[mp->loopstart];
+    const blender::IndexRange poly = mesh->polys()[sctx->ret.index];
+
     if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_EDGE) {
       elem = SCE_SNAP_MODE_EDGE;
-      BLI_assert(nearest2d.edge != nullptr);
-      for (int i = mp->totloop; i--; ml++) {
+      BLI_assert(nearest2d.edges != nullptr);
+      const int *poly_edges = &nearest2d.corner_edges[poly.start()];
+      for (int i = poly.size(); i--;) {
         cb_snap_edge(&nearest2d,
-                     int(ml->e),
+                     poly_edges[i],
                      &neasrest_precalc,
                      clip_planes_local,
                      sctx->runtime.clip_plane_len,
@@ -1798,9 +1802,10 @@ static eSnapMode snap_mesh_polygon(SnapObjectContext *sctx,
     }
     else {
       elem = SCE_SNAP_MODE_VERTEX;
-      for (int i = mp->totloop; i--; ml++) {
+      const int *poly_verts = &nearest2d.corner_verts[poly.start()];
+      for (int i = poly.size(); i--;) {
         cb_snap_vert(&nearest2d,
-                     int(ml->v),
+                     poly_verts[i],
                      &neasrest_precalc,
                      clip_planes_local,
                      sctx->runtime.clip_plane_len,
@@ -1939,7 +1944,7 @@ static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
                          v_pair[0],
                          v_pair[1],
                          &lambda)) {
-    /* do nothing */
+    /* Do nothing. */
   }
   else {
     short snap_to_flag = sctx->runtime.snap_to_flag;
@@ -2049,7 +2054,7 @@ static eSnapMode snapArmature(SnapObjectContext *sctx,
   eSnapMode retval = SCE_SNAP_MODE_NONE;
 
   if (sctx->runtime.snap_to_flag == SCE_SNAP_MODE_FACE_RAYCAST) {
-    /* Currently only edge and vert */
+    /* Currently only edge and vert. */
     return retval;
   }
 
@@ -2064,7 +2069,7 @@ static eSnapMode snapArmature(SnapObjectContext *sctx,
   const bool is_editmode = arm->edbo != nullptr;
 
   if (is_editmode == false) {
-    /* Test BoundBox */
+    /* Test BoundBox. */
     const BoundBox *bb = BKE_armature_boundbox_get(ob_eval);
     if (bb && !snap_bound_box_check_dist(bb->vec[0],
                                          bb->vec[6],
@@ -2215,7 +2220,7 @@ static eSnapMode snapCurve(SnapObjectContext *sctx,
 {
   bool has_snap = false;
 
-  /* only vertex snapping mode (eg control points and handles) supported for now) */
+  /* Only vertex snapping mode (eg control points and handles) supported for now). */
   if ((sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) == 0) {
     return SCE_SNAP_MODE_NONE;
   }
@@ -2334,7 +2339,7 @@ static eSnapMode snapCurve(SnapObjectContext *sctx,
           }
         }
         else {
-          /* curve is not visible outside editmode if nurb length less than two */
+          /* Curve is not visible outside editmode if nurb length less than two. */
           if (nu->pntsu > 1) {
             if (nu->bezt) {
               has_snap |= test_projected_vert_dist(&neasrest_precalc,
@@ -2389,7 +2394,7 @@ static eSnapMode snap_object_center(const SnapObjectContext *sctx,
     return retval;
   }
 
-  /* for now only vertex supported */
+  /* For now only vertex supported. */
   if ((sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) == 0) {
     return retval;
   }
@@ -2603,7 +2608,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
 
   if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_EDGE) {
     if (bvhtree[0]) {
-      /* snap to loose edges */
+      /* Snap to loose edges. */
       BLI_bvhtree_find_nearest_projected(bvhtree[0],
                                          lpmat,
                                          sctx->runtime.win_size,
@@ -2616,7 +2621,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     }
 
     if (treedata.tree) {
-      /* snap to looptris */
+      /* Snap to looptris. */
       BLI_bvhtree_find_nearest_projected(treedata.tree,
                                          lpmat,
                                          sctx->runtime.win_size,
@@ -2635,7 +2640,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
   else {
     BLI_assert(sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX);
     if (bvhtree[0]) {
-      /* snap to loose edge verts */
+      /* Snap to loose edge verts. */
       BLI_bvhtree_find_nearest_projected(bvhtree[0],
                                          lpmat,
                                          sctx->runtime.win_size,
@@ -2648,7 +2653,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     }
 
     if (treedata.tree) {
-      /* snap to looptri verts */
+      /* Snap to looptri verts. */
       BLI_bvhtree_find_nearest_projected(treedata.tree,
                                          lpmat,
                                          sctx->runtime.win_size,
@@ -2719,7 +2724,7 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
 
   /* Test BoundBox */
 
-  /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
+  /* Was BKE_boundbox_ray_hit_check, see: cf6ca226fa58. */
   if (!snap_bound_box_check_dist(
           sod->min, sod->max, lpmat, sctx->runtime.win_size, sctx->runtime.mval, dist_px_sq)) {
     return SCE_SNAP_MODE_NONE;
@@ -2968,7 +2973,7 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
         break;
       }
       case OB_EMPTY:
-      case OB_GPENCIL:
+      case OB_GPENCIL_LEGACY:
       case OB_LAMP:
         retval = snap_object_center(
             sctx, ob_eval, obmat, dt->dist_px, sctx->ret.loc, sctx->ret.no, &sctx->ret.index);
@@ -3200,7 +3205,7 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
                                                                   Depsgraph *depsgraph,
                                                                   const ARegion *region,
                                                                   const View3D *v3d,
-                                                                  const eSnapMode snap_to_flag,
+                                                                  eSnapMode snap_to_flag,
                                                                   const SnapObjectParams *params,
                                                                   const float init_co[3],
                                                                   const float mval[2],
@@ -3235,7 +3240,16 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
 
   const RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
-  bool use_occlusion_test = params->use_occlusion_test && !XRAY_ENABLED(v3d);
+  if (snap_to_flag & (SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST)) {
+    if (params->use_occlusion_test && XRAY_ENABLED(v3d)) {
+      /* Remove Snap to Face with Occlusion Test as they are not visible in wireframe mode. */
+      snap_to_flag &= ~(SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST);
+    }
+    else if (prev_co == nullptr || init_co == nullptr) {
+      /* No location to work with #SCE_SNAP_MODE_FACE_NEAREST. */
+      snap_to_flag &= ~SCE_SNAP_MODE_FACE_NEAREST;
+    }
+  }
 
   /* NOTE: if both face ray-cast and face nearest are enabled, first find result of nearest, then
    * override with ray-cast. */
@@ -3261,7 +3275,9 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
     }
   }
 
-  if (snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST || use_occlusion_test) {
+  bool use_occlusion_test = params->use_occlusion_test && !XRAY_ENABLED(v3d);
+
+  if ((snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST) || use_occlusion_test) {
     float ray_start[3], ray_normal[3];
     if (!ED_view3d_win_to_ray_clipped_ex(
             depsgraph, region, v3d, mval, nullptr, ray_normal, ray_start, true)) {
