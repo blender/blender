@@ -76,7 +76,7 @@
 #endif
 
 #include "GHOST_C-api.h"
-#include "GHOST_Path-api.h"
+#include "GHOST_Path-api.hh"
 
 #include "RNA_define.h"
 
