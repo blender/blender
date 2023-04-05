@@ -296,7 +296,6 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_ASSET_SHELF_FOOTER;
   region->alignment = RGN_ALIGN_BOTTOM;
-  region->flag = RGN_FLAG_HIDDEN;
 
   /* asset shelf */
   region = MEM_cnew<ARegion>("asset shelf for view3d");
@@ -304,7 +303,6 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_ASSET_SHELF;
   region->alignment = RGN_ALIGN_BOTTOM;
-  region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
   region = MEM_cnew<ARegion>("main region for view3d");

@@ -4275,7 +4275,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
                   RGN_TYPE_UI);
               if (new_asset_shelf_footer != nullptr) {
                 new_asset_shelf_footer->alignment = RGN_ALIGN_BOTTOM;
-                new_asset_shelf_footer->flag |= RGN_FLAG_HIDDEN;
               }
             }
             {
@@ -4292,7 +4291,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
                     "asset shelf for view3d (versioning)",
                     RGN_TYPE_ASSET_SHELF_FOOTER);
                 new_asset_shelf->alignment = RGN_ALIGN_BOTTOM;
-                new_asset_shelf->flag |= RGN_FLAG_HIDDEN;
               }
             }
           }
