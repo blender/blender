@@ -84,7 +84,7 @@ typedef uint32_t hipuint32_t;
 typedef uint64_t hipuint64_t;
 #endif
 
-#if defined(__x86_64) || defined(AMD64) || defined(_M_AMD64) || defined (__aarch64__)
+#if defined(__x86_64) || defined(AMD64) || defined(_M_AMD64) || defined (__aarch64__) || defined(__ppc64__) || defined(__PPC64__)
 typedef unsigned long long hipDeviceptr_t;
 #else
 typedef unsigned int hipDeviceptr_t;
