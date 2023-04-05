@@ -370,9 +370,11 @@ bool LightTree::should_split(LightTreeEmitter *emitters,
                              int &split_dim)
 {
   const int num_emitters = end - start;
-  if (num_emitters == 1) {
-    /* Do not try to split if there is only one emitter. */
-    measure = (emitters + start)->measure;
+  if (num_emitters < 2) {
+    if (num_emitters) {
+      /* Do not try to split if there is only one emitter. */
+      measure = (emitters + start)->measure;
+    }
     return false;
   }
 
