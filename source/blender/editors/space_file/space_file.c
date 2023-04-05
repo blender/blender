@@ -51,7 +51,6 @@
 
 /* ******************** default callbacks for file space ***************** */
 
-/* TODO create regions in versioning? */
 static SpaceLink *file_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
   ARegion *region;
