@@ -3032,15 +3032,13 @@ static void gesture_pinch_handle_begin(void *data,
     /* NOTE(@ideasman42): Blender's use of track-pad coordinates is inconsistent and needs work.
      * This isn't specific to WAYLAND, in practice they tend to work well enough in most cases.
      * Some operators scale by the UI scale, some don't.
-     * Even this window scale is not correct because it doesn't account for:
-     * 1) Fractional window scale.
-     * 2) Blender's UI scale preference (which GHOST doesn't know about).
+     * Even though the window scale is correct, it doesn't account for the UI scale preference
+     * (which GHOST doesn't know about).
      *
      * If support for this were all that was needed it could be handled in GHOST,
      * however as the operators are not even using coordinates compatible with each other,
      * it would be better to resolve this by passing rotation & zoom levels directly,
-     * instead of attempting to handle them as cursor coordinates.
-     */
+     * instead of attempting to handle them as cursor coordinates. */
     const struct GWL_WindowScaleParams &scale_params = win->scale_params();
     seat->pointer_gesture_pinch.scale.factor = gwl_window_scale_int_to(
         scale_params, seat->pointer_gesture_pinch.scale.factor);
