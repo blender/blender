@@ -114,7 +114,7 @@ void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
                                  const int poly_offset,
                                  const int loop_offset,
                                  MutableSpan<float3> vert_positions,
-                                 MutableSpan<MPoly> polys,
+                                 MutableSpan<int> poly_offsets,
                                  MutableSpan<int> corner_verts)
 {
   /* Write vertices. */
@@ -122,8 +122,7 @@ void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
 
   /* Write triangles. */
   for (const int i : vdb_tris.index_range()) {
-    polys[poly_offset + i].loopstart = loop_offset + 3 * i;
-    polys[poly_offset + i].totloop = 3;
+    poly_offsets[poly_offset + i] = loop_offset + 3 * i;
     for (int j = 0; j < 3; j++) {
       /* Reverse vertex order to get correct normals. */
       corner_verts[loop_offset + 3 * i + j] = vert_offset + vdb_tris[i][2 - j];
@@ -134,8 +133,7 @@ void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
   const int quad_offset = poly_offset + vdb_tris.size();
   const int quad_loop_offset = loop_offset + vdb_tris.size() * 3;
   for (const int i : vdb_quads.index_range()) {
-    polys[quad_offset + i].loopstart = quad_loop_offset + 4 * i;
-    polys[quad_offset + i].totloop = 4;
+    poly_offsets[quad_offset + i] = quad_loop_offset + 4 * i;
     for (int j = 0; j < 4; j++) {
       /* Reverse vertex order to get correct normals. */
       corner_verts[quad_loop_offset + 4 * i + j] = vert_offset + vdb_quads[i][3 - j];
@@ -176,7 +174,7 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
                               0,
                               0,
                               mesh->vert_positions_for_write(),
-                              mesh->polys_for_write(),
+                              mesh->poly_offsets_for_write(),
                               mesh->corner_verts_for_write());
 
   BKE_mesh_calc_edges(mesh, false, false);

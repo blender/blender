@@ -809,6 +809,7 @@ void MetalDevice::generic_free(device_memory &mem)
       mem.shared_pointer = 0;
 
       /* Free device memory. */
+      delayed_free_list.push_back(mmem.mtlBuffer);
       mmem.mtlBuffer = nil;
     }
 

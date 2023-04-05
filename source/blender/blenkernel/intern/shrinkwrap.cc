@@ -114,9 +114,9 @@ bool BKE_shrinkwrap_init_tree(
   }
 
   data->mesh = mesh;
-  data->polys = mesh->polys().data();
+  data->poly_offsets = mesh->poly_offsets().data();
   data->corner_edges = mesh->corner_edges().data();
-  data->vert_normals = reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data()),
+  data->vert_normals = reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data());
   data->sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_face"));
 

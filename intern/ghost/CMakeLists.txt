@@ -378,15 +378,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       unset(_name)
     endmacro()
 
-    macro(generate_protocol_bindings_when_found PROT_DEF FOUND_VAR)
-      if(EXISTS ${PROT_DEF})
-        generate_protocol_bindings(${PROT_DEF})
-        set(${FOUND_VAR} TRUE)
-      else()
-        set(${FOUND_VAR} FALSE)
-      endif()
-    endmacro()
-
     list(APPEND INC_SYS
       ${INC_DST}
     )
@@ -411,16 +402,13 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       "${WAYLAND_PROTOCOLS_DIR}/staging/xdg-activation/xdg-activation-v1.xml"
     )
     # Fractional scale.
-    generate_protocol_bindings_when_found(
+    generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/staging/fractional-scale/fractional-scale-v1.xml"
-      _has_fractional_scale
     )
-    if(_has_fractional_scale)
-      # Viewport (only required when fractional scale is in use).
-      generate_protocol_bindings(
-        "${WAYLAND_PROTOCOLS_DIR}/stable/viewporter/viewporter.xml"
-      )
-    endif()
+    # Viewport (only required when fractional scale is in use).
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/stable/viewporter/viewporter.xml"
+    )
     # Pointer-constraints.
     generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml"
@@ -445,12 +433,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     unset(INC_DST)
 
     add_definitions(-DWITH_GHOST_WAYLAND)
-
-    if(_has_fractional_scale)
-      add_definitions(-DWITH_GHOST_WAYLAND_FRACTIONAL_SCALE)
-    endif()
-    unset(_has_fractional_scale)
-
     if(NOT WITH_GHOST_WAYLAND_APP_ID STREQUAL "")
       add_definitions(-DWITH_GHOST_WAYLAND_APP_ID=${WITH_GHOST_WAYLAND_APP_ID})
     endif()

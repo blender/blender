@@ -60,10 +60,6 @@ static void init_preview_region(const Scene *scene,
                                 const SpaceClip *sc,
                                 ARegion *region)
 {
-  region->regiontype = RGN_TYPE_PREVIEW;
-  region->alignment = RGN_ALIGN_TOP;
-  region->flag |= RGN_FLAG_HIDDEN;
-
   if (sc->view == SC_VIEW_DOPESHEET) {
     region->v2d.tot.xmin = -10.0f;
     region->v2d.tot.ymin = float(-area->winy) / 3.0f;
@@ -115,78 +111,6 @@ static void init_preview_region(const Scene *scene,
   }
 }
 
-static void reinit_preview_region(const bContext *C, ARegion *region)
-{
-  Scene *scene = CTX_data_scene(C);
-  ScrArea *area = CTX_wm_area(C);
-  SpaceClip *sc = CTX_wm_space_clip(C);
-
-  if (sc->view == SC_VIEW_DOPESHEET) {
-    if ((region->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL) == 0) {
-      init_preview_region(scene, area, sc, region);
-    }
-  }
-  else {
-    if (region->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL) {
-      init_preview_region(scene, area, sc, region);
-    }
-  }
-}
-
-static ARegion *ED_clip_has_preview_region(const bContext *C, ScrArea *area)
-{
-  ARegion *region, *arnew;
-
-  region = BKE_area_find_region_type(area, RGN_TYPE_PREVIEW);
-  if (region) {
-    return region;
-  }
-
-  /* add subdiv level; after header */
-  region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
-
-  /* is error! */
-  if (region == nullptr) {
-    return nullptr;
-  }
-
-  arnew = MEM_cnew<ARegion>("clip preview region");
-
-  BLI_insertlinkbefore(&area->regionbase, region, arnew);
-  init_preview_region(CTX_data_scene(C), area, CTX_wm_space_clip(C), arnew);
-
-  return arnew;
-}
-
-static ARegion *ED_clip_has_channels_region(ScrArea *area)
-{
-  ARegion *region, *arnew;
-
-  region = BKE_area_find_region_type(area, RGN_TYPE_CHANNELS);
-  if (region) {
-    return region;
-  }
-
-  /* add subdiv level; after header */
-  region = BKE_area_find_region_type(area, RGN_TYPE_PREVIEW);
-
-  /* is error! */
-  if (region == nullptr) {
-    return nullptr;
-  }
-
-  arnew = MEM_cnew<ARegion>("clip channels region");
-
-  BLI_insertlinkbefore(&area->regionbase, region, arnew);
-  arnew->regiontype = RGN_TYPE_CHANNELS;
-  arnew->alignment = RGN_ALIGN_LEFT;
-
-  arnew->v2d.scroll = V2D_SCROLL_BOTTOM;
-  arnew->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
-
-  return arnew;
-}
-
 static void clip_scopes_tag_refresh(ScrArea *area)
 {
   SpaceClip *sc = (SpaceClip *)area->spacedata.first;
@@ -222,7 +146,7 @@ static void clip_area_sync_frame_from_scene(ScrArea *area, const Scene *scene)
 
 /* ******************** default callbacks for clip space ***************** */
 
-static SpaceLink *clip_create(const ScrArea *area, const Scene *scene)
+static SpaceLink *clip_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
   ARegion *region;
   SpaceClip *sc;
@@ -264,7 +188,7 @@ static SpaceLink *clip_create(const ScrArea *area, const Scene *scene)
   region = MEM_cnew<ARegion>("preview for clip");
 
   BLI_addtail(&sc->regionbase, region);
-  init_preview_region(scene, area, sc, region);
+  region->regiontype = RGN_TYPE_PREVIEW;
 
   /* main region */
   region = MEM_cnew<ARegion>("main region for clip");
@@ -620,99 +544,28 @@ static void clip_dropboxes(void)
   WM_dropbox_add(lb, "CLIP_OT_open", clip_drop_poll, clip_drop_copy, nullptr, nullptr);
 }
 
-static bool clip_set_region_visible(const bContext *C,
-                                    ARegion *region,
-                                    const bool is_visible,
-                                    const short alignment,
-                                    const bool view_all_on_show)
+static void clip_refresh(const bContext *C, ScrArea *area)
 {
-  bool view_changed = false;
+  Scene *scene = CTX_data_scene(C);
+  SpaceClip *sc = (SpaceClip *)area->spacedata.first;
 
-  if (is_visible) {
-    if (region && (region->flag & RGN_FLAG_HIDDEN)) {
-      region->flag &= ~RGN_FLAG_HIDDEN;
-      region->v2d.flag &= ~V2D_IS_INIT;
-      if (view_all_on_show) {
-        region->v2d.cur = region->v2d.tot;
-      }
-      view_changed = true;
-    }
-    if (region && region->alignment != alignment) {
-      region->alignment = alignment;
-      view_changed = true;
+  ARegion *region_preview = BKE_area_find_region_type(area, RGN_TYPE_PREVIEW);
+  if (!(region_preview->v2d.flag & V2D_IS_INIT)) {
+    init_preview_region(scene, area, sc, region_preview);
+    region_preview->v2d.cur = region_preview->v2d.tot;
+  }
+  /* #V2D_VIEWSYNC_AREA_VERTICAL must always be set for the dopesheet view, in graph view it must
+   * be unset. This is enforced by region re-initialization.
+   * That means if it's not set correctly, the view just changed and needs re-initialization */
+  else if (sc->view == SC_VIEW_DOPESHEET) {
+    if ((region_preview->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL) == 0) {
+      init_preview_region(scene, area, sc, region_preview);
     }
   }
   else {
-    if (region && !(region->flag & RGN_FLAG_HIDDEN)) {
-      region->flag |= RGN_FLAG_HIDDEN;
-      region->v2d.flag &= ~V2D_IS_INIT;
-      WM_event_remove_handlers((bContext *)C, &region->handlers);
-      view_changed = true;
+    if (region_preview->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL) {
+      init_preview_region(scene, area, sc, region_preview);
     }
-    if (region && region->alignment != RGN_ALIGN_NONE) {
-      region->alignment = RGN_ALIGN_NONE;
-      view_changed = true;
-    }
-  }
-
-  return view_changed;
-}
-
-static void clip_refresh(const bContext *C, ScrArea *area)
-{
-  wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *window = CTX_wm_window(C);
-  Scene *scene = CTX_data_scene(C);
-  SpaceClip *sc = (SpaceClip *)area->spacedata.first;
-  ARegion *region_main = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
-  ARegion *region_tools = BKE_area_find_region_type(area, RGN_TYPE_TOOLS);
-  ARegion *region_preview = ED_clip_has_preview_region(C, area);
-  ARegion *region_properties = ED_clip_has_properties_region(area);
-  ARegion *region_channels = ED_clip_has_channels_region(area);
-  bool main_visible = false, preview_visible = false, tools_visible = false;
-  bool properties_visible = false, channels_visible = false;
-  bool view_changed = false;
-
-  switch (sc->view) {
-    case SC_VIEW_CLIP:
-      main_visible = true;
-      preview_visible = false;
-      tools_visible = true;
-      properties_visible = true;
-      channels_visible = false;
-      break;
-    case SC_VIEW_GRAPH:
-      main_visible = false;
-      preview_visible = true;
-      tools_visible = false;
-      properties_visible = false;
-      channels_visible = false;
-
-      reinit_preview_region(C, region_preview);
-      break;
-    case SC_VIEW_DOPESHEET:
-      main_visible = false;
-      preview_visible = true;
-      tools_visible = false;
-      properties_visible = false;
-      channels_visible = true;
-
-      reinit_preview_region(C, region_preview);
-      break;
-  }
-
-  view_changed |= clip_set_region_visible(C, region_main, main_visible, RGN_ALIGN_NONE, false);
-  view_changed |= clip_set_region_visible(
-      C, region_properties, properties_visible, RGN_ALIGN_RIGHT, false);
-  view_changed |= clip_set_region_visible(C, region_tools, tools_visible, RGN_ALIGN_LEFT, false);
-  view_changed |= clip_set_region_visible(
-      C, region_preview, preview_visible, RGN_ALIGN_NONE, true);
-  view_changed |= clip_set_region_visible(
-      C, region_channels, channels_visible, RGN_ALIGN_LEFT, false);
-
-  if (view_changed) {
-    ED_area_init(wm, window, area);
-    ED_area_tag_redraw(area);
   }
 
   BKE_movieclip_user_set_frame(&sc->user, scene->r.cfra);
@@ -778,6 +631,12 @@ static void movieclip_main_area_set_view2d(const bContext *C, ARegion *region)
   region->v2d.cur.xmax /= w;
   region->v2d.cur.ymin /= h;
   region->v2d.cur.ymax /= h;
+}
+
+static bool clip_main_region_poll(const RegionPollParams *params)
+{
+  const SpaceClip *sclip = static_cast<SpaceClip *>(params->area->spacedata.first);
+  return ELEM(sclip->view, SC_VIEW_CLIP);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -935,6 +794,12 @@ static void clip_main_region_listener(const wmRegionListenerParams *params)
 
 /****************** preview region ******************/
 
+static bool clip_preview_region_poll(const RegionPollParams *params)
+{
+  const SpaceClip *sclip = static_cast<SpaceClip *>(params->area->spacedata.first);
+  return ELEM(sclip->view, SC_VIEW_GRAPH, SC_VIEW_DOPESHEET);
+}
+
 static void clip_preview_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
@@ -1060,6 +925,12 @@ static void clip_preview_region_listener(const wmRegionListenerParams * /*params
 
 /****************** channels region ******************/
 
+static bool clip_channels_region_poll(const RegionPollParams *params)
+{
+  const SpaceClip *sclip = static_cast<SpaceClip *>(params->area->spacedata.first);
+  return ELEM(sclip->view, SC_VIEW_DOPESHEET);
+}
+
 static void clip_channels_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
@@ -1134,6 +1005,12 @@ static void clip_header_region_listener(const wmRegionListenerParams *params)
 
 /****************** tools region ******************/
 
+static bool clip_tools_region_poll(const RegionPollParams *params)
+{
+  const SpaceClip *sclip = static_cast<SpaceClip *>(params->area->spacedata.first);
+  return ELEM(sclip->view, SC_VIEW_CLIP);
+}
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void clip_tools_region_init(wmWindowManager *wm, ARegion *region)
 {
@@ -1183,6 +1060,12 @@ static void clip_props_region_listener(const wmRegionListenerParams *params)
 }
 
 /****************** properties region ******************/
+
+static bool clip_properties_region_poll(const RegionPollParams *params)
+{
+  const SpaceClip *sclip = static_cast<SpaceClip *>(params->area->spacedata.first);
+  return ELEM(sclip->view, SC_VIEW_CLIP);
+}
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void clip_properties_region_init(wmWindowManager *wm, ARegion *region)
@@ -1286,6 +1169,7 @@ void ED_spacetype_clip(void)
   /* regions: main window */
   art = MEM_cnew<ARegionType>("spacetype clip region");
   art->regionid = RGN_TYPE_WINDOW;
+  art->poll = clip_main_region_poll;
   art->init = clip_main_region_init;
   art->draw = clip_main_region_draw;
   art->listener = clip_main_region_listener;
@@ -1297,6 +1181,7 @@ void ED_spacetype_clip(void)
   art = MEM_cnew<ARegionType>("spacetype clip region preview");
   art->regionid = RGN_TYPE_PREVIEW;
   art->prefsizey = 240;
+  art->poll = clip_preview_region_poll;
   art->init = clip_preview_region_init;
   art->draw = clip_preview_region_draw;
   art->listener = clip_preview_region_listener;
@@ -1309,6 +1194,7 @@ void ED_spacetype_clip(void)
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;
+  art->poll = clip_properties_region_poll;
   art->init = clip_properties_region_init;
   art->draw = clip_properties_region_draw;
   art->listener = clip_properties_region_listener;
@@ -1320,6 +1206,7 @@ void ED_spacetype_clip(void)
   art->regionid = RGN_TYPE_TOOLS;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;
+  art->poll = clip_tools_region_poll;
   art->listener = clip_props_region_listener;
   art->init = clip_tools_region_init;
   art->draw = clip_tools_region_draw;
@@ -1345,6 +1232,7 @@ void ED_spacetype_clip(void)
   art->regionid = RGN_TYPE_CHANNELS;
   art->prefsizex = UI_COMPACT_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;
+  art->poll = clip_channels_region_poll;
   art->listener = clip_channels_region_listener;
   art->init = clip_channels_region_init;
   art->draw = clip_channels_region_draw;

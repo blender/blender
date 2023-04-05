@@ -477,7 +477,7 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
                                                       struct GPUTexture **colorband,
                                                       struct GPUTexture **sky,
                                                       bool is_tiled,
-                                                      eGPUSamplerState sampler_state)
+                                                      GPUSamplerState sampler_state)
 {
   /* Find existing texture. */
   int num_textures = 0;
@@ -625,7 +625,7 @@ GPUNodeLink *GPU_differentiate_float_function(const char *function_name)
 GPUNodeLink *GPU_image(GPUMaterial *mat,
                        Image *ima,
                        ImageUser *iuser,
-                       eGPUSamplerState sampler_state)
+                       GPUSamplerState sampler_state)
 {
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
   GPUNodeLink *link = gpu_node_link_create();
@@ -640,7 +640,7 @@ GPUNodeLink *GPU_image_sky(GPUMaterial *mat,
                            int height,
                            const float *pixels,
                            float *layer,
-                           eGPUSamplerState sampler_state)
+                           GPUSamplerState sampler_state)
 {
   struct GPUTexture **sky = gpu_material_sky_texture_layer_set(mat, width, height, pixels, layer);
 
@@ -655,7 +655,7 @@ GPUNodeLink *GPU_image_sky(GPUMaterial *mat,
 void GPU_image_tiled(GPUMaterial *mat,
                      struct Image *ima,
                      struct ImageUser *iuser,
-                     eGPUSamplerState sampler_state,
+                     GPUSamplerState sampler_state,
                      GPUNodeLink **r_image_tiled_link,
                      GPUNodeLink **r_image_tiled_mapping_link)
 {
@@ -681,7 +681,7 @@ GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *ro
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_COLORBAND;
   link->texture = gpu_node_graph_add_texture(
-      graph, nullptr, nullptr, colorband, nullptr, false, GPU_SAMPLER_MAX);
+      graph, nullptr, nullptr, colorband, nullptr, false, GPUSamplerState::internal_sampler());
   return link;
 }
 

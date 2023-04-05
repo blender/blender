@@ -65,7 +65,7 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene *UNUSED(scene
   BLI_addtail(&spref->regionbase, region);
   region->regiontype = RGN_TYPE_EXECUTE;
   region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-  region->flag |= RGN_FLAG_DYNAMIC_SIZE | RGN_FLAG_HIDDEN;
+  region->flag |= RGN_FLAG_DYNAMIC_SIZE;
 
   /* main region */
   region = MEM_callocN(sizeof(ARegion), "main region for userpref");
@@ -156,6 +156,12 @@ static void userpref_navigation_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
+static bool userpref_execute_region_poll(const RegionPollParams *params)
+{
+  const ARegion *region_header = BKE_area_find_region_type(params->area, RGN_TYPE_HEADER);
+  return !region_header->visible;
+}
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void userpref_execute_region_init(wmWindowManager *wm, ARegion *region)
 {
@@ -229,6 +235,7 @@ void ED_spacetype_userpref(void)
   art = MEM_callocN(sizeof(ARegionType), "spacetype userpref region");
   art->regionid = RGN_TYPE_EXECUTE;
   art->prefsizey = HEADERY;
+  art->poll = userpref_execute_region_poll;
   art->init = userpref_execute_region_init;
   art->layout = ED_region_panels_layout;
   art->draw = ED_region_panels_draw;

@@ -389,10 +389,11 @@ bool GLContext::debug_capture_begin()
 bool GLBackend::debug_capture_begin()
 {
 #ifdef WITH_RENDERDOC
-  return renderdoc_.start_frame_capture(nullptr, nullptr);
-#else
-  return false;
+  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
+    return renderdoc_.start_frame_capture(nullptr, nullptr);
+  }
 #endif
+  return false;
 }
 
 void GLContext::debug_capture_end()
@@ -403,7 +404,9 @@ void GLContext::debug_capture_end()
 void GLBackend::debug_capture_end()
 {
 #ifdef WITH_RENDERDOC
-  renderdoc_.end_frame_capture(nullptr, nullptr);
+  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
+    renderdoc_.end_frame_capture(nullptr, nullptr);
+  }
 #endif
 }
 

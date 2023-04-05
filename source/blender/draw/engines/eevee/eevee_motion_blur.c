@@ -162,7 +162,7 @@ void EEVEE_motion_blur_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
     }
     {
       DRW_PASS_CREATE(psl->motion_blur, DRW_STATE_WRITE_COLOR);
-      eGPUSamplerState state = 0;
+      const GPUSamplerState state = GPU_SAMPLER_DEFAULT;
       int expand_steps = 1 + (max_ii(0, effects->motion_blur_max - 1) / EEVEE_VELOCITY_TILE_SIZE);
       GPUTexture *tile_tx = (expand_steps & 1) ? effects->velocity_tiles_x_tx :
                                                  effects->velocity_tiles_tx;

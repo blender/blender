@@ -318,7 +318,7 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
      * GL_MAX_3D_TEXTURE_SIZE. */
     if (cache_grid->texture != nullptr) {
       GPU_texture_swizzle_set(cache_grid->texture, (channels == 3) ? "rgb1" : "rrr1");
-      GPU_texture_wrap_mode(cache_grid->texture, false, false);
+      GPU_texture_extend_mode(cache_grid->texture, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
       BKE_volume_dense_float_grid_clear(&dense_grid);
     }
     else {

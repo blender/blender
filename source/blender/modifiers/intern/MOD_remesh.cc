@@ -79,7 +79,7 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
 typedef struct {
   Mesh *mesh;
   float (*vert_positions)[3];
-  MPoly *polys;
+  int *poly_offsets;
   int *corner_verts;
   int curvert, curface;
 } DualConOutput;
@@ -95,7 +95,7 @@ static void *dualcon_alloc_output(int totvert, int totquad)
 
   output->mesh = BKE_mesh_new_nomain(totvert, 0, 4 * totquad, totquad);
   output->vert_positions = BKE_mesh_vert_positions_for_write(output->mesh);
-  output->polys = output->mesh->polys_for_write().data();
+  output->poly_offsets = output->mesh->poly_offsets_for_write().data();
   output->corner_verts = output->mesh->corner_verts_for_write().data();
 
   return output;
@@ -120,9 +120,7 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
   BLI_assert(output->curface < mesh->totpoly);
   UNUSED_VARS_NDEBUG(mesh);
 
-  output->polys[output->curface].loopstart = output->curface * 4;
-  output->polys[output->curface].totloop = 4;
-
+  output->poly_offsets[output->curface] = output->curface * 4;
   for (i = 0; i < 4; i++) {
     output->corner_verts[output->curface * 4 + i] = vert_indices[i];
   }
@@ -190,7 +188,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
                                                   rmd->scale,
                                                   rmd->depth));
     BLI_mutex_unlock(&dualcon_mutex);
-
+    output->mesh->poly_offsets_for_write().last() = output->mesh->totloop;
     result = output->mesh;
     MEM_freeN(output);
   }

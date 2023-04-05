@@ -444,7 +444,7 @@ struct ShaderCreateInfo {
 
   struct Sampler {
     ImageType type;
-    eGPUSamplerState sampler;
+    GPUSamplerState sampler;
     StringRefNull name;
   };
 
@@ -689,7 +689,7 @@ struct ShaderCreateInfo {
                 ImageType type,
                 StringRefNull name,
                 Frequency freq = Frequency::PASS,
-                eGPUSamplerState sampler = (eGPUSamplerState)-1)
+                GPUSamplerState sampler = GPUSamplerState::internal_sampler())
   {
     Resource res(Resource::BindType::SAMPLER, slot);
     res.sampler.type = type;

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <algorithm>
+
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
 
@@ -33,7 +35,7 @@ template<typename T> class OffsetIndices {
   /** Return the total number of elements in the referenced arrays. */
   T total_size() const
   {
-    return offsets_.last();
+    return offsets_.size() == 1 ? 0 : offsets_.last();
   }
 
   /**
@@ -42,7 +44,7 @@ template<typename T> class OffsetIndices {
    */
   int64_t size() const
   {
-    return offsets_.size() - 1;
+    return std::max<int64_t>(offsets_.size() - 1, 0);
   }
 
   bool is_empty() const
@@ -83,12 +85,23 @@ template<typename T> class OffsetIndices {
     BLI_assert(offsets_.index_range().drop_back(1).contains(range.last()));
     return OffsetIndices(offsets_.slice(range.start(), range.one_after_last()));
   }
+
+  const T *data() const
+  {
+    return offsets_.data();
+  }
 };
 
 /**
  * Turn an array of sizes into the offset at each index including all previous sizes.
  */
 void accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets, int start_offset = 0);
+
+/**
+ * Create a map from indexed elements to the source indices, in other words from the larger array
+ * to the smaller array.
+ */
+void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map);
 
 }  // namespace blender::offset_indices
 

@@ -749,6 +749,7 @@ static void sculpt_undo_geometry_store_data(SculptUndoNodeGeometry *geometry, Ob
   CustomData_copy(&mesh->edata, &geometry->edata, CD_MASK_MESH.emask, CD_DUPLICATE, mesh->totedge);
   CustomData_copy(&mesh->ldata, &geometry->ldata, CD_MASK_MESH.lmask, CD_DUPLICATE, mesh->totloop);
   CustomData_copy(&mesh->pdata, &geometry->pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, mesh->totpoly);
+  geometry->poly_offset_indices = static_cast<int *>(MEM_dupallocN(mesh->poly_offset_indices));
 
   geometry->totvert = mesh->totvert;
   geometry->totedge = mesh->totedge;
@@ -767,6 +768,7 @@ static void sculpt_undo_geometry_restore_data(SculptUndoNodeGeometry *geometry, 
   CustomData_free(&mesh->fdata, mesh->totface);
   CustomData_free(&mesh->ldata, mesh->totloop);
   CustomData_free(&mesh->pdata, mesh->totpoly);
+  MEM_SAFE_FREE(mesh->poly_offset_indices);
 
   mesh->totvert = geometry->totvert;
   mesh->totedge = geometry->totedge;
@@ -782,6 +784,7 @@ static void sculpt_undo_geometry_restore_data(SculptUndoNodeGeometry *geometry, 
       &geometry->ldata, &mesh->ldata, CD_MASK_MESH.lmask, CD_DUPLICATE, geometry->totloop);
   CustomData_copy(
       &geometry->pdata, &mesh->pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, geometry->totpoly);
+  mesh->poly_offset_indices = static_cast<int *>(geometry->poly_offset_indices);
 
   BKE_mesh_runtime_clear_cache(mesh);
 }
@@ -800,6 +803,7 @@ static void sculpt_undo_geometry_free_data(SculptUndoNodeGeometry *geometry)
   if (geometry->totpoly) {
     CustomData_free(&geometry->pdata, geometry->totpoly);
   }
+  MEM_SAFE_FREE(geometry->poly_offset_indices);
 }
 
 static void sculpt_undo_geometry_restore(SculptUndoNode *unode, Object *object)

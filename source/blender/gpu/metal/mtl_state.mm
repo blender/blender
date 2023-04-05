@@ -629,7 +629,7 @@ void MTLStateManager::texture_unpack_row_length_set(uint len)
   ctx->pipeline_state.unpack_row_length = len;
 }
 
-void MTLStateManager::texture_bind(Texture *tex_, eGPUSamplerState sampler_type, int unit)
+void MTLStateManager::texture_bind(Texture *tex_, GPUSamplerState sampler_type, int unit)
 {
   BLI_assert(tex_);
   gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(tex_);
@@ -674,7 +674,7 @@ void MTLStateManager::texture_unbind_all()
 
 void MTLStateManager::image_bind(Texture *tex_, int unit)
 {
-  this->texture_bind(tex_, GPU_SAMPLER_DEFAULT, unit);
+  this->texture_bind(tex_, GPUSamplerState::default_sampler(), unit);
 }
 
 void MTLStateManager::image_unbind(Texture *tex_)
@@ -689,4 +689,4 @@ void MTLStateManager::image_unbind_all()
 
 /** \} */
 
-}  // blender::gpu
+}  // namespace blender::gpu

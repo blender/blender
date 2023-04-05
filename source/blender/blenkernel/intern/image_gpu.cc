@@ -437,7 +437,7 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
         ima->id.name + 2, ibuf_intern, use_high_bitdepth, store_premultiplied);
 
     if (*tex) {
-      GPU_texture_wrap_mode(*tex, true, false);
+      GPU_texture_extend_mode(*tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
 
       if (GPU_mipmap_enabled()) {
         GPU_texture_update_mipmap_chain(*tex);

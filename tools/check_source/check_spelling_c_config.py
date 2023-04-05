@@ -548,6 +548,7 @@ dict_custom = {
     "qtcreator",
     "unix",
     "valgrind",
+    "wayland",
     "xinerama",
 
     # general computer graphics terms

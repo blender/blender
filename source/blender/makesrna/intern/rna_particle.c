@@ -386,7 +386,7 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
     BKE_report(reports, RPT_ERROR, "Mesh has no UV data");
     return;
   }
-  BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+  BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR POLYS */
 
   if (ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
     if (particle->num < modifier->mesh_final->totface) {
@@ -526,7 +526,7 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
   int totvert;
   int num = -1;
 
-  BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+  BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR POLYS */
   totface = modifier->mesh_final->totface;
   totvert = modifier->mesh_final->totvert;
 

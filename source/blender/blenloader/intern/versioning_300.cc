@@ -2223,6 +2223,69 @@ static void version_fix_image_format_copy(Main *bmain, ImageFormatData *format)
   }
 }
 
+/**
+ * Some editors would manually manage visibility of regions, or lazy create them based on
+ * context. Ensure they are always there now, and use the new #ARegionType.poll().
+ */
+static void version_ensure_missing_regions(ScrArea *area, SpaceLink *sl)
+{
+  ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+
+  switch (sl->spacetype) {
+    case SPACE_FILE: {
+      if (ARegion *ui_region = do_versions_add_region_if_not_found(
+              regionbase, RGN_TYPE_UI, "versioning: UI region for file", RGN_TYPE_TOOLS)) {
+        ui_region->alignment = RGN_ALIGN_TOP;
+        ui_region->flag |= RGN_FLAG_DYNAMIC_SIZE;
+      }
+
+      if (ARegion *exec_region = do_versions_add_region_if_not_found(
+              regionbase, RGN_TYPE_EXECUTE, "versioning: execute region for file", RGN_TYPE_UI)) {
+        exec_region->alignment = RGN_ALIGN_BOTTOM;
+        exec_region->flag = RGN_FLAG_DYNAMIC_SIZE;
+      }
+
+      if (ARegion *tool_props_region = do_versions_add_region_if_not_found(
+              regionbase,
+              RGN_TYPE_TOOL_PROPS,
+              "versioning: tool props region for file",
+              RGN_TYPE_EXECUTE)) {
+        tool_props_region->alignment = RGN_ALIGN_RIGHT;
+        tool_props_region->flag = RGN_FLAG_HIDDEN;
+      }
+      break;
+    }
+    case SPACE_CLIP: {
+      ARegion *region;
+
+      region = do_versions_ensure_region(
+          regionbase, RGN_TYPE_UI, "versioning: properties region for clip", RGN_TYPE_HEADER);
+      region->alignment = RGN_ALIGN_RIGHT;
+      region->flag &= ~RGN_FLAG_HIDDEN;
+
+      region = do_versions_ensure_region(
+          regionbase, RGN_TYPE_CHANNELS, "versioning: channels region for clip", RGN_TYPE_UI);
+      region->alignment = RGN_ALIGN_LEFT;
+      region->flag &= ~RGN_FLAG_HIDDEN;
+      region->v2d.scroll = V2D_SCROLL_BOTTOM;
+      region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+
+      region = do_versions_ensure_region(
+          regionbase, RGN_TYPE_PREVIEW, "versioning: preview region for clip", RGN_TYPE_WINDOW);
+      region->flag &= ~RGN_FLAG_HIDDEN;
+
+      break;
+    }
+    case SPACE_SEQ: {
+      do_versions_ensure_region(regionbase,
+                                RGN_TYPE_CHANNELS,
+                                "versioning: channels region for sequencer",
+                                RGN_TYPE_TOOLS);
+      break;
+    }
+  }
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 {
@@ -4230,5 +4293,35 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Some regions used to be added/removed dynamically. Ensure they are always there, there is a
+     * `ARegionType.poll()` now. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          version_ensure_missing_regions(area, sl);
+
+          /* Ensure expected region state. Previously this was modified to hide/unhide regions. */
+
+          const ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                       &sl->regionbase;
+          if (sl->spacetype == SPACE_SEQ) {
+            ARegion *region_main = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                       RGN_TYPE_WINDOW);
+            region_main->flag &= ~RGN_FLAG_HIDDEN;
+            region_main->alignment = RGN_ALIGN_NONE;
+
+            ARegion *region_preview = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                          RGN_TYPE_PREVIEW);
+            region_preview->flag &= ~RGN_FLAG_HIDDEN;
+            region_preview->alignment = RGN_ALIGN_NONE;
+
+            ARegion *region_channels = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                           RGN_TYPE_CHANNELS);
+            region_channels->alignment = RGN_ALIGN_LEFT;
+          }
+        }
+      }
+    }
   }
 }

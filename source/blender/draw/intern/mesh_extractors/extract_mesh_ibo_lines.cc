@@ -85,16 +85,18 @@ static void extract_lines_iter_poly_bm(const MeshRenderData * /*mr*/,
 }
 
 static void extract_lines_iter_poly_mesh(const MeshRenderData *mr,
-                                         const MPoly *poly,
-                                         const int /*poly_index*/,
+                                         const int poly_index,
                                          void *tls_data)
 {
   MeshExtract_LinesData *data = static_cast<MeshExtract_LinesData *>(tls_data);
   GPUIndexBufBuilder *elb = &data->elb;
+
+  const IndexRange poly = mr->polys[poly_index];
+
   /* Using poly & loop iterator would complicate accessing the adjacent loop. */
   if (data->test_visibility) {
-    const int ml_index_last = poly->loopstart + (poly->totloop - 1);
-    int ml_index = ml_index_last, ml_index_next = poly->loopstart;
+    const int ml_index_last = poly.last();
+    int ml_index = ml_index_last, ml_index_next = poly.start();
     do {
       const int edge = mr->corner_edges[ml_index];
       if (is_edge_visible(data, edge)) {
@@ -106,8 +108,8 @@ static void extract_lines_iter_poly_mesh(const MeshRenderData *mr,
     } while ((ml_index = ml_index_next++) != ml_index_last);
   }
   else {
-    const int ml_index_last = poly->loopstart + (poly->totloop - 1);
-    int ml_index = ml_index_last, ml_index_next = poly->loopstart;
+    const int ml_index_last = poly.last();
+    int ml_index = ml_index_last, ml_index_next = poly.start();
     do {
       const int edge = mr->corner_edges[ml_index];
       GPU_indexbuf_set_line_verts(elb, edge, ml_index, ml_index_next);

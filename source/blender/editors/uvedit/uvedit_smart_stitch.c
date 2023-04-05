@@ -1889,9 +1889,12 @@ static StitchState *stitch_init(bContext *C,
 
   counter = 0;
   /* Now, on to generate our uv connectivity data */
+  const bool face_selected = !(ts->uv_flag & UV_SYNC_SELECTION);
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-    if (!(ts->uv_flag & UV_SYNC_SELECTION) &&
-        (BM_elem_flag_test(efa, BM_ELEM_HIDDEN) || !BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
+    if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+    if (face_selected && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
       continue;
     }
 

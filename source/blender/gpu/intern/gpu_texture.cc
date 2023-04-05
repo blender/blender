@@ -64,7 +64,7 @@ bool Texture::init_1D(int w, int layers, int mip_len, eGPUTextureFormat format)
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_1D_ARRAY : GPU_TEXTURE_1D;
   if ((format_flag_ & (GPU_FORMAT_DEPTH_STENCIL | GPU_FORMAT_INTEGER)) == 0) {
-    sampler_state = GPU_SAMPLER_FILTER;
+    sampler_state.filtering = GPU_SAMPLER_FILTERING_LINEAR;
   }
   return this->init_internal();
 }
@@ -80,7 +80,7 @@ bool Texture::init_2D(int w, int h, int layers, int mip_len, eGPUTextureFormat f
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_2D_ARRAY : GPU_TEXTURE_2D;
   if ((format_flag_ & (GPU_FORMAT_DEPTH_STENCIL | GPU_FORMAT_INTEGER)) == 0) {
-    sampler_state = GPU_SAMPLER_FILTER;
+    sampler_state.filtering = GPU_SAMPLER_FILTERING_LINEAR;
   }
   return this->init_internal();
 }
@@ -96,7 +96,7 @@ bool Texture::init_3D(int w, int h, int d, int mip_len, eGPUTextureFormat format
   format_flag_ = to_format_flag(format);
   type_ = GPU_TEXTURE_3D;
   if ((format_flag_ & (GPU_FORMAT_DEPTH_STENCIL | GPU_FORMAT_INTEGER)) == 0) {
-    sampler_state = GPU_SAMPLER_FILTER;
+    sampler_state.filtering = GPU_SAMPLER_FILTERING_LINEAR;
   }
   return this->init_internal();
 }
@@ -112,7 +112,7 @@ bool Texture::init_cubemap(int w, int layers, int mip_len, eGPUTextureFormat for
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_CUBE_ARRAY : GPU_TEXTURE_CUBE;
   if ((format_flag_ & (GPU_FORMAT_DEPTH_STENCIL | GPU_FORMAT_INTEGER)) == 0) {
-    sampler_state = GPU_SAMPLER_FILTER;
+    sampler_state.filtering = GPU_SAMPLER_FILTERING_LINEAR;
   }
   return this->init_internal();
 }
@@ -548,10 +548,10 @@ void GPU_unpack_row_length_set(uint len)
 
 /* ------ Binding ------ */
 
-void GPU_texture_bind_ex(GPUTexture *tex_, eGPUSamplerState state, int unit)
+void GPU_texture_bind_ex(GPUTexture *tex_, GPUSamplerState state, int unit)
 {
   Texture *tex = reinterpret_cast<Texture *>(tex_);
-  state = (state >= GPU_SAMPLER_MAX) ? tex->sampler_state : state;
+  state = (state.type == GPU_SAMPLER_STATE_TYPE_INTERNAL) ? tex->sampler_state : state;
   Context::get()->state_manager->texture_bind(tex, state, unit);
 }
 
@@ -604,7 +604,10 @@ void GPU_texture_compare_mode(GPUTexture *tex_, bool use_compare)
   Texture *tex = reinterpret_cast<Texture *>(tex_);
   /* Only depth formats does support compare mode. */
   BLI_assert(!(use_compare) || (tex->format_flag_get() & GPU_FORMAT_DEPTH));
-  SET_FLAG_FROM_TEST(tex->sampler_state, use_compare, GPU_SAMPLER_COMPARE);
+
+  tex->sampler_state.type = use_compare ? GPU_SAMPLER_STATE_TYPE_CUSTOM :
+                                          GPU_SAMPLER_STATE_TYPE_PARAMETERS;
+  tex->sampler_state.custom_type = GPU_SAMPLER_CUSTOM_COMPARE;
 }
 
 void GPU_texture_filter_mode(GPUTexture *tex_, bool use_filter)
@@ -613,7 +616,7 @@ void GPU_texture_filter_mode(GPUTexture *tex_, bool use_filter)
   /* Stencil and integer format does not support filtering. */
   BLI_assert(!(use_filter) ||
              !(tex->format_flag_get() & (GPU_FORMAT_STENCIL | GPU_FORMAT_INTEGER)));
-  SET_FLAG_FROM_TEST(tex->sampler_state, use_filter, GPU_SAMPLER_FILTER);
+  tex->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR, use_filter);
 }
 
 void GPU_texture_mipmap_mode(GPUTexture *tex_, bool use_mipmap, bool use_filter)
@@ -622,8 +625,8 @@ void GPU_texture_mipmap_mode(GPUTexture *tex_, bool use_mipmap, bool use_filter)
   /* Stencil and integer format does not support filtering. */
   BLI_assert(!(use_filter || use_mipmap) ||
              !(tex->format_flag_get() & (GPU_FORMAT_STENCIL | GPU_FORMAT_INTEGER)));
-  SET_FLAG_FROM_TEST(tex->sampler_state, use_mipmap, GPU_SAMPLER_MIPMAP);
-  SET_FLAG_FROM_TEST(tex->sampler_state, use_filter, GPU_SAMPLER_FILTER);
+  tex->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_MIPMAP, use_mipmap);
+  tex->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR, use_filter);
 }
 
 void GPU_texture_anisotropic_filter(GPUTexture *tex_, bool use_aniso)
@@ -632,14 +635,26 @@ void GPU_texture_anisotropic_filter(GPUTexture *tex_, bool use_aniso)
   /* Stencil and integer format does not support filtering. */
   BLI_assert(!(use_aniso) ||
              !(tex->format_flag_get() & (GPU_FORMAT_STENCIL | GPU_FORMAT_INTEGER)));
-  SET_FLAG_FROM_TEST(tex->sampler_state, use_aniso, GPU_SAMPLER_ANISO);
+  tex->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_ANISOTROPIC, use_aniso);
 }
 
-void GPU_texture_wrap_mode(GPUTexture *tex_, bool use_repeat, bool use_clamp)
+void GPU_texture_extend_mode_x(GPUTexture *tex_, GPUSamplerExtendMode extend_mode)
 {
   Texture *tex = reinterpret_cast<Texture *>(tex_);
-  SET_FLAG_FROM_TEST(tex->sampler_state, use_repeat, GPU_SAMPLER_REPEAT);
-  SET_FLAG_FROM_TEST(tex->sampler_state, !use_clamp, GPU_SAMPLER_CLAMP_BORDER);
+  tex->sampler_state.extend_x = extend_mode;
+}
+
+void GPU_texture_extend_mode_y(GPUTexture *tex_, GPUSamplerExtendMode extend_mode)
+{
+  Texture *tex = reinterpret_cast<Texture *>(tex_);
+  tex->sampler_state.extend_yz = extend_mode;
+}
+
+void GPU_texture_extend_mode(GPUTexture *tex_, GPUSamplerExtendMode extend_mode)
+{
+  Texture *tex = reinterpret_cast<Texture *>(tex_);
+  tex->sampler_state.extend_x = extend_mode;
+  tex->sampler_state.extend_yz = extend_mode;
 }
 
 void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4])

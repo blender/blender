@@ -21,6 +21,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BLI_memarena.h"
 
@@ -30,12 +31,11 @@
 /** \name Mesh Connectivity Mapping
  * \{ */
 
-UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *polys,
+UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> polys,
                                        const bool *hide_poly,
                                        const bool *select_poly,
                                        const int *corner_verts,
                                        const float (*mloopuv)[2],
-                                       uint totpoly,
                                        uint totvert,
                                        const float limit[2],
                                        const bool selected,
@@ -52,10 +52,9 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *polys,
   totuv = 0;
 
   /* generate UvMapVert array */
-  for (const int64_t a : blender::IndexRange(totpoly)) {
-    const MPoly &poly = polys[a];
+  for (const int64_t a : polys.index_range()) {
     if (!selected || (!(hide_poly && hide_poly[a]) && (select_poly && select_poly[a]))) {
-      totuv += poly.totloop;
+      totuv += int(polys[a].size());
     }
   }
 
@@ -74,29 +73,30 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *polys,
 
   bool *winding = nullptr;
   if (use_winding) {
-    winding = static_cast<bool *>(MEM_callocN(sizeof(*winding) * totpoly, "winding"));
+    winding = static_cast<bool *>(
+        MEM_calloc_arrayN(sizeof(*winding), size_t(polys.size()), "winding"));
   }
 
-  for (const int64_t a : blender::IndexRange(totpoly)) {
-    const MPoly &poly = polys[a];
+  for (const int64_t a : polys.index_range()) {
+    const blender::IndexRange poly = polys[a];
     if (!selected || (!(hide_poly && hide_poly[a]) && (select_poly && select_poly[a]))) {
       float(*tf_uv)[2] = nullptr;
 
       if (use_winding) {
-        tf_uv = (float(*)[2])BLI_buffer_reinit_data(&tf_uv_buf, vec2f, size_t(poly.totloop));
+        tf_uv = (float(*)[2])BLI_buffer_reinit_data(&tf_uv_buf, vec2f, size_t(poly.size()));
       }
 
-      nverts = poly.totloop;
+      nverts = int(poly.size());
 
       for (i = 0; i < nverts; i++) {
         buf->loop_of_poly_index = ushort(i);
         buf->poly_index = uint(a);
         buf->separate = false;
-        buf->next = vmap->vert[corner_verts[poly.loopstart + i]];
-        vmap->vert[corner_verts[poly.loopstart + i]] = buf;
+        buf->next = vmap->vert[corner_verts[poly[i]]];
+        vmap->vert[corner_verts[poly[i]]] = buf;
 
         if (use_winding) {
-          copy_v2_v2(tf_uv[i], mloopuv[poly.loopstart + i]);
+          copy_v2_v2(tf_uv[i], mloopuv[poly[i]]);
         }
 
         buf++;
@@ -121,14 +121,14 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *polys,
       v->next = newvlist;
       newvlist = v;
 
-      uv = mloopuv[polys[v->poly_index].loopstart + v->loop_of_poly_index];
+      uv = mloopuv[polys[v->poly_index].start() + v->loop_of_poly_index];
       lastv = nullptr;
       iterv = vlist;
 
       while (iterv) {
         next = iterv->next;
 
-        uv2 = mloopuv[polys[iterv->poly_index].loopstart + iterv->loop_of_poly_index];
+        uv2 = mloopuv[polys[iterv->poly_index].start() + iterv->loop_of_poly_index];
         sub_v2_v2v2(uvdiff, uv2, uv);
 
         if (fabsf(uv[0] - uv2[0]) < limit[0] && fabsf(uv[1] - uv2[1]) < limit[1] &&
@@ -191,31 +191,26 @@ void BKE_mesh_uv_vert_map_free(UvVertMap *vmap)
  */
 static void mesh_vert_poly_or_loop_map_create(MeshElemMap **r_map,
                                               int **r_mem,
-                                              const MPoly *polys,
+                                              const blender::OffsetIndices<int> polys,
                                               const int *corner_verts,
                                               int totvert,
-                                              int totpoly,
-                                              int totloop,
                                               const bool do_loops)
 {
   MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(totvert), __func__);
   int *indices, *index_iter;
-  int i, j;
 
-  indices = static_cast<int *>(MEM_mallocN(sizeof(int) * size_t(totloop), __func__));
+  indices = static_cast<int *>(MEM_mallocN(sizeof(int) * size_t(polys.total_size()), __func__));
   index_iter = indices;
 
   /* Count number of polys for each vertex */
-  for (i = 0; i < totpoly; i++) {
-    const MPoly &poly = polys[i];
-
-    for (j = 0; j < poly.totloop; j++) {
-      map[corner_verts[poly.loopstart + j]].count++;
+  for (const int64_t i : polys.index_range()) {
+    for (const int64_t corner : polys[i]) {
+      map[corner_verts[corner]].count++;
     }
   }
 
   /* Assign indices mem */
-  for (i = 0; i < totvert; i++) {
+  for (int64_t i = 0; i < totvert; i++) {
     map[i].indices = index_iter;
     index_iter += map[i].count;
 
@@ -224,13 +219,11 @@ static void mesh_vert_poly_or_loop_map_create(MeshElemMap **r_map,
   }
 
   /* Find the users */
-  for (i = 0; i < totpoly; i++) {
-    const MPoly &poly = polys[i];
+  for (const int64_t i : polys.index_range()) {
+    for (const int64_t corner : polys[i]) {
+      const int v = corner_verts[corner];
 
-    for (j = 0; j < poly.totloop; j++) {
-      const int v = corner_verts[poly.loopstart + j];
-
-      map[v].indices[map[v].count] = do_loops ? poly.loopstart + j : i;
+      map[v].indices[map[v].count] = do_loops ? int(corner) : int(i);
       map[v].count++;
     }
   }
@@ -241,26 +234,20 @@ static void mesh_vert_poly_or_loop_map_create(MeshElemMap **r_map,
 
 void BKE_mesh_vert_poly_map_create(MeshElemMap **r_map,
                                    int **r_mem,
-                                   const MPoly *polys,
+                                   const blender::OffsetIndices<int> polys,
                                    const int *corner_verts,
-                                   int totvert,
-                                   int totpoly,
-                                   int totloop)
+                                   int totvert)
 {
-  mesh_vert_poly_or_loop_map_create(
-      r_map, r_mem, polys, corner_verts, totvert, totpoly, totloop, false);
+  mesh_vert_poly_or_loop_map_create(r_map, r_mem, polys, corner_verts, totvert, false);
 }
 
 void BKE_mesh_vert_loop_map_create(MeshElemMap **r_map,
                                    int **r_mem,
-                                   const MPoly *polys,
+                                   const blender::OffsetIndices<int> polys,
                                    const int *corner_verts,
-                                   int totvert,
-                                   int totpoly,
-                                   int totloop)
+                                   int totvert)
 {
-  mesh_vert_poly_or_loop_map_create(
-      r_map, r_mem, polys, corner_verts, totvert, totpoly, totloop, true);
+  mesh_vert_poly_or_loop_map_create(r_map, r_mem, polys, corner_verts, totvert, true);
 }
 
 void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
@@ -387,8 +374,7 @@ void BKE_mesh_vert_edge_vert_map_create(
 void BKE_mesh_edge_loop_map_create(MeshElemMap **r_map,
                                    int **r_mem,
                                    const int totedge,
-                                   const MPoly *polys,
-                                   const int totpoly,
+                                   const blender::OffsetIndices<int> polys,
                                    const int *corner_edges,
                                    const int totloop)
 {
@@ -413,17 +399,15 @@ void BKE_mesh_edge_loop_map_create(MeshElemMap **r_map,
   }
 
   /* assign loop-edge users */
-  for (const int64_t i : blender::IndexRange(totpoly)) {
-    const MPoly &poly = polys[i];
+  for (const int64_t i : polys.index_range()) {
     MeshElemMap *map_ele;
-    const int max_loop = poly.loopstart + poly.totloop;
-    for (int j = poly.loopstart; j < max_loop; j++) {
-      map_ele = &map[corner_edges[j]];
-      map_ele->indices[map_ele->count++] = j;
-      map_ele->indices[map_ele->count++] = j + 1;
+    for (const int64_t corner : polys[i]) {
+      map_ele = &map[corner_edges[corner]];
+      map_ele->indices[map_ele->count++] = int(corner);
+      map_ele->indices[map_ele->count++] = int(corner) + 1;
     }
     /* last edge/loop of poly, must point back to first loop! */
-    map_ele->indices[map_ele->count - 1] = poly.loopstart;
+    map_ele->indices[map_ele->count - 1] = int(polys[i].start());
   }
 
   *r_map = map;
@@ -433,8 +417,7 @@ void BKE_mesh_edge_loop_map_create(MeshElemMap **r_map,
 void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map,
                                    int **r_mem,
                                    const int totedge,
-                                   const MPoly *polys,
-                                   const int totpoly,
+                                   const blender::OffsetIndices<int> polys,
                                    const int *corner_edges,
                                    const int totloop)
 {
@@ -458,10 +441,9 @@ void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map,
   }
 
   /* assign poly-edge users */
-  for (const int64_t i : blender::IndexRange(totpoly)) {
-    const MPoly &poly = polys[i];
-    for (int j = 0; j < poly.totloop; j++) {
-      const int edge_i = corner_edges[poly.loopstart + j];
+  for (const int64_t i : polys.index_range()) {
+    for (const int64_t corner : polys[i]) {
+      const int edge_i = corner_edges[corner];
       MeshElemMap *map_ele = &map[edge_i];
       map_ele->indices[map_ele->count++] = int(i);
     }
@@ -514,25 +496,23 @@ void BKE_mesh_origindex_map_create(MeshElemMap **r_map,
 
 void BKE_mesh_origindex_map_create_looptri(MeshElemMap **r_map,
                                            int **r_mem,
-                                           const MPoly *polys,
-                                           const int polys_num,
+                                           const blender::OffsetIndices<int> polys,
                                            const MLoopTri *looptri,
                                            const int looptri_num)
 {
-  MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(polys_num), __func__);
+  MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(polys.size()), __func__);
   int *indices = static_cast<int *>(MEM_mallocN(sizeof(int) * size_t(looptri_num), __func__));
   int *index_step;
-  int i;
 
   /* create offsets */
   index_step = indices;
-  for (i = 0; i < polys_num; i++) {
+  for (const int64_t i : polys.index_range()) {
     map[i].indices = index_step;
-    index_step += ME_POLY_TRI_TOT(&polys[i]);
+    index_step += ME_POLY_TRI_TOT(polys[i].size());
   }
 
   /* assign poly-tessface users */
-  for (i = 0; i < looptri_num; i++) {
+  for (int i = 0; i < looptri_num; i++) {
     MeshElemMap *map_ele = &map[looptri[i].poly];
     map_ele->indices[map_ele->count++] = i;
   }
@@ -543,15 +523,10 @@ void BKE_mesh_origindex_map_create_looptri(MeshElemMap **r_map,
 
 namespace blender::bke::mesh_topology {
 
-Array<int> build_loop_to_poly_map(const Span<MPoly> polys, const int loops_num)
+Array<int> build_loop_to_poly_map(const OffsetIndices<int> polys)
 {
-  Array<int> map(loops_num);
-  threading::parallel_for(polys.index_range(), 1024, [&](IndexRange range) {
-    for (const int64_t poly_i : range) {
-      const MPoly &poly = polys[poly_i];
-      map.as_mutable_span().slice(poly.loopstart, poly.totloop).fill(int(poly_i));
-    }
-  });
+  Array<int> map(polys.total_size());
+  offset_indices::build_reverse_map(polys, map);
   return map;
 }
 
@@ -565,14 +540,13 @@ Array<Vector<int>> build_vert_to_edge_map(const Span<MEdge> edges, const int ver
   return map;
 }
 
-Array<Vector<int>> build_vert_to_poly_map(const Span<MPoly> polys,
+Array<Vector<int>> build_vert_to_poly_map(const OffsetIndices<int> polys,
                                           const Span<int> corner_verts,
                                           int verts_num)
 {
   Array<Vector<int>> map(verts_num);
   for (const int64_t i : polys.index_range()) {
-    const MPoly &poly = polys[i];
-    for (const int64_t vert_i : corner_verts.slice(poly.loopstart, poly.totloop)) {
+    for (const int64_t vert_i : corner_verts.slice(polys[i])) {
       map[int(vert_i)].append(int(i));
     }
   }
@@ -597,14 +571,13 @@ Array<Vector<int>> build_edge_to_loop_map(const Span<int> corner_edges, const in
   return map;
 }
 
-Array<Vector<int, 2>> build_edge_to_poly_map(const Span<MPoly> polys,
+Array<Vector<int, 2>> build_edge_to_poly_map(const OffsetIndices<int> polys,
                                              const Span<int> corner_edges,
                                              const int edges_num)
 {
   Array<Vector<int, 2>> map(edges_num);
   for (const int64_t i : polys.index_range()) {
-    const MPoly &poly = polys[i];
-    for (const int edge : corner_edges.slice(poly.loopstart, poly.totloop)) {
+    for (const int edge : corner_edges.slice(polys[i])) {
       map[edge].append(int(i));
     }
   }
@@ -642,7 +615,7 @@ using MeshRemap_CheckIslandBoundary =
                               const MeshElemMap &edge_poly_map_elem)>;
 
 static void poly_edge_loop_islands_calc(const int totedge,
-                                        const blender::Span<MPoly> polys,
+                                        const blender::OffsetIndices<int> polys,
                                         const blender::Span<int> corner_edges,
                                         MeshElemMap *edge_poly_map,
                                         const bool use_bitflags,
@@ -689,8 +662,7 @@ static void poly_edge_loop_islands_calc(const int totedge,
     BKE_mesh_edge_poly_map_create(&edge_poly_map,
                                   &edge_poly_mem,
                                   totedge,
-                                  polys.data(),
-                                  int(polys.size()),
+                                  polys,
                                   corner_edges.data(),
                                   int(corner_edges.size()));
   }
@@ -727,7 +699,7 @@ static void poly_edge_loop_islands_calc(const int totedge,
       poly = poly_stack[ps_curr_idx++];
       BLI_assert(poly_groups[poly] == poly_group_id);
 
-      for (const int64_t loop : blender::IndexRange(polys[poly].loopstart, polys[poly].totloop)) {
+      for (const int64_t loop : polys[poly]) {
         const int edge = corner_edges[loop];
         /* loop over poly users */
         const MeshElemMap &map_ele = edge_poly_map[edge];
@@ -832,7 +804,7 @@ static void poly_edge_loop_islands_calc(const int totedge,
 }
 
 int *BKE_mesh_calc_smoothgroups(const int totedge,
-                                const MPoly *polys,
+                                const int *poly_offsets,
                                 const int totpoly,
                                 const int *corner_edges,
                                 const int totloop,
@@ -864,7 +836,7 @@ int *BKE_mesh_calc_smoothgroups(const int totedge,
   };
 
   poly_edge_loop_islands_calc(totedge,
-                              {polys, totpoly},
+                              blender::Span(poly_offsets, totpoly + 1),
                               {corner_edges, totloop},
                               nullptr,
                               use_bitflags,
@@ -994,8 +966,7 @@ void BKE_mesh_loop_islands_add(MeshIslandStore *island_store,
 
 static bool mesh_calc_islands_loop_poly_uv(const int totedge,
                                            const bool *uv_seams,
-                                           const MPoly *polys,
-                                           const int totpoly,
+                                           const blender::OffsetIndices<int> polys,
                                            const int *corner_verts,
                                            const int *corner_edges,
                                            const int totloop,
@@ -1025,18 +996,18 @@ static bool mesh_calc_islands_loop_poly_uv(const int totedge,
   int *edge_innercut_indices = nullptr;
   int num_einnercuts = 0;
 
-  int grp_idx, p_idx, pl_idx, l_idx;
+  int grp_idx;
 
   BKE_mesh_loop_islands_clear(r_island_store);
   BKE_mesh_loop_islands_init(
       r_island_store, MISLAND_TYPE_LOOP, totloop, MISLAND_TYPE_POLY, MISLAND_TYPE_EDGE);
 
   BKE_mesh_edge_poly_map_create(
-      &edge_poly_map, &edge_poly_mem, totedge, polys, totpoly, corner_edges, totloop);
+      &edge_poly_map, &edge_poly_mem, totedge, polys, corner_edges, totloop);
 
   if (luvs) {
     BKE_mesh_edge_loop_map_create(
-        &edge_loop_map, &edge_loop_mem, totedge, polys, totpoly, corner_edges, totloop);
+        &edge_loop_map, &edge_loop_mem, totedge, polys, corner_edges, totloop);
   }
 
   /* TODO: I'm not sure edge seam flag is enough to define UV islands?
@@ -1083,7 +1054,7 @@ static bool mesh_calc_islands_loop_poly_uv(const int totedge,
   };
 
   poly_edge_loop_islands_calc(totedge,
-                              {polys, totpoly},
+                              polys,
                               {corner_edges, totloop},
                               edge_poly_map,
                               false,
@@ -1112,7 +1083,7 @@ static bool mesh_calc_islands_loop_poly_uv(const int totedge,
   }
 
   poly_indices = static_cast<int *>(
-      MEM_mallocN(sizeof(*poly_indices) * size_t(totpoly), __func__));
+      MEM_mallocN(sizeof(*poly_indices) * size_t(polys.size()), __func__));
   loop_indices = static_cast<int *>(
       MEM_mallocN(sizeof(*loop_indices) * size_t(totloop), __func__));
 
@@ -1124,15 +1095,14 @@ static bool mesh_calc_islands_loop_poly_uv(const int totedge,
       memset(edge_border_count, 0, sizeof(*edge_border_count) * size_t(totedge));
     }
 
-    for (p_idx = 0; p_idx < totpoly; p_idx++) {
+    for (const int64_t p_idx : polys.index_range()) {
       if (poly_groups[p_idx] != grp_idx) {
         continue;
       }
-      const MPoly &poly = polys[p_idx];
-      poly_indices[num_pidx++] = p_idx;
-      for (l_idx = poly.loopstart, pl_idx = 0; pl_idx < poly.totloop; l_idx++, pl_idx++) {
-        const int edge_i = corner_edges[l_idx];
-        loop_indices[num_lidx++] = l_idx;
+      poly_indices[num_pidx++] = int(p_idx);
+      for (const int64_t corner : polys[p_idx]) {
+        const int edge_i = corner_edges[corner];
+        loop_indices[num_lidx++] = int(corner);
         if (num_edge_borders && BLI_BITMAP_TEST(edge_borders, edge_i) &&
             (edge_border_count[edge_i] < 2)) {
           edge_border_count[edge_i]++;
@@ -1180,23 +1150,15 @@ bool BKE_mesh_calc_islands_loop_poly_edgeseam(const float (*vert_positions)[3],
                                               const MEdge *edges,
                                               const int totedge,
                                               const bool *uv_seams,
-                                              const MPoly *polys,
-                                              const int totpoly,
+                                              const blender::OffsetIndices<int> polys,
                                               const int *corner_verts,
                                               const int *corner_edges,
                                               const int totloop,
                                               MeshIslandStore *r_island_store)
 {
   UNUSED_VARS(vert_positions, totvert, edges);
-  return mesh_calc_islands_loop_poly_uv(totedge,
-                                        uv_seams,
-                                        polys,
-                                        totpoly,
-                                        corner_verts,
-                                        corner_edges,
-                                        totloop,
-                                        nullptr,
-                                        r_island_store);
+  return mesh_calc_islands_loop_poly_uv(
+      totedge, uv_seams, polys, corner_verts, corner_edges, totloop, nullptr, r_island_store);
 }
 
 bool BKE_mesh_calc_islands_loop_poly_uvmap(float (*vert_positions)[3],
@@ -1204,8 +1166,7 @@ bool BKE_mesh_calc_islands_loop_poly_uvmap(float (*vert_positions)[3],
                                            MEdge *edges,
                                            const int totedge,
                                            const bool *uv_seams,
-                                           MPoly *polys,
-                                           const int totpoly,
+                                           const blender::OffsetIndices<int> polys,
                                            const int *corner_verts,
                                            const int *corner_edges,
                                            const int totloop,
@@ -1214,15 +1175,8 @@ bool BKE_mesh_calc_islands_loop_poly_uvmap(float (*vert_positions)[3],
 {
   UNUSED_VARS(vert_positions, totvert, edges);
   BLI_assert(luvs != nullptr);
-  return mesh_calc_islands_loop_poly_uv(totedge,
-                                        uv_seams,
-                                        polys,
-                                        totpoly,
-                                        corner_verts,
-                                        corner_edges,
-                                        totloop,
-                                        luvs,
-                                        r_island_store);
+  return mesh_calc_islands_loop_poly_uv(
+      totedge, uv_seams, polys, corner_verts, corner_edges, totloop, luvs, r_island_store);
 }
 
 /** \} */

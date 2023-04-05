@@ -57,18 +57,22 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
+/**
+ * The object type check is only needed here in case we have a placeholder
+ * Object assigned (because the library containing the lattice is missing).
+ * In other cases it should be impossible to have a type mismatch.
+ */
+static bool is_disabled(LatticeModifierData *lmd)
+{
+  return !lmd->object || lmd->object->type != OB_LATTICE;
+}
+
 static bool isDisabled(const struct Scene *UNUSED(scene),
                        ModifierData *md,
                        bool UNUSED(userRenderParams))
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
-
-  /* The object type check is only needed here in case we have a placeholder
-   * object assigned (because the library containing the lattice is missing).
-   *
-   * In other cases it should be impossible to have a type mismatch.
-   */
-  return !lmd->object || lmd->object->type != OB_LATTICE;
+  return is_disabled(lmd);
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
@@ -81,10 +85,12 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
-  if (lmd->object != NULL) {
-    DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_GEOMETRY, "Lattice Modifier");
-    DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_TRANSFORM, "Lattice Modifier");
+  if (is_disabled(lmd)) {
+    return;
   }
+
+  DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_GEOMETRY, "Lattice Modifier");
+  DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_TRANSFORM, "Lattice Modifier");
   DEG_add_depends_on_transform_relation(ctx->node, "Lattice Modifier");
 }
 

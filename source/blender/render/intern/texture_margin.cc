@@ -54,7 +54,7 @@ class TextureMarginMap {
   uint32_t value_to_store_;
   char *mask_;
 
-  Span<MPoly> polys_;
+  OffsetIndices<int> polys_;
   Span<int> corner_edges_;
   Span<float2> mloopuv_;
   int totedge_;
@@ -64,7 +64,7 @@ class TextureMarginMap {
                    size_t h,
                    const float uv_offset[2],
                    const int totedge,
-                   const Span<MPoly> polys,
+                   const OffsetIndices<int> polys,
                    const Span<int> corner_edges,
                    const Span<float2> mloopuv)
       : w_(w),
@@ -282,8 +282,7 @@ class TextureMarginMap {
 
   void build_tables()
   {
-    loop_to_poly_map_ = blender::bke::mesh_topology::build_loop_to_poly_map(polys_,
-                                                                            corner_edges_.size());
+    loop_to_poly_map_ = blender::bke::mesh_topology::build_loop_to_poly_map(polys_);
 
     loop_adjacency_map_.resize(corner_edges_.size(), -1);
 
@@ -318,8 +317,8 @@ class TextureMarginMap {
       return true;
     }
 
-    int loopstart = polys_[*r_start_poly].loopstart;
-    int totloop = polys_[*r_start_poly].totloop;
+    int loopstart = polys_[*r_start_poly].start();
+    int totloop = polys_[*r_start_poly].size();
 
     float destx, desty;
     int foundpoly;
@@ -376,11 +375,11 @@ class TextureMarginMap {
 
     /* Find the closest edge on which the point x,y can be projected.
      */
-    for (size_t i = 0; i < polys_[src_poly].totloop; i++) {
-      int l1 = polys_[src_poly].loopstart + i;
+    for (size_t i = 0; i < polys_[src_poly].size(); i++) {
+      int l1 = polys_[src_poly].start() + i;
       int l2 = l1 + 1;
-      if (l2 >= polys_[src_poly].loopstart + polys_[src_poly].totloop) {
-        l2 = polys_[src_poly].loopstart;
+      if (l2 >= polys_[src_poly].start() + polys_[src_poly].size()) {
+        l2 = polys_[src_poly].start();
       }
       /* edge points */
       float2 edgepoint1 = uv_to_xy(mloopuv_[l1]);
@@ -415,7 +414,7 @@ class TextureMarginMap {
           /* Stother_ab the info of the closest edge so far. */
           found_dist = reflectLen;
           found_t = t;
-          found_edge = i + polys_[src_poly].loopstart;
+          found_edge = i + polys_[src_poly].start();
         }
       }
     }
@@ -440,8 +439,8 @@ class TextureMarginMap {
     }
 
     int other_edge2 = other_edge + 1;
-    if (other_edge2 >= polys_[dst_poly].loopstart + polys_[dst_poly].totloop) {
-      other_edge2 = polys_[dst_poly].loopstart;
+    if (other_edge2 >= polys_[dst_poly].start() + polys_[dst_poly].size()) {
+      other_edge2 = polys_[dst_poly].start();
     }
 
     float2 other_edgepoint1 = uv_to_xy(mloopuv_[other_edge]);
@@ -475,7 +474,7 @@ static void generate_margin(ImBuf *ibuf,
                             const int margin,
                             const Span<float3> vert_positions,
                             const int edges_num,
-                            const Span<MPoly> polys,
+                            const OffsetIndices<int> polys,
                             const Span<int> corner_edges,
                             const Span<float2> mloopuv,
                             const float uv_offset[2])
@@ -580,7 +579,7 @@ void RE_generate_texturemargin_adjacentfaces_dm(
       margin,
       {reinterpret_cast<const blender::float3 *>(dm->getVertArray(dm)), dm->getNumVerts(dm)},
       dm->getNumEdges(dm),
-      {dm->getPolyArray(dm), dm->getNumPolys(dm)},
+      blender::Span(dm->getPolyArray(dm), dm->getNumPolys(dm) + 1),
       {dm->getCornerEdgeArray(dm), dm->getNumLoops(dm)},
       {mloopuv, dm->getNumLoops(dm)},
       uv_offset);

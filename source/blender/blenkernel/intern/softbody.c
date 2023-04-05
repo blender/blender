@@ -566,11 +566,12 @@ static void ccd_update_deflector_hash(Depsgraph *depsgraph,
 
 static int count_mesh_quads(Mesh *me)
 {
-  int a, result = 0;
-  const MPoly *polys = BKE_mesh_polys(me);
-  if (polys) {
-    for (a = me->totpoly; a > 0; a--) {
-      if (polys[a].totloop == 4) {
+  int result = 0;
+  const int *poly_offsets = BKE_mesh_poly_offsets(me);
+  if (poly_offsets) {
+    for (int i = 0; i < me->totpoly; i++) {
+      const int poly_size = poly_offsets[i + 1] - poly_offsets[i];
+      if (poly_size == 4) {
         result++;
       }
     }
@@ -589,7 +590,7 @@ static void add_mesh_quad_diag_springs(Object *ob)
     nofquads = count_mesh_quads(me);
     if (nofquads) {
       const int *corner_verts = BKE_mesh_corner_verts(me);
-      const MPoly *polys = BKE_mesh_polys(me);
+      const int *poly_offsets = BKE_mesh_poly_offsets(me);
       BodySpring *bs;
 
       /* resize spring-array to hold additional quad springs */
@@ -600,14 +601,14 @@ static void add_mesh_quad_diag_springs(Object *ob)
       bs = &ob->soft->bspring[ob->soft->totspring];
       // bp = ob->soft->bpoint; /* UNUSED */
       for (int a = 0; a < me->totpoly; a++) {
-        const MPoly *poly = &polys[a];
-        if (poly->totloop == 4) {
-          bs->v1 = corner_verts[poly->loopstart + 0];
-          bs->v2 = corner_verts[poly->loopstart + 2];
+        const int poly_size = poly_offsets[a + 1] - poly_offsets[a];
+        if (poly_size == 4) {
+          bs->v1 = corner_verts[poly_offsets[a] + 0];
+          bs->v2 = corner_verts[poly_offsets[a] + 2];
           bs->springtype = SB_STIFFQUAD;
           bs++;
-          bs->v1 = corner_verts[poly->loopstart + 1];
-          bs->v2 = corner_verts[poly->loopstart + 3];
+          bs->v1 = corner_verts[poly_offsets[a] + 1];
+          bs->v2 = corner_verts[poly_offsets[a] + 3];
           bs->springtype = SB_STIFFQUAD;
           bs++;
         }
@@ -2752,7 +2753,7 @@ static void mesh_faces_to_scratch(Object *ob)
   BodyFace *bodyface;
   int a;
   const float(*vert_positions)[3] = BKE_mesh_vert_positions(me);
-  const MPoly *polys = BKE_mesh_polys(me);
+  const int *poly_offsets = BKE_mesh_poly_offsets(me);
   const int *corner_verts = BKE_mesh_corner_verts(me);
 
   /* Allocate and copy faces. */
@@ -2760,7 +2761,7 @@ static void mesh_faces_to_scratch(Object *ob)
   sb->scratch->totface = poly_to_tri_count(me->totpoly, me->totloop);
   looptri = lt = MEM_mallocN(sizeof(*looptri) * sb->scratch->totface, __func__);
   BKE_mesh_recalc_looptri(
-      corner_verts, polys, vert_positions, me->totvert, me->totloop, me->totpoly, looptri);
+      corner_verts, poly_offsets, vert_positions, me->totvert, me->totloop, me->totpoly, looptri);
 
   bodyface = sb->scratch->bodyface = MEM_mallocN(sizeof(BodyFace) * sb->scratch->totface,
                                                  "SB_body_Faces");

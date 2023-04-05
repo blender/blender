@@ -18,7 +18,7 @@ namespace blender::gpu {
 void GPUTest::SetUp()
 {
   prev_g_debug_ = G.debug;
-  G.debug |= G_DEBUG_GPU;
+  G.debug |= G_DEBUG_GPU | G_DEBUG_GPU_RENDERDOC;
 
   CLG_init();
   GPU_backend_type_selection_set(gpu_backend_type);

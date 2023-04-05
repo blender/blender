@@ -898,6 +898,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 
   BKE_mesh_calc_edges_tessface(split_m);
   BKE_mesh_convert_mfaces_to_mpolys(split_m);
+  BKE_mesh_legacy_convert_polys_to_offsets(split_m);
 
   return split_m;
 }
@@ -1118,6 +1119,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   /* finalization */
   BKE_mesh_calc_edges_tessface(explode);
   BKE_mesh_convert_mfaces_to_mpolys(explode);
+  BKE_mesh_legacy_convert_polys_to_offsets(explode);
 
   psys_sim_data_free(&sim);
 
@@ -1154,7 +1156,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       return mesh;
     }
 
-    BKE_mesh_tessface_ensure(mesh); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+    BKE_mesh_tessface_ensure(mesh); /* BMESH - UNTIL MODIFIER IS UPDATED FOR POLYGONS */
 
     /* 1. find faces to be exploded if needed */
     if (emd->facepa == nullptr || psmd->flag & eParticleSystemFlag_Pars ||

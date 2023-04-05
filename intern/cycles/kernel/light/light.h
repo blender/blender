@@ -117,7 +117,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
   if (kernel_data.integrator.use_light_tree) {
     ccl_global const KernelLightTreeEmitter *kemitter = &kernel_data_fetch(light_tree_emitters,
                                                                            emitter_index);
-    prim = kemitter->prim;
+    prim = kemitter->prim_id;
     mesh_light = kemitter->mesh_light;
   }
   else

@@ -416,7 +416,7 @@ void Film::sync()
   RenderBuffers &rbuffers = inst_.render_buffers;
   VelocityModule &velocity = inst_.velocity;
 
-  eGPUSamplerState filter = GPU_SAMPLER_FILTER;
+  GPUSamplerState filter = {GPU_SAMPLER_FILTERING_LINEAR};
 
   /* For viewport, only previous motion is supported.
    * Still bind previous step to avoid undefined behavior. */

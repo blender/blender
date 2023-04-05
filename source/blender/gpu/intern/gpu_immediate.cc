@@ -606,7 +606,7 @@ void immBindTexture(const char *name, GPUTexture *tex)
   GPU_texture_bind(tex, binding);
 }
 
-void immBindTextureSampler(const char *name, GPUTexture *tex, eGPUSamplerState state)
+void immBindTextureSampler(const char *name, GPUTexture *tex, GPUSamplerState state)
 {
   int binding = GPU_shader_get_sampler_binding(imm->shader, name);
   GPU_texture_bind_ex(tex, state, binding);

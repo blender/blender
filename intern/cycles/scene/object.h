@@ -9,6 +9,7 @@
 /* included as Object::set_particle_system defined through NODE_SOCKET_API does
  * not select the right Node::set overload as it does not know that ParticleSystem
  * is a Node */
+#include "scene/geometry.h"
 #include "scene/particles.h"
 #include "scene/scene.h"
 

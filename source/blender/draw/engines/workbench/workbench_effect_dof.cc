@@ -173,7 +173,7 @@ void DofPass::sync(SceneResources &resources)
     return;
   }
 
-  eGPUSamplerState sampler_state = GPU_SAMPLER_FILTER | GPU_SAMPLER_MIPMAP;
+  GPUSamplerState sampler_state = {GPU_SAMPLER_FILTERING_LINEAR | GPU_SAMPLER_FILTERING_MIPMAP};
 
   down_ps_.init();
   down_ps_.state_set(DRW_STATE_WRITE_COLOR);

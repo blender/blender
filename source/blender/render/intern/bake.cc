@@ -463,7 +463,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
   blender::float3 no;
 
   const blender::Span<blender::float3> positions = me->vert_positions();
-  const blender::Span<MPoly> polys = me->polys();
+  const blender::OffsetIndices polys = me->polys();
   const blender::Span<int> corner_verts = me->corner_verts();
   const bke::AttributeAccessor attributes = me->attributes();
   const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
@@ -503,7 +503,6 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
   const blender::Span<blender::float3> vert_normals = me->vert_normals();
   for (i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
-    const MPoly &poly = polys[lt->poly];
 
     triangles[i].positions[0] = positions[corner_verts[lt->tri[0]]];
     triangles[i].positions[1] = positions[corner_verts[lt->tri[1]]];
@@ -527,8 +526,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
 
     if (calculate_normal) {
       if (lt->poly != mpoly_prev) {
-        no = blender::bke::mesh::poly_normal_calc(
-            positions, corner_verts.slice(poly.loopstart, poly.totloop));
+        no = blender::bke::mesh::poly_normal_calc(positions, corner_verts.slice(polys[lt->poly]));
         mpoly_prev = lt->poly;
       }
       copy_v3_v3(triangles[i].normal, no);

@@ -142,7 +142,6 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
       return {};
     }
     case ATTR_DOMAIN_FACE: {
-      const Span<MPoly> polys = mesh.polys();
       if (name == "Original Index") {
         const int *data = static_cast<const int *>(
             CustomData_get_layer(&mesh.pdata, CD_ORIGINDEX));
@@ -152,14 +151,13 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
       }
       if (name == "Corner Start") {
         return std::make_unique<ColumnValues>(
-            name, VArray<int>::ForFunc(polys.size(), [polys](int64_t index) {
-              return polys[index].loopstart;
-            }));
+            name, VArray<int>::ForSpan(mesh.poly_offsets().drop_back(1)));
       }
       if (name == "Corner Size") {
+        const OffsetIndices polys = mesh.polys();
         return std::make_unique<ColumnValues>(
             name, VArray<int>::ForFunc(polys.size(), [polys](int64_t index) {
-              return polys[index].totloop;
+              return polys[index].size();
             }));
       }
       return {};

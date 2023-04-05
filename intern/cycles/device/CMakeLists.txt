@@ -176,12 +176,10 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   else()
     set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/libcycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.so)
   endif()
-  list(APPEND LIB ${cycles_kernel_oneapi_lib})
-  if(WIN32)
-    list(APPEND LIB debug ${SYCL_LIBRARY_DEBUG} optimized ${SYCL_LIBRARY})
-  else()
-    list(APPEND LIB ${SYCL_LIBRARY})
-  endif()
+  list(APPEND LIB
+    ${cycles_kernel_oneapi_lib}
+    ${SYCL_LIBRARIES}
+  )
   list(APPEND SRC
     ${SRC_ONEAPI}
   )

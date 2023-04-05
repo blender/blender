@@ -184,7 +184,7 @@ ccl_device bool compute_emitter_centroid_and_dir(KernelGlobals kg,
                                                  ccl_private float3 &centroid,
                                                  ccl_private packed_float3 &dir)
 {
-  const int prim_id = kemitter->prim;
+  const int prim_id = kemitter->prim_id;
   if (prim_id < 0) {
     const ccl_global KernelLight *klight = &kernel_data_fetch(lights, ~prim_id);
     centroid = klight->co;
@@ -264,7 +264,7 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
     return;
   }
 
-  const int prim_id = kemitter->prim;
+  const int prim_id = kemitter->prim_id;
 
   if (in_volume_segment) {
     const float3 D = N_or_D;
@@ -344,12 +344,12 @@ ccl_device void light_tree_node_importance(KernelGlobals kg,
 {
   max_importance = 0.0f;
   min_importance = 0.0f;
-  if (knode->num_prims == 1) {
+  if (knode->num_emitters == 1) {
     /* At a leaf node with only one emitter. */
     light_tree_emitter_importance<in_volume_segment>(
         kg, P, N_or_D, t, has_transmission, -knode->child_index, max_importance, min_importance);
   }
-  else if (knode->num_prims != 0) {
+  else if (knode->num_emitters != 0) {
     const BoundingCone bcone = knode->bcone;
     const BoundingBox bbox = knode->bbox;
 
@@ -452,13 +452,13 @@ ccl_device int light_tree_cluster_select_emitter(KernelGlobals kg,
   int selected_index = -1;
 
   /* Mark emitters with zero importance. Used for resevoir when total minimum importance = 0. */
-  kernel_assert(knode->num_prims <= sizeof(uint) * 8);
+  kernel_assert(knode->num_emitters <= sizeof(uint) * 8);
   uint has_importance = 0;
 
   const bool sample_max = (rand > 0.5f); /* Sampling using the maximum importance. */
   rand = rand * 2.0f - float(sample_max);
 
-  for (int i = 0; i < knode->num_prims; i++) {
+  for (int i = 0; i < knode->num_emitters; i++) {
     int current_index = -knode->child_index + i;
     /* maximum importance = importance[0], minimum importance = importance[1] */
     float importance[2];
@@ -491,7 +491,7 @@ ccl_device int light_tree_cluster_select_emitter(KernelGlobals kg,
     }
     else {
       selected_index = -1;
-      for (int i = 0; i < knode->num_prims; i++) {
+      for (int i = 0; i < knode->num_emitters; i++) {
         int current_index = -knode->child_index + i;
         sample_resevoir(current_index,
                         float(has_importance & 1),
@@ -615,12 +615,12 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
 
 /* We need to be able to find the probability of selecting a given light for MIS. */
 ccl_device float light_tree_pdf(
-    KernelGlobals kg, const float3 P, const float3 N, const int path_flag, const int prim)
+    KernelGlobals kg, const float3 P, const float3 N, const int path_flag, const int emitter)
 {
   const bool has_transmission = (path_flag & PATH_RAY_MIS_HAD_TRANSMISSION);
   /* Target emitter info. */
-  const int target_emitter = (prim >= 0) ? kernel_data_fetch(triangle_to_tree, prim) :
-                                           kernel_data_fetch(light_to_tree, ~prim);
+  const int target_emitter = (emitter >= 0) ? kernel_data_fetch(triangle_to_tree, emitter) :
+                                              kernel_data_fetch(light_to_tree, ~emitter);
   ccl_global const KernelLightTreeEmitter *kemitter = &kernel_data_fetch(light_tree_emitters,
                                                                          target_emitter);
   const int target_leaf = kemitter->parent_index;
@@ -667,7 +667,7 @@ ccl_device float light_tree_pdf(
   float total_max_importance = 0.0f;
   float total_min_importance = 0.0f;
   int num_has_importance = 0;
-  for (int i = 0; i < kleaf->num_prims; i++) {
+  for (int i = 0; i < kleaf->num_emitters; i++) {
     const int emitter = -kleaf->child_index + i;
     float max_importance, min_importance;
     light_tree_emitter_importance<false>(

@@ -3234,7 +3234,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
     return nullptr;
   }
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(me);
-  blender::MutableSpan<MPoly> polys = me->polys_for_write();
+  blender::MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
   blender::MutableSpan<int> corner_verts = me->corner_verts_for_write();
 
   const bool is_sharp = orgmesh->attributes().lookup_or_default<bool>(
@@ -3325,12 +3325,11 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   int *material_indices = BKE_mesh_material_indices_for_write(me);
 
   /* Loop for triangles. */
-  for (const int i : polys.index_range()) {
+  for (const int i : poly_offsets.index_range().drop_back(1)) {
     /* Initialize from existing face. */
     material_indices[i] = mp_mat_nr;
 
-    polys[i].loopstart = i * 3;
-    polys[i].totloop = 3;
+    poly_offsets[i] = i * 3;
 
     corner_verts[i * 3 + 0] = manta_liquid_get_triangle_x_at(fds->fluid, i);
     corner_verts[i * 3 + 1] = manta_liquid_get_triangle_y_at(fds->fluid, i);
@@ -3355,7 +3354,6 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
   float min[3];
   float max[3];
   float *co;
-  MPoly *poly;
   int *corner_vert;
 
   int num_verts = 8;
@@ -3370,7 +3368,7 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
 
   result = BKE_mesh_new_nomain(num_verts, 0, num_faces * 4, num_faces);
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(result);
-  blender::MutableSpan<MPoly> polys = result->polys_for_write();
+  blender::MutableSpan<int> poly_offsets = result->poly_offsets_for_write();
   blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
 
   if (num_verts) {
@@ -3414,57 +3412,42 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
     co[1] = max[1];
     co[2] = min[2];
 
+    poly_offsets.fill(4);
+    blender::offset_indices::accumulate_counts_to_offsets(poly_offsets);
+
     /* Create faces. */
     /* Top side. */
-    poly = &polys[0];
     corner_vert = &corner_verts[0 * 4];
-    poly->loopstart = 0 * 4;
-    poly->totloop = 4;
     corner_vert[0] = 0;
     corner_vert[1] = 1;
     corner_vert[2] = 2;
     corner_vert[3] = 3;
     /* Right side. */
-    poly = &polys[1];
     corner_vert = &corner_verts[1 * 4];
-    poly->loopstart = 1 * 4;
-    poly->totloop = 4;
     corner_vert[0] = 2;
     corner_vert[1] = 1;
     corner_vert[2] = 5;
     corner_vert[3] = 6;
     /* Bottom side. */
-    poly = &polys[2];
     corner_vert = &corner_verts[2 * 4];
-    poly->loopstart = 2 * 4;
-    poly->totloop = 4;
     corner_vert[0] = 7;
     corner_vert[1] = 6;
     corner_vert[2] = 5;
     corner_vert[3] = 4;
     /* Left side. */
-    poly = &polys[3];
     corner_vert = &corner_verts[3 * 4];
-    poly->loopstart = 3 * 4;
-    poly->totloop = 4;
     corner_vert[0] = 0;
     corner_vert[1] = 3;
     corner_vert[2] = 7;
     corner_vert[3] = 4;
     /* Front side. */
-    poly = &polys[4];
     corner_vert = &corner_verts[4 * 4];
-    poly->loopstart = 4 * 4;
-    poly->totloop = 4;
     corner_vert[0] = 3;
     corner_vert[1] = 2;
     corner_vert[2] = 6;
     corner_vert[3] = 7;
     /* Back side. */
-    poly = &polys[5];
     corner_vert = &corner_verts[5 * 4];
-    poly->loopstart = 5 * 4;
-    poly->totloop = 4;
     corner_vert[0] = 1;
     corner_vert[1] = 0;
     corner_vert[2] = 4;

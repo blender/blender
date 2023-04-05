@@ -80,7 +80,7 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
 }
 
 struct UVWarpData {
-  blender::Span<MPoly> polys;
+  blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
   float (*mloopuv)[2];
 
@@ -96,10 +96,10 @@ static void uv_warp_compute(void *__restrict userdata,
                             const TaskParallelTLS *__restrict /*tls*/)
 {
   const UVWarpData *data = static_cast<const UVWarpData *>(userdata);
+  const blender::IndexRange poly = data->polys[i];
+  const blender::Span<int> poly_verts = data->corner_verts.slice(poly);
 
-  const MPoly &poly = data->polys[i];
-  const int *poly_verts = &data->corner_verts[poly.loopstart];
-  float(*mluv)[2] = &data->mloopuv[poly.loopstart];
+  float(*mluv)[2] = &data->mloopuv[poly.start()];
 
   const MDeformVert *dvert = data->dvert;
   const int defgrp_index = data->defgrp_index;
@@ -109,7 +109,7 @@ static void uv_warp_compute(void *__restrict userdata,
   int l;
 
   if (dvert) {
-    for (l = 0; l < poly.totloop; l++, mluv++) {
+    for (l = 0; l < poly.size(); l++, mluv++) {
       const int vert_i = poly_verts[l];
       float uv[2];
       const float weight = data->invert_vgroup ?
@@ -121,7 +121,7 @@ static void uv_warp_compute(void *__restrict userdata,
     }
   }
   else {
-    for (l = 0; l < poly.totloop; l++, mluv++) {
+    for (l = 0; l < poly.size(); l++, mluv++) {
       uv_warp_from_mat4_pair(*mluv, *mluv, warp_mat);
     }
   }
@@ -192,7 +192,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* make sure we're using an existing layer */
   CustomData_validate_layer_name(&mesh->ldata, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);
 
-  const blender::Span<MPoly> polys = mesh->polys();
+  const blender::OffsetIndices polys = mesh->polys();
   const blender::Span<int> corner_verts = mesh->corner_verts();
 
   float(*mloopuv)[2] = static_cast<float(*)[2]>(CustomData_get_layer_named_for_write(

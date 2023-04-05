@@ -978,7 +978,7 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
   return true;
 }
 
-static int find_original_loop(const blender::Span<MPoly> orig_polys,
+static int find_original_loop(const blender::OffsetIndices<int> orig_polys,
                               const blender::Span<int> orig_corner_verts,
                               const int *vert_origindex,
                               const int *poly_origindex,
@@ -988,18 +988,18 @@ static int find_original_loop(const blender::Span<MPoly> orig_polys,
   /* Get original vertex and polygon index. There is currently no loop mapping
    * in modifier stack evaluation. */
   const int vert_orig = vert_origindex[vert_eval];
-  const int poly_orig_i = poly_origindex[poly_eval];
+  const int poly_orig_index = poly_origindex[poly_eval];
 
-  if (vert_orig == ORIGINDEX_NONE || poly_orig_i == ORIGINDEX_NONE) {
+  if (vert_orig == ORIGINDEX_NONE || poly_orig_index == ORIGINDEX_NONE) {
     return ORIGINDEX_NONE;
   }
 
   /* Find matching loop with original vertex in original polygon. */
-  const MPoly &poly_orig = orig_polys[poly_orig_i];
-  const int *poly_verts_orig = &orig_corner_verts[poly_orig.loopstart];
-  for (int j = 0; j < poly_orig.totloop; ++j) {
+  const blender::IndexRange orig_poly = orig_polys[poly_orig_index];
+  const int *poly_verts_orig = &orig_corner_verts[orig_poly.start()];
+  for (int j = 0; j < orig_poly.size(); ++j) {
     if (poly_verts_orig[j] == vert_orig) {
-      return poly_orig.loopstart + j;
+      return orig_poly.start() + j;
     }
   }
 
@@ -1042,7 +1042,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
       CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX));
   const int *poly_origindex = static_cast<const int *>(
       CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX));
-  const blender::Span<MPoly> orig_polys = me->polys();
+  const blender::OffsetIndices orig_polys = me->polys();
   const blender::Span<int> orig_corner_verts = me->corner_verts();
 
   for (int i = 0; i < tottri; i++) {

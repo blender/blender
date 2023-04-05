@@ -16,7 +16,6 @@
 #include "BLI_math_vector_types.hh"
 
 struct CustomData;
-struct MPoly;
 struct Mesh;
 
 using Alembic::Abc::ICompoundProperty;
@@ -32,7 +31,7 @@ struct CDStreamConfig {
   int *corner_verts;
   int totloop;
 
-  MPoly *polys;
+  int *poly_offsets;
   int totpoly;
 
   float3 *positions;
@@ -74,7 +73,7 @@ struct CDStreamConfig {
   CDStreamConfig()
       : corner_verts(NULL),
         totloop(0),
-        polys(NULL),
+        poly_offsets(NULL),
         totpoly(0),
         totvert(0),
         pack_uvs(false),

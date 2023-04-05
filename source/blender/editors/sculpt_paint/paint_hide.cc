@@ -343,7 +343,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   clip_planes_from_rect(C, depsgraph, clip_planes, &rect);
 
   pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
-  BLI_assert(ob->sculpt->pbvh == pbvh);
+  BLI_assert(BKE_object_sculpt_pbvh_get(ob) == pbvh);
 
   get_pbvh_nodes(pbvh, &nodes, &totnode, clip_planes, area);
   pbvh_type = BKE_pbvh_type(pbvh);

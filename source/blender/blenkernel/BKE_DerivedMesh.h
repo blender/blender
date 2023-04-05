@@ -68,10 +68,10 @@ struct Scene;
 
 /*
  * NOTE: all #MFace interfaces now officially operate on tessellated data.
- *       Also, the #MFace orig-index layer indexes #MPoly, not #MFace.
+ *       Also, the #MFace orig-index layer indexes polys, not #MFace.
  */
 
-/* keep in sync with MFace/MPoly types */
+/* keep in sync with MFace type */
 typedef struct DMFlagMat {
   short mat_nr;
   bool sharp;
@@ -87,29 +87,11 @@ struct DerivedMesh {
   /** Private DerivedMesh data, only for internal DerivedMesh use */
   CustomData vertData, edgeData, faceData, loopData, polyData;
   int numVertData, numEdgeData, numTessFaceData, numLoopData, numPolyData;
-  int needsFree;    /* checked on ->release, is set to 0 for cached results */
-  int deformedOnly; /* set by modifier stack if only deformed from original */
   DerivedMeshType type;
-
-  /**
-   * \warning Typical access is done via #getLoopTriArray, #getNumLoopTri.
-   */
-  struct {
-    /* WARNING! swapping between array (ready-to-be-used data) and array_wip
-     * (where data is actually computed) shall always be protected by same
-     * lock as one used for looptris computing. */
-    struct MLoopTri *array, *array_wip;
-    int num;
-    int num_alloc;
-  } looptris;
+  /* Always owned by this object. */
+  int *poly_offsets;
 
   short tangent_mask; /* which tangent layers are calculated */
-
-  /** Loop tessellation cache (WARNING! Only call inside threading-protected code!) */
-  void (*recalcLoopTri)(DerivedMesh *dm);
-  /** accessor functions */
-  const struct MLoopTri *(*getLoopTriArray)(DerivedMesh *dm);
-  int (*getNumLoopTri)(DerivedMesh *dm);
 
   /* Misc. Queries */
 
@@ -131,7 +113,7 @@ struct DerivedMesh {
   struct MEdge *(*getEdgeArray)(DerivedMesh *dm);
   int *(*getCornerVertArray)(DerivedMesh *dm);
   int *(*getCornerEdgeArray)(DerivedMesh *dm);
-  struct MPoly *(*getPolyArray)(DerivedMesh *dm);
+  int *(*getPolyArray)(DerivedMesh *dm);
 
   /** Copy all verts/edges/faces from the derived mesh into
    * *{vert/edge/face}_r (must point to a buffer large enough)
@@ -140,7 +122,7 @@ struct DerivedMesh {
   void (*copyEdgeArray)(DerivedMesh *dm, struct MEdge *r_edge);
   void (*copyCornerVertArray)(DerivedMesh *dm, int *r_corner_verts);
   void (*copyCornerEdgeArray)(DerivedMesh *dm, int *r_corner_edges);
-  void (*copyPolyArray)(DerivedMesh *dm, struct MPoly *r_poly);
+  void (*copyPolyArray)(DerivedMesh *dm, int *r_poly_offsets);
 
   /** Return a pointer to the entire array of vert/edge/face custom data
    * from the derived mesh (this gives a pointer to the actual data, not
@@ -163,12 +145,6 @@ struct DerivedMesh {
   /** Direct Access Operations
    * - Can be undefined
    * - Must be defined for modifiers that only deform however */
-
-  /** Get vertex location, undefined if index is not valid */
-  void (*getVertCo)(DerivedMesh *dm, int index, float r_co[3]);
-
-  /** Get smooth vertex normal, undefined if index is not valid */
-  void (*getVertNo)(DerivedMesh *dm, int index, float r_no[3]);
 
   /** Release reference to the DerivedMesh. This function decides internally
    * if the DerivedMesh will be freed, or cached for later use. */
@@ -207,11 +183,7 @@ void DM_from_template(DerivedMesh *dm,
                       int numLoops,
                       int numPolys);
 
-/**
- * Utility function to release a DerivedMesh's layers
- * returns true if DerivedMesh has to be released by the backend, false otherwise.
- */
-bool DM_release(DerivedMesh *dm);
+void DM_release(DerivedMesh *dm);
 
 /**
  * set the #CD_FLAG_NOCOPY flag in custom data layers where the mask is
@@ -240,26 +212,18 @@ void *DM_get_loop_data_layer(struct DerivedMesh *dm, eCustomDataType type);
  * copy count elements from source_index in source to dest_index in dest
  * these copy all layers for which the CD_FLAG_NOCOPY flag is not set.
  */
-void DM_copy_vert_data(struct DerivedMesh *source,
+void DM_copy_vert_data(const struct DerivedMesh *source,
                        struct DerivedMesh *dest,
                        int source_index,
                        int dest_index,
                        int count);
 
 /**
- * Ensure the array is large enough.
- *
- * \note This function must always be thread-protected by caller.
- * It should only be used by internal code.
- */
-void DM_ensure_looptri_data(DerivedMesh *dm);
-
-/**
  * Interpolates vertex data from the vertices indexed by `src_indices` in the
  * source mesh using the given weights and stores the result in the vertex
  * indexed by `dest_index` in the `dest` mesh.
  */
-void DM_interp_vert_data(struct DerivedMesh *source,
+void DM_interp_vert_data(const struct DerivedMesh *source,
                          struct DerivedMesh *dest,
                          int *src_indices,
                          float *weights,

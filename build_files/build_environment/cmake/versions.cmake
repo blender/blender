@@ -478,9 +478,9 @@ set(SQLITE_HASH_TYPE SHA1)
 set(SQLITE_FILE sqlite-autoconf-${SQLLITE_LONG_VERSION}.tar.gz)
 set(SQLITE_CPE "cpe:2.3:a:sqlite:sqlite:${SQLITE_VERSION}:*:*:*:*:*:*:*")
 
-set(EMBREE_VERSION 3.13.4)
+set(EMBREE_VERSION 4.0.1)
 set(EMBREE_URI https://github.com/embree/embree/archive/v${EMBREE_VERSION}.zip)
-set(EMBREE_HASH 52d0be294d6c88ba7a6c9e046796e7be)
+set(EMBREE_HASH dd26617719a587e126b341d1b32f7fd0)
 set(EMBREE_HASH_TYPE MD5)
 set(EMBREE_FILE embree-v${EMBREE_VERSION}.zip)
 
@@ -534,10 +534,10 @@ set(WL_PROTOCOLS_URI https://gitlab.freedesktop.org/wayland/wayland-protocols/-/
 set(WL_PROTOCOLS_HASH a28ff59a56e2ebb746048b6ef8d931d6)
 set(WL_PROTOCOLS_HASH_TYPE MD5)
 
-set(WAYLAND_VERSION 1.21.0)
+set(WAYLAND_VERSION 1.22.0)
 set(WAYLAND_FILE wayland-${WAYLAND_VERSION}.tar.xz)
-set(WAYLAND_URI https://gitlab.freedesktop.org/wayland/wayland/-/releases/1.21.0/downloads/wayland-${WAYLAND_VERSION}.tar.xz)
-set(WAYLAND_HASH f2653a2293bcd882d756c6a83d278903)
+set(WAYLAND_URI https://gitlab.freedesktop.org/wayland/wayland/-/releases/${WAYLAND_VERSION}/downloads/wayland-${WAYLAND_VERSION}.tar.xz)
+set(WAYLAND_HASH 7410ab549e3928fce9381455b17b0803)
 set(WAYLAND_HASH_TYPE MD5)
 
 set(WAYLAND_LIBDECOR_VERSION 0.1.0)

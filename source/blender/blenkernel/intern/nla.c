@@ -812,7 +812,7 @@ void BKE_nlastrips_sort_strips(ListBase *strips)
 
     for (sstrip = tmp.last; sstrip; sstrip = sstrip->prev) {
       /* check if add after */
-      if (sstrip->end <= strip->start) {
+      if (sstrip->start <= strip->start) {
         BLI_insertlinkafter(&tmp, sstrip, strip);
         not_added = 0;
         break;
@@ -841,7 +841,7 @@ void BKE_nlastrips_add_strip_unsafe(ListBase *strips, NlaStrip *strip)
   /* find the right place to add the strip to the nominated track */
   for (ns = strips->first; ns; ns = ns->next) {
     /* if current strip occurs after the new strip, add it before */
-    if (ns->start >= strip->end) {
+    if (ns->start >= strip->start) {
       BLI_insertlinkbefore(strips, ns, strip);
       not_added = 0;
       break;
@@ -1952,9 +1952,30 @@ static void BKE_nlastrip_validate_autoblends(NlaTrack *nlt, NlaStrip *nls)
   }
 }
 
+/* Ensure every transition's start/end properly set.
+ * Strip will be removed / freed if it doesn't fit (invalid).
+ * Return value indicates if passed strip is valid/fixed or invalid/removed. */
+static bool nlastrip_validate_transition_start_end(NlaStrip *strip)
+{
+
+  if (!(strip->type & NLASTRIP_TYPE_TRANSITION)) {
+    return true;
+  }
+  if (strip->prev) {
+    strip->start = strip->prev->end;
+  }
+  if (strip->next) {
+    strip->end = strip->next->start;
+  }
+  if (strip->start >= strip->end || strip->prev == NULL || strip->next == NULL) {
+    BKE_nlastrip_free(strip, true);
+    return false;
+  }
+  return true;
+}
+
 void BKE_nla_validate_state(AnimData *adt)
 {
-  NlaStrip *strip = NULL;
   NlaTrack *nlt;
 
   /* sanity checks */
@@ -1965,7 +1986,15 @@ void BKE_nla_validate_state(AnimData *adt)
   /* Adjust blending values for auto-blending,
    * and also do an initial pass to find the earliest strip. */
   for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
-    for (strip = nlt->strips.first; strip; strip = strip->next) {
+    LISTBASE_FOREACH_MUTABLE (NlaStrip *, strip, &nlt->strips) {
+
+      if (!nlastrip_validate_transition_start_end(strip)) {
+        printf(
+            "While moving NLA strips, a transition strip could no longer be applied to the new "
+            "positions and was removed.\n");
+        continue;
+      }
+
       /* auto-blending first */
       BKE_nlastrip_validate_autoblends(nlt, strip);
       BKE_nlastrip_recalculate_blend(strip);
