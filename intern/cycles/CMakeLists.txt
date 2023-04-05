@@ -281,6 +281,7 @@ endif()
 
 if(WITH_CYCLES_EMBREE)
   add_definitions(-DWITH_EMBREE)
+  add_definitions(-DEMBREE_MAJOR_VERSION=${EMBREE_MAJOR_VERSION})
   include_directories(
     SYSTEM
     ${EMBREE_INCLUDE_DIRS}
