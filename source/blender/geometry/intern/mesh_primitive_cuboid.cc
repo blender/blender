@@ -146,7 +146,8 @@ static void calculate_polys(const CuboidConfig &config,
       const int vert_3 = vert_2 + 1;
       const int vert_4 = vert_1 + 1;
 
-      define_quad(poly_offsets, corner_verts, poly_index, loop_index, vert_1, vert_2, vert_3, vert_4);
+      define_quad(
+          poly_offsets, corner_verts, poly_index, loop_index, vert_1, vert_2, vert_3, vert_4);
       loop_index += 4;
       poly_index++;
     }
@@ -252,7 +253,8 @@ static void calculate_polys(const CuboidConfig &config,
         vert_3 = vert_2 + 2;
       }
 
-      define_quad(poly_offsets, corner_verts, poly_index, loop_index, vert_1, vert_2, vert_3, vert_4);
+      define_quad(
+          poly_offsets, corner_verts, poly_index, loop_index, vert_1, vert_2, vert_3, vert_4);
       loop_index += 4;
       poly_index++;
     }
@@ -299,7 +301,8 @@ static void calculate_polys(const CuboidConfig &config,
         vert_4 = vert_1 + config.verts_x;
       }
 
-      define_quad(poly_offsets, corner_verts, poly_index, loop_index, vert_1, vert_4, vert_3, vert_2);
+      define_quad(
+          poly_offsets, corner_verts, poly_index, loop_index, vert_1, vert_4, vert_3, vert_2);
       loop_index += 4;
       poly_index++;
     }
