@@ -925,7 +925,7 @@ void ntreeBlendReadLib(BlendLibReader *reader, bNodeTree *ntree)
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       /* Don't update node groups here because they may depend on other node groups which are not
        * fully versioned yet and don't have `typeinfo` pointers set. */
-      if (node->type != NODE_GROUP) {
+      if (!node->is_group()) {
         node_verify_sockets(ntree, node, false);
       }
     }
