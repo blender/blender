@@ -144,7 +144,6 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   BLI_addtail(&sseq->regionbase, region);
   region->regiontype = RGN_TYPE_PREVIEW;
   region->alignment = RGN_ALIGN_TOP;
-  region->flag |= RGN_FLAG_HIDDEN;
   /* For now, aspect ratio should be maintained, and zoom is clamped within sane default limits. */
   region->v2d.keepzoom = V2D_KEEPASPECT | V2D_KEEPZOOM | V2D_LIMITZOOM;
   region->v2d.minzoom = 0.001f;
@@ -244,107 +243,46 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
   bool view_changed = false;
 
   switch (sseq->view) {
-    case SEQ_VIEW_SEQUENCE:
-      if (region_main && (region_main->flag & RGN_FLAG_HIDDEN)) {
-        region_main->flag &= ~RGN_FLAG_HIDDEN;
-        region_main->v2d.flag &= ~V2D_IS_INIT;
-        view_changed = true;
-      }
-      if (region_preview && !(region_preview->flag & RGN_FLAG_HIDDEN)) {
-        region_preview->flag |= RGN_FLAG_HIDDEN;
-        region_preview->v2d.flag &= ~V2D_IS_INIT;
-        WM_event_remove_handlers((bContext *)C, &region_preview->handlers);
-        view_changed = true;
-      }
-      if (region_main && region_main->alignment != RGN_ALIGN_NONE) {
-        region_main->alignment = RGN_ALIGN_NONE;
-        view_changed = true;
-      }
-      if (region_preview && region_preview->alignment != RGN_ALIGN_NONE) {
-        region_preview->alignment = RGN_ALIGN_NONE;
-        view_changed = true;
-      }
-      break;
     case SEQ_VIEW_PREVIEW:
-      if (region_main && !(region_main->flag & RGN_FLAG_HIDDEN)) {
-        region_main->flag |= RGN_FLAG_HIDDEN;
-        region_main->v2d.flag &= ~V2D_IS_INIT;
-        WM_event_remove_handlers((bContext *)C, &region_main->handlers);
-        view_changed = true;
-      }
-      if (region_preview && (region_preview->flag & RGN_FLAG_HIDDEN)) {
-        region_preview->flag &= ~RGN_FLAG_HIDDEN;
-        region_preview->v2d.flag &= ~V2D_IS_INIT;
+      /* Reset scrolling when preview region just appears. */
+      if (!(region_preview->v2d.flag & V2D_IS_INIT)) {
         region_preview->v2d.cur = region_preview->v2d.tot;
-        view_changed = true;
+        /* Only redraw, don't re-init. */
+        ED_area_tag_redraw(area);
       }
-      if (region_main && region_main->alignment != RGN_ALIGN_NONE) {
-        region_main->alignment = RGN_ALIGN_NONE;
-        view_changed = true;
-      }
-      if (region_preview && region_preview->alignment != RGN_ALIGN_NONE) {
+      if (region_preview->alignment != RGN_ALIGN_NONE) {
         region_preview->alignment = RGN_ALIGN_NONE;
         view_changed = true;
       }
       break;
-    case SEQ_VIEW_SEQUENCE_PREVIEW:
-      if (region_main && region_preview) {
-        /* Get available height (without DPI correction). */
-        const float height = (area->winy - ED_area_headersize()) / UI_SCALE_FAC;
+    case SEQ_VIEW_SEQUENCE_PREVIEW: {
+      /* Get available height (without DPI correction). */
+      const float height = (area->winy - ED_area_headersize()) / UI_SCALE_FAC;
 
-        /* We reuse hidden region's size, allows to find same layout as before if we just switch
-         * between one 'full window' view and the combined one. This gets lost if we switch to both
-         * 'full window' views before, though... Better than nothing. */
-        if (region_main->flag & RGN_FLAG_HIDDEN) {
-          region_main->flag &= ~RGN_FLAG_HIDDEN;
-          region_main->v2d.flag &= ~V2D_IS_INIT;
-          region_preview->sizey = (int)(height - region_main->sizey);
-          view_changed = true;
-        }
-        if (region_preview->flag & RGN_FLAG_HIDDEN) {
-          region_preview->flag &= ~RGN_FLAG_HIDDEN;
-          region_preview->v2d.flag &= ~V2D_IS_INIT;
-          region_preview->v2d.cur = region_preview->v2d.tot;
-          region_main->sizey = (int)(height - region_preview->sizey);
-          view_changed = true;
-        }
-        if (region_main->alignment != RGN_ALIGN_NONE) {
-          region_main->alignment = RGN_ALIGN_NONE;
-          view_changed = true;
-        }
-        if (region_preview->alignment != RGN_ALIGN_TOP) {
-          region_preview->alignment = RGN_ALIGN_TOP;
-          view_changed = true;
-        }
-        /* Final check that both preview and main height are reasonable. */
-        if (region_preview->sizey < 10 || region_main->sizey < 10 ||
-            region_preview->sizey + region_main->sizey > height) {
-          region_preview->sizey = roundf(height * 0.4f);
-          region_main->sizey = (int)(height - region_preview->sizey);
-          view_changed = true;
-        }
+      /* We reuse hidden region's size, allows to find same layout as before if we just switch
+       * between one 'full window' view and the combined one. This gets lost if we switch to both
+       * 'full window' views before, though... Better than nothing. */
+      if (!(region_preview->v2d.flag & V2D_IS_INIT)) {
+        region_preview->v2d.cur = region_preview->v2d.tot;
+        region_main->sizey = (int)(height - region_preview->sizey);
+        region_preview->sizey = (int)(height - region_main->sizey);
+        view_changed = true;
+      }
+      if (region_preview->alignment != RGN_ALIGN_TOP) {
+        region_preview->alignment = RGN_ALIGN_TOP;
+        view_changed = true;
+      }
+      /* Final check that both preview and main height are reasonable. */
+      if (region_preview->sizey < 10 || region_main->sizey < 10 ||
+          region_preview->sizey + region_main->sizey > height) {
+        region_preview->sizey = roundf(height * 0.4f);
+        region_main->sizey = (int)(height - region_preview->sizey);
+        view_changed = true;
       }
       break;
-  }
-
-  ARegion *region_channels = sequencer_find_region(area, RGN_TYPE_CHANNELS);
-  if (sseq->view == SEQ_VIEW_SEQUENCE) {
-    if (region_channels && region_channels->alignment != RGN_ALIGN_LEFT) {
-      region_channels->alignment = RGN_ALIGN_LEFT;
-      view_changed = true;
     }
-  }
-  else {
-    if (region_channels && !(region_channels->flag & RGN_FLAG_HIDDEN)) {
-      region_channels->flag |= RGN_FLAG_HIDDEN;
-      region_channels->v2d.flag &= ~V2D_IS_INIT;
-      WM_event_remove_handlers((bContext *)C, &region_channels->handlers);
-      view_changed = true;
-    }
-    if (region_channels && region_channels->alignment != RGN_ALIGN_NONE) {
-      region_channels->alignment = RGN_ALIGN_NONE;
-      view_changed = true;
-    }
+    case SEQ_VIEW_SEQUENCE:
+      break;
   }
 
   if (view_changed) {
@@ -501,6 +439,13 @@ static void sequencer_gizmos(void)
 }
 
 /* *********************** sequencer (main) region ************************ */
+
+static bool sequencer_main_region_poll(const RegionPollParams *params)
+{
+  const SpaceSeq *sseq = (SpaceSeq *)params->area->spacedata.first;
+  return ELEM(sseq->view, SEQ_VIEW_SEQUENCE, SEQ_VIEW_SEQUENCE_PREVIEW);
+}
+
 /* Add handlers, stuff you only do once or on area/region changes. */
 static void sequencer_main_region_init(wmWindowManager *wm, ARegion *region)
 {
@@ -754,6 +699,13 @@ static void sequencer_tools_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 /* *********************** preview region ************************ */
+
+static bool sequencer_preview_region_poll(const RegionPollParams *params)
+{
+  const SpaceSeq *sseq = (SpaceSeq *)params->area->spacedata.first;
+  return ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW);
+}
+
 static void sequencer_preview_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
@@ -976,6 +928,12 @@ static void sequencer_id_remap(ScrArea *UNUSED(area),
 
 /* ************************************* */
 
+static bool sequencer_channel_region_poll(const RegionPollParams *params)
+{
+  const SpaceSeq *sseq = (SpaceSeq *)params->area->spacedata.first;
+  return ELEM(sseq->view, SEQ_VIEW_SEQUENCE);
+}
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void sequencer_channel_region_init(wmWindowManager *wm, ARegion *region)
 {
@@ -1063,6 +1021,7 @@ void ED_spacetype_sequencer(void)
   /* Main window. */
   art = MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
   art->regionid = RGN_TYPE_WINDOW;
+  art->poll = sequencer_main_region_poll;
   art->init = sequencer_main_region_init;
   art->draw = sequencer_main_region_draw;
   art->draw_overlay = sequencer_main_region_draw_overlay;
@@ -1077,6 +1036,7 @@ void ED_spacetype_sequencer(void)
   /* Preview. */
   art = MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
   art->regionid = RGN_TYPE_PREVIEW;
+  art->poll = sequencer_preview_region_poll;
   art->init = sequencer_preview_region_init;
   art->layout = sequencer_preview_region_layout;
   art->on_view2d_changed = sequencer_preview_region_view2d_changed;
@@ -1115,6 +1075,7 @@ void ED_spacetype_sequencer(void)
   art->regionid = RGN_TYPE_CHANNELS;
   art->prefsizex = UI_COMPACT_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI;
+  art->poll = sequencer_channel_region_poll;
   art->init = sequencer_channel_region_init;
   art->draw = sequencer_channel_region_draw;
   art->listener = sequencer_main_region_listener;

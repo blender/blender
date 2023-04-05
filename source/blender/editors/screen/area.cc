@@ -318,7 +318,7 @@ static void region_draw_azones(ScrArea *area, ARegion *region)
         area_draw_azone(az->x1, az->y1, az->x2, az->y2);
       }
       else if (az->type == AZONE_REGION) {
-        if (az->region) {
+        if (az->region && !(az->region->flag & RGN_FLAG_POLL_FAILED)) {
           /* only display tab or icons when the region is hidden */
           if (az->region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
             region_draw_azone_tab_arrow(area, region, az);
@@ -1005,6 +1005,10 @@ static void region_azone_tab_plus(ScrArea *area, AZone *az, ARegion *region)
 
 static bool region_azone_edge_poll(const ARegion *region, const bool is_fullscreen)
 {
+  if (region->flag & RGN_FLAG_POLL_FAILED) {
+    return false;
+  }
+
   const bool is_hidden = (region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL));
 
   if (is_hidden && is_fullscreen) {
@@ -1163,7 +1167,7 @@ static void region_overlap_fix(ScrArea *area, ARegion *region)
   int align1 = 0;
   const int align = RGN_ALIGN_ENUM_FROM_MASK(region->alignment);
   for (region_iter = region->prev; region_iter; region_iter = region_iter->prev) {
-    if (region_iter->flag & RGN_FLAG_HIDDEN) {
+    if (region_iter->flag & (RGN_FLAG_POLL_FAILED | RGN_FLAG_HIDDEN)) {
       continue;
     }
 
@@ -1208,7 +1212,7 @@ static void region_overlap_fix(ScrArea *area, ARegion *region)
   /* At this point, 'region' is in its final position and still open.
    * Make a final check it does not overlap any previous 'other side' region. */
   for (region_iter = region->prev; region_iter; region_iter = region_iter->prev) {
-    if (region_iter->flag & RGN_FLAG_HIDDEN) {
+    if (region_iter->flag & (RGN_FLAG_POLL_FAILED | RGN_FLAG_HIDDEN)) {
       continue;
     }
     if (ELEM(region_iter->alignment, RGN_ALIGN_FLOAT)) {
@@ -1326,7 +1330,7 @@ static void region_rect_recursive(
                 (region->sizey > 1 ? region->sizey + 0.5f : region->type->prefsizey);
   }
 
-  if (region->flag & RGN_FLAG_HIDDEN) {
+  if (region->flag & (RGN_FLAG_POLL_FAILED | RGN_FLAG_HIDDEN)) {
     /* hidden is user flag */
   }
   else if (alignment == RGN_ALIGN_FLOAT) {
@@ -1627,7 +1631,8 @@ static void area_calc_totrct(ScrArea *area, const rcti *window_rect)
 /* used for area initialize below */
 static void region_subwindow(ARegion *region)
 {
-  bool hidden = (region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) != 0;
+  bool hidden = (region->flag & (RGN_FLAG_POLL_FAILED | RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) !=
+                0;
 
   if ((region->alignment & RGN_SPLIT_PREV) && region->prev) {
     hidden = hidden || (region->prev->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL));
@@ -2072,7 +2077,7 @@ void ED_region_cursor_set(wmWindow *win, ScrArea *area, ARegion *region)
 
 void ED_region_visibility_change_update(bContext *C, ScrArea *area, ARegion *region)
 {
-  if (region->flag & RGN_FLAG_HIDDEN) {
+  if (region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_POLL_FAILED)) {
     WM_event_remove_handlers(C, &region->handlers);
     /* Needed to close any open pop-overs which would otherwise remain open,
      * crashing on attempting to refresh. See: #93410.
@@ -2182,6 +2187,10 @@ static void region_align_info_from_area(ScrArea *area, RegionTypeAlignInfo *r_al
   }
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    if (region->flag & RGN_FLAG_POLL_FAILED) {
+      continue;
+    }
+
     const int index = region->regiontype;
     if (uint(index) < RGN_TYPE_NUM) {
       r_align_info->by_type[index].alignment = RGN_ALIGN_ENUM_FROM_MASK(region->alignment);
