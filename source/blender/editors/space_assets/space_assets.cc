@@ -169,8 +169,6 @@ static void asset_browser_main_region_listener(const wmRegionListenerParams *par
   }
 }
 
-/* FIXME: See comment above #WM_msg_publish_rna_prop(). */
-extern "C" {
 static void asset_browser_main_region_message_subscribe(
     const wmRegionMessageSubscribeParams *params)
 {
@@ -189,7 +187,6 @@ static void asset_browser_main_region_message_subscribe(
                             SpaceAssetBrowser,
                             catalog_filter,
                             &msg_sub_value_region_tag_redraw);
-}
 }
 
 /* ---------------------------------------------------------------------- */
