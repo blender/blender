@@ -72,6 +72,8 @@
 
 #include "readfile.h"
 
+#include "versioning_common.h"
+
 #include <errno.h>
 
 /* Make preferences read-only, use versioning_userdef.c. */
@@ -100,7 +102,7 @@ static void area_add_header_region(ScrArea *area, ListBase *lb)
   region->v2d.flag = (V2D_PIXELOFS_X | V2D_PIXELOFS_Y);
 }
 
-static void sequencer_init_preview_region(ARegion *region)
+void sequencer_init_preview_region(ARegion *region)
 {
   /* XXX a bit ugly still, copied from space_sequencer */
   /* NOTE: if you change values here, also change them in space_sequencer.c, sequencer_new */

@@ -2277,10 +2277,20 @@ static void version_ensure_missing_regions(ScrArea *area, SpaceLink *sl)
       break;
     }
     case SPACE_SEQ: {
+      ARegion *region;
+
       do_versions_ensure_region(regionbase,
                                 RGN_TYPE_CHANNELS,
                                 "versioning: channels region for sequencer",
                                 RGN_TYPE_TOOLS);
+
+      region = do_versions_ensure_region(regionbase,
+                                         RGN_TYPE_PREVIEW,
+                                         "versioning: preview region for sequencer",
+                                         RGN_TYPE_CHANNELS);
+      sequencer_init_preview_region(region);
+      region->flag &= ~RGN_FLAG_HIDDEN;
+
       break;
     }
   }
