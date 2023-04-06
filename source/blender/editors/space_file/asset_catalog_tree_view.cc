@@ -237,8 +237,9 @@ void AssetCatalogTreeView::add_unassigned_item()
     params->asset_catalog_visibility = ASSET_CATALOG_SHOW_ASSETS_WITHOUT_CATALOG;
     WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
   });
-  item.set_is_active_fn(
-      [params]() { return params->asset_catalog_visibility == ASSET_CATALOG_SHOW_ASSETS_WITHOUT_CATALOG; });
+  item.set_is_active_fn([params]() {
+    return params->asset_catalog_visibility == ASSET_CATALOG_SHOW_ASSETS_WITHOUT_CATALOG;
+  });
 }
 
 void AssetCatalogTreeView::activate_catalog_by_id(CatalogID catalog_id)

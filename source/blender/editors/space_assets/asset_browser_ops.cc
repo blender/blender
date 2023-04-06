@@ -6,6 +6,4 @@
 
 #include "asset_browser_intern.hh"
 
-void asset_browser_operatortypes()
-{
-}
+void asset_browser_operatortypes() {}
