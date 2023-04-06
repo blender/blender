@@ -86,7 +86,7 @@ ImageHandle::ImageHandle(const ImageHandle &other)
     : tile_slots(other.tile_slots), manager(other.manager)
 {
   /* Increase image user count. */
-  foreach (const int slot, tile_slots) {
+  foreach (const size_t slot, tile_slots) {
     manager->add_image_user(slot);
   }
 }
@@ -97,7 +97,7 @@ ImageHandle &ImageHandle::operator=(const ImageHandle &other)
   manager = other.manager;
   tile_slots = other.tile_slots;
 
-  foreach (const int slot, tile_slots) {
+  foreach (const size_t slot, tile_slots) {
     manager->add_image_user(slot);
   }
 
@@ -111,7 +111,7 @@ ImageHandle::~ImageHandle()
 
 void ImageHandle::clear()
 {
-  foreach (const int slot, tile_slots) {
+  foreach (const size_t slot, tile_slots) {
     manager->remove_image_user(slot);
   }
 
@@ -165,7 +165,7 @@ vector<int4> ImageHandle::get_svm_slots() const
   for (size_t i = 0; i < num_nodes; i++) {
     int4 node;
 
-    int slot = tile_slots[2 * i];
+    size_t slot = tile_slots[2 * i];
     node.x = manager->images[slot]->loader->get_tile_number();
     node.y = slot;
 
@@ -387,7 +387,7 @@ void ImageManager::load_image_metadata(Image *img)
 
 ImageHandle ImageManager::add_image(const string &filename, const ImageParams &params)
 {
-  const int slot = add_image_slot(new OIIOImageLoader(filename), params, false);
+  const size_t slot = add_image_slot(new OIIOImageLoader(filename), params, false);
 
   ImageHandle handle;
   handle.tile_slots.push_back(slot);
@@ -408,13 +408,13 @@ ImageHandle ImageManager::add_image(const string &filename,
     /* Since we don't have information about the exact tile format used in this code location,
      * just attempt all replacement patterns that Blender supports. */
     if (tile != 0) {
-      string_replace(tile_filename, "<UDIM>", string_printf("%04d", tile));
+      string_replace(tile_filename, "<UDIM>", string_printf("%04d", (int)tile));
 
       int u = ((tile - 1001) % 10);
       int v = ((tile - 1001) / 10);
       string_replace(tile_filename, "<UVTILE>", string_printf("u%d_v%d", u + 1, v + 1));
     }
-    const int slot = add_image_slot(new OIIOImageLoader(tile_filename), params, false);
+    const size_t slot = add_image_slot(new OIIOImageLoader(tile_filename), params, false);
     handle.tile_slots.push_back(slot);
   }
 
@@ -425,7 +425,7 @@ ImageHandle ImageManager::add_image(ImageLoader *loader,
                                     const ImageParams &params,
                                     const bool builtin)
 {
-  const int slot = add_image_slot(loader, params, builtin);
+  const size_t slot = add_image_slot(loader, params, builtin);
 
   ImageHandle handle;
   handle.tile_slots.push_back(slot);
@@ -438,7 +438,7 @@ ImageHandle ImageManager::add_image(const vector<ImageLoader *> &loaders,
 {
   ImageHandle handle;
   for (ImageLoader *loader : loaders) {
-    const int slot = add_image_slot(loader, params, true);
+    const size_t slot = add_image_slot(loader, params, true);
     handle.tile_slots.push_back(slot);
   }
 
@@ -446,9 +446,9 @@ ImageHandle ImageManager::add_image(const vector<ImageLoader *> &loaders,
   return handle;
 }
 
-int ImageManager::add_image_slot(ImageLoader *loader,
-                                 const ImageParams &params,
-                                 const bool builtin)
+size_t ImageManager::add_image_slot(ImageLoader *loader,
+                                    const ImageParams &params,
+                                    const bool builtin)
 {
   Image *img;
   size_t slot;
@@ -492,7 +492,7 @@ int ImageManager::add_image_slot(ImageLoader *loader,
   return slot;
 }
 
-void ImageManager::add_image_user(int slot)
+void ImageManager::add_image_user(size_t slot)
 {
   thread_scoped_lock device_lock(images_mutex);
   Image *image = images[slot];
@@ -501,7 +501,7 @@ void ImageManager::add_image_user(int slot)
   image->users++;
 }
 
-void ImageManager::remove_image_user(int slot)
+void ImageManager::remove_image_user(size_t slot)
 {
   thread_scoped_lock device_lock(images_mutex);
   Image *image = images[slot];
@@ -682,7 +682,7 @@ bool ImageManager::file_load_image(Image *img, int texture_limit)
   return true;
 }
 
-void ImageManager::device_load_image(Device *device, Scene *scene, int slot, Progress *progress)
+void ImageManager::device_load_image(Device *device, Scene *scene, size_t slot, Progress *progress)
 {
   if (progress->get_cancel()) {
     return;
@@ -698,7 +698,7 @@ void ImageManager::device_load_image(Device *device, Scene *scene, int slot, Pro
   ImageDataType type = img->metadata.type;
 
   /* Name for debugging. */
-  img->mem_name = string_printf("tex_image_%s_%03d", name_from_type(type), slot);
+  img->mem_name = string_printf("tex_image_%s_%03d", name_from_type(type), (int)slot);
 
   /* Free previous texture in slot. */
   if (img->mem) {
@@ -819,7 +819,7 @@ void ImageManager::device_load_image(Device *device, Scene *scene, int slot, Pro
   img->need_load = false;
 }
 
-void ImageManager::device_free_image(Device *, int slot)
+void ImageManager::device_free_image(Device *, size_t slot)
 {
   Image *img = images[slot];
   if (img == NULL) {
@@ -874,7 +874,10 @@ void ImageManager::device_update(Device *device, Scene *scene, Progress &progres
   need_update_ = false;
 }
 
-void ImageManager::device_update_slot(Device *device, Scene *scene, int slot, Progress *progress)
+void ImageManager::device_update_slot(Device *device,
+                                      Scene *scene,
+                                      size_t slot,
+                                      Progress *progress)
 {
   Image *img = images[slot];
   assert(img != NULL);

@@ -103,7 +103,7 @@
 #include "ED_view3d_offscreen.h"
 
 #include "GHOST_C-api.h"
-#include "GHOST_Path-api.h"
+#include "GHOST_Path-api.hh"
 
 #include "GPU_context.h"
 

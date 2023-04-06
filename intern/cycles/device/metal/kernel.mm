@@ -445,12 +445,10 @@ void MetalKernelPipeline::compile()
   const std::string function_name = std::string("cycles_metal_") +
                                     device_kernel_as_string(device_kernel);
 
-  NSString *entryPoint = [@(function_name.c_str()) copy];
-
   NSError *error = NULL;
   if (@available(macOS 11.0, *)) {
     MTLFunctionDescriptor *func_desc = [MTLIntersectionFunctionDescriptor functionDescriptor];
-    func_desc.name = entryPoint;
+    func_desc.name = [@(function_name.c_str()) copy];
 
     if (pso_type != PSO_GENERIC) {
       func_desc.constantValues = GetConstantValues(&kernel_data_);
@@ -462,8 +460,6 @@ void MetalKernelPipeline::compile()
     function = [mtlLibrary newFunctionWithDescriptor:func_desc error:&error];
   }
 
-  [entryPoint release];
-
   if (function == nil) {
     NSString *err = [error localizedDescription];
     string errors = [err UTF8String];
@@ -471,7 +467,7 @@ void MetalKernelPipeline::compile()
     return;
   }
 
-  function.label = [entryPoint copy];
+  function.label = [@(function_name.c_str()) copy];
 
   if (use_metalrt) {
     if (@available(macOS 11.0, *)) {

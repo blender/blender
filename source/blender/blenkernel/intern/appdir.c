@@ -25,7 +25,7 @@
 
 #include "BLT_translation.h"
 
-#include "GHOST_Path-api.h"
+#include "GHOST_Path-api.hh"
 
 #include "MEM_guardedalloc.h"
 

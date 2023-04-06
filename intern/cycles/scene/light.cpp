@@ -264,9 +264,9 @@ void LightManager::device_update_distribution(Device *,
 
     /* Count emissive triangles. */
     Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
-    size_t mesh_num_triangles = mesh->num_triangles();
+    int mesh_num_triangles = static_cast<int>(mesh->num_triangles());
 
-    for (size_t i = 0; i < mesh_num_triangles; i++) {
+    for (int i = 0; i < mesh_num_triangles; i++) {
       int shader_index = mesh->get_shader()[i];
       Shader *shader = (shader_index < mesh->get_used_shaders().size()) ?
                            static_cast<Shader *>(mesh->get_used_shaders()[shader_index]) :

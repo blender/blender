@@ -1036,7 +1036,7 @@ static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
     nodeAddLink(&ntree,
                 capture_node,
                 nodeFindSocket(capture_node, SOCK_OUT, "Geometry"),
-                capture_node,
+                node,
                 geometry_in_socket);
     geometry_in_link->tonode = capture_node;
     geometry_in_link->tosock = nodeFindSocket(capture_node, SOCK_IN, "Geometry");

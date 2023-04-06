@@ -53,7 +53,7 @@ uniform usamplerBuffer hairStrandSegBuffer; /* R16UI */
 // uniform samplerBuffer hairColBuffer; /* RGBA16 linear color */
 #  else
 #    ifndef DRW_HAIR_INFO
-#      error Ensure createInfo includes `draw_hair` for general use or `eevee_legacy_hair_lib` for EEVEE.
+#      error Ensure createInfo includes draw_hair for general use or eevee_legacy_hair_lib for EEVEE.
 #    endif
 #  endif /* !USE_GPU_SHADER_CREATE_INFO */
 
