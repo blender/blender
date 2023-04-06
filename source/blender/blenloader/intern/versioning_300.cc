@@ -4352,7 +4352,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         for (int j = 0; j < data->totlayer; j++) {
           /* CD_DYNTOPO_VERT used to be CD_MESH_ID. */
           if (data->layers[j].type == CD_DYNTOPO_VERT) {
-            CustomData_free_layer(data, CD_DYNTOPO_VERT, 0, 0);
+            CustomData_free_layer(data, CD_DYNTOPO_VERT, 0, j);
             j--;
           }
         }

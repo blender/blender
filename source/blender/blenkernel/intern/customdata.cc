@@ -5750,12 +5750,12 @@ static void write_grid_paint_mask(BlendWriter *writer,
   }
 }
 
-void CustomData_blend_write(BlendWriter *writer,
-                            CustomData *data,
-                            Span<CustomDataLayer> layers_to_write,
-                            int count,
-                            eCustomDataMask cddata_mask,
-                            ID *id)
+ATTR_NO_OPT void CustomData_blend_write(BlendWriter *writer,
+                                        CustomData *data,
+                                        Span<CustomDataLayer> layers_to_write,
+                                        int count,
+                                        eCustomDataMask cddata_mask,
+                                        ID *id)
 {
   /* write external customdata (not for undo) */
   if (data->external && !BLO_write_is_undo(writer)) {
