@@ -311,6 +311,7 @@ static int uv_paste_exec(bContext *C, wmOperator *op)
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, ((View3D *)nullptr), &objects_len);
 
+  int result = OPERATOR_CANCELLED; /* Assume no changes. */
   int complicated_search = 0;
   int total_search = 0;
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -341,6 +342,7 @@ static int uv_paste_exec(bContext *C, wmOperator *op)
       }
 
       uv_clipboard->write_uvs(dest_element_map, i, cd_loop_uv_offset, label);
+      result = OPERATOR_FINISHED; /* UVs were moved. */
     }
 
     BM_uv_element_map_free(dest_element_map);
@@ -358,7 +360,7 @@ static int uv_paste_exec(bContext *C, wmOperator *op)
 
   MEM_freeN(objects);
 
-  return OPERATOR_FINISHED;
+  return result;
 }
 
 void UV_OT_copy(wmOperatorType *ot)
