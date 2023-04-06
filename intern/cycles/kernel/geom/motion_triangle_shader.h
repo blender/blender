@@ -91,7 +91,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
     float u = sd->u;
     float v = sd->v;
     float w = 1.0f - u - v;
-    sd->N = (w * normals[0] + u * normals[1] + v * normals[2]);
+    sd->N = safe_normalize(w * normals[0] + u * normals[1] + v * normals[2]);
   }
 }
 
