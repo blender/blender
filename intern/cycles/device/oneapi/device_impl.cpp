@@ -120,9 +120,20 @@ bool OneapiDevice::check_peer_access(Device * /*peer_device*/)
   return false;
 }
 
-BVHLayoutMask OneapiDevice::get_bvh_layout_mask() const
+bool OneapiDevice::can_use_hardware_raytracing_for_features(uint kernel_features) const
 {
-  return use_hardware_raytracing ? BVH_LAYOUT_EMBREE : BVH_LAYOUT_BVH2;
+  /* MNEE and Raytrace kernels currently don't work correctly with HWRT. */
+  if ((kernel_features & KERNEL_FEATURE_MNEE || kernel_features & KERNEL_FEATURE_NODE_RAYTRACE)) {
+    return false;
+  }
+  return true;
+}
+
+BVHLayoutMask OneapiDevice::get_bvh_layout_mask(uint kernel_features) const
+{
+  return (use_hardware_raytracing && can_use_hardware_raytracing_for_features(kernel_features)) ?
+             BVH_LAYOUT_EMBREE :
+             BVH_LAYOUT_BVH2;
 }
 
 #  ifdef WITH_EMBREE_GPU
@@ -163,7 +174,14 @@ bool OneapiDevice::load_kernels(const uint requested_features)
     assert(device_queue_);
   }
 
-  is_finished_ok = oneapi_load_kernels(device_queue_, (const unsigned int)requested_features);
+  if (use_hardware_raytracing && !can_use_hardware_raytracing_for_features(requested_features)) {
+    VLOG_INFO << "Requested features don't work properly together with Hardware Raytracing yet "
+                 "in oneAPI backend. Hardware Raytracing is now disabled.";
+    use_hardware_raytracing = false;
+  }
+
+  is_finished_ok = oneapi_load_kernels(
+      device_queue_, (const unsigned int)requested_features, use_hardware_raytracing);
   if (is_finished_ok == false) {
     set_error("oneAPI kernels loading: got a runtime exception \"" + oneapi_error_string_ + "\"");
   }

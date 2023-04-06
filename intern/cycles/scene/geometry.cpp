@@ -194,8 +194,8 @@ void Geometry::compute_bvh(Device *device,
 
   compute_bounds();
 
-  const BVHLayout bvh_layout = BVHParams::best_bvh_layout(params->bvh_layout,
-                                                          device->get_bvh_layout_mask());
+  const BVHLayout bvh_layout = BVHParams::best_bvh_layout(
+      params->bvh_layout, device->get_bvh_layout_mask(dscene->data.kernel_features));
   if (need_build_bvh(bvh_layout)) {
     string msg = "Updating Geometry BVH ";
     if (name.empty())
@@ -1235,8 +1235,8 @@ void GeometryManager::device_update_bvh(Device *device,
 
   BVHParams bparams;
   bparams.top_level = true;
-  bparams.bvh_layout = BVHParams::best_bvh_layout(scene->params.bvh_layout,
-                                                  device->get_bvh_layout_mask());
+  bparams.bvh_layout = BVHParams::best_bvh_layout(
+      scene->params.bvh_layout, device->get_bvh_layout_mask(dscene->data.kernel_features));
   bparams.use_spatial_split = scene->params.use_bvh_spatial_split;
   bparams.use_unaligned_nodes = dscene->data.bvh.have_curves &&
                                 scene->params.use_bvh_unaligned_nodes;
@@ -1889,8 +1889,8 @@ void GeometryManager::device_update(Device *device,
   /* Device update. */
   device_free(device, dscene, false);
 
-  const BVHLayout bvh_layout = BVHParams::best_bvh_layout(scene->params.bvh_layout,
-                                                          device->get_bvh_layout_mask());
+  const BVHLayout bvh_layout = BVHParams::best_bvh_layout(
+      scene->params.bvh_layout, device->get_bvh_layout_mask(dscene->data.kernel_features));
   geom_calc_offset(scene, bvh_layout);
   if (true_displacement_used || curve_shadow_transparency_used) {
     scoped_callback_timer timer([scene](double time) {
@@ -2051,8 +2051,8 @@ void GeometryManager::device_update(Device *device,
 
   /* Always set BVH layout again after displacement where it was set to none,
    * to avoid ray-tracing at that stage. */
-  dscene->data.bvh.bvh_layout = BVHParams::best_bvh_layout(scene->params.bvh_layout,
-                                                           device->get_bvh_layout_mask());
+  dscene->data.bvh.bvh_layout = BVHParams::best_bvh_layout(
+      scene->params.bvh_layout, device->get_bvh_layout_mask(dscene->data.kernel_features));
 
   {
     scoped_callback_timer timer([scene](double time) {

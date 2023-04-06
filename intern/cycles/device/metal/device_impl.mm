@@ -39,7 +39,7 @@ bool MetalDevice::is_device_cancelled(int ID)
   return get_device_by_ID(ID, lock) == nullptr;
 }
 
-BVHLayoutMask MetalDevice::get_bvh_layout_mask() const
+BVHLayoutMask MetalDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
 {
   return use_metalrt ? BVH_LAYOUT_METAL : BVH_LAYOUT_BVH2;
 }

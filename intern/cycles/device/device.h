@@ -158,7 +158,7 @@ class Device {
     fprintf(stderr, "%s\n", error.c_str());
     fflush(stderr);
   }
-  virtual BVHLayoutMask get_bvh_layout_mask() const = 0;
+  virtual BVHLayoutMask get_bvh_layout_mask(uint kernel_features) const = 0;
 
   /* statistics */
   Stats &stats;

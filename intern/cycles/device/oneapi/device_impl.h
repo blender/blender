@@ -39,7 +39,7 @@ class OneapiDevice : public Device {
   unsigned int kernel_features = 0;
 
  public:
-  virtual BVHLayoutMask get_bvh_layout_mask() const override;
+  virtual BVHLayoutMask get_bvh_layout_mask(uint kernel_features) const override;
 
   OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler);
 
@@ -118,6 +118,7 @@ class OneapiDevice : public Device {
   SyclQueue *sycl_queue();
 
  protected:
+  bool can_use_hwrt_for_features(uint kernel_features) const;
   void check_usm(SyclQueue *queue, const void *usm_ptr, bool allow_host);
   bool create_queue(SyclQueue *&external_queue, int device_index, void *embree_device);
   void free_queue(SyclQueue *queue);

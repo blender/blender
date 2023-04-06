@@ -151,7 +151,7 @@ unique_ptr<DeviceQueue> OptiXDevice::gpu_queue_create()
   return make_unique<OptiXDeviceQueue>(this);
 }
 
-BVHLayoutMask OptiXDevice::get_bvh_layout_mask() const
+BVHLayoutMask OptiXDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
 {
   /* OptiX has its own internal acceleration structure format. */
   return BVH_LAYOUT_OPTIX;
