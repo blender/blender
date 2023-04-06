@@ -219,13 +219,9 @@ int DRW_object_visibility_in_active_context(const Object *ob)
 bool DRW_object_use_hide_faces(const struct Object *ob)
 {
   if (ob->type == OB_MESH) {
-    const Mesh *me = ob->data;
-
     switch (ob->mode) {
       case OB_MODE_SCULPT:
-        return true;
       case OB_MODE_TEXTURE_PAINT:
-        return (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
       case OB_MODE_VERTEX_PAINT:
       case OB_MODE_WEIGHT_PAINT:
         return true;
