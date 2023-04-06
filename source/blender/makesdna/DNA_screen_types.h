@@ -725,6 +725,9 @@ enum {
    * region's layout pass. so that expansion is still interactive,
    */
   RGN_FLAG_SEARCH_FILTER_UPDATE = (1 << 9),
+  /** #ARegionType.poll() failed for the current context, and the region should be treated as if it
+   * wouldn't exist. Runtime only flag. */
+  RGN_FLAG_POLL_FAILED = (1 << 10),
 };
 
 /** #ARegion.do_draw */

@@ -235,7 +235,7 @@ static void partialvis_update_bmesh_faces(TableGSet *faces)
       hidden |= BM_elem_flag_test(l->v, BM_ELEM_HIDDEN);
     } while ((l = l->next) != f->l_first);
 
-    if (hidden) {  
+    if (hidden) {
       BM_elem_flag_enable(f, BM_ELEM_HIDDEN);
     }
     else {
@@ -351,7 +351,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
   BKE_sculpt_hide_poly_ensure(ob);
 
-  BLI_assert(ob->sculpt->pbvh == pbvh);
+  BLI_assert(BKE_object_sculpt_pbvh_get(ob) == pbvh);
 
   get_pbvh_nodes(pbvh, &nodes, &totnode, clip_planes, area);
   pbvh_type = BKE_pbvh_type(pbvh);

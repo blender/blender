@@ -14,7 +14,7 @@
 #include "BLI_sys_types.h" /* for bool */
 
 #include "GPU_shader.h"  /* for GPUShaderCreateInfo */
-#include "GPU_texture.h" /* for eGPUSamplerState */
+#include "GPU_texture.h" /* for GPUSamplerState */
 
 #ifdef __cplusplus
 extern "C" {
@@ -166,11 +166,11 @@ GPUNodeLink *GPU_layer_attribute(GPUMaterial *mat, const char *name);
 GPUNodeLink *GPU_image(GPUMaterial *mat,
                        struct Image *ima,
                        struct ImageUser *iuser,
-                       eGPUSamplerState sampler_state);
+                       GPUSamplerState sampler_state);
 void GPU_image_tiled(GPUMaterial *mat,
                      struct Image *ima,
                      struct ImageUser *iuser,
-                     eGPUSamplerState sampler_state,
+                     GPUSamplerState sampler_state,
                      GPUNodeLink **r_image_tiled_link,
                      GPUNodeLink **r_image_tiled_mapping_link);
 GPUNodeLink *GPU_image_sky(GPUMaterial *mat,
@@ -178,7 +178,7 @@ GPUNodeLink *GPU_image_sky(GPUMaterial *mat,
                            int height,
                            const float *pixels,
                            float *layer,
-                           eGPUSamplerState sampler_state);
+                           GPUSamplerState sampler_state);
 GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *row);
 
 /**
@@ -355,7 +355,7 @@ typedef struct GPUMaterialTexture {
   char sampler_name[32];       /* Name of sampler in GLSL. */
   char tiled_mapping_name[32]; /* Name of tile mapping sampler in GLSL. */
   int users;
-  int sampler_state; /* eGPUSamplerState */
+  GPUSamplerState sampler_state;
 } GPUMaterialTexture;
 
 ListBase GPU_material_attributes(GPUMaterial *material);

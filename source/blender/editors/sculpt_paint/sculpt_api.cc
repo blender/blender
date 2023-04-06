@@ -20,6 +20,7 @@
 #include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
 #include "BLI_hash.h"
+#include "BLI_index_range.hh"
 #include "BLI_link_utils.h"
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
@@ -28,6 +29,7 @@
 #include "BLI_math_color.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_memarena.h"
+#include "BLI_offset_indices.hh"
 #include "BLI_rand.h"
 #include "BLI_set.hh"
 #include "BLI_task.h"
@@ -116,6 +118,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+using blender::IndexRange;
+using blender::OffsetIndices;
+
 /**
  * Checks if the face sets of the adjacent faces to the edge between \a v1 and \a v2
  * in the base mesh are equal.
@@ -131,9 +136,10 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSessi
   const MeshElemMap *vert_map = &ss->pmap->pmap[v1];
   int p1 = -1, p2 = -1;
   for (int i = 0; i < vert_map->count; i++) {
-    const MPoly *p = &ss->polys[vert_map->indices[i]];
-    for (int l = 0; l < p->totloop; l++) {
-      const int *corner_verts = &ss->corner_verts[p->loopstart + l];
+    const IndexRange p = ss->polys[vert_map->indices[i]];
+
+    for (int l = 0; l < p.size(); l++) {
+      const int *corner_verts = &ss->corner_verts[p.start() + l];
       if (*corner_verts == v2) {
         if (p1 == -1) {
           p1 = vert_map->indices[i];
@@ -322,9 +328,8 @@ static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef ver
   const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
       ss->subdiv_ccg,
       &coord,
-      ss->corner_verts.data(),
-      ss->corner_verts.size(),
-      ss->polys.data(),
+      ss->corner_verts,
+      ss->polys,
       &v1,
       &v2);
 
@@ -361,7 +366,7 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
                                       ss->edges.data(),
                                       ss->corner_verts.data(),
                                       ss->corner_edges.data(),
-                                      ss->polys.data(),
+                                      ss->polys,
                                       ss->msculptverts,
                                       ss->pmap->pmap,
                                       vertex,
@@ -380,8 +385,8 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
       bool ok = true;
 
       for (int i = 0; i < ss->pmap->pmap[vertex.i].count; i++) {
-        const MPoly *mp = &ss->polys[ss->pmap->pmap[vertex.i].indices[i]];
-        if (mp->totloop < 4) {
+        const IndexRange mp = ss->polys[ss->pmap->pmap[vertex.i].indices[i]];
+        if (mp.size() < 4) {
           ok = false;
         }
       }
@@ -487,9 +492,8 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
           ss->subdiv_ccg,
           &coord,
-          ss->corner_verts.data(),
-          ss->corner_verts.size(),
-          ss->polys.data(),
+          ss->corner_verts,
+          ss->polys,
           &v1,
           &v2);
 

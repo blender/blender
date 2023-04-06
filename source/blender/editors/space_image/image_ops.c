@@ -2073,7 +2073,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
                          "copy",
                          0,
                          "Copy",
-                         "Create a new image file without modifying the current image in blender");
+                         "Create a new image file without modifying the current image in Blender");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   image_operator_prop_allow_tokens(ot);

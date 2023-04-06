@@ -9,6 +9,7 @@
 /* included as Object::set_particle_system defined through NODE_SOCKET_API does
  * not select the right Node::set overload as it does not know that ParticleSystem
  * is a Node */
+#include "scene/geometry.h"
 #include "scene/particles.h"
 #include "scene/scene.h"
 
@@ -104,6 +105,9 @@ class Object : public Node {
 
   /* Compute step size from attributes, shaders, transforms. */
   float compute_volume_step_size() const;
+
+  /* Check whether this object can be used as light-emissive. */
+  bool usable_as_light() const;
 
  protected:
   /* Specifies the position of the object in scene->objects and

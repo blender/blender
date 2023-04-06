@@ -3159,7 +3159,7 @@ DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
   PBVH *pbvh;
 
   if (!existing_pbvh) {
-    pbvh = MEM_cnew<PBVH>("pbvh");
+    pbvh = MEM_new<PBVH>("pbvh");
 
     pbvh->nodes = static_cast<PBVHNode *>(MEM_callocN(sizeof(PBVHNode), "PBVHNode"));
     pbvh->header.type = PBVH_BMESH;
@@ -3267,7 +3267,7 @@ void BKE_dyntopo_free(DynTopoState *ds)
     BLI_table_gset_free(node->bm_unique_verts, nullptr);
 
     MEM_freeN(ds->pbvh->nodes);
-    MEM_freeN(ds->pbvh);
+    MEM_delete<PBVH>(ds->pbvh);
   }
 
   MEM_freeN(ds);

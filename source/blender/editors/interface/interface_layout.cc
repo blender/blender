@@ -1658,8 +1658,11 @@ void uiItemsFullEnumO(uiLayout *layout,
 #endif
     }
     else {
-      RNA_property_enum_items_gettexted(
-          static_cast<bContext *>(block->evil_C), &ptr, prop, &item_array, &totitem, &free);
+      bContext *C = static_cast<bContext *>(block->evil_C);
+      bContextStore *previous_ctx = CTX_store_get(C);
+      CTX_store_set(C, layout->context);
+      RNA_property_enum_items_gettexted(C, &ptr, prop, &item_array, &totitem, &free);
+      CTX_store_set(C, previous_ctx);
     }
 
     /* add items */
@@ -3203,7 +3206,7 @@ void uiItemPopoverPanel_ptr(
     pt->draw_header(C, &panel);
   }
   uiBut *but = ui_item_menu(
-      layout, name, icon, ui_item_paneltype_func, pt, nullptr, pt->description, true);
+      layout, name, icon, ui_item_paneltype_func, pt, nullptr, TIP_(pt->description), true);
   but->type = UI_BTYPE_POPOVER;
   if (!ok) {
     but->flag |= UI_BUT_DISABLED;

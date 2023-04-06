@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -2416,6 +2416,10 @@ msgid "Rotations"
 msgstr "Rotaties"
 
 
+msgid "Mirror Object"
+msgstr "Spiegel Object"
+
+
 msgid "Speed of Sound"
 msgstr "Snelheid van Geluid"
 
@@ -2924,10 +2928,6 @@ msgstr "Overschrijven"
 
 msgid "Time Mode"
 msgstr "Tijdsmodus"
-
-
-msgid "Mirror Object"
-msgstr "Spiegel Object"
 
 
 msgid "Mirror Axis"

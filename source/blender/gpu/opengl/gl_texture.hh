@@ -23,8 +23,23 @@ class GLTexture : public Texture {
   friend class GLFrameBuffer;
 
  private:
-  /** All samplers states. */
-  static GLuint samplers_[GPU_SAMPLER_MAX];
+  /**
+   * A cache of all possible sampler configurations stored along each of the three axis of
+   * variation. The first and second variation axis are the wrap mode along x and y axis
+   * respectively, and the third variation axis is the filtering type. See the samplers_init()
+   * method for more information.
+   */
+  static GLuint samplers_state_cache_[GPU_SAMPLER_EXTEND_MODES_COUNT]
+                                     [GPU_SAMPLER_EXTEND_MODES_COUNT]
+                                     [GPU_SAMPLER_FILTERING_TYPES_COUNT];
+  static const int samplers_state_cache_count_ = GPU_SAMPLER_EXTEND_MODES_COUNT *
+                                                 GPU_SAMPLER_EXTEND_MODES_COUNT *
+                                                 GPU_SAMPLER_FILTERING_TYPES_COUNT;
+  /**
+   * A cache of all custom sampler configurations described in GPUSamplerCustomType. See the
+   * samplers_init() method for more information.
+   */
+  static GLuint custom_samplers_state_cache_[GPU_SAMPLER_CUSTOM_TYPES_COUNT];
 
   /** Target to bind the texture to (#GL_TEXTURE_1D, #GL_TEXTURE_2D, etc...). */
   GLenum target_ = -1;
@@ -70,9 +85,31 @@ class GLTexture : public Texture {
   /* TODO(fclem): Legacy. Should be removed at some point. */
   uint gl_bindcode_get() const override;
 
+  /**
+   * Pre-generate, setup all possible samplers and cache them in the samplers_state_cache_ and
+   * custom_samplers_state_cache_ arrays. This is done to avoid the runtime cost associated with
+   * setting up a sampler at draw time.
+   */
   static void samplers_init();
+
+  /**
+   * Free the samplers cache generated in samplers_init() method.
+   */
   static void samplers_free();
+
+  /**
+   * Updates the anisotropic filter parameters of samplers that enables anisotropic filtering. This
+   * is not done as a one time initialization in samplers_init() method because the user might
+   * change the anisotropic filtering samples in the user preferences. So it is called in
+   * samplers_init() method as well as every time the user preferences change.
+   */
   static void samplers_update();
+
+  /**
+   * Get the handle of the OpenGL sampler that corresponds to the given sampler state.
+   * The sampler is retrieved from the cached samplers computed in the samplers_init() method.
+   */
+  static GLuint get_sampler(const GPUSamplerState &sampler_state);
 
  protected:
   /** Return true on success. */

@@ -12,6 +12,10 @@
 #include "BLI_sys_types.h"
 
 #ifdef __cplusplus
+#  include "BLI_offset_indices.hh"
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -20,7 +24,6 @@ struct CCGFace;
 struct CCGKey;
 struct DMFlagMat;
 struct Mesh;
-struct MPoly;
 struct Subdiv;
 
 /* --------------------------------------------------------------------
@@ -304,16 +307,20 @@ typedef enum SubdivCCGAdjacencyType {
   SUBDIV_CCG_ADJACENT_EDGE,
 } SubdivCCGAdjacencyType;
 
+#ifdef __cplusplus
+
 /* Returns if a grid coordinates is adjacent to a coarse mesh edge, vertex or nothing. If it is
  * adjacent to an edge, r_v1 and r_v2 will be set to the two vertices of that edge. If it is
  * adjacent to a vertex, r_v1 and r_v2 will be the index of that vertex. */
-SubdivCCGAdjacencyType BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(const SubdivCCG *subdiv_ccg,
-                                                                     const SubdivCCGCoord *coord,
-                                                                     const int *corner_verts,
-                                                                     int corners_num,
-                                                                     const struct MPoly *mpoly,
-                                                                     int *r_v1,
-                                                                     int *r_v2);
+SubdivCCGAdjacencyType BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
+    const SubdivCCG *subdiv_ccg,
+    const SubdivCCGCoord *coord,
+    blender::Span<int> corner_verts,
+    blender::OffsetIndices<int> polys,
+    int *r_v1,
+    int *r_v2);
+
+#endif
 
 /* Get array which is indexed by face index and contains index of a first grid of the face.
  *

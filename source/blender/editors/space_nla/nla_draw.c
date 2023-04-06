@@ -433,8 +433,9 @@ static void nla_draw_strip(SpaceNla *snla,
                            float yminc,
                            float ymaxc)
 {
-  const bool non_solo = ((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) &&
-                         (nlt->flag & NLATRACK_SOLO) == 0);
+  const bool solo = !((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) &&
+                      (nlt->flag & NLATRACK_SOLO) == 0);
+
   const bool muted = ((nlt->flag & NLATRACK_MUTED) || (strip->flag & NLASTRIP_FLAG_MUTED));
   float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   uint shdr_pos;
@@ -448,7 +449,7 @@ static void nla_draw_strip(SpaceNla *snla,
   /* draw extrapolation info first (as backdrop)
    * - but this should only be drawn if track has some contribution
    */
-  if ((strip->extendmode != NLASTRIP_EXTEND_NOTHING) && (non_solo == 0)) {
+  if ((strip->extendmode != NLASTRIP_EXTEND_NOTHING) && solo) {
     /* enable transparency... */
     GPU_blend(GPU_BLEND_ALPHA);
 
@@ -486,7 +487,8 @@ static void nla_draw_strip(SpaceNla *snla,
   }
 
   /* draw 'inside' of strip itself */
-  if (non_solo == 0 && is_nlastrip_enabled(adt, nlt, strip)) {
+  if (solo && is_nlastrip_enabled(adt, nlt, strip) &&
+      !(strip->flag & NLASTRIP_FLAG_INVALID_LOCATION)) {
     immUnbindProgram();
 
     /* strip is in normal track */
@@ -533,7 +535,11 @@ static void nla_draw_strip(SpaceNla *snla,
   /* draw strip outline
    * - color used here is to indicate active vs non-active
    */
-  if (strip->flag & (NLASTRIP_FLAG_ACTIVE | NLASTRIP_FLAG_SELECT)) {
+  if (strip->flag & NLASTRIP_FLAG_INVALID_LOCATION) {
+    color[0] = 1.0f;
+    color[1] = color[2] = 0.15f;
+  }
+  else if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
     /* strip should appear 'sunken', so draw a light border around it */
     color[0] = color[1] = color[2] = 1.0f; /* FIXME: hardcoded temp-hack colors */
   }
@@ -629,8 +635,9 @@ static void nla_draw_strip_text(AnimData *adt,
                                 float yminc,
                                 float ymaxc)
 {
-  const bool non_solo = ((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) &&
-                         (nlt->flag & NLATRACK_SOLO) == 0);
+  const bool solo = !((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) &&
+                      (nlt->flag & NLATRACK_SOLO) == 0);
+
   char str[256];
   size_t str_len;
   uchar col[4];
@@ -650,12 +657,12 @@ static void nla_draw_strip_text(AnimData *adt,
   else {
     col[0] = col[1] = col[2] = 255;
   }
+  // Default strip to 100% opacity.
+  col[3] = 255;
 
-  /* text opacity depends on whether if there's a solo'd track, this isn't it */
-  if (non_solo == 0) {
-    col[3] = 255;
-  }
-  else {
+  /* Reduce text opacity if a track is soloed,
+   * and if target track isn't the soloed track. */
+  if (!solo) {
     col[3] = 128;
   }
 

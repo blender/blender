@@ -40,7 +40,7 @@ void seq_time_gap_info_get(const struct Scene *scene,
                            struct GapInfo *r_gap_info);
 void seq_time_effect_range_set(const struct Scene *scene, Sequence *seq);
 /**
- * Update strip `startdisp` and `enddisp` (n-input effects have no len to calculate these).
+ * Update strip `startdisp` and `enddisp` (n-input effects have no length to calculate these).
  */
 void seq_time_update_effects_strip_range(const struct Scene *scene, struct SeqCollection *effects);
 void seq_time_translate_handles(const struct Scene *scene, struct Sequence *seq, const int offset);

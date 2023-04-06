@@ -1987,13 +1987,13 @@ const int *BKE_subdiv_ccg_start_face_grid_index_get(const SubdivCCG *subdiv_ccg)
 static void adjacet_vertices_index_from_adjacent_edge(const SubdivCCG *subdiv_ccg,
                                                       const SubdivCCGCoord *coord,
                                                       const blender::Span<int> corner_verts,
-                                                      const MPoly *polys,
+                                                      const blender::OffsetIndices<int> polys,
                                                       int *r_v1,
                                                       int *r_v2)
 {
   const int grid_size_1 = subdiv_ccg->grid_size - 1;
   const int poly_index = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, coord->grid_index);
-  const MPoly &poly = polys[poly_index];
+  const blender::IndexRange poly = polys[poly_index];
   *r_v1 = corner_verts[coord->grid_index];
 
   const int corner = blender::bke::mesh::poly_find_corner_from_vert(poly, corner_verts, *r_v1);
@@ -2007,13 +2007,13 @@ static void adjacet_vertices_index_from_adjacent_edge(const SubdivCCG *subdiv_cc
   }
 }
 
-SubdivCCGAdjacencyType BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(const SubdivCCG *subdiv_ccg,
-                                                                     const SubdivCCGCoord *coord,
-                                                                     const int *corner_verts,
-                                                                     const int corners_num,
-                                                                     const MPoly *polys,
-                                                                     int *r_v1,
-                                                                     int *r_v2)
+SubdivCCGAdjacencyType BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
+    const SubdivCCG *subdiv_ccg,
+    const SubdivCCGCoord *coord,
+    const blender::Span<int> corner_verts,
+    const blender::OffsetIndices<int> polys,
+    int *r_v1,
+    int *r_v2)
 {
 
   const int grid_size_1 = subdiv_ccg->grid_size - 1;
@@ -2028,8 +2028,7 @@ SubdivCCGAdjacencyType BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(const Subdi
       return SUBDIV_CCG_ADJACENT_VERTEX;
     }
     /* Grid corner adjacent to the middle of a coarse mesh edge. */
-    adjacet_vertices_index_from_adjacent_edge(
-        subdiv_ccg, coord, {corner_verts, corners_num}, polys, r_v1, r_v2);
+    adjacet_vertices_index_from_adjacent_edge(subdiv_ccg, coord, corner_verts, polys, r_v1, r_v2);
     return SUBDIV_CCG_ADJACENT_EDGE;
   }
 
@@ -2037,7 +2036,7 @@ SubdivCCGAdjacencyType BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(const Subdi
     if (!is_inner_edge_grid_coordinate(subdiv_ccg, coord)) {
       /* Grid boundary adjacent to a coarse mesh edge. */
       adjacet_vertices_index_from_adjacent_edge(
-          subdiv_ccg, coord, {corner_verts, corners_num}, polys, r_v1, r_v2);
+          subdiv_ccg, coord, corner_verts, polys, r_v1, r_v2);
       return SUBDIV_CCG_ADJACENT_EDGE;
     }
   }

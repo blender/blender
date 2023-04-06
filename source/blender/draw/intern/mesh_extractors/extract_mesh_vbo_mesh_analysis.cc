@@ -97,10 +97,9 @@ static void statvis_calc_overhang(const MeshRenderData *mr, float *r_overhang)
   }
   else {
     for (const int poly_i : mr->polys.index_range()) {
-      const MPoly &poly = mr->polys[poly_i];
       float fac = angle_normalized_v3v3(mr->poly_normals[poly_i], dir) / float(M_PI);
       fac = overhang_remap(fac, min, max, minmax_irange);
-      for (const int loop_i : IndexRange(poly.loopstart, poly.totloop)) {
+      for (const int loop_i : mr->polys[poly_i]) {
         r_overhang[loop_i] = fac;
       }
     }
@@ -248,10 +247,9 @@ static void statvis_calc_thickness(const MeshRenderData *mr, float *r_thickness)
     }
 
     for (const int poly_i : mr->polys.index_range()) {
-      const MPoly &poly = mr->polys[poly_i];
       float fac = face_dists[poly_i];
       fac = thickness_remap(fac, min, max, minmax_irange);
-      for (const int loop_i : IndexRange(poly.loopstart, poly.totloop)) {
+      for (const int loop_i : mr->polys[poly_i]) {
         r_thickness[loop_i] = fac;
       }
     }
@@ -350,14 +348,11 @@ static void statvis_calc_intersect(const MeshRenderData *mr, float *r_intersect)
     BVHTreeOverlap *overlap = BLI_bvhtree_overlap_self(tree, &overlap_len, bvh_overlap_cb, &data);
     if (overlap) {
       for (int i = 0; i < overlap_len; i++) {
-        const MPoly *f_hit_pair[2] = {
-            &mr->polys[mr->looptris[overlap[i].indexA].poly],
-            &mr->polys[mr->looptris[overlap[i].indexB].poly],
-        };
-        for (int j = 0; j < 2; j++) {
-          const MPoly *f_hit = f_hit_pair[j];
-          int l_index = f_hit->loopstart;
-          for (int k = 0; k < f_hit->totloop; k++, l_index++) {
+
+        for (const IndexRange f_hit : {mr->polys[mr->looptris[overlap[i].indexA].poly],
+                                       mr->polys[mr->looptris[overlap[i].indexB].poly]}) {
+          int l_index = f_hit.start();
+          for (int k = 0; k < f_hit.size(); k++, l_index++) {
             r_intersect[l_index] = 1.0f;
           }
         }
@@ -440,19 +435,18 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
     }
   }
   else {
-    int l_index = 0;
     for (const int poly_index : mr->polys.index_range()) {
-      const MPoly &poly = mr->polys[poly_index];
+      const IndexRange poly = mr->polys[poly_index];
       float fac = -1.0f;
 
-      if (poly.totloop > 3) {
+      if (poly.size() > 3) {
         const float *f_no = mr->poly_normals[poly_index];
         fac = 0.0f;
 
-        for (int i = 1; i <= poly.totloop; i++) {
-          const int corner_prev = poly.loopstart + (i - 1) % poly.totloop;
-          const int corner_curr = poly.loopstart + (i + 0) % poly.totloop;
-          const int corner_next = poly.loopstart + (i + 1) % poly.totloop;
+        for (int i = 1; i <= poly.size(); i++) {
+          const int corner_prev = poly.start() + (i - 1) % poly.size();
+          const int corner_curr = poly.start() + (i + 0) % poly.size();
+          const int corner_next = poly.start() + (i + 1) % poly.size();
           float no_corner[3];
           normal_tri_v3(no_corner,
                         mr->vert_positions[mr->corner_verts[corner_prev]],
@@ -468,8 +462,8 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
       }
 
       fac = distort_remap(fac, min, max, minmax_irange);
-      for (int i = 0; i < poly.totloop; i++, l_index++) {
-        r_distort[l_index] = fac;
+      for (const int corner : poly) {
+        r_distort[corner] = fac;
       }
     }
   }
@@ -530,11 +524,11 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
 
     EdgeHash *eh = BLI_edgehash_new_ex(__func__, mr->edge_len);
 
-    for (const int poly_index : mr->polys.index_range()) {
-      const MPoly &poly = mr->polys[poly_index];
-      for (int i = 0; i < poly.totloop; i++) {
-        const int vert_curr = mr->corner_verts[poly.loopstart + (i + 0) % poly.totloop];
-        const int vert_next = mr->corner_verts[poly.loopstart + (i + 1) % poly.totloop];
+    for (int poly_index = 0; poly_index < mr->poly_len; poly_index++) {
+      const IndexRange poly = mr->polys[poly_index];
+      for (int i = 0; i < poly.size(); i++) {
+        const int vert_curr = mr->corner_verts[poly.start() + (i + 0) % poly.size()];
+        const int vert_next = mr->corner_verts[poly.start() + (i + 1) % poly.size()];
         float angle;
         void **pval;
         bool value_is_init = BLI_edgehash_ensure_p(eh, vert_curr, vert_next, &pval);

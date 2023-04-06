@@ -39,7 +39,7 @@
 #include "WM_api.h"
 #include "wm.h"
 
-#include "GHOST_Path-api.h"
+#include "GHOST_Path-api.hh"
 
 #include "CLG_log.h"
 

@@ -850,27 +850,75 @@ endif()
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
   windows_find_package(Embree)
   if(NOT Embree_FOUND)
+    set(EMBREE_ROOT_DIR ${LIBDIR}/embree)
     set(EMBREE_INCLUDE_DIRS ${LIBDIR}/embree/include)
-    set(EMBREE_LIBRARIES
-      optimized ${LIBDIR}/embree/lib/embree3.lib
-      optimized ${LIBDIR}/embree/lib/embree_avx2.lib
-      optimized ${LIBDIR}/embree/lib/embree_avx.lib
-      optimized ${LIBDIR}/embree/lib/embree_sse42.lib
-      optimized ${LIBDIR}/embree/lib/lexers.lib
-      optimized ${LIBDIR}/embree/lib/math.lib
-      optimized ${LIBDIR}/embree/lib/simd.lib
-      optimized ${LIBDIR}/embree/lib/sys.lib
-      optimized ${LIBDIR}/embree/lib/tasking.lib
 
-      debug ${LIBDIR}/embree/lib/embree3_d.lib
-      debug ${LIBDIR}/embree/lib/embree_avx2_d.lib
-      debug ${LIBDIR}/embree/lib/embree_avx_d.lib
-      debug ${LIBDIR}/embree/lib/embree_sse42_d.lib
-      debug ${LIBDIR}/embree/lib/lexers_d.lib
-      debug ${LIBDIR}/embree/lib/math_d.lib
-      debug ${LIBDIR}/embree/lib/simd_d.lib
-      debug ${LIBDIR}/embree/lib/sys_d.lib
-      debug ${LIBDIR}/embree/lib/tasking_d.lib
+    if(EXISTS ${LIBDIR}/embree/include/embree4/rtcore_config.h)
+      set(EMBREE_MAJOR_VERSION 4)
+    else()
+      set(EMBREE_MAJOR_VERSION 3)
+    endif()
+
+    file(READ ${LIBDIR}/embree/include/embree${EMBREE_MAJOR_VERSION}/rtcore_config.h _embree_config_header)
+    if(_embree_config_header MATCHES "#define EMBREE_STATIC_LIB")
+      set(EMBREE_STATIC_LIB TRUE)
+    else()
+      set(EMBREE_STATIC_LIB FALSE)
+    endif()
+
+    if(_embree_config_header MATCHES "#define EMBREE_SYCL_SUPPORT")
+      set(EMBREE_SYCL_SUPPORT TRUE)
+    else()
+      set(EMBREE_SYCL_SUPPORT FALSE)
+    endif()
+
+    set(EMBREE_LIBRARIES
+      optimized ${LIBDIR}/embree/lib/embree${EMBREE_MAJOR_VERSION}.lib
+      debug ${LIBDIR}/embree/lib/embree${EMBREE_MAJOR_VERSION}_d.lib
+    )
+
+    if(EMBREE_SYCL_SUPPORT)
+      set(EMBREE_LIBRARIES
+        ${EMBREE_LIBRARIES}
+        optimized ${LIBDIR}/embree/lib/embree4_sycl.lib
+        debug ${LIBDIR}/embree/lib/embree4_sycl_d.lib
+      )
+    endif()
+
+    if(EMBREE_STATIC_LIB)
+      set(EMBREE_LIBRARIES
+        ${EMBREE_LIBRARIES}
+        optimized ${LIBDIR}/embree/lib/embree_avx2.lib
+        optimized ${LIBDIR}/embree/lib/embree_avx.lib
+        optimized ${LIBDIR}/embree/lib/embree_sse42.lib
+        optimized ${LIBDIR}/embree/lib/lexers.lib
+        optimized ${LIBDIR}/embree/lib/math.lib
+        optimized ${LIBDIR}/embree/lib/simd.lib
+        optimized ${LIBDIR}/embree/lib/sys.lib
+        optimized ${LIBDIR}/embree/lib/tasking.lib
+        debug ${LIBDIR}/embree/lib/embree_avx2_d.lib
+        debug ${LIBDIR}/embree/lib/embree_avx_d.lib
+        debug ${LIBDIR}/embree/lib/embree_sse42_d.lib
+        debug ${LIBDIR}/embree/lib/lexers_d.lib
+        debug ${LIBDIR}/embree/lib/math_d.lib
+        debug ${LIBDIR}/embree/lib/simd_d.lib
+        debug ${LIBDIR}/embree/lib/sys_d.lib
+        debug ${LIBDIR}/embree/lib/tasking_d.lib
+      )
+
+      if(EMBREE_SYCL_SUPPORT)
+        set(EMBREE_LIBRARIES
+          ${EMBREE_LIBRARIES}
+          optimized ${LIBDIR}/embree/lib/embree_rthwif.lib
+          debug ${LIBDIR}/embree/lib/embree_rthwif_d.lib
+        )
+      endif()
+    endif()
+  endif()
+  if(NOT EMBREE_STATIC_LIB)
+    list(APPEND PLATFORM_BUNDLED_LIBRARIES
+      RELEASE ${EMBREE_ROOT_DIR}/bin/embree${EMBREE_MAJOR_VERSION}.dll
+      DEBUG ${EMBREE_ROOT_DIR}/bin/embree${EMBREE_MAJOR_VERSION}_d.dll
     )
   endif()
 endif()
@@ -1029,7 +1077,7 @@ endif()
 set(ZSTD_INCLUDE_DIRS ${LIBDIR}/zstd/include)
 set(ZSTD_LIBRARIES ${LIBDIR}/zstd/lib/zstd_static.lib)
 
-if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
+if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_SYCL_SUPPORT)))
   set(LEVEL_ZERO_ROOT_DIR ${LIBDIR}/level_zero)
   set(CYCLES_SYCL ${LIBDIR}/dpcpp CACHE PATH "Path to oneAPI DPC++ compiler")
   if(EXISTS ${CYCLES_SYCL} AND NOT SYCL_ROOT_DIR)
@@ -1040,8 +1088,9 @@ if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
     ${SYCL_ROOT_DIR}/bin/sycl[0-9].dll
   )
   foreach(sycl_runtime_library IN LISTS _sycl_runtime_libraries_glob)
-    string(REPLACE ".dll" "$<$<CONFIG:Debug>:d>.dll" sycl_runtime_library ${sycl_runtime_library})
-    list(APPEND _sycl_runtime_libraries ${sycl_runtime_library})
+    string(REPLACE ".dll" "_d.dll" sycl_runtime_library_debug ${sycl_runtime_library})
+    list(APPEND _sycl_runtime_libraries RELEASE ${sycl_runtime_library})
+    list(APPEND _sycl_runtime_libraries DEBUG ${sycl_runtime_library_debug})
   endforeach()
   unset(_sycl_runtime_libraries_glob)
 
@@ -1054,6 +1103,8 @@ if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
 
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
+
+  set(SYCL_LIBRARIES optimized ${SYCL_LIBRARY} debug ${SYCL_LIBRARY_DEBUG})
 endif()
 
 

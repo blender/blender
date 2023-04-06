@@ -1,20 +1,20 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
-#include "GHOST_SystemCocoa.h"
+#include "GHOST_SystemCocoa.hh"
 
-#include "GHOST_DisplayManagerCocoa.h"
-#include "GHOST_EventButton.h"
-#include "GHOST_EventCursor.h"
-#include "GHOST_EventDragnDrop.h"
-#include "GHOST_EventKey.h"
-#include "GHOST_EventString.h"
-#include "GHOST_EventTrackpad.h"
-#include "GHOST_EventWheel.h"
-#include "GHOST_TimerManager.h"
-#include "GHOST_TimerTask.h"
-#include "GHOST_WindowCocoa.h"
-#include "GHOST_WindowManager.h"
+#include "GHOST_DisplayManagerCocoa.hh"
+#include "GHOST_EventButton.hh"
+#include "GHOST_EventCursor.hh"
+#include "GHOST_EventDragnDrop.hh"
+#include "GHOST_EventKey.hh"
+#include "GHOST_EventString.hh"
+#include "GHOST_EventTrackpad.hh"
+#include "GHOST_EventWheel.hh"
+#include "GHOST_TimerManager.hh"
+#include "GHOST_TimerTask.hh"
+#include "GHOST_WindowCocoa.hh"
+#include "GHOST_WindowManager.hh"
 
 /* Don't generate OpenGL deprecation warning. This is a known thing, and is not something easily
  * solvable in a short term. */
@@ -22,14 +22,14 @@
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#include "GHOST_ContextCGL.h"
+#include "GHOST_ContextCGL.hh"
 
 #ifdef WITH_VULKAN_BACKEND
-#  include "GHOST_ContextVK.h"
+#  include "GHOST_ContextVK.hh"
 #endif
 
 #ifdef WITH_INPUT_NDOF
-#  include "GHOST_NDOFManagerCocoa.h"
+#  include "GHOST_NDOFManagerCocoa.hh"
 #endif
 
 #include "AssertMacros.h"

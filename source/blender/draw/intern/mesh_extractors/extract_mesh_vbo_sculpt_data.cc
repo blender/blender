@@ -84,13 +84,11 @@ static void extract_sculpt_data_init(const MeshRenderData *mr,
     }
   }
   else {
-    int mp_loop = 0;
     for (int poly_index = 0; poly_index < mr->poly_len; poly_index++) {
-      const MPoly &poly = mr->polys[poly_index];
-      for (int l = 0; l < poly.totloop; l++) {
+      for (const int corner : mr->polys[poly_index]) {
         float v_mask = 0.0f;
         if (cd_mask) {
-          v_mask = cd_mask[mr->corner_verts[mp_loop]];
+          v_mask = cd_mask[mr->corner_verts[corner]];
         }
         vbo_data->mask = v_mask;
 
@@ -104,7 +102,6 @@ static void extract_sculpt_data_init(const MeshRenderData *mr,
           }
         }
         copy_v3_v3_uchar(vbo_data->face_set_color, face_set_color);
-        mp_loop++;
         vbo_data++;
       }
     }
@@ -128,7 +125,7 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
   GPUVertBuf *subdiv_mask_vbo = nullptr;
   const float *cd_mask = (const float *)CustomData_get_layer(cd_vdata, CD_PAINT_MASK);
 
-  const Span<MPoly> coarse_polys = coarse_mesh->polys();
+  const OffsetIndices coarse_polys = coarse_mesh->polys();
   const Span<int> coarse_corner_verts = coarse_mesh->corner_verts();
 
   if (cd_mask) {
@@ -141,11 +138,8 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
     float *v_mask = static_cast<float *>(GPU_vertbuf_get_data(mask_vbo));
 
     for (int i = 0; i < coarse_mesh->totpoly; i++) {
-      const MPoly &poly = coarse_polys[i];
-
-      for (int loop_index = poly.loopstart; loop_index < poly.loopstart + poly.totloop;
-           loop_index++) {
-        *v_mask++ = cd_mask[coarse_corner_verts[loop_index]];
+      for (const int vert : coarse_corner_verts.slice(coarse_polys[i])) {
+        *v_mask++ = cd_mask[vert];
       }
     }
 

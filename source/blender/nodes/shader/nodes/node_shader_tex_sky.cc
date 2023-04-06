@@ -249,9 +249,10 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat,
     XYZ_to_RGB xyz_to_rgb;
     get_XYZ_to_RGB_for_gpu(&xyz_to_rgb);
 
-    eGPUSamplerState sampler = GPU_SAMPLER_REPEAT | GPU_SAMPLER_FILTER;
     /* To fix pole issue we clamp the v coordinate. */
-    sampler &= ~GPU_SAMPLER_REPEAT_T;
+    GPUSamplerState sampler = {GPU_SAMPLER_FILTERING_LINEAR,
+                               GPU_SAMPLER_EXTEND_MODE_REPEAT,
+                               GPU_SAMPLER_EXTEND_MODE_EXTEND};
     float layer;
     GPUNodeLink *sky_texture = GPU_image_sky(
         mat, GPU_SKY_WIDTH, GPU_SKY_HEIGHT, pixels.data(), &layer, sampler);

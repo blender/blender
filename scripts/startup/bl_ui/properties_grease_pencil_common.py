@@ -287,6 +287,8 @@ class GPENCIL_MT_material_active(Menu):
 
         for slot in ob.material_slots:
             mat = slot.material
+            if not mat:
+                continue
             mat.id_data.preview_ensure()
             if mat and mat.id_data and mat.id_data.preview:
                 icon = mat.id_data.preview.icon_id

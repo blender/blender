@@ -889,6 +889,23 @@ class NodeTreeInterfacePanel(Panel):
             )
             props.in_out = in_out
 
+            with context.temp_override(interface_socket=active_socket):
+                if bpy.ops.node.tree_socket_change_subtype.poll():
+                    layout_row = layout.row(align=True)
+                    layout_split = layout_row.split(factor=0.4, align=True)
+
+                    label_column = layout_split.column(align=True)
+                    label_column.alignment = 'RIGHT'
+                    label_column.label(text="Subtype")
+                    property_row = layout_split.row(align=True)
+
+                    property_row.context_pointer_set("interface_socket", active_socket)
+                    props = property_row.operator_menu_enum(
+                        "node.tree_socket_change_subtype",
+                        "socket_subtype",
+                        text=active_socket.bl_subtype_label if active_socket.bl_subtype_label else active_socket.bl_idname
+                    )
+
             layout.use_property_split = True
             layout.use_property_decorate = False
 

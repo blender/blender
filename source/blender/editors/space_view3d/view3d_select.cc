@@ -3948,13 +3948,12 @@ static bool do_pose_box_select(bContext *C,
   const int hits = view3d_opengl_select(
       vc, buffer, (totobj + MAXPICKELEMS), rect, VIEW3D_SELECT_ALL, select_filter);
   /*
-   * LOGIC NOTES (theeth):
-   * The buffer and ListBase have the same relative order, which makes the selection
+   * NOTE(@theeth): Regarding the logic use here.
+   * The buffer and #ListBase have the same relative order, which makes the selection
    * very simple. Loop through both data sets at the same time, if the color
    * is the same as the object, we have a hit and can move to the next color
    * and object pair, if not, just move to the next object,
-   * keeping the same color until we have a hit.
-   */
+   * keeping the same color until we have a hit. */
 
   if (hits > 0) {
     /* no need to loop if there's no hit */

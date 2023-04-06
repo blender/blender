@@ -425,13 +425,9 @@ void SCULPT_dynamic_topology_triangulate(SculptSession *ss, BMesh *bm)
 
   ss->totfaces = ss->totpoly = ss->bm->totface;
   ss->totvert = ss->bm->totvert;
-
-  //  BM_mesh_triangulate(
-  //      bm, MOD_TRIANGULATE_QUAD_BEAUTY, MOD_TRIANGULATE_NGON_EARCLIP, 4, false, nullptr,
-  //      nullptr, nullptr);
 }
 
-void SCULPT_pbvh_clear(Object *ob, bool /*cache_pbvh*/)
+void SCULPT_pbvh_clear(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -489,23 +485,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
   }
 
   if (!ss->bm || !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
-    SCULPT_pbvh_clear(ob, false);
+    SCULPT_pbvh_clear(ob);
   }
-#if 0
-  else {
-    /* Sculpt session was set up by paint.c, call BKE_sculptsession_update_attr_refs to be safe. */
-    BKE_sculptsession_update_attr_refs(ob);
-
-    BKE_pbvh_update_sculpt_verts(ss->pbvh);
-
-    /* Also check bm_log. */
-    if (!ss->bm_log) {
-      ss->bm_log = BM_log_create(ss->bm, ss->bm_idmap, ss->cd_sculpt_vert);
-    }
-
-    return;
-  }
-#endif
 
   PBVH *pbvh = ss->pbvh;
 
@@ -517,7 +498,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
     }
     else if (ss->bm != bm) {
       printf("%s: bmesh differed!\n", __func__);
-      SCULPT_pbvh_clear(ob, false);
+      SCULPT_pbvh_clear(ob);
     }
   }
 
@@ -622,6 +603,19 @@ static void SCULPT_dynamic_topology_disable_ex(
 
   BKE_sculptsession_update_attr_refs(ob);
   BKE_sculptsession_bm_to_me(ob, true);
+  SCULPT_pbvh_clear(ob);
+
+  /* Reset Face Sets as they are no longer valid. */
+  CustomData_free_layer_named(&me->pdata, ".sculpt_face_set", me->totpoly);
+  me->face_sets_color_default = 1;
+
+  /* Sync the visibility to vertices manually as the pmap is still not initialized. */
+  bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
+      &me->vdata, CD_PROP_BOOL, ".hide_vert", me->totvert);
+  if (hide_vert != nullptr) {
+    memset(hide_vert, 0, sizeof(bool) * me->totvert);
+  }
+
   /* Clear data. */
   me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
 
@@ -641,7 +635,7 @@ static void SCULPT_dynamic_topology_disable_ex(
     ss->bm = nullptr;
   }
 
-  SCULPT_pbvh_clear(ob, true);
+  SCULPT_pbvh_clear(ob);
 
   BKE_particlesystem_reset_all(ob);
   BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED);

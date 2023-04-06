@@ -1364,3 +1364,24 @@ macro(windows_generate_shared_manifest)
     )
   endif()
 endmacro()
+
+macro(windows_process_platform_bundled_libraries library_deps)
+  if(NOT "${library_deps}" STREQUAL "")
+    set(next_library_mode "ALL")
+    foreach(library ${library_deps})
+      string(TOUPPER "${library}" library_upper)
+      if(("${library_upper}" STREQUAL "RELEASE") OR
+         ("${library_upper}" STREQUAL "DEBUG") OR
+         ("${library_upper}" STREQUAL "ALL"))
+        set(next_library_mode "${library_upper}")
+      else()
+        windows_install_shared_manifest(
+            FILES ${library}
+            ${next_library_mode}
+        )
+        set(next_library_mode "ALL")
+      endif()
+    endforeach()
+  endif()
+endmacro()
+

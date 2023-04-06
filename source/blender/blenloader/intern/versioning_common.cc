@@ -32,7 +32,7 @@ using blender::StringRef;
 
 ARegion *do_versions_add_region_if_not_found(ListBase *regionbase,
                                              int region_type,
-                                             const char *name,
+                                             const char *allocname,
                                              int link_after_region_type)
 {
   ARegion *link_after_region = nullptr;
@@ -45,7 +45,28 @@ ARegion *do_versions_add_region_if_not_found(ListBase *regionbase,
     }
   }
 
-  ARegion *new_region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), name));
+  ARegion *new_region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), allocname));
+  new_region->regiontype = region_type;
+  BLI_insertlinkafter(regionbase, link_after_region, new_region);
+  return new_region;
+}
+
+ARegion *do_versions_ensure_region(ListBase *regionbase,
+                                   int region_type,
+                                   const char *allocname,
+                                   int link_after_region_type)
+{
+  ARegion *link_after_region = nullptr;
+  LISTBASE_FOREACH (ARegion *, region, regionbase) {
+    if (region->regiontype == region_type) {
+      return region;
+    }
+    if (region->regiontype == link_after_region_type) {
+      link_after_region = region;
+    }
+  }
+
+  ARegion *new_region = MEM_cnew<ARegion>(allocname);
   new_region->regiontype = region_type;
   BLI_insertlinkafter(regionbase, link_after_region, new_region);
   return new_region;

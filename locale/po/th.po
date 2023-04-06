@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -2584,6 +2584,10 @@ msgid "Paste from Clipboard"
 msgstr "วางจากคลิปบอร์ด"
 
 
+msgid "Selection"
+msgstr "การเลือก"
+
+
 msgid "Report"
 msgstr "รายงาน"
 
@@ -2715,10 +2719,6 @@ msgstr "ค้นหาทั้งหมด"
 
 msgid "Next"
 msgstr "ถัดไป"
-
-
-msgid "Selection"
-msgstr "การเลือก"
 
 
 msgctxt "Operator"
@@ -4014,10 +4014,6 @@ msgstr "องศาของด้าน"
 
 msgid "Display Grid Floor"
 msgstr "แสดงพื้นตาราง"
-
-
-msgid "Hidden Wire"
-msgstr "เส้นที่มองไม่เห็น"
 
 
 msgid "Viewport Shading"

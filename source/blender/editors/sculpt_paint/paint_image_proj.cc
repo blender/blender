@@ -413,9 +413,10 @@ struct ProjPaintState {
   const float (*vert_positions_eval)[3];
   blender::Span<blender::float3> vert_normals;
   blender::Span<MEdge> edges_eval;
-  blender::Span<MPoly> polys_eval;
+  blender::OffsetIndices<int> polys_eval;
   blender::Span<int> corner_verts_eval;
   const bool *select_poly_eval;
+  const bool *hide_poly_eval;
   const int *material_indices;
   const bool *sharp_faces_eval;
   blender::Span<MLoopTri> looptris_eval;
@@ -4052,6 +4053,10 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   CustomData_MeshMasks cddata_masks = scene_eval->customdata_mask;
   cddata_masks.fmask |= CD_MASK_MTFACE;
   cddata_masks.lmask |= CD_MASK_PROP_FLOAT2;
+  cddata_masks.vmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
+  cddata_masks.emask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
+  cddata_masks.pmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
+  cddata_masks.lmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
   if (ps->do_face_sel) {
     cddata_masks.vmask |= CD_MASK_ORIGINDEX;
     cddata_masks.emask |= CD_MASK_ORIGINDEX;
@@ -4084,6 +4089,8 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   ps->corner_verts_eval = ps->me_eval->corner_verts();
   ps->select_poly_eval = (const bool *)CustomData_get_layer_named(
       &ps->me_eval->pdata, CD_PROP_BOOL, ".select_poly");
+  ps->hide_poly_eval = (const bool *)CustomData_get_layer_named(
+      &ps->me_eval->pdata, CD_PROP_BOOL, ".hide_poly");
   ps->material_indices = (const int *)CustomData_get_layer_named(
       &ps->me_eval->pdata, CD_PROP_INT32, "material_index");
   ps->sharp_faces_eval = static_cast<const bool *>(
@@ -4173,26 +4180,28 @@ static bool project_paint_clone_face_skip(ProjPaintState *ps,
 
 struct ProjPaintFaceLookup {
   const bool *select_poly_orig;
-
+  const bool *hide_poly_orig;
   const int *index_mp_to_orig;
 };
 
 static void proj_paint_face_lookup_init(const ProjPaintState *ps, ProjPaintFaceLookup *face_lookup)
 {
   memset(face_lookup, 0, sizeof(*face_lookup));
+  Mesh *orig_mesh = (Mesh *)ps->ob->data;
+  face_lookup->index_mp_to_orig = static_cast<const int *>(
+      CustomData_get_layer(&ps->me_eval->pdata, CD_ORIGINDEX));
   if (ps->do_face_sel) {
-    Mesh *orig_mesh = (Mesh *)ps->ob->data;
-    face_lookup->index_mp_to_orig = static_cast<const int *>(
-        CustomData_get_layer(&ps->me_eval->pdata, CD_ORIGINDEX));
     face_lookup->select_poly_orig = static_cast<const bool *>(
         CustomData_get_layer_named(&orig_mesh->pdata, CD_PROP_BOOL, ".select_poly"));
   }
+  face_lookup->hide_poly_orig = static_cast<const bool *>(
+      CustomData_get_layer_named(&orig_mesh->pdata, CD_PROP_BOOL, ".hide_poly"));
 }
 
-/* Return true if face should be considered selected, false otherwise */
-static bool project_paint_check_face_sel(const ProjPaintState *ps,
-                                         const ProjPaintFaceLookup *face_lookup,
-                                         const MLoopTri *lt)
+/* Return true if face should be considered paintable, false otherwise */
+static bool project_paint_check_face_paintable(const ProjPaintState *ps,
+                                               const ProjPaintFaceLookup *face_lookup,
+                                               const MLoopTri *lt)
 {
   if (ps->do_face_sel) {
     int orig_index;
@@ -4203,7 +4212,15 @@ static bool project_paint_check_face_sel(const ProjPaintState *ps,
     }
     return ps->select_poly_eval && ps->select_poly_eval[lt->poly];
   }
-  return true;
+  else {
+    int orig_index;
+
+    if ((face_lookup->index_mp_to_orig != nullptr) &&
+        ((orig_index = (face_lookup->index_mp_to_orig[lt->poly])) != ORIGINDEX_NONE)) {
+      return !(face_lookup->hide_poly_orig && face_lookup->hide_poly_orig[orig_index]);
+    }
+    return !(ps->hide_poly_eval && ps->hide_poly_eval[lt->poly]);
+  }
 }
 
 struct ProjPaintFaceCoSS {
@@ -4318,10 +4335,10 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
   BLI_assert(ps->image_tot == 0);
 
   for (tri_index = 0; tri_index < ps->looptris_eval.size(); tri_index++) {
-    bool is_face_sel;
+    bool is_face_paintable;
     bool skip_tri = false;
 
-    is_face_sel = project_paint_check_face_sel(ps, face_lookup, &looptris[tri_index]);
+    is_face_paintable = project_paint_check_face_paintable(ps, face_lookup, &looptris[tri_index]);
 
     if (!ps->do_stencil_brush) {
       slot = project_paint_face_paint_slot(ps, tri_index);
@@ -4374,7 +4391,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
 
     BLI_assert(mloopuv_base != nullptr);
 
-    if (is_face_sel && tpage) {
+    if (is_face_paintable && tpage) {
       ProjPaintFaceCoSS coSS;
       proj_paint_face_coSS_init(ps, &looptris[tri_index], &coSS);
 
@@ -4394,14 +4411,11 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
         if (ps->do_backfacecull) {
           if (ps->do_mask_normal) {
             if (prev_poly != looptris[tri_index].poly) {
-              int iloop;
               bool culled = true;
-              const MPoly &poly = ps->polys_eval[looptris[tri_index].poly];
-              int poly_loops = poly.totloop;
+              const blender::IndexRange poly = ps->polys_eval[looptris[tri_index].poly];
               prev_poly = looptris[tri_index].poly;
-              for (iloop = 0; iloop < poly_loops; iloop++) {
-                if (!(ps->vertFlags[ps->corner_verts_eval[poly.loopstart + iloop]] &
-                      PROJ_VERT_CULL)) {
+              for (const int corner : poly) {
+                if (!(ps->vertFlags[ps->corner_verts_eval[corner]] & PROJ_VERT_CULL)) {
                   culled = false;
                   break;
                 }
@@ -4410,7 +4424,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
               if (culled) {
                 /* poly loops - 2 is number of triangles for poly,
                  * but counter gets incremented when continuing, so decrease by 3 */
-                int poly_tri = poly_loops - 3;
+                int poly_tri = poly.size() - 3;
                 tri_index += poly_tri;
                 continue;
               }

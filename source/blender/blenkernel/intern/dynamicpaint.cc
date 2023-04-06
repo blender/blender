@@ -1415,7 +1415,7 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
     int numOfEdges = mesh->totedge;
     int numOfPolys = mesh->totpoly;
     const blender::Span<MEdge> edges = mesh->edges();
-    const blender::Span<MPoly> polys = mesh->polys();
+    const blender::OffsetIndices polys = mesh->polys();
     const blender::Span<int> corner_verts = mesh->corner_verts();
 
     /* count number of edges per vertex */
@@ -1430,8 +1430,8 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
     /* also add number of vertices to temp_data
      * to locate points on "mesh edge" */
     for (int i = 0; i < numOfPolys; i++) {
-      for (int j = 0; j < polys[i].totloop; j++) {
-        temp_data[corner_verts[polys[i].loopstart + j]]++;
+      for (const int vert : corner_verts.slice(polys[i])) {
+        temp_data[vert]++;
       }
     }
 
@@ -1790,7 +1790,7 @@ struct DynamicPaintModifierApplyData {
 
   float (*vert_positions)[3];
   blender::Span<blender::float3> vert_normals;
-  blender::Span<MPoly> polys;
+  blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
 
   float (*fcolor)[4];
@@ -1859,7 +1859,6 @@ static void dynamic_paint_apply_surface_vpaint_cb(void *__restrict userdata,
   const DynamicPaintModifierApplyData *data = static_cast<DynamicPaintModifierApplyData *>(
       userdata);
 
-  const blender::Span<MPoly> polys = data->polys;
   const blender::Span<int> corner_verts = data->corner_verts;
 
   const DynamicPaintSurface *surface = data->surface;
@@ -1869,8 +1868,7 @@ static void dynamic_paint_apply_surface_vpaint_cb(void *__restrict userdata,
   MLoopCol *mloopcol = data->mloopcol;
   MLoopCol *mloopcol_wet = data->mloopcol_wet;
 
-  for (int j = 0; j < polys[p_index].totloop; j++) {
-    const int l_index = polys[p_index].loopstart + j;
+  for (const int l_index : data->polys[p_index]) {
     const int v_index = corner_verts[l_index];
 
     /* save layer data to output layer */
@@ -1928,7 +1926,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
 
           /* vertex color paint */
           if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
-            const blender::Span<MPoly> polys = result->polys();
+            const blender::OffsetIndices polys = result->polys();
             const blender::Span<int> corner_verts = result->corner_verts();
 
             /* paint is stored on dry and wet layers, so mix final color first */

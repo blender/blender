@@ -67,7 +67,7 @@ static void context_zero(MultiresReshapeContext *reshape_context)
 static void context_init_lookup(MultiresReshapeContext *reshape_context)
 {
   const Mesh *base_mesh = reshape_context->base_mesh;
-  const blender::Span<MPoly> polys = reshape_context->base_polys;
+  const blender::OffsetIndices polys = reshape_context->base_polys;
   const int num_faces = base_mesh->totpoly;
 
   reshape_context->face_start_grid_index = static_cast<int *>(
@@ -75,7 +75,7 @@ static void context_init_lookup(MultiresReshapeContext *reshape_context)
   int num_grids = 0;
   int num_ptex_faces = 0;
   for (int face_index = 0; face_index < num_faces; ++face_index) {
-    const int num_corners = polys[face_index].totloop;
+    const int num_corners = polys[face_index].size();
     reshape_context->face_start_grid_index[face_index] = num_grids;
     num_grids += num_corners;
     num_ptex_faces += (num_corners == 4) ? 1 : num_corners;
@@ -86,7 +86,7 @@ static void context_init_lookup(MultiresReshapeContext *reshape_context)
   reshape_context->ptex_start_grid_index = static_cast<int *>(
       MEM_malloc_arrayN(num_ptex_faces, sizeof(int), "ptex_start_grid_index"));
   for (int face_index = 0, grid_index = 0, ptex_index = 0; face_index < num_faces; ++face_index) {
-    const int num_corners = polys[face_index].totloop;
+    const int num_corners = polys[face_index].size();
     const int num_face_ptex_faces = (num_corners == 4) ? 1 : num_corners;
     for (int i = 0; i < num_face_ptex_faces; ++i) {
       reshape_context->ptex_start_grid_index[ptex_index + i] = grid_index + i;
@@ -372,8 +372,7 @@ int multires_reshape_grid_to_corner(const MultiresReshapeContext *reshape_contex
 
 bool multires_reshape_is_quad_face(const MultiresReshapeContext *reshape_context, int face_index)
 {
-  const MPoly &base_poly = reshape_context->base_polys[face_index];
-  return (base_poly.totloop == 4);
+  return reshape_context->base_polys[face_index].size() == 4;
 }
 
 int multires_reshape_grid_to_ptex_index(const MultiresReshapeContext *reshape_context,
@@ -669,11 +668,11 @@ static void foreach_grid_face_coordinate_task(void *__restrict userdata_v,
 
   const MultiresReshapeContext *reshape_context = data->reshape_context;
 
-  const blender::Span<MPoly> polys = reshape_context->base_polys;
+  const blender::OffsetIndices polys = reshape_context->base_polys;
   const int grid_size = data->grid_size;
   const float grid_size_1_inv = 1.0f / (float(grid_size) - 1.0f);
 
-  const int num_corners = polys[face_index].totloop;
+  const int num_corners = polys[face_index].size();
   int grid_index = reshape_context->face_start_grid_index[face_index];
   for (int corner = 0; corner < num_corners; ++corner, ++grid_index) {
     for (int y = 0; y < grid_size; ++y) {

@@ -245,7 +245,8 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
     DRW_PASS_CREATE(psl->color_downsample_ps, DRW_STATE_WRITE_COLOR);
     grp = DRW_shgroup_create(EEVEE_shaders_effect_downsample_sh_get(), psl->color_downsample_ps);
-    DRW_shgroup_uniform_texture_ex(grp, "source", txl->filtered_radiance, GPU_SAMPLER_FILTER);
+    const GPUSamplerState sampler_state = {GPU_SAMPLER_FILTERING_LINEAR};
+    DRW_shgroup_uniform_texture_ex(grp, "source", txl->filtered_radiance, sampler_state);
     DRW_shgroup_uniform_vec2(grp, "texelSize", e_data.texel_size, 1);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }

@@ -187,6 +187,7 @@ struct SculptUndoNodeGeometry {
   CustomData edata;
   CustomData ldata;
   CustomData pdata;
+  int *poly_offset_indices;
   int totvert;
   int totedge;
   int totloop;
@@ -1100,7 +1101,7 @@ enum PBVHClearFlags {
   PBVH_CLEAR_FREE_BMESH = 1 << 2,
 };
 
-void SCULPT_pbvh_clear(Object *ob, bool cache_pbvh);
+void SCULPT_pbvh_clear(Object *ob);
 
 /**
  * Flush displacement from deformed PBVH to original layer.

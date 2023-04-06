@@ -185,7 +185,7 @@ set(SRC
   intern/lib_remap.c
   intern/library.c
   intern/light.c
-  intern/lightprobe.c
+  intern/lightprobe.cc
   intern/linestyle.cc
   intern/main.c
   intern/main_idmap.c
@@ -511,7 +511,7 @@ set(SRC
   intern/lib_intern.h
   intern/multires_inline.h
   intern/multires_reshape.hh
-  intern/multires_unsubdivide.h
+  intern/multires_unsubdivide.hh
   intern/ocean_intern.h
   intern/pbvh_intern.hh
   intern/pbvh_pixels_copy.hh

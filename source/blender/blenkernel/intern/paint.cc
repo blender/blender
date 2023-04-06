@@ -2345,7 +2345,7 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
                                   MultiresModifierData *mmd)
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
-  const Span<MPoly> polys = me->polys();
+  const blender::OffsetIndices polys = me->polys();
   const Span<int> corner_verts = me->corner_verts();
   int ret = 0;
 
@@ -2374,17 +2374,17 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
     /* If vertices already have mask, copy into multires data. */
     if (paint_mask) {
       for (const int i : polys.index_range()) {
-        const MPoly &poly = polys[i];
+        const blender::IndexRange poly = polys[i];
 
         /* Mask center. */
         float avg = 0.0f;
-        for (const int vert : corner_verts.slice(poly.loopstart, poly.totloop)) {
+        for (const int vert : corner_verts.slice(poly)) {
           avg += paint_mask[vert];
         }
-        avg /= float(poly.totloop);
+        avg /= float(poly.size());
 
         /* Fill in multires mask corner. */
-        for (const int corner : blender::IndexRange(poly.loopstart, poly.totloop)) {
+        for (const int corner : poly) {
           GridPaintMask *gpm = &gmask[corner];
           const int vert = corner_verts[corner];
           const int prev = corner_verts[blender::bke::mesh::poly_corner_prev(poly, vert)];
@@ -2577,7 +2577,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
   const int looptris_num = poly_to_tri_count(me->totpoly, me->totloop);
 
   MutableSpan<float3> positions = me->vert_positions_for_write();
-  const Span<MPoly> polys = me->polys();
+  const blender::OffsetIndices polys = me->polys();
   const Span<int> corner_verts = me->corner_verts();
 
   if (!ss->pmap) {
@@ -2600,7 +2600,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 
   BKE_pbvh_build_mesh(pbvh,
                       me,
-                      me->polys().data(),
+                      polys,
                       corner_verts.data(),
                       me->corner_edges().data(),
                       vert_cos,
@@ -2931,8 +2931,7 @@ void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me)
 
   CustomData *cd1[4] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
   CustomData *cd2[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
-  int badmask = CD_MASK_MEDGE | CD_MASK_MPOLY | CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE |
-                CD_MASK_MFACE;
+  int badmask = CD_MASK_MEDGE | CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_MFACE;
 
   for (int i = 0; i < 4; i++) {
     Vector<CustomDataLayer *> newlayers;

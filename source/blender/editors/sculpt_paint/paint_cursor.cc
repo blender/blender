@@ -655,10 +655,11 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
     GPUTexture *texture = (primary) ? primary_snap.overlay_texture :
                                       secondary_snap.overlay_texture;
 
-    eGPUSamplerState state = GPU_SAMPLER_FILTER;
-    state |= (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) ? GPU_SAMPLER_CLAMP_BORDER :
-                                                            GPU_SAMPLER_REPEAT;
-    immBindTextureSampler("image", texture, state);
+    GPUSamplerExtendMode extend_mode = (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) ?
+                                           GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER :
+                                           GPU_SAMPLER_EXTEND_MODE_REPEAT;
+    immBindTextureSampler(
+        "image", texture, {GPU_SAMPLER_FILTERING_LINEAR, extend_mode, extend_mode});
 
     /* Draw textured quad. */
     immBegin(GPU_PRIM_TRI_FAN, 4);
@@ -742,8 +743,11 @@ static bool paint_draw_cursor_overlay(
     immUniformColor4fv(final_color);
 
     /* Draw textured quad. */
-    immBindTextureSampler(
-        "image", cursor_snap.overlay_texture, GPU_SAMPLER_FILTER | GPU_SAMPLER_CLAMP_BORDER);
+    immBindTextureSampler("image",
+                          cursor_snap.overlay_texture,
+                          {GPU_SAMPLER_FILTERING_LINEAR,
+                           GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER,
+                           GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER});
 
     immBegin(GPU_PRIM_TRI_FAN, 4);
     immAttr2f(texCoord, 0.0f, 0.0f);

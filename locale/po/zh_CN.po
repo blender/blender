@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -2131,6 +2131,10 @@ msgstr "形态键"
 
 msgid "Shape Key data-blocks"
 msgstr "形态键数据块"
+
+
+msgid "Simulations"
+msgstr "模拟"
 
 
 msgid "Sounds"
@@ -9626,6 +9630,14 @@ msgid "Name of PoseBone to use as target"
 msgstr "用着目标的姿态骨头名字"
 
 
+msgid "Active Scene"
+msgstr "活动场景"
+
+
+msgid "Active View Layer"
+msgstr "活动视图层"
+
+
 msgid "Data Path"
 msgstr "数据路径"
 
@@ -12489,10 +12501,6 @@ msgstr "显示/隐藏点云数据块"
 
 msgid "Show Scene data-blocks"
 msgstr "显示场景数据块"
-
-
-msgid "Simulations"
-msgstr "模拟"
 
 
 msgid "Show Simulation data-blocks"
@@ -27281,6 +27289,10 @@ msgid "Active Movie Clip that can be used by motion tracking constraints or as a
 msgstr "可由运动跟踪约束使用或用作摄像机背景图像的活动影片剪辑"
 
 
+msgid "Mirror Object"
+msgstr "镜像物体"
+
+
 msgid "Distance Model"
 msgstr "间距样式"
 
@@ -34284,6 +34296,10 @@ msgid "Curve Context Menu"
 msgstr "曲线上下文菜单"
 
 
+msgid "Select More/Less"
+msgstr "扩展/缩减选择"
+
+
 msgid "Special Characters"
 msgstr "特殊字符"
 
@@ -34322,10 +34338,6 @@ msgstr "选择循环"
 
 msgid "Mesh Select Mode"
 msgstr "网格选择模式"
-
-
-msgid "Select More/Less"
-msgstr "扩展/缩减选择"
 
 
 msgid "Select Similar"
@@ -37462,10 +37474,6 @@ msgstr "与被切除顶点的切分平面的距离"
 
 msgid "Distance within which mirrored vertices are merged"
 msgstr "与镜像顶点的合并间距"
-
-
-msgid "Mirror Object"
-msgstr "镜像物体"
 
 
 msgid "Object to use as mirror"
@@ -42756,10 +42764,6 @@ msgid "Map Range"
 msgstr "映射范围"
 
 
-msgid "Clamp result of the node to 0.0 to 1.0 range"
-msgstr "将节点结果钳制在0 - 1范围"
-
-
 msgid "Map UV"
 msgstr "映射 UV"
 
@@ -43189,6 +43193,10 @@ msgid "Convert from radians to degrees"
 msgstr "从弧度转换为角度"
 
 
+msgid "Clamp result of the node to 0.0 to 1.0 range"
+msgstr "将节点结果钳制在0 - 1范围"
+
+
 msgid "Include alpha of second input in this operation"
 msgstr "将第二输入接口的 alpha 包含到当前操作"
 
@@ -43527,10 +43535,6 @@ msgstr "两个轴"
 
 msgid "Wrap all pixels on both axes"
 msgstr "在两个轴向上包绕所有像素"
-
-
-msgid "ColorRamp"
-msgstr "颜色渐变"
 
 
 msgid "Vector Blur"
@@ -44920,12 +44924,12 @@ msgid "Create a point in the point cloud for each selected face corner"
 msgstr "为每个选定面拐在点云中创建点"
 
 
-msgid "Create a fog volume with the shape of the input mesh's surface"
-msgstr "使用输入网格表面的形状创建雾体积"
-
-
 msgid "How the voxel size is specified"
 msgstr "如何指定体素大小"
+
+
+msgid "Create a fog volume with the shape of the input mesh's surface"
+msgstr "使用输入网格表面的形状创建雾体积"
 
 
 msgid "UV Sphere"
@@ -44984,6 +44988,14 @@ msgid "Retrieve a point index within a curve"
 msgstr "检索点在曲线内的编号"
 
 
+msgid "Specify the approximate number of voxels along the diagonal"
+msgstr "沿对角线指定体素的近似数量"
+
+
+msgid "Specify the voxel side length"
+msgstr "指定体素边长度"
+
+
 msgid "Points to Vertices"
 msgstr "点 -> 顶点"
 
@@ -44998,14 +45010,6 @@ msgstr "点到体积"
 
 msgid "Generate a fog volume sphere around every point"
 msgstr "在每个点周围生成雾体积球体"
-
-
-msgid "Specify the approximate number of voxels along the diagonal"
-msgstr "沿对角线指定体素的近似数量"
-
-
-msgid "Specify the voxel side length"
-msgstr "指定体素边长度"
 
 
 msgid "Geometry Proximity"
@@ -48936,6 +48940,14 @@ msgid "Extend selection"
 msgstr "扩展选择"
 
 
+msgid "Include Handles"
+msgstr "包括控制柄"
+
+
+msgid "Include handles of keyframes when calculating extents"
+msgstr "计算范围时包括关键帧控制柄"
+
+
 msgctxt "Operator"
 msgid "Remove Empty Animation Data"
 msgstr "删除空白动画数据"
@@ -51994,6 +52006,10 @@ msgid "Paste text from clipboard"
 msgstr "从剪贴板粘贴文本"
 
 
+msgid "Selection"
+msgstr "选中项"
+
+
 msgctxt "Operator"
 msgid "Scrollback Append"
 msgstr "回滚追加"
@@ -54324,10 +54340,6 @@ msgid "Include active collection and nested collections"
 msgstr "包括活动集合和嵌套集合"
 
 
-msgid "Active Scene"
-msgstr "活动场景"
-
-
 msgid "Export active scene only"
 msgstr "仅导出活动场景"
 
@@ -55189,10 +55201,6 @@ msgstr "更改字体间距"
 
 msgid "Amount to decrease or increase character spacing with"
 msgstr "字符间距的增减量"
-
-
-msgid "Selection"
-msgstr "选中项"
 
 
 msgid "Next or Selection"
@@ -58173,6 +58181,14 @@ msgid "Place the cursor on the midpoint of selected keyframes"
 msgstr "将光标置于所选多个关键帧的中点处"
 
 
+msgid "Filter Width"
+msgstr "过滤宽度"
+
+
+msgid "Sigma"
+msgstr "西格玛"
+
+
 msgctxt "Operator"
 msgid "Clear Ghost Curves"
 msgstr "清除残影曲线"
@@ -58255,10 +58271,6 @@ msgstr "显示曲线"
 
 msgid "Make previously hidden curves visible again in Graph Editor view"
 msgstr "使以前隐藏的曲线在“曲线编辑器”视图中再次可见"
-
-
-msgid "Include Handles"
-msgstr "包括控制柄"
 
 
 msgid "Are handles tested individually against the selection criteria"
@@ -58387,10 +58399,6 @@ msgstr "取消烘焙曲线"
 
 msgid "Un-Bake selected F-Points to F-Curves"
 msgstr "取消烘焙所选函数点为函数曲线"
-
-
-msgid "Include handles of keyframes when calculating extents"
-msgstr "计算范围时包括关键帧控制柄"
 
 
 msgid "Reset viewable area to show selected keyframe range"
@@ -67437,31 +67445,6 @@ msgid "Replace vertex groups of selected objects by vertex groups of active obje
 msgstr "用活动物体的顶点组替换选中物体的顶点组"
 
 
-msgctxt "Operator"
-msgid "Fix Vertex Group Deform"
-msgstr "修复顶点组形变"
-
-
-msgid "Modify the position of selected vertices by changing only their respective groups' weights (this tool may be slow for many vertices)"
-msgstr "通过仅改变所选顶点各自所属顶点组权重, 来修改所选顶点的位置 (点数较多时, 此工具的执行速度可能会慢)"
-
-
-msgid "Change Sensitivity"
-msgstr "改变敏感度"
-
-
-msgid "Change the amount weights are altered with each iteration: lower values are slower"
-msgstr "权重量可以通过不同的迭代值进行改变: 值越低, 速度越慢"
-
-
-msgid "The distance to move to"
-msgstr "移动至的距离"
-
-
-msgid "The distance moved can be changed by this multiplier"
-msgstr "通过此倍值, 可改变移动距离"
-
-
 msgid "Invert active vertex group's weights"
 msgstr "镜像所有顶点组的权重"
 
@@ -74931,10 +74914,6 @@ msgid "Toggle overwrite while typing"
 msgstr "输入时切换覆盖"
 
 
-msgid "Paste text selected elsewhere rather than copied (X11 only)"
-msgstr "粘贴选定文本而不是在其他地方复制 (仅用于X11系统)"
-
-
 msgctxt "Operator"
 msgid "Refresh PyConstraints"
 msgstr "刷新 Py 常量"
@@ -75402,10 +75381,6 @@ msgid "Sequence Slide"
 msgstr "滑动序列"
 
 
-msgid "Axis Ortho"
-msgstr "正交轴向"
-
-
 msgid "Edge Pan"
 msgstr "视图边平移"
 
@@ -75421,6 +75396,10 @@ msgstr "切变"
 
 msgid "Shear selected items along the horizontal screen axis"
 msgstr "根据屏幕的水平坐标轴修剪选择的项目"
+
+
+msgid "Axis Ortho"
+msgstr "正交轴向"
 
 
 msgctxt "Operator"
@@ -76248,15 +76227,6 @@ msgstr "清除属性并使用默认或者创建的值来运算"
 
 
 msgctxt "Operator"
-msgid "View drop"
-msgstr "视图拖放"
-
-
-msgid "Drag and drop items onto a data-set item"
-msgstr "将条目拖放到数据集条目上"
-
-
-msgctxt "Operator"
 msgid "Rename View Item"
 msgstr "重命名视图条目"
 
@@ -76714,6 +76684,10 @@ msgstr "指定最终UV输出的精确比例"
 
 msgid "Rotate islands for best fit"
 msgstr "旋转孤岛以获得最佳匹配"
+
+
+msgid "Bounding box"
+msgstr "边界框"
 
 
 msgid "Pack to"
@@ -85115,6 +85089,10 @@ msgid "Color of texture overlay"
 msgstr "重叠纹理的色彩"
 
 
+msgid "Only keyframes of selected F-Curves are visible and editable"
+msgstr "仅关键帧和已选择的函数曲线为可见并且允许编辑"
+
+
 msgid "Undo Memory Size"
 msgstr "撤销使用的内存大小"
 
@@ -88263,10 +88241,6 @@ msgstr "透明糙度阈值"
 
 msgid "For transparent transmission, keep surfaces with roughness above the threshold opaque"
 msgstr "对于透明效果，使高于不透明度阈值的表面保持粗糙"
-
-
-msgid "Filter Width"
-msgstr "过滤宽度"
 
 
 msgid "Pixel filter width"
@@ -92673,10 +92647,6 @@ msgid "Sequence strip to load one or more images"
 msgstr "加载一个或多个图像的序列片段"
 
 
-msgid "Multiply playback speed"
-msgstr "倍速播放"
-
-
 msgid "Mask Sequence"
 msgstr "遮罩序列"
 
@@ -92820,6 +92790,10 @@ msgstr "在片段内显示音频波形"
 
 msgid "Sound data-block used by this sequence"
 msgstr "序列所使用的声音数据块"
+
+
+msgid "Multiply playback speed"
+msgstr "倍速播放"
 
 
 msgid "Playback volume of the sound"
@@ -95010,28 +94984,12 @@ msgid "Automatically recalculate curve normalization on every curve edit"
 msgstr "在每次曲线编辑时, 自动重算曲线归一化"
 
 
-msgid "Use High Quality Display"
-msgstr "使用高质量显示"
-
-
-msgid "Display F-Curves using Anti-Aliasing and other fancy effects (disable for better performance)"
-msgstr "使用抗锯齿和其他模式来绘制函数曲线(关闭以获得更好的性能)"
-
-
 msgid "Use Normalization"
 msgstr "使用规格化"
 
 
 msgid "Display curves in normalized range from -1 to 1, for easier editing of multiple curves with different ranges"
 msgstr "显示为 -1..1 范围的曲线(归一化), 以轻松编辑不同范围的多条曲线"
-
-
-msgid "Only Selected Curve Keyframes"
-msgstr "仅所选曲线关键帧"
-
-
-msgid "Only keyframes of selected F-Curves are visible and editable"
-msgstr "仅关键帧和已选择的函数曲线为可见并且允许编辑"
 
 
 msgid "Only Selected Keyframes Handles"
@@ -99800,10 +99758,6 @@ msgid "Consider objects as whole when finding volume center"
 msgstr "在寻找体积中心时, 将多个物体视为一个整体"
 
 
-msgid "Project individual elements on the surface of other objects"
-msgstr "将单个元素投射到在其他物体的表面上"
-
-
 msgid "Use Snap for Rotation"
 msgstr "对旋转使用吸附"
 
@@ -100765,14 +100719,6 @@ msgstr "所有物体的原点"
 
 msgid "Show the object origin center dot for all (selected and unselected) objects"
 msgstr "显示所有(选定和未选定)物体的物体原点中心点"
-
-
-msgid "Hidden Wire"
-msgstr "隐藏线框"
-
-
-msgid "Use hidden wireframe display"
-msgstr "显示隐藏的线框"
 
 
 msgid "Show the Onion Skinning Overlay"
@@ -101845,10 +101791,6 @@ msgstr "屏幕"
 
 msgid "Active workspace screen showing in the window"
 msgstr "窗口中显示的活动工作区屏幕"
-
-
-msgid "Active View Layer"
-msgstr "活动视图层"
 
 
 msgid "The active workspace view layer showing in the window"
@@ -105063,10 +105005,6 @@ msgid "and AMD Radeon Pro %s driver or newer"
 msgstr "以及AMD Radeon Pro %s 驱动器或更新"
 
 
-msgid "and AMD driver version %s or newer"
-msgstr "以及AMD驱动程序 %s 版本或更新"
-
-
 msgid "and Windows driver version %s or newer"
 msgstr "以及Windows驱动版本 %s 或更新"
 
@@ -105077,6 +105015,10 @@ msgstr "需要Apple Silicon 和 macOS %s 或更新版本"
 
 msgid "or AMD with macOS %s or newer"
 msgstr "或者AMD搭配 macOS %s 或更新版本"
+
+
+msgid "and AMD driver version %s or newer"
+msgstr "以及AMD驱动程序 %s 版本或更新"
 
 
 msgid "  - intel-level-zero-gpu version %s or newer"
@@ -109764,6 +109706,11 @@ msgid "Link to Viewer"
 msgstr "连接预览器"
 
 
+msgctxt "Operator"
+msgid "Online Manual"
+msgstr "在线手册"
+
+
 msgid "Inputs:"
 msgstr "输入项:"
 
@@ -111889,13 +111836,13 @@ msgid "Limit Total"
 msgstr "总限值"
 
 
-msgctxt "Operator"
-msgid "Fix Deforms"
-msgstr "修正形变"
-
-
 msgid "Locks"
 msgstr "锁定"
+
+
+msgctxt "Operator"
+msgid "Invert Visible"
+msgstr "反转可见"
 
 
 msgctxt "Operator"
@@ -112400,11 +112347,6 @@ msgstr "显示Gizmo"
 
 msgid "Toggle Overlays"
 msgstr "切换叠加层"
-
-
-msgctxt "Operator"
-msgid "Invert Visible"
-msgstr "反转可见"
 
 
 msgid "Local Camera"
@@ -113579,10 +113521,6 @@ msgstr "文件由较新版本的 Blender 二进制程序 (%d.%d) 生成, 可能�
 
 msgid "Loading failed: "
 msgstr "加载失败: "
-
-
-msgid "Loading '%s' failed: "
-msgstr "加载 '%s' 失败: "
 
 
 msgid "Linked Data"
@@ -116275,11 +116213,6 @@ msgstr "移除快捷键"
 
 
 msgctxt "Operator"
-msgid "Online Manual"
-msgstr "在线手册"
-
-
-msgctxt "Operator"
 msgid "Online Python Reference"
 msgstr "在线 Python 参考"
 
@@ -118463,10 +118396,6 @@ msgid "All groups are locked"
 msgstr "全部组均已锁定"
 
 
-msgid "This operator does not support an active mirror modifier"
-msgstr "当前操作项不支持活动的镜像修改器"
-
-
 msgid "Editmode lattice is not supported yet"
 msgstr "尚不支持编辑模式的晶格"
 
@@ -118501,14 +118430,6 @@ msgstr "物体类型\"%s\"没有可编辑的数据"
 
 msgid "Object has no vertex groups"
 msgstr "物体没有顶点组"
-
-
-msgid "Only mesh objects are supported"
-msgstr "仅支持网格物体"
-
-
-msgid "The active mesh object has no vertex group data"
-msgstr "活动网格物体没有顶点组数据"
 
 
 msgid "Vertex select needs to be enabled in weight paint mode"
@@ -124346,16 +124267,8 @@ msgid "Fac"
 msgstr "系数"
 
 
-msgid "Node not supported in the Viewport compositor"
-msgstr "节点在视图合成器中不受支持"
-
-
 msgid "Determinator"
 msgstr "测定"
-
-
-msgid "Bounding box"
-msgstr "边界框"
 
 
 msgid "Color Space:"
@@ -124388,6 +124301,10 @@ msgstr "高亮"
 
 msgid "Midtones"
 msgstr "中间调"
+
+
+msgid "Node not supported in the Viewport compositor"
+msgstr "节点在视图合成器中不受支持"
 
 
 msgid "Upper Left"
@@ -126046,10 +125963,6 @@ msgid "Clearcoat Normal"
 msgstr "清漆法线"
 
 
-msgid "Sigma"
-msgstr "西格玛"
-
-
 msgid "View Vector"
 msgstr "视图矢量"
 
@@ -126584,10 +126497,6 @@ msgid "Engine '%s' not available for scene '%s' (an add-on may need to be instal
 msgstr "引擎 '%s' 对场景 '%s' (可能需要安装或启用一个插件) 不可用"
 
 
-msgid "Library %s needs overrides resync"
-msgstr "库 %s 需要重新同步重写"
-
-
 msgid "%d libraries and %d linked data-blocks are missing (including %d ObjectData and %d Proxies), please check the Info and Outliner editors for details"
 msgstr "丢失 %d 库和 %d 关联数据块(包括 %d 物体数据和 %d 代理)，详情请查看信息和大纲编辑器"
 
@@ -126600,44 +126509,12 @@ msgid "%d sequence strips were not read because they were in a channel larger th
 msgstr "%d 序列片段未读取，因为所在通道编号大于 %d"
 
 
-msgid "Cannot read file '%s': %s"
-msgstr "无法读取文件 '%s': %s"
-
-
-msgid "File format is not supported in file '%s'"
-msgstr "在 '%s' 中不支持的文件格式"
-
-
-msgid "File path '%s' invalid"
-msgstr "文件路径 '%s' 无效"
-
-
-msgid "Unknown error loading '%s'"
-msgstr "未知的加载错误 '%s'"
-
-
-msgid "Application Template '%s' not found"
-msgstr "未找到应用模板 '%s'"
-
-
-msgid "Could not read '%s'"
-msgstr "无法读取 '%s'"
-
-
-msgid "Cannot save blend file, path '%s' is not writable"
-msgstr "无法保存blend文件，路径 '%s' 不可写入"
-
-
 msgid "Cannot overwrite used library '%.240s'"
 msgstr "无法覆写已使用的库 '%.240s'"
 
 
 msgid "Saved \"%s\""
 msgstr "已保存 \"%s\""
-
-
-msgid "Can't read alternative start-up file: '%s'"
-msgstr "无法读取备用启动文件: '%s'"
 
 
 msgid "The \"filepath\" property was not an absolute path: \"%s\""

@@ -126,7 +126,7 @@ static const int MTL_MAX_FBO_ATTACHED = 16;
 
 /* Samplers */
 struct MTLSamplerState {
-  eGPUSamplerState state;
+  GPUSamplerState state;
 
   /* Mip min and mip max on sampler state always the same.
    * Level range now controlled with textureView to be consistent with GL baseLevel. */
@@ -138,16 +138,28 @@ struct MTLSamplerState {
 
   operator uint() const
   {
-    return uint(state);
+    uint integer_representation = 0;
+    integer_representation |= this->state.filtering;
+    integer_representation |= this->state.extend_x << 8;
+    integer_representation |= this->state.extend_yz << 12;
+    integer_representation |= this->state.custom_type << 16;
+    integer_representation |= this->state.type << 24;
+    return integer_representation;
   }
 
   operator uint64_t() const
   {
-    return uint64_t(state);
+    uint64_t integer_representation = 0;
+    integer_representation |= this->state.filtering;
+    integer_representation |= this->state.extend_x << 8;
+    integer_representation |= this->state.extend_yz << 12;
+    integer_representation |= this->state.custom_type << 16;
+    integer_representation |= this->state.type << 24;
+    return integer_representation;
   }
 };
 
-const MTLSamplerState DEFAULT_SAMPLER_STATE = {GPU_SAMPLER_DEFAULT /*, 0, 9999*/};
+const MTLSamplerState DEFAULT_SAMPLER_STATE = {GPUSamplerState::default_sampler() /*, 0, 9999*/};
 
 class MTLTexture : public Texture {
   friend class MTLContext;

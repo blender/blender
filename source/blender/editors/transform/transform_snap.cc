@@ -731,14 +731,25 @@ static eSnapTargetOP snap_target_select_from_spacetype(TransInfo *t)
 
 static void initSnappingMode(TransInfo *t)
 {
+  if (!transformModeUseSnap(t)) {
+    /* In this case, snapping is always disabled by default. */
+    t->modifiers &= ~MOD_SNAP;
+  }
+
   if (doForceIncrementSnap(t)) {
     t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
   }
 
-  if ((t->spacetype != SPACE_VIEW3D) || !(t->tsnap.mode & SCE_SNAP_MODE_FACE_RAYCAST) ||
-      (t->tsnap.mode & SCE_SNAP_MODE_FACE_NEAREST) || (t->flag & T_NO_PROJECT)) {
+  if ((t->spacetype != SPACE_VIEW3D) ||
+      !(t->tsnap.mode & (SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST)) ||
+      (t->flag & T_NO_PROJECT)) {
     /* Force project off when not supported. */
     t->tsnap.flag &= ~SCE_SNAP_PROJECT;
+  }
+
+  if (t->tsnap.mode & SCE_SNAP_MODE_FACE_NEAREST) {
+    /* This mode only works with individual projection. */
+    t->tsnap.flag |= SCE_SNAP_PROJECT;
   }
 
   setSnappingCallback(t);
@@ -881,9 +892,9 @@ void initSnapping(TransInfo *t, wmOperator *op)
 
   t->tsnap.source_operation = snap_source;
 
-  transform_snap_flag_from_modifiers_set(t);
-
   initSnappingMode(t);
+
+  transform_snap_flag_from_modifiers_set(t);
 }
 
 void freeSnapping(TransInfo *t)

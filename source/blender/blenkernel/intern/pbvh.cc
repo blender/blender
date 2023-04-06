@@ -58,7 +58,9 @@
 using blender::float3;
 using blender::IndexRange;
 using blender::Map;
+using blender::OffsetIndices;
 using blender::Set;
+using blender::Span;
 using blender::Vector;
 
 /* Uncomment to test if triangles of the same face are
@@ -955,7 +957,7 @@ static void pbvh_validate_node_prims(PBVH *pbvh)
 
 void BKE_pbvh_build_mesh(PBVH *pbvh,
                          Mesh *mesh,
-                         const MPoly *polys,
+                         const blender::OffsetIndices<int> polys,
                          const int *corner_verts,
                          const int *corner_edges,
                          float (*vert_positions)[3],
@@ -1097,9 +1099,9 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
 
   /* Find maximum number of grids per face. */
   int max_grids = 1;
-  const blender::Span<MPoly> polys = me->polys();
+  const blender::OffsetIndices polys = me->polys();
   for (const int i : polys.index_range()) {
-    max_grids = max_ii(max_grids, polys[i].totloop);
+    max_grids = max_ii(max_grids, polys[i].size());
   }
 
   /* Ensure leaf limit is at least 4 so there's room
@@ -1113,7 +1115,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->ldata = &me->ldata;
   pbvh->pdata = &me->pdata;
 
-  pbvh->polys = me->polys().data();
+  pbvh->polys = polys;
   pbvh->corner_verts = me->corner_verts().data();
 
   /* We also need the base mesh for PBVH draw. */
@@ -1162,7 +1164,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
 
 PBVH *BKE_pbvh_new(PBVHType type)
 {
-  PBVH *pbvh = (PBVH *)MEM_callocN(sizeof(PBVH), "pbvh");
+  PBVH *pbvh = MEM_new<PBVH>(__func__);
   pbvh->respect_hide = true;
   pbvh->draw_cache_invalid = true;
   pbvh->header.type = type;
@@ -1240,7 +1242,7 @@ void BKE_pbvh_free(PBVH *pbvh)
   pbvh->invalid = true;
   pbvh_pixels_free(pbvh);
 
-  MEM_freeN(pbvh);
+  MEM_delete<PBVH>(pbvh);
 }
 
 static void pbvh_iter_begin(PBVHIter *iter,
@@ -1600,10 +1602,10 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
 
       /* Face normal and mask */
       if (lt->poly != mpoly_prev) {
-        const MPoly &poly = pbvh->polys[lt->poly];
+        const blender::IndexRange poly = pbvh->polys[lt->poly];
         fn = blender::bke::mesh::poly_normal_calc(
             {reinterpret_cast<const blender::float3 *>(pbvh->vert_positions), pbvh->totvert},
-            {&pbvh->corner_verts[poly.loopstart], poly.totloop});
+            {&pbvh->corner_verts[poly.start()], poly.size()});
         mpoly_prev = lt->poly;
       }
 
@@ -4150,23 +4152,25 @@ ATTR_NO_OPT void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
   int len = 0;
 
   for (int i = 0; i < map->count; i++) {
-    const MPoly *mp = pbvh->polys + map->indices[i];
-    const int *corner_verts = &pbvh->corner_verts[mp->loopstart];
-    const int *corner_edges = &pbvh->corner_edges[mp->loopstart];
+    int loopstart = pbvh->polys[map->indices[i]].start();
+    int loop_count = pbvh->polys[map->indices[i]].size();
+
+    const Span<int> corner_verts(pbvh->corner_verts + loopstart, loop_count);
+    const Span<int> corner_edges(pbvh->corner_edges + loopstart, loop_count);
 
     if (pbvh->hide_poly && pbvh->hide_poly[map->indices[i]]) {
       /* Skip connectivity from hidden faces. */
       continue;
     }
 
-    for (int j = 0; j < mp->totloop; j++) {
+    for (int j : IndexRange(loop_count)) {
       if (corner_verts[j] == vertex.i) {
         pbvh_pmap_to_edges_add(pbvh,
                                vertex,
                                r_edges,
                                r_edges_size,
                                r_heap_alloc,
-                               corner_edges[(j + mp->totloop - 1) % mp->totloop],
+                               corner_edges[(j + loop_count - 1) % loop_count],
                                map->indices[i],
                                &len,
                                r_polys);
@@ -4424,7 +4428,7 @@ void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
                                          const MEdge *medge,
                                          const int *corner_verts,
                                          const int *corner_edges,
-                                         const MPoly *mpoly,
+                                         blender::OffsetIndices<int> polys,
                                          MSculptVert *msculptverts,
                                          const MeshElemMap *pmap,
                                          PBVHVertRef vertex,
@@ -4448,18 +4452,21 @@ void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
   for (int i = 0; i < vert_map->count; i++) {
     int f_i = vert_map->indices[i];
 
-    const MPoly *mp = mpoly + f_i;
-    const int *mc = corner_verts + mp->loopstart;
+    IndexRange poly = polys[f_i];
+    const int *mc = corner_verts + poly.start();
+    const int loop_count = poly.size();
+    const int loopstart = poly.start();
+
     int j = 0;
 
-    for (j = 0; j < mp->totloop; j++, mc++) {
+    for (j = 0; j < loop_count; j++, mc++) {
       if (*mc == (int)vertex.i) {
         break;
       }
     }
 
-    if (j < mp->totloop) {
-      int e_index = corner_edges[mp->loopstart + j];
+    if (j < loop_count) {
+      int e_index = corner_edges[loopstart + j];
 
       const MEdge *me = medge + e_index;
       if (sharp_edges && sharp_edges[e_index]) {
@@ -4552,13 +4559,8 @@ SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me)
 {
   SculptPMap *pmap = (SculptPMap *)MEM_callocN(sizeof(*pmap), "SculptPMap");
 
-  BKE_mesh_vert_poly_map_create(&pmap->pmap,
-                                &pmap->pmap_mem,
-                                me->polys().data(),
-                                me->corner_verts().data(),
-                                me->totvert,
-                                me->totpoly,
-                                me->totloop);
+  BKE_mesh_vert_poly_map_create(
+      &pmap->pmap, &pmap->pmap_mem, me->polys(), me->corner_verts().data(), me->totvert);
 
   pmap->refcount = 1;
 
@@ -4870,7 +4872,8 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
       }
 
       fd->last_face_index_ = face_index;
-      const MPoly &poly = fd->polys_[face_index];
+      const int poly_start = fd->poly_offsets_[face_index];
+      const int poly_size = fd->poly_offsets_[face_index + 1] - poly_start;
 
       fd->face.i = fd->index = face_index;
 
@@ -4881,15 +4884,15 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
         fd->hide = fd->hide_poly_ + face_index;
       }
 
-      pbvh_face_iter_verts_reserve(fd, poly.totloop);
+      pbvh_face_iter_verts_reserve(fd, poly_size);
 
-      const int *poly_verts = &fd->corner_verts_[poly.loopstart];
+      const int *poly_verts = &fd->corner_verts_[poly_start];
       const int grid_area = fd->subdiv_key_.grid_area;
 
-      for (int i = 0; i < poly.totloop; i++) {
+      for (int i = 0; i < poly_size; i++) {
         if (fd->pbvh_type_ == PBVH_GRIDS) {
           /* Grid corners. */
-          fd->verts[i].i = (poly.loopstart + i) * grid_area + grid_area - 1;
+          fd->verts[i].i = (poly_start + i) * grid_area + grid_area - 1;
         }
         else {
           fd->verts[i].i = poly_verts[i];
@@ -4920,7 +4923,7 @@ void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd)
       fd->subdiv_key_ = pbvh->gridkey;
       ATTR_FALLTHROUGH;
     case PBVH_FACES:
-      fd->polys_ = pbvh->polys;
+      fd->poly_offsets_ = pbvh->polys.data();
       fd->corner_verts_ = pbvh->corner_verts;
       fd->looptri_ = pbvh->looptri;
       fd->hide_poly_ = pbvh->hide_poly;
@@ -5001,7 +5004,7 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
       break;
     }
     case PBVH_GRIDS: {
-      const blender::Span<MPoly> polys = mesh->polys();
+      const blender::OffsetIndices polys = mesh->polys();
       CCGKey key = pbvh->gridkey;
 
       bool *hide_poly = (bool *)CustomData_get_layer_named_for_write(
@@ -5009,10 +5012,11 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
 
       bool delete_hide_poly = true;
       for (const int face_index : polys.index_range()) {
+        const blender::IndexRange poly = polys[face_index];
         bool hidden = false;
 
-        for (int loop_index = 0; !hidden && loop_index < polys[face_index].totloop; loop_index++) {
-          int grid_index = polys[face_index].loopstart + loop_index;
+        for (int loop_index = 0; !hidden && loop_index < poly.size(); loop_index++) {
+          int grid_index = poly[loop_index];
 
           if (pbvh->grid_hidden[grid_index] &&
               BLI_BITMAP_TEST(pbvh->grid_hidden[grid_index], key.grid_area - 1)) {

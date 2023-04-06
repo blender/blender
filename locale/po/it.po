@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -14674,6 +14674,10 @@ msgid "Active Movie Clip"
 msgstr "Filmato Attivo"
 
 
+msgid "Mirror Object"
+msgstr "Specchia Oggetto"
+
+
 msgid "Distance Model"
 msgstr "Modello Distanza"
 
@@ -18720,6 +18724,10 @@ msgid "Bone Roll"
 msgstr "Rollio Osso"
 
 
+msgid "Select More/Less"
+msgstr "Seleziona Più/Meno"
+
+
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
@@ -18742,10 +18750,6 @@ msgstr "Seleziona Anelli"
 
 msgid "Mesh Select Mode"
 msgstr "Modalità Selezione Mesh"
-
-
-msgid "Select More/Less"
-msgstr "Seleziona Più/Meno"
 
 
 msgid "Select Similar"
@@ -20610,10 +20614,6 @@ msgstr "Modificatore specchiatura"
 
 msgid "Distance within which mirrored vertices are merged"
 msgstr "Distanza all'interno della quale vengono uniti i vertici specchiati"
-
-
-msgid "Mirror Object"
-msgstr "Specchia Oggetto"
 
 
 msgid "Object to use as mirror"
@@ -23868,10 +23868,6 @@ msgid "Both Axes"
 msgstr "Entrambi gli Assi"
 
 
-msgid "ColorRamp"
-msgstr "Rampa Colore"
-
-
 msgid "Vector Blur"
 msgstr "Sfocatura Movimento (Vettore)"
 
@@ -25466,6 +25462,10 @@ msgstr "Seleziona tutti i fotogrammi chiave del canale sotto il mouse"
 
 msgid "Extend selection"
 msgstr "Estendi Selezione"
+
+
+msgid "Include Handles"
+msgstr "Includi Manipolatori"
 
 
 msgctxt "Operator"
@@ -27580,6 +27580,10 @@ msgid "Paste text from clipboard"
 msgstr "Incolla il testo dagli appunti"
 
 
+msgid "Selection"
+msgstr "Selezione"
+
+
 msgctxt "Operator"
 msgid "Scrollback Append"
 msgstr "Scorrimento all'indietro"
@@ -29145,10 +29149,6 @@ msgid "Amount to decrease or increase character spacing with"
 msgstr "Quantità con cui decrementare o incrementare la spaziatura dei caratteri"
 
 
-msgid "Selection"
-msgstr "Selezione"
-
-
 msgid "Next or Selection"
 msgstr "Successivo o Selezione"
 
@@ -30068,6 +30068,14 @@ msgid "Place the cursor on the midpoint of selected keyframes"
 msgstr "Colloca il cursore al punto intermedio dei fotogrammi-chiave selezionati"
 
 
+msgid "Filter Width"
+msgstr "Larghezza Filtro"
+
+
+msgid "Sigma"
+msgstr "Sigma"
+
+
 msgctxt "Operator"
 msgid "Clear Ghost Curves"
 msgstr "Pulisci Curve Fantasma"
@@ -30118,10 +30126,6 @@ msgstr "Ribalta i tempi dei keyframes selezionati, invertendo l'ordine in cui ap
 msgctxt "Operator"
 msgid "Reveal Curves"
 msgstr "Rimostra Curve Nascoste"
-
-
-msgid "Include Handles"
-msgstr "Includi Manipolatori"
 
 
 msgid "Are handles tested individually against the selection criteria"
@@ -35257,31 +35261,6 @@ msgid "Copy Vertex Group to Selected"
 msgstr "Copia Gruppo Vertici a Selezionato"
 
 
-msgctxt "Operator"
-msgid "Fix Vertex Group Deform"
-msgstr "Fissa Deformazione Gruppo Vertici"
-
-
-msgid "Modify the position of selected vertices by changing only their respective groups' weights (this tool may be slow for many vertices)"
-msgstr "Modifica la posizione dei vertici selezionati, cambiando solo i loro rispettivi gruppi dei pesi (questo strumento può essere lento con molti vertici)"
-
-
-msgid "Change Sensitivity"
-msgstr "Cambia Sensibilità"
-
-
-msgid "Change the amount weights are altered with each iteration: lower values are slower"
-msgstr "Cambia la quantità dei pesi che sono alterati con ogni iterazione: valori bassi sono lenti"
-
-
-msgid "The distance to move to"
-msgstr "Distanza a cui muovere"
-
-
-msgid "The distance moved can be changed by this multiplier"
-msgstr "La distanza percorsa può essere cambiata da questo moltiplicatore"
-
-
 msgid "Invert active vertex group's weights"
 msgstr "Inverte i pesi del gruppo vertici attivo"
 
@@ -39250,10 +39229,6 @@ msgstr "Cambia Sovrascrittura"
 
 msgid "Toggle overwrite while typing"
 msgstr "Cambia sovrascrittura durante la battitura del testo"
-
-
-msgid "Paste text selected elsewhere rather than copied (X11 only)"
-msgstr "Incolla il testo selezionato altrove invece che copiarlo (solo per X11)"
 
 
 msgctxt "Operator"
@@ -44281,6 +44256,10 @@ msgid "Color of texture overlay"
 msgstr "Colore di sovrapposizione della texture"
 
 
+msgid "Only keyframes of selected F-Curves are visible and editable"
+msgstr "Solo i fotogrammi chiave delle Curve-F selezionate sono visibile e modificabili"
+
+
 msgid "Undo Memory Size"
 msgstr "Memoria disponibile per l'Annulla"
 
@@ -45647,10 +45626,6 @@ msgstr "Usa funzioni incomplete e sperimentali che possono essere modificate o r
 
 msgid "Image brightness scale"
 msgstr "Scala della luminosità dell'immagine"
-
-
-msgid "Filter Width"
-msgstr "Larghezza Filtro"
 
 
 msgid "Pixel filter width"
@@ -48734,14 +48709,6 @@ msgid "Use Normalization"
 msgstr "Usa Normalizzazione"
 
 
-msgid "Only Selected Curve Keyframes"
-msgstr "Solo Fotogrammi Chiave della Curva Selezionata"
-
-
-msgid "Only keyframes of selected F-Curves are visible and editable"
-msgstr "Solo i fotogrammi chiave delle Curve-F selezionate sono visibile e modificabili"
-
-
 msgid "Only Selected Keyframes Handles"
 msgstr "Solo Maniglie dei Fotogrammi Chiave Selezionati"
 
@@ -51066,10 +51033,6 @@ msgid "Consider objects as whole when finding volume center"
 msgstr "Considera gli oggetti nel loro complesso quando ricerca il centro del volume"
 
 
-msgid "Project individual elements on the surface of other objects"
-msgstr "Proietta individualmente gli elementi sulle superfici degli altri oggetti"
-
-
 msgid "UV Sync Selection"
 msgstr "Sincronizza Selezione UV"
 
@@ -51440,14 +51403,6 @@ msgstr "Tutte le Origini Oggetto"
 
 msgid "Show the object origin center dot for all (selected and unselected) objects"
 msgstr "Mostra il punto centrale dell'origine dell'oggetto per tutti gli oggetti (selezionati e non selezionati)"
-
-
-msgid "Hidden Wire"
-msgstr "Reticolo Nascosto"
-
-
-msgid "Use hidden wireframe display"
-msgstr "Usa vista a reticolo senza mostrare le facce nascoste"
 
 
 msgid "Outline Selected"
@@ -53956,6 +53911,11 @@ msgid "Make and Replace Links"
 msgstr "Crea e Sostituisci Connessioni"
 
 
+msgctxt "Operator"
+msgid "Online Manual"
+msgstr "Manuale Online"
+
+
 msgid "Inputs:"
 msgstr "Ingressi:"
 
@@ -55100,11 +55060,6 @@ msgstr "Limita Totale"
 
 
 msgctxt "Operator"
-msgid "Fix Deforms"
-msgstr "Correggi Deformazione"
-
-
-msgctxt "Operator"
 msgid "Hide Masked"
 msgstr "Nascondi Mascherati"
 
@@ -55915,10 +55870,6 @@ msgstr "File scritto nel nuovo formato binario Blender (%d.%d), possibile perdit
 
 msgid "Loading failed: "
 msgstr "Fallito caricamento: "
-
-
-msgid "Loading '%s' failed: "
-msgstr "Caricamento '%s' fallito: "
 
 
 msgid "Linking or appending from a very old .blend file format (%d.%d), no animation conversion will be done! You may want to re-save your lib file with current Blender"
@@ -56805,11 +56756,6 @@ msgstr "Copia Percorso Dati Completo"
 msgctxt "Operator"
 msgid "Remove Shortcut"
 msgstr "Rimuovi Scorciatoia"
-
-
-msgctxt "Operator"
-msgid "Online Manual"
-msgstr "Manuale Online"
 
 
 msgctxt "Operator"
@@ -60172,10 +60118,6 @@ msgid "Clearcoat Normal"
 msgstr "Normale Rivest. Traspar."
 
 
-msgid "Sigma"
-msgstr "Sigma"
-
-
 msgid "View Vector"
 msgstr "Vettore Vista"
 
@@ -60486,36 +60428,8 @@ msgid "Engine '%s' not available for scene '%s' (an add-on may need to be instal
 msgstr "Il motore '%s' non è disponibile per la scena '%s' (può darsi che vada installato e/o attivato un add-on)"
 
 
-msgid "Cannot read file '%s': %s"
-msgstr "Impossibile leggere il file '%s': %s"
-
-
-msgid "File format is not supported in file '%s'"
-msgstr "Formato non supportato nel file '%s'"
-
-
-msgid "File path '%s' invalid"
-msgstr "Percorso del file non valido: '%s'"
-
-
-msgid "Unknown error loading '%s'"
-msgstr "Errore sconosciuto caricando '%s'"
-
-
-msgid "Could not read '%s'"
-msgstr "Impossibile leggere '%s'"
-
-
-msgid "Cannot save blend file, path '%s' is not writable"
-msgstr "Impossibile salvare il file blend, il percorso '%s' è di sola lettura"
-
-
 msgid "Saved \"%s\""
 msgstr "Salvato \"%s\""
-
-
-msgid "Can't read alternative start-up file: '%s'"
-msgstr "Impossibile leggere il file d'avvio alternativo: '%s'"
 
 
 msgid "Not a library"

@@ -19,7 +19,7 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "GHOST_Path-api.h"
+#include "GHOST_Path-api.hh"
 
 namespace blender::bke::tests {
 

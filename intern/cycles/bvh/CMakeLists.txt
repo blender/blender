@@ -61,6 +61,11 @@ if(WITH_CYCLES_EMBREE)
   list(APPEND LIB
     ${EMBREE_LIBRARIES}
   )
+  if(EMBREE_SYCL_SUPPORT)
+    list(APPEND LIB
+      ${SYCL_LIBRARIES}
+    )
+  endif()
 endif()
 
 cycles_add_library(cycles_bvh "${LIB}" ${SRC} ${SRC_HEADERS})

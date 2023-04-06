@@ -119,17 +119,17 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   /* Construct the new output mesh */
   Mesh *mesh = BKE_mesh_new_nomain(qrd.out_totverts, 0, qrd.out_totfaces * 4, qrd.out_totfaces);
   BKE_mesh_copy_parameters(mesh, input_mesh);
-  MutableSpan<MPoly> polys = mesh->polys_for_write();
+  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
+
+  poly_offsets.fill(4);
+  blender::offset_indices::accumulate_counts_to_offsets(poly_offsets);
 
   mesh->vert_positions_for_write().copy_from(
       Span(reinterpret_cast<float3 *>(qrd.out_verts), qrd.out_totverts));
 
   for (const int i : IndexRange(qrd.out_totfaces)) {
-    MPoly &poly = polys[i];
     const int loopstart = i * 4;
-    poly.loopstart = loopstart;
-    poly.totloop = 4;
     corner_verts[loopstart] = qrd.out_faces[loopstart];
     corner_verts[loopstart + 1] = qrd.out_faces[loopstart + 1];
     corner_verts[loopstart + 2] = qrd.out_faces[loopstart + 2];
@@ -224,18 +224,19 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
   Mesh *mesh = BKE_mesh_new_nomain(
       vertices.size(), 0, quads.size() * 4 + tris.size() * 3, quads.size() + tris.size());
   MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
-  MutableSpan<MPoly> mesh_polys = mesh->polys_for_write();
+  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> mesh_corner_verts = mesh->corner_verts_for_write();
+
+  poly_offsets.take_front(quads.size()).fill(4);
+  poly_offsets.drop_front(quads.size()).fill(3);
+  blender::offset_indices::accumulate_counts_to_offsets(poly_offsets);
 
   for (const int i : vert_positions.index_range()) {
     vert_positions[i] = float3(vertices[i].x(), vertices[i].y(), vertices[i].z());
   }
 
   for (const int i : IndexRange(quads.size())) {
-    MPoly &poly = mesh_polys[i];
     const int loopstart = i * 4;
-    poly.loopstart = loopstart;
-    poly.totloop = 4;
     mesh_corner_verts[loopstart] = quads[i][0];
     mesh_corner_verts[loopstart + 1] = quads[i][3];
     mesh_corner_verts[loopstart + 2] = quads[i][2];
@@ -244,10 +245,7 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
 
   const int triangle_loop_start = quads.size() * 4;
   for (const int i : IndexRange(tris.size())) {
-    MPoly &poly = mesh_polys[quads.size() + i];
     const int loopstart = triangle_loop_start + i * 3;
-    poly.loopstart = loopstart;
-    poly.totloop = 3;
     mesh_corner_verts[loopstart] = tris[i][2];
     mesh_corner_verts[loopstart + 1] = tris[i][1];
     mesh_corner_verts[loopstart + 2] = tris[i][0];
@@ -316,7 +314,7 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
   const AttributeAccessor src_attributes = source->attributes();
   MutableAttributeAccessor dst_attributes = target->attributes_for_write();
   const Span<float3> target_positions = target->vert_positions();
-  const Span<MPoly> target_polys = target->polys();
+  const OffsetIndices target_polys = target->polys();
   const Span<int> target_corner_verts = target->corner_verts();
 
   const VArray<int> src_face_sets = src_attributes.lookup<int>(".sculpt_face_set",
@@ -342,9 +340,8 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
       BVHTreeNearest nearest;
       nearest.index = -1;
       nearest.dist_sq = FLT_MAX;
-      const MPoly &poly = target_polys[i];
-      const float3 from_co = mesh::poly_center_calc(
-          target_positions, target_corner_verts.slice(poly.loopstart, poly.totloop));
+      const float3 from_co = mesh::poly_center_calc(target_positions,
+                                                    target_corner_verts.slice(target_polys[i]));
       BLI_bvhtree_find_nearest(
           bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
       if (nearest.index != -1) {
@@ -416,19 +413,15 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
       if (!source_lmap) {
         BKE_mesh_vert_loop_map_create(&source_lmap,
                                       &source_lmap_mem,
-                                      source->polys().data(),
+                                      source->polys(),
                                       source->corner_verts().data(),
-                                      source->totvert,
-                                      source->totpoly,
-                                      source->totloop);
+                                      source->totvert);
 
         BKE_mesh_vert_loop_map_create(&target_lmap,
                                       &target_lmap_mem,
-                                      target->polys().data(),
+                                      target->polys(),
                                       target->corner_verts().data(),
-                                      target->totvert,
-                                      target->totpoly,
-                                      target->totloop);
+                                      target->totvert);
       }
 
       blender::threading::parallel_for(

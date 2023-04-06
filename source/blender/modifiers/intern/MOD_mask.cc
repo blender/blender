@@ -224,7 +224,7 @@ static void computed_masked_polys(const Mesh *mesh,
                                   uint *r_loops_masked_num)
 {
   BLI_assert(mesh->totvert == vertex_mask.size());
-  const Span<MPoly> polys = mesh->polys();
+  const blender::OffsetIndices polys = mesh->polys();
   const Span<int> corner_verts = mesh->corner_verts();
 
   r_masked_poly_indices.reserve(mesh->totpoly);
@@ -232,10 +232,10 @@ static void computed_masked_polys(const Mesh *mesh,
 
   uint loops_masked_num = 0;
   for (int i : IndexRange(mesh->totpoly)) {
-    const MPoly &poly_src = polys[i];
+    const blender::IndexRange poly = polys[i];
 
     bool all_verts_in_mask = true;
-    for (const int vert_i : corner_verts.slice(poly_src.loopstart, poly_src.totloop)) {
+    for (const int vert_i : corner_verts.slice(poly)) {
       if (!vertex_mask[vert_i]) {
         all_verts_in_mask = false;
         break;
@@ -245,7 +245,7 @@ static void computed_masked_polys(const Mesh *mesh,
     if (all_verts_in_mask) {
       r_masked_poly_indices.append_unchecked(i);
       r_loop_starts.append_unchecked(loops_masked_num);
-      loops_masked_num += poly_src.totloop;
+      loops_masked_num += poly.size();
     }
   }
 
@@ -269,19 +269,19 @@ static void compute_interpolated_polys(const Mesh *mesh,
   /* NOTE: this reserve can only lift the capacity if there are ngons, which get split. */
   r_masked_poly_indices.reserve(r_masked_poly_indices.size() + verts_add_num);
   r_loop_starts.reserve(r_loop_starts.size() + verts_add_num);
-  const Span<MPoly> polys = mesh->polys();
+  const blender::OffsetIndices polys = mesh->polys();
   const Span<int> corner_verts = mesh->corner_verts();
 
   uint edges_add_num = 0;
   uint polys_add_num = 0;
   uint loops_add_num = 0;
   for (int i : IndexRange(mesh->totpoly)) {
-    const MPoly &poly_src = polys[i];
+    const blender::IndexRange poly_src = polys[i];
 
     int in_count = 0;
     int start = -1;
     int dst_totloop = -1;
-    const Span<int> poly_verts_src = corner_verts.slice(poly_src.loopstart, poly_src.totloop);
+    const Span<int> poly_verts_src = corner_verts.slice(poly_src);
     for (const int j : poly_verts_src.index_range()) {
       const int vert_i = poly_verts_src[j];
       if (vertex_mask[vert_i]) {
@@ -291,12 +291,12 @@ static void compute_interpolated_polys(const Mesh *mesh,
         start = j;
       }
     }
-    if (0 < in_count && in_count < poly_src.totloop) {
+    if (0 < in_count && in_count < poly_src.size()) {
       /* Ring search starting at a vertex which is not included in the mask. */
       int last_corner_vert = corner_verts[start];
       bool v_loop_in_mask_last = vertex_mask[last_corner_vert];
       for (const int j : poly_verts_src.index_range()) {
-        const int corner_vert = corner_verts[(start + 1 + j) % poly_src.totloop];
+        const int corner_vert = corner_verts[(start + 1 + j) % poly_src.size()];
         const bool v_loop_in_mask = vertex_mask[corner_vert];
         if (v_loop_in_mask && !v_loop_in_mask_last) {
           dst_totloop = 3;
@@ -444,8 +444,8 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> new_loop_starts,
                                           int polys_masked_num)
 {
-  const Span<MPoly> src_polys = src_mesh.polys();
-  MutableSpan<MPoly> dst_polys = dst_mesh.polys_for_write();
+  const blender::OffsetIndices src_polys = src_mesh.polys();
+  MutableSpan<int> dst_poly_offsets = dst_mesh.poly_offsets_for_write();
   const Span<int> src_corner_verts = src_mesh.corner_verts();
   const Span<int> src_corner_edges = src_mesh.corner_edges();
   MutableSpan<int> dst_corner_verts = dst_mesh.corner_verts_for_write();
@@ -453,20 +453,20 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
 
   for (const int i_dst : IndexRange(polys_masked_num)) {
     const int i_src = masked_poly_indices[i_dst];
+    const blender::IndexRange src_poly = src_polys[i_src];
 
-    const MPoly &mp_src = src_polys[i_src];
-    MPoly &mp_dst = dst_polys[i_dst];
-    const int i_ml_src = mp_src.loopstart;
-    const int i_ml_dst = new_loop_starts[i_dst];
+    dst_poly_offsets[i_dst] = new_loop_starts[i_dst];
 
     CustomData_copy_data(&src_mesh.pdata, &dst_mesh.pdata, i_src, i_dst, 1);
-    CustomData_copy_data(&src_mesh.ldata, &dst_mesh.ldata, i_ml_src, i_ml_dst, mp_src.totloop);
+    CustomData_copy_data(&src_mesh.ldata,
+                         &dst_mesh.ldata,
+                         src_poly.start(),
+                         dst_poly_offsets[i_dst],
+                         src_poly.size());
 
-    mp_dst = mp_src;
-    mp_dst.loopstart = i_ml_dst;
-    for (int i : IndexRange(mp_src.totloop)) {
-      dst_corner_verts[i_ml_dst + i] = vertex_map[src_corner_verts[i_ml_src + i]];
-      dst_corner_edges[i_ml_dst + i] = edge_map[src_corner_edges[i_ml_src + i]];
+    for (int i : IndexRange(src_poly.size())) {
+      dst_corner_verts[new_loop_starts[i_dst] + i] = vertex_map[src_corner_verts[src_poly[i]]];
+      dst_corner_edges[new_loop_starts[i_dst] + i] = edge_map[src_corner_edges[src_poly[i]]];
     }
   }
 }
@@ -484,8 +484,8 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
                                                int polys_masked_num,
                                                int edges_add_num)
 {
-  const Span<MPoly> src_polys = src_mesh.polys();
-  MutableSpan<MPoly> dst_polys = dst_mesh.polys_for_write();
+  const blender::OffsetIndices src_polys = src_mesh.polys();
+  MutableSpan<int> dst_poly_offsets = dst_mesh.poly_offsets_for_write();
   MutableSpan<MEdge> dst_edges = dst_mesh.edges_for_write();
   const Span<int> src_corner_verts = src_mesh.corner_verts();
   const Span<int> src_corner_edges = src_mesh.corner_edges();
@@ -506,24 +506,17 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
       last_i_src = i_src;
     }
 
-    const MPoly &mp_src = src_polys[i_src];
-    MPoly &mp_dst = dst_polys[i_dst];
-    const int i_ml_src = mp_src.loopstart;
+    const blender::IndexRange src_poly = src_polys[i_src];
+    const int i_ml_src = src_poly.start();
     int i_ml_dst = new_loop_starts[i_dst];
-    const int mp_totloop = (i_dst + 1 < new_loop_starts.size() ? new_loop_starts[i_dst + 1] :
-                                                                 dst_mesh.totloop) -
-                           i_ml_dst;
-
     CustomData_copy_data(&src_mesh.pdata, &dst_mesh.pdata, i_src, i_dst, 1);
 
-    mp_dst = mp_src;
-    mp_dst.loopstart = i_ml_dst;
-    mp_dst.totloop = mp_totloop;
+    dst_poly_offsets[i_dst] = i_ml_dst;
 
     /* Ring search starting at a vertex which is not included in the mask. */
     int start = -sub_poly_index - 1;
     bool skip = false;
-    Span<int> corner_verts_src(&src_corner_verts[i_ml_src], mp_src.totloop);
+    Span<int> corner_verts_src(&src_corner_verts[i_ml_src], src_poly.size());
     for (const int j : corner_verts_src.index_range()) {
       if (!vertex_mask[corner_verts_src[j]]) {
         if (start == -1) {
@@ -547,7 +540,7 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
     bool v_loop_in_mask_last = vertex_mask[src_corner_verts[last_corner_i]];
     int last_index = start;
     for (const int j : corner_verts_src.index_range()) {
-      const int index = (start + 1 + j) % mp_src.totloop;
+      const int index = (start + 1 + j) % src_poly.size();
       const bool v_loop_in_mask = vertex_mask[src_corner_verts[index]];
       if (v_loop_in_mask && !v_loop_in_mask_last) {
         /* Start new cut. */
@@ -570,7 +563,7 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
         i_ml_dst++;
       }
       else if (!v_loop_in_mask && v_loop_in_mask_last) {
-        BLI_assert(i_ml_dst != mp_dst.loopstart);
+        BLI_assert(i_ml_dst != dst_poly_offsets[i_dst]);
         /* End active cut. */
         float fac = get_interp_factor_from_vgroup(dvert,
                                                   defgrp_index,
@@ -587,7 +580,7 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
 
         /* Create closing edge. */
         MEdge &cut_edge = dst_edges[edge_index];
-        cut_edge.v1 = dst_corner_verts[mp_dst.loopstart];
+        cut_edge.v1 = dst_corner_verts[dst_poly_offsets[i_dst]];
         cut_edge.v2 = dst_corner_verts[i_ml_dst];
         BLI_assert(cut_edge.v1 != cut_edge.v2);
         edge_index++;
@@ -596,7 +589,7 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
         break;
       }
       else if (v_loop_in_mask && v_loop_in_mask_last) {
-        BLI_assert(i_ml_dst != mp_dst.loopstart);
+        BLI_assert(i_ml_dst != dst_poly_offsets[i_dst]);
         /* Extend active poly. */
         CustomData_copy_data(&src_mesh.ldata, &dst_mesh.ldata, i_ml_src + index, i_ml_dst, 1);
         dst_corner_verts[i_ml_dst] = vertex_map[src_corner_verts[index]];
@@ -607,7 +600,6 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
       last_index = index;
       v_loop_in_mask_last = v_loop_in_mask;
     }
-    BLI_assert(mp_dst.loopstart + mp_dst.totloop == i_ml_dst);
   }
   BLI_assert(edge_index == dst_mesh.totedge);
 }

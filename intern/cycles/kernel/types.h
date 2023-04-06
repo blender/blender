@@ -4,8 +4,13 @@
 #pragma once
 
 #if !defined(__KERNEL_GPU__) && defined(WITH_EMBREE)
-#  include <embree3/rtcore.h>
-#  include <embree3/rtcore_scene.h>
+#  if EMBREE_MAJOR_VERSION >= 4
+#    include <embree4/rtcore.h>
+#    include <embree4/rtcore_scene.h>
+#  else
+#    include <embree3/rtcore.h>
+#    include <embree3/rtcore_scene.h>
+#  endif
 #  define __EMBREE__
 #endif
 
@@ -1379,7 +1384,7 @@ typedef struct KernelLightTreeNode {
    * and the negative value indexes into the first child of the light array.
    * Otherwise, it's an index to the node's second child. */
   int child_index;
-  int num_prims; /* leaf nodes need to know the number of primitives stored. */
+  int num_emitters; /* leaf nodes need to know the number of emitters stored. */
 
   /* Bit trail. */
   uint bit_trail;
@@ -1397,8 +1402,8 @@ typedef struct KernelLightTreeEmitter {
   /* Energy. */
   float energy;
 
-  /* prim_id denotes the location in the lights or triangles array. */
-  int prim;
+  /* The location in the lights or triangles array. */
+  int prim_id;
   MeshLight mesh_light;
   EmissionSampling emission_sampling;
 

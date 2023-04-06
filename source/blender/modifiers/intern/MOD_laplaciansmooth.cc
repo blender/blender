@@ -53,7 +53,7 @@ struct LaplacianSystem {
   /* Pointers to data. */
   float (*vertexCos)[3];
   blender::Span<MEdge> edges;
-  blender::Span<MPoly> polys;
+  blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
   LinearSolver *context;
 
@@ -112,17 +112,17 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numLoops, in
 
 static float compute_volume(const float center[3],
                             float (*vertexCos)[3],
-                            const blender::Span<MPoly> polys,
+                            const blender::OffsetIndices<int> polys,
                             const blender::Span<int> corner_verts)
 {
   float vol = 0.0f;
 
   for (const int i : polys.index_range()) {
-    const MPoly &poly = polys[i];
-    int corner_first = poly.loopstart;
+    const blender::IndexRange poly = polys[i];
+    int corner_first = poly.start();
     int corner_prev = corner_first + 1;
     int corner_curr = corner_first + 2;
-    int corner_term = corner_first + poly.totloop;
+    int corner_term = corner_first + poly.size();
 
     for (; corner_curr != corner_term; corner_prev = corner_curr, corner_curr++) {
       vol += volume_tetrahedron_signed_v3(center,
@@ -191,9 +191,9 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
   const blender::Span<int> corner_verts = sys->corner_verts;
 
   for (const int i : sys->polys.index_range()) {
-    const MPoly &poly = sys->polys[i];
-    int corner_next = poly.loopstart;
-    int corner_term = corner_next + poly.totloop;
+    const blender::IndexRange poly = sys->polys[i];
+    int corner_next = poly.start();
+    int corner_term = corner_next + poly.size();
     int corner_prev = corner_term - 2;
     int corner_curr = corner_term - 1;
 
@@ -248,9 +248,9 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
   const blender::Span<int> corner_verts = sys->corner_verts;
 
   for (const int i : sys->polys.index_range()) {
-    const MPoly &poly = sys->polys[i];
-    int corner_next = poly.loopstart;
-    int corner_term = corner_next + poly.totloop;
+    const blender::IndexRange poly = sys->polys[i];
+    int corner_next = poly.start();
+    int corner_term = corner_next + poly.size();
     int corner_prev = corner_term - 2;
     int corner_curr = corner_term - 1;
 

@@ -291,7 +291,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   }
 
   const blender::Span<MEdge> edges = mesh->edges();
-  const blender::Span<MPoly> polys = mesh->polys();
+  const blender::OffsetIndices polys = mesh->polys();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const blender::Span<int> corner_edges = mesh->corner_edges();
 
@@ -299,13 +299,8 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
 
   if (!ss->epmap) {
-    BKE_mesh_edge_poly_map_create(&ss->epmap,
-                                  &ss->epmap_mem,
-                                  edges.size(),
-                                  polys.data(),
-                                  polys.size(),
-                                  corner_edges.data(),
-                                  corner_edges.size());
+    BKE_mesh_edge_poly_map_create(
+        &ss->epmap, &ss->epmap_mem, edges.size(), polys, corner_edges.data(), corner_edges.size());
   }
   if (!ss->vemap) {
 
@@ -395,9 +390,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
           if (ss->hide_poly && ss->hide_poly[poly]) {
             continue;
           }
-
-          for (int loop_index = 0; loop_index < polys[poly].totloop; loop_index++) {
-            const int v_other = corner_verts[loop_index + polys[poly].loopstart];
+          for (const int v_other : corner_verts.slice(polys[poly])) {
             if (ELEM(v_other, v1, v2)) {
               continue;
             }

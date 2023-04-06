@@ -778,6 +778,11 @@ inline const bNodeSocket *bNodeSocket::internal_link_input() const
   return this->runtime->internal_link_input;
 }
 
+template<typename T> T *bNodeSocket::default_value_typed()
+{
+  return static_cast<T *>(this->default_value);
+}
+
 template<typename T> const T *bNodeSocket::default_value_typed() const
 {
   return static_cast<const T *>(this->default_value);

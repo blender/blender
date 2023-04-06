@@ -27,11 +27,11 @@
 #  include <GL/gl.h>
 #endif  // defined(WIN32) || defined(__APPLE__)
 
-#include "GHOST_Rect.h"
+#include "GHOST_Rect.hh"
 
-#include "GHOST_IEvent.h"
-#include "GHOST_IEventConsumer.h"
-#include "GHOST_ISystem.h"
+#include "GHOST_IEvent.hh"
+#include "GHOST_IEventConsumer.hh"
+#include "GHOST_ISystem.hh"
 
 #define LEFT_EYE 0
 #define RIGHT_EYE 1

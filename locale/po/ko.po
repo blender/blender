@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Release Candidate (b'14efe7000449')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 16:38:19\n"
+"POT-Creation-Date: 2023-04-03 10:36:36\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -21043,6 +21043,10 @@ msgid "Active Movie Clip"
 msgstr "활성 무비 클립"
 
 
+msgid "Mirror Object"
+msgstr "미러 오브젝트"
+
+
 msgid "Distance Model"
 msgstr "거리 모델"
 
@@ -26804,6 +26808,10 @@ msgid "Curve Context Menu"
 msgstr "커브 컨텍스트 메뉴"
 
 
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
+
+
 msgid "Special Characters"
 msgstr "특수 문자"
 
@@ -26842,10 +26850,6 @@ msgstr "루프를 선택"
 
 msgid "Mesh Select Mode"
 msgstr "메쉬 선택 모드"
-
-
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
 
 
 msgid "Select Similar"
@@ -29426,10 +29430,6 @@ msgstr "미러링 모디파이어"
 
 msgid "Distance within which mirrored vertices are merged"
 msgstr "미러된 버텍스가 병합되는 거리"
-
-
-msgid "Mirror Object"
-msgstr "미러 오브젝트"
 
 
 msgid "Object to use as mirror"
@@ -34293,10 +34293,6 @@ msgid "Wrap all pixels on both axes"
 msgstr "두 축 에있는 모든 픽셀을 감싸기"
 
 
-msgid "ColorRamp"
-msgstr "컬러 램프"
-
-
 msgid "Vector Blur"
 msgstr "벡터 블러"
 
@@ -36551,6 +36547,14 @@ msgstr "마우스 아래에 채널의 모든 키 프레임을 선택"
 
 msgid "Extend selection"
 msgstr "선택을 확장"
+
+
+msgid "Include Handles"
+msgstr "핸들을 포함"
+
+
+msgid "Include handles of keyframes when calculating extents"
+msgstr "범위를 계산할 때 키 프레임의 핸들을 포함"
 
 
 msgctxt "Operator"
@@ -39124,6 +39128,10 @@ msgid "Paste text from clipboard"
 msgstr "클립 보드에서 텍스트를 붙여 넣기"
 
 
+msgid "Selection"
+msgstr "선택"
+
+
 msgctxt "Operator"
 msgid "Scrollback Append"
 msgstr "스크롤 백 덧붙이기"
@@ -41512,10 +41520,6 @@ msgid "Amount to decrease or increase character spacing with"
 msgstr "다음과 함께 문자 간격을 증가 또는 감소하는 양"
 
 
-msgid "Selection"
-msgstr "선택"
-
-
 msgid "Next or Selection"
 msgstr "다음 또는 선택"
 
@@ -43219,6 +43223,14 @@ msgid "Place the cursor on the midpoint of selected keyframes"
 msgstr "커서를 선택된 키 프레임의 중간 지점으로 이동"
 
 
+msgid "Filter Width"
+msgstr "폭을 필터"
+
+
+msgid "Sigma"
+msgstr "시그마"
+
+
 msgctxt "Operator"
 msgid "Clear Ghost Curves"
 msgstr "고스트 커브를 지우기"
@@ -43285,10 +43297,6 @@ msgstr "커브를 보이기"
 
 msgid "Make previously hidden curves visible again in Graph Editor view"
 msgstr "그래프 에디터 뷰에서 이전에 숨겨진 커브를 볼 수 있도록 만들기"
-
-
-msgid "Include Handles"
-msgstr "핸들을 포함"
 
 
 msgid "Are handles tested individually against the selection criteria"
@@ -43367,10 +43375,6 @@ msgstr "선체 커브의 진폭이 요약됩니다 (또는 누산이 활성화�
 
 msgid "The output is a square curve (negative values always result in -1, and positive ones in 1)"
 msgstr "출력은 제곱 커브입니다 (음수 값은 항상 -1, 양수 값은 1)"
-
-
-msgid "Include handles of keyframes when calculating extents"
-msgstr "범위를 계산할 때 키 프레임의 핸들을 포함"
 
 
 msgid "Reset viewable area to show selected keyframe range"
@@ -50580,31 +50584,6 @@ msgid "Replace vertex groups of selected objects by vertex groups of active obje
 msgstr "선택한 오브젝트의 버텍스 그룹을 활성 오브젝트의 버텍스 그룹으로 대체합니다"
 
 
-msgctxt "Operator"
-msgid "Fix Vertex Group Deform"
-msgstr "버텍스 그룹 변형을 고치기"
-
-
-msgid "Modify the position of selected vertices by changing only their respective groups' weights (this tool may be slow for many vertices)"
-msgstr "각 그룹의 웨이트 만 변경하여 선택한 버텍스의 위치를 수정 (이 도구는 많은 버텍스에서 느릴 수 있음)"
-
-
-msgid "Change Sensitivity"
-msgstr "변경 감도"
-
-
-msgid "Change the amount weights are altered with each iteration: lower values are slower"
-msgstr "반복할 때마다 웨이트가 변경: 낮은 값은 더 느립니다"
-
-
-msgid "The distance to move to"
-msgstr "다음으로 움직이는 거리"
-
-
-msgid "The distance moved can be changed by this multiplier"
-msgstr "이동된 거리가 이 승수 만큼 변경 될 수 있음"
-
-
 msgid "Invert active vertex group's weights"
 msgstr "활성 버텍스 그룹의 웨이트를 반전"
 
@@ -55923,10 +55902,6 @@ msgid "Toggle overwrite while typing"
 msgstr "입력하는 동안 덮어쓰기를 토글"
 
 
-msgid "Paste text selected elsewhere rather than copied (X11 only)"
-msgstr "복사하지 않고 다른 곳에 텍스트를 붙여 넣기 (X11 만 해당)"
-
-
 msgctxt "Operator"
 msgid "Refresh PyConstraints"
 msgstr "Py제약을 새로 고침"
@@ -56319,10 +56294,6 @@ msgid "Sequence Slide"
 msgstr "시퀀스 슬라이드"
 
 
-msgid "Axis Ortho"
-msgstr "축 정사"
-
-
 msgctxt "Operator"
 msgid "Shear"
 msgstr "전단"
@@ -56330,6 +56301,10 @@ msgstr "전단"
 
 msgid "Shear selected items along the horizontal screen axis"
 msgstr "수평 화면 축을 따라 선택한 항목을 전단"
+
+
+msgid "Axis Ortho"
+msgstr "축 정사"
 
 
 msgctxt "Operator"
@@ -63433,6 +63408,10 @@ msgid "Color of texture overlay"
 msgstr "텍스처 오버레이의 컬러"
 
 
+msgid "Only keyframes of selected F-Curves are visible and editable"
+msgstr "보이는 선택된 F-커브의 키 프레임 및 편집 가능 만"
+
+
 msgid "Undo Memory Size"
 msgstr "실행 취소 메모리 크기"
 
@@ -65551,10 +65530,6 @@ msgstr "투명 거칠기 임계 값"
 
 msgid "For transparent transmission, keep surfaces with roughness above the threshold opaque"
 msgstr "투명한 전송에 대해 임계 값을 초과하는 거친 표면은 불투명하게 유지합니다"
-
-
-msgid "Filter Width"
-msgstr "폭을 필터"
 
 
 msgid "Pixel filter width"
@@ -71072,24 +71047,8 @@ msgid "Automatically recalculate curve normalization on every curve edit"
 msgstr "자동으로 모든 커브 편집에서 커브의 노멀라이즈를 재계산"
 
 
-msgid "Use High Quality Display"
-msgstr "고품질 디스플레이를 사용"
-
-
-msgid "Display F-Curves using Anti-Aliasing and other fancy effects (disable for better performance)"
-msgstr "앤티 앨리어싱 및 기타 고급 효과를 사용하여 F-곡선을 표시 (성능 향상을 위해 비활성화)"
-
-
 msgid "Use Normalization"
 msgstr "노멀라이즈을 사용"
-
-
-msgid "Only Selected Curve Keyframes"
-msgstr "선택된 커브 키 프레임 만"
-
-
-msgid "Only keyframes of selected F-Curves are visible and editable"
-msgstr "보이는 선택된 F-커브의 키 프레임 및 편집 가능 만"
 
 
 msgid "Only Selected Keyframes Handles"
@@ -74685,10 +74644,6 @@ msgid "Consider objects as whole when finding volume center"
 msgstr "볼륨 중심를 찾을 때 전체적으로 오브젝트를 고려"
 
 
-msgid "Project individual elements on the surface of other objects"
-msgstr "다른 오브젝트의 표면에 개별 요소를 투사"
-
-
 msgid "Use Snap for Rotation"
 msgstr "회전에 대해 스냅을 사용"
 
@@ -75379,14 +75334,6 @@ msgstr "모든 오브젝트 오리진"
 
 msgid "Show the object origin center dot for all (selected and unselected) objects"
 msgstr "모든 (선택된 및 선택되지 않은) 오브젝트에 대해 오브젝트 오리진 중심 도트를 표시"
-
-
-msgid "Hidden Wire"
-msgstr "숨겨진 와이어"
-
-
-msgid "Use hidden wireframe display"
-msgstr "숨겨진 와이어프레임 표시를 사용"
 
 
 msgid "Show the Onion Skinning Overlay"
@@ -79762,6 +79709,11 @@ msgid "Make and Replace Links"
 msgstr "연결을 만들기 및 교체"
 
 
+msgctxt "Operator"
+msgid "Online Manual"
+msgstr "온라인 설명서"
+
+
 msgid "Inputs:"
 msgstr "입력:"
 
@@ -81202,11 +81154,6 @@ msgstr "제한 합계"
 
 
 msgctxt "Operator"
-msgid "Fix Deforms"
-msgstr "변형을 고치기"
-
-
-msgctxt "Operator"
 msgid "Hide Masked"
 msgstr "마스크된 부분을 숨기기"
 
@@ -82283,10 +82230,6 @@ msgstr "최신 블렌더 바이너리 (%d.%d)로 작성된 파일, 데이터 손
 
 msgid "Loading failed: "
 msgstr "불러오기 실패: "
-
-
-msgid "Loading '%s' failed: "
-msgstr "불러오기 '%s' 실패함: "
 
 
 msgid "Linking or appending from a very old .blend file format (%d.%d), no animation conversion will be done! You may want to re-save your lib file with current Blender"
@@ -83927,11 +83870,6 @@ msgstr "단축 키를 제거"
 
 
 msgctxt "Operator"
-msgid "Online Manual"
-msgstr "온라인 설명서"
-
-
-msgctxt "Operator"
 msgid "Online Python Reference"
 msgstr "온라인 Python 참조"
 
@@ -85333,10 +85271,6 @@ msgstr "다음에서 조작하는 버텍스 그룸이 없음"
 
 msgid "All groups are locked"
 msgstr "모든 그룹이 잠김"
-
-
-msgid "This operator does not support an active mirror modifier"
-msgstr "이 작업자는 활성 미러 모디파이어를 지원하지 않음"
 
 
 msgid "Editmode lattice is not supported yet"
@@ -88789,10 +88723,6 @@ msgid "Clearcoat Normal"
 msgstr "클리어코트 노멀"
 
 
-msgid "Sigma"
-msgstr "시그마"
-
-
 msgid "View Vector"
 msgstr "뷰 벡터"
 
@@ -89195,44 +89125,12 @@ msgid "Engine '%s' not available for scene '%s' (an add-on may need to be instal
 msgstr "'%s' 엔진 '%s' 씬에 사용할 수 없습니다 (추가 기능을 설치하거나 사용하도록 설정해야 할 수 있음)"
 
 
-msgid "Cannot read file '%s': %s"
-msgstr "읽을 수 없는 파일 '%s': %s"
-
-
-msgid "File format is not supported in file '%s'"
-msgstr "파일 형식은 파일 '%s'에서 지원되지 않음"
-
-
-msgid "File path '%s' invalid"
-msgstr "파일 경로 '%s' 잘못됨"
-
-
-msgid "Unknown error loading '%s'"
-msgstr "알 수 없는 오류 불러오기 '%s'"
-
-
-msgid "Application Template '%s' not found"
-msgstr "어플리케이션 템플릿 '%s'을 (를) 찾을 수 없습니다"
-
-
-msgid "Could not read '%s'"
-msgstr "'%s' 읽을 수 없음"
-
-
-msgid "Cannot save blend file, path '%s' is not writable"
-msgstr "Blend 파일을 저장할 수 없음, 경로 '%s' 는 쓰기 불가능합니다"
-
-
 msgid "Cannot overwrite used library '%.240s'"
 msgstr "사용된 라이브러리 '%.240s'를 덮어쓸 수 없습니다"
 
 
 msgid "Saved \"%s\""
 msgstr "저장된 \"%s\""
-
-
-msgid "Can't read alternative start-up file: '%s'"
-msgstr "대체된 스타트업 파일을 읽을수 없음: '%s'"
 
 
 msgid "Not a library"

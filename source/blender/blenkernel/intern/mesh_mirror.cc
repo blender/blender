@@ -187,7 +187,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
   const int src_verts_num = mesh->totvert;
   const int src_edges_num = mesh->totedge;
-  const blender::Span<MPoly> src_polys = mesh->polys();
+  const blender::OffsetIndices src_polys = mesh->polys();
   const int src_loops_num = mesh->totloop;
 
   Mesh *result = BKE_mesh_new_nomain_from_template(
@@ -287,7 +287,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
 
   blender::MutableSpan<MEdge> result_edges = result->edges_for_write();
-  blender::MutableSpan<MPoly> result_polys = result->polys_for_write();
+  blender::MutableSpan<int> result_poly_offsets = result->poly_offsets_for_write();
   blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
 
@@ -297,16 +297,17 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     result_edges[i].v2 += src_verts_num;
   }
 
-  for (const int i : result_polys.index_range().drop_front(src_polys.size())) {
-    result_polys[i].loopstart += src_loops_num;
+  result_poly_offsets.take_front(src_polys.size()).copy_from(mesh->poly_offsets().drop_back(1));
+  for (const int i : src_polys.index_range()) {
+    result_poly_offsets[src_polys.size() + i] = src_polys[i].start() + src_loops_num;
   }
+  const blender::OffsetIndices result_polys = result->polys();
 
   /* reverse loop order (normals) */
   for (const int i : src_polys.index_range()) {
-    const blender::IndexRange src_poly(src_polys[i].loopstart, src_polys[i].totloop);
+    const blender::IndexRange src_poly = src_polys[i];
     const int mirror_i = src_polys.size() + i;
-    const blender::IndexRange mirror_poly(result_polys[mirror_i].loopstart,
-                                          result_polys[mirror_i].totloop);
+    const blender::IndexRange mirror_poly = result_polys[mirror_i];
 
     /* reverse the loop, but we keep the first vertex in the face the same,
      * to ensure that quads are split the same way as on the other side */
@@ -412,13 +413,13 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
     /* mirroring has to account for loops being reversed in polys in second half */
     for (const int i : src_polys.index_range()) {
-      const blender::IndexRange src_poly(src_polys[i].loopstart, src_polys[i].totloop);
+      const blender::IndexRange src_poly = src_polys[i];
       const int mirror_i = src_polys.size() + i;
 
       for (const int j : src_poly) {
-        int mirrorj = result_polys[mirror_i].loopstart;
+        int mirrorj = result_polys[mirror_i].start();
         if (j > src_poly.start()) {
-          mirrorj += result_polys[mirror_i].totloop - (j - src_poly.start());
+          mirrorj += result_polys[mirror_i].size() - (j - src_poly.start());
         }
         copy_v3_v3(loop_normals[mirrorj], loop_normals[j]);
         mul_m4_v3(mtx_nor, loop_normals[mirrorj]);

@@ -110,35 +110,29 @@ static void extract_vert_idx_iter_loose_vert_bm(const MeshRenderData *mr,
 }
 
 static void extract_poly_idx_iter_poly_mesh(const MeshRenderData *mr,
-                                            const MPoly *poly,
                                             const int poly_index,
                                             void *data)
 {
-  const int ml_index_end = poly->loopstart + poly->totloop;
-  for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
+  for (const int ml_index : mr->polys[poly_index]) {
     (*(int32_t **)data)[ml_index] = (mr->p_origindex) ? mr->p_origindex[poly_index] : poly_index;
   }
 }
 
 static void extract_edge_idx_iter_poly_mesh(const MeshRenderData *mr,
-                                            const MPoly *poly,
-                                            const int /*poly_index*/,
+                                            const int poly_index,
                                             void *data)
 {
-  const int ml_index_end = poly->loopstart + poly->totloop;
-  for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
+  for (const int ml_index : mr->polys[poly_index]) {
     const int edge = mr->corner_edges[ml_index];
     (*(int32_t **)data)[ml_index] = (mr->e_origindex) ? mr->e_origindex[edge] : edge;
   }
 }
 
 static void extract_vert_idx_iter_poly_mesh(const MeshRenderData *mr,
-                                            const MPoly *poly,
-                                            const int /*poly_index*/,
+                                            const int poly_index,
                                             void *data)
 {
-  const int ml_index_end = poly->loopstart + poly->totloop;
-  for (int ml_index = poly->loopstart; ml_index < ml_index_end; ml_index += 1) {
+  for (const int ml_index : mr->polys[poly_index]) {
     const int vert = mr->corner_verts[ml_index];
     (*(int32_t **)data)[ml_index] = (mr->v_origindex) ? mr->v_origindex[vert] : vert;
   }
@@ -379,7 +373,6 @@ static void extract_fdot_idx_iter_poly_bm(const MeshRenderData * /*mr*/,
 }
 
 static void extract_fdot_idx_iter_poly_mesh(const MeshRenderData *mr,
-                                            const MPoly * /*poly*/,
                                             const int poly_index,
                                             void *data)
 {

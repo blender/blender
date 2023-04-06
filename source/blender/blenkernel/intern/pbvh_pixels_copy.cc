@@ -258,7 +258,7 @@ struct Rows {
 
   struct RowView {
     int row_number = 0;
-    /** Not owning pointer into Row.pixels starts at the start of the row.*/
+    /** Not owning pointer into Row.pixels starts at the start of the row. */
     MutableSpan<Pixel> pixels;
     RowView() = delete;
     RowView(Rows &rows, int64_t row_number)

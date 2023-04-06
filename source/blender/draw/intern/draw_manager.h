@@ -362,7 +362,7 @@ struct DRWUniform {
         GPUTexture *texture;
         GPUTexture **texture_ref;
       };
-      eGPUSamplerState sampler_state;
+      GPUSamplerState sampler_state;
     };
     /* DRW_UNIFORM_BLOCK */
     union {

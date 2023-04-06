@@ -216,7 +216,7 @@ static void extract_lines_adjacency_iter_subdiv_mesh(const DRWSubdivCache *subdi
                                                      const MeshRenderData *mr,
                                                      void *_data,
                                                      uint subdiv_quad_index,
-                                                     const MPoly * /*coarse_quad*/)
+                                                     const int /*coarse_quad_index*/)
 {
   extract_lines_adjacency_iter_subdiv(subdiv_cache, mr, _data, subdiv_quad_index);
 }

@@ -8,7 +8,7 @@ set(INC_SYS
 
 )
 
-# blender and player
+# Part of the `blender` binary (sources for data-files are appended).
 set(SRC
 
 )
@@ -16,7 +16,7 @@ set(SRC
 set(LIB
 )
 
-# Order matches "UI_icons.h", final name will be formatted: "icons{size}_{name}.dat"
+# Order matches `UI_icons.h`, final name will be formatted: `icons{size}_{name}.dat`.
 set(ICON_NAMES
   question
   error
@@ -696,6 +696,7 @@ set(ICON_NAMES
 )
 
 # This section is maintained by the updating script, keep BEGIN/END comments.
+# See: `make icons_geom` and the script `./release/datafiles/blender_icons_geom_update.py`.
 set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   # BEGIN ICON_GEOM_NAMES
   brush.gpencil_draw.draw
@@ -889,16 +890,16 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 data_to_c_simple(../../../../release/datafiles/bfont.pfb SRC)
 
 if(WITH_BLENDER)
-  # blender only (not player)
+  # Blender only (not Cycles stand-alone).
 
   if(NOT WITH_HEADLESS)
-    # blender UI only
+    # Blender UI only.
 
-    # blends
+    # Blend files.
     data_to_c_simple(../../../../release/datafiles/preview.blend SRC)
     data_to_c_simple(../../../../release/datafiles/preview_grease_pencil.blend SRC)
 
-    # images
+    # Images.
     data_to_c_simple(../../../../release/datafiles/splash.png SRC)
     data_to_c_simple(../../../../release/datafiles/alert_icons.png SRC)
     data_to_c_simple(../../../../release/datafiles/blender_logo.png SRC)
@@ -919,7 +920,7 @@ if(WITH_BLENDER)
     #            90 SRC)
     data_to_c_simple(../../../../release/datafiles/prvicons.png SRC)
 
-    # brushes
+    # Brushes.
     data_to_c_simple(../../../../release/datafiles/brushicons/blob.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/blur.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/clay.png SRC)
@@ -948,7 +949,7 @@ if(WITH_BLENDER)
     data_to_c_simple(../../../../release/datafiles/brushicons/thumb.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/twist.png SRC)
 
-    # grease pencil sculpt
+    # Grease pencil sculpt.
     data_to_c_simple(../../../../release/datafiles/brushicons/gp_brush_smooth.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/gp_brush_thickness.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/gp_brush_strength.png SRC)
@@ -973,7 +974,7 @@ if(WITH_BLENDER)
     data_to_c_simple(../../../../release/datafiles/brushicons/gp_brush_erase_hard.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/gp_brush_erase_stroke.png SRC)
 
-    # curve sculpt
+    # Curve sculpt.
     data_to_c_simple(../../../../release/datafiles/brushicons/curves_sculpt_add.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/curves_sculpt_comb.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/curves_sculpt_cut.png SRC)

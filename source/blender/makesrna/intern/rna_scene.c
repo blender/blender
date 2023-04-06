@@ -3423,7 +3423,8 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PROJECT);
   RNA_def_property_ui_text(prop,
                            "Project Individual Elements",
-                           "Project individual elements on the surface of other objects");
+                           "Project individual elements on the surface of other objects (Always "
+                           "enabled with Face Nearest)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
   prop = RNA_def_property(srna, "use_snap_backface_culling", PROP_BOOLEAN, PROP_NONE);
@@ -3792,7 +3793,7 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem scale_overlap_modes[] = {
-      {SEQ_OVERLAP_EXPAND, "EXPAND", 0, "Expand", "Move strips so transformed strips fits"},
+      {SEQ_OVERLAP_EXPAND, "EXPAND", 0, "Expand", "Move strips so transformed strips fit"},
       {SEQ_OVERLAP_OVERWRITE,
        "OVERWRITE",
        0,
@@ -4254,7 +4255,7 @@ static void rna_def_unit_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Unit Scale",
-      "Scale to use when converting between blender units and dimensions."
+      "Scale to use when converting between Blender units and dimensions."
       " When working at microscopic or astronomical scale, a small or large unit scale"
       " respectively can be used to avoid numerical precision problems");
   RNA_def_property_range(prop, 1e-9f, 1e+9f);
@@ -6675,7 +6676,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "bake_biasdist");
   RNA_def_property_range(prop, 0.0, 1000.0);
   RNA_def_property_ui_text(
-      prop, "Bias", "Bias towards faces further away from the object (in blender units)");
+      prop, "Bias", "Bias towards faces further away from the object (in Blender units)");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "use_bake_multires", PROP_BOOLEAN, PROP_NONE);
@@ -7368,7 +7369,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   prop = RNA_def_property(srna, "gi_diffuse_bounces", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(prop,
                            "Diffuse Bounces",
-                           "Number of time the light is reinjected inside light grids, "
+                           "Number of times the light is reinjected inside light grids, "
                            "0 disable indirect diffuse light");
   RNA_def_property_range(prop, 0, INT_MAX);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
@@ -7832,8 +7833,8 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Shadow Pool Size",
                            "Size of the shadow pool, "
-                           "bigger pool size allows for more shadows in the scene "
-                           "but might not fits into GPU memory");
+                           "a bigger pool size allows for more shadows in the scene "
+                           "but might not fit into GPU memory");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 

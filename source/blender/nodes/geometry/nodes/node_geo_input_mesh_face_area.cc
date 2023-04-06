@@ -19,12 +19,11 @@ static void node_declare(NodeDeclarationBuilder &b)
 static VArray<float> construct_face_area_varray(const Mesh &mesh, const eAttrDomain domain)
 {
   const Span<float3> positions = mesh.vert_positions();
-  const Span<MPoly> polys = mesh.polys();
+  const OffsetIndices polys = mesh.polys();
   const Span<int> corner_verts = mesh.corner_verts();
 
   auto area_fn = [positions, polys, corner_verts](const int i) -> float {
-    const MPoly &poly = polys[i];
-    return bke::mesh::poly_area_calc(positions, corner_verts.slice(poly.loopstart, poly.totloop));
+    return bke::mesh::poly_area_calc(positions, corner_verts.slice(polys[i]));
   };
 
   return mesh.attributes().adapt_domain<float>(

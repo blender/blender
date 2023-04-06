@@ -1885,7 +1885,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     {sizeof(float[3]), "", 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 24: CD_RECAST */
     {sizeof(MRecast), "MRecast", 1, N_("Recast"), nullptr, nullptr, nullptr, nullptr},
-    /* 25: CD_MPOLY */
+    /* 25: CD_MPOLY */ /* DEPRECATED */
     {sizeof(MPoly), "MPoly", 1, N_("NGon Face"), nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 26: CD_MLOOP */ /* DEPRECATED*/
     {sizeof(MLoop),
@@ -2177,14 +2177,14 @@ const CustomData_MeshMasks CD_MASK_BAREMESH = {
     /*vmask*/ CD_MASK_PROP_FLOAT3,
     /*emask*/ CD_MASK_MEDGE,
     /*fmask*/ 0,
-    /*pmask*/ CD_MASK_MPOLY | CD_MASK_FACEMAP,
+    /*pmask*/ CD_MASK_FACEMAP,
     /*lmask*/ CD_MASK_PROP_INT32,
 };
 const CustomData_MeshMasks CD_MASK_BAREMESH_ORIGINDEX = {
     /*vmask*/ CD_MASK_PROP_FLOAT3 | CD_MASK_ORIGINDEX,
     /*emask*/ CD_MASK_MEDGE | CD_MASK_ORIGINDEX,
     /*fmask*/ 0,
-    /*pmask*/ CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_ORIGINDEX,
+    /*pmask*/ CD_MASK_FACEMAP | CD_MASK_ORIGINDEX,
     /*lmask*/ CD_MASK_PROP_INT32,
 };
 const CustomData_MeshMasks CD_MASK_MESH = {
@@ -2194,7 +2194,7 @@ const CustomData_MeshMasks CD_MASK_MESH = {
     (CD_MASK_MEDGE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_BWEIGHT | CD_MASK_CREASE),
     /*fmask*/ 0,
     /*pmask*/
-    (CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
+    (CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
     /*lmask*/
     (CD_MASK_MDISPS | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
 };
@@ -2236,9 +2236,8 @@ const CustomData_MeshMasks CD_MASK_EVERYTHING = {
      CD_MASK_ORIGSPACE | CD_MASK_TANGENT | CD_MASK_TESSLOOPNORMAL | CD_MASK_PREVIEW_MCOL |
      CD_MASK_PROP_ALL),
     /*pmask*/
-    (CD_MASK_MPOLY | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_FACEMAP |
-
-     CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
+    (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE |
+     CD_MASK_PROP_ALL),
     /*lmask*/
     (CD_MASK_BM_ELEM_PYPTR | CD_MASK_MDISPS | CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL |
      CD_MASK_MLOOPTANGENT | CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP |
@@ -5507,7 +5506,7 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
     return;
   }
 
-  if (data_type & CD_FAKE) {
+  if (int(data_type) & CD_FAKE) {
     data_size = laymap->data_size;
   }
   else {
@@ -5578,7 +5577,7 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
       copy_bit_flag(data_dst, tmp_dst, data_size, data_flag);
     }
   }
-  else if (!(data_type & CD_FAKE)) {
+  else if (!(int(data_type) & CD_FAKE)) {
     CustomData_data_mix_value(data_type, tmp_dst, data_dst, mix_mode, mix_factor);
   }
   /* Else we can do nothing by default, needs custom interp func!
@@ -5657,7 +5656,7 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
         tmp_buff_size, sizeof(*tmp_data_src), __func__);
   }
 
-  if (data_type & CD_FAKE) {
+  if (int(data_type) & CD_FAKE) {
     data_step = laymap->elem_size;
     data_size = laymap->data_size;
     data_offset = laymap->data_offset;

@@ -152,7 +152,7 @@ static bool dependsOnNormals(ModifierData *md)
 
 struct GenerateOceanGeometryData {
   float (*vert_positions)[3];
-  blender::MutableSpan<MPoly> polys;
+  blender::MutableSpan<int> poly_offsets;
   blender::MutableSpan<int> corner_verts;
   float (*mloopuvs)[2];
 
@@ -195,8 +195,7 @@ static void generate_ocean_geometry_polys(void *__restrict userdata,
     gogd->corner_verts[fi * 4 + 2] = vi + 1 + gogd->res_x + 1;
     gogd->corner_verts[fi * 4 + 3] = vi + gogd->res_x + 1;
 
-    gogd->polys[fi].loopstart = fi * 4;
-    gogd->polys[fi].totloop = 4;
+    gogd->poly_offsets[fi] = fi * 4;
   }
 }
 
@@ -260,7 +259,7 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   BKE_mesh_copy_parameters_for_eval(result, mesh_orig);
 
   gogd.vert_positions = BKE_mesh_vert_positions_for_write(result);
-  gogd.polys = result->polys_for_write();
+  gogd.poly_offsets = result->poly_offsets_for_write();
   gogd.corner_verts = result->corner_verts_for_write();
 
   TaskParallelSettings settings;
@@ -353,7 +352,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   cfra_for_cache -= omd->bakestart; /* shift to 0 based */
 
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(result);
-  const blender::Span<MPoly> polys = mesh->polys();
+  const blender::OffsetIndices polys = result->polys();
 
   /* Add vertex-colors before displacement: allows lookup based on position. */
 
@@ -377,15 +376,16 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
     if (mloopcols) { /* unlikely to fail */
 
       for (const int i : polys.index_range()) {
-        const int *corner_vert = &corner_verts[polys[i].loopstart];
-        MLoopCol *mlcol = &mloopcols[polys[i].loopstart];
+        const blender::IndexRange poly = polys[i];
+        const int *corner_vert = &corner_verts[poly.start()];
+        MLoopCol *mlcol = &mloopcols[poly.start()];
 
         MLoopCol *mlcolspray = nullptr;
         if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
-          mlcolspray = &mloopcols_spray[polys[i].loopstart];
+          mlcolspray = &mloopcols_spray[poly.start()];
         }
 
-        for (j = polys[i].totloop; j--; corner_vert++, mlcol++) {
+        for (j = poly.size(); j--; corner_vert++, mlcol++) {
           const float *vco = positions[*corner_vert];
           const float u = OCEAN_CO(size_co_inv, vco[0]);
           const float v = OCEAN_CO(size_co_inv, vco[1]);

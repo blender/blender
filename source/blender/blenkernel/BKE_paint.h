@@ -754,7 +754,7 @@ struct SculptSession {
 
   float (*vert_positions)[3];
   blender::Span<MEdge> edges;
-  blender::Span<MPoly> polys;
+  blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
 

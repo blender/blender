@@ -8,7 +8,7 @@
 
 void main()
 {
-  /* Sample texture with LOD BIAS. Used instead of custom lod bias in GPU_SAMPLER_ICON. */
+  /* Sample texture with LOD BIAS. Used instead of custom lod bias in GPU_SAMPLER_CUSTOM_ICON. */
   fragColor = texture(image, texCoord_interp, -0.5) * finalColor;
 
 #ifdef DO_CORNER_MASKING

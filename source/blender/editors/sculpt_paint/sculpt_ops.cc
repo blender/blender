@@ -148,7 +148,7 @@ static int sculpt_optimize_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = CTX_data_active_object(C);
 
-  SCULPT_pbvh_clear(ob, false);
+  SCULPT_pbvh_clear(ob);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
   return OPERATOR_FINISHED;
@@ -320,7 +320,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
   SCULPT_topology_islands_invalidate(ss);
 
   /* Redraw. */
-  SCULPT_pbvh_clear(ob, false);
+  SCULPT_pbvh_clear(ob);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
   return OPERATOR_FINISHED;
