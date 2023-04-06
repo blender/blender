@@ -191,6 +191,10 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 }
 ccl_gpu_kernel_postfix
 
+#ifdef __KERNEL_ONEAPI__
+#  include "kernel/device/oneapi/context_intersect_end.h"
+#endif
+
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_background,
                              ccl_global const int *path_index_array,
@@ -255,6 +259,12 @@ ccl_gpu_kernel_postfix
 constant int __dummy_constant [[function_constant(Kernel_DummyConstant)]];
 #endif
 
+/* Kernels using intersections need access to the kernel handler for specialization constants to
+ * work properly. */
+#ifdef __KERNEL_ONEAPI__
+#  include "kernel/device/oneapi/context_intersect_begin.h"
+#endif
+
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_surface_raytrace,
                              ccl_global const int *path_index_array,
@@ -293,6 +303,9 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   }
 }
 ccl_gpu_kernel_postfix
+#ifdef __KERNEL_ONEAPI__
+#  include "kernel/device/oneapi/context_intersect_end.h"
+#endif
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_volume,

@@ -39,8 +39,6 @@ using numhit_t = uint32_t;
 #endif
 
 #ifdef __KERNEL_ONEAPI__
-static constexpr sycl::specialization_id<RTCFeatureFlags> oneapi_embree_features{
-    (const RTCFeatureFlags)(0)};
 #  define CYCLES_EMBREE_USED_FEATURES \
     (kernel_handler.get_specialization_constant<oneapi_embree_features>())
 #else

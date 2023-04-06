@@ -118,7 +118,7 @@ class OneapiDevice : public Device {
   SyclQueue *sycl_queue();
 
  protected:
-  bool can_use_hwrt_for_features(uint kernel_features) const;
+  bool can_use_hardware_raytracing_for_features(uint kernel_features) const;
   void check_usm(SyclQueue *queue, const void *usm_ptr, bool allow_host);
   bool create_queue(SyclQueue *&external_queue, int device_index, void *embree_device);
   void free_queue(SyclQueue *queue);

@@ -120,18 +120,16 @@ bool OneapiDevice::check_peer_access(Device * /*peer_device*/)
   return false;
 }
 
-bool OneapiDevice::can_use_hardware_raytracing_for_features(uint kernel_features) const
+bool OneapiDevice::can_use_hardware_raytracing_for_features(uint requested_features) const
 {
   /* MNEE and Raytrace kernels currently don't work correctly with HWRT. */
-  if ((kernel_features & KERNEL_FEATURE_MNEE || kernel_features & KERNEL_FEATURE_NODE_RAYTRACE)) {
-    return false;
-  }
-  return true;
+  return !(requested_features & (KERNEL_FEATURE_MNEE | KERNEL_FEATURE_NODE_RAYTRACE));
 }
 
-BVHLayoutMask OneapiDevice::get_bvh_layout_mask(uint kernel_features) const
+BVHLayoutMask OneapiDevice::get_bvh_layout_mask(uint requested_features) const
 {
-  return (use_hardware_raytracing && can_use_hardware_raytracing_for_features(kernel_features)) ?
+  return (use_hardware_raytracing &&
+          can_use_hardware_raytracing_for_features(requested_features)) ?
              BVH_LAYOUT_EMBREE :
              BVH_LAYOUT_BVH2;
 }
@@ -175,8 +173,8 @@ bool OneapiDevice::load_kernels(const uint requested_features)
   }
 
   if (use_hardware_raytracing && !can_use_hardware_raytracing_for_features(requested_features)) {
-    VLOG_INFO << "Requested features don't work properly together with Hardware Raytracing yet "
-                 "in oneAPI backend. Hardware Raytracing is now disabled.";
+    VLOG_INFO
+        << "Hardware ray tracing disabled, not supported yet by oneAPI for requested features.";
     use_hardware_raytracing = false;
   }
 
