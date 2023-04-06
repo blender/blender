@@ -125,7 +125,7 @@ void *BKE_lightprobe_add(Main *bmain, const char *name)
 {
   LightProbe *probe;
 
-  probe = BKE_id_new(bmain, ID_LP, name);
+  probe = static_cast<LightProbe *>(BKE_id_new(bmain, ID_LP, name));
 
   return probe;
 }
