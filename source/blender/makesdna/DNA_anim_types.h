@@ -833,9 +833,9 @@ typedef enum eNlaStrip_Flag {
 
   /* temporary editing flags */
 
- /** When transforming strips, this flag is set when the strip is placed in an invalid location
-	* such as overlapping another strip or moved to a locked track. In such cases, the strip's
-	* location must be corrected after the transform operator is done. */
+  /** When transforming strips, this flag is set when the strip is placed in an invalid location
+   * such as overlapping another strip or moved to a locked track. In such cases, the strip's
+   * location must be corrected after the transform operator is done. */
   NLASTRIP_FLAG_INVALID_LOCATION = (1 << 28),
   /** NLA strip should ignore frame range and hold settings, and evaluate at global time. */
   NLASTRIP_FLAG_NO_TIME_MAP = (1 << 29),

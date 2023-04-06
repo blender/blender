@@ -24,23 +24,17 @@ SET(_embree_SEARCH_DIRS
 FIND_PATH(EMBREE_INCLUDE_DIR
   NAMES
     embree4/rtcore.h
+    embree3/rtcore.h
   HINTS
     ${_embree_SEARCH_DIRS}
   PATH_SUFFIXES
     include
 )
-IF(EMBREE_INCLUDE_DIR)
+
+IF(EXISTS ${EMBREE_INCLUDE_DIR}/embree4/rtcore_config.h)
   SET(EMBREE_MAJOR_VERSION 4)
 ELSE()
   SET(EMBREE_MAJOR_VERSION 3)
-  FIND_PATH(EMBREE_INCLUDE_DIR
-    NAMES
-      embree3/rtcore.h
-    HINTS
-      ${_embree_SEARCH_DIRS}
-    PATH_SUFFIXES
-      include
-  )
 ENDIF()
 
 IF(EMBREE_INCLUDE_DIR)

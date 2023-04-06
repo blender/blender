@@ -108,6 +108,8 @@ struct bNodeSocket *version_node_add_socket_if_not_exist(struct bNodeTree *ntree
 void version_socket_update_is_used(bNodeTree *ntree);
 ARegion *do_versions_add_region(int regiontype, const char *name);
 
+void sequencer_init_preview_region(ARegion *region);
+
 #ifdef __cplusplus
 }
 #endif

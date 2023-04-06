@@ -8348,7 +8348,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
        */
       if (state != BUTTON_STATE_TEXT_EDITING) {
         WM_report(RPT_INFO,
-                  "Can't edit driven number value, see graph editor for the driver setup.");
+                  "Can't edit driven number value, see driver editor for the driver setup.");
       }
     }
 

@@ -437,7 +437,7 @@ static void calculate_cone_faces(const ConeConfig &config,
                                 config.tot_quad_rings * config.circle_segments * 4;
 
   if (config.bottom_has_center_vert) {
-    poly_sizes.take_front(config.bottom_faces_len).fill(3);
+    poly_sizes.take_back(config.bottom_faces_len).fill(3);
 
     /* Bottom cone tip or center triangle fan in the fill. */
     for (const int i : IndexRange(config.circle_segments)) {

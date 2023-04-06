@@ -2007,7 +2007,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flagv", CU_NURB_ENDPOINT);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
-      prop, "Endpoint V", "Make this nurbs surface meet the endpoints in the V direction ");
+      prop, "Endpoint V", "Make this nurbs surface meet the endpoints in the V direction");
   RNA_def_property_update(prop, 0, "rna_Nurb_update_knot_v");
 
   prop = RNA_def_property(srna, "use_bezier_u", PROP_BOOLEAN, PROP_NONE);

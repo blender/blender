@@ -156,7 +156,7 @@ class ImageHandle {
   ImageManager *get_manager() const;
 
  protected:
-  vector<int> tile_slots;
+  vector<size_t> tile_slots;
   ImageManager *manager;
 
   friend class ImageManager;
@@ -179,7 +179,7 @@ class ImageManager {
   ImageHandle add_image(const vector<ImageLoader *> &loaders, const ImageParams &params);
 
   void device_update(Device *device, Scene *scene, Progress &progress);
-  void device_update_slot(Device *device, Scene *scene, int slot, Progress *progress);
+  void device_update_slot(Device *device, Scene *scene, size_t slot, Progress *progress);
   void device_free(Device *device);
 
   void device_load_builtin(Device *device, Scene *scene, Progress &progress);
@@ -223,17 +223,17 @@ class ImageManager {
   vector<Image *> images;
   void *osl_texture_system;
 
-  int add_image_slot(ImageLoader *loader, const ImageParams &params, const bool builtin);
-  void add_image_user(int slot);
-  void remove_image_user(int slot);
+  size_t add_image_slot(ImageLoader *loader, const ImageParams &params, const bool builtin);
+  void add_image_user(size_t slot);
+  void remove_image_user(size_t slot);
 
   void load_image_metadata(Image *img);
 
   template<TypeDesc::BASETYPE FileFormat, typename StorageType>
   bool file_load_image(Image *img, int texture_limit);
 
-  void device_load_image(Device *device, Scene *scene, int slot, Progress *progress);
-  void device_free_image(Device *device, int slot);
+  void device_load_image(Device *device, Scene *scene, size_t slot, Progress *progress);
+  void device_free_image(Device *device, size_t slot);
 
   friend class ImageHandle;
 };

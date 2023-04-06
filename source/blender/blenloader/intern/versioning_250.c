@@ -72,6 +72,8 @@
 
 #include "readfile.h"
 
+#include "versioning_common.h"
+
 #include <errno.h>
 
 /* Make preferences read-only, use versioning_userdef.c. */
@@ -100,16 +102,16 @@ static void area_add_header_region(ScrArea *area, ListBase *lb)
   region->v2d.flag = (V2D_PIXELOFS_X | V2D_PIXELOFS_Y);
 }
 
-static void sequencer_init_preview_region(ARegion *region)
+void sequencer_init_preview_region(ARegion *region)
 {
   /* XXX a bit ugly still, copied from space_sequencer */
   /* NOTE: if you change values here, also change them in space_sequencer.c, sequencer_new */
   region->regiontype = RGN_TYPE_PREVIEW;
   region->alignment = RGN_ALIGN_TOP;
-  region->flag |= RGN_FLAG_HIDDEN;
-  region->v2d.keepzoom = V2D_KEEPASPECT | V2D_KEEPZOOM;
-  region->v2d.minzoom = 0.00001f;
-  region->v2d.maxzoom = 100000.0f;
+  region->flag &= ~RGN_FLAG_HIDDEN;
+  region->v2d.keepzoom = V2D_KEEPASPECT | V2D_KEEPZOOM | V2D_LIMITZOOM;
+  region->v2d.minzoom = 0.001f;
+  region->v2d.maxzoom = 1000.0f;
   region->v2d.tot.xmin = -960.0f; /* 1920 width centered */
   region->v2d.tot.ymin = -540.0f; /* 1080 height centered */
   region->v2d.tot.xmax = 960.0f;

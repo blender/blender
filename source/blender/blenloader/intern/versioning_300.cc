@@ -1036,7 +1036,7 @@ static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
     nodeAddLink(&ntree,
                 capture_node,
                 nodeFindSocket(capture_node, SOCK_OUT, "Geometry"),
-                capture_node,
+                node,
                 geometry_in_socket);
     geometry_in_link->tonode = capture_node;
     geometry_in_link->tosock = nodeFindSocket(capture_node, SOCK_IN, "Geometry");
@@ -2277,10 +2277,19 @@ static void version_ensure_missing_regions(ScrArea *area, SpaceLink *sl)
       break;
     }
     case SPACE_SEQ: {
+      ARegion *region;
+
       do_versions_ensure_region(regionbase,
                                 RGN_TYPE_CHANNELS,
                                 "versioning: channels region for sequencer",
                                 RGN_TYPE_TOOLS);
+
+      region = do_versions_ensure_region(regionbase,
+                                         RGN_TYPE_PREVIEW,
+                                         "versioning: preview region for sequencer",
+                                         RGN_TYPE_CHANNELS);
+      sequencer_init_preview_region(region);
+
       break;
     }
   }

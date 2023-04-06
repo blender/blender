@@ -34,7 +34,5 @@ class GraphISO {
 /* Find the maximum common subgraph between two graphs.
  * (Can be used to find graph ismorphism.)
  */
-bool ED_uvedit_clipboard_maximum_common_subgraph(GraphISO *,
-                                                 GraphISO *,
-                                                 int solution[][2],
-                                                 int *solution_length);
+bool ED_uvedit_clipboard_maximum_common_subgraph(
+    GraphISO *, GraphISO *, int solution[][2], int *solution_length, bool *r_search_abandoned);
