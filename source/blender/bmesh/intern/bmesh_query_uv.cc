@@ -20,7 +20,7 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
-BMUVOffsets BM_uv_map_get_offsets_n(const BMesh *bm, int layer)
+BMUVOffsets BM_uv_map_get_offsets_n(const BMesh *bm, const int layer)
 {
   using namespace blender;
   using namespace blender::bke;
