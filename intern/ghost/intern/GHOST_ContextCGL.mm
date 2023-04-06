@@ -13,7 +13,7 @@
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#include "GHOST_ContextCGL.h"
+#include "GHOST_ContextCGL.hh"
 
 #include <Cocoa/Cocoa.h>
 #include <Metal/Metal.h>

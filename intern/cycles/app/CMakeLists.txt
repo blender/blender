@@ -51,6 +51,12 @@ if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
 endif()
 
 if(WITH_USD)
+  # Silence warning from USD headers using deprecated TBB header.
+  add_definitions(
+    -D__TBB_show_deprecation_message_atomic_H
+    -D__TBB_show_deprecation_message_task_H
+  )
+
   list(APPEND INC_SYS
     ${USD_INCLUDE_DIRS}
   )

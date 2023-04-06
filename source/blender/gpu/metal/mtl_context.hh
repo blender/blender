@@ -18,9 +18,9 @@
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#include "intern/GHOST_Context.h"
-#include "intern/GHOST_ContextCGL.h"
-#include "intern/GHOST_Window.h"
+#include "intern/GHOST_Context.hh"
+#include "intern/GHOST_ContextCGL.hh"
+#include "intern/GHOST_Window.hh"
 
 #include "mtl_backend.hh"
 #include "mtl_capabilities.hh"

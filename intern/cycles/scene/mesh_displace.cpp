@@ -35,7 +35,7 @@ static float3 compute_face_normal(const Mesh::Triangle &t, float3 *verts)
 /* Fill in coordinates for mesh displacement shader evaluation on device. */
 static int fill_shader_input(const Scene *scene,
                              const Mesh *mesh,
-                             const int object_index,
+                             const size_t object_index,
                              device_vector<KernelShaderEvalInput> &d_input)
 {
   int d_input_size = 0;

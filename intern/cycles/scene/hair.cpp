@@ -531,7 +531,7 @@ PrimitiveType Hair::primitive_type() const
 
 /* Fill in coordinates for curve transparency shader evaluation on device. */
 static int fill_shader_input(const Hair *hair,
-                             const int object_index,
+                             const size_t object_index,
                              device_vector<KernelShaderEvalInput> &d_input)
 {
   int d_input_size = 0;

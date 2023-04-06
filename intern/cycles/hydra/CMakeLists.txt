@@ -80,6 +80,12 @@ if(EXISTS ${USD_INCLUDE_DIR}/pxr/imaging/hgiGL)
   list(APPEND SRC_HD_CYCLES_HEADERS display_driver.h)
 endif()
 
+# Silence warning from USD headers using deprecated TBB header.
+add_definitions(
+  -D__TBB_show_deprecation_message_atomic_H
+  -D__TBB_show_deprecation_message_task_H
+)
+
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 

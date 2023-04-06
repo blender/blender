@@ -458,7 +458,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* build polygon -> edge map */
   if (totpoly) {
-    
+
     edge_poly_map = static_cast<uint *>(
         MEM_malloc_arrayN(totedge, sizeof(*edge_poly_map), __func__));
     memset(edge_poly_map, 0xff, sizeof(*edge_poly_map) * totedge);

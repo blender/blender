@@ -291,7 +291,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
       if ((1 << dummy_pt.space_type) & WM_TOOLSYSTEM_SPACE_MASK) {
         BKE_reportf(reports,
                     RPT_ERROR,
-                    "%s '%s' has category '%s' ",
+                    "%s '%s' has category '%s'",
                     error_prefix,
                     dummy_pt.idname,
                     dummy_pt.category);

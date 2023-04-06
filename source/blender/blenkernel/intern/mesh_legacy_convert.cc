@@ -1745,19 +1745,19 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
 
   /* Store layer names since they will be removed, used to set the active status of new layers.
    * Use intermediate #StringRef because the names can be null. */
-  const std::string active_uv = StringRef(
-      CustomData_get_active_layer_name(&mesh->ldata, CD_MLOOPUV));
-  const std::string default_uv = StringRef(
-      CustomData_get_render_layer_name(&mesh->ldata, CD_MLOOPUV));
 
-  Vector<std::string> uv_layers_to_convert;
-  for (const int uv_layer_i : IndexRange(CustomData_number_of_layers(&mesh->ldata, CD_MLOOPUV))) {
-    uv_layers_to_convert.append(CustomData_get_layer_name(&mesh->ldata, CD_MLOOPUV, uv_layer_i));
+  Array<std::string> uv_names(CustomData_number_of_layers(&mesh->ldata, CD_MLOOPUV));
+  for (const int i : uv_names.index_range()) {
+    uv_names[i] = CustomData_get_layer_name(&mesh->ldata, CD_MLOOPUV, i);
   }
+  const int active_name_i = uv_names.as_span().first_index_try(
+      StringRef(CustomData_get_active_layer_name(&mesh->ldata, CD_MLOOPUV)));
+  const int default_name_i = uv_names.as_span().first_index_try(
+      StringRef(CustomData_get_render_layer_name(&mesh->ldata, CD_MLOOPUV)));
 
-  for (const StringRefNull name : uv_layers_to_convert) {
+  for (const int i : uv_names.index_range()) {
     const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
-        CustomData_get_layer_named(&mesh->ldata, CD_MLOOPUV, name.c_str()));
+        CustomData_get_layer_named(&mesh->ldata, CD_MLOOPUV, uv_names[i].c_str()));
     const uint32_t needed_boolean_attributes = threading::parallel_reduce(
         IndexRange(mesh->totloop),
         4096,
@@ -1808,41 +1808,52 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
       }
     });
 
-    CustomData_free_layer_named(&mesh->ldata, name.c_str(), mesh->totloop);
+    CustomData_free_layer_named(&mesh->ldata, uv_names[i].c_str(), mesh->totloop);
+
+    char new_name[MAX_CUSTOMDATA_LAYER_NAME];
+    BKE_id_attribute_calc_unique_name(&mesh->id, uv_names[i].c_str(), new_name);
+    uv_names[i] = new_name;
+
     CustomData_add_layer_named_with_data(
-        &mesh->ldata, CD_PROP_FLOAT2, coords, mesh->totloop, name.c_str());
+        &mesh->ldata, CD_PROP_FLOAT2, coords, mesh->totloop, new_name);
     char buffer[MAX_CUSTOMDATA_LAYER_NAME];
     if (vert_selection) {
       CustomData_add_layer_named_with_data(&mesh->ldata,
                                            CD_PROP_BOOL,
                                            vert_selection,
                                            mesh->totloop,
-                                           BKE_uv_map_vert_select_name_get(name.c_str(), buffer));
+                                           BKE_uv_map_vert_select_name_get(new_name, buffer));
     }
     if (edge_selection) {
       CustomData_add_layer_named_with_data(&mesh->ldata,
                                            CD_PROP_BOOL,
                                            edge_selection,
                                            mesh->totloop,
-                                           BKE_uv_map_edge_select_name_get(name.c_str(), buffer));
+                                           BKE_uv_map_edge_select_name_get(new_name, buffer));
     }
     if (pin) {
       CustomData_add_layer_named_with_data(&mesh->ldata,
                                            CD_PROP_BOOL,
                                            pin,
                                            mesh->totloop,
-                                           BKE_uv_map_pin_name_get(name.c_str(), buffer));
+                                           BKE_uv_map_pin_name_get(new_name, buffer));
     }
   }
 
-  CustomData_set_layer_active_index(
-      &mesh->ldata,
-      CD_PROP_FLOAT2,
-      CustomData_get_named_layer_index(&mesh->ldata, CD_PROP_FLOAT2, active_uv.c_str()));
-  CustomData_set_layer_render_index(
-      &mesh->ldata,
-      CD_PROP_FLOAT2,
-      CustomData_get_named_layer_index(&mesh->ldata, CD_PROP_FLOAT2, default_uv.c_str()));
+  if (active_name_i != -1) {
+    CustomData_set_layer_active_index(
+        &mesh->ldata,
+        CD_PROP_FLOAT2,
+        CustomData_get_named_layer_index(
+            &mesh->ldata, CD_PROP_FLOAT2, uv_names[active_name_i].c_str()));
+  }
+  if (default_name_i != -1) {
+    CustomData_set_layer_render_index(
+        &mesh->ldata,
+        CD_PROP_FLOAT2,
+        CustomData_get_named_layer_index(
+            &mesh->ldata, CD_PROP_FLOAT2, uv_names[default_name_i].c_str()));
+  }
 }
 
 /** \name Selection Attribute and Legacy Flag Conversion

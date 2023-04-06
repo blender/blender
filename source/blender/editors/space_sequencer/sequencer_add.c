@@ -468,7 +468,7 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Add Scene Strip";
   ot->idname = "SEQUENCER_OT_scene_strip_add";
-  ot->description = "Add a strip to the sequencer using a blender scene as a source";
+  ot->description = "Add a strip to the sequencer using a Blender scene as a source";
 
   /* Api callbacks. */
   ot->invoke = sequencer_add_scene_strip_invoke;

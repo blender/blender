@@ -2751,7 +2751,7 @@ static void rna_def_scene(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "SceneSequence", "Sequence");
   RNA_def_struct_ui_text(
-      srna, "Scene Sequence", "Sequence strip to used the rendered image of a scene");
+      srna, "Scene Sequence", "Sequence strip using the rendered image of a scene");
   RNA_def_struct_sdna(srna, "Sequence");
 
   prop = RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
@@ -2762,7 +2762,7 @@ static void rna_def_scene(BlenderRNA *brna)
   prop = RNA_def_property(srna, "scene_camera", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Camera_object_poll");
-  RNA_def_property_ui_text(prop, "Camera Override", "Override the scenes active camera");
+  RNA_def_property_ui_text(prop, "Camera Override", "Override the scene's active camera");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
   prop = RNA_def_property(srna, "scene_input", PROP_ENUM, PROP_NONE);
@@ -2819,7 +2819,7 @@ static void rna_def_movie(BlenderRNA *brna)
   prop = RNA_def_property(srna, "retiming_handles", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "retiming_handles", NULL);
   RNA_def_property_struct_type(prop, "RetimingHandle");
-  RNA_def_property_ui_text(prop, "Retiming Hndles", "");
+  RNA_def_property_ui_text(prop, "Retiming Handles", "");
   RNA_def_property_collection_funcs(prop,
                                     "rna_SequenceEditor_retiming_handles_begin",
                                     "rna_iterator_array_next",

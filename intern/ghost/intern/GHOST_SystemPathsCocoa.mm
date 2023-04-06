@@ -3,8 +3,8 @@
 
 #import <Foundation/Foundation.h>
 
-#include "GHOST_Debug.h"
-#include "GHOST_SystemPathsCocoa.h"
+#include "GHOST_Debug.hh"
+#include "GHOST_SystemPathsCocoa.hh"
 
 #pragma mark initialization/finalization
 
