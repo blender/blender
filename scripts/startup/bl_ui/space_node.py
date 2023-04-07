@@ -555,8 +555,8 @@ class NODE_MT_context_menu(Menu):
             layout.operator("node.group_edit", text="Edit").exit = False
             layout.operator("node.group_ungroup", text="Ungroup")
 
-            if is_nested:
-                layout.operator("node.tree_path_parent", text="Exit Group", icon='FILE_PARENT')
+        if is_nested:
+            layout.operator("node.tree_path_parent", text="Exit Group", icon='FILE_PARENT')
 
         layout.separator()
 
