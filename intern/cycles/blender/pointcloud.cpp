@@ -201,7 +201,6 @@ static void export_pointcloud(Scene *scene,
 
   const float(*b_attr_position)[3] = find_position_attribute(b_pointcloud);
   float3 *points = pointcloud->get_points().data();
-  std::cout << sizeof(*points) << '\n';
 
   for (int i = 0; i < num_points; i++) {
     points[i] = make_float3(b_attr_position[i][0], b_attr_position[i][1], b_attr_position[i][2]);
@@ -243,11 +242,10 @@ static void export_pointcloud_motion(PointCloud *pointcloud,
     new_attribute = true;
   }
 
-  /* Export motion points. */
   const int num_points = pointcloud->num_points();
-  // Point cloud attributes are stored as float4 with the radius
-  // in the w element. This is explict now as float3 is no longer
-  // interchangeable with float4 as it is packed now.
+  /* Point cloud attributes are stored as float4 with the radius in the w element.
+   * This is explict now as float3 is no longer interchangeable with float4 as it
+   * is packed now. */
   float4 *mP = attr_mP->data_float4() + motion_step * num_points;
   bool have_motion = false;
   const array<float3> &pointcloud_points = pointcloud->get_points();
@@ -301,7 +299,7 @@ void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info
                                  0.0f;
   export_pointcloud(scene, &new_pointcloud, b_pointcloud, need_motion, motion_scale);
 
-  /* update original sockets */
+  /* Update original sockets. */
   for (const SocketType &socket : new_pointcloud.type->inputs) {
     /* Those sockets are updated in sync_object, so do not modify them. */
     if (socket.name == "use_motion_blur" || socket.name == "motion_steps" ||
@@ -316,7 +314,7 @@ void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info
     pointcloud->attributes.attributes.push_back(std::move(attr));
   }
 
-  /* tag update */
+  /* Tag update. */
   const bool rebuild = (pointcloud && old_numpoints != pointcloud->num_points());
   pointcloud->tag_update(scene, rebuild);
 }

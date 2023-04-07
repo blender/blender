@@ -853,9 +853,9 @@ static void attr_create_generic(Scene *scene,
   }
 }
 
-static float4 hair_point_as_float4(const float (*b_attr_position)[3],
-                                   const float *b_attr_radius,
-                                   const int index)
+static float4 curve_point_as_float4(const float (*b_attr_position)[3],
+                                    const float *b_attr_radius,
+                                    const int index)
 {
   float4 mP = make_float4(
       b_attr_position[index][0], b_attr_position[index][1], b_attr_position[index][2], 0.0f);
@@ -863,18 +863,18 @@ static float4 hair_point_as_float4(const float (*b_attr_position)[3],
   return mP;
 }
 
-static float4 interpolate_hair_points(const float (*b_attr_position)[3],
-                                      const float *b_attr_radius,
-                                      const int first_point_index,
-                                      const int num_points,
-                                      const float step)
+static float4 interpolate_curve_points(const float (*b_attr_position)[3],
+                                       const float *b_attr_radius,
+                                       const int first_point_index,
+                                       const int num_points,
+                                       const float step)
 {
   const float curve_t = step * (num_points - 1);
   const int point_a = clamp((int)curve_t, 0, num_points - 1);
   const int point_b = min(point_a + 1, num_points - 1);
   const float t = curve_t - (float)point_a;
-  return lerp(hair_point_as_float4(b_attr_position, b_attr_radius, first_point_index + point_a),
-              hair_point_as_float4(b_attr_position, b_attr_radius, first_point_index + point_b),
+  return lerp(curve_point_as_float4(b_attr_position, b_attr_radius, first_point_index + point_a),
+              curve_point_as_float4(b_attr_position, b_attr_radius, first_point_index + point_b),
               t);
 }
 
@@ -1005,7 +1005,7 @@ static void export_hair_curves_motion(Hair *hair, BL::Curves b_curves, int motio
         int point = first_point_index + i;
 
         if (point < num_keys) {
-          mP[num_motion_keys] = hair_point_as_float4(b_attr_position, b_attr_radius, point);
+          mP[num_motion_keys] = curve_point_as_float4(b_attr_position, b_attr_radius, point);
           num_motion_keys++;
 
           if (!have_motion) {
@@ -1024,7 +1024,7 @@ static void export_hair_curves_motion(Hair *hair, BL::Curves b_curves, int motio
       const float step_size = curve.num_keys > 1 ? 1.0f / (curve.num_keys - 1) : 0.0f;
       for (int i = 0; i < curve.num_keys; i++) {
         const float step = i * step_size;
-        mP[num_motion_keys] = interpolate_hair_points(
+        mP[num_motion_keys] = interpolate_curve_points(
             b_attr_position, b_attr_radius, first_point_index, num_points, step);
         num_motion_keys++;
       }
