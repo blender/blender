@@ -813,6 +813,19 @@ static void attr_create_generic(Scene *scene,
         });
         break;
       }
+      case BL::Attribute::data_type_BYTE_COLOR: {
+        BL::ByteColorAttribute b_color_attribute{b_attribute};
+        const uchar(*src)[4] = static_cast<const uchar(*)[4]>(b_color_attribute.data[0].ptr.data);
+        Attribute *attr = attributes.add(name, TypeRGBA, element);
+        float4 *data = attr->data_float4();
+        fill_generic_attribute(num_curves, num_keys, data, element, [&](int i) {
+          return make_float4(color_srgb_to_linear(byte_to_float(src[i][0])),
+                             color_srgb_to_linear(byte_to_float(src[i][1])),
+                             color_srgb_to_linear(byte_to_float(src[i][2])),
+                             color_srgb_to_linear(byte_to_float(src[i][3])));
+        });
+        break;
+      }
       case BL::Attribute::data_type_FLOAT_COLOR: {
         BL::FloatColorAttribute b_color_attribute{b_attribute};
         const float(*src)[4] = static_cast<const float(*)[4]>(b_color_attribute.data[0].ptr.data);

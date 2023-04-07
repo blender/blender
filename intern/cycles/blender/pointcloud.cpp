@@ -10,6 +10,7 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
+#include "util/color.h"
 #include "util/foreach.h"
 #include "util/hash.h"
 
@@ -108,6 +109,19 @@ static void copy_attributes(PointCloud *pointcloud,
         float3 *data = attr->data_float3();
         for (int i = 0; i < num_points; i++) {
           data[i] = make_float3(src[i][0], src[i][1], src[i][2]);
+        }
+        break;
+      }
+      case BL::Attribute::data_type_BYTE_COLOR: {
+        BL::ByteColorAttribute b_color_attribute{b_attribute};
+        const uchar(*src)[4] = static_cast<const uchar(*)[4]>(b_color_attribute.data[0].ptr.data);
+        Attribute *attr = attributes.add(name, TypeRGBA, element);
+        float4 *data = attr->data_float4();
+        for (int i = 0; i < num_points; i++) {
+          data[i] = make_float4(color_srgb_to_linear(byte_to_float(src[i][0])),
+                                color_srgb_to_linear(byte_to_float(src[i][1])),
+                                color_srgb_to_linear(byte_to_float(src[i][2])),
+                                color_srgb_to_linear(byte_to_float(src[i][3])));
         }
         break;
       }
