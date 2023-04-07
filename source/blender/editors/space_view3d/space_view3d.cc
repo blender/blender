@@ -2266,7 +2266,7 @@ void ED_spacetype_view3d()
   /* regions: asset shelf footer */
   art = MEM_cnew<ARegionType>("spacetype view3d asset shelf footer region");
   art->regionid = RGN_TYPE_ASSET_SHELF_FOOTER;
-  art->prefsizey = HEADERY;
+  art->prefsizey = 0.8f * HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
   art->init = ED_asset_shelf_footer_region_init;
   art->poll = ED_asset_shelf_poll;

@@ -34,6 +34,7 @@
 #include "WM_types.h"
 
 #include "ED_asset.h"
+#include "ED_asset_shelf.h"
 #include "ED_buttons.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
@@ -1337,7 +1338,7 @@ static void region_rect_recursive(
     prefsizey = ED_area_footersize();
   }
   else if (region->regiontype == RGN_TYPE_ASSET_SHELF_FOOTER) {
-    prefsizey = ED_area_footersize();
+    prefsizey = ED_asset_shelf_footer_size();
   }
   else if (ED_area_is_global(area)) {
     prefsizey = ED_region_global_size_y();

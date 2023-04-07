@@ -226,6 +226,12 @@ void ED_asset_shelf_footer_region(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
+int ED_asset_shelf_footer_size()
+{
+  /* A little smaller than a regular header. */
+  return ED_area_headersize() * 0.9f;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
