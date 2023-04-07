@@ -98,10 +98,21 @@ void settings_set_active_catalog(AssetShelfSettings &shelf_settings,
   shelf_settings.active_catalog_path = BLI_strdupn(path.c_str(), path.length());
 }
 
+void settings_set_all_catalog_active(AssetShelfSettings &shelf_settings)
+{
+  MEM_delete(shelf_settings.active_catalog_path);
+  shelf_settings.active_catalog_path = nullptr;
+}
+
 bool settings_is_active_catalog(const AssetShelfSettings &shelf_settings,
                                 const asset_system::AssetCatalogPath &path)
 {
   return shelf_settings.active_catalog_path && shelf_settings.active_catalog_path == path.str();
+}
+
+bool settings_is_all_catalog_active(const AssetShelfSettings &shelf_settings)
+{
+  return !shelf_settings.active_catalog_path || !shelf_settings.active_catalog_path[0];
 }
 
 bool settings_is_catalog_path_enabled(const AssetShelfSettings &shelf_settings,

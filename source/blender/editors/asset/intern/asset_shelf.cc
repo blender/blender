@@ -219,35 +219,56 @@ AssetShelfSettings *settings_from_context(const bContext *C)
 /** \name Catalog toggle buttons
  * \{ */
 
+static uiBut *add_tab_button(uiBlock &block, StringRefNull name)
+{
+  const uiStyle *style = UI_style_get_dpi();
+  const int string_width = UI_fontstyle_string_width(&style->widget, name.c_str());
+  const int pad_x = UI_UNIT_X * 0.3f;
+  const int but_width = std::min(string_width + 2 * pad_x, UI_UNIT_X * 8);
+
+  uiBut *but = uiDefBut(&block,
+                        UI_BTYPE_TAB,
+                        0,
+                        name.c_str(),
+                        0,
+                        0,
+                        but_width,
+                        UI_UNIT_Y,
+                        nullptr,
+                        0,
+                        0,
+                        0,
+                        0,
+                        "Enable catalog, making contained assets visible in the asset shelf");
+
+  UI_but_drawflag_enable(but, UI_BUT_ALIGN_TOP);
+
+  return but;
+}
+
 static void add_catalog_toggle_buttons(AssetShelfSettings &shelf_settings, uiLayout &layout)
 {
   uiBlock *block = uiLayoutGetBlock(&layout);
-  const uiStyle *style = UI_style_get_dpi();
 
+  /* "All" tab. */
+  {
+    uiBut *but = add_tab_button(*block, IFACE_("All"));
+    UI_but_func_set(but, [&shelf_settings](bContext &C) {
+      shelf::settings_set_all_catalog_active(shelf_settings);
+      shelf::send_redraw_notifier(C);
+    });
+    UI_but_func_pushed_state_set(but, [&shelf_settings](const uiBut &) -> bool {
+      return shelf::settings_is_all_catalog_active(shelf_settings);
+    });
+  }
+
+  uiItemS(&layout);
+
+  /* Regular catalog tabs. */
   shelf::settings_foreach_enabled_catalog_path(
-      shelf_settings, [&shelf_settings, block, style](const asset_system::AssetCatalogPath &path) {
-        const char *name = path.name().c_str();
-        const int string_width = UI_fontstyle_string_width(&style->widget, name);
-        const int pad_x = UI_UNIT_X * 0.3f;
-        const int but_width = std::min(string_width + 2 * pad_x, UI_UNIT_X * 8);
+      shelf_settings, [&shelf_settings, block](const asset_system::AssetCatalogPath &path) {
+        uiBut *but = add_tab_button(*block, path.name());
 
-        uiBut *but = uiDefBut(
-            block,
-            UI_BTYPE_TAB,
-            0,
-            name,
-            0,
-            0,
-            but_width,
-            UI_UNIT_Y,
-            nullptr,
-            0,
-            0,
-            0,
-            0,
-            "Enable catalog, making contained assets visible in the asset shelf");
-
-        UI_but_drawflag_enable(but, UI_BUT_ALIGN_TOP);
         UI_but_func_set(but, [&shelf_settings, path](bContext &C) {
           shelf::settings_set_active_catalog(shelf_settings, path);
           shelf::send_redraw_notifier(C);
