@@ -99,8 +99,14 @@ void MTLFrameBuffer::bind(bool enabled_srgb)
     return;
   }
 
-  /* Ensure local MTLAttachment data is up to date. */
-  this->update_attachments(true);
+  /* Ensure local MTLAttachment data is up to date.
+   * NOTE: We only refresh viewport/scissor region when attachments are updated during bind.
+   * This is to ensure state is consistent with the OpenGL backend. */
+  if (dirty_attachments_) {
+    this->update_attachments(true);
+    this->viewport_reset();
+    this->scissor_reset();
+  }
 
   /* Ensure SRGB state is up-to-date and valid. */
   bool srgb_state_changed = enabled_srgb_ != enabled_srgb;
@@ -465,6 +471,11 @@ void MTLFrameBuffer::read(eGPUFrameBufferBits planes,
   BLI_assert(area[2] > 0);
   BLI_assert(area[3] > 0);
 
+  /* Early exit if requested read region area is zero. */
+  if (area[2] <= 0 || area[3] <= 0) {
+    return;
+  }
+
   switch (planes) {
     case GPU_DEPTH_BIT: {
       if (this->has_depth_attachment()) {
@@ -742,10 +753,6 @@ void MTLFrameBuffer::update_attachments(bool update_viewport)
     height_ = 0;
   }
 
-  /* Reset viewport and Scissor. */
-  this->viewport_reset();
-  this->scissor_reset();
-
   /* We have now updated our internal structures. */
   dirty_attachments_ = false;
 }
@@ -760,15 +767,18 @@ void MTLFrameBuffer::apply_state()
     }
 
     /* Ensure viewport has been set. NOTE: This should no longer happen, but kept for safety to
-     * track bugs. */
-    if (viewport_[2] == 0 || viewport_[3] == 0) {
+     * track bugs. If viewport size is zero, use framebuffer size. */
+    int viewport_w = viewport_[2];
+    int viewport_h = viewport_[3];
+    if (viewport_w == 0 || viewport_h == 0) {
       MTL_LOG_WARNING(
           "Viewport had width and height of (0,0) -- Updating -- DEBUG Safety check\n");
-      viewport_reset();
+      viewport_w = width_;
+      viewport_h = height_;
     }
 
     /* Update Context State. */
-    mtl_ctx->set_viewport(viewport_[0], viewport_[1], viewport_[2], viewport_[3]);
+    mtl_ctx->set_viewport(viewport_[0], viewport_[1], viewport_w, viewport_h);
     mtl_ctx->set_scissor(scissor_[0], scissor_[1], scissor_[2], scissor_[3]);
     mtl_ctx->set_scissor_enabled(scissor_test_);
 
@@ -895,8 +905,6 @@ bool MTLFrameBuffer::add_color_attachment(gpu::MTLTexture *texture,
 
     if (width_ == 0 || height_ == 0) {
       this->size_set(width_of_miplayer, height_of_miplayer);
-      this->scissor_reset();
-      this->viewport_reset();
       BLI_assert(width_ > 0);
       BLI_assert(height_ > 0);
     }
@@ -1017,8 +1025,6 @@ bool MTLFrameBuffer::add_depth_attachment(gpu::MTLTexture *texture, int miplevel
     /* Update Frame-buffer Resolution. */
     if (width_ == 0 || height_ == 0) {
       this->size_set(width_of_miplayer, height_of_miplayer);
-      this->scissor_reset();
-      this->viewport_reset();
       BLI_assert(width_ > 0);
       BLI_assert(height_ > 0);
     }
@@ -1139,8 +1145,6 @@ bool MTLFrameBuffer::add_stencil_attachment(gpu::MTLTexture *texture, int miplev
     /* Update Frame-buffer Resolution. */
     if (width_ == 0 || height_ == 0) {
       this->size_set(width_of_miplayer, height_of_miplayer);
-      this->scissor_reset();
-      this->viewport_reset();
       BLI_assert(width_ > 0);
       BLI_assert(height_ > 0);
     }
@@ -1225,10 +1229,8 @@ void MTLFrameBuffer::ensure_render_target_size()
   if (colour_attachment_count_ == 0 && !this->has_depth_attachment() &&
       !this->has_stencil_attachment()) {
 
-    /* Reset Viewport and Scissor for NULL framebuffer. */
+    /* Reset size for empty framebuffer. */
     this->size_set(0, 0);
-    this->scissor_reset();
-    this->viewport_reset();
   }
 }
 
