@@ -14,6 +14,7 @@ graph[autosize = false, size = "25.7,8.3!", resolution = 300];
 	external_dpcpp -- external_mp11;
 	external_dpcpp -- external_level_zero;
 	external_dpcpp -- external_spirvheaders;
+	external_dpcpp -- external_unifiedruntime;
 	external_embree -- external_tbb;
 	external_ffmpeg -- external_zlib;
 	external_ffmpeg -- external_openjpeg;

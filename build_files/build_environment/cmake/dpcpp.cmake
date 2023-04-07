@@ -41,6 +41,7 @@ set(DPCPP_EXTRA_ARGS
   -DLEVEL_ZERO_LIBRARY=${LIBDIR}/level-zero/lib/${LIBPREFIX}ze_loader${SHAREDLIBEXT}
   -DLEVEL_ZERO_INCLUDE_DIR=${LIBDIR}/level-zero/include
   -DLLVM_EXTERNAL_SPIRV_HEADERS_SOURCE_DIR=${BUILD_DIR}/spirvheaders/src/external_spirvheaders/
+  -DUNIFIED_RUNTIME_SOURCE_DIR=${BUILD_DIR}/unifiedruntime/src/external_unifiedruntime/
   # Below here is copied from an invocation of buildbot/config.py
   -DLLVM_ENABLE_ASSERTIONS=ON
   -DLLVM_TARGETS_TO_BUILD=X86
@@ -107,6 +108,7 @@ add_dependencies(
   external_mp11
   external_level-zero
   external_spirvheaders
+  external_unifiedruntime
 )
 
 if(BUILD_MODE STREQUAL Release AND WIN32)
