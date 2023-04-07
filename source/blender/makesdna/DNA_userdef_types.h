@@ -215,6 +215,11 @@ typedef struct ThemeUI {
 
 } ThemeUI;
 
+typedef struct ThemeAssetShelf {
+  unsigned char header_back[4];
+  unsigned char back[4];
+} ThemeAssetShelf;
+
 /* try to put them all in one, if needed a special struct can be created as well
  * for example later on, when we introduce wire colors for ob types or so...
  */
@@ -269,6 +274,8 @@ typedef struct ThemeSpace {
 
   /* NOTE: cannot use name 'panel' because of DNA mapping old files. */
   uiPanelColors panelcolors;
+
+  ThemeAssetShelf asset_shelf;
 
   unsigned char shade1[4];
   unsigned char shade2[4];
