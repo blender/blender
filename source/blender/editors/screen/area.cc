@@ -3320,15 +3320,12 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
   bool region_layout_based = region->flag & RGN_FLAG_DYNAMIC_SIZE;
 
   /* Height of buttons and scaling needed to achieve it. */
-  const bool is_fixed_header_height = region->type->prefsizey == HEADERY;
-  const int buttony = is_fixed_header_height ? UI_UNIT_Y :
-                                               region->winy - 2 * UI_SCALE_FAC - UI_HEADER_OFFSET;
+  const int buttony = min_ii(UI_UNIT_Y, region->winy - 2 * UI_SCALE_FAC);
   const float buttony_scale = buttony / float(UI_UNIT_Y);
 
   /* Vertically center buttons. */
   int xco = UI_HEADER_OFFSET;
-  int yco = is_fixed_header_height ? buttony + (region->winy - buttony) / 2 :
-                                     buttony + UI_HEADER_OFFSET / 2;
+  int yco = buttony + (region->winy - buttony) / 2;
   int maxco = xco;
 
   /* XXX workaround for 1 px alignment issue. Not sure what causes it...
