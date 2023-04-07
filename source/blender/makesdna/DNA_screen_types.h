@@ -763,6 +763,7 @@ enum {
 typedef struct AssetShelfSettings {
   /* TODO make this per mode? (or use a custom identifier?) */
   ListBase enabled_catalog_paths; /* #LinkData */
+  /** If not set (null or empty string), all assets will be displayed ("All" catalog behavior). */
   const char *active_catalog_path;
 } AssetShelfSettings;
 
