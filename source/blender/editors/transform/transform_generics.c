@@ -420,8 +420,16 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       t->orient_axis_ortho = RNA_property_enum_get(op->ptr, prop);
     }
 
-    if (op && ((prop = RNA_struct_find_property(op->ptr, "orient_matrix")) &&
-               RNA_property_is_set(op->ptr, prop))) {
+    /* The properties "orient_matrix" and "orient_matrix_type" are used to store the orientation
+     * calculated in the first operator call. This allows for reuse of the orientation during
+     * subsequent calls of the same operator. When making adjustments through the Redo panel
+     * (#OP_IS_REPEAT), reusing the orientation prevents unpredictable changes that can occur when
+     * using #V3D_ORIENT_VIEW. However, when activated by #SCREEN_OT_repeat_last
+     * (#OP_IS_REPEAT_LAST), it's best to avoid reusing the orientation to prevent unintended
+     * changes. */
+    if (op && !(op->flag & OP_IS_REPEAT_LAST) &&
+        ((prop = RNA_struct_find_property(op->ptr, "orient_matrix")) &&
+         RNA_property_is_set(op->ptr, prop))) {
       RNA_property_float_get_array(op->ptr, prop, &custom_matrix[0][0]);
 
       if ((prop = RNA_struct_find_property(op->ptr, "orient_matrix_type")) &&
