@@ -33,6 +33,8 @@
 #include "BKE_report.h"
 #include "BKE_vfont.h"
 
+#include "BLI_string_utf8.h"
+
 #include "BLT_translation.h"
 
 #include "DEG_depsgraph.h"
@@ -1972,33 +1974,16 @@ static const EnumPropertyItem case_items[] = {
 static int set_case(bContext *C, int ccase)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Curve *cu = obedit->data;
-  EditFont *ef = cu->editfont;
-  char32_t *str;
-  int len;
   int selstart, selend;
 
   if (BKE_vfont_select_get(obedit, &selstart, &selend)) {
-    len = (selend - selstart) + 1;
-    str = &ef->textbuf[selstart];
-    while (len) {
-      if (*str >= 'a' && *str <= 'z') {
-        *str -= 32;
-      }
-      len--;
-      str++;
-    }
+    Curve *cu = (Curve *)obedit->data;
+    EditFont *ef = cu->editfont;
+    char32_t *str = &ef->textbuf[selstart];
 
-    if (ccase == CASE_LOWER) {
-      len = (selend - selstart) + 1;
-      str = &ef->textbuf[selstart];
-      while (len) {
-        if (*str >= 'A' && *str <= 'Z') {
-          *str += 32;
-        }
-        len--;
-        str++;
-      }
+    for (int len = (selend - selstart) + 1; len; len--, str++) {
+      *str = (ccase == CASE_LOWER) ? BLI_str_utf32_char_to_lower(*str) :
+                                     BLI_str_utf32_char_to_upper(*str);
     }
 
     text_update_edited(C, obedit, FO_EDIT);
