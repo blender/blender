@@ -841,7 +841,7 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)
 
       BLI_strncpy(data.scene_name, sce->id.name + 2, sizeof(data.scene_name));
 
-      writedata(wd, REND, sizeof(data), &data);
+      writedata(wd, BLO_CODE_REND, sizeof(data), &data);
     }
   }
 }
@@ -856,7 +856,7 @@ static void write_keymapitem(BlendWriter *writer, const wmKeyMapItem *kmi)
 
 static void write_userdef(BlendWriter *writer, const UserDef *userdef)
 {
-  writestruct(writer->wd, USER, UserDef, 1, userdef);
+  writestruct(writer->wd, BLO_CODE_USER, UserDef, 1, userdef);
 
   LISTBASE_FOREACH (const bTheme *, btheme, &userdef->themes) {
     BLO_write_struct(writer, bTheme, btheme);
@@ -1063,7 +1063,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
   fg.build_commit_timestamp = 0;
   BLI_strncpy(fg.build_hash, "unknown", sizeof(fg.build_hash));
 #endif
-  writestruct(wd, GLOB, FileGlobal, 1, &fg);
+  writestruct(wd, BLO_CODE_GLOB, FileGlobal, 1, &fg);
 }
 
 /**
@@ -1074,7 +1074,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 static void write_thumb(WriteData *wd, const BlendThumbnail *thumb)
 {
   if (thumb) {
-    writedata(wd, TEST, BLEN_THUMB_MEMSIZE_FILE(thumb->width, thumb->height), thumb);
+    writedata(wd, BLO_CODE_TEST, BLEN_THUMB_MEMSIZE_FILE(thumb->width, thumb->height), thumb);
   }
 }
 
@@ -1332,11 +1332,11 @@ static bool write_file_handle(Main *mainvar,
    *
    * Note that we *borrow* the pointer to 'DNAstr',
    * so writing each time uses the same address and doesn't cause unnecessary undo overhead. */
-  writedata(wd, DNA1, size_t(wd->sdna->data_len), wd->sdna->data);
+  writedata(wd, BLO_CODE_DNA1, size_t(wd->sdna->data_len), wd->sdna->data);
 
   /* end of file */
   memset(&bhead, 0, sizeof(BHead));
-  bhead.code = ENDB;
+  bhead.code = BLO_CODE_ENDB;
   mywrite(wd, &bhead, sizeof(BHead));
 
   blo_join_main(&mainlist);
@@ -1569,7 +1569,7 @@ bool BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int w
 
 void BLO_write_raw(BlendWriter *writer, size_t size_in_bytes, const void *data_ptr)
 {
-  writedata(writer->wd, DATA, size_in_bytes, data_ptr);
+  writedata(writer->wd, BLO_CODE_DATA, size_in_bytes, data_ptr);
 }
 
 void BLO_write_struct_by_name(BlendWriter *writer, const char *struct_name, const void *data_ptr)
@@ -1592,7 +1592,7 @@ void BLO_write_struct_array_by_name(BlendWriter *writer,
 
 void BLO_write_struct_by_id(BlendWriter *writer, int struct_id, const void *data_ptr)
 {
-  writestruct_nr(writer->wd, DATA, struct_id, 1, data_ptr);
+  writestruct_nr(writer->wd, BLO_CODE_DATA, struct_id, 1, data_ptr);
 }
 
 void BLO_write_struct_at_address_by_id(BlendWriter *writer,
@@ -1600,7 +1600,8 @@ void BLO_write_struct_at_address_by_id(BlendWriter *writer,
                                        const void *address,
                                        const void *data_ptr)
 {
-  BLO_write_struct_at_address_by_id_with_filecode(writer, DATA, struct_id, address, data_ptr);
+  BLO_write_struct_at_address_by_id_with_filecode(
+      writer, BLO_CODE_DATA, struct_id, address, data_ptr);
 }
 
 void BLO_write_struct_at_address_by_id_with_filecode(
@@ -1614,18 +1615,18 @@ void BLO_write_struct_array_by_id(BlendWriter *writer,
                                   int array_size,
                                   const void *data_ptr)
 {
-  writestruct_nr(writer->wd, DATA, struct_id, array_size, data_ptr);
+  writestruct_nr(writer->wd, BLO_CODE_DATA, struct_id, array_size, data_ptr);
 }
 
 void BLO_write_struct_array_at_address_by_id(
     BlendWriter *writer, int struct_id, int array_size, const void *address, const void *data_ptr)
 {
-  writestruct_at_address_nr(writer->wd, DATA, struct_id, array_size, address, data_ptr);
+  writestruct_at_address_nr(writer->wd, BLO_CODE_DATA, struct_id, array_size, address, data_ptr);
 }
 
 void BLO_write_struct_list_by_id(BlendWriter *writer, int struct_id, ListBase *list)
 {
-  writelist_nr(writer->wd, DATA, struct_id, list);
+  writelist_nr(writer->wd, BLO_CODE_DATA, struct_id, list);
 }
 
 void BLO_write_struct_list_by_name(BlendWriter *writer, const char *struct_name, ListBase *list)
