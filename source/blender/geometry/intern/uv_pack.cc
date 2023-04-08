@@ -106,6 +106,8 @@ void PackIsland::add_triangle(const float2 uv0, const float2 uv1, const float2 u
 
 void PackIsland::add_polygon(const blender::Span<float2> uvs, MemArena *arena, Heap *heap)
 {
+  /* Internally, PackIsland uses triangles as the primitive, so we have to triangulate. */
+
   int vert_count = int(uvs.size());
   BLI_assert(vert_count >= 3);
   int nfilltri = vert_count - 2;
@@ -118,13 +120,7 @@ void PackIsland::add_polygon(const blender::Span<float2> uvs, MemArena *arena, H
   /* Storage. */
   uint(*tris)[3] = static_cast<uint(*)[3]>(
       BLI_memarena_alloc(arena, sizeof(*tris) * size_t(nfilltri)));
-  float(*source)[2] = static_cast<float(*)[2]>(
-      BLI_memarena_alloc(arena, sizeof(*source) * size_t(vert_count)));
-
-  /* Copy input. */
-  for (int i = 0; i < vert_count; i++) {
-    copy_v2_v2(source[i], uvs[i]);
-  }
+  const float(*source)[2] = reinterpret_cast<const float(*)[2]>(uvs.data());
 
   /* Triangulate. */
   BLI_polyfill_calc_arena(source, vert_count, 0, tris, arena);
@@ -163,7 +159,7 @@ void PackIsland::finalize_geometry(const UVPackIsland_Params &params, MemArena *
         BLI_memarena_alloc(arena, sizeof(*index_map) * vert_count));
 
     /* Prepare input for convex hull. */
-    float(*source)[2] = reinterpret_cast<float(*)[2]>(triangle_vertices_.data());
+    const float(*source)[2] = reinterpret_cast<const float(*)[2]>(triangle_vertices_.data());
 
     /* Compute convex hull. */
     int convex_len = BLI_convexhull_2d(source, vert_count, index_map);
@@ -183,6 +179,8 @@ void PackIsland::finalize_geometry(const UVPackIsland_Params &params, MemArena *
 
 void PackIsland::calculate_pivot()
 {
+  /* `pivot_` is calculated as the center of the AABB,
+   * However `pivot_` cannot be outside of the convex hull. */
   Bounds<float2> triangle_bounds = *bounds::min_max(triangle_vertices_.as_span());
   pivot_ = (triangle_bounds.min + triangle_bounds.max) * 0.5f;
   half_diagonal_ = (triangle_bounds.max - triangle_bounds.min) * 0.5f;
@@ -190,7 +188,6 @@ void PackIsland::calculate_pivot()
 
 UVPackIsland_Params::UVPackIsland_Params()
 {
-  /* TEMPORARY, set every thing to "zero" for backwards compatibility. */
   rotate = false;
   only_selected_uvs = false;
   only_selected_faces = false;
@@ -235,7 +232,7 @@ static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
   /* Exclude an initial AABB near the origin. */
   float next_u1 = *r_max_u;
   float next_v1 = *r_max_v;
-  bool zigzag = next_u1 / target_aspect_y < next_v1; /* Horizontal or Vertical strip? */
+  bool zigzag = next_u1 < next_v1 * target_aspect_y; /* Horizontal or Vertical strip? */
 
   float u0 = zigzag ? next_u1 : 0.0f;
   float v0 = zigzag ? 0.0f : next_v1;
@@ -254,7 +251,7 @@ static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
     }
     if (restart) {
       /* We're at the end of a strip. Restart from U axis or V axis. */
-      zigzag = next_u1 / target_aspect_y < next_v1;
+      zigzag = next_u1 < next_v1 * target_aspect_y;
       u0 = zigzag ? next_u1 : 0.0f;
       v0 = zigzag ? 0.0f : next_v1;
     }
@@ -272,6 +269,163 @@ static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
       /* Move sideways. */
       u0 += dsm_u;
       next_v1 = max_ff(next_v1, v0 + dsm_v);
+      next_u1 = max_ff(next_u1, u0);
+    }
+  }
+
+  /* Write back total pack AABB. */
+  *r_max_u = next_u1;
+  *r_max_v = next_v1;
+}
+
+/**
+ * Helper function for #pack_islands_alpaca_rotate
+ *
+ * The "Hole" is an AABB region of the UV plane that is stored in an unusual way.
+ * \param hole: is the XY position of lower left corner of the AABB.
+ * \param hole_diagonal: is the extent of the AABB, possibly flipped.
+ * \param hole_rotate: is a boolean value, tracking if `hole_diagonal` is flipped.
+ *
+ * Given an alternate AABB specified by `(u0, v0, u1, v1)`, the helper will
+ * update the Hole to the candidate location if it is larger.
+ */
+static void update_hole_rotate(float2 &hole,
+                               float2 &hole_diagonal,
+                               bool &hole_rotate,
+                               const float u0,
+                               const float v0,
+                               const float u1,
+                               const float v1)
+{
+  BLI_assert(hole_diagonal.x <= hole_diagonal.y); /* Confirm invariants. */
+
+  const float hole_area = hole_diagonal.x * hole_diagonal.y;
+  const float quad_area = (u1 - u0) * (v1 - v0);
+  if (quad_area <= hole_area) {
+    return; /* No update, existing hole is larger than candidate. */
+  }
+  hole.x = u0;
+  hole.y = v0;
+  hole_diagonal.x = u1 - u0;
+  hole_diagonal.y = v1 - v0;
+  if (hole_diagonal.y < hole_diagonal.x) {
+    std::swap(hole_diagonal.x, hole_diagonal.y);
+    hole_rotate = true;
+  }
+  else {
+    hole_rotate = false;
+  }
+
+  const float updated_area = hole_diagonal.x * hole_diagonal.y;
+  BLI_assert(hole_area < updated_area); /* Confirm hole grew in size. */
+  UNUSED_VARS(updated_area);
+
+  BLI_assert(hole_diagonal.x <= hole_diagonal.y); /* Confirm invariants. */
+}
+
+/**
+ * Pack AABB islands using the "Alpaca" strategy, with rotation.
+ *
+ * Same as #pack_islands_alpaca_turbo, with support for rotation in 90 degree increments.
+ *
+ * Also adds the concept of a "Hole", which is unused space that can be filled.
+ * Tracking the "Hole" has a slight performance cost, while improving packing efficiency.
+ */
+static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
+                                       const float target_aspect_y,
+                                       float *r_max_u,
+                                       float *r_max_v)
+{
+  /* Exclude an initial AABB near the origin. */
+  float next_u1 = *r_max_u;
+  float next_v1 = *r_max_v;
+  bool zigzag = next_u1 / target_aspect_y < next_v1; /* Horizontal or Vertical strip? */
+
+  /* Track an AABB "hole" which may be filled at any time. */
+  float2 hole(0.0f);
+  float2 hole_diagonal(0.0f);
+  bool hole_rotate = false;
+
+  float u0 = zigzag ? next_u1 : 0.0f;
+  float v0 = zigzag ? 0.0f : next_v1;
+
+  /* Visit every island in order. */
+  for (UVAABBIsland *island : islands) {
+    const float uvdiag_x = island->uv_diagonal.x * island->aspect_y;
+    float min_dsm = std::min(uvdiag_x, island->uv_diagonal.y);
+    float max_dsm = std::max(uvdiag_x, island->uv_diagonal.y);
+
+    if (min_dsm < hole_diagonal.x && max_dsm < hole_diagonal.y) {
+      /* Place island in the hole. */
+      island->uv_placement.x = hole[0];
+      island->uv_placement.y = hole[1];
+      if (hole_rotate == (min_dsm == island->uv_diagonal.x)) {
+        island->angle = DEG2RADF(90.0f);
+        island->uv_placement.x += island->uv_diagonal.y * 0.5f / island->aspect_y;
+        island->uv_placement.y += island->uv_diagonal.x * 0.5f * island->aspect_y;
+      }
+      else {
+        island->angle = 0.0f;
+        island->uv_placement.x += island->uv_diagonal.x * 0.5f;
+        island->uv_placement.y += island->uv_diagonal.y * 0.5f;
+      }
+
+      /* Update space left in the hole. */
+      float p[6];
+      p[0] = hole[0];
+      p[1] = hole[1];
+      p[2] = hole[0] + (hole_rotate ? max_dsm : min_dsm) / island->aspect_y;
+      p[3] = hole[1] + (hole_rotate ? min_dsm : max_dsm);
+      p[4] = hole[0] + (hole_rotate ? hole_diagonal.y : hole_diagonal.x);
+      p[5] = hole[1] + (hole_rotate ? hole_diagonal.x : hole_diagonal.y);
+      hole_diagonal.x = 0; /* Invalidate old hole. */
+      update_hole_rotate(hole, hole_diagonal, hole_rotate, p[0], p[3], p[4], p[5]);
+      update_hole_rotate(hole, hole_diagonal, hole_rotate, p[2], p[1], p[4], p[5]);
+
+      /* Island is placed in the hole, no need to check for restart, or process movement. */
+      continue;
+    }
+
+    bool restart = false;
+    if (zigzag) {
+      restart = (next_v1 < v0 + min_dsm);
+    }
+    else {
+      restart = (next_u1 < u0 + min_dsm / island->aspect_y);
+    }
+    if (restart) {
+      update_hole_rotate(hole, hole_diagonal, hole_rotate, u0, v0, next_u1, next_v1);
+      /* We're at the end of a strip. Restart from U axis or V axis. */
+      zigzag = next_u1 / target_aspect_y < next_v1;
+      u0 = zigzag ? next_u1 : 0.0f;
+      v0 = zigzag ? 0.0f : next_v1;
+    }
+
+    /* Place the island. */
+    island->uv_placement.x = u0;
+    island->uv_placement.y = v0;
+    if (zigzag == (min_dsm == uvdiag_x)) {
+      island->angle = DEG2RADF(90.0f);
+      island->uv_placement.x += island->uv_diagonal.y * 0.5f / island->aspect_y;
+      island->uv_placement.y += island->uv_diagonal.x * 0.5f * island->aspect_y;
+    }
+    else {
+      island->angle = 0.0f;
+      island->uv_placement.x += island->uv_diagonal.x * 0.5f;
+      island->uv_placement.y += island->uv_diagonal.y * 0.5f;
+    }
+
+    /* Move according to the "Alpaca rules", with rotation. */
+    if (zigzag) {
+      /* Move upwards. */
+      v0 += min_dsm;
+      next_u1 = max_ff(next_u1, u0 + max_dsm / island->aspect_y);
+      next_v1 = max_ff(next_v1, v0);
+    }
+    else {
+      /* Move sideways. */
+      u0 += min_dsm / island->aspect_y;
+      next_v1 = max_ff(next_v1, v0 + max_dsm);
       next_u1 = max_ff(next_u1, u0);
     }
   }
@@ -363,12 +517,15 @@ class Occupancy {
 Occupancy::Occupancy(const float initial_scale)
     : bitmap_radix(800), bitmap_(bitmap_radix * bitmap_radix, false)
 {
+  bitmap_scale_reciprocal = 1.0f; /* lint, prevent uninitialized memory access. */
   increase_scale();
-  bitmap_scale_reciprocal = bitmap_radix / initial_scale;
+  bitmap_scale_reciprocal = bitmap_radix / initial_scale; /* Actually set the value. */
 }
 
 void Occupancy::increase_scale()
 {
+  BLI_assert(bitmap_scale_reciprocal > 0.0f); /* TODO: Packing has failed, report error. */
+
   bitmap_scale_reciprocal *= 0.5f;
   for (int i = 0; i < bitmap_radix * bitmap_radix; i++) {
     bitmap_[i] = terminal;
@@ -696,163 +853,6 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
 }
 
 /**
- * Helper function for #pack_islands_alpaca_rotate
- *
- * The "Hole" is an AABB region of the UV plane that is stored in an unusual way.
- * \param hole: is the XY position of lower left corner of the AABB.
- * \param hole_diagonal: is the extent of the AABB, possibly flipped.
- * \param hole_rotate: is a boolean value, tracking if `hole_diagonal` is flipped.
- *
- * Given an alternate AABB specified by `(u0, v0, u1, v1)`, the helper will
- * update the Hole to the candidate location if it is larger.
- */
-static void update_hole_rotate(float2 &hole,
-                               float2 &hole_diagonal,
-                               bool &hole_rotate,
-                               const float u0,
-                               const float v0,
-                               const float u1,
-                               const float v1)
-{
-  BLI_assert(hole_diagonal.x <= hole_diagonal.y); /* Confirm invariants. */
-
-  const float hole_area = hole_diagonal.x * hole_diagonal.y;
-  const float quad_area = (u1 - u0) * (v1 - v0);
-  if (quad_area <= hole_area) {
-    return; /* No update, existing hole is larger than candidate. */
-  }
-  hole.x = u0;
-  hole.y = v0;
-  hole_diagonal.x = u1 - u0;
-  hole_diagonal.y = v1 - v0;
-  if (hole_diagonal.y < hole_diagonal.x) {
-    std::swap(hole_diagonal.x, hole_diagonal.y);
-    hole_rotate = true;
-  }
-  else {
-    hole_rotate = false;
-  }
-
-  const float updated_area = hole_diagonal.x * hole_diagonal.y;
-  BLI_assert(hole_area < updated_area); /* Confirm hole grew in size. */
-  UNUSED_VARS(updated_area);
-
-  BLI_assert(hole_diagonal.x <= hole_diagonal.y); /* Confirm invariants. */
-}
-
-/**
- * Pack AABB islands using the "Alpaca" strategy, with rotation.
- *
- * Same as #pack_islands_alpaca_turbo, with support for rotation in 90 degree increments.
- *
- * Also adds the concept of a "Hole", which is unused space that can be filled.
- * Tracking the "Hole" has a slight performance cost, while improving packing efficiency.
- */
-static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
-                                       const float target_aspect_y,
-                                       float *r_max_u,
-                                       float *r_max_v)
-{
-  /* Exclude an initial AABB near the origin. */
-  float next_u1 = *r_max_u;
-  float next_v1 = *r_max_v;
-  bool zigzag = next_u1 / target_aspect_y < next_v1; /* Horizontal or Vertical strip? */
-
-  /* Track an AABB "hole" which may be filled at any time. */
-  float2 hole(0.0f);
-  float2 hole_diagonal(0.0f);
-  bool hole_rotate = false;
-
-  float u0 = zigzag ? next_u1 : 0.0f;
-  float v0 = zigzag ? 0.0f : next_v1;
-
-  /* Visit every island in order. */
-  for (UVAABBIsland *island : islands) {
-    const float uvdiag_x = island->uv_diagonal.x * island->aspect_y;
-    float min_dsm = std::min(uvdiag_x, island->uv_diagonal.y);
-    float max_dsm = std::max(uvdiag_x, island->uv_diagonal.y);
-
-    if (min_dsm < hole_diagonal.x && max_dsm < hole_diagonal.y) {
-      /* Place island in the hole. */
-      island->uv_placement.x = hole[0];
-      island->uv_placement.y = hole[1];
-      if (hole_rotate == (min_dsm == island->uv_diagonal.x)) {
-        island->angle = DEG2RADF(90.0f);
-        island->uv_placement.x += island->uv_diagonal.y * 0.5f / island->aspect_y;
-        island->uv_placement.y += island->uv_diagonal.x * 0.5f * island->aspect_y;
-      }
-      else {
-        island->angle = 0.0f;
-        island->uv_placement.x += island->uv_diagonal.x * 0.5f;
-        island->uv_placement.y += island->uv_diagonal.y * 0.5f;
-      }
-
-      /* Update space left in the hole. */
-      float p[6];
-      p[0] = hole[0];
-      p[1] = hole[1];
-      p[2] = hole[0] + (hole_rotate ? max_dsm : min_dsm) / island->aspect_y;
-      p[3] = hole[1] + (hole_rotate ? min_dsm : max_dsm);
-      p[4] = hole[0] + (hole_rotate ? hole_diagonal.y : hole_diagonal.x);
-      p[5] = hole[1] + (hole_rotate ? hole_diagonal.x : hole_diagonal.y);
-      hole_diagonal.x = 0; /* Invalidate old hole. */
-      update_hole_rotate(hole, hole_diagonal, hole_rotate, p[0], p[3], p[4], p[5]);
-      update_hole_rotate(hole, hole_diagonal, hole_rotate, p[2], p[1], p[4], p[5]);
-
-      /* Island is placed in the hole, no need to check for restart, or process movement. */
-      continue;
-    }
-
-    bool restart = false;
-    if (zigzag) {
-      restart = (next_v1 < v0 + min_dsm);
-    }
-    else {
-      restart = (next_u1 < u0 + min_dsm / island->aspect_y);
-    }
-    if (restart) {
-      update_hole_rotate(hole, hole_diagonal, hole_rotate, u0, v0, next_u1, next_v1);
-      /* We're at the end of a strip. Restart from U axis or V axis. */
-      zigzag = next_u1 / target_aspect_y < next_v1;
-      u0 = zigzag ? next_u1 : 0.0f;
-      v0 = zigzag ? 0.0f : next_v1;
-    }
-
-    /* Place the island. */
-    island->uv_placement.x = u0;
-    island->uv_placement.y = v0;
-    if (zigzag == (min_dsm == uvdiag_x)) {
-      island->angle = DEG2RADF(90.0f);
-      island->uv_placement.x += island->uv_diagonal.y * 0.5f / island->aspect_y;
-      island->uv_placement.y += island->uv_diagonal.x * 0.5f * island->aspect_y;
-    }
-    else {
-      island->angle = 0.0f;
-      island->uv_placement.x += island->uv_diagonal.x * 0.5f;
-      island->uv_placement.y += island->uv_diagonal.y * 0.5f;
-    }
-
-    /* Move according to the "Alpaca rules", with rotation. */
-    if (zigzag) {
-      /* Move upwards. */
-      v0 += min_dsm;
-      next_u1 = max_ff(next_u1, u0 + max_dsm / island->aspect_y);
-      next_v1 = max_ff(next_v1, v0);
-    }
-    else {
-      /* Move sideways. */
-      u0 += min_dsm / island->aspect_y;
-      next_v1 = max_ff(next_v1, v0 + max_dsm);
-      next_u1 = max_ff(next_u1, u0);
-    }
-  }
-
-  /* Write back total pack AABB. */
-  *r_max_u = next_u1;
-  *r_max_v = next_v1;
-}
-
-/**
  * Pack islands using a mix of other strategies.
  * \param islands: The islands to be packed. Will be modified with results.
  * \param scale: Scale islands by `scale` before packing.
@@ -1171,6 +1171,12 @@ void PackIsland::build_transformation(const float scale,
   r_matrix[0][1] = -sin_angle * scale * aspect_y;
   r_matrix[1][0] = sin_angle * scale / aspect_y;
   r_matrix[1][1] = cos_angle * scale;
+  /*
+  if (reflect) {
+    r_matrix[0][0] *= -1.0f;
+    r_matrix[0][1] *= -1.0f;
+  }
+  */
 }
 
 void PackIsland::build_inverse_transformation(const float scale,
