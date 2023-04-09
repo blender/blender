@@ -1240,7 +1240,7 @@ void BKE_mesh_legacy_sharp_faces_from_flags(Mesh *mesh)
   using namespace blender;
   using namespace blender::bke;
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  if (attributes.contains("sharp_face")) {
+  if (attributes.contains("sharp_face") || !CustomData_get_layer(&mesh->pdata, CD_MPOLY)) {
     return;
   }
   const Span<MPoly> polys(static_cast<const MPoly *>(CustomData_get_layer(&mesh->pdata, CD_MPOLY)),

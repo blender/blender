@@ -9,6 +9,8 @@
 
 #include "DNA_screen_types.h"
 
+#include "ED_view3d.h"
+
 #include "UI_resources.h"
 
 #include "DRW_engine.h"
@@ -138,29 +140,44 @@ static void select_cache_init(void *vedata)
   DRWState state = DRW_STATE_DEFAULT;
   state |= RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d) ? DRW_STATE_CLIP_PLANES : 0;
 
+  bool retopology_occlusion = RETOPOLOGY_ENABLED(draw_ctx->v3d) && !XRAY_ENABLED(draw_ctx->v3d);
+  float retopology_offset = RETOPOLOGY_OFFSET(draw_ctx->v3d);
+
   {
     DRW_PASS_CREATE(psl->depth_only_pass, state);
     pd->shgrp_depth_only = DRW_shgroup_create(sh->select_id_uniform, psl->depth_only_pass);
+    /* Not setting ID because this pass only draws to the depth buffer. */
+    DRW_shgroup_uniform_float_copy(pd->shgrp_depth_only, "retopologyOffset", retopology_offset);
+
+    if (retopology_occlusion) {
+      pd->shgrp_occlude = DRW_shgroup_create(sh->select_id_uniform, psl->depth_only_pass);
+      /* Not setting ID because this pass only draws to the depth buffer. */
+      DRW_shgroup_uniform_float_copy(pd->shgrp_occlude, "retopologyOffset", 0.0f);
+    }
 
     DRW_PASS_CREATE(psl->select_id_face_pass, state);
     if (e_data.context.select_mode & SCE_SELECT_FACE) {
       pd->shgrp_face_flat = DRW_shgroup_create(sh->select_id_flat, psl->select_id_face_pass);
+      DRW_shgroup_uniform_float_copy(pd->shgrp_face_flat, "retopologyOffset", retopology_offset);
     }
     else {
       pd->shgrp_face_unif = DRW_shgroup_create(sh->select_id_uniform, psl->select_id_face_pass);
       DRW_shgroup_uniform_int_copy(pd->shgrp_face_unif, "id", 0);
+      DRW_shgroup_uniform_float_copy(pd->shgrp_face_unif, "retopologyOffset", retopology_offset);
     }
 
     if (e_data.context.select_mode & SCE_SELECT_EDGE) {
       DRW_PASS_CREATE(psl->select_id_edge_pass, state | DRW_STATE_FIRST_VERTEX_CONVENTION);
 
       pd->shgrp_edge = DRW_shgroup_create(sh->select_id_flat, psl->select_id_edge_pass);
+      DRW_shgroup_uniform_float_copy(pd->shgrp_edge, "retopologyOffset", retopology_offset);
     }
 
     if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
       DRW_PASS_CREATE(psl->select_id_vert_pass, state);
       pd->shgrp_vert = DRW_shgroup_create(sh->select_id_flat, psl->select_id_vert_pass);
       DRW_shgroup_uniform_float_copy(pd->shgrp_vert, "sizeVertex", 2 * G_draw.block.size_vertex);
+      DRW_shgroup_uniform_float_copy(pd->shgrp_vert, "retopologyOffset", retopology_offset);
     }
   }
 
@@ -196,6 +213,14 @@ static void select_cache_populate(void *vedata, Object *ob)
 {
   SELECTID_StorageList *stl = ((SELECTID_Data *)vedata)->stl;
   const DRWContextState *draw_ctx = DRW_context_state_get();
+
+  if (!DRW_object_is_in_edit_mode(ob)) {
+    if (ob->dt >= OB_SOLID) {
+      struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_surface(ob->data);
+      DRW_shgroup_call_obmat(stl->g_data->shgrp_occlude, geom_faces, ob->object_to_world);
+    }
+    return;
+  }
 
   SELECTID_ObjectData *sel_data = (SELECTID_ObjectData *)DRW_drawdata_get(
       &ob->id, &draw_engine_select_type);

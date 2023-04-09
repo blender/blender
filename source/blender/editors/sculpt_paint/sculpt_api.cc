@@ -326,12 +326,7 @@ static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef ver
 
   int v1, v2;
   const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-      ss->subdiv_ccg,
-      &coord,
-      ss->corner_verts,
-      ss->polys,
-      &v1,
-      &v2);
+      ss->subdiv_ccg, &coord, ss->corner_verts, ss->polys, &v1, &v2);
 
   switch (adjacency) {
     case SUBDIV_CCG_ADJACENT_VERTEX:
@@ -359,19 +354,20 @@ static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef ver
 
 static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertRef vertex)
 {
-  BKE_pbvh_update_vert_boundary_faces((int *)ss->attrs.boundary_flags->data,
-                                      ss->face_sets,
-                                      ss->hide_poly,
-                                      ss->vert_positions,
-                                      ss->edges.data(),
-                                      ss->corner_verts.data(),
-                                      ss->corner_edges.data(),
-                                      ss->polys,
-                                      ss->msculptverts,
-                                      ss->pmap->pmap,
-                                      vertex,
-                                      ss->sharp_edge,
-                                      ss->seam_edge);
+  blender::pbvh::update_vert_boundary_faces((int *)ss->attrs.boundary_flags->data,
+                                            ss->face_sets,
+                                            ss->hide_poly,
+                                            ss->vert_positions,
+                                            ss->edges.data(),
+                                            ss->corner_verts.data(),
+                                            ss->corner_edges.data(),
+                                            ss->polys,
+                                            ss->totfaces,
+                                            ss->msculptverts,
+                                            ss->pmap->pmap,
+                                            vertex,
+                                            ss->sharp_edge,
+                                            ss->seam_edge);
 
   /* We have to handle boundary here seperately. */
 
@@ -490,12 +486,7 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
       coord.y = vertex_index / key->grid_size;
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg,
-          &coord,
-          ss->corner_verts,
-          ss->polys,
-          &v1,
-          &v2);
+          ss->subdiv_ccg, &coord, ss->corner_verts, ss->polys, &v1, &v2);
 
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:

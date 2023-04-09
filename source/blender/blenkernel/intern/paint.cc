@@ -2574,6 +2574,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
+
   const int looptris_num = poly_to_tri_count(me->totpoly, me->totloop);
 
   MutableSpan<float3> positions = me->vert_positions_for_write();
@@ -2586,39 +2587,16 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 
   PBVH *pbvh = ob->sculpt->pbvh = BKE_pbvh_new(PBVH_FACES);
 
-  BKE_sculptsession_update_attr_refs(ob);
+  BKE_sculptsession_check_sculptverts(ob, pbvh, me->totvert);
   sculpt_check_face_areas(ob, pbvh);
-  BKE_pbvh_respect_hide_set(pbvh, respect_hide);
 
-  float(*vert_cos)[3] = BKE_mesh_vert_positions_for_write(me);
-
-  MLoopTri *looptri = static_cast<MLoopTri *>(
-      MEM_malloc_arrayN(looptris_num, sizeof(*looptri), __func__));
-
-  blender::bke::mesh::looptris_calc(positions, polys, corner_verts, {looptri, looptris_num});
-  BKE_sculptsession_check_sculptverts(ob, pbvh, me->totvert);
-
-  BKE_pbvh_build_mesh(pbvh,
-                      me,
-                      polys,
-                      corner_verts.data(),
-                      me->corner_edges().data(),
-                      vert_cos,
-                      ss->msculptverts,
-                      me->totvert,
-                      &me->vdata,
-                      &me->ldata,
-                      &me->pdata,
-                      looptri,
-                      looptris_num,
-                      ss->fast_draw,
-                      (float *)ss->attrs.face_areas->data,
-                      ss->pmap);
-
+  BKE_sculptsession_update_attr_refs(ob);
   BKE_pbvh_set_pmap(pbvh, ss->pmap);
-  BKE_sculptsession_check_sculptverts(ob, pbvh, me->totvert);
 
-  BKE_pbvh_set_sculpt_verts(pbvh, ss->msculptverts);
+  BKE_pbvh_build_mesh(pbvh, me);
+
+  BKE_pbvh_fast_draw_set(pbvh, ss->fast_draw);
+  BKE_pbvh_respect_hide_set(pbvh, respect_hide);
 
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
   if (is_deformed && me_eval_deform != nullptr) {
@@ -2714,16 +2692,25 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
   PBVH *pbvh = ob->sculpt->pbvh;
   if (pbvh != nullptr) {
-    SCULPT_update_flat_vcol_shading(ob, scene);
-
-    /* NOTE: It is possible that grids were re-allocated due to modifier
-     * stack. Need to update those pointers. */
-    if (BKE_pbvh_type(pbvh) == PBVH_GRIDS) {
-      Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
-      Mesh *mesh_eval = static_cast<Mesh *>(object_eval->data);
-      SubdivCCG *subdiv_ccg = mesh_eval->runtime->subdiv_ccg;
-      if (subdiv_ccg != nullptr) {
-        BKE_sculpt_bvh_update_from_ccg(pbvh, subdiv_ccg);
+    /* NOTE: It is possible that pointers to grids or other geometry data changed. Need to update
+     * those pointers. */
+    const PBVHType pbvh_type = BKE_pbvh_type(pbvh);
+    switch (pbvh_type) {
+      case PBVH_FACES: {
+        BKE_pbvh_update_mesh_pointers(pbvh, BKE_object_get_original_mesh(ob));
+        break;
+      }
+      case PBVH_GRIDS: {
+        Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+        Mesh *mesh_eval = static_cast<Mesh *>(object_eval->data);
+        SubdivCCG *subdiv_ccg = mesh_eval->runtime->subdiv_ccg;
+        if (subdiv_ccg != nullptr) {
+          BKE_sculpt_bvh_update_from_ccg(pbvh, subdiv_ccg);
+        }
+        break;
+      }
+      case PBVH_BMESH: {
+        break;
       }
     }
 
@@ -2835,6 +2822,9 @@ void BKE_object_sculpt_dyntopo_smooth_shading_set(Object *object, const bool val
 void BKE_object_sculpt_fast_draw_set(Object *object, const bool value)
 {
   object->sculpt->fast_draw = value;
+  if (object->sculpt->pbvh) {
+    BKE_pbvh_fast_draw_set(object->sculpt->pbvh, value);
+  }
 }
 
 void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)

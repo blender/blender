@@ -425,45 +425,12 @@ PBVHNode *BKE_pbvh_get_node(PBVH *pbvh, int node);
 
 PBVH *BKE_pbvh_new(PBVHType type);
 
-#ifdef __cplusplus
-
 /**
  * Do a full rebuild with on Mesh data structure.
- *
- * \note Unlike mpoly/corner_verts/verts, looptri is *totally owned* by PBVH
- * (which means it may rewrite it if needed, see #BKE_pbvh_vert_coords_apply().
  */
-void BKE_pbvh_build_mesh(PBVH *pbvh,
-                         struct Mesh *mesh,
-                         blender::OffsetIndices<int> polys,
-                         const int *corner_verts,
-                         const int *corner_edges,
-                         float (*vert_positions)[3],
-                         struct MSculptVert *msculptverts,
-                         int totvert,
-                         struct CustomData *vdata,
-                         struct CustomData *ldata,
-                         struct CustomData *pdata,
-                         const struct MLoopTri *looptri,
-                         int looptri_num,
-                         bool fast_draw,
-                         float *face_areas,
-                         SculptPMap *pmap);
 
-void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
-                                         const int *face_sets,
-                                         const bool *hide_poly,
-                                         const float (*vert_positions)[3],
-                                         const struct MEdge *medge,
-                                         const int *corner_verts,
-                                         const int *corner_edges,
-                                         blender::OffsetIndices<int> polys,
-                                         struct MSculptVert *msculptverts,
-                                         const struct MeshElemMap *pmap,
-                                         PBVHVertRef vertex,
-                                         const bool *sharp_edges,
-                                         const bool *seam_edges);
-#endif
+void BKE_pbvh_build_mesh(PBVH *pbvh, struct Mesh *mesh);
+void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, struct Mesh *mesh);
 
 /**
  * Do a full rebuild with on Grids data structure.
@@ -496,6 +463,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           bool fast_draw,
                           bool update_sculptverts);
 
+void BKE_pbvh_fast_draw_set(PBVH *pbvh, bool state);
 void BKE_pbvh_set_idmap(PBVH *pbvh, struct BMIdMap *idmap);
 
 void BKE_pbvh_update_offsets(PBVH *pbvh,
@@ -1431,5 +1399,22 @@ void BKE_pbvh_show_orig_set(PBVH *pbvh, bool show_orig);
 bool BKE_pbvh_show_orig_get(PBVH *pbvh);
 
 #ifdef __cplusplus
+}
+
+namespace blender::pbvh {
+void update_vert_boundary_faces(int *boundary_flags,
+                                const int *face_sets,
+                                const bool *hide_poly,
+                                const float (*vert_positions)[3],
+                                const MEdge *medge,
+                                const int *corner_verts,
+                                const int *corner_edges,
+                                blender::OffsetIndices<int> polys,
+                                int totpoly,
+                                MSculptVert *msculptverts,
+                                const MeshElemMap *pmap,
+                                PBVHVertRef vertex,
+                                const bool *sharp_edges,
+                                const bool *seam_edges);
 }
 #endif

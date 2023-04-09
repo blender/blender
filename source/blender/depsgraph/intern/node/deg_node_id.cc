@@ -155,7 +155,7 @@ ComponentNode *IDNode::add_component(NodeType type, const char *name)
     comp_node = (ComponentNode *)factory->create_node(this->id_orig, "", name);
 
     /* Register. */
-    ComponentIDKey key(type, name);
+    ComponentIDKey key(type, comp_node->name.c_str());
     components.add_new(key, comp_node);
     comp_node->owner = this;
   }

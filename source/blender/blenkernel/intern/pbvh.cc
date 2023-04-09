@@ -13,6 +13,7 @@
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_offset_indices.hh"
 #include "BLI_rand.h"
 #include "BLI_string.h"
 #include "BLI_task.h"
@@ -21,6 +22,7 @@
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
+#include "BLI_span.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_mesh_types.h"
@@ -53,15 +55,16 @@
 
 #include <limits.h>
 
-#define LEAF_LIMIT 4000
-
 using blender::float3;
 using blender::IndexRange;
 using blender::Map;
+using blender::MutableSpan;
 using blender::OffsetIndices;
 using blender::Set;
 using blender::Span;
 using blender::Vector;
+
+#define LEAF_LIMIT 10000
 
 /* Uncomment to test if triangles of the same face are
  * properly clustered into single nodes.
@@ -955,49 +958,75 @@ static void pbvh_validate_node_prims(PBVH *pbvh)
 }
 #endif
 
-void BKE_pbvh_build_mesh(PBVH *pbvh,
-                         Mesh *mesh,
-                         const blender::OffsetIndices<int> polys,
-                         const int *corner_verts,
-                         const int *corner_edges,
-                         float (*vert_positions)[3],
-                         MSculptVert *msculptverts,
-                         int totvert,
-                         struct CustomData *vdata,
-                         struct CustomData *ldata,
-                         struct CustomData *pdata,
-                         const MLoopTri *looptri,
-                         int looptri_num,
-                         bool fast_draw,
-                         float *face_areas,
-                         SculptPMap *pmap)
+void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
+{
+  BLI_assert(pbvh->header.type == PBVH_FACES);
+
+  pbvh->polys = mesh->polys();
+  pbvh->corner_verts = mesh->corner_verts().data();
+  if (!pbvh->deformed) {
+    /* Deformed positions not matching the original mesh are owned directly by the PBVH, and are
+     * set separately by #BKE_pbvh_vert_coords_apply. */
+    pbvh->vert_positions = BKE_mesh_vert_positions_for_write(mesh);
+  }
+
+  pbvh->material_indices = static_cast<const int *>(
+      CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index"));
+  pbvh->hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
+      &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->totpoly));
+  pbvh->hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
+      &mesh->vdata, CD_PROP_BOOL, ".hide_vert", mesh->totvert));
+  pbvh->face_areas = static_cast<float *>(CustomData_get_layer_named_for_write(
+      &mesh->pdata, CD_PROP_FLOAT2, SCULPT_ATTRIBUTE_NAME(face_areas), mesh->totpoly));
+  pbvh->msculptverts = static_cast<MSculptVert *>(
+      CustomData_get_layer_for_write(&mesh->vdata, CD_DYNTOPO_VERT, mesh->totvert));
+
+  /* Make sure cached normals start out calculated. */
+  mesh->vert_normals();
+  pbvh->vert_normals = BKE_mesh_vert_normals_for_write(mesh);
+
+  pbvh->vdata = &mesh->vdata;
+  pbvh->ldata = &mesh->ldata;
+  pbvh->pdata = &mesh->pdata;
+}
+
+void BKE_pbvh_fast_draw_set(PBVH *pbvh, bool state)
+{
+  if (state) {
+    pbvh->flags |= PBVH_FAST_DRAW;
+  }
+  else {
+    pbvh->flags &= ~PBVH_FAST_DRAW;
+  }
+}
+
+void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
 {
   BBC *prim_bbc = nullptr;
   BB cb;
 
-  if (pbvh->pmap != pmap) {
-    BKE_pbvh_pmap_aquire(pmap);
-  }
+  const int totvert = mesh->totvert;
+  const int looptri_num = poly_to_tri_count(mesh->totpoly, mesh->totloop);
+  MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
+  const blender::OffsetIndices<int> polys = mesh->polys();
+  const Span<int> corner_verts = mesh->corner_verts();
 
-  pbvh->pmap = pmap;
-  pbvh->face_areas = face_areas;
+  pbvh->corner_verts = mesh->corner_verts().data();
+  pbvh->corner_edges = mesh->corner_edges().data();
+
+  MLoopTri *looptri = static_cast<MLoopTri *>(
+      MEM_malloc_arrayN(looptri_num, sizeof(*looptri), __func__));
+
+  blender::bke::mesh::looptris_calc(vert_positions, polys, corner_verts, {looptri, looptri_num});
+
   pbvh->mesh = mesh;
   pbvh->header.type = PBVH_FACES;
-  pbvh->polys = polys;
-  pbvh->hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->totpoly));
-  pbvh->material_indices = static_cast<const int *>(
-      CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index"));
-  pbvh->corner_verts = corner_verts;
-  pbvh->corner_edges = corner_edges;
+
+  BKE_pbvh_update_mesh_pointers(pbvh, mesh);
+
+  /* Those are not set in #BKE_pbvh_update_mesh_pointers because they are owned by the #PBVH. */
   pbvh->looptri = looptri;
-  pbvh->msculptverts = msculptverts;
-  pbvh->vert_positions = vert_positions;
-  /* Make sure cached normals start out calculated. */
-  mesh->vert_normals();
-  pbvh->vert_normals = BKE_mesh_vert_normals_for_write(mesh);
-  pbvh->hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->vdata, CD_PROP_BOOL, ".hide_vert", mesh->totvert));
+
   pbvh->vert_bitmap = static_cast<bool *>(
       MEM_calloc_arrayN(totvert, sizeof(bool), "bvh->vert_bitmap"));
   pbvh->totvert = totvert;
@@ -1011,9 +1040,6 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   pbvh->leaf_limit = LEAF_LIMIT;
 #endif
 
-  pbvh->vdata = vdata;
-  pbvh->ldata = ldata;
-  pbvh->pdata = pdata;
   pbvh->faces_num = mesh->totpoly;
 
   pbvh->face_sets_color_seed = mesh->face_sets_color_seed;
@@ -1023,6 +1049,9 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
 
   /* For each face, store the AABB and the AABB centroid */
   prim_bbc = (BBC *)MEM_mallocN(sizeof(BBC) * looptri_num, "prim_bbc");
+
+  SculptPMap *pmap = pbvh->pmap;
+  MSculptVert *msculptverts = pbvh->msculptverts;
 
   for (int i = 0; i < mesh->totvert; i++) {
     msculptverts[i].flag &= ~SCULPTVERT_NEED_VALENCE;
@@ -1054,10 +1083,6 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
 #ifdef TEST_PBVH_FACE_SPLIT
     test_face_boundaries(pbvh);
 #endif
-  }
-
-  if (fast_draw) {
-    pbvh->flags |= PBVH_FAST_DRAW;
   }
 
   MEM_freeN(prim_bbc);
@@ -4421,19 +4446,21 @@ void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
   mv->flag &= ~SCULPTVERT_NEED_VALENCE;
 }
 
-void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
-                                         const int *face_sets,
-                                         const bool *hide_poly,
-                                         const float (*vert_positions)[3],
-                                         const MEdge *medge,
-                                         const int *corner_verts,
-                                         const int *corner_edges,
-                                         blender::OffsetIndices<int> polys,
-                                         MSculptVert *msculptverts,
-                                         const MeshElemMap *pmap,
-                                         PBVHVertRef vertex,
-                                         const bool *sharp_edges,
-                                         const bool *seam_edges)
+namespace blender::pbvh {
+void update_vert_boundary_faces(int *boundary_flags,
+                                const int *face_sets,
+                                const bool *hide_poly,
+                                const float (*vert_positions)[3],
+                                const MEdge *medge,
+                                const int *corner_verts,
+                                const int *corner_edges,
+                                OffsetIndices<int> polys,
+                                int totpoly,
+                                MSculptVert *msculptverts,
+                                const MeshElemMap *pmap,
+                                PBVHVertRef vertex,
+                                const bool *sharp_edges,
+                                const bool *seam_edges)
 {
   MSculptVert *mv = msculptverts + vertex.i;
   const MeshElemMap *vert_map = &pmap[vertex.i];
@@ -4514,6 +4541,7 @@ void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
     *flags |= SCULPT_CORNER_SEAM;
   }
 }
+}  // namespace blender::pbvh
 
 void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value)
 {

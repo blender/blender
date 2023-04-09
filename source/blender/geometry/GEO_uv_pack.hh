@@ -87,8 +87,15 @@ class PackIsland {
   void add_polygon(const blender::Span<float2> uvs, MemArena *arena, Heap *heap);
   void finalize_geometry(const UVPackIsland_Params &params, MemArena *arena, Heap *heap);
 
-  void build_transformation(const float scale, const float angle, float r_matrix[2][2]);
-  void build_inverse_transformation(const float scale, const float angle, float r_matrix[2][2]);
+  void build_transformation(const float scale, const float rotation, float r_matrix[2][2]) const;
+  void build_inverse_transformation(const float scale,
+                                    const float rotation,
+                                    float r_matrix[2][2]) const;
+
+  float2 get_diagonal_support(const float scale, const float rotation, const float margin) const;
+  float2 get_diagonal_support_d4(const float scale,
+                                 const float rotation,
+                                 const float margin) const;
 
   /** Center of AABB and inside-or-touching the convex hull. */
   float2 pivot_;

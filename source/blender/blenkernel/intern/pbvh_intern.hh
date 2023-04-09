@@ -194,6 +194,7 @@ struct PBVH {
   const int *material_indices;
   const int *corner_verts;
   const int *corner_edges;
+  /* Owned by the #PBVH, because after deformations they have to be recomputed. */
   const MLoopTri *looptri;
   struct MSculptVert *msculptverts;
   CustomData *vdata;

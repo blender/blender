@@ -149,11 +149,11 @@ AnimateableProperty* SequenceData::getAnimProperty(AnimateablePropertyType type)
 	}
 }
 
-std::shared_ptr<SequenceEntry> SequenceData::add(std::shared_ptr<ISound> sound, double begin, double end, double skip)
+std::shared_ptr<SequenceEntry> SequenceData::add(std::shared_ptr<ISound> sound, std::shared_ptr<SequenceData> sequence_data, double begin, double end, double skip)
 {
 	std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
-	std::shared_ptr<SequenceEntry> entry = std::shared_ptr<SequenceEntry>(new SequenceEntry(sound, begin, end, skip, m_id++));
+	std::shared_ptr<SequenceEntry> entry = std::shared_ptr<SequenceEntry>(new SequenceEntry(sound, begin, end, skip, sequence_data, m_id++));
 
 	m_entries.push_back(entry);
 	m_entry_status++;
