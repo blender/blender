@@ -112,7 +112,18 @@ class Result {
 
   /* Declare the result to be a texture result, allocate a texture of an appropriate type with
    * the size of the given domain from the result's texture pool, and set the domain of the result
-   * to the given domain. */
+   * to the given domain.
+   *
+   * If the result should not be computed, that is, should_compute() returns false, yet this method
+   * is called, that means the result is only being allocated because the shader that computes it
+   * also computes another result that is actually needed, and shaders needs to have a texture
+   * bound to all their images units for a correct invocation, even if some of those textures are
+   * not needed and will eventually be discarded. In that case, since allocating the full texture
+   * is not needed, allocate_single_value() is called instead and the reference count is set to 1.
+   * This essentially allocates a dummy 1x1 texture, which works because out of bound shader writes
+   * to images are safe. Since this result is not referenced by any other operation, it should be
+   * manually released after the operation is evaluated, which is implemented by calling the
+   * Operation::release_unneeded_results() method. */
   void allocate_texture(Domain domain);
 
   /* Declare the result to be a single value result, allocate a texture of an appropriate
@@ -227,6 +238,9 @@ class Result {
 
   /* Returns true if the result is a single value and false of it is a texture. */
   bool is_single_value() const;
+
+  /* Returns true if the result is allocated. */
+  bool is_allocated() const;
 
   /* Returns the allocated GPU texture of the result. */
   GPUTexture *texture() const;

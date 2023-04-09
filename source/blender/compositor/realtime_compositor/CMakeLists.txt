@@ -136,6 +136,9 @@ set(GLSL_SRC
   shaders/compositor_tone_map_photoreceptor.glsl
   shaders/compositor_tone_map_simple.glsl
   shaders/compositor_write_output.glsl
+  shaders/compositor_z_combine_compute_mask.glsl
+  shaders/compositor_z_combine_from_mask.glsl
+  shaders/compositor_z_combine_simple.glsl
 
   shaders/library/gpu_shader_compositor_alpha_over.glsl
   shaders/library/gpu_shader_compositor_blur_common.glsl
@@ -226,6 +229,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_tone_map_photoreceptor_info.hh
   shaders/infos/compositor_tone_map_simple_info.hh
   shaders/infos/compositor_write_output_info.hh
+  shaders/infos/compositor_z_combine_info.hh
 )
 
 set(SHADER_CREATE_INFOS_CONTENT "")
