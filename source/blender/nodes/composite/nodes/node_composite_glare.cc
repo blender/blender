@@ -7,6 +7,7 @@
 
 #include <array>
 
+#include "BLI_array.hh"
 #include "BLI_assert.h"
 #include "BLI_index_range.hh"
 #include "BLI_math_base.h"
@@ -33,6 +34,7 @@
 #include "node_composite_util.hh"
 
 #define MAX_GLARE_ITERATIONS 5
+#define MAX_GLARE_SIZE 9
 
 namespace blender::nodes::node_composite_glare_cc {
 
@@ -128,11 +130,6 @@ class GlareOperation : public NodeOperation {
     /* A mix factor of -1 indicates that the original image is returned as is. See the execute_mix
      * method for more information. */
     if (node_storage(bnode()).mix == -1.0f) {
-      return true;
-    }
-
-    /* The fog glow mode is currently unsupported. */
-    if (node_storage(bnode()).type == CMP_NODE_GLARE_FOG_GLOW) {
       return true;
     }
 
@@ -693,11 +690,132 @@ class GlareOperation : public NodeOperation {
    * Fog Glow Glare.
    * --------------- */
 
-  /* Not yet implemented. Unreachable code due to the is_identity method. */
-  Result execute_fog_glow(Result & /*highlights_result*/)
+  /* Fog glow is computed by first progressively half-downsampling the highlights down to a certain
+   * size, then progressively double-upsampling the last downsampled result up to the original size
+   * of the highlights, adding the downsampled result of the same size in each upsampling step.
+   * This can be illustrated as follows:
+   *
+   *              Highlights  ---+---> Fog Glare
+   *                  |                   |
+   *              Downsampled ---+---> Upsampled
+   *                  |                   |
+   *              Downsampled ---+---> Upsampled
+   *                  |                   |
+   *              Downsampled ---+---> Upsampled
+   *                  |                   ^
+   *                 ...                  |
+   *              Downsampled ------------'
+   *
+   * The smooth downsampling followed by smooth upsampling can be thought of as a cheap way to
+   * approximate a large radius blur, and adding the corresponding downsampled result while
+   * upsampling is done to counter the attenuation that happens during downsampling.
+   *
+   * Smaller downsampled results contribute to larger glare size, so controlling the size can be
+   * done by stopping downsampling down to a certain size, where the maximum possible size is
+   * achieved when downsampling happens down to the smallest size of 2. */
+  Result execute_fog_glow(Result &highlights_result)
   {
-    BLI_assert_unreachable();
-    return Result(ResultType::Color, texture_pool());
+    /* The maximum possible glare size is achieved when we downsampled down to the smallest size of
+     * 2, which would result in a downsampling chain length of the binary logarithm of the smaller
+     * dimension of the size of the highlights.
+     *
+     * However, as users might want a smaller glare size, we reduce the chain length by the halving
+     * count supplied by the user. */
+    const int2 glare_size = get_glare_size();
+    const int smaller_glare_dimension = math::min(glare_size.x, glare_size.y);
+    const int chain_length = int(std::log2(smaller_glare_dimension)) -
+                             compute_fog_glare_size_halving_count();
+
+    Array<Result> downsample_chain = compute_fog_glow_downsample_chain(highlights_result,
+                                                                       chain_length);
+
+    /* Notice that for a chain length of n, we need (n - 1) upsampling passes. */
+    const IndexRange upsample_passes_range(chain_length - 1);
+    GPUShader *shader = shader_manager().get("compositor_glare_fog_glow_upsample");
+    GPU_shader_bind(shader);
+
+    for (const int i : upsample_passes_range) {
+      Result &input = downsample_chain[upsample_passes_range.last() - i + 1];
+      input.bind_as_texture(shader, "input_tx");
+      GPU_texture_filter_mode(input.texture(), true);
+
+      const Result &output = downsample_chain[upsample_passes_range.last() - i];
+      output.bind_as_image(shader, "output_img", true);
+
+      compute_dispatch_threads_at_least(shader, output.domain().size);
+
+      input.unbind_as_texture();
+      output.unbind_as_image();
+      input.release();
+    }
+
+    GPU_shader_unbind();
+
+    return downsample_chain[0];
+  }
+
+  /* Progressively downsample the given result into a result with half the size for the given chain
+   * length, returning an array containing the chain of downsampled results. The first result of
+   * the chain is the given result itself for easier handling. The chain length is expected not
+   * to exceed the binary logarithm of the smaller dimension of the given result, because that
+   * would result in downsampling passes that produce useless textures with just one pixel. */
+  Array<Result> compute_fog_glow_downsample_chain(Result &highlights_result, int chain_length)
+  {
+    const Result downsampled_result = Result::Temporary(ResultType::Color, texture_pool());
+    Array<Result> downsample_chain(chain_length, downsampled_result);
+
+    /* We assign the original highlights result to the first result of the chain to make the code
+     * easier. In turn, the number of passes is one less than the chain length, because the first
+     * result needn't be computed. */
+    downsample_chain[0] = highlights_result;
+    const IndexRange downsample_passes_range(chain_length - 1);
+
+    GPUShader *shader;
+    for (const int i : downsample_passes_range) {
+      /* For the first downsample pass, we use a special "Karis" downsample pass that applies a
+       * form of local tone mapping to reduce the contributions of fireflies, see the shader for
+       * more information. Later passes use a simple average downsampling filter because fireflies
+       * doesn't service the first pass. */
+      if (i == downsample_passes_range.first()) {
+        shader = shader_manager().get("compositor_glare_fog_glow_downsample_karis_average");
+        GPU_shader_bind(shader);
+      }
+      else {
+        shader = shader_manager().get("compositor_glare_fog_glow_downsample_simple_average");
+        GPU_shader_bind(shader);
+      }
+
+      const Result &input = downsample_chain[i];
+      input.bind_as_texture(shader, "input_tx");
+      GPU_texture_filter_mode(input.texture(), true);
+
+      Result &output = downsample_chain[i + 1];
+      output.allocate_texture(input.domain().size / 2);
+      output.bind_as_image(shader, "output_img");
+
+      compute_dispatch_threads_at_least(shader, output.domain().size);
+
+      input.unbind_as_texture();
+      output.unbind_as_image();
+      GPU_shader_unbind();
+    }
+
+    return downsample_chain;
+  }
+
+  /* The fog glow has a maximum possible size when the fog glow size is equal to MAX_GLARE_SIZE and
+   * halves for every unit decrement of the fog glow size. This method computes the number of
+   * halving that should take place, which is simply the difference to MAX_GLARE_SIZE. */
+  int compute_fog_glare_size_halving_count()
+  {
+    return MAX_GLARE_SIZE - get_fog_glow_size();
+  }
+
+  /* The size of the fog glow relative to its maximum possible size, see the
+   * compute_fog_glare_size_halving_count() method for more information. */
+  int get_fog_glow_size()
+  {
+    return node_storage(bnode()).size;
   }
 
   /* ----------
