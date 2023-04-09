@@ -101,6 +101,7 @@ set(GLSL_SRC
   shaders/compositor_convert.glsl
   shaders/compositor_despeckle.glsl
   shaders/compositor_directional_blur.glsl
+  shaders/compositor_displace.glsl
   shaders/compositor_edge_filter.glsl
   shaders/compositor_ellipse_mask.glsl
   shaders/compositor_filter.glsl
@@ -205,6 +206,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_convert_info.hh
   shaders/infos/compositor_despeckle_info.hh
   shaders/infos/compositor_directional_blur_info.hh
+  shaders/infos/compositor_displace_info.hh
   shaders/infos/compositor_edge_filter_info.hh
   shaders/infos/compositor_ellipse_mask_info.hh
   shaders/infos/compositor_filter_info.hh
