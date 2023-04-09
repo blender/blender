@@ -1197,7 +1197,9 @@ static void bmo_flag_layer_alloc_do(BMesh *bm,
   BMElem *elem;
   int i;
 
-  const size_t old_totflags_size = (bm->totflags * sizeof(BMFlagLayer));
+  size_t old_totflags_size = (bm->totflags * sizeof(BMFlagLayer));
+  old_totflags_size = MIN2(old_totflags_size, sizeof(BMFlagLayer) * new_totflags);
+
   BLI_mempool *oldpool = *pool_ptr;
   BLI_mempool *newpool = BLI_mempool_create(
       sizeof(BMFlagLayer) * new_totflags, totelem, 512, BLI_MEMPOOL_NOP);

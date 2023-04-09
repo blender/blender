@@ -1566,9 +1566,12 @@ BMVert *bmesh_kernel_split_edge_make_vert(BMesh *bm, BMVert *tv, BMEdge *e, BMEd
   int valence1, valence2;
   bool edok;
   int i;
+  > blender.exe !bmesh_kernel_split_edge_make_vert(
+        BMesh * bm, BMVert * tv, BMEdge * e, BMEdge * *r_e) Line 1576 C
+
 #endif
 
-  BLI_assert(BM_vert_in_edge(e, tv) != false);
+          BLI_assert(BM_vert_in_edge(e, tv) != false);
 
   v_old = BM_edge_other_vert(e, tv);
 
@@ -1881,13 +1884,13 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
 
 #ifdef JVKE_DEBUG
 
-#ifdef _
-#  undef _
-#endif
+#  ifdef _
+#    undef _
+#  endif
 
-#define _(s) \
-  case s: \
-    return #s;
+#  define _(s) \
+    case s: \
+      return #s;
 
 static const char *get_err_code_str(BMeshInternalError code)
 {
@@ -1928,7 +1931,7 @@ static const char *get_err_code_str(BMeshInternalError code)
 
   return "(unknown-code)";
 }
-#undef _
+#  undef _
 
 static char *get_err_str(int err)
 {

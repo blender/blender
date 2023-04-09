@@ -159,45 +159,6 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
   /* allocate the memory pools for the mesh elements */
   bm_mempool_init(bm, allocsize, params->use_toolflags);
 
-  bm->idmap.flag = 0;
-
-  if (!params->temporary_ids) {
-    bm->idmap.flag |= BM_PERMANENT_IDS;
-  }
-
-  if (params->id_map) {
-    bm->idmap.flag |= BM_HAS_ID_MAP;
-  }
-
-  if (params->no_reuse_ids) {
-    bm->idmap.flag |= BM_NO_REUSE_IDS;
-  }
-
-  if (params->create_unique_ids) {
-    bm->idmap.flag |= BM_HAS_IDS;
-
-    bm->idmap.flag |= params->id_elem_mask;
-
-#ifndef WITH_BM_ID_FREELIST
-    bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
-#endif
-  }
-
-  if (bm->idmap.flag & BM_HAS_ID_MAP) {
-    if (bm->idmap.flag & BM_NO_REUSE_IDS) {
-      bm->idmap.ghash = BLI_ghash_ptr_new("idmap.ghash");
-    }
-    else {
-      bm->idmap.map_size = BM_DEFAULT_IDMAP_SIZE;
-      bm->idmap.map = (BMElem **)MEM_callocN(sizeof(void *) * bm->idmap.map_size, "bmesh idmap");
-      bm->idmap.ghash = nullptr;
-    }
-  }
-  else {
-    bm->idmap.map = nullptr;
-    bm->idmap.ghash = nullptr;
-  }
-
   /* allocate one flag pool that we don't get rid of. */
   bm->use_toolflags = params->use_toolflags;
   bm->toolflag_index = 0;

@@ -119,7 +119,7 @@ void pbvh_bmesh_check_nodes_simple(PBVH *pbvh)
   }
 }
 
-ATTR_NO_OPT void pbvh_bmesh_check_nodes(PBVH *pbvh)
+void pbvh_bmesh_check_nodes(PBVH *pbvh)
 {
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;
@@ -240,12 +240,12 @@ ATTR_NO_OPT void pbvh_bmesh_check_nodes(PBVH *pbvh)
   }
 }
 
-ATTR_NO_OPT extern "C" void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh)
+extern "C" void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh)
 {
   pbvh_bmesh_check_nodes(pbvh);
 }
 #else
-ATTR_NO_OPT extern "C" void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh) {}
+extern "C" void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh) {}
 #endif
 
 /** \} */
@@ -2694,7 +2694,7 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                             updatePBVH,
                                             mask_cb,
                                             mask_cb_data,
-                                            4096, //is_snake_hook ? 4096 : 4096,
+                                            4096,  // is_snake_hook ? 4096 : 4096,
                                             disable_surface_relax,
                                             is_snake_hook);
 
@@ -2894,7 +2894,7 @@ static uintptr_t tri_loopkey(BMLoop *l, int mat_nr, int cd_fset, int cd_uvs[], i
  * (currently just raycast), store the node's triangles and vertices.
  *
  * Skips triangles that are hidden. */
-ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
+bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 {
   BMesh *bm = pbvh->header.bm;
 
@@ -3747,7 +3747,7 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
 }
 
 /* Fix any orphaned empty leaves that survived other stages of culling.*/
-ATTR_NO_OPT static void pbvh_fix_orphan_leaves(PBVH *pbvh)
+static void pbvh_fix_orphan_leaves(PBVH *pbvh)
 {
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;

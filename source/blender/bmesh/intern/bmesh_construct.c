@@ -417,9 +417,13 @@ static void bm_vert_attrs_copy(
     copy_v3_v3(v_dst->no, v_src->no);
   }
 
-  CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->vdata, v_dst->head.data, mask_exclude);
-  CustomData_bmesh_copy_data_exclude_by_type(
-      &bm_src->vdata, &bm_dst->vdata, v_src->head.data, &v_dst->head.data, mask_exclude);
+  CustomData_bmesh_free_block_data_exclude_by_type(
+      &bm_dst->vdata, v_dst->head.data, mask_exclude | CD_TOOLFLAGS);
+  CustomData_bmesh_copy_data_exclude_by_type(&bm_src->vdata,
+                                             &bm_dst->vdata,
+                                             v_src->head.data,
+                                             &v_dst->head.data,
+                                             mask_exclude | CD_TOOLFLAGS);
 }
 
 static void bm_edge_attrs_copy(
@@ -430,9 +434,13 @@ static void bm_edge_attrs_copy(
     return;
   }
 
-  CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->edata, e_dst->head.data, mask_exclude);
-  CustomData_bmesh_copy_data_exclude_by_type(
-      &bm_src->edata, &bm_dst->edata, e_src->head.data, &e_dst->head.data, mask_exclude);
+  CustomData_bmesh_free_block_data_exclude_by_type(
+      &bm_dst->edata, e_dst->head.data, mask_exclude | CD_TOOLFLAGS);
+  CustomData_bmesh_copy_data_exclude_by_type(&bm_src->edata,
+                                             &bm_dst->edata,
+                                             e_src->head.data,
+                                             &e_dst->head.data,
+                                             mask_exclude | CD_TOOLFLAGS);
 }
 
 static void bm_loop_attrs_copy(
@@ -443,9 +451,13 @@ static void bm_loop_attrs_copy(
     return;
   }
 
-  CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->ldata, l_dst->head.data, mask_exclude);
-  CustomData_bmesh_copy_data_exclude_by_type(
-      &bm_src->ldata, &bm_dst->ldata, l_src->head.data, &l_dst->head.data, mask_exclude);
+  CustomData_bmesh_free_block_data_exclude_by_type(
+      &bm_dst->ldata, l_dst->head.data, mask_exclude | CD_TOOLFLAGS);
+  CustomData_bmesh_copy_data_exclude_by_type(&bm_src->ldata,
+                                             &bm_dst->ldata,
+                                             l_src->head.data,
+                                             &l_dst->head.data,
+                                             mask_exclude | CD_TOOLFLAGS);
 }
 
 static void bm_face_attrs_copy(
@@ -459,9 +471,13 @@ static void bm_face_attrs_copy(
     copy_v3_v3(f_dst->no, f_src->no);
   }
 
-  CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->pdata, f_dst->head.data, mask_exclude);
-  CustomData_bmesh_copy_data_exclude_by_type(
-      &bm_src->pdata, &bm_dst->pdata, f_src->head.data, &f_dst->head.data, mask_exclude);
+  CustomData_bmesh_free_block_data_exclude_by_type(
+      &bm_dst->pdata, f_dst->head.data, mask_exclude | CD_TOOLFLAGS);
+  CustomData_bmesh_copy_data_exclude_by_type(&bm_src->pdata,
+                                             &bm_dst->pdata,
+                                             f_src->head.data,
+                                             &f_dst->head.data,
+                                             mask_exclude | CD_TOOLFLAGS);
   f_dst->mat_nr = f_src->mat_nr;
 }
 

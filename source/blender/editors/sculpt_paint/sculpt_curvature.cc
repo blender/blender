@@ -210,7 +210,35 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
     copy_v3_v3(out->principle[1], t);
 
     cross_v3_v3v3(out->principle[0], out->principle[1], no);
+    if (dot_v3v3(out->principle[0], out->principle[0]) > FLT_EPSILON * 50.0f) {
+      normalize_v3(out->principle[0]);
+    }
+    else {
+      zero_v3(out->principle[0]);
+    }
+  }
+
+  if (is_zero_v3(out->principle[0])) {
+    /* Choose an orthoganoal direction. */
+    copy_v3_v3(out->principle[0], no);
+    float axis[3] = {0.0f, 0.0f, 0.0f};
+
+    if (fabsf(no[0]) > fabs(no[1]) && fabs(no[0]) >= fabs(no[2])) {
+      axis[1] = 1.0f;
+    }
+    else if (fabsf(no[1]) > fabs(no[0]) && fabs(no[1]) >= fabs(no[2])) {
+      axis[2] = 1.0f;
+    }
+    else {
+      axis[0] = 1.0f;
+    }
+
+    cross_v3_v3v3(out->principle[0], no, axis);
+    cross_v3_v3v3(out->principle[1], out->principle[0], no);
+    copy_v3_v3(out->principle[2], no);
+
     normalize_v3(out->principle[0]);
+    normalize_v3(out->principle[1]);
   }
 
   return true;

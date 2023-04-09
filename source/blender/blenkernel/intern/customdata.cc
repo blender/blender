@@ -4433,11 +4433,11 @@ void CustomData_bmesh_swap_data(CustomData *source,
   }
 }
 
-ATTR_NO_OPT void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
-                                                            CustomData *dest,
-                                                            void *src_block,
-                                                            void **dest_block,
-                                                            const eCustomDataMask mask_exclude)
+void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
+                                                CustomData *dest,
+                                                void *src_block,
+                                                void **dest_block,
+                                                const eCustomDataMask mask_exclude)
 {
   /* Note that having a version of this function without a 'mask_exclude'
    * would cause too much duplicate code, so add a check instead. */
@@ -5744,12 +5744,12 @@ static void write_grid_paint_mask(BlendWriter *writer,
   }
 }
 
-ATTR_NO_OPT void CustomData_blend_write(BlendWriter *writer,
-                                        CustomData *data,
-                                        Span<CustomDataLayer> layers_to_write,
-                                        int count,
-                                        eCustomDataMask cddata_mask,
-                                        ID *id)
+void CustomData_blend_write(BlendWriter *writer,
+                            CustomData *data,
+                            Span<CustomDataLayer> layers_to_write,
+                            int count,
+                            eCustomDataMask cddata_mask,
+                            ID *id)
 {
   /* write external customdata (not for undo) */
   if (data->external && !BLO_write_is_undo(writer)) {

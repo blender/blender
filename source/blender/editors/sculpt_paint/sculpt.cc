@@ -4065,11 +4065,11 @@ bool SCULPT_needs_area_normal(SculptSession *ss, Sculpt *sd, Brush *brush)
 /* Note: we do the topology update before any brush actions to avoid
  * issues with the proxies. The size of the proxy can't change, so
  * topology must be updated first. */
-ATTR_NO_OPT static void sculpt_topology_update(Sculpt *sd,
-                                               Object *ob,
-                                               Brush *brush,
-                                               UnifiedPaintSettings * /* ups */,
-                                               PaintModeSettings * /*paint_mode_settings*/)
+static void sculpt_topology_update(Sculpt *sd,
+                                   Object *ob,
+                                   Brush *brush,
+                                   UnifiedPaintSettings * /* ups */,
+                                   PaintModeSettings * /*paint_mode_settings*/)
 {
   SculptSession *ss = ob->sculpt;
 

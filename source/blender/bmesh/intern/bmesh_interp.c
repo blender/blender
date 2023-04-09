@@ -791,10 +791,10 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
   BLI_array_staticdeclare(nocopy_layers, 32);
 
   /* Temporarily clear CD_FLAG_ELEM_NOCOPY flags. */
-  for (int i = 0; i < data->totlayer; i++) {
-    if (data->layers[i].flag & CD_FLAG_ELEM_NOCOPY) {
-      data->layers[i].flag &= ~CD_FLAG_ELEM_NOCOPY;
-      BLI_array_append(nocopy_layers, data->layers + i);
+  for (int i = 0; i < olddata->totlayer; i++) {
+    if (olddata->layers[i].flag & CD_FLAG_ELEM_NOCOPY) {
+      olddata->layers[i].flag &= ~CD_FLAG_ELEM_NOCOPY;
+      BLI_array_append(nocopy_layers, olddata->layers + i);
     }
   }
 
