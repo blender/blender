@@ -186,6 +186,16 @@ void PackIsland::calculate_pivot()
   half_diagonal_ = (triangle_bounds.max - triangle_bounds.min) * 0.5f;
 }
 
+void PackIsland::place_(const float scale, const uv_phi phi)
+{
+  angle = phi.rotation;
+
+  float matrix_inverse[2][2];
+  build_inverse_transformation(scale, phi.rotation, matrix_inverse);
+  mul_v2_m2v2(pre_translate, matrix_inverse, phi.translation);
+  pre_translate -= pivot_;
+}
+
 UVPackIsland_Params::UVPackIsland_Params()
 {
   rotate = false;
@@ -467,10 +477,11 @@ static void pack_island_box_pack_2d(const Span<UVAABBIsland *> aabbs,
   for (const int64_t i : aabbs.index_range()) {
     PackIsland *island = islands[aabbs[i]->index];
     BoxPack *box = box_array + i;
-    island->angle = 0.0f; /* #BLI_box_pack_2d never rotates. */
-    island->pre_translate.x = (box->x + box->w * 0.5f) * target_aspect_y / scale -
-                              island->pivot_.x;
-    island->pre_translate.y = (box->y + box->h * 0.5f) / scale - island->pivot_.y;
+    uv_phi phi;
+    phi.rotation = 0.0f; /* #BLI_box_pack_2d never rotates. */
+    phi.translation.x = (box->x + box->w * 0.5f) * target_aspect_y;
+    phi.translation.y = (box->y + box->h * 0.5f);
+    island->place_(scale, phi);
   }
 
   /* Housekeeping. */
@@ -626,6 +637,10 @@ float2 PackIsland::get_diagonal_support_d4(const float scale,
     return half_diagonal_ * scale + margin; /* Fast path for common case. */
   }
 
+  if (rotation == DEG2RADF(180.0f)) {
+    return get_diagonal_support_d4(scale, 0.0f, margin); /* Same as 0.0f */
+  }
+
   /* TODO: BLI_assert rotation is a "Dihedral Group D4" transform. */
   float matrix[2][2];
   build_transformation(scale, rotation, matrix);
@@ -742,7 +757,7 @@ static float guess_initial_scale(const Span<PackIsland *> islands,
 }
 
 /**
- * Pack irregular islands using the `xatlas` strategy, with no rotation.
+ * Pack irregular islands using the `xatlas` strategy, and optional D4 transforms.
  *
  * Loosely based on the 'xatlas' code by Jonathan Young
  * from https://github.com/jpcy/xatlas
@@ -823,23 +838,18 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
       continue;
     }
 
-    phis[i] = phi; /* Place island. */
+    /* Place island. */
+    phis[i] = phi;
+    island->place_(scale, phi);
     occupancy.trace_island(island, phi, scale, margin, true);
-
     i++; /* Next island. */
 
-    island->angle = phi.rotation;
-
-    float matrix_inverse[2][2];
-    island->build_inverse_transformation(scale, phi.rotation, matrix_inverse);
-    mul_v2_m2v2(island->pre_translate, matrix_inverse, phi.translation);
-    island->pre_translate -= island->pivot_;
-
-    float2 support = island->get_diagonal_support(scale, phi.rotation, margin);
-    float2 top_right = phi.translation + support;
+    /* Update top-right corner. */
+    float2 top_right = island->get_diagonal_support(scale, phi.rotation, margin) + phi.translation;
     max_u = std::max(top_right.x, max_u);
     max_v = std::max(top_right.y, max_v);
 
+    /* Heuristics to reduce size of brute-force search. */
     if (i < 128 || (i & 31) == 16) {
       scan_line = 0; /* Restart completely. */
     }
@@ -1183,9 +1193,19 @@ void PackIsland::build_inverse_transformation(const float scale,
                                               const float angle,
                                               float (*r_matrix)[2]) const
 {
-  /* TODO: Generate inverse transform directly. */
-  build_transformation(scale, angle, r_matrix);
-  invert_m2_m2(r_matrix, r_matrix);
+  const float cos_angle = cosf(angle);
+  const float sin_angle = sinf(angle);
+
+  r_matrix[0][0] = cos_angle / scale;
+  r_matrix[0][1] = sin_angle / scale * aspect_y;
+  r_matrix[1][0] = -sin_angle / scale / aspect_y;
+  r_matrix[1][1] = cos_angle / scale;
+  /*
+  if (reflect) {
+    r_matrix[0][0] *= -1.0f;
+    r_matrix[1][0] *= -1.0f;
+  }
+  */
 }
 
 }  // namespace blender::geometry

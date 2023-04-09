@@ -72,6 +72,7 @@ class UVPackIsland_Params {
   eUVPackIsland_ShapeMethod shape_method;
 };
 
+class uv_phi;
 class PackIsland {
  public:
   /** Aspect ratio, required for rotation. */
@@ -101,6 +102,8 @@ class PackIsland {
   float2 pivot_;
   /** Half of the diagonal of the AABB. */
   float2 half_diagonal_;
+
+  void place_(const float scale, const uv_phi phi);
 
  private:
   void calculate_pivot(); /* Calculate `pivot_` and `half_diagonal_` based on added triangles. */
