@@ -1628,7 +1628,7 @@ DISTRO_IDS_INSTALLERS = {
 def get_distro(settings):
     if settings.distro_id is not ...:
         settings.logger.info(f"Distribution identifier forced by user to {settings.distro_id}.")
-        return
+        return settings.distro_id
     import platform
     info = platform.freedesktop_os_release()
     ids = [info["ID"]]
