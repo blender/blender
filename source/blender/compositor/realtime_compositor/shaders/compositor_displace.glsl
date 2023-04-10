@@ -22,7 +22,7 @@ void main()
 
   /* Store the displaced coordinates into the shared table and issue a barrier to later compute the
    * gradients from the table. */
-  ivec2 table_index = ivec2(gl_LocalInvocationID);
+  ivec2 table_index = ivec2(gl_LocalInvocationID.xy);
   displaced_coordinates_table[table_index.x][table_index.y] = displaced_coordinates;
   barrier();
 
@@ -43,7 +43,7 @@ void main()
 
   /* Compute the partial derivative of the displaced coordinates along the y direction using a
    * finite difference approximation. See the previous code section for more information. */
-  int y_step = (table_index.x % 2) * 2 - 1;
+  int y_step = (table_index.y % 2) * -2 + 1;
   vec2 y_neighbour = displaced_coordinates_table[table_index.x][table_index.y + y_step];
   vec2 y_gradient = (y_neighbour - displaced_coordinates) * y_step;
 
