@@ -92,6 +92,8 @@ struct GPUPass {
   GPUCodegenCreateInfo *create_info = nullptr;
   /** Orphaned GPUPasses gets freed by the garbage collector. */
   uint refcount;
+  /** The last time the refcount was greater than 0. */
+  int gc_timestamp;
   /** Identity hash generated from all GLSL code. */
   uint32_t hash;
   /** Did we already tried to compile the attached GPUShader. */
@@ -909,28 +911,23 @@ void GPU_pass_release(GPUPass *pass)
 
 void GPU_pass_cache_garbage_collect(void)
 {
-  static int lasttime = 0;
   const int shadercollectrate = 60; /* hardcoded for now. */
   int ctime = int(PIL_check_seconds_timer());
-
-  if (ctime < shadercollectrate + lasttime) {
-    return;
-  }
-
-  lasttime = ctime;
 
   BLI_spin_lock(&pass_cache_spin);
   GPUPass *next, **prev_pass = &pass_cache;
   for (GPUPass *pass = pass_cache; pass; pass = next) {
     next = pass->next;
-    if (pass->refcount == 0) {
+    if (pass->refcount > 0) {
+      pass->gc_timestamp = ctime;
+    }
+    else if (pass->gc_timestamp + shadercollectrate < ctime) {
       /* Remove from list */
       *prev_pass = next;
       gpu_pass_free(pass);
+      continue;
     }
-    else {
-      prev_pass = &pass->next;
-    }
+    prev_pass = &pass->next;
   }
   BLI_spin_unlock(&pass_cache_spin);
 }
