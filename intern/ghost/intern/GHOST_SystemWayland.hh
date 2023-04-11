@@ -31,8 +31,6 @@
 #  include <thread>
 #endif
 
-#define FRACTIONAL_DENOMINATOR 120
-
 class GHOST_WindowWayland;
 
 bool ghost_wl_output_own(const struct wl_output *wl_output);
@@ -68,6 +66,8 @@ wl_fixed_t gwl_window_scale_wl_fixed_from(const GWL_WindowScaleParams &scale_par
 
 int gwl_window_scale_int_to(const GWL_WindowScaleParams &scale_params, int value);
 int gwl_window_scale_int_from(const GWL_WindowScaleParams &scale_params, int value);
+
+#define FRACTIONAL_DENOMINATOR 120
 
 #ifdef WITH_GHOST_WAYLAND_DYNLOAD
 /**

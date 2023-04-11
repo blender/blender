@@ -7064,6 +7064,7 @@ bool GHOST_SystemWayland::output_unref(wl_output *wl_output)
     for (GHOST_IWindow *iwin : window_manager->getWindows()) {
       GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
       if (win->outputs_leave(output)) {
+        win->outputs_changed_update_scale_tag();
         changed = true;
       }
     }
@@ -7088,7 +7089,7 @@ void GHOST_SystemWayland::output_scale_update(GWL_Output *output)
       GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
       const std::vector<GWL_Output *> &outputs = win->outputs();
       if (!(std::find(outputs.begin(), outputs.end(), output) == outputs.cend())) {
-        win->outputs_changed_update_scale();
+        win->outputs_changed_update_scale_tag();
       }
     }
   }
