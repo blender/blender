@@ -121,8 +121,16 @@ class QuickFur(ObjectModeOperator, Operator):
 
         material = bpy.data.materials.new("Fur Material")
 
+        mesh_with_zero_area = False
+        mesh_missing_uv_map = False
+        modifier_apply_error = False
+
         for mesh_object in mesh_objects:
             mesh = mesh_object.data
+            if len(mesh.uv_layers) == 0:
+                mesh_missing_uv_map = True
+                continue
+
             with context.temp_override(active_object=mesh_object):
                 bpy.ops.object.curves_empty_hair_add()
             curves_object = context.active_object
@@ -132,7 +140,11 @@ class QuickFur(ObjectModeOperator, Operator):
             area = 0.0
             for poly in mesh.polygons:
                 area += poly.area
-            density = count / area
+            if area == 0.0:
+                mesh_with_zero_area = True
+                density = 10
+            else:
+                density = count / area
 
             generate_modifier = curves_object.modifiers.new(name="Generate", type='NODES')
             generate_modifier.node_group = generate_group
@@ -166,13 +178,23 @@ class QuickFur(ObjectModeOperator, Operator):
 
             if self.apply_hair_guides:
                 with context.temp_override(object=curves_object):
-                    bpy.ops.object.modifier_apply(modifier=generate_modifier.name)
+                    try:
+                        bpy.ops.object.modifier_apply(modifier=generate_modifier.name)
+                    except:
+                        modifier_apply_error = True
 
             curves_object.modifiers.move(0, len(curves_object.modifiers) - 1)
 
             # Workaround for #105965: Rebuild UI data of modifier input properties.
             for modifier in curves_object.modifiers:
                 modifier.node_group = modifier.node_group
+
+        if mesh_with_zero_area:
+            self.report({'WARNING'}, "Mesh has no face area")
+        if mesh_missing_uv_map:
+            self.report({'WARNING'}, "Mesh UV map required")
+        if modifier_apply_error and not mesh_with_zero_area:
+            self.report({'WARNING'}, "Unable to apply \"Generate\" modifier")
 
         return {'FINISHED'}
 
