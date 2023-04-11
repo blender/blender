@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: 2023-02-05 22:00+0300\n"
 "Last-Translator: Emir SARI <emir_sari@îcloud.com>\n"
 "Language-Team: Turkish <>\n"
@@ -5139,10 +5139,6 @@ msgid "Save the image with another name and/or settings"
 msgstr "Görseli başka ad ve/veya ayarlarla kaydet"
 
 
-msgid "Create a new image file without modifying the current image in blender"
-msgstr "Blender'daki geçerli dosyayı değiştirmeden yeni bir görsel dosyası oluştur"
-
-
 msgid "Save As Render"
 msgstr "Sunum Olarak Kaydet"
 
@@ -5465,10 +5461,6 @@ msgstr "Başlangıç Penceresini Göster"
 
 msgid "Tooltips"
 msgstr "İpuçları"
-
-
-msgid "TimeCode Style"
-msgstr "Zaman Kodu Biçimi"
 
 
 msgid "Minimal Info"

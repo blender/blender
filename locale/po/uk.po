@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -11871,10 +11871,6 @@ msgid "Library Browser"
 msgstr "Огляд бібліотек"
 
 
-msgid "Whether we may browse blender files' content or not"
-msgstr "Можливо чи ні оглядати вміст файлів Blender"
-
-
 msgid "Reverse Sorting"
 msgstr "Розвернути Сортування"
 
@@ -15087,10 +15083,6 @@ msgstr "Увідні властивості Групи гізмо"
 
 msgid "Gizmo Properties"
 msgstr "Властивості гізмо"
-
-
-msgid "Input properties of an Gizmo"
-msgstr "Увідні властивості гізмо"
 
 
 msgid "Modifier name"
@@ -21206,24 +21198,12 @@ msgid "Resolution X"
 msgstr "Роздільність X"
 
 
-msgid "Number of sample along the x axis of the volume"
-msgstr "Кількість вибірок уздовж осі x об'єму "
-
-
 msgid "Resolution Y"
 msgstr "Роздільність Y"
 
 
-msgid "Number of sample along the y axis of the volume"
-msgstr "Кількість вибірок уздовж осі y об'єму"
-
-
 msgid "Resolution Z"
 msgstr "Роздільність Z"
-
-
-msgid "Number of sample along the z axis of the volume"
-msgstr "Кількість вибірок уздовж осі z об'єму"
 
 
 msgid "Influence Distance"
@@ -43839,10 +43819,6 @@ msgid "Set Axis"
 msgstr "Задати вісь"
 
 
-msgid "Set direction of scene axis rotating camera (or its parent if present) and assume selected track lies on real axis, joining it with the origin"
-msgstr "Задати напрям осей сцени обертом камери (або її предка, якщо є) і вважаючи, що вибрана стежка лежить на справжній осі, що сполучає її з початком"
-
-
 msgid "Axis to use to align bundle along"
 msgstr "Вісь, вздовж якої вирівнюється пакет"
 
@@ -50084,10 +50060,6 @@ msgstr "Зберегти зображення як"
 
 msgid "Save the image with another name and/or settings"
 msgstr "Зберегти зображення з іншою назвою та/або параметрами"
-
-
-msgid "Create a new image file without modifying the current image in blender"
-msgstr "Створити новий файл зображення не змінюючи поточного зображення у Blender"
 
 
 msgid "Save As Render"
@@ -57288,10 +57260,6 @@ msgid "Name filter using '*', '?' and '[abc]' unix style wildcards"
 msgstr "Фільтр назви з використанням підстановочних символів Unix '*', '?' та '[abc]'"
 
 
-msgid "Set select on random visible objects"
-msgstr "Вибрати випадкові з видимих ​​об'єктів"
-
-
 msgctxt "Operator"
 msgid "Select Same Collection"
 msgstr "Вибрати Таку саму Колекцію"
@@ -63524,10 +63492,6 @@ msgid "Add Scene Strip"
 msgstr "Додати смужку сцени"
 
 
-msgid "Add a strip to the sequencer using a blender scene as a source"
-msgstr "Додати у відеорядник смужку, джерелом для якої є сцена Blender"
-
-
 msgid "Select a strip (last selected becomes the \"active strip\")"
 msgstr "Вибрати смужку (остання вибрана стає \"активною смужкою\")"
 
@@ -64578,10 +64542,6 @@ msgstr "Вибрати рядок тексту"
 
 msgid "Select word under cursor"
 msgstr "Вибрати слово під курсором"
-
-
-msgid "Set cursor selection"
-msgstr "Задати вибір за курсором"
 
 
 msgctxt "Operator"
@@ -67702,10 +67662,6 @@ msgid "Rotate all root objects to match the global orientation settings otherwis
 msgstr "Обертати всі кореневі об'єкти для узгодження з уставами глобальної орієнтації, інакше задати глобальну орієнтацію залежно від активу Collada"
 
 
-msgid "Apply modifiers to exported mesh (non destructive))"
-msgstr "Застосувати модифікатори до експортованої сіті (не руйнуючи)"
-
-
 msgid "Deform Bones Only"
 msgstr "Лише Деформувальні Кістки"
 
@@ -69696,10 +69652,6 @@ msgstr "Шар візерунка"
 
 msgid "Set the mask layer from the UV map buttons"
 msgstr "Встановити шар маски за допомогою кнопок UV-карти"
-
-
-msgid "Maximum edge length for dynamic topology sculpting (as divisor of blender unit - higher value means smaller edge length)"
-msgstr "Найбільша довжина ребра для динамічної топології ліплення (як дільник одиниці Blender - більше значення означає меншу довжину ребра)"
 
 
 msgid "Detail Percentage"
@@ -74562,14 +74514,6 @@ msgid "Slight"
 msgstr "Злегка"
 
 
-msgid "TimeCode Style"
-msgstr "Стиль час-коду"
-
-
-msgid "Format of Time Codes displayed when not displaying timing in terms of frames"
-msgstr "Формат коду часу, що використовується, коли відлік часу ведеться не за кадрами"
-
-
 msgid "Minimal Info"
 msgstr "Мінімальна інформація"
 
@@ -76558,10 +76502,6 @@ msgid "Bias"
 msgstr "Відхил"
 
 
-msgid "Bias towards faces further away from the object (in blender units)"
-msgstr "Відхилення до граней, віддалених від об'єкта (в одиницях Blender)"
-
-
 msgid "Number of samples used for ambient occlusion baking from multires"
 msgstr "Кількість вибірок для запікання впливу середовища з багатороздільного"
 
@@ -77538,10 +77478,6 @@ msgid "Blender 2.7"
 msgstr "Blender 2.7"
 
 
-msgid "Spring implementation used in blender 2.7. Damping is capped at 1.0"
-msgstr "Реалізація пружності, використовувана у Blender 2.7. Згасання завершується на 1.0"
-
-
 msgid "Blender 2.8"
 msgstr "Blender 2.8"
 
@@ -78192,10 +78128,6 @@ msgstr "2048 px"
 
 msgid "4096 px"
 msgstr "4096 px"
-
-
-msgid "Number of time the light is reinjected inside light grids, 0 disable indirect diffuse light"
-msgstr "Кількість часу, коли освітлювач повторно уводиться всередину сіток освітлення, 0 вимикає побічне розсіяне освітлення"
 
 
 msgid "Filter Quality"
@@ -79373,20 +79305,12 @@ msgid "Scene Sequence"
 msgstr "Послідовність сцени"
 
 
-msgid "Sequence strip to used the rendered image of a scene"
-msgstr "Смужка послідовності, що використовує рендерене зображення сцени"
-
-
 msgid "Scene that this sequence uses"
 msgstr "Сцена, яку ця послідовність використовує"
 
 
 msgid "Camera Override"
 msgstr "Заміщення камери"
-
-
-msgid "Override the scenes active camera"
-msgstr "Перевизначити активну камеру сцени"
 
 
 msgid "Input type to use for the Scene strip"
@@ -82461,10 +82385,6 @@ msgstr "Устави для показу накладок у вікні 3D-ог�
 
 msgid "3D Region"
 msgstr "3D-область"
-
-
-msgid "3D region in this space, in case of quad view the camera region"
-msgstr "3D-регіон у цьому просторі; у разі чотирибічного огляду - регіон камери"
 
 
 msgid "Quad View Regions"
@@ -85890,10 +85810,6 @@ msgstr "Одиниця, що буде використовуватися для 
 
 msgid "Unit Scale"
 msgstr "Масштаб одиниць"
-
-
-msgid "Scale to use when converting between blender units and dimensions. When working at microscopic or astronomical scale, a small or large unit scale respectively can be used to avoid numerical precision problems"
-msgstr "Масштаб для використання при конвертуванні між одиницями Blender'а та розмірностями. При роботі у мікроскопічному або астрономічному масштабах, може використовуватися малий або великий масштаб одиниць для уникання проблем з числовою точністю"
 
 
 msgid "Unit System"
@@ -91859,11 +91775,6 @@ msgstr "Спрощення (Пропорція)"
 
 
 msgctxt "Operator"
-msgid "Decimate (Allowed Change)"
-msgstr "Спрощення (Дозволена Зміна)"
-
-
-msgctxt "Operator"
 msgid "Selection to Cursor Value"
 msgstr "Вибрання до Значення Курсора"
 
@@ -91871,6 +91782,11 @@ msgstr "Вибрання до Значення Курсора"
 msgctxt "Operator"
 msgid "Flatten Handles"
 msgstr "Сплощити Держаки"
+
+
+msgctxt "Operator"
+msgid "Decimate (Allowed Change)"
+msgstr "Спрощення (Дозволена Зміна)"
 
 
 msgctxt "Operator"

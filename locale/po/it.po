@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -30419,10 +30419,6 @@ msgid "Save the image with another name and/or settings"
 msgstr "Salva l'immagine con un altro nome e/o impostazioni"
 
 
-msgid "Create a new image file without modifying the current image in blender"
-msgstr "Crea un nuovo file immagine senza modificare l'immagine corrente in blender"
-
-
 msgid "Save As Render"
 msgstr "Salva Come Render"
 
@@ -34946,10 +34942,6 @@ msgid "Name filter using '*', '?' and '[abc]' unix style wildcards"
 msgstr "Filtra il nome usando i caratteri jolly stile unix '*', '?' e '[abc]'"
 
 
-msgid "Set select on random visible objects"
-msgstr "Imposta una selezione casuale sugli oggetti visibili"
-
-
 msgid "Render and display faces uniform, using Face Normals"
 msgstr "Renderizza e mostra le facce uniformi, usando le normali delle facce"
 
@@ -38591,10 +38583,6 @@ msgid "Add Scene Strip"
 msgstr "Aggiunge Spezzone Scena"
 
 
-msgid "Add a strip to the sequencer using a blender scene as a source"
-msgstr "Aggiunge uno spezzone al sequencer usando una scena blender come sorgente"
-
-
 msgid "Select a strip (last selected becomes the \"active strip\")"
 msgstr "Seleziona uno spezzone (l'ultimo selezionato diventa la \"strip attiva\")"
 
@@ -39331,10 +39319,6 @@ msgstr "Seleziona il testo per linea"
 
 msgid "Select word under cursor"
 msgstr "Seleziona la parola sotto il cursore"
-
-
-msgid "Set cursor selection"
-msgstr "Imposta la selezione del cursore"
 
 
 msgctxt "Operator"
@@ -41221,10 +41205,6 @@ msgstr "Salva un file Collada"
 
 msgid "Only Selected UV Map"
 msgstr "Solo Mappe UV Selezionate"
-
-
-msgid "Apply modifiers to exported mesh (non destructive))"
-msgstr "Applica i modificatori alle mesh esportate (non distruttive)"
 
 
 msgid "Apply modifier's render settings"
@@ -45168,14 +45148,6 @@ msgid "Text Hinting"
 msgstr "Crenatura Testo"
 
 
-msgid "TimeCode Style"
-msgstr "Stile Timecode"
-
-
-msgid "Format of Time Codes displayed when not displaying timing in terms of frames"
-msgstr "Formato del time code, quando il tempo non è mostrato come fotogrammi"
-
-
 msgid "Minimal Info"
 msgstr "Informazioni Minime"
 
@@ -46246,10 +46218,6 @@ msgstr "Impostazioni del rendering per un blocco-dati Scena"
 
 msgid "Bias"
 msgstr "Influenza"
-
-
-msgid "Bias towards faces further away from the object (in blender units)"
-msgstr "Influenza verso le facce più lontane dall'oggetto (in unità Blender)"
 
 
 msgid "Number of samples used for ambient occlusion baking from multires"

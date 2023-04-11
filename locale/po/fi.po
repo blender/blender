@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7531,10 +7531,6 @@ msgid "Save the image with another name and/or settings"
 msgstr "Tallenna kuva toisella nimellä ja/tai asetuksilla"
 
 
-msgid "Create a new image file without modifying the current image in blender"
-msgstr "Luo uusi kuvatiedosto muuttamatta nykyistä kuvaa Blenderissä"
-
-
 msgid "Save As Render"
 msgstr "Tallenna renderinä"
 
@@ -7904,6 +7900,10 @@ msgstr "Siivoa kuva"
 
 msgid "Position:"
 msgstr "Sijainti:"
+
+
+msgid "Limit to"
+msgstr "Rajoita"
 
 
 msgctxt "Operator"
@@ -9591,10 +9591,6 @@ msgstr "Vientitiedostoa ei voida päällekirjoittaa"
 
 msgid "Export Options"
 msgstr "Vienti asetukset"
-
-
-msgid "Limit to"
-msgstr "Rajoita"
 
 
 msgid "Grouping"

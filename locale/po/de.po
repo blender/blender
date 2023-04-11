@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -10244,10 +10244,6 @@ msgid "Library Browser"
 msgstr "Bibliotheksbrowser"
 
 
-msgid "Whether we may browse blender files' content or not"
-msgstr "Ob wir den Inhalt von Blender-Dateien durchsuchen dürfen oder nicht"
-
-
 msgid "Reverse Sorting"
 msgstr "Rückwärts sortieren"
 
@@ -11776,10 +11772,6 @@ msgstr "Hat Berichte"
 
 msgid "Gizmo Properties"
 msgstr "Gizmo Eigenschaften"
-
-
-msgid "Input properties of an Gizmo"
-msgstr "Eigenschaften eines Gizmos eingeben"
 
 
 msgid "Modifier name"
@@ -32873,10 +32865,6 @@ msgid "Save the image with another name and/or settings"
 msgstr "Bild unter anderem Namen und/oder Einstellungen speichern"
 
 
-msgid "Create a new image file without modifying the current image in blender"
-msgstr "Erstelle eine neue Bilddatei ohne die Änderungen vom aktuellen Blender Bild zu ändern"
-
-
 msgid "Save As Render"
 msgstr "Als Blender-Datei speichern"
 
@@ -36685,10 +36673,6 @@ msgstr "Groß-/Kleinschreibung bei Vergleich berücksichtigen"
 
 msgid "Name filter using '*', '?' and '[abc]' unix style wildcards"
 msgstr "Namensfilter mit '*' und '?' als Platzhaltern"
-
-
-msgid "Set select on random visible objects"
-msgstr "Sichtbare Objekte zufällig auswählen"
 
 
 msgid "Render and display faces uniform, using Face Normals"
@@ -41907,10 +41891,6 @@ msgid "Only Selected UV Map"
 msgstr "Nur ausgewählte UV Karte"
 
 
-msgid "Apply modifiers to exported mesh (non destructive))"
-msgstr "Auflösung"
-
-
 msgid "Deform Bones Only"
 msgstr "Nur Knochen deformieren"
 
@@ -46447,10 +46427,6 @@ msgid "Text Hinting"
 msgstr "Text-Hinweis"
 
 
-msgid "TimeCode Style"
-msgstr "Zeitcode Stil"
-
-
 msgid "Minimal Info"
 msgstr "Minimale Info"
 
@@ -48309,10 +48285,6 @@ msgstr "Welche Implementierung der Sprungfeder verwendet wird"
 
 msgid "Blender 2.7"
 msgstr "Blender 2.7"
-
-
-msgid "Spring implementation used in blender 2.7. Damping is capped at 1.0"
-msgstr "Sprungfeder-Implementierung in Blender 2.7. Die Dämpfung ist auf 1,0 begrenzt"
 
 
 msgid "Blender 2.8"
