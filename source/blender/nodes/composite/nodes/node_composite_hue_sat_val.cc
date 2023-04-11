@@ -11,7 +11,7 @@
 
 #include "node_composite_util.hh"
 
-/* **************** Hue Saturation ******************** */
+/* **************** Hue/Saturation/Value ******************** */
 
 namespace blender::nodes::node_composite_hue_sat_val_cc {
 
@@ -75,7 +75,7 @@ void register_node_type_cmp_hue_sat()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, CMP_NODE_HUE_SAT, "Hue/Saturation/Value", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::cmp_node_huesatval_declare;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
