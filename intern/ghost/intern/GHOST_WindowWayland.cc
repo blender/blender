@@ -183,6 +183,9 @@ struct GWL_WindowFrame {
   int fractional_scale_preferred = 0;
   /** The scale passed to #wl_surface_set_buffer_scale. */
   int buffer_scale = 0;
+
+  /** Scale has been set (for the first time). */
+  bool is_scale_init = false;
 };
 
 struct GWL_Window {
@@ -838,6 +841,36 @@ static int outputs_max_scale_or_default(const std::vector<GWL_Output *> &outputs
   return scale_default;
 }
 
+static int outputs_uniform_scale_or_default(const std::vector<GWL_Output *> &outputs,
+                                            const int32_t scale_default,
+                                            int *r_scale_fractional)
+{
+  const GWL_Output *output_uniform = nullptr;
+  for (const GWL_Output *reg_output : outputs) {
+    if (!output_uniform) {
+      output_uniform = reg_output;
+    }
+    else if (output_scale_cmp(output_uniform, reg_output) != 0) {
+      /* Non-uniform. */
+      output_uniform = nullptr;
+      break;
+    }
+  }
+
+  if (output_uniform) {
+    if (r_scale_fractional) {
+      *r_scale_fractional = output_uniform->has_scale_fractional ?
+                                output_uniform->scale_fractional :
+                                (output_uniform->scale * FRACTIONAL_DENOMINATOR);
+    }
+    return output_uniform->scale;
+  }
+  if (r_scale_fractional) {
+    *r_scale_fractional = scale_default * FRACTIONAL_DENOMINATOR;
+  }
+  return scale_default;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1261,7 +1294,13 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    *
    * Using the maximum scale is best as it results in the window first being smaller,
    * avoiding a large window flashing before it's made smaller. */
-  window_->frame.buffer_scale = outputs_max_scale_or_default(system_->outputs(), 1, nullptr);
+  int fractional_scale = 0;
+  window_->frame.buffer_scale = outputs_uniform_scale_or_default(
+      system_->outputs(), 1, &fractional_scale);
+
+  if (fractional_scale / FRACTIONAL_DENOMINATOR != window_->frame.buffer_scale) {
+    window_->frame.buffer_scale = 1;
+  }
   window_->frame_pending.buffer_scale = window_->frame.buffer_scale;
 
   window_->frame.size[0] = int32_t(width);
@@ -1911,7 +1950,6 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
     return false;
   }
 #endif
-
   int fractional_scale_next = -1;
   int fractional_scale_from_output = 0;
 
@@ -1950,12 +1988,14 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
 
   bool changed = false;
 
-  const bool is_fractional_prev = window_->frame.fractional_scale != 0;
-  const bool is_fractional_next = (fractional_scale_next % FRACTIONAL_DENOMINATOR) != 0;
-
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_frame_guard{window_->frame_pending_mutex};
 #endif
+
+  bool force_frame_update = false;
+
+  bool is_fractional_prev = window_->frame.fractional_scale != 0;
+  const bool is_fractional_next = (fractional_scale_next % FRACTIONAL_DENOMINATOR) != 0;
 
   /* When non-fractional, never use fractional scaling! */
   window_->frame_pending.fractional_scale = is_fractional_next ? fractional_scale_next : 0;
@@ -1963,13 +2003,32 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
                                             1 :
                                             fractional_scale_next / FRACTIONAL_DENOMINATOR;
 
-  const int fractional_scale_prev = window_->frame.fractional_scale ?
-                                        window_->frame.fractional_scale :
-                                        window_->frame.buffer_scale * FRACTIONAL_DENOMINATOR;
-  const int scale_prev = fractional_scale_prev / FRACTIONAL_DENOMINATOR;
+  int fractional_scale_prev = window_->frame.fractional_scale ?
+                                  window_->frame.fractional_scale :
+                                  window_->frame.buffer_scale * FRACTIONAL_DENOMINATOR;
+  int scale_prev = fractional_scale_prev / FRACTIONAL_DENOMINATOR;
+
+  if (window_->frame_pending.is_scale_init == false) {
+    window_->frame_pending.is_scale_init = true;
+
+    /* NOTE(@ideasman42): Needed because new windows are created at their previous pixel-dimensions
+     * as the window doesn't save it's DPI. Restore the window size under the assumption it's
+     * opening on the same monitor so a window keeps it's previous size on a users system.
+     *
+     * To support anything more sophisticated, windows would need to be created with a scale
+     * argument (representing the scale used when the window was stored, for e.g.). */
+    is_fractional_prev = is_fractional_next;
+    scale_prev = scale_next;
+    fractional_scale_prev = fractional_scale_next;
+
+    /* Leave `window_->frame_pending` as-is, so changes are detected and updates are applied. */
+
+    force_frame_update = true;
+  }
 
   if ((fractional_scale_prev != fractional_scale_next) ||
-      (window_->frame_pending.buffer_scale != window_->frame.buffer_scale)) {
+      (window_->frame_pending.buffer_scale != window_->frame.buffer_scale) ||
+      (force_frame_update == true)) {
     /* Resize the window failing to do so results in severe flickering with a
      * multi-monitor setup when multiple monitors have different scales.
      *
