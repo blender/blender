@@ -157,8 +157,7 @@ struct PBVH {
   float (*vert_positions)[3];
   blender::OffsetIndices<int> polys;
   bool *hide_poly;
-  /** Material indices. Only valid for polygon meshes. */
-  const int *material_indices;
+  /** Only valid for polygon meshes. */
   const int *corner_verts;
   /* Owned by the #PBVH, because after deformations they have to be recomputed. */
   const MLoopTri *looptri;
