@@ -3700,6 +3700,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
   BLO_read_list(reader, &user->user_menus);
   BLO_read_list(reader, &user->addons);
   BLO_read_list(reader, &user->autoexec_paths);
+  BLO_read_list(reader, &user->script_directories);
   BLO_read_list(reader, &user->asset_libraries);
 
   LISTBASE_FOREACH (wmKeyMap *, keymap, &user->user_keymaps) {

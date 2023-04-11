@@ -922,6 +922,10 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
     BLO_write_struct(writer, bPathCompare, path_cmp);
   }
 
+  LISTBASE_FOREACH (const bUserScriptDirectory *, script_dir, &userdef->script_directories) {
+    BLO_write_struct(writer, bUserScriptDirectory, script_dir);
+  }
+
   LISTBASE_FOREACH (const bUserAssetLibrary *, asset_library_ref, &userdef->asset_libraries) {
     BLO_write_struct(writer, bUserAssetLibrary, asset_library_ref);
   }
