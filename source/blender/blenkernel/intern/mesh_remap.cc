@@ -1642,7 +1642,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                     pcent_dst = blender::bke::mesh::poly_center_calc(
                         {reinterpret_cast<const blender::float3 *>(vert_positions_dst),
                          numverts_dst},
-                        corner_verts_src.slice(poly_dst));
+                        blender::Span(corner_verts_dst, numloops_dst).slice(poly_dst));
                     pcent_dst_valid = true;
                   }
                   pcent_src = poly_cents_src[pidx_src];
