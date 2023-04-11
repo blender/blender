@@ -40,7 +40,6 @@
 #include <xdg-activation-v1-client-protocol.h>
 #include <xdg-decoration-unstable-v1-client-protocol.h>
 #include <xdg-shell-client-protocol.h>
-#define FRACTIONAL_DENOMINATOR 120
 
 #include <atomic>
 

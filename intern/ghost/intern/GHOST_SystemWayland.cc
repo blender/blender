@@ -4520,7 +4520,8 @@ static void xdg_output_handle_logical_size(void *data,
      * Until this is fixed, validate that _some_ kind of scaling is being
      * done (we can't match exactly because fractional scaling can't be
      * detected otherwise), then override if necessary. */
-    if ((output->size_logical[0] == width) && (output->scale_fractional == wl_fixed_from_int(1))) {
+    if ((output->size_logical[0] == width) &&
+        (output->scale_fractional == (1 * FRACTIONAL_DENOMINATOR))) {
       GHOST_PRINT("xdg_output scale did not match, overriding with wl_output scale\n");
 
 #ifdef USE_GNOME_CONFINE_HACK
@@ -4667,7 +4668,7 @@ static void output_handle_done(void *data, struct wl_output * /*wl_output*/)
     GHOST_ASSERT(size_native[0] && output->size_logical[0],
                  "Screen size values were not set when they were expected to be.");
 
-    output->scale_fractional = wl_fixed_from_int(size_native[0]) / output->size_logical[0];
+    output->scale_fractional = (size_native[0] * FRACTIONAL_DENOMINATOR) / output->size_logical[0];
     output->has_scale_fractional = true;
   }
 }

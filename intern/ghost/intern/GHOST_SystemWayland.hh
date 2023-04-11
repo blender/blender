@@ -31,6 +31,8 @@
 #  include <thread>
 #endif
 
+#define FRACTIONAL_DENOMINATOR 120
+
 class GHOST_WindowWayland;
 
 bool ghost_wl_output_own(const struct wl_output *wl_output);
@@ -100,10 +102,10 @@ struct GWL_Output {
    * as this is what is used for most API calls.
    * Only use fractional scaling to calculate the DPI.
    *
-   * \note Internally an #wl_fixed_t is used to store the scale of the display,
-   * so use the same value here (avoid floating point arithmetic in general).
+   * \note Use the same scale as #wp_fractional_scale_manager_v1
+   * (avoid floating point arithmetic in general).
    */
-  wl_fixed_t scale_fractional = wl_fixed_from_int(1);
+  int scale_fractional = (1 * FRACTIONAL_DENOMINATOR);
   bool has_scale_fractional = false;
 
   std::string make;
