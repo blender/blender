@@ -283,28 +283,11 @@ typedef void (*BKE_pbvh_SearchNearestCallback)(PBVHNode *node, void *data, float
 
 PBVH *BKE_pbvh_new(PBVHType type);
 
-#ifdef __cplusplus
-
 /**
  * Do a full rebuild with on Mesh data structure.
- *
- * \note Unlike mpoly/corner_verts/verts, looptri is *totally owned* by PBVH
- * (which means it may rewrite it if needed, see #BKE_pbvh_vert_coords_apply().
  */
-void BKE_pbvh_build_mesh(PBVH *pbvh,
-                         struct Mesh *mesh,
-                         blender::OffsetIndices<int> polys,
-                         const int *corner_verts,
-                         float (*vert_positions)[3],
-                         int totvert,
-                         struct CustomData *vdata,
-                         struct CustomData *ldata,
-                         struct CustomData *pdata,
-                         const struct MLoopTri *looptri,
-                         int looptri_num);
-
-#endif
-
+void BKE_pbvh_build_mesh(PBVH *pbvh, struct Mesh *mesh);
+void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, struct Mesh *mesh);
 /**
  * Do a full rebuild with on Grids data structure.
  */

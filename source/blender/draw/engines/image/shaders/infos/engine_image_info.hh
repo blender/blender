@@ -5,7 +5,7 @@
 GPU_SHADER_INTERFACE_INFO(image_engine_color_iface, "").smooth(Type::VEC2, "uv_screen");
 
 GPU_SHADER_CREATE_INFO(image_engine_color_shader)
-    .vertex_in(0, Type::VEC2, "pos")
+    .vertex_in(0, Type::IVEC2, "pos")
     .vertex_out(image_engine_color_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
     .push_constant(Type::VEC4, "shuffle")
@@ -23,7 +23,7 @@ GPU_SHADER_CREATE_INFO(image_engine_color_shader)
 GPU_SHADER_INTERFACE_INFO(image_engine_depth_iface, "").smooth(Type::VEC2, "uv_image");
 
 GPU_SHADER_CREATE_INFO(image_engine_depth_shader)
-    .vertex_in(0, Type::VEC2, "pos")
+    .vertex_in(0, Type::IVEC2, "pos")
     .vertex_in(1, Type::VEC2, "uv")
     .vertex_out(image_engine_depth_iface)
     .push_constant(Type::VEC4, "min_max_uv")

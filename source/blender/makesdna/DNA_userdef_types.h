@@ -686,6 +686,17 @@ typedef struct UserDef_Experimental {
 #define USER_EXPERIMENTAL_TEST(userdef, member) \
   (((userdef)->flag & USER_DEVELOPER_UI) && ((userdef)->experimental).member)
 
+/**
+ * Container to store multiple directory paths and a name for each as a #ListBase.
+ */
+typedef struct bUserScriptDirectory {
+  struct bUserScriptDirectory *next, *prev;
+
+  /** Name must be unique. */
+  char name[64];      /* MAX_NAME */
+  char dir_path[768]; /* FILE_MAXDIR */
+} bUserScriptDirectory;
+
 typedef struct UserDef {
   DNA_DEFINE_CXX_METHODS(UserDef)
 
@@ -710,22 +721,8 @@ typedef struct UserDef {
   /** 768 = FILE_MAXDIR. */
   char render_cachedir[768];
   char textudir[768];
-  /**
-   * Optional user location for scripts.
-   *
-   * This supports the same layout as Blender's scripts directory `scripts`.
-   *
-   * \note Unlike most paths, changing this is not fully supported at run-time,
-   * requiring a restart to properly take effect. Supporting this would cause complications as
-   * the script path can contain `startup`, `addons` & `modules` etc. properly unwinding the
-   * Python environment to the state it _would_ have been in gets complicated.
-   *
-   * Although this is partially supported as the `sys.path` is refreshed when loading preferences.
-   * This is done to support #PREFERENCES_OT_copy_prev which is available to the user when they
-   * launch with a new version of Blender. In this case setting the script path on top of
-   * factory settings will work without problems.
-   */
-  char pythondir[768];
+  /* Deprecated, use #UserDef.script_directories instead. */
+  char pythondir_legacy[768] DNA_DEPRECATED;
   char sounddir[768];
   char i18ndir[768];
   /** 1024 = FILE_MAX. */
@@ -797,6 +794,22 @@ typedef struct UserDef {
   struct ListBase user_keyconfig_prefs;
   struct ListBase addons;
   struct ListBase autoexec_paths;
+  /**
+   * Optional user locations for Python scripts.
+   *
+   * This supports the same layout as Blender's scripts directory `scripts`.
+   *
+   * \note Unlike most paths, changing this is not fully supported at run-time,
+   * requiring a restart to properly take effect. Supporting this would cause complications as
+   * the script path can contain `startup`, `addons` & `modules` etc. properly unwinding the
+   * Python environment to the state it _would_ have been in gets complicated.
+   *
+   * Although this is partially supported as the `sys.path` is refreshed when loading preferences.
+   * This is done to support #PREFERENCES_OT_copy_prev which is available to the user when they
+   * launch with a new version of Blender. In this case setting the script path on top of
+   * factory settings will work without problems.
+   */
+  ListBase script_directories; /* #bUserScriptDirectory */
   /** #bUserMenu. */
   struct ListBase user_menus;
   /** #bUserAssetLibrary */

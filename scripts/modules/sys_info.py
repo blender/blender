@@ -88,7 +88,9 @@ def write_sysinfo(filepath):
             for p in bpy.utils.script_paths():
                 output.write("\t%r\n" % p)
             output.write("user scripts: %r\n" % (bpy.utils.script_path_user()))
-            output.write("pref scripts: %r\n" % (bpy.utils.script_path_pref()))
+            output.write("pref scripts:\n")
+            for p in bpy.utils.script_paths_pref():
+                output.write("\t%r\n" % p)
             output.write("datafiles: %r\n" % (bpy.utils.user_resource('DATAFILES')))
             output.write("config: %r\n" % (bpy.utils.user_resource('CONFIG')))
             output.write("scripts : %r\n" % (bpy.utils.user_resource('SCRIPTS')))

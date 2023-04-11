@@ -6,10 +6,10 @@ void main()
 {
   GPU_INTEL_VERTEX_SHADER_WORKAROUND
 
-  if ((data & VERT_SELECTED) != 0) {
+  if ((data & VERT_SELECTED) != 0u) {
     finalColor = colorVertexSelect;
   }
-  else if ((data & VERT_ACTIVE) != 0) {
+  else if ((data & VERT_ACTIVE) != 0u) {
     finalColor = colorEditMeshActive;
   }
   else {

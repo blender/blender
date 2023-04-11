@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"

@@ -1110,12 +1110,6 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
   bool use_cage = false;
   bool free_mesh = false;
 
-  const MLoopTri *lt;
-  const int *corner_verts;
-
-  float(*coords)[3] = nullptr;
-  uint(*tris)[3] = nullptr;
-  uint coords_len, tris_len;
   float epsilon = 0.0f;
 
   if (!PyArg_ParseTupleAndKeywords(args,
@@ -1142,69 +1136,66 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
     return nullptr;
   }
 
+  const blender::Span<int> corner_verts = mesh->corner_verts();
+  const blender::Span<MLoopTri> looptris = mesh->looptris();
+
   /* Get data for tessellation */
-  {
-    lt = BKE_mesh_runtime_looptri_ensure(mesh);
 
-    tris_len = uint(BKE_mesh_runtime_looptri_len(mesh));
-    coords_len = uint(mesh->totvert);
+  const uint coords_len = uint(mesh->totvert);
 
-    coords = static_cast<float(*)[3]>(MEM_mallocN(sizeof(*coords) * size_t(coords_len), __func__));
-    tris = static_cast<uint(*)[3]>(MEM_mallocN(sizeof(*tris) * size_t(tris_len), __func__));
-    memcpy(coords, BKE_mesh_vert_positions(mesh), sizeof(float[3]) * size_t(mesh->totvert));
+  float(*coords)[3] = static_cast<float(*)[3]>(
+      MEM_mallocN(sizeof(*coords) * size_t(coords_len), __func__));
+  uint(*tris)[3] = static_cast<uint(*)[3]>(
+      MEM_mallocN(sizeof(*tris) * size_t(looptris.size()), __func__));
+  memcpy(coords, BKE_mesh_vert_positions(mesh), sizeof(float[3]) * size_t(mesh->totvert));
 
-    corner_verts = BKE_mesh_corner_verts(mesh);
-  }
+  BVHTree *tree;
 
-  {
-    BVHTree *tree;
-    uint i;
+  int *orig_index = nullptr;
+  blender::float3 *orig_normal = nullptr;
 
-    int *orig_index = nullptr;
-    blender::float3 *orig_normal = nullptr;
-
-    tree = BLI_bvhtree_new(int(tris_len), epsilon, PY_BVH_TREE_TYPE_DEFAULT, PY_BVH_AXIS_DEFAULT);
-    if (tree) {
-      orig_index = static_cast<int *>(
-          MEM_mallocN(sizeof(*orig_index) * size_t(tris_len), __func__));
-      if (!BKE_mesh_poly_normals_are_dirty(mesh)) {
-        const blender::Span<blender::float3> poly_normals = mesh->poly_normals();
-        orig_normal = static_cast<blender::float3 *>(
-            MEM_malloc_arrayN(size_t(mesh->totpoly), sizeof(blender::float3), __func__));
-        blender::MutableSpan(orig_normal, poly_normals.size()).copy_from(poly_normals);
-      }
-
-      for (i = 0; i < tris_len; i++, lt++) {
-        float co[3][3];
-
-        tris[i][0] = uint(corner_verts[lt->tri[0]]);
-        tris[i][1] = uint(corner_verts[lt->tri[1]]);
-        tris[i][2] = uint(corner_verts[lt->tri[2]]);
-
-        copy_v3_v3(co[0], coords[tris[i][0]]);
-        copy_v3_v3(co[1], coords[tris[i][1]]);
-        copy_v3_v3(co[2], coords[tris[i][2]]);
-
-        BLI_bvhtree_insert(tree, int(i), co[0], 3);
-        orig_index[i] = int(lt->poly);
-      }
-
-      BLI_bvhtree_balance(tree);
+  tree = BLI_bvhtree_new(
+      int(looptris.size()), epsilon, PY_BVH_TREE_TYPE_DEFAULT, PY_BVH_AXIS_DEFAULT);
+  if (tree) {
+    orig_index = static_cast<int *>(
+        MEM_mallocN(sizeof(*orig_index) * size_t(looptris.size()), __func__));
+    if (!BKE_mesh_poly_normals_are_dirty(mesh)) {
+      const blender::Span<blender::float3> poly_normals = mesh->poly_normals();
+      orig_normal = static_cast<blender::float3 *>(
+          MEM_malloc_arrayN(size_t(mesh->totpoly), sizeof(blender::float3), __func__));
+      blender::MutableSpan(orig_normal, poly_normals.size()).copy_from(poly_normals);
     }
 
-    if (free_mesh) {
-      BKE_id_free(nullptr, mesh);
+    for (const int64_t i : looptris.index_range()) {
+      float co[3][3];
+
+      tris[i][0] = uint(corner_verts[looptris[i].tri[0]]);
+      tris[i][1] = uint(corner_verts[looptris[i].tri[1]]);
+      tris[i][2] = uint(corner_verts[looptris[i].tri[2]]);
+
+      copy_v3_v3(co[0], coords[tris[i][0]]);
+      copy_v3_v3(co[1], coords[tris[i][1]]);
+      copy_v3_v3(co[2], coords[tris[i][2]]);
+
+      BLI_bvhtree_insert(tree, int(i), co[0], 3);
+      orig_index[i] = int(looptris[i].poly);
     }
 
-    return bvhtree_CreatePyObject(tree,
-                                  epsilon,
-                                  coords,
-                                  coords_len,
-                                  tris,
-                                  tris_len,
-                                  orig_index,
-                                  reinterpret_cast<float(*)[3]>(orig_normal));
+    BLI_bvhtree_balance(tree);
   }
+
+  if (free_mesh) {
+    BKE_id_free(nullptr, mesh);
+  }
+
+  return bvhtree_CreatePyObject(tree,
+                                epsilon,
+                                coords,
+                                coords_len,
+                                tris,
+                                uint(looptris.size()),
+                                orig_index,
+                                reinterpret_cast<float(*)[3]>(orig_normal));
 }
 #endif /* MATH_STANDALONE */
 

@@ -111,17 +111,6 @@ static void editmesh_tessface_calc_intern(BMEditMesh *em,
 void BKE_editmesh_looptri_calc_ex(BMEditMesh *em, const BMeshCalcTessellation_Params *params)
 {
   editmesh_tessface_calc_intern(em, params);
-
-  /* commented because editbmesh_build_data() ensures we get tessfaces */
-#if 0
-  if (em->mesh_eval_final && em->mesh_eval_final == em->mesh_eval_cage) {
-    BKE_mesh_runtime_looptri_ensure(em->mesh_eval_final);
-  }
-  else if (em->mesh_eval_final) {
-    BKE_mesh_runtime_looptri_ensure(em->mesh_eval_final);
-    BKE_mesh_runtime_looptri_ensure(em->mesh_eval_cage);
-  }
-#endif
 }
 
 void BKE_editmesh_looptri_calc(BMEditMesh *em)

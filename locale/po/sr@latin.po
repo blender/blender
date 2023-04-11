@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -20424,10 +20424,6 @@ msgid "Save a Collada file"
 msgstr "Sačuvaj kao Collada datoteku"
 
 
-msgid "Apply modifiers to exported mesh (non destructive))"
-msgstr "Primeni modifikatore pi izvozu meša (bez gubitka kvaliteta)"
-
-
 msgid "Only export deforming bones with armatures"
 msgstr "Izvozi samo kosti deformacije sa kosturom"
 
@@ -22481,10 +22477,6 @@ msgid "Bias"
 msgstr "Pristrasnost"
 
 
-msgid "Bias towards faces further away from the object (in blender units)"
-msgstr "Pristrasnost prema licima udaljenim od objekta (u blenderovim jedinicama)"
-
-
 msgid "Number of samples used for ambient occlusion baking from multires"
 msgstr "Broj uzoraka korišćenih za pečenje ambijentalnog senčenja za višerezolucijone objekte"
 
@@ -23067,10 +23059,6 @@ msgstr "Video sekvenca"
 
 msgid "Scene Sequence"
 msgstr "Sekvenca scene"
-
-
-msgid "Override the scenes active camera"
-msgstr "Veličina teksta"
 
 
 msgid "Sound Sequence"

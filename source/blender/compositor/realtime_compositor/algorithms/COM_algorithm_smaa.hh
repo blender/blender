@@ -13,8 +13,8 @@ namespace blender::realtime_compositor {
 void smaa(Context &context,
           Result &input,
           Result &output,
-          float threshold,
-          float local_contrast_adaptation_factor,
-          int corner_rounding);
+          float threshold = 0.1f,
+          float local_contrast_adaptation_factor = 2.0f,
+          int corner_rounding = 25);
 
 }  // namespace blender::realtime_compositor

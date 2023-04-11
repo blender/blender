@@ -2731,22 +2731,11 @@ bool CustomData_layer_is_anonymous(const struct CustomData *data, eCustomDataTyp
   return data->layers[layer_index].anonymous_id != nullptr;
 }
 
-static bool customData_resize(CustomData *data, const int amount)
+static void customData_resize(CustomData *data, const int grow_amount)
 {
-  CustomDataLayer *tmp = static_cast<CustomDataLayer *>(
-      MEM_calloc_arrayN((data->maxlayer + amount), sizeof(*tmp), __func__));
-  if (!tmp) {
-    return false;
-  }
-
-  data->maxlayer += amount;
-  if (data->layers) {
-    memcpy(tmp, data->layers, sizeof(*tmp) * data->totlayer);
-    MEM_freeN(data->layers);
-  }
-  data->layers = tmp;
-
-  return true;
+  data->layers = static_cast<CustomDataLayer *>(
+      MEM_reallocN(data->layers, (data->maxlayer + grow_amount) * sizeof(CustomDataLayer)));
+  data->maxlayer += grow_amount;
 }
 
 static CustomDataLayer *customData_add_layer__internal(CustomData *data,
@@ -2821,12 +2810,7 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 
   int index = data->totlayer;
   if (index >= data->maxlayer) {
-    if (!customData_resize(data, CUSTOMDATA_GROW)) {
-      if (newlayerdata != layerdata) {
-        MEM_freeN(newlayerdata);
-      }
-      return nullptr;
-    }
+    customData_resize(data, CUSTOMDATA_GROW);
   }
 
   data->totlayer++;

@@ -106,6 +106,8 @@ void PackIsland::add_triangle(const float2 uv0, const float2 uv1, const float2 u
 
 void PackIsland::add_polygon(const blender::Span<float2> uvs, MemArena *arena, Heap *heap)
 {
+  /* Internally, PackIsland uses triangles as the primitive, so we have to triangulate. */
+
   int vert_count = int(uvs.size());
   BLI_assert(vert_count >= 3);
   int nfilltri = vert_count - 2;
@@ -118,13 +120,7 @@ void PackIsland::add_polygon(const blender::Span<float2> uvs, MemArena *arena, H
   /* Storage. */
   uint(*tris)[3] = static_cast<uint(*)[3]>(
       BLI_memarena_alloc(arena, sizeof(*tris) * size_t(nfilltri)));
-  float(*source)[2] = static_cast<float(*)[2]>(
-      BLI_memarena_alloc(arena, sizeof(*source) * size_t(vert_count)));
-
-  /* Copy input. */
-  for (int i = 0; i < vert_count; i++) {
-    copy_v2_v2(source[i], uvs[i]);
-  }
+  const float(*source)[2] = reinterpret_cast<const float(*)[2]>(uvs.data());
 
   /* Triangulate. */
   BLI_polyfill_calc_arena(source, vert_count, 0, tris, arena);
@@ -163,7 +159,7 @@ void PackIsland::finalize_geometry(const UVPackIsland_Params &params, MemArena *
         BLI_memarena_alloc(arena, sizeof(*index_map) * vert_count));
 
     /* Prepare input for convex hull. */
-    float(*source)[2] = reinterpret_cast<float(*)[2]>(triangle_vertices_.data());
+    const float(*source)[2] = reinterpret_cast<const float(*)[2]>(triangle_vertices_.data());
 
     /* Compute convex hull. */
     int convex_len = BLI_convexhull_2d(source, vert_count, index_map);
@@ -183,14 +179,25 @@ void PackIsland::finalize_geometry(const UVPackIsland_Params &params, MemArena *
 
 void PackIsland::calculate_pivot()
 {
+  /* `pivot_` is calculated as the center of the AABB,
+   * However `pivot_` cannot be outside of the convex hull. */
   Bounds<float2> triangle_bounds = *bounds::min_max(triangle_vertices_.as_span());
   pivot_ = (triangle_bounds.min + triangle_bounds.max) * 0.5f;
   half_diagonal_ = (triangle_bounds.max - triangle_bounds.min) * 0.5f;
 }
 
+void PackIsland::place_(const float scale, const uv_phi phi)
+{
+  angle = phi.rotation;
+
+  float matrix_inverse[2][2];
+  build_inverse_transformation(scale, phi.rotation, matrix_inverse);
+  mul_v2_m2v2(pre_translate, matrix_inverse, phi.translation);
+  pre_translate -= pivot_;
+}
+
 UVPackIsland_Params::UVPackIsland_Params()
 {
-  /* TEMPORARY, set every thing to "zero" for backwards compatibility. */
   rotate = false;
   only_selected_uvs = false;
   only_selected_faces = false;
@@ -235,7 +242,7 @@ static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
   /* Exclude an initial AABB near the origin. */
   float next_u1 = *r_max_u;
   float next_v1 = *r_max_v;
-  bool zigzag = next_u1 / target_aspect_y < next_v1; /* Horizontal or Vertical strip? */
+  bool zigzag = next_u1 < next_v1 * target_aspect_y; /* Horizontal or Vertical strip? */
 
   float u0 = zigzag ? next_u1 : 0.0f;
   float v0 = zigzag ? 0.0f : next_v1;
@@ -254,7 +261,7 @@ static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
     }
     if (restart) {
       /* We're at the end of a strip. Restart from U axis or V axis. */
-      zigzag = next_u1 / target_aspect_y < next_v1;
+      zigzag = next_u1 < next_v1 * target_aspect_y;
       u0 = zigzag ? next_u1 : 0.0f;
       v0 = zigzag ? 0.0f : next_v1;
     }
@@ -279,420 +286,6 @@ static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
   /* Write back total pack AABB. */
   *r_max_u = next_u1;
   *r_max_v = next_v1;
-}
-
-/* Wrapper around #BLI_box_pack_2d. */
-static void pack_island_box_pack_2d(const Span<UVAABBIsland *> aabbs,
-                                    const Span<PackIsland *> islands,
-                                    const float scale,
-                                    const float margin,
-                                    const float target_aspect_y,
-                                    float *r_max_u,
-                                    float *r_max_v)
-{
-  /* Allocate storage. */
-  BoxPack *box_array = static_cast<BoxPack *>(
-      MEM_mallocN(sizeof(*box_array) * islands.size(), __func__));
-
-  /* Prepare for box_pack_2d. */
-  for (const int64_t i : aabbs.index_range()) {
-    PackIsland *island = islands[aabbs[i]->index];
-    BoxPack *box = box_array + i;
-    box->w = (island->half_diagonal_.x * 2 * scale + 2 * margin) / target_aspect_y;
-    box->h = island->half_diagonal_.y * 2 * scale + 2 * margin;
-  }
-
-  const bool sort_boxes = false; /* Use existing ordering from `aabbs`. */
-
-  /* \note Writes to `*r_max_u` and `*r_max_v`. */
-  BLI_box_pack_2d(box_array, int(aabbs.size()), sort_boxes, r_max_u, r_max_v);
-
-  *r_max_u *= target_aspect_y;
-
-  /* Write back box_pack UVs. */
-  for (const int64_t i : aabbs.index_range()) {
-    PackIsland *island = islands[aabbs[i]->index];
-    BoxPack *box = box_array + i;
-    island->angle = 0.0f; /* #BLI_box_pack_2d never rotates. */
-    island->pre_translate.x = (box->x + box->w * 0.5f) * target_aspect_y / scale -
-                              island->pivot_.x;
-    island->pre_translate.y = (box->y + box->h * 0.5f) / scale - island->pivot_.y;
-  }
-
-  /* Housekeeping. */
-  MEM_freeN(box_array);
-}
-
-/**
- * Helper class for the `xatlas` strategy.
- * Accelerates geometry queries by approximating exact queries with a bitmap.
- * Includes some book keeping variables to simplify the algorithm.
- */
-class Occupancy {
- public:
-  Occupancy(const float initial_scale);
-
-  void increase_scale(); /* Resize the scale of the bitmap and clear it. */
-
-  /* Write or Query a triangle on the bitmap. */
-  float trace_triangle(const float2 &uv0,
-                       const float2 &uv1,
-                       const float2 &uv2,
-                       const float margin,
-                       const bool write) const;
-
-  /* Write or Query an island on the bitmap. */
-  float trace_island(const PackIsland *island,
-                     const uv_phi phi,
-                     const float scale,
-                     const float margin,
-                     const bool write) const;
-
-  int bitmap_radix;              /* Width and Height of `bitmap`. */
-  float bitmap_scale_reciprocal; /* == 1.0f / `bitmap_scale`. */
- private:
-  mutable blender::Array<float> bitmap_;
-
-  mutable float2 witness_;         /* Witness to a previously known occupied pixel. */
-  mutable float witness_distance_; /* Signed distance to nearest placed island. */
-  mutable uint triangle_hint_;     /* Hint to a previously suspected overlapping triangle. */
-
-  const float terminal = 1048576.0f; /* 4 * bitmap_radix < terminal < INT_MAX / 4. */
-};
-
-Occupancy::Occupancy(const float initial_scale)
-    : bitmap_radix(800), bitmap_(bitmap_radix * bitmap_radix, false)
-{
-  increase_scale();
-  bitmap_scale_reciprocal = bitmap_radix / initial_scale;
-}
-
-void Occupancy::increase_scale()
-{
-  bitmap_scale_reciprocal *= 0.5f;
-  for (int i = 0; i < bitmap_radix * bitmap_radix; i++) {
-    bitmap_[i] = terminal;
-  }
-  witness_.x = -1;
-  witness_.y = -1;
-  witness_distance_ = 0.0f;
-  triangle_hint_ = 0;
-}
-
-static float signed_distance_fat_triangle(const float2 probe,
-                                          const float2 uv0,
-                                          const float2 uv1,
-                                          const float2 uv2)
-{
-  /* Be careful with ordering, uv0 <- uv1 <- uv2 <- uv0 <- uv1 etc. */
-  const float dist01_ssq = dist_signed_squared_to_edge(probe, uv0, uv1);
-  const float dist12_ssq = dist_signed_squared_to_edge(probe, uv1, uv2);
-  const float dist20_ssq = dist_signed_squared_to_edge(probe, uv2, uv0);
-  float result_ssq = max_fff(dist01_ssq, dist12_ssq, dist20_ssq);
-  if (result_ssq < 0.0f) {
-    return -sqrtf(-result_ssq);
-  }
-  BLI_assert(result_ssq >= 0.0f);
-  result_ssq = std::min(result_ssq, blender::math::length_squared(probe - uv0));
-  result_ssq = std::min(result_ssq, blender::math::length_squared(probe - uv1));
-  result_ssq = std::min(result_ssq, blender::math::length_squared(probe - uv2));
-  BLI_assert(result_ssq >= 0.0f);
-  return sqrtf(result_ssq);
-}
-
-float Occupancy::trace_triangle(const float2 &uv0,
-                                const float2 &uv1,
-                                const float2 &uv2,
-                                const float margin,
-                                const bool write) const
-{
-  const float x0 = min_fff(uv0.x, uv1.x, uv2.x);
-  const float y0 = min_fff(uv0.y, uv1.y, uv2.y);
-  const float x1 = max_fff(uv0.x, uv1.x, uv2.x);
-  const float y1 = max_fff(uv0.y, uv1.y, uv2.y);
-  float spread = write ? margin * 2 : 0.0f;
-  int ix0 = std::max(int(floorf((x0 - spread) * bitmap_scale_reciprocal)), 0);
-  int iy0 = std::max(int(floorf((y0 - spread) * bitmap_scale_reciprocal)), 0);
-  int ix1 = std::min(int(floorf((x1 + spread) * bitmap_scale_reciprocal + 2)), bitmap_radix);
-  int iy1 = std::min(int(floorf((y1 + spread) * bitmap_scale_reciprocal + 2)), bitmap_radix);
-
-  const float2 uv0s = uv0 * bitmap_scale_reciprocal;
-  const float2 uv1s = uv1 * bitmap_scale_reciprocal;
-  const float2 uv2s = uv2 * bitmap_scale_reciprocal;
-
-  /* TODO: Better epsilon handling here could reduce search size. */
-  float epsilon = 0.7071f; /* == sqrt(0.5f), rounded up by 0.00002f. */
-  epsilon = std::max(epsilon, 2 * margin * bitmap_scale_reciprocal);
-
-  if (!write) {
-    if (ix0 <= witness_.x && witness_.x < ix1) {
-      if (iy0 <= witness_.y && witness_.y < iy1) {
-        const float distance = signed_distance_fat_triangle(witness_, uv0s, uv1s, uv2s);
-        const float extent = epsilon - distance - witness_distance_;
-        const float pixel_round_off = -0.1f; /* Go faster on nearly-axis aligned edges. */
-        if (extent > pixel_round_off) {
-          return std::max(0.0f, extent); /* Witness observes occupied. */
-        }
-      }
-    }
-  }
-
-  /* Iterate in opposite direction to outer search to improve witness effectiveness. */
-  for (int y = iy1 - 1; y >= iy0; y--) {
-    for (int x = ix1 - 1; x >= ix0; x--) {
-      float *hotspot = &bitmap_[y * bitmap_radix + x];
-      if (!write && *hotspot > epsilon) {
-        continue;
-      }
-      const float2 probe(x, y);
-      const float distance = signed_distance_fat_triangle(probe, uv0s, uv1s, uv2s);
-      if (write) {
-        *hotspot = min_ff(distance, *hotspot);
-        continue;
-      }
-      const float extent = epsilon - distance - *hotspot;
-      if (extent > 0.0f) {
-        witness_ = probe;
-        witness_distance_ = *hotspot;
-        return extent; /* Occupied. */
-      }
-    }
-  }
-  return -1.0f; /* Available. */
-}
-
-float2 PackIsland::get_diagonal_support_d4(const float scale,
-                                           const float rotation,
-                                           const float margin) const
-{
-  if (rotation == 0.0f) {
-    return half_diagonal_ * scale + margin; /* Fast path for common case. */
-  }
-
-  /* TODO: BLI_assert rotation is a "Dihedral Group D4" transform. */
-  float matrix[2][2];
-  build_transformation(scale, rotation, matrix);
-
-  float diagonal_rotated[2];
-  mul_v2_m2v2(diagonal_rotated, matrix, half_diagonal_);
-  return float2(fabsf(diagonal_rotated[0]) + margin, fabsf(diagonal_rotated[1]) + margin);
-}
-
-float2 PackIsland::get_diagonal_support(const float scale,
-                                        const float rotation,
-                                        const float margin) const
-{
-  /* Only "D4" transforms are currently supported. */
-  return get_diagonal_support_d4(scale, rotation, margin);
-}
-
-float Occupancy::trace_island(const PackIsland *island,
-                              const uv_phi phi,
-                              const float scale,
-                              const float margin,
-                              const bool write) const
-{
-  float2 diagonal_support = island->get_diagonal_support(scale, phi.rotation, margin);
-
-  if (!write) {
-    if (phi.translation.x < diagonal_support.x || phi.translation.y < diagonal_support.y) {
-      return terminal; /* Occupied. */
-    }
-  }
-  float matrix[2][2];
-  island->build_transformation(scale, phi.rotation, matrix);
-  float2 pivot_transformed;
-  mul_v2_m2v2(pivot_transformed, matrix, island->pivot_);
-
-  float2 delta = phi.translation - pivot_transformed;
-  uint vert_count = uint(island->triangle_vertices_.size()); /* `uint` is faster than `int`. */
-  for (uint i = 0; i < vert_count; i += 3) {
-    uint j = (i + triangle_hint_) % vert_count;
-    float2 uv0;
-    float2 uv1;
-    float2 uv2;
-    mul_v2_m2v2(uv0, matrix, island->triangle_vertices_[j]);
-    mul_v2_m2v2(uv1, matrix, island->triangle_vertices_[j + 1]);
-    mul_v2_m2v2(uv2, matrix, island->triangle_vertices_[j + 2]);
-    float extent = trace_triangle(uv0 + delta, uv1 + delta, uv2 + delta, margin, write);
-
-    if (!write && extent >= 0.0f) {
-      triangle_hint_ = j;
-      return extent; /* Occupied. */
-    }
-  }
-  return -1.0f; /* Available. */
-}
-
-static uv_phi find_best_fit_for_island(const PackIsland *island,
-                                       const int scan_line,
-                                       Occupancy &occupancy,
-                                       const float scale,
-                                       const int angle_90_multiple,
-                                       const float margin,
-                                       const float target_aspect_y)
-{
-  const float bitmap_scale = 1.0f / occupancy.bitmap_scale_reciprocal;
-
-  const float sqrt_target_aspect_y = sqrtf(target_aspect_y);
-  const int scan_line_x = int(scan_line * sqrt_target_aspect_y);
-  const int scan_line_y = int(scan_line / sqrt_target_aspect_y);
-
-  uv_phi phi;
-  phi.rotation = DEG2RADF(angle_90_multiple * 90);
-  float matrix[2][2];
-  island->build_transformation(scale, phi.rotation, matrix);
-
-  /* Caution, margin is zero for support_diagonal as we're tracking the top-right corner. */
-  float2 support_diagonal = island->get_diagonal_support_d4(scale, phi.rotation, 0.0f);
-
-  /* Scan using an "Alpaca"-style search, first horizontally using "less-than". */
-  int t = int(ceilf((2 * support_diagonal.x + margin) * occupancy.bitmap_scale_reciprocal));
-  while (t < scan_line_x) {
-    phi.translation = float2(t * bitmap_scale, scan_line_y * bitmap_scale) - support_diagonal;
-    const float extent = occupancy.trace_island(island, phi, scale, margin, false);
-    if (extent < 0.0f) {
-      return phi; /* Success. */
-    }
-    t = t + std::max(1, int(extent));
-  }
-
-  /* Then scan vertically using "less-than-or-equal" */
-  t = int(ceilf((2 * support_diagonal.y + margin) * occupancy.bitmap_scale_reciprocal));
-  while (t <= scan_line_y) {
-    phi.translation = float2(scan_line_x * bitmap_scale, t * bitmap_scale) - support_diagonal;
-    const float extent = occupancy.trace_island(island, phi, scale, margin, false);
-    if (extent < 0.0f) {
-      return phi; /* Success. */
-    }
-    t = t + std::max(1, int(extent));
-  }
-
-  return uv_phi(); /* Unable to find a place to fit. */
-}
-
-static float guess_initial_scale(const Span<PackIsland *> islands,
-                                 const float scale,
-                                 const float margin)
-{
-  float sum = 1e-40f;
-  for (int64_t i : islands.index_range()) {
-    PackIsland *island = islands[i];
-    sum += island->half_diagonal_.x * 2 * scale + 2 * margin;
-    sum += island->half_diagonal_.y * 2 * scale + 2 * margin;
-  }
-  return sqrtf(sum) / 6.0f;
-}
-
-/**
- * Pack irregular islands using the `xatlas` strategy, with no rotation.
- *
- * Loosely based on the 'xatlas' code by Jonathan Young
- * from https://github.com/jpcy/xatlas
- *
- * A brute force packer (BF-Packer) with accelerators:
- * - Uses a Bitmap Occupancy class.
- * - Uses a "Witness Pixel" and a "Triangle Hint".
- * - Write with `margin * 2`, read with `margin == 0`.
- * - Lazy resetting of BF search.
- *
- * Performance would normally be `O(n^4)`, however the occupancy
- * bitmap_radix is fixed, which gives a reduced time complexity of `O(n^3)`.
- */
-static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
-                               const Span<PackIsland *> islands,
-                               const float scale,
-                               const float margin,
-                               const UVPackIsland_Params &params,
-                               float *r_max_u,
-                               float *r_max_v)
-{
-  Occupancy occupancy(guess_initial_scale(islands, scale, margin));
-  float max_u = 0.0f;
-  float max_v = 0.0f;
-
-  blender::Array<uv_phi> phis(island_indices.size());
-  int scan_line = 0;
-  int i = 0;
-
-  /* The following `while` loop is setting up a three-way race:
-   * `for (scan_line = 0; scan_line < bitmap_radix; scan_line++)`
-   * `for (i : island_indices.index_range())`
-   * `while (bitmap_scale_reciprocal > 0) { bitmap_scale_reciprocal *= 0.5f; }`
-   */
-
-  while (i < island_indices.size()) {
-    PackIsland *island = islands[island_indices[i]->index];
-    uv_phi phi;
-
-    int max_90_multiple = params.rotate && (i < 50) ? 4 : 1;
-    for (int angle_90_multiple = 0; angle_90_multiple < max_90_multiple; angle_90_multiple++) {
-      phi = find_best_fit_for_island(
-          island, scan_line, occupancy, scale, angle_90_multiple, margin, params.target_aspect_y);
-      if (phi.is_valid()) {
-        break;
-      }
-    }
-
-    if (!phi.is_valid()) {
-      /* Unable to find a fit on this scan_line. */
-
-      island = nullptr; /* Just mark it as null, we won't use it further. */
-
-      if (i < 10) {
-        scan_line++;
-      }
-      else {
-        /* Increasing by 2 here has the effect of changing the sampling pattern.
-         * The parameter '2' is not "free" in the sense that changing it requires
-         * a change to `bitmap_radix` and then re-tuning `alpaca_cutoff`.
-         * Possible values here *could* be 1, 2 or 3, however the only *reasonable*
-         * choice is 2. */
-        scan_line += 2;
-      }
-      if (scan_line < occupancy.bitmap_radix *
-                          sqrtf(std::min(params.target_aspect_y, 1.0f / params.target_aspect_y))) {
-        continue; /* Try again on next scan_line. */
-      }
-
-      /* Enlarge search parameters. */
-      scan_line = 0;
-      occupancy.increase_scale();
-
-      /* Redraw already placed islands. (Greedy.) */
-      for (int j = 0; j < i; j++) {
-        occupancy.trace_island(islands[island_indices[j]->index], phis[j], scale, margin, true);
-      }
-      continue;
-    }
-
-    phis[i] = phi; /* Place island. */
-    occupancy.trace_island(island, phi, scale, margin, true);
-
-    i++; /* Next island. */
-
-    island->angle = phi.rotation;
-
-    float matrix_inverse[2][2];
-    island->build_inverse_transformation(scale, phi.rotation, matrix_inverse);
-    mul_v2_m2v2(island->pre_translate, matrix_inverse, phi.translation);
-    island->pre_translate -= island->pivot_;
-
-    float2 support = island->get_diagonal_support(scale, phi.rotation, margin);
-    float2 top_right = phi.translation + support;
-    max_u = std::max(top_right.x, max_u);
-    max_v = std::max(top_right.y, max_v);
-
-    if (i < 128 || (i & 31) == 16) {
-      scan_line = 0; /* Restart completely. */
-    }
-    else {
-      scan_line = std::max(0, scan_line - 25); /* `-25` must by odd. */
-    }
-  }
-
-  *r_max_u = max_u;
-  *r_max_v = max_v;
 }
 
 /**
@@ -850,6 +443,423 @@ static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
   /* Write back total pack AABB. */
   *r_max_u = next_u1;
   *r_max_v = next_v1;
+}
+
+/* Wrapper around #BLI_box_pack_2d. */
+static void pack_island_box_pack_2d(const Span<UVAABBIsland *> aabbs,
+                                    const Span<PackIsland *> islands,
+                                    const float scale,
+                                    const float margin,
+                                    const float target_aspect_y,
+                                    float *r_max_u,
+                                    float *r_max_v)
+{
+  /* Allocate storage. */
+  BoxPack *box_array = static_cast<BoxPack *>(
+      MEM_mallocN(sizeof(*box_array) * islands.size(), __func__));
+
+  /* Prepare for box_pack_2d. */
+  for (const int64_t i : aabbs.index_range()) {
+    PackIsland *island = islands[aabbs[i]->index];
+    BoxPack *box = box_array + i;
+    box->w = (island->half_diagonal_.x * 2 * scale + 2 * margin) / target_aspect_y;
+    box->h = island->half_diagonal_.y * 2 * scale + 2 * margin;
+  }
+
+  const bool sort_boxes = false; /* Use existing ordering from `aabbs`. */
+
+  /* \note Writes to `*r_max_u` and `*r_max_v`. */
+  BLI_box_pack_2d(box_array, int(aabbs.size()), sort_boxes, r_max_u, r_max_v);
+
+  *r_max_u *= target_aspect_y;
+
+  /* Write back box_pack UVs. */
+  for (const int64_t i : aabbs.index_range()) {
+    PackIsland *island = islands[aabbs[i]->index];
+    BoxPack *box = box_array + i;
+    uv_phi phi;
+    phi.rotation = 0.0f; /* #BLI_box_pack_2d never rotates. */
+    phi.translation.x = (box->x + box->w * 0.5f) * target_aspect_y;
+    phi.translation.y = (box->y + box->h * 0.5f);
+    island->place_(scale, phi);
+  }
+
+  /* Housekeeping. */
+  MEM_freeN(box_array);
+}
+
+/**
+ * Helper class for the `xatlas` strategy.
+ * Accelerates geometry queries by approximating exact queries with a bitmap.
+ * Includes some book keeping variables to simplify the algorithm.
+ */
+class Occupancy {
+ public:
+  Occupancy(const float initial_scale);
+
+  void increase_scale(); /* Resize the scale of the bitmap and clear it. */
+
+  /* Write or Query a triangle on the bitmap. */
+  float trace_triangle(const float2 &uv0,
+                       const float2 &uv1,
+                       const float2 &uv2,
+                       const float margin,
+                       const bool write) const;
+
+  /* Write or Query an island on the bitmap. */
+  float trace_island(const PackIsland *island,
+                     const uv_phi phi,
+                     const float scale,
+                     const float margin,
+                     const bool write) const;
+
+  int bitmap_radix;              /* Width and Height of `bitmap`. */
+  float bitmap_scale_reciprocal; /* == 1.0f / `bitmap_scale`. */
+ private:
+  mutable blender::Array<float> bitmap_;
+
+  mutable float2 witness_;         /* Witness to a previously known occupied pixel. */
+  mutable float witness_distance_; /* Signed distance to nearest placed island. */
+  mutable uint triangle_hint_;     /* Hint to a previously suspected overlapping triangle. */
+
+  const float terminal = 1048576.0f; /* 4 * bitmap_radix < terminal < INT_MAX / 4. */
+};
+
+Occupancy::Occupancy(const float initial_scale)
+    : bitmap_radix(800), bitmap_(bitmap_radix * bitmap_radix, false)
+{
+  bitmap_scale_reciprocal = 1.0f; /* lint, prevent uninitialized memory access. */
+  increase_scale();
+  bitmap_scale_reciprocal = bitmap_radix / initial_scale; /* Actually set the value. */
+}
+
+void Occupancy::increase_scale()
+{
+  BLI_assert(bitmap_scale_reciprocal > 0.0f); /* TODO: Packing has failed, report error. */
+
+  bitmap_scale_reciprocal *= 0.5f;
+  for (int i = 0; i < bitmap_radix * bitmap_radix; i++) {
+    bitmap_[i] = terminal;
+  }
+  witness_.x = -1;
+  witness_.y = -1;
+  witness_distance_ = 0.0f;
+  triangle_hint_ = 0;
+}
+
+static float signed_distance_fat_triangle(const float2 probe,
+                                          const float2 uv0,
+                                          const float2 uv1,
+                                          const float2 uv2)
+{
+  /* Be careful with ordering, uv0 <- uv1 <- uv2 <- uv0 <- uv1 etc. */
+  const float dist01_ssq = dist_signed_squared_to_edge(probe, uv0, uv1);
+  const float dist12_ssq = dist_signed_squared_to_edge(probe, uv1, uv2);
+  const float dist20_ssq = dist_signed_squared_to_edge(probe, uv2, uv0);
+  float result_ssq = max_fff(dist01_ssq, dist12_ssq, dist20_ssq);
+  if (result_ssq < 0.0f) {
+    return -sqrtf(-result_ssq);
+  }
+  BLI_assert(result_ssq >= 0.0f);
+  result_ssq = std::min(result_ssq, blender::math::length_squared(probe - uv0));
+  result_ssq = std::min(result_ssq, blender::math::length_squared(probe - uv1));
+  result_ssq = std::min(result_ssq, blender::math::length_squared(probe - uv2));
+  BLI_assert(result_ssq >= 0.0f);
+  return sqrtf(result_ssq);
+}
+
+float Occupancy::trace_triangle(const float2 &uv0,
+                                const float2 &uv1,
+                                const float2 &uv2,
+                                const float margin,
+                                const bool write) const
+{
+  const float x0 = min_fff(uv0.x, uv1.x, uv2.x);
+  const float y0 = min_fff(uv0.y, uv1.y, uv2.y);
+  const float x1 = max_fff(uv0.x, uv1.x, uv2.x);
+  const float y1 = max_fff(uv0.y, uv1.y, uv2.y);
+  float spread = write ? margin * 2 : 0.0f;
+  int ix0 = std::max(int(floorf((x0 - spread) * bitmap_scale_reciprocal)), 0);
+  int iy0 = std::max(int(floorf((y0 - spread) * bitmap_scale_reciprocal)), 0);
+  int ix1 = std::min(int(floorf((x1 + spread) * bitmap_scale_reciprocal + 2)), bitmap_radix);
+  int iy1 = std::min(int(floorf((y1 + spread) * bitmap_scale_reciprocal + 2)), bitmap_radix);
+
+  const float2 uv0s = uv0 * bitmap_scale_reciprocal;
+  const float2 uv1s = uv1 * bitmap_scale_reciprocal;
+  const float2 uv2s = uv2 * bitmap_scale_reciprocal;
+
+  /* TODO: Better epsilon handling here could reduce search size. */
+  float epsilon = 0.7071f; /* == sqrt(0.5f), rounded up by 0.00002f. */
+  epsilon = std::max(epsilon, 2 * margin * bitmap_scale_reciprocal);
+
+  if (!write) {
+    if (ix0 <= witness_.x && witness_.x < ix1) {
+      if (iy0 <= witness_.y && witness_.y < iy1) {
+        const float distance = signed_distance_fat_triangle(witness_, uv0s, uv1s, uv2s);
+        const float extent = epsilon - distance - witness_distance_;
+        const float pixel_round_off = -0.1f; /* Go faster on nearly-axis aligned edges. */
+        if (extent > pixel_round_off) {
+          return std::max(0.0f, extent); /* Witness observes occupied. */
+        }
+      }
+    }
+  }
+
+  /* Iterate in opposite direction to outer search to improve witness effectiveness. */
+  for (int y = iy1 - 1; y >= iy0; y--) {
+    for (int x = ix1 - 1; x >= ix0; x--) {
+      float *hotspot = &bitmap_[y * bitmap_radix + x];
+      if (!write && *hotspot > epsilon) {
+        continue;
+      }
+      const float2 probe(x, y);
+      const float distance = signed_distance_fat_triangle(probe, uv0s, uv1s, uv2s);
+      if (write) {
+        *hotspot = min_ff(distance, *hotspot);
+        continue;
+      }
+      const float extent = epsilon - distance - *hotspot;
+      if (extent > 0.0f) {
+        witness_ = probe;
+        witness_distance_ = *hotspot;
+        return extent; /* Occupied. */
+      }
+    }
+  }
+  return -1.0f; /* Available. */
+}
+
+float2 PackIsland::get_diagonal_support_d4(const float scale,
+                                           const float rotation,
+                                           const float margin) const
+{
+  if (rotation == 0.0f) {
+    return half_diagonal_ * scale + margin; /* Fast path for common case. */
+  }
+
+  if (rotation == DEG2RADF(180.0f)) {
+    return get_diagonal_support_d4(scale, 0.0f, margin); /* Same as 0.0f */
+  }
+
+  /* TODO: BLI_assert rotation is a "Dihedral Group D4" transform. */
+  float matrix[2][2];
+  build_transformation(scale, rotation, matrix);
+
+  float diagonal_rotated[2];
+  mul_v2_m2v2(diagonal_rotated, matrix, half_diagonal_);
+  return float2(fabsf(diagonal_rotated[0]) + margin, fabsf(diagonal_rotated[1]) + margin);
+}
+
+float2 PackIsland::get_diagonal_support(const float scale,
+                                        const float rotation,
+                                        const float margin) const
+{
+  /* Only "D4" transforms are currently supported. */
+  return get_diagonal_support_d4(scale, rotation, margin);
+}
+
+float Occupancy::trace_island(const PackIsland *island,
+                              const uv_phi phi,
+                              const float scale,
+                              const float margin,
+                              const bool write) const
+{
+  float2 diagonal_support = island->get_diagonal_support(scale, phi.rotation, margin);
+
+  if (!write) {
+    if (phi.translation.x < diagonal_support.x || phi.translation.y < diagonal_support.y) {
+      return terminal; /* Occupied. */
+    }
+  }
+  float matrix[2][2];
+  island->build_transformation(scale, phi.rotation, matrix);
+  float2 pivot_transformed;
+  mul_v2_m2v2(pivot_transformed, matrix, island->pivot_);
+
+  float2 delta = phi.translation - pivot_transformed;
+  uint vert_count = uint(island->triangle_vertices_.size()); /* `uint` is faster than `int`. */
+  for (uint i = 0; i < vert_count; i += 3) {
+    uint j = (i + triangle_hint_) % vert_count;
+    float2 uv0;
+    float2 uv1;
+    float2 uv2;
+    mul_v2_m2v2(uv0, matrix, island->triangle_vertices_[j]);
+    mul_v2_m2v2(uv1, matrix, island->triangle_vertices_[j + 1]);
+    mul_v2_m2v2(uv2, matrix, island->triangle_vertices_[j + 2]);
+    float extent = trace_triangle(uv0 + delta, uv1 + delta, uv2 + delta, margin, write);
+
+    if (!write && extent >= 0.0f) {
+      triangle_hint_ = j;
+      return extent; /* Occupied. */
+    }
+  }
+  return -1.0f; /* Available. */
+}
+
+static uv_phi find_best_fit_for_island(const PackIsland *island,
+                                       const int scan_line,
+                                       Occupancy &occupancy,
+                                       const float scale,
+                                       const int angle_90_multiple,
+                                       const float margin,
+                                       const float target_aspect_y)
+{
+  const float bitmap_scale = 1.0f / occupancy.bitmap_scale_reciprocal;
+
+  const float sqrt_target_aspect_y = sqrtf(target_aspect_y);
+  const int scan_line_x = int(scan_line * sqrt_target_aspect_y);
+  const int scan_line_y = int(scan_line / sqrt_target_aspect_y);
+
+  uv_phi phi;
+  phi.rotation = DEG2RADF(angle_90_multiple * 90);
+  float matrix[2][2];
+  island->build_transformation(scale, phi.rotation, matrix);
+
+  /* Caution, margin is zero for support_diagonal as we're tracking the top-right corner. */
+  float2 support_diagonal = island->get_diagonal_support_d4(scale, phi.rotation, 0.0f);
+
+  /* Scan using an "Alpaca"-style search, first horizontally using "less-than". */
+  int t = int(ceilf((2 * support_diagonal.x + margin) * occupancy.bitmap_scale_reciprocal));
+  while (t < scan_line_x) {
+    phi.translation = float2(t * bitmap_scale, scan_line_y * bitmap_scale) - support_diagonal;
+    const float extent = occupancy.trace_island(island, phi, scale, margin, false);
+    if (extent < 0.0f) {
+      return phi; /* Success. */
+    }
+    t = t + std::max(1, int(extent));
+  }
+
+  /* Then scan vertically using "less-than-or-equal" */
+  t = int(ceilf((2 * support_diagonal.y + margin) * occupancy.bitmap_scale_reciprocal));
+  while (t <= scan_line_y) {
+    phi.translation = float2(scan_line_x * bitmap_scale, t * bitmap_scale) - support_diagonal;
+    const float extent = occupancy.trace_island(island, phi, scale, margin, false);
+    if (extent < 0.0f) {
+      return phi; /* Success. */
+    }
+    t = t + std::max(1, int(extent));
+  }
+
+  return uv_phi(); /* Unable to find a place to fit. */
+}
+
+static float guess_initial_scale(const Span<PackIsland *> islands,
+                                 const float scale,
+                                 const float margin)
+{
+  float sum = 1e-40f;
+  for (int64_t i : islands.index_range()) {
+    PackIsland *island = islands[i];
+    sum += island->half_diagonal_.x * 2 * scale + 2 * margin;
+    sum += island->half_diagonal_.y * 2 * scale + 2 * margin;
+  }
+  return sqrtf(sum) / 6.0f;
+}
+
+/**
+ * Pack irregular islands using the `xatlas` strategy, and optional D4 transforms.
+ *
+ * Loosely based on the 'xatlas' code by Jonathan Young
+ * from https://github.com/jpcy/xatlas
+ *
+ * A brute force packer (BF-Packer) with accelerators:
+ * - Uses a Bitmap Occupancy class.
+ * - Uses a "Witness Pixel" and a "Triangle Hint".
+ * - Write with `margin * 2`, read with `margin == 0`.
+ * - Lazy resetting of BF search.
+ *
+ * Performance would normally be `O(n^4)`, however the occupancy
+ * bitmap_radix is fixed, which gives a reduced time complexity of `O(n^3)`.
+ */
+static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
+                               const Span<PackIsland *> islands,
+                               const float scale,
+                               const float margin,
+                               const UVPackIsland_Params &params,
+                               float *r_max_u,
+                               float *r_max_v)
+{
+  Occupancy occupancy(guess_initial_scale(islands, scale, margin));
+  float max_u = 0.0f;
+  float max_v = 0.0f;
+
+  blender::Array<uv_phi> phis(island_indices.size());
+  int scan_line = 0;
+  int i = 0;
+
+  /* The following `while` loop is setting up a three-way race:
+   * `for (scan_line = 0; scan_line < bitmap_radix; scan_line++)`
+   * `for (i : island_indices.index_range())`
+   * `while (bitmap_scale_reciprocal > 0) { bitmap_scale_reciprocal *= 0.5f; }`
+   */
+
+  while (i < island_indices.size()) {
+    PackIsland *island = islands[island_indices[i]->index];
+    uv_phi phi;
+
+    int max_90_multiple = params.rotate && (i < 50) ? 4 : 1;
+    for (int angle_90_multiple = 0; angle_90_multiple < max_90_multiple; angle_90_multiple++) {
+      phi = find_best_fit_for_island(
+          island, scan_line, occupancy, scale, angle_90_multiple, margin, params.target_aspect_y);
+      if (phi.is_valid()) {
+        break;
+      }
+    }
+
+    if (!phi.is_valid()) {
+      /* Unable to find a fit on this scan_line. */
+
+      island = nullptr; /* Just mark it as null, we won't use it further. */
+
+      if (i < 10) {
+        scan_line++;
+      }
+      else {
+        /* Increasing by 2 here has the effect of changing the sampling pattern.
+         * The parameter '2' is not "free" in the sense that changing it requires
+         * a change to `bitmap_radix` and then re-tuning `alpaca_cutoff`.
+         * Possible values here *could* be 1, 2 or 3, however the only *reasonable*
+         * choice is 2. */
+        scan_line += 2;
+      }
+      if (scan_line < occupancy.bitmap_radix *
+                          sqrtf(std::min(params.target_aspect_y, 1.0f / params.target_aspect_y))) {
+        continue; /* Try again on next scan_line. */
+      }
+
+      /* Enlarge search parameters. */
+      scan_line = 0;
+      occupancy.increase_scale();
+
+      /* Redraw already placed islands. (Greedy.) */
+      for (int j = 0; j < i; j++) {
+        occupancy.trace_island(islands[island_indices[j]->index], phis[j], scale, margin, true);
+      }
+      continue;
+    }
+
+    /* Place island. */
+    phis[i] = phi;
+    island->place_(scale, phi);
+    occupancy.trace_island(island, phi, scale, margin, true);
+    i++; /* Next island. */
+
+    /* Update top-right corner. */
+    float2 top_right = island->get_diagonal_support(scale, phi.rotation, margin) + phi.translation;
+    max_u = std::max(top_right.x, max_u);
+    max_v = std::max(top_right.y, max_v);
+
+    /* Heuristics to reduce size of brute-force search. */
+    if (i < 128 || (i & 31) == 16) {
+      scan_line = 0; /* Restart completely. */
+    }
+    else {
+      scan_line = std::max(0, scan_line - 25); /* `-25` must by odd. */
+    }
+  }
+
+  *r_max_u = max_u;
+  *r_max_v = max_v;
 }
 
 /**
@@ -1171,15 +1181,31 @@ void PackIsland::build_transformation(const float scale,
   r_matrix[0][1] = -sin_angle * scale * aspect_y;
   r_matrix[1][0] = sin_angle * scale / aspect_y;
   r_matrix[1][1] = cos_angle * scale;
+  /*
+  if (reflect) {
+    r_matrix[0][0] *= -1.0f;
+    r_matrix[0][1] *= -1.0f;
+  }
+  */
 }
 
 void PackIsland::build_inverse_transformation(const float scale,
                                               const float angle,
                                               float (*r_matrix)[2]) const
 {
-  /* TODO: Generate inverse transform directly. */
-  build_transformation(scale, angle, r_matrix);
-  invert_m2_m2(r_matrix, r_matrix);
+  const float cos_angle = cosf(angle);
+  const float sin_angle = sinf(angle);
+
+  r_matrix[0][0] = cos_angle / scale;
+  r_matrix[0][1] = sin_angle / scale * aspect_y;
+  r_matrix[1][0] = -sin_angle / scale / aspect_y;
+  r_matrix[1][1] = cos_angle / scale;
+  /*
+  if (reflect) {
+    r_matrix[0][0] *= -1.0f;
+    r_matrix[1][0] *= -1.0f;
+  }
+  */
 }
 
 }  // namespace blender::geometry

@@ -1033,22 +1033,24 @@ void file_draw_list(const bContext *C, ARegion *region)
         const uiStyle *style = UI_style_get();
         const int str_width = UI_fontstyle_string_width(&style->widget, file->name);
         const int drag_width = MIN2(str_width + icon_ofs, column_width - ATTRIBUTE_COLUMN_PADDING);
-        uiBut *drag_but = uiDefBut(block,
-                                   UI_BTYPE_LABEL,
-                                   0,
-                                   "",
-                                   tile_draw_rect.xmin,
-                                   tile_draw_rect.ymin - 1,
-                                   drag_width,
-                                   layout->tile_h + layout->tile_border_y * 2,
-                                   nullptr,
-                                   0,
-                                   0,
-                                   0,
-                                   0,
-                                   0);
-        UI_but_dragflag_enable(drag_but, UI_BUT_DRAG_FULL_BUT);
-        file_but_enable_drag(drag_but, sfile, file, path, nullptr, icon, UI_SCALE_FAC);
+        if (drag_width > 0) {
+          uiBut *drag_but = uiDefBut(block,
+                                     UI_BTYPE_LABEL,
+                                     0,
+                                     "",
+                                     tile_draw_rect.xmin,
+                                     tile_draw_rect.ymin - 1,
+                                     drag_width,
+                                     layout->tile_h + layout->tile_border_y * 2,
+                                     nullptr,
+                                     0,
+                                     0,
+                                     0,
+                                     0,
+                                     0);
+          UI_but_dragflag_enable(drag_but, UI_BUT_DRAG_FULL_BUT);
+          file_but_enable_drag(drag_but, sfile, file, path, nullptr, icon, UI_SCALE_FAC);
+        }
       }
 
       /* Add this after the fake draggable button, so the icon button tooltip is displayed. */
