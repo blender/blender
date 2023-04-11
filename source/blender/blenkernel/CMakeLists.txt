@@ -181,7 +181,7 @@ set(SRC
   intern/lib_remap.c
   intern/library.c
   intern/light.c
-  intern/lightprobe.c
+  intern/lightprobe.cc
   intern/linestyle.cc
   intern/main.c
   intern/main_idmap.c

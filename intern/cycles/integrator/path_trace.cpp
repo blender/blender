@@ -1036,7 +1036,12 @@ bool PathTrace::get_render_tile_pixels(const PassAccessor &pass_accessor,
   }
 
   if (big_tile_denoise_work_ && render_state_.has_denoised_result) {
-    return big_tile_denoise_work_->get_render_tile_pixels(pass_accessor, destination);
+    /* Only use the big tile denoised buffer to access the denoised passes.
+     * The guiding passes are allowed to be modified in-place for the needs of the denoiser,
+     * so copy those from the original devices buffers. */
+    if (pass_accessor.get_pass_access_info().mode == PassMode::DENOISED) {
+      return big_tile_denoise_work_->get_render_tile_pixels(pass_accessor, destination);
+    }
   }
 
   bool success = true;

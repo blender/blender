@@ -171,6 +171,15 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
  */
 int BLI_wcwidth(char32_t ucs) ATTR_WARN_UNUSED_RESULT;
 int BLI_wcswidth(const char32_t *pwcs, size_t n) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+
+/**
+ * Upper and lowercase for 32-bit characters for all scripts that distinguish case. One-to-one
+ * mappings so this doesn't work corectly for uppercase Σ (two lowercase forms) and lowercase ß
+ * won't become "SS".
+ */
+char32_t BLI_str_utf32_char_to_upper(char32_t wc);
+char32_t BLI_str_utf32_char_to_lower(char32_t wc);
+
 /**
  * \warning can return -1 on bad chars.
  */

@@ -32,7 +32,7 @@ The following (probably incomplete) features are supported by audaspace:
 License
 -------
 
-> Copyright © 2009-2015 Jörg Müller. All rights reserved.
+> Copyright © 2009-2023 Jörg Müller. All rights reserved.
 >
 > Licensed under the Apache License, Version 2.0 (the "License");
 > you may not use this file except in compliance with the License.

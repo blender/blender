@@ -199,7 +199,7 @@ struct BHeadN {
  * We could change this in the future, for now it's simplest if only data is delayed
  * because ID names are used in lookup tables.
  */
-#define BHEAD_USE_READ_ON_DEMAND(bhead) ((bhead)->code == DATA)
+#define BHEAD_USE_READ_ON_DEMAND(bhead) ((bhead)->code == BLO_CODE_DATA)
 
 void BLO_reportf_wrap(BlendFileReadReport *reports, eReportType type, const char *format, ...)
 {
@@ -423,7 +423,7 @@ static void read_file_version(FileData *fd, Main *main)
   BHead *bhead;
 
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
-    if (bhead->code == GLOB) {
+    if (bhead->code == BLO_CODE_GLOB) {
       FileGlobal *fg = static_cast<FileGlobal *>(read_struct(fd, bhead, "Global"));
       if (fg) {
         main->subversionfile = fg->subversion;
@@ -431,7 +431,7 @@ static void read_file_version(FileData *fd, Main *main)
         main->minsubversionfile = fg->minsubversion;
         MEM_freeN(fg);
       }
-      else if (bhead->code == ENDB) {
+      else if (bhead->code == BLO_CODE_ENDB) {
         break;
       }
     }
@@ -466,7 +466,7 @@ static void read_file_bhead_idname_map_create(FileData *fd)
 
   /* dummy values */
   bool is_link = false;
-  int code_prev = ENDB;
+  int code_prev = BLO_CODE_ENDB;
   uint reserve = 0;
 
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
@@ -595,7 +595,7 @@ static void switch_endian_bh4(BHead4 *bhead)
     bhead->code >>= 16;
   }
 
-  if (bhead->code != ENDB) {
+  if (bhead->code != BLO_CODE_ENDB) {
     BLI_endian_switch_int32(&bhead->len);
     BLI_endian_switch_int32(&bhead->SDNAnr);
     BLI_endian_switch_int32(&bhead->nr);
@@ -609,7 +609,7 @@ static void switch_endian_bh8(BHead8 *bhead)
     bhead->code >>= 16;
   }
 
-  if (bhead->code != ENDB) {
+  if (bhead->code != BLO_CODE_ENDB) {
     BLI_endian_switch_int32(&bhead->len);
     BLI_endian_switch_int32(&bhead->SDNAnr);
     BLI_endian_switch_int32(&bhead->nr);
@@ -624,7 +624,7 @@ static void bh4_from_bh8(BHead *bhead, BHead8 *bhead8, bool do_endian_swap)
   bhead4->code = bhead8->code;
   bhead4->len = bhead8->len;
 
-  if (bhead4->code != ENDB) {
+  if (bhead4->code != BLO_CODE_ENDB) {
     /* perform a endian swap on 64bit pointers, otherwise the pointer might map to zero
      * 0x0000000000000000000012345678 would become 0x12345678000000000000000000000000
      */
@@ -649,7 +649,7 @@ static void bh8_from_bh4(BHead *bhead, BHead4 *bhead4)
   bhead8->code = bhead4->code;
   bhead8->len = bhead4->len;
 
-  if (bhead8->code != ENDB) {
+  if (bhead8->code != BLO_CODE_ENDB) {
     bhead8->old = bhead4->old;
     bhead8->SDNAnr = bhead4->SDNAnr;
     bhead8->nr = bhead4->nr;
@@ -677,10 +677,10 @@ static BHeadN *get_bhead(FileData *fd)
        * needs some special handling. We don't want to EOF just yet.
        */
       if (fd->flags & FD_FLAGS_FILE_POINTSIZE_IS_4) {
-        bhead4.code = DATA;
+        bhead4.code = BLO_CODE_DATA;
         readsize = fd->file->read(fd->file, &bhead4, sizeof(bhead4));
 
-        if (readsize == sizeof(bhead4) || bhead4.code == ENDB) {
+        if (readsize == sizeof(bhead4) || bhead4.code == BLO_CODE_ENDB) {
           if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
             switch_endian_bh4(&bhead4);
           }
@@ -700,10 +700,10 @@ static BHeadN *get_bhead(FileData *fd)
         }
       }
       else {
-        bhead8.code = DATA;
+        bhead8.code = BLO_CODE_DATA;
         readsize = fd->file->read(fd->file, &bhead8, sizeof(bhead8));
 
-        if (readsize == sizeof(bhead8) || bhead8.code == ENDB) {
+        if (readsize == sizeof(bhead8) || bhead8.code == BLO_CODE_ENDB) {
           if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
             switch_endian_bh8(&bhead8);
           }
@@ -957,7 +957,7 @@ static bool read_file_dna(FileData *fd, const char **r_error_message)
   int subversion = 0;
 
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
-    if (bhead->code == GLOB) {
+    if (bhead->code == BLO_CODE_GLOB) {
       /* Before this, the subversion didn't exist in 'FileGlobal' so the subversion
        * value isn't accessible for the purpose of DNA versioning in this case. */
       if (fd->fileversion <= 242) {
@@ -972,7 +972,7 @@ static bool read_file_dna(FileData *fd, const char **r_error_message)
       num[4] = 0;
       subversion = atoi(num);
     }
-    else if (bhead->code == DNA1) {
+    else if (bhead->code == BLO_CODE_DNA1) {
       const bool do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
 
       fd->filesdna = DNA_sdna_from_data(
@@ -993,7 +993,7 @@ static bool read_file_dna(FileData *fd, const char **r_error_message)
 
       return false;
     }
-    else if (bhead->code == ENDB) {
+    else if (bhead->code == BLO_CODE_ENDB) {
       break;
     }
   }
@@ -1008,7 +1008,7 @@ static int *read_file_thumbnail(FileData *fd)
   int *blend_thumb = nullptr;
 
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
-    if (bhead->code == TEST) {
+    if (bhead->code == BLO_CODE_TEST) {
       const bool do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
       int *data = (int *)(bhead + 1);
 
@@ -1033,7 +1033,7 @@ static int *read_file_thumbnail(FileData *fd)
       blend_thumb = data;
       break;
     }
-    if (bhead->code != REND) {
+    if (bhead->code != BLO_CODE_REND) {
       /* Thumbnail is stored in TEST immediately after first REND... */
       break;
     }
@@ -2952,7 +2952,7 @@ static BHead *read_data_into_datamap(FileData *fd, BHead *bhead, const char *all
 {
   bhead = blo_bhead_next(fd, bhead);
 
-  while (bhead && bhead->code == DATA) {
+  while (bhead && bhead->code == BLO_CODE_DATA) {
     /* The code below is useful for debugging leaks in data read from the blend file.
      * Without this the messages only tell us what ID-type the memory came from,
      * eg: `Data from OB len 64`, see #dataname.
@@ -2995,7 +2995,7 @@ static bool read_libblock_is_identical(FileData *fd, BHead *bhead)
   /* Test any other data that is part of ID (logic must match read_data_into_datamap). */
   bhead = blo_bhead_next(fd, bhead);
 
-  while (bhead && bhead->code == DATA) {
+  while (bhead && bhead->code == BLO_CODE_DATA) {
     if (bhead->len && !BHEADN_FROM_BHEAD(bhead)->is_memchunk_identical) {
       return false;
     }
@@ -3700,6 +3700,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
   BLO_read_list(reader, &user->user_menus);
   BLO_read_list(reader, &user->addons);
   BLO_read_list(reader, &user->autoexec_paths);
+  BLO_read_list(reader, &user->script_directories);
   BLO_read_list(reader, &user->asset_libraries);
 
   LISTBASE_FOREACH (wmKeyMap *, keymap, &user->user_keymaps) {
@@ -3837,16 +3838,16 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
   while (bhead) {
     switch (bhead->code) {
-      case DATA:
-      case DNA1:
-      case TEST: /* used as preview since 2.5x */
-      case REND:
+      case BLO_CODE_DATA:
+      case BLO_CODE_DNA1:
+      case BLO_CODE_TEST: /* used as preview since 2.5x */
+      case BLO_CODE_REND:
         bhead = blo_bhead_next(fd, bhead);
         break;
-      case GLOB:
+      case BLO_CODE_GLOB:
         bhead = read_global(bfd, fd, bhead);
         break;
-      case USER:
+      case BLO_CODE_USER:
         if (fd->skip_flags & BLO_READ_SKIP_USERDEF) {
           bhead = blo_bhead_next(fd, bhead);
         }
@@ -3854,7 +3855,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
           bhead = read_userdef(bfd, fd, bhead);
         }
         break;
-      case ENDB:
+      case BLO_CODE_ENDB:
         bhead = nullptr;
         break;
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -31687,10 +31687,6 @@ msgid "Save the image with another name and/or settings"
 msgstr "以另一個名稱與/或設定儲存該影像"
 
 
-msgid "Create a new image file without modifying the current image in blender"
-msgstr "在不修改目前影像的情況下在 blender 中建立一個新的影像檔"
-
-
 msgid "Save As Render"
 msgstr "另存為算繪"
 
@@ -36071,10 +36067,6 @@ msgid "Name filter using '*', '?' and '[abc]' unix style wildcards"
 msgstr "使用 '*'、'?' 和 '[abc]' 等 unix 樣式萬用符來過濾名稱"
 
 
-msgid "Set select on random visible objects"
-msgstr "設定可見物體的隨機選取"
-
-
 msgid "Render and display faces uniform, using Face Normals"
 msgstr "使用面法線算繪而顯示出統一的面"
 
@@ -39944,10 +39936,6 @@ msgid "Add Scene Strip"
 msgstr "添加場景片段"
 
 
-msgid "Add a strip to the sequencer using a blender scene as a source"
-msgstr "使用一個 blendr 場景作為來源添加片段至序段編輯器中"
-
-
 msgid "Select a strip (last selected becomes the \"active strip\")"
 msgstr "選取一個片段 (最後一個選取項會成為「作用中片段」)"
 
@@ -40640,10 +40628,6 @@ msgstr "根據列選取文字"
 
 msgid "Select word under cursor"
 msgstr "所選游標位置的單詞"
-
-
-msgid "Set cursor selection"
-msgstr "設定游標選取"
 
 
 msgctxt "Operator"
@@ -42515,10 +42499,6 @@ msgid "Save a Collada file"
 msgstr "儲存一件 Collada 檔案"
 
 
-msgid "Apply modifiers to exported mesh (non destructive))"
-msgstr "為匯出的網格套用修改器 (無破壞性)"
-
-
 msgid "Only export deforming bones with armatures"
 msgstr "僅匯出含骨架的變形骨骼"
 
@@ -43559,10 +43539,6 @@ msgstr "油印蠟紙分層"
 
 msgid "Set the mask layer from the UV map buttons"
 msgstr "從 UV 映射按鈕設定遮罩分層"
-
-
-msgid "Maximum edge length for dynamic topology sculpting (as divisor of blender unit - higher value means smaller edge length)"
-msgstr "動態拓撲雕刻的邊線最大長度 (作為 Blender 單位的除數 - 值越大代表邊線長度越短)"
 
 
 msgid "Detail Refine Method"
@@ -46409,14 +46385,6 @@ msgid "Time to animate the view in milliseconds, zero to disable"
 msgstr "讓視圖動畫的時間，單位為 ms，0 為停用"
 
 
-msgid "TimeCode Style"
-msgstr "時間碼樣式"
-
-
-msgid "Format of Time Codes displayed when not displaying timing in terms of frames"
-msgstr "當不以框幀作計時顯示時，要顯示的時間碼格式"
-
-
 msgid "Minimal Info"
 msgstr "最少資訊"
 
@@ -47279,10 +47247,6 @@ msgstr "算繪的結果，包含所有層與通遞"
 
 msgid "Bias"
 msgstr "偏差"
-
-
-msgid "Bias towards faces further away from the object (in blender units)"
-msgstr "遠離物體朝向面的偏差 (以 bender 單位計量)"
 
 
 msgid "Number of samples used for ambient occlusion baking from multires"
@@ -48813,20 +48777,12 @@ msgid "Scene Sequence"
 msgstr "場景序段"
 
 
-msgid "Sequence strip to used the rendered image of a scene"
-msgstr "場景的算繪影像要使用的序段片段"
-
-
 msgid "Scene that this sequence uses"
 msgstr "此序段使用的場景"
 
 
 msgid "Camera Override"
 msgstr "攝影機凌駕"
-
-
-msgid "Override the scenes active camera"
-msgstr "凌駕場景作用中攝影機"
 
 
 msgid "Sound Sequence"
@@ -50755,10 +50711,6 @@ msgstr "在此 3D 視接口內同步虛擬實境作業階段的檢視器畫面"
 
 msgid "3D Region"
 msgstr "3D 區塊"
-
-
-msgid "3D region in this space, in case of quad view the camera region"
-msgstr "此空間中的 3D 區塊，避免攝影機區塊的四角形視圖"
 
 
 msgid "Quad View Regions"

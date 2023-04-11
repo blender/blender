@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -29724,10 +29724,6 @@ msgid "Only Selected UV Map"
 msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ UV ـﻟﺍ ﺔﻄﻳﺮﺧ ﻂﻘﻓ"
 
 
-msgid "Apply modifiers to exported mesh (non destructive))"
-msgstr "(ﺮﻴﻣﺪﺗ ﻥﻭﺪﺑ) ﺓﺭﺪّﺼﻤﻟﺍ ﺕﺎﻤﺴﺠﻤﻠﻟ ﺕﺍﺮﻴّﻐﻤﻟﺍ ﻖﺒﻃ"
-
-
 msgid "Only export deforming bones with armatures"
 msgstr "ﻞﻛﺎﻴﻬﻟﺍ ﻊﻣ ﻂﻘﻓ ﺔﻋﻮّﻄﻤﻟﺍ ﻡﺎﻈﻌﻟﺍ ﺭﺪّﺻ"
 
@@ -32657,14 +32653,6 @@ msgid "Time to animate the view in milliseconds, zero to disable"
 msgstr "ﻞﻴﻄﻌﺘﻠﻟ 0 ،ﺔﻴﻧﺎﺛ ﻲﻠﻴﻤﻟﺎﺑ ﺮﻈﻨﻤﻟﺍ ﻚﻳﺮﺤﺘﻟ ﺖﻗﻮﻟﺍ"
 
 
-msgid "TimeCode Style"
-msgstr "ﺩﻮﻜﻟﺍ ﺖﻗﻭ ﺏﻮﻠﺳﺃ"
-
-
-msgid "Format of Time Codes displayed when not displaying timing in terms of frames"
-msgstr "ﺮﻃﻷ﻿ﺍ ﺚﻴﺣ ﻦﻣ ﺖﻴﻗﻮﺘﻟﺍ ﺭﺎﻬﻇﺇ ﻡﺪﻋ ﺪﻨﻋ ﺔﺿﻭﺮﻌﻤﻟﺍ ﺖﻗﻮﻟﺍ ﺕﺍﺩﻮﻛ ﺔﺌﻴﻫ"
-
-
 msgid "Minimal Info"
 msgstr "ﺔﻳﻮﻴﻧﺪﻟﺍ ﺕﺎﻣﻮﻠﻌﻤﻟﺍ"
 
@@ -33307,10 +33295,6 @@ msgstr "ﺪﻬﺸﻣ ﺕﺎﻧﺎﻴﺑ ﺔﻠﺘﻜﻟ ﺮﻴﻴﺼﺘﻟﺍ �
 
 msgid "Bias"
 msgstr "ﺯﺎﻴﺤﻧﻻ﻿ﺍ"
-
-
-msgid "Bias towards faces further away from the object (in blender units)"
-msgstr "(ﺭﺪﻨﻠﺒﻟﺍ ﺕﺍﺪﺣﻮﺑ) ﻦﺋﺎﻜﻟﺍ ﻦﻣ ﺓﺪﻴﻌﺒﻟﺍ ﻩﻮﺟﻮﻟﺍ ﻰﻟﺇ ﺯﺎﻴﺤﻧﻹ﻿ﺍ"
 
 
 msgid "Number of samples used for ambient occlusion baking from multires"
@@ -34332,10 +34316,6 @@ msgstr "ﺪﻬﺸﻤﻟﺍ ﻞﺴﻠﺴﺗ"
 
 msgid "Camera Override"
 msgstr "ﺍﺮﻴﻣﺎﻜﻟﺍ ﺯﻭﺎﺠﺗ"
-
-
-msgid "Override the scenes active camera"
-msgstr "ﺔﻟﺎﻌّﻔﻟﺍ ﺪﻬﺸﻤﻟﺍ ﺍﺮﻴﻤﻛ ﻯﺪﻌﺗ"
 
 
 msgid "Sound Sequence"

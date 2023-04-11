@@ -167,7 +167,7 @@ OperationNode *ComponentNode::add_operation(const DepsEvalOperationCb &op,
     op_node = (OperationNode *)factory->create_node(this->owner->id_orig, "", name);
 
     /* register opnode in this component's operation set */
-    OperationIDKey key(opcode, name, name_tag);
+    OperationIDKey key(opcode, op_node->name.c_str(), name_tag);
     operations_map->add(key, op_node);
 
     /* Set back-link. */

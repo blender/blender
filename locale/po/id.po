@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -18657,10 +18657,6 @@ msgid "Add Scene Strip"
 msgstr "Tambah Strip Adegan"
 
 
-msgid "Add a strip to the sequencer using a blender scene as a source"
-msgstr "Tambah strip ke sequencer menggunakan adegan blender sebagai sumber"
-
-
 msgid "Select a strip (last selected becomes the \"active strip\")"
 msgstr "Pilih strip (terseleksi akhir akan menjadi \"strip aktif\")"
 
@@ -19080,10 +19076,6 @@ msgstr "Seleksi"
 
 msgid "Select text by line"
 msgstr "Pilih teks dari garis"
-
-
-msgid "Set cursor selection"
-msgstr "Set seleksi kursor"
 
 
 msgctxt "Operator"

@@ -68,33 +68,33 @@ static void lightprobe_blend_read_lib(BlendLibReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_LP = {
-    .id_code = ID_LP,
-    .id_filter = FILTER_ID_LP,
-    .main_listbase_index = INDEX_ID_LP,
-    .struct_size = sizeof(LightProbe),
-    .name = "LightProbe",
-    .name_plural = "lightprobes",
-    .translation_context = BLT_I18NCONTEXT_ID_LIGHTPROBE,
-    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    .asset_type_info = NULL,
+    /*id_code*/ ID_LP,
+    /*id_filter*/ FILTER_ID_LP,
+    /*main_listbase_index*/ INDEX_ID_LP,
+    /*struct_size*/ sizeof(LightProbe),
+    /*name*/ "LightProbe",
+    /*name_plural*/ "lightprobes",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_LIGHTPROBE,
+    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /*asset_type_info*/ nullptr,
 
-    .init_data = lightprobe_init_data,
-    .copy_data = NULL,
-    .free_data = NULL,
-    .make_local = NULL,
-    .foreach_id = lightprobe_foreach_id,
-    .foreach_cache = NULL,
-    .foreach_path = NULL,
-    .owner_pointer_get = NULL,
+    /*init_data*/ lightprobe_init_data,
+    /*copy_data*/ nullptr,
+    /*free_data*/ nullptr,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ lightprobe_foreach_id,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ nullptr,
+    /*owner_pointer_get*/ nullptr,
 
-    .blend_write = lightprobe_blend_write,
-    .blend_read_data = lightprobe_blend_read_data,
-    .blend_read_lib = lightprobe_blend_read_lib,
-    .blend_read_expand = NULL,
+    /*blend_write*/ lightprobe_blend_write,
+    /*blend_read_data*/ lightprobe_blend_read_data,
+    /*blend_read_lib*/ lightprobe_blend_read_lib,
+    /*blend_read_expand*/ nullptr,
 
-    .blend_read_undo_preserve = NULL,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    .lib_override_apply_post = NULL,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 void BKE_lightprobe_type_set(LightProbe *probe, const short lightprobe_type)
@@ -125,7 +125,7 @@ void *BKE_lightprobe_add(Main *bmain, const char *name)
 {
   LightProbe *probe;
 
-  probe = BKE_id_new(bmain, ID_LP, name);
+  probe = static_cast<LightProbe *>(BKE_id_new(bmain, ID_LP, name));
 
   return probe;
 }
