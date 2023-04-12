@@ -1382,13 +1382,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   using namespace blender;
   const int old_verts_num = me->totvert;
 
-  CustomData_free(&me->vdata, me->totvert);
-  CustomData_free(&me->edata, me->totedge);
-  CustomData_free(&me->fdata, me->totface);
-  CustomData_free(&me->ldata, me->totloop);
-  CustomData_free(&me->pdata, me->totpoly);
-  MEM_SAFE_FREE(me->poly_offset_indices);
-  BKE_mesh_runtime_clear_geometry(me);
+  BKE_mesh_clear_geometry(me);
 
   me->totvert = bm->totvert;
   me->totedge = bm->totedge;

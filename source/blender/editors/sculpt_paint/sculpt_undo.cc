@@ -763,12 +763,7 @@ static void sculpt_undo_geometry_restore_data(SculptUndoNodeGeometry *geometry, 
 
   BLI_assert(geometry->is_initialized);
 
-  CustomData_free(&mesh->vdata, mesh->totvert);
-  CustomData_free(&mesh->edata, mesh->totedge);
-  CustomData_free(&mesh->fdata, mesh->totface);
-  CustomData_free(&mesh->ldata, mesh->totloop);
-  CustomData_free(&mesh->pdata, mesh->totpoly);
-  MEM_SAFE_FREE(mesh->poly_offset_indices);
+  BKE_mesh_clear_geometry(mesh);
 
   mesh->totvert = geometry->totvert;
   mesh->totedge = geometry->totedge;
@@ -785,8 +780,6 @@ static void sculpt_undo_geometry_restore_data(SculptUndoNodeGeometry *geometry, 
   CustomData_copy(
       &geometry->pdata, &mesh->pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, geometry->totpoly);
   mesh->poly_offset_indices = static_cast<int *>(MEM_dupallocN(geometry->poly_offset_indices));
-
-  BKE_mesh_runtime_clear_cache(mesh);
 }
 
 static void sculpt_undo_geometry_free_data(SculptUndoNodeGeometry *geometry)

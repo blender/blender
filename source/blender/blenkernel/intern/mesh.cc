@@ -72,7 +72,6 @@ using blender::StringRef;
 using blender::VArray;
 using blender::Vector;
 
-static void mesh_clear_geometry(Mesh *mesh);
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata);
 
 static void mesh_init_data(ID *id)
@@ -193,11 +192,9 @@ static void mesh_free_data(ID *id)
 {
   Mesh *mesh = (Mesh *)id;
 
-  BLI_freelistN(&mesh->vertex_group_names);
-
   BKE_mesh_free_editmesh(mesh);
 
-  mesh_clear_geometry(mesh);
+  BKE_mesh_clear_geometry_and_metadata(mesh);
   MEM_SAFE_FREE(mesh->mat);
 
   delete mesh->runtime;
@@ -926,16 +923,26 @@ static void mesh_clear_geometry(Mesh *mesh)
   mesh->totpoly = 0;
   mesh->act_face = -1;
   mesh->totselect = 0;
+}
 
-  BLI_freelistN(&mesh->vertex_group_names);
-  MEM_SAFE_FREE(mesh->active_color_attribute);
-  MEM_SAFE_FREE(mesh->default_color_attribute);
+static void clear_attribute_names(Mesh &mesh)
+{
+  BLI_freelistN(&mesh.vertex_group_names);
+  MEM_SAFE_FREE(mesh.active_color_attribute);
+  MEM_SAFE_FREE(mesh.default_color_attribute);
 }
 
 void BKE_mesh_clear_geometry(Mesh *mesh)
 {
   BKE_mesh_runtime_clear_cache(mesh);
   mesh_clear_geometry(mesh);
+}
+
+void BKE_mesh_clear_geometry_and_metadata(Mesh *mesh)
+{
+  BKE_mesh_runtime_clear_cache(mesh);
+  mesh_clear_geometry(mesh);
+  clear_attribute_names(*mesh);
 }
 
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)

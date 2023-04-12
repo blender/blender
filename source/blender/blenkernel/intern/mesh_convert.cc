@@ -1114,7 +1114,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
     BLI_assert(mesh_dst == ob->data);
   }
 
-  BKE_mesh_clear_geometry(mesh_dst);
+  BKE_mesh_clear_geometry_and_metadata(mesh_dst);
 
   /* Make sure referenced layers have a single user so assigning them to the mesh in main doesn't
    * share them. "Referenced" layers are not expected to be shared between original meshes. */

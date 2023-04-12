@@ -417,14 +417,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* remove tessface to ensure we don't hold references to invalid faces */
-  BKE_mesh_tessface_clear(me);
-
-  /* Clear any run-time data.
-   * Even though this mesh wont typically have run-time data, the Python API can for e.g.
-   * create loop-triangle cache here, which is confusing when left in the mesh, see: #90798. */
-  BKE_mesh_runtime_clear_geometry(me);
-
   /* new material indices and material array */
   if (totmat) {
     matar = static_cast<Material **>(MEM_callocN(sizeof(*matar) * totmat, __func__));
@@ -683,11 +675,8 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   /* return to mesh we're merging to */
   me = static_cast<Mesh *>(ob->data);
 
-  CustomData_free(&me->vdata, me->totvert);
-  CustomData_free(&me->edata, me->totedge);
-  CustomData_free(&me->ldata, me->totloop);
-  CustomData_free(&me->pdata, me->totpoly);
-  MEM_SAFE_FREE(me->poly_offset_indices);
+  BKE_mesh_clear_geometry(me);
+
   me->poly_offset_indices = poly_offsets;
 
   me->totvert = totvert;

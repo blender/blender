@@ -122,7 +122,18 @@ void BKE_mesh_looptri_get_real_edges(const struct MEdge *edges,
  * Only use for undo, in most cases `BKE_id_free(nullptr, me)` should be used.
  */
 void BKE_mesh_free_data_for_undo(struct Mesh *me);
+
+/**
+ * Remove all geometry and derived data like caches from the mesh.
+ */
 void BKE_mesh_clear_geometry(struct Mesh *me);
+
+/**
+ * Same as #BKE_mesh_clear_geometry, but also clears attribute meta-data like active attribute
+ * names and vertex group names. Used when the geometry is *entirely* replaced.
+ */
+void BKE_mesh_clear_geometry_and_metadata(struct Mesh *me);
+
 struct Mesh *BKE_mesh_add(struct Main *bmain, const char *name);
 
 void BKE_mesh_free_editmesh(struct Mesh *mesh);
