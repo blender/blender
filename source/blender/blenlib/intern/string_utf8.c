@@ -399,7 +399,17 @@ int BLI_str_utf8_char_width_safe(const char *p)
   return (columns < 0) ? 1 : columns;
 }
 
-char32_t BLI_str_utf32_char_to_upper(char32_t wc)
+/* -------------------------------------------------------------------- */
+/** \name UTF32 Case Conversion
+ *
+ * \warning the lower/uppercase form of some characters use multiple characters.
+ * These cases are not accounted for by this conversion function.
+ * A common example is the German `eszett` / `scharfes`.
+ * Supporting such cases would have to operate on a character array, with support for resizing.
+ * (for reference - Python's upper/lower functions support this).
+ * \{ */
+
+char32_t BLI_str_utf32_char_to_upper(const char32_t wc)
 {
   if (wc < U'\xFF') { /* Latin. */
     if ((wc <= U'z' && wc >= U'a') || (wc <= U'\xF6' && wc >= U'\xE0') ||
@@ -420,7 +430,7 @@ char32_t BLI_str_utf32_char_to_upper(char32_t wc)
   if (wc <= U'\x24E9' && wc >= U'\x24D0') { /* Enclosed Numerals. */
     return wc - 26;
   }
-  if (wc <= U'\xFF5A' && wc >= U'\xFF41') { /* Fullwidth Forms. */
+  if (wc <= U'\xFF5A' && wc >= U'\xFF41') { /* Full-width Forms. */
     return wc - 32;
   }
 
@@ -506,7 +516,7 @@ char32_t BLI_str_utf32_char_to_upper(char32_t wc)
   return wc;
 }
 
-char32_t BLI_str_utf32_char_to_lower(char32_t wc)
+char32_t BLI_str_utf32_char_to_lower(const char32_t wc)
 {
   if (wc < U'\xD8') { /* Latin. */
     if ((wc <= U'Z' && wc >= U'A') || (wc <= U'\xD6' && wc >= U'\xC0')) {
@@ -525,7 +535,7 @@ char32_t BLI_str_utf32_char_to_lower(char32_t wc)
   if (wc <= U'\x24CF' && wc >= U'\x24B6') { /* Enclosed Numerals. */
     return wc + 26;
   }
-  if (wc <= U'\xFF3A' && wc >= U'\xFF21') { /* Fullwidth Forms. */
+  if (wc <= U'\xFF3A' && wc >= U'\xFF21') { /* Full-width Forms. */
     return wc + 32;
   }
 
@@ -611,7 +621,7 @@ char32_t BLI_str_utf32_char_to_lower(char32_t wc)
   return wc;
 }
 
-/* -------------------------------------------------------------------- */
+/** \} */ /* -------------------------------------------------------------------- */
 
 /* copied from glib's gutf8.c, added 'Err' arg */
 
