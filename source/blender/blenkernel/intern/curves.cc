@@ -156,11 +156,6 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_data_address(reader, &curves->surface_uv_map);
 
-  curves->geometry.runtime = MEM_new<blender::bke::CurvesGeometryRuntime>(__func__);
-
-  /* Recalculate curve type count cache that isn't saved in files. */
-  curves->geometry.wrap().update_curve_types();
-
   /* Materials */
   BLO_read_pointer_array(reader, (void **)&curves->mat);
 }

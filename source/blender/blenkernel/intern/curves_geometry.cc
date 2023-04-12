@@ -1582,10 +1582,15 @@ GVArray CurvesGeometry::adapt_domain(const GVArray &varray,
 
 void CurvesGeometry::blend_read(BlendDataReader &reader)
 {
+  this->runtime = MEM_new<blender::bke::CurvesGeometryRuntime>(__func__);
+
   CustomData_blend_read(&reader, &this->point_data, this->point_num);
   CustomData_blend_read(&reader, &this->curve_data, this->curve_num);
 
   BLO_read_int32_array(&reader, this->curve_num + 1, &this->curve_offsets);
+
+  /* Recalculate curve type count cache that isn't saved in files. */
+  this->update_curve_types();
 }
 
 void CurvesGeometry::blend_write(BlendWriter &writer, ID &id)
