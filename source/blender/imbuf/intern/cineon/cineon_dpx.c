@@ -182,21 +182,3 @@ ImBuf *imb_load_cineon(const uchar *mem, size_t size, int flags, char colorspace
   }
   return imb_load_dpx_cineon(mem, size, 1, flags, colorspace);
 }
-
-bool imb_save_dpx(struct ImBuf *buf, const char *filepath, int flags)
-{
-  return imb_save_dpx_cineon(buf, filepath, 0, flags);
-}
-
-bool imb_is_a_dpx(const uchar *buf, size_t size)
-{
-  return logImageIsDpx(buf, size);
-}
-
-ImBuf *imb_load_dpx(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
-{
-  if (!imb_is_a_dpx(mem, size)) {
-    return NULL;
-  }
-  return imb_load_dpx_cineon(mem, size, 0, flags, colorspace);
-}

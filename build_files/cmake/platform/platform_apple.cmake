@@ -221,10 +221,8 @@ find_package(PNG REQUIRED)
 set(JPEG_ROOT ${LIBDIR}/jpeg)
 find_package(JPEG REQUIRED)
 
-if(WITH_IMAGE_TIFF)
-  set(TIFF_ROOT ${LIBDIR}/tiff)
-  find_package(TIFF REQUIRED)
-endif()
+set(TIFF_ROOT ${LIBDIR}/tiff)
+find_package(TIFF REQUIRED)
 
 if(WITH_IMAGE_WEBP)
   set(WEBP_ROOT_DIR ${LIBDIR}/webp)

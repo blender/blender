@@ -487,14 +487,12 @@ if(WITH_IMAGE_OPENEXR)
   endif()
 endif()
 
-if(WITH_IMAGE_TIFF)
-  # Try to find tiff first then complain and set static and maybe wrong paths
-  windows_find_package(TIFF)
-  if(NOT TIFF_FOUND)
-    warn_hardcoded_paths(libtiff)
-    set(TIFF_LIBRARY ${LIBDIR}/tiff/lib/libtiff.lib)
-    set(TIFF_INCLUDE_DIR ${LIBDIR}/tiff/include)
-  endif()
+# Try to find tiff first then complain and set static and maybe wrong paths
+windows_find_package(TIFF)
+if(NOT TIFF_FOUND)
+  warn_hardcoded_paths(libtiff)
+  set(TIFF_LIBRARY ${LIBDIR}/tiff/lib/libtiff.lib)
+  set(TIFF_INCLUDE_DIR ${LIBDIR}/tiff/include)
 endif()
 
 if(WITH_JACK)

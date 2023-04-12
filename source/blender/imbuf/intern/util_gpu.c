@@ -80,7 +80,6 @@ static const char *imb_gpu_get_swizzle(const ImBuf *ibuf)
 }
 
 /* Return false if no suitable format was found. */
-#ifdef WITH_DDS
 static bool IMB_gpu_get_compressed_format(const ImBuf *ibuf, eGPUTextureFormat *r_texture_format)
 {
   /* For DDS we only support data, scene linear and sRGB. Converting to
@@ -102,7 +101,6 @@ static bool IMB_gpu_get_compressed_format(const ImBuf *ibuf, eGPUTextureFormat *
   }
   return true;
 }
-#endif
 
 /**
  * Apply colormanagement and scale buffer if needed.
@@ -326,7 +324,6 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
     }
   }
 
-#ifdef WITH_DDS
   if (ibuf->ftype == IMB_FTYPE_DDS) {
     eGPUTextureFormat compressed_format;
     if (!IMB_gpu_get_compressed_format(ibuf, &compressed_format)) {
@@ -356,7 +353,6 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
     /* Fallback to uncompressed texture. */
     fprintf(stderr, " falling back to uncompressed.\n");
   }
-#endif
 
   eGPUDataFormat data_format;
   eGPUTextureFormat tex_format;
