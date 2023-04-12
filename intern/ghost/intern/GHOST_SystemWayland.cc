@@ -6339,13 +6339,14 @@ GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
-
   struct wl_surface *wl_surface = (struct wl_surface *)((GHOST_Context *)context)->getUserData();
+  /* Delete the context before the window so the context is able to release
+   * native resources (such as the #EGLSurface) before WAYLAND frees them. */
+  delete context;
+
   wl_egl_window *egl_window = (wl_egl_window *)wl_surface_get_user_data(wl_surface);
   wl_egl_window_destroy(egl_window);
   wl_surface_destroy(wl_surface);
-
-  delete context;
 
   return GHOST_kSuccess;
 }
