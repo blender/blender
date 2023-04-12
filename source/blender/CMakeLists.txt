@@ -165,10 +165,6 @@ if(WITH_IMAGE_OPENEXR)
   add_subdirectory(imbuf/intern/openexr)
 endif()
 
-if(WITH_IMAGE_DDS)
-  add_subdirectory(imbuf/intern/dds)
-endif()
-
 if(WITH_IMAGE_CINEON)
   add_subdirectory(imbuf/intern/cineon)
 endif()

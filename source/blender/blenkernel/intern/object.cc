@@ -2131,16 +2131,16 @@ static const char *get_obdata_defname(int type)
     case OB_POINTCLOUD:
       return DATA_("PointCloud");
     case OB_VOLUME:
-      return DATA_("Volume");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_ID, "Volume");
     case OB_EMPTY:
-      return DATA_("Empty");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_ID, "Empty");
     case OB_GPENCIL_LEGACY:
       return DATA_("GPencil");
     case OB_LIGHTPROBE:
       return DATA_("LightProbe");
     default:
       CLOG_ERROR(&LOG, "Internal error, bad type: %d", type);
-      return DATA_("Empty");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_ID, "Empty");
   }
 }
 

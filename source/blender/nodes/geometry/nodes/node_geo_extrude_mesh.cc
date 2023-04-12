@@ -1060,6 +1060,9 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
   poly_evaluator.add_with_destination(offset_field, poly_offset.as_mutable_span());
   poly_evaluator.evaluate();
   const IndexMask poly_selection = poly_evaluator.get_evaluated_selection_as_mask();
+  if (poly_selection.is_empty()) {
+    return;
+  }
 
   /* Build an array of offsets into the new data for each polygon. This is used to facilitate
    * parallelism later on by avoiding the need to keep track of an offset when iterating through

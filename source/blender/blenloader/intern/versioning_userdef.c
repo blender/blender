@@ -97,7 +97,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_view3d.face_retopology);
   }
 
-  if (!USER_VERSION_ATLEAST(306, 5)) {
+  if (!USER_VERSION_ATLEAST(306, 6)) {
     FROM_DEFAULT_V4_UCHAR(space_view3d.asset_shelf.back);
     FROM_DEFAULT_V4_UCHAR(space_view3d.asset_shelf.header_back);
   }

@@ -699,7 +699,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
      * places that wish to use the original mesh but with deformed
      * coordinates (like vertex paint). */
     if (r_deform) {
-      mesh_deform = BKE_mesh_copy_for_eval(mesh_input, true);
+      mesh_deform = BKE_mesh_copy_for_eval(mesh_final, false);
     }
   }
 

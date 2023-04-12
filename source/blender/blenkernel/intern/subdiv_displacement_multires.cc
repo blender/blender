@@ -37,13 +37,13 @@ struct MultiresDisplacementData {
   const MultiresModifierData *mmd;
   blender::OffsetIndices<int> polys;
   const MDisps *mdisps;
-  /* Indexed by ptex face index, contains polygon/corner which corresponds
+  /* Indexed by PTEX face index, contains polygon/corner which corresponds
    * to it.
    *
    * NOTE: For quad polygon this is an index of first corner only, since
-   * there we only have one ptex. */
+   * there we only have one PTEX. */
   PolyCornerIndex *ptex_poly_corner;
-  /* Indexed by coarse face index, returns first ptex face index corresponding
+  /* Indexed by coarse face index, returns first PTEX face index corresponding
    * to that coarse face. */
   int *face_ptex_offset;
   /* Sanity check, is used in debug builds.
@@ -52,7 +52,7 @@ struct MultiresDisplacementData {
 };
 
 /* Denotes which grid to use to average value of the displacement read from the
- * grid which corresponds to the ptex face. */
+ * grid which corresponds to the PTEX face. */
 typedef enum eAverageWith {
   AVERAGE_WITH_NONE,
   AVERAGE_WITH_ALL,
@@ -175,12 +175,12 @@ static void average_read_displacement_object(MultiresDisplacementData *data,
 {
   const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
   const int num_corners = data->polys[poly_corner->poly_index].size();
-  /* Get (u, v) coordinate within the other ptex face which corresponds to
+  /* Get (u, v) coordinate within the other PTEX face which corresponds to
    * the grid coordinates. */
   float u, v;
   average_convert_grid_coord_to_ptex(num_corners, corner_index, grid_u, grid_v, &u, &v);
   /* Construct tangent matrix which corresponds to partial derivatives
-   * calculated for the other ptex face. */
+   * calculated for the other PTEX face. */
   float tangent_matrix[3][3];
   average_construct_tangent_matrix(
       data->subdiv, num_corners, ptex_face_index, corner_index, u, v, tangent_matrix);
@@ -208,7 +208,7 @@ static void average_get_other_ptex_and_corner(MultiresDisplacementData *data,
                                        start_ptex_face_index + *r_other_corner_index;
 }
 
-/* NOTE: Grid coordinates are relatiev to the other grid already. */
+/* NOTE: Grid coordinates are relative to the other grid already. */
 static void average_with_other(SubdivDisplacement *displacement,
                                const int ptex_face_index,
                                const int corner,
@@ -380,7 +380,7 @@ static void displacement_data_init_mapping(SubdivDisplacement *displacement, con
   const int num_ptex_faces = count_num_ptex_faces(mesh);
   /* Allocate memory. */
   data->ptex_poly_corner = static_cast<PolyCornerIndex *>(
-      MEM_malloc_arrayN(num_ptex_faces, sizeof(*data->ptex_poly_corner), "ptex poly corner"));
+      MEM_malloc_arrayN(num_ptex_faces, sizeof(*data->ptex_poly_corner), "PTEX poly corner"));
   /* Fill in offsets. */
   int ptex_face_index = 0;
   PolyCornerIndex *ptex_poly_corner = data->ptex_poly_corner;

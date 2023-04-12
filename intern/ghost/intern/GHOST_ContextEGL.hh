@@ -122,6 +122,11 @@ class GHOST_ContextEGL : public GHOST_Context {
   EGLContext &m_sharedContext;
   EGLint &m_sharedCount;
 
+  /**
+   * True when the surface is created from `m_nativeWindow`.
+   */
+  bool m_surface_from_native_window;
+
   static EGLContext s_gl_sharedContext;
   static EGLint s_gl_sharedCount;
 

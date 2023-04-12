@@ -1052,7 +1052,7 @@ static void create_inspection_string_for_geometry_socket(std::stringstream &ss,
         break;
       }
       case GEO_COMPONENT_TYPE_VOLUME: {
-        ss << TIP_("Volume");
+        ss << CTX_TIP_(BLT_I18NCONTEXT_ID_ID, "Volume");
         break;
       }
       case GEO_COMPONENT_TYPE_EDIT: {

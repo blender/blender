@@ -420,9 +420,9 @@ static int vertex_color_hsv_exec(bContext *C, wmOperator *op)
 void PAINT_OT_vertex_color_hsv(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Vertex Paint Hue Saturation Value";
+  ot->name = "Vertex Paint Hue/Saturation/Value";
   ot->idname = "PAINT_OT_vertex_color_hsv";
-  ot->description = "Adjust vertex color HSV values";
+  ot->description = "Adjust vertex color Hue/Saturation/Value";
 
   /* api callbacks */
   ot->exec = vertex_color_hsv_exec;

@@ -580,7 +580,6 @@ class Mesh(bpy_types.ID):
         vertex_indices = tuple(chain.from_iterable(faces))
         loop_starts = tuple(islice(chain([0], accumulate(face_lengths)), faces_len))
 
-        self.polygons.foreach_set("loop_total", face_lengths)
         self.polygons.foreach_set("loop_start", loop_starts)
         self.polygons.foreach_set("vertices", vertex_indices)
 
@@ -1095,6 +1094,10 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             layout.row(align=True).menu_contents(cls.__name__)
         else:
             layout.menu(cls.__name__, icon='COLLAPSEMENU')
+
+
+class AssetShelf(StructRNA, metaclass=RNAMeta):
+    __slots__ = ()
 
 
 class NodeTree(bpy_types.ID, metaclass=RNAMetaPropGroup):

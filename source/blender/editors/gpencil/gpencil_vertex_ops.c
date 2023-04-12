@@ -331,7 +331,7 @@ static int gpencil_vertexpaint_hsv_exec(bContext *C, wmOperator *op)
 void GPENCIL_OT_vertex_color_hsv(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Vertex Paint Hue Saturation Value";
+  ot->name = "Vertex Paint Hue/Saturation/Value";
   ot->idname = "GPENCIL_OT_vertex_color_hsv";
   ot->description = "Adjust vertex color HSV values";
 

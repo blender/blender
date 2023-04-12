@@ -109,6 +109,10 @@ find_package_wrapper(ZLIB REQUIRED)
 find_package_wrapper(Zstd REQUIRED)
 find_package_wrapper(Epoxy REQUIRED)
 
+# XXX Linking errors with debian static tiff :/
+# find_package_wrapper(TIFF REQUIRED)
+find_package(TIFF)
+
 if(WITH_VULKAN_BACKEND)
   find_package_wrapper(Vulkan REQUIRED)
   find_package_wrapper(ShaderC REQUIRED)
@@ -188,13 +192,6 @@ add_bundled_libraries(imath/lib)
 if(WITH_IMAGE_OPENJPEG)
   find_package_wrapper(OpenJPEG)
   set_and_warn_library_found("OpenJPEG" OPENJPEG_FOUND WITH_IMAGE_OPENJPEG)
-endif()
-
-if(WITH_IMAGE_TIFF)
-  # XXX Linking errors with debian static tiff :/
-#       find_package_wrapper(TIFF)
-  find_package(TIFF)
-  set_and_warn_library_found("TIFF" TIFF_FOUND WITH_IMAGE_TIFF)
 endif()
 
 if(WITH_OPENAL)

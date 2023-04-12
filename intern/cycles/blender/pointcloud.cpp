@@ -244,7 +244,7 @@ static void export_pointcloud_motion(PointCloud *pointcloud,
 
   const int num_points = pointcloud->num_points();
   /* Point cloud attributes are stored as float4 with the radius in the w element.
-   * This is explict now as float3 is no longer interchangeable with float4 as it
+   * This is explicit now as float3 is no longer interchangeable with float4 as it
    * is packed now. */
   float4 *mP = attr_mP->data_float4() + motion_step * num_points;
   bool have_motion = false;

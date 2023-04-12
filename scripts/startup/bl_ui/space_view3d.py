@@ -1961,8 +1961,8 @@ class VIEW3D_MT_paint_gpencil(Menu):
         layout.separator()
         layout.operator("gpencil.vertex_color_invert", text="Invert")
         layout.operator("gpencil.vertex_color_levels", text="Levels")
-        layout.operator("gpencil.vertex_color_hsv", text="Hue Saturation Value")
-        layout.operator("gpencil.vertex_color_brightness_contrast", text="Bright/Contrast")
+        layout.operator("gpencil.vertex_color_hsv", text="Hue/Saturation/Value")
+        layout.operator("gpencil.vertex_color_brightness_contrast", text="Brightness/Contrast")
 
 
 class VIEW3D_MT_select_gpencil(Menu):
@@ -2310,7 +2310,7 @@ class VIEW3D_MT_add(Menu):
         layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
         if context.preferences.experimental.use_new_point_cloud_type:
             layout.operator("object.pointcloud_add", text="Point Cloud", icon='OUTLINER_OB_POINTCLOUD')
-        layout.menu("VIEW3D_MT_volume_add", text="Volume", icon='OUTLINER_OB_VOLUME')
+        layout.menu("VIEW3D_MT_volume_add", text="Volume", text_ctxt=i18n_contexts.id_id, icon='OUTLINER_OB_VOLUME')
         layout.operator_menu_enum("object.gpencil_add", "type", text="Grease Pencil", icon='OUTLINER_OB_GREASEPENCIL')
 
         layout.separator()
@@ -3059,8 +3059,8 @@ class VIEW3D_MT_paint_vertex(Menu):
 
         layout.operator("paint.vertex_color_invert", text="Invert")
         layout.operator("paint.vertex_color_levels", text="Levels")
-        layout.operator("paint.vertex_color_hsv", text="Hue Saturation Value")
-        layout.operator("paint.vertex_color_brightness_contrast", text="Bright/Contrast")
+        layout.operator("paint.vertex_color_hsv", text="Hue/Saturation/Value")
+        layout.operator("paint.vertex_color_brightness_contrast", text="Brightness/Contrast")
 
 
 class VIEW3D_MT_hook(Menu):

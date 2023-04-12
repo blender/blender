@@ -333,10 +333,7 @@ option(WITH_MOD_OCEANSIM        "Enable Ocean Modifier" ON)
 # Image format support
 option(WITH_IMAGE_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
 option(WITH_IMAGE_OPENJPEG      "Enable OpenJpeg Support (http://www.openjpeg.org)" ON)
-option(WITH_IMAGE_TIFF          "Enable LibTIFF Support" ON)
-option(WITH_IMAGE_DDS           "Enable DDS Image Support" ON)
 option(WITH_IMAGE_CINEON        "Enable CINEON and DPX Image Support" ON)
-option(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
 option(WITH_IMAGE_WEBP          "Enable WebP Image Support" ON)
 
 # Audio/Video format support
@@ -648,15 +645,15 @@ if(WIN32)
 endif()
 
 # Compiler tool-chain.
-if(UNIX AND NOT APPLE)
+if(UNIX)
   if(CMAKE_COMPILER_IS_GNUCC)
     option(WITH_LINKER_GOLD "Use ld.gold linker which is usually faster than ld.bfd" ON)
     mark_as_advanced(WITH_LINKER_GOLD)
-    option(WITH_LINKER_LLD "Use ld.lld linker which is usually faster than ld.gold" OFF)
-    mark_as_advanced(WITH_LINKER_LLD)
   endif()
   if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-    option(WITH_LINKER_MOLD "Use ld.mold linker which is usually faster than ld.gold & ld.lld." OFF)
+    option(WITH_LINKER_LLD "Use ld.lld linker which is usually faster than ld.gold" OFF)
+    mark_as_advanced(WITH_LINKER_LLD)
+    option(WITH_LINKER_MOLD "Use ld.mold linker which is usually faster than ld.gold & ld.lld. Needs \"sold\" subscription on macOS." OFF)
     mark_as_advanced(WITH_LINKER_MOLD)
   endif()
 endif()
@@ -895,9 +892,6 @@ set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_OPENVDB OFF)
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_ALEMBIC OFF)
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_VULKAN_BACKEND OFF)
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_CYCLES_OSL OFF)
-
-# Haru needs `TIFFFaxBlackCodes` & `TIFFFaxWhiteCodes` symbols from TIFF.
-set_and_warn_dependency(WITH_IMAGE_TIFF WITH_HARU       OFF)
 
 # auto enable openimageio for cycles
 if(WITH_CYCLES)
@@ -1941,11 +1935,8 @@ if(FIRST_RUN)
 
   info_cfg_text("Image Formats:")
   info_cfg_option(WITH_IMAGE_CINEON)
-  info_cfg_option(WITH_IMAGE_DDS)
-  info_cfg_option(WITH_IMAGE_HDR)
   info_cfg_option(WITH_IMAGE_OPENEXR)
   info_cfg_option(WITH_IMAGE_OPENJPEG)
-  info_cfg_option(WITH_IMAGE_TIFF)
 
   info_cfg_text("Audio:")
   info_cfg_option(WITH_CODEC_AVI)

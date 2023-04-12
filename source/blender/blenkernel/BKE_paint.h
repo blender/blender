@@ -524,7 +524,8 @@ typedef struct SculptAttribute {
   /* Sculpt usage */
   SculptAttributeParams params;
 
-  /* Used to keep track of which preallocated SculptAttribute instances
+  /**
+   * Used to keep track of which pre-allocated SculptAttribute instances
    * inside of SculptSession.temp_attribute are used.
    */
   bool used;
