@@ -1392,14 +1392,14 @@ void FONT_OT_change_spacing(wmOperatorType *ot)
 
   /* properties */
   RNA_def_float(ot->srna,
-              "delta",
-              1.0,
-              0.0,
-              0.0,
-              "Delta",
-              "Amount to decrease or increase character spacing with",
-              0.0,
-              0.0);
+                "delta",
+                1.0,
+                0.0,
+                0.0,
+                "Delta",
+                "Amount to decrease or increase character spacing with",
+                0.0,
+                0.0);
 }
 
 /** \} */
