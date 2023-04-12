@@ -172,7 +172,7 @@ class Operation {
   void release_inputs();
 
   /* Release the results that were allocated in the execute method but are not actually needed.
-   * This can be the case if the execute method allocated a dummy texture for an unndeeded result,
+   * This can be the case if the execute method allocated a dummy texture for an unneeded result,
    * see the description of Result::allocate_texture() for more information. This is called after
    * the evaluation of the operation. */
   void release_unneeded_results();

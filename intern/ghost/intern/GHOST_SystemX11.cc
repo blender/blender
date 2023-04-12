@@ -2157,7 +2157,7 @@ char *GHOST_SystemX11::getClipboard(bool selection) const
   Atom target = m_atom.UTF8_STRING;
   Window owner;
 
-  /* from xclip.c doOut() v0.11 */
+  /* From `xclip.c` `doOut()` v0.11. */
   char *sel_buf;
   ulong sel_len = 0;
   XEvent evt;
@@ -2614,13 +2614,13 @@ static bool match_token(const char *haystack, const char *needle)
 
 /* Determining if an X device is a Tablet style device is an imperfect science.
  * We rely on common conventions around device names as well as the type reported
- * by Wacom tablets.  This code will likely need to be expanded for alternate tablet types
+ * by WACOM tablets.  This code will likely need to be expanded for alternate tablet types
  *
- * Wintab refers to any device that interacts with the tablet as a cursor,
+ * WINTAB refers to any device that interacts with the tablet as a cursor,
  * (stylus, eraser, tablet mouse, airbrush, etc)
- * this is not to be confused with wacom x11 configuration "cursor" device.
- * Wacoms x11 config "cursor" refers to its device slot (which we mirror with
- * our gSysCursors) for puck like devices (tablet mice essentially).
+ * this is not to be confused with WACOM X11 configuration "cursor" device.
+ * WACOM tablets X11 configuration "cursor" refers to its device slot (which we mirror with
+ * our `gSysCursors`) for puck like devices (tablet mice essentially).
  */
 static GHOST_TTabletMode tablet_mode_from_name(const char *name, const char *type)
 {
