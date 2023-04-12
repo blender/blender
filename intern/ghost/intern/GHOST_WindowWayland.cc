@@ -138,8 +138,6 @@ enum eGWL_PendingWindowActions {
    * The state of the window frame has changed, apply the state from #GWL_Window::frame_pending.
    */
   PENDING_WINDOW_FRAME_CONFIGURE = 0,
-  /** The EGL buffer must be resized to match #GWL_WindowFrame::size. */
-  PENDING_EGL_WINDOW_RESIZE,
 #  ifdef GHOST_OPENGL_ALPHA
   /** Draw an opaque region behind the window. */
   PENDING_OPAQUE_SET,
@@ -149,8 +147,6 @@ enum eGWL_PendingWindowActions {
    * this window is visible on may have changed. Recalculate the windows scale.
    */
   PENDING_OUTPUT_SCALE_UPDATE,
-
-  PENDING_WINDOW_SURFACE_SCALE,
   /**
    * The surface needs a commit to run.
    * Use this to avoid committing immediately which can cause flickering when other operations
@@ -669,9 +665,6 @@ static void gwl_window_pending_actions_handle(GWL_Window *win)
   if (actions[PENDING_WINDOW_FRAME_CONFIGURE]) {
     gwl_window_frame_update_from_pending(win);
   }
-  if (actions[PENDING_EGL_WINDOW_RESIZE]) {
-    wl_egl_window_resize(win->egl_window, UNPACK2(win->frame.size), 0, 0);
-  }
 #  ifdef GHOST_OPENGL_ALPHA
   if (actions[PENDING_OPAQUE_SET]) {
     win->ghost_window->setOpaque();
@@ -679,9 +672,6 @@ static void gwl_window_pending_actions_handle(GWL_Window *win)
 #  endif
   if (actions[PENDING_OUTPUT_SCALE_UPDATE]) {
     win->ghost_window->outputs_changed_update_scale();
-  }
-  if (actions[PENDING_WINDOW_SURFACE_SCALE]) {
-    wl_surface_set_buffer_scale(win->wl_surface, win->frame.buffer_scale);
   }
   if (actions[PENDING_WINDOW_SURFACE_COMMIT]) {
     wl_surface_commit(win->wl_surface);
@@ -727,19 +717,11 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
   }
 
   if (surface_needs_egl_resize) {
-#ifdef USE_EVENT_BACKGROUND_THREAD
-    gwl_window_pending_actions_tag(win, PENDING_EGL_WINDOW_RESIZE);
-#else
     wl_egl_window_resize(win->egl_window, UNPACK2(win->frame.size), 0, 0);
-#endif
   }
 
   if (surface_needs_buffer_scale) {
-#ifdef USE_EVENT_BACKGROUND_THREAD
-    gwl_window_pending_actions_tag(win, PENDING_WINDOW_SURFACE_SCALE);
-#else
     wl_surface_set_buffer_scale(win->wl_surface, win->frame.buffer_scale);
-#endif
   }
 
   if (surface_needs_commit) {
