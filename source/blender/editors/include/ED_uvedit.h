@@ -340,7 +340,6 @@ struct FaceIsland {
   struct FaceIsland *prev;
   struct BMFace **faces;
   int faces_len;
-  rctf bounds_rect;
   /**
    * \note While this is duplicate information,
    * it allows islands from multiple meshes to be stored in the same list.

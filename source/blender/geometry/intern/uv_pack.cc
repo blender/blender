@@ -140,7 +140,7 @@ void PackIsland::add_polygon(const blender::Span<float2> uvs, MemArena *arena, H
   BLI_heap_clear(heap, nullptr);
 }
 
-void PackIsland::finalize_geometry(const UVPackIsland_Params &params, MemArena *arena, Heap *heap)
+void PackIsland::finalize_geometry_(const UVPackIsland_Params &params, MemArena *arena, Heap *heap)
 {
   BLI_assert(triangle_vertices_.size() >= 3);
 
@@ -1130,10 +1130,24 @@ static float calc_margin_from_aabb_length_sum(const Span<PackIsland *> &island_v
  *
  * \{ */
 
+static void finalize_geometry(const Span<PackIsland *> &islands, const UVPackIsland_Params &params)
+{
+  MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+  Heap *heap = BLI_heap_new();
+  for (const int64_t i : islands.index_range()) {
+    islands[i]->finalize_geometry_(params, arena, heap);
+    BLI_memarena_clear(arena);
+  }
+
+  BLI_heap_free(heap, nullptr);
+  BLI_memarena_free(arena);
+}
+
 void pack_islands(const Span<PackIsland *> &islands,
                   const UVPackIsland_Params &params,
                   float r_scale[2])
 {
+  finalize_geometry(islands, params);
   if (params.margin == 0.0f) {
     /* Special case for zero margin. Margin_method is ignored as all formulas give same result. */
     const float max_uv = pack_islands_scale_margin(islands, 1.0f, 0.0f, params);
