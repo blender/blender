@@ -147,6 +147,18 @@ enum eGWL_PendingWindowActions {
    * this window is visible on may have changed. Recalculate the windows scale.
    */
   PENDING_OUTPUT_SCALE_UPDATE,
+
+  /**
+   * Workaround for a bug/glitch in WLROOTS based compositors (RIVER for e.g.).
+   * Deferring the scale update one even-loop cycle resolves a bug
+   * where the output enter/exit events cause the surface buffer being an invalid size.
+   *
+   * While these kinds of glitches might be ignored in some cases,
+   * this caused newly created windows to immediately loose the connection to WAYLAND
+   * (crashing from a user perspective).
+   */
+  PENDING_OUTPUT_SCALE_UPDATE_DEFERRED,
+
   /**
    * The surface needs a commit to run.
    * Use this to avoid committing immediately which can cause flickering when other operations
@@ -670,6 +682,12 @@ static void gwl_window_pending_actions_handle(GWL_Window *win)
     win->ghost_window->setOpaque();
   }
 #  endif
+  if (actions[PENDING_OUTPUT_SCALE_UPDATE_DEFERRED]) {
+    gwl_window_pending_actions_tag(win, PENDING_OUTPUT_SCALE_UPDATE);
+    /* Force postponing scale update to ensure all scale information has been taken into account
+     * before the actual update is performed. Failing to do so tends to cause flickering. */
+    actions[PENDING_OUTPUT_SCALE_UPDATE] = false;
+  }
   if (actions[PENDING_OUTPUT_SCALE_UPDATE]) {
     win->ghost_window->outputs_changed_update_scale();
   }
@@ -1918,7 +1936,10 @@ GHOST_TSuccess GHOST_WindowWayland::notify_decor_redraw()
 void GHOST_WindowWayland::outputs_changed_update_scale_tag()
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
-  gwl_window_pending_actions_tag(window_, PENDING_OUTPUT_SCALE_UPDATE);
+
+  /* NOTE: if deferring causes problems, it could be isolated to the first scale initialization
+   * See: #GWL_WindowFrame::is_scale_init. */
+  gwl_window_pending_actions_tag(window_, PENDING_OUTPUT_SCALE_UPDATE_DEFERRED);
 #else
   outputs_changed_update_scale();
 #endif
