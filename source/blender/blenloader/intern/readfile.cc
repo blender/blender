@@ -2237,32 +2237,6 @@ static void *restore_pointer_by_name(IDNameLib_Map *id_map, ID *id, ePointerUser
 #endif
 }
 
-static void lib_link_seq_clipboard_pt_restore(ID *id, IDNameLib_Map *id_map)
-{
-  if (id) {
-    /* clipboard must ensure this */
-    BLI_assert(id->newid != nullptr);
-    id->newid = static_cast<ID *>(restore_pointer_by_name(id_map, id->newid, USER_REAL));
-  }
-}
-static bool lib_link_seq_clipboard_cb(Sequence *seq, void *arg_pt)
-{
-  IDNameLib_Map *id_map = static_cast<IDNameLib_Map *>(arg_pt);
-
-  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->scene), id_map);
-  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->scene_camera), id_map);
-  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->clip), id_map);
-  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->mask), id_map);
-  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->sound), id_map);
-  return true;
-}
-
-static void lib_link_clipboard_restore(IDNameLib_Map *id_map)
-{
-  /* update IDs stored in sequencer clipboard */
-  SEQ_for_each_callback(&seqbase_clipboard, lib_link_seq_clipboard_cb, id_map);
-}
-
 static int lib_link_main_data_restore_cb(LibraryIDLinkCallbackData *cb_data)
 {
   const int cb_flag = cb_data->cb_flag;
@@ -2673,9 +2647,6 @@ void blo_lib_link_restore(Main *oldmain,
    * but since we are remapping final ones already set above,
    * that is just some minor harmless double-processing. */
   lib_link_main_data_restore(id_map, newmain);
-
-  /* update IDs stored in all possible clipboards */
-  lib_link_clipboard_restore(id_map);
 
   BKE_main_idmap_destroy(id_map);
 }
