@@ -1365,8 +1365,8 @@ static void rna_def_charinfo(BlenderRNA *brna)
                              "rna_Curve_material_index_range");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-  prop = RNA_def_property(srna, "kerning", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_sdna(prop, NULL, "kern");
+  prop = RNA_def_property(srna, "kerning", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "kern");
   RNA_def_property_ui_text(prop, "Kerning", "Spacing between characters");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
