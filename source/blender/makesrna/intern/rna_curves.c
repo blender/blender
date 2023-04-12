@@ -68,9 +68,9 @@ static int rna_Curves_curve_offset_data_length(PointerRNA *ptr)
 
 static void rna_Curves_curve_offset_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  const Curves *curves = rna_curves(ptr);
+  Curves *curves = rna_curves(ptr);
   rna_iterator_array_begin(iter,
-                           (void *)curves->geometry.curve_offsets,
+                           ED_curves_offsets_for_write(curves),
                            sizeof(int),
                            curves->geometry.curve_num + 1,
                            false,
