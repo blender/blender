@@ -992,11 +992,11 @@ static void mesh_ensure_cdlayers_primary(Mesh &mesh)
   }
   if (!CustomData_get_layer_named(&mesh.ldata, CD_PROP_INT32, ".corner_vert")) {
     CustomData_add_layer_named(
-        &mesh.ldata, CD_PROP_INT32, CD_SET_DEFAULT, mesh.totloop, ".corner_vert");
+        &mesh.ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh.totloop, ".corner_vert");
   }
   if (!CustomData_get_layer_named(&mesh.ldata, CD_PROP_INT32, ".corner_edge")) {
     CustomData_add_layer_named(
-        &mesh.ldata, CD_PROP_INT32, CD_SET_DEFAULT, mesh.totloop, ".corner_edge");
+        &mesh.ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh.totloop, ".corner_edge");
   }
 }
 
