@@ -106,10 +106,14 @@ class GreasePencilDisplayPanel:
             settings = tool_settings.gpencil_vertex_paint
         brush = settings.brush
         gp_settings = brush.gpencil_settings
-
         ob = context.active_object
-        if ob.mode == 'PAINT_GPENCIL':
 
+        if self.is_popover and ob.mode not in {'PAINT_GPENCIL', 'VERTEX_GPENCIL'}:
+            row = layout.row(align=True)
+            row.use_property_split = False
+            row.prop(settings, "show_brush", text="Display Cursor")
+
+        if ob.mode == 'PAINT_GPENCIL':
             if self.is_popover:
                 row = layout.row(align=True)
                 row.prop(settings, "show_brush", text="Display Cursor")
@@ -135,8 +139,7 @@ class GreasePencilDisplayPanel:
 
         elif ob.mode == 'VERTEX_GPENCIL':
             row = layout.row(align=True)
-            row.prop(settings, "show_brush", text="")
-            row.label(text="Display Cursor")
+            row.prop(settings, "show_brush", text="Display Cursor")
 
 
 class GreasePencilBrushFalloff:

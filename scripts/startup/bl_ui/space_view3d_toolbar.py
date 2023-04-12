@@ -203,8 +203,9 @@ class VIEW3D_PT_tools_meshedit_options_automerge(View3DPanel, Panel):
 
     def draw_header(self, context):
         tool_settings = context.tool_settings
-
-        self.layout.prop(tool_settings, "use_mesh_automerge", text="", toggle=False)
+        self.layout.use_property_split = False
+        self.layout.prop(tool_settings, "use_mesh_automerge",
+                         text=self.bl_label if self.is_popover else "", toggle=False)
 
     def draw(self, context):
         layout = self.layout
@@ -612,7 +613,8 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
 
     def draw_header(self, context):
         ipaint = context.tool_settings.image_paint
-        self.layout.prop(ipaint, "use_stencil_layer", text="")
+        self.layout.prop(ipaint, "use_stencil_layer",
+                         text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         layout = self.layout
@@ -794,7 +796,8 @@ class VIEW3D_PT_tools_brush_falloff_frontface(View3DPaintPanel, Panel):
         settings = self.paint_settings(context)
         brush = settings.brush
 
-        self.layout.prop(brush, "use_frontface_falloff", text="")
+        self.layout.prop(brush, "use_frontface_falloff",
+                         text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         settings = self.paint_settings(context)
@@ -823,7 +826,8 @@ class VIEW3D_PT_tools_brush_falloff_normal(View3DPaintPanel, Panel):
         tool_settings = context.tool_settings
         ipaint = tool_settings.image_paint
 
-        self.layout.prop(ipaint, "use_normal_falloff", text="")
+        self.layout.prop(ipaint, "use_normal_falloff",
+                         text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         tool_settings = context.tool_settings
@@ -1273,7 +1277,8 @@ class VIEW3D_PT_tools_imagepaint_options_cavity(View3DPaintPanel, Panel):
         tool_settings = context.tool_settings
         ipaint = tool_settings.image_paint
 
-        self.layout.prop(ipaint, "use_cavity", text="")
+        self.layout.prop(ipaint, "use_cavity",
+                         text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         layout = self.layout
@@ -1615,8 +1620,9 @@ class VIEW3D_PT_tools_grease_pencil_brush_stroke(Panel, View3DPanel):
         return brush is not None and brush.gpencil_tool == 'DRAW'
 
     def draw(self, _context):
-        # layout = self.layout
-        pass
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
 
 class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(Panel, View3DPanel):
@@ -1632,12 +1638,11 @@ class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(Panel, View3DPanel):
         return brush is not None and brush.gpencil_tool == 'DRAW'
 
     def draw_header(self, context):
-        if self.is_popover:
-            return
-
         brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
-        self.layout.prop(gp_settings, "use_settings_stabilizer", text="")
+        self.layout.use_property_split = False
+        self.layout.prop(gp_settings, "use_settings_stabilizer",
+                         text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         layout = self.layout
@@ -1646,11 +1651,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(Panel, View3DPanel):
 
         brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
-
-        if self.is_popover:
-            row = layout.row()
-            row.prop(gp_settings, "use_settings_stabilizer", text="")
-            row.label(text=self.bl_label)
 
         col = layout.column()
         col.active = gp_settings.use_settings_stabilizer
@@ -1672,12 +1672,11 @@ class VIEW3D_PT_tools_grease_pencil_brush_post_processing(View3DPanel, Panel):
         return brush is not None and brush.gpencil_tool not in {'ERASE', 'FILL', 'TINT'}
 
     def draw_header(self, context):
-        if self.is_popover:
-            return
-
         brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
-        self.layout.prop(gp_settings, "use_settings_postprocess", text="")
+        self.layout.use_property_split = False
+        self.layout.prop(gp_settings, "use_settings_postprocess",
+                         text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         layout = self.layout
@@ -1686,11 +1685,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_post_processing(View3DPanel, Panel):
 
         brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
-
-        if self.is_popover:
-            row = layout.row()
-            row.prop(gp_settings, "use_settings_postprocess", text="")
-            row.label(text=self.bl_label)
 
         col = layout.column()
         col.active = gp_settings.use_settings_postprocess
@@ -1734,12 +1728,11 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
         return brush is not None and brush.gpencil_tool not in {'ERASE', 'FILL', 'TINT'}
 
     def draw_header(self, context):
-        if self.is_popover:
-            return
-
         brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
-        self.layout.prop(gp_settings, "use_settings_random", text="")
+        self.layout.use_property_split = False
+        self.layout.prop(gp_settings, "use_settings_random",
+                         text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         layout = self.layout
@@ -1750,11 +1743,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
         brush = tool_settings.gpencil_paint.brush
         mode = tool_settings.gpencil_paint.color_mode
         gp_settings = brush.gpencil_settings
-
-        if self.is_popover:
-            row = layout.row()
-            row.prop(gp_settings, "use_settings_random", text="")
-            row.label(text=self.bl_label)
 
         col = layout.column()
         col.enabled = gp_settings.use_settings_random
