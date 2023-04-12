@@ -100,8 +100,7 @@ static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
   dst.runtime->evaluated_normal_cache = src.runtime->evaluated_normal_cache;
 }
 
-CurvesGeometry::CurvesGeometry(const CurvesGeometry &other)
-    : CurvesGeometry(other.point_num, other.curve_num)
+CurvesGeometry::CurvesGeometry(const CurvesGeometry &other) : CurvesGeometry()
 {
   copy_curves_geometry(*this, other);
 }
@@ -133,8 +132,7 @@ static void move_curves_geometry(CurvesGeometry &dst, CurvesGeometry &src)
   std::swap(dst.runtime, src.runtime);
 }
 
-CurvesGeometry::CurvesGeometry(CurvesGeometry &&other)
-    : CurvesGeometry(other.point_num, other.curve_num)
+CurvesGeometry::CurvesGeometry(CurvesGeometry &&other) : CurvesGeometry()
 {
   move_curves_geometry(*this, other);
 }
