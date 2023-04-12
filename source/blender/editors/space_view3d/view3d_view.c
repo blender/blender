@@ -179,7 +179,8 @@ static void sync_viewport_camera_smoothview(bContext *C,
           if (other_v3d->camera == ob) {
             continue;
           }
-          if (v3d->scenelock) {
+          /* Checking the other view is needed to prevent local cameras being modified. */
+          if (v3d->scenelock && other_v3d->scenelock) {
             ListBase *lb = (space_link == area->spacedata.first) ? &area->regionbase :
                                                                    &space_link->regionbase;
             for (ARegion *other_region = lb->first; other_region != NULL;
