@@ -30,7 +30,6 @@ set(SRC
   intern/filter.c
   intern/format_bmp.cc
   intern/format_dds.cc
-  intern/format_dpx.cc
   intern/format_hdr.cc
   intern/format_png.cc
   intern/format_psd.cc
@@ -137,6 +136,9 @@ if(WITH_CODEC_FFMPEG)
 endif()
 
 if(WITH_IMAGE_CINEON)
+  list(APPEND SRC
+    intern/format_dpx.cc
+  )
   list(APPEND LIB
     bf_imbuf_cineon
   )

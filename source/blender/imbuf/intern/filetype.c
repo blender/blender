@@ -81,6 +81,7 @@ const ImFileType IMB_FILE_TYPES[] = {
         .filetype = IMB_FTYPE_IMAGIC,
         .default_save_role = COLOR_ROLE_DEFAULT_BYTE,
     },
+#ifdef WITH_CINEON
     {
         .init = NULL,
         .exit = NULL,
@@ -93,7 +94,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .filetype = IMB_FTYPE_DPX,
         .default_save_role = COLOR_ROLE_DEFAULT_FLOAT,
     },
-#ifdef WITH_CINEON
     {
         .init = NULL,
         .exit = NULL,
