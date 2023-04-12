@@ -11,6 +11,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "AS_asset_representation.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_fileops_types.h"
 #include "BLI_utildefines.h"
@@ -36,6 +38,7 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
+#include "ED_asset_handle.h"
 #include "ED_fileselect.h"
 #include "ED_screen.h"
 
@@ -111,6 +114,18 @@ static char *file_draw_tooltip_func(bContext * /*C*/, void *argN, const char * /
   return BLI_strdup(dyn_tooltip);
 }
 
+static char *file_draw_asset_tooltip_func(bContext * /*C*/, void *argN, const char * /*tip*/)
+{
+  const AssetRepresentation *asset = static_cast<AssetRepresentation *>(argN);
+  std::string complete_string = AS_asset_representation_name_get(asset);
+  const AssetMetaData &meta_data = *AS_asset_representation_metadata_get(asset);
+  if (meta_data.description) {
+    complete_string += '\n';
+    complete_string += meta_data.description;
+  }
+  return BLI_strdupn(complete_string.c_str(), complete_string.size());
+}
+
 static void draw_tile_background(const rcti *draw_rect, int colorid, int shade)
 {
   float color[4];
@@ -164,6 +179,7 @@ static void file_but_enable_drag(uiBut *but,
 static uiBut *file_add_icon_but(const SpaceFile *sfile,
                                 uiBlock *block,
                                 const char *path,
+                                const FileDirEntry *file,
                                 const rcti *tile_draw_rect,
                                 int icon,
                                 int width,
@@ -180,7 +196,13 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
   const float a2 = dimmed ? 0.3f : 0.0f;
   but = uiDefIconBut(
       block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, nullptr, 0.0f, 0.0f, a1, a2, nullptr);
-  UI_but_func_tooltip_set(but, file_draw_tooltip_func, BLI_strdup(path), MEM_freeN);
+
+  if (file->asset) {
+    UI_but_func_tooltip_set(but, file_draw_asset_tooltip_func, file->asset, nullptr);
+  }
+  else {
+    UI_but_func_tooltip_set(but, file_draw_tooltip_func, BLI_strdup(path), MEM_freeN);
+  }
 
   return but;
 }
@@ -314,6 +336,13 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
                         0,
                         nullptr);
   file_but_enable_drag(but, sfile, file, path, preview_image, icon, scale);
+
+  if (file->asset) {
+    UI_but_func_tooltip_set(but, file_draw_asset_tooltip_func, file->asset, nullptr);
+  }
+  else {
+    UI_but_func_tooltip_set(but, file_draw_tooltip_func, BLI_strdup(path), MEM_freeN);
+  }
 }
 
 static void file_draw_preview(const FileDirEntry *file,
@@ -1057,6 +1086,7 @@ void file_draw_list(const bContext *C, ARegion *region)
       uiBut *icon_but = file_add_icon_but(sfile,
                                           block,
                                           path,
+                                          file,
                                           &tile_draw_rect,
                                           icon,
                                           ICON_DEFAULT_WIDTH_SCALE,
