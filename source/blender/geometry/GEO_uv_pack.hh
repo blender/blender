@@ -75,6 +75,8 @@ class UVPackIsland_Params {
 class uv_phi;
 class PackIsland {
  public:
+  PackIsland();
+
   /** Aspect ratio, required for rotation. */
   float aspect_y;
   /** Output pre-translation. */
@@ -101,12 +103,15 @@ class PackIsland {
   float2 pivot_;
   /** Half of the diagonal of the AABB. */
   float2 half_diagonal_;
+  float pre_rotate_;
 
   void place_(const float scale, const uv_phi phi);
   void finalize_geometry_(const UVPackIsland_Params &params, MemArena *arena, Heap *heap);
 
  private:
-  void calculate_pivot(); /* Calculate `pivot_` and `half_diagonal_` based on added triangles. */
+  void calculate_pivot_(); /* Calculate `pivot_` and `half_diagonal_` based on added triangles. */
+  void calculate_pre_rotation_(const UVPackIsland_Params &params);
+
   blender::Vector<float2> triangle_vertices_;
   friend class Occupancy;
 };

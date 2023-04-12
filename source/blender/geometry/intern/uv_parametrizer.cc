@@ -4107,32 +4107,10 @@ void uv_parametrizer_stretch_end(ParamHandle *phandle)
   phandle->state = PHANDLE_STATE_CONSTRUCTED;
 }
 
-/* don't pack, just rotate (used for better packing) */
-static void GEO_uv_parametrizer_pack_rotate(ParamHandle *phandle, bool ignore_pinned)
-{
-  PChart *chart;
-  int i;
-
-  for (i = 0; i < phandle->ncharts; i++) {
-    chart = phandle->charts[i];
-
-    if (ignore_pinned && chart->has_pins) {
-      continue;
-    }
-
-    p_chart_rotate_fit_aabb(chart);
-  }
-}
-
 void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, bool ignore_pinned)
 {
   if (handle->ncharts == 0) {
     return;
-  }
-
-  /* this could be its own function */
-  if (do_rotate) {
-    GEO_uv_parametrizer_pack_rotate(handle, ignore_pinned);
   }
 
   uv_parametrizer_scale_x(handle, 1.0f / handle->aspect_y);
@@ -4153,7 +4131,6 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     geometry::PackIsland *pack_island = new geometry::PackIsland();
     pack_island->caller_index = i;
     pack_island->aspect_y = handle->aspect_y;
-    pack_island->angle = 0.0f;
 
     for (PFace *f = chart->faces; f; f = f->nextlink) {
       PVert *v0 = f->edge->vert;
@@ -4168,7 +4145,7 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
   float scale[2] = {1.0f, 1.0f};
   pack_islands(pack_island_vector, params, scale);
 
-  for (int64_t i : pack_island_vector.index_range()) {
+  for (const int64_t i : pack_island_vector.index_range()) {
     PackIsland *pack_island = pack_island_vector[i];
     PChart *chart = handle->charts[pack_island->caller_index];
 

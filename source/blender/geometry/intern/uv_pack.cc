@@ -89,6 +89,18 @@ static float dist_signed_squared_to_edge(float2 probe, float2 uva, float2 uvb)
   return numerator_ssq / edge_length_squared;
 }
 
+PackIsland::PackIsland()
+{
+  /* Initialize to the identity transform. */
+  aspect_y = 1.0f;
+  pre_translate = float2(0.0f);
+  angle = 0.0f;
+  caller_index = -31415927; /* Accidentally -pi */
+  pivot_ = float2(0.0f);
+  half_diagonal_ = float2(0.0f);
+  pre_rotate_ = 0.0f;
+}
+
 void PackIsland::add_triangle(const float2 uv0, const float2 uv1, const float2 uv2)
 {
   /* Be careful with winding. */
@@ -140,15 +152,94 @@ void PackIsland::add_polygon(const blender::Span<float2> uvs, MemArena *arena, H
   BLI_heap_clear(heap, nullptr);
 }
 
+/** Angle rounding helper for "D4" transforms.  */
+static float angle_match(float angle_radians, float target_radians)
+{
+  if (fabsf(angle_radians - target_radians) < DEG2RADF(0.1f)) {
+    return target_radians;
+  }
+  return angle_radians;
+}
+
+/** Angle rounding helper for "D4" transforms.  */
+static float plusminus_90_angle(float angle_radians)
+{
+  angle_radians = angle_radians - floorf((angle_radians + M_PI_2) / M_PI) * M_PI;
+
+  angle_radians = angle_match(angle_radians, DEG2RADF(-90.0f));
+  angle_radians = angle_match(angle_radians, DEG2RADF(0.0f));
+  angle_radians = angle_match(angle_radians, DEG2RADF(90.0f));
+  BLI_assert(DEG2RADF(-90.0f) <= angle_radians);
+  BLI_assert(angle_radians <= DEG2RADF(90.0f));
+  return angle_radians;
+}
+
+void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
+{
+  pre_rotate_ = 0.0f;
+  if (!params.rotate) {
+    return; /* Nothing to do. */
+  }
+
+  /* As a heuristic to improve layout efficiency, #PackIsland's are first rotated by an arbitrary
+   * angle to minimize the area of the enclosing AABB. This angle is stored in the `pre_rotate_`
+   * member. The different packing strategies will later rotate the island further, stored in the
+   * `angle_` member.
+   *
+   * As AABBs are symmetric, we only need to consider `-90 <= pre_rotate_ <= 90`.
+   * As a further heuristic, we "stand up" the AABBs so they are "tall" rather than "wide". */
+
+  /* TODO: Use "Rotating Calipers" directly. */
+  {
+    blender::Array<float2> coords(triangle_vertices_.size());
+    for (const int64_t i : triangle_vertices_.index_range()) {
+      coords[i].x = triangle_vertices_[i].x * aspect_y;
+      coords[i].y = triangle_vertices_[i].y;
+    }
+
+    const float(*source)[2] = reinterpret_cast<const float(*)[2]>(coords.data());
+    float angle = -BLI_convexhull_aabb_fit_points_2d(source, (int)coords.size());
+
+    if (1) {
+      /* "Stand-up" islands. */
+
+      float matrix[2][2];
+      angle_to_mat2(matrix, -angle);
+      for (const int64_t i : coords.index_range()) {
+        mul_m2_v2(matrix, coords[i]);
+      }
+
+      Bounds<float2> island_bounds = *bounds::min_max(coords.as_span());
+      float2 diagonal = island_bounds.max - island_bounds.min;
+      if (diagonal.y < diagonal.x) {
+        angle += DEG2RADF(90.0f);
+      }
+    }
+    pre_rotate_ = plusminus_90_angle(angle);
+  }
+  if (!pre_rotate_) {
+    return;
+  }
+
+  /* Pre-Rotate `triangle_vertices_`. */
+  float matrix[2][2];
+  build_transformation(1.0f, pre_rotate_, matrix);
+  for (const int64_t i : triangle_vertices_.index_range()) {
+    mul_m2_v2(matrix, triangle_vertices_[i]);
+  }
+}
+
 void PackIsland::finalize_geometry_(const UVPackIsland_Params &params, MemArena *arena, Heap *heap)
 {
   BLI_assert(triangle_vertices_.size() >= 3);
+
+  calculate_pre_rotation_(params);
 
   const eUVPackIsland_ShapeMethod shape_method = params.shape_method;
   if (shape_method == ED_UVPACK_SHAPE_CONVEX) {
     /* Compute convex hull of existing triangles. */
     if (triangle_vertices_.size() <= 3) {
-      calculate_pivot();
+      calculate_pivot_();
       return; /* Trivial case, calculate pivot only. */
     }
 
@@ -174,10 +265,10 @@ void PackIsland::finalize_geometry_(const UVPackIsland_Params &params, MemArena 
 
     BLI_heap_clear(heap, nullptr);
   }
-  calculate_pivot();
+  calculate_pivot_();
 }
 
-void PackIsland::calculate_pivot()
+void PackIsland::calculate_pivot_()
 {
   /* `pivot_` is calculated as the center of the AABB,
    * However `pivot_` cannot be outside of the convex hull. */
@@ -188,12 +279,17 @@ void PackIsland::calculate_pivot()
 
 void PackIsland::place_(const float scale, const uv_phi phi)
 {
-  angle = phi.rotation;
+  angle = phi.rotation + pre_rotate_;
 
   float matrix_inverse[2][2];
   build_inverse_transformation(scale, phi.rotation, matrix_inverse);
   mul_v2_m2v2(pre_translate, matrix_inverse, phi.translation);
   pre_translate -= pivot_;
+
+  if (pre_rotate_) {
+    build_inverse_transformation(1.0f, pre_rotate_, matrix_inverse);
+    mul_m2_v2(matrix_inverse, pre_translate);
+  }
 }
 
 UVPackIsland_Params::UVPackIsland_Params()
