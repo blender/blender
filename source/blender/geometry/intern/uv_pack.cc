@@ -301,6 +301,7 @@ UVPackIsland_Params::UVPackIsland_Params()
   correct_aspect = false;
   ignore_pinned = false;
   pin_unselected = false;
+  merge_overlap = false;
   margin = 0.001f;
   margin_method = ED_UVPACK_MARGIN_SCALED;
   udim_base_offset[0] = 0.0f;
@@ -1216,6 +1217,124 @@ static float calc_margin_from_aabb_length_sum(const Span<PackIsland *> &island_v
  *
  * \{ */
 
+static bool overlap_aabb(const float2 &pivot_a,
+                         const float2 &half_diagonal_a,
+                         const float2 &pivot_b,
+                         const float2 &half_diagonal_b)
+{
+  if (pivot_a.x + half_diagonal_a.x <= pivot_b.x - half_diagonal_b.x) {
+    return false;
+  }
+  if (pivot_a.y + half_diagonal_a.y <= pivot_b.y - half_diagonal_b.y) {
+    return false;
+  }
+  if (pivot_b.x + half_diagonal_b.x <= pivot_a.x - half_diagonal_a.x) {
+    return false;
+  }
+  if (pivot_b.y + half_diagonal_b.y <= pivot_a.y - half_diagonal_a.y) {
+    return false;
+  }
+  return true;
+}
+
+class OverlapMerger {
+ public:
+  static bool overlap(PackIsland *a, PackIsland *b)
+  {
+    if (a->aspect_y != b->aspect_y) {
+      return false; /* Cannot merge islands with different aspect ratios. */
+    }
+    if (!overlap_aabb(a->pivot_, a->half_diagonal_, b->pivot_, b->half_diagonal_)) {
+      return false; /* AABBs are disjoint => islands are separate. */
+    }
+    for (int i = 0; i < a->triangle_vertices_.size(); i += 3) {
+      for (int j = 0; j < b->triangle_vertices_.size(); j += 3) {
+        if (isect_tri_tri_v2(a->triangle_vertices_[i + 0],
+                             a->triangle_vertices_[i + 1],
+                             a->triangle_vertices_[i + 2],
+                             b->triangle_vertices_[j + 0],
+                             b->triangle_vertices_[j + 1],
+                             b->triangle_vertices_[j + 2])) {
+          return true; /* Two triangles overlap => islands overlap. */
+        }
+      }
+    }
+
+    return false; /* Separate. */
+  }
+
+  static void add_geometry(PackIsland *dest, const PackIsland *source)
+  {
+    for (int64_t i = 0; i < source->triangle_vertices_.size(); i += 3) {
+      dest->add_triangle(source->triangle_vertices_[i],
+                         source->triangle_vertices_[i + 1],
+                         source->triangle_vertices_[i + 2]);
+    }
+  }
+
+  /** Return a new root of the binary tree, with `a` and `b` as leaves. */
+  static PackIsland *merge_islands(PackIsland *a, PackIsland *b, const UVPackIsland_Params &params)
+  {
+    PackIsland *result = new PackIsland();
+    result->aspect_y = sqrtf(a->aspect_y * b->aspect_y);
+    result->caller_index = -1;
+    add_geometry(result, a);
+    add_geometry(result, b);
+    result->calculate_pivot_();
+    return result;
+  }
+
+  static void pack_islands_overlap(const Span<PackIsland *> &islands,
+                                   const UVPackIsland_Params &params,
+                                   float r_scale[2])
+  {
+
+    /* Building the binary-tree of merges is complicated to do in a single pass if we proceed in
+     * the forward order. Instead we'll continuously update the tree as we descend, with
+     * `sub_islands` doing the work of our stack. See #merge_islands for details.
+     *
+     * Technically, performance is O(n^2). In practice, should be fast enough. */
+
+    blender::Vector<PackIsland *> sub_islands; /* Pack these islands instead. */
+    blender::Vector<PackIsland *> merge_trace; /* Trace merge information. */
+    for (const int64_t i : islands.index_range()) {
+      PackIsland *island = islands[i];
+      island->calculate_pivot_();
+
+      /* Loop backwards, building a binary tree of all merged islands as we descend. */
+      for (int64_t j = sub_islands.size() - 1; j >= 0; j--) {
+        if (overlap(island, sub_islands[j])) {
+          merge_trace.append(island);
+          merge_trace.append(sub_islands[j]);
+          island = merge_islands(island, sub_islands[j], params);
+          merge_trace.append(island);
+          sub_islands.remove(j);
+        }
+      }
+      sub_islands.append(island);
+    }
+
+    /* Recursively call pack_islands with `merge_overlap = false`. */
+    UVPackIsland_Params sub_params(params);
+    sub_params.merge_overlap = false;
+    pack_islands(sub_islands, sub_params, r_scale);
+
+    /* Must loop backwards! */
+    for (int64_t i = merge_trace.size() - 3; i >= 0; i -= 3) {
+      PackIsland *sub_a = merge_trace[i];
+      PackIsland *sub_b = merge_trace[i + 1];
+      PackIsland *merge = merge_trace[i + 2];
+      sub_a->angle = merge->angle;
+      sub_b->angle = merge->angle;
+      sub_a->pre_translate = merge->pre_translate;
+      sub_b->pre_translate = merge->pre_translate;
+      sub_a->pre_rotate_ = merge->pre_rotate_;
+      sub_b->pre_rotate_ = merge->pre_rotate_;
+      delete merge;
+    }
+  }
+};
+
 static void finalize_geometry(const Span<PackIsland *> &islands, const UVPackIsland_Params &params)
 {
   MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
@@ -1233,7 +1352,12 @@ void pack_islands(const Span<PackIsland *> &islands,
                   const UVPackIsland_Params &params,
                   float r_scale[2])
 {
+  if (params.merge_overlap) {
+    return OverlapMerger::pack_islands_overlap(islands, params, r_scale);
+  }
+
   finalize_geometry(islands, params);
+
   if (params.margin == 0.0f) {
     /* Special case for zero margin. Margin_method is ignored as all formulas give same result. */
     const float max_uv = pack_islands_scale_margin(islands, 1.0f, 0.0f, params);

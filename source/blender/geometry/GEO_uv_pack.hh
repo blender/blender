@@ -60,6 +60,8 @@ class UVPackIsland_Params {
   bool ignore_pinned;
   /** Treat unselected UVs as if they were pinned. */
   bool pin_unselected;
+  /** Overlapping islands stick together. */
+  bool merge_overlap;
   /** Additional space to add around each island. */
   float margin;
   /** Which formula to use when scaling island margin. */
@@ -114,6 +116,7 @@ class PackIsland {
 
   blender::Vector<float2> triangle_vertices_;
   friend class Occupancy;
+  friend class OverlapMerger;
 };
 
 void pack_islands(const Span<PackIsland *> &islands,
