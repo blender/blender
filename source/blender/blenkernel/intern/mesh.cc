@@ -278,7 +278,6 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
       MutableSpan<MPoly> legacy_polys = BKE_mesh_legacy_convert_offsets_to_polys(
           mesh, temp_arrays_for_legacy_format, poly_layers);
-      mesh->poly_offset_indices = nullptr;
 
       BKE_mesh_legacy_convert_hide_layers_to_flags(mesh, legacy_polys);
       BKE_mesh_legacy_convert_selection_layers_to_flags(mesh, legacy_polys);
@@ -292,6 +291,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       mesh->active_color_attribute = nullptr;
       mesh->default_color_attribute = nullptr;
       BKE_mesh_legacy_convert_loose_edges_to_flag(mesh);
+      mesh->poly_offset_indices = nullptr;
 
       /* Set deprecated mesh data pointers for forward compatibility. */
       mesh->medge = const_cast<MEdge *>(mesh->edges().data());

@@ -98,9 +98,13 @@ static void rna_generate_static_parameter_prototypes(FILE *f,
   } \
   (void)0
 
+/**
+ * \return 1 when the file was renamed, 0 when no action was taken, -1 on error.
+ */
 static int replace_if_different(const char *tmpfile, const char *dep_files[])
 {
-  /* return 0; */ /* use for testing had edited rna */
+  /* Use for testing hand edited `rna_*_gen.c` files. */
+  // return 0;
 
 #define REN_IF_DIFF \
   { \
@@ -124,9 +128,9 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
     return -1; \
   } \
   remove(tmpfile); \
-  return 1
-
-  /* end REN_IF_DIFF */
+  return 1; \
+  ((void)0)
+  /* End `REN_IF_DIFF`. */
 
   FILE *fp_new = NULL, *fp_org = NULL;
   int len_new, len_org;
@@ -136,7 +140,7 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
   char orgfile[4096];
 
   strcpy(orgfile, tmpfile);
-  orgfile[strlen(orgfile) - strlen(TMP_EXT)] = '\0'; /* strip '.tmp' */
+  orgfile[strlen(orgfile) - strlen(TMP_EXT)] = '\0'; /* Strip `.tmp`. */
 
   fp_org = fopen(orgfile, "rb");
 
@@ -144,12 +148,17 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
     REN_IF_DIFF;
   }
 
-  /* XXX, trick to work around dependency problem
-   * assumes dep_files is in the same dir as makesrna.c, which is true for now. */
+  /* NOTE(@ideasman42): trick to work around dependency problem.
+   * The issue is as follows: When `makesrna.c` or any of the `rna_*.c` files being newer than
+   * their generated output, the build-system detects that the `rna_*_gen.c` file is out-dated and
+   * requests the `rna_*_gen.c` files are re-generated (even if this function always returns 0).
+   * It happens *every* rebuild, slowing incremental builds which isn't practical for development.
+   *
+   * This is only an issue for `Unix Makefiles`, `Ninja` generator doesn't have this problem. */
 
   if (1) {
-    /* first check if makesrna.c is newer than generated files
-     * for development on makesrna.c you may want to disable this */
+    /* First check if `makesrna.c` is newer than generated files.
+     * For development on `makesrna.c` you may want to disable this. */
     if (file_older(orgfile, __FILE__)) {
       REN_IF_DIFF;
     }
@@ -158,18 +167,18 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
       REN_IF_DIFF;
     }
 
-    /* now check if any files we depend on are newer than any generated files */
+    /* Now check if any files we depend on are newer than any generated files. */
     if (dep_files) {
       int pass;
       for (pass = 0; dep_files[pass]; pass++) {
         const char from_path[4096] = __FILE__;
         char *p1, *p2;
 
-        /* dir only */
+        /* Only the directory (base-name). */
         p1 = strrchr(from_path, '/');
         p2 = strrchr(from_path, '\\');
         strcpy((p1 > p2 ? p1 : p2) + 1, dep_files[pass]);
-        /* account for build deps, if makesrna.c (this file) is newer */
+        /* Account for build dependencies, if `makesrna.c` (this file) is newer. */
         if (file_older(orgfile, from_path)) {
           REN_IF_DIFF;
         }
@@ -181,7 +190,7 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
   fp_new = fopen(tmpfile, "rb");
 
   if (fp_new == NULL) {
-    /* shouldn't happen, just to be safe */
+    /* Shouldn't happen, just to be safe. */
     CLOG_ERROR(&LOG, "open error: \"%s\"", tmpfile);
     fclose(fp_org);
     return -1;
@@ -202,7 +211,7 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
     REN_IF_DIFF;
   }
 
-  /* now compare the files... */
+  /* Now compare the files: */
   arr_new = MEM_mallocN(sizeof(char) * len_new, "rna_cmp_file_new");
   arr_org = MEM_mallocN(sizeof(char) * len_org, "rna_cmp_file_org");
 
@@ -232,7 +241,7 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
 #undef REN_IF_DIFF
 }
 
-/* Helper to solve keyword problems with C/C++ */
+/* Helper to solve keyword problems with C/C++. */
 
 static const char *rna_safe_id(const char *id)
 {

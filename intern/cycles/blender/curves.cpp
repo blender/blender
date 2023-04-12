@@ -921,7 +921,7 @@ static void export_hair_curves(Scene *scene,
     std::copy(b_attr_radius, b_attr_radius + num_keys, curve_radius);
   }
   else {
-    std::fill(curve_radius, curve_radius + num_curves, 0.005f);
+    std::fill(curve_radius, curve_radius + num_keys, 0.005f);
   }
 
   /* Export curves and points. */

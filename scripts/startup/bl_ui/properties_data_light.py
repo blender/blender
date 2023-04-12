@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 import bpy
+from bpy.app.translations import contexts as i18n_contexts
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
@@ -89,7 +90,7 @@ class DATA_PT_EEVEE_light(DataButtonsPanel, Panel):
 
         col.prop(light, "diffuse_factor", text="Diffuse")
         col.prop(light, "specular_factor", text="Specular")
-        col.prop(light, "volume_factor", text="Volume")
+        col.prop(light, "volume_factor", text="Volume", text_ctxt=i18n_contexts.id_id)
 
         col.separator()
 

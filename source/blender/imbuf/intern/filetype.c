@@ -20,10 +20,6 @@
 #  include "openexr/openexr_api.h"
 #endif
 
-#ifdef WITH_DDS
-#  include "dds/dds_api.h"
-#endif
-
 const ImFileType IMB_FILE_TYPES[] = {
     {
         .init = NULL,
@@ -41,10 +37,10 @@ const ImFileType IMB_FILE_TYPES[] = {
         .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_png,
-        .load = imb_loadpng,
+        .load = imb_load_png,
         .load_filepath = NULL,
         .load_filepath_thumbnail = NULL,
-        .save = imb_savepng,
+        .save = imb_save_png,
         .flag = 0,
         .filetype = IMB_FTYPE_PNG,
         .default_save_role = COLOR_ROLE_DEFAULT_BYTE,
@@ -53,10 +49,10 @@ const ImFileType IMB_FILE_TYPES[] = {
         .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_bmp,
-        .load = imb_bmp_decode,
+        .load = imb_load_bmp,
         .load_filepath = NULL,
         .load_filepath_thumbnail = NULL,
-        .save = imb_savebmp,
+        .save = imb_save_bmp,
         .flag = 0,
         .filetype = IMB_FTYPE_BMP,
         .default_save_role = COLOR_ROLE_DEFAULT_BYTE,
@@ -64,11 +60,11 @@ const ImFileType IMB_FILE_TYPES[] = {
     {
         .init = NULL,
         .exit = NULL,
-        .is_a = imb_is_a_targa,
-        .load = imb_loadtarga,
+        .is_a = imb_is_a_tga,
+        .load = imb_load_tga,
         .load_filepath = NULL,
         .load_filepath_thumbnail = NULL,
-        .save = imb_savetarga,
+        .save = imb_save_tga,
         .flag = 0,
         .filetype = IMB_FTYPE_TGA,
         .default_save_role = COLOR_ROLE_DEFAULT_BYTE,
@@ -111,34 +107,30 @@ const ImFileType IMB_FILE_TYPES[] = {
         .default_save_role = COLOR_ROLE_DEFAULT_FLOAT,
     },
 #endif
-#ifdef WITH_TIFF
     {
-        .init = imb_inittiff,
+        .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_tiff,
-        .load = imb_loadtiff,
+        .load = imb_load_tiff,
         .load_filepath = NULL,
         .load_filepath_thumbnail = NULL,
-        .save = imb_savetiff,
+        .save = imb_save_tiff,
         .flag = 0,
         .filetype = IMB_FTYPE_TIF,
         .default_save_role = COLOR_ROLE_DEFAULT_BYTE,
     },
-#endif
-#ifdef WITH_HDR
     {
         .init = NULL,
         .exit = NULL,
         .is_a = imb_is_a_hdr,
-        .load = imb_loadhdr,
+        .load = imb_load_hdr,
         .load_filepath = NULL,
         .load_filepath_thumbnail = NULL,
-        .save = imb_savehdr,
+        .save = imb_save_hdr,
         .flag = IM_FTYPE_FLOAT,
         .filetype = IMB_FTYPE_RADHDR,
         .default_save_role = COLOR_ROLE_DEFAULT_FLOAT,
     },
-#endif
 #ifdef WITH_OPENEXR
     {
         .init = imb_initopenexr,
@@ -167,7 +159,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .default_save_role = COLOR_ROLE_DEFAULT_BYTE,
     },
 #endif
-#ifdef WITH_DDS
     {
         .init = NULL,
         .exit = NULL,
@@ -180,7 +171,6 @@ const ImFileType IMB_FILE_TYPES[] = {
         .filetype = IMB_FTYPE_DDS,
         .default_save_role = COLOR_ROLE_DEFAULT_BYTE,
     },
-#endif
     {
         .init = NULL,
         .exit = NULL,

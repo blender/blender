@@ -49,7 +49,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(32)
       .min(2);
 
-  b.add_output<decl::Geometry>(N_("Volume"));
+  b.add_output<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
+      .translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static float map(const float x,

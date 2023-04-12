@@ -63,20 +63,14 @@ enum eImbFileType {
 #ifdef WITH_OPENJPEG
   IMB_FTYPE_JP2 = 8,
 #endif
-#ifdef WITH_HDR
   IMB_FTYPE_RADHDR = 9,
-#endif
-#ifdef WITH_TIFF
   IMB_FTYPE_TIF = 10,
-#endif
 #ifdef WITH_CINEON
   IMB_FTYPE_CINEON = 11,
   IMB_FTYPE_DPX = 12,
 #endif
 
-#ifdef WITH_DDS
   IMB_FTYPE_DDS = 13,
-#endif
 #ifdef WITH_WEBP
   IMB_FTYPE_WEBP = 14,
 #endif
@@ -113,13 +107,11 @@ enum eImbFileType {
 
 #define RAWTGA 1
 
-#ifdef WITH_TIFF
-#  define TIF_16BIT (1 << 8)
-#  define TIF_COMPRESS_NONE (1 << 7)
-#  define TIF_COMPRESS_DEFLATE (1 << 6)
-#  define TIF_COMPRESS_LZW (1 << 5)
-#  define TIF_COMPRESS_PACKBITS (1 << 4)
-#endif
+#define TIF_16BIT (1 << 8)
+#define TIF_COMPRESS_NONE (1 << 7)
+#define TIF_COMPRESS_DEFLATE (1 << 6)
+#define TIF_COMPRESS_LZW (1 << 5)
+#define TIF_COMPRESS_PACKBITS (1 << 4)
 
 typedef struct ImbFormatOptions {
   short flag;
@@ -295,25 +287,24 @@ enum {
 /** \} */
 
 /* dds */
-#ifdef WITH_DDS
-#  ifndef DDS_MAKEFOURCC
-#    define DDS_MAKEFOURCC(ch0, ch1, ch2, ch3) \
-      ((unsigned long)(unsigned char)(ch0) | ((unsigned long)(unsigned char)(ch1) << 8) | \
-       ((unsigned long)(unsigned char)(ch2) << 16) | ((unsigned long)(unsigned char)(ch3) << 24))
-#  endif /* DDS_MAKEFOURCC */
+#ifndef DDS_MAKEFOURCC
+#  define DDS_MAKEFOURCC(ch0, ch1, ch2, ch3) \
+    ((unsigned long)(unsigned char)(ch0) | ((unsigned long)(unsigned char)(ch1) << 8) | \
+     ((unsigned long)(unsigned char)(ch2) << 16) | ((unsigned long)(unsigned char)(ch3) << 24))
+#endif /* DDS_MAKEFOURCC */
 
 /*
  * FOURCC codes for DX compressed-texture pixel formats.
  */
 
-#  define FOURCC_DDS (DDS_MAKEFOURCC('D', 'D', 'S', ' '))
-#  define FOURCC_DXT1 (DDS_MAKEFOURCC('D', 'X', 'T', '1'))
-#  define FOURCC_DXT2 (DDS_MAKEFOURCC('D', 'X', 'T', '2'))
-#  define FOURCC_DXT3 (DDS_MAKEFOURCC('D', 'X', 'T', '3'))
-#  define FOURCC_DXT4 (DDS_MAKEFOURCC('D', 'X', 'T', '4'))
-#  define FOURCC_DXT5 (DDS_MAKEFOURCC('D', 'X', 'T', '5'))
+#define FOURCC_DDS (DDS_MAKEFOURCC('D', 'D', 'S', ' '))
+#define FOURCC_DX10 (DDS_MAKEFOURCC('D', 'X', '1', '0'))
+#define FOURCC_DXT1 (DDS_MAKEFOURCC('D', 'X', 'T', '1'))
+#define FOURCC_DXT2 (DDS_MAKEFOURCC('D', 'X', 'T', '2'))
+#define FOURCC_DXT3 (DDS_MAKEFOURCC('D', 'X', 'T', '3'))
+#define FOURCC_DXT4 (DDS_MAKEFOURCC('D', 'X', 'T', '4'))
+#define FOURCC_DXT5 (DDS_MAKEFOURCC('D', 'X', 'T', '5'))
 
-#endif /* DDS */
 extern const char *imb_ext_image[];
 extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];

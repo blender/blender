@@ -738,10 +738,6 @@ if(WITH_MOD_FLUID)
   add_definitions(-DWITH_FLUID)
 endif()
 
-if(WITH_IMAGE_DDS)
-  add_definitions(-DWITH_DDS)
-endif()
-
 if(WITH_OPENCOLORIO)
   add_definitions(-DWITH_OCIO)
 endif()

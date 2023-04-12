@@ -868,7 +868,6 @@ class CLIP_OT_setup_tracking_scene(Operator):
         mesh.polygons.add(nbr_polys)
 
         mesh.polygons.foreach_set("loop_start", range(0, nbr_loops, 4))
-        mesh.polygons.foreach_set("loop_total", (4,) * nbr_polys)
         mesh.loops.foreach_set("vertex_index", faces)
 
         mesh.update()

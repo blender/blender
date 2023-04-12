@@ -242,7 +242,6 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
 
         mesh.vertices.foreach_set("co", verts_loc)
         mesh.polygons.foreach_set("loop_start", range(0, nbr_loops, 4))
-        mesh.polygons.foreach_set("loop_total", (4,) * nbr_polys)
         mesh.loops.foreach_set("vertex_index", faces)
 
         if self.generate_uvs:

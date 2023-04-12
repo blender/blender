@@ -27,7 +27,9 @@ NODE_STORAGE_FUNCS(NodeGeometryVolumeToMesh)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Volume")).supported_type(GEO_COMPONENT_TYPE_VOLUME);
+  b.add_input<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
+      .translation_context(BLT_I18NCONTEXT_ID_ID)
+      .supported_type(GEO_COMPONENT_TYPE_VOLUME);
   b.add_input<decl::Float>(N_("Voxel Size"))
       .default_value(0.3f)
       .min(0.01f)

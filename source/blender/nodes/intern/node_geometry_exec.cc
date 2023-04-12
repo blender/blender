@@ -114,7 +114,7 @@ void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
         break;
       }
       case GEO_COMPONENT_TYPE_VOLUME: {
-        message += TIP_("Volume");
+        message += CTX_TIP_(BLT_I18NCONTEXT_ID_ID, "Volume");
         break;
       }
       case GEO_COMPONENT_TYPE_CURVE: {

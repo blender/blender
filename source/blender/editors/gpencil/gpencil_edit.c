@@ -1714,7 +1714,7 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
          *       doesn't exist already depending on REC button status.
          */
 
-        /* Multiframe paste. */
+        /* Multi-frame paste. */
         if (is_multiedit) {
           for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
             /* Active frame is copied later, so don't need duplicate the stroke here. */

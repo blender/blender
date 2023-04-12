@@ -690,34 +690,34 @@ class GlareOperation : public NodeOperation {
    * Fog Glow Glare.
    * --------------- */
 
-  /* Fog glow is computed by first progressively half-downsampling the highlights down to a certain
-   * size, then progressively double-upsampling the last downsampled result up to the original size
-   * of the highlights, adding the downsampled result of the same size in each upsampling step.
-   * This can be illustrated as follows:
+  /* Fog glow is computed by first progressively half-down-sampling the highlights down to a
+   * certain size, then progressively double-up-sampling the last down-sampled result up to the
+   * original size of the highlights, adding the down-sampled result of the same size in each
+   * up-sampling step. This can be illustrated as follows:
    *
-   *              Highlights  ---+---> Fog Glare
+   *             Highlights   ---+---> Fog Glare
    *                  |                   |
-   *              Downsampled ---+---> Upsampled
+   *             Down-sampled ---+---> Up-sampled
    *                  |                   |
-   *              Downsampled ---+---> Upsampled
+   *             Down-sampled ---+---> Up-sampled
    *                  |                   |
-   *              Downsampled ---+---> Upsampled
+   *             Down-sampled ---+---> Up-sampled
    *                  |                   ^
    *                 ...                  |
-   *              Downsampled ------------'
+   *            Down-sampled  ------------'
    *
-   * The smooth downsampling followed by smooth upsampling can be thought of as a cheap way to
-   * approximate a large radius blur, and adding the corresponding downsampled result while
-   * upsampling is done to counter the attenuation that happens during downsampling.
+   * The smooth down-sampling followed by smooth up-sampling can be thought of as a cheap way to
+   * approximate a large radius blur, and adding the corresponding down-sampled result while
+   * up-sampling is done to counter the attenuation that happens during down-sampling.
    *
-   * Smaller downsampled results contribute to larger glare size, so controlling the size can be
-   * done by stopping downsampling down to a certain size, where the maximum possible size is
-   * achieved when downsampling happens down to the smallest size of 2. */
+   * Smaller down-sampled results contribute to larger glare size, so controlling the size can be
+   * done by stopping down-sampling down to a certain size, where the maximum possible size is
+   * achieved when down-sampling happens down to the smallest size of 2. */
   Result execute_fog_glow(Result &highlights_result)
   {
-    /* The maximum possible glare size is achieved when we downsampled down to the smallest size of
-     * 2, which would result in a downsampling chain length of the binary logarithm of the smaller
-     * dimension of the size of the highlights.
+    /* The maximum possible glare size is achieved when we down-sampled down to the smallest size
+     * of 2, which would result in a down-sampling chain length of the binary logarithm of the
+     * smaller dimension of the size of the highlights.
      *
      * However, as users might want a smaller glare size, we reduce the chain length by the halving
      * count supplied by the user. */
@@ -729,7 +729,7 @@ class GlareOperation : public NodeOperation {
     Array<Result> downsample_chain = compute_fog_glow_downsample_chain(highlights_result,
                                                                        chain_length);
 
-    /* Notice that for a chain length of n, we need (n - 1) upsampling passes. */
+    /* Notice that for a chain length of n, we need (n - 1) up-sampling passes. */
     const IndexRange upsample_passes_range(chain_length - 1);
     GPUShader *shader = shader_manager().get("compositor_glare_fog_glow_upsample");
     GPU_shader_bind(shader);
@@ -754,11 +754,12 @@ class GlareOperation : public NodeOperation {
     return downsample_chain[0];
   }
 
-  /* Progressively downsample the given result into a result with half the size for the given chain
-   * length, returning an array containing the chain of downsampled results. The first result of
-   * the chain is the given result itself for easier handling. The chain length is expected not
-   * to exceed the binary logarithm of the smaller dimension of the given result, because that
-   * would result in downsampling passes that produce useless textures with just one pixel. */
+  /* Progressively down-sample the given result into a result with half the size for the given
+   * chain length, returning an array containing the chain of down-sampled results. The first
+   * result of the chain is the given result itself for easier handling. The chain length is
+   * expected not to exceed the binary logarithm of the smaller dimension of the given result,
+   * because that would result in down-sampling passes that produce useless textures with just
+   * one pixel. */
   Array<Result> compute_fog_glow_downsample_chain(Result &highlights_result, int chain_length)
   {
     const Result downsampled_result = Result::Temporary(ResultType::Color, texture_pool());
@@ -772,9 +773,9 @@ class GlareOperation : public NodeOperation {
 
     GPUShader *shader;
     for (const int i : downsample_passes_range) {
-      /* For the first downsample pass, we use a special "Karis" downsample pass that applies a
+      /* For the first down-sample pass, we use a special "Karis" down-sample pass that applies a
        * form of local tone mapping to reduce the contributions of fireflies, see the shader for
-       * more information. Later passes use a simple average downsampling filter because fireflies
+       * more information. Later passes use a simple average down-sampling filter because fireflies
        * doesn't service the first pass. */
       if (i == downsample_passes_range.first()) {
         shader = shader_manager().get("compositor_glare_fog_glow_downsample_karis_average");

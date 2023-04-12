@@ -173,11 +173,16 @@ int BLI_wcwidth(char32_t ucs) ATTR_WARN_UNUSED_RESULT;
 int BLI_wcswidth(const char32_t *pwcs, size_t n) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /**
- * Upper and lowercase for 32-bit characters for all scripts that distinguish case. One-to-one
- * mappings so this doesn't work corectly for uppercase Σ (two lowercase forms) and lowercase ß
- * won't become "SS".
+ * Return the uppercase of a 32-bit character or the character when no case change is needed.
+ *
+ * \note A 1:1 mapping doesn't account for multiple characters as part of conversion in some cases.
  */
 char32_t BLI_str_utf32_char_to_upper(char32_t wc);
+/**
+ * Return the lowercase of a 32-bit character or the character when no case change is needed.
+ *
+ * \note A 1:1 mapping doesn't account for multiple characters as part of conversion in some cases.
+ */
 char32_t BLI_str_utf32_char_to_lower(char32_t wc);
 
 /**

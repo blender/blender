@@ -592,6 +592,7 @@ class NODE_MT_category_GEO_VECTOR(Menu):
 class NODE_MT_category_GEO_VOLUME(Menu):
     bl_idname = "NODE_MT_category_GEO_VOLUME"
     bl_label = "Volume"
+    bl_translation_context = i18n_contexts.id_id
 
     def draw(self, context):
         layout = self.layout

@@ -41,26 +41,18 @@
 #define UTIL_DEBUG 0
 
 const char *imb_ext_image[] = {
-    ".png",  ".tga",  ".bmp", ".jpg", ".jpeg", ".sgi", ".rgb", ".rgba",
-#ifdef WITH_TIFF
-    ".tif",  ".tiff", ".tx",
-#endif
+    ".png",  ".tga", ".bmp", ".jpg", ".jpeg", ".sgi", ".rgb", ".rgba", ".tif", ".tiff", ".tx",
 #ifdef WITH_OPENJPEG
     ".jp2",  ".j2c",
 #endif
-#ifdef WITH_HDR
-    ".hdr",
-#endif
-#ifdef WITH_DDS
-    ".dds",
-#endif
+    ".hdr",  ".dds",
 #ifdef WITH_CINEON
     ".dpx",  ".cin",
 #endif
 #ifdef WITH_OPENEXR
     ".exr",
 #endif
-    ".psd",  ".pdd",  ".psb",
+    ".psd",  ".pdd", ".psb",
 #ifdef WITH_WEBP
     ".webp",
 #endif
