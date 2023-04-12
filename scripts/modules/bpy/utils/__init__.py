@@ -355,7 +355,7 @@ def script_paths(*, subdir=None, user_pref=True, check_all=False, use_user=True)
 
     :arg subdir: Optional subdir.
     :type subdir: string
-    :arg user_pref: Include the user preference script path.
+    :arg user_pref: Include the user preference script paths.
     :type user_pref: bool
     :arg check_all: Include local, user and system paths rather just the paths Blender uses.
     :type check_all: bool
@@ -386,6 +386,9 @@ def script_paths(*, subdir=None, user_pref=True, check_all=False, use_user=True)
     if not check_all:
         if use_user:
             base_paths.append(path_user)
+
+    if user_pref:
+        base_paths.extend(script_paths_pref())
 
     scripts = []
     for path in base_paths:
