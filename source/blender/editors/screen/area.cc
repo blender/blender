@@ -1254,7 +1254,9 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
                RGN_TYPE_UI,
                RGN_TYPE_TOOL_PROPS,
                RGN_TYPE_FOOTER,
-               RGN_TYPE_TOOL_HEADER)) {
+               RGN_TYPE_TOOL_HEADER,
+               RGN_TYPE_ASSET_SHELF,
+               RGN_TYPE_ASSET_SHELF_FOOTER)) {
         return true;
       }
     }
@@ -2657,12 +2659,9 @@ static ThemeColorID region_background_color_id(const bContext *C, const ARegion 
   }
 }
 
-static void region_clear_color(const bContext *C, const ARegion *region, ThemeColorID colorid)
+void ED_region_clear(const bContext *C, const ARegion *region, const int /*ThemeColorID*/ colorid)
 {
-  if (region->alignment == RGN_ALIGN_FLOAT) {
-    /* handle our own drawing. */
-  }
-  else if (region->overlap) {
+  if (region->overlap) {
     /* view should be in pixelspace */
     UI_view2d_view_restore(C);
 
@@ -3107,7 +3106,7 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   if (region->alignment != RGN_ALIGN_FLOAT) {
-    region_clear_color(
+    ED_region_clear(
         C, region, (region->type->regionid == RGN_TYPE_PREVIEW) ? TH_PREVIEW_BACK : TH_BACK);
   }
 
@@ -3406,7 +3405,7 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
 void ED_region_header_draw(const bContext *C, ARegion *region)
 {
   /* clear */
-  region_clear_color(C, region, region_background_color_id(C, region));
+  ED_region_clear(C, region, region_background_color_id(C, region));
 
   UI_view2d_view_ortho(&region->v2d);
 

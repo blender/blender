@@ -1955,12 +1955,12 @@ static void rna_def_userdef_theme_asset_shelf(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Theme Asset Shelf Color", "Theme settings for asset shelves");
 
   prop = RNA_def_property(srna, "header_back", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_array(prop, 3);
+  RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Header Background", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "back", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_array(prop, 3);
+  RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Main Region Background", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 }

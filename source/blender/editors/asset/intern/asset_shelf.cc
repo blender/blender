@@ -176,7 +176,7 @@ void ED_asset_shelf_region_draw(const bContext *C,
   all_library_ref.type = ASSET_LIBRARY_ALL;
   all_library_ref.custom_library_index = -1;
 
-  UI_ThemeClearColor(TH_BACK);
+  ED_region_clear(C, region, TH_BACK);
 
   /* Set view2d view matrix for scrolling. */
   UI_view2d_view_ortho(&region->v2d);
@@ -199,9 +199,9 @@ void ED_asset_shelf_region_draw(const bContext *C,
 
   shelf::build_asset_view(*layout, all_library_ref, shelf_settings, *C, *region);
 
-  int layout_width, layout_height;
-  UI_block_layout_resolve(block, &layout_width, &layout_height);
-  UI_view2d_totRect_set(&region->v2d, layout_width, layout_height);
+  int layout_height;
+  UI_block_layout_resolve(block, nullptr, &layout_height);
+  UI_view2d_totRect_set(&region->v2d, region->winx, layout_height);
   UI_view2d_curRect_validate(&region->v2d);
 
   UI_block_end(C, block);
