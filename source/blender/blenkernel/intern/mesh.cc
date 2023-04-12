@@ -523,9 +523,9 @@ static bool is_sublayer_name(char const *sublayer_name, char const *name)
   return true;
 }
 
-static bool is_uv_bool_sublayer(CustomDataLayer const *l)
+static bool is_uv_bool_sublayer(const CustomDataLayer &layer)
 {
-  char const *name = l->name;
+  char const *name = layer.name;
 
   if (name[0] != '.') {
     return false;
@@ -554,7 +554,7 @@ static int customdata_compare(
   for (int i = 0; i < c1->totlayer; i++) {
     l1 = &c1->layers[i];
     if ((CD_TYPE_AS_MASK(l1->type) & cd_mask_all_attr) && l1->anonymous_id == nullptr &&
-        !is_uv_bool_sublayer(l1)) {
+        !is_uv_bool_sublayer(*l1)) {
       layer_count1++;
     }
   }
@@ -562,7 +562,7 @@ static int customdata_compare(
   for (int i = 0; i < c2->totlayer; i++) {
     l2 = &c2->layers[i];
     if ((CD_TYPE_AS_MASK(l2->type) & cd_mask_all_attr) && l2->anonymous_id == nullptr &&
-        !is_uv_bool_sublayer(l2)) {
+        !is_uv_bool_sublayer(*l2)) {
       layer_count2++;
     }
   }
@@ -578,7 +578,7 @@ static int customdata_compare(
 
   for (int i1 = 0; i1 < c1->totlayer; i1++) {
     l1 = c1->layers + i1;
-    if (l1->anonymous_id != nullptr || is_uv_bool_sublayer(l1)) {
+    if (l1->anonymous_id != nullptr || is_uv_bool_sublayer(*l1)) {
       continue;
     }
     bool found_corresponding_layer = false;
@@ -902,27 +902,27 @@ void BKE_mesh_free_data_for_undo(Mesh *me)
  *   Material slots should be kept in sync with the object.
  *
  * - Edit-Mesh (#Mesh.edit_mesh)
- *   Since edit-mesh is tied to the objects mode,
- *   which crashes when called in edit-mode, see: #90972.
+ *   Since edit-mesh is tied to the object's mode, which crashes when called in edit-mode.
+ *   See: #90972.
  */
-static void mesh_clear_geometry(Mesh *mesh)
+static void mesh_clear_geometry(Mesh &mesh)
 {
-  CustomData_free(&mesh->vdata, mesh->totvert);
-  CustomData_free(&mesh->edata, mesh->totedge);
-  CustomData_free(&mesh->fdata, mesh->totface);
-  CustomData_free(&mesh->ldata, mesh->totloop);
-  CustomData_free(&mesh->pdata, mesh->totpoly);
-  MEM_SAFE_FREE(mesh->poly_offset_indices);
+  CustomData_free(&mesh.vdata, mesh.totvert);
+  CustomData_free(&mesh.edata, mesh.totedge);
+  CustomData_free(&mesh.fdata, mesh.totface);
+  CustomData_free(&mesh.ldata, mesh.totloop);
+  CustomData_free(&mesh.pdata, mesh.totpoly);
+  MEM_SAFE_FREE(mesh.poly_offset_indices);
 
-  MEM_SAFE_FREE(mesh->mselect);
+  MEM_SAFE_FREE(mesh.mselect);
 
-  mesh->totvert = 0;
-  mesh->totedge = 0;
-  mesh->totface = 0;
-  mesh->totloop = 0;
-  mesh->totpoly = 0;
-  mesh->act_face = -1;
-  mesh->totselect = 0;
+  mesh.totvert = 0;
+  mesh.totedge = 0;
+  mesh.totface = 0;
+  mesh.totloop = 0;
+  mesh.totpoly = 0;
+  mesh.act_face = -1;
+  mesh.totselect = 0;
 }
 
 static void clear_attribute_names(Mesh &mesh)
@@ -935,13 +935,13 @@ static void clear_attribute_names(Mesh &mesh)
 void BKE_mesh_clear_geometry(Mesh *mesh)
 {
   BKE_mesh_runtime_clear_cache(mesh);
-  mesh_clear_geometry(mesh);
+  mesh_clear_geometry(*mesh);
 }
 
 void BKE_mesh_clear_geometry_and_metadata(Mesh *mesh)
 {
   BKE_mesh_runtime_clear_cache(mesh);
-  mesh_clear_geometry(mesh);
+  mesh_clear_geometry(*mesh);
   clear_attribute_names(*mesh);
 }
 
@@ -981,23 +981,22 @@ void BKE_mesh_poly_offsets_ensure_alloc(Mesh *mesh)
   mesh->poly_offsets_for_write().last() = mesh->totloop;
 }
 
-/* Custom data layer functions; those assume that totXXX are set correctly. */
-static void mesh_ensure_cdlayers_primary(Mesh *mesh)
+static void mesh_ensure_cdlayers_primary(Mesh &mesh)
 {
-  if (!CustomData_get_layer_named(&mesh->vdata, CD_PROP_FLOAT3, "position")) {
+  if (!CustomData_get_layer_named(&mesh.vdata, CD_PROP_FLOAT3, "position")) {
     CustomData_add_layer_named(
-        &mesh->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh->totvert, "position");
+        &mesh.vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh.totvert, "position");
   }
-  if (!CustomData_get_layer(&mesh->edata, CD_MEDGE)) {
-    CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_SET_DEFAULT, mesh->totedge);
+  if (!CustomData_get_layer(&mesh.edata, CD_MEDGE)) {
+    CustomData_add_layer(&mesh.edata, CD_MEDGE, CD_SET_DEFAULT, mesh.totedge);
   }
-  if (!CustomData_get_layer_named(&mesh->ldata, CD_PROP_INT32, ".corner_vert")) {
+  if (!CustomData_get_layer_named(&mesh.ldata, CD_PROP_INT32, ".corner_vert")) {
     CustomData_add_layer_named(
-        &mesh->ldata, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totloop, ".corner_vert");
+        &mesh.ldata, CD_PROP_INT32, CD_SET_DEFAULT, mesh.totloop, ".corner_vert");
   }
-  if (!CustomData_get_layer_named(&mesh->ldata, CD_PROP_INT32, ".corner_edge")) {
+  if (!CustomData_get_layer_named(&mesh.ldata, CD_PROP_INT32, ".corner_edge")) {
     CustomData_add_layer_named(
-        &mesh->ldata, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totloop, ".corner_edge");
+        &mesh.ldata, CD_PROP_INT32, CD_SET_DEFAULT, mesh.totloop, ".corner_edge");
   }
 }
 
@@ -1019,7 +1018,7 @@ Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int loops_len, int polys
   mesh->totloop = loops_len;
   mesh->totpoly = polys_len;
 
-  mesh_ensure_cdlayers_primary(mesh);
+  mesh_ensure_cdlayers_primary(*mesh);
   BKE_mesh_poly_offsets_ensure_alloc(mesh);
 
   return mesh;
@@ -1116,7 +1115,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   /* The destination mesh should at least have valid primary CD layers,
    * even in cases where the source mesh does not. */
-  mesh_ensure_cdlayers_primary(me_dst);
+  mesh_ensure_cdlayers_primary(*me_dst);
   BKE_mesh_poly_offsets_ensure_alloc(me_dst);
   if (do_tessface && !CustomData_get_layer(&me_dst->fdata, CD_MFACE)) {
     CustomData_add_layer(&me_dst->fdata, CD_MFACE, CD_SET_DEFAULT, me_dst->totface);
