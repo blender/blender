@@ -1135,22 +1135,12 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
   CustomData_copy(&mesh_src->edata, &mesh_dst->edata, mask.emask, CD_ASSIGN, mesh_src->totedge);
   CustomData_copy(&mesh_src->pdata, &mesh_dst->pdata, mask.pmask, CD_ASSIGN, mesh_src->totpoly);
   CustomData_copy(&mesh_src->ldata, &mesh_dst->ldata, mask.lmask, CD_ASSIGN, mesh_src->totloop);
-  mesh_dst->poly_offset_indices = static_cast<int *>(mesh_src->poly_offset_indices);
-  mesh_src->poly_offset_indices = nullptr;
+  std::swap(mesh_dst->poly_offset_indices, mesh_src->poly_offset_indices);
 
-  /* Make sure active/default color attribute (names) are brought over. */
-  if (mesh_src->active_color_attribute) {
-    MEM_SAFE_FREE(mesh_dst->active_color_attribute);
-    mesh_dst->active_color_attribute = BLI_strdup(mesh_src->active_color_attribute);
-  }
-  if (mesh_src->default_color_attribute) {
-    MEM_SAFE_FREE(mesh_dst->default_color_attribute);
-    mesh_dst->default_color_attribute = BLI_strdup(mesh_src->default_color_attribute);
-  }
-
-  BLI_freelistN(&mesh_dst->vertex_group_names);
-  mesh_dst->vertex_group_names = mesh_src->vertex_group_names;
-  BLI_listbase_clear(&mesh_src->vertex_group_names);
+  /* Make sure attribute names are moved. */
+  std::swap(mesh_dst->active_color_attribute, mesh_src->active_color_attribute);
+  std::swap(mesh_dst->default_color_attribute, mesh_src->default_color_attribute);
+  std::swap(mesh_dst->vertex_group_names, mesh_src->vertex_group_names);
 
   BKE_mesh_copy_parameters(mesh_dst, mesh_src);
 
