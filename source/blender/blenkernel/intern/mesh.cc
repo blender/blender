@@ -970,15 +970,15 @@ void BKE_mesh_poly_offsets_ensure_alloc(Mesh *mesh)
   if (mesh->totpoly == 0) {
     return;
   }
-  if (!mesh->poly_offset_indices) {
-    mesh->poly_offset_indices = static_cast<int *>(
-        MEM_malloc_arrayN(mesh->totpoly + 1, sizeof(int), __func__));
-  }
+  mesh->poly_offset_indices = static_cast<int *>(
+      MEM_malloc_arrayN(mesh->totpoly + 1, sizeof(int), __func__));
+
 #ifdef DEBUG
   /* Fill offsets with obviously bad values to simplify finding missing initialization. */
   mesh->poly_offsets_for_write().fill(-1);
 #endif
-  mesh->poly_offsets_for_write().last() = mesh->totloop;
+  mesh->poly_offset_indices[0] = 0;
+  mesh->poly_offset_indices[mesh->totpoly] = mesh->totloop;
 }
 
 static void mesh_ensure_cdlayers_primary(Mesh &mesh)
