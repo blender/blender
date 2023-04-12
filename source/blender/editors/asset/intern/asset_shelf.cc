@@ -143,12 +143,12 @@ int ED_asset_shelf_region_snap(const ARegion *region, const int size, const int 
 
 int ED_asset_shelf_default_tile_width()
 {
-  return UI_preview_tile_size_x() * 0.8f;
+  return UI_preview_tile_size_x() * 0.65f;
 }
 
 int ED_asset_shelf_default_tile_height()
 {
-  return UI_preview_tile_size_y() * 0.8f;
+  return UI_preview_tile_size_y() * 0.65f;
 }
 
 int ED_asset_shelf_region_prefsizey()
