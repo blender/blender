@@ -278,7 +278,6 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
 
   BKE_curvemapping_init(brush->curve);
 
-  float area_no[3];
   float mat[4][4];
 
   /* If the brush is round the tip does not need to be aligned to the surface, so this saves a

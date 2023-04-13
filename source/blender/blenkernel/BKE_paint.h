@@ -48,6 +48,7 @@ struct PaintCurve;
 struct PaintModeSettings;
 struct Palette;
 struct PaletteColor;
+struct RegionView3D;
 struct Scene;
 struct StrokeCache;
 struct Sculpt;
