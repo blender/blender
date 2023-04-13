@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 import bpy
-from bl_ui_utils.layout import operator_context
 from bpy.types import (
     Header,
     Menu,
@@ -2831,6 +2830,8 @@ class VIEW3D_MT_object_parent(Menu):
     bl_label = "Parent"
 
     def draw(self, _context):
+        from bl_ui_utils.layout import operator_context
+
         layout = self.layout
 
         layout.operator_enum("object.parent_set", "type")

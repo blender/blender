@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 import bpy
 from bpy.types import Header, Menu, Panel
-from bl_ui_utils.layout import operator_context
 
 from bpy.app.translations import (
     pgettext_iface as iface_,
@@ -643,10 +642,9 @@ class TOPBAR_MT_window(Menu):
 
     def draw(self, context):
         import sys
+        from bl_ui_utils.layout import operator_context
 
         layout = self.layout
-
-        operator_context_default = layout.operator_context
 
         layout.operator("wm.window_new")
         layout.operator("wm.window_new_main")
