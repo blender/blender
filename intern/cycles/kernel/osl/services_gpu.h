@@ -1390,19 +1390,128 @@ ccl_device_extern void osl_noiseparams_set_impulses(ccl_private OSLNoiseOptions 
     res->y = n; \
     res->z = n; \
   } \
-  ccl_device_extern void name##_vv(ccl_private float3 *res, const float3 *v) \
+  ccl_device_extern void name##_vv(ccl_private float3 *res, ccl_private const float3 *v) \
   { \
     const float n = name##_fv(v); \
     res->x = n; \
     res->y = n; \
     res->z = n; \
   } \
-  ccl_device_extern void name##_vvf(ccl_private float3 *res, const float3 *v, float w) \
+  ccl_device_extern void name##_vvf( \
+      ccl_private float3 *res, ccl_private const float3 *v, float w) \
   { \
     const float n = name##_fvf(v, w); \
     res->x = n; \
     res->y = n; \
     res->z = n; \
+  } \
+  ccl_device_extern void name##_dfdf(ccl_private float *res, ccl_private const float *x) \
+  { \
+    res[0] = name##_ff(x[0]); \
+    res[1] = name##_ff(x[1]); \
+    res[2] = name##_ff(x[2]); \
+  } \
+  ccl_device_extern void name##_dfdff( \
+      ccl_private float *res, ccl_private const float *x, float y) \
+  { \
+    res[0] = name##_fff(x[0], y); \
+    res[1] = name##_fff(x[1], y); \
+    res[2] = name##_fff(x[2], y); \
+  } \
+  ccl_device_extern void name##_dffdf( \
+      ccl_private float *res, float x, ccl_private const float *y) \
+  { \
+    res[0] = name##_fff(x, y[0]); \
+    res[1] = name##_fff(x, y[1]); \
+    res[2] = name##_fff(x, y[2]); \
+  } \
+  ccl_device_extern void name##_dfdfdf( \
+      ccl_private float *res, ccl_private const float *x, ccl_private const float *y) \
+  { \
+    res[0] = name##_fff(x[0], y[0]); \
+    res[1] = name##_fff(x[1], y[1]); \
+    res[2] = name##_fff(x[2], y[2]); \
+  } \
+  ccl_device_extern void name##_dfdv(ccl_private float *res, ccl_private const float3 *v) \
+  { \
+    res[0] = name##_fv(&v[0]); \
+    res[1] = name##_fv(&v[1]); \
+    res[2] = name##_fv(&v[2]); \
+  } \
+  ccl_device_extern void name##_dfdvf( \
+      ccl_private float *res, ccl_private const float3 *v, float w) \
+  { \
+    res[0] = name##_fvf(&v[0], w); \
+    res[1] = name##_fvf(&v[1], w); \
+    res[2] = name##_fvf(&v[2], w); \
+  } \
+  ccl_device_extern void name##_dfvdf( \
+      ccl_private float *res, ccl_private const float3 *v, ccl_private const float *w) \
+  { \
+    res[0] = name##_fvf(v, w[0]); \
+    res[1] = name##_fvf(v, w[1]); \
+    res[2] = name##_fvf(v, w[2]); \
+  } \
+  ccl_device_extern void name##_dfdvdf( \
+      ccl_private float *res, ccl_private const float3 *v, ccl_private const float *w) \
+  { \
+    res[0] = name##_fvf(&v[0], w[0]); \
+    res[1] = name##_fvf(&v[1], w[1]); \
+    res[2] = name##_fvf(&v[2], w[2]); \
+  } \
+  ccl_device_extern void name##_dvdf(ccl_private float3 *res, ccl_private const float *x) \
+  { \
+    name##_vf(&res[0], x[0]); \
+    name##_vf(&res[1], x[1]); \
+    name##_vf(&res[2], x[2]); \
+  } \
+  ccl_device_extern void name##_dvdff( \
+      ccl_private float3 *res, ccl_private const float *x, float y) \
+  { \
+    name##_vff(&res[0], x[0], y); \
+    name##_vff(&res[1], x[1], y); \
+    name##_vff(&res[2], x[2], y); \
+  } \
+  ccl_device_extern void name##_dvfdf( \
+      ccl_private float3 *res, float x, ccl_private const float *y) \
+  { \
+    name##_vff(&res[0], x, y[0]); \
+    name##_vff(&res[1], x, y[1]); \
+    name##_vff(&res[2], x, y[2]); \
+  } \
+  ccl_device_extern void name##_dvdfdf( \
+      ccl_private float3 *res, ccl_private const float *x, ccl_private const float *y) \
+  { \
+    name##_vff(&res[0], x[0], y[0]); \
+    name##_vff(&res[1], x[1], y[1]); \
+    name##_vff(&res[2], x[2], y[2]); \
+  } \
+  ccl_device_extern void name##_dvdv(ccl_private float3 *res, ccl_private const float3 *v) \
+  { \
+    name##_vv(&res[0], &v[0]); \
+    name##_vv(&res[1], &v[1]); \
+    name##_vv(&res[2], &v[2]); \
+  } \
+  ccl_device_extern void name##_dvdvf( \
+      ccl_private float3 *res, ccl_private const float3 *v, float w) \
+  { \
+    name##_vvf(&res[0], &v[0], w); \
+    name##_vvf(&res[1], &v[1], w); \
+    name##_vvf(&res[2], &v[2], w); \
+  } \
+  ccl_device_extern void name##_dvvdf( \
+      ccl_private float3 *res, ccl_private const float3 *v, ccl_private const float *w) \
+  { \
+    name##_vvf(&res[0], v, w[0]); \
+    name##_vvf(&res[1], v, w[1]); \
+    name##_vvf(&res[2], v, w[2]); \
+  } \
+  ccl_device_extern void name##_dvdvdf( \
+      ccl_private float3 *res, ccl_private const float3 *v, ccl_private const float *w) \
+  { \
+    name##_vvf(&res[0], &v[0], w[0]); \
+    name##_vvf(&res[1], &v[1], w[1]); \
+    name##_vvf(&res[2], &v[2], w[2]); \
   }
 
 ccl_device_forceinline float hashnoise_1d(float p)

@@ -105,7 +105,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
 
   if (me->totvert) {
     /* standard data */
-    CustomData_merge(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
+    CustomData_merge_layout(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
     CustomData_copy_data_named(&me->vdata, vdata, 0, *vertofs, me->totvert);
 
     /* vertex groups */
@@ -205,7 +205,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
   }
 
   if (me->totedge) {
-    CustomData_merge(&me->edata, edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
+    CustomData_merge_layout(&me->edata, edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
     CustomData_copy_data_named(&me->edata, edata, 0, *edgeofs, me->totedge);
 
     for (a = 0; a < me->totedge; a++, edge++) {
@@ -226,7 +226,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    CustomData_merge(&me->ldata, ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
+    CustomData_merge_layout(&me->ldata, ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
     CustomData_copy_data_named(&me->ldata, ldata, 0, *loopofs, me->totloop);
 
     for (a = 0; a < me->totloop; a++) {
@@ -250,7 +250,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    CustomData_merge(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
+    CustomData_merge_layout(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
     CustomData_copy_data_named(&me->pdata, pdata, 0, *polyofs, me->totpoly);
 
     /* Apply matmap. In case we don't have material indices yet, create them if more than one
@@ -416,14 +416,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
                 MESH_MAX_VERTS);
     return OPERATOR_CANCELLED;
   }
-
-  /* remove tessface to ensure we don't hold references to invalid faces */
-  BKE_mesh_tessface_clear(me);
-
-  /* Clear any run-time data.
-   * Even though this mesh wont typically have run-time data, the Python API can for e.g.
-   * create loop-triangle cache here, which is confusing when left in the mesh, see: #90798. */
-  BKE_mesh_runtime_clear_geometry(me);
 
   /* new material indices and material array */
   if (totmat) {
@@ -683,11 +675,8 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   /* return to mesh we're merging to */
   me = static_cast<Mesh *>(ob->data);
 
-  CustomData_free(&me->vdata, me->totvert);
-  CustomData_free(&me->edata, me->totedge);
-  CustomData_free(&me->ldata, me->totloop);
-  CustomData_free(&me->pdata, me->totpoly);
-  MEM_SAFE_FREE(me->poly_offset_indices);
+  BKE_mesh_clear_geometry(me);
+
   me->poly_offset_indices = poly_offsets;
 
   me->totvert = totvert;

@@ -101,9 +101,9 @@ class MeshMirrorUV(Operator):
         for i, j in pmap.items():
             if not puvsel[i] or not puvsel[j]:
                 continue
-            elif DIR == 0 and pcents[i][0] < 0.0:
+            if DIR == 0 and pcents[i][0] < 0.0:
                 continue
-            elif DIR == 1 and pcents[i][0] > 0.0:
+            if DIR == 1 and pcents[i][0] > 0.0:
                 continue
 
             # copy UVs

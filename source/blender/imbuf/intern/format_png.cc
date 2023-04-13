@@ -53,7 +53,7 @@ bool imb_save_png(struct ImBuf *ibuf, const char *filepath, int flags)
     file_spec.attribute("oiio:UnassociatedAlpha", 1);
   }
 
-  int compression = (int)((float)ibuf->foptions.quality / 11.1111f);
+  int compression = int(float(ibuf->foptions.quality) / 11.1111f);
   compression = compression < 0 ? 0 : (compression > 9 ? 9 : compression);
   file_spec.attribute("png:compressionLevel", compression);
 

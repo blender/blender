@@ -8,6 +8,7 @@ from bpy.app.translations import pgettext_tip as tip_
 
 
 def guess_player_path(preset):
+    import os
     import sys
 
     if preset == 'INTERNAL':

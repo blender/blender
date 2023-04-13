@@ -48,6 +48,7 @@ struct PaintCurve;
 struct PaintModeSettings;
 struct Palette;
 struct PaletteColor;
+struct RegionView3D;
 struct Scene;
 struct StrokeCache;
 struct Sculpt;
@@ -238,7 +239,8 @@ void BKE_paint_face_set_overlay_color_get(int face_set, int seed, uchar r_color[
 
 bool paint_calculate_rake_rotation(struct UnifiedPaintSettings *ups,
                                    struct Brush *brush,
-                                   const float mouse_pos[2]);
+                                   const float mouse_pos[2],
+                                   ePaintMode paint_mode);
 void paint_update_brush_rake_rotation(struct UnifiedPaintSettings *ups,
                                       struct Brush *brush,
                                       float rotation);

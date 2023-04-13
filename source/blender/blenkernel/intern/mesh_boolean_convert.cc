@@ -656,15 +656,15 @@ static void merge_vertex_loop_poly_customdata_layers(Mesh *target, MeshesToIMesh
   for (int mesh_index = 1; mesh_index < mim.meshes.size(); ++mesh_index) {
     const Mesh *me = mim.meshes[mesh_index];
     if (me->totvert) {
-      CustomData_merge(
+      CustomData_merge_layout(
           &me->vdata, &target->vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, target->totvert);
     }
     if (me->totloop) {
-      CustomData_merge(
+      CustomData_merge_layout(
           &me->ldata, &target->ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, target->totloop);
     }
     if (me->totpoly) {
-      CustomData_merge(
+      CustomData_merge_layout(
           &me->pdata, &target->pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, target->totpoly);
     }
   }
@@ -675,7 +675,7 @@ static void merge_edge_customdata_layers(Mesh *target, MeshesToIMeshInfo &mim)
   for (int mesh_index = 0; mesh_index < mim.meshes.size(); ++mesh_index) {
     const Mesh *me = mim.meshes[mesh_index];
     if (me->totedge) {
-      CustomData_merge(
+      CustomData_merge_layout(
           &me->edata, &target->edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, target->totedge);
     }
   }

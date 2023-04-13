@@ -72,7 +72,6 @@ using blender::StringRef;
 using blender::VArray;
 using blender::Vector;
 
-static void mesh_clear_geometry(Mesh *mesh);
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata);
 
 static void mesh_init_data(ID *id)
@@ -151,14 +150,13 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   mesh_dst->default_color_attribute = static_cast<char *>(
       MEM_dupallocN(mesh_src->default_color_attribute));
 
-  const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
-  CustomData_copy(&mesh_src->vdata, &mesh_dst->vdata, mask.vmask, alloc_type, mesh_dst->totvert);
-  CustomData_copy(&mesh_src->edata, &mesh_dst->edata, mask.emask, alloc_type, mesh_dst->totedge);
-  CustomData_copy(&mesh_src->ldata, &mesh_dst->ldata, mask.lmask, alloc_type, mesh_dst->totloop);
-  CustomData_copy(&mesh_src->pdata, &mesh_dst->pdata, mask.pmask, alloc_type, mesh_dst->totpoly);
+  CustomData_copy(&mesh_src->vdata, &mesh_dst->vdata, mask.vmask, mesh_dst->totvert);
+  CustomData_copy(&mesh_src->edata, &mesh_dst->edata, mask.emask, mesh_dst->totedge);
+  CustomData_copy(&mesh_src->ldata, &mesh_dst->ldata, mask.lmask, mesh_dst->totloop);
+  CustomData_copy(&mesh_src->pdata, &mesh_dst->pdata, mask.pmask, mesh_dst->totpoly);
   mesh_dst->poly_offset_indices = static_cast<int *>(MEM_dupallocN(mesh_src->poly_offset_indices));
   if (do_tessface) {
-    CustomData_copy(&mesh_src->fdata, &mesh_dst->fdata, mask.fmask, alloc_type, mesh_dst->totface);
+    CustomData_copy(&mesh_src->fdata, &mesh_dst->fdata, mask.fmask, mesh_dst->totface);
   }
   else {
     mesh_tessface_clear_intern(mesh_dst, false);
@@ -193,11 +191,9 @@ static void mesh_free_data(ID *id)
 {
   Mesh *mesh = (Mesh *)id;
 
-  BLI_freelistN(&mesh->vertex_group_names);
-
   BKE_mesh_free_editmesh(mesh);
 
-  mesh_clear_geometry(mesh);
+  BKE_mesh_clear_geometry_and_metadata(mesh);
   MEM_SAFE_FREE(mesh->mat);
 
   delete mesh->runtime;
@@ -526,9 +522,9 @@ static bool is_sublayer_name(char const *sublayer_name, char const *name)
   return true;
 }
 
-static bool is_uv_bool_sublayer(CustomDataLayer const *l)
+static bool is_uv_bool_sublayer(const CustomDataLayer &layer)
 {
-  char const *name = l->name;
+  char const *name = layer.name;
 
   if (name[0] != '.') {
     return false;
@@ -557,7 +553,7 @@ static int customdata_compare(
   for (int i = 0; i < c1->totlayer; i++) {
     l1 = &c1->layers[i];
     if ((CD_TYPE_AS_MASK(l1->type) & cd_mask_all_attr) && l1->anonymous_id == nullptr &&
-        !is_uv_bool_sublayer(l1)) {
+        !is_uv_bool_sublayer(*l1)) {
       layer_count1++;
     }
   }
@@ -565,7 +561,7 @@ static int customdata_compare(
   for (int i = 0; i < c2->totlayer; i++) {
     l2 = &c2->layers[i];
     if ((CD_TYPE_AS_MASK(l2->type) & cd_mask_all_attr) && l2->anonymous_id == nullptr &&
-        !is_uv_bool_sublayer(l2)) {
+        !is_uv_bool_sublayer(*l2)) {
       layer_count2++;
     }
   }
@@ -581,7 +577,7 @@ static int customdata_compare(
 
   for (int i1 = 0; i1 < c1->totlayer; i1++) {
     l1 = c1->layers + i1;
-    if (l1->anonymous_id != nullptr || is_uv_bool_sublayer(l1)) {
+    if (l1->anonymous_id != nullptr || is_uv_bool_sublayer(*l1)) {
       continue;
     }
     bool found_corresponding_layer = false;
@@ -905,37 +901,47 @@ void BKE_mesh_free_data_for_undo(Mesh *me)
  *   Material slots should be kept in sync with the object.
  *
  * - Edit-Mesh (#Mesh.edit_mesh)
- *   Since edit-mesh is tied to the objects mode,
- *   which crashes when called in edit-mode, see: #90972.
+ *   Since edit-mesh is tied to the object's mode, which crashes when called in edit-mode.
+ *   See: #90972.
  */
-static void mesh_clear_geometry(Mesh *mesh)
+static void mesh_clear_geometry(Mesh &mesh)
 {
-  CustomData_free(&mesh->vdata, mesh->totvert);
-  CustomData_free(&mesh->edata, mesh->totedge);
-  CustomData_free(&mesh->fdata, mesh->totface);
-  CustomData_free(&mesh->ldata, mesh->totloop);
-  CustomData_free(&mesh->pdata, mesh->totpoly);
-  MEM_SAFE_FREE(mesh->poly_offset_indices);
+  CustomData_free(&mesh.vdata, mesh.totvert);
+  CustomData_free(&mesh.edata, mesh.totedge);
+  CustomData_free(&mesh.fdata, mesh.totface);
+  CustomData_free(&mesh.ldata, mesh.totloop);
+  CustomData_free(&mesh.pdata, mesh.totpoly);
+  MEM_SAFE_FREE(mesh.poly_offset_indices);
 
-  MEM_SAFE_FREE(mesh->mselect);
+  MEM_SAFE_FREE(mesh.mselect);
 
-  mesh->totvert = 0;
-  mesh->totedge = 0;
-  mesh->totface = 0;
-  mesh->totloop = 0;
-  mesh->totpoly = 0;
-  mesh->act_face = -1;
-  mesh->totselect = 0;
+  mesh.totvert = 0;
+  mesh.totedge = 0;
+  mesh.totface = 0;
+  mesh.totloop = 0;
+  mesh.totpoly = 0;
+  mesh.act_face = -1;
+  mesh.totselect = 0;
+}
 
-  BLI_freelistN(&mesh->vertex_group_names);
-  MEM_SAFE_FREE(mesh->active_color_attribute);
-  MEM_SAFE_FREE(mesh->default_color_attribute);
+static void clear_attribute_names(Mesh &mesh)
+{
+  BLI_freelistN(&mesh.vertex_group_names);
+  MEM_SAFE_FREE(mesh.active_color_attribute);
+  MEM_SAFE_FREE(mesh.default_color_attribute);
 }
 
 void BKE_mesh_clear_geometry(Mesh *mesh)
 {
   BKE_mesh_runtime_clear_cache(mesh);
-  mesh_clear_geometry(mesh);
+  mesh_clear_geometry(*mesh);
+}
+
+void BKE_mesh_clear_geometry_and_metadata(Mesh *mesh)
+{
+  BKE_mesh_runtime_clear_cache(mesh);
+  mesh_clear_geometry(*mesh);
+  clear_attribute_names(*mesh);
 }
 
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
@@ -963,34 +969,33 @@ void BKE_mesh_poly_offsets_ensure_alloc(Mesh *mesh)
   if (mesh->totpoly == 0) {
     return;
   }
-  if (!mesh->poly_offset_indices) {
-    mesh->poly_offset_indices = static_cast<int *>(
-        MEM_malloc_arrayN(mesh->totpoly + 1, sizeof(int), __func__));
-  }
+  mesh->poly_offset_indices = static_cast<int *>(
+      MEM_malloc_arrayN(mesh->totpoly + 1, sizeof(int), __func__));
+
 #ifdef DEBUG
   /* Fill offsets with obviously bad values to simplify finding missing initialization. */
   mesh->poly_offsets_for_write().fill(-1);
 #endif
-  mesh->poly_offsets_for_write().last() = mesh->totloop;
+  mesh->poly_offset_indices[0] = 0;
+  mesh->poly_offset_indices[mesh->totpoly] = mesh->totloop;
 }
 
-/* Custom data layer functions; those assume that totXXX are set correctly. */
-static void mesh_ensure_cdlayers_primary(Mesh *mesh)
+static void mesh_ensure_cdlayers_primary(Mesh &mesh)
 {
-  if (!CustomData_get_layer_named(&mesh->vdata, CD_PROP_FLOAT3, "position")) {
+  if (!CustomData_get_layer_named(&mesh.vdata, CD_PROP_FLOAT3, "position")) {
     CustomData_add_layer_named(
-        &mesh->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh->totvert, "position");
+        &mesh.vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh.totvert, "position");
   }
-  if (!CustomData_get_layer(&mesh->edata, CD_MEDGE)) {
-    CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_SET_DEFAULT, mesh->totedge);
+  if (!CustomData_get_layer(&mesh.edata, CD_MEDGE)) {
+    CustomData_add_layer(&mesh.edata, CD_MEDGE, CD_SET_DEFAULT, mesh.totedge);
   }
-  if (!CustomData_get_layer_named(&mesh->ldata, CD_PROP_INT32, ".corner_vert")) {
+  if (!CustomData_get_layer_named(&mesh.ldata, CD_PROP_INT32, ".corner_vert")) {
     CustomData_add_layer_named(
-        &mesh->ldata, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totloop, ".corner_vert");
+        &mesh.ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh.totloop, ".corner_vert");
   }
-  if (!CustomData_get_layer_named(&mesh->ldata, CD_PROP_INT32, ".corner_edge")) {
+  if (!CustomData_get_layer_named(&mesh.ldata, CD_PROP_INT32, ".corner_edge")) {
     CustomData_add_layer_named(
-        &mesh->ldata, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totloop, ".corner_edge");
+        &mesh.ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh.totloop, ".corner_edge");
   }
 }
 
@@ -1012,7 +1017,7 @@ Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int loops_len, int polys
   mesh->totloop = loops_len;
   mesh->totpoly = polys_len;
 
-  mesh_ensure_cdlayers_primary(mesh);
+  mesh_ensure_cdlayers_primary(*mesh);
   BKE_mesh_poly_offsets_ensure_alloc(mesh);
 
   return mesh;
@@ -1096,12 +1101,13 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   BKE_mesh_copy_parameters_for_eval(me_dst, me_src);
 
-  CustomData_copy(&me_src->vdata, &me_dst->vdata, mask.vmask, CD_SET_DEFAULT, verts_len);
-  CustomData_copy(&me_src->edata, &me_dst->edata, mask.emask, CD_SET_DEFAULT, edges_len);
-  CustomData_copy(&me_src->ldata, &me_dst->ldata, mask.lmask, CD_SET_DEFAULT, loops_len);
-  CustomData_copy(&me_src->pdata, &me_dst->pdata, mask.pmask, CD_SET_DEFAULT, polys_len);
+  CustomData_copy_layout(&me_src->vdata, &me_dst->vdata, mask.vmask, CD_SET_DEFAULT, verts_len);
+  CustomData_copy_layout(&me_src->edata, &me_dst->edata, mask.emask, CD_SET_DEFAULT, edges_len);
+  CustomData_copy_layout(&me_src->ldata, &me_dst->ldata, mask.lmask, CD_SET_DEFAULT, loops_len);
+  CustomData_copy_layout(&me_src->pdata, &me_dst->pdata, mask.pmask, CD_SET_DEFAULT, polys_len);
   if (do_tessface) {
-    CustomData_copy(&me_src->fdata, &me_dst->fdata, mask.fmask, CD_SET_DEFAULT, tessface_len);
+    CustomData_copy_layout(
+        &me_src->fdata, &me_dst->fdata, mask.fmask, CD_SET_DEFAULT, tessface_len);
   }
   else {
     mesh_tessface_clear_intern(me_dst, false);
@@ -1109,7 +1115,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   /* The destination mesh should at least have valid primary CD layers,
    * even in cases where the source mesh does not. */
-  mesh_ensure_cdlayers_primary(me_dst);
+  mesh_ensure_cdlayers_primary(*me_dst);
   BKE_mesh_poly_offsets_ensure_alloc(me_dst);
   if (do_tessface && !CustomData_get_layer(&me_dst->fdata, CD_MFACE)) {
     CustomData_add_layer(&me_dst->fdata, CD_MFACE, CD_SET_DEFAULT, me_dst->totface);
@@ -1378,7 +1384,7 @@ void BKE_mesh_orco_ensure(Object *ob, Mesh *mesh)
   /* Orcos are stored in normalized 0..1 range by convention. */
   float(*orcodata)[3] = BKE_mesh_orco_verts_get(ob);
   BKE_mesh_orco_verts_transform(mesh, orcodata, mesh->totvert, false);
-  CustomData_add_layer_with_data(&mesh->vdata, CD_ORCO, orcodata, mesh->totvert);
+  CustomData_add_layer_with_data(&mesh->vdata, CD_ORCO, orcodata, mesh->totvert, nullptr);
 }
 
 Mesh *BKE_mesh_from_object(Object *ob)

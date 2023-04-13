@@ -62,44 +62,17 @@ static void curves_init_data(ID *id)
   new (&curves->geometry) blender::bke::CurvesGeometry();
 }
 
-static void curves_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
+static void curves_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
 {
-  using namespace blender;
-
   Curves *curves_dst = (Curves *)id_dst;
   const Curves *curves_src = (const Curves *)id_src;
   curves_dst->mat = static_cast<Material **>(MEM_dupallocN(curves_src->mat));
 
-  const bke::CurvesGeometry &src = curves_src->geometry.wrap();
-  bke::CurvesGeometry &dst = curves_dst->geometry.wrap();
-
-  /* We need special handling here because the generic ID management code has already done a
-   * shallow copy from the source to the destination, and because the copy-on-write functionality
-   * isn't supported more generically yet. */
-
-  dst.point_num = src.point_num;
-  dst.curve_num = src.curve_num;
-
-  const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
-  CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, alloc_type, dst.point_num);
-  CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, alloc_type, dst.curve_num);
-
-  dst.curve_offsets = static_cast<int *>(MEM_dupallocN(src.curve_offsets));
+  new (&curves_dst->geometry) blender::bke::CurvesGeometry(curves_src->geometry.wrap());
 
   if (curves_src->surface_uv_map != nullptr) {
     curves_dst->surface_uv_map = BLI_strdup(curves_src->surface_uv_map);
   }
-
-  dst.runtime = MEM_new<bke::CurvesGeometryRuntime>(__func__);
-
-  dst.runtime->type_counts = src.runtime->type_counts;
-  dst.runtime->evaluated_offsets_cache = src.runtime->evaluated_offsets_cache;
-  dst.runtime->nurbs_basis_cache = src.runtime->nurbs_basis_cache;
-  dst.runtime->evaluated_position_cache = src.runtime->evaluated_position_cache;
-  dst.runtime->bounds_cache = src.runtime->bounds_cache;
-  dst.runtime->evaluated_length_cache = src.runtime->evaluated_length_cache;
-  dst.runtime->evaluated_tangent_cache = src.runtime->evaluated_tangent_cache;
-  dst.runtime->evaluated_normal_cache = src.runtime->evaluated_normal_cache;
 
   curves_dst->batch_cache = nullptr;
 }
@@ -155,11 +128,6 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
   curves->geometry.wrap().blend_read(*reader);
 
   BLO_read_data_address(reader, &curves->surface_uv_map);
-
-  curves->geometry.runtime = MEM_new<blender::bke::CurvesGeometryRuntime>(__func__);
-
-  /* Recalculate curve type count cache that isn't saved in files. */
-  curves->geometry.wrap().update_curve_types();
 
   /* Materials */
   BLO_read_pointer_array(reader, (void **)&curves->mat);

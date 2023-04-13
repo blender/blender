@@ -1302,12 +1302,7 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, uint level, uint x, uint y
 
 void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, float rotation)
 {
-  if (brush->mtex.brush_angle_mode & MTEX_ANGLE_RAKE) {
-    ups->brush_rotation = rotation;
-  }
-  else {
-    ups->brush_rotation = 0.0f;
-  }
+  ups->brush_rotation = rotation;
 
   if (brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE) {
     ups->brush_rotation_sec = rotation;
@@ -1322,17 +1317,19 @@ static bool paint_rake_rotation_active(const MTex &mtex)
   return mtex.tex && mtex.brush_angle_mode & MTEX_ANGLE_RAKE;
 }
 
-static bool paint_rake_rotation_active(const Brush &brush)
+static const bool paint_rake_rotation_active(const Brush &brush, ePaintMode paint_mode)
 {
-  return paint_rake_rotation_active(brush.mtex) || paint_rake_rotation_active(brush.mask_mtex);
+  return paint_rake_rotation_active(brush.mtex) || paint_rake_rotation_active(brush.mask_mtex) ||
+         BKE_brush_has_cube_tip(&brush, paint_mode);
 }
 
 bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
                                    Brush *brush,
-                                   const float mouse_pos[2])
+                                   const float mouse_pos[2],
+                                   ePaintMode paint_mode)
 {
   bool ok = false;
-  if (paint_rake_rotation_active(*brush)) {
+  if (paint_rake_rotation_active(*brush, paint_mode)) {
     const float r = RAKE_THRESHHOLD;
     float rotation;
 

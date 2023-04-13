@@ -125,8 +125,8 @@ set(SRC
   nodes/node_geo_mesh_primitive_uv_sphere.cc
   nodes/node_geo_mesh_subdivide.cc
   nodes/node_geo_mesh_to_curve.cc
-  nodes/node_geo_mesh_to_sdf_volume.cc
   nodes/node_geo_mesh_to_points.cc
+  nodes/node_geo_mesh_to_sdf_volume.cc
   nodes/node_geo_mesh_to_volume.cc
   nodes/node_geo_mesh_topology_corners_of_face.cc
   nodes/node_geo_mesh_topology_corners_of_vertex.cc
@@ -139,8 +139,8 @@ set(SRC
   nodes/node_geo_offset_point_in_curve.cc
   nodes/node_geo_offset_sdf_volume.cc
   nodes/node_geo_points.cc
-  nodes/node_geo_points_to_vertices.cc
   nodes/node_geo_points_to_sdf_volume.cc
+  nodes/node_geo_points_to_vertices.cc
   nodes/node_geo_points_to_volume.cc
   nodes/node_geo_proximity.cc
   nodes/node_geo_raycast.cc

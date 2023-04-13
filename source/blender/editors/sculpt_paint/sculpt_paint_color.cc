@@ -278,30 +278,13 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
 
   BKE_curvemapping_init(brush->curve);
 
-  float area_no[3];
   float mat[4][4];
-  float scale[4][4];
-  float tmat[4][4];
 
   /* If the brush is round the tip does not need to be aligned to the surface, so this saves a
    * whole iteration over the affected nodes. */
   if (brush->tip_roundness < 1.0f) {
-    SCULPT_calc_area_normal(sd, ob, nodes, totnode, area_no);
+    SCULPT_cube_tip_init(sd, ob, brush, mat);
 
-    cross_v3_v3v3(mat[0], area_no, ss->cache->grab_delta_symmetry);
-    mat[0][3] = 0;
-    cross_v3_v3v3(mat[1], area_no, mat[0]);
-    mat[1][3] = 0;
-    copy_v3_v3(mat[2], area_no);
-    mat[2][3] = 0;
-    copy_v3_v3(mat[3], ss->cache->location);
-    mat[3][3] = 1;
-    normalize_m4(mat);
-
-    scale_m4_fl(scale, ss->cache->radius);
-    mul_m4_m4m4(tmat, mat, scale);
-    mul_v3_fl(tmat[1], brush->tip_scale_x);
-    invert_m4_m4(mat, tmat);
     if (is_zero_m4(mat)) {
       return;
     }

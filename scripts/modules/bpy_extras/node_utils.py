@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 __all__ = (
-    "connect_virtual_socket",
     "find_node_input",
 )
 

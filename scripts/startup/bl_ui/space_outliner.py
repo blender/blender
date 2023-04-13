@@ -4,7 +4,6 @@ from bpy.types import Header, Menu, Panel
 
 from bpy.app.translations import (
     contexts as i18n_contexts,
-    pgettext_iface as iface_,
 )
 
 

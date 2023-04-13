@@ -775,8 +775,10 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   MutableSpan<int> new_corner_edges = corner_edges.slice(side_loop_range);
 
   /* Initialize the new side polygons. */
-  new_poly_offsets.fill(4);
-  offset_indices::accumulate_counts_to_offsets(new_poly_offsets, orig_loop_size);
+  if (!new_poly_offsets.is_empty()) {
+    new_poly_offsets.fill(4);
+    offset_indices::accumulate_counts_to_offsets(new_poly_offsets, orig_loop_size);
+  }
   const OffsetIndices polys = mesh.polys();
 
   /* Initialize the edges that form the sides of the extrusion. */

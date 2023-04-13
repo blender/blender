@@ -378,7 +378,9 @@ class SmoothStrokePanel(BrushPanel):
         settings = self.paint_settings(context)
         brush = settings.brush
 
-        self.layout.prop(brush, "use_smooth_stroke", text="")
+        self.layout.use_property_split = False
+        self.layout.prop(brush, "use_smooth_stroke",
+                         text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         layout = self.layout
@@ -472,8 +474,8 @@ class DisplayPanel(BrushPanel):
 
         if self.is_popover:
             row = layout.row(align=True)
-            row.prop(settings, "show_brush", text="")
-            row.label(text="Display Cursor")
+            row.use_property_split = False
+            row.prop(settings, "show_brush", text="Display Cursor")
 
         col = layout.column()
         col.active = brush.brush_capabilities.has_overlay and settings.show_brush

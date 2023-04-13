@@ -440,7 +440,7 @@ static bool paint_brush_update(bContext *C,
     }
     /* curve strokes do their own rake calculation */
     else if (!(brush->flag & BRUSH_CURVE)) {
-      if (!paint_calculate_rake_rotation(ups, brush, mouse_init)) {
+      if (!paint_calculate_rake_rotation(ups, brush, mouse_init, mode)) {
         /* Not enough motion to define an angle. */
         if (!stroke->rake_started) {
           is_dry_run = true;
@@ -1562,7 +1562,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
           (br->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE)) {
         copy_v2_v2(stroke->ups->last_rake, stroke->last_mouse_position);
       }
-      paint_calculate_rake_rotation(stroke->ups, br, mouse);
+      paint_calculate_rake_rotation(stroke->ups, br, mouse, mode);
     }
   }
   else if (first_modal ||

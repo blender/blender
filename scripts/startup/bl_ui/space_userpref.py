@@ -2205,12 +2205,12 @@ class StudioLightPanelMixin:
 
         row.template_icon(layout.icon(studio_light), scale=3.0)
         col = row.column()
-        op = col.operator("preferences.studiolight_uninstall", text="", icon='REMOVE')
-        op.index = studio_light.index
+        props = col.operator("preferences.studiolight_uninstall", text="", icon='REMOVE')
+        props.index = studio_light.index
 
         if studio_light.type == 'STUDIO':
-            op = col.operator("preferences.studiolight_copy_settings", text="", icon='IMPORT')
-            op.index = studio_light.index
+            props = col.operator("preferences.studiolight_copy_settings", text="", icon='IMPORT')
+            props.index = studio_light.index
 
         box.label(text=studio_light.name)
 
@@ -2247,9 +2247,9 @@ class USERPREF_PT_studiolight_lights(StudioLightPanel, StudioLightPanelMixin, Pa
 
     def draw_header_preset(self, _context):
         layout = self.layout
-        op = layout.operator("preferences.studiolight_install", icon='IMPORT', text="Install...")
-        op.type = 'STUDIO'
-        op.filter_glob = ".sl"
+        props = layout.operator("preferences.studiolight_install", icon='IMPORT', text="Install...")
+        props.type = 'STUDIO'
+        props.filter_glob = ".sl"
         layout.separator()
 
     def get_error_message(self):
