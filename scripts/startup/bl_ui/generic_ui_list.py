@@ -120,15 +120,15 @@ def _draw_add_remove_buttons(
     list_length,
 ):
     """Draw the +/- buttons to add and remove list entries."""
-    add_op = layout.operator(UILIST_OT_entry_add.bl_idname, text="", icon='ADD')
-    add_op.list_path = list_path
-    add_op.active_index_path = active_index_path
+    props = layout.operator(UILIST_OT_entry_add.bl_idname, text="", icon='ADD')
+    props.list_path = list_path
+    props.active_index_path = active_index_path
 
     row = layout.row()
     row.enabled = list_length > 0
-    remove_op = row.operator(UILIST_OT_entry_remove.bl_idname, text="", icon='REMOVE')
-    remove_op.list_path = list_path
-    remove_op.active_index_path = active_index_path
+    props = row.operator(UILIST_OT_entry_remove.bl_idname, text="", icon='REMOVE')
+    props.list_path = list_path
+    props.active_index_path = active_index_path
 
 
 def _draw_move_buttons(
@@ -141,15 +141,15 @@ def _draw_move_buttons(
     """Draw the up/down arrows to move elements in the list."""
     col = layout.column()
     col.enabled = list_length > 1
-    move_up_op = layout.operator(UILIST_OT_entry_move.bl_idname, text="", icon='TRIA_UP')
-    move_up_op.direction = 'UP'
-    move_up_op.list_path = list_path
-    move_up_op.active_index_path = active_index_path
+    props = layout.operator(UILIST_OT_entry_move.bl_idname, text="", icon='TRIA_UP')
+    props.direction = 'UP'
+    props.list_path = list_path
+    props.active_index_path = active_index_path
 
-    move_down_op = layout.operator(UILIST_OT_entry_move.bl_idname, text="", icon='TRIA_DOWN')
-    move_down_op.direction = 'DOWN'
-    move_down_op.list_path = list_path
-    move_down_op.active_index_path = active_index_path
+    props = layout.operator(UILIST_OT_entry_move.bl_idname, text="", icon='TRIA_DOWN')
+    props.direction = 'DOWN'
+    props.list_path = list_path
+    props.active_index_path = active_index_path
 
 
 def _get_context_attr(context, data_path):

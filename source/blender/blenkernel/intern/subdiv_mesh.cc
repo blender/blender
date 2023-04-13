@@ -221,11 +221,11 @@ static void vertex_interpolation_init(const SubdivMeshContext *ctx,
   else {
     vertex_interpolation->vertex_data = &vertex_interpolation->vertex_data_storage;
     /* Allocate storage for loops corresponding to ptex corners. */
-    CustomData_copy(&ctx->coarse_mesh->vdata,
-                    &vertex_interpolation->vertex_data_storage,
-                    CD_MASK_EVERYTHING.vmask,
-                    CD_SET_DEFAULT,
-                    4);
+    CustomData_copy_layout(&ctx->coarse_mesh->vdata,
+                           &vertex_interpolation->vertex_data_storage,
+                           CD_MASK_EVERYTHING.vmask,
+                           CD_SET_DEFAULT,
+                           4);
     /* Initialize indices. */
     vertex_interpolation->vertex_indices[0] = 0;
     vertex_interpolation->vertex_indices[1] = 1;
@@ -351,11 +351,11 @@ static void loop_interpolation_init(const SubdivMeshContext *ctx,
   else {
     loop_interpolation->loop_data = &loop_interpolation->loop_data_storage;
     /* Allocate storage for loops corresponding to ptex corners. */
-    CustomData_copy(&ctx->coarse_mesh->ldata,
-                    &loop_interpolation->loop_data_storage,
-                    CD_MASK_EVERYTHING.lmask,
-                    CD_SET_DEFAULT,
-                    4);
+    CustomData_copy_layout(&ctx->coarse_mesh->ldata,
+                           &loop_interpolation->loop_data_storage,
+                           CD_MASK_EVERYTHING.lmask,
+                           CD_SET_DEFAULT,
+                           4);
     /* Initialize indices. */
     loop_interpolation->loop_indices[0] = 0;
     loop_interpolation->loop_indices[1] = 1;

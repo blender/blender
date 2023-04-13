@@ -741,7 +741,7 @@ void ANIM_frame_channel_y_extents(bContext *C, bAnimContext *ac)
 
   ListBase anim_data = {NULL, NULL};
   const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
-                      ANIMFILTER_FCURVESONLY);
+                      ANIMFILTER_FCURVESONLY | ANIMFILTER_CURVE_VISIBLE);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   rctf bounds = {.xmin = FLT_MAX, .xmax = -FLT_MAX, .ymin = FLT_MAX, .ymax = -FLT_MAX};

@@ -135,8 +135,6 @@ class SEQUENCER_HT_tool_header(Header):
         # TODO: options popover.
 
     def draw_tool_settings(self, context):
-        pass
-
         layout = self.layout
 
         # Active Tool
@@ -621,17 +619,17 @@ class SEQUENCER_MT_change(Menu):
         layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator_menu_enum("sequencer.change_effect_input", "swap")
         layout.operator_menu_enum("sequencer.change_effect_type", "type")
-        prop = layout.operator("sequencer.change_path", text="Path/Files")
+        props = layout.operator("sequencer.change_path", text="Path/Files")
 
         if strip:
             strip_type = strip.type
 
             if strip_type == 'IMAGE':
-                prop.filter_image = True
+                props.filter_image = True
             elif strip_type == 'MOVIE':
-                prop.filter_movie = True
+                props.filter_movie = True
             elif strip_type == 'SOUND':
-                prop.filter_sound = True
+                props.filter_sound = True
 
 
 class SEQUENCER_MT_navigation(Menu):
@@ -865,18 +863,18 @@ class SEQUENCER_MT_strip_input(Menu):
 
         layout.operator("sequencer.reload", text="Reload Strips")
         layout.operator("sequencer.reload", text="Reload Strips and Adjust Length").adjust_length = True
-        prop = layout.operator("sequencer.change_path", text="Change Path/Files")
+        props = layout.operator("sequencer.change_path", text="Change Path/Files")
         layout.operator("sequencer.swap_data", text="Swap Data")
 
         if strip:
             strip_type = strip.type
 
             if strip_type == 'IMAGE':
-                prop.filter_image = True
+                props.filter_image = True
             elif strip_type == 'MOVIE':
-                prop.filter_movie = True
+                props.filter_movie = True
             elif strip_type == 'SOUND':
-                prop.filter_sound = True
+                props.filter_sound = True
 
 
 class SEQUENCER_MT_strip_lock_mute(Menu):
@@ -2006,7 +2004,7 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
             split.prop(strip, "pan", text="")
             split.enabled = pan_enabled
 
-            if audio_channels != 'MONO' and audio_channels != 'STEREO':
+            if audio_channels not in {'MONO', 'STEREO'}:
                 split = col.split(factor=0.4)
                 split.alignment = 'RIGHT'
                 split.label(text="Pan Angle")

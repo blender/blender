@@ -1013,7 +1013,7 @@ void AnimationImporter::translate_Animations(
   Main *bmain = CTX_data_main(mContext);
 
   if ((animType->transform) != 0) {
-    /* const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL; */ /* UNUSED */
+    // const char *bone_name = is_joint ? bc_get_joint_name(node) : nullptr; /* UNUSED */
     char joint_path[200];
 
     if (is_joint) {

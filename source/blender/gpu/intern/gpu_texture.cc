@@ -716,6 +716,11 @@ int GPU_texture_height(const GPUTexture *tex)
   return reinterpret_cast<const Texture *>(tex)->height_get();
 }
 
+int GPU_texture_depth(const GPUTexture *tex)
+{
+  return reinterpret_cast<const Texture *>(tex)->depth_get();
+}
+
 int GPU_texture_layer_count(const GPUTexture *tex)
 {
   return reinterpret_cast<const Texture *>(tex)->layer_count();

@@ -80,8 +80,8 @@ static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
   CustomData_free(&dst.curve_data, dst.curve_num);
   dst.point_num = src.point_num;
   dst.curve_num = src.curve_num;
-  CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, CD_DUPLICATE, dst.point_num);
-  CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, CD_DUPLICATE, dst.curve_num);
+  CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, dst.point_num);
+  CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, dst.curve_num);
 
   MEM_SAFE_FREE(dst.curve_offsets);
   dst.curve_offsets = (int *)MEM_malloc_arrayN(dst.point_num + 1, sizeof(int), __func__);
@@ -100,8 +100,7 @@ static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
   dst.runtime->evaluated_normal_cache = src.runtime->evaluated_normal_cache;
 }
 
-CurvesGeometry::CurvesGeometry(const CurvesGeometry &other)
-    : CurvesGeometry(other.point_num, other.curve_num)
+CurvesGeometry::CurvesGeometry(const CurvesGeometry &other) : CurvesGeometry()
 {
   copy_curves_geometry(*this, other);
 }
@@ -133,8 +132,7 @@ static void move_curves_geometry(CurvesGeometry &dst, CurvesGeometry &src)
   std::swap(dst.runtime, src.runtime);
 }
 
-CurvesGeometry::CurvesGeometry(CurvesGeometry &&other)
-    : CurvesGeometry(other.point_num, other.curve_num)
+CurvesGeometry::CurvesGeometry(CurvesGeometry &&other) : CurvesGeometry()
 {
   move_curves_geometry(*this, other);
 }
@@ -1582,10 +1580,15 @@ GVArray CurvesGeometry::adapt_domain(const GVArray &varray,
 
 void CurvesGeometry::blend_read(BlendDataReader &reader)
 {
+  this->runtime = MEM_new<blender::bke::CurvesGeometryRuntime>(__func__);
+
   CustomData_blend_read(&reader, &this->point_data, this->point_num);
   CustomData_blend_read(&reader, &this->curve_data, this->curve_num);
 
   BLO_read_int32_array(&reader, this->curve_num + 1, &this->curve_offsets);
+
+  /* Recalculate curve type count cache that isn't saved in files. */
+  this->update_curve_types();
 }
 
 void CurvesGeometry::blend_write(BlendWriter &writer, ID &id)

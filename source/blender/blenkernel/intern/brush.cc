@@ -2576,3 +2576,26 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool
 
   return im;
 }
+
+bool BKE_brush_has_cube_tip(const Brush *brush, ePaintMode paint_mode)
+{
+  switch (paint_mode) {
+    case PAINT_MODE_SCULPT: {
+      if (brush->sculpt_tool == SCULPT_TOOL_MULTIPLANE_SCRAPE) {
+        return true;
+      }
+
+      if (ELEM(brush->sculpt_tool, SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_PAINT) &&
+          brush->tip_roundness < 1.0f) {
+        return true;
+      }
+
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+
+  return false;
+}

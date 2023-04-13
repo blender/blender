@@ -14,12 +14,11 @@ set(INC
   ../../makesrna
   ../../nodes
   ../../windowmanager
-  ../../../../extern/fast_float
   ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
-
+  ../../../../extern/fast_float
 )
 
 set(SRC
