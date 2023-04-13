@@ -662,8 +662,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
                 if collection.collection.name == collection_name:
                     setattr(collection, attr_name, True)
                     break
-                else:
-                    setup_collection_recursively(collection.children, collection_name, attr_name)
+                setup_collection_recursively(collection.children, collection_name, attr_name)
 
         collections = context.scene.collection.children
         vlayers = context.scene.view_layers

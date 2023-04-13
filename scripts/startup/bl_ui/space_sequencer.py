@@ -135,8 +135,6 @@ class SEQUENCER_HT_tool_header(Header):
         # TODO: options popover.
 
     def draw_tool_settings(self, context):
-        pass
-
         layout = self.layout
 
         # Active Tool
@@ -2006,7 +2004,7 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
             split.prop(strip, "pan", text="")
             split.enabled = pan_enabled
 
-            if audio_channels != 'MONO' and audio_channels != 'STEREO':
+            if audio_channels not in {'MONO', 'STEREO'}:
                 split = col.split(factor=0.4)
                 split.alignment = 'RIGHT'
                 split.label(text="Pan Angle")

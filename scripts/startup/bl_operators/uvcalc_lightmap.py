@@ -520,10 +520,9 @@ def lightmap_uvpack(
             # pf.place(box[1][1], box[1][2], packWidth, packHeight, margin_w, margin_h)
         print("done")
 
+        # removed with texface
+        '''
         if PREF_APPLY_IMAGE:
-            pass
-            # removed with texface
-            '''
             if not PREF_PACK_IN_ONE:
                 image = bpy.data.images.new(name="lightmap",
                                             width=PREF_IMG_PX_SIZE,
@@ -532,7 +531,7 @@ def lightmap_uvpack(
 
             for f in face_sel:
                 f.image = image
-            '''
+        '''
 
     for me in meshes:
         me.update()

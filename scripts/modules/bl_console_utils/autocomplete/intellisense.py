@@ -123,7 +123,7 @@ def expand(line, cursor, namespace, *, private=True):
                 [white_space + m[len(word_prefix):]
                  if (word_prefix and m.startswith(word_prefix))
                  else
-                 white_space + m.split('.')[-1]
+                 white_space + m.rsplit('.', 1)[-1]
                  for m in matches])
 
         no_calltip = True

@@ -1170,7 +1170,7 @@ class PREFERENCES_OT_script_directory_new(Operator):
         new_dir.directory = self.directory
         new_dir.name = os.path.basename(self.directory.rstrip(os.sep))
 
-        assert context.preferences.is_dirty == True
+        assert context.preferences.is_dirty is True
 
         return {'FINISHED'}
 
@@ -1197,9 +1197,10 @@ class PREFERENCES_OT_script_directory_remove(Operator):
                 script_directories.remove(script_directory)
                 break
 
-        assert context.preferences.is_dirty == True
+        assert context.preferences.is_dirty is True
 
         return {'FINISHED'}
+
 
 classes = (
     PREFERENCES_OT_addon_disable,

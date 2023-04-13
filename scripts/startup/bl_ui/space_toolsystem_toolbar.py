@@ -2662,7 +2662,6 @@ class _defs_sequencer_select:
             row = layout.row()
             row.use_property_split = False
             row.prop(props, "mode", text="", expand=True, icon_only=True)
-            pass
         return dict(
             idname="builtin.select_box",
             label="Select Box",
