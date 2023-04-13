@@ -90,6 +90,18 @@ MTLFrameBuffer::~MTLFrameBuffer()
   }
 }
 
+void MTLFrameBuffer::ensure_attachments_and_viewport()
+{
+  /* Ensure local MTLAttachment data is up to date.
+   * NOTE: We only refresh viewport/scissor region when attachments are updated during bind.
+   * This is to ensure state is consistent with the OpenGL backend. */
+  if (dirty_attachments_) {
+    this->update_attachments(true);
+    this->viewport_reset();
+    this->scissor_reset();
+  }
+}
+
 void MTLFrameBuffer::bind(bool enabled_srgb)
 {
 
@@ -102,11 +114,7 @@ void MTLFrameBuffer::bind(bool enabled_srgb)
   /* Ensure local MTLAttachment data is up to date.
    * NOTE: We only refresh viewport/scissor region when attachments are updated during bind.
    * This is to ensure state is consistent with the OpenGL backend. */
-  if (dirty_attachments_) {
-    this->update_attachments(true);
-    this->viewport_reset();
-    this->scissor_reset();
-  }
+  this->ensure_attachments_and_viewport();
 
   /* Ensure SRGB state is up-to-date and valid. */
   bool srgb_state_changed = enabled_srgb_ != enabled_srgb;
@@ -134,8 +142,10 @@ void MTLFrameBuffer::bind(bool enabled_srgb)
 
 bool MTLFrameBuffer::check(char err_out[256])
 {
-  /* Ensure local MTLAttachment data is up to date. */
-  this->update_attachments(true);
+  /* Ensure local MTLAttachment data is up to date.
+   * NOTE: We only refresh viewport/scissor region when attachments are updated during bind.
+   * This is to ensure state is consistent with the OpenGL backend. */
+  this->ensure_attachments_and_viewport();
 
   /* Ensure there is at least one attachment. */
   bool valid = (this->get_attachment_count() > 0 ||
@@ -543,8 +553,8 @@ void MTLFrameBuffer::blit_to(eGPUFrameBufferBits planes,
                              int dst_offset_x,
                              int dst_offset_y)
 {
-  this->update_attachments(true);
-  static_cast<MTLFrameBuffer *>(dst)->update_attachments(true);
+  this->ensure_attachments_and_viewport();
+  static_cast<MTLFrameBuffer *>(dst)->ensure_attachments_and_viewport();
 
   BLI_assert(planes != 0);
 
@@ -773,8 +783,8 @@ void MTLFrameBuffer::apply_state()
     if (viewport_w == 0 || viewport_h == 0) {
       MTL_LOG_WARNING(
           "Viewport had width and height of (0,0) -- Updating -- DEBUG Safety check\n");
-      viewport_w = width_;
-      viewport_h = height_;
+      viewport_w = default_width_;
+      viewport_h = default_height_;
     }
 
     /* Update Context State. */
@@ -892,7 +902,7 @@ bool MTLFrameBuffer::add_color_attachment(gpu::MTLTexture *texture,
         break;
     }
 
-    /* Update Frame-buffer Resolution. */
+    /* Update default attachment size and ensure future attachments match the same size. */
     int width_of_miplayer, height_of_miplayer;
     if (miplevel <= 0) {
       width_of_miplayer = texture->width_get();
@@ -903,14 +913,14 @@ bool MTLFrameBuffer::add_color_attachment(gpu::MTLTexture *texture,
       height_of_miplayer = max_ii(texture->height_get() >> miplevel, 1);
     }
 
-    if (width_ == 0 || height_ == 0) {
-      this->size_set(width_of_miplayer, height_of_miplayer);
-      BLI_assert(width_ > 0);
-      BLI_assert(height_ > 0);
+    if (default_width_ == 0 || default_height_ == 0) {
+      this->default_size_set(width_of_miplayer, height_of_miplayer);
+      BLI_assert(default_width_ > 0);
+      BLI_assert(default_height_ > 0);
     }
     else {
-      BLI_assert(width_ == width_of_miplayer);
-      BLI_assert(height_ == height_of_miplayer);
+      BLI_assert(default_width_ == width_of_miplayer);
+      BLI_assert(default_height_ == height_of_miplayer);
     }
 
     /* Flag as dirty. */
@@ -1011,7 +1021,7 @@ bool MTLFrameBuffer::add_depth_attachment(gpu::MTLTexture *texture, int miplevel
         break;
     }
 
-    /* Update Frame-buffer Resolution. */
+    /* Update default attachment size and ensure future attachments match the same size. */
     int width_of_miplayer, height_of_miplayer;
     if (miplevel <= 0) {
       width_of_miplayer = texture->width_get();
@@ -1022,15 +1032,14 @@ bool MTLFrameBuffer::add_depth_attachment(gpu::MTLTexture *texture, int miplevel
       height_of_miplayer = max_ii(texture->height_get() >> miplevel, 1);
     }
 
-    /* Update Frame-buffer Resolution. */
-    if (width_ == 0 || height_ == 0) {
-      this->size_set(width_of_miplayer, height_of_miplayer);
-      BLI_assert(width_ > 0);
-      BLI_assert(height_ > 0);
+    if (default_width_ == 0 || default_height_ == 0) {
+      this->default_size_set(width_of_miplayer, height_of_miplayer);
+      BLI_assert(default_width_ > 0);
+      BLI_assert(default_height_ > 0);
     }
     else {
-      BLI_assert(width_ == texture->width_get());
-      BLI_assert(height_ == texture->height_get());
+      BLI_assert(default_width_ == width_of_miplayer);
+      BLI_assert(default_height_ == height_of_miplayer);
     }
 
     /* Flag as dirty after attachments changed. */
@@ -1131,7 +1140,7 @@ bool MTLFrameBuffer::add_stencil_attachment(gpu::MTLTexture *texture, int miplev
         break;
     }
 
-    /* Update Frame-buffer Resolution. */
+    /* Update default attachment size and ensure future attachments match the same size. */
     int width_of_miplayer, height_of_miplayer;
     if (miplevel <= 0) {
       width_of_miplayer = texture->width_get();
@@ -1142,15 +1151,14 @@ bool MTLFrameBuffer::add_stencil_attachment(gpu::MTLTexture *texture, int miplev
       height_of_miplayer = max_ii(texture->height_get() >> miplevel, 1);
     }
 
-    /* Update Frame-buffer Resolution. */
-    if (width_ == 0 || height_ == 0) {
-      this->size_set(width_of_miplayer, height_of_miplayer);
-      BLI_assert(width_ > 0);
-      BLI_assert(height_ > 0);
+    if (default_width_ == 0 || default_height_ == 0) {
+      this->default_size_set(width_of_miplayer, height_of_miplayer);
+      BLI_assert(default_width_ > 0);
+      BLI_assert(default_height_ > 0);
     }
     else {
-      BLI_assert(width_ == texture->width_get());
-      BLI_assert(height_ == texture->height_get());
+      BLI_assert(default_width_ == width_of_miplayer);
+      BLI_assert(default_height_ == height_of_miplayer);
     }
 
     /* Flag as dirty after attachments changed. */
@@ -1229,8 +1237,8 @@ void MTLFrameBuffer::ensure_render_target_size()
   if (colour_attachment_count_ == 0 && !this->has_depth_attachment() &&
       !this->has_stencil_attachment()) {
 
-    /* Reset size for empty framebuffer. */
-    this->size_set(0, 0);
+    /* Reset default size for empty framebuffer. */
+    this->default_size_set(0, 0);
   }
 }
 
@@ -1461,7 +1469,9 @@ bool MTLFrameBuffer::validate_render_pass()
   BLI_assert(this);
 
   /* First update attachments if dirty. */
-  this->update_attachments(true);
+  if (dirty_attachments_) {
+    this->update_attachments(true);
+  }
 
   /* Verify attachment count. */
   int used_attachments = 0;
@@ -1890,6 +1900,15 @@ int MTLFrameBuffer::get_width()
 int MTLFrameBuffer::get_height()
 {
   return height_;
+}
+
+int MTLFrameBuffer::get_default_width()
+{
+  return default_width_;
+}
+int MTLFrameBuffer::get_default_height()
+{
+  return default_height_;
 }
 
 }  // namespace blender::gpu
