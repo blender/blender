@@ -15,6 +15,7 @@ set(INC
   ../blender/makesrna
   ../blender/render
   ../blender/windowmanager
+  ../blender/bmesh
 )
 
 set(LIB

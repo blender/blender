@@ -1307,12 +1307,6 @@ void SCULPT_floodfill_free(SculptFloodFill *flood)
 
 /** \} */
 
-static bool sculpt_tool_has_cube_tip(const char sculpt_tool)
-{
-  return ELEM(
-      sculpt_tool, SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_PAINT, SCULPT_TOOL_MULTIPLANE_SCRAPE);
-}
-
 /* -------------------------------------------------------------------- */
 /** \name Tool Capabilities
  *
@@ -1376,7 +1370,8 @@ static int sculpt_brush_needs_normal(const SculptSession *ss, Sculpt *sd, const 
                SCULPT_TOOL_THUMB) ||
 
           (mask_tex->brush_map_mode == MTEX_MAP_MODE_AREA)) ||
-         sculpt_brush_use_topology_rake(ss, brush);
+         sculpt_brush_use_topology_rake(ss, brush) ||
+         BKE_brush_has_cube_tip(brush, PAINT_MODE_SCULPT);
 }
 
 static bool sculpt_brush_needs_rake_rotation(const Brush *brush)
@@ -3018,7 +3013,7 @@ static void calc_local_y(ViewContext *vc, const float center[3], float y[3])
   mul_m4_v3(ob->world_to_object, y);
 }
 
-static void calc_brush_local_mat(const MTex *mtex,
+static void calc_brush_local_mat(const float rotation,
                                  Object *ob,
                                  float local_mat[4][4],
                                  float local_mat_inv[4][4])
@@ -3045,7 +3040,7 @@ static void calc_brush_local_mat(const MTex *mtex,
   /* Calculate the X axis of the local matrix. */
   cross_v3_v3v3(v, up, cache->sculpt_normal);
   /* Apply rotation (user angle, rake, etc.) to X axis. */
-  angle = mtex->rot - cache->special_rotation;
+  angle = rotation - cache->special_rotation;
   rotate_v3_v3v3fl(mat[0], v, cache->sculpt_normal, angle);
 
   /* Get other axes. */
@@ -3059,7 +3054,7 @@ static void calc_brush_local_mat(const MTex *mtex,
   float radius = cache->radius;
 
   /* Square tips should scale by square root of 2. */
-  if (sculpt_tool_has_cube_tip(cache->brush->sculpt_tool)) {
+  if (BKE_brush_has_cube_tip(cache->brush, PAINT_MODE_SCULPT)) {
     radius += (radius * M_SQRT2 - radius) * (1.0f - cache->brush->tip_roundness);
   }
 
@@ -3103,7 +3098,7 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0) {
     const Brush *brush = BKE_paint_brush(&sd->paint);
     const MTex *mask_tex = BKE_brush_mask_texture_get(brush, OB_MODE_SCULPT);
-    calc_brush_local_mat(mask_tex, ob, cache->brush_local_mat, cache->brush_local_mat_inv);
+    calc_brush_local_mat(mask_tex->rot, ob, cache->brush_local_mat, cache->brush_local_mat_inv);
   }
 }
 
@@ -3614,7 +3609,7 @@ static void do_brush_action(Sculpt *sd,
     float radius_scale = 1.0f;
 
     /* Corners of square brushes can go outside the brush radius. */
-    if (sculpt_tool_has_cube_tip(brush->sculpt_tool)) {
+    if (BKE_brush_has_cube_tip(brush, PAINT_MODE_SCULPT)) {
       radius_scale = M_SQRT2;
     }
 
@@ -3686,10 +3681,7 @@ static void do_brush_action(Sculpt *sd,
     update_sculpt_normal(sd, ob, nodes, totnode);
   }
 
-  const MTex *mask_tex = BKE_brush_mask_texture_get(brush, static_cast<eObjectMode>(ob->mode));
-  if (mask_tex->brush_map_mode == MTEX_MAP_MODE_AREA) {
-    update_brush_local_mat(sd, ob);
-  }
+  update_brush_local_mat(sd, ob);
 
   if (brush->sculpt_tool == SCULPT_TOOL_POSE && SCULPT_stroke_is_first_brush_step(ss->cache)) {
     SCULPT_pose_brush_init(sd, ob, ss, brush);
@@ -6455,5 +6447,28 @@ void SCULPT_topology_islands_ensure(Object *ob)
   }
 
   ss->islands_valid = true;
+}
+
+void SCULPT_cube_tip_init(Sculpt * /*sd*/, Object *ob, Brush *brush, float mat[4][4])
+{
+  SculptSession *ss = ob->sculpt;
+  float scale[4][4];
+  float tmat[4][4];
+  float unused[4][4];
+
+  zero_m4(mat);
+  calc_brush_local_mat(0.0, ob, unused, mat);
+
+  /* Note: we ignore the radius scaling done inside of calc_brush_local_mat to
+   * duplicate prior behavior.
+   *
+   * TODO: try disabling this and check that all edge cases work properly.
+   */
+  normalize_m4(mat);
+
+  scale_m4_fl(scale, ss->cache->radius);
+  mul_m4_m4m4(tmat, mat, scale);
+  mul_v3_fl(tmat[1], brush->tip_scale_x);
+  invert_m4_m4(mat, tmat);
 }
 /** \} */
