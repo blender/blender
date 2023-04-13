@@ -526,11 +526,14 @@ def unwrap(operator, context, **kwargs):
     # switch to object mode
     is_editmode = context.object and context.object.mode == 'EDIT'
     if is_editmode:
+        objects = context.objects_in_mode_unique_data
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+    else:
+        objects = context.selected_objects
 
     # define list of meshes
     meshes = list({
-        me for obj in context.selected_objects
+        me for obj in objects
         if obj.type == 'MESH'
         if (me := obj.data).polygons and me.library is None
     })
