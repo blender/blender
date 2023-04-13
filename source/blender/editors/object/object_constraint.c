@@ -2045,7 +2045,7 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Clear Pose Constraints";
   ot->idname = "POSE_OT_constraints_clear";
-  ot->description = "Clear all the constraints for the selected bones";
+  ot->description = "Clear all constraints from the selected bones";
 
   /* callbacks */
   ot->exec = pose_constraints_clear_exec;
@@ -2084,7 +2084,7 @@ void OBJECT_OT_constraints_clear(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Clear Object Constraints";
   ot->idname = "OBJECT_OT_constraints_clear";
-  ot->description = "Clear all the constraints for the active object only";
+  ot->description = "Clear all constraints from the selected objects";
 
   /* callbacks */
   ot->exec = object_constraints_clear_exec;
