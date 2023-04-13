@@ -451,6 +451,7 @@ class _defs_view3d_add:
             for item in km.keymap_items:
                 if item.propvalue == propvalue:
                     return item
+            return None
 
         if km is not None:
             kmi_snap = keymap_item_from_propvalue('SNAP_ON')

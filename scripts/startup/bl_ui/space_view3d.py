@@ -569,6 +569,8 @@ class _draw_tool_settings_context_mode:
         elif curves_tool == "SLIDE":
             layout.popover("VIEW3D_PT_tools_brush_falloff")
 
+        return True
+
 
 class VIEW3D_HT_header(Header):
     bl_space_type = 'VIEW_3D'

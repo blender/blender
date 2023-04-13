@@ -488,7 +488,7 @@ class CLIP_OT_constraint_to_fcurve(Operator):
                 efra = max(efra, track.markers[-1].frame)
 
         if sfra is None or efra is None:
-            return
+            return {'CANCELLED'}
 
         # Store object matrices.
         for x in range(sfra, efra + 1):
@@ -515,6 +515,8 @@ class CLIP_OT_constraint_to_fcurve(Operator):
         ob.constraints.remove(con)
 
         scene.frame_set(frame_current)
+
+        return {'FINISHED'}
 
     def execute(self, context):
         scene = context.scene

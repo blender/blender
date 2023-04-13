@@ -1079,10 +1079,11 @@ class CLIP_PT_2d_cursor(Panel):
 
     @classmethod
     def poll(cls, context):
-        sc = context.space_data
+        if not CLIP_PT_clip_view_panel.poll(context):
+            return False
 
-        if CLIP_PT_clip_view_panel.poll(context):
-            return sc.pivot_point == 'CURSOR' or sc.mode == 'MASK'
+        sc = context.space_data
+        return sc.pivot_point == 'CURSOR' or sc.mode == 'MASK'
 
     def draw(self, context):
         layout = self.layout

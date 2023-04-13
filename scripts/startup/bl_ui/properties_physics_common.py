@@ -37,6 +37,7 @@ def physics_add(layout, md, name, type, typeicon, toggles):
             text_ctxt=i18n_contexts.default,
             icon=typeicon,
         ).type = type
+        return None
 
 
 def physics_add_special(layout, data, name, addop, removeop, typeicon):
