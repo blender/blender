@@ -1978,16 +1978,6 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
     fractional_scale_next = fractional_scale_from_output;
     scale_next = fractional_scale_next / FRACTIONAL_DENOMINATOR;
   }
-  else {
-    /* NOTE(@ideasman42): This often overrides #wp_fractional_scale_v1_listener::preferred_scale
-     * in favor of using the greatest overlapping scale.
-     * This was requested by the studio to prevent a tablet's built-in display of 75%
-     * from causing the main-display being up-scaled (showing pixelated). */
-    if (fractional_scale_next < fractional_scale_from_output) {
-      fractional_scale_next = fractional_scale_from_output;
-      scale_next = fractional_scale_next / FRACTIONAL_DENOMINATOR;
-    }
-  }
 
   bool changed = false;
 
