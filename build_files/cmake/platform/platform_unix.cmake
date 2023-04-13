@@ -815,64 +815,49 @@ if(CMAKE_COMPILER_IS_GNUCC)
   string(PREPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GCC_EXTRA_FLAGS_RELEASE} ")
   unset(GCC_EXTRA_FLAGS_RELEASE)
 
-  # NOTE(@campbellbarton): Eventually mold will be able to use `-fuse-ld=mold`,
-  # however at the moment this only works for GCC 12.1+ (unreleased at time of writing).
-  # So a workaround is used here "-B" which points to another path to find system commands
-  # such as `ld`.
   if(WITH_LINKER_MOLD AND _IS_LINKER_DEFAULT)
     find_program(MOLD_BIN "mold")
     mark_as_advanced(MOLD_BIN)
+
     if(NOT MOLD_BIN)
       message(STATUS "The \"mold\" binary could not be found, using system linker.")
       set(WITH_LINKER_MOLD OFF)
+    elseif(CMAKE_C_COMPILER_VERSION VERSION_LESS 12.1)
+      message(STATUS "GCC 12.1 or newer is required for th MOLD linker.")
+      set(WITH_LINKER_MOLD OFF)
     else()
-      # By default mold installs the binary to:
-      # - `{PREFIX}/bin/mold` as well as a symbolic-link in...
-      # - `{PREFIX}/lib/mold/ld`.
-      # (where `PREFIX` is typically `/usr/`).
-      #
-      # This block of code finds `{PREFIX}/lib/mold` from the `mold` binary.
-      # Other methods of searching for the path could also be made to work,
-      # we could even make our own directory and symbolic-link, however it's more
-      # convenient to use the one provided by mold.
-      #
-      # Use the binary path to "mold", to find the common prefix which contains "lib/mold".
-      # The parent directory: e.g. `/usr/bin/mold` -> `/usr/bin/`.
-      get_filename_component(MOLD_PREFIX "${MOLD_BIN}" DIRECTORY)
-      # The common prefix path: e.g. `/usr/bin/` -> `/usr/` to use as a hint.
-      get_filename_component(MOLD_PREFIX "${MOLD_PREFIX}" DIRECTORY)
-      # Find `{PREFIX}/lib/mold/ld`, store the directory component (without the `ld`).
-      # Then pass `-B {PREFIX}/lib/mold` to GCC so the `ld` located there overrides the default.
-      find_path(
-        MOLD_BIN_DIR "ld"
-        HINTS "${MOLD_PREFIX}"
-        # The default path is `libexec`, Arch Linux for e.g.
-        # replaces this with `lib` so check both.
-        PATH_SUFFIXES "libexec/mold" "lib/mold" "lib64/mold"
-        NO_DEFAULT_PATH
-        NO_CACHE
+      get_filename_component(MOLD_BIN_DIR "${MOLD_BIN}" DIRECTORY)
+      # Check if the `-B` argument is required.
+      # This will happen when `MOLD_BIN` points to a non-standard location.
+      # Keep this option as mold is not yet a standard system component and
+      # users may have it installed in some unexpected place.
+      set(_mold_args "-fuse-ld=mold")
+      execute_process(
+        COMMAND ${CMAKE_C_COMPILER} -B ${MOLD_BIN_DIR} ${_mold_args} -Wl,--version
+        ERROR_QUIET OUTPUT_VARIABLE LD_VERSION_WITH_DIR
       )
-      if(NOT MOLD_BIN_DIR)
-        message(STATUS
-          "The mold linker could not find the directory containing the linker command "
-          "(typically "
-          "\"${MOLD_PREFIX}/libexec/mold/ld\") or "
-          "\"${MOLD_PREFIX}/lib/mold/ld\") using system linker."
-        )
-        set(WITH_LINKER_MOLD OFF)
+      execute_process(
+        COMMAND ${CMAKE_C_COMPILER} ${_mold_args} -Wl,--version
+        ERROR_QUIET OUTPUT_VARIABLE LD_VERSION
+      )
+      if(NOT (LD_VERSION STREQUAL LD_VERSION_WITH_DIR))
+        string(PREPEND _mold_args "-B \"${MOLD_BIN_DIR}\" ")
+        set(LD_VERSION "${LD_VERSION_WITH_DIR}")
       endif()
-      unset(MOLD_PREFIX)
-    endif()
 
-    if(WITH_LINKER_MOLD)
-      # GCC will search for `ld` in this directory first.
-      string(APPEND CMAKE_EXE_LINKER_FLAGS    " -B \"${MOLD_BIN_DIR}\"")
-      string(APPEND CMAKE_SHARED_LINKER_FLAGS " -B \"${MOLD_BIN_DIR}\"")
-      string(APPEND CMAKE_MODULE_LINKER_FLAGS " -B \"${MOLD_BIN_DIR}\"")
-      set(_IS_LINKER_DEFAULT OFF)
+      if("${LD_VERSION}" MATCHES "mold ")
+        string(APPEND CMAKE_EXE_LINKER_FLAGS    " ${_mold_args}")
+        string(APPEND CMAKE_SHARED_LINKER_FLAGS " ${_mold_args}")
+        string(APPEND CMAKE_MODULE_LINKER_FLAGS " ${_mold_args}")
+        set(_IS_LINKER_DEFAULT OFF)
+      else()
+        message(STATUS "GNU mold linker isn't available, using the default system linker.")
+      endif()
+      unset(_mold_args)
+      unset(MOLD_BIN_DIR)
+      unset(LD_VERSION)
     endif()
     unset(MOLD_BIN)
-    unset(MOLD_BIN_DIR)
   endif()
 
   if(WITH_LINKER_GOLD AND _IS_LINKER_DEFAULT)
