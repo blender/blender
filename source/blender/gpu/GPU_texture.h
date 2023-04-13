@@ -941,6 +941,12 @@ int GPU_texture_width(const GPUTexture *texture);
 int GPU_texture_height(const GPUTexture *texture);
 
 /**
+ * Return the depth of \a tex . Correspond to number of layers for 2D array texture.
+ * NOTE: return 0 for 1D & 2D textures.
+ */
+int GPU_texture_depth(const GPUTexture *texture);
+
+/**
  * Return the number of layers of \a tex . Return 1 if the texture is not layered.
  */
 int GPU_texture_layer_count(const GPUTexture *texture);
