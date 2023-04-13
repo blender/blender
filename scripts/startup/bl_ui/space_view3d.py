@@ -1442,8 +1442,6 @@ class VIEW3D_MT_select_object_more_less(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout = self.layout
-
         layout.operator("object.select_more", text="More")
         layout.operator("object.select_less", text="Less")
 
@@ -1506,8 +1504,6 @@ class VIEW3D_MT_select_pose_more_less(Menu):
     bl_label = "Select More/Less"
 
     def draw(self, _context):
-        layout = self.layout
-
         layout = self.layout
 
         props = layout.operator("pose.select_hierarchy", text="Parent")
@@ -1618,6 +1614,7 @@ class VIEW3D_MT_edit_mesh_select_by_trait(Menu):
     def draw(self, context):
         layout = self.layout
         tool_settings = context.tool_settings
+
         if tool_settings.mesh_select_mode[2] is False:
             layout.operator("mesh.select_non_manifold", text="Non Manifold")
         layout.operator("mesh.select_loose", text="Loose Geometry")
@@ -1852,8 +1849,6 @@ class VIEW3D_MT_edit_lattice_context_menu(Menu):
     bl_label = "Lattice Context Menu"
 
     def draw(self, _context):
-        layout = self.layout
-
         layout = self.layout
 
         layout.menu("VIEW3D_MT_mirror")
@@ -2206,9 +2201,10 @@ class TOPBAR_MT_edit_curve_add(Menu):
     bl_translation_context = i18n_contexts.operator_default
 
     def draw(self, context):
+        layout = self.layout
+
         is_surf = context.active_object.type == 'SURFACE'
 
-        layout = self.layout
         layout.operator_context = 'EXEC_REGION_WIN'
 
         if is_surf:
@@ -2536,8 +2532,8 @@ class VIEW3D_MT_object_context_menu(Menu):
     bl_label = "Object Context Menu"
 
     def draw(self, context):
-
         layout = self.layout
+
         view = context.space_data
 
         obj = context.object
@@ -2765,6 +2761,7 @@ class VIEW3D_MT_object_apply(Menu):
 
     def draw(self, _context):
         layout = self.layout
+
         # Need invoke for the popup confirming the multi-user data operation
         layout.operator_context = 'INVOKE_DEFAULT'
 
@@ -6813,7 +6810,6 @@ class VIEW3D_PT_overlay_sculpt(Panel):
 
     def draw(self, context):
         layout = self.layout
-        tool_settings = context.tool_settings
 
         view = context.space_data
         overlay = view.overlay
@@ -6844,8 +6840,6 @@ class VIEW3D_PT_overlay_sculpt_curves(Panel):
 
     def draw(self, context):
         layout = self.layout
-        tool_settings = context.tool_settings
-        sculpt = tool_settings.sculpt
 
         view = context.space_data
         overlay = view.overlay
@@ -6979,6 +6973,7 @@ class VIEW3D_PT_overlay_weight_paint(Panel):
         view = context.space_data
         overlay = view.overlay
         display_all = overlay.show_overlays
+        tool_settings = context.tool_settings
 
         col = layout.column()
         col.active = display_all
@@ -6987,7 +6982,7 @@ class VIEW3D_PT_overlay_weight_paint(Panel):
         row = col.split(factor=0.33)
         row.label(text="Zero Weights")
         sub = row.row()
-        sub.prop(context.tool_settings, "vertex_group_user", expand=True)
+        sub.prop(tool_settings, "vertex_group_user", expand=True)
 
         col.prop(overlay, "show_wpaint_contours")
         col.prop(overlay, "show_paint_wire")
@@ -7158,11 +7153,13 @@ class VIEW3D_PT_gpencil_lock(Panel):
 
     def draw(self, context):
         layout = self.layout
+        tool_settings = context.tool_settings
+
         layout.label(text="Drawing Plane")
 
         row = layout.row()
         col = row.column()
-        col.prop(context.tool_settings.gpencil_sculpt, "lock_axis", expand=True)
+        col.prop(tool_settings.gpencil_sculpt, "lock_axis", expand=True)
 
 
 class VIEW3D_PT_gpencil_guide(Panel):
@@ -7428,10 +7425,12 @@ class VIEW3D_PT_gpencil_multi_frame(Panel):
     bl_label = "Multi Frame"
 
     def draw(self, context):
-        gpd = context.gpencil_data
-        settings = context.tool_settings.gpencil_sculpt
-
         layout = self.layout
+        tool_settings = context.tool_settings
+
+        gpd = context.gpencil_data
+        settings = tool_settings.gpencil_sculpt
+
         col = layout.column(align=True)
         col.prop(settings, "use_multiframe_falloff")
 
@@ -7461,12 +7460,12 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
     bl_label = ""
 
     def draw(self, context):
-
-        is_point_mode = context.tool_settings.gpencil_selectmode_edit == 'POINT'
-        is_stroke_mode = context.tool_settings.gpencil_selectmode_edit == 'STROKE'
-        is_segment_mode = context.tool_settings.gpencil_selectmode_edit == 'SEGMENT'
-
         layout = self.layout
+        tool_settings = context.tool_settings
+
+        is_point_mode = tool_settings.gpencil_selectmode_edit == 'POINT'
+        is_stroke_mode = tool_settings.gpencil_selectmode_edit == 'STROKE'
+        is_segment_mode = tool_settings.gpencil_selectmode_edit == 'SEGMENT'
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -7608,8 +7607,8 @@ class VIEW3D_PT_gpencil_sculpt_automasking(Panel):
 
     def draw(self, context):
         layout = self.layout
-
         tool_settings = context.scene.tool_settings
+
         layout.label(text="Auto-masking")
 
         col = layout.column(align=True)
@@ -7628,11 +7627,11 @@ class VIEW3D_PT_gpencil_sculpt_context_menu(Panel):
     bl_ui_units_x = 12
 
     def draw(self, context):
+        layout = self.layout
         tool_settings = context.tool_settings
+
         settings = tool_settings.gpencil_sculpt_paint
         brush = settings.brush
-
-        layout = self.layout
 
         layout.prop(brush, "size", slider=True)
         layout.prop(brush, "strength")
@@ -7669,12 +7668,12 @@ class VIEW3D_PT_gpencil_draw_context_menu(Panel):
     bl_ui_units_x = 12
 
     def draw(self, context):
+        layout = self.layout
         tool_settings = context.tool_settings
         settings = tool_settings.gpencil_paint
         brush = settings.brush
         gp_settings = brush.gpencil_settings
 
-        layout = self.layout
         is_pin_vertex = gp_settings.brush_draw_mode == 'VERTEXCOLOR'
         is_vertex = settings.color_mode == 'VERTEXCOLOR' or brush.gpencil_tool == 'TINT' or is_pin_vertex
 
