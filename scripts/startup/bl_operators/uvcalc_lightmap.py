@@ -220,8 +220,6 @@ def lightmap_uvpack(
         PREF_SEL_ONLY=True,
         PREF_NEW_UVLAYER=False,
         PREF_PACK_IN_ONE=False,
-        PREF_APPLY_IMAGE=False,
-        PREF_IMG_PX_SIZE=512,
         PREF_BOX_DIV=8,
         PREF_MARGIN_DIV=512,
 ):
@@ -240,8 +238,6 @@ def lightmap_uvpack(
     t = time.time()
 
     if PREF_PACK_IN_ONE:
-        if PREF_APPLY_IMAGE:
-            image = bpy.data.images.new(name="lightmap", width=PREF_IMG_PX_SIZE, height=PREF_IMG_PX_SIZE, alpha=False)
         face_groups = [[]]
     else:
         face_groups = []
@@ -520,19 +516,6 @@ def lightmap_uvpack(
             # pf.place(box[1][1], box[1][2], packWidth, packHeight, margin_w, margin_h)
         print("done")
 
-        # removed with texface
-        '''
-        if PREF_APPLY_IMAGE:
-            if not PREF_PACK_IN_ONE:
-                image = bpy.data.images.new(name="lightmap",
-                                            width=PREF_IMG_PX_SIZE,
-                                            height=PREF_IMG_PX_SIZE,
-                                            )
-
-            for f in face_sel:
-                f.image = image
-        '''
-
     for me in meshes:
         me.update()
 
@@ -605,20 +588,6 @@ class LightMapPack(Operator):
         description="Create a new UV map for every mesh packed",
         default=False,
     )
-    PREF_APPLY_IMAGE: BoolProperty(
-        name="New Image",
-        description=(
-            "Assign new images for every mesh (only one if "
-            "Share Texture Space is enabled)"
-        ),
-        default=False,
-    )
-    PREF_IMG_PX_SIZE: IntProperty(
-        name="Image Size",
-        description="Width and height for the new image",
-        min=64, max=5000,
-        default=512,
-    )
     # UV Packing...
     PREF_BOX_DIV: IntProperty(
         name="Pack Quality",
@@ -647,8 +616,6 @@ class LightMapPack(Operator):
 
         layout.prop(self, "PREF_PACK_IN_ONE")
         layout.prop(self, "PREF_NEW_UVLAYER")
-        layout.prop(self, "PREF_APPLY_IMAGE")
-        layout.prop(self, "PREF_IMG_PX_SIZE")
         layout.prop(self, "PREF_BOX_DIV")
         layout.prop(self, "PREF_MARGIN_DIV")
 
