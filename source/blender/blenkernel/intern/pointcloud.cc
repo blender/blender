@@ -71,18 +71,17 @@ static void pointcloud_init_data(ID *id)
   pointcloud->runtime = new blender::bke::PointCloudRuntime();
 }
 
-static void pointcloud_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
+static void pointcloud_copy_data(Main * /*bmain*/,
+                                 ID *id_dst,
+                                 const ID *id_src,
+                                 const int /*flag*/)
 {
   PointCloud *pointcloud_dst = (PointCloud *)id_dst;
   const PointCloud *pointcloud_src = (const PointCloud *)id_src;
   pointcloud_dst->mat = static_cast<Material **>(MEM_dupallocN(pointcloud_src->mat));
 
-  const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
-  CustomData_copy(&pointcloud_src->pdata,
-                  &pointcloud_dst->pdata,
-                  CD_MASK_ALL,
-                  alloc_type,
-                  pointcloud_dst->totpoint);
+  CustomData_copy(
+      &pointcloud_src->pdata, &pointcloud_dst->pdata, CD_MASK_ALL, pointcloud_dst->totpoint);
 
   pointcloud_dst->runtime = new blender::bke::PointCloudRuntime();
   pointcloud_dst->runtime->bounds_cache = pointcloud_src->runtime->bounds_cache;
@@ -259,27 +258,12 @@ void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src,
 {
   BLI_assert(pointcloud_src->id.tag & LIB_TAG_NO_MAIN);
 
-  eCDAllocType alloctype = CD_DUPLICATE;
-
-  if (take_ownership) {
-    bool has_any_referenced_layers = CustomData_has_referenced(&pointcloud_src->pdata);
-
-    if (!has_any_referenced_layers) {
-      alloctype = CD_ASSIGN;
-    }
-  }
-
   CustomData_free(&pointcloud_dst->pdata, pointcloud_dst->totpoint);
 
   const int totpoint = pointcloud_dst->totpoint = pointcloud_src->totpoint;
-  CustomData_copy(
-      &pointcloud_src->pdata, &pointcloud_dst->pdata, CD_MASK_ALL, alloctype, totpoint);
+  CustomData_copy(&pointcloud_src->pdata, &pointcloud_dst->pdata, CD_MASK_ALL, totpoint);
 
   if (take_ownership) {
-    if (alloctype == CD_ASSIGN) {
-      /* Free the CustomData but keep the layers. */
-      CustomData_free_typemask(&pointcloud_src->pdata, pointcloud_src->totpoint, 0);
-    }
     BKE_id_free(nullptr, pointcloud_src);
   }
 }

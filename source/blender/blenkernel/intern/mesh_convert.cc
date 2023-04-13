@@ -625,7 +625,7 @@ void BKE_pointcloud_from_mesh(const Mesh *me, PointCloud *pointcloud)
 {
   CustomData_free(&pointcloud->pdata, pointcloud->totpoint);
   pointcloud->totpoint = me->totvert;
-  CustomData_merge(&me->vdata, &pointcloud->pdata, CD_MASK_PROP_ALL, CD_DUPLICATE, me->totvert);
+  CustomData_merge(&me->vdata, &pointcloud->pdata, CD_MASK_PROP_ALL, me->totvert);
 }
 
 void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
@@ -652,8 +652,7 @@ void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
 void BKE_mesh_from_pointcloud(const PointCloud *pointcloud, Mesh *me)
 {
   me->totvert = pointcloud->totpoint;
-  CustomData_merge(
-      &pointcloud->pdata, &me->vdata, CD_MASK_PROP_ALL, CD_DUPLICATE, pointcloud->totpoint);
+  CustomData_merge(&pointcloud->pdata, &me->vdata, CD_MASK_PROP_ALL, pointcloud->totpoint);
 }
 
 void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
@@ -1116,13 +1115,6 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
 
   BKE_mesh_clear_geometry_and_metadata(mesh_dst);
 
-  /* Make sure referenced layers have a single user so assigning them to the mesh in main doesn't
-   * share them. "Referenced" layers are not expected to be shared between original meshes. */
-  CustomData_duplicate_referenced_layers(&mesh_src->vdata, mesh_src->totvert);
-  CustomData_duplicate_referenced_layers(&mesh_src->edata, mesh_src->totedge);
-  CustomData_duplicate_referenced_layers(&mesh_src->pdata, mesh_src->totpoly);
-  CustomData_duplicate_referenced_layers(&mesh_src->ldata, mesh_src->totloop);
-
   const bool verts_num_changed = mesh_dst->totvert != mesh_src->totvert;
   mesh_dst->totvert = mesh_src->totvert;
   mesh_dst->totedge = mesh_src->totedge;
@@ -1131,10 +1123,10 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
 
   /* Using #CD_MASK_MESH ensures that only data that should exist in Main meshes is moved. */
   const CustomData_MeshMasks mask = CD_MASK_MESH;
-  CustomData_copy(&mesh_src->vdata, &mesh_dst->vdata, mask.vmask, CD_ASSIGN, mesh_src->totvert);
-  CustomData_copy(&mesh_src->edata, &mesh_dst->edata, mask.emask, CD_ASSIGN, mesh_src->totedge);
-  CustomData_copy(&mesh_src->pdata, &mesh_dst->pdata, mask.pmask, CD_ASSIGN, mesh_src->totpoly);
-  CustomData_copy(&mesh_src->ldata, &mesh_dst->ldata, mask.lmask, CD_ASSIGN, mesh_src->totloop);
+  CustomData_copy(&mesh_src->vdata, &mesh_dst->vdata, mask.vmask, mesh_src->totvert);
+  CustomData_copy(&mesh_src->edata, &mesh_dst->edata, mask.emask, mesh_src->totedge);
+  CustomData_copy(&mesh_src->pdata, &mesh_dst->pdata, mask.pmask, mesh_src->totpoly);
+  CustomData_copy(&mesh_src->ldata, &mesh_dst->ldata, mask.lmask, mesh_src->totloop);
   std::swap(mesh_dst->poly_offset_indices, mesh_src->poly_offset_indices);
 
   /* Make sure attribute names are moved. */

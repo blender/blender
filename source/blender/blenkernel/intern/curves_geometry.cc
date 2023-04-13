@@ -80,8 +80,8 @@ static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
   CustomData_free(&dst.curve_data, dst.curve_num);
   dst.point_num = src.point_num;
   dst.curve_num = src.curve_num;
-  CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, CD_DUPLICATE, dst.point_num);
-  CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, CD_DUPLICATE, dst.curve_num);
+  CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, dst.point_num);
+  CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, dst.curve_num);
 
   MEM_SAFE_FREE(dst.curve_offsets);
   dst.curve_offsets = (int *)MEM_malloc_arrayN(dst.point_num + 1, sizeof(int), __func__);

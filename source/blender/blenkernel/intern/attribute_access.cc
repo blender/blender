@@ -201,12 +201,15 @@ static bool add_builtin_type_custom_data_layer_from_init(CustomData &custom_data
       return true;
     }
     case AttributeInit::Type::MoveArray: {
-      void *source_data = static_cast<const AttributeInitMoveArray &>(initializer).data;
-      const void *data = CustomData_add_layer_with_data(
-          &custom_data, data_type, source_data, domain_num);
-      if (data == nullptr) {
-        MEM_freeN(source_data);
+      void *src_data = static_cast<const AttributeInitMoveArray &>(initializer).data;
+      const void *stored_data = CustomData_add_layer_with_data(
+          &custom_data, data_type, src_data, domain_num, nullptr);
+      if (stored_data == nullptr) {
         return false;
+      }
+      if (stored_data != src_data) {
+        MEM_freeN(src_data);
+        return true;
       }
       return true;
     }
@@ -230,25 +233,26 @@ static void *add_generic_custom_data_layer(CustomData &custom_data,
   }
   const AnonymousAttributeID &anonymous_id = attribute_id.anonymous_id();
   return CustomData_add_layer_anonymous(
-      &custom_data, data_type, alloctype, nullptr, domain_size, &anonymous_id);
+      &custom_data, data_type, alloctype, domain_size, &anonymous_id);
 }
 
 static const void *add_generic_custom_data_layer_with_existing_data(
     CustomData &custom_data,
     const eCustomDataType data_type,
-    void *layer_data,
+    const AttributeIDRef &attribute_id,
     const int domain_size,
-    const AttributeIDRef &attribute_id)
+    void *layer_data,
+    const ImplicitSharingInfo *sharing_info)
 {
-  if (!attribute_id.is_anonymous()) {
-    char attribute_name_c[MAX_CUSTOMDATA_LAYER_NAME];
-    attribute_id.name().copy(attribute_name_c);
-    return CustomData_add_layer_named_with_data(
-        &custom_data, data_type, layer_data, domain_size, attribute_name_c);
+  if (attribute_id.is_anonymous()) {
+    const AnonymousAttributeID &anonymous_id = attribute_id.anonymous_id();
+    return CustomData_add_layer_anonymous_with_data(
+        &custom_data, data_type, &anonymous_id, domain_size, layer_data, sharing_info);
   }
-  const AnonymousAttributeID &anonymous_id = attribute_id.anonymous_id();
-  return CustomData_add_layer_anonymous(
-      &custom_data, data_type, CD_ASSIGN, layer_data, domain_size, &anonymous_id);
+  char attribute_name_c[MAX_CUSTOMDATA_LAYER_NAME];
+  attribute_id.name().copy(attribute_name_c);
+  return CustomData_add_layer_named_with_data(
+      &custom_data, data_type, layer_data, domain_size, attribute_name_c, sharing_info);
 }
 
 static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attribute_id,
@@ -279,9 +283,9 @@ static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attr
       break;
     }
     case AttributeInit::Type::MoveArray: {
-      void *source_data = static_cast<const AttributeInitMoveArray &>(initializer).data;
+      void *data = static_cast<const AttributeInitMoveArray &>(initializer).data;
       add_generic_custom_data_layer_with_existing_data(
-          custom_data, data_type, source_data, domain_num, attribute_id);
+          custom_data, data_type, attribute_id, domain_num, data, nullptr);
       break;
     }
   }
@@ -571,7 +575,7 @@ CustomDataAttributes::~CustomDataAttributes()
 CustomDataAttributes::CustomDataAttributes(const CustomDataAttributes &other)
 {
   size_ = other.size_;
-  CustomData_copy(&other.data, &data, CD_MASK_ALL, CD_DUPLICATE, size_);
+  CustomData_copy(&other.data, &data, CD_MASK_ALL, size_);
 }
 
 CustomDataAttributes::CustomDataAttributes(CustomDataAttributes &&other)
@@ -652,15 +656,6 @@ bool CustomDataAttributes::create(const AttributeIDRef &attribute_id,
 {
   void *result = add_generic_custom_data_layer(
       data, data_type, CD_SET_DEFAULT, size_, attribute_id);
-  return result != nullptr;
-}
-
-bool CustomDataAttributes::create_by_move(const AttributeIDRef &attribute_id,
-                                          const eCustomDataType data_type,
-                                          void *buffer)
-{
-  const void *result = add_generic_custom_data_layer_with_existing_data(
-      data, data_type, buffer, size_, attribute_id);
   return result != nullptr;
 }
 

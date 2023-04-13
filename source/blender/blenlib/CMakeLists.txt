@@ -243,6 +243,7 @@ set(SRC
   BLI_hash_tables.hh
   BLI_heap.h
   BLI_heap_simple.h
+  BLI_implicit_sharing.h
   BLI_implicit_sharing.hh
   BLI_implicit_sharing_ptr.hh
   BLI_index_mask.hh

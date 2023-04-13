@@ -157,14 +157,10 @@ static void SCULPT_dynamic_topology_disable_ex(
     me->totpoly = geometry->totpoly;
     me->totedge = geometry->totedge;
     me->totface = 0;
-    CustomData_copy(
-        &geometry->vdata, &me->vdata, CD_MASK_MESH.vmask, CD_DUPLICATE, geometry->totvert);
-    CustomData_copy(
-        &geometry->edata, &me->edata, CD_MASK_MESH.emask, CD_DUPLICATE, geometry->totedge);
-    CustomData_copy(
-        &geometry->ldata, &me->ldata, CD_MASK_MESH.lmask, CD_DUPLICATE, geometry->totloop);
-    CustomData_copy(
-        &geometry->pdata, &me->pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, geometry->totpoly);
+    CustomData_copy(&geometry->vdata, &me->vdata, CD_MASK_MESH.vmask, geometry->totvert);
+    CustomData_copy(&geometry->edata, &me->edata, CD_MASK_MESH.emask, geometry->totedge);
+    CustomData_copy(&geometry->ldata, &me->ldata, CD_MASK_MESH.lmask, geometry->totloop);
+    CustomData_copy(&geometry->pdata, &me->pdata, CD_MASK_MESH.pmask, geometry->totpoly);
     me->poly_offset_indices = static_cast<int *>(MEM_dupallocN(geometry->poly_offset_indices));
   }
   else {
