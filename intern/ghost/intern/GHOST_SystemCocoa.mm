@@ -1400,7 +1400,9 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
     [[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
   }
 
-  GHOST_Window *window = (GHOST_Window *)m_windowManager->getActiveWindow();
+  GHOST_Window *window = m_windowManager->getWindows().empty() ?
+                             NULL :
+                             (GHOST_Window *)m_windowManager->getWindows().front();
 
   if (!window) {
     return NO;
