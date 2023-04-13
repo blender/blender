@@ -79,8 +79,6 @@ typedef struct MoveInteraction {
 
 } MoveInteraction;
 
-#define DIAL_RESOLUTION 32
-
 /* -------------------------------------------------------------------- */
 
 static void move_geom_draw(const wmGizmo *gz,
