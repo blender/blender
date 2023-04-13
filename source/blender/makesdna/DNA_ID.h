@@ -697,7 +697,7 @@ enum {
 /**
  * id->tag (runtime-only).
  *
- * Those flags belong to three different categories, which have different expected handling in
+ * Those tags belong to three different categories, which have different expected handling in
  * code:
  *
  * - RESET_BEFORE_USE: piece of code that wants to use such flag has to ensure they are properly
@@ -707,8 +707,17 @@ enum {
  *   reset on depsgraph evaluation...).
  * - RESET_NEVER: these flags are 'status' ones, and never actually need any reset (except on
  *   initialization during .blend file reading).
+ *
+ * \note: These tags are purely runtime, so changing there value is not an issue. When adding new
+ * tags, please put them in the relevant category and always keep their values strictly increasing.
  */
 enum {
+  /**
+   * Long-life tags giving important info about general ID management.
+   *
+   * These tags are typically not chnaged often, if ever, during an ID's life.
+   */
+
   /**
    * ID is from current .blend file.
    *
@@ -729,26 +738,15 @@ enum {
   LIB_TAG_INDIRECT = 1 << 1,
 
   /**
-   * Tag used internally in readfile.c, to mark IDs needing to be expanded (only done once).
+   * ID is considered as runtime, and should not be saved when writing .blend file, nor influence
+   * (in)direct status of linked data.
    *
-   * RESET_AFTER_USE
-   */
-  LIB_TAG_NEED_EXPAND = 1 << 3,
-  /**
-   * Tag used internally in readfile.c, to mark ID placeholders for linked data-blocks needing to
-   * be read.
+   * Only meaningful for IDs belonging to regular Main database, all other cases are implicitly
+   * considered runtime-only.
    *
-   * RESET_AFTER_USE
+   * RESET_NEVER
    */
-  LIB_TAG_ID_LINK_PLACEHOLDER = 1 << 4,
-  /**
-   * Tag used internally in readfile.c, to mark IDs needing to be 'lib-linked', i.e. to get their
-   * pointers to other data-blocks updated from the 'UID' values stored in .blend files to the new,
-   * actual pointers.
-   *
-   * RESET_AFTER_USE
-   */
-  LIB_TAG_NEED_LINK = 1 << 5,
+  LIB_TAG_RUNTIME = 1 << 2,
 
   /**
    * ID is a place-holder, an 'empty shell' (because the real one could not be linked from its
@@ -756,20 +754,7 @@ enum {
    *
    * RESET_NEVER
    */
-  LIB_TAG_MISSING = 1 << 6,
-
-  /**
-   * ID is up-to-date regarding its reference (only for library overrides).
-   *
-   * RESET_NEVER
-   */
-  LIB_TAG_OVERRIDE_LIBRARY_REFOK = 1 << 9,
-  /**
-   * ID needs an auto-diffing execution, if enabled (only for library overrides).
-   *
-   * RESET_NEVER
-   */
-  LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH = 1 << 17,
+  LIB_TAG_MISSING = 1 << 3,
 
   /**
    * ID has an extra virtual user (aka 'ensured real', as set by e.g. some editors, not to be
@@ -780,13 +765,36 @@ enum {
    * \note This tag does not necessarily mean the actual user count of the ID is increased, this is
    * defined by #LIB_TAG_EXTRAUSER_SET.
    */
-  LIB_TAG_EXTRAUSER = 1 << 2,
+  LIB_TAG_EXTRAUSER = 1 << 4,
   /**
    * ID actually has increased user-count for the extra virtual user.
    *
    * RESET_NEVER
    */
-  LIB_TAG_EXTRAUSER_SET = 1 << 7,
+  LIB_TAG_EXTRAUSER_SET = 1 << 5,
+
+  /**
+   * ID is up-to-date regarding its reference (only for library overrides).
+   *
+   * RESET_NEVER
+   */
+  LIB_TAG_OVERRIDE_LIBRARY_REFOK = 1 << 6,
+  /**
+   * ID needs an auto-diffing execution, if enabled (only for library overrides).
+   *
+   * RESET_NEVER
+   */
+  LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH = 1 << 7,
+  /**
+   * ID is a library override that needs re-sync to its linked reference.
+   *
+   * RESET_NEVER
+   */
+  LIB_TAG_LIB_OVERRIDE_NEED_RESYNC = 1 << 8,
+
+  /**
+   * Short-life tags used during specific processes, like blendfile readind.
+   */
 
   /**
    * ID is newly duplicated/copied (see #ID_NEW_SET macro above).
@@ -795,92 +803,50 @@ enum {
    *
    * \note Also used internally in readfile.c to mark data-blocks needing do_versions.
    */
-  LIB_TAG_NEW = 1 << 8,
-  /**
-   * Free to use tag, often used in BKE code to mark IDs to be processed.
-   *
-   * RESET_BEFORE_USE
-   *
-   * \todo Make it a RESET_AFTER_USE too.
-   */
-  LIB_TAG_DOIT = 1 << 10,
+  LIB_TAG_NEW = 1 << 12,
   /**
    * ID is already existing. Set before linking, to distinguish between existing data-blocks and
    * newly linked ones.
    *
    * RESET_AFTER_USE
    */
-  LIB_TAG_PRE_EXISTING = 1 << 11,
+  LIB_TAG_PRE_EXISTING = 1 << 13,
 
   /**
-   * ID is a copy-on-write/localized version.
+   * Tag used internally in readfile.c, to mark IDs needing to be expanded (only done once).
    *
-   * RESET_NEVER
-   *
-   * \warning This should not be cleared on existing data.
-   * If support for this is needed, see #88026 as this flag controls memory ownership
-   * of physics *shared* pointers.
+   * RESET_AFTER_USE
    */
-  LIB_TAG_COPIED_ON_WRITE = 1 << 12,
+  LIB_TAG_NEED_EXPAND = 1 << 14,
   /**
-   * ID is not the original COW ID created by the depsgraph, but has been re-allocated during the
-   * evaluation process of another ID.
+   * Tag used internally in readfile.c, to mark ID placeholders for linked data-blocks needing to
+   * be read.
    *
-   * RESET_NEVER
-   *
-   * Typical example is object data, when evaluating the object's modifier stack the final obdata
-   * can be different than the COW initial obdata ID.
+   * RESET_AFTER_USE
    */
-  LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT = 1 << 13,
-
+  LIB_TAG_ID_LINK_PLACEHOLDER = 1 << 15,
   /**
-   * ID is fully outside of any ID management area, and should be considered as a purely
-   * independent data.
+   * Tag used internally in readfile.c, to mark IDs needing to be 'lib-linked', i.e. to get their
+   * pointers to other data-blocks updated from the 'UID' values stored in .blend files to the new,
+   * actual pointers.
    *
-   * RESET_NEVER
-   *
-   * \note Only used by node-trees currently.
+   * RESET_AFTER_USE
    */
-  LIB_TAG_LOCALIZED = 1 << 14,
-
-  /** General ID management info, for freeing or copying behavior e.g. */
-  /**
-   * ID is not listed/stored in Main database.
-   *
-   * RESET_NEVER
-   */
-  LIB_TAG_NO_MAIN = 1 << 15,
-  /**
-   * ID is considered as runtime, and should not be saved when writing .blend file, nor influence
-   * (in)direct status of linked data.
-   *
-   * Only meaningful for IDs belonging to regular Main database, all other cases are implicitly
-   * considered runtime-only.
-   *
-   * RESET_NEVER
-   */
-  LIB_TAG_RUNTIME = 1 << 22,
-  /**
-   * Datablock does not refcount usages of other IDs.
-   *
-   * RESET_NEVER
-   */
-  LIB_TAG_NO_USER_REFCOUNT = 1 << 16,
-  /**
-   * ID was not allocated by standard system (BKE_libblock_alloc), do not free its memory
-   * (usual type-specific freeing is called though).
-   *
-   * RESET_NEVER
-   */
-  LIB_TAG_NOT_ALLOCATED = 1 << 18,
-
+  LIB_TAG_NEED_LINK = 1 << 16,
   /**
    * ID is being re-used from the old Main (instead of read from memfile), during memfile undo
    * processing.
    *
    * RESET_AFTER_USE
    */
-  LIB_TAG_UNDO_OLD_ID_REUSED = 1 << 19,
+  LIB_TAG_UNDO_OLD_ID_REUSED = 1 << 17,
+
+  /* ------------------------------------------------------------------------------------------- */
+  /**
+   * Tags for special kind of IDs, not living in regular BMain data-base.
+   *
+   * IDs with such tags have typically a short life.
+   */
 
   /**
    * ID is part of a temporary #Main which is expected to be freed in a short time-frame.
@@ -891,13 +857,71 @@ enum {
    * When set #ID.session_uuid isn't initialized, since the data isn't part of the session.
    */
   LIB_TAG_TEMP_MAIN = 1 << 20,
-
+  /** General ID management info, for freeing or copying behavior e.g. */
   /**
-   * ID is a library override that needs re-sync to its linked reference.
+   * ID is not listed/stored in Main database.
    *
    * RESET_NEVER
    */
-  LIB_TAG_LIB_OVERRIDE_NEED_RESYNC = 1 << 21,
+  LIB_TAG_NO_MAIN = 1 << 21,
+  /**
+   * ID is fully outside of any ID management area, and should be considered as a purely
+   * independent data.
+   *
+   * RESET_NEVER
+   *
+   * \note Only used by node-trees currently.
+   */
+  LIB_TAG_LOCALIZED = 1 << 22,
+  /**
+   * ID is a copy-on-write/localized version.
+   *
+   * RESET_NEVER
+   *
+   * \warning This should not be cleared on existing data.
+   * If support for this is needed, see #88026 as this flag controls memory ownership
+   * of physics *shared* pointers.
+   */
+  LIB_TAG_COPIED_ON_WRITE = 1 << 23,
+  /**
+   * ID is not the original COW ID created by the depsgraph, but has been re-allocated during the
+   * evaluation process of another ID.
+   *
+   * RESET_NEVER
+   *
+   * Typical example is object data, when evaluating the object's modifier stack the final obdata
+   * can be different than the COW initial obdata ID.
+   */
+  LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT = 1 << 24,
+
+  /**
+   * ID management status tags related to non-standard BMain IDs.
+   */
+
+  /**
+   * Datablock does not refcount usages of other IDs.
+   *
+   * RESET_NEVER
+   */
+  LIB_TAG_NO_USER_REFCOUNT = 1 << 25,
+  /**
+   * ID was not allocated by standard system (BKE_libblock_alloc), do not free its memory
+   * (usual type-specific freeing is called though).
+   *
+   * RESET_NEVER
+   */
+  LIB_TAG_NOT_ALLOCATED = 1 << 26,
+
+  /* ------------------------------------------------------------------------------------------- */
+
+  /**
+   * Free to use tag, often used in BKE code to mark IDs to be processed.
+   *
+   * RESET_BEFORE_USE
+   *
+   * \todo Make it a RESET_AFTER_USE too.
+   */
+  LIB_TAG_DOIT = 1 << 31,
 };
 
 /**
