@@ -2094,13 +2094,13 @@ class _defs_gpencil_paint:
 
 class _defs_gpencil_edit:
     def is_segment(context):
-        ts = context.scene.tool_settings
+        tool_settings = context.scene.tool_settings
         if context.mode == 'EDIT_GPENCIL':
-            return ts.gpencil_selectmode_edit == 'SEGMENT'
+            return tool_settings.gpencil_selectmode_edit == 'SEGMENT'
         elif context.mode == 'SCULPT_GPENCIL':
-            return ts.use_gpencil_select_mask_segment
+            return tool_settings.use_gpencil_select_mask_segment
         elif context.mode == 'VERTEX_GPENCIL':
-            return ts.use_gpencil_vertex_select_mask_segment
+            return tool_settings.use_gpencil_vertex_select_mask_segment
         else:
             return False
 
@@ -2283,10 +2283,15 @@ class _defs_gpencil_sculpt:
         if context is None:
             return True
         ob = context.active_object
-        ts = context.scene.tool_settings
-        return ob and ob.type == 'GPENCIL' and (ts.use_gpencil_select_mask_point or
-                                                ts.use_gpencil_select_mask_stroke or
-                                                ts.use_gpencil_select_mask_segment)
+        tool_settings = context.scene.tool_settings
+        return (
+            ob is not None and
+            ob.type == 'GPENCIL' and (
+                tool_settings.use_gpencil_select_mask_point or
+                tool_settings.use_gpencil_select_mask_stroke or
+                tool_settings.use_gpencil_select_mask_segment
+            )
+        )
 
     @staticmethod
     def generate_from_brushes(context):
@@ -2427,10 +2432,15 @@ class _defs_gpencil_vertex:
         if context is None:
             return True
         ob = context.active_object
-        ts = context.scene.tool_settings
-        return ob and ob.type == 'GPENCIL' and (ts.use_gpencil_vertex_select_mask_point or
-                                                ts.use_gpencil_vertex_select_mask_stroke or
-                                                ts.use_gpencil_vertex_select_mask_segment)
+        tool_settings = context.scene.tool_settings
+        return (
+            ob is not None and
+            ob.type == 'GPENCIL' and (
+                tool_settings.use_gpencil_vertex_select_mask_point or
+                tool_settings.use_gpencil_vertex_select_mask_stroke or
+                tool_settings.use_gpencil_vertex_select_mask_segment
+            )
+        )
 
     @staticmethod
     def generate_from_brushes(context):
