@@ -7,6 +7,8 @@
 
 #pragma once
 
+#define DIAL_RESOLUTION 48
+
 /**
  * Data for common interactions. Used in gizmo_library_utils.c functions.
  */

@@ -42,6 +42,7 @@
 #include "../gizmo_library_intern.h"
 
 #define MVAL_MAX_PX_DIST 12.0f
+#define RING_2D_RESOLUTION 32
 
 typedef struct MoveGizmo3D {
   wmGizmo gizmo;
@@ -116,10 +117,10 @@ static void move_geom_draw(const wmGizmo *gz,
 
   if (draw_style == ED_GIZMO_MOVE_STYLE_RING_2D) {
     if (filled) {
-      imm_draw_circle_fill_3d(pos, 0.0f, 0.0f, radius, DIAL_RESOLUTION);
+      imm_draw_circle_fill_3d(pos, 0.0f, 0.0f, radius, RING_2D_RESOLUTION);
     }
     else {
-      imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, radius, DIAL_RESOLUTION);
+      imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, radius, RING_2D_RESOLUTION);
     }
   }
   else if (draw_style == ED_GIZMO_MOVE_STYLE_CROSS_2D) {
