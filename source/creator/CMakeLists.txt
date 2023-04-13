@@ -11,11 +11,11 @@ set(INC
   ../blender/gpu
   ../blender/imbuf
   ../blender/io/usd
+  ../blender/bmesh
   ../blender/makesdna
   ../blender/makesrna
   ../blender/render
   ../blender/windowmanager
-  ../blender/bmesh
 )
 
 set(LIB
