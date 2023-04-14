@@ -337,7 +337,13 @@ if(WITH_VULKAN_BACKEND)
     ${MOLTENVK_LIBRARIES}
     extern_vulkan_memory_allocator
   )
+
   add_definitions(-DWITH_VULKAN_BACKEND)
+  if(WIN32)
+    if(EXISTS ${LIBDIR}/imath/bin/imath.dll)
+      add_definitions(-DIMATH_DLL)
+    endif()
+  endif()
 endif()
 
 if(WITH_VULKAN_GUARDEDALLOC)
