@@ -158,11 +158,11 @@ typedef struct Nurb {
 } Nurb;
 
 typedef struct CharInfo {
-  short kern;
+  float kern;
   /** Index start at 1, unlike mesh & nurbs. */
   short mat_nr;
   char flag;
-  char _pad[3];
+  char _pad[1];
 } CharInfo;
 
 typedef struct TextBox {

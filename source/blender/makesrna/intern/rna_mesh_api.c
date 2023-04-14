@@ -201,7 +201,7 @@ static void rna_Mesh_count_selected_items(Mesh *mesh, int r_count[3])
 
 static void rna_Mesh_clear_geometry(Mesh *mesh)
 {
-  BKE_mesh_clear_geometry(mesh);
+  BKE_mesh_clear_geometry_and_metadata(mesh);
   BKE_animdata_free(&mesh->id, false);
 
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY_ALL_MODES);

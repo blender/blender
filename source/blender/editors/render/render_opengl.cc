@@ -51,7 +51,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_view3d_offscreen.h"

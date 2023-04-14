@@ -14,7 +14,7 @@
 
 #include "node_composite_util.hh"
 
-/* **************** Bright and Contrast  ******************** */
+/* **************** Brightness and Contrast  ******************** */
 
 namespace blender::nodes::node_composite_brightness_cc {
 
@@ -78,7 +78,7 @@ void register_node_type_cmp_brightcontrast()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, CMP_NODE_BRIGHTCONTRAST, "Brightness/Contrast", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::cmp_node_brightcontrast_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_brightcontrast;
   ntype.initfunc = file_ns::node_composit_init_brightcontrast;

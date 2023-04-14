@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Tamar Mebonia <tammebonia@gmail.com>, 2023\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -12935,10 +12935,6 @@ msgid "Library Browser"
 msgstr "ბიბლიოთეკის ბრაუზერი"
 
 
-msgid "Whether we may browse blender files' content or not"
-msgstr "არის თუ არა ნებადართული ბლენდერის ფაილების შიგთავსის დათვალიერება"
-
-
 msgid "Reverse Sorting"
 msgstr "უკუღმა დალაგება"
 
@@ -16331,10 +16327,6 @@ msgstr "გიზმო ჯგუფის შემავალი თვის
 
 msgid "Gizmo Properties"
 msgstr "გიზმოს თვისებები"
-
-
-msgid "Input properties of an Gizmo"
-msgstr "გიზმოს შემავალი თვისებები"
 
 
 msgid "Modifier affecting the Grease Pencil object"
@@ -23947,24 +23939,12 @@ msgid "Resolution X"
 msgstr "გარჩევადობა X"
 
 
-msgid "Number of sample along the x axis of the volume"
-msgstr "სემპლების რაოდენობა ამ მოცულობის x ღერძის გაყოლებაზე"
-
-
 msgid "Resolution Y"
 msgstr "გარჩევადობა Y"
 
 
-msgid "Number of sample along the y axis of the volume"
-msgstr "სემპლების რაოდენობა ამ მოცულობის y ღერძის გაყოლებაზე"
-
-
 msgid "Resolution Z"
 msgstr "გარჩევადობა Z"
-
-
-msgid "Number of sample along the z axis of the volume"
-msgstr "სემპლების რაოდენობა ამ მოცულობის z ღერძის გაყოლებაზე"
 
 
 msgid "Influence Distance"
@@ -36909,10 +36889,6 @@ msgstr "მონიშნე შაბლონით"
 
 msgid "Select objects matching a naming pattern"
 msgstr "მონიშნე ობიექტები, რომლებიც სახელწოდების შაბლონს ერგება"
-
-
-msgid "Set select on random visible objects"
-msgstr "დააყენე მონიშვნა შემთხვევით ხილულ ობიექტებზე"
 
 
 msgctxt "Operator"

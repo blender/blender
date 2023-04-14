@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 import bpy
 from bpy.types import Menu, Panel, UIList
+from bpy.app.translations import contexts as i18n_contexts
 from rna_prop_ui import PropertyPanel
 from bpy_extras.node_utils import find_node_input
 
@@ -176,6 +177,7 @@ class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
 
 class EEVEE_MATERIAL_PT_volume(MaterialButtonsPanel, Panel):
     bl_label = "Volume"
+    bl_translation_context = i18n_contexts.id_id
     bl_context = "material"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_EEVEE'}

@@ -41,7 +41,7 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_clip.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 
 #include "SEQ_channels.h"
 #include "SEQ_select.h"

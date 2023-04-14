@@ -1918,6 +1918,7 @@ static void ui_selectcontext_apply(bContext *C,
       bool b;
       int i;
       float f;
+      char *str;
       PointerRNA p;
     } delta, min, max;
 
@@ -1949,6 +1950,10 @@ static void ui_selectcontext_apply(bContext *C,
     else if (rna_type == PROP_POINTER) {
       /* Not a delta in fact. */
       delta.p = RNA_property_pointer_get(&but->rnapoin, prop);
+    }
+    else if (rna_type == PROP_STRING) {
+      /* Not a delta in fact. */
+      delta.str = RNA_property_string_get_alloc(&but->rnapoin, prop, nullptr, 0, nullptr);
     }
 
 #  ifdef USE_ALLSELECT_LAYER_HACK
@@ -2023,8 +2028,15 @@ static void ui_selectcontext_apply(bContext *C,
         const PointerRNA other_value = delta.p;
         RNA_property_pointer_set(&lptr, lprop, other_value, nullptr);
       }
+      else if (rna_type == PROP_STRING) {
+        const char *other_value = delta.str;
+        RNA_property_string_set(&lptr, lprop, other_value);
+      }
 
       RNA_property_update(C, &lptr, prop);
+    }
+    if (rna_type == PROP_STRING) {
+      MEM_freeN(delta.str);
     }
   }
 }

@@ -140,7 +140,7 @@ void PackIsland::add_polygon(const blender::Span<float2> uvs, MemArena *arena, H
   BLI_heap_clear(heap, nullptr);
 }
 
-void PackIsland::finalize_geometry(const UVPackIsland_Params &params, MemArena *arena, Heap *heap)
+void PackIsland::finalize_geometry_(const UVPackIsland_Params &params, MemArena *arena, Heap *heap)
 {
   BLI_assert(triangle_vertices_.size() >= 3);
 
@@ -186,6 +186,16 @@ void PackIsland::calculate_pivot()
   half_diagonal_ = (triangle_bounds.max - triangle_bounds.min) * 0.5f;
 }
 
+void PackIsland::place_(const float scale, const uv_phi phi)
+{
+  angle = phi.rotation;
+
+  float matrix_inverse[2][2];
+  build_inverse_transformation(scale, phi.rotation, matrix_inverse);
+  mul_v2_m2v2(pre_translate, matrix_inverse, phi.translation);
+  pre_translate -= pivot_;
+}
+
 UVPackIsland_Params::UVPackIsland_Params()
 {
   rotate = false;
@@ -206,10 +216,9 @@ UVPackIsland_Params::UVPackIsland_Params()
 /* Compact representation for AABB packers. */
 class UVAABBIsland {
  public:
+  uv_phi phi;
   float2 uv_diagonal;
-  float2 uv_placement;
   int64_t index;
-  float angle;
   float aspect_y;
 };
 
@@ -257,8 +266,8 @@ static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
     }
 
     /* Place the island. */
-    island->uv_placement.x = u0 + dsm_u * 0.5f;
-    island->uv_placement.y = v0 + dsm_v * 0.5f;
+    island->phi.translation.x = u0 + dsm_u * 0.5f;
+    island->phi.translation.y = v0 + dsm_v * 0.5f;
     if (zigzag) {
       /* Move upwards. */
       v0 += dsm_v;
@@ -357,17 +366,15 @@ static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
 
     if (min_dsm < hole_diagonal.x && max_dsm < hole_diagonal.y) {
       /* Place island in the hole. */
-      island->uv_placement.x = hole[0];
-      island->uv_placement.y = hole[1];
       if (hole_rotate == (min_dsm == island->uv_diagonal.x)) {
-        island->angle = DEG2RADF(90.0f);
-        island->uv_placement.x += island->uv_diagonal.y * 0.5f / island->aspect_y;
-        island->uv_placement.y += island->uv_diagonal.x * 0.5f * island->aspect_y;
+        island->phi.rotation = DEG2RADF(90.0f);
+        island->phi.translation.x = hole[0] + island->uv_diagonal.y * 0.5f / island->aspect_y;
+        island->phi.translation.y = hole[1] + island->uv_diagonal.x * 0.5f * island->aspect_y;
       }
       else {
-        island->angle = 0.0f;
-        island->uv_placement.x += island->uv_diagonal.x * 0.5f;
-        island->uv_placement.y += island->uv_diagonal.y * 0.5f;
+        island->phi.rotation = 0.0f;
+        island->phi.translation.x = hole[0] + island->uv_diagonal.x * 0.5f;
+        island->phi.translation.y = hole[1] + island->uv_diagonal.y * 0.5f;
       }
 
       /* Update space left in the hole. */
@@ -402,17 +409,15 @@ static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
     }
 
     /* Place the island. */
-    island->uv_placement.x = u0;
-    island->uv_placement.y = v0;
     if (zigzag == (min_dsm == uvdiag_x)) {
-      island->angle = DEG2RADF(90.0f);
-      island->uv_placement.x += island->uv_diagonal.y * 0.5f / island->aspect_y;
-      island->uv_placement.y += island->uv_diagonal.x * 0.5f * island->aspect_y;
+      island->phi.rotation = DEG2RADF(90.0f);
+      island->phi.translation.x = u0 + island->uv_diagonal.y * 0.5f / island->aspect_y;
+      island->phi.translation.y = v0 + island->uv_diagonal.x * 0.5f * island->aspect_y;
     }
     else {
-      island->angle = 0.0f;
-      island->uv_placement.x += island->uv_diagonal.x * 0.5f;
-      island->uv_placement.y += island->uv_diagonal.y * 0.5f;
+      island->phi.rotation = 0.0f;
+      island->phi.translation.x = u0 + island->uv_diagonal.x * 0.5f;
+      island->phi.translation.y = v0 + island->uv_diagonal.y * 0.5f;
     }
 
     /* Move according to the "Alpaca rules", with rotation. */
@@ -467,10 +472,11 @@ static void pack_island_box_pack_2d(const Span<UVAABBIsland *> aabbs,
   for (const int64_t i : aabbs.index_range()) {
     PackIsland *island = islands[aabbs[i]->index];
     BoxPack *box = box_array + i;
-    island->angle = 0.0f; /* #BLI_box_pack_2d never rotates. */
-    island->pre_translate.x = (box->x + box->w * 0.5f) * target_aspect_y / scale -
-                              island->pivot_.x;
-    island->pre_translate.y = (box->y + box->h * 0.5f) / scale - island->pivot_.y;
+    uv_phi phi;
+    phi.rotation = 0.0f; /* #BLI_box_pack_2d never rotates. */
+    phi.translation.x = (box->x + box->w * 0.5f) * target_aspect_y;
+    phi.translation.y = (box->y + box->h * 0.5f);
+    island->place_(scale, phi);
   }
 
   /* Housekeeping. */
@@ -626,6 +632,10 @@ float2 PackIsland::get_diagonal_support_d4(const float scale,
     return half_diagonal_ * scale + margin; /* Fast path for common case. */
   }
 
+  if (rotation == DEG2RADF(180.0f)) {
+    return get_diagonal_support_d4(scale, 0.0f, margin); /* Same as 0.0f */
+  }
+
   /* TODO: BLI_assert rotation is a "Dihedral Group D4" transform. */
   float matrix[2][2];
   build_transformation(scale, rotation, matrix);
@@ -742,7 +752,7 @@ static float guess_initial_scale(const Span<PackIsland *> islands,
 }
 
 /**
- * Pack irregular islands using the `xatlas` strategy, with no rotation.
+ * Pack irregular islands using the `xatlas` strategy, and optional D4 transforms.
  *
  * Loosely based on the 'xatlas' code by Jonathan Young
  * from https://github.com/jpcy/xatlas
@@ -823,23 +833,18 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
       continue;
     }
 
-    phis[i] = phi; /* Place island. */
+    /* Place island. */
+    phis[i] = phi;
+    island->place_(scale, phi);
     occupancy.trace_island(island, phi, scale, margin, true);
-
     i++; /* Next island. */
 
-    island->angle = phi.rotation;
-
-    float matrix_inverse[2][2];
-    island->build_inverse_transformation(scale, phi.rotation, matrix_inverse);
-    mul_v2_m2v2(island->pre_translate, matrix_inverse, phi.translation);
-    island->pre_translate -= island->pivot_;
-
-    float2 support = island->get_diagonal_support(scale, phi.rotation, margin);
-    float2 top_right = phi.translation + support;
+    /* Update top-right corner. */
+    float2 top_right = island->get_diagonal_support(scale, phi.rotation, margin) + phi.translation;
     max_u = std::max(top_right.x, max_u);
     max_v = std::max(top_right.y, max_v);
 
+    /* Heuristics to reduce size of brute-force search. */
     if (i < 128 || (i & 31) == 16) {
       scan_line = 0; /* Restart completely. */
     }
@@ -976,12 +981,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   /* Write back Alpaca UVs. */
   for (int64_t i = max_box_pack; i < aabbs.size(); i++) {
     UVAABBIsland *aabb = aabbs[i];
-    PackIsland *pack_island = islands[aabb->index];
-    pack_island->angle = aabb->angle;
-    float matrix_inverse[2][2];
-    pack_island->build_inverse_transformation(scale, pack_island->angle, matrix_inverse);
-    mul_v2_m2v2(pack_island->pre_translate, matrix_inverse, aabb->uv_placement);
-    pack_island->pre_translate -= pack_island->pivot_;
+    islands[aabb->index]->place_(scale, aabb->phi);
   }
 
   /* Memory management. */
@@ -1120,10 +1120,24 @@ static float calc_margin_from_aabb_length_sum(const Span<PackIsland *> &island_v
  *
  * \{ */
 
+static void finalize_geometry(const Span<PackIsland *> &islands, const UVPackIsland_Params &params)
+{
+  MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+  Heap *heap = BLI_heap_new();
+  for (const int64_t i : islands.index_range()) {
+    islands[i]->finalize_geometry_(params, arena, heap);
+    BLI_memarena_clear(arena);
+  }
+
+  BLI_heap_free(heap, nullptr);
+  BLI_memarena_free(arena);
+}
+
 void pack_islands(const Span<PackIsland *> &islands,
                   const UVPackIsland_Params &params,
                   float r_scale[2])
 {
+  finalize_geometry(islands, params);
   if (params.margin == 0.0f) {
     /* Special case for zero margin. Margin_method is ignored as all formulas give same result. */
     const float max_uv = pack_islands_scale_margin(islands, 1.0f, 0.0f, params);
@@ -1171,21 +1185,31 @@ void PackIsland::build_transformation(const float scale,
   r_matrix[0][1] = -sin_angle * scale * aspect_y;
   r_matrix[1][0] = sin_angle * scale / aspect_y;
   r_matrix[1][1] = cos_angle * scale;
-  /*
+#if 0
   if (reflect) {
     r_matrix[0][0] *= -1.0f;
     r_matrix[0][1] *= -1.0f;
   }
-  */
+#endif
 }
 
 void PackIsland::build_inverse_transformation(const float scale,
                                               const float angle,
                                               float (*r_matrix)[2]) const
 {
-  /* TODO: Generate inverse transform directly. */
-  build_transformation(scale, angle, r_matrix);
-  invert_m2_m2(r_matrix, r_matrix);
+  const float cos_angle = cosf(angle);
+  const float sin_angle = sinf(angle);
+
+  r_matrix[0][0] = cos_angle / scale;
+  r_matrix[0][1] = sin_angle / scale * aspect_y;
+  r_matrix[1][0] = -sin_angle / scale / aspect_y;
+  r_matrix[1][1] = cos_angle / scale;
+#if 0
+  if (reflect) {
+    r_matrix[0][0] *= -1.0f;
+    r_matrix[1][0] *= -1.0f;
+  }
+#endif
 }
 
 }  // namespace blender::geometry

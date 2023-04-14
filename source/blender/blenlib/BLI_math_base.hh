@@ -194,11 +194,22 @@ inline T interpolate(const T &a, const T &b, const FactorT &t)
 
 template<typename T> inline T midpoint(const T &a, const T &b)
 {
-  auto result = (a + b) * T(0.5);
   if constexpr (std::is_integral_v<T>) {
-    result = std::round(result);
+    /** See std::midpoint from C++20. */
+    using Unsigned = std::make_unsigned_t<T>;
+    int sign = 1;
+    Unsigned smaller = a;
+    Unsigned larger = b;
+    if (a > b) {
+      sign = -1;
+      smaller = b;
+      larger = a;
+    }
+    return a + sign * T(Unsigned(larger - smaller) / 2);
   }
-  return result;
+  else {
+    return (a + b) * T(0.5);
+  }
 }
 
 }  // namespace blender::math

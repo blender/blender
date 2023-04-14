@@ -135,17 +135,11 @@ static PyObject *make_builtopts_info(void)
   SetObjIncref(Py_False);
 #endif
 
-#ifdef WITH_DDS
+  /* DDS */
   SetObjIncref(Py_True);
-#else
-  SetObjIncref(Py_False);
-#endif
 
-#ifdef WITH_HDR
+  /* HDR */
   SetObjIncref(Py_True);
-#else
-  SetObjIncref(Py_False);
-#endif
 
 #ifdef WITH_OPENEXR
   SetObjIncref(Py_True);
@@ -159,11 +153,8 @@ static PyObject *make_builtopts_info(void)
   SetObjIncref(Py_False);
 #endif
 
-#ifdef WITH_TIFF
+  /* TIFF */
   SetObjIncref(Py_True);
-#else
-  SetObjIncref(Py_False);
-#endif
 
 #ifdef WITH_INPUT_NDOF
   SetObjIncref(Py_True);

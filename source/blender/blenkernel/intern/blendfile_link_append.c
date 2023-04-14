@@ -923,8 +923,8 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
 {
   /* NOTE: It is important to also skip liboverride references here, as those should never be made
    * local. */
-  if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_INTERNAL | IDWALK_CB_LOOPBACK |
-                          IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) {
+  if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING | IDWALK_CB_INTERNAL |
+                          IDWALK_CB_LOOPBACK | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) {
     return IDWALK_RET_NOP;
   }
 
@@ -1426,7 +1426,7 @@ static void blendfile_library_relocate_remap(Main *bmain,
                                              ID *new_id,
                                              ReportList *reports,
                                              const bool do_reload,
-                                             const short remap_flags)
+                                             const int remap_flags)
 {
   BLI_assert(old_id);
   if (do_reload) {
@@ -1594,8 +1594,8 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
 
   BKE_layer_collection_resync_forbid();
   /* Note that in reload case, we also want to replace indirect usages. */
-  const short remap_flags = ID_REMAP_SKIP_NEVER_NULL_USAGE |
-                            (do_reload ? 0 : ID_REMAP_SKIP_INDIRECT_USAGE);
+  const int remap_flags = ID_REMAP_SKIP_NEVER_NULL_USAGE |
+                          (do_reload ? 0 : ID_REMAP_SKIP_INDIRECT_USAGE);
   for (item_idx = 0, itemlink = lapp_context->items.list; itemlink;
        item_idx++, itemlink = itemlink->next) {
     BlendfileLinkAppendContextItem *item = itemlink->link;

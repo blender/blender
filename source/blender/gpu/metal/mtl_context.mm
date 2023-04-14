@@ -497,7 +497,7 @@ id<MTLBuffer> MTLContext::get_null_buffer()
   null_buffer_ = [this->device newBufferWithLength:null_buffer_size
                                            options:MTLResourceStorageModeManaged];
   [null_buffer_ retain];
-  uint32_t *null_data = (uint32_t *)calloc(0, null_buffer_size);
+  uint32_t *null_data = (uint32_t *)calloc(1, null_buffer_size);
   memcpy([null_buffer_ contents], null_data, null_buffer_size);
   [null_buffer_ didModifyRange:NSMakeRange(0, null_buffer_size)];
   free(null_data);
@@ -949,20 +949,23 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
 
         /* Some scissor assignments exceed the bounds of the viewport due to implicitly added
          * padding to the width/height - Clamp width/height. */
-        BLI_assert(scissor.x >= 0 && scissor.x < render_fb->get_width());
-        BLI_assert(scissor.y >= 0 && scissor.y < render_fb->get_height());
-        scissor.width = min_ii(scissor.width, render_fb->get_width() - scissor.x);
-        scissor.height = min_ii(scissor.height, render_fb->get_height() - scissor.y);
-        BLI_assert(scissor.width > 0 && (scissor.x + scissor.width <= render_fb->get_width()));
-        BLI_assert(scissor.height > 0 && (scissor.height <= render_fb->get_height()));
+        BLI_assert(scissor.x >= 0 && scissor.x < render_fb->get_default_width());
+        BLI_assert(scissor.y >= 0 && scissor.y < render_fb->get_default_height());
+        scissor.width = (uint)min_ii(scissor.width,
+                                     max_ii(render_fb->get_default_width() - (int)(scissor.x), 0));
+        scissor.height = (uint)min_ii(
+            scissor.height, max_ii(render_fb->get_default_height() - (int)(scissor.y), 0));
+        BLI_assert(scissor.width > 0 &&
+                   (scissor.x + scissor.width <= render_fb->get_default_width()));
+        BLI_assert(scissor.height > 0 && (scissor.height <= render_fb->get_default_height()));
       }
       else {
         /* Scissor is disabled, reset to default size as scissor state may have been previously
          * assigned on this encoder. */
         scissor.x = 0;
         scissor.y = 0;
-        scissor.width = render_fb->get_width();
-        scissor.height = render_fb->get_height();
+        scissor.width = render_fb->get_default_width();
+        scissor.height = render_fb->get_default_height();
       }
 
       /* Scissor state can still be flagged as changed if it is toggled on and off, without
@@ -2187,16 +2190,6 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
    * for rendering as the main context does. */
   id<MTLCommandBuffer> cmdbuf = [ctx->queue commandBuffer];
   MTLCommandBufferManager::num_active_cmd_bufs++;
-
-  if (MTLCommandBufferManager::sync_event != nil) {
-    /* Release synchronization primitive for current frame to avoid cross-frame dependencies.
-     * We require MTLEvents to ensure correct ordering of workload submissions within a frame,
-     * however, we should not create long chains of dependencies spanning several drawables as any
-     * temporary stalls can then trigger erroneous GPU timeouts in non-dependent submissions.  */
-    [MTLCommandBufferManager::sync_event release];
-    MTLCommandBufferManager::sync_event = nil;
-    MTLCommandBufferManager::event_signal_val = 0;
-  }
 
   /* Do Present Call and final Blit to MTLDrawable. */
   id<MTLRenderCommandEncoder> enc = [cmdbuf renderCommandEncoderWithDescriptor:blit_descriptor];

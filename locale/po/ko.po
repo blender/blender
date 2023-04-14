@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -10881,10 +10881,6 @@ msgid "Library Browser"
 msgstr "라이브러리 브라우저"
 
 
-msgid "Whether we may browse blender files' content or not"
-msgstr "블렌더 파일의 내용을 검색할지 여부"
-
-
 msgid "Reverse Sorting"
 msgstr "분류를 반전"
 
@@ -13297,10 +13293,6 @@ msgstr "기즈모 그룹의 입력 속성"
 
 msgid "Gizmo Properties"
 msgstr "기즈모 속성"
-
-
-msgid "Input properties of an Gizmo"
-msgstr "기즈모의 입력 속성"
 
 
 msgid "Modifier name"
@@ -18304,24 +18296,12 @@ msgid "Resolution X"
 msgstr "해상도 X"
 
 
-msgid "Number of sample along the x axis of the volume"
-msgstr "볼륨의 x 축을 따른 샘플 수"
-
-
 msgid "Resolution Y"
 msgstr "해상도 Y"
 
 
-msgid "Number of sample along the y axis of the volume"
-msgstr "볼륨의 y 축을 따른 샘플 수"
-
-
 msgid "Resolution Z"
 msgstr "해상도 Z"
-
-
-msgid "Number of sample along the z axis of the volume"
-msgstr "볼륨의 z 축을 따른 샘플 수"
 
 
 msgid "Influence Distance"
@@ -38480,10 +38460,6 @@ msgid "Set Axis"
 msgstr "축을 설정"
 
 
-msgid "Set direction of scene axis rotating camera (or its parent if present) and assume selected track lies on real axis, joining it with the origin"
-msgstr "씬 축 회전 카메라 (또는 존재하는 경우 그 부모)의 방향을 설정하고 선택한 트랙이 오리진과 합쳐진 실제 축에 있다고 가정합니다"
-
-
 msgid "Axis to use to align bundle along"
 msgstr "번들을 따라 정렬할 때 사용하는 축"
 
@@ -43675,10 +43651,6 @@ msgstr "다른 이미지로 저장"
 
 msgid "Save the image with another name and/or settings"
 msgstr "다른 이름 및/또는 설정으로 이미지를 저장"
-
-
-msgid "Create a new image file without modifying the current image in blender"
-msgstr "블렌더에서 현재 이미지 수정 없이 새로운 이미지 파일을 생성"
 
 
 msgid "Save As Render"
@@ -50121,10 +50093,6 @@ msgid "Name filter using '*', '?' and '[abc]' unix style wildcards"
 msgstr "'*'를 사용하는 이름 필터, '?' 와 '[abc]'유닉스 스타일 와일드카드"
 
 
-msgid "Set select on random visible objects"
-msgstr "랜덤 보이는 오브젝트에 선택을 설정"
-
-
 msgctxt "Operator"
 msgid "Select Same Collection"
 msgstr "동일한 컬렉션을 선택"
@@ -55159,10 +55127,6 @@ msgid "Add Scene Strip"
 msgstr "씬 스트립을 추가"
 
 
-msgid "Add a strip to the sequencer using a blender scene as a source"
-msgstr "소스로 믹서 씬을 사용하여 시퀀서에 스트립을 추가"
-
-
 msgid "Select a strip (last selected becomes the \"active strip\")"
 msgstr "스트립을 선택 (마지막 선택된 '활성 스트립'이 됨 )"
 
@@ -56002,10 +55966,6 @@ msgstr "라인으로 텍스트를 선택"
 
 msgid "Select word under cursor"
 msgstr "커서 아래의 단어를 선택"
-
-
-msgid "Set cursor selection"
-msgstr "커서 선택을 설정"
 
 
 msgctxt "Operator"
@@ -58678,10 +58638,6 @@ msgid "Rotate all root objects to match the global orientation settings otherwis
 msgstr "모든 루트 오브젝트를 회전하여 글로벌 오리엔테이션을 설정과 일치 시키십시오. 그렇지 않으면 Collada 자산당 글로벌 오리엔테이션을 설정하십시오"
 
 
-msgid "Apply modifiers to exported mesh (non destructive))"
-msgstr "내보낸 메쉬에 모디파이어를 적용 (비파괴))"
-
-
 msgid "Only export deforming bones with armatures"
 msgstr "아마튜어와 변형하는 본 만 내보내기"
 
@@ -60445,10 +60401,6 @@ msgstr "스텐실 레이어"
 
 msgid "Set the mask layer from the UV map buttons"
 msgstr "UV 맵 버튼에서 마스크 레이어를 설정"
-
-
-msgid "Maximum edge length for dynamic topology sculpting (as divisor of blender unit - higher value means smaller edge length)"
-msgstr "다이나믹 토폴로지 스컬프트을 위한 최대 에지 길이 (블렌더 단위의 약수로 - 더 높은 값은 더 작은 모서리 길이를 의미함)"
 
 
 msgid "Detail Percentage"
@@ -64788,14 +64740,6 @@ msgid "Slight"
 msgstr "약간"
 
 
-msgid "TimeCode Style"
-msgstr "타임코드 스타일"
-
-
-msgid "Format of Time Codes displayed when not displaying timing in terms of frames"
-msgstr "프레임을 기준으로 타이밍을 표시하지 않을 때 표시되는 타임 코드의 형식"
-
-
 msgid "Minimal Info"
 msgstr "최소의 정보"
 
@@ -66616,10 +66560,6 @@ msgid "Bias"
 msgstr "성향"
 
 
-msgid "Bias towards faces further away from the object (in blender units)"
-msgstr "오브젝트에서 멀리 떨어진 페이스쪽으로 향하는 성향 (블렌더 단위)"
-
-
 msgid "Number of samples used for ambient occlusion baking from multires"
 msgstr "멀티리스로부터 주변 폐색 배이킹에 사용된 샘플 수"
 
@@ -67540,10 +67480,6 @@ msgid "Blender 2.7"
 msgstr "Blender 2.7"
 
 
-msgid "Spring implementation used in blender 2.7. Damping is capped at 1.0"
-msgstr "블렌더 2.7에서 사용된 스프링 구현. 감폭은 1.0으로 제한됩니다"
-
-
 msgid "Blender 2.8"
 msgstr "Blender 2.8"
 
@@ -68130,10 +68066,6 @@ msgstr "큐브맵 크기"
 
 msgid "Size of every cubemaps"
 msgstr "모든 큐브 맵의 크기"
-
-
-msgid "Number of time the light is reinjected inside light grids, 0 disable indirect diffuse light"
-msgstr "라이트 그리드 내부에서 라이트가 재주입되는 횟수, 0은 간접 확산 라이트를 비활성화합니다"
 
 
 msgid "Filter Quality"
@@ -69191,20 +69123,12 @@ msgid "Scene Sequence"
 msgstr "씬 시퀀스"
 
 
-msgid "Sequence strip to used the rendered image of a scene"
-msgstr "씬의 렌더링된 이미지를 사용하는 시퀀스 스트립"
-
-
 msgid "Scene that this sequence uses"
 msgstr "이 시퀀스가 사용하는 씬"
 
 
 msgid "Camera Override"
 msgstr "카메라 재정의"
-
-
-msgid "Override the scenes active camera"
-msgstr "씬 활성 카메라을 재정의"
 
 
 msgid "Input type to use for the Scene strip"
@@ -72041,10 +71965,6 @@ msgstr "3D 뷰포트에 오버레이를 표시하기 위한 설정"
 
 msgid "3D Region"
 msgstr "3D 지역"
-
-
-msgid "3D region in this space, in case of quad view the camera region"
-msgstr "이 공간에서 3D 지역, 쿼드 뷰의 경우 카메라 지역"
 
 
 msgid "Quad View Regions"
@@ -74986,10 +74906,6 @@ msgstr "질량 값을 표시하는 데 사용되는 단위"
 
 msgid "Unit Scale"
 msgstr "단위 축적"
-
-
-msgid "Scale to use when converting between blender units and dimensions. When working at microscopic or astronomical scale, a small or large unit scale respectively can be used to avoid numerical precision problems"
-msgstr "블렌더 단위와 치수간에 변환할 때 사용할 배율입니다. 현미경 적 또는 천문학적 규모에서 작업 할 때, 작은 단위 또는 큰 단위 단위는 각각 숫자 정밀도 문제를 피하기 위해 사용될 수 있습니다"
 
 
 msgid "Unit System"
@@ -79400,13 +79316,13 @@ msgstr "데시메이트 (비율)"
 
 
 msgctxt "Operator"
-msgid "Decimate (Allowed Change)"
-msgstr "데시메이트 (허용된 변경)"
+msgid "Flatten Handles"
+msgstr "평평한 핸들"
 
 
 msgctxt "Operator"
-msgid "Flatten Handles"
-msgstr "평평한 핸들"
+msgid "Decimate (Allowed Change)"
+msgstr "데시메이트 (허용된 변경)"
 
 
 msgctxt "Operator"

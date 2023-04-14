@@ -423,13 +423,13 @@ class NODE_MT_geometry_node_mesh_topology(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "GeometryNodeCornersOfFace"),
-        node_add_menu.add_node_type(layout, "GeometryNodeCornersOfVertex"),
-        node_add_menu.add_node_type(layout, "GeometryNodeEdgesOfCorner"),
-        node_add_menu.add_node_type(layout, "GeometryNodeEdgesOfVertex"),
-        node_add_menu.add_node_type(layout, "GeometryNodeFaceOfCorner"),
-        node_add_menu.add_node_type(layout, "GeometryNodeOffsetCornerInFace"),
-        node_add_menu.add_node_type(layout, "GeometryNodeVertexOfCorner"),
+        node_add_menu.add_node_type(layout, "GeometryNodeCornersOfFace")
+        node_add_menu.add_node_type(layout, "GeometryNodeCornersOfVertex")
+        node_add_menu.add_node_type(layout, "GeometryNodeEdgesOfCorner")
+        node_add_menu.add_node_type(layout, "GeometryNodeEdgesOfVertex")
+        node_add_menu.add_node_type(layout, "GeometryNodeFaceOfCorner")
+        node_add_menu.add_node_type(layout, "GeometryNodeOffsetCornerInFace")
+        node_add_menu.add_node_type(layout, "GeometryNodeVertexOfCorner")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -592,6 +592,7 @@ class NODE_MT_category_GEO_VECTOR(Menu):
 class NODE_MT_category_GEO_VOLUME(Menu):
     bl_idname = "NODE_MT_category_GEO_VOLUME"
     bl_label = "Volume"
+    bl_translation_context = i18n_contexts.id_id
 
     def draw(self, context):
         layout = self.layout

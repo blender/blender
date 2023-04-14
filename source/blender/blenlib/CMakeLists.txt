@@ -83,6 +83,7 @@ set(SRC
   intern/hash_md5.c
   intern/hash_mm2a.c
   intern/hash_mm3.c
+  intern/implicit_sharing.cc
   intern/index_mask.cc
   intern/jitter_2d.c
   intern/kdtree_1d.c
@@ -246,6 +247,7 @@ set(SRC
   BLI_heap.h
   BLI_heap_simple.h
   BLI_heap_minmax.hh
+  BLI_implicit_sharing.h
   BLI_implicit_sharing.hh
   BLI_implicit_sharing_ptr.hh
   BLI_index_mask.hh

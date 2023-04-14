@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -12748,10 +12748,6 @@ msgid "Library Browser"
 msgstr "Trình Duyệt Thư Viện"
 
 
-msgid "Whether we may browse blender files' content or not"
-msgstr "Chúng tôi có thể trình duyệt nội dung của tập tin .blend hay không"
-
-
 msgid "Reverse Sorting"
 msgstr "Sắp Xếp Ngược"
 
@@ -16116,10 +16112,6 @@ msgstr "Đặc tính ngõ vào của một Nhóm Đồ Đạc"
 
 msgid "Gizmo Properties"
 msgstr "Đặc Tính Đồ Đạc"
-
-
-msgid "Input properties of an Gizmo"
-msgstr "Đặc tính ngõ vào của một Đồ Đạc"
 
 
 msgid "Modifier affecting the Grease Pencil object"
@@ -23496,24 +23488,12 @@ msgid "Resolution X"
 msgstr "Độ Phôn Giải X"
 
 
-msgid "Number of sample along the x axis of the volume"
-msgstr "Số lượng mẫu vật cho hướng X của thể tích"
-
-
 msgid "Resolution Y"
 msgstr "Độ Phân Giải Y"
 
 
-msgid "Number of sample along the y axis of the volume"
-msgstr "Số lượng mẫu vật cho hướng Y của thể tích"
-
-
 msgid "Resolution Z"
 msgstr "Độ Phân Giải Z"
-
-
-msgid "Number of sample along the z axis of the volume"
-msgstr "Số lượng mẫu vật cho hướng Z của thể tích"
 
 
 msgid "Influence Distance"
@@ -50049,10 +50029,6 @@ msgid "Set Axis"
 msgstr "Đặt Trục"
 
 
-msgid "Set direction of scene axis rotating camera (or its parent if present) and assume selected track lies on real axis, joining it with the origin"
-msgstr "Đặt hướng của trục xoay của máy quay phim cảnh (hay phụ huynh của nó, nếu có) và dự đóan đường vết được chọn nằm ở trên trục thật sự, kết nối nó với gốc tọa độ"
-
-
 msgid "Axis to use to align bundle along"
 msgstr "Dùng trục nào cho sắp xếp gói"
 
@@ -57230,10 +57206,6 @@ msgstr "Lưu Dạng Ảnh"
 
 msgid "Save the image with another name and/or settings"
 msgstr "Lưu ảnh dùng tên va/hay cài đặt khác"
-
-
-msgid "Create a new image file without modifying the current image in blender"
-msgstr "Chế tạo một tập tin ảnh mới mà không sửa đổi ảnh hiện tại trong Blender"
 
 
 msgid "Save As Render"
@@ -64962,10 +64934,6 @@ msgid "Name filter using '*', '?' and '[abc]' unix style wildcards"
 msgstr "Lọc tên bằng ký tự đại diện unix như '*', '?' và '[abc]'"
 
 
-msgid "Set select on random visible objects"
-msgstr "Ngẫu nhiên chọn vật thể đang hiển thị"
-
-
 msgctxt "Operator"
 msgid "Select Same Collection"
 msgstr "Chọn Cùng Sưu Tập"
@@ -71836,10 +71804,6 @@ msgid "Add Scene Strip"
 msgstr "Thêm Đoạn Cảnh"
 
 
-msgid "Add a strip to the sequencer using a blender scene as a source"
-msgstr "Thêm một đoạn cho bộ trình tự mà dùng một cảnh Blender làm một nguồn"
-
-
 msgctxt "Operator"
 msgid "Add Strip with a new Scene"
 msgstr "Thêm Đoạn có một Cảnh mới"
@@ -72976,10 +72940,6 @@ msgstr "Chọn văn bản tùy dòng"
 
 msgid "Select word under cursor"
 msgstr "Chọn chữ ở đưới con trỏ"
-
-
-msgid "Set cursor selection"
-msgstr "Đặt sự lựa chọn con trỏ"
 
 
 msgctxt "Operator"
@@ -76381,10 +76341,6 @@ msgid "Rotate all root objects to match the global orientation settings otherwis
 msgstr "Xoay hết vật thể rễ cho giống cài đặt định hướng toàn cầu, nếu không, đặt định hướng toàn cầu từng tích sản Collada"
 
 
-msgid "Apply modifiers to exported mesh (non destructive))"
-msgstr "Áp dụng bộ điều chỉnh với mạng lưới xuất (không pha/đổi cái gì)"
-
-
 msgid "Deform Bones Only"
 msgstr "Chỉ Méo Hóa Xương"
 
@@ -79226,10 +79182,6 @@ msgstr "Lớp Khuôn Tô"
 
 msgid "Set the mask layer from the UV map buttons"
 msgstr "Đặt lớp mặt nạ từ nút bản đồ UV"
-
-
-msgid "Maximum edge length for dynamic topology sculpting (as divisor of blender unit - higher value means smaller edge length)"
-msgstr "Bề dài cạnh cực đại cho khắc hình dạng học động lý (mẫu số của đơn vị blender - giá trị càng lớn cạnh càng nhỏ)"
 
 
 msgid "Detail Percentage"
@@ -84670,14 +84622,6 @@ msgid "Slight"
 msgstr "Chút"
 
 
-msgid "TimeCode Style"
-msgstr "Phong Cách Mã Thời Gian"
-
-
-msgid "Format of Time Codes displayed when not displaying timing in terms of frames"
-msgstr "Định dạng của Mã Thời Gian khi không hiển thị thời tự bằng số bức ảnh"
-
-
 msgid "Minimal Info"
 msgstr "Thông Tin Tối Thiểu"
 
@@ -86046,10 +85990,6 @@ msgid "Tile Size"
 msgstr "Kích Cỡ Ô"
 
 
-msgid "Limit the render time (excluding synchronization time).Zero disables the limit"
-msgstr "Hạn chế thời gian kết xuất (trừ thời gian đồng bộ hóa). 0 = tắt hạn chế"
-
-
 msgid "Transmission Bounces"
 msgstr "Nhồi Truyền"
 
@@ -86854,10 +86794,6 @@ msgid "Is Axis Aligned"
 msgstr "Trục Được Sắp Xếp"
 
 
-msgid "Is current view aligned to an axis (does not check the view is orthographic use \"is_perspective\" for that). Assignment sets the \"view_rotation\" to the closest axis aligned view"
-msgstr "Màn hiện tại đang sắp hàng với một trục hay không (nó không kiểm tra màn là trực giao, sử dụng \"là_chiếu_phoối_cảnh\" cho kiểm tra cái đó). Nó đặt \"xoay_màn\" đến màn sắp hàng với trục gần nhất"
-
-
 msgid "Is Perspective"
 msgstr "Là Chiếu Phối Cảnh"
 
@@ -87116,10 +87052,6 @@ msgstr "Cài đặt kết xuất cho một cục dữ liệu Cảnh"
 
 msgid "Bias"
 msgstr "Thành Kiến"
-
-
-msgid "Bias towards faces further away from the object (in blender units)"
-msgstr "Thành kiến đến mặt xa hơn từ vật thể (đơn vị Blender)"
 
 
 msgid "Algorithm to generate the margin"
@@ -88122,10 +88054,6 @@ msgid "Blender 2.7"
 msgstr "Blender 2.7"
 
 
-msgid "Spring implementation used in blender 2.7. Damping is capped at 1.0"
-msgstr "Thực hành lò xo được dùng trong Blender 2.7. Tắt dần được kẹp tại 1.0"
-
-
 msgid "Blender 2.8"
 msgstr "Blender 2.8"
 
@@ -88776,10 +88704,6 @@ msgstr "2048 điểm ảnh"
 
 msgid "4096 px"
 msgstr "4096 điểm ảnh"
-
-
-msgid "Number of time the light is reinjected inside light grids, 0 disable indirect diffuse light"
-msgstr "Số lần tiêm ánh sáng vào đồ thị ánh sáng, đặt = 0 để tắt"
 
 
 msgid "Filter Quality"
@@ -90013,20 +89937,12 @@ msgid "Scene Sequence"
 msgstr "Trình Tự Cảnh"
 
 
-msgid "Sequence strip to used the rendered image of a scene"
-msgstr "Đoán trình tự cảnh dùng cho kết xuất ảnh của một cảnh"
-
-
 msgid "Scene that this sequence uses"
 msgstr "Cảnh trình tự này đang dùng"
 
 
 msgid "Camera Override"
 msgstr "Vượt Quyền Máy Quay Phim"
-
-
-msgid "Override the scenes active camera"
-msgstr "Vượt quyền máy quay phim của cảnh hoạt động"
 
 
 msgid "Input type to use for the Scene strip"
@@ -90699,10 +90615,6 @@ msgstr "Chế Độ Lấn Trên"
 
 msgid "How to resolve overlap after transformation"
 msgstr "Làm sao giải quyết lấn trên sau biến hóa"
-
-
-msgid "Move strips so transformed strips fits"
-msgstr "Di chuyển đoạn cho được vừa đoạn biến hóa"
 
 
 msgid "Trim or split strips to resolve overlap"
@@ -93487,10 +93399,6 @@ msgid "3D Region"
 msgstr "Vùng 3D"
 
 
-msgid "3D region in this space, in case of quad view the camera region"
-msgstr "Vùng 3D trong không gian này, trương hợp tư màn vùng máy quay phim"
-
-
 msgid "Quad View Regions"
 msgstr "Vùng Tư Màn"
 
@@ -93965,10 +93873,6 @@ msgstr "Nối các điểm kết thúc của đường cong hay bề mặt NURBS
 
 msgid "Endpoint V"
 msgstr "Điểm Kết Thúc V"
-
-
-msgid "Make this nurbs surface meet the endpoints in the V direction "
-msgstr "Nối các điểm kết thúc của đường cong hay bề mặt NURBS cho hướng V (phải tắt Chu Trình V)"
 
 
 msgid "Smooth the normals of the surface or beveled curve"
@@ -97277,10 +97181,6 @@ msgstr "Đơn vị cho hiển thị giá trị khối lượng"
 
 msgid "Unit Scale"
 msgstr "Đơn Vị Phóng To"
-
-
-msgid "Scale to use when converting between blender units and dimensions. When working at microscopic or astronomical scale, a small or large unit scale respectively can be used to avoid numerical precision problems"
-msgstr "Phóng to để dùng khi biến đổi giữa đơn vị Blebder và kích thước. Khi dùng Phóng to vi mô hay quy mô văn học, một phóng to nhỏ hay lớn được giúp đỡ tránh vấn đề độ chính xác số"
 
 
 msgid "Unit System"
@@ -101970,6 +101870,10 @@ msgid "Add a new Variant Slot"
 msgstr "Thêm một Lhe Biến Thể mới"
 
 
+msgid "Curves as NURBS"
+msgstr "Đường Cong sang NURBS"
+
+
 msgid "Multiple selected objects. Only the active one will be evaluated"
 msgstr "Được chọn nhiều vật thể. Chỉ sẽ đánh giá vật thể hoạt động"
 
@@ -105646,11 +105550,6 @@ msgstr "Cắt Chẻ (Tỉ Số)"
 
 
 msgctxt "Operator"
-msgid "Decimate (Allowed Change)"
-msgstr "Cắt Chẻ (Được Đổi)"
-
-
-msgctxt "Operator"
 msgid "Selection to Cursor Value"
 msgstr "Sự Lựa Chọn Đến Giá Trị Con Trỏ"
 
@@ -105658,6 +105557,11 @@ msgstr "Sự Lựa Chọn Đến Giá Trị Con Trỏ"
 msgctxt "Operator"
 msgid "Flatten Handles"
 msgstr "Bằng Phẳng Hóa Tay Cầm"
+
+
+msgctxt "Operator"
+msgid "Decimate (Allowed Change)"
+msgstr "Cắt Chẻ (Được Đổi)"
 
 
 msgctxt "Operator"
@@ -113034,10 +112938,6 @@ msgstr "Không thể xuất PDF"
 
 msgid "Triangulated Mesh"
 msgstr "Mạng Lưới Tam Giác Hóa"
-
-
-msgid "Curves as NURBS"
-msgstr "Đường Cong sang NURBS"
 
 
 msgid "Grouping"

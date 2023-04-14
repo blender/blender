@@ -587,12 +587,18 @@ class PREFERENCES_OT_addon_install(Operator):
         description="Remove existing add-ons with the same ID",
         default=True,
     )
+
+    def _target_path_items(_self, context):
+        paths = context.preferences.filepaths
+        return (
+            ('DEFAULT', "Default", ""),
+            None,
+            *[(item.name, item.name, "") for index, item in enumerate(paths.script_directories) if item.directory],
+        )
+
     target: EnumProperty(
         name="Target Path",
-        items=(
-            ('DEFAULT', "Default", ""),
-            ('PREFS', "Preferences", ""),
-        ),
+        items=_target_path_items,
     )
 
     filepath: StringProperty(
@@ -626,9 +632,11 @@ class PREFERENCES_OT_addon_install(Operator):
             # Don't use `bpy.utils.script_paths(path="addons")` because we may not be able to write to it.
             path_addons = bpy.utils.user_resource('SCRIPTS', path="addons", create=True)
         else:
-            path_addons = context.preferences.filepaths.script_directory
-            if path_addons:
-                path_addons = os.path.join(path_addons, "addons")
+            paths = context.preferences.filepaths
+            for script_directory in paths.script_directories:
+                if script_directory.name == self.target:
+                    path_addons = os.path.join(script_directory.directory, "addons")
+                    break
 
         if not path_addons:
             self.report({'ERROR'}, "Failed to get add-ons path")
@@ -1139,6 +1147,61 @@ class PREFERENCES_OT_studiolight_show(Operator):
         return {'FINISHED'}
 
 
+class PREFERENCES_OT_script_directory_new(Operator):
+    bl_idname = "preferences.script_directory_add"
+    bl_label = "Add Python Script Directory"
+
+    directory: StringProperty(
+        subtype='DIR_PATH',
+    )
+    filter_folder: BoolProperty(
+        name="Filter Folders",
+        default=True,
+        options={'HIDDEN'},
+    )
+
+    def execute(self, context):
+        import os
+
+        script_directories = context.preferences.filepaths.script_directories
+
+        new_dir = script_directories.new()
+        # Assign path selected via file browser.
+        new_dir.directory = self.directory
+        new_dir.name = os.path.basename(self.directory.rstrip(os.sep))
+
+        assert context.preferences.is_dirty is True
+
+        return {'FINISHED'}
+
+    def invoke(self, context, _event):
+        wm = context.window_manager
+
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class PREFERENCES_OT_script_directory_remove(Operator):
+    bl_idname = "preferences.script_directory_remove"
+    bl_label = "Remove Python Script Directory"
+
+    index: IntProperty(
+        name="Index",
+        description="Index of the script directory to remove",
+    )
+
+    def execute(self, context):
+        script_directories = context.preferences.filepaths.script_directories
+        for search_index, script_directory in enumerate(script_directories):
+            if search_index == self.index:
+                script_directories.remove(script_directory)
+                break
+
+        assert context.preferences.is_dirty is True
+
+        return {'FINISHED'}
+
+
 classes = (
     PREFERENCES_OT_addon_disable,
     PREFERENCES_OT_addon_enable,
@@ -1164,4 +1227,6 @@ classes = (
     PREFERENCES_OT_studiolight_uninstall,
     PREFERENCES_OT_studiolight_copy_settings,
     PREFERENCES_OT_studiolight_show,
+    PREFERENCES_OT_script_directory_new,
+    PREFERENCES_OT_script_directory_remove,
 )

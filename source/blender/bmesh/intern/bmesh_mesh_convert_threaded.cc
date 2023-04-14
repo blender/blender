@@ -457,7 +457,7 @@ static void bm_mesh_cd_flag_apply(BMesh *bm, const char cd_flag)
 
   if (cd_flag & ME_CDFLAG_VERT_BWEIGHT) {
     if (!CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
-      CustomData_add_layer(&bm->vdata, CD_BWEIGHT, CD_ASSIGN, NULL, 0);
+      CustomData_add_layer(&bm->vdata, CD_BWEIGHT, CD_SET_DEFAULT, NULL, 0);
     }
   }
   else {
@@ -468,7 +468,7 @@ static void bm_mesh_cd_flag_apply(BMesh *bm, const char cd_flag)
 
   if (cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
     if (!CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
-      CustomData_add_layer(&bm->edata, CD_BWEIGHT, CD_ASSIGN, NULL, 0);
+      CustomData_add_layer(&bm->edata, CD_BWEIGHT, CD_SET_DEFAULT, NULL, 0);
     }
   }
   else {
@@ -479,7 +479,7 @@ static void bm_mesh_cd_flag_apply(BMesh *bm, const char cd_flag)
 
   if (cd_flag & ME_CDFLAG_EDGE_CREASE) {
     if (!CustomData_has_layer(&bm->edata, CD_CREASE)) {
-      CustomData_add_layer(&bm->edata, CD_CREASE, CD_ASSIGN, NULL, 0);
+      CustomData_add_layer(&bm->edata, CD_CREASE, CD_SET_DEFAULT, NULL, 0);
     }
   }
   else {
@@ -593,10 +593,10 @@ BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,
     bm->haveMultiResSettings = false;
   }
 
-  CustomData_copy(&me->vdata, &bm->vdata, mask.vmask, CD_ASSIGN, CD_FLAG_NOCOPY);
-  CustomData_copy(&me->edata, &bm->edata, mask.emask, CD_ASSIGN, CD_FLAG_NOCOPY);
-  CustomData_copy(&me->ldata, &bm->ldata, mask.lmask, CD_ASSIGN, CD_FLAG_NOCOPY);
-  CustomData_copy(&me->pdata, &bm->pdata, mask.pmask, CD_ASSIGN, CD_FLAG_NOCOPY);
+  CustomData_copy(&me->vdata, &bm->vdata, mask.vmask, CD_SET_DEFAULT, CD_FLAG_NOCOPY);
+  CustomData_copy(&me->edata, &bm->edata, mask.emask, CD_SET_DEFAULT, CD_FLAG_NOCOPY);
+  CustomData_copy(&me->ldata, &bm->ldata, mask.lmask, CD_SET_DEFAULT, CD_FLAG_NOCOPY);
+  CustomData_copy(&me->pdata, &bm->pdata, mask.pmask, CD_SET_DEFAULT, CD_FLAG_NOCOPY);
 
   CustomData *cds[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
 
@@ -684,7 +684,7 @@ BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,
 
   if (is_new) {
     if (tot_shape_keys || params->add_key_index) {
-      CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_ASSIGN, NULL, 0);
+      CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_SET_DEFAULT, NULL, 0);
     }
   }
 
@@ -714,7 +714,7 @@ BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,
 
     for (i = 0, block = me->key->block.first; i < tot_shape_keys; block = block->next, i++) {
       if (is_new) {
-        CustomData_add_layer_named(&bm->vdata, CD_SHAPEKEY, CD_ASSIGN, NULL, 0, block->name);
+        CustomData_add_layer_named(&bm->vdata, CD_SHAPEKEY, CD_SET_DEFAULT, NULL, 0, block->name);
         int j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
         bm->vdata.layers[j].uid = block->uid;
       }
@@ -802,7 +802,7 @@ static void me_vert_task(void *__restrict userdata)
       &bm->vdata, &me->vdata, data->mask.vmask | data->extra2, CD_SET_DEFAULT, me->totvert);
 
   MVert *mvert = bm->totvert ? MEM_callocN(sizeof(MVert) * bm->totvert, "bm_to_me.vert") : NULL;
-  CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, mvert, me->totvert);
+  CustomData_add_layer(&me->vdata, CD_MVERT, CD_SET_DEFAULT, mvert, me->totvert);
 
   BMVert *v;
   BMIter iter;
@@ -861,7 +861,7 @@ static void me_edge_task(void *__restrict userdata)
       &bm->edata, &me->edata, data->mask.emask | data->extra2, CD_SET_DEFAULT, me->totvert);
 
   MEdge *medge = bm->totedge ? MEM_callocN(sizeof(MEdge) * bm->totedge, "bm_to_me.edge") : NULL;
-  CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, me->totedge);
+  CustomData_add_layer(&me->edata, CD_MEDGE, CD_SET_DEFAULT, medge, me->totedge);
   const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
 
   BMEdge *e;
@@ -912,7 +912,7 @@ static void me_face_task(void *__restrict userdata)
       &bm->pdata, &me->pdata, data->mask.pmask | data->extra2, CD_SET_DEFAULT, me->totpoly);
 
   mpoly = bm->totface ? MEM_callocN(sizeof(MPoly) * bm->totface, "bm_to_me.poly") : NULL;
-  CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
+  CustomData_add_layer(&me->pdata, CD_MPOLY, CD_SET_DEFAULT, mpoly, me->totpoly);
 
   // set up loops
   CustomData_free(&me->ldata, me->totloop);
@@ -922,7 +922,7 @@ static void me_face_task(void *__restrict userdata)
       &bm->ldata, &me->ldata, data->mask.lmask | data->extra2, CD_SET_DEFAULT, me->totloop);
 
   mloop = bm->totloop ? MEM_callocN(sizeof(MLoop) * bm->totloop, "bm_to_me.loop") : NULL;
-  CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);
+  CustomData_add_layer(&me->ldata, CD_MLOOP, CD_SET_DEFAULT, mloop, me->totloop);
 
   // convert
 

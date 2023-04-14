@@ -2400,7 +2400,7 @@ static PySequenceMethods Vector_SeqMethods = {
 };
 
 static PyMappingMethods Vector_AsMapping = {
-    /*mp_len*/ (lenfunc)Vector_len,
+    /*mp_length*/ (lenfunc)Vector_len,
     /*mp_subscript*/ (binaryfunc)Vector_subscript,
     /*mp_ass_subscript*/ (objobjargproc)Vector_ass_subscript,
 };

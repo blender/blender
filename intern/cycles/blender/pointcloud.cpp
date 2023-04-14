@@ -102,6 +102,16 @@ static void copy_attributes(PointCloud *pointcloud,
         }
         break;
       }
+      case BL::Attribute::data_type_INT32_2D: {
+        BL::Int2Attribute b_int2_attribute{b_attribute};
+        const int2 *src = static_cast<const int2 *>(b_int2_attribute.data[0].ptr.data);
+        Attribute *attr = attributes.add(name, TypeFloat2, element);
+        float2 *data = attr->data_float2();
+        for (int i = 0; i < num_points; i++) {
+          data[i] = make_float2(float(src[i][0]), float(src[i][1]));
+        }
+        break;
+      }
       case BL::Attribute::data_type_FLOAT_VECTOR: {
         BL::FloatVectorAttribute b_vector_attribute{b_attribute};
         const float(*src)[3] = static_cast<const float(*)[3]>(b_vector_attribute.data[0].ptr.data);
@@ -244,7 +254,7 @@ static void export_pointcloud_motion(PointCloud *pointcloud,
 
   const int num_points = pointcloud->num_points();
   /* Point cloud attributes are stored as float4 with the radius in the w element.
-   * This is explict now as float3 is no longer interchangeable with float4 as it
+   * This is explicit now as float3 is no longer interchangeable with float4 as it
    * is packed now. */
   float4 *mP = attr_mP->data_float4() + motion_step * num_points;
   bool have_motion = false;

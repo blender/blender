@@ -585,7 +585,6 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
 
   /* set malloc flag */
   tbuf.mall = ibuf2->mall;
-  tbuf.c_handle = NULL;
   tbuf.refcounter = 0;
 
   /* for now don't duplicate metadata */
@@ -631,31 +630,3 @@ size_t IMB_get_size_in_memory(ImBuf *ibuf)
 
   return size;
 }
-
-#if 0 /* remove? - campbell */
-/* support for cache limiting */
-
-static void imbuf_cache_destructor(void *data)
-{
-  ImBuf *ibuf = (ImBuf *)data;
-
-  imb_freerectImBuf(ibuf);
-  imb_freerectfloatImBuf(ibuf);
-  IMB_freezbufImBuf(ibuf);
-  IMB_freezbuffloatImBuf(ibuf);
-  freeencodedbufferImBuf(ibuf);
-
-  ibuf->c_handle = NULL;
-}
-
-static MEM_CacheLimiterC **get_imbuf_cache_limiter(void)
-{
-  static MEM_CacheLimiterC *c = NULL;
-
-  if (!c) {
-    c = new_MEM_CacheLimiter(imbuf_cache_destructor, NULL);
-  }
-
-  return &c;
-}
-#endif

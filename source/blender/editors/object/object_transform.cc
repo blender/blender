@@ -61,7 +61,7 @@
 #include "WM_types.h"
 
 #include "ED_armature.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_object.h"

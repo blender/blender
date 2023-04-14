@@ -94,32 +94,53 @@ static void expand_mesh(Mesh &mesh,
                         const int poly_expand,
                         const int loop_expand)
 {
+  /* Remove types that aren't supported for interpolation in this node. */
   if (vert_expand != 0) {
+    CustomData_free_layers(&mesh.vdata, CD_ORCO, mesh.totvert);
+    CustomData_free_layers(&mesh.vdata, CD_BWEIGHT, mesh.totvert);
+    CustomData_free_layers(&mesh.vdata, CD_SHAPEKEY, mesh.totvert);
+    CustomData_free_layers(&mesh.vdata, CD_CLOTH_ORCO, mesh.totvert);
+    CustomData_free_layers(&mesh.vdata, CD_MVERT_SKIN, mesh.totvert);
     const int old_verts_num = mesh.totvert;
     mesh.totvert += vert_expand;
     CustomData_realloc(&mesh.vdata, old_verts_num, mesh.totvert);
   }
   if (edge_expand != 0) {
+    CustomData_free_layers(&mesh.edata, CD_BWEIGHT, mesh.totedge);
+    CustomData_free_layers(&mesh.edata, CD_FREESTYLE_EDGE, mesh.totedge);
     const int old_edges_num = mesh.totedge;
     mesh.totedge += edge_expand;
     CustomData_realloc(&mesh.edata, old_edges_num, mesh.totedge);
   }
   if (poly_expand != 0) {
+    CustomData_free_layers(&mesh.pdata, CD_FACEMAP, mesh.totpoly);
+    CustomData_free_layers(&mesh.pdata, CD_FREESTYLE_FACE, mesh.totpoly);
     const int old_polys_num = mesh.totpoly;
     mesh.totpoly += poly_expand;
     CustomData_realloc(&mesh.pdata, old_polys_num, mesh.totpoly);
-    mesh.poly_offset_indices = static_cast<int *>(
-        MEM_reallocN(mesh.poly_offset_indices, sizeof(int) * (mesh.totpoly + 1)));
-    mesh.poly_offsets_for_write().last() = mesh.totloop + loop_expand;
+    implicit_sharing::resize_trivial_array(&mesh.poly_offset_indices,
+                                           &mesh.runtime->poly_offsets_sharing_info,
+                                           old_polys_num == 0 ? 0 : (old_polys_num + 1),
+                                           mesh.totpoly + 1);
+    /* Set common values for convenience. */
+    mesh.poly_offset_indices[0] = 0;
+    mesh.poly_offset_indices[mesh.totpoly] = mesh.totloop + loop_expand;
   }
   if (loop_expand != 0) {
+    CustomData_free_layers(&mesh.ldata, CD_NORMAL, mesh.totloop);
+    CustomData_free_layers(&mesh.ldata, CD_MDISPS, mesh.totloop);
+    CustomData_free_layers(&mesh.ldata, CD_TANGENT, mesh.totloop);
+    CustomData_free_layers(&mesh.ldata, CD_PAINT_MASK, mesh.totloop);
+    CustomData_free_layers(&mesh.ldata, CD_MLOOPTANGENT, mesh.totloop);
+    CustomData_free_layers(&mesh.ldata, CD_GRID_PAINT_MASK, mesh.totloop);
+    CustomData_free_layers(&mesh.ldata, CD_CUSTOMLOOPNORMAL, mesh.totloop);
     const int old_loops_num = mesh.totloop;
     mesh.totloop += loop_expand;
     CustomData_realloc(&mesh.ldata, old_loops_num, mesh.totloop);
   }
 }
 
-static CustomData &get_customdata(Mesh &mesh, const eAttrDomain domain)
+static CustomData &mesh_custom_data_for_domain(Mesh &mesh, const eAttrDomain domain)
 {
   switch (domain) {
     case ATTR_DOMAIN_POINT:
@@ -142,7 +163,7 @@ static CustomData &get_customdata(Mesh &mesh, const eAttrDomain domain)
 static MutableSpan<int> get_orig_index_layer(Mesh &mesh, const eAttrDomain domain)
 {
   const bke::AttributeAccessor attributes = mesh.attributes();
-  CustomData &custom_data = get_customdata(mesh, domain);
+  CustomData &custom_data = mesh_custom_data_for_domain(mesh, domain);
   if (int *orig_indices = static_cast<int *>(CustomData_get_layer_for_write(
           &custom_data, CD_ORIGINDEX, attributes.domain_size(domain)))) {
     return {orig_indices, attributes.domain_size(domain)};
@@ -775,8 +796,10 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   MutableSpan<int> new_corner_edges = corner_edges.slice(side_loop_range);
 
   /* Initialize the new side polygons. */
-  new_poly_offsets.fill(4);
-  offset_indices::accumulate_counts_to_offsets(new_poly_offsets, orig_loop_size);
+  if (!new_poly_offsets.is_empty()) {
+    new_poly_offsets.fill(4);
+    offset_indices::accumulate_counts_to_offsets(new_poly_offsets, orig_loop_size);
+  }
   const OffsetIndices polys = mesh.polys();
 
   /* Initialize the edges that form the sides of the extrusion. */
@@ -1060,6 +1083,9 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
   poly_evaluator.add_with_destination(offset_field, poly_offset.as_mutable_span());
   poly_evaluator.evaluate();
   const IndexMask poly_selection = poly_evaluator.get_evaluated_selection_as_mask();
+  if (poly_selection.is_empty()) {
+    return;
+  }
 
   /* Build an array of offsets into the new data for each polygon. This is used to facilitate
    * parallelism later on by avoiding the need to keep track of an offset when iterating through

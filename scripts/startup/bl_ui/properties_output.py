@@ -164,8 +164,8 @@ class RENDER_PT_time_stretching(RenderOutputButtonsPanel, Panel):
         rd = context.scene.render
 
         col = layout.column(align=True)
-        col.prop(rd, "frame_map_old", text="Old")
-        col.prop(rd, "frame_map_new", text="New")
+        col.prop(rd, "frame_map_old", text="Old", text_ctxt=i18n_contexts.time)
+        col.prop(rd, "frame_map_new", text="New", text_ctxt=i18n_contexts.time)
 
 
 class RENDER_PT_post_processing(RenderOutputButtonsPanel, Panel):

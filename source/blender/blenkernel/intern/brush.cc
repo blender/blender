@@ -2607,6 +2607,7 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool
   return im;
 }
 
+<<<<<<< HEAD
 bool BKE_brush_hard_edge_mode_get(const Scene *scene, const Brush *brush)
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -2636,4 +2637,27 @@ void BKE_brush_hard_edge_mode_set(Scene *scene, Brush *brush, bool val)
 float BKE_brush_fset_slide_get(const Scene *scene, const Brush *brush)
 {
   return BKE_brush_hard_edge_mode_get(scene, brush) ? 0.0f : brush->autosmooth_fset_slide;
+=======
+bool BKE_brush_has_cube_tip(const Brush *brush, ePaintMode paint_mode)
+{
+  switch (paint_mode) {
+    case PAINT_MODE_SCULPT: {
+      if (brush->sculpt_tool == SCULPT_TOOL_MULTIPLANE_SCRAPE) {
+        return true;
+      }
+
+      if (ELEM(brush->sculpt_tool, SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_PAINT) &&
+          brush->tip_roundness < 1.0f) {
+        return true;
+      }
+
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+
+  return false;
+>>>>>>> main
 }

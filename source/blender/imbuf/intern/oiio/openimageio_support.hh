@@ -40,13 +40,12 @@ struct ReadContext {
 struct WriteContext {
   const char *file_format;
   ImBuf *ibuf;
+  int flags;
 
+  uchar *mem_start;
   OIIO::stride_t mem_xstride;
   OIIO::stride_t mem_ystride;
-  OIIO::TypeDesc mem_format;
-  uchar *mem_start;
-
-  int flags;
+  OIIO::ImageSpec mem_spec;
 };
 
 /**

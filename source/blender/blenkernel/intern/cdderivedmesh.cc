@@ -147,9 +147,7 @@ static CDDerivedMesh *cdDM_create(const char *desc)
   return cddm;
 }
 
-static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
-                                      eCDAllocType alloctype,
-                                      const CustomData_MeshMasks *mask)
+static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh, const CustomData_MeshMasks *mask)
 {
   CDDerivedMesh *cddm = cdDM_create(__func__);
   DerivedMesh *dm = &cddm->dm;
@@ -167,15 +165,14 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
           mesh->totloop,
           mesh->totpoly);
 
-  CustomData_merge(&mesh->vdata, &dm->vertData, cddata_masks.vmask, alloctype, mesh->totvert);
-  CustomData_merge(&mesh->edata, &dm->edgeData, cddata_masks.emask, alloctype, mesh->totedge);
+  CustomData_merge(&mesh->vdata, &dm->vertData, cddata_masks.vmask, mesh->totvert);
+  CustomData_merge(&mesh->edata, &dm->edgeData, cddata_masks.emask, mesh->totedge);
   CustomData_merge(&mesh->fdata,
                    &dm->faceData,
                    cddata_masks.fmask | CD_MASK_ORIGINDEX,
-                   alloctype,
                    0 /* `mesh->totface` */);
-  CustomData_merge(&mesh->ldata, &dm->loopData, cddata_masks.lmask, alloctype, mesh->totloop);
-  CustomData_merge(&mesh->pdata, &dm->polyData, cddata_masks.pmask, alloctype, mesh->totpoly);
+  CustomData_merge(&mesh->ldata, &dm->loopData, cddata_masks.lmask, mesh->totloop);
+  CustomData_merge(&mesh->pdata, &dm->polyData, cddata_masks.pmask, mesh->totpoly);
 
   cddm->vert_positions = static_cast<float(*)[3]>(CustomData_get_layer_named_for_write(
       &dm->vertData, CD_PROP_FLOAT3, "position", mesh->totvert));
@@ -203,5 +200,5 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
 
 DerivedMesh *CDDM_from_mesh(Mesh *mesh)
 {
-  return cdDM_from_mesh_ex(mesh, CD_REFERENCE, &CD_MASK_MESH);
+  return cdDM_from_mesh_ex(mesh, &CD_MASK_MESH);
 }

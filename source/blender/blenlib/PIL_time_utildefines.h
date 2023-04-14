@@ -104,6 +104,8 @@
   } \
   (void)0
 
+#define TIMEIT_BLOCK_VALUE(id) (float)(_timeit_var_##id)
+
 #define TIMEIT_BLOCK_STATS(id) \
   { \
     printf("%s time (in seconds): %f\n", #id, _timeit_var_##id); \

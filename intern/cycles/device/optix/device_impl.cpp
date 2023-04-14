@@ -181,7 +181,7 @@ string OptiXDevice::compile_kernel_get_common_cflags(const uint kernel_features)
   /* Add OptiX SDK include directory to include paths. */
   common_cflags += string_printf(" -I\"%s\"", get_optix_include_dir().c_str());
 
-  /* Specialization for shader raytracing. */
+  /* Specialization for shader ray-tracing. */
   if (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
     common_cflags += " --keep-device-functions";
   }
@@ -483,7 +483,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     group_descs[PG_HITL].hitgroup.entryFunctionNameAH = "__anyhit__kernel_optix_local_hit";
   }
 
-  /* Shader raytracing replaces some functions with direct callables. */
+  /* Shader ray-tracing replaces some functions with direct callables. */
   if (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
     group_descs[PG_RGEN_SHADE_SURFACE_RAYTRACE].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
     group_descs[PG_RGEN_SHADE_SURFACE_RAYTRACE].raygen.module = optix_module;
@@ -584,7 +584,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     load_osl_kernels();
   }
   else if (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) {
-    /* Create shader raytracing and MNEE pipeline. */
+    /* Create shader ray-tracing and MNEE pipeline. */
     vector<OptixProgramGroup> pipeline_groups;
     pipeline_groups.reserve(NUM_PROGRAM_GROUPS);
     if (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {

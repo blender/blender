@@ -1167,11 +1167,14 @@ static void sculpt_undo_geometry_store_data(SculptUndoNodeGeometry *geometry, Ob
   BLI_assert(!geometry->is_initialized);
   geometry->is_initialized = true;
 
-  CustomData_copy(&mesh->vdata, &geometry->vdata, CD_MASK_MESH.vmask, CD_DUPLICATE, mesh->totvert);
-  CustomData_copy(&mesh->edata, &geometry->edata, CD_MASK_MESH.emask, CD_DUPLICATE, mesh->totedge);
-  CustomData_copy(&mesh->ldata, &geometry->ldata, CD_MASK_MESH.lmask, CD_DUPLICATE, mesh->totloop);
-  CustomData_copy(&mesh->pdata, &geometry->pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, mesh->totpoly);
-  geometry->poly_offset_indices = static_cast<int *>(MEM_dupallocN(mesh->poly_offset_indices));
+  CustomData_copy(&mesh->vdata, &geometry->vdata, CD_MASK_MESH.vmask, mesh->totvert);
+  CustomData_copy(&mesh->edata, &geometry->edata, CD_MASK_MESH.emask, mesh->totedge);
+  CustomData_copy(&mesh->ldata, &geometry->ldata, CD_MASK_MESH.lmask, mesh->totloop);
+  CustomData_copy(&mesh->pdata, &geometry->pdata, CD_MASK_MESH.pmask, mesh->totpoly);
+  blender::implicit_sharing::copy_shared_pointer(mesh->poly_offset_indices,
+                                                 mesh->runtime->poly_offsets_sharing_info,
+                                                 &geometry->poly_offset_indices,
+                                                 &geometry->poly_offsets_sharing_info);
 
   geometry->totvert = mesh->totvert;
   geometry->totedge = mesh->totedge;
@@ -1185,12 +1188,7 @@ static void sculpt_undo_geometry_restore_data(SculptUndoNodeGeometry *geometry, 
 
   BLI_assert(geometry->is_initialized);
 
-  CustomData_free(&mesh->vdata, mesh->totvert);
-  CustomData_free(&mesh->edata, mesh->totedge);
-  CustomData_free(&mesh->fdata, mesh->totface);
-  CustomData_free(&mesh->ldata, mesh->totloop);
-  CustomData_free(&mesh->pdata, mesh->totpoly);
-  MEM_SAFE_FREE(mesh->poly_offset_indices);
+  BKE_mesh_clear_geometry(mesh);
 
   mesh->totvert = geometry->totvert;
   mesh->totedge = geometry->totedge;
@@ -1198,17 +1196,14 @@ static void sculpt_undo_geometry_restore_data(SculptUndoNodeGeometry *geometry, 
   mesh->totpoly = geometry->totpoly;
   mesh->totface = 0;
 
-  CustomData_copy(
-      &geometry->vdata, &mesh->vdata, CD_MASK_MESH.vmask, CD_DUPLICATE, geometry->totvert);
-  CustomData_copy(
-      &geometry->edata, &mesh->edata, CD_MASK_MESH.emask, CD_DUPLICATE, geometry->totedge);
-  CustomData_copy(
-      &geometry->ldata, &mesh->ldata, CD_MASK_MESH.lmask, CD_DUPLICATE, geometry->totloop);
-  CustomData_copy(
-      &geometry->pdata, &mesh->pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, geometry->totpoly);
-  mesh->poly_offset_indices = static_cast<int *>(geometry->poly_offset_indices);
-
-  BKE_mesh_runtime_clear_cache(mesh);
+  CustomData_copy(&geometry->vdata, &mesh->vdata, CD_MASK_MESH.vmask, geometry->totvert);
+  CustomData_copy(&geometry->edata, &mesh->edata, CD_MASK_MESH.emask, geometry->totedge);
+  CustomData_copy(&geometry->ldata, &mesh->ldata, CD_MASK_MESH.lmask, geometry->totloop);
+  CustomData_copy(&geometry->pdata, &mesh->pdata, CD_MASK_MESH.pmask, geometry->totpoly);
+  blender::implicit_sharing::copy_shared_pointer(geometry->poly_offset_indices,
+                                                 geometry->poly_offsets_sharing_info,
+                                                 &mesh->poly_offset_indices,
+                                                 &mesh->runtime->poly_offsets_sharing_info);
 }
 
 static void sculpt_undo_geometry_free_data(SculptUndoNodeGeometry *geometry)
@@ -1225,7 +1220,8 @@ static void sculpt_undo_geometry_free_data(SculptUndoNodeGeometry *geometry)
   if (geometry->totpoly) {
     CustomData_free(&geometry->pdata, geometry->totpoly);
   }
-  MEM_SAFE_FREE(geometry->poly_offset_indices);
+  blender::implicit_sharing::free_shared_data(&geometry->poly_offset_indices,
+                                              &geometry->poly_offsets_sharing_info);
 }
 
 static void sculpt_undo_geometry_restore(SculptUndoNode *unode, Object *object)

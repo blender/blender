@@ -119,16 +119,12 @@ class ImBufLoadTest(ImBufTest):
         self.check("*.exr")
 
     def test_load_hdr(self):
-        self.skip_if_format_missing("HDR")
-
         self.check("*.hdr")
 
     def test_load_targa(self):
         self.check("*.tga")
 
     def test_load_tiff(self):
-        self.skip_if_format_missing("TIFF")
-
         self.check("*.tif")
 
     def test_load_jpeg(self):
@@ -141,8 +137,6 @@ class ImBufLoadTest(ImBufTest):
         self.check("*.j2c")
 
     def test_load_dpx(self):
-        self.skip_if_format_missing("CINEON")
-
         self.check("*.dpx")
 
     def test_load_cineon(self):

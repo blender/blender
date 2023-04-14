@@ -4144,9 +4144,6 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
   params.margin = margin;
   params.margin_method = ED_UVPACK_MARGIN_SCALED;
 
-  MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
-  Heap *heap = BLI_heap_new();
-
   for (int i = 0; i < handle->ncharts; i++) {
     PChart *chart = handle->charts[i];
     if (ignore_pinned && chart->has_pins) {
@@ -4164,12 +4161,9 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
       PVert *v2 = f->edge->next->next->vert;
       pack_island->add_triangle(v0->uv, v1->uv, v2->uv);
     }
-    pack_island->finalize_geometry(params, arena, heap);
 
     pack_island_vector.append(pack_island);
   }
-  BLI_heap_free(heap, nullptr);
-  BLI_memarena_free(arena);
 
   float scale[2] = {1.0f, 1.0f};
   pack_islands(pack_island_vector, params, scale);

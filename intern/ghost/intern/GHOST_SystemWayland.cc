@@ -4520,7 +4520,8 @@ static void xdg_output_handle_logical_size(void *data,
      * Until this is fixed, validate that _some_ kind of scaling is being
      * done (we can't match exactly because fractional scaling can't be
      * detected otherwise), then override if necessary. */
-    if ((output->size_logical[0] == width) && (output->scale_fractional == wl_fixed_from_int(1))) {
+    if ((output->size_logical[0] == width) &&
+        (output->scale_fractional == (1 * FRACTIONAL_DENOMINATOR))) {
       GHOST_PRINT("xdg_output scale did not match, overriding with wl_output scale\n");
 
 #ifdef USE_GNOME_CONFINE_HACK
@@ -4667,7 +4668,7 @@ static void output_handle_done(void *data, struct wl_output * /*wl_output*/)
     GHOST_ASSERT(size_native[0] && output->size_logical[0],
                  "Screen size values were not set when they were expected to be.");
 
-    output->scale_fractional = wl_fixed_from_int(size_native[0]) / output->size_logical[0];
+    output->scale_fractional = (size_native[0] * FRACTIONAL_DENOMINATOR) / output->size_logical[0];
     output->has_scale_fractional = true;
   }
 }
@@ -6338,13 +6339,14 @@ GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
-
   struct wl_surface *wl_surface = (struct wl_surface *)((GHOST_Context *)context)->getUserData();
+  /* Delete the context before the window so the context is able to release
+   * native resources (such as the #EGLSurface) before WAYLAND frees them. */
+  delete context;
+
   wl_egl_window *egl_window = (wl_egl_window *)wl_surface_get_user_data(wl_surface);
   wl_egl_window_destroy(egl_window);
   wl_surface_destroy(wl_surface);
-
-  delete context;
 
   return GHOST_kSuccess;
 }
@@ -7063,6 +7065,7 @@ bool GHOST_SystemWayland::output_unref(wl_output *wl_output)
     for (GHOST_IWindow *iwin : window_manager->getWindows()) {
       GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
       if (win->outputs_leave(output)) {
+        win->outputs_changed_update_scale_tag();
         changed = true;
       }
     }
@@ -7087,7 +7090,7 @@ void GHOST_SystemWayland::output_scale_update(GWL_Output *output)
       GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
       const std::vector<GWL_Output *> &outputs = win->outputs();
       if (!(std::find(outputs.begin(), outputs.end(), output) == outputs.cend())) {
-        win->outputs_changed_update_scale();
+        win->outputs_changed_update_scale_tag();
       }
     }
   }

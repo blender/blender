@@ -30,7 +30,7 @@
 
 #include "ED_gizmo_library.h"
 #include "ED_gizmo_utils.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_transform_snap_object_context.h"

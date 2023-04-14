@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_array_utils.hh"
+
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute_math.hh"
@@ -26,7 +28,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void convert_instances_to_points(GeometrySet &geometry_set,
                                         Field<float3> position_field,
                                         Field<float> radius_field,
-                                        const Field<bool> selection_field,
+                                        Field<bool> selection_field,
                                         const AnonymousAttributePropagationInfo &propagation_info)
 {
   const bke::Instances &instances = *geometry_set.get_instances_for_read();
@@ -41,22 +43,17 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   if (selection.is_empty()) {
     return;
   }
-  const VArray<float3> &positions = evaluator.get_evaluated<float3>(0);
+  const VArray<float3> positions = evaluator.get_evaluated<float3>(0);
   const VArray<float> radii = evaluator.get_evaluated<float>(1);
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
   geometry_set.replace_pointcloud(pointcloud);
+  array_utils::gather(positions, selection, pointcloud->positions_for_write());
 
   bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
-
-  bke::SpanAttributeWriter<float3> point_positions =
-      point_attributes.lookup_or_add_for_write_only_span<float3>("position", ATTR_DOMAIN_POINT);
   bke::SpanAttributeWriter<float> point_radii =
       point_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
-
-  positions.materialize_compressed_to_uninitialized(selection, point_positions.span);
-  radii.materialize_compressed_to_uninitialized(selection, point_radii.span);
-  point_positions.finish();
+  array_utils::gather(radii, selection, point_radii.span);
   point_radii.finish();
 
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;

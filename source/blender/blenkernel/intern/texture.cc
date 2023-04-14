@@ -155,8 +155,17 @@ static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 
   /* nodetree is integral part of texture, no libdata */
   if (tex->nodetree) {
-    BLO_write_struct(writer, bNodeTree, tex->nodetree);
-    ntreeBlendWrite(writer, tex->nodetree);
+    BLO_Write_IDBuffer *temp_embedded_id_buffer = BLO_write_allocate_id_buffer();
+    BLO_write_init_id_buffer_from_id(
+        temp_embedded_id_buffer, &tex->nodetree->id, BLO_write_is_undo(writer));
+    BLO_write_struct_at_address(writer,
+                                bNodeTree,
+                                tex->nodetree,
+                                BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
+    ntreeBlendWrite(
+        writer,
+        reinterpret_cast<bNodeTree *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
+    BLO_write_destroy_id_buffer(&temp_embedded_id_buffer);
   }
 
   BKE_previewimg_blend_write(writer, tex->preview);

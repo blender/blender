@@ -116,7 +116,7 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 
 #  include "DEG_depsgraph.h"
 
-#  include "ED_gpencil.h"
+#  include "ED_gpencil_legacy.h"
 #  include "ED_paint.h"
 #  include "ED_particle.h"
 

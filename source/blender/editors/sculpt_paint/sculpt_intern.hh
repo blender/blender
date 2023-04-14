@@ -18,6 +18,7 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_gsqueue.h"
+#include "BLI_implicit_sharing.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -189,6 +190,7 @@ struct SculptUndoNodeGeometry {
   CustomData ldata;
   CustomData pdata;
   int *poly_offset_indices;
+  blender::ImplicitSharingInfo *poly_offsets_sharing_info;
   int totvert;
   int totedge;
   int totloop;
@@ -274,6 +276,7 @@ struct SculptUndoNode {
 struct SculptRakeData {
   float follow_dist;
   float follow_co[3];
+  float angle;
 };
 
 /**
@@ -1561,6 +1564,7 @@ SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(const SculptSession 
                                                             char falloff_shape);
 const float *SCULPT_brush_frontface_normal_from_falloff_shape(const SculptSession *ss,
                                                               char falloff_shape);
+void SCULPT_cube_tip_init(Sculpt *sd, Object *ob, Brush *brush, float mat[4][4]);
 
 /**
  * Return a multiplier for brush strength on a particular vertex.
@@ -1900,7 +1904,7 @@ BLI_INLINE bool SCULPT_get_fset_projection(SculptSession *ss, float fset_project
 
 BLI_INLINE bool SCULPT_need_reproject(const SculptSession *ss)
 {
-  return !ss->ignore_uvs && ss->bm && CustomData_has_layer(&ss->bm->ldata, CD_MLOOPUV);
+  return !ss->ignore_uvs && ss->bm && CustomData_has_layer(&ss->bm->ldata, CD_PROP_FLOAT2);
 }
 
 void SCULPT_reproject_cdata(SculptSession *ss,

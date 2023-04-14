@@ -822,7 +822,7 @@ void OUTLINER_OT_id_copy(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Outliner ID Data Copy";
   ot->idname = "OUTLINER_OT_id_copy";
-  ot->description = "Selected data-blocks are copied to the clipboard";
+  ot->description = "Copy the selected data-blocks to the internal clipboard";
 
   /* callbacks */
   ot->exec = outliner_id_copy_exec;
@@ -863,7 +863,7 @@ void OUTLINER_OT_id_paste(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Outliner ID Data Paste";
   ot->idname = "OUTLINER_OT_id_paste";
-  ot->description = "Data-blocks from the clipboard are pasted";
+  ot->description = "Paste data-blocks from the internal clipboard";
 
   /* callbacks */
   ot->exec = outliner_id_paste_exec;

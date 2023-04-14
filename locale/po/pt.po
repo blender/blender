@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: 2017-09-08 21:24-0300\n"
 "Last-Translator: Ivan Paulos Tomé <greylica@gmail.com>\n"
 "Language-Team: Ivan Paulos Tomé, Inês Almeida, João Brandão (ULISBOA), Paulo Martins <ivan.paulos.tome@yandex.com>\n"
@@ -9068,10 +9068,6 @@ msgstr "Mostra os ficheiros de texto."
 
 msgid "Library Browser"
 msgstr "Navegador de bibliotecas"
-
-
-msgid "Whether we may browse blender files' content or not"
-msgstr "Permite definir se será possível ou não a navegação nos conteúdos dos ficheiros Blender."
 
 
 msgid "Link"
@@ -31090,10 +31086,6 @@ msgid "Set Axis"
 msgstr "Definir eixo"
 
 
-msgid "Set direction of scene axis rotating camera (or its parent if present) and assume selected track lies on real axis, joining it with the origin"
-msgstr "Define a direção do eixo da cena rotacionando a câmara (ou o seu parente, caso presente), e assume que a trilha selecionada repousa no eixo real juntando-o com a origem."
-
-
 msgid "Axis to use to align bundle along"
 msgstr "Eixo ao longo do qual haverá uso para alinhar o feixe."
 
@@ -34911,10 +34903,6 @@ msgstr "Guardar como imagem"
 
 msgid "Save the image with another name and/or settings"
 msgstr "Guarda a imagem com outro nome e / ou definições."
-
-
-msgid "Create a new image file without modifying the current image in blender"
-msgstr "Cria um novo ficheiro de imagem sem modificar a imagem atual dentro do Blender."
 
 
 msgid "Save As Render"
@@ -39885,10 +39873,6 @@ msgid "Name filter using '*', '?' and '[abc]' unix style wildcards"
 msgstr "Filtra os nomes usando caracteres coringa estilo Unix \"*\", \"?\" e \"[abc]\"."
 
 
-msgid "Set select on random visible objects"
-msgstr "Define a seleção de maneira aleatória em objetos visíveis."
-
-
 msgid "Render and display faces uniform, using Face Normals"
 msgstr "Renderiza e mostra as faces de maneira uniforme, usando as normais das faces."
 
@@ -43840,10 +43824,6 @@ msgid "Add Scene Strip"
 msgstr "Adicionar faixa de cena"
 
 
-msgid "Add a strip to the sequencer using a blender scene as a source"
-msgstr "Adiciona uma faixa ao editor de sequências usando a cena do Blender como fonte."
-
-
 msgid "Select a strip (last selected becomes the \"active strip\")"
 msgstr "Seleciona uma faixa (a última selecionada se torna a \"faixa ativa\")."
 
@@ -44604,10 +44584,6 @@ msgstr "Seleciona o texto por linha."
 
 msgid "Select word under cursor"
 msgstr "Seleciona a palavra abaixo do cursor."
-
-
-msgid "Set cursor selection"
-msgstr "Define a seleção do cursor"
 
 
 msgctxt "Operator"
@@ -46710,10 +46686,6 @@ msgid "Export only the selected UV Map"
 msgstr "Exporta somente o mapa UV selecionado."
 
 
-msgid "Apply modifiers to exported mesh (non destructive))"
-msgstr "Aplica os modificadores para a malha exportada (não destrutivo)."
-
-
 msgid "Only export deforming bones with armatures"
 msgstr "Somente exportar os ossos que se deformam com as armações."
 
@@ -48043,10 +48015,6 @@ msgstr "Camada em estêncil"
 
 msgid "Set the mask layer from the UV map buttons"
 msgstr "Define a camada de máscara a partir dos botões de mapa UV."
-
-
-msgid "Maximum edge length for dynamic topology sculpting (as divisor of blender unit - higher value means smaller edge length)"
-msgstr "O comprimento máximo de arestas para a escultura de topologia dinâmica, como um divisor para unidades Blender.  Valores mais altos significam menores comprimentos de arestas."
 
 
 msgid "Detail Percentage"
@@ -50889,14 +50857,6 @@ msgid "Time to animate the view in milliseconds, zero to disable"
 msgstr "Tempo para animar a vista em microssegundos, zero para desativar."
 
 
-msgid "TimeCode Style"
-msgstr "Código de tempo"
-
-
-msgid "Format of Time Codes displayed when not displaying timing in terms of frames"
-msgstr "Formato dos códigos de tempo mostrados quando não se está mostrando a temporização em termos de fotogramas."
-
-
 msgid "Minimal Info"
 msgstr "Informação mínima"
 
@@ -52199,10 +52159,6 @@ msgstr "Definições de renderização para um bloco de dados de cena."
 
 msgid "Bias"
 msgstr "Ajuste fino"
-
-
-msgid "Bias towards faces further away from the object (in blender units)"
-msgstr "Ajuste fino na direção de faces mais longínquas a partir do objeto (em unidades Blender)."
 
 
 msgid "Number of samples used for ambient occlusion baking from multires"
@@ -54110,20 +54066,12 @@ msgid "Scene Sequence"
 msgstr "Sequência de cena"
 
 
-msgid "Sequence strip to used the rendered image of a scene"
-msgstr "Faixa de sequência que foi usada para a imagem renderizada de uma cena."
-
-
 msgid "Scene that this sequence uses"
 msgstr "Cena que esta sequência usa."
 
 
 msgid "Camera Override"
 msgstr "Sobrepor câmara"
-
-
-msgid "Override the scenes active camera"
-msgstr "Sobrepõe a câmara ativa das cenas."
 
 
 msgid "Sound Sequence"
@@ -56232,10 +56180,6 @@ msgstr "O centro da janela de visualização 3D é travado para a posição do o
 
 msgid "3D Region"
 msgstr "Região 3D"
-
-
-msgid "3D region in this space, in case of quad view the camera region"
-msgstr "Região 3D neste espaço, em caso de visualização de quatro vistas, ver a região da câmara."
 
 
 msgid "Quad View Regions"

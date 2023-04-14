@@ -1976,8 +1976,10 @@ static void paint_cursor_update_rake_rotation(PaintCursorContext *pcontext)
    * and we may get interference with the stroke itself.
    * For line strokes, such interference is visible. */
   if (!pcontext->ups->stroke_active) {
+    float zero[2] = {0.0f, 0.0f};
+
     paint_calculate_rake_rotation(
-        pcontext->ups, pcontext->brush, pcontext->translation, pcontext->translation);
+        pcontext->ups, pcontext->brush, pcontext->translation, zero, pcontext->mode);
   }
 }
 
@@ -2083,4 +2085,3 @@ void ED_paint_cursor_start(Paint *p, bool (*poll)(bContext *C))
   /* Invalidate the paint cursors. */
   BKE_paint_invalidate_overlay_all();
 }
-

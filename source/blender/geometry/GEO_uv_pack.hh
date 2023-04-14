@@ -72,6 +72,7 @@ class UVPackIsland_Params {
   eUVPackIsland_ShapeMethod shape_method;
 };
 
+class uv_phi;
 class PackIsland {
  public:
   /** Aspect ratio, required for rotation. */
@@ -85,7 +86,6 @@ class PackIsland {
 
   void add_triangle(const float2 uv0, const float2 uv1, const float2 uv2);
   void add_polygon(const blender::Span<float2> uvs, MemArena *arena, Heap *heap);
-  void finalize_geometry(const UVPackIsland_Params &params, MemArena *arena, Heap *heap);
 
   void build_transformation(const float scale, const float rotation, float r_matrix[2][2]) const;
   void build_inverse_transformation(const float scale,
@@ -101,6 +101,9 @@ class PackIsland {
   float2 pivot_;
   /** Half of the diagonal of the AABB. */
   float2 half_diagonal_;
+
+  void place_(const float scale, const uv_phi phi);
+  void finalize_geometry_(const UVPackIsland_Params &params, MemArena *arena, Heap *heap);
 
  private:
   void calculate_pivot(); /* Calculate `pivot_` and `half_diagonal_` based on added triangles. */

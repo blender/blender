@@ -1874,7 +1874,7 @@ void CLIP_OT_copy_tracks(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Copy Tracks";
-  ot->description = "Copy selected tracks to clipboard";
+  ot->description = "Copy the selected tracks to the internal clipboard";
   ot->idname = "CLIP_OT_copy_tracks";
 
   /* api callbacks */
@@ -1919,7 +1919,7 @@ void CLIP_OT_paste_tracks(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Paste Tracks";
-  ot->description = "Paste tracks from clipboard";
+  ot->description = "Paste tracks from the internal clipboard";
   ot->idname = "CLIP_OT_paste_tracks";
 
   /* api callbacks */

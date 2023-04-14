@@ -100,7 +100,7 @@
 #include "ED_armature.h"
 #include "ED_curve.h"
 #include "ED_curves.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
 #include "ED_node.h"
@@ -3384,6 +3384,9 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       }
 
       Mesh *new_mesh = static_cast<Mesh *>(BKE_id_new(bmain, ID_ME, newob->id.name + 2));
+      newob->data = new_mesh;
+      newob->type = OB_MESH;
+
       if (const Mesh *mesh_eval = geometry.get_mesh_for_read()) {
         BKE_mesh_nomain_to_mesh(BKE_mesh_copy_for_eval(mesh_eval, false), new_mesh, newob);
         BKE_object_material_from_eval_data(bmain, newob, &mesh_eval->id);
@@ -3393,6 +3396,9 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         bke::AnonymousAttributePropagationInfo propagation_info;
         propagation_info.propagate_all = false;
         Mesh *mesh = bke::curve_to_wire_mesh(curves_eval->geometry.wrap(), propagation_info);
+        if (!mesh) {
+          mesh = BKE_mesh_new_nomain(0, 0, 0, 0);
+        }
         BKE_mesh_nomain_to_mesh(mesh, new_mesh, newob);
         BKE_object_material_from_eval_data(bmain, newob, &curves_eval->id);
       }
@@ -3402,9 +3408,6 @@ static int object_convert_exec(bContext *C, wmOperator *op)
                     "Object '%s' has no evaluated mesh or curves data",
                     ob->id.name + 2);
       }
-
-      newob->data = new_mesh;
-      newob->type = OB_MESH;
 
       BKE_object_free_derived_caches(newob);
       BKE_object_free_modifiers(newob, 0);

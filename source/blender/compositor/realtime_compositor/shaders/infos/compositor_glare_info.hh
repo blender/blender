@@ -104,3 +104,30 @@ GPU_SHADER_CREATE_INFO(compositor_glare_streaks_accumulate)
     .image(0, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "accumulated_streaks_img")
     .compute_source("compositor_glare_streaks_accumulate.glsl")
     .do_static_compilation(true);
+
+/* --------
+ * Fog Glow
+ * -------- */
+
+GPU_SHADER_CREATE_INFO(compositor_glare_fog_glow_downsample_shared)
+    .local_group_size(16, 16)
+    .sampler(0, ImageType::FLOAT_2D, "input_tx")
+    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
+    .compute_source("compositor_glare_fog_glow_downsample.glsl");
+
+GPU_SHADER_CREATE_INFO(compositor_glare_fog_glow_downsample_simple_average)
+    .define("SIMPLE_AVERAGE")
+    .additional_info("compositor_glare_fog_glow_downsample_shared")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(compositor_glare_fog_glow_downsample_karis_average)
+    .define("KARIS_AVERAGE")
+    .additional_info("compositor_glare_fog_glow_downsample_shared")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(compositor_glare_fog_glow_upsample)
+    .local_group_size(16, 16)
+    .sampler(0, ImageType::FLOAT_2D, "input_tx")
+    .image(0, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "output_img")
+    .compute_source("compositor_glare_fog_glow_upsample.glsl")
+    .do_static_compilation(true);

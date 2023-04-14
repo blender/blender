@@ -8,7 +8,7 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_view3d.h"
 
 #include "DNA_gpencil_legacy_types.h"

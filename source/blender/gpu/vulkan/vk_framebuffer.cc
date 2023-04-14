@@ -247,9 +247,10 @@ void VKFrameBuffer::render_pass_create()
   std::array<VkAttachmentDescription, GPU_FB_MAX_ATTACHMENT> attachment_descriptions;
   std::array<VkImageView, GPU_FB_MAX_ATTACHMENT> image_views;
   std::array<VkAttachmentReference, GPU_FB_MAX_ATTACHMENT> attachment_references;
-  /*Vector<VkAttachmentReference> color_attachments;
+#if 0
+  Vector<VkAttachmentReference> color_attachments;
   VkAttachmentReference depth_attachment = {};
-  */
+#endif
   bool has_depth_attachment = false;
   bool found_attachment = false;
   int depth_location = -1;

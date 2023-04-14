@@ -32,13 +32,21 @@ GPU_SHADER_CREATE_INFO(compositor_smaa_blending_weight_calculation)
     .compute_source("compositor_smaa_blending_weight_calculation.glsl")
     .do_static_compilation(true);
 
-GPU_SHADER_CREATE_INFO(compositor_smaa_neighborhood_blending)
+GPU_SHADER_CREATE_INFO(compositor_smaa_neighborhood_blending_shared)
     .local_group_size(16, 16)
     .define("SMAA_GLSL_3")
     .define("SMAA_RT_METRICS",
             "vec4(1.0 / vec2(textureSize(input_tx, 0)), vec2(textureSize(input_tx, 0)))")
     .sampler(0, ImageType::FLOAT_2D, "input_tx")
     .sampler(1, ImageType::FLOAT_2D, "weights_tx")
+    .compute_source("compositor_smaa_neighborhood_blending.glsl");
+
+GPU_SHADER_CREATE_INFO(compositor_smaa_neighborhood_blending_color)
+    .additional_info("compositor_smaa_neighborhood_blending_shared")
     .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .compute_source("compositor_smaa_neighborhood_blending.glsl")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(compositor_smaa_neighborhood_blending_float)
+    .additional_info("compositor_smaa_neighborhood_blending_shared")
+    .image(0, GPU_R16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
     .do_static_compilation(true);

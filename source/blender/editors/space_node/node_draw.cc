@@ -58,7 +58,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_node.h"
 #include "ED_node.hh"
 #include "ED_screen.h"
@@ -1052,7 +1052,7 @@ static void create_inspection_string_for_geometry_socket(std::stringstream &ss,
         break;
       }
       case GEO_COMPONENT_TYPE_VOLUME: {
-        ss << TIP_("Volume");
+        ss << CTX_TIP_(BLT_I18NCONTEXT_ID_ID, "Volume");
         break;
       }
       case GEO_COMPONENT_TYPE_EDIT: {

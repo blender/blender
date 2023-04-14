@@ -1573,6 +1573,27 @@ char *WM_clipboard_text_get(bool selection, int *r_len);
 char *WM_clipboard_text_get_firstline(bool selection, int *r_len);
 void WM_clipboard_text_set(const char *buf, bool selection);
 
+/**
+ * Returns true if the clipboard contains an image.
+ */
+bool WM_clipboard_image_available(void);
+
+/**
+ * Get image data from the Clipboard
+ * \param r_width: the returned image width in pixels.
+ * \param r_height: the returned image height in pixels.
+ * \return pointer uint array in RGBA byte order. Caller must free.
+ */
+struct ImBuf *WM_clipboard_image_get(void);
+
+/**
+ * Put image data to the Clipboard
+ * \param rgba: uint array in RGBA byte order.
+ * \param width: the image width in pixels.
+ * \param height: the image height in pixels.
+ */
+bool WM_clipboard_image_set(struct ImBuf *ibuf);
+
 /* progress */
 
 void WM_progress_set(struct wmWindow *win, float progress);

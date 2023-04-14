@@ -49,32 +49,37 @@ static void version_motion_tracking_legacy_camera_object(MovieClip &movieclip)
   MovieTrackingObject *active_tracking_object = BKE_tracking_object_get_active(&tracking);
   MovieTrackingObject *tracking_camera_object = BKE_tracking_object_get_camera(&tracking);
 
-  /* Sanity check.
-   * The camera tracking object is not supposed to have tracking and reconstruction read into it
-   * yet. */
-
   BLI_assert(tracking_camera_object != nullptr);
-  BLI_assert(BLI_listbase_is_empty(&tracking_camera_object->tracks));
-  BLI_assert(BLI_listbase_is_empty(&tracking_camera_object->plane_tracks));
-  BLI_assert(tracking_camera_object->reconstruction.cameras == nullptr);
 
-  /* Move storage from tracking to the actual tracking object. */
+  /* NOTE: The regular .blend file saving converts the new format to the legacy format, but the
+   * auto-save one does not do this. Likely, the regular saving clears the new storage before
+   * write, so it can be used to make a decision here.
+   *
+   * The idea is basically to not override the new storage if it exists. This is only supposed to
+   * happen for auto-save files. */
 
-  tracking_camera_object->tracks = tracking.tracks_legacy;
-  tracking_camera_object->plane_tracks = tracking.plane_tracks_legacy;
+  if (BLI_listbase_is_empty(&tracking_camera_object->tracks)) {
+    tracking_camera_object->tracks = tracking.tracks_legacy;
+    active_tracking_object->active_track = tracking.act_track_legacy;
+  }
 
-  tracking_camera_object->reconstruction = tracking.reconstruction_legacy;
-  memset(&tracking.reconstruction_legacy, 0, sizeof(tracking.reconstruction_legacy));
+  if (BLI_listbase_is_empty(&tracking_camera_object->plane_tracks)) {
+    tracking_camera_object->plane_tracks = tracking.plane_tracks_legacy;
+    active_tracking_object->active_plane_track = tracking.act_plane_track_legacy;
+  }
 
-  /* The active track in the tracking structure used to be shared across all tracking objects. */
-  active_tracking_object->active_track = tracking.act_track_legacy;
-  active_tracking_object->active_plane_track = tracking.act_plane_track_legacy;
+  if (tracking_camera_object->reconstruction.cameras == nullptr) {
+    tracking_camera_object->reconstruction = tracking.reconstruction_legacy;
+  }
 
-  /* Clear pointers in the legacy storage. */
+  /* Clear pointers in the legacy storage.
+   * Always do it, in the case something got missed in the logic above, so that the legacy storage
+   * is always ensured to be empty after load. */
   BLI_listbase_clear(&tracking.tracks_legacy);
   BLI_listbase_clear(&tracking.plane_tracks_legacy);
   tracking.act_track_legacy = nullptr;
   tracking.act_plane_track_legacy = nullptr;
+  memset(&tracking.reconstruction_legacy, 0, sizeof(tracking.reconstruction_legacy));
 }
 
 static void version_movieclips_legacy_camera_object(Main *bmain)

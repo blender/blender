@@ -381,7 +381,7 @@ static int insert_into_textbuf(Object *obedit, uintptr_t c)
     }
     ef->textbuf[ef->pos] = c;
     ef->textbufinfo[ef->pos] = cu->curinfo;
-    ef->textbufinfo[ef->pos].kern = 0;
+    ef->textbufinfo[ef->pos].kern = 0.0f;
     ef->textbufinfo[ef->pos].mat_nr = obedit->actcol;
 
     ef->pos++;
@@ -1346,7 +1346,7 @@ static int change_spacing_exec(bContext *C, wmOperator *op)
   Object *obedit = CTX_data_edit_object(C);
   Curve *cu = obedit->data;
   EditFont *ef = cu->editfont;
-  int kern, delta = RNA_int_get(op->ptr, "delta");
+  float kern, delta = RNA_float_get(op->ptr, "delta");
   int selstart, selend;
   bool changed = false;
 
@@ -1361,7 +1361,6 @@ static int change_spacing_exec(bContext *C, wmOperator *op)
 
   for (int i = selstart; i <= selend; i++) {
     kern = ef->textbufinfo[i].kern + delta;
-    CLAMP(kern, -20, 20);
 
     if (ef->textbufinfo[i].kern != kern) {
       ef->textbufinfo[i].kern = kern;
@@ -1392,15 +1391,15 @@ void FONT_OT_change_spacing(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_int(ot->srna,
-              "delta",
-              1,
-              -20,
-              20,
-              "Delta",
-              "Amount to decrease or increase character spacing with",
-              -20,
-              20);
+  RNA_def_float(ot->srna,
+                "delta",
+                1.0,
+                0.0,
+                0.0,
+                "Delta",
+                "Amount to decrease or increase character spacing with",
+                0.0,
+                0.0);
 }
 
 /** \} */

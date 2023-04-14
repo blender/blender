@@ -636,16 +636,16 @@ void BM_mesh_copy_init_customdata_from_mesh_array(BMesh *bm_dst,
         &me_src->ldata, CD_MASK_BMESH.pmask);
 
     if (i == 0) {
-      CustomData_copy(&mesh_vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
-      CustomData_copy(&mesh_edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_SET_DEFAULT, 0);
-      CustomData_copy(&mesh_pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
-      CustomData_copy(&mesh_ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_SET_DEFAULT, 0);
+      CustomData_copy_layout(&mesh_vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
+      CustomData_copy_layout(&mesh_edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_SET_DEFAULT, 0);
+      CustomData_copy_layout(&mesh_pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
+      CustomData_copy_layout(&mesh_ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_SET_DEFAULT, 0);
     }
     else {
-      CustomData_merge(&mesh_vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
-      CustomData_merge(&mesh_edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_SET_DEFAULT, 0);
-      CustomData_merge(&mesh_pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
-      CustomData_merge(&mesh_ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_SET_DEFAULT, 0);
+      CustomData_merge_layout(&mesh_vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
+      CustomData_merge_layout(&mesh_edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_SET_DEFAULT, 0);
+      CustomData_merge_layout(&mesh_pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
+      CustomData_merge_layout(&mesh_ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_SET_DEFAULT, 0);
     }
 
     MEM_SAFE_FREE(mesh_vdata.layers);
@@ -673,10 +673,10 @@ void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTem
     allocsize = &bm_mesh_allocsize_default;
   }
 
-  CustomData_copy(&bm_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
-  CustomData_copy(&bm_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_SET_DEFAULT, 0);
-  CustomData_copy(&bm_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_SET_DEFAULT, 0);
-  CustomData_copy(&bm_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
+  CustomData_copy_layout(&bm_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
+  CustomData_copy_layout(&bm_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_SET_DEFAULT, 0);
+  CustomData_copy_layout(&bm_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_SET_DEFAULT, 0);
+  CustomData_copy_layout(&bm_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
 
   CustomData *srcdatas[4] = {&bm_src->vdata, &bm_src->edata, &bm_src->ldata, &bm_src->pdata};
   CustomData *dstdatas[4] = {&bm_dst->vdata, &bm_dst->edata, &bm_dst->ldata, &bm_dst->pdata};
@@ -686,7 +686,7 @@ void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTem
     CustomData *dstdata = dstdatas[i];
 
     if (CustomData_has_layer(srcdata, CD_TOOLFLAGS)) {
-      CustomData_add_layer(dstdata, CD_TOOLFLAGS, CD_ASSIGN, 0);
+      CustomData_add_layer(dstdata, CD_TOOLFLAGS, CD_SET_DEFAULT, 0);
     }
   }
 

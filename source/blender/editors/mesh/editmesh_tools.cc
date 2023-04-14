@@ -9371,8 +9371,12 @@ enum {
 };
 
 static EnumPropertyItem normal_vector_tool_items[] = {
-    {EDBM_CLNOR_TOOLS_COPY, "COPY", 0, "Copy Normal", "Copy normal to buffer"},
-    {EDBM_CLNOR_TOOLS_PASTE, "PASTE", 0, "Paste Normal", "Paste normal from buffer"},
+    {EDBM_CLNOR_TOOLS_COPY, "COPY", 0, "Copy Normal", "Copy normal to the internal clipboard"},
+    {EDBM_CLNOR_TOOLS_PASTE,
+     "PASTE",
+     0,
+     "Paste Normal",
+     "Paste normal from the internal clipboard"},
     {EDBM_CLNOR_TOOLS_ADD, "ADD", 0, "Add Normal", "Add normal vector with selection"},
     {EDBM_CLNOR_TOOLS_MULTIPLY,
      "MULTIPLY",
@@ -9383,7 +9387,7 @@ static EnumPropertyItem normal_vector_tool_items[] = {
      "RESET",
      0,
      "Reset Normal",
-     "Reset buffer and/or normal of selected element"},
+     "Reset the internal clipboard and/or normal of selected element"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

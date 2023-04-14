@@ -204,7 +204,8 @@ GHOST_ContextEGL::GHOST_ContextEGL(const GHOST_System *const system,
       m_swap_interval(1),
       m_sharedContext(
           choose_api(api, s_gl_sharedContext, s_gles_sharedContext, s_vg_sharedContext)),
-      m_sharedCount(choose_api(api, s_gl_sharedCount, s_gles_sharedCount, s_vg_sharedCount))
+      m_sharedCount(choose_api(api, s_gl_sharedCount, s_gles_sharedCount, s_vg_sharedCount)),
+      m_surface_from_native_window(false)
 {
 }
 
@@ -454,6 +455,7 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 
   if (m_nativeWindow != 0) {
     m_surface = ::eglCreateWindowSurface(m_display, m_config, m_nativeWindow, nullptr);
+    m_surface_from_native_window = true;
   }
   else {
     static const EGLint pb_attrib_list[] = {
@@ -598,8 +600,12 @@ error:
 
 GHOST_TSuccess GHOST_ContextEGL::releaseNativeHandles()
 {
-  m_nativeWindow = 0;
   m_nativeDisplay = nullptr;
+
+  m_nativeWindow = 0;
+  if (m_surface_from_native_window) {
+    m_surface = EGL_NO_SURFACE;
+  }
 
   return GHOST_kSuccess;
 }

@@ -1269,7 +1269,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
                * it here :/ (expand element if it's the only one) */
               TreeStoreElem *tselem = BLI_mempool_calloc(space_outliner->treestore);
               tselem->type = TSE_LAYER_COLLECTION;
-              tselem->id = layer->layer_collections.first;
+              tselem->id = &((LayerCollection *)(layer->layer_collections.first))->collection->id;
               tselem->nr = tselem->used = 0;
               tselem->flag &= ~TSE_CLOSED;
             }

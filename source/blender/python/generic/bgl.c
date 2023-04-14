@@ -557,7 +557,7 @@ static PySequenceMethods Buffer_SeqMethods = {
 };
 
 static PyMappingMethods Buffer_AsMapping = {
-    /*mp_len*/ (lenfunc)Buffer_len,
+    /*mp_length*/ (lenfunc)Buffer_len,
     /*mp_subscript*/ (binaryfunc)Buffer_subscript,
     /*mp_ass_subscript*/ (objobjargproc)Buffer_ass_subscript,
 };

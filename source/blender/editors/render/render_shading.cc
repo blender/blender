@@ -1829,7 +1829,7 @@ void SCENE_OT_freestyle_lineset_copy(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Copy Line Set";
   ot->idname = "SCENE_OT_freestyle_lineset_copy";
-  ot->description = "Copy the active line set to a buffer";
+  ot->description = "Copy the active line set to the internal clipboard";
 
   /* api callbacks */
   ot->exec = freestyle_lineset_copy_exec;
@@ -1863,7 +1863,7 @@ void SCENE_OT_freestyle_lineset_paste(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Paste Line Set";
   ot->idname = "SCENE_OT_freestyle_lineset_paste";
-  ot->description = "Paste the buffer content to the active line set";
+  ot->description = "Paste the internal clipboard content to the active line set";
 
   /* api callbacks */
   ot->exec = freestyle_lineset_paste_exec;

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-11 10:34:35\n"
 "PO-Revision-Date: 2016-10-13 03:05+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese Translation Team (https://sites.google.com/site/blugjp/blender-translators)\n"
@@ -13120,10 +13120,6 @@ msgid "Library Browser"
 msgstr "ライブラリブラウザー"
 
 
-msgid "Whether we may browse blender files' content or not"
-msgstr "Blenderファイルの内容を閲覧するかどうか"
-
-
 msgid "Reverse Sorting"
 msgstr "順序を反転"
 
@@ -16634,10 +16630,6 @@ msgstr "ギズモグループの入力プロパティ"
 
 msgid "Gizmo Properties"
 msgstr "ギズモプロパティ"
-
-
-msgid "Input properties of an Gizmo"
-msgstr "ギズモの入力プロパティ"
 
 
 msgid "Modifier affecting the Grease Pencil object"
@@ -24425,24 +24417,12 @@ msgid "Resolution X"
 msgstr "解像度 X"
 
 
-msgid "Number of sample along the x axis of the volume"
-msgstr "ボリュームの X 軸のサンプル数"
-
-
 msgid "Resolution Y"
 msgstr "解像度 Y"
 
 
-msgid "Number of sample along the y axis of the volume"
-msgstr "ボリュームの Y 軸のサンプル数"
-
-
 msgid "Resolution Z"
 msgstr "解像度 Z"
-
-
-msgid "Number of sample along the z axis of the volume"
-msgstr "ボリュームの Z 軸のサンプル数"
 
 
 msgid "Influence Distance"
@@ -51916,10 +51896,6 @@ msgid "Set Axis"
 msgstr "軸を設定"
 
 
-msgid "Set direction of scene axis rotating camera (or its parent if present) and assume selected track lies on real axis, joining it with the origin"
-msgstr "原点に対応する現実の軸上に選択中のトラックがあると仮定し、カメラ(またはあればその親)を回転する、シーンの軸方向を設定します"
-
-
 msgid "Axis to use to align bundle along"
 msgstr "バンドルを揃えるのに使用する軸"
 
@@ -59444,10 +59420,6 @@ msgstr "画像を別名保存"
 
 msgid "Save the image with another name and/or settings"
 msgstr "画像を他のファイル名や設定で保存します"
-
-
-msgid "Create a new image file without modifying the current image in blender"
-msgstr "Blenderの現在の画像を変更せずに新しい画像ファイルを作成"
 
 
 msgid "Save As Render"
@@ -67637,10 +67609,6 @@ msgid "Name filter using '*', '?' and '[abc]' unix style wildcards"
 msgstr "名前のフィルターでは'*'と'?'、'[abc]'(Unix系)のワイルドカードを使用します"
 
 
-msgid "Set select on random visible objects"
-msgstr "可視オブジェクトからランダムに選択します"
-
-
 msgctxt "Operator"
 msgid "Select Same Collection"
 msgstr "同じコレクションを選択"
@@ -74725,10 +74693,6 @@ msgid "Add Scene Strip"
 msgstr "シーンストリップを追加"
 
 
-msgid "Add a strip to the sequencer using a blender scene as a source"
-msgstr "Blenderのシーンのストリップをシーケンサーに追加します"
-
-
 msgctxt "Operator"
 msgid "Add Strip with a new Scene"
 msgstr "ストリップと新規シーンを追加"
@@ -75871,10 +75835,6 @@ msgstr "行でテキストを選択"
 
 msgid "Select word under cursor"
 msgstr "カーソル下の単語を選択します"
-
-
-msgid "Set cursor selection"
-msgstr "カーソル選択を設定"
 
 
 msgctxt "Operator"
@@ -79466,10 +79426,6 @@ msgstr ""
 "無効時：Collada アセット毎にグローバル方向を設定します"
 
 
-msgid "Apply modifiers to exported mesh (non destructive))"
-msgstr "エクスポートするメッシュにモディファイアーを適用します(データ非破壊)"
-
-
 msgid "Deform Bones Only"
 msgstr "変形ボーンのみ"
 
@@ -82471,12 +82427,6 @@ msgstr "ビュー法線の減衰"
 
 msgid "View Normal Limit"
 msgstr "ビュー法線を制限"
-
-
-msgid "Maximum edge length for dynamic topology sculpting (as divisor of blender unit - higher value means smaller edge length)"
-msgstr ""
-"ダイナミックトポロジースカルプティングの辺の最大長\n"
-"（Blender単位の除数。大きい値で辺が短くなります）"
 
 
 msgid "Detail Percentage"
@@ -88103,14 +88053,6 @@ msgid "Slight"
 msgstr "少し"
 
 
-msgid "TimeCode Style"
-msgstr "タイムコードスタイル"
-
-
-msgid "Format of Time Codes displayed when not displaying timing in terms of frames"
-msgstr "フレームのタイミングが表示されていない場合に表示されるタイムコードのフォーマット"
-
-
 msgid "Minimal Info"
 msgstr "最小限の情報"
 
@@ -89656,10 +89598,6 @@ msgid "Tile Size"
 msgstr "タイルのサイズ"
 
 
-msgid "Limit the render time (excluding synchronization time).Zero disables the limit"
-msgstr "最大レンダリング時間（同期時間を除く）。０で無制限"
-
-
 msgid "Transmission Bounces"
 msgstr "伝播バウンス数"
 
@@ -90539,10 +90477,6 @@ msgid "Is Axis Aligned"
 msgstr "軸と平行"
 
 
-msgid "Is current view aligned to an axis (does not check the view is orthographic use \"is_perspective\" for that). Assignment sets the \"view_rotation\" to the closest axis aligned view"
-msgstr "現在のビューが軸と平行か（ビューが平行投影かのチェックはしませんので「is_perspective」を使用してください）。割当がビューと平行な一番近い軸に「view_rotation」をセットします"
-
-
 msgid "Is Perspective"
 msgstr "透視投影"
 
@@ -90806,10 +90740,6 @@ msgstr "シーンデータブロック用のレンダリング設定"
 
 msgid "Bias"
 msgstr "バイアス"
-
-
-msgid "Bias towards faces further away from the object (in blender units)"
-msgstr "オブジェクトから遠い面の方向のバイアス値 (blender単位)"
 
 
 msgid "Algorithm to generate the margin"
@@ -91839,10 +91769,6 @@ msgid "Blender 2.7"
 msgstr "Blender 2.7"
 
 
-msgid "Spring implementation used in blender 2.7. Damping is capped at 1.0"
-msgstr "Blender 2.7で使用していたばねの実装。減速は最大1.0です"
-
-
 msgid "Blender 2.8"
 msgstr "Blender 2.8"
 
@@ -92501,12 +92427,6 @@ msgid "4096 px"
 msgstr "4096ピクセル"
 
 
-msgid "Number of time the light is reinjected inside light grids, 0 disable indirect diffuse light"
-msgstr ""
-"ライトグリッド内に光が再投入される回数\n"
-"0 で間接ディフューズ光が無効になります"
-
-
 msgid "Filter Quality"
 msgstr "フィルターの品質"
 
@@ -92647,10 +92567,6 @@ msgstr "ポイントとエリアライトのシャドウマップのサイズ"
 
 msgid "Shadow Pool Size"
 msgstr "シャドウプールサイズ"
-
-
-msgid "Size of the shadow pool, bigger pool size allows for more shadows in the scene but might not fits into GPU memory"
-msgstr "影を溜めるサイズ。大きなプールサイズでシーン内の影を増やすことができますが、GPU メモリに収まらない可能性があります"
 
 
 msgid "16 MB"
@@ -93816,20 +93732,12 @@ msgid "Scene Sequence"
 msgstr "シーンシーケンス"
 
 
-msgid "Sequence strip to used the rendered image of a scene"
-msgstr "シーンのレンダー画像に使用するシーケンスストリップ"
-
-
 msgid "Scene that this sequence uses"
 msgstr "このシーケンスが使うシーン"
 
 
 msgid "Camera Override"
 msgstr "カメラオーバーライド"
-
-
-msgid "Override the scenes active camera"
-msgstr "シーンのアクティブカメラを置き換える"
 
 
 msgid "Input type to use for the Scene strip"
@@ -94536,10 +94444,6 @@ msgstr "重複モード"
 
 msgid "How to resolve overlap after transformation"
 msgstr "トランスフォーム後の重複を解決する方法"
-
-
-msgid "Move strips so transformed strips fits"
-msgstr "ストリップを移動し、トランスフォームしたストリップを収めます"
 
 
 msgid "Trim or split strips to resolve overlap"
@@ -97426,10 +97330,6 @@ msgid "3D Region"
 msgstr "3D領域"
 
 
-msgid "3D region in this space, in case of quad view the camera region"
-msgstr "この空間の3D領域、四分割ビューの場合はカメラ領域"
-
-
 msgid "Quad View Regions"
 msgstr "四分割ビュー領域"
 
@@ -97986,10 +97886,6 @@ msgstr "この NURBS カーブまたはサーフェスの U 方向の両端を�
 
 msgid "Endpoint V"
 msgstr "両端 V"
-
-
-msgid "Make this nurbs surface meet the endpoints in the V direction "
-msgstr "この NURBS サーフェスの V 方向の両端をぴったり合わせます"
 
 
 msgid "Smooth the normals of the surface or beveled curve"
@@ -101354,10 +101250,6 @@ msgstr "重さの値の表示に使用される単位"
 
 msgid "Unit Scale"
 msgstr "単位の倍率"
-
-
-msgid "Scale to use when converting between blender units and dimensions. When working at microscopic or astronomical scale, a small or large unit scale respectively can be used to avoid numerical precision problems"
-msgstr "Blender 単位と寸法の間の変換時に使用される倍率。極小または天文学的スケールでの作業中は精度の問題を回避するため、それぞれ小さい、または大きい単位の倍率を使用してください"
 
 
 msgid "Unit System"
@@ -106549,6 +106441,10 @@ msgid "Generating Cycles/EEVEE compatible material, but won't be visible with %s
 msgstr "Cycles/EEVEE 互換のマテリアルを生成しましたが、%s エンジンでは表示できません"
 
 
+msgid "Limit to"
+msgstr "対象"
+
+
 msgid "Mesh '%s' has polygons with more than 4 vertices, cannot compute/export tangent space for it"
 msgstr "メッシュ「%s」に5頂点以上のポリゴンがあり、そのタンジェントスペースの計算・エクスポートができません"
 
@@ -106613,6 +106509,10 @@ msgstr "最初にバリアントを作成してください"
 msgctxt "Operator"
 msgid "Add a new Variant Slot"
 msgstr "新規バリアントスロットを追加"
+
+
+msgid "Curves as NURBS"
+msgstr "カーブをNURBSに"
 
 
 msgid "untitled"
@@ -110531,11 +110431,6 @@ msgstr "減量（率）"
 
 
 msgctxt "Operator"
-msgid "Decimate (Allowed Change)"
-msgstr "減量（変更可）"
-
-
-msgctxt "Operator"
 msgid "Selection to Cursor Value"
 msgstr "選択物 → カーソル値"
 
@@ -110543,6 +110438,11 @@ msgstr "選択物 → カーソル値"
 msgctxt "Operator"
 msgid "Flatten Handles"
 msgstr "水平のハンドル"
+
+
+msgctxt "Operator"
+msgid "Decimate (Allowed Change)"
+msgstr "減量（変更可）"
 
 
 msgctxt "Operator"
@@ -110974,6 +110874,11 @@ msgstr "ビューアーにリンク"
 
 
 msgctxt "Operator"
+msgid "Exit Group"
+msgstr "グループ退出"
+
+
+msgctxt "Operator"
 msgid "Online Manual"
 msgstr "オンラインマニュアル"
 
@@ -111002,11 +110907,6 @@ msgstr "背景をズームアウト"
 
 msgid "Slot %d"
 msgstr "スロット%d"
-
-
-msgctxt "Operator"
-msgid "Exit Group"
-msgstr "グループ退出"
 
 
 msgctxt "Operator"
@@ -118332,16 +118232,8 @@ msgid "Unable to import '%s'"
 msgstr "「%s」のインポートができません"
 
 
-msgid "Limit to"
-msgstr "対象"
-
-
 msgid "Triangulated Mesh"
 msgstr "メッシュの三角面化"
-
-
-msgid "Curves as NURBS"
-msgstr "カーブをNURBSに"
 
 
 msgid "Grouping"
@@ -125030,10 +124922,6 @@ msgstr "動画トラッキング「%s」が削除できません"
 
 msgid "Region not found in space type"
 msgstr "空間タイプに領域がありません"
-
-
-msgid "%s '%s' has category '%s' "
-msgstr "%s「%s」にカテゴリ「%s」があります "
 
 
 msgid "%s parent '%s' for '%s' not found"

@@ -9,8 +9,6 @@ from bpy.types import (
 from bpy.props import (
     BoolProperty,
     CollectionProperty,
-    EnumProperty,
-    IntProperty,
     StringProperty,
 )
 

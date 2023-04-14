@@ -34,7 +34,7 @@
 #include "BKE_paint.h"
 #include "BKE_volume.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_object.h"
 #include "ED_uvedit.h"
 
@@ -280,12 +280,8 @@ const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
    "Output image in uncompressed Targa format"},
 
 #if 0 /* UNUSED (so far) */
-#  ifdef WITH_DDS
-#    define R_IMF_ENUM_DDS \
-      {R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
-#  else
-#    define R_IMF_ENUM_DDS
-#  endif
+#  define R_IMF_ENUM_DDS \
+    {R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
 #endif
 
 #ifdef WITH_OPENJPEG
@@ -327,23 +323,15 @@ const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
 #  define R_IMF_ENUM_EXR
 #endif
 
-#ifdef WITH_HDR
-#  define R_IMF_ENUM_HDR \
-    {R_IMF_IMTYPE_RADHDR, \
-     "HDR", \
-     ICON_FILE_IMAGE, \
-     "Radiance HDR", \
-     "Output image in Radiance HDR format"},
-#else
-#  define R_IMF_ENUM_HDR
-#endif
+#define R_IMF_ENUM_HDR \
+  {R_IMF_IMTYPE_RADHDR, \
+   "HDR", \
+   ICON_FILE_IMAGE, \
+   "Radiance HDR", \
+   "Output image in Radiance HDR format"},
 
-#ifdef WITH_TIFF
-#  define R_IMF_ENUM_TIFF \
-    {R_IMF_IMTYPE_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
-#else
-#  define R_IMF_ENUM_TIFF
-#endif
+#define R_IMF_ENUM_TIFF \
+  {R_IMF_IMTYPE_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
 
 #ifdef WITH_WEBP
 #  define R_IMF_ENUM_WEBP \
@@ -5758,7 +5746,6 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
   };
 #  endif
 
-#  ifdef WITH_TIFF
   static const EnumPropertyItem tiff_codec_items[] = {
       {R_IMF_TIFF_CODEC_NONE, "NONE", 0, "None", ""},
       {R_IMF_TIFF_CODEC_DEFLATE, "DEFLATE", 0, "Deflate", ""},
@@ -5766,7 +5753,6 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
       {R_IMF_TIFF_CODEC_PACKBITS, "PACKBITS", 0, "Pack Bits", ""},
       {0, NULL, 0, NULL, NULL},
   };
-#  endif
 
   static const EnumPropertyItem color_management_items[] = {
       {R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE, "FOLLOW_SCENE", 0, "Follow Scene", ""},
@@ -5883,14 +5869,12 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 #  endif
 
-#  ifdef WITH_TIFF
   /* TIFF */
   prop = RNA_def_property(srna, "tiff_codec", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "tiff_codec");
   RNA_def_property_enum_items(prop, tiff_codec_items);
   RNA_def_property_ui_text(prop, "Compression", "Compression mode for TIFF");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-#  endif
 
   /* Cineon and DPX */
 

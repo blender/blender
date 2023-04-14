@@ -28,7 +28,7 @@ def rna_backup_gen(data, include_props=None, exclude_props=None, root=()):
     # only writable properties...
     for p in data.bl_rna.properties:
         pid = p.identifier
-        if pid == "rna_type" or pid == "original":
+        if pid in {"rna_type", "original"}:
             continue
         path = root + (pid,)
         if include_props is not None and path not in include_props:

@@ -107,6 +107,9 @@ typedef struct CurvesGeometry {
    * Every curve offset must be at least one larger than the previous. In other words, every curve
    * must have at least one point. The first value is 0 and the last value is #point_num.
    *
+   * This array is shared based on the bke::MeshRuntime::poly_offsets_sharing_info.
+   * Avoid accessing directly when possible.
+   *
    * \note This is *not* stored as an attribute because its size is one larger than #curve_num.
    */
   int *curve_offsets;

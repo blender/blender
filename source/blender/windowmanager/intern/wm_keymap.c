@@ -1099,7 +1099,8 @@ const char *WM_key_event_string(const short type, const bool compact)
         return IFACE_("OS");
       } break;
       case EVT_TABKEY:
-        return key_event_glyph_or_text(font_id, IFACE_("Tab"), "\xe2\xad\xbe");
+        return key_event_glyph_or_text(
+            font_id, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Tab"), "\xe2\xad\xbe");
       case EVT_BACKSPACEKEY:
         return key_event_glyph_or_text(font_id, IFACE_("Bksp"), "\xe2\x8c\xab");
       case EVT_ESCKEY:

@@ -741,12 +741,16 @@ void ANIM_frame_channel_y_extents(bContext *C, bAnimContext *ac)
 
   ListBase anim_data = {NULL, NULL};
   const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
-                      ANIMFILTER_FCURVESONLY);
+                      ANIMFILTER_FCURVESONLY | ANIMFILTER_CURVE_VISIBLE);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   rctf bounds = {.xmin = FLT_MAX, .xmax = -FLT_MAX, .ymin = FLT_MAX, .ymax = -FLT_MAX};
   const bool include_handles = false;
-  const float frame_range[2] = {window_region->v2d.cur.xmin, window_region->v2d.cur.xmax};
+  float frame_range[2] = {window_region->v2d.cur.xmin, window_region->v2d.cur.xmax};
+  if (ac->scene->r.flag & SCER_PRV_RANGE) {
+    frame_range[0] = ac->scene->r.psfra;
+    frame_range[1] = ac->scene->r.pefra;
+  }
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     rctf channel_bounds;

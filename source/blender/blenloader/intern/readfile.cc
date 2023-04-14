@@ -1981,16 +1981,7 @@ static void direct_link_id_common(
     /* When actually reading a file, we do want to reset/re-generate session UUIDS.
      * In undo case, we want to re-use existing ones. */
     id->session_uuid = MAIN_ID_SESSION_UUID_UNSET;
-
-    /* Runtime IDs should never be written in .blend files (except memfiles from undo). */
-    BLI_assert((id->tag & LIB_TAG_RUNTIME) == 0);
   }
-
-  /* No-main and other types of special IDs should never be written in .blend files. */
-  /* NOTE: `NO_MAIN` is commented for now as some code paths may still generate embedded IDs with
-   * this tag, see #103389. Related to #88555. */
-  BLI_assert(
-      (id->tag & (/*LIB_TAG_NO_MAIN |*/ LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) == 0);
 
   if ((tag & LIB_TAG_TEMP_MAIN) == 0) {
     BKE_lib_libblock_session_uuid_ensure(id);
@@ -2237,37 +2228,11 @@ static void *restore_pointer_by_name(IDNameLib_Map *id_map, ID *id, ePointerUser
 #endif
 }
 
-static void lib_link_seq_clipboard_pt_restore(ID *id, IDNameLib_Map *id_map)
-{
-  if (id) {
-    /* clipboard must ensure this */
-    BLI_assert(id->newid != nullptr);
-    id->newid = static_cast<ID *>(restore_pointer_by_name(id_map, id->newid, USER_REAL));
-  }
-}
-static bool lib_link_seq_clipboard_cb(Sequence *seq, void *arg_pt)
-{
-  IDNameLib_Map *id_map = static_cast<IDNameLib_Map *>(arg_pt);
-
-  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->scene), id_map);
-  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->scene_camera), id_map);
-  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->clip), id_map);
-  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->mask), id_map);
-  lib_link_seq_clipboard_pt_restore(reinterpret_cast<ID *>(seq->sound), id_map);
-  return true;
-}
-
-static void lib_link_clipboard_restore(IDNameLib_Map *id_map)
-{
-  /* update IDs stored in sequencer clipboard */
-  SEQ_for_each_callback(&seqbase_clipboard, lib_link_seq_clipboard_cb, id_map);
-}
-
 static int lib_link_main_data_restore_cb(LibraryIDLinkCallbackData *cb_data)
 {
   const int cb_flag = cb_data->cb_flag;
   ID **id_pointer = cb_data->id_pointer;
-  if (cb_flag & IDWALK_CB_EMBEDDED || *id_pointer == nullptr) {
+  if (cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING) || *id_pointer == nullptr) {
     return IDWALK_RET_NOP;
   }
 
@@ -2673,9 +2638,6 @@ void blo_lib_link_restore(Main *oldmain,
    * but since we are remapping final ones already set above,
    * that is just some minor harmless double-processing. */
   lib_link_main_data_restore(id_map, newmain);
-
-  /* update IDs stored in all possible clipboards */
-  lib_link_clipboard_restore(id_map);
 
   BKE_main_idmap_destroy(id_map);
 }
@@ -3700,6 +3662,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
   BLO_read_list(reader, &user->user_menus);
   BLO_read_list(reader, &user->addons);
   BLO_read_list(reader, &user->autoexec_paths);
+  BLO_read_list(reader, &user->script_directories);
   BLO_read_list(reader, &user->asset_libraries);
 
   LISTBASE_FOREACH (wmKeyMap *, keymap, &user->user_keymaps) {

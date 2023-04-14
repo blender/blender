@@ -73,7 +73,7 @@ inline void gather(const VArray<T> &src,
 {
   BLI_assert(indices.size() == dst.size());
   threading::parallel_for(indices.index_range(), grain_size, [&](const IndexRange range) {
-    src.materialize_compressed_to_uninitialized(indices.slice(range), dst.slice(range).data());
+    src.materialize_compressed_to_uninitialized(indices.slice(range), dst.slice(range));
   });
 }
 

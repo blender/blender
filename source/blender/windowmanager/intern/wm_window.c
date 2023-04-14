@@ -60,6 +60,9 @@
 #include "ED_scene.h"
 #include "ED_screen.h"
 
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 
@@ -2060,6 +2063,45 @@ void WM_clipboard_text_set(const char *buf, bool selection)
     GHOST_putClipboard(buf, selection);
 #endif
   }
+}
+
+bool WM_clipboard_image_available(void)
+{
+  return (bool)GHOST_hasClipboardImage();
+}
+
+ImBuf *WM_clipboard_image_get(void)
+{
+  int width, height;
+
+  uint *rgba = GHOST_getClipboardImage(&width, &height);
+  if (!rgba) {
+    return NULL;
+  }
+
+  ImBuf *ibuf = IMB_allocFromBuffer(rgba, NULL, width, height, 4);
+  free(rgba);
+
+  return ibuf;
+}
+
+bool WM_clipboard_image_set(ImBuf *ibuf)
+{
+  bool free_byte_buffer = false;
+  if (ibuf->rect == NULL) {
+    /* Add a byte buffer if it does not have one. */
+    IMB_rect_from_float(ibuf);
+    free_byte_buffer = true;
+  }
+
+  bool success = (bool)GHOST_putClipboardImage(ibuf->rect, ibuf->x, ibuf->y);
+
+  if (free_byte_buffer) {
+    /* Remove the byte buffer if we added it. */
+    imb_freerectImBuf(ibuf);
+  }
+
+  return success;
 }
 
 /** \} */

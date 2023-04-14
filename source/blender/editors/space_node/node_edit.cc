@@ -2431,9 +2431,9 @@ static const EnumPropertyItem *socket_change_subtype_itemf(bContext *C,
     return DummyRNA_NULL_items;
   }
 
-  EnumPropertyItem *items = NULL;
+  EnumPropertyItem *items = nullptr;
   int items_count = 0;
-  for (const EnumPropertyItem *item = rna_enum_property_subtype_items; item->name != NULL;
+  for (const EnumPropertyItem *item = rna_enum_property_subtype_items; item->name != nullptr;
        item++) {
     if (subtypes.contains(item->value)) {
       RNA_enum_item_add(&items, &items_count, item);

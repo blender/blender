@@ -12,6 +12,8 @@
 #include "util/types.h"
 #include "util/vector.h"
 
+#include <variant>
+
 CCL_NAMESPACE_BEGIN
 
 /* Orientation Bounds
@@ -102,26 +104,61 @@ struct LightTreeMeasure {
     float area_measure = area == 0 ? len(bbox.size()) : area;
     return energy * area_measure * bcone.calculate_measure();
   }
+
+  __forceinline void reset()
+  {
+    *this = {};
+  }
+
+  bool transform(const Transform &tfm)
+  {
+    float scale_squared;
+    if (transform_uniform_scale(tfm, scale_squared)) {
+      bbox = bbox.transformed(&tfm);
+      bcone.axis = transform_direction(&tfm, bcone.axis) * inversesqrtf(scale_squared);
+      energy *= scale_squared;
+      return true;
+    }
+    return false;
+  }
 };
 
 LightTreeMeasure operator+(const LightTreeMeasure &a, const LightTreeMeasure &b);
 
+struct LightTreeNode;
+
 /* Light Tree Emitter
- * Struct that indexes into the scene's triangle and light arrays. */
+ * An emitter is a built-in light, an emissive mesh, or an emissive triangle. */
 struct LightTreeEmitter {
-  /* `prim_id >= 0` is an index into an object's local triangle index,
-   * otherwise `-prim_id-1`(`~prim`) is an index into device lights array. */
-  int prim_id;
+  /* If the emitter is a mesh, point to the root node of its subtree. */
+  unique_ptr<LightTreeNode> root;
+
+  union {
+    int light_id; /* Index into device lights array. */
+    int prim_id;  /* Index into an object's local triangle index. */
+  };
+
   int object_id;
   float3 centroid;
 
   LightTreeMeasure measure;
 
-  LightTreeEmitter(Scene *scene, int prim_id, int object_id);
+  LightTreeEmitter(Object *object, int object_id); /* Mesh emitter. */
+  LightTreeEmitter(Scene *scene, int prim_id, int object_id, bool with_transformation = false);
+
+  __forceinline bool is_mesh() const
+  {
+    return root != nullptr;
+  };
 
   __forceinline bool is_triangle() const
   {
-    return prim_id >= 0;
+    return !is_mesh() && prim_id >= 0;
+  };
+
+  __forceinline bool is_light() const
+  {
+    return !is_mesh() && light_id < 0;
   };
 };
 
@@ -152,32 +189,115 @@ LightTreeBucket operator+(const LightTreeBucket &a, const LightTreeBucket &b);
 struct LightTreeNode {
   LightTreeMeasure measure;
   uint bit_trail;
-  int num_emitters = -1; /* The number of emitters a leaf node stores. A negative number indicates
-                            it is an inner node. */
-  int first_emitter_index;               /* Leaf nodes contain an index to first emitter. */
-  unique_ptr<LightTreeNode> children[2]; /* Inner node has two children. */
+  int object_id;
 
-  LightTreeNode() = default;
+  /* A bitmask of `LightTreeNodeType`, as in the building process an instance node can also be a
+   * leaf or an inner node. */
+  int type;
+
+  struct Leaf {
+    /* The number of emitters a leaf node stores. */
+    int num_emitters = -1;
+    /* Index to first emitter. */
+    int first_emitter_index = -1;
+  };
+
+  struct Inner {
+    /* Inner node has two children. */
+    unique_ptr<LightTreeNode> children[2];
+  };
+
+  struct Instance {
+    LightTreeNode *reference = nullptr;
+  };
+
+  std::variant<Leaf, Inner, Instance> variant_type;
 
   LightTreeNode(const LightTreeMeasure &measure, const uint &bit_trial)
-      : measure(measure), bit_trail(bit_trial)
+      : measure(measure), bit_trail(bit_trial), variant_type(Inner())
   {
+    type = LIGHT_TREE_INNER;
   }
+
+  ~LightTreeNode() = default;
 
   __forceinline void add(const LightTreeEmitter &emitter)
   {
     measure.add(emitter.measure);
   }
 
+  __forceinline Leaf &get_leaf()
+  {
+    return std::get<Leaf>(variant_type);
+  }
+
+  __forceinline Inner &get_inner()
+  {
+    return std::get<Inner>(variant_type);
+  }
+
+  __forceinline Instance &get_instance()
+  {
+    return std::get<Instance>(variant_type);
+  }
+
   void make_leaf(const int &first_emitter_index, const int &num_emitters)
   {
-    this->first_emitter_index = first_emitter_index;
-    this->num_emitters = num_emitters;
+    variant_type = Leaf();
+    Leaf &leaf = get_leaf();
+
+    leaf.first_emitter_index = first_emitter_index;
+    leaf.num_emitters = num_emitters;
+    type = LIGHT_TREE_LEAF;
+  }
+
+  void make_distant(const int &first_emitter_index, const int &num_emitters)
+  {
+    variant_type = Leaf();
+    Leaf &leaf = get_leaf();
+
+    leaf.first_emitter_index = first_emitter_index;
+    leaf.num_emitters = num_emitters;
+    type = LIGHT_TREE_DISTANT;
+  }
+
+  void make_instance(LightTreeNode *reference, const int &object_id)
+  {
+    variant_type = Instance();
+    Instance &instance = get_instance();
+
+    instance.reference = reference;
+    this->object_id = object_id;
+    type = LIGHT_TREE_INSTANCE;
+  }
+
+  LightTreeNode *get_reference()
+  {
+    assert(is_instance());
+    if (type == LIGHT_TREE_INSTANCE) {
+      return get_instance().reference;
+    }
+    return this;
+  }
+
+  __forceinline bool is_instance() const
+  {
+    return type & LIGHT_TREE_INSTANCE;
   }
 
   __forceinline bool is_leaf() const
   {
-    return num_emitters >= 0;
+    return type & LIGHT_TREE_LEAF;
+  }
+
+  __forceinline bool is_inner() const
+  {
+    return type & LIGHT_TREE_INNER;
+  }
+
+  __forceinline bool is_distant() const
+  {
+    return type == LIGHT_TREE_DISTANT;
   }
 };
 
@@ -188,8 +308,14 @@ struct LightTreeNode {
 class LightTree {
   unique_ptr<LightTreeNode> root_;
 
+  /* Local lights, distant lights and mesh lights are added to separate vectors for light tree
+   * construction. They are all considered as `emitters_`. */
   vector<LightTreeEmitter> emitters_;
+  vector<LightTreeEmitter> local_lights_;
   vector<LightTreeEmitter> distant_lights_;
+  vector<LightTreeEmitter> mesh_lights_;
+
+  std::unordered_map<Mesh *, int> offset_map_;
 
   Progress &progress_;
 
@@ -199,8 +325,9 @@ class LightTree {
   std::atomic<int> num_nodes = 0;
   size_t num_triangles = 0;
 
-  /* Left or right child of an inner node. */
+  /* An inner node itself or its left and right child. */
   enum Child {
+    self = -1,
     left = 0,
     right = 1,
   };
@@ -234,7 +361,7 @@ class LightTree {
   enum { MIN_EMITTERS_PER_THREAD = 4096 };
 
   void recursive_build(Child child,
-                       LightTreeNode *parent,
+                       LightTreeNode *inner,
                        int start,
                        int end,
                        LightTreeEmitter *emitters,
@@ -247,6 +374,12 @@ class LightTree {
                     const int end,
                     LightTreeMeasure &measure,
                     int &split_dim);
+
+  /* Check whether the light tree can use this triangle as light-emissive. */
+  bool triangle_usable_as_light(Mesh *mesh, int prim_id);
+
+  /* Add all the emissive triangles of a mesh to the light tree. */
+  void add_mesh(Scene *scene, Mesh *mesh, int object_id);
 };
 
 CCL_NAMESPACE_END

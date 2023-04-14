@@ -802,7 +802,6 @@ class CustomDataAttributes {
 
   std::optional<blender::GMutableSpan> get_for_write(const AttributeIDRef &attribute_id);
   bool create(const AttributeIDRef &attribute_id, eCustomDataType data_type);
-  bool create_by_move(const AttributeIDRef &attribute_id, eCustomDataType data_type, void *buffer);
   bool remove(const AttributeIDRef &attribute_id);
 
   bool foreach_attribute(const AttributeForeachCallback callback, eAttrDomain domain) const;

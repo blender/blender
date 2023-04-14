@@ -184,6 +184,8 @@ class IMAGE_MT_image(Menu):
     bl_label = "Image"
 
     def draw(self, context):
+        import sys
+
         layout = self.layout
 
         sima = context.space_data
@@ -206,6 +208,11 @@ class IMAGE_MT_image(Menu):
             layout.operator("image.external_edit", text="Edit Externally")
 
         layout.separator()
+
+        if sys.platform[:3] == "win":
+            layout.operator("image.clipboard_copy", text="Copy")
+            layout.operator("image.clipboard_paste", text="Paste")
+            layout.separator()
 
         if ima:
             layout.operator("image.save", text="Save", icon='FILE_TICK')
