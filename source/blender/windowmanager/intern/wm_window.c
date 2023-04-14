@@ -2072,7 +2072,7 @@ bool WM_clipboard_image_available(void)
 
 ImBuf *WM_clipboard_image_get(void)
 {
-  uint width, height;
+  int width, height;
 
   uint *rgba = GHOST_getClipboardImage(&width, &height);
   if (!rgba) {
