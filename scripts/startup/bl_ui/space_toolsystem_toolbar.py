@@ -32,20 +32,43 @@ def generate_from_enum_ex(
         attr,
         cursor='DEFAULT',
         tooldef_keywords=None,
+        icon_map=None,
+        use_separators=True,
 ):
     if tooldef_keywords is None:
         tooldef_keywords = {}
 
     tool_defs = []
-    for enum in type.bl_rna.properties[attr].enum_items_static:
-        name = enum.name
-        idname = enum.identifier
+
+    enum_items = getattr(
+        type.bl_rna.properties[attr],
+        "enum_items_static_ui" if use_separators else
+        "enum_items_static",
+    )
+
+    for enum in enum_items:
+        if use_separators:
+            if not (name := enum.name):
+                # Empty string for a UI Separator.
+                tool_defs.append(None)
+                continue
+            if not (idname := enum.identifier):
+                # This is a heading, there is no purpose in showing headings here.
+                continue
+        else:
+            name = enum.name
+            idname = enum.identifier
+
+        icon = icon_prefix + idname.lower()
+        if icon_map is not None:
+            icon = icon_map.get(icon, icon)
+
         tool_defs.append(
             ToolDef.from_dict(
                 dict(
                     idname=idname_prefix + name,
                     label=name,
-                    icon=icon_prefix + idname.lower(),
+                    icon=icon,
                     cursor=cursor,
                     data_block=idname,
                     **tooldef_keywords,
@@ -1316,6 +1339,9 @@ class _defs_sculpt:
             icon_prefix="brush.sculpt.",
             type=bpy.types.Brush,
             attr="sculpt_tool",
+            # TODO(@ideasman42): we may want to enable this,
+            # it causes awkward grouping with 2x column button layout.
+            use_separators=False,
         )
 
     @ToolDef.from_fn
