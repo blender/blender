@@ -12,7 +12,7 @@ set(INC
   ../depsgraph
   ../draw
   ../functions
-  ../gpencil_modifiers
+  ../gpencil_modifiers_legacy
   ../gpu
   ../ikplugin
   ../imbuf
@@ -525,7 +525,7 @@ set(LIB
   bf_depsgraph
   bf_draw
   bf_functions
-  bf_gpencil_modifiers
+  bf_gpencil_modifiers_legacy
   bf_gpu
   bf_ikplugin
   bf_imbuf

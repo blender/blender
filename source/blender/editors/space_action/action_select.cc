@@ -35,7 +35,7 @@
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_keyframes_edit.h"
 #include "ED_keyframes_keylist.h"
 #include "ED_markers.h"

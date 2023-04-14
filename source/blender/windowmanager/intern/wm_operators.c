@@ -73,7 +73,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "ED_fileselect.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"
 #include "ED_undo.h"

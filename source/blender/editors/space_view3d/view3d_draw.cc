@@ -48,7 +48,7 @@
 #include "DRW_engine.h"
 #include "DRW_select_buffer.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_info.h"
 #include "ED_keyframing.h"
 #include "ED_screen.h"

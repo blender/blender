@@ -34,7 +34,7 @@
 #include "BKE_paint.h"
 #include "BKE_volume.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_object.h"
 #include "ED_uvedit.h"
 

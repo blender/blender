@@ -48,7 +48,7 @@
 
 #include "BLF_api.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_image.h"
 #include "ED_mask.h"
 #include "ED_render.h"
