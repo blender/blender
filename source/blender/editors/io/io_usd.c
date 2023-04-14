@@ -326,7 +326,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   "overwrite_textures",
                   false,
                   "Overwrite Textures",
-                  "Allow overwriting existing texture files when exporting textures");
+                  "Overwrite existing files when exporting textures");
 
   RNA_def_boolean(ot->srna,
                   "relative_paths",
@@ -612,7 +612,7 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "read_mesh_uvs", true, "UV Coordinates", "Read mesh UV coordinates");
 
   RNA_def_boolean(
-      ot->srna, "read_mesh_colors", false, "Color Attributes", "Read mesh color attributes");
+      ot->srna, "read_mesh_colors", true, "Color Attributes", "Read mesh color attributes");
 
   RNA_def_string(ot->srna,
                  "prim_path_mask",
