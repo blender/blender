@@ -1892,8 +1892,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     {sizeof(float), "MFloatProperty", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 45: CD_PROP_INT8 */
     {sizeof(int8_t), "MInt8Property", 1, N_("Int8"), nullptr, nullptr, nullptr, nullptr, nullptr},
-    /* 46: CD_HAIRMAPPING */ /* UNUSED */
-    {-1, "", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
+    /* 46: CD_PROP_INT32_2D */
+    {sizeof(vec2i), "vec2i", 1, N_("Int 2D"), nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 47: CD_PROP_COLOR */
     {sizeof(MPropCol),
      "MPropCol",
@@ -5360,6 +5360,8 @@ const blender::CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
       return &CPPType::get<float3>();
     case CD_PROP_INT32:
       return &CPPType::get<int>();
+    case CD_PROP_INT32_2D:
+      return &CPPType::get<int2>();
     case CD_PROP_COLOR:
       return &CPPType::get<ColorGeometry4f>();
     case CD_PROP_BOOL:
@@ -5388,6 +5390,9 @@ eCustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
   }
   if (type.is<int>()) {
     return CD_PROP_INT32;
+  }
+  if (type.is<int2>()) {
+    return CD_PROP_INT32_2D;
   }
   if (type.is<ColorGeometry4f>()) {
     return CD_PROP_COLOR;

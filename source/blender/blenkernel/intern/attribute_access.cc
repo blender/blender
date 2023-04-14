@@ -92,17 +92,19 @@ static int attribute_data_type_complexity(const eCustomDataType data_type)
       return 2;
     case CD_PROP_FLOAT:
       return 3;
-    case CD_PROP_FLOAT2:
+    case CD_PROP_INT32_2D:
       return 4;
-    case CD_PROP_FLOAT3:
+    case CD_PROP_FLOAT2:
       return 5;
-    case CD_PROP_BYTE_COLOR:
+    case CD_PROP_FLOAT3:
       return 6;
-    case CD_PROP_COLOR:
+    case CD_PROP_BYTE_COLOR:
       return 7;
+    case CD_PROP_COLOR:
+      return 8;
 #if 0 /* These attribute types are not supported yet. */
     case CD_PROP_STRING:
-      return 6;
+      return 9;
 #endif
     default:
       /* Only accept "generic" custom data types used by the attribute system. */

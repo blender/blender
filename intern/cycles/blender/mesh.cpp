@@ -528,6 +528,19 @@ static void attr_create_generic(Scene *scene,
         });
         break;
       }
+      case BL::Attribute::data_type_INT32_2D: {
+        BL::Int2Attribute b_int2_attribute{b_attribute};
+        if (b_int2_attribute.data.length() == 0) {
+          continue;
+        }
+        const int2 *src = static_cast<const int2 *>(b_int2_attribute.data[0].ptr.data);
+        Attribute *attr = attributes.add(name, TypeFloat2, element);
+        float2 *data = attr->data_float2();
+        fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
+          return make_float2(float(src[i][0]), float(src[i][1]));
+        });
+        break;
+      }
       default:
         /* Not supported. */
         break;

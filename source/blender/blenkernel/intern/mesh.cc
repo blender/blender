@@ -616,6 +616,16 @@ static int customdata_compare(
           BLI_edgehash_free(eh, nullptr);
           break;
         }
+        case CD_PROP_INT32_2D: {
+          const blender::int2 *l1_data = static_cast<const blender::int2 *>(l1->data);
+          const blender::int2 *l2_data = static_cast<const blender::int2 *>(l2->data);
+          for (int i = 0; i < total_length; i++) {
+            if (l1_data[i] != l2_data[i]) {
+              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
+            }
+          }
+          break;
+        }
         case CD_PROP_BYTE_COLOR: {
           MLoopCol *lp1 = (MLoopCol *)l1->data;
           MLoopCol *lp2 = (MLoopCol *)l2->data;
