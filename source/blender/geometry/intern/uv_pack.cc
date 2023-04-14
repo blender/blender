@@ -1185,12 +1185,12 @@ void PackIsland::build_transformation(const float scale,
   r_matrix[0][1] = -sin_angle * scale * aspect_y;
   r_matrix[1][0] = sin_angle * scale / aspect_y;
   r_matrix[1][1] = cos_angle * scale;
-  /*
+#if 0
   if (reflect) {
     r_matrix[0][0] *= -1.0f;
     r_matrix[0][1] *= -1.0f;
   }
-  */
+#endif
 }
 
 void PackIsland::build_inverse_transformation(const float scale,
@@ -1204,12 +1204,12 @@ void PackIsland::build_inverse_transformation(const float scale,
   r_matrix[0][1] = sin_angle / scale * aspect_y;
   r_matrix[1][0] = -sin_angle / scale / aspect_y;
   r_matrix[1][1] = cos_angle / scale;
-  /*
+#if 0
   if (reflect) {
     r_matrix[0][0] *= -1.0f;
     r_matrix[1][0] *= -1.0f;
   }
-  */
+#endif
 }
 
 }  // namespace blender::geometry

@@ -71,6 +71,7 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_util.h"
+#include "ED_undo.h"
 #include "ED_util_imbuf.h"
 #include "ED_uvedit.h"
 
@@ -2827,6 +2828,125 @@ void IMAGE_OT_flip(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "use_flip_y", false, "Vertical", "Flip the image vertically");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clipboard Copy Operator
+ * \{ */
+
+static int image_clipboard_copy_exec(bContext *C, wmOperator *op)
+{
+  Image *ima = image_from_context(C);
+  if (ima == NULL) {
+    return false;
+  }
+
+  if (G.is_rendering && ima->source == IMA_SRC_VIEWER) {
+    BKE_report(op->reports, RPT_ERROR, "Images cannot be copied while rendering");
+    return false;
+  }
+
+  ImageUser *iuser = image_user_from_context(C);
+  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_WAIT);
+
+  void *lock;
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
+  if (ibuf == NULL) {
+    BKE_image_release_ibuf(ima, ibuf, lock);
+    WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+    return OPERATOR_CANCELLED;
+  }
+
+  WM_clipboard_image_set(ibuf);
+  BKE_image_release_ibuf(ima, ibuf, lock);
+  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool image_clipboard_copy_poll(bContext *C)
+{
+  if (!image_from_context_has_data_poll(C)) {
+    CTX_wm_operator_poll_msg_set(C, "No images available");
+    return false;
+  }
+
+  return true;
+}
+
+void IMAGE_OT_clipboard_copy(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Copy Image";
+  ot->idname = "IMAGE_OT_clipboard_copy";
+  ot->description = "Copy the image to the clipboard";
+
+  /* api callbacks */
+  ot->exec = image_clipboard_copy_exec;
+  ot->poll = image_clipboard_copy_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clipboard Paste Operator
+ * \{ */
+
+static int image_clipboard_paste_exec(bContext *C, wmOperator *op)
+{
+
+  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_WAIT);
+
+  ImBuf *ibuf = WM_clipboard_image_get();
+  if (!ibuf) {
+    WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+    return OPERATOR_CANCELLED;
+  }
+
+  ED_undo_push_op(C, op);
+
+  Main *bmain = CTX_data_main(C);
+  SpaceImage *sima = CTX_wm_space_image(C);
+  Image *ima = BKE_image_add_from_imbuf(bmain, ibuf, "Clipboard");
+  IMB_freeImBuf(ibuf);
+
+  ED_space_image_set(bmain, sima, ima, false);
+  BKE_image_signal(bmain, ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_USER_NEW_IMAGE);
+  WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
+
+  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool image_clipboard_paste_poll(bContext *C)
+{
+  if (!WM_clipboard_image_available()) {
+    CTX_wm_operator_poll_msg_set(C, "No compatible images are on the clipboard");
+    return false;
+  }
+
+  return true;
+}
+
+void IMAGE_OT_clipboard_paste(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Paste Image";
+  ot->idname = "IMAGE_OT_clipboard_paste";
+  ot->description = "Paste new image from the clipboard";
+
+  /* api callbacks */
+  ot->exec = image_clipboard_paste_exec;
+  ot->poll = image_clipboard_paste_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER;

@@ -25,6 +25,9 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_windowmanager_types.h"
+
+#include "WM_api.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -408,102 +411,191 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
   }
 }
 
-void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
+void USDMeshReader::read_color_data_all_primvars(Mesh *mesh, const double motionSampleTime)
 {
   if (!(mesh && mesh_prim_ && mesh->totloop > 0)) {
     return;
   }
 
-  /* Early out if we read the display color before and if this attribute isn't animated. */
-  if (primvar_varying_map_.find(usdtokens::displayColor) != primvar_varying_map_.end() &&
-      !primvar_varying_map_.at(usdtokens::displayColor)) {
+  pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(mesh_prim_);
+  std::vector<pxr::UsdGeomPrimvar> primvars = pv_api.GetPrimvarsWithValues();
+
+  pxr::TfToken active_color_name;
+
+  /* Convert color primvars to custom layer data. */
+  for (pxr::UsdGeomPrimvar &pv : primvars) {
+    if (!pv.HasValue()) {
+      continue;
+    }
+
+    pxr::SdfValueTypeName type = pv.GetTypeName();
+
+    if (!ELEM(type,
+              pxr::SdfValueTypeNames->Color3hArray,
+              pxr::SdfValueTypeNames->Color3fArray,
+              pxr::SdfValueTypeNames->Color3dArray)) {
+      continue;
+    }
+
+    pxr::TfToken name = pv.GetPrimvarName();
+
+    /* Set the active color name to 'displayColor', if a color primvar
+     * with this name exists.  Otherwise, use the name of the first
+     * color primvar we find for the active color. */
+    if (active_color_name.IsEmpty() || name == usdtokens::displayColor) {
+      active_color_name = name;
+    }
+
+    /* Skip if we read this primvar before and it isn't animated. */
+    const std::map<const pxr::TfToken, bool>::const_iterator is_animated_iter =
+        primvar_varying_map_.find(name);
+    if (is_animated_iter != primvar_varying_map_.end() && !is_animated_iter->second) {
+      continue;
+    }
+
+    read_color_data_primvar(mesh, pv, motionSampleTime);
+  }
+
+  if (!active_color_name.IsEmpty()) {
+    BKE_id_attributes_default_color_set(&mesh->id, active_color_name.GetText());
+    BKE_id_attributes_active_color_set(&mesh->id, active_color_name.GetText());
+  }
+}
+
+void USDMeshReader::read_color_data_primvar(Mesh *mesh,
+                                            const pxr::UsdGeomPrimvar &color_primvar,
+                                            const double motionSampleTime)
+{
+  if (!(mesh && color_primvar && color_primvar.HasValue())) {
     return;
   }
 
-  pxr::UsdGeomPrimvar color_primvar = mesh_prim_.GetDisplayColorPrimvar();
-
-  if (!color_primvar.HasValue()) {
-    return;
-  }
-
-  pxr::TfToken interp = color_primvar.GetInterpolation();
-
-  if (interp == pxr::UsdGeomTokens->varying) {
-    std::cerr << "WARNING: Unsupported varying interpolation for display colors\n" << std::endl;
-    return;
-  }
-
-  if (primvar_varying_map_.find(usdtokens::displayColor) == primvar_varying_map_.end()) {
+  if (primvar_varying_map_.find(color_primvar.GetPrimvarName()) == primvar_varying_map_.end()) {
     bool might_be_time_varying = color_primvar.ValueMightBeTimeVarying();
-    primvar_varying_map_.insert(std::make_pair(usdtokens::displayColor, might_be_time_varying));
+    primvar_varying_map_.insert(
+        std::make_pair(color_primvar.GetPrimvarName(), might_be_time_varying));
     if (might_be_time_varying) {
       is_time_varying_ = true;
     }
   }
 
-  pxr::VtArray<pxr::GfVec3f> display_colors;
+  pxr::VtArray<pxr::GfVec3f> usd_colors;
 
-  if (!color_primvar.ComputeFlattened(&display_colors, motionSampleTime)) {
-    std::cerr << "WARNING: Couldn't compute display colors\n" << std::endl;
+  if (!color_primvar.ComputeFlattened(&usd_colors, motionSampleTime)) {
+    WM_reportf(RPT_WARNING,
+               "USD Import: couldn't compute values for color attribute '%s'",
+               color_primvar.GetName().GetText());
     return;
   }
 
-  if ((interp == pxr::UsdGeomTokens->faceVarying && display_colors.size() != mesh->totloop) ||
-      (interp == pxr::UsdGeomTokens->vertex && display_colors.size() != mesh->totvert) ||
-      (interp == pxr::UsdGeomTokens->constant && display_colors.size() != 1) ||
-      (interp == pxr::UsdGeomTokens->uniform && display_colors.size() != mesh->totpoly)) {
-    std::cerr << "WARNING: display colors count mismatch\n" << std::endl;
+  pxr::TfToken interp = color_primvar.GetInterpolation();
+
+  if ((interp == pxr::UsdGeomTokens->faceVarying && usd_colors.size() != mesh->totloop) ||
+      (interp == pxr::UsdGeomTokens->varying && usd_colors.size() != mesh->totloop) ||
+      (interp == pxr::UsdGeomTokens->vertex && usd_colors.size() != mesh->totvert) ||
+      (interp == pxr::UsdGeomTokens->constant && usd_colors.size() != 1) ||
+      (interp == pxr::UsdGeomTokens->uniform && usd_colors.size() != mesh->totpoly)) {
+    WM_reportf(RPT_WARNING,
+               "USD Import: color attribute value '%s' count inconsistent with interpolation type",
+               color_primvar.GetName().GetText());
     return;
   }
 
-  void *cd_ptr = add_customdata_cb(mesh, "displayColor", CD_PROP_BYTE_COLOR);
+  const StringRef color_primvar_name(color_primvar.GetBaseName().GetString());
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
-  if (!cd_ptr) {
-    std::cerr << "WARNING: Couldn't add displayColor custom data.\n";
+  eAttrDomain color_domain = ATTR_DOMAIN_POINT;
+
+  if (ELEM(interp,
+           pxr::UsdGeomTokens->varying,
+           pxr::UsdGeomTokens->faceVarying,
+           pxr::UsdGeomTokens->uniform)) {
+    color_domain = ATTR_DOMAIN_CORNER;
+  }
+
+  bke::SpanAttributeWriter<ColorGeometry4f> color_data;
+  color_data = attributes.lookup_or_add_for_write_only_span<ColorGeometry4f>(color_primvar_name,
+                                                                             color_domain);
+  if (!color_data) {
+    WM_reportf(RPT_WARNING,
+               "USD Import: couldn't add color attribute '%s'",
+               color_primvar.GetBaseName().GetText());
     return;
   }
 
-  MLoopCol *colors = static_cast<MLoopCol *>(cd_ptr);
-
-  const OffsetIndices polys = mesh->polys();
-  const Span<int> corner_verts = mesh->corner_verts();
-  for (const int i : polys.index_range()) {
-    const IndexRange poly = polys[i];
-    for (int j = 0; j < poly.size(); ++j) {
-      int loop_index = poly[j];
-
-      /* Default for constant varying interpolation. */
-      int usd_index = 0;
-
-      if (interp == pxr::UsdGeomTokens->vertex) {
-        usd_index = corner_verts[loop_index];
+  if (ELEM(interp, pxr::UsdGeomTokens->constant, pxr::UsdGeomTokens->uniform)) {
+    /* For situations where there's only a single item, flood fill the object. */
+    color_data.span.fill(
+        ColorGeometry4f(usd_colors[0][0], usd_colors[0][1], usd_colors[0][2], 1.0f));
+  }
+  else {
+    /* Check for situations that allow for a straight-forward copy by index. */
+    if ((ELEM(interp, pxr::UsdGeomTokens->vertex)) ||
+        (color_domain == ATTR_DOMAIN_CORNER && !is_left_handed_)) {
+      for (int i = 0; i < usd_colors.size(); i++) {
+        ColorGeometry4f color = ColorGeometry4f(
+            usd_colors[i][0], usd_colors[i][1], usd_colors[i][2], 1.0f);
+        color_data.span[i] = color;
       }
-      else if (interp == pxr::UsdGeomTokens->faceVarying) {
-        usd_index = poly.start();
-        if (is_left_handed_) {
-          usd_index += poly.size() - 1 - j;
+    }
+
+    /* Special case: expand uniform color into corner color.
+     * Uniforms in USD come through as single colors, face-varying. Since Blender does not
+     * support this particular combination for paintable color attributes, we convert the type
+     * here to make sure that the user gets the same visual result.
+     * */
+    else if (ELEM(interp, pxr::UsdGeomTokens->uniform)) {
+      for (int i = 0; i < usd_colors.size(); i++) {
+        const ColorGeometry4f color = ColorGeometry4f(
+            usd_colors[i][0], usd_colors[i][1], usd_colors[i][2], 1.0f);
+        color_data.span[i * 4] = color;
+        color_data.span[i * 4 + 1] = color;
+        color_data.span[i * 4 + 2] = color;
+        color_data.span[i * 4 + 3] = color;
+      }
+    }
+
+    else {
+      const OffsetIndices polys = mesh->polys();
+      const Span<int> corner_verts = mesh->corner_verts();
+      for (const int i : polys.index_range()) {
+        const IndexRange &poly = polys[i];
+        for (int j = 0; j < poly.size(); ++j) {
+          int loop_index = poly[j];
+
+          /* Default for constant varying interpolation. */
+          int usd_index = 0;
+
+          if (interp == pxr::UsdGeomTokens->vertex) {
+            usd_index = corner_verts[loop_index];
+          }
+          else if (interp == pxr::UsdGeomTokens->faceVarying) {
+            usd_index = poly.start();
+            if (is_left_handed_) {
+              usd_index += poly.size() - 1 - j;
+            }
+            else {
+              usd_index += j;
+            }
+          }
+          else if (interp == pxr::UsdGeomTokens->uniform) {
+            /* Uniform varying uses the poly index. */
+            usd_index = i;
+          }
+
+          if (usd_index >= usd_colors.size()) {
+            continue;
+          }
+
+          ColorGeometry4f color = ColorGeometry4f(
+              usd_colors[usd_index][0], usd_colors[usd_index][1], usd_colors[usd_index][2], 1.0f);
+          color_data.span[usd_index] = color;
         }
-        else {
-          usd_index += j;
-        }
       }
-      else if (interp == pxr::UsdGeomTokens->uniform) {
-        /* Uniform varying uses the poly index. */
-        usd_index = i;
-      }
-
-      if (usd_index >= display_colors.size()) {
-        continue;
-      }
-
-      colors[loop_index].r = unit_float_to_uchar_clamp(display_colors[usd_index][0]);
-      colors[loop_index].g = unit_float_to_uchar_clamp(display_colors[usd_index][1]);
-      colors[loop_index].b = unit_float_to_uchar_clamp(display_colors[usd_index][2]);
-      colors[loop_index].a = unit_float_to_uchar_clamp(1.0);
     }
   }
 
-  BKE_id_attributes_active_color_set(&mesh->id, "displayColor");
+  color_data.finish();
 }
 
 void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTime)
@@ -672,9 +764,19 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
     read_uvs(mesh, motionSampleTime, new_mesh);
   }
 
+  /* Custom Data layers. */
+  read_custom_data(settings, mesh, motionSampleTime);
+}
+
+void USDMeshReader::read_custom_data(const ImportSettings *settings,
+                                     Mesh *mesh,
+                                     const double motionSampleTime)
+{
   if ((settings->read_flag & MOD_MESHSEQ_READ_COLOR) != 0) {
-    read_colors(mesh, motionSampleTime);
+    read_color_data_all_primvars(mesh, motionSampleTime);
   }
+
+  /* TODO: Generic readers for custom data layers not listed above. */
 }
 
 void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,

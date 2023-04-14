@@ -26,6 +26,9 @@
 #include "utf_winfunc.h"
 #include "utfconv.h"
 
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
 #include "GHOST_DisplayManagerWin32.hh"
 #include "GHOST_EventButton.hh"
 #include "GHOST_EventCursor.hh"
@@ -2303,6 +2306,257 @@ void GHOST_SystemWin32::putClipboard(const char *buffer, bool selection) const
 
     CloseClipboard();
   }
+}
+
+GHOST_TSuccess GHOST_SystemWin32::hasClipboardImage(void) const
+{
+  if (IsClipboardFormatAvailable(CF_DIBV5) ||
+      IsClipboardFormatAvailable(RegisterClipboardFormat("PNG"))) {
+    return GHOST_kSuccess;
+  }
+
+  return GHOST_kFailure;
+}
+
+static uint *getClipboardImageDibV5(int *r_width, int *r_height)
+{
+  HANDLE hGlobal = GetClipboardData(CF_DIBV5);
+  if (hGlobal == nullptr) {
+    return nullptr;
+  }
+
+  BITMAPV5HEADER *bitmapV5Header = (BITMAPV5HEADER *)GlobalLock(hGlobal);
+  if (bitmapV5Header == nullptr) {
+    return nullptr;
+  }
+
+  int offset = bitmapV5Header->bV5Size + bitmapV5Header->bV5ClrUsed * sizeof(RGBQUAD);
+
+  if (bitmapV5Header->bV5Compression == BI_BITFIELDS) {
+    offset += 12;
+  }
+  BYTE *buffer = (BYTE *)bitmapV5Header + offset;
+  int bitcount = bitmapV5Header->bV5BitCount;
+  int width = bitmapV5Header->bV5Width;
+  int height = bitmapV5Header->bV5Height;
+  *r_width = width;
+  *r_height = height;
+
+  DWORD ColorMasks[4];
+  ColorMasks[0] = bitmapV5Header->bV5RedMask ? bitmapV5Header->bV5RedMask : 0xff;
+  ColorMasks[1] = bitmapV5Header->bV5GreenMask ? bitmapV5Header->bV5GreenMask : 0xff00;
+  ColorMasks[2] = bitmapV5Header->bV5BlueMask ? bitmapV5Header->bV5BlueMask : 0xff0000;
+  ColorMasks[3] = bitmapV5Header->bV5AlphaMask ? bitmapV5Header->bV5AlphaMask : 0xff000000;
+
+  /* Bit shifts needed for the ColorMasks. */
+  DWORD ColorShifts[4];
+  for (int i = 0; i < 4; i++) {
+    _BitScanForward(&ColorShifts[i], ColorMasks[i]);
+  }
+
+  uchar *source = (uchar *)buffer;
+  uint *rgba = (uint *)malloc(width * height * 4);
+  uint8_t *target = (uint8_t *)rgba;
+
+  if (bitmapV5Header->bV5Compression == BI_BITFIELDS && bitcount == 32) {
+    for (int h = 0; h < height; h++) {
+      for (int w = 0; w < width; w++, target += 4, source += 4) {
+        DWORD *pix = (DWORD *)source;
+        target[0] = uint8_t((*pix & ColorMasks[0]) >> ColorShifts[0]);
+        target[1] = uint8_t((*pix & ColorMasks[1]) >> ColorShifts[1]);
+        target[2] = uint8_t((*pix & ColorMasks[2]) >> ColorShifts[2]);
+        target[3] = uint8_t((*pix & ColorMasks[3]) >> ColorShifts[3]);
+      }
+    }
+  }
+  else if (bitmapV5Header->bV5Compression == BI_RGB && bitcount == 32) {
+    for (int h = 0; h < height; h++) {
+      for (int w = 0; w < width; w++, target += 4, source += 4) {
+        RGBQUAD *quad = (RGBQUAD *)source;
+        target[0] = uint8_t(quad->rgbRed);
+        target[1] = uint8_t(quad->rgbGreen);
+        target[2] = uint8_t(quad->rgbBlue);
+        target[3] = (bitmapV5Header->bV5AlphaMask) ? uint8_t(quad->rgbReserved) : 255;
+      }
+    }
+  }
+  else if (bitmapV5Header->bV5Compression == BI_RGB && bitcount == 24) {
+    int bytes_per_row = ((((width * bitcount) + 31) & ~31) >> 3);
+    int slack = bytes_per_row - (width * 3);
+    for (int h = 0; h < height; h++, source += slack) {
+      for (int w = 0; w < width; w++, target += 4, source += 3) {
+        RGBTRIPLE *triple = (RGBTRIPLE *)source;
+        target[0] = uint8_t(triple->rgbtRed);
+        target[1] = uint8_t(triple->rgbtGreen);
+        target[2] = uint8_t(triple->rgbtBlue);
+        target[3] = 255;
+      }
+    }
+  }
+
+  GlobalUnlock(hGlobal);
+  return rgba;
+}
+
+/* Works with any image format that ImBuf can load. */
+static uint *getClipboardImageImBuf(int *r_width, int *r_height, UINT format)
+{
+  HANDLE hGlobal = GetClipboardData(format);
+  if (hGlobal == nullptr) {
+    return nullptr;
+  }
+
+  LPVOID pMem = GlobalLock(hGlobal);
+  if (!pMem) {
+    return nullptr;
+  }
+
+  uint *rgba = nullptr;
+
+  ImBuf *ibuf = IMB_ibImageFromMemory(
+      (uchar *)pMem, GlobalSize(hGlobal), IB_rect, nullptr, "<clipboard>");
+
+  if (ibuf) {
+    *r_width = ibuf->x;
+    *r_height = ibuf->y;
+    rgba = (uint *)malloc(4 * ibuf->x * ibuf->y);
+    memcpy(rgba, ibuf->rect, 4 * ibuf->x * ibuf->y);
+    IMB_freeImBuf(ibuf);
+  }
+
+  GlobalUnlock(hGlobal);
+  return rgba;
+}
+
+uint *GHOST_SystemWin32::getClipboardImage(int *r_width, int *r_height) const
+{
+  if (!OpenClipboard(nullptr)) {
+    return nullptr;
+  }
+
+  /* Synthesized formats are placed after posted formats. */
+  UINT cfPNG = RegisterClipboardFormat("PNG");
+  UINT format = 0;
+  for (int cf = EnumClipboardFormats(0); cf; cf = EnumClipboardFormats(cf)) {
+    if (ELEM(cf, CF_DIBV5, cfPNG)) {
+      format = cf;
+    }
+    if (cf == CF_DIBV5 || (cf == CF_BITMAP && format == cfPNG)) {
+      break; /* Favor CF_DIBV5, but not if synthesized. */
+    }
+  }
+
+  uint *rgba = nullptr;
+
+  if (format == CF_DIBV5) {
+    rgba = getClipboardImageDibV5(r_width, r_height);
+  }
+  else if (format == cfPNG) {
+    rgba = getClipboardImageImBuf(r_width, r_height, cfPNG);
+  }
+  else {
+    *r_width = 0;
+    *r_height = 0;
+  }
+
+  CloseClipboard();
+  return rgba;
+}
+
+static bool putClipboardImageDibV5(uint *rgba, int width, int height)
+{
+  DWORD size_pixels = width * height * 4;
+
+  /* Pixel data is 12 bytes after the header. */
+  HGLOBAL hMem = GlobalAlloc(GHND, sizeof(BITMAPV5HEADER) + 12 + size_pixels);
+  if (!hMem) {
+    return false;
+  }
+
+  BITMAPV5HEADER *hdr = (BITMAPV5HEADER *)GlobalLock(hMem);
+  if (!hdr) {
+    GlobalFree(hMem);
+    return false;
+  }
+
+  hdr->bV5Size = sizeof(BITMAPV5HEADER);
+  hdr->bV5Width = width;
+  hdr->bV5Height = height;
+  hdr->bV5Planes = 1;
+  hdr->bV5BitCount = 32;
+  hdr->bV5SizeImage = size_pixels;
+  hdr->bV5Compression = BI_BITFIELDS;
+  hdr->bV5RedMask = 0x000000ff;
+  hdr->bV5GreenMask = 0x0000ff00;
+  hdr->bV5BlueMask = 0x00ff0000;
+  hdr->bV5AlphaMask = 0xff000000;
+  hdr->bV5CSType = LCS_sRGB;
+  hdr->bV5Intent = LCS_GM_IMAGES;
+  hdr->bV5ClrUsed = 0;
+
+  memcpy((char *)hdr + sizeof(BITMAPV5HEADER) + 12, rgba, size_pixels);
+
+  GlobalUnlock(hMem);
+
+  if (!SetClipboardData(CF_DIBV5, hMem)) {
+    GlobalFree(hMem);
+    return false;
+  }
+
+  return true;
+}
+
+static bool putClipboardImagePNG(uint *rgba, int width, int height)
+{
+  UINT cf = RegisterClipboardFormat("PNG");
+
+  /* Load buffer into ImBuf, convert to PNG. */
+  ImBuf *ibuf = IMB_allocFromBuffer(rgba, nullptr, width, height, 32);
+  ibuf->ftype = IMB_FTYPE_PNG;
+  ibuf->foptions.quality = 15;
+  if (!IMB_saveiff(ibuf, "<memory>", IB_rect | IB_mem)) {
+    IMB_freeImBuf(ibuf);
+    return false;
+  }
+
+  HGLOBAL hMem = GlobalAlloc(GHND, ibuf->encodedbuffersize);
+  if (!hMem) {
+    IMB_freeImBuf(ibuf);
+    return false;
+  }
+
+  LPVOID pMem = GlobalLock(hMem);
+  if (!pMem) {
+    IMB_freeImBuf(ibuf);
+    GlobalFree(hMem);
+    return false;
+  }
+
+  memcpy(pMem, ibuf->encodedbuffer, ibuf->encodedbuffersize);
+
+  GlobalUnlock(hMem);
+  IMB_freeImBuf(ibuf);
+
+  if (!SetClipboardData(cf, hMem)) {
+    GlobalFree(hMem);
+    return false;
+  }
+
+  return true;
+}
+
+GHOST_TSuccess GHOST_SystemWin32::putClipboardImage(uint *rgba, int width, int height) const
+{
+  if (!OpenClipboard(nullptr) || !EmptyClipboard()) {
+    return GHOST_kFailure;
+  }
+
+  bool ok = putClipboardImageDibV5(rgba, width, height) &&
+            putClipboardImagePNG(rgba, width, height);
+
+  CloseClipboard();
+
+  return (ok) ? GHOST_kSuccess : GHOST_kFailure;
 }
 
 /* -------------------------------------------------------------------- */

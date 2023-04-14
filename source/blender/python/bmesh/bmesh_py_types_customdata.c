@@ -899,7 +899,7 @@ static PySequenceMethods bpy_bmlayercollection_as_sequence = {
 };
 
 static PyMappingMethods bpy_bmlayercollection_as_mapping = {
-    /*mp_len*/ (lenfunc)bpy_bmlayercollection_length,
+    /*mp_length*/ (lenfunc)bpy_bmlayercollection_length,
     /*mp_subscript*/ (binaryfunc)bpy_bmlayercollection_subscript,
     /*mp_ass_subscript*/ (objobjargproc)NULL,
 };

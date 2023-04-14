@@ -155,10 +155,16 @@ bool UI_but_is_tool(const uiBut *but)
 
 bool UI_but_has_tooltip_label(const uiBut *but)
 {
-  if ((but->drawstr[0] == '\0') && !ui_block_is_popover(but->block)) {
-    return UI_but_is_tool(but);
+  /* No tooltip label if the button itself shows a label already. */
+  if (but->drawstr[0] != '\0') {
+    return false;
   }
-  return false;
+
+  if (UI_but_is_tool(but)) {
+    return !ui_block_is_popover(but->block);
+  }
+
+  return ELEM(but->type, UI_BTYPE_TAB);
 }
 
 int ui_but_icon(const uiBut *but)

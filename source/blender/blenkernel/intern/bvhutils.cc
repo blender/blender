@@ -26,6 +26,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
+#include "BKE_pointcloud.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -1425,10 +1426,7 @@ BVHTree *BKE_bvhtree_from_pointcloud_get(BVHTreeFromPointCloud *data,
     return nullptr;
   }
 
-  blender::bke::AttributeAccessor attributes = pointcloud->attributes();
-  blender::VArraySpan<blender::float3> positions = attributes.lookup_or_default<blender::float3>(
-      "position", ATTR_DOMAIN_POINT, blender::float3(0));
-
+  const Span<float3> positions = pointcloud->positions();
   for (const int i : positions.index_range()) {
     BLI_bvhtree_insert(tree, i, positions[i], 1);
   }

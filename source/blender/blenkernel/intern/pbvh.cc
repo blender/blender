@@ -335,10 +335,6 @@ static void build_mesh_leaf_node(PBVH *pbvh, PBVHNode *node)
 
   node->face_vert_indices = (const int(*)[3])face_vert_indices;
 
-  if (pbvh->respect_hide == false) {
-    has_visible = true;
-  }
-
   for (int i = 0; i < totface; i++) {
     const MLoopTri *lt = &pbvh->looptri[node->prim_indices[i]];
     for (int j = 0; j < 3; j++) {
@@ -1042,7 +1038,6 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
 PBVH *BKE_pbvh_new(PBVHType type)
 {
   PBVH *pbvh = MEM_new<PBVH>(__func__);
-  pbvh->respect_hide = true;
   pbvh->draw_cache_invalid = true;
   pbvh->header.type = type;
 
@@ -2600,7 +2595,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
     const MLoopTri *lt = &pbvh->looptri[faces[i]];
     const int *face_verts = node->face_vert_indices[i];
 
-    if (pbvh->respect_hide && paint_is_face_hidden(lt, pbvh->hide_poly)) {
+    if (paint_is_face_hidden(lt, pbvh->hide_poly)) {
       continue;
     }
 
@@ -2909,7 +2904,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH *pbvh,
     const MLoopTri *lt = &pbvh->looptri[faces[i]];
     const int *face_verts = node->face_vert_indices[i];
 
-    if (pbvh->respect_hide && paint_is_face_hidden(lt, pbvh->hide_poly)) {
+    if (paint_is_face_hidden(lt, pbvh->hide_poly)) {
       continue;
     }
 
@@ -3425,12 +3420,6 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   vi->vert_positions = nullptr;
   vi->vertex.i = 0LL;
 
-  vi->respect_hide = pbvh->respect_hide;
-  if (pbvh->respect_hide == false) {
-    /* The same value for all vertices. */
-    vi->visible = true;
-  }
-
   BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, nullptr, &gridsize, &grids);
   BKE_pbvh_node_num_verts(pbvh, node, &uniq_verts, &totvert);
   const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
@@ -3584,11 +3573,6 @@ void BKE_pbvh_update_hide_attributes_from_mesh(PBVH *pbvh)
     pbvh->hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
         &pbvh->mesh->pdata, CD_PROP_BOOL, ".hide_poly", pbvh->mesh->totpoly));
   }
-}
-
-void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide)
-{
-  pbvh->respect_hide = respect_hide;
 }
 
 bool BKE_pbvh_is_drawing(const PBVH *pbvh)

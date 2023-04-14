@@ -19,8 +19,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
                                     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const bke::AttributeAccessor src_attributes = src_points.attributes();
-  VArraySpan<float3> positions = src_attributes.lookup_or_default<float3>(
-      "position", ATTR_DOMAIN_POINT, float3(0));
+  const Span<float3> positions = src_points.positions();
   const int src_size = positions.size();
 
   /* Create the KD tree based on only the selected points, to speed up merge detection and

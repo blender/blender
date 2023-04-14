@@ -2977,7 +2977,7 @@ static PySequenceMethods Matrix_SeqMethods = {
 };
 
 static PyMappingMethods Matrix_AsMapping = {
-    /*mp_len*/ (lenfunc)Matrix_len,
+    /*mp_length*/ (lenfunc)Matrix_len,
     /*mp_subscript*/ (binaryfunc)Matrix_subscript,
     /*mp_ass_subscript*/ (objobjargproc)Matrix_ass_subscript,
 };
@@ -3760,7 +3760,7 @@ static PyObject *MatrixAccess_iter(MatrixAccessObject *self)
 }
 
 static PyMappingMethods MatrixAccess_AsMapping = {
-    /*mp_len*/ (lenfunc)MatrixAccess_len,
+    /*mp_length*/ (lenfunc)MatrixAccess_len,
     /*mp_subscript*/ (binaryfunc)MatrixAccess_subscript,
     /*mp_ass_subscript*/ (objobjargproc)MatrixAccess_ass_subscript,
 };

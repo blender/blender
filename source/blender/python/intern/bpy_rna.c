@@ -3252,13 +3252,13 @@ static int pyrna_prop_array_ass_subscript(BPy_PropertyArrayRNA *self,
 
 /* For slice only. */
 static PyMappingMethods pyrna_prop_array_as_mapping = {
-    /*mp_len*/ (lenfunc)pyrna_prop_array_length,
+    /*mp_length*/ (lenfunc)pyrna_prop_array_length,
     /*mp_subscript*/ (binaryfunc)pyrna_prop_array_subscript,
     /*mp_ass_subscript*/ (objobjargproc)pyrna_prop_array_ass_subscript,
 };
 
 static PyMappingMethods pyrna_prop_collection_as_mapping = {
-    /*mp_len*/ (lenfunc)pyrna_prop_collection_length,
+    /*mp_length*/ (lenfunc)pyrna_prop_collection_length,
     /*mp_subscript*/ (binaryfunc)pyrna_prop_collection_subscript,
     /*mp_ass_subscript*/ (objobjargproc)pyrna_prop_collection_ass_subscript,
 };
