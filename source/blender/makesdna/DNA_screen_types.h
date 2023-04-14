@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
@@ -765,7 +767,16 @@ typedef struct AssetShelfSettings {
   ListBase enabled_catalog_paths; /* #LinkData */
   /** If not set (null or empty string), all assets will be displayed ("All" catalog behavior). */
   const char *active_catalog_path;
+
+  short display_flag; /* #AssetShelfSettings_DisplayFlag */
+  char _pad1[6];
 } AssetShelfSettings;
+
+/* #AssetShelfSettings.display_flag */
+typedef enum AssetShelfSettings_DisplayFlag {
+  ASSETSHELF_SHOW_NAMES = (1 << 0),
+} AssetShelfSettings_DisplayFlag;
+ENUM_OPERATORS(AssetShelfSettings_DisplayFlag, ASSETSHELF_SHOW_NAMES);
 
 #ifdef __cplusplus
 }

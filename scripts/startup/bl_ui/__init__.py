@@ -9,6 +9,7 @@ if "bpy" in locals():
     del reload
 
 _modules = [
+    "asset_shelf",
     "node_add_menu",
     "node_add_menu_geometry",
     "properties_animviz",

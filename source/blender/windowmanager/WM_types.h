@@ -485,6 +485,7 @@ typedef struct wmNotifier {
 #define ND_SPACE_CLIP (20 << 16)
 #define ND_SPACE_FILE_PREVIEW (21 << 16)
 #define ND_SPACE_SPREADSHEET (22 << 16)
+/* Not a space itself, but a part of another space. */
 #define ND_SPACE_ASSET_SHELF (23 << 16)
 
 /* NC_ASSET */

@@ -396,6 +396,10 @@ static void asset_shelf_footer_draw(const bContext *C, Header *header)
   if (shelf_settings) {
     add_catalog_toggle_buttons(*shelf_settings, *layout);
   }
+
+  uiItemSpacer(layout);
+
+  uiItemPopoverPanel(layout, C, "ASSETSHELF_PT_display", "", ICON_IMGDISPLAY);
 }
 
 void ED_asset_shelf_footer_register(ARegionType *region_type,
