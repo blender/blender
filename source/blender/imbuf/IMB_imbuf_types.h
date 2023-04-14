@@ -225,8 +225,6 @@ typedef struct ImBuf {
   char name[IMB_FILENAME_SIZE];
 
   /* memory cache limiter */
-  /** handle for cache limiter */
-  struct MEM_CacheLimiterHandle_s *c_handle;
   /** reference counter for multiple users */
   int refcounter;
 
