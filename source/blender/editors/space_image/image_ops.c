@@ -70,8 +70,8 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
-#include "ED_util.h"
 #include "ED_undo.h"
+#include "ED_util.h"
 #include "ED_util_imbuf.h"
 #include "ED_uvedit.h"
 

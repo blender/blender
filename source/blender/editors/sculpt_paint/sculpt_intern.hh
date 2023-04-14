@@ -17,11 +17,11 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
-#include "BLI_implicit_sharing.hh"
 #include "BLI_bitmap.h"
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_gsqueue.h"
+#include "BLI_implicit_sharing.hh"
 #include "BLI_span.hh"
 #include "BLI_threads.h"
 #include "BLI_vector.hh"
