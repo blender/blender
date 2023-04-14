@@ -488,7 +488,9 @@ static void outliner_blend_read_lib(BlendLibReader *reader, ID * /*parent_id*/, 
 
     BLI_mempool_iternew(space_outliner->treestore, &iter);
     while ((tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
-      BLO_read_id_address(reader, nullptr, &tselem->id);
+      if (TSE_IS_REAL_ID(tselem)) {
+        BLO_read_id_address(reader, nullptr, &tselem->id);
+      }
     }
     /* rebuild hash table, because it depends on ids too */
     space_outliner->storeflag |= SO_TREESTORE_REBUILD;
