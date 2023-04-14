@@ -77,6 +77,18 @@ static void rna_Curves_curve_offset_data_begin(CollectionPropertyIterator *iter,
                            NULL);
 }
 
+static int rna_Curves_curve_offset_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  Curves *curves = rna_curves(ptr);
+  if (index < 0 || index >= curves->geometry.curve_num + 1) {
+    return false;
+  }
+  r_ptr->owner_id = &curves->id;
+  r_ptr->type = &RNA_IntAttributeValue;
+  r_ptr->data = &ED_curves_offsets_for_write(curves)[index];
+  return true;
+}
+
 static float (*get_curves_positions(Curves *curves))[3]
 {
   return (float(*)[3])CustomData_get_layer_named_for_write(
@@ -112,6 +124,18 @@ static int rna_Curves_curves_length(PointerRNA *ptr)
 {
   const Curves *curves = rna_curves(ptr);
   return curves->geometry.curve_num;
+}
+
+static int rna_Curves_curves_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  Curves *curves = rna_curves(ptr);
+  if (index < 0 || index >= curves->geometry.curve_num) {
+    return false;
+  }
+  r_ptr->owner_id = &curves->id;
+  r_ptr->type = &RNA_CurveSlice;
+  r_ptr->data = &ED_curves_offsets_for_write(curves)[index];
+  return true;
 }
 
 static int rna_Curves_position_data_length(PointerRNA *ptr)
@@ -366,7 +390,7 @@ static void rna_def_curves(BlenderRNA *brna)
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_Curves_curves_length",
-                                    NULL,
+                                    "rna_Curves_curves_lookup_int",
                                     NULL,
                                     NULL);
   RNA_def_property_struct_type(prop, "CurveSlice");
@@ -408,7 +432,7 @@ static void rna_def_curves(BlenderRNA *brna)
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_Curves_curve_offset_data_length",
-                                    NULL,
+                                    "rna_Curves_curve_offset_data_lookup_int",
                                     NULL,
                                     NULL);
   RNA_def_property_update(prop, 0, "rna_Curves_update_data");
