@@ -262,8 +262,8 @@ void BKE_mesh_remap_find_best_match_from_mesh(const float (*vert_positions_dst)[
   float best_match = FLT_MAX, match;
 
   const int numverts_src = me_src->totvert;
-  const float(*vcos_src)[3] = BKE_mesh_vert_positions(me_src);
-  mesh_calc_eigen_matrix(nullptr, vcos_src, numverts_src, mat_src);
+  const float(*positions_src)[3] = BKE_mesh_vert_positions(me_src);
+  mesh_calc_eigen_matrix(nullptr, positions_src, numverts_src, mat_src);
   mesh_calc_eigen_matrix(vert_positions_dst, nullptr, numverts_dst, mat_dst);
 
   BLI_space_transform_global_from_matrices(r_space_transform, mat_dst, mat_src);
@@ -370,7 +370,7 @@ void BKE_mesh_remap_item_define_invalid(MeshPairRemap *map, const int index)
 
 static int mesh_remap_interp_poly_data_get(const blender::IndexRange poly,
                                            const blender::Span<int> corner_verts,
-                                           const float (*vcos_src)[3],
+                                           const blender::Span<blender::float3> positions_src,
                                            const float point[3],
                                            size_t *buff_size,
                                            float (**vcos)[3],
@@ -398,7 +398,7 @@ static int mesh_remap_interp_poly_data_get(const blender::IndexRange poly,
   for (i = 0, vco = *vcos, index = *indices; i < sources_num; i++, vco++, index++) {
     const int vert = corner_verts[poly[i]];
     *index = use_loops ? int(poly[i]) : vert;
-    copy_v3_v3(*vco, vcos_src[vert]);
+    copy_v3_v3(*vco, positions_src[vert]);
     if (r_closest_index) {
       /* Find closest vert/loop in this case. */
       const float dist_sq = len_squared_v3v3(point, *vco);
@@ -512,7 +512,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
     }
     else if (ELEM(mode, MREMAP_MODE_VERT_EDGE_NEAREST, MREMAP_MODE_VERT_EDGEINTERP_NEAREST)) {
       const blender::Span<MEdge> edges_src = me_src->edges();
-      const float(*vcos_src)[3] = BKE_mesh_vert_positions(me_src);
+      const float(*positions_src)[3] = BKE_mesh_vert_positions(me_src);
 
       BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_EDGES, 2);
       nearest.index = -1;
@@ -528,8 +528,8 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
         if (mesh_remap_bvhtree_query_nearest(
                 &treedata, &nearest, tmp_co, max_dist_sq, &hit_dist)) {
           const MEdge *edge = &edges_src[nearest.index];
-          const float *v1cos = vcos_src[edge->v1];
-          const float *v2cos = vcos_src[edge->v2];
+          const float *v1cos = positions_src[edge->v1];
+          const float *v2cos = positions_src[edge->v2];
 
           if (mode == MREMAP_MODE_VERT_EDGE_NEAREST) {
             const float dist_v1 = len_squared_v3v3(tmp_co, v1cos);
@@ -564,7 +564,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
                   MREMAP_MODE_VERT_POLYINTERP_VNORPROJ)) {
       const blender::OffsetIndices polys_src = me_src->polys();
       const blender::Span<int> corner_verts_src = me_src->corner_verts();
-      const float(*vcos_src)[3] = BKE_mesh_vert_positions(me_src);
+      const blender::Span<blender::float3> positions_src = me_src->vert_positions();
       const blender::Span<blender::float3> vert_normals_dst = me_dst->vert_normals();
 
       size_t tmp_buff_size = MREMAP_DEFAULT_BUFSIZE;
@@ -592,7 +592,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
             const MLoopTri *lt = &treedata.looptri[rayhit.index];
             const int sources_num = mesh_remap_interp_poly_data_get(polys_src[lt->poly],
                                                                     corner_verts_src,
-                                                                    vcos_src,
+                                                                    positions_src,
                                                                     rayhit.co,
                                                                     &tmp_buff_size,
                                                                     &vcos,
@@ -629,7 +629,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
               int index;
               mesh_remap_interp_poly_data_get(polys_src[lt->poly],
                                               corner_verts_src,
-                                              vcos_src,
+                                              positions_src,
                                               nearest.co,
                                               &tmp_buff_size,
                                               &vcos,
@@ -644,7 +644,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
             else if (mode == MREMAP_MODE_VERT_POLYINTERP_NEAREST) {
               const int sources_num = mesh_remap_interp_poly_data_get(polys_src[lt->poly],
                                                                       corner_verts_src,
-                                                                      vcos_src,
+                                                                      positions_src,
                                                                       nearest.co,
                                                                       &tmp_buff_size,
                                                                       &vcos,
@@ -714,7 +714,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
     if (mode == MREMAP_MODE_EDGE_VERT_NEAREST) {
       const int num_verts_src = me_src->totvert;
       const blender::Span<MEdge> edges_src = me_src->edges();
-      const float(*vcos_src)[3] = BKE_mesh_vert_positions(me_src);
+      const float(*positions_src)[3] = BKE_mesh_vert_positions(me_src);
 
       MeshElemMap *vert_to_edge_src_map;
       int *vert_to_edge_src_map_mem;
@@ -787,7 +787,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
           for (; k--; eidx_src++) {
             const MEdge &edge_src = edges_src[*eidx_src];
             const float *other_co_src =
-                vcos_src[blender::bke::mesh::edge_other_vert(edge_src, vidx_src)];
+                positions_src[blender::bke::mesh::edge_other_vert(edge_src, vidx_src)];
             const float *other_co_dst =
                 vert_positions_dst[blender::bke::mesh::edge_other_vert(e_dst, int(vidx_dst))];
             const float totdist = first_dist + len_v3v3(other_co_src, other_co_dst);
@@ -800,8 +800,8 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
         }
 
         if (best_eidx_src >= 0) {
-          const float *co1_src = vcos_src[edges_src[best_eidx_src].v1];
-          const float *co2_src = vcos_src[edges_src[best_eidx_src].v2];
+          const float *co1_src = positions_src[edges_src[best_eidx_src].v1];
+          const float *co2_src = positions_src[edges_src[best_eidx_src].v2];
           const float *co1_dst = vert_positions_dst[e_dst.v1];
           const float *co2_dst = vert_positions_dst[e_dst.v2];
           float co_src[3], co_dst[3];
@@ -867,7 +867,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       const blender::Span<MEdge> edges_src = me_src->edges();
       const blender::OffsetIndices polys_src = me_src->polys();
       const blender::Span<int> corner_edges_src = me_src->corner_edges();
-      const float(*vcos_src)[3] = BKE_mesh_vert_positions(me_src);
+      const float(*positions_src)[3] = BKE_mesh_vert_positions(me_src);
 
       BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_LOOPTRI, 2);
 
@@ -893,8 +893,8 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
 
           for (; nloops--; corner_edge_src++) {
             const MEdge *edge_src = &edges_src[*corner_edge_src];
-            const float *co1_src = vcos_src[edge_src->v1];
-            const float *co2_src = vcos_src[edge_src->v2];
+            const float *co1_src = positions_src[edge_src->v1];
+            const float *co2_src = positions_src[edge_src->v2];
             float co_src[3];
             float dist_sq;
 
@@ -1294,7 +1294,6 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
     const blender::Span<blender::float3> positions_src = me_src->vert_positions();
     const int num_verts_src = me_src->totvert;
-    const float(*vcos_src)[3] = nullptr;
     const blender::Span<MEdge> edges_src = me_src->edges();
     const blender::OffsetIndices polys_src = me_src->polys();
     const blender::Span<int> corner_verts_src = me_src->corner_verts();
@@ -1312,8 +1311,6 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     size_t islands_res_buff_size = MREMAP_DEFAULT_BUFSIZE;
 
     if (!use_from_vert) {
-      vcos_src = BKE_mesh_vert_positions(me_src);
-
       vcos_interp = static_cast<float(*)[3]>(
           MEM_mallocN(sizeof(*vcos_interp) * buff_size_interp, __func__));
       indices_interp = static_cast<int *>(
@@ -1991,9 +1988,9 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
                       closest_on_tri_to_point_v3(h,
                                                  tmp_co,
-                                                 vcos_src[corner_verts_src[lt->tri[0]]],
-                                                 vcos_src[corner_verts_src[lt->tri[1]]],
-                                                 vcos_src[corner_verts_src[lt->tri[2]]]);
+                                                 positions_src[corner_verts_src[lt->tri[0]]],
+                                                 positions_src[corner_verts_src[lt->tri[1]]],
+                                                 positions_src[corner_verts_src[lt->tri[2]]]);
                       dist_sq = len_squared_v3v3(tmp_co, h);
                       if (dist_sq < best_dist_sq) {
                         copy_v3_v3(hit_co, h);
@@ -2007,7 +2004,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
               if (mode == MREMAP_MODE_LOOP_POLY_NEAREST) {
                 mesh_remap_interp_poly_data_get(poly_src,
                                                 corner_verts_src,
-                                                vcos_src,
+                                                positions_src,
                                                 hit_co,
                                                 &buff_size_interp,
                                                 &vcos_interp,
@@ -2028,7 +2025,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
               else {
                 const int sources_num = mesh_remap_interp_poly_data_get(poly_src,
                                                                         corner_verts_src,
-                                                                        vcos_src,
+                                                                        positions_src,
                                                                         hit_co,
                                                                         &buff_size_interp,
                                                                         &vcos_interp,
