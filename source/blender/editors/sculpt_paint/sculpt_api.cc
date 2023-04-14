@@ -354,20 +354,20 @@ static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef ver
 
 static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertRef vertex)
 {
-  blender::pbvh::update_vert_boundary_faces((int *)ss->attrs.boundary_flags->data,
-                                            ss->face_sets,
-                                            ss->hide_poly,
-                                            ss->vert_positions,
-                                            ss->edges.data(),
-                                            ss->corner_verts.data(),
-                                            ss->corner_edges.data(),
-                                            ss->polys,
-                                            ss->totfaces,
-                                            ss->msculptverts,
-                                            ss->pmap->pmap,
-                                            vertex,
-                                            ss->sharp_edge,
-                                            ss->seam_edge);
+  blender::bke::pbvh::update_vert_boundary_faces((int *)ss->attrs.boundary_flags->data,
+                                                 ss->face_sets,
+                                                 ss->hide_poly,
+                                                 ss->vert_positions,
+                                                 ss->edges.data(),
+                                                 ss->corner_verts.data(),
+                                                 ss->corner_edges.data(),
+                                                 ss->polys,
+                                                 ss->totfaces,
+                                                 ss->msculptverts,
+                                                 ss->pmap->pmap,
+                                                 vertex,
+                                                 ss->sharp_edge,
+                                                 ss->seam_edge);
 
   /* We have to handle boundary here seperately. */
 

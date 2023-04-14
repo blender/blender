@@ -16,14 +16,16 @@
 #include "DNA_vec_types.h"
 
 #include "BLI_bitmap_draw_2d.h"
+#include "BLI_index_range.hh"
 #include "BLI_lasso_2d.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_rect.h"
+#include "BLI_span.hh"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
-#include "BLI_index_range.hh"
+#include "BLI_vector.hh"
 
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
@@ -59,6 +61,8 @@
 
 using blender::IndexRange;
 using blender::OffsetIndices;
+using blender::Span;
+using blender::Vector;
 
 static const EnumPropertyItem mode_items[] = {
     {PAINT_MASK_FLOOD_VALUE,
@@ -92,7 +96,7 @@ static void mask_flood_fill_set_elem(float *elem, PaintMaskFloodMode mode, float
 struct MaskTaskData {
   Object *ob;
   PBVH *pbvh;
-  PBVHNode **nodes;
+  Span<PBVHNode *> nodes;
   bool multires;
 
   PaintMaskFloodMode mode;
@@ -142,8 +146,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   PBVH *pbvh;
-  PBVHNode **nodes;
-  int totnode;
+  Vector<PBVHNode *> nodes;
   bool multires;
 
   PaintMaskFloodMode mode = PaintMaskFloodMode(RNA_enum_get(op->ptr, "mode"));
@@ -156,7 +159,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   pbvh = ob->sculpt->pbvh;
   multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
-  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
+  nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
 
   SCULPT_undo_push_begin(ob, op);
 
@@ -169,8 +172,8 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   data.value = value;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, mask_flood_fill_task_cb, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+  BLI_task_parallel_range(0, nodes.size(), &data, mask_flood_fill_task_cb, &settings);
 
   if (multires) {
     multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
@@ -179,10 +182,6 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
   SCULPT_undo_push_end(ob);
-
-  if (nodes) {
-    MEM_freeN(nodes);
-  }
 
   SCULPT_tag_update_overlays(C);
 
@@ -294,8 +293,7 @@ struct SculptGestureContext {
   LineGestureData line;
 
   /* Task Callback Data. */
-  PBVHNode **nodes;
-  int totnode;
+  Vector<PBVHNode *> nodes;
 };
 
 struct SculptGestureOperation {
@@ -372,7 +370,7 @@ static void sculpt_gesture_lasso_px_cb(int x, int x_end, int y, void *user_data)
 
 static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOperator *op)
 {
-  SculptGestureContext *sgcontext = MEM_cnew<SculptGestureContext>(__func__);
+  SculptGestureContext *sgcontext = MEM_new<SculptGestureContext>(__func__);
   sgcontext->shape_type = SCULPT_GESTURE_SHAPE_LASSO;
 
   sculpt_gesture_context_init_common(C, op, sgcontext);
@@ -423,7 +421,7 @@ static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOpera
 
 static SculptGestureContext *sculpt_gesture_init_from_box(bContext *C, wmOperator *op)
 {
-  SculptGestureContext *sgcontext = MEM_cnew<SculptGestureContext>(__func__);
+  SculptGestureContext *sgcontext = MEM_new<SculptGestureContext>(__func__);
   sgcontext->shape_type = SCULPT_GESTURE_SHAPE_BOX;
 
   sculpt_gesture_context_init_common(C, op, sgcontext);
@@ -499,7 +497,7 @@ static void sculpt_gesture_line_calculate_plane_points(SculptGestureContext *sgc
 
 static SculptGestureContext *sculpt_gesture_init_from_line(bContext *C, wmOperator *op)
 {
-  SculptGestureContext *sgcontext = MEM_cnew<SculptGestureContext>(__func__);
+  SculptGestureContext *sgcontext = MEM_new<SculptGestureContext>(__func__);
   sgcontext->shape_type = SCULPT_GESTURE_SHAPE_LINE;
 
   sculpt_gesture_context_init_common(C, op, sgcontext);
@@ -548,8 +546,7 @@ static void sculpt_gesture_context_free(SculptGestureContext *sgcontext)
   MEM_SAFE_FREE(sgcontext->lasso.mask_px);
   MEM_SAFE_FREE(sgcontext->gesture_points);
   MEM_SAFE_FREE(sgcontext->operation);
-  MEM_SAFE_FREE(sgcontext->nodes);
-  MEM_SAFE_FREE(sgcontext);
+  MEM_delete(sgcontext);
 }
 
 static void flip_plane(float out[4], const float in[4], const char symm)
@@ -593,7 +590,8 @@ static void sculpt_gesture_flip_for_symmetry_pass(SculptGestureContext *sgcontex
   flip_plane(sgcontext->line.side_plane[1], sgcontext->line.true_side_plane[1], symmpass);
 }
 
-static void sculpt_gesture_update_effected_nodes_by_line_plane(SculptGestureContext *sgcontext)
+static Vector<PBVHNode *> sculpt_gesture_update_effected_nodes_by_line_plane(
+    SculptGestureContext *sgcontext)
 {
   SculptSession *ss = sgcontext->ss;
   float clip_planes[3][4];
@@ -605,11 +603,8 @@ static void sculpt_gesture_update_effected_nodes_by_line_plane(SculptGestureCont
   frustum.planes = clip_planes;
   frustum.num_planes = sgcontext->line.use_side_planes ? 3 : 1;
 
-  BKE_pbvh_search_gather(ss->pbvh,
-                         BKE_pbvh_node_frustum_contain_AABB,
-                         &frustum,
-                         &sgcontext->nodes,
-                         &sgcontext->totnode);
+  return sgcontext->nodes = blender::bke::pbvh::search_gather(
+             ss->pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum);
 }
 
 static void sculpt_gesture_update_effected_nodes_by_clip_planes(SculptGestureContext *sgcontext)
@@ -623,11 +618,8 @@ static void sculpt_gesture_update_effected_nodes_by_clip_planes(SculptGestureCon
   frustum.planes = clip_planes;
   frustum.num_planes = 4;
 
-  BKE_pbvh_search_gather(ss->pbvh,
-                         BKE_pbvh_node_frustum_contain_AABB,
-                         &frustum,
-                         &sgcontext->nodes,
-                         &sgcontext->totnode);
+  sgcontext->nodes = blender::bke::pbvh::search_gather(
+      ss->pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum);
 }
 
 static void sculpt_gesture_update_effected_nodes(SculptGestureContext *sgcontext)
@@ -722,8 +714,6 @@ static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext, w
       sculpt_gesture_update_effected_nodes(sgcontext);
 
       operation->sculpt_gesture_apply_for_symmetry_pass(C, sgcontext);
-
-      MEM_SAFE_FREE(sgcontext->nodes);
     }
   }
 
@@ -779,9 +769,9 @@ static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext * /*C*/,
                                                             SculptGestureContext *sgcontext)
 {
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->nodes.size());
   BLI_task_parallel_range(
-      0, sgcontext->totnode, sgcontext, face_set_gesture_apply_task_cb, &settings);
+      0, sgcontext->nodes.size(), sgcontext, face_set_gesture_apply_task_cb, &settings);
 }
 
 static void sculpt_gesture_face_set_end(bContext * /*C*/, SculptGestureContext *sgcontext)
@@ -868,8 +858,9 @@ static void sculpt_gesture_mask_apply_for_symmetry_pass(bContext * /*C*/,
                                                         SculptGestureContext *sgcontext)
 {
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->totnode);
-  BLI_task_parallel_range(0, sgcontext->totnode, sgcontext, mask_gesture_apply_task_cb, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->nodes.size());
+  BLI_task_parallel_range(
+      0, sgcontext->nodes.size(), sgcontext, mask_gesture_apply_task_cb, &settings);
 }
 
 static void sculpt_gesture_mask_end(bContext *C, SculptGestureContext *sgcontext)
@@ -1365,10 +1356,8 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
       &trim_operation->mesh->edata, CD_PROP_BOOL, "sharp_edge", trim_operation->mesh->totedge);
 
   if (!sharp_edge) {
-    CustomData_add_layer(&trim_operation->mesh->edata,
-                         CD_PROP_BOOL,
-                         CD_CONSTRUCT,
-                         trim_operation->mesh->totedge);
+    CustomData_add_layer(
+        &trim_operation->mesh->edata, CD_PROP_BOOL, CD_CONSTRUCT, trim_operation->mesh->totedge);
     sharp_edge = (bool *)CustomData_get_layer_named_for_write(
         &trim_operation->mesh->edata, CD_PROP_BOOL, "sharp_edge", trim_operation->mesh->totedge);
   }
@@ -1376,7 +1365,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   const blender::Span<int> &corner_edges = trim_operation->mesh->corner_edges();
   const OffsetIndices<int> &polys = trim_operation->mesh->polys();
 
-  //XXX test me
+  // XXX test me
   /* flag edges as sharp for dyntopo remesher */
   for (int i = 0; i < tot_screen_points * 2; i++) {
     sharp_edge[corner_edges[polys[tot_tris_face + i].start()]] = true;
@@ -1817,22 +1806,22 @@ static void sculpt_gesture_project_apply_for_symmetry_pass(bContext * /*C*/,
   SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
                                                          sgcontext->operation;
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->nodes.size());
 
   switch (project_operation->deformation_mode) {
     case SCULPT_GESTURE_PROJECT_DEFORM_PROJECT:
       BLI_assert(sgcontext->shape_type == SCULPT_GESTURE_SHAPE_LINE);
       BLI_task_parallel_range(
-          0, sgcontext->totnode, sgcontext, project_line_gesture_apply_task_cb, &settings);
+          0, sgcontext->nodes.size(), sgcontext, project_line_gesture_apply_task_cb, &settings);
       break;
     case SCULPT_GESTURE_PROJECT_DEFORM_FAIR:
       BLI_task_parallel_range(
-          0, sgcontext->totnode, sgcontext, project_gesture_tag_fairing_task_cb, &settings);
+          0, sgcontext->nodes.size(), sgcontext, project_gesture_tag_fairing_task_cb, &settings);
       if (sgcontext->shape_type == SCULPT_GESTURE_SHAPE_LINE) {
         /* TODO: this needs to loop over all nodes to avoid artifacts. */
         /*
         BLI_task_parallel_range(0,
-                                sgcontext->totnode,
+                                sgcontext->nodes.size(),
                                 sgcontext,
                                 project_gesture_project_fairing_boundary_task_cb,
                                 &settings);

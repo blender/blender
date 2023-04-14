@@ -1089,9 +1089,7 @@ static void sculpt_mask_by_color_contiguous(Object *object,
   SCULPT_floodfill_execute(ss, &flood, sculpt_mask_by_color_contiguous_floodfill_cb, &ffd);
   SCULPT_floodfill_free(&flood);
 
-  int totnode;
-  PBVHNode **nodes;
-  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
   SculptThreadedTaskData data{};
   data.ob = object;
@@ -1103,11 +1101,9 @@ static void sculpt_mask_by_color_contiguous(Object *object,
   data.mask_by_color_preserve_mask = preserve_mask;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
   BLI_task_parallel_range(
-      0, totnode, &data, do_mask_by_color_contiguous_update_nodes_cb, &settings);
-
-  MEM_SAFE_FREE(nodes);
+      0, nodes.size(), &data, do_mask_by_color_contiguous_update_nodes_cb, &settings);
 
   MEM_freeN(new_mask);
 }
@@ -1158,9 +1154,7 @@ static void sculpt_mask_by_color_full_mesh(Object *object,
 {
   SculptSession *ss = object->sculpt;
 
-  int totnode;
-  PBVHNode **nodes;
-  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
   SculptThreadedTaskData data{};
   data.ob = object;
@@ -1171,10 +1165,8 @@ static void sculpt_mask_by_color_full_mesh(Object *object,
   data.mask_by_color_preserve_mask = preserve_mask;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_mask_by_color_task_cb, &settings);
-
-  MEM_SAFE_FREE(nodes);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+  BLI_task_parallel_range(0, nodes.size(), &data, do_mask_by_color_task_cb, &settings);
 }
 
 static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1379,9 +1371,6 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
   BMIter iter;
   BMVert *v;
 
-  PBVHNode **nodes = nullptr;
-  int totnode;
-
   int idx = CustomData_get_named_layer_index(&bm->vdata, CD_PROP_COLOR, "_rake_temp");
   if (idx < 0) {
     printf("no rake temp\n");
@@ -1399,16 +1388,14 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
   for (int step = 0; step < 33; step++) {
     BLI_mempool *nodepool = BLI_mempool_create(sizeof(BMLinkItem), bm->totvert, 4196, 0);
 
-    BKE_pbvh_get_nodes(ss->pbvh, PBVH_Leaf, &nodes, &totnode);
+    Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
     SCULPT_undo_push_begin(ob, op);
-    for (int i = 0; i < totnode; i++) {
+    for (int i = 0; i < nodes.size(); i++) {
       SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR, -1);
       BKE_pbvh_node_mark_update_color(nodes[i]);
     }
     SCULPT_undo_push_end(ob);
-
-    MEM_SAFE_FREE(nodes);
 
     bm->elem_index_dirty |= BM_VERT;
     BM_mesh_elem_index_ensure(bm, BM_VERT);
@@ -1653,7 +1640,7 @@ enum CavityBakeSettingsSource {
 struct AutomaskBakeTaskData {
   SculptSession *ss;
   AutomaskingCache *automasking;
-  PBVHNode **nodes;
+  Span<PBVHNode *> nodes;
   CavityBakeMixMode mode;
   float factor;
   Object *ob;
@@ -1729,10 +1716,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   CavityBakeMixMode mode = CavityBakeMixMode(RNA_enum_get(op->ptr, "mix_mode"));
   float factor = RNA_float_get(op->ptr, "mix_factor");
 
-  PBVHNode **nodes;
-  int totnode;
-
-  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
   AutomaskBakeTaskData tdata;
 
@@ -1805,10 +1789,9 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   tdata.automasking = SCULPT_automasking_cache_init(&sd2, &brush2, ob);
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &tdata, sculpt_bake_cavity_exec_task_cb, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+  BLI_task_parallel_range(0, nodes.size(), &tdata, sculpt_bake_cavity_exec_task_cb, &settings);
 
-  MEM_SAFE_FREE(nodes);
   SCULPT_automasking_cache_free(ss, ob, tdata.automasking);
 
   BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
@@ -1956,13 +1939,11 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  PBVHNode **nodes;
-  int totnode;
   bool with_bmesh = BKE_pbvh_type(ss->pbvh) == PBVH_BMESH;
 
-  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
-  if (!totnode) {
+  if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1971,11 +1952,11 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
 
   SCULPT_undo_push_begin(ob, op);
 
-  for (int i = 0; i < totnode; i++) {
-    BKE_pbvh_node_mark_update_visibility(nodes[i]);
+  for (PBVHNode *node : nodes) {
+    BKE_pbvh_node_mark_update_visibility(node);
 
     if (!with_bmesh) {
-      SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_HIDDEN);
+      SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
     }
   }
 
@@ -2018,7 +1999,6 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
   BKE_pbvh_update_visibility(ss->pbvh);
 
   SCULPT_undo_push_end(ob);
-  MEM_SAFE_FREE(nodes);
 
   SCULPT_tag_update_overlays(C);
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);

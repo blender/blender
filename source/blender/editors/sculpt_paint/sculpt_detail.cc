@@ -87,17 +87,15 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   SculptSession *ss = ob->sculpt;
   float size;
   float bb_min[3], bb_max[3], center[3], dim[3];
-  int totnodes;
-  PBVHNode **nodes;
 
-  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnodes);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
-  if (!totnodes) {
+  if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
-  for (int i = 0; i < totnodes; i++) {
-    BKE_pbvh_node_mark_topology_update(nodes[i]);
+  for (PBVHNode *node : nodes) {
+    BKE_pbvh_node_mark_topology_update(node);
   }
   /* Get the bounding box, its center and size. */
   BKE_pbvh_bounding_box(ob->sculpt->pbvh, bb_min, bb_max);
@@ -148,7 +146,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
                                               enable_surface_relax,
                                               false);
 
-    for (int j = 0; j < totnodes; j++) {
+    for (int j = 0; j < nodes.size(); j++) {
       BKE_pbvh_node_mark_topology_update(nodes[j]);
     }
 
@@ -166,7 +164,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
                                                max_dyntopo_steps_subd,
                                                enable_surface_relax,
                                                false);
-    for (int j = 0; j < totnodes; j++) {
+    for (int j = 0; j < nodes.size(); j++) {
       BKE_pbvh_node_mark_topology_update(nodes[j]);
     }
 
@@ -177,7 +175,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
 
   /* one more time, but with cleanup valence 3/4 verts enabled */
   for (i = 0; i < 2; i++) {
-    for (int j = 0; j < totnodes; j++) {
+    for (int j = 0; j < nodes.size(); j++) {
       BKE_pbvh_node_mark_topology_update(nodes[j]);
     }
 
@@ -199,7 +197,6 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);
 
-  MEM_SAFE_FREE(nodes);
   SCULPT_undo_push_end(ob);
 
   /* Force rebuild of PBVH for better BB placement. */

@@ -4,6 +4,7 @@
 
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
+#include "BLI_vector.hh"
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
@@ -370,8 +371,6 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVH *pbvh,
                                     bool use_original,
                                     int stroke_id);
 
-void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode);
-
 void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node);
 
 BLI_INLINE int pbvh_bmesh_node_index_from_vert(PBVH *pbvh, const BMVert *key)
@@ -454,6 +453,7 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
 
 void pbvh_bmesh_check_other_verts(PBVHNode *node);
 //#define DEFRAGMENT_MEMORY
+void pbvh_bmesh_normals_update(PBVH *pbvh, blender::Span<PBVHNode *> nodes);
 
 /* pbvh_pixels.hh */
 

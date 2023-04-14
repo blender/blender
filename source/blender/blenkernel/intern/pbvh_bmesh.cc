@@ -36,6 +36,7 @@ Topology rake:
 #include "BLI_memarena.h"
 #include "BLI_rand.h"
 #include "BLI_sort_utils.h"
+#include "BLI_span.hh"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
@@ -69,6 +70,8 @@ Topology rake:
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+
+using blender::Span;
 
 #include <cstdarg>
 
@@ -1656,13 +1659,13 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
   node->flag &= ~PBVH_UpdateNormals;
 }
 
-void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode)
+void pbvh_bmesh_normals_update(PBVH *pbvh, Span<PBVHNode *> nodes)
 {
   TaskParallelSettings settings;
   Vector<UpdateNormalsTaskData> datas;
-  datas.resize(totnode);
+  datas.resize(nodes.size());
 
-  for (int i : IndexRange(totnode)) {
+  for (int i : nodes.index_range()) {
     datas[i].node = nodes[i];
     datas[i].cd_sculpt_vert = pbvh->cd_sculpt_vert;
     datas[i].cd_vert_node_offset = pbvh->cd_vert_node_offset;
@@ -1672,8 +1675,8 @@ void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode)
     BKE_pbvh_bmesh_check_tris(pbvh, nodes[i]);
   }
 
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, datas.data(), pbvh_update_normals_task_cb, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+  BLI_task_parallel_range(0, nodes.size(), datas.data(), pbvh_update_normals_task_cb, &settings);
 
   /* not sure it's worth calling BM_mesh_elem_index_ensure here */
 #if 0
@@ -1681,7 +1684,7 @@ void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode)
   BM_mesh_elem_index_ensure(bm, BM_VERT);
 #endif
 
-  for (int i = 0; i < totnode; i++) {
+  for (int i = 0; i < datas.size(); i++) {
     UpdateNormalsTaskData *data = &datas[i];
 
 #if 0

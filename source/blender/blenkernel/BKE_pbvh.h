@@ -12,6 +12,7 @@
 #include "BLI_ghash.h"
 #ifdef __cplusplus
 #  include "BLI_offset_indices.hh"
+#  include "BLI_vector.hh"
 #endif
 
 #include "bmesh.h"
@@ -418,7 +419,6 @@ typedef void (*BKE_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float *
 
 typedef void (*BKE_pbvh_SearchNearestCallback)(PBVHNode *node, void *data, float *tmin);
 
-void BKE_pbvh_get_nodes(PBVH *pbvh, int flag, PBVHNode ***r_array, int *r_totnode);
 PBVHNode *BKE_pbvh_get_node(PBVH *pbvh, int node);
 
 /* Building */
@@ -505,7 +505,8 @@ void BKE_pbvh_set_stroke_id(PBVH *pbvh, int stroke_id);
 
 /* Hierarchical Search in the BVH, two methods:
  * - For each hit calling a callback.
- * - Gather nodes in an array (easy to multi-thread). */
+ * - Gather nodes in an array (easy to multi-thread) see blender::bke::pbvh::search_gather.
+ */
 
 void BKE_pbvh_search_callback(PBVH *pbvh,
                               BKE_pbvh_SearchCallback scb,
@@ -513,14 +514,6 @@ void BKE_pbvh_search_callback(PBVH *pbvh,
                               BKE_pbvh_HitCallback hcb,
                               void *hit_data);
 
-void BKE_pbvh_search_gather(
-    PBVH *pbvh, BKE_pbvh_SearchCallback scb, void *search_data, PBVHNode ***array, int *tot);
-void BKE_pbvh_search_gather_ex(PBVH *pbvh,
-                               BKE_pbvh_SearchCallback scb,
-                               void *search_data,
-                               PBVHNode ***r_array,
-                               int *r_tot,
-                               PBVHNodeFlags leaf_flag);
 /* Ray-cast
  * the hit callback is called for all leaf nodes intersecting the ray;
  * it's up to the callback to find the primitive within the leaves that is
@@ -1016,7 +1009,6 @@ void BKE_pbvh_face_iter_finish(PBVHFaceIter *fd);
 void BKE_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *proxy_count);
 void BKE_pbvh_node_free_proxies(PBVHNode *node);
 PBVHProxyNode *BKE_pbvh_node_add_proxy(PBVH *pbvh, PBVHNode *node);
-void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***r_array, int *r_tot);
 
 /**
  * \note doing a full search on all vertices here seems expensive,
@@ -1393,7 +1385,7 @@ bool BKE_pbvh_show_orig_get(PBVH *pbvh);
 #ifdef __cplusplus
 }
 
-namespace blender::pbvh {
+namespace blender::bke::pbvh {
 void update_vert_boundary_faces(int *boundary_flags,
                                 const int *face_sets,
                                 const bool *hide_poly,
@@ -1408,5 +1400,12 @@ void update_vert_boundary_faces(int *boundary_flags,
                                 PBVHVertRef vertex,
                                 const bool *sharp_edges,
                                 const bool *seam_edges);
-}
+
+Vector<PBVHNode *> search_gather(PBVH *pbvh,
+                                 BKE_pbvh_SearchCallback scb,
+                                 void *search_data,
+                                 PBVHNodeFlags leaf_flag = PBVH_Leaf);
+Vector<PBVHNode *> gather_proxies(PBVH *pbvh);
+Vector<PBVHNode *> get_flagged_nodes(PBVH *pbvh, int flag);
+}  // namespace blender::bke::pbvh
 #endif

@@ -84,6 +84,7 @@ using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
 using blender::StringRef;
+using blender::Vector;
 
 static void sculpt_attribute_update_refs(Object *ob);
 static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
@@ -2129,13 +2130,11 @@ static void sculpt_update_object(
     }
 
     if (updatePBVH && ss->pbvh) {
-      PBVHNode **nodes;
-      int totnode;
-      BKE_pbvh_get_nodes(ss->pbvh, PBVH_Leaf, &nodes, &totnode);
+      Vector<PBVHNode *> nodes = blender::bke::pbvh::get_flagged_nodes(ss->pbvh, PBVH_Leaf);
 
-      for (int i = 0; i < totnode; i++) {
-        BKE_pbvh_node_mark_update(nodes[i]);
-        BKE_pbvh_vert_tag_update_normal_tri_area(nodes[i]);
+      for (PBVHNode *node : nodes) {
+        BKE_pbvh_node_mark_update(node);
+        BKE_pbvh_vert_tag_update_normal_tri_area(node);
       }
     }
     /* We could be more precise when we have access to the active tool. */
@@ -2217,17 +2216,12 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
       /* In vertex/weight paint, force maps to be rebuilt. */
       BKE_sculptsession_free_vwpaint_data(ob_eval->sculpt);
     }
-    else if (ss->pbvh) {
-      PBVHNode **nodes;
-      int n, totnode;
+    else {
+      Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
-      BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
-
-      for (n = 0; n < totnode; n++) {
-        BKE_pbvh_node_mark_update(nodes[n]);
+      for (PBVHNode *node : nodes) {
+        BKE_pbvh_node_mark_update(node);
       }
-
-      MEM_SAFE_FREE(nodes);
     }
   }
 }

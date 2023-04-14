@@ -968,14 +968,11 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
   update_unode_bmesh_memsize(unode);
 
   if (!data.do_full_recalc) {
-    int totnode;
-    PBVHNode **nodes;
-
-    BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
+    Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
     if (data.regen_all_unique_verts) {
-      for (int i = 0; i < totnode; i++) {
-        BKE_pbvh_bmesh_mark_node_regen(ss->pbvh, nodes[i]);
+      for (PBVHNode *node : nodes) {
+        BKE_pbvh_bmesh_mark_node_regen(ss->pbvh, node);
       }
     }
 
@@ -984,10 +981,6 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
     // pbvh_bmesh_check_nodes(ss->pbvh);
 
     BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
-
-    if (nodes) {
-      MEM_freeN(nodes);
-    }
 
     if (data.balance_pbvh) {
       BKE_pbvh_bmesh_after_stroke(ss->pbvh, true);
@@ -3061,16 +3054,11 @@ static void sculpt_undo_push_all_grids(Object *object)
     return;
   }
 
-  PBVHNode **nodes;
-  int totnodes;
-
-  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnodes);
-  for (int i = 0; i < totnodes; i++) {
-    SculptUndoNode *unode = SCULPT_undo_push_node(object, nodes[i], SCULPT_UNDO_COORDS);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  for (PBVHNode *node : nodes) {
+    SculptUndoNode *unode = SCULPT_undo_push_node(object, node, SCULPT_UNDO_COORDS);
     unode->node = nullptr;
   }
-
-  MEM_SAFE_FREE(nodes);
 }
 
 void ED_sculpt_undo_push_multires_mesh_begin(bContext *C, const char *str)

@@ -19,8 +19,10 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_gsqueue.h"
 #include "BLI_implicit_sharing.hh"
+#include "BLI_span.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "ED_view3d.h"
 
@@ -61,6 +63,9 @@ enough for about ~30 radial symmetry passes, which seems like plenty
 used by various code that needs to statically store per-pass state.
 */
 #define SCULPT_MAX_SYMMETRY_PASSES 255
+
+using blender::Span;
+using blender::Vector;
 
 /* Updates */
 
@@ -285,14 +290,12 @@ struct SculptRakeData {
  * altogether after moving to C++ (where we'll be able to use lambdas).
  */
 struct SculptThreadedTaskData {
-  struct bContext *C;
-  struct Sculpt *sd;
-  struct Object *ob;
-  struct SculptSession *ss;
-  const struct Brush *brush;
-  struct PBVHNode **nodes;
-
-  int totnode;
+  bContext *C;
+  Sculpt *sd;
+  Object *ob;
+  const Brush *brush;
+  SculptSession *ss;
+  Span<PBVHNode *> nodes;
 
   VPaint *vp;
   WPaintData *wpd;
@@ -594,8 +597,7 @@ struct FilterCache {
   float (*limit_surface_co)[3];
 
   /* unmasked nodes */
-  PBVHNode **nodes;
-  int totnode;
+  Vector<PBVHNode *> nodes;
 
   /* Cloth filter. */
   SculptClothSimulation *cloth_sim;
@@ -965,8 +967,7 @@ struct ExpandCache {
 
   /* Cached PBVH nodes. This allows to skip gathering all nodes from the PBVH each time expand
    * needs to update the state of the elements. */
-  PBVHNode **nodes;
-  int totnode;
+  Vector<PBVHNode *> nodes;
 
   /* Expand state options. */
 
@@ -1041,8 +1042,7 @@ struct SculptCurvatureData {
 struct SculptFaceSetDrawData {
   struct Sculpt *sd;
   struct Object *ob;
-  PBVHNode **nodes;
-  int totnode;
+  Span<PBVHNode *> nodes;
   struct Brush *brush;
   float bstrength;
 
@@ -1472,18 +1472,16 @@ BLI_INLINE bool SCULPT_tool_needs_all_pbvh_nodes(const Brush *brush)
 }
 
 void SCULPT_calc_brush_plane(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3], float r_area_co[3]);
+    Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float r_area_no[3], float r_area_co[3]);
 
-void SCULPT_calc_area_normal(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3]);
+void SCULPT_calc_area_normal(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float r_area_no[3]);
 /**
  * This calculates flatten center and area normal together,
  * amortizing the memory bandwidth and loop overhead to calculate both at the same time.
  */
 void SCULPT_calc_area_normal_and_center(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3], float r_area_co[3]);
-void SCULPT_calc_area_center(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_co[3]);
+    Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float r_area_no[3], float r_area_co[3]);
+void SCULPT_calc_area_center(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float r_area_co[3]);
 
 PBVHVertRef SCULPT_nearest_vertex_get(
     Sculpt *sd, Object *ob, const float co[3], float max_distance, bool use_original);
@@ -1774,8 +1772,10 @@ void SCULPT_filter_cache_init(bContext *C,
 void SCULPT_filter_cache_free(SculptSession *ss, Object *ob);
 void SCULPT_mesh_filter_properties(wmOperatorType *ot);
 
-void SCULPT_mask_filter_smooth_apply(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, int smooth_iterations);
+void SCULPT_mask_filter_smooth_apply(Sculpt *sd,
+                                     Object *ob,
+                                     Span<PBVHNode *> nodes,
+                                     int smooth_iterations);
 
 /* Filter orientation utils. */
 void SCULPT_filter_to_orientation_space(float r_v[3], FilterCache *filter_cache);
@@ -1789,7 +1789,7 @@ void SCULPT_filter_zero_disabled_axis_components(float r_v[3], FilterCache *filt
  * \{ */
 
 /* Main cloth brush function */
-void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
 
 void SCULPT_cloth_simulation_free(SculptClothSimulation *cloth_sim);
 
@@ -1806,20 +1806,19 @@ struct SculptClothSimulation *SCULPT_cloth_brush_simulation_create(
 void SCULPT_cloth_brush_simulation_init(struct SculptSession *ss,
                                         struct SculptClothSimulation *cloth_sim);
 
-void SCULPT_cloth_sim_activate_nodes(SculptClothSimulation *cloth_sim,
-                                     PBVHNode **nodes,
-                                     int totnode);
+void SCULPT_cloth_sim_activate_nodes(SculptClothSimulation *cloth_sim, Span<PBVHNode *> nodes);
 
 void SCULPT_cloth_brush_store_simulation_state(SculptSession *ss,
                                                SculptClothSimulation *cloth_sim);
 
-void SCULPT_cloth_brush_do_simulation_step(
-    Sculpt *sd, Object *ob, SculptClothSimulation *cloth_sim, PBVHNode **nodes, int totnode);
+void SCULPT_cloth_brush_do_simulation_step(Sculpt *sd,
+                                           Object *ob,
+                                           SculptClothSimulation *cloth_sim,
+                                           Span<PBVHNode *> nodes);
 
 void SCULPT_cloth_brush_ensure_nodes_constraints(Sculpt *sd,
                                                  Object *ob,
-                                                 PBVHNode **nodes,
-                                                 int totnode,
+                                                 Span<PBVHNode *> nodes,
                                                  SculptClothSimulation *cloth_sim,
                                                  float initial_location[3],
                                                  float radius);
@@ -1842,9 +1841,7 @@ void SCULPT_cloth_plane_falloff_preview_draw(uint gpuattr,
                                              const float outline_col[3],
                                              float outline_alpha);
 
-PBVHNode **SCULPT_cloth_brush_affected_nodes_gather(SculptSession *ss,
-                                                    Brush *brush,
-                                                    int *r_totnode);
+Vector<PBVHNode *> SCULPT_cloth_brush_affected_nodes_gather(SculptSession *ss, Brush *brush);
 
 BLI_INLINE bool SCULPT_is_cloth_deform_brush(const Brush *brush)
 {
@@ -1912,13 +1909,9 @@ void SCULPT_reproject_cdata(SculptSession *ss,
                             float origco[3],
                             float origno[3]);
 
-void SCULPT_smooth(Sculpt *sd,
-                   Object *ob,
-                   PBVHNode **nodes,
-                   const int totnode,
-                   float bstrength,
-                   const bool smooth_mask);
-void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+void SCULPT_smooth(
+    Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bstrength, const bool smooth_mask);
+void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
 
 /* Surface Smooth Brush. */
 void SCULPT_surface_smooth_laplacian_init(Object *ob);
@@ -1932,9 +1925,8 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
                                           bool use_area_weights);
 
 void SCULPT_surface_smooth_displace_step(
-    SculptSession *ss, float *co, const PBVHVertRef v_index, const float beta, const float fade);
-
-void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+    SculptSession *ss, float *co, PBVHVertRef vertex, float beta, float fade);
+void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
 
 /* Slide/Relax */
 void SCULPT_relax_vertex(SculptSession *ss,
@@ -1950,8 +1942,7 @@ void SCULPT_relax_vertex(SculptSession *ss,
  */
 bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
                                   Object *ob,
-                                  PBVHNode **nodes,
-                                  int totnode,
+                                  Span<PBVHNode *> nodes,
                                   bool use_threading,
                                   float r_area_no[3]);
 
@@ -2114,7 +2105,7 @@ void SCULPT_OT_dynamic_topology_toggle(wmOperatorType *ot);
 /**
  * Main Brush Function.
  */
-void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
 /**
  * Calculate the pose origin and (Optionally the pose factor)
  * that is used when using the pose brush.
@@ -2154,7 +2145,7 @@ struct SculptBoundary *SCULPT_boundary_data_init(struct Sculpt *sd,
 void SCULPT_boundary_data_free(struct SculptBoundary *boundary);
 
 /* Main Brush Function. */
-void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
 
 void SCULPT_boundary_edges_preview_draw(uint gpuattr,
                                         SculptSession *ss,
@@ -2162,38 +2153,31 @@ void SCULPT_boundary_edges_preview_draw(uint gpuattr,
                                         float outline_alpha);
 void SCULPT_boundary_pivot_line_preview_draw(uint gpuattr, SculptSession *ss);
 
-void SCULPT_do_twist_brush(struct Sculpt *sd,
-                           struct Object *ob,
-                           struct PBVHNode **nodes,
-                           int totnode);
-
 /* Multi-plane Scrape Brush. */
 /* Main Brush Function. */
-void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
 void SCULPT_multiplane_scrape_preview_draw(uint gpuattr,
                                            Brush *brush,
                                            SculptSession *ss,
                                            const float outline_col[3],
                                            float outline_alpha);
 /* Draw Face Sets Brush. */
-void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
 
 /* Paint Brush. */
 void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
                            Scene *scene,
                            Sculpt *sd,
                            Object *ob,
-                           PBVHNode **nodes,
-                           int totnode,
-                           PBVHNode **texnodes,
-                           int texnodes_num) ATTR_NONNULL();
+                           Span<PBVHNode *> nodes,
+                           Span<PBVHNode *> texnodes);
 
 /**
  * \brief Get the image canvas for painting on the given object.
  *
- * \return #true if an image is found. The #r_image and #r_image_user fields are filled with the
- * image and image user. Returns false when the image isn't found. In the later case the r_image
- * and r_image_user are set to NULL.
+ * \return #true if an image is found. The #r_image and #r_image_user fields are filled with
+ * the image and image user. Returns false when the image isn't found. In the later case the
+ * r_image and r_image_user are set to NULL.
  */
 bool SCULPT_paint_image_canvas_get(PaintModeSettings *paint_mode_settings,
                                    Object *ob,
@@ -2202,158 +2186,41 @@ bool SCULPT_paint_image_canvas_get(PaintModeSettings *paint_mode_settings,
 void SCULPT_do_paint_brush_image(PaintModeSettings *paint_mode_settings,
                                  Sculpt *sd,
                                  Object *ob,
-                                 PBVHNode **texnodes,
-                                 int texnode_num) ATTR_NONNULL();
+                                 Span<PBVHNode *> texnodes);
 bool SCULPT_use_image_paint_brush(PaintModeSettings *settings, Object *ob) ATTR_NONNULL();
 
 /* Smear Brush. */
-void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
 
 float SCULPT_clay_thumb_get_stabilized_pressure(StrokeCache *cache);
 
-void SCULPT_do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+void SCULPT_do_draw_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_fill_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_scrape_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_clay_thumb_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_flatten_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_clay_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_clay_strips_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_snake_hook_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_thumb_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_rotate_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_layer_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_inflate_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_nudge_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_crease_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_pinch_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_grab_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_elastic_deform_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_draw_sharp_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_slide_relax_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
 
-void SCULPT_do_fill_brush(struct Sculpt *sd,
-                          struct Object *ob,
-                          struct PBVHNode **nodes,
-                          int totnode);
-void SCULPT_do_scrape_brush(struct Sculpt *sd,
-                            struct Object *ob,
-                            struct PBVHNode **nodes,
-                            int totnode);
-void SCULPT_do_clay_thumb_brush(struct Sculpt *sd,
-                                struct Object *ob,
-                                struct PBVHNode **nodes,
-                                int totnode);
-void SCULPT_do_flatten_brush(struct Sculpt *sd,
-                             struct Object *ob,
-                             struct PBVHNode **nodes,
-                             int totnode);
-void SCULPT_do_clay_brush(struct Sculpt *sd,
-                          struct Object *ob,
-                          struct PBVHNode **nodes,
-                          int totnode);
-void SCULPT_do_clay_strips_brush(struct Sculpt *sd,
-                                 struct Object *ob,
-                                 struct PBVHNode **nodes,
-                                 int totnode);
-void SCULPT_do_snake_hook_brush(struct Sculpt *sd,
-                                struct Object *ob,
-                                struct PBVHNode **nodes,
-                                int totnode);
-void SCULPT_do_thumb_brush(struct Sculpt *sd,
-                           struct Object *ob,
-                           struct PBVHNode **nodes,
-                           int totnode);
-void SCULPT_do_rotate_brush(struct Sculpt *sd,
-                            struct Object *ob,
-                            struct PBVHNode **nodes,
-                            int totnode);
-void SCULPT_do_layer_brush(struct Sculpt *sd,
-                           struct Object *ob,
-                           struct PBVHNode **nodes,
-                           int totnode);
-void SCULPT_do_inflate_brush(struct Sculpt *sd,
-                             struct Object *ob,
-                             struct PBVHNode **nodes,
-                             int totnode);
-void SCULPT_do_nudge_brush(struct Sculpt *sd,
-                           struct Object *ob,
-                           struct PBVHNode **nodes,
-                           int totnode);
-void SCULPT_do_crease_brush(struct Sculpt *sd,
-                            struct Object *ob,
-                            struct PBVHNode **nodes,
-                            int totnode);
-void SCULPT_do_pinch_brush(struct Sculpt *sd,
-                           struct Object *ob,
-                           struct PBVHNode **nodes,
-                           int totnode);
-void SCULPT_do_grab_brush(struct Sculpt *sd,
-                          struct Object *ob,
-                          struct PBVHNode **nodes,
-                          int totnode);
-void SCULPT_do_elastic_deform_brush(struct Sculpt *sd,
-                                    struct Object *ob,
-                                    struct PBVHNode **nodes,
-                                    int totnode);
-void SCULPT_do_draw_sharp_brush(struct Sculpt *sd,
-                                struct Object *ob,
-                                struct PBVHNode **nodes,
-                                int totnode);
-void SCULPT_do_scene_project_brush(struct Sculpt *sd,
-                                   struct Object *ob,
-                                   struct PBVHNode **nodes,
-                                   int totnode);
-void SCULPT_do_slide_brush(struct Sculpt *sd,
-                           struct Object *ob,
-                           struct PBVHNode **nodes,
-                           int totnode);
-void SCULPT_do_slide_relax_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
-void SCULPT_do_fairing_brush(struct Sculpt *sd,
-                             struct Object *ob,
-                             struct PBVHNode **nodes,
-                             int totnode);
-void SCULPT_do_displacement_smear_brush(struct Sculpt *sd,
-                                        struct Object *ob,
-                                        struct PBVHNode **nodes,
-                                        int totnode);
-void SCULPT_do_displacement_eraser_brush(struct Sculpt *sd,
-                                         struct Object *ob,
-                                         struct PBVHNode **nodes,
-                                         int totnode);
-void SCULPT_do_draw_brush(struct Sculpt *sd,
-                          struct Object *ob,
-                          struct PBVHNode **nodes,
-                          int totnode);
-void SCULPT_do_mask_brush_draw(struct Sculpt *sd,
-                               struct Object *ob,
-                               struct PBVHNode **nodes,
-                               int totnode);
-void SCULPT_do_mask_brush(struct Sculpt *sd,
-                          struct Object *ob,
-                          struct PBVHNode **nodes,
-                          int totnode);
-void SCULPT_bmesh_topology_rake(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, float bstrength);
-
-void SCULPT_stroke_cache_snap_context_init(struct bContext *C, struct Object *ob);
-void SCULPT_fairing_brush_exec_fairing_for_cache(struct Sculpt *sd, struct Object *ob);
-void SCULPT_do_auto_face_set(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
-
-void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
-                                        const int n,
-                                        const struct TaskParallelTLS *__restrict tls);
-
-void SCULPT_enhance_details_brush(struct Sculpt *sd,
-                                  struct Object *ob,
-                                  struct PBVHNode **nodes,
-                                  const int totnode,
-                                  int presteps);
-void SCULPT_do_displacement_heal_brush(struct Sculpt *sd,
-                                       struct Object *ob,
-                                       struct PBVHNode **nodes,
-                                       int totnode);
-
-void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
-void SCULPT_array_datalayers_free(SculptArray *array, Object *ob);
-void SCULPT_array_path_draw(const uint gpuattr, Brush *brush, SculptSession *ss);
-
-/* Directional Smooth Brush. */
-void SCULPT_do_directional_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
-
-/* Uniform Weights Smooth Brush. */
-void SCULPT_do_uniform_weights_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
-
-void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
-void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
-
-/* Symmetrize Map. */
-void SCULPT_do_symmetrize_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
-
-void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
-
+void SCULPT_do_displacement_smear_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_displacement_eraser_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_mask_brush_draw(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_do_mask_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes);
 /** \} */
+
+void SCULPT_bmesh_topology_rake(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bstrength);
 
 /* end sculpt_brush_types.cc */
 

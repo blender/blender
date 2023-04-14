@@ -73,13 +73,8 @@ void ED_sculpt_init_transform(bContext *C, Object *ob, const int mval[2], const 
           ob, 1.0f, 1.0f, 0.0f, true, false);
       SCULPT_cloth_brush_simulation_init(ss, ss->filter_cache->cloth_sim);
       SCULPT_cloth_brush_store_simulation_state(ss, ss->filter_cache->cloth_sim);
-      SCULPT_cloth_brush_ensure_nodes_constraints(sd,
-                                                  ob,
-                                                  ss->filter_cache->nodes,
-                                                  ss->filter_cache->totnode,
-                                                  ss->filter_cache->cloth_sim,
-                                                  ss->pivot_pos,
-                                                  FLT_MAX);
+      SCULPT_cloth_brush_ensure_nodes_constraints(
+          sd, ob, ss->filter_cache->nodes, ss->filter_cache->cloth_sim, ss->pivot_pos, FLT_MAX);
 
       break;
   }
@@ -230,9 +225,9 @@ static void sculpt_transform_all_vertices(Sculpt *sd, Object *ob)
   /* Regular transform applies all symmetry passes at once as it is split by symmetry areas
    * (each vertex can only be transformed once by the transform matrix of its area). */
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
   BLI_task_parallel_range(
-      0, ss->filter_cache->totnode, &data, sculpt_transform_task_cb, &settings);
+      0, ss->filter_cache->nodes.size(), &data, sculpt_transform_task_cb, &settings);
 }
 
 static void sculpt_elastic_transform_task_cb(void *__restrict userdata,
@@ -305,7 +300,7 @@ static void sculpt_transform_radius_elastic(Sculpt *sd, Object *ob, const float 
       ss, symm, ss->filter_cache->transform_displacement_mode, data.transform_mats);
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
 
   /* Elastic transform needs to apply all transform matrices to all vertices and then combine the
    * displacement proxies as all vertices are modified by all symmetry passes. */
@@ -317,7 +312,7 @@ static void sculpt_transform_radius_elastic(Sculpt *sd, Object *ob, const float 
       const int symm_area = SCULPT_get_vertex_symm_area(data.elastic_transform_pivot);
       copy_m4_m4(data.elastic_transform_mat, data.transform_mats[symm_area]);
       BLI_task_parallel_range(
-          0, ss->filter_cache->totnode, &data, sculpt_elastic_transform_task_cb, &settings);
+          0, ss->filter_cache->nodes.size(), &data, sculpt_elastic_transform_task_cb, &settings);
     }
   }
   SCULPT_combine_transform_proxies(sd, ob);
@@ -364,10 +359,9 @@ void ED_sculpt_update_modal_transform(bContext *C, Object *ob)
   copy_v3_v3(ss->prev_pivot_scale, ss->pivot_scale);
 
   if (sd->transform_deform_target == SCULPT_TRANSFORM_DEFORM_TARGET_CLOTH_SIM) {
-    SCULPT_cloth_sim_activate_nodes(
-        ss->filter_cache->cloth_sim, ss->filter_cache->nodes, ss->filter_cache->totnode);
+    SCULPT_cloth_sim_activate_nodes(ss->filter_cache->cloth_sim, ss->filter_cache->nodes);
     SCULPT_cloth_brush_do_simulation_step(
-        sd, ob, ss->filter_cache->cloth_sim, ss->filter_cache->nodes, ss->filter_cache->totnode);
+        sd, ob, ss->filter_cache->cloth_sim, ss->filter_cache->nodes);
   }
 
   if (ss->deform_modifiers_active || ss->shapekey_active) {
@@ -455,9 +449,7 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    PBVHNode **nodes;
-    int totnode;
-    BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
+    Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
     float avg[3];
     int total = 0;
@@ -465,9 +457,9 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
 
     /* Pivot to unmasked. */
     if (mode == SCULPT_PIVOT_POSITION_UNMASKED) {
-      for (int n = 0; n < totnode; n++) {
+      for (PBVHNode *node : nodes) {
         PBVHVertexIter vd;
-        BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
           const float mask = (vd.mask) ? *vd.mask : 0.0f;
           if (mask < 1.0f) {
             if (SCULPT_check_vertex_pivot_symmetry(vd.co, ss->pivot_pos, symm)) {
@@ -483,9 +475,9 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
     else if (mode == SCULPT_PIVOT_POSITION_MASK_BORDER) {
       const float threshold = 0.2f;
 
-      for (int n = 0; n < totnode; n++) {
+      for (PBVHNode *node : nodes) {
         PBVHVertexIter vd;
-        BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
           const float mask = (vd.mask) ? *vd.mask : 0.0f;
           if (mask < (0.5f + threshold) && mask > (0.5f - threshold)) {
             if (SCULPT_check_vertex_pivot_symmetry(vd.co, ss->pivot_pos, symm)) {
@@ -502,8 +494,6 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
       mul_v3_fl(avg, 1.0f / total);
       copy_v3_v3(ss->pivot_pos, avg);
     }
-
-    MEM_SAFE_FREE(nodes);
   }
 
   /* Update the viewport navigation rotation origin. */

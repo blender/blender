@@ -11,6 +11,7 @@
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_task.h"
+#include "BLI_vector.hh"
 
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
@@ -32,6 +33,8 @@
 
 #include <cmath>
 #include <cstdlib>
+
+using blender::Vector;
 
 static void do_color_smooth_task_cb_exec(void *__restrict userdata,
                                          const int n,
@@ -286,13 +289,11 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
                            Scene *scene,
                            Sculpt *sd,
                            Object *ob,
-                           PBVHNode **nodes,
-                           int totnode,
-                           PBVHNode **texnodes,
-                           int texnodes_num)
+                           Span<PBVHNode *> nodes,
+                           Span<PBVHNode *> texnodes)
 {
   if (SCULPT_use_image_paint_brush(paint_mode_settings, ob)) {
-    SCULPT_do_paint_brush_image(paint_mode_settings, sd, ob, texnodes, texnodes_num);
+    SCULPT_do_paint_brush_image(paint_mode_settings, sd, ob, texnodes);
     return;
   }
 
@@ -344,8 +345,8 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
     data.brush_color = brush_color;
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    BLI_task_parallel_range(0, totnode, &data, do_color_smooth_task_cb_exec, &settings);
+    BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+    BLI_task_parallel_range(0, nodes.size(), &data, do_color_smooth_task_cb_exec, &settings);
     return;
   }
 
@@ -366,11 +367,12 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
     zero_v4(swptd.color);
 
     TaskParallelSettings settings_sample;
-    BKE_pbvh_parallel_range_settings(&settings_sample, true, totnode);
+    BKE_pbvh_parallel_range_settings(&settings_sample, true, nodes.size());
     settings_sample.func_reduce = sample_wet_paint_reduce;
     settings_sample.userdata_chunk = &swptd;
     settings_sample.userdata_chunk_size = sizeof(SampleWetPaintTLSData);
-    BLI_task_parallel_range(0, totnode, &task_data, do_sample_wet_paint_task_cb, &settings_sample);
+    BLI_task_parallel_range(
+        0, nodes.size(), &task_data, do_sample_wet_paint_task_cb, &settings_sample);
 
     if (swptd.tot_samples > 0 && is_finite_v4(swptd.color)) {
       copy_v4_v4(wet_color, swptd.color);
@@ -417,12 +419,8 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
   data.brush_color = brush_color;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_paint_brush_task_cb_ex, &settings);
-
-  if (brush->vcol_boundary_factor > 0.0f) {
-    // SCULPT_smooth_vcol_boundary(sd, ob, nodes, totnode, brush->vcol_boundary_factor);
-  }
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+  BLI_task_parallel_range(0, nodes.size(), &data, do_paint_brush_task_cb_ex, &settings);
 }
 
 static void do_smear_brush_task_cb_exec(void *__restrict userdata,
@@ -596,7 +594,7 @@ static void do_smear_store_prev_colors_task_cb_exec(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -627,15 +625,16 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   data.nodes = nodes;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
 
   /* Smooth colors mode. */
   if (ss->cache->alt_smooth) {
-    BLI_task_parallel_range(0, totnode, &data, do_color_smooth_task_cb_exec, &settings);
+    BLI_task_parallel_range(0, nodes.size(), &data, do_color_smooth_task_cb_exec, &settings);
   }
   else {
     /* Smear mode. */
-    BLI_task_parallel_range(0, totnode, &data, do_smear_store_prev_colors_task_cb_exec, &settings);
-    BLI_task_parallel_range(0, totnode, &data, do_smear_brush_task_cb_exec, &settings);
+    BLI_task_parallel_range(
+        0, nodes.size(), &data, do_smear_store_prev_colors_task_cb_exec, &settings);
+    BLI_task_parallel_range(0, nodes.size(), &data, do_smear_brush_task_cb_exec, &settings);
   }
 }

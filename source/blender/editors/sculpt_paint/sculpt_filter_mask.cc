@@ -163,9 +163,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const Scene *scene = CTX_data_scene(C);
-  PBVHNode **nodes;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-  int totnode;
   int filter_type = RNA_enum_get(op->ptr, "filter_type");
 
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
@@ -184,11 +182,11 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   int num_verts = SCULPT_vertex_count_get(ss);
 
-  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
   SCULPT_undo_push_begin(ob, op);
 
-  for (int i = 0; i < totnode; i++) {
-    SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
+  for (PBVHNode *node : nodes) {
+    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
   }
 
   float *prev_mask = nullptr;
@@ -219,15 +217,13 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
     data.prev_mask = prev_mask;
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    BLI_task_parallel_range(0, totnode, &data, mask_filter_task_cb, &settings);
+    BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+    BLI_task_parallel_range(0, nodes.size(), &data, mask_filter_task_cb, &settings);
 
     if (ELEM(filter_type, MASK_FILTER_GROW, MASK_FILTER_SHRINK)) {
       MEM_freeN(prev_mask);
     }
   }
-
-  MEM_SAFE_FREE(nodes);
 
   SCULPT_undo_push_end(ob);
 
@@ -236,8 +232,10 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SCULPT_mask_filter_smooth_apply(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, const int smooth_iterations)
+void SCULPT_mask_filter_smooth_apply(Sculpt *sd,
+                                     Object *ob,
+                                     Span<PBVHNode *> nodes,
+                                     const int smooth_iterations)
 {
   SculptThreadedTaskData data{};
   data.sd = sd;
@@ -247,8 +245,8 @@ void SCULPT_mask_filter_smooth_apply(
 
   for (int i = 0; i < smooth_iterations; i++) {
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    BLI_task_parallel_range(0, totnode, &data, mask_filter_task_cb, &settings);
+    BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+    BLI_task_parallel_range(0, nodes.size(), &data, mask_filter_task_cb, &settings);
   }
 }
 
@@ -643,8 +641,9 @@ static void sculpt_ipmask_apply_mask_data(SculptSession *ss,
   data.mask_interpolation = interpolation;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, filter_cache->totnode);
-  BLI_task_parallel_range(0, filter_cache->totnode, &data, ipmask_filter_apply_task_cb, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, filter_cache->nodes.size());
+  BLI_task_parallel_range(
+      0, filter_cache->nodes.size(), &data, ipmask_filter_apply_task_cb, &settings);
 }
 
 static float *sculpt_ipmask_apply_delta_step(MaskFilterDeltaStep *delta_step,
@@ -867,9 +866,9 @@ static void sculpt_ipmask_apply_from_original_mask_data(Object *ob,
   data.filter_type = filter_type;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, filter_cache->totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, filter_cache->nodes.size());
   BLI_task_parallel_range(
-      0, filter_cache->totnode, &data, ipmask_filter_apply_from_original_task_cb, &settings);
+      0, filter_cache->nodes.size(), &data, ipmask_filter_apply_from_original_task_cb, &settings);
 }
 
 static bool sculpt_ipmask_filter_uses_apply_from_original(
@@ -914,9 +913,12 @@ static void sculpt_ipmask_restore_original_mask(Object *ob)
   data.nodes = filter_cache->nodes;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, filter_cache->totnode);
-  BLI_task_parallel_range(
-      0, filter_cache->totnode, &data, ipmask_filter_restore_original_mask_task_cb, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, filter_cache->nodes.size());
+  BLI_task_parallel_range(0,
+                          filter_cache->nodes.size(),
+                          &data,
+                          ipmask_filter_restore_original_mask_task_cb,
+                          &settings);
 }
 
 static void sculpt_ipmask_filter_cancel(bContext *C, wmOperator * /* op */)
@@ -950,7 +952,7 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   }
 
   if (ELEM(event->type, LEFTMOUSE, EVT_RETKEY, EVT_PADENTER)) {
-    for (int i = 0; i < filter_cache->totnode; i++) {
+    for (int i = 0; i < filter_cache->nodes.size(); i++) {
       BKE_pbvh_node_mark_update_mask(filter_cache->nodes[i]);
     }
     SCULPT_filter_cache_free(ss, ob);
@@ -988,7 +990,7 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
 static void sculpt_ipmask_store_initial_undo_step(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
-  for (int i = 0; i < ss->filter_cache->totnode; i++) {
+  for (int i = 0; i < ss->filter_cache->nodes.size(); i++) {
     SCULPT_undo_push_node(ob, ss->filter_cache->nodes[i], SCULPT_UNDO_MASK);
   }
 }
@@ -999,7 +1001,7 @@ static FilterCache *sculpt_ipmask_filter_cache_init(Object *ob,
                                                     const bool init_automasking)
 {
   SculptSession *ss = ob->sculpt;
-  FilterCache *filter_cache = MEM_cnew<FilterCache>("filter cache");
+  FilterCache *filter_cache = MEM_new<FilterCache>("filter cache");
 
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
   if (init_automasking) {
@@ -1007,7 +1009,7 @@ static FilterCache *sculpt_ipmask_filter_cache_init(Object *ob,
   }
   filter_cache->mask_filter_current_step = 0;
 
-  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &filter_cache->nodes, &filter_cache->totnode);
+  filter_cache->nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
   filter_cache->mask_delta_step = BLI_ghash_int_new("mask filter delta steps");
   switch (filter_type) {
