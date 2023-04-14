@@ -588,7 +588,7 @@ static PySequenceMethods bpy_bmdeformvert_as_sequence = {
 };
 
 static PyMappingMethods bpy_bmdeformvert_as_mapping = {
-    /*mp_len*/ (lenfunc)bpy_bmdeformvert_len,
+    /*mp_length*/ (lenfunc)bpy_bmdeformvert_len,
     /*mp_subscript*/ (binaryfunc)bpy_bmdeformvert_subscript,
     /*mp_ass_subscript*/ (objobjargproc)bpy_bmdeformvert_ass_subscript,
 };
