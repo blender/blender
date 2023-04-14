@@ -746,7 +746,11 @@ void ANIM_frame_channel_y_extents(bContext *C, bAnimContext *ac)
 
   rctf bounds = {.xmin = FLT_MAX, .xmax = -FLT_MAX, .ymin = FLT_MAX, .ymax = -FLT_MAX};
   const bool include_handles = false;
-  const float frame_range[2] = {window_region->v2d.cur.xmin, window_region->v2d.cur.xmax};
+  float frame_range[2] = {window_region->v2d.cur.xmin, window_region->v2d.cur.xmax};
+  if (ac->scene->r.flag & SCER_PRV_RANGE) {
+    frame_range[0] = ac->scene->r.psfra;
+    frame_range[1] = ac->scene->r.pefra;
+  }
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     rctf channel_bounds;
