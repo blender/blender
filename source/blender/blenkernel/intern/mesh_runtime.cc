@@ -241,6 +241,7 @@ void BKE_mesh_tag_edges_split(struct Mesh *mesh)
   mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   if (mesh->runtime->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
+    mesh->runtime->shrinkwrap_data = nullptr;
   }
 }
 
