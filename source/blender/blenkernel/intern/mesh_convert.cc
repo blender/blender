@@ -1128,6 +1128,8 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
   CustomData_copy(&mesh_src->pdata, &mesh_dst->pdata, mask.pmask, mesh_src->totpoly);
   CustomData_copy(&mesh_src->ldata, &mesh_dst->ldata, mask.lmask, mesh_src->totloop);
   std::swap(mesh_dst->poly_offset_indices, mesh_src->poly_offset_indices);
+  std::swap(mesh_dst->runtime->poly_offsets_sharing_info,
+            mesh_src->runtime->poly_offsets_sharing_info);
 
   /* Make sure attribute names are moved. */
   std::swap(mesh_dst->active_color_attribute, mesh_src->active_color_attribute);

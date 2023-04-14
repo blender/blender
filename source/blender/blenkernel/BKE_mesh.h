@@ -800,10 +800,7 @@ BLI_INLINE const int *BKE_mesh_poly_offsets(const Mesh *mesh)
 {
   return mesh->poly_offset_indices;
 }
-BLI_INLINE int *BKE_mesh_poly_offsets_for_write(Mesh *mesh)
-{
-  return mesh->poly_offset_indices;
-}
+int *BKE_mesh_poly_offsets_for_write(Mesh *mesh);
 
 BLI_INLINE const int *BKE_mesh_corner_verts(const Mesh *mesh)
 {

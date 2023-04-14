@@ -97,6 +97,23 @@ static int rna_CurvePoint_index_get_const(const PointerRNA *ptr)
   return (int)(co - positions);
 }
 
+static void rna_Curves_curves_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  Curves *curves = rna_curves(ptr);
+  rna_iterator_array_begin(iter,
+                           ED_curves_offsets_for_write(curves),
+                           sizeof(int),
+                           curves->geometry.curve_num,
+                           false,
+                           NULL);
+}
+
+static int rna_Curves_curves_length(PointerRNA *ptr)
+{
+  const Curves *curves = rna_curves(ptr);
+  return curves->geometry.curve_num;
+}
+
 static int rna_Curves_position_data_length(PointerRNA *ptr)
 {
   const Curves *curves = rna_curves(ptr);
@@ -343,7 +360,15 @@ static void rna_def_curves(BlenderRNA *brna)
   /* Point and Curve RNA API helpers. */
 
   prop = RNA_def_property(srna, "curves", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "geometry.curve_offsets", "geometry.curve_num");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Curves_curves_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_Curves_curves_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
   RNA_def_property_struct_type(prop, "CurveSlice");
   RNA_def_property_ui_text(prop, "Curves", "All curves in the data-block");
 
@@ -376,7 +401,6 @@ static void rna_def_curves(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Curves_update_data");
 
   prop = RNA_def_property(srna, "curve_offset_data", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "geometry.curve_offsets", NULL);
   RNA_def_property_struct_type(prop, "IntAttributeValue");
   RNA_def_property_collection_funcs(prop,
                                     "rna_Curves_curve_offset_data_begin",

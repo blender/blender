@@ -677,7 +677,11 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   BKE_mesh_clear_geometry(me);
 
-  me->poly_offset_indices = poly_offsets;
+  if (totpoly) {
+    me->poly_offset_indices = poly_offsets;
+    me->runtime->poly_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
+        poly_offsets);
+  }
 
   me->totvert = totvert;
   me->totedge = totedge;

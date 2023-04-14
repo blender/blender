@@ -1251,8 +1251,13 @@ static void mesh_add_polys(Mesh *mesh, int len)
   CustomData_copy_layout(&mesh->pdata, &pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
   CustomData_copy_data(&mesh->pdata, &pdata, 0, 0, mesh->totpoly);
 
-  mesh->poly_offset_indices = static_cast<int *>(
-      MEM_reallocN(mesh->poly_offset_indices, sizeof(int) * (totpoly + 1)));
+  implicit_sharing::resize_trivial_array(&mesh->poly_offset_indices,
+                                         &mesh->runtime->poly_offsets_sharing_info,
+                                         mesh->totpoly == 0 ? 0 : (mesh->totpoly + 1),
+                                         totpoly + 1);
+  /* Set common values for convenience. */
+  mesh->poly_offset_indices[0] = 0;
+  mesh->poly_offset_indices[totpoly] = mesh->totloop;
 
   CustomData_free(&mesh->pdata, mesh->totpoly);
   mesh->pdata = pdata;
@@ -1260,9 +1265,6 @@ static void mesh_add_polys(Mesh *mesh, int len)
   BKE_mesh_runtime_clear_cache(mesh);
 
   mesh->totpoly = totpoly;
-  /* Update the last offset, which may not be set elsewhere and must be the same as the number of
-   * face corners. */
-  mesh->poly_offsets_for_write().last() = mesh->totloop;
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(

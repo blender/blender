@@ -118,9 +118,13 @@ static void expand_mesh(Mesh &mesh,
     const int old_polys_num = mesh.totpoly;
     mesh.totpoly += poly_expand;
     CustomData_realloc(&mesh.pdata, old_polys_num, mesh.totpoly);
-    mesh.poly_offset_indices = static_cast<int *>(
-        MEM_reallocN(mesh.poly_offset_indices, sizeof(int) * (mesh.totpoly + 1)));
-    mesh.poly_offsets_for_write().last() = mesh.totloop + loop_expand;
+    implicit_sharing::resize_trivial_array(&mesh.poly_offset_indices,
+                                           &mesh.runtime->poly_offsets_sharing_info,
+                                           old_polys_num == 0 ? 0 : (old_polys_num + 1),
+                                           mesh.totpoly + 1);
+    /* Set common values for convenience. */
+    mesh.poly_offset_indices[0] = 0;
+    mesh.poly_offset_indices[mesh.totpoly] = mesh.totloop + loop_expand;
   }
   if (loop_expand != 0) {
     CustomData_free_layers(&mesh.ldata, CD_NORMAL, mesh.totloop);

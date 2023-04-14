@@ -16,6 +16,8 @@
 
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+
+#include "BLI_implicit_sharing.hh"
 #include "BLI_bitmap.h"
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
@@ -147,6 +149,7 @@ struct SculptUndoNodeGeometry {
   CustomData ldata;
   CustomData pdata;
   int *poly_offset_indices;
+  blender::ImplicitSharingInfo *poly_offsets_sharing_info;
   int totvert;
   int totedge;
   int totloop;

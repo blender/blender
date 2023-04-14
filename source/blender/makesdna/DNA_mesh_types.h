@@ -78,6 +78,9 @@ typedef struct Mesh {
   /**
    * Array owned by mesh. May be null of there are no polygons. Index of the first corner of each
    * polygon, with the total number of corners at the end. See #Mesh::polys() and #OffsetIndices.
+   *
+   * This array is shared based on the bke::MeshRuntime::poly_offsets_sharing_info.
+   * Avoid accessing directly when possible.
    */
   int *poly_offset_indices;
 
