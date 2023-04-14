@@ -1494,12 +1494,11 @@ bool BKE_id_new_name_validate(
     return result;
   }
 
-  /* if no name given, use name of current ID
-   * else make a copy (tname args can be const) */
+  /* If no name given, use name of current ID. */
   if (tname == NULL) {
     tname = id->name + 2;
   }
-
+  /* Make a copy of given name (tname args can be const). */
   BLI_strncpy(name, tname, sizeof(name));
 
   if (name[0] == '\0') {
