@@ -152,10 +152,12 @@ LightTreeBucket operator+(const LightTreeBucket &a, const LightTreeBucket &b);
 struct LightTreeNode {
   LightTreeMeasure measure;
   uint bit_trail;
-  int num_emitters = -1; /* The number of emitters a leaf node stores. A negative number indicates
-                            it is an inner node. */
-  int first_emitter_index;               /* Leaf nodes contain an index to first emitter. */
-  unique_ptr<LightTreeNode> children[2]; /* Inner node has two children. */
+  /* The number of emitters a leaf node stores. A negative number indicates it is an inner node. */
+  int num_emitters = -1;
+  /* Leaf nodes contain an index to first emitter. */
+  int first_emitter_index;
+  /* Inner node has two children. */
+  unique_ptr<LightTreeNode> children[2];
 
   LightTreeNode() = default;
 

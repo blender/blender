@@ -194,7 +194,8 @@ static void nlastrip_flag_overlaps(NlaStrip *strip)
   }
 }
 
-/** Check the Transformation data for the given Strip, and fix any overlap. Then
+/**
+ * Check the Transformation data for the given Strip, and fix any overlap. Then
  * apply the Transformation.
  */
 static void nlastrip_fix_overlapping(TransInfo *t, TransDataNla *tdn, NlaStrip *strip)
@@ -202,8 +203,7 @@ static void nlastrip_fix_overlapping(TransInfo *t, TransDataNla *tdn, NlaStrip *
   /* firstly, check if the proposed transform locations would overlap with any neighboring
    * strips (barring transitions) which are absolute barriers since they are not being moved
    *
-   * this is done as a iterative procedure (done 5 times max for now)
-   */
+   * this is done as a iterative procedure (done 5 times max for now). */
   short iter_max = 4;
   NlaStrip *prev = BKE_nlastrip_prev_in_track(strip, true);
   NlaStrip *next = BKE_nlastrip_next_in_track(strip, true);
@@ -215,9 +215,8 @@ static void nlastrip_fix_overlapping(TransInfo *t, TransDataNla *tdn, NlaStrip *
     const bool n_exceeded = (next != NULL) && (tdn->h2[0] > next->start);
 
     if ((p_exceeded && n_exceeded) || (iter == iter_max)) {
-      /* both endpoints exceeded (or iteration ping-pong'd meaning that we need a
-       * compromise)
-       * - Simply crop strip to fit within the bounds of the strips bounding it
+      /* Both endpoints exceeded (or iteration ping-pong'd meaning that we need a compromise).
+       * - Simply crop strip to fit within the bounds of the strips bounding it.
        * - If there were no neighbors, clear the transforms
        *   (make it default to the strip's current values).
        */
@@ -250,16 +249,14 @@ static void nlastrip_fix_overlapping(TransInfo *t, TransDataNla *tdn, NlaStrip *
   }
 
   /* Use RNA to write the values to ensure that constraints on these are obeyed
-   * (e.g. for transition strips, the values are taken from the neighbors)
-   */
+   * (e.g. for transition strips, the values are taken from the neighbors). */
   RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
 
   switch (t->mode) {
     case TFM_TIME_EXTEND:
     case TFM_TIME_SCALE: {
       /* The final scale is the product of the original strip scale (from before the
-       * transform operation started) and the current scale value of this transform
-       * operation. */
+       * transform operation started) and the current scale value of this transform operation. */
       const float originalStripScale = tdn->h1[2];
       const float newStripScale = originalStripScale * t->values_final[0];
       applyTransformNLA_timeScale(&strip_ptr, newStripScale);
@@ -380,18 +377,18 @@ static void createTransNlaData(bContext *C, TransInfo *t)
         /* transition strips can't get directly transformed */
         if (strip->type != NLASTRIP_TYPE_TRANSITION) {
           if (strip->flag & NLASTRIP_FLAG_SELECT) {
-            /* our transform data is constructed as follows:
-             * - only the handles on the right side of the current-frame get included
-             * - td structs are transform-elements operated on by the transform system
-             *   and represent a single handle. The storage/pointer used (val or loc) depends
-             * on whether we're scaling or transforming. Ultimately though, the handles the td
-             * writes to will simply be a dummy in tdn
-             * - for each strip being transformed, a single tdn struct is used, so in some
-             *   cases, there will need to be 1 of these tdn elements in the array skipped...
+            /* Our transform data is constructed as follows:
+             * - Only the handles on the right side of the current-frame get included.
+             * - `td` structs are transform-elements operated on by the transform system and
+             *   represent a single handle. The storage/pointer used (`val` or `loc`) depends
+             *   on whether we're scaling or transforming. Ultimately though, the handles the `td`
+             *   writes to will simply be a dummy in `tdn`.
+             * - For each strip being transformed, a single `tdn` struct is used, so in some
+             *   cases, there will need to be 1 of these `tdn` elements in the array skipped.
              */
             float center[3], yval;
 
-            /* firstly, init tdn settings */
+            /* Firstly, initialize `tdn` settings. */
             tdn->id = ale->id;
             tdn->oldTrack = tdn->nlt = nlt;
             tdn->strip = strip;
@@ -648,14 +645,12 @@ typedef struct IDGroupedTransData {
 /** horizontally translate (shuffle) the transformed strip to a non-overlapping state. */
 static void nlastrip_shuffle_transformed(TransDataContainer *tc, TransDataNla *first_trans_data)
 {
-  /* Element: (IDGroupedTransData*) */
+  /* Element: #IDGroupedTransData. */
   ListBase grouped_trans_datas = {NULL, NULL};
 
-  /* Flag all non-library-override transformed strips so we can distinguish them when
-   * shuffling.
+  /* Flag all non-library-override transformed strips so we can distinguish them when shuffling.
    *
-   * Group trans_datas by ID so shuffling is unique per ID.
-   */
+   * Group trans_datas by ID so shuffling is unique per ID. */
   {
     TransDataNla *tdn = first_trans_data;
     for (int i = 0; i < tc->data_len; i++, tdn++) {

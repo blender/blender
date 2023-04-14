@@ -1952,9 +1952,11 @@ static void BKE_nlastrip_validate_autoblends(NlaTrack *nlt, NlaStrip *nls)
   }
 }
 
-/* Ensure every transition's start/end properly set.
+/**
+ * Ensure every transition's start/end properly set.
  * Strip will be removed / freed if it doesn't fit (invalid).
- * Return value indicates if passed strip is valid/fixed or invalid/removed. */
+ * Return value indicates if passed strip is valid/fixed or invalid/removed.
+ */
 static bool nlastrip_validate_transition_start_end(NlaStrip *strip)
 {
 
