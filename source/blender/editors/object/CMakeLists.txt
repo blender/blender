@@ -20,6 +20,7 @@ set(INC
   ../../render
   ../../shader_fx
   ../../windowmanager
+  ../../../../intern/atomic
   ../../../../intern/clog
   ../../../../intern/guardedalloc
 

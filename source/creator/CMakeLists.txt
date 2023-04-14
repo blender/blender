@@ -2,6 +2,7 @@
 # Copyright 2006 Blender Foundation
 
 set(INC
+  ../../intern/atomic
   ../../intern/clog
   ../../intern/guardedalloc
   ../blender/blenkernel
