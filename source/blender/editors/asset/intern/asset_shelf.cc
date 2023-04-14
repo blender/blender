@@ -103,6 +103,7 @@ void ED_asset_shelf_region_listen(const wmRegionListenerParams *params)
 void ED_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
 {
   ED_region_panels_init(wm, region);
+  region->v2d.scroll = V2D_SCROLL_RIGHT;
   region->v2d.page_size_y = ED_asset_shelf_default_tile_height();
 }
 
@@ -118,7 +119,8 @@ static int main_region_padding_y_scaled()
 
 static int main_region_padding_x_scaled()
 {
-  return 2 * UI_SCALE_FAC;
+  const uiStyle *style = UI_style_get_dpi();
+  return style->buttonspacex;
 }
 
 int ED_asset_shelf_region_snap(const ARegion *region, const int size, const int axis)
@@ -209,6 +211,8 @@ void ED_asset_shelf_region_draw(const bContext *C,
 
   /* Restore view matrix. */
   UI_view2d_view_restore(C);
+
+  UI_view2d_scrollers_draw(&region->v2d, nullptr);
 }
 
 void ED_asset_shelf_footer_region_listen(const wmRegionListenerParams *params)
