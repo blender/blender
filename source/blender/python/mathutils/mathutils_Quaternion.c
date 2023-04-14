@@ -1355,7 +1355,7 @@ static PySequenceMethods Quaternion_SeqMethods = {
 };
 
 static PyMappingMethods Quaternion_AsMapping = {
-    /*mp_len*/ (lenfunc)Quaternion_len,
+    /*mp_length*/ (lenfunc)Quaternion_len,
     /*mp_subscript*/ (binaryfunc)Quaternion_subscript,
     /*mp_ass_subscript*/ (objobjargproc)Quaternion_ass_subscript,
 };

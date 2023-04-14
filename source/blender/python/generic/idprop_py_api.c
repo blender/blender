@@ -1620,7 +1620,7 @@ static PySequenceMethods BPy_IDGroup_Seq = {
 };
 
 static PyMappingMethods BPy_IDGroup_Mapping = {
-    /*mp_len*/ (lenfunc)BPy_IDGroup_Map_Len,
+    /*mp_length*/ (lenfunc)BPy_IDGroup_Map_Len,
     /*mp_subscript*/ (binaryfunc)BPy_IDGroup_Map_GetItem,
     /*mp_ass_subscript*/ (objobjargproc)BPy_IDGroup_Map_SetItem,
 };
@@ -1994,7 +1994,7 @@ static int BPy_IDArray_ass_subscript(BPy_IDArray *self, PyObject *item, PyObject
 }
 
 static PyMappingMethods BPy_IDArray_AsMapping = {
-    /*mp_len*/ (lenfunc)BPy_IDArray_Len,
+    /*mp_length*/ (lenfunc)BPy_IDArray_Len,
     /*mp_subscript*/ (binaryfunc)BPy_IDArray_subscript,
     /*mp_ass_subscript*/ (objobjargproc)BPy_IDArray_ass_subscript,
 };

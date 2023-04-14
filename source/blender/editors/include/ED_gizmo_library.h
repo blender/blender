@@ -64,6 +64,7 @@ enum {
   ED_GIZMO_ARROW_STYLE_CROSS = 1,
   ED_GIZMO_ARROW_STYLE_BOX = 2,
   ED_GIZMO_ARROW_STYLE_CONE = 3,
+  ED_GIZMO_ARROW_STYLE_PLANE = 4,
 };
 
 /* transform */
@@ -78,6 +79,7 @@ enum {
 enum {
   /* Show arrow stem. */
   ED_GIZMO_ARROW_DRAW_FLAG_STEM = (1 << 0),
+  ED_GIZMO_ARROW_DRAW_FLAG_ORIGIN = (1 << 1),
 };
 
 /**
@@ -233,6 +235,8 @@ enum {
 
 enum {
   ED_GIZMO_PRIMITIVE_STYLE_PLANE = 0,
+  ED_GIZMO_PRIMITIVE_STYLE_CIRCLE,
+  ED_GIZMO_PRIMITIVE_STYLE_ANNULUS,
 };
 
 /* -------------------------------------------------------------------- */

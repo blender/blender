@@ -11,11 +11,17 @@ extern "C" {
 #endif
 
 /**
- * Retrieve the custom data offsets for layers used for user interaction with a UV map, returns the
- * active uv map if layer is -1.
+ * Retrieve the custom data offsets for the UV map.
+ * \param layer: The layer index (where 0 is the first UV map).
+ * \return The layer offsets or -1 when not found.
+ */
+BMUVOffsets BM_uv_map_get_offsets_from_layer(const BMesh *bm, int layer);
+
+/**
+ * Retrieve the custom data offsets for layers used for user interaction with the active UV map.
+ * \return The layer offsets or -1 when not found.
  */
 BMUVOffsets BM_uv_map_get_offsets(const BMesh *bm);
-BMUVOffsets BM_uv_map_get_offsets_n(const BMesh *bm, int layer);
 
 float BM_loop_uv_calc_edge_length_squared(const BMLoop *l,
                                           int cd_loop_uv_offset) ATTR_WARN_UNUSED_RESULT

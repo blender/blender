@@ -3332,14 +3332,14 @@ static PySequenceMethods bpy_bmelemseq_as_sequence = {
 };
 
 static PyMappingMethods bpy_bmelemseq_as_mapping = {
-    /*mp_len*/ (lenfunc)bpy_bmelemseq_length,
+    /*mp_length*/ (lenfunc)bpy_bmelemseq_length,
     /*mp_subscript*/ (binaryfunc)bpy_bmelemseq_subscript,
     /*mp_ass_subscript*/ (objobjargproc)NULL,
 };
 
 /* for customdata access */
 static PyMappingMethods bpy_bm_elem_as_mapping = {
-    /*mp_len*/ (lenfunc)NULL, /* Keep this empty, messes up `if elem: ...` test. */
+    /*mp_length*/ (lenfunc)NULL, /* Keep this empty, messes up `if elem: ...` test. */
     /*mp_subscript*/ (binaryfunc)bpy_bmelem_subscript,
     /*mp_ass_subscript*/ (objobjargproc)bpy_bmelem_ass_subscript,
 };

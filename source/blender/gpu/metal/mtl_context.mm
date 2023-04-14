@@ -497,7 +497,7 @@ id<MTLBuffer> MTLContext::get_null_buffer()
   null_buffer_ = [this->device newBufferWithLength:null_buffer_size
                                            options:MTLResourceStorageModeManaged];
   [null_buffer_ retain];
-  uint32_t *null_data = (uint32_t *)calloc(0, null_buffer_size);
+  uint32_t *null_data = (uint32_t *)calloc(1, null_buffer_size);
   memcpy([null_buffer_ contents], null_data, null_buffer_size);
   [null_buffer_ didModifyRange:NSMakeRange(0, null_buffer_size)];
   free(null_data);
@@ -2190,16 +2190,6 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
    * for rendering as the main context does. */
   id<MTLCommandBuffer> cmdbuf = [ctx->queue commandBuffer];
   MTLCommandBufferManager::num_active_cmd_bufs++;
-
-  if (MTLCommandBufferManager::sync_event != nil) {
-    /* Release synchronization primitive for current frame to avoid cross-frame dependencies.
-     * We require MTLEvents to ensure correct ordering of workload submissions within a frame,
-     * however, we should not create long chains of dependencies spanning several drawables as any
-     * temporary stalls can then trigger erroneous GPU timeouts in non-dependent submissions.  */
-    [MTLCommandBufferManager::sync_event release];
-    MTLCommandBufferManager::sync_event = nil;
-    MTLCommandBufferManager::event_signal_val = 0;
-  }
 
   /* Do Present Call and final Blit to MTLDrawable. */
   id<MTLRenderCommandEncoder> enc = [cmdbuf renderCommandEncoderWithDescriptor:blit_descriptor];

@@ -592,7 +592,7 @@ static PySequenceMethods pygpu_buffer__tp_as_sequence = {
 };
 
 static PyMappingMethods pygpu_buffer__tp_as_mapping = {
-    /*mp_len*/ (lenfunc)pygpu_buffer__sq_length,
+    /*mp_length*/ (lenfunc)pygpu_buffer__sq_length,
     /*mp_subscript*/ (binaryfunc)pygpu_buffer__mp_subscript,
     /*mp_ass_subscript*/ (objobjargproc)pygpu_buffer__mp_ass_subscript,
 };

@@ -838,7 +838,7 @@ static PySequenceMethods Color_SeqMethods = {
 };
 
 static PyMappingMethods Color_AsMapping = {
-    /*mp_len*/ (lenfunc)Color_len,
+    /*mp_length*/ (lenfunc)Color_len,
     /*mp_subscript*/ (binaryfunc)Color_subscript,
     /*mp_ass_subscript*/ (objobjargproc)Color_ass_subscript,
 };

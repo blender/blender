@@ -1286,7 +1286,7 @@ PyTypeObject PyBVHTree_Type = {
     /*tp_init*/ nullptr,
     /*tp_alloc*/ (allocfunc)PyType_GenericAlloc,
     /*tp_new*/ (newfunc)PyType_GenericNew,
-    /*tp_free*/ (freefunc)0,
+    /*tp_free*/ (freefunc) nullptr,
     /*tp_is_gc*/ nullptr,
     /*tp_bases*/ nullptr,
     /*tp_mro*/ nullptr,

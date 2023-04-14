@@ -214,8 +214,8 @@ void deinterlace_line_inplace(
 }
 
 /* deinterlacing : 2 temporal taps, 3 spatial taps linear filter. The
-   top field is copied as is, but the bottom field is deinterlaced
-   against the top field. */
+ * top field is copied as is, but the bottom field is deinterlaced
+ * against the top field. */
 FFMPEG_INLINE
 void deinterlace_bottom_field(
     uint8_t *dst, int dst_wrap, const uint8_t *src1, int src_wrap, int width, int height)
