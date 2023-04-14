@@ -32,6 +32,7 @@ namespace blender::ed::asset::shelf {
 
 class AssetView : public ui::AbstractGridView {
   const AssetLibraryReference library_ref_;
+  const AssetShelfSettings &shelf_settings_;
   std::optional<asset_system::AssetCatalogFilter> catalog_filter_ = std::nullopt;
   /* XXX Temporary: Only for #asset_poll__() callback. Should use traits instead. */
   bContext &evil_C_;
@@ -39,7 +40,9 @@ class AssetView : public ui::AbstractGridView {
   friend class AssetDragController;
 
  public:
-  AssetView(const AssetLibraryReference &library_ref, bContext &evil_C);
+  AssetView(const AssetLibraryReference &library_ref,
+            const AssetShelfSettings &shelf_settings,
+            bContext &evil_C);
 
   void build_items() override;
 
@@ -67,8 +70,10 @@ class AssetDragController : public ui::AbstractViewItemDragController {
   void *create_drag_data() const override;
 };
 
-AssetView::AssetView(const AssetLibraryReference &library_ref, bContext &evil_C)
-    : library_ref_(library_ref), evil_C_(evil_C)
+AssetView::AssetView(const AssetLibraryReference &library_ref,
+                     const AssetShelfSettings &shelf_settings,
+                     bContext &evil_C)
+    : library_ref_(library_ref), shelf_settings_(shelf_settings), evil_C_(evil_C)
 {
 }
 
@@ -117,9 +122,11 @@ void AssetView::build_items()
       return true;
     }
 
+    const bool show_names = (shelf_settings_.display_flag & ASSETSHELF_SHOW_NAMES);
+
     /* Use the path within the library as identifier, this should be unique. */
     const StringRef identifier = ED_asset_handle_get_relative_path(asset);
-    const StringRef name = ED_asset_handle_get_name(&asset);
+    const StringRef name = show_names ? ED_asset_handle_get_name(&asset) : "";
     const int preview_id = ED_asset_handle_get_preview_icon_id(&asset);
 
     add_item<AssetViewItem>(asset, identifier, name, preview_id);
@@ -188,7 +195,8 @@ void build_asset_view(uiLayout &layout,
   const float tile_width = ED_asset_shelf_default_tile_width();
   const float tile_height = ED_asset_shelf_default_tile_height();
 
-  std::unique_ptr asset_view = std::make_unique<AssetView>(library_ref, const_cast<bContext &>(C));
+  std::unique_ptr asset_view = std::make_unique<AssetView>(
+      library_ref, *shelf_settings, const_cast<bContext &>(C));
   asset_view->set_catalog_filter(catalog_filter_from_shelf_settings(shelf_settings, *library));
   asset_view->set_tile_size(tile_width, tile_height);
 
