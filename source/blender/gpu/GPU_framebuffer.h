@@ -588,9 +588,14 @@ typedef struct GPUOffScreen GPUOffScreen;
  * \a format is the format of the color buffer.
  * If \a err_out is not `nullptr` it will be use to write any configuration error message..
  * \note This function binds the framebuffer to the active context.
+ * \note `GPU_TEXTURE_USAGE_ATTACHMENT` is added to the usage parameter by default.
  */
-GPUOffScreen *GPU_offscreen_create(
-    int width, int height, bool with_depth_buffer, eGPUTextureFormat format, char err_out[256]);
+GPUOffScreen *GPU_offscreen_create(int width,
+                                   int height,
+                                   bool with_depth_buffer,
+                                   eGPUTextureFormat format,
+                                   eGPUTextureUsage usage,
+                                   char err_out[256]);
 
 /**
  * Free a #GPUOffScreen.

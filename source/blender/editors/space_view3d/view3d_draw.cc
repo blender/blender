@@ -1886,7 +1886,12 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
 
   if (own_ofs) {
     /* bind */
-    ofs = GPU_offscreen_create(sizex, sizey, true, GPU_RGBA8, err_out);
+    ofs = GPU_offscreen_create(sizex,
+                               sizey,
+                               true,
+                               GPU_RGBA8,
+                               GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ,
+                               err_out);
     if (ofs == nullptr) {
       DRW_opengl_context_disable();
       return nullptr;
