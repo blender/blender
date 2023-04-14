@@ -168,15 +168,17 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
 
         BKE_LIB_FOREACHID_PROCESS_ID(data, snode->id, IDWALK_CB_NOP);
         BKE_LIB_FOREACHID_PROCESS_ID(data, snode->from, IDWALK_CB_NOP);
-        BKE_LIB_FOREACHID_PROCESS_IDSUPER(
-            data, snode->nodetree, is_private_nodetree ? IDWALK_CB_EMBEDDED : IDWALK_CB_USER_ONE);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data,
+                                          snode->nodetree,
+                                          is_private_nodetree ? IDWALK_CB_EMBEDDED_NOT_OWNING :
+                                                                IDWALK_CB_USER_ONE);
 
         LISTBASE_FOREACH (bNodeTreePath *, path, &snode->treepath) {
           if (path == snode->treepath.first) {
             /* first nodetree in path is same as snode->nodetree */
             BKE_LIB_FOREACHID_PROCESS_IDSUPER(data,
                                               path->nodetree,
-                                              is_private_nodetree ? IDWALK_CB_EMBEDDED :
+                                              is_private_nodetree ? IDWALK_CB_EMBEDDED_NOT_OWNING :
                                                                     IDWALK_CB_USER_ONE);
           }
           else {

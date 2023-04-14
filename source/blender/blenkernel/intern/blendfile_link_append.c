@@ -923,8 +923,8 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
 {
   /* NOTE: It is important to also skip liboverride references here, as those should never be made
    * local. */
-  if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_INTERNAL | IDWALK_CB_LOOPBACK |
-                          IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) {
+  if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING | IDWALK_CB_INTERNAL |
+                          IDWALK_CB_LOOPBACK | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) {
     return IDWALK_RET_NOP;
   }
 
