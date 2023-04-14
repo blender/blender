@@ -79,6 +79,7 @@
 using blender::float3;
 using blender::MutableSpan;
 using blender::Set;
+using blender::Span;
 using blender::Vector;
 
 static float sculpt_calc_radius(ViewContext *vc,
@@ -1101,16 +1102,16 @@ PBVHVertRef SCULPT_nearest_vertex_get(
     Sculpt *sd, Object *ob, const float co[3], float max_distance, bool use_original)
 {
   SculptSession *ss = ob->sculpt;
-  PBVHNode **nodes = nullptr;
-  int totnode;
+  Vector<PBVHNode *> nodes;
+
   SculptSearchSphereData data{};
   data.sd = sd;
   data.radius_squared = max_distance * max_distance;
   data.original = use_original;
   data.center = co;
 
-  BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, &totnode);
-  if (totnode == 0) {
+  nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data);
+  if (nodes.is_empty()) {
     return BKE_pbvh_make_vref(PBVH_REF_NONE);
   }
 
@@ -1126,13 +1127,11 @@ PBVHVertRef SCULPT_nearest_vertex_get(
   nvtd.nearest_vertex_distance_squared = FLT_MAX;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
   settings.func_reduce = nearest_vertex_get_reduce;
   settings.userdata_chunk = &nvtd;
   settings.userdata_chunk_size = sizeof(NearestVertexTLSData);
-  BLI_task_parallel_range(0, totnode, &task_data, do_nearest_vertex_get_task_cb, &settings);
-
-  MEM_SAFE_FREE(nodes);
+  BLI_task_parallel_range(0, nodes.size(), &task_data, do_nearest_vertex_get_task_cb, &settings);
 
   return nvtd.nearest_vertex;
 }
@@ -1619,10 +1618,7 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  PBVHNode **nodes;
-  int totnode;
-
-  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
   /**
    * Disable multi-threading when dynamic-topology is enabled. Otherwise,
@@ -1636,12 +1632,10 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
   data.nodes = nodes;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true && !ss->bm, totnode);
-  BLI_task_parallel_range(0, totnode, &data, paint_mesh_restore_co_task_cb, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true && !ss->bm, nodes.size());
+  BLI_task_parallel_range(0, nodes.size(), &data, paint_mesh_restore_co_task_cb, &settings);
 
   BKE_pbvh_node_color_buffer_free(ss->pbvh);
-
-  MEM_SAFE_FREE(nodes);
 }
 
 /*** BVH Tree ***/
@@ -2249,8 +2243,7 @@ static void calc_area_normal_and_center_reduce(const void *__restrict /*userdata
   add_v2_v2_int(join->count_co, anctd->count_co);
 }
 
-void SCULPT_calc_area_center(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_co[3])
+void SCULPT_calc_area_center(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float r_area_co[3])
 {
   const Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
@@ -2263,18 +2256,17 @@ void SCULPT_calc_area_center(
   data.ob = ob;
   data.brush = brush;
   data.nodes = nodes;
-  data.totnode = totnode;
   data.has_bm_orco = has_bm_orco;
   data.use_area_cos = true;
 
   AreaNormalCenterTLSData anctd = {{{0}}};
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
   settings.func_reduce = calc_area_normal_and_center_reduce;
   settings.userdata_chunk = &anctd;
   settings.userdata_chunk_size = sizeof(AreaNormalCenterTLSData);
-  BLI_task_parallel_range(0, totnode, &data, calc_area_normal_and_center_task_cb, &settings);
+  BLI_task_parallel_range(0, nodes.size(), &data, calc_area_normal_and_center_task_cb, &settings);
 
   /* For flatten center. */
   for (n = 0; n < ARRAY_SIZE(anctd.area_cos); n++) {
@@ -2297,19 +2289,14 @@ void SCULPT_calc_area_center(
   }
 }
 
-void SCULPT_calc_area_normal(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3])
+void SCULPT_calc_area_normal(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float r_area_no[3])
 {
   const Brush *brush = BKE_paint_brush(&sd->paint);
-  SCULPT_pbvh_calc_area_normal(brush, ob, nodes, totnode, true, r_area_no);
+  SCULPT_pbvh_calc_area_normal(brush, ob, nodes, true, r_area_no);
 }
 
-bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
-                                  Object *ob,
-                                  PBVHNode **nodes,
-                                  int totnode,
-                                  bool use_threading,
-                                  float r_area_no[3])
+bool SCULPT_pbvh_calc_area_normal(
+    const Brush *brush, Object *ob, Span<PBVHNode *> nodes, bool use_threading, float r_area_no[3])
 {
   SculptSession *ss = ob->sculpt;
   const bool has_bm_orco = ss->bm && SCULPT_stroke_is_dynamic_topology(ss, brush);
@@ -2320,7 +2307,6 @@ bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
   data.ob = ob;
   data.brush = brush;
   data.nodes = nodes;
-  data.totnode = totnode;
   data.has_bm_orco = has_bm_orco;
   data.use_area_nos = true;
   data.any_vertex_sampled = false;
@@ -2328,11 +2314,11 @@ bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
   AreaNormalCenterTLSData anctd = {{{0}}};
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, use_threading, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, use_threading, nodes.size());
   settings.func_reduce = calc_area_normal_and_center_reduce;
   settings.userdata_chunk = &anctd;
   settings.userdata_chunk_size = sizeof(AreaNormalCenterTLSData);
-  BLI_task_parallel_range(0, totnode, &data, calc_area_normal_and_center_task_cb, &settings);
+  BLI_task_parallel_range(0, nodes.size(), &data, calc_area_normal_and_center_task_cb, &settings);
 
   /* For area normal. */
   for (int i = 0; i < ARRAY_SIZE(anctd.area_nos); i++) {
@@ -2345,7 +2331,7 @@ bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
 }
 
 void SCULPT_calc_area_normal_and_center(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3], float r_area_co[3])
+    Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float r_area_no[3], float r_area_co[3])
 {
   const Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
@@ -2358,7 +2344,6 @@ void SCULPT_calc_area_normal_and_center(
   data.ob = ob;
   data.brush = brush;
   data.nodes = nodes;
-  data.totnode = totnode;
   data.has_bm_orco = has_bm_orco;
   data.use_area_cos = true;
   data.use_area_nos = true;
@@ -2366,11 +2351,11 @@ void SCULPT_calc_area_normal_and_center(
   AreaNormalCenterTLSData anctd = {{{0}}};
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
   settings.func_reduce = calc_area_normal_and_center_reduce;
   settings.userdata_chunk = &anctd;
   settings.userdata_chunk_size = sizeof(AreaNormalCenterTLSData);
-  BLI_task_parallel_range(0, totnode, &data, calc_area_normal_and_center_task_cb, &settings);
+  BLI_task_parallel_range(0, nodes.size(), &data, calc_area_normal_and_center_task_cb, &settings);
 
   /* For flatten center. */
   for (n = 0; n < ARRAY_SIZE(anctd.area_cos); n++) {
@@ -2850,13 +2835,11 @@ void SCULPT_clip(Sculpt *sd, SculptSession *ss, float co[3], const float val[3])
   }
 }
 
-static PBVHNode **sculpt_pbvh_gather_cursor_update(Object *ob,
-                                                   Sculpt *sd,
-                                                   bool use_original,
-                                                   int *r_totnode)
+static Vector<PBVHNode *> sculpt_pbvh_gather_cursor_update(Object *ob,
+                                                           Sculpt *sd,
+                                                           bool use_original)
 {
   SculptSession *ss = ob->sculpt;
-  PBVHNode **nodes = nullptr;
   SculptSearchSphereData data{};
   data.ss = ss;
   data.sd = sd;
@@ -2864,20 +2847,19 @@ static PBVHNode **sculpt_pbvh_gather_cursor_update(Object *ob,
   data.original = use_original;
   data.ignore_fully_ineffective = false;
   data.center = nullptr;
-  BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, r_totnode);
-  return nodes;
+
+  return blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data);
 }
 
-static PBVHNode **sculpt_pbvh_gather_generic_intern(Object *ob,
-                                                    Sculpt *sd,
-                                                    const Brush *brush,
-                                                    bool use_original,
-                                                    float radius_scale,
-                                                    int *r_totnode,
-                                                    PBVHNodeFlags flag)
+static Vector<PBVHNode *> sculpt_pbvh_gather_generic_intern(Object *ob,
+                                                            Sculpt *sd,
+                                                            const Brush *brush,
+                                                            bool use_original,
+                                                            float radius_scale,
+                                                            PBVHNodeFlags flag)
 {
   SculptSession *ss = ob->sculpt;
-  PBVHNode **nodes = nullptr;
+  Vector<PBVHNode *> nodes;
   PBVHNodeFlags leaf_flag = PBVH_Leaf;
 
   if (flag & PBVH_TexLeaf) {
@@ -2894,8 +2876,7 @@ static PBVHNode **sculpt_pbvh_gather_generic_intern(Object *ob,
     data.original = use_original;
     data.ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK;
     data.center = nullptr;
-    BKE_pbvh_search_gather_ex(
-        ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, r_totnode, leaf_flag);
+    nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, leaf_flag);
   }
   else {
     DistRayAABB_Precalc dist_ray_to_aabb_precalc;
@@ -2909,37 +2890,27 @@ static PBVHNode **sculpt_pbvh_gather_generic_intern(Object *ob,
     data.original = use_original;
     data.dist_ray_to_aabb_precalc = &dist_ray_to_aabb_precalc;
     data.ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK;
-    BKE_pbvh_search_gather_ex(
-        ss->pbvh, SCULPT_search_circle_cb, &data, &nodes, r_totnode, leaf_flag);
+    nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_circle_cb, &data, leaf_flag);
   }
+
   return nodes;
 }
 
-static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
-                                             Sculpt *sd,
-                                             const Brush *brush,
-                                             bool use_original,
-                                             float radius_scale,
-                                             int *r_totnode)
+static Vector<PBVHNode *> sculpt_pbvh_gather_generic(
+    Object *ob, Sculpt *sd, const Brush *brush, bool use_original, float radius_scale)
 {
-  return sculpt_pbvh_gather_generic_intern(
-      ob, sd, brush, use_original, radius_scale, r_totnode, PBVH_Leaf);
+  return sculpt_pbvh_gather_generic_intern(ob, sd, brush, use_original, radius_scale, PBVH_Leaf);
 }
 
-static PBVHNode **sculpt_pbvh_gather_texpaint(Object *ob,
-                                              Sculpt *sd,
-                                              const Brush *brush,
-                                              bool use_original,
-                                              float radius_scale,
-                                              int *r_totnode)
+static Vector<PBVHNode *> sculpt_pbvh_gather_texpaint(
+    Object *ob, Sculpt *sd, const Brush *brush, bool use_original, float radius_scale)
 {
   return sculpt_pbvh_gather_generic_intern(
-      ob, sd, brush, use_original, radius_scale, r_totnode, PBVH_TexLeaf);
+      ob, sd, brush, use_original, radius_scale, PBVH_TexLeaf);
 }
 
 /* Calculate primary direction of movement for many brushes. */
-static void calc_sculpt_normal(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3])
+static void calc_sculpt_normal(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float r_area_no[3])
 {
   const Brush *brush = BKE_paint_brush(&sd->paint);
   const SculptSession *ss = ob->sculpt;
@@ -2962,7 +2933,7 @@ static void calc_sculpt_normal(
       break;
 
     case SCULPT_DISP_DIR_AREA:
-      SCULPT_calc_area_normal(sd, ob, nodes, totnode, r_area_no);
+      SCULPT_calc_area_normal(sd, ob, nodes, r_area_no);
       break;
 
     default:
@@ -2970,7 +2941,7 @@ static void calc_sculpt_normal(
   }
 }
 
-static void update_sculpt_normal(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+static void update_sculpt_normal(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   const Brush *brush = BKE_paint_brush(&sd->paint);
   StrokeCache *cache = ob->sculpt->cache;
@@ -2983,7 +2954,7 @@ static void update_sculpt_normal(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0 &&
       (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(cache) || update_normal)) {
-    calc_sculpt_normal(sd, ob, nodes, totnode, cache->sculpt_normal);
+    calc_sculpt_normal(sd, ob, nodes, cache->sculpt_normal);
     if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
       project_plane_v3_v3v3(cache->sculpt_normal, cache->sculpt_normal, cache->view_normal);
       normalize_v3(cache->sculpt_normal);
@@ -3222,7 +3193,7 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
 }
 
 void SCULPT_calc_brush_plane(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3], float r_area_co[3])
+    Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float r_area_no[3], float r_area_co[3])
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -3251,7 +3222,7 @@ void SCULPT_calc_brush_plane(
         break;
 
       case SCULPT_DISP_DIR_AREA:
-        SCULPT_calc_area_normal_and_center(sd, ob, nodes, totnode, r_area_no, r_area_co);
+        SCULPT_calc_area_normal_and_center(sd, ob, nodes, r_area_no, r_area_co);
         if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
           project_plane_v3_v3v3(r_area_no, r_area_no, ss->cache->view_normal);
           normalize_v3(r_area_no);
@@ -3265,7 +3236,7 @@ void SCULPT_calc_brush_plane(
     /* For flatten center. */
     /* Flatten center has not been calculated yet if we are not using the area normal. */
     if (brush->sculpt_plane != SCULPT_DISP_DIR_AREA) {
-      SCULPT_calc_area_center(sd, ob, nodes, totnode, r_area_co);
+      SCULPT_calc_area_center(sd, ob, nodes, r_area_co);
     }
 
     /* For area normal. */
@@ -3384,7 +3355,7 @@ static void do_gravity_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_gravity(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float bstrength)
+static void do_gravity(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bstrength)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -3407,8 +3378,8 @@ static void do_gravity(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, fl
   data.offset = offset;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_gravity_task_cb_ex, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+  BLI_task_parallel_range(0, nodes.size(), &data, do_gravity_task_cb_ex, &settings);
 }
 
 /** \} */
@@ -3463,16 +3434,14 @@ static void sculpt_topology_update(Sculpt *sd,
 {
   SculptSession *ss = ob->sculpt;
 
-  int n, totnode;
   /* Build a list of all nodes that are potentially within the brush's area of influence. */
   const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
                                                                              ss->cache->original;
   const float radius_scale = 1.25f;
-  PBVHNode **nodes = sculpt_pbvh_gather_generic(
-      ob, sd, brush, use_original, radius_scale, &totnode);
+  Vector<PBVHNode *> nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale);
 
   /* Only act if some verts are inside the brush area. */
-  if (totnode == 0) {
+  if (nodes.is_empty()) {
     return;
   }
 
@@ -3493,16 +3462,14 @@ static void sculpt_topology_update(Sculpt *sd,
     }
   }
 
-  for (n = 0; n < totnode; n++) {
-    SCULPT_undo_push_node(ob,
-                          nodes[n],
-                          brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
-                                                                   SCULPT_UNDO_COORDS);
-    BKE_pbvh_node_mark_update(nodes[n]);
+  for (PBVHNode *node : nodes) {
+    SCULPT_undo_push_node(
+        ob, node, brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK : SCULPT_UNDO_COORDS);
+    BKE_pbvh_node_mark_update(node);
 
     if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-      BKE_pbvh_node_mark_topology_update(nodes[n]);
-      BKE_pbvh_bmesh_node_save_orig(ss->bm, ss->bm_log, nodes[n], false);
+      BKE_pbvh_node_mark_topology_update(node);
+      BKE_pbvh_bmesh_node_save_orig(ss->bm, ss->bm_log, node, false);
     }
   }
 
@@ -3515,8 +3482,6 @@ static void sculpt_topology_update(Sculpt *sd,
                                    (brush->flag & BRUSH_FRONTFACE) != 0,
                                    (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE));
   }
-
-  MEM_SAFE_FREE(nodes);
 
   /* Update average stroke position. */
   copy_v3_v3(location, ss->cache->true_location);
@@ -3568,8 +3533,7 @@ static void do_brush_action(Sculpt *sd,
                             PaintModeSettings *paint_mode_settings)
 {
   SculptSession *ss = ob->sculpt;
-  int totnode, texnodes_num = 0;
-  PBVHNode **nodes, **texnodes = nullptr;
+  Vector<PBVHNode *> nodes, texnodes;
 
   /* Check for unsupported features. */
   PBVHType type = BKE_pbvh_type(ss->pbvh);
@@ -3589,9 +3553,9 @@ static void do_brush_action(Sculpt *sd,
   if (sculpt_needs_pbvh_pixels(paint_mode_settings, brush, ob)) {
     sculpt_pbvh_update_pixels(paint_mode_settings, ss, ob);
 
-    texnodes = sculpt_pbvh_gather_texpaint(ob, sd, brush, use_original, 1.0f, &texnodes_num);
+    texnodes = sculpt_pbvh_gather_texpaint(ob, sd, brush, use_original, 1.0f);
 
-    if (!texnodes_num) {
+    if (texnodes.is_empty()) {
       return;
     }
   }
@@ -3600,10 +3564,10 @@ static void do_brush_action(Sculpt *sd,
 
   if (SCULPT_tool_needs_all_pbvh_nodes(brush)) {
     /* These brushes need to update all nodes as they are not constrained by the brush radius */
-    BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
+    nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
   }
   else if (brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
-    nodes = SCULPT_cloth_brush_affected_nodes_gather(ss, brush, &totnode);
+    nodes = SCULPT_cloth_brush_affected_nodes_gather(ss, brush);
   }
   else {
     float radius_scale = 1.0f;
@@ -3618,7 +3582,7 @@ static void do_brush_action(Sculpt *sd,
     if (brush->sculpt_tool == SCULPT_TOOL_DRAW && brush->flag & BRUSH_ORIGINAL_NORMAL) {
       radius_scale = 2.0f;
     }
-    nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
+    nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale);
   }
 
   /* Draw Face Sets in draw mode makes a single undo push, in alt-smooth mode deforms the
@@ -3639,7 +3603,7 @@ static void do_brush_action(Sculpt *sd,
 
   /* For anchored brushes with spherical falloff, we start off with zero radius, thus we have no
    * PBVH nodes on the first brush step. */
-  if (totnode ||
+  if (!nodes.is_empty() ||
       ((brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) && (brush->flag & BRUSH_ANCHORED))) {
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
       /* Initialize auto-masking cache. */
@@ -3659,8 +3623,7 @@ static void do_brush_action(Sculpt *sd,
   }
 
   /* Only act if some verts are inside the brush area. */
-  if (totnode == 0) {
-    MEM_SAFE_FREE(texnodes);
+  if (nodes.is_empty()) {
     return;
   }
   float location[3];
@@ -3673,12 +3636,12 @@ static void do_brush_action(Sculpt *sd,
     task_data.nodes = nodes;
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    BLI_task_parallel_range(0, totnode, &task_data, do_brush_action_task_cb, &settings);
+    BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+    BLI_task_parallel_range(0, nodes.size(), &task_data, do_brush_action_task_cb, &settings);
   }
 
   if (sculpt_brush_needs_normal(ss, sd, brush)) {
-    update_sculpt_normal(sd, ob, nodes, totnode);
+    update_sculpt_normal(sd, ob, nodes);
   }
 
   update_brush_local_mat(sd, ob);
@@ -3695,7 +3658,7 @@ static void do_brush_action(Sculpt *sd,
     }
     SCULPT_cloth_brush_store_simulation_state(ss, ss->cache->cloth_sim);
     SCULPT_cloth_brush_ensure_nodes_constraints(
-        sd, ob, nodes, totnode, ss->cache->cloth_sim, ss->cache->location, FLT_MAX);
+        sd, ob, nodes, ss->cache->cloth_sim, ss->cache->location, FLT_MAX);
   }
 
   bool invert = ss->cache->pen_flip || ss->cache->invert || brush->flag & BRUSH_DIR_IN;
@@ -3703,128 +3666,127 @@ static void do_brush_action(Sculpt *sd,
   /* Apply one type of brush action. */
   switch (brush->sculpt_tool) {
     case SCULPT_TOOL_DRAW:
-      SCULPT_do_draw_brush(sd, ob, nodes, totnode);
+      SCULPT_do_draw_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_SMOOTH:
       if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_LAPLACIAN) {
-        SCULPT_do_smooth_brush(sd, ob, nodes, totnode);
+        SCULPT_do_smooth_brush(sd, ob, nodes);
       }
       else if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE) {
-        SCULPT_do_surface_smooth_brush(sd, ob, nodes, totnode);
+        SCULPT_do_surface_smooth_brush(sd, ob, nodes);
       }
       break;
     case SCULPT_TOOL_CREASE:
-      SCULPT_do_crease_brush(sd, ob, nodes, totnode);
+      SCULPT_do_crease_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_BLOB:
-      SCULPT_do_crease_brush(sd, ob, nodes, totnode);
+      SCULPT_do_crease_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_PINCH:
-      SCULPT_do_pinch_brush(sd, ob, nodes, totnode);
+      SCULPT_do_pinch_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_INFLATE:
-      SCULPT_do_inflate_brush(sd, ob, nodes, totnode);
+      SCULPT_do_inflate_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_GRAB:
-      SCULPT_do_grab_brush(sd, ob, nodes, totnode);
+      SCULPT_do_grab_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_ROTATE:
-      SCULPT_do_rotate_brush(sd, ob, nodes, totnode);
+      SCULPT_do_rotate_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_SNAKE_HOOK:
-      SCULPT_do_snake_hook_brush(sd, ob, nodes, totnode);
+      SCULPT_do_snake_hook_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_NUDGE:
-      SCULPT_do_nudge_brush(sd, ob, nodes, totnode);
+      SCULPT_do_nudge_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_THUMB:
-      SCULPT_do_thumb_brush(sd, ob, nodes, totnode);
+      SCULPT_do_thumb_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_LAYER:
-      SCULPT_do_layer_brush(sd, ob, nodes, totnode);
+      SCULPT_do_layer_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_FLATTEN:
-      SCULPT_do_flatten_brush(sd, ob, nodes, totnode);
+      SCULPT_do_flatten_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_CLAY:
-      SCULPT_do_clay_brush(sd, ob, nodes, totnode);
+      SCULPT_do_clay_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_CLAY_STRIPS:
-      SCULPT_do_clay_strips_brush(sd, ob, nodes, totnode);
+      SCULPT_do_clay_strips_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
-      SCULPT_do_multiplane_scrape_brush(sd, ob, nodes, totnode);
+      SCULPT_do_multiplane_scrape_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_CLAY_THUMB:
-      SCULPT_do_clay_thumb_brush(sd, ob, nodes, totnode);
+      SCULPT_do_clay_thumb_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_FILL:
       if (invert && brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
-        SCULPT_do_scrape_brush(sd, ob, nodes, totnode);
+        SCULPT_do_scrape_brush(sd, ob, nodes);
       }
       else {
-        SCULPT_do_fill_brush(sd, ob, nodes, totnode);
+        SCULPT_do_fill_brush(sd, ob, nodes);
       }
       break;
     case SCULPT_TOOL_SCRAPE:
       if (invert && brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
-        SCULPT_do_fill_brush(sd, ob, nodes, totnode);
+        SCULPT_do_fill_brush(sd, ob, nodes);
       }
       else {
-        SCULPT_do_scrape_brush(sd, ob, nodes, totnode);
+        SCULPT_do_scrape_brush(sd, ob, nodes);
       }
       break;
     case SCULPT_TOOL_MASK:
-      SCULPT_do_mask_brush(sd, ob, nodes, totnode);
+      SCULPT_do_mask_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_POSE:
-      SCULPT_do_pose_brush(sd, ob, nodes, totnode);
+      SCULPT_do_pose_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_DRAW_SHARP:
-      SCULPT_do_draw_sharp_brush(sd, ob, nodes, totnode);
+      SCULPT_do_draw_sharp_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_ELASTIC_DEFORM:
-      SCULPT_do_elastic_deform_brush(sd, ob, nodes, totnode);
+      SCULPT_do_elastic_deform_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_SLIDE_RELAX:
-      SCULPT_do_slide_relax_brush(sd, ob, nodes, totnode);
+      SCULPT_do_slide_relax_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_BOUNDARY:
-      SCULPT_do_boundary_brush(sd, ob, nodes, totnode);
+      SCULPT_do_boundary_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_CLOTH:
-      SCULPT_do_cloth_brush(sd, ob, nodes, totnode);
+      SCULPT_do_cloth_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_DRAW_FACE_SETS:
-      SCULPT_do_draw_face_sets_brush(sd, ob, nodes, totnode);
+      SCULPT_do_draw_face_sets_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
-      SCULPT_do_displacement_eraser_brush(sd, ob, nodes, totnode);
+      SCULPT_do_displacement_eraser_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_DISPLACEMENT_SMEAR:
-      SCULPT_do_displacement_smear_brush(sd, ob, nodes, totnode);
+      SCULPT_do_displacement_smear_brush(sd, ob, nodes);
       break;
     case SCULPT_TOOL_PAINT:
-      SCULPT_do_paint_brush(paint_mode_settings, sd, ob, nodes, totnode, texnodes, texnodes_num);
+      SCULPT_do_paint_brush(paint_mode_settings, sd, ob, nodes, texnodes);
       break;
     case SCULPT_TOOL_SMEAR:
-      SCULPT_do_smear_brush(sd, ob, nodes, totnode);
+      SCULPT_do_smear_brush(sd, ob, nodes);
       break;
   }
 
   if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
       brush->autosmooth_factor > 0) {
     if (brush->flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
-      SCULPT_smooth(
-          sd, ob, nodes, totnode, brush->autosmooth_factor * (1.0f - ss->cache->pressure), false);
+      SCULPT_smooth(sd, ob, nodes, brush->autosmooth_factor * (1.0f - ss->cache->pressure), false);
     }
     else {
-      SCULPT_smooth(sd, ob, nodes, totnode, brush->autosmooth_factor, false);
+      SCULPT_smooth(sd, ob, nodes, brush->autosmooth_factor, false);
     }
   }
 
   if (sculpt_brush_use_topology_rake(ss, brush)) {
-    SCULPT_bmesh_topology_rake(sd, ob, nodes, totnode, brush->topology_rake_factor);
+    SCULPT_bmesh_topology_rake(sd, ob, nodes, brush->topology_rake_factor);
   }
 
   if (!SCULPT_tool_can_reuse_automask(brush->sculpt_tool) ||
@@ -3838,18 +3800,15 @@ static void do_brush_action(Sculpt *sd,
                                            SCULPT_TOOL_CLOTH,
                                            SCULPT_TOOL_DRAW_FACE_SETS,
                                            SCULPT_TOOL_BOUNDARY)) {
-    do_gravity(sd, ob, nodes, totnode, sd->gravity_factor);
+    do_gravity(sd, ob, nodes, sd->gravity_factor);
   }
 
   if (brush->deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
     if (SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
-      SCULPT_cloth_sim_activate_nodes(ss->cache->cloth_sim, nodes, totnode);
-      SCULPT_cloth_brush_do_simulation_step(sd, ob, ss->cache->cloth_sim, nodes, totnode);
+      SCULPT_cloth_sim_activate_nodes(ss->cache->cloth_sim, nodes);
+      SCULPT_cloth_brush_do_simulation_step(sd, ob, ss->cache->cloth_sim, nodes);
     }
   }
-
-  MEM_SAFE_FREE(nodes);
-  MEM_SAFE_FREE(texnodes);
 
   /* Update average stroke position. */
   copy_v3_v3(location, ss->cache->true_location);
@@ -3951,17 +3910,13 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
                              SCULPT_TOOL_BOUNDARY,
                              SCULPT_TOOL_POSE);
 
-  int totnode;
-  PBVHNode **nodes;
-  BKE_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::gather_proxies(ss->pbvh);
 
-  threading::parallel_for(IndexRange(totnode), 1, [&](IndexRange range) {
+  threading::parallel_for(nodes.index_range(), 1, [&](IndexRange range) {
     for (const int i : range) {
       sculpt_combine_proxies_node(*ob, *sd, use_orco, *nodes[i]);
     }
   });
-
-  MEM_SAFE_FREE(nodes);
 }
 
 void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob)
@@ -3969,17 +3924,13 @@ void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob)
   using namespace blender;
   SculptSession *ss = ob->sculpt;
 
-  int totnode;
-  PBVHNode **nodes;
-  BKE_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::gather_proxies(ss->pbvh);
 
-  threading::parallel_for(IndexRange(totnode), 1, [&](IndexRange range) {
+  threading::parallel_for(nodes.index_range(), 1, [&](IndexRange range) {
     for (const int i : range) {
       sculpt_combine_proxies_node(*ob, *sd, false, *nodes[i]);
     }
   });
-
-  MEM_SAFE_FREE(nodes);
 }
 
 /**
@@ -4019,9 +3970,8 @@ void SCULPT_flush_stroke_deform(Sculpt * /*sd*/, Object *ob, bool is_proxy_used)
     /* This brushes aren't using proxies, so sculpt_combine_proxies() wouldn't propagate needed
      * deformation to original base. */
 
-    int totnode;
     Mesh *me = (Mesh *)ob->data;
-    PBVHNode **nodes;
+    Vector<PBVHNode *> nodes;
     float(*vertCos)[3] = nullptr;
 
     if (ss->shapekey_active) {
@@ -4033,11 +3983,11 @@ void SCULPT_flush_stroke_deform(Sculpt * /*sd*/, Object *ob, bool is_proxy_used)
       memcpy(vertCos, ss->orig_cos, sizeof(*vertCos) * me->totvert);
     }
 
-    BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
+    nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
     MutableSpan<float3> positions = me->vert_positions_for_write();
 
-    threading::parallel_for(IndexRange(totnode), 1, [&](IndexRange range) {
+    threading::parallel_for(nodes.index_range(), 1, [&](IndexRange range) {
       for (const int i : range) {
         PBVHVertexIter vd;
         BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
@@ -4058,8 +4008,6 @@ void SCULPT_flush_stroke_deform(Sculpt * /*sd*/, Object *ob, bool is_proxy_used)
       SCULPT_vertcos_to_key(ob, ss->shapekey_active, vertCos);
       MEM_freeN(vertCos);
     }
-
-    MEM_SAFE_FREE(nodes);
   }
   else if (ss->shapekey_active) {
     sculpt_update_keyblock(ob);
@@ -5162,7 +5110,6 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   float ray_start[3], ray_end[3], ray_normal[3], depth, face_normal[3], sampled_normal[3],
       mat[3][3];
   float viewDir[3] = {0.0f, 0.0f, 1.0f};
-  int totnode;
   bool original = false;
 
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
@@ -5254,17 +5201,16 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   }
   ss->cursor_radius = radius;
 
-  PBVHNode **nodes = sculpt_pbvh_gather_cursor_update(ob, sd, original, &totnode);
+  Vector<PBVHNode *> nodes = sculpt_pbvh_gather_cursor_update(ob, sd, original);
 
   /* In case there are no nodes under the cursor, return the face normal. */
-  if (!totnode) {
-    MEM_SAFE_FREE(nodes);
+  if (nodes.is_empty()) {
     copy_v3_v3(out->normal, srd.face_normal);
     return true;
   }
 
   /* Calculate the sampled normal. */
-  if (SCULPT_pbvh_calc_area_normal(brush, ob, nodes, totnode, true, sampled_normal)) {
+  if (SCULPT_pbvh_calc_area_normal(brush, ob, nodes, true, sampled_normal)) {
     copy_v3_v3(out->normal, sampled_normal);
     copy_v3_v3(ss->cursor_sampled_normal, sampled_normal);
   }
@@ -5272,7 +5218,6 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
     /* Use face normal when there are no vertices to sample inside the cursor radius. */
     copy_v3_v3(out->normal, srd.face_normal);
   }
-  MEM_SAFE_FREE(nodes);
   return true;
 }
 
@@ -6138,8 +6083,8 @@ static PBVHVertRef SCULPT_fake_neighbor_search(Sculpt *sd,
                                                float max_distance)
 {
   SculptSession *ss = ob->sculpt;
-  PBVHNode **nodes = nullptr;
-  int totnode;
+  Vector<PBVHNode *> nodes;
+
   SculptSearchSphereData data{};
   data.ss = ss;
   data.sd = sd;
@@ -6147,9 +6092,9 @@ static PBVHVertRef SCULPT_fake_neighbor_search(Sculpt *sd,
   data.original = false;
   data.center = SCULPT_vertex_co_get(ss, vertex);
 
-  BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, &totnode);
+  nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data);
 
-  if (totnode == 0) {
+  if (nodes.is_empty()) {
     return BKE_pbvh_make_vref(PBVH_REF_NONE);
   }
 
@@ -6167,13 +6112,11 @@ static PBVHVertRef SCULPT_fake_neighbor_search(Sculpt *sd,
   nvtd.current_topology_id = SCULPT_vertex_island_get(ss, vertex);
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
   settings.func_reduce = fake_neighbor_search_reduce;
   settings.userdata_chunk = &nvtd;
   settings.userdata_chunk_size = sizeof(NearestVertexFakeNeighborTLSData);
-  BLI_task_parallel_range(0, totnode, &task_data, do_fake_neighbor_search_task_cb, &settings);
-
-  MEM_SAFE_FREE(nodes);
+  BLI_task_parallel_range(0, nodes.size(), &task_data, do_fake_neighbor_search_task_cb, &settings);
 
   return nvtd.nearest_vertex;
 }

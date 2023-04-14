@@ -659,19 +659,15 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
   }
 
   if (unode->type == SCULPT_UNDO_MASK) {
-    int totnode;
-    PBVHNode **nodes;
-
-    BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
+    Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    BLI_task_parallel_range(
-        0, totnode, nodes, sculpt_undo_bmesh_restore_generic_task_cb, &settings);
-
-    if (nodes) {
-      MEM_freeN(nodes);
-    }
+    BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+    BLI_task_parallel_range(0,
+                            nodes.size(),
+                            static_cast<void *>(nodes.data()),
+                            sculpt_undo_bmesh_restore_generic_task_cb,
+                            &settings);
   }
   else {
     SCULPT_pbvh_clear(ob);
@@ -2153,16 +2149,11 @@ static void sculpt_undo_push_all_grids(Object *object)
     return;
   }
 
-  PBVHNode **nodes;
-  int totnodes;
-
-  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnodes);
-  for (int i = 0; i < totnodes; i++) {
-    SculptUndoNode *unode = SCULPT_undo_push_node(object, nodes[i], SCULPT_UNDO_COORDS);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  for (PBVHNode *node : nodes) {
+    SculptUndoNode *unode = SCULPT_undo_push_node(object, node, SCULPT_UNDO_COORDS);
     unode->node = nullptr;
   }
-
-  MEM_SAFE_FREE(nodes);
 }
 
 void ED_sculpt_undo_push_multires_mesh_begin(bContext *C, const char *str)

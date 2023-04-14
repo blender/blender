@@ -27,6 +27,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BLT_translation.h"
 
@@ -70,6 +71,7 @@
 using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
+using blender::Vector;
 
 static void sculpt_attribute_update_refs(Object *ob);
 static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
@@ -1891,16 +1893,11 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
       BKE_sculptsession_free_vwpaint_data(ob_eval->sculpt);
     }
     else {
-      PBVHNode **nodes;
-      int n, totnode;
+      Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
-      BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
-
-      for (n = 0; n < totnode; n++) {
-        BKE_pbvh_node_mark_update(nodes[n]);
+      for (PBVHNode *node : nodes) {
+        BKE_pbvh_node_mark_update(node);
       }
-
-      MEM_freeN(nodes);
     }
   }
 }

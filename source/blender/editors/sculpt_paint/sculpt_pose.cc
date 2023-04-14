@@ -259,16 +259,14 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
                                          float *r_pose_origin,
                                          float *pose_factor)
 {
-  PBVHNode **nodes;
   PBVH *pbvh = ob->sculpt->pbvh;
-  int totnode;
 
-  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
+
   SculptThreadedTaskData data{};
   data.sd = sd;
   data.ob = ob;
   data.nodes = nodes;
-  data.totnode = totnode;
   data.pose_factor = pose_factor;
 
   data.pose_initial_co = pose_target;
@@ -276,7 +274,7 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
   PoseGrowFactorTLSData gftd;
   gftd.pos_count = 0;
   zero_v3(gftd.pos_avg);
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
   settings.func_reduce = pose_brush_grow_factor_reduce;
   settings.userdata_chunk = &gftd;
   settings.userdata_chunk_size = sizeof(PoseGrowFactorTLSData);
@@ -289,7 +287,7 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
     zero_v3(gftd.pos_avg);
     gftd.pos_count = 0;
     memcpy(data.prev_mask, pose_factor, SCULPT_vertex_count_get(ss) * sizeof(float));
-    BLI_task_parallel_range(0, totnode, &data, pose_brush_grow_factor_task_cb_ex, &settings);
+    BLI_task_parallel_range(0, nodes.size(), &data, pose_brush_grow_factor_task_cb_ex, &settings);
 
     if (gftd.pos_count != 0) {
       mul_v3_fl(gftd.pos_avg, 1.0f / float(gftd.pos_count));
@@ -332,8 +330,6 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
     }
   }
   MEM_freeN(data.prev_mask);
-
-  MEM_SAFE_FREE(nodes);
 }
 
 static bool sculpt_pose_brush_is_vertex_inside_brush_radius(const float vertex[3],
@@ -972,11 +968,9 @@ SculptPoseIKChain *SCULPT_pose_ik_chain_init(Sculpt *sd,
 
 void SCULPT_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Brush *br)
 {
-  PBVHNode **nodes;
   PBVH *pbvh = ob->sculpt->pbvh;
-  int totnode;
 
-  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
 
   SculptThreadedTaskData data{};
   data.sd = sd;
@@ -993,12 +987,10 @@ void SCULPT_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Brush *br
     data.pose_factor = ss->cache->pose_ik_chain->segments[ik].weights;
     for (int i = 0; i < br->pose_smooth_iterations; i++) {
       TaskParallelSettings settings;
-      BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-      BLI_task_parallel_range(0, totnode, &data, pose_brush_init_task_cb_ex, &settings);
+      BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+      BLI_task_parallel_range(0, nodes.size(), &data, pose_brush_init_task_cb_ex, &settings);
     }
   }
-
-  MEM_SAFE_FREE(nodes);
 }
 
 static void sculpt_pose_do_translate_deform(SculptSession *ss, Brush *brush)
@@ -1124,7 +1116,7 @@ static void sculpt_pose_align_pivot_local_space(float r_mat[4][4],
   ortho_basis_v3v3_v3(r_mat[0], r_mat[1], r_mat[2]);
 }
 
-void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -1216,8 +1208,8 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   data.nodes = nodes;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_pose_brush_task_cb_ex, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+  BLI_task_parallel_range(0, nodes.size(), &data, do_pose_brush_task_cb_ex, &settings);
 }
 
 void SCULPT_pose_ik_chain_free(SculptPoseIKChain *ik_chain)
