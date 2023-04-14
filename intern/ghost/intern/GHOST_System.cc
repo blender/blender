@@ -42,6 +42,23 @@ GHOST_System::~GHOST_System()
   exit();
 }
 
+GHOST_TSuccess GHOST_System::hasClipboardImage(void) const
+{
+  return GHOST_kFailure;
+}
+
+uint *GHOST_System::getClipboardImage(int * /*r_width*/, int * /*r_height*/) const
+{
+  return nullptr;
+}
+
+GHOST_TSuccess GHOST_System::putClipboardImage(uint * /*rgba*/,
+                                               int /*width*/,
+                                               int /*height*/) const
+{
+  return GHOST_kFailure;
+}
+
 uint64_t GHOST_System::getMilliSeconds() const
 {
   return std::chrono::duration_cast<std::chrono::milliseconds>(

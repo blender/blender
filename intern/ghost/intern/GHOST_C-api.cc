@@ -883,6 +883,24 @@ void GHOST_putClipboard(const char *buffer, bool selection)
   system->putClipboard(buffer, selection);
 }
 
+GHOST_TSuccess GHOST_hasClipboardImage(void)
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  return system->hasClipboardImage();
+}
+
+uint *GHOST_getClipboardImage(int *r_width, int *r_height)
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  return system->getClipboardImage(r_width, r_height);
+}
+
+GHOST_TSuccess GHOST_putClipboardImage(uint *rgba, int width, int height)
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  return system->putClipboardImage(rgba, width, height);
+}
+
 bool GHOST_setConsoleWindowState(GHOST_TConsoleWindowState action)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
