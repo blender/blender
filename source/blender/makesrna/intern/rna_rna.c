@@ -1013,21 +1013,33 @@ static int rna_enum_check_separator(CollectionPropertyIterator *UNUSED(iter), vo
   return (item->identifier[0] == 0);
 }
 
-static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_EnumProperty_items_begin_impl(CollectionPropertyIterator *iter,
+                                              PointerRNA *ptr,
+                                              IteratorSkipFunc skip_fn)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  /* EnumPropertyRNA *eprop; */ /* UNUSED */
+  // EnumPropertyRNA *eprop; /* UNUSED */
   const EnumPropertyItem *item = NULL;
   int totitem;
   bool free;
 
   prop = rna_ensure_property(prop);
-  /* eprop = (EnumPropertyRNA *)prop; */
+  // eprop = (EnumPropertyRNA *)prop;
 
   RNA_property_enum_items_ex(
       NULL, ptr, prop, STREQ(iter->prop->identifier, "enum_items_static"), &item, &totitem, &free);
-  rna_iterator_array_begin(
-      iter, (void *)item, sizeof(EnumPropertyItem), totitem, free, rna_enum_check_separator);
+  rna_iterator_array_begin(iter, (void *)item, sizeof(EnumPropertyItem), totitem, free, skip_fn);
+}
+
+static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  rna_EnumProperty_items_begin_impl(iter, ptr, rna_enum_check_separator);
+}
+
+static void rna_EnumProperty_items_ui_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  /* No skip-funciton, include all "UI" items. */
+  rna_EnumProperty_items_begin_impl(iter, ptr, NULL);
 }
 
 static void rna_EnumPropertyItem_identifier_get(PointerRNA *ptr, char *value)
@@ -3359,6 +3371,26 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
       prop,
       "Static Items",
       "Possible values for the property (never calls optional dynamic generation of those)");
+
+  /* Expose a UI version of `enum_items_static` to allow separator & title access,
+   * needed for the tool-system to access separators from brush enums. */
+  prop = RNA_def_property(srna, "enum_items_static_ui", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_struct_type(prop, "EnumPropertyItem");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_EnumProperty_items_ui_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL);
+  RNA_def_property_ui_text(
+      prop,
+      "Static Items with UI Elements",
+      "Possible values for the property (never calls optional dynamic generation of those). "
+      "Includes UI elements (separators and section headings)");
 
   srna = RNA_def_struct(brna, "EnumPropertyItem", NULL);
   RNA_def_struct_ui_text(
