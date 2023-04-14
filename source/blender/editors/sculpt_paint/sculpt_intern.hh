@@ -19,6 +19,7 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_gsqueue.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "ED_view3d.h"
 
@@ -2573,6 +2574,12 @@ int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);
 #define SCULPT_vertex_attr_get BKE_sculpt_vertex_attr_get
 #define SCULPT_face_attr_get BKE_sculpt_face_attr_get
 
+/*
+ * Stroke ID API.  This API is used to detect if
+ * an element has already been processed for some task
+ * inside a given stroke.
+ */
+
 struct StrokeID {
   short id;
   short userflag;
@@ -2587,6 +2594,7 @@ enum StrokeIDUser {
   STROKEID_USER_OCCLUSION = 1 << 5,
   STROKEID_USER_LAYER_BRUSH = 1 << 6,
 };
+ENUM_OPERATORS(StrokeIDUser, STROKEID_USER_LAYER_BRUSH);
 
 BLI_INLINE bool SCULPT_stroke_id_test(SculptSession *ss, PBVHVertRef vertex, StrokeIDUser user)
 {

@@ -504,7 +504,7 @@ static void long_edge_queue_edge_add_recursive(EdgeQueueContext *eq_ctx,
       return;
     }
   }
-  
+
   edge_queue_insert_unified(eq_ctx, l_edge->e);
 
   if ((l_edge->radial_next != l_edge)) {
@@ -620,9 +620,9 @@ BLI_INLINE int dyntopo_thread_rand(int seed)
   return (seed * multiplier + addend) & mask;
 }
 
-ATTR_NO_OPT static void unified_edge_queue_task_cb(void *__restrict userdata,
-                                                   const int n,
-                                                   const TaskParallelTLS *__restrict /*tls*/)
+static void unified_edge_queue_task_cb(void *__restrict userdata,
+                                       const int n,
+                                       const TaskParallelTLS *__restrict /*tls*/)
 {
   EdgeQueueThreadData *tdata = ((EdgeQueueThreadData *)userdata) + n;
   PBVH *pbvh = tdata->pbvh;
@@ -2059,20 +2059,20 @@ float mask_cb_nop(PBVHVertRef /*vertex*/, void * /*userdata*/)
 }
 
 /* Collapse short edges, subdivide long edges */
-ATTR_NO_OPT extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
-                                                           PBVHTopologyUpdateMode mode,
-                                                           const float center[3],
-                                                           const float view_normal[3],
-                                                           float radius,
-                                                           const bool use_frontface,
-                                                           const bool use_projected,
-                                                           int /*sym_axis*/,
-                                                           bool updatePBVH,
-                                                           DyntopoMaskCB mask_cb,
-                                                           void *mask_cb_data,
-                                                           int custom_max_steps,
-                                                           bool disable_surface_relax,
-                                                           bool is_snake_hook)
+extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
+                                               PBVHTopologyUpdateMode mode,
+                                               const float center[3],
+                                               const float view_normal[3],
+                                               float radius,
+                                               const bool use_frontface,
+                                               const bool use_projected,
+                                               int /*sym_axis*/,
+                                               bool updatePBVH,
+                                               DyntopoMaskCB mask_cb,
+                                               void *mask_cb_data,
+                                               int custom_max_steps,
+                                               bool disable_surface_relax,
+                                               bool is_snake_hook)
 {
   /* Disable surface smooth if uv layers are present, to avoid expensive reprojection operation. */
   if (!is_snake_hook && CustomData_has_layer(&pbvh->header.bm->ldata, CD_PROP_FLOAT2)) {
