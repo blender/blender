@@ -44,10 +44,13 @@ class UV_ClipboardBuffer {
   ~UV_ClipboardBuffer();
 
   void append(UvElementMap *element_map, const int cd_loop_uv_offset);
+  /**
+   * \return True when found.
+   */
   bool find_isomorphism(UvElementMap *dest_element_map,
                         int island_index,
-                        blender::Vector<int> &r_label,
                         int cd_loop_uv_offset,
+                        blender::Vector<int> &r_label,
                         bool *r_search_abandoned);
 
   void write_uvs(UvElementMap *element_map,
@@ -196,12 +199,15 @@ void UV_ClipboardBuffer::write_uvs(UvElementMap *element_map,
   BLI_assert(unique_uv == label.size());
 }
 
-/* Call the external isomorphism solver. */
+/**
+ * Call the external isomorphism solver.
+ * \return True when found.
+ */
 static bool find_isomorphism(UvElementMap *dest,
                              const int dest_island_index,
                              GraphISO *graph_source,
+                             const int cd_loop_uv_offset,
                              blender::Vector<int> &r_label,
-                             int cd_loop_uv_offset,
                              bool *r_search_abandoned)
 {
 
@@ -215,12 +221,12 @@ static bool find_isomorphism(UvElementMap *dest,
 
   int(*solution)[2] = (int(*)[2])MEM_mallocN(graph_source->n * sizeof(*solution), __func__);
   int solution_length = 0;
-  const bool result = ED_uvedit_clipboard_maximum_common_subgraph(
+  const bool found = ED_uvedit_clipboard_maximum_common_subgraph(
       graph_source, graph_dest, solution, &solution_length, r_search_abandoned);
 
   /* Todo: Implement "Best Effort" / "Nearest Match" paste functionality here. */
 
-  if (result) {
+  if (found) {
     BLI_assert(solution_length == dest->island_total_unique_uvs[dest_island_index]);
     for (int i = 0; i < solution_length; i++) {
       int index_s = solution[i][0];
@@ -233,21 +239,21 @@ static bool find_isomorphism(UvElementMap *dest,
 
   MEM_SAFE_FREE(solution);
   delete graph_dest;
-  return result;
+  return found;
 }
 
 bool UV_ClipboardBuffer::find_isomorphism(UvElementMap *dest_element_map,
-                                          int dest_island_index,
+                                          const int dest_island_index,
+                                          const int cd_loop_uv_offset,
                                           blender::Vector<int> &r_label,
-                                          int cd_loop_uv_offset,
                                           bool *r_search_abandoned)
 {
   for (const int64_t source_island_index : graph.index_range()) {
     if (::find_isomorphism(dest_element_map,
                            dest_island_index,
                            graph[source_island_index],
-                           r_label,
                            cd_loop_uv_offset,
+                           r_label,
                            r_search_abandoned)) {
       const int island_total_unique_uvs =
           dest_element_map->island_total_unique_uvs[dest_island_index];
@@ -335,7 +341,7 @@ static int uv_paste_exec(bContext *C, wmOperator *op)
       blender::Vector<int> label;
       bool search_abandoned = false;
       const bool found = uv_clipboard->find_isomorphism(
-          dest_element_map, i, label, cd_loop_uv_offset, &search_abandoned);
+          dest_element_map, i, cd_loop_uv_offset, label, &search_abandoned);
       if (!found) {
         if (search_abandoned) {
           complicated_search++;
