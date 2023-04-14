@@ -16,7 +16,6 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
@@ -36,7 +35,6 @@
 #include "BKE_mesh_mirror.h"
 #include "BKE_mesh_remesh_voxel.h"
 #include "BKE_mesh_runtime.h"
-#include "BKE_mesh_types.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -156,7 +154,6 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 
   if (ob->mode == OB_MODE_SCULPT) {
     ED_sculpt_undo_geometry_begin(ob, op);
-    ob->sculpt->needs_pbvh_rebuild = true;
   }
 
   if (mesh->flag & ME_REMESH_FIX_POLES && mesh->remesh_voxel_adaptivity <= 0.0f) {
@@ -775,7 +772,7 @@ static void quadriflow_update_job(void *customdata, float progress, int *cancel)
   *(qj->progress) = progress;
 }
 
-static Mesh *remesh_symmetry_bisect(Object *ob, Mesh *mesh, eSymmetryAxes symmetry_axes)
+static Mesh *remesh_symmetry_bisect(Mesh *mesh, eSymmetryAxes symmetry_axes)
 {
   MirrorModifierData mmd = {{nullptr}};
   mmd.tolerance = QUADRIFLOW_MIRROR_BISECT_TOLERANCE;
@@ -796,10 +793,8 @@ static Mesh *remesh_symmetry_bisect(Object *ob, Mesh *mesh, eSymmetryAxes symmet
       zero_v3(plane_no);
       plane_no[axis] = -1.0f;
       mesh_bisect_temp = mesh_bisect;
-
       mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(
           &mmd, mesh_bisect, axis, plane_co, plane_no);
-
       if (mesh_bisect_temp != mesh_bisect) {
         BKE_id_free(nullptr, mesh_bisect_temp);
       }
@@ -868,7 +863,7 @@ static void quadriflow_start_job(void *customdata, bool *stop, bool *do_update, 
   bisect_mesh = BKE_mesh_copy_for_eval(mesh, false);
 
   /* Bisect the input mesh using the paint symmetry settings */
-  bisect_mesh = remesh_symmetry_bisect(ob, bisect_mesh, qj->symmetry_axes);
+  bisect_mesh = remesh_symmetry_bisect(bisect_mesh, qj->symmetry_axes);
 
   new_mesh = BKE_mesh_remesh_quadriflow(bisect_mesh,
                                         qj->target_faces,

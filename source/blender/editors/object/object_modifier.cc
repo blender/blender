@@ -1142,17 +1142,7 @@ bool ED_object_modifier_apply(Main *bmain,
     BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in edit mode");
     return false;
   }
-
-  bool allow_multi_user = mode == MODIFIER_APPLY_SHAPE;
-  if (md) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
-
-    allow_multi_user |= ELEM(
-        mti->type, eModifierTypeType_NonGeometrical, eModifierTypeType_OnlyDeform);
-  }
-
-  // bool allow_multi_user = md && md->type == eModifierType_DataTransfer || md->flag & ;
-  if (!allow_multi_user && ID_REAL_USERS(ob->data) > 1) {
+  if (mode != MODIFIER_APPLY_SHAPE && ID_REAL_USERS(ob->data) > 1) {
     BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied to multi-user data");
     return false;
   }
