@@ -727,6 +727,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       if (sp->invalid) {
         if (do_fixes) {
           polys_to_remove[sp->index].set();
+          free_flag.polyloops = do_fixes;
           /* DO NOT REMOVE ITS LOOPS!!!
            * As already invalid polys are at the end of the SortPoly list, the loops they
            * were the only users have already been tagged as "to remove" during previous
@@ -758,6 +759,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
                     sp->index);
           if (do_fixes) {
             polys_to_remove[sp->index].set();
+            free_flag.polyloops = do_fixes;
             /* DO NOT REMOVE ITS LOOPS!!!
              * They might be used by some next, valid poly!
              * Just not updating prev_end/prev_sp vars is enough to ensure the loops
