@@ -31,15 +31,15 @@ def generate_from_enum_ex(
         type,
         attr,
         cursor='DEFAULT',
-        tooldef_keywords={},
-        exclude_filter={},
+        tooldef_keywords=None,
 ):
+    if tooldef_keywords is None:
+        tooldef_keywords = {}
+
     tool_defs = []
     for enum in type.bl_rna.properties[attr].enum_items_static:
         name = enum.name
         idname = enum.identifier
-        if idname in exclude_filter:
-            continue
         tool_defs.append(
             ToolDef.from_dict(
                 dict(
