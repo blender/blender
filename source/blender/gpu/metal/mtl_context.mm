@@ -497,7 +497,7 @@ id<MTLBuffer> MTLContext::get_null_buffer()
   null_buffer_ = [this->device newBufferWithLength:null_buffer_size
                                            options:MTLResourceStorageModeManaged];
   [null_buffer_ retain];
-  uint32_t *null_data = (uint32_t *)calloc(0, null_buffer_size);
+  uint32_t *null_data = (uint32_t *)calloc(1, null_buffer_size);
   memcpy([null_buffer_ contents], null_data, null_buffer_size);
   [null_buffer_ didModifyRange:NSMakeRange(0, null_buffer_size)];
   free(null_data);
