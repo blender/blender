@@ -311,7 +311,7 @@ static int uv_paste_exec(bContext *C, wmOperator *op)
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, ((View3D *)nullptr), &objects_len);
 
-  int result = OPERATOR_CANCELLED; /* Assume no changes. */
+  bool changed_multi = false;
   int complicated_search = 0;
   int total_search = 0;
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -328,6 +328,8 @@ static int uv_paste_exec(bContext *C, wmOperator *op)
       continue;
     }
 
+    bool changed = false;
+
     for (int i = 0; i < dest_element_map->total_islands; i++) {
       total_search++;
       blender::Vector<int> label;
@@ -342,12 +344,17 @@ static int uv_paste_exec(bContext *C, wmOperator *op)
       }
 
       uv_clipboard->write_uvs(dest_element_map, i, cd_loop_uv_offset, label);
-      result = OPERATOR_FINISHED; /* UVs were moved. */
+      changed = true; /* UVs were moved. */
     }
 
     BM_uv_element_map_free(dest_element_map);
-    DEG_id_tag_update(static_cast<ID *>(ob->data), 0);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+
+    if (changed) {
+      changed_multi = true;
+
+      DEG_id_tag_update(static_cast<ID *>(ob->data), 0);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+    }
   }
 
   if (complicated_search) {
@@ -360,7 +367,7 @@ static int uv_paste_exec(bContext *C, wmOperator *op)
 
   MEM_freeN(objects);
 
-  return result;
+  return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void UV_OT_copy(wmOperatorType *ot)
