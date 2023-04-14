@@ -157,11 +157,10 @@ void uiTemplateAssetShelf(uiLayout *layout,
   uiLayoutSetScaleX(layout, 1.0f);
   uiLayoutSetScaleY(layout, 1.0f);
 
-  const bool show_names = true;
+  const bool show_names = shelf_settings->display_flag & ASSETSHELF_SHOW_NAMES;
   const int height = uiLayoutGetRootHeight(layout) - UI_style_get_dpi()->boxspace * 2;
-  /* Width is derived from the height. It's the height without the space for the name (if there is
-   * any). */
-  const int width = height - (show_names ? 0 : UI_UNIT_Y);
+  /* Keep the size square. */
+  const int width = height;
 
   uiLayout *box = uiLayoutBox(layout);
   uiLayout *row = uiLayoutRow(box, false);

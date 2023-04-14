@@ -2091,6 +2091,16 @@ static void rna_def_asset_shelf_settings(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "AssetShelfSettings", NULL);
   RNA_def_struct_ui_text(srna, "Asset Shelf Settings", "");
+
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "show_names", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "display_flag", ASSETSHELF_SHOW_NAMES);
+  RNA_def_property_ui_text(
+      prop,
+      "Show Names",
+      "Show the asset name together with the preview. Otherwise only the preview will be visible");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_ASSET_SHELF, NULL);
 }
 
 void RNA_def_ui(BlenderRNA *brna)
