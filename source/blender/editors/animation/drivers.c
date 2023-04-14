@@ -741,7 +741,7 @@ bool ANIM_driver_vars_paste(ReportList *reports, FCurve *fcu, bool replace)
 
   /* sanity checks */
   if (BLI_listbase_is_empty(&driver_vars_copybuf)) {
-    BKE_report(reports, RPT_ERROR, "No driver variables in clipboard to paste");
+    BKE_report(reports, RPT_ERROR, "No driver variables in the internal clipboard to paste");
     return false;
   }
 
@@ -1257,7 +1257,7 @@ void ANIM_OT_paste_driver_button(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Paste Driver";
   ot->idname = "ANIM_OT_paste_driver_button";
-  ot->description = "Paste the driver in the clipboard to the highlighted button";
+  ot->description = "Paste the driver in the internal clipboard to the highlighted button";
 
   /* callbacks */
   ot->exec = paste_driver_button_exec;

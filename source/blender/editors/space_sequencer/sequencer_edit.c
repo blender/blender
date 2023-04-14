@@ -2483,7 +2483,7 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Copy";
   ot->idname = "SEQUENCER_OT_copy";
-  ot->description = "Copy selected strips to clipboard";
+  ot->description = "Copy the selected strips to the internal clipboard";
 
   /* Api callbacks. */
   ot->exec = sequencer_copy_exec;
@@ -2630,7 +2630,7 @@ void SEQUENCER_OT_paste(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Paste";
   ot->idname = "SEQUENCER_OT_paste";
-  ot->description = "Paste strips from clipboard";
+  ot->description = "Paste strips from the internal clipboard";
 
   /* Api callbacks. */
   ot->exec = sequencer_paste_exec;

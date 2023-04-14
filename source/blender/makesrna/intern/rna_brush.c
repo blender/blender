@@ -248,7 +248,7 @@ const EnumPropertyItem rna_enum_brush_gpencil_sculpt_types_items[] = {
      "CLONE",
      ICON_GPBRUSH_CLONE,
      "Clone",
-     "Paste copies of the strokes stored on the clipboard"},
+     "Paste copies of the strokes stored on the internal clipboard"},
     {0, NULL, 0, NULL, NULL}};
 
 const EnumPropertyItem rna_enum_brush_gpencil_weight_types_items[] = {
