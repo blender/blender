@@ -742,7 +742,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 
 static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
                                                                 uiBut *but,
-                                                                uiButExtraOpIcon *extra_icon)
+                                                                uiButExtraOpIcon *extra_icon,
+                                                                const bool is_label)
 {
   uiStringInfo but_label = {BUT_GET_LABEL, nullptr};
   uiStringInfo but_tip = {BUT_GET_TIP, nullptr};
@@ -763,20 +764,30 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
   uiTooltipData *data = MEM_cnew<uiTooltipData>(__func__);
 
   if (extra_icon) {
-    UI_but_extra_icon_string_info_get(C, extra_icon, &but_label, &but_tip, &op_keymap, nullptr);
+    if (is_label) {
+      UI_but_extra_icon_string_info_get(C, extra_icon, &but_label, &enum_label, nullptr);
+    }
+    else {
+      UI_but_extra_icon_string_info_get(C, extra_icon, &but_label, &but_tip, &op_keymap, nullptr);
+    }
   }
   else {
-    UI_but_string_info_get(C,
-                           but,
-                           &but_label,
-                           &but_tip,
-                           &enum_label,
-                           &enum_tip,
-                           &op_keymap,
-                           &prop_keymap,
-                           &rna_struct,
-                           &rna_prop,
-                           nullptr);
+    if (is_label) {
+      UI_but_string_info_get(C, but, &but_label, &enum_label, nullptr);
+    }
+    else {
+      UI_but_string_info_get(C,
+                             but,
+                             &but_label,
+                             &but_tip,
+                             &enum_label,
+                             &enum_tip,
+                             &op_keymap,
+                             &prop_keymap,
+                             &rna_struct,
+                             &rna_prop,
+                             nullptr);
+    }
   }
 
   /* Tip Label (only for buttons not already showing the label).
@@ -811,6 +822,13 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
       field->text = BLI_strdup(TIP_("(Shift-Click/Drag to select multiple)"));
     }
   }
+  /* When there is only an enum label (no button label or tip), draw that as header. */
+  else if (enum_label.strinfo && !(but_label.strinfo && but_label.strinfo[0])) {
+    uiTooltipField *field = text_field_add(
+        data, uiTooltipFormat::Style::Header, uiTooltipFormat::ColorID::Normal);
+    field->text = BLI_strdup(enum_label.strinfo);
+  }
+
   /* Enum field label & tip. */
   if (enum_tip.strinfo) {
     uiTooltipField *field = text_field_add(
@@ -1346,11 +1364,11 @@ ARegion *UI_tooltip_create_from_button_or_extra_icon(
   }
 
   if (data == nullptr) {
-    data = ui_tooltip_data_from_button_or_extra_icon(C, but, extra_icon);
+    data = ui_tooltip_data_from_button_or_extra_icon(C, but, extra_icon, is_label);
   }
 
   if (data == nullptr) {
-    data = ui_tooltip_data_from_button_or_extra_icon(C, but, nullptr);
+    data = ui_tooltip_data_from_button_or_extra_icon(C, but, nullptr, is_label);
   }
 
   if (data == nullptr) {
