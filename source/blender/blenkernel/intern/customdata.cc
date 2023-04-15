@@ -81,10 +81,14 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(((CustomData *)nullptr)->typemap) == CD_NUMTYPES, "
 
 static CLG_LogRef LOG = {"bke.customdata"};
 
-bool CustomData_layout_is_same(const CustomData *_a, const CustomData *_b)
+ATTR_NO_OPT bool CustomData_layout_is_same(const CustomData *_a, const CustomData *_b)
 {
   CustomData a = *_a;
   CustomData b = *_b;
+
+  if (a.totlayer != b.totlayer) {
+    return false;
+  }
 
   a.layers = b.layers = nullptr;
   a.pool = b.pool = nullptr;
@@ -98,6 +102,7 @@ bool CustomData_layout_is_same(const CustomData *_a, const CustomData *_b)
     CustomDataLayer clb = _b->layers[i];
 
     cla.data = clb.data = nullptr;
+    cla.default_data = clb.default_data = nullptr;
 
     if (memcmp((void *)&cla, (void *)&clb, sizeof(CustomDataLayer)) != 0) {
       return false;
@@ -2436,7 +2441,8 @@ static bool customdata_typemap_is_valid(const CustomData *data)
 
 /* copies all customdata layers without allocating data,
  * and without respect to type masks or NO_COPY/etc flags*/
-void CustomData_copy_all_layout(const struct CustomData *source, struct CustomData *dest)
+ATTR_NO_OPT void CustomData_copy_all_layout(const struct CustomData *source,
+                                            struct CustomData *dest)
 {
   *dest = *source;
 
@@ -2446,11 +2452,17 @@ void CustomData_copy_all_layout(const struct CustomData *source, struct CustomDa
 
   if (source->layers) {
     dest->layers = static_cast<CustomDataLayer *>(
-        MEM_mallocN(sizeof(*dest->layers) * source->totlayer, __func__));
+        MEM_mallocN(sizeof(*dest->layers) * source->maxlayer, __func__));
 
     for (int i = 0; i < source->totlayer; i++) {
-      dest->layers[i] = source->layers[i];
-      dest->layers[i].data = nullptr;
+      CustomDataLayer *layer = &dest->layers[i];
+
+      *layer = source->layers[i];
+      layer->data = nullptr;
+
+      if (layer->default_data) {
+        layer->default_data = MEM_dupallocN(layer->default_data);
+      }
     }
   }
 
