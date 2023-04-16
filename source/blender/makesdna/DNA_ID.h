@@ -715,7 +715,7 @@ enum {
   /**
    * Long-life tags giving important info about general ID management.
    *
-   * These tags are typically not chnaged often, if ever, during an ID's life.
+   * These tags are typically not changed often, if ever, during an ID's life.
    */
 
   /**
@@ -793,7 +793,7 @@ enum {
   LIB_TAG_LIB_OVERRIDE_NEED_RESYNC = 1 << 8,
 
   /**
-   * Short-life tags used during specific processes, like blendfile readind.
+   * Short-life tags used during specific processes, like blend-file reading.
    */
 
   /**

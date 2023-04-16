@@ -2457,7 +2457,7 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
   }
 
   /* We don't pass on key events, GP is used with key-modifiers -
-   * prevents Dkey to insert drivers. */
+   * prevents D-key to insert drivers. */
   if (ISKEYBOARD(event->type)) {
     if (ELEM(event->type,
              EVT_LEFTARROWKEY,

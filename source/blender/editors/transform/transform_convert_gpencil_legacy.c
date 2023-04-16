@@ -218,7 +218,7 @@ static void createTransGPencil_curves(bContext *C,
         if (IS_AUTOKEY_ON(scene)) {
           gpf = BKE_gpencil_frame_addcopy(gpl, cfra);
         }
-        /* in some weird situations (framelock enabled) return NULL */
+        /* In some weird situations (frame-lock enabled) return NULL. */
         if (gpf == NULL) {
           continue;
         }
@@ -513,7 +513,7 @@ static void createTransGPencil_strokes(bContext *C,
         if (IS_AUTOKEY_ON(scene)) {
           gpf = BKE_gpencil_frame_addcopy(gpl, cfra);
         }
-        /* in some weird situations (framelock enabled) return NULL */
+        /* In some weird situations (frame-lock enabled) return NULL. */
         if (gpf == NULL) {
           continue;
         }

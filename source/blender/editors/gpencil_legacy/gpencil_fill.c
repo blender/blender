@@ -715,7 +715,7 @@ static void gpencil_update_extensions_line(tGPDfill *tgpf)
     }
   }
 
-  /* Cut overlength strokes. */
+  /* Cut over-length strokes. */
   gpencil_cut_extensions(tgpf);
 }
 
