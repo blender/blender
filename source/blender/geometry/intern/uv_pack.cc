@@ -1273,7 +1273,7 @@ class OverlapMerger {
   }
 
   /** Return a new root of the binary tree, with `a` and `b` as leaves. */
-  static PackIsland *merge_islands(PackIsland *a, PackIsland *b, const UVPackIsland_Params &params)
+  static PackIsland *merge_islands(PackIsland *a, PackIsland *b)
   {
     PackIsland *result = new PackIsland();
     result->aspect_y = sqrtf(a->aspect_y * b->aspect_y);
@@ -1306,7 +1306,7 @@ class OverlapMerger {
         if (overlap(island, sub_islands[j])) {
           merge_trace.append(island);
           merge_trace.append(sub_islands[j]);
-          island = merge_islands(island, sub_islands[j], params);
+          island = merge_islands(island, sub_islands[j]);
           merge_trace.append(island);
           sub_islands.remove(j);
         }
