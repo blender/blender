@@ -102,6 +102,10 @@ typedef enum {
    * Support for reading the front-buffer.
    */
   GHOST_kCapabilityGPUReadFrontBuffer = (1 << 3),
+  /**
+   * Set when there is support for system clipboard copy/paste.
+   */
+  GHOST_kCapabilityClipboardImages = (1 << 4),
 } GHOST_TCapabilityFlag;
 
 /**

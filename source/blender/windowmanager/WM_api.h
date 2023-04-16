@@ -138,6 +138,8 @@ typedef enum eWM_CapabilitiesFlag {
    * Reading from the back-buffer is supported.
    */
   WM_CAPABILITY_GPU_FRONT_BUFFER_READ = (1 << 3),
+  /** Ability to copy/paste system clipboard images. */
+  WM_CAPABILITY_CLIPBOARD_IMAGES = (1 << 4),
 } eWM_CapabilitiesFlag;
 
 eWM_CapabilitiesFlag WM_capabilities_flag(void);

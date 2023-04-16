@@ -6765,7 +6765,9 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
           GHOST_kCapabilityCursorWarp |
           /* Some drivers don't support front-buffer reading, see: #98462 & #106264.
            * We could inspect the graphics card driver - for now just disable on WAYLAND. */
-          GHOST_kCapabilityGPUReadFrontBuffer));
+          GHOST_kCapabilityGPUReadFrontBuffer |
+          /* This WAYLAND back-end has not yet implemented image copy/paste. */
+          GHOST_kCapabilityClipboardImages));
 }
 
 bool GHOST_SystemWayland::cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode)

@@ -1852,6 +1852,9 @@ eWM_CapabilitiesFlag WM_capabilities_flag(void)
   if (ghost_flag & GHOST_kCapabilityGPUReadFrontBuffer) {
     flag |= WM_CAPABILITY_GPU_FRONT_BUFFER_READ;
   }
+  if (ghost_flag & GHOST_kCapabilityClipboardImages) {
+    flag |= WM_CAPABILITY_CLIPBOARD_IMAGES;
+  }
 
   return flag;
 }
