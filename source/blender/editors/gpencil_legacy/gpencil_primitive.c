@@ -1222,7 +1222,7 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
                                              "gp primitive cpoint");
   tgpi->gpd->runtime.tot_cp_points = 0;
 
-  /* getcolor info */
+  /* Get color info. */
   tgpi->material = BKE_gpencil_object_material_ensure_from_active_input_toolsettings(
       bmain, tgpi->ob, ts);
 

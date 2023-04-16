@@ -1347,11 +1347,10 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
         if (state != GHOST_kWindowStateMinimized) {
           /*
            * Ghost sometimes send size or move events when the window hasn't changed.
-           * One case of this is using compiz on linux. To alleviate the problem
-           * we ignore all such event here.
+           * One case of this is using COMPIZ on Linux.
+           * To alleviate the problem we ignore all such event here.
            *
-           * It might be good to eventually do that at Ghost level, but that is for
-           * another time.
+           * It might be good to eventually do that at GHOST level, but that is for another time.
            */
           if (wm_window_update_size_position(win)) {
             const bScreen *screen = WM_window_get_active_screen(win);

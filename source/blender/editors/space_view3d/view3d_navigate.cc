@@ -174,7 +174,7 @@ static void view3d_orbit_apply_dyn_ofs_ortho_correction(float ofs[3],
    *
    * Imagine a camera is focused on a distant object. Now imagine a closer object in front of
    * the camera is used as a pivot, the camera is rotated to view it from the side (~90d rotation).
-   * The outcome is the DOF is now focused on a distant region to the left/right.
+   * The outcome is the camera is now focused on a distant region to the left/right.
    * The new focal point is unlikely to point to anything useful (unless by accident).
    * Instead of a focal point - the `rv3d->ofs` is being manipulated in this case.
    *

@@ -3021,7 +3021,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
                   for (const int corner : poly) {
                     Color *col = lcol + corner;
 
-                    /* Color is squared to compensate the sqrt color encoding. */
+                    /* Color is squared to compensate the `sqrt` color encoding. */
                     blend[0] += (Blend)col->r * (Blend)col->r;
                     blend[1] += (Blend)col->g * (Blend)col->g;
                     blend[2] += (Blend)col->b * (Blend)col->b;
@@ -3164,7 +3164,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
                   for (const int vert : ss->corner_verts.slice(poly)) {
                     Color *col = lcol + vert;
 
-                    /* Color is squared to compensate the sqrt color encoding. */
+                    /* Color is squared to compensate the `sqrt` color encoding. */
                     blend[0] += (Blend)col->r * (Blend)col->r;
                     blend[1] += (Blend)col->g * (Blend)col->g;
                     blend[2] += (Blend)col->b * (Blend)col->b;
@@ -3463,7 +3463,7 @@ static void calculate_average_color(VPaintData<Color, Traits, domain> *vpd,
 
                 Color *col = lcol + elem_index;
 
-                /* Color is squared to compensate the sqrt color encoding. */
+                /* Color is squared to compensate the `sqrt` color encoding. */
                 accum2->value[0] += col->r * col->r;
                 accum2->value[1] += col->g * col->g;
                 accum2->value[2] += col->b * col->b;

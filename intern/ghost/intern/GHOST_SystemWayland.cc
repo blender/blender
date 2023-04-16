@@ -6763,7 +6763,7 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
           /* WAYLAND doesn't support setting the cursor position directly,
            * this is an intentional choice, forcing us to use a software cursor in this case. */
           GHOST_kCapabilityCursorWarp |
-          /* Some drivers don't support back-buffer reading, see: #98462 & #106264.
+          /* Some drivers don't support front-buffer reading, see: #98462 & #106264.
            * We could inspect the graphics card driver - for now just disable on WAYLAND. */
           GHOST_kCapabilityGPUReadFrontBuffer));
 }

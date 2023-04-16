@@ -374,7 +374,7 @@ static bool gpencil_stroke_filtermval(tGPsdata *p, const float mval[2], const fl
   }
   /* Check if the distance since the last point is significant enough:
    * - Prevents points being added too densely
-   * - Distance here doesn't use sqrt to prevent slowness.
+   * - Distance here doesn't use `sqrt` to prevent slowness.
    *   We should still be safe from overflows though.
    */
   if ((dx * dx + dy * dy) > MIN_EUCLIDEAN_PX * MIN_EUCLIDEAN_PX) {
