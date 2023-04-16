@@ -56,12 +56,15 @@ static int screenshot_data_create(bContext *C, wmOperator *op, ScrArea *area)
 {
   int dumprect_size[2];
 
+  wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
 
   /* do redraw so we don't show popups/menus */
   WM_redraw_windows(C);
 
-  uint *dumprect = WM_window_pixels_read_offscreen(C, win, dumprect_size);
+  uint *dumprect = (WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ) ?
+                       WM_window_pixels_read(wm, win, dumprect_size) :
+                       WM_window_pixels_read_offscreen(C, win, dumprect_size);
 
   if (dumprect) {
     ScreenshotData *scd = MEM_callocN(sizeof(ScreenshotData), "screenshot");

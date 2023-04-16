@@ -134,6 +134,10 @@ typedef enum eWM_CapabilitiesFlag {
    * (typically set when interactively selecting text).
    */
   WM_CAPABILITY_PRIMARY_CLIPBOARD = (1 << 2),
+  /**
+   * Reading from the back-buffer is supported.
+   */
+  WM_CAPABILITY_GPU_FRONT_BUFFER_READ = (1 << 3),
 } eWM_CapabilitiesFlag;
 
 eWM_CapabilitiesFlag WM_capabilities_flag(void);
@@ -155,11 +159,6 @@ wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mv
  */
 wmWindow *WM_window_find_by_area(wmWindowManager *wm, const struct ScrArea *area);
 
-void WM_window_pixel_sample_read(const wmWindowManager *wm,
-                                 const wmWindow *win,
-                                 const int pos[2],
-                                 float r_col[3]);
-
 /**
  * Read pixels from the front-buffer (fast).
  *
@@ -171,6 +170,11 @@ void WM_window_pixel_sample_read(const wmWindowManager *wm,
  * the front-buffer state to be invalid under some EGL configurations.
  */
 uint *WM_window_pixels_read(struct wmWindowManager *wm, struct wmWindow *win, int r_size[2]);
+void WM_window_pixels_read_sample(const wmWindowManager *wm,
+                                  const wmWindow *win,
+                                  const int pos[2],
+                                  float r_col[3]);
+
 /**
  * Draw the window & read pixels from an off-screen buffer (slower than #WM_window_pixels_read).
  *
@@ -178,6 +182,10 @@ uint *WM_window_pixels_read(struct wmWindowManager *wm, struct wmWindow *win, in
  * (see in-line code comments for details).
  */
 uint *WM_window_pixels_read_offscreen(struct bContext *C, struct wmWindow *win, int r_size[2]);
+bool WM_window_pixels_read_sample_offscreen(struct bContext *C,
+                                            struct wmWindow *win,
+                                            const int pos[2],
+                                            float r_col[3]);
 
 /**
  * Support for native pixel size

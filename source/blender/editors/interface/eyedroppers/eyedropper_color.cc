@@ -361,7 +361,13 @@ void eyedropper_color_sample_fl(bContext *C, const int m_xy[2], float r_col[3])
 
   if (win) {
     /* Fallback to simple opengl picker. */
-    WM_window_pixel_sample_read(wm, win, mval, r_col);
+    if (WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ) {
+      WM_window_pixels_read_sample(wm, win, mval, r_col);
+    }
+    else {
+      WM_window_pixels_read_sample_offscreen(C, win, mval, r_col);
+    }
+
     IMB_colormanagement_display_to_scene_linear_v3(r_col, display);
   }
   else {

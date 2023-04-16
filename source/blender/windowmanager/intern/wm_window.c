@@ -1850,6 +1850,9 @@ eWM_CapabilitiesFlag WM_capabilities_flag(void)
   if (ghost_flag & GHOST_kCapabilityPrimaryClipboard) {
     flag |= WM_CAPABILITY_PRIMARY_CLIPBOARD;
   }
+  if (ghost_flag & GHOST_kCapabilityGPUReadFrontBuffer) {
+    flag |= WM_CAPABILITY_GPU_FRONT_BUFFER_READ;
+  }
 
   return flag;
 }
@@ -2218,28 +2221,6 @@ wmWindow *WM_window_find_by_area(wmWindowManager *wm, const struct ScrArea *area
   return NULL;
 }
 
-void WM_window_pixel_sample_read(const wmWindowManager *wm,
-                                 const wmWindow *win,
-                                 const int pos[2],
-                                 float r_col[3])
-{
-  bool setup_context = wm->windrawable != win;
-
-  if (setup_context) {
-    GHOST_ActivateWindowDrawingContext(win->ghostwin);
-    GPU_context_active_set(win->gpuctx);
-  }
-
-  GPU_frontbuffer_read_pixels(pos[0], pos[1], 1, 1, 3, GPU_DATA_FLOAT, r_col);
-
-  if (setup_context) {
-    if (wm->windrawable) {
-      GHOST_ActivateWindowDrawingContext(wm->windrawable->ghostwin);
-      GPU_context_active_set(wm->windrawable->gpuctx);
-    }
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2251,6 +2232,8 @@ void WM_window_pixel_sample_read(const wmWindowManager *wm,
 
 uint *WM_window_pixels_read(wmWindowManager *wm, wmWindow *win, int r_size[2])
 {
+  BLI_assert(WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ);
+
   /* WARNING: Reading from the front-buffer immediately after drawing may fail,
    * for a slower but more reliable version of this function #WM_window_pixels_read_offscreen
    * should be preferred. See it's comments for details on why it's needed, see also #98462. */
@@ -2282,6 +2265,29 @@ uint *WM_window_pixels_read(wmWindowManager *wm, wmWindow *win, int r_size[2])
     *cp = 0xff;
   }
   return (uint *)rect;
+}
+
+void WM_window_pixels_read_sample(const wmWindowManager *wm,
+                                  const wmWindow *win,
+                                  const int pos[2],
+                                  float r_col[3])
+{
+  BLI_assert(WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ);
+  bool setup_context = wm->windrawable != win;
+
+  if (setup_context) {
+    GHOST_ActivateWindowDrawingContext(win->ghostwin);
+    GPU_context_active_set(win->gpuctx);
+  }
+
+  GPU_frontbuffer_read_pixels(pos[0], pos[1], 1, 1, 3, GPU_DATA_FLOAT, r_col);
+
+  if (setup_context) {
+    if (wm->windrawable) {
+      GHOST_ActivateWindowDrawingContext(wm->windrawable->ghostwin);
+      GPU_context_active_set(wm->windrawable->gpuctx);
+    }
+  }
 }
 
 /** \} */

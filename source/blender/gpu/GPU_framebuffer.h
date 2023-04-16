@@ -624,6 +624,11 @@ void GPU_offscreen_unbind(GPUOffScreen *offscreen, bool restore);
  * IMPORTANT: \a r_data must be big enough for all pixels in \a data_format .
  */
 void GPU_offscreen_read_pixels(GPUOffScreen *offscreen, eGPUDataFormat data_format, void *r_data);
+/**
+ * A version of #GPU_offscreen_read_pixels that reads into a region.
+ */
+void GPU_offscreen_read_pixels_region(
+    GPUOffScreen *offscreen, eGPUDataFormat data_format, int x, int y, int w, int h, void *r_data);
 
 /**
  * Blit the offscreen color texture to the active framebuffer at the `(x, y)` location.
