@@ -6307,6 +6307,7 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings glS
       delete context;
       return nullptr;
     }
+    context->setUserData(wl_surface);
     return context;
   }
 #else
@@ -6345,7 +6346,9 @@ GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
   delete context;
 
   wl_egl_window *egl_window = (wl_egl_window *)wl_surface_get_user_data(wl_surface);
-  wl_egl_window_destroy(egl_window);
+  if (egl_window != nullptr) {
+    wl_egl_window_destroy(egl_window);
+  }
   wl_surface_destroy(wl_surface);
 
   return GHOST_kSuccess;
