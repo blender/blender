@@ -1865,17 +1865,17 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_PAINT:
       br->hardness = 0.4f;
       br->spacing = 10;
-      br->alpha = 0.6f;
+      br->alpha = 1.0f;
       br->flow = 1.0f;
       br->tip_scale_x = 1.0f;
       br->tip_roundness = 1.0f;
       br->density = 1.0f;
       br->flag &= ~BRUSH_SPACE_ATTEN;
-      copy_v3_fl(br->rgb, 1.0f);
-      zero_v3(br->secondary_rgb);
+      zero_v3(br->rgb);
+      copy_v3_fl(br->secondary_rgb, 1.0f);
       break;
     case SCULPT_TOOL_SMEAR:
-      br->alpha = 1.0f;
+      br->alpha = 0.6f;
       br->spacing = 5;
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
