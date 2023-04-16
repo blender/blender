@@ -1404,9 +1404,24 @@ void nodeUnregisterType(bNodeType *nt)
 
 bool nodeTypeUndefined(const bNode *node)
 {
-  return (node->typeinfo == &NodeTypeUndefined) ||
-         (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id && ID_IS_LINKED(node->id) &&
-          (node->id->tag & LIB_TAG_MISSING));
+  if (node->typeinfo == &NodeTypeUndefined) {
+    return true;
+  }
+
+  if (node->is_group()) {
+    const ID *group_tree = node->id;
+    if (group_tree == nullptr) {
+      return false;
+    }
+    if (!ID_IS_LINKED(group_tree)) {
+      return false;
+    }
+    if ((group_tree->tag & LIB_TAG_MISSING) == 0) {
+      return false;
+    }
+    return true;
+  }
+  return false;
 }
 
 GHashIterator *nodeTypeGetIterator()
@@ -1464,7 +1479,10 @@ GHashIterator *nodeSocketTypeGetIterator()
 const char *nodeSocketTypeLabel(const bNodeSocketType *stype)
 {
   /* Use socket type name as a fallback if label is undefined. */
-  return stype->label[0] != '\0' ? stype->label : RNA_struct_ui_name(stype->ext_socket.srna);
+  if (stype->label[0] == '\0') {
+    return RNA_struct_ui_name(stype->ext_socket.srna);
+  }
+  return stype->label;
 }
 
 const char *nodeSocketSubTypeLabel(int subtype)
@@ -2132,18 +2150,23 @@ void nodeChainIter(const bNodeTree *ntree,
       /* Skip links marked as cyclic. */
       continue;
     }
-    if (link->tonode && link->fromnode) {
-      /* Is the link part of the chain meaning node_start == fromnode
-       * (or tonode for reversed case)? */
-      if ((reversed && (link->tonode == node_start)) ||
-          (!reversed && link->fromnode == node_start)) {
-        if (!callback(link->fromnode, link->tonode, userdata, reversed)) {
-          return;
-        }
-        nodeChainIter(
-            ntree, reversed ? link->fromnode : link->tonode, callback, userdata, reversed);
+    /* Is the link part of the chain meaning node_start == fromnode
+     * (or tonode for reversed case)? */
+    if (!reversed) {
+      if (link->fromnode != node_start) {
+        continue;
       }
     }
+    else {
+      if (link->tonode != node_start) {
+        continue;
+      }
+    }
+
+    if (!callback(link->fromnode, link->tonode, userdata, reversed)) {
+      return;
+    }
+    nodeChainIter(ntree, reversed ? link->fromnode : link->tonode, callback, userdata, reversed);
   }
 }
 
@@ -2289,8 +2312,12 @@ bNode *nodeAddStaticNode(const bContext *C, bNodeTree *ntree, const int type)
   NODE_TYPES_BEGIN (ntype) {
     /* Do an extra poll here, because some int types are used
      * for multiple node types, this helps find the desired type. */
+    if (ntype->type != type) {
+      continue;
+    }
+
     const char *disabled_hint;
-    if (ntype->type == type && (!ntype->poll || ntype->poll(ntype, ntree, &disabled_hint))) {
+    if (ntype->poll && ntype->poll(ntype, ntree, &disabled_hint)) {
       idname = ntype->idname;
       break;
     }
@@ -2635,55 +2662,49 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
   /* redirect downstream links */
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
     /* do we have internal link? */
-    if (link->fromnode == node) {
-      if (link->fromsock->link) {
-        /* get the upstream input link */
-        bNodeLink *fromlink = link->fromsock->link->fromsock->link;
-        /* skip the node */
-        if (fromlink) {
-          if (link->tosock->flag & SOCK_MULTI_INPUT) {
-            /* remove the link that would be the same as the relinked one */
-            LISTBASE_FOREACH_MUTABLE (bNodeLink *, link_to_compare, &ntree->links) {
-              if (link_to_compare->fromsock == fromlink->fromsock &&
-                  link_to_compare->tosock == link->tosock) {
-                adjust_multi_input_indices_after_removed_link(
-                    ntree, link_to_compare->tosock, link_to_compare->multi_input_socket_index);
-                duplicate_links_to_remove.append_non_duplicates(link_to_compare);
-              }
-            }
-          }
-          link->fromnode = fromlink->fromnode;
-          link->fromsock = fromlink->fromsock;
+    if (link->fromnode != node) {
+      continue;
+    }
 
-          /* if the up- or downstream link is invalid,
-           * the replacement link will be invalid too.
-           */
-          if (!(fromlink->flag & NODE_LINK_VALID)) {
-            link->flag &= ~NODE_LINK_VALID;
-          }
+    bNodeLink *internal_link = link->fromsock->link;
+    bNodeLink *fromlink = internal_link ? internal_link->fromsock->link : nullptr;
 
-          if (fromlink->flag & NODE_LINK_MUTED) {
-            link->flag |= NODE_LINK_MUTED;
-          }
-
-          BKE_ntree_update_tag_link_changed(ntree);
-        }
-        else {
-          if (link->tosock->flag & SOCK_MULTI_INPUT) {
-            adjust_multi_input_indices_after_removed_link(
-                ntree, link->tosock, link->multi_input_socket_index);
-          }
-          nodeRemLink(ntree, link);
-        }
+    if (fromlink == nullptr) {
+      if (link->tosock->flag & SOCK_MULTI_INPUT) {
+        adjust_multi_input_indices_after_removed_link(
+            ntree, link->tosock, link->multi_input_socket_index);
       }
-      else {
-        if (link->tosock->flag & SOCK_MULTI_INPUT) {
+      nodeRemLink(ntree, link);
+      continue;
+    }
+
+    if (link->tosock->flag & SOCK_MULTI_INPUT) {
+      /* remove the link that would be the same as the relinked one */
+      LISTBASE_FOREACH_MUTABLE (bNodeLink *, link_to_compare, &ntree->links) {
+        if (link_to_compare->fromsock == fromlink->fromsock &&
+            link_to_compare->tosock == link->tosock) {
           adjust_multi_input_indices_after_removed_link(
-              ntree, link->tosock, link->multi_input_socket_index);
-        };
-        nodeRemLink(ntree, link);
+              ntree, link_to_compare->tosock, link_to_compare->multi_input_socket_index);
+          duplicate_links_to_remove.append_non_duplicates(link_to_compare);
+        }
       }
     }
+
+    link->fromnode = fromlink->fromnode;
+    link->fromsock = fromlink->fromsock;
+
+    /* if the up- or downstream link is invalid,
+     * the replacement link will be invalid too.
+     */
+    if (!(fromlink->flag & NODE_LINK_VALID)) {
+      link->flag &= ~NODE_LINK_VALID;
+    }
+
+    if (fromlink->flag & NODE_LINK_MUTED) {
+      link->flag |= NODE_LINK_MUTED;
+    }
+
+    BKE_ntree_update_tag_link_changed(ntree);
   }
 
   for (bNodeLink *link : duplicate_links_to_remove) {
@@ -3292,6 +3313,7 @@ void ntreeFreeLocalTree(bNodeTree *ntree)
 
 void ntreeSetOutput(bNodeTree *ntree)
 {
+  const bool is_compositor = ntree->type == NTREE_COMPOSIT;
   /* find the active outputs, might become tree type dependent handler */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
@@ -3299,37 +3321,29 @@ void ntreeSetOutput(bNodeTree *ntree)
       if (ELEM(node->type, CMP_NODE_OUTPUT_FILE, GEO_NODE_VIEWER)) {
         continue;
       }
+      const bool node_is_output = ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER);
 
       int output = 0;
       /* there is more types having output class, each one is checked */
+
       LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {
-        if (tnode->typeinfo->nclass == NODE_CLASS_OUTPUT) {
-          if (ntree->type == NTREE_COMPOSIT) {
-            /* same type, exception for viewer */
-            if (tnode->type == node->type ||
-                (ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER) &&
-                 ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))) {
-              if (tnode->flag & NODE_DO_OUTPUT) {
-                output++;
-                if (output > 1) {
-                  tnode->flag &= ~NODE_DO_OUTPUT;
-                }
-              }
-            }
-          }
-          else {
-            /* same type */
-            if (tnode->type == node->type) {
-              if (tnode->flag & NODE_DO_OUTPUT) {
-                output++;
-                if (output > 1) {
-                  tnode->flag &= ~NODE_DO_OUTPUT;
-                }
-              }
+        if (tnode->typeinfo->nclass != NODE_CLASS_OUTPUT) {
+          continue;
+        }
+
+        /* same type, exception for viewer */
+        const bool tnode_is_output = ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER);
+        const bool compositor_case = is_compositor && tnode_is_output && node_is_output;
+        if (tnode->type == node->type || compositor_case) {
+          if (tnode->flag & NODE_DO_OUTPUT) {
+            output++;
+            if (output > 1) {
+              tnode->flag &= ~NODE_DO_OUTPUT;
             }
           }
         }
       }
+
       if (output == 0) {
         node->flag |= NODE_DO_OUTPUT;
       }
@@ -3339,12 +3353,13 @@ void ntreeSetOutput(bNodeTree *ntree)
     if (node->type == NODE_GROUP_OUTPUT) {
       int output = 0;
       LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {
-        if (tnode->type == NODE_GROUP_OUTPUT) {
-          if (tnode->flag & NODE_DO_OUTPUT) {
-            output++;
-            if (output > 1) {
-              tnode->flag &= ~NODE_DO_OUTPUT;
-            }
+        if (tnode->type != NODE_GROUP_OUTPUT) {
+          continue;
+        }
+        if (tnode->flag & NODE_DO_OUTPUT) {
+          output++;
+          if (output > 1) {
+            tnode->flag &= ~NODE_DO_OUTPUT;
           }
         }
       }
@@ -3547,10 +3562,11 @@ bNodeSocket *ntreeAddSocketInterfaceFromSocketWithName(bNodeTree *ntree,
 {
   bNodeSocket *iosock = ntreeAddSocketInterface(
       ntree, static_cast<eNodeSocketInOut>(from_sock->in_out), idname, DATA_(name));
-  if (iosock) {
-    if (iosock->typeinfo->interface_from_socket) {
-      iosock->typeinfo->interface_from_socket(ntree, iosock, from_node, from_sock);
-    }
+  if (iosock == nullptr) {
+    return nullptr;
+  }
+  if (iosock->typeinfo->interface_from_socket) {
+    iosock->typeinfo->interface_from_socket(ntree, iosock, from_node, from_sock);
   }
   return iosock;
 }
@@ -3677,17 +3693,15 @@ void nodeSetSelected(bNode *node, const bool select)
 {
   if (select) {
     node->flag |= NODE_SELECT;
+    return;
   }
-  else {
-    node->flag &= ~NODE_SELECT;
-
-    /* deselect sockets too */
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      sock->flag &= ~NODE_SELECT;
-    }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      sock->flag &= ~NODE_SELECT;
-    }
+  node->flag &= ~NODE_SELECT;
+  /* deselect sockets too */
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+    sock->flag &= ~NODE_SELECT;
+  }
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+    sock->flag &= ~NODE_SELECT;
   }
 }
 
@@ -3734,17 +3748,17 @@ void nodeSetSocketAvailability(bNodeTree *ntree, bNodeSocket *sock, const bool i
 
 int nodeSocketLinkLimit(const bNodeSocket *sock)
 {
-  const bNodeSocketType *stype = sock->typeinfo;
   if (sock->flag & SOCK_MULTI_INPUT) {
     return 4095;
   }
-  if (stype != nullptr && stype->use_link_limits_of_type) {
-    const int limit = (sock->in_out == SOCK_IN) ? stype->input_link_limit :
-                                                  stype->output_link_limit;
-    return limit;
+  if (sock->typeinfo == nullptr) {
+    return sock->limit;
   }
-
-  return sock->limit;
+  const bNodeSocketType &stype = *sock->typeinfo;
+  if (!stype.use_link_limits_of_type) {
+    return sock->limit;
+  }
+  return sock->in_out == SOCK_IN ? stype.input_link_limit : stype.output_link_limit;
 }
 
 static void update_socket_declarations(ListBase *sockets,
@@ -3770,11 +3784,10 @@ void nodeSocketDeclarationsUpdate(bNode *node)
   if (node->runtime->declaration->skip_updating_sockets) {
     reset_socket_declarations(&node->inputs);
     reset_socket_declarations(&node->outputs);
+    return;
   }
-  else {
-    update_socket_declarations(&node->inputs, node->runtime->declaration->inputs);
-    update_socket_declarations(&node->outputs, node->runtime->declaration->outputs);
-  }
+  update_socket_declarations(&node->inputs, node->runtime->declaration->inputs);
+  update_socket_declarations(&node->outputs, node->runtime->declaration->outputs);
 }
 
 bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *ntree, bNode *node)
@@ -4034,16 +4047,17 @@ void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, const int
   else if (node->typeinfo->labelfunc) {
     node->typeinfo->labelfunc(ntree, node, label, maxlen);
   }
-
-  /* The previous methods (labelfunc) could not provide an adequate label for the node. */
-  if (label[0] == '\0') {
-    /* Kind of hacky and weak... Ideally would be better to use RNA here. :| */
-    const char *tmp = CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, node->typeinfo->ui_name);
-    if (tmp == node->typeinfo->ui_name) {
-      tmp = IFACE_(node->typeinfo->ui_name);
-    }
-    BLI_strncpy(label, tmp, maxlen);
+  if (label[0] != '\0') {
+    /* The previous methods (labelfunc) could not provide an adequate label for the node. */
+    return;
   }
+
+  /* Kind of hacky and weak... Ideally would be better to use RNA here. :| */
+  const char *tmp = CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, node->typeinfo->ui_name);
+  if (tmp == node->typeinfo->ui_name) {
+    tmp = IFACE_(node->typeinfo->ui_name);
+  }
+  BLI_strncpy(label, tmp, maxlen);
 }
 
 const char *nodeSocketLabel(const bNodeSocket *sock)
