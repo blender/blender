@@ -539,7 +539,7 @@ void GPU_framebuffer_read_color(GPUFrameBuffer *framebuffer,
  * TODO: Emulate this by doing some slow texture copy on the backend side or try to read the areas
  * offscreen textures directly.
  */
-void GPU_frontbuffer_read_pixels(
+void GPU_frontbuffer_read_color(
     int x, int y, int width, int height, int channels, eGPUDataFormat data_format, void *r_data);
 
 /**
@@ -623,11 +623,11 @@ void GPU_offscreen_unbind(GPUOffScreen *offscreen, bool restore);
  * attachment type.
  * IMPORTANT: \a r_data must be big enough for all pixels in \a data_format .
  */
-void GPU_offscreen_read_pixels(GPUOffScreen *offscreen, eGPUDataFormat data_format, void *r_data);
+void GPU_offscreen_read_color(GPUOffScreen *offscreen, eGPUDataFormat data_format, void *r_data);
 /**
- * A version of #GPU_offscreen_read_pixels that reads into a region.
+ * A version of #GPU_offscreen_read_color that reads into a region.
  */
-void GPU_offscreen_read_pixels_region(
+void GPU_offscreen_read_color_region(
     GPUOffScreen *offscreen, eGPUDataFormat data_format, int x, int y, int w, int h, void *r_data);
 
 /**

@@ -1238,7 +1238,7 @@ uint *WM_window_pixels_read_offscreen(bContext *C, wmWindow *win, int r_size[2])
   GPU_offscreen_bind(offscreen, false);
   wm_draw_window_onscreen(C, win, -1);
   GPU_offscreen_unbind(offscreen, false);
-  GPU_offscreen_read_pixels(offscreen, GPU_DATA_UBYTE, rect);
+  GPU_offscreen_read_color(offscreen, GPU_DATA_UBYTE, rect);
   GPU_offscreen_free(offscreen);
   return rect;
 }
@@ -1269,7 +1269,7 @@ bool WM_window_pixels_read_sample_offscreen(bContext *C,
   GPU_offscreen_bind(offscreen, false);
   wm_draw_window_onscreen(C, win, -1);
   GPU_offscreen_unbind(offscreen, false);
-  GPU_offscreen_read_pixels_region(offscreen, GPU_DATA_FLOAT, pos[0], pos[1], 1, 1, rect_pixel);
+  GPU_offscreen_read_color_region(offscreen, GPU_DATA_FLOAT, pos[0], pos[1], 1, 1, rect_pixel);
   GPU_offscreen_free(offscreen);
   copy_v3_v3(r_col, rect_pixel);
   return true;

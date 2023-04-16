@@ -2249,7 +2249,7 @@ uint *WM_window_pixels_read(wmWindowManager *wm, wmWindow *win, int r_size[2])
   const uint rect_len = r_size[0] * r_size[1];
   uint *rect = MEM_mallocN(sizeof(*rect) * rect_len, __func__);
 
-  GPU_frontbuffer_read_pixels(0, 0, r_size[0], r_size[1], 4, GPU_DATA_UBYTE, rect);
+  GPU_frontbuffer_read_color(0, 0, r_size[0], r_size[1], 4, GPU_DATA_UBYTE, rect);
 
   if (setup_context) {
     if (wm->windrawable) {
@@ -2280,7 +2280,7 @@ void WM_window_pixels_read_sample(const wmWindowManager *wm,
     GPU_context_active_set(win->gpuctx);
   }
 
-  GPU_frontbuffer_read_pixels(pos[0], pos[1], 1, 1, 3, GPU_DATA_FLOAT, r_col);
+  GPU_frontbuffer_read_color(pos[0], pos[1], 1, 1, 3, GPU_DATA_FLOAT, r_col);
 
   if (setup_context) {
     if (wm->windrawable) {

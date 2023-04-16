@@ -439,7 +439,7 @@ void ED_screen_preview_render(const bScreen *screen, int size_x, int size_y, uin
 
   screen_preview_draw(screen, size_x, size_y);
 
-  GPU_offscreen_read_pixels(offscreen, GPU_DATA_UBYTE, r_rect);
+  GPU_offscreen_read_color(offscreen, GPU_DATA_UBYTE, r_rect);
   GPU_offscreen_unbind(offscreen, true);
 
   GPU_offscreen_free(offscreen);
