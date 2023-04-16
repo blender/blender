@@ -31,7 +31,9 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
+    Union,
 )
+from requests.structures import CaseInsensitiveDict
 
 logger = logging.getLogger(__file__)
 
@@ -43,7 +45,7 @@ class TeamMember():
     full_name: str
     last_login: datetime.datetime
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "{id};{login};{full_name};{last_login};{url}\n".format(
             id=self.id,
             login=self.login,
@@ -64,22 +66,25 @@ retry: Callable[[F], F] = retry_decorator(
 
 def assert_cast(typ: Type[T], obj: object) -> T:
     assert isinstance(obj, typ), f'object is not of type {typ}: {obj}'
-    return cast(T, obj)
+    # NOTE: MYPY warns the cast is redundant, we might consider removing it.
+    return cast(T, obj)  # type: ignore
 
 
 def get_date_object(date_string: str) -> datetime.datetime:
-    return iso8601.parse_date(date_string)
+    result = iso8601.parse_date(date_string)
+    assert isinstance(result, datetime.datetime)
+    return result
 
 
 results_per_page = 25
 
 
-def get_next_page(headers: Dict, page: int) -> int:
+def get_next_page(headers: CaseInsensitiveDict[str], page: Optional[Page]) -> Optional[Page]:
     """
     Parse the header looking for reference to next.
     """
     total_count = int(assert_cast(str, headers.get('X-Total-Count')))
-    next_page = page + 1 if page else 1
+    next_page = Page(page + 1 if page else 1)
 
     if next_page * results_per_page > total_count:
         return None
@@ -105,7 +110,7 @@ def fetch_single(
         'Authorization': 'token ' + api_token,
     }
 
-    params = {
+    params: Dict[str, Union[str, int]] = {
         'limit': results_per_page,
         **data,
     }
@@ -119,7 +124,7 @@ def fetch_single(
     response_json = response.json()
 
     next_page = get_next_page(response.headers, page)
-    return response_json, None if next_page is None else Page(next_page)
+    return response_json, None if next_page is None else next_page
 
 
 def fetch_all(
@@ -226,7 +231,7 @@ api_url = yarl.URL(gitea_domain + 'api/v1/')
 organization_name = "blender"
 
 
-def main():
+def main() -> None:
     for team_name in teams:
         logger.warning(team_name)
         members = fetch_team_members(
