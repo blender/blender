@@ -3288,12 +3288,15 @@ class VIEW3D_MT_mask(Menu):
         props = layout.operator("sculpt.expand", text="Expand Mask by Topology")
         props.target = 'MASK'
         props.falloff_type = 'GEODESIC'
-        props.invert = True
+        props.invert = False
+        props.use_auto_mask = False
+        props.use_mask_preserve = True
 
         props = layout.operator("sculpt.expand", text="Expand Mask by Normals")
         props.target = 'MASK'
         props.falloff_type = 'NORMALS'
         props.invert = False
+        props.use_mask_preserve = True
 
         layout.separator()
 
@@ -3351,12 +3354,14 @@ class VIEW3D_MT_face_sets(Menu):
         props.target = 'FACE_SETS'
         props.falloff_type = 'GEODESIC'
         props.invert = False
+        props.use_mask_preserve = False
         props.use_modify_active = False
 
         props = layout.operator("sculpt.expand", text="Expand Active Face Set")
         props.target = 'FACE_SETS'
         props.falloff_type = 'BOUNDARY_FACE_SET'
         props.invert = False
+        props.use_mask_preserve = False
         props.use_modify_active = True
 
         layout.separator()
