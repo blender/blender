@@ -313,6 +313,11 @@ void SCULPT_ensure_valid_pivot(const Object *ob, Scene *scene)
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
   const SculptSession *ss = ob->sculpt;
 
+  /* Account for the case where no objects are evaluated. */
+  if (!ss->pbvh) {
+    return;
+  }
+
   /* No valid pivot? Use bounding box center. */
   if (ups->average_stroke_counter == 0 || !ups->last_stroke_valid) {
     float location[3], max[3];
