@@ -527,7 +527,7 @@ BVHNode *BVHBuild::run()
     if (progress.get_cancel()) {
       rootnode->deleteSubtree();
       rootnode = NULL;
-      VLOG_WORK << "BVH build cancelled.";
+      VLOG_WORK << "BVH build canceled.";
     }
     else {
       /*rotate(rootnode, 4, 5);*/

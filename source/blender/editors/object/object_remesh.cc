@@ -934,7 +934,7 @@ static void quadriflow_end_job(void *customdata)
       WM_reportf(RPT_ERROR, "QuadriFlow: Remeshing failed");
       break;
     case -1:
-      WM_report(RPT_WARNING, "QuadriFlow: Remeshing cancelled");
+      WM_report(RPT_WARNING, "QuadriFlow: Remeshing canceled");
       break;
     case -2:
       WM_report(RPT_WARNING,

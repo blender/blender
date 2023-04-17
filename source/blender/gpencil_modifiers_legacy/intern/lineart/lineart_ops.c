@@ -286,7 +286,7 @@ static int lineart_gpencil_bake_common(bContext *C,
   if (!bake_all_targets) {
     Object *ob = CTX_data_active_object(C);
     if (!ob || ob->type != OB_GPENCIL_LEGACY) {
-      WM_report(RPT_ERROR, "No active object or active object isn't a GPencil object.");
+      WM_report(RPT_ERROR, "No active object or active object isn't a GPencil object");
       return OPERATOR_FINISHED;
     }
     BLI_linklist_prepend(&bj->objects, ob);
