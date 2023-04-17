@@ -1209,7 +1209,81 @@ static void wm_draw_surface(bContext *C, wmSurface *surface)
   wm_surface_clear_drawable();
 }
 
-uint *WM_window_pixels_read_offscreen(bContext *C, wmWindow *win, int r_size[2])
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Window Screen Shot Utility (Front-Buffer & Off-Screen)
+ *
+ * Include here since it can involve low level buffer switching.
+ * \{ */
+
+uint *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
+                                             const wmWindow *win,
+                                             int r_size[2])
+{
+  /* Don't assert as file-save uses this for a screenshot, where redrawing isn't an option
+   * because of the side-effects of drawing a window on save.
+   * In this case the thumbnail might not work and there are currently no better alternatives. */
+  // BLI_assert(WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ);
+
+  /* WARNING: Reading from the front-buffer immediately after drawing may fail,
+   * for a slower but more reliable version of this function
+   * #WM_window_pixels_read_from_offscreen should be preferred.
+   * See it's comments for details on why it's needed, see also #98462. */
+  bool setup_context = wm->windrawable != win;
+
+  if (setup_context) {
+    GHOST_ActivateWindowDrawingContext(win->ghostwin);
+    GPU_context_active_set(win->gpuctx);
+  }
+
+  r_size[0] = WM_window_pixels_x(win);
+  r_size[1] = WM_window_pixels_y(win);
+  const uint rect_len = r_size[0] * r_size[1];
+  uint *rect = MEM_mallocN(sizeof(*rect) * rect_len, __func__);
+
+  GPU_frontbuffer_read_color(0, 0, r_size[0], r_size[1], 4, GPU_DATA_UBYTE, rect);
+
+  if (setup_context) {
+    if (wm->windrawable) {
+      GHOST_ActivateWindowDrawingContext(wm->windrawable->ghostwin);
+      GPU_context_active_set(wm->windrawable->gpuctx);
+    }
+  }
+
+  /* Clear alpha, it is not set to a meaningful value in OpenGL. */
+  uchar *cp = (uchar *)rect;
+  uint i;
+  for (i = 0, cp += 3; i < rect_len; i++, cp += 4) {
+    *cp = 0xff;
+  }
+  return (uint *)rect;
+}
+
+void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
+                                                   const wmWindow *win,
+                                                   const int pos[2],
+                                                   float r_col[3])
+{
+  BLI_assert(WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ);
+  bool setup_context = wm->windrawable != win;
+
+  if (setup_context) {
+    GHOST_ActivateWindowDrawingContext(win->ghostwin);
+    GPU_context_active_set(win->gpuctx);
+  }
+
+  GPU_frontbuffer_read_color(pos[0], pos[1], 1, 1, 3, GPU_DATA_FLOAT, r_col);
+
+  if (setup_context) {
+    if (wm->windrawable) {
+      GHOST_ActivateWindowDrawingContext(wm->windrawable->ghostwin);
+      GPU_context_active_set(wm->windrawable->gpuctx);
+    }
+  }
+}
+
+uint *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_size[2])
 {
   /* NOTE(@ideasman42): There is a problem reading the windows front-buffer after redrawing
    * the window in some cases (typically to clear UI elements such as menus or search popup).
@@ -1243,13 +1317,12 @@ uint *WM_window_pixels_read_offscreen(bContext *C, wmWindow *win, int r_size[2])
   return rect;
 }
 
-bool WM_window_pixels_read_sample_offscreen(bContext *C,
-                                            wmWindow *win,
-                                            const int pos[2],
-                                            float r_col[3])
+bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
+                                                 wmWindow *win,
+                                                 const int pos[2],
+                                                 float r_col[3])
 {
-  /* A version of #WM_window_pixels_read_offscreen. */
-
+  /* A version of #WM_window_pixels_read_from_offscreen that reads a single sample. */
   const int size[2] = {WM_window_pixels_x(win), WM_window_pixels_y(win)};
   zero_v3(r_col);
 
@@ -1273,6 +1346,23 @@ bool WM_window_pixels_read_sample_offscreen(bContext *C,
   GPU_offscreen_free(offscreen);
   copy_v3_v3(r_col, rect_pixel);
   return true;
+}
+
+uint *WM_window_pixels_read(bContext *C, wmWindow *win, int r_size[2])
+{
+  if (WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ) {
+    return WM_window_pixels_read_from_frontbuffer(CTX_wm_manager(C), win, r_size);
+  }
+  return WM_window_pixels_read_from_offscreen(C, win, r_size);
+}
+
+bool WM_window_pixels_read_sample(bContext *C, wmWindow *win, const int pos[2], float r_col[3])
+{
+  if (WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ) {
+    WM_window_pixels_read_sample_from_frontbuffer(CTX_wm_manager(C), win, pos, r_col);
+    return true;
+  }
+  return WM_window_pixels_read_sample_from_offscreen(C, win, pos, r_col);
 }
 
 /** \} */
