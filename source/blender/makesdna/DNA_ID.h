@@ -840,6 +840,13 @@ enum {
    * RESET_AFTER_USE
    */
   LIB_TAG_UNDO_OLD_ID_REUSED = 1 << 17,
+  /**
+   * ID has be re-read in-place, the ID address is the same as in the old BMain, but the content is
+   * different.
+   *
+   * RESET_AFTER_USE
+   */
+  LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE = 1 << 18,
 
   /* ------------------------------------------------------------------------------------------- */
   /**

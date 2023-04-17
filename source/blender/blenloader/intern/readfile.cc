@@ -3104,6 +3104,7 @@ static void read_libblock_undo_restore_at_old_address(FileData *fd, Main *main, 
    * lib-linking to restore some data that should never be affected by undo, e.g. the 3D cursor of
    * #Scene. */
   id_old->orig_id = id;
+  id_old->tag |= LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE;
 
   BLI_addtail(new_lb, id_old);
   BLI_addtail(old_lb, id);
