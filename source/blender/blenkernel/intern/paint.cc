@@ -1897,7 +1897,7 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
       /* In vertex/weight paint, force maps to be rebuilt. */
       BKE_sculptsession_free_vwpaint_data(ob_eval->sculpt);
     }
-    else {
+    else if (ss->pbvh) {
       Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
       for (PBVHNode *node : nodes) {
