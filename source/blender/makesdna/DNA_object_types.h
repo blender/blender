@@ -257,7 +257,8 @@ typedef struct Object {
 
   struct SculptSession *sculpt;
 
-  short type, partype;
+  short type; /* #ObjectType */
+  short partype;
   /** Can be vertexnrs. */
   int par1, par2, par3;
   /** String describing subobject info, MAX_ID_NAME-2. */
@@ -489,7 +490,7 @@ typedef struct ObHook {
 #define SELECT 1
 
 /** #Object.type */
-enum {
+typedef enum ObjectType {
   OB_EMPTY = 0,
   OB_MESH = 1,
   /** Curve object is still used but replaced by "Curves" for the future (see #95355). */
@@ -519,7 +520,7 @@ enum {
 
   /* Keep last. */
   OB_TYPE_MAX,
-};
+} ObjectType;
 
 /* check if the object type supports materials */
 #define OB_TYPE_SUPPORT_MATERIAL(_type) \
