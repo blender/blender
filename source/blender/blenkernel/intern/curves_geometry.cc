@@ -617,6 +617,7 @@ Span<float3> CurvesGeometry::evaluated_positions() const
         [&](Vector<float3> &r_data) { r_data.clear_and_shrink(); });
     return this->positions();
   }
+  this->ensure_nurbs_basis_cache();
   runtime.evaluated_position_cache.ensure([&](Vector<float3> &r_data) {
     r_data.resize(this->evaluated_points_num());
     MutableSpan<float3> evaluated_positions = r_data;
