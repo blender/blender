@@ -204,7 +204,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
     def class_blacklist():
         blacklist_rna_class = {getattr(bpy.types, cls_id) for cls_id in (
             # core classes
-            "Context", "Event", "Function", "UILayout", "UnknownType", "Property", "Struct",
+            "Context", "Event", "Function", "UILayout", "UnknownType", "Struct",
             # registerable classes
             "Panel", "Menu", "Header", "RenderEngine", "Operator", "OperatorMacro", "Macro", "KeyingSetInfo",
         )
