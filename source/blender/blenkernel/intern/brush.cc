@@ -521,6 +521,7 @@ static void brush_defaults(Brush *brush)
   FROM_DEFAULT(stencil_dimension);
   FROM_DEFAULT(mtex);
   FROM_DEFAULT(mask_mtex);
+  FROM_DEFAULT(falloff_shape);
 
 #undef FROM_DEFAULT
 #undef FROM_DEFAULT_PTR
