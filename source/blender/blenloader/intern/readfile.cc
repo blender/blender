@@ -3123,17 +3123,20 @@ static bool read_libblock_undo_restore(
       return true;
     }
   }
+  else if (id_type->flags & IDTYPE_FLAGS_NO_MEMFILE_UNDO) {
+    /* Skip reading any 'no undo' datablocks (typically UI-like ones), existing ones are kept.
+     * See `setup_app_data` for details. */
+    CLOG_INFO(&LOG_UNDO,
+              2,
+              "UNDO: skip restore datablock %s, 'NO_MEMFILE_UNDO' type of ID",
+              id->name);
+    return true;
+  }
   else if (bhead->code == ID_LINK_PLACEHOLDER) {
     /* Restore linked datablock. */
     if (read_libblock_undo_restore_linked(fd, main, id, bhead)) {
       return true;
     }
-  }
-  else if (id_type->flags & IDTYPE_FLAGS_NO_MEMFILE_UNDO) {
-    /* Skip reading any UI datablocks, existing ones are kept. We don't
-     * support pointers from other datablocks to UI datablocks so those
-     * we also don't put UI datablocks in fd->libmap. */
-    return true;
   }
 
   /* Restore local datablocks. */
