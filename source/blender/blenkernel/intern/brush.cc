@@ -416,7 +416,7 @@ static int brush_undo_preserve_cb(LibraryIDLinkCallbackData *cb_data)
 static void brush_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
 {
   /* Whole Brush is preserved across undo-steps. */
-  BKE_lib_id_swap(nullptr, id_new, id_old);
+  BKE_lib_id_swap(nullptr, id_new, id_old, false, 0);
 
   /* `id_new` now has content from `id_old`, we need to ensure those old ID pointers are valid.
    * NOTE: Since we want to re-use all old pointers here, code is much simpler than for Scene. */

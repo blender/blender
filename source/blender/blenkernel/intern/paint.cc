@@ -130,7 +130,7 @@ static void palette_undo_preserve(BlendLibReader * /*reader*/, ID *id_new, ID *i
   /* NOTE: We do not care about potential internal references to self here, Palette has none. */
   /* NOTE: We do not swap IDProperties, as dealing with potential ID pointers in those would be
    *       fairly delicate. */
-  BKE_lib_id_swap(nullptr, id_new, id_old);
+  BKE_lib_id_swap(nullptr, id_new, id_old, false, 0);
   std::swap(id_new->properties, id_old->properties);
 }
 
