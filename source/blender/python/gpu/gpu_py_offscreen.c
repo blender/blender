@@ -290,7 +290,7 @@ static PyObject *pygpu_offscreen_texture_color_get(BPyGPUOffScreen *self, void *
 PyDoc_STRVAR(
     pygpu_offscreen_draw_view3d_doc,
     ".. method:: draw_view3d(scene, view_layer, view3d, region, view_matrix, projection_matrix, "
-    "do_color_management=False)\n"
+    "do_color_management=False, draw_background=True)\n"
     "\n"
     "   Draw the 3d viewport in the offscreen object.\n"
     "\n"
@@ -307,7 +307,9 @@ PyDoc_STRVAR(
     "   :arg projection_matrix: Projection Matrix (e.g. ``camera.calc_matrix_camera(...)``).\n"
     "   :type projection_matrix: :class:`mathutils.Matrix`\n"
     "   :arg do_color_management: Color manage the output.\n"
-    "   :type do_color_management: bool\n");
+    "   :type do_color_management: bool\n"
+    "   :arg draw_background: Draw background.\n"
+    "   :type draw_background: bool\n");
 static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *args, PyObject *kwds)
 {
   MatrixObject *py_mat_view, *py_mat_projection;
@@ -320,6 +322,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
   ARegion *region;
 
   bool do_color_management = false;
+  bool draw_background = true;
 
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
 
@@ -331,6 +334,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
       "view_matrix",
       "projection_matrix",
       "do_color_management",
+      "draw_background",
       NULL,
   };
   static _PyArg_Parser _parser = {
@@ -342,6 +346,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
       "O&" /* `projection_matrix` */
       "|$" /* Optional keyword only arguments. */
       "O&" /* `do_color_management` */
+      "O&" /* `draw_background` */
       ":draw_view3d",
       _keywords,
       0,
@@ -358,7 +363,9 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
                                         Matrix_Parse4x4,
                                         &py_mat_projection,
                                         PyC_ParseBool,
-                                        &do_color_management) ||
+                                        &do_color_management,
+                                        PyC_ParseBool,
+                                        &draw_background) ||
       (!(scene = PyC_RNA_AsPointer(py_scene, "Scene")) ||
        !(view_layer = PyC_RNA_AsPointer(py_view_layer, "ViewLayer")) ||
        !(v3d = PyC_RNA_AsPointer(py_view3d, "SpaceView3D")) ||
@@ -397,7 +404,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
                            (const float(*)[4])py_mat_view->matrix,
                            (const float(*)[4])py_mat_projection->matrix,
                            true,
-                           true,
+                           draw_background,
                            "",
                            do_color_management,
                            true,
