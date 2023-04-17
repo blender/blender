@@ -2881,7 +2881,7 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
     }
 
     /* if channel is within border-select region, alter it */
-    if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
+    if (ymax >= rectf.ymin && ymin <= rectf.ymax) {
       /* set selection flags only */
       ANIM_channel_setting_set(ac, ale, ACHANNEL_SETTING_SELECT, selectmode);
 
