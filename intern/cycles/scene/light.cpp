@@ -750,7 +750,7 @@ void LightManager::device_update_background(Device *device,
 
         /* Determine sun direction from lat/long and texture mapping. */
         float latitude = sky->get_sun_elevation();
-        float longitude = M_2PI_F - sky->get_sun_rotation() + M_PI_2_F;
+        float longitude = sky->get_sun_rotation() + M_PI_2_F;
         float3 sun_direction = make_float3(
             cosf(latitude) * cosf(longitude), cosf(latitude) * sinf(longitude), sinf(latitude));
         Transform sky_transform = transform_inverse(sky->tex_mapping.compute_transform());
