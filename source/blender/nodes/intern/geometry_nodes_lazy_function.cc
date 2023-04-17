@@ -416,6 +416,9 @@ class LazyFunctionForMutedNode : public LazyFunction {
       if (params.output_was_set(output_i)) {
         continue;
       }
+      if (params.get_output_usage(output_i) != lf::ValueUsage::Used) {
+        continue;
+      }
       const CPPType &output_type = *outputs_[output_i].type;
       void *output_value = params.get_output_data_ptr(output_i);
       const int input_i = input_by_output_index_[output_i];
