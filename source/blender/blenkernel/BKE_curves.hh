@@ -138,7 +138,9 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   /**
    * The index of the first point in every curve. The size of this span is one larger than the
-   * number of curves. Consider using #points_by_curve rather than using the offsets directly.
+   * number of curves, but the spans will be empty if there are no curves/points.
+   *
+   * Consider using #points_by_curve rather than these offsets directly.
    */
   Span<int> offsets() const;
   MutableSpan<int> offsets_for_write();
