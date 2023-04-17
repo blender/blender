@@ -2617,8 +2617,6 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
                        base_mesh,
                        subdiv_ccg);
 
-  BKE_pbvh_set_sculpt_verts(pbvh, ss->msculptverts);
-
   CustomData_reset(&ob->sculpt->temp_vdata);
   CustomData_reset(&ob->sculpt->temp_pdata);
 
@@ -2636,7 +2634,10 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
 
   for (int i = 0; i < totvert; i++) {
     ss->msculptverts[i].stroke_id = -1;
+    ss->msculptverts[i].flag |= SCULPTVERT_NEED_VALENCE;
   }
+
+  BKE_pbvh_set_sculpt_verts(pbvh, ss->msculptverts);
 
   return pbvh;
 }

@@ -4240,7 +4240,8 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas
       }
 
       if (neighbors.size != valence) {
-        printf("%s: error!\n", __func__);
+        printf(
+            "%s: error! neighbors.size was %d expected %d\n", __func__, neighbors.size, valence);
       }
       if (totw < 0.000001f) {
         for (int i = 0; i < neighbors.size; i++) {
