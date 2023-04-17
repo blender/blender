@@ -34,6 +34,7 @@ struct FluidsimSettings;
 struct GeometrySet;
 struct Ipo;
 struct LightgroupMembership;
+struct LightProbeGridCacheFrame;
 struct Material;
 struct Mesh;
 struct Object;
@@ -448,6 +449,11 @@ typedef struct Object {
 
   /** Lightgroup membership information. */
   struct LightgroupMembership *lightgroup;
+
+  /** Irradiance caches baked for this object (light-probes only). */
+  struct LightProbeObjectCache *lightprobe_cache;
+
+  void *_pad9;
 
   /** Runtime evaluation data (keep last). */
   Object_Runtime runtime;
