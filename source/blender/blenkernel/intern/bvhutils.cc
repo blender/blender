@@ -445,12 +445,12 @@ static void mesh_edges_nearest_point(void *userdata,
 {
   const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
   const float(*positions)[3] = data->vert_positions;
-  const MEdge *edge = data->edge + index;
+  const blender::int2 &edge = reinterpret_cast<const blender::int2 *>(data->edge)[index];
   float nearest_tmp[3], dist_sq;
 
   const float *t0, *t1;
-  t0 = positions[edge->v1];
-  t1 = positions[edge->v2];
+  t0 = positions[edge[0]];
+  t1 = positions[edge[1]];
 
   closest_to_line_segment_v3(nearest_tmp, co, t0, t1);
   dist_sq = len_squared_v3v3(nearest_tmp, co);
@@ -527,14 +527,14 @@ static void mesh_edges_spherecast(void *userdata,
 {
   const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
   const float(*positions)[3] = data->vert_positions;
-  const MEdge *edge = &data->edge[index];
+  const blender::int2 &edge = reinterpret_cast<const blender::int2 *>(data->edge)[index];
 
   const float radius_sq = square_f(ray->radius);
   float dist;
   const float *v1, *v2, *r1;
   float r2[3], i1[3], i2[3];
-  v1 = positions[edge->v1];
-  v2 = positions[edge->v2];
+  v1 = positions[edge[0]];
+  v2 = positions[edge[1]];
 
   /* In case we get a zero-length edge, handle it as a point! */
   if (equals_v3v3(v1, v2)) {
@@ -578,7 +578,7 @@ static void mesh_edges_spherecast(void *userdata,
 static void bvhtree_from_mesh_setup_data(BVHTree *tree,
                                          const BVHCacheType bvh_cache_type,
                                          const float (*positions)[3],
-                                         const MEdge *edge,
+                                         const blender::int2 *edge,
                                          const MFace *face,
                                          const int *corner_verts,
                                          const Span<MLoopTri> looptris,
@@ -589,7 +589,7 @@ static void bvhtree_from_mesh_setup_data(BVHTree *tree,
   r_data->tree = tree;
 
   r_data->vert_positions = positions;
-  r_data->edge = edge;
+  r_data->edge = reinterpret_cast<const vec2i *>(edge);
   r_data->face = face;
   r_data->corner_verts = corner_verts;
   r_data->looptri = looptris.data();
@@ -833,7 +833,7 @@ static BVHTree *bvhtree_from_editmesh_edges_create_tree(float epsilon,
 }
 
 static BVHTree *bvhtree_from_mesh_edges_create_tree(const float (*positions)[3],
-                                                    const MEdge *edge,
+                                                    const blender::int2 *edge,
                                                     const int edge_num,
                                                     const BitSpan edges_mask,
                                                     int edges_num_active,
@@ -862,8 +862,8 @@ static BVHTree *bvhtree_from_mesh_edges_create_tree(const float (*positions)[3],
       continue;
     }
     float co[2][3];
-    copy_v3_v3(co[0], positions[edge[i].v1]);
-    copy_v3_v3(co[1], positions[edge[i].v2]);
+    copy_v3_v3(co[0], positions[edge[i][0]]);
+    copy_v3_v3(co[1], positions[edge[i][1]]);
 
     BLI_bvhtree_insert(tree, i, co[0], 2);
   }
@@ -899,7 +899,7 @@ BVHTree *bvhtree_from_editmesh_edges(
 
 BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
                                     const float (*vert_positions)[3],
-                                    const MEdge *edge,
+                                    const blender::int2 *edge,
                                     const int edges_num,
                                     const BitSpan edges_mask,
                                     int edges_num_active,
@@ -1142,7 +1142,7 @@ BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
   return tree;
 }
 
-static BitVector<> loose_verts_map_get(const Span<MEdge> edges,
+static BitVector<> loose_verts_map_get(const Span<blender::int2> edges,
                                        int verts_num,
                                        int *r_loose_vert_num)
 {
@@ -1150,13 +1150,13 @@ static BitVector<> loose_verts_map_get(const Span<MEdge> edges,
 
   int num_linked_verts = 0;
   for (const int64_t i : edges.index_range()) {
-    const MEdge &edge = edges[i];
-    if (loose_verts_mask[edge.v1]) {
-      loose_verts_mask[edge.v1].reset();
+    const blender::int2 &edge = edges[i];
+    if (loose_verts_mask[edge[0]]) {
+      loose_verts_mask[edge[0]].reset();
       num_linked_verts++;
     }
-    if (loose_verts_mask[edge.v2]) {
-      loose_verts_mask[edge.v2].reset();
+    if (loose_verts_mask[edge[1]]) {
+      loose_verts_mask[edge[1]].reset();
       num_linked_verts++;
     }
   }
@@ -1218,7 +1218,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
     looptris = mesh->looptris();
   }
   const float(*positions)[3] = reinterpret_cast<const float(*)[3]>(mesh->vert_positions().data());
-  const Span<MEdge> edges = mesh->edges();
+  const Span<blender::int2> edges = mesh->edges();
   const Span<int> corner_verts = mesh->corner_verts();
 
   /* Setup BVHTreeFromMesh */

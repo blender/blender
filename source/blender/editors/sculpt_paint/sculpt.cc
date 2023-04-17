@@ -6134,7 +6134,7 @@ void SCULPT_boundary_info_ensure(Object *object)
   }
 
   Mesh *base_mesh = BKE_mesh_from_object(object);
-  const blender::Span<MEdge> edges = base_mesh->edges();
+  const blender::Span<int2> edges = base_mesh->edges();
   const OffsetIndices polys = base_mesh->polys();
   const Span<int> corner_edges = base_mesh->corner_edges();
 
@@ -6150,9 +6150,9 @@ void SCULPT_boundary_info_ensure(Object *object)
 
   for (const int e : edges.index_range()) {
     if (adjacent_faces_edge_count[e] < 2) {
-      const MEdge *edge = &edges[e];
-      BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v1, true);
-      BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v2, true);
+      const int2 &edge = edges[e];
+      BLI_BITMAP_SET(ss->vertex_info.boundary, edge[0], true);
+      BLI_BITMAP_SET(ss->vertex_info.boundary, edge[1], true);
     }
   }
 

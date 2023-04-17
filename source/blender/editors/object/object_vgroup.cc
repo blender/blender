@@ -1631,12 +1631,12 @@ static void vgroup_smooth_subset(Object *ob,
     const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
         ".select_vert", ATTR_DOMAIN_POINT, false);
 
-    const blender::Span<MEdge> edges = me->edges();
+    const blender::Span<int2> edges = me->edges();
     for (int i = 0; i < dvert_tot; i++) {
       if (IS_ME_VERT_WRITE(i)) {
         for (int j = 0; j < emap[i].count; j++) {
-          const MEdge *edge = &edges[emap[i].indices[j]];
-          const int i_other = (edge->v1 == i) ? edge->v2 : edge->v1;
+          const int2 &edge = edges[emap[i].indices[j]];
+          const int i_other = (edge[0] == i) ? edge[1] : edge[0];
           if (IS_ME_VERT_READ(i_other)) {
             STACK_PUSH(verts_used, i);
             break;
@@ -1708,14 +1708,14 @@ static void vgroup_smooth_subset(Object *ob,
               ".select_vert", ATTR_DOMAIN_POINT, false);
 
           int j;
-          const blender::Span<MEdge> edges = me->edges();
+          const blender::Span<int2> edges = me->edges();
 
           /* checked already */
           BLI_assert(IS_ME_VERT_WRITE(i));
 
           for (j = 0; j < emap[i].count; j++) {
-            const MEdge *edge = &edges[emap[i].indices[j]];
-            const int i_other = (edge->v1 == i ? edge->v2 : edge->v1);
+            const int2 &edge = edges[emap[i].indices[j]];
+            const int i_other = (edge[0] == i ? edge[1] : edge[0]);
             if (IS_ME_VERT_READ(i_other)) {
               WEIGHT_ACCUMULATE;
             }

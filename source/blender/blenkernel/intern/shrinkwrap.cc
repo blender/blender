@@ -193,7 +193,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 {
   using namespace blender;
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
-  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::Span<int2> edges = mesh->edges();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
 
@@ -262,10 +262,10 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 
   for (int i = 0; i < mesh->totedge; i++) {
     if (edge_mode[i]) {
-      const MEdge *edge = &edges[i];
+      const blender::int2 &edge = edges[i];
 
-      vert_boundary_id[edge->v1] = 1;
-      vert_boundary_id[edge->v2] = 1;
+      vert_boundary_id[edge[0]] = 1;
+      vert_boundary_id[edge[1]] = 1;
     }
   }
 
@@ -287,14 +287,14 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 
   for (int i = 0; i < mesh->totedge; i++) {
     if (edge_mode[i]) {
-      const MEdge *edge = &edges[i];
+      const blender::int2 &edge = edges[i];
 
       float dir[3];
-      sub_v3_v3v3(dir, positions[edge->v2], positions[edge->v1]);
+      sub_v3_v3v3(dir, positions[edge[1]], positions[edge[0]]);
       normalize_v3(dir);
 
-      merge_vert_dir(boundary_verts, vert_status, vert_boundary_id[edge->v1], dir, 1);
-      merge_vert_dir(boundary_verts, vert_status, vert_boundary_id[edge->v2], dir, 2);
+      merge_vert_dir(boundary_verts, vert_status, vert_boundary_id[edge[0]], dir, 1);
+      merge_vert_dir(boundary_verts, vert_status, vert_boundary_id[edge[1]], dir, 2);
     }
   }
 
@@ -939,8 +939,8 @@ static void target_project_edge(const ShrinkwrapTreeData *tree,
                                 int eidx)
 {
   const BVHTreeFromMesh *data = &tree->treeData;
-  const MEdge *edge = &data->edge[eidx];
-  const float *vedge_co[2] = {data->vert_positions[edge->v1], data->vert_positions[edge->v2]};
+  const blender::int2 &edge = reinterpret_cast<const blender::int2 *>(data->edge)[eidx];
+  const float *vedge_co[2] = {data->vert_positions[edge[0]], data->vert_positions[edge[1]]};
 
 #ifdef TRACE_TARGET_PROJECT
   printf("EDGE %d (%.3f,%.3f,%.3f) (%.3f,%.3f,%.3f)\n",
@@ -951,7 +951,7 @@ static void target_project_edge(const ShrinkwrapTreeData *tree,
 
   /* Retrieve boundary vertex IDs */
   const int *vert_boundary_id = tree->boundary->vert_boundary_id;
-  int bid1 = vert_boundary_id[edge->v1], bid2 = vert_boundary_id[edge->v2];
+  int bid1 = vert_boundary_id[edge[0]], bid2 = vert_boundary_id[edge[1]];
 
   if (bid1 < 0 || bid2 < 0) {
     return;
@@ -995,8 +995,8 @@ static void target_project_edge(const ShrinkwrapTreeData *tree,
         CLAMP(x, 0, 1);
 
         float vedge_no[2][3];
-        copy_v3_v3(vedge_no[0], tree->vert_normals[edge->v1]);
-        copy_v3_v3(vedge_no[1], tree->vert_normals[edge->v2]);
+        copy_v3_v3(vedge_no[0], tree->vert_normals[edge[0]]);
+        copy_v3_v3(vedge_no[1], tree->vert_normals[edge[1]]);
 
         interp_v3_v3v3(hit_co, vedge_co[0], vedge_co[1], x);
         interp_v3_v3v3(hit_no, vedge_no[0], vedge_no[1], x);
@@ -1056,7 +1056,11 @@ static void mesh_looptri_target_project(void *userdata,
     const BLI_bitmap *is_boundary = tree->boundary->edge_is_boundary;
     int edges[3];
 
-    BKE_mesh_looptri_get_real_edges(data->edge, data->corner_verts, tree->corner_edges, lt, edges);
+    BKE_mesh_looptri_get_real_edges(reinterpret_cast<const blender::int2 *>(data->edge),
+                                    data->corner_verts,
+                                    tree->corner_edges,
+                                    lt,
+                                    edges);
 
     for (int i = 0; i < 3; i++) {
       if (edges[i] >= 0 && BLI_BITMAP_TEST(is_boundary, edges[i])) {

@@ -83,8 +83,7 @@ static void add_mesh_debug_column_names(
       if (CustomData_has_layer(&mesh.edata, CD_ORIGINDEX)) {
         fn({(char *)"Original Index"}, false);
       }
-      fn({(char *)"Vertex 1"}, false);
-      fn({(char *)"Vertex 2"}, false);
+      fn({(char *)"Vertices"}, false);
       break;
     case ATTR_DOMAIN_FACE:
       if (CustomData_has_layer(&mesh.pdata, CD_ORIGINDEX)) {
@@ -119,7 +118,6 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
       return {};
     }
     case ATTR_DOMAIN_EDGE: {
-      const Span<MEdge> edges = mesh.edges();
       if (name == "Original Index") {
         const int *data = static_cast<const int *>(
             CustomData_get_layer(&mesh.edata, CD_ORIGINDEX));
@@ -127,17 +125,8 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
           return std::make_unique<ColumnValues>(name, VArray<int>::ForSpan({data, mesh.totedge}));
         }
       }
-      if (name == "Vertex 1") {
-        return std::make_unique<ColumnValues>(
-            name, VArray<int>::ForFunc(edges.size(), [edges](int64_t index) {
-              return edges[index].v1;
-            }));
-      }
-      if (name == "Vertex 2") {
-        return std::make_unique<ColumnValues>(
-            name, VArray<int>::ForFunc(edges.size(), [edges](int64_t index) {
-              return edges[index].v2;
-            }));
+      if (name == "Vertices") {
+        return std::make_unique<ColumnValues>(name, VArray<int2>::ForSpan(mesh.edges()));
       }
       return {};
     }

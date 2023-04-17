@@ -258,6 +258,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     if (!BLO_write_is_undo(writer)) {
       /* When converting to the old mesh format, don't save redundant attributes. */
       names_to_skip.add_multiple_new({"position",
+                                      ".edge_verts",
                                       ".corner_vert",
                                       ".corner_edge",
                                       ".hide_vert",
@@ -275,6 +276,8 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
           mesh, temp_arrays_for_legacy_format, vert_layers);
       mesh->mloop = BKE_mesh_legacy_convert_corners_to_loops(
           mesh, temp_arrays_for_legacy_format, loop_layers);
+      mesh->medge = BKE_mesh_legacy_convert_edges_to_medge(
+          mesh, temp_arrays_for_legacy_format, edge_layers);
 
       MutableSpan<MPoly> legacy_polys = BKE_mesh_legacy_convert_offsets_to_polys(
           mesh, temp_arrays_for_legacy_format, poly_layers);
@@ -294,7 +297,6 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       mesh->poly_offset_indices = nullptr;
 
       /* Set deprecated mesh data pointers for forward compatibility. */
-      mesh->medge = const_cast<MEdge *>(mesh->edges().data());
       mesh->mpoly = legacy_polys.data();
       mesh->dvert = const_cast<MDeformVert *>(mesh->deform_verts().data());
     }
@@ -548,7 +550,7 @@ static int customdata_compare(
 {
   CustomDataLayer *l1, *l2;
   int layer_count1 = 0, layer_count2 = 0, j;
-  const uint64_t cd_mask_non_generic = CD_MASK_MEDGE | CD_MASK_MDEFORMVERT;
+  const uint64_t cd_mask_non_generic = CD_MASK_MDEFORMVERT;
   const uint64_t cd_mask_all_attr = CD_MASK_PROP_ALL | cd_mask_non_generic;
 
   /* The uv selection / pin layers are ignored in the comparisons because
@@ -605,31 +607,30 @@ static int customdata_compare(
       }
 
       switch (l1->type) {
-        /* We're order-agnostic for edges here. */
-        case CD_MEDGE: {
-          MEdge *e1 = (MEdge *)l1->data;
-          MEdge *e2 = (MEdge *)l2->data;
-          int etot = m1->totedge;
-          EdgeHash *eh = BLI_edgehash_new_ex(__func__, etot);
-
-          for (j = 0; j < etot; j++, e1++) {
-            BLI_edgehash_insert(eh, e1->v1, e1->v2, e1);
-          }
-
-          for (j = 0; j < etot; j++, e2++) {
-            if (!BLI_edgehash_lookup(eh, e2->v1, e2->v2)) {
-              return MESHCMP_EDGEUNKNOWN;
-            }
-          }
-          BLI_edgehash_free(eh, nullptr);
-          break;
-        }
         case CD_PROP_INT32_2D: {
-          const blender::int2 *l1_data = static_cast<const blender::int2 *>(l1->data);
-          const blender::int2 *l2_data = static_cast<const blender::int2 *>(l2->data);
-          for (int i = 0; i < total_length; i++) {
-            if (l1_data[i] != l2_data[i]) {
-              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
+          blender::int2 *e1 = (blender::int2 *)l1->data;
+          blender::int2 *e2 = (blender::int2 *)l2->data;
+
+          if (StringRef(l1->name) == ".edge_verts") {
+            int etot = m1->totedge;
+            EdgeHash *eh = BLI_edgehash_new_ex(__func__, etot);
+
+            for (j = 0; j < etot; j++, e1++) {
+              BLI_edgehash_insert(eh, (*e1)[0], (*e1)[1], e1);
+            }
+
+            for (j = 0; j < etot; j++, e2++) {
+              if (!BLI_edgehash_lookup(eh, (*e2)[0], (*e2)[1])) {
+                return MESHCMP_EDGEUNKNOWN;
+              }
+            }
+            BLI_edgehash_free(eh, nullptr);
+          }
+          else {
+            for (j = 0; j < total_length; j++) {
+              if (e1[j] != e2[j]) {
+                return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
+              }
             }
           }
           break;
@@ -822,7 +823,7 @@ const char *BKE_mesh_cmp(Mesh *me1, Mesh *me2, float thresh)
 
 bool BKE_mesh_attribute_required(const char *name)
 {
-  return ELEM(StringRef(name), "position", ".corner_vert", ".corner_edge");
+  return ELEM(StringRef(name), "position", ".corner_vert", ".corner_edge", ".edge_verts");
 }
 
 void BKE_mesh_ensure_skin_customdata(Mesh *me)
@@ -1017,8 +1018,9 @@ static void mesh_ensure_cdlayers_primary(Mesh &mesh)
     CustomData_add_layer_named(
         &mesh.vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh.totvert, "position");
   }
-  if (!CustomData_get_layer(&mesh.edata, CD_MEDGE)) {
-    CustomData_add_layer(&mesh.edata, CD_MEDGE, CD_SET_DEFAULT, mesh.totedge);
+  if (!CustomData_get_layer_named(&mesh.edata, CD_PROP_INT32_2D, ".edge_verts")) {
+    CustomData_add_layer_named(
+        &mesh.edata, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh.totedge, ".edge_verts");
   }
   if (!CustomData_get_layer_named(&mesh.ldata, CD_PROP_INT32, ".corner_vert")) {
     CustomData_add_layer_named(
@@ -1571,7 +1573,7 @@ void BKE_mesh_auto_smooth_flag_set(Mesh *me,
   }
 }
 
-void BKE_mesh_looptri_get_real_edges(const MEdge *edges,
+void BKE_mesh_looptri_get_real_edges(const blender::int2 *edges,
                                      const int *corner_verts,
                                      const int *corner_edges,
                                      const MLoopTri *tri,
@@ -1583,10 +1585,10 @@ void BKE_mesh_looptri_get_real_edges(const MEdge *edges,
     const int vert_1 = corner_verts[corner_1];
     const int vert_2 = corner_verts[corner_2];
     const int edge_i = corner_edges[corner_1];
-    const MEdge *edge = &edges[edge_i];
+    const blender::int2 &edge = edges[edge_i];
 
-    bool is_real = (vert_1 == edge->v1 && vert_2 == edge->v2) ||
-                   (vert_1 == edge->v2 && vert_2 == edge->v1);
+    bool is_real = (vert_1 == edge[0] && vert_2 == edge[1]) ||
+                   (vert_1 == edge[1] && vert_2 == edge[0]);
 
     r_edges[i] = is_real ? edge_i : -1;
   }

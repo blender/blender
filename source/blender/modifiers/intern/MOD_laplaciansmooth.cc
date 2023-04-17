@@ -52,7 +52,7 @@ struct LaplacianSystem {
 
   /* Pointers to data. */
   float (*vertexCos)[3];
-  blender::Span<MEdge> edges;
+  blender::Span<blender::int2> edges;
   blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
   LinearSolver *context;
@@ -168,8 +168,8 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
   uint idv1, idv2;
 
   for (i = 0; i < sys->edges.size(); i++) {
-    idv1 = sys->edges[i].v1;
-    idv2 = sys->edges[i].v2;
+    idv1 = sys->edges[i][0];
+    idv2 = sys->edges[i][1];
 
     v1 = sys->vertexCos[idv1];
     v2 = sys->vertexCos[idv2];
@@ -229,8 +229,8 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
     }
   }
   for (i = 0; i < sys->edges.size(); i++) {
-    idv1 = sys->edges[i].v1;
-    idv2 = sys->edges[i].v2;
+    idv1 = sys->edges[i][0];
+    idv2 = sys->edges[i][1];
     /* if is boundary, apply scale-dependent umbrella operator only with neighbors in boundary */
     if (sys->ne_ed_num[idv1] != sys->ne_fa_num[idv1] &&
         sys->ne_ed_num[idv2] != sys->ne_fa_num[idv2]) {
@@ -301,8 +301,8 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
   }
 
   for (i = 0; i < sys->edges.size(); i++) {
-    idv1 = sys->edges[i].v1;
-    idv2 = sys->edges[i].v2;
+    idv1 = sys->edges[i][0];
+    idv2 = sys->edges[i][1];
     /* Is boundary */
     if (sys->ne_ed_num[idv1] != sys->ne_fa_num[idv1] &&
         sys->ne_ed_num[idv2] != sys->ne_fa_num[idv2] && sys->zerola[idv1] == false &&

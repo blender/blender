@@ -118,6 +118,7 @@ bool BM_attribute_stored_in_bmesh_builtin(const StringRef name)
 {
   return ELEM(name,
               "position",
+              ".edge_verts",
               ".corner_vert",
               ".corner_edge",
               ".hide_vert",
@@ -464,11 +465,11 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     bm->elem_index_dirty &= ~BM_VERT; /* Added in order, clear dirty flag. */
   }
 
-  const Span<MEdge> edges = me->edges();
+  const Span<blender::int2> edges = me->edges();
   Array<BMEdge *> etable(me->totedge);
   for (const int i : edges.index_range()) {
     BMEdge *e = etable[i] = BM_edge_create(
-        bm, vtable[edges[i].v1], vtable[edges[i].v2], nullptr, BM_CREATE_SKIP_CD);
+        bm, vtable[edges[i][0]], vtable[edges[i][1]], nullptr, BM_CREATE_SKIP_CD);
     BM_elem_index_set(e, i); /* set_ok */
 
     e->head.hflag = 0;
@@ -1288,15 +1289,14 @@ static void bm_to_mesh_edges(const BMesh &bm,
                              MutableSpan<bool> sharp_edge,
                              MutableSpan<bool> uv_seams)
 {
-  CustomData_add_layer(&mesh.edata, CD_MEDGE, CD_SET_DEFAULT, mesh.totedge);
+  CustomData_add_layer_named(
+      &mesh.edata, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh.totedge, ".edge_verts");
   const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.edata, mesh.edata);
-  MutableSpan<MEdge> dst_edges = mesh.edges_for_write();
+  MutableSpan<int2> dst_edges = mesh.edges_for_write();
   threading::parallel_for(dst_edges.index_range(), 512, [&](const IndexRange range) {
     for (const int edge_i : range) {
       const BMEdge &src_edge = *bm_edges[edge_i];
-      MEdge &dst_edge = dst_edges[edge_i];
-      dst_edge.v1 = BM_elem_index_get(src_edge.v1);
-      dst_edge.v2 = BM_elem_index_get(src_edge.v2);
+      dst_edges[edge_i] = int2(BM_elem_index_get(src_edge.v1), BM_elem_index_get(src_edge.v2));
       bmesh_block_copy_to_mesh_attributes(info, edge_i, src_edge.head.data);
     }
     if (!select_edge.is_empty()) {

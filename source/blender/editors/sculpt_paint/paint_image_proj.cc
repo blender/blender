@@ -412,7 +412,7 @@ struct ProjPaintState {
 
   const float (*vert_positions_eval)[3];
   blender::Span<blender::float3> vert_normals;
-  blender::Span<MEdge> edges_eval;
+  blender::Span<blender::int2> edges_eval;
   blender::OffsetIndices<int> polys_eval;
   blender::Span<int> corner_verts_eval;
   const bool *select_poly_eval;
@@ -3889,14 +3889,14 @@ static void proj_paint_state_cavity_init(ProjPaintState *ps)
     cavities = ps->cavities;
 
     for (const int64_t i : ps->edges_eval.index_range()) {
-      const MEdge &edge = ps->edges_eval[i];
+      const blender::int2 &edge = ps->edges_eval[i];
       float e[3];
-      sub_v3_v3v3(e, ps->vert_positions_eval[edge.v1], ps->vert_positions_eval[edge.v2]);
+      sub_v3_v3v3(e, ps->vert_positions_eval[edge[0]], ps->vert_positions_eval[edge[1]]);
       normalize_v3(e);
-      add_v3_v3(edges[edge.v2], e);
-      counter[edge.v2]++;
-      sub_v3_v3(edges[edge.v1], e);
-      counter[edge.v1]++;
+      add_v3_v3(edges[edge[1]], e);
+      counter[edge[1]]++;
+      sub_v3_v3(edges[edge[0]], e);
+      counter[edge[0]]++;
     }
     for (a = 0; a < ps->totvert_eval; a++) {
       if (counter[a] > 0) {

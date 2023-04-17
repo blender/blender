@@ -28,12 +28,12 @@ struct EdgeVertMap {
 
   EdgeVertMap(const Mesh &mesh)
   {
-    const Span<MEdge> edges = mesh.edges();
+    const Span<int2> edges = mesh.edges();
     edges_by_vertex_map.reinitialize(mesh.totvert);
     for (const int edge_i : edges.index_range()) {
-      const MEdge &edge = edges[edge_i];
-      edges_by_vertex_map[edge.v1].append(edge_i);
-      edges_by_vertex_map[edge.v2].append(edge_i);
+      const int2 &edge = edges[edge_i];
+      edges_by_vertex_map[edge[0]].append(edge_i);
+      edges_by_vertex_map[edge[1]].append(edge_i);
     }
   }
 };
@@ -45,7 +45,7 @@ static void shortest_paths(const Mesh &mesh,
                            MutableSpan<int> r_next_index,
                            MutableSpan<float> r_cost)
 {
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
   Array<bool> visited(mesh.totvert, false);
 
   std::priority_queue<VertPriority, std::vector<VertPriority>, std::greater<VertPriority>> queue;
@@ -65,8 +65,8 @@ static void shortest_paths(const Mesh &mesh,
     visited[vert_i] = true;
     const Span<int> incident_edge_indices = maps.edges_by_vertex_map[vert_i];
     for (const int edge_i : incident_edge_indices) {
-      const MEdge &edge = edges[edge_i];
-      const int neighbor_vert_i = edge.v1 + edge.v2 - vert_i;
+      const int2 &edge = edges[edge_i];
+      const int neighbor_vert_i = edge[0] + edge[1] - vert_i;
       if (visited[neighbor_vert_i]) {
         continue;
       }

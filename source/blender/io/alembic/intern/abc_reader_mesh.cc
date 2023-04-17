@@ -910,15 +910,15 @@ static void read_edge_creases(Mesh *mesh,
     return;
   }
 
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<int2> edges = mesh->edges_for_write();
   EdgeHash *edge_hash = BLI_edgehash_new_ex(__func__, edges.size());
 
   float *creases = static_cast<float *>(
       CustomData_add_layer(&mesh->edata, CD_CREASE, CD_SET_DEFAULT, edges.size()));
 
   for (const int i : edges.index_range()) {
-    MEdge *edge = &edges[i];
-    BLI_edgehash_insert(edge_hash, edge->v1, edge->v2, edge);
+    int2 &edge = edges[i];
+    BLI_edgehash_insert(edge_hash, edge[0], edge[1], &edge);
   }
 
   for (int i = 0, s = 0, e = indices->size(); i < e; i += 2, s++) {
@@ -931,9 +931,9 @@ static void read_edge_creases(Mesh *mesh,
       std::swap(v1, v2);
     }
 
-    MEdge *edge = static_cast<MEdge *>(BLI_edgehash_lookup(edge_hash, v1, v2));
+    int2 *edge = static_cast<int2 *>(BLI_edgehash_lookup(edge_hash, v1, v2));
     if (edge == nullptr) {
-      edge = static_cast<MEdge *>(BLI_edgehash_lookup(edge_hash, v2, v1));
+      edge = static_cast<int2 *>(BLI_edgehash_lookup(edge_hash, v2, v1));
     }
 
     if (edge) {

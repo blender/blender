@@ -1592,7 +1592,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,
      nullptr,
      layerConstruct_mdeformvert},
-    /* 3: CD_MEDGE */
+    /* 3: CD_MEDGE */ /* DEPRECATED */
     {sizeof(MEdge), "MEdge", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 4: CD_MFACE */
     {sizeof(MFace), "MFace", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
@@ -2028,14 +2028,14 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {
     /*vmask*/ CD_MASK_PROP_FLOAT3,
-    /*emask*/ CD_MASK_MEDGE,
+    /*emask*/ CD_MASK_PROP_INT32_2D,
     /*fmask*/ 0,
     /*pmask*/ CD_MASK_FACEMAP,
     /*lmask*/ CD_MASK_PROP_INT32,
 };
 const CustomData_MeshMasks CD_MASK_BAREMESH_ORIGINDEX = {
     /*vmask*/ CD_MASK_PROP_FLOAT3 | CD_MASK_ORIGINDEX,
-    /*emask*/ CD_MASK_MEDGE | CD_MASK_ORIGINDEX,
+    /*emask*/ CD_MASK_PROP_INT32_2D | CD_MASK_ORIGINDEX,
     /*fmask*/ 0,
     /*pmask*/ CD_MASK_FACEMAP | CD_MASK_ORIGINDEX,
     /*lmask*/ CD_MASK_PROP_INT32,
@@ -2044,7 +2044,7 @@ const CustomData_MeshMasks CD_MASK_MESH = {
     /*vmask*/ (CD_MASK_PROP_FLOAT3 | CD_MASK_MDEFORMVERT | CD_MASK_MVERT_SKIN |
                CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE | CD_MASK_BWEIGHT),
     /*emask*/
-    (CD_MASK_MEDGE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_BWEIGHT | CD_MASK_CREASE),
+    (CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_BWEIGHT | CD_MASK_CREASE),
     /*fmask*/ 0,
     /*pmask*/
     (CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
@@ -2080,7 +2080,7 @@ const CustomData_MeshMasks CD_MASK_EVERYTHING = {
                CD_MASK_MVERT_SKIN | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_SHAPEKEY |
                CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE),
     /*emask*/
-    (CD_MASK_MEDGE | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_BWEIGHT | CD_MASK_CREASE |
+    (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_BWEIGHT | CD_MASK_CREASE |
      CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     /*fmask*/
     (CD_MASK_MFACE | CD_MASK_ORIGINDEX | CD_MASK_NORMAL | CD_MASK_MTFACE | CD_MASK_MCOL |

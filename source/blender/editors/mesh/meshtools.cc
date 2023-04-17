@@ -56,6 +56,7 @@
 #include "WM_types.h"
 
 using blender::float3;
+using blender::int2;
 using blender::MutableSpan;
 using blender::Span;
 
@@ -73,7 +74,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
                              Object *ob_src,
                              const float imat[4][4],
                              float3 **vert_positions_pp,
-                             MEdge **medge_pp,
+                             blender::int2 **medge_pp,
                              int **corner_verts_pp,
                              int **corner_edges_pp,
                              int *all_poly_offsets,
@@ -99,7 +100,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
 
   Mesh *me = static_cast<Mesh *>(ob_src->data);
   float3 *vert_positions = *vert_positions_pp;
-  MEdge *edge = *medge_pp;
+  blender::int2 *edge = *medge_pp;
   int *corner_verts = *corner_verts_pp;
   int *corner_edges = *corner_edges_pp;
 
@@ -209,8 +210,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
     CustomData_copy_data_named(&me->edata, edata, 0, *edgeofs, me->totedge);
 
     for (a = 0; a < me->totedge; a++, edge++) {
-      edge->v1 += *vertofs;
-      edge->v2 += *vertofs;
+      (*edge) += *vertofs;
     }
   }
 
@@ -336,7 +336,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Material **matar = nullptr, *ma;
   Mesh *me;
-  MEdge *edge = nullptr;
+  blender::int2 *edge = nullptr;
   Key *key, *nkey = nullptr;
   float imat[4][4];
   int a, b, totcol, totmat = 0, totedge = 0, totvert = 0;
@@ -578,7 +578,8 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   float3 *vert_positions = (float3 *)CustomData_add_layer_named(
       &vdata, CD_PROP_FLOAT3, CD_SET_DEFAULT, totvert, "position");
-  edge = (MEdge *)CustomData_add_layer(&edata, CD_MEDGE, CD_SET_DEFAULT, totedge);
+  edge = (int2 *)CustomData_add_layer_named(
+      &edata, CD_PROP_INT32_2D, CD_CONSTRUCT, totedge, ".edge_verts");
   int *corner_verts = (int *)CustomData_add_layer_named(
       &ldata, CD_PROP_INT32, CD_CONSTRUCT, totloop, ".corner_vert");
   int *corner_edges = (int *)CustomData_add_layer_named(

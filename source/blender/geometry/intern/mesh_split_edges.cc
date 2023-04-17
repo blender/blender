@@ -13,9 +13,9 @@
 namespace blender::geometry {
 
 /* Naively checks if the first vertices and the second vertices are the same. */
-static inline bool naive_edges_equal(const MEdge &edge1, const MEdge &edge2)
+static inline bool naive_edges_equal(const int2 &edge1, const int2 &edge2)
 {
-  return edge1.v1 == edge2.v1 && edge1.v2 == edge2.v2;
+  return edge1 == edge2;
 }
 
 template<typename T>
@@ -64,7 +64,7 @@ static void add_new_vertices(Mesh &mesh, const Span<int> new_to_old_verts_map)
 }
 
 static void add_new_edges(Mesh &mesh,
-                          const Span<MEdge> new_edges,
+                          const Span<int2> new_edges,
                           const Span<int> new_to_old_edges_map,
                           const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
@@ -82,7 +82,9 @@ static void add_new_edges(Mesh &mesh,
       continue;
     }
     if (!id.is_anonymous()) {
-      named_ids.append(id.name());
+      if (id.name() != ".edge_verts") {
+        named_ids.append(id.name());
+      }
     }
     else {
       anonymous_ids.append(&id.anonymous_id());
@@ -139,7 +141,8 @@ static void add_new_edges(Mesh &mesh,
 
   CustomData_free(&mesh.edata, mesh.totedge);
   mesh.totedge = new_edges.size();
-  CustomData_add_layer(&mesh.edata, CD_MEDGE, CD_CONSTRUCT, mesh.totedge);
+  CustomData_add_layer_named(
+      &mesh.edata, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh.totedge, ".edge_verts");
   mesh.edges_for_write().copy_from(new_edges);
 
   if (new_orig_indices != nullptr) {
@@ -164,7 +167,7 @@ static void merge_edges(const int orig_edge_i,
                         const int new_edge_i,
                         MutableSpan<int> new_corner_edges,
                         Vector<Vector<int>> &edge_to_loop_map,
-                        Vector<MEdge> &new_edges,
+                        Vector<int2> &new_edges,
                         Vector<int> &new_to_old_edges_map)
 {
   /* Merge back into the original edge by undoing the topology changes. */
@@ -194,17 +197,17 @@ static void merge_edges(const int orig_edge_i,
  * NOTE: This only updates the loops containing the edge and the old vertex. It should therefore
  * also be called on the adjacent edge.
  */
-static void swap_vertex_of_edge(MEdge &edge,
+static void swap_vertex_of_edge(int2 &edge,
                                 const int old_vert,
                                 const int new_vert,
                                 MutableSpan<int> corner_verts,
                                 const Span<int> connected_loops)
 {
-  if (edge.v1 == old_vert) {
-    edge.v1 = new_vert;
+  if (edge[0] == old_vert) {
+    edge[0] = new_vert;
   }
-  else if (edge.v2 == old_vert) {
-    edge.v2 = new_vert;
+  else if (edge[1] == old_vert) {
+    edge[1] = new_vert;
   }
   else {
     BLI_assert_unreachable();
@@ -226,7 +229,7 @@ static void split_vertex_per_fan(const int vertex,
                                  const Span<int> fans,
                                  const Span<int> fan_sizes,
                                  const Span<Vector<int>> edge_to_loop_map,
-                                 MutableSpan<MEdge> new_edges,
+                                 MutableSpan<int2> new_edges,
                                  MutableSpan<int> corner_verts,
                                  MutableSpan<int> new_to_old_verts_map)
 {
@@ -342,7 +345,7 @@ static void split_edge_per_poly(const int edge_i,
                                 const int new_edge_start,
                                 MutableSpan<Vector<int>> edge_to_loop_map,
                                 MutableSpan<int> corner_edges,
-                                MutableSpan<MEdge> new_edges,
+                                MutableSpan<int2> new_edges,
                                 MutableSpan<int> new_to_old_edges_map)
 {
   if (edge_to_loop_map[edge_i].size() <= 1) {
@@ -350,7 +353,7 @@ static void split_edge_per_poly(const int edge_i,
   }
   int new_edge_index = new_edge_start;
   for (const int loop_i : edge_to_loop_map[edge_i].as_span().drop_front(1)) {
-    const MEdge new_edge(new_edges[edge_i]);
+    const int2 &new_edge(new_edges[edge_i]);
     new_edges[new_edge_index] = new_edge;
     new_to_old_edges_map[new_edge_index] = edge_i;
     edge_to_loop_map[new_edge_index].append({loop_i});
@@ -367,11 +370,11 @@ void split_edges(Mesh &mesh,
 {
   /* Flag vertices that need to be split. */
   Array<bool> should_split_vert(mesh.totvert, false);
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
   for (const int edge_i : mask) {
-    const MEdge edge = edges[edge_i];
-    should_split_vert[edge.v1] = true;
-    should_split_vert[edge.v2] = true;
+    const int2 &edge = edges[edge_i];
+    should_split_vert[edge[0]] = true;
+    should_split_vert[edge[1]] = true;
   }
 
   /* Precalculate topology info. */
@@ -398,7 +401,7 @@ void split_edges(Mesh &mesh,
 
   MutableSpan<int> corner_verts = mesh.corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh.corner_edges_for_write();
-  Vector<MEdge> new_edges(new_edges_size);
+  Vector<int2> new_edges(new_edges_size);
   new_edges.as_mutable_span().take_front(edges.size()).copy_from(edges);
 
   edge_to_loop_map.resize(new_edges_size);
@@ -421,10 +424,10 @@ void split_edges(Mesh &mesh,
 
   /* Step 1.5: Update topology information (can't parallelize). */
   for (const int edge_i : mask) {
-    const MEdge &edge = edges[edge_i];
+    const int2 &edge = edges[edge_i];
     for (const int duplicate_i : IndexRange(edge_offsets[edge_i], num_edge_duplicates[edge_i])) {
-      vert_to_edge_map[edge.v1].append(duplicate_i);
-      vert_to_edge_map[edge.v2].append(duplicate_i);
+      vert_to_edge_map[edge[0]].append(duplicate_i);
+      vert_to_edge_map[edge[1]].append(duplicate_i);
     }
   }
 

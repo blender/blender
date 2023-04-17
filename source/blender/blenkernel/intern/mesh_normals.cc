@@ -701,7 +701,7 @@ struct LoopSplitTaskDataCommon {
 
   /* Read-only. */
   Span<float3> positions;
-  Span<MEdge> edges;
+  Span<int2> edges;
   Span<int> corner_verts;
   Span<int> corner_edges;
   blender::OffsetIndices<int> polys;
@@ -871,7 +871,7 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
   const Span<short2> clnors_data = common_data->clnors_data;
 
   const Span<float3> positions = common_data->positions;
-  const Span<MEdge> edges = common_data->edges;
+  const Span<int2> edges = common_data->edges;
   const Span<int> corner_verts = common_data->corner_verts;
   const Span<int> corner_edges = common_data->corner_edges;
   const Span<float3> poly_normals = common_data->poly_normals;
@@ -899,12 +899,12 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
   if (lnors_spacearr) {
     float vec_curr[3], vec_prev[3];
 
-    const uint mv_pivot_index =
+    const int mv_pivot_index =
         corner_verts[ml_curr_index]; /* The vertex we are "fanning" around! */
-    const MEdge *me_curr = &edges[corner_edges[ml_curr_index]];
-    const int vert_2 = me_curr->v1 == mv_pivot_index ? me_curr->v2 : me_curr->v1;
-    const MEdge *me_prev = &edges[corner_edges[ml_prev_index]];
-    const int vert_3 = me_prev->v1 == mv_pivot_index ? me_prev->v2 : me_prev->v1;
+    const int2 &me_curr = edges[corner_edges[ml_curr_index]];
+    const int vert_2 = me_curr[0] == mv_pivot_index ? me_curr[1] : me_curr[0];
+    const int2 &me_prev = edges[corner_edges[ml_prev_index]];
+    const int vert_3 = me_prev[0] == mv_pivot_index ? me_prev[1] : me_prev[0];
 
     sub_v3_v3v3(vec_curr, positions[vert_2], positions[mv_pivot_index]);
     normalize_v3(vec_curr);
@@ -931,7 +931,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
   MutableSpan<short2> clnors_data = common_data->clnors_data;
 
   const Span<float3> positions = common_data->positions;
-  const Span<MEdge> edges = common_data->edges;
+  const Span<int2> edges = common_data->edges;
   const blender::OffsetIndices polys = common_data->polys;
   const Span<int> corner_verts = common_data->corner_verts;
   const Span<int> corner_edges = common_data->corner_edges;
@@ -956,7 +956,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
   const int mv_pivot_index = corner_verts[ml_curr_index]; /* The vertex we are "fanning" around! */
 
   /* `ml_curr_index` would be mlfan_prev if we needed that one. */
-  const MEdge *me_org = &edges[corner_edges[ml_curr_index]];
+  const int2 &me_org = edges[corner_edges[ml_curr_index]];
 
   float vec_curr[3], vec_prev[3], vec_org[3];
   float lnor[3] = {0.0f, 0.0f, 0.0f};
@@ -984,8 +984,8 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
 
   /* Only need to compute previous edge's vector once, then we can just reuse old current one! */
   {
-    const float3 &mv_2 = (me_org->v1 == mv_pivot_index) ? positions[me_org->v2] :
-                                                          positions[me_org->v1];
+    const float3 &mv_2 = (me_org[0] == mv_pivot_index) ? positions[me_org[1]] :
+                                                         positions[me_org[0]];
 
     sub_v3_v3v3(vec_org, mv_2, positions[mv_pivot_index]);
     normalize_v3(vec_org);
@@ -999,15 +999,15 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
   // printf("FAN: vert %d, start edge %d\n", mv_pivot_index, ml_curr->e);
 
   while (true) {
-    const MEdge *me_curr = &edges[corner_edges[mlfan_curr_index]];
+    const int2 &me_curr = edges[corner_edges[mlfan_curr_index]];
     /* Compute edge vectors.
      * NOTE: We could pre-compute those into an array, in the first iteration, instead of computing
      *       them twice (or more) here. However, time gained is not worth memory and time lost,
      *       given the fact that this code should not be called that much in real-life meshes.
      */
     {
-      const float3 &mv_2 = (me_curr->v1 == mv_pivot_index) ? positions[me_curr->v2] :
-                                                             positions[me_curr->v1];
+      const float3 &mv_2 = (me_curr[0] == mv_pivot_index) ? positions[me_curr[1]] :
+                                                            positions[me_curr[0]];
 
       sub_v3_v3v3(vec_curr, mv_2, positions[mv_pivot_index]);
       normalize_v3(vec_curr);
@@ -1370,7 +1370,7 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
 }
 
 void normals_calc_loop(const Span<float3> vert_positions,
-                       const Span<MEdge> edges,
+                       const Span<int2> edges,
                        const OffsetIndices<int> polys,
                        const Span<int> corner_verts,
                        const Span<int> corner_edges,
@@ -1523,7 +1523,7 @@ void normals_calc_loop(const Span<float3> vert_positions,
  */
 
 static void mesh_normals_loop_custom_set(Span<float3> positions,
-                                         Span<MEdge> edges,
+                                         Span<int2> edges,
                                          const OffsetIndices<int> polys,
                                          Span<int> corner_verts,
                                          Span<int> corner_edges,
@@ -1754,7 +1754,7 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
 }
 
 void normals_loop_custom_set(const Span<float3> vert_positions,
-                             const Span<MEdge> edges,
+                             const Span<int2> edges,
                              const OffsetIndices<int> polys,
                              const Span<int> corner_verts,
                              const Span<int> corner_edges,
@@ -1780,7 +1780,7 @@ void normals_loop_custom_set(const Span<float3> vert_positions,
 }
 
 void normals_loop_custom_set_from_verts(const Span<float3> vert_positions,
-                                        const Span<MEdge> edges,
+                                        const Span<int2> edges,
                                         const OffsetIndices<int> polys,
                                         const Span<int> corner_verts,
                                         const Span<int> corner_edges,

@@ -553,8 +553,8 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
   CustomData_copy_layout(&mesh->edata, &edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
   CustomData_copy_data(&mesh->edata, &edata, 0, 0, mesh->totedge);
 
-  if (!CustomData_has_layer(&edata, CD_MEDGE)) {
-    CustomData_add_layer(&edata, CD_MEDGE, CD_SET_DEFAULT, totedge);
+  if (!CustomData_get_layer_named(&edata, CD_PROP_INT32_2D, ".edge_verts")) {
+    CustomData_add_layer_named(&edata, CD_PROP_INT32_2D, CD_CONSTRUCT, totedge, ".edge_verts");
   }
 
   CustomData_free(&mesh->edata, mesh->totedge);
@@ -571,8 +571,8 @@ void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
     /* uint total_edge_count = loose_edge_count + face_edge_count; */ /* UNUSED */
 
     mesh_add_edges(me, loose_edge_count);
-    MutableSpan<MEdge> edges = me->edges_for_write();
-    MEdge *edge = edges.data() + face_edge_count;
+    MutableSpan<blender::int2> edges = me->edges_for_write();
+    blender::int2 *edge = edges.data() + face_edge_count;
 
     COLLADAFW::MeshPrimitiveArray &prim_arr = mesh->getMeshPrimitives();
 
@@ -585,8 +585,8 @@ void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
         uint *indices = mp->getPositionIndices().getData();
 
         for (int j = 0; j < edge_count; j++, edge++) {
-          edge->v1 = indices[2 * j];
-          edge->v2 = indices[2 * j + 1];
+          (*edge)[0] = indices[2 * j];
+          (*edge)[1] = indices[2 * j + 1];
         }
       }
     }

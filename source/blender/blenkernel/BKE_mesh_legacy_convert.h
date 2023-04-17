@@ -114,6 +114,13 @@ struct MVert *BKE_mesh_legacy_convert_positions_to_verts(
 
 void BKE_mesh_legacy_convert_verts_to_positions(Mesh *mesh);
 
+MEdge *BKE_mesh_legacy_convert_edges_to_medge(
+    Mesh *mesh,
+    blender::ResourceScope &temp_arrays_for_convert,
+    blender::Vector<CustomDataLayer, 16> &edge_layers_to_write);
+
+void BKE_mesh_legacy_convert_edges_to_generic(Mesh *mesh);
+
 struct MLoop *BKE_mesh_legacy_convert_corners_to_loops(
     Mesh *mesh,
     blender::ResourceScope &temp_arrays_for_convert,

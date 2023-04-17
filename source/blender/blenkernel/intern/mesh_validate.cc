@@ -212,7 +212,7 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
 bool BKE_mesh_validate_arrays(Mesh *mesh,
                               float (*vert_positions)[3],
                               uint totvert,
-                              MEdge *edges,
+                              blender::int2 *edges,
                               uint totedge,
                               MFace *mfaces,
                               uint totface,
@@ -228,11 +228,11 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 {
 #define REMOVE_EDGE_TAG(_me) \
   { \
-    _me->v2 = _me->v1; \
+    _me[0] = _me[1]; \
     free_flag.edges = do_fixes; \
   } \
   (void)0
-#define IS_REMOVED_EDGE(_me) (_me->v2 == _me->v1)
+#define IS_REMOVED_EDGE(_me) (_me[0] == _me[1])
 
 #define REMOVE_LOOP_TAG(corner) \
   { \
@@ -253,7 +253,6 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
   }
 #endif
 
-  MEdge *edge;
   uint i, j;
   int *v;
 
@@ -315,32 +314,33 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     }
   }
 
-  for (i = 0, edge = edges; i < totedge; i++, edge++) {
+  for (i = 0; i < totedge; i++) {
+    blender::int2 &edge = edges[i];
     bool remove = false;
 
-    if (edge->v1 == edge->v2) {
-      PRINT_ERR("\tEdge %u: has matching verts, both %u", i, edge->v1);
+    if (edge[0] == edge[1]) {
+      PRINT_ERR("\tEdge %u: has matching verts, both %d", i, edge[0]);
       remove = do_fixes;
     }
-    if (edge->v1 >= totvert) {
-      PRINT_ERR("\tEdge %u: v1 index out of range, %u", i, edge->v1);
+    if (edge[0] >= totvert) {
+      PRINT_ERR("\tEdge %u: v1 index out of range, %d", i, edge[0]);
       remove = do_fixes;
     }
-    if (edge->v2 >= totvert) {
-      PRINT_ERR("\tEdge %u: v2 index out of range, %u", i, edge->v2);
+    if (edge[1] >= totvert) {
+      PRINT_ERR("\tEdge %u: v2 index out of range, %d", i, edge[1]);
       remove = do_fixes;
     }
 
-    if ((edge->v1 != edge->v2) && BLI_edgehash_haskey(edge_hash, edge->v1, edge->v2)) {
+    if ((edge[0] != edge[1]) && BLI_edgehash_haskey(edge_hash, edge[0], edge[1])) {
       PRINT_ERR("\tEdge %u: is a duplicate of %d",
                 i,
-                POINTER_AS_INT(BLI_edgehash_lookup(edge_hash, edge->v1, edge->v2)));
+                POINTER_AS_INT(BLI_edgehash_lookup(edge_hash, edge[0], edge[1])));
       remove = do_fixes;
     }
 
     if (remove == false) {
-      if (edge->v1 != edge->v2) {
-        BLI_edgehash_insert(edge_hash, edge->v1, edge->v2, POINTER_FROM_INT(i));
+      if (edge[0] != edge[1]) {
+        BLI_edgehash_insert(edge_hash, edge[0], edge[1], POINTER_FROM_INT(i));
       }
     }
     else {
@@ -640,9 +640,9 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
             }
           }
           else {
-            edge = &edges[edge_i];
+            const blender::int2 &edge = edges[edge_i];
             if (IS_REMOVED_EDGE(edge) ||
-                !((edge->v1 == v1 && edge->v2 == v2) || (edge->v1 == v2 && edge->v2 == v1))) {
+                !((edge[0] == v1 && edge[1] == v2) || (edge[0] == v2 && edge[1] == v1))) {
               /* The pointed edge is invalid (tagged as removed, or vert idx mismatch),
                * and we already know from previous test that a valid one exists,
                * use it (if allowed)! */
@@ -1092,7 +1092,7 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
                                    true,
                                    &changed);
   MutableSpan<float3> positions = me->vert_positions_for_write();
-  MutableSpan<MEdge> edges = me->edges_for_write();
+  MutableSpan<blender::int2> edges = me->edges_for_write();
   MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
   MutableSpan<int> corner_verts = me->corner_verts_for_write();
   MutableSpan<int> corner_edges = me->corner_edges_for_write();
@@ -1146,7 +1146,7 @@ bool BKE_mesh_is_valid(Mesh *me)
       &changed);
 
   MutableSpan<float3> positions = me->vert_positions_for_write();
-  MutableSpan<MEdge> edges = me->edges_for_write();
+  MutableSpan<blender::int2> edges = me->edges_for_write();
   MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
   MutableSpan<int> corner_verts = me->corner_verts_for_write();
   MutableSpan<int> corner_edges = me->corner_edges_for_write();
@@ -1302,13 +1302,13 @@ void strip_loose_polysloops(Mesh *me, blender::BitSpan polys_to_remove)
 
 void mesh_strip_edges(Mesh *me)
 {
-  MEdge *e;
+  blender::int2 *e;
   int a, b;
   uint *new_idx = (uint *)MEM_mallocN(sizeof(int) * me->totedge, __func__);
-  MutableSpan<MEdge> edges = me->edges_for_write();
+  MutableSpan<blender::int2> edges = me->edges_for_write();
 
   for (a = b = 0, e = edges.data(); a < me->totedge; a++, e++) {
-    if (e->v1 != e->v2) {
+    if ((*e)[0] != (*e)[1]) {
       if (a != b) {
         memcpy(&edges[b], e, sizeof(edges[b]));
         CustomData_copy_data(&me->edata, &me->edata, a, b, 1);
@@ -1367,16 +1367,17 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
   /* write new edges into a temporary CustomData */
   CustomData edgeData;
   CustomData_reset(&edgeData);
-  CustomData_add_layer(&edgeData, CD_MEDGE, CD_SET_DEFAULT, numEdges);
+  CustomData_add_layer_named(&edgeData, CD_PROP_INT32_2D, CD_CONSTRUCT, numEdges, ".edge_verts");
   CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, numEdges);
 
-  MEdge *ege = (MEdge *)CustomData_get_layer_for_write(&edgeData, CD_MEDGE, mesh->totedge);
+  blender::int2 *ege = (blender::int2 *)CustomData_get_layer_named_for_write(
+      &edgeData, CD_PROP_INT32_2D, ".edge_verts", mesh->totedge);
   int *index = (int *)CustomData_get_layer_for_write(&edgeData, CD_ORIGINDEX, mesh->totedge);
 
   EdgeSetIterator *ehi = BLI_edgesetIterator_new(eh);
   for (int i = 0; BLI_edgesetIterator_isDone(ehi) == false;
        BLI_edgesetIterator_step(ehi), i++, ege++, index++) {
-    BLI_edgesetIterator_getKey(ehi, &ege->v1, &ege->v2);
+    BLI_edgesetIterator_getKey(ehi, &(*ege)[0], &(*ege)[1]);
     *index = ORIGINDEX_NONE;
   }
   BLI_edgesetIterator_free(ehi);

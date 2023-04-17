@@ -1481,7 +1481,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
     if (DT_DATATYPE_IS_EDGE(dtdata_type)) {
       const float(*positions_dst)[3] = BKE_mesh_vert_positions_for_write(me_dst);
       const int num_verts_dst = me_dst->totvert;
-      const blender::Span<MEdge> edges_dst = me_dst->edges();
+      const blender::Span<blender::int2> edges_dst = me_dst->edges();
 
       if (!geom_map_init[EDATA]) {
         const int num_edges_src = me_src->totedge;
@@ -1566,7 +1566,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
     if (DT_DATATYPE_IS_LOOP(dtdata_type)) {
       const float(*positions_dst)[3] = BKE_mesh_vert_positions(me_dst);
       const int num_verts_dst = me_dst->totvert;
-      const blender::Span<MEdge> edges_dst = me_dst->edges();
+      const blender::Span<blender::int2> edges_dst = me_dst->edges();
       const blender::OffsetIndices polys_dst = me_dst->polys();
       const blender::Span<int> corner_verts_dst = me_dst->corner_verts();
       const blender::Span<int> corner_edges_dst = me_dst->corner_edges();

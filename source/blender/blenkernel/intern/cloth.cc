@@ -97,13 +97,13 @@ static BVHTree *bvhtree_build_from_cloth(ClothModifierData *clmd, float epsilon)
     }
   }
   else {
-    const MEdge *edges = cloth->edges;
+    const blender::int2 *edges = reinterpret_cast<const blender::int2 *>(cloth->edges);
 
     for (int i = 0; i < cloth->primitive_num; i++) {
       float co[2][3];
 
-      copy_v3_v3(co[0], verts[edges[i].v1].xold);
-      copy_v3_v3(co[1], verts[edges[i].v2].xold);
+      copy_v3_v3(co[0], verts[edges[i][0]].xold);
+      copy_v3_v3(co[1], verts[edges[i][1]].xold);
 
       BLI_bvhtree_insert(bvhtree, i, co[0], 2);
     }
@@ -177,13 +177,13 @@ void bvhtree_update_from_cloth(ClothModifierData *clmd, bool moving, bool self)
   }
   else {
     if (verts) {
-      const MEdge *edges = cloth->edges;
+      const blender::int2 *edges = reinterpret_cast<const blender::int2 *>(cloth->edges);
 
       for (i = 0; i < cloth->primitive_num; i++) {
         float co[2][3];
 
-        copy_v3_v3(co[0], verts[edges[i].v1].tx);
-        copy_v3_v3(co[1], verts[edges[i].v2].tx);
+        copy_v3_v3(co[0], verts[edges[i][0]].tx);
+        copy_v3_v3(co[1], verts[edges[i][1]].tx);
 
         if (!BLI_bvhtree_update_node(bvhtree, i, co[0], nullptr, 2)) {
           break;
@@ -870,7 +870,7 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
   BKE_mesh_runtime_verttri_from_looptri(
       clmd->clothObject->tri, corner_verts.data(), looptris.data(), looptris.size());
 
-  clmd->clothObject->edges = mesh->edges().data();
+  clmd->clothObject->edges = reinterpret_cast<const vec2i *>(mesh->edges().data());
 
   /* Free the springs since they can't be correct if the vertices
    * changed.
@@ -1474,7 +1474,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   uint numedges = uint(mesh->totedge);
   uint numpolys = uint(mesh->totpoly);
   float shrink_factor;
-  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::Span<int2> edges = mesh->edges();
   const OffsetIndices polys = mesh->polys();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
@@ -1609,7 +1609,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     spring = (ClothSpring *)MEM_callocN(sizeof(ClothSpring), "cloth spring");
 
     if (spring) {
-      spring_verts_ordered_set(spring, edges[i].v1, edges[i].v2);
+      spring_verts_ordered_set(spring, edges[i][0], edges[i][1]);
       if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW && loose_edges.count > 0 &&
           loose_edges.is_loose_bits[i]) {
         /* handle sewing (loose edges will be pulled together) */
@@ -1617,7 +1617,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
         spring->lin_stiffness = 1.0f;
         spring->type = CLOTH_SPRING_TYPE_SEWING;
 
-        BLI_edgeset_insert(cloth->sew_edge_graph, edges[i].v1, edges[i].v2);
+        BLI_edgeset_insert(cloth->sew_edge_graph, edges[i][0], edges[i][1]);
       }
       else {
         shrink_factor = cloth_shrink_factor(clmd, cloth->verts, spring->ij, spring->kl);
@@ -1892,7 +1892,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   /* Insert other near springs in `edgeset` AFTER bending springs are calculated
    * (for self-collision). */
   for (int i = 0; i < numedges; i++) { /* struct springs */
-    BLI_edgeset_add(edgeset, edges[i].v1, edges[i].v2);
+    BLI_edgeset_add(edgeset, edges[i][0], edges[i][1]);
   }
 
   for (int i = 0; i < numpolys; i++) { /* edge springs */

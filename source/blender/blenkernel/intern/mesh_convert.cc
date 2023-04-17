@@ -114,8 +114,8 @@ static void make_edges_mdata_extend(Mesh &mesh)
 #ifdef DEBUG
   /* ensure that there's no overlap! */
   if (totedge_new) {
-    for (const MEdge &edge : mesh.edges()) {
-      BLI_assert(BLI_edgehash_haskey(eh, edge.v1, edge.v2) == false);
+    for (const blender::int2 &edge : mesh.edges()) {
+      BLI_assert(BLI_edgehash_haskey(eh, edge[0], edge[1]) == false);
     }
   }
 #endif
@@ -125,14 +125,14 @@ static void make_edges_mdata_extend(Mesh &mesh)
     BLI_assert(mesh.edata.totlayer == 1);
     CustomData_realloc(&mesh.edata, totedge, totedge + totedge_new);
     mesh.totedge += totedge_new;
-    MutableSpan<MEdge> edges = mesh.edges_for_write();
-    MEdge *edge = &edges[totedge];
+    MutableSpan<blender::int2> edges = mesh.edges_for_write();
+    blender::int2 *edge = &edges[totedge];
 
     EdgeHashIterator *ehi;
     uint e_index = totedge;
     for (ehi = BLI_edgehashIterator_new(eh); BLI_edgehashIterator_isDone(ehi) == false;
          BLI_edgehashIterator_step(ehi), ++edge, e_index++) {
-      BLI_edgehashIterator_getKey(ehi, &edge->v1, &edge->v2);
+      BLI_edgehashIterator_getKey(ehi, &(*edge)[0], &(*edge)[1]);
       BLI_edgehashIterator_setValue(ehi, POINTER_FROM_UINT(e_index));
     }
     BLI_edgehashIterator_free(ehi);
@@ -205,7 +205,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
 
   Mesh *mesh = BKE_mesh_new_nomain(totvert, totedge, totloop, totpoly);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<blender::int2> edges = mesh->edges_for_write();
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
@@ -238,8 +238,8 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
       for (a = 0; a < dl->parts; a++) {
         ofs = a * dl->nr;
         for (b = 1; b < dl->nr; b++) {
-          edges[dst_edge].v1 = startvert + ofs + b - 1;
-          edges[dst_edge].v2 = startvert + ofs + b;
+          edges[dst_edge][0] = startvert + ofs + b - 1;
+          edges[dst_edge][1] = startvert + ofs + b;
 
           dst_edge++;
         }
@@ -259,12 +259,12 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
         for (a = 0; a < dl->parts; a++) {
           ofs = a * dl->nr;
           for (b = 0; b < dl->nr; b++) {
-            edges[dst_edge].v1 = startvert + ofs + b;
+            edges[dst_edge][0] = startvert + ofs + b;
             if (b == dl->nr - 1) {
-              edges[dst_edge].v2 = startvert + ofs;
+              edges[dst_edge][1] = startvert + ofs;
             }
             else {
-              edges[dst_edge].v2 = startvert + ofs + b + 1;
+              edges[dst_edge][1] = startvert + ofs + b + 1;
             }
             dst_edge++;
           }
@@ -467,7 +467,7 @@ static void appendPolyLineVert(ListBase *lb, uint index)
 void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int edge_users_test)
 {
   const Span<float3> positions = me->vert_positions();
-  const Span<MEdge> mesh_edges = me->edges();
+  const Span<blender::int2> mesh_edges = me->edges();
   const blender::OffsetIndices polys = me->polys();
   const Span<int> corner_edges = me->corner_edges();
 
@@ -502,9 +502,9 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
       ListBase polyline = {nullptr, nullptr}; /* store a list of VertLink's */
       bool closed = false;
       int totpoly = 0;
-      MEdge *edge_current = (MEdge *)((EdgeLink *)edges.last)->edge;
-      uint startVert = edge_current->v1;
-      uint endVert = edge_current->v2;
+      blender::int2 &edge_current = *(blender::int2 *)((EdgeLink *)edges.last)->edge;
+      uint startVert = edge_current[0];
+      uint endVert = edge_current[1];
       bool ok = true;
 
       appendPolyLineVert(&polyline, startVert);
@@ -519,31 +519,31 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
         while (edl) {
           EdgeLink *edl_prev = edl->prev;
 
-          const MEdge *edge = (MEdge *)edl->edge;
+          const blender::int2 &edge = *(blender::int2 *)edl->edge;
 
-          if (edge->v1 == endVert) {
-            endVert = edge->v2;
+          if (edge[0] == endVert) {
+            endVert = edge[1];
             appendPolyLineVert(&polyline, endVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
             ok = true;
           }
-          else if (edge->v2 == endVert) {
-            endVert = edge->v1;
+          else if (edge[1] == endVert) {
+            endVert = edge[0];
             appendPolyLineVert(&polyline, endVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
             ok = true;
           }
-          else if (edge->v1 == startVert) {
-            startVert = edge->v2;
+          else if (edge[0] == startVert) {
+            startVert = edge[1];
             prependPolyLineVert(&polyline, startVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
             ok = true;
           }
-          else if (edge->v2 == startVert) {
-            startVert = edge->v1;
+          else if (edge[1] == startVert) {
+            startVert = edge[0];
             prependPolyLineVert(&polyline, startVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);

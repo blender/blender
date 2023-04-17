@@ -31,7 +31,6 @@ struct LinkNode;
 struct ListBase;
 struct MDeformVert;
 struct MDisps;
-struct MEdge;
 struct MFace;
 struct MLoopTri;
 struct Main;
@@ -108,14 +107,18 @@ void BKE_mesh_ensure_default_orig_index_customdata(struct Mesh *mesh);
  */
 void BKE_mesh_ensure_default_orig_index_customdata_no_check(struct Mesh *mesh);
 
+#ifdef __cplusplus
+
 /**
  * Sets each output array element to the edge index if it is a real edge, or -1.
  */
-void BKE_mesh_looptri_get_real_edges(const struct MEdge *edges,
+void BKE_mesh_looptri_get_real_edges(const blender::int2 *edges,
                                      const int *corner_verts,
                                      const int *corner_edges,
                                      const struct MLoopTri *tri,
                                      int r_edges[3]);
+
+#endif
 
 /**
  * Free (or release) any data used by this mesh (does not free the mesh itself).
@@ -665,6 +668,8 @@ bool BKE_mesh_is_valid(struct Mesh *me);
  */
 bool BKE_mesh_validate_material_indices(struct Mesh *me);
 
+#ifdef __cplusplus
+
 /**
  * Validate the mesh, \a do_fixes requires \a mesh to be non-null.
  *
@@ -683,7 +688,7 @@ bool BKE_mesh_validate_material_indices(struct Mesh *me);
 bool BKE_mesh_validate_arrays(struct Mesh *me,
                               float (*vert_positions)[3],
                               unsigned int totvert,
-                              struct MEdge *edges,
+                              blender::int2 *edges,
                               unsigned int totedge,
                               struct MFace *mfaces,
                               unsigned int totface,
@@ -696,6 +701,8 @@ bool BKE_mesh_validate_arrays(struct Mesh *me,
                               bool do_verbose,
                               bool do_fixes,
                               bool *r_change);
+
+#endif
 
 /**
  * \returns is_valid.
@@ -785,15 +792,6 @@ BLI_INLINE float (*BKE_mesh_vert_positions_for_write(Mesh *mesh))[3]
 {
   return (float(*)[3])CustomData_get_layer_named_for_write(
       &mesh->vdata, CD_PROP_FLOAT3, "position", mesh->totvert);
-}
-
-BLI_INLINE const MEdge *BKE_mesh_edges(const Mesh *mesh)
-{
-  return (const MEdge *)CustomData_get_layer(&mesh->edata, CD_MEDGE);
-}
-BLI_INLINE MEdge *BKE_mesh_edges_for_write(Mesh *mesh)
-{
-  return (MEdge *)CustomData_get_layer_for_write(&mesh->edata, CD_MEDGE, mesh->totedge);
 }
 
 BLI_INLINE const int *BKE_mesh_poly_offsets(const Mesh *mesh)

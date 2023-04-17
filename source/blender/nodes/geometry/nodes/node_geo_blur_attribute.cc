@@ -135,18 +135,18 @@ static void node_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, out_socket_value_color4f, data_type == CD_PROP_COLOR);
 }
 
-static Array<Vector<int>> build_vert_to_vert_by_edge_map(const Span<MEdge> edges,
+static Array<Vector<int>> build_vert_to_vert_by_edge_map(const Span<int2> edges,
                                                          const int verts_num)
 {
   Array<Vector<int>> map(verts_num);
-  for (const MEdge &edge : edges) {
-    map[edge.v1].append(edge.v2);
-    map[edge.v2].append(edge.v1);
+  for (const int2 &edge : edges) {
+    map[edge[0]].append(edge[1]);
+    map[edge[1]].append(edge[0]);
   }
   return map;
 }
 
-static Array<Vector<int>> build_edge_to_edge_by_vert_map(const Span<MEdge> edges,
+static Array<Vector<int>> build_edge_to_edge_by_vert_map(const Span<int2> edges,
                                                          const int verts_num,
                                                          const IndexMask edge_mask)
 {
@@ -158,8 +158,8 @@ static Array<Vector<int>> build_edge_to_edge_by_vert_map(const Span<MEdge> edges
     for (const int edge_i : edge_mask.slice(range)) {
 
       Vector<int> &self_edges = map[edge_i];
-      const Span<int> vert_1_edges = vert_to_edge_map[edges[edge_i].v1];
-      const Span<int> vert_2_edges = vert_to_edge_map[edges[edge_i].v2];
+      const Span<int> vert_1_edges = vert_to_edge_map[edges[edge_i][0]];
+      const Span<int> vert_2_edges = vert_to_edge_map[edges[edge_i][1]];
 
       self_edges.reserve(vert_1_edges.size() - 1 + vert_2_edges.size() - 1);
 
@@ -222,12 +222,12 @@ static Array<Vector<int>> create_mesh_map(const Mesh &mesh,
 {
   switch (domain) {
     case ATTR_DOMAIN_POINT: {
-      const Span<MEdge> edges = mesh.edges();
+      const Span<int2> edges = mesh.edges();
       const int verts_num = mesh.totvert;
       return build_vert_to_vert_by_edge_map(edges, verts_num);
     }
     case ATTR_DOMAIN_EDGE: {
-      const Span<MEdge> edges = mesh.edges();
+      const Span<int2> edges = mesh.edges();
       const int verts_num = mesh.totvert;
       return build_edge_to_edge_by_vert_map(edges, verts_num, mask);
     }

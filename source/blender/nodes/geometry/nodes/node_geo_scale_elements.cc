@@ -147,7 +147,7 @@ static float4x4 create_single_axis_transform(const float3 &center,
   return transform;
 }
 
-using GetVertexIndicesFn = FunctionRef<void(Span<MEdge> edges,
+using GetVertexIndicesFn = FunctionRef<void(Span<int2> edges,
                                             OffsetIndices<int> polys,
                                             Span<int> corner_verts,
                                             int element_index,
@@ -159,7 +159,7 @@ static void scale_vertex_islands_uniformly(Mesh &mesh,
                                            const GetVertexIndicesFn get_vertex_indices)
 {
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
   const OffsetIndices polys = mesh.polys();
   const Span<int> corner_verts = mesh.corner_verts();
 
@@ -197,7 +197,7 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
                                          const GetVertexIndicesFn get_vertex_indices)
 {
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
   const OffsetIndices polys = mesh.polys();
   const Span<int> corner_verts = mesh.corner_verts();
 
@@ -274,7 +274,7 @@ static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh, const IndexM
   return islands;
 }
 
-static void get_face_verts(const Span<MEdge> /*edges*/,
+static void get_face_verts(const Span<int2> /*edges*/,
                            const OffsetIndices<int> polys,
                            const Span<int> corner_verts,
                            int face_index,
@@ -330,13 +330,13 @@ static void scale_faces_uniformly(Mesh &mesh, const UniformScaleFields &fields)
 
 static Vector<ElementIsland> prepare_edge_islands(const Mesh &mesh, const IndexMask edge_selection)
 {
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
 
   /* Use the disjoint set data structure to determine which vertices have to be scaled together. */
   DisjointSet<int> disjoint_set(mesh.totvert);
   for (const int edge_index : edge_selection) {
-    const MEdge &edge = edges[edge_index];
-    disjoint_set.join(edge.v1, edge.v2);
+    const int2 &edge = edges[edge_index];
+    disjoint_set.join(edge[0], edge[1]);
   }
 
   VectorSet<int> island_ids;
@@ -346,8 +346,8 @@ static Vector<ElementIsland> prepare_edge_islands(const Mesh &mesh, const IndexM
 
   /* Gather all of the edge indices in each island into separate vectors. */
   for (const int edge_index : edge_selection) {
-    const MEdge &edge = edges[edge_index];
-    const int island_id = disjoint_set.find_root(edge.v1);
+    const int2 &edge = edges[edge_index];
+    const int island_id = disjoint_set.find_root(edge[0]);
     const int island_index = island_ids.index_of_or_add(island_id);
     if (island_index == islands.size()) {
       islands.append_as();
@@ -359,15 +359,15 @@ static Vector<ElementIsland> prepare_edge_islands(const Mesh &mesh, const IndexM
   return islands;
 }
 
-static void get_edge_verts(const Span<MEdge> edges,
+static void get_edge_verts(const Span<int2> edges,
                            const OffsetIndices<int> /*polys*/,
                            const Span<int> /*corner_verts*/,
                            int edge_index,
                            VectorSet<int> &r_vertex_indices)
 {
-  const MEdge &edge = edges[edge_index];
-  r_vertex_indices.add(edge.v1);
-  r_vertex_indices.add(edge.v2);
+  const int2 &edge = edges[edge_index];
+  r_vertex_indices.add(edge[0]);
+  r_vertex_indices.add(edge[1]);
 }
 
 static void scale_edges_uniformly(Mesh &mesh, const UniformScaleFields &fields)

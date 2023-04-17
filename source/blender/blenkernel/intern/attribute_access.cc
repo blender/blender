@@ -57,6 +57,9 @@ bool allow_procedural_attribute_access(StringRef attribute_name)
   if (attribute_name.startswith(".corner")) {
     return false;
   }
+  if (attribute_name.startswith(".edge")) {
+    return false;
+  }
   if (attribute_name.startswith(".select")) {
     return false;
   }
