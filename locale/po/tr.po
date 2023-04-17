@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: 2023-02-05 22:00+0300\n"
 "Last-Translator: Emir SARI <emir_sari@îcloud.com>\n"
 "Language-Team: Turkish <>\n"
@@ -1931,14 +1931,6 @@ msgstr "Vektör Yazıtipleri"
 
 msgid "Vector font data-blocks"
 msgstr "Vektör Yazıtipi veri blokları"
-
-
-msgid "Grease Pencil"
-msgstr "Gres Kalemi"
-
-
-msgid "Grease Pencil data-blocks"
-msgstr "Gres Kalemi veri blokları"
 
 
 msgid "Hair Curves"
@@ -4351,6 +4343,10 @@ msgid "Use Global Coordinates"
 msgstr "Evrensel Kordinatları Kullan"
 
 
+msgid "Grease Pencil"
+msgstr "Gres Kalemi"
+
+
 msgid "Save"
 msgstr "Kaydet"
 
@@ -5012,10 +5008,6 @@ msgid "Point Source"
 msgstr "Nokta Kaynağı"
 
 
-msgid "Wrap"
-msgstr "Sar"
-
-
 msgid "Z Axis"
 msgstr "Z Eks"
 
@@ -5293,6 +5285,10 @@ msgstr "Sabitlendi"
 msgctxt "Operator"
 msgid "Unwrap"
 msgstr "Açılım"
+
+
+msgid "Wrap"
+msgstr "Sar"
 
 
 msgid "Play"

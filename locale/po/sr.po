@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -765,10 +765,6 @@ msgstr "Путања до .blend датотеке"
 
 msgid "Vector Fonts"
 msgstr "Фонтови"
-
-
-msgid "Grease Pencil"
-msgstr "Скицирање"
 
 
 msgid "Images"
@@ -4283,6 +4279,10 @@ msgstr "Обе Z"
 
 msgid "Fonts"
 msgstr "Фонтови"
+
+
+msgid "Grease Pencil"
+msgstr "Скицирање"
 
 
 msgid "File Select Parameters"
@@ -7996,10 +7996,6 @@ msgid "Memory"
 msgstr "Меморија"
 
 
-msgid "Modified"
-msgstr "Измењен"
-
-
 msgid "Lines of text"
 msgstr "Линије текста"
 
@@ -11202,10 +11198,6 @@ msgid "Width of the box"
 msgstr "Ширина кутије"
 
 
-msgid "Bright/Contrast"
-msgstr "Светлина/контраст"
-
-
 msgid "Channel Key"
 msgstr "Кључ канала"
 
@@ -11496,10 +11488,6 @@ msgstr "Окретање 45"
 
 msgid "Hue Correct"
 msgstr "Корекција тона"
-
-
-msgid "Hue Saturation Value"
-msgstr "Вредснот тона и засићености"
 
 
 msgid "Inpaint"
@@ -12076,14 +12064,6 @@ msgstr "Доња половина текстуре је за врхове пот
 
 msgid "UV coordinates to be used for mapping"
 msgstr "UV координате за мапирање"
-
-
-msgid "Modulo"
-msgstr "Модул"
-
-
-msgid "Wrap"
-msgstr "Прелом текста"
 
 
 msgid "Z Axis"
@@ -13175,10 +13155,6 @@ msgid "Copy Tracks"
 msgstr "Споји стазе"
 
 
-msgid "Copy selected tracks to clipboard"
-msgstr "Убацује изабрани текст међу исечке"
-
-
 msgctxt "Operator"
 msgid "Set 2D Cursor"
 msgstr "3D курсор"
@@ -13357,10 +13333,6 @@ msgstr "Датотеке"
 msgctxt "Operator"
 msgid "Paste Tracks"
 msgstr "Остави стазе"
-
-
-msgid "Paste tracks from clipboard"
-msgstr "Убаци објекте из списка исечака"
 
 
 msgctxt "Operator"
@@ -15570,10 +15542,6 @@ msgid "Set the mask's parenting"
 msgstr "Поставља мапирање текстуре у моду сликања"
 
 
-msgid "Paste splines from clipboard"
-msgstr "Убаци криве из оставе"
-
-
 msgctxt "Operator"
 msgid "Add Circle"
 msgstr "Додај круг"
@@ -16713,10 +16681,6 @@ msgstr "Увећање позадинске слике"
 
 msgid "Zoom in/out the background image"
 msgstr "Списак позадинских слика"
-
-
-msgid "Copies selected nodes to the clipboard"
-msgstr "Убацује изабрани текст у оставу"
 
 
 msgctxt "Operator"
@@ -18183,10 +18147,6 @@ msgstr "Копирај ограничења на друге изабране к�
 msgctxt "Operator"
 msgid "Copy Pose"
 msgstr "Копирај позу"
-
-
-msgid "Copies the current pose of the selected bones to copy/paste buffer"
-msgstr "Копирај текућу позу изабраних костију у бафер копирања"
 
 
 msgctxt "Operator"
@@ -19952,6 +19912,10 @@ msgid "PNG Image (.png)"
 msgstr "PNG слика (.png)"
 
 
+msgid "Modified"
+msgstr "Измењен"
+
+
 msgid "Fill Opacity"
 msgstr "Провидност испуне"
 
@@ -19962,10 +19926,6 @@ msgstr "Режим дужине ивица"
 
 msgid "Length Average"
 msgstr "Просечно"
-
-
-msgid "New Image"
-msgstr "Слика:"
 
 
 msgid "Pack Quality"
@@ -20481,6 +20441,10 @@ msgid "Cycle backwards"
 msgstr "Уназад"
 
 
+msgid "Wrap"
+msgstr "Прелом текста"
+
+
 msgid "Header Text"
 msgstr "Текст наслова"
 
@@ -20946,10 +20910,6 @@ msgid "Tracking Settings"
 msgstr "Подешавање праћења"
 
 
-msgid "Lens"
-msgstr "Сочива"
-
-
 msgid "Predefined tracking settings"
 msgstr "Предефинисана подешавања праћења"
 
@@ -21198,11 +21158,6 @@ msgstr "Круг"
 msgctxt "Operator"
 msgid "Thickness"
 msgstr "Дебљина"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "Клизај"
 
 
 msgid "Pose Options"
@@ -23699,6 +23654,10 @@ msgid "3D View Space"
 msgstr "3D поглед"
 
 
+msgid "Lens"
+msgstr "Сочива"
+
+
 msgid "Lock Camera to View"
 msgstr "Поравнај активну камеру са погледом"
 
@@ -25317,10 +25276,6 @@ msgid "Invert"
 msgstr "Обрнуто"
 
 
-msgid "Old"
-msgstr "Старо"
-
-
 msgid "Date"
 msgstr "Датум"
 
@@ -25565,6 +25520,11 @@ msgstr "Интерполација"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "Настави"
+
+
+msgctxt "Operator"
+msgid "Slide"
+msgstr "Клизај"
 
 
 msgctxt "Operator"
@@ -25855,16 +25815,16 @@ msgid "One Object Per Line"
 msgstr "Један објекат по линији"
 
 
-msgid "File: %s"
-msgstr "Датотека: %s"
-
-
 msgid "Text: External"
 msgstr "Текст: спољашњи"
 
 
 msgid "Text: Internal"
 msgstr "Текст: унутрашњи"
+
+
+msgid "File: %s"
+msgstr "Датотека: %s"
 
 
 msgctxt "Operator"
@@ -27905,6 +27865,10 @@ msgid "Val"
 msgstr "Вр."
 
 
+msgid "Old"
+msgstr "Старо"
+
+
 msgid "Edge Crease"
 msgstr "Набор ивице"
 
@@ -28101,11 +28065,6 @@ msgstr "Однос боја"
 msgctxt "Sequence"
 msgid "Curves"
 msgstr "Криве"
-
-
-msgctxt "Sequence"
-msgid "Bright/Contrast"
-msgstr "Светлина/контраст"
 
 
 msgid "Strips must be the same length"

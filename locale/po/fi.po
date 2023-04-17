@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1012,14 +1012,6 @@ msgstr "Vektorifontit"
 
 msgid "Vector font data-blocks"
 msgstr "Vektorifontin data-palikat"
-
-
-msgid "Grease Pencil"
-msgstr "Öljykynä"
-
-
-msgid "Grease Pencil data-blocks"
-msgstr "Öljykynän data-palikat"
 
 
 msgid "Images"
@@ -4498,6 +4490,10 @@ msgid "Show Font data-blocks"
 msgstr "Näytä fontin data-palikat"
 
 
+msgid "Grease Pencil"
+msgstr "Öljykynä"
+
+
 msgid "Show Grease pencil data-blocks"
 msgstr "Näytä öljykynän data-palikat"
 
@@ -6448,10 +6444,6 @@ msgid "Background"
 msgstr "Tausta"
 
 
-msgid "Bright Contrast"
-msgstr "Kirkkaus kontrasti"
-
-
 msgid "GGX"
 msgstr "GGX"
 
@@ -6648,10 +6640,6 @@ msgid "Wave Profile"
 msgstr "Aaltoprofiili"
 
 
-msgid "Modulo"
-msgstr "Jakojäännös"
-
-
 msgid "Vector Rotate"
 msgstr "Vektorin kirto"
 
@@ -6812,16 +6800,16 @@ msgid "Visible Objects"
 msgstr "Näkyvät objektit"
 
 
-msgid "Lighting Mode"
-msgstr "Valotustila"
-
-
 msgid "Export cameras"
 msgstr "Vie kamerat"
 
 
 msgid "Export vertex colors with meshes"
 msgstr "Vie kärkien värit muotojen kanssa"
+
+
+msgid "Lighting Mode"
+msgstr "Valotustila"
 
 
 msgid "No export"
@@ -11459,11 +11447,6 @@ msgstr "Käyrät"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "Sävykorjaus"
-
-
-msgctxt "Sequence"
-msgid "Bright/Contrast"
-msgstr "Kirkkaus/Kontrasti"
 
 
 msgctxt "Sequence"

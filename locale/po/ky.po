@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -227,10 +227,6 @@ msgstr "Чачылар"
 
 msgid "Filename"
 msgstr "Файл аты"
-
-
-msgid "Grease Pencil"
-msgstr "Эскиз карандашы"
 
 
 msgid "Images"
@@ -785,6 +781,10 @@ msgstr "Өлчөмү"
 
 msgid "Fonts"
 msgstr "Ариптер"
+
+
+msgid "Grease Pencil"
+msgstr "Эскиз карандашы"
 
 
 msgid "Save"
@@ -2637,10 +2637,6 @@ msgid "PNG Image (.png)"
 msgstr "PNG сүрөт (.png)"
 
 
-msgid "New Image"
-msgstr "Жаңы сүрөт"
-
-
 msgctxt "Operator"
 msgid "Reset"
 msgstr "Түшүрүү"
@@ -2723,10 +2719,6 @@ msgstr "Чечим"
 
 msgid "Tracking Settings"
 msgstr "Трекингдин ырастоолору"
-
-
-msgid "Lens"
-msgstr "Объектив"
 
 
 msgid "Post Processing"
@@ -3040,6 +3032,10 @@ msgstr "Z-буфер"
 
 msgid "UV Editor"
 msgstr "UV-редактор"
+
+
+msgid "Lens"
+msgstr "Объектив"
 
 
 msgid "Speaker"
@@ -3609,6 +3605,10 @@ msgid "Apply"
 msgstr "Колдонуу"
 
 
+msgid "Untitled"
+msgstr "Аты жок"
+
+
 msgctxt "Curve"
 msgid "Surface"
 msgstr "Бет"
@@ -3824,10 +3824,6 @@ msgstr "Болот"
 
 msgid "Stone"
 msgstr "Таш"
-
-
-msgid "Untitled"
-msgstr "Аты жок"
 
 
 msgid "OK"

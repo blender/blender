@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -1453,10 +1453,6 @@ msgid "Air"
 msgstr "Luft"
 
 
-msgid "Wrap"
-msgstr "Radbrytning"
-
-
 msgid "Object Constraints"
 msgstr "Objektbegränsningar"
 
@@ -2006,6 +2002,10 @@ msgid "Toggle display of selected object(s) separately and centered in view"
 msgstr "Visa/göm markerade objekt separat, och centrerat i vyn"
 
 
+msgid "Wrap"
+msgstr "Radbrytning"
+
+
 msgctxt "Operator"
 msgid "View Documentation"
 msgstr "Visa dokumentation"
@@ -2086,10 +2086,6 @@ msgstr "Rastrering"
 
 msgid "Bone Constraints"
 msgstr "Benbegränsningar"
-
-
-msgid "Lens"
-msgstr "Lins"
 
 
 msgid "Cloth Presets"
@@ -2440,6 +2436,10 @@ msgid "3D View far clipping distance"
 msgstr "Bortre beskärningsgräns i 3D-vyn"
 
 
+msgid "Lens"
+msgstr "Lins"
+
+
 msgid "Lock to Object"
 msgstr "Lås till objekt"
 
@@ -2581,10 +2581,6 @@ msgid "Clear"
 msgstr "Nollställ"
 
 
-msgid "Old"
-msgstr "Gammal"
-
-
 msgid "Date"
 msgstr "Datum"
 
@@ -2723,6 +2719,10 @@ msgstr "Y-förskjutning"
 
 msgid "Path:"
 msgstr "Bana:"
+
+
+msgid "Old"
+msgstr "Gammal"
 
 
 msgid "IOR"
