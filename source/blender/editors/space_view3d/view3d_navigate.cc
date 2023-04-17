@@ -180,7 +180,21 @@ static void view3d_orbit_apply_dyn_ofs_ortho_correction(float ofs[3],
    *
    * Resolve by moving #RegionView3D::ofs so it is depth-aligned to `dyn_ofs`,
    * this is interpolated by the amount of rotation so minor rotations don't cause
-   * the view-clipping to suddenly jump. */
+   * the view-clipping to suddenly jump.
+   *
+   * Perspective Views
+   * =================
+   *
+   * This logic could also be applied to perspective views because the issue of the `ofs`
+   * being a location which isn't useful exists there too, however the problem where this location
+   * impacts the clipping does *not* exist, as the clipping range starts from the view-point
+   * (`ofs` + `dist` along the view Z-axis) unlike orthographic views which center around `ofs`.
+   * Nevertheless there will be cases when having `ofs` and a large `dist` pointing nowhere doesn't
+   * give ideal behavior (zooming may jump in larger than expected steps and panning the view may
+   * move too much in relation to nearby objects - for e.g.). So it's worth investigating but
+   * should be done with extra care as changing `ofs` in perspective view also requires changing
+   * the `dist` which could cause unexpected results if the calculated `dist` happens to be small.
+   * So disable this workaround in perspective view unless there are clear benefits to enabling. */
 
   float q_inv[4];
 
