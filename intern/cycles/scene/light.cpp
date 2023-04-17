@@ -752,7 +752,8 @@ void LightManager::device_update_background(Device *device,
   }
 
   /* If there's more than one sun, fall back to map sampling instead. */
-  if (num_suns != 1) {
+  kbackground->use_sun_guiding = (num_suns == 1);
+  if (!kbackground->use_sun_guiding) {
     kbackground->sun_weight = 0.0f;
     environment_res.x = max(environment_res.x, 4096);
     environment_res.y = max(environment_res.y, 2048);
