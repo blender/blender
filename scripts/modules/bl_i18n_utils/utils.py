@@ -1046,7 +1046,7 @@ class I18nMessages:
         self.unescape()
 
     def write(self, kind, dest):
-        self.writers[kind](self, dest)
+        return self.writers[kind](self, dest)
 
     def write_messages_to_po(self, fname, compact=False):
         """
@@ -1126,8 +1126,8 @@ class I18nMessages:
                 "-o",
                 fname,
             )
-            ret = subprocess.call(cmd)
-            return
+            ret = subprocess.run(cmd, capture_output=True)
+            return ret
         # XXX Code below is currently broken (generates corrupted mo files it seems :( )!
         # Using http://www.gnu.org/software/gettext/manual/html_node/MO-Files.html notation.
         # Not generating hash table!
@@ -1427,7 +1427,7 @@ class I18n:
         self.unescape()
 
     def write(self, kind, langs=set()):
-        self.writers[kind](self, langs)
+        return self.writers[kind](self, langs)
 
     def write_to_po(self, langs=set()):
         """
