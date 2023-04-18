@@ -2375,7 +2375,7 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
           nameprop,
           "Attempted to use a string to index into a collection of items with no 'nameproperty'.");
       if (nameprop == NULL) {
-        // For non-debug builds, bail if there's no 'nameproperty' to check.
+        /* For non-debug builds, bail if there's no 'nameproperty' to check. */
         break;
       }
       char *nameptr = RNA_property_string_get_alloc(
