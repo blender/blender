@@ -1669,6 +1669,7 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
       }
     }
     BLI_assert(colour_attachments == colour_attachment_count_);
+    UNUSED_VARS_NDEBUG(colour_attachments);
 
     /* Depth attachment. */
     if (mtl_depth_attachment_.used) {
