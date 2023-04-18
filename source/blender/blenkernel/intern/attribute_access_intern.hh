@@ -171,7 +171,6 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
  * if the stored type is the same as the attribute type.
  */
 class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
-  using UpdateOnRead = void (*)(const void *owner);
   using UpdateOnChange = void (*)(void *owner);
   const eCustomDataType stored_type_;
   const CustomDataAccessInfo custom_data_access_;
