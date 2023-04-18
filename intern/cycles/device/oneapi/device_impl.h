@@ -22,7 +22,7 @@ typedef void (*OneAPIDeviceIteratorCallback)(
 class OneapiDevice : public Device {
  private:
   SyclQueue *device_queue_;
-#  if WITH_EMBREE_GPU
+#  ifdef WITH_EMBREE_GPU
   RTCDevice embree_device;
   RTCScene embree_scene;
 #  endif
@@ -44,7 +44,7 @@ class OneapiDevice : public Device {
   OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler);
 
   virtual ~OneapiDevice();
-#  if WITH_EMBREE_GPU
+#  ifdef WITH_EMBREE_GPU
   void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
 #  endif
   bool check_peer_access(Device *peer_device) override;

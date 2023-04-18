@@ -552,6 +552,8 @@ bool OneapiDevice::create_queue(SyclQueue *&external_queue,
     if (embree_device_pointer) {
       *((RTCDevice *)embree_device_pointer) = rtcNewSYCLDevice(created_queue->get_context(), "");
     }
+#  else
+    (void)embree_device_pointer;
 #  endif
   }
   catch (sycl::exception const &e) {

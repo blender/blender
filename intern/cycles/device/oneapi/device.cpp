@@ -113,10 +113,11 @@ static void device_iterator_cb(
   /* NOTE(@nsirgien): Seems not possible to know from SYCL/oneAPI or Level0. */
   info.display_device = false;
 
-#  if WITH_EMBREE_GPU
+#  ifdef WITH_EMBREE_GPU
   info.use_hardware_raytracing = hwrt_support;
 #  else
   info.use_hardware_raytracing = false;
+  (void)hwrt_support;
 #  endif
 
   devices->push_back(info);
