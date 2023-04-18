@@ -51,8 +51,6 @@ ccl_device_inline
   int object = OBJECT_NONE;
   float isect_t = ray->tmax;
 
-  int num_hits_in_instance = 0;
-
   uint num_hits = 0;
   isect_array->t = ray->tmax;
 
@@ -152,7 +150,6 @@ ccl_device_inline
                   /* Move on to next entry in intersections array. */
                   isect_array++;
                   num_hits++;
-                  num_hits_in_instance++;
                   isect_array->t = isect_t;
                   if (num_hits == max_hits) {
                     return num_hits;
@@ -193,7 +190,6 @@ ccl_device_inline
                   /* Move on to next entry in intersections array. */
                   isect_array++;
                   num_hits++;
-                  num_hits_in_instance++;
                   isect_array->t = isect_t;
                   if (num_hits == max_hits) {
                     return num_hits;
@@ -219,7 +215,6 @@ ccl_device_inline
             bvh_instance_push(kg, object, ray, &P, &dir, &idir);
 #endif
 
-            num_hits_in_instance = 0;
             isect_array->t = isect_t;
 
             ++stack_ptr;
