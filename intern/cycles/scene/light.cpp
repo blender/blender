@@ -450,6 +450,9 @@ void LightManager::device_update_tree(Device *,
    * More benchmarking is needed to determine what number works best. */
   LightTree light_tree(scene, dscene, progress, 8);
   LightTreeNode *root = light_tree.build(scene, dscene);
+  if (progress.get_cancel()) {
+    return;
+  }
 
   /* We want to create separate arrays corresponding to triangles and lights,
    * which will be used to index back into the light tree for PDF calculations. */
