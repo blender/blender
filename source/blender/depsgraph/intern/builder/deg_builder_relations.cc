@@ -1840,8 +1840,14 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
          * - Modifications of evaluated IDs from a Python handler.
          *   Such modifications are not fully integrated in the dependency graph evaluation as it
          *   has issues with copy-on-write tagging and the fact that relations are defined by the
-         *   original main database status. */
-        if (target_id != variable_exit_key.ptr.owner_id) {
+         *   original main database status.
+         *
+         * The original report for this is #98618.
+         *
+         * The not-so-obvious part is that we don't do such relation for the context properties.
+         * They are resolved at the graph build time and do not change at runtime (#107081).
+         */
+        if (target_id != variable_exit_key.ptr.owner_id && dvar->type != DVAR_TYPE_CONTEXT_PROP) {
           if (deg_copy_on_write_is_needed(GS(target_id->name))) {
             ComponentKey target_id_key(target_id, NodeType::COPY_ON_WRITE);
             add_relation(target_id_key, driver_key, "Target ID -> Driver");
