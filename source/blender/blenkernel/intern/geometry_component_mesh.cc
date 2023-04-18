@@ -859,39 +859,12 @@ static blender::GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
 
 namespace blender::bke {
 
-template<typename StructT, typename ElemT, ElemT (*GetFunc)(const StructT &)>
-static GVArray make_derived_read_attribute(const void *data, const int domain_num)
-{
-  return VArray<ElemT>::template ForDerivedSpan<StructT, GetFunc>(
-      Span<StructT>((const StructT *)data, domain_num));
-}
-
-template<typename StructT,
-         typename ElemT,
-         ElemT (*GetFunc)(const StructT &),
-         void (*SetFunc)(StructT &, ElemT)>
-static GVMutableArray make_derived_write_attribute(void *data, const int domain_num)
-{
-  return VMutableArray<ElemT>::template ForDerivedSpan<StructT, GetFunc, SetFunc>(
-      MutableSpan<StructT>((StructT *)data, domain_num));
-}
-
 static void tag_component_positions_changed(void *owner)
 {
   Mesh *mesh = static_cast<Mesh *>(owner);
   if (mesh != nullptr) {
     BKE_mesh_tag_positions_changed(mesh);
   }
-}
-
-static float get_crease(const float &crease)
-{
-  return crease;
-}
-
-static void set_crease(float &crease, const float value)
-{
-  crease = std::clamp(value, 0.0f, 1.0f);
 }
 
 class VArrayImpl_For_VertexWeights final : public VMutableArrayImpl<float> {
@@ -1144,8 +1117,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                  BuiltinAttributeProvider::NonCreatable,
                                                  BuiltinAttributeProvider::NonDeletable,
                                                  point_access,
-                                                 make_array_read_attribute<float3>,
-                                                 make_array_write_attribute<float3>,
                                                  tag_component_positions_changed);
 
   static BuiltinCustomDataLayerProvider id("id",
@@ -1155,8 +1126,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                            BuiltinAttributeProvider::Creatable,
                                            BuiltinAttributeProvider::Deletable,
                                            point_access,
-                                           make_array_read_attribute<int>,
-                                           make_array_write_attribute<int>,
                                            nullptr);
 
   static const auto material_index_clamp = mf::build::SI1_SO<int, int>(
@@ -1173,8 +1142,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                        BuiltinAttributeProvider::Creatable,
                                                        BuiltinAttributeProvider::Deletable,
                                                        face_access,
-                                                       make_array_read_attribute<int>,
-                                                       make_array_write_attribute<int>,
                                                        nullptr,
                                                        AttributeValidator{&material_index_clamp});
 
@@ -1189,8 +1156,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                    BuiltinAttributeProvider::NonCreatable,
                                                    BuiltinAttributeProvider::NonDeletable,
                                                    edge_access,
-                                                   make_array_read_attribute<int2>,
-                                                   make_array_write_attribute<int2>,
                                                    nullptr,
                                                    AttributeValidator{&int2_index_clamp});
 
@@ -1207,8 +1172,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                     BuiltinAttributeProvider::NonCreatable,
                                                     BuiltinAttributeProvider::NonDeletable,
                                                     corner_access,
-                                                    make_array_read_attribute<int>,
-                                                    make_array_write_attribute<int>,
                                                     nullptr,
                                                     AttributeValidator{&int_index_clamp});
   static BuiltinCustomDataLayerProvider corner_edge(".corner_edge",
@@ -1218,8 +1181,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                     BuiltinAttributeProvider::NonCreatable,
                                                     BuiltinAttributeProvider::NonDeletable,
                                                     corner_access,
-                                                    make_array_read_attribute<int>,
-                                                    make_array_write_attribute<int>,
                                                     nullptr,
                                                     AttributeValidator{&int_index_clamp});
 
@@ -1230,8 +1191,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                    BuiltinAttributeProvider::Creatable,
                                                    BuiltinAttributeProvider::Deletable,
                                                    face_access,
-                                                   make_array_read_attribute<bool>,
-                                                   make_array_write_attribute<bool>,
                                                    nullptr);
 
   static BuiltinCustomDataLayerProvider sharp_edge("sharp_edge",
@@ -1241,21 +1200,21 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                    BuiltinAttributeProvider::Creatable,
                                                    BuiltinAttributeProvider::Deletable,
                                                    edge_access,
-                                                   make_array_read_attribute<bool>,
-                                                   make_array_write_attribute<bool>,
                                                    nullptr);
 
-  static BuiltinCustomDataLayerProvider crease(
-      "crease",
-      ATTR_DOMAIN_EDGE,
-      CD_PROP_FLOAT,
-      CD_CREASE,
-      BuiltinAttributeProvider::Creatable,
-      BuiltinAttributeProvider::Deletable,
-      edge_access,
-      make_array_read_attribute<float>,
-      make_derived_write_attribute<float, float, get_crease, set_crease>,
-      nullptr);
+  static const auto crease_clamp = mf::build::SI1_SO<float, float>(
+      "Crease Clamp",
+      [](float value) { return std::clamp(value, 0.0f, 1.0f); },
+      mf::build::exec_presets::AllSpanOrSingle());
+  static BuiltinCustomDataLayerProvider crease("crease",
+                                               ATTR_DOMAIN_EDGE,
+                                               CD_PROP_FLOAT,
+                                               CD_CREASE,
+                                               BuiltinAttributeProvider::Creatable,
+                                               BuiltinAttributeProvider::Deletable,
+                                               edge_access,
+                                               nullptr,
+                                               AttributeValidator{&crease_clamp});
 
   static VertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider corner_custom_data(ATTR_DOMAIN_CORNER, corner_access);

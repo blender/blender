@@ -375,8 +375,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                  BuiltinAttributeProvider::NonCreatable,
                                                  BuiltinAttributeProvider::NonDeletable,
                                                  point_access,
-                                                 make_array_read_attribute<float3>,
-                                                 make_array_write_attribute<float3>,
                                                  tag_component_positions_changed);
 
   static BuiltinCustomDataLayerProvider radius("radius",
@@ -386,8 +384,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                BuiltinAttributeProvider::Creatable,
                                                BuiltinAttributeProvider::Deletable,
                                                point_access,
-                                               make_array_read_attribute<float>,
-                                               make_array_write_attribute<float>,
                                                tag_component_radii_changed);
 
   static BuiltinCustomDataLayerProvider id("id",
@@ -397,8 +393,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                            BuiltinAttributeProvider::Creatable,
                                            BuiltinAttributeProvider::Deletable,
                                            point_access,
-                                           make_array_read_attribute<int>,
-                                           make_array_write_attribute<int>,
                                            nullptr);
 
   static BuiltinCustomDataLayerProvider tilt("tilt",
@@ -408,8 +402,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                              BuiltinAttributeProvider::Creatable,
                                              BuiltinAttributeProvider::Deletable,
                                              point_access,
-                                             make_array_read_attribute<float>,
-                                             make_array_write_attribute<float>,
                                              tag_component_normals_changed);
 
   static BuiltinCustomDataLayerProvider handle_right("handle_right",
@@ -419,8 +411,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                      BuiltinAttributeProvider::Creatable,
                                                      BuiltinAttributeProvider::Deletable,
                                                      point_access,
-                                                     make_array_read_attribute<float3>,
-                                                     make_array_write_attribute<float3>,
                                                      tag_component_positions_changed);
 
   static BuiltinCustomDataLayerProvider handle_left("handle_left",
@@ -430,8 +420,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                     BuiltinAttributeProvider::Creatable,
                                                     BuiltinAttributeProvider::Deletable,
                                                     point_access,
-                                                    make_array_read_attribute<float3>,
-                                                    make_array_write_attribute<float3>,
                                                     tag_component_positions_changed);
 
   static auto handle_type_clamp = mf::build::SI1_SO<int8_t, int8_t>(
@@ -447,8 +435,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                           BuiltinAttributeProvider::Creatable,
                                                           BuiltinAttributeProvider::Deletable,
                                                           point_access,
-                                                          make_array_read_attribute<int8_t>,
-                                                          make_array_write_attribute<int8_t>,
                                                           tag_component_topology_changed,
                                                           AttributeValidator{&handle_type_clamp});
 
@@ -459,8 +445,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                          BuiltinAttributeProvider::Creatable,
                                                          BuiltinAttributeProvider::Deletable,
                                                          point_access,
-                                                         make_array_read_attribute<int8_t>,
-                                                         make_array_write_attribute<int8_t>,
                                                          tag_component_topology_changed,
                                                          AttributeValidator{&handle_type_clamp});
 
@@ -471,8 +455,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                      BuiltinAttributeProvider::Creatable,
                                                      BuiltinAttributeProvider::Deletable,
                                                      point_access,
-                                                     make_array_read_attribute<float>,
-                                                     make_array_write_attribute<float>,
                                                      tag_component_positions_changed);
 
   static const auto nurbs_order_clamp = mf::build::SI1_SO<int8_t, int8_t>(
@@ -486,8 +468,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                     BuiltinAttributeProvider::Creatable,
                                                     BuiltinAttributeProvider::Deletable,
                                                     curve_access,
-                                                    make_array_read_attribute<int8_t>,
-                                                    make_array_write_attribute<int8_t>,
                                                     tag_component_topology_changed,
                                                     AttributeValidator{&nurbs_order_clamp});
 
@@ -504,8 +484,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                     BuiltinAttributeProvider::Creatable,
                                                     BuiltinAttributeProvider::Deletable,
                                                     curve_access,
-                                                    make_array_read_attribute<int8_t>,
-                                                    make_array_write_attribute<int8_t>,
                                                     tag_component_normals_changed,
                                                     AttributeValidator{&normal_mode_clamp});
 
@@ -522,8 +500,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                          BuiltinAttributeProvider::Creatable,
                                                          BuiltinAttributeProvider::Deletable,
                                                          curve_access,
-                                                         make_array_read_attribute<int8_t>,
-                                                         make_array_write_attribute<int8_t>,
                                                          tag_component_topology_changed,
                                                          AttributeValidator{&knots_mode_clamp});
 
@@ -540,8 +516,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                    BuiltinAttributeProvider::Creatable,
                                                    BuiltinAttributeProvider::Deletable,
                                                    curve_access,
-                                                   make_array_read_attribute<int8_t>,
-                                                   make_array_write_attribute<int8_t>,
                                                    tag_component_curve_types_changed,
                                                    AttributeValidator{&curve_type_clamp});
 
@@ -556,8 +530,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                    BuiltinAttributeProvider::Creatable,
                                                    BuiltinAttributeProvider::Deletable,
                                                    curve_access,
-                                                   make_array_read_attribute<int>,
-                                                   make_array_write_attribute<int>,
                                                    tag_component_topology_changed,
                                                    AttributeValidator{&resolution_clamp});
 
@@ -568,8 +540,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                BuiltinAttributeProvider::Creatable,
                                                BuiltinAttributeProvider::Deletable,
                                                curve_access,
-                                               make_array_read_attribute<bool>,
-                                               make_array_write_attribute<bool>,
                                                tag_component_topology_changed);
 
   static CustomDataAttributeProvider curve_custom_data(ATTR_DOMAIN_CURVE, curve_access);

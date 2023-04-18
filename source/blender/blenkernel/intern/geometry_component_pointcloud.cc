@@ -142,8 +142,6 @@ static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
                                                  BuiltinAttributeProvider::NonCreatable,
                                                  BuiltinAttributeProvider::NonDeletable,
                                                  point_access,
-                                                 make_array_read_attribute<float3>,
-                                                 make_array_write_attribute<float3>,
                                                  tag_component_positions_changed);
   static BuiltinCustomDataLayerProvider radius("radius",
                                                ATTR_DOMAIN_POINT,
@@ -152,8 +150,6 @@ static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
                                                BuiltinAttributeProvider::Creatable,
                                                BuiltinAttributeProvider::Deletable,
                                                point_access,
-                                               make_array_read_attribute<float>,
-                                               make_array_write_attribute<float>,
                                                tag_component_radius_changed);
   static BuiltinCustomDataLayerProvider id("id",
                                            ATTR_DOMAIN_POINT,
@@ -162,8 +158,6 @@ static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
                                            BuiltinAttributeProvider::Creatable,
                                            BuiltinAttributeProvider::Deletable,
                                            point_access,
-                                           make_array_read_attribute<int>,
-                                           make_array_write_attribute<int>,
                                            nullptr);
   static CustomDataAttributeProvider point_custom_data(ATTR_DOMAIN_POINT, point_access);
   return ComponentAttributeProviders({&position, &radius, &id}, {&point_custom_data});
