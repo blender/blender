@@ -240,6 +240,9 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
 
+  PropertyRNA *prop = RNA_def_string(ot->srna, "filter_glob", "*.usd", 0, "", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
   RNA_def_boolean(ot->srna,
                   "selected_objects_only",
                   false,
@@ -501,6 +504,9 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
+
+  PropertyRNA *prop = RNA_def_string(ot->srna, "filter_glob", "*.usd", 0, "", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 
   RNA_def_float(
       ot->srna,

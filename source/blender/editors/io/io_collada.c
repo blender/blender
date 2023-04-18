@@ -480,6 +480,9 @@ void WM_OT_collada_export(wmOperatorType *ot)
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
 
+  PropertyRNA *prop = RNA_def_string(ot->srna, "filter_glob", "*.dae", 0, "", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
   RNA_def_enum(func,
                "prop_bc_export_ui_section",
                prop_bc_export_ui_section,
@@ -797,6 +800,9 @@ void WM_OT_collada_import(wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
+
+  PropertyRNA *prop = RNA_def_string(ot->srna, "filter_glob", "*.dae", 0, "", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 
   RNA_def_boolean(ot->srna,
                   "import_units",
