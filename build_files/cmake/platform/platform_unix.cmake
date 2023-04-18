@@ -335,18 +335,6 @@ if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_
   unset(_sycl_runtime_libraries)
 endif()
 
-if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
-  if(WITH_CYCLES_ONEAPI_BINARIES)
-    set(cycles_kernel_oneapi_lib_suffix "_aot")
-  else()
-    set(cycles_kernel_oneapi_lib_suffix "_jit")
-  endif()
-  list(APPEND PLATFORM_BUNDLED_LIBRARIES
-    ${CMAKE_CURRENT_BINARY_DIR}/intern/cycles/kernel/libcycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.so
-  )
-  unset(cycles_kernel_oneapi_lib_suffix)
-endif()
-
 if(WITH_OPENVDB)
   find_package(OpenVDB)
   set_and_warn_library_found("OpenVDB" OPENVDB_FOUND WITH_OPENVDB)
