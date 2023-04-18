@@ -93,6 +93,7 @@ bool BLI_file_external_operation_supported(const char *filepath, FileExternalOpe
   char *opstring = windows_operation_string(operation);
   return BLI_windows_external_operation_supported(filepath, opstring);
 #else
+  UNUSED_VARS(filepath, operation);
   return false;
 #endif
 }
@@ -107,6 +108,7 @@ bool BLI_file_external_operation_execute(const char *filepath, FileExternalOpera
   }
   return false;
 #else
+  UNUSED_VARS(filepath, operation);
   return false;
 #endif
 }
