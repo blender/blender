@@ -694,5 +694,3 @@ template<typename T> VecBase<T, 3> QuaternionBase<T>::expmap() const
 /** \} */
 
 }  // namespace blender::math
-
-/** \} */

@@ -16,5 +16,3 @@
 #include "BLI_math_basis_types.hh"
 #include "BLI_math_euler_types.hh"
 #include "BLI_math_quaternion_types.hh"
-
-/** \} */

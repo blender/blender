@@ -457,6 +457,10 @@ template<typename T> QuaternionBase<T> to_quaternion(const CartesianBasis &rotat
 
 namespace blender::math {
 
+/* -------------------------------------------------------------------- */
+/** \name Explicit Template Instantiations
+ * \{ */
+
 /* Using explicit template instantiations in order to reduce compilation time. */
 extern template EulerXYZ to_euler(const AxisAngle &);
 extern template EulerXYZ to_euler(const AxisAngleCartesian &);
@@ -475,6 +479,6 @@ extern template AxisAngle to_axis_angle(const Euler3 &);
 extern template AxisAngle to_axis_angle(const EulerXYZ &);
 extern template AxisAngle to_axis_angle(const Quaternion &);
 
-}  // namespace blender::math
-
 /** \} */
+
+}  // namespace blender::math

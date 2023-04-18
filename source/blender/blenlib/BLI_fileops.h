@@ -139,6 +139,8 @@ typedef enum FileExternalOperation {
 bool BLI_file_external_operation_supported(const char *filepath, FileExternalOperation operation);
 bool BLI_file_external_operation_execute(const char *filepath, FileExternalOperation operation);
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Directories
  * \{ */

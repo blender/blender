@@ -193,6 +193,8 @@ static bool use_gnome_confine_hack = false;
 #  define USE_GNOME_NEEDS_LIBDECOR_HACK
 #endif
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Local Defines
  *

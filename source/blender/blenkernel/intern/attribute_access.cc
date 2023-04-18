@@ -933,6 +933,6 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
   return attributes;
 }
 
-}  // namespace blender::bke
-
 /** \} */
+
+}  // namespace blender::bke

@@ -317,6 +317,8 @@ void looptris_calc_with_normals(const Span<float3> vert_positions,
   looptris_calc_all(vert_positions, polys, corner_verts, poly_normals, looptris);
 }
 
+/** \} */
+
 }  // namespace blender::bke::mesh
 
 void BKE_mesh_recalc_looptri(const int *corner_verts,
@@ -333,5 +335,3 @@ void BKE_mesh_recalc_looptri(const int *corner_verts,
       {corner_verts, totloop},
       {mlooptri, poly_to_tri_count(totpoly, totloop)});
 }
-
-/** \} */

@@ -1436,6 +1436,8 @@ void BKE_mesh_legacy_edge_crease_to_layers(Mesh *mesh)
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Sharp Edge Conversion
  * \{ */
@@ -1885,6 +1887,8 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
             &mesh->ldata, CD_PROP_FLOAT2, uv_names[default_name_i].c_str()));
   }
 }
+
+/** \} */
 
 /** \name Selection Attribute and Legacy Flag Conversion
  * \{ */

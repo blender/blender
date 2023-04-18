@@ -202,6 +202,10 @@ struct BHeadN {
  */
 #define BHEAD_USE_READ_ON_DEMAND(bhead) ((bhead)->code == BLO_CODE_DATA)
 
+/* -------------------------------------------------------------------- */
+/** \name Blend Loader Reporting Wrapper
+ * \{ */
+
 void BLO_reportf_wrap(BlendFileReadReport *reports, eReportType type, const char *format, ...)
 {
   char fixed_buf[1024]; /* should be long enough */
@@ -226,6 +230,8 @@ static const char *library_parent_filepath(Library *lib)
 {
   return lib->parent ? lib->parent->filepath_abs : "<direct>";
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name OldNewMap API
@@ -1306,6 +1312,10 @@ void blo_filedata_free(FileData *fd)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Read Thumbnail from Blend File
+ * \{ */
 
 BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 {
