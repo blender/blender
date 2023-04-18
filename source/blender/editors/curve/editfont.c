@@ -854,16 +854,13 @@ static int toggle_style_exec(bContext *C, wmOperator *op)
   Curve *cu = obedit->data;
   int style, clear, selstart, selend;
 
-  if (!BKE_vfont_select_get(obedit, &selstart, &selend)) {
-    return OPERATOR_CANCELLED;
-  }
-
   style = RNA_enum_get(op->ptr, "style");
-
   cu->curinfo.flag ^= style;
-  clear = (cu->curinfo.flag & style) == 0;
-
-  return set_style(C, style, clear);
+  if (BKE_vfont_select_get(obedit, &selstart, &selend)) {
+    clear = (cu->curinfo.flag & style) == 0;
+    return set_style(C, style, clear);
+  }
+  return true;
 }
 
 void FONT_OT_style_toggle(wmOperatorType *ot)
