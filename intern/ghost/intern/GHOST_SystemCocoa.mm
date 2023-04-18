@@ -900,12 +900,13 @@ GHOST_TSuccess GHOST_SystemCocoa::getButtons(GHOST_Buttons &buttons) const
 
 GHOST_TCapabilityFlag GHOST_SystemCocoa::getCapabilities() const
 {
-  return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL &
-                               ~(
-                                   /* Cocoa has no support for a primary selection clipboard. */
-                                   GHOST_kCapabilityPrimaryClipboard |
-                                   /* This Cocoa back-end has not yet implemented image copy/paste. */
-                                   GHOST_kCapabilityClipboardImages));
+  return GHOST_TCapabilityFlag(
+      GHOST_CAPABILITY_FLAG_ALL &
+      ~(
+          /* Cocoa has no support for a primary selection clipboard. */
+          GHOST_kCapabilityPrimaryClipboard |
+          /* This Cocoa back-end has not yet implemented image copy/paste. */
+          GHOST_kCapabilityClipboardImages));
 }
 
 #pragma mark Event handlers

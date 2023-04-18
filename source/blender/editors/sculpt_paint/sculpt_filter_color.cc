@@ -470,7 +470,15 @@ void SCULPT_OT_color_filter(wmOperatorType *ot)
 
   RNA_def_enum(ot->srna, "type", prop_color_filter_types, COLOR_FILTER_FILL, "Filter Type", "");
 
-  PropertyRNA *prop = RNA_def_float_color(
-      ot->srna, "fill_color", 3, fill_filter_default_color, 0.0f, FLT_MAX, "Fill Color", "", 0.0f, 1.0f);
+  PropertyRNA *prop = RNA_def_float_color(ot->srna,
+                                          "fill_color",
+                                          3,
+                                          fill_filter_default_color,
+                                          0.0f,
+                                          FLT_MAX,
+                                          "Fill Color",
+                                          "",
+                                          0.0f,
+                                          1.0f);
   RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
 }

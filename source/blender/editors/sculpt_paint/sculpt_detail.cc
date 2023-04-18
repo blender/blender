@@ -746,7 +746,8 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   ss->draw_faded_cursor = true;
 
   const char *status_str = TIP_(
-      "Move the mouse to change the dyntopo detail size. LMB: confirm size, ESC/RMB: cancel, SHIFT: precision mode, CTRL: sample detail size");
+      "Move the mouse to change the dyntopo detail size. LMB: confirm size, ESC/RMB: cancel, "
+      "SHIFT: precision mode, CTRL: sample detail size");
   ED_workspace_status_text(C, status_str);
 
   return OPERATOR_RUNNING_MODAL;
