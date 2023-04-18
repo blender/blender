@@ -826,6 +826,42 @@ TEST(path_util, PathFrameGet)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_sequence_decode
+ * \{ */
+
+#define PATH_SEQ_DECODE(path_literal, expect_result, expect_head, expect_tail, expect_numdigits) \
+  { \
+    const char *path = path_literal; \
+    char head[FILE_MAX]; \
+    char tail[FILE_MAX]; \
+    ushort numdigits = 0; \
+    const int result = BLI_path_sequence_decode(path, head, tail, &numdigits); \
+    EXPECT_EQ(expect_result, result); \
+    EXPECT_STREQ(expect_head, head); \
+    EXPECT_STREQ(expect_tail, tail); \
+    EXPECT_EQ(expect_numdigits, numdigits); \
+  } \
+  (void)0;
+
+TEST(path_util, PathSequenceDecode)
+{
+  /* Basic use. */
+  PATH_SEQ_DECODE("file_123.txt", 123, "file_", ".txt", 3);
+  PATH_SEQ_DECODE("file_123.321", 123, "file_", ".321", 3);
+  PATH_SEQ_DECODE(".file_123.txt", 123, ".file_", ".txt", 3);
+
+  /* No-op. */
+  PATH_SEQ_DECODE("file.txt", 0, "file", ".txt", 0);
+  PATH_SEQ_DECODE("file.123", 0, "file", ".123", 0);
+  PATH_SEQ_DECODE("file", 0, "file", "", 0);
+  PATH_SEQ_DECODE("file_123.txt/", 0, "file_123.txt/", "", 0);
+}
+
+#undef PATH_SEQ_DECODE
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Tests for: #BLI_path_extension
  * \{ */
 
@@ -841,6 +877,43 @@ TEST(path_util, PathExtension)
   EXPECT_STREQ(".abc", BLI_path_extension("C:\\some.def\\file.abc"));
   EXPECT_STREQ(".001", BLI_path_extension("Text.001"));
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_suffix
+ * \{ */
+
+#define PATH_SUFFIX(path_literal, path_literal_max, sep, suffix, expect_result, expect_path) \
+  { \
+    char path[FILE_MAX] = path_literal; \
+    const bool result = BLI_path_suffix(path, path_literal_max, suffix, sep); \
+    EXPECT_EQ(expect_result, result); \
+    EXPECT_STREQ(expect_path, path); \
+  } \
+  (void)0;
+
+TEST(path_util, PathSuffix)
+{
+  /* Extension. */
+  PATH_SUFFIX("file.txt", FILE_MAX, "_", "123", true, "file_123.txt");
+  PATH_SUFFIX("/dir/file.txt", FILE_MAX, "_", "123", true, "/dir/file_123.txt");
+  /* No-extension. */
+  PATH_SUFFIX("file", FILE_MAX, "_", "123", true, "file_123");
+  PATH_SUFFIX("/dir/file", FILE_MAX, "_", "123", true, "/dir/file_123");
+  /* No-op. */
+  PATH_SUFFIX("file.txt", FILE_MAX, "", "", true, "file.txt");
+  /* Size limit, too short by 1. */
+  PATH_SUFFIX("file.txt", 10, "A", "B", false, "file.txt");
+  /* Size limit, fits exactly. */
+  PATH_SUFFIX("file.txt", 11, "A", "B", true, "fileAB.txt");
+  /* Empty path. */
+  PATH_SUFFIX("", FILE_MAX, "_", "123", true, "_123");
+  /* Empty input/output. */
+  PATH_SUFFIX("", FILE_MAX, "", "", true, "");
+}
+
+#undef PATH_SUFFIX
 
 /** \} */
 
