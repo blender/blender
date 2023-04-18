@@ -25,6 +25,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -358,18 +359,59 @@ void WM_init(bContext *C, int argc, const char **argv)
   wm_homefile_read_post(C, params_file_read_post);
 }
 
-void WM_init_splash(bContext *C)
+static bool wm_init_splash_show_on_startup_check()
 {
-  if ((U.uiflag & USER_SPLASH_DISABLE) == 0) {
-    wmWindowManager *wm = CTX_wm_manager(C);
-    wmWindow *prevwin = CTX_wm_window(C);
+  if (U.uiflag & USER_SPLASH_DISABLE) {
+    return false;
+  }
 
-    if (wm->windows.first) {
-      CTX_wm_window_set(C, static_cast<wmWindow *>(wm->windows.first));
-      WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
-      CTX_wm_window_set(C, prevwin);
+  bool use_splash = false;
+
+  const char *blendfile_path = BKE_main_blendfile_path_from_global();
+  if (blendfile_path[0] == '\0') {
+    /* Common case, no file is loaded, show the splash. */
+    use_splash = true;
+  }
+  else {
+    /* A less common case, if there is no user preferences, show the splash screen
+     * so the user has the opportunity to restore settings from a previous version. */
+    const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, NULL);
+    if (cfgdir) {
+      char userpref[FILE_MAX];
+      BLI_path_join(userpref, sizeof(userpref), cfgdir, BLENDER_USERPREF_FILE);
+      if (!BLI_exists(userpref)) {
+        use_splash = true;
+      }
+    }
+    else {
+      use_splash = true;
     }
   }
+
+  return use_splash;
+}
+
+void WM_init_splash_on_startup(bContext *C)
+{
+  if (!wm_init_splash_show_on_startup_check()) {
+    return;
+  }
+
+  WM_init_splash(C);
+}
+
+void WM_init_splash(bContext *C)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  /* NOTE(@ideasman42): this should practically never happen. */
+  if (UNLIKELY(BLI_listbase_is_empty(&wm->windows))) {
+    return;
+  }
+
+  wmWindow *prevwin = CTX_wm_window(C);
+  CTX_wm_window_set(C, static_cast<wmWindow *>(wm->windows.first));
+  WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
+  CTX_wm_window_set(C, prevwin);
 }
 
 /* free strings of open recent files */
