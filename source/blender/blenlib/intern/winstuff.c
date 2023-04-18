@@ -214,7 +214,7 @@ bool BLI_windows_external_operation_supported(const char *filepath, const char *
   return BLI_windows_file_operation_is_registered(extension, operation);
 }
 
-bool BLI_windows_external_operation_execute(const char *filepath, char *operation)
+bool BLI_windows_external_operation_execute(const char *filepath, const char *operation)
 {
   WCHAR wpath[FILE_MAX];
   if (conv_utf_8_to_16(filepath, wpath, ARRAY_SIZE(wpath)) != 0) {

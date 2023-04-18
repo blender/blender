@@ -1810,11 +1810,11 @@ static int file_external_operation_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
   RNA_property_string_get(op->ptr, prop, filepath);
 
-  const FileExternalOperation operation = (FileExternalOperation)RNA_enum_get(op->ptr,
-                                                                              "operation");
   WM_cursor_set(CTX_wm_window(C), WM_CURSOR_WAIT);
 
 #ifdef WIN32
+  const FileExternalOperation operation = (FileExternalOperation)RNA_enum_get(op->ptr,
+                                                                              "operation");
   if (BLI_file_external_operation_execute(filepath, operation)) {
     WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
     return OPERATOR_FINISHED;
