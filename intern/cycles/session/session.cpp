@@ -621,12 +621,12 @@ void Session::set_pause(bool pause)
 
 void Session::set_output_driver(unique_ptr<OutputDriver> driver)
 {
-  path_trace_->set_output_driver(move(driver));
+  path_trace_->set_output_driver(std::move(driver));
 }
 
 void Session::set_display_driver(unique_ptr<DisplayDriver> driver)
 {
-  path_trace_->set_display_driver(move(driver));
+  path_trace_->set_display_driver(std::move(driver));
 }
 
 double Session::get_estimated_remaining_time() const
