@@ -37,11 +37,9 @@ class HandlePositionFieldInput final : public bke::CurvesFieldInput {
     evaluator.evaluate();
     const VArray<bool> relative = evaluator.get_evaluated<bool>(0);
 
+    const Span<float3> positions = curves.positions();
+
     const AttributeAccessor attributes = curves.attributes();
-
-    VArray<float3> positions = attributes.lookup_or_default<float3>(
-        "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-
     StringRef side = left_ ? "handle_left" : "handle_right";
     VArray<float3> handles = attributes.lookup_or_default<float3>(
         side, ATTR_DOMAIN_POINT, {0, 0, 0});
