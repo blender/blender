@@ -240,12 +240,12 @@ static void memfile_undosys_step_decode(struct bContext *C,
       }
 
       /* NOTE: Tagging `ID_RECALC_COPY_ON_WRITE` here should not be needed in practice, since
-       * modified IDs should already have other depsgraph update tags anyway. However, for sakes of
-       * consistency, it's better to effectively use it, since content of that ID pointer does have
-       * been modified. */
+       * modified IDs should already have other depsgraph update tags anyway.
+       * However, for the sake of consistency, it's better to effectively use it,
+       * since content of that ID pointer does have been modified. */
       unsigned int recalc_flags = id->recalc | ((id->tag & LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) ?
                                                     ID_RECALC_COPY_ON_WRITE :
-                                                    0);
+                                                    IDRecalcFlag(0));
       /* Tag depsgraph to update data-block for changes that happened between the
        * current and the target state, see direct_link_id_restore_recalc(). */
       if (recalc_flags != 0) {
