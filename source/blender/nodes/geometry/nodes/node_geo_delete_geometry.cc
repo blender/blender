@@ -21,8 +21,6 @@
 
 namespace blender::nodes::node_geo_delete_geometry_cc {
 
-using blender::bke::CustomDataAttributes;
-
 template<typename T>
 static void copy_data_based_on_map(const Span<T> src,
                                    const Span<int> index_map,
