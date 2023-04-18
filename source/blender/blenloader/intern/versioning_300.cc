@@ -67,6 +67,7 @@
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
+#include "BKE_workspace.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -4279,6 +4280,29 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
             region_channels->alignment = RGN_ALIGN_LEFT;
           }
         }
+      }
+
+      /* Replace old hard coded names with brush names, see: #106057. */
+      const char *tool_replace_table[][2] = {
+          {"selection_paint", "Paint Selection"},
+          {"add", "Add"},
+          {"delete", "Delete"},
+          {"density", "Density"},
+          {"comb", "Comb"},
+          {"snake_hook", "Snake Hook"},
+          {"grow_shrink", "Grow / Shrink"},
+          {"pinch", "Pinch"},
+          {"puff", "Puff"},
+          {"smooth", "Comb"},
+          {"slide", "Slide"},
+      };
+      LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+        BKE_workspace_tool_id_replace_table(workspace,
+                                            SPACE_VIEW3D,
+                                            CTX_MODE_SCULPT_CURVES,
+                                            "builtin_brush.",
+                                            tool_replace_table,
+                                            ARRAY_SIZE(tool_replace_table));
       }
     }
   }
