@@ -1071,24 +1071,12 @@ static BezTriple *rna_FKeyframe_points_insert(
 
 static void rna_FKeyframe_points_add(ID *id, FCurve *fcu, Main *bmain, int tot)
 {
-  if (tot > 0) {
-    BezTriple *bezt;
-
-    fcu->bezt = MEM_recallocN(fcu->bezt, sizeof(BezTriple) * (fcu->totvert + tot));
-
-    bezt = fcu->bezt + fcu->totvert;
-    fcu->totvert += tot;
-
-    while (tot--) {
-      /* Defaults, ignoring user-preference gives predictable results for API. */
-      bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
-      bezt->ipo = BEZT_IPO_BEZ;
-      bezt->h1 = bezt->h2 = HD_AUTO_ANIM;
-      bezt++;
-    }
-
-    rna_tag_animation_update(bmain, id);
+  if (tot <= 0) {
+    return;
   }
+
+  ED_keyframes_add(fcu, tot);
+  rna_tag_animation_update(bmain, id);
 }
 
 static void rna_FKeyframe_points_remove(
