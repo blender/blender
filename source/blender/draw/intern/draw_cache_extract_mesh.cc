@@ -334,7 +334,7 @@ static void extract_range_iter_loose_edge_mesh(void *__restrict userdata,
   const ExtractorIterData *data = static_cast<ExtractorIterData *>(userdata);
   const MeshRenderData *mr = data->mr;
   const int ledge_index = data->loose_elems[iter];
-  const MEdge *edge = &((const MEdge *)data->elems)[ledge_index];
+  const int2 edge = ((const int2 *)data->elems)[ledge_index];
   for (const ExtractorRunData &run_data : data->extractors) {
     run_data.extractor->iter_loose_edge_mesh(
         mr, edge, iter, POINTER_OFFSET(extract_data, run_data.data_offset));

@@ -89,8 +89,7 @@ static std::string copy_asset_to_directory(const char *src_path,
   }
 
   if (!copy_asset(src_path, dest_file_path, name_collision_mode)) {
-    WM_reportf(
-        RPT_WARNING, "%s: Couldn't copy file %s to %s.", __func__, src_path, dest_file_path);
+    WM_reportf(RPT_WARNING, "%s: Couldn't copy file %s to %s", __func__, src_path, dest_file_path);
     return src_path;
   }
 
@@ -179,7 +178,7 @@ bool copy_asset(const char *src, const char *dst, eUSDTexNameCollisionMode name_
   std::string why_not;
   if (!ar.CanWriteAssetToPath(dst_path, &why_not)) {
     WM_reportf(RPT_ERROR,
-               "%s: Can't write to asset %s.  %s.",
+               "%s: Can't write to asset %s:  %s",
                __func__,
                dst_path.GetPathString().c_str(),
                why_not.c_str());

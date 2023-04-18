@@ -87,7 +87,7 @@ void normals_calc_poly_vert(Span<float3> vert_positions,
  * each side of the edge.
  */
 void normals_calc_loop(Span<float3> vert_positions,
-                       Span<MEdge> edges,
+                       Span<int2> edges,
                        OffsetIndices<int> polys,
                        Span<int> corner_verts,
                        Span<int> corner_edges,
@@ -103,7 +103,7 @@ void normals_calc_loop(Span<float3> vert_positions,
                        MutableSpan<float3> r_loop_normals);
 
 void normals_loop_custom_set(Span<float3> vert_positions,
-                             Span<MEdge> edges,
+                             Span<int2> edges,
                              OffsetIndices<int> polys,
                              Span<int> corner_verts,
                              Span<int> corner_edges,
@@ -115,7 +115,7 @@ void normals_loop_custom_set(Span<float3> vert_positions,
                              short (*r_clnors_data)[2]);
 
 void normals_loop_custom_set_from_verts(Span<float3> vert_positions,
-                                        Span<MEdge> edges,
+                                        Span<int2> edges,
                                         OffsetIndices<int> polys,
                                         Span<int> corner_verts,
                                         Span<int> corner_edges,
@@ -197,13 +197,13 @@ inline int2 poly_find_adjecent_verts(const IndexRange poly,
  * Return the index of the edge's vertex that is not the \a vert.
  * If neither edge vertex is equal to \a v, returns -1.
  */
-inline int edge_other_vert(const MEdge &edge, const int vert)
+inline int edge_other_vert(const int2 &edge, const int vert)
 {
-  if (edge.v1 == vert) {
-    return edge.v2;
+  if (edge[0] == vert) {
+    return edge[1];
   }
-  if (edge.v2 == vert) {
-    return edge.v1;
+  if (edge[1] == vert) {
+    return edge[0];
   }
   return -1;
 }
@@ -226,13 +226,17 @@ inline blender::MutableSpan<blender::float3> Mesh::vert_positions_for_write()
           this->totvert};
 }
 
-inline blender::Span<MEdge> Mesh::edges() const
+inline blender::Span<blender::int2> Mesh::edges() const
 {
-  return {BKE_mesh_edges(this), this->totedge};
+  return {static_cast<const blender::int2 *>(
+              CustomData_get_layer_named(&this->edata, CD_PROP_INT32_2D, ".edge_verts")),
+          this->totedge};
 }
-inline blender::MutableSpan<MEdge> Mesh::edges_for_write()
+inline blender::MutableSpan<blender::int2> Mesh::edges_for_write()
 {
-  return {BKE_mesh_edges_for_write(this), this->totedge};
+  return {static_cast<blender::int2 *>(CustomData_get_layer_named_for_write(
+              &this->edata, CD_PROP_INT32_2D, ".edge_verts", this->totedge)),
+          this->totedge};
 }
 
 inline blender::OffsetIndices<int> Mesh::polys() const

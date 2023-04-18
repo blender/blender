@@ -68,7 +68,7 @@ struct SDefBindCalcData {
   const SDefAdjacencyArray *vert_edges;
   const SDefEdgePolys *edge_polys;
   SDefVert *bind_verts;
-  blender::Span<MEdge> edges;
+  blender::Span<blender::int2> edges;
   blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
@@ -290,7 +290,7 @@ static void freeAdjacencyMap(SDefAdjacencyArray *const vert_edges,
 }
 
 static int buildAdjacencyMap(const blender::OffsetIndices<int> polys,
-                             const blender::Span<MEdge> edges,
+                             const blender::Span<blender::int2> edges,
                              const blender::Span<int> corner_edges,
                              SDefAdjacencyArray *const vert_edges,
                              SDefAdjacency *adj,
@@ -316,17 +316,17 @@ static int buildAdjacencyMap(const blender::OffsetIndices<int> polys,
 
   /* Find edges adjacent to vertices */
   for (const int i : edges.index_range()) {
-    const MEdge &edge = edges[i];
-    adj->next = vert_edges[edge.v1].first;
+    const blender::int2 &edge = edges[i];
+    adj->next = vert_edges[edge[0]].first;
     adj->index = i;
-    vert_edges[edge.v1].first = adj;
-    vert_edges[edge.v1].num += edge_polys[i].num;
+    vert_edges[edge[0]].first = adj;
+    vert_edges[edge[0]].num += edge_polys[i].num;
     adj++;
 
-    adj->next = vert_edges[edge.v2].first;
+    adj->next = vert_edges[edge[1]].first;
     adj->index = i;
-    vert_edges[edge.v2].first = adj;
-    vert_edges[edge.v2].num += edge_polys[i].num;
+    vert_edges[edge[1]].first = adj;
+    vert_edges[edge[1]].num += edge_polys[i].num;
     adj++;
   }
 
@@ -380,7 +380,6 @@ BLI_INLINE uint nearestVert(SDefBindCalcData *const data, const float point_co[3
   nearest.dist_sq = FLT_MAX;
   nearest.index = -1;
 
-  const MEdge *edge;
   float t_point[3];
   float max_dist = FLT_MAX;
   float dist;
@@ -395,9 +394,9 @@ BLI_INLINE uint nearestVert(SDefBindCalcData *const data, const float point_co[3
 
   for (int i = 0; i < poly.size(); i++) {
     const int edge_i = data->corner_edges[poly.start() + i];
-    edge = &data->edges[edge_i];
+    const blender::int2 &edge = data->edges[edge_i];
     dist = dist_squared_to_line_segment_v3(
-        point_co, data->targetCos[edge->v1], data->targetCos[edge->v2]);
+        point_co, data->targetCos[edge[0]], data->targetCos[edge[1]]);
 
     if (dist < max_dist) {
       max_dist = dist;
@@ -405,13 +404,13 @@ BLI_INLINE uint nearestVert(SDefBindCalcData *const data, const float point_co[3
     }
   }
 
-  edge = &data->edges[index];
-  if (len_squared_v3v3(point_co, data->targetCos[edge->v1]) <
-      len_squared_v3v3(point_co, data->targetCos[edge->v2])) {
-    return edge->v1;
+  const blender::int2 &edge = data->edges[index];
+  if (len_squared_v3v3(point_co, data->targetCos[edge[0]]) <
+      len_squared_v3v3(point_co, data->targetCos[edge[1]])) {
+    return edge[0];
   }
 
-  return edge->v2;
+  return edge[1];
 }
 
 BLI_INLINE int isPolyValid(const float coords[][2], const uint nr)
@@ -1176,7 +1175,7 @@ static bool surfacedeformBind(Object *ob,
 {
   BVHTreeFromMesh treeData = {nullptr};
   const float(*positions)[3] = BKE_mesh_vert_positions(target);
-  const blender::Span<MEdge> edges = target->edges();
+  const blender::Span<blender::int2> edges = target->edges();
   const blender::OffsetIndices polys = target->polys();
   const blender::Span<int> corner_verts = target->corner_verts();
   const blender::Span<int> corner_edges = target->corner_edges();

@@ -32,6 +32,7 @@ class ImBufTest(AbstractImBufTest):
         colorspace = img.colorspace_settings.name
         alpha_mode = img.alpha_mode
         actual_metadata = f"{channels=} {is_float=} {colorspace=} {alpha_mode=}"
+        expected_metadata = ""
 
         # Save actual metadata
         out_metadata_path.write_text(actual_metadata, encoding="utf-8")
@@ -52,10 +53,14 @@ class ImBufTest(AbstractImBufTest):
 
             failed = True
 
-        if failed and self.update:
-            # Update reference if requested.
-            ref_metadata_path.write_text(actual_metadata, encoding="utf-8")
-            failed = False
+        if failed:
+            if self.update:
+                # Update reference if requested.
+                ref_metadata_path.write_text(actual_metadata, encoding="utf-8")
+                failed = False
+            else:
+                print_message(
+                    "Expected [{}] but got [{}]".format(expected_metadata, actual_metadata))
 
         return not failed
 

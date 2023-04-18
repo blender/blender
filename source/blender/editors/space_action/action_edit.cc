@@ -40,7 +40,7 @@
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_keyframes_edit.h"
 #include "ED_keyframing.h"
 #include "ED_markers.h"
@@ -576,7 +576,7 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
   if (ac.datatype == ANIMCONT_GPENCIL) {
     if (ED_gpencil_anim_copybuf_copy(&ac) == false) {
       /* check if anything ended up in the buffer */
-      BKE_report(op->reports, RPT_ERROR, "No keyframes copied to keyframes copy/paste buffer");
+      BKE_report(op->reports, RPT_ERROR, "No keyframes copied to the internal clipboard");
       return OPERATOR_CANCELLED;
     }
   }
@@ -591,7 +591,7 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
     const bool gpf_ok = ED_gpencil_anim_copybuf_copy(&ac);
 
     if (kf_empty && !gpf_ok) {
-      BKE_report(op->reports, RPT_ERROR, "No keyframes copied to keyframes copy/paste buffer");
+      BKE_report(op->reports, RPT_ERROR, "No keyframes copied to the internal clipboard");
       return OPERATOR_CANCELLED;
     }
   }
@@ -604,7 +604,7 @@ void ACTION_OT_copy(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Copy Keyframes";
   ot->idname = "ACTION_OT_copy";
-  ot->description = "Copy selected keyframes to the copy/paste buffer";
+  ot->description = "Copy selected keyframes to the internal clipboard";
 
   /* api callbacks */
   ot->exec = actkeys_copy_exec;
@@ -635,7 +635,7 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
   /* paste keyframes */
   if (ac.datatype == ANIMCONT_GPENCIL) {
     if (ED_gpencil_anim_copybuf_paste(&ac, offset_mode) == false) {
-      BKE_report(op->reports, RPT_ERROR, "No data in buffer to paste");
+      BKE_report(op->reports, RPT_ERROR, "No data in the internal clipboard to paste");
       return OPERATOR_CANCELLED;
     }
   }
@@ -664,7 +664,7 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
           return OPERATOR_CANCELLED;
 
         case KEYFRAME_PASTE_NOTHING_TO_PASTE:
-          BKE_report(op->reports, RPT_ERROR, "No data in buffer to paste");
+          BKE_report(op->reports, RPT_ERROR, "No data in the internal clipboard to paste");
           return OPERATOR_CANCELLED;
       }
     }
@@ -698,7 +698,8 @@ void ACTION_OT_paste(wmOperatorType *ot)
   ot->name = "Paste Keyframes";
   ot->idname = "ACTION_OT_paste";
   ot->description =
-      "Paste keyframes from copy/paste buffer for the selected channels, starting on the current "
+      "Paste keyframes from the internal clipboard for the selected channels, starting on the "
+      "current "
       "frame";
 
   /* api callbacks */

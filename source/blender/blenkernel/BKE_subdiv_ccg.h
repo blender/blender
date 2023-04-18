@@ -245,7 +245,7 @@ void BKE_subdiv_ccg_update_normals(SubdivCCG *subdiv_ccg,
                                    struct CCGFace **effected_faces,
                                    int num_effected_faces);
 
-/* Average grid coordinates and normals along the grid boundatries. */
+/* Average grid coordinates and normals along the grid boundaries. */
 void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg);
 
 /* Similar to above, but only updates given faces. */

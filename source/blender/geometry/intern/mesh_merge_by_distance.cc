@@ -425,7 +425,7 @@ static void weld_vert_groups_setup(Span<WeldVert> wvert,
  * \return r_edge_dest_map: First step to create map of indices pointing edges that will be merged.
  * \return r_edge_ctx_map: Map of indices pointing original edges to weld context edges.
  */
-static Vector<WeldEdge> weld_edge_ctx_alloc_and_find_collapsed(Span<MEdge> edges,
+static Vector<WeldEdge> weld_edge_ctx_alloc_and_find_collapsed(Span<int2> edges,
                                                                Span<int> vert_dest_map,
                                                                MutableSpan<int> r_edge_dest_map,
                                                                MutableSpan<int> r_edge_ctx_map,
@@ -439,8 +439,8 @@ static Vector<WeldEdge> weld_edge_ctx_alloc_and_find_collapsed(Span<MEdge> edges
   wedge.reserve(edges.size());
 
   for (const int i : edges.index_range()) {
-    int v1 = edges[i].v1;
-    int v2 = edges[i].v2;
+    int v1 = edges[i][0];
+    int v2 = edges[i][1];
     int v_dest_1 = vert_dest_map[v1];
     int v_dest_2 = vert_dest_map[v2];
     if ((v_dest_1 != OUT_OF_CONTEXT) || (v_dest_2 != OUT_OF_CONTEXT)) {
@@ -1375,7 +1375,7 @@ static void weld_mesh_context_create(const Mesh &mesh,
                                      MutableSpan<int> r_vert_group_map,
                                      WeldMesh *r_weld_mesh)
 {
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
   const OffsetIndices polys = mesh.polys();
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int> corner_edges = mesh.corner_edges();
@@ -1473,10 +1473,7 @@ static void customdata_weld(
     /* if we found a matching layer, add the data */
     if (dest->layers[dest_i].type == type) {
       void *src_data = source->layers[src_i].data;
-      if (type == CD_MEDGE) {
-        /* Pass. */
-      }
-      else if (CustomData_layer_has_interp(dest, dest_i)) {
+      if (CustomData_layer_has_interp(dest, dest_i)) {
         /* Already calculated.
          * TODO: Optimize by exposing `typeInfo->interp`. */
       }
@@ -1506,10 +1503,7 @@ static void customdata_weld(
   for (dest_i = 0; dest_i < dest->totlayer; dest_i++) {
     CustomDataLayer *layer_dst = &dest->layers[dest_i];
     const eCustomDataType type = eCustomDataType(layer_dst->type);
-    if (type == CD_MEDGE) {
-      /* Pass. */
-    }
-    else if (CustomData_layer_has_interp(dest, dest_i)) {
+    if (CustomData_layer_has_interp(dest, dest_i)) {
       /* Already calculated. */
     }
     else if (CustomData_layer_has_math(dest, dest_i)) {
@@ -1551,7 +1545,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
 
   Mesh *result = BKE_mesh_new_nomain_from_template(
       &mesh, result_nverts, result_nedges, result_nloops, result_npolys);
-  MutableSpan<MEdge> dst_edges = result->edges_for_write();
+  MutableSpan<int2> dst_edges = result->edges_for_write();
   MutableSpan<int> dst_poly_offsets = result->poly_offsets_for_write();
   MutableSpan<int> dst_corner_verts = result->corner_verts_for_write();
   MutableSpan<int> dst_corner_edges = result->corner_edges_for_write();
@@ -1609,11 +1603,11 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     }
     if (count) {
       CustomData_copy_data(&mesh.edata, &result->edata, source_index, dest_index, count);
-      MEdge *edge = &dst_edges[dest_index];
+      int2 *edge = &dst_edges[dest_index];
       dest_index += count;
       for (; count--; edge++) {
-        edge->v1 = vert_final_map[edge->v1];
-        edge->v2 = vert_final_map[edge->v2];
+        (*edge)[0] = vert_final_map[(*edge)[0]];
+        (*edge)[1] = vert_final_map[(*edge)[1]];
       }
     }
     if (i == totedge) {
@@ -1629,9 +1623,9 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
                       &weld_mesh.edge_groups_buffer[wegrp_offs],
                       wegrp_len,
                       dest_index);
-      MEdge *edge = &dst_edges[dest_index];
-      edge->v1 = vert_final_map[wegrp_verts[0]];
-      edge->v2 = vert_final_map[wegrp_verts[1]];
+      int2 &edge = dst_edges[dest_index];
+      edge[0] = vert_final_map[wegrp_verts[0]];
+      edge[1] = vert_final_map[wegrp_verts[1]];
 
       edge_final_map[i] = dest_index;
       dest_index++;
@@ -1764,7 +1758,7 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
                                                        const bool only_loose_edges)
 {
   const Span<float3> positions = mesh.vert_positions();
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
 
   int vert_kill_len = 0;
 
@@ -1793,8 +1787,8 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
   }
 
   for (const int i : edges.index_range()) {
-    int v1 = edges[i].v1;
-    int v2 = edges[i].v2;
+    int v1 = edges[i][0];
+    int v2 = edges[i][1];
 
     if (loose_edges && !loose_edges->is_loose_bits[i]) {
       continue;

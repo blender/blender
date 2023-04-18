@@ -21,7 +21,7 @@
 
 #include "object_intern.h"
 
-#include "MOD_gpencil_lineart.h"
+#include "MOD_gpencil_legacy_lineart.h"
 
 /* ************************** registration **********************************/
 

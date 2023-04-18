@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: 2012-10-31 17:00-0800\n"
 "Last-Translator: Amin Babaeipanah <translate@leomoon.com>\n"
 "Language-Team: LeoMoon Studios <blender@leomoon.com>\n"
@@ -426,10 +426,6 @@ msgstr "ﺪﯾﺩ ﻥﺍﺪﯿﻣ ﺖﯿﻌﺿﻭ"
 
 msgid "Weight"
 msgstr "ﻥﺯﻭ"
-
-
-msgid "Grease Pencil"
-msgstr "ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
 
 
 msgid "Particles"
@@ -1484,6 +1480,10 @@ msgid "Size"
 msgstr "ﻩﺯﺍﺪﻧﺍ"
 
 
+msgid "Grease Pencil"
+msgstr "ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
+
+
 msgid "Save"
 msgstr "ﻩﺮﯿﺧﺫ"
 
@@ -2418,10 +2418,6 @@ msgstr "ﯽﺷ ﺕﺎﻋﻼ﻿ﻃﺍ"
 
 msgid "Add Shader"
 msgstr "ﻥﺯ ﻪﯾﺎﺳ ﻥﺩﻭﺰﻓﺍ"
-
-
-msgid "Bright Contrast"
-msgstr "ﻦﺷﻭﺭ ﺖﺳﺍﺮﺘﻨﮐ"
 
 
 msgid "Reflection"
@@ -3733,10 +3729,6 @@ msgid "Transform:"
 msgstr "ﻞﯾﺪﺒﺗ:"
 
 
-msgid "Old"
-msgstr "ﯽﻤﯾﺪﻗ"
-
-
 msgid "Date"
 msgstr "ﺦﯾﺭﺎﺗ"
 
@@ -4194,6 +4186,10 @@ msgstr "ﺖﮐﺮﺣ"
 
 msgid "On"
 msgstr "ﻦﺷﻭﺭ"
+
+
+msgid "Old"
+msgstr "ﯽﻤﯾﺪﻗ"
 
 
 msgid "Blender File View"

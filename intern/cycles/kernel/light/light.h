@@ -108,6 +108,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
                                       const int bounce,
                                       const uint32_t path_flag,
                                       const int emitter_index,
+                                      const int object_id,
                                       const float pdf_selection,
                                       ccl_private LightSample *ls)
 {
@@ -117,8 +118,9 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
   if (kernel_data.integrator.use_light_tree) {
     ccl_global const KernelLightTreeEmitter *kemitter = &kernel_data_fetch(light_tree_emitters,
                                                                            emitter_index);
-    prim = kemitter->prim_id;
-    mesh_light = kemitter->mesh_light;
+    prim = kemitter->light.id;
+    mesh_light.shader_flag = kemitter->mesh_light.shader_flag;
+    mesh_light.object_id = object_id;
   }
   else
 #endif

@@ -132,7 +132,7 @@ static void transform_volume(GeoNodeExecParams &params,
     VolumeGrid *volume_grid = BKE_volume_grid_get_for_write(&volume, i);
     float4x4 grid_matrix;
     BKE_volume_grid_transform_matrix(volume_grid, grid_matrix.ptr());
-    grid_matrix *= transform;
+    grid_matrix = transform * grid_matrix;
     const float determinant = math::determinant(grid_matrix);
     if (!BKE_volume_grid_determinant_valid(determinant)) {
       found_too_small_scale = true;

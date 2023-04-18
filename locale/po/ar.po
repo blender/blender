@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -1077,10 +1077,6 @@ msgstr "blend. ﻒﻠﻣ ﻰﻟﺇ ﺭﺎﺴﻤﻟﺍ"
 
 msgid "Vector Fonts"
 msgstr "ﻪﺠﺘﻤﻟﺍ ﻁﻮﻄﺨﻟﺍ"
-
-
-msgid "Grease Pencil"
-msgstr "ﺕﺎﻈﺣﻼ﻿ﻣ ﻢﻠﻗ"
 
 
 msgid "Images"
@@ -7451,6 +7447,10 @@ msgstr "ﻱﺩﻮﻤﻋ ﻞﻜﻟﺍ"
 
 msgid "Fonts"
 msgstr "ﻁﻮﻄﺨﻟﺍ"
+
+
+msgid "Grease Pencil"
+msgstr "ﺕﺎﻈﺣﻼ﻿ﻣ ﻢﻠﻗ"
 
 
 msgid "Freestyle Linestyles"
@@ -14169,10 +14169,6 @@ msgid "Text file is in memory, without a corresponding file on disk"
 msgstr "ﺹﺮﻘﻟﺍ ﻰﻠﻋ ﻖﻠﻌﺘﻣ ﻒﻠﻣ ﻥﻭﺪﺑ ,ﺓﺮﻛﺍﺬﻟﺍ ﻲﻓ ﺩﻮﺟﻮﻣ ﻲﺼﻨﻟﺍ ﻒﻠﻤﻟﺍ"
 
 
-msgid "Modified"
-msgstr "ﻝﺪّﻌﻣ"
-
-
 msgid "Text file on disk is different than the one in memory"
 msgstr "ﺓﺮﻛﺍﺬﻟﺍ ﻲﻓ ﺩﻮﺟﻮﻤﻟﺍ ﻦﻋ ﻒﻠﺘﺨﻣ ﺹﺮﻘﻟﺍ ﻰﻠﻋ ﻲﺼﻨﻟﺍ ﻒﻠﻤﻟﺍ"
 
@@ -19915,10 +19911,6 @@ msgid "Y position of the middle of the box"
 msgstr "ﻕﻭﺪﻨﺼﻟﺍ ﻒﺼﺘﻨﻤﻟ Y ﻊﻗﻮﻣ"
 
 
-msgid "Bright/Contrast"
-msgstr "ﻉﻮﻄﺴﻟﺍ/ﻦﻳﺎﺒﺘﻟﺍ"
-
-
 msgid "Channel Key"
 msgstr "ﺓﺎﻨﻘﻟﺍ ﺡﺎﺘﻔﻣ"
 
@@ -20423,10 +20415,6 @@ msgid "Hue Correct"
 msgstr "ﻥﻮّﻠﺘﻟﺍ ﺢﻴﺤﺼﺗ"
 
 
-msgid "Hue Saturation Value"
-msgstr "ﺰﻴﻛﺮﺘﻟﺍ/ﺯﺎﻴﺤﻧﻻ﻿ﺍ"
-
-
 msgid "ID Mask"
 msgstr "ﻉﺎﻨﻘﻟﺍ ﻑﺮّﻌﻣ"
 
@@ -20868,10 +20856,6 @@ msgid "Background"
 msgstr "ﺔﻴﻔﻠﺧ"
 
 
-msgid "Bright Contrast"
-msgstr "ﻉﻮﻄﺴﻟﺍ ﻦﻳﺎﺒﺗ"
-
-
 msgid "Anisotropic BSDF"
 msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
 
@@ -21214,14 +21198,6 @@ msgstr "ﻢﻤﻘﻟﺍ ﻡﺪﺨﺘﺳﺇ"
 
 msgid "UV coordinates to be used for mapping"
 msgstr "ءﺎﺴﻛﻺ﻿ﻟ ﺔﻣﺪﺨﺘﺴﻤﻟﺍ UV ﺕﺎﻴﺛﺍﺪﺣﺇ"
-
-
-msgid "Modulo"
-msgstr "ﺓﺪﺣﻭ"
-
-
-msgid "Wrap"
-msgstr "ﻒﻠﻟﺍ"
 
 
 msgid "Z Axis"
@@ -22405,10 +22381,6 @@ msgstr "ﻞﻤﻌﻟﺍ ﻰﻨﺤﻨﻤﻟ ﺪﻴﻗ"
 msgctxt "Operator"
 msgid "Copy Tracks"
 msgstr "ﺕﺍﺭﺎﺴﻤﻟﺍ ﺦﺴﻧﺍ"
-
-
-msgid "Copy selected tracks to clipboard"
-msgstr "ﺓﺮﻛﺍﺬﻠﻟ ﺓﺭﺎﺘﺨﻤﻟﺍ ﺕﺍﺭﺎﺴﻤﻟﺍ ﺦﺴﻧﺍ"
 
 
 msgctxt "Operator"
@@ -24624,10 +24596,6 @@ msgid "Add Vertex"
 msgstr "ﺔﻄﻘﻧ ﻒﺿﺍ"
 
 
-msgid "Copy selected splines to clipboard"
-msgstr "ﺓﺮﻛﺍﺬﻠﻟ ﺓﺭﺎﺘﺨﻤﻟﺍ ﺕﺎﻴﻨﺤﻨﻤﻟﺍ ﺦﺴﻧﺍ"
-
-
 msgid "Toggle cyclic for selected splines"
 msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﺕﺎﻴﻨﺤﻨﻤﻠﻟ ﻞﺻﺍﻮﺘﻟﺍ ﺐﻠﻗﺍ"
 
@@ -24713,10 +24681,6 @@ msgstr "ﻉﺎﻨﻘﻟﺍ ﻞﺻﺍ ﺭﺮﺣ"
 
 msgid "Set the mask's parenting"
 msgstr "ﻉﺎﻨﻘﻟﺍ ﻞﺻﺍ ﻊﺿ"
-
-
-msgid "Paste splines from clipboard"
-msgstr "ﺓﺮﻛﺍﺬﻟﺍ ﻦﻣ ﺕﺎﻴﻨﺤﻨﻤﻟﺍ ﻖﺼﻟﺍ"
 
 
 msgctxt "Operator"
@@ -25967,10 +25931,6 @@ msgstr "ﺔﻴﻔﻠﺨﻟﺍ ﺓﺭﻮﺼﻟﺍ ﻢﻴﺠﺤﺗ"
 
 msgid "Zoom in/out the background image"
 msgstr "ﺮﻐﺻﻻ﻿/ﺮﺒﻛﻻ﻿ ﺔﻴﻔﻠﺨﻟﺍ ﺓﺭﻮﺼﻟﺍ ﻢﺠّﺣ"
-
-
-msgid "Copies selected nodes to the clipboard"
-msgstr "ﺓﺮﻛﺍﺬﻠﻟ ﺓﺭﺎﺘﺨﻤﻟﺍ ﺪﻘﻌﻟﺍ ﺦﺴﻧﺍ"
 
 
 msgctxt "Operator"
@@ -29293,6 +29253,10 @@ msgid "All UVs"
 msgstr "UV's ـﻟﺍ ﻞﻛ"
 
 
+msgid "Modified"
+msgstr "ﻝﺪّﻌﻣ"
+
+
 msgid "Exports UVs from the modified mesh"
 msgstr "ﻝﺪّﻌﻤﻟﺍ ﻢﺴﺠﻤﻟﺍ ﻦﻣ UV's ـﻟﺍ ﺭﺪّﺼﻳ"
 
@@ -29789,6 +29753,10 @@ msgstr "ﻕﺎﻴﺴﻟﺍ ﺩﺍﺪﻋ ﺓﺭﻭﺩ"
 
 msgid "Toggle a context value"
 msgstr "ﻕﺎﻴﺴﻟﺍ ﺔﻤﻴﻗ ﺐﻠﻗﺍ"
+
+
+msgid "Wrap"
+msgstr "ﻒﻠﻟﺍ"
 
 
 msgctxt "Operator"
@@ -30433,10 +30401,6 @@ msgid "Tracking Settings"
 msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ ﺕﺍﺩﺍﺪﻋﺇ"
 
 
-msgid "Lens"
-msgstr "ﺔﺳﺪﻋ"
-
-
 msgid "Predefined tracking settings"
 msgstr "ﺔﻘﺣﻼ﻿ﻤﻠﻟ ﺎﻘﺒﺴﻣ ﺔﻓﺮّﻌﻣ ﺕﺍﺩﺍﺪﻋﺇ"
 
@@ -30746,11 +30710,6 @@ msgstr "ﺓﺮﺋﺍﺩ ﻒﺿﺍ"
 msgctxt "Operator"
 msgid "Thickness"
 msgstr "ﺔﻛﺎﻤﺴﻟﺍ"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "ﺡﺯﺃ"
 
 
 msgid "Pose Options"
@@ -34897,6 +34856,10 @@ msgid "3D View near clipping distance (perspective view only)"
 msgstr "ﻲﺛﻼ﻿ﺜﻟﺍ ﺮﻈﻨﻤﻟ ﺓﺪﻴﻌﺒﻟﺍ ﺺﻘﻟﺍ ﺔﻓﺎﺴﻣ"
 
 
+msgid "Lens"
+msgstr "ﺔﺳﺪﻋ"
+
+
 msgid "3D View center is locked to this bone's position"
 msgstr "ﺔﻤﻈﻌﻟﺍ ﻩﺬﻫ ﻊﻗﻮﻤﻟ ﻞﻔﻘﻣ ﻲﺛﻼ﻿ﺜﻟﺍ ﺮﻈﻨﻤﻟﺍ ﺰﻛﺮﻣ"
 
@@ -37143,10 +37106,6 @@ msgid "Invert"
 msgstr "ﺲﻜﻋﺇ"
 
 
-msgid "Old"
-msgstr "ﻢﻳﺪﻗ"
-
-
 msgid "Date"
 msgstr "ﺦﻳﺭﺎﺗ"
 
@@ -37535,6 +37494,11 @@ msgstr "ﺪﻣُ"
 
 
 msgctxt "Operator"
+msgid "Slide"
+msgstr "ﺡﺯﺃ"
+
+
+msgctxt "Operator"
 msgid "Cleanup"
 msgstr "ﻒﻈّﻧ"
 
@@ -37914,16 +37878,16 @@ msgid "One Object Per Line"
 msgstr "ﺮﻄﺴﻟﺎﺑ ﺪﺣﺍﻭ ﻦﺋﺎﻛ"
 
 
-msgid "File: %s"
-msgstr "‬%s‪ :ﻒﻠﻣ"
-
-
 msgid "Text: External"
 msgstr "ﻲﺟﺭﺎﺧ :ﺺﻧ"
 
 
 msgid "Text: Internal"
 msgstr "ﻲﻠﺧﺍﺩ :ﺺﻧ"
+
+
+msgid "File: %s"
+msgstr "‬%s‪ :ﻒﻠﻣ"
 
 
 msgctxt "Operator"
@@ -38930,10 +38894,6 @@ msgstr "ﺭﺎﻃﻻ﻿ﺍ ﻊﺿ"
 
 msgid "No pose to copy"
 msgstr "ﺦﺴﻨﻠﻟ ﺺﺋﺎﺼﺨﻟﺍ"
-
-
-msgid "Copy buffer is empty"
-msgstr "ﻦﺋﺎﻜﻟﺍ ﺍﺬﻫ ﻦﻣ ﺦﺴﻧﺍ"
 
 
 msgid "Too few selections to merge"
@@ -40542,6 +40502,10 @@ msgid "Val"
 msgstr "ﺔﻤﻴﻘﻟﺍ"
 
 
+msgid "Old"
+msgstr "ﻢﻳﺪﻗ"
+
+
 msgid "Edge Crease"
 msgstr "ﺔﻓﺎﺤﻟﺍ ﺪﻌّﺠﺗ"
 
@@ -40779,11 +40743,6 @@ msgstr "ﺕﺎﻴﻨﺤﻨﻤﻟﺍ"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "ﻥﻮّﻠﺘﻟﺍ ﺢﻴﺤﺼﺗ"
-
-
-msgctxt "Sequence"
-msgid "Bright/Contrast"
-msgstr "ﻉﻮﻄﺴﻟﺍ/ﻦﻳﺎﺒﺘﻟﺍ"
 
 
 msgid "Strips must be the same length"

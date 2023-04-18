@@ -1347,11 +1347,10 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
         if (state != GHOST_kWindowStateMinimized) {
           /*
            * Ghost sometimes send size or move events when the window hasn't changed.
-           * One case of this is using compiz on linux. To alleviate the problem
-           * we ignore all such event here.
+           * One case of this is using COMPIZ on Linux.
+           * To alleviate the problem we ignore all such event here.
            *
-           * It might be good to eventually do that at Ghost level, but that is for
-           * another time.
+           * It might be good to eventually do that at GHOST level, but that is for another time.
            */
           if (wm_window_update_size_position(win)) {
             const bScreen *screen = WM_window_get_active_screen(win);
@@ -1850,6 +1849,12 @@ eWM_CapabilitiesFlag WM_capabilities_flag(void)
   if (ghost_flag & GHOST_kCapabilityPrimaryClipboard) {
     flag |= WM_CAPABILITY_PRIMARY_CLIPBOARD;
   }
+  if (ghost_flag & GHOST_kCapabilityGPUReadFrontBuffer) {
+    flag |= WM_CAPABILITY_GPU_FRONT_BUFFER_READ;
+  }
+  if (ghost_flag & GHOST_kCapabilityClipboardImages) {
+    flag |= WM_CAPABILITY_CLIPBOARD_IMAGES;
+  }
 
   return flag;
 }
@@ -2216,72 +2221,6 @@ wmWindow *WM_window_find_by_area(wmWindowManager *wm, const struct ScrArea *area
     }
   }
   return NULL;
-}
-
-void WM_window_pixel_sample_read(const wmWindowManager *wm,
-                                 const wmWindow *win,
-                                 const int pos[2],
-                                 float r_col[3])
-{
-  bool setup_context = wm->windrawable != win;
-
-  if (setup_context) {
-    GHOST_ActivateWindowDrawingContext(win->ghostwin);
-    GPU_context_active_set(win->gpuctx);
-  }
-
-  GPU_frontbuffer_read_pixels(pos[0], pos[1], 1, 1, 3, GPU_DATA_FLOAT, r_col);
-
-  if (setup_context) {
-    if (wm->windrawable) {
-      GHOST_ActivateWindowDrawingContext(wm->windrawable->ghostwin);
-      GPU_context_active_set(wm->windrawable->gpuctx);
-    }
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Window Screen Shot Utility
- *
- * Include here since it can involve low level buffer switching.
- *
- * \{ */
-
-uint *WM_window_pixels_read(wmWindowManager *wm, wmWindow *win, int r_size[2])
-{
-  /* WARNING: Reading from the front-buffer immediately after drawing may fail,
-   * for a slower but more reliable version of this function #WM_window_pixels_read_offscreen
-   * should be preferred. See it's comments for details on why it's needed, see also #98462. */
-  bool setup_context = wm->windrawable != win;
-
-  if (setup_context) {
-    GHOST_ActivateWindowDrawingContext(win->ghostwin);
-    GPU_context_active_set(win->gpuctx);
-  }
-
-  r_size[0] = WM_window_pixels_x(win);
-  r_size[1] = WM_window_pixels_y(win);
-  const uint rect_len = r_size[0] * r_size[1];
-  uint *rect = MEM_mallocN(sizeof(*rect) * rect_len, __func__);
-
-  GPU_frontbuffer_read_pixels(0, 0, r_size[0], r_size[1], 4, GPU_DATA_UBYTE, rect);
-
-  if (setup_context) {
-    if (wm->windrawable) {
-      GHOST_ActivateWindowDrawingContext(wm->windrawable->ghostwin);
-      GPU_context_active_set(wm->windrawable->gpuctx);
-    }
-  }
-
-  /* Clear alpha, it is not set to a meaningful value in OpenGL. */
-  uchar *cp = (uchar *)rect;
-  uint i;
-  for (i = 0, cp += 3; i < rect_len; i++, cp += 4) {
-    *cp = 0xff;
-  }
-  return (uint *)rect;
 }
 
 /** \} */

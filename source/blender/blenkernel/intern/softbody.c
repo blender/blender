@@ -2661,7 +2661,7 @@ static void mesh_to_softbody(Object *ob)
 {
   SoftBody *sb;
   Mesh *me = ob->data;
-  const MEdge *edge = BKE_mesh_edges(me);
+  const vec2i *edge = CustomData_get_layer_named(&me->edata, CD_PROP_INT32_2D, ".edge_verts");
   BodyPoint *bp;
   BodySpring *bs;
   int a, totedge;
@@ -2719,8 +2719,8 @@ static void mesh_to_softbody(Object *ob)
     if (edge) {
       bs = sb->bspring;
       for (a = me->totedge; a > 0; a--, edge++, bs++) {
-        bs->v1 = edge->v1;
-        bs->v2 = edge->v2;
+        bs->v1 = edge->x;
+        bs->v2 = edge->y;
         bs->springtype = SB_EDGE;
       }
 

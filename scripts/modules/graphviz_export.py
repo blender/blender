@@ -91,7 +91,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
             parent_name = parent.name
             connected = bone.use_connect
         elif FAKE_PARENT:
-            parent_name = 'Object::%s' % obj.name
+            parent_name = "Object::%s" % obj.name
             connected = False
         else:
             continue

@@ -484,8 +484,7 @@ void GPU_framebuffer_read_color(GPUFrameBuffer *gpu_fb,
   unwrap(gpu_fb)->read(GPU_COLOR_BIT, format, rect, channels, slot, data);
 }
 
-/* TODO(fclem): rename to read_color. */
-void GPU_frontbuffer_read_pixels(
+void GPU_frontbuffer_read_color(
     int x, int y, int w, int h, int channels, eGPUDataFormat format, void *data)
 {
   int rect[4] = {x, y, w, h};
@@ -652,8 +651,12 @@ static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
   return gpu_offscreen_fb_get(ofs);
 }
 
-GPUOffScreen *GPU_offscreen_create(
-    int width, int height, bool depth, eGPUTextureFormat format, char err_out[256])
+GPUOffScreen *GPU_offscreen_create(int width,
+                                   int height,
+                                   bool depth,
+                                   eGPUTextureFormat format,
+                                   eGPUTextureUsage usage,
+                                   char err_out[256])
 {
   GPUOffScreen *ofs = MEM_cnew<GPUOffScreen>(__func__);
 
@@ -662,7 +665,9 @@ GPUOffScreen *GPU_offscreen_create(
   height = max_ii(1, height);
   width = max_ii(1, width);
 
-  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+  /* Always add GPU_TEXTURE_USAGE_ATTACHMENT for convenience. */
+  usage |= GPU_TEXTURE_USAGE_ATTACHMENT;
+
   ofs->color = GPU_texture_create_2d("ofs_color", width, height, 1, format, usage, nullptr);
 
   if (depth) {
@@ -741,15 +746,26 @@ void GPU_offscreen_draw_to_screen(GPUOffScreen *ofs, int x, int y)
   ofs_fb->blit_to(GPU_COLOR_BIT, 0, ctx->active_fb, 0, x, y);
 }
 
-void GPU_offscreen_read_pixels(GPUOffScreen *ofs, eGPUDataFormat format, void *pixels)
+void GPU_offscreen_read_color_region(
+    GPUOffScreen *ofs, eGPUDataFormat format, int x, int y, int w, int h, void *r_data)
+{
+  BLI_assert(ELEM(format, GPU_DATA_UBYTE, GPU_DATA_FLOAT));
+  BLI_assert(x >= 0 && y >= 0 && w > 0 && h > 0);
+  BLI_assert(x + w <= GPU_texture_width(ofs->color));
+  BLI_assert(y + h <= GPU_texture_height(ofs->color));
+
+  GPUFrameBuffer *ofs_fb = gpu_offscreen_fb_get(ofs);
+  GPU_framebuffer_read_color(ofs_fb, x, y, w, h, 4, 0, format, r_data);
+}
+
+void GPU_offscreen_read_color(GPUOffScreen *ofs, eGPUDataFormat format, void *r_data)
 {
   BLI_assert(ELEM(format, GPU_DATA_UBYTE, GPU_DATA_FLOAT));
 
   const int w = GPU_texture_width(ofs->color);
   const int h = GPU_texture_height(ofs->color);
 
-  GPUFrameBuffer *ofs_fb = gpu_offscreen_fb_get(ofs);
-  GPU_framebuffer_read_color(ofs_fb, 0, 0, w, h, 4, 0, format, pixels);
+  GPU_offscreen_read_color_region(ofs, format, 0, 0, w, h, r_data);
 }
 
 int GPU_offscreen_width(const GPUOffScreen *ofs)

@@ -696,7 +696,8 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
 
   /* An ID user is 'valid' (i.e. may affect the 'used'/'not used' status of the ID it uses) if it
    * does not match `ignored_usages`, and does match `required_usages`. */
-  const int ignored_usages = (IDWALK_CB_LOOPBACK | IDWALK_CB_EMBEDDED);
+  const int ignored_usages = (IDWALK_CB_LOOPBACK | IDWALK_CB_EMBEDDED |
+                              IDWALK_CB_EMBEDDED_NOT_OWNING);
   const int required_usages = (IDWALK_CB_USER | IDWALK_CB_USER_ONE);
 
   /* This ID may be tagged as unused if none of its users are 'valid', as defined above.

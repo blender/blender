@@ -69,7 +69,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   GHash *edgeHash2 = BLI_ghash_int_new("build ed apply gh");
 
   const int vert_src_num = mesh->totvert;
-  const blender::Span<MEdge> edges_src = mesh->edges();
+  const blender::Span<blender::int2> edges_src = mesh->edges();
   const blender::OffsetIndices polys_src = mesh->polys();
   const blender::Span<int> corner_verts_src = mesh->corner_verts();
   const blender::Span<int> corner_edges_src = mesh->corner_edges();
@@ -125,10 +125,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     hash_num = 0;
     hash_num_alt = 0;
     for (i = 0; i < edges_src.size(); i++, hash_num_alt++) {
-      const MEdge *edge = edges_src.data() + i;
+      const blender::int2 &edge = edges_src[i];
 
-      if (BLI_ghash_haskey(vertHash, POINTER_FROM_INT(edge->v1)) &&
-          BLI_ghash_haskey(vertHash, POINTER_FROM_INT(edge->v2))) {
+      if (BLI_ghash_haskey(vertHash, POINTER_FROM_INT(edge[0])) &&
+          BLI_ghash_haskey(vertHash, POINTER_FROM_INT(edge[1]))) {
         BLI_ghash_insert(edgeHash, (void *)hash_num, (void *)hash_num_alt);
         BLI_ghash_insert(edgeHash2, (void *)hash_num_alt, (void *)hash_num);
         hash_num++;
@@ -137,7 +137,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     BLI_assert(hash_num == BLI_ghash_len(edgeHash));
   }
   else if (edges_dst_num) {
-    const MEdge *edge;
     uintptr_t hash_num;
 
     if (bmd->flag & MOD_BUILD_FLAG_RANDOMIZE) {
@@ -147,18 +146,18 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* get the set of all vert indices that will be in the final mesh,
      * mapped to the new indices
      */
-    const MEdge *edges = edges_src.data();
+    const blender::int2 *edges = edges_src.data();
     hash_num = 0;
     BLI_assert(hash_num == BLI_ghash_len(vertHash));
     for (i = 0; i < edges_dst_num; i++) {
       void **val_p;
-      edge = edges + edgeMap[i];
+      const blender::int2 &edge = edges[edgeMap[i]];
 
-      if (!BLI_ghash_ensure_p(vertHash, POINTER_FROM_INT(edge->v1), &val_p)) {
+      if (!BLI_ghash_ensure_p(vertHash, POINTER_FROM_INT(edge[0]), &val_p)) {
         *val_p = (void *)hash_num;
         hash_num++;
       }
-      if (!BLI_ghash_ensure_p(vertHash, POINTER_FROM_INT(edge->v2), &val_p)) {
+      if (!BLI_ghash_ensure_p(vertHash, POINTER_FROM_INT(edge[1]), &val_p)) {
         *val_p = (void *)hash_num;
         hash_num++;
       }
@@ -191,7 +190,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* now we know the number of verts, edges and faces, we can create the mesh. */
   result = BKE_mesh_new_nomain_from_template(
       mesh, BLI_ghash_len(vertHash), BLI_ghash_len(edgeHash), loops_dst_num, faces_dst_num);
-  blender::MutableSpan<MEdge> result_edges = result->edges_for_write();
+  blender::MutableSpan<blender::int2> result_edges = result->edges_for_write();
   blender::MutableSpan<int> result_poly_offsets = result->poly_offsets_for_write();
   blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
@@ -205,15 +204,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* copy the edges across, remapping indices */
   for (i = 0; i < BLI_ghash_len(edgeHash); i++) {
-    MEdge source;
-    MEdge *dest;
+    blender::int2 source;
+    blender::int2 *dest;
     int oldIndex = POINTER_AS_INT(BLI_ghash_lookup(edgeHash, POINTER_FROM_INT(i)));
 
     source = edges_src[oldIndex];
     dest = &result_edges[i];
 
-    source.v1 = POINTER_AS_INT(BLI_ghash_lookup(vertHash, POINTER_FROM_INT(source.v1)));
-    source.v2 = POINTER_AS_INT(BLI_ghash_lookup(vertHash, POINTER_FROM_INT(source.v2)));
+    source[0] = POINTER_AS_INT(BLI_ghash_lookup(vertHash, POINTER_FROM_INT(source[0])));
+    source[1] = POINTER_AS_INT(BLI_ghash_lookup(vertHash, POINTER_FROM_INT(source[1])));
 
     CustomData_copy_data(&mesh->edata, &result->edata, oldIndex, i, 1);
     *dest = source;

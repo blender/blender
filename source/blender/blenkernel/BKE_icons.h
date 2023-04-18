@@ -33,7 +33,7 @@ enum {
   ICON_DATA_PREVIEW,
   /** 2D triangles: obj is #Icon_Geom */
   ICON_DATA_GEOM,
-  /** Studiolight */
+  /** Studio-light. */
   ICON_DATA_STUDIOLIGHT,
   /** GPencil Layer color preview (annotations): obj is #bGPDlayer */
   ICON_DATA_GPLAYER,

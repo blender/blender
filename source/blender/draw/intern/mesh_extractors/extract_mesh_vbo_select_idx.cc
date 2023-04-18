@@ -139,7 +139,7 @@ static void extract_vert_idx_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edge_idx_iter_loose_edge_mesh(const MeshRenderData *mr,
-                                                  const MEdge * /*edge*/,
+                                                  const int2 /*edge*/,
                                                   const int ledge_index,
                                                   void *data)
 {
@@ -150,12 +150,12 @@ static void extract_edge_idx_iter_loose_edge_mesh(const MeshRenderData *mr,
 }
 
 static void extract_vert_idx_iter_loose_edge_mesh(const MeshRenderData *mr,
-                                                  const MEdge *edge,
+                                                  const int2 edge,
                                                   const int ledge_index,
                                                   void *data)
 {
-  int v1_orig = (mr->v_origindex) ? mr->v_origindex[edge->v1] : edge->v1;
-  int v2_orig = (mr->v_origindex) ? mr->v_origindex[edge->v2] : edge->v2;
+  int v1_orig = (mr->v_origindex) ? mr->v_origindex[edge[0]] : edge[0];
+  int v2_orig = (mr->v_origindex) ? mr->v_origindex[edge[1]] : edge[1];
   (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = v1_orig;
   (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = v2_orig;
 }

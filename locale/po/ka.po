@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Tamar Mebonia <tammebonia@gmail.com>, 2023\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1931,14 +1931,6 @@ msgstr "ვექტორული შრიფტები"
 
 msgid "Vector font data-blocks"
 msgstr "ვექტორული შრიფტების მონაცემთა ბლოკები"
-
-
-msgid "Grease Pencil"
-msgstr "ცვილის ფანქარი"
-
-
-msgid "Grease Pencil data-blocks"
-msgstr "ცვილის ფანქრის მონაცემთა ბლოკები"
 
 
 msgid "Hair Curves"
@@ -12398,6 +12390,10 @@ msgid "Show Font data-blocks"
 msgstr "აჩვენე შრიფტის მონაცემთა ბლოკები"
 
 
+msgid "Grease Pencil"
+msgstr "ცვილის ფანქარი"
+
+
 msgid "Show Grease pencil data-blocks"
 msgstr "აჩვენე ცვილის ფანქრის მონაცემთა ბლოკები"
 
@@ -19480,44 +19476,44 @@ msgid "Curves Sculpt Tool"
 msgstr "წირების ძერწვის ხელსაწყო"
 
 
-msgid "Comb Curves"
-msgstr "წირების დავარცხნა"
-
-
-msgid "Delete Curves"
-msgstr "წირების წაშლა"
-
-
-msgid "Curves Snake Hook"
-msgstr "წირების გველსაჭერი"
+msgid "Paint Selection"
+msgstr "ხატვა მონიშნულზე"
 
 
 msgid "Add Curves"
 msgstr "წირების დამატება"
 
 
+msgid "Delete Curves"
+msgstr "წირების წაშლა"
+
+
+msgid "Density Curves"
+msgstr "წირების სიმკვრივე"
+
+
+msgid "Comb Curves"
+msgstr "წირების დავარცხნა"
+
+
+msgid "Curves Snake Hook"
+msgstr "წირების გველსაჭერი"
+
+
 msgid "Grow / Shrink Curves"
 msgstr "წირების ზრდა / შეკუმშვა"
-
-
-msgid "Paint Selection"
-msgstr "ხატვა მონიშნულზე"
 
 
 msgid "Pinch Curves"
 msgstr "წირების მოჩქმეტა"
 
 
-msgid "Smooth Curves"
-msgstr "წირების დაგლუვება"
-
-
 msgid "Puff Curves"
 msgstr "წირების აფუება"
 
 
-msgid "Density Curves"
-msgstr "წირების სიმკვრივე"
+msgid "Smooth Curves"
+msgstr "წირების დაგლუვება"
 
 
 msgid "Slide Curves"
@@ -19658,10 +19654,6 @@ msgstr "აბრუნე წერტილები ფუნჯის შუ
 
 msgid "Pull points towards the midpoint of the brush"
 msgstr "მოქაჩე წერტილები ფუნჯის შუაგულისკენ"
-
-
-msgid "Paste copies of the strokes stored on the clipboard"
-msgstr "გაცვლის ბუფერში შენახული მონასმების ასლების ჩასმა"
 
 
 msgid "Gpencil Settings"
@@ -27707,10 +27699,6 @@ msgid "Memory"
 msgstr "მეხსიერება"
 
 
-msgid "Modified"
-msgstr "მოდიფიცირებული"
-
-
 msgid "Selection End Character"
 msgstr "მონიშნვის დამასრულებელი სიმბოლო"
 
@@ -32644,10 +32632,6 @@ msgstr "ჩრდილი"
 
 msgid "Hue Correct"
 msgstr "ელფერის შესწორება"
-
-
-msgid "Hue Saturation Value"
-msgstr "ელფერი სიხასხასე მნიშვნელობა"
 
 
 msgid "Keying"
@@ -38475,6 +38459,10 @@ msgid "Cylinder Projection"
 msgstr "ცილინდრული პროექცია"
 
 
+msgid "Modified"
+msgstr "მოდიფიცირებული"
+
+
 msgctxt "Operator"
 msgid "Follow Active Quads"
 msgstr "მიჰყევი აქტიურ ოთხკუთხედებს"
@@ -38551,10 +38539,6 @@ msgstr "დააყენე ხედის ჩამოჭრის მონ
 msgctxt "Operator"
 msgid "Copy Objects"
 msgstr "დააკოპირე ობიექტები"
-
-
-msgid "Selected objects are copied to the clipboard"
-msgstr "არჩეული ობიექტები დაკოპირებულია გაცვლის ბუფერში"
 
 
 msgctxt "Operator"
@@ -38731,10 +38715,6 @@ msgstr "ობიექტის რეჟიმის მენიუ"
 msgctxt "Operator"
 msgid "Paste Objects"
 msgstr "ობიექტების ჩასმა"
-
-
-msgid "Objects from the clipboard are pasted"
-msgstr "ჩაისმება ობიექტები გაცვლის ბუფერიდან"
 
 
 msgctxt "Operator"
@@ -39870,10 +39850,6 @@ msgstr "2გ კურსორი"
 
 msgid "Mask Tools"
 msgstr "შემნიღბავი ხელსაწყოები"
-
-
-msgid "Lens"
-msgstr "ლინზა"
 
 
 msgid "Caustics"
@@ -42101,6 +42077,10 @@ msgid "3D View near clipping distance (perspective view only)"
 msgstr "3გ ხედის ჩამოჭრის ახლო მანძილი (მხოლოდ პერსპექტივულ ხედში)"
 
 
+msgid "Lens"
+msgstr "ლინზა"
+
+
 msgid "Viewport lens angle"
 msgstr "სარკმლის ლინზის კუთხე"
 
@@ -43774,6 +43754,10 @@ msgid "Poly"
 msgstr "პოლი"
 
 
+msgid "Display Cursor"
+msgstr "აჩვენე კურსორი"
+
+
 msgctxt "Operator"
 msgid "Selection to Cursor"
 msgstr "მონიშნული კურსორს"
@@ -43801,10 +43785,6 @@ msgstr "მსაზღვრელი მონასმები ყველ�
 
 msgid "Data Source:"
 msgstr "მონაცემთა წყარო:"
-
-
-msgid "Display Cursor"
-msgstr "აჩვენე კურსორი"
 
 
 msgid "Show Fill Color While Drawing"
@@ -43899,10 +43879,6 @@ msgstr "ჩაკეტე გამოუყენებელი"
 msgctxt "Operator"
 msgid "Merge Similar"
 msgstr "გააერთიანე მსგავსი"
-
-
-msgid "Old"
-msgstr "ძველი"
 
 
 msgid "Date"
@@ -45091,16 +45067,6 @@ msgstr "მსგავსი"
 msgctxt "Operator"
 msgid "Levels"
 msgstr "დონეები"
-
-
-msgctxt "Operator"
-msgid "Hue Saturation Value"
-msgstr "ელფერი სიხასხასე მნიშვნელობა"
-
-
-msgctxt "Operator"
-msgid "Bright/Contrast"
-msgstr "სიკაშკაშე/კონტრასტი"
 
 
 msgctxt "Operator"
@@ -46751,6 +46717,10 @@ msgid "Video_Editing"
 msgstr "ვიდეოს რედაქტირება"
 
 
+msgid "Untitled"
+msgstr "უსათაურო"
+
+
 msgid "Baking light cache"
 msgstr "სინათლის კეში ცხვება"
 
@@ -47494,10 +47464,6 @@ msgid "screen"
 msgstr "ეკრანი"
 
 
-msgid "Untitled"
-msgstr "უსათაურო"
-
-
 msgid "Image could not be found"
 msgstr "გამოსახულების პოვნა ვერ მოხერხდა"
 
@@ -47815,6 +47781,10 @@ msgid "Vertex Count"
 msgstr "წვეროების რაოდენობა"
 
 
+msgid "Old"
+msgstr "ძველი"
+
+
 msgid "Shade Smooth"
 msgstr "შეაფერადე გლუვად"
 
@@ -48061,11 +48031,6 @@ msgstr "მრუდები"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "ელფერის შესწორება"
-
-
-msgctxt "Sequence"
-msgid "Bright/Contrast"
-msgstr "კაშკაშა/კონტრასტი"
 
 
 msgid "Strips must be the same length"

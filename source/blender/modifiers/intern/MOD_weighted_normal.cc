@@ -72,7 +72,7 @@ struct WeightedNormalData {
 
   blender::Span<blender::float3> vert_positions;
   blender::Span<blender::float3> vert_normals;
-  blender::Span<MEdge> edges;
+  blender::Span<blender::int2> edges;
   blender::MutableSpan<bool> sharp_edges;
 
   blender::Span<int> corner_verts;
@@ -186,7 +186,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
   const int verts_num = wn_data->verts_num;
 
   const blender::Span<blender::float3> positions = wn_data->vert_positions;
-  const blender::Span<MEdge> edges = wn_data->edges;
+  const blender::Span<int2> edges = wn_data->edges;
   const blender::OffsetIndices polys = wn_data->polys;
   const blender::Span<int> corner_verts = wn_data->corner_verts;
   const blender::Span<int> corner_edges = wn_data->corner_edges;
@@ -542,7 +542,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   const int verts_num = result->totvert;
   const blender::Span<blender::float3> positions = mesh->vert_positions();
-  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::Span<int2> edges = mesh->edges();
   const OffsetIndices polys = result->polys();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const blender::Span<int> corner_edges = mesh->corner_edges();

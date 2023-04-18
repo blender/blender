@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -1477,14 +1477,6 @@ msgstr "向量字型"
 
 msgid "Vector font data-blocks"
 msgstr "向量字型資料塊"
-
-
-msgid "Grease Pencil"
-msgstr "蠟筆"
-
-
-msgid "Grease Pencil data-blocks"
-msgstr "蠟筆資料塊"
 
 
 msgid "Images"
@@ -9357,6 +9349,10 @@ msgid "Fonts"
 msgstr "字型"
 
 
+msgid "Grease Pencil"
+msgstr "蠟筆"
+
+
 msgid "Show workspace data-blocks"
 msgstr "顯示工作空間資料塊"
 
@@ -16473,10 +16469,6 @@ msgstr "記憶體"
 
 msgid "Text file is in memory, without a corresponding file on disk"
 msgstr "文字檔位於記憶體中，磁碟中沒有相對應的檔案"
-
-
-msgid "Modified"
-msgstr "已修改"
 
 
 msgid "Text file on disk is different than the one in memory"
@@ -23813,10 +23805,6 @@ msgid "Y position of the middle of the box"
 msgstr "方塊中間的 Y 位置"
 
 
-msgid "Bright/Contrast"
-msgstr "亮度/對比"
-
-
 msgid "Keep output image premultiplied alpha"
 msgstr "保持輸出圖片的 alpha 為預乘模式"
 
@@ -24585,10 +24573,6 @@ msgid "Hue Correct"
 msgstr "色相校正"
 
 
-msgid "Hue Saturation Value"
-msgstr "色相飽和度明度"
-
-
 msgid "ID Mask"
 msgstr "ID 遮罩"
 
@@ -25335,10 +25319,6 @@ msgid "Blackbody"
 msgstr "黑體"
 
 
-msgid "Bright Contrast"
-msgstr "亮度對比"
-
-
 msgid "Anisotropic BSDF"
 msgstr "各向異性 BSDF"
 
@@ -25843,14 +25823,6 @@ msgid "Use Tips"
 msgstr "使用提示"
 
 
-msgid "Cross Product"
-msgstr "向量積"
-
-
-msgid "Wrap"
-msgstr "包覆"
-
-
 msgid "Z Axis"
 msgstr "Z 軸"
 
@@ -26302,10 +26274,6 @@ msgid "Copy Keyframes"
 msgstr "複製鍵幀"
 
 
-msgid "Copy selected keyframes to the copy/paste buffer"
-msgstr "將選取的鍵幀複製至複製/貼上緩衝中"
-
-
 msgctxt "Operator"
 msgid "Delete Keyframes"
 msgstr "刪除鍵幀"
@@ -26486,10 +26454,6 @@ msgstr "建立新的動作"
 msgctxt "Operator"
 msgid "Paste Keyframes"
 msgstr "貼上鍵幀"
-
-
-msgid "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame"
-msgstr "為所選通道從複製/貼上緩衝區內貼上鍵幀，從目前框幀開始"
 
 
 msgid "Method of merging pasted keys and existing"
@@ -28048,10 +28012,6 @@ msgid "Copy Tracks"
 msgstr "複製軌道"
 
 
-msgid "Copy selected tracks to clipboard"
-msgstr "將所選軌道複製至剪貼簿"
-
-
 msgctxt "Operator"
 msgid "Create Plane Track"
 msgstr "建立平面軌道"
@@ -28361,10 +28321,6 @@ msgstr "啟用多重視圖"
 msgctxt "Operator"
 msgid "Paste Tracks"
 msgstr "貼上軌道"
-
-
-msgid "Paste tracks from clipboard"
-msgstr "從剪貼簿貼上軌道"
 
 
 msgctxt "Operator"
@@ -34603,14 +34559,6 @@ msgid "Clear the boundaries for viewer operations"
 msgstr "清除檢視器操作的邊界"
 
 
-msgid "Copies selected nodes to the clipboard"
-msgstr "將所選節點複製到剪貼簿"
-
-
-msgid "Pastes nodes from the clipboard to the active node tree"
-msgstr "將來自剪貼簿的節點貼至作用中節點樹"
-
-
 msgctxt "Operator"
 msgid "Collapse and Hide Unused Sockets"
 msgstr "收闔並隱藏未使用的接口"
@@ -37645,10 +37593,6 @@ msgid "Copy Pose"
 msgstr "複製姿勢"
 
 
-msgid "Copies the current pose of the selected bones to copy/paste buffer"
-msgstr "將所選骨骼的目前姿勢複製到複製/貼上緩衝中"
-
-
 msgctxt "Operator"
 msgid "Add Bone Group"
 msgstr "添加骨骼群組"
@@ -38731,10 +38675,6 @@ msgid "Copy Line Set"
 msgstr "複製線條集"
 
 
-msgid "Copy the active line set to a buffer"
-msgstr "將作用中線條集複製至緩衝中"
-
-
 msgctxt "Operator"
 msgid "Move Line Set"
 msgstr "移動線條集"
@@ -38747,10 +38687,6 @@ msgstr "變更作用中線條集在線條集清單中的位置"
 msgctxt "Operator"
 msgid "Paste Line Set"
 msgstr "貼上線條集"
-
-
-msgid "Paste the buffer content to the active line set"
-msgstr "將緩衝內容貼至作用中線條集"
 
 
 msgctxt "Operator"
@@ -41518,6 +41454,10 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "將 UV 配置匯出至點陣圖影像"
 
 
+msgid "Modified"
+msgstr "已修改"
+
+
 msgid "Exports UVs from the modified mesh"
 msgstr "從修改的網格匯出 UV"
 
@@ -41566,10 +41506,6 @@ msgstr "隱藏(未)選取的 UV 頂點"
 msgctxt "Operator"
 msgid "Lightmap Pack"
 msgstr "光照映射打包"
-
-
-msgid "New Image"
-msgstr "新增影像"
 
 
 msgid "Pack Quality"
@@ -42617,6 +42553,10 @@ msgstr "情境枚舉循環"
 
 msgid "Toggle a context value"
 msgstr "切換情境值"
+
+
+msgid "Wrap"
+msgstr "包覆"
 
 
 msgctxt "Operator"
@@ -43726,10 +43666,6 @@ msgid "Tracking Settings"
 msgstr "追蹤設定"
 
 
-msgid "Lens"
-msgstr "鏡頭"
-
-
 msgid "Predefined tracking settings"
 msgstr "預定義的追蹤設定"
 
@@ -44330,11 +44266,6 @@ msgstr "插補"
 msgctxt "Operator"
 msgid "Thickness"
 msgstr "厚度"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "滑動"
 
 
 msgid "Default tools for particle mode"
@@ -50665,6 +50596,10 @@ msgid "3D View near clipping distance (perspective view only)"
 msgstr "3D 視圖的近處剪輯距離 (僅限透視法檢視)"
 
 
+msgid "Lens"
+msgstr "鏡頭"
+
+
 msgid "Viewport lens angle"
 msgstr "視接口鏡頭角度"
 
@@ -54513,10 +54448,6 @@ msgid "Invert"
 msgstr "反轉"
 
 
-msgid "Old"
-msgstr "老舊"
-
-
 msgid "Date"
 msgstr "日期"
 
@@ -54955,6 +54886,11 @@ msgstr "擴展"
 
 
 msgctxt "Operator"
+msgid "Slide"
+msgstr "滑動"
+
+
+msgctxt "Operator"
 msgid "Back"
 msgstr "後"
 
@@ -55377,16 +55313,16 @@ msgid "One Object Per Line"
 msgstr "每列一個物體"
 
 
-msgid "File: %s"
-msgstr "檔案：%s"
-
-
 msgid "Text: External"
 msgstr "文字：外部"
 
 
 msgid "Text: Internal"
 msgstr "文字：內部"
+
+
+msgid "File: %s"
+msgstr "檔案：%s"
 
 
 msgctxt "Operator"
@@ -55534,10 +55470,6 @@ msgstr "面板標題"
 
 msgid "Widget Label"
 msgstr "小工具標籤"
-
-
-msgid "Scripts"
-msgstr "指令稿"
 
 
 msgid "Render Output"
@@ -57004,6 +56936,10 @@ msgid "Unable to open '%s': %s"
 msgstr "無法開啟「%s」：%s"
 
 
+msgid "Untitled"
+msgstr "無標題"
+
+
 msgid "Unable to make version backup: filename too short"
 msgstr "無法製作版本備份：檔名過短"
 
@@ -57306,22 +57242,6 @@ msgstr "此骨架上的動作將被這新的靜止動作摧毀，因為所儲存
 
 msgid "No pose to copy"
 msgstr "無姿勢可複製"
-
-
-msgid "Copied pose to buffer"
-msgstr "姿勢已複製到緩衝"
-
-
-msgid "Copy buffer is empty"
-msgstr "複製緩衝是空"
-
-
-msgid "Copy buffer is not from pose mode"
-msgstr "複製緩衝不是從姿勢模式而來"
-
-
-msgid "Copy buffer has no pose"
-msgstr "複製緩衝沒有姿勢"
 
 
 msgid "Programming error: missing clear transform function or keying set name"
@@ -58781,10 +58701,6 @@ msgid "No fullscreen areas were found"
 msgstr "找不到全螢幕面積"
 
 
-msgid "Untitled"
-msgstr "無標題"
-
-
 msgid "Image could not be found"
 msgstr "無法找到影像"
 
@@ -59308,10 +59224,6 @@ msgstr "內部錯誤 - AnimData 塊無效"
 
 msgid "No valid action to add"
 msgstr "無有效的動作可添加"
-
-
-msgid "Clipboard is empty"
-msgstr "剪貼簿為空白"
 
 
 msgid "Some nodes references could not be restored, will be left empty"
@@ -60907,6 +60819,10 @@ msgid "Speed:"
 msgstr "速度："
 
 
+msgid "Old"
+msgstr "老舊"
+
+
 msgid "Edge Crease"
 msgstr "邊線皺摺"
 
@@ -61256,11 +61172,6 @@ msgstr "曲線"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "色相校正"
-
-
-msgctxt "Sequence"
-msgid "Bright/Contrast"
-msgstr "亮度/對比"
 
 
 msgid "Strips must be the same length"

@@ -667,7 +667,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   int i, v1, v2, v3, v4, esplit, v[4] = {0, 0, 0, 0}, /* To quite gcc barking... */
       uv[4] = {0, 0, 0, 0};                           /* To quite gcc barking... */
   int layers_num;
-  uint ed_v1, ed_v2;
+  int ed_v1, ed_v2;
 
   edgehash = BLI_edgehash_new(__func__);
 
@@ -923,7 +923,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   const int *facepa = emd->facepa;
   int totdup = 0, totvert = 0, totface = 0, totpart = 0, delface = 0;
   int i, v, u;
-  uint ed_v1, ed_v2, mindex = 0;
+  int ed_v1, ed_v2, mindex = 0;
 
   totface = mesh->totface;
   totvert = mesh->totvert;

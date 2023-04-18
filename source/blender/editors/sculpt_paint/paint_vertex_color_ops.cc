@@ -300,18 +300,17 @@ static void transform_active_color(bContext *C, wmOperator *op, const TransformF
       CTX_data_ensure_evaluated_depsgraph(C), obact, true, false, true);
 
   SCULPT_undo_push_begin(obact, op);
-  PBVHNode **nodes;
-  int nodes_num;
 
-  BKE_pbvh_search_gather(obact->sculpt->pbvh, nullptr, nullptr, &nodes, &nodes_num);
-  for (int i : IndexRange(nodes_num)) {
-    SCULPT_undo_push_node(obact, nodes[i], SCULPT_UNDO_COLOR);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
+      obact->sculpt->pbvh, nullptr, nullptr);
+  for (PBVHNode *node : nodes) {
+    SCULPT_undo_push_node(obact, node, SCULPT_UNDO_COLOR);
   }
 
   transform_active_color_data(*BKE_mesh_from_object(obact), transform_fn);
 
-  for (int i : IndexRange(nodes_num)) {
-    BKE_pbvh_node_mark_update_color(nodes[i]);
+  for (PBVHNode *node : nodes) {
+    BKE_pbvh_node_mark_update_color(node);
   }
 
   SCULPT_undo_push_end(obact);

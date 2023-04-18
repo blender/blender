@@ -1088,6 +1088,78 @@ static void write_thumb(WriteData *wd, const BlendThumbnail *thumb)
 /** \name File Writing (Private)
  * \{ */
 
+#define ID_BUFFER_STATIC_SIZE 8192
+
+typedef struct BLO_Write_IDBuffer {
+  const struct IDTypeInfo *id_type;
+  ID *temp_id;
+  char id_buffer_static[ID_BUFFER_STATIC_SIZE];
+} BLO_Write_IDBuffer;
+
+static void id_buffer_init_for_id_type(BLO_Write_IDBuffer *id_buffer, const IDTypeInfo *id_type)
+{
+  if (id_type != id_buffer->id_type) {
+    const size_t idtype_struct_size = id_type->struct_size;
+    if (idtype_struct_size > ID_BUFFER_STATIC_SIZE) {
+      CLOG_ERROR(&LOG,
+                 "ID maximum buffer size (%d bytes) is not big enough to fit IDs of type %s, "
+                 "which needs %lu bytes",
+                 ID_BUFFER_STATIC_SIZE,
+                 id_type->name,
+                 idtype_struct_size);
+      id_buffer->temp_id = static_cast<ID *>(MEM_mallocN(idtype_struct_size, __func__));
+    }
+    else {
+      if (static_cast<void *>(id_buffer->temp_id) != id_buffer->id_buffer_static) {
+        MEM_SAFE_FREE(id_buffer->temp_id);
+      }
+      id_buffer->temp_id = reinterpret_cast<ID *>(id_buffer->id_buffer_static);
+    }
+    id_buffer->id_type = id_type;
+  }
+}
+
+static void id_buffer_init_from_id(BLO_Write_IDBuffer *id_buffer, ID *id, const bool is_undo)
+{
+  BLI_assert(id_buffer->id_type == BKE_idtype_get_info_from_id(id));
+
+  if (is_undo) {
+    /* Record the changes that happened up to this undo push in
+     * recalc_up_to_undo_push, and clear `recalc_after_undo_push` again
+     * to start accumulating for the next undo push. */
+    id->recalc_up_to_undo_push = id->recalc_after_undo_push;
+    id->recalc_after_undo_push = 0;
+  }
+
+  /* Copy ID data itself into buffer, to be able to freely modify it. */
+  const size_t idtype_struct_size = id_buffer->id_type->struct_size;
+  ID *temp_id = id_buffer->temp_id;
+  memcpy(temp_id, id, idtype_struct_size);
+
+  /* Clear runtime data to reduce false detection of changed data in undo/redo context. */
+  if (is_undo) {
+    temp_id->tag &= LIB_TAG_KEEP_ON_UNDO;
+  }
+  else {
+    temp_id->tag = 0;
+  }
+  temp_id->us = 0;
+  temp_id->icon_id = 0;
+  /* Those listbase data change every time we add/remove an ID, and also often when
+   * renaming one (due to re-sorting). This avoids generating a lot of false 'is changed'
+   * detections between undo steps. */
+  temp_id->prev = nullptr;
+  temp_id->next = nullptr;
+  /* Those runtime pointers should never be set during writing stage, but just in case clear
+   * them too. */
+  temp_id->orig_id = nullptr;
+  temp_id->newid = nullptr;
+  /* Even though in theory we could be able to preserve this python instance across undo even
+   * when we need to re-read the ID into its original address, this is currently cleared in
+   * #direct_link_id_common in `readfile.c` anyway. */
+  temp_id->py_instance = nullptr;
+}
+
 /* Helper callback for checking linked IDs used by given ID (assumed local), to ensure directly
  * linked data is tagged accordingly. */
 static int write_id_direct_linked_data_process_cb(LibraryIDLinkCallbackData *cb_data)
@@ -1187,11 +1259,11 @@ static bool write_file_handle(Main *mainvar,
                                                  nullptr :
                                                  BKE_lib_override_library_operations_store_init();
 
-#define ID_BUFFER_STATIC_SIZE 8192
   /* This outer loop allows to save first data-blocks from real mainvar,
    * then the temp ones from override process,
    * if needed, without duplicating whole code. */
   Main *bmain = mainvar;
+  BLO_Write_IDBuffer *id_buffer = BLO_write_allocate_id_buffer();
   do {
     ListBase *lbarray[INDEX_ID_MAX];
     int a = set_listbasepointers(bmain, lbarray);
@@ -1202,19 +1274,8 @@ static bool write_file_handle(Main *mainvar,
         continue; /* Libraries are handled separately below. */
       }
 
-      char id_buffer_static[ID_BUFFER_STATIC_SIZE];
-      void *id_buffer = id_buffer_static;
       const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
-      const size_t idtype_struct_size = id_type->struct_size;
-      if (idtype_struct_size > ID_BUFFER_STATIC_SIZE) {
-        CLOG_ERROR(&LOG,
-                   "ID maximum buffer size (%d bytes) is not big enough to fit IDs of type %s, "
-                   "which needs %lu bytes",
-                   ID_BUFFER_STATIC_SIZE,
-                   id_type->name,
-                   id_type->struct_size);
-        id_buffer = MEM_mallocN(idtype_struct_size, __func__);
-      }
+      id_buffer_init_for_id_type(id_buffer, id_type);
 
       for (; id; id = static_cast<ID *>(id->next)) {
         /* We should never attempt to write non-regular IDs
@@ -1249,57 +1310,12 @@ static bool write_file_handle(Main *mainvar,
           BKE_lib_override_library_operations_store_start(bmain, override_storage, id);
         }
 
-        if (wd->use_memfile) {
-          /* Record the changes that happened up to this undo push in
-           * recalc_up_to_undo_push, and clear `recalc_after_undo_push` again
-           * to start accumulating for the next undo push. */
-          id->recalc_up_to_undo_push = id->recalc_after_undo_push;
-          id->recalc_after_undo_push = 0;
-
-          bNodeTree *nodetree = ntreeFromID(id);
-          if (nodetree != nullptr) {
-            nodetree->id.recalc_up_to_undo_push = nodetree->id.recalc_after_undo_push;
-            nodetree->id.recalc_after_undo_push = 0;
-          }
-          if (GS(id->name) == ID_SCE) {
-            Scene *scene = (Scene *)id;
-            if (scene->master_collection != nullptr) {
-              scene->master_collection->id.recalc_up_to_undo_push =
-                  scene->master_collection->id.recalc_after_undo_push;
-              scene->master_collection->id.recalc_after_undo_push = 0;
-            }
-          }
-        }
-
         mywrite_id_begin(wd, id);
 
-        memcpy(id_buffer, id, idtype_struct_size);
-
-        /* Clear runtime data to reduce false detection of changed data in undo/redo context. */
-        if (wd->use_memfile) {
-          ((ID *)id_buffer)->tag &= LIB_TAG_KEEP_ON_UNDO;
-        }
-        else {
-          ((ID *)id_buffer)->tag = 0;
-        }
-        ((ID *)id_buffer)->us = 0;
-        ((ID *)id_buffer)->icon_id = 0;
-        /* Those listbase data change every time we add/remove an ID, and also often when
-         * renaming one (due to re-sorting). This avoids generating a lot of false 'is changed'
-         * detections between undo steps. */
-        ((ID *)id_buffer)->prev = nullptr;
-        ((ID *)id_buffer)->next = nullptr;
-        /* Those runtime pointers should never be set during writing stage, but just in case clear
-         * them too. */
-        ((ID *)id_buffer)->orig_id = nullptr;
-        ((ID *)id_buffer)->newid = nullptr;
-        /* Even though in theory we could be able to preserve this python instance across undo even
-         * when we need to re-read the ID into its original address, this is currently cleared in
-         * #direct_link_id_common in `readfile.c` anyway, */
-        ((ID *)id_buffer)->py_instance = nullptr;
+        id_buffer_init_from_id(id_buffer, id, wd->use_memfile);
 
         if (id_type->blend_write != nullptr) {
-          id_type->blend_write(&writer, (ID *)id_buffer, id);
+          id_type->blend_write(&writer, static_cast<ID *>(id_buffer->temp_id), id);
         }
 
         if (do_override) {
@@ -1309,13 +1325,11 @@ static bool write_file_handle(Main *mainvar,
         mywrite_id_end(wd, id);
       }
 
-      if (id_buffer != id_buffer_static) {
-        MEM_SAFE_FREE(id_buffer);
-      }
-
       mywrite_flush(wd);
     }
   } while ((bmain != override_storage) && (bmain = override_storage));
+
+  BLO_write_destroy_id_buffer(&id_buffer);
 
   if (override_storage) {
     BKE_lib_override_library_operations_store_finalize(override_storage);
@@ -1570,6 +1584,39 @@ bool BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int w
 
   return (err == 0);
 }
+
+/*
+ * API to handle writing IDs while clearing some of their runtime data.
+ */
+
+BLO_Write_IDBuffer *BLO_write_allocate_id_buffer()
+{
+  return MEM_cnew<BLO_Write_IDBuffer>(__func__);
+}
+
+void BLO_write_init_id_buffer_from_id(BLO_Write_IDBuffer *id_buffer, ID *id, const bool is_undo)
+{
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+  id_buffer_init_for_id_type(id_buffer, id_type);
+  id_buffer_init_from_id(id_buffer, id, is_undo);
+}
+
+ID *BLO_write_get_id_buffer_temp_id(BLO_Write_IDBuffer *id_buffer)
+{
+  return id_buffer->temp_id;
+}
+
+void BLO_write_destroy_id_buffer(BLO_Write_IDBuffer **id_buffer)
+{
+  if (static_cast<void *>((*id_buffer)->temp_id) != (*id_buffer)->id_buffer_static) {
+    MEM_SAFE_FREE((*id_buffer)->temp_id);
+  }
+  MEM_SAFE_FREE(*id_buffer);
+}
+
+/*
+ * API to write chunks of data.
+ */
 
 void BLO_write_raw(BlendWriter *writer, size_t size_in_bytes, const void *data_ptr)
 {

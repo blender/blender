@@ -76,7 +76,7 @@ struct MeshRenderData {
   /** Mesh */
   Mesh *me;
   blender::Span<blender::float3> vert_positions;
-  blender::Span<MEdge> edges;
+  blender::Span<blender::int2> edges;
   blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
@@ -259,7 +259,7 @@ using ExtractLEdgeBMeshFn = void(const MeshRenderData *mr,
                                  int ledge_index,
                                  void *data);
 using ExtractLEdgeMeshFn = void(const MeshRenderData *mr,
-                                const MEdge *edge,
+                                blender::int2 edge,
                                 int ledge_index,
                                 void *data);
 using ExtractLVertBMeshFn = void(const MeshRenderData *mr,

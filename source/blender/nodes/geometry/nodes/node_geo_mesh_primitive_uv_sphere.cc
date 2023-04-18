@@ -105,7 +105,7 @@ BLI_NOINLINE static void calculate_sphere_vertex_data(MutableSpan<float3> positi
   vert_normals.last() = float3(0.0f, 0.0f, -1.0f);
 }
 
-BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<MEdge> edges,
+BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<int2> edges,
                                                        const int segments,
                                                        const int rings)
 {
@@ -114,9 +114,9 @@ BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<MEdge> edges,
   /* Add the edges connecting the top vertex to the first ring. */
   const int first_vert_ring_index_start = 1;
   for (const int segment : IndexRange(segments)) {
-    MEdge &edge = edges[edge_index++];
-    edge.v1 = 0;
-    edge.v2 = first_vert_ring_index_start + segment;
+    int2 &edge = edges[edge_index++];
+    edge[0] = 0;
+    edge[1] = first_vert_ring_index_start + segment;
   }
 
   int ring_vert_index_start = 1;
@@ -125,17 +125,17 @@ BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<MEdge> edges,
 
     /* Add the edges running along each ring. */
     for (const int segment : IndexRange(segments)) {
-      MEdge &edge = edges[edge_index++];
-      edge.v1 = ring_vert_index_start + segment;
-      edge.v2 = ring_vert_index_start + ((segment + 1) % segments);
+      int2 &edge = edges[edge_index++];
+      edge[0] = ring_vert_index_start + segment;
+      edge[1] = ring_vert_index_start + ((segment + 1) % segments);
     }
 
     /* Add the edges connecting to the next ring. */
     if (ring < rings - 2) {
       for (const int segment : IndexRange(segments)) {
-        MEdge &edge = edges[edge_index++];
-        edge.v1 = ring_vert_index_start + segment;
-        edge.v2 = next_ring_vert_index_start + segment;
+        int2 &edge = edges[edge_index++];
+        edge[0] = ring_vert_index_start + segment;
+        edge[1] = next_ring_vert_index_start + segment;
       }
     }
     ring_vert_index_start += segments;
@@ -145,9 +145,9 @@ BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<MEdge> edges,
   const int last_vert_index = sphere_vert_total(segments, rings) - 1;
   const int last_vert_ring_start = last_vert_index - segments;
   for (const int segment : IndexRange(segments)) {
-    MEdge &edge = edges[edge_index++];
-    edge.v1 = last_vert_index;
-    edge.v2 = last_vert_ring_start + segment;
+    int2 &edge = edges[edge_index++];
+    edge[0] = last_vert_index;
+    edge[1] = last_vert_ring_start + segment;
   }
 }
 
@@ -310,7 +310,7 @@ static Mesh *create_uv_sphere_mesh(const float radius,
                                    sphere_face_total(segments, rings));
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<int2> edges = mesh->edges_for_write();
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();

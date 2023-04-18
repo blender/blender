@@ -16,7 +16,7 @@ def batch_for_shader(shader, type, content, *, indices=None):
     :arg content: Maps the name of the shader attribute with the data to fill the vertex buffer.
     :type content: dict
     :return: compatible batch
-    :rtype: :class:`gpu.types.Batch`
+    :rtype: :class:`gpu.types.GPUBatch`
     """
     from gpu.types import (
         GPUBatch,

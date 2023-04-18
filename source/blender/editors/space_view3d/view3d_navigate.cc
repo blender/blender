@@ -160,12 +160,80 @@ void view3d_orbit_apply_dyn_ofs(float r_ofs[3],
   add_v3_v3(r_ofs, dyn_ofs);
 }
 
+static void view3d_orbit_apply_dyn_ofs_ortho_correction(float ofs[3],
+                                                        const float viewquat_old[4],
+                                                        const float viewquat_new[4],
+                                                        const float dyn_ofs[3])
+{
+  /* NOTE(@ideasman42): While orbiting in orthographic mode the "depth" of the offset
+   * (position along the views Z-axis) is only noticeable when the view contents is clipped.
+   * The likelihood of clipping depends on the clipping range & size of the scene.
+   * In practice some users might not run into this, however using dynamic-offset in
+   * orthographic views can cause the depth of the offset to drift while navigating the view,
+   * causing unexpected clipping that seems like a bug from the user perspective, see: #104385.
+   *
+   * Imagine a camera is focused on a distant object. Now imagine a closer object in front of
+   * the camera is used as a pivot, the camera is rotated to view it from the side (~90d rotation).
+   * The outcome is the camera is now focused on a distant region to the left/right.
+   * The new focal point is unlikely to point to anything useful (unless by accident).
+   * Instead of a focal point - the `rv3d->ofs` is being manipulated in this case.
+   *
+   * Resolve by moving #RegionView3D::ofs so it is depth-aligned to `dyn_ofs`,
+   * this is interpolated by the amount of rotation so minor rotations don't cause
+   * the view-clipping to suddenly jump.
+   *
+   * Perspective Views
+   * =================
+   *
+   * This logic could also be applied to perspective views because the issue of the `ofs`
+   * being a location which isn't useful exists there too, however the problem where this location
+   * impacts the clipping does *not* exist, as the clipping range starts from the view-point
+   * (`ofs` + `dist` along the view Z-axis) unlike orthographic views which center around `ofs`.
+   * Nevertheless there will be cases when having `ofs` and a large `dist` pointing nowhere doesn't
+   * give ideal behavior (zooming may jump in larger than expected steps and panning the view may
+   * move too much in relation to nearby objects - for e.g.). So it's worth investigating but
+   * should be done with extra care as changing `ofs` in perspective view also requires changing
+   * the `dist` which could cause unexpected results if the calculated `dist` happens to be small.
+   * So disable this workaround in perspective view unless there are clear benefits to enabling. */
+
+  float q_inv[4];
+
+  float view_z_init[3] = {0.0f, 0.0f, 1.0f};
+  invert_qt_qt_normalized(q_inv, viewquat_old);
+  mul_qt_v3(q_inv, view_z_init);
+
+  float view_z_curr[3] = {0.0f, 0.0f, 1.0f};
+  invert_qt_qt_normalized(q_inv, viewquat_new);
+  mul_qt_v3(q_inv, view_z_curr);
+
+  const float angle_cos = max_ff(0.0f, dot_v3v3(view_z_init, view_z_curr));
+  /* 1.0 or more means no rotation, there is nothing to do in that case. */
+  if (LIKELY(angle_cos < 1.0f)) {
+    const float dot_ofs_curr = dot_v3v3(view_z_curr, ofs);
+    const float dot_ofs_next = dot_v3v3(view_z_curr, dyn_ofs);
+    const float ofs_delta = dot_ofs_next - dot_ofs_curr;
+    if (LIKELY(ofs_delta != 0.0f)) {
+      /* Calculate a factor where 0.0 represents no rotation and 1.0 represents 90d or more.
+       * NOTE: Without applying the factor, the distances immediately changes
+       * (useful for testing), but not good for the users experience as minor rotations
+       * should not immediately adjust the depth. */
+      const float factor = acosf(angle_cos) / M_PI_2;
+      madd_v3_v3fl(ofs, view_z_curr, ofs_delta * factor);
+    }
+  }
+}
+
 void viewrotate_apply_dyn_ofs(ViewOpsData *vod, const float viewquat_new[4])
 {
   if (vod->use_dyn_ofs) {
     RegionView3D *rv3d = vod->rv3d;
     view3d_orbit_apply_dyn_ofs(
         rv3d->ofs, vod->init.ofs, vod->init.quat, viewquat_new, vod->dyn_ofs);
+
+    if (vod->use_dyn_ofs_ortho_correction) {
+      view3d_orbit_apply_dyn_ofs_ortho_correction(
+          rv3d->ofs, vod->init.quat, viewquat_new, vod->dyn_ofs);
+    }
   }
 }
 

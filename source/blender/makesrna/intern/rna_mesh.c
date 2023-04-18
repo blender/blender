@@ -375,8 +375,9 @@ static int rna_MeshVertex_index_get(PointerRNA *ptr)
 static int rna_MeshEdge_index_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const MEdge *edge = (MEdge *)ptr->data;
-  const int index = (int)(edge - BKE_mesh_edges(mesh));
+  const vec2i *edge = (vec2i *)ptr->data;
+  const vec2i *edges = CustomData_get_layer_named(&mesh->edata, CD_PROP_INT32_2D, ".edge_verts");
+  const int index = (int)(edge - edges);
   BLI_assert(index >= 0);
   BLI_assert(index < mesh->totedge);
   return index;
@@ -2002,8 +2003,9 @@ int rna_Mesh_vertices_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 static void rna_Mesh_edges_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
-  rna_iterator_array_begin(
-      iter, BKE_mesh_edges_for_write(mesh), sizeof(MEdge), mesh->totedge, false, NULL);
+  vec2i *edges = CustomData_get_layer_named_for_write(
+      &mesh->edata, CD_PROP_INT32_2D, ".edge_verts", mesh->totedge);
+  rna_iterator_array_begin(iter, edges, sizeof(vec2i), mesh->totedge, false, NULL);
 }
 static int rna_Mesh_edges_length(PointerRNA *ptr)
 {
@@ -2016,9 +2018,11 @@ int rna_Mesh_edges_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
   if (index < 0 || index >= mesh->totedge) {
     return false;
   }
+  vec2i *edges = CustomData_get_layer_named_for_write(
+      &mesh->edata, CD_PROP_INT32_2D, ".edge_verts", mesh->totedge);
   r_ptr->owner_id = &mesh->id;
   r_ptr->type = &RNA_MeshEdge;
-  r_ptr->data = &BKE_mesh_edges_for_write(mesh)[index];
+  r_ptr->data = &edges[index];
   return true;
 }
 
@@ -2794,13 +2798,13 @@ static void rna_def_medge(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "MeshEdge", NULL);
-  RNA_def_struct_sdna(srna, "MEdge");
+  RNA_def_struct_sdna(srna, "vec2i");
   RNA_def_struct_ui_text(srna, "Mesh Edge", "Edge in a Mesh data-block");
   RNA_def_struct_path_func(srna, "rna_MeshEdge_path");
   RNA_def_struct_ui_icon(srna, ICON_EDGESEL);
 
   prop = RNA_def_property(srna, "vertices", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_sdna(prop, NULL, "v1");
+  RNA_def_property_int_sdna(prop, NULL, "x");
   RNA_def_property_array(prop, 2);
   RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
   /* XXX allows creating invalid meshes */

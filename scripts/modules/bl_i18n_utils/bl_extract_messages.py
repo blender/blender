@@ -340,7 +340,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         msgctxt = bl_rna.translation_context or default_context
 
         if bl_rna.name and (bl_rna.name != bl_rna.identifier or
-                            (msgctxt != default_context and not hasattr(bl_rna, 'bl_label'))):
+                            (msgctxt != default_context and not hasattr(bl_rna, "bl_label"))):
             process_msg(msgs, msgctxt, bl_rna.name, msgsrc, reports, check_ctxt_rna, settings)
 
         if bl_rna.description:
@@ -349,14 +349,14 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
             process_msg(msgs, default_context, cls.__doc__, msgsrc, reports, check_ctxt_rna_tip, settings)
 
         # Panels' "tabs" system.
-        if hasattr(bl_rna, 'bl_category') and bl_rna.bl_category:
+        if hasattr(bl_rna, "bl_category") and bl_rna.bl_category:
             process_msg(msgs, default_context, bl_rna.bl_category, msgsrc, reports, check_ctxt_rna, settings)
 
-        if hasattr(bl_rna, 'bl_label') and bl_rna.bl_label:
+        if hasattr(bl_rna, "bl_label") and bl_rna.bl_label:
             process_msg(msgs, msgctxt, bl_rna.bl_label, msgsrc, reports, check_ctxt_rna, settings)
 
         # Tools Panels definitions.
-        if hasattr(bl_rna, 'tools_all') and bl_rna.tools_all:
+        if hasattr(bl_rna, "tools_all") and bl_rna.tools_all:
             walk_tools_definitions(cls)
 
         walk_properties(cls)
@@ -472,7 +472,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
 ##### Python source code #####
 def dump_py_messages_from_files(msgs, reports, files, settings):
     """
-    Dump text inlined in the python files given, e.g. 'My Name' in:
+    Dump text inlined in the python files given, e.g. "My Name" in:
         layout.prop("someprop", text="My Name")
     """
     import ast

@@ -220,7 +220,7 @@ class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
         assert mesh.use_fake_user is False
         assert mesh.users == 0
         # IDs explicitely linked by the user are forcefully considered directly linked.
-        assert mesh.is_library_indirect == False
+        assert mesh.is_library_indirect is False
 
         ob = bpy.data.objects.new("LocalMesh", mesh)
         coll = bpy.data.collections.new("LocalMesh")
@@ -230,19 +230,19 @@ class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
         assert material.users == 2
         assert material.is_library_indirect
         assert mesh.users == 1
-        assert mesh.is_library_indirect == False
+        assert mesh.is_library_indirect is False
 
         ob.material_slots[0].link = 'OBJECT'
         ob.material_slots[0].material = material
 
         assert material.users == 3
-        assert material.is_library_indirect == False
+        assert material.is_library_indirect is False
 
         ob.material_slots[0].material = None
 
         assert material.users == 2
         # This is not properly updated whene removing a local user of linked data.
-        assert material.is_library_indirect == False
+        assert material.is_library_indirect is False
 
         output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile"))
         bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
@@ -270,7 +270,7 @@ class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
         assert mesh.library is not None
         assert mesh.use_fake_user is False
         assert mesh.users == 1
-        assert mesh.is_library_indirect == False
+        assert mesh.is_library_indirect is False
 
 
 class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
@@ -598,7 +598,7 @@ class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
 
         # Only explicitely linked data gets a liboverride, without any handling of hierarchy/dependencies.
         assert bpy.data.collections[0].library is None
-        assert bpy.data.collections[0].is_runtime_data == False
+        assert bpy.data.collections[0].is_runtime_data is False
         assert bpy.data.collections[0].override_library is not None
         assert bpy.data.collections[0].override_library.reference == bpy.data.collections[-1]
 
@@ -616,7 +616,7 @@ class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
 
         # Only explicitely linked data gets a liboverride, without any handling of hierarchy/dependencies.
         assert bpy.data.collections[1].library is None
-        assert bpy.data.collections[1].is_runtime_data == False
+        assert bpy.data.collections[1].is_runtime_data is False
         assert bpy.data.collections[1].override_library is not None
         assert bpy.data.collections[1].override_library.reference == bpy.data.collections[-1]
 
@@ -634,7 +634,7 @@ class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
 
         # Only explicitely linked data gets a liboverride, without any handling of hierarchy/dependencies.
         assert bpy.data.collections[1].library is None
-        assert bpy.data.collections[1].is_runtime_data == False
+        assert bpy.data.collections[1].is_runtime_data is False
         assert bpy.data.collections[1].override_library is not None
         assert bpy.data.collections[1].override_library.reference == bpy.data.collections[-1]
 
@@ -699,7 +699,7 @@ class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
 
         # Only explicitely linked data gets a liboverride, without any handling of hierarchy/dependencies.
         assert bpy.data.collections[1].library is None
-        assert bpy.data.collections[1].is_runtime_data == False
+        assert bpy.data.collections[1].is_runtime_data is False
         assert bpy.data.collections[1].override_library is not None
         assert bpy.data.collections[1].override_library.reference == bpy.data.collections[-1]
 

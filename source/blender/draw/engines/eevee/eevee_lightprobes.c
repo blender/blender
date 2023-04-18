@@ -101,22 +101,28 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 
   /* We need an Array texture so allocate it ourself */
   if (!txl->planar_pool) {
+    eGPUTextureUsage planar_usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ |
+                                    GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    eGPUTextureUsage planar_usage_depth = GPU_TEXTURE_USAGE_ATTACHMENT |
+                                          GPU_TEXTURE_USAGE_SHADER_READ;
     if (num_planar_ref > 0) {
-      txl->planar_pool = DRW_texture_create_2d_array(width,
-                                                     height,
-                                                     num_planar_ref,
-                                                     GPU_R11F_G11F_B10F,
-                                                     DRW_TEX_FILTER | DRW_TEX_MIPMAP,
-                                                     NULL);
-      txl->planar_depth = DRW_texture_create_2d_array(
-          width, height, num_planar_ref, GPU_DEPTH_COMPONENT24, 0, NULL);
+      txl->planar_pool = DRW_texture_create_2d_array_ex(width,
+                                                        height,
+                                                        num_planar_ref,
+                                                        GPU_R11F_G11F_B10F,
+                                                        planar_usage,
+                                                        DRW_TEX_FILTER | DRW_TEX_MIPMAP,
+                                                        NULL);
+      txl->planar_depth = DRW_texture_create_2d_array_ex(
+          width, height, num_planar_ref, GPU_DEPTH_COMPONENT24, planar_usage_depth, 0, NULL);
     }
     else if (num_planar_ref == 0) {
       /* Makes Opengl Happy : Create a placeholder texture that will never be sampled but still
        * bound to shader. */
-      txl->planar_pool = DRW_texture_create_2d_array(
-          1, 1, 1, GPU_RGBA8, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
-      txl->planar_depth = DRW_texture_create_2d_array(1, 1, 1, GPU_DEPTH_COMPONENT24, 0, NULL);
+      txl->planar_pool = DRW_texture_create_2d_array_ex(
+          1, 1, 1, GPU_RGBA8, planar_usage, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+      txl->planar_depth = DRW_texture_create_2d_array_ex(
+          1, 1, 1, GPU_DEPTH_COMPONENT24, planar_usage_depth, 0, NULL);
     }
   }
 }
@@ -182,8 +188,10 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   /* Placeholder planar pool: used when rendering planar reflections (avoid dependency loop). */
   if (!e_data.planar_pool_placeholder) {
-    e_data.planar_pool_placeholder = DRW_texture_create_2d_array(
-        1, 1, 1, GPU_RGBA8, DRW_TEX_FILTER, NULL);
+    eGPUTextureUsage planar_usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ |
+                                    GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    e_data.planar_pool_placeholder = DRW_texture_create_2d_array_ex(
+        1, 1, 1, GPU_RGBA8, planar_usage, DRW_TEX_FILTER, NULL);
   }
 }
 

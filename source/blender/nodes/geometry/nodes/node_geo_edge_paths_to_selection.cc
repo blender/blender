@@ -25,7 +25,7 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
                                     const Span<int> next_indices,
                                     MutableSpan<bool> r_selection)
 {
-  const Span<MEdge> edges = src_mesh.edges();
+  const Span<int2> edges = src_mesh.edges();
 
   Array<bool> selection(src_mesh.totvert, false);
 
@@ -45,9 +45,9 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
   }
 
   for (const int i : edges.index_range()) {
-    const MEdge &edge = edges[i];
-    if ((selection[edge.v1] && selection[edge.v2]) &&
-        (edge.v1 == next_indices[edge.v2] || edge.v2 == next_indices[edge.v1])) {
+    const int2 &edge = edges[i];
+    if ((selection[edge[0]] && selection[edge[1]]) &&
+        (edge[0] == next_indices[edge[1]] || edge[1] == next_indices[edge[0]])) {
       r_selection[i] = true;
     }
   }

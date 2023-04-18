@@ -204,7 +204,7 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 void GeometryExporter::createLooseEdgeList(Object *ob, Mesh *me, std::string &geom_id)
 {
   using namespace blender;
-  const Span<MEdge> edges = me->edges();
+  const Span<int2> edges = me->edges();
   int edges_in_linelist = 0;
   std::vector<uint> edge_list;
   int index;
@@ -215,10 +215,10 @@ void GeometryExporter::createLooseEdgeList(Object *ob, Mesh *me, std::string &ge
   if (loose_edges.count > 0) {
     for (const int64_t i : edges.index_range()) {
       if (loose_edges.is_loose_bits[i]) {
-        const MEdge *edge = &edges[i];
+        const int2 &edge = edges[i];
         edges_in_linelist += 1;
-        edge_list.push_back(edge->v1);
-        edge_list.push_back(edge->v2);
+        edge_list.push_back(edge[0]);
+        edge_list.push_back(edge[1]);
       }
     }
   }

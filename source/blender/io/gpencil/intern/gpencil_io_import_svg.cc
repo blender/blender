@@ -17,7 +17,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 
 #include "gpencil_io.h"
 #include "gpencil_io_import_svg.hh"

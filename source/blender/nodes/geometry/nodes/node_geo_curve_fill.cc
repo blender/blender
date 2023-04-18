@@ -81,16 +81,12 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
 
   Mesh *mesh = BKE_mesh_new_nomain(vert_len, edge_len, loop_len, poly_len);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  mesh->edges_for_write().copy_from(result.edge.as_span().cast<int2>());
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   for (const int i : IndexRange(result.vert.size())) {
     positions[i] = float3(float(result.vert[i].x), float(result.vert[i].y), 0.0f);
-  }
-  for (const int i : IndexRange(result.edge.size())) {
-    edges[i].v1 = result.edge[i].first;
-    edges[i].v2 = result.edge[i].second;
   }
   int i_loop = 0;
   for (const int i : IndexRange(result.face.size())) {

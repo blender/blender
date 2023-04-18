@@ -117,7 +117,7 @@ void SCULPT_filter_cache_init(bContext *C,
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ob->sculpt->pbvh;
 
-  ss->filter_cache = MEM_cnew<FilterCache>(__func__);
+  ss->filter_cache = MEM_new<FilterCache>(__func__);
   ss->filter_cache->start_filter_strength = start_strength;
   ss->filter_cache->random_seed = rand();
 
@@ -132,14 +132,11 @@ void SCULPT_filter_cache_init(bContext *C,
   search_data.radius_squared = FLT_MAX;
   search_data.ignore_fully_ineffective = true;
 
-  BKE_pbvh_search_gather(pbvh,
-                         SCULPT_search_sphere_cb,
-                         &search_data,
-                         &ss->filter_cache->nodes,
-                         &ss->filter_cache->totnode);
+  ss->filter_cache->nodes = blender::bke::pbvh::search_gather(
+      pbvh, SCULPT_search_sphere_cb, &search_data);
 
-  for (int i = 0; i < ss->filter_cache->totnode; i++) {
-    BKE_pbvh_node_mark_normals_update(ss->filter_cache->nodes[i]);
+  for (PBVHNode *node : ss->filter_cache->nodes) {
+    BKE_pbvh_node_mark_normals_update(node);
   }
 
   /* `mesh->runtime.subdiv_ccg` is not available. Updating of the normals is done during drawing.
@@ -155,9 +152,9 @@ void SCULPT_filter_cache_init(bContext *C,
   data.filter_undo_type = undo_type;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
   BLI_task_parallel_range(
-      0, ss->filter_cache->totnode, &data, filter_cache_init_task_cb, &settings);
+      0, ss->filter_cache->nodes.size(), &data, filter_cache_init_task_cb, &settings);
 
   /* Setup orientation matrices. */
   copy_m4_m4(ss->filter_cache->obmat, ob->object_to_world);
@@ -180,8 +177,7 @@ void SCULPT_filter_cache_init(bContext *C,
   float mval_fl[2] = {float(mval[0]), float(mval[1])};
 
   if (vc.rv3d && SCULPT_stroke_get_location(C, co, mval_fl, false)) {
-    PBVHNode **nodes;
-    int totnode;
+    Vector<PBVHNode *> nodes;
 
     /* Get radius from brush. */
     Brush *brush = BKE_paint_brush(&sd->paint);
@@ -206,18 +202,15 @@ void SCULPT_filter_cache_init(bContext *C,
     search_data2.radius_squared = radius * radius;
     search_data2.ignore_fully_ineffective = true;
 
-    BKE_pbvh_search_gather(pbvh, SCULPT_search_sphere_cb, &search_data2, &nodes, &totnode);
+    nodes = blender::bke::pbvh::search_gather(pbvh, SCULPT_search_sphere_cb, &search_data2);
 
     if (BKE_paint_brush(&sd->paint) &&
-        SCULPT_pbvh_calc_area_normal(
-            brush, ob, nodes, totnode, true, ss->filter_cache->initial_normal)) {
+        SCULPT_pbvh_calc_area_normal(brush, ob, nodes, true, ss->filter_cache->initial_normal)) {
       copy_v3_v3(ss->last_normal, ss->filter_cache->initial_normal);
     }
     else {
       copy_v3_v3(ss->filter_cache->initial_normal, ss->last_normal);
     }
-
-    MEM_SAFE_FREE(nodes);
 
     /* Update last stroke location */
 
@@ -257,7 +250,6 @@ void SCULPT_filter_cache_free(SculptSession *ss)
   if (ss->filter_cache->automasking) {
     SCULPT_automasking_cache_free(ss->filter_cache->automasking);
   }
-  MEM_SAFE_FREE(ss->filter_cache->nodes);
   MEM_SAFE_FREE(ss->filter_cache->mask_update_it);
   MEM_SAFE_FREE(ss->filter_cache->prev_mask);
   MEM_SAFE_FREE(ss->filter_cache->normal_factor);
@@ -267,7 +259,7 @@ void SCULPT_filter_cache_free(SculptSession *ss)
   MEM_SAFE_FREE(ss->filter_cache->detail_directions);
   MEM_SAFE_FREE(ss->filter_cache->limit_surface_co);
   MEM_SAFE_FREE(ss->filter_cache->pre_smoothed_color);
-  MEM_SAFE_FREE(ss->filter_cache);
+  MEM_delete<FilterCache>(ss->filter_cache);
 }
 
 typedef enum eSculptMeshFilterType {
@@ -778,12 +770,13 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
   data.filter_strength = filter_strength;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
-  BLI_task_parallel_range(0, ss->filter_cache->totnode, &data, mesh_filter_task_cb, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
+  BLI_task_parallel_range(
+      0, ss->filter_cache->nodes.size(), &data, mesh_filter_task_cb, &settings);
 
   if (filter_type == MESH_FILTER_SURFACE_SMOOTH) {
     BLI_task_parallel_range(0,
-                            ss->filter_cache->totnode,
+                            ss->filter_cache->nodes.size(),
                             &data,
                             mesh_filter_surface_smooth_displace_task_cb,
                             &settings);
@@ -872,22 +865,19 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  PBVHNode **nodes;
-  int nodes_num;
 
   if (!ss || !ss->pbvh) {
     return;
   }
 
   /* Gather all PBVH leaf nodes. */
-  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &nodes_num);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
-  for (int i : IndexRange(nodes_num)) {
-    PBVHNode *node = nodes[i];
+  for (PBVHNode *node : nodes) {
     PBVHVertexIter vd;
 
     SculptOrigVertData orig_data;
-    SCULPT_orig_vert_data_init(&orig_data, ob, nodes[i], SCULPT_UNDO_COORDS);
+    SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
 
     BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
       SCULPT_orig_vert_data_update(&orig_data, &vd);
@@ -899,7 +889,6 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
     BKE_pbvh_node_mark_update(node);
   }
 
-  MEM_SAFE_FREE(nodes);
   BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB);
 }
 

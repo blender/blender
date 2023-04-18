@@ -63,7 +63,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
                                            const eAttrDomain domain)
 {
   const Span<float3> positions = mesh.vert_positions();
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
   const OffsetIndices polys = mesh.polys();
   const Span<int> corner_verts = mesh.corner_verts();
 
@@ -111,8 +111,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
                                        mp_select.data());
   }
   for (const int i : seam) {
-    const MEdge &edge = edges[i];
-    geometry::ParamKey vkeys[2]{edge.v1, edge.v2};
+    geometry::ParamKey vkeys[2]{uint(edges[i][0]), uint(edges[i][1])};
     geometry::uv_parametrizer_edge_set_seam(handle, vkeys);
   }
   /* TODO: once field input nodes are able to emit warnings (#94039), emit a

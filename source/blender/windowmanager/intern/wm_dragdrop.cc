@@ -983,7 +983,7 @@ static void wm_drag_draw_default(bContext *C, wmWindow *win, wmDrag *drag, const
   }
   wm_drag_draw_item_name(drag, UNPACK2(xy_tmp));
 
-  /* Operator name with roundbox. */
+  /* Operator name with round-box. */
   wm_drag_draw_tooltip(C, win, drag, xy);
 }
 

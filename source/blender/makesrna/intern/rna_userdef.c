@@ -4952,7 +4952,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Timecode Style",
-      "Format of timecodes displayed when not displaying timing in terms of frames");
+      "Format of timecode displayed when not displaying timing in terms of frames");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   prop = RNA_def_property(srna, "view_frame_type", PROP_ENUM, PROP_NONE);

@@ -312,12 +312,14 @@ bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSp
 
     imb_addencodedbufferImBuf(ctx.ibuf);
     out->set_ioproxy(&writer);
-    out->open("", file_spec);
-    ok = final_buf.write(out.get());
+    if (out->open("", file_spec)) {
+      ok = final_buf.write(out.get());
+    }
   }
   else {
-    out->open(filepath, file_spec);
-    ok = final_buf.write(out.get());
+    if (out->open(filepath, file_spec)) {
+      ok = final_buf.write(out.get());
+    }
   }
 
   out->close();

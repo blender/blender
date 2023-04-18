@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -1820,14 +1820,6 @@ msgstr "Векторные шрифты"
 
 msgid "Vector font data-blocks"
 msgstr "Датаблоки векторных шрифтов"
-
-
-msgid "Grease Pencil"
-msgstr "Grease Pencil"
-
-
-msgid "Grease Pencil data-blocks"
-msgstr "Датаблоки Grease Pencil"
 
 
 msgid "Hair Curves"
@@ -11868,6 +11860,10 @@ msgid "Show Font data-blocks"
 msgstr "Показать датаблоки шрифтов"
 
 
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
 msgid "Show Grease pencil data-blocks"
 msgstr "Показать датаблоки Grease Pencil"
 
@@ -18029,10 +18025,6 @@ msgstr "Повернуть точки вокруг средней точки к�
 
 msgid "Pull points towards the midpoint of the brush"
 msgstr "Притянуть точки к средней точке кисти"
-
-
-msgid "Paste copies of the strokes stored on the clipboard"
-msgstr "Вставить копию штрихов из буфера обмена"
 
 
 msgid "Gpencil Settings"
@@ -24679,10 +24671,6 @@ msgstr "Память"
 
 msgid "Text file is in memory, without a corresponding file on disk"
 msgstr "Текстовой файл расположен в памяти, без соответствующего файла на диске"
-
-
-msgid "Modified"
-msgstr "С изменениями"
 
 
 msgid "Text file on disk is different than the one in memory"
@@ -35913,10 +35901,6 @@ msgid "Y position of the middle of the box"
 msgstr "Положение по Y середины прямоугольника"
 
 
-msgid "Bright/Contrast"
-msgstr "Яркость/контраст"
-
-
 msgid "Keep output image premultiplied alpha"
 msgstr "Сохранять предумноженный альфа-канал выходного изображения"
 
@@ -36759,10 +36743,6 @@ msgstr "Простой фильтр звезды: добавить углово�
 
 msgid "Hue Correct"
 msgstr "Смена оттенка"
-
-
-msgid "Hue Saturation Value"
-msgstr "Тон/насыщенность/яркость"
 
 
 msgid "ID Mask"
@@ -37800,10 +37780,6 @@ msgid "Blackbody"
 msgstr "Тепловое излучение"
 
 
-msgid "Bright Contrast"
-msgstr "Яркость/контраст"
-
-
 msgid "Anisotropic BSDF"
 msgstr "Анизотропный BSDF"
 
@@ -38576,24 +38552,12 @@ msgid "World space vector displacement mapping"
 msgstr "Отображение смещения по векторам в пространстве мира"
 
 
-msgid "Multiply Add"
-msgstr "Умножить и сложить"
-
-
-msgid "Cross Product"
-msgstr "Вект. произведение"
-
-
 msgid "A cross B"
 msgstr "A × B"
 
 
 msgid "Project A onto B"
 msgstr "Проекция A на B"
-
-
-msgid "Reflect"
-msgstr "Отразить"
 
 
 msgid "A dot B"
@@ -38614,22 +38578,6 @@ msgstr "А умноженная на масштаб"
 
 msgid "Normalize A"
 msgstr "Нормализовать A"
-
-
-msgid "Ceil"
-msgstr "Ceil"
-
-
-msgid "Fraction"
-msgstr "Дробная часть"
-
-
-msgid "Modulo"
-msgstr "Остаток деления"
-
-
-msgid "Wrap"
-msgstr "Обёртка"
 
 
 msgid "Round A to the largest integer multiple of B less than or equal A"
@@ -39255,10 +39203,6 @@ msgid "Copy Keyframes"
 msgstr "Копировать ключевые кадры"
 
 
-msgid "Copy selected keyframes to the copy/paste buffer"
-msgstr "Копировать выделенные ключевые кадры в буфер копирования/вставки"
-
-
 msgctxt "Operator"
 msgid "Delete Keyframes"
 msgstr "Удалить ключевые кадры"
@@ -39468,10 +39412,6 @@ msgstr "Новое действие"
 msgctxt "Operator"
 msgid "Paste Keyframes"
 msgstr "Вставить ключевые кадры"
-
-
-msgid "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame"
-msgstr "Вставить ключевые кадры из буфера обмена для выделенных каналов, начиная с текущего кадра"
 
 
 msgid "Flipped"
@@ -41335,10 +41275,6 @@ msgid "Copy Tracks"
 msgstr "Копировать треки"
 
 
-msgid "Copy selected tracks to clipboard"
-msgstr "Копировать выделенные треки в буфер обмена"
-
-
 msgctxt "Operator"
 msgid "Create Plane Track"
 msgstr "Создать трек-плоскость"
@@ -41702,10 +41638,6 @@ msgstr "Включить просмотр нескольких видов"
 msgctxt "Operator"
 msgid "Paste Tracks"
 msgstr "Вставить треки"
-
-
-msgid "Paste tracks from clipboard"
-msgstr "Вставить треки из буфера обмена"
 
 
 msgctxt "Operator"
@@ -46331,11 +46263,6 @@ msgid "Adjust vertex color brightness/contrast"
 msgstr "Настроить яркость/контраст цветов вершин"
 
 
-msgctxt "Operator"
-msgid "Vertex Paint Hue Saturation Value"
-msgstr "Оттенок/насыщенность/яркость цветов вершин"
-
-
 msgid "Adjust vertex color HSV values"
 msgstr "Изменить HSV-значения цветов вершин"
 
@@ -47987,10 +47914,6 @@ msgid "Copy Splines"
 msgstr "Копировать сплайны"
 
 
-msgid "Copy selected splines to clipboard"
-msgstr "Копировать выделенные сплайны в буфер обмена"
-
-
 msgid "Toggle cyclic for selected splines"
 msgstr "Переключить цикличность для выделенных сплайнов"
 
@@ -48089,10 +48012,6 @@ msgstr "Установить родительство маски"
 msgctxt "Operator"
 msgid "Paste Splines"
 msgstr "Вставить сплайны"
-
-
-msgid "Paste splines from clipboard"
-msgstr "Вставить сплайны из буфера обмена"
 
 
 msgctxt "Operator"
@@ -49466,16 +49385,8 @@ msgid "Copy Normal"
 msgstr "Копировать нормаль"
 
 
-msgid "Copy normal to buffer"
-msgstr "Копировать нормаль в буфер обмена"
-
-
 msgid "Paste Normal"
 msgstr "Вставить нормаль"
-
-
-msgid "Paste normal from buffer"
-msgstr "Вставить нормаль из буфера обмена"
 
 
 msgid "Add Normal"
@@ -49496,10 +49407,6 @@ msgstr "Перемножить  вектора нормалей с выделе�
 
 msgid "Reset Normal"
 msgstr "Сбросить нормали"
-
-
-msgid "Reset buffer and/or normal of selected element"
-msgstr "Сбросить буфер и/или нормали выделенных элементов"
 
 
 msgctxt "Operator"
@@ -51388,14 +51295,6 @@ msgstr "Увеличить/уменьшить фоновое изображен�
 
 msgid "Clear the boundaries for viewer operations"
 msgstr "Очистить границы операций просмотра"
-
-
-msgid "Copies selected nodes to the clipboard"
-msgstr "Копировать выделенные ноды в буфер обмена"
-
-
-msgid "Pastes nodes from the clipboard to the active node tree"
-msgstr "Вставить ноды из буфера обмена в активную систему нодов"
 
 
 msgctxt "Operator"
@@ -54624,10 +54523,6 @@ msgid "Outliner ID Data Copy"
 msgstr "Скопировать идентификатор данных в структуре проекта"
 
 
-msgid "Selected data-blocks are copied to the clipboard"
-msgstr "Скопировать выделенные датаблоки в буфер обмена"
-
-
 msgctxt "Operator"
 msgid "Delete Data-Block"
 msgstr "Удалить датаблок"
@@ -54676,10 +54571,6 @@ msgstr "Переименовать"
 msgctxt "Operator"
 msgid "Outliner ID Data Paste"
 msgstr "Скопировать идентификатор данных в структуре проекта"
-
-
-msgid "Data-blocks from the clipboard are pasted"
-msgstr "Вставить датаблоки из буфера обмена"
 
 
 msgctxt "Operator"
@@ -55921,10 +55812,6 @@ msgid "Copy Pose"
 msgstr "Копировать позу"
 
 
-msgid "Copies the current pose of the selected bones to copy/paste buffer"
-msgstr "Копировать текущую позу выделенных костей в буфер обмена"
-
-
 msgctxt "Operator"
 msgid "Add Bone Group"
 msgstr "Добавить группу костей"
@@ -57102,10 +56989,6 @@ msgid "Copy Line Set"
 msgstr "Копировать набор линий"
 
 
-msgid "Copy the active line set to a buffer"
-msgstr "Копировать активный набор линий в буфер"
-
-
 msgctxt "Operator"
 msgid "Move Line Set"
 msgstr "Переместить набор линий"
@@ -57122,10 +57005,6 @@ msgstr "Направление перемещения активного наб�
 msgctxt "Operator"
 msgid "Paste Line Set"
 msgstr "Вставить набор линий"
-
-
-msgid "Paste the buffer content to the active line set"
-msgstr "Вставить содержимое буфера в активный набор линий"
 
 
 msgctxt "Operator"
@@ -58250,10 +58129,6 @@ msgid "Copy"
 msgstr "Копировать"
 
 
-msgid "Copy selected strips to clipboard"
-msgstr "Копировать выделенные клипы в буфер обмена"
-
-
 msgctxt "Operator"
 msgid "Crossfade Sounds"
 msgstr "Смикшировать аудио"
@@ -58542,10 +58417,6 @@ msgstr "Очистить смещения клипа для начальных �
 msgctxt "Operator"
 msgid "Paste"
 msgstr "Вставить"
-
-
-msgid "Paste strips from clipboard"
-msgstr "Вставить клипы из буфера обмена"
 
 
 msgctxt "Operator"
@@ -59947,10 +59818,6 @@ msgid "Copy as New Driver"
 msgstr "Копировать как новый драйвер"
 
 
-msgid "Create a new driver with this property as input, and copy it to the clipboard. Use Paste Driver to add it to the target property, or Paste Driver Variables to extend an existing driver"
-msgstr "Создать новый драйвер с этим свойством в качестве входа и скопировать его в буфер обмена. Используйте «Вставить драйвер» для добавления его к нужному свойству или «Вставить переменные драйвера» для расширения существующего драйвера"
-
-
 msgctxt "Operator"
 msgid "Copy Data Path"
 msgstr "Копировать путь к данным"
@@ -60712,6 +60579,10 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Экспортировать UV-развёртку в растровое изображение"
 
 
+msgid "Modified"
+msgstr "С изменениями"
+
+
 msgid "Exports UVs from the modified mesh"
 msgstr "Экспортировать UV от изменённого меша"
 
@@ -60764,10 +60635,6 @@ msgstr "Скрыть (не)выделенные UV-вершины"
 msgctxt "Operator"
 msgid "Lightmap Pack"
 msgstr "Развернуть для карты освещения"
-
-
-msgid "New Image"
-msgstr "Создать изображение"
 
 
 msgid "Pack Quality"
@@ -60830,6 +60697,10 @@ msgstr "Упаковать острова"
 
 msgid "Space between islands"
 msgstr "Пространство между островами"
+
+
+msgid "Fraction"
+msgstr "Дробная часть"
 
 
 msgid "Rotate islands for best fit"
@@ -61297,10 +61168,6 @@ msgid "Copy Objects"
 msgstr "Копировать объекты"
 
 
-msgid "Selected objects are copied to the clipboard"
-msgstr "Скопировать выделенные объекты в буфер обмена"
-
-
 msgctxt "Operator"
 msgid "Set 3D Cursor"
 msgstr "Установить 3D-курсор"
@@ -61471,10 +61338,6 @@ msgstr "Меню объектного режима"
 msgctxt "Operator"
 msgid "Paste Objects"
 msgstr "Вставить объекты"
-
-
-msgid "Objects from the clipboard are pasted"
-msgstr "Вставить объекты из буфера обмена"
 
 
 msgid "Put pasted objects in the active collection"
@@ -62543,6 +62406,10 @@ msgstr "Цикл по перечислению в контексте"
 
 msgid "Toggle a context value"
 msgstr "Переключить значение контекста"
+
+
+msgid "Wrap"
+msgstr "Обёртка"
 
 
 msgid "Wrap back to the first/last values"
@@ -64242,10 +64109,6 @@ msgid "Tracking Settings Extras"
 msgstr "Дополнительные настройки трекинга"
 
 
-msgid "Lens"
-msgstr "Объектив"
-
-
 msgid "Tracking Settings Extra"
 msgstr "Дополнительные настройки трекинга"
 
@@ -65549,11 +65412,6 @@ msgstr "Интенсивность"
 msgctxt "Operator"
 msgid "Twist"
 msgstr "Скручивание"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "Передвинуть"
 
 
 msgid "Clone from Paint Slot"
@@ -67218,10 +67076,6 @@ msgstr "Число оставляемых старых версий в теку�
 
 msgid "Python Scripts Directory"
 msgstr "Папка скриптов Python"
-
-
-msgid "Alternate script path, matching the default layout with subdirectories: `startup`, `addons`, `modules`, and `presets` (requires restart)"
-msgstr "Альтернативная директория скриптов, совпадающая со стандартной схемой субдиректорий: `startup`, `addons`, `modules` и `presets` (необходим перезапуск)"
 
 
 msgid "Sounds Directory"
@@ -75615,6 +75469,10 @@ msgid "Visibility Icon"
 msgstr "Иконка видимости"
 
 
+msgid "Lens"
+msgstr "Объектив"
+
+
 msgid "Viewport lens angle"
 msgstr "Угол обзора вьюпорта"
 
@@ -82077,10 +81935,6 @@ msgid "Align to Vertex Normal"
 msgstr "Выровнять по нормалям вершин"
 
 
-msgid "Old"
-msgstr "Старый"
-
-
 msgid "Date"
 msgstr "Дата"
 
@@ -83184,6 +83038,11 @@ msgstr "Расширить"
 
 
 msgctxt "Operator"
+msgid "Slide"
+msgstr "Передвинуть"
+
+
+msgctxt "Operator"
 msgid "Mute Channels"
 msgstr "Выключить канал"
 
@@ -84260,20 +84119,20 @@ msgid "Move Line(s) Down"
 msgstr "Переместить строки вниз"
 
 
-msgid "File: *%s (unsaved)"
-msgstr "Файл: *%s (не сохранён)"
-
-
-msgid "File: %s"
-msgstr "Файл: %s"
-
-
 msgid "Text: External"
 msgstr "Текст: внешний"
 
 
 msgid "Text: Internal"
 msgstr "Текст: встроенный"
+
+
+msgid "File: *%s (unsaved)"
+msgstr "Файл: *%s (не сохранён)"
+
+
+msgid "File: %s"
+msgstr "Файл: %s"
 
 
 msgctxt "Operator"
@@ -84703,10 +84562,6 @@ msgid "Widget Label"
 msgstr "Заголовок виджета"
 
 
-msgid "Scripts"
-msgstr "Скрипты"
-
-
 msgid "Temporary Files"
 msgstr "Временные файлы"
 
@@ -85010,16 +84865,6 @@ msgstr "По схожести"
 msgctxt "Operator"
 msgid "Levels"
 msgstr "Уровни"
-
-
-msgctxt "Operator"
-msgid "Hue Saturation Value"
-msgstr "Тон/насыщенность/значение"
-
-
-msgctxt "Operator"
-msgid "Bright/Contrast"
-msgstr "Яркость/контраст"
 
 
 msgctxt "Operator"
@@ -86986,6 +86831,10 @@ msgid "Video_Editing"
 msgstr "Video_Editing"
 
 
+msgid "Untitled"
+msgstr "Без имени"
+
+
 msgid "Unable to make version backup: filename too short"
 msgstr "Ошибка создания резервной копии версии: слишком короткое имя файла"
 
@@ -87184,10 +87033,6 @@ msgstr "Нет драйвера, с которого нужно скопиров
 
 msgid "Driver has no variables to copy"
 msgstr "У драйвера нет переменных для копирования"
-
-
-msgid "No driver variables in clipboard to paste"
-msgstr "В буфере обмена нет переменных драйверов, которые можно вставить"
 
 
 msgid "Cannot paste driver variables without a driver"
@@ -87528,22 +87373,6 @@ msgstr "Действия для этой арматуры будут уничт�
 
 msgid "No pose to copy"
 msgstr "Нет копируемой позы"
-
-
-msgid "Copied pose to buffer"
-msgstr "Поза скопирована в буфер"
-
-
-msgid "Copy buffer is empty"
-msgstr "Буфер обмена пуст"
-
-
-msgid "Copy buffer is not from pose mode"
-msgstr "Буфер обмена не из режима позы"
-
-
-msgid "Copy buffer has no pose"
-msgstr "В буфере обмена нет поз"
 
 
 msgid "Programming error: missing clear transform function or keying set name"
@@ -90136,10 +89965,6 @@ msgid "Packed MultiLayer files cannot be painted: %s"
 msgstr "Рисование невозможно для многослойных упакованных файлов: %s"
 
 
-msgid "Untitled"
-msgstr "Без имени"
-
-
 msgid "Image could not be found"
 msgstr "Изображение не найдено"
 
@@ -90288,16 +90113,8 @@ msgid "Action '%s' will not be saved, create Fake User or Stash in NLA Stack to 
 msgstr "Действие «%s» не будет сохранено, создайте фиктивного пользователя или используйте функцию размещения в стеке НЛА для сохранения"
 
 
-msgid "No keyframes copied to keyframes copy/paste buffer"
-msgstr "Отсутствуют ключевые кадры, которые можно было бы добавить в буфер обмена"
-
-
 msgid "Keyframe pasting is not available for mask mode"
 msgstr "Вставка ключевых кадров недоступна в режиме маски"
-
-
-msgid "No data in buffer to paste"
-msgstr "Нет данных в буфере для вставки"
 
 
 msgid "Keyframe pasting is not available for grease pencil or mask mode"
@@ -93114,6 +92931,10 @@ msgid "Geometry Node Editor"
 msgstr "Нодовый редактор геометрии"
 
 
+msgid "Old"
+msgstr "Старый"
+
+
 msgid "Edge Crease"
 msgstr "Складка на ребре"
 
@@ -93536,11 +93357,6 @@ msgstr "Кривые"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "Смена оттенка"
-
-
-msgctxt "Sequence"
-msgid "Bright/Contrast"
-msgstr "Яркость/контраст"
 
 
 msgctxt "Sequence"

@@ -64,6 +64,7 @@ KERNEL_DATA_ARRAY(float2, light_background_conditional_cdf)
 KERNEL_DATA_ARRAY(KernelLightTreeNode, light_tree_nodes)
 KERNEL_DATA_ARRAY(KernelLightTreeEmitter, light_tree_emitters)
 KERNEL_DATA_ARRAY(uint, light_to_tree)
+KERNEL_DATA_ARRAY(uint, object_to_tree)
 KERNEL_DATA_ARRAY(uint, object_lookup_offset)
 KERNEL_DATA_ARRAY(uint, triangle_to_tree)
 

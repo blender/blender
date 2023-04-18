@@ -24,7 +24,7 @@ class NodeSetting(PropertyGroup):
     )
 
 
-# Base class for node 'Add' operators
+# Base class for node "Add" operators.
 class NodeAddOperator:
 
     type: StringProperty(
@@ -141,14 +141,14 @@ class NodeAddOperator:
 
 # Simple basic operator for adding a node
 class NODE_OT_add_node(NodeAddOperator, Operator):
-    '''Add a node to the active tree'''
+    """Add a node to the active tree"""
     bl_idname = "node.add_node"
     bl_label = "Add Node"
     bl_options = {'REGISTER', 'UNDO'}
 
 
 class NODE_OT_collapse_hide_unused_toggle(Operator):
-    '''Toggle collapsed nodes and hide unused sockets'''
+    """Toggle collapsed nodes and hide unused sockets"""
     bl_idname = "node.collapse_hide_unused_toggle"
     bl_label = "Collapse and Hide Unused Sockets"
     bl_options = {'REGISTER', 'UNDO'}
@@ -179,7 +179,7 @@ class NODE_OT_collapse_hide_unused_toggle(Operator):
 
 
 class NODE_OT_tree_path_parent(Operator):
-    '''Go to parent node tree'''
+    """Go to parent node tree"""
     bl_idname = "node.tree_path_parent"
     bl_label = "Parent Node Tree"
     bl_options = {'REGISTER', 'UNDO'}

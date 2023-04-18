@@ -36,8 +36,8 @@ set(DEFSRC
   rna_dynamicpaint.c
   rna_fcurve.c
   rna_fluid.c
-  rna_gpencil.c
-  rna_gpencil_modifier.c
+  rna_gpencil_legacy.c
+  rna_gpencil_legacy_modifier.c
   rna_image.c
   rna_key.c
   rna_lattice.c
@@ -431,7 +431,7 @@ set(LIB
   bf_editor_curve
   bf_editor_curves
   bf_editor_gizmo_library
-  bf_editor_gpencil
+  bf_editor_gpencil_legacy
   bf_editor_io
   bf_editor_mesh
   bf_editor_object

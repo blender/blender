@@ -60,13 +60,24 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
   CustomData_add_layer_named(
       &this->point_data, CD_PROP_FLOAT3, CD_CONSTRUCT, this->point_num, ATTR_POSITION.c_str());
 
-  this->curve_offsets = (int *)MEM_malloc_arrayN(this->curve_num + 1, sizeof(int), __func__);
-#ifdef DEBUG
-  this->offsets_for_write().fill(-1);
-#endif
-  this->offsets_for_write().first() = 0;
-
   this->runtime = MEM_new<CurvesGeometryRuntime>(__func__);
+
+  if (curve_num > 0) {
+    this->curve_offsets = static_cast<int *>(
+        MEM_malloc_arrayN(this->curve_num + 1, sizeof(int), __func__));
+    this->runtime->curve_offsets_sharing_info = implicit_sharing::info_for_mem_free(
+        this->curve_offsets);
+#ifdef DEBUG
+    this->offsets_for_write().fill(-1);
+#endif
+    /* Set common values for convenience. */
+    this->curve_offsets[0] = 0;
+    this->curve_offsets[this->curve_num] = this->point_num;
+  }
+  else {
+    this->curve_offsets = nullptr;
+  }
+
   /* Fill the type counts with the default so they're in a valid state. */
   this->runtime->type_counts[CURVE_TYPE_CATMULL_ROM] = curve_num;
 }
@@ -83,9 +94,10 @@ static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
   CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, dst.point_num);
   CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, dst.curve_num);
 
-  MEM_SAFE_FREE(dst.curve_offsets);
-  dst.curve_offsets = (int *)MEM_malloc_arrayN(dst.point_num + 1, sizeof(int), __func__);
-  dst.offsets_for_write().copy_from(src.offsets());
+  implicit_sharing::copy_shared_pointer(src.curve_offsets,
+                                        src.runtime->curve_offsets_sharing_info,
+                                        &dst.curve_offsets,
+                                        &dst.runtime->curve_offsets_sharing_info);
 
   dst.tag_topology_changed();
 
@@ -127,7 +139,6 @@ static void move_curves_geometry(CurvesGeometry &dst, CurvesGeometry &src)
   src.curve_num = 0;
 
   std::swap(dst.curve_offsets, src.curve_offsets);
-  MEM_SAFE_FREE(src.curve_offsets);
 
   std::swap(dst.runtime, src.runtime);
 }
@@ -149,7 +160,8 @@ CurvesGeometry::~CurvesGeometry()
 {
   CustomData_free(&this->point_data, this->point_num);
   CustomData_free(&this->curve_data, this->curve_num);
-  MEM_SAFE_FREE(this->curve_offsets);
+  implicit_sharing::free_shared_data(&this->curve_offsets,
+                                     &this->runtime->curve_offsets_sharing_info);
   MEM_delete(this->runtime);
   this->runtime = nullptr;
 }
@@ -326,6 +338,8 @@ Span<int> CurvesGeometry::offsets() const
 }
 MutableSpan<int> CurvesGeometry::offsets_for_write()
 {
+  implicit_sharing::make_trivial_data_mutable(
+      &this->curve_offsets, &this->runtime->curve_offsets_sharing_info, this->curve_num + 1);
   return {this->curve_offsets, this->curve_num + 1};
 }
 
@@ -610,58 +624,74 @@ Span<float3> CurvesGeometry::evaluated_positions() const
 
     const OffsetIndices<int> points_by_curve = this->points_by_curve();
     const OffsetIndices<int> evaluated_points_by_curve = this->evaluated_points_by_curve();
-    const VArray<int8_t> types = this->curve_types();
-    const VArray<bool> cyclic = this->cyclic();
-    const VArray<int> resolution = this->resolution();
     const Span<float3> positions = this->positions();
 
-    const Span<float3> handle_positions_left = this->handle_positions_left();
-    const Span<float3> handle_positions_right = this->handle_positions_right();
-    const Span<int> all_bezier_offsets = runtime.evaluated_offsets_cache.data().all_bezier_offsets;
-
-    const VArray<int8_t> nurbs_orders = this->nurbs_orders();
-    const Span<float> nurbs_weights = this->nurbs_weights();
-    const Span<curves::nurbs::BasisCache> nurbs_basis_cache = runtime.nurbs_basis_cache.data();
-
-    threading::parallel_for(this->curves_range(), 128, [&](IndexRange curves_range) {
-      for (const int curve_index : curves_range) {
-        const IndexRange points = points_by_curve[curve_index];
-        const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
-
-        switch (types[curve_index]) {
-          case CURVE_TYPE_CATMULL_ROM:
-            curves::catmull_rom::interpolate_to_evaluated(
-                positions.slice(points),
-                cyclic[curve_index],
-                resolution[curve_index],
-                evaluated_positions.slice(evaluated_points));
-            break;
-          case CURVE_TYPE_POLY:
-            evaluated_positions.slice(evaluated_points).copy_from(positions.slice(points));
-            break;
-          case CURVE_TYPE_BEZIER: {
-            const IndexRange offsets = curves::per_curve_point_offsets_range(points, curve_index);
-            curves::bezier::calculate_evaluated_positions(
-                positions.slice(points),
-                handle_positions_left.slice(points),
-                handle_positions_right.slice(points),
-                all_bezier_offsets.slice(offsets),
-                evaluated_positions.slice(evaluated_points));
-            break;
-          }
-          case CURVE_TYPE_NURBS:
-            curves::nurbs::interpolate_to_evaluated(nurbs_basis_cache[curve_index],
-                                                    nurbs_orders[curve_index],
-                                                    nurbs_weights.slice_safe(points),
-                                                    positions.slice(points),
-                                                    evaluated_positions.slice(evaluated_points));
-            break;
-          default:
-            BLI_assert_unreachable();
-            break;
+    auto evaluate_catmull = [&](const IndexMask selection) {
+      const VArray<bool> cyclic = this->cyclic();
+      const VArray<int> resolution = this->resolution();
+      threading::parallel_for(selection.index_range(), 128, [&](const IndexRange range) {
+        for (const int curve_index : selection.slice(range)) {
+          const IndexRange points = points_by_curve[curve_index];
+          const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
+          curves::catmull_rom::interpolate_to_evaluated(
+              positions.slice(points),
+              cyclic[curve_index],
+              resolution[curve_index],
+              evaluated_positions.slice(evaluated_points));
         }
+      });
+    };
+    auto evaluate_poly = [&](const IndexMask selection) {
+      curves::copy_point_data(
+          points_by_curve, evaluated_points_by_curve, selection, positions, evaluated_positions);
+    };
+    auto evaluate_bezier = [&](const IndexMask selection) {
+      const Span<float3> handle_positions_left = this->handle_positions_left();
+      const Span<float3> handle_positions_right = this->handle_positions_right();
+      if (handle_positions_left.is_empty() || handle_positions_right.is_empty()) {
+        curves::fill_points(evaluated_points_by_curve, selection, float3(0), evaluated_positions);
+        return;
       }
-    });
+      const Span<int> all_bezier_offsets =
+          runtime.evaluated_offsets_cache.data().all_bezier_offsets;
+      threading::parallel_for(selection.index_range(), 128, [&](const IndexRange range) {
+        for (const int curve_index : selection.slice(range)) {
+          const IndexRange points = points_by_curve[curve_index];
+          const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
+          const IndexRange offsets = curves::per_curve_point_offsets_range(points, curve_index);
+          curves::bezier::calculate_evaluated_positions(
+              positions.slice(points),
+              handle_positions_left.slice(points),
+              handle_positions_right.slice(points),
+              all_bezier_offsets.slice(offsets),
+              evaluated_positions.slice(evaluated_points));
+        }
+      });
+    };
+    auto evaluate_nurbs = [&](const IndexMask selection) {
+      this->ensure_nurbs_basis_cache();
+      const VArray<int8_t> nurbs_orders = this->nurbs_orders();
+      const Span<float> nurbs_weights = this->nurbs_weights();
+      const Span<curves::nurbs::BasisCache> nurbs_basis_cache = runtime.nurbs_basis_cache.data();
+      threading::parallel_for(selection.index_range(), 128, [&](const IndexRange range) {
+        for (const int curve_index : selection.slice(range)) {
+          const IndexRange points = points_by_curve[curve_index];
+          const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
+          curves::nurbs::interpolate_to_evaluated(nurbs_basis_cache[curve_index],
+                                                  nurbs_orders[curve_index],
+                                                  nurbs_weights.slice_safe(points),
+                                                  positions.slice(points),
+                                                  evaluated_positions.slice(evaluated_points));
+        }
+      });
+    };
+    curves::foreach_curve_by_type(this->curve_types(),
+                                  this->curve_type_counts(),
+                                  this->curves_range(),
+                                  evaluate_catmull,
+                                  evaluate_poly,
+                                  evaluate_bezier,
+                                  evaluate_nurbs);
   });
   return runtime.evaluated_position_cache.data();
 }
@@ -948,8 +978,14 @@ void CurvesGeometry::resize(const int points_num, const int curves_num)
   }
   if (curves_num != this->curve_num) {
     CustomData_realloc(&this->curve_data, this->curves_num(), curves_num);
+    implicit_sharing::resize_trivial_array(&this->curve_offsets,
+                                           &this->runtime->curve_offsets_sharing_info,
+                                           this->curve_num == 0 ? 0 : (this->curve_num + 1),
+                                           curves_num + 1);
+    /* Set common values for convenience. */
+    this->curve_offsets[0] = 0;
+    this->curve_offsets[curves_num] = this->point_num;
     this->curve_num = curves_num;
-    this->curve_offsets = (int *)MEM_reallocN(this->curve_offsets, sizeof(int) * (curves_num + 1));
   }
   this->tag_topology_changed();
 }
@@ -1585,7 +1621,11 @@ void CurvesGeometry::blend_read(BlendDataReader &reader)
   CustomData_blend_read(&reader, &this->point_data, this->point_num);
   CustomData_blend_read(&reader, &this->curve_data, this->curve_num);
 
-  BLO_read_int32_array(&reader, this->curve_num + 1, &this->curve_offsets);
+  if (this->curve_offsets) {
+    BLO_read_int32_array(&reader, this->curve_num + 1, &this->curve_offsets);
+    this->runtime->curve_offsets_sharing_info = implicit_sharing::info_for_mem_free(
+        this->curve_offsets);
+  }
 
   /* Recalculate curve type count cache that isn't saved in files. */
   this->update_curve_types();

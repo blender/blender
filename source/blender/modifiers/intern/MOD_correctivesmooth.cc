@@ -127,7 +127,7 @@ static void mesh_get_weights(const MDeformVert *dvert,
 
 static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
 {
-  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::Span<blender::int2> edges = mesh->edges();
   const blender::OffsetIndices polys = mesh->polys();
   const blender::Span<int> corner_edges = mesh->corner_edges();
 
@@ -144,8 +144,8 @@ static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
 
   for (const int64_t i : edges.index_range()) {
     if (boundaries[i] == 1) {
-      smooth_weights[edges[i].v1] = 0.0f;
-      smooth_weights[edges[i].v2] = 0.0f;
+      smooth_weights[edges[i][0]] = 0.0f;
+      smooth_weights[edges[i][1]] = 0.0f;
     }
   }
 
@@ -168,7 +168,7 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
   uint i;
 
   const uint edges_num = uint(mesh->totedge);
-  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::Span<blender::int2> edges = mesh->edges();
 
   struct SmoothingData_Simple {
     float delta[3];
@@ -180,8 +180,8 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
 
   /* calculate as floats to avoid int->float conversion in #smooth_iter */
   for (i = 0; i < edges_num; i++) {
-    vertex_edge_count_div[edges[i].v1] += 1.0f;
-    vertex_edge_count_div[edges[i].v2] += 1.0f;
+    vertex_edge_count_div[edges[i][0]] += 1.0f;
+    vertex_edge_count_div[edges[i][1]] += 1.0f;
   }
 
   /* a little confusing, but we can include 'lambda' and smoothing weight
@@ -210,10 +210,10 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
       SmoothingData_Simple *sd_v2;
       float edge_dir[3];
 
-      sub_v3_v3v3(edge_dir, vertexCos[edges[i].v2], vertexCos[edges[i].v1]);
+      sub_v3_v3v3(edge_dir, vertexCos[edges[i][1]], vertexCos[edges[i][0]]);
 
-      sd_v1 = &smooth_data[edges[i].v1];
-      sd_v2 = &smooth_data[edges[i].v2];
+      sd_v1 = &smooth_data[edges[i][0]];
+      sd_v2 = &smooth_data[edges[i][1]];
 
       add_v3_v3(sd_v1->delta, edge_dir);
       sub_v3_v3(sd_v2->delta, edge_dir);
@@ -246,7 +246,7 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
   /* NOTE: the way this smoothing method works, its approx half as strong as the simple-smooth,
    * and 2.0 rarely spikes, double the value for consistent behavior. */
   const float lambda = csmd->lambda * 2.0f;
-  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::Span<blender::int2> edges = mesh->edges();
   uint i;
 
   struct SmoothingData_Weighted {
@@ -260,8 +260,8 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
   float *vertex_edge_count = static_cast<float *>(
       MEM_calloc_arrayN(verts_num, sizeof(float), __func__));
   for (i = 0; i < edges_num; i++) {
-    vertex_edge_count[edges[i].v1] += 1.0f;
-    vertex_edge_count[edges[i].v2] += 1.0f;
+    vertex_edge_count[edges[i][0]] += 1.0f;
+    vertex_edge_count[edges[i][1]] += 1.0f;
   }
 
   /* -------------------------------------------------------------------- */
@@ -274,14 +274,14 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
       float edge_dir[3];
       float edge_dist;
 
-      sub_v3_v3v3(edge_dir, vertexCos[edges[i].v2], vertexCos[edges[i].v1]);
+      sub_v3_v3v3(edge_dir, vertexCos[edges[i][1]], vertexCos[edges[i][0]]);
       edge_dist = len_v3(edge_dir);
 
       /* weight by distance */
       mul_v3_fl(edge_dir, edge_dist);
 
-      sd_v1 = &smooth_data[edges[i].v1];
-      sd_v2 = &smooth_data[edges[i].v2];
+      sd_v1 = &smooth_data[edges[i][0]];
+      sd_v2 = &smooth_data[edges[i][1]];
 
       add_v3_v3(sd_v1->delta, edge_dir);
       sub_v3_v3(sd_v2->delta, edge_dir);

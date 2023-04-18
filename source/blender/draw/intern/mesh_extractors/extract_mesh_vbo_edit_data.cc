@@ -183,7 +183,7 @@ static void extract_edit_data_iter_loose_edge_bm(const MeshRenderData *mr,
 }
 
 static void extract_edit_data_iter_loose_edge_mesh(const MeshRenderData *mr,
-                                                   const MEdge *edge,
+                                                   const int2 edge,
                                                    const int ledge_index,
                                                    void *_data)
 {
@@ -192,8 +192,8 @@ static void extract_edit_data_iter_loose_edge_mesh(const MeshRenderData *mr,
   memset(data, 0x0, sizeof(*data) * 2);
   const int e_index = mr->loose_edges[ledge_index];
   BMEdge *eed = bm_original_edge_get(mr, e_index);
-  BMVert *eve1 = bm_original_vert_get(mr, edge->v1);
-  BMVert *eve2 = bm_original_vert_get(mr, edge->v2);
+  BMVert *eve1 = bm_original_vert_get(mr, edge[0]);
+  BMVert *eve2 = bm_original_vert_get(mr, edge[1]);
   if (eed) {
     mesh_render_data_edge_flag(mr, eed, &data[0]);
     data[1] = data[0];

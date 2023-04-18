@@ -144,8 +144,15 @@ static void world_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
   /* nodetree is integral part of world, no libdata */
   if (wrld->nodetree) {
-    BLO_write_struct(writer, bNodeTree, wrld->nodetree);
-    ntreeBlendWrite(writer, wrld->nodetree);
+    BLO_Write_IDBuffer *temp_embedded_id_buffer = BLO_write_allocate_id_buffer();
+    BLO_write_init_id_buffer_from_id(
+        temp_embedded_id_buffer, &wrld->nodetree->id, BLO_write_is_undo(writer));
+    BLO_write_struct_at_address(writer,
+                                bNodeTree,
+                                wrld->nodetree,
+                                BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
+    ntreeBlendWrite(writer, (bNodeTree *)BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
+    BLO_write_destroy_id_buffer(&temp_embedded_id_buffer);
   }
 
   BKE_previewimg_blend_write(writer, wrld->preview);

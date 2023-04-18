@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -412,10 +412,6 @@ msgstr "Krommes"
 
 msgid "Filename"
 msgstr "Bestandsnaam"
-
-
-msgid "Grease Pencil"
-msgstr "Vetkrijt"
 
 
 msgid "Images"
@@ -1385,6 +1381,10 @@ msgstr "2D"
 
 msgid "Fonts"
 msgstr "Lettertypen"
+
+
+msgid "Grease Pencil"
+msgstr "Vetkrijt"
 
 
 msgid "Particles Settings"
@@ -6050,10 +6050,6 @@ msgid "Export UV Layout"
 msgstr "Exporteer UV Indeling"
 
 
-msgid "New Image"
-msgstr "Nieuwe Afbeelding"
-
-
 msgid "Selected Faces"
 msgstr "Geselecteerde Vlakken"
 
@@ -7709,10 +7705,6 @@ msgstr "Keer Om"
 msgctxt "Operator"
 msgid "Copy All Materials to Selected"
 msgstr "Kopieer Alle Materialen naar Geselecteerde"
-
-
-msgid "Old"
-msgstr "Oud"
 
 
 msgid "Date"
@@ -9601,6 +9593,10 @@ msgstr "Pad:"
 
 msgid "Speed:"
 msgstr "Snelheid:"
+
+
+msgid "Old"
+msgstr "Oud"
 
 
 msgid "Random Roughness"

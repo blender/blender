@@ -440,7 +440,7 @@ class _GenericBone:
     def _other_bones(self):
         id_data = self.id_data
 
-        # `id_data` is an 'Object' for `PosePone`, otherwise it's an `Armature`.
+        # `id_data` is an `Object` for `PosePone`, otherwise it's an `Armature`.
         if isinstance(self, PoseBone):
             return id_data.pose.bones
         if isinstance(self, EditBone):
@@ -688,7 +688,7 @@ class RNAMetaPropGroup(StructMetaPropGroup, RNAMeta):
     pass
 
 
-# Same as 'Operator'
+# Same as `Operator`.
 # only without 'as_keywords'
 class Gizmo(StructRNA):
     __slots__ = ()

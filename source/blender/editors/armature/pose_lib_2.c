@@ -123,7 +123,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
   }
 
   bPose *pose = pbd->ob->pose;
-  bAction *act = pbd->act;
+  bAction *act = poselib_action_to_blend(pbd);
 
   KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
   ListBase dsources = {NULL, NULL};

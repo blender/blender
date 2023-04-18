@@ -30,21 +30,21 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
 
   if (!data.edges.is_empty()) {
     mesh->totedge = int(data.edges.size());
-    CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_SET_DEFAULT, mesh->totedge);
-    MutableSpan<MEdge> edges = mesh->edges_for_write();
+    CustomData_add_layer_named(
+        &mesh->edata, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh->totedge, ".edge_verts");
+    MutableSpan<int2> edges = mesh->edges_for_write();
     for (int i = 0; i < mesh->totedge; i++) {
-      uint32_t v1 = data.edges[i].first;
-      uint32_t v2 = data.edges[i].second;
+      int32_t v1 = data.edges[i].first;
+      int32_t v2 = data.edges[i].second;
       if (v1 >= mesh->totvert) {
-        fprintf(stderr, "Invalid PLY vertex index in edge %i/1: %u\n", i, v1);
+        fprintf(stderr, "Invalid PLY vertex index in edge %i/1: %d\n", i, v1);
         v1 = 0;
       }
       if (v2 >= mesh->totvert) {
-        fprintf(stderr, "Invalid PLY vertex index in edge %i/2: %u\n", i, v2);
+        fprintf(stderr, "Invalid PLY vertex index in edge %i/2: %d\n", i, v2);
         v2 = 0;
       }
-      edges[i].v1 = v1;
-      edges[i].v2 = v2;
+      edges[i] = {v1, v2};
     }
   }
 

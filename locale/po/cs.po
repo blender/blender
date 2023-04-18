@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -1472,10 +1472,6 @@ msgstr "Cesta k souboru .blend"
 
 msgid "Vector Fonts"
 msgstr "Vektorová písma"
-
-
-msgid "Grease Pencil"
-msgstr "Skicovací tužka"
 
 
 msgid "Images"
@@ -7019,6 +7015,10 @@ msgid "Fonts"
 msgstr "Fonts"
 
 
+msgid "Grease Pencil"
+msgstr "Skicovací tužka"
+
+
 msgid "Particles Settings"
 msgstr "Nastavení Částic"
 
@@ -12138,10 +12138,6 @@ msgid "Memory"
 msgstr "Paměť"
 
 
-msgid "Modified"
-msgstr "Modifikátory"
-
-
 msgid "Lines of text"
 msgstr "Pohled & Ovládání"
 
@@ -17215,10 +17211,6 @@ msgid "Y position of the middle of the box"
 msgstr "Počáteční pozice pro osu Y"
 
 
-msgid "Bright/Contrast"
-msgstr "Odstranit pruh"
-
-
 msgid "Channel Key"
 msgstr "Kanál"
 
@@ -17685,10 +17677,6 @@ msgstr "Otočit"
 
 msgid "Hue Correct"
 msgstr "Odznačit spojené"
-
-
-msgid "Hue Saturation Value"
-msgstr "Sytost"
 
 
 msgid "ID Mask"
@@ -18256,10 +18244,6 @@ msgid "Blackbody"
 msgstr "Černé tělo"
 
 
-msgid "Bright Contrast"
-msgstr "Jasný kontrast"
-
-
 msgid "Anisotropic BSDF"
 msgstr "Anizotropní BSDF"
 
@@ -18756,28 +18740,8 @@ msgid "Use wave texture in rings"
 msgstr "Zobrazit materiál daného objektu"
 
 
-msgid "Multiply Add"
-msgstr "Násobit Vše"
-
-
-msgid "Reflect"
-msgstr "Zrcadlit"
-
-
 msgid "Normalize A"
 msgstr "Normalizovat A"
-
-
-msgid "Fraction"
-msgstr "Zlomek"
-
-
-msgid "Modulo"
-msgstr "Modulo"
-
-
-msgid "Wrap"
-msgstr "Zbalit"
 
 
 msgid "Vector Rotate"
@@ -19005,10 +18969,6 @@ msgstr "Myš Y"
 msgctxt "Operator"
 msgid "Copy Keyframes"
 msgstr "Zobrazit klíče"
-
-
-msgid "Copy selected keyframes to the copy/paste buffer"
-msgstr "Konvertuje označené trojúhlníky na čtyřúhelníky"
 
 
 msgctxt "Operator"
@@ -20419,10 +20379,6 @@ msgstr "Cíl vazby"
 msgctxt "Operator"
 msgid "Copy Tracks"
 msgstr "Sledování postaru"
-
-
-msgid "Copy selected tracks to clipboard"
-msgstr "Odstranit označené značky"
 
 
 msgctxt "Operator"
@@ -25778,10 +25734,6 @@ msgid "Zoom in/out the background image"
 msgstr "Seznam obrázků na pozadí"
 
 
-msgid "Copies selected nodes to the clipboard"
-msgstr "Odstranit označené značky"
-
-
 msgctxt "Operator"
 msgid "Collapse and Hide Unused Sockets"
 msgstr "Sbalit a skrýt nepoužené sokety"
@@ -28489,10 +28441,6 @@ msgid "Copy Pose"
 msgstr "Kopírovat pózu"
 
 
-msgid "Copies the current pose of the selected bones to copy/paste buffer"
-msgstr "Kopírovat aktuální pózu do bufferu"
-
-
 msgctxt "Operator"
 msgid "Add Bone Group"
 msgstr "Přidat do skupiny"
@@ -31055,6 +31003,10 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Vybrat"
 
 
+msgid "Modified"
+msgstr "Modifikátory"
+
+
 msgid "Fill Opacity"
 msgstr "Neprůsvitnost výplně"
 
@@ -31087,10 +31039,6 @@ msgstr "Skrýt označené plošky"
 msgctxt "Operator"
 msgid "Lightmap Pack"
 msgstr "Přidat primitivum"
-
-
-msgid "New Image"
-msgstr "Nový obrázek"
 
 
 msgid "Pack Quality"
@@ -31129,6 +31077,10 @@ msgstr "Minimalizovat roztažení"
 msgctxt "Operator"
 msgid "Pack Islands"
 msgstr "Přibalit obrázek"
+
+
+msgid "Fraction"
+msgstr "Zlomek"
 
 
 msgctxt "Operator"
@@ -31469,10 +31421,6 @@ msgid "Copy Objects"
 msgstr "Kopírovat Objekty"
 
 
-msgid "Selected objects are copied to the clipboard"
-msgstr "Vybrané objekty jsou zkopírovány"
-
-
 msgctxt "Operator"
 msgid "Set 3D Cursor"
 msgstr "Nastavit 3D kurzor"
@@ -31578,10 +31526,6 @@ msgstr "Nastaví aktivní objekt jako aktivní kameru pro tento pohled nebo scé
 msgctxt "Operator"
 msgid "Paste Objects"
 msgstr "Vložit Objekty"
-
-
-msgid "Objects from the clipboard are pasted"
-msgstr "Zkopírované objekty jsou vloženy"
 
 
 msgctxt "Operator"
@@ -32048,6 +31992,10 @@ msgstr "Auto Připojení"
 
 msgid "Import Units"
 msgstr "Importovat Jednotky"
+
+
+msgid "Wrap"
+msgstr "Zbalit"
 
 
 msgid "Header Text"
@@ -32949,10 +32897,6 @@ msgstr "Nastavení sledování"
 
 msgid "Tracking Settings Extras"
 msgstr "Doplňky nastavení sledování"
-
-
-msgid "Lens"
-msgstr "Čočka"
 
 
 msgid "Tracking Settings Extra"
@@ -34024,11 +33968,6 @@ msgstr "Síla"
 msgctxt "Operator"
 msgid "Twist"
 msgstr "Zakroutit"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "Z"
 
 
 msgid "Particle Tool"
@@ -38680,6 +38619,10 @@ msgid "Visibility Icon"
 msgstr "Ikona Viditelnosti"
 
 
+msgid "Lens"
+msgstr "Čočka"
+
+
 msgid "Lock to Bone"
 msgstr "Zamknout ke kosti"
 
@@ -41745,10 +41688,6 @@ msgid "All Edges"
 msgstr "Všechny Hrany"
 
 
-msgid "Old"
-msgstr "Starý"
-
-
 msgid "Date"
 msgstr "Datum"
 
@@ -42532,6 +42471,11 @@ msgstr "Rozšířit"
 
 
 msgctxt "Operator"
+msgid "Slide"
+msgstr "Z"
+
+
+msgctxt "Operator"
 msgid "Mute Channels"
 msgstr "Ztlumit Kanály"
 
@@ -43254,20 +43198,20 @@ msgid "One Object"
 msgstr "Jeden objekt"
 
 
-msgid "File: *%s (unsaved)"
-msgstr "Soubor: *%s (neuložený)"
-
-
-msgid "File: %s"
-msgstr "Soubor: %s"
-
-
 msgid "Text: External"
 msgstr "Text: Externí"
 
 
 msgid "Text: Internal"
 msgstr "Text: Interní"
+
+
+msgid "File: *%s (unsaved)"
+msgstr "Soubor: *%s (neuložený)"
+
+
+msgid "File: %s"
+msgstr "Soubor: %s"
 
 
 msgctxt "Operator"
@@ -43622,10 +43566,6 @@ msgid "Panel Title"
 msgstr "Název Panelu"
 
 
-msgid "Scripts"
-msgstr "Skripty"
-
-
 msgid "Timer (Minutes)"
 msgstr "Časovač (minuty)"
 
@@ -43826,11 +43766,6 @@ msgstr "Podobný"
 msgctxt "Operator"
 msgid "Levels"
 msgstr "Úrovně"
-
-
-msgctxt "Operator"
-msgid "Bright/Contrast"
-msgstr "Jas/Kontrast"
 
 
 msgctxt "Operator"
@@ -45094,10 +45029,6 @@ msgstr "Klíčové snímky"
 
 msgid "No pose to copy"
 msgstr "Vlastnosti pro zkopírování"
-
-
-msgid "Copy buffer is empty"
-msgstr "Odstranit vybrané vertexy z aktuální skupiny vertexů"
 
 
 msgid "No point was selected"
@@ -46684,10 +46615,6 @@ msgid "Active Keyframe"
 msgstr "Aktivní snímek"
 
 
-msgid "No keyframes copied to keyframes copy/paste buffer"
-msgstr "Konvertuje označené trojúhlníky na čtyřúhelníky"
-
-
 msgid "No selected F-Curves to paste into"
 msgstr "Rozdělí vybranou oblast na dvě nová okna"
 
@@ -47565,6 +47492,10 @@ msgstr "Kvadratické"
 
 msgid "Val"
 msgstr "Hodnota"
+
+
+msgid "Old"
+msgstr "Starý"
 
 
 msgid "Edge Crease"

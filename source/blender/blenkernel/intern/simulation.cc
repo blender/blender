@@ -107,8 +107,17 @@ static void simulation_blend_write(BlendWriter *writer, ID *id, const void *id_a
 
   /* nodetree is integral part of simulation, no libdata */
   if (simulation->nodetree) {
-    BLO_write_struct(writer, bNodeTree, simulation->nodetree);
-    ntreeBlendWrite(writer, simulation->nodetree);
+    BLO_Write_IDBuffer *temp_embedded_id_buffer = BLO_write_allocate_id_buffer();
+    BLO_write_init_id_buffer_from_id(
+        temp_embedded_id_buffer, &simulation->nodetree->id, BLO_write_is_undo(writer));
+    BLO_write_struct_at_address(writer,
+                                bNodeTree,
+                                simulation->nodetree,
+                                BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
+    ntreeBlendWrite(
+        writer,
+        reinterpret_cast<bNodeTree *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
+    BLO_write_destroy_id_buffer(&temp_embedded_id_buffer);
   }
 }
 

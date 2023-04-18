@@ -539,7 +539,7 @@ void GPU_framebuffer_read_color(GPUFrameBuffer *framebuffer,
  * TODO: Emulate this by doing some slow texture copy on the backend side or try to read the areas
  * offscreen textures directly.
  */
-void GPU_frontbuffer_read_pixels(
+void GPU_frontbuffer_read_color(
     int x, int y, int width, int height, int channels, eGPUDataFormat data_format, void *r_data);
 
 /**
@@ -588,9 +588,14 @@ typedef struct GPUOffScreen GPUOffScreen;
  * \a format is the format of the color buffer.
  * If \a err_out is not `nullptr` it will be use to write any configuration error message..
  * \note This function binds the framebuffer to the active context.
+ * \note `GPU_TEXTURE_USAGE_ATTACHMENT` is added to the usage parameter by default.
  */
-GPUOffScreen *GPU_offscreen_create(
-    int width, int height, bool with_depth_buffer, eGPUTextureFormat format, char err_out[256]);
+GPUOffScreen *GPU_offscreen_create(int width,
+                                   int height,
+                                   bool with_depth_buffer,
+                                   eGPUTextureFormat format,
+                                   eGPUTextureUsage usage,
+                                   char err_out[256]);
 
 /**
  * Free a #GPUOffScreen.
@@ -618,7 +623,12 @@ void GPU_offscreen_unbind(GPUOffScreen *offscreen, bool restore);
  * attachment type.
  * IMPORTANT: \a r_data must be big enough for all pixels in \a data_format .
  */
-void GPU_offscreen_read_pixels(GPUOffScreen *offscreen, eGPUDataFormat data_format, void *r_data);
+void GPU_offscreen_read_color(GPUOffScreen *offscreen, eGPUDataFormat data_format, void *r_data);
+/**
+ * A version of #GPU_offscreen_read_color that reads into a region.
+ */
+void GPU_offscreen_read_color_region(
+    GPUOffScreen *offscreen, eGPUDataFormat data_format, int x, int y, int w, int h, void *r_data);
 
 /**
  * Blit the offscreen color texture to the active framebuffer at the `(x, y)` location.

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -1012,10 +1012,6 @@ msgstr "Ścieżka do pliku .blend"
 
 msgid "Vector Fonts"
 msgstr "Czcionki wektorowe"
-
-
-msgid "Grease Pencil"
-msgstr "Szkicownik"
 
 
 msgid "Images"
@@ -6056,6 +6052,10 @@ msgid "Size"
 msgstr "Rozmiar"
 
 
+msgid "Grease Pencil"
+msgstr "Szkicownik"
+
+
 msgid "Save"
 msgstr "Zapisz"
 
@@ -7385,10 +7385,6 @@ msgstr "Akcje na tym szkielecie zostaną zniszczone przez tę nową pozę spoczy
 
 msgid "No pose to copy"
 msgstr "Brak pozy do skopiowania"
-
-
-msgid "Copy buffer is empty"
-msgstr "Bufor kopiowania jest pusty"
 
 
 msgid "Programming error: missing clear transform function or keying set name"
@@ -9176,10 +9172,6 @@ msgstr "Akcja musi posiadać przynajmniej jedną klatkę kluczową lub modyfikat
 
 msgid "Action has already been stashed"
 msgstr "Akcja została już przytrzymana (stashed)"
-
-
-msgid "No keyframes copied to keyframes copy/paste buffer"
-msgstr "Nie skopiowano klatek kluczowych do bufora kopiuj/wklej klatek kluczowych"
 
 
 msgid "Keyframe pasting is not available for mask mode"
@@ -11167,11 +11159,6 @@ msgstr "Krzywe"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "Korekta barwy"
-
-
-msgctxt "Sequence"
-msgid "Bright/Contrast"
-msgstr "Jasność/Kontrast"
 
 
 msgid "Strips must be the same length"

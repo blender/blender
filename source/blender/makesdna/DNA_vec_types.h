@@ -23,12 +23,12 @@ typedef struct vec2f {
   float x, y;
 } vec2f;
 
-/* not used at the moment */
-/*
 typedef struct vec2i {
   int x, y;
 } vec2i;
 
+/* not used at the moment */
+/*
 typedef struct vec2d {
   double x, y;
 } vec2d;

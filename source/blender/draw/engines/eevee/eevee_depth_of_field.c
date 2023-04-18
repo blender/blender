@@ -576,7 +576,8 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
 
     void *owner = (void *)&EEVEE_depth_of_field_init;
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
+                             GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
     fx->dof_downsample_tx = DRW_texture_pool_query_2d_ex(
         UNPACK2(quater_res), COLOR_FORMAT, usage, owner);
 

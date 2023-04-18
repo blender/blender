@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -3303,10 +3303,6 @@ msgid "Path to the matching po file"
 msgstr "ตำแหน่งไปยังไฟล์ po ที่ตรงกัน"
 
 
-msgid "New Image"
-msgstr "ภาพใหม่"
-
-
 msgid "Reset UV projection"
 msgstr "ตั้งค่าการฉาย UV ใหม่"
 
@@ -3430,10 +3426,6 @@ msgstr "การแสดงหน้ากาก"
 msgctxt "MovieClip"
 msgid "Scene Setup"
 msgstr "การติดตั้งฉาก"
-
-
-msgid "Lens"
-msgstr "เลนส์"
 
 
 msgid "Transparent"
@@ -3888,6 +3880,10 @@ msgid "Top Line"
 msgstr "เส้นบน"
 
 
+msgid "Lens"
+msgstr "เลนส์"
+
+
 msgid "Lock to Cursor"
 msgstr "ล็อกที่เคอร์เซอร์"
 
@@ -4205,10 +4201,6 @@ msgstr "ทั้งหมด"
 msgctxt "Operator"
 msgid "None"
 msgstr "ไม่มี"
-
-
-msgid "Old"
-msgstr "เก่า"
 
 
 msgid "Date"
@@ -5630,6 +5622,10 @@ msgstr "แทนที่อันดั้งเดิม"
 
 msgid "Val"
 msgstr "Val"
+
+
+msgid "Old"
+msgstr "เก่า"
 
 
 msgid "Shader Editor"

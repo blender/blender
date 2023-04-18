@@ -196,37 +196,41 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
                              world_and_axes_normal_transform);
 
     /* Face data. */
-    plyData.face_vertices.reserve(mesh->totloop);
-    plyData.face_sizes.reserve(mesh->totpoly);
+    plyData.face_vertices.reserve(plyData.face_vertices.size() + mesh->totloop);
+    for (const int corner : IndexRange(mesh->totloop)) {
+      int ply_index = loop_to_ply[corner];
+      BLI_assert(ply_index >= 0 && ply_index < ply_to_vertex.size());
+      plyData.face_vertices.append_unchecked(ply_index + vertex_offset);
+    }
+
+    plyData.face_sizes.reserve(plyData.face_sizes.size() + mesh->totpoly);
     for (const int i : polys.index_range()) {
       const IndexRange poly = polys[i];
-      for (const int corner : poly) {
-        int ply_index = loop_to_ply[corner];
-        BLI_assert(ply_index >= 0 && ply_index < ply_to_vertex.size());
-        plyData.face_vertices.append(ply_index + vertex_offset);
-      }
-      plyData.face_sizes.append(poly.size());
+      plyData.face_sizes.append_unchecked(poly.size());
     }
 
     /* Vertices */
-    plyData.vertices.reserve(ply_to_vertex.size());
+    plyData.vertices.reserve(plyData.vertices.size() + ply_to_vertex.size());
     Span<float3> vert_positions = mesh->vert_positions();
     for (int vertex_index : ply_to_vertex) {
       float3 pos = vert_positions[vertex_index];
       mul_m4_v3(world_and_axes_transform, pos);
       mul_v3_fl(pos, export_params.global_scale);
-      plyData.vertices.append(pos);
+      plyData.vertices.append_unchecked(pos);
     }
 
     /* UV's */
-    if (!uvs.is_empty()) {
+    if (uvs.is_empty()) {
+      uvs.append_n_times(float2(0), ply_to_vertex.size());
+    }
+    else {
       BLI_assert(uvs.size() == ply_to_vertex.size());
-      plyData.uv_coordinates = uvs;
+      plyData.uv_coordinates.extend(uvs);
     }
 
     /* Normals */
     if (export_params.export_normals) {
-      plyData.vertex_normals.reserve(ply_to_vertex.size());
+      plyData.vertex_normals.reserve(plyData.vertex_normals.size() + ply_to_vertex.size());
       const Span<float3> vert_normals = mesh->vert_normals();
       for (int vertex_index : ply_to_vertex) {
         float3 normal = vert_normals[vertex_index];
@@ -259,12 +263,10 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     /* Loose edges */
     const bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
     if (loose_edges.count > 0) {
-      Span<MEdge> edges = mesh->edges();
+      Span<int2> edges = mesh->edges();
       for (int i = 0; i < edges.size(); ++i) {
         if (loose_edges.is_loose_bits[i]) {
-          int v1 = vertex_to_ply[edges[i].v1];
-          int v2 = vertex_to_ply[edges[i].v2];
-          plyData.edges.append({v1, v2});
+          plyData.edges.append({vertex_to_ply[edges[i][0]], vertex_to_ply[edges[i][1]]});
         }
       }
     }

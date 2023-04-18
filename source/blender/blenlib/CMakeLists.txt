@@ -83,6 +83,7 @@ set(SRC
   intern/hash_md5.c
   intern/hash_mm2a.c
   intern/hash_mm3.c
+  intern/implicit_sharing.cc
   intern/index_mask.cc
   intern/jitter_2d.c
   intern/kdtree_1d.c

@@ -85,6 +85,9 @@ static void screen_foreach_id_dopesheet(LibraryForeachIDData *data, bDopeSheet *
 
 void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area)
 {
+  const bool is_readonly = (BKE_lib_query_foreachid_process_flags_get(data) & IDWALK_READONLY) !=
+                           0;
+
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, area->full, IDWALK_CB_NOP);
 
   /* TODO: this should be moved to a callback in `SpaceType`, defined in each editor's own code.
@@ -105,26 +108,55 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
         SpaceGraph *sipo = (SpaceGraph *)sl;
         BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
                                                 screen_foreach_id_dopesheet(data, sipo->ads));
+
+        if (!is_readonly) {
+          /* Force recalc of list of channels (i.e. including calculating F-Curve colors) to
+           * prevent the "black curves" problem post-undo. */
+          sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR;
+        }
         break;
       }
       case SPACE_PROPERTIES: {
         SpaceProperties *sbuts = (SpaceProperties *)sl;
         BKE_LIB_FOREACHID_PROCESS_ID(data, sbuts->pinid, IDWALK_CB_NOP);
+        if (!is_readonly) {
+          if (sbuts->pinid == NULL) {
+            sbuts->flag &= ~SB_PIN_CONTEXT;
+          }
+          /* Note: Restoring path pointers is complicated, if not impossible, because this contains
+           * data pointers too, not just ID ones. See #40046. */
+          MEM_SAFE_FREE(sbuts->path);
+        }
         break;
       }
-      case SPACE_FILE:
+      case SPACE_FILE: {
+        if (!is_readonly) {
+          SpaceFile *sfile = (SpaceFile *)sl;
+          sfile->op = NULL;
+          sfile->tags = FILE_TAG_REBUILD_MAIN_FILES;
+        }
         break;
+      }
       case SPACE_ACTION: {
         SpaceAction *saction = (SpaceAction *)sl;
         screen_foreach_id_dopesheet(data, &saction->ads);
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, saction->action, IDWALK_CB_NOP);
+        if (!is_readonly) {
+          /* Force recalc of list of channels, potentially updating the active action while we're
+           * at it (as it can only be updated that way) #28962. */
+          saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+        }
         break;
       }
       case SPACE_IMAGE: {
         SpaceImage *sima = (SpaceImage *)sl;
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sima->image, IDWALK_CB_USER_ONE);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sima->iuser.scene, IDWALK_CB_NOP);
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sima->mask_info.mask, IDWALK_CB_USER_ONE);
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sima->gpd, IDWALK_CB_USER);
+        if (!is_readonly) {
+          sima->scopes.ok = 0;
+        }
         break;
       }
       case SPACE_SEQ: {
@@ -156,45 +188,106 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
 
           BLI_mempool_iternew(space_outliner->treestore, &iter);
           while ((tselem = BLI_mempool_iterstep(&iter))) {
-            BKE_LIB_FOREACHID_PROCESS_ID(data, tselem->id, IDWALK_CB_NOP);
+            /* Do not try to restore non-ID pointers (drivers/sequence/etc.). */
+            if (TSE_IS_REAL_ID(tselem)) {
+              const int cb_flag = (tselem->id != NULL &&
+                                   (tselem->id->flag & LIB_EMBEDDED_DATA) != 0) ?
+                                      IDWALK_CB_EMBEDDED_NOT_OWNING :
+                                      IDWALK_CB_NOP;
+              BKE_LIB_FOREACHID_PROCESS_ID(data, tselem->id, cb_flag);
+            }
+            else if (!is_readonly) {
+              tselem->id = NULL;
+            }
+          }
+          if (!is_readonly) {
+            /* rebuild hash table, because it depends on ids too */
+            space_outliner->storeflag |= SO_TREESTORE_REBUILD;
           }
         }
         break;
       }
       case SPACE_NODE: {
         SpaceNode *snode = (SpaceNode *)sl;
-        const bool is_private_nodetree = snode->id != NULL &&
-                                         ntreeFromID(snode->id) == snode->nodetree;
+        const bool is_embedded_nodetree = snode->id != NULL &&
+                                          ntreeFromID(snode->id) == snode->nodetree;
 
         BKE_LIB_FOREACHID_PROCESS_ID(data, snode->id, IDWALK_CB_NOP);
         BKE_LIB_FOREACHID_PROCESS_ID(data, snode->from, IDWALK_CB_NOP);
-        BKE_LIB_FOREACHID_PROCESS_IDSUPER(
-            data, snode->nodetree, is_private_nodetree ? IDWALK_CB_EMBEDDED : IDWALK_CB_USER_ONE);
 
-        LISTBASE_FOREACH (bNodeTreePath *, path, &snode->treepath) {
-          if (path == snode->treepath.first) {
-            /* first nodetree in path is same as snode->nodetree */
-            BKE_LIB_FOREACHID_PROCESS_IDSUPER(data,
-                                              path->nodetree,
-                                              is_private_nodetree ? IDWALK_CB_EMBEDDED :
-                                                                    IDWALK_CB_USER_ONE);
+        bNodeTreePath *path = snode->treepath.first;
+        BLI_assert(path == NULL || path->nodetree == snode->nodetree);
+
+        if (is_embedded_nodetree) {
+          BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->nodetree, IDWALK_CB_EMBEDDED_NOT_OWNING);
+          if (path != NULL) {
+            BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_EMBEDDED_NOT_OWNING);
           }
-          else {
+
+          /* Embedded ID pointers are not remapped (besides exceptions), ensure it still matches
+           * actual data. Note that `snode->id` was already processed (and therefore potentially
+           * remapped) above.*/
+          if (!is_readonly && path != NULL) {
+            path->nodetree = snode->nodetree = (snode->id == NULL) ? NULL : ntreeFromID(snode->id);
+          }
+        }
+        else {
+          BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->nodetree, IDWALK_CB_USER_ONE);
+          if (path != NULL) {
             BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_USER_ONE);
-          }
-
-          if (path->nodetree == NULL) {
-            break;
           }
         }
 
-        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->edittree, IDWALK_CB_NOP);
+        if (path != NULL) {
+          for (path = path->next; path != NULL; path = path->next) {
+            BLI_assert(path->nodetree != NULL);
+            BLI_assert((path->nodetree->id.flag & LIB_EMBEDDED_DATA) == 0);
+
+            BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_USER_ONE);
+
+            if (path->nodetree == NULL) {
+              BLI_assert(!is_readonly);
+              /* Remaining path entries are invalid, remove them. */
+              for (bNodeTreePath *path_next; path; path = path_next) {
+                path_next = path->next;
+                BLI_remlink(&snode->treepath, path);
+                MEM_freeN(path);
+              }
+              break;
+            }
+          }
+        }
+        BLI_assert(path == NULL);
+
+        if (!is_readonly) {
+          /* `edittree` is just the last in the path, set this directly since the path may have
+           * been shortened above. */
+          if (snode->treepath.last != NULL) {
+            path = snode->treepath.last;
+            snode->edittree = path->nodetree;
+          }
+          else {
+            snode->edittree = NULL;
+          }
+        }
+        /* NOTE: It is disputable whether this should be called here, especially when editing it is
+         * allowed? But for now, for sake of consistency, do it in any case. */
+        if (is_embedded_nodetree && snode->edittree == snode->nodetree) {
+          BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->edittree, IDWALK_CB_EMBEDDED_NOT_OWNING);
+        }
+        else {
+          BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->edittree, IDWALK_CB_NOP);
+        }
         break;
       }
       case SPACE_CLIP: {
         SpaceClip *sclip = (SpaceClip *)sl;
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sclip->clip, IDWALK_CB_USER_ONE);
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sclip->mask_info.mask, IDWALK_CB_USER_ONE);
+
+        if (!is_readonly) {
+          sclip->scopes.ok = 0;
+        }
         break;
       }
       case SPACE_SPREADSHEET: {

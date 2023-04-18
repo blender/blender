@@ -222,7 +222,7 @@ void MeshesToIMeshInfo::input_medge_for_orig_index(int orig_index,
  * first Mesh. To do this transformation, we also need the transformation
  * obmats corresponding to the Meshes, so they are in the `obmats` argument.
  * The 'original' indexes in the IMesh are the indexes you get by
- * a scheme that offsets each vertex, MEdge, and polygon index by the sum of the
+ * a scheme that offsets each vertex, edge, and polygon index by the sum of the
  * vertices, edges, and polys in the preceding Meshes in the mesh span.
  * The `*r_info class` is filled in with information needed to make the
  * correspondence between the Mesh MVerts/MPolys and the IMesh Verts/Faces.
@@ -282,7 +282,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
   /* For each input `Mesh`, make `Vert`s and `Face`s for the corresponding
    * vertices and polygons, and keep track of the original indices (using the
    * concatenating offset scheme) inside the `Vert`s and `Face`s.
-   * When making `Face`s, we also put in the original indices for `MEdge`s that
+   * When making `Face`s, we also put in the original indices for edges that
    * make up the polygons using the same scheme. */
   for (int mi : meshes.index_range()) {
     const Mesh *me = meshes[mi];
@@ -434,8 +434,10 @@ static void copy_edge_attributes(Mesh *dest_mesh,
   const CustomData *source_cd = &orig_me->edata;
   for (int source_layer_i = 0; source_layer_i < source_cd->totlayer; ++source_layer_i) {
     const eCustomDataType ty = eCustomDataType(source_cd->layers[source_layer_i].type);
-    if (ty == CD_MEDGE) {
-      continue;
+    if (ty == CD_PROP_INT32_2D) {
+      if (STREQ(source_cd->layers[source_layer_i].name, ".edge_verts")) {
+        continue;
+      }
     }
     const char *name = source_cd->layers[source_layer_i].name;
     int target_layer_i = CustomData_get_named_layer_index(target_cd, ty, name);

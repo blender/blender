@@ -122,7 +122,7 @@ void BKE_mesh_foreach_mapped_edge(
   }
   else {
     const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
-    const blender::Span<MEdge> edges = mesh->edges();
+    const blender::Span<blender::int2> edges = mesh->edges();
     const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->edata, CD_ORIGINDEX));
 
     if (index) {
@@ -132,12 +132,12 @@ void BKE_mesh_foreach_mapped_edge(
         if (orig == ORIGINDEX_NONE) {
           continue;
         }
-        func(userData, orig, positions[edges[i].v1], positions[edges[i].v2]);
+        func(userData, orig, positions[edges[i][0]], positions[edges[i][1]]);
       }
     }
     else if (mesh->totedge == tot_edges) {
       for (const int i : edges.index_range()) {
-        func(userData, i, positions[edges[i].v1], positions[edges[i].v2]);
+        func(userData, i, positions[edges[i][0]], positions[edges[i][1]]);
       }
     }
   }

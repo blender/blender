@@ -418,11 +418,11 @@ void OBJWriter::write_edges_indices(FormatHandler &fh,
     return;
   }
 
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
   for (const int64_t i : edges.index_range()) {
     if (loose_edges.is_loose_bits[i]) {
-      const MEdge &edge = edges[i];
-      fh.write_obj_edge(edge.v1 + offsets.vertex_offset + 1, edge.v2 + offsets.vertex_offset + 1);
+      const int2 obj_edge = edges[i] + offsets.vertex_offset + 1;
+      fh.write_obj_edge(obj_edge[0], obj_edge[1]);
     }
   }
 }

@@ -37,7 +37,7 @@
 
 #include "ED_armature.h"
 #include "ED_asset.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_object.h"

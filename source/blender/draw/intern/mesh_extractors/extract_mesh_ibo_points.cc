@@ -89,13 +89,13 @@ static void extract_points_iter_loose_edge_bm(const MeshRenderData *mr,
 }
 
 static void extract_points_iter_loose_edge_mesh(const MeshRenderData *mr,
-                                                const MEdge *edge,
+                                                const int2 edge,
                                                 const int ledge_index,
                                                 void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  vert_set_mesh(elb, mr, edge->v1, mr->loop_len + (ledge_index * 2));
-  vert_set_mesh(elb, mr, edge->v2, mr->loop_len + (ledge_index * 2) + 1);
+  vert_set_mesh(elb, mr, edge[0], mr->loop_len + (ledge_index * 2));
+  vert_set_mesh(elb, mr, edge[1], mr->loop_len + (ledge_index * 2) + 1);
 }
 
 static void extract_points_iter_loose_vert_bm(const MeshRenderData *mr,
