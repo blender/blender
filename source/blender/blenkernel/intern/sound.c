@@ -649,12 +649,12 @@ void BKE_sound_destroy_scene(Scene *scene)
   }
 }
 
-void BKE_sound_lock()
+void BKE_sound_lock(void)
 {
   AUD_Device_lock(sound_device);
 }
 
-void BKE_sound_unlock()
+void BKE_sound_unlock(void)
 {
   AUD_Device_unlock(sound_device);
 }
