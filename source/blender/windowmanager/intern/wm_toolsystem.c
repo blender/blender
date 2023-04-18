@@ -723,7 +723,7 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
         case CTX_MODE_VERTEX_GPENCIL:
           return "builtin_brush.Draw";
         case CTX_MODE_SCULPT_CURVES:
-          return "builtin_brush.density";
+          return "builtin_brush.Density";
           /* end temporary hack. */
 
         case CTX_MODE_PARTICLE:
