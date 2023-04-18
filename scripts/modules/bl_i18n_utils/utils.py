@@ -473,7 +473,7 @@ class I18nMessages:
 
     @staticmethod
     def _new_messages():
-        return getattr(collections, 'OrderedDict', dict)()
+        return getattr(collections, "OrderedDict", dict)()
 
     @classmethod
     def gen_empty_messages(cls, uid, blender_ver, blender_hash, time, year, default_copyright=True, settings=settings):

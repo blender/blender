@@ -149,7 +149,7 @@ def activate(*, template_id=None, reload_scripts=False):
     template_id_prev = _app_template["id"]
 
     # not needed but may as well avoids redundant
-    # disable/enable for all add-ons on 'File -> New'
+    # disable/enable for all add-ons on "File -> New".
     if not reload_scripts and template_id_prev == template_id:
         return
 

@@ -2620,7 +2620,7 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_label = "Tools"  # not visible
     bl_options = {'HIDE_HEADER'}
 
-    # Satisfy the 'ToolSelectPanelHelper' API.
+    # Satisfy the `ToolSelectPanelHelper` API.
     keymap_prefix = "Image Editor Tool:"
 
     # Default group to use as a fallback.
@@ -2715,7 +2715,7 @@ class NODE_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_label = "Tools"  # not visible
     bl_options = {'HIDE_HEADER'}
 
-    # Satisfy the 'ToolSelectPanelHelper' API.
+    # Satisfy the `ToolSelectPanelHelper` API.
     keymap_prefix = "Node Editor Tool:"
 
     # Default group to use as a fallback.
@@ -2779,7 +2779,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_label = "Tools"  # not visible
     bl_options = {'HIDE_HEADER'}
 
-    # Satisfy the 'ToolSelectPanelHelper' API.
+    # Satisfy the `ToolSelectPanelHelper` API.
     keymap_prefix = "3D View Tool:"
 
     # Default group to use as a fallback.
@@ -3147,7 +3147,7 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_label = "Tools"  # not visible
     bl_options = {'HIDE_HEADER'}
 
-    # Satisfy the 'ToolSelectPanelHelper' API.
+    # Satisfy the `ToolSelectPanelHelper` API.
     keymap_prefix = "Sequence Editor Tool:"
 
     # Default group to use as a fallback.

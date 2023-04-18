@@ -735,7 +735,7 @@ def BuildRNAInfo():
                     i += 1
 
                 if not ok:
-                    print('Dependancy "%s" could not be found for "%s"' % (identifier, rna_base))
+                    print("Dependency \"%s\" could not be found for \"%s\"" % (identifier, rna_base))
 
                 break
 

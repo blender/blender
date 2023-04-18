@@ -6,7 +6,7 @@ from bpy.types import Operator
 
 
 class SPREADSHEET_OT_toggle_pin(Operator):
-    '''Turn on or off pinning'''
+    """Turn on or off pinning"""
     bl_idname = "spreadsheet.toggle_pin"
     bl_label = "Toggle Pin"
     bl_options = {'REGISTER'}
