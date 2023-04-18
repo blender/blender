@@ -113,7 +113,6 @@ ENUM_OPERATORS(eFileAttributes, FILE_ATTR_HARDLINK);
 
 /** \} */
 
-
 /* -------------------------------------------------------------------- */
 /** \name External File Operations
  * \{ */

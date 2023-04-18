@@ -9,9 +9,9 @@
 #ifdef WIN32
 
 #  include <conio.h>
+#  include <shlwapi.h>
 #  include <stdio.h>
 #  include <stdlib.h>
-#  include <shlwapi.h>
 
 #  include "MEM_guardedalloc.h"
 

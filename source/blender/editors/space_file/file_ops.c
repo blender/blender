@@ -2006,7 +2006,6 @@ static bool file_os_operations_menu_poll(const bContext *C_const, MenuType *UNUS
   return false;
 }
 
-
 void file_external_operations_menu_register(void)
 {
   MenuType *mt;
