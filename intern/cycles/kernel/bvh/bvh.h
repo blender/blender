@@ -27,8 +27,8 @@
  * Instead of adding one more bool specialization constant, we reuse existing embree_features one
  * and use RTC_FEATURE_FLAG_NONE as value to test for avoiding to call Embree on GPU.
  */
-/* We set it to RTC_FEATURE_FLAG_NONE by default so AoT binaries contain MNE and raytrace kernels
- * precompiled without Embree.
+/* We set it to RTC_FEATURE_FLAG_NONE by default so AoT binaries contain MNE and ray-trace kernels
+ * pre-compiled without Embree.
  * Changing this default value would require updating the logic in oneapi_load_kernels(). */
 static constexpr sycl::specialization_id<RTCFeatureFlags> oneapi_embree_features{
     RTC_FEATURE_FLAG_NONE};

@@ -465,7 +465,7 @@ struct ID *BKE_id_copy_for_use_in_bmain(struct Main *bmain, const struct ID *id)
  * \note Most internal ID data itself is not swapped (only IDProperties are).
  *
  * \param bmain: May be NULL, in which case there is no guarantee that internal remapping of ID
- * pointers to themselves will be complete (reguarding depsgraph and/or runtime data updates).
+ * pointers to themselves will be complete (regarding depsgraph and/or runtime data updates).
  * \param do_self_remap: Whether to remap internal pointers to itself or not.
  * \param self_remap_flags: Flags controlling self remapping, see BKE_lib_remap.h.
  */

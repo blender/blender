@@ -667,7 +667,7 @@ ccl_device_intersect bool kernel_embree_intersect(KernelGlobals kg,
   CCLFirstHitContext ctx;
   rtcInitRayQueryContext(&ctx);
 #  ifdef __KERNEL_ONEAPI__
-  /* NOTE(sirgienko) Cycles GPU backends passes NULL to KernelGlobals and
+  /* NOTE(sirgienko): Cycles GPU back-ends passes NULL to KernelGlobals and
    * uses global device allocation (CUDA, Optix, HIP) or passes all needed data
    * as a class context (Metal, oneAPI). So we need to pass this context here
    * in order to have an access to it later in Embree filter functions on GPU. */
@@ -717,7 +717,7 @@ ccl_device_intersect bool kernel_embree_intersect_local(KernelGlobals kg,
   CCLLocalContext ctx;
   rtcInitRayQueryContext(&ctx);
 #    ifdef __KERNEL_ONEAPI__
-  /* NOTE(sirgienko) Cycles GPU backends passes NULL to KernelGlobals and
+  /* NOTE(sirgienko): Cycles GPU back-ends passes NULL to KernelGlobals and
    * uses global device allocation (CUDA, Optix, HIP) or passes all needed data
    * as a class context (Metal, oneAPI). So we need to pass this context here
    * in order to have an access to it later in Embree filter functions on GPU. */
@@ -802,7 +802,7 @@ ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
   CCLShadowContext ctx;
   rtcInitRayQueryContext(&ctx);
 #    ifdef __KERNEL_ONEAPI__
-  /* NOTE(sirgienko) Cycles GPU backends passes NULL to KernelGlobals and
+  /* NOTE(sirgienko): Cycles GPU back-ends passes NULL to KernelGlobals and
    * uses global device allocation (CUDA, Optix, HIP) or passes all needed data
    * as a class context (Metal, oneAPI). So we need to pass this context here
    * in order to have an access to it later in Embree filter functions on GPU. */
@@ -851,7 +851,7 @@ ccl_device_intersect uint kernel_embree_intersect_volume(KernelGlobals kg,
   CCLVolumeContext ctx;
   rtcInitRayQueryContext(&ctx);
 #    ifdef __KERNEL_ONEAPI__
-  /* NOTE(sirgienko) Cycles GPU backends passes NULL to KernelGlobals and
+  /* NOTE(sirgienko) Cycles GPU back-ends passes NULL to KernelGlobals and
    * uses global device allocation (CUDA, Optix, HIP) or passes all needed data
    * as a class context (Metal, oneAPI). So we need to pass this context here
    * in order to have an access to it later in Embree filter functions on GPU. */

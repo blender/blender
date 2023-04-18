@@ -124,11 +124,11 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences,
       info.use_hardware_raytracing = false;
     }
 
-    /* There is an accumulative logic here, because Multidevices are support only for
+    /* There is an accumulative logic here, because Multi-devices are support only for
      * the same backend + CPU in Blender right now, and both oneAPI and Metal have a
      * global boolean backend setting (see above) for enabling/disabling HW RT,
-     * so all subdevices in the multidevice should enable (or disable) HW RT
-     * simultaneously (and CPU device are expected to ignore "use_hardware_raytracing" setting) */
+     * so all sub-devices in the multi-device should enable (or disable) HW RT
+     * simultaneously (and CPU device are expected to ignore `use_hardware_raytracing` setting). */
     accumulated_use_hardware_raytracing |= info.use_hardware_raytracing;
   }
   device.use_hardware_raytracing = accumulated_use_hardware_raytracing;

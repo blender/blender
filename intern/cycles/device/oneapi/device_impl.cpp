@@ -122,7 +122,7 @@ bool OneapiDevice::check_peer_access(Device * /*peer_device*/)
 
 bool OneapiDevice::can_use_hardware_raytracing_for_features(uint requested_features) const
 {
-  /* MNEE and Raytrace kernels currently don't work correctly with HWRT. */
+  /* MNEE and Ray-trace kernels currently don't work correctly with HWRT. */
   return !(requested_features & (KERNEL_FEATURE_MNEE | KERNEL_FEATURE_NODE_RAYTRACE));
 }
 

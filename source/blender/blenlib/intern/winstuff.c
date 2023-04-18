@@ -180,8 +180,9 @@ bool BLI_windows_register_blend_extension(const bool background)
   return true;
 }
 
-/* Check the registry to see if there is an operation association to a file
- * extension. Extension *should almost always contain a dot like ".txt",
+/**
+ * Check the registry to see if there is an operation association to a file
+ * extension. Extension *should almost always contain a dot like `.txt`,
  * but this does allow querying non - extensions *like "Directory", "Drive",
  * "AllProtocols", etc - anything in Classes with a "shell" branch.
  */

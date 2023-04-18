@@ -177,7 +177,7 @@ bool oneapi_kernel_is_required_for_features(const std::string &kernel_name,
 bool oneapi_kernel_is_using_embree(const std::string &kernel_name)
 {
 #  ifdef WITH_EMBREE_GPU
-  /* MNEE and Raytrace kernels aren't yet enabled to use Embree. */
+  /* MNEE and Ray-trace kernels aren't yet enabled to use Embree. */
   for (int i = 0; i < (int)DEVICE_KERNEL_NUM; i++) {
     DeviceKernel kernel = (DeviceKernel)i;
     if (device_kernel_has_intersection(kernel)) {
