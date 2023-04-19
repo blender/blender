@@ -54,6 +54,7 @@ void register_node_type_sh_output_material()
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_MATERIAL, "Material Output", NODE_CLASS_OUTPUT);
   ntype.declare = file_ns::node_declare;
+  ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.gpu_fn = file_ns::node_shader_gpu_output_material;
 
   ntype.no_muting = true;

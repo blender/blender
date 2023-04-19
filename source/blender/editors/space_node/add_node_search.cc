@@ -161,11 +161,14 @@ static void gather_add_node_operations(const bContext &C,
     if (!(node_type->poll && node_type->poll(node_type, &node_tree, &disabled_hint))) {
       continue;
     }
+    if (!(node_type->add_ui_poll && node_type->add_ui_poll(&C))) {
+      continue;
+    }
     if (!node_type->gather_add_node_search_ops) {
       continue;
     }
     Vector<nodes::AddNodeInfo> info_items;
-    nodes::GatherAddNodeSearchParams params(*node_type, node_tree, info_items);
+    nodes::GatherAddNodeSearchParams params(C, *node_type, node_tree, info_items);
     node_type->gather_add_node_search_ops(params);
     for (nodes::AddNodeInfo &info : info_items) {
       AddNodeItem item{};
