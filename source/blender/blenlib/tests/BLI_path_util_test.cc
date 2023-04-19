@@ -870,6 +870,18 @@ TEST(path_util, PathExtension)
   EXPECT_EQ(nullptr, BLI_path_extension("some.def/file"));
   EXPECT_EQ(nullptr, BLI_path_extension("Text"));
   EXPECT_EQ(nullptr, BLI_path_extension("Text…001"));
+  EXPECT_EQ(nullptr, BLI_path_extension(".hidden"));
+  EXPECT_EQ(nullptr, BLI_path_extension(".hidden/"));
+  EXPECT_EQ(nullptr, BLI_path_extension("/.hidden"));
+  EXPECT_EQ(nullptr, BLI_path_extension("dir/.hidden"));
+  EXPECT_EQ(nullptr, BLI_path_extension("/dir/.hidden"));
+
+  EXPECT_EQ(nullptr, BLI_path_extension("."));
+  EXPECT_EQ(nullptr, BLI_path_extension(".."));
+  EXPECT_EQ(nullptr, BLI_path_extension("..."));
+  EXPECT_STREQ(".", BLI_path_extension("...a."));
+  EXPECT_STREQ(".", BLI_path_extension("...a.."));
+  EXPECT_EQ(nullptr, BLI_path_extension("...a../"));
 
   EXPECT_STREQ(".", BLI_path_extension("some/file."));
   EXPECT_STREQ(".gz", BLI_path_extension("some/file.tar.gz"));
