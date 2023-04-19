@@ -23,7 +23,7 @@ GeometryComponent *PointCloudComponent::copy() const
 {
   PointCloudComponent *new_component = new PointCloudComponent();
   if (pointcloud_ != nullptr) {
-    new_component->pointcloud_ = BKE_pointcloud_copy_for_eval(pointcloud_, false);
+    new_component->pointcloud_ = BKE_pointcloud_copy_for_eval(pointcloud_);
     new_component->ownership_ = GeometryOwnershipType::Owned;
   }
   return new_component;
@@ -70,7 +70,7 @@ PointCloud *PointCloudComponent::get_for_write()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ == GeometryOwnershipType::ReadOnly) {
-    pointcloud_ = BKE_pointcloud_copy_for_eval(pointcloud_, false);
+    pointcloud_ = BKE_pointcloud_copy_for_eval(pointcloud_);
     ownership_ = GeometryOwnershipType::Owned;
   }
   return pointcloud_;
@@ -90,7 +90,7 @@ void PointCloudComponent::ensure_owns_direct_data()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ != GeometryOwnershipType::Owned) {
-    pointcloud_ = BKE_pointcloud_copy_for_eval(pointcloud_, false);
+    pointcloud_ = BKE_pointcloud_copy_for_eval(pointcloud_);
     ownership_ = GeometryOwnershipType::Owned;
   }
 }

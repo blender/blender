@@ -1523,17 +1523,10 @@ Volume *BKE_volume_new_for_eval(const Volume *volume_src)
   return volume_dst;
 }
 
-Volume *BKE_volume_copy_for_eval(Volume *volume_src, bool reference)
+Volume *BKE_volume_copy_for_eval(Volume *volume_src)
 {
-  int flags = LIB_ID_COPY_LOCALIZE;
-
-  if (reference) {
-    flags |= LIB_ID_COPY_CD_REFERENCE;
-  }
-
-  Volume *result = (Volume *)BKE_id_copy_ex(nullptr, &volume_src->id, nullptr, flags);
-
-  return result;
+  return reinterpret_cast<Volume *>(
+      BKE_id_copy_ex(nullptr, &volume_src->id, nullptr, LIB_ID_COPY_LOCALIZE));
 }
 
 #ifdef WITH_OPENVDB

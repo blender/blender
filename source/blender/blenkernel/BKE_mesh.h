@@ -175,7 +175,7 @@ void BKE_mesh_eval_delete(struct Mesh *mesh_eval);
  * Performs copy for use during evaluation,
  * optional referencing original arrays to reduce memory.
  */
-struct Mesh *BKE_mesh_copy_for_eval(const struct Mesh *source, bool reference);
+struct Mesh *BKE_mesh_copy_for_eval(const struct Mesh *source);
 
 /**
  * These functions construct a new Mesh,

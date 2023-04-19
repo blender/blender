@@ -3156,7 +3156,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
       Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
       Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
-      me_eval = BKE_mesh_copy_for_eval(me_eval, false);
+      me_eval = BKE_mesh_copy_for_eval(me_eval);
       BKE_object_material_from_eval_data(bmain, newob, &me_eval->id);
       Mesh *new_mesh = (Mesh *)newob->data;
       BKE_mesh_nomain_to_mesh(me_eval, new_mesh, newob);
@@ -3388,7 +3388,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       newob->type = OB_MESH;
 
       if (const Mesh *mesh_eval = geometry.get_mesh_for_read()) {
-        BKE_mesh_nomain_to_mesh(BKE_mesh_copy_for_eval(mesh_eval, false), new_mesh, newob);
+        BKE_mesh_nomain_to_mesh(BKE_mesh_copy_for_eval(mesh_eval), new_mesh, newob);
         BKE_object_material_from_eval_data(bmain, newob, &mesh_eval->id);
         new_mesh->attributes_for_write().remove_anonymous();
       }

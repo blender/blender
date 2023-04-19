@@ -322,16 +322,10 @@ bool BKE_pointcloud_attribute_required(const PointCloud * /*pointcloud*/, const 
 
 /* Dependency Graph */
 
-PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src, bool reference)
+PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src)
 {
-  int flags = LIB_ID_COPY_LOCALIZE;
-
-  if (reference) {
-    flags |= LIB_ID_COPY_CD_REFERENCE;
-  }
-
-  PointCloud *result = (PointCloud *)BKE_id_copy_ex(nullptr, &pointcloud_src->id, nullptr, flags);
-  return result;
+  return reinterpret_cast<PointCloud *>(
+      BKE_id_copy_ex(nullptr, &pointcloud_src->id, nullptr, LIB_ID_COPY_LOCALIZE));
 }
 
 static void pointcloud_evaluate_modifiers(struct Depsgraph *depsgraph,
