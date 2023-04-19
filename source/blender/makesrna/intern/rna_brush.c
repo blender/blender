@@ -1687,6 +1687,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "icon_id");
   RNA_def_property_enum_items(prop, rna_enum_gpencil_brush_sculpt_icons_items);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_ui_text(prop, "Grease Pencil Icon", "");
 
   prop = RNA_def_property(srna, "gpencil_weight_icon", PROP_ENUM, PROP_NONE);
@@ -2574,6 +2575,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "gpencil_sculpt_tool");
   RNA_def_property_enum_items(prop, rna_enum_brush_gpencil_sculpt_types_items);
   RNA_def_property_ui_text(prop, "Grease Pencil Sculpt Paint Tool", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "gpencil_weight_tool", PROP_ENUM, PROP_NONE);
@@ -2628,6 +2630,7 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "elastic_deform_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, brush_elastic_deform_type_items);
   RNA_def_property_ui_text(prop, "Deformation", "Deformation type that is used in the brush");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_BRUSH);
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "snake_hook_deform_type", PROP_ENUM, PROP_NONE);
@@ -2678,6 +2681,7 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "boundary_deform_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, brush_boundary_deform_type_items);
   RNA_def_property_ui_text(prop, "Deformation", "Deformation type that is used in the brush");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_BRUSH);
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "pose_deform_type", PROP_ENUM, PROP_NONE);

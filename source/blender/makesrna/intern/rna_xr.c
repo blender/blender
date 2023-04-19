@@ -6,6 +6,8 @@
 
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
@@ -2018,6 +2020,7 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, controller_draw_styles);
   RNA_def_property_ui_text(
       prop, "Controller Draw Style", "Style to use when drawing VR controllers");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_THEME);
   RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
 
   prop = RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
