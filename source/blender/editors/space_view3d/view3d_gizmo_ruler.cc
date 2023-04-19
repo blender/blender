@@ -6,6 +6,9 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -57,6 +60,13 @@
 #include "GPU_state.h"
 
 #include "BLF_api.h"
+
+using blender::float2;
+using blender::float2x2;
+using blender::float3;
+using blender::float3x2;
+using blender::float3x3;
+using blender::float4;
 
 /**
  * Supporting transform features could be removed if the actual transform system is used.
@@ -115,7 +125,7 @@ enum {
 
 struct RulerItem;
 
-typedef struct RulerInfo {
+struct RulerInfo {
   struct RulerItem *item_active;
   int flag;
   int snap_flag;
@@ -143,27 +153,26 @@ typedef struct RulerInfo {
     wmGizmo *gizmo;
     PropertyRNA *prop_prevpoint;
   } snap_data;
-
-} RulerInfo;
+};
 
 /* -------------------------------------------------------------------- */
 /* Ruler Item (two or three points) */
 
-typedef struct RulerItem {
+struct RulerItem {
   wmGizmo gz;
 
   /** World-space coords, middle being optional. */
-  float co[3][3];
+  float3x3 co;
 
   int flag;
   int raycast_dir; /* RULER_DIRECTION_* */
-} RulerItem;
+};
 
-typedef struct RulerInteraction {
+struct RulerInteraction {
   /* selected coord */
   char co_index; /* 0 -> 2 */
-  float drag_start_co[3];
-} RulerInteraction;
+  float3 drag_start_co;
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Ruler Utilities
@@ -173,16 +182,16 @@ static RulerItem *ruler_item_add(wmGizmoGroup *gzgroup)
 {
   /* could pass this as an arg */
   const wmGizmoType *gzt_ruler = WM_gizmotype_find("VIEW3D_GT_ruler_item", true);
-  RulerItem *ruler_item = (RulerItem *)WM_gizmo_new_ptr(gzt_ruler, gzgroup, NULL);
+  RulerItem *ruler_item = (RulerItem *)WM_gizmo_new_ptr(gzt_ruler, gzgroup, nullptr);
   WM_gizmo_set_flag(&ruler_item->gz, WM_GIZMO_DRAW_MODAL, true);
   return ruler_item;
 }
 
 static void ruler_item_remove(bContext *C, wmGizmoGroup *gzgroup, RulerItem *ruler_item)
 {
-  RulerInfo *ruler_info = gzgroup->customdata;
+  RulerInfo *ruler_info = static_cast<RulerInfo *>(gzgroup->customdata);
   if (ruler_info->item_active == ruler_item) {
-    ruler_info->item_active = NULL;
+    ruler_info->item_active = nullptr;
   }
   WM_gizmo_unlink(&gzgroup->gizmos, gzgroup->parent_gzmap, &ruler_item->gz, C);
 }
@@ -222,10 +231,10 @@ static void ruler_item_as_string(
 
 static bool view3d_ruler_pick(wmGizmoGroup *gzgroup,
                               RulerItem *ruler_item,
-                              const float mval[2],
+                              const float2 mval,
                               int *r_co_index)
 {
-  RulerInfo *ruler_info = gzgroup->customdata;
+  RulerInfo *ruler_info = static_cast<RulerInfo *>(gzgroup->customdata);
   ARegion *region = ruler_info->region;
   bool found = false;
 
@@ -233,7 +242,7 @@ static bool view3d_ruler_pick(wmGizmoGroup *gzgroup,
   int co_index_best = -1;
 
   {
-    float co_ss[3][2];
+    float3x2 co_ss;
     float dist;
     int j;
 
@@ -250,10 +259,10 @@ static bool view3d_ruler_pick(wmGizmoGroup *gzgroup,
         found = true;
 
         {
-          const float dist_points[3] = {
-              len_squared_v2v2(co_ss[0], mval),
-              len_squared_v2v2(co_ss[1], mval),
-              len_squared_v2v2(co_ss[2], mval),
+          const float3 dist_points = {
+              blender::math::distance_squared(co_ss[0], mval),
+              blender::math::distance_squared(co_ss[1], mval),
+              blender::math::distance_squared(co_ss[2], mval),
           };
           if (min_fff(UNPACK3(dist_points)) < RULER_PICK_DIST_SQ) {
             co_index_best = min_axis_v3(dist_points);
@@ -271,9 +280,9 @@ static bool view3d_ruler_pick(wmGizmoGroup *gzgroup,
         found = true;
 
         {
-          const float dist_points[2] = {
-              len_squared_v2v2(co_ss[0], mval),
-              len_squared_v2v2(co_ss[2], mval),
+          const float2 dist_points = {
+              blender::math::distance_squared(co_ss[0], mval),
+              blender::math::distance_squared(co_ss[2], mval),
           };
           if (min_ff(UNPACK2(dist_points)) < RULER_PICK_DIST_SQ) {
             co_index_best = (dist_points[0] < dist_points[1]) ? 0 : 2;
@@ -316,9 +325,13 @@ static void ruler_state_set(RulerInfo *ruler_info, int state)
   ruler_info->state = state;
 }
 
-static void view3d_ruler_item_project(RulerInfo *ruler_info, float r_co[3], const int xy[2])
+static void view3d_ruler_item_project(RulerInfo *ruler_info, float3 &r_co, const int xy[2])
 {
-  ED_view3d_win_to_3d_int(ruler_info->area->spacedata.first, ruler_info->region, r_co, xy, r_co);
+  ED_view3d_win_to_3d_int(static_cast<const View3D *>(ruler_info->area->spacedata.first),
+                          ruler_info->region,
+                          r_co,
+                          xy,
+                          r_co);
 }
 
 /**
@@ -333,81 +346,77 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
                                         const bool do_snap)
 {
   wmGizmo *snap_gizmo = ruler_info->snap_data.gizmo;
-  const float eps_bias = 0.0002f;
+  constexpr float eps_bias = 0.0002f;
   float dist_px = MVAL_MAX_PX_DIST * U.pixelsize; /* snap dist */
 
   if (ruler_item) {
-    RulerInteraction *inter = ruler_item->gz.interaction_data;
-    float *co = ruler_item->co[inter->co_index];
+    RulerInteraction *inter = static_cast<RulerInteraction *>(ruler_item->gz.interaction_data);
+    float3 &co = ruler_item->co[inter->co_index];
     /* restore the initial depth */
-    copy_v3_v3(co, inter->drag_start_co);
+    co = inter->drag_start_co;
     view3d_ruler_item_project(ruler_info, co, mval);
     if (do_thickness && inter->co_index != 1) {
       Scene *scene = DEG_get_input_scene(depsgraph);
-      View3D *v3d = ruler_info->area->spacedata.first;
+      View3D *v3d = static_cast<View3D *>(ruler_info->area->spacedata.first);
       SnapObjectContext *snap_context = ED_gizmotypes_snap_3d_context_ensure(scene, snap_gizmo);
-      const float mval_fl[2] = {UNPACK2(mval)};
-      float ray_normal[3];
-      float ray_start[3];
-      float *co_other;
+      const float2 mval_fl = {float(mval[0]), float(mval[1])};
+      float3 ray_normal;
+      float3 ray_start;
+      float3 &co_other = ruler_item->co[inter->co_index == 0 ? 2 : 0];
 
-      co_other = ruler_item->co[inter->co_index == 0 ? 2 : 0];
+      SnapObjectParams snap_object_params{};
+      snap_object_params.snap_target_select = SCE_SNAP_TARGET_ALL;
+      snap_object_params.edit_mode_type = SNAP_GEOM_CAGE;
 
-      if (ED_transform_snap_object_project_view3d(snap_context,
-                                                  depsgraph,
-                                                  ruler_info->region,
-                                                  v3d,
-                                                  SCE_SNAP_MODE_FACE_RAYCAST,
-                                                  &(const struct SnapObjectParams){
-                                                      .snap_target_select = SCE_SNAP_TARGET_ALL,
-                                                      .edit_mode_type = SNAP_GEOM_CAGE,
-                                                  },
-                                                  NULL,
-                                                  mval_fl,
-                                                  NULL,
-                                                  &dist_px,
-                                                  co,
-                                                  ray_normal)) {
-        negate_v3(ray_normal);
+      eSnapMode hit = ED_transform_snap_object_project_view3d(snap_context,
+                                                              depsgraph,
+                                                              ruler_info->region,
+                                                              v3d,
+                                                              SCE_SNAP_MODE_FACE_RAYCAST,
+                                                              &snap_object_params,
+                                                              nullptr,
+                                                              mval_fl,
+                                                              nullptr,
+                                                              &dist_px,
+                                                              co,
+                                                              ray_normal);
+      if (hit) {
         /* add some bias */
-        madd_v3_v3v3fl(ray_start, co, ray_normal, eps_bias);
+        ray_start = co - ray_normal * eps_bias;
         ED_transform_snap_object_project_ray(snap_context,
                                              depsgraph,
                                              v3d,
-                                             &(const struct SnapObjectParams){
-                                                 .snap_target_select = SCE_SNAP_TARGET_ALL,
-                                                 .edit_mode_type = SNAP_GEOM_CAGE,
-                                             },
+                                             &snap_object_params,
                                              ray_start,
-                                             ray_normal,
-                                             NULL,
+                                             -ray_normal,
+                                             nullptr,
                                              co_other,
-                                             NULL);
+                                             nullptr);
       }
     }
     else {
-      View3D *v3d = ruler_info->area->spacedata.first;
+      View3D *v3d = static_cast<View3D *>(ruler_info->area->spacedata.first);
       if (do_snap) {
-        float *prev_point = NULL;
+        float3 *prev_point = nullptr;
         BLI_assert(ED_gizmotypes_snap_3d_is_enabled(snap_gizmo));
 
         if (inter->co_index != 1) {
           if (ruler_item->flag & RULERITEM_USE_ANGLE) {
-            prev_point = ruler_item->co[1];
+            prev_point = &ruler_item->co[1];
           }
           else if (inter->co_index == 0) {
-            prev_point = ruler_item->co[2];
+            prev_point = &ruler_item->co[2];
           }
           else {
-            prev_point = ruler_item->co[0];
+            prev_point = &ruler_item->co[0];
           }
         }
-        if (prev_point != NULL) {
+        if (prev_point != nullptr) {
           RNA_property_float_set_array(
-              snap_gizmo->ptr, ruler_info->snap_data.prop_prevpoint, prev_point);
+              snap_gizmo->ptr, ruler_info->snap_data.prop_prevpoint, *prev_point);
         }
 
-        ED_gizmotypes_snap_3d_data_get(C, snap_gizmo, co, NULL, NULL, NULL);
+        ED_gizmotypes_snap_3d_data_get(C, snap_gizmo, co, nullptr, nullptr, nullptr);
       }
 
 #ifdef USE_AXIS_CONSTRAINTS
@@ -416,7 +425,7 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
 
         Scene *scene = DEG_get_input_scene(depsgraph);
         ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
-        RegionView3D *rv3d = ruler_info->region->regiondata;
+        RegionView3D *rv3d = static_cast<RegionView3D *>(ruler_info->region->regiondata);
         BKE_view_layer_synced_ensure(scene, view_layer);
         Object *ob = BKE_view_layer_active_object_get(view_layer);
         Object *obedit = OBEDIT_FROM_OBACT(ob);
@@ -429,13 +438,12 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
         }
 
         const int pivot_point = scene->toolsettings->transform_pivot_point;
-        float mat[3][3];
+        float3x3 mat;
 
         ED_transform_calc_orientation_from_type_ex(
-            scene, view_layer, v3d, rv3d, ob, obedit, orient_index, pivot_point, mat);
+            scene, view_layer, v3d, rv3d, ob, obedit, orient_index, pivot_point, mat.ptr());
 
-        invert_m3(mat);
-        mul_m3_m3_pre(ruler_item->co, mat);
+        ruler_item->co = blender::math::invert(mat) * ruler_item->co;
 
         /* Loop through the axes and constrain the dragged point to the current constrained axis.
          */
@@ -444,8 +452,7 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
             ruler_item->co[inter->co_index][i] = ruler_item->co[(inter->co_index == 0) ? 2 : 0][i];
           }
         }
-        invert_m3(mat);
-        mul_m3_m3_pre(ruler_item->co, mat);
+        ruler_item->co = mat * ruler_item->co;
       }
 #endif
     }
@@ -464,7 +471,7 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
  */
 static bool gizmo_ruler_check_for_operator(const wmGizmoGroup *gzgroup)
 {
-  return gzgroup->customdata != NULL;
+  return gzgroup->customdata != nullptr;
 }
 
 /** \} */
@@ -481,13 +488,13 @@ static bGPDlayer *view3d_ruler_layer_get(bGPdata *gpd)
       return gpl;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 static RulerItem *gzgroup_ruler_item_first_get(wmGizmoGroup *gzgroup)
 {
 #ifndef NDEBUG
-  RulerInfo *ruler_info = gzgroup->customdata;
+  RulerInfo *ruler_info = static_cast<RulerInfo *>(gzgroup->customdata);
   BLI_assert(gzgroup->gizmos.first == ruler_info->snap_data.gizmo);
 #endif
   return (RulerItem *)((wmGizmo *)gzgroup->gizmos.first)->next;
@@ -508,13 +515,13 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
   const char *ruler_name = RULER_ID;
   bool changed = false;
 
-  if (scene->gpd == NULL) {
+  if (scene->gpd == nullptr) {
     scene->gpd = BKE_gpencil_data_addnew(bmain, "Annotations");
   }
   gpd = scene->gpd;
 
   gpl = view3d_ruler_layer_get(gpd);
-  if (gpl == NULL) {
+  if (gpl == nullptr) {
     gpl = BKE_gpencil_layer_addnew(gpd, ruler_name, false, false);
     copy_v4_v4(gpl->color, U.gpencil_new_layer_col);
     gpl->thickness = 1;
@@ -530,10 +537,11 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
     int j;
 
     /* allocate memory for a new stroke */
-    gps = MEM_callocN(sizeof(bGPDstroke), "gp_stroke");
+    gps = (bGPDstroke *)MEM_callocN(sizeof(bGPDstroke), "gp_stroke");
     if (ruler_item->flag & RULERITEM_USE_ANGLE) {
       gps->totpoints = 3;
-      pt = gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
+      pt = gps->points = (bGPDspoint *)MEM_callocN(sizeof(bGPDspoint) * gps->totpoints,
+                                                   "gp_stroke_points");
       for (j = 0; j < 3; j++) {
         copy_v3_v3(&pt->x, ruler_item->co[j]);
         pt->pressure = 1.0f;
@@ -543,7 +551,8 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
     }
     else {
       gps->totpoints = 2;
-      pt = gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
+      pt = gps->points = (bGPDspoint *)MEM_callocN(sizeof(bGPDspoint) * gps->totpoints,
+                                                   "gp_stroke_points");
       for (j = 0; j < 3; j += 2) {
         copy_v3_v3(&pt->x, ruler_item->co[j]);
         pt->pressure = 1.0f;
@@ -578,10 +587,10 @@ static bool view3d_ruler_from_gpencil(const bContext *C, wmGizmoGroup *gzgroup)
       gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV);
       if (gpf) {
         bGPDstroke *gps;
-        for (gps = gpf->strokes.first; gps; gps = gps->next) {
+        for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
           bGPDspoint *pt = gps->points;
           int j;
-          RulerItem *ruler_item = NULL;
+          RulerItem *ruler_item = nullptr;
           if (gps->totpoints == 3) {
             ruler_item = ruler_item_add(gzgroup);
             for (j = 0; j < 3; j++) {
@@ -617,20 +626,19 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 {
   Scene *scene = CTX_data_scene(C);
   UnitSettings *unit = &scene->unit;
-  RulerInfo *ruler_info = gz->parent_gzgroup->customdata;
+  RulerInfo *ruler_info = static_cast<RulerInfo *>(gz->parent_gzgroup->customdata);
   RulerItem *ruler_item = (RulerItem *)gz;
   ARegion *region = ruler_info->region;
-  RegionView3D *rv3d = region->regiondata;
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   const float cap_size = 4.0f * UI_SCALE_FAC;
   const float bg_margin = 4.0f * UI_SCALE_FAC;
   const float arc_size = 64.0f * UI_SCALE_FAC;
-#define ARC_STEPS 24
-  const int arc_steps = ARC_STEPS;
-  const float color_act[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-  const float color_base[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  constexpr int arc_steps = 24;
+  const float4 color_act = {1.0f, 1.0f, 1.0f, 1.0f};
+  const float4 color_base = {0.0f, 0.0f, 0.0f, 1.0f};
   uchar color_text[3];
   uchar color_wire[3];
-  float color_back[4] = {1.0f, 1.0f, 1.0f, 0.5f};
+  float4 color_back = {1.0f, 1.0f, 1.0f, 0.5f};
 
   /* Pixel Space. */
   GPU_matrix_push_projection();
@@ -650,13 +658,13 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   UI_GetThemeColor3ubv(TH_WIRE, color_wire);
 
   /* Avoid white on white text. (TODO: Fix by using theme). */
-  if ((int)color_text[0] + (int)color_text[1] + (int)color_text[2] > 127 * 3 * 0.6f) {
+  if (int(color_text[0]) + int(color_text[1]) + int(color_text[2]) > 127 * 3 * 0.6f) {
     copy_v3_fl(color_back, 0.0f);
   }
 
   const bool is_act = (ruler_info->item_active == ruler_item);
-  float dir_ruler[2];
-  float co_ss[3][2];
+  float2 dir_ruler;
+  float3x2 co_ss;
   bool proj_ok[3];
   int j;
 
@@ -682,14 +690,14 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   if (ruler_item->flag & RULERITEM_USE_ANGLE) {
     immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
-    float viewport_size[4];
+    float4 viewport_size(0.0f);
     GPU_viewport_size_get_f(viewport_size);
     immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
     immUniform1i("colors_len", 2); /* "advanced" mode */
-    const float *col = is_act ? color_act : color_base;
+    const float4 &col = is_act ? color_act : color_base;
     immUniform4f("color", 0.67f, 0.67f, 0.67f, 1.0f);
-    immUniform4f("color2", col[0], col[1], col[2], col[3]);
+    immUniform4fv("color2", col);
     immUniform1f("dash_width", 6.0f);
     immUniform1f("udash_factor", 0.5f);
 
@@ -707,37 +715,34 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 
     /* arc */
     {
-      float dir_tmp[3];
-      float ar_coord[3];
+      float3 dir_tmp;
+      float3 ar_coord;
 
-      float dir_a[3];
-      float dir_b[3];
-      float quat[4];
-      float axis[3];
+      float3 dir_a;
+      float3 dir_b;
+      float4 quat;
+      float3 axis;
       float angle;
       const float px_scale = (ED_view3d_pixel_size_no_ui_scale(rv3d, ruler_item->co[1]) *
                               min_fff(arc_size,
-                                      len_v2v2(co_ss[0], co_ss[1]) / 2.0f,
-                                      len_v2v2(co_ss[2], co_ss[1]) / 2.0f));
+                                      blender::math::distance(co_ss[0], co_ss[1]) / 2.0f,
+                                      blender::math::distance(co_ss[2], co_ss[1]) / 2.0f));
 
-      sub_v3_v3v3(dir_a, ruler_item->co[0], ruler_item->co[1]);
-      sub_v3_v3v3(dir_b, ruler_item->co[2], ruler_item->co[1]);
-      normalize_v3(dir_a);
-      normalize_v3(dir_b);
-
-      cross_v3_v3v3(axis, dir_a, dir_b);
+      dir_a = blender::math::normalize(ruler_item->co[0] - ruler_item->co[1]);
+      dir_b = blender::math::normalize(ruler_item->co[2] - ruler_item->co[1]);
+      axis = blender::math::cross(dir_a, dir_b);
       angle = angle_normalized_v3v3(dir_a, dir_b);
 
       axis_angle_to_quat(quat, axis, angle / arc_steps);
 
-      copy_v3_v3(dir_tmp, dir_a);
+      dir_tmp = dir_a;
 
       immUniformColor3ubv(color_wire);
 
       immBegin(GPU_PRIM_LINE_STRIP, arc_steps + 1);
 
       for (j = 0; j <= arc_steps; j++) {
-        madd_v3_v3v3fl(ar_coord, ruler_item->co[1], dir_tmp, px_scale);
+        ar_coord = ruler_item->co[1] + dir_tmp * px_scale;
         mul_qt_v3(quat, dir_tmp);
 
         immVertex3fv(shdr_pos_3d, ar_coord);
@@ -758,7 +763,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     immUniform1i("colors_len", 2); /* "advanced" mode */
     const float *col = is_act ? color_act : color_base;
     immUniform4f("color", 0.67f, 0.67f, 0.67f, 1.0f);
-    immUniform4f("color2", col[0], col[1], col[2], col[3]);
+    immUniform4fv("color2", col);
     immUniform1f("dash_width", 6.0f);
     immUniform1f("udash_factor", 0.5f);
 
@@ -784,19 +789,13 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     /* capping */
     {
-      float rot_90_vec_a[2];
-      float rot_90_vec_b[2];
-      float cap[2];
+      float2 cap;
 
-      sub_v2_v2v2(dir_ruler, co_ss[0], co_ss[1]);
-      rot_90_vec_a[0] = -dir_ruler[1];
-      rot_90_vec_a[1] = dir_ruler[0];
-      normalize_v2(rot_90_vec_a);
+      dir_ruler = co_ss[0] - co_ss[1];
+      float2 rot_90_vec_a = blender::math::normalize(float2{-dir_ruler[1], dir_ruler[0]});
 
-      sub_v2_v2v2(dir_ruler, co_ss[1], co_ss[2]);
-      rot_90_vec_b[0] = -dir_ruler[1];
-      rot_90_vec_b[1] = dir_ruler[0];
-      normalize_v2(rot_90_vec_b);
+      dir_ruler = co_ss[1] - co_ss[2];
+      float2 rot_90_vec_b = blender::math::normalize(float2{-dir_ruler[1], dir_ruler[0]});
 
       GPU_blend(GPU_BLEND_ALPHA);
 
@@ -820,16 +819,16 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
         immBegin(GPU_PRIM_LINES, proj_ok[0] * 2 + proj_ok[2] * 2 + proj_ok[1] * 4);
 
         if (proj_ok[0]) {
-          madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec_a, cap_size);
+          cap = co_ss[0] + rot_90_vec_a * cap_size;
           immVertex2fv(shdr_pos_2d, cap);
-          madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec_a, -cap_size);
+          cap = co_ss[0] - rot_90_vec_a * cap_size;
           immVertex2fv(shdr_pos_2d, cap);
         }
 
         if (proj_ok[2]) {
-          madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec_b, cap_size);
+          cap = co_ss[2] + rot_90_vec_b * cap_size;
           immVertex2fv(shdr_pos_2d, cap);
-          madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec_b, -cap_size);
+          cap = co_ss[2] - rot_90_vec_b * cap_size;
           immVertex2fv(shdr_pos_2d, cap);
         }
 
@@ -849,7 +848,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 
     /* text */
     char numstr[256];
-    float numstr_size[2];
+    float2 numstr_size;
     float posit[2];
     const int prec = 2; /* XXX, todo, make optional */
 
@@ -885,14 +884,12 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   else {
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-    sub_v2_v2v2(dir_ruler, co_ss[0], co_ss[2]);
+    dir_ruler = co_ss[0] - co_ss[2];
 
     /* capping */
     {
-      float rot_90_vec[2] = {-dir_ruler[1], dir_ruler[0]};
-      float cap[2];
-
-      normalize_v2(rot_90_vec);
+      float2 rot_90_vec = blender::math::normalize(float2{-dir_ruler[1], dir_ruler[0]});
+      float2 cap;
 
       GPU_blend(GPU_BLEND_ALPHA);
 
@@ -902,16 +899,16 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
         immBegin(GPU_PRIM_LINES, proj_ok[0] * 2 + proj_ok[2] * 2);
 
         if (proj_ok[0]) {
-          madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec, cap_size);
+          cap = co_ss[0] + rot_90_vec * cap_size;
           immVertex2fv(shdr_pos_2d, cap);
-          madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec, -cap_size);
+          cap = co_ss[0] - rot_90_vec * cap_size;
           immVertex2fv(shdr_pos_2d, cap);
         }
 
         if (proj_ok[2]) {
-          madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec, cap_size);
+          cap = co_ss[2] + rot_90_vec * cap_size;
           immVertex2fv(shdr_pos_2d, cap);
-          madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec, -cap_size);
+          cap = co_ss[2] - rot_90_vec * cap_size;
           immVertex2fv(shdr_pos_2d, cap);
         }
 
@@ -923,19 +920,18 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 
     /* text */
     char numstr[256];
-    float numstr_size[2];
+    float2 numstr_size;
     const int prec = 6; /* XXX, todo, make optional */
-    float posit[2];
+    float2 posit;
 
     ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
 
     BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
 
-    mid_v2_v2v2(posit, co_ss[0], co_ss[2]);
+    posit = (co_ss[0] + co_ss[2]) / 2.0f;
 
     /* center text */
-    posit[0] -= numstr_size[0] / 2.0f;
-    posit[1] -= numstr_size[1] / 2.0f;
+    posit -= numstr_size / 2.0f;
 
     /* draw text (bg) */
     if (proj_ok[0] && proj_ok[2]) {
@@ -965,14 +961,12 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 
   GPU_matrix_pop();
   GPU_matrix_pop_projection();
-
-#undef ARC_STEPS
 }
 
-static int gizmo_ruler_test_select(bContext *UNUSED(C), wmGizmo *gz, const int mval[2])
+static int gizmo_ruler_test_select(bContext *, wmGizmo *gz, const int mval[2])
 {
   RulerItem *ruler_item_pick = (RulerItem *)gz;
-  const float mval_fl[2] = {UNPACK2(mval)};
+  const float mval_fl[2] = {float(mval[0]), float(mval[1])};
   int co_index;
 
   /* select and drag */
@@ -996,7 +990,7 @@ static int gizmo_ruler_modal(bContext *C,
 {
   bool do_draw = false;
   int exit_code = OPERATOR_RUNNING_MODAL;
-  RulerInfo *ruler_info = gz->parent_gzgroup->customdata;
+  RulerInfo *ruler_info = static_cast<RulerInfo *>(gz->parent_gzgroup->customdata);
   RulerItem *ruler_item = (RulerItem *)gz;
   ARegion *region = CTX_wm_region(C);
   bool do_cursor_update = (event->val == KM_RELEASE) || (event->type == MOUSEMOVE);
@@ -1036,7 +1030,8 @@ static int gizmo_ruler_modal(bContext *C,
   const bool do_snap = !(tweak_flag & WM_GIZMO_TWEAK_SNAP);
 #else
   /* Ensure snap is up to date. */
-  ED_gizmotypes_snap_3d_data_get(C, ruler_info->snap_data.gizmo, NULL, NULL, NULL, NULL);
+  ED_gizmotypes_snap_3d_data_get(
+      C, ruler_info->snap_data.gizmo, nullptr, nullptr, nullptr, nullptr);
   const bool do_snap = ED_gizmotypes_snap_3d_is_enabled(ruler_info->snap_data.gizmo);
 #endif
 
@@ -1066,9 +1061,9 @@ static int gizmo_ruler_modal(bContext *C,
 static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
 {
   wmGizmoGroup *gzgroup = gz->parent_gzgroup;
-  RulerInfo *ruler_info = gzgroup->customdata;
+  RulerInfo *ruler_info = static_cast<RulerInfo *>(gzgroup->customdata);
   RulerItem *ruler_item_pick = (RulerItem *)gz;
-  RulerInteraction *inter = MEM_callocN(sizeof(RulerInteraction), __func__);
+  RulerInteraction *inter = (RulerInteraction *)MEM_callocN(sizeof(RulerInteraction), __func__);
   gz->interaction_data = inter;
 
   ARegion *region = ruler_info->region;
@@ -1091,7 +1086,7 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
 
       /* find the factor */
       {
-        float co_ss[2][2];
+        float2x2 co_ss;
         float fac;
 
         ED_view3d_project_float_global(
@@ -1102,8 +1097,8 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
         fac = line_point_factor_v2(mval_fl, co_ss[0], co_ss[1]);
         CLAMP(fac, 0.0f, 1.0f);
 
-        interp_v3_v3v3(
-            ruler_item_pick->co[1], ruler_item_pick->co[0], ruler_item_pick->co[2], fac);
+        ruler_item_pick->co[1] = blender::math::interpolate(
+            ruler_item_pick->co[0], ruler_item_pick->co[2], fac);
       }
 
       /* update the new location */
@@ -1117,7 +1112,7 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
     ruler_state_set(ruler_info, RULER_STATE_DRAG);
 
     /* store the initial depth */
-    copy_v3_v3(inter->drag_start_co, ruler_item_pick->co[inter->co_index]);
+    inter->drag_start_co = ruler_item_pick->co[inter->co_index];
   }
 
   if (inter->co_index == 1) {
@@ -1129,20 +1124,20 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
 
   {
     /* Set Snap prev point. */
-    float *prev_point;
+    float3 *prev_point;
     if (ruler_item_pick->flag & RULERITEM_USE_ANGLE) {
-      prev_point = (inter->co_index != 1) ? ruler_item_pick->co[1] : NULL;
+      prev_point = (inter->co_index != 1) ? &ruler_item_pick->co[1] : nullptr;
     }
     else if (inter->co_index == 0) {
-      prev_point = ruler_item_pick->co[2];
+      prev_point = &ruler_item_pick->co[2];
     }
     else {
-      prev_point = ruler_item_pick->co[0];
+      prev_point = &ruler_item_pick->co[0];
     }
 
     if (prev_point) {
       RNA_property_float_set_array(
-          ruler_info->snap_data.gizmo->ptr, ruler_info->snap_data.prop_prevpoint, prev_point);
+          ruler_info->snap_data.gizmo->ptr, ruler_info->snap_data.prop_prevpoint, *prev_point);
     }
     else {
       RNA_property_unset(ruler_info->snap_data.gizmo->ptr, ruler_info->snap_data.prop_prevpoint);
@@ -1157,7 +1152,7 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
 static void gizmo_ruler_exit(bContext *C, wmGizmo *gz, const bool cancel)
 {
   wmGizmoGroup *gzgroup = gz->parent_gzgroup;
-  RulerInfo *ruler_info = gzgroup->customdata;
+  RulerInfo *ruler_info = static_cast<RulerInfo *>(gzgroup->customdata);
 
   if (!cancel) {
     if (ruler_info->state == RULER_STATE_DRAG) {
@@ -1205,21 +1200,21 @@ void VIEW3D_GT_ruler_item(wmGizmoType *gzt)
 
 static void WIDGETGROUP_ruler_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  RulerInfo *ruler_info = MEM_callocN(sizeof(RulerInfo), __func__);
+  RulerInfo *ruler_info = (RulerInfo *)MEM_callocN(sizeof(RulerInfo), __func__);
 
   wmGizmo *gizmo;
   {
     /* The gizmo snap has to be the first gizmo. */
     const wmGizmoType *gzt_snap;
     gzt_snap = WM_gizmotype_find("GIZMO_GT_snap_3d", true);
-    gizmo = WM_gizmo_new_ptr(gzt_snap, gzgroup, NULL);
+    gizmo = WM_gizmo_new_ptr(gzt_snap, gzgroup, nullptr);
 
     RNA_enum_set(gizmo->ptr, "snap_elements_force", SCE_SNAP_MODE_GEOM);
     ED_gizmotypes_snap_3d_flag_set(gizmo, V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE);
-    WM_gizmo_set_color(gizmo, (float[4]){1.0f, 1.0f, 1.0f, 1.0f});
+    WM_gizmo_set_color(gizmo, blender::float4(1.0f));
 
     wmOperatorType *ot = WM_operatortype_find("VIEW3D_OT_ruler_add", true);
-    WM_gizmo_operator_set(gizmo, 0, ot, NULL);
+    WM_gizmo_operator_set(gizmo, 0, ot, nullptr);
   }
 
   if (view3d_ruler_from_gpencil(C, gzgroup)) {
@@ -1264,8 +1259,8 @@ void VIEW3D_GGT_ruler(wmGizmoGroupType *gzgt)
 static bool view3d_ruler_poll(bContext *C)
 {
   bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
-  if ((tref_rt == NULL) || !STREQ(view3d_gzgt_ruler_id, tref_rt->gizmo_group) ||
-      CTX_wm_region_view3d(C) == NULL) {
+  if ((tref_rt == nullptr) || !STREQ(view3d_gzgt_ruler_id, tref_rt->gizmo_group) ||
+      CTX_wm_region_view3d(C) == nullptr) {
     return false;
   }
   return true;
@@ -1298,10 +1293,10 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
   /* This is a little weak, but there is no real good way to tweak directly. */
   WM_gizmo_highlight_set(gzmap, &ruler_item->gz);
   if (WM_operator_name_call(
-          C, "GIZMOGROUP_OT_gizmo_tweak", WM_OP_INVOKE_REGION_WIN, NULL, event) ==
+          C, "GIZMOGROUP_OT_gizmo_tweak", WM_OP_INVOKE_REGION_WIN, nullptr, event) ==
       OPERATOR_RUNNING_MODAL) {
-    RulerInfo *ruler_info = gzgroup->customdata;
-    RulerInteraction *inter = ruler_item->gz.interaction_data;
+    RulerInfo *ruler_info = static_cast<RulerInfo *>(gzgroup->customdata);
+    RulerInteraction *inter = static_cast<RulerInteraction *>(ruler_item->gz.interaction_data);
     struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     inter->co_index = 0;
 
@@ -1344,7 +1339,7 @@ void VIEW3D_OT_ruler_add(wmOperatorType *ot)
 /** \name Remove Ruler Operator
  * \{ */
 
-static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -1360,7 +1355,7 @@ static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent
     if (!gizmo_ruler_check_for_operator(gzgroup)) {
       return OPERATOR_CANCELLED;
     }
-    RulerInfo *ruler_info = gzgroup->customdata;
+    RulerInfo *ruler_info = static_cast<RulerInfo *>(gzgroup->customdata);
     if (ruler_info->item_active) {
       RulerItem *ruler_item = ruler_info->item_active;
       if ((ruler_item->flag & RULERITEM_USE_ANGLE) &&
