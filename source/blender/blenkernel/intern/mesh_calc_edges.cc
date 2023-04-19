@@ -151,14 +151,13 @@ static void serialize_and_initialize_deduplicated_edges(MutableSpan<EdgeMap> edg
   });
 }
 
-static void update_edge_indices_in_poly_loops(Mesh *mesh,
-                                              Span<EdgeMap> edge_maps,
-                                              uint32_t parallel_mask)
+static void update_edge_indices_in_poly_loops(const OffsetIndices<int> polys,
+                                              const Span<int> corner_verts,
+                                              const Span<EdgeMap> edge_maps,
+                                              const uint32_t parallel_mask,
+                                              MutableSpan<int> corner_edges)
 {
-  const OffsetIndices polys = mesh->polys();
-  const Span<int> corner_verts = mesh->corner_verts();
-  MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
-  threading::parallel_for(IndexRange(mesh->totpoly), 100, [&](IndexRange range) {
+  threading::parallel_for(polys.index_range(), 100, [&](IndexRange range) {
     for (const int poly_index : range) {
       const IndexRange poly = polys[poly_index];
       int prev_corner = poly.last();
@@ -239,7 +238,11 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
   MutableSpan<int2> new_edges{
       static_cast<int2 *>(MEM_calloc_arrayN(new_totedge, sizeof(int2), __func__)), new_totedge};
   calc_edges::serialize_and_initialize_deduplicated_edges(edge_maps, new_edges);
-  calc_edges::update_edge_indices_in_poly_loops(mesh, edge_maps, parallel_mask);
+  calc_edges::update_edge_indices_in_poly_loops(mesh->polys(),
+                                                mesh->corner_verts(),
+                                                edge_maps,
+                                                parallel_mask,
+                                                mesh->corner_edges_for_write());
 
   /* Free old CustomData and assign new one. */
   CustomData_free(&mesh->edata, mesh->totedge);
