@@ -304,7 +304,7 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
 bool append_frame_to_filename(const char *filepath, const int frame, char *r_filepath_with_frames)
 {
   BLI_strncpy(r_filepath_with_frames, filepath, FILE_MAX);
-  BLI_path_extension_replace(r_filepath_with_frames, FILE_MAX, "");
+  BLI_path_extension_strip(r_filepath_with_frames);
   const int digits = frame == 0 ? 1 : integer_digits_i(abs(frame));
   BLI_path_frame(r_filepath_with_frames, frame, digits);
   return BLI_path_extension_replace(r_filepath_with_frames, FILE_MAX, ".obj");

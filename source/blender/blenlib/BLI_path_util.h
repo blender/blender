@@ -279,6 +279,11 @@ bool BLI_path_extension_glob_validate(char *ext_fnmatch) ATTR_NONNULL();
  */
 bool BLI_path_extension_replace(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
 /**
+ * Remove the file extension.
+ * \return true if a change was made to `path`.
+ */
+bool BLI_path_extension_strip(char *path) ATTR_NONNULL();
+/**
  * Strip's trailing '.'s and adds the extension only when needed
  */
 bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();

@@ -820,8 +820,7 @@ void BLI_path_to_display_name(char *display_name, int maxlen, const char *name)
   /* Replace underscores with spaces. */
   BLI_str_replace_char(display_name, '_', ' ');
 
-  /* Strip extension. */
-  BLI_path_extension_replace(display_name, maxlen, "");
+  BLI_path_extension_strip(display_name);
 
   /* Test if string has any upper case characters. */
   bool all_lower = true;
@@ -1276,6 +1275,16 @@ bool BLI_path_extension_replace(char *path, size_t maxlen, const char *ext)
   }
 
   memcpy(path_ext, ext, ext_len + 1);
+  return true;
+}
+
+bool BLI_path_extension_strip(char *path)
+{
+  char *path_ext = (char *)BLI_path_extension(path);
+  if (path_ext == NULL) {
+    return false;
+  }
+  *path_ext = '\0';
   return true;
 }
 

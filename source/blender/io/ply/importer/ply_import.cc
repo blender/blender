@@ -171,7 +171,7 @@ void importer_main(Main *bmain,
   /* File base name used for both mesh and object. */
   char ob_name[FILE_MAX];
   BLI_strncpy(ob_name, BLI_path_basename(import_params.filepath), FILE_MAX);
-  BLI_path_extension_replace(ob_name, FILE_MAX, "");
+  BLI_path_extension_strip(ob_name);
 
   /* Parse header. */
   PlyReadBuffer file(import_params.filepath, 64 * 1024);
