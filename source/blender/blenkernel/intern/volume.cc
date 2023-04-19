@@ -699,10 +699,8 @@ static int volume_sequence_frame(const Depsgraph *depsgraph, const Volume *volum
     return 0;
   }
 
-  char filepath[FILE_MAX];
-  STRNCPY(filepath, volume->filepath);
   int path_frame, path_digits;
-  if (!(volume->is_sequence && BLI_path_frame_get(filepath, &path_frame, &path_digits))) {
+  if (!(volume->is_sequence && BLI_path_frame_get(volume->filepath, &path_frame, &path_digits))) {
     return 0;
   }
 
