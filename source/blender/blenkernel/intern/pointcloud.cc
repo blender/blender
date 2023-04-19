@@ -249,9 +249,7 @@ PointCloud *BKE_pointcloud_new_nomain(const int totpoint)
   return pointcloud;
 }
 
-void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src,
-                                         PointCloud *pointcloud_dst,
-                                         bool take_ownership)
+void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud *pointcloud_dst)
 {
   BLI_assert(pointcloud_src->id.tag & LIB_TAG_NO_MAIN);
 
@@ -260,9 +258,7 @@ void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src,
   const int totpoint = pointcloud_dst->totpoint = pointcloud_src->totpoint;
   CustomData_copy(&pointcloud_src->pdata, &pointcloud_dst->pdata, CD_MASK_ALL, totpoint);
 
-  if (take_ownership) {
-    BKE_id_free(nullptr, pointcloud_src);
-  }
+  BKE_id_free(nullptr, pointcloud_src);
 }
 
 bool PointCloud::bounds_min_max(blender::float3 &min, blender::float3 &max) const
