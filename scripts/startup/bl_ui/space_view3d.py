@@ -1803,6 +1803,11 @@ class VIEW3D_MT_select_edit_text(Menu):
 
         layout.separator()
 
+        layout.operator("font.move_select", text="Top").type = 'TEXT_BEGIN'
+        layout.operator("font.move_select", text="Bottom").type = 'TEXT_END'
+
+        layout.separator()
+
         layout.operator("font.move_select", text="Previous Block").type = 'PREVIOUS_PAGE'
         layout.operator("font.move_select", text="Next Block").type = 'NEXT_PAGE'
 
