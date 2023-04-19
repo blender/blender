@@ -37,18 +37,24 @@ elseif(HIP_HIPCC_EXECUTABLE)
   set(HIP_VERSION_MINOR 0)
   set(HIP_VERSION_PATCH 0)
 
+  if(WIN32)
+    set(_hipcc_executable ${HIP_HIPCC_EXECUTABLE}.bat)
+  else()
+    set(_hipcc_executable ${HIP_HIPCC_EXECUTABLE})
+  endif()
+
   # Get version from the output.
-  execute_process(COMMAND ${HIP_HIPCC_EXECUTABLE} --version
-                  OUTPUT_VARIABLE HIP_VERSION_RAW
+  execute_process(COMMAND ${_hipcc_executable} --version
+                  OUTPUT_VARIABLE _hip_version_raw
                   ERROR_QUIET
                   OUTPUT_STRIP_TRAILING_WHITESPACE)
 
   # Parse parts.
-  if(HIP_VERSION_RAW MATCHES "HIP version: .*")
+  if(_hip_version_raw MATCHES "HIP version: .*")
     # Strip the HIP prefix and get list of individual version components.
     string(REGEX REPLACE
            ".*HIP version: ([.0-9]+).*" "\\1"
-           HIP_SEMANTIC_VERSION "${HIP_VERSION_RAW}")
+           HIP_SEMANTIC_VERSION "${_hip_version_raw}")
     string(REPLACE "." ";" HIP_VERSION_PARTS "${HIP_SEMANTIC_VERSION}")
     list(LENGTH HIP_VERSION_PARTS NUM_HIP_VERSION_PARTS)
 
@@ -71,7 +77,13 @@ elseif(HIP_HIPCC_EXECUTABLE)
 
   # Construct full semantic version.
   set(HIP_VERSION "${HIP_VERSION_MAJOR}.${HIP_VERSION_MINOR}.${HIP_VERSION_PATCH}")
-  unset(HIP_VERSION_RAW)
+  unset(_hip_version_raw)
+  unset(_hipcc_executable)
 else()
   set(HIP_FOUND FALSE)
 endif()
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(HIP
+    REQUIRED_VARS HIP_HIPCC_EXECUTABLE
+    VERSION_VAR HIP_VERSION)
