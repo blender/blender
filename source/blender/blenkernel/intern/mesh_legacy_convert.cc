@@ -1992,7 +1992,10 @@ void BKE_mesh_legacy_attribute_strings_to_flags(Mesh *mesh)
 
   CustomData_clear_layer_flag(
       vdata, CD_PROP_BYTE_COLOR, CD_FLAG_COLOR_ACTIVE | CD_FLAG_COLOR_RENDER);
+  CustomData_clear_layer_flag(
+      ldata, CD_PROP_BYTE_COLOR, CD_FLAG_COLOR_ACTIVE | CD_FLAG_COLOR_RENDER);
   CustomData_clear_layer_flag(ldata, CD_PROP_COLOR, CD_FLAG_COLOR_ACTIVE | CD_FLAG_COLOR_RENDER);
+  CustomData_clear_layer_flag(vdata, CD_PROP_COLOR, CD_FLAG_COLOR_ACTIVE | CD_FLAG_COLOR_RENDER);
 
   if (const char *name = mesh->active_color_attribute) {
     int i;
