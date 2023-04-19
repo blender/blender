@@ -725,7 +725,9 @@ static int gpencil_vertexmode_toggle_exec(bContext *C, wmOperator *op)
   }
 
   if (mode == OB_MODE_VERTEX_GPENCIL) {
-    /* Be sure we have brushes. */
+    /* Be sure we have brushes.
+     * Need Draw as well (used for Palettes). */
+    BKE_paint_ensure(ts, (Paint **)&ts->gp_paint);
     BKE_paint_ensure(ts, (Paint **)&ts->gp_vertexpaint);
 
     const bool reset_mode = (ts->gp_vertexpaint->paint.brush == NULL);
