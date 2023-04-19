@@ -1293,20 +1293,31 @@ bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext)
 #ifdef DEBUG_STRSIZE
   memset(path, 0xff, sizeof(*path) * maxlen);
 #endif
+  /* First check the extension is already there. */
   char *path_ext = (char *)BLI_path_extension(path);
-  if (path_ext == NULL) {
-    path_ext = path + strlen(path);
-  }
-  if (STREQ(path_ext, ext)) {
+  if (path_ext && STREQ(path_ext, ext)) {
     return true;
   }
 
+  const size_t path_len = strlen(path);
   const size_t ext_len = strlen(ext);
-  if ((path_ext - path) + ext_len >= maxlen) {
+  ssize_t a;
+
+  for (a = path_len - 1; a >= 0; a--) {
+    if (path[a] == '.') {
+      path[a] = '\0';
+    }
+    else {
+      break;
+    }
+  }
+  a++;
+
+  if (a + ext_len >= maxlen) {
     return false;
   }
 
-  memcpy(path_ext, ext, ext_len + 1);
+  memcpy(path + a, ext, ext_len + 1);
   return true;
 }
 
