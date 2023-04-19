@@ -585,9 +585,8 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
   VArraySpan<float2> surface_uv_map;
   if (curves_id.surface_uv_map != nullptr) {
     const bke::AttributeAccessor surface_attributes = surface_mesh.attributes();
-    surface_uv_map = surface_attributes
-                         .lookup(curves_id.surface_uv_map, ATTR_DOMAIN_CORNER, CD_PROP_FLOAT2)
-                         .typed<float2>();
+    surface_uv_map = *surface_attributes.lookup<float2>(curves_id.surface_uv_map,
+                                                        ATTR_DOMAIN_CORNER);
   }
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -795,7 +794,7 @@ static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    if (const GVArray src = attributes.lookup(".selection", domain)) {
+    if (const GVArray src = *attributes.lookup(".selection", domain)) {
       const CPPType &type = src.type();
       void *dst = MEM_malloc_arrayN(attributes.domain_size(domain), type.size(), __func__);
       src.materialize(dst);

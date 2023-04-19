@@ -94,9 +94,9 @@ static void retrieve_attribute_spans(const Span<bke::AttributeIDRef> ids,
                                      Vector<GMutableSpan> &dst,
                                      Vector<bke::GSpanAttributeWriter> &dst_attributes)
 {
+  const bke::AttributeAccessor src_attributes = src_curves.attributes();
   for (const int i : ids.index_range()) {
-    GVArray src_attribute = src_curves.attributes().lookup(ids[i], ATTR_DOMAIN_POINT);
-    BLI_assert(src_attribute);
+    const GVArray src_attribute = *src_attributes.lookup(ids[i], ATTR_DOMAIN_POINT);
     src.append(src_attribute.get_internal_span());
 
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(src_attribute.type());

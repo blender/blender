@@ -155,7 +155,7 @@ struct SlideOperationExecutor {
     brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
     brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
 
-    curve_factors_ = curves_orig_->attributes().lookup_or_default(
+    curve_factors_ = *curves_orig_->attributes().lookup_or_default(
         ".selection", ATTR_DOMAIN_CURVE, 1.0f);
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_orig_, selected_curve_indices_);
 
@@ -170,8 +170,8 @@ struct SlideOperationExecutor {
       return;
     }
     surface_looptris_orig_ = surface_orig_->looptris();
-    surface_uv_map_orig_ = surface_orig_->attributes().lookup<float2>(uv_map_name,
-                                                                      ATTR_DOMAIN_CORNER);
+    surface_uv_map_orig_ = *surface_orig_->attributes().lookup<float2>(uv_map_name,
+                                                                       ATTR_DOMAIN_CORNER);
     if (surface_uv_map_orig_.is_empty()) {
       report_missing_uv_map_on_original_surface(stroke_extension.reports);
       return;
@@ -198,8 +198,8 @@ struct SlideOperationExecutor {
     surface_looptris_eval_ = surface_eval_->looptris();
     surface_positions_eval_ = surface_eval_->vert_positions();
     surface_corner_verts_eval_ = surface_eval_->corner_verts();
-    surface_uv_map_eval_ = surface_eval_->attributes().lookup<float2>(uv_map_name,
-                                                                      ATTR_DOMAIN_CORNER);
+    surface_uv_map_eval_ = *surface_eval_->attributes().lookup<float2>(uv_map_name,
+                                                                       ATTR_DOMAIN_CORNER);
     if (surface_uv_map_eval_.is_empty()) {
       report_missing_uv_map_on_evaluated_surface(stroke_extension.reports);
       return;

@@ -101,7 +101,7 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
     MutableSpan<float3> positions = curves.positions_for_write();
     if (use_proportional_edit) {
       const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-      const VArray<bool> selection = curves.attributes().lookup_or_default<bool>(
+      const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
           ".selection", ATTR_DOMAIN_POINT, true);
       threading::parallel_for(curves.curves_range(), 512, [&](const IndexRange range) {
         Vector<float> closest_distances;

@@ -277,7 +277,7 @@ struct CurvesEffectOperationExecutor {
       return;
     }
 
-    curve_selection_factors_ = curves_->attributes().lookup_or_default(
+    curve_selection_factors_ = *curves_->attributes().lookup_or_default(
         ".selection", ATTR_DOMAIN_CURVE, 1.0f);
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 

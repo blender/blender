@@ -294,7 +294,7 @@ static bool collect_vertex_counts_per_poly(Mesh *me,
 {
   const blender::OffsetIndices polys = me->polys();
   const blender::bke::AttributeAccessor attributes = me->attributes();
-  const blender::VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const blender::VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   bool is_triangulated = true;
 
@@ -404,7 +404,7 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
   prepareToAppendValues(is_triangulated, *primitive_list, vcount_list);
 
   const blender::bke::AttributeAccessor attributes = me->attributes();
-  const blender::VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const blender::VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
 
   /* <p> */
@@ -623,7 +623,7 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
   bool use_custom_normals = false;
 
   const bke::AttributeAccessor attributes = me->attributes();
-  const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
+  const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
       "sharp_face", ATTR_DOMAIN_FACE, false);
 
   BKE_mesh_calc_normals_split(me);

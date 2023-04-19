@@ -137,7 +137,7 @@ struct NormalAnglePrecalc {
 /* Returns number of elements. */
 static int get_vcol_elements(Mesh *me, size_t *r_elem_size)
 {
-  const std::optional<bke::AttributeMetaData> meta_data = me->attributes().lookup_meta_data(
+  const std::optional<bke::AttributeMetaData> meta_data = *me->attributes().lookup_meta_data(
       me->active_color_attribute);
 
   if (r_elem_size) {
@@ -1953,7 +1953,7 @@ static void do_wpaint_brush_blur_task_cb_ex(void *__restrict userdata,
       ss, data->brush->falloff_shape);
 
   const blender::bke::AttributeAccessor attributes = data->me->attributes();
-  const blender::VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+  const blender::VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
 
   /* For each vertex */
@@ -2042,7 +2042,7 @@ static void do_wpaint_brush_smear_task_cb_ex(void *__restrict userdata,
   project_plane_v3_v3v3(brush_dir, brush_dir, cache->view_normal);
 
   const blender::bke::AttributeAccessor attributes = data->me->attributes();
-  const blender::VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+  const blender::VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
 
   if (cache->is_last_valid && (normalize_v3(brush_dir) != 0.0f)) {
@@ -2157,7 +2157,7 @@ static void do_wpaint_brush_draw_task_cb_ex(void *__restrict userdata,
       ss, data->brush->falloff_shape);
 
   const blender::bke::AttributeAccessor attributes = data->me->attributes();
-  const blender::VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+  const blender::VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
 
   /* For each vertex */
@@ -2228,7 +2228,7 @@ static void do_wpaint_brush_calc_average_weight_cb_ex(void *__restrict userdata,
       ss, data->brush->falloff_shape);
 
   const blender::bke::AttributeAccessor attributes = data->me->attributes();
-  const blender::VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+  const blender::VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
 
   /* For each vertex */
@@ -2859,7 +2859,7 @@ static void *vpaint_init_vpaint(bContext *C,
   vpd->is_texbrush = !(brush->vertexpaint_tool == VPAINT_TOOL_BLUR) && brush->mtex.tex;
 
   if (brush->vertexpaint_tool == VPAINT_TOOL_SMEAR) {
-    const GVArray attribute = me->attributes().lookup(me->active_color_attribute, domain);
+    const GVArray attribute = *me->attributes().lookup(me->active_color_attribute, domain);
     vpd->smear.color_prev = MEM_malloc_arrayN(attribute.size(), attribute.type().size(), __func__);
     attribute.materialize(vpd->smear.color_prev);
 
@@ -2896,7 +2896,7 @@ static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 
   ED_mesh_color_ensure(me, nullptr);
 
-  const std::optional<bke::AttributeMetaData> meta_data = me->attributes().lookup_meta_data(
+  const std::optional<bke::AttributeMetaData> meta_data = *me->attributes().lookup_meta_data(
       me->active_color_attribute);
 
   if (!meta_data) {
@@ -2957,9 +2957,9 @@ static void do_vpaint_brush_blur_loops(bContext *C,
 
   Color *previous_color = static_cast<Color *>(ss->cache->prev_colors_vpaint);
 
-  const blender::VArray<bool> select_vert = me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_vert = *me->attributes().lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
-  const blender::VArray<bool> select_poly = me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_poly = *me->attributes().lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
@@ -3100,9 +3100,9 @@ static void do_vpaint_brush_blur_verts(bContext *C,
 
   Color *previous_color = static_cast<Color *>(ss->cache->prev_colors_vpaint);
 
-  const blender::VArray<bool> select_vert = me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_vert = *me->attributes().lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
-  const blender::VArray<bool> select_poly = me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_poly = *me->attributes().lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
@@ -3248,9 +3248,9 @@ static void do_vpaint_brush_smear(bContext *C,
   Color *color_prev_smear = static_cast<Color *>(vpd->smear.color_prev);
   Color *color_prev = reinterpret_cast<Color *>(ss->cache->prev_colors_vpaint);
 
-  const blender::VArray<bool> select_vert = me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_vert = *me->attributes().lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
-  const blender::VArray<bool> select_poly = me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_poly = *me->attributes().lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
@@ -3415,7 +3415,7 @@ static void calculate_average_color(VPaintData<Color, Traits, domain> *vpd,
 {
   using Blend = typename Traits::BlendType;
 
-  const blender::VArray<bool> select_vert = me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_vert = *me->attributes().lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
 
   VPaintAverageAccum<Blend> *accum = (VPaintAverageAccum<Blend> *)MEM_mallocN(
@@ -3532,9 +3532,9 @@ static void vpaint_do_draw(bContext *C,
 
   Color *previous_color = static_cast<Color *>(ss->cache->prev_colors_vpaint);
 
-  const blender::VArray<bool> select_vert = me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_vert = *me->attributes().lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
-  const blender::VArray<bool> select_poly = me->attributes().lookup_or_default<bool>(
+  const blender::VArray<bool> select_poly = *me->attributes().lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
   blender::threading::parallel_for(nodes.index_range(), 1LL, [&](IndexRange range) {
@@ -4083,9 +4083,9 @@ static void fill_mesh_face_or_corner_attribute(Mesh &mesh,
                                                const bool use_vert_sel,
                                                const bool use_face_sel)
 {
-  const VArray<bool> select_vert = mesh.attributes().lookup_or_default<bool>(
+  const VArray<bool> select_vert = *mesh.attributes().lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
-  const VArray<bool> select_poly = mesh.attributes().lookup_or_default<bool>(
+  const VArray<bool> select_poly = *mesh.attributes().lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
   const OffsetIndices polys = mesh.polys();

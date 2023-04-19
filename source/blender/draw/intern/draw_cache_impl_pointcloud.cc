@@ -249,7 +249,7 @@ static void pointcloud_extract_position_and_radius(const PointCloud &pointcloud,
 
   const bke::AttributeAccessor attributes = pointcloud.attributes();
   const Span<float3> positions = pointcloud.positions();
-  const VArray<float> radii = attributes.lookup<float>("radius", ATTR_DOMAIN_POINT);
+  const VArray<float> radii = *attributes.lookup<float>("radius");
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
@@ -301,7 +301,7 @@ static void pointcloud_extract_attribute(const PointCloud &pointcloud,
    * the Blender convention, it should be `vec4(s, s, s, 1)`. This could be resolved using a
    * similar texture state swizzle to map the attribute correctly as for volume attributes, so we
    * can control the conversion ourselves. */
-  VArray<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
+  bke::AttributeReader<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
       request.attribute_name, request.domain, {0.0f, 0.0f, 0.0f, 1.0f});
 
   static GPUVertFormat format = {0};
@@ -314,7 +314,7 @@ static void pointcloud_extract_attribute(const PointCloud &pointcloud,
 
   MutableSpan<ColorGeometry4f> vbo_data{
       static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(attr_buf)), pointcloud.totpoint};
-  attribute.materialize(vbo_data);
+  attribute.varray.materialize(vbo_data);
 }
 
 /** \} */

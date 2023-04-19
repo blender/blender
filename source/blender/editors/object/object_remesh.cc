@@ -135,7 +135,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 
   /* Output mesh will be all smooth or all flat shading. */
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
+  const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
       "sharp_face", ATTR_DOMAIN_FACE, false);
   const bool smooth_normals = !sharp_faces[0];
 

@@ -1833,7 +1833,7 @@ static bool find_geonode_attribute_rgba(const DupliObject *dupli,
 
     /* Attempt to look up the attribute. */
     std::optional<bke::AttributeAccessor> attributes = component->attributes();
-    const VArray data = attributes->lookup<ColorGeometry4f>(name);
+    const VArray data = *attributes->lookup<ColorGeometry4f>(name);
 
     /* If the attribute was found and converted to float RGBA successfully, output it. */
     if (data) {

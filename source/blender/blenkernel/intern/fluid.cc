@@ -3237,8 +3237,9 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   blender::MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
   blender::MutableSpan<int> corner_verts = me->corner_verts_for_write();
 
-  const bool is_sharp = orgmesh->attributes().lookup_or_default<bool>(
-      "sharp_face", ATTR_DOMAIN_FACE, false)[0];
+  const bool is_sharp = orgmesh->attributes()
+                            .lookup_or_default<bool>("sharp_face", ATTR_DOMAIN_FACE, false)
+                            .varray[0];
   BKE_mesh_smooth_flag_set(me, !is_sharp);
 
   /* Get size (dimension) but considering scaling. */

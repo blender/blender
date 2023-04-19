@@ -1486,7 +1486,7 @@ bool BKE_mesh_material_index_used(Mesh *me, short index)
   using namespace blender;
   using namespace blender::bke;
   const AttributeAccessor attributes = me->attributes();
-  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   if (material_indices.is_single()) {
     return material_indices.get_internal_single() == index;
@@ -1718,11 +1718,11 @@ void BKE_mesh_mselect_validate(Mesh *me)
       (me->totselect), sizeof(MSelect), "Mesh selection history");
 
   const AttributeAccessor attributes = me->attributes();
-  const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+  const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
-  const VArray<bool> select_edge = attributes.lookup_or_default<bool>(
+  const VArray<bool> select_edge = *attributes.lookup_or_default<bool>(
       ".select_edge", ATTR_DOMAIN_EDGE, false);
-  const VArray<bool> select_poly = attributes.lookup_or_default<bool>(
+  const VArray<bool> select_poly = *attributes.lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
   for (i_src = 0, i_dst = 0; i_src < me->totselect; i_src++) {
@@ -1830,7 +1830,7 @@ void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])
 void BKE_mesh_vert_coords_get(const Mesh *mesh, float (*vert_coords)[3])
 {
   blender::bke::AttributeAccessor attributes = mesh->attributes();
-  VArray<float3> positions = attributes.lookup_or_default(
+  VArray<float3> positions = *attributes.lookup_or_default(
       "position", ATTR_DOMAIN_POINT, float3(0));
   positions.materialize({(float3 *)vert_coords, mesh->totvert});
 }

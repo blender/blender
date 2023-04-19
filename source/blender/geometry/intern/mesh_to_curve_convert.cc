@@ -52,7 +52,7 @@ bke::CurvesGeometry create_curve_from_vert_indices(
       continue;
     }
 
-    const GVArray mesh_attribute = mesh_attributes.lookup(attribute_id, ATTR_DOMAIN_POINT);
+    const GVArray mesh_attribute = *mesh_attributes.lookup(attribute_id, ATTR_DOMAIN_POINT);
     /* Some attributes might not exist if they were builtin attribute on domains that don't
      * have any elements, i.e. a face attribute on the output of the line primitive node. */
     if (!mesh_attribute) {

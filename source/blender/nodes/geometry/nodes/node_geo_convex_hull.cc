@@ -138,8 +138,7 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
 
   if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
     count++;
-    if (const VArray<float3> positions = mesh->attributes().lookup<float3>("position",
-                                                                           ATTR_DOMAIN_POINT)) {
+    if (const VArray positions = *mesh->attributes().lookup<float3>("position")) {
       if (positions.is_span()) {
         span_count++;
         positions_span = positions.get_internal_span();
@@ -150,8 +149,7 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
 
   if (const PointCloud *points = geometry_set.get_pointcloud_for_read()) {
     count++;
-    if (const VArray<float3> positions = points->attributes().lookup<float3>("position",
-                                                                             ATTR_DOMAIN_POINT)) {
+    if (const VArray positions = *points->attributes().lookup<float3>("position")) {
       if (positions.is_span()) {
         span_count++;
         positions_span = positions.get_internal_span();
@@ -182,16 +180,14 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
   int offset = 0;
 
   if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
-    if (const VArray<float3> varray = mesh->attributes().lookup<float3>("position",
-                                                                        ATTR_DOMAIN_POINT)) {
+    if (const VArray varray = *mesh->attributes().lookup<float3>("position")) {
       varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
       offset += varray.size();
     }
   }
 
   if (const PointCloud *points = geometry_set.get_pointcloud_for_read()) {
-    if (const VArray<float3> varray = points->attributes().lookup<float3>("position",
-                                                                          ATTR_DOMAIN_POINT)) {
+    if (const VArray varray = *points->attributes().lookup<float3>("position")) {
       varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
       offset += varray.size();
     }

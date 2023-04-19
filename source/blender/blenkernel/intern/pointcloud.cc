@@ -274,9 +274,9 @@ bool PointCloud::bounds_min_max(blender::float3 &min, blender::float3 &max) cons
   }
   this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
     const AttributeAccessor attributes = this->attributes();
-    const VArraySpan<float3> positions = attributes.lookup<float3>(POINTCLOUD_ATTR_POSITION);
+    const Span<float3> positions = this->positions();
     if (attributes.contains(POINTCLOUD_ATTR_RADIUS)) {
-      const VArraySpan<float> radii = attributes.lookup<float>(POINTCLOUD_ATTR_RADIUS);
+      const VArraySpan radii = *attributes.lookup<float>(POINTCLOUD_ATTR_RADIUS);
       r_bounds = *bounds::min_max_with_radii(positions, radii);
     }
     else {

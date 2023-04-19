@@ -317,8 +317,8 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
   const OffsetIndices target_polys = target->polys();
   const Span<int> target_corner_verts = target->corner_verts();
 
-  const VArray<int> src_face_sets = src_attributes.lookup<int>(".sculpt_face_set",
-                                                               ATTR_DOMAIN_FACE);
+  const VArray src_face_sets =
+    *  src_attributes.lookup<int>(".sculpt_face_set", ATTR_DOMAIN_FACE);
   if (!src_face_sets) {
     return;
   }

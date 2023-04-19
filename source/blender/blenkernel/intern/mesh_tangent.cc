@@ -126,7 +126,7 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
   }
 
   const AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan<float2> uv_map = attributes.lookup<float2>(uvmap, ATTR_DOMAIN_CORNER);
+  const VArraySpan uv_map = *attributes.lookup<float2>(uvmap, ATTR_DOMAIN_CORNER);
   if (uv_map.is_empty()) {
     BKE_reportf(reports,
                 RPT_ERROR,
