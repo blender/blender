@@ -98,6 +98,7 @@ static void gpu_stack_vector_from_socket(GPUNodeStack &stack, const bNodeSocket 
           return;
         default:
           BLI_assert_unreachable();
+          return;
       }
     }
     case SOCK_VECTOR: {
@@ -115,6 +116,7 @@ static void gpu_stack_vector_from_socket(GPUNodeStack &stack, const bNodeSocket 
           return;
         default:
           BLI_assert_unreachable();
+          return;
       }
     }
     case SOCK_RGBA: {
@@ -131,6 +133,7 @@ static void gpu_stack_vector_from_socket(GPUNodeStack &stack, const bNodeSocket 
           return;
         default:
           BLI_assert_unreachable();
+          return;
       }
     }
     default:

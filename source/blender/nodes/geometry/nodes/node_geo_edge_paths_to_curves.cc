@@ -61,7 +61,7 @@ static Curves *edge_paths_to_curves_convert(
     return nullptr;
   }
   Curves *curves_id = bke::curves_new_nomain(geometry::create_curve_from_vert_indices(
-      mesh, vert_indices, curve_offsets, IndexRange(0), propagation_info));
+      mesh.attributes(), vert_indices, curve_offsets, IndexRange(0), propagation_info));
   return curves_id;
 }
 
