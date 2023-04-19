@@ -30,6 +30,6 @@
 
 namespace blender::io::stl {
 
-Mesh *read_stl_ascii(const char *filepath, Main *bmain, char *mesh_name, bool use_custom_normals);
+Mesh *read_stl_ascii(const char *filepath, bool use_custom_normals);
 
 }  // namespace blender::io::stl
