@@ -118,7 +118,7 @@ ENUM_OPERATORS(eFileAttributes, FILE_ATTR_HARDLINK);
  * \{ */
 
 typedef enum FileExternalOperation {
-  FILE_EXTERNAL_OPERATION_OPEN = 0,
+  FILE_EXTERNAL_OPERATION_OPEN = 1,
   FILE_EXTERNAL_OPERATION_FOLDER_OPEN,
   /* Following are Windows-only: */
   FILE_EXTERNAL_OPERATION_EDIT,
