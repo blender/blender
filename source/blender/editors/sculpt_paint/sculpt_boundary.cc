@@ -7,7 +7,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_edgehash.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
@@ -199,7 +198,6 @@ static bool sculpt_boundary_is_vertex_in_editable_boundary(SculptSession *ss,
 struct BoundaryFloodFillData {
   SculptBoundary *boundary;
   GSet *included_verts;
-  EdgeSet *preview_edges;
 
   PBVHVertRef last_visited_vertex;
 };

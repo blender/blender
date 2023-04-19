@@ -83,7 +83,7 @@ class MeshImporter : public MeshImporterBase {
   struct Primitive {
     int poly_index;
     int *material_indices;
-    unsigned int totpoly;
+    uint totpoly;
   };
   typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive>> MaterialIdPrimitiveArrayMap;
   /* crazy name! */
@@ -94,7 +94,7 @@ class MeshImporter : public MeshImporterBase {
 
   bool set_poly_indices(int *poly_verts,
                         int loop_index,
-                        const unsigned int *indices,
+                        const uint *indices,
                         int loop_count);
 
   void set_face_uv(blender::float2 *mloopuv,
@@ -140,9 +140,7 @@ class MeshImporter : public MeshImporterBase {
    */
   static void mesh_add_edges(Mesh *mesh, int len);
 
-  unsigned int get_loose_edge_count(COLLADAFW::Mesh *mesh);
-
-  CustomData create_edge_custom_data(EdgeHash *eh);
+  uint get_loose_edge_count(COLLADAFW::Mesh *mesh);
 
   /**
    * Return the number of faces by summing up
@@ -168,11 +166,11 @@ class MeshImporter : public MeshImporterBase {
    * So this function MUST be called after read_faces() (see below)
    */
   void read_lines(COLLADAFW::Mesh *mesh, Mesh *me);
-  unsigned int get_vertex_count(COLLADAFW::Polygons *mp, int index);
+  uint get_vertex_count(COLLADAFW::Polygons *mp, int index);
 
   void get_vector(float v[3], COLLADAFW::MeshVertexData &arr, int i, int stride);
 
-  bool is_flat_face(unsigned int *nind, COLLADAFW::MeshVertexData &nor, int count);
+  bool is_flat_face(uint *nind, COLLADAFW::MeshVertexData &nor, int count);
 
   /**
    * Returns the list of Users of the given Mesh object.
