@@ -84,6 +84,19 @@ RNAPathKey::RNAPathKey(ID *id, const PointerRNA &ptr, PropertyRNA *prop, RNAPoin
 {
 }
 
+RNAPathKey::RNAPathKey(const PointerRNA &target_prop,
+                       const char *rna_path_from_target_prop,
+                       const RNAPointerSource source)
+    : id(target_prop.owner_id), source(source)
+{
+  /* Try to resolve path. */
+  int index;
+  if (!RNA_path_resolve_full(&target_prop, rna_path_from_target_prop, &ptr, &prop, &index)) {
+    ptr = PointerRNA_NULL;
+    prop = nullptr;
+  }
+}
+
 string RNAPathKey::identifier() const
 {
   const char *id_name = (id) ? id->name : "<No ID>";

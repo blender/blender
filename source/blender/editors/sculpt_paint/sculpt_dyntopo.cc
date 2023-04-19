@@ -575,7 +575,9 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
    * are re-evaluated and the PBVH is re-created. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  if (!ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  }
 
   // TODO: this line here is being slow, do we need it? - joeedh
   BKE_scene_graph_update_tagged(depsgraph, bmain);

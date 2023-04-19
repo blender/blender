@@ -3030,7 +3030,7 @@ static int filelist_readjob_list_dir(FileListReadJob *job_params,
           target = entry->redirection_path;
 #ifdef WIN32
           /* On Windows don't show `.lnk` extension for valid shortcuts. */
-          BLI_path_extension_replace(entry->relpath, FILE_MAXDIR, "");
+          BLI_path_extension_strip(entry->relpath);
 #endif
         }
         else {

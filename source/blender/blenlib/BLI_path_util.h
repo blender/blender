@@ -64,7 +64,7 @@ void BLI_split_file_part(const char *string, char *file, size_t filelen);
  * Returns a pointer to the last extension (e.g. the position of the last period).
  * Returns NULL if there is no extension.
  */
-const char *BLI_path_extension(const char *filepath) ATTR_NONNULL();
+const char *BLI_path_extension(const char *filepath) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Append a filename to a dir, ensuring slash separates.
@@ -279,6 +279,11 @@ bool BLI_path_extension_glob_validate(char *ext_fnmatch) ATTR_NONNULL();
  */
 bool BLI_path_extension_replace(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
 /**
+ * Remove the file extension.
+ * \return true if a change was made to `path`.
+ */
+bool BLI_path_extension_strip(char *path) ATTR_NONNULL();
+/**
  * Strip's trailing '.'s and adds the extension only when needed
  */
 bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
@@ -404,7 +409,7 @@ bool BLI_path_frame_range(char *path, int sta, int end, int digits) ATTR_NONNULL
 /**
  * Get the frame from a filename formatted by blender's frame scheme
  */
-bool BLI_path_frame_get(char *path, int *r_frame, int *r_digits_len) ATTR_NONNULL();
+bool BLI_path_frame_get(const char *path, int *r_frame, int *r_digits_len) ATTR_NONNULL();
 /**
  * Given a `path` with digits representing frame numbers, replace the digits with the '#'
  * character and extract the extension.

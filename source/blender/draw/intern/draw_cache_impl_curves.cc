@@ -268,7 +268,7 @@ static void curves_batch_cache_ensure_edit_points_selection(const bke::CurvesGeo
   MutableSpan<float> data(static_cast<float *>(GPU_vertbuf_get_data(cache.edit_points_selection)),
                           curves.points_num());
 
-  const VArray<float> attribute = curves.attributes().lookup_or_default<float>(
+  const VArray<float> attribute = *curves.attributes().lookup_or_default<float>(
       ".selection", ATTR_DOMAIN_POINT, true);
   attribute.materialize(data);
 }
@@ -343,14 +343,14 @@ static void curves_batch_ensure_attribute(const Curves &curves,
    * the Blender convention, it should be `vec4(s, s, s, 1)`. This could be resolved using a
    * similar texture state swizzle to map the attribute correctly as for volume attributes, so we
    * can control the conversion ourselves. */
-  VArray<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
+  bke::AttributeReader<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
       request.attribute_name, request.domain, {0.0f, 0.0f, 0.0f, 1.0f});
 
   MutableSpan<ColorGeometry4f> vbo_span{
       static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(attr_vbo)),
       attributes.domain_size(request.domain)};
 
-  attribute.materialize(vbo_span);
+  attribute.varray.materialize(vbo_span);
 
   /* Existing final data may have been for a different attribute (with a different name or domain),
    * free the data. */

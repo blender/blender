@@ -65,7 +65,7 @@ static void fill_new_attribute(Span<const GeometryComponent *> src_components,
     if (domain_num == 0) {
       continue;
     }
-    GVArray read_attribute = component->attributes()->lookup_or_default(
+    GVArray read_attribute = *component->attributes()->lookup_or_default(
         attribute_id, domain, data_type, nullptr);
 
     GVArraySpan src_span{read_attribute};

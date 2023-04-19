@@ -15,7 +15,7 @@ namespace blender::ed::curves {
 bool remove_selection(bke::CurvesGeometry &curves, const eAttrDomain selection_domain)
 {
   const bke::AttributeAccessor attributes = curves.attributes();
-  const VArray<bool> selection = attributes.lookup_or_default<bool>(
+  const VArray<bool> selection = *attributes.lookup_or_default<bool>(
       ".selection", selection_domain, true);
   const int domain_size_orig = attributes.domain_size(selection_domain);
   Vector<int64_t> indices;

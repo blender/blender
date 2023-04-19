@@ -108,7 +108,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
 
   /* Transfer the ID attribute if it exists, using the ID of the first merged point. */
   if (attribute_ids.contains("id")) {
-    VArraySpan<int> src = src_attributes.lookup_or_default<int>("id", ATTR_DOMAIN_POINT, 0);
+    VArraySpan<int> src = *src_attributes.lookup_or_default<int>("id", ATTR_DOMAIN_POINT, 0);
     bke::SpanAttributeWriter<int> dst = dst_attributes.lookup_or_add_for_write_only_span<int>(
         "id", ATTR_DOMAIN_POINT);
 

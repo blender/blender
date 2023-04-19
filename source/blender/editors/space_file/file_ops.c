@@ -1832,7 +1832,7 @@ static int file_external_operation_exec(bContext *C, wmOperator *op)
 #endif
 
   BKE_reportf(
-      op->reports, RPT_ERROR, "Failure to perform exernal file operation on \"%s\"", filepath);
+      op->reports, RPT_ERROR, "Failure to perform external file operation on \"%s\"", filepath);
   WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
   return OPERATOR_CANCELLED;
 }
@@ -1869,7 +1869,7 @@ void FILE_OT_external_operation(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "operation",
                file_external_operation,
-               0,
+               FILE_EXTERNAL_OPERATION_OPEN,
                "Operation",
                "Operation to perform on the file or path");
 }

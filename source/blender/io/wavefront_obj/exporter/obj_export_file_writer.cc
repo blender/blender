@@ -254,7 +254,7 @@ void OBJWriter::write_vertex_coords(FormatHandler &fh,
   const StringRef name = mesh->active_color_attribute;
   if (write_colors && !name.is_empty()) {
     const bke::AttributeAccessor attributes = mesh->attributes();
-    const VArray<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
+    const VArray<ColorGeometry4f> attribute = *attributes.lookup_or_default<ColorGeometry4f>(
         name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
 
     BLI_assert(tot_count == attribute.size());
@@ -338,7 +338,7 @@ void OBJWriter::write_poly_elements(FormatHandler &fh,
   const int tot_deform_groups = obj_mesh_data.tot_deform_groups();
   threading::EnumerableThreadSpecific<Vector<float>> group_weights;
   const bke::AttributeAccessor attributes = obj_mesh_data.get_mesh()->attributes();
-  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
 
   obj_parallel_chunked_output(fh, tot_polygons, [&](FormatHandler &buf, int idx) {

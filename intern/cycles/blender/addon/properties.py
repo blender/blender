@@ -1683,16 +1683,16 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 col.label(text=iface_("and NVIDIA driver version %s or newer") % driver_version,
                           icon='BLANK1', translate=False)
             elif device_type == 'HIP':
-                if True:
-                    col.label(text="HIP temporarily disabled due to compiler bugs", icon='BLANK1')
-                else:
-                    import sys
-                    if sys.platform[:3] == "win":
-                        driver_version = "21.Q4"
-                        col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
-                        col.label(text=iface_("and AMD Radeon Pro %s driver or newer") % driver_version,
-                                  icon='BLANK1', translate=False)
-                    elif sys.platform.startswith("linux"):
+                import sys
+                if sys.platform[:3] == "win":
+                    driver_version = "21.Q4"
+                    col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
+                    col.label(text=iface_("and AMD Radeon Pro %s driver or newer") % driver_version,
+                              icon='BLANK1', translate=False)
+                elif sys.platform.startswith("linux"):
+                    if True:
+                        col.label(text="HIP temporarily disabled due to compiler bugs", icon='BLANK1')
+                    else:
                         driver_version = "22.10"
                         col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
                         col.label(text=iface_("and AMD driver version %s or newer") % driver_version, icon='BLANK1',

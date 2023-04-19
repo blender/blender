@@ -105,7 +105,7 @@ struct PinchOperationExecutor {
 
     transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
-    point_factors_ = curves_->attributes().lookup_or_default<float>(
+    point_factors_ = *curves_->attributes().lookup_or_default<float>(
         ".selection", ATTR_DOMAIN_POINT, 1.0f);
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 

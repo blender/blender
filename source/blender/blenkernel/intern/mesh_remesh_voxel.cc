@@ -117,7 +117,7 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   }
 
   /* Construct the new output mesh */
-  Mesh *mesh = BKE_mesh_new_nomain(qrd.out_totverts, 0, qrd.out_totfaces * 4, qrd.out_totfaces);
+  Mesh *mesh = BKE_mesh_new_nomain(qrd.out_totverts, 0, qrd.out_totfaces, qrd.out_totfaces * 4);
   BKE_mesh_copy_parameters(mesh, input_mesh);
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
@@ -222,7 +222,7 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
       *level_set_grid, vertices, tris, quads, isovalue, adaptivity, relax_disoriented_triangles);
 
   Mesh *mesh = BKE_mesh_new_nomain(
-      vertices.size(), 0, quads.size() * 4 + tris.size() * 3, quads.size() + tris.size());
+      vertices.size(), 0, quads.size() + tris.size(), quads.size() * 4 + tris.size() * 3);
   MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> mesh_corner_verts = mesh->corner_verts_for_write();
@@ -317,8 +317,7 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
   const OffsetIndices target_polys = target->polys();
   const Span<int> target_corner_verts = target->corner_verts();
 
-  const VArray<int> src_face_sets = src_attributes.lookup<int>(".sculpt_face_set",
-                                                               ATTR_DOMAIN_FACE);
+  const VArray src_face_sets = *src_attributes.lookup<int>(".sculpt_face_set", ATTR_DOMAIN_FACE);
   if (!src_face_sets) {
     return;
   }

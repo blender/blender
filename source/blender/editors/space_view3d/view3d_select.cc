@@ -349,7 +349,7 @@ static bool edbm_backbuf_check_and_select_verts_obmode(Mesh *me,
   bke::MutableAttributeAccessor attributes = me->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
       ".select_vert", ATTR_DOMAIN_POINT);
-  const VArray<bool> hide_vert = attributes.lookup_or_default<bool>(
+  const VArray<bool> hide_vert = *attributes.lookup_or_default<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT, false);
 
   for (int index = 0; index < me->totvert; index++) {
@@ -380,7 +380,7 @@ static bool edbm_backbuf_check_and_select_faces_obmode(Mesh *me,
   bke::MutableAttributeAccessor attributes = me->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
       ".select_poly", ATTR_DOMAIN_FACE);
-  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
+  const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE, false);
 
   for (int index = 0; index < me->totpoly; index++) {
@@ -3088,12 +3088,13 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   Object *obedit = CTX_data_edit_object(C);
   Object *obact = CTX_data_active_object(C);
 
-  if (obact && obact->type == OB_GPENCIL_LEGACY && GPENCIL_ANY_MODE((bGPdata *)obact->data)) {
-    /* Prevent acting on Grease Pencil (when not in object mode), it implements its own selection
-     * operator in other modes. We might still fall trough to here (because that operator uses
-     * OPERATOR_PASS_THROUGH to make tweak work) but if we don't stop here code below assumes we
-     * are in object mode it might falsely toggle object selection. Alternatively, this could be
-     * put in the poll function instead. */
+  if (obact && obact->type == OB_GPENCIL_LEGACY && GPENCIL_ANY_MODE((bGPdata *)obact->data) &&
+      (BKE_object_pose_armature_get_with_wpaint_check(obact) == nullptr)) {
+    /* Prevent acting on Grease Pencil (when not in object mode -- or not in weight-paint + pose
+     * selection), it implements its own selection operator in other modes. We might still fall
+     * trough to here (because that operator uses OPERATOR_PASS_THROUGH to make tweak work) but if
+     * we don't stop here code below assumes we are in object mode it might falsely toggle object
+     * selection. Alternatively, this could be put in the poll function instead. */
     return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
   }
 

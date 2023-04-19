@@ -2040,7 +2040,8 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache *cache,
     return;
   }
 
-  const blender::VArraySpan<int> material_indices = mesh_eval->attributes().lookup_or_default<int>(
+  const blender::bke::AttributeAccessor attributes = mesh_eval->attributes();
+  const blender::VArraySpan<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
 
   /* Count number of subdivided polygons for each material. */

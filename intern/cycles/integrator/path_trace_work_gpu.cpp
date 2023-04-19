@@ -28,6 +28,7 @@ static size_t estimate_single_state_size(const uint kernel_features)
 #define KERNEL_STRUCT_ARRAY_MEMBER(parent_struct, type, name, feature) \
   state_size += (kernel_features & (feature)) ? sizeof(type) : 0;
 #define KERNEL_STRUCT_END(name) \
+  (void)array_index; \
   break; \
   }
 #define KERNEL_STRUCT_END_ARRAY(name, cpu_array_size, gpu_array_size) \
@@ -139,6 +140,7 @@ void PathTraceWorkGPU::alloc_integrator_soa()
     integrator_state_gpu_.parent_struct[array_index].name = (type *)array->device_pointer; \
   }
 #define KERNEL_STRUCT_END(name) \
+  (void)array_index; \
   break; \
   }
 #define KERNEL_STRUCT_END_ARRAY(name, cpu_array_size, gpu_array_size) \

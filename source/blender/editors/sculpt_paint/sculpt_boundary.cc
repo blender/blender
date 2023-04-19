@@ -237,7 +237,6 @@ static bool sculpt_boundary_is_vertex_in_editable_boundary(SculptSession *ss,
 struct BoundaryFloodFillData {
   SculptBoundary *boundary;
   GSet *included_verts;
-  EdgeSet *preview_edges;
 
   PBVHVertRef last_visited_vertex;
 };

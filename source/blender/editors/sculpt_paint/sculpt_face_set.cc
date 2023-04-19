@@ -12,6 +12,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_compiler_attrs.h"
 #include "BLI_function_ref.hh"
+#include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_index_range.hh"
 #include "BLI_math.h"

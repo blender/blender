@@ -1552,7 +1552,7 @@ void BKE_mesh_legacy_convert_hide_layers_to_flags(Mesh *mesh,
   const AttributeAccessor attributes = mesh->attributes();
 
   MutableSpan<MVert> verts(mesh->mvert, mesh->totvert);
-  const VArray<bool> hide_vert = attributes.lookup_or_default<bool>(
+  const VArray<bool> hide_vert = *attributes.lookup_or_default<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT, false);
   threading::parallel_for(verts.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
@@ -1561,7 +1561,7 @@ void BKE_mesh_legacy_convert_hide_layers_to_flags(Mesh *mesh,
   });
 
   MutableSpan<MEdge> edges(mesh->medge, mesh->totedge);
-  const VArray<bool> hide_edge = attributes.lookup_or_default<bool>(
+  const VArray<bool> hide_edge = *attributes.lookup_or_default<bool>(
       ".hide_edge", ATTR_DOMAIN_EDGE, false);
   threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
@@ -1569,7 +1569,7 @@ void BKE_mesh_legacy_convert_hide_layers_to_flags(Mesh *mesh,
     }
   });
 
-  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
+  const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE, false);
   threading::parallel_for(legacy_polys.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
@@ -1645,7 +1645,7 @@ void BKE_mesh_legacy_convert_material_indices_to_mpoly(Mesh *mesh,
   using namespace blender;
   using namespace blender::bke;
   const AttributeAccessor attributes = mesh->attributes();
-  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   threading::parallel_for(legacy_polys.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
@@ -1901,7 +1901,7 @@ void BKE_mesh_legacy_convert_selection_layers_to_flags(Mesh *mesh,
   const AttributeAccessor attributes = mesh->attributes();
 
   MutableSpan<MVert> verts(mesh->mvert, mesh->totvert);
-  const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+  const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
   threading::parallel_for(verts.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
@@ -1910,7 +1910,7 @@ void BKE_mesh_legacy_convert_selection_layers_to_flags(Mesh *mesh,
   });
 
   MutableSpan<MEdge> edges(mesh->medge, mesh->totedge);
-  const VArray<bool> select_edge = attributes.lookup_or_default<bool>(
+  const VArray<bool> select_edge = *attributes.lookup_or_default<bool>(
       ".select_edge", ATTR_DOMAIN_EDGE, false);
   threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
@@ -1918,7 +1918,7 @@ void BKE_mesh_legacy_convert_selection_layers_to_flags(Mesh *mesh,
     }
   });
 
-  const VArray<bool> select_poly = attributes.lookup_or_default<bool>(
+  const VArray<bool> select_poly = *attributes.lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
   threading::parallel_for(legacy_polys.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
@@ -2197,7 +2197,10 @@ void BKE_mesh_legacy_attribute_strings_to_flags(Mesh *mesh)
 
   CustomData_clear_layer_flag(
       vdata, CD_PROP_BYTE_COLOR, CD_FLAG_COLOR_ACTIVE | CD_FLAG_COLOR_RENDER);
+  CustomData_clear_layer_flag(
+      ldata, CD_PROP_BYTE_COLOR, CD_FLAG_COLOR_ACTIVE | CD_FLAG_COLOR_RENDER);
   CustomData_clear_layer_flag(ldata, CD_PROP_COLOR, CD_FLAG_COLOR_ACTIVE | CD_FLAG_COLOR_RENDER);
+  CustomData_clear_layer_flag(vdata, CD_PROP_COLOR, CD_FLAG_COLOR_ACTIVE | CD_FLAG_COLOR_RENDER);
 
   if (const char *name = mesh->active_color_attribute) {
     int i;

@@ -140,7 +140,6 @@ NodeGroup *ViewMapTesselator::Tesselate(ViewEdgesIterator begin, ViewEdgesIterat
   FEdge *firstEdge;
   FEdge *nextFEdge, *currentEdge;
 
-  int id = 0;
   // for (vector<ViewEdge*>::const_iterator c = viewedges.begin(), cend = viewedges.end(); c !=
   // cend; c++)
   for (ViewEdgesIterator c = begin, cend = end; c != cend; c++) {
@@ -193,7 +192,6 @@ NodeGroup *ViewMapTesselator::Tesselate(ViewEdgesIterator begin, ViewEdgesIterat
     line->setId((*c)->getId().getFirst());
     line->ComputeBBox();
     tshape->AddRep(line);
-    id++;
   }
 
   return group;

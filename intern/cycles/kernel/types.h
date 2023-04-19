@@ -79,9 +79,8 @@ CCL_NAMESPACE_BEGIN
 #define __VISIBILITY_FLAG__
 #define __VOLUME__
 
-/* TODO: solve internal compiler errors and enable light tree on HIP. */
 /* TODO: solve internal compiler perf issue and enable light tree on Metal/AMD. */
-#if defined(__KERNEL_HIP__) || defined(__KERNEL_METAL_AMD__)
+#if defined(__KERNEL_METAL_AMD__)
 #  undef __LIGHT_TREE__
 #endif
 

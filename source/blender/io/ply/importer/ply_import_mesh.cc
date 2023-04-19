@@ -7,6 +7,7 @@
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_customdata.h"
+#include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 
@@ -17,23 +18,18 @@
 #include "ply_import_mesh.hh"
 
 namespace blender::io::ply {
-Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &params)
+Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
 {
+  Mesh *mesh = BKE_mesh_new_nomain(
+      data.vertices.size(), data.edges.size(), data.face_sizes.size(), data.face_vertices.size());
 
-  /* Add vertices to the mesh. */
-  mesh->totvert = int(data.vertices.size());
-  CustomData_add_layer_named(
-      &mesh->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh->totvert, "position");
   mesh->vert_positions_for_write().copy_from(data.vertices);
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   if (!data.edges.is_empty()) {
-    mesh->totedge = int(data.edges.size());
-    CustomData_add_layer_named(
-        &mesh->edata, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh->totedge, ".edge_verts");
     MutableSpan<int2> edges = mesh->edges_for_write();
-    for (int i = 0; i < mesh->totedge; i++) {
+    for (const int i : data.edges.index_range()) {
       int32_t v1 = data.edges[i].first;
       int32_t v2 = data.edges[i].second;
       if (v1 >= mesh->totvert) {
@@ -50,18 +46,12 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
 
   /* Add faces to the mesh. */
   if (!data.face_sizes.is_empty()) {
-    /* Create poly and loop layers. */
-    mesh->totpoly = int(data.face_sizes.size());
-    mesh->totloop = int(data.face_vertices.size());
-    BKE_mesh_poly_offsets_ensure_alloc(mesh);
-    CustomData_add_layer_named(
-        &mesh->ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh->totloop, ".corner_vert");
     MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
     MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
     /* Fill in face data. */
     uint32_t offset = 0;
-    for (int i = 0; i < mesh->totpoly; i++) {
+    for (const int i : data.face_sizes.index_range()) {
       uint32_t size = data.face_sizes[i];
       poly_offsets[i] = offset;
       for (int j = 0; j < size; j++) {
@@ -83,12 +73,12 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
         attributes.lookup_or_add_for_write_span<ColorGeometry4f>("Col", ATTR_DOMAIN_POINT);
 
     if (params.vertex_colors == PLY_VERTEX_COLOR_SRGB) {
-      for (int i = 0; i < data.vertex_colors.size(); i++) {
+      for (const int i : data.vertex_colors.index_range()) {
         srgb_to_linearrgb_v4(colors.span[i], data.vertex_colors[i]);
       }
     }
     else {
-      for (int i = 0; i < data.vertex_colors.size(); i++) {
+      for (const int i : data.vertex_colors.index_range()) {
         copy_v4_v4(colors.span[i], data.vertex_colors[i]);
       }
     }
@@ -101,7 +91,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
   if (!data.uv_coordinates.is_empty()) {
     bke::SpanAttributeWriter<float2> uv_map = attributes.lookup_or_add_for_write_only_span<float2>(
         "UVMap", ATTR_DOMAIN_CORNER);
-    for (size_t i = 0; i < data.face_vertices.size(); i++) {
+    for (const int i : data.face_vertices.index_range()) {
       uv_map.span[i] = data.uv_coordinates[data.face_vertices[i]];
     }
     uv_map.finish();
@@ -116,16 +106,17 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
         mesh, reinterpret_cast<float(*)[3]>(data.vertex_normals.data()));
   }
 
+  BKE_mesh_smooth_flag_set(mesh, false);
+
   /* Merge all vertices on the same location. */
   if (params.merge_verts) {
-    std::optional<Mesh *> return_value = blender::geometry::mesh_merge_by_distance_all(
+    std::optional<Mesh *> merged_mesh = blender::geometry::mesh_merge_by_distance_all(
         *mesh, IndexMask(mesh->totvert), 0.0001f);
-    if (return_value.has_value()) {
-      mesh = return_value.value();
+    if (merged_mesh) {
+      BKE_id_free(nullptr, &mesh->id);
+      mesh = *merged_mesh;
     }
   }
-
-  BKE_mesh_smooth_flag_set(mesh, false);
 
   return mesh;
 }

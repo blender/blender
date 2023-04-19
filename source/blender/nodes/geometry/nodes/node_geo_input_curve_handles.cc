@@ -41,7 +41,7 @@ class HandlePositionFieldInput final : public bke::CurvesFieldInput {
 
     const AttributeAccessor attributes = curves.attributes();
     StringRef side = left_ ? "handle_left" : "handle_right";
-    VArray<float3> handles = attributes.lookup_or_default<float3>(
+    VArray<float3> handles = *attributes.lookup_or_default<float3>(
         side, ATTR_DOMAIN_POINT, {0, 0, 0});
 
     if (relative.is_single()) {

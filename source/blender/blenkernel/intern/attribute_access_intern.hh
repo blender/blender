@@ -66,7 +66,7 @@ class BuiltinAttributeProvider {
   {
   }
 
-  virtual GVArray try_get_for_read(const void *owner) const = 0;
+  virtual GAttributeReader try_get_for_read(const void *owner) const = 0;
   virtual GAttributeWriter try_get_for_write(void *owner) const = 0;
   virtual bool try_delete(void *owner) const = 0;
   virtual bool try_create(void *onwer, const AttributeInit &initializer) const = 0;
@@ -196,7 +196,7 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   {
   }
 
-  GVArray try_get_for_read(const void *owner) const final;
+  GAttributeReader try_get_for_read(const void *owner) const final;
   GAttributeWriter try_get_for_write(void *owner) const final;
   bool try_delete(void *owner) const final;
   bool try_create(void *owner, const AttributeInit &initializer) const final;
@@ -279,7 +279,7 @@ inline GAttributeReader lookup(const void *owner, const AttributeIDRef &attribut
     const StringRef name = attribute_id.name();
     if (const BuiltinAttributeProvider *provider =
             providers.builtin_attribute_providers().lookup_default_as(name, nullptr)) {
-      return {provider->try_get_for_read(owner), provider->domain()};
+      return provider->try_get_for_read(owner);
     }
   }
   for (const DynamicAttributesProvider *provider : providers.dynamic_attribute_providers()) {

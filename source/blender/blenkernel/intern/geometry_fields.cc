@@ -248,7 +248,7 @@ GVArray AttributeFieldInput::get_varray_for_context(const GeometryFieldContext &
 {
   const eCustomDataType data_type = cpp_type_to_custom_data_type(*type_);
   if (auto attributes = context.attributes()) {
-    return attributes->lookup(name_, context.domain(), data_type);
+    return *attributes->lookup(name_, context.domain(), data_type);
   }
   return {};
 }
@@ -304,7 +304,7 @@ GVArray IDAttributeFieldInput::get_varray_for_context(const GeometryFieldContext
 
   const StringRef name = get_random_id_attribute_name(context.domain());
   if (auto attributes = context.attributes()) {
-    if (GVArray attribute = attributes->lookup(name, context.domain(), CD_PROP_INT32)) {
+    if (GVArray attribute = *attributes->lookup(name, context.domain(), CD_PROP_INT32)) {
       return attribute;
     }
   }
@@ -334,7 +334,7 @@ GVArray AnonymousAttributeFieldInput::get_varray_for_context(const GeometryField
                                                              const IndexMask /*mask*/) const
 {
   const eCustomDataType data_type = cpp_type_to_custom_data_type(*type_);
-  return context.attributes()->lookup(*anonymous_id_, context.domain(), data_type);
+  return *context.attributes()->lookup(*anonymous_id_, context.domain(), data_type);
 }
 
 std::string AnonymousAttributeFieldInput::socket_inspection_name() const
@@ -474,7 +474,7 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
   }
 
   attributes.remove(attribute_id);
-  if (attributes.add(attribute_id, domain, data_type, bke::AttributeInitMoveArray{buffer})) {
+  if (attributes.add(attribute_id, domain, data_type, bke::AttributeInitMoveArray(buffer))) {
     return true;
   }
 

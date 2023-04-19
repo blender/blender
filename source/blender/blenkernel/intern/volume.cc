@@ -699,10 +699,8 @@ static int volume_sequence_frame(const Depsgraph *depsgraph, const Volume *volum
     return 0;
   }
 
-  char filepath[FILE_MAX];
-  STRNCPY(filepath, volume->filepath);
   int path_frame, path_digits;
-  if (!(volume->is_sequence && BLI_path_frame_get(filepath, &path_frame, &path_digits))) {
+  if (!(volume->is_sequence && BLI_path_frame_get(volume->filepath, &path_frame, &path_digits))) {
     return 0;
   }
 
@@ -1525,17 +1523,10 @@ Volume *BKE_volume_new_for_eval(const Volume *volume_src)
   return volume_dst;
 }
 
-Volume *BKE_volume_copy_for_eval(Volume *volume_src, bool reference)
+Volume *BKE_volume_copy_for_eval(Volume *volume_src)
 {
-  int flags = LIB_ID_COPY_LOCALIZE;
-
-  if (reference) {
-    flags |= LIB_ID_COPY_CD_REFERENCE;
-  }
-
-  Volume *result = (Volume *)BKE_id_copy_ex(nullptr, &volume_src->id, nullptr, flags);
-
-  return result;
+  return reinterpret_cast<Volume *>(
+      BKE_id_copy_ex(nullptr, &volume_src->id, nullptr, LIB_ID_COPY_LOCALIZE));
 }
 
 #ifdef WITH_OPENVDB

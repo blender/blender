@@ -2507,7 +2507,7 @@ static void gpencil_generate_edgeloops(Object *ob,
   const Span<MDeformVert> dverts = me->deform_verts();
   const blender::Span<blender::float3> vert_normals = me->vert_normals();
   const bke::AttributeAccessor attributes = me->attributes();
-  const VArray<bool> uv_seams = attributes.lookup_or_default<bool>(
+  const VArray<bool> uv_seams = *attributes.lookup_or_default<bool>(
       ".uv_seam", ATTR_DOMAIN_EDGE, false);
 
   /* Arrays for all edge vertices (forward and backward) that form a edge loop.
@@ -2753,7 +2753,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         gpl_fill, scene->r.cfra + frame_offset, GP_GETFRAME_ADD_NEW);
     int i;
 
-    const VArray<int> mesh_material_indices = me_eval->attributes().lookup_or_default<int>(
+    const VArray<int> mesh_material_indices = *me_eval->attributes().lookup_or_default<int>(
         "material_index", ATTR_DOMAIN_FACE, 0);
     for (i = 0; i < polys_len; i++) {
       const IndexRange poly = polys[i];

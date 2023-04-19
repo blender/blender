@@ -62,6 +62,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     geometry_set.remove_geometry_during_modify();
     return;
   }
+  const AttributeAccessor src_attributes = mesh->attributes();
   bke::MeshFieldContext field_context{*mesh, domain};
   fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
@@ -72,16 +73,30 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   evaluator.add(radius_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  const VArray<float3> positions_eval = evaluator.get_evaluated<float3>(0);
+  const VArray<float> radii_eval = evaluator.get_evaluated<float>(1);
 
-  PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
-  geometry_set.replace_pointcloud(pointcloud);
+  const bool share_arrays = selection.size() == domain_size;
+  const bool share_position = share_arrays && positions_eval.is_span() &&
+                              positions_eval.get_internal_span().data() ==
+                                  mesh->vert_positions().data();
+
+  PointCloud *pointcloud;
+  if (share_position) {
+    /* Create an empty point cloud so the positions can be shared. */
+    pointcloud = BKE_pointcloud_new_nomain(0);
+    CustomData_free_layer_named(&pointcloud->pdata, "position", pointcloud->totpoint);
+    pointcloud->totpoint = mesh->totvert;
+    const bke::AttributeReader src = src_attributes.lookup<float3>("position");
+    const bke::AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
+    pointcloud->attributes_for_write().add<float3>("position", ATTR_DOMAIN_POINT, init);
+  }
+  else {
+    pointcloud = BKE_pointcloud_new_nomain(selection.size());
+    array_utils::gather(positions_eval, selection, pointcloud->positions_for_write());
+  }
+
   MutableAttributeAccessor dst_attributes = pointcloud->attributes_for_write();
-
-  GSpanAttributeWriter position = dst_attributes.lookup_or_add_for_write_only_span(
-      "position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
-  array_utils::gather(evaluator.get_evaluated(0), selection, position.span);
-  position.finish();
-
   GSpanAttributeWriter radius = dst_attributes.lookup_or_add_for_write_only_span(
       "radius", ATTR_DOMAIN_POINT, CD_PROP_FLOAT);
   array_utils::gather(evaluator.get_evaluated(1), selection, radius.span);
@@ -93,22 +108,32 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
                                                  false,
                                                  propagation_info,
                                                  attributes);
+  attributes.remove("radius");
   attributes.remove("position");
-
-  const AttributeAccessor src_attributes = mesh->attributes();
 
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     const eCustomDataType data_type = entry.value.data_type;
-    GVArray src = src_attributes.lookup_or_default(attribute_id, domain, data_type);
-    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        attribute_id, ATTR_DOMAIN_POINT, data_type);
-    if (dst && src) {
-      array_utils::gather(src, selection, dst.span);
+    const bke::GAttributeReader src = src_attributes.lookup(attribute_id, domain, data_type);
+    if (!src) {
+      /* Domain interpolation can fail if the source domain is empty. */
+      continue;
+    }
+
+    if (share_arrays && src.domain == domain && src.sharing_info && src.varray.is_span()) {
+      const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
+                                          *src.sharing_info);
+      dst_attributes.add(attribute_id, ATTR_DOMAIN_POINT, data_type, init);
+    }
+    else {
+      GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+          attribute_id, ATTR_DOMAIN_POINT, data_type);
+      array_utils::gather(src.varray, selection, dst.span);
       dst.finish();
     }
   }
 
+  geometry_set.replace_pointcloud(pointcloud);
   geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_POINT_CLOUD});
 }
 

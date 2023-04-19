@@ -702,8 +702,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
   Mesh *result = BKE_mesh_new_nomain_from_template(mesh,
                                                    verts_masked_num + verts_add_num,
                                                    edges_masked_num + edges_add_num,
-                                                   loops_masked_num + loops_add_num,
-                                                   polys_masked_num + polys_add_num);
+                                                   polys_masked_num + polys_add_num,
+                                                   loops_masked_num + loops_add_num);
 
   copy_masked_verts_to_new_mesh(*mesh, *result, vertex_map);
   if (use_interpolation) {

@@ -1807,7 +1807,7 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
         add_relation(target_key, driver_key, "Target -> Driver");
       }
       else if (dtar->rna_path != nullptr && dtar->rna_path[0] != '\0') {
-        RNAPathKey variable_exit_key(target_id, dtar->rna_path, RNAPointerSource::EXIT);
+        RNAPathKey variable_exit_key(target_prop, dtar->rna_path, RNAPointerSource::EXIT);
         if (RNA_pointer_is_null(&variable_exit_key.ptr)) {
           continue;
         }

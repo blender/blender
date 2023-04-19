@@ -299,6 +299,12 @@ typedef struct bNodeType {
   void (*copyfunc_api)(struct PointerRNA *ptr, const struct bNode *src_node);
 
   /**
+   * An additional poll test for deciding whether nodes should be an option in search menus.
+   * Potentially more strict poll than #poll(), but doesn't have to check the same things.
+   */
+  bool (*add_ui_poll)(const struct bContext *C);
+
+  /**
    * Can this node type be added to a node tree?
    * \param r_disabled_hint: Hint to display in the UI when the poll fails.
    *                         The callback can set this to a static string without having to

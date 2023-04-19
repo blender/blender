@@ -218,6 +218,12 @@ static bool add_builtin_type_custom_data_layer_from_init(CustomData &custom_data
       }
       return true;
     }
+    case AttributeInit::Type::Shared: {
+      const AttributeInitShared &init = static_cast<const AttributeInitShared &>(initializer);
+      const void *stored_data = CustomData_add_layer_with_data(
+          &custom_data, data_type, const_cast<void *>(init.data), domain_num, init.sharing_info);
+      return stored_data != nullptr;
+    }
   }
 
   BLI_assert_unreachable();
@@ -293,6 +299,16 @@ static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attr
           custom_data, data_type, attribute_id, domain_num, data, nullptr);
       break;
     }
+    case AttributeInit::Type::Shared: {
+      const AttributeInitShared &init = static_cast<const AttributeInitShared &>(initializer);
+      add_generic_custom_data_layer_with_existing_data(custom_data,
+                                                       data_type,
+                                                       attribute_id,
+                                                       domain_num,
+                                                       const_cast<void *>(init.data),
+                                                       init.sharing_info);
+      break;
+    }
   }
   return old_layer_num < custom_data.totlayer;
 }
@@ -314,7 +330,7 @@ bool BuiltinCustomDataLayerProvider::layer_exists(const CustomData &custom_data)
   return CustomData_has_layer(&custom_data, stored_type_);
 }
 
-GVArray BuiltinCustomDataLayerProvider::try_get_for_read(const void *owner) const
+GAttributeReader BuiltinCustomDataLayerProvider::try_get_for_read(const void *owner) const
 {
   const CustomData *custom_data = custom_data_access_.get_const_custom_data(owner);
   if (custom_data == nullptr) {
@@ -326,22 +342,23 @@ GVArray BuiltinCustomDataLayerProvider::try_get_for_read(const void *owner) cons
   const int element_num = custom_data_access_.get_element_num(owner);
   if (element_num == 0) {
     if (this->layer_exists(*custom_data)) {
-      return GVArray::ForSpan({type, nullptr, 0});
+      return {GVArray::ForSpan({type, nullptr, 0}), domain_, nullptr};
     }
     return {};
   }
 
-  const void *data = nullptr;
+  int index;
   if (stored_as_named_attribute_) {
-    data = CustomData_get_layer_named(custom_data, stored_type_, name_.c_str());
+    index = CustomData_get_named_layer_index(custom_data, stored_type_, name_.c_str());
   }
   else {
-    data = CustomData_get_layer(custom_data, stored_type_);
+    index = CustomData_get_layer_index(custom_data, stored_type_);
   }
-  if (data == nullptr) {
+  if (index == -1) {
     return {};
   }
-  return GVArray::ForSpan({type, data, element_num});
+  const CustomDataLayer &layer = custom_data->layers[index];
+  return {GVArray::ForSpan({type, layer.data, element_num}), domain_, layer.sharing_info};
 }
 
 GAttributeWriter BuiltinCustomDataLayerProvider::try_get_for_write(void *owner) const
@@ -472,7 +489,7 @@ GAttributeReader CustomDataAttributeProvider::try_get_for_read(
       continue;
     }
     GSpan data{*type, layer.data, element_num};
-    return {GVArray::ForSpan(data), domain_};
+    return {GVArray::ForSpan(data), domain_, layer.sharing_info};
   }
   return {};
 }
@@ -729,50 +746,52 @@ static blender::GVArray try_adapt_data_type(blender::GVArray varray,
   return conversions.try_convert(std::move(varray), to_type);
 }
 
-GVArray AttributeAccessor::lookup(const AttributeIDRef &attribute_id,
-                                  const std::optional<eAttrDomain> domain,
-                                  const std::optional<eCustomDataType> data_type) const
+GAttributeReader AttributeAccessor::lookup(const AttributeIDRef &attribute_id,
+                                           const std::optional<eAttrDomain> domain,
+                                           const std::optional<eCustomDataType> data_type) const
 {
   GAttributeReader attribute = this->lookup(attribute_id);
   if (!attribute) {
     return {};
   }
-  GVArray varray = std::move(attribute.varray);
   if (domain.has_value()) {
     if (attribute.domain != domain) {
-      varray = this->adapt_domain(varray, attribute.domain, *domain);
-      if (!varray) {
+      attribute.varray = this->adapt_domain(attribute.varray, attribute.domain, *domain);
+      attribute.domain = *domain;
+      attribute.sharing_info = nullptr;
+      if (!attribute.varray) {
         return {};
       }
     }
   }
   if (data_type.has_value()) {
     const CPPType &type = *custom_data_type_to_cpp_type(*data_type);
-    if (varray.type() != type) {
-      varray = try_adapt_data_type(std::move(varray), type);
-      if (!varray) {
+    if (attribute.varray.type() != type) {
+      attribute.varray = try_adapt_data_type(std::move(attribute.varray), type);
+      attribute.sharing_info = nullptr;
+      if (!attribute.varray) {
         return {};
       }
     }
   }
-  return varray;
+  return attribute;
 }
 
-GVArray AttributeAccessor::lookup_or_default(const AttributeIDRef &attribute_id,
-                                             const eAttrDomain domain,
-                                             const eCustomDataType data_type,
-                                             const void *default_value) const
+GAttributeReader AttributeAccessor::lookup_or_default(const AttributeIDRef &attribute_id,
+                                                      const eAttrDomain domain,
+                                                      const eCustomDataType data_type,
+                                                      const void *default_value) const
 {
-  GVArray varray = this->lookup(attribute_id, domain, data_type);
-  if (varray) {
-    return varray;
+  GAttributeReader attribute = this->lookup(attribute_id, domain, data_type);
+  if (attribute) {
+    return attribute;
   }
   const CPPType &type = *custom_data_type_to_cpp_type(data_type);
   const int64_t domain_size = this->domain_size(domain);
   if (default_value == nullptr) {
-    return GVArray::ForSingleRef(type, domain_size, type.default_value());
+    return {GVArray::ForSingleRef(type, domain_size, type.default_value()), domain, nullptr};
   }
-  return GVArray::ForSingle(type, domain_size, default_value);
+  return {GVArray::ForSingle(type, domain_size, default_value), domain, nullptr};
 }
 
 Set<AttributeIDRef> AttributeAccessor::all_ids() const
@@ -921,7 +940,7 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
           return true;
         }
 
-        GVArray src = src_attributes.lookup(id, meta_data.domain);
+        GVArray src = *src_attributes.lookup(id, meta_data.domain);
         BLI_assert(src);
         bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
             id, meta_data.domain, meta_data.data_type);

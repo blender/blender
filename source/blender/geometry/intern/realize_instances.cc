@@ -699,7 +699,7 @@ static AllPointCloudsInfo preprocess_pointclouds(const GeometrySet &geometry_set
       const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
       const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
       if (attributes.contains(attribute_id)) {
-        GVArray attribute = attributes.lookup_or_default(attribute_id, domain, data_type);
+        GVArray attribute = *attributes.lookup_or_default(attribute_id, domain, data_type);
         pointcloud_info.attributes[attribute_index].emplace(std::move(attribute));
       }
     }
@@ -710,9 +710,9 @@ static AllPointCloudsInfo preprocess_pointclouds(const GeometrySet &geometry_set
       }
     }
     if (info.create_radius_attribute) {
-      pointcloud_info.radii = attributes.lookup_or_default("radius", ATTR_DOMAIN_POINT, 0.01f);
+      pointcloud_info.radii = *attributes.lookup_or_default("radius", ATTR_DOMAIN_POINT, 0.01f);
     }
-    const VArray<float3> position_attribute = attributes.lookup_or_default<float3>(
+    const VArray<float3> position_attribute = *attributes.lookup_or_default<float3>(
         "position", ATTR_DOMAIN_POINT, float3(0));
     pointcloud_info.positions = position_attribute.get_internal_span();
   }
@@ -929,7 +929,7 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
       const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
       const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
       if (attributes.contains(attribute_id)) {
-        GVArray attribute = attributes.lookup_or_default(attribute_id, domain, data_type);
+        GVArray attribute = *attributes.lookup_or_default(attribute_id, domain, data_type);
         mesh_info.attributes[attribute_index].emplace(std::move(attribute));
       }
     }
@@ -939,8 +939,8 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
         mesh_info.stored_vertex_ids = ids_attribute.varray.get_internal_span().typed<int>();
       }
     }
-    mesh_info.material_indices = attributes.lookup_or_default<int>(
-        "material_index", ATTR_DOMAIN_FACE, 0);
+    mesh_info.material_indices =*
+        attributes.lookup_or_default<int>("material_index", ATTR_DOMAIN_FACE, 0);
   }
 
   info.no_loose_edges_hint = std::all_of(
@@ -1081,7 +1081,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   const int tot_loops = last_task.start_indices.loop + last_mesh.totloop;
   const int tot_poly = last_task.start_indices.poly + last_mesh.totpoly;
 
-  Mesh *dst_mesh = BKE_mesh_new_nomain(tot_vertices, tot_edges, tot_loops, tot_poly);
+  Mesh *dst_mesh = BKE_mesh_new_nomain(tot_vertices, tot_edges, tot_poly, tot_loops);
   MeshComponent &dst_component = r_realized_geometry.get_component_for_write<MeshComponent>();
   dst_component.replace(dst_mesh);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
@@ -1231,7 +1231,7 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
       const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
       if (attributes.contains(attribute_id)) {
-        GVArray attribute = attributes.lookup_or_default(attribute_id, domain, data_type);
+        GVArray attribute = *attributes.lookup_or_default(attribute_id, domain, data_type);
         curve_info.attributes[attribute_index].emplace(std::move(attribute));
       }
     }
@@ -1244,12 +1244,12 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
 
     if (attributes.contains("radius")) {
       curve_info.radius =
-          attributes.lookup<float>("radius", ATTR_DOMAIN_POINT).get_internal_span();
+          attributes.lookup<float>("radius", ATTR_DOMAIN_POINT).varray.get_internal_span();
       info.create_radius_attribute = true;
     }
     if (attributes.contains("nurbs_weight")) {
       curve_info.nurbs_weight =
-          attributes.lookup<float>("nurbs_weight", ATTR_DOMAIN_POINT).get_internal_span();
+          attributes.lookup<float>("nurbs_weight", ATTR_DOMAIN_POINT).varray.get_internal_span();
       info.create_nurbs_weight_attribute = true;
     }
     curve_info.resolution = curves.resolution();
@@ -1258,9 +1258,9 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
     }
     if (attributes.contains("handle_right")) {
       curve_info.handle_left =
-          attributes.lookup<float3>("handle_left", ATTR_DOMAIN_POINT).get_internal_span();
+          attributes.lookup<float3>("handle_left", ATTR_DOMAIN_POINT).varray.get_internal_span();
       curve_info.handle_right =
-          attributes.lookup<float3>("handle_right", ATTR_DOMAIN_POINT).get_internal_span();
+          attributes.lookup<float3>("handle_right", ATTR_DOMAIN_POINT).varray.get_internal_span();
       info.create_handle_postion_attributes = true;
     }
   }

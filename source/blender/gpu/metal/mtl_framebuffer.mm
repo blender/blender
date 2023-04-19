@@ -148,8 +148,8 @@ bool MTLFrameBuffer::check(char err_out[256])
   this->ensure_attachments_and_viewport();
 
   /* Ensure there is at least one attachment. */
-  bool valid = (this->get_attachment_count() > 0 ||
-                this->has_depth_attachment() | this->has_stencil_attachment());
+  bool valid = (this->get_attachment_count() > 0 || this->has_depth_attachment() ||
+                this->has_stencil_attachment());
   if (!valid) {
     const char *format = "Framebuffer %s does not have any attachments.\n";
     if (err_out) {
@@ -1669,6 +1669,7 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
       }
     }
     BLI_assert(colour_attachments == colour_attachment_count_);
+    UNUSED_VARS_NDEBUG(colour_attachments);
 
     /* Depth attachment. */
     if (mtl_depth_attachment_.used) {

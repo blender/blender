@@ -149,17 +149,25 @@ static bool sculpt_expand_is_face_in_active_component(SculptSession *ss,
                                                       ExpandCache *expand_cache,
                                                       const PBVHFaceRef f)
 {
-  if (ss->bm) {
-    BMFace *bf = (BMFace *)f.i;
-    BMLoop *l = bf->l_first;
-    PBVHVertRef v = {(intptr_t)l->v};
+  PBVHVertRef vertex;
 
-    return sculpt_expand_is_vert_in_active_component(ss, expand_cache, v);
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      vertex.i = ss->corner_verts[ss->polys[f.i].start()];
+      break;
+    case PBVH_GRIDS: {
+      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+      vertex.i = ss->polys[f.i].start() * key->grid_area;
+
+      break;
+    }
+    case PBVH_BMESH: {
+      BMFace *face = reinterpret_cast<BMFace *>(f.i);
+      vertex.i = reinterpret_cast<intptr_t>(face->l_first->v);
+      break;
+    }
   }
-  else {
-    const int vert = ss->corner_verts[ss->polys[f.i].start()];
-    return sculpt_expand_is_vert_in_active_component(ss, expand_cache, BKE_pbvh_make_vref(vert));
-  }
+  return sculpt_expand_is_vert_in_active_component(ss, expand_cache, vertex);
 }
 
 /**

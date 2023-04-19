@@ -110,8 +110,8 @@ static Mesh *create_circle_mesh(const float radius,
 {
   Mesh *mesh = BKE_mesh_new_nomain(circle_vert_total(fill_type, verts_num),
                                    circle_edge_total(fill_type, verts_num),
-                                   circle_corner_total(fill_type, verts_num),
-                                   circle_face_total(fill_type, verts_num));
+                                   circle_face_total(fill_type, verts_num),
+                                   circle_corner_total(fill_type, verts_num));
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int2> edges = mesh->edges_for_write();

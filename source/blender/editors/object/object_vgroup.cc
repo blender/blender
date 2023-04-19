@@ -211,7 +211,7 @@ bool ED_vgroup_parray_alloc(ID *id,
 
           if (use_vert_sel) {
             const bke::AttributeAccessor attributes = me->attributes();
-            const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+            const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
                 ".select_vert", ATTR_DOMAIN_POINT, false);
 
             for (int i = 0; i < me->totvert; i++) {
@@ -671,7 +671,7 @@ static void vgroup_copy_active_to_sel(Object *ob, eVGroupSelect subset_type)
   }
   else {
     const bke::AttributeAccessor attributes = me->attributes();
-    const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+    const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
         ".select_vert", ATTR_DOMAIN_POINT, false);
 
     int v_act;
@@ -1063,7 +1063,7 @@ static void vgroup_select_verts(Object *ob, int select)
       const Span<MDeformVert> dverts = me->deform_verts();
       if (!dverts.is_empty()) {
         bke::MutableAttributeAccessor attributes = me->attributes_for_write();
-        const VArray<bool> hide_vert = attributes.lookup_or_default<bool>(
+        const VArray<bool> hide_vert = *attributes.lookup_or_default<bool>(
             ".hide_vert", ATTR_DOMAIN_POINT, false);
         bke::SpanAttributeWriter<bool> select_vert =
             attributes.lookup_or_add_for_write_only_span<bool>(".select_vert", ATTR_DOMAIN_POINT);
@@ -1628,7 +1628,7 @@ static void vgroup_smooth_subset(Object *ob,
   }
   else {
     const bke::AttributeAccessor attributes = me->attributes();
-    const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+    const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
         ".select_vert", ATTR_DOMAIN_POINT, false);
 
     const blender::Span<int2> edges = me->edges();
@@ -1704,7 +1704,7 @@ static void vgroup_smooth_subset(Object *ob,
         }
         else {
           const bke::AttributeAccessor attributes = me->attributes();
-          const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+          const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
               ".select_vert", ATTR_DOMAIN_POINT, false);
 
           int j;
@@ -2118,7 +2118,7 @@ void ED_vgroup_mirror(Object *ob,
       BLI_bitmap *vert_tag = BLI_BITMAP_NEW(me->totvert, __func__);
       MutableSpan<MDeformVert> dverts = me->deform_verts_for_write();
       const bke::AttributeAccessor attributes = me->attributes();
-      const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+      const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
           ".select_vert", ATTR_DOMAIN_POINT, false);
 
       for (int vidx = 0; vidx < me->totvert; vidx++) {
@@ -2278,7 +2278,7 @@ static void vgroup_assign_verts(Object *ob, const float weight)
     }
     else {
       const bke::AttributeAccessor attributes = me->attributes();
-      const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+      const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
           ".select_vert", ATTR_DOMAIN_POINT, false);
 
       MutableSpan<MDeformVert> dverts = me->deform_verts_for_write();
@@ -3907,7 +3907,7 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
 
     MutableSpan<MDeformVert> dverts = me->deform_verts_for_write();
     const bke::AttributeAccessor attributes = me->attributes();
-    const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+    const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
         ".select_vert", ATTR_DOMAIN_POINT, false);
 
     for (i = 0; i < me->totvert; i++) {

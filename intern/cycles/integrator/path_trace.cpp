@@ -574,7 +574,7 @@ void PathTrace::denoise(const RenderWork &render_work)
 
 void PathTrace::set_output_driver(unique_ptr<OutputDriver> driver)
 {
-  output_driver_ = move(driver);
+  output_driver_ = std::move(driver);
 }
 
 void PathTrace::set_display_driver(unique_ptr<DisplayDriver> driver)
@@ -585,7 +585,7 @@ void PathTrace::set_display_driver(unique_ptr<DisplayDriver> driver)
   destroy_gpu_resources();
 
   if (driver) {
-    display_ = make_unique<PathTraceDisplay>(move(driver));
+    display_ = make_unique<PathTraceDisplay>(std::move(driver));
   }
   else {
     display_ = nullptr;
