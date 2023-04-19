@@ -3229,7 +3229,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
     return nullptr;
   }
 
-  me = BKE_mesh_new_nomain(num_verts, 0, num_faces * 3, num_faces);
+  me = BKE_mesh_new_nomain(num_verts, 0, num_faces, num_faces * 3);
   if (!me) {
     return nullptr;
   }
@@ -3367,7 +3367,7 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
     return BKE_mesh_copy_for_eval(orgmesh, false);
   }
 
-  result = BKE_mesh_new_nomain(num_verts, 0, num_faces * 4, num_faces);
+  result = BKE_mesh_new_nomain(num_verts, 0, num_faces, num_faces * 4);
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(result);
   blender::MutableSpan<int> poly_offsets = result->poly_offsets_for_write();
   blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();

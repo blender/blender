@@ -37,10 +37,10 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
   /* Create Mesh *result with proper capacity. */
   Mesh *result;
   if (mesh) {
-    result = BKE_mesh_new_nomain_from_template(mesh, verts_num, edges_num, loops_num, faces_num);
+    result = BKE_mesh_new_nomain_from_template(mesh, verts_num, edges_num, faces_num, loops_num);
   }
   else {
-    result = BKE_mesh_new_nomain(verts_num, edges_num, loops_num, faces_num);
+    result = BKE_mesh_new_nomain(verts_num, edges_num, faces_num, loops_num);
     BKE_id_material_eval_ensure_default_slot(&result->id);
   }
   BKE_mesh_smooth_flag_set(result, false);

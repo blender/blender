@@ -21,7 +21,7 @@ namespace blender::io::ply {
 Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
 {
   Mesh *mesh = BKE_mesh_new_nomain(
-      data.vertices.size(), data.edges.size(), data.face_vertices.size(), data.face_sizes.size());
+      data.vertices.size(), data.edges.size(), data.face_sizes.size(), data.face_vertices.size());
 
   mesh->vert_positions_for_write().copy_from(data.vertices);
 

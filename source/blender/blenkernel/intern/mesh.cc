@@ -1032,7 +1032,10 @@ static void mesh_ensure_cdlayers_primary(Mesh &mesh)
   }
 }
 
-Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int loops_len, int polys_len)
+Mesh *BKE_mesh_new_nomain(const int verts_num,
+                          const int edges_num,
+                          const int polys_num,
+                          const int loops_num)
 {
   Mesh *mesh = (Mesh *)BKE_libblock_alloc(
       nullptr, ID_ME, BKE_idtype_idcode_to_name(ID_ME), LIB_ID_CREATE_LOCALIZE);
@@ -1042,13 +1045,13 @@ Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int loops_len, int polys
   copy_vn_i(mesh->vdata.typemap, CD_NUMTYPES, -1);
   copy_vn_i(mesh->edata.typemap, CD_NUMTYPES, -1);
   copy_vn_i(mesh->fdata.typemap, CD_NUMTYPES, -1);
-  copy_vn_i(mesh->ldata.typemap, CD_NUMTYPES, -1);
   copy_vn_i(mesh->pdata.typemap, CD_NUMTYPES, -1);
+  copy_vn_i(mesh->ldata.typemap, CD_NUMTYPES, -1);
 
-  mesh->totvert = verts_len;
-  mesh->totedge = edges_len;
-  mesh->totloop = loops_len;
-  mesh->totpoly = polys_len;
+  mesh->totvert = verts_num;
+  mesh->totedge = edges_num;
+  mesh->totpoly = polys_num;
+  mesh->totloop = loops_num;
 
   mesh_ensure_cdlayers_primary(*mesh);
   BKE_mesh_poly_offsets_ensure_alloc(mesh);
@@ -1112,35 +1115,35 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
 }
 
 Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
-                                           int verts_len,
-                                           int edges_len,
-                                           int tessface_len,
-                                           int loops_len,
-                                           int polys_len,
-                                           CustomData_MeshMasks mask)
+                                           const int verts_num,
+                                           const int edges_num,
+                                           const int tessface_num,
+                                           const int polys_num,
+                                           const int loops_num,
+                                           const CustomData_MeshMasks mask)
 {
   /* Only do tessface if we are creating tessfaces or copying from mesh with only tessfaces. */
-  const bool do_tessface = (tessface_len || ((me_src->totface != 0) && (me_src->totpoly == 0)));
+  const bool do_tessface = (tessface_num || ((me_src->totface != 0) && (me_src->totpoly == 0)));
 
   Mesh *me_dst = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
 
   me_dst->mselect = (MSelect *)MEM_dupallocN(me_src->mselect);
 
-  me_dst->totvert = verts_len;
-  me_dst->totedge = edges_len;
-  me_dst->totface = tessface_len;
-  me_dst->totloop = loops_len;
-  me_dst->totpoly = polys_len;
+  me_dst->totvert = verts_num;
+  me_dst->totedge = edges_num;
+  me_dst->totpoly = polys_num;
+  me_dst->totloop = loops_num;
+  me_dst->totface = tessface_num;
 
   BKE_mesh_copy_parameters_for_eval(me_dst, me_src);
 
-  CustomData_copy_layout(&me_src->vdata, &me_dst->vdata, mask.vmask, CD_SET_DEFAULT, verts_len);
-  CustomData_copy_layout(&me_src->edata, &me_dst->edata, mask.emask, CD_SET_DEFAULT, edges_len);
-  CustomData_copy_layout(&me_src->ldata, &me_dst->ldata, mask.lmask, CD_SET_DEFAULT, loops_len);
-  CustomData_copy_layout(&me_src->pdata, &me_dst->pdata, mask.pmask, CD_SET_DEFAULT, polys_len);
+  CustomData_copy_layout(&me_src->vdata, &me_dst->vdata, mask.vmask, CD_SET_DEFAULT, verts_num);
+  CustomData_copy_layout(&me_src->edata, &me_dst->edata, mask.emask, CD_SET_DEFAULT, edges_num);
+  CustomData_copy_layout(&me_src->pdata, &me_dst->pdata, mask.pmask, CD_SET_DEFAULT, polys_num);
+  CustomData_copy_layout(&me_src->ldata, &me_dst->ldata, mask.lmask, CD_SET_DEFAULT, loops_num);
   if (do_tessface) {
     CustomData_copy_layout(
-        &me_src->fdata, &me_dst->fdata, mask.fmask, CD_SET_DEFAULT, tessface_len);
+        &me_src->fdata, &me_dst->fdata, mask.fmask, CD_SET_DEFAULT, tessface_num);
   }
   else {
     mesh_tessface_clear_intern(me_dst, false);
@@ -1160,11 +1163,14 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   return me_dst;
 }
 
-Mesh *BKE_mesh_new_nomain_from_template(
-    const Mesh *me_src, int verts_len, int edges_len, int loops_len, int polys_len)
+Mesh *BKE_mesh_new_nomain_from_template(const Mesh *me_src,
+                                        const int verts_num,
+                                        const int edges_num,
+                                        const int polys_num,
+                                        const int loops_num)
 {
   return BKE_mesh_new_nomain_from_template_ex(
-      me_src, verts_len, edges_len, 0, loops_len, polys_len, CD_MASK_EVERYTHING);
+      me_src, verts_num, edges_num, 0, polys_num, loops_num, CD_MASK_EVERYTHING);
 }
 
 void BKE_mesh_eval_delete(struct Mesh *mesh_eval)

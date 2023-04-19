@@ -1982,7 +1982,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
   /* Create Mesh *result with proper capacity. */
   result = BKE_mesh_new_nomain_from_template(
-      mesh, int(new_verts_num), int(new_edges_num), int(new_loops_num), int(new_polys_num));
+      mesh, int(new_verts_num), int(new_edges_num), int(new_polys_num), int(new_loops_num));
 
   float(*vert_positions)[3] = BKE_mesh_vert_positions_for_write(result);
   blender::MutableSpan<int2> edges = result->edges_for_write();

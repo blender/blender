@@ -51,8 +51,8 @@ Mesh *create_grid_mesh(const int verts_x,
   const int edges_y = verts_y - 1;
   Mesh *mesh = BKE_mesh_new_nomain(verts_x * verts_y,
                                    edges_x * verts_y + edges_y * verts_x,
-                                   edges_x * edges_y * 4,
-                                   edges_x * edges_y);
+                                   edges_x * edges_y,
+                                   edges_x * edges_y * 4);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int2> edges = mesh->edges_for_write();
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
