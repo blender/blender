@@ -217,17 +217,17 @@ struct BMLogSetDiff : public BMLogSetBase {
   void print_info() override
   {
     printf("  modified: v: %d e: %d f: %d\n",
-           modified_verts.size(),
-           modified_edges.size(),
-           modified_faces.size());
+           int(modified_verts.size()),
+           int(modified_edges.size()),
+           int(modified_faces.size()));
     printf("  removed: v: %d e: %d f: %d\n",
-           removed_verts.size(),
-           removed_edges.size(),
-           removed_faces.size());
+           int(removed_verts.size()),
+           int(removed_edges.size()),
+           int(removed_faces.size()));
     printf("  added: v: %d e: %d f: %d\n",
-           added_verts.size(),
-           added_edges.size(),
-           added_faces.size());
+           int(added_verts.size()),
+           int(added_edges.size()),
+           int(added_faces.size()));
   }
 
   void add_vert(BMesh *bm, BMVert *v);
