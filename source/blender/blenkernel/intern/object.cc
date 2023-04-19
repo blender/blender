@@ -2528,6 +2528,28 @@ Object *BKE_object_pose_armature_get(Object *ob)
   return nullptr;
 }
 
+Object *BKE_object_pose_armature_get_with_wpaint_check(Object *ob)
+{
+  /* When not in weight paint mode. */
+  if (ob) {
+    switch (ob->type) {
+      case OB_MESH: {
+        if ((ob->mode & OB_MODE_WEIGHT_PAINT) == 0) {
+          return nullptr;
+        }
+        break;
+      }
+      case OB_GPENCIL: {
+        if ((ob->mode & OB_MODE_WEIGHT_GPENCIL) == 0) {
+          return nullptr;
+        }
+        break;
+      }
+    }
+  }
+  return BKE_object_pose_armature_get(ob);
+}
+
 Object *BKE_object_pose_armature_get_visible(Object *ob, ViewLayer *view_layer, View3D *v3d)
 {
   Object *ob_armature = BKE_object_pose_armature_get(ob);
