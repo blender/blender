@@ -679,7 +679,7 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
    * flip
    */
   const Span<float3> positions = mesh->vert_positions();
-  const Span<MEdge> edges = mesh->edges();
+  const Span<blender::int2> edges = mesh->edges();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
 
@@ -719,7 +719,7 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
         break;
       }
       /* Check for zero length edges */
-      if (compare_v3v3(positions[edges[i].v1], positions[edges[i].v2], 1e-4f)) {
+      if (compare_v3v3(positions[edges[i][0]], positions[edges[i][1]], 1e-4f)) {
         is_manifold_consistent = false;
         break;
       }
@@ -934,7 +934,7 @@ static void quadriflow_end_job(void *customdata)
       WM_reportf(RPT_ERROR, "QuadriFlow: Remeshing failed");
       break;
     case -1:
-      WM_report(RPT_WARNING, "QuadriFlow: Remeshing cancelled");
+      WM_report(RPT_WARNING, "QuadriFlow: Remeshing canceled");
       break;
     case -2:
       WM_report(RPT_WARNING,

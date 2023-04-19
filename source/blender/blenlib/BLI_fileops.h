@@ -114,6 +114,34 @@ ENUM_OPERATORS(eFileAttributes, FILE_ATTR_HARDLINK);
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name External File Operations
+ * \{ */
+
+typedef enum FileExternalOperation {
+  FILE_EXTERNAL_OPERATION_OPEN = 0,
+  FILE_EXTERNAL_OPERATION_FOLDER_OPEN,
+  /* Following are Windows-only: */
+  FILE_EXTERNAL_OPERATION_EDIT,
+  FILE_EXTERNAL_OPERATION_NEW,
+  FILE_EXTERNAL_OPERATION_FIND,
+  FILE_EXTERNAL_OPERATION_SHOW,
+  FILE_EXTERNAL_OPERATION_PLAY,
+  FILE_EXTERNAL_OPERATION_BROWSE,
+  FILE_EXTERNAL_OPERATION_PREVIEW,
+  FILE_EXTERNAL_OPERATION_PRINT,
+  FILE_EXTERNAL_OPERATION_INSTALL,
+  FILE_EXTERNAL_OPERATION_RUNAS,
+  FILE_EXTERNAL_OPERATION_PROPERTIES,
+  FILE_EXTERNAL_OPERATION_FOLDER_FIND,
+  FILE_EXTERNAL_OPERATION_FOLDER_CMD,
+} FileExternalOperation;
+
+bool BLI_file_external_operation_supported(const char *filepath, FileExternalOperation operation);
+bool BLI_file_external_operation_execute(const char *filepath, FileExternalOperation operation);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Directories
  * \{ */
 

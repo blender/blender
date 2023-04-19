@@ -129,6 +129,8 @@ static void blf_size_finalizer(void *object)
   font->ft_size = NULL;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name FreeType Utilities (Internal)
  * \{ */

@@ -2177,7 +2177,7 @@ static void outliner_batch_delete_object_tag(ReportList *reports,
         reports, RPT_WARNING, "Cannot delete indirectly linked object '%s'", object->id.name + 2);
     BLI_assert((object->id.tag & LIB_TAG_DOIT) == 0);
   }
-  /* FIXME: This code checking object usercount won't work as expected if a same object belongs to
+  /* FIXME: This code checking object user-count won't work as expected if a same object belongs to
    * more than one collection in the scene. */
   if (ID_REAL_USERS(object) <= 1 && ID_EXTRA_USERS(object) == 0 &&
       BKE_library_ID_is_indirectly_used(bmain, object)) {

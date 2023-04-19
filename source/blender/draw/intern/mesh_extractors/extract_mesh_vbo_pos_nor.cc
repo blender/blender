@@ -124,17 +124,17 @@ static void extract_pos_nor_iter_loose_edge_bm(const MeshRenderData *mr,
 }
 
 static void extract_pos_nor_iter_loose_edge_mesh(const MeshRenderData *mr,
-                                                 const MEdge *edge,
+                                                 const int2 edge,
                                                  const int ledge_index,
                                                  void *_data)
 {
   MeshExtract_PosNor_Data *data = static_cast<MeshExtract_PosNor_Data *>(_data);
   const int ml_index = mr->loop_len + ledge_index * 2;
   PosNorLoop *vert = &data->vbo_data[ml_index];
-  copy_v3_v3(vert[0].pos, mr->vert_positions[edge->v1]);
-  copy_v3_v3(vert[1].pos, mr->vert_positions[edge->v2]);
-  vert[0].nor = data->normals[edge->v1].low;
-  vert[1].nor = data->normals[edge->v2].low;
+  copy_v3_v3(vert[0].pos, mr->vert_positions[edge[0]]);
+  copy_v3_v3(vert[1].pos, mr->vert_positions[edge[1]]);
+  vert[0].nor = data->normals[edge[0]].low;
+  vert[1].nor = data->normals[edge[1]].low;
 }
 
 static void extract_pos_nor_iter_loose_vert_bm(const MeshRenderData *mr,
@@ -499,18 +499,18 @@ static void extract_pos_nor_hq_iter_loose_edge_bm(const MeshRenderData *mr,
 }
 
 static void extract_pos_nor_hq_iter_loose_edge_mesh(const MeshRenderData *mr,
-                                                    const MEdge *edge,
+                                                    const int2 edge,
                                                     const int ledge_index,
                                                     void *_data)
 {
   MeshExtract_PosNorHQ_Data *data = static_cast<MeshExtract_PosNorHQ_Data *>(_data);
   const int ml_index = mr->loop_len + ledge_index * 2;
   PosNorHQLoop *vert = &data->vbo_data[ml_index];
-  copy_v3_v3(vert[0].pos, mr->vert_positions[edge->v1]);
-  copy_v3_v3(vert[1].pos, mr->vert_positions[edge->v2]);
-  copy_v3_v3_short(vert[0].nor, data->normals[edge->v1].high);
+  copy_v3_v3(vert[0].pos, mr->vert_positions[edge[0]]);
+  copy_v3_v3(vert[1].pos, mr->vert_positions[edge[1]]);
+  copy_v3_v3_short(vert[0].nor, data->normals[edge[0]].high);
   vert[0].nor[3] = 0;
-  copy_v3_v3_short(vert[1].nor, data->normals[edge->v2].high);
+  copy_v3_v3_short(vert[1].nor, data->normals[edge[1]].high);
   vert[1].nor[3] = 0;
 }
 

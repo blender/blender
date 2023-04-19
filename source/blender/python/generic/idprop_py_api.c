@@ -600,14 +600,20 @@ static IDProperty *idp_from_PySequence(const char *name, PyObject *ob)
   bool use_buffer = false;
 
   if (PyObject_CheckBuffer(ob)) {
-    PyObject_GetBuffer(ob, &buffer, PyBUF_SIMPLE | PyBUF_FORMAT);
-    const char format = PyC_StructFmt_type_from_str(buffer.format);
-    if (PyC_StructFmt_type_is_float_any(format) ||
-        (PyC_StructFmt_type_is_int_any(format) && buffer.itemsize == 4)) {
-      use_buffer = true;
+    if (PyObject_GetBuffer(ob, &buffer, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+      /* Request failed. A `PyExc_BufferError` will have been raised,
+       * so clear it to silently fall back to accessing as a sequence. */
+      PyErr_Clear();
     }
     else {
-      PyBuffer_Release(&buffer);
+      const char format = PyC_StructFmt_type_from_str(buffer.format);
+      if (PyC_StructFmt_type_is_float_any(format) ||
+          (PyC_StructFmt_type_is_int_any(format) && buffer.itemsize == 4)) {
+        use_buffer = true;
+      }
+      else {
+        PyBuffer_Release(&buffer);
+      }
     }
   }
 

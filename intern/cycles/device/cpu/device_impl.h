@@ -56,7 +56,7 @@ class CPUDevice : public Device {
   CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_);
   ~CPUDevice();
 
-  virtual BVHLayoutMask get_bvh_layout_mask() const override;
+  virtual BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;
 
   /* Returns true if the texture info was copied to the device (meaning, some more
    * re-initialization might be needed). */

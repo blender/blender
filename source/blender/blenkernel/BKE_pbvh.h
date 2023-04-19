@@ -1385,12 +1385,14 @@ bool BKE_pbvh_show_orig_get(PBVH *pbvh);
 #ifdef __cplusplus
 }
 
+#include "BLI_math_vector.hh"
+
 namespace blender::bke::pbvh {
 void update_vert_boundary_faces(int *boundary_flags,
                                 const int *face_sets,
                                 const bool *hide_poly,
                                 const float (*vert_positions)[3],
-                                const MEdge *medge,
+                                const blender::int2 *medge,
                                 const int *corner_verts,
                                 const int *corner_edges,
                                 blender::OffsetIndices<int> polys,

@@ -439,5 +439,3 @@ using EulerXYZ = EulerXYZBase<float>;
 using Euler3 = Euler3Base<float>;
 
 }  // namespace blender::math
-
-/** \} */

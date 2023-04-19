@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -1276,14 +1276,6 @@ msgstr "Font Vettoriali"
 
 msgid "Vector font data-blocks"
 msgstr "Blocchi-dati Caratteri vettoriali"
-
-
-msgid "Grease Pencil"
-msgstr "Matita"
-
-
-msgid "Grease Pencil data-blocks"
-msgstr "Blocchi-dati Matita"
 
 
 msgid "Images"
@@ -8466,6 +8458,10 @@ msgid "Fonts"
 msgstr "Caratteri"
 
 
+msgid "Grease Pencil"
+msgstr "Matita"
+
+
 msgid "Freestyle Linestyles"
 msgstr "Stile Linee Freestyle"
 
@@ -10683,10 +10679,6 @@ msgstr "Regola la forza del colore dei tratti"
 
 msgid "Introduce jitter/randomness into strokes"
 msgstr "Introduce del tremolio/casualità nei tratti"
-
-
-msgid "Paste copies of the strokes stored on the clipboard"
-msgstr "Incolla copie dei tratti conservati negli appunti"
 
 
 msgid "Erase"
@@ -15078,10 +15070,6 @@ msgstr "Memoria"
 
 msgid "Text file is in memory, without a corresponding file on disk"
 msgstr "Il file di testo è in memoria, senza un corrispondente file sul disco"
-
-
-msgid "Modified"
-msgstr "Modificato"
 
 
 msgid "Text file on disk is different than the one in memory"
@@ -22927,10 +22915,6 @@ msgid "Y position of the middle of the box"
 msgstr "Posizione Y della metà del box"
 
 
-msgid "Bright/Contrast"
-msgstr "Luminosità/Contrasto"
-
-
 msgid "Channel Key"
 msgstr "Canale Chiave"
 
@@ -23551,10 +23535,6 @@ msgid "Hue Correct"
 msgstr "Correzione Tonalità"
 
 
-msgid "Hue Saturation Value"
-msgstr "Tonalità - Saturazione - Valore"
-
-
 msgid "ID Mask"
 msgstr "ID Maschera"
 
@@ -24061,10 +24041,6 @@ msgid "Blackbody"
 msgstr "Corpo Nero"
 
 
-msgid "Bright Contrast"
-msgstr "Lumin./Contrasto"
-
-
 msgid "Anisotropic BSDF"
 msgstr "Anisotropico BSDF"
 
@@ -24553,18 +24529,6 @@ msgid "UV coordinates to be used for mapping"
 msgstr "Coordinate UV da usare per la mappatura"
 
 
-msgid "Cross Product"
-msgstr "Prodotto Vettoriale"
-
-
-msgid "Modulo"
-msgstr "Modulo"
-
-
-msgid "Wrap"
-msgstr "Ricomincia"
-
-
 msgid "Z Axis"
 msgstr "Asse Z"
 
@@ -24939,10 +24903,6 @@ msgid "Copy Keyframes"
 msgstr "Copia Fotogrammi Chiave"
 
 
-msgid "Copy selected keyframes to the copy/paste buffer"
-msgstr "Copia i keyframes selezionati nel buffer di copia/incolla"
-
-
 msgctxt "Operator"
 msgid "Delete Keyframes"
 msgstr "Cancella Fotogrammi Chiave"
@@ -25124,10 +25084,6 @@ msgstr "Nuova Azione"
 msgctxt "Operator"
 msgid "Paste Keyframes"
 msgstr "Incolla Fotogrammi Chiave"
-
-
-msgid "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame"
-msgstr "Incolla i keyframe dal buffer copia/incolla sui canali selezionati, iniziando dal frame corrente"
 
 
 msgid "Flipped"
@@ -26727,10 +26683,6 @@ msgid "Copy Tracks"
 msgstr "Copia Tracce"
 
 
-msgid "Copy selected tracks to clipboard"
-msgstr "Copia le tracce selezionate negli appunti"
-
-
 msgctxt "Operator"
 msgid "Create Plane Track"
 msgstr "Crea Piano Tracciamento"
@@ -26995,10 +26947,6 @@ msgstr "Abilita Multi-Vista"
 msgctxt "Operator"
 msgid "Paste Tracks"
 msgstr "Incolla Tracce"
-
-
-msgid "Paste tracks from clipboard"
-msgstr "Incolla le tracce dagli appunti"
 
 
 msgctxt "Operator"
@@ -29879,11 +29827,6 @@ msgstr "Regola luminosità/contrasto del colore vertice"
 
 
 msgctxt "Operator"
-msgid "Vertex Paint Hue Saturation Value"
-msgstr "Tonalità/Saturazione/Valore Pittura Vertici"
-
-
-msgctxt "Operator"
 msgid "Vertex Paint Invert"
 msgstr "Inverti Pittura Vertici"
 
@@ -30960,10 +30903,6 @@ msgid "Copy Splines"
 msgstr "Copia Splines"
 
 
-msgid "Copy selected splines to clipboard"
-msgstr "Copia le splines selezionate negli appunti"
-
-
 msgid "Toggle cyclic for selected splines"
 msgstr "Alterna la ciclicità (percorso chiuso) delle spline selezionate"
 
@@ -31058,10 +30997,6 @@ msgstr "Imposta la parentela della maschera"
 msgctxt "Operator"
 msgid "Paste Splines"
 msgstr "Incolla Splines"
-
-
-msgid "Paste splines from clipboard"
-msgstr "Incolla splines dagli appunti"
 
 
 msgctxt "Operator"
@@ -33387,14 +33322,6 @@ msgstr "Zoom Immagine Sfondo"
 
 msgid "Zoom in/out the background image"
 msgstr "Lista delle immagini di sfondo"
-
-
-msgid "Copies selected nodes to the clipboard"
-msgstr "Copia i nodi selezionati negli appunti"
-
-
-msgid "Pastes nodes from the clipboard to the active node tree"
-msgstr "Incolla i nodi dagli appunti all'albero nodi attivo"
 
 
 msgctxt "Operator"
@@ -36688,10 +36615,6 @@ msgstr "Copia i vincoli nelle altre ossa selezionate"
 msgctxt "Operator"
 msgid "Copy Pose"
 msgstr "Copia Posa"
-
-
-msgid "Copies the current pose of the selected bones to copy/paste buffer"
-msgstr "Copia nel buffer copia/incolla la posa corrente delle ossa selezionate"
 
 
 msgctxt "Operator"
@@ -40114,6 +40037,10 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Esporta il livello UV in una immagine bitmap"
 
 
+msgid "Modified"
+msgstr "Modificato"
+
+
 msgid "Exports UVs from the modified mesh"
 msgstr "Esporta le UV dalla mesh modificata"
 
@@ -40161,10 +40088,6 @@ msgstr "Lunghezza Media"
 
 msgid "Hide (un)selected UV vertices"
 msgstr "Nascondi i vertici UV (de)selezionati"
-
-
-msgid "New Image"
-msgstr "Nuova Immagine"
 
 
 msgid "Pack Quality"
@@ -40647,10 +40570,6 @@ msgstr "Imposta la vita della regione di ritaglio"
 msgctxt "Operator"
 msgid "Copy Objects"
 msgstr "Copia Oggetti"
-
-
-msgid "Selected objects are copied to the clipboard"
-msgstr "Oggetti selezionati sono aggiunti agli appunti"
 
 
 msgctxt "Operator"
@@ -41286,6 +41205,10 @@ msgstr "Cicla all'indietro"
 
 msgid "Toggle a context value"
 msgstr "Commuta lo stato del font"
+
+
+msgid "Wrap"
+msgstr "Ricomincia"
 
 
 msgid "Header Text"
@@ -42407,10 +42330,6 @@ msgid "Tracking Settings"
 msgstr "Impostazioni Tracciamento"
 
 
-msgid "Lens"
-msgstr "Focale"
-
-
 msgid "Predefined tracking settings"
 msgstr "Impostazioni predefinite del tracciamento"
 
@@ -43173,11 +43092,6 @@ msgstr "Spessore"
 msgctxt "Operator"
 msgid "Strength"
 msgstr "Forza"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "Scorri"
 
 
 msgid "Post-Processing"
@@ -49237,6 +49151,10 @@ msgid "3D View near clipping distance (perspective view only)"
 msgstr "Distanza di taglio vicino nella Vista 3D"
 
 
+msgid "Lens"
+msgstr "Focale"
+
+
 msgid "Viewport lens angle"
 msgstr "Angolo lente della vista"
 
@@ -52931,10 +52849,6 @@ msgid "Align to Vertex Normal"
 msgstr "Allinea a Vettore Normale"
 
 
-msgid "Old"
-msgstr "Vecchio"
-
-
 msgid "Date"
 msgstr "Data"
 
@@ -53507,6 +53421,11 @@ msgstr "Pulisci Canali"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "Estendi"
+
+
+msgctxt "Operator"
+msgid "Slide"
+msgstr "Scorri"
 
 
 msgid "Recursions"
@@ -54230,16 +54149,16 @@ msgid "Move Line(s) Down"
 msgstr "Sposta Linee Giù"
 
 
-msgid "File: %s"
-msgstr "File: %s"
-
-
 msgid "Text: External"
 msgstr "Testo: Esterno"
 
 
 msgid "Text: Internal"
 msgstr "Testo: Interno"
+
+
+msgid "File: %s"
+msgstr "File: %s"
 
 
 msgctxt "Operator"
@@ -54536,10 +54455,6 @@ msgid "Widget Label"
 msgstr "Etichetta Widget"
 
 
-msgid "Scripts"
-msgstr "Scripts"
-
-
 msgid "Temporary Files"
 msgstr "File Temporanei"
 
@@ -54781,16 +54696,6 @@ msgstr "Simili"
 msgctxt "Operator"
 msgid "Levels"
 msgstr "Livelli"
-
-
-msgctxt "Operator"
-msgid "Hue Saturation Value"
-msgstr "Tonalità - Saturazione - Valore"
-
-
-msgctxt "Operator"
-msgid "Bright/Contrast"
-msgstr "Luminosità/Contrasto"
 
 
 msgctxt "Operator"
@@ -56197,6 +56102,10 @@ msgid "GP_Palette"
 msgstr "Tavolozza_Matita"
 
 
+msgid "Untitled"
+msgstr "Senza Titolo"
+
+
 msgid "Cannot open file %s for writing: %s"
 msgstr "Impossibile aprire il file %s per scrivere: %s"
 
@@ -56301,10 +56210,6 @@ msgid "Driver has no variables to copy"
 msgstr "La Guida non ha variabili da copiare"
 
 
-msgid "No driver variables in clipboard to paste"
-msgstr "Nessuna variabile Guida negli appunti da incollare"
-
-
 msgid "<Unknown Modifier>"
 msgstr "<Modificatore Sconosciuto>"
 
@@ -56391,22 +56296,6 @@ msgstr "Nessun Gruppo Chiavi attivo da usare"
 
 msgid "No pose to copy"
 msgstr "Nessuna posa da copiare"
-
-
-msgid "Copied pose to buffer"
-msgstr "Posa copiata nel buffer"
-
-
-msgid "Copy buffer is empty"
-msgstr "Il buffer di copia è vuoto"
-
-
-msgid "Copy buffer is not from pose mode"
-msgstr "Il buffer di copia non arriva da Modalità Posa"
-
-
-msgid "Copy buffer has no pose"
-msgstr "Il buffer di copia non contiene una posa"
 
 
 msgid "Path is empty, cannot save"
@@ -58077,10 +57966,6 @@ msgid "Palette. Use Left Click to sample more colors"
 msgstr "Tavolozza. Usa Click Sinistro per campionare più colori"
 
 
-msgid "Untitled"
-msgstr "Senza Titolo"
-
-
 msgid "No active camera set"
 msgstr "Nessuna camera attiva impostata"
 
@@ -58171,14 +58056,6 @@ msgstr "Keyframe Attivo"
 
 msgid "Action has already been stashed"
 msgstr "L'azione è già stata accantonata"
-
-
-msgid "No keyframes copied to keyframes copy/paste buffer"
-msgstr "Nessun fotogramma chiave copiato nel buffer di copia/incolla"
-
-
-msgid "No data in buffer to paste"
-msgstr "Nessun dato nel buffer da incollare"
 
 
 msgid "Not implemented for Masks"
@@ -59930,6 +59807,10 @@ msgid "Scale of the instances"
 msgstr "Scala delle istanze"
 
 
+msgid "Old"
+msgstr "Vecchio"
+
+
 msgid "Side Segments"
 msgstr "Segmenti Laterali"
 
@@ -60328,11 +60209,6 @@ msgstr "Curve"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "Correzione Tonalità"
-
-
-msgctxt "Sequence"
-msgid "Bright/Contrast"
-msgstr "Luminosità/Contrasto"
 
 
 msgctxt "Sequence"

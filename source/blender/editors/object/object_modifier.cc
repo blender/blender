@@ -652,16 +652,18 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
   me->totedge = edges_num;
 
   CustomData_add_layer_named(&me->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, verts_num, "position");
-  CustomData_add_layer(&me->edata, CD_MEDGE, CD_SET_DEFAULT, edges_num);
+  CustomData_add_layer_named(
+      &me->edata, CD_PROP_INT32_2D, CD_CONSTRUCT, me->totedge, ".edge_verts");
   CustomData_add_layer(&me->fdata, CD_MFACE, CD_SET_DEFAULT, 0);
 
   blender::MutableSpan<float3> positions = me->vert_positions_for_write();
-  blender::MutableSpan<MEdge> edges = me->edges_for_write();
-  MEdge *edge = edges.data();
+  blender::MutableSpan<int2> edges = me->edges_for_write();
 
   bke::MutableAttributeAccessor attributes = me->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
       ".select_vert", ATTR_DOMAIN_POINT);
+
+  int edge_index = 0;
 
   /* copy coordinates */
   int vert_index = 0;
@@ -672,9 +674,8 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
     for (int k = 0; k <= kmax; k++, key++, cvert++, vert_index++) {
       positions[vert_index] = key->co;
       if (k) {
-        edge->v1 = cvert - 1;
-        edge->v2 = cvert;
-        edge++;
+        edges[edge_index] = int2(cvert - 1, cvert);
+        edge_index++;
       }
       else {
         /* cheap trick to select the roots */
@@ -690,9 +691,8 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
     for (int k = 0; k <= kmax; k++, key++, cvert++, vert_index++) {
       copy_v3_v3(positions[vert_index], key->co);
       if (k) {
-        edge->v1 = cvert - 1;
-        edge->v2 = cvert;
-        edge++;
+        edges[edge_index] = int2(cvert - 1, cvert);
+        edge_index++;
       }
       else {
         /* cheap trick to select the roots */
@@ -2881,7 +2881,7 @@ void OBJECT_OT_skin_radii_equalize(wmOperatorType *ot)
 
 static void skin_armature_bone_create(Object *skin_ob,
                                       const Span<float3> positions,
-                                      const MEdge *edges,
+                                      const blender::int2 *edges,
                                       bArmature *arm,
                                       BLI_bitmap *edges_visited,
                                       const MeshElemMap *emap,
@@ -2890,7 +2890,7 @@ static void skin_armature_bone_create(Object *skin_ob,
 {
   for (int i = 0; i < emap[parent_v].count; i++) {
     int endx = emap[parent_v].indices[i];
-    const MEdge *edge = &edges[endx];
+    const blender::int2 &edge = edges[endx];
 
     /* ignore edge if already visited */
     if (BLI_BITMAP_TEST(edges_visited, endx)) {
@@ -2898,7 +2898,7 @@ static void skin_armature_bone_create(Object *skin_ob,
     }
     BLI_BITMAP_ENABLE(edges_visited, endx);
 
-    int v = (edge->v1 == parent_v ? edge->v2 : edge->v1);
+    int v = blender::bke::mesh::edge_other_vert(edge, parent_v);
 
     EditBone *bone = ED_armature_ebone_add(arm, "Bone");
 
@@ -2927,7 +2927,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
 {
   Mesh *me = static_cast<Mesh *>(skin_ob->data);
   const Span<float3> me_positions = me->vert_positions();
-  const Span<MEdge> me_edges = me->edges();
+  const Span<blender::int2> me_edges = me->edges();
 
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, skin_ob);

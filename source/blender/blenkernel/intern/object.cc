@@ -267,6 +267,18 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
   if (ob_src->lightgroup) {
     ob_dst->lightgroup = (LightgroupMembership *)MEM_dupallocN(ob_src->lightgroup);
   }
+
+  if ((flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) != 0) {
+    if (ob_src->lightprobe_cache) {
+      /* Reference the original object data. */
+      ob_dst->lightprobe_cache = (LightProbeObjectCache *)MEM_dupallocN(ob_src->lightprobe_cache);
+      ob_dst->lightprobe_cache->shared = true;
+    }
+  }
+  else {
+    /* Do not copy lightprobe's cache. */
+    ob_dst->lightprobe_cache = nullptr;
+  }
 }
 
 static void object_free_data(ID *id)
@@ -319,6 +331,8 @@ static void object_free_data(ID *id)
   BKE_previewimg_free(&ob->preview);
 
   MEM_SAFE_FREE(ob->lightgroup);
+
+  BKE_lightprobe_cache_free(ob);
 }
 
 static void library_foreach_modifiersForeachIDLink(void *user_data,
@@ -540,18 +554,9 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
     ob->mode &= ~OB_MODE_EDIT;
   }
 
-  PBVH *cached_pbvh = ob->cached_pbvh;
-  if (!is_undo) {
-    ob->cached_pbvh = NULL;
-  }
-
   /* write LibData */
   BLO_write_id_struct(writer, Object, id_address, &ob->id);
   BKE_id_blend_write(writer, &ob->id);
-
-  if (!is_undo) {
-    ob->cached_pbvh = cached_pbvh;
-  }
 
   if (ob->adt) {
     BKE_animdata_blend_write(writer, ob->adt);
@@ -605,6 +610,11 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
   if (ob->lightgroup) {
     BLO_write_struct(writer, LightgroupMembership, ob->lightgroup);
+  }
+
+  if (ob->lightprobe_cache) {
+    BLO_write_struct(writer, LightProbeObjectCache, ob->lightprobe_cache);
+    BKE_lightprobe_cache_blend_write(writer, ob->lightprobe_cache);
   }
 }
 
@@ -824,6 +834,11 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_previewimg_blend_read(reader, ob->preview);
 
   BLO_read_data_address(reader, &ob->lightgroup);
+
+  BLO_read_data_address(reader, &ob->lightprobe_cache);
+  if (ob->lightprobe_cache) {
+    BKE_lightprobe_cache_blend_read(reader, ob->lightprobe_cache);
+  }
 }
 
 /* XXX deprecated - old animation system */
@@ -5158,8 +5173,6 @@ void BKE_object_runtime_reset_on_copy(Object *object, const int /*flag*/)
 
   runtime->crazyspace_deform_imats = nullptr;
   runtime->crazyspace_deform_cos = nullptr;
-
-  object->cached_pbvh = runtime->cached_pbvh = NULL;
 }
 
 void BKE_object_runtime_free_data(Object *object)

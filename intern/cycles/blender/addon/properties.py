@@ -1544,6 +1544,13 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         default=False,
     )
 
+    use_oneapirt: BoolProperty(
+        name="Embree on GPU (Experimental)",
+        description="Embree GPU execution will allow to use hardware ray tracing on Intel GPUs, which will provide better performance. "
+                    "However this support is experimental and some scenes may render incorrectly",
+        default=False,
+    )
+
     kernel_optimization_level: EnumProperty(
         name="Kernel Optimization",
         description="Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. "
@@ -1762,6 +1769,11 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 if is_arm64:
                     col.prop(self, "kernel_optimization_level")
                 col.prop(self, "use_metalrt")
+
+        if compute_device_type == 'ONEAPI' and _cycles.with_embree_gpu:
+            row = layout.row()
+            row.use_property_split = True
+            row.prop(self, "use_oneapirt")
 
     def draw(self, context):
         self.draw_impl(self.layout, context)

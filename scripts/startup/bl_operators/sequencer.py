@@ -166,20 +166,22 @@ class SequencerFadesAdd(Operator):
         name="Fade Duration",
         description="Duration of the fade in seconds",
         default=1.0,
-        min=0.01)
+        min=0.01,
+    )
     type: EnumProperty(
         items=(
-            ('IN_OUT', 'Fade In and Out', 'Fade selected strips in and out'),
-            ('IN', 'Fade In', 'Fade in selected strips'),
-            ('OUT', 'Fade Out', 'Fade out selected strips'),
-            ('CURSOR_FROM', 'From Current Frame',
-             'Fade from the time cursor to the end of overlapping sequences'),
-            ('CURSOR_TO', 'To Current Frame',
-             'Fade from the start of sequences under the time cursor to the current frame'),
+            ('IN_OUT', "Fade In and Out", "Fade selected strips in and out"),
+            ('IN', "Fade In", "Fade in selected strips"),
+            ('OUT', "Fade Out", "Fade out selected strips"),
+            ('CURSOR_FROM', "From Current Frame",
+             "Fade from the time cursor to the end of overlapping sequences"),
+            ('CURSOR_TO', "To Current Frame",
+             "Fade from the start of sequences under the time cursor to the current frame"),
         ),
         name="Fade Type",
         description="Fade in, out, both in and out, to, or from the current frame. Default is both in and out",
-        default='IN_OUT')
+        default='IN_OUT',
+    )
 
     @classmethod
     def poll(cls, context):

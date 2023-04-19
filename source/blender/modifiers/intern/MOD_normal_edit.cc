@@ -231,7 +231,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                          const int defgrp_index,
                                          const bool use_invert_vgroup,
                                          blender::Span<blender::float3> vert_positions,
-                                         const blender::Span<MEdge> edges,
+                                         const blender::Span<blender::int2> edges,
                                          blender::MutableSpan<bool> sharp_edges,
                                          blender::MutableSpan<int> corner_verts,
                                          blender::MutableSpan<int> corner_edges,
@@ -359,7 +359,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                               const int defgrp_index,
                                               const bool use_invert_vgroup,
                                               const blender::Span<blender::float3> positions,
-                                              const blender::Span<MEdge> edges,
+                                              const blender::Span<blender::int2> edges,
                                               blender::MutableSpan<bool> sharp_edges,
                                               blender::MutableSpan<int> corner_verts,
                                               blender::MutableSpan<int> corner_edges,
@@ -514,7 +514,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   }
 
   const blender::Span<blender::float3> positions = result->vert_positions();
-  const blender::Span<MEdge> edges = result->edges();
+  const blender::Span<int2> edges = result->edges();
   const OffsetIndices polys = result->polys();
   blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();

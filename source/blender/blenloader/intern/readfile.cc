@@ -72,6 +72,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
 #include "BKE_lib_query.h"
+#include "BKE_lib_remap.h"
 #include "BKE_main.h" /* for Main */
 #include "BKE_main_idmap.h"
 #include "BKE_material.h"
@@ -201,6 +202,10 @@ struct BHeadN {
  */
 #define BHEAD_USE_READ_ON_DEMAND(bhead) ((bhead)->code == BLO_CODE_DATA)
 
+/* -------------------------------------------------------------------- */
+/** \name Blend Loader Reporting Wrapper
+ * \{ */
+
 void BLO_reportf_wrap(BlendFileReadReport *reports, eReportType type, const char *format, ...)
 {
   char fixed_buf[1024]; /* should be long enough */
@@ -225,6 +230,8 @@ static const char *library_parent_filepath(Library *lib)
 {
   return lib->parent ? lib->parent->filepath_abs : "<direct>";
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name OldNewMap API
@@ -1305,6 +1312,10 @@ void blo_filedata_free(FileData *fd)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Read Thumbnail from Blend File
+ * \{ */
 
 BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 {
@@ -3095,15 +3106,23 @@ static void read_libblock_undo_restore_at_old_address(FileData *fd, Main *main, 
   BLI_remlink(old_lb, id_old);
   BLI_remlink(new_lb, id);
 
-  /* We do not need any remapping from this call here, since no ID pointer is valid in the data
-   * currently (they are all pointing to old addresses, and need to go through `lib_link`
-   * process). So we can pass nullptr for the Main pointer parameter. */
-  BKE_lib_id_swap_full(nullptr, id, id_old);
+  /* We do need remapping of internal pointers to the ID itself here.
+   *
+   * Passing a NULL BMain means that not all potential runtime data (like collections' parent
+   * pointers etc.) will be up-to-date. However, this should not be a problem here, since these
+   * data are re-generated later in file-read process anyway. */
+  BKE_lib_id_swap_full(nullptr,
+                       id,
+                       id_old,
+                       true,
+                       ID_REMAP_SKIP_NEVER_NULL_USAGE | ID_REMAP_SKIP_UPDATE_TAGGING |
+                           ID_REMAP_SKIP_USER_REFCOUNT);
 
   /* Special temporary usage of this pointer, necessary for the `undo_preserve` call after
    * lib-linking to restore some data that should never be affected by undo, e.g. the 3D cursor of
    * #Scene. */
   id_old->orig_id = id;
+  id_old->tag |= LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE;
 
   BLI_addtail(new_lb, id_old);
   BLI_addtail(old_lb, id);
@@ -3122,17 +3141,18 @@ static bool read_libblock_undo_restore(
       return true;
     }
   }
+  else if (id_type->flags & IDTYPE_FLAGS_NO_MEMFILE_UNDO) {
+    /* Skip reading any 'no undo' datablocks (typically UI-like ones), existing ones are kept.
+     * See `setup_app_data` for details. */
+    CLOG_INFO(
+        &LOG_UNDO, 2, "UNDO: skip restore datablock %s, 'NO_MEMFILE_UNDO' type of ID", id->name);
+    return true;
+  }
   else if (bhead->code == ID_LINK_PLACEHOLDER) {
     /* Restore linked datablock. */
     if (read_libblock_undo_restore_linked(fd, main, id, bhead)) {
       return true;
     }
-  }
-  else if (id_type->flags & IDTYPE_FLAGS_NO_MEMFILE_UNDO) {
-    /* Skip reading any UI datablocks, existing ones are kept. We don't
-     * support pointers from other datablocks to UI datablocks so those
-     * we also don't put UI datablocks in fd->libmap. */
-    return true;
   }
 
   /* Restore local datablocks. */

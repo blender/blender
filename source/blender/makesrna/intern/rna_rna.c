@@ -1038,7 +1038,7 @@ static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, Point
 
 static void rna_EnumProperty_items_ui_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  /* No skip-funciton, include all "UI" items. */
+  /* No skip-function, include all "UI" items. */
   rna_EnumProperty_items_begin_impl(iter, ptr, NULL);
 }
 

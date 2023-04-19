@@ -286,8 +286,8 @@ void SCULPT_edge_get_verts(const SculptSession *ss,
     }
 
     case PBVH_FACES: {
-      r_v1->i = (intptr_t)ss->edges[edge.i].v1;
-      r_v2->i = (intptr_t)ss->edges[edge.i].v2;
+      r_v1->i = (intptr_t)ss->edges[edge.i][0];
+      r_v2->i = (intptr_t)ss->edges[edge.i][1];
       break;
     }
     case PBVH_GRIDS:

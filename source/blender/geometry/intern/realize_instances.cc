@@ -100,7 +100,7 @@ struct MeshElementStartIndices {
 struct MeshRealizeInfo {
   const Mesh *mesh = nullptr;
   Span<float3> positions;
-  Span<MEdge> edges;
+  Span<int2> edges;
   OffsetIndices<int> polys;
   Span<int> corner_verts;
   Span<int> corner_edges;
@@ -848,6 +848,7 @@ static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
                                                     options.propagation_info,
                                                     attributes_to_propagate);
   attributes_to_propagate.remove("position");
+  attributes_to_propagate.remove(".edge_verts");
   attributes_to_propagate.remove(".corner_vert");
   attributes_to_propagate.remove(".corner_edge");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
@@ -955,7 +956,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                       const OrderedAttributes &ordered_attributes,
                                       MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
                                       MutableSpan<float3> all_dst_positions,
-                                      MutableSpan<MEdge> all_dst_edges,
+                                      MutableSpan<int2> all_dst_edges,
                                       MutableSpan<int> all_dst_poly_offsets,
                                       MutableSpan<int> all_dst_corner_verts,
                                       MutableSpan<int> all_dst_corner_edges,
@@ -966,7 +967,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
   const Mesh &mesh = *mesh_info.mesh;
 
   const Span<float3> src_positions = mesh_info.positions;
-  const Span<MEdge> src_edges = mesh_info.edges;
+  const Span<int2> src_edges = mesh_info.edges;
   const OffsetIndices src_polys = mesh_info.polys;
   const Span<int> src_corner_verts = mesh_info.corner_verts;
   const Span<int> src_corner_edges = mesh_info.corner_edges;
@@ -977,7 +978,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
   const IndexRange dst_loop_range(task.start_indices.loop, src_corner_verts.size());
 
   MutableSpan<float3> dst_positions = all_dst_positions.slice(dst_vert_range);
-  MutableSpan<MEdge> dst_edges = all_dst_edges.slice(dst_edge_range);
+  MutableSpan<int2> dst_edges = all_dst_edges.slice(dst_edge_range);
   MutableSpan<int> dst_poly_offsets = all_dst_poly_offsets.slice(dst_poly_range);
   MutableSpan<int> dst_corner_verts = all_dst_corner_verts.slice(dst_loop_range);
   MutableSpan<int> dst_corner_edges = all_dst_corner_edges.slice(dst_loop_range);
@@ -989,11 +990,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
   });
   threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange edge_range) {
     for (const int i : edge_range) {
-      const MEdge &src_edge = src_edges[i];
-      MEdge &dst_edge = dst_edges[i];
-      dst_edge = src_edge;
-      dst_edge.v1 += task.start_indices.vertex;
-      dst_edge.v2 += task.start_indices.vertex;
+      dst_edges[i] = src_edges[i] + task.start_indices.vertex;
     }
   });
   threading::parallel_for(src_corner_verts.index_range(), 1024, [&](const IndexRange loop_range) {
@@ -1089,7 +1086,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   dst_component.replace(dst_mesh);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
   MutableSpan<float3> dst_positions = dst_mesh->vert_positions_for_write();
-  MutableSpan<MEdge> dst_edges = dst_mesh->edges_for_write();
+  MutableSpan<int2> dst_edges = dst_mesh->edges_for_write();
   MutableSpan<int> dst_poly_offsets = dst_mesh->poly_offsets_for_write();
   MutableSpan<int> dst_corner_verts = dst_mesh->corner_verts_for_write();
   MutableSpan<int> dst_corner_edges = dst_mesh->corner_edges_for_write();

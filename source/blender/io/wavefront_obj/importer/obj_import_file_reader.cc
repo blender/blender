@@ -209,7 +209,7 @@ static void geom_add_polyline(Geometry *geom,
       break;
     }
 
-    geom->edges_.append({uint(last_vertex_index), uint(vertex_index)});
+    geom->edges_.append({last_vertex_index, vertex_index});
     geom->track_vertex_index(vertex_index);
     last_vertex_index = vertex_index;
   }

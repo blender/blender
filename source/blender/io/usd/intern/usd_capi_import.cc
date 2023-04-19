@@ -372,7 +372,7 @@ static void import_endjob(void *customdata)
       data->import_ok = !data->was_canceled;
       break;
     case USD_ARCHIVE_FAIL:
-      WM_report(RPT_ERROR, "Could not open USD archive for reading! See console for detail.");
+      WM_report(RPT_ERROR, "Could not open USD archive for reading, see console for detail");
       break;
   }
 

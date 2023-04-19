@@ -59,7 +59,7 @@ struct OrderedEdge {
 
 /* The map first contains an edge pointer and later an index. */
 union OrigEdgeOrIndex {
-  const MEdge *original_edge;
+  const int2 *original_edge;
   int index;
 };
 using EdgeMap = Map<OrderedEdge, OrigEdgeOrIndex>;
@@ -78,11 +78,11 @@ static void add_existing_edges_to_hash_maps(Mesh *mesh,
                                             uint32_t parallel_mask)
 {
   /* Assume existing edges are valid. */
-  const Span<MEdge> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
   threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
     const int task_index = &edge_map - edge_maps.data();
-    for (const MEdge &edge : edges) {
-      OrderedEdge ordered_edge{edge.v1, edge.v2};
+    for (const int2 &edge : edges) {
+      OrderedEdge ordered_edge{edge[0], edge[1]};
       /* Only add the edge when it belongs into this map. */
       if (task_index == (parallel_mask & ordered_edge.hash2())) {
         edge_map.add_new(ordered_edge, {&edge});
@@ -118,7 +118,7 @@ static void add_polygon_edges_to_hash_maps(Mesh *mesh,
 }
 
 static void serialize_and_initialize_deduplicated_edges(MutableSpan<EdgeMap> edge_maps,
-                                                        MutableSpan<MEdge> new_edges)
+                                                        MutableSpan<int2> new_edges)
 {
   /* All edges are distributed in the hash tables now. They have to be serialized into a single
    * array below. To be able to parallelize this, we have to compute edge index offsets for each
@@ -134,16 +134,16 @@ static void serialize_and_initialize_deduplicated_edges(MutableSpan<EdgeMap> edg
 
     int new_edge_index = edge_index_offsets[task_index];
     for (EdgeMap::MutableItem item : edge_map.items()) {
-      MEdge &new_edge = new_edges[new_edge_index];
-      const MEdge *orig_edge = item.value.original_edge;
+      int2 &new_edge = new_edges[new_edge_index];
+      const int2 *orig_edge = item.value.original_edge;
       if (orig_edge != nullptr) {
         /* Copy values from original edge. */
         new_edge = *orig_edge;
       }
       else {
         /* Initialize new edge. */
-        new_edge.v1 = item.key.v_low;
-        new_edge.v2 = item.key.v_high;
+        new_edge[0] = item.key.v_low;
+        new_edge[1] = item.key.v_high;
       }
       item.value.index = new_edge_index;
       new_edge_index++;
@@ -236,15 +236,16 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
     CustomData_add_layer_named(
         &mesh->ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh->totloop, ".corner_edge");
   }
-  MutableSpan<MEdge> new_edges{
-      static_cast<MEdge *>(MEM_calloc_arrayN(new_totedge, sizeof(MEdge), __func__)), new_totedge};
+  MutableSpan<int2> new_edges{
+      static_cast<int2 *>(MEM_calloc_arrayN(new_totedge, sizeof(int2), __func__)), new_totedge};
   calc_edges::serialize_and_initialize_deduplicated_edges(edge_maps, new_edges);
   calc_edges::update_edge_indices_in_poly_loops(mesh, edge_maps, parallel_mask);
 
   /* Free old CustomData and assign new one. */
   CustomData_free(&mesh->edata, mesh->totedge);
   CustomData_reset(&mesh->edata);
-  CustomData_add_layer_with_data(&mesh->edata, CD_MEDGE, new_edges.data(), new_totedge, nullptr);
+  CustomData_add_layer_named_with_data(
+      &mesh->edata, CD_PROP_INT32_2D, new_edges.data(), new_totedge, ".edge_verts", nullptr);
   mesh->totedge = new_totedge;
 
   if (select_new_edges) {

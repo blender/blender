@@ -743,5 +743,3 @@ using AngleRadian = AngleRadianBase<float>;
 using AngleCartesian = AngleCartesianBase<float>;
 
 }  // namespace blender::math
-
-/** \} */

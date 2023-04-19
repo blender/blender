@@ -11,9 +11,9 @@
 #include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
 #include "BLI_math.h"
+#include "BLI_span.hh"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
-#include "BLI_span.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"

@@ -32,8 +32,6 @@
 
 using namespace blender;
 
-/** \} */
-
 /* -------------------------------------------------------------------- */
 /** \name GPUBatch cache management
  * \{ */

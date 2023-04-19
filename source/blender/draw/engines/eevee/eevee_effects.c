@@ -118,8 +118,13 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
                                   });
   }
   else {
-    DRW_texture_ensure_2d(
-        &txl->maxzbuffer, UNPACK2(effects->hiz_size), GPU_DEPTH_COMPONENT24, DRW_TEX_MIPMAP);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ |
+                             GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    DRW_texture_ensure_2d_ex(&txl->maxzbuffer,
+                             UNPACK2(effects->hiz_size),
+                             GPU_DEPTH_COMPONENT24,
+                             usage,
+                             DRW_TEX_MIPMAP);
     GPU_framebuffer_ensure_config(&fbl->maxzbuffer_fb,
                                   {
                                       GPU_ATTACHMENT_TEXTURE(txl->maxzbuffer),
@@ -146,10 +151,13 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
    * Used for SSReflections & SSRefractions.
    */
   if ((effects->enabled_effects & EFFECT_RADIANCE_BUFFER) != 0) {
-    DRW_texture_ensure_2d(&txl->filtered_radiance,
-                          UNPACK2(effects->hiz_size),
-                          GPU_R11F_G11F_B10F,
-                          DRW_TEX_FILTER | DRW_TEX_MIPMAP);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ |
+                             GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    DRW_texture_ensure_2d_ex(&txl->filtered_radiance,
+                             UNPACK2(effects->hiz_size),
+                             GPU_R11F_G11F_B10F,
+                             usage,
+                             DRW_TEX_FILTER | DRW_TEX_MIPMAP);
 
     GPU_framebuffer_ensure_config(&fbl->radiance_filtered_fb,
                                   {
@@ -166,8 +174,9 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
    * Normal buffer for deferred passes.
    */
   if ((effects->enabled_effects & EFFECT_NORMAL_BUFFER) != 0) {
-    effects->ssr_normal_input = DRW_texture_pool_query_2d(
-        size_fs[0], size_fs[1], GPU_RG16, &draw_engine_eevee_type);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    effects->ssr_normal_input = DRW_texture_pool_query_2d_ex(
+        size_fs[0], size_fs[1], GPU_RG16, usage, &draw_engine_eevee_type);
 
     GPU_framebuffer_texture_attach(fbl->main_fb, effects->ssr_normal_input, 1, 0);
   }
@@ -179,8 +188,9 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
    * Motion vector buffer for correct TAA / motion blur.
    */
   if ((effects->enabled_effects & EFFECT_VELOCITY_BUFFER) != 0) {
-    effects->velocity_tx = DRW_texture_pool_query_2d(
-        size_fs[0], size_fs[1], GPU_RGBA16, &draw_engine_eevee_type);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    effects->velocity_tx = DRW_texture_pool_query_2d_ex(
+        size_fs[0], size_fs[1], GPU_RGBA16, usage, &draw_engine_eevee_type);
 
     GPU_framebuffer_ensure_config(&fbl->velocity_fb,
                                   {

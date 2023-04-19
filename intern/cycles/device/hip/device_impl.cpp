@@ -35,7 +35,7 @@ bool HIPDevice::have_precompiled_kernels()
   return path_exists(fatbins_path);
 }
 
-BVHLayoutMask HIPDevice::get_bvh_layout_mask() const
+BVHLayoutMask HIPDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
 {
   return BVH_LAYOUT_BVH2;
 }

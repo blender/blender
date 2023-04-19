@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-'''
+"""
 This script generates the blender.1 man page, embedding the help text
 from the Blender executable itself. Invoke it as follows:
 
@@ -9,7 +9,7 @@ from the Blender executable itself. Invoke it as follows:
 
 where <path-to-blender> is the path to the Blender executable,
 and <output-filename> is where to write the generated man page.
-'''
+"""
 
 import argparse
 import os
@@ -87,29 +87,29 @@ def man_page_from_blender_help(fh: TextIO, blender_bin: str, verbose: bool) -> N
         (blender_info["date"], blender_info["version"].replace(".", "\\&."))
     )
 
-    fh.write(r'''
+    fh.write(r"""
 .SH NAME
-blender \- a full-featured 3D application''')
+blender \- a full-featured 3D application""")
 
-    fh.write(r'''
+    fh.write(r"""
 .SH SYNOPSIS
-.B blender [args ...] [file] [args ...]''')
+.B blender [args ...] [file] [args ...]""")
 
-    fh.write(r'''
+    fh.write(r"""
 .br
 .SH DESCRIPTION
 .PP
 .B blender
-is a full-featured 3D application. It supports the entirety of the 3D pipeline - '''
-             '''modeling, rigging, animation, simulation, rendering, compositing, motion tracking, and video editing.
+is a full-featured 3D application. It supports the entirety of the 3D pipeline - """
+             """modeling, rigging, animation, simulation, rendering, compositing, motion tracking, and video editing.
 
-Use Blender to create 3D images and animations, films and commercials, content for games, '''
-             r'''architectural and industrial visualizations, and scientific visualizations.
+Use Blender to create 3D images and animations, films and commercials, content for games, """
+             r"""architectural and industrial visualizations, and scientific visualizations.
 
-https://www.blender.org''')
+https://www.blender.org""")
 
-    fh.write(r'''
-.SH OPTIONS''')
+    fh.write(r"""
+.SH OPTIONS""")
 
     fh.write("\n\n")
 
@@ -152,7 +152,7 @@ https://www.blender.org''')
 
     # Footer Content.
 
-    fh.write(r'''
+    fh.write(r"""
 .br
 .SH SEE ALSO
 .B luxrender(1)
@@ -162,7 +162,7 @@ https://www.blender.org''')
 This manpage was written for a Debian GNU/Linux system by Daniel Mester
 <mester@uni-bremen.de> and updated by Cyril Brulebois
 <cyril.brulebois@enst-bretagne.fr> and Dan Eicher <dan@trollwerks.org>.
-''')
+""")
 
 
 def create_argparse() -> argparse.ArgumentParser:

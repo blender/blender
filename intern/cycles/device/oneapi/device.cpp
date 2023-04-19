@@ -40,12 +40,12 @@ bool device_oneapi_init()
   if (getenv("SYCL_CACHE_TRESHOLD") == nullptr) {
     _putenv_s("SYCL_CACHE_THRESHOLD", "0");
   }
-  if (getenv("SYCL_DEVICE_FILTER") == nullptr) {
+  if (getenv("ONEAPI_DEVICE_SELECTOR") == nullptr) {
     if (getenv("CYCLES_ONEAPI_ALL_DEVICES") == nullptr) {
-      _putenv_s("SYCL_DEVICE_FILTER", "level_zero");
+      _putenv_s("ONEAPI_DEVICE_SELECTOR", "level_zero:*");
     }
     else {
-      _putenv_s("SYCL_DEVICE_FILTER", "level_zero,cuda,hip");
+      _putenv_s("ONEAPI_DEVICE_SELECTOR", "!opencl:*");
     }
   }
   if (getenv("SYCL_ENABLE_PCI") == nullptr) {
@@ -58,10 +58,10 @@ bool device_oneapi_init()
   setenv("SYCL_CACHE_PERSISTENT", "1", false);
   setenv("SYCL_CACHE_THRESHOLD", "0", false);
   if (getenv("CYCLES_ONEAPI_ALL_DEVICES") == nullptr) {
-    setenv("SYCL_DEVICE_FILTER", "level_zero", false);
+    setenv("ONEAPI_DEVICE_SELECTOR", "level_zero:*", false);
   }
   else {
-    setenv("SYCL_DEVICE_FILTER", "level_zero,cuda,hip", false);
+    setenv("ONEAPI_DEVICE_SELECTOR", "!opencl:*", false);
   }
   setenv("SYCL_ENABLE_PCI", "1", false);
   setenv("SYCL_PI_LEVEL_ZERO_USE_COPY_ENGINE_FOR_IN_ORDER_QUEUE", "0", false);
@@ -87,7 +87,8 @@ Device *device_oneapi_create(const DeviceInfo &info, Stats &stats, Profiler &pro
 }
 
 #ifdef WITH_ONEAPI
-static void device_iterator_cb(const char *id, const char *name, int num, void *user_ptr)
+static void device_iterator_cb(
+    const char *id, const char *name, int num, bool hwrt_support, void *user_ptr)
 {
   vector<DeviceInfo> *devices = (vector<DeviceInfo> *)user_ptr;
 
@@ -111,6 +112,13 @@ static void device_iterator_cb(const char *id, const char *name, int num, void *
 
   /* NOTE(@nsirgien): Seems not possible to know from SYCL/oneAPI or Level0. */
   info.display_device = false;
+
+#  ifdef WITH_EMBREE_GPU
+  info.use_hardware_raytracing = hwrt_support;
+#  else
+  info.use_hardware_raytracing = false;
+  (void)hwrt_support;
+#  endif
 
   devices->push_back(info);
   VLOG_INFO << "Added device \"" << name << "\" with id \"" << info.id << "\".";

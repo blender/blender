@@ -765,13 +765,37 @@ ID *BKE_id_copy_for_use_in_bmain(Main *bmain, const ID *id)
   return newid;
 }
 
+static void id_embedded_swap(ID **embedded_id_a,
+                             ID **embedded_id_b,
+                             const bool do_full_id,
+                             struct IDRemapper *remapper_id_a,
+                             struct IDRemapper *remapper_id_b);
+
 /**
  * Does a mere memory swap over the whole IDs data (including type-specific memory).
  * \note Most internal ID data itself is not swapped (only IDProperties are).
  */
-static void id_swap(Main *bmain, ID *id_a, ID *id_b, const bool do_full_id)
+static void id_swap(Main *bmain,
+                    ID *id_a,
+                    ID *id_b,
+                    const bool do_full_id,
+                    const bool do_self_remap,
+                    struct IDRemapper *input_remapper_id_a,
+                    struct IDRemapper *input_remapper_id_b,
+                    const int self_remap_flags)
 {
   BLI_assert(GS(id_a->name) == GS(id_b->name));
+
+  struct IDRemapper *remapper_id_a = input_remapper_id_a;
+  struct IDRemapper *remapper_id_b = input_remapper_id_b;
+  if (do_self_remap) {
+    if (remapper_id_a == NULL) {
+      remapper_id_a = BKE_id_remapper_create();
+    }
+    if (remapper_id_b == NULL) {
+      remapper_id_b = BKE_id_remapper_create();
+    }
+  }
 
   const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id_a);
   BLI_assert(id_type != NULL);
@@ -799,21 +823,87 @@ static void id_swap(Main *bmain, ID *id_a, ID *id_b, const bool do_full_id)
     id_b->recalc = id_a_back.recalc;
   }
 
-  if (bmain != NULL) {
-    /* Swap will have broken internal references to itself, restore them. */
-    BKE_libblock_relink_ex(bmain, id_a, id_b, id_a, ID_REMAP_SKIP_NEVER_NULL_USAGE);
-    BKE_libblock_relink_ex(bmain, id_b, id_a, id_b, ID_REMAP_SKIP_NEVER_NULL_USAGE);
+  id_embedded_swap((ID **)BKE_ntree_ptr_from_id(id_a),
+                   (ID **)BKE_ntree_ptr_from_id(id_b),
+                   do_full_id,
+                   remapper_id_a,
+                   remapper_id_b);
+  if (GS(id_a->name) == ID_SCE) {
+    Scene *scene_a = (Scene *)id_a;
+    Scene *scene_b = (Scene *)id_b;
+    id_embedded_swap((ID **)&scene_a->master_collection,
+                     (ID **)&scene_b->master_collection,
+                     do_full_id,
+                     remapper_id_a,
+                     remapper_id_b);
+  }
+
+  if (remapper_id_a != NULL) {
+    BKE_id_remapper_add(remapper_id_a, id_b, id_a);
+  }
+  if (remapper_id_b != NULL) {
+    BKE_id_remapper_add(remapper_id_b, id_a, id_b);
+  }
+
+  /* Finalize remapping of internal references to self broken by swapping, if requested. */
+  if (do_self_remap) {
+    LinkNode ids = {.next = NULL, .link = id_a};
+    BKE_libblock_relink_multiple(
+        bmain, &ids, ID_REMAP_TYPE_REMAP, remapper_id_a, self_remap_flags);
+    ids.link = id_b;
+    BKE_libblock_relink_multiple(
+        bmain, &ids, ID_REMAP_TYPE_REMAP, remapper_id_b, self_remap_flags);
+  }
+
+  if (input_remapper_id_a == NULL && remapper_id_a != NULL) {
+    BKE_id_remapper_free(remapper_id_a);
+  }
+  if (input_remapper_id_b == NULL && remapper_id_b != NULL) {
+    BKE_id_remapper_free(remapper_id_b);
   }
 }
 
-void BKE_lib_id_swap(Main *bmain, ID *id_a, ID *id_b)
+/* Conceptually, embedded IDs are part of their owner's data. However, some parts of the code
+ * (like e.g. the depsgraph) may treat them as independent IDs, so swapping them here and
+ * switching their pointers in the owner IDs allows to help not break cached relationships and
+ * such (by preserving the pointer values). */
+static void id_embedded_swap(ID **embedded_id_a,
+                             ID **embedded_id_b,
+                             const bool do_full_id,
+                             struct IDRemapper *remapper_id_a,
+                             struct IDRemapper *remapper_id_b)
 {
-  id_swap(bmain, id_a, id_b, false);
+  if (embedded_id_a != NULL && *embedded_id_a != NULL) {
+    BLI_assert(embedded_id_b != NULL && *embedded_id_b != NULL);
+
+    /* Do not remap internal references to itself here, since embedded IDs pointers also need to be
+     * potentially remapped in owner ID's data, which will also handle embedded IDs data. */
+    id_swap(
+        NULL, *embedded_id_a, *embedded_id_b, do_full_id, false, remapper_id_a, remapper_id_b, 0);
+    /* Manual 'remap' of owning embedded pointer in owner ID. */
+    SWAP(ID *, *embedded_id_a, *embedded_id_b);
+
+    /* Restore internal pointers to the swapped embedded IDs in their owners' data. This also
+     * includes the potential self-references inside the embedded IDs themselves. */
+    if (remapper_id_a != NULL) {
+      BKE_id_remapper_add(remapper_id_a, *embedded_id_b, *embedded_id_a);
+    }
+    if (remapper_id_b != NULL) {
+      BKE_id_remapper_add(remapper_id_b, *embedded_id_a, *embedded_id_b);
+    }
+  }
 }
 
-void BKE_lib_id_swap_full(Main *bmain, ID *id_a, ID *id_b)
+void BKE_lib_id_swap(
+    Main *bmain, ID *id_a, ID *id_b, const bool do_self_remap, const int self_remap_flags)
 {
-  id_swap(bmain, id_a, id_b, true);
+  id_swap(bmain, id_a, id_b, false, do_self_remap, NULL, NULL, self_remap_flags);
+}
+
+void BKE_lib_id_swap_full(
+    Main *bmain, ID *id_a, ID *id_b, const bool do_self_remap, const int self_remap_flags)
+{
+  id_swap(bmain, id_a, id_b, true, do_self_remap, NULL, NULL, self_remap_flags);
 }
 
 bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)

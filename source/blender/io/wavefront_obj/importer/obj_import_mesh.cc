@@ -248,17 +248,17 @@ void MeshFromGeometry::create_vertex_groups(Object *obj)
 
 void MeshFromGeometry::create_edges(Mesh *mesh)
 {
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<int2> edges = mesh->edges_for_write();
 
   const int64_t tot_edges{mesh_geometry_.edges_.size()};
   const int64_t total_verts{mesh_geometry_.get_vertex_count()};
   UNUSED_VARS_NDEBUG(total_verts);
   for (int i = 0; i < tot_edges; ++i) {
-    const MEdge &src_edge = mesh_geometry_.edges_[i];
-    MEdge &dst_edge = edges[i];
-    dst_edge.v1 = mesh_geometry_.global_to_local_vertices_.lookup_default(src_edge.v1, 0);
-    dst_edge.v2 = mesh_geometry_.global_to_local_vertices_.lookup_default(src_edge.v2, 0);
-    BLI_assert(dst_edge.v1 < total_verts && dst_edge.v2 < total_verts);
+    const int2 &src_edge = mesh_geometry_.edges_[i];
+    int2 &dst_edge = edges[i];
+    dst_edge[0] = mesh_geometry_.global_to_local_vertices_.lookup_default(src_edge[0], 0);
+    dst_edge[1] = mesh_geometry_.global_to_local_vertices_.lookup_default(src_edge[1], 0);
+    BLI_assert(dst_edge[0] < total_verts && dst_edge[0] < total_verts);
   }
 
   /* Set argument `update` to true so that existing, explicitly imported edges can be merged

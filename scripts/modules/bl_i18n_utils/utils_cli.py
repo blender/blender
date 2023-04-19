@@ -131,7 +131,7 @@ def main():
     settings = settings_i18n.I18nSettings()
     settings.load(args.settings)
 
-    if getattr(args, 'template', None) is not None:
+    if getattr(args, "template", None) is not None:
         settings.FILE_NAME_POT = args.template
 
     args.func(args=args, settings=settings)

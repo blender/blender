@@ -193,7 +193,7 @@ static int gpencil_editmode_toggle_exec(bContext *C, wmOperator *op)
     ob->mode = mode;
   }
 
-  /* Recalculate editcurves for strokes where the geometry/vertex colors have changed */
+  /* Recalculate edit-curves for strokes where the geometry/vertex colors have changed. */
   if (GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd)) {
     GP_EDITABLE_CURVES_BEGIN(gps_iter, C, gpl, gps, gpc)
     {
@@ -1410,9 +1410,8 @@ void ED_gpencil_strokes_copybuf_free(void)
 {
   bGPDstroke *gps, *gpsn;
 
-  /* Free the colors buffer
-   * NOTE: This is done before the strokes so that the ptrs are still safe
-   */
+  /* Free the colors buffer.
+   * NOTE: This is done before the strokes so that the pointers are still safe. */
   if (gpencil_strokes_copypastebuf_colors) {
     BLI_ghash_free(gpencil_strokes_copypastebuf_colors, NULL, MEM_freeN);
     gpencil_strokes_copypastebuf_colors = NULL;

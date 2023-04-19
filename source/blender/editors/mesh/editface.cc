@@ -349,21 +349,21 @@ void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const b
 }
 
 static bool poly_has_selected_neighbor(blender::Span<int> poly_edges,
-                                       blender::Span<MEdge> edges,
+                                       blender::Span<blender::int2> edges,
                                        blender::Span<bool> select_vert,
                                        const bool face_step)
 {
   for (const int edge_index : poly_edges) {
-    const MEdge &edge = edges[edge_index];
+    const blender::int2 &edge = edges[edge_index];
     /* If a poly is selected, all of its verts are selected too, meaning that neighboring faces
      * will have some vertices selected. */
     if (face_step) {
-      if (select_vert[edge.v1] || select_vert[edge.v2]) {
+      if (select_vert[edge[0]] || select_vert[edge[1]]) {
         return true;
       }
     }
     else {
-      if (select_vert[edge.v1] && select_vert[edge.v2]) {
+      if (select_vert[edge[0]] && select_vert[edge[1]]) {
         return true;
       }
     }
@@ -385,7 +385,7 @@ void paintface_select_more(Mesh *mesh, const bool face_step)
 
   const OffsetIndices polys = mesh->polys();
   const Span<int> corner_edges = mesh->corner_edges();
-  const Span<MEdge> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
 
   threading::parallel_for(select_poly.span.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
@@ -405,19 +405,19 @@ void paintface_select_more(Mesh *mesh, const bool face_step)
 }
 
 static bool poly_has_unselected_neighbor(blender::Span<int> poly_edges,
-                                         blender::Span<MEdge> edges,
+                                         blender::Span<blender::int2> edges,
                                          blender::BitSpan verts_of_unselected_faces,
                                          const bool face_step)
 {
   for (const int edge_index : poly_edges) {
-    const MEdge &edge = edges[edge_index];
+    const blender::int2 &edge = edges[edge_index];
     if (face_step) {
-      if (verts_of_unselected_faces[edge.v1] || verts_of_unselected_faces[edge.v2]) {
+      if (verts_of_unselected_faces[edge[0]] || verts_of_unselected_faces[edge[1]]) {
         return true;
       }
     }
     else {
-      if (verts_of_unselected_faces[edge.v1] && verts_of_unselected_faces[edge.v2]) {
+      if (verts_of_unselected_faces[edge[0]] && verts_of_unselected_faces[edge[1]]) {
         return true;
       }
     }
@@ -438,7 +438,7 @@ void paintface_select_less(Mesh *mesh, const bool face_step)
   const OffsetIndices polys = mesh->polys();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
-  const Span<MEdge> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
 
   BitVector<> verts_of_unselected_faces(mesh->totvert);
 
@@ -705,13 +705,13 @@ static void paintvert_select_linked_vertices(bContext *C,
 
   /* AtomicDisjointSet is used to store connection information in vertex indices. */
   AtomicDisjointSet islands(mesh->totvert);
-  const Span<MEdge> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
 
   /* By calling join() on the vertices of all edges, the AtomicDisjointSet contains information on
    * which parts of the mesh are connected. */
   threading::parallel_for(edges.index_range(), 1024, [&](const IndexRange range) {
-    for (const MEdge &edge : edges.slice(range)) {
-      islands.join(edge.v1, edge.v2);
+    for (const int2 &edge : edges.slice(range)) {
+      islands.join(edge[0], edge[1]);
     }
   });
 
@@ -792,7 +792,7 @@ void paintvert_select_more(Mesh *mesh, const bool face_step)
   const OffsetIndices polys = mesh->polys();
   const Span<int> corner_edges = mesh->corner_edges();
   const Span<int> corner_verts = mesh->corner_verts();
-  const Span<MEdge> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
 
   Array<Vector<int, 2>> edge_to_face_map;
   if (face_step) {
@@ -809,12 +809,12 @@ void paintvert_select_more(Mesh *mesh, const bool face_step)
   /* If we iterated over polys we wouldn't extend the selection through edges that have no face
    * attached to them. */
   for (const int i : edges.index_range()) {
-    const MEdge &edge = edges[i];
-    if ((!select_vert_original[edge.v1] && !select_vert_original[edge.v2]) || hide_edge[i]) {
+    const int2 &edge = edges[i];
+    if ((!select_vert_original[edge[0]] && !select_vert_original[edge[1]]) || hide_edge[i]) {
       continue;
     }
-    select_vert.span[edge.v1] = true;
-    select_vert.span[edge.v2] = true;
+    select_vert.span[edge[0]] = true;
+    select_vert.span[edge[1]] = true;
     if (!face_step) {
       continue;
     }
@@ -848,7 +848,7 @@ void paintvert_select_less(Mesh *mesh, const bool face_step)
   const OffsetIndices polys = mesh->polys();
   const Span<int> corner_edges = mesh->corner_edges();
   const Span<int> corner_verts = mesh->corner_verts();
-  const Span<MEdge> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
 
   MeshElemMap *edge_poly_map;
   int *edge_poly_mem = nullptr;
@@ -868,12 +868,12 @@ void paintvert_select_less(Mesh *mesh, const bool face_step)
   }
 
   for (const int i : edges.index_range()) {
-    const MEdge &edge = edges[i];
-    if ((select_vert_original[edge.v1] && select_vert_original[edge.v2]) && !hide_edge[i]) {
+    const int2 &edge = edges[i];
+    if ((select_vert_original[edge[0]] && select_vert_original[edge[1]]) && !hide_edge[i]) {
       continue;
     }
-    select_vert.span[edge.v1] = false;
-    select_vert.span[edge.v2] = false;
+    select_vert.span[edge[0]] = false;
+    select_vert.span[edge[1]] = false;
 
     if (!face_step) {
       continue;

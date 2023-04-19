@@ -631,7 +631,7 @@ void BKE_mesh_flush_hidden_from_verts(Mesh *me)
     return;
   }
   const VArraySpan<bool> hide_vert_span{hide_vert};
-  const Span<MEdge> edges = me->edges();
+  const Span<int2> edges = me->edges();
   const OffsetIndices polys = me->polys();
   const Span<int> corner_verts = me->corner_verts();
 
@@ -639,8 +639,8 @@ void BKE_mesh_flush_hidden_from_verts(Mesh *me)
   SpanAttributeWriter<bool> hide_edge = attributes.lookup_or_add_for_write_only_span<bool>(
       ".hide_edge", ATTR_DOMAIN_EDGE);
   for (const int i : edges.index_range()) {
-    const MEdge &edge = edges[i];
-    hide_edge.span[i] = hide_vert_span[edge.v1] || hide_vert_span[edge.v2];
+    const int2 &edge = edges[i];
+    hide_edge.span[i] = hide_vert_span[edge[0]] || hide_vert_span[edge[1]];
   }
   hide_edge.finish();
 
@@ -728,7 +728,7 @@ void BKE_mesh_flush_select_from_polys(Mesh *me)
   select_edge.finish();
 }
 
-static void mesh_flush_select_from_verts(const Span<MEdge> edges,
+static void mesh_flush_select_from_verts(const Span<blender::int2> edges,
                                          const blender::OffsetIndices<int> polys,
                                          const Span<int> corner_verts,
                                          const VArray<bool> &hide_edge,
@@ -740,8 +740,8 @@ static void mesh_flush_select_from_verts(const Span<MEdge> edges,
   /* Select visible edges that have both of their vertices selected. */
   for (const int i : edges.index_range()) {
     if (!hide_edge[i]) {
-      const MEdge &edge = edges[i];
-      select_edge[i] = select_vert[edge.v1] && select_vert[edge.v2];
+      const blender::int2 &edge = edges[i];
+      select_edge[i] = select_vert[edge[0]] && select_vert[edge[1]];
     }
   }
 

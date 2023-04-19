@@ -218,7 +218,7 @@ static void createTransGPencil_curves(bContext *C,
         if (IS_AUTOKEY_ON(scene)) {
           gpf = BKE_gpencil_frame_addcopy(gpl, cfra);
         }
-        /* in some weird situations (framelock enabled) return NULL */
+        /* In some weird situations (frame-lock enabled) return NULL. */
         if (gpf == NULL) {
           continue;
         }
@@ -513,7 +513,7 @@ static void createTransGPencil_strokes(bContext *C,
         if (IS_AUTOKEY_ON(scene)) {
           gpf = BKE_gpencil_frame_addcopy(gpl, cfra);
         }
-        /* in some weird situations (framelock enabled) return NULL */
+        /* In some weird situations (frame-lock enabled) return NULL. */
         if (gpf == NULL) {
           continue;
         }
@@ -628,14 +628,14 @@ static void createTransGPencil_strokes(bContext *C,
                     }
                   }
 
-                  /* screenspace needs special matrices... */
+                  /* Screen-space needs special matrices. */
                   if ((gps->flag & (GP_STROKE_3DSPACE | GP_STROKE_2DSPACE | GP_STROKE_2DIMAGE)) ==
                       0) {
-                    /* screenspace */
+                    /* Screen-space. */
                     td->protectflag = OB_LOCK_LOCZ | OB_LOCK_ROTZ | OB_LOCK_SCALEZ;
                   }
                   else {
-                    /* configure 2D dataspace points so that they don't play up... */
+                    /* configure 2D data-space points so that they don't play up. */
                     if (gps->flag & (GP_STROKE_2DSPACE | GP_STROKE_2DIMAGE)) {
                       td->protectflag = OB_LOCK_LOCZ | OB_LOCK_ROTZ | OB_LOCK_SCALEZ;
                     }
@@ -646,10 +646,10 @@ static void createTransGPencil_strokes(bContext *C,
                   copy_m3_m3(td->axismtx, diff_mat);      /* axis orientation */
 
                   /* Triangulation must be calculated again,
-                   * so save the stroke for recalc function */
+                   * so save the stroke for recalculate function. */
                   td->extra = gps;
 
-                  /* save pointer to object */
+                  /* Save pointer to object. */
                   td->ob = obact;
 
                   td++;
@@ -657,7 +657,7 @@ static void createTransGPencil_strokes(bContext *C,
                 }
               }
 
-              /* March over these points, and calculate the proportional editing distances */
+              /* March over these points, and calculate the proportional editing distances. */
               if (is_prop_edit && (head != tail)) {
                 calc_distanceCurveVerts(head, tail - 1, false);
               }

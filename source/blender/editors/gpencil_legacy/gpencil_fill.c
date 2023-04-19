@@ -715,7 +715,7 @@ static void gpencil_update_extensions_line(tGPDfill *tgpf)
     }
   }
 
-  /* Cut overlength strokes. */
+  /* Cut over-length strokes. */
   gpencil_cut_extensions(tgpf);
 }
 
@@ -1235,7 +1235,7 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
 
   char err_out[256] = "unknown";
   GPUOffScreen *offscreen = GPU_offscreen_create(
-      tgpf->sizex, tgpf->sizey, true, GPU_RGBA8, err_out);
+      tgpf->sizex, tgpf->sizey, true, GPU_RGBA8, GPU_TEXTURE_USAGE_HOST_READ, err_out);
   if (offscreen == NULL) {
     printf("GPencil - Fill - Unable to create fill buffer\n");
     return false;
@@ -1317,10 +1317,10 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
 
   /* create a image to see result of template */
   if (ibuf->rect_float) {
-    GPU_offscreen_read_pixels(offscreen, GPU_DATA_FLOAT, ibuf->rect_float);
+    GPU_offscreen_read_color(offscreen, GPU_DATA_FLOAT, ibuf->rect_float);
   }
   else if (ibuf->rect) {
-    GPU_offscreen_read_pixels(offscreen, GPU_DATA_UBYTE, ibuf->rect);
+    GPU_offscreen_read_color(offscreen, GPU_DATA_UBYTE, ibuf->rect);
   }
   if (ibuf->rect_float && ibuf->rect) {
     IMB_rect_from_float(ibuf);

@@ -120,7 +120,8 @@
     .mtex = _DNA_DEFAULT_MTex, \
     .mask_mtex = _DNA_DEFAULT_MTex, \
     .dyntopo = _DNA_DEFAULT_DynTopoSettings,\
-    .concave_mask_factor = 0.75f\
+    .concave_mask_factor = 0.75f,\
+    .falloff_shape = 0,\
   }
 /** \} */
 

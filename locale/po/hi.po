@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-17 09:43:08\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -453,10 +453,6 @@ msgstr "भार"
 
 msgid "Brushes"
 msgstr "तूलिका"
-
-
-msgid "Grease Pencil"
-msgstr "तैलीय पेंसिल"
 
 
 msgid "Images"
@@ -1443,6 +1439,10 @@ msgstr "द्वि-आयाम"
 
 msgid "Fonts"
 msgstr "मुद्र्"
+
+
+msgid "Grease Pencil"
+msgstr "तैलीय पेंसिल"
 
 
 msgid "Save"
@@ -2555,10 +2555,6 @@ msgid "Memory"
 msgstr "स्मृति"
 
 
-msgid "Modified"
-msgstr "संशोधित"
-
-
 msgid "Register"
 msgstr "पंजीकृत करें"
 
@@ -3384,10 +3380,6 @@ msgstr "प्रक्षेपण"
 
 msgid "Air"
 msgstr "वायु"
-
-
-msgid "Wrap"
-msgstr "आच्छादन"
 
 
 msgid "At"
@@ -4494,6 +4486,10 @@ msgid "Cylinder Projection"
 msgstr "बेलन प्रक्षेपण"
 
 
+msgid "Modified"
+msgstr "संशोधित"
+
+
 msgctxt "Operator"
 msgid "Pin"
 msgstr "कील"
@@ -4549,6 +4545,10 @@ msgstr "बाएँ पैन करें"
 
 msgid "Pan Right"
 msgstr "दाएँ पैन करें"
+
+
+msgid "Wrap"
+msgstr "आच्छादन"
 
 
 msgctxt "Operator"
@@ -4697,10 +4697,6 @@ msgid "Color Presets"
 msgstr "पूर्वनिश्चित रंग"
 
 
-msgid "Lens"
-msgstr "केन्द्रण-वीक्ष"
-
-
 msgid "Cloth Presets"
 msgstr "पूर्वनिश्चित कपड़ा"
 
@@ -4788,11 +4784,6 @@ msgstr "रेखा"
 msgctxt "Operator"
 msgid "Circle"
 msgstr "चक्र"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "सरकाएँ"
 
 
 msgid "Default tools for particle mode"
@@ -5213,6 +5204,10 @@ msgstr "पाठ ढूँढें"
 
 msgid "Replace Text"
 msgstr "पाठ बदलें"
+
+
+msgid "Lens"
+msgstr "केन्द्रण-वीक्ष"
 
 
 msgid "Lock Camera to View"
@@ -5686,10 +5681,6 @@ msgid "All"
 msgstr "सभी"
 
 
-msgid "Old"
-msgstr "पुराने"
-
-
 msgid "Date"
 msgstr "दिनांक"
 
@@ -5813,6 +5804,11 @@ msgstr "स्नैप"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "विस्तृत करें"
+
+
+msgctxt "Operator"
+msgid "Slide"
+msgstr "सरकाएँ"
 
 
 msgctxt "Operator"
@@ -7056,6 +7052,10 @@ msgstr "एफ़एसी"
 
 msgid "Dot"
 msgstr "बिन्दु"
+
+
+msgid "Old"
+msgstr "पुराने"
 
 
 msgid "AO"

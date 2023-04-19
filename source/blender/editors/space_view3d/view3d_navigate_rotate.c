@@ -430,6 +430,10 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       viewops_flag_from_prefs() | VIEWOPS_FLAG_PERSP_ENSURE |
           (use_cursor_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
 
+  if (vod->use_dyn_ofs && (vod->rv3d->is_persp == false)) {
+    vod->use_dyn_ofs_ortho_correction = true;
+  }
+
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
   if (ELEM(event->type, MOUSEPAN, MOUSEROTATE)) {

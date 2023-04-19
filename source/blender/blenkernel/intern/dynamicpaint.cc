@@ -1414,17 +1414,17 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
     /* For vertex format, count every vertex that is connected by an edge */
     int numOfEdges = mesh->totedge;
     int numOfPolys = mesh->totpoly;
-    const blender::Span<MEdge> edges = mesh->edges();
+    const blender::Span<blender::int2> edges = mesh->edges();
     const blender::OffsetIndices polys = mesh->polys();
     const blender::Span<int> corner_verts = mesh->corner_verts();
 
     /* count number of edges per vertex */
     for (int i = 0; i < numOfEdges; i++) {
-      ad->n_num[edges[i].v1]++;
-      ad->n_num[edges[i].v2]++;
+      ad->n_num[edges[i][0]]++;
+      ad->n_num[edges[i][1]]++;
 
-      temp_data[edges[i].v1]++;
-      temp_data[edges[i].v2]++;
+      temp_data[edges[i][0]]++;
+      temp_data[edges[i][1]]++;
     }
 
     /* also add number of vertices to temp_data
@@ -1456,15 +1456,15 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
     /* and now add neighbor data using that info */
     for (int i = 0; i < numOfEdges; i++) {
       /* first vertex */
-      int index = edges[i].v1;
+      int index = edges[i][0];
       n_pos = ad->n_index[index] + temp_data[index];
-      ad->n_target[n_pos] = edges[i].v2;
+      ad->n_target[n_pos] = edges[i][1];
       temp_data[index]++;
 
       /* second vertex */
-      index = edges[i].v2;
+      index = edges[i][1];
       n_pos = ad->n_index[index] + temp_data[index];
-      ad->n_target[n_pos] = edges[i].v1;
+      ad->n_target[n_pos] = edges[i][0];
       temp_data[index]++;
     }
   }

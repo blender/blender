@@ -491,13 +491,13 @@ static void get_edge_creases(struct Mesh *mesh,
   if (!creases) {
     return;
   }
-  const Span<MEdge> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
   for (const int i : edges.index_range()) {
     const float sharpness = creases[i];
 
     if (sharpness != 0.0f) {
-      indices.push_back(edges[i].v1);
-      indices.push_back(edges[i].v2);
+      indices.push_back(edges[i][0]);
+      indices.push_back(edges[i][1]);
       sharpnesses.push_back(sharpness);
     }
   }

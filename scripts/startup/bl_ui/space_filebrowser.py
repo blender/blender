@@ -538,6 +538,7 @@ class FILEBROWSER_MT_context_menu(FileBrowserMenu, Menu):
         layout.operator("file.next", text="Forward")
         layout.operator("file.parent", text="Go to Parent")
         layout.operator("file.refresh", text="Refresh")
+        layout.menu("FILEBROWSER_MT_operations_menu")
 
         layout.separator()
 

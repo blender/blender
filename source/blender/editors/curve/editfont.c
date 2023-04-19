@@ -854,16 +854,13 @@ static int toggle_style_exec(bContext *C, wmOperator *op)
   Curve *cu = obedit->data;
   int style, clear, selstart, selend;
 
-  if (!BKE_vfont_select_get(obedit, &selstart, &selend)) {
-    return OPERATOR_CANCELLED;
-  }
-
   style = RNA_enum_get(op->ptr, "style");
-
   cu->curinfo.flag ^= style;
-  clear = (cu->curinfo.flag & style) == 0;
-
-  return set_style(C, style, clear);
+  if (BKE_vfont_select_get(obedit, &selstart, &selend)) {
+    clear = (cu->curinfo.flag & style) == 0;
+    return set_style(C, style, clear);
+  }
+  return true;
 }
 
 void FONT_OT_style_toggle(wmOperatorType *ot)
@@ -1138,6 +1135,8 @@ void FONT_OT_text_paste(wmOperatorType *ot)
 static const EnumPropertyItem move_type_items[] = {
     {LINE_BEGIN, "LINE_BEGIN", 0, "Line Begin", ""},
     {LINE_END, "LINE_END", 0, "Line End", ""},
+    {TEXT_BEGIN, "TEXT_BEGIN", 0, "Text Begin", ""},
+    {TEXT_END, "TEXT_END", 0, "Text End", ""},
     {PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
     {NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
     {PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
@@ -1188,6 +1187,16 @@ static int move_cursor(bContext *C, int type, const bool select)
         }
         ef->pos++;
       }
+      cursmove = FO_CURS;
+      break;
+
+    case TEXT_BEGIN:
+      ef->pos = 0;
+      cursmove = FO_CURS;
+      break;
+
+    case TEXT_END:
+      ef->pos = ef->len;
       cursmove = FO_CURS;
       break;
 

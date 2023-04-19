@@ -163,16 +163,6 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
   }
 };
 
-template<typename T> GVArray make_array_read_attribute(const void *data, const int domain_num)
-{
-  return VArray<T>::ForSpan(Span<T>((const T *)data, domain_num));
-}
-
-template<typename T> GVMutableArray make_array_write_attribute(void *data, const int domain_num)
-{
-  return VMutableArray<T>::ForSpan(MutableSpan<T>((T *)data, domain_num));
-}
-
 /**
  * This provider is used to provide access to builtin attributes. It supports making internal types
  * available as different types.
@@ -181,14 +171,9 @@ template<typename T> GVMutableArray make_array_write_attribute(void *data, const
  * if the stored type is the same as the attribute type.
  */
 class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
-  using AsReadAttribute = GVArray (*)(const void *data, int element_num);
-  using AsWriteAttribute = GVMutableArray (*)(void *data, int element_num);
-  using UpdateOnRead = void (*)(const void *owner);
   using UpdateOnChange = void (*)(void *owner);
   const eCustomDataType stored_type_;
   const CustomDataAccessInfo custom_data_access_;
-  const AsReadAttribute as_read_attribute_;
-  const AsWriteAttribute as_write_attribute_;
   const UpdateOnChange update_on_change_;
   bool stored_as_named_attribute_;
 
@@ -200,16 +185,12 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
                                  const CreatableEnum creatable,
                                  const DeletableEnum deletable,
                                  const CustomDataAccessInfo custom_data_access,
-                                 const AsReadAttribute as_read_attribute,
-                                 const AsWriteAttribute as_write_attribute,
                                  const UpdateOnChange update_on_write,
                                  const AttributeValidator validator = {})
       : BuiltinAttributeProvider(
             std::move(attribute_name), domain, attribute_type, creatable, deletable, validator),
         stored_type_(stored_type),
         custom_data_access_(custom_data_access),
-        as_read_attribute_(as_read_attribute),
-        as_write_attribute_(as_write_attribute),
         update_on_change_(update_on_write),
         stored_as_named_attribute_(data_type_ == stored_type_)
   {

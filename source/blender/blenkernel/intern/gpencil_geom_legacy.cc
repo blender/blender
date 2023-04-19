@@ -2503,7 +2503,7 @@ static void gpencil_generate_edgeloops(Object *ob,
     return;
   }
   const Span<float3> vert_positions = me->vert_positions();
-  const Span<MEdge> edges = me->edges();
+  const Span<int2> edges = me->edges();
   const Span<MDeformVert> dverts = me->deform_verts();
   const blender::Span<blender::float3> vert_normals = me->vert_normals();
   const bke::AttributeAccessor attributes = me->attributes();
@@ -2520,18 +2520,18 @@ static void gpencil_generate_edgeloops(Object *ob,
   GpEdge *gp_edges = (GpEdge *)MEM_callocN(sizeof(GpEdge) * me->totedge, __func__);
   GpEdge *gped = nullptr;
   for (int i = 0; i < me->totedge; i++) {
-    const MEdge *edge = &edges[i];
+    const blender::int2 &edge = edges[i];
     gped = &gp_edges[i];
-    copy_v3_v3(gped->n1, vert_normals[edge->v1]);
+    copy_v3_v3(gped->n1, vert_normals[edge[0]]);
 
-    gped->v1 = edge->v1;
-    copy_v3_v3(gped->v1_co, vert_positions[edge->v1]);
+    gped->v1 = edge[0];
+    copy_v3_v3(gped->v1_co, vert_positions[edge[0]]);
 
-    copy_v3_v3(gped->n2, vert_normals[edge->v2]);
-    gped->v2 = edge->v2;
-    copy_v3_v3(gped->v2_co, vert_positions[edge->v2]);
+    copy_v3_v3(gped->n2, vert_normals[edge[1]]);
+    gped->v2 = edge[1];
+    copy_v3_v3(gped->v2_co, vert_positions[edge[1]]);
 
-    sub_v3_v3v3(gped->vec, vert_positions[edge->v1], vert_positions[edge->v2]);
+    sub_v3_v3v3(gped->vec, vert_positions[edge[0]], vert_positions[edge[1]]);
 
     /* If use seams, mark as done if not a seam. */
     if ((use_seams) && !uv_seams[i]) {

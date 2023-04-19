@@ -28,19 +28,35 @@ typedef struct EditFontSelBox {
   float rot;
 } EditFontSelBox;
 
+/**
+ * Edit data for #Curve (a text curve, with an #Object::type of `OB_FONT`).
+ * */
 typedef struct EditFont {
+  /** Array of UTF32 code-points. */
   char32_t *textbuf;
+  /** Text style info (aligned with `textbuf`). */
   struct CharInfo *textbufinfo;
 
-  /* array of rectangles & rotation */
+  /** Array of rectangles & rotation. */
   float textcurs[4][2];
   EditFontSelBox *selboxes;
   int selboxes_len;
 
-  /* positional vars relative to the textbuf, textbufinfo (not utf8 bytes)
-   * a copy of these is kept in Curve, but use these in editmode */
-  int len, pos;
+  /* Positional vars relative to the `textbuf` (not utf8 bytes)
+   * a copy of these is kept in Curve, but use these in edit-mode. */
+
+  /** Length of `textbuf`. */
+  int len;
+  /** Cursor position of (aligned with `textbuf`). */
+  int pos;
+  /** Text selection start/end, see #BKE_vfont_select_get. */
   int selstart, selend;
+
+  /**
+   * Combined styles (#CharInfo.flag) for selected string. A flag will be
+   * set only if ALL characters in the selected string have it.
+   */
+  int select_char_info_flag;
 
   /**
    * ID data is older than edit-mode data.

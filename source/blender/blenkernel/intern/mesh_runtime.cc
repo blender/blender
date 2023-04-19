@@ -325,7 +325,7 @@ bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
   }
 
   MutableSpan<float3> positions = me_eval->vert_positions_for_write();
-  MutableSpan<MEdge> edges = me_eval->edges_for_write();
+  MutableSpan<blender::int2> edges = me_eval->edges_for_write();
   MutableSpan<int> poly_offsets = me_eval->poly_offsets_for_write();
   MutableSpan<int> corner_verts = me_eval->corner_verts_for_write();
   MutableSpan<int> corner_edges = me_eval->corner_edges_for_write();

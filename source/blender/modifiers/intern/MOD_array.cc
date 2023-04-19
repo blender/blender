@@ -283,10 +283,10 @@ static void mesh_merge_transform(Mesh *result,
   using namespace blender;
   int *index_orig;
   int i;
-  MEdge *edge;
+  int2 *edge;
   const blender::Span<int> cap_poly_offsets = cap_mesh->poly_offsets();
   float(*result_positions)[3] = BKE_mesh_vert_positions_for_write(result);
-  blender::MutableSpan<MEdge> result_edges = result->edges_for_write();
+  blender::MutableSpan<int2> result_edges = result->edges_for_write();
   blender::MutableSpan<int> result_poly_offsets = result->poly_offsets_for_write();
   blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
@@ -318,8 +318,7 @@ static void mesh_merge_transform(Mesh *result,
   /* adjust cap edge vertex indices */
   edge = &result_edges[cap_edges_index];
   for (i = 0; i < cap_nedges; i++, edge++) {
-    edge->v1 += cap_verts_index;
-    edge->v2 += cap_verts_index;
+    (*edge) += cap_verts_index;
   }
 
   /* Adjust cap poly loop-start indices. */
@@ -378,7 +377,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     return mesh;
   }
 
-  MEdge *edge;
+  int2 *edge;
   int i, j, c, count;
   float length = amd->length;
   /* offset matrix */
@@ -554,7 +553,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   result = BKE_mesh_new_nomain_from_template(
       mesh, result_nverts, result_nedges, result_nloops, result_npolys);
   float(*result_positions)[3] = BKE_mesh_vert_positions_for_write(result);
-  blender::MutableSpan<MEdge> result_edges = result->edges_for_write();
+  blender::MutableSpan<int2> result_edges = result->edges_for_write();
   blender::MutableSpan<int> result_poly_offsets = result->poly_offsets_for_write();
   blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
@@ -614,8 +613,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     /* adjust edge vertex indices */
     edge = &result_edges[c * chunk_nedges];
     for (i = 0; i < chunk_nedges; i++, edge++) {
-      edge->v1 += c * chunk_nverts;
-      edge->v2 += c * chunk_nverts;
+      (*edge) += c * chunk_nverts;
     }
 
     for (i = 0; i < chunk_npolys; i++) {

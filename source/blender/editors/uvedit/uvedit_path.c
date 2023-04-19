@@ -239,6 +239,8 @@ static int mouse_mesh_uv_shortest_path_vert(Scene *scene,
   return flush;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name UV Edge Path
  * \{ */

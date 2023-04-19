@@ -140,6 +140,7 @@ static void transfer_attributes(
    * Remove anonymous attributes that don't need to be propagated. */
   Set<AttributeIDRef> attribute_ids = src_attributes.all_ids();
   attribute_ids.remove("position");
+  attribute_ids.remove(".edge_verts");
   attribute_ids.remove(".corner_vert");
   attribute_ids.remove(".corner_edge");
   attribute_ids.remove("sharp_face");
@@ -209,7 +210,7 @@ static void calc_boundaries(const Mesh &mesh,
 {
   BLI_assert(r_vertex_types.size() == mesh.totvert);
   BLI_assert(r_edge_types.size() == mesh.totedge);
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
   const OffsetIndices polys = mesh.polys();
   const Span<int> corner_edges = mesh.corner_edges();
 
@@ -229,14 +230,14 @@ static void calc_boundaries(const Mesh &mesh,
     if (edge_type == EdgeType::Loose) {
       continue;
     }
-    const MEdge &edge = edges[i];
+    const int2 &edge = edges[i];
     if (edge_type == EdgeType::Boundary) {
-      r_vertex_types[edge.v1] = get_vertex_type_with_added_neighbor(r_vertex_types[edge.v1]);
-      r_vertex_types[edge.v2] = get_vertex_type_with_added_neighbor(r_vertex_types[edge.v2]);
+      r_vertex_types[edge[0]] = get_vertex_type_with_added_neighbor(r_vertex_types[edge[0]]);
+      r_vertex_types[edge[1]] = get_vertex_type_with_added_neighbor(r_vertex_types[edge[1]]);
     }
     else if (edge_type >= EdgeType::NonManifold) {
-      r_vertex_types[edge.v1] = VertexType::NonManifold;
-      r_vertex_types[edge.v2] = VertexType::NonManifold;
+      r_vertex_types[edge[0]] = VertexType::NonManifold;
+      r_vertex_types[edge[1]] = VertexType::NonManifold;
     }
   }
 
@@ -244,12 +245,12 @@ static void calc_boundaries(const Mesh &mesh,
   for (const int i : IndexRange(mesh.totedge)) {
     const EdgeType edge_type = r_edge_types[i];
     if (edge_type == EdgeType::Normal) {
-      const MEdge &edge = edges[i];
-      if (r_vertex_types[edge.v1] == VertexType::Loose) {
-        r_vertex_types[edge.v1] = VertexType::Normal;
+      const int2 &edge = edges[i];
+      if (r_vertex_types[edge[0]] == VertexType::Loose) {
+        r_vertex_types[edge[0]] = VertexType::Normal;
       }
-      if (r_vertex_types[edge.v2] == VertexType::Loose) {
-        r_vertex_types[edge.v2] = VertexType::Normal;
+      if (r_vertex_types[edge[1]] == VertexType::Loose) {
+        r_vertex_types[edge[1]] = VertexType::Normal;
       }
     }
   }
@@ -310,7 +311,7 @@ static void calc_boundaries(const Mesh &mesh,
  * - Finally if we are in the normal case we also need to add the last "shared edge" to close the
  *   loop.
  */
-static bool sort_vertex_polys(const Span<MEdge> edges,
+static bool sort_vertex_polys(const Span<int2> edges,
                               const OffsetIndices<int> polys,
                               const Span<int> corner_verts,
                               const Span<int> corner_edges,
@@ -331,7 +332,7 @@ static bool sort_vertex_polys(const Span<MEdge> edges,
     bool first_edge_done = false;
     for (const int corner : polys[connected_polys[i]]) {
       const int edge = corner_edges[corner];
-      if (edges[edge].v1 == vertex_index || edges[edge].v2 == vertex_index) {
+      if (edges[edge][0] == vertex_index || edges[edge][1] == vertex_index) {
         if (!first_edge_done) {
           poly_vertex_corners[i].first = corner;
           first_edge_done = true;
@@ -448,7 +449,7 @@ static bool sort_vertex_polys(const Span<MEdge> edges,
 /**
  * Get the edge on the poly that contains the given vertex and is a boundary edge.
  */
-static void boundary_edge_on_poly(const Span<MEdge> edges,
+static void boundary_edge_on_poly(const Span<int2> edges,
                                   const Span<int> poly_edges,
                                   const int vertex_index,
                                   const Span<EdgeType> edge_types,
@@ -456,8 +457,8 @@ static void boundary_edge_on_poly(const Span<MEdge> edges,
 {
   for (const int edge_i : poly_edges) {
     if (edge_types[edge_i] == EdgeType::Boundary) {
-      const MEdge &edge = edges[edge_i];
-      if (edge.v1 == vertex_index || edge.v2 == vertex_index) {
+      const int2 &edge = edges[edge_i];
+      if (edge[0] == vertex_index || edge[1] == vertex_index) {
         r_edge = edge_i;
         return;
       }
@@ -470,7 +471,7 @@ static void boundary_edge_on_poly(const Span<MEdge> edges,
  * orientation of the poly is taken into account.
  */
 static void boundary_edges_on_poly(const IndexRange poly,
-                                   const Span<MEdge> edges,
+                                   const Span<int2> edges,
                                    const Span<int> corner_verts,
                                    const Span<int> corner_edges,
                                    const int vertex_index,
@@ -485,8 +486,8 @@ static void boundary_edges_on_poly(const IndexRange poly,
   for (const int corner : poly) {
     const int edge_i = corner_edges[corner];
     if (edge_types[edge_i] == EdgeType::Boundary) {
-      const MEdge &edge = edges[edge_i];
-      if (edge.v1 == vertex_index || edge.v2 == vertex_index) {
+      const int2 &edge = edges[edge_i];
+      if (edge[0] == vertex_index || edge[1] == vertex_index) {
         if (edge1_done) {
           if (needs_swap) {
             r_edge2 = r_edge1;
@@ -507,20 +508,16 @@ static void boundary_edges_on_poly(const IndexRange poly,
   }
 }
 
-static void add_edge(const Span<MEdge> src_edges,
-                     const int old_edge_i,
+static void add_edge(const int old_edge_i,
                      const int v1,
                      const int v2,
                      Vector<int> &new_to_old_edges_map,
-                     Vector<MEdge> &new_edges,
+                     Vector<int2> &new_edges,
                      Vector<int> &loop_edges)
 {
-  MEdge new_edge = src_edges[old_edge_i];
-  new_edge.v1 = v1;
-  new_edge.v2 = v2;
   const int new_edge_i = new_edges.size();
   new_to_old_edges_map.append(old_edge_i);
-  new_edges.append(new_edge);
+  new_edges.append({v1, v2});
   loop_edges.append(new_edge_i);
 }
 
@@ -545,13 +542,13 @@ static bool vertex_needs_dissolving(const int vertex,
  * edges in the input mesh which contain such a vertex are marked as 'done' to prevent duplicate
  * edges being created. (See #94144)
  */
-static void dissolve_redundant_verts(const Span<MEdge> edges,
+static void dissolve_redundant_verts(const Span<int2> edges,
                                      const OffsetIndices<int> polys,
                                      const Span<int> corner_edges,
                                      const Span<Vector<int>> vert_to_poly_map,
                                      MutableSpan<VertexType> vertex_types,
                                      MutableSpan<int> old_to_new_edges_map,
-                                     Vector<MEdge> &new_edges,
+                                     Vector<int2> &new_edges,
                                      Vector<int> &new_to_old_edges_map)
 {
   const int vertex_num = vertex_types.size();
@@ -564,30 +561,25 @@ static void dissolve_redundant_verts(const Span<MEdge> edges,
     const int new_edge_index = new_edges.size();
     bool edge_created = false;
     for (const int edge_i : corner_edges.slice(polys[first_poly_index])) {
-      const MEdge &edge = edges[edge_i];
-      const int v1 = edge.v1;
-      const int v2 = edge.v2;
+      const int2 &edge = edges[edge_i];
       bool mark_edge = false;
       if (vertex_needs_dissolving(
-              v1, first_poly_index, second_poly_index, vertex_types, vert_to_poly_map)) {
+              edge[0], first_poly_index, second_poly_index, vertex_types, vert_to_poly_map)) {
         /* This vertex is now 'removed' and should be ignored elsewhere. */
-        vertex_types[v1] = VertexType::Loose;
+        vertex_types[edge[0]] = VertexType::Loose;
         mark_edge = true;
       }
       if (vertex_needs_dissolving(
-              v2, first_poly_index, second_poly_index, vertex_types, vert_to_poly_map)) {
+              edge[1], first_poly_index, second_poly_index, vertex_types, vert_to_poly_map)) {
         /* This vertex is now 'removed' and should be ignored elsewhere. */
-        vertex_types[v2] = VertexType::Loose;
+        vertex_types[edge[1]] = VertexType::Loose;
         mark_edge = true;
       }
       if (mark_edge) {
         if (!edge_created) {
-          MEdge new_edge = MEdge(edge);
           /* The vertex indices in the dual mesh are the polygon indices of the input mesh. */
-          new_edge.v1 = first_poly_index;
-          new_edge.v2 = second_poly_index;
           new_to_old_edges_map.append(edge_i);
-          new_edges.append(new_edge);
+          new_edges.append({first_poly_index, second_poly_index});
           edge_created = true;
         }
         old_to_new_edges_map[edge_i] = new_edge_index;
@@ -615,7 +607,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
                             const AnonymousAttributePropagationInfo &propagation_info)
 {
   const Span<float3> src_positions = src_mesh.vert_positions();
-  const Span<MEdge> src_edges = src_mesh.edges();
+  const Span<int2> src_edges = src_mesh.edges();
   const OffsetIndices src_polys = src_mesh.polys();
   const Span<int> src_corner_verts = src_mesh.corner_verts();
   const Span<int> src_corner_edges = src_mesh.corner_edges();
@@ -691,8 +683,8 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
     /* We need to add vertices at the centers of boundary edges. */
     for (const int i : IndexRange(src_mesh.totedge)) {
       if (edge_types[i] == EdgeType::Boundary) {
-        const MEdge &edge = src_edges[i];
-        const float3 mid = math::midpoint(src_positions[edge.v1], src_positions[edge.v2]);
+        const int2 &edge = src_edges[i];
+        const float3 mid = math::midpoint(src_positions[edge[0]], src_positions[edge[1]]);
         boundary_edge_midpoint_index[i] = vert_positions.size();
         vert_positions.append(mid);
       }
@@ -702,7 +694,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
   Vector<int> loop_lengths;
   Vector<int> loops;
   Vector<int> loop_edges;
-  Vector<MEdge> new_edges;
+  Vector<int2> new_edges;
   /* These are used to transfer attributes. */
   Vector<int> new_to_old_face_corners_map;
   Vector<int> new_to_old_edges_map;
@@ -748,12 +740,9 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
         const int old_edge_i = shared_edges[i];
         if (old_to_new_edges_map[old_edge_i] == -1) {
           /* This edge has not been created yet. */
-          MEdge new_edge = src_edges[old_edge_i];
-          new_edge.v1 = loop_indices[i];
-          new_edge.v2 = loop_indices[(i + 1) % loop_indices.size()];
           new_to_old_edges_map.append(old_edge_i);
           old_to_new_edges_map[old_edge_i] = new_edges.size();
-          new_edges.append(new_edge);
+          new_edges.append({loop_indices[i], loop_indices[(i + 1) % loop_indices.size()]});
         }
         loop_edges.append(old_to_new_edges_map[old_edge_i]);
       }
@@ -790,12 +779,9 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
         const int old_edge_i = shared_edges[i];
         if (old_to_new_edges_map[old_edge_i] == -1) {
           /* This edge has not been created yet. */
-          MEdge new_edge = src_edges[old_edge_i];
-          new_edge.v1 = loop_indices[i];
-          new_edge.v2 = loop_indices[i + 1];
           new_to_old_edges_map.append(old_edge_i);
           old_to_new_edges_map[old_edge_i] = new_edges.size();
-          new_edges.append(new_edge);
+          new_edges.append({loop_indices[i], loop_indices[i + 1]});
         }
         loop_edges.append(old_to_new_edges_map[old_edge_i]);
       }
@@ -837,13 +823,8 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
       new_to_old_face_corners_map.append(sorted_corners.last());
       const int first_midpoint = loop_indices.last();
       if (old_to_new_edges_map[edge1] == -1) {
-        add_edge(src_edges,
-                 edge1,
-                 last_face_center,
-                 first_midpoint,
-                 new_to_old_edges_map,
-                 new_edges,
-                 loop_edges);
+        add_edge(
+            edge1, last_face_center, first_midpoint, new_to_old_edges_map, new_edges, loop_edges);
         old_to_new_edges_map[edge1] = new_edges.size() - 1;
         boundary_vertex_to_relevant_face_map.append(std::pair(first_midpoint, last_face_center));
       }
@@ -857,29 +838,18 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
           std::pair(loop_indices.last(), last_face_center));
       vert_positions.append(src_positions[i]);
       const int boundary_vertex = loop_indices.last();
-      add_edge(src_edges,
-               edge1,
-               first_midpoint,
-               boundary_vertex,
-               new_to_old_edges_map,
-               new_edges,
-               loop_edges);
+      add_edge(
+          edge1, first_midpoint, boundary_vertex, new_to_old_edges_map, new_edges, loop_edges);
 
       loop_indices.append(boundary_edge_midpoint_index[edge2]);
       new_to_old_face_corners_map.append(sorted_corners.first());
       const int second_midpoint = loop_indices.last();
-      add_edge(src_edges,
-               edge2,
-               boundary_vertex,
-               second_midpoint,
-               new_to_old_edges_map,
-               new_edges,
-               loop_edges);
+      add_edge(
+          edge2, boundary_vertex, second_midpoint, new_to_old_edges_map, new_edges, loop_edges);
 
       if (old_to_new_edges_map[edge2] == -1) {
         const int first_face_center = loop_indices.first();
-        add_edge(src_edges,
-                 edge2,
+        add_edge(edge2,
                  second_midpoint,
                  first_face_center,
                  new_to_old_edges_map,

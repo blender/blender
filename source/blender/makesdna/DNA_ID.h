@@ -715,7 +715,7 @@ enum {
   /**
    * Long-life tags giving important info about general ID management.
    *
-   * These tags are typically not chnaged often, if ever, during an ID's life.
+   * These tags are typically not changed often, if ever, during an ID's life.
    */
 
   /**
@@ -793,7 +793,7 @@ enum {
   LIB_TAG_LIB_OVERRIDE_NEED_RESYNC = 1 << 8,
 
   /**
-   * Short-life tags used during specific processes, like blendfile readind.
+   * Short-life tags used during specific processes, like blend-file reading.
    */
 
   /**
@@ -840,6 +840,13 @@ enum {
    * RESET_AFTER_USE
    */
   LIB_TAG_UNDO_OLD_ID_REUSED = 1 << 17,
+  /**
+   * ID has be re-read in-place, the ID address is the same as in the old BMain, but the content is
+   * different.
+   *
+   * RESET_AFTER_USE
+   */
+  LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE = 1 << 18,
 
   /* ------------------------------------------------------------------------------------------- */
   /**

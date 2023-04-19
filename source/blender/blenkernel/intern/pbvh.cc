@@ -4348,7 +4348,7 @@ void update_vert_boundary_faces(int *boundary_flags,
                                 const int *face_sets,
                                 const bool *hide_poly,
                                 const float (*vert_positions)[3],
-                                const MEdge *medge,
+                                const int2 *medge,
                                 const int *corner_verts,
                                 const int *corner_edges,
                                 OffsetIndices<int> polys,
@@ -4392,7 +4392,6 @@ void update_vert_boundary_faces(int *boundary_flags,
     if (j < loop_count) {
       int e_index = corner_edges[loopstart + j];
 
-      const MEdge *me = medge + e_index;
       if (sharp_edges && sharp_edges[e_index]) {
         *flags |= SCULPT_BOUNDARY_SHARP;
         totsharp++;
@@ -4739,15 +4738,15 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
     case PBVH_BMESH: {
       if (do_step) {
         fd->bm_faces_iter_++;
+      }
 
-        while (fd->bm_faces_iter_ < fd->bm_faces_->cur &&
-               !fd->bm_faces_->elems[fd->bm_faces_iter_]) {
-          fd->bm_faces_iter_++;
-        }
+      while (fd->bm_faces_iter_ < fd->bm_faces_->cur &&
+             !fd->bm_faces_->elems[fd->bm_faces_iter_]) {
+        fd->bm_faces_iter_++;
+      }
 
-        if (fd->bm_faces_iter_ >= fd->bm_faces_->cur) {
-          return;
-        }
+      if (fd->bm_faces_iter_ >= fd->bm_faces_->cur) {
+        return;
       }
 
       BMFace *f = (BMFace *)fd->bm_faces_->elems[fd->bm_faces_iter_];

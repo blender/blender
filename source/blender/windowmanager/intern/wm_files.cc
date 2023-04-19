@@ -1632,8 +1632,11 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **r_t
     win = win->parent;
   }
 
+  wmWindowManager *wm = CTX_wm_manager(C);
   int win_size[2];
-  uint *buffer = WM_window_pixels_read(CTX_wm_manager(C), win, win_size);
+  /* NOTE: always read from front-buffer as drawing a window can cause problems while saving,
+   * even if this means the thumbnail from the screen-shot fails to be created, see: #98462. */
+  uint *buffer = WM_window_pixels_read_from_frontbuffer(wm, win, win_size);
   ImBuf *ibuf = IMB_allocFromBufferOwn(buffer, nullptr, win_size[0], win_size[1], 24);
 
   if (ibuf) {

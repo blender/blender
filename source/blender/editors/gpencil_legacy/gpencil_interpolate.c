@@ -1371,7 +1371,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
       float factor = (float)(cframe - prevFrame->framenum) / framerange;
 
       if (type == GP_IPO_CURVEMAP) {
-        /* custom curvemap */
+        /* Custom curve-map. */
         if (ipo_settings->custom_ipo) {
           factor = BKE_curvemapping_evaluateF(ipo_settings->custom_ipo, 0, factor);
         }

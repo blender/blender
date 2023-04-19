@@ -283,3 +283,5 @@ wmGizmo *gizmo_find_from_properties(const struct IDProperty *properties,
   }
   return NULL;
 }
+
+/** \} */

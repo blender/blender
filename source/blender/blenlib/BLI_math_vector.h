@@ -371,6 +371,7 @@ bool interp_v2_v2v2_slerp(float target[2], const float a[2], const float b[2], f
 void interp_v3_v3v3_slerp_safe(float target[3], const float a[3], const float b[3], float t);
 void interp_v2_v2v2_slerp_safe(float target[2], const float a[2], const float b[2], float t);
 
+/** Cubic curve interpolation (bezier spline). */
 void interp_v2_v2v2v2v2_cubic(float p[2],
                               const float v1[2],
                               const float v2[2],

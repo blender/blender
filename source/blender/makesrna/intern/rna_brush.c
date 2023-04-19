@@ -92,19 +92,45 @@ static const EnumPropertyItem rna_enum_brush_texture_slot_map_texture_mode_items
 };
 #endif
 
-/* clang-format off */
 /* Note: we don't actually turn these into a single enum bit-mask property,
  * instead we construct individual boolean properties. */
 const EnumPropertyItem rna_enum_brush_automasking_flag_items[] = {
-  {BRUSH_AUTOMASKING_TOPOLOGY, "use_automasking_topology", 0,"Topology", "Affect only vertices connected to the active vertex under the brush"},
-  {BRUSH_AUTOMASKING_FACE_SETS, "use_automasking_face_sets", 0,"Face Sets", "Affect only vertices that share Face Sets with the active vertex"},
-  {BRUSH_AUTOMASKING_BOUNDARY_EDGES, "use_automasking_boundary_edges", 0,"Mesh Boundary Auto-Masking", "Do not affect non manifold boundary edges"},
-  {BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS, "use_automasking_boundary_face_sets", 0,"Face Sets Boundary Automasking", "Do not affect vertices that belong to a Face Set boundary"},
-  {BRUSH_AUTOMASKING_CAVITY_NORMAL, "use_automasking_cavity", 0,"Cavity Mask", "Do not affect vertices on peaks, based on the surface curvature"},
-  {BRUSH_AUTOMASKING_CAVITY_INVERTED, "use_automasking_cavity_inverted", 0,"Inverted Cavity Mask", "Do not affect vertices within crevices, based on the surface curvature"},
-  {BRUSH_AUTOMASKING_CAVITY_USE_CURVE, "use_automasking_custom_cavity_curve", 0,"Custom Cavity Curve", "Use custom curve"},
-  {0, NULL, 0, NULL, NULL}
-};
+    {BRUSH_AUTOMASKING_TOPOLOGY,
+     "use_automasking_topology",
+     0,
+     "Topology",
+     "Affect only vertices connected to the active vertex under the brush"},
+    {BRUSH_AUTOMASKING_FACE_SETS,
+     "use_automasking_face_sets",
+     0,
+     "Face Sets",
+     "Affect only vertices that share Face Sets with the active vertex"},
+    {BRUSH_AUTOMASKING_BOUNDARY_EDGES,
+     "use_automasking_boundary_edges",
+     0,
+     "Mesh Boundary Auto-Masking",
+     "Do not affect non manifold boundary edges"},
+    {BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS,
+     "use_automasking_boundary_face_sets",
+     0,
+     "Face Sets Boundary Automasking",
+     "Do not affect vertices that belong to a Face Set boundary"},
+    {BRUSH_AUTOMASKING_CAVITY_NORMAL,
+     "use_automasking_cavity",
+     0,
+     "Cavity Mask",
+     "Do not affect vertices on peaks, based on the surface curvature"},
+    {BRUSH_AUTOMASKING_CAVITY_INVERTED,
+     "use_automasking_cavity_inverted",
+     0,
+     "Inverted Cavity Mask",
+     "Do not affect vertices within crevices, based on the surface curvature"},
+    {BRUSH_AUTOMASKING_CAVITY_USE_CURVE,
+     "use_automasking_custom_cavity_curve",
+     0,
+     "Custom Cavity Curve",
+     "Use custom curve"},
+    {0, NULL, 0, NULL, NULL}};
 
 const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_DRAW, "DRAW", ICON_BRUSH_SCULPT_DRAW, "Draw", ""},
@@ -118,10 +144,14 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_CREASE, "CREASE", ICON_BRUSH_CREASE, "Crease", ""},
     RNA_ENUM_ITEM_SEPR,
     {SCULPT_TOOL_SMOOTH, "SMOOTH", ICON_BRUSH_SMOOTH, "Smooth", ""},
-     {SCULPT_TOOL_FLATTEN, "FLATTEN", ICON_BRUSH_FLATTEN, "Flatten", ""},
+    {SCULPT_TOOL_FLATTEN, "FLATTEN", ICON_BRUSH_FLATTEN, "Flatten", ""},
     {SCULPT_TOOL_FILL, "FILL", ICON_BRUSH_FILL, "Fill", ""},
     {SCULPT_TOOL_SCRAPE, "SCRAPE", ICON_BRUSH_SCRAPE, "Scrape", ""},
-    {SCULPT_TOOL_MULTIPLANE_SCRAPE, "MULTIPLANE_SCRAPE", ICON_BRUSH_SCRAPE, "Multi-plane Scrape", ""},
+    {SCULPT_TOOL_MULTIPLANE_SCRAPE,
+     "MULTIPLANE_SCRAPE",
+     ICON_BRUSH_SCRAPE,
+     "Multi-plane Scrape",
+     ""},
     {SCULPT_TOOL_PINCH, "PINCH", ICON_BRUSH_PINCH, "Pinch", ""},
     RNA_ENUM_ITEM_SEPR,
     {SCULPT_TOOL_GRAB, "GRAB", ICON_BRUSH_GRAB, "Grab", ""},
@@ -138,14 +168,20 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_SIMPLIFY, "SIMPLIFY", ICON_BRUSH_DATA, "Simplify", ""},
     {SCULPT_TOOL_MASK, "MASK", ICON_BRUSH_MASK, "Mask", ""},
     {SCULPT_TOOL_DRAW_FACE_SETS, "DRAW_FACE_SETS", ICON_BRUSH_MASK, "Draw Face Sets", ""},
-    {SCULPT_TOOL_DISPLACEMENT_ERASER, "DISPLACEMENT_ERASER", ICON_BRUSH_SCULPT_DRAW, "Multires Displacement Eraser", ""},
-    {SCULPT_TOOL_DISPLACEMENT_SMEAR, "DISPLACEMENT_SMEAR", ICON_BRUSH_SCULPT_DRAW, "Multires Displacement Smear", ""},
-
+    {SCULPT_TOOL_DISPLACEMENT_ERASER,
+     "DISPLACEMENT_ERASER",
+     ICON_BRUSH_SCULPT_DRAW,
+     "Multires Displacement Eraser",
+     ""},
+    {SCULPT_TOOL_DISPLACEMENT_SMEAR,
+     "DISPLACEMENT_SMEAR",
+     ICON_BRUSH_SCULPT_DRAW,
+     "Multires Displacement Smear",
+     ""},
     {SCULPT_TOOL_PAINT, "PAINT", ICON_BRUSH_SCULPT_DRAW, "Paint", ""},
     {SCULPT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_SCULPT_DRAW, "Smear", ""},
     {0, NULL, 0, NULL, NULL},
 };
-/* clang-format on */
 
 const EnumPropertyItem rna_enum_brush_uv_sculpt_tool_items[] = {
     {UV_SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", "Grab UVs"},
@@ -262,24 +298,30 @@ const EnumPropertyItem rna_enum_brush_gpencil_weight_types_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-/* clang-format off */
 const EnumPropertyItem rna_enum_brush_curves_sculpt_tool_items[] = {
-    {CURVES_SCULPT_TOOL_SELECTION_PAINT, "SELECTION_PAINT", ICON_BRUSH_PAINT_SELECT, "Paint Selection", ""},
+    {CURVES_SCULPT_TOOL_SELECTION_PAINT,
+     "SELECTION_PAINT",
+     ICON_BRUSH_PAINT_SELECT,
+     "Paint Selection",
+     ""},
     RNA_ENUM_ITEM_SEPR,
-    {CURVES_SCULPT_TOOL_ADD, "ADD", ICON_BRUSH_CURVES_ADD, "Add Curves", ""},
-    {CURVES_SCULPT_TOOL_DELETE, "DELETE", ICON_BRUSH_CURVES_DELETE, "Delete Curves", ""},
-    {CURVES_SCULPT_TOOL_DENSITY, "DENSITY", ICON_BRUSH_CURVES_DENSITY, "Density Curves", ""},
+    {CURVES_SCULPT_TOOL_ADD, "ADD", ICON_BRUSH_CURVES_ADD, "Add", ""},
+    {CURVES_SCULPT_TOOL_DELETE, "DELETE", ICON_BRUSH_CURVES_DELETE, "Delete", ""},
+    {CURVES_SCULPT_TOOL_DENSITY, "DENSITY", ICON_BRUSH_CURVES_DENSITY, "Density", ""},
     RNA_ENUM_ITEM_SEPR,
-    {CURVES_SCULPT_TOOL_COMB, "COMB", ICON_BRUSH_CURVES_COMB, "Comb Curves", ""},
-    {CURVES_SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_BRUSH_CURVES_SNAKE_HOOK, "Curves Snake Hook", ""},
-    {CURVES_SCULPT_TOOL_GROW_SHRINK, "GROW_SHRINK", ICON_BRUSH_CURVES_GROW_SHRINK, "Grow / Shrink Curves", ""},
-    {CURVES_SCULPT_TOOL_PINCH, "PINCH", ICON_BRUSH_CURVES_PINCH, "Pinch Curves", ""},
-    {CURVES_SCULPT_TOOL_PUFF, "PUFF", ICON_BRUSH_CURVES_PUFF, "Puff Curves", ""},
-    {CURVES_SCULPT_TOOL_SMOOTH, "SMOOTH", ICON_BRUSH_CURVES_SMOOTH, "Smooth Curves", ""},
-    {CURVES_SCULPT_TOOL_SLIDE, "SLIDE", ICON_BRUSH_CURVES_SLIDE, "Slide Curves", ""},
+    {CURVES_SCULPT_TOOL_COMB, "COMB", ICON_BRUSH_CURVES_COMB, "Comb", ""},
+    {CURVES_SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_BRUSH_CURVES_SNAKE_HOOK, "Snake Hook", ""},
+    {CURVES_SCULPT_TOOL_GROW_SHRINK,
+     "GROW_SHRINK",
+     ICON_BRUSH_CURVES_GROW_SHRINK,
+     "Grow / Shrink",
+     ""},
+    {CURVES_SCULPT_TOOL_PINCH, "PINCH", ICON_BRUSH_CURVES_PINCH, "Pinch", ""},
+    {CURVES_SCULPT_TOOL_PUFF, "PUFF", ICON_BRUSH_CURVES_PUFF, "Puff", ""},
+    {CURVES_SCULPT_TOOL_SMOOTH, "SMOOTH", ICON_BRUSH_CURVES_SMOOTH, "Smooth", ""},
+    {CURVES_SCULPT_TOOL_SLIDE, "SLIDE", ICON_BRUSH_CURVES_SLIDE, "Slide", ""},
     {0, NULL, 0, NULL, NULL},
 };
-/* clang-format on */
 
 #ifndef RNA_RUNTIME
 static EnumPropertyItem rna_enum_gpencil_brush_eraser_modes_items[] = {

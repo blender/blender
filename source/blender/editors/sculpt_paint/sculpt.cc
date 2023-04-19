@@ -85,6 +85,7 @@ using blender::MutableSpan;
 using blender::Set;
 using blender::Span;
 using blender::Vector;
+using blender::int2;
 
 static float sculpt_calc_radius(ViewContext *vc,
                                 const Brush *brush,
@@ -1247,8 +1248,8 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
   /* length of array is now in len */
 
   for (int i = 0; i < len; i++) {
-    const MEdge *e = &ss->edges[edges[i]];
-    int v2 = e->v1 == vertex.i ? e->v2 : e->v1;
+    const int2 &e = ss->edges[edges[i]];
+    int v2 = e[0] == vertex.i ? e[1] : e[0];
 
     sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(v2), BKE_pbvh_make_eref(edges[i]), v2);
   }
@@ -1302,9 +1303,9 @@ static void sculpt_vertex_neighbors_get_faces_vemap(const SculptSession *ss,
   iter->no_free = false;
 
   for (int i = 0; i < vert_map->count; i++) {
-    const MEdge *me = &ss->edges[vert_map->indices[i]];
+    const int2 &e = ss->edges[vert_map->indices[i]];
 
-    unsigned int v = me->v1 == (unsigned int)vertex.i ? me->v2 : me->v1;
+    unsigned int v = e[0] == (unsigned int)vertex.i ? e[1] : e[0];
     MSculptVert *mv = ss->msculptverts + v;
 
     if (mv->flag & SCULPTVERT_VERT_FSET_HIDDEN) {
@@ -6946,7 +6947,7 @@ void SCULPT_boundary_info_ensure(Object *object)
   }
 
   Mesh *base_mesh = BKE_mesh_from_object(object);
-  const blender::Span<MEdge> edges = base_mesh->edges();
+  const blender::Span<int2> edges = base_mesh->edges();
   const OffsetIndices polys = base_mesh->polys();
   const Span<int> corner_edges = base_mesh->corner_edges();
 
@@ -6962,9 +6963,9 @@ void SCULPT_boundary_info_ensure(Object *object)
 
   for (const int e : edges.index_range()) {
     if (adjacent_faces_edge_count[e] < 2) {
-      const MEdge *edge = &edges[e];
-      BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v1, true);
-      BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v2, true);
+      const int2 &edge = edges[e];
+      BLI_BITMAP_SET(ss->vertex_info.boundary, edge[0], true);
+      BLI_BITMAP_SET(ss->vertex_info.boundary, edge[1], true);
     }
   }
 

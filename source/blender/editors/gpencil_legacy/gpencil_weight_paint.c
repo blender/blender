@@ -345,7 +345,7 @@ static void gpencil_weightpaint_brush_exit(bContext *C, wmOperator *op)
 {
   tGP_BrushWeightpaintData *gso = op->customdata;
 
-  /* Disable headerprints. */
+  /* Clear status bar text. */
   ED_workspace_status_text(C, NULL);
 
   /* Free operator data */
@@ -767,7 +767,7 @@ static int gpencil_weightpaint_brush_invoke(bContext *C, wmOperator *op, const w
   return OPERATOR_RUNNING_MODAL;
 }
 
-/* painting - handle events */
+/* painting - handle events. */
 static int gpencil_weightpaint_brush_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   tGP_BrushWeightpaintData *gso = op->customdata;
@@ -775,28 +775,28 @@ static int gpencil_weightpaint_brush_modal(bContext *C, wmOperator *op, const wm
   bool redraw_region = false;
   bool redraw_toolsettings = false;
 
-  /* The operator can be in 2 states: Painting and Idling */
+  /* The operator can be in 2 states: Painting and Idling. */
   if (gso->is_painting) {
     /* Painting. */
     switch (event->type) {
-      /* Mouse Move = Apply somewhere else */
+      /* Mouse Move: Apply somewhere else. */
       case MOUSEMOVE:
       case INBETWEEN_MOUSEMOVE:
-        /* apply brush effect at new position */
+        /* Apply brush effect at new position. */
         gpencil_weightpaint_brush_apply_event(C, op, event);
 
-        /* force redraw, so that the cursor will at least be valid */
+        /* Force redraw, so that the cursor will at least be valid. */
         redraw_region = true;
         break;
 
-      /* Painting mbut release = Stop painting (back to idle) */
+      /* Painting mouse-button release: Stop painting (back to idle). */
       case LEFTMOUSE:
         if (is_modal) {
           /* go back to idling... */
           gso->is_painting = false;
         }
         else {
-          /* end painting, since we're not modal */
+          /* end painting, since we're not modal. */
           gso->is_painting = false;
 
           gpencil_weightpaint_brush_exit(C, op);
@@ -804,7 +804,7 @@ static int gpencil_weightpaint_brush_modal(bContext *C, wmOperator *op, const wm
         }
         break;
 
-      /* Abort painting if any of the usual things are tried */
+      /* Abort painting if any of the usual things are tried. */
       case MIDDLEMOUSE:
       case RIGHTMOUSE:
       case EVT_ESCKEY:
@@ -813,43 +813,43 @@ static int gpencil_weightpaint_brush_modal(bContext *C, wmOperator *op, const wm
     }
   }
   else {
-    /* Idling */
+    /* Idling. */
     BLI_assert(is_modal == true);
 
     switch (event->type) {
-      /* Painting mbut press = Start painting (switch to painting state) */
+      /* Painting mouse-button press = Start painting (switch to painting state). */
       case LEFTMOUSE:
-        /* do initial "click" apply */
+        /* do initial "click" apply. */
         gso->is_painting = true;
         gso->first = true;
 
         gpencil_weightpaint_brush_apply_event(C, op, event);
         break;
 
-      /* Exit modal operator, based on the "standard" ops */
+      /* Exit modal operator, based on the "standard" ops. */
       case RIGHTMOUSE:
       case EVT_ESCKEY:
         gpencil_weightpaint_brush_exit(C, op);
         return OPERATOR_FINISHED;
 
-      /* MMB is often used for view manipulations */
+      /* MMB is often used for view manipulations. */
       case MIDDLEMOUSE:
         return OPERATOR_PASS_THROUGH;
 
-      /* Mouse movements should update the brush cursor - Just redraw the active region */
+      /* Mouse movements should update the brush cursor - Just redraw the active region. */
       case MOUSEMOVE:
       case INBETWEEN_MOUSEMOVE:
         redraw_region = true;
         break;
 
-      /* Change Frame - Allowed */
+      /* Change Frame - Allowed. */
       case EVT_LEFTARROWKEY:
       case EVT_RIGHTARROWKEY:
       case EVT_UPARROWKEY:
       case EVT_DOWNARROWKEY:
         return OPERATOR_PASS_THROUGH;
 
-      /* Camera/View Gizmo's - Allowed */
+      /* Camera/View Gizmo's - Allowed. */
       /* (See rationale in gpencil_paint.c -> gpencil_draw_modal()) */
       case EVT_PAD0:
       case EVT_PAD1:
@@ -863,7 +863,7 @@ static int gpencil_weightpaint_brush_modal(bContext *C, wmOperator *op, const wm
       case EVT_PAD9:
         return OPERATOR_PASS_THROUGH;
 
-      /* Unhandled event */
+      /* Unhandled event. */
       default:
         break;
     }

@@ -353,12 +353,11 @@ ViewLayer *get_original_view_layer(const Depsgraph *depsgraph, const IDNode *id_
   return nullptr;
 }
 
-/* Remove all view layers but the one which corresponds to an input one. */
-void scene_remove_unused_view_layers(const Depsgraph *depsgraph,
-                                     const IDNode *id_node,
-                                     Scene *scene_cow)
+/* Remove all bases from all view layers except the input one. */
+void scene_minimize_unused_view_layers(const Depsgraph *depsgraph,
+                                       const IDNode *id_node,
+                                       Scene *scene_cow)
 {
-  const ViewLayer *view_layer_input;
   if (depsgraph->is_render_pipeline_depsgraph) {
     /* If the dependency graph is used for post-processing (such as compositor) we do need to
      * have access to its view layer names so can not remove any view layers.
@@ -370,18 +369,12 @@ void scene_remove_unused_view_layers(const Depsgraph *depsgraph,
      * NOTE: Need to keep view layers for all scenes, even indirect ones. This is because of
      * render layer node possibly pointing to another scene. */
     LISTBASE_FOREACH (ViewLayer *, view_layer, &scene_cow->view_layers) {
-      view_layer->basact = nullptr;
+      BKE_view_layer_free_object_content(view_layer);
     }
     return;
   }
-  if (id_node->linked_state == DEG_ID_LINKED_INDIRECTLY) {
-    /* Indirectly linked scenes means it's not an input scene and not a set scene, and is pulled
-     * via some driver. Such scenes should not have view layers after copy. */
-    view_layer_input = nullptr;
-  }
-  else {
-    view_layer_input = get_original_view_layer(depsgraph, id_node);
-  }
+
+  const ViewLayer *view_layer_input = get_original_view_layer(depsgraph, id_node);
   ViewLayer *view_layer_eval = nullptr;
   /* Find evaluated view layer. At the same time we free memory used by
    * all other of the view layers. */
@@ -394,15 +387,16 @@ void scene_remove_unused_view_layers(const Depsgraph *depsgraph,
       view_layer_eval = view_layer_cow;
     }
     else {
-      BKE_view_layer_free_ex(view_layer_cow, false);
+      BKE_view_layer_free_object_content(view_layer_cow);
     }
   }
-  /* Make evaluated view layer the only one in the evaluated scene (if it exists). */
+
+  /* Make evaluated view layer the first one in the evaluated scene (if it exists). This is for
+   * legacy sake, as this used to remove all other view layers, automatically making the evaluated
+   * one the first. Some other code may still assume it is. */
   if (view_layer_eval != nullptr) {
-    view_layer_eval->prev = view_layer_eval->next = nullptr;
+    BLI_listbase_swaplinks(&scene_cow->view_layers, scene_cow->view_layers.first, view_layer_eval);
   }
-  scene_cow->view_layers.first = view_layer_eval;
-  scene_cow->view_layers.last = view_layer_eval;
 }
 
 void scene_remove_all_bases(Scene *scene_cow)
@@ -467,7 +461,7 @@ void scene_setup_view_layers_before_remap(const Depsgraph *depsgraph,
                                           const IDNode *id_node,
                                           Scene *scene_cow)
 {
-  scene_remove_unused_view_layers(depsgraph, id_node, scene_cow);
+  scene_minimize_unused_view_layers(depsgraph, id_node, scene_cow);
   /* If dependency graph is used for post-processing we don't need any bases and can free of them.
    * Do it before re-mapping to make that process faster. */
   if (depsgraph->is_render_pipeline_depsgraph) {

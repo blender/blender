@@ -65,6 +65,7 @@
 #include <stdlib.h>
 
 using blender::IndexRange;
+using blender::int2;
 using blender::Vector;
 
 BMesh *SCULPT_dyntopo_empty_bmesh()
@@ -192,16 +193,16 @@ void SCULPT_faces_get_cotangents(SculptSession *ss,
     int i3 = (i + 1) % elem->count;
 
     const float *v = ss->vert_positions[vertex.i];
-    const MEdge *e1 = &ss->edges[elem->indices[i1]];
-    const MEdge *e2 = &ss->edges[elem->indices[i2]];
-    const MEdge *e3 = &ss->edges[elem->indices[i3]];
+    const int2 &e1 = ss->edges[elem->indices[i1]];
+    const int2 &e2 = ss->edges[elem->indices[i2]];
+    const int2 &e3 = ss->edges[elem->indices[i3]];
 
-    const float *v1 = (unsigned int)vertex.i == e1->v1 ? ss->vert_positions[e1->v2] :
-                                                         ss->vert_positions[e1->v1];
-    const float *v2 = (unsigned int)vertex.i == e2->v1 ? ss->vert_positions[e2->v2] :
-                                                         ss->vert_positions[e2->v1];
-    const float *v3 = (unsigned int)vertex.i == e3->v1 ? ss->vert_positions[e3->v2] :
-                                                         ss->vert_positions[e3->v1];
+    const float *v1 = (unsigned int)vertex.i == e1[0] ? ss->vert_positions[e1[1]] :
+                                                        ss->vert_positions[e1[0]];
+    const float *v2 = (unsigned int)vertex.i == e2[0] ? ss->vert_positions[e2[1]] :
+                                                        ss->vert_positions[e2[0]];
+    const float *v3 = (unsigned int)vertex.i == e3[0] ? ss->vert_positions[e3[1]] :
+                                                        ss->vert_positions[e3[0]];
 
     float cot1 = cotangent_tri_weight_v3(v1, v, v2);
     float cot2 = cotangent_tri_weight_v3(v3, v2, v);

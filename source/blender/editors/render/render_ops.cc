@@ -28,6 +28,9 @@ void ED_operatortypes_render()
   WM_operatortype_append(OBJECT_OT_material_slot_move);
   WM_operatortype_append(OBJECT_OT_material_slot_remove_unused);
 
+  WM_operatortype_append(OBJECT_OT_lightprobe_cache_bake);
+  WM_operatortype_append(OBJECT_OT_lightprobe_cache_free);
+
   WM_operatortype_append(MATERIAL_OT_new);
   WM_operatortype_append(TEXTURE_OT_new);
   WM_operatortype_append(WORLD_OT_new);

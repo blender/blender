@@ -602,7 +602,7 @@ static void annotation_draw_onionskins(
     for (gf = gpf->prev; gf; gf = gf->prev) {
       /* check if frame is drawable */
       if ((gpf->framenum - gf->framenum) <= gpl->gstep) {
-        /* alpha decreases with distance from curframe index */
+        /* Alpha decreases with distance from current-frame index. */
         fac = 1.0f - ((float)(gpf->framenum - gf->framenum) / (float)(gpl->gstep + 1));
         color[3] = alpha * fac * 0.66f;
         annotation_draw_strokes(gf, offsx, offsy, winx, winy, dflag, gpl->thickness, color);
@@ -634,7 +634,7 @@ static void annotation_draw_onionskins(
     for (gf = gpf->next; gf; gf = gf->next) {
       /* check if frame is drawable */
       if ((gf->framenum - gpf->framenum) <= gpl->gstep_next) {
-        /* alpha decreases with distance from curframe index */
+        /* Alpha decreases with distance from current-frame index. */
         fac = 1.0f - ((float)(gf->framenum - gpf->framenum) / (float)(gpl->gstep_next + 1));
         color[3] = alpha * fac * 0.66f;
         annotation_draw_strokes(gf, offsx, offsy, winx, winy, dflag, gpl->thickness, color);

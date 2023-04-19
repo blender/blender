@@ -2754,7 +2754,7 @@ void GPENCIL_OT_vertex_group_normalize_all(wmOperatorType *ot)
 
 /****************************** Join ***********************************/
 
-/* userdata for joined_gpencil_fix_animdata_cb() */
+/** User-data for #gpencil_joined_fix_animdata_cb(). */
 typedef struct tJoinGPencil_AdtFixData {
   bGPdata *src_gpd;
   bGPdata *tar_gpd;

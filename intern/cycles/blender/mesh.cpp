@@ -280,7 +280,7 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
         assert(0);
       }
       else {
-        const MEdge *edges = static_cast<const MEdge *>(b_mesh.edges[0].ptr.data);
+        const int2 *edges = static_cast<const int2 *>(b_mesh.edges[0].ptr.data);
         const size_t verts_num = b_mesh.vertices.length();
         vector<int> count(verts_num, 0);
 
@@ -288,11 +288,11 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
         for (int i = 0; i < edges_num; i++) {
           TypeInCycles value = get_value_at_index(i);
 
-          const MEdge &b_edge = edges[i];
-          data[b_edge.v1] += value;
-          data[b_edge.v2] += value;
-          count[b_edge.v1]++;
-          count[b_edge.v2]++;
+          const int2 &b_edge = edges[i];
+          data[b_edge[0]] += value;
+          data[b_edge[1]] += value;
+          count[b_edge[0]]++;
+          count[b_edge[1]]++;
         }
 
         for (size_t i = 0; i < verts_num; i++) {
@@ -796,13 +796,13 @@ static void attr_create_pointiness(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, b
   EdgeMap visited_edges;
   memset(&counter[0], 0, sizeof(int) * counter.size());
 
-  const MEdge *edges = static_cast<MEdge *>(b_mesh.edges[0].ptr.data);
+  const int2 *edges = static_cast<int2 *>(b_mesh.edges[0].ptr.data);
   const int edges_num = b_mesh.edges.length();
 
   for (int i = 0; i < edges_num; i++) {
-    const MEdge &b_edge = edges[i];
-    const int v0 = vert_orig_index[b_edge.v1];
-    const int v1 = vert_orig_index[b_edge.v2];
+    const int2 &b_edge = edges[i];
+    const int v0 = vert_orig_index[b_edge[0]];
+    const int v1 = vert_orig_index[b_edge[1]];
     if (visited_edges.exists(v0, v1)) {
       continue;
     }
@@ -838,9 +838,9 @@ static void attr_create_pointiness(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, b
   memset(&counter[0], 0, sizeof(int) * counter.size());
   visited_edges.clear();
   for (int i = 0; i < edges_num; i++) {
-    const MEdge &b_edge = edges[i];
-    const int v0 = vert_orig_index[b_edge.v1];
-    const int v1 = vert_orig_index[b_edge.v2];
+    const int2 &b_edge = edges[i];
+    const int v0 = vert_orig_index[b_edge[0]];
+    const int v1 = vert_orig_index[b_edge[1]];
     if (visited_edges.exists(v0, v1)) {
       continue;
     }
@@ -907,12 +907,12 @@ static void attr_create_random_per_island(Scene *scene,
 
   DisjointSet vertices_sets(number_of_vertices);
 
-  const MEdge *edges = static_cast<MEdge *>(b_mesh.edges[0].ptr.data);
+  const int2 *edges = static_cast<int2 *>(b_mesh.edges[0].ptr.data);
   const int edges_num = b_mesh.edges.length();
   const int *corner_verts = find_corner_vert_attribute(b_mesh);
 
   for (int i = 0; i < edges_num; i++) {
-    vertices_sets.join(edges[i].v1, edges[i].v2);
+    vertices_sets.join(edges[i][0], edges[i][1]);
   }
 
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
@@ -1234,12 +1234,12 @@ static void create_subd_mesh(Scene *scene,
 
     mesh->reserve_subd_creases(num_creases);
 
-    const MEdge *edges = static_cast<MEdge *>(b_mesh.edges[0].ptr.data);
+    const int2 *edges = static_cast<int2 *>(b_mesh.edges[0].ptr.data);
     for (int i = 0; i < edges_num; i++) {
       const float crease = creases[i];
       if (crease != 0.0f) {
-        const MEdge &b_edge = edges[i];
-        mesh->add_edge_crease(b_edge.v1, b_edge.v2, crease);
+        const int2 &b_edge = edges[i];
+        mesh->add_edge_crease(b_edge[0], b_edge[1], crease);
       }
     }
   }

@@ -164,7 +164,7 @@ static void generate_geometry(GpencilModifierData *md,
   bGPdata *gpd = (bGPdata *)ob->data;
   bool found = false;
 
-  /* Get bounbox for relative offset. */
+  /* Get bound-box for relative offset. */
   float size[3] = {0.0f, 0.0f, 0.0f};
   if (mmd->flag & GP_ARRAY_USE_RELATIVE) {
     float min[3];

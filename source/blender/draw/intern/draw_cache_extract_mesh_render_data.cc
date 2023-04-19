@@ -49,9 +49,9 @@ static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBuffe
   }
 
   /* Tag verts as not loose. */
-  for (const MEdge &edge : mr->edges) {
-    BLI_BITMAP_ENABLE(lvert_map, edge.v1);
-    BLI_BITMAP_ENABLE(lvert_map, edge.v2);
+  for (const int2 &edge : mr->edges) {
+    BLI_BITMAP_ENABLE(lvert_map, edge[0]);
+    BLI_BITMAP_ENABLE(lvert_map, edge[1]);
   }
 
   int count = 0;

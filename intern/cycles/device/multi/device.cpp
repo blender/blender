@@ -96,12 +96,13 @@ class MultiDevice : public Device {
     return error_msg;
   }
 
-  virtual BVHLayoutMask get_bvh_layout_mask() const override
+  virtual BVHLayoutMask get_bvh_layout_mask(uint kernel_features) const override
   {
     BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_ALL;
     BVHLayoutMask bvh_layout_mask_all = BVH_LAYOUT_NONE;
     foreach (const SubDevice &sub_device, devices) {
-      BVHLayoutMask device_bvh_layout_mask = sub_device.device->get_bvh_layout_mask();
+      BVHLayoutMask device_bvh_layout_mask = sub_device.device->get_bvh_layout_mask(
+          kernel_features);
       bvh_layout_mask &= device_bvh_layout_mask;
       bvh_layout_mask_all |= device_bvh_layout_mask;
     }

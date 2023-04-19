@@ -52,6 +52,7 @@
 using blender::Array;
 using blender::float3;
 using blender::IndexRange;
+using blender::int2;
 using blender::ListBaseWrapper;
 using blender::MutableSpan;
 using blender::Span;
@@ -162,14 +163,14 @@ static void computed_masked_edges(const Mesh *mesh,
                                   uint *r_edges_masked_num)
 {
   BLI_assert(mesh->totedge == r_edge_map.size());
-  const Span<MEdge> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
 
   uint edges_masked_num = 0;
   for (int i : IndexRange(mesh->totedge)) {
-    const MEdge &edge = edges[i];
+    const int2 &edge = edges[i];
 
     /* only add if both verts will be in new mesh */
-    if (vertex_mask[edge.v1] && vertex_mask[edge.v2]) {
+    if (vertex_mask[edge[0]] && vertex_mask[edge[1]]) {
       r_edge_map[i] = edges_masked_num;
       edges_masked_num++;
     }
@@ -188,16 +189,16 @@ static void computed_masked_edges_smooth(const Mesh *mesh,
                                          uint *r_verts_add_num)
 {
   BLI_assert(mesh->totedge == r_edge_map.size());
-  const Span<MEdge> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
 
   uint edges_masked_num = 0;
   uint verts_add_num = 0;
   for (int i : IndexRange(mesh->totedge)) {
-    const MEdge &edge = edges[i];
+    const int2 &edge = edges[i];
 
     /* only add if both verts will be in new mesh */
-    bool v1 = vertex_mask[edge.v1];
-    bool v2 = vertex_mask[edge.v2];
+    bool v1 = vertex_mask[edge[0]];
+    bool v2 = vertex_mask[edge[1]];
     if (v1 && v2) {
       r_edge_map[i] = edges_masked_num;
       edges_masked_num++;
@@ -363,8 +364,8 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
 {
   BLI_assert(src_mesh.totvert == vertex_mask.size());
   BLI_assert(src_mesh.totedge == r_edge_map.size());
-  const Span<MEdge> src_edges = src_mesh.edges();
-  MutableSpan<MEdge> dst_edges = dst_mesh.edges_for_write();
+  const Span<int2> src_edges = src_mesh.edges();
+  MutableSpan<int2> dst_edges = dst_mesh.edges_for_write();
 
   uint vert_index = dst_mesh.totvert - verts_add_num;
   uint edge_index = edges_masked_num - verts_add_num;
@@ -374,35 +375,35 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
       if (i_dst == -2) {
         i_dst = edge_index;
       }
-      const MEdge &e_src = src_edges[i_src];
-      MEdge &e_dst = dst_edges[i_dst];
+      const int2 &e_src = src_edges[i_src];
+      int2 &e_dst = dst_edges[i_dst];
 
       CustomData_copy_data(&src_mesh.edata, &dst_mesh.edata, i_src, i_dst, 1);
       e_dst = e_src;
-      e_dst.v1 = vertex_map[e_src.v1];
-      e_dst.v2 = vertex_map[e_src.v2];
+      e_dst[0] = vertex_map[e_src[0]];
+      e_dst[1] = vertex_map[e_src[1]];
     }
     if (r_edge_map[i_src] == -2) {
       const int i_dst = edge_index++;
       r_edge_map[i_src] = i_dst;
-      const MEdge &e_src = src_edges[i_src];
+      const int2 &e_src = src_edges[i_src];
       /* Cut destination edge and make v1 the new vertex. */
-      MEdge &e_dst = dst_edges[i_dst];
-      if (!vertex_mask[e_src.v1]) {
-        e_dst.v1 = vert_index;
+      int2 &e_dst = dst_edges[i_dst];
+      if (!vertex_mask[e_src[0]]) {
+        e_dst[0] = vert_index;
       }
       else {
-        BLI_assert(!vertex_mask[e_src.v2]);
-        e_dst.v2 = e_dst.v1;
-        e_dst.v1 = vert_index;
+        BLI_assert(!vertex_mask[e_src[1]]);
+        e_dst[1] = e_dst[0];
+        e_dst[0] = vert_index;
       }
       /* Create the new vertex. */
       float fac = get_interp_factor_from_vgroup(
-          dvert, defgrp_index, threshold, e_src.v1, e_src.v2);
+          dvert, defgrp_index, threshold, e_src[0], e_src[1]);
 
       float weights[2] = {1.0f - fac, fac};
       CustomData_interp(
-          &src_mesh.vdata, &dst_mesh.vdata, (int *)&e_src.v1, weights, nullptr, 2, vert_index);
+          &src_mesh.vdata, &dst_mesh.vdata, (int *)&e_src[0], weights, nullptr, 2, vert_index);
       vert_index++;
     }
   }
@@ -415,8 +416,8 @@ static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> vertex_map,
                                           Span<int> edge_map)
 {
-  const Span<MEdge> src_edges = src_mesh.edges();
-  MutableSpan<MEdge> dst_edges = dst_mesh.edges_for_write();
+  const Span<int2> src_edges = src_mesh.edges();
+  MutableSpan<int2> dst_edges = dst_mesh.edges_for_write();
 
   BLI_assert(src_mesh.totvert == vertex_map.size());
   BLI_assert(src_mesh.totedge == edge_map.size());
@@ -426,13 +427,9 @@ static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
       continue;
     }
 
-    const MEdge &e_src = src_edges[i_src];
-    MEdge &e_dst = dst_edges[i_dst];
-
     CustomData_copy_data(&src_mesh.edata, &dst_mesh.edata, i_src, i_dst, 1);
-    e_dst = e_src;
-    e_dst.v1 = vertex_map[e_src.v1];
-    e_dst.v2 = vertex_map[e_src.v2];
+    dst_edges[i_dst][0] = vertex_map[src_edges[i_src][0]];
+    dst_edges[i_dst][1] = vertex_map[src_edges[i_src][1]];
   }
 }
 
@@ -486,7 +483,7 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
 {
   const blender::OffsetIndices src_polys = src_mesh.polys();
   MutableSpan<int> dst_poly_offsets = dst_mesh.poly_offsets_for_write();
-  MutableSpan<MEdge> dst_edges = dst_mesh.edges_for_write();
+  MutableSpan<int2> dst_edges = dst_mesh.edges_for_write();
   const Span<int> src_corner_verts = src_mesh.corner_verts();
   const Span<int> src_corner_edges = src_mesh.corner_edges();
   MutableSpan<int> dst_corner_verts = dst_mesh.corner_verts_for_write();
@@ -554,7 +551,7 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
         CustomData_interp(
             &src_mesh.ldata, &dst_mesh.ldata, indices, weights, nullptr, 2, i_ml_dst);
         dst_corner_edges[i_ml_dst] = edge_map[src_corner_edges[last_corner_i]];
-        dst_corner_verts[i_ml_dst] = dst_edges[dst_corner_edges[i_ml_dst]].v1;
+        dst_corner_verts[i_ml_dst] = dst_edges[dst_corner_edges[i_ml_dst]][0];
         i_ml_dst++;
 
         CustomData_copy_data(&src_mesh.ldata, &dst_mesh.ldata, i_ml_src + index, i_ml_dst, 1);
@@ -575,14 +572,14 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
         CustomData_interp(
             &src_mesh.ldata, &dst_mesh.ldata, indices, weights, nullptr, 2, i_ml_dst);
         dst_corner_edges[i_ml_dst] = edge_index;
-        dst_corner_verts[i_ml_dst] = dst_edges[edge_map[src_corner_edges[last_corner_i]]].v1;
+        dst_corner_verts[i_ml_dst] = dst_edges[edge_map[src_corner_edges[last_corner_i]]][0];
         i_ml_dst++;
 
         /* Create closing edge. */
-        MEdge &cut_edge = dst_edges[edge_index];
-        cut_edge.v1 = dst_corner_verts[dst_poly_offsets[i_dst]];
-        cut_edge.v2 = dst_corner_verts[i_ml_dst];
-        BLI_assert(cut_edge.v1 != cut_edge.v2);
+        int2 &cut_edge = dst_edges[edge_index];
+        cut_edge[0] = dst_corner_verts[dst_poly_offsets[i_dst]];
+        cut_edge[1] = dst_corner_verts[i_ml_dst];
+        BLI_assert(cut_edge[0] != cut_edge[1]);
         edge_index++;
 
         /* Only handle one of the cuts per iteration. */

@@ -15,44 +15,6 @@ extern "C" {
 #endif
 
 /* -------------------------------------------------------------------- */
-/** \name Geometry Elements
- * \{ */
-
-/**
- * Mesh Edges.
- *
- * Typically accessed with #Mesh.edges()
- */
-typedef struct MEdge {
-  /** Un-ordered vertex indices (cannot match). */
-  unsigned int v1, v2;
-  /** Deprecated edge crease, now located in #CD_CREASE, except for file read and write. */
-  char crease_legacy;
-  /**
-   * Deprecated bevel weight storage, now located in #CD_BWEIGHT, except for file read and write.
-   */
-  char bweight_legacy;
-  short flag_legacy;
-} MEdge;
-
-#ifdef DNA_DEPRECATED_ALLOW
-/** #MEdge.flag */
-enum {
-  /** Deprecated selection status. Now stored in ".select_edge" attribute. */
-  /*  SELECT = (1 << 0), */
-  ME_SEAM = (1 << 2),
-  /** Deprecated hide status. Now stored in ".hide_edge" attribute. */
-  /*  ME_HIDE = (1 << 4), */
-  /** Deprecated loose edge status. Now stored in #Mesh::loose_edges() runtime cache. */
-  ME_LOOSEEDGE = (1 << 7),
-  /** Deprecated sharp edge status. Now stored in "sharp_edge" attribute. */
-  ME_SHARP = (1 << 9),
-};
-#endif
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Ordered Selection Storage
  * \{ */
 
@@ -158,11 +120,11 @@ enum {
  * // print real edges from an MLoopTri: lt
  * int j, j_next;
  * for (j = 2, j_next = 0; j_next < 3; j = j_next++) {
- *     MEdge *ed = &medge[corner_edges[lt->tri[j]]];
+ *     const int2 &edge = &medge[corner_edges[lt->tri[j]]];
  *     unsigned int tri_edge[2]  = {corner_verts[lt->tri[j]], corner_verts[lt->tri[j_next]]};
  *
- *     if (((ed->v1 == tri_edge[0]) && (ed->v2 == tri_edge[1])) ||
- *         ((ed->v1 == tri_edge[1]) && (ed->v2 == tri_edge[0])))
+ *     if (((edge[0] == tri_edge[0]) && (edge[1] == tri_edge[1])) ||
+ *         ((edge[0] == tri_edge[1]) && (edge[1] == tri_edge[0])))
  *     {
  *         printf("real edge found %u %u\n", tri_edge[0], tri_edge[1]);
  *     }
@@ -391,6 +353,36 @@ enum {
 #ifdef DNA_DEPRECATED_ALLOW
 
 /**
+ * Mesh Edges.
+ *
+ * Typically accessed with #Mesh.edges()
+ */
+typedef struct MEdge {
+  /** Un-ordered vertex indices (cannot match). */
+  unsigned int v1, v2;
+  /** Deprecated edge crease, now located in #CD_CREASE, except for file read and write. */
+  char crease_legacy;
+  /**
+   * Deprecated bevel weight storage, now located in #CD_BWEIGHT, except for file read and write.
+   */
+  char bweight_legacy;
+  short flag_legacy;
+} MEdge;
+
+/** #MEdge.flag */
+enum {
+  /** Deprecated selection status. Now stored in ".select_edge" attribute. */
+  /*  SELECT = (1 << 0), */
+  ME_SEAM = (1 << 2),
+  /** Deprecated hide status. Now stored in ".hide_edge" attribute. */
+  /*  ME_HIDE = (1 << 4), */
+  /** Deprecated loose edge status. Now stored in #Mesh::loose_edges() runtime cache. */
+  ME_LOOSEEDGE = (1 << 7),
+  /** Deprecated sharp edge status. Now stored in "sharp_edge" attribute. */
+  ME_SHARP = (1 << 9),
+};
+
+/**
  * Mesh Faces.
  * This only stores the polygon size & flags, the vertex & edge indices are stored in the "corner
  * edges" array.
@@ -408,7 +400,6 @@ typedef struct MPoly {
 } MPoly;
 
 /** #MPoly.flag */
-#  ifdef DNA_DEPRECATED_ALLOW
 enum {
   /** Deprecated smooth shading status. Now stored reversed in "sharp_face" attribute. */
   ME_SMOOTH = (1 << 0),
@@ -417,7 +408,6 @@ enum {
   /** Deprecated hide status. Now stored in ".hide_poly" attribute. */
   /* ME_HIDE = (1 << 4), */
 };
-#  endif
 
 /**
  * UV coordinate for a polygon face & flag for selection & other options.

@@ -450,6 +450,9 @@ void LightManager::device_update_tree(Device *,
    * More benchmarking is needed to determine what number works best. */
   LightTree light_tree(scene, dscene, progress, 8);
   LightTreeNode *root = light_tree.build(scene, dscene);
+  if (progress.get_cancel()) {
+    return;
+  }
 
   /* We want to create separate arrays corresponding to triangles and lights,
    * which will be used to index back into the light tree for PDF calculations. */
@@ -730,7 +733,7 @@ void LightManager::device_update_background(Device *device,
 
         /* Determine sun direction from lat/long and texture mapping. */
         float latitude = sky->get_sun_elevation();
-        float longitude = M_2PI_F - sky->get_sun_rotation() + M_PI_2_F;
+        float longitude = sky->get_sun_rotation() + M_PI_2_F;
         float3 sun_direction = make_float3(
             cosf(latitude) * cosf(longitude), cosf(latitude) * sinf(longitude), sinf(latitude));
         Transform sky_transform = transform_inverse(sky->tex_mapping.compute_transform());
@@ -752,7 +755,8 @@ void LightManager::device_update_background(Device *device,
   }
 
   /* If there's more than one sun, fall back to map sampling instead. */
-  if (num_suns != 1) {
+  kbackground->use_sun_guiding = (num_suns == 1);
+  if (!kbackground->use_sun_guiding) {
     kbackground->sun_weight = 0.0f;
     environment_res.x = max(environment_res.x, 4096);
     environment_res.y = max(environment_res.y, 2048);

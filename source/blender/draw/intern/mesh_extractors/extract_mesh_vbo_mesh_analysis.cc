@@ -562,7 +562,7 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
     EdgeHashIterator *ehi = BLI_edgehashIterator_new(eh);
     for (; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
       if (BLI_edgehashIterator_getValue(ehi) != nullptr) {
-        uint v1, v2;
+        int v1, v2;
         const float angle = DEG2RADF(90.0f);
         BLI_edgehashIterator_getKey(ehi, &v1, &v2);
         float *col1 = &vert_angles[v1];

@@ -739,6 +739,7 @@ typedef struct SculptAttributePointers {
 } SculptAttributePointers;
 
 #ifdef __cplusplus
+#  include "BLI_math_vector_types.hh"
 #  include "DNA_brush_types.h"
 
 struct SculptSession {
@@ -756,7 +757,7 @@ struct SculptSession {
   int temp_vdata_elems, temp_pdata_elems;
 
   float (*vert_positions)[3];
-  blender::Span<MEdge> edges;
+  blender::Span<blender::int2> edges;
   blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;

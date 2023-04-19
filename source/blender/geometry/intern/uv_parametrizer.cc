@@ -142,14 +142,11 @@ struct PChart {
 
   float origin[2];
 
-  union PChartUnion {
-    struct PChartLscm {
-      LinearSolver *context;
-      float *abf_alpha;
-      PVert *pin1, *pin2;
-      PVert *single_pin;
-    } lscm;
-  } u;
+  LinearSolver *context;
+  float *abf_alpha;
+  PVert *pin1;
+  PVert *pin2;
+  PVert *single_pin;
 
   bool has_pins;
 };
@@ -624,9 +621,10 @@ static void p_flush_uvs(ParamHandle *handle, PChart *chart)
 {
   const float blend = handle->blend;
   const float invblend = 1.0f - blend;
+  const float invblend_x = invblend / handle->aspect_y;
   for (PEdge *e = chart->edges; e; e = e->nextlink) {
     if (e->orig_uv) {
-      e->orig_uv[0] = blend * e->old_uv[0] + invblend * e->vert->uv[0] / handle->aspect_y;
+      e->orig_uv[0] = blend * e->old_uv[0] + invblend_x * e->vert->uv[0];
       e->orig_uv[1] = blend * e->old_uv[1] + invblend * e->vert->uv[1];
     }
   }
@@ -2760,7 +2758,7 @@ static bool p_chart_abf_solve(PChart *chart)
     }
   }
 
-  chart->u.lscm.abf_alpha = (float *)MEM_dupallocN(sys.alpha);
+  chart->abf_alpha = (float *)MEM_dupallocN(sys.alpha);
   p_abf_free_system(&sys);
 
   return true;
@@ -2969,17 +2967,6 @@ static void p_chart_extrema_verts(PChart *chart, PVert **pin1, PVert **pin2)
   p_chart_pin_positions(chart, pin1, pin2);
 }
 
-static void p_chart_lscm_load_solution(PChart *chart)
-{
-  LinearSolver *context = chart->u.lscm.context;
-  PVert *v;
-
-  for (v = chart->verts; v; v = v->nextlink) {
-    v->uv[0] = EIG_linear_solver_variable_get(context, 0, 2 * v->u.id);
-    v->uv[1] = EIG_linear_solver_variable_get(context, 0, 2 * v->u.id + 1);
-  }
-}
-
 static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
 {
   PVert *v, *pin1, *pin2;
@@ -3001,7 +2988,7 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
   }
 
   if (live && (!select || !deselect)) {
-    chart->u.lscm.context = nullptr;
+    chart->context = nullptr;
   }
   else {
 #if 0
@@ -3013,7 +3000,7 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
       chart->area_uv = p_chart_uv_area(chart);
       for (v = chart->verts; v; v = v->nextlink) {
         if (v->flag & PVERT_PIN) {
-          chart->u.lscm.single_pin = v;
+          chart->single_pin = v;
           break;
         }
       }
@@ -3036,22 +3023,21 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
         p_chart_extrema_verts(chart, &pin1, &pin2);
       }
 
-      chart->u.lscm.pin1 = pin1;
-      chart->u.lscm.pin2 = pin2;
+      chart->pin1 = pin1;
+      chart->pin2 = pin2;
     }
 
     for (v = chart->verts; v; v = v->nextlink) {
       v->u.id = id++;
     }
 
-    chart->u.lscm.context = EIG_linear_least_squares_solver_new(
-        2 * chart->nfaces, 2 * chart->nverts, 1);
+    chart->context = EIG_linear_least_squares_solver_new(2 * chart->nfaces, 2 * chart->nverts, 1);
   }
 }
 
 static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
 {
-  LinearSolver *context = chart->u.lscm.context;
+  LinearSolver *context = chart->context;
 
   for (PVert *v = chart->verts; v; v = v->nextlink) {
     if (v->flag & PVERT_PIN) {
@@ -3059,14 +3045,14 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
     }
   }
 
-  if (chart->u.lscm.single_pin) {
+  if (chart->single_pin) {
     /* If only one pin, save location as origin. */
-    copy_v2_v2(chart->origin, chart->u.lscm.single_pin->uv);
+    copy_v2_v2(chart->origin, chart->single_pin->uv);
   }
 
-  if (chart->u.lscm.pin1) {
-    PVert *pin1 = chart->u.lscm.pin1;
-    PVert *pin2 = chart->u.lscm.pin2;
+  if (chart->pin1) {
+    PVert *pin1 = chart->pin1;
+    PVert *pin2 = chart->pin2;
     EIG_linear_solver_variable_lock(context, 2 * pin1->u.id);
     EIG_linear_solver_variable_lock(context, 2 * pin1->u.id + 1);
     EIG_linear_solver_variable_lock(context, 2 * pin2->u.id);
@@ -3113,7 +3099,7 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
   const bool flip_faces = (area_pinned_down > area_pinned_up);
 
   /* Construct matrix. */
-  const float *alpha = chart->u.lscm.abf_alpha;
+  const float *alpha = chart->abf_alpha;
   int row = 0;
   for (PFace *f = chart->faces; f; f = f->nextlink) {
     PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
@@ -3176,7 +3162,10 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
   }
 
   if (EIG_linear_solver_solve(context)) {
-    p_chart_lscm_load_solution(chart);
+    for (PVert *v = chart->verts; v; v = v->nextlink) {
+      v->uv[0] = EIG_linear_solver_variable_get(context, 0, 2 * v->u.id);
+      v->uv[1] = EIG_linear_solver_variable_get(context, 0, 2 * v->u.id + 1);
+    }
     return true;
   }
 
@@ -3190,7 +3179,7 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
 
 static void p_chart_lscm_transform_single_pin(PChart *chart)
 {
-  PVert *pin = chart->u.lscm.single_pin;
+  PVert *pin = chart->single_pin;
 
   /* If only one pin, keep UV area the same. */
   const float new_area = p_chart_uv_area(chart);
@@ -3209,14 +3198,14 @@ static void p_chart_lscm_transform_single_pin(PChart *chart)
 
 static void p_chart_lscm_end(PChart *chart)
 {
-  EIG_linear_solver_delete(chart->u.lscm.context);
-  chart->u.lscm.context = nullptr;
+  EIG_linear_solver_delete(chart->context);
+  chart->context = nullptr;
 
-  MEM_SAFE_FREE(chart->u.lscm.abf_alpha);
+  MEM_SAFE_FREE(chart->abf_alpha);
 
-  chart->u.lscm.pin1 = nullptr;
-  chart->u.lscm.pin2 = nullptr;
-  chart->u.lscm.single_pin = nullptr;
+  chart->pin1 = nullptr;
+  chart->pin2 = nullptr;
+  chart->single_pin = nullptr;
 }
 
 /* Stretch */
@@ -4010,13 +3999,13 @@ void uv_parametrizer_lscm_solve(ParamHandle *phandle, int *count_changed, int *c
   for (int i = 0; i < phandle->ncharts; i++) {
     PChart *chart = phandle->charts[i];
 
-    if (chart->u.lscm.context) {
+    if (chart->context) {
       const bool result = p_chart_lscm_solve(phandle, chart);
 
       if (result && !chart->has_pins) {
         p_chart_rotate_minimum_area(chart);
       }
-      else if (result && chart->u.lscm.single_pin) {
+      else if (result && chart->single_pin) {
         p_chart_rotate_fit_aabb(chart);
         p_chart_lscm_transform_single_pin(chart);
       }
@@ -4107,32 +4096,10 @@ void uv_parametrizer_stretch_end(ParamHandle *phandle)
   phandle->state = PHANDLE_STATE_CONSTRUCTED;
 }
 
-/* don't pack, just rotate (used for better packing) */
-static void GEO_uv_parametrizer_pack_rotate(ParamHandle *phandle, bool ignore_pinned)
-{
-  PChart *chart;
-  int i;
-
-  for (i = 0; i < phandle->ncharts; i++) {
-    chart = phandle->charts[i];
-
-    if (ignore_pinned && chart->has_pins) {
-      continue;
-    }
-
-    p_chart_rotate_fit_aabb(chart);
-  }
-}
-
 void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, bool ignore_pinned)
 {
   if (handle->ncharts == 0) {
     return;
-  }
-
-  /* this could be its own function */
-  if (do_rotate) {
-    GEO_uv_parametrizer_pack_rotate(handle, ignore_pinned);
   }
 
   uv_parametrizer_scale_x(handle, 1.0f / handle->aspect_y);
@@ -4153,7 +4120,6 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     geometry::PackIsland *pack_island = new geometry::PackIsland();
     pack_island->caller_index = i;
     pack_island->aspect_y = handle->aspect_y;
-    pack_island->angle = 0.0f;
 
     for (PFace *f = chart->faces; f; f = f->nextlink) {
       PVert *v0 = f->edge->vert;
@@ -4168,7 +4134,7 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
   float scale[2] = {1.0f, 1.0f};
   pack_islands(pack_island_vector, params, scale);
 
-  for (int64_t i : pack_island_vector.index_range()) {
+  for (const int64_t i : pack_island_vector.index_range()) {
     PackIsland *pack_island = pack_island_vector[i];
     PChart *chart = handle->charts[pack_island->caller_index];
 
@@ -4327,13 +4293,10 @@ void uv_parametrizer_average(ParamHandle *phandle, bool ignore_pinned, bool scal
 
 void uv_parametrizer_flush(ParamHandle *phandle)
 {
-  PChart *chart;
-  int i;
+  for (int i = 0; i < phandle->ncharts; i++) {
+    PChart *chart = phandle->charts[i];
 
-  for (i = 0; i < phandle->ncharts; i++) {
-    chart = phandle->charts[i];
-
-    if ((phandle->state == PHANDLE_STATE_LSCM) && !chart->u.lscm.context) {
+    if ((phandle->state == PHANDLE_STATE_LSCM) && !chart->context) {
       continue;
     }
 
@@ -4343,14 +4306,9 @@ void uv_parametrizer_flush(ParamHandle *phandle)
 
 void uv_parametrizer_flush_restore(ParamHandle *phandle)
 {
-  PChart *chart;
-  PFace *f;
-  int i;
-
-  for (i = 0; i < phandle->ncharts; i++) {
-    chart = phandle->charts[i];
-
-    for (f = chart->faces; f; f = f->nextlink) {
+  for (int i = 0; i < phandle->ncharts; i++) {
+    PChart *chart = phandle->charts[i];
+    for (PFace *f = chart->faces; f; f = f->nextlink) {
       p_face_restore_uvs(f);
     }
   }

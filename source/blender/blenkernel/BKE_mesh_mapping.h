@@ -8,6 +8,7 @@
 
 #ifdef __cplusplus
 #  include "BLI_array.hh"
+#  include "BLI_math_vector_types.hh"
 #  include "BLI_offset_indices.hh"
 #endif
 
@@ -15,7 +16,6 @@
 extern "C" {
 #endif
 
-struct MEdge;
 struct MLoopTri;
 
 /* UvVertMap */
@@ -140,8 +140,6 @@ void BKE_mesh_vert_loop_map_create(MeshElemMap **r_map,
                                    const int *corner_verts,
                                    int totvert);
 
-#endif
-
 /**
  * Generates a map where the key is the edge and the value
  * is a list of looptris that use that edge.
@@ -160,15 +158,13 @@ void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
  * The lists are allocated from one memory pool.
  */
 void BKE_mesh_vert_edge_map_create(
-    MeshElemMap **r_map, int **r_mem, const struct MEdge *edges, int totvert, int totedge);
+    MeshElemMap **r_map, int **r_mem, const blender::int2 *edges, int totvert, int totedge);
 /**
  * A version of #BKE_mesh_vert_edge_map_create that references connected vertices directly
  * (not their edges).
  */
 void BKE_mesh_vert_edge_vert_map_create(
-    MeshElemMap **r_map, int **r_mem, const struct MEdge *edges, int totvert, int totedge);
-
-#ifdef __cplusplus
+    MeshElemMap **r_map, int **r_mem, const blender::int2 *edges, int totvert, int totedge);
 
 /**
  * Generates a map where the key is the edge and the value is a list of loops that use that edge.
@@ -262,7 +258,7 @@ void BKE_mesh_loop_islands_add(MeshIslandStore *island_store,
 
 typedef bool (*MeshRemapIslandsCalc)(const float (*vert_positions)[3],
                                      int totvert,
-                                     const struct MEdge *edges,
+                                     const blender::int2 *edges,
                                      int totedge,
                                      const bool *uv_seams,
                                      blender::OffsetIndices<int> polys,
@@ -280,7 +276,7 @@ typedef bool (*MeshRemapIslandsCalc)(const float (*vert_positions)[3],
  */
 bool BKE_mesh_calc_islands_loop_poly_edgeseam(const float (*vert_positions)[3],
                                               int totvert,
-                                              const struct MEdge *edges,
+                                              const blender::int2 *edges,
                                               int totedge,
                                               const bool *uv_seams,
                                               blender::OffsetIndices<int> polys,
@@ -304,7 +300,7 @@ bool BKE_mesh_calc_islands_loop_poly_edgeseam(const float (*vert_positions)[3],
  */
 bool BKE_mesh_calc_islands_loop_poly_uvmap(float (*vert_positions)[3],
                                            int totvert,
-                                           struct MEdge *edges,
+                                           blender::int2 *edges,
                                            int totedge,
                                            const bool *uv_seams,
                                            blender::OffsetIndices<int> polys,
@@ -354,7 +350,7 @@ namespace blender::bke::mesh_topology {
 
 Array<int> build_loop_to_poly_map(OffsetIndices<int> polys);
 
-Array<Vector<int>> build_vert_to_edge_map(Span<MEdge> edges, int verts_num);
+Array<Vector<int>> build_vert_to_edge_map(Span<int2> edges, int verts_num);
 Array<Vector<int>> build_vert_to_poly_map(OffsetIndices<int> polys,
                                           Span<int> corner_verts,
                                           int verts_num);

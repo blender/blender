@@ -193,6 +193,8 @@ static bool use_gnome_confine_hack = false;
 #  define USE_GNOME_NEEDS_LIBDECOR_HACK
 #endif
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Local Defines
  *
@@ -6307,6 +6309,7 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings glS
       delete context;
       return nullptr;
     }
+    context->setUserData(wl_surface);
     return context;
   }
 #else
@@ -6345,7 +6348,9 @@ GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
   delete context;
 
   wl_egl_window *egl_window = (wl_egl_window *)wl_surface_get_user_data(wl_surface);
-  wl_egl_window_destroy(egl_window);
+  if (egl_window != nullptr) {
+    wl_egl_window_destroy(egl_window);
+  }
   wl_surface_destroy(wl_surface);
 
   return GHOST_kSuccess;
@@ -6762,7 +6767,21 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
           GHOST_kCapabilityWindowPosition |
           /* WAYLAND doesn't support setting the cursor position directly,
            * this is an intentional choice, forcing us to use a software cursor in this case. */
-          GHOST_kCapabilityCursorWarp));
+          GHOST_kCapabilityCursorWarp |
+          /* Some drivers don't support front-buffer reading, see: #98462 & #106264.
+           *
+           * NOTE(@ideasman42): the EGL flag `EGL_BUFFER_PRESERVED` is intended request support for
+           * front-buffer reading however in my tests requesting the flag didn't work with AMD,
+           * and it's not even requirement - so we can't rely on this feature being supported.
+           *
+           * Instead of assuming this is not supported, the graphics card driver could be inspected
+           * (enable for NVIDIA for e.g.), but the advantage in supporting this is minimal.
+           * In practice it means an off-screen buffer is used to redraw the window for the
+           * screen-shot and eye-dropper sampling logic, both operations where the overhead
+           * is negligible. */
+          GHOST_kCapabilityGPUReadFrontBuffer |
+          /* This WAYLAND back-end has not yet implemented image copy/paste. */
+          GHOST_kCapabilityClipboardImages));
 }
 
 bool GHOST_SystemWayland::cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode)

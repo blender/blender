@@ -14,6 +14,10 @@
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
+#include "BKE_attribute.h"
+#include "BKE_paint.h"
+#include "BKE_pbvh.h"
+
 #include "BLI_bitmap.h"
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
@@ -25,10 +29,6 @@
 #include "BLI_vector.hh"
 
 #include "ED_view3d.h"
-
-#include "BKE_attribute.h"
-#include "BKE_paint.h"
-#include "BKE_pbvh.h"
 
 #include "bmesh.h"
 

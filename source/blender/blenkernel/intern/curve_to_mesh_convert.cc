@@ -27,7 +27,7 @@ static void fill_mesh_topology(const int vert_offset,
                                const bool main_cyclic,
                                const bool profile_cyclic,
                                const bool fill_caps,
-                               MutableSpan<MEdge> edges,
+                               MutableSpan<int2> edges,
                                MutableSpan<int> corner_verts,
                                MutableSpan<int> corner_edges,
                                MutableSpan<int> poly_offsets)
@@ -37,15 +37,15 @@ static void fill_mesh_topology(const int vert_offset,
 
   if (profile_point_num == 1) {
     for (const int i : IndexRange(main_point_num - 1)) {
-      MEdge &edge = edges[edge_offset + i];
-      edge.v1 = vert_offset + i;
-      edge.v2 = vert_offset + i + 1;
+      int2 &edge = edges[edge_offset + i];
+      edge[0] = vert_offset + i;
+      edge[1] = vert_offset + i + 1;
     }
 
     if (main_cyclic && main_segment_num > 1) {
-      MEdge &edge = edges[edge_offset + main_segment_num - 1];
-      edge.v1 = vert_offset + main_point_num - 1;
-      edge.v2 = vert_offset;
+      int2 &edge = edges[edge_offset + main_segment_num - 1];
+      edge[0] = vert_offset + main_point_num - 1;
+      edge[1] = vert_offset;
     }
     return;
   }
@@ -60,9 +60,9 @@ static void fill_mesh_topology(const int vert_offset,
       const int ring_vert_offset = vert_offset + profile_point_num * i_ring;
       const int next_ring_vert_offset = vert_offset + profile_point_num * i_next_ring;
 
-      MEdge &edge = edges[profile_edge_offset + i_ring];
-      edge.v1 = ring_vert_offset + i_profile;
-      edge.v2 = next_ring_vert_offset + i_profile;
+      int2 &edge = edges[profile_edge_offset + i_ring];
+      edge[0] = ring_vert_offset + i_profile;
+      edge[1] = next_ring_vert_offset + i_profile;
     }
   }
 
@@ -75,9 +75,9 @@ static void fill_mesh_topology(const int vert_offset,
     for (const int i_profile : IndexRange(profile_segment_num)) {
       const int i_next_profile = (i_profile == profile_point_num - 1) ? 0 : i_profile + 1;
 
-      MEdge &edge = edges[ring_edge_offset + i_profile];
-      edge.v1 = ring_vert_offset + i_profile;
-      edge.v2 = ring_vert_offset + i_next_profile;
+      int2 &edge = edges[ring_edge_offset + i_profile];
+      edge[0] = ring_vert_offset + i_profile;
+      edge[1] = ring_vert_offset + i_next_profile;
     }
   }
 
@@ -695,7 +695,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   mesh->flag |= ME_AUTOSMOOTH;
   mesh->smoothresh = DEG2RADF(180.0f);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<int2> edges = mesh->edges_for_write();
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();

@@ -2403,8 +2403,7 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
     unode->nodemap_size = newsize;
   }
 
-  bool check = !((type | extraType) & (SCULPT_UNDO_COORDS | SCULPT_UNDO_COLOR | SCULPT_UNDO_MASK |
-                                       SCULPT_UNDO_FACE_SETS));
+  bool check = !((type | extraType) & (SCULPT_UNDO_COORDS | SCULPT_UNDO_COLOR | SCULPT_UNDO_MASK));
   if (check && unode->nodemap[n] & (1 << type)) {
     return false;
   }

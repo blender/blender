@@ -200,8 +200,6 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
                                            BuiltinAttributeProvider::Creatable,
                                            BuiltinAttributeProvider::Deletable,
                                            instance_custom_data_access,
-                                           make_array_read_attribute<int>,
-                                           make_array_write_attribute<int>,
                                            nullptr);
 
   static CustomDataAttributeProvider instance_custom_data(ATTR_DOMAIN_INSTANCE,
