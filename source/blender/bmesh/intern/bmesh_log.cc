@@ -185,7 +185,10 @@ struct BMLogSetBase {
 
   virtual ~BMLogSetBase() {}
 
-  virtual const char *debug_name() {}
+  virtual const char *debug_name()
+  {
+    return "";
+  }
   virtual void print_info() {}
   virtual void undo(BMesh * /*bm*/, BMLogCallbacks * /*callbacks*/) {}
   virtual void redo(BMesh * /*bm*/, BMLogCallbacks * /*callbacks*/) {}
