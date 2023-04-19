@@ -1266,7 +1266,7 @@ bool BLI_path_extension_replace(char *path, size_t maxlen, const char *ext)
 #endif
   char *path_ext = (char *)BLI_path_extension(path);
   if (path_ext == NULL) {
-    return false;
+    path_ext = path + strlen(path);
   }
 
   const size_t ext_len = strlen(ext);
@@ -1295,7 +1295,7 @@ bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext)
 #endif
   char *path_ext = (char *)BLI_path_extension(path);
   if (path_ext == NULL) {
-    return false;
+    path_ext = path + strlen(path);
   }
   if (STREQ(path_ext, ext)) {
     return true;
