@@ -905,6 +905,11 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
 
   BKE_sculpt_update_object_for_edit(CTX_data_depsgraph_pointer(C), ob, true, false, false);
 
+  if (!SCULPT_has_colors(ss)) {
+    BKE_report(op->reports, RPT_ERROR, "Mesh has no color attributes.");
+    return OPERATOR_CANCELLED;
+  }
+
   const PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
   float active_vertex_color[4];
 

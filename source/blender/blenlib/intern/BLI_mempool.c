@@ -483,13 +483,13 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
   return pool;
 }
 
-ATTR_NO_OPT static void mempool_chunk_free(BLI_mempool_chunk *mpchunk, BLI_mempool *pool)
+static void mempool_chunk_free(BLI_mempool_chunk *mpchunk, BLI_mempool *pool)
 {
   BLI_asan_unpoison(mpchunk, sizeof(BLI_mempool_chunk) + pool->esize * pool->csize);
   BLI_asan_safe_free(mpchunk);
 }
 
-ATTR_NO_OPT static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk, BLI_mempool *pool)
+static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk, BLI_mempool *pool)
 {
   BLI_mempool_chunk *mpchunk_next;
 
@@ -756,7 +756,7 @@ void BLI_mempool_ignore_free(BLI_mempool *pool)
  *
  * \note doesn't protect against double frees, take care!
  */
-ATTR_NO_OPT void BLI_mempool_free(BLI_mempool *pool, void *addr)
+void BLI_mempool_free(BLI_mempool *pool, void *addr)
 {
   mempool_unpoison(pool);
 

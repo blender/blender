@@ -628,6 +628,7 @@ void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
   const int updateflag = PBVH_UpdateDrawBuffers | PBVH_UpdateBB | PBVH_UpdateTris |
                          PBVH_UpdateNormals | PBVH_UpdateOtherVerts;
 
+  int ni = pbvh_bmesh_node_index_from_vert(pbvh, v);
   PBVHNode *v_node = pbvh_bmesh_node_from_vert(pbvh, v);
 
   if (v_node && v_node->bm_unique_verts) {
@@ -1239,20 +1240,40 @@ static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
   int osize = BLI_table_gset_len(node->bm_other_verts);
 
   TableGSet *old_unique_verts = node->bm_unique_verts;
+  TableGSet *old_other_verts = node->bm_other_verts;
 
-  BLI_table_gset_free(node->bm_other_verts, nullptr);
+  const int cd_vert_node = pbvh->cd_vert_node_offset;
+  const int ni = (int)(node - pbvh->nodes);
+
+  auto check_vert = [&](BMVert *v) {
+    if (BM_elem_is_free(reinterpret_cast<BMElem *>(v), BM_VERT)) {
+      printf("%s: corrupted vertex %p\n", __func__, v);
+      return;
+    }
+    int ni2 = BM_ELEM_CD_GET_INT(v, cd_vert_node);
+
+    bool bad = ni2 == ni || ni2 < 0 || ni2 >= pbvh->totnode;
+    bad = bad || pbvh->nodes[ni2].flag & PBVH_Delete;
+    bad = bad || !(pbvh->nodes[ni2].flag & PBVH_Leaf);
+
+    if (bad) {
+      BM_ELEM_CD_SET_INT(v, cd_vert_node, DYNTOPO_NODE_NONE);
+    }
+  };
 
   BMVert *v;
   TGSET_ITER (v, old_unique_verts) {
-    BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, -1);
+    check_vert(v);
+  }
+  TGSET_ITER_END;
+
+  TGSET_ITER (v, old_other_verts) {
+    check_vert(v);
   }
   TGSET_ITER_END;
 
   node->bm_unique_verts = BLI_table_gset_new("bm_unique_verts");
   node->bm_other_verts = BLI_table_gset_new("bm_other_verts");
-
-  const int cd_vert_node = pbvh->cd_vert_node_offset;
-  const int ni = (int)(node - pbvh->nodes);
 
   bool update = false;
 
@@ -1279,6 +1300,11 @@ static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
   TGSET_ITER_END;
 
   TGSET_ITER (v, old_unique_verts) {
+    if (BM_elem_is_free(reinterpret_cast<BMElem *>(v), BM_VERT)) {
+      printf("%s: corrupted vertex %p\n", __func__, v);
+      continue;
+    }
+
     if (BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset) == -1) {
       // try to find node to insert into
       BMIter iter2;
@@ -1333,6 +1359,7 @@ static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
   }
 
   BLI_table_gset_free(old_unique_verts, nullptr);
+  BLI_table_gset_free(old_other_verts, nullptr);
 }
 
 void BKE_pbvh_bmesh_mark_node_regen(PBVH *pbvh, PBVHNode *node)

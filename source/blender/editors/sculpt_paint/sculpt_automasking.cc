@@ -148,7 +148,7 @@ static float sculpt_automasking_normal_calc(SculptSession *ss,
 {
   float3 normal_v;
 
-  if (automask_data->have_orig_data) {
+  if (automask_data && automask_data->have_orig_data) {
     normal_v = automask_data->orig_data.no;
   }
   else {

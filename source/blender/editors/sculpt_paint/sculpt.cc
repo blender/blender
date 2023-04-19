@@ -298,7 +298,7 @@ bool SCULPT_has_loop_colors(const Object *ob)
 
 bool SCULPT_has_colors(const SculptSession *ss)
 {
-  return ss->vcol || ss->mcol;
+  return ss->bm ? ss->cd_vcol_offset >= 0 : (ss->vcol || ss->mcol);
 }
 
 void SCULPT_vertex_color_get(const SculptSession *ss, PBVHVertRef vertex, float r_color[4])
@@ -643,9 +643,10 @@ void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible)
     case PBVH_BMESH:
       for (int i = 0; i < ss->totfaces; i++) {
         PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, i);
-
-        *BKE_sculpt_face_attr_get<bool *>(face, ss->attrs.hide_poly) = !visible;
+        BMFace *f = reinterpret_cast<BMFace *>(face.i);
+        BM_elem_flag_set(f, BM_ELEM_HIDDEN, !visible);
       }
+      break;
   }
 }
 
@@ -1829,7 +1830,7 @@ enum StrokeFlags {
 
 void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
                                 Object *ob,
-                                PBVHNode *node,
+                                PBVHNode * /*node*/,
                                 SculptUndoType type)
 {
   SculptSession *ss = ob->sculpt;
@@ -3962,7 +3963,7 @@ static float sculpt_topology_automasking_mask_cb(PBVHVertRef vertex, void *vdata
   return 1.0f - SCULPT_vertex_mask_get(state->ss, vertex);
 }
 
-static float sculpt_null_mask_cb(PBVHVertRef vertex, void *vdata)
+static float sculpt_null_mask_cb(PBVHVertRef /*vertex*/, void * /*vdata*/)
 {
   return 1.0f;
 }
@@ -4023,7 +4024,7 @@ void SCULPT_dyntopo_automasking_end(void *mask_data)
   MEM_SAFE_FREE(mask_data);
 }
 
-bool SCULPT_needs_area_normal(SculptSession *ss, Sculpt *sd, Brush *brush)
+bool SCULPT_needs_area_normal(SculptSession * /*ss*/, Sculpt * /*sd*/, Brush *brush)
 {
   return brush->tip_roundness != 1.0f || brush->tip_scale_x != 1.0f;
 }
@@ -5058,7 +5059,7 @@ static const char *sculpt_tool_name(Sculpt *sd)
 /* Operator for applying a stroke (various attributes including mouse path)
  * using the current brush. */
 
-void SCULPT_cache_free(SculptSession *ss, struct Object *ob, StrokeCache *cache)
+void SCULPT_cache_free(SculptSession * /*ss*/, struct Object * /*ob*/, StrokeCache *cache)
 {
   MEM_SAFE_FREE(cache->dial);
   MEM_SAFE_FREE(cache->prev_colors);

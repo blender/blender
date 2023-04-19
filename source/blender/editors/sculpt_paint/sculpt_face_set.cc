@@ -683,8 +683,6 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nod
   data.bstrength = ss->cache->bstrength;
   data.count = 1;
 
-  bool threaded = true;
-
   /*for ctrl invert mode we have to set the automasking initial_face_set
     to the first non-current faceset that is found*/
   int automasking_flags = brush->automasking_flags | (sd ? sd->automasking_flags : 0);
@@ -697,6 +695,7 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nod
     }
   }
 
+  bool threaded = true;
   if (ss->cache->invert && !ss->cache->alt_smooth && ss->cache->automasking &&
       ss->cache->automasking->settings.initial_face_set ==
           ss->cache->automasking->settings.current_face_set) {
@@ -705,7 +704,7 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nod
 
   // ctrl-click is single threaded since the tasks will set the initial face set
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+  BKE_pbvh_parallel_range_settings(&settings, threaded, nodes.size());
   if (ss->cache->alt_smooth) {
     SCULPT_boundary_info_ensure(ob);
     for (int i = 0; i < 4; i++) {
@@ -1367,6 +1366,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
 
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_face_random_access_ensure(ss);
+  BKE_sculpt_hide_poly_ensure(ob);
 
   const int active_face_set = SCULPT_active_face_set_get(ss);
 
@@ -1464,7 +1464,6 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_end(ob);
   for (PBVHNode *node : nodes) {
     BKE_pbvh_node_mark_update_visibility(node);
-    BKE_pbvh_bmesh_check_tris(ss->pbvh, node);
   }
 
   BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
@@ -1641,9 +1640,9 @@ static EnumPropertyItem prop_sculpt_face_sets_edit_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void sculpt_face_set_grow_bmesh(Object *ob,
+static void sculpt_face_set_grow_bmesh(Object * /*ob*/,
                                        SculptSession *ss,
-                                       const int *prev_face_sets,
+                                       const int * /*prev_face_sets*/,
                                        const int active_face_set_id,
                                        const bool modify_hidden)
 {
@@ -1773,7 +1772,7 @@ static void sculpt_face_set_fill_component(Object *ob,
   BLI_gset_free(connected_components, nullptr);
 }
 
-static void sculpt_face_set_shrink_bmesh(Object *ob,
+static void sculpt_face_set_shrink_bmesh(Object * /*ob*/,
                                          SculptSession *ss,
                                          const int *prev_face_sets,
                                          const int active_face_set_id,
@@ -2131,7 +2130,6 @@ static void face_set_edit_do_post_visibility_updates(Object *ob, Span<PBVHNode *
 {
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ss->pbvh;
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
   SCULPT_visibility_sync_all_from_faces(ob);

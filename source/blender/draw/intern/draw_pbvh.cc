@@ -761,6 +761,11 @@ struct PBVHBatches {
     auto foreach_bmesh_normal = [&](std::function<void(BMLoop * l)> callback) {
       for (int i : IndexRange(args->tribuf->tottri)) {
         PBVHTri *tri = args->tribuf->tris + i;
+        BMFace *f = reinterpret_cast<BMFace *>(tri->f.i);
+
+        if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+          continue;
+        }
 
         for (int j = 0; j < 3; j++) {
           callback(reinterpret_cast<BMLoop *>(tri->l[j]));
@@ -773,6 +778,12 @@ struct PBVHBatches {
     auto foreach_bmesh_flat_vcol = [&](std::function<void(BMLoop * l)> callback) {
       for (int i : IndexRange(args->tribuf->tottri)) {
         PBVHTri *tri = args->tribuf->tris + i;
+
+        BMFace *f = reinterpret_cast<BMFace *>(tri->f.i);
+
+        if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+          continue;
+        }
 
         BMLoop *la = reinterpret_cast<BMLoop *>(tri->l[0]);
         BMLoop *lb = reinterpret_cast<BMLoop *>(tri->l[1]);
@@ -1463,7 +1474,7 @@ struct PBVHBatches {
         bool grid_visible = false;
         BLI_bitmap *gh = args->grid_hidden[args->grid_indices[i]];
 
-        uint v0, v1, v2, v3;
+        uint v0, v1 = 0, v2, v3;
         for (int j = 0; j < gridsize - skip; j += skip) {
           for (int k = 0; k < gridsize - skip; k += skip) {
             /* Skip hidden grid face */

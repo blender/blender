@@ -40,6 +40,7 @@ struct BMVert;
 struct BMesh;
 struct RangeTreeUInt;
 struct BMIdMap;
+struct CustomData;
 
 #ifdef __cplusplus
 namespace blender {
@@ -65,10 +66,10 @@ typedef struct BMLogCallbacks {
 
   void (*on_face_add)(struct BMFace *f, void *userdata);
   void (*on_face_kill)(struct BMFace *f, void *userdata);
-  void (*on_face_change)(struct BMFace *f, void *userdata, void *old_customdata);
+  void (*on_face_change)(struct BMFace *f, void *userdata, void *old_customdata, char old_hflag);
 
   void (*on_full_mesh_load)(void *userdata);
-  void (*on_mesh_id_restore)(void *userdata);
+  void (*on_mesh_customdata_change)(struct CustomData *domain, char htype, void *userdata);
   void *userdata;
 } BMLogCallbacks;
 

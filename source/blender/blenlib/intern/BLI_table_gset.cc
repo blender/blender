@@ -99,7 +99,7 @@ static void table_gset_resize(TableGSet *ts)
   }
 }
 
-ATTR_NO_OPT bool BLI_table_gset_add(TableGSet *ts, void *elem)
+bool BLI_table_gset_add(TableGSet *ts, void *elem)
 {
   table_gset_resize(ts);
 
@@ -129,7 +129,7 @@ ATTR_NO_OPT bool BLI_table_gset_add(TableGSet *ts, void *elem)
 #endif
 }
 
-ATTR_NO_OPT void BLI_table_gset_insert(TableGSet *ts, void *elem)
+void BLI_table_gset_insert(TableGSet *ts, void *elem)
 {
   table_gset_resize(ts);
 
@@ -173,7 +173,7 @@ void BLI_table_gset_remove(TableGSet *ts, void *elem, GHashKeyFreeFP freefp)
   ts->elems[idx2] = nullptr;
 }
 
-ATTR_NO_OPT bool BLI_table_gset_haskey(TableGSet *ts, void *elem)
+bool BLI_table_gset_haskey(TableGSet *ts, void *elem)
 {
 #ifdef USE_TGSET_SMALLHASH
   return BLI_smallhash_haskey(PTR_TO_IDX(ts), (uintptr_t)elem);

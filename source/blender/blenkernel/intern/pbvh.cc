@@ -1755,6 +1755,12 @@ static void pbvh_update_visibility_redraw(PBVH *pbvh, Span<PBVHNode *> nodes, in
   data.nodes = nodes;
   data.flag = flag;
 
+  if (pbvh->header.type == PBVH_BMESH) {
+    for (PBVHNode *node : nodes) {
+      BKE_pbvh_bmesh_check_tris(pbvh, node);
+    }
+  }
+
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
   BLI_task_parallel_range(
@@ -2331,7 +2337,7 @@ void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh)
 void BKE_pbvh_node_mark_update_visibility(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateVisibility | PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers |
-                PBVH_UpdateRedraw | PBVH_UpdateTris;
+                PBVH_UpdateRedraw | PBVH_UpdateTris | PBVH_UpdateTriAreas;
 }
 
 void BKE_pbvh_vert_tag_update_normal_visibility(PBVHNode *node)
@@ -4056,12 +4062,12 @@ static void pbvh_pmap_to_edges_add(PBVH *pbvh,
   (*len)++;
 }
 
-ATTR_NO_OPT void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
-                                        PBVHVertRef vertex,
-                                        int **r_edges,
-                                        int *r_edges_size,
-                                        bool *r_heap_alloc,
-                                        int **r_polys)
+void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
+                            PBVHVertRef vertex,
+                            int **r_edges,
+                            int *r_edges_size,
+                            bool *r_heap_alloc,
+                            int **r_polys)
 {
   MeshElemMap *map = pbvh->pmap->pmap + vertex.i;
   int len = 0;

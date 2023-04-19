@@ -81,7 +81,7 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(((CustomData *)nullptr)->typemap) == CD_NUMTYPES, "
 
 static CLG_LogRef LOG = {"bke.customdata"};
 
-ATTR_NO_OPT bool CustomData_layout_is_same(const CustomData *_a, const CustomData *_b)
+bool CustomData_layout_is_same(const CustomData *_a, const CustomData *_b)
 {
   CustomData a = *_a;
   CustomData b = *_b;
@@ -2441,8 +2441,7 @@ static bool customdata_typemap_is_valid(const CustomData *data)
 
 /* copies all customdata layers without allocating data,
  * and without respect to type masks or NO_COPY/etc flags*/
-ATTR_NO_OPT void CustomData_copy_all_layout(const struct CustomData *source,
-                                            struct CustomData *dest)
+void CustomData_copy_all_layout(const struct CustomData *source, struct CustomData *dest)
 {
   *dest = *source;
 
