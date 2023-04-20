@@ -771,7 +771,7 @@ TEST(path_util, PathExtensionReplace)
 {
   PATH_EXTENSION_REPLACE("test", ".txt", true, "test.txt");
   PATH_EXTENSION_REPLACE("test.", ".txt", true, "test.txt");
-  /* Unlike #BLI_path_extension_ensure, exceeds '.' are not stripped. */
+  /* Unlike #BLI_path_extension_ensure, excess '.' are not stripped. */
   PATH_EXTENSION_REPLACE("test..", ".txt", true, "test..txt");
 
   PATH_EXTENSION_REPLACE("test.txt", ".txt", true, "test.txt");
@@ -781,7 +781,14 @@ TEST(path_util, PathExtensionReplace)
   PATH_EXTENSION_REPLACE("test.ext", "_txt", true, "test_txt");
 
   PATH_EXTENSION_REPLACE("test", "", true, "test");
+
+  /* Same as #BLI_path_extension_strip. */
+  PATH_EXTENSION_REPLACE("test.txt", "", true, "test");
+
+  /* Empty strings. */
+  PATH_EXTENSION_REPLACE("test", "", true, "test");
   PATH_EXTENSION_REPLACE("", "_txt", true, "_txt");
+  PATH_EXTENSION_REPLACE("", "", true, "");
 
   /* Ensure leading '.' isn't treated as an extension. */
   PATH_EXTENSION_REPLACE(".hidden", ".hidden", true, ".hidden.hidden");
@@ -823,8 +830,13 @@ TEST(path_util, PathExtensionEnsure)
   PATH_EXTENSION_ENSURE("test", "_txt", true, "test_txt");
   PATH_EXTENSION_ENSURE("test.ext", "_txt", true, "test.ext_txt");
 
+  /* An empty string does nothing (unlike replace which strips). */
+  PATH_EXTENSION_ENSURE("test.txt", "", true, "test.txt");
+
+  /* Empty strings. */
   PATH_EXTENSION_ENSURE("test", "", true, "test");
   PATH_EXTENSION_ENSURE("", "_txt", true, "_txt");
+  PATH_EXTENSION_ENSURE("", "", true, "");
 
   /* Ensure leading '.' isn't treated as an extension. */
   PATH_EXTENSION_ENSURE(".hidden", ".hidden", true, ".hidden.hidden");
