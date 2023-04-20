@@ -42,7 +42,7 @@
 static int BLI_path_unc_prefix_len(const char *path);
 
 #ifdef WIN32
-static bool BLI_path_is_abs(const char *name);
+static bool BLI_path_is_abs_win32(const char *name);
 #endif /* WIN32 */
 
 // #define DEBUG_STRSIZE
@@ -306,7 +306,7 @@ bool BLI_path_make_safe(char *path)
   bool skip_first = false;
 
 #ifdef WIN32
-  if (BLI_path_is_abs(path)) {
+  if (BLI_path_is_abs_win32(path)) {
     /* Do not make safe `C:` in `C:\foo\bar`. */
     skip_first = true;
   }
@@ -363,10 +363,14 @@ static int BLI_path_unc_prefix_len(const char *path)
 #if defined(WIN32)
 
 /**
- * Return true if the path is absolute ie starts with a drive specifier
- * (eg `A:\`) or is a UNC path.
+ * Return true if the path is an absolute path on a WIN32 file-system, it either:
+ * - Starts with a drive specifier* (eg `A:\`).
+ * - Is a UNC path.
+ *
+ * \note Not to be confused with the opposite of #BLI_path_is_rel which checks for the
+ * Blender specific convention of using `//` prefix for blend-file relative paths.
  */
-static bool BLI_path_is_abs(const char *name)
+static bool BLI_path_is_abs_win32(const char *name)
 {
   return (name[1] == ':' && ELEM(name[2], '\\', '/')) || BLI_path_is_unc(name);
 }
@@ -451,7 +455,7 @@ void BLI_path_rel(char *file, const char *relfile)
   }
 
 #ifdef WIN32
-  if (BLI_strnlen(relfile, 3) > 2 && !BLI_path_is_abs(relfile)) {
+  if (BLI_strnlen(relfile, 3) > 2 && !BLI_path_is_abs_win32(relfile)) {
     char *ptemp;
     /* Fix missing volume name in relative base,
      * can happen with old `recent-files.txt` files. */
@@ -854,7 +858,7 @@ bool BLI_path_abs(char *path, const char *basepath)
 
   /* We are checking here if we have an absolute path that is not in the current `.blend` file
    * as a lib main - we are basically checking for the case that a UNIX root `/` is passed. */
-  if (!wasrelative && !BLI_path_is_abs(path)) {
+  if (!wasrelative && !BLI_path_is_abs_win32(path)) {
     char *p = path;
     BLI_windows_get_default_root_dir(tmp);
     /* Get rid of the slashes at the beginning of the path. */
@@ -945,7 +949,7 @@ bool BLI_path_is_abs_from_cwd(const char *path)
   const int path_len_clamp = BLI_strnlen(path, 3);
 
 #ifdef WIN32
-  if ((path_len_clamp >= 3 && BLI_path_is_abs(path)) || BLI_path_is_unc(path)) {
+  if ((path_len_clamp >= 3 && BLI_path_is_abs_win32(path)) || BLI_path_is_unc(path)) {
     is_abs = true;
   }
 #else
