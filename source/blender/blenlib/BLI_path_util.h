@@ -317,7 +317,7 @@ bool BLI_path_frame_get(char *path, int *r_frame, int *r_digits_len) ATTR_NONNUL
  * So:      `/some/path_123.jpeg`
  * Becomes: `/some/path_###` with `r_ext` set to `.jpeg`.
  */
-void BLI_path_frame_strip(char *path, char *r_ext) ATTR_NONNULL();
+void BLI_path_frame_strip(char *path, char *r_ext, size_t ext_maxlen) ATTR_NONNULL();
 /**
  * Check if we have '#' chars, usable for #BLI_path_frame, #BLI_path_frame_range
  */

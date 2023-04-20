@@ -438,7 +438,7 @@ TEST(path_util, SplitDirfile)
     char path[FILE_MAX]; \
     char ext[FILE_MAX]; \
     BLI_strncpy(path, (input_path), FILE_MAX); \
-    BLI_path_frame_strip(path, ext); \
+    BLI_path_frame_strip(path, ext, sizeof(ext)); \
     EXPECT_STREQ(path, expect_path); \
     EXPECT_STREQ(ext, expect_ext); \
   } \
