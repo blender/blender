@@ -1584,7 +1584,7 @@ static void wm_history_file_update(void)
     /* Write current file to #BLENDER_HISTORY_FILE. */
     wm_history_file_write();
 
-    /* also update most recent files on System */
+    /* Also update most recent files on system. */
     GHOST_addToSystemRecentFiles(blendfile_path);
   }
 }
