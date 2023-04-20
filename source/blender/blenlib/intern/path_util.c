@@ -590,14 +590,27 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
   const size_t string_len = strlen(string);
   const size_t suffix_len = strlen(suffix);
   const size_t sep_len = strlen(sep);
-  const char *const extension = BLI_path_extension(string);
+  char *extension = (char *)BLI_path_extension(string);
+  const size_t extension_len = extension ? (((string + string_len) - extension)) : 0;
   const size_t string_end = extension != NULL ? (int)((extension - string)) : string_len;
-  char extension_copy[FILE_MAX];
   if (string_len + sep_len + suffix_len >= maxlen) {
     return false;
   }
-  BLI_strncpy(extension_copy, string + string_end, sizeof(extension_copy));
-  BLI_sprintf(string + string_end, "%s%s%s", sep, suffix, extension_copy);
+
+  if (extension) {
+    memmove(extension + (sep_len + suffix_len), extension, extension_len);
+  }
+  char *c = string + string_end;
+  if (sep_len) {
+    memcpy(c, sep, sep_len);
+    c += sep_len;
+  }
+  if (suffix_len) {
+    memcpy(c, suffix, suffix_len);
+    c += suffix_len;
+  }
+  c += extension_len;
+  *c = '\0';
   return true;
 }
 
