@@ -816,7 +816,7 @@ bool BLI_path_frame_get(char *path, int *r_frame, int *r_digits_len)
   return false;
 }
 
-void BLI_path_frame_strip(char *path, char *r_ext)
+void BLI_path_frame_strip(char *path, char *r_ext, const size_t ext_maxlen)
 {
   *r_ext = '\0';
   if (*path == '\0') {
@@ -855,8 +855,7 @@ void BLI_path_frame_strip(char *path, char *r_ext)
 
   c++;
 
-  int suffix_length = len - (suffix - file);
-  BLI_strncpy(r_ext, suffix, suffix_length + 1);
+  BLI_strncpy(r_ext, suffix, ext_maxlen);
 
   /* replace the number with the suffix and terminate the string */
   while (digits_len--) {
