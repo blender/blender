@@ -560,6 +560,12 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags
 
     return false;
   }
+  catch (...) { /* Catch-all for edge cases or compiler bugs. */
+    delete file_stream;
+    printf("OpenEXR-save: UNKNOWN ERROR\n");
+
+    return false;
+  }
 
   delete file_stream;
   return true;
@@ -633,6 +639,11 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *name, const int flag
   }
   catch (const std::exception &exc) {
     printf("OpenEXR-save: ERROR: %s\n", exc.what());
+    delete file_stream;
+    return false;
+  }
+  catch (...) { /* Catch-all for edge cases or compiler bugs. */
+    printf("OpenEXR-save: UNKNOWN ERROR\n");
     delete file_stream;
     return false;
   }
@@ -939,6 +950,15 @@ bool IMB_exr_begin_write(void *handle,
     data->ofile = nullptr;
     data->ofile_stream = nullptr;
   }
+  catch (...) { /* Catch-all for edge cases or compiler bugs. */
+    std::cerr << "IMB_exr_begin_write: UNKNOWN ERROR" << std::endl;
+
+    delete data->ofile;
+    delete data->ofile_stream;
+
+    data->ofile = nullptr;
+    data->ofile_stream = nullptr;
+  }
 
   return (data->ofile != nullptr);
 }
@@ -999,7 +1019,7 @@ void IMB_exrtile_begin_write(
     data->ofile_stream = new OFileStream(filepath);
     data->mpofile = new MultiPartOutputFile(*(data->ofile_stream), headers.data(), headers.size());
   }
-  catch (const std::exception &) {
+  catch (...) { /* Catch-all for edge cases or compiler bugs. */
     delete data->mpofile;
     delete data->ofile_stream;
 
@@ -1024,7 +1044,7 @@ bool IMB_exr_begin_read(
     data->ifile_stream = new IFileStream(filepath);
     data->ifile = new MultiPartInputFile(*(data->ifile_stream));
   }
-  catch (const std::exception &) {
+  catch (...) { /* Catch-all for edge cases or compiler bugs. */
     delete data->ifile;
     delete data->ifile_stream;
 
@@ -1199,6 +1219,9 @@ void IMB_exr_write_channels(void *handle)
     catch (const std::exception &exc) {
       std::cerr << "OpenEXR-writePixels: ERROR: " << exc.what() << std::endl;
     }
+    catch (...) { /* Catch-all for edge cases or compiler bugs. */
+      std::cerr << "OpenEXR-writePixels: UNKNOWN ERROR" << std::endl;
+    }
     /* Free temporary buffers. */
     if (rect_half != nullptr) {
       MEM_freeN(rect_half);
@@ -1257,6 +1280,9 @@ void IMB_exrtile_write_channels(
   }
   catch (const std::exception &exc) {
     std::cerr << "OpenEXR-writeTile: ERROR: " << exc.what() << std::endl;
+  }
+  catch (...) { /* Catch-all for edge cases or compiler bugs. */
+    std::cerr << "OpenEXR-writeTile: UNKNOWN ERROR" << std::endl;
   }
 }
 
@@ -1334,6 +1360,10 @@ void IMB_exr_read_channels(void *handle)
     }
     catch (const std::exception &exc) {
       std::cerr << "OpenEXR-readPixels: ERROR: " << exc.what() << std::endl;
+      break;
+    }
+    catch (...) { /* Catch-all for edge cases or compiler bugs. */
+      std::cerr << "OpenEXR-readPixels: UNKNOWN ERROR: " << std::endl;
       break;
     }
   }
@@ -2152,6 +2182,16 @@ struct ImBuf *imb_load_openexr(const uchar *mem,
 
     return nullptr;
   }
+  catch (...) { /* Catch-all for edge cases or compiler bugs. */
+    std::cerr << "OpenEXR-Load: UNKNOWN ERROR" << std::endl;
+    if (ibuf) {
+      IMB_freeImBuf(ibuf);
+    }
+    delete file;
+    delete membuf;
+
+    return nullptr;
+  }
 }
 
 struct ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
@@ -2250,6 +2290,12 @@ struct ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
 
   catch (const std::exception &exc) {
     std::cerr << exc.what() << std::endl;
+    delete file;
+    delete stream;
+    return nullptr;
+  }
+  catch (...) { /* Catch-all for edge cases or compiler bugs. */
+    std::cerr << "OpenEXR-Thumbnail: UNKNOWN ERROR" << std::endl;
     delete file;
     delete stream;
     return nullptr;
