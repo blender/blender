@@ -510,7 +510,7 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
     }
   }
   else {
-    if (BLI_listbase_count(&sspreadsheet->viewer_path.path) == 1) {
+    if (BLI_listbase_is_single(&sspreadsheet->viewer_path.path)) {
       if (const GeometrySet *geometry_eval = object_eval->runtime.geometry_set_eval) {
         geometry_set = *geometry_eval;
       }
