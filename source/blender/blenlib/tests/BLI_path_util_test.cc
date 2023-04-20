@@ -661,7 +661,7 @@ TEST(path_util, SplitDirfile)
   } \
   ((void)0)
 
-TEST(path_util, PathFrameStrip)
+TEST(path_util, FrameStrip)
 {
   PATH_FRAME_STRIP("", "", "");
   PATH_FRAME_STRIP("nonum.abc", "nonum", ".abc");
@@ -678,7 +678,7 @@ TEST(path_util, PathFrameStrip)
 /** \name Tests for: #BLI_path_extension
  * \{ */
 
-TEST(path_util, PathExtension)
+TEST(path_util, Extension)
 {
   EXPECT_EQ(BLI_path_extension("some.def/file"), nullptr);
   EXPECT_EQ(BLI_path_extension("Text"), nullptr);
@@ -721,7 +721,7 @@ TEST(path_util, PathExtension)
   } \
   ((void)0)
 
-TEST(path_util, PathExtensionCheck)
+TEST(path_util, ExtensionCheck)
 {
   PATH_EXTENSION_CHECK("a/b/c.exe", ".exe", ".exe");
   PATH_EXTENSION_CHECK("correct/path/to/file.h", ".h", ".h");
@@ -767,7 +767,7 @@ TEST(path_util, PathExtensionCheck)
   } \
   ((void)0)
 
-TEST(path_util, PathExtensionReplace)
+TEST(path_util, ExtensionReplace)
 {
   PATH_EXTENSION_REPLACE("test", ".txt", true, "test.txt");
   PATH_EXTENSION_REPLACE("test.", ".txt", true, "test.txt");
@@ -818,7 +818,7 @@ TEST(path_util, PathExtensionReplace)
   } \
   ((void)0)
 
-TEST(path_util, PathExtensionEnsure)
+TEST(path_util, ExtensionEnsure)
 {
   PATH_EXTENSION_ENSURE("test", ".txt", true, "test.txt");
   PATH_EXTENSION_ENSURE("test.", ".txt", true, "test.txt");
@@ -863,7 +863,7 @@ TEST(path_util, PathExtensionEnsure)
   } \
   ((void)0)
 
-TEST(path_util, PathFrameCheckChars)
+TEST(path_util, FrameCheckChars)
 {
   PATH_FRAME_CHECK_CHARS("a#", true);
   PATH_FRAME_CHECK_CHARS("aaaaa#", true);
@@ -904,7 +904,7 @@ TEST(path_util, PathFrameCheckChars)
   } \
   ((void)0)
 
-TEST(path_util, PathFrameRange)
+TEST(path_util, FrameRange)
 {
   int dummy = -1;
   PATH_FRAME_RANGE("#", 1, 2, dummy, "1-2");
@@ -942,7 +942,7 @@ TEST(path_util, PathFrameRange)
   } \
   ((void)0)
 
-TEST(path_util, PathFrameGet)
+TEST(path_util, FrameGet)
 {
   PATH_FRAME_GET("001.avi", 1, 3, true);
   PATH_FRAME_GET("0000299.ext", 299, 7, true);
@@ -973,7 +973,7 @@ TEST(path_util, PathFrameGet)
   } \
   (void)0;
 
-TEST(path_util, PathSequenceDecode)
+TEST(path_util, SequenceDecode)
 {
   /* Basic use. */
   PATH_SEQ_DECODE("file_123.txt", 123, "file_", ".txt", 3);
@@ -1004,7 +1004,7 @@ TEST(path_util, PathSequenceDecode)
   } \
   (void)0;
 
-TEST(path_util, PathSuffix)
+TEST(path_util, Suffix)
 {
   /* Extension. */
   PATH_SUFFIX("file.txt", FILE_MAX, "_", "123", true, "file_123.txt");
@@ -1061,17 +1061,17 @@ TEST(path_util, PathSuffix)
 #  define ABS_PREFIX ""
 #endif
 
-TEST(path_util, PathRelPath_Simple)
+TEST(path_util, RelPath_Simple)
 {
   PATH_REL(ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar/", "//blender.blend");
 }
 
-TEST(path_util, PathRelPath_SimpleSubdir)
+TEST(path_util, RelPath_SimpleSubdir)
 {
   PATH_REL(ABS_PREFIX "/foo/bar/blender.blend", ABS_PREFIX "/foo/bar", "//bar/blender.blend");
 }
 
-TEST(path_util, PathRelPath_BufferOverflowRoot)
+TEST(path_util, RelPath_BufferOverflowRoot)
 {
   char abs_path_in[FILE_MAX];
   const char *abs_prefix = ABS_PREFIX "/";
@@ -1087,7 +1087,7 @@ TEST(path_util, PathRelPath_BufferOverflowRoot)
   PATH_REL(abs_path_in, abs_prefix, abs_path_out);
 }
 
-TEST(path_util, PathRelPath_BufferOverflowSubdir)
+TEST(path_util, RelPath_BufferOverflowSubdir)
 {
   char abs_path_in[FILE_MAX];
   const char *ref_path_in = ABS_PREFIX "/foo/bar/";
@@ -1113,7 +1113,7 @@ TEST(path_util, PathRelPath_BufferOverflowSubdir)
 /** \name Tests for: #BLI_path_contains
  * \{ */
 
-TEST(path_util, PathContains)
+TEST(path_util, Contains)
 {
   EXPECT_TRUE(BLI_path_contains("/some/path", "/some/path")) << "A path contains itself";
   EXPECT_TRUE(BLI_path_contains("/some/path", "/some/path/inside"))
@@ -1136,7 +1136,7 @@ TEST(path_util, PathContains)
 }
 
 #ifdef WIN32
-TEST(path_util, PathContains_Windows_case_insensitive)
+TEST(path_util, Contains_Windows_case_insensitive)
 {
   EXPECT_TRUE(BLI_path_contains("C:\\some\\path", "c:\\SOME\\path\\inside"))
       << "On Windows path comparison should ignore case";
