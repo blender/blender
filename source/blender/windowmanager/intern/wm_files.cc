@@ -467,8 +467,6 @@ static void wm_init_userdef(Main *bmain)
   /* Not versioning, just avoid errors. */
 #ifndef WITH_CYCLES
   BKE_addon_remove_safe(&U.addons, "cycles");
-#else
-  UNUSED_VARS(BKE_addon_remove_safe);
 #endif
 
   UI_init_userdef();
