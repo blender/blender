@@ -2376,9 +2376,9 @@ class CustomDataLayerImplicitSharing : public ImplicitSharingInfo {
 };
 
 /** Create a #ImplicitSharingInfo that takes ownership of the data. */
-static ImplicitSharingInfo *make_implicit_sharing_info_for_layer(const eCustomDataType type,
-                                                                 const void *data,
-                                                                 const int totelem)
+static const ImplicitSharingInfo *make_implicit_sharing_info_for_layer(const eCustomDataType type,
+                                                                       const void *data,
+                                                                       const int totelem)
 {
   return MEM_new<CustomDataLayerImplicitSharing>(__func__, data, totelem, type);
 }

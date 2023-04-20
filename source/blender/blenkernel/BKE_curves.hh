@@ -55,7 +55,7 @@ struct BasisCache {
 class CurvesGeometryRuntime {
  public:
   /** Implicit sharing user count for #CurvesGeometry::curve_offsets. */
-  ImplicitSharingInfo *curve_offsets_sharing_info = nullptr;
+  const ImplicitSharingInfo *curve_offsets_sharing_info = nullptr;
 
   /**
    * The cached number of curves with each type. Unlike other caches here, this is not computed

@@ -110,11 +110,11 @@ void *resize_trivial_array_impl(void *old_data,
                                 int64_t old_size,
                                 int64_t new_size,
                                 int64_t alignment,
-                                ImplicitSharingInfo **sharing_info);
+                                const ImplicitSharingInfo **sharing_info);
 void *make_trivial_data_mutable_impl(void *old_data,
                                      int64_t size,
                                      int64_t alignment,
-                                     ImplicitSharingInfo **sharing_info);
+                                     const ImplicitSharingInfo **sharing_info);
 
 }  // namespace detail
 
@@ -124,9 +124,9 @@ void *make_trivial_data_mutable_impl(void *old_data,
  */
 template<typename T>
 void copy_shared_pointer(T *src_ptr,
-                         ImplicitSharingInfo *src_sharing_info,
+                         const ImplicitSharingInfo *src_sharing_info,
                          T **r_dst_ptr,
-                         ImplicitSharingInfo **r_dst_sharing_info)
+                         const ImplicitSharingInfo **r_dst_sharing_info)
 {
   *r_dst_ptr = src_ptr;
   *r_dst_sharing_info = src_sharing_info;
@@ -139,7 +139,7 @@ void copy_shared_pointer(T *src_ptr,
 /**
  * Remove this reference to the shared data and remove dangling pointers.
  */
-template<typename T> void free_shared_data(T **data, ImplicitSharingInfo **sharing_info)
+template<typename T> void free_shared_data(T **data, const ImplicitSharingInfo **sharing_info)
 {
   if (*sharing_info) {
     BLI_assert(*data != nullptr);
@@ -153,13 +153,15 @@ template<typename T> void free_shared_data(T **data, ImplicitSharingInfo **shari
  * Create an implicit sharing object that takes ownership of the data, allowing it to be shared.
  * When it is no longer used, the data is freed with #MEM_freeN, so it must be a trivial type.
  */
-ImplicitSharingInfo *info_for_mem_free(void *data);
+const ImplicitSharingInfo *info_for_mem_free(void *data);
 
 /**
  * Make data mutable (single-user) if it is shared. For trivially-copyable data only.
  */
 template<typename T>
-void make_trivial_data_mutable(T **data, ImplicitSharingInfo **sharing_info, const int64_t size)
+void make_trivial_data_mutable(T **data,
+                               const ImplicitSharingInfo **sharing_info,
+                               const int64_t size)
 {
   *data = static_cast<T *>(
       detail::make_trivial_data_mutable_impl(*data, sizeof(T) * size, alignof(T), sharing_info));
@@ -171,7 +173,7 @@ void make_trivial_data_mutable(T **data, ImplicitSharingInfo **sharing_info, con
  */
 template<typename T>
 void resize_trivial_array(T **data,
-                          ImplicitSharingInfo **sharing_info,
+                          const ImplicitSharingInfo **sharing_info,
                           int64_t old_size,
                           int64_t new_size)
 {
