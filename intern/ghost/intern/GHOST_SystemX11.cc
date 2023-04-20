@@ -99,7 +99,12 @@ static bool use_xwayland_hack = false;
 
 using namespace std;
 
-GHOST_SystemX11::GHOST_SystemX11() : GHOST_System(), m_xkb_descr(nullptr), m_start_time(0)
+GHOST_SystemX11::GHOST_SystemX11()
+    : GHOST_System(),
+      m_xkb_descr(nullptr),
+      m_start_time(0),
+      m_keyboard_vector{0},
+      m_keycode_last_repeat_key(uint(-1))
 {
   XInitThreads();
   m_display = XOpenDisplay(nullptr);
