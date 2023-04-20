@@ -414,11 +414,11 @@ class _draw_tool_settings_context_mode:
             return False
         paint = context.tool_settings.gpencil_weight_paint
         brush = paint.brush
-        
+
         layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
-        
+
         brush_basic_gpencil_weight_settings(layout, context, brush, compact=True)
-        
+
         layout.popover("VIEW3D_PT_tools_grease_pencil_weight_options", text="Options")
         layout.popover("VIEW3D_PT_tools_grease_pencil_brush_weight_falloff", text="Falloff")
 
@@ -7666,7 +7666,7 @@ class VIEW3D_PT_gpencil_weight_context_menu(Panel):
         settings = tool_settings.gpencil_weight_paint
         brush = settings.brush
         layout = self.layout
-        
+
         # Weight settings
         brush_basic_gpencil_weight_settings(layout, context, brush)
 

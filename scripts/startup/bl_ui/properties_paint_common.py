@@ -1414,10 +1414,10 @@ def brush_basic_gpencil_weight_settings(layout, _context, brush, *, compact=Fals
     row = layout.row(align=True)
     row.prop(brush, "strength", slider=True)
     row.prop(brush, "use_pressure_strength", text="")
-    
+
     if brush.gpencil_weight_tool in {'WEIGHT'}:
         layout.prop(brush, "weight", slider=True)
-        
+
         gp_settings = brush.gpencil_settings
         layout.prop(gp_settings, "direction", expand=True, text="" if compact else "Direction")
 

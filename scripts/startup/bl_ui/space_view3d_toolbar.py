@@ -2023,7 +2023,7 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint_settings(Panel, View3DPanel, Gr
     def draw(self, context):
         if self.is_popover:
             return
-            
+
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
@@ -2055,13 +2055,13 @@ class VIEW3D_PT_tools_grease_pencil_brush_weight_falloff(GreasePencilBrushFallof
 class VIEW3D_PT_tools_grease_pencil_weight_options(Panel, View3DPanel, GreasePencilWeightPanel):
     bl_label = "Options"
     bl_options = {'DEFAULT_CLOSED'}
-    
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
         tool_settings = context.scene.tool_settings
-        
+
         col = layout.column()
         col.prop(tool_settings, "use_auto_normalize", text="Auto Normalize")
 
