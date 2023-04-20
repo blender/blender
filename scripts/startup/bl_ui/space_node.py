@@ -903,7 +903,10 @@ class NodeTreeInterfacePanel(Panel):
                     props = property_row.operator_menu_enum(
                         "node.tree_socket_change_subtype",
                         "socket_subtype",
-                        text=active_socket.bl_subtype_label if active_socket.bl_subtype_label else active_socket.bl_idname
+                        text=(
+                            active_socket.bl_subtype_label if active_socket.bl_subtype_label else
+                            active_socket.bl_idname
+                        ),
                     )
 
             layout.use_property_split = True
