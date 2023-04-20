@@ -289,6 +289,15 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
     return false;
   }
 
+#    ifdef __EMBREE__
+  IF_USING_EMBREE
+  {
+    if (kernel_data.device_bvh) {
+      return kernel_embree_intersect_volume(kg, ray, isect, visibility);
+    }
+  }
+#    endif
+
   IF_NOT_USING_EMBREE
   {
 #    ifdef __OBJECT_MOTION__
