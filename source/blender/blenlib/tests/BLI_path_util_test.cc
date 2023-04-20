@@ -752,11 +752,13 @@ TEST(path_util, ExtensionCheck)
 /** \name Tests for: #BLI_path_extension_replace
  * \{ */
 
-#define PATH_EXTENSION_REPLACE(input_path, input_ext, expect_result, expect_path) \
+#define PATH_EXTENSION_REPLACE_WITH_MAXLEN( \
+    input_path, input_ext, expect_result, expect_path, maxlen) \
   { \
+    BLI_assert(maxlen <= FILE_MAX); \
     char path[FILE_MAX]; \
-    BLI_strncpy(path, input_path, FILE_MAX); \
-    const bool ret = BLI_path_extension_replace(path, sizeof(path), input_ext); \
+    BLI_strncpy(path, input_path, sizeof(path)); \
+    const bool ret = BLI_path_extension_replace(path, maxlen, input_ext); \
     if (expect_result) { \
       EXPECT_TRUE(ret); \
     } \
@@ -766,6 +768,9 @@ TEST(path_util, ExtensionCheck)
     EXPECT_STREQ(path, expect_path); \
   } \
   ((void)0)
+
+#define PATH_EXTENSION_REPLACE(input_path, input_ext, expect_result, expect_path) \
+  PATH_EXTENSION_REPLACE_WITH_MAXLEN(input_path, input_ext, expect_result, expect_path, FILE_MAX)
 
 TEST(path_util, ExtensionReplace)
 {
@@ -795,7 +800,22 @@ TEST(path_util, ExtensionReplace)
   PATH_EXTENSION_REPLACE("..hidden", ".hidden", true, "..hidden.hidden");
   PATH_EXTENSION_REPLACE("._.hidden", ".hidden", true, "._.hidden");
 }
+
+TEST(path_util, ExtensionReplace_Overflow)
+{
+  /* Small values. */
+  PATH_EXTENSION_REPLACE_WITH_MAXLEN("test", ".txt", false, "test", 0);
+  PATH_EXTENSION_REPLACE_WITH_MAXLEN("test", ".txt", false, "test", 1);
+  /* One under fails, and exactly enough space succeeds. */
+  PATH_EXTENSION_REPLACE_WITH_MAXLEN("test", ".txt", false, "test", 8);
+  PATH_EXTENSION_REPLACE_WITH_MAXLEN("test", ".txt", true, "test.txt", 9);
+
+  PATH_EXTENSION_REPLACE_WITH_MAXLEN("test.xx", ".txt", false, "test.xx", 8);
+  PATH_EXTENSION_REPLACE_WITH_MAXLEN("test.xx", ".txt", true, "test.txt", 9);
+}
+
 #undef PATH_EXTENSION_REPLACE
+#undef PATH_EXTENSION_REPLACE_WITH_MAXLEN
 
 /** \} */
 
@@ -803,11 +823,13 @@ TEST(path_util, ExtensionReplace)
 /** \name Tests for: #BLI_path_extension_ensure
  * \{ */
 
-#define PATH_EXTENSION_ENSURE(input_path, input_ext, expect_result, expect_path) \
+#define PATH_EXTENSION_ENSURE_WITH_MAXLEN( \
+    input_path, input_ext, expect_result, expect_path, maxlen) \
   { \
+    BLI_assert(maxlen <= FILE_MAX); \
     char path[FILE_MAX]; \
-    BLI_strncpy(path, input_path, FILE_MAX); \
-    const bool ret = BLI_path_extension_ensure(path, sizeof(path), input_ext); \
+    BLI_strncpy(path, input_path, sizeof(path)); \
+    const bool ret = BLI_path_extension_ensure(path, maxlen, input_ext); \
     if (expect_result) { \
       EXPECT_TRUE(ret); \
     } \
@@ -817,6 +839,9 @@ TEST(path_util, ExtensionReplace)
     EXPECT_STREQ(path, expect_path); \
   } \
   ((void)0)
+
+#define PATH_EXTENSION_ENSURE(input_path, input_ext, expect_result, expect_path) \
+  PATH_EXTENSION_ENSURE_WITH_MAXLEN(input_path, input_ext, expect_result, expect_path, FILE_MAX)
 
 TEST(path_util, ExtensionEnsure)
 {
@@ -843,7 +868,19 @@ TEST(path_util, ExtensionEnsure)
   PATH_EXTENSION_ENSURE("..hidden", ".hidden", true, "..hidden.hidden");
   PATH_EXTENSION_ENSURE("._.hidden", ".hidden", true, "._.hidden");
 }
+
+TEST(path_util, ExtensionEnsure_Overflow)
+{
+  /* Small values. */
+  PATH_EXTENSION_ENSURE_WITH_MAXLEN("test", ".txt", false, "test", 0);
+  PATH_EXTENSION_ENSURE_WITH_MAXLEN("test", ".txt", false, "test", 1);
+  /* One under fails, and exactly enough space succeeds. */
+  PATH_EXTENSION_ENSURE_WITH_MAXLEN("test", ".txt", false, "test", 8);
+  PATH_EXTENSION_ENSURE_WITH_MAXLEN("test", ".txt", true, "test.txt", 9);
+}
+
 #undef PATH_EXTENSION_ENSURE
+#undef PATH_EXTENSION_ENSURE_WITH_MAXLEN
 
 /** \} */
 
