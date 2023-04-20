@@ -2780,6 +2780,56 @@ def km_grease_pencil_stroke_weight_draw(_params):
     items.extend([
         ("gpencil.weight_paint", {"type": 'LEFTMOUSE', "value": 'PRESS'},
          {"properties": [("wait_for_input", False)]}),
+        ("gpencil.weight_paint", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
+         {"properties": [("wait_for_input", False)]}),
+    ])
+
+    return keymap
+
+
+def km_grease_pencil_stroke_weight_blur(_params):
+    items = []
+    keymap = (
+        "Grease Pencil Stroke Weight (Blur)",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        ("gpencil.weight_paint", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+         {"properties": [("wait_for_input", False)]}),
+    ])
+
+    return keymap
+
+
+def km_grease_pencil_stroke_weight_average(_params):
+    items = []
+    keymap = (
+        "Grease Pencil Stroke Weight (Average)",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        ("gpencil.weight_paint", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+         {"properties": [("wait_for_input", False)]}),
+    ])
+
+    return keymap
+
+
+def km_grease_pencil_stroke_weight_smear(_params):
+    items = []
+    keymap = (
+        "Grease Pencil Stroke Weight (Smear)",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        ("gpencil.weight_paint", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+         {"properties": [("wait_for_input", False)]}),
     ])
 
     return keymap
@@ -4195,6 +4245,9 @@ def generate_keymaps_impl(params=None):
         km_grease_pencil_stroke_sculpt_clone(params),
         km_grease_pencil_stroke_weight_mode(params),
         km_grease_pencil_stroke_weight_draw(params),
+        km_grease_pencil_stroke_weight_blur(params),
+        km_grease_pencil_stroke_weight_average(params),
+        km_grease_pencil_stroke_weight_smear(params),
         km_grease_pencil_stroke_vertex_mode(params),
         km_grease_pencil_stroke_vertex_draw(params),
         km_grease_pencil_stroke_vertex_blur(params),

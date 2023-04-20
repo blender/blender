@@ -2079,7 +2079,7 @@ static void gpencil_brush_delete_mode_brushes(Main *bmain,
       }
 
       if (mode == CTX_MODE_WEIGHT_GPENCIL) {
-        if (preset != GP_BRUSH_PRESET_DRAW_WEIGHT) {
+        if ((preset < GP_BRUSH_PRESET_WEIGHT_DRAW) || (preset > GP_BRUSH_PRESET_WEIGHT_SMEAR)) {
           continue;
         }
         if ((brush_active) && (brush_active->gpencil_weight_tool != brush->gpencil_weight_tool)) {
@@ -2666,58 +2666,67 @@ static int gpencil_vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    /* look for tot value */
-    float *tot_values = MEM_callocN(gps->totpoints * sizeof(float), __func__);
-
+    /* Loop all points in stroke. */
     for (int i = 0; i < gps->totpoints; i++) {
+      int v;
+      float sum = 0.0f;
+      float sum_lock = 0.0f;
+      float sum_unlock = 0.0f;
+
+      /* Get vertex groups and weights. */
       dvert = &gps->dvert[i];
-      for (int v = 0; v < defbase_tot; v++) {
+
+      /* Sum weights. */
+      for (v = 0; v < defbase_tot; v++) {
+        /* Get vertex group. */
         defgroup = BLI_findlink(&gpd->vertex_group_names, v);
-        /* skip NULL or locked groups */
-        if ((defgroup == NULL) || (defgroup->flag & DG_LOCK_WEIGHT)) {
+        if (defgroup == NULL) {
           continue;
         }
 
-        /* skip current */
-        if ((lock_active) && (v == def_nr)) {
-          continue;
-        }
-
+        /* Get weight in vertex group. */
         dw = BKE_defvert_find_index(dvert, v);
-        if (dw != NULL) {
-          tot_values[i] += dw->weight;
+        if (dw == NULL) {
+          continue;
+        }
+        sum += dw->weight;
+
+        /* Vertex group locked or unlocked? */
+        if ((defgroup->flag & DG_LOCK_WEIGHT) || ((lock_active) && (v == def_nr))) {
+          sum_lock += dw->weight;
+        }
+        else {
+          sum_unlock += dw->weight;
         }
       }
-    }
 
-    /* normalize weights */
-    for (int i = 0; i < gps->totpoints; i++) {
-      if (tot_values[i] == 0.0f) {
+      if ((sum == 1.0f) || (sum_unlock == 0.0f)) {
         continue;
       }
 
-      dvert = &gps->dvert[i];
-      for (int v = 0; v < defbase_tot; v++) {
+      /* Normalize weights. */
+      float fac = MAX2(0, (1.0f - sum_lock) / sum_unlock);
+
+      for (v = 0; v < defbase_tot; v++) {
+        /* Get vertex group. */
         defgroup = BLI_findlink(&gpd->vertex_group_names, v);
-        /* skip NULL or locked groups */
-        if ((defgroup == NULL) || (defgroup->flag & DG_LOCK_WEIGHT)) {
+        if (defgroup == NULL) {
           continue;
         }
 
-        /* skip current */
-        if ((lock_active) && (v == def_nr)) {
-          continue;
-        }
-
+        /* Get weight in vertex group. */
         dw = BKE_defvert_find_index(dvert, v);
-        if (dw != NULL) {
-          dw->weight = dw->weight / tot_values[i];
+        if (dw == NULL) {
+          continue;
+        }
+
+        /* Normalize in unlocked vertex groups only. */
+        if (!((defgroup->flag & DG_LOCK_WEIGHT) || ((lock_active) && (v == def_nr)))) {
+          dw->weight *= fac;
+          CLAMP(dw->weight, 0.0f, 1.0f);
         }
       }
     }
-
-    /* free temp array */
-    MEM_SAFE_FREE(tot_values);
   }
   CTX_DATA_END;
 

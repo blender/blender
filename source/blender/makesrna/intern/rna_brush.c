@@ -293,7 +293,18 @@ const EnumPropertyItem rna_enum_brush_gpencil_weight_types_items[] = {
      "WEIGHT",
      ICON_GPBRUSH_WEIGHT,
      "Weight",
-     "Weight Paint for Vertex Groups"},
+     "Paint weight in active vertex group"},
+    {GPWEIGHT_TOOL_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", "Blur weight in active vertex group"},
+    {GPWEIGHT_TOOL_AVERAGE,
+     "AVERAGE",
+     ICON_BRUSH_BLUR,
+     "Average",
+     "Average weight in active vertex group"},
+    {GPWEIGHT_TOOL_SMEAR,
+     "SMEAR",
+     ICON_BRUSH_SMEAR,
+     "Smear",
+     "Smear weight in active vertex group"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -401,6 +412,9 @@ static EnumPropertyItem rna_enum_gpencil_brush_sculpt_icons_items[] = {
 
 static EnumPropertyItem rna_enum_gpencil_brush_weight_icons_items[] = {
     {GP_BRUSH_ICON_GPBRUSH_WEIGHT, "DRAW", ICON_GPBRUSH_WEIGHT, "Draw", ""},
+    {GP_BRUSH_ICON_GPBRUSH_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", ""},
+    {GP_BRUSH_ICON_GPBRUSH_AVERAGE, "AVERAGE", ICON_BRUSH_BLUR, "Average", ""},
+    {GP_BRUSH_ICON_GPBRUSH_SMEAR, "SMEAR", ICON_BRUSH_BLUR, "Smear", ""},
     {0, NULL, 0, NULL, NULL},
 };
 static EnumPropertyItem rna_enum_gpencil_brush_vertex_icons_items[] = {

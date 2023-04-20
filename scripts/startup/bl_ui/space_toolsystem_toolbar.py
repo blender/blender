@@ -68,6 +68,7 @@ def generate_from_enum_ex(
                 dict(
                     idname=idname_prefix + name,
                     label=name,
+                    description=enum.description,
                     icon=icon,
                     cursor=cursor,
                     data_block=idname,

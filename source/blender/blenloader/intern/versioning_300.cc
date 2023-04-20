@@ -4305,6 +4305,9 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
                                             ARRAY_SIZE(tool_replace_table));
       }
     }
+
+    /* Rename Grease Pencil weight draw brush. */
+    do_versions_rename_id(bmain, ID_BR, "Draw Weight", "Weight Draw");
   }
 
   /**
