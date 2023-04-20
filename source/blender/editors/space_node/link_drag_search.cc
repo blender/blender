@@ -285,10 +285,10 @@ static void gather_socket_link_operations(const bContext &C,
 {
   NODE_TYPES_BEGIN (node_type) {
     const char *disabled_hint;
-    if (!(node_type->poll && node_type->poll(node_type, &node_tree, &disabled_hint))) {
+    if (node_type->poll && !node_type->poll(node_type, &node_tree, &disabled_hint)) {
       continue;
     }
-    if (!(node_type->add_ui_poll && node_type->add_ui_poll(&C))) {
+    if (node_type->add_ui_poll && !node_type->add_ui_poll(&C)) {
       continue;
     }
     if (StringRefNull(node_type->ui_name).endswith("(Legacy)")) {
