@@ -188,6 +188,9 @@ struct PersistentOperationKey : public OperationKey {
 
 struct RNAPathKey {
   RNAPathKey(ID *id, const char *path, RNAPointerSource source);
+  RNAPathKey(const PointerRNA &target_prop,
+             const char *rna_path_from_target_prop,
+             RNAPointerSource source);
   RNAPathKey(ID *id, const PointerRNA &ptr, PropertyRNA *prop, RNAPointerSource source);
 
   string identifier() const;

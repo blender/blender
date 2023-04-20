@@ -89,6 +89,11 @@ bool BLI_windows_register_blend_extension(bool background);
 void BLI_windows_get_default_root_dir(char root_dir[4]);
 int BLI_windows_get_executable_dir(char *str);
 
+/* ShellExecute Helpers. */
+
+bool BLI_windows_external_operation_supported(const char *filepath, const char *operation);
+bool BLI_windows_external_operation_execute(const char *filepath, const char *operation);
+
 #ifdef __cplusplus
 }
 #endif

@@ -158,15 +158,15 @@ void BKE_mesh_ensure_skin_customdata(struct Mesh *me);
 /** Add poly offsets to describe faces to a new mesh. */
 void BKE_mesh_poly_offsets_ensure_alloc(struct Mesh *mesh);
 
-struct Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int loops_len, int polys_len);
+struct Mesh *BKE_mesh_new_nomain(int verts_num, int edges_num, int polys_num, int loops_num);
 struct Mesh *BKE_mesh_new_nomain_from_template(
-    const struct Mesh *me_src, int verts_len, int edges_len, int loops_len, int polys_len);
+    const struct Mesh *me_src, int verts_num, int edges_num, int polys_num, int loops_num);
 struct Mesh *BKE_mesh_new_nomain_from_template_ex(const struct Mesh *me_src,
-                                                  int verts_len,
-                                                  int edges_len,
-                                                  int tessface_len,
-                                                  int loops_len,
-                                                  int polys_len,
+                                                  int verts_num,
+                                                  int edges_num,
+                                                  int tessface_num,
+                                                  int polys_num,
+                                                  int loops_num,
                                                   struct CustomData_MeshMasks mask);
 
 void BKE_mesh_eval_delete(struct Mesh *mesh_eval);
@@ -175,7 +175,7 @@ void BKE_mesh_eval_delete(struct Mesh *mesh_eval);
  * Performs copy for use during evaluation,
  * optional referencing original arrays to reduce memory.
  */
-struct Mesh *BKE_mesh_copy_for_eval(const struct Mesh *source, bool reference);
+struct Mesh *BKE_mesh_copy_for_eval(const struct Mesh *source);
 
 /**
  * These functions construct a new Mesh,

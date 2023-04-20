@@ -193,7 +193,16 @@ void BKE_mesh_calc_poly_normal(const int *poly_verts,
                  {poly_verts, poly_size}));
 }
 
+/** \} */
+
 namespace blender::bke::mesh {
+
+/* -------------------------------------------------------------------- */
+/** \name Mesh Normal Calculation (Polygons & Vertices)
+ *
+ * Take care making optimizations to this function as improvements to low-poly
+ * meshes can slow down high-poly meshes. For details on performance, see D11993.
+ * \{ */
 
 void normals_calc_polys(const Span<float3> positions,
                         const OffsetIndices<int> polys,
@@ -207,15 +216,6 @@ void normals_calc_polys(const Span<float3> positions,
     }
   });
 }
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Mesh Normal Calculation (Polygons & Vertices)
- *
- * Take care making optimizations to this function as improvements to low-poly
- * meshes can slow down high-poly meshes. For details on performance, see D11993.
- * \{ */
 
 void normals_calc_poly_vert(const Span<float3> positions,
                             const OffsetIndices<int> polys,
@@ -305,9 +305,9 @@ void normals_calc_poly_vert(const Span<float3> positions,
   }
 }
 
-}  // namespace blender::bke::mesh
-
 /** \} */
+
+}  // namespace blender::bke::mesh
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Normal Calculation

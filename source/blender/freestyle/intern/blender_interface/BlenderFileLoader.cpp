@@ -513,9 +513,9 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   FrsMaterial tmpMat;
 
   const bke::AttributeAccessor attributes = me->attributes();
-  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
-  const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
+  const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
       "sharp_face", ATTR_DOMAIN_FACE, false);
 
   // We parse the vlak nodes again and import meshes while applying the clipping

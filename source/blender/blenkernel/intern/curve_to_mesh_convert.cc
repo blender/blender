@@ -691,7 +691,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(
-      offsets.vert.last(), offsets.edge.last(), offsets.loop.last(), offsets.poly.last());
+      offsets.vert.last(), offsets.edge.last(), offsets.poly.last(), offsets.loop.last());
   mesh->flag |= ME_AUTOSMOOTH;
   mesh->smoothresh = DEG2RADF(180.0f);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
@@ -747,7 +747,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   Span<float> radii = {};
   if (main_attributes.contains("radius")) {
     radii = evaluated_attribute_if_necessary(
-                main_attributes.lookup_or_default<float>("radius", ATTR_DOMAIN_POINT, 1.0f),
+                *main_attributes.lookup_or_default<float>("radius", ATTR_DOMAIN_POINT, 1.0f),
                 main,
                 main.curve_type_counts(),
                 eval_buffer)
@@ -805,7 +805,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
 
     const eAttrDomain src_domain = meta_data.domain;
     const eCustomDataType type = meta_data.data_type;
-    GVArray src = main_attributes.lookup(id, src_domain, type);
+    const GVArray src = *main_attributes.lookup(id, src_domain, type);
 
     const eAttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, id);
     GSpanAttributeWriter dst = mesh_attributes.lookup_or_add_for_write_only_span(
@@ -841,7 +841,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     }
     const eAttrDomain src_domain = meta_data.domain;
     const eCustomDataType type = meta_data.data_type;
-    GVArray src = profile_attributes.lookup(id, src_domain, type);
+    const GVArray src = *profile_attributes.lookup(id, src_domain, type);
 
     const eAttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, id);
     GSpanAttributeWriter dst = mesh_attributes.lookup_or_add_for_write_only_span(

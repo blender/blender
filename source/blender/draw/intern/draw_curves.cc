@@ -329,7 +329,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
    * use for now because we can't use a per-point radius yet. */
   const blender::bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves.curves_num() >= 1) {
-    blender::VArray<float> radii = curves.attributes().lookup_or_default(
+    blender::VArray<float> radii = *curves.attributes().lookup_or_default(
         "radius", ATTR_DOMAIN_POINT, 0.005f);
     const blender::IndexRange first_curve_points = curves.points_by_curve()[0];
     const float first_radius = radii[first_curve_points.first()];

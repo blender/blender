@@ -2955,8 +2955,6 @@ static int drop_geometry_nodes_invoke(bContext *C, wmOperator *op, const wmEvent
   return OPERATOR_FINISHED;
 }
 
-/** \} */
-
 void OBJECT_OT_drop_geometry_nodes(wmOperatorType *ot)
 {
   ot->name = "Drop Geometry Node Group on Object";

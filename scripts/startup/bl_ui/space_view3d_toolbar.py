@@ -2021,6 +2021,9 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint_settings(Panel, View3DPanel, Gr
     bl_label = "Brush Settings"
 
     def draw(self, context):
+        if self.is_popover:
+            return
+
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
@@ -2029,15 +2032,15 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint_settings(Panel, View3DPanel, Gr
         settings = tool_settings.gpencil_weight_paint
         brush = settings.brush
 
-        if not self.is_popover:
-            from bl_ui.properties_paint_common import (
-                brush_basic_gpencil_weight_settings,
-            )
-            brush_basic_gpencil_weight_settings(layout, context, brush)
+        from bl_ui.properties_paint_common import (
+            brush_basic_gpencil_weight_settings,
+        )
+        brush_basic_gpencil_weight_settings(layout, context, brush)
 
 
 class VIEW3D_PT_tools_grease_pencil_brush_weight_falloff(GreasePencilBrushFalloff, Panel, View3DPaintPanel):
     bl_context = ".greasepencil_weight"
+    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_weight_paint_settings'
     bl_label = "Falloff"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -2047,6 +2050,20 @@ class VIEW3D_PT_tools_grease_pencil_brush_weight_falloff(GreasePencilBrushFallof
         settings = tool_settings.gpencil_weight_paint
         brush = settings.brush
         return (brush and brush.curve)
+
+
+class VIEW3D_PT_tools_grease_pencil_weight_options(Panel, View3DPanel, GreasePencilWeightPanel):
+    bl_label = "Options"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        tool_settings = context.scene.tool_settings
+
+        col = layout.column()
+        col.prop(tool_settings, "use_auto_normalize", text="Auto Normalize")
 
 
 # Grease Pencil vertex painting tools
@@ -2425,6 +2442,7 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_sculpt_appearance,
     VIEW3D_PT_tools_grease_pencil_weight_paint_select,
     VIEW3D_PT_tools_grease_pencil_weight_paint_settings,
+    VIEW3D_PT_tools_grease_pencil_weight_options,
     VIEW3D_PT_tools_grease_pencil_weight_appearance,
     VIEW3D_PT_tools_grease_pencil_vertex_paint_select,
     VIEW3D_PT_tools_grease_pencil_vertex_paint_settings,

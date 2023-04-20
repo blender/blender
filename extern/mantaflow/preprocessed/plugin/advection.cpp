@@ -572,7 +572,7 @@ template<class T> inline bool cmpMinMax(T &minv, T &maxv, const T &val)
 }
 template<> inline bool cmpMinMax<Vec3>(Vec3 &minv, Vec3 &maxv, const Vec3 &val)
 {
-  return (cmpMinMax(minv.x, maxv.x, val.x) | cmpMinMax(minv.y, maxv.y, val.y) |
+  return (cmpMinMax(minv.x, maxv.x, val.x) || cmpMinMax(minv.y, maxv.y, val.y) ||
           cmpMinMax(minv.z, maxv.z, val.z));
 }
 

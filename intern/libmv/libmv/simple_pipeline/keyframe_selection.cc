@@ -140,7 +140,6 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks& _tracks,
 
   int max_image = filtered_tracks.MaxImage();
   int next_keyframe = 1;
-  int number_keyframes = 0;
 
   // Limit correspondence ratio from both sides.
   // On the one hand if number of correspondent features is too low,
@@ -162,7 +161,6 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks& _tracks,
 
     LG << "Found keyframe " << next_keyframe;
 
-    number_keyframes++;
     next_keyframe = -1;
 
     for (int candidate_image = current_keyframe + 1;
@@ -406,7 +404,6 @@ void SelectKeyframesBasedOnGRICAndVariance(const Tracks& _tracks,
     // However, it's just quick hack and smarter way to do this would be nice
     if (next_keyframe == -1) {
       next_keyframe = current_keyframe + 10;
-      number_keyframes = 0;
 
       if (next_keyframe >= max_image)
         break;

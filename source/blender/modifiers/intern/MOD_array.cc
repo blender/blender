@@ -333,8 +333,8 @@ static void mesh_merge_transform(Mesh *result,
   }
 
   const bke::AttributeAccessor cap_attributes = cap_mesh->attributes();
-  if (const VArray<int> cap_material_indices = cap_attributes.lookup<int>("material_index",
-                                                                          ATTR_DOMAIN_FACE)) {
+  if (const VArray cap_material_indices = *cap_attributes.lookup<int>("material_index",
+                                                                      ATTR_DOMAIN_FACE)) {
     bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
     bke::SpanAttributeWriter<int> result_material_indices =
         result_attributes.lookup_or_add_for_write_span<int>("material_index", ATTR_DOMAIN_FACE);
@@ -551,7 +551,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
   /* Initialize a result dm */
   result = BKE_mesh_new_nomain_from_template(
-      mesh, result_nverts, result_nedges, result_nloops, result_npolys);
+      mesh, result_nverts, result_nedges, result_npolys, result_nloops);
   float(*result_positions)[3] = BKE_mesh_vert_positions_for_write(result);
   blender::MutableSpan<int2> result_edges = result->edges_for_write();
   blender::MutableSpan<int> result_poly_offsets = result->poly_offsets_for_write();

@@ -389,7 +389,7 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
       if (defmats == nullptr) {
         /* NOTE: Evaluated object is re-set to its original un-deformed state. */
         Mesh *me = static_cast<Mesh *>(object_eval.data);
-        me_eval = BKE_mesh_copy_for_eval(me, true);
+        me_eval = BKE_mesh_copy_for_eval(me);
         crazyspace_init_verts_and_matrices(me_eval, &defmats, &deformedVerts);
       }
 
@@ -470,7 +470,7 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
         }
 
         if (mesh_eval == nullptr) {
-          mesh_eval = BKE_mesh_copy_for_eval(mesh, true);
+          mesh_eval = BKE_mesh_copy_for_eval(mesh);
         }
 
         mti->deformVerts(md, &mectx, mesh_eval, deformedVerts, mesh_eval->totvert);

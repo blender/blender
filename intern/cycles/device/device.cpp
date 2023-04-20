@@ -354,7 +354,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
   info.has_guiding = true;
   info.has_profiling = true;
   info.has_peer_memory = false;
-  info.use_metalrt = false;
+  info.use_hardware_raytracing = false;
   info.denoisers = DENOISER_ALL;
 
   foreach (const DeviceInfo &device, subdevices) {
@@ -403,7 +403,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
     info.has_guiding &= device.has_guiding;
     info.has_profiling &= device.has_profiling;
     info.has_peer_memory |= device.has_peer_memory;
-    info.use_metalrt |= device.use_metalrt;
+    info.use_hardware_raytracing |= device.use_hardware_raytracing;
     info.denoisers &= device.denoisers;
   }
 

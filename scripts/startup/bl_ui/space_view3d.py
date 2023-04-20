@@ -8,6 +8,7 @@ from bpy.types import (
 from bl_ui.properties_paint_common import (
     UnifiedPaintPanel,
     brush_basic_texpaint_settings,
+    brush_basic_gpencil_weight_settings,
 )
 from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
@@ -414,10 +415,12 @@ class _draw_tool_settings_context_mode:
         paint = context.tool_settings.gpencil_weight_paint
         brush = paint.brush
 
-        from bl_ui.properties_paint_common import (
-            brush_basic_gpencil_weight_settings,
-        )
+        layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+
         brush_basic_gpencil_weight_settings(layout, context, brush, compact=True)
+
+        layout.popover("VIEW3D_PT_tools_grease_pencil_weight_options", text="Options")
+        layout.popover("VIEW3D_PT_tools_grease_pencil_brush_weight_falloff", text="Falloff")
 
         return True
 
@@ -1800,6 +1803,11 @@ class VIEW3D_MT_select_edit_text(Menu):
         layout = self.layout
 
         layout.operator("font.select_all", text="All")
+
+        layout.separator()
+
+        layout.operator("font.move_select", text="Top").type = 'TEXT_BEGIN'
+        layout.operator("font.move_select", text="Bottom").type = 'TEXT_END'
 
         layout.separator()
 
@@ -7657,12 +7665,10 @@ class VIEW3D_PT_gpencil_weight_context_menu(Panel):
         tool_settings = context.tool_settings
         settings = tool_settings.gpencil_weight_paint
         brush = settings.brush
-
         layout = self.layout
 
-        layout.prop(brush, "size", slider=True)
-        layout.prop(brush, "strength")
-        layout.prop(brush, "weight")
+        # Weight settings
+        brush_basic_gpencil_weight_settings(layout, context, brush)
 
         # Layers
         draw_gpencil_layer_active(context, layout)

@@ -28,6 +28,7 @@ static size_t estimate_single_state_size(const uint kernel_features)
 #define KERNEL_STRUCT_ARRAY_MEMBER(parent_struct, type, name, feature) \
   state_size += (kernel_features & (feature)) ? sizeof(type) : 0;
 #define KERNEL_STRUCT_END(name) \
+  (void)array_index; \
   break; \
   }
 #define KERNEL_STRUCT_END_ARRAY(name, cpu_array_size, gpu_array_size) \
@@ -139,6 +140,7 @@ void PathTraceWorkGPU::alloc_integrator_soa()
     integrator_state_gpu_.parent_struct[array_index].name = (type *)array->device_pointer; \
   }
 #define KERNEL_STRUCT_END(name) \
+  (void)array_index; \
   break; \
   }
 #define KERNEL_STRUCT_END_ARRAY(name, cpu_array_size, gpu_array_size) \
@@ -299,8 +301,8 @@ void PathTraceWorkGPU::render_samples(RenderStatistics &statistics,
    * become busy after adding new tiles). This is especially important for the shadow catcher which
    * schedules work in halves of available number of paths. */
   work_tile_scheduler_.set_max_num_path_states(max_num_paths_ / 8);
-  work_tile_scheduler_.set_accelerated_rt((device_->get_bvh_layout_mask() & BVH_LAYOUT_OPTIX) !=
-                                          0);
+  work_tile_scheduler_.set_accelerated_rt(
+      (device_->get_bvh_layout_mask(device_scene_->data.kernel_features) & BVH_LAYOUT_OPTIX) != 0);
   work_tile_scheduler_.reset(effective_buffer_params_,
                              start_sample,
                              samples_num,

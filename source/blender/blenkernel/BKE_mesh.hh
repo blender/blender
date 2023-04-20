@@ -210,11 +210,11 @@ inline int edge_other_vert(const int2 &edge, const int vert)
 
 /** \} */
 
+}  // namespace blender::bke::mesh
+
 /* -------------------------------------------------------------------- */
 /** \name Inline Mesh Data Access
  * \{ */
-
-}  // namespace blender::bke::mesh
 
 inline blender::Span<blender::float3> Mesh::vert_positions() const
 {

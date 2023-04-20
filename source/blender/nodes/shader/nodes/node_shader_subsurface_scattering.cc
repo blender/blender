@@ -87,6 +87,7 @@ void register_node_type_sh_subsurface_scattering()
   sh_node_type_base(
       &ntype, SH_NODE_SUBSURFACE_SCATTERING, "Subsurface Scattering", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
+  ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_subsurface;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   ntype.initfunc = file_ns::node_shader_init_subsurface_scattering;

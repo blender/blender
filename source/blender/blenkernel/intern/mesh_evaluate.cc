@@ -623,7 +623,7 @@ void BKE_mesh_flush_hidden_from_verts(Mesh *me)
   using namespace blender::bke;
   MutableAttributeAccessor attributes = me->attributes_for_write();
 
-  const VArray<bool> hide_vert = attributes.lookup_or_default<bool>(
+  const VArray<bool> hide_vert = *attributes.lookup_or_default<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT, false);
   if (hide_vert.is_single() && !hide_vert.get_internal_single()) {
     attributes.remove(".hide_edge");
@@ -662,7 +662,7 @@ void BKE_mesh_flush_hidden_from_polys(Mesh *me)
   using namespace blender::bke;
   MutableAttributeAccessor attributes = me->attributes_for_write();
 
-  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
+  const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE, false);
   if (hide_poly.is_single() && !hide_poly.get_internal_single()) {
     attributes.remove(".hide_vert");
@@ -705,7 +705,7 @@ void BKE_mesh_flush_select_from_polys(Mesh *me)
 {
   using namespace blender::bke;
   MutableAttributeAccessor attributes = me->attributes_for_write();
-  const VArray<bool> select_poly = attributes.lookup_or_default<bool>(
+  const VArray<bool> select_poly = *attributes.lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
   if (select_poly.is_single() && !select_poly.get_internal_single()) {
     attributes.remove(".select_vert");
@@ -720,9 +720,9 @@ void BKE_mesh_flush_select_from_polys(Mesh *me)
   /* Use generic domain interpolation to read the polygon attribute on the other domains.
    * Assume selected faces are not hidden and none of their vertices/edges are hidden. */
   attributes.lookup_or_default<bool>(".select_poly", ATTR_DOMAIN_POINT, false)
-      .materialize(select_vert.span);
+      .varray.materialize(select_vert.span);
   attributes.lookup_or_default<bool>(".select_poly", ATTR_DOMAIN_EDGE, false)
-      .materialize(select_edge.span);
+      .varray.materialize(select_edge.span);
 
   select_vert.finish();
   select_edge.finish();
@@ -759,7 +759,7 @@ void BKE_mesh_flush_select_from_verts(Mesh *me)
 {
   using namespace blender::bke;
   MutableAttributeAccessor attributes = me->attributes_for_write();
-  const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+  const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
   if (select_vert.is_single() && !select_vert.get_internal_single()) {
     attributes.remove(".select_edge");
@@ -774,8 +774,8 @@ void BKE_mesh_flush_select_from_verts(Mesh *me)
       me->edges(),
       me->polys(),
       me->corner_verts(),
-      attributes.lookup_or_default<bool>(".hide_edge", ATTR_DOMAIN_EDGE, false),
-      attributes.lookup_or_default<bool>(".hide_poly", ATTR_DOMAIN_FACE, false),
+      *attributes.lookup_or_default<bool>(".hide_edge", ATTR_DOMAIN_EDGE, false),
+      *attributes.lookup_or_default<bool>(".hide_poly", ATTR_DOMAIN_FACE, false),
       select_vert,
       select_edge.span,
       select_poly.span);

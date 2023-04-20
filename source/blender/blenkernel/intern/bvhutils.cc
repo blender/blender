@@ -1280,7 +1280,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
       blender::bke::AttributeAccessor attributes = mesh->attributes();
       mask = looptri_no_hidden_map_get(
           mesh->polys(),
-          attributes.lookup_or_default(".hide_poly", ATTR_DOMAIN_FACE, false),
+          *attributes.lookup_or_default(".hide_poly", ATTR_DOMAIN_FACE, false),
           looptris.size(),
           &mask_bits_act_len);
       ATTR_FALLTHROUGH;

@@ -646,8 +646,8 @@ TEST(map, RemoveIf)
   for (const int64_t i : IndexRange(100)) {
     map.add(i * i, i);
   }
-  map.remove_if([](auto item) { return item.key > 100; });
-  EXPECT_EQ(map.size(), 11);
+  const int64_t removed = map.remove_if([](auto item) { return item.key > 100; });
+  EXPECT_EQ(map.size() + removed, 100);
   for (const int64_t i : IndexRange(100)) {
     if (i <= 10) {
       EXPECT_EQ(map.lookup(i * i), i);

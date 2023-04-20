@@ -21,6 +21,8 @@ typedef struct DispatchCommand DispatchCommand;
 typedef struct DRWDebugPrintBuffer DRWDebugPrintBuffer;
 typedef struct DRWDebugVert DRWDebugVert;
 typedef struct DRWDebugDrawBuffer DRWDebugDrawBuffer;
+typedef struct FrustumCorners FrustumCorners;
+typedef struct FrustumPlanes FrustumPlanes;
 
 /* __cplusplus is true when compiling with MSL. */
 #  if defined(__cplusplus) && !defined(GPU_SHADER)
@@ -94,11 +96,27 @@ uint drw_view_id = 0;
 #  define DRW_VIEW_FROM_RESOURCE_ID drw_view_id = (drw_ResourceID & DRW_VIEW_MASK)
 #endif
 
+struct FrustumCorners {
+  float4 corners[8];
+};
+BLI_STATIC_ASSERT_ALIGN(FrustumCorners, 16)
+
+struct FrustumPlanes {
+  /* [0] left
+   * [1] right
+   * [2] bottom
+   * [3] top
+   * [4] near
+   * [5] far */
+  float4 planes[6];
+};
+BLI_STATIC_ASSERT_ALIGN(FrustumPlanes, 16)
+
 struct ViewCullingData {
   /** \note vec3 array padded to vec4. */
   /** Frustum corners. */
-  float4 corners[8];
-  float4 planes[6];
+  FrustumCorners frustum_corners;
+  FrustumPlanes frustum_planes;
   float4 bound_sphere;
 };
 BLI_STATIC_ASSERT_ALIGN(ViewCullingData, 16)

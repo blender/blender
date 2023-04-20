@@ -35,7 +35,7 @@ bool CUDADevice::have_precompiled_kernels()
   return path_exists(cubins_path);
 }
 
-BVHLayoutMask CUDADevice::get_bvh_layout_mask() const
+BVHLayoutMask CUDADevice::get_bvh_layout_mask(uint /*kernel_features*/) const
 {
   return BVH_LAYOUT_BVH2;
 }

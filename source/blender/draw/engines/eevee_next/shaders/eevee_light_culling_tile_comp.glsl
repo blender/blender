@@ -168,13 +168,15 @@ void main()
         }
         /* Fallthrough to the hemispheric case. */
       case LIGHT_RECT:
-      case LIGHT_ELLIPSE:
+      case LIGHT_ELLIPSE: {
         vec3 v000 = vP - v_right * radius - v_up * radius;
         vec3 v100 = v000 + v_right * (radius * 2.0);
         vec3 v010 = v000 + v_up * (radius * 2.0);
         vec3 v001 = v000 - v_back * radius;
         Box bbox = shape_box(v000, v100, v010, v001);
         intersect_tile = intersect_tile && intersect(tile, bbox);
+        break;
+      }
       default:
         break;
     }

@@ -13,8 +13,13 @@
 #  include <embree3/rtcore_scene.h>
 #endif
 
-#include "kernel/device/cpu/compat.h"
-#include "kernel/device/cpu/globals.h"
+#ifdef __KERNEL_ONEAPI__
+#  include "kernel/device/oneapi/compat.h"
+#  include "kernel/device/oneapi/globals.h"
+#else
+#  include "kernel/device/cpu/compat.h"
+#  include "kernel/device/cpu/globals.h"
+#endif
 
 #include "kernel/bvh/types.h"
 #include "kernel/bvh/util.h"
@@ -33,11 +38,16 @@ using numhit_t = uint8_t;
 using numhit_t = uint32_t;
 #endif
 
-#define CYCLES_EMBREE_USED_FEATURES \
-  (RTCFeatureFlags)(RTC_FEATURE_FLAG_TRIANGLE | RTC_FEATURE_FLAG_INSTANCE | \
-                    RTC_FEATURE_FLAG_FILTER_FUNCTION_IN_ARGUMENTS | RTC_FEATURE_FLAG_POINT | \
-                    RTC_FEATURE_FLAG_MOTION_BLUR | RTC_FEATURE_FLAG_ROUND_CATMULL_ROM_CURVE | \
-                    RTC_FEATURE_FLAG_FLAT_CATMULL_ROM_CURVE)
+#ifdef __KERNEL_ONEAPI__
+#  define CYCLES_EMBREE_USED_FEATURES \
+    (kernel_handler.get_specialization_constant<oneapi_embree_features>())
+#else
+#  define CYCLES_EMBREE_USED_FEATURES \
+    (RTCFeatureFlags)(RTC_FEATURE_FLAG_TRIANGLE | RTC_FEATURE_FLAG_INSTANCE | \
+                      RTC_FEATURE_FLAG_FILTER_FUNCTION_IN_ARGUMENTS | RTC_FEATURE_FLAG_POINT | \
+                      RTC_FEATURE_FLAG_MOTION_BLUR | RTC_FEATURE_FLAG_ROUND_CATMULL_ROM_CURVE | \
+                      RTC_FEATURE_FLAG_FLAT_CATMULL_ROM_CURVE)
+#endif
 
 #define EMBREE_IS_HAIR(x) (x & 1)
 
@@ -252,7 +262,8 @@ ccl_device_inline void kernel_embree_convert_sss_hit(KernelGlobals kg,
  * Things like recording subsurface or shadow hits for later evaluation
  * as well as filtering for volume objects happen here.
  * Cycles' own BVH does that directly inside the traversal calls. */
-ccl_device void kernel_embree_filter_intersection_func(const RTCFilterFunctionNArguments *args)
+ccl_device_forceinline void kernel_embree_filter_intersection_func_impl(
+    const RTCFilterFunctionNArguments *args)
 {
   /* Current implementation in Cycles assumes only single-ray intersection queries. */
   assert(args->N == 1);
@@ -263,7 +274,11 @@ ccl_device void kernel_embree_filter_intersection_func(const RTCFilterFunctionNA
 #else
   CCLIntersectContext *ctx = (CCLIntersectContext *)(args->context);
 #endif
+#ifdef __KERNEL_ONEAPI__
+  KernelGlobalsGPU *kg = nullptr;
+#else
   const KernelGlobalsCPU *kg = ctx->kg;
+#endif
   const Ray *cray = ctx->ray;
 
   if (kernel_embree_is_self_intersection(
@@ -277,7 +292,7 @@ ccl_device void kernel_embree_filter_intersection_func(const RTCFilterFunctionNA
  * as well as filtering for volume objects happen here.
  * Cycles' own BVH does that directly inside the traversal calls.
  */
-ccl_device void kernel_embree_filter_occluded_shadow_all_func(
+ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
     const RTCFilterFunctionNArguments *args)
 {
   /* Current implementation in Cycles assumes only single-ray intersection queries. */
@@ -290,7 +305,11 @@ ccl_device void kernel_embree_filter_occluded_shadow_all_func(
 #else
   CCLIntersectContext *ctx = (CCLIntersectContext *)(args->context);
 #endif
+#ifdef __KERNEL_ONEAPI__
+  KernelGlobalsGPU *kg = nullptr;
+#else
   const KernelGlobalsCPU *kg = ctx->kg;
+#endif
   const Ray *cray = ctx->ray;
 
   Intersection current_isect;
@@ -326,7 +345,7 @@ ccl_device void kernel_embree_filter_occluded_shadow_all_func(
   }
 
   /* Test if we need to record this transparent intersection. */
-  const numhit_t max_record_hits = min(ctx->max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
+  const numhit_t max_record_hits = min(ctx->max_hits, numhit_t(INTEGRATOR_SHADOW_ISECT_SIZE));
   if (ctx->num_recorded_hits < max_record_hits) {
     /* If maximum number of hits was reached, replace the intersection with the
      * highest distance. We want to find the N closest intersections. */
@@ -363,7 +382,7 @@ ccl_device void kernel_embree_filter_occluded_shadow_all_func(
   *args->valid = 0;
 }
 
-ccl_device_forceinline void kernel_embree_filter_occluded_local_func(
+ccl_device_forceinline void kernel_embree_filter_occluded_local_func_impl(
     const RTCFilterFunctionNArguments *args)
 {
   /* Current implementation in Cycles assumes only single-ray intersection queries. */
@@ -376,7 +395,11 @@ ccl_device_forceinline void kernel_embree_filter_occluded_local_func(
 #else
   CCLIntersectContext *ctx = (CCLIntersectContext *)(args->context);
 #endif
+#ifdef __KERNEL_ONEAPI__
+  KernelGlobalsGPU *kg = nullptr;
+#else
   const KernelGlobalsCPU *kg = ctx->kg;
+#endif
   const Ray *cray = ctx->ray;
 
   /* Check if it's hitting the correct object. */
@@ -462,7 +485,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_local_func(
   *args->valid = 0;
 }
 
-ccl_device_forceinline void kernel_embree_filter_occluded_volume_all_func(
+ccl_device_forceinline void kernel_embree_filter_occluded_volume_all_func_impl(
     const RTCFilterFunctionNArguments *args)
 {
   /* Current implementation in Cycles assumes only single-ray intersection queries. */
@@ -475,7 +498,11 @@ ccl_device_forceinline void kernel_embree_filter_occluded_volume_all_func(
 #else
   CCLIntersectContext *ctx = (CCLIntersectContext *)(args->context);
 #endif
+#ifdef __KERNEL_ONEAPI__
+  KernelGlobalsGPU *kg = nullptr;
+#else
   const KernelGlobalsCPU *kg = ctx->kg;
+#endif
   const Ray *cray = ctx->ray;
 
   /* Append the intersection to the end of the array. */
@@ -513,14 +540,14 @@ ccl_device_forceinline void kernel_embree_filter_occluded_func(
 
   switch (ctx->type) {
     case CCLIntersectContext::RAY_SHADOW_ALL:
-      kernel_embree_filter_occluded_shadow_all_func(args);
+      kernel_embree_filter_occluded_shadow_all_func_impl(args);
       break;
     case CCLIntersectContext::RAY_LOCAL:
     case CCLIntersectContext::RAY_SSS:
-      kernel_embree_filter_occluded_local_func(args);
+      kernel_embree_filter_occluded_local_func_impl(args);
       break;
     case CCLIntersectContext::RAY_VOLUME_ALL:
-      kernel_embree_filter_occluded_volume_all_func(args);
+      kernel_embree_filter_occluded_volume_all_func_impl(args);
       break;
 
     case CCLIntersectContext::RAY_REGULAR:
@@ -569,7 +596,63 @@ ccl_device void kernel_embree_filter_occluded_func_backface_cull(
 
   kernel_embree_filter_occluded_func(args);
 }
+#endif
 
+#ifdef __KERNEL_ONEAPI__
+/* Static wrappers so we can call the callbacks from out side the ONEAPIKernelContext class */
+RTC_SYCL_INDIRECTLY_CALLABLE static void ccl_always_inline
+kernel_embree_filter_intersection_func_static(const RTCFilterFunctionNArguments *args)
+{
+  RTCHit *hit = (RTCHit *)args->hit;
+  CCLFirstHitContext *ctx = (CCLFirstHitContext *)(args->context);
+  ONEAPIKernelContext *context = static_cast<ONEAPIKernelContext *>(ctx->kg);
+  context->kernel_embree_filter_intersection_func_impl(args);
+}
+
+RTC_SYCL_INDIRECTLY_CALLABLE static void ccl_always_inline
+kernel_embree_filter_occluded_shadow_all_func_static(const RTCFilterFunctionNArguments *args)
+{
+  RTCHit *hit = (RTCHit *)args->hit;
+  CCLShadowContext *ctx = (CCLShadowContext *)(args->context);
+  ONEAPIKernelContext *context = static_cast<ONEAPIKernelContext *>(ctx->kg);
+  context->kernel_embree_filter_occluded_shadow_all_func_impl(args);
+}
+
+RTC_SYCL_INDIRECTLY_CALLABLE static void ccl_always_inline
+kernel_embree_filter_occluded_local_func_static(const RTCFilterFunctionNArguments *args)
+{
+  RTCHit *hit = (RTCHit *)args->hit;
+  CCLLocalContext *ctx = (CCLLocalContext *)(args->context);
+  ONEAPIKernelContext *context = static_cast<ONEAPIKernelContext *>(ctx->kg);
+  context->kernel_embree_filter_occluded_local_func_impl(args);
+}
+
+RTC_SYCL_INDIRECTLY_CALLABLE static void ccl_always_inline
+kernel_embree_filter_occluded_volume_all_func_static(const RTCFilterFunctionNArguments *args)
+{
+  RTCHit *hit = (RTCHit *)args->hit;
+  CCLVolumeContext *ctx = (CCLVolumeContext *)(args->context);
+  ONEAPIKernelContext *context = static_cast<ONEAPIKernelContext *>(ctx->kg);
+  context->kernel_embree_filter_occluded_volume_all_func_impl(args);
+}
+
+#  define kernel_embree_filter_intersection_func \
+    ONEAPIKernelContext::kernel_embree_filter_intersection_func_static
+#  define kernel_embree_filter_occluded_shadow_all_func \
+    ONEAPIKernelContext::kernel_embree_filter_occluded_shadow_all_func_static
+#  define kernel_embree_filter_occluded_local_func \
+    ONEAPIKernelContext::kernel_embree_filter_occluded_local_func_static
+#  define kernel_embree_filter_occluded_volume_all_func \
+    ONEAPIKernelContext::kernel_embree_filter_occluded_volume_all_func_static
+#else
+#  define kernel_embree_filter_intersection_func kernel_embree_filter_intersection_func_impl
+#  if EMBREE_MAJOR_VERSION >= 4
+#    define kernel_embree_filter_occluded_shadow_all_func \
+      kernel_embree_filter_occluded_shadow_all_func_impl
+#    define kernel_embree_filter_occluded_local_func kernel_embree_filter_occluded_local_func_impl
+#    define kernel_embree_filter_occluded_volume_all_func \
+      kernel_embree_filter_occluded_volume_all_func_impl
+#  endif
 #endif
 
 /* Scene intersection. */
@@ -583,7 +666,15 @@ ccl_device_intersect bool kernel_embree_intersect(KernelGlobals kg,
 #if EMBREE_MAJOR_VERSION >= 4
   CCLFirstHitContext ctx;
   rtcInitRayQueryContext(&ctx);
+#  ifdef __KERNEL_ONEAPI__
+  /* NOTE(sirgienko): Cycles GPU back-ends passes NULL to KernelGlobals and
+   * uses global device allocation (CUDA, Optix, HIP) or passes all needed data
+   * as a class context (Metal, oneAPI). So we need to pass this context here
+   * in order to have an access to it later in Embree filter functions on GPU. */
+  ctx.kg = (KernelGlobals)this;
+#  else
   ctx.kg = kg;
+#  endif
 #else
   CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_REGULAR);
   rtcInitIntersectContext(&ctx);
@@ -596,7 +687,7 @@ ccl_device_intersect bool kernel_embree_intersect(KernelGlobals kg,
 #if EMBREE_MAJOR_VERSION >= 4
   RTCIntersectArguments args;
   rtcInitIntersectArguments(&args);
-  args.filter = (RTCFilterFunctionN)kernel_embree_filter_intersection_func;
+  args.filter = reinterpret_cast<RTCFilterFunctionN>(kernel_embree_filter_intersection_func);
   args.feature_mask = CYCLES_EMBREE_USED_FEATURES;
   args.context = &ctx;
   rtcIntersect1(kernel_data.device_bvh, &ray_hit, &args);
@@ -625,7 +716,15 @@ ccl_device_intersect bool kernel_embree_intersect_local(KernelGlobals kg,
 #  if EMBREE_MAJOR_VERSION >= 4
   CCLLocalContext ctx;
   rtcInitRayQueryContext(&ctx);
+#    ifdef __KERNEL_ONEAPI__
+  /* NOTE(sirgienko): Cycles GPU back-ends passes NULL to KernelGlobals and
+   * uses global device allocation (CUDA, Optix, HIP) or passes all needed data
+   * as a class context (Metal, oneAPI). So we need to pass this context here
+   * in order to have an access to it later in Embree filter functions on GPU. */
+  ctx.kg = (KernelGlobals)this;
+#    else
   ctx.kg = kg;
+#    endif
 #  else
   CCLIntersectContext ctx(kg,
                           has_bvh ? CCLIntersectContext::RAY_SSS : CCLIntersectContext::RAY_LOCAL);
@@ -646,7 +745,7 @@ ccl_device_intersect bool kernel_embree_intersect_local(KernelGlobals kg,
 #  if EMBREE_MAJOR_VERSION >= 4
   RTCOccludedArguments args;
   rtcInitOccludedArguments(&args);
-  args.filter = (RTCFilterFunctionN)(kernel_embree_filter_occluded_local_func);
+  args.filter = reinterpret_cast<RTCFilterFunctionN>(kernel_embree_filter_occluded_local_func);
   args.feature_mask = CYCLES_EMBREE_USED_FEATURES;
   args.context = &ctx;
 #  endif
@@ -692,7 +791,7 @@ ccl_device_intersect bool kernel_embree_intersect_local(KernelGlobals kg,
 
 #ifdef __SHADOW_RECORD_ALL__
 ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
-                                                             IntegratorShadowStateCPU *state,
+                                                             IntegratorShadowState state,
                                                              ccl_private const Ray *ray,
                                                              uint visibility,
                                                              uint max_hits,
@@ -702,7 +801,15 @@ ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
 #  if EMBREE_MAJOR_VERSION >= 4
   CCLShadowContext ctx;
   rtcInitRayQueryContext(&ctx);
+#    ifdef __KERNEL_ONEAPI__
+  /* NOTE(sirgienko): Cycles GPU back-ends passes NULL to KernelGlobals and
+   * uses global device allocation (CUDA, Optix, HIP) or passes all needed data
+   * as a class context (Metal, oneAPI). So we need to pass this context here
+   * in order to have an access to it later in Embree filter functions on GPU. */
+  ctx.kg = (KernelGlobals)this;
+#    else
   ctx.kg = kg;
+#    endif
 #  else
   CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_SHADOW_ALL);
   rtcInitIntersectContext(&ctx);
@@ -718,7 +825,8 @@ ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
 #  if EMBREE_MAJOR_VERSION >= 4
   RTCOccludedArguments args;
   rtcInitOccludedArguments(&args);
-  args.filter = (RTCFilterFunctionN)kernel_embree_filter_occluded_shadow_all_func;
+  args.filter = reinterpret_cast<RTCFilterFunctionN>(
+      kernel_embree_filter_occluded_shadow_all_func);
   args.feature_mask = CYCLES_EMBREE_USED_FEATURES;
   args.context = &ctx;
   rtcOccluded1(kernel_data.device_bvh, &rtc_ray, &args);
@@ -742,7 +850,15 @@ ccl_device_intersect uint kernel_embree_intersect_volume(KernelGlobals kg,
 #  if EMBREE_MAJOR_VERSION >= 4
   CCLVolumeContext ctx;
   rtcInitRayQueryContext(&ctx);
+#    ifdef __KERNEL_ONEAPI__
+  /* NOTE(sirgienko) Cycles GPU back-ends passes NULL to KernelGlobals and
+   * uses global device allocation (CUDA, Optix, HIP) or passes all needed data
+   * as a class context (Metal, oneAPI). So we need to pass this context here
+   * in order to have an access to it later in Embree filter functions on GPU. */
+  ctx.kg = (KernelGlobals)this;
+#    else
   ctx.kg = kg;
+#    endif
 #  else
   CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_VOLUME_ALL);
   rtcInitIntersectContext(&ctx);
@@ -756,7 +872,8 @@ ccl_device_intersect uint kernel_embree_intersect_volume(KernelGlobals kg,
 #  if EMBREE_MAJOR_VERSION >= 4
   RTCOccludedArguments args;
   rtcInitOccludedArguments(&args);
-  args.filter = (RTCFilterFunctionN)kernel_embree_filter_occluded_volume_all_func;
+  args.filter = reinterpret_cast<RTCFilterFunctionN>(
+      kernel_embree_filter_occluded_volume_all_func);
   args.feature_mask = CYCLES_EMBREE_USED_FEATURES;
   args.context = &ctx;
   rtcOccluded1(kernel_data.device_bvh, &rtc_ray, &args);

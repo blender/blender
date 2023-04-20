@@ -82,20 +82,21 @@ static void fill_rotation_attribute(const Span<float3> tangents,
 static void copy_curve_domain_attributes(const AttributeAccessor curve_attributes,
                                          MutableAttributeAccessor point_attributes)
 {
-  curve_attributes.for_all([&](const bke::AttributeIDRef &id,
-                               const bke::AttributeMetaData &meta_data) {
-    if (curve_attributes.is_builtin(id)) {
-      return true;
-    }
-    if (meta_data.domain != ATTR_DOMAIN_CURVE) {
-      return true;
-    }
-    point_attributes.add(id,
-                         ATTR_DOMAIN_POINT,
-                         meta_data.data_type,
-                         bke::AttributeInitVArray(curve_attributes.lookup(id, ATTR_DOMAIN_POINT)));
-    return true;
-  });
+  curve_attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData &meta_data) {
+        if (curve_attributes.is_builtin(id)) {
+          return true;
+        }
+        if (meta_data.domain != ATTR_DOMAIN_CURVE) {
+          return true;
+        }
+        point_attributes.add(
+            id,
+            ATTR_DOMAIN_POINT,
+            meta_data.data_type,
+            bke::AttributeInitVArray(*curve_attributes.lookup(id, ATTR_DOMAIN_POINT)));
+        return true;
+      });
 }
 
 static PointCloud *pointcloud_from_curves(bke::CurvesGeometry curves,
@@ -108,8 +109,8 @@ static PointCloud *pointcloud_from_curves(bke::CurvesGeometry curves,
 
   if (rotation_id) {
     MutableAttributeAccessor attributes = curves.attributes_for_write();
-    const VArraySpan<float3> tangents = attributes.lookup<float3>(tangent_id, ATTR_DOMAIN_POINT);
-    const VArraySpan<float3> normals = attributes.lookup<float3>(normal_id, ATTR_DOMAIN_POINT);
+    const VArraySpan tangents = *attributes.lookup<float3>(tangent_id, ATTR_DOMAIN_POINT);
+    const VArraySpan normals = *attributes.lookup<float3>(normal_id, ATTR_DOMAIN_POINT);
     SpanAttributeWriter<float3> rotations = attributes.lookup_or_add_for_write_only_span<float3>(
         rotation_id, ATTR_DOMAIN_POINT);
     fill_rotation_attribute(tangents, normals, rotations.span);

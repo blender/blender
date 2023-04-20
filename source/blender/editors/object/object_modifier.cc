@@ -1107,7 +1107,7 @@ static bool modifier_apply_obdata(
     /* Copy the relevant information to the original. */
     Main *bmain = DEG_get_bmain(depsgraph);
     BKE_object_material_from_eval_data(bmain, ob, &pointcloud_eval->id);
-    BKE_pointcloud_nomain_to_pointcloud(pointcloud_eval, &points, true);
+    BKE_pointcloud_nomain_to_pointcloud(pointcloud_eval, &points);
   }
   else {
     /* TODO: implement for volumes. */

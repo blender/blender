@@ -335,18 +335,6 @@ if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_
   unset(_sycl_runtime_libraries)
 endif()
 
-if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
-  if(WITH_CYCLES_ONEAPI_BINARIES)
-    set(cycles_kernel_oneapi_lib_suffix "_aot")
-  else()
-    set(cycles_kernel_oneapi_lib_suffix "_jit")
-  endif()
-  list(APPEND PLATFORM_BUNDLED_LIBRARIES
-    ${CMAKE_CURRENT_BINARY_DIR}/intern/cycles/kernel/libcycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.so
-  )
-  unset(cycles_kernel_oneapi_lib_suffix)
-endif()
-
 if(WITH_OPENVDB)
   find_package(OpenVDB)
   set_and_warn_library_found("OpenVDB" OPENVDB_FOUND WITH_OPENVDB)
@@ -815,8 +803,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
   # Automatically turned on when building with "-march=native". This is
   # explicitly turned off here as it will make floating point math give a bit
   # different results. This will lead to automated test failures. So disable
-  # this until we support it. Seems to default to off in clang and the intel
-  # compiler.
+  # this until we support it.
   set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -ffp-contract=off")
 
   # `maybe-uninitialized` is unreliable in release builds, but fine in debug builds.
@@ -904,7 +891,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
 # CLang is the same as GCC for now.
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
-  set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
+  set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -ffp-contract=off")
 
   if(WITH_LINKER_MOLD AND _IS_LINKER_DEFAULT)
     find_program(MOLD_BIN "mold")

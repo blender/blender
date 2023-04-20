@@ -164,9 +164,9 @@ struct AddOperationExecutor {
     /* Find UV map. */
     VArraySpan<float2> surface_uv_map;
     if (curves_id_orig_->surface_uv_map != nullptr) {
-      surface_uv_map = surface_orig.attributes().lookup<float2>(curves_id_orig_->surface_uv_map,
-                                                                ATTR_DOMAIN_CORNER);
-      surface_uv_map_eval_ = surface_eval_->attributes().lookup<float2>(
+      surface_uv_map = *surface_orig.attributes().lookup<float2>(curves_id_orig_->surface_uv_map,
+                                                                 ATTR_DOMAIN_CORNER);
+      surface_uv_map_eval_ = *surface_eval_->attributes().lookup<float2>(
           curves_id_orig_->surface_uv_map, ATTR_DOMAIN_CORNER);
     }
 

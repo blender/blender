@@ -25,16 +25,23 @@ struct AddNodeInfo {
 };
 
 class GatherAddNodeSearchParams {
+  const bContext &C_;
   const bNodeType &node_type_;
   const bNodeTree &node_tree_;
   Vector<AddNodeInfo> &r_items;
 
  public:
-  GatherAddNodeSearchParams(const bNodeType &node_type,
+  GatherAddNodeSearchParams(const bContext &C,
+                            const bNodeType &node_type,
                             const bNodeTree &node_tree,
                             Vector<AddNodeInfo> &r_items)
-      : node_type_(node_type), node_tree_(node_tree), r_items(r_items)
+      : C_(C), node_type_(node_type), node_tree_(node_tree), r_items(r_items)
   {
+  }
+
+  const bContext &context() const
+  {
+    return C_;
   }
 
   const bNodeTree &node_tree() const

@@ -3120,7 +3120,6 @@ void write_obj_mesh(IMesh &m, const std::string &objname)
     const double3 dv = v->co;
     f << "v " << dv[0] << " " << dv[1] << " " << dv[2] << "\n";
   }
-  int i = 0;
   for (const Face *face : m.faces()) {
     /* OBJ files use 1-indexing for vertices. */
     f << "f ";
@@ -3131,7 +3130,6 @@ void write_obj_mesh(IMesh &m, const std::string &objname)
       f << i + 1 << " ";
     }
     f << "\n";
-    ++i;
   }
   f.close();
 }

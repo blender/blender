@@ -135,7 +135,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 
   /* Output mesh will be all smooth or all flat shading. */
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
+  const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
       "sharp_face", ATTR_DOMAIN_FACE, false);
   const bool smooth_normals = !sharp_faces[0];
 
@@ -778,7 +778,7 @@ static Mesh *remesh_symmetry_bisect(Mesh *mesh, eSymmetryAxes symmetry_axes)
   mmd.tolerance = QUADRIFLOW_MIRROR_BISECT_TOLERANCE;
 
   Mesh *mesh_bisect, *mesh_bisect_temp;
-  mesh_bisect = BKE_mesh_copy_for_eval(mesh, false);
+  mesh_bisect = BKE_mesh_copy_for_eval(mesh);
 
   int axis;
   float plane_co[3], plane_no[3];
@@ -860,7 +860,7 @@ static void quadriflow_start_job(void *customdata, bool *stop, bool *do_update, 
 
   /* Run Quadriflow bisect operations on a copy of the mesh to keep the code readable without
    * freeing the original ID */
-  bisect_mesh = BKE_mesh_copy_for_eval(mesh, false);
+  bisect_mesh = BKE_mesh_copy_for_eval(mesh);
 
   /* Bisect the input mesh using the paint symmetry settings */
   bisect_mesh = remesh_symmetry_bisect(bisect_mesh, qj->symmetry_axes);

@@ -2127,7 +2127,7 @@ void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
   }
 
   const AttributeAccessor attributes = mesh->attributes();
-  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
+  const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE, false);
   if (hide_poly.is_single() && !hide_poly.get_internal_single()) {
     /* Nothing is hidden, so we can just remove all visibility bitmaps. */

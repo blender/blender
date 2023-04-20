@@ -131,14 +131,16 @@ class InstancePositionAttributeProvider final : public BuiltinAttributeProvider 
   {
   }
 
-  GVArray try_get_for_read(const void *owner) const final
+  GAttributeReader try_get_for_read(const void *owner) const final
   {
     const Instances *instances = static_cast<const Instances *>(owner);
     if (instances == nullptr) {
       return {};
     }
     Span<float4x4> transforms = instances->transforms();
-    return VArray<float3>::ForDerivedSpan<float4x4, get_transform_position>(transforms);
+    return {VArray<float3>::ForDerivedSpan<float4x4, get_transform_position>(transforms),
+            domain_,
+            nullptr};
   }
 
   GAttributeWriter try_get_for_write(void *owner) const final
@@ -200,8 +202,6 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
                                            BuiltinAttributeProvider::Creatable,
                                            BuiltinAttributeProvider::Deletable,
                                            instance_custom_data_access,
-                                           make_array_read_attribute<int>,
-                                           make_array_write_attribute<int>,
                                            nullptr);
 
   static CustomDataAttributeProvider instance_custom_data(ATTR_DOMAIN_INSTANCE,

@@ -489,7 +489,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
   /* Use the filename as the default name given to the initial object. */
   char ob_name[FILE_MAXFILE];
   BLI_strncpy(ob_name, BLI_path_basename(import_params_.filepath), FILE_MAXFILE);
-  BLI_path_extension_replace(ob_name, FILE_MAXFILE, "");
+  BLI_path_extension_strip(ob_name);
 
   Geometry *curr_geom = create_geometry(nullptr, GEOM_MESH, ob_name, r_all_geometries);
 

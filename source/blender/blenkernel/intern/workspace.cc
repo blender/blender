@@ -511,6 +511,32 @@ void BKE_workspace_tool_remove(struct WorkSpace *workspace, struct bToolRef *tre
   MEM_freeN(tref);
 }
 
+void BKE_workspace_tool_id_replace_table(struct WorkSpace *workspace,
+                                         const int space_type,
+                                         const int mode,
+                                         const char *idname_prefix_skip,
+                                         const char *replace_table[][2],
+                                         int replace_table_num)
+{
+  const size_t idname_prefix_len = idname_prefix_skip ? strlen(idname_prefix_skip) : 0;
+  const size_t idname_suffix_len = sizeof(((bToolRef *)nullptr)->idname) - idname_prefix_len;
+
+  LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
+    if (!(tref->space_type == space_type && tref->mode == mode)) {
+      continue;
+    }
+    char *idname_suffix = tref->idname;
+    if (idname_prefix_skip) {
+      if (!STRPREFIX(idname_suffix, idname_prefix_skip)) {
+        continue;
+      }
+      idname_suffix += idname_prefix_len;
+    }
+    BLI_str_replace_table_exact(
+        idname_suffix, idname_suffix_len, replace_table, replace_table_num);
+  }
+}
+
 bool BKE_workspace_owner_id_check(const WorkSpace *workspace, const char *owner_id)
 {
   if ((*owner_id == '\0') || ((workspace->flags & WORKSPACE_USE_FILTER_BY_ORIGIN) == 0)) {

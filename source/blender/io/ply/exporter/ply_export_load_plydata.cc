@@ -89,7 +89,7 @@ static void generate_vertex_map(const Mesh *mesh,
     const StringRef uv_name = CustomData_get_active_layer_name(&mesh->ldata, CD_PROP_FLOAT2);
     if (!uv_name.is_empty()) {
       const bke::AttributeAccessor attributes = mesh->attributes();
-      uv_map = attributes.lookup<float2>(uv_name, ATTR_DOMAIN_CORNER);
+      uv_map = *attributes.lookup<float2>(uv_name, ATTR_DOMAIN_CORNER);
       export_uv = !uv_map.is_empty();
     }
   }
@@ -245,7 +245,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       if (!name.is_empty()) {
         const bke::AttributeAccessor attributes = mesh->attributes();
         const VArray<ColorGeometry4f> color_attribute =
-            attributes.lookup_or_default<ColorGeometry4f>(
+            *attributes.lookup_or_default<ColorGeometry4f>(
                 name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
         if (!color_attribute.is_empty()) {
           plyData.vertex_colors.reserve(ply_to_vertex.size());

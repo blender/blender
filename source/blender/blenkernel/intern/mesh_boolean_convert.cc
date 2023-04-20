@@ -411,7 +411,7 @@ static void copy_poly_attributes(Mesh *dest_mesh,
   }
 
   /* Fix material indices after they have been transferred as a generic attribute. */
-  const VArray<int> src_material_indices = orig_me->attributes().lookup_or_default<int>(
+  const VArray<int> src_material_indices = *orig_me->attributes().lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   const int src_index = src_material_indices[index_in_orig_me];
   if (material_remap.index_range().contains(src_index)) {
@@ -700,7 +700,7 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
   }
   /* Will calculate edges later. */
   Mesh *result = BKE_mesh_new_nomain_from_template(
-      mim.meshes[0], out_totvert, 0, out_totloop, out_totpoly);
+      mim.meshes[0], out_totvert, 0, out_totpoly, out_totloop);
 
   merge_vertex_loop_poly_customdata_layers(result, mim);
   /* Set the vertex coordinate values and other data. */

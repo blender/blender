@@ -1544,6 +1544,13 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         default=False,
     )
 
+    use_oneapirt: BoolProperty(
+        name="Embree on GPU (Experimental)",
+        description="Embree GPU execution will allow to use hardware ray tracing on Intel GPUs, which will provide better performance. "
+                    "However this support is experimental and some scenes may render incorrectly",
+        default=False,
+    )
+
     kernel_optimization_level: EnumProperty(
         name="Kernel Optimization",
         description="Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. "
@@ -1676,16 +1683,16 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 col.label(text=iface_("and NVIDIA driver version %s or newer") % driver_version,
                           icon='BLANK1', translate=False)
             elif device_type == 'HIP':
-                if True:
-                    col.label(text="HIP temporarily disabled due to compiler bugs", icon='BLANK1')
-                else:
-                    import sys
-                    if sys.platform[:3] == "win":
-                        driver_version = "21.Q4"
-                        col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
-                        col.label(text=iface_("and AMD Radeon Pro %s driver or newer") % driver_version,
-                                  icon='BLANK1', translate=False)
-                    elif sys.platform.startswith("linux"):
+                import sys
+                if sys.platform[:3] == "win":
+                    driver_version = "21.Q4"
+                    col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
+                    col.label(text=iface_("and AMD Radeon Pro %s driver or newer") % driver_version,
+                              icon='BLANK1', translate=False)
+                elif sys.platform.startswith("linux"):
+                    if True:
+                        col.label(text="HIP temporarily disabled due to compiler bugs", icon='BLANK1')
+                    else:
                         driver_version = "22.10"
                         col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
                         col.label(text=iface_("and AMD driver version %s or newer") % driver_version, icon='BLANK1',
@@ -1762,6 +1769,11 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 if is_arm64:
                     col.prop(self, "kernel_optimization_level")
                 col.prop(self, "use_metalrt")
+
+        if compute_device_type == 'ONEAPI' and _cycles.with_embree_gpu:
+            row = layout.row()
+            row.use_property_split = True
+            row.prop(self, "use_oneapirt")
 
     def draw(self, context):
         self.draw_impl(self.layout, context)

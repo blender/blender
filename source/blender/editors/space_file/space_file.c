@@ -613,6 +613,7 @@ static void file_operatortypes(void)
   WM_operatortype_append(FILE_OT_start_filter);
   WM_operatortype_append(FILE_OT_edit_directory_path);
   WM_operatortype_append(FILE_OT_view_selected);
+  WM_operatortype_append(FILE_OT_external_operation);
 }
 
 /* NOTE: do not add .blend file reading on this level */
@@ -1063,6 +1064,7 @@ void ED_spacetype_file(void)
   art->draw = file_tools_region_draw;
   BLI_addhead(&st->regiontypes, art);
   file_tool_props_region_panels_register(art);
+  file_external_operations_menu_register();
 
   BKE_spacetype_register(st);
 }

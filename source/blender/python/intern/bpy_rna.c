@@ -2371,6 +2371,13 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
     RNA_property_collection_begin(&self->ptr, self->prop, &iter);
     for (int i = 0; iter.valid; RNA_property_collection_next(&iter), i++) {
       PropertyRNA *nameprop = RNA_struct_name_property(iter.ptr.type);
+      BLI_assert_msg(
+          nameprop,
+          "Attempted to use a string to index into a collection of items with no 'nameproperty'.");
+      if (nameprop == NULL) {
+        /* For non-debug builds, bail if there's no 'nameproperty' to check. */
+        break;
+      }
       char *nameptr = RNA_property_string_get_alloc(
           &iter.ptr, nameprop, name, sizeof(name), &namelen);
       if ((keylen == namelen) && STREQ(nameptr, keyname)) {

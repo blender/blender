@@ -110,5 +110,3 @@ AxisAngleBase<T, AngleT> to_axis_angle(const Euler3Base<T> &euler)
 /** \} */
 
 }  // namespace blender::math
-
-/** \} */

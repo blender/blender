@@ -102,7 +102,7 @@ static bool vertex_paint_from_weight(Object *ob)
 
   /* Retrieve the vertex group with the domain and type of the existing color
    * attribute, in order to let the attribute API handle both conversions. */
-  const GVArray vertex_group = attributes.lookup(
+  const GVArray vertex_group = *attributes.lookup(
       deform_group->name,
       ATTR_DOMAIN_POINT,
       bke::cpp_type_to_custom_data_type(color_attribute.varray.type()));
@@ -162,13 +162,13 @@ static IndexMask get_selected_indices(const Mesh &mesh,
   const bke::AttributeAccessor attributes = mesh.attributes();
 
   if (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) {
-    const VArray<bool> selection = attributes.lookup_or_default<bool>(
+    const VArray<bool> selection = *attributes.lookup_or_default<bool>(
         ".select_poly", domain, false);
     return index_mask_ops::find_indices_from_virtual_array(
         selection.index_range(), selection, 4096, indices);
   }
   if (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) {
-    const VArray<bool> selection = attributes.lookup_or_default<bool>(
+    const VArray<bool> selection = *attributes.lookup_or_default<bool>(
         ".select_vert", domain, false);
     return index_mask_ops::find_indices_from_virtual_array(
         selection.index_range(), selection, 4096, indices);
@@ -190,7 +190,7 @@ static void face_corner_color_equalize_verts(Mesh &mesh, const IndexMask selecti
     return;
   }
 
-  GVArray color_attribute_point = attributes.lookup(name, ATTR_DOMAIN_POINT);
+  GVArray color_attribute_point = *attributes.lookup(name, ATTR_DOMAIN_POINT);
   GVArray color_attribute_corner = attributes.adapt_domain(
       color_attribute_point, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER);
   color_attribute_corner.materialize(selection, attribute.span.data());

@@ -96,10 +96,13 @@ set(SRC_KERNEL_DEVICE_ONEAPI_HEADERS
   device/oneapi/compat.h
   device/oneapi/context_begin.h
   device/oneapi/context_end.h
+  device/oneapi/context_intersect_begin.h
+  device/oneapi/context_intersect_end.h
   device/oneapi/globals.h
   device/oneapi/image.h
   device/oneapi/kernel.h
   device/oneapi/kernel_templates.h
+  device/cpu/bvh.h
 )
 
 set(SRC_KERNEL_CLOSURE_HEADERS
@@ -764,7 +767,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
 
   # Set defaults for spir64 and spir64_gen options
   if(NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64)
-    set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64 "-options '-ze-opt-large-register-file -ze-opt-regular-grf-kernel integrator_intersect'")
+    set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64 "-options '-ze-opt-regular-grf-kernel integrator_intersect -ze-opt-large-grf-kernel shade -ze-opt-no-local-to-generic'")
   endif()
   if(NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen)
     set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "${CYCLES_ONEAPI_SYCL_OPTIONS_spir64}" CACHE STRING "Extra build options for spir64_gen target")
@@ -776,7 +779,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   # Host execution won't use GPU binaries, no need to compile them.
   if(WITH_CYCLES_ONEAPI_BINARIES AND NOT WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
     # AoT binaries aren't currently reused when calling sycl::build.
-    list(APPEND sycl_compiler_flags -DSYCL_SKIP_KERNELS_PRELOAD)
+    list(APPEND sycl_compiler_flags -DWITH_CYCLES_ONEAPI_BINARIES)
     # Iterate over all targest and their options
     list(JOIN CYCLES_ONEAPI_SYCL_TARGETS "," targets_string)
     list(APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
@@ -796,6 +799,59 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     list(APPEND sycl_compiler_flags
       -DWITH_NANOVDB
       -I"${NANOVDB_INCLUDE_DIR}")
+  endif()
+
+  if(WITH_CYCLES_EMBREE AND EMBREE_SYCL_SUPPORT)
+    list(APPEND sycl_compiler_flags
+      -DWITH_EMBREE
+      -DWITH_EMBREE_GPU
+      -DEMBREE_MAJOR_VERSION=${EMBREE_MAJOR_VERSION}
+      -I"${EMBREE_INCLUDE_DIRS}")
+
+    if(WIN32)
+      list(APPEND sycl_compiler_flags
+        -ladvapi32.lib
+      )
+    endif()
+
+    set(next_library_mode "")
+    foreach(library ${EMBREE_LIBRARIES})
+      string(TOLOWER "${library}" library_lower)
+      if(("${library_lower}" STREQUAL "optimized") OR
+         ("${library_lower}" STREQUAL "debug"))
+        set(next_library_mode "${library_lower}")
+      else()
+        if(next_library_mode STREQUAL "")
+          list(APPEND EMBREE_TBB_LIBRARIES_optimized ${library})
+          list(APPEND EMBREE_TBB_LIBRARIES_debug ${library})
+        else()
+          list(APPEND EMBREE_TBB_LIBRARIES_${next_library_mode} ${library})
+        endif()
+        set(next_library_mode "")
+      endif()
+    endforeach()
+
+    foreach(library ${TBB_LIBRARIES})
+      string(TOLOWER "${library}" library_lower)
+      if(("${library_lower}" STREQUAL "optimized") OR
+         ("${library_lower}" STREQUAL "debug"))
+        set(next_library_mode "${library_lower}")
+      else()
+        if(next_library_mode STREQUAL "")
+          list(APPEND EMBREE_TBB_LIBRARIES_optimized ${library})
+          list(APPEND EMBREE_TBB_LIBRARIES_debug ${library})
+        else()
+          list(APPEND EMBREE_TBB_LIBRARIES_${next_library_mode} ${library})
+        endif()
+        set(next_library_mode "")
+      endif()
+    endforeach()
+      list(APPEND sycl_compiler_flags
+        "$<$<CONFIG:Release>:${EMBREE_TBB_LIBRARIES_optimized}>"
+        "$<$<CONFIG:RelWithDebInfo>:${EMBREE_TBB_LIBRARIES_optimized}>"
+        "$<$<CONFIG:MinSizeRel>:${EMBREE_TBB_LIBRARIES_optimized}>"
+        "$<$<CONFIG:Debug>:${EMBREE_TBB_LIBRARIES_debug}>"
+      )
   endif()
 
   if(WITH_CYCLES_DEBUG)
@@ -907,13 +963,22 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       DEPENDS ${cycles_oneapi_kernel_sources})
   endif()
 
-  # For the Cycles standalone put libraries next to the Cycles application.
   if(NOT WITH_BLENDER)
-    if(WIN32)
-      delayed_install("" "${cycles_kernel_oneapi_lib}" ${CYCLES_INSTALL_PATH})
-    else()
-      delayed_install("" "${cycles_kernel_oneapi_lib}" ${CYCLES_INSTALL_PATH}/lib)
-    endif()
+    # For the Cycles standalone put libraries next to the Cycles application.
+    set(cycles_oneapi_target_path ${CYCLES_INSTALL_PATH})
+  else()
+    # For Blender put the libraries next to the Blender executable.
+    #
+    # Note that the installation path in the delayed_install is relative to the versioned folder,
+    # which means we need to go one level up.
+    set(cycles_oneapi_target_path "../")
+  endif()
+
+  # install dynamic libraries required at runtime
+  if(WIN32)
+    delayed_install("" "${cycles_kernel_oneapi_lib}" ${cycles_oneapi_target_path})
+  elseif(UNIX AND NOT APPLE)
+    delayed_install("" "${cycles_kernel_oneapi_lib}" ${cycles_oneapi_target_path}/lib)
   endif()
 
   add_custom_target(cycles_kernel_oneapi ALL DEPENDS ${cycles_kernel_oneapi_lib})

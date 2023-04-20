@@ -1034,6 +1034,14 @@ void *CCL_python_module_init()
   Py_INCREF(Py_False);
 #endif /* WITH_EMBREE */
 
+#ifdef WITH_EMBREE_GPU
+  PyModule_AddObject(mod, "with_embree_gpu", Py_True);
+  Py_INCREF(Py_True);
+#else  /* WITH_EMBREE_GPU */
+  PyModule_AddObject(mod, "with_embree_gpu", Py_False);
+  Py_INCREF(Py_False);
+#endif /* WITH_EMBREE_GPU */
+
   if (ccl::openimagedenoise_supported()) {
     PyModule_AddObject(mod, "with_openimagedenoise", Py_True);
     Py_INCREF(Py_True);

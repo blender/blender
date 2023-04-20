@@ -1904,7 +1904,7 @@ static void dynamic_paint_apply_surface_wave_cb(void *__restrict userdata,
  */
 static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *ob, Mesh *mesh)
 {
-  Mesh *result = BKE_mesh_copy_for_eval(mesh, false);
+  Mesh *result = BKE_mesh_copy_for_eval(mesh);
 
   if (pmd->canvas && !(pmd->canvas->flags & MOD_DPAINT_BAKING) &&
       pmd->type == MOD_DYNAMICPAINT_TYPE_CANVAS) {
@@ -2049,7 +2049,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
     if (runtime_data->brush_mesh != nullptr) {
       BKE_id_free(nullptr, runtime_data->brush_mesh);
     }
-    runtime_data->brush_mesh = BKE_mesh_copy_for_eval(result, false);
+    runtime_data->brush_mesh = BKE_mesh_copy_for_eval(result);
   }
 
   return result;
@@ -2070,7 +2070,7 @@ static void canvas_copyMesh(DynamicPaintCanvasSettings *canvas, Mesh *mesh)
     BKE_id_free(nullptr, runtime->canvas_mesh);
   }
 
-  runtime->canvas_mesh = BKE_mesh_copy_for_eval(mesh, false);
+  runtime->canvas_mesh = BKE_mesh_copy_for_eval(mesh);
 }
 
 /*
@@ -3796,7 +3796,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
                                       SUBFRAME_RECURSION,
                                       BKE_scene_ctime_get(scene),
                                       eModifierType_DynamicPaint);
-  mesh_p = BKE_mesh_copy_for_eval(dynamicPaint_brush_mesh_get(brush), false);
+  mesh_p = BKE_mesh_copy_for_eval(dynamicPaint_brush_mesh_get(brush));
   numOfVerts_p = mesh_p->totvert;
 
   float(*positions_p)[3] = BKE_mesh_vert_positions_for_write(mesh_p);
@@ -4282,7 +4282,7 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
     Bounds3D mesh_bb = {{0}};
     VolumeGrid *grid = bData->grid;
 
-    mesh = BKE_mesh_copy_for_eval(brush_mesh, false);
+    mesh = BKE_mesh_copy_for_eval(brush_mesh);
     float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
     const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
     const blender::Span<int> corner_verts = mesh->corner_verts();

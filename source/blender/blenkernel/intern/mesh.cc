@@ -1032,23 +1032,19 @@ static void mesh_ensure_cdlayers_primary(Mesh &mesh)
   }
 }
 
-Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int loops_len, int polys_len)
+Mesh *BKE_mesh_new_nomain(const int verts_num,
+                          const int edges_num,
+                          const int polys_num,
+                          const int loops_num)
 {
-  Mesh *mesh = (Mesh *)BKE_libblock_alloc(
-      nullptr, ID_ME, BKE_idtype_idcode_to_name(ID_ME), LIB_ID_CREATE_LOCALIZE);
+  Mesh *mesh = static_cast<Mesh *>(BKE_libblock_alloc(
+      nullptr, ID_ME, BKE_idtype_idcode_to_name(ID_ME), LIB_ID_CREATE_LOCALIZE));
   BKE_libblock_init_empty(&mesh->id);
 
-  /* Don't use #CustomData_reset because we don't want to touch custom-data. */
-  copy_vn_i(mesh->vdata.typemap, CD_NUMTYPES, -1);
-  copy_vn_i(mesh->edata.typemap, CD_NUMTYPES, -1);
-  copy_vn_i(mesh->fdata.typemap, CD_NUMTYPES, -1);
-  copy_vn_i(mesh->ldata.typemap, CD_NUMTYPES, -1);
-  copy_vn_i(mesh->pdata.typemap, CD_NUMTYPES, -1);
-
-  mesh->totvert = verts_len;
-  mesh->totedge = edges_len;
-  mesh->totloop = loops_len;
-  mesh->totpoly = polys_len;
+  mesh->totvert = verts_num;
+  mesh->totedge = edges_num;
+  mesh->totpoly = polys_num;
+  mesh->totloop = loops_num;
 
   mesh_ensure_cdlayers_primary(*mesh);
   BKE_mesh_poly_offsets_ensure_alloc(mesh);
@@ -1112,35 +1108,35 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
 }
 
 Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
-                                           int verts_len,
-                                           int edges_len,
-                                           int tessface_len,
-                                           int loops_len,
-                                           int polys_len,
-                                           CustomData_MeshMasks mask)
+                                           const int verts_num,
+                                           const int edges_num,
+                                           const int tessface_num,
+                                           const int polys_num,
+                                           const int loops_num,
+                                           const CustomData_MeshMasks mask)
 {
   /* Only do tessface if we are creating tessfaces or copying from mesh with only tessfaces. */
-  const bool do_tessface = (tessface_len || ((me_src->totface != 0) && (me_src->totpoly == 0)));
+  const bool do_tessface = (tessface_num || ((me_src->totface != 0) && (me_src->totpoly == 0)));
 
   Mesh *me_dst = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
 
   me_dst->mselect = (MSelect *)MEM_dupallocN(me_src->mselect);
 
-  me_dst->totvert = verts_len;
-  me_dst->totedge = edges_len;
-  me_dst->totface = tessface_len;
-  me_dst->totloop = loops_len;
-  me_dst->totpoly = polys_len;
+  me_dst->totvert = verts_num;
+  me_dst->totedge = edges_num;
+  me_dst->totpoly = polys_num;
+  me_dst->totloop = loops_num;
+  me_dst->totface = tessface_num;
 
   BKE_mesh_copy_parameters_for_eval(me_dst, me_src);
 
-  CustomData_copy_layout(&me_src->vdata, &me_dst->vdata, mask.vmask, CD_SET_DEFAULT, verts_len);
-  CustomData_copy_layout(&me_src->edata, &me_dst->edata, mask.emask, CD_SET_DEFAULT, edges_len);
-  CustomData_copy_layout(&me_src->ldata, &me_dst->ldata, mask.lmask, CD_SET_DEFAULT, loops_len);
-  CustomData_copy_layout(&me_src->pdata, &me_dst->pdata, mask.pmask, CD_SET_DEFAULT, polys_len);
+  CustomData_copy_layout(&me_src->vdata, &me_dst->vdata, mask.vmask, CD_SET_DEFAULT, verts_num);
+  CustomData_copy_layout(&me_src->edata, &me_dst->edata, mask.emask, CD_SET_DEFAULT, edges_num);
+  CustomData_copy_layout(&me_src->pdata, &me_dst->pdata, mask.pmask, CD_SET_DEFAULT, polys_num);
+  CustomData_copy_layout(&me_src->ldata, &me_dst->ldata, mask.lmask, CD_SET_DEFAULT, loops_num);
   if (do_tessface) {
     CustomData_copy_layout(
-        &me_src->fdata, &me_dst->fdata, mask.fmask, CD_SET_DEFAULT, tessface_len);
+        &me_src->fdata, &me_dst->fdata, mask.fmask, CD_SET_DEFAULT, tessface_num);
   }
   else {
     mesh_tessface_clear_intern(me_dst, false);
@@ -1160,11 +1156,14 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   return me_dst;
 }
 
-Mesh *BKE_mesh_new_nomain_from_template(
-    const Mesh *me_src, int verts_len, int edges_len, int loops_len, int polys_len)
+Mesh *BKE_mesh_new_nomain_from_template(const Mesh *me_src,
+                                        const int verts_num,
+                                        const int edges_num,
+                                        const int polys_num,
+                                        const int loops_num)
 {
   return BKE_mesh_new_nomain_from_template_ex(
-      me_src, verts_len, edges_len, 0, loops_len, polys_len, CD_MASK_EVERYTHING);
+      me_src, verts_num, edges_num, 0, polys_num, loops_num, CD_MASK_EVERYTHING);
 }
 
 void BKE_mesh_eval_delete(struct Mesh *mesh_eval)
@@ -1176,16 +1175,10 @@ void BKE_mesh_eval_delete(struct Mesh *mesh_eval)
   MEM_freeN(mesh_eval);
 }
 
-Mesh *BKE_mesh_copy_for_eval(const Mesh *source, bool reference)
+Mesh *BKE_mesh_copy_for_eval(const Mesh *source)
 {
-  int flags = LIB_ID_COPY_LOCALIZE;
-
-  if (reference) {
-    flags |= LIB_ID_COPY_CD_REFERENCE;
-  }
-
-  Mesh *result = (Mesh *)BKE_id_copy_ex(nullptr, &source->id, nullptr, flags);
-  return result;
+  return reinterpret_cast<Mesh *>(
+      BKE_id_copy_ex(nullptr, &source->id, nullptr, LIB_ID_COPY_LOCALIZE));
 }
 
 BMesh *BKE_mesh_to_bmesh_ex(const Mesh *me,
@@ -1486,7 +1479,7 @@ bool BKE_mesh_material_index_used(Mesh *me, short index)
   using namespace blender;
   using namespace blender::bke;
   const AttributeAccessor attributes = me->attributes();
-  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   if (material_indices.is_single()) {
     return material_indices.get_internal_single() == index;
@@ -1718,11 +1711,11 @@ void BKE_mesh_mselect_validate(Mesh *me)
       (me->totselect), sizeof(MSelect), "Mesh selection history");
 
   const AttributeAccessor attributes = me->attributes();
-  const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+  const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
-  const VArray<bool> select_edge = attributes.lookup_or_default<bool>(
+  const VArray<bool> select_edge = *attributes.lookup_or_default<bool>(
       ".select_edge", ATTR_DOMAIN_EDGE, false);
-  const VArray<bool> select_poly = attributes.lookup_or_default<bool>(
+  const VArray<bool> select_poly = *attributes.lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
   for (i_src = 0, i_dst = 0; i_src < me->totselect; i_src++) {
@@ -1830,7 +1823,7 @@ void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])
 void BKE_mesh_vert_coords_get(const Mesh *mesh, float (*vert_coords)[3])
 {
   blender::bke::AttributeAccessor attributes = mesh->attributes();
-  VArray<float3> positions = attributes.lookup_or_default(
+  VArray<float3> positions = *attributes.lookup_or_default(
       "position", ATTR_DOMAIN_POINT, float3(0));
   positions.materialize({(float3 *)vert_coords, mesh->totvert});
 }

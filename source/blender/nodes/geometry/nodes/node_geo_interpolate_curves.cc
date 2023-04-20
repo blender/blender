@@ -446,7 +446,8 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
     if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
       return true;
     }
-    if (meta_data.data_type == CD_PROP_STRING) {
+    const eCustomDataType type = meta_data.data_type;
+    if (type == CD_PROP_STRING) {
       return true;
     }
     if (guide_curve_attributes.is_builtin(id) &&
@@ -455,15 +456,14 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
     }
 
     if (meta_data.domain == ATTR_DOMAIN_CURVE) {
-      const GVArraySpan src_generic = guide_curve_attributes.lookup(
-          id, ATTR_DOMAIN_CURVE, meta_data.data_type);
+      const GVArraySpan src_generic = *guide_curve_attributes.lookup(id, ATTR_DOMAIN_CURVE, type);
 
       GSpanAttributeWriter dst_generic = children_attributes.lookup_or_add_for_write_only_span(
-          id, ATTR_DOMAIN_CURVE, meta_data.data_type);
+          id, ATTR_DOMAIN_CURVE, type);
       if (!dst_generic) {
         return true;
       }
-      attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+      attribute_math::convert_to_static_type(type, [&](auto dummy) {
         using T = decltype(dummy);
         const Span<T> src = src_generic.typed<T>();
         MutableSpan<T> dst = dst_generic.span.typed<T>();
@@ -490,15 +490,14 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
     }
     else {
       BLI_assert(meta_data.domain == ATTR_DOMAIN_POINT);
-      const GVArraySpan src_generic = guide_curve_attributes.lookup(
-          id, ATTR_DOMAIN_POINT, meta_data.data_type);
+      const GVArraySpan src_generic = *guide_curve_attributes.lookup(id, ATTR_DOMAIN_POINT, type);
       GSpanAttributeWriter dst_generic = children_attributes.lookup_or_add_for_write_only_span(
-          id, ATTR_DOMAIN_POINT, meta_data.data_type);
+          id, ATTR_DOMAIN_POINT, type);
       if (!dst_generic) {
         return true;
       }
 
-      attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+      attribute_math::convert_to_static_type(type, [&](auto dummy) {
         using T = decltype(dummy);
         const Span<T> src = src_generic.typed<T>();
         MutableSpan<T> dst = dst_generic.span.typed<T>();
@@ -579,14 +578,16 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
       return true;
     }
 
-    const GVArray src = point_attributes.lookup(id, ATTR_DOMAIN_POINT, meta_data.data_type);
-    GSpanAttributeWriter dst = children_attributes.lookup_or_add_for_write_only_span(
-        id, ATTR_DOMAIN_CURVE, meta_data.data_type);
-    if (!dst) {
-      return true;
+    const GAttributeReader src = point_attributes.lookup(id);
+    if (src.sharing_info && src.varray.is_span()) {
+      const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
+                                          *src.sharing_info);
+      children_attributes.add(id, ATTR_DOMAIN_CURVE, meta_data.data_type, init);
     }
-    src.materialize(dst.span.data());
-    dst.finish();
+    else {
+      children_attributes.add(
+          id, ATTR_DOMAIN_CURVE, meta_data.data_type, bke::AttributeInitVArray(src.varray));
+    }
     return true;
   });
 }
@@ -673,7 +674,7 @@ static GeometrySet generate_interpolated_curves(
     }
   });
 
-  const VArraySpan point_positions = point_attributes.lookup<float3>("position");
+  const VArraySpan point_positions = *point_attributes.lookup<float3>("position");
   const int num_child_curves = point_attributes.domain_size(ATTR_DOMAIN_POINT);
 
   /* The set of guides per child are stored in a flattened array to allow fast access, reduce

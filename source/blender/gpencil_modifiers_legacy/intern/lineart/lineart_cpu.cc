@@ -2077,9 +2077,9 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_settings.func_reduce = feat_data_sum_reduce;
 
   const bke::AttributeAccessor attributes = me->attributes();
-  const VArray<bool> sharp_edges = attributes.lookup_or_default<bool>(
+  const VArray<bool> sharp_edges = *attributes.lookup_or_default<bool>(
       "sharp_edge", ATTR_DOMAIN_EDGE, false);
-  const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
+  const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
       "sharp_face", ATTR_DOMAIN_FACE, false);
 
   EdgeFeatData edge_feat_data = {nullptr};

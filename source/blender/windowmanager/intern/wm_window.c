@@ -150,7 +150,7 @@ enum ModSide {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Window Open & Close
+/** \name Window Open
  * \{ */
 
 static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool activate);
@@ -359,7 +359,7 @@ wmWindow *wm_window_copy_test(bContext *C,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Quit Confirmation Dialog
+/** \name Window Quit Confirmation Dialog
  * \{ */
 
 static void wm_save_file_on_quit_dialog_callback(bContext *C, void *UNUSED(user_data))
@@ -405,6 +405,10 @@ void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Window Close
+ * \{ */
+
 void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
   wmWindow *win_other;
@@ -436,6 +440,7 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 
   CTX_wm_window_set(C, win); /* needed by handlers */
   WM_event_remove_handlers(C, &win->handlers);
+
   WM_event_remove_handlers(C, &win->modalhandlers);
 
   /* for regular use this will _never_ be NULL,
@@ -1644,6 +1649,8 @@ void wm_window_process_events(const bContext *C)
     PIL_sleep_ms(5);
   }
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Ghost Init/Exit

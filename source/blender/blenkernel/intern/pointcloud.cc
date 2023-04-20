@@ -249,9 +249,7 @@ PointCloud *BKE_pointcloud_new_nomain(const int totpoint)
   return pointcloud;
 }
 
-void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src,
-                                         PointCloud *pointcloud_dst,
-                                         bool take_ownership)
+void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud *pointcloud_dst)
 {
   BLI_assert(pointcloud_src->id.tag & LIB_TAG_NO_MAIN);
 
@@ -260,9 +258,7 @@ void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src,
   const int totpoint = pointcloud_dst->totpoint = pointcloud_src->totpoint;
   CustomData_copy(&pointcloud_src->pdata, &pointcloud_dst->pdata, CD_MASK_ALL, totpoint);
 
-  if (take_ownership) {
-    BKE_id_free(nullptr, pointcloud_src);
-  }
+  BKE_id_free(nullptr, pointcloud_src);
 }
 
 bool PointCloud::bounds_min_max(blender::float3 &min, blender::float3 &max) const
@@ -274,9 +270,9 @@ bool PointCloud::bounds_min_max(blender::float3 &min, blender::float3 &max) cons
   }
   this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
     const AttributeAccessor attributes = this->attributes();
-    const VArraySpan<float3> positions = attributes.lookup<float3>(POINTCLOUD_ATTR_POSITION);
+    const Span<float3> positions = this->positions();
     if (attributes.contains(POINTCLOUD_ATTR_RADIUS)) {
-      const VArraySpan<float> radii = attributes.lookup<float>(POINTCLOUD_ATTR_RADIUS);
+      const VArraySpan radii = *attributes.lookup<float>(POINTCLOUD_ATTR_RADIUS);
       r_bounds = *bounds::min_max_with_radii(positions, radii);
     }
     else {
@@ -322,16 +318,10 @@ bool BKE_pointcloud_attribute_required(const PointCloud * /*pointcloud*/, const 
 
 /* Dependency Graph */
 
-PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src, bool reference)
+PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src)
 {
-  int flags = LIB_ID_COPY_LOCALIZE;
-
-  if (reference) {
-    flags |= LIB_ID_COPY_CD_REFERENCE;
-  }
-
-  PointCloud *result = (PointCloud *)BKE_id_copy_ex(nullptr, &pointcloud_src->id, nullptr, flags);
-  return result;
+  return reinterpret_cast<PointCloud *>(
+      BKE_id_copy_ex(nullptr, &pointcloud_src->id, nullptr, LIB_ID_COPY_LOCALIZE));
 }
 
 static void pointcloud_evaluate_modifiers(struct Depsgraph *depsgraph,

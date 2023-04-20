@@ -193,6 +193,8 @@ static bool use_gnome_confine_hack = false;
 #  define USE_GNOME_NEEDS_LIBDECOR_HACK
 #endif
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Local Defines
  *
@@ -5584,8 +5586,6 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
 #  endif
       display_destroy_and_free_all();
       throw std::runtime_error("Wayland: unable to find libdecor!");
-
-      use_libdecor = true;
     }
   }
   else {
@@ -5608,7 +5608,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
   (void)background;
 #endif
   {
-    GWL_XDG_Decor_System &decor = *display_->xdg_decor;
+    const GWL_XDG_Decor_System &decor = *display_->xdg_decor;
     if (!decor.shell) {
       display_destroy_and_free_all();
       throw std::runtime_error("Wayland: unable to access xdg_shell!");
@@ -6069,10 +6069,8 @@ static GHOST_TSuccess getCursorPositionClientRelative_impl(
     /* As the cursor is restored at the warped location,
      * apply warping when requesting the cursor location. */
     GHOST_Rect wrap_bounds{};
-    if (win->getCursorGrabModeIsWarp()) {
-      if (win->getCursorGrabBounds(wrap_bounds) == GHOST_kFailure) {
-        win->getClientBounds(wrap_bounds);
-      }
+    if (win->getCursorGrabBounds(wrap_bounds) == GHOST_kFailure) {
+      win->getClientBounds(wrap_bounds);
     }
     int xy_wrap[2] = {
         seat_state_pointer->xy[0],
@@ -6307,6 +6305,7 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings glS
       delete context;
       return nullptr;
     }
+    context->setUserData(wl_surface);
     return context;
   }
 #else
@@ -6345,7 +6344,9 @@ GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
   delete context;
 
   wl_egl_window *egl_window = (wl_egl_window *)wl_surface_get_user_data(wl_surface);
-  wl_egl_window_destroy(egl_window);
+  if (egl_window != nullptr) {
+    wl_egl_window_destroy(egl_window);
+  }
   wl_surface_destroy(wl_surface);
 
   return GHOST_kSuccess;
@@ -6675,10 +6676,9 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(uint8_t *bitmap,
   static constexpr uint32_t transparent = 0x00000000;
 
   uint8_t datab = 0, maskb = 0;
-  uint32_t *pixel;
 
   for (int y = 0; y < sizey; ++y) {
-    pixel = &static_cast<uint32_t *>(cursor->custom_data)[y * sizex];
+    uint32_t *pixel = &static_cast<uint32_t *>(cursor->custom_data)[y * sizex];
     for (int x = 0; x < sizex; ++x) {
       if ((x % 8) == 0) {
         datab = *bitmap++;

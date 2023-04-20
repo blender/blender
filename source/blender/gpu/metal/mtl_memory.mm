@@ -14,7 +14,8 @@ using namespace blender::gpu;
 namespace blender::gpu {
 
 /* -------------------------------------------------------------------- */
-/** \name Memory Management - MTLBufferPool and MTLSafeFreeList implementations. */
+/** \name Memory Management - MTLBufferPool and MTLSafeFreeList implementations
+ * \{ */
 
 void MTLBufferPool::init(id<MTLDevice> mtl_device)
 {

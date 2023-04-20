@@ -170,7 +170,7 @@ static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     const char *blendfile_path = BKE_main_blendfile_path_from_global();
     if (blendfile_path[0] != '\0') {
       BLI_strncpy(filepath, blendfile_path, sizeof(filepath));
-      BLI_path_extension_replace(filepath, sizeof(filepath), ""); /* strip '.blend' */
+      BLI_path_extension_strip(filepath); /* Strip `.blend`. */
     }
     else {
       /* As the file isn't saved, only set the name and let the file selector pick a directory. */

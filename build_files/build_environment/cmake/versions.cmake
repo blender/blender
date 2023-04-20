@@ -599,15 +599,15 @@ set(OPENPGL_HASH db63f5dac5cfa8c110ede241f0c413f00db0c4748697381c4fa23e0f9e82a75
 set(OPENPGL_HASH_TYPE SHA256)
 set(OPENPGL_FILE openpgl-${OPENPGL_VERSION}.tar.gz)
 
-set(LEVEL_ZERO_VERSION v1.8.5)
+set(LEVEL_ZERO_VERSION v1.8.8)
 set(LEVEL_ZERO_URI https://github.com/oneapi-src/level-zero/archive/refs/tags/${LEVEL_ZERO_VERSION}.tar.gz)
-set(LEVEL_ZERO_HASH b6e9663bbcc53c148d32376998298bec6f7c434ef2218c61fa708963e3a09394)
+set(LEVEL_ZERO_HASH 3553ae8fa0d2d69c4210a8f3428bd6612bd8bb8a627faf52c3658a01851e66d2)
 set(LEVEL_ZERO_HASH_TYPE SHA256)
 set(LEVEL_ZERO_FILE level-zero-${LEVEL_ZERO_VERSION}.tar.gz)
 
-set(DPCPP_VERSION 20221019)
-set(DPCPP_URI https://github.com/intel/llvm/archive/refs/tags/sycl-nightly/${DPCPP_VERSION}.tar.gz)
-set(DPCPP_HASH 2f533946e91ce3829431758ea17b0b834b960c1a796e9e4563c86e03eb9603a2)
+set(DPCPP_VERSION 2022-12)
+set(DPCPP_URI https://github.com/intel/llvm/archive/refs/tags/${DPCPP_VERSION}.tar.gz)
+set(DPCPP_HASH 13151d5ae79f7c9c4a9b072a0c486ae7b3c4993e301bb1268c92214451025790)
 set(DPCPP_HASH_TYPE SHA256)
 set(DPCPP_FILE DPCPP-${DPCPP_VERSION}.tar.gz)
 
@@ -620,9 +620,9 @@ set(DPCPP_FILE DPCPP-${DPCPP_VERSION}.tar.gz)
 # will take care of building them, unpack is being done in dpcpp_deps.cmake
 
 # Source llvm/lib/SYCLLowerIR/CMakeLists.txt
-set(VCINTRINSICS_VERSION abce9184b7a3a7fe1b02289b9285610d9dc45465)
+set(VCINTRINSICS_VERSION 782fbf7301dc73acaa049a4324c976ad94f587f7)
 set(VCINTRINSICS_URI https://github.com/intel/vc-intrinsics/archive/${VCINTRINSICS_VERSION}.tar.gz)
-set(VCINTRINSICS_HASH 3e9fd471246b87633b26f7e15e17ab7733d357458c53d5c5881c03929d6c551f)
+set(VCINTRINSICS_HASH f4c0ccad8c1f77760364c551c65e8e1cf194d058889fa46d3b1b2d19ec4dc33f)
 set(VCINTRINSICS_HASH_TYPE SHA256)
 set(VCINTRINSICS_FILE vc-intrinsics-${VCINTRINSICS_VERSION}.tar.gz)
 
@@ -656,6 +656,13 @@ set(SPIRV_HEADERS_URI https://github.com/KhronosGroup/SPIRV-Headers/archive/${SP
 set(SPIRV_HEADERS_HASH ec8ecb471a62672697846c436501638ab25447ae9d4a6761e0bfe8a9a839502a)
 set(SPIRV_HEADERS_HASH_TYPE SHA256)
 set(SPIRV_HEADERS_FILE SPIR-V-Headers-${SPIRV_HEADERS_VERSION}.tar.gz)
+
+# Source llvm/sycl/plugins/unified_runtime/CMakeLists.txt
+set(UNIFIED_RUNTIME_VERSION fd711c920acc4434cb52ff18b078c082d9d7f44d)
+set(UNIFIED_RUNTIME_URI https://github.com/oneapi-src/unified-runtime/archive/${UNIFIED_RUNTIME_VERSION}.tar.gz)
+set(UNIFIED_RUNTIME_HASH 535ca2ee78f68c5e7e62b10f1bbabd909179488885566e6d9b1fc50e8a1be65f)
+set(UNIFIED_RUNTIME_HASH_TYPE SHA256)
+set(UNIFIED_RUNTIME_FILE unified-runtime-${UNIFIED_RUNTIME_VERSION}.tar.gz)
 
 ######################
 ### DPCPP DEPS END ###
@@ -730,9 +737,9 @@ set(GMMLIB_HASH c1f33e1519edfc527127baeb0436b783430dfd256c643130169a3a71dc86aff9
 set(GMMLIB_HASH_TYPE SHA256)
 set(GMMLIB_FILE ${GMMLIB_VERSION}.tar.gz)
 
-set(OCLOC_VERSION 22.49.25018.21)
+set(OCLOC_VERSION 23.05.25593.18)
 set(OCLOC_URI https://github.com/intel/compute-runtime/archive/refs/tags/${OCLOC_VERSION}.tar.gz)
-set(OCLOC_HASH 92362dae08b503a34e5d3820ed284198c452bcd5e7504d90eb69887b20492c06)
+set(OCLOC_HASH 122415028e631922ae999c996954dfd98ce9a32decd564d5484c31476ec9306e)
 set(OCLOC_HASH_TYPE SHA256)
 set(OCLOC_FILE ocloc-${OCLOC_VERSION}.tar.gz)
 

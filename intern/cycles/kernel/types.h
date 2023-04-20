@@ -3,8 +3,9 @@
 
 #pragma once
 
-#if !defined(__KERNEL_GPU__) && defined(WITH_EMBREE)
-#  if EMBREE_MAJOR_VERSION >= 4
+#if (!defined(__KERNEL_GPU__) || (defined(__KERNEL_ONEAPI__) && defined(WITH_EMBREE_GPU))) && \
+    defined(WITH_EMBREE)
+#  if EMBREE_MAJOR_VERSION == 4
 #    include <embree4/rtcore.h>
 #    include <embree4/rtcore_scene.h>
 #  else
@@ -78,9 +79,8 @@ CCL_NAMESPACE_BEGIN
 #define __VISIBILITY_FLAG__
 #define __VOLUME__
 
-/* TODO: solve internal compiler errors and enable light tree on HIP. */
 /* TODO: solve internal compiler perf issue and enable light tree on Metal/AMD. */
-#if defined(__KERNEL_HIP__) || defined(__KERNEL_METAL_AMD__)
+#if defined(__KERNEL_METAL_AMD__)
 #  undef __LIGHT_TREE__
 #endif
 

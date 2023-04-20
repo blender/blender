@@ -39,7 +39,7 @@ bool MetalDevice::is_device_cancelled(int ID)
   return get_device_by_ID(ID, lock) == nullptr;
 }
 
-BVHLayoutMask MetalDevice::get_bvh_layout_mask() const
+BVHLayoutMask MetalDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
 {
   return use_metalrt ? BVH_LAYOUT_METAL : BVH_LAYOUT_BVH2;
 }
@@ -100,12 +100,12 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     }
     case METAL_GPU_AMD: {
       max_threads_per_threadgroup = 128;
-      use_metalrt = info.use_metalrt;
+      use_metalrt = info.use_hardware_raytracing;
       break;
     }
     case METAL_GPU_APPLE: {
       max_threads_per_threadgroup = 512;
-      use_metalrt = info.use_metalrt;
+      use_metalrt = info.use_hardware_raytracing;
       break;
     }
   }

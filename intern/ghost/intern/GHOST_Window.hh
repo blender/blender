@@ -155,7 +155,7 @@ class GHOST_Window : public GHOST_IWindow {
   GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds) const override;
 
   void getCursorGrabState(GHOST_TGrabCursorMode &mode,
-                          GHOST_TAxisFlag &axis_flag,
+                          GHOST_TAxisFlag &wrap_axis,
                           GHOST_Rect &bounds,
                           bool &use_software_cursor) override;
   /**
