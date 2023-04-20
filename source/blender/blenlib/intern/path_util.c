@@ -59,9 +59,9 @@ int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort 
   int i;
   bool found_digit = false;
   const char *const lslash = BLI_path_slash_rfind(string);
-  const char *const extension = BLI_path_extension(lslash ? lslash : string);
+  const char *const extension = BLI_path_extension_or_end(lslash ? lslash : string);
   const uint lslash_len = lslash != NULL ? (int)(lslash - string) : 0;
-  const uint name_end = extension != NULL ? (int)((extension - string)) : strlen(string);
+  const uint name_end = (uint)(extension - string);
 
   for (i = name_end - 1; i >= (int)lslash_len; i--) {
     if (isdigit(string[i])) {
@@ -587,17 +587,17 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
 #ifdef DEBUG_STRSIZE
   memset(string, 0xff, sizeof(*string) * maxlen);
 #endif
-  const size_t string_len = strlen(string);
   const size_t suffix_len = strlen(suffix);
   const size_t sep_len = strlen(sep);
-  char *extension = (char *)BLI_path_extension(string);
-  const size_t extension_len = extension ? (((string + string_len) - extension)) : 0;
-  const size_t string_end = extension != NULL ? (int)((extension - string)) : string_len;
+  char *extension = (char *)BLI_path_extension_or_end(string);
+  const size_t extension_len = strlen(extension);
+  const size_t string_end = extension - string;
+  const size_t string_len = string_end + extension_len;
   if (string_len + sep_len + suffix_len >= maxlen) {
     return false;
   }
 
-  if (extension) {
+  if (extension_len) {
     memmove(extension + (sep_len + suffix_len), extension, extension_len);
   }
   char *c = string + string_end;
@@ -763,9 +763,8 @@ bool BLI_path_frame_get(const char *path, int *r_frame, int *r_digits_len)
   *r_digits_len = 0;
 
   const char *file = BLI_path_basename(path);
-  const char *file_ext = BLI_path_extension(file);
-  const int file_len = strlen(file);
-  const char *c = file_ext ? file_ext : file + file_len;
+  const char *file_ext = BLI_path_extension_or_end(file);
+  const char *c = file_ext;
 
   /* Find start of number (if there is one). */
   int digits_len = 0;
@@ -792,10 +791,8 @@ void BLI_path_frame_strip(char *path, char *r_ext, const size_t ext_maxlen)
   }
 
   char *file = (char *)BLI_path_basename(path);
-  char *file_ext = (char *)BLI_path_extension(file);
-  const int file_len = strlen(file);
-  char *c = file_ext ? file_ext : file + file_len;
-  char *suffix = c;
+  char *file_ext = (char *)BLI_path_extension_or_end(file);
+  char *c = file_ext;
 
   /* Find start of number (if there is one). */
   int digits_len = 0;
@@ -804,9 +801,9 @@ void BLI_path_frame_strip(char *path, char *r_ext, const size_t ext_maxlen)
   }
   c++;
 
-  BLI_strncpy(r_ext, suffix, ext_maxlen);
+  BLI_strncpy(r_ext, file_ext, ext_maxlen);
 
-  /* replace the number with the suffix and terminate the string */
+  /* Replace the number with the suffix and terminate the string. */
   while (digits_len--) {
     *c++ = '#';
   }
@@ -1276,11 +1273,7 @@ bool BLI_path_extension_replace(char *path, size_t maxlen, const char *ext)
 #ifdef DEBUG_STRSIZE
   memset(path, 0xff, sizeof(*path) * maxlen);
 #endif
-  char *path_ext = (char *)BLI_path_extension(path);
-  if (path_ext == NULL) {
-    path_ext = path + strlen(path);
-  }
-
+  char *path_ext = (char *)BLI_path_extension_or_end(path);
   const size_t ext_len = strlen(ext);
   if ((path_ext - path) + ext_len >= maxlen) {
     return false;
@@ -1305,9 +1298,10 @@ bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext)
 #ifdef DEBUG_STRSIZE
   memset(path, 0xff, sizeof(*path) * maxlen);
 #endif
-  /* First check the extension is already there. */
-  char *path_ext = (char *)BLI_path_extension(path);
-  if (path_ext && STREQ(path_ext, ext)) {
+  /* First check the extension is already there.
+   * If `path_ext` is the end of the string this is simply checking if `ext` is also empty. */
+  const char *path_ext = BLI_path_extension_or_end(path);
+  if (STREQ(path_ext, ext)) {
     return true;
   }
 
@@ -1381,7 +1375,7 @@ void BLI_split_file_part(const char *string, char *file, const size_t filelen)
   BLI_split_dirfile(string, NULL, file, 0, filelen);
 }
 
-const char *BLI_path_extension(const char *filepath)
+const char *BLI_path_extension_or_end(const char *filepath)
 {
   /* NOTE(@ideasman42): Skip the extension when there are no preceding non-extension characters in
    * the file name. This ignores extensions at the beginning of a string or directly after a slash.
@@ -1390,7 +1384,8 @@ const char *BLI_path_extension(const char *filepath)
    * Matches Python's `os.path.splitext`. */
   const char *ext = NULL;
   bool has_non_ext = false;
-  for (const char *c = filepath; *c; c++) {
+  const char *c = filepath;
+  for (; *c; c++) {
     switch (*c) {
       case '.': {
         if (has_non_ext) {
@@ -1410,7 +1405,17 @@ const char *BLI_path_extension(const char *filepath)
       }
     }
   }
-  return ext;
+  if (ext) {
+    return ext;
+  }
+  BLI_assert(*c == '\0');
+  return c;
+}
+
+const char *BLI_path_extension(const char *filepath)
+{
+  const char *ext = BLI_path_extension_or_end(filepath);
+  return *ext ? ext : NULL;
 }
 
 size_t BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__restrict file)

@@ -62,6 +62,12 @@ void BLI_split_dir_part(const char *string, char *dir, size_t dirlen);
 void BLI_split_file_part(const char *string, char *file, size_t filelen);
 /**
  * Returns a pointer to the last extension (e.g. the position of the last period).
+ * Returns a pointer to the nil byte when no extension is found.
+ */
+const char *BLI_path_extension_or_end(const char *filepath)
+    ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+/**
+ * Returns a pointer to the last extension (e.g. the position of the last period).
  * Returns NULL if there is no extension.
  */
 const char *BLI_path_extension(const char *filepath) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
