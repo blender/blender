@@ -907,7 +907,7 @@ static bool gpencil_weightpaint_brush_poll(bContext *C)
   }
 
   ToolSettings *ts = CTX_data_scene(C)->toolsettings;
-  if (!&ts->gp_weightpaint->paint.brush) {
+  if (!ts->gp_weightpaint->paint.brush) {
     CTX_wm_operator_poll_msg_set(C, "Grease Pencil has no active paint tool");
     return false;
   }
