@@ -85,7 +85,7 @@ static uchar bit_is_on(const uchar *ptr, int bit)
 
 static GHOST_TKey ghost_key_from_keysym(const KeySym key);
 static GHOST_TKey ghost_key_from_keycode(const XkbDescPtr xkb_descr, const KeyCode keycode);
-static GHOST_TKey ghost_key_from_keysym_or_keycode(const KeySym key,
+static GHOST_TKey ghost_key_from_keysym_or_keycode(const KeySym key_sym,
                                                    const XkbDescPtr xkb_descr,
                                                    const KeyCode keycode);
 
@@ -1776,11 +1776,11 @@ bool GHOST_SystemX11::generateWindowExposeEvents()
   return anyProcessed;
 }
 
-static GHOST_TKey ghost_key_from_keysym_or_keycode(const KeySym keysym,
+static GHOST_TKey ghost_key_from_keysym_or_keycode(const KeySym key_sym,
                                                    XkbDescPtr xkb_descr,
                                                    const KeyCode keycode)
 {
-  GHOST_TKey type = ghost_key_from_keysym(keysym);
+  GHOST_TKey type = ghost_key_from_keysym(key_sym);
   if (type == GHOST_kKeyUnknown) {
     if (xkb_descr) {
       type = ghost_key_from_keycode(xkb_descr, keycode);
