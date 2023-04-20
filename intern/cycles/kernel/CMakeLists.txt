@@ -778,8 +778,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
 
   # Host execution won't use GPU binaries, no need to compile them.
   if(WITH_CYCLES_ONEAPI_BINARIES AND NOT WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
-    # AoT binaries aren't currently reused when calling sycl::build.
-    list(APPEND sycl_compiler_flags -DWITH_CYCLES_ONEAPI_BINARIES)
     # Iterate over all targest and their options
     list(JOIN CYCLES_ONEAPI_SYCL_TARGETS "," targets_string)
     list(APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
