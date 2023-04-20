@@ -42,7 +42,7 @@ static char *str_replace_char_strdup(const char *str, char src, char dst)
 /** \name Tests for: #BLI_path_normalize
  * \{ */
 
-#define NORMALIZE_WITH_BASEDIR(input, input_base, output) \
+#define NORMALIZE_WITH_BASEDIR(input, input_base, output_expect) \
   { \
     char path[FILE_MAX] = input; \
     const char *input_base_test = input_base; \
@@ -57,11 +57,11 @@ static char *str_replace_char_strdup(const char *str, char src, char dst)
         free((void *)input_base_test); \
       } \
     } \
-    EXPECT_STREQ(output, path); \
+    EXPECT_STREQ(path, output_expect); \
   } \
   ((void)0)
 
-#define NORMALIZE(input, output) NORMALIZE_WITH_BASEDIR(input, nullptr, output)
+#define NORMALIZE(input, output_expect) NORMALIZE_WITH_BASEDIR(input, nullptr, output_expect)
 
 /* #BLI_path_normalize: "/./" -> "/" */
 TEST(path_util, Clean_Dot)
@@ -102,7 +102,7 @@ TEST(path_util, Clean_Parent)
 /** \name Tests for: #BLI_path_parent_dir
  * \{ */
 
-#define PARENT_DIR(input, output) \
+#define PARENT_DIR(input, output_expect) \
   { \
     char path[FILE_MAX] = input; \
     if (SEP == '\\') { \
@@ -112,7 +112,7 @@ TEST(path_util, Clean_Parent)
     if (SEP == '\\') { \
       BLI_str_replace_char(path, '\\', '/'); \
     } \
-    EXPECT_STREQ(output, path); \
+    EXPECT_STREQ(path, output_expect); \
   } \
   ((void)0)
 
@@ -177,7 +177,7 @@ TEST(path_util, ParentDir_Complex)
     } \
     else { \
       EXPECT_TRUE(ret); \
-      EXPECT_EQ(strlen(expect), len_output); \
+      EXPECT_EQ(len_output, strlen(expect)); \
       path[index_output + len_output] = '\0'; \
       EXPECT_STREQ(&path[index_output], expect); \
     } \
@@ -515,42 +515,42 @@ TEST(path_util, Frame)
     char path[FILE_MAX] = "";
     ret = BLI_path_frame(path, 123, 1);
     EXPECT_TRUE(ret);
-    EXPECT_STREQ("123", path);
+    EXPECT_STREQ(path, "123");
   }
 
   {
     char path[FILE_MAX] = "";
     ret = BLI_path_frame(path, 123, 12);
     EXPECT_TRUE(ret);
-    EXPECT_STREQ("000000000123", path);
+    EXPECT_STREQ(path, "000000000123");
   }
 
   {
     char path[FILE_MAX] = "test_";
     ret = BLI_path_frame(path, 123, 1);
     EXPECT_TRUE(ret);
-    EXPECT_STREQ("test_123", path);
+    EXPECT_STREQ(path, "test_123");
   }
 
   {
     char path[FILE_MAX] = "test_";
     ret = BLI_path_frame(path, 1, 12);
     EXPECT_TRUE(ret);
-    EXPECT_STREQ("test_000000000001", path);
+    EXPECT_STREQ(path, "test_000000000001");
   }
 
   {
     char path[FILE_MAX] = "test_############";
     ret = BLI_path_frame(path, 1, 0);
     EXPECT_TRUE(ret);
-    EXPECT_STREQ("test_000000000001", path);
+    EXPECT_STREQ(path, "test_000000000001");
   }
 
   {
     char path[FILE_MAX] = "test_#_#_middle";
     ret = BLI_path_frame(path, 123, 0);
     EXPECT_TRUE(ret);
-    EXPECT_STREQ("test_#_123_middle", path);
+    EXPECT_STREQ(path, "test_#_123_middle");
   }
 
   /* intentionally fail */
@@ -558,14 +558,14 @@ TEST(path_util, Frame)
     char path[FILE_MAX] = "";
     ret = BLI_path_frame(path, 123, 0);
     EXPECT_FALSE(ret);
-    EXPECT_STREQ("", path);
+    EXPECT_STREQ(path, "");
   }
 
   {
     char path[FILE_MAX] = "test_middle";
     ret = BLI_path_frame(path, 123, 0);
     EXPECT_FALSE(ret);
-    EXPECT_STREQ("test_middle", path);
+    EXPECT_STREQ(path, "test_middle");
   }
 
   /* negative frame numbers */
@@ -573,13 +573,13 @@ TEST(path_util, Frame)
     char path[FILE_MAX] = "test_####";
     ret = BLI_path_frame(path, -1, 4);
     EXPECT_TRUE(ret);
-    EXPECT_STREQ("test_-0001", path);
+    EXPECT_STREQ(path, "test_-0001");
   }
   {
     char path[FILE_MAX] = "test_####";
     ret = BLI_path_frame(path, -100, 4);
     EXPECT_TRUE(ret);
-    EXPECT_STREQ("test_-0100", path);
+    EXPECT_STREQ(path, "test_-0100");
   }
 }
 
@@ -595,52 +595,52 @@ TEST(path_util, SplitDirfile)
     const char *path = "";
     char dir[FILE_MAX], file[FILE_MAX];
     BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
-    EXPECT_STREQ("", dir);
-    EXPECT_STREQ("", file);
+    EXPECT_STREQ(dir, "");
+    EXPECT_STREQ(file, "");
   }
 
   {
     const char *path = "/";
     char dir[FILE_MAX], file[FILE_MAX];
     BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
-    EXPECT_STREQ("/", dir);
-    EXPECT_STREQ("", file);
+    EXPECT_STREQ(dir, "/");
+    EXPECT_STREQ(file, "");
   }
 
   {
     const char *path = "fileonly";
     char dir[FILE_MAX], file[FILE_MAX];
     BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
-    EXPECT_STREQ("", dir);
-    EXPECT_STREQ("fileonly", file);
+    EXPECT_STREQ(dir, "");
+    EXPECT_STREQ(file, "fileonly");
   }
 
   {
     const char *path = "dironly/";
     char dir[FILE_MAX], file[FILE_MAX];
     BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
-    EXPECT_STREQ("dironly/", dir);
-    EXPECT_STREQ("", file);
+    EXPECT_STREQ(dir, "dironly/");
+    EXPECT_STREQ(file, "");
   }
 
   {
     const char *path = "/a/b";
     char dir[FILE_MAX], file[FILE_MAX];
     BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
-    EXPECT_STREQ("/a/", dir);
-    EXPECT_STREQ("b", file);
+    EXPECT_STREQ(dir, "/a/");
+    EXPECT_STREQ(file, "b");
   }
 
   {
     const char *path = "/dirtoobig/filetoobig";
     char dir[5], file[5];
     BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
-    EXPECT_STREQ("/dir", dir);
-    EXPECT_STREQ("file", file);
+    EXPECT_STREQ(dir, "/dir");
+    EXPECT_STREQ(file, "file");
 
     BLI_split_dirfile(path, dir, file, 1, 1);
-    EXPECT_STREQ("", dir);
-    EXPECT_STREQ("", file);
+    EXPECT_STREQ(dir, "");
+    EXPECT_STREQ(file, "");
   }
 }
 
@@ -680,27 +680,27 @@ TEST(path_util, PathFrameStrip)
 
 TEST(path_util, PathExtension)
 {
-  EXPECT_EQ(nullptr, BLI_path_extension("some.def/file"));
-  EXPECT_EQ(nullptr, BLI_path_extension("Text"));
-  EXPECT_EQ(nullptr, BLI_path_extension("Text…001"));
-  EXPECT_EQ(nullptr, BLI_path_extension(".hidden"));
-  EXPECT_EQ(nullptr, BLI_path_extension(".hidden/"));
-  EXPECT_EQ(nullptr, BLI_path_extension("/.hidden"));
-  EXPECT_EQ(nullptr, BLI_path_extension("dir/.hidden"));
-  EXPECT_EQ(nullptr, BLI_path_extension("/dir/.hidden"));
+  EXPECT_EQ(BLI_path_extension("some.def/file"), nullptr);
+  EXPECT_EQ(BLI_path_extension("Text"), nullptr);
+  EXPECT_EQ(BLI_path_extension("Text…001"), nullptr);
+  EXPECT_EQ(BLI_path_extension(".hidden"), nullptr);
+  EXPECT_EQ(BLI_path_extension(".hidden/"), nullptr);
+  EXPECT_EQ(BLI_path_extension("/.hidden"), nullptr);
+  EXPECT_EQ(BLI_path_extension("dir/.hidden"), nullptr);
+  EXPECT_EQ(BLI_path_extension("/dir/.hidden"), nullptr);
 
-  EXPECT_EQ(nullptr, BLI_path_extension("."));
-  EXPECT_EQ(nullptr, BLI_path_extension(".."));
-  EXPECT_EQ(nullptr, BLI_path_extension("..."));
-  EXPECT_STREQ(".", BLI_path_extension("...a."));
-  EXPECT_STREQ(".", BLI_path_extension("...a.."));
-  EXPECT_EQ(nullptr, BLI_path_extension("...a../"));
+  EXPECT_EQ(BLI_path_extension("."), nullptr);
+  EXPECT_EQ(BLI_path_extension(".."), nullptr);
+  EXPECT_EQ(BLI_path_extension("..."), nullptr);
+  EXPECT_STREQ(BLI_path_extension("...a."), ".");
+  EXPECT_STREQ(BLI_path_extension("...a.."), ".");
+  EXPECT_EQ(BLI_path_extension("...a../"), nullptr);
 
-  EXPECT_STREQ(".", BLI_path_extension("some/file."));
-  EXPECT_STREQ(".gz", BLI_path_extension("some/file.tar.gz"));
-  EXPECT_STREQ(".abc", BLI_path_extension("some.def/file.abc"));
-  EXPECT_STREQ(".abc", BLI_path_extension("C:\\some.def\\file.abc"));
-  EXPECT_STREQ(".001", BLI_path_extension("Text.001"));
+  EXPECT_STREQ(BLI_path_extension("some/file."), ".");
+  EXPECT_STREQ(BLI_path_extension("some/file.tar.gz"), ".gz");
+  EXPECT_STREQ(BLI_path_extension("some.def/file.abc"), ".abc");
+  EXPECT_STREQ(BLI_path_extension("C:\\some.def\\file.abc"), ".abc");
+  EXPECT_STREQ(BLI_path_extension("Text.001"), ".001");
 }
 
 /** \} */
@@ -763,7 +763,7 @@ TEST(path_util, PathExtensionCheck)
     else { \
       EXPECT_FALSE(ret); \
     } \
-    EXPECT_STREQ(expect_path, path); \
+    EXPECT_STREQ(path, expect_path); \
   } \
   ((void)0)
 
@@ -814,7 +814,7 @@ TEST(path_util, PathExtensionReplace)
     else { \
       EXPECT_FALSE(ret); \
     } \
-    EXPECT_STREQ(expect_path, path); \
+    EXPECT_STREQ(path, expect_path); \
   } \
   ((void)0)
 
@@ -966,10 +966,10 @@ TEST(path_util, PathFrameGet)
     char tail[FILE_MAX]; \
     ushort numdigits = 0; \
     const int result = BLI_path_sequence_decode(path, head, tail, &numdigits); \
-    EXPECT_EQ(expect_result, result); \
-    EXPECT_STREQ(expect_head, head); \
-    EXPECT_STREQ(expect_tail, tail); \
-    EXPECT_EQ(expect_numdigits, numdigits); \
+    EXPECT_EQ(result, expect_result); \
+    EXPECT_STREQ(head, expect_head); \
+    EXPECT_STREQ(tail, expect_tail); \
+    EXPECT_EQ(numdigits, expect_numdigits); \
   } \
   (void)0;
 
@@ -999,8 +999,8 @@ TEST(path_util, PathSequenceDecode)
   { \
     char path[FILE_MAX] = path_literal; \
     const bool result = BLI_path_suffix(path, path_literal_max, suffix, sep); \
-    EXPECT_EQ(expect_result, result); \
-    EXPECT_STREQ(expect_path, path); \
+    EXPECT_EQ(result, expect_result); \
+    EXPECT_STREQ(path, expect_path); \
   } \
   (void)0;
 
@@ -1037,7 +1037,7 @@ TEST(path_util, PathSuffix)
 /** \name Tests for: #BLI_path_rel
  * \{ */
 
-#define PATH_REL(abs_path, ref_path, rel_path) \
+#define PATH_REL(abs_path, ref_path, rel_path_expect) \
   { \
     char path[FILE_MAX]; \
     const char *ref_path_test = ref_path; \
@@ -1051,7 +1051,7 @@ TEST(path_util, PathSuffix)
       BLI_str_replace_char(path, '\\', '/'); \
       free((void *)ref_path_test); \
     } \
-    EXPECT_STREQ(rel_path, path); \
+    EXPECT_STREQ(path, rel_path_expect); \
   } \
   void(0)
 
