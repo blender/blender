@@ -1143,8 +1143,7 @@ static bool vfont_to_curve(Object *ob,
   if (ef && ef->selboxes) {
     /* Set combined style flags for the selected string. Start with all styles then
      * remove one if ANY characters do not have it. Break out if we've removed them all. */
-    ef->select_char_info_flag = CU_CHINFO_BOLD | CU_CHINFO_ITALIC | CU_CHINFO_UNDERLINE |
-                                CU_CHINFO_SMALLCAPS;
+    ef->select_char_info_flag = CU_CHINFO_STYLE_ALL;
     for (int k = selstart; k <= selend && ef->select_char_info_flag; k++) {
       info = &custrinfo[k];
       ef->select_char_info_flag &= info->flag;

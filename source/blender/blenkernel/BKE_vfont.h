@@ -53,8 +53,9 @@ typedef struct EditFont {
   int selstart, selend;
 
   /**
-   * Combined styles (#CharInfo.flag) for selected string. A flag will be
-   * set only if ALL characters in the selected string have it.
+   * Combined styles from #CharInfo.flag for the selected range selected
+   * (only including values from #CU_CHINFO_STYLE_ALL).
+   * A flag will be set only if ALL characters in the selected string have it.
    */
   int select_char_info_flag;
 

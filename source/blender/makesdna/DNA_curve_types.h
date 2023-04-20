@@ -602,6 +602,10 @@ enum {
   CU_CHINFO_OVERFLOW = 1 << 6,
 };
 
+/** User adjustable as styles (not relating to run-time layout calculation). */
+#define CU_CHINFO_STYLE_ALL \
+  (CU_CHINFO_BOLD | CU_CHINFO_ITALIC | CU_CHINFO_UNDERLINE | CU_CHINFO_SMALLCAPS)
+
 /* mixed with KEY_LINEAR but define here since only curve supports */
 #define KEY_CU_EASE 3
 
