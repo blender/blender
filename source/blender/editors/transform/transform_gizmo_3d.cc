@@ -1464,7 +1464,7 @@ static void gizmo_3d_setup_draw_modal(wmGizmo *axis, const int axis_idx, const i
     case MAN_AXIS_SCALE_Z: {
 
       float end, start_co[3] = {0.0f, 0.0f, 0.0f};
-      gizmo_line_range(twtype, axis_type, NULL, &end);
+      gizmo_line_range(twtype, axis_type, nullptr, &end);
       RNA_float_set(axis->ptr, "length", end);
       RNA_enum_set(axis->ptr,
                    "draw_options",
@@ -1797,7 +1797,7 @@ static void gizmo_refresh_from_matrix(wmGizmo *axis,
       copy_m4_m4(axis->matrix_basis, twmat);
       if (scale) {
         float end;
-        gizmo_line_range(twtype, axis_type, NULL, &end);
+        gizmo_line_range(twtype, axis_type, nullptr, &end);
         RNA_float_set(axis->ptr, "length", end * scale[aidx_norm]);
       }
 

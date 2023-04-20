@@ -208,7 +208,7 @@ static void ruler_item_as_string(
     }
     else {
       BKE_unit_value_as_string(
-          numstr, numstr_size, (double)ruler_angle, prec, B_UNIT_ROTATION, unit, false);
+          numstr, numstr_size, double(ruler_angle), prec, B_UNIT_ROTATION, unit, false);
     }
   }
   else {
@@ -220,7 +220,7 @@ static void ruler_item_as_string(
     else {
       BKE_unit_value_as_string(numstr,
                                numstr_size,
-                               (double)(ruler_len * unit->scale_length),
+                               double(ruler_len * unit->scale_length),
                                prec,
                                B_UNIT_LENGTH,
                                unit,

@@ -846,7 +846,7 @@ static bool gpencil_weightpaint_brush_init(bContext *C, wmOperator *op)
     /* Get boolean array of vertex groups deformed by bones. */
     gso->vgroup_bone_deformed = gpencil_vgroup_bone_deformed_map_get(ob, gso->vgroup_tot);
     if (gso->vgroup_bone_deformed != NULL) {
-      /* Get boolean array of locked vertext groups. */
+      /* Get boolean array of locked vertex groups. */
       gso->vgroup_locked = BKE_object_defgroup_lock_flags_get(ob, gso->vgroup_tot);
       if (gso->vgroup_locked == NULL) {
         gso->vgroup_locked = (bool *)MEM_callocN(sizeof(bool) * gso->vgroup_tot, __func__);

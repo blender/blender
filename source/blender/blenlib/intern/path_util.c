@@ -1379,7 +1379,7 @@ const char *BLI_path_extension_or_end(const char *filepath)
 {
   /* NOTE(@ideasman42): Skip the extension when there are no preceding non-extension characters in
    * the file name. This ignores extensions at the beginning of a string or directly after a slash.
-   * Only using trailing extension characters has the advantage that stripping the extenion
+   * Only using trailing extension characters has the advantage that stripping the extension
    * never leads to a blank string (which can't be used as a file path).
    * Matches Python's `os.path.splitext`. */
   const char *ext = NULL;
