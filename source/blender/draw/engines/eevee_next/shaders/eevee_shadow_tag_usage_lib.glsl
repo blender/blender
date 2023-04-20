@@ -21,7 +21,7 @@ void shadow_tag_usage_tile(LightData light, ivec2 tile_co, int lod, int tilemap_
 
   tile_co >>= lod;
   int tile_index = shadow_tile_offset(tile_co, tilemaps_buf[tilemap_index].tiles_index, lod);
-  atomicOr(tiles_buf[tile_index], SHADOW_IS_USED);
+  atomicOr(tiles_buf[tile_index], uint(SHADOW_IS_USED));
 }
 
 void shadow_tag_usage_tilemap_directional(uint l_idx, vec3 P, vec3 V, float radius)

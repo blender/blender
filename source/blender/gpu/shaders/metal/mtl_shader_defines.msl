@@ -101,9 +101,17 @@ struct constexp_uvec3 {
         return 0;
     }
   }
-  inline operator uint3() const
+  constexpr inline operator uint3() const
   {
     return xyz;
+  }
+  constexpr inline operator uint2() const
+  {
+    return xy;
+  }
+  constexpr inline operator uint() const
+  {
+    return x;
   }
 };
 
@@ -140,6 +148,10 @@ template<typename T> T atomicSub(threadgroup T &mem, T data)
 {
   return atomic_fetch_sub_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
 }
+template<typename T> T atomicAnd(threadgroup T &mem, T data)
+{
+  return atomic_fetch_and_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
 template<typename T> T atomicOr(threadgroup T &mem, T data)
 {
   return atomic_fetch_or_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
@@ -152,28 +164,40 @@ template<typename T> T atomicXor(threadgroup T &mem, T data)
 /* Device memory. */
 template<typename T> T atomicMax(device T &mem, T data)
 {
-  return atomic_fetch_max_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+  return atomic_fetch_max_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
 }
 template<typename T> T atomicMin(device T &mem, T data)
 {
-  return atomic_fetch_min_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+  return atomic_fetch_min_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
 }
 template<typename T> T atomicAdd(device T &mem, T data)
 {
-  return atomic_fetch_add_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+  return atomic_fetch_add_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
 }
 template<typename T> T atomicSub(device T &mem, T data)
 {
-  return atomic_fetch_sub_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+  return atomic_fetch_sub_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+template<typename T> T atomicAnd(device T &mem, T data)
+{
+  return atomic_fetch_and_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
 }
 template<typename T> T atomicOr(device T &mem, T data)
 {
-  return atomic_fetch_or_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+  return atomic_fetch_or_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
 }
 template<typename T> T atomicXor(device T &mem, T data)
 {
-  return atomic_fetch_xor_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+  return atomic_fetch_xor_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
 }
+
+/* Unblock texture atomic compilation. 
+ * TODO(Metal): This is not correct for global atomic behaviour, but will be safe within a single thread.
+ * We need to re-visit the solution for this use-case and use a 2D texture buffer instead. */
+#define imageAtomicMin(tex, coord, data) \
+    uint val = _texelFetch_internal(tex, coord, 0).r;\
+    _texture_write_internal(tex, coord, uint4((val < data) ? val : data));\
+    tex.texture->fence();
 
 /* Used to replace 'out' in function parameters with threadlocal reference
  * shortened to avoid expanding the glsl source string. */
@@ -1124,6 +1148,27 @@ inline float3 uintBitsToFloat(uint3 f)
 inline float4 uintBitsToFloat(uint4 f)
 {
   return as_type<float4>(f);
+}
+
+#define bitfieldReverse reverse_bits
+#define bitfieldExtract extract_bits
+#define bitfieldInsert insert_bits
+#define bitCount popcount
+
+template<typename T> T findLSB(T x)
+{
+  /* ctz returns the number of trailing zeroes. To fetch the index of the LSB, we can also use this
+   * value as index, however need to filter out the case where the input value is zero to match
+   * GLSL functionality. */
+  return (x == T(0)) ? T(-1) : T(ctz(x));
+}
+
+template<typename T> T findMSB(T x)
+{
+  /* clz returns the number of leading zeroes. To fetch the index of the LSB, we can also use this
+   * value as index when offset by 1. however need to filter out the case where the input value is
+   * zero to match GLSL functionality. 000000010*/
+  return (x == T(0)) ? T(-1) : (clz(T(0)) - clz(x) - T(1));
 }
 
 /* Texture size functions. Add texture types as needed. */

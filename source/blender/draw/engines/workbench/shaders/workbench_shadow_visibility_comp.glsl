@@ -44,7 +44,7 @@ bool is_visible(IsectBox box)
 
 bool intersects_near_plane(IsectBox box)
 {
-  vec4 near_plane = drw_view_culling.planes[4];
+  vec4 near_plane = drw_view_culling.frustum_planes.planes[4];
   bool on_positive_side = false;
   bool on_negative_side = false;
 
