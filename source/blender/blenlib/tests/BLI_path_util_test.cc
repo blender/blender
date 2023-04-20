@@ -1010,6 +1010,11 @@ TEST(path_util, PathSuffix)
   PATH_SUFFIX("", FILE_MAX, "_", "123", true, "_123");
   /* Empty input/output. */
   PATH_SUFFIX("", FILE_MAX, "", "", true, "");
+
+  /* Long suffix. */
+  PATH_SUFFIX("file.txt", FILE_MAX, "_", "1234567890", true, "file_1234567890.txt");
+  /* Long extension. */
+  PATH_SUFFIX("file.txt1234567890", FILE_MAX, "_", "123", true, "file_123.txt1234567890");
 }
 
 #undef PATH_SUFFIX

@@ -596,7 +596,7 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
   if (string_len + sep_len + suffix_len >= maxlen) {
     return false;
   }
-  BLI_strncpy(extension_copy, string + string_end, sizeof(extension));
+  BLI_strncpy(extension_copy, string + string_end, sizeof(extension_copy));
   BLI_sprintf(string + string_end, "%s%s%s", sep, suffix, extension_copy);
   return true;
 }
