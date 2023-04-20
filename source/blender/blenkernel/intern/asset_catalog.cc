@@ -246,6 +246,7 @@ void AssetCatalogService::update_catalog_path(const CatalogID catalog_id,
     }
     cat->path = new_path;
     cat->simple_name_refresh();
+    this->tag_has_unsaved_changes(cat);
 
     /* TODO(Sybren): go over all assets that are assigned to this catalog, defined in the current
      * blend file, and update the catalog simple name stored there. */
