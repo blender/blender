@@ -183,7 +183,6 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
    *     ED_OT
    *     FLUID_OT
    *     TEXTURE_OT
-   *     UI_OT
    *     WORLD_OT
    */
 
@@ -445,6 +444,10 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
         km = WM_keymap_find_all(wm, "Sequencer", sl->spacetype, 0);
         break;
     }
+  }
+  /* User Interface */
+  else if (STRPREFIX(opname, "UI_OT")) {
+    km = WM_keymap_find_all(wm, "User Interface", 0, 0);
   }
 
   return km;
