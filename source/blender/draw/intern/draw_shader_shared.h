@@ -350,6 +350,16 @@ struct DRWDebugVert {
 };
 BLI_STATIC_ASSERT_ALIGN(DRWDebugVert, 16)
 
+inline DRWDebugVert debug_vert_make(uint in_pos0, uint in_pos1, uint in_pos2, uint in_vert_color)
+{
+  DRWDebugVert debug_vert;
+  debug_vert.pos0 = in_pos0;
+  debug_vert.pos1 = in_pos1;
+  debug_vert.pos2 = in_pos2;
+  debug_vert.vert_color = in_vert_color;
+  return debug_vert;
+}
+
 /* Take the header (DrawCommand) into account. */
 #define DRW_DEBUG_DRAW_VERT_MAX (64 * 8192) - 1
 

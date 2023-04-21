@@ -45,6 +45,8 @@ void write_depth(ivec2 texel_co, const int lod, ivec2 tile_co, float depth)
   /* Quantization bias. Equivalent to nextafter in C without all the safety. 1 is not enough. */
   u_depth += 2;
 
+  /* TOOD(Metal): For Metal, textures will need to be viewed as buffers to workaround missing image
+   * atomics support. */
   imageAtomicMin(shadow_atlas_img, out_texel, u_depth);
 }
 

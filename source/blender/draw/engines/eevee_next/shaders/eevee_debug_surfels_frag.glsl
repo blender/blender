@@ -12,7 +12,7 @@ void main()
 
   /* Display backfacing surfels with a transparent checkerboard grid. */
   if (!gl_FrontFacing) {
-    ivec2 grid_uv = ivec2(gl_FragCoord) / 5;
+    ivec2 grid_uv = ivec2(gl_FragCoord.xy) / 5;
     if ((grid_uv.x + grid_uv.y) % 2 == 0) {
       discard;
       return;
