@@ -6848,6 +6848,17 @@ def km_3d_view_tool_cursor(params):
     )
 
 
+def km_3d_view_tool_text_select(params):
+    return (
+        "3D View Tool: Edit Text, Select Text",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("font.selection_set", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+            ("font.select_word", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, None),
+        ]},
+    )
+
+
 def km_3d_view_tool_select(params, *, fallback):
     if params.use_tweak_select_passthrough:
         operator_props = (("vert_without_handles", True),)
@@ -8264,6 +8275,7 @@ def generate_keymaps(params=None):
         *(km_node_editor_tool_select_circle(params, fallback=fallback) for fallback in (False, True)),
         km_node_editor_tool_links_cut(params),
         km_3d_view_tool_cursor(params),
+        km_3d_view_tool_text_select(params),
         *(km_3d_view_tool_select(params, fallback=fallback) for fallback in (False, True)),
         *(km_3d_view_tool_select_box(params, fallback=fallback) for fallback in (False, True)),
         *(km_3d_view_tool_select_circle(params, fallback=fallback) for fallback in (False, True)),

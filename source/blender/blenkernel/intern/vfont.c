@@ -734,6 +734,25 @@ typedef struct VFontToCurveIter {
   int status;
 } VFontToCurveIter;
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name VFont Mouse Cursor to Text Offset
+ *
+ * This is an optional argument to `vfont_to_curve` for getting the text
+ * offset into the string at a mouse cursor location. Used for getting
+ * text cursor (caret) position or selection range.
+ * \{ */
+/* Used when translating a mouse cursor location to a position within the string. */
+typedef struct VFontCursor_Params {
+  /* Mouse cursor location in Object coordinate space as input. */
+  float cursor_location[2];
+  /* Character position within EditFont::textbuf as output. */
+  int r_string_offset;
+} VFontCursor_Params;
+
+/** \} */
+
 enum {
   VFONT_TO_CURVE_INIT = 0,
   VFONT_TO_CURVE_BISECT,
@@ -774,6 +793,7 @@ static bool vfont_to_curve(Object *ob,
                            Curve *cu,
                            int mode,
                            VFontToCurveIter *iter_data,
+                           struct VFontCursor_Params *cursor_params,
                            ListBase *r_nubase,
                            const char32_t **r_text,
                            int *r_text_len,
@@ -1441,6 +1461,35 @@ static bool vfont_to_curve(Object *ob,
     }
   }
 
+  if (cursor_params) {
+    cursor_params->r_string_offset = -1;
+    for (i = 0; i <= slen; i++, ct++) {
+      info = &custrinfo[i];
+      ascii = mem[i];
+      if (info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
+        ascii = towupper(ascii);
+      }
+      ct = &chartransdata[i];
+      che = find_vfont_char(vfd, ascii);
+      float charwidth = char_width(cu, che, info);
+      float charhalf = (charwidth / 2.0f);
+      if (cursor_params->cursor_location[1] >= ct->yof - (0.25f * linedist) &&
+          cursor_params->cursor_location[1] <= (ct->yof + (0.75f * linedist))) {
+        /* On this row. */
+        if (cursor_params->cursor_location[0] >= (ct->xof) &&
+            cursor_params->cursor_location[0] <= (ct->xof + charhalf)) {
+          /* Left half of character. */
+          cursor_params->r_string_offset = i;
+        }
+        else if (cursor_params->cursor_location[0] >= (ct->xof + charhalf) &&
+                 cursor_params->cursor_location[0] <= (ct->xof + charwidth)) {
+          /* Right half of character. */
+          cursor_params->r_string_offset = i + 1;
+        }
+      }
+    }
+  }
+
   if (ELEM(mode, FO_CURSUP, FO_CURSDOWN, FO_PAGEUP, FO_PAGEDOWN) &&
       iter_data->status == VFONT_TO_CURVE_INIT) {
     ct = &chartransdata[ef->pos];
@@ -1738,11 +1787,47 @@ bool BKE_vfont_to_curve_ex(Object *ob,
   };
 
   do {
-    data.ok &= vfont_to_curve(
-        ob, cu, mode, &data, r_nubase, r_text, r_text_len, r_text_free, r_chartransdata);
+    data.ok &= vfont_to_curve(ob,
+                              cu,
+                              mode,
+                              &data,
+                              NULL,
+                              r_nubase,
+                              r_text,
+                              r_text_len,
+                              r_text_free,
+                              r_chartransdata);
   } while (data.ok && ELEM(data.status, VFONT_TO_CURVE_SCALE_ONCE, VFONT_TO_CURVE_BISECT));
 
   return data.ok;
+}
+
+int BKE_vfont_cursor_to_text_index(Object *ob, float cursor_location[2])
+{
+  Curve *cu = (Curve *)ob->data;
+  ListBase *r_nubase = &cu->nurb;
+
+  /* TODO: iterating to calculate the scale can be avoided. */
+
+  VFontToCurveIter data = {
+      .iteraction = cu->totbox * FONT_TO_CURVE_SCALE_ITERATIONS,
+      .scale_to_fit = 1.0f,
+      .word_wrap = true,
+      .ok = true,
+      .status = VFONT_TO_CURVE_INIT,
+  };
+
+  VFontCursor_Params cursor_params = {
+      .cursor_location = {cursor_location[0], cursor_location[1]},
+      .r_string_offset = -1,
+  };
+
+  do {
+    data.ok &= vfont_to_curve(
+        ob, cu, FO_CURS, &data, &cursor_params, r_nubase, NULL, NULL, NULL, NULL);
+  } while (data.ok && ELEM(data.status, VFONT_TO_CURVE_SCALE_ONCE, VFONT_TO_CURVE_BISECT));
+
+  return cursor_params.r_string_offset;
 }
 
 #undef FONT_TO_CURVE_SCALE_ITERATIONS
