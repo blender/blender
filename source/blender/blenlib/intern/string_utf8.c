@@ -413,7 +413,9 @@ char32_t BLI_str_utf32_char_to_upper(const char32_t wc)
 {
   if (wc < U'\xFF') { /* Latin. */
     if ((wc <= U'z' && wc >= U'a') || (wc <= U'\xF6' && wc >= U'\xE0') ||
-        (wc <= U'\xFE' && wc >= U'\xF8')) {
+        /* Correct but the first case is know, only check the second */
+        // (wc <= U'\xFE' && wc >= U'\xF8')
+        (wc >= U'\xF8')) {
       return wc - 32;
     }
     return wc;
