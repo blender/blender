@@ -43,15 +43,15 @@ static void node_declare(NodeDeclarationBuilder &b)
     node_storage(node).use_all_curves = false;
   });
 
-  b.add_output<decl::Float>(N_("Value"), "Value_Float").dependent_field();
-  b.add_output<decl::Int>(N_("Value"), "Value_Int").dependent_field();
-  b.add_output<decl::Vector>(N_("Value"), "Value_Vector").dependent_field();
-  b.add_output<decl::Color>(N_("Value"), "Value_Color").dependent_field();
-  b.add_output<decl::Bool>(N_("Value"), "Value_Bool").dependent_field();
+  b.add_output<decl::Float>(N_("Value"), "Value_Float").dependent_field({6, 7, 8});
+  b.add_output<decl::Int>(N_("Value"), "Value_Int").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>(N_("Value"), "Value_Vector").dependent_field({6, 7, 8});
+  b.add_output<decl::Color>(N_("Value"), "Value_Color").dependent_field({6, 7, 8});
+  b.add_output<decl::Bool>(N_("Value"), "Value_Bool").dependent_field({6, 7, 8});
 
-  b.add_output<decl::Vector>(N_("Position")).dependent_field();
-  b.add_output<decl::Vector>(N_("Tangent")).dependent_field();
-  b.add_output<decl::Vector>(N_("Normal")).dependent_field();
+  b.add_output<decl::Vector>(N_("Position")).dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>(N_("Tangent")).dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>(N_("Normal")).dependent_field({6, 7, 8});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
