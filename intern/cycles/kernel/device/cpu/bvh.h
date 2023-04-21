@@ -109,7 +109,9 @@ struct CCLVolumeContext
 #if EMBREE_MAJOR_VERSION >= 4
   KernelGlobals kg;
   const Ray *ray;
+#  ifdef __VOLUME_RECORD_ALL__
   numhit_t max_hits;
+#  endif
   numhit_t num_hits;
 #endif
   Intersection *vol_isect;
@@ -505,8 +507,10 @@ ccl_device_forceinline void kernel_embree_filter_occluded_volume_all_func_impl(
 #endif
   const Ray *cray = ctx->ray;
 
+#ifdef __VOLUME_RECORD_ALL__
   /* Append the intersection to the end of the array. */
   if (ctx->num_hits < ctx->max_hits) {
+#endif
     Intersection current_isect;
     kernel_embree_convert_hit(
         kg, ray, hit, &current_isect, reinterpret_cast<intptr_t>(args->geometryUserPtr));
@@ -523,10 +527,17 @@ ccl_device_forceinline void kernel_embree_filter_occluded_volume_all_func_impl(
     int object_flag = kernel_data_fetch(object_flag, tri_object);
     if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
       --ctx->num_hits;
+#ifndef __VOLUME_RECORD_ALL__
+      /* Without __VOLUME_RECORD_ALL__ we need only a first counted hit, so we will
+       * continue tracing only if a current hit is not counted. */
+      *args->valid = 0;
+#endif
     }
+#ifdef __VOLUME_RECORD_ALL__
     /* This tells Embree to continue tracing. */
     *args->valid = 0;
   }
+#endif
 }
 
 #if EMBREE_MAJOR_VERSION < 4
@@ -844,7 +855,9 @@ ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
 ccl_device_intersect uint kernel_embree_intersect_volume(KernelGlobals kg,
                                                          ccl_private const Ray *ray,
                                                          ccl_private Intersection *isect,
+#  ifdef __VOLUME_RECORD_ALL__
                                                          const uint max_hits,
+#  endif
                                                          const uint visibility)
 {
 #  if EMBREE_MAJOR_VERSION >= 4
@@ -864,7 +877,9 @@ ccl_device_intersect uint kernel_embree_intersect_volume(KernelGlobals kg,
   rtcInitIntersectContext(&ctx);
 #  endif
   ctx.vol_isect = isect;
+#  ifdef __VOLUME_RECORD_ALL__
   ctx.max_hits = numhit_t(max_hits);
+#  endif
   ctx.num_hits = numhit_t(0);
   ctx.ray = ray;
   RTCRay rtc_ray;

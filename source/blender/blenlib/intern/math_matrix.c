@@ -2728,7 +2728,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
         e[k + 1] += 1.0f;
       }
       e[k] = -e[k];
-      if ((k + 1 < m) & (e[k] != 0.0f)) {
+      if ((k + 1 < m) && (e[k] != 0.0f)) {
         float invek1;
 
         /* Apply the transformation. */
@@ -2812,7 +2812,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
   /* If required, generate V. */
 
   for (k = n - 1; k >= 0; k--) {
-    if ((k < nrt) & (e[k] != 0.0f)) {
+    if ((k < nrt) && (e[k] != 0.0f)) {
       for (j = k + 1; j < nu; j++) {
         float t = 0;
         for (i = k + 1; i < n; i++) {

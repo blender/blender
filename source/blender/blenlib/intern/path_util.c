@@ -37,21 +37,15 @@
 
 #include "MEM_guardedalloc.h"
 
-/* Declarations */
+/* Declarations. */
+
+static int BLI_path_unc_prefix_len(const char *path);
 
 #ifdef WIN32
-
-/**
- * Return true if the path is absolute ie starts with a drive specifier
- * (eg A:\) or is a UNC path.
- */
-static bool BLI_path_is_abs(const char *name);
-
+static bool BLI_path_is_abs_win32(const char *name);
 #endif /* WIN32 */
 
 // #define DEBUG_STRSIZE
-
-/* implementation */
 
 int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort *r_digits_len)
 {
@@ -102,9 +96,8 @@ int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort 
     strcpy(tail, string + name_end);
   }
   if (head) {
-    /* name_end points to last character of head,
-     * make it +1 so null-terminator is nicely placed
-     */
+    /* Name_end points to last character of head,
+     * make it +1 so null-terminator is nicely placed. */
     BLI_strncpy(head, string, name_end + 1);
   }
   if (r_digits_len) {
@@ -119,8 +112,6 @@ void BLI_path_sequence_encode(
   BLI_sprintf(string, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
 }
 
-static int BLI_path_unc_prefix_len(const char *path); /* defined below in same file */
-
 void BLI_path_normalize(const char *relabase, char *path)
 {
   ptrdiff_t a;
@@ -131,19 +122,18 @@ void BLI_path_normalize(const char *relabase, char *path)
   else {
     if (path[0] == '/' && path[1] == '/') {
       if (path[2] == '\0') {
-        return; /* path is "//" - can't clean it */
+        return; /* Path is `//` - can't clean it. */
       }
-      path = path + 2; /* leave the initial "//" untouched */
+      path = path + 2; /* Leave the initial `//` untouched. */
     }
   }
 
-  /* Note
-   *   memmove(start, eind, strlen(eind) + 1);
+  /* NOTE(@ideasman42):
+   *   `memmove(start, eind, strlen(eind) + 1);`
    * is the same as
-   *   strcpy(start, eind);
-   * except strcpy should not be used because there is overlap,
-   * so use memmove's slightly more obscure syntax - Campbell
-   */
+   *   `strcpy(start, eind);`
+   * except `strcpy` should not be used because there is overlap,
+   * so use `memmove` 's slightly more obscure syntax. */
 
 #ifdef WIN32
 
@@ -152,8 +142,8 @@ void BLI_path_normalize(const char *relabase, char *path)
     memmove(start, eind, strlen(eind) + 1);
   }
 
-  /* remove two consecutive backslashes, but skip the UNC prefix,
-   * which needs to be preserved */
+  /* Remove two consecutive backslashes, but skip the UNC prefix,
+   * which needs to be preserved. */
   while ((start = strstr(path + BLI_path_unc_prefix_len(path), "\\\\"))) {
     eind = start + strlen("\\\\") - 1;
     memmove(start, eind, strlen(eind) + 1);
@@ -179,21 +169,21 @@ void BLI_path_normalize(const char *relabase, char *path)
 #else
 
   while ((start = strstr(path, "/./"))) {
-    eind = start + (3 - 1) /* strlen("/./") - 1 */;
+    eind = start + (3 - 1) /* `strlen("/./") - 1` */;
     memmove(start, eind, strlen(eind) + 1);
   }
 
   while ((start = strstr(path, "//"))) {
-    eind = start + (2 - 1) /* strlen("//") - 1 */;
+    eind = start + (2 - 1) /* `strlen("//") - 1` */;
     memmove(start, eind, strlen(eind) + 1);
   }
 
   while ((start = strstr(path, "/../"))) {
     a = start - path - 1;
     if (a > 0) {
-      /* <prefix>/<parent>/../<postfix> => <prefix>/<postfix> */
-      eind = start + (4 - 1) /* strlen("/../") - 1 */; /* strip "/.." and keep last "/" */
-      while (a > 0 && path[a] != '/') {                /* find start of <parent> */
+      /* `<prefix>/<parent>/../<postfix> => <prefix>/<postfix>`. */
+      eind = start + (4 - 1) /* `strlen("/../") - 1` */; /* Strip "/.." and keep last "/". */
+      while (a > 0 && path[a] != '/') {                  /* Find start of `<parent>`. */
         a--;
       }
       memmove(path + a, eind, strlen(eind) + 1);
@@ -253,7 +243,7 @@ bool BLI_filename_make_safe_ex(char *fname, bool allow_tokens)
 
   /* Forbid only dots. */
   for (fn = fname; *fn == '.'; fn++) {
-    /* pass */
+    /* Pass. */
   }
   if (*fn == '\0') {
     *fname = '_';
@@ -279,15 +269,14 @@ bool BLI_filename_make_safe_ex(char *fname, bool allow_tokens)
 
     /* Check for forbidden names - not we have to check all combination
      * of upper and lower cases, hence the usage of lower_fname
-     * (more efficient than using BLI_strcasestr repeatedly). */
+     * (more efficient than using #BLI_strcasestr repeatedly). */
     BLI_str_tolower_ascii(lower_fname, len);
     for (iname = invalid_names; *iname; iname++) {
       if (strstr(lower_fname, *iname) == lower_fname) {
         const size_t iname_len = strlen(*iname);
         /* Only invalid if the whole name is made of the invalid chunk, or it has an
-         * (assumed extension) dot just after. This means it will also catch 'valid'
-         * names like 'aux.foo.bar', but should be
-         * good enough for us! */
+         * (assumed extension) dot just after. This means it will also catch *valid*
+         * names like `aux.foo.bar`, but should be good enough for us! */
         if ((iname_len == len) || (lower_fname[iname_len] == '.')) {
           *fname = '_';
           changed = true;
@@ -311,14 +300,14 @@ bool BLI_filename_make_safe(char *fname)
 bool BLI_path_make_safe(char *path)
 {
   /* Simply apply #BLI_filename_make_safe() over each component of the path.
-   * Luckily enough, same 'safe' rules applies to file & directory names. */
+   * Luckily enough, same *safe* rules applies to file & directory names. */
   char *curr_slash, *curr_path = path;
   bool changed = false;
   bool skip_first = false;
 
 #ifdef WIN32
-  if (BLI_path_is_abs(path)) {
-    /* Do not make safe 'C:' in 'C:\foo\bar'... */
+  if (BLI_path_is_abs_win32(path)) {
+    /* Do not make safe `C:` in `C:\foo\bar`. */
     skip_first = true;
   }
 #endif
@@ -361,7 +350,7 @@ static int BLI_path_unc_prefix_len(const char *path)
 {
   if (BLI_path_is_unc(path)) {
     if ((path[2] == '?') && (path[3] == '\\')) {
-      /* we assume long UNC path like \\?\server\share\folder etc... */
+      /* We assume long UNC path like `\\?\server\share\folder` etc. */
       return 4;
     }
 
@@ -374,10 +363,14 @@ static int BLI_path_unc_prefix_len(const char *path)
 #if defined(WIN32)
 
 /**
- * Return true if the path is absolute ie starts with a drive specifier
- * (eg A:\) or is a UNC path.
+ * Return true if the path is an absolute path on a WIN32 file-system, it either:
+ * - Starts with a drive specifier* (eg `A:\`).
+ * - Is a UNC path.
+ *
+ * \note Not to be confused with the opposite of #BLI_path_is_rel which checks for the
+ * Blender specific convention of using `//` prefix for blend-file relative paths.
  */
-static bool BLI_path_is_abs(const char *name)
+static bool BLI_path_is_abs_win32(const char *name)
 {
   return (name[1] == ':' && ELEM(name[2], '\\', '/')) || BLI_path_is_unc(name);
 }
@@ -409,9 +402,10 @@ static void BLI_path_unc_to_short(wchar_t *unc)
   wchar_t tmp[PATH_MAX];
 
   int len = wcslen(unc);
-  /* convert:
-   *    \\?\UNC\server\share\folder\... to \\server\share\folder\...
-   *    \\?\C:\ to C:\ and \\?\C:\folder\... to C:\folder\...
+  /* Convert:
+   * - `\\?\UNC\server\share\folder\...` to `\\server\share\folder\...`
+   * - `\\?\C:\` to `C:\`
+   * - `\\?\C:\folder\...` to `C:\folder\...`
    */
   if ((len > 3) && (unc[0] == L'\\') && (unc[1] == L'\\') && (unc[2] == L'?') &&
       ELEM(unc[3], L'\\', L'/')) {
@@ -450,18 +444,18 @@ void BLI_path_rel(char *file, const char *relfile)
   char temp[FILE_MAX];
   char res[FILE_MAX];
 
-  /* if file is already relative, bail out */
+  /* If file is already relative, bail out. */
   if (BLI_path_is_rel(file)) {
     return;
   }
 
-  /* also bail out if relative path is not set */
+  /* Also bail out if relative path is not set. */
   if (relfile[0] == '\0') {
     return;
   }
 
 #ifdef WIN32
-  if (BLI_strnlen(relfile, 3) > 2 && !BLI_path_is_abs(relfile)) {
+  if (BLI_strnlen(relfile, 3) > 2 && !BLI_path_is_abs_win32(relfile)) {
     char *ptemp;
     /* Fix missing volume name in relative base,
      * can happen with old `recent-files.txt` files. */
@@ -479,12 +473,12 @@ void BLI_path_rel(char *file, const char *relfile)
   if (BLI_strnlen(file, 3) > 2) {
     bool is_unc = BLI_path_is_unc(file);
 
-    /* Ensure paths are both UNC paths or are both drives */
+    /* Ensure paths are both UNC paths or are both drives. */
     if (BLI_path_is_unc(temp) != is_unc) {
       return;
     }
 
-    /* Ensure both UNC paths are on the same share */
+    /* Ensure both UNC paths are on the same share. */
     if (is_unc) {
       int off;
       int slash = 0;
@@ -509,16 +503,16 @@ void BLI_path_rel(char *file, const char *relfile)
   BLI_str_replace_char(temp + BLI_path_unc_prefix_len(temp), '\\', '/');
   BLI_str_replace_char(file + BLI_path_unc_prefix_len(file), '\\', '/');
 
-  /* remove /./ which confuse the following slash counting... */
+  /* Remove `/./` which confuse the following slash counting. */
   BLI_path_normalize(NULL, file);
   BLI_path_normalize(NULL, temp);
 
-  /* the last slash in the file indicates where the path part ends */
+  /* The last slash in the file indicates where the path part ends. */
   lslash = BLI_path_slash_rfind(temp);
 
   if (lslash) {
-    /* find the prefix of the filename that is equal for both filenames.
-     * This is replaced by the two slashes at the beginning */
+    /* Find the prefix of the filename that is equal for both filenames.
+     * This is replaced by the two slashes at the beginning. */
     const char *p = temp;
     const char *q = file;
     char *r = res;
@@ -532,16 +526,14 @@ void BLI_path_rel(char *file, const char *relfile)
       p++;
       q++;
 
-      /* don't search beyond the end of the string
-       * in the rare case they match */
+      /* Don't search beyond the end of the string in the rare case they match. */
       if ((*p == '\0') || (*q == '\0')) {
         break;
       }
     }
 
-    /* we might have passed the slash when the beginning of a dir matches
-     * so we rewind. Only check on the actual filename
-     */
+    /* We might have passed the slash when the beginning of a dir matches
+     * so we rewind. Only check on the actual filename. */
     if (*q != '/') {
       while ((q >= file) && (*q != '/')) {
         q--;
@@ -557,11 +549,10 @@ void BLI_path_rel(char *file, const char *relfile)
 
     r += BLI_strcpy_rlen(r, "//");
 
-    /* p now points to the slash that is at the beginning of the part
+    /* `p` now points to the slash that is at the beginning of the part
      * where the path is different from the relative path.
      * We count the number of directories we need to go up in the
-     * hierarchy to arrive at the common 'prefix' of the path
-     */
+     * hierarchy to arrive at the common prefix of the path. */
     if (p < temp) {
       p = temp;
     }
@@ -572,7 +563,7 @@ void BLI_path_rel(char *file, const char *relfile)
       p++;
     }
 
-    /* don't copy the slash at the beginning */
+    /* Don't copy the slash at the beginning. */
     r += BLI_strncpy_rlen(r, q + 1, FILE_MAX - (r - res));
 
 #ifdef WIN32
@@ -627,7 +618,7 @@ bool BLI_path_parent_dir(char *path)
     return false;
   }
   if (tail_len == 1) {
-    /* Last path is ".", as normalize should remove this, it's safe to assume failure.
+    /* Last path is `.`, as normalize should remove this, it's safe to assume failure.
      * This happens when the input a single period (possibly with slashes before or after). */
     if (path[tail_ofs] == '.') {
       return false;
@@ -646,7 +637,7 @@ bool BLI_path_parent_dir_until_exists(char *dir)
 
   /* Loop as long as cur path is not a dir, and we can get a parent path. */
   while ((BLI_access(dir, R_OK) != 0) && (valid_path = BLI_path_parent_dir(dir))) {
-    /* pass */
+    /* Pass. */
   }
   return (valid_path && dir[0]);
 }
@@ -659,11 +650,11 @@ bool BLI_path_parent_dir_until_exists(char *dir)
 static bool stringframe_chars(const char *path, int *char_start, int *char_end)
 {
   uint ch_sta, ch_end, i;
-  /* Insert current frame: file### -> file001 */
+  /* Insert current frame: `file###` -> `file001`. */
   ch_sta = ch_end = 0;
   for (i = 0; path[i] != '\0'; i++) {
     if (ELEM(path[i], '\\', '/')) {
-      ch_end = 0; /* this is a directory name, don't use any hashes we found */
+      ch_end = 0; /* This is a directory name, don't use any hashes we found. */
     }
     else if (path[i] == '#') {
       ch_sta = i;
@@ -671,9 +662,9 @@ static bool stringframe_chars(const char *path, int *char_start, int *char_end)
       while (path[ch_end] == '#') {
         ch_end++;
       }
-      i = ch_end - 1; /* keep searching */
+      i = ch_end - 1; /* Keep searching. */
 
-      /* don't break, there may be a slash after this that invalidates the previous #'s */
+      /* Don't break, there may be a slash after this that invalidates the previous #'s. */
     }
   }
 
@@ -718,7 +709,7 @@ bool BLI_path_frame(char *path, int frame, int digits)
     ensure_digits(path, digits);
   }
 
-  if (stringframe_chars(path, &ch_sta, &ch_end)) { /* warning, ch_end is the last # +1 */
+  if (stringframe_chars(path, &ch_sta, &ch_end)) { /* Warning: `ch_end` is the last # +1. */
     char tmp[FILE_MAX];
     BLI_snprintf(
         tmp, sizeof(tmp), "%.*s%.*d%s", ch_sta, path, ch_end - ch_sta, frame, path + ch_end);
@@ -736,7 +727,7 @@ bool BLI_path_frame_range(char *path, int sta, int end, int digits)
     ensure_digits(path, digits);
   }
 
-  if (stringframe_chars(path, &ch_sta, &ch_end)) { /* warning, ch_end is the last # +1 */
+  if (stringframe_chars(path, &ch_sta, &ch_end)) { /* Warning: `ch_end` is the last # +1. */
     char tmp[FILE_MAX];
     BLI_snprintf(tmp,
                  sizeof(tmp),
@@ -812,8 +803,8 @@ void BLI_path_frame_strip(char *path, char *r_ext, const size_t ext_maxlen)
 
 bool BLI_path_frame_check_chars(const char *path)
 {
-  int ch_sta, ch_end; /* dummy args */
-  return stringframe_chars(path, &ch_sta, &ch_end);
+  int ch_sta_dummy, ch_end_dummy;
+  return stringframe_chars(path, &ch_sta_dummy, &ch_end_dummy);
 }
 
 void BLI_path_to_display_name(char *display_name, int maxlen, const char *name)
@@ -860,16 +851,14 @@ bool BLI_path_abs(char *path, const char *basepath)
   char base[FILE_MAX];
 #ifdef WIN32
 
-  /* without this: "" --> "C:\" */
+  /* Without this, an empty string converts to: `C:\` */
   if (*path == '\0') {
     return wasrelative;
   }
 
-  /* we are checking here if we have an absolute path that is not in the current
-   * blend file as a lib main - we are basically checking for the case that a
-   * UNIX root '/' is passed.
-   */
-  if (!wasrelative && !BLI_path_is_abs(path)) {
+  /* We are checking here if we have an absolute path that is not in the current `.blend` file
+   * as a lib main - we are basically checking for the case that a UNIX root `/` is passed. */
+  if (!wasrelative && !BLI_path_is_abs_win32(path)) {
     char *p = path;
     BLI_windows_get_default_root_dir(tmp);
     /* Get rid of the slashes at the beginning of the path. */
@@ -892,7 +881,7 @@ bool BLI_path_abs(char *path, const char *basepath)
    * `C:\foo.JPG` -> `/c/foo.JPG` */
 
   if (isalpha(tmp[0]) && (tmp[1] == ':') && ELEM(tmp[2], '\\', '/')) {
-    tmp[1] = tolower(tmp[0]); /* Replace ':' with drive-letter. */
+    tmp[1] = tolower(tmp[0]); /* Replace `:` with drive-letter. */
     tmp[0] = '/';
     /* `\` the slash will be converted later. */
   }
@@ -916,28 +905,28 @@ bool BLI_path_abs(char *path, const char *basepath)
     const char *lslash;
     BLI_strncpy(base, basepath, sizeof(base));
 
-    /* file component is ignored, so don't bother with the trailing slash */
+    /* File component is ignored, so don't bother with the trailing slash. */
     BLI_path_normalize(NULL, base);
     lslash = BLI_path_slash_rfind(base);
     BLI_str_replace_char(base + BLI_path_unc_prefix_len(base), '\\', '/');
 
     if (lslash) {
-      /* length up to and including last "/" */
+      /* Length up to and including last `/`. */
       const int baselen = (int)(lslash - base) + 1;
-      /* use path for temp storage here, we copy back over it right away */
-      BLI_strncpy(path, tmp + 2, FILE_MAX); /* strip "//" */
+      /* Use path for temp storage here, we copy back over it right away. */
+      BLI_strncpy(path, tmp + 2, FILE_MAX); /* Strip `//` prefix. */
 
-      memcpy(tmp, base, baselen); /* prefix with base up to last "/" */
-      BLI_strncpy(tmp + baselen, path, sizeof(tmp) - baselen); /* append path after "//" */
-      BLI_strncpy(path, tmp, FILE_MAX);                        /* return as result */
+      memcpy(tmp, base, baselen); /* Prefix with base up to last `/`. */
+      BLI_strncpy(tmp + baselen, path, sizeof(tmp) - baselen); /* Append path after `//`. */
+      BLI_strncpy(path, tmp, FILE_MAX);                        /* Return as result. */
     }
     else {
-      /* base doesn't seem to be a directory--ignore it and just strip "//" prefix on path */
+      /* Base doesn't seem to be a directory, ignore it and just strip `//` prefix on path. */
       BLI_strncpy(path, tmp + 2, FILE_MAX);
     }
   }
   else {
-    /* base ignored */
+    /* Base ignored. */
     BLI_strncpy(path, tmp, FILE_MAX);
   }
 
@@ -948,7 +937,7 @@ bool BLI_path_abs(char *path, const char *basepath)
   BLI_str_replace_char(path + 2, '/', '\\');
 #endif
 
-  /* ensure this is after correcting for path switch */
+  /* Ensure this is after correcting for path switch. */
   BLI_path_normalize(NULL, path);
 
   return wasrelative;
@@ -960,7 +949,7 @@ bool BLI_path_is_abs_from_cwd(const char *path)
   const int path_len_clamp = BLI_strnlen(path, 3);
 
 #ifdef WIN32
-  if ((path_len_clamp >= 3 && BLI_path_is_abs(path)) || BLI_path_is_unc(path)) {
+  if ((path_len_clamp >= 3 && BLI_path_is_abs_win32(path)) || BLI_path_is_unc(path)) {
     is_abs = true;
   }
 #else
@@ -979,7 +968,7 @@ bool BLI_path_abs_from_cwd(char *path, const size_t maxlen)
 
   if (!BLI_path_is_abs_from_cwd(path)) {
     char cwd[FILE_MAX];
-    /* in case the full path to the blend isn't used */
+    /* In case the full path to the blend isn't used. */
     if (BLI_current_working_dir(cwd, sizeof(cwd))) {
       char origpath[FILE_MAX];
       BLI_strncpy(origpath, path, FILE_MAX);
@@ -996,7 +985,7 @@ bool BLI_path_abs_from_cwd(char *path, const size_t maxlen)
 
 #ifdef _WIN32
 /**
- * Tries appending each of the semicolon-separated extensions in the PATHEXT
+ * Tries appending each of the semicolon-separated extensions in the `PATHEXT`
  * environment variable (Windows-only) onto `name` in turn until such a file is found.
  * Returns success/failure.
  */
@@ -1007,7 +996,7 @@ bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen)
 
   type = BLI_exists(name);
   if ((type == 0) || S_ISDIR(type)) {
-    /* typically 3-5, ".EXE", ".BAT"... etc */
+    /* Typically 3-5, ".EXE", ".BAT"... etc. */
     const int ext_max = 12;
     const char *ext = BLI_getenv("PATHEXT");
     if (ext) {
@@ -1016,7 +1005,7 @@ bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen)
       char *filename_ext;
       const char *ext_next;
 
-      /* null terminated in the loop */
+      /* Null terminated in the loop. */
       memcpy(filename, name, name_len);
       filename_ext = filename + name_len;
 
@@ -1101,11 +1090,9 @@ bool BLI_path_program_search(char *fullname, const size_t maxlen, const char *na
 
 void BLI_setenv(const char *env, const char *val)
 {
-  /* free windows */
-
 #if (defined(_WIN32) || defined(_WIN64))
+  /* MS-Windows. */
   uputenv(env, val);
-
 #else
   /* Linux/macOS/BSD */
   if (val) {
@@ -1158,7 +1145,7 @@ bool BLI_make_existing_file(const char *name)
   char di[FILE_MAX];
   BLI_split_dir_part(name, di, sizeof(di));
 
-  /* make if the dir doesn't exist */
+  /* Make if the dir doesn't exist. */
   return BLI_dir_create_recursive(di);
 }
 
@@ -1260,7 +1247,7 @@ bool BLI_path_extension_glob_validate(char *ext_fnmatch)
       /* Non-wildcard char, we can break here and consider the pattern valid. */
       return false;
     }
-    /* So far, only wildcards in last group of the pattern... */
+    /* So far, only wildcards in last group of the pattern. */
     only_wildcards = true;
   }
   /* Only one group in the pattern, so even if its only made of wildcard(s),
@@ -1352,7 +1339,7 @@ void BLI_split_dirfile(
 
   if (dir) {
     if (lslash) {
-      /* +1 to include the slash and the last char */
+      /* +1 to include the slash and the last char. */
       BLI_strncpy(dir, string, MIN2(dirlen, lslash + 1));
     }
     else {
@@ -1429,7 +1416,7 @@ size_t BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__
   }
 
   if (dirlen >= maxlen) {
-    return dirlen; /* fills the path */
+    return dirlen; /* Fills the path. */
   }
 
   return dirlen + BLI_strncpy_rlen(dst + dirlen, file, maxlen - dirlen);
@@ -1470,7 +1457,7 @@ size_t BLI_path_join_array(char *__restrict dst,
   }
 
 #ifdef WIN32
-  /* Special case "//" for relative paths, don't use separator #SEP
+  /* Special case `//` for relative paths, don't use separator #SEP
    * as this has a special meaning on both WIN32 & UNIX.
    * Without this check joining `"//", "path"`. results in `"//\path"`. */
   if (ofs != 0) {
@@ -1519,7 +1506,7 @@ size_t BLI_path_join_array(char *__restrict dst,
       }
 
       if (len != 0) {
-        /* the very first path may have a slash at the end */
+        /* The very first path may have a slash at the end. */
         if (ofs && !BLI_path_slash_is_native_compat(dst[ofs - 1])) {
           dst[ofs++] = SEP;
           if (ofs == dst_last) {
@@ -1574,7 +1561,7 @@ static bool path_name_at_index_forward(const char *__restrict path,
     if ((c == '\0') || BLI_path_slash_is_native_compat(c)) {
       if (prev + 1 != i) {
         prev += 1;
-        /* Skip '/./' (behave as if they don't exist). */
+        /* Skip `/./` (behave as if they don't exist). */
         if (!((i - prev == 1) && (prev != 0) && (path[prev] == '.'))) {
           if (index_step == index) {
             *r_offset = prev;
@@ -1609,7 +1596,7 @@ static bool path_name_at_index_backward(const char *__restrict path,
     if ((c == '\0') || BLI_path_slash_is_native_compat(c)) {
       if (prev - 1 != i) {
         i += 1;
-        /* Skip '/./' (behave as if they don't exist). */
+        /* Skip `/./` (behave as if they don't exist). */
         if (!((prev - i == 1) && (i != 0) && (path[i] == '.'))) {
           if (index_step == index) {
             *r_offset = i;
@@ -1644,7 +1631,7 @@ bool BLI_path_contains(const char *container_path, const char *containee_path)
   char containee_native[PATH_MAX];
 
   /* Keep space for a trailing slash. If the path is truncated by this, the containee path is
-   * longer than PATH_MAX and the result is ill-defined. */
+   * longer than #PATH_MAX and the result is ill-defined. */
   BLI_strncpy(container_native, container_path, PATH_MAX - 1);
   BLI_strncpy(containee_native, containee_path, PATH_MAX);
 

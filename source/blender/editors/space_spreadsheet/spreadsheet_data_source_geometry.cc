@@ -510,28 +510,23 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
     }
   }
   else {
-    if (object_eval->mode == OB_MODE_EDIT && object_eval->type == OB_MESH) {
-      Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval);
-      if (mesh == nullptr) {
-        return geometry_set;
+    if (BLI_listbase_is_single(&sspreadsheet->viewer_path.path)) {
+      if (const GeometrySet *geometry_eval = object_eval->runtime.geometry_set_eval) {
+        geometry_set = *geometry_eval;
       }
-      BKE_mesh_wrapper_ensure_mdata(mesh);
-      MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-      mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
+
+      if (object_eval->mode == OB_MODE_EDIT && object_eval->type == OB_MESH) {
+        if (Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval)) {
+          BKE_mesh_wrapper_ensure_mdata(mesh);
+          geometry_set.replace_mesh(mesh, GeometryOwnershipType::ReadOnly);
+        }
+      }
     }
     else {
-      if (BLI_listbase_count(&sspreadsheet->viewer_path.path) == 1) {
-        /* Use final evaluated object. */
-        if (object_eval->runtime.geometry_set_eval != nullptr) {
-          geometry_set = *object_eval->runtime.geometry_set_eval;
-        }
-      }
-      else {
-        if (const ViewerNodeLog *viewer_log =
-                nodes::geo_eval_log::GeoModifierLog::find_viewer_node_log_for_path(
-                    sspreadsheet->viewer_path)) {
-          geometry_set = viewer_log->geometry;
-        }
+      if (const ViewerNodeLog *viewer_log =
+              nodes::geo_eval_log::GeoModifierLog::find_viewer_node_log_for_path(
+                  sspreadsheet->viewer_path)) {
+        geometry_set = viewer_log->geometry;
       }
     }
   }

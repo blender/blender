@@ -83,9 +83,7 @@ struct constexp_uvec3 {
     uint3 xyz;
   };
 
-  constexpr constexp_uvec3(uint _x, uint _y, uint _z) : x(_x), y(_y), z(_z)
-  {
-  }
+  constexpr constexp_uvec3(uint _x, uint _y, uint _z) : x(_x), y(_y), z(_z) {}
   constexpr uint operator[](int i)
   {
     /* Note: Need to switch on each elem value as array accessor triggers
@@ -294,6 +292,8 @@ struct SStruct {
 #define textureGather3(__tex, __uv, __comp) _texture_gather_internal(__tex, __uv, __comp)
 #define textureGatherOffset(__tex, __offset, __uv, __comp) \
   _texture_gather_internal(__tex, __uv, __comp, __offset)
+#define textureGrad(__tex, __uv, __dpdx, __dpdy) \
+  _texture_grad_internal(__tex, __uv, __dpdx, __dpdy)
 
 #define TEXURE_MACRO(_1, _2, _3, TEXNAME, ...) TEXNAME
 #define texture(...) TEXURE_MACRO(__VA_ARGS__, texture3, texture2)(__VA_ARGS__)
@@ -847,6 +847,34 @@ inline vec<T, 4> _texture_gather_internal(
     int2 offset = int2(0))
 {
   return tex.texture->gather(*tex.samp, uva.xy, uint(uva.z), offset);
+}
+
+/* Texture Grad. */
+inline float4 _texture_grad_internal(
+    thread _mtl_combined_image_sampler_2d<float, access::sample> tex,
+    float2 uv,
+    float2 dpdx,
+    float2 dpdy)
+{
+  return tex.texture->sample(*tex.samp, uv, gradient2d(dpdx, dpdy));
+}
+
+inline float4 _texture_grad_internal(
+    thread _mtl_combined_image_sampler_2d_array<float, access::sample> tex,
+    float3 uva,
+    float2 dpdx,
+    float2 dpdy)
+{
+  return tex.texture->sample(*tex.samp, uva.xy, uint(uva.z), gradient2d(dpdx, dpdy));
+}
+
+inline float4 _texture_grad_internal(
+    thread _mtl_combined_image_sampler_3d<float, access::sample> tex,
+    float3 uvw,
+    float3 dpdx,
+    float3 dpdy)
+{
+  return tex.texture->sample(*tex.samp, uvw, gradient3d(dpdx, dpdy));
 }
 
 /* Texture write support. */

@@ -154,7 +154,7 @@ struct SculptUndoNodeGeometry {
   CustomData ldata;
   CustomData pdata;
   int *poly_offset_indices;
-  blender::ImplicitSharingInfo *poly_offsets_sharing_info;
+  const blender::ImplicitSharingInfo *poly_offsets_sharing_info;
   int totvert;
   int totedge;
   int totloop;

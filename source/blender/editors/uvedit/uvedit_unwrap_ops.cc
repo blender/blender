@@ -3181,7 +3181,7 @@ static float uv_sphere_project(const Scene *scene,
                                const float branch_init)
 {
   float max_u = 0.0f;
-  if (BM_elem_flag_test(efa_init, BM_ELEM_TAG)) {
+  if (use_seams && BM_elem_flag_test(efa_init, BM_ELEM_TAG)) {
     return max_u;
   }
 
@@ -3358,7 +3358,7 @@ static float uv_cylinder_project(const Scene *scene,
                                  const float branch_init)
 {
   float max_u = 0.0f;
-  if (BM_elem_flag_test(efa_init, BM_ELEM_TAG)) {
+  if (use_seams && BM_elem_flag_test(efa_init, BM_ELEM_TAG)) {
     return max_u;
   }
 

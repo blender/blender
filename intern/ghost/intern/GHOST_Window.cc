@@ -21,22 +21,21 @@ GHOST_Window::GHOST_Window(uint32_t width,
                            const bool wantStereoVisual,
                            const bool /*exclusive*/)
     : m_drawingContextType(GHOST_kDrawingContextTypeNone),
+      m_userData(nullptr),
       m_cursorVisible(true),
       m_cursorGrab(GHOST_kGrabDisable),
       m_cursorGrabAxis(GHOST_kAxisNone),
+      m_cursorGrabInitPos{0, 0},
+      m_cursorGrabAccumPos{0, 0},
       m_cursorShape(GHOST_kStandardCursorDefault),
+      m_progressBarVisible(false),
+      m_canAcceptDragOperation(false),
+      m_isUnsavedChanges(false),
       m_wantStereoVisual(wantStereoVisual),
+      m_nativePixelSize(1.0f),
       m_context(new GHOST_ContextNone(false))
+
 {
-  m_isUnsavedChanges = false;
-  m_canAcceptDragOperation = false;
-
-  m_progressBarVisible = false;
-
-  m_cursorGrabAccumPos[0] = 0;
-  m_cursorGrabAccumPos[1] = 0;
-
-  m_nativePixelSize = 1.0f;
 
   m_fullScreen = state == GHOST_kWindowStateFullScreen;
   if (m_fullScreen) {

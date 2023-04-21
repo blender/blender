@@ -458,6 +458,9 @@ GPUTexture *GPU_texture_create_view(const char *name,
 {
   BLI_assert(mip_len > 0);
   BLI_assert(layer_len > 0);
+  BLI_assert_msg(
+      GPU_texture_usage(src) & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
+      "Source texture of TextureView must have GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW usage flag.");
   Texture *view = GPUBackend::get()->texture_alloc(name);
   view->init_view(src,
                   format,

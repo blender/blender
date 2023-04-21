@@ -177,6 +177,7 @@ static void rna_def_pointcloud(BlenderRNA *brna)
   /* geometry */
   prop = RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "Point");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_PointCloud_points_begin",
                                     "rna_iterator_array_next",

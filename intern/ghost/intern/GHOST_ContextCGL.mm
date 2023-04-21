@@ -19,6 +19,8 @@
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
 
+#include <epoxy/gl.h>
+
 #include <cassert>
 #include <vector>
 

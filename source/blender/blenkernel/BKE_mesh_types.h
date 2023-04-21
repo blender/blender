@@ -98,7 +98,7 @@ struct MeshRuntime {
   std::mutex render_mutex;
 
   /** Implicit sharing user count for #Mesh::poly_offset_indices. */
-  ImplicitSharingInfoHandle *poly_offsets_sharing_info;
+  const ImplicitSharingInfoHandle *poly_offsets_sharing_info;
 
   /**
    * A cache of bounds shared between data-blocks with unchanged positions. When changing positions

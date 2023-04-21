@@ -29,7 +29,10 @@ class PointCloud;
 
 class BVHEmbree : public BVH {
  public:
-  void build(Progress &progress, Stats *stats, RTCDevice rtc_device);
+  void build(Progress &progress,
+             Stats *stats,
+             RTCDevice rtc_device,
+             const bool isSyclEmbreeDevice = false);
   void refit(Progress &progress);
 
   RTCScene scene;
@@ -55,6 +58,7 @@ class BVHEmbree : public BVH {
                                const bool update);
 
   RTCDevice rtc_device;
+  bool rtc_device_is_sycl;
   enum RTCBuildQuality build_quality;
 };
 

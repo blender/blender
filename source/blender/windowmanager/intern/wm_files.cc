@@ -467,8 +467,6 @@ static void wm_init_userdef(Main *bmain)
   /* Not versioning, just avoid errors. */
 #ifndef WITH_CYCLES
   BKE_addon_remove_safe(&U.addons, "cycles");
-#else
-  UNUSED_VARS(BKE_addon_remove_safe);
 #endif
 
   UI_init_userdef();
@@ -1584,7 +1582,7 @@ static void wm_history_file_update(void)
     /* Write current file to #BLENDER_HISTORY_FILE. */
     wm_history_file_write();
 
-    /* also update most recent files on System */
+    /* Also update most recent files on system. */
     GHOST_addToSystemRecentFiles(blendfile_path);
   }
 }

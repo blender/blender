@@ -143,7 +143,7 @@ void OneapiDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       bvh_embree->refit(progress);
     }
     else {
-      bvh_embree->build(progress, &stats, embree_device);
+      bvh_embree->build(progress, &stats, embree_device, true);
     }
     if (bvh->params.top_level) {
       embree_scene = bvh_embree->scene;
