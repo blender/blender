@@ -138,7 +138,7 @@ static std::function<ID *(const bNode &node)> get_default_id_getter(const bNodeT
       return nullptr;
     }
     const bNodeTree &ntree = *reinterpret_cast<const bNodeTree *>(node.id);
-    const bNodeSocket *io_socket;
+    const bNodeSocket *io_socket = nullptr;
     if (in_out == SOCK_IN) {
       /* Better be safe than sorry when the underlying node group changed. */
       if (socket_index < ntree.interface_inputs().size()) {
