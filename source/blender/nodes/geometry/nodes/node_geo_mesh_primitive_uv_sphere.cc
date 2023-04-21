@@ -358,8 +358,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const float radius = params.extract_input<float>("Radius");
 
-  AutoAnonymousAttributeID uv_map_id = params.get_output_anonymous_attribute_id_if_needed(
-      "UV Map");
+  AnonymousAttributeIDPtr uv_map_id = params.get_output_anonymous_attribute_id_if_needed("UV Map");
 
   Mesh *mesh = create_uv_sphere_mesh(radius, segments_num, rings_num, uv_map_id.get());
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));

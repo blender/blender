@@ -30,7 +30,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 }
 
 struct AttributeOutputs {
-  AutoAnonymousAttributeID intersecting_edges_id;
+  AnonymousAttributeIDPtr intersecting_edges_id;
 };
 
 static void node_update(bNodeTree *ntree, bNode *node)

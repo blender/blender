@@ -56,10 +56,10 @@ Mesh *create_grid_mesh(
     int verts_x, int verts_y, float size_x, float size_y, const AttributeIDRef &uv_map_id);
 
 struct ConeAttributeOutputs {
-  AutoAnonymousAttributeID top_id;
-  AutoAnonymousAttributeID bottom_id;
-  AutoAnonymousAttributeID side_id;
-  AutoAnonymousAttributeID uv_map_id;
+  AnonymousAttributeIDPtr top_id;
+  AnonymousAttributeIDPtr bottom_id;
+  AnonymousAttributeIDPtr side_id;
+  AnonymousAttributeIDPtr uv_map_id;
 };
 
 Mesh *create_cylinder_or_cone_mesh(float radius_top,

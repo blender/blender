@@ -107,8 +107,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  AutoAnonymousAttributeID uv_map_id = params.get_output_anonymous_attribute_id_if_needed(
-      "UV Map");
+  AnonymousAttributeIDPtr uv_map_id = params.get_output_anonymous_attribute_id_if_needed("UV Map");
 
   Mesh *mesh = create_cube_mesh(size, verts_x, verts_y, verts_z, uv_map_id.get());
 

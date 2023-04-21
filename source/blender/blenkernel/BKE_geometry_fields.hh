@@ -259,11 +259,11 @@ class NormalFieldInput : public GeometryFieldInput {
 
 class AnonymousAttributeFieldInput : public GeometryFieldInput {
  private:
-  AutoAnonymousAttributeID anonymous_id_;
+  AnonymousAttributeIDPtr anonymous_id_;
   std::string producer_name_;
 
  public:
-  AnonymousAttributeFieldInput(AutoAnonymousAttributeID anonymous_id,
+  AnonymousAttributeFieldInput(AnonymousAttributeIDPtr anonymous_id,
                                const CPPType &type,
                                std::string producer_name)
       : GeometryFieldInput(type, anonymous_id->user_name()),
@@ -274,7 +274,7 @@ class AnonymousAttributeFieldInput : public GeometryFieldInput {
   }
 
   template<typename T>
-  static fn::Field<T> Create(AutoAnonymousAttributeID anonymous_id, std::string producer_name)
+  static fn::Field<T> Create(AnonymousAttributeIDPtr anonymous_id, std::string producer_name)
   {
     const CPPType &type = CPPType::get<T>();
     auto field_input = std::make_shared<AnonymousAttributeFieldInput>(
@@ -282,7 +282,7 @@ class AnonymousAttributeFieldInput : public GeometryFieldInput {
     return fn::Field<T>{field_input};
   }
 
-  const AutoAnonymousAttributeID &anonymous_id() const
+  const AnonymousAttributeIDPtr &anonymous_id() const
   {
     return anonymous_id_;
   }

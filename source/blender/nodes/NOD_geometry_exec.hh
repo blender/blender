@@ -18,6 +18,7 @@ namespace blender::nodes {
 
 using bke::AnonymousAttributeFieldInput;
 using bke::AnonymousAttributeID;
+using bke::AnonymousAttributeIDPtr;
 using bke::AnonymousAttributePropagationInfo;
 using bke::AttributeAccessor;
 using bke::AttributeFieldInput;
@@ -26,7 +27,6 @@ using bke::AttributeKind;
 using bke::AttributeMetaData;
 using bke::AttributeReader;
 using bke::AttributeWriter;
-using bke::AutoAnonymousAttributeID;
 using bke::GAttributeReader;
 using bke::GAttributeWriter;
 using bke::GSpanAttributeWriter;
@@ -259,7 +259,7 @@ class GeoNodeExecParams {
    * Return a new anonymous attribute id for the given output. None is returned if the anonymous
    * attribute is not needed.
    */
-  AutoAnonymousAttributeID get_output_anonymous_attribute_id_if_needed(
+  AnonymousAttributeIDPtr get_output_anonymous_attribute_id_if_needed(
       const StringRef output_identifier, const bool force_create = false)
   {
     if (!this->anonymous_attribute_output_is_required(output_identifier) && !force_create) {

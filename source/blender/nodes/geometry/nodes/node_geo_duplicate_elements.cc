@@ -57,7 +57,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 }
 
 struct IndexAttributes {
-  AutoAnonymousAttributeID duplicate_index;
+  AnonymousAttributeIDPtr duplicate_index;
 };
 
 /* -------------------------------------------------------------------- */

@@ -142,7 +142,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const eAttrDomain domain = eAttrDomain(storage.domain);
 
   const std::string output_identifier = "Attribute" + identifier_suffix(data_type);
-  AutoAnonymousAttributeID attribute_id = params.get_output_anonymous_attribute_id_if_needed(
+  AnonymousAttributeIDPtr attribute_id = params.get_output_anonymous_attribute_id_if_needed(
       output_identifier);
 
   if (!attribute_id) {

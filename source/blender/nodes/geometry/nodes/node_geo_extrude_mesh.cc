@@ -62,8 +62,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 }
 
 struct AttributeOutputs {
-  AutoAnonymousAttributeID top_id;
-  AutoAnonymousAttributeID side_id;
+  AnonymousAttributeIDPtr top_id;
+  AnonymousAttributeIDPtr side_id;
 };
 
 static void save_selection_as_attribute(Mesh &mesh,

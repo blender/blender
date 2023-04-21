@@ -593,8 +593,8 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
 }
 
 static void store_output_attributes(bke::CurvesGeometry &child_curves,
-                                    const AutoAnonymousAttributeID weight_attribute_id,
-                                    const AutoAnonymousAttributeID index_attribute_id,
+                                    const AnonymousAttributeIDPtr weight_attribute_id,
+                                    const AnonymousAttributeIDPtr index_attribute_id,
                                     const int max_neighbors,
                                     const Span<int> all_neighbor_counts,
                                     const Span<int> all_neighbor_indices,
@@ -658,8 +658,8 @@ static GeometrySet generate_interpolated_curves(
     const VArray<int> &point_group_ids,
     const int max_neighbors,
     const AnonymousAttributePropagationInfo &propagation_info,
-    const AutoAnonymousAttributeID &index_attribute_id,
-    const AutoAnonymousAttributeID &weight_attribute_id)
+    const AnonymousAttributeIDPtr &index_attribute_id,
+    const AnonymousAttributeIDPtr &weight_attribute_id)
 {
   const bke::CurvesGeometry &guide_curves = guide_curves_id.geometry.wrap();
 
@@ -813,10 +813,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   const AnonymousAttributePropagationInfo propagation_info = params.get_output_propagation_info(
       "Curves");
 
-  AutoAnonymousAttributeID index_attribute_id = params.get_output_anonymous_attribute_id_if_needed(
+  AnonymousAttributeIDPtr index_attribute_id = params.get_output_anonymous_attribute_id_if_needed(
       "Closest Index");
-  AutoAnonymousAttributeID weight_attribute_id =
-      params.get_output_anonymous_attribute_id_if_needed("Closest Weight");
+  AnonymousAttributeIDPtr weight_attribute_id = params.get_output_anonymous_attribute_id_if_needed(
+      "Closest Weight");
 
   GeometrySet new_curves = generate_interpolated_curves(guide_curves_id,
                                                         *points_component->attributes(),
