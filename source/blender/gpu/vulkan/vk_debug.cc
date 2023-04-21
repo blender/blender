@@ -12,9 +12,15 @@
 #include "vk_debug.hh"
 
 namespace blender::gpu {
-void VKContext::debug_group_begin(const char *, int) {}
+void VKContext::debug_group_begin(const char *name, int)
+{
+  debug::push_marker(this, vk_queue_, name);
+}
 
-void VKContext::debug_group_end() {}
+void VKContext::debug_group_end()
+{
+  debug::pop_marker(this, vk_queue_);
+}
 
 bool VKContext::debug_capture_begin()
 {
@@ -60,7 +66,8 @@ void VKContext::debug_capture_scope_end(void * /*scope*/) {}
 
 namespace blender::gpu::debug {
 
-static void load_dynamic_functions(VKContext *context, PFN_vkGetInstanceProcAddr instance_proc_addr)
+static void load_dynamic_functions(VKContext *context,
+                                   PFN_vkGetInstanceProcAddr instance_proc_addr)
 {
   VKDebuggingTools &debugging_tools = context->debugging_tools_get();
   VkInstance vk_instance = context->instance_get();
@@ -68,28 +75,28 @@ static void load_dynamic_functions(VKContext *context, PFN_vkGetInstanceProcAddr
   if (instance_proc_addr) {
 
     debugging_tools.enabled = false;
-    debugging_tools.vkCmdBeginDebugUtilsLabelEXT_r = (PFN_vkCmdBeginDebugUtilsLabelEXT)instance_proc_addr(
-       vk_instance, "vkCmdBeginDebugUtilsLabelEXT");
-    debugging_tools.vkCmdEndDebugUtilsLabelEXT_r = (PFN_vkCmdEndDebugUtilsLabelEXT)instance_proc_addr(
-        vk_instance, "vkCmdEndDebugUtilsLabelEXT");
-    debugging_tools.vkCmdInsertDebugUtilsLabelEXT_r = (PFN_vkCmdInsertDebugUtilsLabelEXT)instance_proc_addr(
-        vk_instance, "vkCmdInsertDebugUtilsLabelEXT");
-    debugging_tools.vkCreateDebugUtilsMessengerEXT_r = (PFN_vkCreateDebugUtilsMessengerEXT)instance_proc_addr(
-        vk_instance, "vkCreateDebugUtilsMessengerEXT");
-    debugging_tools.vkDestroyDebugUtilsMessengerEXT_r = (PFN_vkDestroyDebugUtilsMessengerEXT)instance_proc_addr(
-        vk_instance, "vkDestroyDebugUtilsMessengerEXT");
-    debugging_tools.vkQueueBeginDebugUtilsLabelEXT_r = (PFN_vkQueueBeginDebugUtilsLabelEXT)instance_proc_addr(
-        vk_instance, "vkQueueBeginDebugUtilsLabelEXT");
-    debugging_tools.vkQueueEndDebugUtilsLabelEXT_r = (PFN_vkQueueEndDebugUtilsLabelEXT)instance_proc_addr(
-        vk_instance, "vkQueueEndDebugUtilsLabelEXT");
-    debugging_tools.vkQueueInsertDebugUtilsLabelEXT_r = (PFN_vkQueueInsertDebugUtilsLabelEXT)instance_proc_addr(
-        vk_instance, "vkQueueInsertDebugUtilsLabelEXT");
-    debugging_tools.vkSetDebugUtilsObjectNameEXT_r = (PFN_vkSetDebugUtilsObjectNameEXT)instance_proc_addr(
-        vk_instance, "vkSetDebugUtilsObjectNameEXT");
-    debugging_tools.vkSetDebugUtilsObjectTagEXT_r = (PFN_vkSetDebugUtilsObjectTagEXT)instance_proc_addr(
-        vk_instance, "vkSetDebugUtilsObjectTagEXT");
-    debugging_tools.vkSubmitDebugUtilsMessageEXT_r = (PFN_vkSubmitDebugUtilsMessageEXT)instance_proc_addr(
-        vk_instance, "vkSubmitDebugUtilsMessageEXT");
+    debugging_tools.vkCmdBeginDebugUtilsLabelEXT_r = (PFN_vkCmdBeginDebugUtilsLabelEXT)
+        instance_proc_addr(vk_instance, "vkCmdBeginDebugUtilsLabelEXT");
+    debugging_tools.vkCmdEndDebugUtilsLabelEXT_r = (PFN_vkCmdEndDebugUtilsLabelEXT)
+        instance_proc_addr(vk_instance, "vkCmdEndDebugUtilsLabelEXT");
+    debugging_tools.vkCmdInsertDebugUtilsLabelEXT_r = (PFN_vkCmdInsertDebugUtilsLabelEXT)
+        instance_proc_addr(vk_instance, "vkCmdInsertDebugUtilsLabelEXT");
+    debugging_tools.vkCreateDebugUtilsMessengerEXT_r = (PFN_vkCreateDebugUtilsMessengerEXT)
+        instance_proc_addr(vk_instance, "vkCreateDebugUtilsMessengerEXT");
+    debugging_tools.vkDestroyDebugUtilsMessengerEXT_r = (PFN_vkDestroyDebugUtilsMessengerEXT)
+        instance_proc_addr(vk_instance, "vkDestroyDebugUtilsMessengerEXT");
+    debugging_tools.vkQueueBeginDebugUtilsLabelEXT_r = (PFN_vkQueueBeginDebugUtilsLabelEXT)
+        instance_proc_addr(vk_instance, "vkQueueBeginDebugUtilsLabelEXT");
+    debugging_tools.vkQueueEndDebugUtilsLabelEXT_r = (PFN_vkQueueEndDebugUtilsLabelEXT)
+        instance_proc_addr(vk_instance, "vkQueueEndDebugUtilsLabelEXT");
+    debugging_tools.vkQueueInsertDebugUtilsLabelEXT_r = (PFN_vkQueueInsertDebugUtilsLabelEXT)
+        instance_proc_addr(vk_instance, "vkQueueInsertDebugUtilsLabelEXT");
+    debugging_tools.vkSetDebugUtilsObjectNameEXT_r = (PFN_vkSetDebugUtilsObjectNameEXT)
+        instance_proc_addr(vk_instance, "vkSetDebugUtilsObjectNameEXT");
+    debugging_tools.vkSetDebugUtilsObjectTagEXT_r = (PFN_vkSetDebugUtilsObjectTagEXT)
+        instance_proc_addr(vk_instance, "vkSetDebugUtilsObjectTagEXT");
+    debugging_tools.vkSubmitDebugUtilsMessageEXT_r = (PFN_vkSubmitDebugUtilsMessageEXT)
+        instance_proc_addr(vk_instance, "vkSubmitDebugUtilsMessageEXT");
     if (debugging_tools.vkCmdBeginDebugUtilsLabelEXT_r) {
       debugging_tools.enabled = true;
     }
