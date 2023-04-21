@@ -286,6 +286,11 @@ void GPU_offscreen_free(GPUOffScreen *ofs);
 void GPU_offscreen_bind(GPUOffScreen *ofs, bool save);
 void GPU_offscreen_unbind(GPUOffScreen *ofs, bool restore);
 void GPU_offscreen_read_pixels(GPUOffScreen *ofs, eGPUDataFormat format, void *pixels);
+/**
+ * A version of #GPU_offscreen_read_pixels that reads into a region.
+ */
+void GPU_offscreen_read_pixels_region(
+    GPUOffScreen *offscreen, eGPUDataFormat data_format, int x, int y, int w, int h, void *r_data);
 void GPU_offscreen_draw_to_screen(GPUOffScreen *ofs, int x, int y);
 int GPU_offscreen_width(const GPUOffScreen *ofs);
 int GPU_offscreen_height(const GPUOffScreen *ofs);

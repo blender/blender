@@ -129,6 +129,10 @@ typedef enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_CURSOR_WARP = (1 << 0),
   /** Ability to access window positions & move them. */
   WM_CAPABILITY_WINDOW_POSITION = (1 << 1),
+  /**
+   * Reading from the back-buffer is supported.
+   */
+  WM_CAPABILITY_GPU_FRONT_BUFFER_READ = (1 << 2),
 } eWM_CapabilitiesFlag;
 
 eWM_CapabilitiesFlag WM_capabilities_flag(void);
@@ -159,6 +163,11 @@ void WM_window_pixel_sample_read(const wmWindowManager *wm,
  * the front-buffer state to be invalid under some EGL configurations.
  */
 uint *WM_window_pixels_read(struct wmWindowManager *wm, struct wmWindow *win, int r_size[2]);
+void WM_window_pixels_read_sample(const wmWindowManager *wm,
+                                  const wmWindow *win,
+                                  const int pos[2],
+                                  float r_col[3]);
+
 /**
  * Draw the window & read pixels from an off-screen buffer (slower than #WM_window_pixels_read).
  *
@@ -166,6 +175,10 @@ uint *WM_window_pixels_read(struct wmWindowManager *wm, struct wmWindow *win, in
  * (see in-line code comments for details).
  */
 uint *WM_window_pixels_read_offscreen(struct bContext *C, struct wmWindow *win, int r_size[2]);
+bool WM_window_pixels_read_sample_offscreen(struct bContext *C,
+                                            struct wmWindow *win,
+                                            const int pos[2],
+                                            float r_col[3]);
 
 /**
  * Support for native pixel size

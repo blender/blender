@@ -1237,6 +1237,36 @@ uint *WM_window_pixels_read_offscreen(bContext *C, wmWindow *win, int r_size[2])
   return rect;
 }
 
+bool WM_window_pixels_read_sample_offscreen(bContext *C,
+                                            wmWindow *win,
+                                            const int pos[2],
+                                            float r_col[3])
+{
+  /* A version of #WM_window_pixels_read_offscreen. */
+
+  const int size[2] = {WM_window_pixels_x(win), WM_window_pixels_y(win)};
+  zero_v3(r_col);
+
+  /* While this shouldn't happen, return in the case it does. */
+  BLI_assert((uint)pos[0] < (uint)size[0] && (uint)pos[1] < (uint)size[1]);
+  if (!((uint)pos[0] < (uint)size[0] && (uint)pos[1] < (uint)size[1])) {
+    return false;
+  }
+
+  GPUOffScreen *offscreen = GPU_offscreen_create(size[0], size[1], false, GPU_RGBA8, NULL);
+  if (UNLIKELY(!offscreen)) {
+    return false;
+  }
+  float rect_pixel[4];
+  GPU_offscreen_bind(offscreen, false);
+  wm_draw_window_onscreen(C, win, -1);
+  GPU_offscreen_unbind(offscreen, false);
+  GPU_offscreen_read_pixels_region(offscreen, GPU_DATA_FLOAT, pos[0], pos[1], 1, 1, rect_pixel);
+  GPU_offscreen_free(offscreen);
+  copy_v3_v3(r_col, rect_pixel);
+  return true;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
