@@ -903,12 +903,13 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   auto extensions_available = getExtensionsAvailable();
 
   vector<const char *> layers_enabled;
-  if (m_debug) {
-    enableLayer(layers_available, layers_enabled, VkLayer::KHRONOS_validation, m_debug);
-  }
-
   vector<const char *> extensions_device;
   vector<const char *> extensions_enabled;
+
+  if (m_debug) {
+    enableLayer(layers_available, layers_enabled, VkLayer::KHRONOS_validation, m_debug);
+    requireExtension(extensions_available, extensions_enabled, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+  }
 
   if (use_window_surface) {
     const char *native_surface_extension_name = getPlatformSpecificSurfaceExtension();
