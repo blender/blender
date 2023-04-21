@@ -1812,7 +1812,6 @@ void FONT_OT_text_insert(wmOperatorType *ot)
 static int font_cursor_text_index_from_event(bContext *C, Object *obedit, const wmEvent *event)
 {
   Curve *cu = obedit->data;
-  EditFont *ef = cu->editfont;
 
   /* Calculate a plane from the text object's orientation. */
   float plane[4];
