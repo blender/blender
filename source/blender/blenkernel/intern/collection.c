@@ -198,7 +198,7 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
      * anyway... */
     const int cb_flag = ((parent->collection != NULL &&
                           (parent->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
-                             IDWALK_CB_EMBEDDED :
+                             IDWALK_CB_EMBEDDED_NOT_OWNING :
                              IDWALK_CB_NOP);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(
         data, parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK | cb_flag);
