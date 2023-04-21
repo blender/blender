@@ -1420,6 +1420,13 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
     BM_mesh_bm_from_me(bm, sculpt_mesh, &params2);
   }
 
+  BMIter iter;
+  BMFace *efa;
+  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+    BM_elem_flag_enable(efa, BM_ELEM_DRAW);
+  }
+
+  /* Create trim bmesh. */
   BMeshCreateParams params1 = {0};
   params1.create_unique_ids = params1.id_map = params1.copy_all_layers = true;
   params1.id_elem_mask = BM_VERT | BM_EDGE | BM_FACE;
@@ -1429,40 +1436,21 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 
   BMeshFromMeshParams params3 = {0};
   params3.calc_face_normal = params3.calc_vert_normal = true;
-
   BM_mesh_bm_from_me(trimbm, trim_mesh, &params3);
 
   BM_mesh_normals_update(bm);
-
-#if 0
-  // remesh
-  DynTopoState *ds = BKE_dyntopo_init(trimbm, NULL);
-  DynRemeshParams params;
-  BKE_dyntopo_default_params(&params, trim_operation->avg_edge_len * 4.0);
-  BKE_dyntopo_remesh(ds, &params, 10, PBVH_Collapse | PBVH_Cleanup | PBVH_Subdivide);
-
   BM_mesh_toolflags_set(bm, true);
 
-  BKE_dyntopo_free(ds);
-#endif
-
-  BM_mesh_toolflags_set(bm, true);
-
+  /* Add trim geometry to bm. */
   BMO_op_callf(trimbm, BMO_FLAG_DEFAULTS, "duplicate geom=%avef dest=%p", bm, 3);
-
-  BKE_sculptsession_update_attr_refs(sgcontext->vc.obact);
   BM_mesh_free(trimbm);
 
-  BMeshFromMeshParams params2 = {0};
-  params2.calc_face_normal = params2.calc_vert_normal = true;
-  BM_mesh_bm_from_me(bm, sculpt_mesh, &params2);
-
+  /* Calculate tesselation. */
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
   BMLoop *(*looptris)[3] = static_cast<BMLoop *(*)[3]>(
       MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__));
   BM_mesh_calc_tessellation_beauty(bm, looptris);
 
-  BMIter iter;
   int i;
   const int i_faces_end = trim_mesh->totpoly;
 
@@ -1472,13 +1460,9 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
   const short ob_src_totcol = trim_mesh->totcol;
   blender::Array<short> material_remap(ob_src_totcol ? ob_src_totcol : 1);
 
-  BMFace *efa;
   i = 0;
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
     normalize_v3(efa->no);
-
-    /* Temp tag to test which side split faces are from. */
-    BM_elem_flag_enable(efa, BM_ELEM_DRAW);
 
     /* Remap material. */
     if (efa->mat_nr < ob_src_totcol) {
@@ -1520,8 +1504,28 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
   }
 
   MEM_freeN(looptris);
+  BKE_sculptsession_update_attr_refs(sgcontext->vc.obact);
 
-  if (sgcontext->ss && sgcontext->ss->bm) {  // rebuild pbvh
+  /* Flag intersection edges as sharp.*/
+  BMEdge *e;
+  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+    BMLoop *l = e->l;
+
+    /* At least two surrounding faces? */
+    if (!l || l->f == l->radial_next->f) {
+      continue;
+    }
+
+    /* Did they come from different meshes? */
+    BMFace *f1 = l->f, *f2 = l->radial_next->f;
+    if (BM_elem_flag_test(f1, BM_ELEM_DRAW) == BM_elem_flag_test(f2, BM_ELEM_DRAW)) {
+      continue;
+    }
+
+    BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
+  }
+
+  if (sgcontext->ss && sgcontext->ss->bm) { /* Rebuild pbvh. */
     BKE_pbvh_free(sgcontext->ss->pbvh);
     sgcontext->ss->pbvh = BKE_pbvh_new(PBVH_BMESH);
 
