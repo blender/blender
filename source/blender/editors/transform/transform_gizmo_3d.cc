@@ -8,6 +8,8 @@
  * Used for 3D View
  */
 
+#include "BLI_function_ref.hh"
+
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_lattice_types.h"
@@ -480,7 +482,6 @@ static void protectflag_to_drawflags(short protectflag, short *drawflags)
  * \param use_only_center: For objects in object mode, defines whether the corners of the bounds or
  *                         just the center are traversed.
  * \param user_fn: Callback that runs on each coordinate.
- * \param user_data: User argument passed to \a user_fn.
  * \param r_mat: Returns the space matrix of the coordinates.
  * \param r_drawflags: Drawing flags for gizmos. Usually stored in #RegionView3D::drawflags.
  */
@@ -488,25 +489,21 @@ static int gizmo_3d_foreach_selected(const bContext *C,
                                      const short orient_index,
                                      const bool use_curve_handles,
                                      const bool use_only_center,
-                                     void (*user_fn)(const float[3], void *),
-                                     void *user_data,
+                                     blender::FunctionRef<void(const blender::float3 &)> user_fn,
                                      const float (**r_mat)[4],
                                      short *r_drawflags)
 {
   using namespace blender;
 
-  const auto run_coord_with_matrix = [](const float co[3],
-                                        const bool use_matrix,
-                                        const float matrix[4][4],
-                                        void (*user_fn)(const float[3], void *),
-                                        void *user_data) {
-    float co_world[3];
-    if (use_matrix) {
-      mul_v3_m4v3(co_world, matrix, co);
-      co = co_world;
-    }
-    user_fn(co, user_data);
-  };
+  const auto run_coord_with_matrix =
+      [&](const float co[3], const bool use_matrix, const float matrix[4][4]) {
+        float co_world[3];
+        if (use_matrix) {
+          mul_v3_m4v3(co_world, matrix, co);
+          co = co_world;
+        }
+        user_fn(co);
+      };
 
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = CTX_data_scene(C);
@@ -561,8 +558,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
                 if (gpc_pt->flag & GP_CURVE_POINT_SELECT) {
                   for (uint32_t j = 0; j < 3; j++) {
                     if (BEZT_ISSEL_IDX(bezt, j)) {
-                      run_coord_with_matrix(
-                          bezt->vec[j], use_mat_local, diff_mat, user_fn, user_data);
+                      run_coord_with_matrix(bezt->vec[j], use_mat_local, diff_mat);
                       totsel++;
                     }
                   }
@@ -579,7 +575,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
               /* Change selection status of all points, then make the stroke match */
               for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
                 if (pt->flag & GP_SPOINT_SELECT) {
-                  run_coord_with_matrix(&pt->x, use_mat_local, diff_mat, user_fn, user_data);
+                  run_coord_with_matrix(&pt->x, use_mat_local, diff_mat);
                   totsel++;
                 }
               }
@@ -628,7 +624,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
         BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
           if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
             if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-              run_coord_with_matrix(eve->co, use_mat_local, mat_local, user_fn, user_data);
+              run_coord_with_matrix(eve->co, use_mat_local, mat_local);
               totsel++;
             }
           }
@@ -647,14 +643,14 @@ static int gizmo_3d_foreach_selected(const bContext *C,
         LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
           if (EBONE_VISIBLE(arm, ebo)) {
             if (ebo->flag & BONE_TIPSEL) {
-              run_coord_with_matrix(ebo->tail, use_mat_local, mat_local, user_fn, user_data);
+              run_coord_with_matrix(ebo->tail, use_mat_local, mat_local);
               totsel++;
             }
             if ((ebo->flag & BONE_ROOTSEL) &&
                 /* don't include same point multiple times */
                 ((ebo->flag & BONE_CONNECTED) && (ebo->parent != nullptr) &&
                  (ebo->parent->flag & BONE_TIPSEL) && EBONE_VISIBLE(arm, ebo->parent)) == 0) {
-              run_coord_with_matrix(ebo->head, use_mat_local, mat_local, user_fn, user_data);
+              run_coord_with_matrix(ebo->head, use_mat_local, mat_local);
               totsel++;
 
               if (r_drawflags) {
@@ -695,24 +691,23 @@ static int gizmo_3d_foreach_selected(const bContext *C,
                */
               if (v3d->overlay.handle_display == CURVE_HANDLE_NONE) {
                 if (bezt->f2 & SELECT) {
-                  run_coord_with_matrix(
-                      bezt->vec[1], use_mat_local, mat_local, user_fn, user_data);
+                  run_coord_with_matrix(bezt->vec[1], use_mat_local, mat_local);
                   totsel++;
                 }
               }
               else if (bezt->f2 & SELECT) {
-                run_coord_with_matrix(bezt->vec[1], use_mat_local, mat_local, user_fn, user_data);
+                run_coord_with_matrix(bezt->vec[1], use_mat_local, mat_local);
                 totsel++;
               }
               else {
                 if (bezt->f1 & SELECT) {
                   const float *co = bezt->vec[!use_curve_handles ? 1 : 0];
-                  run_coord_with_matrix(co, use_mat_local, mat_local, user_fn, user_data);
+                  run_coord_with_matrix(co, use_mat_local, mat_local);
                   totsel++;
                 }
                 if (bezt->f3 & SELECT) {
                   const float *co = bezt->vec[!use_curve_handles ? 1 : 2];
-                  run_coord_with_matrix(co, use_mat_local, mat_local, user_fn, user_data);
+                  run_coord_with_matrix(co, use_mat_local, mat_local);
                   totsel++;
                 }
               }
@@ -724,7 +719,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
             a = nu->pntsu * nu->pntsv;
             while (a--) {
               if (bp->f1 & SELECT) {
-                run_coord_with_matrix(bp->vec, use_mat_local, mat_local, user_fn, user_data);
+                run_coord_with_matrix(bp->vec, use_mat_local, mat_local);
                 totsel++;
               }
               bp++;
@@ -746,7 +741,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 
         LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
           if (ml->flag & SELECT) {
-            run_coord_with_matrix(&ml->x, use_mat_local, mat_local, user_fn, user_data);
+            run_coord_with_matrix(&ml->x, use_mat_local, mat_local);
             totsel++;
           }
         }
@@ -766,7 +761,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 
         while (a--) {
           if (bp->f1 & SELECT) {
-            run_coord_with_matrix(bp->vec, use_mat_local, mat_local, user_fn, user_data);
+            run_coord_with_matrix(bp->vec, use_mat_local, mat_local);
             totsel++;
           }
           bp++;
@@ -791,8 +786,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
         const Span<float3> positions = deformation.positions;
         totsel += selected_points.size();
         for (const int point_i : selected_points) {
-          run_coord_with_matrix(
-              positions[point_i], use_mat_local, mat_local.ptr(), user_fn, user_data);
+          run_coord_with_matrix(positions[point_i], use_mat_local, mat_local.ptr());
         }
       }
       FOREACH_EDIT_OBJECT_END();
@@ -825,7 +819,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
         if (!(pchan->bone->flag & BONE_TRANSFORM)) {
           continue;
         }
-        run_coord_with_matrix(pchan->pose_head, use_mat_local, mat_local, user_fn, user_data);
+        run_coord_with_matrix(pchan->pose_head, use_mat_local, mat_local);
         totsel++;
 
         if (r_drawflags) {
@@ -842,7 +836,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
   else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
     if (ob->mode & OB_MODE_SCULPT) {
       totsel = 1;
-      run_coord_with_matrix(ob->sculpt->pivot_pos, false, ob->object_to_world, user_fn, user_data);
+      run_coord_with_matrix(ob->sculpt->pivot_pos, false, ob->object_to_world);
     }
   }
   else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
@@ -860,7 +854,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 
         for (k = 0, ek = point->keys; k < point->totkey; k++, ek++) {
           if (ek->flag & PEK_SELECT) {
-            user_fn((ek->flag & PEK_USE_WCO) ? ek->world_co : ek->co, user_data);
+            user_fn((ek->flag & PEK_USE_WCO) ? ek->world_co : ek->co);
             totsel++;
           }
         }
@@ -893,13 +887,13 @@ static int gizmo_3d_foreach_selected(const bContext *C,
       }
 
       if (use_only_center || (bb == nullptr)) {
-        user_fn(base->object->object_to_world[3], user_data);
+        user_fn(base->object->object_to_world[3]);
       }
       else {
         for (uint j = 0; j < 8; j++) {
           float co[3];
           mul_v3_m4v3(co, base->object->object_to_world, bb->vec[j]);
-          user_fn(co, user_data);
+          user_fn(co);
         }
       }
       totsel++;
@@ -982,8 +976,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     copy_m4_m4(tbounds->matrix_space, ob->object_to_world);
   }
 
-  const auto gizmo_3d_tbounds_calc_fn = [](const float co[3], void *data) {
-    TransformBounds *tbounds = static_cast<TransformBounds *>(data);
+  const auto gizmo_3d_tbounds_calc_fn = [&](const blender::float3 &co) {
     calc_tw_center(tbounds, co);
   };
 
@@ -992,7 +985,6 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
                                      (pivot_point != V3D_AROUND_LOCAL_ORIGINS),
                                      params->use_only_center,
                                      gizmo_3d_tbounds_calc_fn,
-                                     tbounds,
                                      nullptr,
                                      rv3d ? &rv3d->twdrawflag : nullptr);
 
@@ -1088,9 +1080,8 @@ static bool gizmo_3d_calc_pos(const bContext *C,
         return true;
       }
 
-      const auto gizmo_3d_calc_center_fn = [](const float co[3], void *data) {
-        float *center = static_cast<float *>(data);
-        add_v3_v3(center, co);
+      const auto gizmo_3d_calc_center_fn = [&](const blender::float3 &co) {
+        add_v3_v3(r_pivot_pos, co);
       };
       const float(*r_mat)[4] = nullptr;
       int totsel;
@@ -1099,7 +1090,6 @@ static bool gizmo_3d_calc_pos(const bContext *C,
                                          (pivot_type != V3D_AROUND_LOCAL_ORIGINS),
                                          true,
                                          gizmo_3d_calc_center_fn,
-                                         r_pivot_pos,
                                          &r_mat,
                                          nullptr);
       if (totsel) {
