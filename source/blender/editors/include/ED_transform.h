@@ -151,6 +151,10 @@ short ED_transform_calc_orientation_from_type_ex(const struct Scene *scene,
                                                  int pivot_point,
                                                  float r_mat[3][3]);
 
+bool ED_transform_calc_pivot_pos(const struct bContext *C,
+                                 const short pivot_type,
+                                 float r_pivot_pos[3]);
+
 /* transform gizmos */
 
 void VIEW3D_GGT_xform_gizmo(struct wmGizmoGroupType *gzgt);
@@ -201,7 +205,8 @@ struct TransformCalcParams {
  */
 int ED_transform_calc_gizmo_stats(const struct bContext *C,
                                   const struct TransformCalcParams *params,
-                                  struct TransformBounds *tbounds);
+                                  struct TransformBounds *tbounds,
+                                  struct RegionView3D *rv3d);
 
 /**
  * Iterates over all the strips and finds the closest snapping candidate of either \a frame_1 or \a
