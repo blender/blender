@@ -708,7 +708,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   MV_ADD_FLAG(mv3, mupdateflag);
 
   if (!v_conn->e) {
-    // delete isolated vertex
+    /* Delete isolated vertex. */
     if (BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
       blender::dyntopo::pbvh_bmesh_vert_remove(pbvh, v_conn);
     }

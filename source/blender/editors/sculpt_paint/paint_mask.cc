@@ -59,6 +59,7 @@
 /* For undo push. */
 #include "sculpt_intern.hh"
 
+using blender::float3;
 using blender::IndexRange;
 using blender::OffsetIndices;
 using blender::Span;
@@ -1356,20 +1357,30 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
       &trim_operation->mesh->edata, CD_PROP_BOOL, "sharp_edge", trim_operation->mesh->totedge);
 
   if (!sharp_edge) {
-    CustomData_add_layer(
-        &trim_operation->mesh->edata, CD_PROP_BOOL, CD_CONSTRUCT, trim_operation->mesh->totedge);
+    CustomData_add_layer_named(&trim_operation->mesh->edata,
+                               CD_PROP_BOOL,
+                               CD_CONSTRUCT,
+                               trim_operation->mesh->totedge,
+                               "sharp_edge");
     sharp_edge = (bool *)CustomData_get_layer_named_for_write(
         &trim_operation->mesh->edata, CD_PROP_BOOL, "sharp_edge", trim_operation->mesh->totedge);
   }
 
   const blender::Span<int> &corner_edges = trim_operation->mesh->corner_edges();
   const OffsetIndices<int> &polys = trim_operation->mesh->polys();
+  Span<float3> poly_normals = trim_operation->mesh->poly_normals();
 
-  // XXX test me
-  /* flag edges as sharp for dyntopo remesher */
-  for (int i = 0; i < tot_screen_points * 2; i++) {
-    sharp_edge[corner_edges[polys[tot_tris_face + i].start()]] = true;
+  for (int i = 0; i < trim_operation->mesh->totedge; i++) {
+    sharp_edge[i] = false;
   }
+  const float angle = 80.0f / 180.0f * M_PI;
+  blender::bke::mesh::edges_sharp_from_angle_set(polys,
+                                                 corner_verts,
+                                                 corner_edges,
+                                                 poly_normals,
+                                                 nullptr,
+                                                 angle,
+                                                 {sharp_edge, trim_operation->mesh->totedge});
 }
 static void sculpt_gesture_trim_geometry_free(SculptGestureContext *sgcontext)
 {
@@ -1543,7 +1554,6 @@ static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgconte
 {
   Object *object = sgcontext->vc.obact;
   SculptSession *ss = object->sculpt;
-  Mesh *mesh = (Mesh *)object->data;
   ss->face_sets = BKE_sculpt_face_sets_ensure(object);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
