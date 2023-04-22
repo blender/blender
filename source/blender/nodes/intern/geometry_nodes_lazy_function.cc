@@ -69,10 +69,9 @@ static const CPPType *get_vector_type(const CPPType &type)
  * lazy-function.
  */
 static void lazy_function_interface_from_node(const bNode &node,
-                                              Vector<const bNodeSocket *> &r_used_inputs,
-                                              Vector<const bNodeSocket *> &r_used_outputs,
                                               Vector<lf::Input> &r_inputs,
-                                              Vector<lf::Output> &r_outputs)
+                                              Vector<lf::Output> &r_outputs,
+                                              MutableSpan<int> r_lf_index_by_bsocket)
 {
   const bool is_muted = node.is_muted();
   const lf::ValueUsage input_usage = lf::ValueUsage::Used;
@@ -87,8 +86,8 @@ static void lazy_function_interface_from_node(const bNode &node,
     if (socket->is_multi_input() && !is_muted) {
       type = get_vector_type(*type);
     }
-    r_inputs.append({socket->identifier, *type, input_usage});
-    r_used_inputs.append(socket);
+    r_lf_index_by_bsocket[socket->index_in_tree()] = r_inputs.append_and_get_index_as(
+        socket->identifier, *type, input_usage);
   }
   for (const bNodeSocket *socket : node.output_sockets()) {
     if (!socket->is_available()) {
@@ -98,8 +97,8 @@ static void lazy_function_interface_from_node(const bNode &node,
     if (type == nullptr) {
       continue;
     }
-    r_outputs.append({socket->identifier, *type});
-    r_used_outputs.append(socket);
+    r_lf_index_by_bsocket[socket->index_in_tree()] = r_outputs.append_and_get_index_as(
+        socket->identifier, *type);
   }
 }
 
@@ -121,10 +120,9 @@ class LazyFunctionForGeometryNode : public LazyFunction {
 
  public:
   LazyFunctionForGeometryNode(const bNode &node,
-                              Vector<const bNodeSocket *> &r_used_inputs,
-                              Vector<const bNodeSocket *> &r_used_outputs,
                               MutableSpan<int> r_lf_input_for_output_bsocket_usage,
-                              MutableSpan<int> r_lf_input_for_attribute_propagation_to_output)
+                              MutableSpan<int> r_lf_input_for_attribute_propagation_to_output,
+                              MutableSpan<int> r_lf_index_by_bsocket)
       : node_(node),
         lf_input_for_output_bsocket_usage_(r_lf_input_for_output_bsocket_usage),
         lf_input_for_attribute_propagation_to_output_(
@@ -132,7 +130,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
   {
     BLI_assert(node.typeinfo->geometry_node_execute != nullptr);
     debug_name_ = node.name;
-    lazy_function_interface_from_node(node, r_used_inputs, r_used_outputs, inputs_, outputs_);
+    lazy_function_interface_from_node(node, inputs_, outputs_, r_lf_index_by_bsocket);
 
     const NodeDeclaration &node_decl = *node.declaration();
     const aal::RelationsInNode *relations = node_decl.anonymous_attribute_relations();
@@ -291,13 +289,11 @@ class LazyFunctionForRerouteNode : public LazyFunction {
  */
 class LazyFunctionForUndefinedNode : public LazyFunction {
  public:
-  LazyFunctionForUndefinedNode(const bNode &node, Vector<const bNodeSocket *> &r_used_outputs)
+  LazyFunctionForUndefinedNode(const bNode &node, MutableSpan<int> r_lf_index_by_bsocket)
   {
     debug_name_ = "Undefined";
-    Vector<const bNodeSocket *> dummy_used_inputs;
     Vector<lf::Input> dummy_inputs;
-    lazy_function_interface_from_node(
-        node, dummy_used_inputs, r_used_outputs, dummy_inputs, outputs_);
+    lazy_function_interface_from_node(node, dummy_inputs, outputs_, r_lf_index_by_bsocket);
   }
 
   void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
@@ -392,12 +388,10 @@ class LazyFunctionForMutedNode : public LazyFunction {
   Array<int> input_by_output_index_;
 
  public:
-  LazyFunctionForMutedNode(const bNode &node,
-                           Vector<const bNodeSocket *> &r_used_inputs,
-                           Vector<const bNodeSocket *> &r_used_outputs)
+  LazyFunctionForMutedNode(const bNode &node, MutableSpan<int> r_lf_index_by_bsocket)
   {
     debug_name_ = "Muted";
-    lazy_function_interface_from_node(node, r_used_inputs, r_used_outputs, inputs_, outputs_);
+    lazy_function_interface_from_node(node, inputs_, outputs_, r_lf_index_by_bsocket);
     for (lf::Input &fn_input : inputs_) {
       fn_input.usage = lf::ValueUsage::Maybe;
     }
@@ -409,8 +403,8 @@ class LazyFunctionForMutedNode : public LazyFunction {
     input_by_output_index_.reinitialize(outputs_.size());
     input_by_output_index_.fill(-1);
     for (const bNodeLink &internal_link : node.internal_links()) {
-      const int input_i = r_used_inputs.first_index_of_try(internal_link.fromsock);
-      const int output_i = r_used_outputs.first_index_of_try(internal_link.tosock);
+      const int input_i = r_lf_index_by_bsocket[internal_link.fromsock->index_in_tree()];
+      const int output_i = r_lf_index_by_bsocket[internal_link.tosock->index_in_tree()];
       if (ELEM(-1, input_i, output_i)) {
         continue;
       }
@@ -516,13 +510,12 @@ class LazyFunctionForMultiFunctionNode : public LazyFunction {
  public:
   LazyFunctionForMultiFunctionNode(const bNode &node,
                                    NodeMultiFunctions::Item fn_item,
-                                   Vector<const bNodeSocket *> &r_used_inputs,
-                                   Vector<const bNodeSocket *> &r_used_outputs)
+                                   MutableSpan<int> r_lf_index_by_bsocket)
       : fn_item_(std::move(fn_item))
   {
     BLI_assert(fn_item_.fn != nullptr);
     debug_name_ = node.name;
-    lazy_function_interface_from_node(node, r_used_inputs, r_used_outputs, inputs_, outputs_);
+    lazy_function_interface_from_node(node, inputs_, outputs_, r_lf_index_by_bsocket);
     for (const lf::Input &fn_input : inputs_) {
       input_types_.append(ValueOrFieldCPPType::get_from_self(*fn_input.type));
     }
@@ -587,17 +580,24 @@ class LazyFunctionForViewerNode : public LazyFunction {
   bool use_field_input_ = true;
 
  public:
-  LazyFunctionForViewerNode(const bNode &bnode, Vector<const bNodeSocket *> &r_used_inputs)
+  LazyFunctionForViewerNode(const bNode &bnode, MutableSpan<int> r_lf_index_by_bsocket)
       : bnode_(bnode)
   {
     debug_name_ = "Viewer";
-    Vector<const bNodeSocket *> dummy_used_outputs;
-    lazy_function_interface_from_node(bnode, r_used_inputs, dummy_used_outputs, inputs_, outputs_);
-    const Span<const bNodeLink *> links = r_used_inputs[1]->directly_linked_links();
-    if (links.is_empty() || nodeIsDanglingReroute(&bnode.owner_tree(), links.first()->fromnode)) {
-      use_field_input_ = false;
-      r_used_inputs.pop_last();
-      inputs_.pop_last();
+    lazy_function_interface_from_node(bnode, inputs_, outputs_, r_lf_index_by_bsocket);
+
+    /* Remove field input if it is not used. */
+    for (const bNodeSocket *bsocket : bnode.input_sockets().drop_front(1)) {
+      if (!bsocket->is_available()) {
+        continue;
+      }
+      const Span<const bNodeLink *> links = bsocket->directly_linked_links();
+      if (links.is_empty() ||
+          nodeIsDanglingReroute(&bnode.owner_tree(), links.first()->fromnode)) {
+        use_field_input_ = false;
+        inputs_.pop_last();
+        r_lf_index_by_bsocket[bsocket->index_in_tree()] = -1;
+      }
     }
   }
 
@@ -728,7 +728,8 @@ class LazyFunctionForGroupNode : public LazyFunction {
   LazyFunctionForGroupNode(const bNode &group_node,
                            const GeometryNodesLazyFunctionGraphInfo &lf_graph_info,
                            MutableSpan<int> r_lf_input_for_output_bsocket_usage,
-                           MutableSpan<int> r_lf_input_for_attribute_propagation_to_output)
+                           MutableSpan<int> r_lf_input_for_attribute_propagation_to_output,
+                           MutableSpan<int> r_lf_index_by_bsocket)
       : group_node_(group_node),
         lf_input_for_output_bsocket_usage_(r_lf_input_for_output_bsocket_usage),
         lf_input_for_attribute_propagation_to_output_(
@@ -737,9 +738,7 @@ class LazyFunctionForGroupNode : public LazyFunction {
     debug_name_ = group_node.name;
     allow_missing_requested_inputs_ = true;
 
-    Vector<const bNodeSocket *> tmp_inputs;
-    Vector<const bNodeSocket *> tmp_outputs;
-    lazy_function_interface_from_node(group_node, tmp_inputs, tmp_outputs, inputs_, outputs_);
+    lazy_function_interface_from_node(group_node, inputs_, outputs_, r_lf_index_by_bsocket);
 
     has_many_nodes_ = lf_graph_info.num_inline_nodes_approximate > 1000;
 
@@ -1242,6 +1241,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     mapping_->lf_input_index_for_attribute_propagation_to_output.reinitialize(
         btree_.all_output_sockets().size());
     mapping_->lf_input_index_for_attribute_propagation_to_output.fill(-1);
+    mapping_->lf_index_by_bsocket.reinitialize(btree_.all_sockets().size());
+    mapping_->lf_index_by_bsocket.fill(-1);
 
     this->prepare_node_multi_functions();
     this->build_group_input_node();
@@ -1380,23 +1381,27 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
   void handle_muted_node(const bNode &bnode)
   {
-    Vector<const bNodeSocket *> used_inputs;
-    Vector<const bNodeSocket *> used_outputs;
-    auto lazy_function = std::make_unique<LazyFunctionForMutedNode>(
-        bnode, used_inputs, used_outputs);
+    auto lazy_function = std::make_unique<LazyFunctionForMutedNode>(bnode,
+                                                                    mapping_->lf_index_by_bsocket);
     lf::Node &lf_node = lf_graph_->add_function(*lazy_function);
     lf_graph_info_->functions.append(std::move(lazy_function));
-    for (const int i : used_inputs.index_range()) {
-      const bNodeSocket &bsocket = *used_inputs[i];
-      lf::InputSocket &lf_socket = lf_node.input(i);
-      input_socket_map_.add(&bsocket, &lf_socket);
-      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+    for (const bNodeSocket *bsocket : bnode.input_sockets()) {
+      const int lf_index = mapping_->lf_index_by_bsocket[bsocket->index_in_tree()];
+      if (lf_index == -1) {
+        continue;
+      }
+      lf::InputSocket &lf_socket = lf_node.input(lf_index);
+      input_socket_map_.add(bsocket, &lf_socket);
+      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
     }
-    for (const int i : used_outputs.index_range()) {
-      const bNodeSocket &bsocket = *used_outputs[i];
-      lf::OutputSocket &lf_socket = lf_node.output(i);
-      output_socket_map_.add_new(&bsocket, &lf_socket);
-      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+    for (const bNodeSocket *bsocket : bnode.output_sockets()) {
+      const int lf_index = mapping_->lf_index_by_bsocket[bsocket->index_in_tree()];
+      if (lf_index == -1) {
+        continue;
+      }
+      lf::OutputSocket &lf_socket = lf_node.output(lf_index);
+      output_socket_map_.add_new(bsocket, &lf_socket);
+      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
     }
   }
 
@@ -1475,7 +1480,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
         bnode,
         *group_lf_graph_info,
         mapping_->lf_input_index_for_output_bsocket_usage,
-        mapping_->lf_input_index_for_attribute_propagation_to_output);
+        mapping_->lf_input_index_for_attribute_propagation_to_output,
+        mapping_->lf_index_by_bsocket);
     lf::FunctionNode &lf_node = lf_graph_->add_function(*lazy_function);
 
     for (const int i : bnode.input_sockets().index_range()) {
@@ -1520,42 +1526,45 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
   void handle_geometry_node(const bNode &bnode)
   {
-    Vector<const bNodeSocket *> used_inputs;
-    Vector<const bNodeSocket *> used_outputs;
     auto lazy_function = std::make_unique<LazyFunctionForGeometryNode>(
         bnode,
-        used_inputs,
-        used_outputs,
         mapping_->lf_input_index_for_output_bsocket_usage,
-        mapping_->lf_input_index_for_attribute_propagation_to_output);
+        mapping_->lf_input_index_for_attribute_propagation_to_output,
+        mapping_->lf_index_by_bsocket);
     lf::Node &lf_node = lf_graph_->add_function(*lazy_function);
 
-    for (const int i : used_inputs.index_range()) {
-      const bNodeSocket &bsocket = *used_inputs[i];
-      lf::InputSocket &lf_socket = lf_node.input(i);
+    for (const bNodeSocket *bsocket : bnode.input_sockets()) {
+      const int lf_index = mapping_->lf_index_by_bsocket[bsocket->index_in_tree()];
+      if (lf_index == -1) {
+        continue;
+      }
+      lf::InputSocket &lf_socket = lf_node.input(lf_index);
 
-      if (bsocket.is_multi_input()) {
-        auto multi_input_lazy_function = std::make_unique<LazyFunctionForMultiInput>(bsocket);
+      if (bsocket->is_multi_input()) {
+        auto multi_input_lazy_function = std::make_unique<LazyFunctionForMultiInput>(*bsocket);
         lf::Node &lf_multi_input_node = lf_graph_->add_function(*multi_input_lazy_function);
         lf_graph_info_->functions.append(std::move(multi_input_lazy_function));
         lf_graph_->add_link(lf_multi_input_node.output(0), lf_socket);
-        multi_input_socket_nodes_.add_new(&bsocket, &lf_multi_input_node);
+        multi_input_socket_nodes_.add_new(bsocket, &lf_multi_input_node);
         for (lf::InputSocket *lf_multi_input_socket : lf_multi_input_node.inputs()) {
-          mapping_->bsockets_by_lf_socket_map.add(lf_multi_input_socket, &bsocket);
+          mapping_->bsockets_by_lf_socket_map.add(lf_multi_input_socket, bsocket);
           const void *default_value = lf_multi_input_socket->type().default_value();
           lf_multi_input_socket->set_default_value(default_value);
         }
       }
       else {
-        input_socket_map_.add(&bsocket, &lf_socket);
-        mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+        input_socket_map_.add(bsocket, &lf_socket);
+        mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
       }
     }
-    for (const int i : used_outputs.index_range()) {
-      const bNodeSocket &bsocket = *used_outputs[i];
-      lf::OutputSocket &lf_socket = lf_node.output(i);
-      output_socket_map_.add_new(&bsocket, &lf_socket);
-      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+    for (const bNodeSocket *bsocket : bnode.output_sockets()) {
+      const int lf_index = mapping_->lf_index_by_bsocket[bsocket->index_in_tree()];
+      if (lf_index == -1) {
+        continue;
+      }
+      lf::OutputSocket &lf_socket = lf_node.output(lf_index);
+      output_socket_map_.add_new(bsocket, &lf_socket);
+      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
     }
 
     for (const bNodeSocket *bsocket : bnode.output_sockets()) {
@@ -1583,40 +1592,47 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
   void handle_multi_function_node(const bNode &bnode, const NodeMultiFunctions::Item &fn_item)
   {
-    Vector<const bNodeSocket *> used_inputs;
-    Vector<const bNodeSocket *> used_outputs;
     auto lazy_function = std::make_unique<LazyFunctionForMultiFunctionNode>(
-        bnode, fn_item, used_inputs, used_outputs);
+        bnode, fn_item, mapping_->lf_index_by_bsocket);
     lf::Node &lf_node = lf_graph_->add_function(*lazy_function);
     lf_graph_info_->functions.append(std::move(lazy_function));
 
-    for (const int i : used_inputs.index_range()) {
-      const bNodeSocket &bsocket = *used_inputs[i];
-      BLI_assert(!bsocket.is_multi_input());
-      lf::InputSocket &lf_socket = lf_node.input(i);
-      input_socket_map_.add(&bsocket, &lf_socket);
-      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+    for (const bNodeSocket *bsocket : bnode.input_sockets()) {
+      const int lf_index = mapping_->lf_index_by_bsocket[bsocket->index_in_tree()];
+      if (lf_index == -1) {
+        continue;
+      }
+      BLI_assert(!bsocket->is_multi_input());
+      lf::InputSocket &lf_socket = lf_node.input(lf_index);
+      input_socket_map_.add(bsocket, &lf_socket);
+      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
     }
-    for (const int i : used_outputs.index_range()) {
-      const bNodeSocket &bsocket = *used_outputs[i];
-      lf::OutputSocket &lf_socket = lf_node.output(i);
-      output_socket_map_.add(&bsocket, &lf_socket);
-      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+    for (const bNodeSocket *bsocket : bnode.output_sockets()) {
+      const int lf_index = mapping_->lf_index_by_bsocket[bsocket->index_in_tree()];
+      if (lf_index == -1) {
+        continue;
+      }
+      lf::OutputSocket &lf_socket = lf_node.output(lf_index);
+      output_socket_map_.add(bsocket, &lf_socket);
+      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
     }
   }
 
   void handle_viewer_node(const bNode &bnode)
   {
-    Vector<const bNodeSocket *> used_inputs;
-    auto lazy_function = std::make_unique<LazyFunctionForViewerNode>(bnode, used_inputs);
+    auto lazy_function = std::make_unique<LazyFunctionForViewerNode>(
+        bnode, mapping_->lf_index_by_bsocket);
     lf::FunctionNode &lf_node = lf_graph_->add_function(*lazy_function);
     lf_graph_info_->functions.append(std::move(lazy_function));
 
-    for (const int i : used_inputs.index_range()) {
-      const bNodeSocket &bsocket = *used_inputs[i];
-      lf::InputSocket &lf_socket = lf_node.input(i);
-      input_socket_map_.add(&bsocket, &lf_socket);
-      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+    for (const bNodeSocket *bsocket : bnode.input_sockets()) {
+      const int lf_index = mapping_->lf_index_by_bsocket[bsocket->index_in_tree()];
+      if (lf_index == -1) {
+        continue;
+      }
+      lf::InputSocket &lf_socket = lf_node.input(lf_index);
+      input_socket_map_.add(bsocket, &lf_socket);
+      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
     }
 
     mapping_->viewer_node_map.add(&bnode, &lf_node);
@@ -1649,16 +1665,16 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
   void handle_undefined_node(const bNode &bnode)
   {
-    Vector<const bNodeSocket *> used_outputs;
-    auto lazy_function = std::make_unique<LazyFunctionForUndefinedNode>(bnode, used_outputs);
+    auto lazy_function = std::make_unique<LazyFunctionForUndefinedNode>(
+        bnode, mapping_->lf_index_by_bsocket);
     lf::FunctionNode &lf_node = lf_graph_->add_function(*lazy_function);
     lf_graph_info_->functions.append(std::move(lazy_function));
 
-    for (const int i : used_outputs.index_range()) {
-      const bNodeSocket &bsocket = *used_outputs[i];
-      lf::OutputSocket &lf_socket = lf_node.output(i);
-      output_socket_map_.add(&bsocket, &lf_socket);
-      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+    for (const bNodeSocket *bsocket : bnode.output_sockets()) {
+      const int lf_index = mapping_->lf_index_by_bsocket[bsocket->index_in_tree()];
+      lf::OutputSocket &lf_socket = lf_node.output(lf_index);
+      output_socket_map_.add(bsocket, &lf_socket);
+      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
     }
   }
 

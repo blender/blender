@@ -154,6 +154,8 @@ struct GeometryNodeLazyFunctionGraphMapping {
   Array<int> lf_input_index_for_output_bsocket_usage;
   /* Indexed by #bNodeSocket::index_in_all_outputs. */
   Array<int> lf_input_index_for_attribute_propagation_to_output;
+  /* Indexed by #bNodeSocket::index_in_tree. */
+  Array<int> lf_index_by_bsocket;
 };
 
 /**
