@@ -203,6 +203,7 @@ struct AllMeshesInfo {
 
   /** True if we know that there are no loose edges in any of the input meshes. */
   bool no_loose_edges_hint = false;
+  bool no_loose_verts_hint = false;
 };
 
 struct AllCurvesInfo {
@@ -947,6 +948,10 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
       info.order.begin(), info.order.end(), [](const Mesh *mesh) {
         return mesh->runtime->loose_edges_cache.is_cached() && mesh->loose_edges().count == 0;
       });
+  info.no_loose_verts_hint = std::all_of(
+      info.order.begin(), info.order.end(), [](const Mesh *mesh) {
+        return mesh->runtime->loose_verts_cache.is_cached() && mesh->loose_verts().count == 0;
+      });
 
   return info;
 }
@@ -1154,6 +1159,9 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
 
   if (all_meshes_info.no_loose_edges_hint) {
     dst_mesh->loose_edges_tag_none();
+  }
+  if (all_meshes_info.no_loose_verts_hint) {
+    dst_mesh->tag_loose_verts_none();
   }
 }
 

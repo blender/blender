@@ -333,6 +333,7 @@ static Mesh *create_uv_sphere_mesh(const float radius,
         }
       });
 
+  mesh->tag_loose_verts_none();
   mesh->loose_edges_tag_none();
   mesh->bounds_set_eager(calculate_bounds_uv_sphere(radius, segments, rings));
 

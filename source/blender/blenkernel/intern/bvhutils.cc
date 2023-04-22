@@ -1141,30 +1141,6 @@ BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
   return tree;
 }
 
-static BitVector<> loose_verts_map_get(const Span<blender::int2> edges,
-                                       int verts_num,
-                                       int *r_loose_vert_num)
-{
-  BitVector<> loose_verts_mask(verts_num, true);
-
-  int num_linked_verts = 0;
-  for (const int64_t i : edges.index_range()) {
-    const blender::int2 &edge = edges[i];
-    if (loose_verts_mask[edge[0]]) {
-      loose_verts_mask[edge[0]].reset();
-      num_linked_verts++;
-    }
-    if (loose_verts_mask[edge[1]]) {
-      loose_verts_mask[edge[1]].reset();
-      num_linked_verts++;
-    }
-  }
-
-  *r_loose_vert_num = verts_num - num_linked_verts;
-
-  return loose_verts_mask;
-}
-
 static BitVector<> looptri_no_hidden_map_get(const blender::OffsetIndices<int> polys,
                                              const VArray<bool> &hide_poly,
                                              const int looptri_len,
@@ -1237,10 +1213,14 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
 
   switch (bvh_cache_type) {
     case BVHTREE_FROM_LOOSEVERTS: {
-      int mask_bits_act_len = -1;
-      const BitVector<> mask = loose_verts_map_get(edges, mesh->totvert, &mask_bits_act_len);
-      data->tree = bvhtree_from_mesh_verts_create_tree(
-          0.0f, tree_type, 6, positions, mesh->totvert, mask, mask_bits_act_len);
+      const blender::bke::LooseVertCache &loose_verts = mesh->loose_verts();
+      data->tree = bvhtree_from_mesh_verts_create_tree(0.0f,
+                                                       tree_type,
+                                                       6,
+                                                       positions,
+                                                       mesh->totvert,
+                                                       loose_verts.is_loose_bits,
+                                                       loose_verts.count);
       break;
     }
     case BVHTREE_FROM_VERTS: {
