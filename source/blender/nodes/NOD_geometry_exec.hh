@@ -64,15 +64,15 @@ class GeoNodeExecParams {
   const bNode &node_;
   lf::Params &params_;
   const lf::Context &lf_context_;
-  const Map<StringRef, int> &lf_input_for_output_bsocket_usage_;
-  const Map<StringRef, int> &lf_input_for_attribute_propagation_to_output_;
+  const Span<int> lf_input_for_output_bsocket_usage_;
+  const Span<int> lf_input_for_attribute_propagation_to_output_;
 
  public:
   GeoNodeExecParams(const bNode &node,
                     lf::Params &params,
                     const lf::Context &lf_context,
-                    const Map<StringRef, int> &lf_input_for_output_bsocket_usage,
-                    const Map<StringRef, int> &lf_input_for_attribute_propagation_to_output)
+                    const Span<int> lf_input_for_output_bsocket_usage,
+                    const Span<int> lf_input_for_attribute_propagation_to_output)
       : node_(node),
         params_(params),
         lf_context_(lf_context),
@@ -251,7 +251,9 @@ class GeoNodeExecParams {
    */
   bool anonymous_attribute_output_is_required(const StringRef output_identifier)
   {
-    const int lf_index = lf_input_for_output_bsocket_usage_.lookup(output_identifier);
+    const int lf_index =
+        lf_input_for_output_bsocket_usage_[node_.output_by_identifier(output_identifier)
+                                               .index_in_all_outputs()];
     return params_.get_input<bool>(lf_index);
   }
 
@@ -282,7 +284,9 @@ class GeoNodeExecParams {
   AnonymousAttributePropagationInfo get_output_propagation_info(
       const StringRef output_identifier) const
   {
-    const int lf_index = lf_input_for_attribute_propagation_to_output_.lookup(output_identifier);
+    const int lf_index =
+        lf_input_for_attribute_propagation_to_output_[node_.output_by_identifier(output_identifier)
+                                                          .index_in_all_outputs()];
     const bke::AnonymousAttributeSet &set = params_.get_input<bke::AnonymousAttributeSet>(
         lf_index);
     AnonymousAttributePropagationInfo info;

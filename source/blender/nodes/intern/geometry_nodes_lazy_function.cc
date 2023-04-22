@@ -109,22 +109,26 @@ static void lazy_function_interface_from_node(const bNode &node,
 class LazyFunctionForGeometryNode : public LazyFunction {
  private:
   const bNode &node_;
-
- public:
   /**
    * Index of a boolean input that indicates whether the output socket is used.
    */
-  Map<StringRef, int> lf_input_for_output_bsocket_usage_;
+  const Span<int> lf_input_for_output_bsocket_usage_;
   /**
    * Index of an attribute set input that indicates which anonymous attributes should be
    * propagated to the output.
    */
-  Map<StringRef, int> lf_input_for_attribute_propagation_to_output_;
+  const Span<int> lf_input_for_attribute_propagation_to_output_;
 
+ public:
   LazyFunctionForGeometryNode(const bNode &node,
                               Vector<const bNodeSocket *> &r_used_inputs,
-                              Vector<const bNodeSocket *> &r_used_outputs)
-      : node_(node)
+                              Vector<const bNodeSocket *> &r_used_outputs,
+                              MutableSpan<int> r_lf_input_for_output_bsocket_usage,
+                              MutableSpan<int> r_lf_input_for_attribute_propagation_to_output)
+      : node_(node),
+        lf_input_for_output_bsocket_usage_(r_lf_input_for_output_bsocket_usage),
+        lf_input_for_attribute_propagation_to_output_(
+            r_lf_input_for_attribute_propagation_to_output)
   {
     BLI_assert(node.typeinfo->geometry_node_execute != nullptr);
     debug_name_ = node.name;
@@ -141,7 +145,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
       if (output_bsocket.is_available() && !handled_field_outputs.contains(&output_bsocket)) {
         handled_field_outputs.append(&output_bsocket);
         const int lf_index = inputs_.append_and_get_index_as("Output Used", CPPType::get<bool>());
-        lf_input_for_output_bsocket_usage_.add(output_bsocket.identifier, lf_index);
+        r_lf_input_for_output_bsocket_usage[output_bsocket.index_in_all_outputs()] = lf_index;
       }
     }
 
@@ -152,7 +156,8 @@ class LazyFunctionForGeometryNode : public LazyFunction {
         handled_geometry_outputs.append(&output_bsocket);
         const int lf_index = inputs_.append_and_get_index_as(
             "Propagate to Output", CPPType::get<bke::AnonymousAttributeSet>());
-        lf_input_for_attribute_propagation_to_output_.add(output_bsocket.identifier, lf_index);
+        r_lf_input_for_attribute_propagation_to_output[output_bsocket.index_in_all_outputs()] =
+            lf_index;
       }
     }
   }
@@ -181,15 +186,19 @@ class LazyFunctionForGeometryNode : public LazyFunction {
 
   std::string input_name(const int index) const override
   {
-    for (const auto [identifier, lf_index] : lf_input_for_output_bsocket_usage_.items()) {
-      if (index == lf_index) {
-        return "Use Output '" + identifier + "'";
+    for (const bNodeSocket *bsocket : node_.output_sockets()) {
+      {
+        const int lf_index = lf_input_for_output_bsocket_usage_[bsocket->index_in_all_outputs()];
+        if (index == lf_index) {
+          return StringRef("Use Output '") + bsocket->identifier + "'";
+        }
       }
-    }
-    for (const auto [identifier, lf_index] :
-         lf_input_for_attribute_propagation_to_output_.items()) {
-      if (index == lf_index) {
-        return "Propagate to '" + identifier + "'";
+      {
+        const int lf_index =
+            lf_input_for_attribute_propagation_to_output_[bsocket->index_in_all_outputs()];
+        if (index == lf_index) {
+          return StringRef("Propagate to '") + bsocket->identifier + "'";
+        }
       }
     }
     return inputs_[index].debug_name;
@@ -1223,6 +1232,12 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
     socket_is_used_map_.reinitialize(btree_.all_sockets().size());
     socket_is_used_map_.fill(nullptr);
+    mapping_->lf_input_index_for_output_bsocket_usage.reinitialize(
+        btree_.all_output_sockets().size());
+    mapping_->lf_input_index_for_output_bsocket_usage.fill(-1);
+    mapping_->lf_input_index_for_attribute_propagation_to_output.reinitialize(
+        btree_.all_output_sockets().size());
+    mapping_->lf_input_index_for_attribute_propagation_to_output.fill(-1);
 
     this->prepare_node_multi_functions();
     this->build_group_input_node();
@@ -1490,7 +1505,11 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     Vector<const bNodeSocket *> used_inputs;
     Vector<const bNodeSocket *> used_outputs;
     auto lazy_function = std::make_unique<LazyFunctionForGeometryNode>(
-        bnode, used_inputs, used_outputs);
+        bnode,
+        used_inputs,
+        used_outputs,
+        mapping_->lf_input_index_for_output_bsocket_usage,
+        mapping_->lf_input_index_for_attribute_propagation_to_output);
     lf::Node &lf_node = lf_graph_->add_function(*lazy_function);
 
     for (const int i : used_inputs.index_range()) {
@@ -1521,17 +1540,24 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
     }
 
-    for (const auto [identifier, lf_input_index] :
-         lazy_function->lf_input_for_output_bsocket_usage_.items()) {
-      output_used_sockets_for_builtin_nodes_.append_as(&bnode.output_by_identifier(identifier),
-                                                       &lf_node.input(lf_input_index));
-      socket_usage_inputs_.add_new(&lf_node.input(lf_input_index));
-    }
-    /* Keep track of attribute set inputs that need to be populated later. */
-    for (const auto [identifier, lf_input_index] :
-         lazy_function->lf_input_for_attribute_propagation_to_output_.items()) {
-      attribute_set_propagation_map_.add(&bnode.output_by_identifier(identifier),
-                                         &lf_node.input(lf_input_index));
+    for (const bNodeSocket *bsocket : bnode.output_sockets()) {
+      {
+        const int lf_input_index =
+            mapping_->lf_input_index_for_output_bsocket_usage[bsocket->index_in_all_outputs()];
+        if (lf_input_index != -1) {
+          output_used_sockets_for_builtin_nodes_.append_as(bsocket,
+                                                           &lf_node.input(lf_input_index));
+          socket_usage_inputs_.add_new(&lf_node.input(lf_input_index));
+        }
+      }
+      {
+        /* Keep track of attribute set inputs that need to be populated later. */
+        const int lf_input_index = mapping_->lf_input_index_for_attribute_propagation_to_output
+                                       [bsocket->index_in_all_outputs()];
+        if (lf_input_index != -1) {
+          attribute_set_propagation_map_.add(bsocket, &lf_node.input(lf_input_index));
+        }
+      }
     }
 
     lf_graph_info_->functions.append(std::move(lazy_function));
