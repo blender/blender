@@ -25,14 +25,14 @@ namespace blender::nodes::node_composite_color_ramp_cc {
 
 static void cmp_node_valtorgb_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Fac"))
+  b.add_input<decl::Float>("Fac")
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .compositor_domain_priority(1);
-  b.add_output<decl::Color>(N_("Image")).compositor_domain_priority(0);
-  b.add_output<decl::Float>(N_("Alpha"));
+  b.add_output<decl::Color>("Image").compositor_domain_priority(0);
+  b.add_output<decl::Float>("Alpha");
 }
 
 static void node_composit_init_valtorgb(bNodeTree * /*ntree*/, bNode *node)
@@ -151,10 +151,10 @@ namespace blender::nodes::node_composite_rgb_to_bw_cc {
 
 static void cmp_node_rgbtobw_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_output<decl::Float>(N_("Val"));
+  b.add_output<decl::Float>("Val");
 }
 
 using namespace blender::realtime_compositor;

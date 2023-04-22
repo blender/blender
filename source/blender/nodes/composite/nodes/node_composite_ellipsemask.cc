@@ -27,17 +27,17 @@ NODE_STORAGE_FUNCS(NodeEllipseMask)
 
 static void cmp_node_ellipsemask_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Mask"))
+  b.add_input<decl::Float>("Mask")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .compositor_domain_priority(0);
-  b.add_input<decl::Float>(N_("Value"))
+  b.add_input<decl::Float>("Value")
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .compositor_domain_priority(1);
-  b.add_output<decl::Float>(N_("Mask"));
+  b.add_output<decl::Float>("Mask");
 }
 
 static void node_composit_init_ellipsemask(bNodeTree * /*ntree*/, bNode *node)

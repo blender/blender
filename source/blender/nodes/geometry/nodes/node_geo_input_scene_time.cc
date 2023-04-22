@@ -10,8 +10,8 @@ namespace blender::nodes::node_geo_input_scene_time_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>(N_("Seconds"));
-  b.add_output<decl::Float>(N_("Frame"));
+  b.add_output<decl::Float>("Seconds");
+  b.add_output<decl::Float>("Frame");
 }
 
 static void node_exec(GeoNodeExecParams params)

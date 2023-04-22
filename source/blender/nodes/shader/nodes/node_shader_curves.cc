@@ -12,14 +12,10 @@ namespace blender::nodes::node_shader_curves_cc {
 static void sh_node_curve_vec_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>(N_("Fac"))
-      .no_muted_links()
-      .min(0.0f)
-      .max(1.0f)
-      .default_value(1.0f)
-      .subtype(PROP_FACTOR);
-  b.add_input<decl::Vector>(N_("Vector")).min(-1.0f).max(1.0f);
-  b.add_output<decl::Vector>(N_("Vector"));
+  b.add_input<decl::Float>("Fac").no_muted_links().min(0.0f).max(1.0f).default_value(1.0f).subtype(
+      PROP_FACTOR);
+  b.add_input<decl::Vector>("Vector").min(-1.0f).max(1.0f);
+  b.add_output<decl::Vector>("Vector");
 }
 
 static void node_shader_init_curve_vec(bNodeTree * /*ntree*/, bNode *node)
@@ -130,14 +126,10 @@ namespace blender::nodes::node_shader_curves_cc {
 static void sh_node_curve_rgb_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>(N_("Fac"))
-      .no_muted_links()
-      .min(0.0f)
-      .max(1.0f)
-      .default_value(1.0f)
-      .subtype(PROP_FACTOR);
-  b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_output<decl::Color>(N_("Color"));
+  b.add_input<decl::Float>("Fac").no_muted_links().min(0.0f).max(1.0f).default_value(1.0f).subtype(
+      PROP_FACTOR);
+  b.add_input<decl::Color>("Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Color>("Color");
 }
 
 static void node_shader_init_curve_rgb(bNodeTree * /*ntree*/, bNode *node)
@@ -276,14 +268,14 @@ namespace blender::nodes::node_shader_curves_cc {
 static void sh_node_curve_float_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>(N_("Factor"))
+  b.add_input<decl::Float>("Factor")
       .no_muted_links()
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Value")).default_value(1.0f).is_default_link_socket();
-  b.add_output<decl::Float>(N_("Value"));
+  b.add_input<decl::Float>("Value").default_value(1.0f).is_default_link_socket();
+  b.add_output<decl::Float>("Value");
 }
 
 static void node_shader_init_curve_float(bNodeTree * /*ntree*/, bNode *node)

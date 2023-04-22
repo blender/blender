@@ -19,16 +19,16 @@ NODE_STORAGE_FUNCS(NodeGeometryStoreNamedAttribute)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
-  b.add_input<decl::String>(N_("Name")).is_attribute_name();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").field_on_all();
-  b.add_input<decl::Float>(N_("Value"), "Value_Float").field_on_all();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color").field_on_all();
-  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").field_on_all();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int").field_on_all();
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
+  b.add_input<decl::String>("Name").is_attribute_name();
+  b.add_input<decl::Vector>("Value", "Value_Vector").field_on_all();
+  b.add_input<decl::Float>("Value", "Value_Float").field_on_all();
+  b.add_input<decl::Color>("Value", "Value_Color").field_on_all();
+  b.add_input<decl::Bool>("Value", "Value_Bool").field_on_all();
+  b.add_input<decl::Int>("Value", "Value_Int").field_on_all();
 
-  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
+  b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

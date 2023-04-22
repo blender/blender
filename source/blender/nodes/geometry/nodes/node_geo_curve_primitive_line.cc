@@ -17,26 +17,26 @@ static void node_declare(NodeDeclarationBuilder &b)
     node_storage(node).mode = GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION;
   };
 
-  b.add_input<decl::Vector>(N_("Start"))
+  b.add_input<decl::Vector>("Start")
       .subtype(PROP_TRANSLATION)
-      .description(N_("Position of the first control point"));
-  b.add_input<decl::Vector>(N_("End"))
+      .description("Position of the first control point");
+  b.add_input<decl::Vector>("End")
       .default_value({0.0f, 0.0f, 1.0f})
       .subtype(PROP_TRANSLATION)
-      .description(N_("Position of the second control point"))
+      .description("Position of the second control point")
       .make_available([](bNode &node) {
         node_storage(node).mode = GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS;
       });
-  b.add_input<decl::Vector>(N_("Direction"))
+  b.add_input<decl::Vector>("Direction")
       .default_value({0.0f, 0.0f, 1.0f})
-      .description(N_("Direction the line is going in. The length of this vector does not matter"))
+      .description("Direction the line is going in. The length of this vector does not matter")
       .make_available(enable_direction);
-  b.add_input<decl::Float>(N_("Length"))
+  b.add_input<decl::Float>("Length")
       .default_value(1.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("Distance between the two points"))
+      .description("Distance between the two points")
       .make_available(enable_direction);
-  b.add_output<decl::Geometry>(N_("Curve"));
+  b.add_output<decl::Geometry>("Curve");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

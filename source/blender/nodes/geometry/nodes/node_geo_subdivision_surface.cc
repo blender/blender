@@ -22,21 +22,21 @@ NODE_STORAGE_FUNCS(NodeGeometrySubdivisionSurface)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Int>(N_("Level")).default_value(1).min(0).max(6);
-  b.add_input<decl::Float>(N_("Edge Crease"))
+  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Int>("Level").default_value(1).min(0).max(6);
+  b.add_input<decl::Float>("Edge Crease")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .field_on_all()
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Vertex Crease"))
+  b.add_input<decl::Float>("Vertex Crease")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .field_on_all()
       .subtype(PROP_FACTOR);
-  b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
+  b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

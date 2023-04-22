@@ -22,12 +22,11 @@ namespace blender::nodes::node_geo_offset_sdf_volume_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
+  b.add_input<decl::Geometry>("Volume")
       .supported_type(GEO_COMPONENT_TYPE_VOLUME)
       .translation_context(BLT_I18NCONTEXT_ID_ID);
-  b.add_input<decl::Float>(N_("Distance")).default_value(0.1f).subtype(PROP_DISTANCE);
-  b.add_output<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
-      .translation_context(BLT_I18NCONTEXT_ID_ID);
+  b.add_input<decl::Float>("Distance").default_value(0.1f).subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static void search_node_add_ops(GatherAddNodeSearchParams &params)

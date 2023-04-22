@@ -18,8 +18,8 @@ namespace blender::nodes::node_geo_convex_hull_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_output<decl::Geometry>(N_("Convex Hull"));
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Convex Hull");
 }
 
 #ifdef WITH_BULLET

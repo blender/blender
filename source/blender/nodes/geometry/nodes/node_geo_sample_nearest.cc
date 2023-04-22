@@ -50,10 +50,10 @@ namespace blender::nodes::node_geo_sample_nearest_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Geometry"))
+  b.add_input<decl::Geometry>("Geometry")
       .supported_type({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD});
-  b.add_input<decl::Vector>(N_("Sample Position")).implicit_field(implicit_field_inputs::position);
-  b.add_output<decl::Int>(N_("Index")).dependent_field({1});
+  b.add_input<decl::Vector>("Sample Position").implicit_field(implicit_field_inputs::position);
+  b.add_output<decl::Int>("Index").dependent_field({1});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

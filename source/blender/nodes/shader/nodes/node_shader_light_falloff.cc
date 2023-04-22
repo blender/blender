@@ -7,11 +7,11 @@ namespace blender::nodes::node_shader_light_falloff_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Strength")).default_value(100.0f).min(0.0f).max(1000000.0f);
-  b.add_input<decl::Float>(N_("Smooth")).default_value(0.0f).min(0.0f).max(1000.0f);
-  b.add_output<decl::Float>(N_("Quadratic"));
-  b.add_output<decl::Float>(N_("Linear"));
-  b.add_output<decl::Float>(N_("Constant"));
+  b.add_input<decl::Float>("Strength").default_value(100.0f).min(0.0f).max(1000000.0f);
+  b.add_input<decl::Float>("Smooth").default_value(0.0f).min(0.0f).max(1000.0f);
+  b.add_output<decl::Float>("Quadratic");
+  b.add_output<decl::Float>("Linear");
+  b.add_output<decl::Float>("Constant");
 }
 
 static int node_shader_gpu_light_falloff(GPUMaterial *mat,

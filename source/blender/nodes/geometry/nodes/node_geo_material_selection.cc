@@ -16,8 +16,8 @@ namespace blender::nodes::node_geo_material_selection_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Material>(N_("Material")).hide_label(true);
-  b.add_output<decl::Bool>(N_("Selection")).field_source();
+  b.add_input<decl::Material>("Material").hide_label(true);
+  b.add_output<decl::Bool>("Selection").field_source();
 }
 
 static VArray<bool> select_mesh_faces_by_material(const Mesh &mesh,

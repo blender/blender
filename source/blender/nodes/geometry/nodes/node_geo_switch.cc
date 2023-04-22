@@ -15,57 +15,52 @@ NODE_STORAGE_FUNCS(NodeSwitch)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Bool>(N_("Switch")).default_value(false).supports_field();
-  b.add_input<decl::Bool>(N_("Switch"), "Switch_001").default_value(false);
+  b.add_input<decl::Bool>("Switch").default_value(false).supports_field();
+  b.add_input<decl::Bool>("Switch", "Switch_001").default_value(false);
 
-  b.add_input<decl::Float>(N_("False")).supports_field();
-  b.add_input<decl::Float>(N_("True")).supports_field();
-  b.add_input<decl::Int>(N_("False"), "False_001").min(-100000).max(100000).supports_field();
-  b.add_input<decl::Int>(N_("True"), "True_001").min(-100000).max(100000).supports_field();
-  b.add_input<decl::Bool>(N_("False"), "False_002")
-      .default_value(false)
-      .hide_value()
-      .supports_field();
-  b.add_input<decl::Bool>(N_("True"), "True_002")
-      .default_value(true)
-      .hide_value()
-      .supports_field();
-  b.add_input<decl::Vector>(N_("False"), "False_003").supports_field();
-  b.add_input<decl::Vector>(N_("True"), "True_003").supports_field();
-  b.add_input<decl::Color>(N_("False"), "False_004")
+  b.add_input<decl::Float>("False").supports_field();
+  b.add_input<decl::Float>("True").supports_field();
+  b.add_input<decl::Int>("False", "False_001").min(-100000).max(100000).supports_field();
+  b.add_input<decl::Int>("True", "True_001").min(-100000).max(100000).supports_field();
+  b.add_input<decl::Bool>("False", "False_002").default_value(false).hide_value().supports_field();
+  b.add_input<decl::Bool>("True", "True_002").default_value(true).hide_value().supports_field();
+  b.add_input<decl::Vector>("False", "False_003").supports_field();
+  b.add_input<decl::Vector>("True", "True_003").supports_field();
+
+  b.add_input<decl::Color>("False", "False_004")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
       .supports_field();
-  b.add_input<decl::Color>(N_("True"), "True_004")
+  b.add_input<decl::Color>("True", "True_004")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
       .supports_field();
-  b.add_input<decl::String>(N_("False"), "False_005").supports_field();
-  b.add_input<decl::String>(N_("True"), "True_005").supports_field();
+  b.add_input<decl::String>("False", "False_005").supports_field();
+  b.add_input<decl::String>("True", "True_005").supports_field();
 
-  b.add_input<decl::Geometry>(N_("False"), "False_006");
-  b.add_input<decl::Geometry>(N_("True"), "True_006");
-  b.add_input<decl::Object>(N_("False"), "False_007");
-  b.add_input<decl::Object>(N_("True"), "True_007");
-  b.add_input<decl::Collection>(N_("False"), "False_008");
-  b.add_input<decl::Collection>(N_("True"), "True_008");
-  b.add_input<decl::Texture>(N_("False"), "False_009");
-  b.add_input<decl::Texture>(N_("True"), "True_009");
-  b.add_input<decl::Material>(N_("False"), "False_010");
-  b.add_input<decl::Material>(N_("True"), "True_010");
-  b.add_input<decl::Image>(N_("False"), "False_011");
-  b.add_input<decl::Image>(N_("True"), "True_011");
+  b.add_input<decl::Geometry>("False", "False_006");
+  b.add_input<decl::Geometry>("True", "True_006");
+  b.add_input<decl::Object>("False", "False_007");
+  b.add_input<decl::Object>("True", "True_007");
+  b.add_input<decl::Collection>("False", "False_008");
+  b.add_input<decl::Collection>("True", "True_008");
+  b.add_input<decl::Texture>("False", "False_009");
+  b.add_input<decl::Texture>("True", "True_009");
+  b.add_input<decl::Material>("False", "False_010");
+  b.add_input<decl::Material>("True", "True_010");
+  b.add_input<decl::Image>("False", "False_011");
+  b.add_input<decl::Image>("True", "True_011");
 
-  b.add_output<decl::Float>(N_("Output")).dependent_field().reference_pass_all();
-  b.add_output<decl::Int>(N_("Output"), "Output_001").dependent_field().reference_pass_all();
-  b.add_output<decl::Bool>(N_("Output"), "Output_002").dependent_field().reference_pass_all();
-  b.add_output<decl::Vector>(N_("Output"), "Output_003").dependent_field().reference_pass_all();
-  b.add_output<decl::Color>(N_("Output"), "Output_004").dependent_field().reference_pass_all();
-  b.add_output<decl::String>(N_("Output"), "Output_005").dependent_field().reference_pass_all();
-  b.add_output<decl::Geometry>(N_("Output"), "Output_006").propagate_all();
-  b.add_output<decl::Object>(N_("Output"), "Output_007");
-  b.add_output<decl::Collection>(N_("Output"), "Output_008");
-  b.add_output<decl::Texture>(N_("Output"), "Output_009");
-  b.add_output<decl::Material>(N_("Output"), "Output_010");
-  b.add_output<decl::Image>(N_("Output"), "Output_011");
+  b.add_output<decl::Float>("Output").dependent_field().reference_pass_all();
+  b.add_output<decl::Int>("Output", "Output_001").dependent_field().reference_pass_all();
+  b.add_output<decl::Bool>("Output", "Output_002").dependent_field().reference_pass_all();
+  b.add_output<decl::Vector>("Output", "Output_003").dependent_field().reference_pass_all();
+  b.add_output<decl::Color>("Output", "Output_004").dependent_field().reference_pass_all();
+  b.add_output<decl::String>("Output", "Output_005").dependent_field().reference_pass_all();
+  b.add_output<decl::Geometry>("Output", "Output_006").propagate_all();
+  b.add_output<decl::Object>("Output", "Output_007");
+  b.add_output<decl::Collection>("Output", "Output_008");
+  b.add_output<decl::Texture>("Output", "Output_009");
+  b.add_output<decl::Material>("Output", "Output_010");
+  b.add_output<decl::Image>("Output", "Output_011");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

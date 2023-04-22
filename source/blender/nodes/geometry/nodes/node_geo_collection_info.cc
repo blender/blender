@@ -20,15 +20,15 @@ NODE_STORAGE_FUNCS(NodeGeometryCollectionInfo)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Collection>(N_("Collection")).hide_label();
-  b.add_input<decl::Bool>(N_("Separate Children"))
+  b.add_input<decl::Collection>("Collection").hide_label();
+  b.add_input<decl::Bool>("Separate Children")
       .description(
-          N_("Output each child of the collection as a separate instance, sorted alphabetically"));
-  b.add_input<decl::Bool>(N_("Reset Children"))
+          "Output each child of the collection as a separate instance, sorted alphabetically");
+  b.add_input<decl::Bool>("Reset Children")
       .description(
-          N_("Reset the transforms of every child instance in the output. Only used when Separate "
-             "Children is enabled"));
-  b.add_output<decl::Geometry>(N_("Instances"));
+          "Reset the transforms of every child instance in the output. Only used when Separate "
+          "Children is enabled");
+  b.add_output<decl::Geometry>("Instances");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

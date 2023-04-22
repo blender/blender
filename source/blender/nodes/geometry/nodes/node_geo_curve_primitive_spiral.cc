@@ -8,31 +8,31 @@ namespace blender::nodes::node_geo_curve_primitive_spiral_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Resolution"))
+  b.add_input<decl::Int>("Resolution")
       .default_value(32)
       .min(1)
       .max(1024)
       .subtype(PROP_UNSIGNED)
-      .description(N_("Number of points in one rotation of the spiral"));
-  b.add_input<decl::Float>(N_("Rotations"))
+      .description("Number of points in one rotation of the spiral");
+  b.add_input<decl::Float>("Rotations")
       .default_value(2.0f)
       .min(0.0f)
-      .description(N_("Number of times the spiral makes a full rotation"));
-  b.add_input<decl::Float>(N_("Start Radius"))
+      .description("Number of times the spiral makes a full rotation");
+  b.add_input<decl::Float>("Start Radius")
       .default_value(1.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("Horizontal Distance from the Z axis at the start of the spiral"));
-  b.add_input<decl::Float>(N_("End Radius"))
+      .description("Horizontal Distance from the Z axis at the start of the spiral");
+  b.add_input<decl::Float>("End Radius")
       .default_value(2.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("Horizontal Distance from the Z axis at the end of the spiral"));
-  b.add_input<decl::Float>(N_("Height"))
+      .description("Horizontal Distance from the Z axis at the end of the spiral");
+  b.add_input<decl::Float>("Height")
       .default_value(2.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("The height perpendicular to the base of the spiral"));
-  b.add_input<decl::Bool>(N_("Reverse"))
-      .description(N_("Switch the direction from clockwise to counterclockwise"));
-  b.add_output<decl::Geometry>(N_("Curve"));
+      .description("The height perpendicular to the base of the spiral");
+  b.add_input<decl::Bool>("Reverse").description(
+      "Switch the direction from clockwise to counterclockwise");
+  b.add_output<decl::Geometry>("Curve");
 }
 
 static Curves *create_spiral_curve(const float rotations,

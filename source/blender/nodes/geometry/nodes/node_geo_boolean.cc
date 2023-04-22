@@ -14,14 +14,13 @@ namespace blender::nodes::node_geo_boolean_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Mesh 1"))
-      .only_realized_data()
-      .supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Geometry>(N_("Mesh 2")).multi_input().supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Self Intersection"));
-  b.add_input<decl::Bool>(N_("Hole Tolerant"));
-  b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
-  b.add_output<decl::Bool>(N_("Intersecting Edges")).field_on_all();
+  b.add_input<decl::Geometry>("Mesh 1").only_realized_data().supported_type(
+      GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Geometry>("Mesh 2").multi_input().supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Bool>("Self Intersection");
+  b.add_input<decl::Bool>("Hole Tolerant");
+  b.add_output<decl::Geometry>("Mesh").propagate_all();
+  b.add_output<decl::Bool>("Intersecting Edges").field_on_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -45,12 +44,12 @@ static void node_update(bNodeTree *ntree, bNode *node)
     case GEO_NODE_BOOLEAN_UNION:
       bke::nodeSetSocketAvailability(ntree, geometry_1_socket, false);
       bke::nodeSetSocketAvailability(ntree, geometry_2_socket, true);
-      node_sock_label(geometry_2_socket, N_("Mesh"));
+      node_sock_label(geometry_2_socket, "Mesh");
       break;
     case GEO_NODE_BOOLEAN_DIFFERENCE:
       bke::nodeSetSocketAvailability(ntree, geometry_1_socket, true);
       bke::nodeSetSocketAvailability(ntree, geometry_2_socket, true);
-      node_sock_label(geometry_2_socket, N_("Mesh 2"));
+      node_sock_label(geometry_2_socket, "Mesh 2");
       break;
   }
 }

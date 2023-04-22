@@ -1155,13 +1155,13 @@ NODE_STORAGE_FUNCS(NodeGeometryDeleteGeometry)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_input<decl::Bool>(N_("Selection"))
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Bool>("Selection")
       .default_value(true)
       .hide_value()
       .field_on_all()
-      .description(N_("The parts of the geometry to be deleted"));
-  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
+      .description("The parts of the geometry to be deleted");
+  b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

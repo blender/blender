@@ -23,26 +23,26 @@ NODE_STORAGE_FUNCS(NodeFunctionCompare)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>(N_("A")).min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>(N_("B")).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("A").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("B").min(-10000.0f).max(10000.0f);
 
-  b.add_input<decl::Int>(N_("A"), "A_INT");
-  b.add_input<decl::Int>(N_("B"), "B_INT");
+  b.add_input<decl::Int>("A", "A_INT");
+  b.add_input<decl::Int>("B", "B_INT");
 
-  b.add_input<decl::Vector>(N_("A"), "A_VEC3");
-  b.add_input<decl::Vector>(N_("B"), "B_VEC3");
+  b.add_input<decl::Vector>("A", "A_VEC3");
+  b.add_input<decl::Vector>("B", "B_VEC3");
 
-  b.add_input<decl::Color>(N_("A"), "A_COL");
-  b.add_input<decl::Color>(N_("B"), "B_COL");
+  b.add_input<decl::Color>("A", "A_COL");
+  b.add_input<decl::Color>("B", "B_COL");
 
-  b.add_input<decl::String>(N_("A"), "A_STR");
-  b.add_input<decl::String>(N_("B"), "B_STR");
+  b.add_input<decl::String>("A", "A_STR");
+  b.add_input<decl::String>("B", "B_STR");
 
-  b.add_input<decl::Float>(N_("C")).default_value(0.9f);
-  b.add_input<decl::Float>(N_("Angle")).default_value(0.0872665f).subtype(PROP_ANGLE);
-  b.add_input<decl::Float>(N_("Epsilon")).default_value(0.001).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("C").default_value(0.9f);
+  b.add_input<decl::Float>("Angle").default_value(0.0872665f).subtype(PROP_ANGLE);
+  b.add_input<decl::Float>("Epsilon").default_value(0.001).min(-10000.0f).max(10000.0f);
 
-  b.add_output<decl::Bool>(N_("Result"));
+  b.add_output<decl::Bool>("Result");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

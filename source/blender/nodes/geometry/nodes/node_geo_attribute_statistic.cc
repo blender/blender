@@ -16,28 +16,28 @@ namespace blender::nodes::node_geo_attribute_statistic_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).field_on_all().hide_value();
-  b.add_input<decl::Float>(N_("Attribute")).hide_value().field_on_all();
-  b.add_input<decl::Vector>(N_("Attribute"), "Attribute_001").hide_value().field_on_all();
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
+  b.add_input<decl::Float>("Attribute").hide_value().field_on_all();
+  b.add_input<decl::Vector>("Attribute", "Attribute_001").hide_value().field_on_all();
 
-  b.add_output<decl::Float>(N_("Mean"));
-  b.add_output<decl::Float>(N_("Median"));
-  b.add_output<decl::Float>(N_("Sum"));
-  b.add_output<decl::Float>(N_("Min"));
-  b.add_output<decl::Float>(N_("Max"));
-  b.add_output<decl::Float>(N_("Range"));
-  b.add_output<decl::Float>(N_("Standard Deviation"));
-  b.add_output<decl::Float>(N_("Variance"));
+  b.add_output<decl::Float>("Mean");
+  b.add_output<decl::Float>("Median");
+  b.add_output<decl::Float>("Sum");
+  b.add_output<decl::Float>("Min");
+  b.add_output<decl::Float>("Max");
+  b.add_output<decl::Float>("Range");
+  b.add_output<decl::Float>("Standard Deviation");
+  b.add_output<decl::Float>("Variance");
 
-  b.add_output<decl::Vector>(N_("Mean"), "Mean_001");
-  b.add_output<decl::Vector>(N_("Median"), "Median_001");
-  b.add_output<decl::Vector>(N_("Sum"), "Sum_001");
-  b.add_output<decl::Vector>(N_("Min"), "Min_001");
-  b.add_output<decl::Vector>(N_("Max"), "Max_001");
-  b.add_output<decl::Vector>(N_("Range"), "Range_001");
-  b.add_output<decl::Vector>(N_("Standard Deviation"), "Standard Deviation_001");
-  b.add_output<decl::Vector>(N_("Variance"), "Variance_001");
+  b.add_output<decl::Vector>("Mean", "Mean_001");
+  b.add_output<decl::Vector>("Median", "Median_001");
+  b.add_output<decl::Vector>("Sum", "Sum_001");
+  b.add_output<decl::Vector>("Min", "Min_001");
+  b.add_output<decl::Vector>("Max", "Max_001");
+  b.add_output<decl::Vector>("Range", "Range_001");
+  b.add_output<decl::Vector>("Standard Deviation", "Standard Deviation_001");
+  b.add_output<decl::Vector>("Variance", "Variance_001");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

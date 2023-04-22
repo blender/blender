@@ -10,7 +10,7 @@ namespace blender::nodes::node_geo_input_instance_rotation_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>(N_("Rotation")).field_source();
+  b.add_output<decl::Vector>("Rotation").field_source();
 }
 
 class InstanceRotationFieldInput final : public bke::InstancesFieldInput {

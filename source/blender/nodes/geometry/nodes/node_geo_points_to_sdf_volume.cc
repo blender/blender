@@ -20,27 +20,26 @@ NODE_STORAGE_FUNCS(NodeGeometryPointsToVolume)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Points"));
-  b.add_input<decl::Float>(N_("Voxel Size"))
+  b.add_input<decl::Geometry>("Points");
+  b.add_input<decl::Float>("Voxel Size")
       .default_value(0.3f)
       .min(0.01f)
       .subtype(PROP_DISTANCE)
       .make_available([](bNode &node) {
         node_storage(node).resolution_mode = GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE;
       });
-  b.add_input<decl::Float>(N_("Voxel Amount"))
+  b.add_input<decl::Float>("Voxel Amount")
       .default_value(64.0f)
       .min(0.0f)
       .make_available([](bNode &node) {
         node_storage(node).resolution_mode = GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT;
       });
-  b.add_input<decl::Float>(N_("Radius"))
+  b.add_input<decl::Float>("Radius")
       .default_value(0.5f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .field_on_all();
-  b.add_output<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
-      .translation_context(BLT_I18NCONTEXT_ID_ID);
+  b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static void search_node_add_ops(GatherAddNodeSearchParams &params)

@@ -13,21 +13,16 @@ namespace blender::nodes::node_geo_uv_pack_islands_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>(N_("UV")).hide_value().supports_field();
-  b.add_input<decl::Bool>(N_("Selection"))
+  b.add_input<decl::Vector>("UV").hide_value().supports_field();
+  b.add_input<decl::Bool>("Selection")
       .default_value(true)
       .hide_value()
       .supports_field()
-      .description(N_("Faces to consider when packing islands"));
-  b.add_input<decl::Float>(N_("Margin"))
-      .default_value(0.001f)
-      .min(0.0f)
-      .max(1.0f)
-      .description(N_("Space between islands"));
-  b.add_input<decl::Bool>(N_("Rotate"))
-      .default_value(true)
-      .description(N_("Rotate islands for best fit"));
-  b.add_output<decl::Vector>(N_("UV")).field_source_reference_all();
+      .description("Faces to consider when packing islands");
+  b.add_input<decl::Float>("Margin").default_value(0.001f).min(0.0f).max(1.0f).description(
+      "Space between islands");
+  b.add_input<decl::Bool>("Rotate").default_value(true).description("Rotate islands for best fit");
+  b.add_output<decl::Vector>("UV").field_source_reference_all();
 }
 
 static VArray<float3> construct_uv_gvarray(const Mesh &mesh,

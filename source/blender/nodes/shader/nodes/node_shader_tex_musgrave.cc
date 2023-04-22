@@ -15,20 +15,18 @@ NODE_STORAGE_FUNCS(NodeTexMusgrave)
 static void sh_node_tex_musgrave_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector"))
-      .hide_value()
-      .implicit_field(implicit_field_inputs::position);
-  b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f).make_available([](bNode &node) {
+  b.add_input<decl::Vector>("Vector").hide_value().implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Float>("W").min(-1000.0f).max(1000.0f).make_available([](bNode &node) {
     /* Default to 1 instead of 4, because it is much faster. */
     node_storage(node).dimensions = 1;
   });
-  b.add_input<decl::Float>(N_("Scale")).min(-1000.0f).max(1000.0f).default_value(5.0f);
-  b.add_input<decl::Float>(N_("Detail")).min(0.0f).max(15.0f).default_value(2.0f);
-  b.add_input<decl::Float>(N_("Dimension")).min(0.0f).max(1000.0f).default_value(2.0f);
-  b.add_input<decl::Float>(N_("Lacunarity")).min(0.0f).max(1000.0f).default_value(2.0f);
-  b.add_input<decl::Float>(N_("Offset")).min(-1000.0f).max(1000.0f);
-  b.add_input<decl::Float>(N_("Gain")).min(0.0f).max(1000.0f).default_value(1.0f);
-  b.add_output<decl::Float>(N_("Fac")).no_muted_links();
+  b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f);
+  b.add_input<decl::Float>("Detail").min(0.0f).max(15.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Dimension").min(0.0f).max(1000.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Lacunarity").min(0.0f).max(1000.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Offset").min(-1000.0f).max(1000.0f);
+  b.add_input<decl::Float>("Gain").min(0.0f).max(1000.0f).default_value(1.0f);
+  b.add_output<decl::Float>("Fac").no_muted_links();
 }
 
 static void node_shader_buts_tex_musgrave(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

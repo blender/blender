@@ -15,17 +15,17 @@ namespace blender::nodes::node_geo_evaluate_on_domain_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Value"), "Value_Float").supports_field();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int").supports_field();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").supports_field();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color").supports_field();
-  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").supports_field();
+  b.add_input<decl::Float>("Value", "Value_Float").supports_field();
+  b.add_input<decl::Int>("Value", "Value_Int").supports_field();
+  b.add_input<decl::Vector>("Value", "Value_Vector").supports_field();
+  b.add_input<decl::Color>("Value", "Value_Color").supports_field();
+  b.add_input<decl::Bool>("Value", "Value_Bool").supports_field();
 
-  b.add_output<decl::Float>(N_("Value"), "Value_Float").field_source_reference_all();
-  b.add_output<decl::Int>(N_("Value"), "Value_Int").field_source_reference_all();
-  b.add_output<decl::Vector>(N_("Value"), "Value_Vector").field_source_reference_all();
-  b.add_output<decl::Color>(N_("Value"), "Value_Color").field_source_reference_all();
-  b.add_output<decl::Bool>(N_("Value"), "Value_Bool").field_source_reference_all();
+  b.add_output<decl::Float>("Value", "Value_Float").field_source_reference_all();
+  b.add_output<decl::Int>("Value", "Value_Int").field_source_reference_all();
+  b.add_output<decl::Vector>("Value", "Value_Vector").field_source_reference_all();
+  b.add_output<decl::Color>("Value", "Value_Color").field_source_reference_all();
+  b.add_output<decl::Bool>("Value", "Value_Bool").field_source_reference_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

@@ -15,7 +15,7 @@ namespace blender::nodes::node_composite_value_cc {
 
 static void cmp_node_value_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>(N_("Value")).default_value(0.5f);
+  b.add_output<decl::Float>("Value").default_value(0.5f);
 }
 
 using namespace blender::realtime_compositor;

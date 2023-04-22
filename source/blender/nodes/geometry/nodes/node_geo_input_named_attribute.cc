@@ -13,15 +13,15 @@ NODE_STORAGE_FUNCS(NodeGeometryInputNamedAttribute)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::String>(N_("Name")).is_attribute_name();
+  b.add_input<decl::String>("Name").is_attribute_name();
 
-  b.add_output<decl::Vector>(N_("Attribute"), "Attribute_Vector").field_source();
-  b.add_output<decl::Float>(N_("Attribute"), "Attribute_Float").field_source();
-  b.add_output<decl::Color>(N_("Attribute"), "Attribute_Color").field_source();
-  b.add_output<decl::Bool>(N_("Attribute"), "Attribute_Bool").field_source();
-  b.add_output<decl::Int>(N_("Attribute"), "Attribute_Int").field_source();
+  b.add_output<decl::Vector>("Attribute", "Attribute_Vector").field_source();
+  b.add_output<decl::Float>("Attribute", "Attribute_Float").field_source();
+  b.add_output<decl::Color>("Attribute", "Attribute_Color").field_source();
+  b.add_output<decl::Bool>("Attribute", "Attribute_Bool").field_source();
+  b.add_output<decl::Int>("Attribute", "Attribute_Int").field_source();
 
-  b.add_output<decl::Bool>(N_("Exists")).field_source();
+  b.add_output<decl::Bool>("Exists").field_source();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

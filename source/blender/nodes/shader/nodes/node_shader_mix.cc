@@ -27,44 +27,43 @@ static void sh_node_mix_declare(NodeDeclarationBuilder &b)
   /** WARNING:
    * Input socket indices must be kept in sync with ntree_shader_disconnect_inactive_mix_branches
    */
-  b.add_input<decl::Float>(N_("Factor"), "Factor_Float")
+  b.add_input<decl::Float>("Factor", "Factor_Float")
       .no_muted_links()
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Vector>(N_("Factor"), "Factor_Vector")
+  b.add_input<decl::Vector>("Factor", "Factor_Vector")
       .no_muted_links()
       .default_value(float3(0.5f))
       .subtype(PROP_FACTOR);
 
-  b.add_input<decl::Float>(CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "A"), "A_Float")
+  b.add_input<decl::Float>("A", "A_Float")
       .min(-10000.0f)
       .max(10000.0f)
       .is_default_link_socket()
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
-  b.add_input<decl::Float>(CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "B"), "B_Float")
+  b.add_input<decl::Float>("B", "B_Float")
       .min(-10000.0f)
       .max(10000.0f)
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
 
-  b.add_input<decl::Vector>(CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "A"), "A_Vector")
+  b.add_input<decl::Vector>("A", "A_Vector")
       .is_default_link_socket()
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
-  b.add_input<decl::Vector>(CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "B"), "B_Vector")
-      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+  b.add_input<decl::Vector>("B", "B_Vector").translation_context(BLT_I18NCONTEXT_ID_NODETREE);
 
-  b.add_input<decl::Color>(CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "A"), "A_Color")
+  b.add_input<decl::Color>("A", "A_Color")
       .default_value({0.5f, 0.5f, 0.5f, 1.0f})
       .is_default_link_socket()
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
-  b.add_input<decl::Color>(CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "B"), "B_Color")
+  b.add_input<decl::Color>("B", "B_Color")
       .default_value({0.5f, 0.5f, 0.5f, 1.0f})
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
 
-  b.add_output<decl::Float>(N_("Result"), "Result_Float");
-  b.add_output<decl::Vector>(N_("Result"), "Result_Vector");
-  b.add_output<decl::Color>(N_("Result"), "Result_Color");
+  b.add_output<decl::Float>("Result", "Result_Float");
+  b.add_output<decl::Vector>("Result", "Result_Vector");
+  b.add_output<decl::Color>("Result", "Result_Color");
 };
 
 static void sh_node_mix_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -226,7 +225,8 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
   }
   const std::string socket_name = params.in_out() == SOCK_IN ? "A" : "Result";
   for (const EnumPropertyItem *item = rna_enum_ramp_blend_items; item->identifier != nullptr;
-       item++) {
+       item++)
+  {
     if (item->name != nullptr && item->identifier[0] != '\0') {
       params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
                       SocketSearchOp{socket_name, item->value},
