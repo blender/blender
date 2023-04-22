@@ -220,7 +220,7 @@ class HasNeighborFieldInput final : public bke::GeometryFieldInput {
 
   uint64_t hash() const final
   {
-    return get_default_hash_2(3984756934876, group_field_);
+    return get_default_hash_2(39847876, group_field_);
   }
 
   bool is_equal_to(const fn::FieldNode &other) const final
