@@ -11,8 +11,6 @@
 
 #  include <mutex>
 
-#  include "MEM_guardedalloc.h"
-
 #  include "BLI_array.hh"
 #  include "BLI_bit_vector.hh"
 #  include "BLI_bounds_types.hh"
@@ -22,7 +20,6 @@
 #  include "BLI_span.hh"
 #  include "BLI_vector.hh"
 
-#  include "DNA_customdata_types.h"
 #  include "DNA_meshdata_types.h"
 
 struct BVHCache;
@@ -175,7 +172,7 @@ struct MeshRuntime {
   SharedCache<LooseEdgeCache> loose_edges_cache;
   /** Cache of data about vertices not used by edges. See #Mesh::loose_verts(). */
   SharedCache<LooseVertCache> loose_verts_cache;
-  /** Cache of data about vertices not used by faces. See #Mesh::loose_verts(). */
+  /** Cache of data about vertices not used by faces. See #Mesh::verts_no_face(). */
   SharedCache<LooseVertCache> verts_no_face_cache;
 
   /**
