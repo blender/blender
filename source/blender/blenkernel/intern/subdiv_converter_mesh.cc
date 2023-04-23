@@ -161,7 +161,7 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter, int manif
     return 10.0f;
   }
 #endif
-  if (!storage->settings.use_creases || storage->cd_edge_crease == nullptr) {
+  if (storage->cd_edge_crease == nullptr) {
     return 0.0f;
   }
   const int edge_index = storage->manifold_edge_index_reverse[manifold_edge_index];
@@ -187,7 +187,7 @@ static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
 static float get_vertex_sharpness(const OpenSubdiv_Converter *converter, int manifold_vertex_index)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  if (!storage->settings.use_creases || storage->cd_vertex_crease == nullptr) {
+  if (storage->cd_vertex_crease == nullptr) {
     return 0.0f;
   }
   const int vertex_index = storage->manifold_vertex_index_reverse[manifold_vertex_index];
@@ -394,10 +394,12 @@ static void init_user_data(OpenSubdiv_Converter *converter,
   user_data->polys = mesh->polys();
   user_data->corner_verts = mesh->corner_verts();
   user_data->corner_edges = mesh->corner_edges();
-  user_data->cd_vertex_crease = static_cast<const float *>(
-      CustomData_get_layer(&mesh->vdata, CD_CREASE));
-  user_data->cd_edge_crease = static_cast<const float *>(
-      CustomData_get_layer(&mesh->edata, CD_CREASE));
+  if (settings->use_creases) {
+    user_data->cd_vertex_crease = static_cast<const float *>(
+        CustomData_get_layer(&mesh->vdata, CD_CREASE));
+    user_data->cd_edge_crease = static_cast<const float *>(
+        CustomData_get_layer(&mesh->edata, CD_CREASE));
+  }
   user_data->loop_uv_indices = nullptr;
   initialize_manifold_indices(user_data);
   converter->user_data = user_data;
