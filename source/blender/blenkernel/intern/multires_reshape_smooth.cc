@@ -795,7 +795,7 @@ static void foreach_vertex_of_loose_edge(const SubdivForeachContext *foreach_con
 static void store_edge(MultiresReshapeSmoothContext *reshape_smooth_context,
                        const int subdiv_v1,
                        const int subdiv_v2,
-                       const char crease)
+                       const float crease)
 {
   /* This is a bit overhead to use atomics in such a simple function called from many threads,
    * but this allows to save quite measurable amount of memory. */
@@ -805,7 +805,7 @@ static void store_edge(MultiresReshapeSmoothContext *reshape_smooth_context,
   Edge *edge = &reshape_smooth_context->geometry.edges[edge_index];
   edge->v1 = subdiv_v1;
   edge->v2 = subdiv_v2;
-  edge->sharpness = BKE_subdiv_crease_to_sharpness_char(crease);
+  edge->sharpness = BKE_subdiv_crease_to_sharpness_f(crease);
 }
 
 static void foreach_edge(const SubdivForeachContext *foreach_context,
@@ -821,7 +821,7 @@ static void foreach_edge(const SubdivForeachContext *foreach_context,
 
   if (reshape_smooth_context->smoothing_type == MULTIRES_SUBDIVIDE_LINEAR) {
     if (!is_loose) {
-      store_edge(reshape_smooth_context, subdiv_v1, subdiv_v2, char(255));
+      store_edge(reshape_smooth_context, subdiv_v1, subdiv_v2, 1.0f);
     }
     return;
   }
@@ -837,8 +837,8 @@ static void foreach_edge(const SubdivForeachContext *foreach_context,
     return;
   }
   /* Edges without crease are to be ignored as well. */
-  const char crease = get_effective_crease(reshape_smooth_context, coarse_edge_index);
-  if (crease == 0) {
+  const float crease = get_effective_crease(reshape_smooth_context, coarse_edge_index);
+  if (crease == 0.0f) {
     return;
   }
   store_edge(reshape_smooth_context, subdiv_v1, subdiv_v2, crease);
