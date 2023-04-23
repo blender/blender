@@ -83,7 +83,7 @@ TEST(path_util, Normalize_DoubleSlash)
   NORMALIZE("//", "//"); /* Exception, double forward slash. */
   NORMALIZE(".//", "./");
   NORMALIZE("a////", "a/");
-  NORMALIZE("./a////", "./a/");
+  NORMALIZE("./a////", "a/");
 }
 /* #BLI_path_normalize: "foo/bar/../" -> "foo/" */
 TEST(path_util, Normalize_Parent)
@@ -93,13 +93,46 @@ TEST(path_util, Normalize_Parent)
   NORMALIZE_WITH_BASEDIR("//../", "/a/b/c/", "/a/b/");
 }
 /* #BLI_path_normalize: with too many "/../", match Python's behavior. */
-TEST(path_util, Normalize_Unbalanced)
+TEST(path_util, Normalize_UnbalancedAbsolute)
 {
   NORMALIZE("/../", "/");
   NORMALIZE("/../a", "/a");
   NORMALIZE("/a/b/c/../../../../../d", "/d");
   NORMALIZE("/a/b/c/../../../../d", "/d");
   NORMALIZE("/a/b/c/../../../d", "/d");
+}
+
+/* #BLI_path_normalize: with relative paths that result in leading "../". */
+TEST(path_util, Normalize_UnbalancedRelative)
+{
+  NORMALIZE("./a/b/c/../../../", ".");
+  NORMALIZE("a/b/c/../../../", ".");
+  NORMALIZE("//a/b/c/../../../", "//");
+
+  NORMALIZE("./a/../../../", "../../");
+  NORMALIZE("a/../../../", "../../");
+
+  NORMALIZE("///a/../../../", "//../../");
+  NORMALIZE("//./a/../../../", "//../../");
+
+  NORMALIZE("../a/../../../", "../../../");
+  NORMALIZE("a/b/../c/../../d/../../../e/../../../../f", "../../../../../f");
+  NORMALIZE(".../.../a/.../b/../c/../../d/../../../e/../../../.../../f", "../f");
+}
+
+TEST(path_util, Normalize_UnbalancedRelativeTrailing)
+{
+  NORMALIZE("./a/b/c/../../..", ".");
+  NORMALIZE("a/b/c/../../..", ".");
+  NORMALIZE("//a/b/c/../../..", "//");
+
+  NORMALIZE("./a/../../..", "../..");
+  NORMALIZE("a/../../..", "../..");
+
+  NORMALIZE("///a/../../..", "//../..");
+  NORMALIZE("//./a/../../..", "//../..");
+
+  NORMALIZE("../a/../../..", "../../..");
 }
 
 #undef NORMALIZE_WITH_BASEDIR
