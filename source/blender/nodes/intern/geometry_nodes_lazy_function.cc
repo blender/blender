@@ -341,10 +341,10 @@ static void execute_multi_function_on_value_or_field(
     /* Construct the new field node. */
     std::shared_ptr<fn::FieldOperation> operation;
     if (owned_fn) {
-      operation = std::make_shared<fn::FieldOperation>(owned_fn, std::move(input_fields));
+      operation = fn::FieldOperation::Create(owned_fn, std::move(input_fields));
     }
     else {
-      operation = std::make_shared<fn::FieldOperation>(fn, std::move(input_fields));
+      operation = fn::FieldOperation::Create(fn, std::move(input_fields));
     }
 
     /* Store the new fields in the output. */

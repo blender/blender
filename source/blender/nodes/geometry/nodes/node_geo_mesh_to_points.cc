@@ -47,9 +47,9 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 }
 
 static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
-                                        Field<float3> &position_field,
-                                        Field<float> &radius_field,
-                                        Field<bool> &selection_field,
+                                        const Field<float3> &position_field,
+                                        const Field<float> &radius_field,
+                                        const Field<bool> &selection_field,
                                         const eAttrDomain domain,
                                         const AnonymousAttributePropagationInfo &propagation_info)
 {
@@ -151,9 +151,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       __func__,
       [](float value) { return std::max(0.0f, value); },
       mf::build::exec_presets::AllSpanOrSingle());
-  auto max_zero_op = std::make_shared<FieldOperation>(
-      FieldOperation(max_zero_fn, {std::move(radius)}));
-  Field<float> positive_radius(std::move(max_zero_op), 0);
+  const Field<float> positive_radius(FieldOperation::Create(max_zero_fn, {std::move(radius)}), 0);
 
   const NodeGeometryMeshToPoints &storage = node_storage(params.node());
   const GeometryNodeMeshToPointsMode mode = (GeometryNodeMeshToPointsMode)storage.mode;

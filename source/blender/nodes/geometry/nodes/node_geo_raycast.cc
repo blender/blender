@@ -407,9 +407,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float> length_field = params.extract_input<Field<float>>("Ray Length");
 
   auto fn = std::make_unique<RaycastFunction>(std::move(target), std::move(field), mapping);
-  auto op = std::make_shared<FieldOperation>(FieldOperation(
+  auto op = FieldOperation::Create(
       std::move(fn),
-      {std::move(position_field), std::move(direction_field), std::move(length_field)}));
+      {std::move(position_field), std::move(direction_field), std::move(length_field)});
 
   params.set_output("Is Hit", Field<bool>(op, 0));
   params.set_output("Hit Position", Field<float3>(op, 1));

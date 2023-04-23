@@ -21,10 +21,7 @@ static fn::Field<int> get_count_input_max_one(const fn::Field<int> &count_field)
       "Clamp Above One",
       [](int value) { return std::max(1, value); },
       mf::build::exec_presets::AllSpanOrSingle());
-  auto clamp_op = std::make_shared<fn::FieldOperation>(
-      fn::FieldOperation(max_one_fn, {count_field}));
-
-  return fn::Field<int>(std::move(clamp_op));
+  return fn::Field<int>(fn::FieldOperation::Create(max_one_fn, {count_field}));
 }
 
 static fn::Field<int> get_count_input_from_length(const fn::Field<float> &length_field)
@@ -39,9 +36,9 @@ static fn::Field<int> get_count_input_from_length(const fn::Field<float> &length
       },
       mf::build::exec_presets::AllSpanOrSingle());
 
-  auto get_count_op = std::make_shared<fn::FieldOperation>(fn::FieldOperation(
+  auto get_count_op = fn::FieldOperation::Create(
       get_count_fn,
-      {fn::Field<float>(std::make_shared<bke::CurveLengthFieldInput>()), length_field}));
+      {fn::Field<float>(std::make_shared<bke::CurveLengthFieldInput>()), length_field});
 
   return fn::Field<int>(std::move(get_count_op));
 }
