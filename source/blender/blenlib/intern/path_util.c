@@ -128,6 +128,24 @@ void BLI_path_normalize(const char *relabase, char *path)
     }
   }
 
+#ifdef WIN32
+  /* Skip to the first slash of the drive or UNC path,
+   * so additional slashes are treated as doubles. */
+  {
+    const int path_unc_len = BLI_path_unc_prefix_len(path);
+    if (path_unc_len) {
+      BLI_assert(path_unc_len > 1 && path[path_unc_len - 1] == SEP);
+      path += path_unc_len - 1;
+    }
+    else if (isalpha(path[0]) && path[1] == ':') {
+      path += 2;
+    }
+    if (path[0] == '\0') {
+      return;
+    }
+  }
+#endif /* WIN32 */
+
   /* NOTE(@ideasman42):
    *   `memmove(start, eind, strlen(eind) + 1);`
    * is the same as
@@ -135,55 +153,22 @@ void BLI_path_normalize(const char *relabase, char *path)
    * except `strcpy` should not be used because there is overlap,
    * so use `memmove` 's slightly more obscure syntax. */
 
-#ifdef WIN32
-
-  while ((start = strstr(path, "\\.\\"))) {
-    eind = start + strlen("\\.\\") - 1;
-    memmove(start, eind, strlen(eind) + 1);
-  }
-
-  /* Remove two consecutive backslashes, but skip the UNC prefix,
-   * which needs to be preserved. */
-  while ((start = strstr(path + BLI_path_unc_prefix_len(path), "\\\\"))) {
-    eind = start + strlen("\\\\") - 1;
-    memmove(start, eind, strlen(eind) + 1);
-  }
-
-  while ((start = strstr(path, "\\..\\"))) {
-    eind = start + strlen("\\..\\") - 1;
-    a = start - path - 1;
-    while (a > 0) {
-      if (path[a] == '\\') {
-        break;
-      }
-      a--;
-    }
-    if (a < 0) {
-      break;
-    }
-    else {
-      memmove(path + a, eind, strlen(eind) + 1);
-    }
-  }
-
-#else
-
-  while ((start = strstr(path, "/./"))) {
+  while ((start = strstr(path, SEP_STR "." SEP_STR))) {
     eind = start + (3 - 1) /* `strlen("/./") - 1` */;
     memmove(start, eind, strlen(eind) + 1);
   }
 
-  while ((start = strstr(path, "//"))) {
+  while ((start = strstr(path, SEP_STR SEP_STR))) {
     eind = start + (2 - 1) /* `strlen("//") - 1` */;
     memmove(start, eind, strlen(eind) + 1);
   }
 
-  while ((start = strstr(path, "/../"))) {
+  while ((start = strstr(path, SEP_STR ".." SEP_STR))) {
     a = start - path - 1;
     if (a > 0) {
       /* `<prefix>/<parent>/../<postfix> => <prefix>/<postfix>`. */
       eind = start + (4 - 1) /* `strlen("/../") - 1` */; /* Strip "/.." and keep last "/". */
-      while (a > 0 && path[a] != '/') {                  /* Find start of `<parent>`. */
+      while (a > 0 && path[a] != SEP) {                  /* Find start of `<parent>`. */
         a--;
       }
       memmove(path + a, eind, strlen(eind) + 1);
@@ -201,8 +186,6 @@ void BLI_path_normalize(const char *relabase, char *path)
       memmove(path, path + 3, strlen(path + 3) + 1);
     }
   }
-
-#endif
 }
 
 void BLI_path_normalize_dir(const char *relabase, char *dir, size_t dir_maxlen)

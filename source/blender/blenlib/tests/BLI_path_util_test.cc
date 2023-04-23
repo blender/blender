@@ -92,6 +92,15 @@ TEST(path_util, Clean_Parent)
   NORMALIZE("/a/../a/b/../b/c/../c/", "/a/b/c/");
   NORMALIZE_WITH_BASEDIR("//../", "/a/b/c/", "/a/b/");
 }
+/* #BLI_path_normalize: with too many "/../", match Python's behavior. */
+TEST(path_util, Clean_Unbalanced)
+{
+  NORMALIZE("/../", "/");
+  NORMALIZE("/../a", "/a");
+  NORMALIZE("/a/b/c/../../../../../d", "/d");
+  NORMALIZE("/a/b/c/../../../../d", "/d");
+  NORMALIZE("/a/b/c/../../../d", "/d");
+}
 
 #undef NORMALIZE_WITH_BASEDIR
 #undef NORMALIZE
