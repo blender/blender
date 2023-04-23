@@ -153,25 +153,55 @@ void BLI_path_normalize(const char *relabase, char *path)
    * except `strcpy` should not be used because there is overlap,
    * so use `memmove` 's slightly more obscure syntax. */
 
-  while ((start = strstr(path, SEP_STR "." SEP_STR))) {
-    eind = start + (3 - 1) /* `strlen("/./") - 1` */;
-    memmove(start, eind, strlen(eind) + 1);
+  /* Inline replacement:
+   * - `/./` -> `/`.
+   * - `//` -> `/`.
+   * Performed until no more replacements can be made. */
+  int path_len = strlen(path);
+  if (path_len > 1) {
+    for (int i = path_len - 1; i > 0; i--) {
+      /* Calculate the redundant slash span (if any). */
+      if (path[i] == SEP) {
+        const int i_end = i;
+        do {
+          /* Stepping over elements assumes 'i' references a separator. */
+          BLI_assert(path[i] == SEP);
+          if (path[i - 1] == SEP) {
+            i -= 1; /* Found `//`, replace with `/`. */
+          }
+          else if (i >= 2 && path[i - 1] == '.' && path[i - 2] == SEP) {
+            i -= 2; /* Found `/./`, replace with `/`. */
+          }
+          else {
+            break;
+          }
+
+        } while (i > 0);
+
+        if (i < i_end) {
+          memmove(path + i, path + i_end, (path_len - i_end) + 1);
+          path_len -= i_end - i;
+          BLI_assert(strlen(path) == path_len);
+        }
+      }
+    }
   }
 
-  while ((start = strstr(path, SEP_STR SEP_STR))) {
-    eind = start + (2 - 1) /* `strlen("//") - 1` */;
-    memmove(start, eind, strlen(eind) + 1);
-  }
-
-  while ((start = strstr(path, SEP_STR ".." SEP_STR))) {
+  start = path;
+  while ((start = strstr(start, SEP_STR ".." SEP_STR))) {
     a = start - path - 1;
     if (a > 0) {
       /* `<prefix>/<parent>/../<postfix> => <prefix>/<postfix>`. */
       eind = start + (4 - 1) /* `strlen("/../") - 1` */; /* Strip "/.." and keep last "/". */
-      while (a > 0 && path[a] != SEP) {                  /* Find start of `<parent>`. */
+      const size_t eind_len = path_len - (eind - path);
+      BLI_assert(eind_len == strlen(eind));
+      while (a > 0 && path[a] != SEP) { /* Find start of `<parent>`. */
         a--;
       }
-      memmove(path + a, eind, strlen(eind) + 1);
+      start = path + a;
+      memmove(start, eind, eind_len + 1);
+      path_len -= (eind - start);
+      BLI_assert(strlen(path) == path_len);
     }
     else {
       /* Support for odd paths: eg `/../home/me` --> `/home/me`
@@ -183,9 +213,15 @@ void BLI_path_normalize(const char *relabase, char *path)
        * which meant that the `/../home/me` example actually became `home/me`.
        * Using offset of 3 gives behavior consistent with the aforementioned
        * Python routine. */
-      memmove(path, path + 3, strlen(path + 3) + 1);
+      eind = start + 3;
+      const size_t eind_len = path_len - (eind - path);
+      memmove(start, eind, eind_len + 1);
+      path_len -= 3;
+      BLI_assert(strlen(path) == path_len);
     }
   }
+
+  BLI_assert(strlen(path) == path_len);
 }
 
 void BLI_path_normalize_dir(const char *relabase, char *dir, size_t dir_maxlen)
