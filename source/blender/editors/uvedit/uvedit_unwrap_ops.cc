@@ -571,7 +571,7 @@ static Mesh *subdivide_edit_mesh(const Object *object,
   mesh_settings.resolution = (1 << smd->levels) + 1;
   mesh_settings.use_optimal_display = (smd->flags & eSubsurfModifierFlag_ControlEdges);
 
-  Subdiv *subdiv = BKE_subdiv_update_from_mesh(nullptr, &settings, me_from_em);
+  Subdiv *subdiv = BKE_subdiv_new_from_mesh(&settings, me_from_em);
   Mesh *result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, me_from_em);
   BKE_id_free(nullptr, me_from_em);
   BKE_subdiv_free(subdiv);

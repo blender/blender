@@ -15,6 +15,14 @@ namespace blender::array_utils {
  * grain-size.
  */
 void copy(const GVArray &src, GMutableSpan dst, int64_t grain_size = 4096);
+template<typename T>
+inline void copy(const VArray<T> &src, MutableSpan<T> dst, const int64_t grain_size = 4096)
+{
+  BLI_assert(src.size() == dst.size());
+  threading::parallel_for(src.index_range(), grain_size, [&](const IndexRange range) {
+    src.materialize_to_uninitialized(range, dst);
+  });
+}
 
 /**
  * Fill the destination span by copying all values from the `src` array. Threaded based on
@@ -28,6 +36,7 @@ inline void copy(const Span<T> src, MutableSpan<T> dst, const int64_t grain_size
     dst.slice(range).copy_from(src.slice(range));
   });
 }
+
 /**
  * Fill the destination span by copying masked values from the `src` array. Threaded based on
  * grain-size.
