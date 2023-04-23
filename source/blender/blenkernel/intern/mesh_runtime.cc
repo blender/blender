@@ -136,10 +136,10 @@ static void bit_vector_with_reset_bits_or_empty(const Span<int> indices_to_reset
  */
 static void try_tag_verts_no_face_none(const Mesh &mesh)
 {
-  if (mesh.runtime->loose_edges_cache.is_cached() || mesh.loose_edges().count > 0) {
+  if (!mesh.runtime->loose_edges_cache.is_cached() || mesh.loose_edges().count > 0) {
     return;
   }
-  if (mesh.runtime->loose_verts_cache.is_cached() || mesh.loose_verts().count > 0) {
+  if (!mesh.runtime->loose_verts_cache.is_cached() || mesh.loose_verts().count > 0) {
     return;
   }
   mesh.runtime->verts_no_face_cache.ensure([&](LooseVertCache &r_data) {
