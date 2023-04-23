@@ -256,6 +256,21 @@ PYGETTEXT_KEYWORDS = (() +
     tuple(("{}\\((?:[^,]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("modifier_subpanel_register", "gpencil_modifier_subpanel_register")) +
 
+    # Node socket declarations: contextless names
+    tuple((r"\.{}<decl::.*?>\(\s*" + _msg_re + r"(?:,[^),]+)*\s*\)").format(it)
+          for it in ("add_input", "add_output")) +
+
+    # Node socket declarations: names with contexts
+    tuple((r"\.{}<decl::.*?>\(\s*" + _msg_re + r"[^;]*\.translation_context\(\s*" + _ctxt_re + r"\s*\)").format(it)
+          for it in ("add_input", "add_output")) +
+
+    # Node socket declarations: description and error messages
+    tuple((r"\.{}\(\s*" + _msg_re + r"\s*\)").format(it)
+          for it in ("description", "error_message_add")) +
+
+    # Geometry Nodes field inputs
+    ((r"FieldInput\(CPPType::get<.*?>\(\),\s*" + _msg_re + r"\s*\)"),) +
+
     # bUnitDef unit names.
     # NOTE: regex is a bit more complex than it would need too. Since the actual
     # identifier (`B_UNIT_DEF_`) is at the end, if it's simpler/too general it
