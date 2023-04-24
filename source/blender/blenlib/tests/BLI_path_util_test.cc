@@ -63,6 +63,25 @@ static char *str_replace_char_strdup(const char *str, char src, char dst)
 
 #define NORMALIZE(input, output_expect) NORMALIZE_WITH_BASEDIR(input, nullptr, output_expect)
 
+/* #BLI_path_normalize: do nothing. */
+TEST(path_util, Normalize_Nop)
+{
+  NORMALIZE(".", ".");
+  NORMALIZE("./", "./");
+  NORMALIZE("/", "/");
+  NORMALIZE("//", "//");
+  NORMALIZE("//a", "//a");
+}
+
+TEST(path_util, Normalize_NopRelative)
+{
+  NORMALIZE("..", "..");
+  NORMALIZE("../", "../");
+  NORMALIZE("../", "../");
+  NORMALIZE("../..", "../..");
+  NORMALIZE("../../", "../../");
+}
+
 /* #BLI_path_normalize: "/./" -> "/" */
 TEST(path_util, Normalize_Dot)
 {

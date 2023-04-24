@@ -121,29 +121,24 @@ void BLI_path_normalize(const char *relabase, char *path)
   char *start, *eind;
   if (relabase) {
     BLI_path_abs(path, relabase);
-    path_len = strlen(path);
   }
-  else {
-    path_len = strlen(path);
 
-    if (path[0] == '/' && path[1] == '/') {
-      if (path[2] == '\0') {
-        return; /* Path is `//` - can't clean it. */
-      }
-      path = path + 2; /* Leave the initial `//` untouched. */
-      path_len -= 2;
+  path_len = strlen(path);
 
-      /* Strip leading slashes, as they will interfere with the absolute/relative check
-       * (besides being redundant). */
-      int i = 0;
-      while (path[i] == SEP) {
-        i++;
-      }
+  if ((relabase == NULL) && (path[0] == '/' && path[1] == '/')) {
+    path = path + 2; /* Leave the initial `//` untouched. */
+    path_len -= 2;
 
-      if (i != 0) {
-        memmove(path, path + i, (path_len - i) + 1);
-        path_len -= i;
-      }
+    /* Strip leading slashes, as they will interfere with the absolute/relative check
+     * (besides being redundant). */
+    int i = 0;
+    while (path[i] == SEP) {
+      i++;
+    }
+
+    if (i != 0) {
+      memmove(path, path + i, (path_len - i) + 1);
+      path_len -= i;
     }
     BLI_assert(path_len == strlen(path));
   }
@@ -151,7 +146,7 @@ void BLI_path_normalize(const char *relabase, char *path)
 #ifdef WIN32
   /* Skip to the first slash of the drive or UNC path,
    * so additional slashes are treated as doubles. */
-  if (path_len >= 2) {
+  if (path_orig == path) {
     int path_unc_len = BLI_path_unc_prefix_len(path);
     if (path_unc_len) {
       path_unc_len -= 1;
@@ -159,18 +154,15 @@ void BLI_path_normalize(const char *relabase, char *path)
       path += path_unc_len;
       path_len -= path_unc_len;
     }
-    else if (isalpha(path[0]) && path[1] == ':') {
+    else if (isalpha(path[0]) && (path[1] == ':')) {
       path += 2;
       path_len -= 2;
-    }
-    if (path[0] == '\0') {
-      return;
     }
   }
 #endif /* WIN32 */
 
   /* Works on WIN32 as well, because the drive component is skipped. */
-  const bool is_relative = path[0] != SEP;
+  const bool is_relative = path[0] && (path[0] != SEP);
 
   /* NOTE(@ideasman42):
    *   `memmove(start, eind, strlen(eind) + 1);`
