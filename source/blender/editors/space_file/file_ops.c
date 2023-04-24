@@ -199,7 +199,6 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
         else if (file->redirection_path) {
           BLI_strncpy(params->dir, file->redirection_path, sizeof(params->dir));
           BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir, sizeof(params->dir));
-          BLI_path_slash_ensure(params->dir, sizeof(params->dir));
         }
         else {
           BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir, sizeof(params->dir));
