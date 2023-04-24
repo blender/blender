@@ -151,13 +151,36 @@ shaderc::Compiler &VKBackend::get_shaderc_compiler()
   return shaderc_compiler_;
 }
 
-void VKBackend::capabilities_init(VKContext & /*context*/)
+void VKBackend::capabilities_init(VKContext &context)
 {
+  const VkPhysicalDeviceLimits limits = context.physical_device_limits_get();
+
   /* Reset all capabilities from previous context. */
   GCaps = {};
   GCaps.compute_shader_support = true;
   GCaps.shader_storage_buffer_objects_support = true;
   GCaps.shader_image_load_store_support = true;
+
+  GCaps.max_texture_size = max_ii(limits.maxImageDimension1D, limits.maxImageDimension2D);
+  GCaps.max_texture_3d_size = limits.maxImageDimension3D;
+  GCaps.max_texture_layers = limits.maxImageArrayLayers;
+  GCaps.max_textures = limits.maxDescriptorSetSampledImages;
+  GCaps.max_textures_vert = limits.maxPerStageDescriptorSampledImages;
+  GCaps.max_textures_geom = limits.maxPerStageDescriptorSampledImages;
+  GCaps.max_textures_frag = limits.maxPerStageDescriptorSampledImages;
+  GCaps.max_samplers = limits.maxSamplerAllocationCount;
+  for (int i = 0; i < 3; i++) {
+    GCaps.max_work_group_count[i] = limits.maxComputeWorkGroupCount[i];
+    GCaps.max_work_group_size[i] = limits.maxComputeWorkGroupSize[i];
+  }
+  GCaps.max_uniforms_vert = limits.maxPerStageDescriptorUniformBuffers;
+  GCaps.max_uniforms_frag = limits.maxPerStageDescriptorUniformBuffers;
+  GCaps.max_batch_indices = limits.maxDrawIndirectCount;
+  GCaps.max_batch_vertices = limits.maxDrawIndexedIndexValue;
+  GCaps.max_vertex_attribs = limits.maxVertexInputAttributes;
+  GCaps.max_varying_floats = limits.maxVertexOutputComponents;
+  GCaps.max_shader_storage_buffer_bindings = limits.maxPerStageDescriptorStorageBuffers;
+  GCaps.max_compute_shader_storage_blocks = limits.maxPerStageDescriptorStorageBuffers;
 }
 
 }  // namespace blender::gpu
