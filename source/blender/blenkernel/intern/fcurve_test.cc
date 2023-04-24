@@ -348,6 +348,37 @@ TEST(BKE_fcurve, BKE_fcurve_keyframe_move_value_with_handles)
   BKE_fcurve_free(fcu);
 }
 
+TEST(BKE_fcurve, BKE_fcurve_keyframe_move_time_with_handles)
+{
+  FCurve *fcu = BKE_fcurve_create();
+
+  insert_vert_fcurve(fcu, 1.0f, 7.5f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, 8.0f, 15.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+  insert_vert_fcurve(fcu, 14.0f, 8.2f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][0], 5.2671194f);
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][1], 15.0f);
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][0], 8.0f);
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][1], 15.0f);
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][0], 10.342469f);
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][1], 15.0f);
+
+  BKE_fcurve_keyframe_move_time_with_handles(&fcu->bezt[1], 47.0f);
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][0], 44.2671194f) << "Left handle time should be updated";
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][1], 15.0f) << "Left handle should not move in value";
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][0], 47.0f) << "Frame time should have been updated";
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][1], 15.0f) << "Frame should not move in value";
+
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][0], 49.342469f) << "Right handle time should be updated";
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][1], 15.0f) << "Right handle should not move in value";
+
+  BKE_fcurve_free(fcu);
+}
+
 TEST(BKE_fcurve, BKE_fcurve_calc_range)
 {
   FCurve *fcu = BKE_fcurve_create();
@@ -571,7 +602,7 @@ static FCurve *testcurve_with_duplicates()
   set_key(fcu, 3, 47.0f, 1.0f);
   set_key(fcu, 4, 7.0f, 2.0f);
   set_key(fcu, 5, 47.0f, 2.0f);
-  set_key(fcu, 6, 47.00001f, 3.0f);
+  set_key(fcu, 6, 47.0f + BEZT_BINARYSEARCH_THRESH, 3.0f);
   set_key(fcu, 7, 7.0f, 3.0f);
   set_key(fcu, 8, 3.0f, 1.0f);
   set_key(fcu, 9, 2.0f, 1.0f);
@@ -596,8 +627,77 @@ TEST(BKE_fcurve, sort_time_fcurve_stability)
   EXPECT_V2_NEAR(fcu->bezt[5].vec[1], float2(7.0f, 3.0f), 1e-3);
   EXPECT_V2_NEAR(fcu->bezt[6].vec[1], float2(47.0f, 1.0f), 1e-3);
   EXPECT_V2_NEAR(fcu->bezt[7].vec[1], float2(47.0f, 2.0f), 1e-3);
-  EXPECT_V2_NEAR(fcu->bezt[8].vec[1], float2(47.0f, 3.0f), 1e-3);
+  EXPECT_V2_NEAR(fcu->bezt[8].vec[1], float2(47.0f + BEZT_BINARYSEARCH_THRESH, 3.0f), 1e-3);
   EXPECT_V2_NEAR(fcu->bezt[9].vec[1], float2(327.16f, 1.0f), 1e-3);
+
+  BKE_fcurve_free(fcu);
+}
+
+TEST(BKE_fcurve, BKE_fcurve_deduplicate_keys)
+{
+  FCurve *fcu = testcurve_with_duplicates();
+  ASSERT_EQ(fcu->totvert, 10);
+  sort_time_fcurve(fcu);
+
+  BKE_fcurve_deduplicate_keys(fcu);
+  ASSERT_GE(fcu->totvert, 6); /* Protect against out-of-bounds access. */
+  EXPECT_EQ(fcu->totvert, 6); /* The actual expected value. */
+  EXPECT_V2_NEAR(fcu->bezt[0].vec[1], float2(1.0f, 1.0f), 1e-3);
+  EXPECT_V2_NEAR(fcu->bezt[1].vec[1], float2(2.0f, 1.0f), 1e-3);
+  EXPECT_V2_NEAR(fcu->bezt[2].vec[1], float2(3.0f, 1.0f), 1e-3);
+  EXPECT_V2_NEAR(fcu->bezt[3].vec[1], float2(7.0f, 3.0f), 1e-3);
+  EXPECT_V2_NEAR(fcu->bezt[4].vec[1], float2(47.0f, 3.0f), 1e-3);
+  EXPECT_V2_NEAR(fcu->bezt[5].vec[1], float2(327.16f, 1.0f), 1e-3);
+
+  BKE_fcurve_free(fcu);
+}
+
+TEST(BKE_fcurve, BKE_fcurve_deduplicate_keys_edge_cases)
+{
+  FCurve *fcu = testcurve_with_duplicates();
+  ASSERT_EQ(fcu->totvert, 10);
+
+  /* Update the 2nd and 2nd-to-last keys to test the edge cases. */
+  set_key(fcu, 0, 1, 1);
+  set_key(fcu, 1, 1, 2);
+  set_key(fcu, 8, 327.16f, 1);
+  set_key(fcu, 9, 327.16f, 2);
+
+  sort_time_fcurve(fcu);
+
+  BKE_fcurve_deduplicate_keys(fcu);
+  ASSERT_EQ(fcu->totvert, 4);
+  EXPECT_V2_NEAR(fcu->bezt[0].vec[1], float2(1.0f, 2.0f), 1e-3);
+  EXPECT_V2_NEAR(fcu->bezt[1].vec[1], float2(7.0f, 3.0f), 1e-3);
+  EXPECT_V2_NEAR(fcu->bezt[2].vec[1], float2(47.0f, 3.0f), 1e-3);
+  EXPECT_V2_NEAR(fcu->bezt[3].vec[1], float2(327.16f, 2.0f), 1e-3);
+
+  BKE_fcurve_free(fcu);
+}
+
+TEST(BKE_fcurve, BKE_fcurve_deduplicate_keys_prefer_whole_frames)
+{
+  FCurve *fcu = testcurve_with_duplicates();
+  ASSERT_EQ(fcu->totvert, 10);
+
+  /* Update the first key around 47.0 to be slightly before the frame. This gives us three keys on
+   * 47-epsilon, 47, and 47+epsilon. The keys at index 5 and 6 already have this value, so the
+   * `set_key` calls are unnecessary, but this way this test has a more local overview of the
+   * situation under test. */
+  set_key(fcu, 3, 47.0f - BEZT_BINARYSEARCH_THRESH, 1.0f);
+  set_key(fcu, 5, 47.0f, 2.0f);
+  set_key(fcu, 6, 47.0f + BEZT_BINARYSEARCH_THRESH, 3.0f);
+
+  sort_time_fcurve(fcu);
+
+  BKE_fcurve_deduplicate_keys(fcu);
+  ASSERT_EQ(fcu->totvert, 6);
+  EXPECT_V2_NEAR(fcu->bezt[0].vec[1], float2(1.0f, 1.0f), 1e-3);
+  EXPECT_V2_NEAR(fcu->bezt[1].vec[1], float2(2.0f, 1.0f), 1e-3);
+  EXPECT_V2_NEAR(fcu->bezt[2].vec[1], float2(3.0f, 1.0f), 1e-3);
+  EXPECT_V2_NEAR(fcu->bezt[3].vec[1], float2(7.0f, 3.0f), 1e-3);
+  EXPECT_V2_NEAR(fcu->bezt[4].vec[1], float2(47.0f, 3.0f), 1e-3);
+  EXPECT_V2_NEAR(fcu->bezt[5].vec[1], float2(327.16f, 1.0f), 1e-3);
 
   BKE_fcurve_free(fcu);
 }
