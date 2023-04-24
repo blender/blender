@@ -550,7 +550,7 @@ static void log_kernel_features(const uint features)
             << "\n";
   VLOG_INFO << "Use Shader Raytrace " << string_from_bool(features & KERNEL_FEATURE_NODE_RAYTRACE)
             << "\n";
-  VLOG_INFO << "Use MNEE" << string_from_bool(features & KERNEL_FEATURE_MNEE) << "\n";
+  VLOG_INFO << "Use MNEE " << string_from_bool(features & KERNEL_FEATURE_MNEE) << "\n";
   VLOG_INFO << "Use Transparent " << string_from_bool(features & KERNEL_FEATURE_TRANSPARENT)
             << "\n";
   VLOG_INFO << "Use Denoising " << string_from_bool(features & KERNEL_FEATURE_DENOISING) << "\n";
