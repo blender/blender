@@ -28,18 +28,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::String>(N_("String"));
   b.add_input<decl::Float>(N_("Size")).default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>(N_("Character Spacing"))
-      .default_value(1.0f)
-      .min(0.0f)
-      .subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>(N_("Word Spacing"))
-      .default_value(1.0f)
-      .min(0.0f)
-      .subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>(N_("Line Spacing"))
-      .default_value(1.0f)
-      .min(0.0f)
-      .subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Character Spacing")).default_value(1.0f).min(0.0f);
+  b.add_input<decl::Float>(N_("Word Spacing")).default_value(1.0f).min(0.0f);
+  b.add_input<decl::Float>(N_("Line Spacing")).default_value(1.0f).min(0.0f);
   b.add_input<decl::Float>(N_("Text Box Width"))
       .default_value(0.0f)
       .min(0.0f)
