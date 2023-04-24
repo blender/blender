@@ -2430,29 +2430,7 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
   return node_dst;
 }
 
-static void for_each_node_group_instance(Main &bmain,
-                                         const bNodeTree &node_group,
-                                         const Span<int> tree_types_to_lookup,
-                                         const FunctionRef<void(bNode &)> func)
-{
-  LISTBASE_FOREACH (bNodeTree *, other_group, &bmain.nodetrees) {
-    if (!tree_types_to_lookup.contains(other_group->type)) {
-      continue;
-    }
-    if (other_group == &node_group) {
-      continue;
-    }
-
-    other_group->ensure_topology_cache();
-    for (bNode *node : other_group->group_nodes()) {
-      if (node->id == &node_group.id) {
-        func(*node);
-      }
-    }
-  }
-}
-
-void node_socket_move_default_value(Main &bmain,
+void node_socket_move_default_value(Main & /*bmain*/,
                                     bNodeTree &tree,
                                     bNodeSocket &src,
                                     bNodeSocket &dst)
@@ -2488,14 +2466,6 @@ void node_socket_move_default_value(Main &bmain,
       switch (dst_node.type) {
         case GEO_NODE_IMAGE: {
           dst_values.append(&dst_node.id);
-          break;
-        }
-        case NODE_GROUP_INPUT: {
-          for_each_node_group_instance(bmain, tree, {NTREE_GEOMETRY}, [&](bNode &node_group) {
-            bNodeSocket &socket = node_group.input_by_identifier(dst.identifier);
-            Image **tmp_dst_value = &socket.default_value_typed<bNodeSocketValueImage>()->value;
-            dst_values.append(reinterpret_cast<ID **>(tmp_dst_value));
-          });
           break;
         }
         default: {
