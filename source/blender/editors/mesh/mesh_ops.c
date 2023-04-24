@@ -165,8 +165,6 @@ void ED_operatortypes_mesh(void)
 
   WM_operatortype_append(MESH_OT_bevel);
 
-  WM_operatortype_append(MESH_OT_fair_vertices);
-
   WM_operatortype_append(MESH_OT_bridge_edge_loops);
   WM_operatortype_append(MESH_OT_inset);
   WM_operatortype_append(MESH_OT_offset_edge_loops);

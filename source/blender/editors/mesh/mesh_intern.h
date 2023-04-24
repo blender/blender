@@ -307,9 +307,6 @@ void MESH_OT_paint_mask_extract(struct wmOperatorType *ot);
 void MESH_OT_face_set_extract(struct wmOperatorType *ot);
 void MESH_OT_paint_mask_slice(struct wmOperatorType *ot);
 
-/* *** editmesh_fair.c *** */
-void MESH_OT_fair_vertices(struct wmOperatorType *ot);
-
 /** Called in transform_ops.c, on each regeneration of key-maps. */
 struct wmKeyMap *point_normals_modal_keymap(wmKeyConfig *keyconf);
 

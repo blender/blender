@@ -135,26 +135,3 @@ static int edbm_fair_vertices_exec(bContext *C, wmOperator *op)
   MEM_freeN(objects);
   return OPERATOR_FINISHED;
 }
-
-void MESH_OT_fair_vertices(wmOperatorType *ot)
-{
-  /* description */
-  ot->name = "Fair Vertices";
-  ot->idname = "MESH_OT_fair_vertices";
-  ot->description = "Create a smooth as possible geometry patch";
-
-  /* callbacks */
-  ot->exec = edbm_fair_vertices_exec;
-  ot->poll = ED_operator_editmesh;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  /* properties */
-  RNA_def_enum(ot->srna,
-               "mode",
-               prop_edit_mesh_fair_selection_mode_items,
-               MESH_FAIRING_DEPTH_POSITION,
-               "Mode",
-               "");
-}
