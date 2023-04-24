@@ -1,12 +1,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2021 Blender Foundation.
 
-# - Find HIP compiler
-#
-# This module defines
+# Find HIP compiler. This module defines
 #  HIP_HIPCC_EXECUTABLE, the full path to the hipcc executable
 #  HIP_VERSION, the HIP compiler version
-#
 #  HIP_FOUND, if the HIP toolkit is found.
 
 # If HIP_ROOT_DIR was defined in the environment, use it.
@@ -27,12 +24,21 @@ find_program(HIP_HIPCC_EXECUTABLE
     bin
 )
 
-if(HIP_HIPCC_EXECUTABLE AND NOT EXISTS ${HIP_HIPCC_EXECUTABLE})
-  message(WARNING "Cached or directly specified hipcc executable does not exist.")
-  set(HIP_FOUND FALSE)
-elseif(HIP_HIPCC_EXECUTABLE)
-  set(HIP_FOUND TRUE)
+if(WIN32)
+  # Needed for HIP-RT on Windows.
+  find_program(HIP_LINKER_EXECUTABLE
+    NAMES
+      clang++
+    HINTS
+      ${_hip_SEARCH_DIRS}
+    PATH_SUFFIXES
+      bin
+    NO_DEFAULT_PATH
+    NO_CMAKE_PATH
+  )
+endif()
 
+if(HIP_HIPCC_EXECUTABLE)
   set(HIP_VERSION_MAJOR 0)
   set(HIP_VERSION_MINOR 0)
   set(HIP_VERSION_PATCH 0)
@@ -54,33 +60,31 @@ elseif(HIP_HIPCC_EXECUTABLE)
     # Strip the HIP prefix and get list of individual version components.
     string(REGEX REPLACE
            ".*HIP version: ([.0-9]+).*" "\\1"
-           HIP_SEMANTIC_VERSION "${_hip_version_raw}")
-    string(REPLACE "." ";" HIP_VERSION_PARTS "${HIP_SEMANTIC_VERSION}")
-    list(LENGTH HIP_VERSION_PARTS NUM_HIP_VERSION_PARTS)
+           _hip_semantic_version "${_hip_version_raw}")
+    string(REPLACE "." ";" _hip_version_parts "${_hip_semantic_version}")
+    list(LENGTH _hip_version_parts _num_hip_version_parts)
 
     # Extract components into corresponding variables.
-    if(NUM_HIP_VERSION_PARTS GREATER 0)
-      list(GET HIP_VERSION_PARTS 0 HIP_VERSION_MAJOR)
+    if(_num_hip_version_parts GREATER 0)
+      list(GET _hip_version_parts 0 HIP_VERSION_MAJOR)
     endif()
-    if(NUM_HIP_VERSION_PARTS GREATER 1)
-      list(GET HIP_VERSION_PARTS 1 HIP_VERSION_MINOR)
+    if(_num_hip_version_parts GREATER 1)
+      list(GET _hip_version_parts 1 HIP_VERSION_MINOR)
     endif()
-    if(NUM_HIP_VERSION_PARTS GREATER 2)
-      list(GET HIP_VERSION_PARTS 2 HIP_VERSION_PATCH)
+    if(_num_hip_version_parts GREATER 2)
+      list(GET _hip_version_parts 2 HIP_VERSION_PATCH)
     endif()
 
     # Unset temp variables.
-    unset(NUM_HIP_VERSION_PARTS)
-    unset(HIP_SEMANTIC_VERSION)
-    unset(HIP_VERSION_PARTS)
+    unset(_num_hip_version_parts)
+    unset(_hip_semantic_version)
+    unset(_hip_version_parts)
   endif()
 
   # Construct full semantic version.
   set(HIP_VERSION "${HIP_VERSION_MAJOR}.${HIP_VERSION_MINOR}.${HIP_VERSION_PATCH}")
   unset(_hip_version_raw)
   unset(_hipcc_executable)
-else()
-  set(HIP_FOUND FALSE)
 endif()
 
 include(FindPackageHandleStandardArgs)
