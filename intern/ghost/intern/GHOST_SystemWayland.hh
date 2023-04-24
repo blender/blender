@@ -37,15 +37,15 @@ bool ghost_wl_output_own(const struct wl_output *wl_output);
 void ghost_wl_output_tag(struct wl_output *wl_output);
 struct GWL_Output *ghost_wl_output_user_data(struct wl_output *wl_output);
 
-bool ghost_wl_surface_own(const struct wl_surface *surface);
-void ghost_wl_surface_tag(struct wl_surface *surface);
-GHOST_WindowWayland *ghost_wl_surface_user_data(struct wl_surface *surface);
+bool ghost_wl_surface_own(const struct wl_surface *wl_surface);
+void ghost_wl_surface_tag(struct wl_surface *wl_surface);
+GHOST_WindowWayland *ghost_wl_surface_user_data(struct wl_surface *wl_surface);
 
-bool ghost_wl_surface_own_cursor_pointer(const struct wl_surface *surface);
-void ghost_wl_surface_tag_cursor_pointer(struct wl_surface *surface);
+bool ghost_wl_surface_own_cursor_pointer(const struct wl_surface *wl_surface);
+void ghost_wl_surface_tag_cursor_pointer(struct wl_surface *wl_surface);
 
-bool ghost_wl_surface_own_cursor_tablet(const struct wl_surface *surface);
-void ghost_wl_surface_tag_cursor_tablet(struct wl_surface *surface);
+bool ghost_wl_surface_own_cursor_tablet(const struct wl_surface *wl_surface);
+void ghost_wl_surface_tag_cursor_tablet(struct wl_surface *wl_surface);
 
 /* Scaling to: translates from WAYLAND into GHOST (viewport local) coordinates.
  * Scaling from: performs the reverse translation.

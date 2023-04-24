@@ -111,9 +111,13 @@ BVHEmbree::~BVHEmbree()
   }
 }
 
-void BVHEmbree::build(Progress &progress, Stats *stats, RTCDevice rtc_device_)
+void BVHEmbree::build(Progress &progress,
+                      Stats *stats,
+                      RTCDevice rtc_device_,
+                      const bool rtc_device_is_sycl_)
 {
   rtc_device = rtc_device_;
+  rtc_device_is_sycl = rtc_device_is_sycl_;
   assert(rtc_device);
 
   rtcSetDeviceErrorFunction(rtc_device, rtc_error_func, NULL);
@@ -266,15 +270,29 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
   rtcSetGeometryTimeStepCount(geom_id, num_motion_steps);
 
   const int *triangles = mesh->get_triangles().data();
-  rtcSetSharedGeometryBuffer(geom_id,
-                             RTC_BUFFER_TYPE_INDEX,
-                             0,
-                             RTC_FORMAT_UINT3,
-                             triangles,
-                             0,
-                             sizeof(int) * 3,
-                             num_triangles);
-
+  if (!rtc_device_is_sycl) {
+    rtcSetSharedGeometryBuffer(geom_id,
+                               RTC_BUFFER_TYPE_INDEX,
+                               0,
+                               RTC_FORMAT_UINT3,
+                               triangles,
+                               0,
+                               sizeof(int) * 3,
+                               num_triangles);
+  }
+  else {
+    /* NOTE(sirgienko): If the Embree device is a SYCL device, then Embree execution will
+     * happen on GPU, and we cannot use standard host pointers at this point. So instead
+     * of making a shared geometry buffer - a new Embree buffer will be created and data
+     * will be copied. */
+    int *triangles_buffer = (int *)rtcSetNewGeometryBuffer(
+        geom_id, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(int) * 3, num_triangles);
+    assert(triangles_buffer);
+    if (triangles_buffer) {
+      static_assert(sizeof(int) == sizeof(uint));
+      std::memcpy(triangles_buffer, triangles, sizeof(int) * 3 * (num_triangles));
+    }
+  }
   set_tri_vertex_buffer(geom_id, mesh, false);
 
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
@@ -323,14 +341,38 @@ void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, con
       rtcUpdateGeometryBuffer(geom_id, RTC_BUFFER_TYPE_VERTEX, t);
     }
     else {
-      rtcSetSharedGeometryBuffer(geom_id,
-                                 RTC_BUFFER_TYPE_VERTEX,
-                                 t,
-                                 RTC_FORMAT_FLOAT3,
-                                 verts,
-                                 0,
-                                 sizeof(float3),
-                                 num_verts + 1);
+      if (!rtc_device_is_sycl) {
+        rtcSetSharedGeometryBuffer(geom_id,
+                                   RTC_BUFFER_TYPE_VERTEX,
+                                   t,
+                                   RTC_FORMAT_FLOAT3,
+                                   verts,
+                                   0,
+                                   sizeof(float3),
+                                   num_verts + 1);
+      }
+      else {
+        /* NOTE(sirgienko): If the Embree device is a SYCL device, then Embree execution will
+         * happen on GPU, and we cannot use standard host pointers at this point. So instead
+         * of making a shared geometry buffer - a new Embree buffer will be created and data
+         * will be copied. */
+        /* As float3 is packed on GPU side, we map it to packed_float3. */
+        packed_float3 *verts_buffer = (packed_float3 *)rtcSetNewGeometryBuffer(
+            geom_id,
+            RTC_BUFFER_TYPE_VERTEX,
+            t,
+            RTC_FORMAT_FLOAT3,
+            sizeof(packed_float3),
+            num_verts + 1);
+        assert(verts_buffer);
+        if (verts_buffer) {
+          for (size_t i = (size_t)0; i < num_verts + 1; ++i) {
+            verts_buffer[i].x = verts[i].x;
+            verts_buffer[i].y = verts[i].y;
+            verts_buffer[i].z = verts[i].z;
+          }
+        }
+      }
     }
   }
 }

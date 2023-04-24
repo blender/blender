@@ -116,14 +116,14 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
     /* This is a direct copy of a main mesh, so for now it has the same topology. */
     mesh_dst->runtime->deformed_only = true;
   }
-  /* This option is set for run-time meshes that have been copied from the current objects mode.
+  /* This option is set for run-time meshes that have been copied from the current object's mode.
    * Currently this is used for edit-mesh although it could be used for sculpt or other
-   * kinds of data specific to an objects mode.
+   * kinds of data specific to an object's mode.
    *
    * The flag signals that the mesh hasn't been modified from the data that generated it,
    * allowing us to use the object-mode data for drawing.
    *
-   * While this could be the callers responsibility, keep here since it's
+   * While this could be the caller's responsibility, keep here since it's
    * highly unlikely we want to create a duplicate and not use it for drawing. */
   mesh_dst->runtime->is_original_bmesh = false;
 
@@ -131,6 +131,8 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
    * when the source is persistent and edits to the destination mesh don't affect the caches.
    * Caches will be "un-shared" as necessary later on. */
   mesh_dst->runtime->bounds_cache = mesh_src->runtime->bounds_cache;
+  mesh_dst->runtime->loose_verts_cache = mesh_src->runtime->loose_verts_cache;
+  mesh_dst->runtime->verts_no_face_cache = mesh_src->runtime->verts_no_face_cache;
   mesh_dst->runtime->loose_edges_cache = mesh_src->runtime->loose_edges_cache;
   mesh_dst->runtime->looptris_cache = mesh_src->runtime->looptris_cache;
 
@@ -1038,16 +1040,9 @@ Mesh *BKE_mesh_new_nomain(const int verts_num,
                           const int polys_num,
                           const int loops_num)
 {
-  Mesh *mesh = (Mesh *)BKE_libblock_alloc(
-      nullptr, ID_ME, BKE_idtype_idcode_to_name(ID_ME), LIB_ID_CREATE_LOCALIZE);
+  Mesh *mesh = static_cast<Mesh *>(BKE_libblock_alloc(
+      nullptr, ID_ME, BKE_idtype_idcode_to_name(ID_ME), LIB_ID_CREATE_LOCALIZE));
   BKE_libblock_init_empty(&mesh->id);
-
-  /* Don't use #CustomData_reset because we don't want to touch custom-data. */
-  copy_vn_i(mesh->vdata.typemap, CD_NUMTYPES, -1);
-  copy_vn_i(mesh->edata.typemap, CD_NUMTYPES, -1);
-  copy_vn_i(mesh->fdata.typemap, CD_NUMTYPES, -1);
-  copy_vn_i(mesh->pdata.typemap, CD_NUMTYPES, -1);
-  copy_vn_i(mesh->ldata.typemap, CD_NUMTYPES, -1);
 
   mesh->totvert = verts_num;
   mesh->totedge = edges_num;

@@ -99,7 +99,7 @@ TEST(obj_exporter_utils, append_negative_frame_to_filename)
   char path_with_frame[FILE_MAX] = {0};
   const bool ok = append_frame_to_filename(path_original, frame, path_with_frame);
   EXPECT_TRUE(ok);
-  EXPECT_EQ_ARRAY(path_with_frame, path_truth, BLI_strlen_utf8(path_truth));
+  EXPECT_STREQ(path_with_frame, path_truth);
 }
 
 TEST(obj_exporter_utils, append_positive_frame_to_filename)
@@ -110,7 +110,7 @@ TEST(obj_exporter_utils, append_positive_frame_to_filename)
   char path_with_frame[FILE_MAX] = {0};
   const bool ok = append_frame_to_filename(path_original, frame, path_with_frame);
   EXPECT_TRUE(ok);
-  EXPECT_EQ_ARRAY(path_with_frame, path_truth, BLI_strlen_utf8(path_truth));
+  EXPECT_STREQ(path_with_frame, path_truth);
 }
 
 static std::string read_temp_file_in_string(const std::string &file_path)

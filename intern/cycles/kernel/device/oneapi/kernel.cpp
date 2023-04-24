@@ -174,6 +174,14 @@ bool oneapi_kernel_is_required_for_features(const std::string &kernel_name,
   return true;
 }
 
+bool oneapi_kernel_is_raytrace_or_mnee(const std::string &kernel_name)
+{
+  return (kernel_name.find(device_kernel_as_string(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE)) !=
+          std::string::npos) ||
+         (kernel_name.find(device_kernel_as_string(
+              DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE)) != std::string::npos);
+}
+
 bool oneapi_kernel_is_using_embree(const std::string &kernel_name)
 {
 #  ifdef WITH_EMBREE_GPU
@@ -182,8 +190,7 @@ bool oneapi_kernel_is_using_embree(const std::string &kernel_name)
     DeviceKernel kernel = (DeviceKernel)i;
     if (device_kernel_has_intersection(kernel)) {
       if (kernel_name.find(device_kernel_as_string(kernel)) != std::string::npos) {
-        return !(kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
-                 kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE);
+        return !oneapi_kernel_is_raytrace_or_mnee(kernel_name);
       }
     }
   }
@@ -241,10 +248,6 @@ bool oneapi_load_kernels(SyclQueue *queue_,
   }
 #  endif
 
-#  ifdef WITH_CYCLES_ONEAPI_BINARIES
-  (void)queue_;
-  (void)kernel_features;
-#  else
   try {
     sycl::kernel_bundle<sycl::bundle_state::input> all_kernels_bundle =
         sycl::get_kernel_bundle<sycl::bundle_state::input>(queue->get_context(),
@@ -260,18 +263,22 @@ bool oneapi_load_kernels(SyclQueue *queue_,
         continue;
       }
 
-      sycl::kernel_bundle<sycl::bundle_state::input> one_kernel_bundle_input =
-          sycl::get_kernel_bundle<sycl::bundle_state::input>(queue->get_context(), {kernel_id});
-#    ifdef WITH_EMBREE_GPU
-      /* This is expected to be the default, we set it again to be sure. */
-      if (one_kernel_bundle_input
-              .has_specialization_constant<ONEAPIKernelContext::oneapi_embree_features>()) {
+#  ifdef WITH_EMBREE_GPU
+      if (oneapi_kernel_is_using_embree(kernel_name) ||
+          oneapi_kernel_is_raytrace_or_mnee(kernel_name)) {
+        sycl::kernel_bundle<sycl::bundle_state::input> one_kernel_bundle_input =
+            sycl::get_kernel_bundle<sycl::bundle_state::input>(queue->get_context(), {kernel_id});
         one_kernel_bundle_input
             .set_specialization_constant<ONEAPIKernelContext::oneapi_embree_features>(
                 RTC_FEATURE_FLAG_NONE);
+        sycl::build(one_kernel_bundle_input);
+        continue;
       }
-#    endif
-      sycl::build(one_kernel_bundle_input);
+#  endif
+      /* This call will ensure that AoT or cached JIT binaries are available
+       * for execution. It will trigger compilation if it is not already the case. */
+      (void)sycl::get_kernel_bundle<sycl::bundle_state::executable>(queue->get_context(),
+                                                                    {kernel_id});
     }
   }
   catch (sycl::exception const &e) {
@@ -280,7 +287,6 @@ bool oneapi_load_kernels(SyclQueue *queue_,
     }
     return false;
   }
-#  endif
   return true;
 }
 

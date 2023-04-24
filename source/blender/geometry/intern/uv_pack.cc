@@ -198,7 +198,7 @@ void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
     }
 
     const float(*source)[2] = reinterpret_cast<const float(*)[2]>(coords.data());
-    float angle = -BLI_convexhull_aabb_fit_points_2d(source, (int)coords.size());
+    float angle = -BLI_convexhull_aabb_fit_points_2d(source, int(coords.size()));
 
     if (1) {
       /* "Stand-up" islands. */

@@ -883,6 +883,14 @@ int BKE_fcurve_active_keyframe_index(const FCurve *fcu)
 
 /** \} */
 
+void BKE_fcurve_keyframe_move_time_with_handles(BezTriple *keyframe, const float new_time)
+{
+  const float time_delta = new_time - keyframe->vec[1][0];
+  keyframe->vec[0][0] += time_delta;
+  keyframe->vec[1][0] = new_time;
+  keyframe->vec[2][0] += time_delta;
+}
+
 void BKE_fcurve_keyframe_move_value_with_handles(struct BezTriple *keyframe, const float new_value)
 {
   const float value_delta = new_value - keyframe->vec[1][1];
@@ -1659,6 +1667,24 @@ bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
   return true;
 }
 
+void BKE_fcurve_bezt_shrink(struct FCurve *fcu, const int new_totvert)
+{
+  BLI_assert(new_totvert >= 0);
+  BLI_assert(new_totvert <= fcu->totvert);
+
+  /* No early return when new_totvert == fcu->totvert. There is no way to know the intention of the
+   * caller, nor the history of the FCurve so far, so `fcu->bezt` may actually have allocated space
+   * for more than `fcu->totvert` keys. */
+
+  if (new_totvert == 0) {
+    fcurve_bezt_free(fcu);
+    return;
+  }
+
+  fcu->bezt = MEM_reallocN(fcu->bezt, new_totvert * sizeof(*(fcu->bezt)));
+  fcu->totvert = new_totvert;
+}
+
 void BKE_fcurve_delete_key(FCurve *fcu, int index)
 {
   /* sanity check */
@@ -1847,6 +1873,52 @@ void BKE_fcurve_merge_duplicate_keys(FCurve *fcu, const int sel_flag, const bool
 
   /* cleanup */
   BLI_freelistN(&retained_keys);
+}
+
+void BKE_fcurve_deduplicate_keys(FCurve *fcu)
+{
+  BLI_assert_msg(fcu->bezt, "this function only works with regular (non-sampled) FCurves");
+  if (fcu->totvert < 2 || fcu->bezt == NULL) {
+    return;
+  }
+
+  int prev_bezt_index = 0;
+  for (int i = 1; i < fcu->totvert; i++) {
+    BezTriple *bezt = &fcu->bezt[i];
+    BezTriple *prev_bezt = &fcu->bezt[prev_bezt_index];
+
+    const float bezt_x = bezt->vec[1][0];
+    const float prev_x = prev_bezt->vec[1][0];
+
+    if (bezt_x - prev_x <= BEZT_BINARYSEARCH_THRESH) {
+      /* Replace 'prev_bezt', as it has the same X-coord as 'bezt' and the last one wins. */
+      *prev_bezt = *bezt;
+
+      if (floor(bezt_x) == bezt_x) {
+        /* Keep the 'bezt_x' coordinate, as being on a frame is more desirable
+         * than being ever so slightly off. */
+      }
+      else {
+        /* Move the retained key to the old X-coordinate, to 'anchor' the X-coordinate used for
+         * subsequente comparisons. Without this, the reference X-coordinate would keep moving
+         * forward in time, potentially merging in more keys than desired. */
+        BKE_fcurve_keyframe_move_time_with_handles(prev_bezt, prev_x);
+      }
+      continue;
+    }
+
+    /* Next iteration should look at the current element. However, because of the deletions, that
+     * may not be at index 'i'; after this increment, `prev_bezt_index` points at where the current
+     * element should go. */
+    prev_bezt_index++;
+
+    if (prev_bezt_index != i) {
+      /* This bezt should be kept, so copy it to its new location in the array. */
+      fcu->bezt[prev_bezt_index] = *bezt;
+    }
+  }
+
+  BKE_fcurve_bezt_shrink(fcu, prev_bezt_index + 1);
 }
 
 /** \} */

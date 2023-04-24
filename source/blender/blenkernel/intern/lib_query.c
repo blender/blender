@@ -201,6 +201,12 @@ static bool library_foreach_ID_link(Main *bmain,
   LibraryForeachIDData data = {.bmain = bmain};
 
   BLI_assert(inherit_data == NULL || data.bmain == inherit_data->bmain);
+  /* `IDWALK_NO_ORIG_POINTERS_ACCESS` is mutually exclusive with both `IDWALK_READONLY` and
+   * `IDWALK_RECURSE`. */
+  BLI_assert((flag & (IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_READONLY)) !=
+             (IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_READONLY));
+  BLI_assert((flag & (IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_RECURSE)) !=
+             (IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_RECURSE));
 
   if (flag & IDWALK_RECURSE) {
     /* For now, recursion implies read-only, and no internal pointers. */

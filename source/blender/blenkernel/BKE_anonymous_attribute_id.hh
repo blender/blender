@@ -29,7 +29,7 @@ namespace blender::bke {
  *
  * Once created, #AnonymousAttributeID is immutable. Also it is intrinsically reference counted so
  * that it can have shared ownership. `std::shared_ptr` can't be used for that purpose here,
- * because that is not available in C code. If possible, the #AutoAnonymousAttributeID wrapper
+ * because that is not available in C code. If possible, the #AnonymousAttributeIDPtr wrapper
  * should be used to avoid manual reference counting in C++ code.
  */
 class AnonymousAttributeID : public ImplicitSharingMixin {
@@ -54,7 +54,7 @@ class AnonymousAttributeID : public ImplicitSharingMixin {
 };
 
 /** Wrapper for #AnonymousAttributeID that avoids manual reference counting. */
-using AutoAnonymousAttributeID = ImplicitSharingPtr<const AnonymousAttributeID>;
+using AnonymousAttributeIDPtr = ImplicitSharingPtr<const AnonymousAttributeID>;
 
 /**
  * A set of anonymous attribute names that is passed around in geometry nodes.

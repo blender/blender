@@ -345,6 +345,7 @@ static void rna_def_curves_curve(BlenderRNA *brna)
   prop = RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "CurvePoint");
   RNA_def_property_ui_text(prop, "Points", "Control points of the curve");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_CurveSlice_points_begin",
                                     "rna_iterator_array_next",
@@ -384,6 +385,7 @@ static void rna_def_curves(BlenderRNA *brna)
   /* Point and Curve RNA API helpers. */
 
   prop = RNA_def_property(srna, "curves", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_Curves_curves_begin",
                                     "rna_iterator_array_next",
@@ -398,6 +400,7 @@ static void rna_def_curves(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "CurvePoint");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_Curves_position_data_begin",
                                     "rna_iterator_array_next",
@@ -412,6 +415,7 @@ static void rna_def_curves(BlenderRNA *brna)
   /* Direct access to built-in attributes. */
 
   prop = RNA_def_property(srna, "position_data", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_Curves_position_data_begin",
                                     "rna_iterator_array_next",
@@ -426,6 +430,7 @@ static void rna_def_curves(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "curve_offset_data", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "IntAttributeValue");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_Curves_curve_offset_data_begin",
                                     "rna_iterator_array_next",
@@ -440,6 +445,7 @@ static void rna_def_curves(BlenderRNA *brna)
   rna_def_read_only_float_vector(brna);
 
   prop = RNA_def_property(srna, "normals", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_struct_type(prop, "FloatVectorValueReadOnly");
   /* `lookup_int` isn't provided since the entire normals array is allocated and calculated when
    * it's accessed. */

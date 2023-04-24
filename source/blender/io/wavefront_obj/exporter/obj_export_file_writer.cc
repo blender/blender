@@ -666,7 +666,7 @@ void MTLWriter::write_materials(const char *blen_filepath,
   char blen_filedir[PATH_MAX];
   BLI_split_dir_part(blen_filepath, blen_filedir, PATH_MAX);
   BLI_path_slash_native(blen_filedir);
-  BLI_path_normalize(nullptr, blen_filedir);
+  BLI_path_normalize(blen_filedir);
 
   std::sort(mtlmaterials_.begin(),
             mtlmaterials_.end(),

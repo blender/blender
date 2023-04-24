@@ -145,7 +145,7 @@ static void test_shader_compute_vbo()
   GPU_shader_bind(shader);
 
   /* Construct VBO. */
-  static GPUVertFormat format = {0};
+  GPUVertFormat format = {0};
   GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   GPUVertBuf *vbo = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_DEVICE_ONLY);
   GPU_vertbuf_data_alloc(vbo, SIZE);

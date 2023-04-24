@@ -143,7 +143,7 @@ void OneapiDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       bvh_embree->refit(progress);
     }
     else {
-      bvh_embree->build(progress, &stats, embree_device);
+      bvh_embree->build(progress, &stats, embree_device, true);
     }
     if (bvh->params.top_level) {
       embree_scene = bvh_embree->scene;
@@ -866,9 +866,9 @@ char *OneapiDevice::device_capabilities()
 
     sycl::id<3> max_work_item_sizes =
         device.get_info<sycl::info::device::max_work_item_sizes<3>>();
-    WRITE_ATTR("max_work_item_sizes_dim0", ((size_t)max_work_item_sizes.get(0)))
-    WRITE_ATTR("max_work_item_sizes_dim1", ((size_t)max_work_item_sizes.get(1)))
-    WRITE_ATTR("max_work_item_sizes_dim2", ((size_t)max_work_item_sizes.get(2)))
+    WRITE_ATTR(max_work_item_sizes_dim0, ((size_t)max_work_item_sizes.get(0)))
+    WRITE_ATTR(max_work_item_sizes_dim1, ((size_t)max_work_item_sizes.get(1)))
+    WRITE_ATTR(max_work_item_sizes_dim2, ((size_t)max_work_item_sizes.get(2)))
 
     GET_NUM_ATTR(max_work_group_size)
     GET_NUM_ATTR(max_num_sub_groups)
@@ -891,7 +891,7 @@ char *OneapiDevice::device_capabilities()
     GET_NUM_ATTR(native_vector_width_half)
 
     size_t max_clock_frequency = device.get_info<sycl::info::device::max_clock_frequency>();
-    WRITE_ATTR("max_clock_frequency", max_clock_frequency)
+    WRITE_ATTR(max_clock_frequency, max_clock_frequency)
 
     GET_NUM_ATTR(address_bits)
     GET_NUM_ATTR(max_mem_alloc_size)
@@ -900,7 +900,7 @@ char *OneapiDevice::device_capabilities()
      * supported so we always return false, even if device supports HW texture usage acceleration.
      */
     bool image_support = false;
-    WRITE_ATTR("image_support", (size_t)image_support)
+    WRITE_ATTR(image_support, (size_t)image_support)
 
     GET_NUM_ATTR(max_parameter_size)
     GET_NUM_ATTR(mem_base_addr_align)

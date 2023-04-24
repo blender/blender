@@ -416,6 +416,7 @@ int BKE_fcurve_active_keyframe_index(const struct FCurve *fcu);
  * Move the indexed keyframe to the given value,
  * and move the handles with it to ensure the slope remains the same.
  */
+void BKE_fcurve_keyframe_move_time_with_handles(BezTriple *keyframe, const float new_time);
 void BKE_fcurve_keyframe_move_value_with_handles(struct BezTriple *keyframe, float new_value);
 
 /* .............. */
@@ -473,6 +474,14 @@ bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
                                        float *r_pdelta);
 
 /**
+ * Resize the FCurve 'bezt' array to fit the given length.
+ *
+ * \param new_totvert new number of elements in the FCurve's `bezt` array.
+ * Constraint: `0 <= new_totvert <= fcu->totvert`
+ */
+void BKE_fcurve_bezt_shrink(struct FCurve *fcu, int new_totvert);
+
+/**
  * Delete a keyframe from an F-curve at a specific index.
  */
 void BKE_fcurve_delete_key(struct FCurve *fcu, int index);
@@ -498,6 +507,21 @@ void BKE_fcurve_delete_keys_all(struct FCurve *fcu);
 void BKE_fcurve_merge_duplicate_keys(struct FCurve *fcu,
                                      const int sel_flag,
                                      const bool use_handle);
+
+/**
+ * Ensure the FCurve is a proper function, such that every X-coordinate of the
+ * timeline has only one value of the FCurve. In other words, removes duplicate
+ * keyframes.
+ *
+ * Contrary to #BKE_fcurve_merge_duplicate_keys, which is intended for
+ * interactive use, and where selection matters, this is a simpler deduplication
+ * where the last duplicate "wins".
+ *
+ * Assumes the keys are sorted (see #sort_time_fcurve).
+ *
+ * After deduplication, call `BKE_fcurve_handles_recalc(fcu);`
+ */
+void BKE_fcurve_deduplicate_keys(struct FCurve *fcu);
 
 /* -------- Curve Sanity -------- */
 

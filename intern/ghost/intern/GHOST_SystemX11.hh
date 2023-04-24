@@ -31,7 +31,7 @@
 #endif
 
 /* generic error handlers */
-int GHOST_X11_ApplicationErrorHandler(Display *display, XErrorEvent *theEvent);
+int GHOST_X11_ApplicationErrorHandler(Display *display, XErrorEvent *event);
 int GHOST_X11_ApplicationIOErrorHandler(Display *display);
 
 #define GHOST_X11_ERROR_HANDLERS_OVERRIDE(var) \

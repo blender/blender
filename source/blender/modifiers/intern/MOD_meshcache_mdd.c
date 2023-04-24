@@ -116,9 +116,6 @@ static bool meshcache_read_mdd_range_from_time(FILE *fp,
     return false;
   }
 
-  if (i == mdd_head.frame_tot) {
-    frame = (float)(mdd_head.frame_tot - 1);
-  }
   if (UNLIKELY(f_time_prev == FLT_MAX)) {
     frame = 0.0f;
   }

@@ -1845,6 +1845,18 @@ static void ed_default_handlers(
     wmKeyMap *keymap_weight_draw = WM_keymap_ensure(
         wm->defaultconf, "Grease Pencil Stroke Weight (Draw)", 0, 0);
     WM_event_add_keymap_handler(handlers, keymap_weight_draw);
+
+    wmKeyMap *keymap_weight_blur = WM_keymap_ensure(
+        wm->defaultconf, "Grease Pencil Stroke Weight (Blur)", 0, 0);
+    WM_event_add_keymap_handler(handlers, keymap_weight_blur);
+
+    wmKeyMap *keymap_weight_average = WM_keymap_ensure(
+        wm->defaultconf, "Grease Pencil Stroke Weight (Average)", 0, 0);
+    WM_event_add_keymap_handler(handlers, keymap_weight_average);
+
+    wmKeyMap *keymap_weight_smear = WM_keymap_ensure(
+        wm->defaultconf, "Grease Pencil Stroke Weight (Smear)", 0, 0);
+    WM_event_add_keymap_handler(handlers, keymap_weight_smear);
   }
 }
 

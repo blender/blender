@@ -2619,6 +2619,8 @@ void *WM_opengl_context_create(void)
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 
   GHOST_GLSettings glSettings = {0};
+  const eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
+  glSettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
   if (G.debug & G_DEBUG_GPU) {
     glSettings.flags |= GHOST_glDebugContext;
   }

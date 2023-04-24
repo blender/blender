@@ -522,7 +522,7 @@ Field<bool> invert_boolean_field(const Field<bool> &field)
 {
   static auto not_fn = mf::build::SI1_SO<bool, bool>(
       "Not", [](bool a) { return !a; }, mf::build::exec_presets::AllSpanOrSingle());
-  auto not_op = std::make_shared<FieldOperation>(FieldOperation(not_fn, {field}));
+  auto not_op = FieldOperation::Create(not_fn, {field});
   return Field<bool>(not_op);
 }
 

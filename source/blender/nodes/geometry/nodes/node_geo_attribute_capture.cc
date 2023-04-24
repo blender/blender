@@ -142,7 +142,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const eAttrDomain domain = eAttrDomain(storage.domain);
 
   const std::string output_identifier = "Attribute" + identifier_suffix(data_type);
-  AutoAnonymousAttributeID attribute_id = params.get_output_anonymous_attribute_id_if_needed(
+  AnonymousAttributeIDPtr attribute_id = params.get_output_anonymous_attribute_id_if_needed(
       output_identifier);
 
   if (!attribute_id) {
@@ -174,8 +174,6 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
   }
 
-  const CPPType &type = field.cpp_type();
-
   /* Run on the instances component separately to only affect the top level of instances. */
   if (domain == ATTR_DOMAIN_INSTANCE) {
     if (geometry_set.has_instances()) {
@@ -196,34 +194,6 @@ static void node_geo_exec(GeoNodeExecParams params)
         }
       }
     });
-  }
-
-  GField output_field{std::make_shared<bke::AnonymousAttributeFieldInput>(
-      std::move(attribute_id), type, params.attribute_producer_name())};
-
-  switch (data_type) {
-    case CD_PROP_FLOAT: {
-      params.set_output(output_identifier, Field<float>(output_field));
-      break;
-    }
-    case CD_PROP_FLOAT3: {
-      params.set_output(output_identifier, Field<float3>(output_field));
-      break;
-    }
-    case CD_PROP_COLOR: {
-      params.set_output(output_identifier, Field<ColorGeometry4f>(output_field));
-      break;
-    }
-    case CD_PROP_BOOL: {
-      params.set_output(output_identifier, Field<bool>(output_field));
-      break;
-    }
-    case CD_PROP_INT32: {
-      params.set_output(output_identifier, Field<int>(output_field));
-      break;
-    }
-    default:
-      break;
   }
 
   params.set_output("Geometry", geometry_set);

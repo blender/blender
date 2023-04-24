@@ -10,6 +10,7 @@
 #include "BKE_mesh.hh"
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
@@ -82,14 +83,7 @@ Mesh *STLMeshHelper::to_mesh()
     }
   });
 
-  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
-  threading::parallel_for(tris_.index_range(), 2048, [&](IndexRange tris_range) {
-    for (const int i : tris_range) {
-      corner_verts[3 * i] = tris_[i].v1;
-      corner_verts[3 * i + 1] = tris_[i].v2;
-      corner_verts[3 * i + 2] = tris_[i].v3;
-    }
-  });
+  array_utils::copy(tris_.as_span().cast<int>(), mesh->corner_verts_for_write());
 
   /* NOTE: edges must be calculated first before setting custom normals. */
   BKE_mesh_calc_edges(mesh, false, false);

@@ -198,11 +198,12 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
         }
         else if (file->redirection_path) {
           BLI_strncpy(params->dir, file->redirection_path, sizeof(params->dir));
-          BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir, sizeof(params->dir));
-          BLI_path_slash_ensure(params->dir, sizeof(params->dir));
+          BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
+          BLI_path_normalize_dir(params->dir, sizeof(params->dir));
         }
         else {
-          BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir, sizeof(params->dir));
+          BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
+          BLI_path_normalize_dir(params->dir, sizeof(params->dir));
           BLI_path_append_dir(params->dir, sizeof(params->dir), file->relpath);
         }
 
@@ -1095,7 +1096,8 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 
   RNA_property_string_get(op->ptr, prop, entry);
   BLI_strncpy(params->dir, entry, sizeof(params->dir));
-  BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir, sizeof(params->dir));
+  BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
+  BLI_path_normalize_dir(params->dir, sizeof(params->dir));
   ED_file_change_dir(C);
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
@@ -2058,7 +2060,8 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
       BLI_path_parent_dir(params->dir);
     }
     else {
-      BLI_path_normalize(BKE_main_blendfile_path(bmain), params->dir);
+      BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
+      BLI_path_normalize(params->dir);
       BLI_path_append_dir(params->dir, sizeof(params->dir), file->relpath);
     }
     ED_file_change_dir(C);
@@ -2222,7 +2225,8 @@ static int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 
   if (params) {
     if (BLI_path_parent_dir(params->dir)) {
-      BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir, sizeof(params->dir));
+      BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
+      BLI_path_normalize_dir(params->dir, sizeof(params->dir));
       ED_file_change_dir(C);
       if (params->recursion_level > 1) {
         /* Disable 'dirtree' recursion when going up in tree. */
@@ -2805,7 +2809,8 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
       }
     }
 
-    BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir, sizeof(params->dir));
+    BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
+    BLI_path_normalize_dir(params->dir, sizeof(params->dir));
 
     if (filelist_is_dir(sfile->files, params->dir)) {
       if (!STREQ(params->dir, old_dir)) { /* Avoids flickering when nothing's changed. */
@@ -2892,7 +2897,8 @@ void file_filename_enter_handle(bContext *C, void *UNUSED(arg_unused), void *arg
 
       /* if directory, open it and empty filename field */
       if (filelist_is_dir(sfile->files, filepath)) {
-        BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), filepath, sizeof(filepath));
+        BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
+        BLI_path_normalize_dir(filepath, sizeof(filepath));
         BLI_strncpy(params->dir, filepath, sizeof(params->dir));
         params->file[0] = '\0';
         ED_file_change_dir(C);

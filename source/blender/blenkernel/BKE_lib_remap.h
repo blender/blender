@@ -88,6 +88,13 @@ enum {
   /** Do NOT tag IDs which had some of their ID pointers updated for update in the depsgraph, or ID
    * type specific updates, like e.g. with node trees. */
   ID_REMAP_SKIP_UPDATE_TAGGING = 1 << 19,
+  /**
+   * Do not attempt to access original ID pointers (triggers usages of
+   * `IDWALK_NO_ORIG_POINTERS_ACCESS` too).
+   *
+   * Use when original ID pointers values are (probably) not valid, e.g. dureing readfile process.
+   */
+  ID_REMAP_NO_ORIG_POINTERS_ACCESS = 1 << 20,
 };
 
 typedef enum eIDRemapType {

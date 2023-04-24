@@ -62,6 +62,12 @@ void BLI_split_dir_part(const char *string, char *dir, size_t dirlen);
 void BLI_split_file_part(const char *string, char *file, size_t filelen);
 /**
  * Returns a pointer to the last extension (e.g. the position of the last period).
+ * Returns a pointer to the nil byte when no extension is found.
+ */
+const char *BLI_path_extension_or_end(const char *filepath)
+    ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+/**
+ * Returns a pointer to the last extension (e.g. the position of the last period).
  * Returns NULL if there is no extension.
  */
 const char *BLI_path_extension(const char *filepath) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
@@ -317,19 +323,18 @@ void BLI_path_sequence_encode(
 /**
  * Remove redundant characters from \a path and optionally make absolute.
  *
- * \param relabase: The path this is relative to, or ignored when NULL.
  * \param path: Can be any input, and this function converts it to a regular full path.
  * Also removes garbage from directory paths, like `/../` or double slashes etc.
  *
  * \note \a path isn't protected for max string names.
  */
-void BLI_path_normalize(const char *relabase, char *path) ATTR_NONNULL(2);
+void BLI_path_normalize(char *path) ATTR_NONNULL(1);
 /**
  * Cleanup file-path ensuring a trailing slash.
  *
  * \note Same as #BLI_path_normalize but adds a trailing slash.
  */
-void BLI_path_normalize_dir(const char *relabase, char *dir, size_t dir_maxlen) ATTR_NONNULL(2);
+void BLI_path_normalize_dir(char *dir, size_t dir_maxlen) ATTR_NONNULL(1);
 
 /**
  * Make given name safe to be used in paths.
@@ -416,7 +421,7 @@ bool BLI_path_frame_get(const char *path, int *r_frame, int *r_digits_len) ATTR_
  * So:      `/some/path_123.jpeg`
  * Becomes: `/some/path_###` with `r_ext` set to `.jpeg`.
  */
-void BLI_path_frame_strip(char *path, char *r_ext) ATTR_NONNULL();
+void BLI_path_frame_strip(char *path, char *r_ext, size_t ext_maxlen) ATTR_NONNULL();
 /**
  * Check if we have '#' chars, usable for #BLI_path_frame, #BLI_path_frame_range
  */

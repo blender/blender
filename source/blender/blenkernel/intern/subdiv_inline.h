@@ -91,9 +91,3 @@ BLI_INLINE float BKE_subdiv_crease_to_sharpness_f(float edge_crease)
 {
   return edge_crease * edge_crease * 10.0f;
 }
-
-BLI_INLINE float BKE_subdiv_crease_to_sharpness_char(char edge_crease)
-{
-  const float edge_crease_f = edge_crease / 255.0f;
-  return BKE_subdiv_crease_to_sharpness_f(edge_crease_f);
-}

@@ -158,6 +158,12 @@ class StringBuilder : public SocketDeclarationBuilder<String> {
 class IDSocketDeclaration : public SocketDeclaration {
  public:
   const char *idname;
+  /**
+   * Get the default ID pointer for this socket. This is a function to avoid dangling pointers,
+   * since bNode::id pointers are remapped as ID pointers change, but pointers in socket
+   * declarations are not managed the same way.
+   */
+  std::function<ID *(const bNode &node)> default_value_fn;
 
  public:
   IDSocketDeclaration(const char *idname);

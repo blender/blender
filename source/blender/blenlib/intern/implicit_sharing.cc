@@ -26,7 +26,7 @@ class MEMFreeImplicitSharing : public ImplicitSharingInfo {
   }
 };
 
-ImplicitSharingInfo *info_for_mem_free(void *data)
+const ImplicitSharingInfo *info_for_mem_free(void *data)
 {
   return MEM_new<MEMFreeImplicitSharing>(__func__, data);
 }
@@ -36,7 +36,7 @@ namespace detail {
 void *make_trivial_data_mutable_impl(void *old_data,
                                      const int64_t size,
                                      const int64_t alignment,
-                                     ImplicitSharingInfo **sharing_info)
+                                     const ImplicitSharingInfo **sharing_info)
 {
   if (!old_data) {
     BLI_assert(size == 0);
@@ -59,7 +59,7 @@ void *resize_trivial_array_impl(void *old_data,
                                 const int64_t old_size,
                                 const int64_t new_size,
                                 const int64_t alignment,
-                                ImplicitSharingInfo **sharing_info)
+                                const ImplicitSharingInfo **sharing_info)
 {
   if (new_size == 0) {
     if (*sharing_info) {
@@ -79,7 +79,8 @@ void *resize_trivial_array_impl(void *old_data,
 
   BLI_assert(old_size != 0);
   if ((*sharing_info)->is_mutable()) {
-    if (auto *info = dynamic_cast<MEMFreeImplicitSharing *>(*sharing_info)) {
+    if (auto *info = const_cast<MEMFreeImplicitSharing *>(
+            dynamic_cast<const MEMFreeImplicitSharing *>(*sharing_info))) {
       /* If the array was allocated with the MEM allocator, we can use realloc directly, which
        * could theoretically give better performance if the data can be reused in place. */
       void *new_data = static_cast<int *>(MEM_reallocN(old_data, new_size));

@@ -1806,6 +1806,142 @@ void FONT_OT_text_insert(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Font Selection Operator
+ * \{ */
+
+static int font_cursor_text_index_from_event(bContext *C, Object *obedit, const wmEvent *event)
+{
+  Curve *cu = obedit->data;
+
+  /* Calculate a plane from the text object's orientation. */
+  float plane[4];
+  plane_from_point_normal_v3(plane, obedit->object_to_world[3], obedit->object_to_world[2]);
+
+  /* Convert Mouse location in region to 3D location in world space. */
+  float mal_fl[2] = {(float)event->mval[0], (float)event->mval[1]};
+  float mouse_loc[3];
+  ED_view3d_win_to_3d_on_plane(CTX_wm_region(C), plane, mal_fl, true, mouse_loc);
+
+  /* Convert to object space and scale by font size. */
+  mul_m4_v3(obedit->world_to_object, mouse_loc);
+
+  float curs_loc[2] = {mouse_loc[0] / cu->fsize, mouse_loc[1] / cu->fsize};
+  return BKE_vfont_cursor_to_text_index(obedit, curs_loc);
+}
+
+static void font_cursor_set_apply(bContext *C, const wmEvent *event)
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Object *ob = DEG_get_evaluated_object(depsgraph, CTX_data_active_object(C));
+  Curve *cu = ob->data;
+  EditFont *ef = cu->editfont;
+  BLI_assert(ef->len >= 0);
+
+  const int string_offset = font_cursor_text_index_from_event(C, ob, event);
+
+  if (string_offset > ef->len || string_offset < 0) {
+    return;
+  }
+
+  cu->curinfo = ef->textbufinfo[ef->pos ? ef->pos - 1 : 0];
+
+  if (ob->totcol > 0) {
+    ob->actcol = cu->curinfo.mat_nr;
+    if (ob->actcol < 1) {
+      ob->actcol = 1;
+    }
+  }
+
+  if (!ef->selboxes && (ef->selstart == 0)) {
+    if (ef->pos == 0) {
+      ef->selstart = ef->selend = 1;
+    }
+    else {
+      ef->selstart = ef->selend = string_offset + 1;
+    }
+  }
+  ef->selend = string_offset;
+  ef->pos = string_offset;
+
+  DEG_id_tag_update(ob->data, ID_RECALC_SELECT);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+}
+
+static int font_selection_set_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object *obedit = CTX_data_active_object(C);
+  Curve *cu = obedit->data;
+  EditFont *ef = cu->editfont;
+
+  font_cursor_set_apply(C, event);
+  ef->selstart = 0;
+  ef->selend = 0;
+  WM_event_add_modal_handler(C, op);
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static int font_selection_set_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+{
+  switch (event->type) {
+    case LEFTMOUSE:
+      if (event->val == KM_RELEASE) {
+        font_cursor_set_apply(C, event);
+        return OPERATOR_FINISHED;
+      }
+      break;
+    case MIDDLEMOUSE:
+    case RIGHTMOUSE:
+      return OPERATOR_FINISHED;
+    case MOUSEMOVE:
+      font_cursor_set_apply(C, event);
+      break;
+  }
+  return OPERATOR_RUNNING_MODAL;
+}
+
+void FONT_OT_selection_set(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Set Selection";
+  ot->idname = "FONT_OT_selection_set";
+  ot->description = "Set cursor selection";
+
+  /* api callbacks */
+  ot->invoke = font_selection_set_invoke;
+  ot->modal = font_selection_set_modal;
+  ot->poll = ED_operator_editfont;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Word Operator
+* \{ */
+
+static int font_select_word_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  move_cursor(C, NEXT_CHAR, false);
+  move_cursor(C, PREV_WORD, false);
+  move_cursor(C, NEXT_WORD, true);
+  return OPERATOR_FINISHED;
+}
+
+void FONT_OT_select_word(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Select Word";
+  ot->idname = "FONT_OT_select_word";
+  ot->description = "Select word under cursor";
+
+  /* api callbacks */
+  ot->exec = font_select_word_exec;
+  ot->poll = ED_operator_editfont;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Text-Box Add Operator
  * \{ */
 

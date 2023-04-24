@@ -178,10 +178,10 @@ void main()
   vec4 max_motion;
   /* Load dilation result from the indirection table. */
   ivec2 tile_prev;
-  motion_blur_tile_indirection_load(tile_indirection_buf, MOTION_PREV, tile, tile_prev);
+  motion_blur_tile_indirection_load(tile_indirection_buf, MOTION_PREV, uvec2(tile), tile_prev);
   max_motion.xy = imageLoad(in_tiles_img, tile_prev).xy;
   ivec2 tile_next;
-  motion_blur_tile_indirection_load(tile_indirection_buf, MOTION_NEXT, tile, tile_next);
+  motion_blur_tile_indirection_load(tile_indirection_buf, MOTION_NEXT, uvec2(tile), tile_next);
   max_motion.zw = imageLoad(in_tiles_img, tile_next).zw;
 
   Accumulator accum;

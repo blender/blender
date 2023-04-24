@@ -33,6 +33,11 @@ void MTLQueryPool::allocate()
   gpu::MTLBuffer *buffer = MTLContext::get_global_memory_manager()->allocate(buffer_size_in_bytes,
                                                                              true);
   BLI_assert(buffer);
+
+  /* We must zero-initialize the query buffer as visibility queries with no draws between
+   * begin and end will not write any result to the buffer. */
+  memset(buffer->get_host_ptr(), 0, buffer_size_in_bytes);
+  buffer->flush();
   buffer_.append(buffer);
 }
 

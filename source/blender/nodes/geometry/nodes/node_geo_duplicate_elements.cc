@@ -57,7 +57,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 }
 
 struct IndexAttributes {
-  AutoAnonymousAttributeID duplicate_index;
+  AnonymousAttributeIDPtr duplicate_index;
 };
 
 /* -------------------------------------------------------------------- */
@@ -551,6 +551,7 @@ static void duplicate_faces(GeometrySet &geometry_set,
     }
   }
 
+  new_mesh->tag_loose_verts_none();
   new_mesh->loose_edges_tag_none();
 
   copy_face_attributes_without_id(edge_mapping,
@@ -1097,12 +1098,6 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  if (attribute_outputs.duplicate_index) {
-    params.set_output(
-        "Duplicate Index",
-        AnonymousAttributeFieldInput::Create<int>(std::move(attribute_outputs.duplicate_index),
-                                                  params.attribute_producer_name()));
-  }
   params.set_output("Geometry", std::move(geometry_set));
 }
 

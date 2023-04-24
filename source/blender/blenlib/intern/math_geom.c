@@ -5889,6 +5889,9 @@ bool is_quad_flip_v3_first_third_fast(const float v1[3],
                                       const float v3[3],
                                       const float v4[3])
 {
+  /* NOTE: if the faces normal has been calculated it's possible to simplify the following checks,
+   * however this means the solution may be different depending on the existence of normals
+   * causing tessellation to be "unstable" depending on the existence of normals, see #106469. */
   float d_12[3], d_13[3], d_14[3];
   float cross_a[3], cross_b[3];
   sub_v3_v3v3(d_12, v2, v1);
@@ -5897,19 +5900,6 @@ bool is_quad_flip_v3_first_third_fast(const float v1[3],
   cross_v3_v3v3(cross_a, d_12, d_13);
   cross_v3_v3v3(cross_b, d_14, d_13);
   return dot_v3v3(cross_a, cross_b) > 0.0f;
-}
-
-bool is_quad_flip_v3_first_third_fast_with_normal(const float v1[3],
-                                                  const float v2[3],
-                                                  const float v3[3],
-                                                  const float v4[3],
-                                                  const float normal[3])
-{
-  float dir_v3v1[3], tangent[3];
-  sub_v3_v3v3(dir_v3v1, v3, v1);
-  cross_v3_v3v3(tangent, dir_v3v1, normal);
-  const float dot = dot_v3v3(v1, tangent);
-  return (dot_v3v3(v4, tangent) >= dot) || (dot_v3v3(v2, tangent) <= dot);
 }
 
 float cubic_tangent_factor_circle_v3(const float tan_l[3], const float tan_r[3])

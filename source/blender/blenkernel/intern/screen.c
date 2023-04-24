@@ -85,8 +85,9 @@ static void screen_foreach_id_dopesheet(LibraryForeachIDData *data, bDopeSheet *
 
 void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area)
 {
-  const bool is_readonly = (BKE_lib_query_foreachid_process_flags_get(data) & IDWALK_READONLY) !=
-                           0;
+  const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
+  const bool is_readonly = (data_flags & IDWALK_READONLY) != 0;
+  const bool allow_pointer_access = (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0;
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, area->full, IDWALK_CB_NOP);
 
@@ -190,7 +191,7 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
           while ((tselem = BLI_mempool_iterstep(&iter))) {
             /* Do not try to restore non-ID pointers (drivers/sequence/etc.). */
             if (TSE_IS_REAL_ID(tselem)) {
-              const int cb_flag = (tselem->id != NULL &&
+              const int cb_flag = (tselem->id != NULL && allow_pointer_access &&
                                    (tselem->id->flag & LIB_EMBEDDED_DATA) != 0) ?
                                       IDWALK_CB_EMBEDDED_NOT_OWNING :
                                       IDWALK_CB_NOP;
@@ -209,7 +210,7 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
       }
       case SPACE_NODE: {
         SpaceNode *snode = (SpaceNode *)sl;
-        const bool is_embedded_nodetree = snode->id != NULL &&
+        const bool is_embedded_nodetree = snode->id != NULL && allow_pointer_access &&
                                           ntreeFromID(snode->id) == snode->nodetree;
 
         BKE_LIB_FOREACHID_PROCESS_ID(data, snode->id, IDWALK_CB_NOP);
@@ -227,8 +228,11 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
           /* Embedded ID pointers are not remapped (besides exceptions), ensure it still matches
            * actual data. Note that `snode->id` was already processed (and therefore potentially
            * remapped) above.*/
-          if (!is_readonly && path != NULL) {
-            path->nodetree = snode->nodetree = (snode->id == NULL) ? NULL : ntreeFromID(snode->id);
+          if (!is_readonly) {
+            snode->nodetree = (snode->id == NULL) ? NULL : ntreeFromID(snode->id);
+            if (path != NULL) {
+              path->nodetree = snode->nodetree;
+            }
           }
         }
         else {
@@ -238,10 +242,18 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
           }
         }
 
+        /* Both `snode->id` and `snode->nodetree` have been remapped now, sotheir data can be
+         * accessed. */
+        BLI_assert(snode->id == NULL || snode->nodetree == NULL ||
+                   (snode->nodetree->id.flag & LIB_EMBEDDED_DATA) == 0 ||
+                   snode->nodetree == ntreeFromID(snode->id));
+
         if (path != NULL) {
           for (path = path->next; path != NULL; path = path->next) {
             BLI_assert(path->nodetree != NULL);
-            BLI_assert((path->nodetree->id.flag & LIB_EMBEDDED_DATA) == 0);
+            if ((data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0) {
+              BLI_assert((path->nodetree->id.flag & LIB_EMBEDDED_DATA) == 0);
+            }
 
             BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_USER_ONE);
 
@@ -270,13 +282,16 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
             snode->edittree = NULL;
           }
         }
-        /* NOTE: It is disputable whether this should be called here, especially when editing it is
-         * allowed? But for now, for sake of consistency, do it in any case. */
-        if (is_embedded_nodetree && snode->edittree == snode->nodetree) {
-          BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->edittree, IDWALK_CB_EMBEDDED_NOT_OWNING);
-        }
         else {
-          BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->edittree, IDWALK_CB_NOP);
+          /* Only process this pointer in readonly case, otherwise could lead to a bad
+           * double-remapping e.g. */
+          if (is_embedded_nodetree && snode->edittree == snode->nodetree) {
+            BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+                data, snode->edittree, IDWALK_CB_EMBEDDED_NOT_OWNING);
+          }
+          else {
+            BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->edittree, IDWALK_CB_NOP);
+          }
         }
         break;
       }
