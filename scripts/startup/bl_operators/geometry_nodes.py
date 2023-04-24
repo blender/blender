@@ -43,6 +43,8 @@ def get_context_modifier(context):
     if context.area.type == 'PROPERTIES':
         modifier = context.modifier
     else:
+        if context.object is None:
+            return False
         modifier = context.object.modifiers.active
     if modifier is None or modifier.type != 'NODES':
         return None
