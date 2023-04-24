@@ -1469,11 +1469,16 @@ bool BKE_collection_object_replace(Main *bmain,
     return false;
   }
 
-  id_us_min(&cob->ob->id);
-  cob->ob = ob_new;
-  id_us_plus(&cob->ob->id);
+  if (!BLI_ghash_haskey(collection->runtime.gobject_hash, ob_new)) {
+    id_us_min(&cob->ob->id);
+    cob->ob = ob_new;
+    id_us_plus(&cob->ob->id);
 
-  BLI_ghash_insert(collection->runtime.gobject_hash, cob->ob, cob);
+    BLI_ghash_insert(collection->runtime.gobject_hash, cob->ob, cob);
+  }
+  else {
+    collection_object_remove_no_gobject_hash(bmain, collection, cob, false);
+  }
 
   if (BKE_collection_is_in_scene(collection)) {
     BKE_main_collection_sync(bmain);
