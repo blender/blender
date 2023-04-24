@@ -42,26 +42,19 @@ static char *str_replace_char_strdup(const char *str, char src, char dst)
 /** \name Tests for: #BLI_path_normalize
  * \{ */
 
-#define NORMALIZE_WITH_BASEDIR(input, input_base, output_expect) \
+#define NORMALIZE(input, output_expect) \
   { \
     char path[FILE_MAX] = input; \
-    const char *input_base_test = input_base; \
     if (SEP == '\\') { \
       str_replace_char_with_relative_exception(path, '/', '\\'); \
-      input_base_test = str_replace_char_strdup(input_base_test, '/', '\\'); \
     } \
-    BLI_path_normalize(input_base_test, path); \
+    BLI_path_normalize(path); \
     if (SEP == '\\') { \
       BLI_str_replace_char(path, '\\', '/'); \
-      if (input_base_test) { \
-        free((void *)input_base_test); \
-      } \
     } \
     EXPECT_STREQ(path, output_expect); \
   } \
   ((void)0)
-
-#define NORMALIZE(input, output_expect) NORMALIZE_WITH_BASEDIR(input, nullptr, output_expect)
 
 /* #BLI_path_normalize: do nothing. */
 TEST(path_util, Normalize_Nop)
@@ -109,7 +102,6 @@ TEST(path_util, Normalize_Parent)
 {
   NORMALIZE("/a/b/c/../../../", "/");
   NORMALIZE("/a/../a/b/../b/c/../c/", "/a/b/c/");
-  NORMALIZE_WITH_BASEDIR("//../", "/a/b/c/", "/a/b/");
 }
 /* #BLI_path_normalize: with too many "/../", match Python's behavior. */
 TEST(path_util, Normalize_UnbalancedAbsolute)
@@ -154,7 +146,6 @@ TEST(path_util, Normalize_UnbalancedRelativeTrailing)
   NORMALIZE("../a/../../..", "../../..");
 }
 
-#undef NORMALIZE_WITH_BASEDIR
 #undef NORMALIZE
 
 /** \} */

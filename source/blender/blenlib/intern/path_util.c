@@ -112,20 +112,17 @@ void BLI_path_sequence_encode(
   BLI_sprintf(string, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
 }
 
-void BLI_path_normalize(const char *relabase, char *path)
+void BLI_path_normalize(char *path)
 {
   const char *path_orig = path;
   int path_len;
 
   ptrdiff_t a;
   char *start, *eind;
-  if (relabase) {
-    BLI_path_abs(path, relabase);
-  }
 
   path_len = strlen(path);
 
-  if ((relabase == NULL) && (path[0] == '/' && path[1] == '/')) {
+  if (path[0] == '/' && path[1] == '/') {
     path = path + 2; /* Leave the initial `//` untouched. */
     path_len -= 2;
 
@@ -277,14 +274,14 @@ void BLI_path_normalize(const char *relabase, char *path)
   BLI_assert(strlen(path) == path_len);
 }
 
-void BLI_path_normalize_dir(const char *relabase, char *dir, size_t dir_maxlen)
+void BLI_path_normalize_dir(char *dir, size_t dir_maxlen)
 {
   /* Would just create an unexpected "/" path, just early exit entirely. */
   if (dir[0] == '\0') {
     return;
   }
 
-  BLI_path_normalize(relabase, dir);
+  BLI_path_normalize(dir);
   BLI_path_slash_ensure(dir, dir_maxlen);
 }
 
@@ -576,8 +573,8 @@ void BLI_path_rel(char *file, const char *relfile)
   BLI_str_replace_char(file + BLI_path_unc_prefix_len(file), '\\', '/');
 
   /* Remove `/./` which confuse the following slash counting. */
-  BLI_path_normalize(NULL, file);
-  BLI_path_normalize(NULL, temp);
+  BLI_path_normalize(file);
+  BLI_path_normalize(temp);
 
   /* The last slash in the file indicates where the path part ends. */
   lslash = BLI_path_slash_rfind(temp);
@@ -978,7 +975,7 @@ bool BLI_path_abs(char *path, const char *basepath)
     BLI_strncpy(base, basepath, sizeof(base));
 
     /* File component is ignored, so don't bother with the trailing slash. */
-    BLI_path_normalize(NULL, base);
+    BLI_path_normalize(base);
     lslash = BLI_path_slash_rfind(base);
     BLI_str_replace_char(base + BLI_path_unc_prefix_len(base), '\\', '/');
 
@@ -1010,7 +1007,7 @@ bool BLI_path_abs(char *path, const char *basepath)
 #endif
 
   /* Ensure this is after correcting for path switch. */
-  BLI_path_normalize(NULL, path);
+  BLI_path_normalize(path);
 
   return wasrelative;
 }
@@ -1710,8 +1707,8 @@ bool BLI_path_contains(const char *container_path, const char *containee_path)
   BLI_path_slash_native(container_native);
   BLI_path_slash_native(containee_native);
 
-  BLI_path_normalize(NULL, container_native);
-  BLI_path_normalize(NULL, containee_native);
+  BLI_path_normalize(container_native);
+  BLI_path_normalize(containee_native);
 
 #ifdef WIN32
   BLI_str_tolower_ascii(container_native, PATH_MAX);
@@ -1814,8 +1811,8 @@ int BLI_path_cmp_normalized(const char *p1, const char *p2)
   BLI_path_slash_native(norm_p1);
   BLI_path_slash_native(norm_p2);
 
-  BLI_path_normalize(NULL, norm_p1);
-  BLI_path_normalize(NULL, norm_p2);
+  BLI_path_normalize(norm_p1);
+  BLI_path_normalize(norm_p2);
 
   return BLI_path_cmp(norm_p1, norm_p2);
 }

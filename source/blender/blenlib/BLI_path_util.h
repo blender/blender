@@ -323,19 +323,18 @@ void BLI_path_sequence_encode(
 /**
  * Remove redundant characters from \a path and optionally make absolute.
  *
- * \param relabase: The path this is relative to, or ignored when NULL.
  * \param path: Can be any input, and this function converts it to a regular full path.
  * Also removes garbage from directory paths, like `/../` or double slashes etc.
  *
  * \note \a path isn't protected for max string names.
  */
-void BLI_path_normalize(const char *relabase, char *path) ATTR_NONNULL(2);
+void BLI_path_normalize(char *path) ATTR_NONNULL(1);
 /**
  * Cleanup file-path ensuring a trailing slash.
  *
  * \note Same as #BLI_path_normalize but adds a trailing slash.
  */
-void BLI_path_normalize_dir(const char *relabase, char *dir, size_t dir_maxlen) ATTR_NONNULL(2);
+void BLI_path_normalize_dir(char *dir, size_t dir_maxlen) ATTR_NONNULL(1);
 
 /**
  * Make given name safe to be used in paths.

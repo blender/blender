@@ -516,7 +516,8 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   char name1[FILE_MAX];
 
   BLI_strncpy(name1, filepath, sizeof(name1));
-  BLI_path_normalize(relabase, name1);
+  BLI_path_abs(name1, relabase);
+  BLI_path_normalize(name1);
 
   //  printf("blo_find_main: relabase  %s\n", relabase);
   //  printf("blo_find_main: original in  %s\n", filepath);
@@ -2695,7 +2696,8 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 
   /* Make sure we have full path in lib->filepath_abs */
   BLI_strncpy(lib->filepath_abs, lib->filepath, sizeof(lib->filepath));
-  BLI_path_normalize(fd->relabase, lib->filepath_abs);
+  BLI_path_abs(lib->filepath_abs, fd->relabase);
+  BLI_path_normalize(lib->filepath_abs);
 
   //  printf("direct_link_library: filepath %s\n", lib->filepath);
   //  printf("direct_link_library: filepath_abs %s\n", lib->filepath_abs);

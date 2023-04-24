@@ -1984,7 +1984,8 @@ void filelist_setdir(FileList *filelist, char *r_dir)
   const bool allow_invalid = filelist->asset_library_ref != nullptr;
   BLI_assert(strlen(r_dir) < FILE_MAX_LIBEXTRA);
 
-  BLI_path_normalize_dir(BKE_main_blendfile_path_from_global(), r_dir, FILE_MAX_LIBEXTRA);
+  BLI_path_abs(r_dir, BKE_main_blendfile_path_from_global());
+  BLI_path_normalize_dir(r_dir, FILE_MAX_LIBEXTRA);
   const bool is_valid_path = filelist->check_dir_fn(filelist, r_dir, !allow_invalid);
   BLI_assert(is_valid_path || allow_invalid);
   UNUSED_VARS_NDEBUG(is_valid_path);
@@ -3586,7 +3587,8 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
   BLI_strncpy(dir, filelist->filelist.root, sizeof(dir));
   BLI_strncpy(filter_glob, filelist->filter_data.filter_glob, sizeof(filter_glob));
 
-  BLI_path_normalize_dir(job_params->main_filepath, dir, sizeof(dir));
+  BLI_path_abs(dir, job_params->main_filepath);
+  BLI_path_normalize_dir(dir, sizeof(dir));
   td_dir->dir = BLI_strdup(dir);
 
   /* Init the file indexer. */
@@ -3617,7 +3619,8 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
      * Note that in the end, this means we 'cache' valid relative subdir once here,
      * this is actually better. */
     BLI_strncpy(rel_subdir, subdir, sizeof(rel_subdir));
-    BLI_path_normalize_dir(root, rel_subdir, sizeof(rel_subdir));
+    BLI_path_abs(rel_subdir, root);
+    BLI_path_normalize_dir(rel_subdir, sizeof(rel_subdir));
     BLI_path_rel(rel_subdir, root);
 
     /* Update the current relative base path within the filelist root. */
@@ -3668,7 +3671,8 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
         /* We have a directory we want to list, add it to todo list!
          * Using #BLI_path_join works but isn't needed as `root` has a trailing slash. */
         BLI_string_join(dir, sizeof(dir), root, entry->relpath);
-        BLI_path_normalize_dir(job_params->main_filepath, dir, sizeof(dir));
+        BLI_path_abs(dir, job_params->main_filepath);
+        BLI_path_normalize_dir(dir, sizeof(dir));
         td_dir = static_cast<TodoDir *>(BLI_stack_push_r(todo_dirs));
         td_dir->level = recursion_level + 1;
         td_dir->dir = BLI_strdup(dir);
