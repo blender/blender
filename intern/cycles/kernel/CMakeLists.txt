@@ -26,6 +26,10 @@ set(SRC_KERNEL_DEVICE_HIP
   device/hip/kernel.cpp
 )
 
+set(SRC_KERNEL_DEVICE_HIPRT
+  device/hiprt/kernel.cpp
+)
+
 set(SRC_KERNEL_DEVICE_METAL
   device/metal/kernel.metal
 )
@@ -75,6 +79,13 @@ set(SRC_KERNEL_DEVICE_HIP_HEADERS
   device/hip/compat.h
   device/hip/config.h
   device/hip/globals.h
+)
+
+set(SRC_KERNEL_DEVICE_HIPRT_HEADERS
+  device/hiprt/bvh.h
+  device/hiprt/common.h
+  device/hiprt/globals.h
+  device/hiprt/hiprt_kernels.h
 )
 
 set(SRC_KERNEL_DEVICE_OPTIX_HEADERS
@@ -643,6 +654,86 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
   cycles_set_solution_folder(cycles_kernel_hip)
 endif()
 
+# HIP RT module
+
+if(WITH_CYCLES_DEVICE_HIPRT AND WITH_CYCLES_HIP_BINARIES)
+  set(hiprt_sources device/hiprt/kernel.cpp
+    ${SRC_KERNEL_HEADERS}
+    ${SRC_KERNEL_DEVICE_GPU_HEADERS}
+    ${SRC_KERNEL_DEVICE_HIPRT_HEADERS}
+    ${SRC_UTIL_HEADERS})
+  set(bitcode_file ${CMAKE_CURRENT_BINARY_DIR}/kernel_rt_gfx.bc)
+  set(hiprt_file ${CMAKE_CURRENT_BINARY_DIR}/kernel_rt_gfx.hipfb)
+  set(kernel_sources ${sources})
+  set(hiprt_kernel_src "/device/hiprt/kernel.cpp")
+  if(WIN32)
+    set(hiprt_compile_command ${CMAKE_COMMAND})
+    set(hiprt_compile_flags
+      -E env "HIP_PATH=${HIP_ROOT_DIR}"
+      ${HIP_HIPCC_EXECUTABLE}.bat)
+  else()
+    set(hiprt_compile_command ${HIP_HIPCC_EXECUTABLE})
+    set(hiprt_compile_flags)
+  endif()
+  set(target_gpus)
+  foreach(arch ${CYCLES_HIP_BINARIES_ARCH})
+    list(APPEND target_gpus "--offload-arch=${arch}")
+  endforeach()
+  set(hiprt_compile_flags
+    ${hiprt_compile_flags}
+    ${target_gpus}
+    ${HIP_HIPCC_FLAGS}
+    ${CMAKE_CURRENT_SOURCE_DIR}${hiprt_kernel_src}
+    ${flags}
+    -D CCL_NAMESPACE_BEGIN=
+    -D CCL_NAMESPACE_END=
+    -D HIPCC
+    -D __HIPRT__
+    -std=c++17
+    -fgpu-rdc
+    -c
+    --gpu-bundle-output
+    -emit-llvm
+    -I ${CMAKE_CURRENT_SOURCE_DIR}/..
+    -I ${CMAKE_CURRENT_SOURCE_DIR}/device/hiprt
+    -I ${HIPRT_INCLUDE_DIR}
+    -Wno-parentheses-equality
+    -Wno-unused-value
+    --hipcc-func-supp
+    -ffast-math
+    -o ${bitcode_file})
+  if(WITH_CYCLES_DEBUG)
+    set(hiprt_compile_flags ${hiprt_compile_flags} -D WITH_CYCLES_DEBUG)
+  endif()
+  add_custom_command(
+    OUTPUT  ${bitcode_file}
+    COMMAND ${hiprt_compile_command} ${hiprt_compile_flags}
+    DEPENDS ${kernel_sources})
+  if(WIN32)
+    set(hiprt_link_command ${CMAKE_COMMAND})
+    set(hiprt_link_flags   -E env "HIP_PATH=${HIP_ROOT_DIR}"
+      ${HIP_LINKER_EXECUTABLE})
+  else()
+    # not implemented yet
+  endif()
+  set(hiprt_link_flags
+    ${hiprt_link_flags}
+    ${target_gpus}
+    -fgpu-rdc
+    --hip-link
+    --cuda-device-only
+    ${bitcode_file}
+    ${HIPRT_BITCODE}
+    -o ${hiprt_file})
+  add_custom_command(
+    OUTPUT  ${hiprt_file}
+    COMMAND ${hiprt_link_command} ${hiprt_link_flags}
+    DEPENDS ${bitcode_file})
+  delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${hiprt_file}" ${CYCLES_INSTALL_PATH}/lib)
+  add_custom_target(cycles_kernel_hiprt ALL DEPENDS ${hiprt_file})
+  cycles_set_solution_folder(cycles_kernel_hiprt)
+endif()
+
 # OptiX PTX modules
 
 if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
@@ -1033,6 +1124,7 @@ cycles_add_library(cycles_kernel "${LIB}"
   ${SRC_KERNEL_DEVICE_CPU}
   ${SRC_KERNEL_DEVICE_CUDA}
   ${SRC_KERNEL_DEVICE_HIP}
+  ${SRC_KERNEL_DEVICE_HIPRT}
   ${SRC_KERNEL_DEVICE_OPTIX}
   ${SRC_KERNEL_DEVICE_METAL}
   ${SRC_KERNEL_HEADERS}
@@ -1040,6 +1132,7 @@ cycles_add_library(cycles_kernel "${LIB}"
   ${SRC_KERNEL_DEVICE_GPU_HEADERS}
   ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
   ${SRC_KERNEL_DEVICE_HIP_HEADERS}
+  ${SRC_KERNEL_DEVICE_HIPRT_HEADERS}
   ${SRC_KERNEL_DEVICE_OPTIX_HEADERS}
   ${SRC_KERNEL_DEVICE_METAL_HEADERS}
   ${SRC_KERNEL_DEVICE_ONEAPI_HEADERS}
@@ -1053,6 +1146,7 @@ source_group("device\\cpu" FILES ${SRC_KERNEL_DEVICE_CPU} ${SRC_KERNEL_DEVICE_CP
 source_group("device\\cuda" FILES ${SRC_KERNEL_DEVICE_CUDA} ${SRC_KERNEL_DEVICE_CUDA_HEADERS})
 source_group("device\\gpu" FILES ${SRC_KERNEL_DEVICE_GPU_HEADERS})
 source_group("device\\hip" FILES ${SRC_KERNEL_DEVICE_HIP} ${SRC_KERNEL_DEVICE_HIP_HEADERS})
+source_group("device\\hiprt" FILES ${SRC_KERNEL_DEVICE_HIPRT} ${SRC_KERNEL_DEVICE_HIPRT_HEADERS})
 source_group("device\\optix" FILES ${SRC_KERNEL_DEVICE_OPTIX} ${SRC_KERNEL_DEVICE_OPTIX_HEADERS})
 source_group("device\\metal" FILES ${SRC_KERNEL_DEVICE_METAL} ${SRC_KERNEL_DEVICE_METAL_HEADERS})
 source_group("device\\oneapi" FILES ${SRC_KERNEL_DEVICE_ONEAPI} ${SRC_KERNEL_DEVICE_ONEAPI_HEADERS})
@@ -1090,6 +1184,8 @@ delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_CUDA_HEADERS}" 
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_GPU_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/gpu)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_HIP}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hip)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_HIP_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hip)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_HIPRT}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hiprt)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_HIPRT_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/hiprt)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_OPTIX}" ${CYCLES_INSTALL_PATH}/source/kernel/device/optix)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_OPTIX_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/device/optix)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_DEVICE_METAL}" ${CYCLES_INSTALL_PATH}/source/kernel/device/metal)

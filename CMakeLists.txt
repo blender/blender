@@ -525,6 +525,12 @@ if(NOT APPLE)
   set(CYCLES_HIP_BINARIES_ARCH gfx900 gfx90c gfx902 gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 gfx1035 gfx1100 gfx1101 gfx1102 CACHE STRING "AMD HIP architectures to build binaries for")
   mark_as_advanced(WITH_CYCLES_DEVICE_HIP)
   mark_as_advanced(CYCLES_HIP_BINARIES_ARCH)
+
+  # HIPRT is only available on Windows for now.
+  if(WIN32)
+    option(WITH_CYCLES_DEVICE_HIPRT      "Enable Cycles AMD HIPRT support" OFF)
+    mark_as_advanced(WITH_CYCLES_DEVICE_HIPRT)
+  endif()
 endif()
 
 # Apple Metal
@@ -1981,10 +1987,13 @@ if(FIRST_RUN)
       info_cfg_option(WITH_CYCLES_DEVICE_OPTIX)
       info_cfg_option(WITH_CYCLES_DEVICE_CUDA)
       info_cfg_option(WITH_CYCLES_CUDA_BINARIES)
-      info_cfg_option(WITH_CYCLES_DEVICE_HIP)
-      info_cfg_option(WITH_CYCLES_HIP_BINARIES)
       info_cfg_option(WITH_CYCLES_DEVICE_ONEAPI)
       info_cfg_option(WITH_CYCLES_ONEAPI_BINARIES)
+      info_cfg_option(WITH_CYCLES_DEVICE_HIP)
+      info_cfg_option(WITH_CYCLES_HIP_BINARIES)
+    endif()
+    if(WIN32)
+      info_cfg_option(WITH_CYCLES_DEVICE_HIPRT)
     endif()
   endif()
 
