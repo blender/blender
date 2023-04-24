@@ -495,6 +495,8 @@ static void sculpt_detail_size_set_radial_control(bContext *C)
     base += ".brush";
   }
 
+  base += ".dyntopo";
+
   if (ELEM(mode, DYNTOPO_DETAIL_MANUAL, DYNTOPO_DETAIL_CONSTANT)) {
     base += ".constant_detail";
     RNA_string_set(&props_ptr, "data_path_primary", base.c_str());
@@ -560,6 +562,7 @@ struct DyntopoDetailSizeEditCustomData {
   float init_detail_size;
   float accurate_detail_size;
   float detail_size;
+  float detail_range;
   float radius;
 
   float preview_tri[3][3];
@@ -581,7 +584,7 @@ static void dyntopo_detail_size_parallel_lines_draw(uint pos3d,
    * all edges have the exact maximum length, which never happens in practice. As the minimum edge
    * length for dyntopo is 0.4 * max_edge_length, this adjust the detail size to the average
    * between max and min edge length so the preview is more accurate. */
-  object_space_constant_detail *= 0.7f;
+  object_space_constant_detail *= 1.0f - cd->detail_range * 0.5f;
 
   const float total_len = len_v3v3(cd->preview_tri[0], cd->preview_tri[1]);
   const int tot_lines = int(total_len / object_space_constant_detail) + 1;
@@ -734,6 +737,7 @@ static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmE
   DyntopoDetailSizeEditCustomData *cd = static_cast<DyntopoDetailSizeEditCustomData *>(
       op->customdata);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
 
   /* Cancel modal operator */
   if ((event->type == EVT_ESCKEY && event->val == KM_PRESS) ||
@@ -748,7 +752,13 @@ static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmE
       (event->type == EVT_RETKEY && event->val == KM_PRESS) ||
       (event->type == EVT_PADENTER && event->val == KM_PRESS)) {
     ED_region_draw_cb_exit(region->type, cd->draw_handle);
-    sd->constant_detail = cd->detail_size;
+
+    if (brush->dyntopo.inherit & DYNTOPO_INHERIT_CONSTANT_DETAIL) {
+      sd->dyntopo.constant_detail = cd->detail_size;
+    }
+    else {
+      brush->dyntopo.constant_detail = cd->detail_size;
+    }
     ss->draw_faded_cursor = false;
     MEM_freeN(op->customdata);
     ED_region_tag_redraw(region);
@@ -781,10 +791,13 @@ static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmE
 static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
 
   /* Fallback to radial control for modes other than SCULPT_DYNTOPO_DETAIL_CONSTANT [same as in
    * SCULPT_OT_set_detail_size]. */
-  if (!(sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL))) {
+  int mode = !brush || brush->dyntopo.inherit & DYNTOPO_INHERIT_MODE ? sd->dyntopo.mode :
+                                                                       brush->dyntopo.mode;
+  if (!ELEM(mode, DYNTOPO_DETAIL_MANUAL, DYNTOPO_DETAIL_CONSTANT)) {
     sculpt_detail_size_set_radial_control(C);
 
     return OPERATOR_FINISHED;
@@ -793,18 +806,24 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   /* Special method for SCULPT_DYNTOPO_DETAIL_CONSTANT. */
   ARegion *region = CTX_wm_region(C);
   Object *active_object = CTX_data_active_object(C);
-  Brush *brush = BKE_paint_brush(&sd->paint);
 
   DyntopoDetailSizeEditCustomData *cd = MEM_cnew<DyntopoDetailSizeEditCustomData>(__func__);
 
+  int constant_detail = brush->dyntopo.inherit & DYNTOPO_INHERIT_CONSTANT_DETAIL ?
+                            sd->dyntopo.constant_detail :
+                            brush->dyntopo.constant_detail;
+
   /* Initial operator Custom Data setup. */
+  cd->detail_range = brush->dyntopo.inherit & DYNTOPO_INHERIT_DETAIL_RANGE ?
+                         sd->dyntopo.detail_range :
+                         brush->dyntopo.detail_range;
   cd->draw_handle = ED_region_draw_cb_activate(
       region->type, dyntopo_detail_size_edit_draw, cd, REGION_DRAW_POST_VIEW);
   cd->active_object = active_object;
   cd->init_mval[0] = event->mval[0];
   cd->init_mval[1] = event->mval[1];
-  cd->detail_size = sd->constant_detail;
-  cd->init_detail_size = sd->constant_detail;
+  cd->detail_size = constant_detail;
+  cd->init_detail_size = constant_detail;
   copy_v4_v4(cd->outline_col, brush->add_col);
   op->customdata = cd;
 

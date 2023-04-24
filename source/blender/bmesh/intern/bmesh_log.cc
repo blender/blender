@@ -857,7 +857,7 @@ struct BMLog {
     if (!first_entry) {
       first_entry = entry;
     }
-    else {
+    else if (current_entry) {
       current_entry->next = entry;
     }
 
