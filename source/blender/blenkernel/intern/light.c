@@ -167,7 +167,7 @@ static void light_blend_read_data(BlendDataReader *reader, ID *id)
 static void light_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Light *la = (Light *)id;
-  BLO_read_id_address(reader, la->id.lib, &la->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, id, &la->ipo);  // XXX deprecated - old animation system
 }
 
 static void light_blend_read_expand(BlendExpander *expander, ID *id)

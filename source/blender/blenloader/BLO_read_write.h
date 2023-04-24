@@ -271,10 +271,20 @@ struct BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader);
  * However, now only pointers to ID data blocks are updated.
  * \{ */
 
-ID *BLO_read_get_new_id_address(BlendLibReader *reader, struct Library *lib, struct ID *id);
+/** Search for the new address of given `id`, during liblinking part of blendfile reading process.
+ *
+ * \param self_id the ID owner of the given `id` pointer. Note that it may be an embedded ID.
+ * \param do_linked_only If `true`, only return found pointer if it is a linked ID. Used to
+ * preventlinked data to point to local IDs.
+ * \return the new address of the given ID pointer, or null if not found. */
+ID *BLO_read_get_new_id_address(BlendLibReader *reader,
+                                struct ID *self_id,
+                                const bool do_linked_only,
+                                struct ID *id) ATTR_NONNULL(2);
 
-#define BLO_read_id_address(reader, lib, id_ptr_p) \
-  *((void **)id_ptr_p) = (void *)BLO_read_get_new_id_address((reader), (lib), (ID *)*(id_ptr_p))
+#define BLO_read_id_address(reader, self_id, id_ptr_p) \
+  *((void **)id_ptr_p) = (void *)BLO_read_get_new_id_address( \
+      (reader), (self_id), (self_id) && ID_IS_LINKED(self_id), (ID *)*(id_ptr_p))
 
 /* Misc. */
 

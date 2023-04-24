@@ -223,16 +223,16 @@ static void material_blend_read_data(BlendDataReader *reader, ID *id)
 static void material_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Material *ma = (Material *)id;
-  BLO_read_id_address(reader, ma->id.lib, &ma->ipo); /* XXX deprecated - old animation system */
+  BLO_read_id_address(reader, id, &ma->ipo); /* XXX deprecated - old animation system */
 
   /* relink grease pencil settings */
   if (ma->gp_style != nullptr) {
     MaterialGPencilStyle *gp_style = ma->gp_style;
     if (gp_style->sima != nullptr) {
-      BLO_read_id_address(reader, ma->id.lib, &gp_style->sima);
+      BLO_read_id_address(reader, id, &gp_style->sima);
     }
     if (gp_style->ima != nullptr) {
-      BLO_read_id_address(reader, ma->id.lib, &gp_style->ima);
+      BLO_read_id_address(reader, id, &gp_style->ima);
     }
   }
 }

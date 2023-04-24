@@ -1479,8 +1479,8 @@ void BKE_animdata_blend_read_lib(BlendLibReader *reader, ID *id, AnimData *adt)
   }
 
   /* link action data */
-  BLO_read_id_address(reader, id->lib, &adt->action);
-  BLO_read_id_address(reader, id->lib, &adt->tmpact);
+  BLO_read_id_address(reader, id, &adt->action);
+  BLO_read_id_address(reader, id, &adt->tmpact);
 
   /* link drivers */
   BKE_fcurve_blend_read_lib(reader, id, &adt->drivers);

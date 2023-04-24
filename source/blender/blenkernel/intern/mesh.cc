@@ -420,16 +420,16 @@ static void mesh_blend_read_lib(BlendLibReader *reader, ID *id)
   /* this check added for python created meshes */
   if (me->mat) {
     for (int i = 0; i < me->totcol; i++) {
-      BLO_read_id_address(reader, me->id.lib, &me->mat[i]);
+      BLO_read_id_address(reader, id, &me->mat[i]);
     }
   }
   else {
     me->totcol = 0;
   }
 
-  BLO_read_id_address(reader, me->id.lib, &me->ipo);  // XXX: deprecated: old anim sys
-  BLO_read_id_address(reader, me->id.lib, &me->key);
-  BLO_read_id_address(reader, me->id.lib, &me->texcomesh);
+  BLO_read_id_address(reader, id, &me->ipo);  // XXX: deprecated: old anim sys
+  BLO_read_id_address(reader, id, &me->key);
+  BLO_read_id_address(reader, id, &me->texcomesh);
 }
 
 static void mesh_read_expand(BlendExpander *expander, ID *id)

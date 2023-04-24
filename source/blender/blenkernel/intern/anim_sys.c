@@ -329,7 +329,7 @@ void BKE_keyingsets_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *lis
 {
   LISTBASE_FOREACH (KeyingSet *, ks, list) {
     LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
-      BLO_read_id_address(reader, id->lib, &ksp->id);
+      BLO_read_id_address(reader, id, &ksp->id);
     }
   }
 }

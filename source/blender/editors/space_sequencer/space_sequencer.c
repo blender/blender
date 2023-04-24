@@ -987,7 +987,7 @@ static void sequencer_space_blend_read_lib(BlendLibReader *reader, ID *parent_id
   /* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
    * so fingers crossed this works fine!
    */
-  BLO_read_id_address(reader, parent_id->lib, &sseq->gpd);
+  BLO_read_id_address(reader, parent_id, &sseq->gpd);
 }
 
 static void sequencer_space_blend_write(BlendWriter *writer, SpaceLink *sl)

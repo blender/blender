@@ -275,7 +275,7 @@ void BKE_view_layer_blend_write(struct BlendWriter *writer,
                                 struct ViewLayer *view_layer);
 void BKE_view_layer_blend_read_data(struct BlendDataReader *reader, struct ViewLayer *view_layer);
 void BKE_view_layer_blend_read_lib(struct BlendLibReader *reader,
-                                   struct Library *lib,
+                                   struct ID *self_id,
                                    struct ViewLayer *view_layer);
 
 /* iterators */
