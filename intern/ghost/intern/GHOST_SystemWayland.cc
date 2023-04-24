@@ -6298,7 +6298,7 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings glS
                                                  wl_surface,
                                                  display_->wl_display,
                                                  1,
-                                                 0,
+                                                 2,
                                                  debug_context);
 
     if (!context->initializeDrawingContext()) {

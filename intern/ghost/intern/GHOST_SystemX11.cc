@@ -417,7 +417,7 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSetti
 #ifdef WITH_VULKAN_BACKEND
   if (glSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
     context = new GHOST_ContextVK(
-        false, GHOST_kVulkanPlatformX11, 0, m_display, NULL, NULL, 1, 0, debug_context);
+        false, GHOST_kVulkanPlatformX11, 0, m_display, NULL, NULL, 1, 2, debug_context);
 
     if (!context->initializeDrawingContext()) {
       delete context;

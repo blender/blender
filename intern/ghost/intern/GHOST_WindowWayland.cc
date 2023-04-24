@@ -1744,7 +1744,7 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
                                     window_->wl_surface,
                                     system_->wl_display(),
                                     1,
-                                    0,
+                                    2,
                                     true);
       break;
 #endif

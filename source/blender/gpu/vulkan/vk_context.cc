@@ -39,10 +39,7 @@ VKContext::VKContext(void *ghost_window, void *ghost_context)
 
   /* Initialize the memory allocator. */
   VmaAllocatorCreateInfo info = {};
-  /* Should use same vulkan version as GHOST (1.2), but set to 1.0 as 1.2 requires
-   * correct extensions and functions to be found by VMA, which isn't working as expected and
-   * requires more research. To continue development we lower the API to version 1.0. */
-  info.vulkanApiVersion = VK_API_VERSION_1_0;
+  info.vulkanApiVersion = VK_API_VERSION_1_2;
   info.physicalDevice = vk_physical_device_;
   info.device = vk_device_;
   info.instance = vk_instance_;
