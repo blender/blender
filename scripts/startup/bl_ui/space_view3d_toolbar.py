@@ -940,7 +940,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
             "detail_range"
         )
 
-        if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
+        if UnifiedPaintPanel.get_dyntopo_prop(context, brush, "mode") in {'CONSTANT', 'MANUAL'}:
             col.operator("sculpt.detail_flood_fill")
 
         UnifiedPaintPanel.prop_unified_dyntopo(

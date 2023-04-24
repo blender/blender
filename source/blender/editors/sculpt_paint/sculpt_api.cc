@@ -595,6 +595,11 @@ void SCULPT_ensure_persistent_layers(SculptSession *ss, Object *ob)
 
 void SCULPT_apply_dyntopo_settings(SculptSession *ss, Sculpt *sculpt, Brush *brush)
 {
+  if (!brush) {
+    ss->cached_dyntopo = sculpt->dyntopo;
+    return;
+  }
+
   DynTopoSettings *ds1 = &brush->dyntopo;
   DynTopoSettings *ds2 = &sculpt->dyntopo;
 

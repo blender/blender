@@ -40,6 +40,8 @@
 #include <cmath>
 #include <cstdlib>
 
+#include <string>
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
@@ -104,12 +106,12 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   sub_v3_v3v3(dim, bb_max, bb_min);
   size = max_fff(dim[0], dim[1], dim[2]);
 
-  float constant_detail = brush->dyntopo.constant_detail;
-  float detail_range = brush->dyntopo.detail_range;
+  SCULPT_apply_dyntopo_settings(ss, sd, brush);
+  float detail_range = ss->cached_dyntopo.detail_range;
 
   /* Update topology size. */
-  float object_space_constant_detail = 1.0f /
-                                       (sd->constant_detail * mat4_to_scale(ob->object_to_world));
+  float object_space_constant_detail = 1.0f / (ss->cached_dyntopo.constant_detail *
+                                               mat4_to_scale(ob->object_to_world));
   BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail, detail_range);
   BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
 
@@ -317,8 +319,8 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
 
   if (srd.hit && srd.edge_length > 0.0f) {
     DynTopoSettings *dyntopo = brush->dyntopo.inherit & DYNTOPO_INHERIT_CONSTANT_DETAIL ?
-                                   &brush->dyntopo :
-                                   &sd->dyntopo;
+                                   &sd->dyntopo :
+                                   &brush->dyntopo;
 
     /* Convert edge length to world space detail resolution. */
     dyntopo->constant_detail = 1.0f / (srd.edge_length * mat4_to_scale(ob->object_to_world));
@@ -476,34 +478,34 @@ void SCULPT_OT_sample_detail_size(wmOperatorType *ot)
  *   falls back to radial control for the remaining methods).
  * \{ */
 
-static void set_brush_rc_props(PointerRNA *ptr, const char *prop)
-{
-  char *path = BLI_sprintfN("tool_settings.sculpt.brush.%s", prop);
-  RNA_string_set(ptr, "data_path_primary", path);
-  MEM_freeN(path);
-}
-
 static void sculpt_detail_size_set_radial_control(bContext *C)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
 
   PointerRNA props_ptr;
   wmOperatorType *ot = WM_operatortype_find("WM_OT_radial_control", true);
 
   WM_operator_properties_create_ptr(&props_ptr, ot);
 
-  if (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
-    set_brush_rc_props(&props_ptr, "constant_detail_resolution");
-    RNA_string_set(
-        &props_ptr, "data_path_primary", "tool_settings.sculpt.constant_detail_resolution");
+  int mode = brush->dyntopo.inherit & DYNTOPO_INHERIT_MODE ? sd->dyntopo.mode :
+                                                             brush->dyntopo.mode;
+  std::string base = "tool_settings.sculpt";
+  if (!(brush->dyntopo.inherit & DYNTOPO_INHERIT_MODE)) {
+    base += ".brush";
   }
-  else if (sd->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
-    set_brush_rc_props(&props_ptr, "constant_detail_resolution");
-    RNA_string_set(&props_ptr, "data_path_primary", "tool_settings.sculpt.detail_percent");
+
+  if (ELEM(mode, DYNTOPO_DETAIL_MANUAL, DYNTOPO_DETAIL_CONSTANT)) {
+    base += ".constant_detail";
+    RNA_string_set(&props_ptr, "data_path_primary", base.c_str());
   }
-  else {
-    set_brush_rc_props(&props_ptr, "detail_size");
-    RNA_string_set(&props_ptr, "data_path_primary", "tool_settings.sculpt.detail_size");
+  else if (mode == DYNTOPO_DETAIL_BRUSH) {
+    base += ".detail_percent";
+    RNA_string_set(&props_ptr, "data_path_primary", base.c_str());
+  }
+  else { /* Relative mode. */
+    base += ".detail_size";
+    RNA_string_set(&props_ptr, "data_path_primary", base.c_str());
   }
 
   WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, nullptr);

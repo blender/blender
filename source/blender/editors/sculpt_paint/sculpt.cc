@@ -81,11 +81,11 @@
 
 using blender::float3;
 using blender::IndexRange;
+using blender::int2;
 using blender::MutableSpan;
 using blender::Set;
 using blender::Span;
 using blender::Vector;
-using blender::int2;
 
 static float sculpt_calc_radius(ViewContext *vc,
                                 const Brush *brush,
@@ -6483,16 +6483,16 @@ static void sculpt_stroke_update_step(bContext *C,
   }
   cache->stroke_distance_t += stroke_delta;
 
-  if (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
+  if (ELEM(ss->cached_dyntopo.mode, DYNTOPO_DETAIL_CONSTANT, DYNTOPO_DETAIL_MANUAL)) {
     float object_space_constant_detail = 1.0f / (ss->cached_dyntopo.constant_detail *
                                                  mat4_to_scale(ob->object_to_world));
     BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail, 0.4f);
   }
-  else if (sd->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
+  else if (ss->cached_dyntopo.mode == DYNTOPO_DETAIL_BRUSH) {
     BKE_pbvh_bmesh_detail_size_set(
         ss->pbvh, ss->cache->radius * ss->cached_dyntopo.detail_percent / 100.0f, 0.4f);
   }
-  else {
+  else { /* Relative mode. */
     BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
                                    (ss->cache->radius / ss->cache->dyntopo_pixel_radius) *
                                        (ss->cached_dyntopo.detail_size * U.pixelsize) / 0.4f,
