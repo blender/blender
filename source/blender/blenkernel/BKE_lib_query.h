@@ -148,6 +148,28 @@ enum {
   IDWALK_INCLUDE_UI = (1 << 2),
   /** Do not process ID pointers inside embedded IDs. Needed by depsgraph processing e.g. */
   IDWALK_IGNORE_EMBEDDED_ID = (1 << 3),
+  /**
+   * Do not access original processed pointer's data, only process its address value.
+   *
+   * This is required in cases where to current address may not be valid anymore (e.g. during
+   * readfile process). A few ID pointers (like e.g. the `LayerCollection.collection` one) are by
+   * default accessed to check things (e.g. whether they are pointing to an embedded ID or a
+   * regular one).
+   *
+   * \note Access to owning embedded ID pointers (e.g. `Scene.master_collection`) is not affected
+   * here, these are presumed always valid.
+   *
+   * \note This flag is mutually exclusive with `IDWALK_READONLY` and `IDWALK_RECURSE`, since by
+   * definition the only thing doable in readonly case is accessing current ID pointer, and this is
+   * also required for recursion.
+   *
+   * \note After remapping, code may access the newly set ID pointer, which is always presumed
+   * valid.
+   *
+   * \warning Use only with great caution, this flag will modify the handling of some ID pointers
+   * (especially when it comes to detecting `IDWALK_CB_EMBEDDED_NOT_OWNING` usages).
+   */
+  IDWALK_NO_ORIG_POINTERS_ACCESS = (1 << 5),
 
   /**
    * Also process internal ID pointers like `ID.newid` or `ID.orig_id`.

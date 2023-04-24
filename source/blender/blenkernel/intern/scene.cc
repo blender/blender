@@ -758,10 +758,10 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
 
 static void scene_foreach_layer_collection(LibraryForeachIDData *data, ListBase *lb)
 {
+  const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
-    /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
-     * anyway... */
     const int cb_flag = (lc->collection != nullptr &&
+                         (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0 &&
                          (lc->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
                             IDWALK_CB_EMBEDDED_NOT_OWNING :
                             IDWALK_CB_NOP;

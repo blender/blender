@@ -874,7 +874,12 @@ static void id_embedded_swap(ID **embedded_id_a,
                              struct IDRemapper *remapper_id_b)
 {
   if (embedded_id_a != NULL && *embedded_id_a != NULL) {
-    BLI_assert(embedded_id_b != NULL && *embedded_id_b != NULL);
+    BLI_assert(embedded_id_b != NULL);
+
+    if (*embedded_id_b == NULL) {
+      /* Cannot swap anything if one of the embedded IDs is NULL. */
+      return;
+    }
 
     /* Do not remap internal references to itself here, since embedded IDs pointers also need to be
      * potentially remapped in owner ID's data, which will also handle embedded IDs data. */
