@@ -590,19 +590,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   });
 
   params.set_output("Points", std::move(geometry_set));
-
-  if (attribute_outputs.normal_id) {
-    params.set_output(
-        "Normal",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.normal_id),
-                                                     params.attribute_producer_name()));
-  }
-  if (attribute_outputs.rotation_id) {
-    params.set_output(
-        "Rotation",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.rotation_id),
-                                                     params.attribute_producer_name()));
-  }
 }
 
 }  // namespace blender::nodes::node_geo_distribute_points_on_faces_cc

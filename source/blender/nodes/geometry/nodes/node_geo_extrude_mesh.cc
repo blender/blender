@@ -1376,16 +1376,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   });
 
   params.set_output("Mesh", std::move(geometry_set));
-  if (attribute_outputs.top_id) {
-    params.set_output("Top",
-                      AnonymousAttributeFieldInput::Create<bool>(
-                          std::move(attribute_outputs.top_id), params.attribute_producer_name()));
-  }
-  if (attribute_outputs.side_id) {
-    params.set_output("Side",
-                      AnonymousAttributeFieldInput::Create<bool>(
-                          std::move(attribute_outputs.side_id), params.attribute_producer_name()));
-  }
 }
 
 }  // namespace blender::nodes::node_geo_extrude_mesh_cc

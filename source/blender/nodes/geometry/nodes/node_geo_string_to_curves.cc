@@ -348,9 +348,6 @@ static void create_attributes(GeoNodeExecParams &params,
         *line_id, ATTR_DOMAIN_INSTANCE);
     line_attribute.span.copy_from(layout.line_numbers);
     line_attribute.finish();
-    params.set_output("Line",
-                      AnonymousAttributeFieldInput::Create<int>(std::move(line_id),
-                                                                params.attribute_producer_name()));
   }
 
   if (AnonymousAttributeIDPtr pivot_id = params.get_output_anonymous_attribute_id_if_needed(
@@ -363,9 +360,6 @@ static void create_attributes(GeoNodeExecParams &params,
     }
 
     pivot_attribute.finish();
-    params.set_output("Pivot Point",
-                      AnonymousAttributeFieldInput::Create<float3>(
-                          std::move(pivot_id), params.attribute_producer_name()));
   }
 }
 

@@ -200,21 +200,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   params.set_output("Points", std::move(geometry_set));
-  if (tangent_anonymous_id) {
-    params.set_output("Tangent",
-                      AnonymousAttributeFieldInput::Create<float3>(
-                          std::move(tangent_anonymous_id), params.attribute_producer_name()));
-  }
-  if (normal_anonymous_id) {
-    params.set_output("Normal",
-                      AnonymousAttributeFieldInput::Create<float3>(
-                          std::move(normal_anonymous_id), params.attribute_producer_name()));
-  }
-  if (rotation_anonymous_id) {
-    params.set_output("Rotation",
-                      AnonymousAttributeFieldInput::Create<float3>(
-                          std::move(rotation_anonymous_id), params.attribute_producer_name()));
-  }
 }
 
 }  // namespace blender::nodes::node_geo_curve_to_points_cc

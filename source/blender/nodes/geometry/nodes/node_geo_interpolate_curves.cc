@@ -836,16 +836,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   params.set_output("Curves", std::move(new_curves));
-  if (index_attribute_id) {
-    params.set_output("Closest Index",
-                      AnonymousAttributeFieldInput::Create<int>(std::move(index_attribute_id),
-                                                                params.attribute_producer_name()));
-  }
-  if (weight_attribute_id) {
-    params.set_output("Closest Weight",
-                      AnonymousAttributeFieldInput::Create<float>(
-                          std::move(weight_attribute_id), params.attribute_producer_name()));
-  }
 }
 
 }  // namespace blender::nodes::node_geo_interpolate_curves_cc

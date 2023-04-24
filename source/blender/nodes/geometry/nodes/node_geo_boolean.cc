@@ -160,11 +160,6 @@ static void node_geo_exec(GeoNodeExecParams params)
       selection.span[i] = true;
     }
     selection.finish();
-
-    params.set_output(
-        "Intersecting Edges",
-        AnonymousAttributeFieldInput::Create<bool>(
-            std::move(attribute_outputs.intersecting_edges_id), params.attribute_producer_name()));
   }
 
   params.set_output("Mesh", GeometrySet::create_with_mesh(result));

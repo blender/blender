@@ -81,9 +81,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (AnonymousAttributeIDPtr outer_points_id = params.get_output_anonymous_attribute_id_if_needed(
           "Outer Points")) {
     create_selection_output(output.get_component_for_write<CurveComponent>(), outer_points_id);
-    params.set_output("Outer Points",
-                      AnonymousAttributeFieldInput::Create<bool>(
-                          std::move(outer_points_id), params.attribute_producer_name()));
   }
   params.set_output("Curve", std::move(output));
 }
