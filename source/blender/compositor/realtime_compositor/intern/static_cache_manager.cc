@@ -4,6 +4,11 @@
 
 #include "BLI_math_vector_types.hh"
 
+#include "DNA_ID.h"
+#include "DNA_scene_types.h"
+#include "DNA_texture_types.h"
+
+#include "COM_context.hh"
 #include "COM_morphological_distance_feather_weights.hh"
 #include "COM_smaa_precomputed_textures.hh"
 #include "COM_symmetric_blur_weights.hh"
@@ -23,6 +28,12 @@ void StaticCacheManager::reset()
   symmetric_blur_weights_.remove_if([](auto item) { return !item.value->needed; });
   symmetric_separable_blur_weights_.remove_if([](auto item) { return !item.value->needed; });
   morphological_distance_feather_weights_.remove_if([](auto item) { return !item.value->needed; });
+
+  for (auto &cached_textures_for_id : cached_textures_.values()) {
+    cached_textures_for_id.remove_if([](auto item) { return !item.value->needed; });
+  }
+  cached_textures_.remove_if([](auto item) { return item.value.is_empty(); });
+
   if (smaa_precomputed_textures_ && !smaa_precomputed_textures_->needed) {
     smaa_precomputed_textures_.reset();
   }
@@ -37,6 +48,11 @@ void StaticCacheManager::reset()
   }
   for (auto &value : morphological_distance_feather_weights_.values()) {
     value->needed = false;
+  }
+  for (auto &cached_textures_for_id : cached_textures_.values()) {
+    for (auto &value : cached_textures_for_id.values()) {
+      value->needed = false;
+    }
   }
   if (smaa_precomputed_textures_) {
     smaa_precomputed_textures_->needed = false;
@@ -76,6 +92,24 @@ MorphologicalDistanceFeatherWeights &StaticCacheManager::
 
   weights.needed = true;
   return weights;
+}
+
+CachedTexture &StaticCacheManager::get_cached_texture(
+    Context &context, Tex *texture, const Scene *scene, int2 size, float2 offset, float2 scale)
+{
+  const CachedTextureKey key(size, offset, scale);
+
+  auto &cached_textures_for_id = cached_textures_.lookup_or_add_default(texture->id.name);
+
+  if (context.query_id_recalc_flag(reinterpret_cast<ID *>(texture)) & ID_RECALC_ALL) {
+    cached_textures_for_id.clear();
+  }
+
+  auto &cached_texture = *cached_textures_for_id.lookup_or_add_cb(
+      key, [&]() { return std::make_unique<CachedTexture>(texture, scene, size, offset, scale); });
+
+  cached_texture.needed = true;
+  return cached_texture;
 }
 
 SMAAPrecomputedTextures &StaticCacheManager::get_smaa_precomputed_textures()

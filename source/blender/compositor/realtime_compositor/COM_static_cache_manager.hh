@@ -7,12 +7,19 @@
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 
+#include "DNA_scene_types.h"
+#include "DNA_texture_types.h"
+
+#include "COM_cached_texture.hh"
+#include "COM_context.hh"
 #include "COM_morphological_distance_feather_weights.hh"
 #include "COM_smaa_precomputed_textures.hh"
 #include "COM_symmetric_blur_weights.hh"
 #include "COM_symmetric_separable_blur_weights.hh"
 
 namespace blender::realtime_compositor {
+
+class Context;
 
 /* -------------------------------------------------------------------------------------------------
  * Static Cache Manager
@@ -48,6 +55,11 @@ class StaticCacheManager {
   Map<MorphologicalDistanceFeatherWeightsKey, std::unique_ptr<MorphologicalDistanceFeatherWeights>>
       morphological_distance_feather_weights_;
 
+  /* A nested map that stores all CachedTexture cached resources. The outer map identifies the
+   * textures using their ID name, while the inner map identifies the textures using their
+   * parameters. */
+  Map<std::string, Map<CachedTextureKey, std::unique_ptr<CachedTexture>>> cached_textures_;
+
   /* A unique pointers that stores the cached SMAAPrecomputedTextures, if one is cached. */
   std::unique_ptr<SMAAPrecomputedTextures> smaa_precomputed_textures_;
 
@@ -76,6 +88,15 @@ class StaticCacheManager {
    * cached for the next evaluation. */
   MorphologicalDistanceFeatherWeights &get_morphological_distance_feather_weights(int type,
                                                                                   int radius);
+
+  /* Check if the given texture ID has changed since the last time it was retrieved through its
+   * recalculate flag, and if so, invalidate its corresponding cached textures and reset the
+   * recalculate flag to ready it to track the next change. Then, check if there is an available
+   * CachedTexture cached resource with the given parameters in the manager, if one exists, return
+   * it, otherwise, return a newly created one and add it to the manager. In both cases, tag the
+   * cached resource as needed to keep it cached for the next evaluation. */
+  CachedTexture &get_cached_texture(
+      Context &context, Tex *texture, const Scene *scene, int2 size, float2 offset, float2 scale);
 
   /* Check if a cached SMAA precomputed texture exists, if it does, return it, otherwise, return
    * a newly created one and store it in the manager. In both cases, tag the cached resource as
