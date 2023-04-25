@@ -619,14 +619,13 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna, "read_mesh_colors", true, "Color Attributes", "Read mesh color attributes");
 
-  RNA_def_string(
-      ot->srna,
-      "prim_path_mask",
-      NULL,
-      0,
-      "Path Mask",
-      "Import only the primitive at the given path and its descendents.  "
-      "Multiple paths may be specified in a list delimited by commas or semicolons");
+  RNA_def_string(ot->srna,
+                 "prim_path_mask",
+                 NULL,
+                 0,
+                 "Path Mask",
+                 "Import only the primitive at the given path and its descendents.  "
+                 "Multiple paths may be specified in a list delimited by commas or semicolons");
 
   RNA_def_boolean(ot->srna, "import_guide", false, "Guide", "Import guide geometry");
 
