@@ -10,6 +10,7 @@
 #include "scene/bake.h"
 #include "scene/camera.h"
 #include "scene/curves.h"
+#include "scene/devicescene.h"
 #include "scene/film.h"
 #include "scene/integrator.h"
 #include "scene/light.h"
@@ -24,7 +25,6 @@
 #include "scene/svm.h"
 #include "scene/tables.h"
 #include "scene/volume.h"
-#include "scene/devicescene.h"
 #include "session/session.h"
 
 #include "util/foreach.h"
@@ -33,8 +33,6 @@
 #include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
-
-
 
 Scene::Scene(const SceneParams &params_, Device *device)
     : name("Scene"),
