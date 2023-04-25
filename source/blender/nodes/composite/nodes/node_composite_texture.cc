@@ -55,7 +55,7 @@ class TextureOperation : public NodeOperation {
     }
 
     const Domain domain = compute_domain();
-    CachedTexture &cached_texture = context().cache_manager().get_cached_texture(
+    CachedTexture &cached_texture = context().cache_manager().cached_textures.get(
         context(),
         get_texture(),
         context().get_scene(),

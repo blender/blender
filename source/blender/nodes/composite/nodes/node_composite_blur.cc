@@ -136,7 +136,7 @@ class BlurOperation : public NodeOperation {
 
     const float2 blur_radius = compute_blur_radius();
 
-    const SymmetricBlurWeights &weights = context().cache_manager().get_symmetric_blur_weights(
+    const SymmetricBlurWeights &weights = context().cache_manager().symmetric_blur_weights.get(
         node_storage(bnode()).filtertype, blur_radius);
     weights.bind_as_texture(shader, "weights_tx");
 
@@ -171,7 +171,7 @@ class BlurOperation : public NodeOperation {
 
     const float2 blur_radius = compute_blur_radius();
 
-    const SymmetricBlurWeights &weights = context().cache_manager().get_symmetric_blur_weights(
+    const SymmetricBlurWeights &weights = context().cache_manager().symmetric_blur_weights.get(
         node_storage(bnode()).filtertype, blur_radius);
     weights.bind_as_texture(shader, "weights_tx");
 

@@ -3,7 +3,10 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
+#include <string>
 
+#include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "GPU_texture.h"
@@ -14,6 +17,8 @@
 #include "COM_cached_resource.hh"
 
 namespace blender::realtime_compositor {
+
+class Context;
 
 /* ------------------------------------------------------------------------------------------------
  * Cached Texture Key.
@@ -50,6 +55,26 @@ class CachedTexture : public CachedResource {
   GPUTexture *color_texture();
 
   GPUTexture *value_texture();
+};
+
+/* ------------------------------------------------------------------------------------------------
+ * Cached Texture Container.
+ */
+class CachedTextureContainer : CachedResourceContainer {
+ private:
+  Map<std::string, Map<CachedTextureKey, std::unique_ptr<CachedTexture>>> map_;
+
+ public:
+  void reset() override;
+
+  /* Check if the given texture ID has changed since the last time it was retrieved through its
+   * recalculate flag, and if so, invalidate its corresponding cached textures and reset the
+   * recalculate flag to ready it to track the next change. Then, check if there is an available
+   * CachedTexture cached resource with the given parameters in the container, if one exists,
+   * return it, otherwise, return a newly created one and add it to the container. In both cases,
+   * tag the cached resource as needed to keep it cached for the next evaluation. */
+  CachedTexture &get(
+      Context &context, Tex *texture, const Scene *scene, int2 size, float2 offset, float2 scale);
 };
 
 }  // namespace blender::realtime_compositor

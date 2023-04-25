@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <cstdint>
+#include <memory>
 
 #include "BLI_array.hh"
 #include "BLI_hash.hh"
@@ -12,12 +13,14 @@
 
 #include "BKE_texture.h"
 
+#include "DNA_ID.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
 #include "RE_texture.h"
 
 #include "COM_cached_texture.hh"
+#include "COM_context.hh"
 
 namespace blender::realtime_compositor {
 
@@ -97,6 +100,46 @@ GPUTexture *CachedTexture::color_texture()
 GPUTexture *CachedTexture::value_texture()
 {
   return value_texture_;
+}
+
+/* --------------------------------------------------------------------
+ * Cached Texture Container.
+ */
+
+void CachedTextureContainer::reset()
+{
+  /* First, delete all cached textures that are no longer needed. */
+  for (auto &cached_textures_for_id : map_.values()) {
+    cached_textures_for_id.remove_if([](auto item) { return !item.value->needed; });
+  }
+  map_.remove_if([](auto item) { return item.value.is_empty(); });
+
+  /* Second, reset the needed status of the remaining cached textures to false to ready them to
+   * track their needed status for the next evaluation. */
+  for (auto &cached_textures_for_id : map_.values()) {
+    for (auto &value : cached_textures_for_id.values()) {
+      value->needed = false;
+    }
+  }
+}
+
+CachedTexture &CachedTextureContainer::get(
+    Context &context, Tex *texture, const Scene *scene, int2 size, float2 offset, float2 scale)
+{
+  const CachedTextureKey key(size, offset, scale);
+
+  auto &cached_textures_for_id = map_.lookup_or_add_default(texture->id.name);
+
+  /* Invalidate the cache for that texture ID if it was changed and reset the recalculate flag. */
+  if (context.query_id_recalc_flag(reinterpret_cast<ID *>(texture)) & ID_RECALC_ALL) {
+    cached_textures_for_id.clear();
+  }
+
+  auto &cached_texture = *cached_textures_for_id.lookup_or_add_cb(
+      key, [&]() { return std::make_unique<CachedTexture>(texture, scene, size, offset, scale); });
+
+  cached_texture.needed = true;
+  return cached_texture;
 }
 
 }  // namespace blender::realtime_compositor

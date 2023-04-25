@@ -2,16 +2,7 @@
 
 #pragma once
 
-#include <memory>
-
-#include "BLI_map.hh"
-#include "BLI_math_vector_types.hh"
-
-#include "DNA_scene_types.h"
-#include "DNA_texture_types.h"
-
 #include "COM_cached_texture.hh"
-#include "COM_context.hh"
 #include "COM_morphological_distance_feather_weights.hh"
 #include "COM_smaa_precomputed_textures.hh"
 #include "COM_symmetric_blur_weights.hh"
@@ -19,15 +10,14 @@
 
 namespace blender::realtime_compositor {
 
-class Context;
-
 /* -------------------------------------------------------------------------------------------------
  * Static Cache Manager
  *
  * A static cache manager is a collection of cached resources that can be retrieved when needed and
- * created if not already available. In particular, each cached resource type has its own Map in
- * the class, where all instances of that cached resource type are stored and tracked. See the
- * CachedResource class for more information.
+ * created if not already available. In particular, each cached resource type has its own instance
+ * of a container derived from the CachedResourceContainer type in the class. All instances of that
+ * cached resource type are stored and tracked in the container. See the CachedResource and
+ * CachedResourceContainer classes for more information.
  *
  * The manager deletes the cached resources that are no longer needed. A cached resource is said to
  * be not needed when it was not used in the previous evaluation. This is done through the
@@ -43,65 +33,18 @@ class Context;
  * evaluation will be deleted before the next evaluation. This mechanism is implemented in the
  * reset() method of the class, which should be called before every evaluation. */
 class StaticCacheManager {
- private:
-  /* A map that stores all SymmetricBlurWeights cached resources. */
-  Map<SymmetricBlurWeightsKey, std::unique_ptr<SymmetricBlurWeights>> symmetric_blur_weights_;
-
-  /* A map that stores all SymmetricSeparableBlurWeights cached resources. */
-  Map<SymmetricSeparableBlurWeightsKey, std::unique_ptr<SymmetricSeparableBlurWeights>>
-      symmetric_separable_blur_weights_;
-
-  /* A map that stores all MorphologicalDistanceFeatherWeights cached resources. */
-  Map<MorphologicalDistanceFeatherWeightsKey, std::unique_ptr<MorphologicalDistanceFeatherWeights>>
-      morphological_distance_feather_weights_;
-
-  /* A nested map that stores all CachedTexture cached resources. The outer map identifies the
-   * textures using their ID name, while the inner map identifies the textures using their
-   * parameters. */
-  Map<std::string, Map<CachedTextureKey, std::unique_ptr<CachedTexture>>> cached_textures_;
-
-  /* A unique pointers that stores the cached SMAAPrecomputedTextures, if one is cached. */
-  std::unique_ptr<SMAAPrecomputedTextures> smaa_precomputed_textures_;
-
  public:
+  SymmetricBlurWeightsContainer symmetric_blur_weights;
+  SymmetricSeparableBlurWeightsContainer symmetric_separable_blur_weights;
+  MorphologicalDistanceFeatherWeightsContainer morphological_distance_feather_weights;
+  SMAAPrecomputedTexturesContainer smaa_precomputed_textures;
+  CachedTextureContainer cached_textures;
+
   /* Reset the cache manager by deleting the cached resources that are no longer needed because
    * they weren't used in the last evaluation and prepare the remaining cached resources to track
    * their needed status in the next evaluation. See the class description for more information.
    * This should be called before every evaluation. */
   void reset();
-
-  /* Check if there is an available SymmetricBlurWeights cached resource with the given parameters
-   * in the manager, if one exists, return it, otherwise, return a newly created one and add it to
-   * the manager. In both cases, tag the cached resource as needed to keep it cached for the next
-   * evaluation. */
-  SymmetricBlurWeights &get_symmetric_blur_weights(int type, float2 radius);
-
-  /* Check if there is an available SymmetricSeparableBlurWeights cached resource with the given
-   * parameters in the manager, if one exists, return it, otherwise, return a newly created one and
-   * add it to the manager. In both cases, tag the cached resource as needed to keep it cached for
-   * the next evaluation. */
-  SymmetricSeparableBlurWeights &get_symmetric_separable_blur_weights(int type, float radius);
-
-  /* Check if there is an available MorphologicalDistanceFeatherWeights cached resource with the
-   * given parameters in the manager, if one exists, return it, otherwise, return a newly created
-   * one and add it to the manager. In both cases, tag the cached resource as needed to keep it
-   * cached for the next evaluation. */
-  MorphologicalDistanceFeatherWeights &get_morphological_distance_feather_weights(int type,
-                                                                                  int radius);
-
-  /* Check if the given texture ID has changed since the last time it was retrieved through its
-   * recalculate flag, and if so, invalidate its corresponding cached textures and reset the
-   * recalculate flag to ready it to track the next change. Then, check if there is an available
-   * CachedTexture cached resource with the given parameters in the manager, if one exists, return
-   * it, otherwise, return a newly created one and add it to the manager. In both cases, tag the
-   * cached resource as needed to keep it cached for the next evaluation. */
-  CachedTexture &get_cached_texture(
-      Context &context, Tex *texture, const Scene *scene, int2 size, float2 offset, float2 scale);
-
-  /* Check if a cached SMAA precomputed texture exists, if it does, return it, otherwise, return
-   * a newly created one and store it in the manager. In both cases, tag the cached resource as
-   * needed to keep it cached for the next evaluation. */
-  SMAAPrecomputedTextures &get_smaa_precomputed_textures();
 };
 
 }  // namespace blender::realtime_compositor
