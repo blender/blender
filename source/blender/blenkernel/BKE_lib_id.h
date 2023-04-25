@@ -32,6 +32,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_userdef_enums.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -448,7 +450,7 @@ struct ID *BKE_id_copy(struct Main *bmain, const struct ID *id);
  */
 struct ID *BKE_id_copy_for_duplicate(struct Main *bmain,
                                      struct ID *id,
-                                     uint duplicate_flags,
+                                     eDupli_ID_Flags duplicate_flags,
                                      int copy_flags);
 
 /**
