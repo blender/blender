@@ -898,7 +898,7 @@ void BKE_collection_object_cache_free(Collection *collection)
   collection_object_cache_free(collection);
 
   LISTBASE_FOREACH (CollectionParent *, parent, &collection->runtime.parents) {
-    collection_object_cache_free(parent->collection);
+    BKE_collection_object_cache_free(parent->collection);
   }
 }
 
