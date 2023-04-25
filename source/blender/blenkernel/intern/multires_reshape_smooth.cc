@@ -488,9 +488,9 @@ static float get_effective_crease(const MultiresReshapeSmoothContext *reshape_sm
                                   const int base_edge_index)
 {
   if (!is_crease_supported(reshape_smooth_context)) {
-    return 255;
+    return 1.0f;
   }
-  const float *creases = reshape_smooth_context->reshape_context->cd_vertex_crease;
+  const float *creases = reshape_smooth_context->reshape_context->cd_edge_crease;
   return creases ? creases[base_edge_index] : 0.0f;
 }
 
@@ -617,13 +617,11 @@ static void foreach_single_vertex(const SubdivForeachContext *foreach_context,
 
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
   const float *cd_vertex_crease = reshape_context->cd_vertex_crease;
-
   if (cd_vertex_crease == nullptr) {
     return;
   }
 
   float crease = cd_vertex_crease[coarse_vertex_index];
-
   if (crease == 0.0f) {
     return;
   }
