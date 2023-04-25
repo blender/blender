@@ -263,7 +263,7 @@ void VelocityModule::end_sync()
 
   uint32_t max_resource_id_ = 1u;
 
-  for (Map<ObjectKey, VelocityObjectData>::Item item : velocity_map.items()) {
+  for (MapItem<ObjectKey, VelocityObjectData> item : velocity_map.items()) {
     if (item.value.obj.resource_id == uint32_t(-1)) {
       deleted_obj.append(item.key);
     }

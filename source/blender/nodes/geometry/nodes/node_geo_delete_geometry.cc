@@ -44,7 +44,7 @@ static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes
                             bke::MutableAttributeAccessor dst_attributes,
                             const Span<eAttrDomain> domains)
 {
-  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     GAttributeReader attribute = src_attributes.lookup(attribute_id);
     if (!attribute) {
@@ -75,7 +75,7 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
                                           const eAttrDomain domain,
                                           const IndexMask mask)
 {
-  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     GAttributeReader attribute = src_attributes.lookup(attribute_id);
     if (!attribute) {
@@ -104,7 +104,7 @@ static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind
                                          const eAttrDomain domain,
                                          const Span<int> index_map)
 {
-  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     GAttributeReader attribute = src_attributes.lookup(attribute_id);
     if (!attribute) {

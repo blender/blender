@@ -112,7 +112,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   attributes.remove("radius");
   attributes.remove("position");
 
-  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     const eCustomDataType data_type = entry.value.data_type;
     const bke::GAttributeReader src = src_attributes.lookup(attribute_id, domain, data_type);

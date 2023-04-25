@@ -294,7 +294,7 @@ BLI_NOINLINE static void propagate_existing_attributes(
   const AttributeAccessor mesh_attributes = mesh.attributes();
   MutableAttributeAccessor point_attributes = points.attributes_for_write();
 
-  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     const eCustomDataType output_data_type = entry.value.data_type;
 
