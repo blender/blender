@@ -126,7 +126,6 @@ typedef enum eAssetImportMethod {
   ASSET_IMPORT_APPEND_REUSE = 2,
 } eAssetImportMethod;
 
-
 typedef enum eAssetLibrary_Flag {
   ASSET_LIBRARY_RELATIVE_PATH = (1 << 0),
 } eAssetLibrary_Flag;

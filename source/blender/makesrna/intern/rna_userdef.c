@@ -6262,9 +6262,7 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_relative_path", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ASSET_LIBRARY_RELATIVE_PATH);
   RNA_def_property_ui_text(
-      prop,
-      "Relative Path",
-      "Use relative path when linking assets from this asset library");
+      prop, "Relative Path", "Use relative path when linking assets from this asset library");
 }
 
 static void rna_def_userdef_script_directory(BlenderRNA *brna)
