@@ -823,6 +823,7 @@ const char *file_context_dir[] = {
     "asset_library_ref",
     "selected_asset_files",
     "id",
+    "selected_ids",
     NULL,
 };
 
@@ -909,6 +910,24 @@ static int /*eContextResult*/ file_context(const bContext *C,
     }
 
     CTX_data_id_pointer_set(result, id);
+    return CTX_RESULT_OK;
+  }
+  if (CTX_data_equals(member, "selected_ids")) {
+    const int num_files_filtered = filelist_files_ensure(sfile->files);
+
+    for (int file_index = 0; file_index < num_files_filtered; file_index++) {
+      if (!filelist_entry_is_selected(sfile->files, file_index)) {
+        continue;
+      }
+      ID *id = filelist_entry_get_id(sfile->files, file_index);
+      if (!id) {
+        continue;
+      }
+
+      CTX_data_id_list_add(result, id);
+    }
+
+    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
     return CTX_RESULT_OK;
   }
 

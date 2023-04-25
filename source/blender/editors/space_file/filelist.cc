@@ -2188,6 +2188,14 @@ int filelist_file_find_id(const FileList *filelist, const ID *id)
   return -1;
 }
 
+ID *filelist_entry_get_id(const FileList *filelist, const int index)
+{
+  BLI_assert(index >= 0 && index < filelist->filelist.entries_filtered_num);
+
+  const FileListInternEntry *intern_entry = filelist->filelist_intern.filtered[index];
+  return intern_entry->local_data.id;
+}
+
 ID *filelist_file_get_id(const FileDirEntry *file)
 {
   return file->id;
