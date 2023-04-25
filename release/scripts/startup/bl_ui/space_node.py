@@ -255,6 +255,7 @@ class NODE_MT_view(Menu):
 
         layout.separator()
 
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("node.view_selected")
         layout.operator("node.view_all")
 
