@@ -203,17 +203,22 @@ class VKPushConstants : VKResourceTracker<VKUniformBuffer> {
                          const T *input_data)
   {
     const Layout::PushConstant *push_constant_layout = layout_->find(location);
-    BLI_assert(push_constant_layout);
+    if (push_constant_layout == nullptr) {
+      /* Legacy code can still try to update push constants when they don't exist. For example
+       * `immDrawPixelsTexSetup` will bind an image slot manually. This works in OpenGL, but in
+       * vulkan images aren't stored as push constants. */
+      return;
+    }
 
     uint8_t *bytes = static_cast<uint8_t *>(data_);
     T *dst = static_cast<T *>(static_cast<void *>(&bytes[push_constant_layout->offset]));
     const bool is_tightly_std140_packed = (comp_len % 4) == 0;
     if (layout_->storage_type_get() == StorageType::PUSH_CONSTANTS || array_size == 0 ||
-        is_tightly_std140_packed) {
-      BLI_assert_msg(push_constant_layout->offset + comp_len * array_size * sizeof(T) <=
-                         layout_->size_in_bytes(),
+        push_constant_layout->array_size == 0 || is_tightly_std140_packed) {
+      const size_t copy_size_in_bytes = comp_len * max_ii(array_size, 1) * sizeof(T);
+      BLI_assert_msg(push_constant_layout->offset + copy_size_in_bytes <= layout_->size_in_bytes(),
                      "Tried to write outside the push constant allocated memory.");
-      memcpy(dst, input_data, comp_len * array_size * sizeof(T));
+      memcpy(dst, input_data, copy_size_in_bytes);
       is_dirty_ = true;
       return;
     }
