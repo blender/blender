@@ -67,6 +67,8 @@ class AssetLibrary {
    * #import_method_ above, it's just a default. */
   bool may_override_import_method_ = false;
 
+  bool use_relative_path_ = true;
+
   bCallbackFuncStore on_save_callback_store_{};
 
  public:
