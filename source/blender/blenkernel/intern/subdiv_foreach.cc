@@ -1728,7 +1728,7 @@ static void subdiv_foreach_mark_non_loose_geometry(SubdivForeachTaskContext *ctx
   for (const int poly_index : ctx->coarse_polys.index_range()) {
     for (const int corner : ctx->coarse_polys[poly_index]) {
       BLI_BITMAP_ENABLE(ctx->coarse_vertices_used_map, ctx->coarse_corner_verts[corner]);
-      BLI_BITMAP_ENABLE(ctx->coarse_edges_used_map, ctx->coarse_corner_verts[corner]);
+      BLI_BITMAP_ENABLE(ctx->coarse_edges_used_map, ctx->coarse_corner_edges[corner]);
     }
   }
 }
