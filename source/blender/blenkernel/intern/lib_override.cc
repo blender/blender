@@ -2101,22 +2101,30 @@ static bool lib_override_library_resync(Main *bmain,
     }
     /* Also deal with old overrides that went missing in new linked data - only for real local
      * overrides for now, not those who are linked. */
-    else if (id->tag & LIB_TAG_MISSING && !ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY(id)) {
-      if (ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
-          id->override_library->reference->lib->id.tag & LIB_TAG_MISSING) {
+    else if (id->tag & LIB_TAG_MISSING && !ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      bool do_delete;
+      ID *hierarchy_root = id->override_library->hierarchy_root;
+      if (id->override_library->reference->lib->id.tag & LIB_TAG_MISSING) {
         /* Do not delete overrides which reference is missing because the library itself is missing
          * (ref. #100586). */
+        do_delete = false;
+      }
+      else if (hierarchy_root != nullptr &&
+               hierarchy_root->override_library->reference->tag & LIB_TAG_MISSING) {
+        /* Do not delete overrides which root hierarchy reference is missing. This would typically
+         * cause more harm than good. */
+        do_delete = false;
       }
       else if (!BKE_lib_override_library_is_user_edited(id)) {
         /* If user never edited them, we can delete them. */
-        id->tag |= LIB_TAG_DOIT;
-        id->tag &= ~LIB_TAG_MISSING;
+        do_delete = true;
         CLOG_INFO(&LOG, 2, "Old override %s is being deleted", id->name);
       }
 #if 0
       else {
         /* Otherwise, keep them, user needs to decide whether what to do with them. */
         BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
+        do_delete = false;
         id_fake_user_set(id);
         id->flag |= LIB_LIB_OVERRIDE_RESYNC_LEFTOVER;
         CLOG_INFO(&LOG, 2, "Old override %s is being kept around as it was user-edited", id->name);
@@ -2125,13 +2133,16 @@ static bool lib_override_library_resync(Main *bmain,
       else {
         /* Delete them nevertheless, with fat warning, user needs to decide whether they want to
          * save that version of the file (and accept the loss), or not. */
-        id->tag |= LIB_TAG_DOIT;
-        id->tag &= ~LIB_TAG_MISSING;
+        do_delete = true;
         CLOG_WARN(
             &LOG, "Old override %s is being deleted even though it was user-edited", id->name);
         user_edited_overrides_deletion_count++;
       }
 #endif
+      if (do_delete) {
+        id->tag |= LIB_TAG_DOIT;
+        id->tag &= ~LIB_TAG_MISSING;
+      }
     }
   }
   FOREACH_MAIN_ID_END;
@@ -2375,6 +2386,41 @@ static bool lib_override_resync_tagging_finalize_recurse(
   return is_ancestor_tagged_for_resync;
 }
 
+/* Return true if the ID should be skipped for resync given current context. */
+static bool lib_override_library_main_resync_id_skip_check(ID *id,
+                                                           const int library_indirect_level)
+{
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    return true;
+  }
+
+  if (!lib_override_resync_id_lib_level_is_valid(id, library_indirect_level, true)) {
+    return true;
+  }
+
+  /* Do not attempt to resync from missing data. */
+  if (((id->tag | id->override_library->reference->tag) & LIB_TAG_MISSING) != 0) {
+    return true;
+  }
+
+  if (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY) {
+    /* This ID is not part of an override hierarchy. */
+    BLI_assert((id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) == 0);
+    return true;
+  }
+
+  /* Do not attempt to resync when hierarchy root is missing, this would usually do more harm
+   * than good. */
+  ID *hierarchy_root = id->override_library->hierarchy_root;
+  if (hierarchy_root == nullptr ||
+      ((hierarchy_root->tag | hierarchy_root->override_library->reference->tag) &
+       LIB_TAG_MISSING) != 0) {
+    return true;
+  }
+
+  return false;
+}
+
 /* Ensure resync of all overrides at one level of indirect usage.
  *
  * We need to handle each level independently, since an override at level n may be affected by
@@ -2411,26 +2457,12 @@ static void lib_override_library_main_resync_on_library_indirect_level(
   lib_override_group_tag_data_object_to_collection_init(&data);
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
-      continue;
-    }
-
-    if (!lib_override_resync_id_lib_level_is_valid(id, library_indirect_level, true)) {
+    if (lib_override_library_main_resync_id_skip_check(id, library_indirect_level)) {
       continue;
     }
 
     if (id->tag & (LIB_TAG_DOIT | LIB_TAG_MISSING)) {
       /* We already processed that ID as part of another ID's hierarchy. */
-      continue;
-    }
-
-    /* Do not attempt to resync from missing data. */
-    if (((id->tag | id->override_library->reference->tag) & LIB_TAG_MISSING) != 0) {
-      continue;
-    }
-
-    if (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY) {
-      /* This ID is not part of an override hierarchy. */
       continue;
     }
 
@@ -2449,22 +2481,7 @@ static void lib_override_library_main_resync_on_library_indirect_level(
    * such, or the one using linked data that is now tagged as needing override. */
   BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
-      continue;
-    }
-
-    if (!lib_override_resync_id_lib_level_is_valid(id, library_indirect_level, true)) {
-      continue;
-    }
-
-    /* Do not attempt to resync from missing data. */
-    if (((id->tag | id->override_library->reference->tag) & LIB_TAG_MISSING) != 0) {
-      continue;
-    }
-
-    if (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY) {
-      /* This ID is not part of an override hierarchy. */
-      BLI_assert((id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) == 0);
+    if (lib_override_library_main_resync_id_skip_check(id, library_indirect_level)) {
       continue;
     }
 
