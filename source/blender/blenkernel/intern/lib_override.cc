@@ -2076,6 +2076,7 @@ static bool lib_override_library_resync(Main *bmain,
   }
   BKE_id_remapper_free(id_remapper);
   BLI_linklist_free(id_override_old_list, nullptr);
+  id_override_old_list = nullptr;
 
   /* Delete old override IDs.
    * Note that we have to use tagged group deletion here, since ID deletion also uses
@@ -2083,17 +2084,24 @@ static bool lib_override_library_resync(Main *bmain,
   int user_edited_overrides_deletion_count = 0;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (id->tag & LIB_TAG_DOIT) {
-      /* Note that this works because linked IDs are always after local ones (including
-       * overrides), so we will only ever tag an old override ID after we have already checked it
-       * in this loop, hence we cannot untag it later. */
+      /* Since this code can also be called on linked liboverride now (during recursive resync),
+       * order of processing cannot guarantee anymore that the old liboverride won't be tagged for
+       * deletion before being processed by this loop (which would then untag it again).
+       *
+       * So instead store old liboverrides in Main into a temp list again, and do the tagging
+       * separately once this loop over all IDs in main is done. */
       if (id->newid != nullptr && id->lib == id_root_reference->lib) {
         ID *id_override_old = static_cast<ID *>(BLI_ghash_lookup(linkedref_to_old_override, id));
 
         if (id_override_old != nullptr) {
           id->newid->tag &= ~LIB_TAG_DOIT;
-          id_override_old->tag |= LIB_TAG_DOIT;
           if (id_override_old->tag & LIB_TAG_NO_MAIN) {
+            id_override_old->tag |= LIB_TAG_DOIT;
             BLI_assert(BLI_findindex(no_main_ids_list, id_override_old) != -1);
+          }
+          else {
+            /* Defer tagging. */
+            BLI_linklist_prepend(&id_override_old_list, id_override_old);
           }
         }
       }
@@ -2146,6 +2154,13 @@ static bool lib_override_library_resync(Main *bmain,
     }
   }
   FOREACH_MAIN_ID_END;
+
+  /* Finalize tagging old liboverrides for deletion. */
+  for (LinkNode *ln_iter = id_override_old_list; ln_iter != nullptr; ln_iter = ln_iter->next) {
+    ID *id_override_old = static_cast<ID *>(ln_iter->link);
+    id_override_old->tag |= LIB_TAG_DOIT;
+  }
+  BLI_linklist_free(id_override_old_list, nullptr);
 
   /* Cleanup, many pointers in this GHash are already invalid now. */
   BLI_ghash_free(linkedref_to_old_override, nullptr, nullptr);
@@ -2704,6 +2719,9 @@ static int lib_override_libraries_index_define(Main *bmain)
     do_continue = false;
     ID *id;
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
+      /* NOTE: In theory all non-liboverride IDs could be skipped here. This does not gives any
+       * performances boost though, so for now keep it as is (i.e. also consider non-liboverride
+       * relationships to establish libraries hierarchy). */
       BKE_library_foreach_ID_link(
           bmain, id, lib_override_sort_libraries_func, &do_continue, IDWALK_READONLY);
     }
