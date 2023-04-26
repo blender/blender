@@ -18,6 +18,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
 }
 
+#ifdef WITH_OPENSUBDIV
 static Mesh *simple_subdivide_mesh(const Mesh &mesh, const int level)
 {
   /* Initialize mesh settings. */
@@ -47,6 +48,7 @@ static Mesh *simple_subdivide_mesh(const Mesh &mesh, const int level)
 
   return result;
 }
+#endif /* WITH_OPENSUBDIV */
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
