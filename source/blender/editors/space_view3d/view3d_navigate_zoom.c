@@ -48,34 +48,6 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 
   keymap = WM_modalkeymap_ensure(keyconf, "View3D Zoom Modal", modal_items);
 
-  /* disabled mode switching for now, can re-implement better, later on */
-#if 0
-  WM_modalkeymap_add_item(keymap,
-                          &(const KeyMapItem_Params){
-                              .type = LEFTMOUSE,
-                              .value = KM_RELEASE,
-                              .modifier = KM_ANY,
-                              .direction = KM_ANY,
-                          },
-                          VIEWROT_MODAL_SWITCH_ROTATE);
-  WM_modalkeymap_add_item(keymap,
-                          &(const KeyMapItem_Params){
-                              .type = EVT_LEFTCTRLKEY,
-                              .value = KM_RELEASE,
-                              .modifier = KM_ANY,
-                              .direction = KM_ANY,
-                          },
-                          VIEWROT_MODAL_SWITCH_ROTATE);
-  WM_modalkeymap_add_item(keymap,
-                          &(const KeyMapItem_Params){
-                              .type = EVT_LEFTSHIFTKEY,
-                              .value = KM_PRESS,
-                              .modifier = KM_ANY,
-                              .direction = KM_ANY,
-                          },
-                          VIEWROT_MODAL_SWITCH_MOVE);
-#endif
-
   /* assign map to operators */
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom");
 }
