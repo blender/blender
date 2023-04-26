@@ -4315,7 +4315,7 @@ int RNA_property_collection_lookup_string_index(
         found = 1;
       }
 
-      if ((char *)&name != nameptr) {
+      if (name != nameptr) {
         MEM_freeN(nameptr);
       }
 
