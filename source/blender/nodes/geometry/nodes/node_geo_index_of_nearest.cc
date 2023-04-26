@@ -64,7 +64,6 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
                                  const IndexMask mask) const final
   {
-    SCOPED_TIMER_AVERAGED(__func__);
     if (!context.attributes()) {
       return {};
     }
@@ -93,10 +92,11 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
       group_indexing.add(group_id);
     }
 
-    /* Each group id has two corresponding index masks. One that contains all the points in the
-     * group, one that contains all the points in the group that should be looked up (this is the
-     * intersection of the points in the group and `mask`). In many cases, both of these masks are
-     * the same or very similar, so there is no benefit two separate masks. */
+    /* Each group ID has two corresponding index masks. One that contains all the points
+     * in each group and one that contains all the points in the group that should be looked up
+     * (the intersection of the points in the group and `mask`). In many cases, both of these
+     * masks are the same or very similar, so there is not enough benefit for a separate mask
+     * for the lookups. */
     const bool use_separate_lookup_indices = mask.size() < domain_size / 2;
 
     Array<Vector<int64_t>> all_indices_by_group_id(group_indexing.size());
