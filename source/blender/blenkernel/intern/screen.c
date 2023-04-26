@@ -242,7 +242,7 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
           }
         }
 
-        /* Both `snode->id` and `snode->nodetree` have been remapped now, sotheir data can be
+        /* Both `snode->id` and `snode->nodetree` have been remapped now, so their data can be
          * accessed. */
         BLI_assert(snode->id == NULL || snode->nodetree == NULL ||
                    (snode->nodetree->id.flag & LIB_EMBEDDED_DATA) == 0 ||

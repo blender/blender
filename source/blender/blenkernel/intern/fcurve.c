@@ -1900,7 +1900,7 @@ void BKE_fcurve_deduplicate_keys(FCurve *fcu)
       }
       else {
         /* Move the retained key to the old X-coordinate, to 'anchor' the X-coordinate used for
-         * subsequente comparisons. Without this, the reference X-coordinate would keep moving
+         * subsequent comparisons. Without this, the reference X-coordinate would keep moving
          * forward in time, potentially merging in more keys than desired. */
         BKE_fcurve_keyframe_move_time_with_handles(prev_bezt, prev_x);
       }

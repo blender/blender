@@ -974,7 +974,7 @@ typedef enum IDRecalcFlag {
   /* ** Particle system changed. ** */
   /* Only do pathcache etc. */
   ID_RECALC_PSYS_REDO = (1 << 3),
-  /* Reset everything including pointcache. */
+  /* Reset everything including point-cache. */
   ID_RECALC_PSYS_RESET = (1 << 4),
   /* Only child settings changed. */
   ID_RECALC_PSYS_CHILD = (1 << 5),

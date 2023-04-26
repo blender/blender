@@ -321,7 +321,7 @@ typedef struct Mesh {
    */
   void loose_edges_tag_none() const;
   /**
-   * Set the number of verices not connected to edges to zero. Similar to #loose_edges_tag_none().
+   * Set the number of vertices not connected to edges to zero. Similar to #loose_edges_tag_none().
    * There may still be vertices only used by loose edges though.
    *
    * \note If both #loose_edges_tag_none() and #tag_loose_verts_none() are called,

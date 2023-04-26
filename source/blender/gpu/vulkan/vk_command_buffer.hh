@@ -60,13 +60,13 @@ class VKCommandBuffer : NonCopyable, NonMovable {
    * - minimize command buffers and track render passes.
    * - add custom encoder to also track resource usages.
    *
-   * Currently I expect the custom encoder has to be done eventually. But want to keep post-poning
+   * Currently I expect the custom encoder has to be done eventually. But want to keep postponing
    * the custom encoder for now to collect more use cases it should solve. (first pixel drawn on
    * screen).
    *
    * Some command can also be encoded in another way when encoded as a first command. For example
-   * clearing a framebuffer textures isn't allowed inside a render pass, but clearing the
-   * framebuffer textures via ops is allowed. When clearing a framebuffer texture directly after
+   * clearing a frame-buffer textures isn't allowed inside a render pass, but clearing the
+   * frame-buffer textures via ops is allowed. When clearing a frame-buffer texture directly after
    * beginning a render pass could be re-encoded to do this in the same command.
    *
    * So for now we track the state and temporary switch to another state if the command requires
