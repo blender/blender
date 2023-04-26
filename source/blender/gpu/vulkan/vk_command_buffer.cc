@@ -9,6 +9,7 @@
 #include "vk_buffer.hh"
 #include "vk_context.hh"
 #include "vk_framebuffer.hh"
+#include "vk_index_buffer.hh"
 #include "vk_memory.hh"
 #include "vk_pipeline.hh"
 #include "vk_texture.hh"
@@ -101,6 +102,14 @@ void VKCommandBuffer::bind(const uint32_t binding,
   validate_framebuffer_exists();
   ensure_active_framebuffer();
   vkCmdBindVertexBuffers(vk_command_buffer_, binding, 1, &vk_vertex_buffer, &offset);
+}
+
+void VKCommandBuffer::bind(const VKIndexBuffer &index_buffer, VkIndexType index_type)
+{
+  validate_framebuffer_exists();
+  ensure_active_framebuffer();
+  VkBuffer vk_buffer = index_buffer.vk_handle();
+  vkCmdBindIndexBuffer(vk_command_buffer_, vk_buffer, 0, index_type);
 }
 
 void VKCommandBuffer::begin_render_pass(const VKFrameBuffer &framebuffer)

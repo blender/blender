@@ -131,6 +131,7 @@ class VKCommandBuffer : NonCopyable, NonMovable {
   void init(const VkDevice vk_device, const VkQueue vk_queue, VkCommandBuffer vk_command_buffer);
   void begin_recording();
   void end_recording();
+
   void bind(const VKPipeline &vk_pipeline, VkPipelineBindPoint bind_point);
   void bind(const VKDescriptorSet &descriptor_set,
             const VkPipelineLayout vk_pipeline_layout,
@@ -140,6 +141,7 @@ class VKCommandBuffer : NonCopyable, NonMovable {
             const VkDeviceSize offset);
   /* Bind the given buffer as a vertex buffer. */
   void bind(const uint32_t binding, const VkBuffer &vk_vertex_buffer, const VkDeviceSize offset);
+  void bind(const VKIndexBuffer &index_buffer, VkIndexType index_type);
 
   void begin_render_pass(const VKFrameBuffer &framebuffer);
   void end_render_pass(const VKFrameBuffer &framebuffer);
