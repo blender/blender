@@ -962,16 +962,18 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
 
 /**
  * Pack islands using a mix of other strategies.
- * \param islands: The islands to be packed. Will be modified with results.
+ * \param islands: The islands to be packed.
  * \param scale: Scale islands by `scale` before packing.
  * \param margin: Add `margin` units around islands before packing.
  * \param params: Additional parameters. Scale and margin information is ignored.
+ * \param r_phis: Island layout information will be written here.
  * \return Size of square covering the resulting packed UVs. The maximum `u` or `v` co-ordinate.
  */
 static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                                        const float scale,
                                        const float margin,
-                                       const UVPackIsland_Params &params)
+                                       const UVPackIsland_Params &params,
+                                       MutableSpan<uv_phi> r_phis)
 {
   /* #BLI_box_pack_2d produces layouts with high packing efficiency, but has `O(n^3)`
    * time complexity, causing poor performance if there are lots of islands. See: #102843.
@@ -987,8 +989,6 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
    * - Call #BLI_box_pack_2d on the first `alpaca_cutoff` islands.
    * - Call #pack_islands_alpaca_* on the remaining islands.
    */
-
-  blender::Array<uv_phi> phis(islands.size());
 
   /* First, copy information from our input into the AABB structure. */
   Array<UVAABBIsland *> aabbs(islands.size());
@@ -1056,7 +1056,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                          scale,
                          margin,
                          params,
-                         phis.as_mutable_span(),
+                         r_phis,
                          &max_u,
                          &max_v);
       break;
@@ -1066,7 +1066,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                               scale,
                               margin,
                               params.target_aspect_y,
-                              phis.as_mutable_span(),
+                              r_phis,
                               &max_u,
                               &max_v);
       break;
@@ -1076,25 +1076,11 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
 
   /* Call Alpaca. */
   if (params.rotate) {
-    pack_islands_alpaca_rotate(max_box_pack,
-                               aabbs.as_mutable_span(),
-                               params.target_aspect_y,
-                               phis.as_mutable_span(),
-                               &max_u,
-                               &max_v);
+    pack_islands_alpaca_rotate(
+        max_box_pack, aabbs, params.target_aspect_y, r_phis, &max_u, &max_v);
   }
   else {
-    pack_islands_alpaca_turbo(max_box_pack,
-                              aabbs.as_mutable_span(),
-                              params.target_aspect_y,
-                              phis.as_mutable_span(),
-                              &max_u,
-                              &max_v);
-  }
-
-  /* Write back UVs. */
-  for (int64_t i = 0; i < aabbs.size(); i++) {
-    islands[i]->place_(scale, phis[i]);
+    pack_islands_alpaca_turbo(max_box_pack, aabbs, params.target_aspect_y, r_phis, &max_u, &max_v);
   }
 
   return std::max(max_u / params.target_aspect_y, max_v);
@@ -1103,7 +1089,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
 /** Find the optimal scale to pack islands into the unit square.
  * returns largest scale that will pack `islands` into the unit square.
  */
-static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vector,
+static float pack_islands_margin_fraction(const Span<PackIsland *> &islands,
                                           const float margin_fraction,
                                           const UVPackIsland_Params &params)
 {
@@ -1118,7 +1104,10 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vecto
   float value_low = 0.0f;
   float scale_high = 0.0f;
   float value_high = 0.0f;
-  float scale_last = 0.0f;
+
+  blender::Array<uv_phi> phis_a(islands.size());
+  blender::Array<uv_phi> phis_b(islands.size());
+  blender::Array<uv_phi> *phis_low = nullptr;
 
   /* Scaling smaller than `min_scale_roundoff` is unlikely to fit and
    * will destroy information in existing UVs. */
@@ -1166,19 +1155,23 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vecto
         /* Modified binary-search to improve robustness. */
         scale = sqrtf(scale * sqrtf(scale_low * scale_high));
       }
+
+      BLI_assert(scale_low < scale);
+      BLI_assert(scale < scale_high);
     }
 
     scale = std::max(scale, min_scale_roundoff);
 
     /* Evaluate our `f`. */
-    scale_last = scale;
+    blender::Array<uv_phi> *phis_target = (phis_low == &phis_a) ? &phis_b : &phis_a;
     const float max_uv = pack_islands_scale_margin(
-        island_vector, scale_last, margin_fraction, params);
+        islands, scale, margin_fraction, params, *phis_target);
     const float value = sqrtf(max_uv) - 1.0f;
 
     if (value <= 0.0f) {
       scale_low = scale;
       value_low = value;
+      phis_low = phis_target;
     }
     else {
       scale_high = scale;
@@ -1188,28 +1181,25 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &island_vecto
         scale_low = scale;
         break;
       }
+      if (!phis_low) {
+        phis_low = phis_target; /* May as well do "something", even if it's wrong. */
+      }
     }
   }
 
-  const bool flush = true;
-  if (flush) {
+  if (phis_low) {
     /* Write back best pack as a side-effect. */
-    if (scale_last != scale_low) {
-      scale_last = scale_low;
-      const float max_uv = pack_islands_scale_margin(
-          island_vector, scale_last, margin_fraction, params);
-      BLI_assert(max_uv == value_low);
-      UNUSED_VARS(max_uv);
-      /* TODO (?): `if (max_uv < 1.0f) { scale_last /= max_uv; }` */
+    for (const int64_t i : islands.index_range()) {
+      islands[i]->place_(scale_low, (*phis_low)[i]);
     }
   }
-  return scale_last;
+  return scale_low;
 }
 
 static float calc_margin_from_aabb_length_sum(const Span<PackIsland *> &island_vector,
                                               const UVPackIsland_Params &params)
 {
-  /* Logic matches behavior from #geometry::uv_parametrizer_pack.
+  /* Logic matches previous behavior from #geometry::uv_parametrizer_pack.
    * Attempt to give predictable results not dependent on current UV scale by using
    * `aabb_length_sum` (was "`area`") to multiply the margin by the length (was "area"). */
   double aabb_length_sum = 0.0f;
@@ -1361,21 +1351,22 @@ void pack_islands(const Span<PackIsland *> &islands,
                   const UVPackIsland_Params &params,
                   float r_scale[2])
 {
+  BLI_assert(0.0f <= params.margin);
+  BLI_assert(0.0f <= params.target_aspect_y);
+
+  if (islands.size() == 0) {
+    r_scale[0] = 1.0f;
+    r_scale[1] = 1.0f;
+    return; /* Nothing to do, just create a safe default. */
+  }
+
   if (params.merge_overlap) {
     return OverlapMerger::pack_islands_overlap(islands, params, r_scale);
   }
 
   finalize_geometry(islands, params);
 
-  if (params.margin == 0.0f) {
-    /* Special case for zero margin. Margin_method is ignored as all formulas give same result. */
-    const float max_uv = pack_islands_scale_margin(islands, 1.0f, 0.0f, params);
-    r_scale[0] = 1.0f / max_uv;
-    r_scale[1] = r_scale[0];
-    return;
-  }
-
-  if (params.margin_method == ED_UVPACK_MARGIN_FRACTION) {
+  if (params.margin_method == ED_UVPACK_MARGIN_FRACTION && params.margin > 0.0f) {
     /* Uses a line search on scale. ~10x slower than other method. */
     const float scale = pack_islands_margin_fraction(islands, params.margin, params);
     r_scale[0] = scale;
@@ -1390,14 +1381,20 @@ void pack_islands(const Span<PackIsland *> &islands,
     case ED_UVPACK_MARGIN_SCALED: /* Default for Blender 3.3 and later. */
       margin = calc_margin_from_aabb_length_sum(islands, params);
       break;
-    case ED_UVPACK_MARGIN_FRACTION: /* Added as an option in Blender 3.4. */
-      BLI_assert_unreachable();     /* Handled above. */
+    case ED_UVPACK_MARGIN_FRACTION:      /* Added as an option in Blender 3.4. */
+      BLI_assert(params.margin == 0.0f); /* Other (slower) cases are handled above. */
       break;
     default:
       BLI_assert_unreachable();
   }
 
-  const float max_uv = pack_islands_scale_margin(islands, 1.0f, margin, params);
+  blender::Array<uv_phi> phis(islands.size());
+
+  const float scale = 1.0f;
+  const float max_uv = pack_islands_scale_margin(islands, scale, margin, params, phis);
+  for (const int64_t i : islands.index_range()) {
+    islands[i]->place_(scale, phis[i]);
+  }
   r_scale[0] = 1.0f / max_uv;
   r_scale[1] = r_scale[0];
 }
