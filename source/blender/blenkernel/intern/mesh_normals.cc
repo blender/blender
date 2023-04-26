@@ -678,8 +678,6 @@ struct LoopSplitTaskData {
   /** We have to create those outside of tasks, since #MemArena is not thread-safe. */
   MLoopNorSpace *lnor_space;
   int ml_curr_index;
-  /** Also used a flag to switch between single or fan process! */
-  int ml_prev_index;
   int poly_index;
 
   Type flag;
@@ -864,6 +862,7 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
 
   const Span<float3> positions = common_data->positions;
   const Span<int2> edges = common_data->edges;
+  const OffsetIndices polys = common_data->polys;
   const Span<int> corner_verts = common_data->corner_verts;
   const Span<int> corner_edges = common_data->corner_edges;
   const Span<float3> poly_normals = common_data->poly_normals;
@@ -871,7 +870,6 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
 
   MLoopNorSpace *lnor_space = data->lnor_space;
   const int ml_curr_index = data->ml_curr_index;
-  const int ml_prev_index = data->ml_prev_index;
   const int poly_index = data->poly_index;
 
   /* Simple case (both edges around that vertex are sharp in current polygon),
@@ -890,6 +888,7 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
   /* If needed, generate this (simple!) lnor space. */
   if (lnors_spacearr) {
     float vec_curr[3], vec_prev[3];
+    const int ml_prev_index = mesh::poly_corner_prev(polys[poly_index], ml_curr_index);
 
     /* The vertex we are "fanning" around. */
     const int vert_pivot = corner_verts[ml_curr_index];
@@ -936,8 +935,8 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
   float(*lnor)[3] = data->lnor;
 #endif
   const int ml_curr_index = data->ml_curr_index;
-  const int ml_prev_index = data->ml_prev_index;
   const int poly_index = data->poly_index;
+  const int ml_prev_index = poly_corner_prev(polys[poly_index], ml_curr_index);
 
   /* Sigh! we have to fan around current vertex, until we find the other non-smooth edge,
    * and accumulate face normals into the vertex!
@@ -1310,7 +1309,6 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
         if (IS_EDGE_SHARP(edge_to_loops[corner_edges[ml_curr_index]]) &&
             IS_EDGE_SHARP(edge_to_loops[corner_edges[ml_prev_index]])) {
           data->ml_curr_index = ml_curr_index;
-          data->ml_prev_index = ml_prev_index;
           data->flag = LoopSplitTaskData::Type::Single;
           data->poly_index = poly_index;
           if (lnors_spacearr) {
@@ -1326,7 +1324,6 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
            * sharp previous edge). All this due/thanks to the link between normals and loop
            * ordering (i.e. winding). */
           data->ml_curr_index = ml_curr_index;
-          data->ml_prev_index = ml_prev_index;
           data->flag = LoopSplitTaskData::Type::Fan;
           data->poly_index = poly_index;
           if (lnors_spacearr) {
