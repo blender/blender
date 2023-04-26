@@ -41,7 +41,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   const OffsetIndices polys = mesh.polys();
   const Span<int> corner_verts = mesh.corner_verts();
 
-  bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
+ const bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
   FieldEvaluator face_evaluator{face_context, polys.size()};
   face_evaluator.add(selection_field);
   face_evaluator.evaluate();
@@ -50,7 +50,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
     return {};
   }
 
-  bke::MeshFieldContext corner_context{mesh, ATTR_DOMAIN_CORNER};
+ const bke::MeshFieldContext corner_context{mesh, ATTR_DOMAIN_CORNER};
   FieldEvaluator evaluator{corner_context, mesh.totloop};
   Array<float3> uv(mesh.totloop);
   evaluator.add_with_destination(uv_field, uv.as_mutable_span());

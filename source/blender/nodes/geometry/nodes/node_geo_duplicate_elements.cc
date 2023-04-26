@@ -305,7 +305,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
   const Curves &curves_id = *geometry_set.get_curves_for_read();
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
 
-  bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
+  const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
   FieldEvaluator evaluator{field_context, curves.curves_num()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -491,7 +491,7 @@ static void duplicate_faces(GeometrySet &geometry_set,
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int> corner_edges = mesh.corner_edges();
 
-  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
+  const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
   FieldEvaluator evaluator(field_context, polys.size());
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -683,7 +683,7 @@ static void duplicate_edges(GeometrySet &geometry_set,
   const Mesh &mesh = *geometry_set.get_mesh_for_read();
   const Span<int2> edges = mesh.edges();
 
-  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_EDGE};
+  const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_EDGE};
   FieldEvaluator evaluator{field_context, edges.size()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -764,7 +764,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
     return;
   }
 
-  bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_POINT};
+  const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_POINT};
   FieldEvaluator evaluator{field_context, src_curves.points_num()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -844,7 +844,7 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
 {
   const Mesh &mesh = *geometry_set.get_mesh_for_read();
 
-  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_POINT};
+  const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_POINT};
   FieldEvaluator evaluator{field_context, mesh.totvert};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -892,7 +892,7 @@ static void duplicate_points_pointcloud(GeometrySet &geometry_set,
 {
   const PointCloud &src_points = *geometry_set.get_pointcloud_for_read();
 
-  bke::PointCloudFieldContext field_context{src_points};
+  const bke::PointCloudFieldContext field_context{src_points};
   FieldEvaluator evaluator{field_context, src_points.totpoint};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);

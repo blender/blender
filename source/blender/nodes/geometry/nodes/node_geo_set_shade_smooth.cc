@@ -53,7 +53,7 @@ static void set_sharp_faces(Mesh &mesh,
   AttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write<bool>("sharp_face",
                                                                                ATTR_DOMAIN_FACE);
 
-  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
+  const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
   fn::FieldEvaluator evaluator{field_context, mesh.totpoly};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(sharp_field, sharp_faces.varray);

@@ -64,7 +64,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     return;
   }
   const AttributeAccessor src_attributes = mesh->attributes();
-  bke::MeshFieldContext field_context{*mesh, domain};
+  const bke::MeshFieldContext field_context{*mesh, domain};
   fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
   /* Evaluating directly into the point cloud doesn't work because we are not using the full

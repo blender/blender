@@ -25,7 +25,7 @@ static void set_tilt(bke::CurvesGeometry &curves,
   AttributeWriter<float> tilts = attributes.lookup_or_add_for_write<float>("tilt",
                                                                            ATTR_DOMAIN_POINT);
 
-  bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_POINT};
+  const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_POINT};
   fn::FieldEvaluator evaluator{field_context, curves.points_num()};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(tilt_field, tilts.varray);

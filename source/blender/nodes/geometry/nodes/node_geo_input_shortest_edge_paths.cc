@@ -99,13 +99,13 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask /*mask*/) const final
   {
-    bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
+    const bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
     fn::FieldEvaluator edge_evaluator{edge_context, mesh.totedge};
     edge_evaluator.add(cost_);
     edge_evaluator.evaluate();
     const VArray<float> input_cost = edge_evaluator.get_evaluated<float>(0);
 
-    bke::MeshFieldContext point_context{mesh, ATTR_DOMAIN_POINT};
+    const bke::MeshFieldContext point_context{mesh, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator point_evaluator{point_context, mesh.totvert};
     point_evaluator.add(end_selection_);
     point_evaluator.evaluate();
@@ -174,13 +174,13 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask /*mask*/) const final
   {
-    bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
+    const bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
     fn::FieldEvaluator edge_evaluator{edge_context, mesh.totedge};
     edge_evaluator.add(cost_);
     edge_evaluator.evaluate();
     const VArray<float> input_cost = edge_evaluator.get_evaluated<float>(0);
 
-    bke::MeshFieldContext point_context{mesh, ATTR_DOMAIN_POINT};
+    const bke::MeshFieldContext point_context{mesh, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator point_evaluator{point_context, mesh.totvert};
     point_evaluator.add(end_selection_);
     point_evaluator.evaluate();

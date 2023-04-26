@@ -78,7 +78,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         }
       }
       else {
-        bke::MeshFieldContext field_context{*mesh, ATTR_DOMAIN_FACE};
+        const bke::MeshFieldContext field_context{*mesh, ATTR_DOMAIN_FACE};
         fn::FieldEvaluator selection_evaluator{field_context, mesh->totpoly};
         selection_evaluator.add(selection_field);
         selection_evaluator.evaluate();

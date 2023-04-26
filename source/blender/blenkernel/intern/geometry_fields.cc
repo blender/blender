@@ -422,7 +422,7 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
     return attributes.add(attribute_id, domain, data_type, AttributeInitConstruct{});
   }
 
-  bke::GeometryFieldContext field_context{component, domain};
+  const bke::GeometryFieldContext field_context{component, domain};
   const IndexMask mask{IndexMask(domain_size)};
   const bke::AttributeValidator validator = attributes.lookup_validator(attribute_id);
 
@@ -433,9 +433,9 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
   /*  We are writing to an attribute that exists already with the correct domain and type. */
   if (attribute_exists) {
     if (GSpanAttributeWriter dst_attribute = attributes.lookup_for_write_span(attribute_id)) {
-      bke::GeometryFieldContext field_context{component, domain};
       const IndexMask mask{IndexMask(domain_size)};
 
+      const bke::GeometryFieldContext field_context{component, domain};
       fn::FieldEvaluator evaluator{field_context, &mask};
       evaluator.add(validator.validate_field_if_necessary(field));
       evaluator.set_selection(selection);

@@ -36,7 +36,7 @@ static void geometry_set_points_to_vertices(
     return;
   }
 
-  bke::PointCloudFieldContext field_context{*points};
+  const bke::PointCloudFieldContext field_context{*points};
   fn::FieldEvaluator selection_evaluator{field_context, points->totpoint};
   selection_evaluator.add(selection_field);
   selection_evaluator.evaluate();

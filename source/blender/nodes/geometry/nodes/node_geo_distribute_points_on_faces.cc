@@ -446,7 +446,7 @@ static Array<float> calc_full_density_factors_with_selection(const Mesh &mesh,
   const int domain_size = mesh.attributes().domain_size(domain);
   Array<float> densities(domain_size, 0.0f);
 
-  bke::MeshFieldContext field_context{mesh, domain};
+  const bke::MeshFieldContext field_context{mesh, domain};
   fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(density_field, densities.as_mutable_span());

@@ -30,7 +30,7 @@ static void set_normal_mode(bke::CurvesGeometry &curves,
                             const NormalMode mode,
                             const Field<bool> &selection_field)
 {
-  bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
+  const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, curves.curves_num()};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
