@@ -407,6 +407,55 @@ bool NormalFieldInput::is_equal_to(const fn::FieldNode &other) const
   return dynamic_cast<const NormalFieldInput *>(&other) != nullptr;
 }
 
+static std::optional<AttributeIDRef> try_get_field_direct_attribute_id(const fn::GField &any_field)
+{
+  if (const auto *field = dynamic_cast<const AttributeFieldInput *>(&any_field.node())) {
+    return field->attribute_name();
+  }
+  if (const auto *field = dynamic_cast<const AnonymousAttributeFieldInput *>(&any_field.node())) {
+    return *field->anonymous_id();
+  }
+  return {};
+}
+
+static bool attribute_kind_matches(const AttributeMetaData meta_data,
+                                   const eAttrDomain domain,
+                                   const eCustomDataType data_type)
+{
+  return meta_data.domain == domain && meta_data.data_type == data_type;
+}
+
+/**
+ * Some fields reference attributes directly. When the referenced attribute has the requested type
+ * and domain, use implicit sharing to avoid duplication when creating the captured attribute.
+ */
+static bool try_add_shared_field_attribute(MutableAttributeAccessor attributes,
+                                           const AttributeIDRef &id_to_create,
+                                           const eAttrDomain domain,
+                                           const fn::GField &field)
+{
+  const std::optional<AttributeIDRef> field_id = try_get_field_direct_attribute_id(field);
+  if (!field_id) {
+    return false;
+  }
+  const std::optional<AttributeMetaData> meta_data = attributes.lookup_meta_data(*field_id);
+  if (!meta_data) {
+    return false;
+  }
+  const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(field.cpp_type());
+  if (!attribute_kind_matches(*meta_data, domain, data_type)) {
+    /* Avoid costly domain and type interpolation, which would make sharing impossible. */
+    return false;
+  }
+  const GAttributeReader attribute = attributes.lookup(*field_id, domain, data_type);
+  if (!attribute.sharing_info || !attribute.varray.is_span()) {
+    return false;
+  }
+  const AttributeInitShared init(attribute.varray.get_internal_span().data(),
+                                 *attribute.sharing_info);
+  return attributes.add(id_to_create, domain, data_type, init);
+}
+
 bool try_capture_field_on_geometry(GeometryComponent &component,
                                    const AttributeIDRef &attribute_id,
                                    const eAttrDomain domain,
@@ -427,11 +476,11 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
   const bke::AttributeValidator validator = attributes.lookup_validator(attribute_id);
 
   const std::optional<AttributeMetaData> meta_data = attributes.lookup_meta_data(attribute_id);
-  const bool attribute_exists = meta_data && meta_data->domain == domain &&
-                                meta_data->data_type == data_type;
+  const bool attribute_matches = meta_data &&
+                                 attribute_kind_matches(*meta_data, domain, data_type);
 
-  /*  We are writing to an attribute that exists already with the correct domain and type. */
-  if (attribute_exists) {
+  /* We are writing to an attribute that exists already with the correct domain and type. */
+  if (attribute_matches) {
     if (GSpanAttributeWriter dst_attribute = attributes.lookup_for_write_span(attribute_id)) {
       const IndexMask mask{IndexMask(domain_size)};
 
@@ -450,11 +499,19 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
     }
   }
 
+  const bool selection_is_full = !selection.node().depends_on_input() &&
+                                 fn::evaluate_constant_field(selection);
+
+  if (!validator && selection_is_full) {
+    if (try_add_shared_field_attribute(attributes, attribute_id, domain, field)) {
+      return true;
+    }
+  }
+
   /* Could avoid allocating a new buffer if:
    * - The field does not depend on that attribute (we can't easily check for that yet). */
   void *buffer = MEM_mallocN_aligned(type.size() * domain_size, type.alignment(), __func__);
-  if (selection.node().depends_on_input() || !fn::evaluate_constant_field(selection)) {
-    /* If every element might not be selected, the buffer must be initialized. */
+  if (!selection_is_full) {
     type.value_initialize_n(buffer, domain_size);
   }
   fn::FieldEvaluator evaluator{field_context, &mask};
@@ -463,7 +520,7 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
   evaluator.set_selection(selection);
   evaluator.evaluate();
 
-  if (attribute_exists) {
+  if (attribute_matches) {
     if (GAttributeWriter attribute = attributes.lookup_for_write(attribute_id)) {
       attribute.varray.set_all(buffer);
       attribute.finish();
