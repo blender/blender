@@ -15,8 +15,9 @@
 
 namespace blender::gpu {
 class VKFrameBuffer;
+class VKStateManager;
 
-class VKContext : public Context {
+class VKContext : public Context, NonCopyable {
  private:
   /** Copies of the handles owned by the GHOST context. */
   VkInstance vk_instance_ = VK_NULL_HANDLE;
@@ -107,6 +108,8 @@ class VKContext : public Context {
   {
     return descriptor_pools_;
   }
+
+  const VKStateManager &state_manager_get() const;
 
   VmaAllocator mem_allocator_get() const
   {

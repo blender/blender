@@ -1917,7 +1917,7 @@ void FONT_OT_selection_set(struct wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 /** \name Select Word Operator
-* \{ */
+ * \{ */
 
 static int font_select_word_exec(bContext *C, wmOperator *UNUSED(op))
 {

@@ -13,6 +13,7 @@
 #include "vk_memory.hh"
 #include "vk_shader.hh"
 #include "vk_shader_interface.hh"
+#include "vk_state_manager.hh"
 
 #include "BLI_math_vector.hh"
 
@@ -94,8 +95,12 @@ void *VKTexture::read(int mip, eGPUDataFormat format)
 }
 
 void VKTexture::update_sub(
-    int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data)
+    int mip, int offset[3], int extent_[3], eGPUDataFormat format, const void *data)
 {
+  if (mip != 0) {
+    /* TODO: not implemented yet. */
+    return;
+  }
   if (!is_allocated()) {
     allocate();
   }
@@ -103,17 +108,31 @@ void VKTexture::update_sub(
   /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
   VKContext &context = *VKContext::get();
   VKBuffer staging_buffer;
-  size_t sample_len = extent[0] * extent[1] * extent[2];
+  int3 extent = int3(extent_[0], max_ii(extent_[1], 1), max_ii(extent_[2], 1));
+  size_t sample_len = extent.x * extent.y * extent.z;
   size_t device_memory_size = sample_len * to_bytesize(format_);
 
   staging_buffer.create(
       context, device_memory_size, GPU_USAGE_DEVICE_ONLY, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-  convert_host_to_device(staging_buffer.mapped_memory_get(), data, sample_len, format, format_);
+
+  uint buffer_row_length = context.state_manager_get().texture_unpack_row_length_get();
+  if (buffer_row_length) {
+    /* Use custom row length #GPU_texture_unpack_row_length */
+    convert_host_to_device(staging_buffer.mapped_memory_get(),
+                           data,
+                           uint2(extent),
+                           buffer_row_length,
+                           format,
+                           format_);
+  }
+  else {
+    convert_host_to_device(staging_buffer.mapped_memory_get(), data, sample_len, format, format_);
+  }
 
   VkBufferImageCopy region = {};
-  region.imageExtent.width = extent[0];
-  region.imageExtent.height = extent[1];
-  region.imageExtent.depth = extent[2];
+  region.imageExtent.width = extent.x;
+  region.imageExtent.height = extent.y;
+  region.imageExtent.depth = extent.z;
   region.imageOffset.x = offset[0];
   region.imageOffset.y = offset[1];
   region.imageOffset.z = offset[2];
@@ -175,7 +194,8 @@ bool VKTexture::is_allocated() const
 static VkImageUsageFlagBits to_vk_image_usage(const eGPUTextureUsage usage,
                                               const eGPUTextureFormatFlag format_flag)
 {
-  VkImageUsageFlagBits result = static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+  VkImageUsageFlagBits result = static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+                                                                  VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                                                                   VK_IMAGE_USAGE_SAMPLED_BIT);
   if (usage & GPU_TEXTURE_USAGE_SHADER_READ) {
     result = static_cast<VkImageUsageFlagBits>(result | VK_IMAGE_USAGE_STORAGE_BIT);
@@ -184,7 +204,7 @@ static VkImageUsageFlagBits to_vk_image_usage(const eGPUTextureUsage usage,
     result = static_cast<VkImageUsageFlagBits>(result | VK_IMAGE_USAGE_STORAGE_BIT);
   }
   if (usage & GPU_TEXTURE_USAGE_ATTACHMENT) {
-    if (format_flag & (GPU_FORMAT_NORMALIZED_INTEGER | GPU_FORMAT_COMPRESSED)) {
+    if (format_flag & GPU_FORMAT_COMPRESSED) {
       /* These formats aren't supported as an attachment. When using GPU_TEXTURE_USAGE_DEFAULT they
        * are still being evaluated to be attachable. So we need to skip them. */
     }
@@ -207,6 +227,7 @@ static VkImageUsageFlagBits to_vk_image_usage(const eGPUTextureUsage usage,
 
 bool VKTexture::allocate()
 {
+  BLI_assert(vk_image_ == VK_NULL_HANDLE);
   BLI_assert(!is_allocated());
 
   int extent[3] = {1, 1, 1};
@@ -260,6 +281,7 @@ bool VKTexture::allocate()
   if (result != VK_SUCCESS) {
     return false;
   }
+  debug::object_label(&context, vk_image_, name_);
 
   /* Promote image to the correct layout. */
   layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
@@ -277,6 +299,7 @@ bool VKTexture::allocate()
 
   result = vkCreateImageView(
       context.device_get(), &image_view_info, vk_allocation_callbacks, &vk_image_view_);
+  debug::object_label(&context, vk_image_view_, name_);
   return result == VK_SUCCESS;
 }
 

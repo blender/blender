@@ -49,6 +49,7 @@ enum {
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
 enum {
+  VIEW_MODAL_CANCEL = 0,  /* used for all view operations */
   VIEW_MODAL_CONFIRM = 1, /* used for all view operations */
   VIEWROT_MODAL_AXIS_SNAP_ENABLE = 2,
   VIEWROT_MODAL_AXIS_SNAP_DISABLE = 3,

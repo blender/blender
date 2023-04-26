@@ -153,6 +153,8 @@ typedef struct Tex {
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
+  /* runtime (must be immediately after id for utilities to use it). */
+  DrawDataList drawdata;
 
   float noisesize, turbul;
   float bright, contrast, saturation, rfac, gfac, bfac;
@@ -264,14 +266,14 @@ typedef struct ColorMapping {
 #define TEX_STUCCI 6
 #define TEX_NOISE 7
 #define TEX_IMAGE 8
-//#define TEX_PLUGIN        9 /* Deprecated */
-//#define TEX_ENVMAP        10 /* Deprecated */
+// #define TEX_PLUGIN        9 /* Deprecated */
+// #define TEX_ENVMAP        10 /* Deprecated */
 #define TEX_MUSGRAVE 11
 #define TEX_VORONOI 12
 #define TEX_DISTNOISE 13
-//#define TEX_POINTDENSITY  14 /* Deprecated */
-//#define TEX_VOXELDATA     15 /* Deprecated */
-//#define TEX_OCEAN         16 /* Deprecated */
+// #define TEX_POINTDENSITY  14 /* Deprecated */
+// #define TEX_VOXELDATA     15 /* Deprecated */
+// #define TEX_OCEAN         16 /* Deprecated */
 
 /* musgrave stype */
 #define TEX_MFRACTAL 0

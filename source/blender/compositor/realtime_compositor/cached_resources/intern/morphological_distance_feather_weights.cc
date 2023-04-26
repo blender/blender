@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <memory>
 
 #include "BLI_array.hh"
 #include "BLI_hash.hh"
@@ -155,6 +156,34 @@ void MorphologicalDistanceFeatherWeights::bind_distance_falloffs_as_texture(
 void MorphologicalDistanceFeatherWeights::unbind_distance_falloffs_as_texture() const
 {
   GPU_texture_unbind(distance_falloffs_texture_);
+}
+
+/* --------------------------------------------------------------------
+ * Morphological Distance Feather Weights Container.
+ */
+
+void MorphologicalDistanceFeatherWeightsContainer::reset()
+{
+  /* First, delete all resources that are no longer needed. */
+  map_.remove_if([](auto item) { return !item.value->needed; });
+
+  /* Second, reset the needed status of the remaining resources to false to ready them to track
+   * their needed status for the next evaluation. */
+  for (auto &value : map_.values()) {
+    value->needed = false;
+  }
+}
+
+MorphologicalDistanceFeatherWeights &MorphologicalDistanceFeatherWeightsContainer::get(int type,
+                                                                                       int radius)
+{
+  const MorphologicalDistanceFeatherWeightsKey key(type, radius);
+
+  auto &weights = *map_.lookup_or_add_cb(
+      key, [&]() { return std::make_unique<MorphologicalDistanceFeatherWeights>(type, radius); });
+
+  weights.needed = true;
+  return weights;
 }
 
 }  // namespace blender::realtime_compositor

@@ -68,3 +68,8 @@ void ED_asset_handle_get_full_library_path(const AssetHandle *asset_handle,
 
   BLI_strncpy(r_full_lib_path, library_path.c_str(), FILE_MAX);
 }
+
+bool ED_asset_handle_get_use_relative_path(const AssetHandle *asset)
+{
+  return AS_asset_representation_use_relative_path_get(asset->file_data->asset);
+}

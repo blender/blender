@@ -200,10 +200,8 @@ static void node_geo_exec(GeoNodeExecParams params)
           continue;
         }
         if (attributes->domain_supported(domain)) {
-          bke::GeometryFieldContext field_context{*component, domain};
-          const int domain_num = attributes->domain_size(domain);
-
-          fn::FieldEvaluator data_evaluator{field_context, domain_num};
+          const bke::GeometryFieldContext field_context{*component, domain};
+          fn::FieldEvaluator data_evaluator{field_context, attributes->domain_size(domain)};
           data_evaluator.add(input_field);
           data_evaluator.set_selection(selection_field);
           data_evaluator.evaluate();
@@ -282,10 +280,8 @@ static void node_geo_exec(GeoNodeExecParams params)
           continue;
         }
         if (attributes->domain_supported(domain)) {
-          bke::GeometryFieldContext field_context{*component, domain};
-          const int domain_num = attributes->domain_size(domain);
-
-          fn::FieldEvaluator data_evaluator{field_context, domain_num};
+          const bke::GeometryFieldContext field_context{*component, domain};
+          fn::FieldEvaluator data_evaluator{field_context, attributes->domain_size(domain)};
           data_evaluator.add(input_field);
           data_evaluator.set_selection(selection_field);
           data_evaluator.evaluate();

@@ -92,7 +92,7 @@ enum {
    * Do not attempt to access original ID pointers (triggers usages of
    * `IDWALK_NO_ORIG_POINTERS_ACCESS` too).
    *
-   * Use when original ID pointers values are (probably) not valid, e.g. dureing readfile process.
+   * Use when original ID pointers values are (probably) not valid, e.g. during read-file process.
    */
   ID_REMAP_NO_ORIG_POINTERS_ACCESS = 1 << 20,
 };

@@ -900,6 +900,9 @@ class LazyFunctionForGroupNode : public LazyFunction {
     allow_missing_requested_inputs_ = true;
 
     lazy_function_interface_from_node(group_node, inputs_, outputs_, r_lf_index_by_bsocket);
+    for (lf::Input &input : inputs_) {
+      input.usage = lf::ValueUsage::Maybe;
+    }
 
     has_many_nodes_ = lf_graph_info.num_inline_nodes_approximate > 1000;
 

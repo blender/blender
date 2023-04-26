@@ -60,6 +60,17 @@ set(SRC
   ${dna_header_string_file}
 )
 
+# BLI_mempool.c needs these files for ThreadMutex when
+# compiling in address sanitizer mode.
+if(WITH_COMPILER_ASAN)
+  list(APPEND SRC
+    ../../blenlib/intern/gsqueue.c
+    ../../blenlib/intern/listbase.cc
+    ../../blenlib/intern/threads.cc
+    ../../blenlib/intern/time.c
+  )
+endif()
+
 # SRC_DNA_INC is defined in the parent dir
 
 add_cc_flags_custom_test(makesdna)
@@ -145,5 +156,13 @@ set(SRC
 
 set(LIB
 )
+
+if(WITH_COMPILER_ASAN)
+  list(APPEND SRC
+    ../../blenlib/intern/gsqueue.c
+    ../../blenlib/intern/threads.cc
+    ../../blenlib/intern/time.c
+  )
+endif()
 
 blender_add_lib(bf_dna_blenlib "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -24,8 +24,8 @@ static void set_id_in_component(GeometryComponent &component,
     return;
   }
   MutableAttributeAccessor attributes = *component.attributes_for_write();
-  bke::GeometryFieldContext field_context{component, domain};
 
+  const bke::GeometryFieldContext field_context{component, domain};
   fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
 

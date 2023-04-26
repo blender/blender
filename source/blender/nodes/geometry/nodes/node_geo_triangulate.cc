@@ -81,7 +81,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     const Mesh &mesh_in = *geometry_set.get_mesh_for_read();
 
-    bke::MeshFieldContext context{mesh_in, ATTR_DOMAIN_FACE};
+   const bke::MeshFieldContext context{mesh_in, ATTR_DOMAIN_FACE};
     FieldEvaluator evaluator{context, mesh_in.totpoly};
     evaluator.add(selection_field);
     evaluator.evaluate();

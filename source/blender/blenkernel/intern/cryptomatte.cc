@@ -329,7 +329,7 @@ void BKE_cryptomatte_store_metadata(const struct CryptomatteSession *session,
                                     RenderResult *render_result,
                                     const ViewLayer *view_layer)
 {
-  for (const blender::Map<std::string, blender::bke::cryptomatte::CryptomatteLayer>::Item item :
+  for (const blender::MapItem<std::string, blender::bke::cryptomatte::CryptomatteLayer> item :
        session->layers.items()) {
     const blender::StringRefNull layer_name(item.key);
     const blender::bke::cryptomatte::CryptomatteLayer &layer = item.value;
@@ -457,7 +457,7 @@ static std::string to_manifest(const CryptomatteLayer *layer)
   bool is_first = true;
   const blender::Map<std::string, CryptomatteHash> &const_map = layer->hashes;
   manifest << "{";
-  for (blender::Map<std::string, CryptomatteHash>::Item item : const_map.items()) {
+  for (blender::MapItem<std::string, CryptomatteHash> item : const_map.items()) {
     if (is_first) {
       is_first = false;
     }
@@ -544,7 +544,7 @@ void CryptomatteLayer::add_hash(blender::StringRef name, CryptomatteHash cryptom
 std::optional<std::string> CryptomatteLayer::operator[](float encoded_hash) const
 {
   const blender::Map<std::string, CryptomatteHash> &const_map = hashes;
-  for (blender::Map<std::string, CryptomatteHash>::Item item : const_map.items()) {
+  for (blender::MapItem<std::string, CryptomatteHash> item : const_map.items()) {
     if (BKE_cryptomatte_hash_to_float(item.value.hash) == encoded_hash) {
       return std::make_optional(item.key);
     }

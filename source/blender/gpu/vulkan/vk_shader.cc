@@ -984,12 +984,14 @@ void VKShader::unbind()
 
 void VKShader::uniform_float(int location, int comp_len, int array_size, const float *data)
 {
-  pipeline_get().push_constants_get().push_constant_set(location, comp_len, array_size, data);
+  VKPushConstants &push_constants = pipeline_get().push_constants_get();
+  push_constants.push_constant_set(location, comp_len, array_size, data);
 }
 
 void VKShader::uniform_int(int location, int comp_len, int array_size, const int *data)
 {
-  pipeline_get().push_constants_get().push_constant_set(location, comp_len, array_size, data);
+  VKPushConstants &push_constants = pipeline_get().push_constants_get();
+  push_constants.push_constant_set(location, comp_len, array_size, data);
 }
 
 std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) const
@@ -1183,6 +1185,7 @@ std::string VKShader::geometry_layout_declare(const shader::ShaderCreateInfo &in
   }
   ss << "\n";
 
+  location = 0;
   for (const StageInterfaceInfo *iface : info.geometry_out_interfaces_) {
     bool has_matching_input_iface = find_interface_by_name(info.vertex_out_interfaces_,
                                                            iface->instance_name) != nullptr;

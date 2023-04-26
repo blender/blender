@@ -27,6 +27,7 @@
 void viewmove_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
+      {VIEW_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
       {VIEW_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
 
       {VIEWROT_MODAL_SWITCH_ZOOM, "SWITCH_TO_ZOOM", 0, "Switch to Zoom"},
@@ -43,53 +44,6 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
   }
 
   keymap = WM_modalkeymap_ensure(keyconf, "View3D Move Modal", modal_items);
-
-  /* items for modal map */
-
-  WM_modalkeymap_add_item(keymap,
-                          &(const KeyMapItem_Params){
-                              .type = MIDDLEMOUSE,
-                              .value = KM_RELEASE,
-                              .modifier = KM_ANY,
-                              .direction = KM_ANY,
-                          },
-                          VIEW_MODAL_CONFIRM);
-  WM_modalkeymap_add_item(keymap,
-                          &(const KeyMapItem_Params){
-                              .type = EVT_ESCKEY,
-                              .value = KM_PRESS,
-                              .modifier = KM_ANY,
-                              .direction = KM_ANY,
-                          },
-                          VIEW_MODAL_CONFIRM);
-
-  /* disabled mode switching for now, can re-implement better, later on */
-#if 0
-  WM_modalkeymap_add_item(keymap,
-                          &(const KeyMapItem_Params){
-                              .type = LEFTMOUSE,
-                              .value = KM_PRESS,
-                              .modifier = KM_ANY,
-                              .direction = KM_ANY,
-                          },
-                          VIEWROT_MODAL_SWITCH_ZOOM);
-  WM_modalkeymap_add_item(keymap,
-                          &(const KeyMapItem_Params){
-                              .type = EVT_LEFTCTRLKEY,
-                              .value = KM_PRESS,
-                              .modifier = KM_ANY,
-                              .direction = KM_ANY,
-                          },
-                          VIEWROT_MODAL_SWITCH_ZOOM);
-  WM_modalkeymap_add_item(keymap,
-                          &(const KeyMapItem_Params){
-                              .type = EVT_LEFTSHIFTKEY,
-                              .value = KM_RELEASE,
-                              .modifier = KM_ANY,
-                              .direction = KM_ANY,
-                          },
-                          VIEWROT_MODAL_SWITCH_ROTATE);
-#endif
 
   /* assign map to operators */
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_move");
@@ -108,6 +62,9 @@ static int viewmove_modal(bContext *C, wmOperator *op, const wmEvent *event)
     switch (event->val) {
       case VIEW_MODAL_CONFIRM:
         event_code = VIEW_CONFIRM;
+        break;
+      case VIEW_MODAL_CANCEL:
+        event_code = VIEW_CANCEL;
         break;
       case VIEWROT_MODAL_SWITCH_ZOOM:
         WM_operator_name_call(C, "VIEW3D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL, event);
@@ -128,7 +85,7 @@ static int viewmove_modal(bContext *C, wmOperator *op, const wmEvent *event)
         event_code = VIEW_CONFIRM;
       }
     }
-    else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
+    else if (event->type == EVT_ESCKEY) {
       if (event->val == KM_PRESS) {
         event_code = VIEW_CANCEL;
       }

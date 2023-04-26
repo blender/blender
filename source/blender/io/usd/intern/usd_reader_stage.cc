@@ -312,19 +312,6 @@ void USDStageReader::collect_readers(Main *bmain)
   /* Iterate through the stage. */
   pxr::UsdPrim root = stage_->GetPseudoRoot();
 
-  std::string prim_path_mask(params_.prim_path_mask);
-
-  if (!prim_path_mask.empty()) {
-    pxr::UsdPrim prim = stage_->GetPrimAtPath(pxr::SdfPath(prim_path_mask));
-    if (prim.IsValid()) {
-      root = prim;
-    }
-    else {
-      std::cerr << "WARNING: Prim Path Mask " << prim_path_mask
-                << " does not specify a valid prim.\n";
-    }
-  }
-
   stage_->SetInterpolationType(pxr::UsdInterpolationType::UsdInterpolationTypeHeld);
   collect_readers(bmain, root);
 }

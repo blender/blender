@@ -209,6 +209,8 @@ dict_custom = {
     "planarize",
     "polygonizer",
     "polytope",
+    "postfix",
+    "postfixes",
     "postprocess",
     "postprocessed",
     "pre-filtered",

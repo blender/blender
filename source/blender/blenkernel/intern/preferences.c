@@ -24,6 +24,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_userdef_types.h"
 
 #define U BLI_STATIC_ASSERT(false, "Global 'U' not allowed, only use arguments passed in!")
@@ -37,6 +38,7 @@ bUserAssetLibrary *BKE_preferences_asset_library_add(UserDef *userdef,
                                                      const char *path)
 {
   bUserAssetLibrary *library = MEM_callocN(sizeof(*library), "bUserAssetLibrary");
+  memcpy(library, DNA_struct_default_get(bUserAssetLibrary), sizeof(*library));
 
   BLI_addtail(&userdef->asset_libraries, library);
 
@@ -46,7 +48,6 @@ bUserAssetLibrary *BKE_preferences_asset_library_add(UserDef *userdef,
   if (path) {
     BLI_strncpy(library->path, path, sizeof(library->path));
   }
-  library->import_method = ASSET_IMPORT_APPEND_REUSE;
 
   return library;
 }

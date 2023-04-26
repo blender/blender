@@ -132,6 +132,7 @@
 #include "DNA_space_defaults.h"
 #include "DNA_speaker_defaults.h"
 #include "DNA_texture_defaults.h"
+#include "DNA_userdef_defaults.h"
 #include "DNA_volume_defaults.h"
 #include "DNA_world_defaults.h"
 
@@ -222,6 +223,9 @@ SDNA_DEFAULT_DECL_STRUCT(Speaker);
 
 /* DNA_texture_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Tex);
+
+/* DNA_userdef_types.h */
+SDNA_DEFAULT_DECL_STRUCT(bUserAssetLibrary);
 
 /* DNA_view3d_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(View3D);
@@ -465,6 +469,7 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL_EX(UserDef_SpaceData, UserDef.space_data),
     SDNA_DEFAULT_DECL_EX(UserDef_FileSpaceData, UserDef.file_space_data),
     SDNA_DEFAULT_DECL_EX(WalkNavigation, UserDef.walk_navigation),
+    SDNA_DEFAULT_DECL(bUserAssetLibrary),
 
     /* DNA_view3d_defaults.h */
     SDNA_DEFAULT_DECL(View3D),

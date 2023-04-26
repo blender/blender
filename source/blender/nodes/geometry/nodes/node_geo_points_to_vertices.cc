@@ -36,7 +36,7 @@ static void geometry_set_points_to_vertices(
     return;
   }
 
-  bke::PointCloudFieldContext field_context{*points};
+  const bke::PointCloudFieldContext field_context{*points};
   fn::FieldEvaluator selection_evaluator{field_context, points->totpoint};
   selection_evaluator.add(selection_field);
   selection_evaluator.evaluate();
@@ -63,7 +63,7 @@ static void geometry_set_points_to_vertices(
   const AttributeAccessor src_attributes = points->attributes();
   MutableAttributeAccessor dst_attributes = mesh->attributes_for_write();
 
-  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
     const AttributeIDRef id = entry.key;
     const eCustomDataType data_type = entry.value.data_type;
     const GAttributeReader src = src_attributes.lookup(id);

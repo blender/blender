@@ -35,7 +35,10 @@ typedef struct VKDebuggingTools {
 
 bool init_callbacks(VKContext *context, PFN_vkGetInstanceProcAddr instance_proc_addr);
 void destroy_callbacks(VKContext *context);
-void object_label(VKContext *context, VkObjectType vk_object_type, uint64_t object_handle, const char *name);
+void object_label(VKContext *context,
+                  VkObjectType vk_object_type,
+                  uint64_t object_handle,
+                  const char *name);
 
 template<typename T> void object_label(VKContext *context, T vk_object_type, const char *name)
 {
@@ -47,7 +50,8 @@ template<typename T> void object_label(VKContext *context, T vk_object_type, con
   memset(label, 0, label_size);
   static int stats = 0;
   SNPRINTF(label, "%s_%d", name, stats++);
-  object_label(context, to_vk_object_type(vk_object_type), (uint64_t)vk_object_type, (const char *)label);
+  object_label(
+      context, to_vk_object_type(vk_object_type), (uint64_t)vk_object_type, (const char *)label);
 };
 
 void push_marker(VKContext *context, VkCommandBuffer vk_command_buffer, const char *name);

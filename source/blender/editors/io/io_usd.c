@@ -395,8 +395,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const bool create_collection = RNA_boolean_get(op->ptr, "create_collection");
 
-  char prim_path_mask[1024];
-  RNA_string_get(op->ptr, "prim_path_mask", prim_path_mask);
+  char *prim_path_mask = RNA_string_get_alloc(op->ptr, "prim_path_mask", NULL, 0, NULL);
 
   const bool import_guide = RNA_boolean_get(op->ptr, "import_guide");
   const bool import_proxy = RNA_boolean_get(op->ptr, "import_proxy");
@@ -448,6 +447,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
                                    .import_meshes = import_meshes,
                                    .import_volumes = import_volumes,
                                    .import_shapes = import_shapes,
+                                   .prim_path_mask = prim_path_mask,
                                    .import_subdiv = import_subdiv,
                                    .import_instance_proxies = import_instance_proxies,
                                    .create_collection = create_collection,
@@ -464,7 +464,6 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
                                    .tex_name_collision_mode = tex_name_collision_mode,
                                    .import_all_materials = import_all_materials};
 
-  STRNCPY(params.prim_path_mask, prim_path_mask);
   STRNCPY(params.import_textures_dir, import_textures_dir);
 
   const bool ok = USD_import(C, filename, &params, as_background_job);
@@ -623,9 +622,10 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
   RNA_def_string(ot->srna,
                  "prim_path_mask",
                  NULL,
-                 1024,
+                 0,
                  "Path Mask",
-                 "Import only the subset of the USD scene rooted at the given primitive");
+                 "Import only the primitive at the given path and its descendents.  "
+                 "Multiple paths may be specified in a list delimited by commas or semicolons");
 
   RNA_def_boolean(ot->srna, "import_guide", false, "Guide", "Import guide geometry");
 

@@ -890,19 +890,31 @@ ListBase BKE_collection_object_cache_instanced_get(Collection *collection)
 
 static void collection_object_cache_free(Collection *collection)
 {
-  /* Clear own cache an for all parents, since those are affected by changes as well. */
   collection->flag &= ~(COLLECTION_HAS_OBJECT_CACHE | COLLECTION_HAS_OBJECT_CACHE_INSTANCED);
   BLI_freelistN(&collection->runtime.object_cache);
   BLI_freelistN(&collection->runtime.object_cache_instanced);
 }
 
-void BKE_collection_object_cache_free(Collection *collection)
+static void collection_object_cache_free_parent_recursive(Collection *collection)
 {
   collection_object_cache_free(collection);
 
+  /* Clear cache in all parents recursively, since those are affected by changes as well. */
   LISTBASE_FOREACH (CollectionParent *, parent, &collection->runtime.parents) {
-    collection_object_cache_free(parent->collection);
+    /* In theory there should be no NULL pointer here. However, this code can be called from
+     * non-valid temporary states (e.g. indirectly from #BKE_collections_object_remove_invalids
+     * as part of ID remapping process). */
+    if (parent->collection == NULL) {
+      continue;
+    }
+    collection_object_cache_free_parent_recursive(parent->collection);
   }
+}
+
+void BKE_collection_object_cache_free(Collection *collection)
+{
+  BLI_assert(collection != NULL);
+  collection_object_cache_free_parent_recursive(collection);
 }
 
 void BKE_main_collections_object_cache_free(const Main *bmain)

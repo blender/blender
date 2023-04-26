@@ -13,12 +13,12 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
-#include "BLI_bitmap.h"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
+#include "BKE_mesh.hh"
 #include "BKE_multires.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_eval.h"
@@ -135,8 +135,8 @@ struct MultiresReshapeSmoothContext {
    * The data is actually stored as a delta, which is then to be added to the higher levels. */
   LinearGrids linear_delta_grids;
 
-  /* Index i of this map indicates that base edge i is adjacent to at least one face. */
-  BLI_bitmap *non_loose_base_edge_map;
+  /* From #Mesh::loose_edges(). May be empty. */
+  blender::BitSpan loose_base_edges;
 
   /* Subdivision surface created for geometry at a reshape level. */
   Subdiv *reshape_subdiv;
@@ -488,9 +488,9 @@ static float get_effective_crease(const MultiresReshapeSmoothContext *reshape_sm
                                   const int base_edge_index)
 {
   if (!is_crease_supported(reshape_smooth_context)) {
-    return 255;
+    return 1.0f;
   }
-  const float *creases = reshape_smooth_context->reshape_context->cd_vertex_crease;
+  const float *creases = reshape_smooth_context->reshape_context->cd_edge_crease;
   return creases ? creases[base_edge_index] : 0.0f;
 }
 
@@ -524,7 +524,7 @@ static void context_init(MultiresReshapeSmoothContext *reshape_smooth_context,
 
   linear_grids_init(&reshape_smooth_context->linear_delta_grids);
 
-  reshape_smooth_context->non_loose_base_edge_map = nullptr;
+  reshape_smooth_context->loose_base_edges = {};
   reshape_smooth_context->reshape_subdiv = nullptr;
   reshape_smooth_context->base_surface_grids = nullptr;
 
@@ -556,8 +556,6 @@ static void context_free_subdiv(MultiresReshapeSmoothContext *reshape_smooth_con
 
 static void context_free(MultiresReshapeSmoothContext *reshape_smooth_context)
 {
-  MEM_freeN(reshape_smooth_context->non_loose_base_edge_map);
-
   context_free_geometry(reshape_smooth_context);
   context_free_subdiv(reshape_smooth_context);
   base_surface_grids_free(reshape_smooth_context);
@@ -619,13 +617,11 @@ static void foreach_single_vertex(const SubdivForeachContext *foreach_context,
 
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
   const float *cd_vertex_crease = reshape_context->cd_vertex_crease;
-
   if (cd_vertex_crease == nullptr) {
     return;
   }
 
   float crease = cd_vertex_crease[coarse_vertex_index];
-
   if (crease == 0.0f) {
     return;
   }
@@ -833,7 +829,8 @@ static void foreach_edge(const SubdivForeachContext *foreach_context,
     return;
   }
   /* Ignore all loose edges as well, as they are not communicated to the OpenSubdiv. */
-  if (!BLI_BITMAP_TEST_BOOL(reshape_smooth_context->non_loose_base_edge_map, coarse_edge_index)) {
+  if (!reshape_smooth_context->loose_base_edges.is_empty() &&
+      reshape_smooth_context->loose_base_edges[coarse_edge_index]) {
     return;
   }
   /* Edges without crease are to be ignored as well. */
@@ -848,24 +845,20 @@ static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshap
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
   const Mesh *base_mesh = reshape_context->base_mesh;
-  const blender::OffsetIndices base_polys = reshape_context->base_polys;
-  const blender::Span<int> base_corner_edges = reshape_context->base_corner_edges;
 
-  reshape_smooth_context->non_loose_base_edge_map = BLI_BITMAP_NEW(base_mesh->totedge,
-                                                                   "non_loose_base_edge_map");
+  const blender::bke::LooseEdgeCache &loose_edges = base_mesh->loose_edges();
+  reshape_smooth_context->loose_base_edges = loose_edges.is_loose_bits;
 
   int num_used_edges = 0;
-  for (const int poly_index : base_polys.index_range()) {
-    for (const int edge : base_corner_edges.slice(base_polys[poly_index])) {
-      if (!BLI_BITMAP_TEST_BOOL(reshape_smooth_context->non_loose_base_edge_map, edge)) {
-        BLI_BITMAP_ENABLE(reshape_smooth_context->non_loose_base_edge_map, edge);
-
-        const float crease = get_effective_crease(reshape_smooth_context, edge);
-        if (crease > 0.0f) {
-          ++num_used_edges;
-        }
-      }
+  for (const int edge : blender::IndexRange(base_mesh->totedge)) {
+    if (loose_edges.count > 0 && loose_edges.is_loose_bits[edge]) {
+      continue;
     }
+    const float crease = get_effective_crease(reshape_smooth_context, edge);
+    if (crease == 0.0f) {
+      continue;
+    }
+    num_used_edges++;
   }
 
   const int resolution = get_reshape_level_resolution(reshape_context);

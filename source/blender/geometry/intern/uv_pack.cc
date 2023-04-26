@@ -313,7 +313,6 @@ UVPackIsland_Params::UVPackIsland_Params()
 /* Compact representation for AABB packers. */
 class UVAABBIsland {
  public:
-  uv_phi phi;
   float2 uv_diagonal;
   int64_t index;
   float aspect_y;
@@ -330,8 +329,10 @@ class UVAABBIsland {
  * Technically, the algorithm here is only `O(n)`, In practice, to get reasonable results,
  * the input must be pre-sorted, which costs an additional `O(nlogn)` time complexity.
  */
-static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
+static void pack_islands_alpaca_turbo(const int64_t start_index,
+                                      const Span<UVAABBIsland *> islands,
                                       const float target_aspect_y,
+                                      MutableSpan<uv_phi> r_phis,
                                       float *r_max_u,
                                       float *r_max_v)
 {
@@ -344,7 +345,8 @@ static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
   float v0 = zigzag ? 0.0f : next_v1;
 
   /* Visit every island in order. */
-  for (UVAABBIsland *island : islands) {
+  for (int64_t index = start_index; index < islands.size(); index++) {
+    UVAABBIsland *island = islands[index];
     const float dsm_u = island->uv_diagonal.x;
     const float dsm_v = island->uv_diagonal.y;
 
@@ -363,8 +365,10 @@ static void pack_islands_alpaca_turbo(const Span<UVAABBIsland *> islands,
     }
 
     /* Place the island. */
-    island->phi.translation.x = u0 + dsm_u * 0.5f;
-    island->phi.translation.y = v0 + dsm_v * 0.5f;
+    uv_phi &phi = r_phis[island->index];
+    phi.rotation = 0.0f;
+    phi.translation.x = u0 + dsm_u * 0.5f;
+    phi.translation.y = v0 + dsm_v * 0.5f;
     if (zigzag) {
       /* Move upwards. */
       v0 += dsm_v;
@@ -437,8 +441,10 @@ static void update_hole_rotate(float2 &hole,
  * Also adds the concept of a "Hole", which is unused space that can be filled.
  * Tracking the "Hole" has a slight performance cost, while improving packing efficiency.
  */
-static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
+static void pack_islands_alpaca_rotate(const int64_t start_index,
+                                       const Span<UVAABBIsland *> islands,
                                        const float target_aspect_y,
+                                       MutableSpan<uv_phi> r_phis,
                                        float *r_max_u,
                                        float *r_max_v)
 {
@@ -456,7 +462,9 @@ static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
   float v0 = zigzag ? 0.0f : next_v1;
 
   /* Visit every island in order. */
-  for (UVAABBIsland *island : islands) {
+  for (int64_t index = start_index; index < islands.size(); index++) {
+    UVAABBIsland *island = islands[index];
+    uv_phi &phi = r_phis[island->index];
     const float uvdiag_x = island->uv_diagonal.x * island->aspect_y;
     float min_dsm = std::min(uvdiag_x, island->uv_diagonal.y);
     float max_dsm = std::max(uvdiag_x, island->uv_diagonal.y);
@@ -464,14 +472,14 @@ static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
     if (min_dsm < hole_diagonal.x && max_dsm < hole_diagonal.y) {
       /* Place island in the hole. */
       if (hole_rotate == (min_dsm == island->uv_diagonal.x)) {
-        island->phi.rotation = DEG2RADF(90.0f);
-        island->phi.translation.x = hole[0] + island->uv_diagonal.y * 0.5f / island->aspect_y;
-        island->phi.translation.y = hole[1] + island->uv_diagonal.x * 0.5f * island->aspect_y;
+        phi.rotation = DEG2RADF(90.0f);
+        phi.translation.x = hole[0] + island->uv_diagonal.y * 0.5f / island->aspect_y;
+        phi.translation.y = hole[1] + island->uv_diagonal.x * 0.5f * island->aspect_y;
       }
       else {
-        island->phi.rotation = 0.0f;
-        island->phi.translation.x = hole[0] + island->uv_diagonal.x * 0.5f;
-        island->phi.translation.y = hole[1] + island->uv_diagonal.y * 0.5f;
+        phi.rotation = 0.0f;
+        phi.translation.x = hole[0] + island->uv_diagonal.x * 0.5f;
+        phi.translation.y = hole[1] + island->uv_diagonal.y * 0.5f;
       }
 
       /* Update space left in the hole. */
@@ -507,14 +515,14 @@ static void pack_islands_alpaca_rotate(const Span<UVAABBIsland *> islands,
 
     /* Place the island. */
     if (zigzag == (min_dsm == uvdiag_x)) {
-      island->phi.rotation = DEG2RADF(90.0f);
-      island->phi.translation.x = u0 + island->uv_diagonal.y * 0.5f / island->aspect_y;
-      island->phi.translation.y = v0 + island->uv_diagonal.x * 0.5f * island->aspect_y;
+      phi.rotation = DEG2RADF(90.0f);
+      phi.translation.x = u0 + island->uv_diagonal.y * 0.5f / island->aspect_y;
+      phi.translation.y = v0 + island->uv_diagonal.x * 0.5f * island->aspect_y;
     }
     else {
-      island->phi.rotation = 0.0f;
-      island->phi.translation.x = u0 + island->uv_diagonal.x * 0.5f;
-      island->phi.translation.y = v0 + island->uv_diagonal.y * 0.5f;
+      phi.rotation = 0.0f;
+      phi.translation.x = u0 + island->uv_diagonal.x * 0.5f;
+      phi.translation.y = v0 + island->uv_diagonal.y * 0.5f;
     }
 
     /* Move according to the "Alpaca rules", with rotation. */
@@ -543,6 +551,7 @@ static void pack_island_box_pack_2d(const Span<UVAABBIsland *> aabbs,
                                     const float scale,
                                     const float margin,
                                     const float target_aspect_y,
+                                    MutableSpan<uv_phi> r_phis,
                                     float *r_max_u,
                                     float *r_max_v)
 {
@@ -567,13 +576,11 @@ static void pack_island_box_pack_2d(const Span<UVAABBIsland *> aabbs,
 
   /* Write back box_pack UVs. */
   for (const int64_t i : aabbs.index_range()) {
-    PackIsland *island = islands[aabbs[i]->index];
     BoxPack *box = box_array + i;
-    uv_phi phi;
+    uv_phi &phi = *(uv_phi *)&r_phis[aabbs[i]->index];
     phi.rotation = 0.0f; /* #BLI_box_pack_2d never rotates. */
     phi.translation.x = (box->x + box->w * 0.5f) * target_aspect_y;
     phi.translation.y = (box->y + box->h * 0.5f);
-    island->place_(scale, phi);
   }
 
   /* Housekeeping. */
@@ -868,6 +875,7 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
                                const float scale,
                                const float margin,
                                const UVPackIsland_Params &params,
+                               MutableSpan<uv_phi> r_phis,
                                float *r_max_u,
                                float *r_max_v)
 {
@@ -875,7 +883,6 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
   float max_u = 0.0f;
   float max_v = 0.0f;
 
-  blender::Array<uv_phi> phis(island_indices.size());
   int scan_line = 0;
   int i = 0;
 
@@ -925,14 +932,13 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
 
       /* Redraw already placed islands. (Greedy.) */
       for (int j = 0; j < i; j++) {
-        occupancy.trace_island(islands[island_indices[j]->index], phis[j], scale, margin, true);
+        occupancy.trace_island(islands[island_indices[j]->index], r_phis[j], scale, margin, true);
       }
       continue;
     }
 
     /* Place island. */
-    phis[i] = phi;
-    island->place_(scale, phi);
+    r_phis[island_indices[i]->index] = phi;
     occupancy.trace_island(island, phi, scale, margin, true);
     i++; /* Next island. */
 
@@ -980,8 +986,9 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
    * - Sort islands in size order.
    * - Call #BLI_box_pack_2d on the first `alpaca_cutoff` islands.
    * - Call #pack_islands_alpaca_* on the remaining islands.
-   * - Combine results.
    */
+
+  blender::Array<uv_phi> phis(islands.size());
 
   /* First, copy information from our input into the AABB structure. */
   Array<UVAABBIsland *> aabbs(islands.size());
@@ -1049,6 +1056,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                          scale,
                          margin,
                          params,
+                         phis.as_mutable_span(),
                          &max_u,
                          &max_v);
       break;
@@ -1058,6 +1066,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                               scale,
                               margin,
                               params.target_aspect_y,
+                              phis.as_mutable_span(),
                               &max_u,
                               &max_v);
       break;
@@ -1067,25 +1076,25 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
 
   /* Call Alpaca. */
   if (params.rotate) {
-    pack_islands_alpaca_rotate(
-        aabbs.as_mutable_span().drop_front(max_box_pack), params.target_aspect_y, &max_u, &max_v);
+    pack_islands_alpaca_rotate(max_box_pack,
+                               aabbs.as_mutable_span(),
+                               params.target_aspect_y,
+                               phis.as_mutable_span(),
+                               &max_u,
+                               &max_v);
   }
   else {
-    pack_islands_alpaca_turbo(
-        aabbs.as_mutable_span().drop_front(max_box_pack), params.target_aspect_y, &max_u, &max_v);
+    pack_islands_alpaca_turbo(max_box_pack,
+                              aabbs.as_mutable_span(),
+                              params.target_aspect_y,
+                              phis.as_mutable_span(),
+                              &max_u,
+                              &max_v);
   }
 
-  /* Write back Alpaca UVs. */
-  for (int64_t i = max_box_pack; i < aabbs.size(); i++) {
-    UVAABBIsland *aabb = aabbs[i];
-    islands[aabb->index]->place_(scale, aabb->phi);
-  }
-
-  /* Memory management. */
-  for (int64_t i : aabbs.index_range()) {
-    UVAABBIsland *aabb = aabbs[i];
-    aabbs[i] = nullptr;
-    delete aabb;
+  /* Write back UVs. */
+  for (int64_t i = 0; i < aabbs.size(); i++) {
+    islands[i]->place_(scale, phis[i]);
   }
 
   return std::max(max_u / params.target_aspect_y, max_v);
