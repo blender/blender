@@ -41,7 +41,7 @@ static void find_neighbors(const KDTree_3d &tree,
                            const IndexMask mask,
                            MutableSpan<int> r_indices)
 {
-  threading::parallel_for(mask.index_range(), 512, [&](const IndexRange range) {
+  threading::parallel_for(mask.index_range(), 1024, [&](const IndexRange range) {
     for (const int index : mask.slice(range)) {
       r_indices[index] = find_nearest_non_self(tree, positions[index], index);
     }
@@ -130,7 +130,10 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
         },
         [&]() { build_group_masks(IndexMask(domain_size), all_indices_by_group_id); });
 
-    threading::parallel_for(group_indexing.index_range(), 256, [&](const IndexRange range) {
+    /* The grain size should be larger as each tree gets smaller. */
+    const int avg_tree_size = domain_size / group_indexing.size();
+    const int grain_size = std::max(8192 / avg_tree_size, 1);
+    threading::parallel_for(group_indexing.index_range(), grain_size, [&](const IndexRange range) {
       for (const int index : range) {
         const IndexMask tree_mask = all_indices_by_group_id[index].as_span();
         const IndexMask lookup_mask = use_separate_lookup_indices ?
