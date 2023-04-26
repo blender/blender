@@ -150,6 +150,8 @@ static void mempool_asan_unlock(BLI_mempool *pool)
 {
 #ifdef WITH_ASAN
   BLI_mutex_unlock(&pool->mutex);
+#else
+  UNUSED_VARS(pool);
 #endif
 }
 
@@ -157,6 +159,8 @@ static void mempool_asan_lock(BLI_mempool *pool)
 {
 #ifdef WITH_ASAN
   BLI_mutex_lock(&pool->mutex);
+#else
+  UNUSED_VARS(pool);
 #endif
 }
 
@@ -510,7 +514,7 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 
 int BLI_mempool_len(const BLI_mempool *pool)
 {
-  int ret = pool->totused;
+  int ret = (int)pool->totused;
 
   return ret;
 }
@@ -552,7 +556,7 @@ void BLI_mempool_as_table(BLI_mempool *pool, void **data)
     *p++ = elem;
   }
 
-  BLI_assert((int)(p - data) == pool->totused);
+  BLI_assert((int)(p - data) == (int)pool->totused);
 }
 
 void **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr)
