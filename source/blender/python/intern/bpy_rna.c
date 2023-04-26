@@ -2338,10 +2338,9 @@ static int pyrna_prop_collection_ass_subscript_int(BPy_PropertyRNA *self,
                    len);
     }
     else {
-
       PyErr_Format(PyExc_IndexError,
                    "bpy_prop_collection[index] = value: "
-                   "failed assignment (unknown reason)",
+                   "index %d failed assignment (unknown reason)",
                    keynum);
     }
     return -1;
@@ -2390,7 +2389,7 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
     bool found = false;
     CollectionPropertyIterator iter;
     RNA_property_collection_begin(&self->ptr, self->prop, &iter);
-    for (int i = 0; iter.valid; RNA_property_collection_next(&iter), i++) {
+    for (; iter.valid; RNA_property_collection_next(&iter)) {
       PropertyRNA *nameprop = RNA_struct_name_property(iter.ptr.type);
       /* The #RNA_property_collection_lookup_string_has_nameprop check should account for this.
        * Although it's technically possible a sub-type clears the name property,
