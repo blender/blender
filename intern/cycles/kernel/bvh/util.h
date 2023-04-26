@@ -23,14 +23,35 @@ ccl_device_inline bool intersection_ray_valid(ccl_private const Ray *ray)
 /* Offset intersection distance by the smallest possible amount, to skip
  * intersections at this distance. This works in cases where the ray start
  * position is unchanged and only tmin is updated, since for self
- * intersection we'll be comparing against the exact same distances. */
+ * intersection we'll be comparing against the exact same distances.
+ *
+ * Always returns normalized floating point value. */
 ccl_device_forceinline float intersection_t_offset(const float t)
 {
   /* This is a simplified version of `nextafterf(t, FLT_MAX)`, only dealing with
    * non-negative and finite t. */
   kernel_assert(t >= 0.0f && isfinite_safe(t));
-  const uint32_t bits = (t == 0.0f) ? 1 : __float_as_uint(t) + 1;
-  return __uint_as_float(bits);
+
+  /* Special handling of zero, which also includes handling of denormal values:
+   * always return smallest normalized value. If a denormalized zero is returned
+   * it will cause false-positive intersection detection with a distance of 0.
+   *
+   * The check relies on the fact that comparison of de-normal values with zero
+   * returns true. */
+  if (t == 0.0f) {
+    /* The value of std::numeric_limits<float>::min() and __FLT_MIN__, inlined
+     * to ensure matched behavior on all platforms and compilers. */
+    return 0x1p-126;
+  }
+
+  const uint32_t bits = __float_as_uint(t) + 1;
+  const float result = __uint_as_float(bits);
+
+  /* Assert that the calculated value is indeed considered to be offset from the
+   * original value. */
+  kernel_assert(result > t);
+
+  return result;
 }
 
 /* Ray offset to avoid self intersection.
