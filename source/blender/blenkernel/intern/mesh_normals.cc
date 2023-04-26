@@ -39,15 +39,6 @@
 
 #include "atomic_ops.h"
 
-using blender::BitVector;
-using blender::float3;
-using blender::int2;
-using blender::MutableBitSpan;
-using blender::MutableSpan;
-using blender::short2;
-using blender::Span;
-using blender::VArray;
-
 // #define DEBUG_TIME
 
 #ifdef DEBUG_TIME
@@ -315,6 +306,7 @@ void normals_calc_poly_vert(const Span<float3> positions,
 
 blender::Span<blender::float3> Mesh::vert_normals() const
 {
+  using namespace blender;
   if (!this->runtime->vert_normals_dirty) {
     BLI_assert(this->runtime->vert_normals.size() == this->totvert);
     return this->runtime->vert_normals;
@@ -327,14 +319,14 @@ blender::Span<blender::float3> Mesh::vert_normals() const
   }
 
   /* Isolate task because a mutex is locked and computing normals is multi-threaded. */
-  blender::threading::isolate_task([&]() {
+  threading::isolate_task([&]() {
     const Span<float3> positions = this->vert_positions();
-    const blender::OffsetIndices polys = this->polys();
+    const OffsetIndices polys = this->polys();
     const Span<int> corner_verts = this->corner_verts();
 
     this->runtime->vert_normals.reinitialize(positions.size());
     this->runtime->poly_normals.reinitialize(polys.size());
-    blender::bke::mesh::normals_calc_poly_vert(
+    bke::mesh::normals_calc_poly_vert(
         positions, polys, corner_verts, this->runtime->poly_normals, this->runtime->vert_normals);
 
     this->runtime->vert_normals_dirty = false;
@@ -346,6 +338,7 @@ blender::Span<blender::float3> Mesh::vert_normals() const
 
 blender::Span<blender::float3> Mesh::poly_normals() const
 {
+  using namespace blender;
   if (!this->runtime->poly_normals_dirty) {
     BLI_assert(this->runtime->poly_normals.size() == this->totpoly);
     return this->runtime->poly_normals;
@@ -358,14 +351,13 @@ blender::Span<blender::float3> Mesh::poly_normals() const
   }
 
   /* Isolate task because a mutex is locked and computing normals is multi-threaded. */
-  blender::threading::isolate_task([&]() {
+  threading::isolate_task([&]() {
     const Span<float3> positions = this->vert_positions();
-    const blender::OffsetIndices polys = this->polys();
+    const OffsetIndices polys = this->polys();
     const Span<int> corner_verts = this->corner_verts();
 
     this->runtime->poly_normals.reinitialize(polys.size());
-    blender::bke::mesh::normals_calc_polys(
-        positions, polys, corner_verts, this->runtime->poly_normals);
+    bke::mesh::normals_calc_polys(positions, polys, corner_verts, this->runtime->poly_normals);
 
     this->runtime->poly_normals_dirty = false;
   });
@@ -672,6 +664,8 @@ void BKE_lnor_space_custom_normal_to_data(const MLoopNorSpace *lnor_space,
   }
 }
 
+namespace blender::bke::mesh {
+
 #define LOOP_SPLIT_TASK_BLOCK_SIZE 1024
 
 struct LoopSplitTaskData {
@@ -704,7 +698,7 @@ struct LoopSplitTaskDataCommon {
   Span<int2> edges;
   Span<int> corner_verts;
   Span<int> corner_edges;
-  blender::OffsetIndices<int> polys;
+  OffsetIndices<int> polys;
   Span<int2> edge_to_loops;
   Span<int> loop_to_poly;
   Span<float3> poly_normals;
@@ -715,8 +709,6 @@ struct LoopSplitTaskDataCommon {
 #define INDEX_INVALID -1
 /* See comment about edge_to_loops below. */
 #define IS_EDGE_SHARP(_e2l) ELEM((_e2l)[1], INDEX_UNSET, INDEX_INVALID)
-
-namespace blender::bke::mesh {
 
 static void mesh_edges_sharp_tag(const OffsetIndices<int> polys,
                                  const Span<int> corner_verts,
@@ -822,16 +814,16 @@ void edges_sharp_from_angle_set(const OffsetIndices<int> polys,
 }
 
 static void loop_manifold_fan_around_vert_next(const Span<int> corner_verts,
-                                               const blender::OffsetIndices<int> polys,
+                                               const OffsetIndices<int> polys,
                                                const Span<int> loop_to_poly,
                                                const int *e2lfan_curr,
-                                               const uint vert_pivot,
+                                               const int vert_pivot,
                                                int *r_mlfan_curr_index,
                                                int *r_mlfan_vert_index,
                                                int *r_mpfan_curr_index)
 {
   const int mlfan_curr_orig = *r_mlfan_curr_index;
-  const uint vert_fan_orig = corner_verts[mlfan_curr_orig];
+  const int vert_fan_orig = corner_verts[mlfan_curr_orig];
 
   /* WARNING: This is rather complex!
    * We have to find our next edge around the vertex (fan mode).
@@ -846,7 +838,7 @@ static void loop_manifold_fan_around_vert_next(const Span<int> corner_verts,
   BLI_assert(*r_mlfan_curr_index >= 0);
   BLI_assert(*r_mpfan_curr_index >= 0);
 
-  const uint vert_fan_next = corner_verts[*r_mlfan_curr_index];
+  const int vert_fan_next = corner_verts[*r_mlfan_curr_index];
   const IndexRange poly_fan_next = polys[*r_mpfan_curr_index];
   if ((vert_fan_orig == vert_fan_next && vert_fan_orig == vert_pivot) ||
       !ELEM(vert_fan_orig, vert_fan_next, vert_pivot)) {
@@ -932,7 +924,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
 
   const Span<float3> positions = common_data->positions;
   const Span<int2> edges = common_data->edges;
-  const blender::OffsetIndices polys = common_data->polys;
+  const OffsetIndices polys = common_data->polys;
   const Span<int> corner_verts = common_data->corner_verts;
   const Span<int> corner_edges = common_data->corner_edges;
   const Span<int2> edge_to_loops = common_data->edge_to_loops;
@@ -1163,7 +1155,7 @@ static void loop_split_worker(TaskPool *__restrict pool, void *taskdata)
  */
 static bool loop_split_generator_check_cyclic_smooth_fan(const Span<int> corner_verts,
                                                          const Span<int> corner_edges,
-                                                         const blender::OffsetIndices<int> polys,
+                                                         const OffsetIndices<int> polys,
                                                          const Span<int2> edge_to_loops,
                                                          const Span<int> loop_to_poly,
                                                          const int *e2l_prev,
@@ -1173,7 +1165,7 @@ static bool loop_split_generator_check_cyclic_smooth_fan(const Span<int> corner_
                                                          const int mp_curr_index)
 {
   /* The vertex we are "fanning" around. */
-  const uint vert_pivot = corner_verts[ml_curr_index];
+  const int vert_pivot = corner_verts[ml_curr_index];
 
   const int *e2lfan_curr = e2l_prev;
   if (IS_EDGE_SHARP(e2lfan_curr)) {
@@ -1821,19 +1813,19 @@ static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const
   const bool *sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));
 
-  mesh_normals_loop_custom_set(mesh->vert_positions(),
-                               mesh->edges(),
-                               mesh->polys(),
-                               mesh->corner_verts(),
-                               mesh->corner_edges(),
-                               mesh->vert_normals(),
-                               mesh->poly_normals(),
-                               sharp_faces,
-                               use_vertices,
-                               {reinterpret_cast<blender::float3 *>(r_custom_nors),
-                                use_vertices ? mesh->totvert : mesh->totloop},
-                               sharp_edges.span,
-                               clnors);
+  mesh_normals_loop_custom_set(
+      mesh->vert_positions(),
+      mesh->edges(),
+      mesh->polys(),
+      mesh->corner_verts(),
+      mesh->corner_edges(),
+      mesh->vert_normals(),
+      mesh->poly_normals(),
+      sharp_faces,
+      use_vertices,
+      {reinterpret_cast<float3 *>(r_custom_nors), use_vertices ? mesh->totvert : mesh->totloop},
+      sharp_edges.span,
+      clnors);
 
   sharp_edges.finish();
 }
