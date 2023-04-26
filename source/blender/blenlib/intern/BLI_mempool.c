@@ -13,21 +13,15 @@
  *   (optionally when using the #BLI_MEMPOOL_ALLOW_ITER flag).
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "atomic_ops.h"
 
-#include "BLI_asan.h"
-#include "BLI_mempool.h"         /* own include */
-#include "BLI_mempool_private.h" /* own include */
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#ifndef WITH_DNA_GHASH
-#  include "BLI_threads.h"
-#endif
+#include "BLI_mempool.h"         /* own include */
+#include "BLI_mempool_private.h" /* own include */
 
 #include "MEM_guardedalloc.h"
 
@@ -35,13 +29,6 @@
 
 #ifdef WITH_MEM_VALGRIND
 #  include "valgrind/memcheck.h"
-#endif
-
-#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer))
-#  define POISON_REDZONE_SIZE 32
-#  define HAVE_MEMPOOL_ASAN
-#else
-#  define POISON_REDZONE_SIZE 0
 #endif
 
 /* NOTE: copied from BLO_blend_defs.h, don't use here because we're in BLI. */
@@ -108,20 +95,11 @@ typedef struct BLI_mempool_chunk {
  * The mempool, stores and tracks memory \a chunks and elements within those chunks \a free.
  */
 struct BLI_mempool {
-#if !defined(WITH_DNA_GHASH) && (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer))
-  ThreadMutex mutex;
-#endif
   /** Single linked list of allocated chunks. */
   BLI_mempool_chunk *chunks;
   /** Keep a pointer to the last, so we can append new chunks there
    * this is needed for iteration so we can loop over chunks in the order added. */
   BLI_mempool_chunk *chunk_tail;
-
-  /* only used if BLI_MEMPOOL_RANDOM_ACCESS is true*/
-  BLI_mempool_chunk **chunktable;
-
-  /* only used if BLI_MEMPOOL_RANDOM_ACCESS is true*/
-  int totchunk;
 
   /** Element size in bytes. */
   uint esize;
@@ -132,24 +110,16 @@ struct BLI_mempool {
   uint flag;
   /* keeps aligned to 16 bits */
 
-#ifdef HAVE_MEMPOOL_ASAN
-  char poisoned[256];
-#endif
-
   /** Free element list. Interleaved into chunk data. */
   BLI_freenode *free;
   /** Use to know how many chunks to keep for #BLI_mempool_clear. */
   uint maxchunks;
   /** Number of elements currently in use. */
-  int totused;
+  uint totused;
 #ifdef USE_TOTALLOC
   /** Number of elements allocated in total. */
   uint totalloc;
 #endif
-
-  char *memtag;
-  char *memtag_chunk;
-  bool dead;
 };
 
 #define MEMPOOL_ELEM_SIZE_MIN (sizeof(void *) * 2)
@@ -161,54 +131,6 @@ struct BLI_mempool {
 
 /** Extra bytes implicitly used for every chunk alloc. */
 #define CHUNK_OVERHEAD (uint)(MEM_SIZE_OVERHEAD + sizeof(BLI_mempool_chunk))
-
-static void mempool_poison(BLI_mempool *pool)
-{
-#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer))
-#  ifndef WITH_DNA_GHASH
-  BLI_mutex_unlock(&pool->mutex);
-#  endif
-
-#  ifndef WITH_DNA_GHASH
-  char *ptr = (char *)pool;
-  size_t offset = offsetof(BLI_mempool, mutex) + sizeof(ThreadMutex);
-  BLI_asan_poison(ptr + offset, sizeof(*pool) - offset);
-#  else
-  BLI_asan_poison(pool, sizeof(*pool));
-#  endif
-#endif
-}
-
-static void mempool_poison_no_unlock(BLI_mempool *pool)
-{
-#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer))
-
-#  ifndef WITH_DNA_GHASH
-  char *ptr = (char *)pool;
-  size_t offset = offsetof(BLI_mempool, mutex) + sizeof(ThreadMutex);
-  BLI_asan_poison(ptr + offset, sizeof(*pool) - offset);
-#  else
-  BLI_asan_poison(pool, sizeof(*pool));
-#  endif
-#endif
-}
-
-static void mempool_unpoison(BLI_mempool *pool)
-{
-#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer))
-#  ifndef WITH_DNA_GHASH
-  BLI_mutex_lock(&pool->mutex);
-#  endif
-
-#  ifndef WITH_DNA_GHASH
-  char *ptr = (char *)pool;
-  size_t offset = offsetof(BLI_mempool, mutex) + sizeof(ThreadMutex);
-  BLI_asan_unpoison(ptr + offset, sizeof(*pool) - offset);
-#  else
-  BLI_asan_unpoison(pool, sizeof(*pool));
-#  endif
-#endif
-}
 
 #ifdef USE_CHUNK_POW2
 static uint power_of_2_max_u(uint x)
@@ -222,33 +144,6 @@ static uint power_of_2_max_u(uint x)
   return x + 1;
 }
 #endif
-
-static void mempool_update_chunktable(BLI_mempool *pool)
-{
-  if (!(pool->flag & BLI_MEMPOOL_RANDOM_ACCESS)) {
-    return;
-  }
-
-  pool->totchunk = 0;
-  BLI_mempool_chunk *chunk = pool->chunks;
-
-  while (chunk) {
-    pool->totchunk++;
-    chunk = chunk->next;
-  }
-
-  MEM_SAFE_FREE(pool->chunktable);
-  pool->chunktable = (BLI_mempool_chunk **)MEM_mallocN(
-      sizeof(pool->chunktable) * (size_t)pool->totchunk, "mempool chunktable");
-
-  int i = 0;
-  chunk = pool->chunks;
-
-  while (chunk) {
-    pool->chunktable[i++] = chunk;
-    chunk = chunk->next;
-  }
-}
 
 BLI_INLINE BLI_mempool_chunk *mempool_chunk_find(BLI_mempool_chunk *head, uint index)
 {
@@ -271,7 +166,7 @@ BLI_INLINE uint mempool_maxchunks(const uint elem_num, const uint pchunk)
 
 static BLI_mempool_chunk *mempool_chunk_alloc(BLI_mempool *pool)
 {
-  return BLI_asan_safe_malloc(sizeof(BLI_mempool_chunk) + (size_t)pool->csize, pool->memtag);
+  return MEM_mallocN(sizeof(BLI_mempool_chunk) + (size_t)pool->csize, "BLI_Mempool Chunk");
 }
 
 /**
@@ -290,26 +185,6 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool,
   const uint esize = pool->esize;
   BLI_freenode *curnode = CHUNK_DATA(mpchunk);
   uint j;
-
-  if (pool->flag & BLI_MEMPOOL_RANDOM_ACCESS) {
-    if (!pool->chunktable ||
-        MEM_allocN_len(pool->chunktable) / sizeof(void *) <= (size_t)pool->totchunk) {
-      void *old = pool->chunktable;
-
-      int size = (int)pool->totchunk + 2;
-      size += size >> 1;
-
-      pool->chunktable = MEM_mallocN(sizeof(void *) * (size_t)size, "mempool chunktable");
-
-      if (old) {
-        memcpy(pool->chunktable, old, sizeof(void *) * (size_t)pool->totchunk);
-      }
-
-      MEM_SAFE_FREE(old);
-    }
-
-    pool->chunktable[pool->totchunk++] = mpchunk;
-  }
 
   /* append */
   if (pool->chunk_tail) {
@@ -331,41 +206,22 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool,
   j = pool->pchunk;
   if (pool->flag & BLI_MEMPOOL_ALLOW_ITER) {
     while (j--) {
-      BLI_freenode *next;
-
-      BLI_asan_unpoison(curnode, pool->esize - POISON_REDZONE_SIZE);
-
-      curnode->next = next = NODE_STEP_NEXT(curnode);
+      curnode->next = NODE_STEP_NEXT(curnode);
       curnode->freeword = FREEWORD;
-
-      BLI_asan_poison(curnode, pool->esize);
-
-      curnode = next;
+      curnode = curnode->next;
     }
   }
   else {
     while (j--) {
-      BLI_freenode *next;
-
-      BLI_asan_unpoison(curnode, pool->esize - POISON_REDZONE_SIZE);
-      curnode->next = next = NODE_STEP_NEXT(curnode);
-      BLI_asan_poison(curnode, pool->esize);
-
-      curnode = next;
+      curnode->next = NODE_STEP_NEXT(curnode);
+      curnode = curnode->next;
     }
   }
 
   /* terminate the list (rewind one)
    * will be overwritten if 'curnode' gets passed in again as 'last_tail' */
-
-  BLI_asan_unpoison(curnode, pool->esize - POISON_REDZONE_SIZE);
-  BLI_asan_poison(curnode, pool->esize);
-
   curnode = NODE_STEP_PREV(curnode);
-
-  BLI_asan_unpoison(curnode, pool->esize - POISON_REDZONE_SIZE);
   curnode->next = NULL;
-  BLI_asan_poison(curnode, pool->esize);
 
 #ifdef USE_TOTALLOC
   pool->totalloc += pool->pchunk;
@@ -373,175 +229,35 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool,
 
   /* final pointer in the previously allocated chunk is wrong */
   if (last_tail) {
-    BLI_asan_unpoison(last_tail, pool->esize - POISON_REDZONE_SIZE);
     last_tail->next = CHUNK_DATA(mpchunk);
-    BLI_asan_poison(last_tail, pool->esize);
   }
 
   return curnode;
 }
 
-/**
- * Preallocates a mempool suitable for threading.  elem_num elements are preallocated
- * in chunks of size pchunk, and returned in r_chunks.  The idea is to pass these
- * to tasks.
- */
-BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
-                                          int elem_num,
-                                          const int pchunk,
-                                          void ***r_chunks,
-                                          int *r_totchunk,
-                                          int *r_esize,
-                                          int flag)
+static void mempool_chunk_free(BLI_mempool_chunk *mpchunk)
 {
-  BLI_mempool *pool = BLI_mempool_create(esize, 0, (uint)pchunk, (uint)flag);
-
-  mempool_unpoison(pool);
-
-  // override pchunk, may not be a power of 2
-  pool->pchunk = (uint)pchunk;
-  pool->csize = (uint)pchunk * pool->esize;
-
-  if (elem_num % pchunk == 0) {
-    pool->maxchunks = (uint)elem_num / (uint)pchunk;
-  }
-  else {
-    pool->maxchunks = (uint)elem_num / (uint)pchunk + 1;
-  }
-
-  if (elem_num) {
-    BLI_freenode *last_tail = NULL;
-
-    /* Allocate the actual chunks. */
-    for (uint i = 0; i < pool->maxchunks; i++) {
-      BLI_mempool_chunk *mpchunk = mempool_chunk_alloc(pool);
-      last_tail = mempool_chunk_add(pool, mpchunk, last_tail);
-    }
-  }
-
-  void **chunks = MEM_callocN(sizeof(void *) * pool->maxchunks,
-                              "BLI_mempool_create_for_tasks r_chunks");
-
-  unsigned int totalloc = 0;
-  *r_totchunk = 0;
-
-  BLI_mempool_chunk *chunk = pool->chunks, *lastchunk = NULL;
-
-  while (chunk) {
-    lastchunk = chunk;
-    totalloc += pool->pchunk;
-    chunk = chunk->next;
-  }
-
-  pool->totused = (int)totalloc;
-  pool->free = NULL;
-
-  int i = (int)pool->pchunk - 1;
-
-  while (lastchunk && totalloc > (uint)elem_num) {
-    if (i < 0) {
-      BLI_mempool_chunk *lastchunk2 = NULL;
-
-      for (chunk = pool->chunks; chunk; chunk = chunk->next) {
-        if (chunk == lastchunk) {
-          lastchunk = lastchunk2;
-        }
-      }
-
-      if (!lastchunk) {
-        break;
-      }
-
-      i = (int)pool->pchunk - 1;
-    }
-
-    char *elem = CHUNK_DATA(lastchunk);
-    elem += pool->esize * (unsigned int)i;
-
-    BLI_mempool_free(pool, elem);
-
-    totalloc--;
-    i--;
-  }
-
-  int ci = 0;
-
-  chunk = pool->chunks;
-  while (chunk && chunk != lastchunk) {
-    chunks[ci++] = CHUNK_DATA(chunk);
-    chunk = chunk->next;
-  }
-
-  if (lastchunk && i >= 0) {
-    chunks[ci++] = CHUNK_DATA(lastchunk);
-  }
-
-  *r_totchunk = ci;
-  *r_chunks = (void **)chunks;
-  *r_esize = (int)pool->esize;
-
-  return pool;
+  MEM_freeN(mpchunk);
 }
 
-static void mempool_chunk_free(BLI_mempool_chunk *mpchunk, BLI_mempool *pool)
-{
-  BLI_asan_unpoison(mpchunk, sizeof(BLI_mempool_chunk) + pool->esize * pool->csize);
-  BLI_asan_safe_free(mpchunk);
-}
-
-static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk, BLI_mempool *pool)
+static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk)
 {
   BLI_mempool_chunk *mpchunk_next;
 
   for (; mpchunk; mpchunk = mpchunk_next) {
-    BLI_asan_unpoison(mpchunk, sizeof(BLI_mempool_chunk));
     mpchunk_next = mpchunk->next;
-
-    mempool_chunk_free(mpchunk, pool);
+    mempool_chunk_free(mpchunk);
   }
 }
 
-#ifdef BLI_mempool_create
-#  undef BLI_mempool_create
-#endif
-
 BLI_mempool *BLI_mempool_create(uint esize, uint elem_num, uint pchunk, uint flag)
-{
-  return BLI_mempool_create_ex(esize, elem_num, pchunk, flag, "");
-}
-
-BLI_mempool *BLI_mempool_create_ex(
-    uint esize, uint elem_num, uint pchunk, uint flag, const char *tag)
 {
   BLI_mempool *pool;
   BLI_freenode *last_tail = NULL;
   uint i, maxchunks;
 
-  char buf[512];
-  if (tag) {
-    sprintf(buf, "Mempool:%s", tag);
-  }
-  else {
-    sprintf(buf, "memory pool");
-  }
-
-  char *memtag = strdup(buf);
-
   /* allocate the pool structure */
-  pool = MEM_mallocN(sizeof(BLI_mempool), memtag);
-
-  strcat(buf, " chunk");
-
-#if !defined(WITH_DNA_GHASH) && (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer))
-  BLI_mutex_init(&pool->mutex);
-#endif
-
-  pool->memtag = memtag;
-  pool->memtag_chunk = strdup(buf);
-  pool->dead = false;
-
-  pool->totchunk = 0;
-  pool->chunktable = NULL;
+  pool = MEM_mallocN(sizeof(BLI_mempool), "memory pool");
 
   /* set the elem size */
   if (esize < (int)MEMPOOL_ELEM_SIZE_MIN) {
@@ -551,8 +267,6 @@ BLI_mempool *BLI_mempool_create_ex(
   if (flag & BLI_MEMPOOL_ALLOW_ITER) {
     esize = MAX2(esize, (uint)sizeof(BLI_freenode));
   }
-
-  esize += POISON_REDZONE_SIZE;
 
   maxchunks = mempool_maxchunks(elem_num, pchunk);
 
@@ -599,19 +313,11 @@ BLI_mempool *BLI_mempool_create_ex(
   VALGRIND_CREATE_MEMPOOL(pool, 0, false);
 #endif
 
-#ifdef HAVE_MEMPOOL_ASAN
-  BLI_asan_poison(pool->poisoned, sizeof(pool->poisoned));
-#endif
-
-  mempool_poison_no_unlock(pool);
-
   return pool;
 }
 
 void *BLI_mempool_alloc(BLI_mempool *pool)
 {
-  mempool_unpoison(pool);
-
   BLI_freenode *free_pop;
 
   if (UNLIKELY(pool->free == NULL)) {
@@ -621,8 +327,6 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
   }
 
   free_pop = pool->free;
-
-  BLI_asan_unpoison(free_pop, pool->esize - POISON_REDZONE_SIZE);
 
   BLI_assert(pool->chunk_tail->next == NULL);
 
@@ -637,141 +341,18 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
   VALGRIND_MEMPOOL_ALLOC(pool, free_pop, pool->esize);
 #endif
 
-  mempool_poison(pool);
-
   return (void *)free_pop;
 }
 
 void *BLI_mempool_calloc(BLI_mempool *pool)
 {
   void *retval = BLI_mempool_alloc(pool);
-
-  mempool_unpoison(pool);
-  memset(retval, 0, (size_t)pool->esize - POISON_REDZONE_SIZE);
-  mempool_poison(pool);
-
+  memset(retval, 0, (size_t)pool->esize);
   return retval;
 }
 
-int BLI_mempool_find_real_index(BLI_mempool *pool, void *ptr)
-{
-  mempool_unpoison(pool);
-
-  BLI_mempool_chunk *chunk = pool->chunks;
-  uintptr_t uptr = (uintptr_t)ptr;
-  uintptr_t cptr;
-  int chunki = 0;
-
-  while (chunk) {
-    cptr = (uintptr_t)chunk;
-
-    if (uptr >= cptr && uptr < cptr + pool->csize) {
-      break;
-    }
-
-    chunk = chunk->next;
-    chunki++;
-  }
-
-  if (!chunk) {
-    mempool_poison(pool);
-    return -1;  // failed
-  }
-
-  int ret = chunki * (int)pool->pchunk + ((int)(uptr - cptr)) / (int)pool->esize;
-
-  mempool_poison(pool);
-
-  return ret;
-}
-
-/*finds an element in pool that's roughly at idx, idx*/
-int BLI_mempool_find_elems_fuzzy(
-    BLI_mempool *pool, int idx, int range, void **r_elems, int r_elems_size)
-{
-  mempool_unpoison(pool);
-
-  int istart = idx - range, iend = idx + range;
-  istart = MAX2(istart, 0);
-
-  int elem_num = 0;
-
-  for (int i = istart; i < iend; i++) {
-    int chunki = i / (int)pool->pchunk;
-    if (chunki >= (int)pool->totchunk) {
-      break;
-    }
-
-    int idx2 = i % (int)pool->pchunk;
-
-    BLI_mempool_chunk *chunk = pool->chunktable[chunki];
-    char *data = (char *)CHUNK_DATA(chunk);
-    void *ptr = data + idx2 * (int)pool->esize;
-
-    BLI_asan_unpoison(ptr, pool->esize - POISON_REDZONE_SIZE);
-
-    BLI_freenode *fnode = (BLI_freenode *)ptr;
-    if (fnode->freeword == FREEWORD) {
-      BLI_asan_poison(ptr, pool->esize);
-      continue;
-    }
-
-    r_elems[elem_num++] = ptr;
-
-    if (elem_num == r_elems_size) {
-      break;
-    }
-  }
-
-  mempool_poison(pool);
-  return elem_num;
-}
-
-int BLI_mempool_get_size(BLI_mempool *pool)
-{
-  mempool_unpoison(pool);
-
-  BLI_mempool_chunk *chunk = pool->chunks;
-  int ret = 0;
-
-  while (chunk) {
-    chunk = chunk->next;
-
-    ret += (int)pool->pchunk;
-  }
-
-  mempool_poison(pool);
-  return ret;
-}
-
-void BLI_mempool_ignore_free(BLI_mempool *pool)
-{
-  mempool_unpoison(pool);
-  pool->flag |= BLI_MEMPOOL_IGNORE_FREE;
-  mempool_poison(pool);
-}
-
-/**
- * Free an element from the mempool.
- *
- * \note doesn't protect against double frees, take care!
- */
 void BLI_mempool_free(BLI_mempool *pool, void *addr)
 {
-  mempool_unpoison(pool);
-
-  if (pool->flag & BLI_MEMPOOL_IGNORE_FREE) {
-    BLI_freenode *newhead = addr;
-
-    if (pool->flag & BLI_MEMPOOL_ALLOW_ITER) {
-      newhead->freeword = FREEWORD;
-    }
-
-    BLI_asan_poison(newhead, pool->esize);
-    mempool_poison(pool);
-    return;
-  }
-
   BLI_freenode *newhead = addr;
 
 #ifndef NDEBUG
@@ -791,7 +372,7 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 
   /* Enable for debugging. */
   if (UNLIKELY(mempool_debug_memset)) {
-    memset(addr, 255, pool->esize - POISON_REDZONE_SIZE);
+    memset(addr, 255, pool->esize);
   }
 #endif
 
@@ -806,15 +387,7 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
   newhead->next = pool->free;
   pool->free = newhead;
 
-  BLI_asan_poison(newhead, pool->esize);
-
   pool->totused--;
-
-  if (pool->totused < 0) {
-    fprintf(stderr, "Corrupted mempool\n");
-    fflush(stderr);
-    abort();
-  }
 
 #ifdef WITH_MEM_VALGRIND
   VALGRIND_MEMPOOL_FREE(pool, addr);
@@ -828,11 +401,9 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
     BLI_mempool_chunk *first;
 
     first = pool->chunks;
-    mempool_chunk_free_all(first->next, pool);
+    mempool_chunk_free_all(first->next);
     first->next = NULL;
     pool->chunk_tail = first;
-
-    mempool_update_chunktable(pool);
 
 #ifdef USE_TOTALLOC
     pool->totalloc = pool->pchunk;
@@ -848,46 +419,28 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 
     j = pool->pchunk;
     while (j--) {
-      BLI_asan_unpoison(curnode, pool->esize - POISON_REDZONE_SIZE);
-      BLI_freenode *next = curnode->next = NODE_STEP_NEXT(curnode);
-      BLI_asan_poison(curnode, pool->esize);
-      curnode = next;
+      curnode->next = NODE_STEP_NEXT(curnode);
+      curnode = curnode->next;
     }
-
-    BLI_asan_unpoison(curnode, pool->esize - POISON_REDZONE_SIZE);
-    BLI_freenode *prev = NODE_STEP_PREV(curnode);
-    BLI_asan_poison(curnode, pool->esize);
-
-    curnode = prev;
-
-    BLI_asan_unpoison(curnode, pool->esize - POISON_REDZONE_SIZE);
+    curnode = NODE_STEP_PREV(curnode);
     curnode->next = NULL; /* terminate the list */
-    BLI_asan_poison(curnode, pool->esize);
 
 #ifdef WITH_MEM_VALGRIND
     VALGRIND_MEMPOOL_FREE(pool, CHUNK_DATA(first));
 #endif
   }
-
-  mempool_poison(pool);
 }
 
 int BLI_mempool_len(const BLI_mempool *pool)
 {
-  mempool_unpoison((BLI_mempool *)pool);
-  int ret = pool->totused;
-  mempool_poison((BLI_mempool *)pool);
-
-  return ret;
+  return (int)pool->totused;
 }
 
 void *BLI_mempool_findelem(BLI_mempool *pool, uint index)
 {
-  mempool_unpoison(pool);
-
   BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
 
-  if (index < (uint)pool->totused) {
+  if (index < pool->totused) {
     /* We could have some faster mem chunk stepping code inline. */
     BLI_mempool_iter iter;
     void *elem;
@@ -895,12 +448,9 @@ void *BLI_mempool_findelem(BLI_mempool *pool, uint index)
     for (elem = BLI_mempool_iterstep(&iter); index-- != 0; elem = BLI_mempool_iterstep(&iter)) {
       /* pass */
     }
-
-    mempool_poison(pool);
     return elem;
   }
 
-  mempool_poison(pool);
   return NULL;
 }
 
@@ -909,20 +459,12 @@ void BLI_mempool_as_table(BLI_mempool *pool, void **data)
   BLI_mempool_iter iter;
   void *elem;
   void **p = data;
-
-  mempool_unpoison(pool);
   BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
-  mempool_poison(pool);
-
   BLI_mempool_iternew(pool, &iter);
-
   while ((elem = BLI_mempool_iterstep(&iter))) {
     *p++ = elem;
   }
-
-  mempool_unpoison(pool);
-  BLI_assert((int)(p - data) == pool->totused);
-  mempool_poison(pool);
+  BLI_assert((uint)(p - data) == pool->totused);
 }
 
 void **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr)
@@ -934,29 +476,21 @@ void **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr)
 
 void BLI_mempool_as_array(BLI_mempool *pool, void *data)
 {
-  mempool_unpoison(pool);
-
-  const uint esize = pool->esize - (uint)POISON_REDZONE_SIZE;
+  const uint esize = pool->esize;
   BLI_mempool_iter iter;
   char *elem, *p = data;
-
   BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
-
-  mempool_poison(pool);
-
   BLI_mempool_iternew(pool, &iter);
   while ((elem = BLI_mempool_iterstep(&iter))) {
     memcpy(p, elem, (size_t)esize);
     p = NODE_STEP_NEXT(p);
   }
+  BLI_assert((uint)(p - (char *)data) == pool->totused * esize);
 }
 
 void *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
 {
-  mempool_unpoison(pool);
-  char *data = MEM_malloc_arrayN((size_t)pool->totused, pool->esize, allocstr);
-  mempool_poison(pool);
-
+  char *data = MEM_malloc_arrayN(pool->totused, pool->esize, allocstr);
   BLI_mempool_as_array(pool, data);
   return data;
 }
@@ -966,9 +500,7 @@ void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
   BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
 
   iter->pool = pool;
-  mempool_unpoison(pool);
   iter->curchunk = pool->chunks;
-  mempool_poison(pool);
   iter->curindex = 0;
 }
 
@@ -1048,15 +580,11 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
     return NULL;
   }
 
-  mempool_unpoison(iter->pool);
-
   const uint esize = iter->pool->esize;
   BLI_freenode *curnode = POINTER_OFFSET(CHUNK_DATA(iter->curchunk), (esize * iter->curindex));
   BLI_freenode *ret;
   do {
     ret = curnode;
-
-    BLI_asan_unpoison(ret, iter->pool->esize - POISON_REDZONE_SIZE);
 
     if (++iter->curindex != iter->pool->pchunk) {
       curnode = POINTER_OFFSET(curnode, esize);
@@ -1065,21 +593,12 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
       iter->curindex = 0;
       iter->curchunk = iter->curchunk->next;
       if (UNLIKELY(iter->curchunk == NULL)) {
-        BLI_asan_unpoison(ret, iter->pool->esize - POISON_REDZONE_SIZE);
-        void *ret2 = (ret->freeword == FREEWORD) ? NULL : ret;
-
-        if (ret->freeword == FREEWORD) {
-          BLI_asan_poison(ret, iter->pool->esize);
-        }
-
-        mempool_poison(iter->pool);
-        return ret2;
+        return (ret->freeword == FREEWORD) ? NULL : ret;
       }
       curnode = CHUNK_DATA(iter->curchunk);
     }
   } while (ret->freeword == FREEWORD);
 
-  mempool_poison(iter->pool);
   return ret;
 }
 
@@ -1090,15 +609,11 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
     return NULL;
   }
 
-  mempool_unpoison(iter->pool);
-
   const uint esize = iter->pool->esize;
   BLI_freenode *curnode = POINTER_OFFSET(CHUNK_DATA(iter->curchunk), (esize * iter->curindex));
   BLI_freenode *ret;
   do {
     ret = curnode;
-
-    BLI_asan_unpoison(ret, esize - POISON_REDZONE_SIZE);
 
     if (++iter->curindex != iter->pool->pchunk) {
       curnode = POINTER_OFFSET(curnode, esize);
@@ -1115,52 +630,25 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
         /* pass. */
       }
       if (UNLIKELY(iter->curchunk == NULL)) {
-        if (ret->freeword == FREEWORD) {
-          BLI_asan_poison(ret, esize);
-          mempool_poison(iter->pool);
-          return NULL;
-        }
-        else {
-          mempool_poison(iter->pool);
-          return ret;
-        }
+        return (ret->freeword == FREEWORD) ? NULL : ret;
       }
       /* End `threadsafe` exception. */
 
       iter->curchunk = iter->curchunk->next;
       if (UNLIKELY(iter->curchunk == NULL)) {
-        if (ret->freeword == FREEWORD) {
-          BLI_asan_poison(ret, iter->pool->esize);
-          mempool_poison(iter->pool);
-          return NULL;
-        }
-        else {
-          mempool_poison(iter->pool);
-          return ret;
-        }
+        return (ret->freeword == FREEWORD) ? NULL : ret;
       }
-
       curnode = CHUNK_DATA(iter->curchunk);
     }
+  } while (ret->freeword == FREEWORD);
 
-    if (ret->freeword == FREEWORD) {
-      BLI_asan_poison(ret, iter->pool->esize);
-    }
-    else {
-      break;
-    }
-  } while (true);
-
-  mempool_poison(iter->pool);
   return ret;
 }
 
 #endif
 
-void BLI_mempool_clear_ex(BLI_mempool *pool, const int elem_num_reserve)
+void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
 {
-  mempool_unpoison(pool);
-
   BLI_mempool_chunk *mpchunk;
   BLI_mempool_chunk *mpchunk_next;
   uint maxchunks;
@@ -1173,11 +661,11 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int elem_num_reserve)
   VALGRIND_CREATE_MEMPOOL(pool, 0, false);
 #endif
 
-  if (elem_num_reserve == -1) {
+  if (totelem_reserve == -1) {
     maxchunks = pool->maxchunks;
   }
   else {
-    maxchunks = mempool_maxchunks((uint)elem_num_reserve, pool->pchunk);
+    maxchunks = mempool_maxchunks((uint)totelem_reserve, pool->pchunk);
   }
 
   /* Free all after 'pool->maxchunks'. */
@@ -1190,7 +678,7 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int elem_num_reserve)
 
     do {
       mpchunk_next = mpchunk->next;
-      mempool_chunk_free(mpchunk, pool);
+      mempool_chunk_free(mpchunk);
     } while ((mpchunk = mpchunk_next));
   }
 
@@ -1209,8 +697,6 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int elem_num_reserve)
     chunks_temp = mpchunk->next;
     last_tail = mempool_chunk_add(pool, mpchunk, last_tail);
   }
-
-  mempool_poison(pool);
 }
 
 void BLI_mempool_clear(BLI_mempool *pool)
@@ -1220,26 +706,10 @@ void BLI_mempool_clear(BLI_mempool *pool)
 
 void BLI_mempool_destroy(BLI_mempool *pool)
 {
-  mempool_unpoison(pool);
-  mempool_chunk_free_all(pool->chunks, pool);
-
-  pool->dead = true;
-
-  if (pool->memtag) {
-    free(pool->memtag);
-  }
-  if (pool->memtag_chunk) {
-    free(pool->memtag_chunk);
-  }
-
-  MEM_SAFE_FREE(pool->chunktable);
+  mempool_chunk_free_all(pool->chunks);
 
 #ifdef WITH_MEM_VALGRIND
   VALGRIND_DESTROY_MEMPOOL(pool);
-#endif
-
-#ifdef HAVE_MEMPOOL_ASAN
-  BLI_asan_unpoison(pool->poisoned, sizeof(pool->poisoned));
 #endif
 
   MEM_freeN(pool);
