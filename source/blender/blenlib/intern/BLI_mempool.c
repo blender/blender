@@ -556,7 +556,7 @@ void BLI_mempool_as_table(BLI_mempool *pool, void **data)
     *p++ = elem;
   }
 
-  BLI_assert((int)(p - data) == (int)pool->totused);
+  BLI_assert((ptrdiff_t)(p - data) == (ptrdiff_t)pool->totused);
 }
 
 void **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr)
