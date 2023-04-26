@@ -31,6 +31,7 @@
 void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
+      {VIEW_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
       {VIEW_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
 
       {VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
@@ -355,6 +356,9 @@ static int viewzoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case VIEW_MODAL_CONFIRM:
         event_code = VIEW_CONFIRM;
         break;
+      case VIEW_MODAL_CANCEL:
+        event_code = VIEW_CANCEL;
+        break;
       case VIEWROT_MODAL_SWITCH_MOVE:
         WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL, event);
         event_code = VIEW_CONFIRM;
@@ -380,7 +384,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
         event_code = VIEW_CONFIRM;
       }
     }
-    else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
+    else if (event->type == EVT_ESCKEY) {
       if (event->val == KM_PRESS) {
         event_code = VIEW_CANCEL;
       }

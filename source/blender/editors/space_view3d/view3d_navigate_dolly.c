@@ -31,6 +31,7 @@
 void viewdolly_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
+      {VIEW_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
       {VIEW_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
 
       {VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
@@ -139,7 +140,7 @@ static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
         event_code = VIEW_CONFIRM;
       }
     }
-    else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
+    else if (event->type == EVT_ESCKEY) {
       if (event->val == KM_PRESS) {
         event_code = VIEW_CANCEL;
       }
