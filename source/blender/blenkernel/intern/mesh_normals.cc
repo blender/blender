@@ -825,7 +825,7 @@ static void loop_manifold_fan_around_vert_next(const Span<int> corner_verts,
                                                const blender::OffsetIndices<int> polys,
                                                const Span<int> loop_to_poly,
                                                const int *e2lfan_curr,
-                                               const uint mv_pivot_index,
+                                               const uint vert_pivot,
                                                int *r_mlfan_curr_index,
                                                int *r_mlfan_vert_index,
                                                int *r_mpfan_curr_index)
@@ -847,19 +847,19 @@ static void loop_manifold_fan_around_vert_next(const Span<int> corner_verts,
   BLI_assert(*r_mpfan_curr_index >= 0);
 
   const uint vert_fan_next = corner_verts[*r_mlfan_curr_index];
-  const blender::IndexRange mpfan_next = polys[*r_mpfan_curr_index];
-  if ((vert_fan_orig == vert_fan_next && vert_fan_orig == mv_pivot_index) ||
-      !ELEM(vert_fan_orig, vert_fan_next, mv_pivot_index)) {
+  const IndexRange poly_fan_next = polys[*r_mpfan_curr_index];
+  if ((vert_fan_orig == vert_fan_next && vert_fan_orig == vert_pivot) ||
+      !ELEM(vert_fan_orig, vert_fan_next, vert_pivot)) {
     /* We need the previous loop, but current one is our vertex's loop. */
     *r_mlfan_vert_index = *r_mlfan_curr_index;
-    if (--(*r_mlfan_curr_index) < mpfan_next.start()) {
-      *r_mlfan_curr_index = mpfan_next.start() + mpfan_next.size() - 1;
+    if (--(*r_mlfan_curr_index) < poly_fan_next.start()) {
+      *r_mlfan_curr_index = poly_fan_next.start() + poly_fan_next.size() - 1;
     }
   }
   else {
     /* We need the next loop, which is also our vertex's loop. */
-    if (++(*r_mlfan_curr_index) >= mpfan_next.start() + mpfan_next.size()) {
-      *r_mlfan_curr_index = mpfan_next.start();
+    if (++(*r_mlfan_curr_index) >= poly_fan_next.start() + poly_fan_next.size()) {
+      *r_mlfan_curr_index = poly_fan_next.start();
     }
     *r_mlfan_vert_index = *r_mlfan_curr_index;
   }
@@ -899,16 +899,16 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
   if (lnors_spacearr) {
     float vec_curr[3], vec_prev[3];
 
-    const int mv_pivot_index =
-        corner_verts[ml_curr_index]; /* The vertex we are "fanning" around! */
-    const int2 &me_curr = edges[corner_edges[ml_curr_index]];
-    const int vert_2 = me_curr[0] == mv_pivot_index ? me_curr[1] : me_curr[0];
-    const int2 &me_prev = edges[corner_edges[ml_prev_index]];
-    const int vert_3 = me_prev[0] == mv_pivot_index ? me_prev[1] : me_prev[0];
+    /* The vertex we are "fanning" around. */
+    const int vert_pivot = corner_verts[ml_curr_index];
+    const int2 &edge = edges[corner_edges[ml_curr_index]];
+    const int vert_2 = edge_other_vert(edge, vert_pivot);
+    const int2 &edge_prev = edges[corner_edges[ml_prev_index]];
+    const int vert_3 = edge_other_vert(edge_prev, vert_pivot);
 
-    sub_v3_v3v3(vec_curr, positions[vert_2], positions[mv_pivot_index]);
+    sub_v3_v3v3(vec_curr, positions[vert_2], positions[vert_pivot]);
     normalize_v3(vec_curr);
-    sub_v3_v3v3(vec_prev, positions[vert_3], positions[mv_pivot_index]);
+    sub_v3_v3v3(vec_prev, positions[vert_3], positions[vert_pivot]);
     normalize_v3(vec_prev);
 
     BKE_lnor_space_define(lnor_space, loop_normals[ml_curr_index], vec_curr, vec_prev, nullptr);
@@ -953,10 +953,10 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
    * same as the vertex normal, but I do not see any easy way to detect that (would need to count
    * number of sharp edges per vertex, I doubt the additional memory usage would be worth it,
    * especially as it should not be a common case in real-life meshes anyway). */
-  const int mv_pivot_index = corner_verts[ml_curr_index]; /* The vertex we are "fanning" around! */
+  const int vert_pivot = corner_verts[ml_curr_index]; /* The vertex we are "fanning" around! */
 
   /* `ml_curr_index` would be mlfan_prev if we needed that one. */
-  const int2 &me_org = edges[corner_edges[ml_curr_index]];
+  const int2 &edge_orig = edges[corner_edges[ml_curr_index]];
 
   float vec_curr[3], vec_prev[3], vec_org[3];
   float lnor[3] = {0.0f, 0.0f, 0.0f};
@@ -984,10 +984,8 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
 
   /* Only need to compute previous edge's vector once, then we can just reuse old current one! */
   {
-    const float3 &mv_2 = (me_org[0] == mv_pivot_index) ? positions[me_org[1]] :
-                                                         positions[me_org[0]];
-
-    sub_v3_v3v3(vec_org, mv_2, positions[mv_pivot_index]);
+    const int vert_2 = edge_other_vert(edge_orig, vert_pivot);
+    sub_v3_v3v3(vec_org, positions[vert_2], positions[vert_pivot]);
     normalize_v3(vec_org);
     copy_v3_v3(vec_prev, vec_org);
 
@@ -996,20 +994,18 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
     }
   }
 
-  // printf("FAN: vert %d, start edge %d\n", mv_pivot_index, ml_curr->e);
+  // printf("FAN: vert %d, start edge %d\n", vert_pivot, ml_curr->e);
 
   while (true) {
-    const int2 &me_curr = edges[corner_edges[mlfan_curr_index]];
+    const int2 &edge = edges[corner_edges[mlfan_curr_index]];
     /* Compute edge vectors.
      * NOTE: We could pre-compute those into an array, in the first iteration, instead of computing
      *       them twice (or more) here. However, time gained is not worth memory and time lost,
      *       given the fact that this code should not be called that much in real-life meshes.
      */
     {
-      const float3 &mv_2 = (me_curr[0] == mv_pivot_index) ? positions[me_curr[1]] :
-                                                            positions[me_curr[0]];
-
-      sub_v3_v3v3(vec_curr, mv_2, positions[mv_pivot_index]);
+      const int vert_2 = edge_other_vert(edge, vert_pivot);
+      sub_v3_v3v3(vec_curr, positions[vert_2], positions[vert_pivot]);
       normalize_v3(vec_curr);
     }
 
@@ -1045,13 +1041,13 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
     if (lnors_spacearr) {
       /* Assign current lnor space to current 'vertex' loop. */
       BKE_lnor_space_add_loop(lnors_spacearr, lnor_space, mlfan_vert_index, nullptr, false);
-      if (me_curr != me_org) {
+      if (edge != edge_orig) {
         /* We store here all edges-normalized vectors processed. */
         BLI_stack_push(edge_vectors, vec_curr);
       }
     }
 
-    if (IS_EDGE_SHARP(edge_to_loops[corner_edges[mlfan_curr_index]]) || (me_curr == me_org)) {
+    if (IS_EDGE_SHARP(edge_to_loops[corner_edges[mlfan_curr_index]]) || (edge == edge_orig)) {
       /* Current edge is sharp and we have finished with this fan of faces around this vert,
        * or this vert is smooth, and we have completed a full turn around it. */
       // printf("FAN: Finished!\n");
@@ -1065,7 +1061,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
                                        polys,
                                        loop_to_poly,
                                        edge_to_loops[corner_edges[mlfan_curr_index]],
-                                       mv_pivot_index,
+                                       vert_pivot,
                                        &mlfan_curr_index,
                                        &mlfan_vert_index,
                                        &mpfan_curr_index);
@@ -1176,8 +1172,8 @@ static bool loop_split_generator_check_cyclic_smooth_fan(const Span<int> corner_
                                                          const int ml_prev_index,
                                                          const int mp_curr_index)
 {
-  /* The vertex we are "fanning" around! */
-  const uint mv_pivot_index = corner_verts[ml_curr_index];
+  /* The vertex we are "fanning" around. */
+  const uint vert_pivot = corner_verts[ml_curr_index];
 
   const int *e2lfan_curr = e2l_prev;
   if (IS_EDGE_SHARP(e2lfan_curr)) {
@@ -1204,7 +1200,7 @@ static bool loop_split_generator_check_cyclic_smooth_fan(const Span<int> corner_
                                        polys,
                                        loop_to_poly,
                                        e2lfan_curr,
-                                       mv_pivot_index,
+                                       vert_pivot,
                                        &mlfan_curr_index,
                                        &mlfan_vert_index,
                                        &mpfan_curr_index);
