@@ -654,6 +654,11 @@ class MutableAttributeAccessor : public AttributeAccessor {
   }
 
   /**
+   * Replace the existing attribute with a new one with a different name.
+   */
+  bool rename(const AttributeIDRef &old_attribute_id, const AttributeIDRef &new_attribute_id);
+
+  /**
    * Create a new attribute.
    * \return True, when a new attribute has been created. False, when it's not possible to create
    * this attribute or there is already an attribute with that id.

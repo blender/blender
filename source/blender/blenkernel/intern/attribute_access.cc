@@ -911,6 +911,41 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_only_span
   return {};
 }
 
+bool MutableAttributeAccessor::rename(const AttributeIDRef &old_attribute_id,
+                                      const AttributeIDRef &new_attribute_id)
+{
+  if (old_attribute_id == new_attribute_id) {
+    return true;
+  }
+  if (this->contains(new_attribute_id)) {
+    return false;
+  }
+  const GAttributeReader old_attribute = this->lookup(old_attribute_id);
+  if (!old_attribute) {
+    return false;
+  }
+  const eCustomDataType type = cpp_type_to_custom_data_type(old_attribute.varray.type());
+  if (old_attribute.sharing_info != nullptr && old_attribute.varray.is_span()) {
+    if (!this->add(new_attribute_id,
+                   old_attribute.domain,
+                   type,
+                   AttributeInitShared{old_attribute.varray.get_internal_span().data(),
+                                       *old_attribute.sharing_info})) {
+      return false;
+    }
+  }
+  else {
+    if (!this->add(new_attribute_id,
+                   old_attribute.domain,
+                   type,
+                   AttributeInitVArray{old_attribute.varray})) {
+      return false;
+    }
+  }
+  this->remove(old_attribute_id);
+  return true;
+}
+
 fn::GField AttributeValidator::validate_field_if_necessary(const fn::GField &field) const
 {
   if (function) {
