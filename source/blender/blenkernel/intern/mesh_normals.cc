@@ -25,7 +25,6 @@
 #include "BLI_memarena.h"
 #include "BLI_span.hh"
 #include "BLI_stack.h"
-#include "BLI_task.h"
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
@@ -666,23 +665,6 @@ void BKE_lnor_space_custom_normal_to_data(const MLoopNorSpace *lnor_space,
 
 namespace blender::bke::mesh {
 
-#define LOOP_SPLIT_TASK_BLOCK_SIZE 1024
-
-struct LoopSplitTaskData {
-  enum class Type : int8_t {
-    BlockEnd = 0, /* Set implicitly by calloc. */
-    Fan = 1,
-    Single = 2,
-  };
-
-  /** We have to create those outside of tasks, since #MemArena is not thread-safe. */
-  MLoopNorSpace *lnor_space;
-  int ml_curr_index;
-  int poly_index;
-
-  Type flag;
-};
-
 struct LoopSplitTaskDataCommon {
   /* Read/write.
    * Note we do not need to protect it, though, since two different tasks will *always* affect
@@ -855,47 +837,32 @@ static void loop_manifold_fan_around_vert_next(const Span<int> corner_verts,
   }
 }
 
-static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopSplitTaskData *data)
+static void lnor_space_for_single_fan(LoopSplitTaskDataCommon *common_data,
+                                      const int ml_curr_index,
+                                      MLoopNorSpace *lnor_space)
 {
-  MLoopNorSpaceArray *lnors_spacearr = common_data->lnors_spacearr;
-  const Span<short2> clnors_data = common_data->clnors_data;
-
-  const Span<float3> positions = common_data->positions;
-  const Span<int2> edges = common_data->edges;
-  const OffsetIndices polys = common_data->polys;
-  const Span<int> corner_verts = common_data->corner_verts;
-  const Span<int> corner_edges = common_data->corner_edges;
+  const Span<int> loop_to_poly = common_data->loop_to_poly;
   const Span<float3> poly_normals = common_data->poly_normals;
   MutableSpan<float3> loop_normals = common_data->loop_normals;
 
-  MLoopNorSpace *lnor_space = data->lnor_space;
-  const int ml_curr_index = data->ml_curr_index;
-  const int poly_index = data->poly_index;
+  loop_normals[ml_curr_index] = poly_normals[loop_to_poly[ml_curr_index]];
 
-  /* Simple case (both edges around that vertex are sharp in current polygon),
-   * this loop just takes its poly normal.
-   */
-  loop_normals[ml_curr_index] = poly_normals[poly_index];
+  if (MLoopNorSpaceArray *lnors_spacearr = common_data->lnors_spacearr) {
+    const Span<float3> positions = common_data->positions;
+    const Span<int2> edges = common_data->edges;
+    const OffsetIndices polys = common_data->polys;
+    const Span<int> corner_verts = common_data->corner_verts;
+    const Span<int> corner_edges = common_data->corner_edges;
+    const Span<short2> clnors_data = common_data->clnors_data;
 
-#if 0
-  printf("BASIC: handling loop %d / edge %d / vert %d / poly %d\n",
-         ml_curr_index,
-         loops[ml_curr_index].e,
-         loops[ml_curr_index].v,
-         poly_index);
-#endif
-
-  /* If needed, generate this (simple!) lnor space. */
-  if (lnors_spacearr) {
     float vec_curr[3], vec_prev[3];
+    const int poly_index = loop_to_poly[ml_curr_index];
     const int ml_prev_index = mesh::poly_corner_prev(polys[poly_index], ml_curr_index);
 
     /* The vertex we are "fanning" around. */
     const int vert_pivot = corner_verts[ml_curr_index];
-    const int2 &edge = edges[corner_edges[ml_curr_index]];
-    const int vert_2 = edge_other_vert(edge, vert_pivot);
-    const int2 &edge_prev = edges[corner_edges[ml_prev_index]];
-    const int vert_3 = edge_other_vert(edge_prev, vert_pivot);
+    const int vert_2 = edge_other_vert(edges[corner_edges[ml_curr_index]], vert_pivot);
+    const int vert_3 = edge_other_vert(edges[corner_edges[ml_prev_index]], vert_pivot);
 
     sub_v3_v3v3(vec_curr, positions[vert_2], positions[vert_pivot]);
     normalize_v3(vec_curr);
@@ -914,7 +881,8 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
 }
 
 static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
-                                  LoopSplitTaskData *data,
+                                  const int ml_curr_index,
+                                  MLoopNorSpace *lnor_space,
                                   BLI_Stack *edge_vectors)
 {
   MLoopNorSpaceArray *lnors_spacearr = common_data->lnors_spacearr;
@@ -930,12 +898,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
   const Span<int> loop_to_poly = common_data->loop_to_poly;
   const Span<float3> poly_normals = common_data->poly_normals;
 
-  MLoopNorSpace *lnor_space = data->lnor_space;
-#if 0 /* Not needed for 'fan' loops. */
-  float(*lnor)[3] = data->lnor;
-#endif
-  const int ml_curr_index = data->ml_curr_index;
-  const int poly_index = data->poly_index;
+  const int poly_index = loop_to_poly[ml_curr_index];
   const int ml_prev_index = poly_corner_prev(polys[poly_index], ml_curr_index);
 
   /* Sigh! we have to fan around current vertex, until we find the other non-smooth edge,
@@ -1111,42 +1074,6 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
   }
 }
 
-static void loop_split_worker_do(LoopSplitTaskDataCommon *common_data,
-                                 LoopSplitTaskData *data,
-                                 BLI_Stack *edge_vectors)
-{
-  if (data->flag == LoopSplitTaskData::Type::Fan) {
-    BLI_assert((edge_vectors == nullptr) || BLI_stack_is_empty(edge_vectors));
-    split_loop_nor_fan_do(common_data, data, edge_vectors);
-  }
-  else {
-    /* No need for edge_vectors for 'single' case! */
-    split_loop_nor_single_do(common_data, data);
-  }
-}
-
-static void loop_split_worker(TaskPool *__restrict pool, void *taskdata)
-{
-  LoopSplitTaskDataCommon *common_data = (LoopSplitTaskDataCommon *)BLI_task_pool_user_data(pool);
-  LoopSplitTaskData *data = (LoopSplitTaskData *)taskdata;
-
-  /* Temp edge vectors stack, only used when computing lnor spacearr. */
-  BLI_Stack *edge_vectors = common_data->lnors_spacearr ?
-                                BLI_stack_new(sizeof(float[3]), __func__) :
-                                nullptr;
-
-  for (int i = 0; i < LOOP_SPLIT_TASK_BLOCK_SIZE; i++, data++) {
-    if (data->flag == LoopSplitTaskData::Type::BlockEnd) {
-      break;
-    }
-    loop_split_worker_do(common_data, data, edge_vectors);
-  }
-
-  if (edge_vectors) {
-    BLI_stack_free(edge_vectors);
-  }
-}
-
 /**
  * Check whether given loop is part of an unknown-so-far cyclic smooth fan, or not.
  * Needed because cyclic smooth fans have no obvious 'entry point',
@@ -1218,10 +1145,10 @@ static bool loop_split_generator_check_cyclic_smooth_fan(const Span<int> corner_
   }
 }
 
-static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common_data)
+static void loop_split_generator(LoopSplitTaskDataCommon *common_data,
+                                 Vector<int> &r_single_corners,
+                                 Vector<int> &r_fan_corners)
 {
-  MLoopNorSpaceArray *lnors_spacearr = common_data->lnors_spacearr;
-
   const Span<int> corner_verts = common_data->corner_verts;
   const Span<int> corner_edges = common_data->corner_edges;
   const OffsetIndices polys = common_data->polys;
@@ -1230,22 +1157,9 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
 
   BitVector<> skip_loops(corner_verts.size(), false);
 
-  LoopSplitTaskData *data_buff = nullptr;
-  int data_idx = 0;
-
-  /* Temp edge vectors stack, only used when computing lnor spacearr
-   * (and we are not multi-threading). */
-  BLI_Stack *edge_vectors = nullptr;
-
 #ifdef DEBUG_TIME
   SCOPED_TIMER_AVERAGED(__func__);
 #endif
-
-  if (!pool) {
-    if (lnors_spacearr) {
-      edge_vectors = BLI_stack_new(sizeof(float[3]), __func__);
-    }
-  }
 
   /* We now know edges that can be smoothed (with their vector, and their two loops),
    * and edges that will be hard! Now, time to generate the normals.
@@ -1290,30 +1204,11 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
         // printf("SKIPPING!\n");
       }
       else {
-        LoopSplitTaskData *data, data_local;
-
-        // printf("PROCESSING!\n");
-
-        if (pool) {
-          if (data_idx == 0) {
-            data_buff = (LoopSplitTaskData *)MEM_calloc_arrayN(
-                LOOP_SPLIT_TASK_BLOCK_SIZE, sizeof(*data_buff), __func__);
-          }
-          data = &data_buff[data_idx];
-        }
-        else {
-          data = &data_local;
-          memset(data, 0, sizeof(*data));
-        }
-
         if (IS_EDGE_SHARP(edge_to_loops[corner_edges[ml_curr_index]]) &&
             IS_EDGE_SHARP(edge_to_loops[corner_edges[ml_prev_index]])) {
-          data->ml_curr_index = ml_curr_index;
-          data->flag = LoopSplitTaskData::Type::Single;
-          data->poly_index = poly_index;
-          if (lnors_spacearr) {
-            data->lnor_space = BKE_lnor_space_create(lnors_spacearr);
-          }
+          /* Simple case (both edges around that vertex are sharp in current polygon),
+           * this corner just takes its poly normal. */
+          r_single_corners.append(ml_curr_index);
         }
         else {
           /* We do not need to check/tag loops as already computed. Due to the fact that a loop
@@ -1323,34 +1218,10 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
            * current edge, smooth previous edge), and not the alternative (smooth current edge,
            * sharp previous edge). All this due/thanks to the link between normals and loop
            * ordering (i.e. winding). */
-          data->ml_curr_index = ml_curr_index;
-          data->flag = LoopSplitTaskData::Type::Fan;
-          data->poly_index = poly_index;
-          if (lnors_spacearr) {
-            data->lnor_space = BKE_lnor_space_create(lnors_spacearr);
-          }
-        }
-
-        if (pool) {
-          data_idx++;
-          if (data_idx == LOOP_SPLIT_TASK_BLOCK_SIZE) {
-            BLI_task_pool_push(pool, loop_split_worker, data_buff, true, nullptr);
-            data_idx = 0;
-          }
-        }
-        else {
-          loop_split_worker_do(common_data, data, edge_vectors);
+          r_fan_corners.append(ml_curr_index);
         }
       }
     }
-  }
-
-  if (pool && data_idx) {
-    BLI_task_pool_push(pool, loop_split_worker, data_buff, true, nullptr);
-  }
-
-  if (edge_vectors) {
-    BLI_stack_free(edge_vectors);
   }
 }
 
@@ -1472,19 +1343,42 @@ void normals_calc_loop(const Span<float3> vert_positions,
                        edge_to_loops,
                        {});
 
-  if (corner_verts.size() < LOOP_SPLIT_TASK_BLOCK_SIZE * 8) {
-    /* Not enough loops to be worth the whole threading overhead. */
-    loop_split_generator(nullptr, &common_data);
+  Vector<int> single_corners;
+  Vector<int> fan_corners;
+  loop_split_generator(&common_data, single_corners, fan_corners);
+
+  if (r_lnors_spacearr) {
+    /** Allocate #MLoopNorSpace structs outside of tasks, since #MemArena is not thread-safe. */
+    for (const int corner : single_corners) {
+      r_lnors_spacearr->lspacearr[corner] = BKE_lnor_space_create(r_lnors_spacearr);
+    }
+    for (const int corner : fan_corners) {
+      r_lnors_spacearr->lspacearr[corner] = BKE_lnor_space_create(r_lnors_spacearr);
+    }
   }
-  else {
-    TaskPool *task_pool = BLI_task_pool_create(&common_data, TASK_PRIORITY_HIGH);
 
-    loop_split_generator(task_pool, &common_data);
+  threading::parallel_for(single_corners.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      const int corner = single_corners[i];
+      lnor_space_for_single_fan(
+          &common_data, corner, r_lnors_spacearr ? r_lnors_spacearr->lspacearr[corner] : nullptr);
+    }
+  });
 
-    BLI_task_pool_work_and_wait(task_pool);
-
-    BLI_task_pool_free(task_pool);
-  }
+  threading::parallel_for(fan_corners.index_range(), 1024, [&](const IndexRange range) {
+    BLI_Stack *edge_vectors = r_lnors_spacearr ? BLI_stack_new(sizeof(float[3]), __func__) :
+                                                 nullptr;
+    for (const int i : range) {
+      const int corner = fan_corners[i];
+      split_loop_nor_fan_do(&common_data,
+                            corner,
+                            r_lnors_spacearr ? r_lnors_spacearr->lspacearr[corner] : nullptr,
+                            edge_vectors);
+    }
+    if (edge_vectors) {
+      BLI_stack_free(edge_vectors);
+    }
+  });
 
   if (r_lnors_spacearr) {
     if (r_lnors_spacearr == &_lnors_spacearr) {
