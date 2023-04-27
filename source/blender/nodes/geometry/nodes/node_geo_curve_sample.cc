@@ -282,13 +282,13 @@ class SampleCurveFunction : public mf::MultiFunction {
 
     auto return_default = [&]() {
       if (!sampled_positions.is_empty()) {
-        sampled_positions.fill_indices(mask, {0, 0, 0});
+        sampled_positions.fill_indices(mask.indices(), {0, 0, 0});
       }
       if (!sampled_tangents.is_empty()) {
-        sampled_tangents.fill_indices(mask, {0, 0, 0});
+        sampled_tangents.fill_indices(mask.indices(), {0, 0, 0});
       }
       if (!sampled_normals.is_empty()) {
-        sampled_normals.fill_indices(mask, {0, 0, 0});
+        sampled_normals.fill_indices(mask.indices(), {0, 0, 0});
       }
     };
 
@@ -325,18 +325,18 @@ class SampleCurveFunction : public mf::MultiFunction {
 
     auto fill_invalid = [&](const IndexMask mask) {
       if (!sampled_positions.is_empty()) {
-        sampled_positions.fill_indices(mask, float3(0));
+        sampled_positions.fill_indices(mask.indices(), float3(0));
       }
       if (!sampled_tangents.is_empty()) {
-        sampled_tangents.fill_indices(mask, float3(0));
+        sampled_tangents.fill_indices(mask.indices(), float3(0));
       }
       if (!sampled_normals.is_empty()) {
-        sampled_normals.fill_indices(mask, float3(0));
+        sampled_normals.fill_indices(mask.indices(), float3(0));
       }
       if (!sampled_values.is_empty()) {
         attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
           using T = decltype(dummy);
-          sampled_values.typed<T>().fill_indices(mask, {});
+          sampled_values.typed<T>().fill_indices(mask.indices(), {});
         });
       }
     };

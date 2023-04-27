@@ -63,10 +63,10 @@ static void set_handle_type(bke::CurvesGeometry &curves,
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   if (mode & GEO_NODE_CURVE_HANDLE_LEFT) {
-    curves.handle_types_left_for_write().fill_indices(selection, new_handle_type);
+    curves.handle_types_left_for_write().fill_indices(selection.indices(), new_handle_type);
   }
   if (mode & GEO_NODE_CURVE_HANDLE_RIGHT) {
-    curves.handle_types_right_for_write().fill_indices(selection, new_handle_type);
+    curves.handle_types_right_for_write().fill_indices(selection.indices(), new_handle_type);
   }
 
   /* Eagerly calculate automatically derived handle positions if necessary. */

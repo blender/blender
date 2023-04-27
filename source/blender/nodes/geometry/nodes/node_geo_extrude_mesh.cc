@@ -82,7 +82,7 @@ static void save_selection_as_attribute(Mesh &mesh,
     attribute.span.slice(selection.as_range()).fill(true);
   }
   else {
-    attribute.span.fill_indices(selection, true);
+    attribute.span.fill_indices(selection.indices(), true);
   }
 
   attribute.finish();

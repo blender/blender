@@ -281,7 +281,7 @@ void CurvesGeometry::fill_curve_types(const IndexMask selection, const CurveType
     }
   }
   /* A potential performance optimization is only counting the changed indices. */
-  this->curve_types_for_write().fill_indices(selection, type);
+  this->curve_types_for_write().fill_indices(selection.indices(), type);
   this->update_curve_types();
   this->tag_topology_changed();
 }
