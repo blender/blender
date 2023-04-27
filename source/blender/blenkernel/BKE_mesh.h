@@ -449,6 +449,9 @@ void BKE_lnor_spacearr_tls_join(MLoopNorSpaceArray *lnors_spacearr,
                                 MLoopNorSpaceArray *lnors_spacearr_tls);
 
 MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr);
+
+#ifdef __cplusplus
+
 /**
  * Should only be called once.
  * Beware, this modifies ref_vec and other_vec in place!
@@ -459,7 +462,10 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
                            const float lnor[3],
                            float vec_ref[3],
                            float vec_other[3],
-                           struct BLI_Stack *edge_vectors);
+                           blender::Span<blender::float3> edge_vectors);
+
+#endif
+
 /**
  * Add a new given loop to given lnor_space.
  * Depending on \a lnor_space->data_type, we expect \a bm_loop to be a pointer to BMLoop struct

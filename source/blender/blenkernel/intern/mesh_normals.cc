@@ -19,12 +19,10 @@
 #include "BLI_array_utils.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_linklist.h"
-#include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_math_vector.hh"
 #include "BLI_memarena.h"
 #include "BLI_span.hh"
-#include "BLI_stack.h"
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
@@ -473,7 +471,7 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
                            const float lnor[3],
                            float vec_ref[3],
                            float vec_other[3],
-                           BLI_Stack *edge_vectors)
+                           const blender::Span<blender::float3> edge_vectors)
 {
   const float pi2 = float(M_PI) * 2.0f;
   float tvec[3], dtp;
@@ -485,31 +483,24 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
     /* If vec_ref or vec_other are too much aligned with lnor, we can't build lnor space,
      * tag it as invalid and abort. */
     lnor_space->ref_alpha = lnor_space->ref_beta = 0.0f;
-
-    if (edge_vectors) {
-      BLI_stack_clear(edge_vectors);
-    }
     return;
   }
 
   copy_v3_v3(lnor_space->vec_lnor, lnor);
 
   /* Compute ref alpha, average angle of all available edge vectors to lnor. */
-  if (edge_vectors) {
+  if (!edge_vectors.is_empty()) {
     float alpha = 0.0f;
-    int count = 0;
-    while (!BLI_stack_is_empty(edge_vectors)) {
-      const float *vec = (const float *)BLI_stack_peek(edge_vectors);
+    for (const blender::float3 &vec : edge_vectors) {
       alpha += saacosf(dot_v3v3(vec, lnor));
-      BLI_stack_discard(edge_vectors);
-      count++;
     }
+    /* This piece of code shall only be called for more than one loop. */
     /* NOTE: In theory, this could be `count > 2`,
      * but there is one case where we only have two edges for two loops:
      * a smooth vertex with only two edges and two faces (our Monkey's nose has that, e.g.).
      */
-    BLI_assert(count >= 2); /* This piece of code shall only be called for more than one loop. */
-    lnor_space->ref_alpha = alpha / float(count);
+    BLI_assert(edge_vectors.size() >= 2);
+    lnor_space->ref_alpha = alpha / float(edge_vectors.size());
   }
   else {
     lnor_space->ref_alpha = (saacosf(dot_v3v3(vec_ref, lnor)) +
@@ -869,7 +860,7 @@ static void lnor_space_for_single_fan(LoopSplitTaskDataCommon *common_data,
     sub_v3_v3v3(vec_prev, positions[vert_3], positions[vert_pivot]);
     normalize_v3(vec_prev);
 
-    BKE_lnor_space_define(lnor_space, loop_normals[ml_curr_index], vec_curr, vec_prev, nullptr);
+    BKE_lnor_space_define(lnor_space, loop_normals[ml_curr_index], vec_curr, vec_prev, {});
     /* We know there is only one loop in this space, no need to create a link-list in this case. */
     BKE_lnor_space_add_loop(lnors_spacearr, lnor_space, ml_curr_index, nullptr, true);
 
@@ -883,7 +874,7 @@ static void lnor_space_for_single_fan(LoopSplitTaskDataCommon *common_data,
 static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
                                   const int ml_curr_index,
                                   MLoopNorSpace *lnor_space,
-                                  BLI_Stack *edge_vectors)
+                                  Vector<float3> *edge_vectors)
 {
   MLoopNorSpaceArray *lnors_spacearr = common_data->lnors_spacearr;
   MutableSpan<float3> loop_normals = common_data->loop_normals;
@@ -913,7 +904,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
   const int2 &edge_orig = edges[corner_edges[ml_curr_index]];
 
   float vec_curr[3], vec_prev[3], vec_org[3];
-  float lnor[3] = {0.0f, 0.0f, 0.0f};
+  float3 lnor(0.0f);
 
   /* We validate clnors data on the fly - cheapest way to do! */
   int clnors_avg[2] = {0, 0};
@@ -921,10 +912,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
   int clnors_count = 0;
   bool clnors_invalid = false;
 
-  /* Temp loop normal stack. */
-  BLI_SMALLSTACK_DECLARE(normal, float *);
-  /* Temp clnors stack. */
-  BLI_SMALLSTACK_DECLARE(clnors, short *);
+  Vector<int, 8> processed_corners;
 
   /* `mlfan_vert_index` the loop of our current edge might not be the loop of our current vertex!
    */
@@ -944,7 +932,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
     copy_v3_v3(vec_prev, vec_org);
 
     if (lnors_spacearr) {
-      BLI_stack_push(edge_vectors, vec_org);
+      edge_vectors->append(vec_org);
     }
   }
 
@@ -984,20 +972,17 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
         clnors_avg[0] += (*clnor)[0];
         clnors_avg[1] += (*clnor)[1];
         clnors_count++;
-        /* We store here a pointer to all custom loop_normals processed. */
-        BLI_SMALLSTACK_PUSH(clnors, (short *)*clnor);
       }
     }
 
-    /* We store here a pointer to all loop-normals processed. */
-    BLI_SMALLSTACK_PUSH(normal, (float *)(loop_normals[mlfan_vert_index]));
+    processed_corners.append(mlfan_vert_index);
 
     if (lnors_spacearr) {
       /* Assign current lnor space to current 'vertex' loop. */
       BKE_lnor_space_add_loop(lnors_spacearr, lnor_space, mlfan_vert_index, nullptr, false);
       if (edge != edge_orig) {
         /* We store here all edges-normalized vectors processed. */
-        BLI_stack_push(edge_vectors, vec_curr);
+        edge_vectors->append(vec_curr);
       }
     }
 
@@ -1034,23 +1019,19 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
         lnor_len = 1.0f;
       }
 
-      BKE_lnor_space_define(lnor_space, lnor, vec_org, vec_curr, edge_vectors);
+      BKE_lnor_space_define(lnor_space, lnor, vec_org, vec_curr, *edge_vectors);
+      edge_vectors->clear();
 
       if (!clnors_data.is_empty()) {
         if (clnors_invalid) {
-          short *clnor;
-
           clnors_avg[0] /= clnors_count;
           clnors_avg[1] /= clnors_count;
           /* Fix/update all clnors of this fan with computed average value. */
           if (G.debug & G_DEBUG) {
             printf("Invalid clnors in this fan!\n");
           }
-          while ((clnor = (short *)BLI_SMALLSTACK_POP(clnors))) {
-            // print_v2("org clnor", clnor);
-            clnor[0] = short(clnors_avg[0]);
-            clnor[1] = short(clnors_avg[1]);
-          }
+          clnors_data.fill_indices(processed_corners.as_span(),
+                                   short2(clnors_avg[0], clnors_avg[1]));
           // print_v2("new clnors", clnors_avg);
         }
         /* Extra bonus: since small-stack is local to this function,
@@ -1063,14 +1044,8 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
     /* In case we get a zero normal here, just use vertex normal already set! */
     if (LIKELY(lnor_len != 0.0f)) {
       /* Copy back the final computed normal into all related loop-normals. */
-      float *nor;
-
-      while ((nor = (float *)BLI_SMALLSTACK_POP(normal))) {
-        copy_v3_v3(nor, lnor);
-      }
+      loop_normals.fill_indices(processed_corners.as_span(), lnor);
     }
-    /* Extra bonus: since small-stack is local to this function,
-     * no more need to empty it at all cost! */
   }
 }
 
@@ -1366,17 +1341,13 @@ void normals_calc_loop(const Span<float3> vert_positions,
   });
 
   threading::parallel_for(fan_corners.index_range(), 1024, [&](const IndexRange range) {
-    BLI_Stack *edge_vectors = r_lnors_spacearr ? BLI_stack_new(sizeof(float[3]), __func__) :
-                                                 nullptr;
+    Vector<float3> edge_vectors;
     for (const int i : range) {
       const int corner = fan_corners[i];
       split_loop_nor_fan_do(&common_data,
                             corner,
                             r_lnors_spacearr ? r_lnors_spacearr->lspacearr[corner] : nullptr,
-                            edge_vectors);
-    }
-    if (edge_vectors) {
-      BLI_stack_free(edge_vectors);
+                            &edge_vectors);
     }
   });
 
@@ -1428,7 +1399,7 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
   const bool use_split_normals = true;
   const float split_angle = float(M_PI);
 
-  BLI_SMALLSTACK_DECLARE(clnors_data, short *);
+  Vector<short *> clnors_data;
 
   /* Compute current lnor spacearr. */
   normals_calc_loop(positions,
@@ -1602,7 +1573,7 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
       else {
         int avg_nor_count = 0;
         float avg_nor[3];
-        short clnor_data_tmp[2], *clnor_data;
+        short clnor_data_tmp[2];
 
         zero_v3(avg_nor);
         while (loop_link) {
@@ -1612,7 +1583,7 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
 
           avg_nor_count++;
           add_v3_v3(avg_nor, nor);
-          BLI_SMALLSTACK_PUSH(clnors_data, (short *)r_clnors_data[lidx]);
+          clnors_data.append(r_clnors_data[lidx]);
 
           loop_link = loop_link->next;
           done_loops[lidx].reset();
@@ -1621,7 +1592,8 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
         mul_v3_fl(avg_nor, 1.0f / float(avg_nor_count));
         BKE_lnor_space_custom_normal_to_data(lnors_spacearr.lspacearr[i], avg_nor, clnor_data_tmp);
 
-        while ((clnor_data = (short *)BLI_SMALLSTACK_POP(clnors_data))) {
+        while (!clnors_data.is_empty()) {
+          short *clnor_data = clnors_data.pop_last();
           clnor_data[0] = clnor_data_tmp[0];
           clnor_data[1] = clnor_data_tmp[1];
         }
