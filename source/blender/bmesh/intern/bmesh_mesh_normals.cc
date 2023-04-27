@@ -586,7 +586,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
     MLoopNorSpace *lnor_space = r_lnors_spacearr ? BKE_lnor_space_create(r_lnors_spacearr) :
                                                    nullptr;
 
-    BLI_assert((edge_vectors == nullptr) || BLI_stack_is_empty(edge_vectors));
+    BLI_assert((edge_vectors == nullptr) || edge_vectors->is_empty());
 
     lfan_pivot = l_curr;
     lfan_pivot_index = BM_elem_index_get(lfan_pivot);
