@@ -1322,21 +1322,17 @@ void normals_calc_loop(const Span<float3> vert_positions,
   Vector<int> fan_corners;
   loop_split_generator(&common_data, single_corners, fan_corners);
 
+  MLoopNorSpace *lnor_spaces = nullptr;
   if (r_lnors_spacearr) {
-    /** Allocate #MLoopNorSpace structs outside of tasks, since #MemArena is not thread-safe. */
-    for (const int corner : single_corners) {
-      r_lnors_spacearr->lspacearr[corner] = BKE_lnor_space_create(r_lnors_spacearr);
-    }
-    for (const int corner : fan_corners) {
-      r_lnors_spacearr->lspacearr[corner] = BKE_lnor_space_create(r_lnors_spacearr);
-    }
+    r_lnors_spacearr->spaces_num = single_corners.size() + fan_corners.size();
+    lnor_spaces = static_cast<MLoopNorSpace *>(BLI_memarena_calloc(
+        r_lnors_spacearr->mem, sizeof(MLoopNorSpace) * r_lnors_spacearr->spaces_num));
   }
 
   threading::parallel_for(single_corners.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
       const int corner = single_corners[i];
-      lnor_space_for_single_fan(
-          &common_data, corner, r_lnors_spacearr ? r_lnors_spacearr->lspacearr[corner] : nullptr);
+      lnor_space_for_single_fan(&common_data, corner, lnor_spaces ? &lnor_spaces[i] : nullptr);
     }
   });
 
@@ -1346,7 +1342,7 @@ void normals_calc_loop(const Span<float3> vert_positions,
       const int corner = fan_corners[i];
       split_loop_nor_fan_do(&common_data,
                             corner,
-                            r_lnors_spacearr ? r_lnors_spacearr->lspacearr[corner] : nullptr,
+                            lnor_spaces ? &lnor_spaces[single_corners.size() + i] : nullptr,
                             &edge_vectors);
     }
   });
