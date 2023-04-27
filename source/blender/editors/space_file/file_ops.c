@@ -1282,6 +1282,10 @@ static int bookmark_move_exec(bContext *C, wmOperator *op)
 
 static bool file_bookmark_move_poll(bContext *C)
 {
+  if (!ED_operator_file_active(C)) {
+    return false;
+  }
+
   SpaceFile *sfile = CTX_wm_space_file(C);
 
   return sfile->bookmarknr != -1;
@@ -1302,7 +1306,6 @@ void FILE_OT_bookmark_move(wmOperatorType *ot)
   ot->description = "Move the active bookmark up/down in the list";
 
   /* api callbacks */
-  ot->poll = ED_operator_file_active;
   ot->exec = bookmark_move_exec;
   ot->poll = file_bookmark_move_poll;
 
