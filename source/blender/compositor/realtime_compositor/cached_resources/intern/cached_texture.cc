@@ -11,6 +11,7 @@
 
 #include "GPU_texture.h"
 
+#include "BKE_image.h"
 #include "BKE_texture.h"
 
 #include "DNA_ID.h"
@@ -50,6 +51,9 @@ bool operator==(const CachedTextureKey &a, const CachedTextureKey &b)
 CachedTexture::CachedTexture(
     Tex *texture, const Scene *scene, int2 size, float2 offset, float2 scale)
 {
+  ImagePool *image_pool = BKE_image_pool_new();
+  BKE_texture_fetch_images_for_pool(texture, image_pool);
+
   Array<float4> color_pixels(size.x * size.y);
   Array<float> value_pixels(size.x * size.y);
   threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
@@ -61,13 +65,15 @@ CachedTexture::CachedTexture(
         /* Note that it is expected that the offset is scaled by the scale. */
         coordinates = (coordinates + offset) * scale;
         TexResult texture_result;
-        BKE_texture_get_value(scene, texture, coordinates, &texture_result, true);
+        BKE_texture_get_value_ex(scene, texture, coordinates, &texture_result, image_pool, true);
         color_pixels[y * size.x + x] = float4(texture_result.trgba);
         value_pixels[y * size.x + x] = texture_result.talpha ? texture_result.trgba[3] :
                                                                texture_result.tin;
       }
     }
   });
+
+  BKE_image_pool_free(image_pool);
 
   color_texture_ = GPU_texture_create_2d("Cached Color Texture",
                                          size.x,
