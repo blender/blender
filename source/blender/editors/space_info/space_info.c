@@ -248,7 +248,7 @@ static void info_header_region_message_subscribe(const wmRegionMessageSubscribeP
   WM_msg_subscribe_rna_anon_prop(mbus, ViewLayer, name, &msg_sub_value_region_tag_redraw);
 }
 
-static void info_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void info_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   BLO_write_struct(writer, SpaceInfo, sl);
 }
@@ -267,7 +267,7 @@ void ED_spacetype_info(void)
   st->duplicate = info_duplicate;
   st->operatortypes = info_operatortypes;
   st->keymap = info_keymap;
-  st->blend_write = info_blend_write;
+  st->blend_write = info_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype info region");
