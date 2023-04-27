@@ -412,7 +412,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
   data.tree = calc->tree;
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);
+  settings.use_threading = (calc->numVerts > 10000);
   settings.userdata_chunk = &nearest;
   settings.userdata_chunk_size = sizeof(nearest);
   BLI_task_parallel_range(
@@ -691,7 +691,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
   data.local2aux = &local2aux;
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);
+  settings.use_threading = (calc->numVerts > 10000);
   settings.userdata_chunk = &hit;
   settings.userdata_chunk_size = sizeof(hit);
   BLI_task_parallel_range(
@@ -1363,7 +1363,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
   data.tree = calc->tree;
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);
+  settings.use_threading = (calc->numVerts > 10000);
   settings.userdata_chunk = &nearest;
   settings.userdata_chunk_size = sizeof(nearest);
   BLI_task_parallel_range(

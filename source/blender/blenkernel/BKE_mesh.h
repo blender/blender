@@ -16,7 +16,6 @@
 #include "BKE_customdata.h"
 #include "BKE_mesh_types.h"
 
-struct BLI_Stack;
 struct BMesh;
 struct BMeshCreateParams;
 struct BMeshFromMeshParams;
@@ -42,13 +41,6 @@ struct Scene;
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-/* setting zero so we can catch bugs in OpenMP/BMesh */
-#ifdef DEBUG
-#  define BKE_MESH_OMP_LIMIT 0
-#else
-#  define BKE_MESH_OMP_LIMIT 10000
 #endif
 
 /*  mesh_runtime.cc  */
