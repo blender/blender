@@ -2975,7 +2975,7 @@ static void filenum_newname(char *name, size_t name_size, int add)
   int pic;
   ushort digits;
 
-  pic = BLI_path_sequence_decode(name, head, tail, &digits);
+  pic = BLI_path_sequence_decode(name, head, sizeof(head), tail, sizeof(tail), &digits);
 
   /* are we going from 100 -> 99 or from 10 -> 9 */
   if (add < 0 && digits > 0) {
@@ -2993,7 +2993,7 @@ static void filenum_newname(char *name, size_t name_size, int add)
   if (pic < 0) {
     pic = 0;
   }
-  BLI_path_sequence_encode(name_temp, head, tail, digits, pic);
+  BLI_path_sequence_encode(name_temp, sizeof(name_temp), head, tail, digits, pic);
   BLI_strncpy(name, name_temp, name_size);
 }
 

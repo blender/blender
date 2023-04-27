@@ -47,8 +47,22 @@ static bool BLI_path_is_abs_win32(const char *name);
 
 // #define DEBUG_STRSIZE
 
-int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort *r_digits_len)
+int BLI_path_sequence_decode(const char *string,
+                             char *head,
+                             const size_t head_maxncpy,
+                             char *tail,
+                             const size_t tail_maxncpy,
+                             ushort *r_digits_len)
 {
+#ifdef DEBUG_STRSIZE
+  if (head) {
+    memset(head, 0xff, sizeof(*head) * head_maxncpy);
+  }
+  if (tail) {
+    memset(tail, 0xff, sizeof(*tail) * tail_maxncpy);
+  }
+#endif
+
   uint nums = 0, nume = 0;
   int i;
   bool found_digit = false;
@@ -82,8 +96,7 @@ int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort 
         strcpy(tail, &string[nume + 1]);
       }
       if (head) {
-        strcpy(head, string);
-        head[nums] = 0;
+        BLI_strncpy(head, string, MIN2(head_maxncpy, nums + 1));
       }
       if (r_digits_len) {
         *r_digits_len = nume - nums + 1;
@@ -93,7 +106,7 @@ int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort 
   }
 
   if (tail) {
-    strcpy(tail, string + name_end);
+    BLI_strncpy(tail, string + name_end, tail_maxncpy);
   }
   if (head) {
     /* Name_end points to last character of head,
@@ -106,10 +119,17 @@ int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort 
   return 0;
 }
 
-void BLI_path_sequence_encode(
-    char *string, const char *head, const char *tail, ushort numlen, int pic)
+void BLI_path_sequence_encode(char *string,
+                              const size_t string_maxncpy,
+                              const char *head,
+                              const char *tail,
+                              ushort numlen,
+                              int pic)
 {
-  BLI_sprintf(string, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
+#ifdef DEBUG_STRSIZE
+  memset(string, 0xff, sizeof(*string) * string_maxncpy);
+#endif
+  BLI_snprintf(string, string_maxncpy, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
 }
 
 void BLI_path_normalize(char *path)

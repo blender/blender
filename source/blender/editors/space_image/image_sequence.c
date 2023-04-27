@@ -55,7 +55,8 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
     ImageFrame *frame = MEM_callocN(sizeof(ImageFrame), "image_frame");
 
     /* use the first file in the list as base filename */
-    frame->framenr = BLI_path_sequence_decode(filename, head, tail, &digits);
+    frame->framenr = BLI_path_sequence_decode(
+        filename, head, sizeof(head), tail, sizeof(tail), &digits);
 
     /* still in the same sequence */
     if (do_frame_range && (range != NULL) && STREQLEN(base_head, head, FILE_MAX) &&

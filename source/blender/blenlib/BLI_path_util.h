@@ -311,14 +311,20 @@ bool BLI_path_filename_ensure(char *filepath, size_t maxlen, const char *filenam
  */
 int BLI_path_sequence_decode(const char *string,
                              char *head,
+                             size_t head_maxncpy,
                              char *tail,
+                             size_t tail_maxncpy,
                              unsigned short *r_digits_len);
 /**
  * Returns in area pointed to by string a string of the form `<head><pic><tail>`,
  * where pic is formatted as `numlen` digits with leading zeroes.
  */
-void BLI_path_sequence_encode(
-    char *string, const char *head, const char *tail, unsigned short numlen, int pic);
+void BLI_path_sequence_encode(char *string,
+                              size_t string_maxncpy,
+                              const char *head,
+                              const char *tail,
+                              unsigned short numlen,
+                              int pic);
 
 /**
  * Remove redundant characters from \a path.

@@ -481,15 +481,19 @@ static void get_sequence_filepath(const MovieClip *clip, const int framenr, char
   int offset;
 
   BLI_strncpy(filepath, clip->filepath, sizeof(clip->filepath));
-  BLI_path_sequence_decode(filepath, head, tail, &numlen);
+  BLI_path_sequence_decode(filepath, head, sizeof(head), tail, sizeof(tail), &numlen);
 
   /* Movie-clips always points to first image from sequence, auto-guess offset for now.
    * Could be something smarter in the future. */
   offset = sequence_guess_offset(clip->filepath, strlen(head), numlen);
 
   if (numlen) {
-    BLI_path_sequence_encode(
-        filepath, head, tail, numlen, offset + framenr - clip->start_frame + clip->frame_offset);
+    BLI_path_sequence_encode(filepath,
+                             sizeof(filepath),
+                             head,
+                             tail,
+                             numlen,
+                             offset + framenr - clip->start_frame + clip->frame_offset);
   }
   else {
     BLI_strncpy(filepath, clip->filepath, sizeof(clip->filepath));
@@ -702,7 +706,7 @@ static void movieclip_calc_length(MovieClip *clip)
     ushort numlen;
     char filepath[FILE_MAX], head[FILE_MAX], tail[FILE_MAX];
 
-    BLI_path_sequence_decode(clip->filepath, head, tail, &numlen);
+    BLI_path_sequence_decode(clip->filepath, head, sizeof(head), tail, sizeof(tail), &numlen);
 
     if (numlen == 0) {
       /* there's no number group in file name, assume it's single framed sequence */
@@ -790,7 +794,7 @@ static int user_frame_to_cache_frame(MovieClip *clip, int framenr)
       ushort numlen;
       char head[FILE_MAX], tail[FILE_MAX];
 
-      BLI_path_sequence_decode(clip->filepath, head, tail, &numlen);
+      BLI_path_sequence_decode(clip->filepath, head, sizeof(head), tail, sizeof(tail), &numlen);
 
       /* see comment in get_sequence_filepath */
       clip->cache->sequence_offset = sequence_guess_offset(clip->filepath, strlen(head), numlen);
@@ -933,7 +937,7 @@ static bool put_imbuf_cache(
     clip->cache->sequence_offset = -1;
     if (clip->source == MCLIP_SRC_SEQUENCE) {
       ushort numlen;
-      BLI_path_sequence_decode(clip->filepath, NULL, NULL, &numlen);
+      BLI_path_sequence_decode(clip->filepath, NULL, 0, NULL, 0, &numlen);
       clip->cache->is_still_sequence = (numlen == 0);
     }
   }

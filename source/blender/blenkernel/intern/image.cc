@@ -5136,8 +5136,8 @@ void BKE_image_user_file_path_ex(const Main *bmain,
     int index;
     if (ima->source == IMA_SRC_SEQUENCE) {
       index = iuser ? iuser->framenr : ima->lastframe;
-      BLI_path_sequence_decode(filepath, head, tail, &numlen);
-      BLI_path_sequence_encode(filepath, head, tail, numlen, index);
+      BLI_path_sequence_decode(filepath, head, sizeof(head), tail, sizeof(tail), &numlen);
+      BLI_path_sequence_encode(filepath, FILE_MAX, head, tail, numlen, index);
     }
     else if (resolve_udim) {
       index = image_get_tile_number_from_iuser(ima, iuser);
@@ -5277,7 +5277,7 @@ float *BKE_image_get_float_pixels_for_frame(struct Image *image, int frame, int 
 
 int BKE_image_sequence_guess_offset(Image *image)
 {
-  return BLI_path_sequence_decode(image->filepath, nullptr, nullptr, nullptr);
+  return BLI_path_sequence_decode(image->filepath, nullptr, 0, nullptr, 0, nullptr);
 }
 
 bool BKE_image_has_anim(Image *ima)
