@@ -568,16 +568,13 @@ bool BM_face_split_edgenet(BMesh *bm,
     }
   }
 
-  const bool has_interp_ldata = CustomData_has_interp(&bm->ldata);
-  const bool has_interp_vdata = CustomData_has_interp(&bm->vdata);
-  if (has_interp_ldata || has_interp_vdata) {
+  if (CustomData_has_math(&bm->ldata)) {
     /* reuse VERT_VISIT here to tag vert's already interpolated */
     BMIter iter;
     BMLoop *l_other;
 
     /* See: #BM_loop_interp_from_face for similar logic. */
-    void **blocks = has_interp_ldata ? BLI_array_alloca(blocks, f->len) : NULL;
-    void **vblocks = has_interp_vdata ? BLI_array_alloca(blocks, f->len) : NULL;
+    void **blocks = BLI_array_alloca(blocks, f->len);
     float(*cos_2d)[2] = BLI_array_alloca(cos_2d, f->len);
     float *w = BLI_array_alloca(w, f->len);
     float axis_mat[3][3];
@@ -600,12 +597,8 @@ bool BM_face_split_edgenet(BMesh *bm,
       BM_ELEM_API_FLAG_ENABLE(l_iter->v, VERT_VISIT);
 
       mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
-      if (has_interp_ldata) {
-        blocks[i] = l_iter->head.data;
-      }
-      if (has_interp_vdata) {
-        vblocks[i] = l_iter->v->head.data;
-      }
+      blocks[i] = l_iter->head.data;
+
     } while ((void)i++, (l_iter = l_iter->next) != l_first);
 
     for (i = 0; i < edge_net_len; i++) {
@@ -623,21 +616,13 @@ bool BM_face_split_edgenet(BMesh *bm,
               if (l_first == NULL) {
                 mul_v2_m3v3(co, axis_mat, v->co);
                 interp_weights_poly_v2(w, cos_2d, f->len, co);
-                if (has_interp_ldata) {
-                  CustomData_bmesh_interp(
-                      &bm->ldata, (const void **)blocks, w, NULL, f->len, l_iter->head.data);
-                }
-                if (has_interp_vdata) {
-                  CustomData_bmesh_interp(
-                      &bm->vdata, (const void **)vblocks, w, NULL, f->len, l_iter->v->head.data);
-                }
+                CustomData_bmesh_interp(
+                    &bm->ldata, (const void **)blocks, w, NULL, f->len, l_iter->head.data);
                 l_first = l_iter;
               }
               else {
                 CustomData_bmesh_copy_data(
                     &bm->ldata, &bm->ldata, l_first->head.data, &l_iter->head.data);
-                CustomData_bmesh_copy_data(
-                    &bm->vdata, &bm->vdata, l_first->v->head.data, &l_iter->v->head.data);
               }
             }
           }
