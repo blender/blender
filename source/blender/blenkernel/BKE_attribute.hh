@@ -587,6 +587,7 @@ class AttributeAccessor {
 
   /**
    * Run the provided function for every attribute.
+   * Attributes should not be removed or added during iteration.
    */
   bool for_all(const AttributeForeachCallback fn) const
   {
