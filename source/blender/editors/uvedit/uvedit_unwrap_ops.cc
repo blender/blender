@@ -1233,7 +1233,6 @@ static void uvedit_pack_islands_multi(const Scene *scene,
   MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
   Heap *heap = BLI_heap_new();
 
-  float scale[2] = {1.0f, 1.0f};
   blender::Vector<blender::geometry::PackIsland *> pack_island_vector;
   for (int i = 0; i < island_vector.size(); i++) {
     FaceIsland *face_island = island_vector[i];
@@ -1264,7 +1263,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
   BLI_heap_free(heap, nullptr);
   BLI_memarena_free(arena);
 
-  pack_islands(pack_island_vector, *params, scale);
+  const float scale = pack_islands(pack_island_vector, *params);
 
   float base_offset[2] = {0.0f, 0.0f};
   copy_v2_v2(base_offset, params->udim_base_offset);
@@ -1306,7 +1305,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
   for (int64_t i : pack_island_vector.index_range()) {
     blender::geometry::PackIsland *pack_island = pack_island_vector[i];
     FaceIsland *island = island_vector[pack_island->caller_index];
-    pack_island->build_transformation(scale[0], pack_island->angle, matrix);
+    pack_island->build_transformation(scale, pack_island->angle, matrix);
     invert_m2_m2(matrix_inverse, matrix);
 
     /* Add base_offset, post transform. */
@@ -1323,7 +1322,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
       const float rescale_x = (selection_max_co[0] - selection_min_co[0]) /
                               params->target_aspect_y;
       const float rescale_y = (selection_max_co[1] - selection_min_co[1]);
-      const float rescale = std::min(rescale_x, rescale_y);
+      const float rescale = params->scale_to_fit ? std::min(rescale_x, rescale_y) : 1.0f;
       matrix[0][0] = rescale;
       matrix[0][1] = 0.0f;
       matrix[1][0] = 0.0f;
@@ -1396,6 +1395,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   blender::geometry::UVPackIsland_Params pack_island_params;
   pack_island_params.setFromUnwrapOptions(options);
   pack_island_params.rotate = RNA_boolean_get(op->ptr, "rotate");
+  pack_island_params.scale_to_fit = RNA_boolean_get(op->ptr, "scale");
   pack_island_params.merge_overlap = RNA_boolean_get(op->ptr, "merge_overlap");
   pack_island_params.ignore_pinned = false;
   pack_island_params.margin_method = eUVPackIsland_MarginMethod(
@@ -1474,6 +1474,7 @@ void UV_OT_pack_islands(wmOperatorType *ot)
   /* properties */
   RNA_def_enum(ot->srna, "udim_source", pack_target, PACK_UDIM_SRC_CLOSEST, "Pack to", "");
   RNA_def_boolean(ot->srna, "rotate", true, "Rotate", "Rotate islands for best fit");
+  RNA_def_boolean(ot->srna, "scale", true, "Scale", "Scale islands to fill unit square");
   RNA_def_boolean(
       ot->srna, "merge_overlap", false, "Merge Overlapped", "Overlapping islands stick together");
   RNA_def_enum(ot->srna,

@@ -48,6 +48,8 @@ class UVPackIsland_Params {
 
   /** Islands can be rotated to improve packing. */
   bool rotate;
+  /** Resize islands to fill the unit square. */
+  bool scale_to_fit;
   /** (In UV Editor) only pack islands which have one or more selected UVs. */
   bool only_selected_uvs;
   /** (In 3D Viewport or UV Editor) only pack islands which have selected faces. */
@@ -119,9 +121,7 @@ class PackIsland {
   friend class OverlapMerger;
 };
 
-void pack_islands(const Span<PackIsland *> &islands,
-                  const UVPackIsland_Params &params,
-                  float r_scale[2]);
+float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params &params);
 
 /** Compute `r = mat * (a + b)` with high precision. */
 void mul_v2_m2_add_v2v2(float r[2], const float mat[2][2], const float a[2], const float b[2]);
