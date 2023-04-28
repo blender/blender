@@ -336,8 +336,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     const blender::BoundedBitSpan src = mesh->runtime->subsurf_optimal_display_edges;
     result->runtime->subsurf_optimal_display_edges.resize(result->totedge);
     blender::MutableBoundedBitSpan dst = result->runtime->subsurf_optimal_display_edges;
-    dst.slice({0, src.size()}).copy_from(src);
-    dst.slice({src.size(), src.size()}).copy_from(src);
+    dst.take_front(src.size()).copy_from(src);
+    dst.take_back(src.size()).copy_from(src);
   }
 
   /* handle uvs,

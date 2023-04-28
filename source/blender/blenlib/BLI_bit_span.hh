@@ -110,6 +110,16 @@ class BitSpan {
     return {data_, bit_range_.slice(range)};
   }
 
+  BitSpan take_front(const int64_t n) const
+  {
+    return {data_, bit_range_.take_front(n)};
+  }
+
+  BitSpan take_back(const int64_t n) const
+  {
+    return {data_, bit_range_.take_back(n)};
+  }
+
   const BitInt *data() const
   {
     return data_;
@@ -195,6 +205,11 @@ class BoundedBitSpan : public BitSpan {
   {
     return bit_range_.size() & BitIndexMask;
   }
+
+  BoundedBitSpan take_front(const int64_t n) const
+  {
+    return {data_, bit_range_.take_front(n)};
+  }
 };
 
 /** Same as #BitSpan, but also allows modifying the referenced bits. */
@@ -235,6 +250,16 @@ class MutableBitSpan {
   MutableBitSpan slice(const IndexRange range) const
   {
     return {data_, bit_range_.slice(range)};
+  }
+
+  MutableBitSpan take_front(const int64_t n) const
+  {
+    return {data_, bit_range_.take_front(n)};
+  }
+
+  MutableBitSpan take_back(const int64_t n) const
+  {
+    return {data_, bit_range_.take_back(n)};
   }
 
   BitInt *data() const
@@ -329,6 +354,11 @@ class MutableBoundedBitSpan : public MutableBitSpan {
   int64_t final_bits_num() const
   {
     return bit_range_.size() & BitIndexMask;
+  }
+
+  MutableBoundedBitSpan take_front(const int64_t n) const
+  {
+    return {data_, bit_range_.take_front(n)};
   }
 
   void copy_from(const BitSpan other);
