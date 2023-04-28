@@ -101,7 +101,7 @@ static void remove_non_propagated_attributes(
     if (!id.is_anonymous()) {
       return true;
     }
-    if (!propagation_info.propagate(id.anonymous_id())) {
+    if (propagation_info.propagate(id.anonymous_id())) {
       return true;
     }
     return false;
