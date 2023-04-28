@@ -474,44 +474,46 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 
 int viewzoom_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event, PointerRNA *ptr)
 {
-  eV3D_OpEvent event_code = ELEM(event->type, MOUSEZOOM, MOUSEPAN) ? VIEW_CONFIRM : VIEW_PASS;
+  int xy[2];
 
-  if (event_code == VIEW_CONFIRM) {
-    int xy[2];
+  PropertyRNA *prop;
+  prop = RNA_struct_find_property(ptr, "mx");
+  xy[0] = RNA_property_is_set(ptr, prop) ? RNA_property_int_get(ptr, prop) : event->xy[0];
 
-    PropertyRNA *prop;
-    prop = RNA_struct_find_property(ptr, "mx");
-    xy[0] = RNA_property_is_set(ptr, prop) ? RNA_property_int_get(ptr, prop) : event->xy[0];
+  prop = RNA_struct_find_property(ptr, "my");
+  xy[1] = RNA_property_is_set(ptr, prop) ? RNA_property_int_get(ptr, prop) : event->xy[1];
 
-    prop = RNA_struct_find_property(ptr, "my");
-    xy[1] = RNA_property_is_set(ptr, prop) ? RNA_property_int_get(ptr, prop) : event->xy[1];
+  prop = RNA_struct_find_property(ptr, "delta");
+  const int delta = RNA_property_is_set(ptr, prop) ? RNA_property_int_get(ptr, prop) : 0;
 
-    const int delta = RNA_int_get(ptr, "delta");
-    if (delta) {
-      const bool do_zoom_to_mouse_pos = (vod->viewops_flag & VIEWOPS_FLAG_ZOOM_TO_MOUSE) != 0;
-      view_zoom_apply_step(C,
-                           vod->depsgraph,
-                           vod->scene,
-                           vod->area,
-                           vod->region,
-                           delta,
-                           do_zoom_to_mouse_pos ? xy : NULL);
+  if (delta) {
+    const bool do_zoom_to_mouse_pos = (vod->viewops_flag & VIEWOPS_FLAG_ZOOM_TO_MOUSE) != 0;
+    view_zoom_apply_step(C,
+                         vod->depsgraph,
+                         vod->scene,
+                         vod->area,
+                         vod->region,
+                         delta,
+                         do_zoom_to_mouse_pos ? xy : NULL);
+
+    return OPERATOR_FINISHED;
+  }
+  else {
+    eV3D_OpEvent event_code = ELEM(event->type, MOUSEZOOM, MOUSEPAN) ? VIEW_CONFIRM : VIEW_PASS;
+    if (event_code == VIEW_CONFIRM) {
+      if (U.uiflag & USER_ZOOM_HORIZ) {
+        vod->init.event_xy[0] = vod->prev.event_xy[0] = xy[0];
+      }
+      else {
+        /* Set y move = x move as MOUSEZOOM uses only x axis to pass magnification value */
+        vod->init.event_xy[1] = vod->prev.event_xy[1] = vod->init.event_xy[1] + xy[0] -
+                                                        event->prev_xy[0];
+      }
+      viewzoom_apply(vod, event->prev_xy, USER_ZOOM_DOLLY, (U.uiflag & USER_ZOOM_INVERT) != 0);
+      ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, false, true);
 
       return OPERATOR_FINISHED;
     }
-
-    if (U.uiflag & USER_ZOOM_HORIZ) {
-      vod->init.event_xy[0] = vod->prev.event_xy[0] = xy[0];
-    }
-    else {
-      /* Set y move = x move as MOUSEZOOM uses only x axis to pass magnification value */
-      vod->init.event_xy[1] = vod->prev.event_xy[1] = vod->init.event_xy[1] + xy[0] -
-                                                      event->prev_xy[0];
-    }
-    viewzoom_apply(vod, event->prev_xy, USER_ZOOM_DOLLY, (U.uiflag & USER_ZOOM_INVERT) != 0);
-    ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, false, true);
-
-    return OPERATOR_FINISHED;
   }
 
   if (U.viewzoom == USER_ZOOM_CONTINUE) {
