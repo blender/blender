@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -13081,16 +13081,8 @@ msgid "Paint Selection"
 msgstr "Mal Auswahl"
 
 
-msgid "Add Curves"
-msgstr "Kurven hinzufügen"
-
-
-msgid "Delete Curves"
-msgstr "Kurven löschen"
-
-
-msgid "Comb Curves"
-msgstr "Kombiniere Kurven"
+msgid "Puff"
+msgstr "Bauschen"
 
 
 msgid "Dash Length"
@@ -13175,10 +13167,6 @@ msgstr "Wachsstift-Eckpunkt Malwerkzeug"
 
 msgid "Grease Pencil Weight Paint Tool"
 msgstr "Wachsstift Malereieinflussungswerkzeug"
-
-
-msgid "Weight Paint for Vertex Groups"
-msgstr "Malereieinflussung für Eckpunktgruppen"
 
 
 msgid "Repeat"
@@ -14111,6 +14099,10 @@ msgstr "Schrift Fett Kursiv"
 
 msgid "Font Italic"
 msgstr "Kursiv"
+
+
+msgid "Text Selected"
+msgstr "Ausgewählter Text"
 
 
 msgid "X Offset"
@@ -22433,10 +22425,6 @@ msgstr "Auflösungsmodus"
 
 msgid "Voxel Amount"
 msgstr "Voxel-Betrag"
-
-
-msgid "Fill Volume"
-msgstr "Volumen füllen"
 
 
 msgid "Mirroring modifier"
@@ -30869,6 +30857,14 @@ msgid "Execute File Window"
 msgstr "Ausführen des Dateifensters"
 
 
+msgid "Show"
+msgstr "Anzeigen"
+
+
+msgid "Play"
+msgstr "Wiedergabe"
+
+
 msgid "Increment"
 msgstr "Abstand"
 
@@ -32390,6 +32386,11 @@ msgstr "Strichpunkt-Malerei"
 msgctxt "Operator"
 msgid "Stroke Weight Paint"
 msgstr "Strich Malereieinfluss"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "Malereieinfluss Beispieleinfluss"
 
 
 msgid "Enter/Exit weight paint mode for Grease Pencil strokes"
@@ -36017,6 +36018,22 @@ msgid "Add Light Probe"
 msgstr "Lichtprobe hinzufügen"
 
 
+msgid "Subset"
+msgstr "Teilmenge"
+
+
+msgid "All Light Probes"
+msgstr "Alle Lichtsonden"
+
+
+msgid "Dirty Only"
+msgstr "Nur Schmutz"
+
+
+msgid "Selected Only"
+msgstr "Nur ausgewähltes"
+
+
 msgctxt "Operator"
 msgid "Load Background Image"
 msgstr "Hintergrundbild laden"
@@ -36854,10 +36871,6 @@ msgid "Assign the selected vertices to a new vertex group"
 msgstr "Zuweisen der ausgewählten Scheitelpunkte zu einer neuen Scheitelpunktgruppe"
 
 
-msgid "Subset"
-msgstr "Teilmenge"
-
-
 msgctxt "Operator"
 msgid "Copy Vertex Group"
 msgstr "Knotengruppe kopieren"
@@ -37555,10 +37568,6 @@ msgid "Hide vertices"
 msgstr "Knoten ausblenden"
 
 
-msgid "Show"
-msgstr "Anzeigen"
-
-
 msgid "Show vertices"
 msgstr "Knoten einblenden"
 
@@ -37682,11 +37691,6 @@ msgstr "Malereieinflussmodus"
 
 msgid "Toggle weight paint mode in 3D view"
 msgstr "Malereieinflussmodus in 3D Ansicht umschalten"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "Malereieinfluss Beispieleinfluss"
 
 
 msgctxt "Operator"
@@ -37917,10 +37921,6 @@ msgstr "Aktiviere neue Aktion"
 msgctxt "Operator"
 msgid "Select Bones"
 msgstr "Knochenauswahl"
-
-
-msgid "Selected Only"
-msgstr "Nur ausgewähltes"
 
 
 msgid "All axes are affected"
@@ -38739,14 +38739,6 @@ msgstr "Stilmodul in die Modulliste hinzufügen"
 msgctxt "Operator"
 msgid "Add Grease Pencil Brush Preset"
 msgstr "Wachsstiftpinsel Voreinstellung hinzufügen"
-
-
-msgid "All Light Probes"
-msgstr "Alle Lichtsonden"
-
-
-msgid "Dirty Only"
-msgstr "Nur Schmutz"
 
 
 msgctxt "Operator"
@@ -42055,10 +42047,6 @@ msgid "Run once and exit"
 msgstr "Eine Ausführung und danach schließen"
 
 
-msgid "Play"
-msgstr "Wiedergabe"
-
-
 msgid "Random Order"
 msgstr "Zufällig Folge"
 
@@ -44043,9 +44031,21 @@ msgid "Radius"
 msgstr "Radius"
 
 
+msgid "Smooth hairs"
+msgstr "Weiche Haare"
+
+
+msgid "Add hairs"
+msgstr "Haare hinzufügen"
+
+
 msgctxt "Operator"
 msgid "Length"
 msgstr "Länge"
+
+
+msgid "Cut hairs"
+msgstr "Haare schneiden"
 
 
 msgctxt "Operator"
@@ -44267,6 +44267,11 @@ msgid "Twist"
 msgstr "Verdrehen"
 
 
+msgctxt "Operator"
+msgid "Slide"
+msgstr "Schieben"
+
+
 msgid "Normal Falloff"
 msgstr "Normaler Abfall"
 
@@ -44461,22 +44466,6 @@ msgstr "Partikel anzeigen"
 
 msgid "Display actual particles"
 msgstr "Aktuelle Partikel anzeigen"
-
-
-msgid "Smooth hairs"
-msgstr "Weiche Haare"
-
-
-msgid "Add hairs"
-msgstr "Haare hinzufügen"
-
-
-msgid "Puff"
-msgstr "Bauschen"
-
-
-msgid "Cut hairs"
-msgstr "Haare schneiden"
 
 
 msgid "Interpolate new particles from the existing ones"
@@ -45005,10 +44994,6 @@ msgstr "Bewegung um die Z-Achse verbieten"
 
 msgid "Pose Matrix"
 msgstr "Posenmatrix"
-
-
-msgid "Final 4x4 matrix after constraints and drivers are applied (object space)"
-msgstr "Endgültige 4x4-Matrix, nachdem Beschränkungen und Treiber angewandt sind (Objektraum)"
 
 
 msgid "Channel Matrix"
@@ -52148,10 +52133,6 @@ msgid "Shade Top"
 msgstr "Oben schattieren"
 
 
-msgid "Text Selected"
-msgstr "Ausgewählter Text"
-
-
 msgid "Animated"
 msgstr "Animiert"
 
@@ -57131,11 +57112,6 @@ msgstr "Kanäle löschen"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "Erweitern"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "Schieben"
 
 
 msgctxt "Operator"
@@ -63348,10 +63324,6 @@ msgstr "Datei nicht gefunden '%s'"
 
 msgid "Decimate Keyframes"
 msgstr "Dezimierte Schlüsselbilder"
-
-
-msgid "Blend to Default Value"
-msgstr "Mit Standardwert verschmelzen"
 
 
 msgid "Discard"

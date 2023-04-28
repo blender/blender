@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -10653,6 +10653,14 @@ msgid "Color of cursor when subtracting"
 msgstr "Colore del cursore quando sottrae"
 
 
+msgid "Comb"
+msgstr "Pettina"
+
+
+msgid "Puff"
+msgstr "Gonfia"
+
+
 msgid "Falloff Angle"
 msgstr "Angolo Decadimento"
 
@@ -11647,6 +11655,10 @@ msgstr "Grassetto Corsivo"
 
 msgid "Font Italic"
 msgstr "Corsivo"
+
+
+msgid "Text Selected"
+msgstr "Testo Selezionato"
 
 
 msgid "X Offset"
@@ -28821,6 +28833,14 @@ msgid "Execute selected file"
 msgstr "Esegue il file selezionato"
 
 
+msgid "Show"
+msgstr "Mostra"
+
+
+msgid "Play"
+msgstr "Play"
+
+
 msgctxt "Operator"
 msgid "Increment Number in Filename"
 msgstr "Incrementa il numero nel nome del file"
@@ -29154,6 +29174,10 @@ msgstr "Carica un nuovo font da un file"
 
 msgid "Select all text"
 msgstr "Seleziona tutto il testo"
+
+
+msgid "Select word under cursor"
+msgstr "Seleziona la parola sotto il cursore"
 
 
 msgctxt "Operator"
@@ -29900,6 +29924,11 @@ msgstr "Seleziona Gruppo Vertici"
 
 msgid "Select all the vertices assigned to the active vertex group"
 msgstr "Seleziona tutti i vertici assegnati al gruppo vertici attivo"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "Campione Peso per Pittura Peso"
 
 
 msgctxt "Operator"
@@ -34242,6 +34271,10 @@ msgid "Transfer UV Maps"
 msgstr "Trasferisci Mappe UV"
 
 
+msgid "Subset"
+msgstr "Sottosezione"
+
+
 msgid "Link objects to a collection"
 msgstr "Collega oggetti a una raccolta"
 
@@ -35150,10 +35183,6 @@ msgid "Remove vertex group assignments which are not required"
 msgstr "Rimuove le assegnazioni a gruppo vertici che non sono necessarie"
 
 
-msgid "Subset"
-msgstr "Sottosezione"
-
-
 msgid "Keep Single"
 msgstr "Tieni Singolo"
 
@@ -35983,10 +36012,6 @@ msgid "Hide vertices"
 msgstr "Nascondi vertici"
 
 
-msgid "Show"
-msgstr "Mostra"
-
-
 msgid "Show vertices"
 msgstr "Mostra vertici"
 
@@ -36207,11 +36232,6 @@ msgstr "Pittura Peso"
 msgctxt "Operator"
 msgid "Weight Paint Mode"
 msgstr "Modalità Pittura Peso"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "Campione Peso per Pittura Peso"
 
 
 msgctxt "Operator"
@@ -39240,10 +39260,6 @@ msgid "Select text by line"
 msgstr "Seleziona il testo per linea"
 
 
-msgid "Select word under cursor"
-msgstr "Seleziona la parola sotto il cursore"
-
-
 msgctxt "Operator"
 msgid "Find"
 msgstr "Trova"
@@ -41355,10 +41371,6 @@ msgid "Run once and exit"
 msgstr "Esegui una volta ed esci"
 
 
-msgid "Play"
-msgstr "Play"
-
-
 msgid "Random Order"
 msgstr "Ordine Casuale"
 
@@ -42999,14 +43011,42 @@ msgid "Radius"
 msgstr "Raggio"
 
 
+msgid "Comb hairs"
+msgstr "Pettina i capelli"
+
+
+msgid "Smooth hairs"
+msgstr "Leviga Capelli"
+
+
+msgid "Add hairs"
+msgstr "Aggiungi capelli"
+
+
 msgctxt "Operator"
 msgid "Length"
 msgstr "Lunghezza"
 
 
+msgid "Make hairs longer or shorter"
+msgstr "Allunga o accorcia i capelli"
+
+
+msgid "Make hairs stand up"
+msgstr "Fa raddrizzare i capelli"
+
+
+msgid "Cut hairs"
+msgstr "Taglia capelli"
+
+
 msgctxt "Operator"
 msgid "Weight"
 msgstr "Peso"
+
+
+msgid "Weight hair particles"
+msgstr "Peso particelle capelli"
 
 
 msgctxt "Operator"
@@ -43092,6 +43132,11 @@ msgstr "Spessore"
 msgctxt "Operator"
 msgid "Strength"
 msgstr "Forza"
+
+
+msgctxt "Operator"
+msgid "Slide"
+msgstr "Scorri"
 
 
 msgid "Post-Processing"
@@ -43276,42 +43321,6 @@ msgstr "Oggetto Forma"
 
 msgid "Outer shape to use for tools"
 msgstr "Forma esterna da usare per gli strumenti"
-
-
-msgid "Comb"
-msgstr "Pettina"
-
-
-msgid "Comb hairs"
-msgstr "Pettina i capelli"
-
-
-msgid "Smooth hairs"
-msgstr "Leviga Capelli"
-
-
-msgid "Add hairs"
-msgstr "Aggiungi capelli"
-
-
-msgid "Make hairs longer or shorter"
-msgstr "Allunga o accorcia i capelli"
-
-
-msgid "Puff"
-msgstr "Gonfia"
-
-
-msgid "Make hairs stand up"
-msgstr "Fa raddrizzare i capelli"
-
-
-msgid "Cut hairs"
-msgstr "Taglia capelli"
-
-
-msgid "Weight hair particles"
-msgstr "Peso particelle capelli"
 
 
 msgid "Auto Velocity"
@@ -43956,10 +43965,6 @@ msgstr "Matrice Posa"
 
 msgid "Channel Matrix"
 msgstr "Matrice Canale"
-
-
-msgid "4x4 matrix, before constraints"
-msgstr "Matrice 4x4, prima dei vincoli"
 
 
 msgid "Parent of this pose bone"
@@ -50651,10 +50656,6 @@ msgid "Shade Top"
 msgstr "Ombra Superiore"
 
 
-msgid "Text Selected"
-msgstr "Testo Selezionato"
-
-
 msgid "Animated"
 msgstr "Animato"
 
@@ -53421,11 +53422,6 @@ msgstr "Pulisci Canali"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "Estendi"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "Scorri"
 
 
 msgid "Recursions"

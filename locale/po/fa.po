@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2012-10-31 17:00-0800\n"
 "Last-Translator: Amin Babaeipanah <translate@leomoon.com>\n"
 "Language-Team: LeoMoon Studios <blender@leomoon.com>\n"
@@ -2795,6 +2795,10 @@ msgid "Open"
 msgstr "ﻥﺩﺮﮐ‌ﺯﺎﺑ"
 
 
+msgid "Play"
+msgstr "ﺶﺨﭘ"
+
+
 msgid "Limit"
 msgstr "ﻥﺩﺮﮐ ﺩﻭﺪﺤﻣ"
 
@@ -3177,10 +3181,6 @@ msgstr "ﻪﻨﯿﻤﮐ ﻥﺎﻣﺯ"
 
 msgid "Render Delay"
 msgstr "ﺭﺪﻧﺭ ﺮﯿﺧﺎﺗ"
-
-
-msgid "Play"
-msgstr "ﺶﺨﭘ"
 
 
 msgid "Random Order"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -5440,6 +5440,10 @@ msgstr "Oduzimanje boje"
 
 msgid "Mask Texture Overlay Alpha"
 msgstr "Maskiraj providnost preklapanja teksture"
+
+
+msgid "Comb"
+msgstr "Češalj"
 
 
 msgid "Fill Threshold"
@@ -14466,6 +14470,14 @@ msgid "Open new directory"
 msgstr "Otvori novi direktorijum"
 
 
+msgid "Show"
+msgstr "Prikaži"
+
+
+msgid "Play"
+msgstr "Pokreni"
+
+
 msgctxt "Operator"
 msgid "Increment Number in Filename"
 msgstr "Uvećaj broj naziva datoteke"
@@ -14667,6 +14679,10 @@ msgstr "Otvori font"
 
 msgid "Select all text"
 msgstr "Izaberi sav tekst"
+
+
+msgid "Select word under cursor"
+msgstr "Izaberi reč pod kursorom"
 
 
 msgctxt "Operator"
@@ -15064,6 +15080,15 @@ msgstr "Izaberi grupu temena"
 
 msgid "Select all the vertices assigned to the active vertex group"
 msgstr "Označava sva temena povezana sa aktivnom UV mapom"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "Bojenje čvorova "
+
+
+msgid "Use the mouse to sample a weight in the 3D view"
+msgstr "Način prikaza/senčenja objekata u 3D pogledu"
 
 
 msgctxt "Operator"
@@ -17859,10 +17884,6 @@ msgid "Hide vertices"
 msgstr "3 temena"
 
 
-msgid "Show"
-msgstr "Prikaži"
-
-
 msgid "Show vertices"
 msgstr "Prikaži temena"
 
@@ -17973,15 +17994,6 @@ msgstr "Bojenje uticaja"
 msgctxt "Operator"
 msgid "Weight Paint Mode"
 msgstr "Režim bojenja težine"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "Bojenje čvorova "
-
-
-msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "Način prikaza/senčenja objekata u 3D pogledu"
 
 
 msgctxt "Operator"
@@ -19513,10 +19525,6 @@ msgid "Select text by line"
 msgstr "Izaberi tekst po liniji"
 
 
-msgid "Select word under cursor"
-msgstr "Izaberi reč pod kursorom"
-
-
 msgctxt "Operator"
 msgid "Find"
 msgstr "Pronađi"
@@ -20504,10 +20512,6 @@ msgid "Run once and exit"
 msgstr "Pokreni jednom i izađi"
 
 
-msgid "Play"
-msgstr "Pokreni"
-
-
 msgid "Random Order"
 msgstr "Nasumični redosled"
 
@@ -21140,6 +21144,34 @@ msgid "Pose Library"
 msgstr "Zbirka poza"
 
 
+msgid "Comb hairs"
+msgstr "Očešljaj kosu"
+
+
+msgid "Smooth hairs"
+msgstr "Umekšaj kosu"
+
+
+msgid "Add hairs"
+msgstr "Dodaj kosu"
+
+
+msgid "Make hairs longer or shorter"
+msgstr "Produži ili skrati kosu"
+
+
+msgid "Make hairs stand up"
+msgstr "Izdigni kosu"
+
+
+msgid "Cut hairs"
+msgstr "Iseci kosu"
+
+
+msgid "Weight hair particles"
+msgstr "Težina dlaka kose"
+
+
 msgctxt "Operator"
 msgid "Erase"
 msgstr "Obriši"
@@ -21158,6 +21190,11 @@ msgstr "Krug"
 msgctxt "Operator"
 msgid "Thickness"
 msgstr "Debljina"
+
+
+msgctxt "Operator"
+msgid "Slide"
+msgstr "Klizaj"
 
 
 msgid "Pose Options"
@@ -21302,38 +21339,6 @@ msgstr "Savet"
 
 msgid "Tip select mode"
 msgstr "Izbor vrhova"
-
-
-msgid "Comb"
-msgstr "Češalj"
-
-
-msgid "Comb hairs"
-msgstr "Očešljaj kosu"
-
-
-msgid "Smooth hairs"
-msgstr "Umekšaj kosu"
-
-
-msgid "Add hairs"
-msgstr "Dodaj kosu"
-
-
-msgid "Make hairs longer or shorter"
-msgstr "Produži ili skrati kosu"
-
-
-msgid "Make hairs stand up"
-msgstr "Izdigni kosu"
-
-
-msgid "Cut hairs"
-msgstr "Iseci kosu"
-
-
-msgid "Weight hair particles"
-msgstr "Težina dlaka kose"
 
 
 msgid "Auto Velocity"
@@ -25520,11 +25525,6 @@ msgstr "Interpolacija"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "Nastavi"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "Klizaj"
 
 
 msgctxt "Operator"

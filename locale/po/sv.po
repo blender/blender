@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -1754,6 +1754,10 @@ msgid "Restrict Render Unselected"
 msgstr "Begränsa rendering till markering"
 
 
+msgid "Selected Only"
+msgstr "Bara Markerad"
+
+
 msgctxt "Operator"
 msgid "Multires Subdivide"
 msgstr "Dela upp i flera upplösningsnivåer"
@@ -1873,10 +1877,6 @@ msgstr "Spegel"
 msgctxt "Operator"
 msgid "Particle Edit Toggle"
 msgstr "Redigera partiklar på/av"
-
-
-msgid "Selected Only"
-msgstr "Bara Markerad"
 
 
 msgctxt "Operator"

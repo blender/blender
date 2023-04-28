@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2022-03-21 19:03-0300\n"
 "Last-Translator: Leandro Paganelli <leandrobp@fastmail.com>\n"
 "Language-Team: Leandro Paganelli, Ivan Paulos Tomé, Dalai Felinto, Bruno Gonçalves Pirajá, Samuel Arataca, Daniel Tavares, Moraes Junior <ivan.paulos.tome@yandex.com>\n"
@@ -12076,6 +12076,14 @@ msgid "Editable falloff curve"
 msgstr "Curva de decaimento editável."
 
 
+msgid "Comb"
+msgstr "Pentear"
+
+
+msgid "Puff"
+msgstr "Inflar"
+
+
 msgid "Falloff Angle"
 msgstr "Ângulo de decaimento"
 
@@ -13386,6 +13394,10 @@ msgstr "Fonte em negrito e itálico"
 
 msgid "Font Italic"
 msgstr "Fonte em itálico"
+
+
+msgid "Text Selected"
+msgstr "Texto selecionado"
 
 
 msgid "X Offset"
@@ -35475,6 +35487,14 @@ msgid "Execute selected file"
 msgstr "Executa o arquivo selecionado."
 
 
+msgid "Show"
+msgstr "Mostrar"
+
+
+msgid "Play"
+msgstr "Reproduzir"
+
+
 msgctxt "Operator"
 msgid "Increment Number in Filename"
 msgstr "Número incremental no nome do arquivo"
@@ -35951,6 +35971,10 @@ msgstr "Carrega uma nova fonte a partir de um arquivo."
 
 msgid "Select all text"
 msgstr "Seleciona todo o texto."
+
+
+msgid "Select word under cursor"
+msgstr "Seleciona a palavra abaixo do cursor."
 
 
 msgctxt "Operator"
@@ -37393,6 +37417,15 @@ msgstr "Selecionar grupo de vértices"
 
 msgid "Select all the vertices assigned to the active vertex group"
 msgstr "Seleciona todos os vértices atribuídos para o grupo de vértices ativo."
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "Amostra de peso para pintura de pesos"
+
+
+msgid "Use the mouse to sample a weight in the 3D view"
+msgstr "Permite usar o mouse para obter uma amostra de peso dentro da janela de visualização 3D."
 
 
 msgctxt "Operator"
@@ -42703,6 +42736,28 @@ msgstr "Sonda de reflexão planar"
 
 
 msgctxt "Operator"
+msgid "Bake Light Cache"
+msgstr "Capturar Cache de luz"
+
+
+msgid "Subset"
+msgstr "Subconjunto"
+
+
+msgid "All Light Probes"
+msgstr "Todas as Sondas de Luz"
+
+
+msgid "Selected Only"
+msgstr "Somente Selecionados"
+
+
+msgctxt "Operator"
+msgid "Delete Light Cache"
+msgstr "Apagar Cache de luz"
+
+
+msgctxt "Operator"
 msgid "Bake Line Art"
 msgstr "Capturar Arte de Linha"
 
@@ -43896,10 +43951,6 @@ msgid "Remove vertex group assignments which are not required"
 msgstr "Remove as atribuições de grupo de vértices que não são requeridas."
 
 
-msgid "Subset"
-msgstr "Subconjunto"
-
-
 msgid "Keep Single"
 msgstr "Manter um único"
 
@@ -44920,10 +44971,6 @@ msgid "Hide vertices"
 msgstr "Ocultar os vértices"
 
 
-msgid "Show"
-msgstr "Mostrar"
-
-
 msgid "Show vertices"
 msgstr "Mostra os vértices"
 
@@ -45202,15 +45249,6 @@ msgstr "Modo de pintura de pesos de influência"
 
 msgid "Toggle weight paint mode in 3D view"
 msgstr "Alterna para o modo de pintura de pesos na janela de visualização 3D."
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "Amostra de peso para pintura de pesos"
-
-
-msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "Permite usar o mouse para obter uma amostra de peso dentro da janela de visualização 3D."
 
 
 msgctxt "Operator"
@@ -45632,10 +45670,6 @@ msgstr "Aplicar pose como pose de descanso"
 
 msgid "Apply the current pose as the new rest pose"
 msgstr "Aplica a pose atual como a nova pose de descanso."
-
-
-msgid "Selected Only"
-msgstr "Somente Selecionados"
 
 
 msgid "Axis Lock"
@@ -47010,20 +47044,6 @@ msgstr "Adicionar Predefinição de Pincéis de Lápis de Cera"
 msgctxt "Operator"
 msgid "Add Grease Pencil Material Preset"
 msgstr "Adicionar Material Predefinido de Lápis de Cera"
-
-
-msgctxt "Operator"
-msgid "Bake Light Cache"
-msgstr "Capturar Cache de luz"
-
-
-msgid "All Light Probes"
-msgstr "Todas as Sondas de Luz"
-
-
-msgctxt "Operator"
-msgid "Delete Light Cache"
-msgstr "Apagar Cache de luz"
 
 
 msgctxt "Operator"
@@ -48873,10 +48893,6 @@ msgstr "Selecionar linha"
 
 msgid "Select text by line"
 msgstr "Seleciona o texto por linha."
-
-
-msgid "Select word under cursor"
-msgstr "Seleciona a palavra abaixo do cursor."
 
 
 msgctxt "Operator"
@@ -51620,10 +51636,6 @@ msgid "Run once and exit"
 msgstr "Executa uma vez e sai"
 
 
-msgid "Play"
-msgstr "Reproduzir"
-
-
 msgid "Random Order"
 msgstr "Ordem aleatória"
 
@@ -53601,9 +53613,25 @@ msgid "Comb"
 msgstr "Pentear"
 
 
+msgid "Comb hairs"
+msgstr "Permite pentear os cabelos."
+
+
+msgid "Smooth hairs"
+msgstr "Suavizar cabelos"
+
+
+msgid "Add hairs"
+msgstr "Adicionar cabelos"
+
+
 msgctxt "Operator"
 msgid "Length"
 msgstr "Comprimento"
+
+
+msgid "Make hairs longer or shorter"
+msgstr "Torna os cabelos mais longos ou curtos."
 
 
 msgctxt "Operator"
@@ -53611,9 +53639,21 @@ msgid "Puff"
 msgstr "Inflar"
 
 
+msgid "Make hairs stand up"
+msgstr "Faz com que os cabelos fiquem em pé."
+
+
+msgid "Cut hairs"
+msgstr "Cortar cabelos"
+
+
 msgctxt "Operator"
 msgid "Weight"
 msgstr "Pesos de influência"
+
+
+msgid "Weight hair particles"
+msgstr "Partículas de peso de cabelos."
 
 
 msgctxt "Operator"
@@ -53856,6 +53896,11 @@ msgid "Twist"
 msgstr "Torção"
 
 
+msgctxt "Operator"
+msgid "Slide"
+msgstr "Deslizar"
+
+
 msgid "Clone from Paint Slot"
 msgstr "Clona a partir do compartimento de pintura."
 
@@ -54058,42 +54103,6 @@ msgstr "Objeto de formato"
 
 msgid "Outer shape to use for tools"
 msgstr "Formato exterior a ser usado para as ferramentas."
-
-
-msgid "Comb"
-msgstr "Pentear"
-
-
-msgid "Comb hairs"
-msgstr "Permite pentear os cabelos."
-
-
-msgid "Smooth hairs"
-msgstr "Suavizar cabelos"
-
-
-msgid "Add hairs"
-msgstr "Adicionar cabelos"
-
-
-msgid "Make hairs longer or shorter"
-msgstr "Torna os cabelos mais longos ou curtos."
-
-
-msgid "Puff"
-msgstr "Inflar"
-
-
-msgid "Make hairs stand up"
-msgstr "Faz com que os cabelos fiquem em pé."
-
-
-msgid "Cut hairs"
-msgstr "Cortar cabelos"
-
-
-msgid "Weight hair particles"
-msgstr "Partículas de peso de cabelos."
 
 
 msgid "Auto Velocity"
@@ -54912,20 +54921,12 @@ msgid "Pose Matrix"
 msgstr "Matriz de pose"
 
 
-msgid "Final 4x4 matrix after constraints and drivers are applied (object space)"
-msgstr "Matriz de 4x4 depois que as restrições e controladores estão aplicados (espaço de objeto)."
-
-
 msgid "Alternative access to location/scale/rotation relative to the parent and own rest bone"
 msgstr "Permite um acesso alternativo a localização, rotação ou escalonamento relacionados ao parente e seu próprio osso de descanso."
 
 
 msgid "Channel Matrix"
 msgstr "Matriz de canais"
-
-
-msgid "4x4 matrix, before constraints"
-msgstr "Matriz 4x4, antes das restrições."
 
 
 msgid "Parent of this pose bone"
@@ -63998,10 +63999,6 @@ msgid "Shade Top"
 msgstr "Sombrear o topo"
 
 
-msgid "Text Selected"
-msgstr "Texto selecionado"
-
-
 msgid "Theme Widget State Color"
 msgstr "Tema de cor para o estado dos assistentes"
 
@@ -67373,11 +67370,6 @@ msgstr "Limpar canais"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "Estender"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "Deslizar"
 
 
 msgctxt "Operator"
