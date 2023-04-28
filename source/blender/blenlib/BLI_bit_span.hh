@@ -2,8 +2,11 @@
 
 #pragma once
 
+#include <optional>
+
 #include "BLI_bit_ref.hh"
 #include "BLI_index_range.hh"
+#include "BLI_math_bits.h"
 #include "BLI_memory_utils.hh"
 
 namespace blender::bits {
@@ -62,7 +65,7 @@ class MutableBitIterator : public BitIteratorBase {
  * and end at any bit.
  */
 class BitSpan {
- private:
+ protected:
   /** Base pointer to the integers containing the bits. The actual bit span might start at a much
    * higher address when `bit_range_.start()` is large. */
   const BitInt *data_ = nullptr;
@@ -128,9 +131,75 @@ class BitSpan {
   }
 };
 
+/**
+ * Checks if the span fullfills the requirements for a bounded span. Bounded spans can often be
+ * processed more efficiently, because fewer cases have to be considered when aligning multiple
+ * such spans.
+ *
+ * See comments in the function for the exact requirements.
+ */
+inline bool is_bounded_span(const BitSpan span)
+{
+  const int64_t offset = span.bit_range().start();
+  const int64_t size = span.size();
+  if (offset >= BitsPerInt) {
+    /* The data pointer must point at the first int already. If the offset is a multiple of
+     * #BitsPerInt, the bit span could theoretically become bounded as well if the data pointer is
+     * adjusted. But that is not handled here. */
+    return false;
+  }
+  if (size < BitsPerInt) {
+    /** Don't allow small sized spans to cross `BitInt` boundaries. */
+    return offset + size <= 64;
+  }
+  if (offset != 0) {
+    /* Start of larger spans must be aligned to `BitInt` boundaries. */
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Same as #BitSpan but fullfills the requirements mentioned on #is_bounded_span.
+ */
+class BoundedBitSpan : public BitSpan {
+ public:
+  BoundedBitSpan() = default;
+
+  BoundedBitSpan(const BitInt *data, const int64_t size_in_bits) : BitSpan(data, size_in_bits)
+  {
+    BLI_assert(is_bounded_span(*this));
+  }
+
+  BoundedBitSpan(const BitInt *data, const IndexRange bit_range) : BitSpan(data, bit_range)
+  {
+    BLI_assert(is_bounded_span(*this));
+  }
+
+  explicit BoundedBitSpan(const BitSpan other) : BitSpan(other)
+  {
+    BLI_assert(is_bounded_span(*this));
+  }
+
+  int64_t offset() const
+  {
+    return bit_range_.start();
+  }
+
+  int64_t full_ints_num() const
+  {
+    return bit_range_.size() >> BitToIntIndexShift;
+  }
+
+  int64_t final_bits_num() const
+  {
+    return bit_range_.size() & BitIndexMask;
+  }
+};
+
 /** Same as #BitSpan, but also allows modifying the referenced bits. */
 class MutableBitSpan {
- private:
+ protected:
   BitInt *data_ = nullptr;
   IndexRange bit_range_ = {0, 0};
 
@@ -199,6 +268,9 @@ class MutableBitSpan {
   /** Sets all referenced bits to 0. */
   void reset_all();
 
+  void copy_from(const BitSpan other);
+  void copy_from(const BoundedBitSpan other);
+
   /** Sets all referenced bits to either 0 or 1. */
   void set_all(const bool value)
   {
@@ -217,6 +289,82 @@ class MutableBitSpan {
   }
 };
 
+/**
+ * Same as #MutableBitSpan but fullfills the requirements mentioned on #is_bounded_span.
+ */
+class MutableBoundedBitSpan : public MutableBitSpan {
+ public:
+  MutableBoundedBitSpan() = default;
+
+  MutableBoundedBitSpan(BitInt *data, const int64_t size) : MutableBitSpan(data, size)
+  {
+    BLI_assert(is_bounded_span(*this));
+  }
+
+  MutableBoundedBitSpan(BitInt *data, const IndexRange bit_range) : MutableBitSpan(data, bit_range)
+  {
+    BLI_assert(is_bounded_span(*this));
+  }
+
+  explicit MutableBoundedBitSpan(const MutableBitSpan other) : MutableBitSpan(other)
+  {
+    BLI_assert(is_bounded_span(*this));
+  }
+
+  operator BoundedBitSpan() const
+  {
+    return BoundedBitSpan{BitSpan(*this)};
+  }
+
+  int64_t offset() const
+  {
+    return bit_range_.start();
+  }
+
+  int64_t full_ints_num() const
+  {
+    return bit_range_.size() >> BitToIntIndexShift;
+  }
+
+  int64_t final_bits_num() const
+  {
+    return bit_range_.size() & BitIndexMask;
+  }
+
+  void copy_from(const BitSpan other);
+  void copy_from(const BoundedBitSpan other);
+};
+
+inline std::optional<BoundedBitSpan> try_get_bounded_span(const BitSpan span)
+{
+  if (is_bounded_span(span)) {
+    return BoundedBitSpan(span);
+  }
+  if (span.bit_range().start() % BitsPerInt == 0) {
+    return BoundedBitSpan(span.data() + (span.bit_range().start() >> BitToIntIndexShift),
+                          span.size());
+  }
+  return std::nullopt;
+}
+
+/**
+ * Overloaded in BLI_bit_vector.hh. The purpose is to make passing #BitVector into bit span
+ * operations more efficient (interpreting it as `BoundedBitSpan` instead of just `BitSpan`).
+ */
+template<typename T> inline T to_best_bit_span(const T &data)
+{
+  static_assert(is_same_any_v<std::decay_t<T>,
+                              BitSpan,
+                              MutableBitSpan,
+                              BoundedBitSpan,
+                              MutableBoundedBitSpan>);
+  return data;
+}
+
+template<typename... Args>
+constexpr bool all_bounded_spans =
+    (is_same_any_v<std::decay_t<Args>, BoundedBitSpan, MutableBoundedBitSpan> && ...);
+
 std::ostream &operator<<(std::ostream &stream, const BitSpan &span);
 std::ostream &operator<<(std::ostream &stream, const MutableBitSpan &span);
 
@@ -224,5 +372,7 @@ std::ostream &operator<<(std::ostream &stream, const MutableBitSpan &span);
 
 namespace blender {
 using bits::BitSpan;
+using bits::BoundedBitSpan;
 using bits::MutableBitSpan;
+using bits::MutableBoundedBitSpan;
 }  // namespace blender
