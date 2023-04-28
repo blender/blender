@@ -41,7 +41,7 @@ GeometryComponent *CurveComponent::copy() const
 
 void CurveComponent::clear()
 {
-  BLI_assert(this->is_mutable());
+  BLI_assert(this->is_mutable() || this->is_expired());
   if (curves_ != nullptr) {
     if (ownership_ == GeometryOwnershipType::Owned) {
       BKE_id_free(nullptr, curves_);

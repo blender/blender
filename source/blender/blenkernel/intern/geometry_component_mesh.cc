@@ -44,7 +44,7 @@ GeometryComponent *MeshComponent::copy() const
 
 void MeshComponent::clear()
 {
-  BLI_assert(this->is_mutable());
+  BLI_assert(this->is_mutable() || this->is_expired());
   if (mesh_ != nullptr) {
     if (ownership_ == GeometryOwnershipType::Owned) {
       BKE_id_free(nullptr, mesh_);

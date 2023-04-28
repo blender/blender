@@ -56,7 +56,7 @@ GeometryComponent *InstancesComponent::copy() const
 
 void InstancesComponent::clear()
 {
-  BLI_assert(this->is_mutable());
+  BLI_assert(this->is_mutable() || this->is_expired());
   if (ownership_ == GeometryOwnershipType::Owned) {
     delete instances_;
   }

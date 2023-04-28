@@ -31,7 +31,7 @@ GeometryComponent *PointCloudComponent::copy() const
 
 void PointCloudComponent::clear()
 {
-  BLI_assert(this->is_mutable());
+  BLI_assert(this->is_mutable() || this->is_expired());
   if (pointcloud_ != nullptr) {
     if (ownership_ == GeometryOwnershipType::Owned) {
       BKE_id_free(nullptr, pointcloud_);
