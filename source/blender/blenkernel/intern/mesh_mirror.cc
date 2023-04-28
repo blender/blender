@@ -332,6 +332,14 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     result_corner_edges[i] += src_edges_num;
   }
 
+  if (!mesh->runtime->subsurf_optimal_display_edges.is_empty()) {
+    const blender::BoundedBitSpan src = mesh->runtime->subsurf_optimal_display_edges;
+    result->runtime->subsurf_optimal_display_edges.resize(result->totedge);
+    blender::MutableBoundedBitSpan dst = result->runtime->subsurf_optimal_display_edges;
+    dst.slice({0, src.size()}).copy_from(src);
+    dst.slice({src.size(), src.size()}).copy_from(src);
+  }
+
   /* handle uvs,
    * let tessface recalc handle updating the MTFace data */
   if (mmd->flag & (MOD_MIR_MIRROR_U | MOD_MIR_MIRROR_V) ||
