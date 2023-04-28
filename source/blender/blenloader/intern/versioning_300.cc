@@ -1263,8 +1263,7 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
     /* Ensure tiled image sources contain a UDIM token. */
     LISTBASE_FOREACH (Image *, ima, &bmain->images) {
       if (ima->source == IMA_SRC_TILED) {
-        char *filename = (char *)BLI_path_basename(ima->filepath);
-        BKE_image_ensure_tile_token(filename);
+        BKE_image_ensure_tile_token(ima->filepath, sizeof(ima->filepath));
       }
     }
   }
