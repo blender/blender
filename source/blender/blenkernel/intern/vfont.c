@@ -1581,7 +1581,7 @@ static bool vfont_to_curve(Object *ob,
     ef->textcurs[2][0] = cursor_left + cursor_width;
     ef->textcurs[2][1] = 1.0f;
 
-  for (int vert = 0; vert < 4; vert++) {
+    for (int vert = 0; vert < 4; vert++) {
       float temp_fl[2];
       /* Rotate around the cursor's bottom-left corner. */
       rotate_v2_v2fl(temp_fl, &ef->textcurs[vert][0], -rotation);
