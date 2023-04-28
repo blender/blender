@@ -39,9 +39,9 @@ ccl_device_forceinline float intersection_t_offset(const float t)
    * The check relies on the fact that comparison of de-normal values with zero
    * returns true. */
   if (t == 0.0f) {
-    /* The value of std::numeric_limits<float>::min() and __FLT_MIN__, inlined
-     * to ensure matched behavior on all platforms and compilers. */
-    return 0x1p-126;
+    /* The exact bit value of this should be 0x1p-126, but hex floating point values notation is
+     * not available in CUDA/OptiX. */
+    return FLT_MIN;
   }
 
   const uint32_t bits = __float_as_uint(t) + 1;
