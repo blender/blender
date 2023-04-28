@@ -1551,7 +1551,7 @@ static bool vfont_to_curve(Object *ob,
       if (ef->selend >= ef->selstart) {
         /* Cursor at right edge of a text selection. Match rotation to the character at the
          * end of selection. Cursor is further right to show the selected characters better. */
-        rotation = chartransdata[ef->selend - 1].rot;
+        rotation = chartransdata[max_ii(0, ef->selend - 1)].rot;
         cursor_left = 0.0f;
       }
       else {
