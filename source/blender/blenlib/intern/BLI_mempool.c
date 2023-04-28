@@ -106,8 +106,8 @@ typedef struct BLI_mempool_chunk {
  * The mempool, stores and tracks memory \a chunks and elements within those chunks \a free.
  */
 struct BLI_mempool {
-  /* Serialize access to mempools when debugging wih ASAN. */
 #ifdef WITH_ASAN
+  /** Serialize access to memory-pools when debugging with ASAN. */
   ThreadMutex mutex;
 #endif
   /** Single linked list of allocated chunks. */
