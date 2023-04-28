@@ -403,4 +403,6 @@ inline Image::Image() : IDSocketDeclaration("NodeSocketImage") {}
 
 /** \} */
 
+SocketDeclarationPtr create_extend_declaration(const eNodeSocketInOut in_out);
+
 }  // namespace blender::nodes::decl

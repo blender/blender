@@ -664,6 +664,15 @@ bNodeSocket &Custom::update_or_build(bNodeTree & /*ntree*/,
   return socket;
 }
 
+SocketDeclarationPtr create_extend_declaration(const eNodeSocketInOut in_out)
+{
+  std::unique_ptr<decl::Extend> decl = std::make_unique<decl::Extend>();
+  decl->name = "";
+  decl->identifier = "__extend__";
+  decl->in_out = in_out;
+  return decl;
+}
+
 /** \} */
 
 }  // namespace blender::nodes::decl
