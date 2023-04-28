@@ -84,10 +84,15 @@ TEST(path_util, Normalize_Dot)
   NORMALIZE("/a/./././b/", "/a/b/");
 }
 /* #BLI_path_normalize: complex "/./" -> "/", "//" -> "/", "./path/../" -> "./". */
-TEST(path_util, Normalize_Complex)
+TEST(path_util, Normalize_ComplexAbsolute)
 {
   NORMALIZE("/a/./b/./c/./.././.././", "/a/");
   NORMALIZE("/a//.//b//.//c//.//..//.//..//.//", "/a/");
+}
+TEST(path_util, Normalize_ComplexRelative)
+{
+  NORMALIZE("a/b/c/d/e/f/g/../a/../b/../../c/../../../d/../../../..", ".");
+  NORMALIZE("a/b/c/d/e/f/g/../a/../../../../b/../../../c/../../d/..", ".");
 }
 /* #BLI_path_normalize: "//" -> "/" */
 TEST(path_util, Normalize_DoubleSlash)
