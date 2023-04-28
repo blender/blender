@@ -860,7 +860,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     posit[0] = co_ss[1][0] - (numstr_size[0] / 2.0f);
     posit[1] = co_ss[1][1] - (numstr_size[1] / 2.0f);
 
-		/* Adjust text position to help readability. */
+    /* Adjust text position to help readability. */
     sub_v2_v2v2(dir_ruler, co_ss[0], co_ss[1]);
     float rot_90_vec[2] = {-dir_ruler[1], dir_ruler[0]};
     normalize_v2(rot_90_vec);
@@ -941,7 +941,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     /* center text */
     posit -= numstr_size / 2.0f;
 
-		/* Adjust text position if this helps readability. */
+    /* Adjust text position if this helps readability. */
 
     const float len = len_v2v2(co_ss[0], co_ss[2]);
 
