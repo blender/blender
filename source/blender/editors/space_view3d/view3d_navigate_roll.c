@@ -253,7 +253,7 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else {
     /* makes op->customdata */
-    vod = op->customdata = viewops_data_create(C, event, viewops_flag_from_prefs());
+    vod = op->customdata = viewops_data_create(C, event, V3D_OP_MODE_VIEW_ROLL, false);
     vod->init.dial = BLI_dial_init((const float[2]){BLI_rcti_cent_x(&vod->region->winrct),
                                                     BLI_rcti_cent_y(&vod->region->winrct)},
                                    FLT_EPSILON);
@@ -287,7 +287,7 @@ void VIEW3D_OT_view_roll(wmOperatorType *ot)
   /* identifiers */
   ot->name = "View Roll";
   ot->description = "Roll the view";
-  ot->idname = "VIEW3D_OT_view_roll";
+  ot->idname = viewops_operator_idname_get(V3D_OP_MODE_VIEW_ROLL);
 
   /* api callbacks */
   ot->invoke = viewroll_invoke;

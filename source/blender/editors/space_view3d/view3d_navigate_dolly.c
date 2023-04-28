@@ -246,11 +246,7 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
 
-  vod = op->customdata = viewops_data_create(
-      C,
-      event,
-      (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT) |
-          (use_cursor_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
+  vod = op->customdata = viewops_data_create(C, event, V3D_OP_MODE_DOLLY, use_cursor_init);
 
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
@@ -314,7 +310,7 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Dolly View";
   ot->description = "Dolly in/out in the view";
-  ot->idname = "VIEW3D_OT_dolly";
+  ot->idname = viewops_operator_idname_get(V3D_OP_MODE_DOLLY);
 
   /* api callbacks */
   ot->invoke = viewdolly_invoke;
