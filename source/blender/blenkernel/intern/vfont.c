@@ -1463,6 +1463,10 @@ static bool vfont_to_curve(Object *ob,
           sb->x -= sinf(ct->rot) * font_select_y_offset;
           sb->y -= cosf(ct->rot) * font_select_y_offset;
         }
+        else {
+          /* Simple downward shift below baseline when not rotated. */
+          sb->y -= font_select_y_offset;
+        }
         sb->x *= font_size;
         sb->y *= font_size;
         selboxes[i - selstart].h = font_size;
