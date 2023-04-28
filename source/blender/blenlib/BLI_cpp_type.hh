@@ -705,6 +705,11 @@ class CPPType : NonCopyable, NonMovable {
     return this == &CPPType::get<std::decay_t<T>>();
   }
 
+  template<typename... T> bool is_any() const
+  {
+    return (this->is<T>() || ...);
+  }
+
   /**
    * Convert a #CPPType that is only known at run-time, to a static type that is known at
    * compile-time. This allows the compiler to optimize a function for specific types, while all
