@@ -856,10 +856,12 @@ float ED_view3d_grid_scale(const Scene *scene, View3D *v3d, const char **r_grid_
 }
 
 #define STEPS_LEN 8
-void ED_view3d_grid_steps(const Scene *scene,
-                          View3D *v3d,
-                          RegionView3D *rv3d,
-                          float r_grid_steps[STEPS_LEN])
+static void view3d_grid_steps_ex(const Scene *scene,
+                                 View3D *v3d,
+                                 RegionView3D *rv3d,
+                                 float r_grid_steps[STEPS_LEN],
+                                 void const **r_usys_pt,
+                                 int *r_len)
 {
   const void *usys;
   int len;
@@ -881,7 +883,7 @@ void ED_view3d_grid_steps(const Scene *scene,
     }
     for (; i < STEPS_LEN; i++) {
       /* Fill last slots */
-      r_grid_steps[i] = 10.0f * r_grid_steps[i - 1];
+      r_grid_steps[i] = r_grid_steps[len - 1];
     }
   }
   else {
@@ -899,6 +901,20 @@ void ED_view3d_grid_steps(const Scene *scene,
       subdiv *= v3d->gridsubdiv;
     }
   }
+  if (r_usys_pt) {
+    *r_usys_pt = usys;
+  }
+  if (r_len) {
+    *r_len = len;
+  }
+}
+
+void ED_view3d_grid_steps(const Scene *scene,
+                          View3D *v3d,
+                          RegionView3D *rv3d,
+                          float r_grid_steps[STEPS_LEN])
+{
+  view3d_grid_steps_ex(scene, v3d, rv3d, r_grid_steps, nullptr, nullptr);
 }
 
 float ED_view3d_grid_view_scale(Scene *scene,
@@ -912,23 +928,20 @@ float ED_view3d_grid_view_scale(Scene *scene,
     /* Decrease the distance between grid snap points depending on zoom. */
     float dist = 12.0f / (region->sizex * rv3d->winmat[0][0]);
     float grid_steps[STEPS_LEN];
-    ED_view3d_grid_steps(scene, v3d, rv3d, grid_steps);
-    /* Skip last item, in case the 'mid_dist' is greater than the largest unit. */
-    int i;
-    for (i = 0; i < ARRAY_SIZE(grid_steps) - 1; i++) {
+    const void *usys;
+    int grid_steps_len;
+    view3d_grid_steps_ex(scene, v3d, rv3d, grid_steps, &usys, &grid_steps_len);
+    int i = 0;
+    while (true) {
       grid_scale = grid_steps[i];
-      if (grid_scale > dist) {
+      if (grid_scale > dist || i == (grid_steps_len - 1)) {
         break;
       }
+      i++;
     }
 
-    if (r_grid_unit) {
-      const void *usys;
-      int len;
-      BKE_unit_system_get(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
-      if (usys && i < len) {
-        *r_grid_unit = IFACE_(BKE_unit_display_name_get(usys, len - i - 1));
-      }
+    if (r_grid_unit && usys) {
+      *r_grid_unit = IFACE_(BKE_unit_display_name_get(usys, grid_steps_len - i - 1));
     }
   }
   else {
