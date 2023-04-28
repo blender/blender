@@ -1269,15 +1269,21 @@ int BKE_unit_base_of_type_get(int system, int type)
 
 const char *BKE_unit_name_get(const void *usys_pt, int index)
 {
-  return ((bUnitCollection *)usys_pt)->units[index].name;
+  const bUnitCollection *usys = usys_pt;
+  BLI_assert((uint)index < (uint)usys->length);
+  return usys->units[index].name;
 }
 const char *BKE_unit_display_name_get(const void *usys_pt, int index)
 {
-  return ((bUnitCollection *)usys_pt)->units[index].name_display;
+  const bUnitCollection *usys = usys_pt;
+  BLI_assert((uint)index < (uint)usys->length);
+  return usys->units[index].name_display;
 }
 const char *BKE_unit_identifier_get(const void *usys_pt, int index)
 {
-  const bUnitDef *unit = ((const bUnitCollection *)usys_pt)->units + index;
+  const bUnitCollection *usys = usys_pt;
+  BLI_assert((uint)index < (uint)usys->length);
+  const bUnitDef *unit = &usys->units[index];
   if (unit->identifier == NULL) {
     BLI_assert_msg(0, "identifier for this unit is not specified yet");
   }
@@ -1286,10 +1292,14 @@ const char *BKE_unit_identifier_get(const void *usys_pt, int index)
 
 double BKE_unit_scalar_get(const void *usys_pt, int index)
 {
-  return ((bUnitCollection *)usys_pt)->units[index].scalar;
+  const bUnitCollection *usys = usys_pt;
+  BLI_assert((uint)index < (uint)usys->length);
+  return usys->units[index].scalar;
 }
 
 bool BKE_unit_is_suppressed(const void *usys_pt, int index)
 {
-  return (((bUnitCollection *)usys_pt)->units[index].flag & B_UNIT_DEF_SUPPRESS) != 0;
+  const bUnitCollection *usys = usys_pt;
+  BLI_assert((uint)index < (uint)usys->length);
+  return (usys->units[index].flag & B_UNIT_DEF_SUPPRESS) != 0;
 }
