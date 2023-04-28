@@ -494,7 +494,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 static eViewOpsFlag viewops_flag_from_prefs(void)
 {
   const bool use_select = (U.uiflag & USER_ORBIT_SELECTION) != 0;
-  const bool use_depth = (U.uiflag & VIEWOPS_FLAG_DEPTH_NAVIGATE) != 0;
+  const bool use_depth = (U.uiflag & USER_DEPTH_NAVIGATE) != 0;
   const bool use_zoom_to_mouse = (U.uiflag & USER_ZOOM_TO_MOUSEPOS) != 0;
 
   enum eViewOpsFlag flag = VIEWOPS_FLAG_NONE;
