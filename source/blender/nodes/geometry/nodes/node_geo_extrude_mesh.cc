@@ -31,7 +31,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .implicit_field_on_all(implicit_field_inputs::normal)
       .hide_value();
   b.add_input<decl::Float>(N_("Offset Scale")).default_value(1.0f).field_on_all();
-  b.add_input<decl::Bool>(N_("Individual")).default_value(true);
+  b.add_input<decl::Bool>(N_("Individual")).default_value(true).make_available([](bNode &node) {
+    node_storage(node).mode = GEO_NODE_EXTRUDE_MESH_FACES;
+  });
   b.add_output<decl::Geometry>("Mesh").propagate_all();
   b.add_output<decl::Bool>(N_("Top")).field_on_all();
   b.add_output<decl::Bool>(N_("Side")).field_on_all();
