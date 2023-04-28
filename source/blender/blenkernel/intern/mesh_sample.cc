@@ -65,7 +65,7 @@ BLI_NOINLINE static void sample_corner_attribute(const Span<MLoopTri> looptris,
 {
   for (const int i : mask) {
     const MLoopTri &tri = looptris[looptri_indices[i]];
-    dst[i] = sample_corner_attrribute_with_bary_coords(bary_coords[i], tri, src);
+    dst[i] = sample_corner_attribute_with_bary_coords(bary_coords[i], tri, src);
   }
 }
 
@@ -78,7 +78,7 @@ void sample_corner_normals(const Span<MLoopTri> looptris,
 {
   for (const int i : mask) {
     const MLoopTri &tri = looptris[looptri_indices[i]];
-    const float3 value = sample_corner_attrribute_with_bary_coords(bary_coords[i], tri, src);
+    const float3 value = sample_corner_attribute_with_bary_coords(bary_coords[i], tri, src);
     dst[i] = math::normalize(value);
   }
 }

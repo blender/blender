@@ -636,7 +636,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
             const MLoopTri &tri = surface_looptris[looptri_index];
             const float3 bary_coords = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
                 surface_positions, corner_verts, tri, new_first_point_pos_su);
-            const float2 uv = bke::mesh_surface_sample::sample_corner_attrribute_with_bary_coords(
+            const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
                 bary_coords, tri, surface_uv_map);
             surface_uv_coords[curve_i] = uv;
           }

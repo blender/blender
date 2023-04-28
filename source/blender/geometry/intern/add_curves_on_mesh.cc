@@ -35,7 +35,7 @@ float3 compute_surface_point_normal(const MLoopTri &looptri,
                                     const float3 &bary_coord,
                                     const Span<float3> corner_normals)
 {
-  const float3 value = bke::mesh_surface_sample::sample_corner_attrribute_with_bary_coords(
+  const float3 value = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
       bary_coord, looptri, corner_normals);
   return math::normalize(value);
 }

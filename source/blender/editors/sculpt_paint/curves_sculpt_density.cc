@@ -386,7 +386,7 @@ struct DensityAddOperationExecutor {
       }
 
       for (const int i : bary_coords.index_range()) {
-        const float2 uv = bke::mesh_surface_sample::sample_corner_attrribute_with_bary_coords(
+        const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
             bary_coords[i], surface_looptris_eval_[looptri_indices[i]], surface_uv_map_eval_);
         r_uvs.append(uv);
       }
@@ -462,7 +462,7 @@ struct DensityAddOperationExecutor {
       }
 
       for (const int i : bary_coords.index_range()) {
-        const float2 uv = bke::mesh_surface_sample::sample_corner_attrribute_with_bary_coords(
+        const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
             bary_coords[i], surface_looptris_eval_[looptri_indices[i]], surface_uv_map_eval_);
         r_uvs.append(uv);
       }
