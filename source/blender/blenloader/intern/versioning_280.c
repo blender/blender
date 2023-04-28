@@ -428,10 +428,9 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
       if (base->lay & (1 << layer)) {
         /* Create collections when needed only. */
         if (collections[layer] == NULL) {
-          char name[MAX_NAME];
+          char name[MAX_ID_NAME - 2];
 
-          BLI_snprintf(
-              name, sizeof(collection_master->id.name), DATA_("Collection %d"), layer + 1);
+          BLI_snprintf(name, sizeof(name), DATA_("Collection %d"), layer + 1);
 
           Collection *collection = BKE_collection_add(bmain, collection_master, name);
           collection->id.lib = scene->id.lib;

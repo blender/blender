@@ -1047,10 +1047,12 @@ class StringEscape : public testing::Test {
   void testEscapeWords(const CompareWordsArray &items)
   {
     size_t dst_test_len;
-    char dst_test[64];
+    char dst_test[64]; /* Must be big enough for all input. */
     for (const auto &item : items) {
+      /* Validate the static size is big enough (test the test it's self). */
+      EXPECT_LT((strlen(item[0]) * 2) + 1, sizeof(dst_test));
       /* Escape the string. */
-      dst_test_len = BLI_str_escape(dst_test, item[0], SIZE_MAX);
+      dst_test_len = BLI_str_escape(dst_test, item[0], sizeof(dst_test));
       EXPECT_STREQ(dst_test, item[1]);
       EXPECT_EQ(dst_test_len, strlen(dst_test));
       /* Escape back. */

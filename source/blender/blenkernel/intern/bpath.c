@@ -531,7 +531,7 @@ static bool absolute_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
     return false; /* Already absolute. */
   }
 
-  BLI_strncpy(path_dst, path_src, FILENAME_MAX);
+  BLI_strncpy(path_dst, path_src, FILE_MAX);
   BLI_path_abs(path_dst, data->basedir);
   if (BLI_path_is_rel(path_dst) == false) {
     data->count_changed++;
