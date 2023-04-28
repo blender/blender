@@ -222,7 +222,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                          const ModifierEvalContext * /*ctx*/,
                                          Object *ob,
                                          Mesh *mesh,
-                                         short (*clnors)[2],
+                                         blender::MutableSpan<blender::short2> clnors,
                                          blender::MutableSpan<blender::float3> loop_normals,
                                          const short mix_mode,
                                          const float mix_factor,
@@ -350,7 +350,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                               const ModifierEvalContext * /*ctx*/,
                                               Object *ob,
                                               Mesh *mesh,
-                                              short (*clnors)[2],
+                                              blender::MutableSpan<blender::short2> clnors,
                                               blender::MutableSpan<blender::float3> loop_normals,
                                               const short mix_mode,
                                               const float mix_factor,
@@ -530,10 +530,10 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_edge", ATTR_DOMAIN_EDGE);
 
-  short(*clnors)[2] = static_cast<short(*)[2]>(
+  blender::short2 *clnors = static_cast<blender::short2 *>(
       CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
   if (use_current_clnors) {
-    clnors = static_cast<short(*)[2]>(
+    clnors = static_cast<blender::short2 *>(
         CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
     loop_normals.reinitialize(corner_verts.size());
     const bool *sharp_faces = static_cast<const bool *>(
@@ -556,7 +556,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   }
 
   if (clnors == nullptr) {
-    clnors = static_cast<short(*)[2]>(
+    clnors = static_cast<blender::short2 *>(
         CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, corner_verts.size()));
   }
 
@@ -567,7 +567,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                  ctx,
                                  ob,
                                  result,
-                                 clnors,
+                                 {clnors, result->totloop},
                                  loop_normals,
                                  enmd->mix_mode,
                                  enmd->mix_factor,
@@ -587,7 +587,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       ctx,
                                       ob,
                                       result,
-                                      clnors,
+                                      {clnors, result->totloop},
                                       loop_normals,
                                       enmd->mix_mode,
                                       enmd->mix_factor,

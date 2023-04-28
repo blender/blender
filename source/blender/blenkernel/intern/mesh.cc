@@ -1888,7 +1888,7 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
   const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : float(M_PI);
 
   /* may be nullptr */
-  short(*clnors)[2] = (short(*)[2])CustomData_get_layer_for_write(
+  blender::short2 *clnors = (blender::short2 *)CustomData_get_layer_for_write(
       &mesh->ldata, CD_CUSTOMLOOPNORMAL, mesh->totloop);
   const bool *sharp_edges = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"));

@@ -386,7 +386,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
       CustomData_has_layer(&result->ldata, CD_CUSTOMLOOPNORMAL) && result->totpoly > 0) {
     blender::Array<blender::float3> loop_normals(result_corner_verts.size());
     CustomData *ldata = &result->ldata;
-    short(*clnors)[2] = static_cast<short(*)[2]>(
+    blender::short2 *clnors = static_cast<blender::short2 *>(
         CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, result->totloop));
     MLoopNorSpaceArray lnors_spacearr = {nullptr};
 
