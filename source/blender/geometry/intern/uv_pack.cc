@@ -884,7 +884,8 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
   float max_u = 0.0f;
   float max_v = 0.0f;
 
-  int scan_line = 0;
+  int scan_line = 0; /* Current "scan_line" of occupancy bitmap. */
+  int traced_islands = 0; /* Which islands are currently traced in `occupancy`. */
   int i = 0;
 
   /* The following `while` loop is setting up a three-way race:
@@ -894,6 +895,14 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
    */
 
   while (i < island_indices.size()) {
+
+    while (traced_islands < i) {
+      /* Trace an island that's been solved. (Greedy.) */
+      const int64_t island_index = island_indices[traced_islands]->index;
+      occupancy.trace_island(islands[island_index], r_phis[island_index], scale, margin, true);
+      traced_islands++;
+    }
+
     PackIsland *island = islands[island_indices[i]->index];
     uv_phi phi;
 
@@ -930,17 +939,12 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
       /* Enlarge search parameters. */
       scan_line = 0;
       occupancy.increase_scale();
-
-      /* Redraw already placed islands. (Greedy.) */
-      for (int j = 0; j < i; j++) {
-        occupancy.trace_island(islands[island_indices[j]->index], r_phis[j], scale, margin, true);
-      }
+      traced_islands = 0; /* Will trigger a re-trace of previously solved islands. */
       continue;
     }
 
     /* Place island. */
     r_phis[island_indices[i]->index] = phi;
-    occupancy.trace_island(island, phi, scale, margin, true);
     i++; /* Next island. */
 
     /* Update top-right corner. */
