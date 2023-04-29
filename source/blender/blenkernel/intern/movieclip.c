@@ -521,15 +521,26 @@ static void get_proxy_filepath(const MovieClip *clip,
     BLI_strncpy(dir, clip->proxy.dir, sizeof(dir));
   }
   else {
-    BLI_snprintf(dir, FILE_MAX, "%s/BL_proxy", clipdir);
+    BLI_snprintf(dir, sizeof(dir), "%s" SEP_STR "BL_proxy", clipdir);
   }
 
   if (undistorted) {
-    BLI_snprintf(
-        filepath, FILE_MAX, "%s/%s/proxy_%d_undistorted/%08d", dir, clipfile, size, proxynr);
+    BLI_snprintf(filepath,
+                 FILE_MAX,
+                 "%s" SEP_STR "%s" SEP_STR "proxy_%d_undistorted" SEP_STR "%08d",
+                 dir,
+                 clipfile,
+                 size,
+                 proxynr);
   }
   else {
-    BLI_snprintf(filepath, FILE_MAX, "%s/%s/proxy_%d/%08d", dir, clipfile, size, proxynr);
+    BLI_snprintf(filepath,
+                 FILE_MAX,
+                 "%s" SEP_STR "%s" SEP_STR "proxy_%d" SEP_STR "%08d",
+                 dir,
+                 clipfile,
+                 size,
+                 proxynr);
   }
 
   BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());

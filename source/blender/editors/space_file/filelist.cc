@@ -3111,7 +3111,7 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
 {
   FileListInternEntry *entry = MEM_cnew<FileListInternEntry>(__func__);
   if (prefix_relpath_with_group_name) {
-    std::string datablock_path = StringRef(group_name) + "/" + datablock_info->name;
+    std::string datablock_path = StringRef(group_name) + SEP_STR + datablock_info->name;
     entry->relpath = current_relpath_append(job_params, datablock_path.c_str());
   }
   else {
@@ -3791,7 +3791,7 @@ static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
     const char *id_code_name = BKE_idtype_idcode_to_name(GS(id_iter->name));
 
     entry = MEM_cnew<FileListInternEntry>(__func__);
-    std::string datablock_path = StringRef(id_code_name) + "/" + (id_iter->name + 2);
+    std::string datablock_path = StringRef(id_code_name) + SEP_STR + (id_iter->name + 2);
     entry->relpath = current_relpath_append(job_params, datablock_path.c_str());
     entry->name = id_iter->name + 2;
     entry->free_name = false;
