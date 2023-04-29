@@ -884,7 +884,7 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
   float max_u = 0.0f;
   float max_v = 0.0f;
 
-  int scan_line = 0; /* Current "scan_line" of occupancy bitmap. */
+  int scan_line = 0;      /* Current "scan_line" of occupancy bitmap. */
   int traced_islands = 0; /* Which islands are currently traced in `occupancy`. */
   int i = 0;
 
