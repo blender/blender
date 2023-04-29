@@ -474,7 +474,9 @@ static int get_timecode(MovieClip *clip, int flag)
   return clip->proxy.tc;
 }
 
-static void get_sequence_filepath(const MovieClip *clip, const int framenr, char *filepath)
+static void get_sequence_filepath(const MovieClip *clip,
+                                  const int framenr,
+                                  char filepath[FILE_MAX])
 {
   ushort numlen;
   char head[FILE_MAX], tail[FILE_MAX];
@@ -489,7 +491,7 @@ static void get_sequence_filepath(const MovieClip *clip, const int framenr, char
 
   if (numlen) {
     BLI_path_sequence_encode(filepath,
-                             sizeof(filepath),
+                             FILE_MAX,
                              head,
                              tail,
                              numlen,
@@ -503,8 +505,11 @@ static void get_sequence_filepath(const MovieClip *clip, const int framenr, char
 }
 
 /* supposed to work with sequences only */
-static void get_proxy_filepath(
-    const MovieClip *clip, int proxy_render_size, bool undistorted, int framenr, char *filepath)
+static void get_proxy_filepath(const MovieClip *clip,
+                               int proxy_render_size,
+                               bool undistorted,
+                               int framenr,
+                               char filepath[FILE_MAX])
 {
   int size = rendersize_to_number(proxy_render_size);
   char dir[FILE_MAX], clipdir[FILE_MAX], clipfile[FILE_MAX];
