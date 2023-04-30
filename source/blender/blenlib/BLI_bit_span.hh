@@ -142,7 +142,7 @@ class BitSpan {
 };
 
 /**
- * Checks if the span fullfills the requirements for a bounded span. Bounded spans can often be
+ * Checks if the span fulfills the requirements for a bounded span. Bounded spans can often be
  * processed more efficiently, because fewer cases have to be considered when aligning multiple
  * such spans.
  *
@@ -170,7 +170,7 @@ inline bool is_bounded_span(const BitSpan span)
 }
 
 /**
- * Same as #BitSpan but fullfills the requirements mentioned on #is_bounded_span.
+ * Same as #BitSpan but fulfills the requirements mentioned on #is_bounded_span.
  */
 class BoundedBitSpan : public BitSpan {
  public:
@@ -315,7 +315,7 @@ class MutableBitSpan {
 };
 
 /**
- * Same as #MutableBitSpan but fullfills the requirements mentioned on #is_bounded_span.
+ * Same as #MutableBitSpan but fulfills the requirements mentioned on #is_bounded_span.
  */
 class MutableBoundedBitSpan : public MutableBitSpan {
  public:
