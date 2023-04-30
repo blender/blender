@@ -177,7 +177,8 @@ enum {
 };
 
 struct FileListEntryPreview {
-  char filepath[FILE_MAX];
+  /** Use #FILE_MAX_LIBEXTRA as this is the size written into by #filelist_file_get_full_path. */
+  char filepath[FILE_MAX_LIBEXTRA];
   uint flags;
   int index;
   int attributes; /* from FileDirEntry. */
