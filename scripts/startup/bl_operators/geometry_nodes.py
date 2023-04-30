@@ -40,7 +40,8 @@ def geometry_modifier_poll(context):
 
 
 def get_context_modifier(context):
-    if context.area.type == 'PROPERTIES':
+    area = context.area
+    if (area is not None) and (area.type == 'PROPERTIES'):
         modifier = context.modifier
     else:
         ob = context.object

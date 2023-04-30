@@ -655,6 +655,11 @@ class IsolateTypeRender(Operator):
     bl_label = "Restrict Render Unselected"
     bl_options = {'REGISTER', 'UNDO'}
 
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return (ob is not None)
+
     def execute(self, context):
         act_type = context.object.type
 
