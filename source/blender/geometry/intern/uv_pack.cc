@@ -598,6 +598,7 @@ class Occupancy {
   Occupancy(const float initial_scale);
 
   void increase_scale(); /* Resize the scale of the bitmap and clear it. */
+  void clear();          /* Clear occupancy information. */
 
   /* Write or Query a triangle on the bitmap. */
   float trace_triangle(const float2 &uv0,
@@ -638,6 +639,11 @@ void Occupancy::increase_scale()
   BLI_assert(bitmap_scale_reciprocal > 0.0f); /* TODO: Packing has failed, report error. */
 
   bitmap_scale_reciprocal *= 0.5f;
+  clear();
+}
+
+void Occupancy::clear()
+{
   for (int i = 0; i < bitmap_radix * bitmap_radix; i++) {
     bitmap_[i] = terminal;
   }
@@ -729,33 +735,33 @@ float Occupancy::trace_triangle(const float2 &uv0,
   return -1.0f; /* Available. */
 }
 
-float2 PackIsland::get_diagonal_support_d4(const float scale,
-                                           const float rotation,
-                                           const float margin) const
+float2 PackIsland::get_diagonal_support(const float scale,
+                                        const float rotation,
+                                        /* const bool reflection, */
+                                        const float margin) const
 {
-  if (rotation == 0.0f) {
-    return half_diagonal_ * scale + margin; /* Fast path for common case. */
+  /* Caution: Only "Dihedral Group D4" transforms are calculated exactly.
+   * if the transform is Non-D4, an upper bound will be returned instead. */
+
+  if (rotation == DEG2RADF(-180.0f) || rotation == 0.0f || rotation == DEG2RADF(180.0f)) {
+    return half_diagonal_ * scale + margin;
   }
 
-  if (rotation == DEG2RADF(180.0f)) {
-    return get_diagonal_support_d4(scale, 0.0f, margin); /* Same as 0.0f */
+  if (rotation == DEG2RADF(-90.0f) || rotation == DEG2RADF(90.0f) ||
+      rotation == DEG2RADF(270.0f)) {
+    return float2(half_diagonal_.y / aspect_y, half_diagonal_.x * aspect_y) * scale + margin;
   }
 
-  /* TODO: BLI_assert rotation is a "Dihedral Group D4" transform. */
   float matrix[2][2];
   build_transformation(scale, rotation, matrix);
 
+  /* TODO: Use convex hull to calculate support. */
   float diagonal_rotated[2];
   mul_v2_m2v2(diagonal_rotated, matrix, half_diagonal_);
-  return float2(fabsf(diagonal_rotated[0]) + margin, fabsf(diagonal_rotated[1]) + margin);
-}
+  float sx = fabsf(diagonal_rotated[0]);
+  float sy = fabsf(diagonal_rotated[1]);
 
-float2 PackIsland::get_diagonal_support(const float scale,
-                                        const float rotation,
-                                        const float margin) const
-{
-  /* Only "D4" transforms are currently supported. */
-  return get_diagonal_support_d4(scale, rotation, margin);
+  return float2(sx + sy * 0.5f + margin, sx * 0.5f + sy + margin); /* Upper bound. */
 }
 
 float Occupancy::trace_island(const PackIsland *island,
@@ -816,7 +822,7 @@ static uv_phi find_best_fit_for_island(const PackIsland *island,
   island->build_transformation(scale, phi.rotation, matrix);
 
   /* Caution, margin is zero for support_diagonal as we're tracking the top-right corner. */
-  float2 support_diagonal = island->get_diagonal_support_d4(scale, phi.rotation, 0.0f);
+  float2 support_diagonal = island->get_diagonal_support(scale, phi.rotation, 0.0f);
 
   /* Scan using an "Alpaca"-style search, first horizontally using "less-than". */
   int t = int(ceilf((2 * support_diagonal.x + margin) * occupancy.bitmap_scale_reciprocal));
@@ -856,6 +862,161 @@ static float guess_initial_scale(const Span<PackIsland *> islands,
   return sqrtf(sum) / 6.0f;
 }
 
+/** Helper to find the minimum enclosing square. */
+class UVMinimumEnclosingSquareFinder {
+ public:
+  const float scale_;
+  const float margin_;
+  const UVPackIsland_Params *params_;
+
+  float best_quad;
+  float best_angle;
+  rctf best_bounds;
+
+  blender::Vector<float2> points;
+  blender::Vector<int> indices;
+
+  UVMinimumEnclosingSquareFinder(const float scale,
+                                 const float margin,
+                                 const UVPackIsland_Params *params)
+      : scale_(scale), margin_(margin), params_(params)
+  {
+    best_angle = 0.0f;
+    best_quad = 0.0f;
+  }
+
+  /** Calculates the square associated with a rotation of `angle`.
+   * \return Size of square. */
+
+  float update(const float angle)
+  {
+    float2 dir(cosf(angle), sinf(angle));
+
+    /* TODO: Once convexhull_2d bugs are fixed, we can use "rotating calipers" to go faster. */
+    rctf bounds;
+    BLI_rctf_init_minmax(&bounds);
+    for (const int64_t i : indices.index_range()) {
+      const float2 &p = points[indices[i]];
+      const float uv[2] = {p.x * dir.x + p.y * dir.y, -p.x * dir.y + p.y * dir.x};
+      BLI_rctf_do_minmax_v(&bounds, uv);
+    }
+    bounds.xmin -= margin_;
+    bounds.ymin -= margin_;
+    bounds.xmax += margin_;
+    bounds.ymax += margin_;
+    const float current_quad = std::max(BLI_rctf_size_x(&bounds) / params_->target_aspect_y,
+                                        BLI_rctf_size_y(&bounds));
+    if (best_quad > current_quad) {
+      best_quad = current_quad;
+      best_angle = angle;
+      best_bounds = bounds;
+    }
+    return current_quad;
+  }
+
+  /** Search between `angle0` and `angle1`, looking for the smallest square. */
+  void update_recursive(const float angle0,
+                        const float quad0,
+                        const float angle1,
+                        const float quad1)
+  {
+    const float angle_mid = (angle0 + angle1) * 0.5f;
+    const float quad_mid = update(angle_mid);
+    const float angle_separation = angle1 - angle0;
+
+    if (angle_separation < DEG2RADF(0.002f)) {
+      return; /* Sufficient accuracy achieved. */
+    }
+
+    bool search_mode = DEG2RADF(10.0f) < angle_separation; /* In linear search mode. */
+
+    /* TODO: Degenerate inputs could have poor performance here. */
+    if (search_mode || (quad0 <= quad1)) {
+      update_recursive(angle0, quad0, angle_mid, quad_mid);
+    }
+    if (search_mode || (quad1 <= quad0)) {
+      update_recursive(angle_mid, quad_mid, angle1, quad1);
+    }
+  }
+};
+
+/**
+ * Find the minimum bounding square that encloses the UVs as specified in `r_phis`.
+ * If that square is smaller than `r_max_u` and `r_max_v`, then update `r_phis` accordingly.
+ * \return True iff `r_phis`, `r_max_u` and `r_max_v` are modified.
+ */
+static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
+                                 const Span<PackIsland *> islands,
+                                 const UVPackIsland_Params &params,
+                                 const float scale,
+                                 const float margin,
+                                 MutableSpan<uv_phi> r_phis,
+                                 float *r_max_u,
+                                 float *r_max_v)
+{
+  if (!params.rotate) {
+    return false; /* Unable to rotate. */
+  }
+  if (params.shape_method == ED_UVPACK_SHAPE_AABB) {
+    return false; /* AABB margin calculations are not preserved under rotations. */
+  }
+  BLI_assert(islands.size() > 0);
+
+  UVMinimumEnclosingSquareFinder square_finder(scale, margin, &params);
+  square_finder.best_quad = std::max(*r_max_u / params.target_aspect_y, *r_max_v);
+
+  float matrix[2][2];
+
+  const float aspect_y = 1.0f; /* TODO: Use `islands[0]->aspect_y`. */
+  for (const int64_t j : island_indices.index_range()) {
+    const int64_t i = island_indices[j]->index;
+    const PackIsland *island = islands[i];
+    if (island->aspect_y != aspect_y) {
+      return false; /* Aspect ratios are not preserved under rotation. */
+    }
+
+    island->build_transformation(scale, r_phis[i].rotation, matrix);
+    float2 pivot_transformed;
+    mul_v2_m2v2(pivot_transformed, matrix, island->pivot_);
+    float2 delta = r_phis[i].translation - pivot_transformed;
+
+    for (const int64_t k : island->triangle_vertices_.index_range()) {
+      float2 p = island->triangle_vertices_[k];
+      mul_m2_v2(matrix, p);
+      square_finder.points.append(p + delta);
+    }
+  }
+
+  const float(*source)[2] = reinterpret_cast<const float(*)[2]>(square_finder.points.data());
+
+  square_finder.indices.resize(square_finder.points.size());
+  int convex_size = BLI_convexhull_2d(
+      source, static_cast<int>(square_finder.points.size()), square_finder.indices.data());
+  square_finder.indices.resize(convex_size);
+
+  const float quad_180 = square_finder.update(DEG2RADF(-180.0f));
+  square_finder.update_recursive(DEG2RADF(-180.0f), quad_180, DEG2RADF(180.0f), quad_180);
+
+  if (square_finder.best_angle == 0.0f) {
+    return false; /* Nothing to do. */
+  }
+
+  /* Can use islands[0] because all islands have the same aspect_ratio. */
+  islands[0]->build_transformation(scale, square_finder.best_angle, matrix);
+
+  /* Transform phis. */
+  for (const int64_t j : island_indices.index_range()) {
+    const int64_t i = island_indices[j]->index;
+    r_phis[i].rotation += square_finder.best_angle;
+    mul_m2_v2(matrix, r_phis[i].translation);
+    r_phis[i].translation.x -= square_finder.best_bounds.xmin;
+    r_phis[i].translation.y -= square_finder.best_bounds.ymin;
+  }
+  *r_max_u = BLI_rctf_size_x(&square_finder.best_bounds);
+  *r_max_v = BLI_rctf_size_y(&square_finder.best_bounds);
+  return true; /* `r_phis` were modified. */
+}
+
 /**
  * Pack irregular islands using the `xatlas` strategy, and optional D4 transforms.
  *
@@ -884,6 +1045,10 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
   float max_u = 0.0f;
   float max_v = 0.0f;
 
+  /* A heuristic to improve final layout efficiency by making an
+   * intermediate call to #rotate_inside_square. */
+  int64_t square_milestone = sqrt(island_indices.size()) / 4 + 2;
+
   int scan_line = 0;      /* Current "scan_line" of occupancy bitmap. */
   int traced_islands = 0; /* Which islands are currently traced in `occupancy`. */
   int i = 0;
@@ -906,7 +1071,10 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
     PackIsland *island = islands[island_indices[i]->index];
     uv_phi phi;
 
-    int max_90_multiple = params.rotate && (i < 50) ? 4 : 1;
+    int max_90_multiple = 1;
+    if (params.rotate && i && (i < 50)) {
+      max_90_multiple = 4;
+    }
     for (int angle_90_multiple = 0; angle_90_multiple < max_90_multiple; angle_90_multiple++) {
       phi = find_best_fit_for_island(
           island, scan_line, occupancy, scale, angle_90_multiple, margin, params.target_aspect_y);
@@ -946,6 +1114,21 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
     /* Place island. */
     r_phis[island_indices[i]->index] = phi;
     i++; /* Next island. */
+
+    if (i == square_milestone) {
+      if (rotate_inside_square(island_indices.take_front(i),
+                               islands,
+                               params,
+                               scale,
+                               margin,
+                               r_phis,
+                               &max_u,
+                               &max_v)) {
+        scan_line = 0;
+        traced_islands = 0;
+        occupancy.clear();
+      }
+    }
 
     /* Update top-right corner. */
     float2 top_right = island->get_diagonal_support(scale, phi.rotation, margin) + phi.translation;
@@ -1087,6 +1270,8 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   else {
     pack_islands_alpaca_turbo(max_box_pack, aabbs, params.target_aspect_y, r_phis, &max_u, &max_v);
   }
+
+  rotate_inside_square(aabbs, islands, params, scale, margin, r_phis, &max_u, &max_v);
 
   return std::max(max_u / params.target_aspect_y, max_v);
 }

@@ -112,11 +112,12 @@ class PackIsland {
   void place_(const float scale, const uv_phi phi);
   void finalize_geometry_(const UVPackIsland_Params &params, MemArena *arena, Heap *heap);
 
+  blender::Vector<float2> triangle_vertices_;
+
  private:
   void calculate_pivot_(); /* Calculate `pivot_` and `half_diagonal_` based on added triangles. */
   void calculate_pre_rotation_(const UVPackIsland_Params &params);
 
-  blender::Vector<float2> triangle_vertices_;
   friend class Occupancy;
   friend class OverlapMerger;
 };
