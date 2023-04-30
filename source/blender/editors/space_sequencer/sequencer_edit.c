@@ -1744,9 +1744,9 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
 {
 
   /* Identifiers. */
-  ot->name = "Erase Strips";
+  ot->name = "Delete Strips";
   ot->idname = "SEQUENCER_OT_delete";
-  ot->description = "Erase selected strips from the sequencer";
+  ot->description = "Delete selected strips from the sequencer";
 
   /* Api callbacks. */
   ot->invoke = sequencer_delete_invoke;
