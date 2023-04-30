@@ -247,6 +247,8 @@ void CTX_py_state_pop(bContext *C, bContext_PyState *pystate)
 struct bContextDataResult {
   PointerRNA ptr;
   ListBase list;
+  PropertyRNA *prop;
+  int index;
   const char **dir;
   short type; /* 0: normal, 1: seq */
 };
@@ -497,7 +499,7 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
 }
 
 int /*eContextResult*/ CTX_data_get(
-    const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb, short *r_type)
+    const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb, PropertyRNA **r_prop, int *r_index, short *r_type)
 {
   bContextDataResult result;
   eContextResult ret = ctx_data_get((bContext *)C, member, &result);
@@ -505,6 +507,8 @@ int /*eContextResult*/ CTX_data_get(
   if (ret == CTX_RESULT_OK) {
     *r_ptr = result.ptr;
     *r_lb = result.list;
+    *r_prop = result.prop;
+    *r_index = result.index;
     *r_type = result.type;
   }
   else {
@@ -673,6 +677,12 @@ int ctx_data_list_count(const bContext *C, bool (*func)(const bContext *, ListBa
   }
 
   return 0;
+}
+
+void CTX_data_prop_set(bContextDataResult *result, PropertyRNA *prop, int index)
+{
+  result->prop = prop;
+  result->index = index;
 }
 
 void CTX_data_dir_set(bContextDataResult *result, const char **dir)
