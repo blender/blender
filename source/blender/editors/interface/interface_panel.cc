@@ -2426,19 +2426,20 @@ PointerRNA *UI_panel_custom_data_get(const Panel *panel)
 PointerRNA *UI_region_panel_custom_data_under_cursor(const bContext *C, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
+  if (region) {
+    LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+      Panel *panel = block->panel;
+      if (panel == nullptr) {
+        continue;
+      }
 
-  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
-    Panel *panel = block->panel;
-    if (panel == nullptr) {
-      continue;
-    }
-
-    int mx = event->xy[0];
-    int my = event->xy[1];
-    ui_window_to_block(region, block, &mx, &my);
-    const int mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
-    if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER)) {
-      return UI_panel_custom_data_get(panel);
+      int mx = event->xy[0];
+      int my = event->xy[1];
+      ui_window_to_block(region, block, &mx, &my);
+      const int mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
+      if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER)) {
+        return UI_panel_custom_data_get(panel);
+      }
     }
   }
 

@@ -522,9 +522,12 @@ bool ED_operator_objectmode(struct bContext *C);
  * to be displayed to the user explaining why the operator can't be used in current context.
  */
 bool ED_operator_objectmode_poll_msg(struct bContext *C);
+bool ED_operator_objectmode_with_view3d_poll_msg(struct bContext *C);
 
 bool ED_operator_view3d_active(struct bContext *C);
 bool ED_operator_region_view3d_active(struct bContext *C);
+bool ED_operator_region_gizmo_active(struct bContext *C);
+
 /**
  * Generic for any view2d which uses anim_ops.
  */

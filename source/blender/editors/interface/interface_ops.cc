@@ -2231,6 +2231,8 @@ static void UI_OT_drop_color(wmOperatorType *ot)
   ot->description = "Drop colors to buttons";
 
   ot->invoke = drop_color_invoke;
+  ot->poll = ED_operator_regionactive;
+
   ot->flag = OPTYPE_INTERNAL;
 
   RNA_def_float_color(

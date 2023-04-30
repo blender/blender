@@ -909,9 +909,12 @@ static void view3d_interactive_add_exit(bContext *C, wmOperator *op)
   struct InteractivePlaceData *ipd = op->customdata;
   ED_view3d_cursor_snap_deactive(ipd->snap_state);
 
-  ED_region_draw_cb_exit(ipd->region->type, ipd->draw_handle_view);
-
-  ED_region_tag_redraw(ipd->region);
+  if (ipd->region != NULL) {
+    if (ipd->draw_handle_view != NULL) {
+      ED_region_draw_cb_exit(ipd->region->type, ipd->draw_handle_view);
+    }
+    ED_region_tag_redraw(ipd->region);
+  }
 
   MEM_freeN(ipd);
 }

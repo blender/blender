@@ -1100,6 +1100,9 @@ static int time_segment_move_exec(bContext *C, wmOperator *op)
   TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)gpencil_edit_modifier_property_get(
       op, ob, eGpencilModifierType_Time);
 
+  if (gpmd == NULL) {
+    return OPERATOR_CANCELLED;
+  }
   if (gpmd->segments_len < 2) {
     return OPERATOR_CANCELLED;
   }
