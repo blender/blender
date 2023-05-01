@@ -4311,7 +4311,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     do_versions_rename_id(bmain, ID_BR, "Draw Weight", "Weight Draw");
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 306, 6)) {
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 7)) {
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -4349,20 +4349,13 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
               }
             }
             {
-              ARegion *asset_shelf = BKE_region_find_in_listbase_by_type(regionbase,
-                                                                         RGN_TYPE_ASSET_SHELF);
               /* TODO for old files saved with the branch only. */
-              if (asset_shelf) {
-                asset_shelf->flag &= ~RGN_FLAG_DYNAMIC_SIZE;
-              }
-              else {
-                ARegion *new_asset_shelf = do_versions_add_region_if_not_found(
-                    regionbase,
-                    RGN_TYPE_ASSET_SHELF,
-                    "asset shelf for view3d (versioning)",
-                    RGN_TYPE_ASSET_SHELF_FOOTER);
-                new_asset_shelf->alignment = RGN_ALIGN_BOTTOM;
-              }
+              ARegion *new_asset_shelf = do_versions_add_region_if_not_found(
+                  regionbase,
+                  RGN_TYPE_ASSET_SHELF,
+                  "asset shelf for view3d (versioning)",
+                  RGN_TYPE_ASSET_SHELF_FOOTER);
+              new_asset_shelf->alignment = RGN_ALIGN_BOTTOM;
             }
           }
         }
