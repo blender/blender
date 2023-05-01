@@ -291,10 +291,9 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
 
   /* avoid initializing customdata because its quite involved */
   BMVert *v = BM_vert_create(pbvh->header.bm, co, nullptr, BM_CREATE_NOP);
-  MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
 
   pbvh_boundary_update_bmesh(pbvh, v);
-  MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+  dyntopo_add_flag(pbvh, v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
 
   if (v_example) {
     v->head.hflag = v_example->head.hflag;
@@ -308,11 +307,13 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
     // keep MSculptVert copied from v_example as-is
   }
   else {
+#if 0 /* XXX: do we need to load original data here ? */
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
 
     copy_v3_v3(mv->origco, co);
     copy_v3_v3(mv->origno, no);
     mv->origmask = 0.0f;
+#endif
 
     /* This value is logged below */
     copy_v3_v3(v->no, no);
@@ -415,9 +416,7 @@ BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
       }
 
       pbvh_boundary_update_bmesh(pbvh, l->v);
-
-      MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, l->v);
-      MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+      dyntopo_add_flag(pbvh, l->v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
 
       l = l->next;
     } while (l != f->l_first);
@@ -426,9 +425,7 @@ BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
     BMLoop *l = f->l_first;
     do {
       pbvh_boundary_update_bmesh(pbvh, l->v);
-
-      MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, l->v);
-      MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+      dyntopo_add_flag(pbvh, l->v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
     } while ((l = l->next) != f->l_first);
   }
 
@@ -471,10 +468,11 @@ BMVert *BKE_pbvh_vert_create_bmesh(
     BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
 
     pbvh_boundary_update_bmesh(pbvh, v);
-    MSculptVert *mv = (MSculptVert *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_sculpt_vert);
-    MV_ADD_FLAG(mv, SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT);
+    dyntopo_add_flag(pbvh, v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
 
+#if 0 /* XXX: do we need to load origco here? */
     copy_v3_v3(mv->origco, co);
+#endif
 
     return v;
   }
@@ -755,7 +753,6 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
 
     do {
       BMVert *v = l_iter->v;
-      MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
 
       int *flags = BM_ELEM_CD_PTR<int *>(v, pbvh->cd_boundary_flag);
       *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
@@ -771,7 +768,7 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
       }
       /* Update node bounding box */
       BB_expand(&n->vb, v->co);
-      BB_expand(&n->orig_vb, mv->origco);
+      BB_expand(&n->orig_vb, BM_ELEM_CD_PTR<float *>(v, pbvh->cd_origco));
     } while ((l_iter = l_iter->next) != l_first);
 
     if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -1113,10 +1110,9 @@ void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
   BMLoop *l = f->l_first;
   do {
     const int ni2 = BM_ELEM_CD_GET_INT(l->v, pbvh->cd_vert_node_offset);
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, l->v);
 
     BB_expand(&node->vb, l->v->co);
-    BB_expand(&node->orig_vb, mv->origco);
+    BB_expand(&node->orig_vb, BM_ELEM_CD_PTR<float *>(l->v, pbvh->cd_origco));
 
     if (ni2 == DYNTOPO_NODE_NONE) {
       BM_ELEM_CD_SET_INT(l->v, pbvh->cd_vert_node_offset, ni);
@@ -1399,14 +1395,14 @@ static bool pbvh_poly_hidden(PBVH *pbvh, BMFace *f)
   return BM_elem_flag_test(f, BM_ELEM_HIDDEN);
 }
 
-bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, BMVert *v, int stroke_id)
+bool BKE_pbvh_bmesh_check_origdata(SculptSession *ss, BMVert *v, int stroke_id)
 {
   PBVHVertRef vertex = {(intptr_t)v};
-
-  return BKE_pbvh_get_origvert(pbvh, vertex, nullptr, nullptr, nullptr);
+  blender::bke::paint::get_original_vertex(ss, vertex, nullptr, nullptr, nullptr, nullptr);
 }
 
-bool pbvh_bmesh_node_raycast(PBVH *pbvh,
+bool pbvh_bmesh_node_raycast(SculptSession *ss,
+                             PBVH *pbvh,
                              PBVHNode *node,
                              const float ray_start[3],
                              const float ray_normal[3],
@@ -1439,21 +1435,17 @@ bool pbvh_bmesh_node_raycast(PBVH *pbvh,
     float *nos[3];
 
     if (use_original) {
-      BKE_pbvh_bmesh_check_origdata(pbvh, verts[0], stroke_id);
-      BKE_pbvh_bmesh_check_origdata(pbvh, verts[1], stroke_id);
-      BKE_pbvh_bmesh_check_origdata(pbvh, verts[2], stroke_id);
+      BKE_pbvh_bmesh_check_origdata(ss, verts[0], stroke_id);
+      BKE_pbvh_bmesh_check_origdata(ss, verts[1], stroke_id);
+      BKE_pbvh_bmesh_check_origdata(ss, verts[2], stroke_id);
 
-      MSculptVert *mv1 = BM_ELEM_CD_PTR<MSculptVert *>(verts[0], pbvh->cd_sculpt_vert);
-      MSculptVert *mv2 = BM_ELEM_CD_PTR<MSculptVert *>(verts[1], pbvh->cd_sculpt_vert);
-      MSculptVert *mv3 = BM_ELEM_CD_PTR<MSculptVert *>(verts[2], pbvh->cd_sculpt_vert);
+      cos[0] = BM_ELEM_CD_PTR<float *>(verts[0], pbvh->cd_origco);
+      cos[1] = BM_ELEM_CD_PTR<float *>(verts[1], pbvh->cd_origco);
+      cos[2] = BM_ELEM_CD_PTR<float *>(verts[2], pbvh->cd_origco);
 
-      cos[0] = mv1->origco;
-      cos[1] = mv2->origco;
-      cos[2] = mv3->origco;
-
-      nos[0] = mv1->origno;
-      nos[1] = mv2->origno;
-      nos[2] = mv3->origno;
+      nos[0] = BM_ELEM_CD_PTR<float *>(verts[0], pbvh->cd_origno);
+      nos[1] = BM_ELEM_CD_PTR<float *>(verts[1], pbvh->cd_origno);
+      nos[2] = BM_ELEM_CD_PTR<float *>(verts[2], pbvh->cd_origno);
     }
     else {
       for (int j = 0; j < 3; j++) {
@@ -1532,7 +1524,8 @@ bool BKE_pbvh_bmesh_node_raycast_detail(PBVH *pbvh,
   return false;
 }
 
-bool pbvh_bmesh_node_nearest_to_ray(PBVH *pbvh,
+bool pbvh_bmesh_node_nearest_to_ray(SculptSession *ss,
+                                    PBVH *pbvh,
                                     PBVHNode *node,
                                     const float ray_start[3],
                                     const float ray_normal[3],
@@ -1562,9 +1555,9 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVH *pbvh,
     float *co1, *co2, *co3;
 
     if (use_original) {
-      BKE_pbvh_bmesh_check_origdata(pbvh, v1, stroke_id);
-      BKE_pbvh_bmesh_check_origdata(pbvh, v2, stroke_id);
-      BKE_pbvh_bmesh_check_origdata(pbvh, v3, stroke_id);
+      BKE_pbvh_bmesh_check_origdata(ss, v1, stroke_id);
+      BKE_pbvh_bmesh_check_origdata(ss, v2, stroke_id);
+      BKE_pbvh_bmesh_check_origdata(ss, v3, stroke_id);
 
       co1 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v1)->origco;
       co2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v2)->origco;
@@ -2104,34 +2097,27 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_face_node_offset,
                                    int cd_vcol,
                                    int cd_boundary_flag,
+                                   int cd_flag,
+                                   int cd_valence,
                                    BMVert *v,
                                    int bound_symmetry,
                                    const CustomData *ldata,
                                    const int totuv)
 {
-  MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
-
-  float curv = 0.0f, totcurv = 0.0f;
-
-  int newflag = mv->flag;
+  int newflag = *BM_ELEM_CD_PTR<uint8_t *>(v, cd_flag);
   int oldflag = newflag;
-  int oldval = mv->valence;
+  int oldval = BM_ELEM_CD_GET_INT(v, cd_valence);
   int boundflag = 0;
 
   BMEdge *e = v->e;
   newflag &= ~(SCULPTVERT_VERT_FSET_HIDDEN | SCULPTVERT_PBVH_BOUNDARY);
 
-  ushort stroke_id = (ushort)mv->stroke_id;
-
   if (!e) {
     boundflag |= SCULPT_BOUNDARY_MESH;
 
-    int oldboundflag = BM_ELEM_CD_GET_INT(v, cd_boundary_flag);
-
-    atomic_cas_int32(&mv->flag, oldflag, newflag);
-    atomic_cas_int32(BM_ELEM_CD_PTR<int *>(v, cd_boundary_flag), oldboundflag, boundflag);
-
-    atomic_cas_short2(&mv->valence, (ushort)oldval, stroke_id, 0, stroke_id);
+    BM_ELEM_CD_SET_INT(v, cd_valence, 0);
+    BM_ELEM_CD_SET_INT(v, cd_boundary_flag, 0);
+    *BM_ELEM_CD_PTR<uint8_t *>(v, cd_flag) = newflag;
 
     return;
   }
@@ -2173,17 +2159,6 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
 
   do {
     BMVert *v2 = v == e->v1 ? e->v2 : e->v1;
-
-#if 0
-    float tmp[3];
-    sub_v3_v3v3(tmp, v2->co, v->co);
-    madd_v3_v3fl(avg, v->no, -dot_v3v3(v->no, tmp));
-    // madd_v3_v3fl(tmp, v->no, -dot_v3v3(v->no, tmp));
-    add_v3_v3(avg, tmp);
-
-    avg_len += len_squared_v3(tmp);
-    totcurv += 1.0f;
-#endif
 
     if (BM_ELEM_CD_GET_INT(v2, cd_vert_node_offset) != ni) {
       newflag |= SCULPTVERT_PBVH_BOUNDARY;
@@ -2313,9 +2288,6 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
         float th = saacos(dot_v3v3(e->l->f->no, e->l->radial_next->f->no));
 
         th *= M_1_PI * 0.25f;
-        // th = th * 0.5 + 0.5;
-        curv += th;
-        totcurv += 1.0f;
 
         if (cd_faceset_offset != -1) {
           // fset = abs(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset));
@@ -2367,38 +2339,12 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
     boundflag |= SCULPT_CORNER_MESH;
   }
 
-#if 0
-  if (totcurv > 0.0f) {
-    mul_v3_fl(avg, 1.0f / totcurv);
-    avg_len /= totcurv;
-  }
-
-  if (avg_len > 0.0f) {
-    curv = len_squared_v3(avg) / avg_len;
-  }
-  else {
-    curv = 0.0f;
-  }
-#else
-  if (totcurv > 0.0f) {
-    curv /= totcurv;
-  }
-#endif
-
   int oldboundflag = BM_ELEM_CD_GET_INT(v, cd_boundary_flag);
 
-  atomic_cas_int32(&mv->flag, oldflag, newflag);
-  atomic_cas_int32(BM_ELEM_CD_PTR<int *>(v, cd_boundary_flag), oldboundflag, boundflag);
-
-  atomic_cas_short2(&mv->valence, (ushort)oldval, stroke_id, (ushort)val, stroke_id);
-
-  /* no atomic_cas_int16, so do origmask and curv at once */
-
-  ushort newcurv = (unsigned short)(min_ff(fabsf(curv), 1.0f) * 65535.0f);
-  ushort oldcurv = mv->curv;
-  ushort origmask = mv->origmask;
-
-  atomic_cas_short2(&mv->origmask, origmask, oldcurv, origmask, newcurv);
+  /* XXX: does this need to be threadsafe? */
+  BM_ELEM_CD_SET_INT(v, cd_boundary_flag, boundflag);
+  *(BM_ELEM_CD_PTR<uint8_t *>(v, cd_flag)) = newflag;
+  BM_ELEM_CD_SET_INT(v, cd_valence, val);
 }
 
 bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, BMVert *v)
@@ -2412,6 +2358,8 @@ void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_face_node_offset,
                                    int cd_vcol,
                                    int cd_boundary_flag,
+                                   int cd_flag,
+                                   int cd_valence,
                                    BMVert *v,
                                    int bound_symmetry,
                                    const CustomData *ldata,
@@ -2424,6 +2372,8 @@ void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                 cd_face_node_offset,
                                 cd_vcol,
                                 cd_boundary_flag,
+                                cd_flag,
+                                cd_valence,
                                 v,
                                 bound_symmetry,
                                 ldata,
@@ -2443,21 +2393,12 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
                                   pbvh->cd_face_node_offset,
                                   pbvh->cd_vcol_offset,
                                   pbvh->cd_boundary_flag,
+                                  pbvh->cd_flag,
+                                  pbvh->cd_valence,
                                   v,
                                   pbvh->boundary_symmetry,
                                   &pbvh->header.bm->ldata,
                                   pbvh->flags & PBVH_IGNORE_UVS ? 0 : pbvh->totuv);
-  }
-}
-
-void BKE_pbvh_update_sculpt_verts(PBVH *pbvh)
-{
-  int totvert = pbvh->totvert;
-
-  for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(pbvh, i);
-
-    BKE_pbvh_get_origvert(pbvh, vertex, nullptr, nullptr, nullptr);
   }
 }
 
@@ -2478,8 +2419,11 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_sculpt_vert,
                           const int cd_face_areas,
                           const int cd_boundary_flag,
-                          bool fast_draw,
-                          bool update_sculptverts)
+                          const int cd_flag_offset,
+                          const int cd_valence_offset,
+                          const int cd_origco,
+                          const int cd_origno,
+                          bool fast_draw)
 {
   // coalese_pbvh(pbvh, bm);
 
@@ -2491,6 +2435,10 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
   pbvh->cd_sculpt_vert = cd_sculpt_vert;
   pbvh->cd_boundary_flag = cd_boundary_flag;
+  pbvh->cd_flag = cd_flag_offset;
+  pbvh->cd_valence = cd_valence_offset;
+  pbvh->cd_origco = cd_origco;
+  pbvh->cd_origno = cd_origno;
 
   pbvh->mesh = me;
 
@@ -2558,11 +2506,10 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   bm->elem_index_dirty |= BM_FACE;
 
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-
-    mv->flag |= SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT;
-    copy_v3_v3(mv->origco, v->co);
-    copy_v3_v3(mv->origno, v->no);
+    dyntopo_add_flag(pbvh,
+                     v,
+                     SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE |
+                         SCULPTVERT_NEED_DISK_SORT);
 
     int *flags = BM_ELEM_CD_PTR<int *>(v, pbvh->cd_boundary_flag);
     *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
@@ -2634,10 +2581,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
        * elements */
       pbvh_bmesh_node_limit_ensure(pbvh, i);
     }
-  }
-
-  if (update_sculptverts) {
-    BKE_pbvh_update_sculpt_verts(pbvh);
   }
 
   pbvh_print_mem_size(pbvh);
@@ -3174,8 +3117,7 @@ void BKE_pbvh_bmesh_flag_all_disk_sort(PBVH *pbvh)
   BMIter iter;
 
   BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-    mv->flag |= SCULPTVERT_NEED_DISK_SORT;
+    dyntopo_add_flag(pbvh, v, SCULPTVERT_NEED_DISK_SORT);
   }
 }
 
@@ -3185,7 +3127,7 @@ void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh)
   BMVert *v;
 
   BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-    BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, BKE_pbvh_make_vref((intptr_t)v));
+    BKE_pbvh_bmesh_update_valence(pbvh, BKE_pbvh_make_vref((intptr_t)v));
   }
 }
 
@@ -3205,23 +3147,20 @@ void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh)
   const int cd_sculpt_vert = pbvh->cd_sculpt_vert;
 
   BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
     int *flags = BM_ELEM_CD_PTR<int *>(v, pbvh->cd_boundary_flag);
     *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-    MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_TRIANGULATE);
-    BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, BKE_pbvh_make_vref((intptr_t)v));
+    dyntopo_add_flag(pbvh, v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_VALENCE);
+    BKE_pbvh_bmesh_update_valence(pbvh, BKE_pbvh_make_vref((intptr_t)v));
   }
 }
 
 bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, PBVHVertRef vertex)
 {
   BMVert *v = (BMVert *)vertex.i;
-  MSculptVert *mv = BM_ELEM_CD_PTR<MSculptVert *>(v, pbvh->cd_sculpt_vert);
 
-  bool ret = mv->flag & SCULPTVERT_NEED_VALENCE;
-
-  mv->flag |= SCULPTVERT_NEED_VALENCE;
+  bool ret = (*BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag)) & SCULPTVERT_NEED_VALENCE;
+  dyntopo_add_flag(pbvh, v, SCULPTVERT_NEED_VALENCE);
 
   return ret;
 }
@@ -3229,31 +3168,31 @@ bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, PBVHVertRef vertex)
 bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, PBVHVertRef vertex)
 {
   BMVert *v = (BMVert *)vertex.i;
-  MSculptVert *mv = BM_ELEM_CD_PTR<MSculptVert *>(v, pbvh->cd_sculpt_vert);
 
-  if (mv->flag & SCULPTVERT_NEED_VALENCE) {
-    BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, vertex);
+  if (*BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag) & SCULPTVERT_NEED_VALENCE) {
+    BKE_pbvh_bmesh_update_valence(pbvh, vertex);
     return true;
   }
 
   return false;
 }
 
-void BKE_pbvh_bmesh_update_valence(int cd_sculpt_vert, PBVHVertRef vertex)
+void BKE_pbvh_bmesh_update_valence(PBVH *pbvh, PBVHVertRef vertex)
 {
   BMVert *v = (BMVert *)vertex.i;
   BMEdge *e;
 
-  MSculptVert *mv = BM_ELEM_CD_PTR<MSculptVert *>(v, cd_sculpt_vert);
+  uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag);
+  uint *valence = BM_ELEM_CD_PTR<uint *>(v, pbvh->cd_valence);
 
-  mv->flag &= ~SCULPTVERT_NEED_VALENCE;
+  *flag &= ~SCULPTVERT_NEED_VALENCE;
 
   if (!v->e) {
-    mv->valence = 0;
+    *valence = 0;
     return;
   }
 
-  mv->valence = 0;
+  *valence = 0;
 
   e = v->e;
 
@@ -3262,7 +3201,7 @@ void BKE_pbvh_bmesh_update_valence(int cd_sculpt_vert, PBVHVertRef vertex)
   }
 
   do {
-    mv->valence++;
+    (*valence)++;
 
     e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
 
@@ -4125,7 +4064,11 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_face_node_offset,
                              const int cd_sculpt_vert,
                              const int cd_face_areas,
-                             const int cd_boundary_flag)
+                             const int cd_boundary_flag,
+                             const int cd_flag,
+                             const int cd_valence,
+                             const int cd_origco,
+                             const int cd_origno)
 {
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
@@ -4141,6 +4084,11 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
   if (pbvh->bm_idmap) {
     BM_idmap_check_attributes(pbvh->bm_idmap);
   }
+
+  pbvh->cd_flag = cd_flag;
+  pbvh->cd_valence = cd_valence;
+  pbvh->cd_origco = cd_origco;
+  pbvh->cd_origno = cd_origno;
 }
 
 static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)
@@ -5013,29 +4961,6 @@ struct CacheParamDef {
   float defvalue, min, max;
 };
 
-static CacheParamDef pbvh_bmesh_cache_param_def[] = {
-    {"vchunk", 512.0f, 256.0f, 1024.0f * 12.0f},
-    {"echunk", 512.0f, 256.0f, 1024.0f * 12.0f},
-    {"lchunk", 512.0f, 256.0f, 1024.0f * 12.0f},
-    {"pchunk", 512.0f, 256.0f, 1024.0f * 12.0f},
-    {"cluster_steps", 512.0f, 1.0f, 256.0f},
-    {"cluster_size", 512.0f, 1.0f, 8192.0f * 32.0f}};
-
-int pbvh_bmesh_cache_test_totparams()
-{
-  return sizeof(pbvh_bmesh_cache_param_def) / sizeof(*pbvh_bmesh_cache_param_def);
-}
-
-void pbvh_bmesh_cache_test_default_params(CacheParams *params)
-{
-  float *fparams = (float *)params;
-  int totparam = pbvh_bmesh_cache_test_totparams();
-
-  for (int i = 0; i < totparam; i++) {
-    fparams[i] = pbvh_bmesh_cache_param_def[i].defvalue;
-  }
-}
-
 static void *hashco(float fx, float fy, float fz, float fdimen)
 {
   double x = (double)fx;
@@ -5531,390 +5456,6 @@ So looks like the biggest gain is from replacing pointers with indices
 (which lessens total memory bandwidth).  The pure data-oriented version
 is a tad bit faster then the index-replacement one, but not by that much.
 */
-
-void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
-{
-  // build mesh
-  const int steps = 325;
-
-  printf("== Starting Test ==\n");
-
-  printf("building test mesh. . .\n");
-
-  BMAllocTemplate templ = {0, 0, 0, 0};
-  BMeshCreateParams bmparams = {};
-
-  bmparams.id_elem_mask = BM_VERT | BM_EDGE | BM_FACE;
-  bmparams.id_map = true;
-  bmparams.create_unique_ids = true;
-  bmparams.temporary_ids = false;
-  bmparams.no_reuse_ids = false;
-
-  BMesh *bm = BM_mesh_create(&templ, &bmparams);
-
-  // reinit pools
-  BLI_mempool_destroy(bm->vpool);
-  BLI_mempool_destroy(bm->epool);
-  BLI_mempool_destroy(bm->lpool);
-  BLI_mempool_destroy(bm->fpool);
-
-  bm->vpool = BLI_mempool_create(sizeof(BMVert), 0, (int)params->vchunk, BLI_MEMPOOL_ALLOW_ITER);
-  bm->epool = BLI_mempool_create(sizeof(BMEdge), 0, (int)params->echunk, BLI_MEMPOOL_ALLOW_ITER);
-  bm->lpool = BLI_mempool_create(sizeof(BMLoop), 0, (int)params->lchunk, BLI_MEMPOOL_ALLOW_ITER);
-  bm->fpool = BLI_mempool_create(sizeof(BMFace), 0, (int)params->pchunk, BLI_MEMPOOL_ALLOW_ITER);
-
-  GHash *vhash = BLI_ghash_ptr_new("vhash");
-
-  float df = 1.0f / (float)steps;
-
-  int hashdimen = steps * 8;
-
-  BMVert **grid = MEM_cnew_array<BMVert *>(steps * steps, "bmvert grid");
-
-  BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_INT32, "__dyntopo_vert_node");
-  BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT32, "__dyntopo_face_node");
-  BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
-  BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT32, ".sculpt_boundary_flags");
-
-  BM_data_layer_add(bm, &bm->vdata, CD_PAINT_MASK);
-  BM_data_layer_add(bm, &bm->vdata, CD_DYNTOPO_VERT);
-  BM_data_layer_add(bm, &bm->vdata, CD_PROP_COLOR);
-
-  BMIdMap *idmap = BM_idmap_new(bm, BM_VERT | BM_EDGE | BM_FACE);
-
-  for (int side = 0; side < 6; side++) {
-    int axis = side >= 3 ? side - 3 : side;
-    float sign = side >= 3 ? -1.0f : 1.0f;
-
-    printf("AXIS: %d\n", axis);
-
-    float u = 0.0f;
-
-    for (int i = 0; i < steps; i++, u += df) {
-      float v = 0.0f;
-
-      for (int j = 0; j < steps; j++, v += df) {
-        float co[3];
-
-        co[axis] = u;
-        co[(axis + 1) % 3] = v;
-        co[(axis + 2) % 3] = sign;
-
-        // turn into sphere
-        normalize_v3(co);
-
-        void *key = hashco(co[0], co[1], co[2], hashdimen);
-
-#if 0
-        printf("%.3f %.3f %.3f, key: %p i: %d j: %d df: %f, u: %f v: %f\n",
-          co[0],
-          co[1],
-          co[2],
-          key,
-          i,
-          j,
-          df,
-          u,
-          v);
-#endif
-
-        void **val = nullptr;
-
-        if (!BLI_ghash_ensure_p(vhash, key, &val)) {
-          BMVert *v2 = BM_vert_create(bm, co, nullptr, BM_CREATE_NOP);
-
-          *val = (void *)v2;
-        }
-
-        BMVert *v2 = (BMVert *)*val;
-        int idx = j * steps + i;
-
-        grid[idx] = v2;
-      }
-    }
-
-    for (int i = 0; i < steps - 1; i++) {
-      for (int j = 0; j < steps - 1; j++) {
-        int idx1 = j * steps + i;
-        int idx2 = (j + 1) * steps + i;
-        int idx3 = (j + 1) * steps + i + 1;
-        int idx4 = j * steps + i + 1;
-
-        BMVert *v1 = grid[idx1];
-        BMVert *v2 = grid[idx2];
-        BMVert *v3 = grid[idx3];
-        BMVert *v4 = grid[idx4];
-
-        if (v1 == v2 || v1 == v3 || v1 == v4 || v2 == v3 || v2 == v4 || v3 == v4) {
-          printf("ERROR!\n");
-          continue;
-        }
-
-        if (sign < 0) {
-          BMVert *vs[4] = {v4, v3, v2, v1};
-          BM_face_create_verts(bm, vs, 4, nullptr, BM_CREATE_NOP, true);
-        }
-        else {
-          BMVert *vs[4] = {v1, v2, v3, v4};
-          BM_face_create_verts(bm, vs, 4, nullptr, BM_CREATE_NOP, true);
-        }
-      }
-    }
-  }
-
-  // randomize
-  uint *rands[4];
-  uint tots[4] = {(uint)bm->totvert, (uint)bm->totedge, (uint)bm->totloop, (uint)bm->totface};
-
-  RNG *rng = BLI_rng_new(0);
-
-  for (uint i = 0; i < 4; i++) {
-    rands[i] = MEM_cnew_array<uint>(tots[i], "rands[i]");
-
-    for (uint j = 0; j < tots[i]; j++) {
-      rands[i][j] = j;
-    }
-
-    for (uint j = 0; j < tots[i] >> 1; j++) {
-      int j2 = BLI_rng_get_int(rng) % tots[i];
-      SWAP(uint, rands[i][j], rands[i][j2]);
-    }
-  }
-
-  BM_mesh_remap(bm, rands[0], rands[1], rands[2], rands[3]);
-
-  for (int i = 0; i < 4; i++) {
-    MEM_SAFE_FREE(rands[i]);
-  }
-
-  BLI_rng_free(rng);
-  BLI_ghash_free(vhash, nullptr, nullptr);
-  MEM_SAFE_FREE(grid);
-
-  printf("totvert: %d, totface: %d, tottri: %d\n", bm->totvert, bm->totface, bm->totface * 2);
-
-  int cd_vert_node = CustomData_get_named_layer_index(
-      &bm->vdata, CD_PROP_INT32, "__dyntopo_vert_node");
-  int cd_face_node = CustomData_get_named_layer_index(
-      &bm->pdata, CD_PROP_INT32, "__dyntopo_face_node");
-  int cd_face_area = CustomData_get_named_layer_index(
-      &bm->pdata, CD_PROP_FLOAT2, "__dyntopo_face_areas");
-  int cd_boundary_flag = CustomData_get_named_layer_index(
-      &bm->vdata, CD_PROP_INT32, ".sculpt_boundary_flags");
-
-  cd_vert_node = bm->vdata.layers[cd_vert_node].offset;
-  cd_boundary_flag = bm->vdata.layers[cd_boundary_flag].offset;
-  cd_face_node = bm->pdata.layers[cd_face_node].offset;
-  cd_face_area = bm->pdata.layers[cd_face_area].offset;
-
-  const int cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
-  BMLog *bmlog = BM_log_create(bm, idmap);
-
-  PBVH *pbvh = BKE_pbvh_new(PBVH_BMESH);
-
-  bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
-  bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
-  BM_mesh_elem_table_ensure(bm, BM_VERT | BM_FACE);
-  BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
-
-  BKE_pbvh_build_bmesh(pbvh,
-                       nullptr,
-                       bm,
-                       false,
-                       bmlog,
-                       idmap,
-                       cd_vert_node,
-                       cd_face_node,
-                       cd_sculpt_vert,
-                       cd_face_area,
-                       cd_boundary_flag,
-                       false,
-                       true);
-
-  int loop_size = sizeof(BMLoop) - sizeof(void *) * 4;
-
-  size_t s1 = 0, s2 = 0, s3 = 0;
-  s1 = sizeof(BMVert) * (size_t)bm->totvert + sizeof(BMEdge) * (size_t)bm->totedge +
-       sizeof(BMLoop) * (size_t)bm->totloop + sizeof(BMFace) * (size_t)bm->totface;
-  s2 = sizeof(MeshVert2) * (size_t)bm->totvert + sizeof(MeshEdge2) * (size_t)bm->totedge +
-       sizeof(MeshLoop2) * (size_t)bm->totloop + sizeof(MeshFace2) * (size_t)bm->totface;
-  s3 = (size_t)loop_size * (size_t)bm->totvert + sizeof(BMEdge) * (size_t)bm->totedge +
-       sizeof(BMLoop) * (size_t)bm->totloop + sizeof(BMFace) * (size_t)bm->totface;
-
-  double times[4];
-  const char *names[4];
-
-  int cd_overhead = 0;
-  CustomData *cdatas[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
-  int ctots[4] = {bm->totvert, bm->totedge, bm->totloop, bm->totface};
-  for (int i = 0; i < 4; i++) {
-    cd_overhead += cdatas[i]->totsize * ctots[i];
-  }
-
-  s1 += cd_overhead;
-  s2 += cd_overhead;
-
-  printf("    bmesh mem size: %.2fmb %.2fmb\n",
-         (float)s1 / 1024.0f / 1024.0f,
-         (float)s3 / 1024.0f / 1024.0f);
-  printf("meshtest2 mem size: %.2fmb\n", (float)s2 / 1024.0f / 1024.0f);
-
-  printf("= BMesh random order\n");
-  times[0] = pbvh_bmesh_smooth_test(bm, pbvh);
-  names[0] = "random order";
-
-  BMesh *bm2 = BKE_pbvh_reorder_bmesh(pbvh);
-
-  printf("= BMesh vertex cluster order\n");
-
-  bm2->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
-  bm2->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
-  BM_mesh_elem_table_ensure(bm2, BM_VERT | BM_FACE);
-  BM_mesh_elem_index_ensure(bm2, BM_VERT | BM_EDGE | BM_FACE);
-
-  times[1] = pbvh_bmesh_smooth_test(bm2, pbvh);
-  names[1] = "vertex cluser";
-
-  printf("= Pure data-oriented (struct of arrays)\n");
-  MeshTest *m = meshtest_from_bm(bm2);
-
-  times[2] = pbvh_meshtest_smooth_test(m, pbvh);
-  names[2] = "data-oriented";
-
-  free_meshtest(m);
-
-  printf("= Object-oriented but with integer indices instead of pointers\n");
-  MeshTest2 *m2 = meshtest2_from_bm(bm2);
-
-  times[3] = pbvh_meshtest2_smooth_test(m2, pbvh);
-  names[3] = "integer indices";
-
-  free_meshtest2(m2);
-
-  if (bm2 && bm2 != bm) {
-    BM_mesh_free(bm2);
-  }
-
-  if (r_bm) {
-    *r_bm = bm;
-  }
-  else {
-    BM_mesh_free(bm);
-  }
-
-  if (r_pbvh_out) {
-    *r_pbvh_out = pbvh;
-  }
-  else {
-    BKE_pbvh_free(pbvh);
-  }
-
-  printf("\n== Times ==\n");
-
-  for (int i = 0; i < ARRAY_SIZE(times); i++) {
-    if (i > 0) {
-      double perc = (times[0] / times[i] - 1.0) * 100.0;
-      printf("  %s : %.2f (%.2f%% improvement)\n", names[i], times[i], perc);
-    }
-    else {
-      printf("  %s : %.2f\n", names[i], times[i]);
-    }
-  }
-
-  printf("== Test Finished ==\n");
-}
-
-#include "BLI_smallhash.h"
-
-static void hash_test()
-{
-  const int count = 1024 * 1024 * 4;
-
-  int *data = MEM_cnew_array<int>(count, "test data");
-
-  TableGSet *gs = BLI_table_gset_new("test");
-  GHash *gh = BLI_ghash_ptr_new("test");
-  SmallHash sh;
-
-  BLI_smallhash_init(&sh);
-  RNG *rng = BLI_rng_new(0);
-
-  for (int i = 0; i < count; i++) {
-    data[i] = i;
-  }
-
-  printf("== creation: table_gset ==\n");
-  double t = PIL_check_seconds_timer();
-
-  for (int i = 0; i < count; i++) {
-    int ri = BLI_rng_get_int(rng) % count;
-    int *ptr = (int *)POINTER_FROM_INT(data[ri]);
-
-    BLI_table_gset_add(gs, ptr);
-  }
-  printf("  %.3f\n", PIL_check_seconds_timer() - t);
-
-  printf("== creation: ghash ==\n");
-  t = PIL_check_seconds_timer();
-
-  for (int i = 0; i < count; i++) {
-    int ri = BLI_rng_get_int(rng) % count;
-    int *ptr = (int *)POINTER_FROM_INT(data[ri]);
-
-    BLI_ghash_insert(gh, ptr, POINTER_FROM_INT(i));
-  }
-  printf("  %.3f\n", PIL_check_seconds_timer() - t);
-
-  printf("== creation: small hash ==\n");
-  t = PIL_check_seconds_timer();
-
-  for (int i = 0; i < count; i++) {
-    int ri = BLI_rng_get_int(rng) % count;
-    int *ptr = (int *)POINTER_FROM_INT(data[ri]);
-
-    BLI_smallhash_insert(&sh, (uintptr_t)ptr, POINTER_FROM_INT(i));
-  }
-  printf("  %.3f\n", PIL_check_seconds_timer() - t);
-
-  printf("== lookup: g hash ==\n");
-  t = PIL_check_seconds_timer();
-
-  for (int i = 0; i < count; i++) {
-    int ri = BLI_rng_get_int(rng) % count;
-    int *ptr = (int *)POINTER_FROM_INT(data[ri]);
-
-    BLI_ghash_lookup(gh, ptr);
-  }
-  printf("  %.3f\n", PIL_check_seconds_timer() - t);
-
-  printf("== lookup: small hash ==\n");
-  t = PIL_check_seconds_timer();
-
-  for (int i = 0; i < count; i++) {
-    int ri = BLI_rng_get_int(rng) % count;
-    int *ptr = (int *)POINTER_FROM_INT(data[ri]);
-
-    BLI_smallhash_lookup(&sh, (uintptr_t)ptr);
-  }
-  printf("  %.3f\n", PIL_check_seconds_timer() - t);
-
-  BLI_rng_free(rng);
-  BLI_ghash_free(gh, nullptr, nullptr);
-  BLI_smallhash_release(&sh);
-  BLI_table_gset_free(gs, nullptr);
-
-  MEM_freeN(data);
-}
-
-void pbvh_bmesh_do_cache_test()
-{
-  for (int i = 0; i < 15; i++) {
-    printf("\n\n====== %d of %d =====\n", i + 1, 15);
-    hash_test();
-  }
-  // pbvh_bmesh_cache_test_default_params(&params);
-  // pbvh_bmesh_cache_test(&params, &bm, &pbvh);
-}
 
 /* saves all bmesh references to internal indices, to be restored later */
 void BKE_pbvh_bmesh_save_indices(PBVH *pbvh)

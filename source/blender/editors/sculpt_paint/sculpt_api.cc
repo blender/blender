@@ -413,6 +413,8 @@ eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
                                       ss->cd_face_node_offset,
                                       ss->cd_vcol_offset,
                                       ss->attrs.boundary_flags->bmesh_cd_offset,
+                                      ss->attrs.flags->bmesh_cd_offset,
+                                      ss->attrs.valence->bmesh_cd_offset,
                                       (BMVert *)vertex.i,
                                       ss->boundary_symmetry,
                                       &ss->bm->ldata,
@@ -516,28 +518,16 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
 
 bool SCULPT_vertex_check_origdata(SculptSession *ss, PBVHVertRef vertex)
 {
-  return BKE_pbvh_get_origvert(ss->pbvh, vertex, nullptr, nullptr, nullptr);
+  return blender::bke::paint::get_original_vertex(ss, vertex, nullptr, nullptr, nullptr, nullptr);
 }
 
 int SCULPT_vertex_valence_get(const struct SculptSession *ss, PBVHVertRef vertex)
 {
   SculptVertexNeighborIter ni;
-  MSculptVert *mv = SCULPT_vertex_get_sculptvert(ss, vertex);
+  uint8_t flag = vertex_attr_get<uint8_t>(vertex, ss->attrs.flags);
 
-  if (mv->flag & SCULPTVERT_NEED_VALENCE) {
-    mv->flag &= ~SCULPTVERT_NEED_VALENCE;
-
-    int tot = 0;
-
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-      tot++;
-    }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-    mv->valence = tot;
-  }
-#if 0
-  else {
+  if (flag & SCULPTVERT_NEED_VALENCE) {
+    vertex_attr_set<uint8_t>(vertex, ss->attrs.flags, flag & ~SCULPTVERT_NEED_VALENCE);
 
     int tot = 0;
 
@@ -546,13 +536,11 @@ int SCULPT_vertex_valence_get(const struct SculptSession *ss, PBVHVertRef vertex
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-    if (tot != mv->valence) {
-      printf("%s: error: valence error!\n", __func__);
-    }
+    vertex_attr_set<uint>(vertex, ss->attrs.valence, tot);
+    return tot;
   }
-#endif
 
-  return mv->valence;
+  return vertex_attr_get<uint>(vertex, ss->attrs.valence);
 }
 
 /* See SCULPT_stroke_id_test. */

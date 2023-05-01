@@ -1052,7 +1052,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
   BKE_sculptsession_update_attr_refs(ob);
 
   if (ss->pbvh) {
-    BKE_pbvh_update_sculpt_verts(ss->pbvh);
+    SCULPT_load_all_original(ob);
   }
 
   if (ss->bm_idmap) {

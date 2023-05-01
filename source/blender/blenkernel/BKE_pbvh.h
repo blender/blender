@@ -82,79 +82,6 @@ struct MeshElemMap;
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
 
-//#define PROXY_ADVANCED
-
-// experimental performance test of "data-based programming" approach
-#ifdef PROXY_ADVANCED
-typedef struct ProxyKey {
-  int node;
-  int pindex;
-} ProxyKey;
-
-#  define MAX_PROXY_NEIGHBORS 12
-
-typedef struct ProxyVertArray {
-  float **ownerco;
-  short **ownerno;
-  float (*co)[3];
-  float (*fno)[3];
-  short (*no)[3];
-  float *mask, **ownermask;
-  PBVHVertRef *index;
-  float **ownercolor, (*color)[4];
-
-  ProxyKey (*neighbors)[MAX_PROXY_NEIGHBORS];
-
-  int size;
-  int datamask;
-  bool neighbors_dirty;
-
-  GHash *indexmap;
-} ProxyVertArray;
-
-typedef enum {
-  PV_OWNERCO = 1,
-  PV_OWNERNO = 2,
-  PV_CO = 4,
-  PV_NO = 8,
-  PV_MASK = 16,
-  PV_OWNERMASK = 32,
-  PV_INDEX = 64,
-  PV_OWNERCOLOR = 128,
-  PV_COLOR = 256,
-  PV_NEIGHBORS = 512
-} ProxyVertField;
-
-typedef struct ProxyVertUpdateRec {
-  float *co, *no, *mask, *color;
-  PBVHVertRef index, newindex;
-} ProxyVertUpdateRec;
-
-#  define PBVH_PROXY_DEFAULT CO | INDEX | MASK
-
-struct SculptSession;
-
-void BKE_pbvh_ensure_proxyarrays(
-    struct SculptSession *ss, PBVH *pbvh, PBVHNode **nodes, int totnode, int mask);
-void BKE_pbvh_load_proxyarrays(PBVH *pbvh, PBVHNode **nodes, int totnode, int mask);
-
-void BKE_pbvh_ensure_proxyarray(
-    struct SculptSession *ss,
-    struct PBVH *pbvh,
-    struct PBVHNode *node,
-    int mask,
-    struct GHash
-        *vert_node_map,  // vert_node_map maps vertex PBVHVertRefs to PBVHNode indices; optional
-    bool check_indexmap,
-    bool force_update);
-void BKE_pbvh_gather_proxyarray(PBVH *pbvh, PBVHNode **nodes, int totnode);
-
-void BKE_pbvh_free_proxyarray(struct PBVH *pbvh, struct PBVHNode *node);
-void BKE_pbvh_update_proxyvert(struct PBVH *pbvh, struct PBVHNode *node, ProxyVertUpdateRec *rec);
-ProxyVertArray *BKE_pbvh_get_proxyarrays(struct PBVH *pbvh, struct PBVHNode *node);
-
-#endif
-
 typedef enum {
   PBVH_FACES,
   PBVH_GRIDS,
@@ -460,8 +387,11 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_sculpt_vert,
                           const int cd_face_areas,
                           const int cd_boundary_flag,
-                          bool fast_draw,
-                          bool update_sculptverts);
+                          const int cd_flag,
+                          const int cd_valence,
+                          const int cd_origco,
+                          const int cd_origno,
+                          bool fast_draw);
 
 void BKE_pbvh_fast_draw_set(PBVH *pbvh, bool state);
 void BKE_pbvh_set_idmap(PBVH *pbvh, struct BMIdMap *idmap);
@@ -471,7 +401,12 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_face_node_offset,
                              const int cd_sculpt_vert,
                              const int cd_face_areas,
-                             const int cd_boudnary_flags);
+                             const int cd_boudnary_flags,
+                             const int cd_flag,
+                             const int cd_valence,
+                             const int cd_origco,
+                             const int cd_origno,
+                             const int cd_curvature_dir);
 
 void BKE_pbvh_update_bmesh_offsets(PBVH *pbvh, int cd_vert_node_offset, int cd_face_node_offset);
 
@@ -497,7 +432,7 @@ checks if original data needs to be updated for v, and if so updates it.  Stroke
 is provided by the sculpt code and is used to detect updates.  The reason we do it
 inside the verts and not in the nodes is to allow splitting of the pbvh during the stroke.
 */
-bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, struct BMVert *v, int stroke_id);
+bool BKE_pbvh_bmesh_check_origdata(struct SculptSession *ss, struct BMVert *v, int stroke_id);
 
 /** used so pbvh can differentiate between different strokes,
     see BKE_pbvh_bmesh_check_origdata */
@@ -527,7 +462,8 @@ void BKE_pbvh_raycast(PBVH *pbvh,
                       bool original,
                       int stroke_id);
 
-bool BKE_pbvh_node_raycast(PBVH *pbvh,
+bool BKE_pbvh_node_raycast(SculptSession *ss,
+                           PBVH *pbvh,
                            PBVHNode *node,
                            float (*origco)[3],
                            bool use_origco,
@@ -563,7 +499,8 @@ void BKE_pbvh_find_nearest_to_ray(PBVH *pbvh,
                                   const float ray_normal[3],
                                   bool original);
 
-bool BKE_pbvh_node_find_nearest_to_ray(PBVH *pbvh,
+bool BKE_pbvh_node_find_nearest_to_ray(SculptSession *ss,
+                                       PBVH *pbvh,
                                        PBVHNode *node,
                                        float (*origco)[3],
                                        bool use_origco,
@@ -688,7 +625,7 @@ void BKE_pbvh_face_areas_begin(PBVH *pbvh);
 // updates boundaries and valences for whole mesh
 void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh);
 bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, PBVHVertRef vertex);
-void BKE_pbvh_bmesh_update_valence(int cd_sculpt_vert, PBVHVertRef vertex);
+void BKE_pbvh_bmesh_update_valence(PBVH *pbvh, PBVHVertRef vertex);
 void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh);
 void BKE_pbvh_bmesh_flag_all_disk_sort(PBVH *pbvh);
 bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, PBVHVertRef vertex);
@@ -1146,6 +1083,8 @@ void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_face_node_offset,
                                    int cd_vcol,
                                    int cd_boundary_flag,
+                                   const int cd_flag,
+                                   const int cd_valence,
                                    struct BMVert *v,
                                    int bound_symmetry,
                                    const CustomData *ldata,
@@ -1385,7 +1324,7 @@ bool BKE_pbvh_show_orig_get(PBVH *pbvh);
 #ifdef __cplusplus
 }
 
-#include "BLI_math_vector.hh"
+#  include "BLI_math_vector.hh"
 
 namespace blender::bke::pbvh {
 void update_vert_boundary_faces(int *boundary_flags,

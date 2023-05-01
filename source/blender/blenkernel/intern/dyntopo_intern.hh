@@ -9,6 +9,7 @@
 
 struct GHash;
 struct BLI_Buffer;
+struct SculptSession;
 
 #define DYNTOPO_DISABLE_SPLIT_EDGES 1
 #define DYNTOPO_DISABLE_FIN_REMOVAL 2
@@ -193,7 +194,8 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
 
 struct EdgeQueue;
 
-typedef struct EdgeQueueContext {
+struct EdgeQueueContext {
+  SculptSession *ss;
   BLI_mempool *pool = nullptr;
   BMesh *bm = nullptr;
   DyntopoMaskCB mask_cb = nullptr;
@@ -233,7 +235,7 @@ typedef struct EdgeQueueContext {
   bool (*edge_queue_vert_in_range)(const struct EdgeQueueContext *q, BMVert *v);
 
   PBVHTopologyUpdateMode mode;
-} EdgeQueueContext;
+};
 
 bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root);
 bool check_face_is_tri(PBVH *pbvh, BMFace *f);
@@ -730,3 +732,13 @@ error:
   return false;
 }
 #endif
+
+static inline bool dyntopo_test_flag(PBVH *pbvh, BMVert *v, uint8_t flag)
+{
+  return *BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag) & flag;
+}
+
+static inline void dyntopo_add_flag(PBVH *pbvh, BMVert *v, uint8_t flag)
+{
+  *BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag) |= flag;
+}

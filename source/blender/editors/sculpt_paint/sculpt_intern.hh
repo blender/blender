@@ -17,6 +17,7 @@
 #include "BKE_attribute.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_sculpt.hh"
 
 #include "BLI_bitmap.h"
 #include "BLI_compiler_attrs.h"
@@ -1400,7 +1401,9 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
  * DEPRECATED: use SCULPT_vertex_check_origdata and SCULPT_vertex_get_sculptvert
  * Update a #SculptOrigVertData for a particular vertex from the PBVH iterator.
  */
-void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertRef vertex);
+void SCULPT_orig_vert_data_update(SculptSession *ss,
+                                  SculptOrigVertData *orig_data,
+                                  PBVHVertRef vertex);
 
 /**
  * DEPRECATED: use SCULPT_vertex_check_origdata and SCULPT_vertex_get_sculptvert
@@ -2330,6 +2333,8 @@ float SCULPT_calc_concavity(SculptSession *ss, PBVHVertRef vref);
 If useAccurateSolver is false, a faster but less accurate
 power solver will be used.  If true then BLI_eigen_solve_selfadjoint_m3
 will be called.
+
+Must call BKE_sculpt_ensure_curvature_dir to ensure ss->attrs.curvature_dir exists.
 */
 bool SCULPT_calc_principle_curvatures(SculptSession *ss,
                                       PBVHVertRef vertex,
@@ -2445,60 +2450,6 @@ void SCULPT_topology_islands_invalidate(SculptSession *ss);
 int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);
 
 /** \} */
-
-/*
- * Stroke ID API.  This API is used to detect if
- * an element has already been processed for some task
- * inside a given stroke.
- */
-
-struct StrokeID {
-  short id;
-  short userflag;
-};
-
-enum StrokeIDUser {
-  STROKEID_USER_AUTOMASKING = 1 << 0,
-  STROKEID_USER_BOUNDARY = 1 << 1,
-  STROKEID_USER_SCULPTVERT = 1 << 2,
-  STROKEID_USER_PREV_COLOR = 1 << 3,
-  STROKEID_USER_SMOOTH = 1 << 4,
-  STROKEID_USER_OCCLUSION = 1 << 5,
-  STROKEID_USER_LAYER_BRUSH = 1 << 6,
-};
-ENUM_OPERATORS(StrokeIDUser, STROKEID_USER_LAYER_BRUSH);
-
-BLI_INLINE bool SCULPT_stroke_id_test(SculptSession *ss, PBVHVertRef vertex, StrokeIDUser user)
-{
-  StrokeID *id = blender::bke::paint::vertex_attr_ptr<StrokeID>(vertex, ss->attrs.stroke_id);
-  bool ret;
-
-  if (id->id != ss->stroke_id) {
-    id->id = ss->stroke_id;
-    id->userflag = 0;
-    ret = true;
-  }
-  else {
-    ret = !(id->userflag & (int)user);
-  }
-
-  id->userflag |= (int)user;
-
-  return ret;
-}
-
-BLI_INLINE bool SCULPT_stroke_id_test_no_update(SculptSession *ss,
-                                                PBVHVertRef vertex,
-                                                StrokeIDUser user)
-{
-  StrokeID *id = blender::bke::paint::vertex_attr_ptr<StrokeID>(vertex, ss->attrs.stroke_id);
-
-  if (id->id != ss->stroke_id) {
-    return true;
-  }
-
-  return !(id->userflag & (int)user);
-}
 
 int SCULPT_get_symmetry_pass(const struct SculptSession *ss);
 

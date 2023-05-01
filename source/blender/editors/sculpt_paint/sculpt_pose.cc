@@ -155,7 +155,7 @@ static void do_pose_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
     float total_disp[3];

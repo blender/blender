@@ -151,7 +151,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     // valid state.
     float *color_buffer = vertex_attr_ptr<float>(vd.vertex,
                                                  buffer_scl);  // mv->origcolor;
-    if (SCULPT_stroke_id_test(ss, vd.vertex, STROKEID_USER_PREV_COLOR)) {
+    if (blender::bke::sculpt::stroke_id_test(ss, vd.vertex, STROKEID_USER_PREV_COLOR)) {
       zero_v4(color_buffer);
     }
 

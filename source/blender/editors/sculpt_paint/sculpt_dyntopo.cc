@@ -529,7 +529,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
 
   if (ss->pbvh) {
     BKE_sculptsession_update_attr_refs(ob);
-    BKE_pbvh_update_sculpt_verts(ss->pbvh);
+    SCULPT_load_all_original(ob);
   }
 
   if (ss->pbvh && SCULPT_has_persistent_base(ss)) {
@@ -552,7 +552,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
   }
 
   if (ss->pbvh) {
-    BKE_pbvh_update_sculpt_verts(ss->pbvh);
+    SCULPT_load_all_original(ob);
   }
 
   /* Make sure the data for existing faces are initialized. */

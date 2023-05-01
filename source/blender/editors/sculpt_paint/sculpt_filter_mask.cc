@@ -812,7 +812,7 @@ static void ipmask_filter_apply_from_original_task_cb(void *__restrict userdata,
         0.5f) {
       continue;
     }
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     float new_mask = orig_data.mask;
     switch (filter_type) {
       case IPMASK_FILTER_ADD_SUBSTRACT:
@@ -889,7 +889,7 @@ static void ipmask_filter_restore_original_mask_task_cb(
   SCULPT_orig_vert_data_init(&orig_data, data->ob, node, SCULPT_UNDO_COORDS);
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     *vd.mask = orig_data.mask;
     update = true;
     if (vd.is_mesh) {

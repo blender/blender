@@ -233,6 +233,9 @@ struct PBVH {
   struct BMIdMap *bm_idmap;
 
   int cd_sculpt_vert;
+  int cd_flag;
+  int cd_valence;
+  int cd_origco, cd_origno;
   int cd_vert_node_offset;
   int cd_face_node_offset;
   int cd_vert_mask_offset;
@@ -348,7 +351,8 @@ bool ray_face_intersection_depth_tri(const float ray_start[3],
 /* pbvh_bmesh.cc */
 
 /* pbvh_bmesh.c */
-bool pbvh_bmesh_node_raycast(PBVH *pbvh,
+bool pbvh_bmesh_node_raycast(SculptSession *ss,
+                             PBVH *pbvh,
                              PBVHNode *node,
                              const float ray_start[3],
                              const float ray_normal[3],
@@ -362,7 +366,8 @@ bool pbvh_bmesh_node_raycast(PBVH *pbvh,
                              float *r_face_normal,
                              int stroke_id);
 
-bool pbvh_bmesh_node_nearest_to_ray(PBVH *pbvh,
+bool pbvh_bmesh_node_nearest_to_ray(SculptSession *ss,
+                                    PBVH *pbvh,
                                     PBVHNode *node,
                                     const float ray_start[3],
                                     const float ray_normal[3],
@@ -441,6 +446,8 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
                                   pbvh->cd_face_node_offset,
                                   pbvh->cd_vcol_offset,
                                   pbvh->cd_boundary_flag,
+                                  pbvh->cd_flag,
+                                  pbvh->cd_valence,
                                   v,
                                   pbvh->boundary_symmetry,
                                   &pbvh->header.bm->ldata,

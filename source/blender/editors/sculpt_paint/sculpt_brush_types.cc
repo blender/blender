@@ -1367,7 +1367,7 @@ static void do_thumb_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -1446,7 +1446,7 @@ static void do_rotate_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -1525,7 +1525,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -1551,7 +1551,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     else {
       disp_factor = vertex_attr_ptr<float>(vd.vertex, ss->attrs.layer_displayment);
 
-      if (SCULPT_stroke_id_test(ss, vd.vertex, STROKEID_USER_LAYER_BRUSH)) {
+      if (blender::bke::sculpt::stroke_id_test(ss, vd.vertex, STROKEID_USER_LAYER_BRUSH)) {
         *disp_factor = 0.0f;
       }
     }
@@ -2057,7 +2057,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -2163,7 +2163,7 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
       &params, ss->cache->radius, force, 1.0f, brush->elastic_deform_volume_preservation);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
     float final_disp[3];
@@ -2266,7 +2266,7 @@ static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
     }
@@ -2356,7 +2356,7 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
     }
@@ -2530,7 +2530,7 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
     }
@@ -2938,6 +2938,10 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, 
   if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
       (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {
     BKE_pbvh_update_all_tri_areas(ss->pbvh);
+  }
+
+  if (brush->flag2 & BRUSH_CURVATURE_RAKE) {
+    BKE_sculpt_ensure_curvature_dir(ob);
   }
 
   for (iteration = 0; iteration <= count; iteration++) {

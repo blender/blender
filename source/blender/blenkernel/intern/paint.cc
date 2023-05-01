@@ -26,6 +26,7 @@
 #include "BLI_array.h"
 #include "BLI_bitmap.h"
 #include "BLI_hash.h"
+#include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string_ref.hh"
@@ -62,6 +63,7 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_scene.h"
+#include "BKE_sculpt.hh"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
 #include "BKE_undo_system.h"
@@ -81,6 +83,7 @@
 void SCULPT_undo_ensure_bmlog(Object *ob);
 
 using blender::float3;
+using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Span;
 using blender::StringRef;
@@ -2370,7 +2373,7 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
     /* If vertices already have mask, copy into multires data. */
     if (paint_mask) {
       for (const int i : polys.index_range()) {
-        const blender::IndexRange poly = polys[i];
+        const IndexRange poly = polys[i];
 
         /* Mask center. */
         float avg = 0.0f;
@@ -2554,8 +2557,11 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool update_sculptverts
                        ob->sculpt->cd_sculpt_vert,
                        ob->sculpt->attrs.face_areas->bmesh_cd_offset,
                        ob->sculpt->attrs.boundary_flags->bmesh_cd_offset,
-                       ob->sculpt->fast_draw,
-                       update_sculptverts);
+                       ob->sculpt->attrs.flags ? ob->sculpt->attrs.flags->bmesh_cd_offset : -1,
+                       ob->sculpt->attrs.valence ? ob->sculpt->attrs.valence->bmesh_cd_offset : -1,
+                       ob->sculpt->attrs.orig_co ? ob->sculpt->attrs.orig_co->bmesh_cd_offset : -1,
+                       ob->sculpt->attrs.orig_no ? ob->sculpt->attrs.orig_no->bmesh_cd_offset : -1,
+                       ob->sculpt->fast_draw);
 
   if (ob->sculpt->bm_log) {
     BKE_pbvh_set_bm_log(pbvh, ob->sculpt->bm_log);
@@ -2650,6 +2656,32 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
 extern "C" bool BKE_sculptsession_check_sculptverts(Object *ob, struct PBVH *pbvh, int totvert)
 {
   SculptSession *ss = ob->sculpt;
+
+  if (!ss->attrs.flags) {
+    BKE_sculpt_ensure_sculpt_layers(ob);
+
+    if (ss->bm) {
+      int cd_flags = ss->attrs.flags->bmesh_cd_offset;
+      BMVert *v;
+      BMIter iter;
+
+      BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+        *BM_ELEM_CD_PTR<uint8_t *>(v, cd_flags) = SCULPTVERT_NEED_VALENCE |
+                                                  SCULPTVERT_NEED_TRIANGULATE |
+                                                  SCULPTVERT_NEED_DISK_SORT;
+      }
+    }
+    else {
+      uint8_t *flags = static_cast<uint8_t *>(ss->attrs.flags->data);
+
+      for (int i = 0; i < totvert; i++) {
+        flags[i] = SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE |
+                   SCULPTVERT_NEED_DISK_SORT;
+      }
+    }
+  }
+
+  BKE_sculpt_ensure_origco(ob);
 
   sculpt_boundary_flags_ensure(ob, pbvh, totvert);
 
@@ -3477,6 +3509,8 @@ static void sculptsession_bmesh_attr_update_internal(Object *ob)
     int cd_dyntopo_face = ss->attrs.dyntopo_node_id_face ?
                               ss->attrs.dyntopo_node_id_face->bmesh_cd_offset :
                               -1;
+    int cd_flag = ss->attrs.flags ? ss->attrs.flags->bmesh_cd_offset : -1;
+    int cd_valence = ss->attrs.valence ? ss->attrs.valence->bmesh_cd_offset : -1;
 
     BKE_pbvh_set_idmap(ss->pbvh, ss->bm_idmap);
     BKE_pbvh_update_offsets(ss->pbvh,
@@ -3484,7 +3518,13 @@ static void sculptsession_bmesh_attr_update_internal(Object *ob)
                             cd_dyntopo_face,
                             cd_sculpt_vert,
                             cd_face_area,
-                            cd_boundary_flags);
+                            cd_boundary_flags,
+                            cd_flag,
+                            cd_valence,
+                            ss->attrs.orig_co ? ss->attrs.orig_co->bmesh_cd_offset : -1,
+                            ss->attrs.orig_no ? ss->attrs.orig_no->bmesh_cd_offset : -1,
+                            ss->attrs.curvature_dir ? ss->attrs.curvature_dir->bmesh_cd_offset :
+                                                      -1);
   }
 }
 
@@ -3644,7 +3684,13 @@ static void update_bmesh_offsets(Mesh *me, SculptSession *ss)
                             ss->cd_face_node_offset,
                             ss->cd_sculpt_vert,
                             ss->cd_face_areas,
-                            cd_boundary_flags);
+                            cd_boundary_flags,
+                            ss->attrs.flags ? ss->attrs.flags->bmesh_cd_offset : -1,
+                            ss->attrs.valence ? ss->attrs.valence->bmesh_cd_offset : -1,
+                            ss->attrs.orig_co ? ss->attrs.orig_co->bmesh_cd_offset : -1,
+                            ss->attrs.orig_no ? ss->attrs.orig_no->bmesh_cd_offset : -1,
+                            ss->attrs.curvature_dir ? ss->attrs.curvature_dir->bmesh_cd_offset :
+                                                      -1);
   }
 }
 
@@ -3794,3 +3840,186 @@ bool BKE_sculpt_has_persistent_base(SculptSession *ss)
   /* Detect multires. */
   return ss->attrs.persistent_co;
 }
+
+void BKE_sculpt_ensure_origco(struct Object *ob)
+{
+  SculptAttributeParams params = {};
+  if (!ob->sculpt->attrs.orig_co) {
+    ob->sculpt->attrs.orig_co = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(orig_co), &params);
+  }
+  if (!ob->sculpt->attrs.orig_no) {
+    ob->sculpt->attrs.orig_no = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(orig_no), &params);
+  }
+}
+
+void BKE_sculpt_ensure_curvature_dir(struct Object *ob)
+{
+  SculptAttributeParams params = {};
+  if (!ob->sculpt->attrs.curvature_dir) {
+    ob->sculpt->attrs.curvature_dir = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(curvature_dir), &params);
+  }
+}
+
+void BKE_sculpt_ensure_origmask(struct Object *ob)
+{
+  SculptAttributeParams params = {};
+  if (!ob->sculpt->attrs.orig_mask) {
+    ob->sculpt->attrs.orig_mask = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(orig_mask), &params);
+  }
+}
+void BKE_sculpt_ensure_origcolor(struct Object *ob)
+{
+  SculptAttributeParams params = {};
+  if (!ob->sculpt->attrs.orig_color) {
+    ob->sculpt->attrs.orig_color = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, SCULPT_ATTRIBUTE_NAME(orig_color), &params);
+  }
+}
+
+void BKE_sculpt_ensure_origfset(struct Object *ob)
+{
+  SculptAttributeParams params = {};
+  if (!ob->sculpt->attrs.orig_fsets) {
+    ob->sculpt->attrs.orig_fsets = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_FACE, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(orig_fsets), &params);
+  }
+}
+
+void BKE_sculpt_ensure_sculpt_layers(struct Object *ob)
+{
+  SculptAttributeParams params = {};
+
+  if (!ob->sculpt->attrs.flags) {
+    ob->sculpt->attrs.flags = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_INT8, SCULPT_ATTRIBUTE_NAME(flags), &params);
+  }
+  if (!ob->sculpt->attrs.valence) {
+    ob->sculpt->attrs.flags = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(valence), &params);
+  }
+}
+
+namespace blender::bke::paint {
+bool get_original_vertex(SculptSession *ss,
+                         PBVHVertRef vertex,
+                         const float **r_co,
+                         float **r_no,
+                         float **r_color,
+                         float **r_mask)
+{
+  uint8_t flags = vertex_attr_get<uint8_t>(vertex, ss->attrs.flags);
+  bool retval = false;
+
+  if (sculpt::stroke_id_test(ss, vertex, STROKEID_USER_ORIGINAL)) {
+    if (ss->attrs.orig_co) {
+      const float *co = nullptr, *no = nullptr;
+
+      switch (BKE_pbvh_type(ss->pbvh)) {
+        case PBVH_BMESH:
+          BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
+          co = v->co;
+          no = v->no;
+          break;
+        case PBVH_FACES:
+          if (ss->shapekey_active || ss->deform_modifiers_active) {
+            co = BKE_pbvh_get_vert_positions(ss->pbvh)[vertex.i];
+          }
+          else {
+            co = ss->vert_positions[vertex.i];
+          }
+
+          no = BKE_pbvh_get_vert_normals(ss->pbvh)[vertex.i];
+          break;
+        case PBVH_GRIDS:
+          const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+          const int grid_index = vertex.i / key->grid_area;
+          const int vertex_index = vertex.i - grid_index * key->grid_area;
+          CCGElem *elem = BKE_pbvh_get_grids(ss->pbvh)[grid_index];
+
+          co = CCG_elem_co(key, CCG_elem_offset(key, elem, vertex_index));
+          no = CCG_elem_no(key, CCG_elem_offset(key, elem, vertex_index));
+
+          break;
+      }
+
+      copy_v3_v3(vertex_attr_ptr<float>(vertex, ss->attrs.orig_co), co);
+      copy_v3_v3(vertex_attr_ptr<float>(vertex, ss->attrs.orig_no), no);
+    }
+
+    bool have_colors = BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS &&
+                       ((ss->bm && ss->cd_vcol_offset != -1) || ss->vcol || ss->mcol);
+
+    if (ss->attrs.orig_color && have_colors) {
+      BKE_pbvh_vertex_color_get(
+          ss->pbvh, vertex, vertex_attr_ptr<float>(vertex, ss->attrs.orig_color));
+    }
+
+    if (ss->attrs.orig_mask) {
+      float *mask = nullptr;
+      switch (BKE_pbvh_type(ss->pbvh)) {
+        case PBVH_FACES:
+          mask = ss->vmask ? &ss->vmask[vertex.i] : nullptr;
+        case PBVH_BMESH: {
+          BMVert *v;
+          int cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
+
+          v = (BMVert *)vertex.i;
+          mask = cd_mask != -1 ? static_cast<float *>(BM_ELEM_CD_GET_VOID_P(v, cd_mask)) : nullptr;
+        }
+        case PBVH_GRIDS: {
+          const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+
+          if (key->mask_offset == -1) {
+            mask = nullptr;
+          }
+          else {
+            const int grid_index = vertex.i / key->grid_area;
+            const int vertex_index = vertex.i - grid_index * key->grid_area;
+            CCGElem *elem = BKE_pbvh_get_grids(ss->pbvh)[grid_index];
+            mask = CCG_elem_mask(key, CCG_elem_offset(key, elem, vertex_index));
+          }
+        }
+      }
+
+      if (mask) {
+        vertex_attr_set<float>(vertex, ss->attrs.orig_mask, *mask);
+      }
+    }
+
+    retval = true;
+  }
+
+  if (r_co && ss->attrs.orig_co) {
+    *r_co = vertex_attr_ptr<float>(vertex, ss->attrs.orig_co);
+  }
+  if (r_no && ss->attrs.orig_no) {
+    *r_no = vertex_attr_ptr<float>(vertex, ss->attrs.orig_no);
+  }
+  if (r_color && ss->attrs.orig_color) {
+    *r_color = vertex_attr_ptr<float>(vertex, ss->attrs.orig_color);
+  }
+  if (r_mask && ss->attrs.orig_mask) {
+    *r_mask = vertex_attr_ptr<float>(vertex, ss->attrs.orig_mask);
+  }
+
+  return retval;
+}
+
+void SCULPT_load_all_original(Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+
+  int verts_count = BKE_sculptsession_vertex_count(ss);
+  for (int i : IndexRange(verts_count)) {
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
+    blender::bke::sculpt::stroke_id_clear(ss, vertex, STROKEID_USER_ORIGINAL);
+    SCULPT_get_original(ss, vertex);
+  }
+}
+
+}  // namespace blender::bke::paint

@@ -37,6 +37,7 @@
 #include "BKE_dyntopo.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_sculpt.hh"
 
 #include "bmesh.h"
 #include "bmesh_log.h"
@@ -55,6 +56,7 @@ using blender::IndexRange;
 using blender::Map;
 using blender::Set;
 using blender::Vector;
+using namespace blender::bke::sculpt;
 
 static void pbvh_split_edges(struct EdgeQueueContext *eq_ctx,
                              PBVH *pbvh,
@@ -80,7 +82,7 @@ static void edge_queue_create_local(struct EdgeQueueContext *eq_ctx,
                                     const bool use_projected,
                                     PBVHTopologyUpdateMode local_mode);
 
-BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
+BLI_INLINE void surface_smooth_v_safe(SculptSession *ss, PBVH *pbvh, BMVert *v, float fac)
 {
   float co[3];
   float origco[3], origco1[3];
@@ -88,15 +90,14 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
   float tan[3];
   float tot = 0.0;
 
-  MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-
-  if (mv1->stroke_id != pbvh->stroke_id) {
+  PBVHVertRef vertex = {reinterpret_cast<intptr_t>(v)};
+  if (stroke_id_test_no_update(ss, vertex, STROKEID_USER_ORIGINAL)) {
     copy_v3_v3(origco1, v->co);
     copy_v3_v3(origno1, v->no);
   }
   else {
-    copy_v3_v3(origco1, mv1->origco);
-    copy_v3_v3(origno1, dot_v3v3(mv1->origno, mv1->origno) == 0.0f ? v->no : mv1->origno);
+    copy_v3_v3(origco1, blender::bke::paint::vertex_attr_ptr<float>(vertex, ss->attrs.orig_co));
+    copy_v3_v3(origno1, blender::bke::paint::vertex_attr_ptr<float>(vertex, ss->attrs.orig_no));
   }
 
   zero_v3(co);
@@ -128,12 +129,12 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
 
   do {
     BMVert *v2 = e->v1 == v ? e->v2 : e->v1;
+    PBVHVertRef vertex2 = { reinterpret_cast<intptr_t>(v2)};
 
     /* Note: we can't validate the boundary flags from with a thread
      * so they may not be up to date.
      */
 
-    MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v2);
     int boundflag2 = BM_ELEM_CD_GET_INT(v2, pbvh->cd_boundary_flag);
 
     const bool bound2 = boundflag2 & SCULPTVERT_SMOOTH_BOUNDARY;
@@ -148,8 +149,9 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
     madd_v3_v3fl(tan, v->no, -d * 0.99f);
     add_v3_v3(co, tan);
 
-    if (mv2->stroke_id == pbvh->stroke_id) {
-      sub_v3_v3v3(tan, mv2->origco, origco1);
+    if (!stroke_id_test_no_update(ss, vertex2, STROKEID_USER_ORIGINAL)) {
+      sub_v3_v3v3(
+          tan, blender::bke::paint::vertex_attr_ptr<float>(vertex2, ss->attrs.orig_co), origco1);
     }
     else {
       sub_v3_v3v3(tan, v2->co, origco1);
@@ -178,20 +180,22 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
   atomic_cas_float(&v->co[1], y, ny);
   atomic_cas_float(&v->co[2], z, nz);
 
+  float *start_origco = blender::bke::paint::vertex_attr_ptr<float>(vertex, ss->attrs.orig_co);
+
   /* Conflicts here should be pretty rare. */
-  x = mv1->origco[0];
-  y = mv1->origco[1];
-  z = mv1->origco[2];
+  x = start_origco[0];
+  y = start_origco[1];
+  z = start_origco[2];
 
   nx = x + origco[0] * fac;
   ny = y + origco[1] * fac;
   nz = z + origco[2] * fac;
 
-  atomic_cas_float(&mv1->origco[0], x, nx);
-  atomic_cas_float(&mv1->origco[1], y, ny);
-  atomic_cas_float(&mv1->origco[2], z, nz);
+  atomic_cas_float(&start_origco[0], x, nx);
+  atomic_cas_float(&start_origco[1], y, ny);
+  atomic_cas_float(&start_origco[2], z, nz);
 
-  PBVH_CHECK_NAN(mv1->origco);
+  PBVH_CHECK_NAN(start_origco[0]);
   PBVH_CHECK_NAN(v->co);
   // atomic_cas_int32(&mv1->stroke_id, stroke_id, pbvh->stroke_id);
 }
@@ -712,7 +716,7 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
       do {
         /* are we owned by this node? if so, make sure origdata is up to date */
         if (BM_ELEM_CD_GET_INT(l_iter->v, pbvh->cd_vert_node_offset) == ni) {
-          BKE_pbvh_bmesh_check_origdata(pbvh, l_iter->v, pbvh->stroke_id);
+          BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, l_iter->v, pbvh->stroke_id);
         }
 
         /* try to improve convergence by applying a small amount of smoothing to topology,
@@ -722,7 +726,8 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
 
         if (do_smooth && randval > 127) {
           PBVHVertRef sv = {(intptr_t)l_iter->v};
-          surface_smooth_v_safe(tdata->pbvh,
+          surface_smooth_v_safe(eq_ctx->ss,
+                                tdata->pbvh,
                                 l_iter->v,
                                 eq_ctx->surface_smooth_fac *
                                     eq_ctx->mask_cb(sv, eq_ctx->mask_cb_data));
@@ -842,8 +847,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 
     BMLoop *l = f2->l_first;
     do {
-      MSculptVert *mv = BM_ELEM_CD_PTR<MSculptVert *>(l->v, pbvh->cd_sculpt_vert);
-      mv->flag |= SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE;
+      dyntopo_add_flag(pbvh, l->v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
     } while ((l = l->next) != f2->l_first);
   }
 
@@ -1063,9 +1067,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     }
     else {
       pbvh_boundary_update_bmesh(pbvh, v);
-
-      MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-      mv->flag |= mupdateflag;
+      dyntopo_add_flag(pbvh, v, mupdateflag);
     }
   }
 
@@ -1110,9 +1112,9 @@ bool check_for_fins(PBVH *pbvh, BMVert *v)
 
 bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
 {
-  MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
+  uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag);
 
-  if (!(mv->flag & SCULPTVERT_NEED_TRIANGULATE)) {
+  if (!(*flag & SCULPTVERT_NEED_TRIANGULATE)) {
     return true;
   }
 
@@ -1133,10 +1135,8 @@ bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
     BMLoop *l = f->l_first;
 
     do {
-      MSculptVert *mv_l = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, l->v);
       pbvh_boundary_update_bmesh(pbvh, l->v);
-
-      MV_ADD_FLAG(mv_l, SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT);
+      dyntopo_add_flag(pbvh, l->v, SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT);
     } while ((l = l->next) != f->l_first);
     fs.append(f);
 
@@ -1145,7 +1145,7 @@ bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
     }
   }
 
-  mv->flag &= ~SCULPTVERT_NEED_TRIANGULATE;
+  *flag &= ~SCULPTVERT_NEED_TRIANGULATE;
 
   for (int i = 0; i < fs.size(); i++) {
     /* Triangulation can sometimes delete a face. */
@@ -1326,15 +1326,12 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
         }
       }
 
-      MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, e->v1);
-      MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, e->v2);
-
-      if (mv1->flag & SCULPTVERT_NEED_VALENCE) {
-        BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, {(intptr_t)e->v1});
+      if (dyntopo_test_flag(pbvh, e->v1, SCULPTVERT_NEED_VALENCE)) {
+        BKE_pbvh_bmesh_update_valence(pbvh, {(intptr_t)e->v1});
       }
 
-      if (mv2->flag & SCULPTVERT_NEED_VALENCE) {
-        BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, {(intptr_t)e->v2});
+      if (dyntopo_test_flag(pbvh, e->v2, SCULPTVERT_NEED_VALENCE)) {
+        BKE_pbvh_bmesh_update_valence(pbvh, {(intptr_t)e->v2});
       }
 
       if (eq_ctx->use_view_normal && (dot_v3v3(e->v1->no, eq_ctx->view_normal) < 0.0f &&
@@ -1494,10 +1491,9 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
       if (!(local_mode & PBVH_LocalCollapse)) {
         if (!(v->head.hflag & BM_ELEM_TAG)) {
           v->head.hflag |= BM_ELEM_TAG;
-          MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
 
-          if (mv->flag & SCULPTVERT_NEED_VALENCE) {
-            BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, {(intptr_t)v});
+          if (dyntopo_test_flag(pbvh, v, SCULPTVERT_NEED_VALENCE)) {
+            BKE_pbvh_bmesh_update_valence(pbvh, {(intptr_t)v});
           }
 
           edge_queue_insert_val34_vert(eq_ctx, v);
@@ -1685,11 +1681,9 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx,
       continue;
     }
 
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-
     BKE_pbvh_bmesh_check_valence(pbvh, {(intptr_t)v});
 
-    int val = mv->valence;
+    int val = BM_ELEM_CD_GET_INT(v, pbvh->cd_valence);
     if (val != 4 && val != 3) {
       continue;
     }
@@ -1742,18 +1736,14 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx,
     for (int j = 0; j < val; j++) {
       ls[ls_i++] = l->v == v ? l->next : l;
 
-      MSculptVert *mv_l;
-
       if (l->v == v) {
-        mv_l = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, l->next->v);
+        dyntopo_add_flag(pbvh, l->next->v, updateflag);
         pbvh_boundary_update_bmesh(pbvh, l->next->v);
       }
       else {
-        mv_l = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, l->v);
+        dyntopo_add_flag(pbvh, l->v, updateflag);
         pbvh_boundary_update_bmesh(pbvh, l->v);
       }
-
-      MV_ADD_FLAG(mv_l, updateflag);
 
       l = l->prev->radial_next;
 
@@ -1879,17 +1869,13 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx,
 
     validate_vert(pbvh, pbvh->header.bm, v, false, false);
 
-    MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, vs[0]);
-    MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, vs[1]);
-    MSculptVert *mv3 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, vs[2]);
-
     pbvh_boundary_update_bmesh(pbvh, vs[0]);
     pbvh_boundary_update_bmesh(pbvh, vs[1]);
     pbvh_boundary_update_bmesh(pbvh, vs[2]);
 
-    MV_ADD_FLAG(mv1, updateflag);
-    MV_ADD_FLAG(mv2, updateflag);
-    MV_ADD_FLAG(mv3, updateflag);
+    dyntopo_add_flag(pbvh, vs[0], updateflag);
+    dyntopo_add_flag(pbvh, vs[1], updateflag);
+    dyntopo_add_flag(pbvh, vs[2], updateflag);
 
     BMFace *f1 = nullptr;
     bool ok1 = vs[0] != vs[1] && vs[1] != vs[2] && vs[0] != vs[2];
@@ -1915,17 +1901,13 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx,
     ok2 = ok2 && !BM_face_exists(vs, 3);
 
     if (ok2) {
-      MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, vs[0]);
-      MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, vs[1]);
-      MSculptVert *mv3 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, vs[2]);
-
       pbvh_boundary_update_bmesh(pbvh, vs[0]);
       pbvh_boundary_update_bmesh(pbvh, vs[1]);
       pbvh_boundary_update_bmesh(pbvh, vs[2]);
 
-      MV_ADD_FLAG(mv1, updateflag);
-      MV_ADD_FLAG(mv2, updateflag);
-      MV_ADD_FLAG(mv3, updateflag);
+      dyntopo_add_flag(pbvh, vs[0], updateflag);
+      dyntopo_add_flag(pbvh, vs[1], updateflag);
+      dyntopo_add_flag(pbvh, vs[2], updateflag);
 
       BMFace *example = nullptr;
       if (v->e && v->e->l) {
@@ -2027,13 +2009,11 @@ static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx,
           continue;
         }
 
-        MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-
-        if (mv->flag & SCULPTVERT_NEED_VALENCE) {
-          BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, {(intptr_t)v});
+        if (dyntopo_test_flag(pbvh, v, SCULPTVERT_NEED_VALENCE)) {
+          BKE_pbvh_bmesh_update_valence(pbvh, {(intptr_t)v});
         }
 
-        if (mv->valence < 5) {
+        if (BM_ELEM_CD_GET_INT(v, pbvh->cd_valence) < 5) {
           edge_queue_insert_val34_vert(eq_ctx, v);
         }
       }
@@ -2675,9 +2655,10 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
         l2->v->head.hflag &= ~SPLIT_TAG;
 
         pbvh_boundary_update_bmesh(pbvh, l2->v);
-        MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, l2->v);
-        MV_ADD_FLAG(
-            mv, SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_TRIANGULATE);
+        dyntopo_add_flag(pbvh,
+                         l2->v,
+                         SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT |
+                             SCULPTVERT_NEED_TRIANGULATE);
       } while ((l2 = l2->next) != l->f->l_first);
 
       l->f->head.hflag &= ~SPLIT_TAG;
@@ -2788,19 +2769,8 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
     e->head.hflag &= ~SPLIT_TAG;
 
-    MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, e->v1);
-    MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, e->v2);
-
-    if (mv1->stroke_id != pbvh->stroke_id) {
-      BKE_pbvh_bmesh_check_origdata(pbvh, e->v1, pbvh->stroke_id);
-    }
-    if (mv2->stroke_id != pbvh->stroke_id) {
-      BKE_pbvh_bmesh_check_origdata(pbvh, e->v2, pbvh->stroke_id);
-    }
-
-    if (mv1->stroke_id != mv2->stroke_id) {
-      printf("stroke_id error\n");
-    }
+    BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, e->v1, pbvh->stroke_id);
+    BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, e->v2, pbvh->stroke_id);
 
     validate_edge(pbvh, pbvh->header.bm, e, true, true);
 
@@ -2849,19 +2819,20 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
     validate_edge(pbvh, pbvh->header.bm, newe, true, true);
     validate_vert(pbvh, pbvh->header.bm, newv, true, true);
 
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, newv);
-
     newv->head.hflag |= SPLIT_TAG;
 
     pbvh_boundary_update_bmesh(pbvh, newv);
-    MV_ADD_FLAG(mv,
-                SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_TRIANGULATE);
-    mv->stroke_id = pbvh->stroke_id;
+    dyntopo_add_flag(pbvh,
+                     newv,
+                     SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT |
+                         SCULPTVERT_NEED_TRIANGULATE);
 
-    mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, e->v1 != newv ? e->v1 : e->v2);
+    BMVert *otherv = e->v1 != newv ? e->v1 : e->v2;
     pbvh_boundary_update_bmesh(pbvh, e->v1 != newv ? e->v1 : e->v2);
-    MV_ADD_FLAG(mv,
-                SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE);
+    dyntopo_add_flag(pbvh,
+                     otherv,
+                     SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE |
+                         SCULPTVERT_NEED_TRIANGULATE);
 
     BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
 
@@ -3185,7 +3156,9 @@ DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
                                 {CD_DYNTOPO_VERT, nullptr, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
                                 {CD_PROP_INT32,
                                  SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_vertex),
-                                 CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
+                                 CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
+                                {CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(valence), CD_FLAG_TEMPORARY},
+                                {CD_PROP_INT8, SCULPT_ATTRIBUTE_NAME(flags), CD_FLAG_TEMPORARY}};
 
   BMCustomLayerReq flayers[] = {
       {CD_PROP_FLOAT2, SCULPT_ATTRIBUTE_NAME(face_areas), CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
@@ -3213,6 +3186,10 @@ DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
   pbvh->cd_faceset_offset = CustomData_get_offset_named(
       &bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
   pbvh->cd_vcol_offset = -1;
+  pbvh->cd_valence = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(valence));
+  pbvh->cd_flag = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_INT8, SCULPT_ATTRIBUTE_NAME(flags));
 
   if (isfake) {
     pbvh->bm_log = BM_log_create(bm, pbvh->bm_idmap);
@@ -3301,11 +3278,9 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
   BMVert *v;
 
   BM_ITER_MESH (v, &iter, ds->pbvh->header.bm, BM_VERTS_OF_MESH) {
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(ds->pbvh->cd_sculpt_vert, v);
-
     pbvh_boundary_update_bmesh(ds->pbvh, v);
-    mv->flag |= SCULPTVERT_NEED_TRIANGULATE;
-    mv->valence = BM_vert_edge_count(v);
+    dyntopo_add_flag(ds->pbvh, v, SCULPTVERT_NEED_TRIANGULATE);
+    BM_ELEM_CD_SET_INT(v, ds->pbvh->cd_valence, BM_vert_edge_count(v));
 
     pbvh_check_vert_boundary(ds->pbvh, v);
 

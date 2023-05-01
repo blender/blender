@@ -464,6 +464,7 @@ set(SRC
   BKE_rigidbody.h
   BKE_scene.h
   BKE_screen.h
+  BKE_sculpt.hh
   BKE_sequencer_offscreen.h
   BKE_shader_fx.h
   BKE_shrinkwrap.h

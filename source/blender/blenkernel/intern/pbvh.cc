@@ -3011,7 +3011,8 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
   return hit;
 }
 
-bool BKE_pbvh_node_raycast(PBVH *pbvh,
+bool BKE_pbvh_node_raycast(SculptSession *ss,
+                           PBVH *pbvh,
                            PBVHNode *node,
                            float (*origco)[3],
                            bool use_origco,
@@ -3064,7 +3065,8 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                                      face_normal);
       break;
     case PBVH_BMESH:
-      hit = pbvh_bmesh_node_raycast(pbvh,
+      hit = pbvh_bmesh_node_raycast(ss,
+                                    pbvh,
                                     node,
                                     ray_start,
                                     ray_normal,
@@ -3284,7 +3286,8 @@ static bool pbvh_grids_node_nearest_to_ray(PBVH *pbvh,
   return hit;
 }
 
-bool BKE_pbvh_node_find_nearest_to_ray(PBVH *pbvh,
+bool BKE_pbvh_node_find_nearest_to_ray(SculptSession *ss,
+                                       PBVH *pbvh,
                                        PBVHNode *node,
                                        float (*origco)[3],
                                        bool use_origco,
@@ -3311,7 +3314,7 @@ bool BKE_pbvh_node_find_nearest_to_ray(PBVH *pbvh,
       break;
     case PBVH_BMESH:
       hit = pbvh_bmesh_node_nearest_to_ray(
-          pbvh, node, ray_start, ray_normal, depth, dist_sq, use_origco, stroke_id);
+          ss, pbvh, node, ray_start, ray_normal, depth, dist_sq, use_origco, stroke_id);
       break;
   }
 
@@ -4611,87 +4614,6 @@ void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
   }
 
   MEM_SAFE_FREE(visit);
-}
-
-bool BKE_pbvh_get_origvert(
-    PBVH *pbvh, PBVHVertRef vertex, const float **r_co, float **r_no, float **r_color)
-{
-  MSculptVert *mv;
-
-  switch (pbvh->header.type) {
-    case PBVH_FACES:
-    case PBVH_GRIDS:
-      mv = pbvh->msculptverts + vertex.i;
-
-      if (mv->stroke_id != pbvh->stroke_id) {
-        mv->stroke_id = pbvh->stroke_id;
-        float *mask = nullptr;
-
-        if (pbvh->header.type == PBVH_FACES) {
-          copy_v3_v3(mv->origco, pbvh->vert_positions[vertex.i]);
-          copy_v3_v3(mv->origno, pbvh->vert_normals[vertex.i]);
-          mask = (float *)CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK);
-
-          if (mask) {
-            mask += vertex.i;
-          }
-        }
-        else {
-          const CCGKey *key = BKE_pbvh_get_grid_key(pbvh);
-          const int grid_index = vertex.i / key->grid_area;
-          const int vertex_index = vertex.i - grid_index * key->grid_area;
-          CCGElem *elem = BKE_pbvh_get_grids(pbvh)[grid_index];
-
-          copy_v3_v3(mv->origco, CCG_elem_co(key, CCG_elem_offset(key, elem, vertex_index)));
-          copy_v3_v3(mv->origno, CCG_elem_no(key, CCG_elem_offset(key, elem, vertex_index)));
-          mask = key->has_mask ? CCG_elem_mask(key, CCG_elem_offset(key, elem, vertex_index)) :
-                                 nullptr;
-        }
-
-        if (mask) {
-          mv->origmask = (ushort)(*mask * 65535.0f);
-        }
-
-        if (pbvh->color_layer) {
-          BKE_pbvh_vertex_color_get(pbvh, vertex, mv->origcolor);
-        }
-      }
-      break;
-    case PBVH_BMESH: {
-      BMVert *v = (BMVert *)vertex.i;
-      mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-
-      if (mv->stroke_id != pbvh->stroke_id) {
-        mv->stroke_id = pbvh->stroke_id;
-
-        copy_v3_v3(mv->origco, v->co);
-        copy_v3_v3(mv->origno, v->no);
-
-        if (pbvh->cd_vert_mask_offset != -1) {
-          mv->origmask = (short)(BM_ELEM_CD_GET_FLOAT(v, pbvh->cd_vert_mask_offset) * 65535.0f);
-        }
-
-        if (pbvh->cd_vcol_offset != -1) {
-          BKE_pbvh_vertex_color_get(pbvh, vertex, mv->origcolor);
-        }
-      }
-      break;
-    }
-  }
-
-  if (r_co) {
-    *r_co = mv->origco;
-  }
-
-  if (r_no) {
-    *r_no = mv->origno;
-  }
-
-  if (r_color) {
-    *r_color = mv->origcolor;
-  }
-
-  return true;
 }
 
 int BKE_pbvh_debug_draw_gen_get(PBVHNode *node)

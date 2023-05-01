@@ -785,7 +785,7 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
   bool weighted = brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }

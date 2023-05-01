@@ -110,6 +110,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+using namespace blender::bke::paint;
+
 /*
 If you're working with uniform triangle tesselations, the math for
 calculating principle curvatures reduces to doing an eigen decomposition
@@ -257,10 +259,7 @@ void SCULPT_curvature_dir_get(SculptSession *ss,
     return;
   }
 
-  BMVert *bv = (BMVert *)v.i;
-  MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, bv);
-
-  copy_v3_v3(dir, mv->curvature_dir);
+  copy_v3_v3(dir, vertex_attr_ptr<float>(v, ss->attrs.curvature_dir));
 }
 
 void SCULPT_curvature_begin(SculptSession *ss, struct PBVHNode *node, bool useAccurateSolver)
@@ -282,7 +281,7 @@ void SCULPT_curvature_begin(SculptSession *ss, struct PBVHNode *node, bool useAc
       SculptCurvatureData curv;
       SCULPT_calc_principle_curvatures(ss, vi.vertex, &curv, useAccurateSolver);
 
-      copy_v3_v3(mv->curvature_dir, curv.principle[0]);
+      copy_v3_v3(vertex_attr_ptr<float>(vi.vertex, ss->attrs.curvature_dir), curv.principle[0]);
     }
     BKE_pbvh_vertex_iter_end;
   }

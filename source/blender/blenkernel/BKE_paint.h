@@ -717,8 +717,15 @@ typedef struct SculptAttributePointers {
   SculptAttribute *boundary_flags;
   SculptAttribute *sculpt_vert;
   SculptAttribute *stroke_id;
-  SculptAttribute *sculpt_flags; /* CD_PROP_INT8,   vert */
-  SculptAttribute *orig_fsets;   /* CD_PROP_INT32,  face */
+
+  SculptAttribute *valence;           /* CD_PROP_INT32,  vert */
+  SculptAttribute *flags;             /* CD_PROP_INT8,   vert */
+  SculptAttribute *orig_co, *orig_no; /* CD_PROP_FLOAT3, vert */
+  SculptAttribute *orig_fsets;        /* CD_PROP_INT32,  face */
+  SculptAttribute *orig_color;        /* CD_PROP_FLOAT4, vert */
+  SculptAttribute *orig_mask;         /* CD_PROP_FLOAT   vert */
+
+  SculptAttribute *curvature_dir;     /* Curvature direction vectors, CD_PROP_FLOAT3 */
 
   SculptAttribute *smear_previous;
   SculptAttribute *hide_poly;
@@ -796,18 +803,9 @@ struct SculptSession {
 
   /* The 0 ID is not used by the tools or the visibility system, it is just used when creating new
    * geometry (the trim tool, for example) to detect which geometry was just added, so it can be
-<<<<<<<
-=======
-/* Destroy attributes that were marked as stroke only in SculptAttributeParams. */
-  void BKE_sculpt_attributes_destroy_temporary_stroke(struct Object *ob);
-
-  /**
-   * Create new color layer on object if it doesn't have one and if experimental feature set has
-   * sculpt vertex color enabled. Returns truth if new layer has been added, false otherwise.
-  >>>>>>>
-     * assigned a valid Face Set after creation. Tools are not intended to run with Face Sets IDs
-  set
-     * to 0. */
+   * assigned a valid Face Set after creation. Tools are not intended to run with Face Sets IDs set
+   * to 0.
+   */
   int *face_sets;
   /**
    * A reference to the ".hide_poly" attribute, to store whether (base) polygons are hidden.
@@ -1049,6 +1047,15 @@ int BKE_sculptsession_vertex_count(const struct SculptSession *ss);
 
 void BKE_sculpt_ensure_idmap(struct Object *ob);
 
+void BKE_sculpt_ensure_origco(struct Object *ob);
+void BKE_sculpt_ensure_origmask(struct Object *ob);
+void BKE_sculpt_ensure_origcolor(struct Object *ob);
+void BKE_sculpt_ensure_origfset(struct Object *ob);
+void BKE_sculpt_ensure_curvature_dir(struct Object *ob);
+
+    /* Ensures Sculpt_flags and sculpt_valence layers. */
+void BKE_sculpt_ensure_sculpt_layers(struct Object *ob);
+
 /* Ensure an attribute layer exists. */
 SculptAttribute *BKE_sculpt_attribute_ensure(struct Object *ob,
                                              eAttrDomain domain,
@@ -1282,6 +1289,13 @@ static void face_attr_set(const PBVHFaceRef face, const SculptAttribute *attr, T
 {
   *face_attr_ptr<T>(face, attr) = data;
 }
+
+bool get_original_vertex(SculptSession *ss,
+                         PBVHVertRef vertex,
+                         const float **r_co,
+                         float **r_no,
+                         float **r_color,
+                         float **r_mask);
 }  // namespace blender::bke::paint
 
 BLI_INLINE void BKE_sculpt_boundary_flag_update(SculptSession *ss, PBVHVertRef vertex)

@@ -387,7 +387,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
     float orig_co[3], val[3], avg[3], disp[3], disp2[3], transform[3][3], final_pos[3];
@@ -890,7 +890,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
     SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
 
     BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-      SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+      SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
 
       copy_v3_v3(vd.co, orig_data.co);
     }

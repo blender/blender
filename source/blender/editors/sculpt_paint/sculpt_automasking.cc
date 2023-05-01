@@ -264,7 +264,7 @@ static float automasking_view_occlusion_factor(AutomaskingCache *automasking,
 {
   char f = vertex_attr_get<char>(vertex, ss->attrs.automasking_occlusion);
 
-  if (force || SCULPT_stroke_id_test(ss, vertex, STROKEID_USER_OCCLUSION)) {
+  if (force || blender::bke::sculpt::stroke_id_test(ss, vertex, STROKEID_USER_OCCLUSION)) {
     f = *vertex_attr_ptr<char>(
         vertex,
         ss->attrs.automasking_occlusion) = SCULPT_vertex_is_occluded(ss, vertex, true) ? 2 : 1;
@@ -280,7 +280,7 @@ static float automasking_factor_end(SculptSession *ss,
                                     float value)
 {
   if (ss->attrs.stroke_id) {
-    SCULPT_stroke_id_test(ss, vertex, STROKEID_USER_AUTOMASKING);
+    blender::bke::sculpt::stroke_id_test(ss, vertex, STROKEID_USER_AUTOMASKING);
   }
 
   return value;
@@ -494,7 +494,7 @@ static float sculpt_automasking_cavity_factor(AutomaskingCache *automasking,
                                               SculptSession *ss,
                                               PBVHVertRef vertex)
 {
-  if (SCULPT_stroke_id_test_no_update(ss, vertex, STROKEID_USER_AUTOMASKING)) {
+  if (blender::bke::sculpt::stroke_id_test_no_update(ss, vertex, STROKEID_USER_AUTOMASKING)) {
     sculpt_calc_blurred_cavity(ss, automasking, automasking->settings.cavity_blur_steps, vertex);
   }
 
@@ -795,7 +795,7 @@ static void sculpt_normal_occlusion_automasking_fill(AutomaskingCache *automaski
     }
 
     if (ss->attrs.stroke_id) {
-      SCULPT_stroke_id_test(ss, vertex, STROKEID_USER_AUTOMASKING);
+      blender::bke::sculpt::stroke_id_test(ss, vertex, STROKEID_USER_AUTOMASKING);
     }
 
     vertex_attr_set<float>(vertex, ss->attrs.automasking_factor, f);

@@ -169,7 +169,7 @@ static void sculpt_transform_task_cb(void *__restrict userdata,
 
   SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_COORDS);
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
 
     float transformed_co[3], orig_co[3], disp[3];
     float *start_co;
@@ -258,7 +258,7 @@ static void sculpt_elastic_transform_task_cb(void *__restrict userdata,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     float transformed_co[3], orig_co[3], disp[3];
     const float fade = vd.mask ? *vd.mask : 0.0f;
     copy_v3_v3(orig_co, orig_data.co);

@@ -1470,7 +1470,7 @@ static void do_boundary_brush_circle_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
       continue;
@@ -1619,7 +1619,7 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
     }
 
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
       continue;
@@ -1672,7 +1672,7 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
     }
 
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
       continue;
@@ -1722,7 +1722,7 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
     }
 
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
       continue;
@@ -1773,7 +1773,7 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
     }
 
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
       continue;
@@ -1828,7 +1828,7 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
     }
 
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
       continue;
@@ -1874,7 +1874,7 @@ static void do_boundary_brush_smooth_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+    SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     if (!SCULPT_check_vertex_pivot_symmetry(
             orig_data.co, boundary->initial_vertex_position, symm)) {
       continue;
@@ -2125,7 +2125,8 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
           0, nodes.size(), &data, do_boundary_brush_smooth_task_cb_ex, &settings);
       break;
     case BRUSH_BOUNDARY_DEFORM_CIRCLE:
-      BLI_task_parallel_range(0, nodes.size(), &data, do_boundary_brush_circle_task_cb_ex, &settings);
+      BLI_task_parallel_range(
+          0, nodes.size(), &data, do_boundary_brush_circle_task_cb_ex, &settings);
       break;
   }
 

@@ -1850,24 +1850,23 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
 /**
  * DEPRECATED use Update a #SculptOrigVertData for a particular vertex from the PBVH iterator.
  */
-void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertRef vertex)
+void SCULPT_orig_vert_data_update(SculptSession *ss,
+                                  SculptOrigVertData *orig_data,
+                                  PBVHVertRef vertex)
 {
-  // check if we need to update original data for current stroke
-  MSculptVert *mv = SCULPT_vertex_get_sculptvert(orig_data->ss, vertex);
+  float *co = nullptr, *no = nullptr, *color = nullptr, *mask = nullptr;
 
-  SCULPT_vertex_check_origdata(orig_data->ss, vertex);
+  get_original_vertex(ss, vertex, &co, &no, &color, &mask);
 
   if (orig_data->datatype == SCULPT_UNDO_COORDS) {
-    float *no = mv->origno;
-
+    orig_data->co = co;
     orig_data->no = no;
-    orig_data->co = mv->origco;
   }
   else if (orig_data->datatype == SCULPT_UNDO_COLOR) {
-    orig_data->col = mv->origcolor;
+    orig_data->col = color;
   }
   else if (orig_data->datatype == SCULPT_UNDO_MASK) {
-    orig_data->mask = (float)mv->origmask / 65535.0f;
+    orig_data->mask = *mask;
   }
 }
 
@@ -5778,7 +5777,8 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
   float back_depth = 0.0f;
   int hit_count = 0;
 
-  if (BKE_pbvh_node_raycast(srd->ss->pbvh,
+  if (BKE_pbvh_node_raycast(srd->ss,
+                            srd->ss->pbvh,
                             node,
                             origco,
                             use_origco,
@@ -5818,7 +5818,8 @@ static void sculpt_find_nearest_to_ray_cb(PBVHNode *node, void *data_v, float *t
     }
   }
 
-  if (BKE_pbvh_node_find_nearest_to_ray(srd->ss->pbvh,
+  if (BKE_pbvh_node_find_nearest_to_ray(srd->ss,
+                                        srd->ss->pbvh,
                                         node,
                                         origco,
                                         use_origco,
@@ -7058,12 +7059,12 @@ void SCULPT_automasking_node_begin(Object *ob,
   }
 }
 
-void SCULPT_automasking_node_update(SculptSession * /*ss*/,
+void SCULPT_automasking_node_update(SculptSession * ss,
                                     AutomaskingNodeData *automask_data,
                                     PBVHVertexIter *vd)
 {
   if (automask_data->have_orig_data) {
-    SCULPT_orig_vert_data_update(&automask_data->orig_data, vd->vertex);
+    SCULPT_orig_vert_data_update(ss, &automask_data->orig_data, vd->vertex);
   }
 }
 

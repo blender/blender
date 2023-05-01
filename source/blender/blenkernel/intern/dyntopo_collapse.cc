@@ -206,8 +206,7 @@ static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
     case BM_VERT: {
       BMVert *v = reinterpret_cast<BMVert *>(elem);
 
-      MSculptVert *mv = BM_ELEM_CD_PTR<MSculptVert *>(v, data->pbvh->cd_sculpt_vert);
-      MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+      dyntopo_add_flag(data->pbvh, v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
 
       BM_log_vert_removed(bm, data->pbvh->bm_log, v);
       pbvh_bmesh_vert_remove(data->pbvh, v);
@@ -262,8 +261,7 @@ static void collapse_ring_callback_post(BMElem *elem, void *userdata)
     case BM_VERT: {
       BMVert *v = reinterpret_cast<BMVert *>(elem);
 
-      MSculptVert *mv = BM_ELEM_CD_PTR<MSculptVert *>(v, data->pbvh->cd_sculpt_vert);
-      MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+      dyntopo_add_flag(data->pbvh, v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
 
       check_new_elem_id(elem, data);
       BM_log_vert_added(bm, data->pbvh->bm_log, v);
@@ -574,8 +572,6 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   check_vert_fan_are_tris(pbvh, e->v1);
   check_vert_fan_are_tris(pbvh, e->v2);
 
-  MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v1);
-  MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v2);
   int boundflag1 = BM_ELEM_CD_GET_INT(v1, pbvh->cd_boundary_flag);
   int boundflag2 = BM_ELEM_CD_GET_INT(v2, pbvh->cd_boundary_flag);
 
@@ -589,7 +585,6 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     v_del = v2;
     v_conn = v1;
 
-    SWAP(MSculptVert *, mv1, mv2);
     SWAP(int, boundflag1, boundflag2);
   }
 
@@ -664,9 +659,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
       BMLoop *l2 = l->f->l_first;
       do {
         pbvh_boundary_update_bmesh(pbvh, l2->v);
-
-        MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, l2->v);
-        mv->flag |= mupdateflag;
+        dyntopo_add_flag(pbvh, l2->v, mupdateflag);
       } while ((l2 = l2->next) != l->f->l_first);
     } while ((l = l->radial_next) != e2->l);
   } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_conn)) != v_conn->e);
@@ -678,10 +671,8 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     return nullptr;
   }
 
-  MSculptVert *mv_conn = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v_conn);
   pbvh_boundary_update_bmesh(pbvh, v_conn);
-
-  MV_ADD_FLAG(mv_conn, mupdateflag);
+  dyntopo_add_flag(pbvh, v_conn, mupdateflag);
 
 #if 0
   e2 = v_conn->e;
@@ -702,10 +693,8 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   } while (v_conn->e && (e2 = enext) != v_conn->e);
 #endif
 
-  MSculptVert *mv3 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v_conn);
   pbvh_boundary_update_bmesh(pbvh, v_conn);
-
-  MV_ADD_FLAG(mv3, mupdateflag);
+  dyntopo_add_flag(pbvh, v_conn, mupdateflag);
 
   if (!v_conn->e) {
     /* Delete isolated vertex. */
