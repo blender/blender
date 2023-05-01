@@ -761,7 +761,7 @@ float2 PackIsland::get_diagonal_support(const float scale,
   float sx = fabsf(diagonal_rotated[0]);
   float sy = fabsf(diagonal_rotated[1]);
 
-  return float2(sx + sy * 0.5f + margin, sx * 0.5f + sy + margin); /* Upper bound. */
+  return float2(sx + sy * 0.7071f + margin, sx * 0.7071f + sy + margin); /* Upper bound. */
 }
 
 float Occupancy::trace_island(const PackIsland *island,
@@ -954,13 +954,18 @@ static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
                                  float *r_max_u,
                                  float *r_max_v)
 {
+  if (island_indices.size() == 0) {
+    return false; /* Nothing to do. */
+  }
   if (!params.rotate) {
     return false; /* Unable to rotate. */
   }
   if (params.shape_method == ED_UVPACK_SHAPE_AABB) {
-    return false; /* AABB margin calculations are not preserved under rotations. */
+    /* AABB margin calculations are not preserved under rotations. */
+    if (island_indices.size() > 1) { /* Unless there's only one island...*/
+      return false;
+    }
   }
-  BLI_assert(islands.size() > 0);
 
   UVMinimumEnclosingSquareFinder square_finder(scale, margin, &params);
   square_finder.best_quad = std::max(*r_max_u / params.target_aspect_y, *r_max_v);
@@ -1262,6 +1267,15 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
 
   /* At this stage, `max_u` and `max_v` contain the box_pack/xatlas UVs. */
 
+  rotate_inside_square(aabbs.as_span().take_front(max_box_pack),
+                       islands,
+                       params,
+                       scale,
+                       margin,
+                       r_phis,
+                       &max_u,
+                       &max_v);
+
   /* Call Alpaca. */
   if (params.rotate) {
     pack_islands_alpaca_rotate(
@@ -1270,8 +1284,6 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   else {
     pack_islands_alpaca_turbo(max_box_pack, aabbs, params.target_aspect_y, r_phis, &max_u, &max_v);
   }
-
-  rotate_inside_square(aabbs, islands, params, scale, margin, r_phis, &max_u, &max_v);
 
   return std::max(max_u / params.target_aspect_y, max_v);
 }
