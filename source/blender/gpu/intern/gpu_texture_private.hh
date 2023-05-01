@@ -132,7 +132,7 @@ class Texture {
   bool init_3D(int w, int h, int d, int mip_len, eGPUTextureFormat format);
   bool init_cubemap(int w, int layers, int mip_len, eGPUTextureFormat format);
   bool init_buffer(GPUVertBuf *vbo, eGPUTextureFormat format);
-  bool init_view(const GPUTexture *src,
+  bool init_view(GPUTexture *src,
                  eGPUTextureFormat format,
                  eGPUTextureType type,
                  int mip_start,
@@ -313,7 +313,7 @@ class Texture {
  protected:
   virtual bool init_internal() = 0;
   virtual bool init_internal(GPUVertBuf *vbo) = 0;
-  virtual bool init_internal(const GPUTexture *src, int mip_offset, int layer_offset) = 0;
+  virtual bool init_internal(GPUTexture *src, int mip_offset, int layer_offset) = 0;
 };
 
 /* Syntactic sugar. */

@@ -117,7 +117,7 @@ class GLTexture : public Texture {
   /** Return true on success. */
   bool init_internal(GPUVertBuf *vbo) override;
   /** Return true on success. */
-  bool init_internal(const GPUTexture *src, int mip_offset, int layer_offset) override;
+  bool init_internal(GPUTexture *src, int mip_offset, int layer_offset) override;
 
  private:
   bool proxy_check(int mip);

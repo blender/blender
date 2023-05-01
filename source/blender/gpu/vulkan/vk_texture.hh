@@ -61,7 +61,7 @@ class VKTexture : public Texture {
  protected:
   bool init_internal() override;
   bool init_internal(GPUVertBuf *vbo) override;
-  bool init_internal(const GPUTexture *src, int mip_offset, int layer_offset) override;
+  bool init_internal(GPUTexture *src, int mip_offset, int layer_offset) override;
 
  private:
   /** Is this texture already allocated on device. */
