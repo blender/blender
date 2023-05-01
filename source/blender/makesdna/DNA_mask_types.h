@@ -22,6 +22,8 @@ extern "C" {
 typedef struct Mask {
   ID id;
   struct AnimData *adt;
+  /* runtime (must be immediately after id for utilities to use it). */
+  DrawDataList drawdata;
   /** Mask layers. */
   ListBase masklayers;
   /** Index of active mask layer (-1 == None). */

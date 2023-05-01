@@ -70,12 +70,14 @@ set(SRC
   algorithms/COM_algorithm_smaa.hh
   algorithms/COM_algorithm_symmetric_separable_blur.hh
 
+  cached_resources/intern/cached_mask.cc
   cached_resources/intern/cached_texture.cc
   cached_resources/intern/morphological_distance_feather_weights.cc
   cached_resources/intern/smaa_precomputed_textures.cc
   cached_resources/intern/symmetric_blur_weights.cc
   cached_resources/intern/symmetric_separable_blur_weights.cc
 
+  cached_resources/COM_cached_mask.hh
   cached_resources/COM_cached_resource.hh
   cached_resources/COM_cached_texture.hh
   cached_resources/COM_morphological_distance_feather_weights.hh

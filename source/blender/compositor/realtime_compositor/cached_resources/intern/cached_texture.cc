@@ -59,7 +59,7 @@ CachedTexture::CachedTexture(
   threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
     for (const int64_t y : sub_y_range) {
       for (const int64_t x : IndexRange(size.x)) {
-        /* Compute the coordinates in the [0, 1] range and add 0.5 to evaluate the texture at the
+        /* Compute the coordinates in the [-1, 1] range and add 0.5 to evaluate the texture at the
          * center of pixels in case it was interpolated. */
         float2 coordinates = ((float2(x, y) + 0.5f) / float2(size)) * 2.0f - 1.0f;
         /* Note that it is expected that the offset is scaled by the scale. */

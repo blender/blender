@@ -10,6 +10,7 @@ void StaticCacheManager::reset()
   symmetric_separable_blur_weights.reset();
   morphological_distance_feather_weights.reset();
   cached_textures.reset();
+  cached_masks.reset();
   smaa_precomputed_textures.reset();
 }
 

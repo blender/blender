@@ -81,7 +81,7 @@ class TextureOperation : public NodeOperation {
 
   Tex *get_texture()
   {
-    return (Tex *)bnode().id;
+    return reinterpret_cast<Tex *>(bnode().id);
   }
 };
 
