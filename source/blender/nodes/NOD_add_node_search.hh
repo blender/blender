@@ -5,6 +5,7 @@
 #include <functional>
 
 #include "BLI_function_ref.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
@@ -16,25 +17,34 @@ struct bContext;
 
 namespace blender::nodes {
 
-struct AddNodeInfo {
-  using AfterAddFn = std::function<void(const bContext &C, bNodeTree &node_tree, bNode &node)>;
+struct AddNodeItem {
+  using AddFn =
+      std::function<Vector<bNode *>(const bContext &C, bNodeTree &node_tree, float2 cursor)>;
   std::string ui_name;
   std::string description;
-  AfterAddFn after_add_fn;
   int weight = 0;
+  AddFn add_fn;
 };
 
 class GatherAddNodeSearchParams {
+  using AfterAddFn = std::function<void(const bContext &C, bNodeTree &node_tree, bNode &node)>;
+  const bContext &C_;
   const bNodeType &node_type_;
   const bNodeTree &node_tree_;
-  Vector<AddNodeInfo> &r_items;
+  Vector<AddNodeItem> &r_items;
 
  public:
-  GatherAddNodeSearchParams(const bNodeType &node_type,
+  GatherAddNodeSearchParams(const bContext &C,
+                            const bNodeType &node_type,
                             const bNodeTree &node_tree,
-                            Vector<AddNodeInfo> &r_items)
-      : node_type_(node_type), node_tree_(node_tree), r_items(r_items)
+                            Vector<AddNodeItem> &r_items)
+      : C_(C), node_type_(node_type), node_tree_(node_tree), r_items(r_items)
   {
+  }
+
+  const bContext &context() const
+  {
+    return C_;
   }
 
   const bNodeTree &node_tree() const
@@ -50,10 +60,11 @@ class GatherAddNodeSearchParams {
   /**
    * \param weight: Used to customize the order when multiple search items match.
    */
-  void add_item(std::string ui_name,
-                std::string description,
-                AddNodeInfo::AfterAddFn fn = {},
-                int weight = 0);
+  void add_single_node_item(std::string ui_name,
+                            std::string description,
+                            AfterAddFn after_add_fn = {},
+                            int weight = 0);
+  void add_item(AddNodeItem item);
 };
 
 void search_node_add_ops_for_basic_node(GatherAddNodeSearchParams &params);

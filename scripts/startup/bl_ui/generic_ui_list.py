@@ -157,7 +157,7 @@ def _get_context_attr(context, data_path):
     return context.path_resolve(data_path)
 
 
-def _set_context_attr(context, data_path, value) -> None:
+def _set_context_attr(context, data_path, value):
     """Set the value of a context member based on its data path."""
     owner_path, attr_name = data_path.rsplit('.', 1)
     owner = context.path_resolve(owner_path)
@@ -172,10 +172,10 @@ class GenericUIListOperator:
     list_path: StringProperty()
     active_index_path: StringProperty()
 
-    def get_list(self, context) -> str:
+    def get_list(self, context):
         return _get_context_attr(context, self.list_path)
 
-    def get_active_index(self, context) -> str:
+    def get_active_index(self, context):
         return _get_context_attr(context, self.active_index_path)
 
     def set_active_index(self, context, index):
@@ -226,9 +226,11 @@ class UILIST_OT_entry_move(GenericUIListOperator, Operator):
 
     direction: EnumProperty(
         name="Direction",
-        items=(('UP', 'UP', 'UP'),
-               ('DOWN', 'DOWN', 'DOWN')),
-        default='UP'
+        items=(
+            ('UP', 'UP', 'UP'),
+            ('DOWN', 'DOWN', 'DOWN'),
+        ),
+        default='UP',
     )
 
     def execute(self, context):

@@ -365,7 +365,7 @@ static void data_transfer_dtdata_type_preprocess(const Mesh *me_src,
     BLI_assert(CustomData_get_layer(&me_src->ldata, CD_NORMAL) != nullptr);
     (void)me_src;
 
-    short(*custom_nors_dst)[2] = static_cast<short(*)[2]>(
+    blender::short2 *custom_nors_dst = static_cast<blender::short2 *>(
         CustomData_get_layer_for_write(ldata_dst, CD_CUSTOMLOOPNORMAL, me_dst->totloop));
 
     /* Cache loop nors into a temp CDLayer. */
@@ -415,11 +415,11 @@ static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
 
     blender::float3 *loop_nors_dst = static_cast<blender::float3 *>(
         CustomData_get_layer_for_write(ldata_dst, CD_NORMAL, me_dst->totloop));
-    short(*custom_nors_dst)[2] = static_cast<short(*)[2]>(
+    blender::short2 *custom_nors_dst = static_cast<blender::short2 *>(
         CustomData_get_layer_for_write(ldata_dst, CD_CUSTOMLOOPNORMAL, me_dst->totloop));
 
     if (!custom_nors_dst) {
-      custom_nors_dst = static_cast<short(*)[2]>(
+      custom_nors_dst = static_cast<blender::short2 *>(
           CustomData_add_layer(ldata_dst, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, me_dst->totloop));
     }
 
@@ -439,7 +439,7 @@ static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
                                                 sharp_faces,
                                                 sharp_edges.span,
                                                 {loop_nors_dst, me_dst->totloop},
-                                                custom_nors_dst);
+                                                {custom_nors_dst, me_dst->totloop});
     sharp_edges.finish();
   }
 }
@@ -1481,7 +1481,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
     if (DT_DATATYPE_IS_EDGE(dtdata_type)) {
       const float(*positions_dst)[3] = BKE_mesh_vert_positions_for_write(me_dst);
       const int num_verts_dst = me_dst->totvert;
-      const blender::Span<MEdge> edges_dst = me_dst->edges();
+      const blender::Span<blender::int2> edges_dst = me_dst->edges();
 
       if (!geom_map_init[EDATA]) {
         const int num_edges_src = me_src->totedge;
@@ -1566,7 +1566,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
     if (DT_DATATYPE_IS_LOOP(dtdata_type)) {
       const float(*positions_dst)[3] = BKE_mesh_vert_positions(me_dst);
       const int num_verts_dst = me_dst->totvert;
-      const blender::Span<MEdge> edges_dst = me_dst->edges();
+      const blender::Span<blender::int2> edges_dst = me_dst->edges();
       const blender::OffsetIndices polys_dst = me_dst->polys();
       const blender::Span<int> corner_verts_dst = me_dst->corner_verts();
       const blender::Span<int> corner_edges_dst = me_dst->corner_edges();

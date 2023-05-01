@@ -121,7 +121,7 @@ class SCENE_OT_freestyle_fill_range_by_selection(Operator):
 
 
 class SCENE_OT_freestyle_add_edge_marks_to_keying_set(Operator):
-    '''Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set'''
+    """Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set"""
     bl_idname = "scene.freestyle_add_edge_marks_to_keying_set"
     bl_label = "Add Edge Marks to Keying Set"
     bl_options = {'UNDO'}
@@ -152,7 +152,7 @@ class SCENE_OT_freestyle_add_edge_marks_to_keying_set(Operator):
 
 
 class SCENE_OT_freestyle_add_face_marks_to_keying_set(Operator):
-    '''Add the data paths to the Freestyle Face Mark property of selected polygons to the active keying set'''
+    """Add the data paths to the Freestyle Face Mark property of selected polygons to the active keying set"""
     bl_idname = "scene.freestyle_add_face_marks_to_keying_set"
     bl_label = "Add Face Marks to Keying Set"
     bl_options = {'UNDO'}

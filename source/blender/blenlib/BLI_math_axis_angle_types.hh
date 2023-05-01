@@ -97,5 +97,3 @@ using AxisAngle = AxisAngleBase<float, AngleRadianBase<float>>;
 using AxisAngleCartesian = AxisAngleBase<float, AngleCartesianBase<float>>;
 
 }  // namespace blender::math
-
-/** \} */

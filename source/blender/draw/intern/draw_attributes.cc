@@ -80,9 +80,10 @@ bool drw_custom_data_match_attribute(const CustomData *custom_data,
                                      int *r_layer_index,
                                      eCustomDataType *r_type)
 {
-  const eCustomDataType possible_attribute_types[8] = {
+  const eCustomDataType possible_attribute_types[9] = {
       CD_PROP_BOOL,
       CD_PROP_INT8,
+      CD_PROP_INT32_2D,
       CD_PROP_INT32,
       CD_PROP_FLOAT,
       CD_PROP_FLOAT2,

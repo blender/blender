@@ -48,6 +48,8 @@ class UVPackIsland_Params {
 
   /** Islands can be rotated to improve packing. */
   bool rotate;
+  /** Resize islands to fill the unit square. */
+  bool scale_to_fit;
   /** (In UV Editor) only pack islands which have one or more selected UVs. */
   bool only_selected_uvs;
   /** (In 3D Viewport or UV Editor) only pack islands which have selected faces. */
@@ -60,6 +62,8 @@ class UVPackIsland_Params {
   bool ignore_pinned;
   /** Treat unselected UVs as if they were pinned. */
   bool pin_unselected;
+  /** Overlapping islands stick together. */
+  bool merge_overlap;
   /** Additional space to add around each island. */
   float margin;
   /** Which formula to use when scaling island margin. */
@@ -75,6 +79,8 @@ class UVPackIsland_Params {
 class uv_phi;
 class PackIsland {
  public:
+  PackIsland();
+
   /** Aspect ratio, required for rotation. */
   float aspect_y;
   /** Output pre-translation. */
@@ -101,19 +107,22 @@ class PackIsland {
   float2 pivot_;
   /** Half of the diagonal of the AABB. */
   float2 half_diagonal_;
+  float pre_rotate_;
 
   void place_(const float scale, const uv_phi phi);
   void finalize_geometry_(const UVPackIsland_Params &params, MemArena *arena, Heap *heap);
 
- private:
-  void calculate_pivot(); /* Calculate `pivot_` and `half_diagonal_` based on added triangles. */
   blender::Vector<float2> triangle_vertices_;
+
+ private:
+  void calculate_pivot_(); /* Calculate `pivot_` and `half_diagonal_` based on added triangles. */
+  void calculate_pre_rotation_(const UVPackIsland_Params &params);
+
   friend class Occupancy;
+  friend class OverlapMerger;
 };
 
-void pack_islands(const Span<PackIsland *> &islands,
-                  const UVPackIsland_Params &params,
-                  float r_scale[2]);
+float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params &params);
 
 /** Compute `r = mat * (a + b)` with high precision. */
 void mul_v2_m2_add_v2v2(float r[2], const float mat[2][2], const float a[2], const float b[2]);

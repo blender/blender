@@ -26,7 +26,7 @@
 #include "GPU_state.h"
 
 #include "ED_clip.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_image.h"
 #include "ED_keyframing.h"
 #include "ED_node.h"

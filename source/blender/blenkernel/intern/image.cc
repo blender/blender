@@ -3112,8 +3112,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
       }
       else {
         /* When changing to UDIM, attempt to tokenize the filepath. */
-        char *filename = (char *)BLI_path_basename(ima->filepath);
-        BKE_image_ensure_tile_token(filename);
+        BKE_image_ensure_tile_token(ima->filepath, sizeof(ima->filepath));
       }
 
       /* image buffers for non-sequence multilayer will share buffers with RenderResult,
@@ -3304,7 +3303,7 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start,
   BLI_split_dirfile(filepath, dirname, filename, sizeof(dirname), sizeof(filename));
 
   if (!BKE_image_is_filename_tokenized(filename)) {
-    BKE_image_ensure_tile_token(filename);
+    BKE_image_ensure_tile_token_filename_only(filename, sizeof(filename));
   }
 
   eUDIM_TILE_FORMAT tile_format;
@@ -3494,7 +3493,7 @@ bool BKE_image_is_filename_tokenized(char *filepath)
   return strstr(filename, "<UDIM>") != nullptr || strstr(filename, "<UVTILE>") != nullptr;
 }
 
-void BKE_image_ensure_tile_token(char *filename)
+void BKE_image_ensure_tile_token_filename_only(char *filename, size_t filename_maxncpy)
 {
   BLI_assert_msg(BLI_path_slash_find(filename) == nullptr,
                  "Only the file-name component should be used!");
@@ -3511,16 +3510,22 @@ void BKE_image_ensure_tile_token(char *filename)
    * 1000 through 2000 to provide better detection. */
   std::regex pattern(R"((.*[._-])([12]\d{3})([._-].*))");
   if (std::regex_search(path, match, pattern)) {
-    BLI_strncpy(filename, match.format("$1<UDIM>$3").c_str(), FILE_MAX);
+    BLI_strncpy(filename, match.format("$1<UDIM>$3").c_str(), filename_maxncpy);
     return;
   }
 
   /* General `u##_v###` `uvtile` pattern. */
   pattern = std::regex(R"((.*)(u\d{1,2}_v\d{1,3})(\D.*))");
   if (std::regex_search(path, match, pattern)) {
-    BLI_strncpy(filename, match.format("$1<UVTILE>$3").c_str(), FILE_MAX);
+    BLI_strncpy(filename, match.format("$1<UVTILE>$3").c_str(), filename_maxncpy);
     return;
   }
+}
+
+void BKE_image_ensure_tile_token(char *filepath, size_t filepath_maxncpy)
+{
+  char *filename = (char *)BLI_path_basename(filepath);
+  BKE_image_ensure_tile_token_filename_only(filename, filepath_maxncpy - (filename - filepath));
 }
 
 bool BKE_image_tile_filepath_exists(const char *filepath)
@@ -5136,8 +5141,8 @@ void BKE_image_user_file_path_ex(const Main *bmain,
     int index;
     if (ima->source == IMA_SRC_SEQUENCE) {
       index = iuser ? iuser->framenr : ima->lastframe;
-      BLI_path_sequence_decode(filepath, head, tail, &numlen);
-      BLI_path_sequence_encode(filepath, head, tail, numlen, index);
+      BLI_path_sequence_decode(filepath, head, sizeof(head), tail, sizeof(tail), &numlen);
+      BLI_path_sequence_encode(filepath, FILE_MAX, head, tail, numlen, index);
     }
     else if (resolve_udim) {
       index = image_get_tile_number_from_iuser(ima, iuser);
@@ -5277,7 +5282,7 @@ float *BKE_image_get_float_pixels_for_frame(struct Image *image, int frame, int 
 
 int BKE_image_sequence_guess_offset(Image *image)
 {
-  return BLI_path_sequence_decode(image->filepath, nullptr, nullptr, nullptr);
+  return BLI_path_sequence_decode(image->filepath, nullptr, 0, nullptr, 0, nullptr);
 }
 
 bool BKE_image_has_anim(Image *ima)

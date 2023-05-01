@@ -220,6 +220,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_SAMPLE(Menu):
     def draw(self, _context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeProximity")
+        node_add_menu.add_node_type(layout, "GeometryNodeIndexOfNearest")
         node_add_menu.add_node_type(layout, "GeometryNodeRaycast")
         node_add_menu.add_node_type(layout, "GeometryNodeSampleIndex")
         node_add_menu.add_node_type(layout, "GeometryNodeSampleNearest")

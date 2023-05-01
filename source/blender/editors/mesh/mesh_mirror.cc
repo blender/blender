@@ -203,9 +203,9 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
   }
   else {
     totedge = me->totedge;
-    for (const MEdge &edge : me->edges()) {
-      topo_hash[edge.v1]++;
-      topo_hash[edge.v2]++;
+    for (const blender::int2 &edge : me->edges()) {
+      topo_hash[edge[0]]++;
+      topo_hash[edge[1]]++;
     }
   }
 
@@ -228,8 +228,8 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
       }
     }
     else {
-      for (const MEdge &edge : me->edges()) {
-        const uint i1 = edge.v1, i2 = edge.v2;
+      for (const blender::int2 &edge : me->edges()) {
+        const int i1 = edge[0], i2 = edge[1];
         topo_hash[i1] += topo_hash_prev[i2] * topo_pass;
         topo_hash[i2] += topo_hash_prev[i1] * topo_pass;
         tot_unique_edges += (topo_hash[i1] != topo_hash[i2]);

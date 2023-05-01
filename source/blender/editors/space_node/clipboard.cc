@@ -167,7 +167,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
 void NODE_OT_clipboard_copy(wmOperatorType *ot)
 {
   ot->name = "Copy to Clipboard";
-  ot->description = "Copies selected nodes to the clipboard";
+  ot->description = "Copy the selected nodes to the internal clipboard";
   ot->idname = "NODE_OT_clipboard_copy";
 
   ot->exec = node_clipboard_copy_exec;
@@ -191,7 +191,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   const bool is_valid = clipboard.validate();
 
   if (clipboard.nodes.is_empty()) {
-    BKE_report(op->reports, RPT_ERROR, "Clipboard is empty");
+    BKE_report(op->reports, RPT_ERROR, "The internal clipboard is empty");
     return OPERATOR_CANCELLED;
   }
 
@@ -311,7 +311,7 @@ static int node_clipboard_paste_invoke(bContext *C, wmOperator *op, const wmEven
 void NODE_OT_clipboard_paste(wmOperatorType *ot)
 {
   ot->name = "Paste from Clipboard";
-  ot->description = "Pastes nodes from the clipboard to the active node tree";
+  ot->description = "Paste nodes from the internal clipboard to the active node tree";
   ot->idname = "NODE_OT_clipboard_paste";
 
   ot->invoke = node_clipboard_paste_invoke;

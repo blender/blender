@@ -467,8 +467,6 @@ static void wm_init_userdef(Main *bmain)
   /* Not versioning, just avoid errors. */
 #ifndef WITH_CYCLES
   BKE_addon_remove_safe(&U.addons, "cycles");
-#else
-  UNUSED_VARS(BKE_addon_remove_safe);
 #endif
 
   UI_init_userdef();
@@ -1584,7 +1582,7 @@ static void wm_history_file_update(void)
     /* Write current file to #BLENDER_HISTORY_FILE. */
     wm_history_file_write();
 
-    /* also update most recent files on System */
+    /* Also update most recent files on system. */
     GHOST_addToSystemRecentFiles(blendfile_path);
   }
 }
@@ -1629,8 +1627,11 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **r_t
     win = win->parent;
   }
 
+  wmWindowManager *wm = CTX_wm_manager(C);
   int win_size[2];
-  uint *buffer = WM_window_pixels_read(CTX_wm_manager(C), win, win_size);
+  /* NOTE: always read from front-buffer as drawing a window can cause problems while saving,
+   * even if this means the thumbnail from the screen-shot fails to be created, see: #98462. */
+  uint *buffer = WM_window_pixels_read_from_frontbuffer(wm, win, win_size);
   ImBuf *ibuf = IMB_allocFromBufferOwn(buffer, nullptr, win_size[0], win_size[1], 24);
 
   if (ibuf) {
@@ -3262,8 +3263,9 @@ static bool wm_save_mainfile_check(bContext * /*C*/, wmOperator *op)
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
   if (!BKE_blendfile_extension_check(filepath)) {
-    /* some users would prefer BLI_path_extension_replace(),
-     * we keep getting nitpicking bug reports about this - campbell */
+    /* NOTE(@ideasman42): some users would prefer #BLI_path_extension_replace(),
+     * we have had some nitpicking bug reports about this.
+     * Always adding the extension as users may use '.' as part of the file-name. */
     BLI_path_extension_ensure(filepath, FILE_MAX, ".blend");
     RNA_string_set(op->ptr, "filepath", filepath);
     return true;

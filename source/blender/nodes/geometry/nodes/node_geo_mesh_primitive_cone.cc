@@ -319,16 +319,16 @@ static void calculate_cone_verts(const ConeConfig &config, MutableSpan<float3> p
   }
 }
 
-static void calculate_cone_edges(const ConeConfig &config, MutableSpan<MEdge> edges)
+static void calculate_cone_edges(const ConeConfig &config, MutableSpan<int2> edges)
 {
   int edge_index = 0;
 
   /* Edges for top cone tip or triangle fan */
   if (config.top_has_center_vert) {
     for (const int i : IndexRange(config.circle_segments)) {
-      MEdge &edge = edges[edge_index++];
-      edge.v1 = config.first_vert;
-      edge.v2 = config.first_ring_verts_start + i;
+      int2 &edge = edges[edge_index++];
+      edge[0] = config.first_vert;
+      edge[1] = config.first_ring_verts_start + i;
     }
   }
 
@@ -338,9 +338,9 @@ static void calculate_cone_edges(const ConeConfig &config, MutableSpan<MEdge> ed
     const int next_ring_vert_start = this_ring_vert_start + config.circle_segments;
     /* Edge rings. */
     for (const int j : IndexRange(config.circle_segments)) {
-      MEdge &edge = edges[edge_index++];
-      edge.v1 = this_ring_vert_start + j;
-      edge.v2 = this_ring_vert_start + ((j + 1) % config.circle_segments);
+      int2 &edge = edges[edge_index++];
+      edge[0] = this_ring_vert_start + j;
+      edge[1] = this_ring_vert_start + ((j + 1) % config.circle_segments);
     }
     if (i == config.tot_edge_rings - 1) {
       /* There is one fewer ring of connecting edges. */
@@ -348,18 +348,18 @@ static void calculate_cone_edges(const ConeConfig &config, MutableSpan<MEdge> ed
     }
     /* Connecting edges. */
     for (const int j : IndexRange(config.circle_segments)) {
-      MEdge &edge = edges[edge_index++];
-      edge.v1 = this_ring_vert_start + j;
-      edge.v2 = next_ring_vert_start + j;
+      int2 &edge = edges[edge_index++];
+      edge[0] = this_ring_vert_start + j;
+      edge[1] = next_ring_vert_start + j;
     }
   }
 
   /* Edges for bottom triangle fan or tip. */
   if (config.bottom_has_center_vert) {
     for (const int i : IndexRange(config.circle_segments)) {
-      MEdge &edge = edges[edge_index++];
-      edge.v1 = config.last_ring_verts_start + i;
-      edge.v2 = config.last_vert;
+      int2 &edge = edges[edge_index++];
+      edge[0] = config.last_ring_verts_start + i;
+      edge[1] = config.last_vert;
     }
   }
 }
@@ -704,11 +704,11 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(
-      config.tot_verts, config.tot_edges, config.tot_corners, config.tot_faces);
+      config.tot_verts, config.tot_edges, config.tot_faces, config.tot_corners);
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<int2> edges = mesh->edges_for_write();
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
@@ -723,6 +723,7 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
   }
   calculate_selection_outputs(config, attribute_outputs, mesh->attributes_for_write());
 
+  mesh->tag_loose_verts_none();
   mesh->loose_edges_tag_none();
   mesh->bounds_set_eager(calculate_bounds_cylinder(config));
 
@@ -849,29 +850,6 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   /* Transform the mesh so that the base of the cone is at the origin. */
   BKE_mesh_translate(mesh, float3(0.0f, 0.0f, depth * 0.5f), false);
-
-  if (attribute_outputs.top_id) {
-    params.set_output("Top",
-                      AnonymousAttributeFieldInput::Create<bool>(
-                          std::move(attribute_outputs.top_id), params.attribute_producer_name()));
-  }
-  if (attribute_outputs.bottom_id) {
-    params.set_output(
-        "Bottom",
-        AnonymousAttributeFieldInput::Create<bool>(std::move(attribute_outputs.bottom_id),
-                                                   params.attribute_producer_name()));
-  }
-  if (attribute_outputs.side_id) {
-    params.set_output("Side",
-                      AnonymousAttributeFieldInput::Create<bool>(
-                          std::move(attribute_outputs.side_id), params.attribute_producer_name()));
-  }
-  if (attribute_outputs.uv_map_id) {
-    params.set_output(
-        "UV Map",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.uv_map_id),
-                                                     params.attribute_producer_name()));
-  }
 
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }

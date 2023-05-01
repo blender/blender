@@ -197,8 +197,9 @@ static void eevee_init_util_texture(void)
     texels_layer += 64 * 64;
   }
 
-  e_data.util_tex = DRW_texture_create_2d_array(
-      64, 64, layers, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_WRAP, (float *)texels);
+  eGPUTextureUsage util_usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+  e_data.util_tex = DRW_texture_create_2d_array_ex(
+      64, 64, layers, GPU_RGBA16F, util_usage, DRW_TEX_FILTER | DRW_TEX_WRAP, (float *)texels);
 
   MEM_freeN(texels);
 #if RUNTIME_LUT_CREATION

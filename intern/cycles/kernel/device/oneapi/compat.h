@@ -5,6 +5,11 @@
 
 #define __KERNEL_GPU__
 #define __KERNEL_ONEAPI__
+#define __KERNEL_64_BIT__
+
+#ifdef WITH_EMBREE_GPU
+#  define __KERNEL_GPU_RAYTRACING__
+#endif
 
 #define CCL_NAMESPACE_BEGIN
 #define CCL_NAMESPACE_END
@@ -57,16 +62,18 @@
 #define ccl_gpu_kernel_threads(block_num_threads)
 
 #ifndef WITH_ONEAPI_SYCL_HOST_TASK
-#  define ccl_gpu_kernel_signature(name, ...) \
+#  define __ccl_gpu_kernel_signature(name, ...) \
 void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
                           size_t kernel_global_size, \
                           size_t kernel_local_size, \
                           sycl::handler &cgh, \
                           __VA_ARGS__) { \
       (kg); \
-      cgh.parallel_for<class kernel_##name>( \
+      cgh.parallel_for( \
           sycl::nd_range<1>(kernel_global_size, kernel_local_size), \
           [=](sycl::nd_item<1> item) {
+
+#  define ccl_gpu_kernel_signature __ccl_gpu_kernel_signature
 
 #  define ccl_gpu_kernel_postfix \
           }); \

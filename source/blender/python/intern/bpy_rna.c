@@ -2235,6 +2235,27 @@ static int pyrna_prop_collection_subscript_is_valid_or_error(const PyObject *val
   return 0;
 }
 
+static void pyrna_prop_collection_string_subscript_unsupported_error(BPy_PropertyRNA *self,
+                                                                     const char *error_prefix)
+{
+  PyErr_Format(PyExc_TypeError,
+               "%.200s: %.200s.%.200s does not support string lookups",
+               error_prefix,
+               RNA_struct_identifier(self->ptr.type),
+               RNA_property_identifier(self->prop));
+}
+
+static int pyrna_prop_collection_string_subscript_supported_or_error(BPy_PropertyRNA *self,
+                                                                     const char *error_prefix)
+{
+  BLI_assert(BPy_PropertyRNA_Check(self));
+  if (RNA_property_collection_lookup_string_supported(self->prop)) {
+    return 0;
+  }
+  pyrna_prop_collection_string_subscript_unsupported_error(self, error_prefix);
+  return -1;
+}
+
 /* Internal use only. */
 static PyObject *pyrna_prop_collection_subscript_int(BPy_PropertyRNA *self, Py_ssize_t keynum)
 {
@@ -2317,10 +2338,9 @@ static int pyrna_prop_collection_ass_subscript_int(BPy_PropertyRNA *self,
                    len);
     }
     else {
-
       PyErr_Format(PyExc_IndexError,
                    "bpy_prop_collection[index] = value: "
-                   "failed assignment (unknown reason)",
+                   "index %d failed assignment (unknown reason)",
                    keynum);
     }
     return -1;
@@ -2360,7 +2380,7 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
       return pyrna_struct_CreatePyObject(&newptr);
     }
   }
-  else {
+  else if (RNA_property_collection_lookup_string_has_nameprop(self->prop)) {
     /* No callback defined, just iterate and find the nth item. */
     const int keylen = strlen(keyname);
     char name[256];
@@ -2369,14 +2389,18 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
     bool found = false;
     CollectionPropertyIterator iter;
     RNA_property_collection_begin(&self->ptr, self->prop, &iter);
-    for (int i = 0; iter.valid; RNA_property_collection_next(&iter), i++) {
+    for (; iter.valid; RNA_property_collection_next(&iter)) {
       PropertyRNA *nameprop = RNA_struct_name_property(iter.ptr.type);
+      /* The #RNA_property_collection_lookup_string_has_nameprop check should account for this.
+       * Although it's technically possible a sub-type clears the name property,
+       * this seems unlikely. */
+      BLI_assert(nameprop != NULL);
       char *nameptr = RNA_property_string_get_alloc(
           &iter.ptr, nameprop, name, sizeof(name), &namelen);
       if ((keylen == namelen) && STREQ(nameptr, keyname)) {
         found = true;
       }
-      if ((char *)&name != nameptr) {
+      if (name != nameptr) {
         MEM_freeN(nameptr);
       }
       if (found) {
@@ -2394,6 +2418,10 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
       }
       return result;
     }
+  }
+  else {
+    pyrna_prop_collection_string_subscript_unsupported_error(self, "bpy_prop_collection[key]");
+    return NULL;
   }
 
   PyErr_Format(PyExc_KeyError, "bpy_prop_collection[key]: key \"%.200s\" not found", keyname);
@@ -3341,6 +3369,10 @@ static int pyrna_prop_collection_contains(BPy_PropertyRNA *self, PyObject *key)
 
   if (RNA_property_collection_lookup_string(&self->ptr, self->prop, keyname, &newptr)) {
     return 1;
+  }
+  if (pyrna_prop_collection_string_subscript_supported_or_error(
+          self, "bpy_prop_collection.__contains__") == -1) {
+    return -1;
   }
 
   return 0;
@@ -5102,6 +5134,10 @@ static PyObject *pyrna_prop_collection_get(BPy_PropertyRNA *self, PyObject *args
     if (RNA_property_collection_lookup_string(&self->ptr, self->prop, key, &newptr)) {
       return pyrna_struct_CreatePyObject(&newptr);
     }
+    if (pyrna_prop_collection_string_subscript_supported_or_error(
+            self, "bpy_prop_collection.get") == -1) {
+      return NULL;
+    }
   }
   else if (PyTuple_Check(key_ob)) {
     PyObject *ret = pyrna_prop_collection_subscript_str_lib_pair(
@@ -5344,18 +5380,23 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
     buffer_is_compat = false;
     if (PyObject_CheckBuffer(seq)) {
       Py_buffer buf;
-      PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT);
-
-      /* Check if the buffer matches. */
-
-      buffer_is_compat = foreach_compat_buffer(raw_type, attr_signed, buf.format);
-
-      if (buffer_is_compat) {
-        ok = RNA_property_collection_raw_set(
-            NULL, &self->ptr, self->prop, attr, buf.buf, raw_type, tot);
+      if (PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+        /* Request failed. A `PyExc_BufferError` will have been raised,
+         * so clear it to silently fall back to accessing as a sequence. */
+        PyErr_Clear();
       }
+      else {
+        /* Check if the buffer matches. */
 
-      PyBuffer_Release(&buf);
+        buffer_is_compat = foreach_compat_buffer(raw_type, attr_signed, buf.format);
+
+        if (buffer_is_compat) {
+          ok = RNA_property_collection_raw_set(
+              NULL, &self->ptr, self->prop, attr, buf.buf, raw_type, tot);
+        }
+
+        PyBuffer_Release(&buf);
+      }
     }
 
     /* Could not use the buffer, fallback to sequence. */
@@ -5400,18 +5441,23 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
     buffer_is_compat = false;
     if (PyObject_CheckBuffer(seq)) {
       Py_buffer buf;
-      PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT);
-
-      /* Check if the buffer matches, TODO: signed/unsigned types. */
-
-      buffer_is_compat = foreach_compat_buffer(raw_type, attr_signed, buf.format);
-
-      if (buffer_is_compat) {
-        ok = RNA_property_collection_raw_get(
-            NULL, &self->ptr, self->prop, attr, buf.buf, raw_type, tot);
+      if (PyObject_GetBuffer(seq, &buf, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+        /* Request failed. A `PyExc_BufferError` will have been raised,
+         * so clear it to silently fall back to accessing as a sequence. */
+        PyErr_Clear();
       }
+      else {
+        /* Check if the buffer matches. */
 
-      PyBuffer_Release(&buf);
+        buffer_is_compat = foreach_compat_buffer(raw_type, attr_signed, buf.format);
+
+        if (buffer_is_compat) {
+          ok = RNA_property_collection_raw_get(
+              NULL, &self->ptr, self->prop, attr, buf.buf, raw_type, tot);
+        }
+
+        PyBuffer_Release(&buf);
+      }
     }
 
     /* Could not use the buffer, fallback to sequence. */

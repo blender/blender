@@ -1428,7 +1428,7 @@ struct Nearest2dUserData {
     struct {
       const float (*vert_positions)[3];
       const blender::float3 *vert_normals;
-      const MEdge *edges; /* only used for #BVHTreeFromMeshEdges */
+      const blender::int2 *edges; /* only used for #BVHTreeFromMeshEdges */
       const int *corner_verts;
       const int *corner_edges;
       const MLoopTri *looptris;
@@ -1464,10 +1464,10 @@ static void cb_bvert_no_copy(const int index, const Nearest2dUserData *data, flo
 
 static void cb_medge_verts_get(const int index, const Nearest2dUserData *data, int r_v_index[2])
 {
-  const MEdge *edge = &data->edges[index];
+  const blender::int2 &edge = data->edges[index];
 
-  r_v_index[0] = edge->v1;
-  r_v_index[1] = edge->v2;
+  r_v_index[0] = edge[0];
+  r_v_index[1] = edge[1];
 }
 
 static void cb_bedge_verts_get(const int index, const Nearest2dUserData *data, int r_v_index[2])
@@ -1480,14 +1480,14 @@ static void cb_bedge_verts_get(const int index, const Nearest2dUserData *data, i
 
 static void cb_mlooptri_edges_get(const int index, const Nearest2dUserData *data, int r_v_index[3])
 {
-  const MEdge *edges = data->edges;
+  const blender::int2 *edges = data->edges;
   const int *corner_verts = data->corner_verts;
   const int *corner_edges = data->corner_edges;
   const MLoopTri *lt = &data->looptris[index];
   for (int j = 2, j_next = 0; j_next < 3; j = j_next++) {
-    const MEdge *edge = &edges[corner_edges[lt->tri[j]]];
+    const blender::int2 &edge = edges[corner_edges[lt->tri[j]]];
     const int tri_edge[2] = {corner_verts[lt->tri[j]], corner_verts[lt->tri[j_next]]};
-    if (ELEM(edge->v1, tri_edge[0], tri_edge[1]) && ELEM(edge->v2, tri_edge[0], tri_edge[1])) {
+    if (ELEM(edge[0], tri_edge[0], tri_edge[1]) && ELEM(edge[1], tri_edge[0], tri_edge[1])) {
       // printf("real edge found\n");
       r_v_index[j] = corner_edges[lt->tri[j]];
     }

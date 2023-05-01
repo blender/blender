@@ -209,7 +209,7 @@ static void geom_add_polyline(Geometry *geom,
       break;
     }
 
-    geom->edges_.append({uint(last_vertex_index), uint(vertex_index)});
+    geom->edges_.append({last_vertex_index, vertex_index});
     geom->track_vertex_index(vertex_index);
     last_vertex_index = vertex_index;
   }
@@ -489,7 +489,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
   /* Use the filename as the default name given to the initial object. */
   char ob_name[FILE_MAXFILE];
   BLI_strncpy(ob_name, BLI_path_basename(import_params_.filepath), FILE_MAXFILE);
-  BLI_path_extension_replace(ob_name, FILE_MAXFILE, "");
+  BLI_path_extension_strip(ob_name);
 
   Geometry *curr_geom = create_geometry(nullptr, GEOM_MESH, ob_name, r_all_geometries);
 

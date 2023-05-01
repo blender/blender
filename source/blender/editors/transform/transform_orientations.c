@@ -580,6 +580,33 @@ void ED_transform_calc_orientation_from_type(const bContext *C, float r_mat[3][3
       scene, view_layer, v3d, rv3d, ob, obedit, orient_index, pivot_point, r_mat);
 }
 
+static void handle_armature_parent_orientation(Object *ob, float r_mat[3][3])
+{
+  bPoseChannel *active_pchan = BKE_pose_channel_active(ob, false);
+
+  /* Check if target bone is a child. */
+  if (active_pchan->parent) {
+    /* For child, show parent local regardless if "local location" is set for parent bone. */
+    transform_orientations_create_from_axis(r_mat, UNPACK3(active_pchan->parent->pose_mat));
+    return;
+  }
+
+  /* For root, use local transform of armature object. */
+  transform_orientations_create_from_axis(r_mat, UNPACK3(ob->object_to_world));
+}
+
+static void handle_object_parent_orientation(Object *ob, float r_mat[3][3])
+{
+  /* If object has parent, then orient to parent. */
+  if (ob->parent) {
+    transform_orientations_create_from_axis(r_mat, UNPACK3(ob->parent->object_to_world));
+  }
+  else {
+    /* If object doesn't have parent, then orient to world. */
+    unit_m3(r_mat);
+  }
+}
+
 short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
                                                  ViewLayer *view_layer,
                                                  const View3D *v3d,
@@ -609,6 +636,20 @@ short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
       /* If not gimbal, fall through to normal. */
       ATTR_FALLTHROUGH;
     }
+    case V3D_ORIENT_PARENT: {
+      if (ob) {
+        if (ob->mode & OB_MODE_POSE) {
+          handle_armature_parent_orientation(ob, r_mat);
+          break;
+        }
+        else {
+          handle_object_parent_orientation(ob, r_mat);
+          break;
+        }
+      }
+      /* No break; we define 'parent' as 'normal' otherwise. */
+      ATTR_FALLTHROUGH;
+    }
     case V3D_ORIENT_NORMAL: {
       if (obedit || (ob && ob->mode & OB_MODE_POSE)) {
         ED_getTransformOrientationMatrix(scene, view_layer, v3d, ob, obedit, pivot_point, r_mat);
@@ -621,7 +662,7 @@ short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
       if (ob) {
         if (ob->mode & OB_MODE_POSE) {
           /* Each bone moves on its own local axis, but to avoid confusion,
-           * use the active pones axis for display #33575, this works as expected on a single
+           * use the active bone's axis for display #33575, this works as expected on a single
            * bone and users who select many bones will understand what's going on and what local
            * means when they start transforming. */
           ED_getTransformOrientationMatrix(scene, view_layer, v3d, ob, obedit, pivot_point, r_mat);
@@ -741,6 +782,8 @@ const char *transform_orientations_spacename_get(TransInfo *t, const short orien
       return TIP_("view");
     case V3D_ORIENT_CURSOR:
       return TIP_("cursor");
+    case V3D_ORIENT_PARENT:
+      return TIP_("parent");
     case V3D_ORIENT_CUSTOM_MATRIX:
       return TIP_("custom");
     case V3D_ORIENT_CUSTOM:

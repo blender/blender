@@ -876,20 +876,23 @@ static PyObject *enable_print_stats_func(PyObject * /*self*/, PyObject * /*args*
 static PyObject *get_device_types_func(PyObject * /*self*/, PyObject * /*args*/)
 {
   vector<DeviceType> device_types = Device::available_types();
-  bool has_cuda = false, has_optix = false, has_hip = false, has_metal = false, has_oneapi = false;
+  bool has_cuda = false, has_optix = false, has_hip = false, has_metal = false, has_oneapi = false,
+       has_hiprt = false;
   foreach (DeviceType device_type, device_types) {
     has_cuda |= (device_type == DEVICE_CUDA);
     has_optix |= (device_type == DEVICE_OPTIX);
     has_hip |= (device_type == DEVICE_HIP);
     has_metal |= (device_type == DEVICE_METAL);
     has_oneapi |= (device_type == DEVICE_ONEAPI);
+    has_hiprt |= (device_type == DEVICE_HIPRT);
   }
-  PyObject *list = PyTuple_New(5);
+  PyObject *list = PyTuple_New(6);
   PyTuple_SET_ITEM(list, 0, PyBool_FromLong(has_cuda));
   PyTuple_SET_ITEM(list, 1, PyBool_FromLong(has_optix));
   PyTuple_SET_ITEM(list, 2, PyBool_FromLong(has_hip));
   PyTuple_SET_ITEM(list, 3, PyBool_FromLong(has_metal));
   PyTuple_SET_ITEM(list, 4, PyBool_FromLong(has_oneapi));
+  PyTuple_SET_ITEM(list, 5, PyBool_FromLong(has_hiprt));
   return list;
 }
 
@@ -1033,6 +1036,14 @@ void *CCL_python_module_init()
   PyModule_AddObject(mod, "with_embree", Py_False);
   Py_INCREF(Py_False);
 #endif /* WITH_EMBREE */
+
+#ifdef WITH_EMBREE_GPU
+  PyModule_AddObject(mod, "with_embree_gpu", Py_True);
+  Py_INCREF(Py_True);
+#else  /* WITH_EMBREE_GPU */
+  PyModule_AddObject(mod, "with_embree_gpu", Py_False);
+  Py_INCREF(Py_False);
+#endif /* WITH_EMBREE_GPU */
 
   if (ccl::openimagedenoise_supported()) {
     PyModule_AddObject(mod, "with_openimagedenoise", Py_True);

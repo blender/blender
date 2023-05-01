@@ -126,6 +126,10 @@ typedef enum eAssetImportMethod {
   ASSET_IMPORT_APPEND_REUSE = 2,
 } eAssetImportMethod;
 
+typedef enum eAssetLibrary_Flag {
+  ASSET_LIBRARY_RELATIVE_PATH = (1 << 0),
+} eAssetLibrary_Flag;
+
 /**
  * Information to identify an asset library. May be either one of the predefined types (current
  * 'Main', builtin library, project library), or a custom type as defined in the Preferences.

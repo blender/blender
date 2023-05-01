@@ -1659,6 +1659,29 @@ int insert_keyframe(Main *bmain,
   return ret;
 }
 
+void ED_keyframes_add(FCurve *fcu, int num_keys_to_add)
+{
+  BLI_assert_msg(num_keys_to_add >= 0, "cannot remove keyframes with this function");
+
+  if (num_keys_to_add == 0) {
+    return;
+  }
+
+  fcu->bezt = MEM_recallocN(fcu->bezt, sizeof(BezTriple) * (fcu->totvert + num_keys_to_add));
+  BezTriple *bezt = fcu->bezt + fcu->totvert; /* Pointer to the first new one. '*/
+
+  fcu->totvert += num_keys_to_add;
+
+  /* Iterate over the new keys to update their settings. */
+  while (num_keys_to_add--) {
+    /* Defaults, ignoring user-preference gives predictable results for API. */
+    bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
+    bezt->ipo = BEZT_IPO_BEZ;
+    bezt->h1 = bezt->h2 = HD_AUTO_ANIM;
+    bezt++;
+  }
+}
+
 /* ************************************************** */
 /* KEYFRAME DELETION */
 

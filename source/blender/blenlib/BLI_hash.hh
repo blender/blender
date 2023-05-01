@@ -217,7 +217,7 @@ template<typename T> struct DefaultHash<T *> {
 
 template<typename T> uint64_t get_default_hash(const T &v)
 {
-  return DefaultHash<T>{}(v);
+  return DefaultHash<std::decay_t<T>>{}(v);
 }
 
 template<typename T1, typename T2> uint64_t get_default_hash_2(const T1 &v1, const T2 &v2)

@@ -286,7 +286,7 @@ static GlyphBLF *blf_glyph_cache_add_glyph(
  *
  * This table can be used to find a coverage bit based on a charcode.
  * Later we can get default language and script from `codepoint`.
- */
+ * \{ */
 
 struct UnicodeBlock {
   uint first;

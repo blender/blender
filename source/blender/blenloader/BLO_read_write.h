@@ -158,6 +158,23 @@ void blo_write_id_struct(BlendWriter *writer,
   blo_write_id_struct(writer, BLO_get_struct_id(writer, struct_name), id_address, id)
 
 /**
+ * Specific code to prepare IDs to be written.
+ *
+ * Required for writing properly embedded IDs currently.
+ *
+ * \note: Once there is a better generic handling of embedded IDs, this may go back to private code
+ * in writefile.c
+ */
+typedef struct BLO_Write_IDBuffer BLO_Write_IDBuffer;
+
+BLO_Write_IDBuffer *BLO_write_allocate_id_buffer(void);
+void BLO_write_init_id_buffer_from_id(BLO_Write_IDBuffer *id_buffer,
+                                      struct ID *id,
+                                      const bool is_undo);
+struct ID *BLO_write_get_id_buffer_temp_id(BLO_Write_IDBuffer *id_buffer);
+void BLO_write_destroy_id_buffer(BLO_Write_IDBuffer **id_buffer);
+
+/**
  * Write raw data.
  */
 void BLO_write_raw(BlendWriter *writer, size_t size_in_bytes, const void *data_ptr);

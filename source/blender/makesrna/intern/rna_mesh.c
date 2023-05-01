@@ -375,8 +375,9 @@ static int rna_MeshVertex_index_get(PointerRNA *ptr)
 static int rna_MeshEdge_index_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const MEdge *edge = (MEdge *)ptr->data;
-  const int index = (int)(edge - BKE_mesh_edges(mesh));
+  const vec2i *edge = (vec2i *)ptr->data;
+  const vec2i *edges = CustomData_get_layer_named(&mesh->edata, CD_PROP_INT32_2D, ".edge_verts");
+  const int index = (int)(edge - edges);
   BLI_assert(index >= 0);
   BLI_assert(index < mesh->totedge);
   return index;
@@ -2002,8 +2003,9 @@ int rna_Mesh_vertices_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 static void rna_Mesh_edges_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
-  rna_iterator_array_begin(
-      iter, BKE_mesh_edges_for_write(mesh), sizeof(MEdge), mesh->totedge, false, NULL);
+  vec2i *edges = CustomData_get_layer_named_for_write(
+      &mesh->edata, CD_PROP_INT32_2D, ".edge_verts", mesh->totedge);
+  rna_iterator_array_begin(iter, edges, sizeof(vec2i), mesh->totedge, false, NULL);
 }
 static int rna_Mesh_edges_length(PointerRNA *ptr)
 {
@@ -2016,9 +2018,11 @@ int rna_Mesh_edges_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
   if (index < 0 || index >= mesh->totedge) {
     return false;
   }
+  vec2i *edges = CustomData_get_layer_named_for_write(
+      &mesh->edata, CD_PROP_INT32_2D, ".edge_verts", mesh->totedge);
   r_ptr->owner_id = &mesh->id;
   r_ptr->type = &RNA_MeshEdge;
-  r_ptr->data = &BKE_mesh_edges_for_write(mesh)[index];
+  r_ptr->data = &edges[index];
   return true;
 }
 
@@ -2794,13 +2798,13 @@ static void rna_def_medge(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "MeshEdge", NULL);
-  RNA_def_struct_sdna(srna, "MEdge");
+  RNA_def_struct_sdna(srna, "vec2i");
   RNA_def_struct_ui_text(srna, "Mesh Edge", "Edge in a Mesh data-block");
   RNA_def_struct_path_func(srna, "rna_MeshEdge_path");
   RNA_def_struct_ui_icon(srna, ICON_EDGESEL);
 
   prop = RNA_def_property(srna, "vertices", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_sdna(prop, NULL, "v1");
+  RNA_def_property_int_sdna(prop, NULL, "x");
   RNA_def_property_array(prop, 2);
   RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
   /* XXX allows creating invalid meshes */
@@ -3103,6 +3107,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
       prop,
       "MeshUVLoop (Deprecated)",
       "Deprecated, use 'uv', 'vertex_select', 'edge_select' or 'pin' properties instead");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_MeshUVLoopLayer_data_begin",
                                     "rna_iterator_array_next",
@@ -3143,6 +3148,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
   prop = RNA_def_property(srna, "uv", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "Float2AttributeValue");
   RNA_def_property_ui_text(prop, "UV", "UV coordinates on face corners");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_MeshUVLoopLayer_uv_begin",
                                     "rna_iterator_array_next",
@@ -3157,6 +3163,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "BoolAttributeValue");
   RNA_def_property_ui_text(
       prop, "UV Vertex Selection", "Selection state of the face corner the UV editor");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_MeshUVLoopLayer_vert_select_begin",
                                     "rna_iterator_array_next",
@@ -3171,6 +3178,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "BoolAttributeValue");
   RNA_def_property_ui_text(
       prop, "UV Edge Selection", "Selection state of the edge in the UV editor");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_MeshUVLoopLayer_edge_select_begin",
                                     "rna_iterator_array_next",
@@ -3184,6 +3192,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
   prop = RNA_def_property(srna, "pin", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "BoolAttributeValue");
   RNA_def_property_ui_text(prop, "UV Pin", "UV pinned state in the UV editor");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_MeshUVLoopLayer_pin_begin",
                                     "rna_iterator_array_next",
@@ -3252,6 +3261,7 @@ static void rna_def_mloopcol(BlenderRNA *brna)
   prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MeshLoopColor");
   RNA_def_property_ui_text(prop, "Data", "");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_MeshLoopColorLayer_data_begin",
                                     "rna_iterator_array_next",
@@ -3313,6 +3323,7 @@ static void rna_def_MPropCol(BlenderRNA *brna)
   prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MeshVertColor");
   RNA_def_property_ui_text(prop, "Data", "");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_MeshVertColorLayer_data_begin",
                                     "rna_iterator_array_next",
@@ -3358,6 +3369,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
     prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE); \
     RNA_def_property_struct_type(prop, "Mesh" elemname "FloatProperty"); \
     RNA_def_property_ui_text(prop, "Data", ""); \
+    RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE); \
     RNA_def_property_collection_funcs(prop, \
                                       "rna_Mesh" elemname "FloatPropertyLayer_data_begin", \
                                       "rna_iterator_array_next", \
@@ -3401,6 +3413,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
     prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE); \
     RNA_def_property_struct_type(prop, "Mesh" elemname "IntProperty"); \
     RNA_def_property_ui_text(prop, "Data", ""); \
+    RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE); \
     RNA_def_property_collection_funcs(prop, \
                                       "rna_Mesh" elemname "IntPropertyLayer_data_begin", \
                                       "rna_iterator_array_next", \
@@ -3443,6 +3456,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
     prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE); \
     RNA_def_property_struct_type(prop, "Mesh" elemname "StringProperty"); \
     RNA_def_property_ui_text(prop, "Data", ""); \
+    RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE); \
     RNA_def_property_collection_funcs(prop, \
                                       "rna_Mesh" elemname "StringPropertyLayer_data_begin", \
                                       "rna_iterator_array_next", \
@@ -3951,6 +3965,7 @@ static void rna_def_skin_vertices(BlenderRNA *brna, PropertyRNA *UNUSED(cprop))
   prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MeshSkinVertex");
   RNA_def_property_ui_text(prop, "Data", "");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_MeshSkinVertexLayer_data_begin",
                                     "rna_iterator_array_next",
@@ -4004,6 +4019,7 @@ static void rna_def_vertex_creases(BlenderRNA *brna)
   prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MeshVertexCrease");
   RNA_def_property_ui_text(prop, "Data", "");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_MeshVertexCreaseLayer_data_begin",
                                     "rna_iterator_array_next",
@@ -4038,6 +4054,7 @@ static void rna_def_edge_creases(BlenderRNA *brna)
   prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MeshEdgeCrease");
   RNA_def_property_ui_text(prop, "Data", "");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_MeshEdgeCreaseLayer_data_begin",
                                     "rna_iterator_array_next",

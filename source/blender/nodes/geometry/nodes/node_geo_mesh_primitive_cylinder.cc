@@ -122,29 +122,6 @@ static void node_geo_exec(GeoNodeExecParams params)
                                             fill,
                                             attribute_outputs);
 
-  if (attribute_outputs.top_id) {
-    params.set_output("Top",
-                      AnonymousAttributeFieldInput::Create<bool>(
-                          std::move(attribute_outputs.top_id), params.attribute_producer_name()));
-  }
-  if (attribute_outputs.bottom_id) {
-    params.set_output(
-        "Bottom",
-        AnonymousAttributeFieldInput::Create<bool>(std::move(attribute_outputs.bottom_id),
-                                                   params.attribute_producer_name()));
-  }
-  if (attribute_outputs.side_id) {
-    params.set_output("Side",
-                      AnonymousAttributeFieldInput::Create<bool>(
-                          std::move(attribute_outputs.side_id), params.attribute_producer_name()));
-  }
-  if (attribute_outputs.uv_map_id) {
-    params.set_output(
-        "UV Map",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.uv_map_id),
-                                                     params.attribute_producer_name()));
-  }
-
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 

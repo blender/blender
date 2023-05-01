@@ -20,7 +20,7 @@ class DummyDevice : public Device {
 
   ~DummyDevice() {}
 
-  virtual BVHLayoutMask get_bvh_layout_mask() const override
+  virtual BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override
   {
     return 0;
   }

@@ -267,6 +267,18 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
   if (ob_src->lightgroup) {
     ob_dst->lightgroup = (LightgroupMembership *)MEM_dupallocN(ob_src->lightgroup);
   }
+
+  if ((flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) != 0) {
+    if (ob_src->lightprobe_cache) {
+      /* Reference the original object data. */
+      ob_dst->lightprobe_cache = (LightProbeObjectCache *)MEM_dupallocN(ob_src->lightprobe_cache);
+      ob_dst->lightprobe_cache->shared = true;
+    }
+  }
+  else {
+    /* Do not copy lightprobe's cache. */
+    ob_dst->lightprobe_cache = nullptr;
+  }
 }
 
 static void object_free_data(ID *id)
@@ -319,6 +331,8 @@ static void object_free_data(ID *id)
   BKE_previewimg_free(&ob->preview);
 
   MEM_SAFE_FREE(ob->lightgroup);
+
+  BKE_lightprobe_cache_free(ob);
 }
 
 static void library_foreach_modifiersForeachIDLink(void *user_data,
@@ -597,6 +611,11 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   if (ob->lightgroup) {
     BLO_write_struct(writer, LightgroupMembership, ob->lightgroup);
   }
+
+  if (ob->lightprobe_cache) {
+    BLO_write_struct(writer, LightProbeObjectCache, ob->lightprobe_cache);
+    BKE_lightprobe_cache_blend_write(writer, ob->lightprobe_cache);
+  }
 }
 
 /* XXX deprecated - old animation system */
@@ -815,6 +834,11 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_previewimg_blend_read(reader, ob->preview);
 
   BLO_read_data_address(reader, &ob->lightgroup);
+
+  BLO_read_data_address(reader, &ob->lightprobe_cache);
+  if (ob->lightprobe_cache) {
+    BKE_lightprobe_cache_blend_read(reader, ob->lightprobe_cache);
+  }
 }
 
 /* XXX deprecated - old animation system */
@@ -2694,7 +2718,10 @@ void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
   copy_v3_v3(ob_tar->scale, ob_src->scale);
 }
 
-Object *BKE_object_duplicate(Main *bmain, Object *ob, uint dupflag, uint duplicate_options)
+Object *BKE_object_duplicate(Main *bmain,
+                             Object *ob,
+                             eDupli_ID_Flags dupflag,
+                             uint duplicate_options)
 {
   const bool is_subprocess = (duplicate_options & LIB_ID_DUPLICATE_IS_SUBPROCESS) != 0;
   const bool is_root_id = (duplicate_options & LIB_ID_DUPLICATE_IS_ROOT_ID) != 0;

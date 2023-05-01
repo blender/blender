@@ -65,7 +65,7 @@ static void fill_new_attribute(Span<const GeometryComponent *> src_components,
     if (domain_num == 0) {
       continue;
     }
-    GVArray read_attribute = component->attributes()->lookup_or_default(
+    GVArray read_attribute = *component->attributes()->lookup_or_default(
         attribute_id, domain, data_type, nullptr);
 
     GVArraySpan src_span{read_attribute};
@@ -84,7 +84,7 @@ static void join_attributes(Span<const GeometryComponent *> src_components,
   const Map<AttributeIDRef, AttributeMetaData> info = get_final_attribute_info(src_components,
                                                                                ignored_attributes);
 
-  for (const Map<AttributeIDRef, AttributeMetaData>::Item item : info.items()) {
+  for (const MapItem<AttributeIDRef, AttributeMetaData> item : info.items()) {
     const AttributeIDRef attribute_id = item.key;
     const AttributeMetaData &meta_data = item.value;
 

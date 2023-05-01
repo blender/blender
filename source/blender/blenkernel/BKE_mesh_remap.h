@@ -184,24 +184,24 @@ void BKE_mesh_remap_calc_verts_from_mesh(int mode,
                                          struct Mesh *me_dst,
                                          MeshPairRemap *r_map);
 
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+
 void BKE_mesh_remap_calc_edges_from_mesh(int mode,
                                          const struct SpaceTransform *space_transform,
                                          float max_dist,
                                          float ray_radius,
                                          const float (*vert_positions_dst)[3],
                                          int numverts_dst,
-                                         const struct MEdge *edges_dst,
+                                         const blender::int2 *edges_dst,
                                          int numedges_dst,
                                          bool dirty_nors_dst,
                                          const struct Mesh *me_src,
                                          struct Mesh *me_dst,
                                          MeshPairRemap *r_map);
-
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
 
 void BKE_mesh_remap_calc_loops_from_mesh(int mode,
                                          const struct SpaceTransform *space_transform,
@@ -210,7 +210,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(int mode,
                                          struct Mesh *mesh_dst,
                                          const float (*vert_positions_dst)[3],
                                          int numverts_dst,
-                                         const struct MEdge *edges_dst,
+                                         const blender::int2 *edges_dst,
                                          int numedges_dst,
                                          const int *corner_verts_dst,
                                          const int *corner_edges_dst,

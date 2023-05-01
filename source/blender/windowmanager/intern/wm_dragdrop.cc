@@ -575,6 +575,7 @@ wmDragAsset *WM_drag_create_asset_data(const AssetHandle *asset,
   asset_drag->path = path;
   asset_drag->id_type = ED_asset_handle_get_id_type(asset);
   asset_drag->import_method = import_type;
+  asset_drag->use_relative_path = ED_asset_handle_get_use_relative_path(asset);
   asset_drag->evil_C = static_cast<bContext *>(evil_C);
 
   return asset_drag;
@@ -629,10 +630,18 @@ ID *WM_drag_asset_id_import(wmDragAsset *asset_drag, const int flag_extra)
   ViewLayer *view_layer = CTX_data_view_layer(asset_drag->evil_C);
   View3D *view3d = CTX_wm_view3d(asset_drag->evil_C);
 
+  const bool use_relative_path = asset_drag->use_relative_path;
+
   switch (eAssetImportMethod(asset_drag->import_method)) {
     case ASSET_IMPORT_LINK:
-      return WM_file_link_datablock(
-          bmain, scene, view_layer, view3d, asset_drag->path, idtype, name, flag);
+      return WM_file_link_datablock(bmain,
+                                    scene,
+                                    view_layer,
+                                    view3d,
+                                    asset_drag->path,
+                                    idtype,
+                                    name,
+                                    flag | (use_relative_path ? FILE_RELPATH : 0));
     case ASSET_IMPORT_APPEND:
       return WM_file_append_datablock(bmain,
                                       scene,
@@ -644,16 +653,16 @@ ID *WM_drag_asset_id_import(wmDragAsset *asset_drag, const int flag_extra)
                                       flag | BLO_LIBLINK_APPEND_RECURSIVE |
                                           BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR);
     case ASSET_IMPORT_APPEND_REUSE:
-      return WM_file_append_datablock(G_MAIN,
-                                      scene,
-                                      view_layer,
-                                      view3d,
-                                      asset_drag->path,
-                                      idtype,
-                                      name,
-                                      flag | BLO_LIBLINK_APPEND_RECURSIVE |
-                                          BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR |
-                                          BLO_LIBLINK_APPEND_LOCAL_ID_REUSE);
+      return WM_file_append_datablock(
+          G_MAIN,
+          scene,
+          view_layer,
+          view3d,
+          asset_drag->path,
+          idtype,
+          name,
+          flag | BLO_LIBLINK_APPEND_RECURSIVE | BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR |
+              BLO_LIBLINK_APPEND_LOCAL_ID_REUSE | (use_relative_path ? FILE_RELPATH : 0));
   }
 
   BLI_assert_unreachable();
@@ -987,7 +996,7 @@ static void wm_drag_draw_default(bContext *C, wmWindow *win, wmDrag *drag, const
   }
   wm_drag_draw_item_name(drag, UNPACK2(xy_tmp));
 
-  /* Operator name with roundbox. */
+  /* Operator name with round-box. */
   wm_drag_draw_tooltip(C, win, drag, xy);
 }
 

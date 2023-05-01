@@ -26,7 +26,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    bke::MeshFieldContext context{*mesh, ATTR_DOMAIN_EDGE};
+    const bke::MeshFieldContext context{*mesh, ATTR_DOMAIN_EDGE};
     fn::FieldEvaluator evaluator{context, mesh->totedge};
     evaluator.add(params.get_input<Field<bool>>("Selection"));
     evaluator.evaluate();

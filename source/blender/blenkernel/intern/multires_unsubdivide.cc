@@ -1020,8 +1020,6 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
    * so they can be used from #BMesh. */
   multires_unsubdivide_add_original_index_datalayers(base_mesh);
 
-  const int base_l_layer_index = CustomData_get_named_layer_index(
-      &base_mesh->ldata, CD_PROP_INT32, lname);
   BMesh *bm_base_mesh = get_bmesh_from_mesh(base_mesh);
   BMIter iter, iter_a, iter_b;
   BMVert *v;
@@ -1031,8 +1029,8 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
   BM_mesh_elem_table_ensure(bm_base_mesh, BM_FACE);
 
   /* Get the data-layer that contains the loops indices. */
-  const int base_l_offset = CustomData_get_n_offset(
-      &bm_base_mesh->ldata, CD_PROP_INT32, base_l_layer_index);
+  const int base_l_offset = CustomData_get_offset_named(
+      &bm_base_mesh->ldata, CD_PROP_INT32, lname);
 
   const blender::OffsetIndices polys = base_mesh->polys();
   const blender::Span<int> corner_verts = base_mesh->corner_verts();

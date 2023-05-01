@@ -149,3 +149,19 @@ index 074f910a2..30f490818 100644
          return is_hit_first | is_hit_second;
        }
      };
+diff -ruN a/kernels/sycl/rthwif_embree_builder.cpp b/kernels/sycl/rthwif_embree_builder.cpp
+--- a/kernels/sycl/rthwif_embree_builder.cpp    2023-03-28 17:23:06.429190200 +0200
++++ b/kernels/sycl/rthwif_embree_builder.cpp    2023-03-28 17:35:01.291938600 +0200
+@@ -540,7 +540,12 @@
+       assert(offset <= geomDescrData.size());
+     }
+
++    /* Force running BVH building sequentially from the calling thread if using TBB < 2021, as it otherwise leads to runtime issues. */
++#if TBB_VERSION_MAJOR<2021
++    RTHWIF_PARALLEL_OPERATION parallelOperation = nullptr;
++#else
+     RTHWIF_PARALLEL_OPERATION parallelOperation = rthwifNewParallelOperation();
++#endif
+
+     /* estimate static accel size */
+     BBox1f time_range(0,1);

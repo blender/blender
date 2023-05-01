@@ -3,8 +3,9 @@
 
 #pragma once
 
-#if !defined(__KERNEL_GPU__) && defined(WITH_EMBREE)
-#  if EMBREE_MAJOR_VERSION >= 4
+#if (!defined(__KERNEL_GPU__) || (defined(__KERNEL_ONEAPI__) && defined(WITH_EMBREE_GPU))) && \
+    defined(WITH_EMBREE)
+#  if EMBREE_MAJOR_VERSION == 4
 #    include <embree4/rtcore.h>
 #    include <embree4/rtcore_scene.h>
 #  else
@@ -78,9 +79,8 @@ CCL_NAMESPACE_BEGIN
 #define __VISIBILITY_FLAG__
 #define __VOLUME__
 
-/* TODO: solve internal compiler errors and enable light tree on HIP. */
 /* TODO: solve internal compiler perf issue and enable light tree on Metal/AMD. */
-#if defined(__KERNEL_HIP__) || defined(__KERNEL_METAL_AMD__)
+#if defined(__KERNEL_METAL_AMD__)
 #  undef __LIGHT_TREE__
 #endif
 
@@ -1169,10 +1169,14 @@ typedef enum KernelBVHLayout {
   BVH_LAYOUT_METAL = (1 << 5),
   BVH_LAYOUT_MULTI_METAL = (1 << 6),
   BVH_LAYOUT_MULTI_METAL_EMBREE = (1 << 7),
+  BVH_LAYOUT_HIPRT = (1 << 8),
+  BVH_LAYOUT_MULTI_HIPRT = (1 << 9),
+  BVH_LAYOUT_MULTI_HIPRT_EMBREE = (1 << 10),
 
   /* Default BVH layout to use for CPU. */
   BVH_LAYOUT_AUTO = BVH_LAYOUT_EMBREE,
-  BVH_LAYOUT_ALL = BVH_LAYOUT_BVH2 | BVH_LAYOUT_EMBREE | BVH_LAYOUT_OPTIX | BVH_LAYOUT_METAL,
+  BVH_LAYOUT_ALL = BVH_LAYOUT_BVH2 | BVH_LAYOUT_EMBREE | BVH_LAYOUT_OPTIX | BVH_LAYOUT_METAL |
+                   BVH_LAYOUT_HIPRT | BVH_LAYOUT_MULTI_HIPRT | BVH_LAYOUT_MULTI_HIPRT_EMBREE,
 } KernelBVHLayout;
 
 /* Specialized struct that can become constants in dynamic compilation. */
@@ -1225,6 +1229,8 @@ typedef struct KernelData {
   OptixTraversableHandle device_bvh;
 #elif defined __METALRT__
   metalrt_as_type device_bvh;
+#elif defined(__HIPRT__)
+  void *device_bvh;
 #else
 #  ifdef __EMBREE__
   RTCScene device_bvh;
@@ -1370,6 +1376,13 @@ using BoundingCone = struct BoundingCone {
   float theta_e;
 };
 
+enum LightTreeNodeType : uint8_t {
+  LIGHT_TREE_INSTANCE = (1 << 0),
+  LIGHT_TREE_INNER = (1 << 1),
+  LIGHT_TREE_LEAF = (1 << 2),
+  LIGHT_TREE_DISTANT = (1 << 3),
+};
+
 typedef struct KernelLightTreeNode {
   /* Bounding box. */
   BoundingBox bbox;
@@ -1380,17 +1393,25 @@ typedef struct KernelLightTreeNode {
   /* Energy. */
   float energy;
 
-  /* If this is 0 or less, we're at a leaf node
-   * and the negative value indexes into the first child of the light array.
-   * Otherwise, it's an index to the node's second child. */
-  int child_index;
-  int num_emitters; /* leaf nodes need to know the number of emitters stored. */
+  LightTreeNodeType type;
+
+  /* Leaf nodes need to know the number of emitters stored. */
+  int num_emitters;
+
+  union {
+    struct {
+      int first_emitter; /* The index of the first emitter. */
+    } leaf;
+    struct {
+      int right_child; /* The index of the right child. */
+    } inner;
+    struct {
+      int reference; /* A reference to the node with the subtree. */
+    } instance;
+  };
 
   /* Bit trail. */
   uint bit_trail;
-
-  /* Padding. */
-  int pad;
 } KernelLightTreeNode;
 static_assert_align(KernelLightTreeNode, 16);
 
@@ -1402,10 +1423,23 @@ typedef struct KernelLightTreeEmitter {
   /* Energy. */
   float energy;
 
-  /* The location in the lights or triangles array. */
-  int prim_id;
+  union {
+    struct {
+      int id; /* The location in the triangles array. */
+      EmissionSampling emission_sampling;
+    } triangle;
+
+    struct {
+      int id; /* The location in the lights array. */
+    } light;
+
+    struct {
+      int object_id;
+      int node_id;
+    } mesh;
+  };
+
   MeshLight mesh_light;
-  EmissionSampling emission_sampling;
 
   /* Parent. */
   int parent_index;

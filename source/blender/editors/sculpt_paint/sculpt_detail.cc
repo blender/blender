@@ -82,17 +82,15 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   SculptSession *ss = ob->sculpt;
   float size;
   float bb_min[3], bb_max[3], center[3], dim[3];
-  int totnodes;
-  PBVHNode **nodes;
 
-  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnodes);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
-  if (!totnodes) {
+  if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
-  for (int i = 0; i < totnodes; i++) {
-    BKE_pbvh_node_mark_topology_update(nodes[i]);
+  for (PBVHNode *node : nodes) {
+    BKE_pbvh_node_mark_topology_update(node);
   }
   /* Get the bounding box, its center and size. */
   BKE_pbvh_bounding_box(ob->sculpt->pbvh, bb_min, bb_max);
@@ -111,12 +109,11 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
 
   while (BKE_pbvh_bmesh_update_topology(
       ss->pbvh, PBVH_Collapse | PBVH_Subdivide, center, nullptr, size, false, false)) {
-    for (int i = 0; i < totnodes; i++) {
-      BKE_pbvh_node_mark_topology_update(nodes[i]);
+    for (PBVHNode *node : nodes) {
+      BKE_pbvh_node_mark_topology_update(node);
     }
   }
 
-  MEM_SAFE_FREE(nodes);
   SCULPT_undo_push_end(ob);
 
   /* Force rebuild of PBVH for better BB placement. */
@@ -749,7 +746,8 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   ss->draw_faded_cursor = true;
 
   const char *status_str = TIP_(
-      "Move the mouse to change the dyntopo detail size. LMB: confirm size, ESC/RMB: cancel");
+      "Move the mouse to change the dyntopo detail size. LMB: confirm size, ESC/RMB: cancel, "
+      "SHIFT: precision mode, CTRL: sample detail size");
   ED_workspace_status_text(C, status_str);
 
   return OPERATOR_RUNNING_MODAL;

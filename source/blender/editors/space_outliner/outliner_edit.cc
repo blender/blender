@@ -423,6 +423,8 @@ static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *even
 
 void OUTLINER_OT_item_rename(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   ot->name = "Rename";
   ot->idname = "OUTLINER_OT_item_rename";
   ot->description = "Rename the active element";
@@ -434,11 +436,12 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna,
-                  "use_active",
-                  false,
-                  "Use Active",
-                  "Rename the active item, rather than the one the mouse is over");
+  prop = RNA_def_boolean(ot->srna,
+                         "use_active",
+                         false,
+                         "Use Active",
+                         "Rename the active item, rather than the one the mouse is over");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
 }
 
 /** \} */
@@ -822,7 +825,7 @@ void OUTLINER_OT_id_copy(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Outliner ID Data Copy";
   ot->idname = "OUTLINER_OT_id_copy";
-  ot->description = "Selected data-blocks are copied to the clipboard";
+  ot->description = "Copy the selected data-blocks to the internal clipboard";
 
   /* callbacks */
   ot->exec = outliner_id_copy_exec;
@@ -863,7 +866,7 @@ void OUTLINER_OT_id_paste(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Outliner ID Data Paste";
   ot->idname = "OUTLINER_OT_id_paste";
-  ot->description = "Data-blocks from the clipboard are pasted";
+  ot->description = "Paste data-blocks from the internal clipboard";
 
   /* callbacks */
   ot->exec = outliner_id_paste_exec;

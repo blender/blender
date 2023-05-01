@@ -100,7 +100,7 @@ class MetalDevice : public Device {
 
   virtual void cancel() override;
 
-  virtual BVHLayoutMask get_bvh_layout_mask() const override;
+  virtual BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;
 
   void set_error(const string &error) override;
 

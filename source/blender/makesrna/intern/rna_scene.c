@@ -34,7 +34,7 @@
 #include "BKE_paint.h"
 #include "BKE_volume.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_object.h"
 #include "ED_uvedit.h"
 
@@ -628,6 +628,11 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
      ICON_ORIENTATION_CURSOR,
      "Cursor",
      "Align the transformation axes to the 3D cursor"},
+    {V3D_ORIENT_PARENT,
+     "PARENT",
+     ICON_BLANK1,
+     "Parent",
+     "Align the transformation axes to the object's parent space"},
     // {V3D_ORIENT_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
     {0, NULL, 0, NULL, NULL},
 };
@@ -2787,7 +2792,7 @@ static void rna_def_gpencil_interpolate(BlenderRNA *brna)
                          "Grease Pencil Interpolate Settings",
                          "Settings for Grease Pencil interpolation tools");
 
-  /* custom curvemap */
+  /* Custom curve-map. */
   prop = RNA_def_property(srna, "interpolation_curve", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "custom_ipo");
   RNA_def_property_struct_type(prop, "CurveMapping");

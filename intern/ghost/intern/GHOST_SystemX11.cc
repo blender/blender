@@ -85,7 +85,7 @@ static uchar bit_is_on(const uchar *ptr, int bit)
 
 static GHOST_TKey ghost_key_from_keysym(const KeySym key);
 static GHOST_TKey ghost_key_from_keycode(const XkbDescPtr xkb_descr, const KeyCode keycode);
-static GHOST_TKey ghost_key_from_keysym_or_keycode(const KeySym key,
+static GHOST_TKey ghost_key_from_keysym_or_keycode(const KeySym key_sym,
                                                    const XkbDescPtr xkb_descr,
                                                    const KeyCode keycode);
 
@@ -99,7 +99,12 @@ static bool use_xwayland_hack = false;
 
 using namespace std;
 
-GHOST_SystemX11::GHOST_SystemX11() : GHOST_System(), m_xkb_descr(nullptr), m_start_time(0)
+GHOST_SystemX11::GHOST_SystemX11()
+    : GHOST_System(),
+      m_xkb_descr(nullptr),
+      m_start_time(0),
+      m_keyboard_vector{0},
+      m_keycode_last_repeat_key(uint(-1))
 {
   XInitThreads();
   m_display = XOpenDisplay(nullptr);
@@ -412,7 +417,7 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSetti
 #ifdef WITH_VULKAN_BACKEND
   if (glSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
     context = new GHOST_ContextVK(
-        false, GHOST_kVulkanPlatformX11, 0, m_display, NULL, NULL, 1, 0, debug_context);
+        false, GHOST_kVulkanPlatformX11, 0, m_display, NULL, NULL, 1, 2, debug_context);
 
     if (!context->initializeDrawingContext()) {
       delete context;
@@ -897,7 +902,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 #endif /* WITH_X11_XINPUT */
   switch (xe->type) {
     case Expose: {
-      XExposeEvent &xee = xe->xexpose;
+      const XExposeEvent &xee = xe->xexpose;
 
       if (xee.count == 0) {
         /* Only generate a single expose event
@@ -909,7 +914,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
     }
 
     case MotionNotify: {
-      XMotionEvent &xme = xe->xmotion;
+      const XMotionEvent &xme = xe->xmotion;
 
       bool is_tablet = window->GetTabletData().Active != GHOST_kTabletModeNone;
 
@@ -1235,7 +1240,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
     case ButtonPress:
     case ButtonRelease: {
-      XButtonEvent &xbe = xe->xbutton;
+      const XButtonEvent &xbe = xe->xbutton;
       GHOST_TButton gbmask = GHOST_kButtonMaskLeft;
       GHOST_TEventType type = (xbe.type == ButtonPress) ? GHOST_kEventButtonDown :
                                                           GHOST_kEventButtonUp;
@@ -1290,14 +1295,14 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
     /* change of size, border, layer etc. */
     case ConfigureNotify: {
-      // XConfigureEvent & xce = xe->xconfigure;
+      // const XConfigureEvent & xce = xe->xconfigure;
       g_event = new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window);
       break;
     }
 
     case FocusIn:
     case FocusOut: {
-      XFocusChangeEvent &xfe = xe->xfocus;
+      const XFocusChangeEvent &xfe = xe->xfocus;
 
       /* TODO: make sure this is the correct place for activate/deactivate */
       // printf("X: focus %s for window %d\n",
@@ -1385,7 +1390,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
        * (really crossing between windows) since some window-managers
        * also send grab/un-grab crossings for mouse-wheel events.
        */
-      XCrossingEvent &xce = xe->xcrossing;
+      const XCrossingEvent &xce = xe->xcrossing;
       if (xce.mode == NotifyNormal) {
         g_event = new GHOST_EventCursor(getMilliSeconds(),
                                         GHOST_kEventCursorMove,
@@ -1742,7 +1747,10 @@ GHOST_TSuccess GHOST_SystemX11::setCursorPosition(int32_t x, int32_t y)
 
 GHOST_TCapabilityFlag GHOST_SystemX11::getCapabilities() const
 {
-  return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL);
+  return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL &
+                               ~(
+                                   /* No support yet for image copy/paste. */
+                                   GHOST_kCapabilityClipboardImages));
 }
 
 void GHOST_SystemX11::addDirtyWindow(GHOST_WindowX11 *bad_wind)
@@ -1773,11 +1781,11 @@ bool GHOST_SystemX11::generateWindowExposeEvents()
   return anyProcessed;
 }
 
-static GHOST_TKey ghost_key_from_keysym_or_keycode(const KeySym keysym,
+static GHOST_TKey ghost_key_from_keysym_or_keycode(const KeySym key_sym,
                                                    XkbDescPtr xkb_descr,
                                                    const KeyCode keycode)
 {
-  GHOST_TKey type = ghost_key_from_keysym(keysym);
+  GHOST_TKey type = ghost_key_from_keysym(key_sym);
   if (type == GHOST_kKeyUnknown) {
     if (xkb_descr) {
       type = ghost_key_from_keycode(xkb_descr, keycode);
@@ -2373,7 +2381,7 @@ class DialogData {
   }
 
   /* Is the mouse inside the given button */
-  bool isInsideButton(XEvent &e, uint button_num)
+  bool isInsideButton(const XEvent &e, uint button_num)
   {
     return (
         (e.xmotion.y > int(height - padding_y - button_height)) &&

@@ -384,15 +384,15 @@ int BlenderFileLoader::testDegenerateTriangle(float v1[3], float v2[3], float v3
 
 static bool testEdgeMark(Mesh *me, const FreestyleEdge *fed, const MLoopTri *lt, int i)
 {
-  const Span<MEdge> edges = me->edges();
+  const Span<blender::int2> edges = me->edges();
   const Span<int> corner_verts = me->corner_verts();
   const Span<int> corner_edges = me->corner_edges();
 
   const int corner = lt->tri[i];
   const int corner_next = lt->tri[(i + 1) % 3];
-  const MEdge *edge = &edges[corner_edges[corner]];
+  const blender::int2 &edge = edges[corner_edges[corner]];
 
-  if (!ELEM(corner_verts[corner_next], edge->v1, edge->v2)) {
+  if (!ELEM(corner_verts[corner_next], edge[0], edge[1])) {
     /* Not an edge in the original mesh before triangulation. */
     return false;
   }
@@ -513,9 +513,9 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   FrsMaterial tmpMat;
 
   const bke::AttributeAccessor attributes = me->attributes();
-  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
-  const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
+  const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
       "sharp_face", ATTR_DOMAIN_FACE, false);
 
   // We parse the vlak nodes again and import meshes while applying the clipping

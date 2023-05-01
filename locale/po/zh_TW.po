@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -1477,14 +1477,6 @@ msgstr "向量字型"
 
 msgid "Vector font data-blocks"
 msgstr "向量字型資料塊"
-
-
-msgid "Grease Pencil"
-msgstr "蠟筆"
-
-
-msgid "Grease Pencil data-blocks"
-msgstr "蠟筆資料塊"
 
 
 msgid "Images"
@@ -9357,6 +9349,10 @@ msgid "Fonts"
 msgstr "字型"
 
 
+msgid "Grease Pencil"
+msgstr "蠟筆"
+
+
 msgid "Show workspace data-blocks"
 msgstr "顯示工作空間資料塊"
 
@@ -11608,6 +11604,14 @@ msgid "Editable falloff curve"
 msgstr "可編輯的衰減曲線"
 
 
+msgid "Comb"
+msgstr "合成"
+
+
+msgid "Puff"
+msgstr "噴發"
+
+
 msgid "Paint most on faces pointing towards the view according to this angle"
 msgstr "大多根據此角度繪製在指向視圖的面上"
 
@@ -12746,6 +12750,10 @@ msgstr "字型粗斜體"
 
 msgid "Font Italic"
 msgstr "字型斜體"
+
+
+msgid "Text Selected"
+msgstr "選取的文字"
 
 
 msgid "X Offset"
@@ -16473,10 +16481,6 @@ msgstr "記憶體"
 
 msgid "Text file is in memory, without a corresponding file on disk"
 msgstr "文字檔位於記憶體中，磁碟中沒有相對應的檔案"
-
-
-msgid "Modified"
-msgstr "已修改"
 
 
 msgid "Text file on disk is different than the one in memory"
@@ -23813,10 +23817,6 @@ msgid "Y position of the middle of the box"
 msgstr "方塊中間的 Y 位置"
 
 
-msgid "Bright/Contrast"
-msgstr "亮度/對比"
-
-
 msgid "Keep output image premultiplied alpha"
 msgstr "保持輸出圖片的 alpha 為預乘模式"
 
@@ -24585,10 +24585,6 @@ msgid "Hue Correct"
 msgstr "色相校正"
 
 
-msgid "Hue Saturation Value"
-msgstr "色相飽和度明度"
-
-
 msgid "ID Mask"
 msgstr "ID 遮罩"
 
@@ -25335,10 +25331,6 @@ msgid "Blackbody"
 msgstr "黑體"
 
 
-msgid "Bright Contrast"
-msgstr "亮度對比"
-
-
 msgid "Anisotropic BSDF"
 msgstr "各向異性 BSDF"
 
@@ -25843,14 +25835,6 @@ msgid "Use Tips"
 msgstr "使用提示"
 
 
-msgid "Cross Product"
-msgstr "向量積"
-
-
-msgid "Wrap"
-msgstr "包覆"
-
-
 msgid "Z Axis"
 msgstr "Z 軸"
 
@@ -26302,10 +26286,6 @@ msgid "Copy Keyframes"
 msgstr "複製鍵幀"
 
 
-msgid "Copy selected keyframes to the copy/paste buffer"
-msgstr "將選取的鍵幀複製至複製/貼上緩衝中"
-
-
 msgctxt "Operator"
 msgid "Delete Keyframes"
 msgstr "刪除鍵幀"
@@ -26486,10 +26466,6 @@ msgstr "建立新的動作"
 msgctxt "Operator"
 msgid "Paste Keyframes"
 msgstr "貼上鍵幀"
-
-
-msgid "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame"
-msgstr "為所選通道從複製/貼上緩衝區內貼上鍵幀，從目前框幀開始"
 
 
 msgid "Method of merging pasted keys and existing"
@@ -28048,10 +28024,6 @@ msgid "Copy Tracks"
 msgstr "複製軌道"
 
 
-msgid "Copy selected tracks to clipboard"
-msgstr "將所選軌道複製至剪貼簿"
-
-
 msgctxt "Operator"
 msgid "Create Plane Track"
 msgstr "建立平面軌道"
@@ -28361,10 +28333,6 @@ msgstr "啟用多重視圖"
 msgctxt "Operator"
 msgid "Paste Tracks"
 msgstr "貼上軌道"
-
-
-msgid "Paste tracks from clipboard"
-msgstr "從剪貼簿貼上軌道"
 
 
 msgctxt "Operator"
@@ -30323,6 +30291,14 @@ msgid "Execute selected file"
 msgstr "執行所選檔案"
 
 
+msgid "Show"
+msgstr "顯示"
+
+
+msgid "Play"
+msgstr "播放"
+
+
 msgctxt "Operator"
 msgid "Increment Number in Filename"
 msgstr "在檔名中遞增編號"
@@ -30738,6 +30714,10 @@ msgstr "從檔案載入新的字型"
 
 msgid "Select all text"
 msgstr "選取全部文字"
+
+
+msgid "Select word under cursor"
+msgstr "所選游標位置的單詞"
 
 
 msgctxt "Operator"
@@ -31271,6 +31251,15 @@ msgstr "選取頂點群組"
 
 msgid "Select all the vertices assigned to the active vertex group"
 msgstr "選取所有指派至作用中頂點群組的頂點"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "權重繪製取樣權重"
+
+
+msgid "Use the mouse to sample a weight in the 3D view"
+msgstr "使用滑鼠來取樣 3D 視圖中的權重"
 
 
 msgctxt "Operator"
@@ -34603,14 +34592,6 @@ msgid "Clear the boundaries for viewer operations"
 msgstr "清除檢視器操作的邊界"
 
 
-msgid "Copies selected nodes to the clipboard"
-msgstr "將所選節點複製到剪貼簿"
-
-
-msgid "Pastes nodes from the clipboard to the active node tree"
-msgstr "將來自剪貼簿的節點貼至作用中節點樹"
-
-
 msgctxt "Operator"
 msgid "Collapse and Hide Unused Sockets"
 msgstr "收闔並隱藏未使用的接口"
@@ -35500,6 +35481,10 @@ msgid "Laplacian Deform Bind"
 msgstr "拉普拉斯變形綁定"
 
 
+msgid "Subset"
+msgstr "子集"
+
+
 msgid "Link objects to a collection"
 msgstr "將物體連結至選集"
 
@@ -36354,10 +36339,6 @@ msgid "Remove vertex group assignments which are not required"
 msgstr "移除不需要的頂點群組指派"
 
 
-msgid "Subset"
-msgstr "子集"
-
-
 msgid "Keep Single"
 msgstr "保留單個"
 
@@ -36968,10 +36949,6 @@ msgid "Hide vertices"
 msgstr "隱藏頂點"
 
 
-msgid "Show"
-msgstr "顯示"
-
-
 msgid "Show vertices"
 msgstr "顯示頂點"
 
@@ -37225,15 +37202,6 @@ msgstr "權重繪製模式"
 
 msgid "Toggle weight paint mode in 3D view"
 msgstr "切換 3D 視圖中的權重繪製模式"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "權重繪製取樣權重"
-
-
-msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "使用滑鼠來取樣 3D 視圖中的權重"
 
 
 msgctxt "Operator"
@@ -37643,10 +37611,6 @@ msgstr "將約束複製至其他選取的骨骼"
 msgctxt "Operator"
 msgid "Copy Pose"
 msgstr "複製姿勢"
-
-
-msgid "Copies the current pose of the selected bones to copy/paste buffer"
-msgstr "將所選骨骼的目前姿勢複製到複製/貼上緩衝中"
 
 
 msgctxt "Operator"
@@ -38731,10 +38695,6 @@ msgid "Copy Line Set"
 msgstr "複製線條集"
 
 
-msgid "Copy the active line set to a buffer"
-msgstr "將作用中線條集複製至緩衝中"
-
-
 msgctxt "Operator"
 msgid "Move Line Set"
 msgstr "移動線條集"
@@ -38747,10 +38707,6 @@ msgstr "變更作用中線條集在線條集清單中的位置"
 msgctxt "Operator"
 msgid "Paste Line Set"
 msgstr "貼上線條集"
-
-
-msgid "Paste the buffer content to the active line set"
-msgstr "將緩衝內容貼至作用中線條集"
 
 
 msgctxt "Operator"
@@ -40626,10 +40582,6 @@ msgid "Select text by line"
 msgstr "根據列選取文字"
 
 
-msgid "Select word under cursor"
-msgstr "所選游標位置的單詞"
-
-
 msgctxt "Operator"
 msgid "Find"
 msgstr "尋找"
@@ -41518,6 +41470,10 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "將 UV 配置匯出至點陣圖影像"
 
 
+msgid "Modified"
+msgstr "已修改"
+
+
 msgid "Exports UVs from the modified mesh"
 msgstr "從修改的網格匯出 UV"
 
@@ -41566,10 +41522,6 @@ msgstr "隱藏(未)選取的 UV 頂點"
 msgctxt "Operator"
 msgid "Lightmap Pack"
 msgstr "光照映射打包"
-
-
-msgid "New Image"
-msgstr "新增影像"
 
 
 msgid "Pack Quality"
@@ -42619,6 +42571,10 @@ msgid "Toggle a context value"
 msgstr "切換情境值"
 
 
+msgid "Wrap"
+msgstr "包覆"
+
+
 msgctxt "Operator"
 msgid "Context Int Cycle"
 msgstr "情境整數循環"
@@ -42852,10 +42808,6 @@ msgstr "在繼續之前要顯示算繪影像的時間 (單位為秒)"
 
 msgid "Run once and exit"
 msgstr "執行一次並離開"
-
-
-msgid "Play"
-msgstr "播放"
 
 
 msgid "Random Order"
@@ -43726,10 +43678,6 @@ msgid "Tracking Settings"
 msgstr "追蹤設定"
 
 
-msgid "Lens"
-msgstr "鏡頭"
-
-
 msgid "Predefined tracking settings"
 msgstr "預定義的追蹤設定"
 
@@ -44292,6 +44240,34 @@ msgid "Stencil Mask"
 msgstr "遮罩蠟紙"
 
 
+msgid "Comb hairs"
+msgstr "合成毛髮"
+
+
+msgid "Smooth hairs"
+msgstr "平滑毛髮"
+
+
+msgid "Add hairs"
+msgstr "添加毛髮"
+
+
+msgid "Make hairs longer or shorter"
+msgstr "讓毛髮更長或更短"
+
+
+msgid "Make hairs stand up"
+msgstr "讓毛髮站立"
+
+
+msgid "Cut hairs"
+msgstr "切割毛髮"
+
+
+msgid "Weight hair particles"
+msgstr "權重毛髮粒子"
+
+
 msgctxt "Operator"
 msgid "Draw Face Sets"
 msgstr "繪製面集"
@@ -44527,42 +44503,6 @@ msgstr "末梢"
 
 msgid "Tip select mode"
 msgstr "末梢選取模式"
-
-
-msgid "Comb"
-msgstr "合成"
-
-
-msgid "Comb hairs"
-msgstr "合成毛髮"
-
-
-msgid "Smooth hairs"
-msgstr "平滑毛髮"
-
-
-msgid "Add hairs"
-msgstr "添加毛髮"
-
-
-msgid "Make hairs longer or shorter"
-msgstr "讓毛髮更長或更短"
-
-
-msgid "Puff"
-msgstr "噴發"
-
-
-msgid "Make hairs stand up"
-msgstr "讓毛髮站立"
-
-
-msgid "Cut hairs"
-msgstr "切割毛髮"
-
-
-msgid "Weight hair particles"
-msgstr "權重毛髮粒子"
 
 
 msgid "Auto Velocity"
@@ -45289,20 +45229,12 @@ msgid "Pose Matrix"
 msgstr "姿勢矩陣"
 
 
-msgid "Final 4x4 matrix after constraints and drivers are applied (object space)"
-msgstr "約束與驅動器套用之後的最終 4x4 矩陣 (物體空間)"
-
-
 msgid "Alternative access to location/scale/rotation relative to the parent and own rest bone"
 msgstr "相對於親代與擁有的靜止骨骼，其位置/縮放/旋轉之替代存取方法"
 
 
 msgid "Channel Matrix"
 msgstr "通道矩陣"
-
-
-msgid "4x4 matrix, before constraints"
-msgstr "4x4 矩陣，在約束之前"
 
 
 msgid "Parent of this pose bone"
@@ -50665,6 +50597,10 @@ msgid "3D View near clipping distance (perspective view only)"
 msgstr "3D 視圖的近處剪輯距離 (僅限透視法檢視)"
 
 
+msgid "Lens"
+msgstr "鏡頭"
+
+
 msgid "Viewport lens angle"
 msgstr "視接口鏡頭角度"
 
@@ -52347,10 +52283,6 @@ msgstr "著色下"
 
 msgid "Shade Top"
 msgstr "著色上"
-
-
-msgid "Text Selected"
-msgstr "選取的文字"
 
 
 msgid "Theme Widget State Color"
@@ -54513,10 +54445,6 @@ msgid "Invert"
 msgstr "反轉"
 
 
-msgid "Old"
-msgstr "老舊"
-
-
 msgid "Date"
 msgstr "日期"
 
@@ -55377,16 +55305,16 @@ msgid "One Object Per Line"
 msgstr "每列一個物體"
 
 
-msgid "File: %s"
-msgstr "檔案：%s"
-
-
 msgid "Text: External"
 msgstr "文字：外部"
 
 
 msgid "Text: Internal"
 msgstr "文字：內部"
+
+
+msgid "File: %s"
+msgstr "檔案：%s"
 
 
 msgctxt "Operator"
@@ -55534,10 +55462,6 @@ msgstr "面板標題"
 
 msgid "Widget Label"
 msgstr "小工具標籤"
-
-
-msgid "Scripts"
-msgstr "指令稿"
 
 
 msgid "Render Output"
@@ -57004,6 +56928,10 @@ msgid "Unable to open '%s': %s"
 msgstr "無法開啟「%s」：%s"
 
 
+msgid "Untitled"
+msgstr "無標題"
+
+
 msgid "Unable to make version backup: filename too short"
 msgstr "無法製作版本備份：檔名過短"
 
@@ -57306,22 +57234,6 @@ msgstr "此骨架上的動作將被這新的靜止動作摧毀，因為所儲存
 
 msgid "No pose to copy"
 msgstr "無姿勢可複製"
-
-
-msgid "Copied pose to buffer"
-msgstr "姿勢已複製到緩衝"
-
-
-msgid "Copy buffer is empty"
-msgstr "複製緩衝是空"
-
-
-msgid "Copy buffer is not from pose mode"
-msgstr "複製緩衝不是從姿勢模式而來"
-
-
-msgid "Copy buffer has no pose"
-msgstr "複製緩衝沒有姿勢"
 
 
 msgid "Programming error: missing clear transform function or keying set name"
@@ -58781,10 +58693,6 @@ msgid "No fullscreen areas were found"
 msgstr "找不到全螢幕面積"
 
 
-msgid "Untitled"
-msgstr "無標題"
-
-
 msgid "Image could not be found"
 msgstr "無法找到影像"
 
@@ -59308,10 +59216,6 @@ msgstr "內部錯誤 - AnimData 塊無效"
 
 msgid "No valid action to add"
 msgstr "無有效的動作可添加"
-
-
-msgid "Clipboard is empty"
-msgstr "剪貼簿為空白"
 
 
 msgid "Some nodes references could not be restored, will be left empty"
@@ -60907,6 +60811,10 @@ msgid "Speed:"
 msgstr "速度："
 
 
+msgid "Old"
+msgstr "老舊"
+
+
 msgid "Edge Crease"
 msgstr "邊線皺摺"
 
@@ -61256,11 +61164,6 @@ msgstr "曲線"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "色相校正"
-
-
-msgctxt "Sequence"
-msgid "Bright/Contrast"
-msgstr "亮度/對比"
 
 
 msgid "Strips must be the same length"

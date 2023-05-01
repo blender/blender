@@ -118,7 +118,6 @@ static void tracking_segment_knot_cb(void *userdata,
                                      float val)
 {
   TrackMotionCurveUserData *data = (TrackMotionCurveUserData *)userdata;
-  int sel = 0, sel_flag;
 
   if (track != data->act_track) {
     return;
@@ -127,8 +126,9 @@ static void tracking_segment_knot_cb(void *userdata,
     return;
   }
 
-  sel_flag = value_source == CLIP_VALUE_SOURCE_SPEED_X ? MARKER_GRAPH_SEL_X : MARKER_GRAPH_SEL_Y;
-  sel = (marker->flag & sel_flag) ? 1 : 0;
+  const int sel_flag = value_source == CLIP_VALUE_SOURCE_SPEED_X ? MARKER_GRAPH_SEL_X :
+                                                                   MARKER_GRAPH_SEL_Y;
+  const bool sel = (marker->flag & sel_flag) != 0;
 
   if (sel == data->sel) {
     immUniformThemeColor(sel ? TH_HANDLE_VERTEX_SELECT : TH_HANDLE_VERTEX);

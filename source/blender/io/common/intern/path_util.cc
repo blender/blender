@@ -16,7 +16,7 @@ std::string path_reference(StringRefNull filepath,
   char filepath_abs[PATH_MAX];
   BLI_strncpy(filepath_abs, filepath.c_str(), PATH_MAX);
   BLI_path_abs(filepath_abs, base_src.c_str());
-  BLI_path_normalize(nullptr, filepath_abs);
+  BLI_path_normalize(filepath_abs);
 
   /* Figure out final mode to be used. */
   if (mode == PATH_REFERENCE_MATCH) {

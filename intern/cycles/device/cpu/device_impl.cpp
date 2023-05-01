@@ -84,7 +84,7 @@ CPUDevice::~CPUDevice()
   texture_info.free();
 }
 
-BVHLayoutMask CPUDevice::get_bvh_layout_mask() const
+BVHLayoutMask CPUDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
 {
   BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_BVH2;
 #ifdef WITH_EMBREE

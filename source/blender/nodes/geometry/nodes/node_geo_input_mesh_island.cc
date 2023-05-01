@@ -34,12 +34,12 @@ class IslandFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask /*mask*/) const final
   {
-    const Span<MEdge> edges = mesh.edges();
+    const Span<int2> edges = mesh.edges();
 
     AtomicDisjointSet islands(mesh.totvert);
     threading::parallel_for(edges.index_range(), 1024, [&](const IndexRange range) {
-      for (const MEdge &edge : edges.slice(range)) {
-        islands.join(edge.v1, edge.v2);
+      for (const int2 &edge : edges.slice(range)) {
+        islands.join(edge[0], edge[1]);
       }
     });
 
@@ -78,12 +78,12 @@ class IslandCountFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask /*mask*/) const final
   {
-    const Span<MEdge> edges = mesh.edges();
+    const Span<int2> edges = mesh.edges();
 
     AtomicDisjointSet islands(mesh.totvert);
     threading::parallel_for(edges.index_range(), 1024, [&](const IndexRange range) {
-      for (const MEdge &edge : edges.slice(range)) {
-        islands.join(edge.v1, edge.v2);
+      for (const int2 &edge : edges.slice(range)) {
+        islands.join(edge[0], edge[1]);
       }
     });
 

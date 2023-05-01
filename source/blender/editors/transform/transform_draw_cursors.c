@@ -40,7 +40,7 @@ static void drawArrow(const uint pos_id, const enum eArrowDirection dir)
   int size = (3.0f * UI_SCALE_FAC) + (2.0f * U.pixelsize);
 
   /* To line up the arrow point nicely, one end has to be extended by half its width. But
-   * being on a 45 degree angle, Pythagoras says a movement of sqrt(2)/2 * (line width /2) */
+   * being on a 45 degree angle, Pythagoras says a movement of `sqrt(2) / 2 * (line width / 2)`. */
   float adjust = (M_SQRT2 * ARROW_WIDTH / 4.0f);
 
   if (ELEM(dir, LEFT, DOWN)) {

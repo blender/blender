@@ -62,9 +62,15 @@ void BLI_split_dir_part(const char *string, char *dir, size_t dirlen);
 void BLI_split_file_part(const char *string, char *file, size_t filelen);
 /**
  * Returns a pointer to the last extension (e.g. the position of the last period).
+ * Returns a pointer to the nil byte when no extension is found.
+ */
+const char *BLI_path_extension_or_end(const char *filepath)
+    ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+/**
+ * Returns a pointer to the last extension (e.g. the position of the last period).
  * Returns NULL if there is no extension.
  */
-const char *BLI_path_extension(const char *filepath) ATTR_NONNULL();
+const char *BLI_path_extension(const char *filepath) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Append a filename to a dir, ensuring slash separates.
@@ -279,6 +285,11 @@ bool BLI_path_extension_glob_validate(char *ext_fnmatch) ATTR_NONNULL();
  */
 bool BLI_path_extension_replace(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
 /**
+ * Remove the file extension.
+ * \return true if a change was made to `path`.
+ */
+bool BLI_path_extension_strip(char *path) ATTR_NONNULL();
+/**
  * Strip's trailing '.'s and adds the extension only when needed
  */
 bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
@@ -300,31 +311,49 @@ bool BLI_path_filename_ensure(char *filepath, size_t maxlen, const char *filenam
  */
 int BLI_path_sequence_decode(const char *string,
                              char *head,
+                             size_t head_maxncpy,
                              char *tail,
+                             size_t tail_maxncpy,
                              unsigned short *r_digits_len);
 /**
  * Returns in area pointed to by string a string of the form `<head><pic><tail>`,
  * where pic is formatted as `numlen` digits with leading zeroes.
  */
-void BLI_path_sequence_encode(
-    char *string, const char *head, const char *tail, unsigned short numlen, int pic);
+void BLI_path_sequence_encode(char *string,
+                              size_t string_maxncpy,
+                              const char *head,
+                              const char *tail,
+                              unsigned short numlen,
+                              int pic);
 
 /**
- * Remove redundant characters from \a path and optionally make absolute.
+ * Remove redundant characters from \a path.
  *
- * \param relabase: The path this is relative to, or ignored when NULL.
- * \param path: Can be any input, and this function converts it to a regular full path.
- * Also removes garbage from directory paths, like `/../` or double slashes etc.
+ * The following operations are performed:
+ * - Redundant path components such as `//`, `/./` & `./` (prefix) are stripped.
+ *   (with the exception of `//` prefix used for blend-file relative paths).
+ * - `..` are resolved so `<parent>/../<child>/` resolves to `<child>/`.
+ *   Note that the resulting path may begin with `..` if it's relative.
  *
- * \note \a path isn't protected for max string names.
+ * Details:
+ * - The slash direction is expected to be native (see #SEP).
+ *   When calculating a canonical paths you may need to run #BLI_path_slash_native first.
+ *   #BLI_path_cmp_normalized can be used for canonical path comparison.
+ * - Trailing slashes are left intact (unlike Python which strips them).
+ * - Handling paths beginning with `..` depends on them being absolute or relative.
+ *   For absolute paths they are removed (e.g. `/../path` becomes `/path`).
+ *   For relative paths they are kept as it's valid to reference paths above a relative location
+ *   such as `//../parent` or `../parent`.
+ *
+ * \param path: The path to a file or directory which can be absolute or relative.
  */
-void BLI_path_normalize(const char *relabase, char *path) ATTR_NONNULL(2);
+void BLI_path_normalize(char *path) ATTR_NONNULL(1);
 /**
  * Cleanup file-path ensuring a trailing slash.
  *
  * \note Same as #BLI_path_normalize but adds a trailing slash.
  */
-void BLI_path_normalize_dir(const char *relabase, char *dir, size_t dir_maxlen) ATTR_NONNULL(2);
+void BLI_path_normalize_dir(char *dir, size_t dir_maxlen) ATTR_NONNULL(1);
 
 /**
  * Make given name safe to be used in paths.
@@ -404,14 +433,14 @@ bool BLI_path_frame_range(char *path, int sta, int end, int digits) ATTR_NONNULL
 /**
  * Get the frame from a filename formatted by blender's frame scheme
  */
-bool BLI_path_frame_get(char *path, int *r_frame, int *r_digits_len) ATTR_NONNULL();
+bool BLI_path_frame_get(const char *path, int *r_frame, int *r_digits_len) ATTR_NONNULL();
 /**
  * Given a `path` with digits representing frame numbers, replace the digits with the '#'
  * character and extract the extension.
  * So:      `/some/path_123.jpeg`
  * Becomes: `/some/path_###` with `r_ext` set to `.jpeg`.
  */
-void BLI_path_frame_strip(char *path, char *r_ext) ATTR_NONNULL();
+void BLI_path_frame_strip(char *path, char *r_ext, size_t ext_maxlen) ATTR_NONNULL();
 /**
  * Check if we have '#' chars, usable for #BLI_path_frame, #BLI_path_frame_range
  */

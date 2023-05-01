@@ -176,7 +176,7 @@ static void createFaceRingMap(const int mvert_tot,
 }
 
 static void createVertRingMap(const int mvert_tot,
-                              const blender::Span<MEdge> edges,
+                              const blender::Span<blender::int2> edges,
                               MeshElemMap **r_map,
                               int **r_indices)
 {
@@ -185,8 +185,8 @@ static void createVertRingMap(const int mvert_tot,
   int *indices, *index_iter;
 
   for (const int i : edges.index_range()) {
-    vid[0] = edges[i].v1;
-    vid[1] = edges[i].v2;
+    vid[0] = edges[i][0];
+    vid[1] = edges[i][1];
     map[vid[0]].count++;
     map[vid[1]].count++;
     indices_num += 2;
@@ -199,8 +199,8 @@ static void createVertRingMap(const int mvert_tot,
     map[i].count = 0;
   }
   for (const int i : edges.index_range()) {
-    vid[0] = edges[i].v1;
-    vid[1] = edges[i].v2;
+    vid[0] = edges[i][0];
+    vid[1] = edges[i][1];
     map[vid[0]].indices[map[vid[0]].count] = vid[1];
     map[vid[0]].count++;
     map[vid[1]].indices[map[vid[1]].count] = vid[0];
@@ -547,7 +547,7 @@ static void initSystem(
       }
     }
 
-    const blender::Span<MEdge> edges = mesh->edges();
+    const blender::Span<blender::int2> edges = mesh->edges();
     const blender::Span<int> corner_verts = mesh->corner_verts();
     const blender::Span<MLoopTri> looptris = mesh->looptris();
 

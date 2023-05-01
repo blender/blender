@@ -285,7 +285,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
     invert_m3_m3_safe_ortho(td->mtx, td->smtx);
   }
   else {
-    /* no conversion to/from dataspace */
+    /* No conversion to/from data-space. */
     unit_m3(td->smtx);
     unit_m3(td->mtx);
   }

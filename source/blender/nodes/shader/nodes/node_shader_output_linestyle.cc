@@ -49,6 +49,7 @@ void register_node_type_sh_output_linestyle()
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_LINESTYLE, "Line Style Output", NODE_CLASS_OUTPUT);
   ntype.declare = file_ns::node_declare;
+  ntype.add_ui_poll = line_style_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_buts_output_linestyle;
   ntype.no_muting = true;
 

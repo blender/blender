@@ -628,7 +628,7 @@ struct LightData {
   float radius_squared;
   /** NOTE: It is ok to use float3 here. A float is declared right after it.
    * float3 is also aligned to 16 bytes. */
-  float3 color;
+  packed_float3 color;
   /** Light Type. */
   eLightType type;
   /** Spot size. Aligned to size of float2. */

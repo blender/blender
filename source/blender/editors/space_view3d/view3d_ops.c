@@ -72,7 +72,7 @@ static void VIEW3D_OT_copybuffer(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Copy Objects";
   ot->idname = "VIEW3D_OT_copybuffer";
-  ot->description = "Selected objects are copied to the clipboard";
+  ot->description = "Copy the selected objects to the internal clipboard";
 
   /* api callbacks */
   ot->exec = view3d_copybuffer_exec;
@@ -113,7 +113,7 @@ static void VIEW3D_OT_pastebuffer(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Paste Objects";
   ot->idname = "VIEW3D_OT_pastebuffer";
-  ot->description = "Objects from the clipboard are pasted";
+  ot->description = "Paste objects from the internal clipboard";
 
   /* api callbacks */
   ot->exec = view3d_pastebuffer_exec;

@@ -239,7 +239,7 @@ static void gpu_material_sky_texture_build(GPUMaterial *mat)
                                              mat->sky_builder->current_layer,
                                              1,
                                              GPU_RGBA32F,
-                                             GPU_TEXTURE_USAGE_GENERAL,
+                                             GPU_TEXTURE_USAGE_SHADER_READ,
                                              (float *)mat->sky_builder->pixels);
 
   MEM_freeN(mat->sky_builder);

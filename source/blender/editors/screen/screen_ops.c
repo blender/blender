@@ -213,6 +213,17 @@ bool ED_operator_objectmode_poll_msg(bContext *C)
   return true;
 }
 
+bool ED_operator_objectmode_with_view3d_poll_msg(bContext *C)
+{
+  if (!ED_operator_objectmode_poll_msg(C)) {
+    return false;
+  }
+  if (!ED_operator_region_view3d_active(C)) {
+    return false;
+  }
+  return true;
+}
+
 static bool ed_spacetype_test(bContext *C, int type)
 {
   if (ED_operator_areaactive(C)) {
@@ -235,6 +246,19 @@ bool ED_operator_region_view3d_active(bContext *C)
 
   CTX_wm_operator_poll_msg_set(C, "expected a view3d region");
   return false;
+}
+
+bool ED_operator_region_gizmo_active(bContext *C)
+{
+  ARegion *region = CTX_wm_region(C);
+  if (region == NULL) {
+    return false;
+  }
+  wmGizmoMap *gzmap = region->gizmo_map;
+  if (gzmap == NULL) {
+    return false;
+  }
+  return true;
 }
 
 bool ED_operator_animview_active(bContext *C)
@@ -4371,23 +4395,25 @@ static int screen_context_menu_invoke(bContext *C,
     ed_screens_statusbar_menu_create(layout, NULL);
     UI_popup_menu_end(C, pup);
   }
-  else if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
-    uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Header"), ICON_NONE);
-    uiLayout *layout = UI_popup_menu_layout(pup);
-    ED_screens_header_tools_menu_create(C, layout, NULL);
-    UI_popup_menu_end(C, pup);
-  }
-  else if (region->regiontype == RGN_TYPE_FOOTER) {
-    uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Footer"), ICON_NONE);
-    uiLayout *layout = UI_popup_menu_layout(pup);
-    ED_screens_footer_tools_menu_create(C, layout, NULL);
-    UI_popup_menu_end(C, pup);
-  }
-  else if (region->regiontype == RGN_TYPE_NAV_BAR) {
-    uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Navigation Bar"), ICON_NONE);
-    uiLayout *layout = UI_popup_menu_layout(pup);
-    ED_screens_navigation_bar_tools_menu_create(C, layout, NULL);
-    UI_popup_menu_end(C, pup);
+  else if (region) {
+    if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
+      uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Header"), ICON_NONE);
+      uiLayout *layout = UI_popup_menu_layout(pup);
+      ED_screens_header_tools_menu_create(C, layout, NULL);
+      UI_popup_menu_end(C, pup);
+    }
+    else if (region->regiontype == RGN_TYPE_FOOTER) {
+      uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Footer"), ICON_NONE);
+      uiLayout *layout = UI_popup_menu_layout(pup);
+      ED_screens_footer_tools_menu_create(C, layout, NULL);
+      UI_popup_menu_end(C, pup);
+    }
+    else if (region->regiontype == RGN_TYPE_NAV_BAR) {
+      uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Navigation Bar"), ICON_NONE);
+      uiLayout *layout = UI_popup_menu_layout(pup);
+      ED_screens_navigation_bar_tools_menu_create(C, layout, NULL);
+      UI_popup_menu_end(C, pup);
+    }
   }
 
   return OPERATOR_INTERFACE;

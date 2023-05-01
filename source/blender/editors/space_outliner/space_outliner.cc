@@ -447,7 +447,7 @@ static void outliner_deactivate(struct ScrArea *area)
   ED_region_tag_redraw_no_rebuild(BKE_area_find_region_type(area, RGN_TYPE_WINDOW));
 }
 
-static void outliner_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+static void outliner_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
 
@@ -478,7 +478,9 @@ static void outliner_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   space_outliner->runtime = nullptr;
 }
 
-static void outliner_blend_read_lib(BlendLibReader *reader, ID * /*parent_id*/, SpaceLink *sl)
+static void outliner_space_blend_read_lib(BlendLibReader *reader,
+                                          ID * /*parent_id*/,
+                                          SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
 
@@ -488,7 +490,9 @@ static void outliner_blend_read_lib(BlendLibReader *reader, ID * /*parent_id*/, 
 
     BLI_mempool_iternew(space_outliner->treestore, &iter);
     while ((tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
-      BLO_read_id_address(reader, nullptr, &tselem->id);
+      if (TSE_IS_REAL_ID(tselem)) {
+        BLO_read_id_address(reader, nullptr, &tselem->id);
+      }
     }
     /* rebuild hash table, because it depends on ids too */
     space_outliner->storeflag |= SO_TREESTORE_REBUILD;
@@ -550,7 +554,7 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
   }
 }
 
-static void outliner_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void outliner_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
   write_space_outliner(writer, space_outliner);
@@ -578,9 +582,9 @@ void ED_spacetype_outliner(void)
   st->id_remap = outliner_id_remap;
   st->deactivate = outliner_deactivate;
   st->context = outliner_context;
-  st->blend_read_data = outliner_blend_read_data;
-  st->blend_read_lib = outliner_blend_read_lib;
-  st->blend_write = outliner_blend_write;
+  st->blend_read_data = outliner_space_blend_read_data;
+  st->blend_read_lib = outliner_space_blend_read_lib;
+  st->blend_write = outliner_space_blend_write;
 
   /* regions: main window */
   art = MEM_cnew<ARegionType>("spacetype outliner region");

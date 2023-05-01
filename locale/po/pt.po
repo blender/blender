@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2017-09-08 21:24-0300\n"
 "Last-Translator: Ivan Paulos Tomé <greylica@gmail.com>\n"
 "Language-Team: Ivan Paulos Tomé, Inês Almeida, João Brandão (ULISBOA), Paulo Martins <ivan.paulos.tome@yandex.com>\n"
@@ -1307,14 +1307,6 @@ msgstr "Fontes vetoriais"
 
 msgid "Vector font data-blocks"
 msgstr "Bloco de dados de fontes vetoriais."
-
-
-msgid "Grease Pencil"
-msgstr "Lápis de cera"
-
-
-msgid "Grease Pencil data-blocks"
-msgstr "Bloco de dados de lápis de cera."
 
 
 msgid "Images"
@@ -8782,6 +8774,10 @@ msgid "Fonts"
 msgstr "Fontes"
 
 
+msgid "Grease Pencil"
+msgstr "Lápis de cera"
+
+
 msgid "Freestyle Linestyles"
 msgstr "Freestyle - Estilos de linhas"
 
@@ -11305,6 +11301,14 @@ msgid "Editable falloff curve"
 msgstr "Curva de decaimento editável."
 
 
+msgid "Comb"
+msgstr "Pentear"
+
+
+msgid "Puff"
+msgstr "Inflar"
+
+
 msgid "Paint most on faces pointing towards the view according to this angle"
 msgstr "Executa a pintura com mais potência nas faces que apontam na direção da visualização, de acordo com este ângulo."
 
@@ -11347,10 +11351,6 @@ msgstr "Rotaciona os pontos em torno dos pontos medianos do pincel."
 
 msgid "Pull points towards the midpoint of the brush"
 msgstr "Empurra os pontos na direção dos pontos medianos do pincel."
-
-
-msgid "Paste copies of the strokes stored on the clipboard"
-msgstr "Cola as cópias dos traços armazenadas na área de transferência."
 
 
 msgid "Gradient Spacing"
@@ -12523,6 +12523,10 @@ msgstr "Fonte em negrito e itálico"
 
 msgid "Font Italic"
 msgstr "Fonte em itálico"
+
+
+msgid "Text Selected"
+msgstr "Texto selecionado"
 
 
 msgid "X Offset"
@@ -16441,10 +16445,6 @@ msgstr "Memória"
 
 msgid "Text file is in memory, without a corresponding file on disk"
 msgstr "Ficheiro de texto está na memória, sem um ficheiro correspondente no disco."
-
-
-msgid "Modified"
-msgstr "Modificado"
 
 
 msgid "Text file on disk is different than the one in memory"
@@ -26090,10 +26090,6 @@ msgid "Y position of the middle of the box"
 msgstr "Posição Y do meio da caixa."
 
 
-msgid "Bright/Contrast"
-msgstr "Brilho e contraste"
-
-
 msgid "Keep output image premultiplied alpha"
 msgstr "Mantém o alfa pré-multiplicado na imagem de saída."
 
@@ -26894,10 +26890,6 @@ msgid "Hue Correct"
 msgstr "Correção de matiz"
 
 
-msgid "Hue Saturation Value"
-msgstr "Matiz, saturação e valor"
-
-
 msgid "ID Mask"
 msgstr "Identificador de máscara"
 
@@ -27636,10 +27628,6 @@ msgid "Blackbody"
 msgstr "Matéria escura"
 
 
-msgid "Bright Contrast"
-msgstr "Brilho e contraste"
-
-
 msgid "Anisotropic BSDF"
 msgstr "BSDF - Anisotrópico"
 
@@ -28204,18 +28192,6 @@ msgid "UV coordinates to be used for mapping"
 msgstr "Quais coordenadas UV serão usadas para mapeamento."
 
 
-msgid "Cross Product"
-msgstr "Produto vetorial"
-
-
-msgid "Modulo"
-msgstr "Módulo"
-
-
-msgid "Wrap"
-msgstr "Envolver"
-
-
 msgid "Z Axis"
 msgstr "Eixo Z"
 
@@ -28742,10 +28718,6 @@ msgid "Copy Keyframes"
 msgstr "Copiar fotogramas chave"
 
 
-msgid "Copy selected keyframes to the copy/paste buffer"
-msgstr "Copia os fotogramas chave selecionados para a área de transferência."
-
-
 msgctxt "Operator"
 msgid "Delete Keyframes"
 msgstr "Apagar fotogramas chave"
@@ -28939,10 +28911,6 @@ msgstr "Nova ação"
 msgctxt "Operator"
 msgid "Paste Keyframes"
 msgstr "Colar fotogramas chave"
-
-
-msgid "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame"
-msgstr "Cola os fotogramas chave a partir da área de transferência para os canais selecionados, iniciando no fotograma atual."
 
 
 msgid "Flipped"
@@ -30621,10 +30589,6 @@ msgid "Copy Tracks"
 msgstr "Copiar trilhas"
 
 
-msgid "Copy selected tracks to clipboard"
-msgstr "Copia as trilhas selecionadas para a área de transferência."
-
-
 msgctxt "Operator"
 msgid "Create Plane Track"
 msgstr "Criar rastreamento de plano"
@@ -30965,10 +30929,6 @@ msgstr "Ativar múltipla visualização"
 msgctxt "Operator"
 msgid "Paste Tracks"
 msgstr "Colar trilhas"
-
-
-msgid "Paste tracks from clipboard"
-msgstr "Cola as trilhas a partir da área de transferência."
 
 
 msgctxt "Operator"
@@ -33144,6 +33104,14 @@ msgid "Execute selected file"
 msgstr "Executa o ficheiro selecionado."
 
 
+msgid "Show"
+msgstr "Mostrar"
+
+
+msgid "Play"
+msgstr "Reproduzir"
+
+
 msgctxt "Operator"
 msgid "Increment Number in Filename"
 msgstr "Número incremental no nome do ficheiro"
@@ -33502,6 +33470,10 @@ msgstr "Carrega uma nova fonte a partir de um ficheiro."
 
 msgid "Select all text"
 msgstr "Seleciona todo o texto."
+
+
+msgid "Select word under cursor"
+msgstr "Seleciona a palavra abaixo do cursor."
 
 
 msgctxt "Operator"
@@ -34329,11 +34301,6 @@ msgid "Adjust vertex color brightness/contrast"
 msgstr "Permite ajustar o brilho e contraste das cores dos vértices."
 
 
-msgctxt "Operator"
-msgid "Vertex Paint Hue Saturation Value"
-msgstr "Matiz, saturação e valor para pintura de vértices"
-
-
 msgid "Adjust vertex color HSV values"
 msgstr "Permite ajustar as cores MSV dos vértices."
 
@@ -34420,6 +34387,15 @@ msgstr "Selecionar grupo de vértices"
 
 msgid "Select all the vertices assigned to the active vertex group"
 msgstr "Seleciona todos os vértices atribuídos para o grupo de vértices ativo."
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "Amostra de peso para pintura de pesos"
+
+
+msgid "Use the mouse to sample a weight in the 3D view"
+msgstr "Permite usar o rato para obter uma amostra de peso dentro da janela de visualização 3D."
 
 
 msgctxt "Operator"
@@ -35539,10 +35515,6 @@ msgid "Copy Splines"
 msgstr "Copiar Splines"
 
 
-msgid "Copy selected splines to clipboard"
-msgstr "Copia as Splines selecionadas para a área de transferência."
-
-
 msgid "Toggle cyclic for selected splines"
 msgstr "Alterna a opção cíclico(a) para as Splines selecionadas."
 
@@ -35641,10 +35613,6 @@ msgstr "Permite definir o parentesco da máscara."
 msgctxt "Operator"
 msgid "Paste Splines"
 msgstr "Colar Splines"
-
-
-msgid "Paste splines from clipboard"
-msgstr "Cola as Splines a partir da área de transferência."
 
 
 msgctxt "Operator"
@@ -38249,14 +38217,6 @@ msgid "Clear the boundaries for viewer operations"
 msgstr "Limpa as limitações para as operações de visualização."
 
 
-msgid "Copies selected nodes to the clipboard"
-msgstr "Copia os nós selecionados para a área de transferência."
-
-
-msgid "Pastes nodes from the clipboard to the active node tree"
-msgstr "Cola os nós a partir da área de transferência para a árvore de nós ativa."
-
-
 msgctxt "Operator"
 msgid "Collapse and Hide Unused Sockets"
 msgstr "Encolher e ocultar os conectores não usados"
@@ -39251,6 +39211,10 @@ msgid "Bind mesh to system in laplacian deform modifier"
 msgstr "Atrela a malha para um sistema no modificador de deformação laplaciano."
 
 
+msgid "Subset"
+msgstr "Sub-conjunto"
+
+
 msgctxt "Operator"
 msgid "Clear Location"
 msgstr "Limpar localização"
@@ -40170,10 +40134,6 @@ msgid "Remove vertex group assignments which are not required"
 msgstr "Remove as atribuições de grupo de vértices que não são requeridas."
 
 
-msgid "Subset"
-msgstr "Sub-conjunto"
-
-
 msgid "Keep Single"
 msgstr "Manter "
 
@@ -40985,10 +40945,6 @@ msgid "Hide vertices"
 msgstr "Ocultar os vértices"
 
 
-msgid "Show"
-msgstr "Mostrar"
-
-
 msgid "Show vertices"
 msgstr "Mostra os vértices"
 
@@ -41258,15 +41214,6 @@ msgstr "Modo de pintura de pesos de influência"
 
 msgid "Toggle weight paint mode in 3D view"
 msgstr "Alterna para o modo de pintura de pesos na janela de visualização 3D."
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "Amostra de peso para pintura de pesos"
-
-
-msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "Permite usar o rato para obter uma amostra de peso dentro da janela de visualização 3D."
 
 
 msgctxt "Operator"
@@ -41730,10 +41677,6 @@ msgstr "Copia as restrições para os outros ossos selecionados."
 msgctxt "Operator"
 msgid "Copy Pose"
 msgstr "Copiar pose"
-
-
-msgid "Copies the current pose of the selected bones to copy/paste buffer"
-msgstr "Copia a pose atual dos ossos selecionados para a área de transferência."
 
 
 msgctxt "Operator"
@@ -42781,10 +42724,6 @@ msgid "Copy Line Set"
 msgstr "Copiar conjunto de linhas"
 
 
-msgid "Copy the active line set to a buffer"
-msgstr "Copia o conjunto de linhas ativas para a área de transferência."
-
-
 msgctxt "Operator"
 msgid "Move Line Set"
 msgstr "Mover conjunto de linha"
@@ -42801,10 +42740,6 @@ msgstr "A direção na qual mover o conjunto de linhas ativo."
 msgctxt "Operator"
 msgid "Paste Line Set"
 msgstr "Colar conjunto de linha"
-
-
-msgid "Paste the buffer content to the active line set"
-msgstr "Cola o conteúdo da área de transferência para o conjunto de linhas ativo."
 
 
 msgctxt "Operator"
@@ -44582,10 +44517,6 @@ msgid "Select text by line"
 msgstr "Seleciona o texto por linha."
 
 
-msgid "Select word under cursor"
-msgstr "Seleciona a palavra abaixo do cursor."
-
-
 msgctxt "Operator"
 msgid "Find"
 msgstr "Localizar"
@@ -45597,6 +45528,10 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Exporta o esquema UV para uma imagem de bitmap."
 
 
+msgid "Modified"
+msgstr "Modificado"
+
+
 msgid "Exports UVs from the modified mesh"
 msgstr "Exporta as UVs a partir da malha modificada."
 
@@ -45649,10 +45584,6 @@ msgstr "Oculta os vértices UV (de)selecionados."
 msgctxt "Operator"
 msgid "Lightmap Pack"
 msgstr "Pacote Lightmap"
-
-
-msgid "New Image"
-msgstr "Nova imagem"
 
 
 msgid "Pack Quality"
@@ -46870,6 +46801,10 @@ msgid "Toggle a context value"
 msgstr "Alterna um valor de contexto."
 
 
+msgid "Wrap"
+msgstr "Envolver"
+
+
 msgid "Wrap back to the first/last values"
 msgstr "Envolve novamente os limites entre os primeiros e últimos valores."
 
@@ -47112,10 +47047,6 @@ msgstr "Tempo para mostrar a imagem renderizada antes de continuar se movendo (e
 
 msgid "Run once and exit"
 msgstr "Executa uma vez e sai"
-
-
-msgid "Play"
-msgstr "Reproduzir"
 
 
 msgid "Random Order"
@@ -48262,10 +48193,6 @@ msgid "Tracking Settings"
 msgstr "Definições de rastreamento"
 
 
-msgid "Lens"
-msgstr "Lentes"
-
-
 msgid "Predefined tracking settings"
 msgstr "Definições de rastreamento predefinidas."
 
@@ -48629,6 +48556,34 @@ msgid "Pose Library"
 msgstr "Biblioteca de poses"
 
 
+msgid "Comb hairs"
+msgstr "Permite pentear os cabelos."
+
+
+msgid "Smooth hairs"
+msgstr "Suavizar cabelos"
+
+
+msgid "Add hairs"
+msgstr "Adicionar cabelos"
+
+
+msgid "Make hairs longer or shorter"
+msgstr "Torna os cabelos mais longos ou curtos."
+
+
+msgid "Make hairs stand up"
+msgstr "Faz com que os cabelos fiquem em pé."
+
+
+msgid "Cut hairs"
+msgstr "Cortar cabelos"
+
+
+msgid "Weight hair particles"
+msgstr "Partículas de peso de cabelos."
+
+
 msgctxt "Operator"
 msgid "Box Mask"
 msgstr "Máscara em caixa"
@@ -48863,42 +48818,6 @@ msgstr "Objeto de formato"
 
 msgid "Outer shape to use for tools"
 msgstr "Formato exterior a ser usado para as ferramentas."
-
-
-msgid "Comb"
-msgstr "Pentear"
-
-
-msgid "Comb hairs"
-msgstr "Permite pentear os cabelos."
-
-
-msgid "Smooth hairs"
-msgstr "Suavizar cabelos"
-
-
-msgid "Add hairs"
-msgstr "Adicionar cabelos"
-
-
-msgid "Make hairs longer or shorter"
-msgstr "Torna os cabelos mais longos ou curtos."
-
-
-msgid "Puff"
-msgstr "Inflar"
-
-
-msgid "Make hairs stand up"
-msgstr "Faz com que os cabelos fiquem em pé."
-
-
-msgid "Cut hairs"
-msgstr "Cortar cabelos"
-
-
-msgid "Weight hair particles"
-msgstr "Partículas de peso de cabelos."
 
 
 msgid "Auto Velocity"
@@ -49697,20 +49616,12 @@ msgid "Pose Matrix"
 msgstr "Matriz de pose"
 
 
-msgid "Final 4x4 matrix after constraints and drivers are applied (object space)"
-msgstr "Matriz de 4x4 depois que as restrições e controladores estão aplicados (espaço de objeto)."
-
-
 msgid "Alternative access to location/scale/rotation relative to the parent and own rest bone"
 msgstr "Permite um acesso alternativo a localização, rotação ou escalonamento relacionados ao parente e seu próprio osso de descanso."
 
 
 msgid "Channel Matrix"
 msgstr "Matriz de canais"
-
-
-msgid "4x4 matrix, before constraints"
-msgstr "Matriz 4x4, antes das restrições."
 
 
 msgid "Parent of this pose bone"
@@ -56142,6 +56053,10 @@ msgid "3D View near clipping distance (perspective view only)"
 msgstr "Limite de corte de visibilidade na ampliação da porta de visão na janela de visualização 3D (somente para visão em perspectiva)."
 
 
+msgid "Lens"
+msgstr "Lentes"
+
+
 msgid "Viewport lens angle"
 msgstr "Ângulo da lente para a porta de visão."
 
@@ -57924,10 +57839,6 @@ msgstr "Sombrear a base"
 
 msgid "Shade Top"
 msgstr "Sombrear o topo"
-
-
-msgid "Text Selected"
-msgstr "Texto selecionado"
 
 
 msgid "Theme Widget State Color"
@@ -60281,10 +60192,6 @@ msgid "Invert"
 msgstr "Inverter"
 
 
-msgid "Old"
-msgstr "Antigo(a)"
-
-
 msgid "Date"
 msgstr "Data"
 
@@ -61251,16 +61158,16 @@ msgid "One Object Per Line"
 msgstr "Um objeto por linha"
 
 
-msgid "File: %s"
-msgstr "Ficheiro: %s"
-
-
 msgid "Text: External"
 msgstr "Texto: Externo"
 
 
 msgid "Text: Internal"
 msgstr "Texto: Interno"
+
+
+msgid "File: %s"
+msgstr "Ficheiro: %s"
 
 
 msgctxt "Operator"
@@ -61567,16 +61474,6 @@ msgstr "Similares"
 msgctxt "Operator"
 msgid "Levels"
 msgstr "Níveis"
-
-
-msgctxt "Operator"
-msgid "Hue Saturation Value"
-msgstr "Matiz, saturação e valor"
-
-
-msgctxt "Operator"
-msgid "Bright/Contrast"
-msgstr "Brilho e contraste"
 
 
 msgctxt "Operator"
@@ -62715,6 +62612,10 @@ msgid "GP_Palette"
 msgstr "Paleta de lápis de cera"
 
 
+msgid "Untitled"
+msgstr "Sem título"
+
+
 msgid "Unable to make version backup: filename too short"
 msgstr "Não é possível fazer cópia de segurança de versão: nome de ficheiro muito curto."
 
@@ -62869,10 +62770,6 @@ msgstr "Não há controladores a partir dos quais copiar as variáveis."
 
 msgid "Driver has no variables to copy"
 msgstr "O controlador não possui variáveis para ser copiadas."
-
-
-msgid "No driver variables in clipboard to paste"
-msgstr "Sem variáveis de controlador disponíveis na área de transferência para ser coladas."
 
 
 msgid "Cannot paste driver variables without a driver"
@@ -63121,22 +63018,6 @@ msgstr "Ações dentro desta armação serão destruídas por esta nova pose de 
 
 msgid "No pose to copy"
 msgstr "Sem pose para copiar."
-
-
-msgid "Copied pose to buffer"
-msgstr "Pose copiada para a área de transferência."
-
-
-msgid "Copy buffer is empty"
-msgstr "A área de transferência está vazia."
-
-
-msgid "Copy buffer is not from pose mode"
-msgstr "A cópia presente na área de transferência não é originária do modo de pose."
-
-
-msgid "Copy buffer has no pose"
-msgstr "A área de transferência não possui uma pose."
 
 
 msgid "Programming error: missing clear transform function or keying set name"
@@ -65016,10 +64897,6 @@ msgid "Packed MultiLayer files cannot be painted: %s"
 msgstr "Ficheiros de multi-camadas empacotados não podem ser pintados: %s"
 
 
-msgid "Untitled"
-msgstr "Sem título"
-
-
 msgid "Image could not be found"
 msgstr "Imagem não pôde ser encontrada."
 
@@ -65152,16 +65029,8 @@ msgid "Action '%s' will not be saved, create Fake User or Stash in NLA Stack to 
 msgstr "A ação '%s' não será guarda, por favor, crie um utilizador virtual ou armazenamento dentro da pilha de animação não linear para reter a ação no ficheiro."
 
 
-msgid "No keyframes copied to keyframes copy/paste buffer"
-msgstr "Sem fotogramas chave copiados para a área de transferência."
-
-
 msgid "Keyframe pasting is not available for mask mode"
 msgstr "A operação de colar fotogramas chave não está disponível para o modo de máscara."
-
-
-msgid "No data in buffer to paste"
-msgstr "Sem dados presentes na área de transferência para colar"
 
 
 msgid "Keyframe pasting is not available for grease pencil or mask mode"
@@ -67205,6 +67074,10 @@ msgid "Val"
 msgstr "Valor"
 
 
+msgid "Old"
+msgstr "Antigo(a)"
+
+
 msgid "Edge Crease"
 msgstr "Vincos de arestas"
 
@@ -67547,11 +67420,6 @@ msgstr "Curvas"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "Correção de matiz"
-
-
-msgctxt "Sequence"
-msgid "Bright/Contrast"
-msgstr "Brilho e contraste"
 
 
 msgctxt "Sequence"

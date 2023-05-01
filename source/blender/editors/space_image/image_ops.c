@@ -70,8 +70,8 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
-#include "ED_util.h"
 #include "ED_undo.h"
+#include "ED_util.h"
 #include "ED_util_imbuf.h"
 #include "ED_uvedit.h"
 
@@ -1586,8 +1586,7 @@ static int image_file_browse_exec(bContext *C, wmOperator *op)
 
   /* If loading into a tiled texture, ensure that the filename is tokenized. */
   if (ima->source == IMA_SRC_TILED) {
-    char *filename = (char *)BLI_path_basename(filepath);
-    BKE_image_ensure_tile_token(filename);
+    BKE_image_ensure_tile_token(filepath, sizeof(filepath));
   }
 
   PointerRNA imaptr;

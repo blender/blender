@@ -395,6 +395,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
         case CD_PROP_BOOL:
         case CD_PROP_INT8:
         case CD_PROP_INT32:
+        case CD_PROP_INT32_2D:
         case CD_PROP_FLOAT:
         case CD_PROP_FLOAT2: {
           if (layer != -1 && domain.has_value()) {

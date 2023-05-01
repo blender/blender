@@ -88,7 +88,7 @@ class OptiXDevice : public CUDADevice {
   OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler);
   ~OptiXDevice();
 
-  BVHLayoutMask get_bvh_layout_mask() const override;
+  BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;
 
   string compile_kernel_get_common_cflags(const uint kernel_features);
 

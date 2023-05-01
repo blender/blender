@@ -285,7 +285,7 @@ static bool configure_image_spec_from_buffer(ImageSpec *image_spec,
   *image_spec = ImageSpec(
       buffer_params.width, buffer_params.height, num_channels, TypeDesc::FLOAT);
 
-  image_spec->channelnames = move(channel_names);
+  image_spec->channelnames = std::move(channel_names);
 
   if (!buffer_params_to_image_spec_atttributes(image_spec, buffer_params)) {
     return false;

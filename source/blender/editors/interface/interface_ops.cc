@@ -245,8 +245,8 @@ static void UI_OT_copy_as_driver_button(wmOperatorType *ot)
   ot->idname = "UI_OT_copy_as_driver_button";
   ot->description =
       "Create a new driver with this property as input, and copy it to the "
-      "clipboard. Use Paste Driver to add it to the target property, or Paste "
-      "Driver Variables to extend an existing driver";
+      "internal clipboard. Use Paste Driver to add it to the target property, "
+      "or Paste Driver Variables to extend an existing driver";
 
   /* callbacks */
   ot->exec = copy_as_driver_button_exec;
@@ -2231,6 +2231,8 @@ static void UI_OT_drop_color(wmOperatorType *ot)
   ot->description = "Drop colors to buttons";
 
   ot->invoke = drop_color_invoke;
+  ot->poll = ED_operator_regionactive;
+
   ot->flag = OPTYPE_INTERNAL;
 
   RNA_def_float_color(

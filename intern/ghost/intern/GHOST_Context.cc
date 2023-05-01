@@ -10,6 +10,9 @@
 #include "GHOST_Context.hh"
 
 #ifdef _WIN32
+#  define WIN32_LEAN_AND_MEAN
+#  include <windows.h>
+
 #  include <epoxy/wgl.h>
 #  include <tchar.h>
 #
@@ -17,6 +20,8 @@
 #    define ERROR_PROFILE_DOES_NOT_MATCH_DEVICE 0x7E7
 #  endif
 #endif
+
+#include <epoxy/gl.h>
 
 #include <cstdio>
 #include <cstring>

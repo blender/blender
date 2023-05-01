@@ -100,7 +100,7 @@
 #include "ED_armature.h"
 #include "ED_curve.h"
 #include "ED_curves.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
 #include "ED_node.h"
@@ -1684,7 +1684,7 @@ static std::optional<CollectionAddInfo> collection_add_info_get_from_op(bContext
         BLI_findlink(&bmain->collections, RNA_enum_get(op->ptr, "collection")));
   }
 
-  if (update_location_if_necessary) {
+  if (update_location_if_necessary && CTX_wm_region_view3d(C)) {
     int mval[2];
     if (!RNA_property_is_set(op->ptr, prop_location) && object_add_drop_xy_get(C, op, &mval)) {
       ED_object_location_from_view(C, add_info.loc);
@@ -1928,11 +1928,13 @@ static int object_data_instance_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  int mval[2];
-  if (!RNA_property_is_set(op->ptr, prop_location) && object_add_drop_xy_get(C, op, &mval)) {
-    ED_object_location_from_view(C, loc);
-    ED_view3d_cursor3d_position(C, mval, false, loc);
-    RNA_property_float_set_array(op->ptr, prop_location, loc);
+  if (CTX_wm_region_view3d(C)) {
+    int mval[2];
+    if (!RNA_property_is_set(op->ptr, prop_location) && object_add_drop_xy_get(C, op, &mval)) {
+      ED_object_location_from_view(C, loc);
+      ED_view3d_cursor3d_position(C, mval, false, loc);
+      RNA_property_float_set_array(op->ptr, prop_location, loc);
+    }
   }
 
   if (!ED_object_add_generic_get_opts(
@@ -3156,7 +3158,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
       Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
       Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
-      me_eval = BKE_mesh_copy_for_eval(me_eval, false);
+      me_eval = BKE_mesh_copy_for_eval(me_eval);
       BKE_object_material_from_eval_data(bmain, newob, &me_eval->id);
       Mesh *new_mesh = (Mesh *)newob->data;
       BKE_mesh_nomain_to_mesh(me_eval, new_mesh, newob);
@@ -3384,8 +3386,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       }
 
       Mesh *new_mesh = static_cast<Mesh *>(BKE_id_new(bmain, ID_ME, newob->id.name + 2));
+      newob->data = new_mesh;
+      newob->type = OB_MESH;
+
       if (const Mesh *mesh_eval = geometry.get_mesh_for_read()) {
-        BKE_mesh_nomain_to_mesh(BKE_mesh_copy_for_eval(mesh_eval, false), new_mesh, newob);
+        BKE_mesh_nomain_to_mesh(BKE_mesh_copy_for_eval(mesh_eval), new_mesh, newob);
         BKE_object_material_from_eval_data(bmain, newob, &mesh_eval->id);
         new_mesh->attributes_for_write().remove_anonymous();
       }
@@ -3393,6 +3398,9 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         bke::AnonymousAttributePropagationInfo propagation_info;
         propagation_info.propagate_all = false;
         Mesh *mesh = bke::curve_to_wire_mesh(curves_eval->geometry.wrap(), propagation_info);
+        if (!mesh) {
+          mesh = BKE_mesh_new_nomain(0, 0, 0, 0);
+        }
         BKE_mesh_nomain_to_mesh(mesh, new_mesh, newob);
         BKE_object_material_from_eval_data(bmain, newob, &curves_eval->id);
       }
@@ -3402,9 +3410,6 @@ static int object_convert_exec(bContext *C, wmOperator *op)
                     "Object '%s' has no evaluated mesh or curves data",
                     ob->id.name + 2);
       }
-
-      newob->data = new_mesh;
-      newob->type = OB_MESH;
 
       BKE_object_free_derived_caches(newob);
       BKE_object_free_modifiers(newob, 0);
@@ -3924,7 +3929,7 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
 
     DEG_id_tag_update(&ob_add->id, ID_RECALC_TRANSFORM);
   }
-  else {
+  else if (CTX_wm_region_view3d(C)) {
     int mval[2];
     if (object_add_drop_xy_get(C, op, &mval)) {
       ED_object_location_from_view(C, basen->object->loc);
@@ -4026,7 +4031,7 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
 
     MEM_freeN(objects);
   }
-  else {
+  else if (CTX_wm_region_view3d(C)) {
     int mval[2];
     if (object_add_drop_xy_get(C, op, &mval)) {
       float cursor[3];

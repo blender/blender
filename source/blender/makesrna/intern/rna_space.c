@@ -8004,6 +8004,11 @@ static void rna_def_spreadsheet_row_filter(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "8-Bit Integer Value", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
 
+  prop = RNA_def_property(srna, "value_int2", PROP_INT, PROP_NONE);
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_ui_text(prop, "2D Vector Value", "");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
+
   prop = RNA_def_property(srna, "value_boolean", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SPREADSHEET_ROW_FILTER_BOOL_VALUE);
   RNA_def_property_ui_text(prop, "Boolean Value", "");

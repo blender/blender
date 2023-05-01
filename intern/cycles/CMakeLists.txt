@@ -249,6 +249,13 @@ endif()
 if(WITH_CYCLES_DEVICE_HIP)
   add_definitions(-DWITH_HIP)
 
+  if(WITH_CYCLES_DEVICE_HIPRT)
+    include_directories(
+      ${HIPRT_INCLUDE_DIR}
+    )
+    add_definitions(-DWITH_HIPRT)
+  endif()
+
   if(WITH_HIP_DYNLOAD)
     include_directories(
       ../../extern/hipew/include
@@ -281,6 +288,9 @@ endif()
 
 if(WITH_CYCLES_EMBREE)
   add_definitions(-DWITH_EMBREE)
+  if(WITH_CYCLES_DEVICE_ONEAPI AND EMBREE_SYCL_SUPPORT)
+    add_definitions(-DWITH_EMBREE_GPU)
+  endif()
   add_definitions(-DEMBREE_MAJOR_VERSION=${EMBREE_MAJOR_VERSION})
   include_directories(
     SYSTEM

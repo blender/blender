@@ -6,13 +6,17 @@
  */
 
 #include "DNA_node_types.h"
+#include "DNA_space_types.h"
 
+#include "BKE_context.h"
 #include "BKE_node_runtime.hh"
 
 #include "node_shader_util.hh"
 
 #include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
+
+#include "RE_engine.h"
 
 #include "node_exec.h"
 
@@ -54,6 +58,42 @@ void sh_fn_node_type_base(bNodeType *ntype, int type, const char *name, short nc
   ntype->poll = sh_fn_poll_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
   ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
+}
+
+bool line_style_shader_nodes_poll(const bContext *C)
+{
+  const SpaceNode *snode = CTX_wm_space_node(C);
+  return snode->shaderfrom == SNODE_SHADER_LINESTYLE;
+}
+
+bool world_shader_nodes_poll(const bContext *C)
+{
+  const SpaceNode *snode = CTX_wm_space_node(C);
+  return snode->shaderfrom == SNODE_SHADER_WORLD;
+}
+
+bool object_shader_nodes_poll(const bContext *C)
+{
+  const SpaceNode *snode = CTX_wm_space_node(C);
+  return snode->shaderfrom == SNODE_SHADER_OBJECT;
+}
+
+bool object_cycles_shader_nodes_poll(const bContext *C)
+{
+  if (!object_shader_nodes_poll(C)) {
+    return false;
+  }
+  const RenderEngineType *engine_type = CTX_data_engine_type(C);
+  return STREQ(engine_type->idname, "CYCLES");
+}
+
+bool object_eevee_shader_nodes_poll(const bContext *C)
+{
+  if (!object_shader_nodes_poll(C)) {
+    return false;
+  }
+  const RenderEngineType *engine_type = CTX_data_engine_type(C);
+  return STREQ(engine_type->idname, "BLENDER_EEVEE");
 }
 
 /* ****** */

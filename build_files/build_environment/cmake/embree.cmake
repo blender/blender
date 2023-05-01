@@ -3,6 +3,8 @@
 # Note the utility apps may use png/tiff/gif system libraries, but the
 # library itself does not depend on them, so should give no problems.
 
+set(EMBREE_CMAKE_FLAGS ${DEFAULT_CMAKE_FLAGS})
+
 set(EMBREE_EXTRA_ARGS
   -DEMBREE_ISPC_SUPPORT=OFF
   -DEMBREE_TUTORIALS=OFF
@@ -31,6 +33,43 @@ if(NOT BLENDER_PLATFORM_ARM)
   )
 endif()
 
+if(NOT APPLE)
+  if(WIN32)
+    # Levels below -O2 don't work well for Embree+SYCL.
+    string(REGEX REPLACE "-O[A-Za-z0-9]" "" EMBREE_CLANG_CMAKE_CXX_FLAGS_DEBUG ${BLENDER_CLANG_CMAKE_C_FLAGS_DEBUG})
+    string(APPEND EMBREE_CLANG_CMAKE_CXX_FLAGS_DEBUG " -O2")
+    string(REGEX REPLACE "-O[A-Za-z0-9]" "" EMBREE_CLANG_CMAKE_C_FLAGS_DEBUG ${BLENDER_CLANG_CMAKE_C_FLAGS_DEBUG})
+    string(APPEND EMBREE_CLANG_CMAKE_C_FLAGS_DEBUG " -O2")
+    set(EMBREE_CMAKE_FLAGS
+      -DCMAKE_BUILD_TYPE=${BUILD_MODE}
+      -DCMAKE_CXX_FLAGS_RELEASE=${BLENDER_CLANG_CMAKE_CXX_FLAGS_RELEASE}
+      -DCMAKE_CXX_FLAGS_MINSIZEREL=${BLENDER_CLANG_CMAKE_CXX_FLAGS_MINSIZEREL}
+      -DCMAKE_CXX_FLAGS_RELWITHDEBINFO=${BLENDER_CLANG_CMAKE_CXX_FLAGS_RELWITHDEBINFO}
+      -DCMAKE_CXX_FLAGS_DEBUG=${EMBREE_CLANG_CMAKE_CXX_FLAGS_DEBUG}
+      -DCMAKE_C_FLAGS_RELEASE=${BLENDER_CLANG_CMAKE_C_FLAGS_RELEASE}
+      -DCMAKE_C_FLAGS_MINSIZEREL=${BLENDER_CLANG_CMAKE_C_FLAGS_MINSIZEREL}
+      -DCMAKE_C_FLAGS_RELWITHDEBINFO=${BLENDER_CLANG_CMAKE_C_FLAGS_RELWITHDEBINFO}
+      -DCMAKE_C_FLAGS_DEBUG=${EMBREE_CLANG_CMAKE_C_FLAGS_DEBUG}
+      -DCMAKE_CXX_STANDARD=17
+    )
+    set(EMBREE_EXTRA_ARGS
+      -DCMAKE_CXX_COMPILER=${LIBDIR}/dpcpp/bin/clang++.exe
+      -DCMAKE_C_COMPILER=${LIBDIR}/dpcpp/bin/clang.exe
+      -DCMAKE_SHARED_LINKER_FLAGS=-L"${LIBDIR}/dpcpp/lib"
+      -DEMBREE_SYCL_SUPPORT=ON
+      ${EMBREE_EXTRA_ARGS}
+    )
+  else()
+    set(EMBREE_EXTRA_ARGS
+      -DCMAKE_CXX_COMPILER=${LIBDIR}/dpcpp/bin/clang++
+      -DCMAKE_C_COMPILER=${LIBDIR}/dpcpp/bin/clang
+      -DCMAKE_SHARED_LINKER_FLAGS=-L"${LIBDIR}/dpcpp/lib"
+      -DEMBREE_SYCL_SUPPORT=ON
+      ${EMBREE_EXTRA_ARGS}
+    )
+  endif()
+endif()
+
 if(TBB_STATIC_LIBRARY)
   set(EMBREE_EXTRA_ARGS
     ${EMBREE_EXTRA_ARGS}
@@ -42,16 +81,25 @@ ExternalProject_Add(external_embree
   URL file://${PACKAGE_DIR}/${EMBREE_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${EMBREE_HASH_TYPE}=${EMBREE_HASH}
+  CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/embree
   PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/embree/src/external_embree < ${PATCH_DIR}/embree.diff
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree ${DEFAULT_CMAKE_FLAGS} ${EMBREE_EXTRA_ARGS}
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree ${EMBREE_CMAKE_FLAGS} ${EMBREE_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/embree
 )
 
-add_dependencies(
-  external_embree
-  external_tbb
-)
+if(NOT APPLE)
+  add_dependencies(
+    external_embree
+    external_tbb
+    external_dpcpp
+  )
+else()
+  add_dependencies(
+    external_embree
+    external_tbb
+  )
+endif()
 
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
@@ -66,6 +114,7 @@ if(WIN32)
     ExternalProject_Add_Step(external_embree after_install
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/bin/embree4_d.dll ${HARVEST_TARGET}/embree/bin/embree4_d.dll
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/lib/embree4_d.lib ${HARVEST_TARGET}/embree/lib/embree4_d.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/lib/embree4_sycl_d.lib ${HARVEST_TARGET}/embree/lib/embree4_sycl_d.lib
       DEPENDEES install
     )
   endif()

@@ -139,9 +139,14 @@ static int an_stringdec(const char *string, char *head, char *tail, ushort *numl
   return true;
 }
 
-static void an_stringenc(char *string, const char *head, const char *tail, ushort numlen, int pic)
+static void an_stringenc(char *string,
+                         const size_t string_maxncpy,
+                         const char *head,
+                         const char *tail,
+                         ushort numlen,
+                         int pic)
 {
-  BLI_path_sequence_encode(string, head, tail, numlen, pic);
+  BLI_path_sequence_encode(string, string_maxncpy, head, tail, numlen, pic);
 }
 
 #ifdef WITH_AVI
@@ -1614,7 +1619,7 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
     case ANIM_SEQUENCE:
       pic = an_stringdec(anim->first, head, tail, &digits);
       pic += position;
-      an_stringenc(anim->name, head, tail, digits, pic);
+      an_stringenc(anim->name, sizeof(anim->name), head, tail, digits, pic);
       ibuf = IMB_loadiffname(anim->name, IB_rect, anim->colorspace);
       if (ibuf) {
         anim->cur_position = position;

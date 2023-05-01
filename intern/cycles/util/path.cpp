@@ -809,7 +809,7 @@ static string path_source_replace_includes_recursive(const string &_source,
   const size_t source_length = source.length();
   size_t index = 0;
   /* Information about where we are in the source. */
-  size_t line_number = 0, column_number = 1;
+  size_t column_number = 1;
   /* Currently gathered non-preprocessor token.
    * Store as start/length rather than token itself to avoid overhead of
    * memory re-allocations on each character concatenation.
@@ -842,7 +842,6 @@ static string path_source_replace_includes_recursive(const string &_source,
         preprocessor_line = "";
       }
       column_number = 0;
-      ++line_number;
     }
     else if (ch == '#' && column_number == 1 && !inside_preprocessor) {
       /* Append all possible non-preprocessor token to the result. */

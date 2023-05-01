@@ -60,7 +60,7 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
                                  const IndexMask mask) const final
   {
     const IndexRange vert_range(mesh.totvert);
-    const Span<MEdge> edges = mesh.edges();
+    const Span<int2> edges = mesh.edges();
     const Array<Vector<int>> vert_to_edge_map = bke::mesh_topology::build_vert_to_edge_map(
         edges, mesh.totvert);
 
@@ -173,11 +173,11 @@ class EdgesOfVertCountInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_POINT) {
       return {};
     }
-    const Span<MEdge> edges = mesh.edges();
+    const Span<int2> edges = mesh.edges();
     Array<int> counts(mesh.totvert, 0);
     for (const int i : edges.index_range()) {
-      counts[edges[i].v1]++;
-      counts[edges[i].v2]++;
+      counts[edges[i][0]]++;
+      counts[edges[i][1]]++;
     }
     return VArray<int>::ForContainer(std::move(counts));
   }

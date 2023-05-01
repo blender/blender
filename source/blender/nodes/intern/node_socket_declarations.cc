@@ -3,6 +3,7 @@
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
 
+#include "BKE_lib_id.h"
 #include "BKE_node.h"
 #include "BKE_node_runtime.hh"
 
@@ -435,6 +436,13 @@ bNodeSocket &IDSocketDeclaration::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *nodeAddSocket(
       &ntree, &node, this->in_out, this->idname, this->identifier.c_str(), this->name.c_str());
+  if (this->default_value_fn) {
+    ID *id = this->default_value_fn(node);
+    /* Assumes that all ID sockets like #bNodeSocketValueObject and #bNodeSocketValueImage have the
+     * ID pointer at the start of the struct. */
+    *static_cast<ID **>(socket.default_value) = id;
+    id_us_plus(id);
+  }
   this->set_common_flags(socket);
   return socket;
 }
@@ -654,6 +662,15 @@ bNodeSocket &Custom::update_or_build(bNodeTree & /*ntree*/,
                                      bNodeSocket &socket) const
 {
   return socket;
+}
+
+SocketDeclarationPtr create_extend_declaration(const eNodeSocketInOut in_out)
+{
+  std::unique_ptr<decl::Extend> decl = std::make_unique<decl::Extend>();
+  decl->name = "";
+  decl->identifier = "__extend__";
+  decl->in_out = in_out;
+  return decl;
 }
 
 /** \} */

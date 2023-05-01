@@ -25,7 +25,7 @@ static void mesh_flip_faces(Mesh &mesh, const Field<bool> &selection_field)
   if (mesh.totpoly == 0) {
     return;
   }
-  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
+  const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
   fn::FieldEvaluator evaluator{field_context, mesh.totpoly};
   evaluator.add(selection_field);
   evaluator.evaluate();

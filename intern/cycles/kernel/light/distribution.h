@@ -56,7 +56,7 @@ ccl_device_noinline bool light_distribution_sample(KernelGlobals kg,
   const int index = light_distribution_sample(kg, randn);
   const float pdf_selection = kernel_data.integrator.distribution_pdf_lights;
   return light_sample<in_volume_segment>(
-      kg, randu, randv, time, P, bounce, path_flag, index, pdf_selection, ls);
+      kg, randu, randv, time, P, bounce, path_flag, index, 0, pdf_selection, ls);
 }
 
 ccl_device_inline float light_distribution_pdf_lamp(KernelGlobals kg)

@@ -35,17 +35,9 @@ float3 compute_surface_point_normal(const MLoopTri &looptri,
                                     const float3 &bary_coord,
                                     const Span<float3> corner_normals)
 {
-  const int l0 = looptri.tri[0];
-  const int l1 = looptri.tri[1];
-  const int l2 = looptri.tri[2];
-
-  const float3 &l0_normal = corner_normals[l0];
-  const float3 &l1_normal = corner_normals[l1];
-  const float3 &l2_normal = corner_normals[l2];
-
-  const float3 normal = math::normalize(
-      attribute_math::mix3(bary_coord, l0_normal, l1_normal, l2_normal));
-  return normal;
+  const float3 value = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
+      bary_coord, looptri, corner_normals);
+  return math::normalize(value);
 }
 
 static void initialize_straight_curve_positions(const float3 &p1,
@@ -247,7 +239,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   Vector<float3> root_positions_cu;
   Vector<float3> bary_coords;
-  Vector<const MLoopTri *> looptris;
+  Vector<int> looptri_indices;
   Vector<float2> used_uvs;
 
   /* Find faces that the passed in uvs belong to. */
@@ -262,7 +254,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
     }
     const MLoopTri &looptri = inputs.surface_looptris[result.looptri_index];
     bary_coords.append(result.bary_weights);
-    looptris.append(&looptri);
+    looptri_indices.append(result.looptri_index);
     const float3 root_position_su = attribute_math::mix3<float3>(
         result.bary_weights,
         surface_positions[surface_corner_verts[looptri.tri[0]]],
@@ -347,12 +339,14 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   /* Find surface normal at root points. */
   Array<float3> new_normals_su(added_curves_num);
-  threading::parallel_for(IndexRange(added_curves_num), 256, [&](const IndexRange range) {
-    for (const int i : range) {
-      new_normals_su[i] = compute_surface_point_normal(
-          *looptris[i], bary_coords[i], inputs.corner_normals_su);
-    }
-  });
+  bke::mesh_surface_sample::sample_corner_attribute(
+      inputs.surface_looptris,
+      looptri_indices,
+      bary_coords,
+      VArray<float3>::ForSpan(inputs.corner_normals_su),
+      IndexMask(added_curves_num),
+      new_normals_su.as_mutable_span());
+  /* TODO: Normalization. */
 
   /* Initialize position attribute. */
   if (inputs.interpolate_shape) {

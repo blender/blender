@@ -2233,7 +2233,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
 
   float(*positions)[3] = static_cast<float(*)[3]>(MEM_dupallocN(BKE_mesh_vert_positions(mesh)));
   BKE_keyblock_convert_to_mesh(kb, positions, mesh->totvert);
-  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::Span<blender::int2> edges = mesh->edges();
   const blender::OffsetIndices polys = mesh->polys();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const blender::Span<int> corner_edges = mesh->corner_edges();
@@ -2274,8 +2274,8 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
         {reinterpret_cast<blender::float3 *>(vert_normals), mesh->totvert});
   }
   if (loop_normals_needed) {
-    short(*clnors)[2] = static_cast<short(*)[2]>(CustomData_get_layer_for_write(
-        &mesh->ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size())); /* May be nullptr. */
+    blender::short2 *clnors = static_cast<blender::short2 *>(
+        CustomData_get_layer_for_write(&mesh->ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
     const bool *sharp_edges = static_cast<const bool *>(
         CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"));
     const bool *sharp_faces = static_cast<const bool *>(

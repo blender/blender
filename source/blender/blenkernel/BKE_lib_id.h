@@ -32,6 +32,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_userdef_enums.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -152,8 +154,6 @@ enum {
   LIB_ID_COPY_CACHES = 1 << 18,
   /** Don't copy `id->adt`, used by ID data-block localization routines. */
   LIB_ID_COPY_NO_ANIMDATA = 1 << 19,
-  /** Mesh: Reference CD data layers instead of doing real copy - USE WITH CAUTION! */
-  LIB_ID_COPY_CD_REFERENCE = 1 << 20,
   /** Do not copy id->override_library, used by ID data-block override routines. */
   LIB_ID_COPY_NO_LIB_OVERRIDE = 1 << 21,
   /** When copying local sub-data (like constraints or modifiers), do not set their "library
@@ -450,7 +450,7 @@ struct ID *BKE_id_copy(struct Main *bmain, const struct ID *id);
  */
 struct ID *BKE_id_copy_for_duplicate(struct Main *bmain,
                                      struct ID *id,
-                                     uint duplicate_flags,
+                                     eDupli_ID_Flags duplicate_flags,
                                      int copy_flags);
 
 /**
@@ -464,18 +464,27 @@ struct ID *BKE_id_copy_for_use_in_bmain(struct Main *bmain, const struct ID *id)
  * Does a mere memory swap over the whole IDs data (including type-specific memory).
  * \note Most internal ID data itself is not swapped (only IDProperties are).
  *
- * \param bmain: May be NULL, in which case there will be no remapping of internal pointers to
- * itself.
+ * \param bmain: May be NULL, in which case there is no guarantee that internal remapping of ID
+ * pointers to themselves will be complete (regarding depsgraph and/or runtime data updates).
+ * \param do_self_remap: Whether to remap internal pointers to itself or not.
+ * \param self_remap_flags: Flags controlling self remapping, see BKE_lib_remap.h.
  */
-void BKE_lib_id_swap(struct Main *bmain, struct ID *id_a, struct ID *id_b);
+void BKE_lib_id_swap(struct Main *bmain,
+                     struct ID *id_a,
+                     struct ID *id_b,
+                     const bool do_self_remap,
+                     const int self_remap_flags);
 /**
  * Does a mere memory swap over the whole IDs data (including type-specific memory).
  * \note All internal ID data itself is also swapped.
  *
- * \param bmain: May be NULL, in which case there will be no remapping of internal pointers to
- * itself.
+ * For parameters description, see #BKE_lib_id_swap above.
  */
-void BKE_lib_id_swap_full(struct Main *bmain, struct ID *id_a, struct ID *id_b);
+void BKE_lib_id_swap_full(struct Main *bmain,
+                          struct ID *id_a,
+                          struct ID *id_b,
+                          const bool do_self_remap,
+                          const int self_remap_flags);
 
 /**
  * Sort given \a id into given \a lb list, using case-insensitive comparison of the id names.

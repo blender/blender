@@ -142,7 +142,7 @@ static void extract_lines_adjacency_finish(const MeshRenderData * /*mr*/,
   /* Create edges for remaining non manifold edges. */
   EdgeHashIterator *ehi = BLI_edgehashIterator_new(data->eh);
   for (; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
-    uint v2, v3, l1, l2, l3;
+    int v2, v3, l1, l2, l3;
     int v_data = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
     if (v_data != NO_EDGE) {
       BLI_edgehashIterator_getKey(ehi, &v2, &v3);

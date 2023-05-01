@@ -36,8 +36,10 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
   if (!e_data.dummy_horizon_tx) {
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
     const float pixel[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    e_data.dummy_horizon_tx = DRW_texture_create_2d(1, 1, GPU_RGBA8, DRW_TEX_WRAP, pixel);
+    e_data.dummy_horizon_tx = DRW_texture_create_2d_ex(
+        1, 1, GPU_RGBA8, usage, DRW_TEX_WRAP, pixel);
   }
 
   if (scene_eval->eevee.flag & SCE_EEVEE_GTAO_ENABLED ||
@@ -61,8 +63,9 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
     common_data->ao_bounce_fac = (scene_eval->eevee.flag & SCE_EEVEE_GTAO_BOUNCE) ? 1.0f : 0.0f;
 
-    effects->gtao_horizons_renderpass = DRW_texture_pool_query_2d(
-        UNPACK2(effects->hiz_size), GPU_RGBA8, &draw_engine_eevee_type);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+    effects->gtao_horizons_renderpass = DRW_texture_pool_query_2d_ex(
+        UNPACK2(effects->hiz_size), GPU_RGBA8, usage, &draw_engine_eevee_type);
     GPU_framebuffer_ensure_config(
         &fbl->gtao_fb,
         {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(effects->gtao_horizons_renderpass)});

@@ -39,6 +39,7 @@ class VKUniformBuffer : public UniformBuf, NonCopyable {
 
  private:
   void allocate(VKContext &context);
+  void bind(int slot, shader::ShaderCreateInfo::Resource::BindType bind_type);
 };
 
 }  // namespace blender::gpu

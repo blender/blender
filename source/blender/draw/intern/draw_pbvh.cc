@@ -977,7 +977,7 @@ struct PBVHBatches {
       material_index = mat_index[poly_index];
     }
 
-    const blender::Span<MEdge> edges = args->me->edges();
+    const blender::Span<blender::int2> edges = args->me->edges();
 
     /* Calculate number of edges. */
     int edge_count = 0;

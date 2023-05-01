@@ -276,7 +276,7 @@ static void undo_history_menu_register(void)
   WM_menutype_add(mt);
 }
 
-static void topbar_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void topbar_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   BLO_write_struct(writer, SpaceTopBar, sl);
 }
@@ -295,7 +295,7 @@ void ED_spacetype_topbar(void)
   st->duplicate = topbar_duplicate;
   st->operatortypes = topbar_operatortypes;
   st->keymap = topbar_keymap;
-  st->blend_write = topbar_blend_write;
+  st->blend_write = topbar_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype topbar main region");

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -1692,14 +1692,6 @@ msgstr "Vektorschriften"
 
 msgid "Vector font data-blocks"
 msgstr "Vektorschrift-Datenblöcke"
-
-
-msgid "Grease Pencil"
-msgstr "Wachsstift"
-
-
-msgid "Grease Pencil data-blocks"
-msgstr "Wachsstift-Datenblock"
 
 
 msgid "Images"
@@ -9780,6 +9772,10 @@ msgid "Show Font data-blocks"
 msgstr "Schrift-Datenblöcke anzeigen"
 
 
+msgid "Grease Pencil"
+msgstr "Wachsstift"
+
+
 msgid "Show Grease pencil data-blocks"
 msgstr "Wachsstift-Datenblöcke anzeigen"
 
@@ -13081,20 +13077,12 @@ msgid "Mask Texture Overlay Alpha"
 msgstr "Maskentextur überlagert Alpha"
 
 
-msgid "Comb Curves"
-msgstr "Kombiniere Kurven"
-
-
-msgid "Delete Curves"
-msgstr "Kurven löschen"
-
-
-msgid "Add Curves"
-msgstr "Kurven hinzufügen"
-
-
 msgid "Paint Selection"
 msgstr "Mal Auswahl"
+
+
+msgid "Puff"
+msgstr "Bauschen"
 
 
 msgid "Dash Length"
@@ -13161,10 +13149,6 @@ msgid "Pull points towards the midpoint of the brush"
 msgstr "Zieht die Punkte zum Mittelpunkt des Pinsels"
 
 
-msgid "Paste copies of the strokes stored on the clipboard"
-msgstr "Fügt Kopien der in der Zwischenablage gespeicherten Striche ein"
-
-
 msgid "Gpencil Settings"
 msgstr "Wachsstift Einstellungen"
 
@@ -13183,10 +13167,6 @@ msgstr "Wachsstift-Eckpunkt Malwerkzeug"
 
 msgid "Grease Pencil Weight Paint Tool"
 msgstr "Wachsstift Malereieinflussungswerkzeug"
-
-
-msgid "Weight Paint for Vertex Groups"
-msgstr "Malereieinflussung für Eckpunktgruppen"
 
 
 msgid "Repeat"
@@ -14119,6 +14099,10 @@ msgstr "Schrift Fett Kursiv"
 
 msgid "Font Italic"
 msgstr "Kursiv"
+
+
+msgid "Text Selected"
+msgstr "Ausgewählter Text"
 
 
 msgid "X Offset"
@@ -17499,10 +17483,6 @@ msgstr "Einzug verwendet Leerzeichen"
 
 msgid "Memory"
 msgstr "Speicher"
-
-
-msgid "Modified"
-msgstr "Modifizieren"
 
 
 msgid "Lines of text"
@@ -22447,10 +22427,6 @@ msgid "Voxel Amount"
 msgstr "Voxel-Betrag"
 
 
-msgid "Fill Volume"
-msgstr "Volumen füllen"
-
-
 msgid "Mirroring modifier"
 msgstr "Spiegel-Modifikator"
 
@@ -24627,10 +24603,6 @@ msgid "Y position of the middle of the box"
 msgstr "Y-Position von der Mitte der Box"
 
 
-msgid "Bright/Contrast"
-msgstr "Helligkeit/Kontrast"
-
-
 msgid "Channel Key"
 msgstr "Schlüsselkanal"
 
@@ -25377,10 +25349,6 @@ msgstr "45Â° Rotieren"
 
 msgid "Hue Correct"
 msgstr "Farbkorrektur"
-
-
-msgid "Hue Saturation Value"
-msgstr "Farbe/Sättigung"
 
 
 msgid "ID Mask"
@@ -26434,10 +26402,6 @@ msgid "Blackbody"
 msgstr "Schwarzer Körper"
 
 
-msgid "Bright Contrast"
-msgstr "Helligkeit/Kontrast"
-
-
 msgid "Anisotropic BSDF"
 msgstr "Anisotropisch"
 
@@ -26974,24 +26938,12 @@ msgid "UV coordinates to be used for mapping"
 msgstr "UV-Koordinaten zur Kartierung"
 
 
-msgid "Multiply Add"
-msgstr "Multiplizieren hinzufügen"
-
-
-msgid "Cross Product"
-msgstr "Kreuzprodukt"
-
-
 msgid "A cross B"
 msgstr "A geschnitten B"
 
 
 msgid "Project A onto B"
 msgstr "Projektiere A auf B"
-
-
-msgid "Reflect"
-msgstr "Reflektieren"
 
 
 msgid "A dot B"
@@ -27012,18 +26964,6 @@ msgstr "A multipliziert von der Skalierung"
 
 msgid "Normalize A"
 msgstr "Normalisiere A"
-
-
-msgid "Fraction"
-msgstr "Bruch"
-
-
-msgid "Modulo"
-msgstr "Modulo"
-
-
-msgid "Wrap"
-msgstr "Umschließen"
 
 
 msgid "Vector Rotate"
@@ -28799,10 +28739,6 @@ msgstr "Beschränkung auf F-Kurve"
 msgctxt "Operator"
 msgid "Copy Tracks"
 msgstr "Spuren kopieren"
-
-
-msgid "Copy selected tracks to clipboard"
-msgstr "Ausgewählte Spuren in die Zwischenablage kopieren"
 
 
 msgctxt "Operator"
@@ -30921,6 +30857,14 @@ msgid "Execute File Window"
 msgstr "Ausführen des Dateifensters"
 
 
+msgid "Show"
+msgstr "Anzeigen"
+
+
+msgid "Play"
+msgstr "Wiedergabe"
+
+
 msgid "Increment"
 msgstr "Abstand"
 
@@ -32442,6 +32386,11 @@ msgstr "Strichpunkt-Malerei"
 msgctxt "Operator"
 msgid "Stroke Weight Paint"
 msgstr "Strich Malereieinfluss"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "Malereieinfluss Beispieleinfluss"
 
 
 msgid "Enter/Exit weight paint mode for Grease Pencil strokes"
@@ -35222,14 +35171,6 @@ msgid "Clear Viewer Region"
 msgstr "Ansichtsregion löschen"
 
 
-msgid "Copies selected nodes to the clipboard"
-msgstr "Ausgewählte Knoten in die Zwischenablage kopieren"
-
-
-msgid "Pastes nodes from the clipboard to the active node tree"
-msgstr "Knoten aus der Zwischenablage in den aktiven Knotenbaum einfügen"
-
-
 msgctxt "Operator"
 msgid "Collapse and Hide Unused Sockets"
 msgstr "Zusammenklappen und unbenutzte Buchsen ausblenden"
@@ -36077,6 +36018,22 @@ msgid "Add Light Probe"
 msgstr "Lichtprobe hinzufügen"
 
 
+msgid "Subset"
+msgstr "Teilmenge"
+
+
+msgid "All Light Probes"
+msgstr "Alle Lichtsonden"
+
+
+msgid "Dirty Only"
+msgstr "Nur Schmutz"
+
+
+msgid "Selected Only"
+msgstr "Nur ausgewähltes"
+
+
 msgctxt "Operator"
 msgid "Load Background Image"
 msgstr "Hintergrundbild laden"
@@ -36914,10 +36871,6 @@ msgid "Assign the selected vertices to a new vertex group"
 msgstr "Zuweisen der ausgewählten Scheitelpunkte zu einer neuen Scheitelpunktgruppe"
 
 
-msgid "Subset"
-msgstr "Teilmenge"
-
-
 msgctxt "Operator"
 msgid "Copy Vertex Group"
 msgstr "Knotengruppe kopieren"
@@ -37300,10 +37253,6 @@ msgid "Outliner ID Data Copy"
 msgstr "Outliner ID Daten kopieren"
 
 
-msgid "Selected data-blocks are copied to the clipboard"
-msgstr "Ausgewählter Datenblock wird in die Zwischenablage kopiert"
-
-
 msgctxt "Operator"
 msgid "Delete Data-Block"
 msgstr "Datenblock löschen"
@@ -37619,10 +37568,6 @@ msgid "Hide vertices"
 msgstr "Knoten ausblenden"
 
 
-msgid "Show"
-msgstr "Anzeigen"
-
-
 msgid "Show vertices"
 msgstr "Knoten einblenden"
 
@@ -37746,11 +37691,6 @@ msgstr "Malereieinflussmodus"
 
 msgid "Toggle weight paint mode in 3D view"
 msgstr "Malereieinflussmodus in 3D Ansicht umschalten"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "Malereieinfluss Beispieleinfluss"
 
 
 msgctxt "Operator"
@@ -37981,10 +37921,6 @@ msgstr "Aktiviere neue Aktion"
 msgctxt "Operator"
 msgid "Select Bones"
 msgstr "Knochenauswahl"
-
-
-msgid "Selected Only"
-msgstr "Nur ausgewähltes"
 
 
 msgid "All axes are affected"
@@ -38423,6 +38359,10 @@ msgid "Reset to Default Theme"
 msgstr "Zum Standard-Thema zurücksetzen"
 
 
+msgid "Filter Folders"
+msgstr "Verzeichnisse filtern"
+
+
 msgctxt "Operator"
 msgid "Copy Studio Light Settings"
 msgstr "Studiolicht Einstellungen kopieren"
@@ -38431,10 +38371,6 @@ msgstr "Studiolicht Einstellungen kopieren"
 msgctxt "Operator"
 msgid "Install Light"
 msgstr "Licht installieren"
-
-
-msgid "Filter Folders"
-msgstr "Verzeichnisse filtern"
 
 
 msgid "Install custom MatCaps"
@@ -38803,14 +38739,6 @@ msgstr "Stilmodul in die Modulliste hinzufügen"
 msgctxt "Operator"
 msgid "Add Grease Pencil Brush Preset"
 msgstr "Wachsstiftpinsel Voreinstellung hinzufügen"
-
-
-msgid "All Light Probes"
-msgstr "Alle Lichtsonden"
-
-
-msgid "Dirty Only"
-msgstr "Nur Schmutz"
 
 
 msgctxt "Operator"
@@ -41003,6 +40931,10 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Das UV-Layout in ein Bitmap-Bild exportieren"
 
 
+msgid "Modified"
+msgstr "Modifizieren"
+
+
 msgctxt "Operator"
 msgid "Follow Active Quads"
 msgstr "Aktiven Quads folgen"
@@ -41021,16 +40953,8 @@ msgid "Lightmap Pack"
 msgstr "Lichttextur packen"
 
 
-msgid "New Image"
-msgstr "Neues Bild"
-
-
 msgid "All Faces"
 msgstr "Alle Flächen"
-
-
-msgid "Width and height for the new image"
-msgstr "Breite und Höhe für das neue Bild"
 
 
 msgid "New UV Map"
@@ -41057,6 +40981,10 @@ msgstr "Stärke"
 msgctxt "Operator"
 msgid "Pack Islands"
 msgstr "Bild einpacken"
+
+
+msgid "Fraction"
+msgstr "Bruch"
 
 
 msgid "Bounding box"
@@ -41980,6 +41908,10 @@ msgid "Context Attributes"
 msgstr "Kontext  Attribut"
 
 
+msgid "Wrap"
+msgstr "Umschließen"
+
+
 msgid "Header Text"
 msgstr "Kopfleistentext"
 
@@ -42113,10 +42045,6 @@ msgstr "Bild rendern"
 
 msgid "Run once and exit"
 msgstr "Eine Ausführung und danach schließen"
-
-
-msgid "Play"
-msgstr "Wiedergabe"
 
 
 msgid "Random Order"
@@ -43167,10 +43095,6 @@ msgid "Tracking Settings Extras"
 msgstr "Tracking-Einstellungen Extras"
 
 
-msgid "Lens"
-msgstr "Linse"
-
-
 msgid "Tracking Settings Extra"
 msgstr "Tracking-Einstellungen Extra"
 
@@ -44107,9 +44031,21 @@ msgid "Radius"
 msgstr "Radius"
 
 
+msgid "Smooth hairs"
+msgstr "Weiche Haare"
+
+
+msgid "Add hairs"
+msgstr "Haare hinzufügen"
+
+
 msgctxt "Operator"
 msgid "Length"
 msgstr "Länge"
+
+
+msgid "Cut hairs"
+msgstr "Haare schneiden"
 
 
 msgctxt "Operator"
@@ -44332,16 +44268,6 @@ msgstr "Verdrehen"
 
 
 msgctxt "Operator"
-msgid "Selection Paint"
-msgstr "Auswahlfarbe"
-
-
-msgctxt "Operator"
-msgid "Density"
-msgstr "Dichte"
-
-
-msgctxt "Operator"
 msgid "Slide"
 msgstr "Schieben"
 
@@ -44540,22 +44466,6 @@ msgstr "Partikel anzeigen"
 
 msgid "Display actual particles"
 msgstr "Aktuelle Partikel anzeigen"
-
-
-msgid "Smooth hairs"
-msgstr "Weiche Haare"
-
-
-msgid "Add hairs"
-msgstr "Haare hinzufügen"
-
-
-msgid "Puff"
-msgstr "Bauschen"
-
-
-msgid "Cut hairs"
-msgstr "Haare schneiden"
 
 
 msgid "Interpolate new particles from the existing ones"
@@ -45084,10 +44994,6 @@ msgstr "Bewegung um die Z-Achse verbieten"
 
 msgid "Pose Matrix"
 msgstr "Posenmatrix"
-
-
-msgid "Final 4x4 matrix after constraints and drivers are applied (object space)"
-msgstr "Endgültige 4x4-Matrix, nachdem Beschränkungen und Treiber angewandt sind (Objektraum)"
 
 
 msgid "Channel Matrix"
@@ -50743,6 +50649,10 @@ msgid "Visibility Icon"
 msgstr "Sichtbarkeitssymbol"
 
 
+msgid "Lens"
+msgstr "Linse"
+
+
 msgid "Viewport lens angle"
 msgstr "Ansichtsfenster Linsenwinkel"
 
@@ -52221,10 +52131,6 @@ msgstr "Unten schattieren"
 
 msgid "Shade Top"
 msgstr "Oben schattieren"
-
-
-msgid "Text Selected"
-msgstr "Ausgewählter Text"
 
 
 msgid "Animated"
@@ -55933,6 +55839,10 @@ msgid "Poly"
 msgstr "Poly"
 
 
+msgid "Display Cursor"
+msgstr "Cursor anzeigen"
+
+
 msgctxt "Operator"
 msgid "Selection to Cursor"
 msgstr "Auswahl an Cursor"
@@ -55953,10 +55863,6 @@ msgstr "Keine Kommentarquelle"
 
 msgid "No layers to add"
 msgstr "Keine Ebenen zum hinzufügen"
-
-
-msgid "Display Cursor"
-msgstr "Cursor anzeigen"
 
 
 msgid "Show Fill Color While Drawing"
@@ -56106,10 +56012,6 @@ msgstr "An Eckpunkt Normale ausrichten"
 
 msgid "Show Instancer"
 msgstr "Instanziierer anzeigen"
-
-
-msgid "Old"
-msgstr "Alt"
 
 
 msgid "Date"
@@ -58286,20 +58188,20 @@ msgid "Move Line(s) Down"
 msgstr "Linie(n) nach unten bewegen"
 
 
-msgid "File: *%s (unsaved)"
-msgstr "Datei: *%s (nicht gespeichert)"
-
-
-msgid "File: %s"
-msgstr "Datei: %s"
-
-
 msgid "Text: External"
 msgstr "Text: Extern"
 
 
 msgid "Text: Internal"
 msgstr "Text: Intern"
+
+
+msgid "File: *%s (unsaved)"
+msgstr "Datei: *%s (nicht gespeichert)"
+
+
+msgid "File: %s"
+msgstr "Datei: %s"
 
 
 msgctxt "Operator"
@@ -58748,10 +58650,6 @@ msgid "Widget Label"
 msgstr "Widget-Beschriftung"
 
 
-msgid "Scripts"
-msgstr "Skripte"
-
-
 msgid "Temporary Files"
 msgstr "Temporäre Dateien"
 
@@ -59051,16 +58949,6 @@ msgstr "Farbeigenschaft setzen"
 msgctxt "Operator"
 msgid "Levels"
 msgstr "Niveau"
-
-
-msgctxt "Operator"
-msgid "Hue Saturation Value"
-msgstr "Farbsättigungswert"
-
-
-msgctxt "Operator"
-msgid "Bright/Contrast"
-msgstr "Helligkeit/Kontrast"
 
 
 msgctxt "Operator"
@@ -61173,22 +61061,6 @@ msgid "[H] - Toggle bone visibility"
 msgstr "[H] - Knochensichtbarkeit umschalten"
 
 
-msgid "Copied pose to buffer"
-msgstr "Kopierte Pose zum Puffer"
-
-
-msgid "Copy buffer is empty"
-msgstr "Kopierpuffer ist leer"
-
-
-msgid "Copy buffer is not from pose mode"
-msgstr "Kopierter Puffer ist nicht vom Posenmodus"
-
-
-msgid "Copy buffer has no pose"
-msgstr "Kopierter Puffer hat keine Pose"
-
-
 msgid "Programming error: missing clear transform function or keying set name"
 msgstr "Programmierfehler: Fehlende(r) Transformation-Funktion oder Schlüsselbildsatz-Name"
 
@@ -63150,10 +63022,6 @@ msgid "Active Keyframe"
 msgstr "Aktives Schlüsselbild"
 
 
-msgid "No data in buffer to paste"
-msgstr "Keine Daten im Puffer zum Einfügen"
-
-
 msgid "No selected F-Curves to paste into"
 msgstr "Keine ausgewählte F-Kurven zum Einfügen"
 
@@ -63456,10 +63324,6 @@ msgstr "Datei nicht gefunden '%s'"
 
 msgid "Decimate Keyframes"
 msgstr "Dezimierte Schlüsselbilder"
-
-
-msgid "Blend to Default Value"
-msgstr "Mit Standardwert verschmelzen"
 
 
 msgid "Discard"
@@ -64464,10 +64328,6 @@ msgid "Cannot open file: %s"
 msgstr "Datei kann nicht geöffnet werden: %s"
 
 
-msgid "External library data"
-msgstr "Externe Bibliotheksdaten"
-
-
 msgid "Bind To"
 msgstr "Binden an"
 
@@ -64518,6 +64378,10 @@ msgstr "Quelle filtern"
 
 msgid "Stroke Fit Method"
 msgstr "Strich-füll-Methode"
+
+
+msgid "External library data"
+msgstr "Externe Bibliotheksdaten"
 
 
 msgid "Keying set path could not be added"
@@ -65143,6 +65007,10 @@ msgid "Scale of the instances"
 msgstr "Skalierung der Instanzen"
 
 
+msgid "Old"
+msgstr "Alt"
+
+
 msgid "Fill Segments"
 msgstr "Segmente füllen"
 
@@ -65628,11 +65496,6 @@ msgstr "Kurven"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "Farbkorrektur"
-
-
-msgctxt "Sequence"
-msgid "Bright/Contrast"
-msgstr "Helligkeit/Kontrast"
 
 
 msgid "Strips must be the same length"

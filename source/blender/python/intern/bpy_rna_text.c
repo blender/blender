@@ -75,7 +75,7 @@ static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObje
     return NULL;
   }
 
-  if (PyDict_GET_SIZE(kwds) > 0) {
+  if (kwds && PyDict_GET_SIZE(kwds) > 0) {
     txt_sel_set(text, region.curl, region.curc, region.sell, region.selc);
   }
 
@@ -140,7 +140,7 @@ static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args, PyOb
     return NULL;
   }
 
-  if (PyDict_GET_SIZE(kwds) > 0) {
+  if (kwds && PyDict_GET_SIZE(kwds) > 0) {
     txt_sel_set(text, region.curl, region.curc, region.sell, region.selc);
   }
 

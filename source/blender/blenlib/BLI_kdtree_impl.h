@@ -105,6 +105,23 @@ inline void BLI_kdtree_nd_(range_search_cb_cpp)(const KDTree *tree,
       },
       const_cast<Fn *>(&fn));
 }
+
+template<typename Fn>
+inline int BLI_kdtree_nd_(find_nearest_cb_cpp)(const KDTree *tree,
+                                               const float co[KD_DIMS],
+                                               KDTreeNearest *r_nearest,
+                                               Fn &&fn)
+{
+  return BLI_kdtree_nd_(find_nearest_cb)(
+      tree,
+      co,
+      [](void *user_data, const int index, const float *co, const float dist_sq) {
+        Fn &fn = *static_cast<Fn *>(user_data);
+        return fn(index, co, dist_sq);
+      },
+      &fn,
+      r_nearest);
+}
 #endif
 
 #undef _BLI_CONCAT_AUX

@@ -476,11 +476,12 @@ static void generate_margin(ImBuf *ibuf,
                             const int edges_num,
                             const OffsetIndices<int> polys,
                             const Span<int> corner_edges,
+                            const Span<int> corner_verts,
                             const Span<float2> mloopuv,
                             const float uv_offset[2])
 {
   Array<MLoopTri> looptris(poly_to_tri_count(polys.size(), corner_edges.size()));
-  bke::mesh::looptris_calc(vert_positions, polys, corner_edges, looptris);
+  bke::mesh::looptris_calc(vert_positions, polys, corner_verts, looptris);
 
   TextureMarginMap map(ibuf->x, ibuf->y, uv_offset, edges_num, polys, corner_edges, mloopuv);
 
@@ -563,6 +564,7 @@ void RE_generate_texturemargin_adjacentfaces(ImBuf *ibuf,
                                                   mesh->totedge,
                                                   mesh->polys(),
                                                   mesh->corner_edges(),
+                                                  mesh->corner_verts(),
                                                   {mloopuv, mesh->totloop},
                                                   uv_offset);
 }
@@ -581,6 +583,7 @@ void RE_generate_texturemargin_adjacentfaces_dm(
       dm->getNumEdges(dm),
       blender::Span(dm->getPolyArray(dm), dm->getNumPolys(dm) + 1),
       {dm->getCornerEdgeArray(dm), dm->getNumLoops(dm)},
+      {dm->getCornerVertArray(dm), dm->getNumLoops(dm)},
       {mloopuv, dm->getNumLoops(dm)},
       uv_offset);
 }

@@ -168,6 +168,7 @@ static void collection_free_data(ID *id)
 static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Collection *collection = (Collection *)id;
+  const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
 
   BKE_LIB_FOREACHID_PROCESS_ID(
       data, collection->runtime.owner_id, IDWALK_CB_LOOPBACK | IDWALK_CB_NEVER_SELF);
@@ -197,8 +198,9 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
     /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
      * anyway... */
     const int cb_flag = ((parent->collection != NULL &&
+                          (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0 &&
                           (parent->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
-                             IDWALK_CB_EMBEDDED :
+                             IDWALK_CB_EMBEDDED_NOT_OWNING :
                              IDWALK_CB_NOP);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(
         data, parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK | cb_flag);
@@ -885,19 +887,31 @@ ListBase BKE_collection_object_cache_instanced_get(Collection *collection)
 
 static void collection_object_cache_free(Collection *collection)
 {
-  /* Clear own cache an for all parents, since those are affected by changes as well. */
   collection->flag &= ~(COLLECTION_HAS_OBJECT_CACHE | COLLECTION_HAS_OBJECT_CACHE_INSTANCED);
   BLI_freelistN(&collection->runtime.object_cache);
   BLI_freelistN(&collection->runtime.object_cache_instanced);
 }
 
-void BKE_collection_object_cache_free(Collection *collection)
+static void collection_object_cache_free_parent_recursive(Collection *collection)
 {
   collection_object_cache_free(collection);
 
+  /* Clear cache in all parents recursively, since those are affected by changes as well. */
   LISTBASE_FOREACH (CollectionParent *, parent, &collection->runtime.parents) {
-    collection_object_cache_free(parent->collection);
+    /* In theory there should be no NULL pointer here. However, this code can be called from
+     * non-valid temporary states (e.g. indirectly from #BKE_collections_object_remove_invalids
+     * as part of ID remapping process). */
+    if (parent->collection == NULL) {
+      continue;
+    }
+    collection_object_cache_free_parent_recursive(parent->collection);
   }
+}
+
+void BKE_collection_object_cache_free(Collection *collection)
+{
+  BLI_assert(collection != NULL);
+  collection_object_cache_free_parent_recursive(collection);
 }
 
 void BKE_main_collections_object_cache_free(const Main *bmain)
@@ -1467,11 +1481,16 @@ bool BKE_collection_object_replace(Main *bmain,
     return false;
   }
 
-  id_us_min(&cob->ob->id);
-  cob->ob = ob_new;
-  id_us_plus(&cob->ob->id);
+  if (!BLI_ghash_haskey(collection->runtime.gobject_hash, ob_new)) {
+    id_us_min(&cob->ob->id);
+    cob->ob = ob_new;
+    id_us_plus(&cob->ob->id);
 
-  BLI_ghash_insert(collection->runtime.gobject_hash, cob->ob, cob);
+    BLI_ghash_insert(collection->runtime.gobject_hash, cob->ob, cob);
+  }
+  else {
+    collection_object_remove_no_gobject_hash(bmain, collection, cob, false);
+  }
 
   if (BKE_collection_is_in_scene(collection)) {
     BKE_main_collection_sync(bmain);

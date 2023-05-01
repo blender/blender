@@ -7,7 +7,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_edgehash.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
@@ -199,7 +198,6 @@ static bool sculpt_boundary_is_vertex_in_editable_boundary(SculptSession *ss,
 struct BoundaryFloodFillData {
   SculptBoundary *boundary;
   GSet *included_verts;
-  EdgeSet *preview_edges;
 
   PBVHVertRef last_visited_vertex;
 };
@@ -973,7 +971,7 @@ static void do_boundary_brush_smooth_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -1031,26 +1029,32 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
   data.nodes = nodes;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
 
   switch (brush->boundary_deform_type) {
     case BRUSH_BOUNDARY_DEFORM_BEND:
-      BLI_task_parallel_range(0, totnode, &data, do_boundary_brush_bend_task_cb_ex, &settings);
+      BLI_task_parallel_range(
+          0, nodes.size(), &data, do_boundary_brush_bend_task_cb_ex, &settings);
       break;
     case BRUSH_BOUNDARY_DEFORM_EXPAND:
-      BLI_task_parallel_range(0, totnode, &data, do_boundary_brush_slide_task_cb_ex, &settings);
+      BLI_task_parallel_range(
+          0, nodes.size(), &data, do_boundary_brush_slide_task_cb_ex, &settings);
       break;
     case BRUSH_BOUNDARY_DEFORM_INFLATE:
-      BLI_task_parallel_range(0, totnode, &data, do_boundary_brush_inflate_task_cb_ex, &settings);
+      BLI_task_parallel_range(
+          0, nodes.size(), &data, do_boundary_brush_inflate_task_cb_ex, &settings);
       break;
     case BRUSH_BOUNDARY_DEFORM_GRAB:
-      BLI_task_parallel_range(0, totnode, &data, do_boundary_brush_grab_task_cb_ex, &settings);
+      BLI_task_parallel_range(
+          0, nodes.size(), &data, do_boundary_brush_grab_task_cb_ex, &settings);
       break;
     case BRUSH_BOUNDARY_DEFORM_TWIST:
-      BLI_task_parallel_range(0, totnode, &data, do_boundary_brush_twist_task_cb_ex, &settings);
+      BLI_task_parallel_range(
+          0, nodes.size(), &data, do_boundary_brush_twist_task_cb_ex, &settings);
       break;
     case BRUSH_BOUNDARY_DEFORM_SMOOTH:
-      BLI_task_parallel_range(0, totnode, &data, do_boundary_brush_smooth_task_cb_ex, &settings);
+      BLI_task_parallel_range(
+          0, nodes.size(), &data, do_boundary_brush_smooth_task_cb_ex, &settings);
       break;
   }
 }

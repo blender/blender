@@ -82,20 +82,21 @@ static void fill_rotation_attribute(const Span<float3> tangents,
 static void copy_curve_domain_attributes(const AttributeAccessor curve_attributes,
                                          MutableAttributeAccessor point_attributes)
 {
-  curve_attributes.for_all([&](const bke::AttributeIDRef &id,
-                               const bke::AttributeMetaData &meta_data) {
-    if (curve_attributes.is_builtin(id)) {
-      return true;
-    }
-    if (meta_data.domain != ATTR_DOMAIN_CURVE) {
-      return true;
-    }
-    point_attributes.add(id,
-                         ATTR_DOMAIN_POINT,
-                         meta_data.data_type,
-                         bke::AttributeInitVArray(curve_attributes.lookup(id, ATTR_DOMAIN_POINT)));
-    return true;
-  });
+  curve_attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData &meta_data) {
+        if (curve_attributes.is_builtin(id)) {
+          return true;
+        }
+        if (meta_data.domain != ATTR_DOMAIN_CURVE) {
+          return true;
+        }
+        point_attributes.add(
+            id,
+            ATTR_DOMAIN_POINT,
+            meta_data.data_type,
+            bke::AttributeInitVArray(*curve_attributes.lookup(id, ATTR_DOMAIN_POINT)));
+        return true;
+      });
 }
 
 static PointCloud *pointcloud_from_curves(bke::CurvesGeometry curves,
@@ -108,8 +109,8 @@ static PointCloud *pointcloud_from_curves(bke::CurvesGeometry curves,
 
   if (rotation_id) {
     MutableAttributeAccessor attributes = curves.attributes_for_write();
-    const VArraySpan<float3> tangents = attributes.lookup<float3>(tangent_id, ATTR_DOMAIN_POINT);
-    const VArraySpan<float3> normals = attributes.lookup<float3>(normal_id, ATTR_DOMAIN_POINT);
+    const VArraySpan tangents = *attributes.lookup<float3>(tangent_id, ATTR_DOMAIN_POINT);
+    const VArraySpan normals = *attributes.lookup<float3>(normal_id, ATTR_DOMAIN_POINT);
     SpanAttributeWriter<float3> rotations = attributes.lookup_or_add_for_write_only_span<float3>(
         rotation_id, ATTR_DOMAIN_POINT);
     fill_rotation_attribute(tangents, normals, rotations.span);
@@ -134,13 +135,13 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
 
-  AutoAnonymousAttributeID rotation_anonymous_id =
+  AnonymousAttributeIDPtr rotation_anonymous_id =
       params.get_output_anonymous_attribute_id_if_needed("Rotation");
   const bool need_tangent_and_normal = bool(rotation_anonymous_id);
-  AutoAnonymousAttributeID tangent_anonymous_id =
+  AnonymousAttributeIDPtr tangent_anonymous_id =
       params.get_output_anonymous_attribute_id_if_needed("Tangent", need_tangent_and_normal);
-  AutoAnonymousAttributeID normal_anonymous_id =
-      params.get_output_anonymous_attribute_id_if_needed("Normal", need_tangent_and_normal);
+  AnonymousAttributeIDPtr normal_anonymous_id = params.get_output_anonymous_attribute_id_if_needed(
+      "Normal", need_tangent_and_normal);
 
   geometry::ResampleCurvesOutputAttributeIDs resample_attributes;
   resample_attributes.tangent_id = tangent_anonymous_id.get();
@@ -199,21 +200,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   params.set_output("Points", std::move(geometry_set));
-  if (tangent_anonymous_id) {
-    params.set_output("Tangent",
-                      AnonymousAttributeFieldInput::Create<float3>(
-                          std::move(tangent_anonymous_id), params.attribute_producer_name()));
-  }
-  if (normal_anonymous_id) {
-    params.set_output("Normal",
-                      AnonymousAttributeFieldInput::Create<float3>(
-                          std::move(normal_anonymous_id), params.attribute_producer_name()));
-  }
-  if (rotation_anonymous_id) {
-    params.set_output("Rotation",
-                      AnonymousAttributeFieldInput::Create<float3>(
-                          std::move(rotation_anonymous_id), params.attribute_producer_name()));
-  }
 }
 
 }  // namespace blender::nodes::node_geo_curve_to_points_cc

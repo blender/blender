@@ -51,7 +51,7 @@ void NodeOperationBuilder::convert_to_operations(ExecutionSystem *system)
    * so multiple operations can use the same node input.
    */
   blender::MultiValueMap<NodeInput *, NodeOperationInput *> inverse_input_map;
-  for (Map<NodeOperationInput *, NodeInput *>::MutableItem item : input_map_.items()) {
+  for (MutableMapItem<NodeOperationInput *, NodeInput *> item : input_map_.items()) {
     inverse_input_map.add(item.value, item.key);
   }
 

@@ -281,7 +281,10 @@ static void um_arraystore_cd_compact(CustomData *cdata,
            * solution might be to not pass "dynamic" layers (see `layer_type_is_dynamic`) to the
            * array store at all. */
           BLI_assert(layer->sharing_info->is_mutable());
-          MEM_delete(layer->sharing_info);
+          /* Intentionally don't call #MEM_delete, because we want to free the sharing info without
+           * the data here. In general this would not be allowed because one can't be sure how to
+           * free the data without the sharing info. */
+          MEM_freeN(const_cast<blender::ImplicitSharingInfo *>(layer->sharing_info));
         }
         MEM_freeN(layer->data);
         layer->data = nullptr;
@@ -408,8 +411,8 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
             um->store.poly_offset_indices = BLI_array_store_state_add(
                 bs, me->poly_offset_indices, size_t(me->totpoly + 1) * stride, state_reference);
           }
-
-          MEM_SAFE_FREE(me->poly_offset_indices);
+          blender::implicit_sharing::free_shared_data(&me->poly_offset_indices,
+                                                      &me->runtime->poly_offsets_sharing_info);
         }
       },
       [&]() {
@@ -577,6 +580,8 @@ static void um_arraystore_expand(UndoMesh *um)
     size_t state_len;
     me->poly_offset_indices = static_cast<int *>(
         BLI_array_store_state_data_get_alloc(state, &state_len));
+    me->runtime->poly_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
+        me->poly_offset_indices);
     BLI_assert((me->totpoly + 1) == (state_len / stride));
     UNUSED_VARS_NDEBUG(stride);
   }

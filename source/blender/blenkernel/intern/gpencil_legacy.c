@@ -592,8 +592,8 @@ bGPDframe *BKE_gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
       break;
     }
     if (gpf->framenum == cframe) {
-      /* This only happens when we're editing with framelock on...
-       * - Delete the new frame and don't do anything else here...
+      /* This only happens when we're editing with frame-lock on.
+       * - Delete the new frame and don't do anything else here.
        */
       BKE_gpencil_free_strokes(new_frame);
       MEM_freeN(new_frame);

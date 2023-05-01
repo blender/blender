@@ -142,7 +142,7 @@ extern TransConvertTypeInfo TransConvertType_Curves;
 
 extern TransConvertTypeInfo TransConvertType_Graph;
 
-/* transform_convert_gpencil.c */
+/* transform_convert_gpencil_legacy.c */
 
 extern TransConvertTypeInfo TransConvertType_GPencil;
 

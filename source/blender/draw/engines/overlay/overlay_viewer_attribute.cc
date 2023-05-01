@@ -59,7 +59,7 @@ static void populate_cache_for_instance(Object &object,
   const InstancesComponent &instances =
       *base_geometry.get_component_for_read<InstancesComponent>();
   const AttributeAccessor instance_attributes = *instances.attributes();
-  const VArray attribute = instance_attributes.lookup<ColorGeometry4f>(".viewer");
+  const VArray attribute = *instance_attributes.lookup<ColorGeometry4f>(".viewer");
   if (!attribute) {
     return;
   }

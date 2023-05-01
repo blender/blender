@@ -342,7 +342,7 @@ ccl_device_forceinline void area_light_update_position(const ccl_global KernelLi
   ls->D = normalize_len(ls->P - P, &ls->t);
   ls->pdf = invarea;
 
-  if (klight->area.tan_half_spread > 0) {
+  if (klight->area.normalize_spread > 0) {
     ls->eval_fac = 0.25f * invarea;
     ls->eval_fac *= area_light_spread_attenuation(
         ls->D, ls->Ng, klight->area.tan_half_spread, klight->area.normalize_spread);

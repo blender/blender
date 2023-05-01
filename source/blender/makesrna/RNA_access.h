@@ -433,6 +433,12 @@ int RNA_property_collection_lookup_string_index(
 
 bool RNA_property_collection_lookup_int_has_fn(PropertyRNA *prop);
 bool RNA_property_collection_lookup_string_has_fn(PropertyRNA *prop);
+bool RNA_property_collection_lookup_string_has_nameprop(PropertyRNA *prop);
+/**
+ * Return true when this type supports string lookups,
+ * it has a lookup function or it's type has a name property.
+ */
+bool RNA_property_collection_lookup_string_supported(PropertyRNA *prop);
 
 /**
  * Zero return is an assignment error.

@@ -172,7 +172,7 @@ static void extract_edge_fac_iter_loose_edge_bm(const MeshRenderData *mr,
 }
 
 static void extract_edge_fac_iter_loose_edge_mesh(const MeshRenderData *mr,
-                                                  const MEdge * /*edge*/,
+                                                  const int2 /*edge*/,
                                                   const int ledge_index,
                                                   void *_data)
 {

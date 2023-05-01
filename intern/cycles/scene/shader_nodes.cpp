@@ -758,12 +758,7 @@ static void sky_texture_precompute_nishita(SunSky *sunsky,
   float pixel_top[3];
   SKY_nishita_skymodel_precompute_sun(
       sun_elevation, sun_size, altitude, air_density, dust_density, pixel_bottom, pixel_top);
-  /* limit sun rotation between 0 and 360 degrees */
-  sun_rotation = fmodf(sun_rotation, M_2PI_F);
-  if (sun_rotation < 0.0f) {
-    sun_rotation += M_2PI_F;
-  }
-  sun_rotation = M_2PI_F - sun_rotation;
+
   /* send data to svm_sky */
   sunsky->nishita_data[0] = pixel_bottom[0];
   sunsky->nishita_data[1] = pixel_bottom[1];
@@ -872,6 +867,37 @@ NODE_DEFINE(SkyTextureNode)
 }
 
 SkyTextureNode::SkyTextureNode() : TextureNode(get_node_type()) {}
+
+void SkyTextureNode::simplify_settings(Scene * /* scene */)
+{
+  /* Patch sun position so users are able to animate the daylight cycle while keeping the shading
+   * code simple. */
+  float new_sun_elevation = sun_elevation;
+  float new_sun_rotation = sun_rotation;
+
+  /* Wrap `new_sun_elevation` into [-2PI..2PI] range. */
+  new_sun_elevation = fmodf(new_sun_elevation, M_2PI_F);
+  /* Wrap `new_sun_elevation` into [-PI..PI] range. */
+  if (fabsf(new_sun_elevation) >= M_PI_F) {
+    new_sun_elevation -= copysignf(2.0f, new_sun_elevation) * M_PI_F;
+  }
+  /* Wrap `new_sun_elevation` into [-PI/2..PI/2] range while keeping the same absolute position. */
+  if (new_sun_elevation >= M_PI_2_F || new_sun_elevation <= -M_PI_2_F) {
+    new_sun_elevation = copysignf(M_PI_F, new_sun_elevation) - new_sun_elevation;
+    new_sun_rotation += M_PI_F;
+  }
+
+  /* Wrap `new_sun_rotation` into [-2PI..2PI] range. */
+  new_sun_rotation = fmodf(new_sun_rotation, M_2PI_F);
+  /* Wrap `new_sun_rotation` into [0..2PI] range. */
+  if (new_sun_rotation < 0.0f) {
+    new_sun_rotation += M_2PI_F;
+  }
+  new_sun_rotation = M_2PI_F - new_sun_rotation;
+
+  sun_elevation = new_sun_elevation;
+  sun_rotation = new_sun_rotation;
+}
 
 void SkyTextureNode::compile(SVMCompiler &compiler)
 {

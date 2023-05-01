@@ -98,6 +98,14 @@ typedef enum {
    * This is a convention for X11/WAYLAND, select text & MMB to paste (without an explicit copy).
    */
   GHOST_kCapabilityPrimaryClipboard = (1 << 2),
+  /**
+   * Support for reading the front-buffer.
+   */
+  GHOST_kCapabilityGPUReadFrontBuffer = (1 << 3),
+  /**
+   * Set when there is support for system clipboard copy/paste.
+   */
+  GHOST_kCapabilityClipboardImages = (1 << 4),
 } GHOST_TCapabilityFlag;
 
 /**
@@ -106,7 +114,7 @@ typedef enum {
  */
 #define GHOST_CAPABILITY_FLAG_ALL \
   (GHOST_kCapabilityCursorWarp | GHOST_kCapabilityWindowPosition | \
-   GHOST_kCapabilityPrimaryClipboard)
+   GHOST_kCapabilityPrimaryClipboard | GHOST_kCapabilityGPUReadFrontBuffer)
 
 /* Xtilt and Ytilt represent how much the pen is tilted away from
  * vertically upright in either the X or Y direction, with X and Y the

@@ -21,8 +21,6 @@
 
 namespace blender::nodes::node_geo_delete_geometry_cc {
 
-using blender::bke::CustomDataAttributes;
-
 template<typename T>
 static void copy_data_based_on_map(const Span<T> src,
                                    const Span<int> index_map,
@@ -46,7 +44,7 @@ static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes
                             bke::MutableAttributeAccessor dst_attributes,
                             const Span<eAttrDomain> domains)
 {
-  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     GAttributeReader attribute = src_attributes.lookup(attribute_id);
     if (!attribute) {
@@ -77,7 +75,7 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
                                           const eAttrDomain domain,
                                           const IndexMask mask)
 {
-  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     GAttributeReader attribute = src_attributes.lookup(attribute_id);
     if (!attribute) {
@@ -106,7 +104,7 @@ static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind
                                          const eAttrDomain domain,
                                          const Span<int> index_map)
 {
-  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     GAttributeReader attribute = src_attributes.lookup(attribute_id);
     if (!attribute) {
@@ -155,8 +153,8 @@ static void copy_face_corner_attributes(const Map<AttributeIDRef, AttributeKind>
 static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh, Mesh &dst_mesh, Span<int> edge_map)
 {
   BLI_assert(src_mesh.totedge == edge_map.size());
-  const Span<MEdge> src_edges = src_mesh.edges();
-  MutableSpan<MEdge> dst_edges = dst_mesh.edges_for_write();
+  const Span<int2> src_edges = src_mesh.edges();
+  MutableSpan<int2> dst_edges = dst_mesh.edges_for_write();
 
   threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange range) {
     for (const int i_src : range) {
@@ -176,8 +174,8 @@ static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
 {
   BLI_assert(src_mesh.totvert == vertex_map.size());
   BLI_assert(src_mesh.totedge == edge_map.size());
-  const Span<MEdge> src_edges = src_mesh.edges();
-  MutableSpan<MEdge> dst_edges = dst_mesh.edges_for_write();
+  const Span<int2> src_edges = src_mesh.edges();
+  MutableSpan<int2> dst_edges = dst_mesh.edges_for_write();
 
   threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange range) {
     for (const int i_src : range) {
@@ -185,12 +183,9 @@ static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
       if (i_dst == -1) {
         continue;
       }
-      const MEdge &e_src = src_edges[i_src];
-      MEdge &e_dst = dst_edges[i_dst];
 
-      e_dst = e_src;
-      e_dst.v1 = vertex_map[e_src.v1];
-      e_dst.v2 = vertex_map[e_src.v2];
+      dst_edges[i_dst][0] = vertex_map[src_edges[i_src][0]];
+      dst_edges[i_dst][1] = vertex_map[src_edges[i_src][1]];
     }
   });
 }
@@ -309,7 +304,7 @@ static void delete_curves_selection(GeometrySet &geometry_set,
   const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
 
   const int domain_size = src_curves.attributes().domain_size(selection_domain);
-  bke::CurvesFieldContext field_context{src_curves, selection_domain};
+  const bke::CurvesFieldContext field_context{src_curves, selection_domain};
   fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -341,7 +336,7 @@ static void separate_point_cloud_selection(
 {
   const PointCloud &src_pointcloud = *geometry_set.get_pointcloud_for_read();
 
-  bke::PointCloudFieldContext field_context{src_pointcloud};
+  const bke::PointCloudFieldContext field_context{src_pointcloud};
   fn::FieldEvaluator evaluator{field_context, src_pointcloud.totpoint};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -413,14 +408,14 @@ static void compute_selected_edges_from_vertex_selection(const Mesh &mesh,
                                                          int *r_selected_edges_num)
 {
   BLI_assert(mesh.totedge == r_edge_map.size());
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
 
   int selected_edges_num = 0;
   for (const int i : IndexRange(mesh.totedge)) {
-    const MEdge &edge = edges[i];
+    const int2 &edge = edges[i];
 
     /* Only add the edge if both vertices will be in the new mesh. */
-    if (vertex_selection[edge.v1] && vertex_selection[edge.v2]) {
+    if (vertex_selection[edge[0]] && vertex_selection[edge[1]]) {
       r_edge_map[i] = selected_edges_num;
       selected_edges_num++;
     }
@@ -481,21 +476,21 @@ static void compute_selected_verts_and_edges_from_edge_selection(const Mesh &mes
                                                                  int *r_selected_edges_num)
 {
   BLI_assert(mesh.totedge == edge_selection.size());
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
 
   int selected_edges_num = 0;
   int selected_verts_num = 0;
   for (const int i : IndexRange(mesh.totedge)) {
-    const MEdge &edge = edges[i];
+    const int2 &edge = edges[i];
     if (edge_selection[i]) {
       r_edge_map[i] = selected_edges_num;
       selected_edges_num++;
-      if (r_vertex_map[edge.v1] == -1) {
-        r_vertex_map[edge.v1] = selected_verts_num;
+      if (r_vertex_map[edge[0]] == -1) {
+        r_vertex_map[edge[0]] = selected_verts_num;
         selected_verts_num++;
       }
-      if (r_vertex_map[edge.v2] == -1) {
-        r_vertex_map[edge.v2] = selected_verts_num;
+      if (r_vertex_map[edge[1]] == -1) {
+        r_vertex_map[edge[1]] = selected_verts_num;
         selected_verts_num++;
       }
     }
@@ -861,6 +856,7 @@ static void do_mesh_separation(GeometrySet &geometry_set,
   Map<AttributeIDRef, AttributeKind> attributes;
   geometry_set.gather_attributes_for_propagation(
       {GEO_COMPONENT_TYPE_MESH}, GEO_COMPONENT_TYPE_MESH, false, propagation_info, attributes);
+  attributes.remove(".edge_verts");
   attributes.remove(".corner_vert");
   attributes.remove(".corner_edge");
 
@@ -917,8 +913,8 @@ static void do_mesh_separation(GeometrySet &geometry_set,
       mesh_out = BKE_mesh_new_nomain_from_template(&mesh_in,
                                                    selected_verts_num,
                                                    selected_edges_num,
-                                                   selected_loops_num,
-                                                   selected_polys_num);
+                                                   selected_polys_num,
+                                                   selected_loops_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
       copy_masked_edges_to_new_mesh(mesh_in, *mesh_out, vertex_map, edge_map);
@@ -990,7 +986,7 @@ static void do_mesh_separation(GeometrySet &geometry_set,
           break;
       }
       mesh_out = BKE_mesh_new_nomain_from_template(
-          &mesh_in, mesh_in.totvert, selected_edges_num, selected_loops_num, selected_polys_num);
+          &mesh_in, mesh_in.totvert, selected_edges_num, selected_polys_num, selected_loops_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
       copy_masked_edges_to_new_mesh(mesh_in, *mesh_out, edge_map);
@@ -1053,7 +1049,7 @@ static void do_mesh_separation(GeometrySet &geometry_set,
           break;
       }
       mesh_out = BKE_mesh_new_nomain_from_template(
-          &mesh_in, mesh_in.totvert, mesh_in.totedge, selected_loops_num, selected_polys_num);
+          &mesh_in, mesh_in.totvert, mesh_in.totedge, selected_polys_num, selected_loops_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
       mesh_out->edges_for_write().copy_from(mesh_in.edges());
@@ -1092,7 +1088,7 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
                                     const AnonymousAttributePropagationInfo &propagation_info)
 {
   const Mesh &src_mesh = *geometry_set.get_mesh_for_read();
-  bke::MeshFieldContext field_context{src_mesh, selection_domain};
+  const bke::MeshFieldContext field_context{src_mesh, selection_domain};
   fn::FieldEvaluator evaluator{field_context, src_mesh.attributes().domain_size(selection_domain)};
   evaluator.add(selection_field);
   evaluator.evaluate();

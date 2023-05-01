@@ -14,6 +14,7 @@
 #include "device/cuda/device.h"
 #include "device/dummy/device.h"
 #include "device/hip/device.h"
+#include "device/hiprt/device_impl.h"
 #include "device/metal/device.h"
 #include "device/multi/device.h"
 #include "device/oneapi/device.h"
@@ -135,6 +136,8 @@ DeviceType Device::type_from_string(const char *name)
     return DEVICE_METAL;
   else if (strcmp(name, "ONEAPI") == 0)
     return DEVICE_ONEAPI;
+  else if (strcmp(name, "HIPRT") == 0)
+    return DEVICE_HIPRT;
 
   return DEVICE_NONE;
 }
@@ -155,6 +158,8 @@ string Device::string_from_type(DeviceType type)
     return "METAL";
   else if (type == DEVICE_ONEAPI)
     return "ONEAPI";
+  else if (type == DEVICE_HIPRT)
+    return "HIPRT";
 
   return "";
 }
@@ -177,6 +182,10 @@ vector<DeviceType> Device::available_types()
 #endif
 #ifdef WITH_ONEAPI
   types.push_back(DEVICE_ONEAPI);
+#endif
+#ifdef WITH_HIPRT
+  if (hiprtewInit())
+    types.push_back(DEVICE_HIPRT);
 #endif
   return types;
 }
@@ -354,7 +363,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
   info.has_guiding = true;
   info.has_profiling = true;
   info.has_peer_memory = false;
-  info.use_metalrt = false;
+  info.use_hardware_raytracing = false;
   info.denoisers = DENOISER_ALL;
 
   foreach (const DeviceInfo &device, subdevices) {
@@ -403,7 +412,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
     info.has_guiding &= device.has_guiding;
     info.has_profiling &= device.has_profiling;
     info.has_peer_memory |= device.has_peer_memory;
-    info.use_metalrt |= device.use_metalrt;
+    info.use_hardware_raytracing |= device.use_hardware_raytracing;
     info.denoisers &= device.denoisers;
   }
 

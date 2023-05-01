@@ -72,7 +72,7 @@ class GHOST_ISystemPaths {
   /**
    * Add the file to the operating system most recently used files
    */
-  virtual void addToSystemRecentFiles(const char *filename) const = 0;
+  virtual void addToSystemRecentFiles(const char *filepath) const = 0;
 
  private:
   /** The one and only system paths. */

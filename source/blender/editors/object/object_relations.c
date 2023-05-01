@@ -92,7 +92,7 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -2857,7 +2857,7 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = drop_named_material_invoke;
-  ot->poll = ED_operator_objectmode_poll_msg;
+  ot->poll = ED_operator_objectmode_with_view3d_poll_msg;
 
   /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
@@ -2954,8 +2954,6 @@ static int drop_geometry_nodes_invoke(bContext *C, wmOperator *op, const wmEvent
 
   return OPERATOR_FINISHED;
 }
-
-/** \} */
 
 void OBJECT_OT_drop_geometry_nodes(wmOperatorType *ot)
 {

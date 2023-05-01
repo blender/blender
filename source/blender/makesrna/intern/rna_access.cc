@@ -4237,6 +4237,19 @@ bool RNA_property_collection_lookup_string_has_fn(PropertyRNA *prop)
   return cprop->lookupstring != nullptr;
 }
 
+bool RNA_property_collection_lookup_string_has_nameprop(PropertyRNA *prop)
+{
+  BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
+  CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)rna_ensure_property(prop);
+  return (cprop->item_type && cprop->item_type->nameproperty);
+}
+
+bool RNA_property_collection_lookup_string_supported(PropertyRNA *prop)
+{
+  return (RNA_property_collection_lookup_string_has_fn(prop) ||
+          RNA_property_collection_lookup_string_has_nameprop(prop));
+}
+
 int RNA_property_collection_lookup_int(PointerRNA *ptr,
                                        PropertyRNA *prop,
                                        int key,
@@ -4302,7 +4315,7 @@ int RNA_property_collection_lookup_string_index(
         found = 1;
       }
 
-      if ((char *)&name != nameptr) {
+      if (name != nameptr) {
         MEM_freeN(nameptr);
       }
 

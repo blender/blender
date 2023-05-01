@@ -51,7 +51,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_view3d_offscreen.h"
@@ -333,7 +333,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 
       gp_rect = static_cast<uchar *>(
           MEM_mallocN(sizeof(uchar[4]) * sizex * sizey, "offscreen rect"));
-      GPU_offscreen_read_pixels(oglrender->ofs, GPU_DATA_UBYTE, gp_rect);
+      GPU_offscreen_read_color(oglrender->ofs, GPU_DATA_UBYTE, gp_rect);
 
       for (i = 0; i < sizex * sizey * 4; i += 4) {
         blend_color_mix_byte(&render_rect[i], &render_rect[i], &gp_rect[i]);
@@ -757,7 +757,12 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 
   /* corrects render size with actual size, not every card supports non-power-of-two dimensions */
   DRW_opengl_context_enable(); /* Off-screen creation needs to be done in DRW context. */
-  ofs = GPU_offscreen_create(sizex, sizey, true, GPU_RGBA16F, err_out);
+  ofs = GPU_offscreen_create(sizex,
+                             sizey,
+                             true,
+                             GPU_RGBA16F,
+                             GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ,
+                             err_out);
   DRW_opengl_context_disable();
 
   if (!ofs) {

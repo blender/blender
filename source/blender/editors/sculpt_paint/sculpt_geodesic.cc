@@ -87,7 +87,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   const float limit_radius_sq = limit_radius * limit_radius;
 
   float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
-  const blender::Span<MEdge> edges = mesh->edges();
+  const blender::Span<blender::int2> edges = mesh->edges();
   const blender::OffsetIndices polys = mesh->polys();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const blender::Span<int> corner_edges = mesh->corner_edges();
@@ -147,8 +147,8 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
 
   /* Add edges adjacent to an initial vertex to the queue. */
   for (int i = 0; i < totedge; i++) {
-    const int v1 = edges[i].v1;
-    const int v2 = edges[i].v2;
+    const int v1 = edges[i][0];
+    const int v2 = edges[i][1];
     if (!BLI_BITMAP_TEST(affected_vertex, v1) && !BLI_BITMAP_TEST(affected_vertex, v2)) {
       continue;
     }
@@ -160,8 +160,8 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   do {
     while (BLI_LINKSTACK_SIZE(queue)) {
       const int e = POINTER_AS_INT(BLI_LINKSTACK_POP(queue));
-      int v1 = edges[e].v1;
-      int v2 = edges[e].v2;
+      int v1 = edges[e][0];
+      int v2 = edges[e][1];
 
       if (dists[v1] == FLT_MAX || dists[v2] == FLT_MAX) {
         if (dists[v1] > dists[v2]) {
@@ -187,11 +187,11 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
                    edge_map_index++) {
                 const int e_other = ss->vemap[v_other].indices[edge_map_index];
                 int ev_other;
-                if (edges[e_other].v1 == uint(v_other)) {
-                  ev_other = edges[e_other].v2;
+                if (edges[e_other][0] == v_other) {
+                  ev_other = edges[e_other][1];
                 }
                 else {
-                  ev_other = edges[e_other].v1;
+                  ev_other = edges[e_other][0];
                 }
 
                 if (e_other != e && !BLI_BITMAP_TEST(edge_tag, e_other) &&

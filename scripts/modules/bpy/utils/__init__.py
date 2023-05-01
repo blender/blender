@@ -292,7 +292,7 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False):
                 if _os.path.isdir(path):
                     _sys_path_ensure_prepend(path)
 
-                    # Only add to 'sys.modules' unless this is 'startup'.
+                    # Only add to `sys.modules` unless this is 'startup'.
                     if path_subdir == "startup":
                         for mod in modules_from_path(path, loaded_modules):
                             test_register(mod)

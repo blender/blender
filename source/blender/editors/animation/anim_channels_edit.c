@@ -746,7 +746,11 @@ void ANIM_frame_channel_y_extents(bContext *C, bAnimContext *ac)
 
   rctf bounds = {.xmin = FLT_MAX, .xmax = -FLT_MAX, .ymin = FLT_MAX, .ymax = -FLT_MAX};
   const bool include_handles = false;
-  const float frame_range[2] = {window_region->v2d.cur.xmin, window_region->v2d.cur.xmax};
+  float frame_range[2] = {window_region->v2d.cur.xmin, window_region->v2d.cur.xmax};
+  if (ac->scene->r.flag & SCER_PRV_RANGE) {
+    frame_range[0] = ac->scene->r.psfra;
+    frame_range[1] = ac->scene->r.pefra;
+  }
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     rctf channel_bounds;
@@ -2849,7 +2853,8 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
   UI_view2d_region_to_view(v2d, rect->xmax, rect->ymax - 2, &rectf.xmax, &rectf.ymax);
 
   /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
+            ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   float ymax;
@@ -2877,7 +2882,7 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
     }
 
     /* if channel is within border-select region, alter it */
-    if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
+    if (ymax >= rectf.ymin && ymin <= rectf.ymax) {
       /* set selection flags only */
       ANIM_channel_setting_set(ac, ale, ACHANNEL_SETTING_SELECT, selectmode);
 
@@ -3839,7 +3844,7 @@ static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
 
   if (!valid_bounds) {
     ANIM_animdata_freelist(&anim_data);
-    WM_report(RPT_WARNING, "No keyframes to focus on.");
+    WM_report(RPT_WARNING, "No keyframes to focus on");
     return OPERATOR_CANCELLED;
   }
 
@@ -3927,7 +3932,7 @@ static int graphkeys_channel_view_pick_invoke(bContext *C, wmOperator *op, const
 
   if (!found_bounds) {
     ANIM_animdata_freelist(&anim_data);
-    WM_report(RPT_WARNING, "No keyframes to focus on.");
+    WM_report(RPT_WARNING, "No keyframes to focus on");
     return OPERATOR_CANCELLED;
   }
 

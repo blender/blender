@@ -220,16 +220,10 @@ bool BKE_curves_attribute_required(const Curves * /*curves*/, const char *name)
   return STREQ(name, ATTR_POSITION);
 }
 
-Curves *BKE_curves_copy_for_eval(Curves *curves_src, bool reference)
+Curves *BKE_curves_copy_for_eval(Curves *curves_src)
 {
-  int flags = LIB_ID_COPY_LOCALIZE;
-
-  if (reference) {
-    flags |= LIB_ID_COPY_CD_REFERENCE;
-  }
-
-  Curves *result = (Curves *)BKE_id_copy_ex(nullptr, &curves_src->id, nullptr, flags);
-  return result;
+  return reinterpret_cast<Curves *>(
+      BKE_id_copy_ex(nullptr, &curves_src->id, nullptr, LIB_ID_COPY_LOCALIZE));
 }
 
 static void curves_evaluate_modifiers(struct Depsgraph *depsgraph,

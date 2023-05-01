@@ -40,10 +40,14 @@ def geometry_modifier_poll(context):
 
 
 def get_context_modifier(context):
-    if context.area.type == 'PROPERTIES':
+    area = context.area
+    if (area is not None) and (area.type == 'PROPERTIES'):
         modifier = context.modifier
     else:
-        modifier = context.object.modifiers.active
+        ob = context.object
+        if ob is None:
+            return False
+        modifier = ob.modifiers.active
     if modifier is None or modifier.type != 'NODES':
         return None
     return modifier
@@ -205,7 +209,8 @@ class NewGeometryNodesModifier(Operator):
         return geometry_modifier_poll(context)
 
     def execute(self, context):
-        modifier = context.object.modifiers.new(data_("GeometryNodes"), "NODES")
+        ob = context.object
+        modifier = ob.modifiers.new(data_("GeometryNodes"), 'NODES')
         if not modifier:
             return {'CANCELLED'}
 

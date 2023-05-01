@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'bca2090724a3')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 10:34:35\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -1868,14 +1868,6 @@ msgstr "Phông Vectơ"
 
 msgid "Vector font data-blocks"
 msgstr "Các cục dữ liệu phông vectơ"
-
-
-msgid "Grease Pencil"
-msgstr "Bút Sáp"
-
-
-msgid "Grease Pencil data-blocks"
-msgstr "Các cục dữ liệu Bút Sáp"
 
 
 msgid "Hair Curves"
@@ -12216,6 +12208,10 @@ msgid "Show Font data-blocks"
 msgstr "Hiện các cục dữ liệu Phông"
 
 
+msgid "Grease Pencil"
+msgstr "Bút Sáp"
+
+
 msgid "Show Grease pencil data-blocks"
 msgstr "Hiện các cục dữ liệu Bút Sáp"
 
@@ -19121,48 +19117,16 @@ msgid "Curves Sculpt Tool"
 msgstr "Dụng Cụ Khắc Đường Cong"
 
 
-msgid "Comb Curves"
-msgstr "Chải Đường Cong"
-
-
-msgid "Delete Curves"
-msgstr "Xóa Đường Cong"
-
-
-msgid "Curves Snake Hook"
-msgstr "Cây Móc Đường Cong"
-
-
-msgid "Add Curves"
-msgstr "Thêm Đường Cong"
-
-
-msgid "Grow / Shrink Curves"
-msgstr "Nhô / Rút Nhỏ Đường Cong"
-
-
 msgid "Paint Selection"
 msgstr "Sự Lựa Chọn Điểm"
 
 
-msgid "Pinch Curves"
-msgstr "Đường Cong Ngát"
+msgid "Comb"
+msgstr "Lược"
 
 
-msgid "Smooth Curves"
-msgstr "Mịn Đường Cong"
-
-
-msgid "Puff Curves"
-msgstr "Phình Đường Cong"
-
-
-msgid "Density Curves"
-msgstr "Mật Độ Đường Cong"
-
-
-msgid "Slide Curves"
-msgstr "Trượt Đường Cong"
+msgid "Puff"
+msgstr "Sưng"
 
 
 msgid "Dash Ratio"
@@ -19301,10 +19265,6 @@ msgid "Pull points towards the midpoint of the brush"
 msgstr "Kéo điểm đến trung điểm của bút"
 
 
-msgid "Paste copies of the strokes stored on the clipboard"
-msgstr "Chép lại bản sao nét đang giữ trong bàng dán"
-
-
 msgid "Gpencil Settings"
 msgstr "Cài Đặt Bút Sáp"
 
@@ -19339,10 +19299,6 @@ msgstr "Dụng Cụ Sơn Đỉnh Bút Sáp"
 
 msgid "Grease Pencil Weight Paint Tool"
 msgstr "Dụng Cụ Sơn Quyền Lượng Bút Sáp"
-
-
-msgid "Weight Paint for Vertex Groups"
-msgstr "Sơn Quyền Lượng cho Nhóm Đỉnh"
 
 
 msgid "Gradient Spacing"
@@ -21439,6 +21395,10 @@ msgstr "Phông Đậm Nghiêng"
 
 msgid "Font Italic"
 msgstr "Phông Nghiêng"
+
+
+msgid "Text Selected"
+msgstr "Văn Bản Được Chọn"
 
 
 msgid "X Offset"
@@ -27385,10 +27345,6 @@ msgstr "Bộ Nhớ"
 
 msgid "Text file is in memory, without a corresponding file on disk"
 msgstr "Tập tin văn bản trong bộ nhớ, mà không có một tập tin trong đĩa"
-
-
-msgid "Modified"
-msgstr "Đã Sửa Đổi"
 
 
 msgid "Text file on disk is different than the one in memory"
@@ -36603,20 +36559,8 @@ msgid "Density of the new volume"
 msgstr "Tỉ trọng của thể tích mới"
 
 
-msgid "Exterior Band Width"
-msgstr "Bề Rộng Vành Đai Ngoại"
-
-
-msgid "Width of the volume outside of the mesh"
-msgstr "Bề rộng của thể tích ngoài mạng lưới"
-
-
 msgid "Interior Band Width"
 msgstr "Bề Rộng Vành Đai Nội"
-
-
-msgid "Width of the volume inside of the mesh"
-msgstr "Bề rộng của thể tích trong mạng lưới"
 
 
 msgid "Resolution Mode"
@@ -36637,14 +36581,6 @@ msgstr "Số lượng thể tích tử theo một trục"
 
 msgid "Desired voxel side length"
 msgstr "Bề dài thể tích tử như cầu"
-
-
-msgid "Fill Volume"
-msgstr "Đầy Thể Tích"
-
-
-msgid "Initialize the density grid in every cell inside the enclosed volume"
-msgstr "Khởi động tọa độ tỉ trọng trong mỗi tế bào ở trong thể tích được bao quanh"
 
 
 msgid "Approximate number of voxels along one axis"
@@ -40647,10 +40583,6 @@ msgid "Y position of the middle of the box"
 msgstr "Vị trí Y của trung tâm hợp"
 
 
-msgid "Bright/Contrast"
-msgstr "Sáng/Chênh Lệch"
-
-
 msgid "Keep output image premultiplied alpha"
 msgstr "Giữ độ đục nhân trước của ảnh ngõ ra"
 
@@ -41693,10 +41625,6 @@ msgstr "Bộ lọc ngôi sao đơn giản: cộng dịch xoay 45 độ"
 
 msgid "Hue Correct"
 msgstr "Chỉnh Màu Sắc"
-
-
-msgid "Hue Saturation Value"
-msgstr "Độ Tươi Màu Sắc"
 
 
 msgid "ID Mask"
@@ -44606,10 +44534,6 @@ msgid "Convert a blackbody temperature to an RGB value"
 msgstr "Biến đổi nhiệt độ vật đen sang một giá trị RGB"
 
 
-msgid "Bright Contrast"
-msgstr "Chênh Lệch Độ Sáng"
-
-
 msgid "Control the brightness and contrast of the input color"
 msgstr "Kiểm soát độ sáng và chênh lệch của màu ngõ vào"
 
@@ -46086,14 +46010,6 @@ msgid "Entry-wise divide"
 msgstr "Chia từng thành phần"
 
 
-msgid "Multiply Add"
-msgstr "Nhân Cộng"
-
-
-msgid "Cross Product"
-msgstr "Tích Có Hướng"
-
-
 msgid "A cross B"
 msgstr "A tích B (có hướng)"
 
@@ -46102,24 +46018,12 @@ msgid "Project A onto B"
 msgstr "Chiếu A trên B"
 
 
-msgid "Reflect"
-msgstr "Lật Kiểu Gương"
-
-
 msgid "Reflect A around the normal B. B doesn't need to be normalized"
 msgstr "Lật A quanh pháp tuyến B. Không cần đơn vị hóa B"
 
 
-msgid "Refract"
-msgstr "Khúc Xạ"
-
-
 msgid "For a given incident vector A, surface normal B and ratio of indices of refraction, Ior, refract returns the refraction vector, R"
 msgstr "Cho vectơ A rơi, pháp tuyến B và tỉ số của hệ số khúc xạ, phản xạ được trả vectơ phản xạ R"
-
-
-msgid "Faceforward"
-msgstr "MặtPhíaTrước"
 
 
 msgid "Orients a vector A to point away from a surface B as defined by its normal C. Returns (dot(B, C) < 0) ? A : -A"
@@ -46162,32 +46066,16 @@ msgid "Entry-wise floor"
 msgstr "Sàn từng thành phần"
 
 
-msgid "Ceil"
-msgstr "Nóc"
-
-
 msgid "Entry-wise ceil"
 msgstr "Nóc từng thành phần"
-
-
-msgid "Fraction"
-msgstr "Phân Số"
 
 
 msgid "The fraction part of A entry-wise"
 msgstr "Phân dư của A từng thành phần"
 
 
-msgid "Modulo"
-msgstr "Phần Dư"
-
-
 msgid "Entry-wise modulo using fmod(A,B)"
 msgstr "hân dư của A từng thành phần dùng fmod(A,B)"
-
-
-msgid "Wrap"
-msgstr "Gói"
 
 
 msgid "Entry-wise wrap(A,B)"
@@ -47085,10 +46973,6 @@ msgid "Copy Keyframes"
 msgstr "Chép Bức Ảnh Mẫu"
 
 
-msgid "Copy selected keyframes to the copy/paste buffer"
-msgstr "Chép bức ảnh mẫu được chọn vào đệm chép/dán"
-
-
 msgctxt "Operator"
 msgid "Delete Keyframes"
 msgstr "Xóa Bức Ảnh Mẫu"
@@ -47306,10 +47190,6 @@ msgstr "Chế tạo hành động mới"
 msgctxt "Operator"
 msgid "Paste Keyframes"
 msgstr "Dán Bứa Ảnh Mẫu"
-
-
-msgid "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame"
-msgstr "Dán bức ảnh mẫu từ đệm chép/dán cho các kênh được chọn, bắt đầu với bức ảnh mẫu hiện tại"
 
 
 msgid "Flipped"
@@ -49498,10 +49378,6 @@ msgid "Copy Tracks"
 msgstr "Chép Đường Vết"
 
 
-msgid "Copy selected tracks to clipboard"
-msgstr "Chép các đường vết được chọn đến bảng dán"
-
-
 msgctxt "Operator"
 msgid "Create Plane Track"
 msgstr "Chế tạo Đường Vết Mặt Phẳng"
@@ -49880,10 +49756,6 @@ msgstr "Bật Đa Màn"
 msgctxt "Operator"
 msgid "Paste Tracks"
 msgstr "Dán Đường Vết"
-
-
-msgid "Paste tracks from clipboard"
-msgstr "Dán đường vết từ bảng dán"
 
 
 msgctxt "Operator"
@@ -53264,6 +53136,14 @@ msgid "Execute selected file"
 msgstr "Thực hành tập tin được chọn"
 
 
+msgid "Show"
+msgstr "Hiện"
+
+
+msgid "Play"
+msgstr "Hát"
+
+
 msgctxt "Operator"
 msgid "Increment Number in Filename"
 msgstr "Tiến Lên Số Trong Tên Tập Tin"
@@ -53845,6 +53725,10 @@ msgstr "Nhập phông mới từ tập tin"
 
 msgid "Select all text"
 msgstr "Chọn hết văn bản"
+
+
+msgid "Select word under cursor"
+msgstr "Chọn chữ ở đưới con trỏ"
 
 
 msgctxt "Operator"
@@ -56231,11 +56115,6 @@ msgid "Adjust vertex color brightness/contrast"
 msgstr "Chỉnh độ sáng/chênh lệch màu đỉnh"
 
 
-msgctxt "Operator"
-msgid "Vertex Paint Hue Saturation Value"
-msgstr "Giá Trị Độ Tươi Màu Sắc Sơn Đỉnh"
-
-
 msgid "Adjust vertex color HSV values"
 msgstr "Chỉnh giá trị đỉnh màu HSV"
 
@@ -56376,6 +56255,15 @@ msgstr "Vào/Thoát chế độ sơn đỉnh cho các nét Bút Sáp"
 msgctxt "Operator"
 msgid "Stroke Weight Paint"
 msgstr "Sơn Quyền Lượng Nét"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "Quyền Lượng Mẫu Vật Sơn Quyền Lượng"
+
+
+msgid "Use the mouse to sample a weight in the 3D view"
+msgstr "Dùng chuột cho lấy mẫu vật quyền lượng trong màn 3D"
 
 
 msgctxt "Operator"
@@ -58263,10 +58151,6 @@ msgid "Copy Splines"
 msgstr "Chép Mẫu Cong"
 
 
-msgid "Copy selected splines to clipboard"
-msgstr "Chép lại mẫu cong được chọn vào bảng dán"
-
-
 msgid "Toggle cyclic for selected splines"
 msgstr "Bật/tắt chu trình cho cạc mẫu cong được chọn"
 
@@ -58365,10 +58249,6 @@ msgstr "Đặt phụ huynh mặt nạ"
 msgctxt "Operator"
 msgid "Paste Splines"
 msgstr "Dán Mẫu Cong"
-
-
-msgid "Paste splines from clipboard"
-msgstr "Dán mẫu cong từ bảng dán"
 
 
 msgctxt "Operator"
@@ -60005,16 +59885,8 @@ msgid "Copy Normal"
 msgstr "Chép Lại Pháp Tuyến"
 
 
-msgid "Copy normal to buffer"
-msgstr "Chép lại pháp tuyến vào đệm"
-
-
 msgid "Paste Normal"
 msgstr "Dán Pháp Tuyến"
-
-
-msgid "Paste normal from buffer"
-msgstr "Dán pháp tuyến từ đệm"
 
 
 msgid "Add Normal"
@@ -60035,10 +59907,6 @@ msgstr "Nhân pháp tuyến với sự lựa chọn"
 
 msgid "Reset Normal"
 msgstr "Đặt Lại Pháp Tuyến"
-
-
-msgid "Reset buffer and/or normal of selected element"
-msgstr "Đặt lại đệm và/hoặc pháp tuyến của phần tử được chọn"
 
 
 msgctxt "Operator"
@@ -62051,14 +61919,6 @@ msgid "Clear the boundaries for viewer operations"
 msgstr "Xóa ranh giời cho thao tác màn chiếu"
 
 
-msgid "Copies selected nodes to the clipboard"
-msgstr "Chép các giao điểm được chọn vào bảng dán"
-
-
-msgid "Pastes nodes from the clipboard to the active node tree"
-msgstr "Dán giao điểm từ bảng dán vào cây giao điểm hoạt động"
-
-
 msgctxt "Operator"
 msgid "Collapse and Hide Unused Sockets"
 msgstr "Tóp Và Ẩn Ổ Cắm Chưa dùng"
@@ -63730,6 +63590,52 @@ msgstr "Phản xạ kế mặt phẳng"
 
 msgid "Irradiance probe to capture diffuse indirect lighting"
 msgstr "Sự rọi kế để bắt ánh sáng tán xạ gián tiếp"
+
+
+msgctxt "Operator"
+msgid "Bake Light Cache"
+msgstr "Đệm Chứa Ánh Sáng Nướng"
+
+
+msgid "Bake the active view layer lighting"
+msgstr "Nướng ánh sáng của lớp màn chiếu hoạt động"
+
+
+msgid "Delay in millisecond before baking starts"
+msgstr "Trì hoãn bằng 1/1000 giây"
+
+
+msgid "Subset"
+msgstr "Tập Phụ"
+
+
+msgid "Subset of probes to update"
+msgstr "Hạ tập của ánh sáng kế để nâng cấp"
+
+
+msgid "All Light Probes"
+msgstr "Hết Ánh Sáng Kế"
+
+
+msgid "Dirty Only"
+msgstr "Chỉ Dơ"
+
+
+msgid "Only bake light probes that are marked as dirty"
+msgstr "Chỉ nướng ánh sáng kế được ký dấu là dơ"
+
+
+msgid "Selected Only"
+msgstr "Chỉ Được Chọn"
+
+
+msgctxt "Operator"
+msgid "Delete Light Cache"
+msgstr "Xóa Đệm Chứa Ánh Sáng"
+
+
+msgid "Delete cached indirect lighting"
+msgstr "Xóa ánh sáng gián tiếp được chứa"
 
 
 msgctxt "Operator"
@@ -65479,10 +65385,6 @@ msgid "Remove vertex group assignments which are not required"
 msgstr "Xóa chỉ định nhóm đỉnh thì không cần thiết"
 
 
-msgid "Subset"
-msgstr "Tập Phụ"
-
-
 msgid "Define which subset of groups shall be used"
 msgstr "Chỉ định sẽ dùng hạ tập hợp nào của các nhóm"
 
@@ -66232,10 +66134,6 @@ msgid "Outliner ID Data Copy"
 msgstr "Mục Lục - Chép Dữ Liệu ID"
 
 
-msgid "Selected data-blocks are copied to the clipboard"
-msgstr "Cục dữ liệu được chọn được chép lại vào bảng dán"
-
-
 msgctxt "Operator"
 msgid "Delete Data-Block"
 msgstr "Xóa Cục Dữ Liệu"
@@ -66297,10 +66195,6 @@ msgstr "Đổi Tên"
 msgctxt "Operator"
 msgid "Outliner ID Data Paste"
 msgstr "Mục Lục - Dán Dữ Liệu ID"
-
-
-msgid "Data-blocks from the clipboard are pasted"
-msgstr "Dán các cục dữ liệu từ bảng dán"
 
 
 msgctxt "Operator"
@@ -66948,10 +66842,6 @@ msgid "Hide vertices"
 msgstr "Ẩn đỉnh"
 
 
-msgid "Show"
-msgstr "Hiện"
-
-
 msgid "Show vertices"
 msgstr "Hiện đỉnh"
 
@@ -67289,15 +67179,6 @@ msgstr "Chế Độ Sơn Quyền Lượng"
 
 msgid "Toggle weight paint mode in 3D view"
 msgstr "Bật/tắt chế độ sơn quyền lượng trong màn 3D"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "Quyền Lượng Mẫu Vật Sơn Quyền Lượng"
-
-
-msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "Dùng chuột cho lấy mẫu vật quyền lượng trong màn 3D"
 
 
 msgctxt "Operator"
@@ -67839,10 +67720,6 @@ msgid "Apply the current pose as the new rest pose"
 msgstr "Áp dụng dạng đứng hiện tại làm dạng đứng nghỉ mới"
 
 
-msgid "Selected Only"
-msgstr "Chỉ Được Chọn"
-
-
 msgid "Only apply the selected bones (with propagation to children)"
 msgstr "Chỉ áp dụng các xương được chọn (và tiến triển đến con cái)"
 
@@ -67969,10 +67846,6 @@ msgstr "Chép ràng buộc đến các xương khác được chọn"
 msgctxt "Operator"
 msgid "Copy Pose"
 msgstr "Chép Dạng Đứng"
-
-
-msgid "Copies the current pose of the selected bones to copy/paste buffer"
-msgstr "Chép dạng đứng hiện tại của xương được chọn vào đệm chép/dán"
 
 
 msgctxt "Operator"
@@ -68629,6 +68502,10 @@ msgid "Reset to the default theme colors"
 msgstr "Hoàn lại màu phong cách mặc định"
 
 
+msgid "Filter Folders"
+msgstr "Lọc Hồ Sơ"
+
+
 msgctxt "Operator"
 msgid "Copy Studio Light Settings"
 msgstr "Chép lại Cài Đặt Đèn Xưởng"
@@ -68645,10 +68522,6 @@ msgstr "Lắp Đặt Đèn"
 
 msgid "Install a user defined light"
 msgstr "Lắp đặt một đèn người dùng được chỉ định"
-
-
-msgid "Filter Folders"
-msgstr "Lọc Hồ Sơ"
 
 
 msgid "MatCap"
@@ -69286,10 +69159,6 @@ msgid "Copy Line Set"
 msgstr "Chép Tập Nét"
 
 
-msgid "Copy the active line set to a buffer"
-msgstr "Chép tập nét hoạt động vào một đệm"
-
-
 msgctxt "Operator"
 msgid "Move Line Set"
 msgstr "Di Chuyên ̉ Tập Nét"
@@ -69306,10 +69175,6 @@ msgstr "Hướng để di chuyển nét hoạt động"
 msgctxt "Operator"
 msgid "Paste Line Set"
 msgstr "Dán Tập Nét"
-
-
-msgid "Paste the buffer content to the active line set"
-msgstr "Dán nội dung của đệm vào tập nét hoạt động"
 
 
 msgctxt "Operator"
@@ -69435,37 +69300,8 @@ msgid "Add or remove grease pencil material preset"
 msgstr "Thêm hay xóa đặt sẵn vật liệu bút sáp"
 
 
-msgctxt "Operator"
-msgid "Bake Light Cache"
-msgstr "Đệm Chứa Ánh Sáng Nướng"
-
-
-msgid "Bake the active view layer lighting"
-msgstr "Nướng ánh sáng của lớp màn chiếu hoạt động"
-
-
-msgid "Delay in millisecond before baking starts"
-msgstr "Trì hoãn bằng 1/1000 giây"
-
-
-msgid "Subset of probes to update"
-msgstr "Hạ tập của ánh sáng kế để nâng cấp"
-
-
-msgid "All Light Probes"
-msgstr "Hết Ánh Sáng Kế"
-
-
 msgid "Bake both irradiance grids and reflection cubemaps"
 msgstr "Nướng cả đồ thị sự rọi và bản đồ lập phương phản xạ"
-
-
-msgid "Dirty Only"
-msgstr "Chỉ Dơ"
-
-
-msgid "Only bake light probes that are marked as dirty"
-msgstr "Chỉ nướng ánh sáng kế được ký dấu là dơ"
 
 
 msgid "Cubemaps Only"
@@ -69474,15 +69310,6 @@ msgstr "Chỉ Bản Đồ Lập Phương"
 
 msgid "Try to only bake reflection cubemaps if irradiance grids are up to date"
 msgstr "Thử chỉ nướng bản đồ lập phương phản xạ nếu đồ thị sự rọi đã nâng cấp rồi"
-
-
-msgctxt "Operator"
-msgid "Delete Light Cache"
-msgstr "Xóa Đệm Chứa Ánh Sáng"
-
-
-msgid "Delete cached indirect lighting"
-msgstr "Xóa ánh sáng gián tiếp được chứa"
 
 
 msgctxt "Operator"
@@ -71340,10 +71167,6 @@ msgid "Copy"
 msgstr "Chép"
 
 
-msgid "Copy selected strips to clipboard"
-msgstr "Chép các đoạn được chọn đến bảng dán"
-
-
 msgctxt "Operator"
 msgid "Crossfade Sounds"
 msgstr "Phai Đổi Âm Thanh"
@@ -71732,10 +71555,6 @@ msgstr "Xóa dịch đoạn từ bức ảnh đầu và cuối"
 msgctxt "Operator"
 msgid "Paste"
 msgstr "Dán"
-
-
-msgid "Paste strips from clipboard"
-msgstr "Dán các đoạn từ bảng dán"
 
 
 msgid "Keep strip offset relative to the current frame when pasting"
@@ -72938,10 +72757,6 @@ msgid "Select text by line"
 msgstr "Chọn văn bản tùy dòng"
 
 
-msgid "Select word under cursor"
-msgstr "Chọn chữ ở đưới con trỏ"
-
-
 msgctxt "Operator"
 msgid "Find"
 msgstr "Tìm"
@@ -73480,10 +73295,6 @@ msgstr "Gỡ đặt văn bản của nút hoạt động"
 msgctxt "Operator"
 msgid "Copy as New Driver"
 msgstr "Chép như Một Điều Vận Mới"
-
-
-msgid "Create a new driver with this property as input, and copy it to the clipboard. Use Paste Driver to add it to the target property, or Paste Driver Variables to extend an existing driver"
-msgstr "Chế tạo một điều vận mới có đặc tính này làm ngõ vào, và chép nó vào bàn dán. Dùng Dán Đồ Dắ đề thêm nó vào đặc tính mục đích, hay dán Biến Số Độ Dắt để mở rộng một điều vận đang tồn tại"
 
 
 msgctxt "Operator"
@@ -74334,6 +74145,10 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Xuất cài đặt UV vào một mảng ảnh"
 
 
+msgid "Modified"
+msgstr "Đã Sửa Đổi"
+
+
 msgid "Exports UVs from the modified mesh"
 msgstr "Xuất UV từ mạng lưới được sửa đổi"
 
@@ -74388,14 +74203,6 @@ msgid "Lightmap Pack"
 msgstr "Gói Ánh Xạ Ánh Sáng"
 
 
-msgid "New Image"
-msgstr "Ảnh Mới"
-
-
-msgid "Assign new images for every mesh (only one if Share Texture Space is enabled)"
-msgstr "Chỉ định các ảnh mới cho mỗi mạng lưới (chỉ một nếu có bật Chia Sẻ Cùng Không Gian Chất Liệu)"
-
-
 msgid "Pack Quality"
 msgstr "Chất Lượng Gói"
 
@@ -74406,10 +74213,6 @@ msgstr "Mặt Được Chọn"
 
 msgid "All Faces"
 msgstr "Hết Mặt"
-
-
-msgid "Width and height for the new image"
-msgstr "Bề Rộng và bề cao cho ảnh mới"
 
 
 msgid "Size of the margin as a division of the UV"
@@ -74476,6 +74279,10 @@ msgstr "Biến hóa hết hòn đảo cho chúng nó vừa đầy nhất không 
 
 msgid "Space between islands"
 msgstr "Khoảng cách giữa đảo"
+
+
+msgid "Fraction"
+msgstr "Phân Số"
 
 
 msgid "Rotate islands for best fit"
@@ -75059,10 +74866,6 @@ msgid "Copy Objects"
 msgstr "Chép Lại Vật Thể"
 
 
-msgid "Selected objects are copied to the clipboard"
-msgstr "Vật thể được chọn được chép vào bảng dán"
-
-
 msgctxt "Operator"
 msgid "Set 3D Cursor"
 msgstr "Đặt Con Trỏ 3D"
@@ -75365,10 +75168,6 @@ msgstr "Danh Bạ Chế Độ Vật Thể"
 msgctxt "Operator"
 msgid "Paste Objects"
 msgstr "Dán Vật Thể"
-
-
-msgid "Objects from the clipboard are pasted"
-msgstr "Vật thể từ bảng dán được dán"
 
 
 msgid "Put pasted objects in the active collection"
@@ -76725,6 +76524,10 @@ msgid "Toggle a context value"
 msgstr "Bật/tắt một giá trị bối cảnh"
 
 
+msgid "Wrap"
+msgstr "Gói"
+
+
 msgid "Wrap back to the first/last values"
 msgstr "Gói lại đến giá trị đầu/cuối"
 
@@ -76971,10 +76774,6 @@ msgstr "Thời gian để hiển thị ảnh kết xuất trước làm tiếp (
 
 msgid "Run once and exit"
 msgstr "Chạy một lần và nghỉ"
-
-
-msgid "Play"
-msgstr "Hát"
 
 
 msgid "Random Order"
@@ -77665,42 +77464,6 @@ msgid "Subtype"
 msgstr "Loại Phù"
 
 
-msgid "Plain Data"
-msgstr "Dữ Liệu Đơn S"
-
-
-msgid "Data values without special behavior"
-msgstr "Giá trị dữ liệu không có hành vi đặc biệt"
-
-
-msgid "Linear Color"
-msgstr "Màu Tuyến Tính"
-
-
-msgid "Color in the linear space"
-msgstr "Mài sắc trong không gian tuyến tính"
-
-
-msgid "Gamma-Corrected Color"
-msgstr "Màu Được Chỉnh Sửa Gama"
-
-
-msgid "Color in the gamma corrected space"
-msgstr "Maôu trong không gian được chỉnh sửa gama"
-
-
-msgid "Euler Angles"
-msgstr "Góc Euler"
-
-
-msgid "Euler rotation angles in radians"
-msgstr "Góc Euler đơn vị radian"
-
-
-msgid "Quaternion rotation (affects NLA blending)"
-msgstr "Xoay quaternion (nó ảnh hưởng pha trộn NLA)"
-
-
 msgid "Soft Limits"
 msgstr "Giới Hạn Mềm"
 
@@ -78358,10 +78121,6 @@ msgid "Overwrite Textures"
 msgstr "Ghi Lại Trên Chất Liệu"
 
 
-msgid "Allow overwriting existing texture files when exporting textures"
-msgstr "Cho ghi lại trên các chất liệu có sẵn khi xuất hoạ tiết"
-
-
 msgid "Use relative paths to reference external files (i.e. textures, volumes) in USD, otherwise use absolute paths"
 msgstr "Dùng đường dẫn tương đối để tham chiếu đến các tập tin ngoài (ví dụ: chất liệu, thể tích) trong USD"
 
@@ -78489,10 +78248,6 @@ msgstr "Nếu một vật liệu có tên giống đang tồn tại, tham chiế
 
 msgid "Path Mask"
 msgstr "Mặt Nạ Đường Dẫn"
-
-
-msgid "Import only the subset of the USD scene rooted at the given primitive"
-msgstr "Chỉ nhập một phần của tập hợp của cảnh USD có rễ tại vật thể cơ bản"
 
 
 msgid "Read mesh color attributes"
@@ -79531,10 +79286,6 @@ msgstr "Cài đặt Đuổi Theo"
 
 msgid "Tracking Settings Extras"
 msgstr "Thêm Cài Đặt Theo Dõi"
-
-
-msgid "Lens"
-msgstr "Kính Thấu"
 
 
 msgid "Tracking Settings Extra"
@@ -80803,9 +80554,25 @@ msgid "Comb"
 msgstr "Lược"
 
 
+msgid "Comb hairs"
+msgstr "Chạy tóc"
+
+
+msgid "Smooth hairs"
+msgstr "Mịn tóc"
+
+
+msgid "Add hairs"
+msgstr "Thêm tóc"
+
+
 msgctxt "Operator"
 msgid "Length"
 msgstr "Bề Dài"
+
+
+msgid "Make hairs longer or shorter"
+msgstr "Làm tóc dài hơn hay ngắn hơn"
 
 
 msgctxt "Operator"
@@ -80813,9 +80580,21 @@ msgid "Puff"
 msgstr "Sưng"
 
 
+msgid "Make hairs stand up"
+msgstr "Làm tóc đứng lên"
+
+
+msgid "Cut hairs"
+msgstr "Cắt tóc"
+
+
 msgctxt "Operator"
 msgid "Weight"
 msgstr "Quyền Lượng"
+
+
+msgid "Weight hair particles"
+msgstr "Làm nặng hạt tóc"
 
 
 msgctxt "Operator"
@@ -81095,21 +80874,6 @@ msgstr "Sức Lực"
 msgctxt "Operator"
 msgid "Twist"
 msgstr "Xoắn"
-
-
-msgctxt "Operator"
-msgid "Selection Paint"
-msgstr "Sơn Sự Lựa Chọn"
-
-
-msgctxt "Operator"
-msgid "Density"
-msgstr "Mật Độ"
-
-
-msgctxt "Operator"
-msgid "Grow/Shrink"
-msgstr "Lớn Lên/Rút Nhỏ"
 
 
 msgctxt "Operator"
@@ -81427,42 +81191,6 @@ msgstr "Hiển Thị Hạt"
 
 msgid "Display actual particles"
 msgstr "Hiển thị hạt thật sự"
-
-
-msgid "Comb"
-msgstr "Lược"
-
-
-msgid "Comb hairs"
-msgstr "Chạy tóc"
-
-
-msgid "Smooth hairs"
-msgstr "Mịn tóc"
-
-
-msgid "Add hairs"
-msgstr "Thêm tóc"
-
-
-msgid "Make hairs longer or shorter"
-msgstr "Làm tóc dài hơn hay ngắn hơn"
-
-
-msgid "Puff"
-msgstr "Sưng"
-
-
-msgid "Make hairs stand up"
-msgstr "Làm tóc đứng lên"
-
-
-msgid "Cut hairs"
-msgstr "Cắt tóc"
-
-
-msgid "Weight hair particles"
-msgstr "Làm nặng hạt tóc"
 
 
 msgid "Auto Velocity"
@@ -82357,20 +82085,12 @@ msgid "Pose Matrix"
 msgstr "Ma Trận Dạng Đứng"
 
 
-msgid "Final 4x4 matrix after constraints and drivers are applied (object space)"
-msgstr "Ma trận 4x4 cuối cùng sau áp dụng ràng buộc và điều vận (không gian vật thể)"
-
-
 msgid "Alternative access to location/scale/rotation relative to the parent and own rest bone"
 msgstr "Lối thay phiên đến vị trí/phóng to/xoay tương đối với phụ huynh và xương nghỉ một mình"
 
 
 msgid "Channel Matrix"
 msgstr "Ma Trận Kênh"
-
-
-msgid "4x4 matrix, before constraints"
-msgstr "Ma trận 4x4, trước ràng buộc"
 
 
 msgid "Parent of this pose bone"
@@ -93343,6 +93063,10 @@ msgid "Visibility Icon"
 msgstr "Biểu Tượng Hiển Thị"
 
 
+msgid "Lens"
+msgstr "Kính Thấu"
+
+
 msgid "Viewport lens angle"
 msgstr "Góc Thấu Kính Màn Chiếu"
 
@@ -96133,10 +95857,6 @@ msgstr "Nhạt Xuống"
 
 msgid "Shade Top"
 msgstr "Nhạt Trên"
-
-
-msgid "Text Selected"
-msgstr "Văn Bản Được Chọn"
 
 
 msgid "Theme Widget State Color"
@@ -103673,6 +103393,10 @@ msgid "Poly"
 msgstr "Đa Giác"
 
 
+msgid "Display Cursor"
+msgstr "Hiển Thị Con Trỏ"
+
+
 msgctxt "Operator"
 msgid "Selection to Cursor"
 msgstr "Sự Lựa Chọn Đến Con Trỏ"
@@ -103712,10 +103436,6 @@ msgstr "Không có lớp để thêm"
 
 msgid "Channel Colors are disabled in Animation preferences"
 msgstr "Màu kênh đã bị tắt trong tùy chọn Hoạt Hình"
-
-
-msgid "Display Cursor"
-msgstr "Hiển Thị Con Trỏ"
 
 
 msgid "Show Fill Color While Drawing"
@@ -103894,10 +103614,6 @@ msgstr "Sắp Xếp đến Pháp Tuyến Đỉnh"
 
 msgid "Show Instancer"
 msgstr "Hiện Bộ Thực Thể"
-
-
-msgid "Old"
-msgstr "Cũ"
 
 
 msgid "Date"
@@ -106699,20 +106415,20 @@ msgid "Move Line(s) Down"
 msgstr "Di Chuyển (Các) Dòng Xuống"
 
 
-msgid "File: *%s (unsaved)"
-msgstr "Tập Tin: *%s (chưa lưu)"
-
-
-msgid "File: %s"
-msgstr "Tập Tin: %s"
-
-
 msgid "Text: External"
 msgstr "Văn Bản: Ngoại Bộ"
 
 
 msgid "Text: Internal"
 msgstr "Văn Bản: Nội Bộ"
+
+
+msgid "File: *%s (unsaved)"
+msgstr "Tập Tin: *%s (chưa lưu)"
+
+
+msgid "File: %s"
+msgstr "Tập Tin: %s"
 
 
 msgctxt "Operator"
@@ -107316,10 +107032,6 @@ msgid "Widget Label"
 msgstr "Nhãn Khiển Tố"
 
 
-msgid "Scripts"
-msgstr "Văn Thảo"
-
-
 msgid "Temporary Files"
 msgstr "Tập Tin Tạm Thời"
 
@@ -107673,16 +107385,6 @@ msgstr "Đặt Đặc Điểm Màu"
 msgctxt "Operator"
 msgid "Levels"
 msgstr "Tầng"
-
-
-msgctxt "Operator"
-msgid "Hue Saturation Value"
-msgstr "Giá Trị Độ Tươi Màu Sắc"
-
-
-msgctxt "Operator"
-msgid "Bright/Contrast"
-msgstr "Độ Sáng/Sự Chênh Lệch"
 
 
 msgctxt "Operator"
@@ -110613,6 +110315,10 @@ msgid "Video_Editing"
 msgstr "BiênTập_Video"
 
 
+msgid "Untitled"
+msgstr "Vô Tựa"
+
+
 msgid "Unable to make version backup: filename too short"
 msgstr "Không chế tạo được phiên bản dự phòng: tên tập tin quá ngắn"
 
@@ -110891,10 +110597,6 @@ msgstr "Không có điều vận để chép biến"
 
 msgid "Driver has no variables to copy"
 msgstr "Điều vận chưa có biến để chép"
-
-
-msgid "No driver variables in clipboard to paste"
-msgstr "Không có biến điều vận trong bảng dán để dán"
 
 
 msgid "Cannot paste driver variables without a driver"
@@ -111283,22 +110985,6 @@ msgstr "Hành động của cốt này sẽ bị phá bởi dạng đứng ngh�
 
 msgid "No pose to copy"
 msgstr "Không có dạng đứng để chép"
-
-
-msgid "Copied pose to buffer"
-msgstr "Đã chép dạng đứng vào đệm"
-
-
-msgid "Copy buffer is empty"
-msgstr "Đệm chép đang trống rỗng"
-
-
-msgid "Copy buffer is not from pose mode"
-msgstr "Đệm chép không có dữ liệu từ chế độ dạng dứng"
-
-
-msgid "Copy buffer has no pose"
-msgstr "Đệm chép không có dạng đứng"
 
 
 msgid "Programming error: missing clear transform function or keying set name"
@@ -114920,10 +114606,6 @@ msgid "Packed MultiLayer files cannot be painted: %s"
 msgstr "Không thể sơn tập tin Đa Lớp Gói Lại: %s "
 
 
-msgid "Untitled"
-msgstr "Vô Tựa"
-
-
 msgid "Image could not be found"
 msgstr "Không tìm được ảnh"
 
@@ -114986,10 +114668,6 @@ msgstr "Không hỗ trợ trong chế độ đa độ phân giải"
 
 msgid "Click on the mesh to set the detail"
 msgstr "Bấm trên mạng lưới để đặt chi tiết"
-
-
-msgid "Move the mouse to change the dyntopo detail size. LMB: confirm size, ESC/RMB: cancel"
-msgstr "Di chuyển chuột để đổi kích thước của chi tiết hình dạng học động lý. CNT: xác nhận kích thước, ESC/CHP: hủy"
 
 
 msgid "Warning!"
@@ -115092,16 +114770,8 @@ msgid "Action '%s' will not be saved, create Fake User or Stash in NLA Stack to 
 msgstr "Sẽ không lưu hành động '%s', chế tạo Người Dùng Giả hay Cất Chứa trong Xếp Đống NLA cho duy trì"
 
 
-msgid "No keyframes copied to keyframes copy/paste buffer"
-msgstr "Không chép được bức ảnh mẫu đến đệm chép/dán bức ảnh mẫu"
-
-
 msgid "Keyframe pasting is not available for mask mode"
 msgstr "Không thể dán bức ảnh trong chế độ mặt nạ"
-
-
-msgid "No data in buffer to paste"
-msgstr "Không có dữ liệu trong đệm để dán"
 
 
 msgid "Keyframe pasting is not available for grease pencil or mask mode"
@@ -115745,10 +115415,6 @@ msgid "Decimate F-Curves by specifying how much they can deviate from the origin
 msgstr "Cắt chẻ Cong-F bằng chỉ định mức độ chênh lệch từ đường cong nguyên bản"
 
 
-msgid "Blend to Default Value"
-msgstr "Pha Trộn đến Giá Trí Mặc Định"
-
-
 msgid "There is no animation data to operate on"
 msgstr "Không có dữ liệu hoạt hình để tương tác"
 
@@ -116067,10 +115733,6 @@ msgstr "Không thể trao đổi '%s' và '%s' vì một hay cả hai không v�
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "Không thể thêm bộ điều chỉnh cho (%s : %s) (xem chi tiết trong diện điều khiển)"
-
-
-msgid "Clipboard is empty"
-msgstr "Bảng dán trống rỗng"
 
 
 msgid "Some nodes references could not be restored, will be left empty"
@@ -117933,10 +117595,6 @@ msgid "Cannot open file: %s"
 msgstr "Không thể mở tập tin: %s"
 
 
-msgid "External library data"
-msgstr "Dữ lịệu thư viện ngoại bộ"
-
-
 msgid "Bind To"
 msgstr "Trói Đến"
 
@@ -118103,6 +117761,10 @@ msgstr "ÁnhXạHọaTiết"
 
 msgid "TimeOffset"
 msgstr "DịchThờiGian"
+
+
+msgid "External library data"
+msgstr "Dữ lịệu thư viện ngoại bộ"
 
 
 msgid "All line art objects are now cleared"
@@ -120488,6 +120150,10 @@ msgid "Scale of the instances"
 msgstr "Phóng to của các thực thể"
 
 
+msgid "Old"
+msgstr "Cũ"
+
+
 msgid "Vertices must be at least 3"
 msgstr "Phải có 3 đỉnh trở lên"
 
@@ -120868,6 +120534,10 @@ msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "Giá trị lớn hơn ngưỡng được chế tạo trong mạng lưới"
 
 
+msgid " node"
+msgstr " giao điểm"
+
+
 msgid "Missing Data-Block"
 msgstr "Cục Dữ Liệu Thiếu"
 
@@ -120886,10 +120556,6 @@ msgstr "Dữ liệu hình thành trong hình dạng ngõ vào đã bị không q
 
 msgid "Input geometry has unsupported type: "
 msgstr "Hình dạng ngõ vào có loại không hỗ trợ:"
-
-
-msgid " node"
-msgstr " giao điểm"
 
 
 msgid "Undefined Node Tree Type"
@@ -121374,11 +121040,6 @@ msgstr "Đường Cong"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "Chỉnh Màu Sấc"
-
-
-msgctxt "Sequence"
-msgid "Bright/Contrast"
-msgstr "Độ Sáng/Sự Chênh Lệch"
 
 
 msgctxt "Sequence"

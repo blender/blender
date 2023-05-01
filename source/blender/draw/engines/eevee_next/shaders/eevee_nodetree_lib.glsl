@@ -242,13 +242,13 @@ void output_aov(vec4 color, float value, uint hash)
 #if defined(MAT_AOV_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
   for (int i = 0; i < AOV_MAX && i < aov_buf.color_len; i++) {
     if (aov_buf.hash_color[i] == hash) {
-      imageStore(aov_color_img, ivec3(gl_FragCoord.xy, i), color);
+      imageStore(aov_color_img, ivec3(ivec2(gl_FragCoord.xy), i), color);
       return;
     }
   }
   for (int i = 0; i < AOV_MAX && i < aov_buf.value_len; i++) {
     if (aov_buf.hash_value[i] == hash) {
-      imageStore(aov_value_img, ivec3(gl_FragCoord.xy, i), vec4(value));
+      imageStore(aov_value_img, ivec3(ivec2(gl_FragCoord.xy), i), vec4(value));
       return;
     }
   }

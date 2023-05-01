@@ -65,7 +65,7 @@ void main()
   }
 
   AABB aabb_tag;
-  AABB aabb_map = AABB(vec3(-0.99999), vec3(0.99999));
+  AABB aabb_map = shape_aabb(vec3(-0.99999), vec3(0.99999));
 
   /* Directionnal winmat have no correct near/far in the Z dimension at this point.
    * Do not clip in this dimension. */
@@ -87,7 +87,7 @@ void main()
     for (int y = box_min.y; y <= box_max.y; y++) {
       for (int x = box_min.x; x <= box_max.x; x++) {
         int tile_index = shadow_tile_offset(ivec2(x, y), tilemap.tiles_index, lod);
-        atomicOr(tiles_buf[tile_index], SHADOW_DO_UPDATE);
+        atomicOr(tiles_buf[tile_index], uint(SHADOW_DO_UPDATE));
       }
     }
   }

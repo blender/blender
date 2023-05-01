@@ -431,7 +431,9 @@ CDataFileLayer *cdf_layer_add(CDataFile *cdf, int type, const char *name, size_t
 
   /* expand array */
   newlayer = MEM_calloc_arrayN((cdf->totlayer + 1), sizeof(CDataFileLayer), "CDataFileLayer");
-  memcpy(newlayer, cdf->layer, sizeof(CDataFileLayer) * cdf->totlayer);
+  if (cdf->totlayer > 0) {
+    memcpy(newlayer, cdf->layer, sizeof(CDataFileLayer) * cdf->totlayer);
+  }
   cdf->layer = newlayer;
 
   cdf->totlayer++;

@@ -692,10 +692,12 @@ if(WITH_GHOST_WAYLAND)
 
     if(WITH_GHOST_WAYLAND_LIBDECOR)
       if(_use_system_wayland)
-        pkg_check_modules(libdecor REQUIRED libdecor-0>=0.1)
+        pkg_check_modules(libdecor libdecor-0>=0.1)
       else()
         set(libdecor_INCLUDE_DIRS "${LIBDIR}/wayland_libdecor/include/libdecor-0")
+        set(libdecor_FOUND ON)
       endif()
+      set_and_warn_library_found("libdecor" libdecor_FOUND WITH_GHOST_WAYLAND_LIBDECOR)
     endif()
 
     if(WITH_GHOST_WAYLAND_DBUS)
@@ -803,8 +805,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
   # Automatically turned on when building with "-march=native". This is
   # explicitly turned off here as it will make floating point math give a bit
   # different results. This will lead to automated test failures. So disable
-  # this until we support it. Seems to default to off in clang and the intel
-  # compiler.
+  # this until we support it.
   set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -ffp-contract=off")
 
   # `maybe-uninitialized` is unreliable in release builds, but fine in debug builds.
@@ -892,7 +893,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
 # CLang is the same as GCC for now.
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
-  set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
+  set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -ffp-contract=off")
 
   if(WITH_LINKER_MOLD AND _IS_LINKER_DEFAULT)
     find_program(MOLD_BIN "mold")

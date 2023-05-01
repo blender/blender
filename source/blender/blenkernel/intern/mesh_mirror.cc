@@ -191,7 +191,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   const int src_loops_num = mesh->totloop;
 
   Mesh *result = BKE_mesh_new_nomain_from_template(
-      mesh, src_verts_num * 2, src_edges_num * 2, src_loops_num * 2, src_polys.size() * 2);
+      mesh, src_verts_num * 2, src_edges_num * 2, src_polys.size() * 2, src_loops_num * 2);
 
   /* Copy custom-data to original geometry. */
   CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, src_verts_num);
@@ -286,15 +286,14 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     }
   }
 
-  blender::MutableSpan<MEdge> result_edges = result->edges_for_write();
+  blender::MutableSpan<blender::int2> result_edges = result->edges_for_write();
   blender::MutableSpan<int> result_poly_offsets = result->poly_offsets_for_write();
   blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
 
   /* adjust mirrored edge vertex indices */
   for (const int i : result_edges.index_range().drop_front(src_edges_num)) {
-    result_edges[i].v1 += src_verts_num;
-    result_edges[i].v2 += src_verts_num;
+    result_edges[i] += src_verts_num;
   }
 
   result_poly_offsets.take_front(src_polys.size()).copy_from(mesh->poly_offsets().drop_back(1));
@@ -331,6 +330,14 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
   for (const int i : result_corner_edges.index_range().drop_front(src_loops_num)) {
     result_corner_edges[i] += src_edges_num;
+  }
+
+  if (!mesh->runtime->subsurf_optimal_display_edges.is_empty()) {
+    const blender::BoundedBitSpan src = mesh->runtime->subsurf_optimal_display_edges;
+    result->runtime->subsurf_optimal_display_edges.resize(result->totedge);
+    blender::MutableBoundedBitSpan dst = result->runtime->subsurf_optimal_display_edges;
+    dst.take_front(src.size()).copy_from(src);
+    dst.take_back(src.size()).copy_from(src);
   }
 
   /* handle uvs,
@@ -379,7 +386,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
       CustomData_has_layer(&result->ldata, CD_CUSTOMLOOPNORMAL) && result->totpoly > 0) {
     blender::Array<blender::float3> loop_normals(result_corner_verts.size());
     CustomData *ldata = &result->ldata;
-    short(*clnors)[2] = static_cast<short(*)[2]>(
+    blender::short2 *clnors = static_cast<blender::short2 *>(
         CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, result->totloop));
     MLoopNorSpaceArray lnors_spacearr = {nullptr};
 

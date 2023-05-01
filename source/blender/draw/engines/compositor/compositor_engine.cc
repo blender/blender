@@ -8,6 +8,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_ID.h"
 #include "DNA_ID_enums.h"
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
@@ -142,6 +143,15 @@ class Context : public realtime_compositor::Context {
   void set_info_message(StringRef message) const override
   {
     message.copy(info_message_, GPU_INFO_SIZE);
+  }
+
+  IDRecalcFlag query_id_recalc_flag(ID *id) const override
+  {
+    DrawEngineType *owner = &draw_engine_compositor_type;
+    DrawData *draw_data = DRW_drawdata_ensure(id, owner, sizeof(DrawData), nullptr, nullptr);
+    IDRecalcFlag recalc_flag = IDRecalcFlag(draw_data->recalc);
+    draw_data->recalc = IDRecalcFlag(0);
+    return recalc_flag;
   }
 };
 

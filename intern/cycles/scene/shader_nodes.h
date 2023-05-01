@@ -167,6 +167,8 @@ class SkyTextureNode : public TextureNode {
   NODE_SOCKET_API(float3, vector)
   ImageHandle handle;
 
+  void simplify_settings(Scene *scene);
+
   float get_sun_size()
   {
     /* Clamping for numerical precision. */

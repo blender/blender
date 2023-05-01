@@ -1496,8 +1496,8 @@ static void rna_SequenceTimelineChannel_name_set(PointerRNA *ptr, const char *va
                  sizeof(channel->name));
 }
 
-static void rna_SequenceTimelineChannel_mute_update(Main *UNUSED(bmain),
-                                                    Scene *UNUSED(active_scene),
+static void rna_SequenceTimelineChannel_mute_update(Main *bmain,
+                                                    Scene *active_scene,
                                                     PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
@@ -1516,6 +1516,8 @@ static void rna_SequenceTimelineChannel_mute_update(Main *UNUSED(bmain),
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     SEQ_relations_invalidate_cache_composite(scene, seq);
   }
+
+  rna_Sequence_sound_update(bmain, active_scene, ptr);
 }
 
 static char *rna_SeqTimelineChannel_path(const PointerRNA *ptr)

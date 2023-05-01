@@ -214,6 +214,22 @@ class MutableBitRef {
         /* Optionally set it again. The -1 turns a 1 into `0x00...` and a 0 into `0xff...`. */
         | (mask_ & ~(value_int - 1));
   }
+
+  MutableBitRef &operator|=(const bool value)
+  {
+    if (value) {
+      this->set();
+    }
+    return *this;
+  }
+
+  MutableBitRef &operator&=(const bool value)
+  {
+    if (!value) {
+      this->reset();
+    }
+    return *this;
+  }
 };
 
 inline std::ostream &operator<<(std::ostream &stream, const BitRef &bit)

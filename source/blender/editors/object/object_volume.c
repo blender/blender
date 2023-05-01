@@ -80,7 +80,7 @@ static int volume_import_exec(bContext *C, wmOperator *op)
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
     char filename[FILE_MAX];
     BLI_split_file_part(range->filepath, filename, sizeof(filename));
-    BLI_path_extension_replace(filename, sizeof(filename), "");
+    BLI_path_extension_strip(filename);
 
     Object *object = object_volume_add(C, op, filename);
     Volume *volume = (Volume *)object->data;

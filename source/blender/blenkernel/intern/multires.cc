@@ -241,7 +241,7 @@ Mesh *BKE_multires_create_mesh(struct Depsgraph *depsgraph,
   Mesh *result = mti->modifyMesh(&mmd->modifier, &modifier_ctx, deformed_mesh);
 
   if (result == deformed_mesh) {
-    result = BKE_mesh_copy_for_eval(deformed_mesh, true);
+    result = BKE_mesh_copy_for_eval(deformed_mesh);
   }
   return result;
 }

@@ -833,7 +833,7 @@ static void graph_space_subtype_item_extend(bContext *UNUSED(C),
   RNA_enum_items_add(item, totitem, rna_enum_space_graph_mode_items);
 }
 
-static void graph_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+static void graph_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceGraph *sipo = (SpaceGraph *)sl;
 
@@ -841,7 +841,7 @@ static void graph_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   memset(&sipo->runtime, 0x0, sizeof(sipo->runtime));
 }
 
-static void graph_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+static void graph_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceGraph *sipo = (SpaceGraph *)sl;
   bDopeSheet *ads = sipo->ads;
@@ -852,7 +852,7 @@ static void graph_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLin
   }
 }
 
-static void graph_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void graph_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceGraph *sipo = (SpaceGraph *)sl;
   ListBase tmpGhosts = sipo->runtime.ghost_curves;
@@ -889,9 +889,9 @@ void ED_spacetype_ipo(void)
   st->space_subtype_item_extend = graph_space_subtype_item_extend;
   st->space_subtype_get = graph_space_subtype_get;
   st->space_subtype_set = graph_space_subtype_set;
-  st->blend_read_data = graph_blend_read_data;
-  st->blend_read_lib = graph_blend_read_lib;
-  st->blend_write = graph_blend_write;
+  st->blend_read_data = graph_space_blend_read_data;
+  st->blend_read_lib = graph_space_blend_read_lib;
+  st->blend_write = graph_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");

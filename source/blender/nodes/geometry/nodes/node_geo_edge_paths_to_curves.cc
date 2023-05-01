@@ -61,7 +61,7 @@ static Curves *edge_paths_to_curves_convert(
     return nullptr;
   }
   Curves *curves_id = bke::curves_new_nomain(geometry::create_curve_from_vert_indices(
-      mesh, vert_indices, curve_offsets, IndexRange(0), propagation_info));
+      mesh.attributes(), vert_indices, curve_offsets, IndexRange(0), propagation_info));
   return curves_id;
 }
 
@@ -76,7 +76,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    bke::MeshFieldContext context{*mesh, ATTR_DOMAIN_POINT};
+    const bke::MeshFieldContext context{*mesh, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator evaluator{context, mesh->totvert};
     evaluator.add(params.get_input<Field<int>>("Next Vertex Index"));
     evaluator.add(params.get_input<Field<bool>>("Start Vertices"));

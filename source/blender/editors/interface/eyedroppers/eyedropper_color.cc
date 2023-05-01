@@ -314,7 +314,6 @@ void eyedropper_color_sample_fl(bContext *C, const int m_xy[2], float r_col[3])
 {
   /* we could use some clever */
   Main *bmain = CTX_data_main(C);
-  wmWindowManager *wm = CTX_wm_manager(C);
   const char *display_device = CTX_data_scene(C)->display_settings.display_device;
   ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
 
@@ -360,8 +359,7 @@ void eyedropper_color_sample_fl(bContext *C, const int m_xy[2], float r_col[3])
   }
 
   if (win) {
-    /* Fallback to simple opengl picker. */
-    WM_window_pixel_sample_read(wm, win, mval, r_col);
+    WM_window_pixels_read_sample(C, win, mval, r_col);
     IMB_colormanagement_display_to_scene_linear_v3(r_col, display);
   }
   else {

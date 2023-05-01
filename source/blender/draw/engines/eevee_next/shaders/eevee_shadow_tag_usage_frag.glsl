@@ -45,7 +45,7 @@ float pixel_size_at(float linear_depth)
   if (is_persp) {
     pixel_size *= max(0.01, linear_depth);
   }
-  return pixel_size * exp2(fb_lod);
+  return pixel_size * exp2(float(fb_lod));
 }
 
 void step_bounding_sphere(vec3 vs_near_plane,
@@ -117,6 +117,7 @@ void main()
     step_bounding_sphere(vs_near_plane, vs_view_direction, t, t + step_size, P, step_radius);
     vec3 vP = point_world_to_view(P);
 
-    shadow_tag_usage(vP, P, ws_view_direction, step_radius, t, gl_FragCoord.xy * exp2(fb_lod));
+    shadow_tag_usage(
+        vP, P, ws_view_direction, step_radius, t, gl_FragCoord.xy * exp2(float(fb_lod)));
   }
 }

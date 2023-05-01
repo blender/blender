@@ -1329,8 +1329,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
             bool track = (scon->flag & CON_SHRINKWRAP_TRACK_NORMAL) != 0;
             if (track || BKE_shrinkwrap_needs_normals(scon->shrinkType, scon->shrinkMode)) {
               add_customdata_mask(ct->tar,
-                                  DEGCustomDataMeshMasks::MaskVert(CD_MASK_NORMAL) |
-                                      DEGCustomDataMeshMasks::MaskLoop(CD_MASK_CUSTOMLOOPNORMAL));
+                                  DEGCustomDataMeshMasks::MaskLoop(CD_MASK_CUSTOMLOOPNORMAL));
             }
             if (scon->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
               add_special_eval_flag(&ct->tar->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
@@ -1807,7 +1806,7 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
         add_relation(target_key, driver_key, "Target -> Driver");
       }
       else if (dtar->rna_path != nullptr && dtar->rna_path[0] != '\0') {
-        RNAPathKey variable_exit_key(target_id, dtar->rna_path, RNAPointerSource::EXIT);
+        RNAPathKey variable_exit_key(target_prop, dtar->rna_path, RNAPointerSource::EXIT);
         if (RNA_pointer_is_null(&variable_exit_key.ptr)) {
           continue;
         }
@@ -1840,8 +1839,14 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
          * - Modifications of evaluated IDs from a Python handler.
          *   Such modifications are not fully integrated in the dependency graph evaluation as it
          *   has issues with copy-on-write tagging and the fact that relations are defined by the
-         *   original main database status. */
-        if (target_id != variable_exit_key.ptr.owner_id) {
+         *   original main database status.
+         *
+         * The original report for this is #98618.
+         *
+         * The not-so-obvious part is that we don't do such relation for the context properties.
+         * They are resolved at the graph build time and do not change at runtime (#107081).
+         */
+        if (target_id != variable_exit_key.ptr.owner_id && dvar->type != DVAR_TYPE_CONTEXT_PROP) {
           if (deg_copy_on_write_is_needed(GS(target_id->name))) {
             ComponentKey target_id_key(target_id, NodeType::COPY_ON_WRITE);
             add_relation(target_id_key, driver_key, "Target ID -> Driver");

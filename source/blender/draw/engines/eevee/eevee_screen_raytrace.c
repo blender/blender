@@ -72,13 +72,17 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     common_data->ssr_uv_scale[1] = size_fs[1] / ((float)tracing_res[1] * divisor);
 
     /* MRT for the shading pass in order to output needed data for the SSR pass. */
-    effects->ssr_specrough_input = DRW_texture_pool_query_2d(UNPACK2(size_fs), format, owner);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    effects->ssr_specrough_input = DRW_texture_pool_query_2d_ex(
+        UNPACK2(size_fs), format, usage, owner);
 
     GPU_framebuffer_texture_attach(fbl->main_fb, effects->ssr_specrough_input, 2, 0);
 
     /* Ray-tracing output. */
-    effects->ssr_hit_output = DRW_texture_pool_query_2d(UNPACK2(tracing_res), GPU_RGBA16F, owner);
-    effects->ssr_hit_depth = DRW_texture_pool_query_2d(UNPACK2(tracing_res), GPU_R16F, owner);
+    effects->ssr_hit_output = DRW_texture_pool_query_2d_ex(
+        UNPACK2(tracing_res), GPU_RGBA16F, usage, owner);
+    effects->ssr_hit_depth = DRW_texture_pool_query_2d_ex(
+        UNPACK2(tracing_res), GPU_R16F, usage, owner);
 
     GPU_framebuffer_ensure_config(&fbl->screen_tracing_fb,
                                   {

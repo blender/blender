@@ -392,6 +392,9 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "image file not found",
     "image format is read-only",
     "image path can't be written to",
+    "in %i days",
+    "in %i hours",
+    "in %i minutes",
     "in memory to enable editing!",
     "insufficient content",
     "into",
@@ -403,6 +406,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "name",
     "non-triangle face",
     "normal",
+    "on {:%Y-%m-%d}",
     "or AMD with macOS %s or newer",
     "performance impact!",
     "positions", "no positions",
@@ -433,6 +437,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "view",
     "virtual parents",
     "which was replaced by the Asset Browser",
+    "within seconds",
     "write",
 }
 WARN_MSGID_NOT_CAPITALIZED_ALLOWED |= set(lng[2] for lng in LANGUAGES)

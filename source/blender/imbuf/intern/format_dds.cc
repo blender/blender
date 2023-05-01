@@ -230,7 +230,7 @@ static void FlipDXTCImage(ImBuf *ibuf)
 
   const uint8_t *data_end = data + data_size;
 
-  for (uint i = 0; i < levels; i++) {
+  for (uint level = 0; level < levels; level++) {
     uint blocks_per_row = (mip_width + 3) / 4;
     uint blocks_per_col = (mip_height + 3) / 4;
     uint blocks = blocks_per_row * blocks_per_col;
@@ -238,7 +238,7 @@ static void FlipDXTCImage(ImBuf *ibuf)
     if (data + block_bytes * blocks > data_end) {
       /* Stop flipping when running out of data to be modified, avoiding possible buffer overrun
        * on a malformed files. */
-      *num_valid_levels = i;
+      *num_valid_levels = level;
       break;
     }
 

@@ -246,19 +246,7 @@ void BKE_view_layer_free(ViewLayer *view_layer)
 
 void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
 {
-  view_layer->basact = nullptr;
-
-  BLI_freelistN(&view_layer->object_bases);
-
-  if (view_layer->object_bases_hash) {
-    BLI_ghash_free(view_layer->object_bases_hash, nullptr, nullptr);
-  }
-
-  LISTBASE_FOREACH_MUTABLE (LayerCollection *, lc, &view_layer->layer_collections) {
-    layer_collection_free(view_layer, lc);
-    MEM_freeN(lc);
-  }
-  BLI_listbase_clear(&view_layer->layer_collections);
+  BKE_view_layer_free_object_content(view_layer);
 
   LISTBASE_FOREACH (ViewLayerEngineData *, sled, &view_layer->drawdata) {
     if (sled->storage) {
@@ -285,6 +273,23 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
   MEM_SAFE_FREE(view_layer->object_bases_array);
 
   MEM_freeN(view_layer);
+}
+
+void BKE_view_layer_free_object_content(ViewLayer *view_layer)
+{
+  view_layer->basact = nullptr;
+
+  BLI_freelistN(&view_layer->object_bases);
+
+  if (view_layer->object_bases_hash) {
+    BLI_ghash_free(view_layer->object_bases_hash, nullptr, nullptr);
+  }
+
+  LISTBASE_FOREACH_MUTABLE (LayerCollection *, lc, &view_layer->layer_collections) {
+    layer_collection_free(view_layer, lc);
+    MEM_freeN(lc);
+  }
+  BLI_listbase_clear(&view_layer->layer_collections);
 }
 
 void BKE_view_layer_selected_objects_tag(const Scene *scene, ViewLayer *view_layer, const int tag)

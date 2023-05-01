@@ -73,7 +73,7 @@ static Result calculate_blending_weights(Context &context, Result &edges, int co
   edges.bind_as_texture(shader, "edges_tx");
 
   const SMAAPrecomputedTextures &smaa_precomputed_textures =
-      context.cache_manager().get_smaa_precomputed_textures();
+      context.cache_manager().smaa_precomputed_textures.get();
   smaa_precomputed_textures.bind_area_texture(shader, "area_tx");
   smaa_precomputed_textures.bind_search_texture(shader, "search_tx");
 

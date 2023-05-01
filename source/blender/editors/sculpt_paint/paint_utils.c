@@ -537,7 +537,7 @@ void paint_sample_color(
   /* No sample found; sample directly from the GPU front buffer. */
   {
     float rgba_f[4];
-    GPU_frontbuffer_read_pixels(
+    GPU_frontbuffer_read_color(
         x + region->winrct.xmin, y + region->winrct.ymin, 1, 1, 4, GPU_DATA_FLOAT, &rgba_f);
 
     if (use_palette) {

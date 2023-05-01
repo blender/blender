@@ -761,7 +761,7 @@ GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GLSettings glSet
 #ifdef WITH_VULKAN_BACKEND
   if (glSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
     const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
-    GHOST_Context *context = new GHOST_ContextVK(false, NULL, 1, 0, debug_context);
+    GHOST_Context *context = new GHOST_ContextVK(false, NULL, 1, 2, debug_context);
     if (!context->initializeDrawingContext()) {
       delete context;
       return NULL;
@@ -900,10 +900,13 @@ GHOST_TSuccess GHOST_SystemCocoa::getButtons(GHOST_Buttons &buttons) const
 
 GHOST_TCapabilityFlag GHOST_SystemCocoa::getCapabilities() const
 {
-  return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL &
-                               ~(
-                                   /* Cocoa has no support for a primary selection clipboard. */
-                                   GHOST_kCapabilityPrimaryClipboard));
+  return GHOST_TCapabilityFlag(
+      GHOST_CAPABILITY_FLAG_ALL &
+      ~(
+          /* Cocoa has no support for a primary selection clipboard. */
+          GHOST_kCapabilityPrimaryClipboard |
+          /* This Cocoa back-end has not yet implemented image copy/paste. */
+          GHOST_kCapabilityClipboardImages));
 }
 
 #pragma mark Event handlers

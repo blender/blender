@@ -70,8 +70,7 @@ void *BKE_pointcloud_add(struct Main *bmain, const char *name);
 void *BKE_pointcloud_add_default(struct Main *bmain, const char *name);
 struct PointCloud *BKE_pointcloud_new_nomain(int totpoint);
 void BKE_pointcloud_nomain_to_pointcloud(struct PointCloud *pointcloud_src,
-                                         struct PointCloud *pointcloud_dst,
-                                         bool take_ownership);
+                                         struct PointCloud *pointcloud_dst);
 
 struct BoundBox *BKE_pointcloud_boundbox_get(struct Object *ob);
 
@@ -79,7 +78,7 @@ bool BKE_pointcloud_attribute_required(const struct PointCloud *pointcloud, cons
 
 /* Dependency Graph */
 
-struct PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src, bool reference);
+struct PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src);
 
 void BKE_pointcloud_data_update(struct Depsgraph *depsgraph,
                                 struct Scene *scene,

@@ -59,7 +59,7 @@ struct CCGElem;
 struct CCGKey;
 struct CustomData_MeshMasks;
 struct Depsgraph;
-struct MEdge;
+struct vec2i;
 struct MFace;
 struct Mesh;
 struct ModifierData;
@@ -110,7 +110,7 @@ struct DerivedMesh {
    * \warning The real return type is `float(*)[3]`.
    */
   float *(*getVertArray)(DerivedMesh *dm);
-  struct MEdge *(*getEdgeArray)(DerivedMesh *dm);
+  struct vec2i *(*getEdgeArray)(DerivedMesh *dm);
   int *(*getCornerVertArray)(DerivedMesh *dm);
   int *(*getCornerEdgeArray)(DerivedMesh *dm);
   int *(*getPolyArray)(DerivedMesh *dm);
@@ -119,7 +119,7 @@ struct DerivedMesh {
    * *{vert/edge/face}_r (must point to a buffer large enough)
    */
   void (*copyVertArray)(DerivedMesh *dm, float (*r_positions)[3]);
-  void (*copyEdgeArray)(DerivedMesh *dm, struct MEdge *r_edge);
+  void (*copyEdgeArray)(DerivedMesh *dm, struct vec2i *r_edge);
   void (*copyCornerVertArray)(DerivedMesh *dm, int *r_corner_verts);
   void (*copyCornerEdgeArray)(DerivedMesh *dm, int *r_corner_edges);
   void (*copyPolyArray)(DerivedMesh *dm, int *r_poly_offsets);

@@ -2071,6 +2071,14 @@ static void rna_def_ID(BlenderRNA *brna)
       "This data-block is not an independent one, but is actually a sub-data of another ID "
       "(typical example: root node trees or master collections)");
 
+  prop = RNA_def_property(srna, "is_missing", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "tag", LIB_TAG_MISSING);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop,
+                           "Missing Data",
+                           "This data-block is a place-holder for missing linked data (i.e. it is "
+                           "[an override of] a linked data that could not be found anymore)");
+
   prop = RNA_def_property(srna, "is_runtime_data", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "tag", LIB_TAG_RUNTIME);
   RNA_def_property_editable_func(prop, "rna_ID_is_runtime_editable");

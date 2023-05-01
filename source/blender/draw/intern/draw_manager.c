@@ -48,7 +48,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_view3d.h"
@@ -832,6 +832,8 @@ static bool id_type_can_have_drawdata(const short id_type)
     case ID_OB:
     case ID_WO:
     case ID_SCE:
+    case ID_TE:
+    case ID_MSK:
       return true;
 
     /* no DrawData */

@@ -58,6 +58,7 @@ PATHS_EXCLUDE = set(
         "tools/utils/git_log.py",
         "tools/utils/git_log_review_commits.py",
         "tools/utils/git_log_review_commits_advanced.py",
+        "tools/utils/gitea_inactive_developers.py",
         "tools/utils/make_cursor_gui.py",
         "tools/utils/make_gl_stipple_from_xpm.py",
         "tools/utils/make_shape_2d_from_blend.py",
