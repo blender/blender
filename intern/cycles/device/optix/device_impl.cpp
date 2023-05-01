@@ -479,7 +479,23 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       return false;
     }
 
-#  if OPTIX_ABI_VERSION >= 55
+#  if OPTIX_ABI_VERSION >= 84
+    OptixTask task = nullptr;
+    OptixResult result = optixModuleCreateWithTasks(context,
+                                                    &module_options,
+                                                    &pipeline_options,
+                                                    ptx_data.data(),
+                                                    ptx_data.size(),
+                                                    nullptr,
+                                                    nullptr,
+                                                    &optix_module,
+                                                    &task);
+    if (result == OPTIX_SUCCESS) {
+      TaskPool pool;
+      execute_optix_task(pool, task, result);
+      pool.wait_work();
+    }
+#  elif OPTIX_ABI_VERSION >= 55
     OptixTask task = nullptr;
     OptixResult result = optixModuleCreateFromPTXWithTasks(context,
                                                            &module_options,
@@ -645,7 +661,11 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   memset(sbt_data.host_pointer, 0, sizeof(SbtRecord) * NUM_PROGRAM_GROUPS);
   for (unsigned int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
     optix_assert(optixSbtRecordPackHeader(groups[i], &sbt_data[i]));
+#  if OPTIX_ABI_VERSION >= 84
+    optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i], nullptr));
+#  else
     optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i]));
+#  endif
   }
   sbt_data.copy_to_device(); /* Upload SBT to device. */
 
@@ -667,13 +687,14 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
 
   OptixPipelineLinkOptions link_options = {};
   link_options.maxTraceDepth = 1;
-
+#  if OPTIX_ABI_VERSION < 84
   if (DebugFlags().optix.use_debug) {
     link_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
   }
   else {
     link_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
   }
+#  endif
 
   if (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
     /* Create shader raytracing pipeline. */
