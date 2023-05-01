@@ -214,7 +214,8 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
   /* Set opacityThreshold if an alpha cutout is used. */
   if (has_opacity) {
     if ((material->blend_method == MA_BM_CLIP) && (material->alpha_threshold > 0.0)) {
-      pxr::UsdShadeInput opacity_threshold_input = preview_surface.CreateInput(usdtokens::opacityThreshold, pxr::SdfValueTypeNames->Float);
+      pxr::UsdShadeInput opacity_threshold_input = preview_surface.CreateInput(
+          usdtokens::opacityThreshold, pxr::SdfValueTypeNames->Float);
       opacity_threshold_input.GetAttr().Set(pxr::VtValue(material->alpha_threshold));
     }
   }

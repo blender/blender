@@ -144,7 +144,8 @@ class USDExportTest(AbstractUSDTest):
         shader_prim = stage.GetPrimAtPath("/_materials/Material/Principled_BSDF")
         shader = UsdShade.Shader(shader_prim)
         opacity_input = shader.GetInput('opacity')
-        self.assertEqual(opacity_input.HasConnectedSource(), False, "Opacity input should not be connected for opaque material")
+        self.assertEqual(opacity_input.HasConnectedSource(), False,
+                         "Opacity input should not be connected for opaque material")
         self.assertAlmostEqual(opacity_input.Get(), 1.0, "Opacity input should be set to 1")
 
         # The material already has a texture input to the Base Color.
@@ -154,7 +155,7 @@ class USDExportTest(AbstractUSDTest):
         bsdf = mat.node_tree.nodes['Principled BSDF']
         tex_output = bsdf.inputs['Base Color'].links[0].from_node.outputs['Color']
         alpha_input = bsdf.inputs['Alpha']
-        mat.node_tree.links.new(tex_output,alpha_input)
+        mat.node_tree.links.new(tex_output, alpha_input)
         bpy.data.materials['Material'].blend_method = 'CLIP'
         bpy.data.materials['Material'].alpha_threshold = 0.01
         export_path = self.tempdir / "alphaclip_material.usda"
@@ -174,7 +175,6 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(opacity_input.HasConnectedSource(), True, "Alpha input should be connected")
         self.assertGreater(opacity_thres_input.Get(), 0.0, "Opacity threshold input should be > 0")
 
-
         # Modify material again, this time with alpha blend.
         bpy.data.materials['Material'].blend_method = 'BLEND'
         export_path = self.tempdir / "alphablend_material.usda"
@@ -193,6 +193,7 @@ class USDExportTest(AbstractUSDTest):
         opacity_thres_input = shader.GetInput('opacityThreshold')
         self.assertEqual(opacity_input.HasConnectedSource(), True, "Alpha input should be connected")
         self.assertEqual(opacity_thres_input.Get(), None, "Opacity threshold should not be specified for alpha blend")
+
 
 def main():
     global args
