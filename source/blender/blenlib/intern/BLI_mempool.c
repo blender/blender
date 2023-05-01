@@ -510,7 +510,7 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 
 int BLI_mempool_len(const BLI_mempool *pool)
 {
-  int ret = pool->totused;
+  int ret = (int)pool->totused;
 
   return ret;
 }
@@ -850,3 +850,16 @@ void BLI_mempool_set_memory_debug(void)
   mempool_debug_memset = true;
 }
 #endif
+
+size_t BLI_mempool_get_size(BLI_mempool *pool)
+{
+  unsigned int chunk_count = 0;
+  BLI_mempool_chunk *chunk = pool->chunks;
+
+  while (chunk) {
+    chunk = chunk->next;
+    chunk_count++;
+  }
+
+  return (size_t)(chunk_count * pool->csize);
+}

@@ -120,7 +120,7 @@ template<typename T> struct LogElemAlloc {
 
   int calc_size()
   {
-    return BLI_mempool_get_size(pool);
+    return int(BLI_mempool_get_size(pool));
   }
 
   void operator=(LogElemAlloc &&b)
@@ -781,10 +781,10 @@ struct BMLogEntry {
   {
     int ret = 0;
 
-    ret += vdata.pool ? (int)BLI_mempool_get_size(vdata.pool) : 0;
-    ret += edata.pool ? (int)BLI_mempool_get_size(edata.pool) : 0;
-    ret += ldata.pool ? (int)BLI_mempool_get_size(ldata.pool) : 0;
-    ret += pdata.pool ? (int)BLI_mempool_get_size(pdata.pool) : 0;
+    ret += vdata.pool ? int(BLI_mempool_get_size(vdata.pool)) : 0;
+    ret += edata.pool ? int(BLI_mempool_get_size(edata.pool)) : 0;
+    ret += ldata.pool ? int(BLI_mempool_get_size(ldata.pool)) : 0;
+    ret += pdata.pool ? int(BLI_mempool_get_size(pdata.pool)) : 0;
 
     ret += vpool.calc_size();
     ret += epool.calc_size();

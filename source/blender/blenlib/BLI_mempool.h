@@ -116,6 +116,8 @@ void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter) ATTR_NONNULL
  */
 void *BLI_mempool_iterstep(BLI_mempool_iter *iter) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
+size_t BLI_mempool_get_size(BLI_mempool *pool);
+
 #ifdef __cplusplus
 }
 #endif
