@@ -485,15 +485,6 @@ bNodeSocket *node_group_input_find_socket(bNode *node, const char *identifier)
 
 namespace blender::nodes {
 
-static SocketDeclarationPtr extend_declaration(const eNodeSocketInOut in_out)
-{
-  std::unique_ptr<decl::Extend> decl = std::make_unique<decl::Extend>();
-  decl->name = "";
-  decl->identifier = "__extend__";
-  decl->in_out = in_out;
-  return decl;
-}
-
 static void group_input_declare_dynamic(const bNodeTree &node_tree,
                                         const bNode & /*node*/,
                                         NodeDeclaration &r_declaration)
@@ -502,7 +493,7 @@ static void group_input_declare_dynamic(const bNodeTree &node_tree,
     r_declaration.outputs.append(declaration_for_interface_socket(node_tree, *input));
     r_declaration.outputs.last()->in_out = SOCK_OUT;
   }
-  r_declaration.outputs.append(extend_declaration(SOCK_OUT));
+  r_declaration.outputs.append(decl::create_extend_declaration(SOCK_OUT));
 }
 
 static void group_output_declare_dynamic(const bNodeTree &node_tree,
@@ -513,7 +504,7 @@ static void group_output_declare_dynamic(const bNodeTree &node_tree,
     r_declaration.inputs.append(declaration_for_interface_socket(node_tree, *input));
     r_declaration.inputs.last()->in_out = SOCK_IN;
   }
-  r_declaration.inputs.append(extend_declaration(SOCK_IN));
+  r_declaration.inputs.append(decl::create_extend_declaration(SOCK_IN));
 }
 
 static bool group_input_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)

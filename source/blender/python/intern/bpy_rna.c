@@ -2400,7 +2400,7 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
       if ((keylen == namelen) && STREQ(nameptr, keyname)) {
         found = true;
       }
-      if ((char *)&name != nameptr) {
+      if (name != nameptr) {
         MEM_freeN(nameptr);
       }
       if (found) {

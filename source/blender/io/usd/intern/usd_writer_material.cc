@@ -17,6 +17,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_memory_utils.hh"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
@@ -46,6 +47,7 @@ static const pxr::TfToken primvar_float2("UsdPrimvarReader_float2", pxr::TfToken
 static const pxr::TfToken roughness("roughness", pxr::TfToken::Immortal);
 static const pxr::TfToken specular("specular", pxr::TfToken::Immortal);
 static const pxr::TfToken opacity("opacity", pxr::TfToken::Immortal);
+static const pxr::TfToken opacityThreshold("opacityThreshold", pxr::TfToken::Immortal);
 static const pxr::TfToken surface("surface", pxr::TfToken::Immortal);
 static const pxr::TfToken perspective("perspective", pxr::TfToken::Immortal);
 static const pxr::TfToken orthographic("orthographic", pxr::TfToken::Immortal);
@@ -143,6 +145,8 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
 
   const InputSpecMap &input_map = preview_surface_input_map();
 
+  bool has_opacity = false;
+
   /* Set the preview surface inputs. */
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
 
@@ -166,6 +170,10 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
       preview_surface.CreateInput(input_spec.input_name, input_spec.input_type)
           .ConnectToSource(created_shader.ConnectableAPI(), input_spec.source_name);
       set_normal_texture_range(created_shader, input_spec);
+
+      if (input_spec.input_name == usdtokens::opacity) {
+        has_opacity = true;
+      }
     }
     else if (input_spec.set_default_value) {
       /* Set hardcoded value. */
@@ -201,6 +209,14 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
 
     create_uvmap_shader(
         usd_export_context, input_node, usd_material, created_shader, default_uv_sampler);
+  }
+
+  /* Set opacityThreshold if an alpha cutout is used. */
+  if (has_opacity) {
+    if ((material->blend_method == MA_BM_CLIP) && (material->alpha_threshold > 0.0)) {
+      pxr::UsdShadeInput opacity_threshold_input = preview_surface.CreateInput(usdtokens::opacityThreshold, pxr::SdfValueTypeNames->Float);
+      opacity_threshold_input.GetAttr().Set(pxr::VtValue(material->alpha_threshold));
+    }
   }
 }
 
@@ -378,6 +394,7 @@ static std::string get_in_memory_texture_filename(Image *ima)
 
   ImageFormatData imageFormat;
   BKE_image_format_from_imbuf(&imageFormat, imbuf);
+  BKE_image_release_ibuf(ima, imbuf, nullptr);
 
   char file_name[FILE_MAX];
   /* Use the image name for the file name. */
@@ -405,6 +422,7 @@ static void export_in_memory_texture(Image *ima,
   }
 
   ImBuf *imbuf = BKE_image_acquire_ibuf(ima, nullptr, nullptr);
+  BLI_SCOPED_DEFER([&]() { BKE_image_release_ibuf(ima, imbuf, nullptr); });
   if (!imbuf) {
     return;
   }

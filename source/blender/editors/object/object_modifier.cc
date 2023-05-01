@@ -1733,8 +1733,13 @@ static int modifier_apply_exec_ex(bContext *C, wmOperator *op, int apply_as, boo
   Object *ob = ED_object_active_context(C);
   ModifierData *md = edit_modifier_property_get(op, ob, 0);
   const bool do_report = RNA_boolean_get(op->ptr, "report");
-  const bool do_single_user = RNA_boolean_get(op->ptr, "single_user");
-  const bool do_merge_customdata = RNA_boolean_get(op->ptr, "merge_customdata");
+
+  const bool do_single_user = (apply_as == MODIFIER_APPLY_DATA) ?
+                                  RNA_boolean_get(op->ptr, "single_user") :
+                                  false;
+  const bool do_merge_customdata = (apply_as == MODIFIER_APPLY_DATA) ?
+                                       RNA_boolean_get(op->ptr, "merge_customdata") :
+                                       false;
 
   if (md == nullptr) {
     return OPERATOR_CANCELLED;

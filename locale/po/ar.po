@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -9383,6 +9383,14 @@ msgid "Editable falloff curve"
 msgstr "ﺮﻳﺮﺤﺘﻠﻟ ﻞﺑﺎﻗ ﻁﻮﻘﺳ ﻰﻨﺤﻨﻣ"
 
 
+msgid "Comb"
+msgstr "ﻂﺸﻣ"
+
+
+msgid "Puff"
+msgstr "ﺦﻔّﻧ"
+
+
 msgid "Fill Threshold"
 msgstr "ﺔﺌﺒﻌﺘﻟﺍ ﺔﺒﺘﻋ"
 
@@ -10469,6 +10477,10 @@ msgstr "ﻚﻴﻤﺳ ﻭ ﻞﺛﺎﻣ ﻂﺧ"
 
 msgid "Font Italic"
 msgstr "ﻞﺋﺎﻣ ﻂﺧ"
+
+
+msgid "Text Selected"
+msgstr "ﺭﺎﺘﺨﻤﻟﺍ ﺺﻨﻟﺍ"
 
 
 msgid "X Offset"
@@ -23613,6 +23625,14 @@ msgid "Open"
 msgstr "ﺢﺘﻓﺇ"
 
 
+msgid "Show"
+msgstr "ﺮﻬﻇﺃ"
+
+
+msgid "Play"
+msgstr "ﺽﺮﻋﺍ"
+
+
 msgctxt "Operator"
 msgid "Increment Number in Filename"
 msgstr "ﻒﻠﻤﻟﺍ ﻢﺳﺍ ﻲﻓ ﻢﻗﺮﻟﺍ ﺩﺯ"
@@ -24097,6 +24117,11 @@ msgstr "ﻂﻘﻨﻟﺍ ﺕﺎﻋﻮﻤﺠﻣ ﺮﺘﺧﺍ"
 
 msgid "Select all the vertices assigned to the active vertex group"
 msgstr "ﺔﻟﺎﻌﻔﻟﺍ ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻤﻟ ﺔﺼﺼﺨﻤﻟﺍ ﻂﻘﻨﻟﺍ ﻞﻛ ﺮﺘﺧﺍ"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "ﻥﺯﻮﻟﺍ ﻢﺳﺭ ﺔﻨﻴﻋ ﻥﺯﻭ"
 
 
 msgctxt "Operator"
@@ -26398,6 +26423,10 @@ msgid "Join as Shapes"
 msgstr "ﻝﺎﻜﺷﺄﻛ ﺞﻣﺩﺇ"
 
 
+msgid "Subset"
+msgstr "ﻉﺮﻓ"
+
+
 msgctxt "Operator"
 msgid "Clear Location"
 msgstr "ﻊﻗﻮﻤﻟﺍ ﻂﺒﺿ ﺪﻋﺍ"
@@ -26920,10 +26949,6 @@ msgid "Assign the selected vertices to a new vertex group"
 msgstr "ﺓﺪﻳﺪﺟ ﻂﻘﻧ ﺔﻋﻮﻤﺠﻤﻟ ﺓﺭﺎﺘﺨﻤﻟﺍ ﻂﻘﻨﻟﺍ ﺺﺼﺧ"
 
 
-msgid "Subset"
-msgstr "ﻉﺮﻓ"
-
-
 msgctxt "Operator"
 msgid "Copy Vertex Group"
 msgstr "ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﺦﺴﻧﺍ"
@@ -27318,10 +27343,6 @@ msgid "Hide vertices"
 msgstr "ﻂﻘﻨﻟﺍ ﻲﻔﺧﺍ"
 
 
-msgid "Show"
-msgstr "ﺮﻬﻇﺃ"
-
-
 msgid "Show vertices"
 msgstr "ﻂﻘﻨﻟﺍ ﺮﻬﻇﺍ"
 
@@ -27462,11 +27483,6 @@ msgstr "ﻥﺯﻮﻟﺍ ﻦﻳﻮﻠﺗ"
 msgctxt "Operator"
 msgid "Weight Paint Mode"
 msgstr "ﻥﺯﻮﻟﺍ ﻢﺳﺭ ﻊﺿﻭ"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "ﻥﺯﻮﻟﺍ ﻢﺳﺭ ﺔﻨﻴﻋ ﻥﺯﻭ"
 
 
 msgctxt "Operator"
@@ -29933,10 +29949,6 @@ msgid "Render Delay"
 msgstr "ﺮﻴﻴﺼﺘﻟﺍ ﺮﻴﺧﺄﺗ"
 
 
-msgid "Play"
-msgstr "ﺽﺮﻋﺍ"
-
-
 msgid "Random Order"
 msgstr "ﻲﺋﺍﻮﺸﻋ ﺐﻴﺗﺮﺗ"
 
@@ -30687,6 +30699,34 @@ msgid "Pose Library"
 msgstr "ﺕﺎﻔﻗﻮﻟﺍ ﺔﺒﺘﻜﻣ"
 
 
+msgid "Comb hairs"
+msgstr "ﺮﻌﺸﻟﺍ ﻂﺸﻣ"
+
+
+msgid "Smooth hairs"
+msgstr "ﺮﻌﺸﻟﺍ ﻢﻌﻧ"
+
+
+msgid "Add hairs"
+msgstr "ﺮﻌﺸﻟﺍ ﻒﺿﺃ"
+
+
+msgid "Make hairs longer or shorter"
+msgstr "ﺮﺼﻗﺃ ﻭﺃ ﻝﻮﻃﺃ ﺮﻌﺸﻟﺍ ﻞﻌﺟﺇ"
+
+
+msgid "Make hairs stand up"
+msgstr "ﻒﻘﻳ ﺮﻌﺸﻟﺍ ﻞﻌﺟﺇ"
+
+
+msgid "Cut hairs"
+msgstr "ﺮﻌﺸﻟﺍ ﻊﻄﻗ"
+
+
+msgid "Weight hair particles"
+msgstr "ﺮﻌﺸﻟﺍ ﺕﺎﺌﻳﺰﺟ ﻞﻘﺛﺃ"
+
+
 msgctxt "Operator"
 msgid "Box Mask"
 msgstr "ﻕﻭﺪﻨﺼﺑ ﻊﻨّﻗ"
@@ -30710,6 +30750,11 @@ msgstr "ﺓﺮﺋﺍﺩ ﻒﺿﺍ"
 msgctxt "Operator"
 msgid "Thickness"
 msgstr "ﺔﻛﺎﻤﺴﻟﺍ"
+
+
+msgctxt "Operator"
+msgid "Slide"
+msgstr "ﺡﺯﺃ"
 
 
 msgid "Pose Options"
@@ -30894,42 +30939,6 @@ msgstr "ﺱﻭﺅﺮﻟﺍ ﺭﺎﻴﺘﺧﺇ ﻊﺿﻭ"
 
 msgid "Shape Object"
 msgstr "ﻞﻜﺸﻟﺍ ﻦﺋﺎﻛ"
-
-
-msgid "Comb"
-msgstr "ﻂﺸﻣ"
-
-
-msgid "Comb hairs"
-msgstr "ﺮﻌﺸﻟﺍ ﻂﺸﻣ"
-
-
-msgid "Smooth hairs"
-msgstr "ﺮﻌﺸﻟﺍ ﻢﻌﻧ"
-
-
-msgid "Add hairs"
-msgstr "ﺮﻌﺸﻟﺍ ﻒﺿﺃ"
-
-
-msgid "Make hairs longer or shorter"
-msgstr "ﺮﺼﻗﺃ ﻭﺃ ﻝﻮﻃﺃ ﺮﻌﺸﻟﺍ ﻞﻌﺟﺇ"
-
-
-msgid "Puff"
-msgstr "ﺦﻔّﻧ"
-
-
-msgid "Make hairs stand up"
-msgstr "ﻒﻘﻳ ﺮﻌﺸﻟﺍ ﻞﻌﺟﺇ"
-
-
-msgid "Cut hairs"
-msgstr "ﺮﻌﺸﻟﺍ ﻊﻄﻗ"
-
-
-msgid "Weight hair particles"
-msgstr "ﺮﻌﺸﻟﺍ ﺕﺎﺌﻳﺰﺟ ﻞﻘﺛﺃ"
 
 
 msgid "Auto Velocity"
@@ -31644,16 +31653,8 @@ msgid "Pose Matrix"
 msgstr "ﺔﻔﻗﻮﻟﺍ ﺔﻓﻮﻔﺼﻣ"
 
 
-msgid "Final 4x4 matrix after constraints and drivers are applied (object space)"
-msgstr " (ﻦﺋﺎﻜﻟﺍ ءﺎﻀﻓ) ﺕﺎﻛﺮّﺤﻤﻟﺍ ﻭ ﺩﻮﻴﻘﻟﺍ ﻖﻴﺒﻄﺗ ﺪﻌﺑ ﺓﺮﻴﺧﻷ﻿ﺍ 4×4 ﺔﻓﻮﻔﺼﻣ"
-
-
 msgid "Channel Matrix"
 msgstr "ﺓﺎﻨﻘﻟﺍ ﺔﻓﻮﻔﺼﻣ"
-
-
-msgid "4x4 matrix, before constraints"
-msgstr "ﺩﻮﻴﻘﻟﺍ ﻞﺒﻗ ،4×4 ﺔﻓﻮﻔﺼﻣ"
 
 
 msgid "Parent of this pose bone"
@@ -35752,10 +35753,6 @@ msgid "Shade Top"
 msgstr "ﻞﻈﻟﺍ ﻰﻠﻋﺃ"
 
 
-msgid "Text Selected"
-msgstr "ﺭﺎﺘﺨﻤﻟﺍ ﺺﻨﻟﺍ"
-
-
 msgid "Theme Widget State Color"
 msgstr " ﻂﻤﻨﻟﺍ ﺡﻮﻟ ﺔﻟﺎﺣ ﻥﻮﻟ"
 
@@ -37491,11 +37488,6 @@ msgstr "ﺕﺍﻮﻨﻘﻟﺍ ﻒﻈّﻧ"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "ﺪﻣُ"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "ﺡﺯﺃ"
 
 
 msgctxt "Operator"

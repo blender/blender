@@ -2053,7 +2053,7 @@ static void view3d_id_remap(ScrArea *area, SpaceLink *slink, const struct IDRema
   BKE_viewer_path_id_remap(&view3d->viewer_path, mappings);
 }
 
-static void view3d_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+static void view3d_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   View3D *v3d = (View3D *)sl;
 
@@ -2078,7 +2078,7 @@ static void view3d_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   BKE_viewer_path_blend_read_data(reader, &v3d->viewer_path);
 }
 
-static void view3d_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+static void view3d_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   View3D *v3d = (View3D *)sl;
 
@@ -2092,7 +2092,7 @@ static void view3d_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLi
   BKE_viewer_path_blend_read_lib(reader, parent_id->lib, &v3d->viewer_path);
 }
 
-static void view3d_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void view3d_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   View3D *v3d = (View3D *)sl;
   BLO_write_struct(writer, View3D, v3d);
@@ -2127,9 +2127,9 @@ void ED_spacetype_view3d()
   st->gizmos = view3d_widgets;
   st->context = view3d_context;
   st->id_remap = view3d_id_remap;
-  st->blend_read_data = view3d_blend_read_data;
-  st->blend_read_lib = view3d_blend_read_lib;
-  st->blend_write = view3d_blend_write;
+  st->blend_read_data = view3d_space_blend_read_data;
+  st->blend_read_lib = view3d_space_blend_read_lib;
+  st->blend_write = view3d_space_blend_write;
 
   /* regions: main window */
   art = MEM_cnew<ARegionType>("spacetype view3d main region");

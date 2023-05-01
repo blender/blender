@@ -568,7 +568,7 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   SpaceSpreadsheet_Runtime *runtime = sspreadsheet->runtime;
   std::stringstream ss;
-  ss << "Rows: ";
+  ss << IFACE_("Rows:") << " ";
   if (runtime->visible_rows != runtime->tot_rows) {
     char visible_rows_str[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
     BLI_str_format_int_grouped(visible_rows_str, runtime->visible_rows);
@@ -576,7 +576,7 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
   }
   char tot_rows_str[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
   BLI_str_format_int_grouped(tot_rows_str, runtime->tot_rows);
-  ss << tot_rows_str << "   |   Columns: " << runtime->tot_columns;
+  ss << tot_rows_str << "   |   " << IFACE_("Columns:") << " " << runtime->tot_columns;
   std::string stats_str = ss.str();
 
   UI_ThemeClearColor(TH_BACK);

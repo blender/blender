@@ -82,6 +82,9 @@ class Context {
   /* Get the size of the compositing region. See get_compositing_region(). */
   int2 get_compositing_region_size() const;
 
+  /* Get the normalized render percentage of the active scene. */
+  float get_render_percentage() const;
+
   /* Get the current frame number of the active scene. */
   int get_frame_number() const;
 

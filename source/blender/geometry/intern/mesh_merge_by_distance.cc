@@ -1737,7 +1737,7 @@ std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
 
   BLI_kdtree_3d_balance(tree);
   const int vert_kill_len = BLI_kdtree_3d_calc_duplicates_fast(
-      tree, merge_distance, false, vert_dest_map.data());
+      tree, merge_distance, true, vert_dest_map.data());
   BLI_kdtree_3d_free(tree);
 
   if (vert_kill_len == 0) {

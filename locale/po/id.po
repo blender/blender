@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -15619,6 +15619,14 @@ msgid "Open"
 msgstr "Buka"
 
 
+msgid "Show"
+msgstr "Tampilkan"
+
+
+msgid "Play"
+msgstr "Main"
+
+
 msgctxt "Operator"
 msgid "Next Folder"
 msgstr "Warna Standar"
@@ -17864,10 +17872,6 @@ msgid "Hide vertices"
 msgstr "Sembunyikan sudut"
 
 
-msgid "Show"
-msgstr "Tampilkan"
-
-
 msgid "Show vertices"
 msgstr "Tampilkan sudut"
 
@@ -19844,10 +19848,6 @@ msgid "Time Min"
 msgstr "Min Waktu"
 
 
-msgid "Play"
-msgstr "Main"
-
-
 msgid "Random Order"
 msgstr "Urutan Acak"
 
@@ -20451,6 +20451,11 @@ msgstr "Garis"
 msgctxt "Operator"
 msgid "Curve"
 msgstr "Kurva"
+
+
+msgctxt "Operator"
+msgid "Slide"
+msgstr "Slide/Menggeser"
 
 
 msgid "Auto IK"
@@ -24089,11 +24094,6 @@ msgstr "Bersihkan Saluran"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "Memperluas"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "Slide/Menggeser"
 
 
 msgctxt "Operator"

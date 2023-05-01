@@ -307,7 +307,7 @@ static void console_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   }
 }
 
-static void console_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void console_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceConsole *con = (SpaceConsole *)sl;
 
@@ -335,7 +335,7 @@ void ED_spacetype_console(void)
   st->keymap = console_keymap;
   st->dropboxes = console_dropboxes;
   st->blend_read_data = console_blend_read_data;
-  st->blend_write = console_blend_write;
+  st->blend_write = console_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype console region");

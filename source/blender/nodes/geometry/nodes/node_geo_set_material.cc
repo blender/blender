@@ -53,7 +53,7 @@ static void assign_material_to_faces(Mesh &mesh, const IndexMask selection, Mate
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
   SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
       "material_index", ATTR_DOMAIN_FACE);
-  material_indices.span.fill_indices(selection, new_material_index);
+  material_indices.span.fill_indices(selection.indices(), new_material_index);
   material_indices.finish();
 }
 

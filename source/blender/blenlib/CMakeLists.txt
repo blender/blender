@@ -184,8 +184,10 @@ set(SRC
   BLI_assert.h
   BLI_astar.h
   BLI_atomic_disjoint_set.hh
+  BLI_bit_group_vector.hh
   BLI_bit_ref.hh
   BLI_bit_span.hh
+  BLI_bit_span_ops.hh
   BLI_bit_vector.hh
   BLI_bitmap.h
   BLI_bitmap_draw_2d.h
@@ -480,6 +482,7 @@ if(WITH_GTESTS)
     tests/BLI_array_store_test.cc
     tests/BLI_array_test.cc
     tests/BLI_array_utils_test.cc
+    tests/BLI_bit_group_vector_test.cc
     tests/BLI_bit_ref_test.cc
     tests/BLI_bit_span_test.cc
     tests/BLI_bit_vector_test.cc

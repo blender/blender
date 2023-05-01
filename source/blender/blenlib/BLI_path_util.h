@@ -311,22 +311,41 @@ bool BLI_path_filename_ensure(char *filepath, size_t maxlen, const char *filenam
  */
 int BLI_path_sequence_decode(const char *string,
                              char *head,
+                             size_t head_maxncpy,
                              char *tail,
+                             size_t tail_maxncpy,
                              unsigned short *r_digits_len);
 /**
  * Returns in area pointed to by string a string of the form `<head><pic><tail>`,
  * where pic is formatted as `numlen` digits with leading zeroes.
  */
-void BLI_path_sequence_encode(
-    char *string, const char *head, const char *tail, unsigned short numlen, int pic);
+void BLI_path_sequence_encode(char *string,
+                              size_t string_maxncpy,
+                              const char *head,
+                              const char *tail,
+                              unsigned short numlen,
+                              int pic);
 
 /**
- * Remove redundant characters from \a path and optionally make absolute.
+ * Remove redundant characters from \a path.
  *
- * \param path: Can be any input, and this function converts it to a regular full path.
- * Also removes garbage from directory paths, like `/../` or double slashes etc.
+ * The following operations are performed:
+ * - Redundant path components such as `//`, `/./` & `./` (prefix) are stripped.
+ *   (with the exception of `//` prefix used for blend-file relative paths).
+ * - `..` are resolved so `<parent>/../<child>/` resolves to `<child>/`.
+ *   Note that the resulting path may begin with `..` if it's relative.
  *
- * \note \a path isn't protected for max string names.
+ * Details:
+ * - The slash direction is expected to be native (see #SEP).
+ *   When calculating a canonical paths you may need to run #BLI_path_slash_native first.
+ *   #BLI_path_cmp_normalized can be used for canonical path comparison.
+ * - Trailing slashes are left intact (unlike Python which strips them).
+ * - Handling paths beginning with `..` depends on them being absolute or relative.
+ *   For absolute paths they are removed (e.g. `/../path` becomes `/path`).
+ *   For relative paths they are kept as it's valid to reference paths above a relative location
+ *   such as `//../parent` or `../parent`.
+ *
+ * \param path: The path to a file or directory which can be absolute or relative.
  */
 void BLI_path_normalize(char *path) ATTR_NONNULL(1);
 /**

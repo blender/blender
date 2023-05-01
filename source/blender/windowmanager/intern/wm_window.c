@@ -2079,11 +2079,18 @@ void WM_clipboard_text_set(const char *buf, bool selection)
 
 bool WM_clipboard_image_available(void)
 {
+  if (G.background) {
+    return false;
+  }
   return (bool)GHOST_hasClipboardImage();
 }
 
 ImBuf *WM_clipboard_image_get(void)
 {
+  if (G.background) {
+    return NULL;
+  }
+
   int width, height;
 
   uint *rgba = GHOST_getClipboardImage(&width, &height);
@@ -2099,6 +2106,10 @@ ImBuf *WM_clipboard_image_get(void)
 
 bool WM_clipboard_image_set(ImBuf *ibuf)
 {
+  if (G.background) {
+    return false;
+  }
+
   bool free_byte_buffer = false;
   if (ibuf->rect == NULL) {
     /* Add a byte buffer if it does not have one. */

@@ -106,8 +106,8 @@ typedef struct BLI_mempool_chunk {
  * The mempool, stores and tracks memory \a chunks and elements within those chunks \a free.
  */
 struct BLI_mempool {
-  /* Serialize access to mempools when debugging wih ASAN. */
 #ifdef WITH_ASAN
+  /** Serialize access to memory-pools when debugging with ASAN. */
   ThreadMutex mutex;
 #endif
   /** Single linked list of allocated chunks. */
@@ -150,6 +150,8 @@ static void mempool_asan_unlock(BLI_mempool *pool)
 {
 #ifdef WITH_ASAN
   BLI_mutex_unlock(&pool->mutex);
+#else
+  UNUSED_VARS(pool);
 #endif
 }
 
@@ -157,6 +159,8 @@ static void mempool_asan_lock(BLI_mempool *pool)
 {
 #ifdef WITH_ASAN
   BLI_mutex_lock(&pool->mutex);
+#else
+  UNUSED_VARS(pool);
 #endif
 }
 
@@ -552,7 +556,7 @@ void BLI_mempool_as_table(BLI_mempool *pool, void **data)
     *p++ = elem;
   }
 
-  BLI_assert((int)(p - data) == pool->totused);
+  BLI_assert((ptrdiff_t)(p - data) == (ptrdiff_t)pool->totused);
 }
 
 void **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr)

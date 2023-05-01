@@ -657,8 +657,7 @@ struct AssetIndex {
   AssetIndex(const FileIndexerEntries &indexer_entries)
   {
     std::unique_ptr<DictionaryValue> root = std::make_unique<DictionaryValue>();
-    DictionaryValue::Items &root_attributes = root->elements();
-    root_attributes.append_as(std::pair(ATTRIBUTE_VERSION, new IntValue(CURRENT_VERSION)));
+    root->append_int(ATTRIBUTE_VERSION, CURRENT_VERSION);
     init_value_from_file_indexer_entries(*root, indexer_entries);
 
     contents = std::move(root);

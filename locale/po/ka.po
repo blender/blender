@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Tamar Mebonia <tammebonia@gmail.com>, 2023\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19480,46 +19480,6 @@ msgid "Paint Selection"
 msgstr "ხატვა მონიშნულზე"
 
 
-msgid "Add Curves"
-msgstr "წირების დამატება"
-
-
-msgid "Delete Curves"
-msgstr "წირების წაშლა"
-
-
-msgid "Density Curves"
-msgstr "წირების სიმკვრივე"
-
-
-msgid "Comb Curves"
-msgstr "წირების დავარცხნა"
-
-
-msgid "Curves Snake Hook"
-msgstr "წირების გველსაჭერი"
-
-
-msgid "Grow / Shrink Curves"
-msgstr "წირების ზრდა / შეკუმშვა"
-
-
-msgid "Pinch Curves"
-msgstr "წირების მოჩქმეტა"
-
-
-msgid "Puff Curves"
-msgstr "წირების აფუება"
-
-
-msgid "Smooth Curves"
-msgstr "წირების დაგლუვება"
-
-
-msgid "Slide Curves"
-msgstr "წირების გაცურება"
-
-
 msgid "Dash Ratio"
 msgstr "ტირეს პროპორცია"
 
@@ -19690,10 +19650,6 @@ msgstr "ცვილის ფანქრის წვეროთა ხატ
 
 msgid "Grease Pencil Weight Paint Tool"
 msgstr "ცვილის ფანქრის წონათა ხატვის ხელსაწყო"
-
-
-msgid "Weight Paint for Vertex Groups"
-msgstr "წონების ხატვა წვეროთა ჯგუფისთვის"
 
 
 msgid "Gradient Spacing"
@@ -34097,6 +34053,10 @@ msgid "Open"
 msgstr "გახსენი"
 
 
+msgid "Play"
+msgstr "დაკვრა"
+
+
 msgid "Increment"
 msgstr "ნამატი"
 
@@ -34749,6 +34709,15 @@ msgstr "მიაკუთვნე წვეროების ჯგუფს"
 
 msgid "Paint stroke points with a color"
 msgstr "შეღებე ფერით მონასმების წერტილები"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "წონის ნიმუში წონის ნახატიდან"
+
+
+msgid "Use the mouse to sample a weight in the 3D view"
+msgstr "გამოიყენე თაგვი 3გ სარკმელში წონის ნიმუშის ასაღებად"
 
 
 msgctxt "Operator"
@@ -36251,6 +36220,10 @@ msgid "Irradiance probe to capture diffuse indirect lighting"
 msgstr "გამოსხივების ზონდი გაბნეული ირიბი განათების დასაჭერად"
 
 
+msgid "Selected Only"
+msgstr "მხოლოდ მონიშნული"
+
+
 msgid "Link objects to a collection"
 msgstr "ბმულით დააკავშირე ობიექტები კოლექციასთან"
 
@@ -37229,15 +37202,6 @@ msgid "Weight Paint Mode"
 msgstr "წონის ხატვის რეჟიმი"
 
 
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "წონის ნიმუში წონის ნახატიდან"
-
-
-msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "გამოიყენე თაგვი 3გ სარკმელში წონის ნიმუშის ასაღებად"
-
-
 msgid "Select one of the vertex groups available under current mouse position"
 msgstr "მონიშნე ერთერთი ხელმისაწვდომი წვეროთა ჯგუფი თაგვის მიმდინარე მდებარეობის ქვეშ"
 
@@ -37300,10 +37264,6 @@ msgstr "დააყენე წონა"
 msgctxt "Operator"
 msgid "Apply Pose as Rest Pose"
 msgstr "გამოიყენე ეს პოზა მოსვენებულ პოზად"
-
-
-msgid "Selected Only"
-msgstr "მხოლოდ მონიშნული"
 
 
 msgctxt "Operator"
@@ -39159,10 +39119,6 @@ msgstr "გამართვის მენიუ"
 
 msgid "Open a popup to set the debug level"
 msgstr "კონტექსტური მენიუს გახსნა გამართვის დონის დასაყენებლად"
-
-
-msgid "Play"
-msgstr "დაკვრა"
 
 
 msgctxt "Operator"

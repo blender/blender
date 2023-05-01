@@ -856,8 +856,16 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 
     BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
 
-    posit[0] = co_ss[1][0] + (cap_size * 2.0f);
+    /* Center text. */
+    posit[0] = co_ss[1][0] - (numstr_size[0] / 2.0f);
     posit[1] = co_ss[1][1] - (numstr_size[1] / 2.0f);
+
+    /* Adjust text position to help readability. */
+    sub_v2_v2v2(dir_ruler, co_ss[0], co_ss[1]);
+    float rot_90_vec[2] = {-dir_ruler[1], dir_ruler[0]};
+    normalize_v2(rot_90_vec);
+    posit[1] += rot_90_vec[0] * numstr_size[1];
+    posit[0] += ((rot_90_vec[1] < 0)) ? numstr_size[0] : -numstr_size[0];
 
     /* draw text (bg) */
     if (proj_ok[1]) {
@@ -885,10 +893,10 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     dir_ruler = co_ss[0] - co_ss[2];
+    float2 rot_90_vec = blender::math::normalize(float2{-dir_ruler[1], dir_ruler[0]});
 
     /* capping */
     {
-      float2 rot_90_vec = blender::math::normalize(float2{-dir_ruler[1], dir_ruler[0]});
       float2 cap;
 
       GPU_blend(GPU_BLEND_ALPHA);
@@ -932,6 +940,20 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 
     /* center text */
     posit -= numstr_size / 2.0f;
+
+    /* Adjust text position if this helps readability. */
+
+    const float len = len_v2v2(co_ss[0], co_ss[2]);
+
+    if ((len < (numstr_size[1] * 2.5f)) ||
+        ((len < (numstr_size[0] + bg_margin + bg_margin)) && (fabs(rot_90_vec[0]) < 0.5f))) {
+      /* Super short, or quite short and also shallow angle. Position below line.*/
+      posit[1] = MIN2(co_ss[0][1], co_ss[2][1]) - numstr_size[1] - bg_margin - bg_margin;
+    }
+    else if (fabs(rot_90_vec[0]) < 0.2f) {
+      /* Very shallow angle. Shift down by text height.*/
+      posit[1] -= numstr_size[1];
+    }
 
     /* draw text (bg) */
     if (proj_ok[0] && proj_ok[2]) {

@@ -41,7 +41,7 @@ static void find_neighbors(const KDTree_3d &tree,
                            const IndexMask mask,
                            MutableSpan<int> r_indices)
 {
-  threading::parallel_for(mask.index_range(), 512, [&](const IndexRange range) {
+  threading::parallel_for(mask.index_range(), 1024, [&](const IndexRange range) {
     for (const int index : mask.slice(range)) {
       r_indices[index] = find_nearest_non_self(tree, positions[index], index);
     }
@@ -73,28 +73,30 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
     evaluator.add(group_field_);
     evaluator.evaluate();
     const VArraySpan<float3> positions = evaluator.get_evaluated<float3>(0);
-    const VArray<int> group = evaluator.get_evaluated<int>(1);
+    const VArray<int> group_ids = evaluator.get_evaluated<int>(1);
 
     Array<int> result;
 
-    if (group.is_single()) {
+    if (group_ids.is_single()) {
       result.reinitialize(mask.min_array_size());
       KDTree_3d *tree = build_kdtree(positions, IndexRange(domain_size));
       find_neighbors(*tree, positions, mask, result);
       BLI_kdtree_3d_free(tree);
       return VArray<int>::ForContainer(std::move(result));
     }
+    const VArraySpan<int> group_ids_span(group_ids);
 
     VectorSet<int> group_indexing;
     for (const int index : mask) {
-      const int group_id = group[index];
+      const int group_id = group_ids_span[index];
       group_indexing.add(group_id);
     }
 
-    /* Each group id has two corresponding index masks. One that contains all the points in the
-     * group, one that contains all the points in the group that should be looked up (this is the
-     * intersection of the points in the group and `mask`). In many cases, both of these masks are
-     * the same or very similar, so there is no benefit two separate masks. */
+    /* Each group ID has two corresponding index masks. One that contains all the points
+     * in each group and one that contains all the points in the group that should be looked up
+     * (the intersection of the points in the group and `mask`). In many cases, both of these
+     * masks are the same or very similar, so there is not enough benefit for a separate mask
+     * for the lookups. */
     const bool use_separate_lookup_indices = mask.size() < domain_size / 2;
 
     Array<Vector<int64_t>> all_indices_by_group_id(group_indexing.size());
@@ -111,7 +113,7 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
     const auto build_group_masks = [&](const IndexMask mask,
                                        MutableSpan<Vector<int64_t>> r_groups) {
       for (const int index : mask) {
-        const int group_id = group[index];
+        const int group_id = group_ids_span[index];
         const int index_of_group = group_indexing.index_of_try(group_id);
         if (index_of_group != -1) {
           r_groups[index_of_group].append(index);
@@ -128,7 +130,10 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
         },
         [&]() { build_group_masks(IndexMask(domain_size), all_indices_by_group_id); });
 
-    threading::parallel_for(group_indexing.index_range(), 256, [&](const IndexRange range) {
+    /* The grain size should be larger as each tree gets smaller. */
+    const int avg_tree_size = domain_size / group_indexing.size();
+    const int grain_size = std::max(8192 / avg_tree_size, 1);
+    threading::parallel_for(group_indexing.index_range(), grain_size, [&](const IndexRange range) {
       for (const int index : range) {
         const IndexMask tree_mask = all_indices_by_group_id[index].as_span();
         const IndexMask lookup_mask = use_separate_lookup_indices ?

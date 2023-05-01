@@ -211,7 +211,7 @@ void BKE_mesh_calc_edges_legacy(Mesh *me)
 
   mesh_calc_edges_mdata(
       verts.data(),
-      (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE),
+      me->mface,
       static_cast<MLoop *>(CustomData_get_layer_for_write(&me->ldata, CD_MLOOP, me->totloop)),
       static_cast<const MPoly *>(CustomData_get_layer(&me->pdata, CD_MPOLY)),
       verts.size(),
@@ -232,6 +232,28 @@ void BKE_mesh_calc_edges_legacy(Mesh *me)
 
   BKE_mesh_tag_topology_changed(me);
   BKE_mesh_strip_loose_faces(me);
+}
+
+void BKE_mesh_strip_loose_faces(Mesh *me)
+{
+  /* NOTE: We need to keep this for edge creation (for now?), and some old `readfile.c` code. */
+  MFace *f;
+  int a, b;
+  MFace *mfaces = me->mface;
+
+  for (a = b = 0, f = mfaces; a < me->totface; a++, f++) {
+    if (f->v3) {
+      if (a != b) {
+        memcpy(&mfaces[b], f, sizeof(mfaces[b]));
+        CustomData_copy_data(&me->fdata, &me->fdata, a, b, 1);
+      }
+      b++;
+    }
+  }
+  if (a != b) {
+    CustomData_free_elem(&me->fdata, b, a - b);
+    me->totface = b;
+  }
 }
 
 /** \} */
@@ -417,7 +439,7 @@ static void convert_mfaces_to_mpolys(ID *id,
                                      int totface_i,
                                      int totloop_i,
                                      int totpoly_i,
-                                     MEdge *edges,
+                                     blender::int2 *edges,
                                      MFace *mface,
                                      int *r_totloop,
                                      int *r_totpoly)
@@ -425,13 +447,9 @@ static void convert_mfaces_to_mpolys(ID *id,
   MFace *mf;
   MLoop *ml, *mloop;
   MPoly *poly, *mpoly;
-  MEdge *edge;
   EdgeHash *eh;
   int numTex, numCol;
   int i, j, totloop, totpoly, *polyindex;
-
-  /* old flag, clear to allow for reuse */
-#define ME_FGON (1 << 3)
 
   /* just in case some of these layers are filled in (can happen with python created meshes) */
   CustomData_free(ldata, totloop_i);
@@ -474,13 +492,8 @@ static void convert_mfaces_to_mpolys(ID *id,
   eh = BLI_edgehash_new_ex(__func__, uint(totedge_i));
 
   /* build edge hash */
-  edge = edges;
-  for (i = 0; i < totedge_i; i++, edge++) {
-    BLI_edgehash_insert(eh, edge->v1, edge->v2, POINTER_FROM_UINT(i));
-
-    /* unrelated but avoid having the FGON flag enabled,
-     * so we can reuse it later for something else */
-    edge->flag_legacy &= ~ME_FGON;
+  for (i = 0; i < totedge_i; i++) {
+    BLI_edgehash_insert(eh, edges[i][0], edges[i][1], POINTER_FROM_UINT(i));
   }
 
   polyindex = (int *)CustomData_get_layer(fdata, CD_ORIGINDEX);
@@ -534,8 +547,6 @@ static void convert_mfaces_to_mpolys(ID *id,
 
   *r_totpoly = totpoly;
   *r_totloop = totloop;
-
-#undef ME_FGON
 }
 
 static void update_active_fdata_layers(Mesh &mesh, CustomData *fdata, CustomData *ldata)
@@ -691,12 +702,6 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
 
 void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 {
-  const blender::Span<blender::int2> edges = mesh->edges();
-  blender::Array<MEdge> legacy_edges(mesh->totedge);
-  for (const int i : legacy_edges.index_range()) {
-    legacy_edges[i].v1 = edges[i][0];
-    legacy_edges[i].v2 = edges[i][1];
-  }
   convert_mfaces_to_mpolys(&mesh->id,
                            &mesh->fdata,
                            &mesh->ldata,
@@ -705,13 +710,14 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
                            mesh->totface,
                            mesh->totloop,
                            mesh->totpoly,
-                           legacy_edges.data(),
+                           mesh->edges_for_write().data(),
                            (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE),
                            &mesh->totloop,
                            &mesh->totpoly);
+  BKE_mesh_legacy_convert_loops_to_corners(mesh);
+  BKE_mesh_legacy_convert_polys_to_offsets(mesh);
 
   mesh_ensure_tessellation_customdata(mesh);
-  BKE_mesh_legacy_convert_loops_to_corners(mesh);
 }
 
 /**
@@ -755,19 +761,20 @@ void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata, Custom
 
 void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh)
 {
-  convert_mfaces_to_mpolys(
-      &mesh->id,
-      &mesh->fdata,
-      &mesh->ldata,
-      &mesh->pdata,
-      mesh->totedge,
-      mesh->totface,
-      mesh->totloop,
-      mesh->totpoly,
-      static_cast<MEdge *>(CustomData_get_layer_for_write(&mesh->edata, CD_MEDGE, mesh->totedge)),
-      (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE),
-      &mesh->totloop,
-      &mesh->totpoly);
+  convert_mfaces_to_mpolys(&mesh->id,
+                           &mesh->fdata,
+                           &mesh->ldata,
+                           &mesh->pdata,
+                           mesh->totedge,
+                           mesh->totface,
+                           mesh->totloop,
+                           mesh->totpoly,
+                           mesh->edges_for_write().data(),
+                           (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE),
+                           &mesh->totloop,
+                           &mesh->totpoly);
+  BKE_mesh_legacy_convert_loops_to_corners(mesh);
+  BKE_mesh_legacy_convert_polys_to_offsets(mesh);
 
   CustomData_bmesh_do_versions_update_active_layers(&mesh->fdata, &mesh->ldata);
 

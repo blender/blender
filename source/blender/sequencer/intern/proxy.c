@@ -168,7 +168,7 @@ static bool seq_proxy_get_fname(Scene *scene,
       BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
     }
     else { /* Per strip default. */
-      BLI_snprintf(dir, PROXY_MAXFILE, "%s/BL_proxy", seq->strip->dir);
+      BLI_snprintf(dir, PROXY_MAXFILE, "%s" SEP_STR "BL_proxy", seq->strip->dir);
     }
   }
 

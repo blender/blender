@@ -162,7 +162,7 @@ class ProximityFunction : public mf::MultiFunction {
      * comparison per vertex, so it's likely not worth it. */
     MutableSpan<float> distances = params.uninitialized_single_output<float>(2, "Distance");
 
-    distances.fill_indices(mask, FLT_MAX);
+    distances.fill_indices(mask.indices(), FLT_MAX);
 
     bool success = false;
     if (target_.has_mesh()) {
@@ -177,10 +177,10 @@ class ProximityFunction : public mf::MultiFunction {
 
     if (!success) {
       if (!positions.is_empty()) {
-        positions.fill_indices(mask, float3(0));
+        positions.fill_indices(mask.indices(), float3(0));
       }
       if (!distances.is_empty()) {
-        distances.fill_indices(mask, 0.0f);
+        distances.fill_indices(mask.indices(), 0.0f);
       }
       return;
     }

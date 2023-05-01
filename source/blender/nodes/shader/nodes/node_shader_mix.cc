@@ -227,12 +227,12 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static void gather_add_node_searches(GatherAddNodeSearchParams &params)
 {
-  params.add_item(IFACE_("Mix"), params.node_type().ui_description);
-  params.add_item(IFACE_("Mix Color"),
-                  params.node_type().ui_description,
-                  [](const bContext & /*C*/, bNodeTree & /*node_tree*/, bNode &node) {
-                    node_storage(node).data_type = SOCK_RGBA;
-                  });
+  params.add_single_node_item(IFACE_("Mix"), params.node_type().ui_description);
+  params.add_single_node_item(IFACE_("Mix Color"),
+                              params.node_type().ui_description,
+                              [](const bContext & /*C*/, bNodeTree & /*node_tree*/, bNode &node) {
+                                node_storage(node).data_type = SOCK_RGBA;
+                              });
 }
 
 static void node_mix_init(bNodeTree * /*tree*/, bNode *node)

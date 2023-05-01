@@ -1684,7 +1684,7 @@ static std::optional<CollectionAddInfo> collection_add_info_get_from_op(bContext
         BLI_findlink(&bmain->collections, RNA_enum_get(op->ptr, "collection")));
   }
 
-  if (update_location_if_necessary) {
+  if (update_location_if_necessary && CTX_wm_region_view3d(C)) {
     int mval[2];
     if (!RNA_property_is_set(op->ptr, prop_location) && object_add_drop_xy_get(C, op, &mval)) {
       ED_object_location_from_view(C, add_info.loc);
@@ -1928,11 +1928,13 @@ static int object_data_instance_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  int mval[2];
-  if (!RNA_property_is_set(op->ptr, prop_location) && object_add_drop_xy_get(C, op, &mval)) {
-    ED_object_location_from_view(C, loc);
-    ED_view3d_cursor3d_position(C, mval, false, loc);
-    RNA_property_float_set_array(op->ptr, prop_location, loc);
+  if (CTX_wm_region_view3d(C)) {
+    int mval[2];
+    if (!RNA_property_is_set(op->ptr, prop_location) && object_add_drop_xy_get(C, op, &mval)) {
+      ED_object_location_from_view(C, loc);
+      ED_view3d_cursor3d_position(C, mval, false, loc);
+      RNA_property_float_set_array(op->ptr, prop_location, loc);
+    }
   }
 
   if (!ED_object_add_generic_get_opts(
@@ -3927,7 +3929,7 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
 
     DEG_id_tag_update(&ob_add->id, ID_RECALC_TRANSFORM);
   }
-  else {
+  else if (CTX_wm_region_view3d(C)) {
     int mval[2];
     if (object_add_drop_xy_get(C, op, &mval)) {
       ED_object_location_from_view(C, basen->object->loc);
@@ -4029,7 +4031,7 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
 
     MEM_freeN(objects);
   }
-  else {
+  else if (CTX_wm_region_view3d(C)) {
     int mval[2];
     if (object_add_drop_xy_get(C, op, &mval)) {
       float cursor[3];

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2023-02-05 22:00+0300\n"
 "Last-Translator: Emir SARI <emir_sari@îcloud.com>\n"
 "Language-Team: Turkish <>\n"
@@ -5100,6 +5100,10 @@ msgid "Open"
 msgstr "Aç"
 
 
+msgid "Play"
+msgstr "Oynat"
+
+
 msgid "Limit"
 msgstr "Sınır"
 
@@ -5289,10 +5293,6 @@ msgstr "Açılım"
 
 msgid "Wrap"
 msgstr "Sar"
-
-
-msgid "Play"
-msgstr "Oynat"
 
 
 msgid "State"

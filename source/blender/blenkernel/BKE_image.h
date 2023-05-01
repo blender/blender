@@ -383,7 +383,8 @@ bool BKE_image_is_filename_tokenized(char *filepath);
  * Ensures that `filename` contains a UDIM token if we find a supported format pattern.
  * \note This must only be the name component (without slashes).
  */
-void BKE_image_ensure_tile_token(char *filename);
+void BKE_image_ensure_tile_token(char *filepath, size_t filepath_maxncpy);
+void BKE_image_ensure_tile_token_filename_only(char *filename, size_t filename_maxncpy);
 
 /**
  * When provided with an absolute virtual `filepath`, check to see if at least

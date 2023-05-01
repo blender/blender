@@ -40,6 +40,8 @@
 
 #include "DEG_depsgraph_build.h"
 
+#include "DRW_engine.h"
+
 #include "BLO_read_write.h"
 
 static CLG_LogRef LOG = {"bke.mask"};
@@ -57,6 +59,8 @@ static void mask_copy_data(Main *UNUSED(bmain),
   /* TODO: add unused flag to those as well. */
   BKE_mask_layer_copy_list(&mask_dst->masklayers, &mask_src->masklayers);
 
+  BLI_listbase_clear((ListBase *)&mask_dst->drawdata);
+
   /* enable fake user by default */
   id_fake_user_set(&mask_dst->id);
 }
@@ -67,6 +71,8 @@ static void mask_free_data(ID *id)
 
   /* free mask data */
   BKE_mask_layer_free_list(&mask->masklayers);
+
+  DRW_drawdata_free(id);
 }
 
 static void mask_foreach_id(ID *id, LibraryForeachIDData *data)

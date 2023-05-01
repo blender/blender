@@ -27,7 +27,7 @@ void ensure_usd_plugin_path_registered()
   if (blender_usd_datafiles) {
     const std::string blender_usd_data_folder = blender_usd_datafiles;
     /* The trailing slash indicates to the USD library that the path is a directory. */
-    pxr::PlugRegistry::GetInstance().RegisterPlugins(blender_usd_data_folder + "/");
+    pxr::PlugRegistry::GetInstance().RegisterPlugins(blender_usd_data_folder + SEP_STR);
   }
 #endif
 }

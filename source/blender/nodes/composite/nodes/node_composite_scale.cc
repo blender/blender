@@ -126,7 +126,7 @@ class ScaleOperation : public NodeOperation {
   /* Scale by the render resolution percentage. */
   float2 get_scale_render_percent()
   {
-    return float2(context().get_scene()->r.size / 100.0f);
+    return float2(context().get_render_percentage());
   }
 
   float2 get_scale_render_size()

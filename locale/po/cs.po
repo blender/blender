@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -8687,6 +8687,14 @@ msgid "Editable falloff curve"
 msgstr "Křivka útlumu"
 
 
+msgid "Comb"
+msgstr "Hřeben"
+
+
+msgid "Puff"
+msgstr "Nafouknout"
+
+
 msgid "Falloff Angle"
 msgstr "Úhel Poklesu"
 
@@ -9665,6 +9673,10 @@ msgstr "Tučné & kurzíva"
 
 msgid "Font Italic"
 msgstr "Kurzíva"
+
+
+msgid "Text Selected"
+msgstr "Vybraný Text"
 
 
 msgid "X Offset"
@@ -22256,6 +22268,14 @@ msgid "Execute selected file"
 msgstr "Odstranit označené značky"
 
 
+msgid "Show"
+msgstr "Zobrazit"
+
+
+msgid "Play"
+msgstr "Přehrát"
+
+
 msgid "Increment"
 msgstr "Přírůstek"
 
@@ -22550,6 +22570,10 @@ msgstr "Skrýt skryté soubory"
 
 msgid "Select all text"
 msgstr "Vybrat další"
+
+
+msgid "Select word under cursor"
+msgstr "Vytvořit nový soubor"
 
 
 msgctxt "Operator"
@@ -23111,6 +23135,15 @@ msgstr "Odstranit skupinu vertexů"
 
 msgid "Select all the vertices assigned to the active vertex group"
 msgstr "Vybrané vertexy náleží do aktuální skupiny vertexů"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "Váha vertexů"
+
+
+msgid "Use the mouse to sample a weight in the 3D view"
+msgstr "Zobrazit obrázek na pozadí pohledu do 3D"
 
 
 msgctxt "Operator"
@@ -26512,6 +26545,24 @@ msgstr "Přidat Světelnou Sondu"
 
 
 msgctxt "Operator"
+msgid "Bake Light Cache"
+msgstr "Bake Mezipaměť Osvětlení"
+
+
+msgid "Bake the active view layer lighting"
+msgstr "Bake aktivní zobrazovací vrstvu osvětlení"
+
+
+msgid "Selected Only"
+msgstr "Pouze Vybrané"
+
+
+msgctxt "Operator"
+msgid "Delete Light Cache"
+msgstr "Odstranit Světlo v Mezipaměti"
+
+
+msgctxt "Operator"
 msgid "Load Background Image"
 msgstr "Načíst Obrázek na Pozedí"
 
@@ -27874,10 +27925,6 @@ msgid "Hide vertices"
 msgstr "Skrýt vrcholy"
 
 
-msgid "Show"
-msgstr "Zobrazit"
-
-
 msgid "Show vertices"
 msgstr "Zobrazit vrcholy"
 
@@ -28069,15 +28116,6 @@ msgstr "Kreslit v aktuální vrstvě skupině vertexů"
 msgctxt "Operator"
 msgid "Weight Paint Mode"
 msgstr "Váha vertexů"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "Váha vertexů"
-
-
-msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "Zobrazit obrázek na pozadí pohledu do 3D"
 
 
 msgctxt "Operator"
@@ -28367,10 +28405,6 @@ msgstr "Transformace"
 
 msgid "Apply the current pose as the new rest pose"
 msgstr "Kopírovat aktuální pózu do bufferu"
-
-
-msgid "Selected Only"
-msgstr "Pouze Vybrané"
 
 
 msgid "All Properties"
@@ -29077,20 +29111,6 @@ msgstr "Odstranit Freestyle Modul"
 msgctxt "Operator"
 msgid "Add Line Thickness Modifier"
 msgstr "Přidat Modifikátor Tloušťka Čáry"
-
-
-msgctxt "Operator"
-msgid "Bake Light Cache"
-msgstr "Bake Mezipaměť Osvětlení"
-
-
-msgid "Bake the active view layer lighting"
-msgstr "Bake aktivní zobrazovací vrstvu osvětlení"
-
-
-msgctxt "Operator"
-msgid "Delete Light Cache"
-msgstr "Odstranit Světlo v Mezipaměti"
 
 
 msgctxt "Operator"
@@ -30465,10 +30485,6 @@ msgstr "Vybrat Propojené"
 
 msgid "Select text by line"
 msgstr "Vyberte typ textury"
-
-
-msgid "Select word under cursor"
-msgstr "Vytvořit nový soubor"
 
 
 msgctxt "Operator"
@@ -32077,10 +32093,6 @@ msgstr "Zpoždění Renderu"
 
 msgid "Run once and exit"
 msgstr "Spustit jednou a ukončit"
-
-
-msgid "Play"
-msgstr "Přehrát"
 
 
 msgid "Random Order"
@@ -33775,9 +33787,25 @@ msgid "Comb"
 msgstr "Hřeben"
 
 
+msgid "Comb hairs"
+msgstr "Učesat vlasy"
+
+
+msgid "Smooth hairs"
+msgstr "Vyhladit"
+
+
+msgid "Add hairs"
+msgstr "Přidat vlasy"
+
+
 msgctxt "Operator"
 msgid "Length"
 msgstr "Délka"
+
+
+msgid "Make hairs longer or shorter"
+msgstr "Zdelšit nebo zkrátit vlasy"
 
 
 msgctxt "Operator"
@@ -33785,9 +33813,21 @@ msgid "Puff"
 msgstr "Nafouknout"
 
 
+msgid "Make hairs stand up"
+msgstr "Postaví vlasy"
+
+
+msgid "Cut hairs"
+msgstr "Ostříhat vlasy"
+
+
 msgctxt "Operator"
 msgid "Weight"
 msgstr "Hmotnost"
+
+
+msgid "Weight hair particles"
+msgstr "Vzbrat vše podle typu"
 
 
 msgctxt "Operator"
@@ -33970,6 +34010,11 @@ msgid "Twist"
 msgstr "Zakroutit"
 
 
+msgctxt "Operator"
+msgid "Slide"
+msgstr "Z"
+
+
 msgid "Particle Tool"
 msgstr "Nástroj částice"
 
@@ -34148,42 +34193,6 @@ msgstr "Zobrazit částice"
 
 msgid "Display actual particles"
 msgstr "Zobrazit skutečné částice"
-
-
-msgid "Comb"
-msgstr "Hřeben"
-
-
-msgid "Comb hairs"
-msgstr "Učesat vlasy"
-
-
-msgid "Smooth hairs"
-msgstr "Vyhladit"
-
-
-msgid "Add hairs"
-msgstr "Přidat vlasy"
-
-
-msgid "Make hairs longer or shorter"
-msgstr "Zdelšit nebo zkrátit vlasy"
-
-
-msgid "Puff"
-msgstr "Nafouknout"
-
-
-msgid "Make hairs stand up"
-msgstr "Postaví vlasy"
-
-
-msgid "Cut hairs"
-msgstr "Ostříhat vlasy"
-
-
-msgid "Weight hair particles"
-msgstr "Vzbrat vše podle typu"
 
 
 msgid "Auto Velocity"
@@ -34704,10 +34713,6 @@ msgstr "X Lokální"
 
 msgid "Disallow movement around the Z axis"
 msgstr "Limituje rotaci po Z ose"
-
-
-msgid "4x4 matrix, before constraints"
-msgstr "Zrušit vazbu"
 
 
 msgid "Parent of this pose bone"
@@ -39795,10 +39800,6 @@ msgid "Shade Top"
 msgstr "Stínovat Hořejšek"
 
 
-msgid "Text Selected"
-msgstr "Vybraný Text"
-
-
 msgid "Animated"
 msgstr "Animovaný"
 
@@ -42468,11 +42469,6 @@ msgstr "Zatlačit Dolů"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "Rozšířit"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "Z"
 
 
 msgctxt "Operator"

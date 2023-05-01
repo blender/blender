@@ -59,12 +59,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   if (!attribute_exists) {
-    params.error_message_add(NodeWarningType::Info,
-                             TIP_("Attribute does not exist: \"") + name + "\"");
+    char *message = BLI_sprintfN(TIP_("Attribute does not exist: \"%s\""), name.c_str());
+    params.error_message_add(NodeWarningType::Warning, message);
+    MEM_freeN(message);
   }
   if (cannot_delete) {
-    params.error_message_add(NodeWarningType::Warning,
-                             TIP_("Cannot delete built-in attribute with name \"") + name + "\"");
+    char *message = BLI_sprintfN(TIP_("Cannot delete built-in attribute with name \"%s\""),
+                                 name.c_str());
+    params.error_message_add(NodeWarningType::Warning, message);
+    MEM_freeN(message);
   }
 
   params.set_output("Geometry", std::move(geometry_set));

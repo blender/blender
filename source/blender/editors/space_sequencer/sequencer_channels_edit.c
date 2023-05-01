@@ -52,7 +52,7 @@ void SEQUENCER_OT_rename_channel(struct wmOperatorType *ot)
 
   /* Api callbacks. */
   ot->invoke = sequencer_rename_channel_invoke;
-  ot->poll = sequencer_edit_poll;
+  ot->poll = sequencer_edit_with_channel_region_poll;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

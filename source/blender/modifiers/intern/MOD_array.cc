@@ -688,6 +688,36 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     }
   }
 
+  if (!use_merge && !mesh->runtime->subsurf_optimal_display_edges.is_empty()) {
+    const BoundedBitSpan src = mesh->runtime->subsurf_optimal_display_edges;
+
+    result->runtime->subsurf_optimal_display_edges.resize(result->totedge);
+    MutableBoundedBitSpan dst = result->runtime->subsurf_optimal_display_edges;
+    for (const int i : IndexRange(count)) {
+      dst.slice({i * mesh->totedge, mesh->totedge}).copy_from(src);
+    }
+
+    if (start_cap_mesh) {
+      MutableBitSpan cap_bits = dst.slice(
+          {result_nedges - start_cap_nedges - end_cap_nedges, start_cap_mesh->totedge});
+      if (start_cap_mesh->runtime->subsurf_optimal_display_edges.is_empty()) {
+        cap_bits.set_all(true);
+      }
+      else {
+        cap_bits.copy_from(start_cap_mesh->runtime->subsurf_optimal_display_edges);
+      }
+    }
+    if (end_cap_mesh) {
+      MutableBitSpan cap_bits = dst.slice({result_nedges - end_cap_nedges, end_cap_mesh->totedge});
+      if (end_cap_mesh->runtime->subsurf_optimal_display_edges.is_empty()) {
+        cap_bits.set_all(true);
+      }
+      else {
+        cap_bits.copy_from(end_cap_mesh->runtime->subsurf_optimal_display_edges);
+      }
+    }
+  }
+
   last_chunk_start = (count - 1) * chunk_nverts;
   last_chunk_nverts = chunk_nverts;
 

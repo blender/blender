@@ -19,6 +19,11 @@ int2 Context::get_compositing_region_size() const
   return int2(BLI_rcti_size_x(&compositing_region), BLI_rcti_size_y(&compositing_region));
 }
 
+float Context::get_render_percentage() const
+{
+  return get_scene()->r.size / 100.0f;
+}
+
 int Context::get_frame_number() const
 {
   return get_scene()->r.cfra;

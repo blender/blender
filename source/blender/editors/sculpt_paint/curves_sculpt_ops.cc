@@ -202,8 +202,9 @@ static void stroke_done(const bContext *C, PaintStroke *stroke)
 
 static int sculpt_curves_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const Paint *paint = BKE_paint_get_active_from_context(C);
-  const Brush *brush = BKE_paint_brush_for_read(paint);
+  Scene *scene = CTX_data_scene(C);
+  Paint *paint = BKE_paint_get_active_from_paintmode(scene, PAINT_MODE_SCULPT_CURVES);
+  const Brush *brush = paint ? BKE_paint_brush_for_read(paint) : nullptr;
   if (brush == nullptr) {
     return OPERATOR_CANCELLED;
   }

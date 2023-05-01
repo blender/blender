@@ -23,21 +23,29 @@ class RandomNumberGenerator;
 
 namespace blender::bke::mesh_surface_sample {
 
-void sample_point_attribute(const Mesh &mesh,
+void sample_point_attribute(Span<int> corner_verts,
+                            Span<MLoopTri> looptris,
                             Span<int> looptri_indices,
                             Span<float3> bary_coords,
                             const GVArray &src,
                             IndexMask mask,
                             GMutableSpan dst);
 
-void sample_corner_attribute(const Mesh &mesh,
+void sample_corner_attribute(Span<MLoopTri> looptris,
                              Span<int> looptri_indices,
                              Span<float3> bary_coords,
                              const GVArray &src,
                              IndexMask mask,
                              GMutableSpan dst);
 
-void sample_face_attribute(const Mesh &mesh,
+void sample_corner_normals(Span<MLoopTri> looptris,
+                           Span<int> looptri_indices,
+                           Span<float3> bary_coords,
+                           Span<float3> src,
+                           IndexMask mask,
+                           MutableSpan<float3> dst);
+
+void sample_face_attribute(Span<MLoopTri> looptris,
                            Span<int> looptri_indices,
                            const GVArray &src,
                            IndexMask mask,
@@ -133,9 +141,20 @@ float3 compute_bary_coord_in_triangle(Span<float3> vert_positions,
                                       const float3 &position);
 
 template<typename T>
-inline T sample_corner_attrribute_with_bary_coords(const float3 &bary_weights,
-                                                   const MLoopTri &looptri,
-                                                   const Span<T> corner_attribute)
+inline T sample_corner_attribute_with_bary_coords(const float3 &bary_weights,
+                                                  const MLoopTri &looptri,
+                                                  const Span<T> corner_attribute)
+{
+  return attribute_math::mix3(bary_weights,
+                              corner_attribute[looptri.tri[0]],
+                              corner_attribute[looptri.tri[1]],
+                              corner_attribute[looptri.tri[2]]);
+}
+
+template<typename T>
+inline T sample_corner_attribute_with_bary_coords(const float3 &bary_weights,
+                                                  const MLoopTri &looptri,
+                                                  const VArray<T> &corner_attribute)
 {
   return attribute_math::mix3(bary_weights,
                               corner_attribute[looptri.tri[0]],

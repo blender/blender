@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -17140,6 +17140,14 @@ msgid "Editable falloff curve"
 msgstr "Редагована крива спаду"
 
 
+msgid "Comb"
+msgstr "Гребінець"
+
+
+msgid "Puff"
+msgstr "Розпушення"
+
+
 msgid "Dash Ratio"
 msgstr "Пропорція Риски"
 
@@ -17310,10 +17318,6 @@ msgstr "Засіб Малювання Вершин Нарисного Олівц
 
 msgid "Grease Pencil Weight Paint Tool"
 msgstr "Засіб Малювання Вагомостей Нарисного Олівця"
-
-
-msgid "Weight Paint for Vertex Groups"
-msgstr "Малювання Вагомостей для Груп Вершин"
 
 
 msgid "Gradient Spacing"
@@ -19254,6 +19258,10 @@ msgstr "Шрифт жирний курсив"
 
 msgid "Font Italic"
 msgstr "Курсивний шрифт"
+
+
+msgid "Text Selected"
+msgstr "Вибраний текст"
 
 
 msgid "X Offset"
@@ -33226,20 +33234,8 @@ msgid "Density of the new volume"
 msgstr "Щільність нового об'єму"
 
 
-msgid "Exterior Band Width"
-msgstr "Зовнішня Ширина Пасмуги"
-
-
-msgid "Width of the volume outside of the mesh"
-msgstr "Ширина об'єму назовні від сіті"
-
-
 msgid "Interior Band Width"
 msgstr "Внутрішня Ширина Пасмуги"
-
-
-msgid "Width of the volume inside of the mesh"
-msgstr "Ширина об'єму всередині сіті"
 
 
 msgid "Resolution Mode"
@@ -33260,14 +33256,6 @@ msgstr "Бажана кількість вокселів уздовж одніє
 
 msgid "Desired voxel side length"
 msgstr "Бажана бокова довжина вокселя"
-
-
-msgid "Fill Volume"
-msgstr "Заповнити Об'єм"
-
-
-msgid "Initialize the density grid in every cell inside the enclosed volume"
-msgstr "Ініціалізувати сітку щільності в кожній комірці всередині закритого об'єму"
 
 
 msgid "Approximate number of voxels along one axis"
@@ -46609,6 +46597,14 @@ msgid "Execute selected file"
 msgstr "Виконати вибраний файл"
 
 
+msgid "Show"
+msgstr "Показати"
+
+
+msgid "Play"
+msgstr "Грання"
+
+
 msgctxt "Operator"
 msgid "Increment Number in Filename"
 msgstr "Збільшити номер у назві файлу"
@@ -47114,6 +47110,10 @@ msgstr "Завантажити новий шрифт з файлу"
 
 msgid "Select all text"
 msgstr "Вибрати весь текст"
+
+
+msgid "Select word under cursor"
+msgstr "Вибрати слово під курсором"
 
 
 msgctxt "Operator"
@@ -49262,6 +49262,15 @@ msgstr "Увійти/вийти з режиму малювання вершин 
 msgctxt "Operator"
 msgid "Stroke Weight Paint"
 msgstr "Режим Малювання Вагомостей"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "Вагомість вибірки при малюванні вагомостей"
+
+
+msgid "Use the mouse to sample a weight in the 3D view"
+msgstr "Користуйтесь мишею для вибірки вагомості у 3D-вигляді"
 
 
 msgctxt "Operator"
@@ -56132,6 +56141,52 @@ msgid "Irradiance probe to capture diffuse indirect lighting"
 msgstr "Проба опроміненості для захоплення побічного розсіяного освітлювання"
 
 
+msgctxt "Operator"
+msgid "Bake Light Cache"
+msgstr "Запекти Кеш Освітлення"
+
+
+msgid "Bake the active view layer lighting"
+msgstr "Запекти освітлювання активного шару огляду"
+
+
+msgid "Delay in millisecond before baking starts"
+msgstr "Затримка у мілісекундах, перш ніж запікання почнеться"
+
+
+msgid "Subset"
+msgstr "Підмножина"
+
+
+msgid "Subset of probes to update"
+msgstr "Піднабір проб для оновлення"
+
+
+msgid "All Light Probes"
+msgstr "Усі Проби Освітлення"
+
+
+msgid "Dirty Only"
+msgstr "Лише Брудно"
+
+
+msgid "Only bake light probes that are marked as dirty"
+msgstr "Запікати лише проби освітлення, що відмічені як брудні"
+
+
+msgid "Selected Only"
+msgstr "Лише вибране"
+
+
+msgctxt "Operator"
+msgid "Delete Light Cache"
+msgstr "Видалити Кеш Освітлення"
+
+
+msgid "Delete cached indirect lighting"
+msgstr "Видалити кешоване побічне освітлювання"
+
+
 msgid "Link objects to a collection"
 msgstr "Пов'язати об'єкти у колекцію"
 
@@ -57654,10 +57709,6 @@ msgid "Remove vertex group assignments which are not required"
 msgstr "Вилучити непотрібні призначення в групи вершин"
 
 
-msgid "Subset"
-msgstr "Підмножина"
-
-
 msgid "Define which subset of groups shall be used"
 msgstr "Визначити, який піднабір груп буде використовуватися"
 
@@ -58979,10 +59030,6 @@ msgid "Hide vertices"
 msgstr "Приховати вершини"
 
 
-msgid "Show"
-msgstr "Показати"
-
-
 msgid "Show vertices"
 msgstr "Показати вершини"
 
@@ -59303,15 +59350,6 @@ msgstr "Режим Малювання Вагомостей"
 
 msgid "Toggle weight paint mode in 3D view"
 msgstr "Перемкнути режим малювання вагомостей у 3D огляді"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "Вагомість вибірки при малюванні вагомостей"
-
-
-msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "Користуйтесь мишею для вибірки вагомості у 3D-вигляді"
 
 
 msgctxt "Operator"
@@ -59773,10 +59811,6 @@ msgstr "Призначити позою спокою"
 
 msgid "Apply the current pose as the new rest pose"
 msgstr "Призначити поточну позу в якості нової пози спокою"
-
-
-msgid "Selected Only"
-msgstr "Лише вибране"
 
 
 msgid "Only apply the selected bones (with propagation to children)"
@@ -61320,37 +61354,8 @@ msgid "Add or remove grease pencil material preset"
 msgstr "Додати або вилучити передуставу матеріалу нарисного олівця"
 
 
-msgctxt "Operator"
-msgid "Bake Light Cache"
-msgstr "Запекти Кеш Освітлення"
-
-
-msgid "Bake the active view layer lighting"
-msgstr "Запекти освітлювання активного шару огляду"
-
-
-msgid "Delay in millisecond before baking starts"
-msgstr "Затримка у мілісекундах, перш ніж запікання почнеться"
-
-
-msgid "Subset of probes to update"
-msgstr "Піднабір проб для оновлення"
-
-
-msgid "All Light Probes"
-msgstr "Усі Проби Освітлення"
-
-
 msgid "Bake both irradiance grids and reflection cubemaps"
 msgstr "Запекти і сітки опроміненості, і куброзкладки відбиття"
-
-
-msgid "Dirty Only"
-msgstr "Лише Брудно"
-
-
-msgid "Only bake light probes that are marked as dirty"
-msgstr "Запікати лише проби освітлення, що відмічені як брудні"
 
 
 msgid "Cubemaps Only"
@@ -61359,15 +61364,6 @@ msgstr "Лише Куброзкладки"
 
 msgid "Try to only bake reflection cubemaps if irradiance grids are up to date"
 msgstr "Спробувати запекти лише куброзкладки відбиття, якщо сітки опроміненості є актуальними"
-
-
-msgctxt "Operator"
-msgid "Delete Light Cache"
-msgstr "Видалити Кеш Освітлення"
-
-
-msgid "Delete cached indirect lighting"
-msgstr "Видалити кешоване побічне освітлювання"
 
 
 msgctxt "Operator"
@@ -64409,10 +64405,6 @@ msgstr "Вибрати рядок"
 
 msgid "Select text by line"
 msgstr "Вибрати рядок тексту"
-
-
-msgid "Select word under cursor"
-msgstr "Вибрати слово під курсором"
 
 
 msgctxt "Operator"
@@ -68153,10 +68145,6 @@ msgid "Run once and exit"
 msgstr "Виконати один раз і вийти"
 
 
-msgid "Play"
-msgstr "Грання"
-
-
 msgid "Random Order"
 msgstr "Випадковий Порядок"
 
@@ -71015,9 +71003,25 @@ msgid "Comb"
 msgstr "Гребінець"
 
 
+msgid "Comb hairs"
+msgstr "Чесати волосинки"
+
+
+msgid "Smooth hairs"
+msgstr "Згладити волосинки"
+
+
+msgid "Add hairs"
+msgstr "Додати волосинки"
+
+
 msgctxt "Operator"
 msgid "Length"
 msgstr "Довжина"
+
+
+msgid "Make hairs longer or shorter"
+msgstr "Зробити волосинки довшими або коротшими"
 
 
 msgctxt "Operator"
@@ -71025,9 +71029,21 @@ msgid "Puff"
 msgstr "Розпушення"
 
 
+msgid "Make hairs stand up"
+msgstr "Зробити волосинки розпушеними і піднятими"
+
+
+msgid "Cut hairs"
+msgstr "Підстригти волосинки"
+
+
 msgctxt "Operator"
 msgid "Weight"
 msgstr "Вагомість"
+
+
+msgid "Weight hair particles"
+msgstr "Виважує, малюючи по ключточкам волосинок, задає для них значення вагомостей"
 
 
 msgctxt "Operator"
@@ -71304,6 +71320,11 @@ msgid "Twist"
 msgstr "Кручення"
 
 
+msgctxt "Operator"
+msgid "Slide"
+msgstr "Ковзання"
+
+
 msgid "Clone from Paint Slot"
 msgstr "Клонувати з гнізда малювання"
 
@@ -71570,42 +71591,6 @@ msgstr "Показ Частинок"
 
 msgid "Display actual particles"
 msgstr "Показувати фактичні частинки"
-
-
-msgid "Comb"
-msgstr "Гребінець"
-
-
-msgid "Comb hairs"
-msgstr "Чесати волосинки"
-
-
-msgid "Smooth hairs"
-msgstr "Згладити волосинки"
-
-
-msgid "Add hairs"
-msgstr "Додати волосинки"
-
-
-msgid "Make hairs longer or shorter"
-msgstr "Зробити волосинки довшими або коротшими"
-
-
-msgid "Puff"
-msgstr "Розпушення"
-
-
-msgid "Make hairs stand up"
-msgstr "Зробити волосинки розпушеними і піднятими"
-
-
-msgid "Cut hairs"
-msgstr "Підстригти волосинки"
-
-
-msgid "Weight hair particles"
-msgstr "Виважує, малюючи по ключточкам волосинок, задає для них значення вагомостей"
 
 
 msgid "Auto Velocity"
@@ -72460,20 +72445,12 @@ msgid "Pose Matrix"
 msgstr "Матриця пози"
 
 
-msgid "Final 4x4 matrix after constraints and drivers are applied (object space)"
-msgstr "Фінальна матриця 4x4 після застосування примусів та драйверів  (у просторі об'єкт)"
-
-
 msgid "Alternative access to location/scale/rotation relative to the parent and own rest bone"
 msgstr "Альтернативний доступ до місця/масштабу/оберту відносно предківської та власної кістки спокою"
 
 
 msgid "Channel Matrix"
 msgstr "Матриця каналу"
-
-
-msgid "4x4 matrix, before constraints"
-msgstr "Матриця 4х4, перед примусами"
 
 
 msgid "Parent of this pose bone"
@@ -84773,10 +84750,6 @@ msgid "Shade Top"
 msgstr "Відтінити вгорі"
 
 
-msgid "Text Selected"
-msgstr "Вибраний текст"
-
-
 msgid "Theme Widget State Color"
 msgstr "Тема кольорів станів віджетів"
 
@@ -91459,11 +91432,6 @@ msgstr "Очистити Канали"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "Розшир"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "Ковзання"
 
 
 msgctxt "Operator"

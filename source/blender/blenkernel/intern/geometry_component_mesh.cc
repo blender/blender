@@ -44,7 +44,7 @@ GeometryComponent *MeshComponent::copy() const
 
 void MeshComponent::clear()
 {
-  BLI_assert(this->is_mutable());
+  BLI_assert(this->is_mutable() || this->is_expired());
   if (mesh_ != nullptr) {
     if (ownership_ == GeometryOwnershipType::Owned) {
       BKE_id_free(nullptr, mesh_);
@@ -1157,7 +1157,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                    ATTR_DOMAIN_EDGE,
                                                    CD_PROP_INT32_2D,
                                                    CD_PROP_INT32_2D,
-                                                   BuiltinAttributeProvider::NonCreatable,
+                                                   BuiltinAttributeProvider::Creatable,
                                                    BuiltinAttributeProvider::NonDeletable,
                                                    edge_access,
                                                    nullptr,
@@ -1173,7 +1173,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                     ATTR_DOMAIN_CORNER,
                                                     CD_PROP_INT32,
                                                     CD_PROP_INT32,
-                                                    BuiltinAttributeProvider::NonCreatable,
+                                                    BuiltinAttributeProvider::Creatable,
                                                     BuiltinAttributeProvider::NonDeletable,
                                                     corner_access,
                                                     nullptr,
@@ -1182,7 +1182,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                     ATTR_DOMAIN_CORNER,
                                                     CD_PROP_INT32,
                                                     CD_PROP_INT32,
-                                                    BuiltinAttributeProvider::NonCreatable,
+                                                    BuiltinAttributeProvider::Creatable,
                                                     BuiltinAttributeProvider::NonDeletable,
                                                     corner_access,
                                                     nullptr,

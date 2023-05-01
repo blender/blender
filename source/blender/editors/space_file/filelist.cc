@@ -177,7 +177,8 @@ enum {
 };
 
 struct FileListEntryPreview {
-  char filepath[FILE_MAX];
+  /** Use #FILE_MAX_LIBEXTRA as this is the size written into by #filelist_file_get_full_path. */
+  char filepath[FILE_MAX_LIBEXTRA];
   uint flags;
   int index;
   int attributes; /* from FileDirEntry. */
@@ -2187,6 +2188,14 @@ int filelist_file_find_id(const FileList *filelist, const ID *id)
   return -1;
 }
 
+ID *filelist_entry_get_id(const FileList *filelist, const int index)
+{
+  BLI_assert(index >= 0 && index < filelist->filelist.entries_filtered_num);
+
+  const FileListInternEntry *intern_entry = filelist->filelist_intern.filtered[index];
+  return intern_entry->local_data.id;
+}
+
 ID *filelist_file_get_id(const FileDirEntry *file)
 {
   return file->id;
@@ -3111,7 +3120,7 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
 {
   FileListInternEntry *entry = MEM_cnew<FileListInternEntry>(__func__);
   if (prefix_relpath_with_group_name) {
-    std::string datablock_path = StringRef(group_name) + "/" + datablock_info->name;
+    std::string datablock_path = StringRef(group_name) + SEP_STR + datablock_info->name;
     entry->relpath = current_relpath_append(job_params, datablock_path.c_str());
   }
   else {
@@ -3791,7 +3800,7 @@ static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
     const char *id_code_name = BKE_idtype_idcode_to_name(GS(id_iter->name));
 
     entry = MEM_cnew<FileListInternEntry>(__func__);
-    std::string datablock_path = StringRef(id_code_name) + "/" + (id_iter->name + 2);
+    std::string datablock_path = StringRef(id_code_name) + SEP_STR + (id_iter->name + 2);
     entry->relpath = current_relpath_append(job_params, datablock_path.c_str());
     entry->name = id_iter->name + 2;
     entry->free_name = false;

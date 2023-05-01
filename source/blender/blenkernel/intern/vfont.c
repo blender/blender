@@ -810,7 +810,7 @@ static bool vfont_to_curve(Object *ob,
   VChar *che;
   struct CharTrans *chartransdata = NULL, *ct;
   struct TempLineInfo *lineinfo;
-  float *f, xof, yof, xtrax, linedist;
+  float xof, yof, xtrax, linedist;
   float twidth = 0, maxlen = 0;
   int i, slen, j;
   int curbox;
@@ -820,6 +820,8 @@ static bool vfont_to_curve(Object *ob,
   char32_t ascii;
   bool ok = false;
   const float font_size = cu->fsize * iter_data->scale_to_fit;
+  /* Shift down vertically to be 25% below & 75% above baseline (before font scale is applied). */
+  const float font_select_y_offset = 0.25;
   const bool word_wrap = iter_data->word_wrap;
   const float xof_scale = safe_divide(cu->xof, font_size);
   const float yof_scale = safe_divide(cu->yof, font_size);
@@ -1122,7 +1124,7 @@ static bool vfont_to_curve(Object *ob,
 
       if (selboxes && (i >= selstart) && (i <= selend)) {
         sb = &selboxes[i - selstart];
-        sb->y = yof * font_size - linedist * font_size * 0.1f;
+        sb->y = (yof - font_select_y_offset) * font_size - linedist * font_size * 0.1f;
         sb->h = linedist * font_size;
         sb->w = xof * font_size;
       }
@@ -1454,8 +1456,19 @@ static bool vfont_to_curve(Object *ob,
     ct = chartransdata;
     for (i = 0; i <= selend; i++, ct++) {
       if (i >= selstart) {
-        selboxes[i - selstart].x = ct->xof * font_size;
-        selboxes[i - selstart].y = (ct->yof - 0.25f) * font_size;
+        EditFontSelBox *sb = &selboxes[i - selstart];
+        sb->x = ct->xof;
+        sb->y = ct->yof;
+        if (ct->rot != 0.0f) {
+          sb->x -= sinf(ct->rot) * font_select_y_offset;
+          sb->y -= cosf(ct->rot) * font_select_y_offset;
+        }
+        else {
+          /* Simple downward shift below baseline when not rotated. */
+          sb->y -= font_select_y_offset;
+        }
+        sb->x *= font_size;
+        sb->y *= font_size;
         selboxes[i - selstart].h = font_size;
       }
     }
@@ -1536,25 +1549,58 @@ static bool vfont_to_curve(Object *ob,
 
   /* Cursor first. */
   if (ef) {
-    float si, co;
-
     ct = &chartransdata[ef->pos];
-    si = sinf(ct->rot);
-    co = cosf(ct->rot);
+    const float cursor_width = 0.04f;
+    const float cursor_half = 0.02f;
+    const float xoffset = ct->xof;
+    const float yoffset = ct->yof;
 
-    f = ef->textcurs[0];
+    /* By default the cursor is exactly between the characters
+     * and matches the rotation of the character to the right. */
+    float cursor_left = 0.0f - cursor_half;
+    float rotation = ct->rot;
 
-    f[0] = font_size * (-0.02f * co + ct->xof);
-    f[1] = font_size * (0.1f * si - (0.25f * co) + ct->yof);
+    if (ef->selboxes) {
+      if (ef->selend >= ef->selstart) {
+        /* Cursor at right edge of a text selection. Match rotation to the character at the
+         * end of selection. Cursor is further right to show the selected characters better. */
+        rotation = chartransdata[max_ii(0, ef->selend - 1)].rot;
+        cursor_left = 0.0f;
+      }
+      else {
+        /* Cursor at the left edge of a text selection. Cursor
+         * is further left to show the selected characters better. */
+        cursor_left = 0.0f - cursor_width;
+      }
+    }
+    else if ((ef->pos == ef->len) && (ef->len > 0)) {
+      /* Nothing selected, but at the end of the string. Match rotation to previous character. */
+      rotation = chartransdata[ef->len - 1].rot;
+    }
 
-    f[2] = font_size * (0.02f * co + ct->xof);
-    f[3] = font_size * (-0.1f * si - (0.25f * co) + ct->yof);
+    /* We need the rotation to be around the bottom-left corner. So we make
+     * that the zero point before rotation, rotate, then apply offsets afterward. */
 
-    f[4] = font_size * (0.02f * co + 0.8f * si + ct->xof);
-    f[5] = font_size * (-0.1f * si + 0.75f * co + ct->yof);
+    /* Bottom left. */
+    ef->textcurs[0][0] = cursor_left;
+    ef->textcurs[0][1] = 0.0f - font_select_y_offset;
+    /* Bottom right. */
+    ef->textcurs[1][0] = cursor_left + cursor_width;
+    ef->textcurs[1][1] = 0.0f - font_select_y_offset;
+    /* Top left. */
+    ef->textcurs[3][0] = cursor_left;
+    ef->textcurs[3][1] = 1.0f - font_select_y_offset;
+    /* Top right. */
+    ef->textcurs[2][0] = cursor_left + cursor_width;
+    ef->textcurs[2][1] = 1.0f - font_select_y_offset;
 
-    f[6] = font_size * (-0.02f * co + 0.8f * si + ct->xof);
-    f[7] = font_size * (0.1f * si + 0.75f * co + ct->yof);
+    for (int vert = 0; vert < 4; vert++) {
+      float temp_fl[2];
+      /* Rotate around the cursor's bottom-left corner. */
+      rotate_v2_v2fl(temp_fl, &ef->textcurs[vert][0], -rotation);
+      ef->textcurs[vert][0] = font_size * (xoffset + temp_fl[0]);
+      ef->textcurs[vert][1] = font_size * (yoffset + temp_fl[1]);
+    }
   }
 
   if (mode == FO_SELCHANGE) {

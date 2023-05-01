@@ -703,7 +703,7 @@ void GPU_texture_free(GPUTexture *texture);
  * TODO(fclem): Target conversion (ex: Texture 2D as Texture 2D Array) is not implemented yet.
  */
 GPUTexture *GPU_texture_create_view(const char *name,
-                                    const GPUTexture *source_texture,
+                                    GPUTexture *source_texture,
                                     eGPUTextureFormat view_format,
                                     int mip_start,
                                     int mip_len,

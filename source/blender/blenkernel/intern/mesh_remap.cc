@@ -1330,7 +1330,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
         poly_normals_dst = mesh_dst->poly_normals();
       }
       if (need_lnors_dst) {
-        short(*custom_nors_dst)[2] = static_cast<short(*)[2]>(
+        blender::short2 *custom_nors_dst = static_cast<blender::short2 *>(
             CustomData_get_layer_for_write(ldata_dst, CD_CUSTOMLOOPNORMAL, numloops_dst));
 
         /* Cache loop normals into a temporary custom data layer. */

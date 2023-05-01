@@ -519,7 +519,10 @@ static std::string float3_to_string(const float3 &numbers)
 MTLWriter::MTLWriter(const char *obj_filepath) noexcept(false)
 {
   mtl_filepath_ = obj_filepath;
-  const bool ok = BLI_path_extension_replace(mtl_filepath_.data(), FILE_MAX, ".mtl");
+  /* It only makes sense to replace this extension if it's at least as long as the existing one. */
+  BLI_assert(strlen(BLI_path_extension(obj_filepath)) == 4);
+  const bool ok = BLI_path_extension_replace(
+      mtl_filepath_.data(), mtl_filepath_.size() + 1, ".mtl");
   if (!ok) {
     throw std::system_error(ENAMETOOLONG, std::system_category(), "");
   }

@@ -717,12 +717,12 @@ typedef struct SculptAttributePointers {
   SculptAttribute *boundary_flags;
   SculptAttribute *sculpt_vert;
   SculptAttribute *stroke_id;
+  SculptAttribute *sculpt_flags;      /* CD_PROP_INT8,   vert */
+  SculptAttribute *orig_fsets;        /* CD_PROP_INT32,  face */
 
   SculptAttribute *smear_previous;
   SculptAttribute *hide_poly;
   SculptAttribute *limit_surface;
-
-  SculptAttribute *orig_fsets;
 
   SculptAttribute *layer_disp;
   SculptAttribute *layer_id;

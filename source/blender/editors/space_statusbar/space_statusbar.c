@@ -124,7 +124,7 @@ static void statusbar_header_region_message_subscribe(const wmRegionMessageSubsc
   WM_msg_subscribe_rna_anon_prop(mbus, ViewLayer, name, &msg_sub_value_region_tag_redraw);
 }
 
-static void statusbar_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void statusbar_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   BLO_write_struct(writer, SpaceStatusBar, sl);
 }
@@ -143,7 +143,7 @@ void ED_spacetype_statusbar(void)
   st->duplicate = statusbar_duplicate;
   st->operatortypes = statusbar_operatortypes;
   st->keymap = statusbar_keymap;
-  st->blend_write = statusbar_blend_write;
+  st->blend_write = statusbar_space_blend_write;
 
   /* regions: header window */
   art = MEM_callocN(sizeof(*art), "spacetype statusbar header region");

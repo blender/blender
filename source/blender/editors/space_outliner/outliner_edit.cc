@@ -423,6 +423,8 @@ static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *even
 
 void OUTLINER_OT_item_rename(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   ot->name = "Rename";
   ot->idname = "OUTLINER_OT_item_rename";
   ot->description = "Rename the active element";
@@ -434,11 +436,12 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna,
-                  "use_active",
-                  false,
-                  "Use Active",
-                  "Rename the active item, rather than the one the mouse is over");
+  prop = RNA_def_boolean(ot->srna,
+                         "use_active",
+                         false,
+                         "Use Active",
+                         "Rename the active item, rather than the one the mouse is over");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
 }
 
 /** \} */

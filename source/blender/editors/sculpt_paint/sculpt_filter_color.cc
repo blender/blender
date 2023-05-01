@@ -335,7 +335,6 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
-  PBVH *pbvh = ob->sculpt->pbvh;
   View3D *v3d = CTX_wm_view3d(C);
 
   int mval[2];
@@ -360,6 +359,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  const PBVHType pbvh_type_prev = BKE_pbvh_type(ss->pbvh);
   SCULPT_undo_push_begin(ob, op);
   BKE_sculpt_color_layer_create_if_needed(ob);
 
@@ -367,8 +367,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
    * earlier steps modifying the data. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, true);
-
-  if (BKE_pbvh_type(pbvh) == PBVH_FACES && !ob->sculpt->pmap) {
+  if (pbvh_type_prev == PBVH_FACES && !ob->sculpt->pmap) {
     return OPERATOR_CANCELLED;
   }
 

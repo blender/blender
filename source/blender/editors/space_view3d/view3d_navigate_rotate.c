@@ -293,60 +293,17 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
   ED_region_tag_redraw(vod->region);
 }
 
-static int viewrotate_modal(bContext *C, wmOperator *op, const wmEvent *event)
+int viewrotate_modal_impl(bContext *C,
+                          ViewOpsData *vod,
+                          const eV3D_OpEvent event_code,
+                          const int xy[2])
 {
-  ViewOpsData *vod = op->customdata;
-  short event_code = VIEW_PASS;
   bool use_autokey = false;
   int ret = OPERATOR_RUNNING_MODAL;
 
-  /* Execute the events. */
-  if (event->type == EVT_MODAL_MAP) {
-    switch (event->val) {
-      case VIEW_MODAL_CONFIRM:
-        event_code = VIEW_CONFIRM;
-        break;
-      case VIEW_MODAL_CANCEL:
-        event_code = VIEW_CANCEL;
-        break;
-      case VIEWROT_MODAL_AXIS_SNAP_ENABLE:
-        vod->axis_snap = true;
-        event_code = VIEW_APPLY;
-        break;
-      case VIEWROT_MODAL_AXIS_SNAP_DISABLE:
-        vod->rv3d->persp = vod->init.persp_with_auto_persp_applied;
-        vod->axis_snap = false;
-        event_code = VIEW_APPLY;
-        break;
-      case VIEWROT_MODAL_SWITCH_ZOOM:
-        WM_operator_name_call(C, "VIEW3D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL, event);
-        event_code = VIEW_CONFIRM;
-        break;
-      case VIEWROT_MODAL_SWITCH_MOVE:
-        WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL, event);
-        event_code = VIEW_CONFIRM;
-        break;
-    }
-  }
-  else {
-    if (event->type == MOUSEMOVE) {
-      event_code = VIEW_APPLY;
-    }
-    else if (event->type == vod->init.event_type) {
-      if (event->val == KM_RELEASE) {
-        event_code = VIEW_CONFIRM;
-      }
-    }
-    else if (event->type == EVT_ESCKEY) {
-      if (event->val == KM_PRESS) {
-        event_code = VIEW_CANCEL;
-      }
-    }
-  }
-
   switch (event_code) {
     case VIEW_APPLY: {
-      viewrotate_apply(vod, event->xy);
+      viewrotate_apply(vod, xy);
       if (ED_screen_animation_playing(CTX_wm_manager(C))) {
         use_autokey = true;
       }
@@ -376,72 +333,48 @@ static int viewrotate_modal(bContext *C, wmOperator *op, const wmEvent *event)
       ret = OPERATOR_CANCELLED;
       break;
     }
+    case VIEW_PASS:
+      break;
   }
 
   if (use_autokey) {
     ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, true, true);
   }
 
-  if ((ret & OPERATOR_RUNNING_MODAL) == 0) {
-    if (ret & OPERATOR_FINISHED) {
-      ED_view3d_camera_lock_undo_push(op->type->name, vod->v3d, vod->rv3d, C);
-    }
-    viewops_data_free(C, op->customdata);
-    op->customdata = NULL;
-  }
-
   return ret;
 }
 
-static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+int viewrotate_invoke_impl(ViewOpsData *vod, const wmEvent *event)
 {
-  ViewOpsData *vod;
-
-  const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
-
-  /* makes op->customdata */
-  vod = op->customdata = viewops_data_create(
-      C,
-      event,
-      viewops_flag_from_prefs() | VIEWOPS_FLAG_PERSP_ENSURE |
-          (use_cursor_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
-
   if (vod->use_dyn_ofs && (vod->rv3d->is_persp == false)) {
     vod->use_dyn_ofs_ortho_correction = true;
   }
 
-  ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
+  eV3D_OpEvent event_code = ELEM(event->type, MOUSEROTATE, MOUSEPAN) ? VIEW_CONFIRM : VIEW_PASS;
 
-  if (ELEM(event->type, MOUSEPAN, MOUSEROTATE)) {
-    /* Rotate direction we keep always same */
-    int event_xy[2];
+  if (event_code == VIEW_CONFIRM) {
+    /* MOUSEROTATE performs orbital rotation, so y axis delta is set to 0 */
+    const bool is_inverted = (event->flag & WM_EVENT_SCROLL_INVERT) &&
+                             (event->type != MOUSEROTATE);
 
-    if (event->type == MOUSEPAN) {
-      if (event->flag & WM_EVENT_SCROLL_INVERT) {
-        event_xy[0] = 2 * event->xy[0] - event->prev_xy[0];
-        event_xy[1] = 2 * event->xy[1] - event->prev_xy[1];
-      }
-      else {
-        copy_v2_v2_int(event_xy, event->prev_xy);
-      }
+    int m_xy[2];
+    if (is_inverted) {
+      m_xy[0] = 2 * event->xy[0] - event->prev_xy[0];
+      m_xy[1] = 2 * event->xy[1] - event->prev_xy[1];
     }
     else {
-      /* MOUSEROTATE performs orbital rotation, so y axis delta is set to 0 */
-      copy_v2_v2_int(event_xy, event->prev_xy);
+      copy_v2_v2_int(m_xy, event->prev_xy);
     }
-
-    viewrotate_apply(vod, event_xy);
-
-    viewops_data_free(C, op->customdata);
-    op->customdata = NULL;
-
+    viewrotate_apply(vod, m_xy);
     return OPERATOR_FINISHED;
   }
 
-  /* add temp handler */
-  WM_event_add_modal_handler(C, op);
-
   return OPERATOR_RUNNING_MODAL;
+}
+
+static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  return view3d_navigate_invoke_impl(C, op, event, V3D_OP_MODE_ROTATE);
 }
 
 void VIEW3D_OT_rotate(wmOperatorType *ot)
@@ -449,11 +382,11 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Rotate View";
   ot->description = "Rotate the view";
-  ot->idname = "VIEW3D_OT_rotate";
+  ot->idname = viewops_operator_idname_get(V3D_OP_MODE_ROTATE);
 
   /* api callbacks */
   ot->invoke = viewrotate_invoke;
-  ot->modal = viewrotate_modal;
+  ot->modal = view3d_navigate_modal_fn;
   ot->poll = view3d_rotation_poll;
   ot->cancel = view3d_navigate_cancel_fn;
 

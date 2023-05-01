@@ -88,6 +88,59 @@ typedef struct tBeztCopyData {
  * \{ */
 
 /**
+ * Helper function that iterates over all FCurves and selected segments and applies the given
+ * function.
+ */
+static void apply_fcu_segment_function(bAnimContext *ac,
+                                       const float factor,
+                                       void (*segment_function)(FCurve *fcu,
+                                                                FCurveSegment *segment,
+                                                                const float factor))
+{
+  ListBase anim_data = {NULL, NULL};
+
+  ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    FCurve *fcu = (FCurve *)ale->key_data;
+    ListBase segments = find_fcurve_segments(fcu);
+
+    LISTBASE_FOREACH (FCurveSegment *, segment, &segments) {
+      segment_function(fcu, segment, factor);
+    }
+
+    ale->update |= ANIM_UPDATE_DEFAULT;
+    BLI_freelistN(&segments);
+  }
+
+  ANIM_animdata_update(ac, &anim_data);
+  ANIM_animdata_freelist(&anim_data);
+}
+
+static void common_draw_status_header(bContext *C, tGraphSliderOp *gso, const char *operator_name)
+{
+  char status_str[UI_MAX_DRAW_STR];
+  char mode_str[32];
+  char slider_string[UI_MAX_DRAW_STR];
+
+  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
+
+  strcpy(mode_str, TIP_(operator_name));
+
+  if (hasNumInput(&gso->num)) {
+    char str_ofs[NUM_STR_REP_LEN];
+
+    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
+
+    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, str_ofs);
+  }
+  else {
+    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, slider_string);
+  }
+
+  ED_workspace_status_text(C, status_str);
+}
+
+/**
  * Construct a list with the original bezt arrays so we can restore them during modal operation.
  * The data is stored on the struct that is passed.
  */
@@ -558,58 +611,16 @@ void GRAPH_OT_decimate(wmOperatorType *ot)
 /** \name Blend to Neighbor Operator
  * \{ */
 
-static void blend_to_neighbor_graph_keys(bAnimContext *ac, float factor)
+static void blend_to_neighbor_graph_keys(bAnimContext *ac, const float factor)
 {
-  ListBase anim_data = {NULL, NULL};
-  ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
-
-  bAnimListElem *ale;
-
-  /* Loop through filtered data and blend keys. */
-
-  for (ale = anim_data.first; ale; ale = ale->next) {
-    FCurve *fcu = (FCurve *)ale->key_data;
-    ListBase segments = find_fcurve_segments(fcu);
-    LISTBASE_FOREACH (FCurveSegment *, segment, &segments) {
-      blend_to_neighbor_fcurve_segment(fcu, segment, factor);
-    }
-    BLI_freelistN(&segments);
-    ale->update |= ANIM_UPDATE_DEFAULT;
-  }
-
-  ANIM_animdata_update(ac, &anim_data);
-  ANIM_animdata_freelist(&anim_data);
-}
-
-static void blend_to_neighbor_draw_status_header(bContext *C, tGraphSliderOp *gso)
-{
-  char status_str[UI_MAX_DRAW_STR];
-  char mode_str[32];
-  char slider_string[UI_MAX_DRAW_STR];
-
-  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
-
-  strcpy(mode_str, TIP_("Blend to Neighbor"));
-
-  if (hasNumInput(&gso->num)) {
-    char str_ofs[NUM_STR_REP_LEN];
-
-    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
-
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, str_ofs);
-  }
-  else {
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, slider_string);
-  }
-
-  ED_workspace_status_text(C, status_str);
+  apply_fcu_segment_function(ac, factor, blend_to_neighbor_fcurve_segment);
 }
 
 static void blend_to_neighbor_modal_update(bContext *C, wmOperator *op)
 {
   tGraphSliderOp *gso = op->customdata;
 
-  blend_to_neighbor_draw_status_header(C, gso);
+  common_draw_status_header(C, gso, "Blend to Neighbor");
 
   /* Reset keyframe data to the state at invoke. */
   reset_bezts(gso);
@@ -631,7 +642,7 @@ static int blend_to_neighbor_invoke(bContext *C, wmOperator *op, const wmEvent *
   tGraphSliderOp *gso = op->customdata;
   gso->modal_update = blend_to_neighbor_modal_update;
   gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
-  blend_to_neighbor_draw_status_header(C, gso);
+  common_draw_status_header(C, gso, "Blend to Neighbor");
 
   return invoke_result;
 }
@@ -689,54 +700,14 @@ void GRAPH_OT_blend_to_neighbor(wmOperatorType *ot)
 
 static void breakdown_graph_keys(bAnimContext *ac, float factor)
 {
-  ListBase anim_data = {NULL, NULL};
-  ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
-
-  bAnimListElem *ale;
-
-  for (ale = anim_data.first; ale; ale = ale->next) {
-    FCurve *fcu = (FCurve *)ale->key_data;
-    ListBase segments = find_fcurve_segments(fcu);
-    LISTBASE_FOREACH (FCurveSegment *, segment, &segments) {
-      breakdown_fcurve_segment(fcu, segment, factor);
-    }
-    BLI_freelistN(&segments);
-    ale->update |= ANIM_UPDATE_DEFAULT;
-  }
-
-  ANIM_animdata_update(ac, &anim_data);
-  ANIM_animdata_freelist(&anim_data);
-}
-
-static void breakdown_draw_status_header(bContext *C, tGraphSliderOp *gso)
-{
-  char status_str[UI_MAX_DRAW_STR];
-  char mode_str[32];
-  char slider_string[UI_MAX_DRAW_STR];
-
-  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
-
-  strcpy(mode_str, TIP_("Breakdown"));
-
-  if (hasNumInput(&gso->num)) {
-    char str_ofs[NUM_STR_REP_LEN];
-
-    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
-
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, str_ofs);
-  }
-  else {
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, slider_string);
-  }
-
-  ED_workspace_status_text(C, status_str);
+  apply_fcu_segment_function(ac, factor, breakdown_fcurve_segment);
 }
 
 static void breakdown_modal_update(bContext *C, wmOperator *op)
 {
   tGraphSliderOp *gso = op->customdata;
 
-  breakdown_draw_status_header(C, gso);
+  common_draw_status_header(C, gso, "Breakdown");
 
   /* Reset keyframe data to the state at invoke. */
   reset_bezts(gso);
@@ -756,7 +727,7 @@ static int breakdown_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   tGraphSliderOp *gso = op->customdata;
   gso->modal_update = breakdown_modal_update;
   gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
-  breakdown_draw_status_header(C, gso);
+  common_draw_status_header(C, gso, "Breakdown");
 
   return invoke_result;
 }
@@ -836,35 +807,11 @@ static void blend_to_default_graph_keys(bAnimContext *ac, const float factor)
   ANIM_animdata_freelist(&anim_data);
 }
 
-static void blend_to_default_draw_status_header(bContext *C, tGraphSliderOp *gso)
-{
-  char status_str[UI_MAX_DRAW_STR];
-  char mode_str[32];
-  char slider_string[UI_MAX_DRAW_STR];
-
-  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
-
-  strcpy(mode_str, TIP_("Blend to Default Value"));
-
-  if (hasNumInput(&gso->num)) {
-    char str_ofs[NUM_STR_REP_LEN];
-
-    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
-
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, str_ofs);
-  }
-  else {
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, slider_string);
-  }
-
-  ED_workspace_status_text(C, status_str);
-}
-
 static void blend_to_default_modal_update(bContext *C, wmOperator *op)
 {
   tGraphSliderOp *gso = op->customdata;
 
-  blend_to_default_draw_status_header(C, gso);
+  common_draw_status_header(C, gso, "Blend to Default Value");
 
   /* Set notifier that keyframes have changed. */
   reset_bezts(gso);
@@ -885,7 +832,7 @@ static int blend_to_default_invoke(bContext *C, wmOperator *op, const wmEvent *e
   tGraphSliderOp *gso = op->customdata;
   gso->modal_update = blend_to_default_modal_update;
   gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
-  blend_to_default_draw_status_header(C, gso);
+  common_draw_status_header(C, gso, "Blend to Default Value");
 
   return invoke_result;
 }
@@ -942,54 +889,14 @@ void GRAPH_OT_blend_to_default(wmOperatorType *ot)
 
 static void ease_graph_keys(bAnimContext *ac, const float factor)
 {
-  ListBase anim_data = {NULL, NULL};
-
-  ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
-    ListBase segments = find_fcurve_segments(fcu);
-
-    LISTBASE_FOREACH (FCurveSegment *, segment, &segments) {
-      ease_fcurve_segment(fcu, segment, factor);
-    }
-
-    ale->update |= ANIM_UPDATE_DEFAULT;
-    BLI_freelistN(&segments);
-  }
-
-  ANIM_animdata_update(ac, &anim_data);
-  ANIM_animdata_freelist(&anim_data);
-}
-
-static void ease_draw_status_header(bContext *C, tGraphSliderOp *gso)
-{
-  char status_str[UI_MAX_DRAW_STR];
-  char mode_str[32];
-  char slider_string[UI_MAX_DRAW_STR];
-
-  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
-
-  strcpy(mode_str, TIP_("Ease Keys"));
-
-  if (hasNumInput(&gso->num)) {
-    char str_ofs[NUM_STR_REP_LEN];
-
-    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
-
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, str_ofs);
-  }
-  else {
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, slider_string);
-  }
-
-  ED_workspace_status_text(C, status_str);
+  apply_fcu_segment_function(ac, factor, ease_fcurve_segment);
 }
 
 static void ease_modal_update(bContext *C, wmOperator *op)
 {
   tGraphSliderOp *gso = op->customdata;
 
-  ease_draw_status_header(C, gso);
+  common_draw_status_header(C, gso, "Ease Keys");
 
   /* Reset keyframes to the state at invoke. */
   reset_bezts(gso);
@@ -1009,7 +916,7 @@ static int ease_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   tGraphSliderOp *gso = op->customdata;
   gso->modal_update = ease_modal_update;
   gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
-  ease_draw_status_header(C, gso);
+  common_draw_status_header(C, gso, "Ease Keys");
 
   return invoke_result;
 }
@@ -1133,29 +1040,6 @@ static void gaussian_smooth_free_operator_data(void *operator_data)
   MEM_freeN(gauss_data);
 }
 
-static void gaussian_smooth_draw_status_header(bContext *C, tGraphSliderOp *gso)
-{
-  char status_str[UI_MAX_DRAW_STR];
-  char slider_string[UI_MAX_DRAW_STR];
-
-  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
-
-  const char *mode_str = TIP_("Gaussian Smooth");
-
-  if (hasNumInput(&gso->num)) {
-    char str_ofs[NUM_STR_REP_LEN];
-
-    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
-
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, str_ofs);
-  }
-  else {
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, slider_string);
-  }
-
-  ED_workspace_status_text(C, status_str);
-}
-
 static void gaussian_smooth_modal_update(bContext *C, wmOperator *op)
 {
   tGraphSliderOp *gso = op->customdata;
@@ -1166,7 +1050,7 @@ static void gaussian_smooth_modal_update(bContext *C, wmOperator *op)
     return;
   }
 
-  gaussian_smooth_draw_status_header(C, gso);
+  common_draw_status_header(C, gso, "Gaussian Smooth");
 
   const float factor = slider_factor_get_and_remember(op);
   tGaussOperatorData *operator_data = (tGaussOperatorData *)gso->operator_data;
@@ -1209,7 +1093,7 @@ static int gaussian_smooth_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   ED_slider_allow_overshoot_set(gso->slider, false);
   ED_slider_factor_set(gso->slider, 0.0f);
-  gaussian_smooth_draw_status_header(C, gso);
+  common_draw_status_header(C, gso, "Gaussian Smooth");
 
   return invoke_result;
 }

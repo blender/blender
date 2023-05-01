@@ -181,7 +181,6 @@ class MTLTexture : public Texture {
   bool is_baked_ = false;
   MTLTextureDescriptor *texture_descriptor_ = nullptr;
   id<MTLTexture> texture_ = nil;
-  MTLTextureUsage usage_;
 
   /* Texture Storage. */
   id<MTLBuffer> texture_buffer_ = nil;
@@ -284,7 +283,7 @@ class MTLTexture : public Texture {
  protected:
   bool init_internal() override;
   bool init_internal(GPUVertBuf *vbo) override;
-  bool init_internal(const GPUTexture *src,
+  bool init_internal(GPUTexture *src,
                      int mip_offset,
                      int layer_offset) override; /* Texture View */
 

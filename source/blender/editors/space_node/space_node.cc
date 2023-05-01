@@ -1037,7 +1037,7 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
   }
 }
 
-static void node_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+static void node_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceNode *snode = (SpaceNode *)sl;
 
@@ -1051,7 +1051,7 @@ static void node_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   snode->runtime = nullptr;
 }
 
-static void node_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+static void node_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceNode *snode = (SpaceNode *)sl;
 
@@ -1102,7 +1102,7 @@ static void node_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink
   }
 }
 
-static void node_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void node_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceNode *snode = (SpaceNode *)sl;
   BLO_write_struct(writer, SpaceNode, snode);
@@ -1139,9 +1139,9 @@ void ED_spacetype_node()
   st->space_subtype_item_extend = node_space_subtype_item_extend;
   st->space_subtype_get = node_space_subtype_get;
   st->space_subtype_set = node_space_subtype_set;
-  st->blend_read_data = node_blend_read_data;
-  st->blend_read_lib = node_blend_read_lib;
-  st->blend_write = node_blend_write;
+  st->blend_read_data = node_space_blend_read_data;
+  st->blend_read_lib = node_space_blend_read_lib;
+  st->blend_write = node_space_blend_write;
 
   /* regions: main window */
   art = MEM_cnew<ARegionType>("spacetype node region");

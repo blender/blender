@@ -15,9 +15,9 @@
 #include "BLI_bitmap.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_math.h"
-#include "BLI_stack.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
@@ -470,7 +470,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
                                                const int cd_loop_clnors_offset,
                                                const bool has_clnors,
                                                /* Cache. */
-                                               BLI_Stack *edge_vectors,
+                                               blender::Vector<blender::float3, 16> *edge_vectors,
                                                /* Iterate. */
                                                BMLoop *l_curr,
                                                /* Result. */
@@ -534,7 +534,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
         normalize_v3(vec_prev);
       }
 
-      BKE_lnor_space_define(lnor_space, r_lnos[l_curr_index], vec_curr, vec_prev, nullptr);
+      BKE_lnor_space_define(lnor_space, r_lnos[l_curr_index], vec_curr, vec_prev, {});
       /* We know there is only one loop in this space,
        * no need to create a linklist in this case... */
       BKE_lnor_space_add_loop(r_lnors_spacearr, lnor_space, l_curr_index, l_curr, true);
@@ -586,7 +586,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
     MLoopNorSpace *lnor_space = r_lnors_spacearr ? BKE_lnor_space_create(r_lnors_spacearr) :
                                                    nullptr;
 
-    BLI_assert((edge_vectors == nullptr) || BLI_stack_is_empty(edge_vectors));
+    BLI_assert((edge_vectors == nullptr) || edge_vectors->is_empty());
 
     lfan_pivot = l_curr;
     lfan_pivot_index = BM_elem_index_get(lfan_pivot);
@@ -605,7 +605,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
       copy_v3_v3(vec_curr, vec_org);
 
       if (r_lnors_spacearr) {
-        BLI_stack_push(edge_vectors, vec_org);
+        edge_vectors->append(vec_org);
       }
     }
 
@@ -671,7 +671,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
         BKE_lnor_space_add_loop(r_lnors_spacearr, lnor_space, lfan_pivot_index, lfan_pivot, false);
         if (e_next != e_org) {
           /* We store here all edges-normalized vectors processed. */
-          BLI_stack_push(edge_vectors, vec_next);
+          edge_vectors->append(vec_next);
         }
       }
 
@@ -700,7 +700,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
           lnor_len = 1.0f;
         }
 
-        BKE_lnor_space_define(lnor_space, lnor, vec_org, vec_next, edge_vectors);
+        BKE_lnor_space_define(lnor_space, lnor, vec_org, vec_next, *edge_vectors);
 
         if (has_clnors) {
           if (clnors_invalid) {
@@ -863,19 +863,20 @@ static void bm_edge_tag_from_smooth_and_set_sharp(const float (*fnos)[3],
  * operating on vertices this is needed for multi-threading
  * so there is a guarantee that each thread has isolated loops.
  */
-static void bm_mesh_loops_calc_normals_for_vert_with_clnors(BMesh *bm,
-                                                            const float (*vcos)[3],
-                                                            const float (*fnos)[3],
-                                                            float (*r_lnos)[3],
-                                                            const short (*clnors_data)[2],
-                                                            const int cd_loop_clnors_offset,
-                                                            const bool do_rebuild,
-                                                            const float split_angle_cos,
-                                                            /* TLS */
-                                                            MLoopNorSpaceArray *r_lnors_spacearr,
-                                                            BLI_Stack *edge_vectors,
-                                                            /* Iterate over. */
-                                                            BMVert *v)
+static void bm_mesh_loops_calc_normals_for_vert_with_clnors(
+    BMesh *bm,
+    const float (*vcos)[3],
+    const float (*fnos)[3],
+    float (*r_lnos)[3],
+    const short (*clnors_data)[2],
+    const int cd_loop_clnors_offset,
+    const bool do_rebuild,
+    const float split_angle_cos,
+    /* TLS */
+    MLoopNorSpaceArray *r_lnors_spacearr,
+    blender::Vector<blender::float3, 16> *edge_vectors,
+    /* Iterate over. */
+    BMVert *v)
 {
   /* Respecting face order is necessary so the initial starting loop is consistent
    * with looping over loops of all faces.
@@ -992,7 +993,7 @@ static void bm_mesh_loops_calc_normals_for_vert_without_clnors(
     const float split_angle_cos,
     /* TLS */
     MLoopNorSpaceArray *r_lnors_spacearr,
-    BLI_Stack *edge_vectors,
+    blender::Vector<blender::float3, 16> *edge_vectors,
     /* Iterate over. */
     BMVert *v)
 {
@@ -1078,7 +1079,7 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
 
   MLoopNorSpaceArray _lnors_spacearr = {nullptr};
 
-  BLI_Stack *edge_vectors = nullptr;
+  std::unique_ptr<blender::Vector<blender::float3, 16>> edge_vectors = nullptr;
 
   {
     char htype = 0;
@@ -1095,7 +1096,7 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
   }
   if (r_lnors_spacearr) {
     BKE_lnor_spacearr_init(r_lnors_spacearr, bm->totloop, MLNOR_SPACEARR_BMLOOP_PTR);
-    edge_vectors = BLI_stack_new(sizeof(float[3]), __func__);
+    edge_vectors = std::make_unique<blender::Vector<blender::float3, 16>>();
   }
 
   /* Clear all loops' tags (means none are to be skipped for now). */
@@ -1138,7 +1139,7 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
                                           clnors_data,
                                           cd_loop_clnors_offset,
                                           has_clnors,
-                                          edge_vectors,
+                                          edge_vectors.get(),
                                           l_curr,
                                           r_lnos,
                                           r_lnors_spacearr);
@@ -1146,7 +1147,6 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
   }
 
   if (r_lnors_spacearr) {
-    BLI_stack_free(edge_vectors);
     if (r_lnors_spacearr == &_lnors_spacearr) {
       BKE_lnor_spacearr_free(r_lnors_spacearr);
     }
@@ -1169,7 +1169,7 @@ typedef struct BMLoopsCalcNormalsWithCoordsData {
 } BMLoopsCalcNormalsWithCoordsData;
 
 typedef struct BMLoopsCalcNormalsWithCoords_TLS {
-  BLI_Stack *edge_vectors;
+  blender::Vector<blender::float3, 16> *edge_vectors;
 
   /** Copied from #BMLoopsCalcNormalsWithCoordsData.r_lnors_spacearr when it's not nullptr. */
   MLoopNorSpaceArray *lnors_spacearr;
@@ -1182,7 +1182,7 @@ static void bm_mesh_loops_calc_normals_for_vert_init_fn(const void *__restrict u
   auto *data = static_cast<const BMLoopsCalcNormalsWithCoordsData *>(userdata);
   auto *tls_data = static_cast<BMLoopsCalcNormalsWithCoords_TLS *>(chunk);
   if (data->r_lnors_spacearr) {
-    tls_data->edge_vectors = BLI_stack_new(sizeof(float[3]), __func__);
+    tls_data->edge_vectors = MEM_new<blender::Vector<blender::float3, 16>>(__func__);
     BKE_lnor_spacearr_tls_init(data->r_lnors_spacearr, &tls_data->lnors_spacearr_buf);
     tls_data->lnors_spacearr = &tls_data->lnors_spacearr_buf;
   }
@@ -1210,7 +1210,7 @@ static void bm_mesh_loops_calc_normals_for_vert_free_fn(const void *__restrict u
   auto *tls_data = static_cast<BMLoopsCalcNormalsWithCoords_TLS *>(chunk);
 
   if (data->r_lnors_spacearr) {
-    BLI_stack_free(tls_data->edge_vectors);
+    MEM_delete(tls_data->edge_vectors);
   }
 }
 

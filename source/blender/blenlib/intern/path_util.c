@@ -47,8 +47,22 @@ static bool BLI_path_is_abs_win32(const char *name);
 
 // #define DEBUG_STRSIZE
 
-int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort *r_digits_len)
+int BLI_path_sequence_decode(const char *string,
+                             char *head,
+                             const size_t head_maxncpy,
+                             char *tail,
+                             const size_t tail_maxncpy,
+                             ushort *r_digits_len)
 {
+#ifdef DEBUG_STRSIZE
+  if (head) {
+    memset(head, 0xff, sizeof(*head) * head_maxncpy);
+  }
+  if (tail) {
+    memset(tail, 0xff, sizeof(*tail) * tail_maxncpy);
+  }
+#endif
+
   uint nums = 0, nume = 0;
   int i;
   bool found_digit = false;
@@ -82,8 +96,7 @@ int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort 
         strcpy(tail, &string[nume + 1]);
       }
       if (head) {
-        strcpy(head, string);
-        head[nums] = 0;
+        BLI_strncpy(head, string, MIN2(head_maxncpy, nums + 1));
       }
       if (r_digits_len) {
         *r_digits_len = nume - nums + 1;
@@ -93,7 +106,7 @@ int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort 
   }
 
   if (tail) {
-    strcpy(tail, string + name_end);
+    BLI_strncpy(tail, string + name_end, tail_maxncpy);
   }
   if (head) {
     /* Name_end points to last character of head,
@@ -106,22 +119,28 @@ int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort 
   return 0;
 }
 
-void BLI_path_sequence_encode(
-    char *string, const char *head, const char *tail, ushort numlen, int pic)
+void BLI_path_sequence_encode(char *string,
+                              const size_t string_maxncpy,
+                              const char *head,
+                              const char *tail,
+                              ushort numlen,
+                              int pic)
 {
-  BLI_sprintf(string, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
+#ifdef DEBUG_STRSIZE
+  memset(string, 0xff, sizeof(*string) * string_maxncpy);
+#endif
+  BLI_snprintf(string, string_maxncpy, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
 }
 
 void BLI_path_normalize(char *path)
 {
   const char *path_orig = path;
-  int path_len;
+  int path_len = strlen(path);
 
-  ptrdiff_t a;
-  char *start, *eind;
-
-  path_len = strlen(path);
-
+  /*
+   * Skip absolute prefix.
+   * ---------------------
+   */
   if (path[0] == '/' && path[1] == '/') {
     path = path + 2; /* Leave the initial `//` untouched. */
     path_len -= 2;
@@ -157,9 +176,13 @@ void BLI_path_normalize(char *path)
     }
   }
 #endif /* WIN32 */
-
   /* Works on WIN32 as well, because the drive component is skipped. */
   const bool is_relative = path[0] && (path[0] != SEP);
+
+  /*
+   * Strip redundant path components.
+   * --------------------------------
+   */
 
   /* NOTE(@ideasman42):
    *   `memmove(start, eind, strlen(eind) + 1);`
@@ -189,7 +212,6 @@ void BLI_path_normalize(char *path)
           else {
             break;
           }
-
         } while (i > 0);
 
         if (i < i_end) {
@@ -200,8 +222,7 @@ void BLI_path_normalize(char *path)
       }
     }
   }
-
-  /* Remove redundant `./` prefix, while it could be kept, it confuses the loop below. */
+  /* Remove redundant `./` prefix as it's redundant & complicates collapsing directories. */
   if (is_relative) {
     if ((path_len > 2) && (path[0] == '.') && (path[1] == SEP)) {
       memmove(path, path + 2, (path_len - 2) + 1);
@@ -209,69 +230,127 @@ void BLI_path_normalize(char *path)
     }
   }
 
-  const ptrdiff_t a_start = is_relative ? 0 : 1;
-  start = path;
-  while ((start = strstr(start, SEP_STR ".."))) {
-    if (!ELEM(start[3], SEP, '\0')) {
-      start += 3;
-      continue;
-    }
+  /*
+   * Collapse Parent Directories.
+   * ----------------------------
+   *
+   * Example: `<parent>/<child>/../` -> `<parent>/`
+   *
+   * Notes:
+   * - Leading `../` are skipped as they cannot be collapsed (see `start_base`).
+   * - Multiple parent directories are handled at once to reduce number of `memmove` calls.
+   */
 
-    a = (start - path) - 1;
-    if (a >= a_start) {
-      /* `<prefix>/<parent>/../<postfix> => <prefix>/<postfix>`. */
-      eind = start + (4 - 1) /* `strlen("/../") - 1` */; /* Strip "/.." and keep the char after. */
-      while (a > 0 && path[a] != SEP) {                  /* Find start of `<parent>`. */
-        a--;
-      }
+#define IS_PARENT_DIR(p) ((p)[0] == '.' && (p)[1] == '.' && ELEM((p)[2], SEP, '\0'))
 
-      if (is_relative && (a == 0) && *eind) {
-        /* When the path does not start with a slash, don't copy the first `/` to the destination
-         * as it will make a relative path into an absolute path. */
-        eind += 1;
-      }
-      const size_t eind_len = path_len - (eind - path);
-      BLI_assert(eind_len == strlen(eind));
-
-      /* Only remove the parent if it's not also a `..`. */
-      if (is_relative && STRPREFIX(path + ((path[a] == SEP) ? a + 1 : a), ".." SEP_STR)) {
-        start += 3 /* `strlen("/..")` */;
-      }
-      else {
-        start = path + a;
-        BLI_assert(start < eind);
-        memmove(start, eind, eind_len + 1);
-        path_len -= (eind - start);
-        BLI_assert(strlen(path) == path_len);
-        BLI_assert(!is_relative || (path[0] != SEP));
-      }
-    }
-    else {
-      /* Support for odd paths: eg `/../home/me` --> `/home/me`
-       * this is a valid path in blender but we can't handle this the usual way below
-       * simply strip this prefix then evaluate the path as usual.
-       * Python's `os.path.normpath()` does this. */
-
-      /* NOTE: previous version of following call used an offset of 3 instead of 4,
-       * which meant that the `/../home/me` example actually became `home/me`.
-       * Using offset of 3 gives behavior consistent with the aforementioned
-       * Python routine. */
-      eind = start + 3;
-      const size_t eind_len = path_len - (eind - path);
-      memmove(start, eind, eind_len + 1);
-      path_len -= 3;
-      BLI_assert(strlen(path) == path_len);
-      BLI_assert(!is_relative || (path[0] != SEP));
-    }
+  /* First non prefix path component. */
+  char *path_first_non_slash_part = path;
+  while (*path_first_non_slash_part && *path_first_non_slash_part == SEP) {
+    path_first_non_slash_part++;
   }
 
-  if (is_relative && path_len == 0 && (path == path_orig)) {
-    path[0] = '.';
-    path[1] = '\0';
-    path_len += 1;
+  /* Maintain a pointer to the end of leading `..` component.
+   * Skip leading parent directories because logically they cannot be collapsed. */
+  char *start_base = path_first_non_slash_part;
+  while (IS_PARENT_DIR(start_base)) {
+    start_base += 3;
+  }
+
+  /* It's possible the entire path is made of up `../`,
+   * in this case there is nothing to do. */
+  if (start_base < path + path_len) {
+    /* Step over directories, always starting out on the character after the slash. */
+    char *start = start_base;
+    char *start_temp;
+    while (((start_temp = strstr(start, SEP_STR ".." SEP_STR)) ||
+            /* Check if the string ends with `/..` & assign when found, else NULL. */
+            (start_temp = ((start <= &path[path_len - 3]) &&
+                           STREQ(&path[path_len - 3], SEP_STR "..")) ?
+                              &path[path_len - 3] :
+                              NULL))) {
+      start = start_temp + 1; /* Skip the `/`. */
+      BLI_assert(start_base != start);
+
+      /* Step `end_all` forwards (over all `..`). */
+      char *end_all = start;
+      do {
+        BLI_assert(IS_PARENT_DIR(end_all));
+        end_all += 3;
+        BLI_assert(end_all <= path + path_len + 1);
+      } while (IS_PARENT_DIR(end_all));
+
+      /* Step `start` backwards (until `end` meets `end_all` or `start` meets `start_base`). */
+      char *end = start;
+      do {
+        BLI_assert(start_base < start);
+        BLI_assert(*(start - 1) == SEP);
+        /* Step `start` backwards one. */
+        do {
+          start--;
+        } while (start_base < start && *(start - 1) != SEP);
+        BLI_assert(*start != SEP);         /* Ensure the loop ran at least once. */
+        BLI_assert(!IS_PARENT_DIR(start)); /* Clamping by `start_base` prevents this. */
+        end += 3;
+      } while ((start != start_base) && (end < end_all));
+
+      if (end > path + path_len) {
+        BLI_assert(*(end - 1) == '\0');
+        end--;
+        end_all--;
+      }
+      BLI_assert(start < end && start >= start_base);
+      const size_t start_len = path_len - (end - path);
+      memmove(start, end, start_len + 1);
+      path_len -= end - start;
+      BLI_assert(strlen(path) == path_len);
+      /* Other `..` directories may have been moved to the front, step `start_base` past them. */
+      if (UNLIKELY(start == start_base && (end != end_all))) {
+        start_base += (end_all - end);
+        start = (start_base < path + path_len) ? start_base : start_base - 1;
+      }
+    }
   }
 
   BLI_assert(strlen(path) == path_len);
+  /* Characters before the `start_base` must *only* be `../../../` (multiples of 3). */
+  BLI_assert((start_base - path_first_non_slash_part) % 3 == 0);
+  /* All `..` ahead of `start_base` were collapsed (including trailing `/..`). */
+  BLI_assert(!(start_base < path + path_len) ||
+             (!strstr(start_base, SEP_STR ".." SEP_STR) &&
+              !(path_len >= 3 && STREQ(&path[path_len - 3], SEP_STR ".."))));
+
+  /*
+   * Final Prefix Cleanup.
+   * ---------------------
+   */
+  if (is_relative) {
+    if (path_len == 0 && (path == path_orig)) {
+      path[0] = '.';
+      path[1] = '\0';
+      path_len = 1;
+    }
+  }
+  else {
+    /* Support for odd paths: eg `/../home/me` --> `/home/me`
+     * this is a valid path in blender but we can't handle this the usual way below
+     * simply strip this prefix then evaluate the path as usual.
+     * Python's `os.path.normpath()` does this. */
+    if (start_base != path_first_non_slash_part) {
+      char *start = start_base > path + path_len ? start_base - 1 : start_base;
+      /* As long as `start` is set correctly, it should never begin with `../`
+       * as these directories are expected to be skipped. */
+      BLI_assert(!IS_PARENT_DIR(start));
+      const size_t start_len = path_len - (start - path);
+      memmove(path_first_non_slash_part, start, start_len + 1);
+      BLI_assert(strlen(start) == start_len);
+      path_len -= start - path_first_non_slash_part;
+      BLI_assert(strlen(path) == path_len);
+    }
+  }
+
+  BLI_assert(strlen(path) == path_len);
+
+#undef IS_PARENT_DIR
 }
 
 void BLI_path_normalize_dir(char *dir, size_t dir_maxlen)

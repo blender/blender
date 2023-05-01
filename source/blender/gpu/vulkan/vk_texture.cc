@@ -174,7 +174,7 @@ bool VKTexture::init_internal(GPUVertBuf * /*vbo*/)
   return false;
 }
 
-bool VKTexture::init_internal(const GPUTexture * /*src*/, int /*mip_offset*/, int /*layer_offset*/)
+bool VKTexture::init_internal(GPUTexture * /*src*/, int /*mip_offset*/, int /*layer_offset*/)
 {
   return false;
 }

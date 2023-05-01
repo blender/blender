@@ -58,6 +58,11 @@ struct ComputeContextHash {
     return a.v1 == b.v1 && a.v2 == b.v2;
   }
 
+  friend bool operator!=(const ComputeContextHash &a, const ComputeContextHash &b)
+  {
+    return !(a == b);
+  }
+
   void mix_in(const void *data, int64_t len);
 
   friend std::ostream &operator<<(std::ostream &stream, const ComputeContextHash &hash);
