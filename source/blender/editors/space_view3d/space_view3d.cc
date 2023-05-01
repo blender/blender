@@ -2253,7 +2253,6 @@ void ED_spacetype_view3d()
   /* regions: asset shelf */
   art = MEM_cnew<ARegionType>("spacetype view3d asset shelf region");
   art->regionid = RGN_TYPE_ASSET_SHELF;
-  art->prefsizey = ED_asset_shelf_region_prefsizey();
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_FRAMES;
   art->listener = ED_asset_shelf_region_listen;
   art->poll = ED_asset_shelf_poll;

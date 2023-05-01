@@ -1313,14 +1313,6 @@ static void region_rect_recursive(
     }
   }
 
-  if (region->flag & RGN_FLAG_HIDDEN) {
-    /* Pass. */
-  }
-  else if (const int snap_flags = ED_region_snap_size_test(region)) {
-    /* Apply snapping, which updates #ARegion.sizex/sizey values. */
-    ED_region_snap_size_apply(region, snap_flags);
-  }
-
   /* `prefsizex/y`, taking into account DPI. */
   int prefsizex = UI_SCALE_FAC *
                   ((region->sizex > 1) ? region->sizex + 0.5f : region->type->prefsizex);
@@ -1338,6 +1330,10 @@ static void region_rect_recursive(
   }
   else if (region->regiontype == RGN_TYPE_FOOTER) {
     prefsizey = ED_area_footersize();
+  }
+  else if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
+    prefsizey = region->sizey > 1 ? (UI_SCALE_FAC * (region->sizey + 0.5f)) :
+                                    ED_asset_shelf_region_prefsizey();
   }
   else if (region->regiontype == RGN_TYPE_ASSET_SHELF_FOOTER) {
     prefsizey = ED_asset_shelf_footer_size();

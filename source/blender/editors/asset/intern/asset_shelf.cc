@@ -107,17 +107,13 @@ void ED_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.page_size_y = ED_asset_shelf_default_tile_height();
 }
 
-static constexpr int main_region_padding_y_not_scaled()
+static int main_region_padding_y()
 {
-  return 2;
+  const uiStyle *style = UI_style_get_dpi();
+  return style->buttonspacey / 2;
 }
 
-static int main_region_padding_y_scaled()
-{
-  return main_region_padding_y_not_scaled() * UI_SCALE_FAC;
-}
-
-static int main_region_padding_x_scaled()
+static int main_region_padding_x()
 {
   const uiStyle *style = UI_style_get_dpi();
   return style->buttonspacex;
@@ -132,9 +128,12 @@ int ED_asset_shelf_region_snap(const ARegion *region, const int size, const int 
 
   const int size_scaled = size * UI_SCALE_FAC;
 
-  const float tile_height = ED_asset_shelf_default_tile_height() *
-                            UI_view2d_scale_get_y(&region->v2d);
-  const int region_padding = main_region_padding_y_scaled();
+  const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
+                       (BLI_rcti_size_y(&region->v2d.mask) + 1);
+  const float tile_height = ED_asset_shelf_default_tile_height() /
+                            (IS_EQF(aspect, 0) ? 1.0f : aspect);
+
+  const int region_padding = main_region_padding_y();
 
   /* How many rows fit into the region (accounting for padding). */
   const int rows = std::max(1, int((size_scaled - 2 * region_padding) / tile_height));
@@ -155,10 +154,8 @@ int ED_asset_shelf_default_tile_height()
 
 int ED_asset_shelf_region_prefsizey()
 {
-  /* Can't account for DPI here since this is expected to be called on region type initialization
-   * at startup, when #U isn't available yet. */
-
-  return ED_asset_shelf_default_tile_width() + 2 * main_region_padding_y_not_scaled();
+  /* One row by default (plus padding). */
+  return ED_asset_shelf_default_tile_height() + 2 * main_region_padding_y();
 }
 
 /**
@@ -186,8 +183,8 @@ void ED_asset_shelf_region_draw(const bContext *C,
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
 
   const uiStyle *style = UI_style_get();
-  const float padding_y = main_region_padding_y_scaled();
-  const float padding_x = main_region_padding_x_scaled();
+  const float padding_y = main_region_padding_y();
+  const float padding_x = main_region_padding_x();
   const float scale_x = UI_view2d_scale_get_x(&region->v2d);
   uiLayout *layout = UI_block_layout(block,
                                      UI_LAYOUT_VERTICAL,
