@@ -765,7 +765,10 @@ bool rna_NLA_tracks_override_apply(Main *bmain,
 
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
-   * So we should always find 'anchor' track in both _src *and* _dst. */
+   * So we should always find 'anchor' track in both _src *and* _dst.
+   *
+   * This is only true however is NLA tracks do not get removed from linked data. Otherwise, an
+   * index-based reference may lead to lost data. */
   NlaTrack *nla_track_anchor = NULL;
 #  if 0
   /* This is not working so well with index-based insertion, especially in case some tracks get
@@ -785,7 +788,7 @@ bool rna_NLA_tracks_override_apply(Main *bmain,
   }
 
   if (nla_track_src == NULL) {
-    BLI_assert(nla_track_src != NULL);
+    /* Can happen if tracks were removed from linked data. */
     return false;
   }
 
