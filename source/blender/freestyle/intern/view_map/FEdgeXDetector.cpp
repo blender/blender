@@ -321,8 +321,8 @@ void FEdgeXDetector::ProcessSilhouetteEdge(WXEdge *iEdge)
   WXFace *fA = (WXFace *)iEdge->GetaOEdge()->GetaFace();
   WXFace *fB = (WXFace *)iEdge->GetaOEdge()->GetbFace();
 
-  if (fA->front() ^ fB->front())
-  {  // fA->visible XOR fB->visible (true if one is 0 and the other is 1)
+  /* fA->visible XOR fB->visible (true if one is 0 and the other is 1). */
+  if (fA->front() ^ fB->front()) {
     // The only edges we want to set as silhouette edges in this way are the ones with 2 different
     // normals for 1 vertex for these two faces
     //--------------------

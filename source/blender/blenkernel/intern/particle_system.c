@@ -3890,8 +3890,8 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
       ParticleTarget *pt = psys->targets.first;
       psys_update_particle_bvhtree(psys, cfra);
 
-      for (; pt; pt = pt->next)
-      { /* Updating others systems particle tree for fluid-fluid interaction */
+      /* Updating others systems particle tree for fluid-fluid interaction. */
+      for (; pt; pt = pt->next) {
         if (pt->ob) {
           psys_update_particle_bvhtree(BLI_findlink(&pt->ob->particlesystem, pt->psys - 1), cfra);
         }

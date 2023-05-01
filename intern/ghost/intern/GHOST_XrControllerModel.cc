@@ -142,8 +142,8 @@ static void read_indices(const tinygltf::Accessor &accessor,
   }
 
   constexpr size_t component_size_bytes = sizeof(TSrcIndex);
-  if (buffer_view.byteStride != 0 && buffer_view.byteStride != component_size_bytes)
-  { /* Index buffer must be packed per glTF spec. */
+  /* Index buffer must be packed per glTF spec. */
+  if (buffer_view.byteStride != 0 && buffer_view.byteStride != component_size_bytes) {
     throw GHOST_XrException(
         "glTF: Accessor for indices uses bufferview with invalid 'byteStride'.");
   }

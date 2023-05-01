@@ -204,8 +204,8 @@ static void version_idproperty_move_data_string(IDPropertyUIDataString *ui_data,
 
 static void version_idproperty_ui_data(IDProperty *idprop_group)
 {
-  if (idprop_group == nullptr)
-  { /* nullptr check here to reduce verbosity of calls to this function. */
+  /* `nullptr` check here to reduce verbosity of calls to this function. */
+  if (idprop_group == nullptr) {
     return;
   }
 

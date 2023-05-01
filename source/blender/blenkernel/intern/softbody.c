@@ -2062,8 +2062,8 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
         kd = sb->goalfrict * sb_fric_force_scale(ob);
         add_v3_v3v3(auxvect, velgoal, bp->vec);
 
-        if (forcetime > 0.0f)
-        { /* make sure friction does not become rocket motor on time reversal */
+        /* Make sure friction does not become rocket motor on time reversal. */
+        if (forcetime > 0.0f) {
           bp->force[0] -= kd * (auxvect[0]);
           bp->force[1] -= kd * (auxvect[1]);
           bp->force[2] -= kd * (auxvect[2]);

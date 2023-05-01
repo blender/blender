@@ -277,8 +277,8 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
   re->i.infostr = TIP_("Freestyle: Mesh loading");
   re->stats_draw(re->sdh, &re->i);
   re->i.infostr = nullptr;
-  if (controller->LoadMesh(re, view_layer, depsgraph))
-  {  // returns if scene cannot be loaded or if empty
+  if (controller->LoadMesh(re, view_layer, depsgraph)) {
+    /* Returns if scene cannot be loaded or if empty. */
     return;
   }
   if (re->test_break(re->tbh)) {

@@ -2949,10 +2949,10 @@ void BKE_image_walk_all_users(
   {
     image_walk_id_all_users(&cam->id, false, customdata, callback);
   }
-
+  /* Only ever 1 `wm`. */
   for (wmWindowManager *wm = static_cast<wmWindowManager *>(mainp->wm.first); wm;
        wm = static_cast<wmWindowManager *>(wm->id.next))
-  { /* only 1 wm */
+  {
     image_walk_id_all_users(&wm->id, false, customdata, callback);
   }
 }

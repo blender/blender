@@ -147,9 +147,10 @@ static bool rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val,
     priority = 1.0f;
   }
 
-  /* then use that effector */
-  if (priority > (rule->type == eBoidRuleType_Avoid ? gabr->fear_factor : 0.0f))
-  { /* with avoid, factor is "fear factor" */
+  /* Then use that effector. */
+
+  /* With avoid, factor is "fear factor". */
+  if (priority > (rule->type == eBoidRuleType_Avoid ? gabr->fear_factor : 0.0f)) {
     Object *eob = eff->ob;
     PartDeflect *pd = eff->pd;
     float surface = (pd && pd->shape == PFIELD_SHAPE_SURFACE) ? 1.0f : 0.0f;

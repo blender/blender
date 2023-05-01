@@ -4134,9 +4134,9 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
     default_py = NULL;
   }
 
-  /* items can be a list or a callable */
-  if (PyFunction_Check(items))
-  { /* don't use PyCallable_Check because we need the function code for errors */
+  /* Items can be a list or a callable.
+   * NOTE: Don't use #PyCallable_Check because we need the function code for errors. */
+  if (PyFunction_Check(items)) {
     PyCodeObject *f_code = (PyCodeObject *)PyFunction_GET_CODE(items);
     if (f_code->co_argcount != 2) {
       PyErr_Format(PyExc_ValueError,

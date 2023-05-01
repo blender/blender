@@ -523,13 +523,15 @@ static void render_progress_update(void *rjv, float progress)
  */
 static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, ImageUser *iuser)
 {
-  wmWindowManager *wm;
   ScrArea *first_area = nullptr, *matched_area = nullptr;
 
   /* image window, compo node users */
-  for (wm = static_cast<wmWindowManager *>(rj->main->wm.first); wm && matched_area == nullptr;
+
+  /* Only ever 1 `wm`. */
+  for (wmWindowManager *wm = static_cast<wmWindowManager *>(rj->main->wm.first);
+       wm && matched_area == nullptr;
        wm = static_cast<wmWindowManager *>(wm->id.next))
-  { /* only 1 wm */
+  {
     wmWindow *win;
     for (win = static_cast<wmWindow *>(wm->windows.first); win && matched_area == nullptr;
          win = win->next)
@@ -693,12 +695,10 @@ static void render_startjob(void *rjv, bool *stop, bool *do_update, float *progr
 
 static void render_image_restore_layer(RenderJob *rj)
 {
-  wmWindowManager *wm;
-
   /* image window, compo node users */
-  for (wm = static_cast<wmWindowManager *>(rj->main->wm.first); wm;
-       wm = static_cast<wmWindowManager *>(wm->id.next))
-  { /* only 1 wm */
+
+  /* Only ever 1 `wm`. */
+  LISTBASE_FOREACH (wmWindowManager *, wm, &rj->main->wm) {
     wmWindow *win;
     for (win = static_cast<wmWindow *>(wm->windows.first); win; win = win->next) {
       const bScreen *screen = WM_window_get_active_screen(win);
@@ -903,9 +903,9 @@ static void clean_viewport_memory(Main *bmain, Scene *scene)
   BKE_main_id_tag_listbase(&bmain->objects, LIB_TAG_DOIT, true);
 
   /* Go over all the visible objects. */
-  for (wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first); wm;
-       wm = static_cast<wmWindowManager *>(wm->id.next))
-  {
+
+  /* Only ever 1 `wm`. */
+  LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       ViewLayer *view_layer = WM_window_get_active_view_layer(win);
       BKE_view_layer_synced_ensure(scene, view_layer);

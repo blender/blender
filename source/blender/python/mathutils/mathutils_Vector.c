@@ -2203,8 +2203,8 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
     /* Element-wise product in-place. */
     mul_vn_vn(vec1->vec, vec2->vec, vec1->vec_num);
   }
-  else if (vec1 && (((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) == 0))
-  { /* VEC *= FLOAT */
+  else if (vec1 && (((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) == 0)) {
+    /* VEC *= FLOAT */
     mul_vn_fl(vec1->vec, vec1->vec_num, scalar);
   }
   else {
