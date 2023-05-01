@@ -1177,7 +1177,8 @@ int getTransformOrientation_ex(const Scene *scene,
               if (flag) {
                 float tvec[3];
                 if ((around == V3D_AROUND_LOCAL_ORIGINS) ||
-                    ELEM(flag, SEL_F2, SEL_F1 | SEL_F3, SEL_F1 | SEL_F2 | SEL_F3)) {
+                    ELEM(flag, SEL_F2, SEL_F1 | SEL_F3, SEL_F1 | SEL_F2 | SEL_F3))
+                {
                   BKE_nurb_bezt_calc_normal(nu, bezt, tvec);
                   add_v3_v3(normal, tvec);
                 }
@@ -1301,10 +1302,10 @@ int getTransformOrientation_ex(const Scene *scene,
               add_v3_v3(plane, tmat[1]);
               ok = true;
             }
-            else if ((ok == false) &&
-                     ((ebone->flag & BONE_TIPSEL) ||
-                      ((ebone->flag & BONE_ROOTSEL) &&
-                       (ebone->parent && ebone->flag & BONE_CONNECTED) == false))) {
+            else if ((ok == false) && ((ebone->flag & BONE_TIPSEL) ||
+                                       ((ebone->flag & BONE_ROOTSEL) &&
+                                        (ebone->parent && ebone->flag & BONE_CONNECTED) == false)))
+            {
               ED_armature_ebone_to_mat3(ebone, tmat);
               add_v3_v3(fallback_normal, tmat[2]);
               add_v3_v3(fallback_plane, tmat[1]);

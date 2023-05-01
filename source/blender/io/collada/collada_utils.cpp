@@ -865,7 +865,8 @@ bool bc_has_animations(Object *ob)
   /* Check for object, light and camera transform animations */
   if ((bc_getSceneObjectAction(ob) && bc_getSceneObjectAction(ob)->curves.first) ||
       (bc_getSceneLightAction(ob) && bc_getSceneLightAction(ob)->curves.first) ||
-      (bc_getSceneCameraAction(ob) && bc_getSceneCameraAction(ob)->curves.first)) {
+      (bc_getSceneCameraAction(ob) && bc_getSceneCameraAction(ob)->curves.first))
+  {
     return true;
   }
 
@@ -964,7 +965,8 @@ void bc_create_restpose_mat(BCExportSettings &export_settings,
 
   if (!has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_loc") &&
       !has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_rot") &&
-      !has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_scale")) {
+      !has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_scale"))
+  {
     /* No need */
     copy_m4_m4(to_mat, from_mat);
     return;

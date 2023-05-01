@@ -185,12 +185,12 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
       }
     }
     else {
-      if (ED_mesh_pick_face_vert(
-              C, vc.obact, event->mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
+      if (ED_mesh_pick_face_vert(C, vc.obact, event->mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index))
+      {
         v_idx_best = index;
       }
-      else if (ED_mesh_pick_face(
-                   C, vc.obact, event->mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
+      else if (ED_mesh_pick_face(C, vc.obact, event->mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index))
+      {
         /* This relies on knowing the internal workings of #ED_mesh_pick_face_vert() */
         BKE_report(
             op->reports, RPT_WARNING, "The modifier used does not support deformed locations");
@@ -364,7 +364,8 @@ static const EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C,
           bDeformGroup *dg;
           for (dg = static_cast<bDeformGroup *>(me->vertex_group_names.first);
                dg && i < defbase_tot;
-               i++, dg = dg->next) {
+               i++, dg = dg->next)
+          {
             if (groups[i]) {
               item_tmp.identifier = item_tmp.name = dg->name;
               item_tmp.value = i;
@@ -615,7 +616,8 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
 
   /* Optionally restrict to assigned vertices only. */
   if (grad_data->use_vgroup_restrict &&
-      ((vs->flag & WPGradient_vertStore::VGRAD_STORE_DW_EXIST) == 0)) {
+      ((vs->flag & WPGradient_vertStore::VGRAD_STORE_DW_EXIST) == 0))
+  {
     /* In this case the vertex will never have been touched. */
     BLI_assert((vs->flag & WPGradient_vertStore::VGRAD_STORE_IS_MODIFIED) == 0);
     return;
@@ -705,7 +707,8 @@ static void gradientVertInit__mapFunc(void *userData,
 
   if (ED_view3d_project_float_object(
           grad_data->region, co, vs->sco, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) !=
-      V3D_PROJ_RET_OK) {
+      V3D_PROJ_RET_OK)
+  {
     copy_v2_fl(vs->sco, FLT_MAX);
     return;
   }

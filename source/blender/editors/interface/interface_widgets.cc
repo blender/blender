@@ -1273,7 +1273,8 @@ static void widgetbase_draw_ex(uiWidgetBase *wtb,
 
   /* Draw everything in one draw-call. */
   if (inner_col1[3] || inner_col2[3] || outline_col[3] || emboss_col[3] || tria_col[3] ||
-      show_alpha_checkers) {
+      show_alpha_checkers)
+  {
     widgetbase_set_uniform_colors_ubv(
         wtb, inner_col1, inner_col2, outline_col, emboss_col, tria_col, show_alpha_checkers);
 
@@ -1391,7 +1392,8 @@ static void widget_draw_icon(
     if (but->drawflag & UI_BUT_ICON_LEFT) {
       /* special case - icon_only pie buttons */
       if (ui_block_is_pie_menu(but->block) && !ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_POPOVER) &&
-          but->str && but->str[0] == '\0') {
+          but->str && but->str[0] == '\0')
+      {
         xs = rect->xmin + 2.0f * ofs;
       }
       else if (but->emboss == UI_EMBOSS_NONE || but->type == UI_BTYPE_LABEL) {
@@ -2070,7 +2072,8 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   if (!drawstr_right && (but->drawflag & UI_BUT_TEXT_LEFT) &&
       ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER) &&
       /* if we're editing or multi-drag (fake editing), then use left alignment */
-      (but->editstr == nullptr) && (drawstr == but->drawstr)) {
+      (but->editstr == nullptr) && (drawstr == but->drawstr))
+  {
     drawstr_right = strrchr(drawstr + but->ofs, ':');
     if (drawstr_right) {
       drawstr_right++;
@@ -2128,7 +2131,8 @@ static void widget_draw_text(const uiFontStyle *fstyle,
         if (ul_index != -1) {
           rcti bounds;
           if (BLF_str_offset_to_glyph_bounds(fstyle->uifont_id, drawstr_ofs, ul_index, &bounds) &&
-              !BLI_rcti_is_empty(&bounds)) {
+              !BLI_rcti_is_empty(&bounds))
+          {
             int ul_width = round_fl_to_int(BLF_width(fstyle->uifont_id, "_", 2));
             int pos_x = rect->xmin + font_xofs + bounds.xmin +
                         (bounds.xmax - bounds.xmin - ul_width) / 2;
@@ -2371,8 +2375,8 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
 
   /* Menu contains sub-menu items with triangle icon on their right. Shortcut
    * strings should be drawn with some padding to the right then. */
-  if (ui_block_is_menu(but->block) &&
-      (but->block->content_hints & UI_BLOCK_CONTAINS_SUBMENU_BUT)) {
+  if (ui_block_is_menu(but->block) && (but->block->content_hints & UI_BLOCK_CONTAINS_SUBMENU_BUT))
+  {
     rect->xmax -= UI_MENU_SUBMENU_PADDING;
   }
 
@@ -3841,7 +3845,8 @@ static void widget_swatch(uiBut *but,
 
   if ((state->but_flag & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN |
                           UI_BUT_OVERRIDDEN | UI_BUT_REDALERT)) ||
-      (state->but_drawflag & UI_BUT_ANIMATED_CHANGED)) {
+      (state->but_drawflag & UI_BUT_ANIMATED_CHANGED))
+  {
     /* draw based on state - color for keyed etc */
     widgetbase_draw(&wtb, wcol);
 
@@ -3871,7 +3876,8 @@ static void widget_swatch(uiBut *but,
 
   widgetbase_draw_ex(&wtb, wcol, show_alpha_checkers);
   if (color_but->is_pallete_color &&
-      ((Palette *)but->rnapoin.owner_id)->active_color == color_but->palette_color_index) {
+      ((Palette *)but->rnapoin.owner_id)->active_color == color_but->palette_color_index)
+  {
     const float width = rect->xmax - rect->xmin;
     const float height = rect->ymax - rect->ymin;
     /* find color luminance and change it slightly */
@@ -3919,7 +3925,8 @@ static void widget_icon_has_anim(uiBut *but,
 {
   if (state->but_flag &
           (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN | UI_BUT_REDALERT) &&
-      but->emboss != UI_EMBOSS_NONE) {
+      but->emboss != UI_EMBOSS_NONE)
+  {
     uiWidgetBase wtb;
     widget_init(&wtb);
     wtb.draw_outline = false;
@@ -4796,7 +4803,8 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
            * add up/down arrows if there is room. */
           if ((!but->str[0] && but->icon && (BLI_rcti_size_x(rect) < BLI_rcti_size_y(rect) + 2)) ||
               /* disable for brushes also */
-              (but->flag & UI_BUT_ICON_PREVIEW)) {
+              (but->flag & UI_BUT_ICON_PREVIEW))
+          {
             /* no arrows */
             wt = widget_type(UI_WTYPE_MENU_ICON_RADIO);
           }

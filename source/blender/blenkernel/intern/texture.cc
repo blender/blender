@@ -272,7 +272,8 @@ void BKE_texture_mapping_init(TexMapping *texmap)
   float smat[4][4], rmat[4][4], tmat[4][4], proj[4][4], size[3];
 
   if (texmap->projx == PROJ_X && texmap->projy == PROJ_Y && texmap->projz == PROJ_Z &&
-      is_zero_v3(texmap->loc) && is_zero_v3(texmap->rot) && is_one_v3(texmap->size)) {
+      is_zero_v3(texmap->loc) && is_zero_v3(texmap->rot) && is_one_v3(texmap->size))
+  {
     unit_m4(texmap->mat);
 
     texmap->flag |= TEXMAP_UNIT_MATRIX;

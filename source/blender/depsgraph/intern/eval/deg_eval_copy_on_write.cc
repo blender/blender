@@ -381,7 +381,8 @@ void scene_minimize_unused_view_layers(const Depsgraph *depsgraph,
   for (ViewLayer *view_layer_cow = reinterpret_cast<ViewLayer *>(scene_cow->view_layers.first),
                  *view_layer_next;
        view_layer_cow != nullptr;
-       view_layer_cow = view_layer_next) {
+       view_layer_cow = view_layer_next)
+  {
     view_layer_next = view_layer_cow->next;
     if (view_layer_input != nullptr && STREQ(view_layer_input->name, view_layer_cow->name)) {
       view_layer_eval = view_layer_cow;
@@ -887,7 +888,8 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph, const IDNode 
     /* In case we don't need to do a copy-on-write, we can use the update cache of the grease
      * pencil data to do an update-on-write. */
     if (id_type == ID_GD_LEGACY && BKE_gpencil_can_avoid_full_copy_on_write(
-                                       (const ::Depsgraph *)depsgraph, (bGPdata *)id_orig)) {
+                                       (const ::Depsgraph *)depsgraph, (bGPdata *)id_orig))
+    {
       BKE_gpencil_update_on_write((bGPdata *)id_orig, (bGPdata *)id_cow);
       return id_cow;
     }

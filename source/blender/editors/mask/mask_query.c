@@ -70,7 +70,8 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
   for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
                  *mask_layer_eval = mask_eval->masklayers.first;
        mask_layer_orig != NULL;
-       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next) {
+       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
+  {
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
@@ -78,13 +79,15 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
     for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
                     *spline_eval = mask_layer_eval->splines.first;
          spline_orig != NULL;
-         spline_orig = spline_orig->next, spline_eval = spline_eval->next) {
+         spline_orig = spline_orig->next, spline_eval = spline_eval->next)
+    {
       int i;
       MaskSplinePoint *cur_point_eval;
 
       for (i = 0, cur_point_eval = use_deform ? spline_eval->points_deform : spline_eval->points;
            i < spline_eval->tot_point;
-           i++, cur_point_eval++) {
+           i++, cur_point_eval++)
+      {
         uint tot_diff_point;
         float *diff_points = BKE_mask_point_segment_diff(
             spline_eval, cur_point_eval, width, height, &tot_diff_point);
@@ -229,7 +232,8 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
   for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
                  *mask_layer_eval = mask_eval->masklayers.first;
        mask_layer_orig != NULL;
-       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next) {
+       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
+  {
 
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
@@ -238,7 +242,8 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
     for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
                     *spline_eval = mask_layer_eval->splines.first;
          spline_orig != NULL;
-         spline_orig = spline_orig->next, spline_eval = spline_eval->next) {
+         spline_orig = spline_orig->next, spline_eval = spline_eval->next)
+    {
       MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline_eval);
 
       for (int i = 0; i < spline_orig->tot_point; i++) {
@@ -384,12 +389,14 @@ bool ED_mask_feather_find_nearest(const bContext *C,
   for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
                  *mask_layer_eval = mask_eval->masklayers.first;
        mask_layer_orig != NULL;
-       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next) {
+       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
+  {
 
     for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
                     *spline_eval = mask_layer_eval->splines.first;
          spline_orig != NULL;
-         spline_orig = spline_orig->next, spline_eval = spline_eval->next) {
+         spline_orig = spline_orig->next, spline_eval = spline_eval->next)
+    {
       // MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
       int i, tot_feather_point;
@@ -620,7 +627,8 @@ bool ED_mask_selected_minmax(const bContext *C,
 
   INIT_MINMAX2(min, max);
   for (MaskLayer *mask_layer = mask_eval->masklayers.first; mask_layer != NULL;
-       mask_layer = mask_layer->next) {
+       mask_layer = mask_layer->next)
+  {
     if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }

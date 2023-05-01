@@ -561,7 +561,8 @@ GHOST_TSuccess GHOST_WindowWin32::setOrder(GHOST_TWindowOrder order)
   }
 
   if (hWndToRaise &&
-      ::SetWindowPos(hWndToRaise, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE) == FALSE) {
+      ::SetWindowPos(hWndToRaise, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE) == FALSE)
+  {
     return GHOST_kFailure;
   }
   return GHOST_kSuccess;
@@ -1057,7 +1058,8 @@ void GHOST_WindowWin32::ThemeRefresh()
                    RRF_RT_REG_DWORD,
                    NULL,
                    &lightMode,
-                   &pcbData) == ERROR_SUCCESS) {
+                   &pcbData) == ERROR_SUCCESS)
+  {
     BOOL DarkMode = !lightMode;
 
     /* `20 == DWMWA_USE_IMMERSIVE_DARK_MODE` in Windows 11 SDK.

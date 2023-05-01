@@ -242,7 +242,8 @@ int logImageSetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
   }
 
   if (convertRGBAToLogElement(
-          data, elementData, logImage, logImage->element[0], dataIsLinearRGB) != 0) {
+          data, elementData, logImage, logImage->element[0], dataIsLinearRGB) != 0)
+  {
     MEM_freeN(elementData);
     return 1;
   }

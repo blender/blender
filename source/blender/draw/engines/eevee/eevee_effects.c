@@ -390,7 +390,8 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src, int l
   GPU_framebuffer_bind(fbl->main_fb);
 
   if (GPU_mip_render_workaround() ||
-      GPU_type_matches(GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+      GPU_type_matches(GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_ANY))
+  {
     /* Fix dot corruption on intel HD5XX/HD6XX series. */
     GPU_flush();
   }
@@ -503,7 +504,8 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   if (!stl->g_data->valid_double_buffer &&
       ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0) &&
-      (DRW_state_is_image_render() == false)) {
+      (DRW_state_is_image_render() == false))
+  {
     /* If history buffer is not valid request another frame.
      * This fix black reflections on area resize. */
     DRW_viewport_request_redraw();

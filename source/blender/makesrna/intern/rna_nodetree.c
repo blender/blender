@@ -2190,15 +2190,18 @@ static void rna_GeometryNodeCompare_data_type_update(Main *bmain, Scene *scene, 
                                                     NODE_COMPARE_EQUAL,
                                                     NODE_COMPARE_NOT_EQUAL,
                                                     NODE_COMPARE_COLOR_BRIGHTER,
-                                                    NODE_COMPARE_COLOR_DARKER)) {
+                                                    NODE_COMPARE_COLOR_DARKER))
+  {
     node_storage->operation = NODE_COMPARE_EQUAL;
   }
   else if (node_storage->data_type == SOCK_STRING &&
-           !ELEM(node_storage->operation, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL)) {
+           !ELEM(node_storage->operation, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL))
+  {
     node_storage->operation = NODE_COMPARE_EQUAL;
   }
   else if (node_storage->data_type != SOCK_RGBA &&
-           ELEM(node_storage->operation, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER)) {
+           ELEM(node_storage->operation, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER))
+  {
     node_storage->operation = NODE_COMPARE_EQUAL;
   }
 

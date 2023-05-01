@@ -1217,7 +1217,8 @@ static int start_ffmpeg_impl(FFMpegContext *context,
   if (context->ffmpeg_type == FFMPEG_DV) {
     audio_codec = AV_CODEC_ID_PCM_S16LE;
     if (context->ffmpeg_audio_codec != AV_CODEC_ID_NONE &&
-        rd->ffcodecdata.audio_mixrate != 48000 && rd->ffcodecdata.audio_channels != 2) {
+        rd->ffcodecdata.audio_mixrate != 48000 && rd->ffcodecdata.audio_channels != 2)
+    {
       BKE_report(reports, RPT_ERROR, "FFMPEG only supports 48khz / stereo audio for DV!");
       goto fail;
     }
@@ -1738,7 +1739,8 @@ void BKE_ffmpeg_image_type_verify(RenderData *rd, const ImageFormatData *imf)
 
   if (imf->imtype == R_IMF_IMTYPE_FFMPEG) {
     if (rd->ffcodecdata.type <= 0 || rd->ffcodecdata.codec <= 0 ||
-        rd->ffcodecdata.audio_codec <= 0 || rd->ffcodecdata.video_bitrate <= 1) {
+        rd->ffcodecdata.audio_codec <= 0 || rd->ffcodecdata.video_bitrate <= 1)
+    {
       BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_H264);
       rd->ffcodecdata.constant_rate_factor = FFM_CRF_MEDIUM;
       rd->ffcodecdata.ffmpeg_preset = FFM_PRESET_GOOD;

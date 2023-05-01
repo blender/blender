@@ -370,8 +370,8 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
     for (int i = 0; i < tot_vert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
-      if (SCULPT_vertex_mask_get(ss, vertex) >= threshold &&
-          SCULPT_vertex_visible_get(ss, vertex)) {
+      if (SCULPT_vertex_mask_get(ss, vertex) >= threshold && SCULPT_vertex_visible_get(ss, vertex))
+      {
         SCULPT_vertex_face_set_set(ss, vertex, next_face_set);
       }
     }

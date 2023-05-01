@@ -192,7 +192,8 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
         /* Find mask layer which is less than or equal to current-frame. */
         for (masklay_shape = static_cast<MaskLayerShape *>(masklay->splines_shapes.first);
              masklay_shape;
-             masklay_shape = masklay_shape->next) {
+             masklay_shape = masklay_shape->next)
+        {
           const float framenum = float(masklay_shape->frame);
           *min = min_ff(*min, framenum);
           *max = max_ff(*max, framenum);
@@ -327,12 +328,14 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *r_min
   float ymax = ANIM_UI_get_first_channel_top(&ac->region->v2d);
   const float channel_step = ANIM_UI_get_channel_step();
   for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
-       ale = ale->next, ymax -= channel_step) {
+       ale = ale->next, ymax -= channel_step)
+  {
     const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 
     /* must be selected... */
     if (acf && acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT) &&
-        ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT)) {
+        ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT))
+    {
       /* update best estimate */
       *r_min = ymax - ANIM_UI_get_channel_height();
       *r_max = ymax;
@@ -547,7 +550,8 @@ static eKeyPasteError paste_action_keys(bAnimContext *ac,
             ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS);
 
   if (ANIM_animdata_filter(
-          ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, eAnimCont_Types(ac->datatype)) == 0) {
+          ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, eAnimCont_Types(ac->datatype)) == 0)
+  {
     ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
   }
 

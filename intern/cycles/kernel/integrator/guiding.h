@@ -264,7 +264,8 @@ ccl_device_forceinline void guiding_record_volume_transmission(KernelGlobals kg,
         (transmittance_weight[1] < 0.f || !std::isfinite(transmittance_weight[1]) ||
          std::isnan(transmittance_weight[1])) ||
         (transmittance_weight[2] < 0.f || !std::isfinite(transmittance_weight[2]) ||
-         std::isnan(transmittance_weight[2]))) {
+         std::isnan(transmittance_weight[2])))
+    {
     }
     else {
       openpgl::cpp::SetTransmittanceWeight(state->guiding.path_segment,
@@ -459,7 +460,8 @@ ccl_device_forceinline bool guiding_bsdf_init(KernelGlobals kg,
           kg->opgl_guiding_field, guiding_point3f(P), rand)) {
 #  else
   if (kg->opgl_surface_sampling_distribution->Init(
-          kg->opgl_guiding_field, guiding_point3f(P), rand, true)) {
+          kg->opgl_guiding_field, guiding_point3f(P), rand, true))
+  {
 #  endif
     kg->opgl_surface_sampling_distribution->ApplyCosineProduct(guiding_point3f(N));
     return true;
@@ -516,7 +518,8 @@ ccl_device_forceinline bool guiding_phase_init(KernelGlobals kg,
           kg->opgl_guiding_field, guiding_point3f(P), rand)) {
 #  else
   if (kg->opgl_volume_sampling_distribution->Init(
-          kg->opgl_guiding_field, guiding_point3f(P), rand, true)) {
+          kg->opgl_guiding_field, guiding_point3f(P), rand, true))
+  {
 #  endif
     kg->opgl_volume_sampling_distribution->ApplySingleLobeHenyeyGreensteinProduct(guiding_vec3f(D),
                                                                                   g);

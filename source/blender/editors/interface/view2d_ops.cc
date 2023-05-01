@@ -1244,7 +1244,8 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
       /* Only respect user setting zoom axis if the view does not have any zoom restrictions
        * any will be scaled uniformly */
       if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 && (v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 &&
-          (v2d->keepzoom & V2D_KEEPASPECT)) {
+          (v2d->keepzoom & V2D_KEEPASPECT))
+      {
         if (U.uiflag & USER_ZOOM_HORIZ) {
           facy = 0.0f;
         }
@@ -2120,7 +2121,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
      */
     if (ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
       if (((vsm->scroller == 'h') && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) == 0) ||
-          ((vsm->scroller == 'v') && (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) == 0)) {
+          ((vsm->scroller == 'v') && (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) == 0))
+      {
         /* switch to bar (i.e. no scaling gets handled) */
         vsm->zone = SCROLLHANDLE_BAR;
       }
@@ -2129,7 +2131,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
     /* check if zone is inappropriate (i.e. 'bar' but panning is banned), so cannot continue */
     if (vsm->zone == SCROLLHANDLE_BAR) {
       if (((vsm->scroller == 'h') && (v2d->keepofs & V2D_LOCKOFS_X)) ||
-          ((vsm->scroller == 'v') && (v2d->keepofs & V2D_LOCKOFS_Y))) {
+          ((vsm->scroller == 'v') && (v2d->keepofs & V2D_LOCKOFS_Y)))
+      {
         /* free customdata initialized */
         scroller_activate_exit(C, op);
 
@@ -2140,7 +2143,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
 
     /* zone is also inappropriate if scroller is not visible... */
     if (((vsm->scroller == 'h') && (v2d->scroll & V2D_SCROLL_HORIZONTAL_FULLR)) ||
-        ((vsm->scroller == 'v') && (v2d->scroll & V2D_SCROLL_VERTICAL_FULLR))) {
+        ((vsm->scroller == 'v') && (v2d->scroll & V2D_SCROLL_VERTICAL_FULLR)))
+    {
       /* free customdata initialized */
       scroller_activate_exit(C, op);
 

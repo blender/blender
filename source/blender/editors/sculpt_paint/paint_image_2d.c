@@ -739,7 +739,8 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
     }
 
     if (diameter != cache->lastdiameter || (mask_rotation != cache->last_mask_rotation) ||
-        renew_maxmask) {
+        renew_maxmask)
+    {
       MEM_SAFE_FREE(cache->tex_mask);
 
       brush_painter_2d_tex_mapping(
@@ -760,7 +761,8 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
 
   /* detect if we need to recreate image brush buffer */
   if (diameter != cache->lastdiameter || (tex_rotation != cache->last_tex_rotation) || do_random ||
-      update_color) {
+      update_color)
+  {
     if (cache->ibuf) {
       IMB_freeImBuf(cache->ibuf);
       cache->ibuf = NULL;
@@ -817,7 +819,8 @@ static bool paint_2d_ensure_tile_canvas(ImagePaintState *s, int i)
       s->tiles[i].state = PAINT2D_TILE_MISSING;
     }
     else if ((s->tiles[0].canvas->rect && !ibuf->rect) ||
-             (s->tiles[0].canvas->rect_float && !ibuf->rect_float)) {
+             (s->tiles[0].canvas->rect_float && !ibuf->rect_float))
+    {
       s->tiles[i].state = PAINT2D_TILE_MISSING;
     }
     else {
@@ -1496,7 +1499,8 @@ void paint_2d_stroke(void *ps,
     sub_v2_v2v2(local_new_uv, new_uv, tile->uv_origin);
     sub_v2_v2v2(local_old_uv, old_uv, tile->uv_origin);
     if (!(is_inside_tile(uv_size, local_new_uv, uv_brush_size) ||
-          is_inside_tile(uv_size, local_old_uv, uv_brush_size))) {
+          is_inside_tile(uv_size, local_old_uv, uv_brush_size)))
+    {
       continue;
     }
 
@@ -1519,7 +1523,8 @@ void paint_2d_stroke(void *ps,
     const float pixel_brush_size[] = {(s->symmetry & PAINT_TILE_X) ? FLT_MAX : size,
                                       (s->symmetry & PAINT_TILE_Y) ? FLT_MAX : size};
     if (!(is_inside_tile(tile->size, new_coord, pixel_brush_size) ||
-          is_inside_tile(tile->size, old_coord, pixel_brush_size))) {
+          is_inside_tile(tile->size, old_coord, pixel_brush_size)))
+    {
       continue;
     }
 

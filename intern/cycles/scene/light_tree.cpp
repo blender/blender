@@ -122,7 +122,8 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
         measure.bcone.axis = -measure.bcone.axis;
       }
       if ((need_transformation || mesh->transform_applied) &&
-          transform_negative_scale(object->get_tfm())) {
+          transform_negative_scale(object->get_tfm()))
+      {
         measure.bcone.axis = -measure.bcone.axis;
       }
       measure.bcone.theta_o = 0;

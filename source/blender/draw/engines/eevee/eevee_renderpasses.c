@@ -138,7 +138,8 @@ BLI_INLINE bool eevee_renderpasses_volumetric_active(const EEVEE_EffectsInfo *ef
 {
   if (effects->enabled_effects & EFFECT_VOLUMETRIC) {
     if (g_data->render_passes &
-        (EEVEE_RENDER_PASS_VOLUME_LIGHT | EEVEE_RENDERPASSES_USES_TRANSMITTANCE)) {
+        (EEVEE_RENDER_PASS_VOLUME_LIGHT | EEVEE_RENDERPASSES_USES_TRANSMITTANCE))
+    {
       return true;
     }
   }
@@ -183,7 +184,8 @@ void EEVEE_renderpasses_output_init(EEVEE_ViewLayerData *sldata,
     }
 
     if ((g_data->render_passes & EEVEE_RENDER_PASS_BLOOM) != 0 &&
-        (effects->enabled_effects & EFFECT_BLOOM) != 0) {
+        (effects->enabled_effects & EFFECT_BLOOM) != 0)
+    {
       EEVEE_bloom_output_init(sldata, vedata, tot_samples);
     }
 
@@ -433,7 +435,8 @@ void EEVEE_renderpasses_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   const int current_sample = stl->effects->taa_current_sample;
   const int total_samples = stl->effects->taa_total_sample;
   if ((render_pass & EEVEE_RENDERPASSES_POST_PROCESS_ON_FIRST_SAMPLE) &&
-      (current_sample > 1 && total_samples != 1)) {
+      (current_sample > 1 && total_samples != 1))
+  {
     return;
   }
 

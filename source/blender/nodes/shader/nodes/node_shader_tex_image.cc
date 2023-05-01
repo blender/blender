@@ -134,7 +134,8 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
 
   if (out[0].hasoutput) {
     if (ELEM(ima->alpha_mode, IMA_ALPHA_IGNORE, IMA_ALPHA_CHANNEL_PACKED) ||
-        IMB_colormanagement_space_name_is_data(ima->colorspace_settings.name)) {
+        IMB_colormanagement_space_name_is_data(ima->colorspace_settings.name))
+    {
       /* Don't let alpha affect color output in these cases. */
       GPU_link(mat, "color_alpha_clear", out[0].link, &out[0].link);
     }

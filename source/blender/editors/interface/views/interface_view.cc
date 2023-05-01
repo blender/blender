@@ -293,7 +293,8 @@ uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
     }
 
     if (UI_view_item_matches(reinterpret_cast<const uiViewItemHandle *>(&new_item),
-                             reinterpret_cast<const uiViewItemHandle *>(&old_item))) {
+                             reinterpret_cast<const uiViewItemHandle *>(&old_item)))
+    {
       return old_item_but;
     }
   }

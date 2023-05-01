@@ -72,7 +72,8 @@ static int ChainSilhouetteIterator_init(BPy_ChainSilhouetteIterator *self,
   PyObject *obj1 = nullptr, *obj2 = nullptr, *obj3 = nullptr;
 
   if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist_1, &ChainSilhouetteIterator_Type, &obj1)) {
+          args, kwds, "O!", (char **)kwlist_1, &ChainSilhouetteIterator_Type, &obj1))
+  {
     self->cs_it = new ChainSilhouetteIterator(*(((BPy_ChainSilhouetteIterator *)obj1)->cs_it));
   }
   else if ((void)PyErr_Clear(),
@@ -86,7 +87,8 @@ static int ChainSilhouetteIterator_init(BPy_ChainSilhouetteIterator *self,
                                        check_begin,
                                        &obj2,
                                        &PyBool_Type,
-                                       &obj3)) {
+                                       &obj3))
+  {
     bool restrict_to_selection = (!obj1) ? true : bool_from_PyBool(obj1);
     ViewEdge *begin = (!obj2 || obj2 == Py_None) ? nullptr : ((BPy_ViewEdge *)obj2)->ve;
     bool orientation = (!obj3) ? true : bool_from_PyBool(obj3);

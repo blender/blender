@@ -55,7 +55,8 @@ ccl_device_forceinline Spectrum bsdf_ashikhmin_shirley_eval(ccl_private const Sh
   float out = 0.0f;
 
   if ((cosNgO < 0.0f) || fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f ||
-      !(NdotI > 0.0f && NdotO > 0.0f)) {
+      !(NdotI > 0.0f && NdotO > 0.0f))
+  {
     *pdf = 0.0f;
     return zero_spectrum();
   }

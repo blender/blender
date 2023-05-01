@@ -642,7 +642,8 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
           else {
             const blender::int2 &edge = edges[edge_i];
             if (IS_REMOVED_EDGE(edge) ||
-                !((edge[0] == v1 && edge[1] == v2) || (edge[0] == v2 && edge[1] == v1))) {
+                !((edge[0] == v1 && edge[1] == v2) || (edge[0] == v2 && edge[1] == v1)))
+            {
               /* The pointed edge is invalid (tagged as removed, or vert idx mismatch),
                * and we already know from previous test that a valid one exists,
                * use it (if allowed)! */
@@ -1354,7 +1355,8 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
 
   EdgeSetIterator *ehi = BLI_edgesetIterator_new(eh);
   for (int i = 0; BLI_edgesetIterator_isDone(ehi) == false;
-       BLI_edgesetIterator_step(ehi), i++, ege++, index++) {
+       BLI_edgesetIterator_step(ehi), i++, ege++, index++)
+  {
     BLI_edgesetIterator_getKey(ehi, &(*ege)[0], &(*ege)[1]);
     *index = ORIGINDEX_NONE;
   }

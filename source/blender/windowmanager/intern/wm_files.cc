@@ -602,8 +602,8 @@ void wm_file_read_report(bContext *C, Main *bmain)
   ReportList *reports = nullptr;
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->r.engine[0] &&
-        BLI_findstring(&R_engines, scene->r.engine, offsetof(RenderEngineType, idname)) ==
-            nullptr) {
+        BLI_findstring(&R_engines, scene->r.engine, offsetof(RenderEngineType, idname)) == nullptr)
+    {
       if (reports == nullptr) {
         reports = CTX_wm_reports(C);
       }
@@ -874,7 +874,8 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
 
   if (bf_reports->resynced_lib_overrides_libraries_count != 0) {
     for (LinkNode *node_lib = bf_reports->resynced_lib_overrides_libraries; node_lib != nullptr;
-         node_lib = node_lib->next) {
+         node_lib = node_lib->next)
+    {
       Library *library = static_cast<Library *>(node_lib->link);
       BKE_reportf(bf_reports->reports,
                   RPT_INFO,
@@ -914,7 +915,8 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
   }
 
   if (bf_reports->count.proxies_to_lib_overrides_success != 0 ||
-      bf_reports->count.proxies_to_lib_overrides_failures != 0) {
+      bf_reports->count.proxies_to_lib_overrides_failures != 0)
+  {
     BKE_reportf(bf_reports->reports,
                 RPT_WARNING,
                 "Proxies have been removed from Blender (%d proxies were automatically converted "
@@ -1250,7 +1252,8 @@ void wm_homefile_read_ex(bContext *C,
 
   if ((app_template != nullptr) && (app_template[0] != '\0')) {
     if (!BKE_appdir_app_template_id_search(
-            app_template, app_template_system, sizeof(app_template_system))) {
+            app_template, app_template_system, sizeof(app_template_system)))
+    {
       /* Can safely continue with code below, just warn it's not found. */
       BKE_reportf(reports, RPT_WARNING, "Application Template \"%s\" not found", app_template);
     }
@@ -1569,7 +1572,8 @@ static void wm_history_file_update(void)
       RecentFile *recent_next;
       for (recent = static_cast<RecentFile *>(BLI_findlink(&G.recent_files, U.recent_files - 1));
            recent;
-           recent = recent_next) {
+           recent = recent_next)
+      {
         recent_next = recent->next;
         wm_history_file_free(recent);
       }
@@ -3683,7 +3687,8 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
 
   if (file_has_been_saved_before) {
     if (WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, nullptr, nullptr) &
-        OPERATOR_CANCELLED) {
+        OPERATOR_CANCELLED)
+    {
       execute_callback = false;
     }
   }
@@ -3926,7 +3931,8 @@ bool wm_operator_close_file_dialog_if_needed(bContext *C,
                                              wmGenericCallbackFn post_action_fn)
 {
   if (U.uiflag & USER_SAVE_PROMPT &&
-      wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C), CTX_wm_manager(C))) {
+      wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C), CTX_wm_manager(C)))
+  {
     wmGenericCallback *callback = MEM_cnew<wmGenericCallback>(__func__);
     callback->exec = post_action_fn;
     callback->user_data = IDP_CopyProperty(op->properties);

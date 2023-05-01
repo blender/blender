@@ -73,7 +73,8 @@ static bool bm_face_split_find(BMesh *bm, BMFace *f, BMLoop *l_pair[2], float *r
         float no_a[3], no_b[3];
 
         if (BM_face_calc_normal_subset(l_a, l_b, no_a) != 0.0f &&
-            BM_face_calc_normal_subset(l_b, l_a, no_b) != 0.0f) {
+            BM_face_calc_normal_subset(l_b, l_a, no_b) != 0.0f)
+        {
           const float err_a = bm_face_subset_calc_planar(l_a, l_b, no_a);
           const float err_b = bm_face_subset_calc_planar(l_b, l_a, no_b);
           const float err_test = err_a + err_b;

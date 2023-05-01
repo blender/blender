@@ -447,7 +447,8 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
     Base *_base; \
     BKE_view_layer_synced_ensure(scene, view_layer); \
     for (_base = (Base *)BKE_view_layer_object_bases_get(view_layer)->first; _base; \
-         _base = _base->next) { \
+         _base = _base->next) \
+    { \
       _instance = _base->object;
 
 #define FOREACH_OBJECT_END \

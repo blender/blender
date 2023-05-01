@@ -118,8 +118,8 @@ static void add_used_ids_from_sockets(const ListBase &sockets, Set<ID *> &ids)
         break;
       }
       case SOCK_COLLECTION: {
-        if (Collection *collection =
-                ((bNodeSocketValueCollection *)socket->default_value)->value) {
+        if (Collection *collection = ((bNodeSocketValueCollection *)socket->default_value)->value)
+        {
           ids.add(&collection->id);
         }
         break;
@@ -824,7 +824,8 @@ static void initialize_group_input(const bNodeTree &tree,
 static const lf::FunctionNode *find_viewer_lf_node(const bNode &viewer_bnode)
 {
   if (const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
-          nodes::ensure_geometry_nodes_lazy_function_graph(viewer_bnode.owner_tree())) {
+          nodes::ensure_geometry_nodes_lazy_function_graph(viewer_bnode.owner_tree()))
+  {
     return lf_graph_info->mapping.viewer_node_map.lookup_default(&viewer_bnode, nullptr);
   }
   return nullptr;
@@ -832,7 +833,8 @@ static const lf::FunctionNode *find_viewer_lf_node(const bNode &viewer_bnode)
 static const lf::FunctionNode *find_group_lf_node(const bNode &group_bnode)
 {
   if (const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
-          nodes::ensure_geometry_nodes_lazy_function_graph(group_bnode.owner_tree())) {
+          nodes::ensure_geometry_nodes_lazy_function_graph(group_bnode.owner_tree()))
+  {
     return lf_graph_info->mapping.group_node_map.lookup_default(&group_bnode, nullptr);
   }
   return nullptr;
@@ -947,7 +949,8 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
         const SpaceNode &snode = *reinterpret_cast<const SpaceNode *>(sl);
         if (const std::optional<ComputeContextHash> hash =
                 geo_log::GeoModifierLog::get_compute_context_hash_for_node_editor(
-                    snode, nmd.modifier.name)) {
+                    snode, nmd.modifier.name))
+        {
           r_socket_log_contexts.add(*hash);
         }
       }
@@ -1032,7 +1035,8 @@ static Vector<OutputAttributeToStore> compute_attributes_to_store(
   for (const GeometryComponentType component_type : {GEO_COMPONENT_TYPE_MESH,
                                                      GEO_COMPONENT_TYPE_POINT_CLOUD,
                                                      GEO_COMPONENT_TYPE_CURVE,
-                                                     GEO_COMPONENT_TYPE_INSTANCES}) {
+                                                     GEO_COMPONENT_TYPE_INSTANCES})
+  {
     if (!geometry.has(component_type)) {
       continue;
     }
@@ -1080,14 +1084,16 @@ static void store_computed_output_attributes(
     /* Attempt to remove the attribute if it already exists but the domain and type don't match.
      * Removing the attribute won't succeed if it is built in and non-removable. */
     if (meta_data.has_value() &&
-        (meta_data->domain != store.domain || meta_data->data_type != data_type)) {
+        (meta_data->domain != store.domain || meta_data->data_type != data_type))
+    {
       attributes.remove(store.name);
     }
 
     /* Try to create the attribute reusing the stored buffer. This will only succeed if the
      * attribute didn't exist before, or if it existed but was removed above. */
     if (attributes.add(
-            store.name, store.domain, data_type, bke::AttributeInitMoveArray(store.data.data()))) {
+            store.name, store.domain, data_type, bke::AttributeInitMoveArray(store.data.data())))
+    {
       continue;
     }
 

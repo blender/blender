@@ -201,7 +201,8 @@ bool BKE_gpencil_has_transform_modifiers(Object *ob)
                eGpencilModifierType_Armature,
                eGpencilModifierType_Hook,
                eGpencilModifierType_Lattice,
-               eGpencilModifierType_Offset)) {
+               eGpencilModifierType_Offset))
+      {
         return true;
       }
     }
@@ -435,7 +436,8 @@ const GpencilModifierTypeInfo *BKE_gpencil_modifier_get_info(GpencilModifierType
 {
   /* type unsigned, no need to check < 0 */
   if (type < NUM_GREASEPENCIL_MODIFIER_TYPES && type > 0 &&
-      modifier_gpencil_types[type]->name[0] != '\0') {
+      modifier_gpencil_types[type]->name[0] != '\0')
+  {
     return modifier_gpencil_types[type];
   }
 

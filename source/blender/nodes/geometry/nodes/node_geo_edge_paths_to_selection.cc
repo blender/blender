@@ -47,7 +47,8 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
   for (const int i : edges.index_range()) {
     const int2 &edge = edges[i];
     if ((selection[edge[0]] && selection[edge[1]]) &&
-        (edge[0] == next_indices[edge[1]] || edge[1] == next_indices[edge[0]])) {
+        (edge[0] == next_indices[edge[1]] || edge[1] == next_indices[edge[0]]))
+    {
       r_selection[i] = true;
     }
   }
@@ -106,7 +107,8 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const PathToEdgeSelectionFieldInput *other_field =
-            dynamic_cast<const PathToEdgeSelectionFieldInput *>(&other)) {
+            dynamic_cast<const PathToEdgeSelectionFieldInput *>(&other))
+    {
       return other_field->start_vertices_ == start_vertices_ &&
              other_field->next_vertex_ == next_vertex_;
     }

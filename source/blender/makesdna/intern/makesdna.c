@@ -776,7 +776,8 @@ static int convert_include(const char *filepath)
               const char *md1_prev = md1;
               while (match_identifier_and_advance(&md1, "struct") ||
                      match_identifier_and_advance(&md1, "unsigned") ||
-                     match_identifier_and_advance(&md1, "const")) {
+                     match_identifier_and_advance(&md1, "const"))
+              {
                 if (UNLIKELY(!ELEM(*md1, '\0', ' '))) {
                   /* This will happen with: `unsigned(*value)[3]` which isn't supported. */
                   fprintf(stderr,

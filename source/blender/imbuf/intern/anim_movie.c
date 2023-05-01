@@ -768,7 +768,8 @@ static int startffmpeg(struct anim *anim)
                                 &dstRange,
                                 &brightness,
                                 &contrast,
-                                &saturation)) {
+                                &saturation))
+  {
     srcRange = srcRange || anim->pCodecCtx->color_range == AVCOL_RANGE_JPEG;
     inv_table = sws_getCoefficients(anim->pCodecCtx->colorspace);
 
@@ -779,7 +780,8 @@ static int startffmpeg(struct anim *anim)
                                  dstRange,
                                  brightness,
                                  contrast,
-                                 saturation)) {
+                                 saturation))
+    {
       fprintf(stderr, "Warning: Could not set libswscale colorspace details.\n");
     }
   }
@@ -877,7 +879,8 @@ static void ffmpeg_postprocess(struct anim *anim, AVFrame *input)
                              anim->pFrame,
                              anim->pCodecCtx->pix_fmt,
                              anim->pCodecCtx->width,
-                             anim->pCodecCtx->height) < 0) {
+                             anim->pCodecCtx->height) < 0)
+    {
       filter_y = true;
     }
     else {
@@ -1196,8 +1199,8 @@ static int ffmpeg_generic_seek_workaround(struct anim *anim,
     current_pts = MAX2(current_pts, 0);
 
     /* Seek to timestamp. */
-    if (av_seek_frame(anim->pFormatCtx, anim->videoStream, current_pts, AVSEEK_FLAG_BACKWARD) <
-        0) {
+    if (av_seek_frame(anim->pFormatCtx, anim->videoStream, current_pts, AVSEEK_FLAG_BACKWARD) < 0)
+    {
       break;
     }
 

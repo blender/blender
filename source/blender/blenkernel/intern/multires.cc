@@ -412,7 +412,8 @@ void multires_flush_sculpt_updates(Object *object)
 
   SculptSession *sculpt_session = object->sculpt;
   if (BKE_pbvh_type(sculpt_session->pbvh) != PBVH_GRIDS || !sculpt_session->multires.active ||
-      sculpt_session->multires.modifier == nullptr) {
+      sculpt_session->multires.modifier == nullptr)
+  {
     return;
   }
 

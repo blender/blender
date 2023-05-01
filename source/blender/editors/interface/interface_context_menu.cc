@@ -128,7 +128,8 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int /*event*/)
 
   /* complex code to change name of button */
   if (WM_key_event_operator_string(
-          C, idname, but->opcontext, prop, true, shortcut_str, sizeof(shortcut_str))) {
+          C, idname, but->opcontext, prop, true, shortcut_str, sizeof(shortcut_str)))
+  {
     ui_but_add_shortcut(but, shortcut_str, true);
   }
   else {
@@ -969,7 +970,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     if (((prop_type == PROP_POINTER) ||
          (prop_type == PROP_STRING && but->type == UI_BTYPE_SEARCH_MENU &&
           ((uiButSearch *)but)->items_update_fn == ui_rna_collection_search_update_fn)) &&
-        ui_jump_to_target_button_poll(C)) {
+        ui_jump_to_target_button_poll(C))
+    {
       uiItemO(layout,
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Jump to Target"),
               ICON_NONE,

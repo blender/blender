@@ -156,7 +156,8 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
                        true,
                        false,
                        true,
-                       WIN_ALIGN_LOCATION_CENTER) == nullptr) {
+                       WIN_ALIGN_LOCATION_CENTER) == nullptr)
+    {
       BKE_report(reports, RPT_ERROR, "Failed to open window!");
       return nullptr;
     }
@@ -326,7 +327,8 @@ static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
       if ((WM_window_is_temp_screen(win) &&
            ((ScrArea *)screen->areabase.first)->spacetype == SPACE_IMAGE) ||
-          (win == winshow && winshow != wincur)) {
+          (win == winshow && winshow != wincur))
+      {
         wm_window_raise(win);
         return OPERATOR_FINISHED;
       }

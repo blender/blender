@@ -52,10 +52,9 @@ bool outliner_is_collection_tree_element(const TreeElement *te)
     return false;
   }
 
-  if (ELEM(tselem->type,
-           TSE_LAYER_COLLECTION,
-           TSE_SCENE_COLLECTION_BASE,
-           TSE_VIEW_COLLECTION_BASE)) {
+  if (ELEM(
+          tselem->type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE))
+  {
     return true;
   }
   if ((tselem->type == TSE_SOME_ID) && te->idcode == ID_GR) {
@@ -114,8 +113,8 @@ TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *cus
     return TRAVERSE_CONTINUE;
   }
 
-  if ((tselem->type != TSE_SOME_ID) || (tselem->id == nullptr) ||
-      (GS(tselem->id->name) != ID_OB)) {
+  if ((tselem->type != TSE_SOME_ID) || (tselem->id == nullptr) || (GS(tselem->id->name) != ID_OB))
+  {
     return TRAVERSE_SKIP_CHILDS;
   }
 
@@ -239,7 +238,8 @@ static int collection_new_exec(bContext *C, wmOperator *op)
   }
 
   if (data.collection == nullptr || ID_IS_LINKED(data.collection) ||
-      ID_IS_OVERRIDE_LIBRARY(data.collection)) {
+      ID_IS_OVERRIDE_LIBRARY(data.collection))
+  {
     data.collection = scene->master_collection;
   }
 
@@ -699,7 +699,8 @@ static int collection_link_exec(bContext *C, wmOperator *op)
 
   if ((ID_IS_LINKED(active_collection) || ID_IS_OVERRIDE_LIBRARY(active_collection)) ||
       ((active_collection->flag & COLLECTION_IS_MASTER) &&
-       (ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene)))) {
+       (ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene))))
+  {
     BKE_report(
         op->reports, RPT_ERROR, "Cannot add a collection to a linked/override collection/scene");
     return OPERATOR_CANCELLED;

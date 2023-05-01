@@ -196,10 +196,10 @@ static void do_adjacentBleedBorders(
     }
   }
   else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-    if (!lomask[x - rw] ||
-        !lomask[x + 1]) { /* Test if outer mask is empty underneath or to the right. */
-      osz++;              /* Increment outer edge size. */
-      lres[x] = 3;        /* Flag pixel as outer edge. */
+    if (!lomask[x - rw] || !lomask[x + 1])
+    {              /* Test if outer mask is empty underneath or to the right. */
+      osz++;       /* Increment outer edge size. */
+      lres[x] = 3; /* Flag pixel as outer edge. */
     }
     else {
       gsz++;       /* Increment the gradient pixel count. */
@@ -221,10 +221,10 @@ static void do_adjacentBleedBorders(
     }
   }
   else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-    if (!lomask[x - rw] ||
-        !lomask[x - 1]) { /* Test if outer mask is empty underneath or to the left. */
-      osz++;              /* Increment outer edge size. */
-      lres[x] = 3;        /* Flag pixel as outer edge. */
+    if (!lomask[x - rw] || !lomask[x - 1])
+    {              /* Test if outer mask is empty underneath or to the left. */
+      osz++;       /* Increment outer edge size. */
+      lres[x] = 3; /* Flag pixel as outer edge. */
     }
     else {
       gsz++;       /* Increment the gradient pixel count. */
@@ -246,10 +246,10 @@ static void do_adjacentBleedBorders(
     }
   }
   else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-    if (!lomask[x + rw] ||
-        !lomask[x + 1]) { /* Test if outer mask is empty above or to the right. */
-      osz++;              /* Increment outer edge size. */
-      lres[x] = 3;        /* Flag pixel as outer edge. */
+    if (!lomask[x + rw] || !lomask[x + 1])
+    {              /* Test if outer mask is empty above or to the right. */
+      osz++;       /* Increment outer edge size. */
+      lres[x] = 3; /* Flag pixel as outer edge. */
     }
     else {
       gsz++;       /* Increment the gradient pixel count. */
@@ -271,10 +271,10 @@ static void do_adjacentBleedBorders(
     }
   }
   else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-    if (!lomask[x + rw] ||
-        !lomask[x - 1]) { /* Test if outer mask is empty above or to the left. */
-      osz++;              /* Increment outer edge size. */
-      lres[x] = 3;        /* Flag pixel as outer edge. */
+    if (!lomask[x + rw] || !lomask[x - 1])
+    {              /* Test if outer mask is empty above or to the left. */
+      osz++;       /* Increment outer edge size. */
+      lres[x] = 3; /* Flag pixel as outer edge. */
     }
     else {
       gsz++;       /* Increment the gradient pixel count. */
@@ -296,10 +296,10 @@ static void do_adjacentBleedBorders(
       }
     }
     else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-      if (!lomask[x - 1] ||
-          !lomask[x + 1]) { /* Test if outer mask is empty to the left or to the right. */
-        osz++;              /* Increment outer edge size. */
-        lres[x] = 3;        /* Flag pixel as outer edge. */
+      if (!lomask[x - 1] || !lomask[x + 1])
+      {              /* Test if outer mask is empty to the left or to the right. */
+        osz++;       /* Increment outer edge size. */
+        lres[x] = 3; /* Flag pixel as outer edge. */
       }
       else {
         gsz++;       /* Increment the gradient pixel count. */
@@ -323,10 +323,10 @@ static void do_adjacentBleedBorders(
       }
     }
     else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-      if (!lomask[x - 1] ||
-          !lomask[x + 1]) { /* Test if outer mask is empty to the left or to the right. */
-        osz++;              /* Increment outer edge size. */
-        lres[x] = 3;        /* Flag pixel as outer edge. */
+      if (!lomask[x - 1] || !lomask[x + 1])
+      {              /* Test if outer mask is empty to the left or to the right. */
+        osz++;       /* Increment outer edge size. */
+        lres[x] = 3; /* Flag pixel as outer edge. */
       }
       else {
         gsz++;       /* Increment the gradient pixel count. */
@@ -349,10 +349,10 @@ static void do_adjacentBleedBorders(
       }
     }
     else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-      if (!lomask[x - rw] ||
-          !lomask[x + rw]) { /* Test if outer mask is empty underneath or above. */
-        osz++;               /* Increment outer edge size. */
-        lres[x] = 3;         /* Flag pixel as outer edge. */
+      if (!lomask[x - rw] || !lomask[x + rw])
+      {              /* Test if outer mask is empty underneath or above. */
+        osz++;       /* Increment outer edge size. */
+        lres[x] = 3; /* Flag pixel as outer edge. */
       }
       else {
         gsz++;       /* Increment the gradient pixel count. */
@@ -376,10 +376,10 @@ static void do_adjacentBleedBorders(
       }
     }
     else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-      if (!lomask[x - rw] ||
-          !lomask[x + rw]) { /* Test if outer mask is empty underneath or above. */
-        osz++;               /* Increment outer edge size. */
-        lres[x] = 3;         /* Flag pixel as outer edge. */
+      if (!lomask[x - rw] || !lomask[x + rw])
+      {              /* Test if outer mask is empty underneath or above. */
+        osz++;       /* Increment outer edge size. */
+        lres[x] = 3; /* Flag pixel as outer edge. */
       }
       else {
         gsz++;       /* Increment the gradient pixel count. */
@@ -572,10 +572,10 @@ static void do_allBleedBorders(
     }
   }
   else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-    if (!lomask[x - rw] ||
-        !lomask[x + 1]) { /* Test if outer mask is empty underneath or to the right. */
-      osz++;              /* Increment outer edge size. */
-      lres[x] = 3;        /* Flag pixel as outer edge. */
+    if (!lomask[x - rw] || !lomask[x + 1])
+    {              /* Test if outer mask is empty underneath or to the right. */
+      osz++;       /* Increment outer edge size. */
+      lres[x] = 3; /* Flag pixel as outer edge. */
     }
     else {
       gsz++;       /* Increment the gradient pixel count. */
@@ -596,10 +596,10 @@ static void do_allBleedBorders(
     }
   }
   else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-    if (!lomask[x - rw] ||
-        !lomask[x - 1]) { /* Test if outer mask is empty above or to the left. */
-      osz++;              /* Increment outer edge size. */
-      lres[x] = 3;        /* Flag pixel as outer edge. */
+    if (!lomask[x - rw] || !lomask[x - 1])
+    {              /* Test if outer mask is empty above or to the left. */
+      osz++;       /* Increment outer edge size. */
+      lres[x] = 3; /* Flag pixel as outer edge. */
     }
     else {
       gsz++;       /* Increment the gradient pixel count. */
@@ -620,10 +620,10 @@ static void do_allBleedBorders(
     }
   }
   else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-    if (!lomask[x + rw] ||
-        !lomask[x + 1]) { /* Test if outer mask is empty underneath or to the right. */
-      osz++;              /* Increment outer edge size. */
-      lres[x] = 3;        /* Flag pixel as outer edge. */
+    if (!lomask[x + rw] || !lomask[x + 1])
+    {              /* Test if outer mask is empty underneath or to the right. */
+      osz++;       /* Increment outer edge size. */
+      lres[x] = 3; /* Flag pixel as outer edge. */
     }
     else {
       gsz++;       /* Increment the gradient pixel count. */
@@ -644,10 +644,10 @@ static void do_allBleedBorders(
     }
   }
   else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-    if (!lomask[x + rw] ||
-        !lomask[x - 1]) { /* Test if outer mask is empty underneath or to the left. */
-      osz++;              /* Increment outer edge size. */
-      lres[x] = 3;        /* Flag pixel as outer edge. */
+    if (!lomask[x + rw] || !lomask[x - 1])
+    {              /* Test if outer mask is empty underneath or to the left. */
+      osz++;       /* Increment outer edge size. */
+      lres[x] = 3; /* Flag pixel as outer edge. */
     }
     else {
       gsz++;       /* Increment the gradient pixel count. */
@@ -668,10 +668,10 @@ static void do_allBleedBorders(
       }
     }
     else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-      if (!lomask[x - 1] ||
-          !lomask[x + 1]) { /* Test if outer mask is empty to the left or to the right. */
-        osz++;              /* Increment outer edge size. */
-        lres[x] = 3;        /* Flag pixel as outer edge. */
+      if (!lomask[x - 1] || !lomask[x + 1])
+      {              /* Test if outer mask is empty to the left or to the right. */
+        osz++;       /* Increment outer edge size. */
+        lres[x] = 3; /* Flag pixel as outer edge. */
       }
       else {
         gsz++;       /* Increment the gradient pixel count. */
@@ -694,10 +694,10 @@ static void do_allBleedBorders(
       }
     }
     else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-      if (!lomask[x - 1] ||
-          !lomask[x + 1]) { /* Test if outer mask is empty to the left or to the right. */
-        osz++;              /* Increment outer edge size. */
-        lres[x] = 3;        /* Flag pixel as outer edge. */
+      if (!lomask[x - 1] || !lomask[x + 1])
+      {              /* Test if outer mask is empty to the left or to the right. */
+        osz++;       /* Increment outer edge size. */
+        lres[x] = 3; /* Flag pixel as outer edge. */
       }
       else {
         gsz++;       /* Increment the gradient pixel count. */
@@ -719,10 +719,10 @@ static void do_allBleedBorders(
       }
     }
     else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-      if (!lomask[x - rw] ||
-          !lomask[x + rw]) { /* Test if outer mask is empty underneath or above. */
-        osz++;               /* Increment outer edge size. */
-        lres[x] = 3;         /* Flag pixel as outer edge. */
+      if (!lomask[x - rw] || !lomask[x + rw])
+      {              /* Test if outer mask is empty underneath or above. */
+        osz++;       /* Increment outer edge size. */
+        lres[x] = 3; /* Flag pixel as outer edge. */
       }
       else {
         gsz++;       /* Increment the gradient pixel count. */
@@ -745,10 +745,10 @@ static void do_allBleedBorders(
       }
     }
     else if (lomask[x]) { /* Inner mask was empty, test if outer mask is filled. */
-      if (!lomask[x - rw] ||
-          !lomask[x + rw]) { /* Test if outer mask is empty underneath or above. */
-        osz++;               /* Increment outer edge size. */
-        lres[x] = 3;         /* Flag pixel as outer edge. */
+      if (!lomask[x - rw] || !lomask[x + rw])
+      {              /* Test if outer mask is empty underneath or above. */
+        osz++;       /* Increment outer edge size. */
+        lres[x] = 3; /* Flag pixel as outer edge. */
       }
       else {
         gsz++;       /* Increment the gradient pixel count. */
@@ -800,7 +800,8 @@ static void do_allEdgeDetection(uint t,
           if ((!lomask[pix_nextCol] && !limask[pix_nextCol]) ||
               (!lomask[pix_prevCol] && !limask[pix_prevCol]) ||
               (!lomask[pix_nextRow] && !limask[pix_nextRow]) ||
-              (!lomask[pix_prevRow] && !limask[pix_prevRow])) {
+              (!lomask[pix_prevRow] && !limask[pix_prevRow]))
+          {
             in_osz++;    /* Increment the outer boundary pixel count. */
             lres[a] = 3; /* Flag pixel as part of outer edge. */
           }
@@ -870,7 +871,8 @@ static void do_adjacentEdgeDetection(uint t,
           if ((!lomask[pix_nextCol] && !limask[pix_nextCol]) ||
               (!lomask[pix_prevCol] && !limask[pix_prevCol]) ||
               (!lomask[pix_nextRow] && !limask[pix_nextRow]) ||
-              (!lomask[pix_prevRow] && !limask[pix_prevRow])) {
+              (!lomask[pix_prevRow] && !limask[pix_prevRow]))
+          {
             in_osz++;    /* Increment the outer boundary pixel count. */
             lres[a] = 3; /* Flag pixel as part of outer edge. */
           }
@@ -884,7 +886,8 @@ static void do_adjacentEdgeDetection(uint t,
         if ((!limask[pix_nextCol] && lomask[pix_nextCol]) ||
             (!limask[pix_prevCol] && lomask[pix_prevCol]) ||
             (!limask[pix_nextRow] && lomask[pix_nextRow]) ||
-            (!limask[pix_prevRow] && lomask[pix_prevRow])) {
+            (!limask[pix_prevRow] && lomask[pix_prevRow]))
+        {
           in_isz++;    /* Increment the inner boundary pixel count. */
           lres[a] = 4; /* Flag pixel as part of inner edge. */
         }
@@ -1120,8 +1123,8 @@ static void do_fillGradientBuffer(uint rw,
     t = gbuf[gradient_fill_offset];       /* Calculate column of pixel indexed by `gbuf[x]`. */
     fsz = gbuf[gradient_fill_offset + 1]; /* Calculate row of pixel indexed by `gbuf[x]`. */
     dmin = 0xffffffff;                    /* Reset min distance to edge pixel. */
-    for (a = outer_edge_offset + osz - 1; a >= outer_edge_offset;
-         a--) { /* Loop through all outer edge buffer pixels. */
+    for (a = outer_edge_offset + osz - 1; a >= outer_edge_offset; a--)
+    { /* Loop through all outer edge buffer pixels. */
       ud = a << 1;
       dy = t - gbuf[ud];       /* Set dx to gradient pixel column - outer edge pixel row. */
       dx = fsz - gbuf[ud + 1]; /* Set dy to gradient pixel row - outer edge pixel column. */
@@ -1138,14 +1141,14 @@ static void do_fillGradientBuffer(uint rw,
     odist = odist * (rsopf - (rsf * odist *
                               odist)); /* -- This line can be iterated for more accuracy. -- */
     dmin = 0xffffffff;                 /* Reset min distance to edge pixel. */
-    for (a = inner_edge_offset + isz - 1; a >= inner_edge_offset;
-         a--) { /* Loop through all inside edge pixels. */
+    for (a = inner_edge_offset + isz - 1; a >= inner_edge_offset; a--)
+    { /* Loop through all inside edge pixels. */
       ud = a << 1;
       dy = t - gbuf[ud];       /* Compute delta in Y from gradient pixel to inside edge pixel. */
       dx = fsz - gbuf[ud + 1]; /* Compute delta in X from gradient pixel to inside edge pixel. */
       ud = dx * dx + dy * dy;  /* Compute sum of squares. */
-      if (ud <
-          dmin) {  /* If our new sum of squares is less than the current minimum we've found. */
+      if (ud < dmin)
+      {            /* If our new sum of squares is less than the current minimum we've found. */
         dmin = ud; /* Set a new minimum equal to the new lower value. */
       }
     }

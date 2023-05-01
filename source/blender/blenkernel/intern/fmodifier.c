@@ -1426,7 +1426,8 @@ float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
      * (whatever scale it is on, it won't affect the results)
      * hence we shouldn't bother seeing what it would do given the chance. */
     if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) == 0 ||
-        ((fcm->sfra <= evaltime) && (fcm->efra >= evaltime))) {
+        ((fcm->sfra <= evaltime) && (fcm->efra >= evaltime)))
+    {
       /* only evaluate if there's a callback for this */
       if (fmi->evaluate_modifier_time) {
         if ((fcm->flag & (FMODIFIER_FLAG_DISABLED | FMODIFIER_FLAG_MUTED)) == 0) {
@@ -1475,7 +1476,8 @@ void evaluate_value_fmodifiers(FModifiersStackStorage *storage,
     /* Only evaluate if there's a callback for this,
      * and if F-Modifier can be evaluated on this frame. */
     if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) == 0 ||
-        ((fcm->sfra <= evaltime) && (fcm->efra >= evaltime))) {
+        ((fcm->sfra <= evaltime) && (fcm->efra >= evaltime)))
+    {
       if (fmi->evaluate_modifier) {
         if ((fcm->flag & (FMODIFIER_FLAG_DISABLED | FMODIFIER_FLAG_MUTED)) == 0) {
           void *storage_ptr = POINTER_OFFSET(storage->buffer,

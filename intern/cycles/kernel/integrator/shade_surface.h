@@ -87,7 +87,8 @@ ccl_device_forceinline bool integrate_surface_holdout(KernelGlobals kg,
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if (((sd->flag & SD_HOLDOUT) || (sd->object_flag & SD_OBJECT_HOLDOUT_MASK)) &&
-      (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND)) {
+      (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND))
+  {
     const Spectrum holdout_weight = surface_shader_apply_holdout(kg, sd);
     const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
     const float transparent = average(holdout_weight * throughput);
@@ -160,7 +161,8 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
                                     sd->flag,
                                     bounce,
                                     path_flag,
-                                    &ls)) {
+                                    &ls))
+    {
       return;
     }
   }

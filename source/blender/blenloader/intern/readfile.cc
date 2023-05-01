@@ -366,7 +366,8 @@ static void split_libdata(ListBase *lb_src, Main **lib_main_array, const uint li
     if (id->lib) {
       if ((uint(id->lib->temp_index) < lib_main_array_len) &&
           /* this check should never fail, just in case 'id->lib' is a dangling pointer. */
-          (lib_main_array[id->lib->temp_index]->curlib == id->lib)) {
+          (lib_main_array[id->lib->temp_index]->curlib == id->lib))
+      {
         Main *mainvar = lib_main_array[id->lib->temp_index];
         ListBase *lb_dst = which_libbase(mainvar, GS(id->name));
         BLI_remlink(lb_src, id);
@@ -401,7 +402,8 @@ void blo_split_main(ListBase *mainlist, Main *main)
 
   int i = 0;
   for (Library *lib = static_cast<Library *>(main->libraries.first); lib;
-       lib = static_cast<Library *>(lib->id.next), i++) {
+       lib = static_cast<Library *>(lib->id.next), i++)
+  {
     Main *libmain = BKE_main_new();
     libmain->curlib = lib;
     libmain->versionfile = lib->versionfile;
@@ -926,7 +928,8 @@ static void decode_blender_header(FileData *fd)
 
   if (readsize == sizeof(header) && STREQLEN(header, "BLENDER", 7) && ELEM(header[7], '_', '-') &&
       ELEM(header[8], 'v', 'V') &&
-      (isdigit(header[9]) && isdigit(header[10]) && isdigit(header[11]))) {
+      (isdigit(header[9]) && isdigit(header[10]) && isdigit(header[11])))
+  {
     fd->flags |= FD_FLAGS_FILE_OK;
 
     /* what size are pointers in the file ? */
@@ -2294,8 +2297,8 @@ static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene, View
 
           /* Local-view can become invalid during undo/redo steps,
            * so we exit it when no could be found. */
-          for (base = static_cast<Base *>(view_layer->object_bases.first); base;
-               base = base->next) {
+          for (base = static_cast<Base *>(view_layer->object_bases.first); base; base = base->next)
+          {
             if (base->local_view_bits & v3d->local_view_uuid) {
               break;
             }
@@ -3583,7 +3586,8 @@ static void lib_link_all(FileData *fd, Main *bmain)
     }
 
     if ((fd->flags & FD_FLAGS_IS_MEMFILE) && do_partial_undo &&
-        (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED) != 0) {
+        (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED) != 0)
+    {
       /* This ID has been re-used from 'old' bmain. Since it was therefore unchanged across
        * current undo step, and old IDs re-use their old memory address, we do not need to liblink
        * it at all. */

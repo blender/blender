@@ -275,8 +275,8 @@ int DocumentExporter::exportCurrentScene()
   /* <library_controllers> */
   ArmatureExporter arm_exporter(blender_context, writer, this->export_settings);
   ControllerExporter controller_exporter(blender_context, writer, this->export_settings);
-  if (bc_has_object_type(export_set, OB_ARMATURE) ||
-      this->export_settings.get_include_shapekeys()) {
+  if (bc_has_object_type(export_set, OB_ARMATURE) || this->export_settings.get_include_shapekeys())
+  {
     controller_exporter.export_controllers();
   }
 

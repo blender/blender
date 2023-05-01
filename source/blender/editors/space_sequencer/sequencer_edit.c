@@ -219,7 +219,8 @@ bool sequencer_view_has_preview_poll(bContext *C)
     return false;
   }
   if (!(ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW) &&
-        (sseq->mainb == SEQ_DRAW_IMG_IMBUF))) {
+        (sseq->mainb == SEQ_DRAW_IMG_IMBUF)))
+  {
     return false;
   }
   ARegion *region = CTX_wm_region(C);
@@ -372,7 +373,8 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
   /* Check meta-strips. */
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     if (seq->flag & SELECT && !SEQ_transform_is_locked(channels, seq) &&
-        SEQ_transform_sequence_can_be_translated(seq)) {
+        SEQ_transform_sequence_can_be_translated(seq))
+    {
       if ((seq->flag & (SEQ_LEFTSEL + SEQ_RIGHTSEL)) == 0) {
         SEQ_transform_translate_sequence(scene, seq, (snap_frame - seq->startofs) - seq->start);
       }
@@ -1256,14 +1258,16 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
 
   if (!seq_effect_find_selected(
           scene, last_seq, last_seq->type, &seq1, &seq2, &seq3, &error_msg) ||
-      SEQ_effect_get_num_inputs(last_seq->type) == 0) {
+      SEQ_effect_get_num_inputs(last_seq->type) == 0)
+  {
     BKE_report(op->reports, RPT_ERROR, error_msg);
     return OPERATOR_CANCELLED;
   }
   /* Check if reassigning would create recursivity. */
   if (SEQ_relations_render_loop_check(seq1, last_seq) ||
       SEQ_relations_render_loop_check(seq2, last_seq) ||
-      SEQ_relations_render_loop_check(seq3, last_seq)) {
+      SEQ_relations_render_loop_check(seq3, last_seq))
+  {
     BKE_report(op->reports, RPT_ERROR, "Cannot reassign inputs: recursion detected");
     return OPERATOR_CANCELLED;
   }
@@ -2220,7 +2224,8 @@ static Sequence *find_next_prev_sequence(Scene *scene, Sequence *test, int lr, i
   seq = ed->seqbasep->first;
   while (seq) {
     if ((seq != test) && (test->machine == seq->machine) &&
-        ((sel == -1) || (sel == (seq->flag & SELECT)))) {
+        ((sel == -1) || (sel == (seq->flag & SELECT))))
+    {
       dist = MAXFRAME * 2;
 
       switch (lr) {
@@ -2278,11 +2283,13 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 
     /* Disallow effect strips. */
     if (SEQ_effect_get_num_inputs(seq->type) >= 1 &&
-        (seq->effectdata || seq->seq1 || seq->seq2 || seq->seq3)) {
+        (seq->effectdata || seq->seq1 || seq->seq2 || seq->seq3))
+    {
       return OPERATOR_CANCELLED;
     }
     if ((SEQ_effect_get_num_inputs(active_seq->type) >= 1) &&
-        (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3)) {
+        (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3))
+    {
       return OPERATOR_CANCELLED;
     }
 
@@ -2298,7 +2305,8 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
     /* Do this in a new loop since both effects need to be calculated first. */
     for (iseq = seqbase->first; iseq; iseq = iseq->next) {
       if ((iseq->type & SEQ_TYPE_EFFECT) &&
-          (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
+          (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq)))
+      {
         /* This may now overlap. */
         if (SEQ_transform_test_overlap(scene, seqbase, iseq)) {
           SEQ_transform_seqbase_shuffle(seqbase, iseq, scene);
@@ -3152,7 +3160,8 @@ static bool seq_get_text_strip_cb(Sequence *seq, void *user_data)
   ListBase *channels = SEQ_channels_displayed_get(ed);
   /* Only text strips that are not muted and don't end with negative frame. */
   if ((seq->type == SEQ_TYPE_TEXT) && !SEQ_render_is_muted(channels, seq) &&
-      (SEQ_time_right_handle_frame_get(cd->scene, seq) > cd->scene->r.sfra)) {
+      (SEQ_time_right_handle_frame_get(cd->scene, seq) > cd->scene->r.sfra))
+  {
     BLI_addtail(cd->text_seq, MEM_dupallocN(seq));
   }
   return true;

@@ -454,7 +454,8 @@ void OVERLAY_image_scene_background_draw(OVERLAY_Data *vedata)
   OVERLAY_PassList *psl = vedata->psl;
 
   if (DRW_state_is_fbo() && (!DRW_pass_is_empty(psl->image_background_scene_ps) ||
-                             !DRW_pass_is_empty(psl->image_foreground_scene_ps))) {
+                             !DRW_pass_is_empty(psl->image_foreground_scene_ps)))
+  {
     const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
     GPU_framebuffer_bind(dfbl->default_fb);
 

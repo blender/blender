@@ -681,12 +681,14 @@ BLI_INLINE int lineart_intersect_seg_seg(const double a1[2],
     if (LRT_DOUBLE_CLOSE_ENOUGH(x_diff2, 0)) {
       /* This means two segments are both vertical. */
       if ((LRT_DOUBLE_CLOSE_ENOUGH(a2[0], b1[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a2[1], b1[1])) ||
-          (LRT_DOUBLE_CLOSE_ENOUGH(a2[0], b2[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a2[1], b2[1]))) {
+          (LRT_DOUBLE_CLOSE_ENOUGH(a2[0], b2[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a2[1], b2[1])))
+      {
         *r_aligned = true;
         *r_ratio = 1;
       }
       else if ((LRT_DOUBLE_CLOSE_ENOUGH(a1[0], b1[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a1[1], b1[1])) ||
-               (LRT_DOUBLE_CLOSE_ENOUGH(a1[0], b2[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a1[1], b2[1]))) {
+               (LRT_DOUBLE_CLOSE_ENOUGH(a1[0], b2[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a1[1], b2[1])))
+      {
         *r_aligned = true;
         *r_ratio = 0;
       }
@@ -712,14 +714,15 @@ BLI_INLINE int lineart_intersect_seg_seg(const double a1[2],
         /* This means two segments are parallel. This also handles k==0 (both completely
          * horizontal) cases. */
         if ((LRT_DOUBLE_CLOSE_ENOUGH(a2[0], b1[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a2[1], b1[1])) ||
-            (LRT_DOUBLE_CLOSE_ENOUGH(a2[0], b2[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a2[1], b2[1]))) {
+            (LRT_DOUBLE_CLOSE_ENOUGH(a2[0], b2[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a2[1], b2[1])))
+        {
           *r_aligned = true;
           *r_ratio = 1;
         }
         else if ((LRT_DOUBLE_CLOSE_ENOUGH(a1[0], b1[0]) &&
                   LRT_DOUBLE_CLOSE_ENOUGH(a1[1], b1[1])) ||
-                 (LRT_DOUBLE_CLOSE_ENOUGH(a1[0], b2[0]) &&
-                  LRT_DOUBLE_CLOSE_ENOUGH(a1[1], b2[1]))) {
+                 (LRT_DOUBLE_CLOSE_ENOUGH(a1[0], b2[0]) && LRT_DOUBLE_CLOSE_ENOUGH(a1[1], b2[1])))
+        {
           *r_aligned = true;
           *r_ratio = 0;
         }

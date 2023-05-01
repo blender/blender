@@ -539,7 +539,8 @@ CustomDataLayer *BKE_id_attribute_search(ID *id,
   get_domains(id, info);
 
   for (eAttrDomain domain = ATTR_DOMAIN_POINT; domain < ATTR_DOMAIN_NUM;
-       domain = static_cast<eAttrDomain>(int(domain) + 1)) {
+       domain = static_cast<eAttrDomain>(int(domain) + 1))
+  {
     if (!(domain_mask & ATTR_DOMAIN_AS_MASK(domain))) {
       continue;
     }
@@ -752,7 +753,8 @@ CustomDataLayer *BKE_id_attribute_from_index(ID *id,
 
     for (int i = 0; i < customdata->totlayer; i++) {
       if (!(layer_mask & CD_TYPE_AS_MASK(customdata->layers[i].type)) ||
-          (customdata->layers[i].flag & CD_FLAG_TEMPORARY)) {
+          (customdata->layers[i].flag & CD_FLAG_TEMPORARY))
+      {
         continue;
       }
 
@@ -873,16 +875,18 @@ CustomDataLayer *BKE_id_attributes_color_find(const ID *id, const char *name)
   if (CustomDataLayer *layer = BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_POINT)) {
     return layer;
   }
-  if (CustomDataLayer *layer = BKE_id_attribute_find(
-          id, name, CD_PROP_COLOR, ATTR_DOMAIN_CORNER)) {
+  if (CustomDataLayer *layer = BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_CORNER))
+  {
     return layer;
   }
   if (CustomDataLayer *layer = BKE_id_attribute_find(
-          id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_POINT)) {
+          id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_POINT))
+  {
     return layer;
   }
   if (CustomDataLayer *layer = BKE_id_attribute_find(
-          id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_CORNER)) {
+          id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_CORNER))
+  {
     return layer;
   }
   return nullptr;

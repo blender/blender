@@ -222,7 +222,8 @@ static bool snap_cursor_poll(ARegion *region, void *data)
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)data;
   if (!(snap_gizmo->gizmo.state & WM_GIZMO_STATE_HIGHLIGHT) &&
-      !(snap_gizmo->gizmo.flag & WM_GIZMO_DRAW_VALUE)) {
+      !(snap_gizmo->gizmo.flag & WM_GIZMO_DRAW_VALUE))
+  {
     return false;
   }
 

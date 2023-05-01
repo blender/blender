@@ -1137,7 +1137,8 @@ static int imagewraposa_aniso(Tex *tex,
 
   if (tex->extend == TEX_CLIPCUBE) {
     if ((fx + minx) < 0.0f || (fy + miny) < 0.0f || (fx - minx) > 1.0f || (fy - miny) > 1.0f ||
-        texvec[2] < -1.0f || texvec[2] > 1.0f) {
+        texvec[2] < -1.0f || texvec[2] > 1.0f)
+    {
       if (ima) {
         BKE_image_pool_release_ibuf(ima, ibuf, pool);
       }
@@ -1565,7 +1566,8 @@ int imagewraposa(Tex *tex,
 
   if (tex->extend == TEX_CLIPCUBE) {
     if (fx + minx < 0.0f || fy + miny < 0.0f || fx - minx > 1.0f || fy - miny > 1.0f ||
-        texvec[2] < -1.0f || texvec[2] > 1.0f) {
+        texvec[2] < -1.0f || texvec[2] > 1.0f)
+    {
       if (ima) {
         BKE_image_pool_release_ibuf(ima, ibuf, pool);
       }

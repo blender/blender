@@ -2229,7 +2229,8 @@ static bool gpencil_vertex_group_poll(bContext *C)
     Main *bmain = CTX_data_main(C);
     const bGPdata *gpd = (const bGPdata *)ob->data;
     if (BKE_id_is_editable(bmain, &ob->id) && BKE_id_is_editable(bmain, ob->data) &&
-        !BLI_listbase_is_empty(&gpd->vertex_group_names)) {
+        !BLI_listbase_is_empty(&gpd->vertex_group_names))
+    {
       if (ELEM(ob->mode, OB_MODE_EDIT_GPENCIL, OB_MODE_SCULPT_GPENCIL)) {
         return true;
       }
@@ -2247,7 +2248,8 @@ static bool gpencil_vertex_group_weight_poll(bContext *C)
     Main *bmain = CTX_data_main(C);
     const bGPdata *gpd = (const bGPdata *)ob->data;
     if (BKE_id_is_editable(bmain, &ob->id) && BKE_id_is_editable(bmain, ob->data) &&
-        !BLI_listbase_is_empty(&gpd->vertex_group_names)) {
+        !BLI_listbase_is_empty(&gpd->vertex_group_names))
+    {
       if (ob->mode == OB_MODE_WEIGHT_GPENCIL) {
         return true;
       }
@@ -2928,7 +2930,8 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
           old_idx++;
         }
         if (!BLI_listbase_is_empty(&gpd_dst->vertex_group_names) &&
-            gpd_dst->vertex_group_active_index == 0) {
+            gpd_dst->vertex_group_active_index == 0)
+        {
           gpd_dst->vertex_group_active_index = 1;
         }
 

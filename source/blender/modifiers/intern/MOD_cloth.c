@@ -114,7 +114,8 @@ static void deformVerts(ModifierData *md,
     if (kb && kb->data != NULL) {
       float(*layerorco)[3];
       if (!(layerorco = CustomData_get_layer_for_write(
-                &mesh_src->vdata, CD_CLOTH_ORCO, mesh_src->totvert))) {
+                &mesh_src->vdata, CD_CLOTH_ORCO, mesh_src->totvert)))
+      {
         layerorco = CustomData_add_layer(
             &mesh_src->vdata, CD_CLOTH_ORCO, CD_SET_DEFAULT, mesh_src->totvert);
       }

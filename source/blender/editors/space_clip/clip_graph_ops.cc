@@ -184,7 +184,8 @@ static bool mouse_select_knot(bContext *C, const float co[2], bool extend)
 
       if (UI_view2d_view_to_region_clip(v2d, co[0], co[1], &x1, &y1) &&
           UI_view2d_view_to_region_clip(v2d, userdata.min_co[0], userdata.min_co[1], &x2, &y2) &&
-          (abs(x2 - x1) <= delta && abs(y2 - y1) <= delta)) {
+          (abs(x2 - x1) <= delta && abs(y2 - y1) <= delta))
+      {
         if (!extend) {
           SelectUserData selectdata = {SEL_DESELECT};
 

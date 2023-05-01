@@ -450,7 +450,8 @@ bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
         !BLI_str_endswith(keymap->idname, " (fallback)") &&
         /* This is an exception which may be empty.
          * Longer term we might want a flag to indicate an empty key-map is intended. */
-        !STREQ(keymap->idname, "Node Tool: Tweak")) {
+        !STREQ(keymap->idname, "Node Tool: Tweak"))
+    {
       CLOG_WARN(WM_LOG_KEYMAPS, "empty keymap '%s'", keymap->idname);
     }
   }
@@ -1252,7 +1253,8 @@ int WM_modalkeymap_items_to_string(const wmKeyMap *km,
     totlen += WM_keymap_item_to_string(kmi, compact, &result[totlen], result_len - totlen);
 
     if ((kmi = wm_modalkeymap_find_propvalue_iter(km, kmi, propvalue)) == NULL ||
-        totlen >= (result_len - 2)) {
+        totlen >= (result_len - 2))
+    {
       break;
     }
 

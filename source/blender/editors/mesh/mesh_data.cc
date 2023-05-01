@@ -441,7 +441,8 @@ bool ED_mesh_color_ensure(Mesh *me, const char *name)
   char unique_name[MAX_CUSTOMDATA_LAYER_NAME];
   BKE_id_attribute_calc_unique_name(&me->id, name, unique_name);
   if (!me->attributes_for_write().add(
-          unique_name, ATTR_DOMAIN_CORNER, CD_PROP_BYTE_COLOR, bke::AttributeInitDefaultValue())) {
+          unique_name, ATTR_DOMAIN_CORNER, CD_PROP_BYTE_COLOR, bke::AttributeInitDefaultValue()))
+  {
     return false;
   }
 
@@ -473,7 +474,8 @@ int ED_mesh_sculpt_color_add(Mesh *me, const char *name, const bool do_init, Rep
   }
 
   if (const CustomDataLayer *layer = BKE_id_attribute_find(
-          &me->id, me->active_color_attribute, CD_PROP_COLOR, ATTR_DOMAIN_POINT)) {
+          &me->id, me->active_color_attribute, CD_PROP_COLOR, ATTR_DOMAIN_POINT))
+  {
     int dummy;
     const CustomData *data = mesh_customdata_get_type(me, BM_LOOP, &dummy);
     return CustomData_get_named_layer(data, CD_PROP_BYTE_COLOR, layer->name);

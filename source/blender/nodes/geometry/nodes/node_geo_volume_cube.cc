@@ -129,8 +129,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  if (bounds_min.x == bounds_max.x || bounds_min.y == bounds_max.y ||
-      bounds_min.z == bounds_max.z) {
+  if (bounds_min.x == bounds_max.x || bounds_min.y == bounds_max.y || bounds_min.z == bounds_max.z)
+  {
     params.error_message_add(NodeWarningType::Error,
                              TIP_("Bounding box volume must be greater than 0"));
     params.set_default_remaining_outputs();

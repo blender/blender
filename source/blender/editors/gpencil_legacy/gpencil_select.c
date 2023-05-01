@@ -127,7 +127,8 @@ static bool gpencil_3d_point_to_screen_space(ARegion *region,
   int screen_co[2];
   if (ED_view3d_project_int_global(
           region, parent_co, screen_co, V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) ==
-      V3D_PROJ_RET_OK) {
+      V3D_PROJ_RET_OK)
+  {
     if (!ELEM(V2D_IS_CLIPPED, screen_co[0], screen_co[1])) {
       copy_v2_v2_int(r_co, screen_co);
       return true;
@@ -1606,13 +1607,15 @@ static bool gpencil_do_curve_circle_sel(bContext *C,
       /* do 2d projection */
       if (ED_view3d_project_int_global(
               region, parent_co, screen_co, V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) !=
-          V3D_PROJ_RET_OK) {
+          V3D_PROJ_RET_OK)
+      {
         continue;
       }
 
       /* view and bounding box test */
       if (ELEM(V2D_IS_CLIPPED, screen_co[0], screen_co[1]) &&
-          !BLI_rcti_isect_pt(rect, screen_co[0], screen_co[1])) {
+          !BLI_rcti_isect_pt(rect, screen_co[0], screen_co[1]))
+      {
         continue;
       }
 

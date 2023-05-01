@@ -1686,14 +1686,16 @@ static bool imb_exr_multilayer_parse_channels_from_file(ExrHandle *data)
           /* we can have RGB(A), XYZ(W), UVA */
           if (ELEM(pass->totchan, 3, 4)) {
             if (pass->chan[0]->chan_id == 'B' || pass->chan[1]->chan_id == 'B' ||
-                pass->chan[2]->chan_id == 'B') {
+                pass->chan[2]->chan_id == 'B')
+            {
               lookup[uint('R')] = 0;
               lookup[uint('G')] = 1;
               lookup[uint('B')] = 2;
               lookup[uint('A')] = 3;
             }
             else if (pass->chan[0]->chan_id == 'Y' || pass->chan[1]->chan_id == 'Y' ||
-                     pass->chan[2]->chan_id == 'Y') {
+                     pass->chan[2]->chan_id == 'Y')
+            {
               lookup[uint('X')] = 0;
               lookup[uint('Y')] = 1;
               lookup[uint('Z')] = 2;

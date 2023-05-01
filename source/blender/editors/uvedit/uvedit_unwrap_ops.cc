@@ -668,7 +668,8 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
     }
     else {
       if (BM_elem_flag_test(origFace, BM_ELEM_HIDDEN) ||
-          (options->only_selected_faces && !BM_elem_flag_test(origFace, BM_ELEM_SELECT))) {
+          (options->only_selected_faces && !BM_elem_flag_test(origFace, BM_ELEM_SELECT)))
+      {
         continue;
       }
     }
@@ -1224,7 +1225,8 @@ static void uvedit_pack_islands_multi(const Scene *scene,
   if (original_selection) {
     /* Protect against degenerate source AABB. */
     if ((selection_max_co[0] - selection_min_co[0]) * (selection_max_co[1] - selection_min_co[1]) >
-        1e-40f) {
+        1e-40f)
+    {
       params->target_aspect_y = (selection_max_co[0] - selection_min_co[0]) /
                                 (selection_max_co[1] - selection_min_co[1]);
     }
@@ -2626,7 +2628,8 @@ static int smart_project_exec(bContext *C, wmOperator *op)
 
     /* Remove all zero area faces. */
     while ((thick_faces_len > 0) &&
-           !(thick_faces[thick_faces_len - 1].area > smart_uv_project_area_ignore)) {
+           !(thick_faces[thick_faces_len - 1].area > smart_uv_project_area_ignore))
+    {
 
       /* Zero UVs so they don't overlap with other faces being unwrapped. */
       BMIter liter;

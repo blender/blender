@@ -386,7 +386,8 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
         continue;
       }
       if (area->v3->vec.x - area->v1->vec.x < tolerance &&
-          (area->v1->vec.x == xmin || area->v3->vec.x == xmax)) {
+          (area->v1->vec.x == xmin || area->v3->vec.x == xmax))
+      {
         /* There is a narrow vertical area sharing an edge of the combined bounds. */
         return false;
       }
@@ -400,7 +401,8 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
         continue;
       }
       if (area->v3->vec.y - area->v1->vec.y < tolerance &&
-          (area->v1->vec.y == ymin || area->v3->vec.y == ymax)) {
+          (area->v1->vec.y == ymin || area->v3->vec.y == ymax))
+      {
         /* There is a narrow horizontal area sharing an edge of the combined bounds. */
         return false;
       }
@@ -925,9 +927,11 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
 
   ED_screen_areas_iter (win, screen, area_iter) {
     if (xy[0] > (area_iter->totrct.xmin + BORDERPADDING) &&
-        xy[0] < (area_iter->totrct.xmax - BORDERPADDING)) {
+        xy[0] < (area_iter->totrct.xmax - BORDERPADDING))
+    {
       if (xy[1] > (area_iter->totrct.ymin + BORDERPADDING) &&
-          xy[1] < (area_iter->totrct.ymax - BORDERPADDING)) {
+          xy[1] < (area_iter->totrct.ymax - BORDERPADDING))
+      {
         if (ED_area_azones_update(area_iter, xy) == NULL) {
           area = area_iter;
           break;
@@ -1479,7 +1483,8 @@ static bScreen *screen_state_to_nonnormal(bContext *C,
                RGN_TYPE_FOOTER,
                RGN_TYPE_TOOLS,
                RGN_TYPE_NAV_BAR,
-               RGN_TYPE_EXECUTE)) {
+               RGN_TYPE_EXECUTE))
+      {
         region->flag |= RGN_FLAG_HIDDEN;
       }
     }
@@ -1631,7 +1636,8 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
                          false,
                          dialog,
                          true,
-                         WIN_ALIGN_LOCATION_CENTER)) {
+                         WIN_ALIGN_LOCATION_CENTER))
+      {
         area = CTX_wm_area(C);
       }
       break;

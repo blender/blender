@@ -624,7 +624,8 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
     COLLADAFW::Node *node = *ri;
     /* for shared armature check if bone tree is already created */
     if (shared && std::find(skin_root_joints.begin(), skin_root_joints.end(), node) !=
-                      skin_root_joints.end()) {
+                      skin_root_joints.end())
+    {
       continue;
     }
 

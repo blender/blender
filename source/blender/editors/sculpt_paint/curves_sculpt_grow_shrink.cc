@@ -305,7 +305,8 @@ struct CurvesEffectOperationExecutor {
                 *ctx_.rv3d,
                 *object_,
                 stroke_extension.mouse_position,
-                brush_radius_base_re_)) {
+                brush_radius_base_re_))
+        {
           self.brush_3d_ = *brush_3d;
         }
       }

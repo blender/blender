@@ -232,7 +232,8 @@ int PathTraceWorkCPU::adaptive_sampling_converge_filter_count_active(float thres
       uint num_row_pixels_active = 0;
       for (int x = 0; x < width; ++x) {
         if (!kernels_.adaptive_sampling_convergence_check(
-                kernel_globals, render_buffer, full_x + x, y, threshold, reset, offset, stride)) {
+                kernel_globals, render_buffer, full_x + x, y, threshold, reset, offset, stride))
+        {
           ++num_row_pixels_active;
           row_converged = false;
         }

@@ -892,7 +892,8 @@ id<MTLComputeCommandEncoder> MetalDeviceQueue::get_compute_encoder(DeviceKernel 
 
     if (mtlComputeEncoder_) {
       if (mtlComputeEncoder_.dispatchType == concurrent ? MTLDispatchTypeConcurrent :
-                                                          MTLDispatchTypeSerial) {
+                                                          MTLDispatchTypeSerial)
+      {
         /* declare usage of MTLBuffers etc */
         prepare_resources(kernel);
 

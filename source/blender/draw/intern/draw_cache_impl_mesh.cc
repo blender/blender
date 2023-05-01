@@ -519,7 +519,8 @@ static void drw_mesh_weight_state_extract(Object *ob,
         BKE_object_defgroup_check_lock_relative_multi(wstate->defgroup_len,
                                                       wstate->defgroup_locked,
                                                       wstate->defgroup_sel,
-                                                      wstate->defgroup_sel_count)) {
+                                                      wstate->defgroup_sel_count))
+    {
       wstate->flags |= DRW_MESH_WEIGHT_STATE_LOCK_RELATIVE;
 
       /* Compute the set of locked and unlocked deform vertex groups. */
@@ -1404,7 +1405,8 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
 
   if (batch_requested &
       (MBC_SURFACE | MBC_WIRE_LOOPS_UVS | MBC_EDITUV_FACES_STRETCH_AREA |
-       MBC_EDITUV_FACES_STRETCH_ANGLE | MBC_EDITUV_FACES | MBC_EDITUV_EDGES | MBC_EDITUV_VERTS)) {
+       MBC_EDITUV_FACES_STRETCH_ANGLE | MBC_EDITUV_FACES | MBC_EDITUV_EDGES | MBC_EDITUV_VERTS))
+  {
     /* Modifiers will only generate an orco layer if the mesh is deformed. */
     if (cache->cd_needed.orco != 0) {
       /* Orco is always extracted from final mesh. */
@@ -1428,7 +1430,8 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
           cd_uv_update = true;
         }
         if ((cache->cd_used.tan & cache->cd_needed.tan) != cache->cd_needed.tan ||
-            cache->cd_used.tan_orco != cache->cd_needed.tan_orco) {
+            cache->cd_used.tan_orco != cache->cd_needed.tan_orco)
+        {
           GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.tan);
         }
         if (cache->cd_used.orco != cache->cd_needed.orco) {

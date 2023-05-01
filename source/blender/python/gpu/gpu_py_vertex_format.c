@@ -108,7 +108,8 @@ static PyObject *pygpu_vertformat_attr_add(BPyGPUVertFormat *self, PyObject *arg
                                         &comp_type,
                                         &len,
                                         PyC_ParseStringEnum,
-                                        &fetch_mode)) {
+                                        &fetch_mode))
+  {
     return NULL;
   }
 

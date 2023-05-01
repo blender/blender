@@ -852,7 +852,8 @@ bool BKE_ocean_init(struct Ocean *o,
       (o->_h0_minus = (fftw_complex *)MEM_mallocN(sizeof(fftw_complex) * (size_t)M * N,
                                                   "ocean_h0_minus")) &&
       (o->_kx = (float *)MEM_mallocN(sizeof(float) * o->_M, "ocean_kx")) &&
-      (o->_kz = (float *)MEM_mallocN(sizeof(float) * o->_N, "ocean_kz"))) {
+      (o->_kz = (float *)MEM_mallocN(sizeof(float) * o->_N, "ocean_kz")))
+  {
     /* Success. */
   }
   else {

@@ -600,7 +600,8 @@ static void draw_mask_layers(
 
   MaskLayer *active = NULL;
   for (mask_layer = mask->masklayers.first, i = 0; mask_layer != NULL;
-       mask_layer = mask_layer->next, i++) {
+       mask_layer = mask_layer->next, i++)
+  {
     const bool is_active = (i == mask->masklay_act);
 
     if (mask_layer->visibility_flag & MASK_HIDE_VIEW) {
@@ -800,7 +801,8 @@ void ED_mask_draw_frames(
 
   for (MaskLayerShape *mask_layer_shape = mask_layer->splines_shapes.first;
        mask_layer_shape != NULL;
-       mask_layer_shape = mask_layer_shape->next) {
+       mask_layer_shape = mask_layer_shape->next)
+  {
     int frame = mask_layer_shape->frame;
 
     // draw_keyframe(i, scene->r.cfra, sfra, framelen, 1);

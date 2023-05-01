@@ -52,7 +52,8 @@ void BM_mesh_edgesplit(BMesh *bm,
     BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
       if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
         if (UNLIKELY((BM_elem_flag_test(e->v1, BM_ELEM_TAG) == false) &&
-                     (BM_elem_flag_test(e->v2, BM_ELEM_TAG) == false))) {
+                     (BM_elem_flag_test(e->v2, BM_ELEM_TAG) == false)))
+        {
           BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
           BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
         }

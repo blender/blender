@@ -91,10 +91,12 @@ Device *device_hip_create(const DeviceInfo &info, Stats &stats, Profiler &profil
 static hipError_t device_hip_safe_init()
 {
 #  ifdef _WIN32
-  __try {
+  __try
+  {
     return hipInit(0);
   }
-  __except (EXCEPTION_EXECUTE_HANDLER) {
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
     /* Ignore crashes inside the HIP driver and hope we can
      * survive even with corrupted HIP installs. */
     fprintf(stderr, "Cycles HIP: driver crashed, continuing without HIP.\n");

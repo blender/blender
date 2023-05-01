@@ -345,7 +345,8 @@ static void dof_bokeh_pass_init(EEVEE_FramebufferList *fbl,
                                 EEVEE_EffectsInfo *fx)
 {
   if ((fx->dof_bokeh_aniso[0] == 1.0f) && (fx->dof_bokeh_aniso[1] == 1.0f) &&
-      (fx->dof_bokeh_blades == 0.0)) {
+      (fx->dof_bokeh_blades == 0.0))
+  {
     fx->dof_bokeh_gather_lut_tx = NULL;
     fx->dof_bokeh_scatter_lut_tx = NULL;
     fx->dof_bokeh_resolve_lut_tx = NULL;
@@ -631,7 +632,8 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
     /* TODO(@fclem): In the future, we need to check if mip_count did not change.
      * For now it's ok as we always define all mip level. */
     if (res[0] != GPU_texture_width(txl->dof_reduced_color) ||
-        res[1] != GPU_texture_width(txl->dof_reduced_color)) {
+        res[1] != GPU_texture_width(txl->dof_reduced_color))
+    {
       DRW_TEXTURE_FREE_SAFE(txl->dof_reduced_color);
       DRW_TEXTURE_FREE_SAFE(txl->dof_reduced_coc);
     }

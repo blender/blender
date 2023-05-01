@@ -142,7 +142,8 @@ void BKE_crazyspace_set_quats_editmesh(BMEditMesh *em,
     do {
       if (BM_elem_flag_test(l_iter->v, BM_ELEM_HIDDEN) ||
           BM_elem_flag_test(l_iter->v, BM_ELEM_TAG) ||
-          (use_select && !BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT))) {
+          (use_select && !BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)))
+      {
         continue;
       }
 
@@ -291,7 +292,8 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
 
   for (; md && i <= cageIndex; md = md->next, i++) {
     if (editbmesh_modifier_is_enabled(scene, ob, md, me != nullptr) &&
-        BKE_modifier_is_correctable_deformed(md)) {
+        BKE_modifier_is_correctable_deformed(md))
+    {
       modifiers_left_num++;
     }
   }
@@ -522,7 +524,8 @@ void BKE_crazyspace_api_eval(Depsgraph *depsgraph,
                              struct ReportList *reports)
 {
   if (object->runtime.crazyspace_deform_imats != nullptr ||
-      object->runtime.crazyspace_deform_cos != nullptr) {
+      object->runtime.crazyspace_deform_cos != nullptr)
+  {
     return;
   }
 

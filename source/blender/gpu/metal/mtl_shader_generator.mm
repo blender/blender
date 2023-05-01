@@ -165,7 +165,8 @@ static bool is_program_word(const char *chr, int *len)
     char ch = *c;
     /* Note: Hash (`#`) is not valid in var names, but is used by Closure macro patterns. */
     if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
-        (numchars > 0 && ch >= '0' && ch <= '9') || ch == '_' || ch == '#') {
+        (numchars > 0 && ch >= '0' && ch <= '9') || ch == '_' || ch == '#')
+    {
       numchars++;
     }
     else {
@@ -185,7 +186,8 @@ static int backwards_program_word_scan(const char *array_loc, const char *min)
   for (start = array_loc - 1; (start >= min) && (*start != '\0'); start--) {
     char ch = *start;
     if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') ||
-        ch == '_' || ch == '#') {
+        ch == '_' || ch == '#')
+    {
       numchars++;
       last_char = ch;
     }
@@ -466,7 +468,8 @@ static void extract_global_scope_constants(std::string &str, std::stringstream &
 
     /* Check For global const declarations */
     if (nested_bracket_depth == 0 && strncmp(c, "const ", 6) == 0 &&
-        strncmp(c, "const constant ", 15) != 0) {
+        strncmp(c, "const constant ", 15) != 0)
+    {
       char *c_expr_end = strchr(c, ';');
       if (c_expr_end != nullptr && balanced_braces(c, c_expr_end)) {
         MTL_LOG_INFO(
@@ -1736,7 +1739,8 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
           /* TextureBuffers must have read/write/read-write access pattern. */
           if (res.sampler.type == ImageType::FLOAT_BUFFER ||
               res.sampler.type == ImageType::INT_BUFFER ||
-              res.sampler.type == ImageType::UINT_BUFFER) {
+              res.sampler.type == ImageType::UINT_BUFFER)
+          {
             access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READ;
           }
 
@@ -2757,7 +2761,8 @@ std::string MSLGeneratorInterface::generate_msl_vertex_attribute_input_populatio
           << this->vertex_input_attributes[attribute].name << 0;
       for (int elem = 1;
            elem < get_matrix_location_count(this->vertex_input_attributes[attribute].type);
-           elem++) {
+           elem++)
+      {
         out << ",\n"
             << "v_in.__internal_" << this->vertex_input_attributes[attribute].name << elem;
       }
@@ -2963,10 +2968,11 @@ std::string MSLGeneratorInterface::generate_msl_fragment_input_population()
    * vertex shader, a warning will be provided. */
   for (int f_input = (this->uses_gl_Position) ? 0 : 1;
        f_input < this->fragment_input_varyings.size();
-       f_input++) {
+       f_input++)
+  {
     bool exists_in_vertex_output = false;
-    for (int v_o = 0; v_o < this->vertex_output_varyings.size() && !exists_in_vertex_output;
-         v_o++) {
+    for (int v_o = 0; v_o < this->vertex_output_varyings.size() && !exists_in_vertex_output; v_o++)
+    {
       if (this->fragment_input_varyings[f_input].name == this->vertex_output_varyings[v_o].name) {
         exists_in_vertex_output = true;
       }
@@ -3215,7 +3221,8 @@ MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(const char *nam
       int size = mtl_get_data_type_size(mtl_type);
       for (int elem = 0;
            elem < get_matrix_location_count(this->vertex_input_attributes[attribute].type);
-           elem++) {
+           elem++)
+      {
         /* First attribute matches the core name -- subsequent attributes tagged with
          * `__internal_<name><index>`. */
         std::string _internal_name = (elem == 0) ?

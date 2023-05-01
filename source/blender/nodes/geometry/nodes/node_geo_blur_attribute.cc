@@ -456,7 +456,8 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const BlurAttributeFieldInput *other_blur = dynamic_cast<const BlurAttributeFieldInput *>(
-            &other)) {
+            &other))
+    {
       return weight_field_ == other_blur->weight_field_ &&
              value_field_ == other_blur->value_field_ && iterations_ == other_blur->iterations_;
     }

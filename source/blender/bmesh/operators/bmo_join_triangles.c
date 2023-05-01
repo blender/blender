@@ -137,7 +137,8 @@ static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e,
 {
   int cd_offset;
   for (cd_offset = delimit_data->cd_offset; cd_offset < delimit_data->cd_offset_end;
-       cd_offset += delimit_data->cd_size) {
+       cd_offset += delimit_data->cd_size)
+  {
     if (BM_edge_is_contiguous_loop_cd(e, delimit_data->cd_type, cd_offset) == false) {
       return false;
     }
@@ -212,7 +213,8 @@ static float bm_edge_is_delimit(const BMEdge *e, const struct DelimitData *delim
           (fabsf(angle_normalized_v3v3(edge_vecs[2], edge_vecs[3]) - (float)M_PI_2) >
            delimit_data->angle_shape) ||
           (fabsf(angle_normalized_v3v3(edge_vecs[3], edge_vecs[0]) - (float)M_PI_2) >
-           delimit_data->angle_shape)) {
+           delimit_data->angle_shape))
+      {
         goto fail;
       }
     }
@@ -278,14 +280,16 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 
   if (BMO_slot_bool_get(op->slots_in, "cmp_uvs") &&
       bm_edge_delimit_cdata(
-          &bm->ldata, CD_PROP_FLOAT2, &delimit_data.cdata[delimit_data.cdata_len])) {
+          &bm->ldata, CD_PROP_FLOAT2, &delimit_data.cdata[delimit_data.cdata_len]))
+  {
     delimit_data.cdata_len += 1;
   }
 
   delimit_data.cdata[delimit_data.cdata_len].cd_offset = -1;
   if (BMO_slot_bool_get(op->slots_in, "cmp_vcols") &&
       bm_edge_delimit_cdata(
-          &bm->ldata, CD_PROP_BYTE_COLOR, &delimit_data.cdata[delimit_data.cdata_len])) {
+          &bm->ldata, CD_PROP_BYTE_COLOR, &delimit_data.cdata[delimit_data.cdata_len]))
+  {
     delimit_data.cdata_len += 1;
   }
 
@@ -300,7 +304,8 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
   BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
     BMFace *f_a, *f_b;
     if (BM_edge_face_pair(e, &f_a, &f_b) &&
-        (BMO_face_flag_test(bm, f_a, FACE_INPUT) && BMO_face_flag_test(bm, f_b, FACE_INPUT))) {
+        (BMO_face_flag_test(bm, f_a, FACE_INPUT) && BMO_face_flag_test(bm, f_b, FACE_INPUT)))
+    {
       if (!bm_edge_is_delimit(e, &delimit_data)) {
         BMO_edge_flag_enable(bm, e, EDGE_MARK);
         totedge_tag++;

@@ -346,7 +346,8 @@ bool ED_view3d_clipping_clamp_minmax(const RegionView3D *rv3d, float min[3], flo
   const float eps_coplanar = 1e-4f;
   const float eps_isect = 1e-6f;
   if (isect_planes_v3_fn(
-          planes, planes_len, eps_coplanar, eps_isect, points_in_planes_minmax_fn, &user_data)) {
+          planes, planes_len, eps_coplanar, eps_isect, points_in_planes_minmax_fn, &user_data))
+  {
     copy_v3_v3(min, user_data.min);
     copy_v3_v3(max, user_data.max);
     return true;
@@ -577,7 +578,8 @@ bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionV
     Object *root_parent;
 
     if (v3d->camera->transflag & OB_TRANSFORM_ADJUST_ROOT_PARENT_FOR_VIEW_LOCK &&
-        (root_parent = v3d->camera->parent)) {
+        (root_parent = v3d->camera->parent))
+    {
       Object *ob_update;
       float tmat[4][4];
       float imat[4][4];
@@ -675,7 +677,8 @@ bool ED_view3d_camera_lock_autokey(View3D *v3d,
     ID *id_key;
     Object *root_parent;
     if (v3d->camera->transflag & OB_TRANSFORM_ADJUST_ROOT_PARENT_FOR_VIEW_LOCK &&
-        (root_parent = v3d->camera->parent)) {
+        (root_parent = v3d->camera->parent))
+    {
       while (root_parent->parent) {
         root_parent = root_parent->parent;
       }
@@ -871,7 +874,8 @@ static void view3d_boxview_sync_axis(RegionView3D *rv3d_dst, RegionView3D *rv3d_
 
   /* we could use rv3d->viewinv, but better not depend on view matrix being updated */
   if (UNLIKELY(ED_view3d_quat_from_axis_view(rv3d_src->view, rv3d_src->view_axis_roll, viewinv) ==
-               false)) {
+               false))
+  {
     return;
   }
   invert_qt_normalized(viewinv);
@@ -879,7 +883,8 @@ static void view3d_boxview_sync_axis(RegionView3D *rv3d_dst, RegionView3D *rv3d_
   mul_qt_v3(viewinv, view_src_y);
 
   if (UNLIKELY(ED_view3d_quat_from_axis_view(rv3d_dst->view, rv3d_dst->view_axis_roll, viewinv) ==
-               false)) {
+               false))
+  {
     return;
   }
   invert_qt_normalized(viewinv);
@@ -889,7 +894,8 @@ static void view3d_boxview_sync_axis(RegionView3D *rv3d_dst, RegionView3D *rv3d_
   /* check source and dest have a matching axis */
   for (i = 0; i < 3; i++) {
     if (((fabsf(view_src_x[i]) > axis_eps) || (fabsf(view_src_y[i]) > axis_eps)) &&
-        ((fabsf(view_dst_x[i]) > axis_eps) || (fabsf(view_dst_y[i]) > axis_eps))) {
+        ((fabsf(view_dst_x[i]) > axis_eps) || (fabsf(view_dst_y[i]) > axis_eps)))
+    {
       rv3d_dst->ofs[i] = rv3d_src->ofs[i];
     }
   }
@@ -1450,9 +1456,11 @@ bool ED_view3d_quat_to_axis_view(const float quat[4],
     /* Under 45 degrees, just pick the closest value. */
     for (int view = RV3D_VIEW_FRONT; view <= RV3D_VIEW_BOTTOM; view++) {
       for (int view_axis_roll = RV3D_VIEW_AXIS_ROLL_0; view_axis_roll <= RV3D_VIEW_AXIS_ROLL_270;
-           view_axis_roll++) {
+           view_axis_roll++)
+      {
         if (fabsf(angle_signed_qtqt(
-                quat, view3d_quat_axis[view - RV3D_VIEW_FRONT][view_axis_roll])) < epsilon) {
+                quat, view3d_quat_axis[view - RV3D_VIEW_FRONT][view_axis_roll])) < epsilon)
+        {
           *r_view = view;
           *r_view_axis_roll = view_axis_roll;
           return true;
@@ -1465,7 +1473,8 @@ bool ED_view3d_quat_to_axis_view(const float quat[4],
     float delta_best = FLT_MAX;
     for (int view = RV3D_VIEW_FRONT; view <= RV3D_VIEW_BOTTOM; view++) {
       for (int view_axis_roll = RV3D_VIEW_AXIS_ROLL_0; view_axis_roll <= RV3D_VIEW_AXIS_ROLL_270;
-           view_axis_roll++) {
+           view_axis_roll++)
+      {
         const float delta_test = fabsf(
             angle_signed_qtqt(quat, view3d_quat_axis[view - RV3D_VIEW_FRONT][view_axis_roll]));
         if (delta_best > delta_test) {
@@ -1616,7 +1625,8 @@ static bool view3d_camera_to_view_selected_impl(struct Main *bmain,
   float scale; /* only for ortho cameras */
 
   if (BKE_camera_view_frame_fit_to_scene(
-          depsgraph, scene, camera_ob_eval, co, &scale, r_clip_start, r_clip_end)) {
+          depsgraph, scene, camera_ob_eval, co, &scale, r_clip_start, r_clip_end))
+  {
     ObjectTfmProtectedChannels obtfm;
     float obmat_new[4][4];
     bool is_ortho_camera = false;
@@ -1663,7 +1673,8 @@ bool ED_view3d_camera_to_view_selected_with_set_clipping(struct Main *bmain,
   float clip_start;
   float clip_end;
   if (view3d_camera_to_view_selected_impl(
-          bmain, depsgraph, scene, camera_ob, &clip_start, &clip_end)) {
+          bmain, depsgraph, scene, camera_ob, &clip_start, &clip_end))
+  {
 
     ((Camera *)camera_ob->data)->clip_start = clip_start;
     ((Camera *)camera_ob->data)->clip_end = clip_end;

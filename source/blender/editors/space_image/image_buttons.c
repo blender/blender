@@ -654,7 +654,8 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
 
     /* view */
     if (BLI_listbase_count_at_most(&rr->views, 2) > 1 &&
-        ((!show_stereo) || !RE_RenderResult_is_stereo(rr))) {
+        ((!show_stereo) || !RE_RenderResult_is_stereo(rr)))
+    {
       rview = BLI_findlink(&rr->views, iuser->view);
       display_name = rview ? rview->name : "";
 
@@ -676,7 +677,8 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
 
   /* stereo image */
   else if ((BKE_image_is_stereo(image) && (!show_stereo)) ||
-           (BKE_image_is_multiview(image) && !BKE_image_is_stereo(image))) {
+           (BKE_image_is_multiview(image) && !BKE_image_is_stereo(image)))
+  {
     ImageView *iv;
     int nr = 0;
 
@@ -994,7 +996,8 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
            R_IMF_CHAN_DEPTH_12,
            R_IMF_CHAN_DEPTH_16,
            R_IMF_CHAN_DEPTH_24,
-           R_IMF_CHAN_DEPTH_32) == 0) {
+           R_IMF_CHAN_DEPTH_32) == 0)
+  {
     uiItemR(uiLayoutRow(col, true), imfptr, "color_depth", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
   }
 

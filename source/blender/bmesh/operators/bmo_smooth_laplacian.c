@@ -379,7 +379,8 @@ static void validate_solution(
     leni = len_v3v3(vi1, vi2);
     lene = len_v3v3(ve1, ve2);
     if (lene > leni * SMOOTH_LAPLACIAN_MAX_EDGE_PERCENTAGE ||
-        lene < leni * SMOOTH_LAPLACIAN_MIN_EDGE_PERCENTAGE) {
+        lene < leni * SMOOTH_LAPLACIAN_MIN_EDGE_PERCENTAGE)
+    {
       sys->zerola[idv1] = true;
       sys->zerola[idv2] = true;
     }
@@ -463,7 +464,8 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
     if ((sys->zerola[i] == false) &&
         /* Non zero check is to account for vertices that aren't connected to a selected face.
          * Without this wire edges become `nan`, see #89214. */
-        (sys->ring_areas[i] != 0.0f)) {
+        (sys->ring_areas[i] != 0.0f))
+    {
       w = sys->vweights[i] * sys->ring_areas[i];
       sys->vweights[i] = (w == 0.0f) ? 0.0f : -lambda_factor / (4.0f * w);
       w = sys->vlengths[i];

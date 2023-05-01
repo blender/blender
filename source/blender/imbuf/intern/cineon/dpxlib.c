@@ -373,7 +373,8 @@ LogImageFile *dpxOpen(const uchar *byteStuff, int fromMemory, size_t bufferSize)
 
   if (IS_DPX_UNDEFINED_R32(dpx->referenceBlack) ||
       (dpx->referenceWhite <= dpx->referenceBlack || IS_DPX_UNDEFINED_R32(dpx->referenceWhite)) ||
-      (dpx->gamma <= 0 || IS_DPX_UNDEFINED_R32(dpx->gamma))) {
+      (dpx->gamma <= 0 || IS_DPX_UNDEFINED_R32(dpx->gamma)))
+  {
     dpx->referenceBlack = 95.0f / 1023.0f * dpx->element[0].maxValue;
     dpx->referenceWhite = 685.0f / 1023.0f * dpx->element[0].maxValue;
     dpx->gamma = 1.7f;

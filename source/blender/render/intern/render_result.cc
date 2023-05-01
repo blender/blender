@@ -715,7 +715,8 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
       for (RenderPass *rpass = static_cast<RenderPass *>(rl->passes.first),
                       *rpassp = static_cast<RenderPass *>(rlp->passes.first);
            rpass && rpassp;
-           rpass = rpass->next) {
+           rpass = rpass->next)
+      {
         /* For save buffers, skip any passes that are only saved to disk. */
         if (rpass->rect == nullptr || rpassp->rect == nullptr) {
           continue;
@@ -758,8 +759,8 @@ void render_result_single_layer_end(Render *re)
     return;
   }
 
-  if (re->pushedresult->rectx == re->result->rectx &&
-      re->pushedresult->recty == re->result->recty) {
+  if (re->pushedresult->rectx == re->result->rectx && re->pushedresult->recty == re->result->recty)
+  {
     /* find which layer in re->pushedresult should be replaced */
     RenderLayer *rl = static_cast<RenderLayer *>(re->result->layers.first);
 
@@ -947,7 +948,8 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
    */
   if (ibuf->rect) {
     if (BKE_imtype_valid_depths(imf->imtype) &
-        (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_24 | R_IMF_CHAN_DEPTH_32)) {
+        (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_24 | R_IMF_CHAN_DEPTH_32))
+    {
       if (imf->depth == R_IMF_CHAN_DEPTH_8) {
         /* Higher depth bits are supported but not needed for current file output. */
         ibuf->rect_float = nullptr;

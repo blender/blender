@@ -2554,7 +2554,8 @@ static void inside_shape_callback(void *userdata,
     std::cout << "  fv2=(" << fv2[0] << "," << fv2[1] << "," << fv2[2] << ")\n";
   }
   if (isect_ray_tri_epsilon_v3(
-          ray->origin, ray->direction, fv0, fv1, fv2, &dist, nullptr, FLT_EPSILON)) {
+          ray->origin, ray->direction, fv0, fv1, fv2, &dist, nullptr, FLT_EPSILON))
+  {
     /* Count parity as +1 if ray is in the same direction as tri's normal,
      * and -1 if the directions are opposite. */
     double3 o_db{double(ray->origin[0]), double(ray->origin[1]), double(ray->origin[2])};
@@ -3116,7 +3117,8 @@ static bool dissolve_leaves_valid_bmesh(FaceMergeState *fms,
   bool ok = true;
   /* Is there another edge, not me, in A's face, whose right face is B's left? */
   for (int a_e_index = (a_edge_start + 1) % alen; ok && a_e_index != a_edge_start;
-       a_e_index = (a_e_index + 1) % alen) {
+       a_e_index = (a_e_index + 1) % alen)
+  {
     const MergeEdge &a_me_cur = fms->edge[mf_left.edge[a_e_index]];
     if (a_me_cur.right_face == b_left_face) {
       ok = false;

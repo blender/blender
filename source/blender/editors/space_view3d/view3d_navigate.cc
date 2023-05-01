@@ -432,7 +432,8 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 
   if (ob_act && (ob_act->mode & OB_MODE_ALL_PAINT) &&
       /* with weight-paint + pose-mode, fall through to using calculateTransformCenter */
-      ((ob_act->mode & OB_MODE_WEIGHT_PAINT) && BKE_object_pose_armature_get(ob_act)) == 0) {
+      ((ob_act->mode & OB_MODE_WEIGHT_PAINT) && BKE_object_pose_armature_get(ob_act)) == 0)
+  {
     BKE_paint_stroke_get_average(scene, ob_act_eval, lastofs);
     is_set = true;
   }
@@ -936,7 +937,8 @@ static bool view3d_object_skip_minmax(const View3D *v3d,
   }
 
   if ((ob->type == OB_EMPTY) && (ob->empty_drawtype == OB_EMPTY_IMAGE) &&
-      !BKE_object_empty_image_frame_is_visible_in_view3d(ob, rv3d)) {
+      !BKE_object_empty_image_frame_is_visible_in_view3d(ob, rv3d))
+  {
     *r_only_center = true;
     return false;
   }
@@ -1209,7 +1211,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
      * active/selection callback interface once... */
     Base *base_eval;
     for (base_eval = (Base *)BKE_view_layer_object_bases_get(view_layer_eval)->first; base_eval;
-         base_eval = base_eval->next) {
+         base_eval = base_eval->next)
+    {
       if (BASE_SELECTED_EDITABLE(v3d, base_eval)) {
         if (base_eval->object->type == OB_ARMATURE) {
           if (base_eval->object->mode & OB_MODE_POSE) {
@@ -1260,14 +1263,16 @@ static int viewselected_exec(bContext *C, wmOperator *op)
   else if (obedit) {
     /* only selected */
     FOREACH_OBJECT_IN_MODE_BEGIN (
-        scene_eval, view_layer_eval, v3d, obedit->type, obedit->mode, ob_eval_iter) {
+        scene_eval, view_layer_eval, v3d, obedit->type, obedit->mode, ob_eval_iter)
+    {
       ok |= ED_view3d_minmax_verts(ob_eval_iter, min, max);
     }
     FOREACH_OBJECT_IN_MODE_END;
   }
   else if (ob_eval && (ob_eval->mode & OB_MODE_POSE)) {
     FOREACH_OBJECT_IN_MODE_BEGIN (
-        scene_eval, view_layer_eval, v3d, ob_eval->type, ob_eval->mode, ob_eval_iter) {
+        scene_eval, view_layer_eval, v3d, ob_eval->type, ob_eval->mode, ob_eval_iter)
+    {
       ok |= BKE_pose_minmax(ob_eval_iter, min, max, true, true);
     }
     FOREACH_OBJECT_IN_MODE_END;
@@ -1279,7 +1284,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     ok = PE_minmax(depsgraph, scene, CTX_data_view_layer(C), min, max);
   }
   else if (ob_eval && (ob_eval->mode & (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT |
-                                        OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))) {
+                                        OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)))
+  {
     BKE_paint_stroke_get_average(scene, ob_eval, min);
     copy_v3_v3(max, min);
     ok = true;

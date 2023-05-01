@@ -1395,8 +1395,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
       }
 
-      if ((ob->softflag & OB_SB_ENABLE) &&
-          !BKE_modifiers_findby_type(ob, eModifierType_Softbody)) {
+      if ((ob->softflag & OB_SB_ENABLE) && !BKE_modifiers_findby_type(ob, eModifierType_Softbody))
+      {
         if (ob->softflag & OB_SB_POSTDEF) {
           md = ob->modifiers.first;
 
@@ -1932,8 +1932,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* unless the file was created 2.44.3 but not 2.45, update the constraints */
     if (!(bmain->versionfile == 244 && bmain->subversionfile == 3) &&
-        ((bmain->versionfile < 245) ||
-         (bmain->versionfile == 245 && bmain->subversionfile == 0))) {
+        ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile == 0)))
+    {
       for (ob = bmain->objects.first; ob; ob = ob->id.next) {
         ListBase *list;
         list = &ob->constraints;

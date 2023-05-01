@@ -32,7 +32,8 @@ static bool imb_is_grayscale_texture_format_compatible(const ImBuf *ibuf)
    * to the scene color space can be uploaded as single channel textures. */
   if (IMB_colormanagement_space_is_data(ibuf->rect_colorspace) ||
       IMB_colormanagement_space_is_srgb(ibuf->rect_colorspace) ||
-      IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace)) {
+      IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace))
+  {
     return true;
   };
   return false;
@@ -56,7 +57,8 @@ static void imb_gpu_get_format(const ImBuf *ibuf,
   }
   else {
     if (IMB_colormanagement_space_is_data(ibuf->rect_colorspace) ||
-        IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace)) {
+        IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace))
+    {
       /* Non-color data or scene linear, just store buffer as is. */
       *r_data_format = GPU_DATA_UBYTE;
       *r_texture_format = (is_grayscale) ? GPU_R8 : GPU_RGBA8;
@@ -142,7 +144,8 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
       /* Non-color data, just store buffer as is. */
     }
     else if (IMB_colormanagement_space_is_srgb(ibuf->rect_colorspace) ||
-             IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace)) {
+             IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace))
+    {
       /* sRGB or scene linear, store as byte texture that the GPU can decode directly. */
       data_rect = MEM_mallocN(
           (is_grayscale ? sizeof(float[4]) : sizeof(uchar[4])) * ibuf->x * ibuf->y, __func__);

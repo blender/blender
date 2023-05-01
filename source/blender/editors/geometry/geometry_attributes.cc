@@ -263,7 +263,8 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
                                          name.c_str(),
                                          eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
                                          eAttrDomain(RNA_enum_get(op->ptr, "domain")),
-                                         op->reports)) {
+                                         op->reports))
+      {
         return OPERATOR_CANCELLED;
       }
       break;
@@ -565,7 +566,8 @@ static bool geometry_color_attribute_convert_poll(bContext *C)
     return false;
   }
   if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & ATTR_DOMAIN_MASK_COLOR) ||
-      !(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL)) {
+      !(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL))
+  {
     return false;
   }
 

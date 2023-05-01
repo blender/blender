@@ -346,7 +346,8 @@ static bool layer_bucket_isect_test(const MaskRasterLayer *layer,
 
     if ((dist_squared_to_line_segment_v2(cent, v1, v2) < bucket_max_rad_squared) ||
         (dist_squared_to_line_segment_v2(cent, v2, v3) < bucket_max_rad_squared) ||
-        (dist_squared_to_line_segment_v2(cent, v3, v1) < bucket_max_rad_squared)) {
+        (dist_squared_to_line_segment_v2(cent, v3, v1) < bucket_max_rad_squared))
+    {
       return true;
     }
 
@@ -369,7 +370,8 @@ static bool layer_bucket_isect_test(const MaskRasterLayer *layer,
   if ((dist_squared_to_line_segment_v2(cent, v1, v2) < bucket_max_rad_squared) ||
       (dist_squared_to_line_segment_v2(cent, v2, v3) < bucket_max_rad_squared) ||
       (dist_squared_to_line_segment_v2(cent, v3, v4) < bucket_max_rad_squared) ||
-      (dist_squared_to_line_segment_v2(cent, v4, v1) < bucket_max_rad_squared)) {
+      (dist_squared_to_line_segment_v2(cent, v4, v1) < bucket_max_rad_squared))
+  {
     return true;
   }
 
@@ -510,7 +512,8 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
                                           yi,
                                           bucket_size_x,
                                           bucket_size_y,
-                                          bucket_max_rad_squared)) {
+                                          bucket_max_rad_squared))
+              {
                 BLI_linklist_prepend_arena(&bucketstore[bucket_index], face_index_void, arena);
                 bucketstore_tot[bucket_index]++;
               }
@@ -581,7 +584,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
   sf_arena = BLI_memarena_new(BLI_SCANFILL_ARENA_SIZE, __func__);
 
   for (masklay = mask->masklayers.first, masklay_index = 0; masklay;
-       masklay = masklay->next, masklay_index++) {
+       masklay = masklay->next, masklay_index++)
+  {
 
     /* we need to store vertex ranges for open splines for filling */
     uint tot_splines;
@@ -937,7 +941,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
        */
       if ((masklay->flag & MASK_LAYERFLAG_FILL_OVERLAP) &&
           (is_isect = BLI_scanfill_calc_self_isect(
-               &sf_ctx, &isect_remvertbase, &isect_remedgebase))) {
+               &sf_ctx, &isect_remvertbase, &isect_remedgebase)))
+      {
         uint sf_vert_tot_isect = (uint)BLI_listbase_count(&sf_ctx.fillvertbase);
         uint i = sf_vert_tot;
 
@@ -1249,14 +1254,16 @@ static float maskrasterize_layer_isect(const uint *face,
 
     /* not essential but avoids unneeded extra lookups */
     if ((cos[0][2] < dist_orig) || (cos[1][2] < dist_orig) || (cos[2][2] < dist_orig) ||
-        (cos[3][2] < dist_orig)) {
+        (cos[3][2] < dist_orig))
+    {
 
       /* needs work */
 #if 1
       /* quad check fails for bow-tie, so keep using 2 tri checks */
       // if (isect_point_quad_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]], cos[face[3]]))
       if (isect_point_tri_v2(xy, cos[face[0]], cos[face[1]], cos[face[2]]) ||
-          isect_point_tri_v2(xy, cos[face[0]], cos[face[2]], cos[face[3]])) {
+          isect_point_tri_v2(xy, cos[face[0]], cos[face[2]], cos[face[3]]))
+      {
         return maskrasterize_layer_z_depth_quad(
             xy, cos[face[0]], cos[face[1]], cos[face[2]], cos[face[3]]);
       }

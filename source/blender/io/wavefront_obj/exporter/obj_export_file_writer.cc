@@ -610,8 +610,8 @@ void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl, bool write_pbr)
     if (mtl.aniso_rot >= 0.0f) {
       fmt_handler_.write_mtl_float("anisor", mtl.aniso_rot);
     }
-    if (mtl.transmit_color.x > 0.0f || mtl.transmit_color.y > 0.0f ||
-        mtl.transmit_color.z > 0.0f) {
+    if (mtl.transmit_color.x > 0.0f || mtl.transmit_color.y > 0.0f || mtl.transmit_color.z > 0.0f)
+    {
       fmt_handler_.write_mtl_float3(
           "Tf", mtl.transmit_color.x, mtl.transmit_color.y, mtl.transmit_color.z);
     }

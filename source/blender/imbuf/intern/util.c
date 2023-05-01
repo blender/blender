@@ -249,7 +249,8 @@ static int isffmpeg(const char *filepath)
                                  ".exr",
                                  ".cin",
                                  ".wav",
-                                 NULL)) {
+                                 NULL))
+  {
     return 0;
   }
 
@@ -276,7 +277,8 @@ static int isffmpeg(const char *filepath)
   videoStream = -1;
   for (i = 0; i < pFormatCtx->nb_streams; i++) {
     if (pFormatCtx->streams[i] && pFormatCtx->streams[i]->codecpar &&
-        (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)) {
+        (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO))
+    {
       videoStream = i;
       break;
     }

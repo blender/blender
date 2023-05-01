@@ -119,7 +119,8 @@ int ED_markers_post_apply_transform(
         case TFM_TIME_EXTEND: {
           /* apply delta if marker is on the right side of the current frame */
           if ((side == 'B') || (side == 'L' && marker->frame < cfra) ||
-              (side == 'R' && marker->frame >= cfra)) {
+              (side == 'R' && marker->frame >= cfra))
+          {
             marker->frame += round_fl_to_int(value);
             changed_tot++;
           }
@@ -812,7 +813,8 @@ static bool ed_marker_move_use_time(MarkerMove *mm)
        (((SpaceAction *)mm->slink)->flag & SACTION_DRAWTIME)) ||
       ((mm->slink->spacetype == SPACE_GRAPH) &&
        (((SpaceGraph *)mm->slink)->flag & SIPO_DRAWTIME)) ||
-      ((mm->slink->spacetype == SPACE_NLA) && (((SpaceNla *)mm->slink)->flag & SNLA_DRAWTIME))) {
+      ((mm->slink->spacetype == SPACE_NLA) && (((SpaceNla *)mm->slink)->flag & SNLA_DRAWTIME)))
+  {
     return true;
   }
 
@@ -1579,7 +1581,8 @@ static void ED_markers_select_leftright(bAnimContext *ac,
 
   LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     if ((mode == MARKERS_LRSEL_LEFT && marker->frame <= scene->r.cfra) ||
-        (mode == MARKERS_LRSEL_RIGHT && marker->frame >= scene->r.cfra)) {
+        (mode == MARKERS_LRSEL_RIGHT && marker->frame >= scene->r.cfra))
+    {
       marker->flag |= SELECT;
     }
   }

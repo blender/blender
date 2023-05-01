@@ -272,7 +272,8 @@ bool ED_object_iter_other(Main *bmain,
     int totfound = include_orig ? 0 : 1;
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob && totfound < users;
-         ob = reinterpret_cast<Object *>(ob->id.next)) {
+         ob = reinterpret_cast<Object *>(ob->id.next))
+    {
       if (((ob != orig_ob) || include_orig) && (ob->data == orig_ob->data)) {
         if (callback(ob, callback_data)) {
           return true;
@@ -365,7 +366,8 @@ static bool object_modifier_remove(
   }
 
   if (ELEM(md->type, eModifierType_Softbody, eModifierType_Cloth) &&
-      BLI_listbase_is_empty(&ob->particlesystem)) {
+      BLI_listbase_is_empty(&ob->particlesystem))
+  {
     ob->mode &= ~OB_MODE_PARTICLE_EDIT;
   }
 
@@ -782,7 +784,8 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
     for (ModifierData *md_eval_virt =
              BKE_modifiers_get_virtual_modifierlist(ob_eval, &virtualModifierData);
          md_eval_virt && (md_eval_virt != ob_eval->modifiers.first);
-         md_eval_virt = md_eval_virt->next) {
+         md_eval_virt = md_eval_virt->next)
+    {
       if (!BKE_modifier_is_enabled(scene, md_eval_virt, eModifierMode_Realtime)) {
         continue;
       }
@@ -935,12 +938,14 @@ static void remove_invalid_attribute_strings(Mesh &mesh)
   bke::AttributeAccessor attributes = mesh.attributes();
   if (!meta_data_matches(attributes.lookup_meta_data(mesh.active_color_attribute),
                          ATTR_DOMAIN_MASK_COLOR,
-                         CD_MASK_COLOR_ALL)) {
+                         CD_MASK_COLOR_ALL))
+  {
     MEM_SAFE_FREE(mesh.active_color_attribute);
   }
   if (!meta_data_matches(attributes.lookup_meta_data(mesh.default_color_attribute),
                          ATTR_DOMAIN_MASK_COLOR,
-                         CD_MASK_COLOR_ALL)) {
+                         CD_MASK_COLOR_ALL))
+  {
     MEM_SAFE_FREE(mesh.default_color_attribute);
   }
 }
@@ -1147,7 +1152,8 @@ bool ED_object_modifier_apply(Main *bmain,
     return false;
   }
   if ((ob->mode & OB_MODE_SCULPT) && find_multires_modifier_before(scene, md) &&
-      (BKE_modifier_is_same_topology(md) == false)) {
+      (BKE_modifier_is_same_topology(md) == false))
+  {
     BKE_report(reports,
                RPT_ERROR,
                "Constructive modifier cannot be applied to multi-res data in sculpt mode");
@@ -1172,7 +1178,8 @@ bool ED_object_modifier_apply(Main *bmain,
    *
    * The idea is to create a dependency graph which does not perform those optimizations. */
   if ((ob_eval->base_flag & BASE_ENABLED_VIEWPORT) == 0 ||
-      (md_eval->mode & eModifierMode_Realtime) == 0) {
+      (md_eval->mode & eModifierMode_Realtime) == 0)
+  {
     ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
 
     local_depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_VIEWPORT);
@@ -1716,7 +1723,8 @@ static bool modifier_apply_poll(bContext *C)
   }
   if (md != nullptr) {
     if ((ob->mode & OB_MODE_SCULPT) && find_multires_modifier_before(scene, md) &&
-        (BKE_modifier_is_same_topology(md) == false)) {
+        (BKE_modifier_is_same_topology(md) == false))
+    {
       CTX_wm_operator_poll_msg_set(
           C, "Constructive modifier cannot be applied to multi-res data in sculpt mode");
       return false;
@@ -1762,12 +1770,14 @@ static int modifier_apply_exec_ex(bContext *C, wmOperator *op, int apply_as, boo
   }
 
   if (!ED_object_modifier_apply(
-          bmain, op->reports, depsgraph, scene, ob, md, apply_as, keep_modifier)) {
+          bmain, op->reports, depsgraph, scene, ob, md, apply_as, keep_modifier))
+  {
     return OPERATOR_CANCELLED;
   }
 
   if (ob->type == OB_MESH && do_merge_customdata &&
-      (mti->type & (eModifierTypeType_Constructive | eModifierTypeType_Nonconstructive))) {
+      (mti->type & (eModifierTypeType_Constructive | eModifierTypeType_Nonconstructive)))
+  {
     BKE_mesh_merge_customdata_for_apply_modifier((Mesh *)ob->data);
   }
 
@@ -1919,7 +1929,8 @@ static int modifier_convert_exec(bContext *C, wmOperator *op)
   ModifierData *md = edit_modifier_property_get(op, ob, 0);
 
   if (!md || !ED_object_modifier_convert_psys_to_mesh(
-                 op->reports, bmain, depsgraph, scene, view_layer, ob, md)) {
+                 op->reports, bmain, depsgraph, scene, view_layer, ob, md))
+  {
     return OPERATOR_CANCELLED;
   }
 

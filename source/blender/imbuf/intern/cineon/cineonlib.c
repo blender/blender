@@ -300,12 +300,14 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
     }
 
     if (cineon->element[i].refLowQuantity == CINEON_UNDEFINED_R32 ||
-        isnan(cineon->element[i].refLowQuantity)) {
+        isnan(cineon->element[i].refLowQuantity))
+    {
       cineon->element[i].refLowQuantity = 0.0f;
     }
 
     if (cineon->element[i].refHighQuantity == CINEON_UNDEFINED_R32 ||
-        isnan(cineon->element[i].refHighQuantity)) {
+        isnan(cineon->element[i].refHighQuantity))
+    {
       if (cineon->element[i].transfer == transfer_PrintingDensity) {
         cineon->element[i].refHighQuantity = 2.048f;
       }

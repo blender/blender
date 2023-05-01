@@ -87,7 +87,8 @@ void SceneState::init(Object *camera_ob /*= nullptr*/)
     shading.flag &= ~(V3D_SHADING_SHADOW | V3D_SHADING_CAVITY | V3D_SHADING_DEPTH_OF_FIELD);
   }
   if (SHADING_XRAY_ENABLED(shading) != SHADING_XRAY_ENABLED(previous_shading) ||
-      shading.flag != previous_shading.flag) {
+      shading.flag != previous_shading.flag)
+  {
     reset_taa = true;
   }
 

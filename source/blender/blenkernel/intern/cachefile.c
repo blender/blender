@@ -422,7 +422,8 @@ bool BKE_cache_file_uses_render_procedural(const CacheFile *cache_file, Scene *s
   RenderEngineType *render_engine_type = RE_engines_find(scene->r.engine);
 
   if (cache_file->type != CACHEFILE_TYPE_ALEMBIC ||
-      !RE_engine_supports_alembic_procedural(render_engine_type, scene)) {
+      !RE_engine_supports_alembic_procedural(render_engine_type, scene))
+  {
     return false;
   }
 

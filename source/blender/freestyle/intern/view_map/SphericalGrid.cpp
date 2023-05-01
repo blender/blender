@@ -122,8 +122,8 @@ void SphericalGrid::assignCells(OccluderSource & /*source*/,
 
   // Identify cells that will be used, and set the dimensions for each
   ViewMap::fedges_container &fedges = viewMap->FEdges();
-  for (ViewMap::fedges_container::iterator f = fedges.begin(), fend = fedges.end(); f != fend;
-       ++f) {
+  for (ViewMap::fedges_container::iterator f = fedges.begin(), fend = fedges.end(); f != fend; ++f)
+  {
     if ((*f)->isInImage()) {
       Vec3r point = SphericalGrid::Transform::sphericalProjection((*f)->center3d());
       uint i, j;

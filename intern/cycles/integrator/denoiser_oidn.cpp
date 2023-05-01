@@ -164,7 +164,8 @@ class OIDNDenoiseContext {
     oidn_filter.set("hdr", true);
     oidn_filter.set("srgb", false);
     if (denoise_params_.prefilter == DENOISER_PREFILTER_NONE ||
-        denoise_params_.prefilter == DENOISER_PREFILTER_ACCURATE) {
+        denoise_params_.prefilter == DENOISER_PREFILTER_ACCURATE)
+    {
       oidn_filter.set("cleanAux", true);
     }
     oidn_filter.commit();
@@ -189,7 +190,8 @@ class OIDNDenoiseContext {
   void filter_guiding_pass_if_needed(oidn::DeviceRef &oidn_device, OIDNPass &oidn_pass)
   {
     if (denoise_params_.prefilter != DENOISER_PREFILTER_ACCURATE || !oidn_pass ||
-        oidn_pass.is_filtered) {
+        oidn_pass.is_filtered)
+    {
       return;
     }
 

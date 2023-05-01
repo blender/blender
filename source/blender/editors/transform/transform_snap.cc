@@ -101,7 +101,8 @@ static bool snap_use_backface_culling(const TransInfo *t)
   }
   if (v3d->shading.type == OB_RENDER &&
       (t->scene->display.shading.flag & V3D_SHADING_BACKFACE_CULLING) &&
-      BKE_scene_uses_blender_workbench(t->scene)) {
+      BKE_scene_uses_blender_workbench(t->scene))
+  {
     return true;
   }
   if (t->settings->snap_flag & SCE_SNAP_BACKFACE_CULLING) {
@@ -584,7 +585,8 @@ bool validSnappingNormal(const TransInfo *t)
 static bool bm_edge_is_snap_target(BMEdge *e, void * /*user_data*/)
 {
   if (BM_elem_flag_test(e, BM_ELEM_SELECT | BM_ELEM_HIDDEN) ||
-      BM_elem_flag_test(e->v1, BM_ELEM_SELECT) || BM_elem_flag_test(e->v2, BM_ELEM_SELECT)) {
+      BM_elem_flag_test(e->v1, BM_ELEM_SELECT) || BM_elem_flag_test(e->v2, BM_ELEM_SELECT))
+  {
     return false;
   }
 
@@ -643,7 +645,8 @@ static eSnapMode snap_mode_from_spacetype(TransInfo *t)
   if (t->spacetype == SPACE_IMAGE) {
     eSnapMode snap_mode = eSnapMode(ts->snap_uv_mode);
     if ((snap_mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_uv_flag & SCE_SNAP_ABS_GRID) &&
-        (t->mode == TFM_TRANSLATION)) {
+        (t->mode == TFM_TRANSLATION))
+    {
       snap_mode &= ~SCE_SNAP_MODE_INCREMENT;
       snap_mode |= SCE_SNAP_MODE_GRID;
     }
@@ -661,7 +664,8 @@ static eSnapMode snap_mode_from_spacetype(TransInfo *t)
 
     eSnapMode snap_mode = eSnapMode(ts->snap_mode);
     if ((snap_mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_flag & SCE_SNAP_ABS_GRID) &&
-        (t->mode == TFM_TRANSLATION)) {
+        (t->mode == TFM_TRANSLATION))
+    {
       /* Special case in which snap to increments is transformed to snap to grid. */
       snap_mode &= ~SCE_SNAP_MODE_INCREMENT;
       snap_mode |= SCE_SNAP_MODE_GRID;
@@ -742,7 +746,8 @@ static void initSnappingMode(TransInfo *t)
 
   if ((t->spacetype != SPACE_VIEW3D) ||
       !(t->tsnap.mode & (SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST)) ||
-      (t->flag & T_NO_PROJECT)) {
+      (t->flag & T_NO_PROJECT))
+  {
     /* Force project off when not supported. */
     t->tsnap.flag &= ~SCE_SNAP_PROJECT;
   }
@@ -805,7 +810,8 @@ void initSnapping(TransInfo *t, wmOperator *op)
       t->modifiers |= MOD_SNAP;
 
       if ((prop = RNA_struct_find_property(op->ptr, "snap_elements")) &&
-          RNA_property_is_set(op->ptr, prop)) {
+          RNA_property_is_set(op->ptr, prop))
+      {
         t->tsnap.mode = eSnapMode(RNA_property_enum_get(op->ptr, prop));
       }
 
@@ -813,7 +819,8 @@ void initSnapping(TransInfo *t, wmOperator *op)
        * "target" (now, "source" is geometry to be moved and "target" is geometry to which moved
        * geometry is snapped). */
       if ((prop = RNA_struct_find_property(op->ptr, "snap_target")) &&
-          RNA_property_is_set(op->ptr, prop)) {
+          RNA_property_is_set(op->ptr, prop))
+      {
         snap_source = eSnapSourceOP(RNA_property_enum_get(op->ptr, prop));
       }
 
@@ -835,35 +842,40 @@ void initSnapping(TransInfo *t, wmOperator *op)
       }
 
       if ((prop = RNA_struct_find_property(op->ptr, "use_snap_project")) &&
-          RNA_property_is_set(op->ptr, prop)) {
+          RNA_property_is_set(op->ptr, prop))
+      {
         SET_FLAG_FROM_TEST(
             t->tsnap.flag, RNA_property_boolean_get(op->ptr, prop), SCE_SNAP_PROJECT);
       }
 
       /* use_snap_self is misnamed and should be use_snap_active */
       if ((prop = RNA_struct_find_property(op->ptr, "use_snap_self")) &&
-          RNA_property_is_set(op->ptr, prop)) {
+          RNA_property_is_set(op->ptr, prop))
+      {
         SET_FLAG_FROM_TEST(t->tsnap.target_operation,
                            !RNA_property_boolean_get(op->ptr, prop),
                            SCE_SNAP_TARGET_NOT_ACTIVE);
       }
 
       if ((prop = RNA_struct_find_property(op->ptr, "use_snap_edit")) &&
-          RNA_property_is_set(op->ptr, prop)) {
+          RNA_property_is_set(op->ptr, prop))
+      {
         SET_FLAG_FROM_TEST(t->tsnap.target_operation,
                            !RNA_property_boolean_get(op->ptr, prop),
                            SCE_SNAP_TARGET_NOT_EDITED);
       }
 
       if ((prop = RNA_struct_find_property(op->ptr, "use_snap_nonedit")) &&
-          RNA_property_is_set(op->ptr, prop)) {
+          RNA_property_is_set(op->ptr, prop))
+      {
         SET_FLAG_FROM_TEST(t->tsnap.target_operation,
                            !RNA_property_boolean_get(op->ptr, prop),
                            SCE_SNAP_TARGET_NOT_NONEDITED);
       }
 
       if ((prop = RNA_struct_find_property(op->ptr, "use_snap_selectable")) &&
-          RNA_property_is_set(op->ptr, prop)) {
+          RNA_property_is_set(op->ptr, prop))
+      {
         SET_FLAG_FROM_TEST(t->tsnap.target_operation,
                            RNA_property_boolean_get(op->ptr, prop),
                            SCE_SNAP_TARGET_ONLY_SELECTABLE);
@@ -997,7 +1009,8 @@ eRedrawFlag updateSelectedSnapPoint(TransInfo *t)
       float dist_sq;
 
       if (ED_view3d_project_float_global(t->region, p->co, screen_loc, V3D_PROJ_TEST_NOP) !=
-          V3D_PROJ_RET_OK) {
+          V3D_PROJ_RET_OK)
+      {
         continue;
       }
 
@@ -1124,7 +1137,8 @@ static void snap_target_uv_fn(TransInfo *t, float * /*vec*/)
                                    t->mval,
                                    t->tsnap.target_operation & SCE_SNAP_TARGET_NOT_SELECTED,
                                    &dist_sq,
-                                   t->tsnap.snap_target)) {
+                                   t->tsnap.snap_target))
+    {
       t->tsnap.snap_target[0] *= t->aspect[0];
       t->tsnap.snap_target[1] *= t->aspect[1];
 
@@ -1431,7 +1445,8 @@ bool peelObjectsTransform(TransInfo *t,
       /* if peeling objects, take the first and last from each object */
       hit_max = hit_min;
       for (SnapObjectHitDepth *iter = static_cast<SnapObjectHitDepth *>(depths_peel.first); iter;
-           iter = iter->next) {
+           iter = iter->next)
+      {
         if ((iter->depth > hit_max->depth) && (iter->ob_uuid == hit_min->ob_uuid)) {
           hit_max = iter;
         }
@@ -1440,7 +1455,8 @@ bool peelObjectsTransform(TransInfo *t,
     else {
       /* otherwise, pair first with second and so on */
       for (SnapObjectHitDepth *iter = static_cast<SnapObjectHitDepth *>(depths_peel.first); iter;
-           iter = iter->next) {
+           iter = iter->next)
+      {
         if ((iter != hit_min) && (iter->ob_uuid == hit_min->ob_uuid)) {
           if (hit_max == nullptr) {
             hit_max = iter;
@@ -1689,7 +1705,8 @@ bool transform_snap_increment(const TransInfo *t, float *r_val)
 float transform_snap_increment_get(const TransInfo *t)
 {
   if (transform_snap_is_active(t) &&
-      (t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID))) {
+      (t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)))
+  {
     return (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
   }
 

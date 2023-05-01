@@ -110,7 +110,8 @@ static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(bContext *C,
   const PlaneTrackPick track_pick = ed_tracking_pick_plane_track(&options, C, co);
 
   if (ed_tracking_plane_track_pick_empty(&track_pick) ||
-      !ed_tracking_plane_track_pick_can_slide(&track_pick)) {
+      !ed_tracking_plane_track_pick_can_slide(&track_pick))
+  {
     return nullptr;
   }
 

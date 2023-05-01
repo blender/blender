@@ -521,7 +521,8 @@ bool TileManager::write_tile(const RenderBuffers &tile_buffers)
    * Our task reference: #93008. */
   if (tile_params.window_x || tile_params.window_y ||
       tile_params.window_width != tile_params.width ||
-      tile_params.window_height != tile_params.height) {
+      tile_params.window_height != tile_params.height)
+  {
     pixel_storage.resize(pass_stride * tile_params.window_width * tile_params.window_height);
     float *pixels_continuous = pixel_storage.data();
 
@@ -561,7 +562,8 @@ bool TileManager::write_tile(const RenderBuffers &tile_buffers)
                                           pixels,
                                           xstride,
                                           ystride,
-                                          zstride)) {
+                                          zstride))
+  {
     LOG(ERROR) << "Error writing tile " << write_state_.tile_out->geterror();
     return false;
   }
@@ -586,7 +588,8 @@ void TileManager::finish_write_tiles()
     vector<float> pixel_storage(tile_size_.x * tile_size_.y * buffer_params_.pass_stride);
 
     for (int tile_index = write_state_.num_tiles_written; tile_index < tile_state_.num_tiles;
-         ++tile_index) {
+         ++tile_index)
+    {
       const Tile tile = get_tile_for_index(tile_index);
 
       const int tile_x = tile.x + tile.window_x;

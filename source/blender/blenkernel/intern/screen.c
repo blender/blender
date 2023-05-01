@@ -1066,7 +1066,8 @@ ScrArea *BKE_screen_area_map_find_area_xy(const ScrAreaMap *areamap,
   LISTBASE_FOREACH (ScrArea *, area, &areamap->areabase) {
     /* Test area's outer screen verts, not inner `area->totrct`. */
     if (xy[0] >= area->v1->vec.x && xy[0] <= area->v4->vec.x && xy[1] >= area->v1->vec.y &&
-        xy[1] <= area->v2->vec.y) {
+        xy[1] <= area->v2->vec.y)
+    {
       if (ELEM(spacetype, SPACE_TYPE_ANY, area->spacetype)) {
         return area;
       }

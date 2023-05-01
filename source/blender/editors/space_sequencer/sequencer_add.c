@@ -202,7 +202,8 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     const int strip_end = SEQ_time_right_handle_frame_get(scene, seq);
     if (ELEM(type, -1, seq->type) && (strip_end <= timeline_frame) &&
-        (timeline_frame - strip_end < proximity)) {
+        (timeline_frame - strip_end < proximity))
+    {
       tgt = seq;
       proximity = timeline_frame - strip_end;
     }
@@ -303,17 +304,20 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "use_framerate")) &&
-      RNA_property_boolean_get(op->ptr, prop)) {
+      RNA_property_boolean_get(op->ptr, prop))
+  {
     load_data->flags |= SEQ_LOAD_MOVIE_SYNC_FPS;
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "set_view_transform")) &&
-      RNA_property_boolean_get(op->ptr, prop)) {
+      RNA_property_boolean_get(op->ptr, prop))
+  {
     load_data->flags |= SEQ_LOAD_SET_VIEW_TRANSFORM;
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "use_multiview")) &&
-      RNA_property_boolean_get(op->ptr, prop)) {
+      RNA_property_boolean_get(op->ptr, prop))
+  {
     if (op->customdata) {
       SequencerAddData *sad = op->customdata;
       ImageFormatData *imf = &sad->im_format;
@@ -340,7 +344,8 @@ static void seq_load_apply_generic_options(bContext *C, wmOperator *op, Sequence
   }
 
   if (RNA_boolean_get(op->ptr, "overlap") == true ||
-      !SEQ_transform_test_overlap(scene, ed->seqbasep, seq)) {
+      !SEQ_transform_test_overlap(scene, ed->seqbasep, seq))
+  {
     /* No overlap should be handled or the strip is not overlapping, exit early. */
     return;
   }
@@ -996,7 +1001,8 @@ static int sequencer_add_movie_strip_invoke(bContext *C,
   /* This is for drag and drop. */
   if ((RNA_struct_property_is_set(op->ptr, "files") &&
        !RNA_collection_is_empty(op->ptr, "files")) ||
-      RNA_struct_property_is_set(op->ptr, "filepath")) {
+      RNA_struct_property_is_set(op->ptr, "filepath"))
+  {
     sequencer_generic_invoke_xy__internal(C, op, SEQPROP_NOPATHS, SEQ_TYPE_MOVIE);
     return sequencer_add_movie_strip_exec(C, op);
   }
@@ -1153,7 +1159,8 @@ static int sequencer_add_sound_strip_invoke(bContext *C,
   /* This is for drag and drop. */
   if ((RNA_struct_property_is_set(op->ptr, "files") &&
        !RNA_collection_is_empty(op->ptr, "files")) ||
-      RNA_struct_property_is_set(op->ptr, "filepath")) {
+      RNA_struct_property_is_set(op->ptr, "filepath"))
+  {
     sequencer_generic_invoke_xy__internal(C, op, SEQPROP_NOPATHS, SEQ_TYPE_SOUND_RAM);
     return sequencer_add_sound_strip_exec(C, op);
   }

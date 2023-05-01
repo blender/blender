@@ -77,7 +77,8 @@ ccl_device_inline void sort_shadow_intersections(IntegratorShadowState state, ui
     swapped = false;
     for (int j = 0; j < num_hits - 1; ++j) {
       if (INTEGRATOR_STATE_ARRAY(state, shadow_isect, j, t) >
-          INTEGRATOR_STATE_ARRAY(state, shadow_isect, j + 1, t)) {
+          INTEGRATOR_STATE_ARRAY(state, shadow_isect, j + 1, t))
+      {
         struct Intersection tmp_j ccl_optional_struct_init;
         struct Intersection tmp_j_1 ccl_optional_struct_init;
         integrator_state_read_shadow_isect(state, &tmp_j, j);

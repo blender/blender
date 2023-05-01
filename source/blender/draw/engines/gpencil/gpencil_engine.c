@@ -112,7 +112,8 @@ void GPENCIL_engine_init(void *ved)
     stl->pd->v3d_color_type = (v3d->shading.type == OB_SOLID) ? v3d->shading.color_type : -1;
     /* Special case: If Vertex Paint mode, use always Vertex mode. */
     if (v3d->shading.type == OB_SOLID && ctx->obact && ctx->obact->type == OB_GPENCIL_LEGACY &&
-        ctx->obact->mode == OB_MODE_VERTEX_GPENCIL) {
+        ctx->obact->mode == OB_MODE_VERTEX_GPENCIL)
+    {
       stl->pd->v3d_color_type = V3D_SHADING_VERTEX_COLOR;
     }
 
@@ -473,8 +474,8 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
                     iter->pd->use_multiedit_lines_only;
   bool is_onion = gpl && gpf && gpf->runtime.onion_id != 0;
   bool hide_onion = is_onion && ((gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN) != 0);
-  if ((hide_material) || (!show_stroke && !show_fill) || (only_lines && !is_onion) ||
-      (hide_onion)) {
+  if ((hide_material) || (!show_stroke && !show_fill) || (only_lines && !is_onion) || (hide_onion))
+  {
     return;
   }
 
@@ -917,7 +918,8 @@ void GPENCIL_draw_scene(void *ved)
 
   /* Fade 3D objects. */
   if ((!pd->is_render) && (pd->fade_3d_object_opacity > -1.0f) && (pd->obact != NULL) &&
-      (pd->obact->type == OB_GPENCIL_LEGACY)) {
+      (pd->obact->type == OB_GPENCIL_LEGACY))
+  {
     float background_color[3];
     ED_view3d_background_color_get(pd->scene, pd->v3d, background_color);
     /* Blend color. */

@@ -524,7 +524,8 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
            SEQ_TYPE_SCENE,
            SEQ_TYPE_META,
            SEQ_TYPE_MOVIECLIP,
-           SEQ_TYPE_MASK) == 0) {
+           SEQ_TYPE_MASK) == 0)
+  {
     return;
   }
 

@@ -25,7 +25,8 @@ static bool supports_threading_by_slicing_params(const MultiFunction &fn)
     const ParamType param_type = fn.param_type(i);
     if (ELEM(param_type.interface_type(),
              ParamType::InterfaceType::Mutable,
-             ParamType::InterfaceType::Output)) {
+             ParamType::InterfaceType::Output))
+    {
       if (param_type.data_type().is_vector()) {
         return false;
       }

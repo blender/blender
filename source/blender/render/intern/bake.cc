@@ -654,7 +654,8 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
                            dir,
                            i,
                            tot_highpoly,
-                           max_ray_distance)) {
+                           max_ray_distance))
+    {
       /* if it fails mask out the original pixel array */
       pixel_array_from[i].primitive_id = -1;
     }

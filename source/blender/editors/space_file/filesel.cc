@@ -208,8 +208,8 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     }
 
     params->flag = 0;
-    if (is_directory == true && is_filename == false && is_filepath == false &&
-        is_files == false) {
+    if (is_directory == true && is_filename == false && is_filepath == false && is_files == false)
+    {
       params->flag |= FILE_DIRSEL_ONLY;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "check_existing"))) {
@@ -783,7 +783,8 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const rcti *r
   rowmax = (rect->ymax - layout->offset_top) / (layout->tile_h + 2 * layout->tile_border_y);
 
   if (is_inside(colmin, rowmin, layout->flow_columns, layout->rows) ||
-      is_inside(colmax, rowmax, layout->flow_columns, layout->rows)) {
+      is_inside(colmax, rowmax, layout->flow_columns, layout->rows))
+  {
     CLAMP(colmin, 0, layout->flow_columns - 1);
     CLAMP(rowmin, 0, layout->rows - 1);
     CLAMP(colmax, 0, layout->flow_columns - 1);
@@ -931,7 +932,8 @@ FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
 
     for (FileAttributeColumnType column = FileAttributeColumnType(0);
          column < ATTRIBUTE_COLUMN_MAX;
-         column = FileAttributeColumnType(int(column) + 1)) {
+         column = FileAttributeColumnType(int(column) + 1))
+    {
       if (!file_attribute_column_type_enabled(params, column)) {
         continue;
       }
@@ -995,9 +997,10 @@ static void file_attribute_columns_widths(const FileSelectParams *params, FileLa
     for (FileAttributeColumnType column_type =
              FileAttributeColumnType(int(ATTRIBUTE_COLUMN_MAX) - 1);
          column_type >= 0;
-         column_type = FileAttributeColumnType(int(column_type) - 1)) {
-      if ((column_type == COLUMN_NAME) ||
-          !file_attribute_column_type_enabled(params, column_type)) {
+         column_type = FileAttributeColumnType(int(column_type) - 1))
+    {
+      if ((column_type == COLUMN_NAME) || !file_attribute_column_type_enabled(params, column_type))
+      {
         continue;
       }
       remwidth -= columns[column_type].width;
@@ -1377,7 +1380,8 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
   BLI_assert(params->rename_flag != 0);
 
   if ((params->rename_flag & (FILE_PARAMS_RENAME_ACTIVE | FILE_PARAMS_RENAME_POSTSCROLL_ACTIVE)) !=
-      0) {
+      0)
+  {
     return;
   }
 

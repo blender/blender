@@ -98,7 +98,8 @@ bool OVERLAY_armature_is_pose_mode(Object *ob, const DRWContextState *draw_ctx)
 
   /* Pose armature is handled by pose mode engine. */
   if (((ob == active_ob) || (ob->mode & OB_MODE_POSE)) &&
-      ((draw_ctx->object_mode & OB_MODE_POSE) != 0)) {
+      ((draw_ctx->object_mode & OB_MODE_POSE) != 0))
+  {
     return true;
   }
 
@@ -1096,7 +1097,8 @@ static const float *get_bone_solid_with_consts_color(const ArmatureDrawContext *
 
   static float consts_color[4];
   if ((arm->flag & ARM_POSEMODE) && !(boneflag & BONE_DRAW_LOCKED_WEIGHT) &&
-      set_pchan_color(ctx, PCHAN_COLOR_CONSTS, boneflag, constflag, consts_color)) {
+      set_pchan_color(ctx, PCHAN_COLOR_CONSTS, boneflag, constflag, consts_color))
+  {
     interp_v3_v3v3(consts_color, col, consts_color, 0.5f);
   }
   else {
@@ -1551,7 +1553,8 @@ static void draw_points(ArmatureDrawContext *ctx,
 
   /* Draw root point if we are not connected to our parent */
   if (!(eBone ? (eBone->parent && (boneflag & BONE_CONNECTED)) :
-                (pchan->bone->parent && (boneflag & BONE_CONNECTED)))) {
+                (pchan->bone->parent && (boneflag & BONE_CONNECTED))))
+  {
     if (select_id != -1) {
       DRW_select_load_id(select_id | BONESEL_ROOT);
     }
@@ -1681,7 +1684,8 @@ static void draw_bone_envelope(ArmatureDrawContext *ctx,
   }
 
   if ((select_id == -1) && (boneflag & BONE_NO_DEFORM) == 0 &&
-      ((boneflag & BONE_SELECTED) || (eBone && (boneflag & (BONE_ROOTSEL | BONE_TIPSEL))))) {
+      ((boneflag & BONE_SELECTED) || (eBone && (boneflag & (BONE_ROOTSEL | BONE_TIPSEL)))))
+  {
     drw_shgroup_bone_envelope_distance(
         ctx, BONE_VAR(eBone, pchan, disp_mat), rad_head, rad_tail, distance);
   }
@@ -1732,7 +1736,8 @@ static void draw_bone_line(ArmatureDrawContext *ctx,
 
     /* Draw root point if we are not connected to our parent. */
     if (!(eBone ? (eBone->parent && (boneflag & BONE_CONNECTED)) :
-                  (pchan->bone->parent && (boneflag & BONE_CONNECTED)))) {
+                  (pchan->bone->parent && (boneflag & BONE_CONNECTED))))
+    {
 
       if (eBone) {
         col_head = (eBone->flag & BONE_ROOTSEL) ? &G_draw.block.color_vertex_select.x : col_bone;
@@ -2060,7 +2065,8 @@ static void draw_bone_relations(ArmatureDrawContext *ctx,
       /* Only draw if bone or its parent is selected - reduces viewport complexity with complex
        * rigs */
       if ((boneflag & BONE_SELECTED) ||
-          (pchan->parent->bone && (pchan->parent->bone->flag & BONE_SELECTED))) {
+          (pchan->parent->bone && (pchan->parent->bone->flag & BONE_SELECTED)))
+      {
         if ((boneflag & BONE_CONNECTED) == 0) {
           draw_bone_bone_relationship_line(ctx,
                                            pchan->pose_head,
@@ -2261,7 +2267,8 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
 
   for (eBone = static_cast<EditBone *>(arm->edbo->first), index = ob_orig->runtime.select_id;
        eBone;
-       eBone = eBone->next, index += 0x10000) {
+       eBone = eBone->next, index += 0x10000)
+  {
     if (eBone->layer & arm->layer) {
       if ((eBone->flag & BONE_HIDDEN_A) == 0) {
         const int select_id = is_select ? index : uint(-1);
@@ -2366,11 +2373,12 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
 
   /* In weight paint mode retrieve the vertex group lock status. */
   if ((draw_ctx->object_mode & OB_MODE_ALL_WEIGHT_PAINT) && (draw_ctx->object_pose == ob) &&
-      (draw_ctx->obact != nullptr)) {
+      (draw_ctx->obact != nullptr))
+  {
     draw_locked_weights = true;
 
-    for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
-         pchan = pchan->next) {
+    for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next)
+    {
       pchan->bone->flag &= ~BONE_DRAW_LOCKED_WEIGHT;
     }
 
@@ -2391,7 +2399,8 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
   const DRWView *view = is_pose_select ? DRW_view_default_get() : nullptr;
 
   for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
-       pchan = pchan->next, index += 0x10000) {
+       pchan = pchan->next, index += 0x10000)
+  {
     Bone *bone = pchan->bone;
     const bool bone_visible = (bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0;
 

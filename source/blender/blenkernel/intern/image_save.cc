@@ -217,7 +217,8 @@ void BKE_image_save_options_update(ImageSaveOptions *opts, const Image *image)
     }
     else if (opts->im_format.imtype != opts->prev_imtype &&
              !IMB_colormanagement_space_name_is_data(
-                 opts->im_format.linear_colorspace_settings.name)) {
+                 opts->im_format.linear_colorspace_settings.name))
+    {
       const bool linear_float_output = BKE_imtype_requires_linear_float(opts->im_format.imtype);
 
       /* TODO: detect if the colorspace is linear, not just equal to scene linear. */
@@ -321,8 +322,9 @@ static void image_save_post(ReportList *reports,
 
   if (!opts->save_as_render || linear_float_output) {
     if (opts->im_format.linear_colorspace_settings.name[0] &&
-        !BKE_color_managed_colorspace_settings_equals(
-            &ima->colorspace_settings, &opts->im_format.linear_colorspace_settings)) {
+        !BKE_color_managed_colorspace_settings_equals(&ima->colorspace_settings,
+                                                      &opts->im_format.linear_colorspace_settings))
+    {
       BKE_color_managed_colorspace_settings_copy(&ima->colorspace_settings,
                                                  &opts->im_format.linear_colorspace_settings);
       *r_colorspace_changed = true;
@@ -384,7 +386,8 @@ static bool image_save_single(ReportList *reports,
     /* TODO: better solution, if a 24bit image is painted onto it may contain alpha. */
     if ((opts->im_format.planes == R_IMF_PLANES_RGBA) &&
         /* it has been painted onto */
-        (ibuf->userflags & IB_BITMAPDIRTY)) {
+        (ibuf->userflags & IB_BITMAPDIRTY))
+    {
       /* checks each pixel, not ideal */
       ibuf->planes = BKE_imbuf_alpha_test(ibuf) ? R_IMF_PLANES_RGBA : R_IMF_PLANES_RGB;
     }
@@ -422,7 +425,8 @@ static bool image_save_single(ReportList *reports,
 
       /* It shouldn't ever happen. */
       if ((BLI_findstring(&rr->views, STEREO_LEFT_NAME, offsetof(RenderView, name)) == nullptr) ||
-          (BLI_findstring(&rr->views, STEREO_RIGHT_NAME, offsetof(RenderView, name)) == nullptr)) {
+          (BLI_findstring(&rr->views, STEREO_RIGHT_NAME, offsetof(RenderView, name)) == nullptr))
+      {
         BKE_reportf(reports,
                     RPT_ERROR,
                     R"(Did not write, the image doesn't have a "%s" and "%s" views)",
@@ -802,7 +806,8 @@ bool BKE_image_render_write_exr(ReportList *reports,
     LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
       /* Skip non-RGBA and Z passes if not using multi layer. */
       if (!multi_layer && !(STREQ(rp->name, RE_PASSNAME_COMBINED) || STREQ(rp->name, "") ||
-                            (STREQ(rp->name, RE_PASSNAME_Z) && write_z))) {
+                            (STREQ(rp->name, RE_PASSNAME_Z) && write_z)))
+      {
         continue;
       }
 
@@ -945,8 +950,8 @@ bool BKE_image_render_write(ReportList *reports,
   /* mono, legacy code */
   else if (is_mono || (image_format.views_format == R_IMF_VIEWS_INDIVIDUAL)) {
     int view_id = 0;
-    for (const RenderView *rv = (const RenderView *)rr->views.first; rv;
-         rv = rv->next, view_id++) {
+    for (const RenderView *rv = (const RenderView *)rr->views.first; rv; rv = rv->next, view_id++)
+    {
       char filepath[FILE_MAX];
       if (is_mono) {
         STRNCPY(filepath, filepath_basis);

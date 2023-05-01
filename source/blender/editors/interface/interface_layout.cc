@@ -859,7 +859,8 @@ static void ui_item_enum_expand_exec(uiLayout *layout,
     }
   }
   else if (ELEM(layout->item.type, ITEM_LAYOUT_GRID_FLOW, ITEM_LAYOUT_COLUMN_FLOW) ||
-           layout->root->type == UI_LAYOUT_MENU) {
+           layout->root->type == UI_LAYOUT_MENU)
+  {
     UI_block_layout_set_current(block, layout);
   }
   else {
@@ -929,7 +930,8 @@ static void ui_item_enum_expand_tabs(uiLayout *layout,
   BLI_assert(last != block->buttons.last);
 
   for (uiBut *tab = last ? last->next : static_cast<uiBut *>(block->buttons.first); tab;
-       tab = tab->next) {
+       tab = tab->next)
+  {
     UI_but_drawflag_enable(tab, ui_but_align_opposite_to_area_align_get(CTX_wm_region(C)));
   }
 
@@ -942,7 +944,8 @@ static void ui_item_enum_expand_tabs(uiLayout *layout,
     int i = 0;
     for (uiBut *tab_but = last ? last->next : static_cast<uiBut *>(block->buttons.first);
          (tab_but != nullptr) && (i < highlight_array_len);
-         tab_but = tab_but->next, i++) {
+         tab_but = tab_but->next, i++)
+    {
       SET_FLAG_FROM_TEST(tab_but->flag, !highlight_array[i], UI_BUT_INACTIVE);
     }
   }
@@ -1006,7 +1009,8 @@ static uiBut *ui_item_with_label(uiLayout *layout,
 #ifdef UI_PROP_DECORATE
       || use_prop_decorate
 #endif
-  ) {
+  )
+  {
     /* Also avoid setting 'align' if possible. Set the space to zero instead as aligning a large
      * number of labels can end up aligning thousands of buttons when displaying key-map search (a
      * heavy operation), see: #78636. */
@@ -2164,7 +2168,8 @@ void uiItemFullR(uiLayout *layout,
     /* Menus and pie-menus don't show checkbox without this. */
     if ((layout->root->type == UI_LAYOUT_MENU) ||
         /* Use check-boxes only as a fallback in pie-menu's, when no icon is defined. */
-        ((layout->root->type == UI_LAYOUT_PIEMENU) && (icon == ICON_NONE))) {
+        ((layout->root->type == UI_LAYOUT_PIEMENU) && (icon == ICON_NONE)))
+    {
       const int prop_flag = RNA_property_flag(prop);
       if (type == PROP_BOOLEAN) {
         if ((is_array == false) || (index != RNA_NO_INDEX)) {
@@ -2446,7 +2451,8 @@ void uiItemFullR(uiLayout *layout,
                UI_BTYPE_CHECKBOX,
                UI_BTYPE_CHECKBOX_N,
                UI_BTYPE_ICON_TOGGLE,
-               UI_BTYPE_ICON_TOGGLE_N)) {
+               UI_BTYPE_ICON_TOGGLE_N))
+      {
         but->drawflag |= UI_BUT_CHECKBOX_INVERT;
       }
     }
@@ -2478,7 +2484,8 @@ void uiItemFullR(uiLayout *layout,
 
   /* Mark non-embossed text-fields inside a list-box. */
   if (but && (block->flag & UI_BLOCK_LIST_ITEM) && (but->type == UI_BTYPE_TEXT) &&
-      ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS)) {
+      ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS))
+  {
     UI_but_flag_enable(but, UI_BUT_LIST_ITEM);
   }
 
@@ -3043,7 +3050,8 @@ static uiBut *ui_item_menu(uiLayout *layout,
 
   if (ELEM(layout->root->type, UI_LAYOUT_PANEL, UI_LAYOUT_TOOLBAR) ||
       /* We never want a drop-down in menu! */
-      (force_menu && layout->root->type != UI_LAYOUT_MENU)) {
+      (force_menu && layout->root->type != UI_LAYOUT_MENU))
+  {
     UI_but_type_set_menu_from_pulldown(but);
   }
 
@@ -3581,7 +3589,8 @@ void uiItemMenuEnumFullO_ptr(uiLayout *layout,
   if ((layout->root->block->flag & UI_BLOCK_LOOP) && (ot->prop && ot->invoke)) {
     char keybuf[128];
     if (WM_key_event_operator_string(
-            C, ot->idname, layout->root->opcontext, nullptr, false, keybuf, sizeof(keybuf))) {
+            C, ot->idname, layout->root->opcontext, nullptr, false, keybuf, sizeof(keybuf)))
+    {
       ui_but_add_shortcut(but, keybuf, false);
     }
   }
@@ -3776,7 +3785,8 @@ static void ui_litem_layout_row(uiLayout *litem)
       if (item->type != ITEM_BUTTON &&
           ELEM(((uiLayout *)item)->alignment, UI_LAYOUT_ALIGN_RIGHT, UI_LAYOUT_ALIGN_CENTER) &&
           litem->alignment == UI_LAYOUT_ALIGN_EXPAND &&
-          ((uiItem *)litem)->flag & UI_ITEM_FIXED_SIZE) {
+          ((uiItem *)litem)->flag & UI_ITEM_FIXED_SIZE)
+      {
         min_flag = false;
       }
 
@@ -3853,7 +3863,8 @@ static void ui_litem_layout_row(uiLayout *litem)
   uiItem *last_item = static_cast<uiItem *>(litem->items.last);
   extra_pixel = litem->w - (x - litem->x);
   if (extra_pixel > 0 && litem->alignment == UI_LAYOUT_ALIGN_EXPAND && last_free_item &&
-      last_item && last_item->flag & UI_ITEM_AUTO_FIXED_SIZE) {
+      last_item && last_item->flag & UI_ITEM_AUTO_FIXED_SIZE)
+  {
     ui_item_move(last_free_item, 0, extra_pixel);
     for (uiItem *item = last_free_item->next; item; item = item->next) {
       ui_item_move(item, extra_pixel, extra_pixel);
@@ -4482,7 +4493,8 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
         for (gflow->tot_rows = int(ceilf(float(gflow->tot_items) / gflow->tot_columns));
              (gflow->tot_columns - step) > 0 &&
              int(ceilf(float(gflow->tot_items) / (gflow->tot_columns - step))) <= gflow->tot_rows;
-             gflow->tot_columns -= step) {
+             gflow->tot_columns -= step)
+        {
           /* pass */
         }
       }
@@ -4496,7 +4508,8 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
         for (gflow->tot_columns = int(ceilf(float(gflow->tot_items) / gflow->tot_rows));
              (gflow->tot_rows - step) > 0 &&
              int(ceilf(float(gflow->tot_items) / (gflow->tot_rows - step))) <= gflow->tot_columns;
-             gflow->tot_rows -= step) {
+             gflow->tot_rows -= step)
+        {
           /* pass */
         }
       }
@@ -5917,7 +5930,8 @@ static bool ui_layout_has_panel_label(const uiLayout *layout, const PanelType *p
     if (subitem->type == ITEM_BUTTON) {
       uiButtonItem *bitem = (uiButtonItem *)subitem;
       if (!(bitem->but->flag & UI_HIDDEN) &&
-          STREQ(bitem->but->str, CTX_IFACE_(pt->translation_context, pt->label))) {
+          STREQ(bitem->but->str, CTX_IFACE_(pt->translation_context, pt->label)))
+      {
         return true;
       }
     }

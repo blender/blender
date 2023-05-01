@@ -576,7 +576,8 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
   if ((reports->reporttimer == NULL) || (reports->reporttimer != event->customdata) ||
       ((report = BKE_reports_last_displayable(reports)) == NULL)
       /* may have been deleted */
-  ) {
+  )
+  {
     return OPERATOR_PASS_THROUGH;
   }
 

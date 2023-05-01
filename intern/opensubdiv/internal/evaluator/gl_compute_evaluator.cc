@@ -243,13 +243,15 @@ bool GLComputeEvaluator::Compile(BufferDescriptor const &srcDesc,
 
   // create a stencil kernel
   if (!_stencilKernel.Compile(
-          srcDesc, dstDesc, duDesc, dvDesc, duuDesc, duvDesc, dvvDesc, _workGroupSize)) {
+          srcDesc, dstDesc, duDesc, dvDesc, duuDesc, duvDesc, dvvDesc, _workGroupSize))
+  {
     return false;
   }
 
   // create a patch kernel
   if (!_patchKernel.Compile(
-          srcDesc, dstDesc, duDesc, dvDesc, duuDesc, duvDesc, dvvDesc, _workGroupSize)) {
+          srcDesc, dstDesc, duDesc, dvDesc, duuDesc, duvDesc, dvvDesc, _workGroupSize))
+  {
     return false;
   }
 

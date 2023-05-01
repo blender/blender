@@ -353,7 +353,8 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
       id_next = id->next;
       if (id->tag & tag) {
         if (((id->tag & LIB_TAG_EXTRAUSER_SET) == 0 && ID_REAL_USERS(id) != 0) ||
-            ((id->tag & LIB_TAG_EXTRAUSER_SET) != 0 && ID_REAL_USERS(id) != 1)) {
+            ((id->tag & LIB_TAG_EXTRAUSER_SET) != 0 && ID_REAL_USERS(id) != 1))
+        {
           CLOG_ERROR(&LOG,
                      "Deleting %s which still has %d users (including %d 'extra' shallow users)\n",
                      id->name,

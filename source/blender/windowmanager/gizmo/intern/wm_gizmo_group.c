@@ -73,8 +73,8 @@ void wm_gizmogroup_free(bContext *C, wmGizmoGroup *gzgroup)
 
   /* Similar to WM_gizmo_unlink, but only to keep gzmap state correct,
    * we don't want to run callbacks. */
-  if (gzmap->gzmap_context.highlight &&
-      gzmap->gzmap_context.highlight->parent_gzgroup == gzgroup) {
+  if (gzmap->gzmap_context.highlight && gzmap->gzmap_context.highlight->parent_gzgroup == gzgroup)
+  {
     wm_gizmomap_highlight_set(gzmap, C, NULL, 0);
   }
   if (gzmap->gzmap_context.modal && gzmap->gzmap_context.modal->parent_gzgroup == gzgroup) {
@@ -199,7 +199,8 @@ wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
     if (gz->type->test_select && (gz->flag & (WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT)) == 0) {
 
       if (!wm_gizmo_keymap_uses_event_modifier(
-              wm, gzgroup, gz, event_modifier, &gzgroup_keymap_uses_modifier)) {
+              wm, gzgroup, gz, event_modifier, &gzgroup_keymap_uses_modifier))
+      {
         continue;
       }
 
@@ -222,10 +223,12 @@ void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
     if ((gz->flag & (WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT)) == 0) {
       if (((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) &&
            (gz->type->draw_select || gz->type->test_select)) ||
-          ((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) == 0 && gz->type->test_select)) {
+          ((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) == 0 && gz->type->test_select))
+      {
 
         if (!wm_gizmo_keymap_uses_event_modifier(
-                wm, gzgroup, gz, event_modifier, &gzgroup_keymap_uses_modifier)) {
+                wm, gzgroup, gz, event_modifier, &gzgroup_keymap_uses_modifier))
+        {
           continue;
         }
 
@@ -458,7 +461,8 @@ static void gizmo_tweak_finish(bContext *C, wmOperator *op, const bool cancel, b
   if (clear_modal) {
     /* The gizmo may have been removed. */
     if ((BLI_findindex(&mtweak->gzmap->groups, mtweak->gzgroup) != -1) &&
-        (BLI_findindex(&mtweak->gzgroup->gizmos, mtweak->gz_modal) != -1)) {
+        (BLI_findindex(&mtweak->gzgroup->gizmos, mtweak->gz_modal) != -1))
+    {
       wm_gizmomap_modal_set(mtweak->gzmap, C, mtweak->gz_modal, NULL, false);
     }
   }
@@ -1244,7 +1248,8 @@ void WM_gizmo_group_refresh(const bContext *C, wmGizmoGroup *gzgroup)
       BLI_assert(region->gizmo_map == gzmap);
       /* Check if the tweak event originated from this region. */
       if ((win->eventstate != NULL) && (win->event_queue_check_drag) &&
-          BLI_rcti_isect_pt_v(&region->winrct, win->eventstate->prev_press_xy)) {
+          BLI_rcti_isect_pt_v(&region->winrct, win->eventstate->prev_press_xy))
+      {
         /* We need to run refresh again. */
         gzgroup->init_flag &= ~WM_GIZMOGROUP_INIT_REFRESH;
         WM_gizmomap_tag_refresh_drawstep(gzmap, WM_gizmomap_drawstep_from_gizmo_group(gzgroup));

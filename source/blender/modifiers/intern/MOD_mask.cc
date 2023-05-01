@@ -621,7 +621,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
 
   /* Quick test to see if we can return early. */
   if (!ELEM(mmd->mode, MOD_MASK_MODE_ARM, MOD_MASK_MODE_VGROUP) || (mesh->totvert == 0) ||
-      BLI_listbase_is_empty(&mesh->vertex_group_names)) {
+      BLI_listbase_is_empty(&mesh->vertex_group_names))
+  {
     return mesh;
   }
 

@@ -306,7 +306,8 @@ void BKE_mesh_add_loop_tangent_named_layer_for_uv(CustomData *uv_data,
                                                   const char *layer_name)
 {
   if (CustomData_get_named_layer_index(tan_data, CD_TANGENT, layer_name) == -1 &&
-      CustomData_get_named_layer_index(uv_data, CD_PROP_FLOAT2, layer_name) != -1) {
+      CustomData_get_named_layer_index(uv_data, CD_PROP_FLOAT2, layer_name) != -1)
+  {
     CustomData_add_layer_named(tan_data, CD_TANGENT, CD_SET_DEFAULT, numLoopData, layer_name);
   }
 }
@@ -371,7 +372,8 @@ void BKE_mesh_calc_loop_tangent_step_0(const CustomData *loopData,
       }
     }
     if (!add && ((*rcalc_act && ract_uv_name[0] && STREQ(ract_uv_name, name)) ||
-                 (*rcalc_ren && rren_uv_name[0] && STREQ(rren_uv_name, name)))) {
+                 (*rcalc_ren && rren_uv_name[0] && STREQ(rren_uv_name, name))))
+    {
       add = true;
     }
     if (add) {
@@ -434,7 +436,8 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
       }
     }
     if ((tangent_mask & DM_TANGENT_MASK_ORCO) &&
-        CustomData_get_named_layer_index(loopdata, CD_TANGENT, "") == -1) {
+        CustomData_get_named_layer_index(loopdata, CD_TANGENT, "") == -1)
+    {
       CustomData_add_layer_named(
           loopdata_out, CD_TANGENT, CD_SET_DEFAULT, int(loopdata_out_len), "");
     }

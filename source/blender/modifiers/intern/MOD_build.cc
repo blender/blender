@@ -128,7 +128,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       const blender::int2 &edge = edges_src[i];
 
       if (BLI_ghash_haskey(vertHash, POINTER_FROM_INT(edge[0])) &&
-          BLI_ghash_haskey(vertHash, POINTER_FROM_INT(edge[1]))) {
+          BLI_ghash_haskey(vertHash, POINTER_FROM_INT(edge[1])))
+      {
         BLI_ghash_insert(edgeHash, (void *)hash_num, (void *)hash_num_alt);
         BLI_ghash_insert(edgeHash2, (void *)hash_num_alt, (void *)hash_num);
         hash_num++;

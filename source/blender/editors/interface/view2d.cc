@@ -1559,7 +1559,8 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
      *   and only the time-grids with their zoom-ability can do so).
      */
     if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) &&
-        (BLI_rcti_size_x(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) {
+        (BLI_rcti_size_x(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT))
+    {
       state |= UI_SCROLL_ARROWS;
     }
 
@@ -1594,7 +1595,8 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
      *   and only the time-grids with their zoomability can do so)
      */
     if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 && (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) &&
-        (BLI_rcti_size_y(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) {
+        (BLI_rcti_size_y(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT))
+    {
       state |= UI_SCROLL_ARROWS;
     }
 
@@ -1827,7 +1829,8 @@ bool UI_view2d_view_to_region_rcti_clip(const View2D *v2d, const rctf *rect_src,
   rect_tmp.ymax = (rect_src->ymax - v2d->cur.ymin) / cur_size[1];
 
   if (((rect_tmp.xmax < 0.0f) || (rect_tmp.xmin > 1.0f) || (rect_tmp.ymax < 0.0f) ||
-       (rect_tmp.ymin > 1.0f)) == 0) {
+       (rect_tmp.ymin > 1.0f)) == 0)
+  {
     /* Step 2: convert proportional distances to screen coordinates. */
     rect_tmp.xmin = v2d->mask.xmin + (rect_tmp.xmin * mask_size[0]);
     rect_tmp.xmax = v2d->mask.ymin + (rect_tmp.xmax * mask_size[0]);

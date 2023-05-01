@@ -151,7 +151,8 @@ void NodeGraph::add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink
     return;
   }
   if ((b_nodelink->fromsock->flag & SOCK_UNAVAIL) || (b_nodelink->tosock->flag & SOCK_UNAVAIL) ||
-      (b_nodelink->flag & NODE_LINK_MUTED)) {
+      (b_nodelink->flag & NODE_LINK_MUTED))
+  {
     return;
   }
 
@@ -219,7 +220,8 @@ void NodeGraph::add_proxies_group_inputs(bNode *b_node, bNode *b_node_io)
   bool is_active_group = false;
 
   for (bNodeSocket *b_sock_io = (bNodeSocket *)b_node_io->outputs.first; b_sock_io;
-       b_sock_io = b_sock_io->next) {
+       b_sock_io = b_sock_io->next)
+  {
     bNodeSocket *b_sock_group = find_b_node_input(b_node, b_sock_io->identifier);
     if (b_sock_group) {
       SocketProxyNode *proxy = new SocketProxyNode(b_node_io, b_sock_group, b_sock_io, true);
@@ -240,11 +242,13 @@ void NodeGraph::add_proxies_group_outputs(const CompositorContext &context,
   bool is_active_group = false;
 
   for (bNodeSocket *b_sock_io = (bNodeSocket *)b_node_io->inputs.first; b_sock_io;
-       b_sock_io = b_sock_io->next) {
+       b_sock_io = b_sock_io->next)
+  {
     bNodeSocket *b_sock_group = find_b_node_output(b_node, b_sock_io->identifier);
     if (b_sock_group) {
       if (context.is_groupnode_buffer_enabled() &&
-          context.get_execution_model() == eExecutionModel::Tiled) {
+          context.get_execution_model() == eExecutionModel::Tiled)
+      {
         SocketBufferNode *buffer = new SocketBufferNode(b_node_io, b_sock_io, b_sock_group);
         add_node(buffer, b_group_tree, key, is_active_group);
       }

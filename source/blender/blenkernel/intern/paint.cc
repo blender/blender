@@ -750,8 +750,8 @@ void BKE_paint_curve_clamp_endpoint_add_index(PaintCurve *pc, const int add_inde
 
 void BKE_palette_color_remove(Palette *palette, PaletteColor *color)
 {
-  if (BLI_listbase_count_at_most(&palette->colors, palette->active_color) ==
-      palette->active_color) {
+  if (BLI_listbase_count_at_most(&palette->colors, palette->active_color) == palette->active_color)
+  {
     palette->active_color--;
   }
 
@@ -1787,7 +1787,8 @@ static void sculpt_update_object(
        * that simply recompute vertex weights (which can even include Geometry Nodes). */
       if (me_eval_deform->totpoly == me_eval->totpoly &&
           me_eval_deform->totloop == me_eval->totloop &&
-          me_eval_deform->totvert == me_eval->totvert) {
+          me_eval_deform->totvert == me_eval->totvert)
+      {
         BKE_sculptsession_free_deformMats(ss);
 
         BLI_assert(me_eval_deform->totvert == me->totvert);
@@ -1929,7 +1930,8 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object)
   char unique_name[MAX_CUSTOMDATA_LAYER_NAME];
   BKE_id_attribute_calc_unique_name(&orig_me->id, "Color", unique_name);
   if (!orig_me->attributes_for_write().add(
-          unique_name, ATTR_DOMAIN_POINT, CD_PROP_COLOR, AttributeInitDefaultValue())) {
+          unique_name, ATTR_DOMAIN_POINT, CD_PROP_COLOR, AttributeInitDefaultValue()))
+  {
     return;
   }
 
@@ -2857,7 +2859,8 @@ bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)
     SculptAttribute *attr2 = ss->temp_attributes + i;
 
     if (STREQ(attr2->name, attr->name) && attr2->domain == attr->domain &&
-        attr2->proptype == attr->proptype) {
+        attr2->proptype == attr->proptype)
+    {
 
       attr2->used = false;
     }

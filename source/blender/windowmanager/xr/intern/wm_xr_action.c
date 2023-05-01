@@ -302,7 +302,8 @@ void WM_xr_action_destroy(wmXrData *xr, const char *action_set_name, const char 
   if ((action_set->controller_grip_action &&
        STREQ(action_set->controller_grip_action->name, action_name)) ||
       (action_set->controller_aim_action &&
-       STREQ(action_set->controller_aim_action->name, action_name))) {
+       STREQ(action_set->controller_aim_action->name, action_name)))
+  {
     if (action_set == xr->runtime->session_state.active_action_set) {
       wm_xr_session_controller_data_clear(&xr->runtime->session_state);
     }

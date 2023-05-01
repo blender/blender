@@ -274,14 +274,16 @@ static bool spline_under_mouse_get(const bContext *C,
   for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
                  *mask_layer_eval = mask_eval->masklayers.first;
        mask_layer_orig != NULL;
-       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next) {
+       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
+  {
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
     for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
                     *spline_eval = mask_layer_eval->splines.first;
          spline_orig != NULL;
-         spline_orig = spline_orig->next, spline_eval = spline_eval->next) {
+         spline_orig = spline_orig->next, spline_eval = spline_eval->next)
+    {
       if ((spline_orig->flag & SELECT) == 0) {
         continue;
       }
@@ -308,7 +310,8 @@ static bool spline_under_mouse_get(const bContext *C,
       float dist_squared = len_squared_v2v2(pixel_co, center);
       float max_bb_side = min_ff((max[0] - min[0]) * width, (max[1] - min[1]) * height);
       if (dist_squared <= max_bb_side * max_bb_side * 0.5f &&
-          (closest_spline == NULL || dist_squared < closest_dist_squared)) {
+          (closest_spline == NULL || dist_squared < closest_dist_squared))
+      {
         closest_layer = mask_layer_orig;
         closest_spline = spline_orig;
         closest_dist_squared = dist_squared;
@@ -329,7 +332,8 @@ static bool spline_under_mouse_get(const bContext *C,
                                         NULL,
                                         NULL,
                                         NULL,
-                                        &diff_score)) {
+                                        &diff_score))
+    {
       if (square_f(diff_score) < closest_dist_squared) {
         return false;
       }
@@ -444,7 +448,8 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, const wmEvent *
                                    &feather_spline,
                                    &feather_point,
                                    &uw,
-                                   &feather_score)) {
+                                   &feather_score))
+  {
     if (slide_feather || !cv_point || feather_score < cv_score) {
       action = SLIDE_ACTION_FEATHER;
 
@@ -687,7 +692,8 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
         if (data->is_sliding_new_point && data->which_handle == MASK_WHICH_HANDLE_STICK) {
           if (ELEM(data->point,
                    &data->spline->points[0],
-                   &data->spline->points[data->spline->tot_point - 1])) {
+                   &data->spline->points[data->spline->tot_point - 1]))
+          {
             SWAP(float, delta[0], delta[1]);
             delta[1] *= -1;
 
@@ -1004,7 +1010,8 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(bContext *C,
                                        &spline,
                                        &point,
                                        &u,
-                                       NULL)) {
+                                       NULL))
+  {
     return NULL;
   }
 

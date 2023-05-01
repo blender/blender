@@ -55,7 +55,8 @@ static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subf
 #  endif
 
   for (ViewLayer *view_layer = scene->view_layers.first; view_layer != NULL;
-       view_layer = view_layer->next) {
+       view_layer = view_layer->next)
+  {
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
     BKE_scene_graph_update_for_newframe(depsgraph);
   }

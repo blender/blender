@@ -166,7 +166,8 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, View3D *v3d)
               vos->vec,
               vos->sco,
               V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) ==
-          V3D_PROJ_RET_OK) {
+          V3D_PROJ_RET_OK)
+      {
         tot++;
       }
       else {
@@ -270,7 +271,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   }
 
   if (v3d->overlay.edit_flag &
-      (V3D_OVERLAY_EDIT_EDGE_LEN | V3D_OVERLAY_EDIT_EDGE_ANG | V3D_OVERLAY_EDIT_INDICES)) {
+      (V3D_OVERLAY_EDIT_EDGE_LEN | V3D_OVERLAY_EDIT_EDGE_ANG | V3D_OVERLAY_EDIT_INDICES))
+  {
     BoundBox bb;
     const rcti rect = {0, region->winx, 0, region->winy};
 
@@ -290,7 +292,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
       /* draw selected edges, or edges next to selected verts while dragging */
       if (BM_elem_flag_test(eed, BM_ELEM_SELECT) ||
           (do_moving && (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
-                         BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)))) {
+                         BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))))
+      {
         float v1_clip[3], v2_clip[3];
 
         if (vert_coords) {
@@ -356,7 +359,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
                            BM_elem_flag_test(l_a->next->next->v, BM_ELEM_SELECT) ||
                            BM_elem_flag_test(l_a->prev->v, BM_ELEM_SELECT) ||
                            BM_elem_flag_test(l_b->next->next->v, BM_ELEM_SELECT) ||
-                           BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT)))) {
+                           BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT))))
+        {
           float v1_clip[3], v2_clip[3];
 
           if (vert_coords) {
@@ -495,7 +499,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
         BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
           if (is_face_sel || (do_moving && (BM_elem_flag_test(loop->v, BM_ELEM_SELECT) ||
                                             BM_elem_flag_test(loop->prev->v, BM_ELEM_SELECT) ||
-                                            BM_elem_flag_test(loop->next->v, BM_ELEM_SELECT)))) {
+                                            BM_elem_flag_test(loop->next->v, BM_ELEM_SELECT))))
+          {
             float v2_local[3];
 
             /* lazy init center calc */

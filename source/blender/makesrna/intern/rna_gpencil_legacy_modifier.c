@@ -958,7 +958,8 @@ const EnumPropertyItem *gpencil_build_time_mode_filter(bContext *UNUSED(C),
   int totitem = 0;
 
   for (const EnumPropertyItem *item = gpencil_build_time_mode_items; item->identifier != NULL;
-       item++) {
+       item++)
+  {
     if (is_concurrent && (item->value == GP_BUILD_TIMEMODE_DRAWSPEED)) {
       continue;
     }

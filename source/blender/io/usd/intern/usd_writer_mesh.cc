@@ -82,7 +82,8 @@ void USDGenericMeshWriter::write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh 
       [&](const bke::AttributeIDRef &attribute_id, const bke::AttributeMetaData &meta_data) {
         /* Color data. */
         if (ELEM(meta_data.domain, ATTR_DOMAIN_CORNER, ATTR_DOMAIN_POINT) &&
-            ELEM(meta_data.data_type, CD_PROP_BYTE_COLOR, CD_PROP_COLOR)) {
+            ELEM(meta_data.data_type, CD_PROP_BYTE_COLOR, CD_PROP_COLOR))
+        {
           write_color_data(mesh, usd_mesh, attribute_id, meta_data);
         }
 
@@ -281,7 +282,8 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   }
 
   if (!usd_mesh_data.corner_indices.empty() &&
-      usd_mesh_data.corner_indices.size() == usd_mesh_data.corner_sharpnesses.size()) {
+      usd_mesh_data.corner_indices.size() == usd_mesh_data.corner_sharpnesses.size())
+  {
     pxr::UsdAttribute attr_corner_indices = usd_mesh.CreateCornerIndicesAttr(pxr::VtValue(), true);
     pxr::UsdAttribute attr_corner_sharpnesses = usd_mesh.CreateCornerSharpnessesAttr(
         pxr::VtValue(), true);

@@ -1041,7 +1041,8 @@ static void rna_BrushGpencilSettings_default_eraser_update(Main *bmain,
   /* disable default eraser in all brushes */
   for (Brush *brush = bmain->brushes.first; brush; brush = brush->id.next) {
     if ((brush != brush_cur) && (brush->ob_mode == OB_MODE_PAINT_GPENCIL) &&
-        (brush->gpencil_tool == GPAINT_TOOL_ERASE)) {
+        (brush->gpencil_tool == GPAINT_TOOL_ERASE))
+    {
       brush->gpencil_settings->flag &= ~GP_BRUSH_DEFAULT_ERASER;
     }
   }

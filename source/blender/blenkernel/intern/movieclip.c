@@ -1382,7 +1382,8 @@ static ImBuf *movieclip_get_postprocessed_ibuf(
 
   /* Fallback render in case proxies are not enabled or built */
   if (!ibuf && user->render_flag & MCLIP_PROXY_RENDER_USE_FALLBACK_RENDER &&
-      user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL) {
+      user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL)
+  {
     MovieClipUser user_fallback = *user;
     user_fallback.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
 
@@ -1466,7 +1467,8 @@ static ImBuf *get_stable_cached_frame(MovieClip *clip,
 
   /* check for stabilization parameters */
   if (tscale != cache->stabilized.scale || tangle != cache->stabilized.angle ||
-      !equals_v2v2(tloc, cache->stabilized.loc)) {
+      !equals_v2v2(tloc, cache->stabilized.loc))
+  {
     return NULL;
   }
 

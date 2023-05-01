@@ -212,7 +212,8 @@ static OutputFieldDependency find_group_output_dependencies(
     const bNodeSocket *input_socket = sockets_to_check.pop();
 
     if (!input_socket->is_directly_linked() &&
-        !field_state_by_socket_id[input_socket->index_in_tree()].is_single) {
+        !field_state_by_socket_id[input_socket->index_in_tree()].is_single)
+    {
       /* This socket uses a field as input by default. */
       return OutputFieldDependency::ForFieldSource();
     }
@@ -240,7 +241,8 @@ static OutputFieldDependency find_group_output_dependencies(
 
         /* Propagate search further to the left. */
         for (const bNodeSocket *origin_input_socket :
-             gather_input_socket_dependencies(field_dependency, origin_node)) {
+             gather_input_socket_dependencies(field_dependency, origin_node))
+        {
           if (!origin_input_socket->is_available()) {
             continue;
           }
@@ -398,8 +400,8 @@ static void propagate_field_status_from_left_to_right(
       }
       state.is_single = true;
       if (!input_socket->is_directly_linked()) {
-        if (inferencing_interface.inputs[input_socket->index()] ==
-            InputSocketFieldType::Implicit) {
+        if (inferencing_interface.inputs[input_socket->index()] == InputSocketFieldType::Implicit)
+        {
           state.is_single = false;
         }
       }

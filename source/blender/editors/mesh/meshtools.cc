@@ -1238,7 +1238,8 @@ static void ed_mesh_pick_face_vert__mpoly_find(
     float sco[2];
     const int v_idx = corner_verts[poly[j]];
     if (ED_view3d_project_float_object(region, vert_positions[v_idx], sco, V3D_PROJ_TEST_NOP) ==
-        V3D_PROJ_RET_OK) {
+        V3D_PROJ_RET_OK)
+    {
       const float len_test = len_manhattan_v2v2(mval, sco);
       if (len_test < *r_len_best) {
         *r_len_best = len_test;
@@ -1348,7 +1349,8 @@ static void ed_mesh_pick_vert__mapFunc(void *userData,
   }
   float sco[2];
   if (ED_view3d_project_float_object(data->region, co, sco, V3D_PROJ_TEST_CLIP_DEFAULT) ==
-      V3D_PROJ_RET_OK) {
+      V3D_PROJ_RET_OK)
+  {
     const float len = len_manhattan_v2v2(data->mval_f, sco);
     if (len < data->len_best) {
       data->len_best = len;

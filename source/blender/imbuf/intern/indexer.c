@@ -607,7 +607,8 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->orig_height = st->codecpar->height;
 
   if (st->codecpar->width != width || st->codecpar->height != height ||
-      st->codecpar->format != rv->c->pix_fmt) {
+      st->codecpar->format != rv->c->pix_fmt)
+  {
     rv->frame = av_frame_alloc();
 
     av_image_fill_arrays(rv->frame->data,
@@ -662,7 +663,8 @@ static void add_to_proxy_output_ffmpeg(struct proxy_output_ctx *ctx, AVFrame *fr
   }
 
   if (ctx->sws_ctx && frame &&
-      (frame->data[0] || frame->data[1] || frame->data[2] || frame->data[3])) {
+      (frame->data[0] || frame->data[1] || frame->data[2] || frame->data[3]))
+  {
     sws_scale(ctx->sws_ctx,
               (const uint8_t *const *)frame->data,
               frame->linesize,
@@ -908,7 +910,8 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim,
   }
 
   if (context->proxy_ctx[0] == NULL && context->proxy_ctx[1] == NULL &&
-      context->proxy_ctx[2] == NULL && context->proxy_ctx[3] == NULL) {
+      context->proxy_ctx[2] == NULL && context->proxy_ctx[3] == NULL)
+  {
     avformat_close_input(&context->iFormatCtx);
     avcodec_free_context(&context->iCodecCtx);
     MEM_freeN(context);

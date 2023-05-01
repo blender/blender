@@ -726,7 +726,8 @@ bool select_lasso(const ViewContext &vc,
         /* Check the lasso bounding box first as an optimization. */
         if (BLI_rcti_isect_pt_v(&bbox, int2(pos_proj)) &&
             BLI_lasso_is_point_inside(
-                coord_array, coords.size(), int(pos_proj.x), int(pos_proj.y), IS_CLIPPED)) {
+                coord_array, coords.size(), int(pos_proj.x), int(pos_proj.y), IS_CLIPPED))
+        {
           apply_selection_operation_at_index(selection.span, point_i, sel_op);
           changed = true;
         }
@@ -744,7 +745,8 @@ bool select_lasso(const ViewContext &vc,
           /* Check the lasso bounding box first as an optimization. */
           if (BLI_rcti_isect_pt_v(&bbox, int2(pos_proj)) &&
               BLI_lasso_is_point_inside(
-                  coord_array, coords.size(), int(pos_proj.x), int(pos_proj.y), IS_CLIPPED)) {
+                  coord_array, coords.size(), int(pos_proj.x), int(pos_proj.y), IS_CLIPPED))
+          {
             apply_selection_operation_at_index(selection.span, curve_i, sel_op);
             changed = true;
           }
@@ -766,7 +768,8 @@ bool select_lasso(const ViewContext &vc,
                                        int(pos1_proj.y),
                                        int(pos2_proj.x),
                                        int(pos2_proj.y),
-                                       IS_CLIPPED)) {
+                                       IS_CLIPPED))
+          {
             apply_selection_operation_at_index(selection.span, curve_i, sel_op);
             changed = true;
             break;

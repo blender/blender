@@ -204,8 +204,8 @@ static void version_idproperty_move_data_string(IDPropertyUIDataString *ui_data,
 
 static void version_idproperty_ui_data(IDProperty *idprop_group)
 {
-  if (idprop_group ==
-      nullptr) { /* nullptr check here to reduce verbosity of calls to this function. */
+  if (idprop_group == nullptr)
+  { /* nullptr check here to reduce verbosity of calls to this function. */
     return;
   }
 
@@ -555,7 +555,8 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
              GEO_NODE_TRIM_CURVE,
              GEO_NODE_REPLACE_MATERIAL,
              GEO_NODE_SUBDIVIDE_MESH,
-             GEO_NODE_TRIANGULATE)) {
+             GEO_NODE_TRIANGULATE))
+    {
       bNodeSocket *geometry_socket = static_cast<bNodeSocket *>(node->inputs.first);
       add_realize_instances_before_socket(ntree, node, geometry_socket);
     }
@@ -864,7 +865,8 @@ static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
               GEO_NODE_MESH_PRIMITIVE_CYLINDER,
               GEO_NODE_MESH_PRIMITIVE_GRID,
               GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE,
-              GEO_NODE_MESH_PRIMITIVE_UV_SPHERE)) {
+              GEO_NODE_MESH_PRIMITIVE_UV_SPHERE))
+    {
       continue;
     }
     bNodeSocket *primitive_output_socket = nullptr;
@@ -956,7 +958,8 @@ static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
       continue;
     }
     if (static_cast<const NodeGeometryExtrudeMesh *>(node->storage)->mode !=
-        GEO_NODE_EXTRUDE_MESH_EDGES) {
+        GEO_NODE_EXTRUDE_MESH_EDGES)
+    {
       continue;
     }
     bNodeSocket *geometry_in_socket = nodeFindSocket(node, SOCK_IN, "Mesh");
@@ -982,8 +985,8 @@ static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
       bNode *capture_node = geometry_in_link->fromnode;
       const NodeGeometryAttributeCapture &capture_storage =
           *static_cast<const NodeGeometryAttributeCapture *>(capture_node->storage);
-      if (capture_storage.data_type != CD_PROP_BOOL ||
-          capture_storage.domain != ATTR_DOMAIN_FACE) {
+      if (capture_storage.data_type != CD_PROP_BOOL || capture_storage.domain != ATTR_DOMAIN_FACE)
+      {
         return false;
       }
       bNodeSocket *capture_in_socket = nodeFindSocket(capture_node, SOCK_IN, "Value_003");
@@ -1116,22 +1119,26 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
       ToolSettings *tool_settings = scene->toolsettings;
       ImagePaintSettings *imapaint = &tool_settings->imapaint;
       if (imapaint->canvas != nullptr &&
-          ELEM(imapaint->canvas->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+          ELEM(imapaint->canvas->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE))
+      {
         imapaint->canvas = nullptr;
       }
       if (imapaint->stencil != nullptr &&
-          ELEM(imapaint->stencil->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+          ELEM(imapaint->stencil->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE))
+      {
         imapaint->stencil = nullptr;
       }
       if (imapaint->clone != nullptr &&
-          ELEM(imapaint->clone->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+          ELEM(imapaint->clone->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE))
+      {
         imapaint->clone = nullptr;
       }
     }
 
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (brush->clone.image != nullptr &&
-          ELEM(brush->clone.image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+          ELEM(brush->clone.image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE))
+      {
         brush->clone.image = nullptr;
       }
     }
@@ -1412,7 +1419,8 @@ static bool replace_bbone_len_scale_rnapath(char **p_old_path, int *p_index)
   int len = strlen(old_path);
 
   if (BLI_str_endswith(old_path, ".bbone_curveiny") ||
-      BLI_str_endswith(old_path, ".bbone_curveouty")) {
+      BLI_str_endswith(old_path, ".bbone_curveouty"))
+  {
     old_path[len - 1] = 'z';
     return true;
   }
@@ -1420,7 +1428,8 @@ static bool replace_bbone_len_scale_rnapath(char **p_old_path, int *p_index)
   if (BLI_str_endswith(old_path, ".bbone_scaleinx") ||
       BLI_str_endswith(old_path, ".bbone_scaleiny") ||
       BLI_str_endswith(old_path, ".bbone_scaleoutx") ||
-      BLI_str_endswith(old_path, ".bbone_scaleouty")) {
+      BLI_str_endswith(old_path, ".bbone_scaleouty"))
+  {
     int index = (old_path[len - 1] == 'y' ? 2 : 0);
 
     old_path[len - 1] = 0;
@@ -1778,7 +1787,8 @@ static bool version_set_seq_single_frame_content(Sequence *seq, void * /*user_da
 {
   if ((seq->len == 1) &&
       (seq->type == SEQ_TYPE_IMAGE ||
-       ((seq->type & SEQ_TYPE_EFFECT) && SEQ_effect_get_num_inputs(seq->type) == 0))) {
+       ((seq->type & SEQ_TYPE_EFFECT) && SEQ_effect_get_num_inputs(seq->type) == 0)))
+  {
     seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
   }
   return true;
@@ -2209,7 +2219,8 @@ static void version_fix_image_format_copy(Main *bmain, ImageFormatData *format)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (format != &scene->r.im_format && ELEM(format->view_settings.curve_mapping,
                                                 scene->view_settings.curve_mapping,
-                                                scene->r.im_format.view_settings.curve_mapping)) {
+                                                scene->r.im_format.view_settings.curve_mapping))
+      {
         format->view_settings.curve_mapping = BKE_curvemapping_copy(
             format->view_settings.curve_mapping);
         break;
@@ -2236,13 +2247,15 @@ static void version_ensure_missing_regions(ScrArea *area, SpaceLink *sl)
   switch (sl->spacetype) {
     case SPACE_FILE: {
       if (ARegion *ui_region = do_versions_add_region_if_not_found(
-              regionbase, RGN_TYPE_UI, "versioning: UI region for file", RGN_TYPE_TOOLS)) {
+              regionbase, RGN_TYPE_UI, "versioning: UI region for file", RGN_TYPE_TOOLS))
+      {
         ui_region->alignment = RGN_ALIGN_TOP;
         ui_region->flag |= RGN_FLAG_DYNAMIC_SIZE;
       }
 
       if (ARegion *exec_region = do_versions_add_region_if_not_found(
-              regionbase, RGN_TYPE_EXECUTE, "versioning: execute region for file", RGN_TYPE_UI)) {
+              regionbase, RGN_TYPE_EXECUTE, "versioning: execute region for file", RGN_TYPE_UI))
+      {
         exec_region->alignment = RGN_ALIGN_BOTTOM;
         exec_region->flag = RGN_FLAG_DYNAMIC_SIZE;
       }
@@ -2251,7 +2264,8 @@ static void version_ensure_missing_regions(ScrArea *area, SpaceLink *sl)
               regionbase,
               RGN_TYPE_TOOL_PROPS,
               "versioning: tool props region for file",
-              RGN_TYPE_EXECUTE)) {
+              RGN_TYPE_EXECUTE))
+      {
         tool_props_region->alignment = RGN_ALIGN_RIGHT;
         tool_props_region->flag = RGN_FLAG_HIDDEN;
       }
@@ -2540,8 +2554,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 13)) {
     /* Convert Surface Deform to sparse-capable bind structure. */
-    if (!DNA_struct_elem_find(
-            fd->filesdna, "SurfaceDeformModifierData", "int", "num_mesh_verts")) {
+    if (!DNA_struct_elem_find(fd->filesdna, "SurfaceDeformModifierData", "int", "num_mesh_verts"))
+    {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_SurfaceDeform) {
@@ -2567,15 +2581,16 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(
-            fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library")) {
+    if (!DNA_struct_elem_find(fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library"))
+    {
       LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
         BKE_asset_library_reference_init_default(&workspace->asset_library_ref);
       }
     }
 
     if (!DNA_struct_elem_find(
-            fd->filesdna, "FileAssetSelectParams", "AssetLibraryReference", "asset_library_ref")) {
+            fd->filesdna, "FileAssetSelectParams", "AssetLibraryReference", "asset_library_ref"))
+    {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
@@ -2661,7 +2676,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     if (!DNA_struct_elem_find(
-            fd->filesdna, "FileAssetSelectParams", "AssetLibraryReference", "asset_library_ref")) {
+            fd->filesdna, "FileAssetSelectParams", "AssetLibraryReference", "asset_library_ref"))
+    {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
@@ -2748,7 +2764,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 22)) {
     if (!DNA_struct_elem_find(
-            fd->filesdna, "LineartGpencilModifierData", "bool", "use_crease_on_smooth")) {
+            fd->filesdna, "LineartGpencilModifierData", "bool", "use_crease_on_smooth"))
+    {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         if (ob->type == OB_GPENCIL_LEGACY) {
           LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
@@ -3173,7 +3190,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   /* Special case to handle older in-development 3.1 files, before change from 3.0 branch gets
    * merged in master. */
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 42) ||
-      (bmain->versionfile == 301 && !MAIN_VERSION_ATLEAST(bmain, 301, 3))) {
+      (bmain->versionfile == 301 && !MAIN_VERSION_ATLEAST(bmain, 301, 3)))
+  {
     /* Update LibOverride operations regarding insertions in RNA collections (i.e. modifiers,
      * constraints and NLA tracks). */
     ID *id_iter;
@@ -3320,7 +3338,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 301, 7) ||
-      (bmain->versionfile == 302 && !MAIN_VERSION_ATLEAST(bmain, 302, 4))) {
+      (bmain->versionfile == 302 && !MAIN_VERSION_ATLEAST(bmain, 302, 4)))
+  {
     /* Duplicate value for two flags that mistakenly had the same numeric value. */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
@@ -4092,7 +4111,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Grease Pencil Build modifier:
      * Set default value for new natural draw-speed factor and maximum gap. */
     if (!DNA_struct_elem_find(fd->filesdna, "BuildGpencilModifierData", "float", "speed_fac") ||
-        !DNA_struct_elem_find(fd->filesdna, "BuildGpencilModifierData", "float", "speed_maxgap")) {
+        !DNA_struct_elem_find(fd->filesdna, "BuildGpencilModifierData", "float", "speed_maxgap"))
+    {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
           if (md->type == eGpencilModifierType_Build) {

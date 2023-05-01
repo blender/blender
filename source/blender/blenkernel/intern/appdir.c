@@ -749,7 +749,8 @@ const char *BKE_appdir_folder_id_create(const int folder_id, const char *subfold
             BLENDER_USER_DATAFILES,
             BLENDER_USER_CONFIG,
             BLENDER_USER_SCRIPTS,
-            BLENDER_USER_AUTOSAVE)) {
+            BLENDER_USER_AUTOSAVE))
+  {
     BLI_assert_unreachable();
     return NULL;
   }
@@ -963,7 +964,8 @@ bool BKE_appdir_program_python_search(char *fullpath,
 #else
             BLI_exists(fullpath)
 #endif
-        ) {
+        )
+        {
           is_found = true;
           break;
         }
@@ -1013,7 +1015,8 @@ bool BKE_appdir_app_template_any(void)
     if (BKE_appdir_folder_id_ex(app_template_directory_id[i],
                                 app_template_directory_search[i],
                                 temp_dir,
-                                sizeof(temp_dir))) {
+                                sizeof(temp_dir)))
+    {
       return true;
     }
   }
@@ -1060,7 +1063,8 @@ void BKE_appdir_app_templates(ListBase *templates)
     if (!BKE_appdir_folder_id_ex(app_template_directory_id[i],
                                  app_template_directory_search[i],
                                  subdir,
-                                 sizeof(subdir))) {
+                                 sizeof(subdir)))
+    {
       continue;
     }
 

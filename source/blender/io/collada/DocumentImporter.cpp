@@ -599,7 +599,8 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
             pair_iter = object_map.equal_range(node_id);
         for (std::multimap<COLLADAFW::UniqueId, Object *>::iterator it2 = pair_iter.first;
              it2 != pair_iter.second;
-             it2++) {
+             it2++)
+        {
           Object *source_ob = (Object *)it2->second;
           COLLADAFW::Node *source_node = node_map[node_id];
           ob = create_instance_node(source_ob, source_node, node, sce, is_library_node);

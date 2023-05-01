@@ -404,7 +404,8 @@ GHOST_TButton GHOST_Wintab::mapWintabToGhostButton(uint cursor, WORD physicalBut
   BYTE systemButtons[numButtons] = {0};
 
   if (!m_fpInfo(WTI_CURSORS + cursor, CSR_BUTTONMAP, &logicalButtons) ||
-      !m_fpInfo(WTI_CURSORS + cursor, CSR_SYSBTNMAP, &systemButtons)) {
+      !m_fpInfo(WTI_CURSORS + cursor, CSR_SYSBTNMAP, &systemButtons))
+  {
     return GHOST_kButtonMaskNone;
   }
 

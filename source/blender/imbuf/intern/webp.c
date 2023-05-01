@@ -99,7 +99,8 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
 
   WebPDecoderConfig config;
   if (!data || !WebPInitDecoderConfig(&config) ||
-      WebPGetFeatures(data, data_size, &config.input) != VP8_STATUS_OK) {
+      WebPGetFeatures(data, data_size, &config.input) != VP8_STATUS_OK)
+  {
     fprintf(stderr, "WebP: Invalid file\n");
     imb_mmap_lock();
     BLI_mmap_free(mmap_file);

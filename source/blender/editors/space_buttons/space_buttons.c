@@ -860,7 +860,8 @@ static void buttons_id_remap(ScrArea *UNUSED(area),
   SpaceProperties *sbuts = (SpaceProperties *)slink;
 
   if (BKE_id_remapper_apply(mappings, &sbuts->pinid, ID_REMAP_APPLY_DEFAULT) ==
-      ID_REMAP_RESULT_SOURCE_UNASSIGNED) {
+      ID_REMAP_RESULT_SOURCE_UNASSIGNED)
+  {
     sbuts->flag &= ~SB_PIN_CONTEXT;
   }
 

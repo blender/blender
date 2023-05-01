@@ -155,7 +155,8 @@ static int modifier_is_simulation(const ModifierData *md)
            eModifierType_Fluid,
            eModifierType_Softbody,
            eModifierType_Surface,
-           eModifierType_DynamicPaint)) {
+           eModifierType_DynamicPaint))
+  {
     return 1;
   }
   /* Particle Tab */
@@ -181,7 +182,8 @@ static bool modifier_can_delete(ModifierData *md)
              PART_FLUID_SPRAYFOAM,
              PART_FLUID_SPRAYBUBBLE,
              PART_FLUID_FOAMBUBBLE,
-             PART_FLUID_SPRAYFOAMBUBBLE)) {
+             PART_FLUID_SPRAYFOAMBUBBLE))
+    {
       return false;
     }
   }
@@ -231,7 +233,8 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
             eModifierType_Softbody,
             eModifierType_ParticleSystem,
             eModifierType_Cloth,
-            eModifierType_Fluid)) {
+            eModifierType_Fluid))
+  {
     uiItemO(layout,
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate"),
             ICON_DUPLICATE,
@@ -363,8 +366,8 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       buttons_number++;
     }
     /* Some modifiers can work with pre-tessellated curves only. */
-    else if (ELEM(
-                 md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
+    else if (ELEM(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform))
+    {
       /* Add button (appearing to be ON) and add tip why this can't be changed. */
       sub = uiLayoutRow(row, true);
       uiBlock *block = uiLayoutGetBlock(sub);

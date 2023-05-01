@@ -251,8 +251,8 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
   }
 
   for (vfont = bmain->fonts.first; vfont; vfont = vfont->id.next) {
-    if (vfont->packedfile == NULL && !ID_IS_LINKED(vfont) &&
-        BKE_vfont_is_builtin(vfont) == false) {
+    if (vfont->packedfile == NULL && !ID_IS_LINKED(vfont) && BKE_vfont_is_builtin(vfont) == false)
+    {
       vfont->packedfile = BKE_packedfile_new(
           reports, vfont->filepath, BKE_main_blendfile_path(bmain));
       tot++;

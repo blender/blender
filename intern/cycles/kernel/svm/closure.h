@@ -52,8 +52,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       return svm_node_closure_bsdf_skip(kg, offset, type);
     }
   }
-  else
-  {
+  else {
     return svm_node_closure_bsdf_skip(kg, offset, type);
   }
 
@@ -256,7 +255,8 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       if (kernel_data.integrator.caustics_reflective || (path_flag & PATH_RAY_DIFFUSE) == 0) {
 #endif
         if (specular_weight > CLOSURE_WEIGHT_CUTOFF &&
-            (specular > CLOSURE_WEIGHT_CUTOFF || metallic > CLOSURE_WEIGHT_CUTOFF)) {
+            (specular > CLOSURE_WEIGHT_CUTOFF || metallic > CLOSURE_WEIGHT_CUTOFF))
+        {
           Spectrum spec_weight = weight * specular_weight;
 
           ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
@@ -288,8 +288,8 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
             fresnel->color = rgb_to_spectrum(base_color);
 
             /* setup bsdf */
-            if (distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID ||
-                roughness <= 0.075f) { /* use single-scatter GGX */
+            if (distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID || roughness <= 0.075f)
+            { /* use single-scatter GGX */
               sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
               bsdf_microfacet_setup_fresnel_principledv1(bsdf, sd, fresnel);
             }
@@ -306,14 +306,15 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       /* BSDF */
 #ifdef __CAUSTICS_TRICKS__
       if (kernel_data.integrator.caustics_reflective ||
-          kernel_data.integrator.caustics_refractive || (path_flag & PATH_RAY_DIFFUSE) == 0) {
+          kernel_data.integrator.caustics_refractive || (path_flag & PATH_RAY_DIFFUSE) == 0)
+      {
 #endif
         if (final_transmission > CLOSURE_WEIGHT_CUTOFF) {
           Spectrum glass_weight = weight * final_transmission;
           float3 cspec0 = base_color * specular_tint + make_float3(1.0f - specular_tint);
 
-          if (roughness <= 5e-2f ||
-              distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID) { /* use single-scatter GGX */
+          if (roughness <= 5e-2f || distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID)
+          { /* use single-scatter GGX */
             float refl_roughness = roughness;
 
             /* reflection */

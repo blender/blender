@@ -710,7 +710,8 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
     }
 
     if (!isect_plane_plane_v3(plane_tx[Y_MIN], plane_tx[Y_MAX], plane_isect_1, plane_isect_1_no) ||
-        !isect_plane_plane_v3(plane_tx[Z_MIN], plane_tx[Z_MAX], plane_isect_2, plane_isect_2_no)) {
+        !isect_plane_plane_v3(plane_tx[Z_MIN], plane_tx[Z_MAX], plane_isect_2, plane_isect_2_no))
+    {
       return false;
     }
 
@@ -722,7 +723,8 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
                             plane_isect_2,
                             plane_isect_2_other,
                             plane_isect_pt_1,
-                            plane_isect_pt_2)) {
+                            plane_isect_pt_2))
+    {
       return false;
     }
 
@@ -1006,7 +1008,8 @@ bool BKE_camera_multiview_spherical_stereo(const RenderData *rd, const Object *c
   cam = camera->data;
 
   if ((rd->views_format == SCE_VIEWS_FORMAT_STEREO_3D) && ELEM(cam->type, CAM_PANO, CAM_PERSP) &&
-      ((cam->stereo.flag & CAM_S3D_SPHERICAL) != 0)) {
+      ((cam->stereo.flag & CAM_S3D_SPHERICAL) != 0))
+  {
     return true;
   }
 

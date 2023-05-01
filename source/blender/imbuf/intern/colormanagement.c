@@ -376,7 +376,8 @@ static uchar *colormanage_cache_get(ImBuf *ibuf,
         cache_data->exposure != view_settings->exposure ||
         cache_data->gamma != view_settings->gamma || cache_data->dither != view_settings->dither ||
         cache_data->flag != view_settings->flag || cache_data->curve_mapping != curve_mapping ||
-        cache_data->curve_mapping_timestamp != curve_mapping_timestamp) {
+        cache_data->curve_mapping_timestamp != curve_mapping_timestamp)
+    {
       *cache_handle = NULL;
 
       IMB_freeImBuf(cache_ibuf);
@@ -1733,7 +1734,8 @@ static bool is_ibuf_rect_in_display_space(ImBuf *ibuf,
                                           const ColorManagedDisplaySettings *display_settings)
 {
   if ((view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) == 0 &&
-      view_settings->exposure == 0.0f && view_settings->gamma == 1.0f) {
+      view_settings->exposure == 0.0f && view_settings->gamma == 1.0f)
+  {
     const char *from_colorspace = ibuf->rect_colorspace->name;
     const char *to_colorspace = get_display_colorspace_name(view_settings, display_settings);
     ColorManagedLook *look_descr = colormanage_look_get_named(view_settings->look);
@@ -2527,7 +2529,8 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
 
   /* Update byte buffer if exists but invalid. */
   if (ibuf->rect_float && ibuf->rect &&
-      (ibuf->userflags & (IB_DISPLAY_BUFFER_INVALID | IB_RECT_INVALID)) != 0) {
+      (ibuf->userflags & (IB_DISPLAY_BUFFER_INVALID | IB_RECT_INVALID)) != 0)
+  {
     IMB_rect_from_float(ibuf);
     ibuf->userflags &= ~(IB_RECT_INVALID | IB_DISPLAY_BUFFER_INVALID);
   }
@@ -4019,7 +4022,8 @@ static OCIO_CurveMappingSettings *update_glsl_curve_mapping(
   OCIO_CurveMappingSettings *curve_mapping_settings = &global_gpu_state.curve_mapping_settings;
   if (view_settings->curve_mapping->changed_timestamp ==
           global_gpu_state.curve_mapping_timestamp &&
-      view_settings->curve_mapping == global_gpu_state.orig_curve_mapping) {
+      view_settings->curve_mapping == global_gpu_state.orig_curve_mapping)
+  {
     return curve_mapping_settings;
   }
 

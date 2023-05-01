@@ -2445,7 +2445,8 @@ static int text_delete_exec(bContext *C, wmOperator *op)
       if (*curr != '\0') {
         const char *prev = BLI_str_find_prev_char_utf8(curr, text->curl->line);
         if ((curr != prev) && /* When back-spacing from the start of the line. */
-            (*curr == text_closing_character_pair_get(*prev))) {
+            (*curr == text_closing_character_pair_get(*prev)))
+        {
           txt_move_right(text, false);
           txt_backspace_char(text);
         }
@@ -2711,7 +2712,8 @@ static void text_scroll_apply(bContext *C, wmOperator *op, const wmEvent *event)
   if (scroll_ofs_new[0] != st->left || scroll_ofs_new[1] != st->top ||
       /* Horizontal sub-pixel offset currently isn't used. */
       /* scroll_ofs_px_new[0] != st->scroll_ofs_px[0] || */
-      scroll_ofs_px_new[1] != st->runtime.scroll_ofs_px[1]) {
+      scroll_ofs_px_new[1] != st->runtime.scroll_ofs_px[1])
+  {
 
     st->left = scroll_ofs_new[0];
     st->top = scroll_ofs_new[1];
@@ -2882,9 +2884,11 @@ static int text_scroll_bar_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   /* verify we are in the right zone */
   if (mval[0] > st->runtime.scroll_region_handle.xmin &&
-      mval[0] < st->runtime.scroll_region_handle.xmax) {
+      mval[0] < st->runtime.scroll_region_handle.xmax)
+  {
     if (mval[1] >= st->runtime.scroll_region_handle.ymin &&
-        mval[1] <= st->runtime.scroll_region_handle.ymax) {
+        mval[1] <= st->runtime.scroll_region_handle.ymax)
+    {
       /* mouse inside scroll handle */
       zone = SCROLLHANDLE_BAR;
     }
@@ -3042,7 +3046,8 @@ static void text_cursor_set_to_pos_wrapped(
     char ch;
 
     for (j = 0; !found && ((ch = linep->line[j]) != '\0');
-         j += BLI_str_utf8_size_safe(linep->line + j)) {
+         j += BLI_str_utf8_size_safe(linep->line + j))
+    {
       int chars;
       int columns = BLI_str_utf8_char_width_safe(linep->line + j); /* = 1 for tab */
 
@@ -3419,7 +3424,8 @@ static int text_line_number_invoke(bContext *C, wmOperator *UNUSED(op), const wm
 
   if (!(mval[0] > 2 &&
         mval[0] < (TXT_NUMCOL_WIDTH(st) + (TXT_BODY_LPAD * st->runtime.cwidth_px)) &&
-        mval[1] > 2 && mval[1] < region->winy - 2)) {
+        mval[1] > 2 && mval[1] < region->winy - 2))
+  {
     return OPERATOR_PASS_THROUGH;
   }
 

@@ -117,7 +117,8 @@ static void *editmesh_partial_update_begin_fn(struct bContext *UNUSED(C),
 {
   const int retval_test = B_TRANSFORM_PANEL_MEDIAN;
   if (BLI_array_findindex(
-          params->unique_retval_ids, params->unique_retval_ids_len, &retval_test) == -1) {
+          params->unique_retval_ids, params->unique_retval_ids_len, &retval_test) == -1)
+  {
     return NULL;
   }
 
@@ -969,7 +970,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     if ((ob->type == OB_MESH) &&
         (apply_vcos || median_basis.mesh.bv_weight || median_basis.mesh.v_crease ||
          median_basis.mesh.skin[0] || median_basis.mesh.skin[1] || median_basis.mesh.be_weight ||
-         median_basis.mesh.e_crease)) {
+         median_basis.mesh.e_crease))
+    {
       const TransformMedian_Mesh *median = &median_basis.mesh, *ve_median = &ve_median_basis.mesh;
       Mesh *me = ob->data;
       BMEditMesh *em = me->edit_mesh;
@@ -1101,7 +1103,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF) &&
              (apply_vcos || median_basis.curve.b_weight || median_basis.curve.weight ||
-              median_basis.curve.radius || median_basis.curve.tilt)) {
+              median_basis.curve.radius || median_basis.curve.tilt))
+    {
       const TransformMedian_Curve *median = &median_basis.curve,
                                   *ve_median = &ve_median_basis.curve;
       Curve *cu = ob->data;
@@ -1769,8 +1772,8 @@ static void view3d_panel_transform(const bContext *C, Panel *panel)
     v3d_transform_butsR(col, &obptr);
 
     /* Dimensions and editmode are mostly the same check. */
-    if (OB_TYPE_SUPPORT_EDITMODE(ob->type) ||
-        ELEM(ob->type, OB_VOLUME, OB_CURVES, OB_POINTCLOUD)) {
+    if (OB_TYPE_SUPPORT_EDITMODE(ob->type) || ELEM(ob->type, OB_VOLUME, OB_CURVES, OB_POINTCLOUD))
+    {
       View3D *v3d = CTX_wm_view3d(C);
       v3d_object_dimension_buts(NULL, col, v3d, ob);
     }

@@ -965,7 +965,8 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
       // special hotkeys to switch between views, so override directly
 
       if ([event type] == NSEventTypeKeyDown && [event keyCode] == kVK_Tab &&
-          ([event modifierFlags] & NSEventModifierFlagControl)) {
+          ([event modifierFlags] & NSEventModifierFlagControl))
+      {
         handleKeyEvent(event);
       }
       else {
@@ -1257,7 +1258,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             return GHOST_kFailure;
 
           if (([bitmapImage bitsPerPixel] == 32) && (([bitmapImage bitmapFormat] & 0x5) == 0) &&
-              ![bitmapImage isPlanar]) {
+              ![bitmapImage isPlanar])
+          {
             /* Try a fast copy if the image is a meshed RGBA 32bit bitmap. */
             toIBuf = (uint8_t *)ibuf->rect;
             rasterRGB = (uint8_t *)[bitmapImage bitmapData];
@@ -1918,8 +1920,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
             GHOST_kKeyLeftControl,
             false));
       }
-      if ((modifiers & NSEventModifierFlagOption) !=
-          (m_modifierMask & NSEventModifierFlagOption)) {
+      if ((modifiers & NSEventModifierFlagOption) != (m_modifierMask & NSEventModifierFlagOption))
+      {
         pushEvent(new GHOST_EventKey(
             [event timestamp] * 1000,
             (modifiers & NSEventModifierFlagOption) ? GHOST_kEventKeyDown : GHOST_kEventKeyUp,

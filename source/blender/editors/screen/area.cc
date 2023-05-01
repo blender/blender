@@ -453,7 +453,8 @@ void ED_area_do_mgs_subscribe_for_tool_ui(const wmRegionMessageSubscribeParams *
     /* Check if a tool category panel is pinned and visible in another category. */
     LISTBASE_FOREACH (Panel *, panel, &region->panels) {
       if (UI_panel_is_active(panel) && panel->flag & PNL_PIN &&
-          STREQ(panel->type->category, panel_category_tool)) {
+          STREQ(panel->type->category, panel_category_tool))
+      {
         update_region = true;
         break;
       }
@@ -608,8 +609,8 @@ void ED_region_do_draw(bContext *C, ARegion *region)
      *
      * This covers most cases and avoids copy-paste similar code for each space type.
      */
-    if (ELEM(
-            region->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_CHANNELS, RGN_TYPE_UI, RGN_TYPE_TOOLS)) {
+    if (ELEM(region->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_CHANNELS, RGN_TYPE_UI, RGN_TYPE_TOOLS))
+    {
       SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
 
       PointerRNA ptr;
@@ -881,7 +882,8 @@ static void area_azone_init(wmWindow *win, const bScreen *screen, ScrArea *area)
 #ifdef __APPLE__
     if (!WM_window_is_fullscreen(win) &&
         ((coords[i][0] == 0 && coords[i][1] == 0) ||
-         (coords[i][0] == WM_window_pixels_x(win) && coords[i][1] == 0))) {
+         (coords[i][0] == WM_window_pixels_x(win) && coords[i][1] == 0)))
+    {
       continue;
     }
 #else
@@ -1221,7 +1223,8 @@ static void region_overlap_fix(ScrArea *area, ARegion *region)
 
     if (region_iter->overlap && (region_iter->alignment & RGN_SPLIT_PREV) == 0) {
       if ((region_iter->alignment != align) &&
-          BLI_rcti_isect(&region_iter->winrct, &region->winrct, nullptr)) {
+          BLI_rcti_isect(&region_iter->winrct, &region->winrct, nullptr))
+      {
         /* Left overlapping right or vice-versa, forbid this! */
         region->flag |= RGN_FLAG_TOO_SMALL;
         return;
@@ -1247,7 +1250,8 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
                RGN_TYPE_UI,
                RGN_TYPE_TOOL_PROPS,
                RGN_TYPE_FOOTER,
-               RGN_TYPE_TOOL_HEADER)) {
+               RGN_TYPE_TOOL_HEADER))
+      {
         return true;
       }
     }
@@ -1368,13 +1372,13 @@ static void region_rect_recursive(
     winrct_test.ymax = region->winrct.ymin + size_min[1];
 
     BLI_rcti_isect(&winrct_test, &overlap_remainder_margin, &winrct_test);
-    if (BLI_rcti_size_x(&winrct_test) < size_min[0] ||
-        BLI_rcti_size_y(&winrct_test) < size_min[1]) {
+    if (BLI_rcti_size_x(&winrct_test) < size_min[0] || BLI_rcti_size_y(&winrct_test) < size_min[1])
+    {
       region->flag |= RGN_FLAG_TOO_SMALL;
     }
   }
-  else if (rct_fits(remainder, SCREEN_AXIS_V, 1) < 0 ||
-           rct_fits(remainder, SCREEN_AXIS_H, 1) < 0) {
+  else if (rct_fits(remainder, SCREEN_AXIS_V, 1) < 0 || rct_fits(remainder, SCREEN_AXIS_H, 1) < 0)
+  {
     /* remainder is too small for any usage */
     region->flag |= RGN_FLAG_TOO_SMALL;
   }
@@ -2233,7 +2237,8 @@ static short region_alignment_from_header_and_tool_header_state(
        /* Don't prioritize the tool-header if both are hidden (behave as if both are visible).
         * Without this, switching to a space with headers hidden will flip the alignment
         * upon switching to a space with visible headers. */
-       (header_hidden && tool_header_hidden))) {
+       (header_hidden && tool_header_hidden)))
+  {
     return tool_header_alignment;
   }
   if (header_alignment != -1) {
@@ -2299,7 +2304,8 @@ static void region_align_info_to_area_for_headers(const RegionTypeAlignInfo *reg
    * Simply copy the values. */
   if (((header_alignment_src != -1) == (header_alignment_dst != -1)) &&
       ((tool_header_alignment_src != -1) == (tool_header_alignment_dst != -1)) &&
-      (tool_header_hidden_src == tool_header_hidden_dst)) {
+      (tool_header_hidden_src == tool_header_hidden_dst))
+  {
     if (header_alignment_dst != -1) {
       header_alignment_sync = header_alignment_src;
     }
@@ -2393,7 +2399,8 @@ static void region_align_info_to_area(
   region_align_info_from_area(area, &region_align_info_dst);
 
   if ((region_by_type[RGN_TYPE_HEADER] != nullptr) ||
-      (region_by_type[RGN_TYPE_TOOL_HEADER] != nullptr)) {
+      (region_by_type[RGN_TYPE_TOOL_HEADER] != nullptr))
+  {
     region_align_info_to_area_for_headers(
         region_align_info_src, &region_align_info_dst, region_by_type);
   }
@@ -3007,8 +3014,8 @@ void ED_region_panels_layout_ex(const bContext *C,
       if (!(panel->type->flag & PANEL_TYPE_INSTANCED)) {
         continue;
       }
-      if (use_category_tabs && panel->type->category[0] &&
-          !STREQ(category, panel->type->category)) {
+      if (use_category_tabs && panel->type->category[0] && !STREQ(category, panel->type->category))
+      {
         continue;
       }
       const int width = panel_draw_width_from_max_width_get(region, panel->type, max_panel_width);
@@ -3123,8 +3130,8 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   /* scrollers */
   bool use_mask = false;
   rcti mask;
-  if (region->runtime.category &&
-      (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_RIGHT)) {
+  if (region->runtime.category && (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_RIGHT))
+  {
     use_mask = true;
     UI_view2d_mask_from_win(v2d, &mask);
     mask.xmax -= UI_PANEL_CATEGORY_MARGIN_WIDTH;

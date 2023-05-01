@@ -418,8 +418,8 @@ static void build_sequential(Object *ob,
 
     float gp_build_speedfactor = mmd->speed_fac;
     /* If current frame can't be built before next frame, adjust gp_build_speedfactor. */
-    if (gpf->next &&
-        (gpf->framenum + sumtime * fps / gp_build_speedfactor) > gpf->next->framenum) {
+    if (gpf->next && (gpf->framenum + sumtime * fps / gp_build_speedfactor) > gpf->next->framenum)
+    {
       gp_build_speedfactor = sumtime * fps / (gpf->next->framenum - gpf->framenum);
     }
     /* Apply gp_build_speedfactor to all points & to sumtime. */

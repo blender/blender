@@ -558,7 +558,8 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
   }
 
   if (thumbpathname_from_uri(
-          uri, thumb_path, sizeof(thumb_path), thumb_name, sizeof(thumb_name), size)) {
+          uri, thumb_path, sizeof(thumb_path), thumb_name, sizeof(thumb_name), size))
+  {
     if (BLI_path_ncmp(path, thumb_path, sizeof(thumb_path)) == 0) {
       img = IMB_loadiffname(path, IB_rect, NULL);
     }
@@ -583,7 +584,8 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
 
         if (use_hash && !regenerate) {
           if (IMB_metadata_get_field(
-                  img->metadata, "X-Blender::Hash", thumb_hash_curr, sizeof(thumb_hash_curr))) {
+                  img->metadata, "X-Blender::Hash", thumb_hash_curr, sizeof(thumb_hash_curr)))
+          {
             regenerate = !STREQ(thumb_hash, thumb_hash_curr);
           }
           else {

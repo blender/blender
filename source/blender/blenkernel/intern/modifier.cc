@@ -256,7 +256,8 @@ bool BKE_modifier_is_preview(ModifierData *md)
 
   /* Constructive modifiers are highly likely to also modify data like vgroups or vertex-colors! */
   if (!((mti->flags & eModifierTypeFlag_UsesPreview) ||
-        (mti->type == eModifierTypeType_Constructive))) {
+        (mti->type == eModifierTypeType_Constructive)))
+  {
     return false;
   }
 
@@ -584,7 +585,8 @@ bool BKE_modifier_is_enabled(const struct Scene *scene, ModifierData *md, int re
     return false;
   }
   if (scene != nullptr && mti->isDisabled &&
-      mti->isDisabled(scene, md, required_mode == eModifierMode_Render)) {
+      mti->isDisabled(scene, md, required_mode == eModifierMode_Render))
+  {
     return false;
   }
   if (md->mode & eModifierMode_DisableTemporary) {

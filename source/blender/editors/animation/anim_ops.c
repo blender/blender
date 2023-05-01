@@ -195,8 +195,8 @@ static void change_frame_seq_preview_begin(bContext *C, const wmEvent *event)
   if (area && area->spacetype == SPACE_SEQ) {
     SpaceSeq *sseq = area->spacedata.first;
     ARegion *region = CTX_wm_region(C);
-    if (ED_space_sequencer_check_show_strip(sseq) &&
-        !ED_time_scrub_event_in_region(region, event)) {
+    if (ED_space_sequencer_check_show_strip(sseq) && !ED_time_scrub_event_in_region(region, event))
+    {
       ED_sequencer_special_preview_set(C, event->mval);
     }
   }

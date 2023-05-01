@@ -356,7 +356,8 @@ static void do_cloth_brush_build_constraints_task_cb_ex(void *__restrict userdat
       for (int c_i = 0; c_i < tot_indices; c_i++) {
         for (int c_j = 0; c_j < tot_indices; c_j++) {
           if (c_i != c_j && !cloth_brush_sim_has_length_constraint(
-                                data->cloth_sim, build_indices[c_i], build_indices[c_j])) {
+                                data->cloth_sim, build_indices[c_i], build_indices[c_j]))
+          {
             cloth_brush_add_length_constraint(ss,
                                               data->cloth_sim,
                                               node_index,
@@ -670,7 +671,8 @@ static void cloth_brush_solve_collision(Object *object,
 
   for (collider_cache = static_cast<ColliderCache *>(cloth_sim->collider_list->first);
        collider_cache;
-       collider_cache = collider_cache->next) {
+       collider_cache = collider_cache->next)
+  {
     float ray_start[3], ray_normal[3];
     float pos_world_space[3], prev_pos_world_space[3];
 
@@ -974,7 +976,8 @@ static void cloth_brush_apply_brush_foces(Sculpt *sd, Object *ob, Span<PBVHNode 
   }
 
   if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_PINCH_PERPENDICULAR ||
-      brush->cloth_force_falloff_type == BRUSH_CLOTH_FORCE_FALLOFF_PLANE) {
+      brush->cloth_force_falloff_type == BRUSH_CLOTH_FORCE_FALLOFF_PLANE)
+  {
     SCULPT_calc_brush_plane(sd, ob, nodes, area_no, area_co);
 
     /* Initialize stroke local space matrix. */

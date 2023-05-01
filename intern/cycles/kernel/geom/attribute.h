@@ -77,7 +77,8 @@ find_attribute(KernelGlobals kg, int object, int prim, int type, uint64_t id)
   desc.element = (AttributeElement)attr_map.element;
 
   if (prim == PRIM_NONE && desc.element != ATTR_ELEMENT_MESH &&
-      desc.element != ATTR_ELEMENT_VOXEL && desc.element != ATTR_ELEMENT_OBJECT) {
+      desc.element != ATTR_ELEMENT_VOXEL && desc.element != ATTR_ELEMENT_OBJECT)
+  {
     return attribute_not_found();
   }
 

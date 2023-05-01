@@ -267,7 +267,8 @@ void BLI_path_normalize(char *path)
             (start_temp = ((start <= &path[path_len - 3]) &&
                            STREQ(&path[path_len - 3], SEP_STR "..")) ?
                               &path[path_len - 3] :
-                              NULL))) {
+                              NULL)))
+    {
       start = start_temp + 1; /* Skip the `/`. */
       BLI_assert(start_base != start);
 
@@ -461,7 +462,8 @@ bool BLI_path_make_safe(char *path)
 #endif
 
   for (curr_slash = (char *)BLI_path_slash_find(curr_path); curr_slash;
-       curr_slash = (char *)BLI_path_slash_find(curr_path)) {
+       curr_slash = (char *)BLI_path_slash_find(curr_path))
+  {
     const char backup = *curr_slash;
     *curr_slash = '\0';
     if (!skip_first && (*curr_path != '\0') && BLI_filename_make_safe(curr_path)) {
@@ -556,7 +558,8 @@ static void BLI_path_unc_to_short(wchar_t *unc)
    * - `\\?\C:\folder\...` to `C:\folder\...`
    */
   if ((len > 3) && (unc[0] == L'\\') && (unc[1] == L'\\') && (unc[2] == L'?') &&
-      ELEM(unc[3], L'\\', L'/')) {
+      ELEM(unc[3], L'\\', L'/'))
+  {
     if ((len > 5) && (unc[5] == L':')) {
       wcsncpy(tmp, unc + 4, len - 4);
       tmp[len - 4] = L'\0';
@@ -1221,7 +1224,8 @@ bool BLI_path_program_search(char *fullname, const size_t maxlen, const char *na
 #else
           BLI_exists(filepath_test)
 #endif
-      ) {
+      )
+      {
         BLI_strncpy(fullname, filepath_test, maxlen);
         retval = true;
         break;

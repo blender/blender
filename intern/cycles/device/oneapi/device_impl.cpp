@@ -696,8 +696,7 @@ void OneapiDevice::set_global_memory(SyclQueue *queue_,
 
 /* This macro will change global ptr of KernelGlobals via name matching. */
 #  define KERNEL_DATA_ARRAY(type, name) \
-    else if (#name == matched_name) \
-    { \
+    else if (#name == matched_name) { \
       globals->__##name = (type *)memory_device_pointer; \
       return; \
     }
@@ -709,8 +708,7 @@ void OneapiDevice::set_global_memory(SyclQueue *queue_,
   }
   KERNEL_DATA_ARRAY(KernelData, data)
 #  include "kernel/data_arrays.h"
-  else
-  {
+  else {
     std::cerr << "Can't found global/constant memory with name \"" << matched_name << "\"!"
               << std::endl;
     assert(false);
@@ -823,7 +821,8 @@ std::vector<sycl::device> OneapiDevice::available_devices()
             int driver_build_version = parse_driver_build_version(device);
             if ((driver_build_version > 100000 &&
                  driver_build_version < lowest_supported_driver_version_win) ||
-                driver_build_version < lowest_supported_driver_version_neo) {
+                driver_build_version < lowest_supported_driver_version_neo)
+            {
               filter_out = true;
             }
           }
@@ -965,7 +964,8 @@ int OneapiDevice::get_max_num_threads_per_multiprocessor()
 {
   const sycl::device &device = reinterpret_cast<sycl::queue *>(device_queue_)->get_device();
   if (device.has(sycl::aspect::ext_intel_gpu_eu_simd_width) &&
-      device.has(sycl::aspect::ext_intel_gpu_hw_threads_per_eu)) {
+      device.has(sycl::aspect::ext_intel_gpu_hw_threads_per_eu))
+  {
     return device.get_info<sycl::ext::intel::info::device::gpu_eu_simd_width>() *
            device.get_info<sycl::ext::intel::info::device::gpu_hw_threads_per_eu>();
   }

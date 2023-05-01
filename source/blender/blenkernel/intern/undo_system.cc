@@ -767,7 +767,8 @@ bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
    * from given reference step. */
   bool is_processing_extra_skipped_steps = false;
   for (UndoStep *us_iter = undosys_step_iter_first(us_reference, undo_dir); us_iter != nullptr;
-       us_iter = (undo_dir == -1) ? us_iter->prev : us_iter->next) {
+       us_iter = (undo_dir == -1) ? us_iter->prev : us_iter->next)
+  {
     BLI_assert(us_iter != nullptr);
 
     const bool is_final = (us_iter == us_target_active);

@@ -159,7 +159,8 @@ ccl_device_inline
                                            tmin,
                                            isect_t,
                                            lcg_state,
-                                           max_hits)) {
+                                           max_hits))
+              {
                 return true;
               }
             }
@@ -196,7 +197,8 @@ ccl_device_inline
                                                   tmin,
                                                   isect_t,
                                                   lcg_state,
-                                                  max_hits)) {
+                                                  max_hits))
+              {
                 return true;
               }
             }

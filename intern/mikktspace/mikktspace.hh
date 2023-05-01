@@ -701,7 +701,8 @@ template<typename Mesh> class Mikktspace {
       // determines its orientation.
       // This is the only existing order dependency in the code!!
       if (triangle.group[0] == UNSET_ENTRY && triangle.group[1] == UNSET_ENTRY &&
-          triangle.group[2] == UNSET_ENTRY) {
+          triangle.group[2] == UNSET_ENTRY)
+      {
         triangle.orientPreserving = group.orientPreserving;
       }
     }

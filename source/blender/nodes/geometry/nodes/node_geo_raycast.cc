@@ -163,7 +163,8 @@ static void raycast_to_mesh(IndexMask mask,
                              0.0f,
                              &hit,
                              tree_data.raycast_callback,
-                             &tree_data) != -1) {
+                             &tree_data) != -1)
+    {
       hit_count++;
       if (!r_hit.is_empty()) {
         r_hit[i] = hit.index >= 0;

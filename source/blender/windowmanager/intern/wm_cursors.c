@@ -154,7 +154,8 @@ void WM_cursor_set(wmWindow *win, int curs)
   GHOST_TStandardCursor ghost_cursor = convert_to_ghost_standard_cursor(curs);
 
   if (ghost_cursor != GHOST_kStandardCursorCustom &&
-      GHOST_HasCursorShape(win->ghostwin, ghost_cursor)) {
+      GHOST_HasCursorShape(win->ghostwin, ghost_cursor))
+  {
     /* Use native GHOST cursor when available. */
     GHOST_SetCursorShape(win->ghostwin, ghost_cursor);
   }

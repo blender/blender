@@ -516,12 +516,14 @@ struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
   /* If file contains an embedded thumbnail, let's return that instead. */
 
   if ((fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_SOI) &&
-      (fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_APP1)) {
+      (fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_APP1))
+  {
     /* This is a JPEG in EXIF format (SOI + APP1), not JFIF (SOI + APP0). */
     uint i = JPEG_APP1_MAX;
     /* All EXIF data is within this 64K header segment. Skip ahead until next SOI for thumbnail. */
     while (!((fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_SOI)) &&
-           !feof(infile) && i--) {
+           !feof(infile) && i--)
+    {
     }
     if (i > 0 && !feof(infile)) {
       /* We found a JPEG thumbnail inside this image. */

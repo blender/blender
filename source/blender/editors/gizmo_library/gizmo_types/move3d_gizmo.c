@@ -251,7 +251,8 @@ static int gizmo_move_modal(bContext *C,
     float mval_proj_init[2], mval_proj_curr[2];
     if ((gizmo_window_project_2d(C, gz, inter->init.mval, 2, false, mval_proj_init) == false) ||
         (gizmo_window_project_2d(
-             C, gz, (const float[2]){UNPACK2(event->mval)}, 2, false, mval_proj_curr) == false)) {
+             C, gz, (const float[2]){UNPACK2(event->mval)}, 2, false, mval_proj_curr) == false))
+    {
       return OPERATOR_RUNNING_MODAL;
     }
     sub_v2_v2v2(prop_delta, mval_proj_curr, mval_proj_init);
@@ -288,7 +289,8 @@ static int gizmo_move_modal(bContext *C,
               NULL,
               &dist_px,
               co,
-              NULL)) {
+              NULL))
+      {
         float matrix_space_inv[4][4];
         invert_m4_m4(matrix_space_inv, gz->matrix_space);
         mul_v3_m4v3(move->prop_co, matrix_space_inv, co);

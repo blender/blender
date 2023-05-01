@@ -256,7 +256,8 @@ static bool add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2
                                       &spline,
                                       &point,
                                       &u,
-                                      NULL)) {
+                                      NULL))
+  {
     Scene *scene = CTX_data_scene(C);
     const float ctime = scene->r.cfra;
 
@@ -320,7 +321,8 @@ static bool add_vertex_extrude(const bContext *C,
   MASKPOINT_DESEL_ALL(point);
 
   if ((spline->flag & MASK_SPLINE_CYCLIC) ||
-      (point_index > 0 && point_index != spline->tot_point - 1)) {
+      (point_index > 0 && point_index != spline->tot_point - 1))
+  {
     BKE_mask_calc_tangent_polyline(spline, point, tangent_point);
     sub_v2_v2v2(tangent_co, co, point->bezt.vec[1]);
 
@@ -530,7 +532,8 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 
   /* TODO: having an active point but no active spline is possible, why? */
   if (mask_layer && mask_layer->act_spline && mask_layer->act_point &&
-      MASKPOINT_ISSEL_ANY(mask_layer->act_point)) {
+      MASKPOINT_ISSEL_ANY(mask_layer->act_point))
+  {
     MaskSpline *spline = mask_layer->act_spline;
     MaskSplinePoint *active_point = mask_layer->act_point;
     const int cyclic_result = add_vertex_handle_cyclic(C, mask, spline, active_point, co);
@@ -623,19 +626,9 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  if (ED_mask_find_nearest_diff_point(C,
-                                      mask,
-                                      co,
-                                      threshold,
-                                      true,
-                                      NULL,
-                                      true,
-                                      true,
-                                      &mask_layer,
-                                      &spline,
-                                      &point,
-                                      &u,
-                                      NULL)) {
+  if (ED_mask_find_nearest_diff_point(
+          C, mask, co, threshold, true, NULL, true, true, &mask_layer, &spline, &point, &u, NULL))
+  {
     float w = BKE_mask_point_weight(spline, point, u);
     float weight_scalar = BKE_mask_point_weight_scalar(spline, point, u);
 

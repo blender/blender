@@ -211,7 +211,8 @@ void ntreeCompositTagRender(Scene *scene)
    * ideally render struct would store own main AND original G_MAIN. */
 
   for (Scene *sce_iter = (Scene *)G_MAIN->scenes.first; sce_iter;
-       sce_iter = (Scene *)sce_iter->id.next) {
+       sce_iter = (Scene *)sce_iter->id.next)
+  {
     if (sce_iter->nodetree) {
       for (bNode *node : sce_iter->nodetree->all_nodes()) {
         if (node->id == (ID *)scene || node->type == CMP_NODE_COMPOSITE) {

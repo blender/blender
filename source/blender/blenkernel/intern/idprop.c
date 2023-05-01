@@ -529,7 +529,8 @@ void IDP_SyncGroupTypes(IDProperty *dest, const IDProperty *src, const bool do_a
       /* check of we should replace? */
       if ((prop_dst->type != prop_src->type || prop_dst->subtype != prop_src->subtype) ||
           (do_arraylen && ELEM(prop_dst->type, IDP_ARRAY, IDP_IDPARRAY) &&
-           (prop_src->len != prop_dst->len))) {
+           (prop_src->len != prop_dst->len)))
+      {
         BLI_insertlinkreplace(&dest->data.group, prop_dst, IDP_CopyProperty(prop_src));
         IDP_FreeProperty(prop_dst);
       }
@@ -1556,7 +1557,8 @@ eIDPropertyUIDataType IDP_ui_data_type(const IDProperty *prop)
     return IDP_UI_DATA_TYPE_INT;
   }
   if (ELEM(prop->type, IDP_FLOAT, IDP_DOUBLE) ||
-      (prop->type == IDP_ARRAY && ELEM(prop->subtype, IDP_FLOAT, IDP_DOUBLE))) {
+      (prop->type == IDP_ARRAY && ELEM(prop->subtype, IDP_FLOAT, IDP_DOUBLE)))
+  {
     return IDP_UI_DATA_TYPE_FLOAT;
   }
   if (prop->type == IDP_BOOLEAN || (prop->type == IDP_ARRAY && prop->subtype == IDP_BOOLEAN)) {

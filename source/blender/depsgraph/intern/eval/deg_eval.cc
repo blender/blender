@@ -359,7 +359,8 @@ void depsgraph_ensure_view_layer(Depsgraph *graph)
    * This allows us to have proper view layer pointer. */
   Scene *scene_cow = graph->scene_cow;
   if (deg_copy_on_write_is_expanded(&scene_cow->id) &&
-      (scene_cow->id.recalc & ID_RECALC_COPY_ON_WRITE) == 0) {
+      (scene_cow->id.recalc & ID_RECALC_COPY_ON_WRITE) == 0)
+  {
     return;
   }
 

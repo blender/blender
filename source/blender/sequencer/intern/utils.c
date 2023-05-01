@@ -348,8 +348,8 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
   int best_machine = -1;
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if (SEQ_render_is_muted(channels, seq) ||
-        !SEQ_time_strip_intersects_frame(scene, seq, frame)) {
+    if (SEQ_render_is_muted(channels, seq) || !SEQ_time_strip_intersects_frame(scene, seq, frame))
+    {
       continue;
     }
     /* Only use strips that generate an image, not ones that combine
@@ -360,7 +360,8 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
              SEQ_TYPE_SCENE,
              SEQ_TYPE_MOVIE,
              SEQ_TYPE_COLOR,
-             SEQ_TYPE_TEXT)) {
+             SEQ_TYPE_TEXT))
+    {
       if (seq->machine > best_machine) {
         best_seq = seq;
         best_machine = seq->machine;
@@ -407,7 +408,8 @@ Sequence *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se)
   for (iseq = seqbase->first; iseq; iseq = iseq->next) {
     Sequence *seq_found;
     if ((iseq->strip && iseq->strip->stripdata) &&
-        ARRAY_HAS_ITEM(se, iseq->strip->stripdata, iseq->len)) {
+        ARRAY_HAS_ITEM(se, iseq->strip->stripdata, iseq->len))
+    {
       break;
     }
     if ((seq_found = SEQ_sequence_from_strip_elem(&iseq->seqbase, se))) {
@@ -429,7 +431,8 @@ Sequence *SEQ_get_sequence_by_name(ListBase *seqbase, const char *name, bool rec
       return iseq;
     }
     if (recursive && (iseq->seqbase.first) &&
-        (rseq = SEQ_get_sequence_by_name(&iseq->seqbase, name, 1))) {
+        (rseq = SEQ_get_sequence_by_name(&iseq->seqbase, name, 1)))
+    {
       return rseq;
     }
   }

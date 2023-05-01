@@ -747,8 +747,8 @@ float2 PackIsland::get_diagonal_support(const float scale,
     return half_diagonal_ * scale + margin;
   }
 
-  if (rotation == DEG2RADF(-90.0f) || rotation == DEG2RADF(90.0f) ||
-      rotation == DEG2RADF(270.0f)) {
+  if (rotation == DEG2RADF(-90.0f) || rotation == DEG2RADF(90.0f) || rotation == DEG2RADF(270.0f))
+  {
     return float2(half_diagonal_.y / aspect_y, half_diagonal_.x * aspect_y) * scale + margin;
   }
 
@@ -1105,7 +1105,8 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
         scan_line += 2;
       }
       if (scan_line < occupancy.bitmap_radix *
-                          sqrtf(std::min(params.target_aspect_y, 1.0f / params.target_aspect_y))) {
+                          sqrtf(std::min(params.target_aspect_y, 1.0f / params.target_aspect_y)))
+      {
         continue; /* Try again on next scan_line. */
       }
 
@@ -1128,7 +1129,8 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
                                margin,
                                r_phis,
                                &max_u,
-                               &max_v)) {
+                               &max_v))
+      {
         scan_line = 0;
         traced_islands = 0;
         occupancy.clear();
@@ -1455,7 +1457,8 @@ class OverlapMerger {
                              a->triangle_vertices_[i + 2],
                              b->triangle_vertices_[j + 0],
                              b->triangle_vertices_[j + 1],
-                             b->triangle_vertices_[j + 2])) {
+                             b->triangle_vertices_[j + 2]))
+        {
           return true; /* Two triangles overlap => islands overlap. */
         }
       }
@@ -1566,7 +1569,8 @@ float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params 
   finalize_geometry(islands, params);
 
   if (params.margin_method == ED_UVPACK_MARGIN_FRACTION && params.margin > 0.0f &&
-      params.scale_to_fit) {
+      params.scale_to_fit)
+  {
     /* Uses a line search on scale. ~10x slower than other method. */
     return pack_islands_margin_fraction(islands, params.margin, params);
   }

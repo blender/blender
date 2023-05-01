@@ -252,7 +252,8 @@ static void warpModifier_do(WarpModifierData *wmd,
 
     if (wmd->falloff_type == eWarp_Falloff_None ||
         ((fac = len_squared_v3v3(co, mat_from[3])) < falloff_radius_sq &&
-         (fac = (wmd->falloff_radius - sqrtf(fac)) / wmd->falloff_radius))) {
+         (fac = (wmd->falloff_radius - sqrtf(fac)) / wmd->falloff_radius)))
+    {
       /* skip if no vert group found */
       if (defgrp_index != -1) {
         dv = &dvert[i];
@@ -460,7 +461,8 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
     uiItemR(col, ptr, "texture_coords_object", 0, IFACE_("Object"), ICON_NONE);
     PointerRNA texture_coords_obj_ptr = RNA_pointer_get(ptr, "texture_coords_object");
     if (!RNA_pointer_is_null(&texture_coords_obj_ptr) &&
-        (RNA_enum_get(&texture_coords_obj_ptr, "type") == OB_ARMATURE)) {
+        (RNA_enum_get(&texture_coords_obj_ptr, "type") == OB_ARMATURE))
+    {
       PointerRNA texture_coords_obj_data_ptr = RNA_pointer_get(&texture_coords_obj_ptr, "data");
       uiItemPointerR(col,
                      ptr,

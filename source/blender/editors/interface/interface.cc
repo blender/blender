@@ -729,7 +729,8 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
     /* If the buttons have own identity comparator callbacks (and they match), use this to
      * determine equality. */
     if (but->identity_cmp_func && (but->type == oldbut->type) &&
-        (but->identity_cmp_func == oldbut->identity_cmp_func)) {
+        (but->identity_cmp_func == oldbut->identity_cmp_func))
+    {
       /* Test if the comparison is symmetrical (if a == b then b == a), may help catch some issues.
        */
       BLI_assert(but->identity_cmp_func(but, oldbut) == but->identity_cmp_func(oldbut, but));
@@ -759,7 +760,8 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
     return false;
   }
   if (!but->funcN && ((but->poin != oldbut->poin && (uiBut *)oldbut->poin != oldbut) ||
-                      (but->pointype != oldbut->pointype))) {
+                      (but->pointype != oldbut->pointype)))
+  {
     return false;
   }
   if (but->optype != oldbut->optype) {
@@ -773,7 +775,8 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
     uiButViewItem *but_item = (uiButViewItem *)but;
     uiButViewItem *oldbut_item = (uiButViewItem *)oldbut;
     if (!but_item->view_item || !oldbut_item->view_item ||
-        !UI_view_item_matches(but_item->view_item, oldbut_item->view_item)) {
+        !UI_view_item_matches(but_item->view_item, oldbut_item->view_item))
+    {
       return false;
     }
   }
@@ -1144,7 +1147,8 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
                 UI_BTYPE_PULLDOWN,
                 /* For PIE-menus. */
                 UI_BTYPE_ROW) ||
-          (but->flag & UI_HIDDEN)) {
+          (but->flag & UI_HIDDEN))
+      {
         continue;
       }
 
@@ -1250,13 +1254,9 @@ static bool ui_but_event_operator_string_from_operator(const bContext *C,
                          static_cast<IDProperty *>(op_call_params->opptr->data) :
                          nullptr;
 
-  if (WM_key_event_operator_string(C,
-                                   op_call_params->optype->idname,
-                                   op_call_params->opcontext,
-                                   prop,
-                                   true,
-                                   buf,
-                                   buf_len)) {
+  if (WM_key_event_operator_string(
+          C, op_call_params->optype->idname, op_call_params->opcontext, prop, true, buf, buf_len))
+  {
     found = true;
   }
   return found;
@@ -1278,7 +1278,8 @@ static bool ui_but_event_operator_string_from_menu(const bContext *C,
   IDP_AddToGroup(prop_menu, IDP_NewString(mt->idname, "name", sizeof(mt->idname)));
 
   if (WM_key_event_operator_string(
-          C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, true, buf, buf_len)) {
+          C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, true, buf, buf_len))
+  {
     found = true;
   }
 
@@ -1316,7 +1317,8 @@ static bool ui_but_event_operator_string_from_panel(const bContext *C,
 
     IDP_ReplaceInGroup(prop_panel, IDP_New(IDP_INT, &val, "keep_open"));
     if (WM_key_event_operator_string(
-            C, "WM_OT_call_panel", WM_OP_INVOKE_REGION_WIN, prop_panel, true, buf, buf_len)) {
+            C, "WM_OT_call_panel", WM_OP_INVOKE_REGION_WIN, prop_panel, true, buf, buf_len))
+    {
       found = true;
       break;
     }
@@ -1410,7 +1412,8 @@ static bool ui_but_event_property_operator_string(const bContext *C,
         ELEM(but_parent->menu_create_func,
              ui_def_but_rna__menu,
              ui_def_but_rna__panel_type,
-             ui_def_but_rna__menu_type)) {
+             ui_def_but_rna__menu_type))
+    {
       prop_enum_value = int(but->hardmin);
       ptr = &but_parent->rnapoin;
       prop = but_parent->rnaprop;
@@ -1477,7 +1480,8 @@ static bool ui_but_event_property_operator_string(const bContext *C,
   bool found = false;
 
   for (int data_path_index = 0; data_path_index < data_path_variations_num && (found == false);
-       data_path_index++) {
+       data_path_index++)
+  {
     const char *data_path = data_path_variations[data_path_index];
     if (data_path || (prop_enum_value_ok && prop_enum_value_id)) {
       /* Create a property to host the "data_path" property we're sending to the operators. */
@@ -1519,7 +1523,8 @@ static bool ui_but_event_property_operator_string(const bContext *C,
 
       for (int i = 0; (i < opnames_len) && (opnames[i]); i++) {
         if (WM_key_event_operator_string(
-                C, opnames[i], WM_OP_INVOKE_REGION_WIN, prop_path, false, buf, buf_len)) {
+                C, opnames[i], WM_OP_INVOKE_REGION_WIN, prop_path, false, buf, buf_len))
+        {
           found = true;
           break;
         }
@@ -2166,7 +2171,8 @@ static void ui_block_message_subscribe(ARegion *region, struct wmMsgBus *mbus, u
       if ((but_prev && (but_prev->rnaprop == but->rnaprop) &&
            (but_prev->rnapoin.type == but->rnapoin.type) &&
            (but_prev->rnapoin.data == but->rnapoin.data) &&
-           (but_prev->rnapoin.owner_id == but->rnapoin.owner_id)) == false) {
+           (but_prev->rnapoin.owner_id == but->rnapoin.owner_id)) == false)
+      {
         /* TODO: could make this into utility function. */
         wmMsgSubscribeValue value = {};
         value.owner = region;
@@ -2436,7 +2442,8 @@ bool ui_but_is_bool(const uiBut *but)
            UI_BTYPE_TOGGLE_N,
            UI_BTYPE_ICON_TOGGLE,
            UI_BTYPE_ICON_TOGGLE_N,
-           UI_BTYPE_TAB)) {
+           UI_BTYPE_TAB))
+  {
     return true;
   }
 
@@ -2849,7 +2856,8 @@ void ui_but_string_get_ex(uiBut *but,
                                  &but->rnapoin,
                                  but->rnaprop,
                                  value,
-                                 &buf)) {
+                                 &buf))
+      {
         BLI_strncpy(str, buf, maxlen);
         buf = str;
       }
@@ -2969,7 +2977,8 @@ char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size)
                                   &but->rnapoin,
                                   but->rnaprop,
                                   value,
-                                  &value_id)) {
+                                  &value_id))
+      {
         value_id = "";
       }
 
@@ -3161,7 +3170,8 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
          * is utterly weak and should be redesigned IMHO, but that's not a simple task. */
         if (search_but && search_but->rnasearchprop &&
             RNA_property_collection_lookup_string(
-                &search_but->rnasearchpoin, search_but->rnasearchprop, str, &rptr)) {
+                &search_but->rnasearchpoin, search_but->rnasearchprop, str, &rptr))
+        {
           RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr, nullptr);
         }
         else if (search_but->item_active != nullptr) {
@@ -3181,7 +3191,8 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
                                     &but->rnapoin,
                                     but->rnaprop,
                                     str,
-                                    &value)) {
+                                    &value))
+        {
           RNA_property_enum_set(&but->rnapoin, but->rnaprop, value);
           return true;
         }
@@ -3803,8 +3814,8 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
 
     case UI_BTYPE_ICON_TOGGLE:
     case UI_BTYPE_ICON_TOGGLE_N:
-      if ((but->rnaprop == nullptr) ||
-          (RNA_property_flag(but->rnaprop) & PROP_ICONS_CONSECUTIVE)) {
+      if ((but->rnaprop == nullptr) || (RNA_property_flag(but->rnaprop) & PROP_ICONS_CONSECUTIVE))
+      {
         if (but->rnaprop && RNA_property_flag(but->rnaprop) & PROP_ICONS_REVERSE) {
           but->drawflag |= UI_BUT_ICON_REVERSE;
         }
@@ -3837,7 +3848,8 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
                     &but->rnapoin,
                     but->rnaprop,
                     value_enum,
-                    &item)) {
+                    &item))
+            {
               const size_t slen = strlen(item.name);
               ui_but_string_free_internal(but);
               ui_but_string_set_internal(but, item.name, slen);
@@ -4196,7 +4208,8 @@ static uiBut *ui_def_but(uiBlock *block,
                 UI_BTYPE_BLOCK,
                 UI_BTYPE_BUT_MENU,
                 UI_BTYPE_SEARCH_MENU,
-                UI_BTYPE_POPOVER)) {
+                UI_BTYPE_POPOVER))
+  {
     but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
   }
 #ifdef USE_NUMBUTS_LR_ALIGN
@@ -4228,7 +4241,8 @@ static uiBut *ui_def_but(uiBlock *block,
            UI_BTYPE_SEPR,
            UI_BTYPE_SEPR_LINE,
            UI_BTYPE_SEPR_SPACER) ||
-      (but->type >= UI_BTYPE_SEARCH_MENU)) {
+      (but->type >= UI_BTYPE_SEARCH_MENU))
+  {
     /* pass */
   }
   else {
@@ -6410,8 +6424,8 @@ static void operator_enum_search_update_fn(const struct bContext *C,
       const EnumPropertyItem *item = filtered_items[i];
       /* NOTE: need to give the index rather than the
        * identifier because the enum can be freed */
-      if (!UI_search_item_add(
-              items, item->name, POINTER_FROM_INT(item->value), item->icon, 0, 0)) {
+      if (!UI_search_item_add(items, item->name, POINTER_FROM_INT(item->value), item->icon, 0, 0))
+      {
         break;
       }
     }

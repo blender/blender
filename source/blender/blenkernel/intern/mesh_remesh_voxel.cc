@@ -369,7 +369,8 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
   int *target_lmap_mem = nullptr;
 
   while ((layer = BKE_id_attribute_from_index(
-              const_cast<ID *>(&source->id), i++, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL))) {
+              const_cast<ID *>(&source->id), i++, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL)))
+  {
     eAttrDomain domain = BKE_id_attribute_domain(&source->id, layer);
     const eCustomDataType type = eCustomDataType(layer->type);
 

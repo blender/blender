@@ -549,7 +549,8 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
        * (assume for now that if just adding these works, that will be fine).
        */
       else if (((wmn->data == ND_KEYFRAME) && ELEM(wmn->action, NA_ADDED, NA_REMOVED)) ||
-               ((wmn->data == ND_ANIMCHAN) && (wmn->action != NA_SELECTED))) {
+               ((wmn->data == ND_ANIMCHAN) && (wmn->action != NA_SELECTED)))
+      {
         ED_area_tag_refresh(area);
       }
       /* for simple edits to the curve data though (or just plain selections),

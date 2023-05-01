@@ -81,7 +81,8 @@ static bool geometry_node_tree_validate_link(eNodeSocketDatatype type_a,
   /* Geometry, string, object, material, texture and collection sockets can only be connected to
    * themselves. The other types can be converted between each other. */
   if (ELEM(type_a, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT) &&
-      ELEM(type_b, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT)) {
+      ELEM(type_b, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT))
+  {
     return true;
   }
   return type_a == type_b;

@@ -1266,8 +1266,8 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
     }
     case CD_SHAPEKEY: {
       float tmp_val[3];
-      if (UNLIKELY(mathutils_array_parse(tmp_val, 3, 3, py_value, "BMVert[shape] = value") ==
-                   -1)) {
+      if (UNLIKELY(mathutils_array_parse(tmp_val, 3, 3, py_value, "BMVert[shape] = value") == -1))
+      {
         ret = -1;
       }
       else {

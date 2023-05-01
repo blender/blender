@@ -381,7 +381,8 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s)
 
   /* Calculate force of structural + shear springs. */
   if (s->type &
-      (CLOTH_SPRING_TYPE_STRUCTURAL | CLOTH_SPRING_TYPE_SEWING | CLOTH_SPRING_TYPE_INTERNAL)) {
+      (CLOTH_SPRING_TYPE_STRUCTURAL | CLOTH_SPRING_TYPE_SEWING | CLOTH_SPRING_TYPE_INTERNAL))
+  {
 #ifdef CLOTH_FORCE_SPRING_STRUCTURAL
     float k_tension, scaling_tension;
 
@@ -1193,11 +1194,9 @@ static void cloth_solve_collisions(
     zero_v3(verts[i].dcvel);
   }
 
-  if (cloth_bvh_collision(depsgraph,
-                          ob,
-                          clmd,
-                          step / clmd->sim_parms->timescale,
-                          dt / clmd->sim_parms->timescale)) {
+  if (cloth_bvh_collision(
+          depsgraph, ob, clmd, step / clmd->sim_parms->timescale, dt / clmd->sim_parms->timescale))
+  {
     for (i = 0; i < mvert_num; i++) {
       if ((clmd->sim_parms->vgroup_mass > 0) && (verts[i].flags & CLOTH_VERT_FLAG_PINNED)) {
         continue;

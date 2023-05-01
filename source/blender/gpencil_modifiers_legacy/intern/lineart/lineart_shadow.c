@@ -90,7 +90,8 @@ static bool lineart_contour_viewed_from_dark_side(LineartData *ld, LineartEdge *
   side_1_facing_camera = (dot_view_1 > 0);
 
   if ((side_1_facing_camera && (!side_1_facing_light) && side_2_facing_light) ||
-      ((!side_1_facing_camera) && side_1_facing_light && (!side_2_facing_light))) {
+      ((!side_1_facing_camera) && side_1_facing_light && (!side_2_facing_light)))
+  {
     return true;
   }
   return false;
@@ -109,8 +110,8 @@ void lineart_register_shadow_cuts(LineartData *ld, LineartEdge *e, LineartEdge *
     uchar shadow_bits = (es->occlusion != 0) ? LRT_SHADOW_MASK_SHADED :
                                                LRT_SHADOW_MASK_ILLUMINATED;
 
-    if (lineart_contour_viewed_from_dark_side(ld, e) &&
-        shadow_bits == LRT_SHADOW_MASK_ILLUMINATED) {
+    if (lineart_contour_viewed_from_dark_side(ld, e) && shadow_bits == LRT_SHADOW_MASK_ILLUMINATED)
+    {
       shadow_bits = LRT_SHADOW_MASK_SHADED;
     }
 
@@ -297,8 +298,8 @@ static void lineart_shadow_create_shadow_edge_array(LineartData *ld,
   /* If the segment is short enough, we ignore them because it's not prominently visible anyway. */
 #define DISCARD_NONSENSE_SEGMENTS \
   if (es->occlusion != 0 || \
-      (es->next && \
-       LRT_DOUBLE_CLOSE_ENOUGH(es->ratio, ((LineartEdgeSegment *)es->next)->ratio))) { \
+      (es->next && LRT_DOUBLE_CLOSE_ENOUGH(es->ratio, ((LineartEdgeSegment *)es->next)->ratio))) \
+  { \
     LRT_ITER_ALL_LINES_NEXT; \
     continue; \
   }
@@ -674,7 +675,8 @@ static void lineart_shadow_edge_cut(LineartData *ld,
                                                  r_new_in_the_middle_global,
                                                  &r_new_at,
                                                  &is_side_2r,
-                                                 &use_new_ref))) {
+                                                 &use_new_ref)))
+    {
       LineartShadowSegment *ss_middle = lineart_give_shadow_segment(ld);
       ss_middle->ratio = interpf(seg_2->ratio, seg_1->ratio, r_new_at);
       ss_middle->flag = LRT_SHADOW_CASTED |
@@ -729,7 +731,8 @@ static bool lineart_shadow_cast_onto_triangle(LineartData *ld,
   if ((MAX3(FBC0[0], FBC1[0], FBC2[0]) < MIN2(LFBC[0], RFBC[0])) ||
       (MIN3(FBC0[0], FBC1[0], FBC2[0]) > MAX2(LFBC[0], RFBC[0])) ||
       (MAX3(FBC0[1], FBC1[1], FBC2[1]) < MIN2(LFBC[1], RFBC[1])) ||
-      (MIN3(FBC0[1], FBC1[1], FBC2[1]) > MAX2(LFBC[1], RFBC[1]))) {
+      (MIN3(FBC0[1], FBC1[1], FBC2[1]) > MAX2(LFBC[1], RFBC[1])))
+  {
     return false;
   }
 
@@ -760,7 +763,8 @@ static bool lineart_shadow_cast_onto_triangle(LineartData *ld,
     if ((trie[0] == 0 && LRT_DOUBLE_CLOSE_ENOUGH(ratio[0], 0.0f) &&
          LRT_DOUBLE_CLOSE_ENOUGH(ratio[1], 1.0f)) ||
         (trie[0] == 1 && LRT_DOUBLE_CLOSE_ENOUGH(ratio[0], 1.0f) &&
-         LRT_DOUBLE_CLOSE_ENOUGH(ratio[1], 0.0f))) {
+         LRT_DOUBLE_CLOSE_ENOUGH(ratio[1], 0.0f)))
+    {
       return false;
     }
     trie[pi] = 2;
@@ -895,7 +899,8 @@ static void lineart_shadow_cast(LineartData *ld, bool transform_edge_cuts, bool 
         tri = (LineartTriangleThread *)nba->linked_triangles[i];
         if (tri->testing_e[0] == (LineartEdge *)sedge || tri->base.mat_occlusion == 0 ||
             lineart_edge_from_triangle(
-                (LineartTriangle *)tri, sedge->e_ref, ld->conf.allow_overlapping_edges)) {
+                (LineartTriangle *)tri, sedge->e_ref, ld->conf.allow_overlapping_edges))
+        {
           continue;
         }
         tri->testing_e[0] = (LineartEdge *)sedge;
@@ -909,7 +914,8 @@ static void lineart_shadow_cast(LineartData *ld, bool transform_edge_cuts, bool 
                                               fb_co_2,
                                               global_1,
                                               global_2,
-                                              &facing_light)) {
+                                              &facing_light))
+        {
           lineart_shadow_edge_cut(ld,
                                   sedge,
                                   at_1,
@@ -1130,7 +1136,8 @@ bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
 {
   if ((!original_ld->conf.use_shadow && !original_ld->conf.use_light_contour &&
        !original_ld->conf.shadow_selection) ||
-      (!lmd->light_contour_object)) {
+      (!lmd->light_contour_object))
+  {
     return false;
   }
 

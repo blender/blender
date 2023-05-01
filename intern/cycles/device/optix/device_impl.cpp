@@ -715,7 +715,8 @@ bool OptiXDevice::load_osl_kernels()
   vector<OSLKernel> osl_kernels;
 
   for (ShaderType type = SHADER_TYPE_SURFACE; type <= SHADER_TYPE_BUMP;
-       type = static_cast<ShaderType>(type + 1)) {
+       type = static_cast<ShaderType>(type + 1))
+  {
     const vector<OSL::ShaderGroupRef> &groups = (type == SHADER_TYPE_SURFACE ?
                                                      osl_globals.surface_state :
                                                  type == SHADER_TYPE_VOLUME ?
@@ -1015,7 +1016,8 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
   if (use_fast_trace_bvh ||
       /* The build flags have to match the ones used to query the built-in curve intersection
        * program (see optixBuiltinISModuleGet above) */
-      build_input.type == OPTIX_BUILD_INPUT_TYPE_CURVES) {
+      build_input.type == OPTIX_BUILD_INPUT_TYPE_CURVES)
+  {
     VLOG_INFO << "Using fast to trace OptiX BVH";
     options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
   }
@@ -1522,7 +1524,8 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       }
 
       if (ob->get_geometry()->geometry_type == Geometry::HAIR &&
-          static_cast<const Hair *>(ob->get_geometry())->curve_shape == CURVE_THICK) {
+          static_cast<const Hair *>(ob->get_geometry())->curve_shape == CURVE_THICK)
+      {
         if (pipeline_options.usesMotionBlur && ob->get_geometry()->has_motion_blur()) {
           /* Select between motion blur and non-motion blur built-in intersection module. */
           instance.sbtOffset = PG_HITD_MOTION - PG_HITD;

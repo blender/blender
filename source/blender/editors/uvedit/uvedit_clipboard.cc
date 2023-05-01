@@ -254,7 +254,8 @@ bool UV_ClipboardBuffer::find_isomorphism(UvElementMap *dest_element_map,
                            graph[source_island_index],
                            cd_loop_uv_offset,
                            r_label,
-                           r_search_abandoned)) {
+                           r_search_abandoned))
+    {
       const int island_total_unique_uvs =
           dest_element_map->island_total_unique_uvs[dest_island_index];
       const int island_offset = offset[source_island_index];

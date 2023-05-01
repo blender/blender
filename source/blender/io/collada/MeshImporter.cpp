@@ -682,7 +682,8 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
     if (ELEM(collada_meshtype,
              COLLADAFW::MeshPrimitive::POLYLIST,
              COLLADAFW::MeshPrimitive::POLYGONS,
-             COLLADAFW::MeshPrimitive::TRIANGLES)) {
+             COLLADAFW::MeshPrimitive::TRIANGLES))
+    {
       COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons *)mp;
       uint start_index = 0;
 

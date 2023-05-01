@@ -183,7 +183,8 @@ class MusgraveFunction : public mf::MultiFunction {
     if (ELEM(musgrave_type,
              SHD_MUSGRAVE_RIDGED_MULTIFRACTAL,
              SHD_MUSGRAVE_HYBRID_MULTIFRACTAL,
-             SHD_MUSGRAVE_HETERO_TERRAIN)) {
+             SHD_MUSGRAVE_HETERO_TERRAIN))
+    {
       builder.single_input<float>("Offset");
     }
     if (ELEM(musgrave_type, SHD_MUSGRAVE_RIDGED_MULTIFRACTAL, SHD_MUSGRAVE_HYBRID_MULTIFRACTAL)) {

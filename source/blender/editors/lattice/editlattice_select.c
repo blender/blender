@@ -303,7 +303,8 @@ static int lattice_select_more_less(bContext *C, const bool select)
                 lattice_test_bitmap_uvw(lt, selpoints, u, v + 1, w, select) ||
                 lattice_test_bitmap_uvw(lt, selpoints, u, v - 1, w, select) ||
                 lattice_test_bitmap_uvw(lt, selpoints, u, v, w + 1, select) ||
-                lattice_test_bitmap_uvw(lt, selpoints, u, v, w - 1, select)) {
+                lattice_test_bitmap_uvw(lt, selpoints, u, v, w - 1, select))
+            {
               SET_FLAG_FROM_TEST(bp->f1, select, SELECT);
             }
           }
