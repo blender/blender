@@ -1507,34 +1507,17 @@ static void drawTransformPixel(const struct bContext *C, ARegion *region, void *
 
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 {
-  if (t->state == TRANS_CANCEL) {
-    /* No need to edit operator properties or tool settings if we are canceling the operation.
-     * These properties must match the original ones. */
-    return;
-  }
-
   ToolSettings *ts = CTX_data_tool_settings(C);
   PropertyRNA *prop;
 
-  /* Save back mode in case we're in the generic operator */
-  if ((prop = RNA_struct_find_property(op->ptr, "mode"))) {
-    RNA_property_enum_set(op->ptr, prop, t->mode);
-  }
-
-  if ((prop = RNA_struct_find_property(op->ptr, "value"))) {
-    if (RNA_property_array_check(prop)) {
-      RNA_property_float_set_array(op->ptr, prop, t->values_final);
-    }
-    else {
-      RNA_property_float_set(op->ptr, prop, t->values_final[0]);
-    }
-  }
+  bool use_prop_edit = false;
+  int prop_edit_flag = 0;
 
   /* Save proportional edit settings.
-   * Skip saving proportional edit if it was not actually used. */
+   * Skip saving proportional edit if it was not actually used.
+   * Note that this value is being saved even if the operation is cancelled. This is to maintain a
+   * behavior already used by users. */
   if (!(t->options & CTX_NO_PET)) {
-    bool use_prop_edit = false;
-    int prop_edit_flag = 0;
     if (t->flag & T_PROP_EDIT_ALL) {
       if (t->flag & T_PROP_EDIT) {
         use_prop_edit = true;
@@ -1588,13 +1571,35 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
         ts->prop_mode = t->prop_mode;
       }
     }
+  }
 
+  if (t->state == TRANS_CANCEL) {
+    /* No need to edit operator properties or tool settings if we are canceling the operation.
+     * These properties must match the original ones. */
+    return;
+  }
+
+  if (!(t->options & CTX_NO_PET)) {
     if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit"))) {
       RNA_property_boolean_set(op->ptr, prop, use_prop_edit);
       RNA_boolean_set(op->ptr, "use_proportional_connected", prop_edit_flag & PROP_EDIT_CONNECTED);
       RNA_boolean_set(op->ptr, "use_proportional_projected", prop_edit_flag & PROP_EDIT_PROJECTED);
       RNA_enum_set(op->ptr, "proportional_edit_falloff", t->prop_mode);
       RNA_float_set(op->ptr, "proportional_size", t->prop_size);
+    }
+  }
+
+  /* Save back mode in case we're in the generic operator */
+  if ((prop = RNA_struct_find_property(op->ptr, "mode"))) {
+    RNA_property_enum_set(op->ptr, prop, t->mode);
+  }
+
+  if ((prop = RNA_struct_find_property(op->ptr, "value"))) {
+    if (RNA_property_array_check(prop)) {
+      RNA_property_float_set_array(op->ptr, prop, t->values_final);
+    }
+    else {
+      RNA_property_float_set(op->ptr, prop, t->values_final[0]);
     }
   }
 
