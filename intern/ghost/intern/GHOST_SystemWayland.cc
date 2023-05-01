@@ -5770,7 +5770,27 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
     return GHOST_kFailure;
   }
 
-  const xkb_mod_mask_t state = xkb_state_serialize_mods(seat->xkb_state, XKB_STATE_MODS_DEPRESSED);
+  /* Only read the underlying `seat->xkb_state` when there is an active window.
+   * Without this, the following situation occurs:
+   *
+   * - A window is activated (before the #wl_keyboard_listener::enter has run).
+   * - The modifiers from `seat->xkb_state` don't match `seat->key_depressed`.
+   * - Dummy values are written into `seat->key_depressed` to account for the discrepancy
+   *   (as `seat->xkb_state` is the source of truth), however the number of held modifiers
+   *   is not longer valid (because it's not known from dummy values).
+   * - #wl_keyboard_listener::enter runs, however the events generated from the state change
+   *   may not match the physically held keys because the dummy values are not accurate.
+   *
+   * As this is an edge-case caused by the order of callbacks that run on window activation,
+   * don't attempt to *fix* the values in `seat->key_depressed` before the keyboard enter
+   * handler runs. This means the result of `getModifierKeys` may be momentarily incorrect
+   * however it's corrected once #wl_keyboard_listener::enter runs.
+   */
+  const bool is_keyboard_active = seat->keyboard.wl_surface_window != nullptr;
+  const xkb_mod_mask_t state = is_keyboard_active ?
+                                   xkb_state_serialize_mods(seat->xkb_state,
+                                                            XKB_STATE_MODS_DEPRESSED) :
+                                   0;
 
   const bool show_warning = !gwl_seat_key_depressed_suppress_warning(seat);
 
@@ -5780,8 +5800,8 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
     if (UNLIKELY(seat->xkb_keymap_mod_index[i] == XKB_MOD_INVALID)) {
       continue;
     }
+
     const GWL_ModifierInfo &mod_info = g_modifier_info_table[i];
-    const bool val = (state & (1 << seat->xkb_keymap_mod_index[i])) != 0;
     /* NOTE(@ideasman42): it's important to write the XKB state back to #GWL_KeyboardDepressedState
      * otherwise changes to modifiers in the future wont generate events.
      * This can cause modifiers to be stuck when switching between windows in GNOME because
@@ -5791,31 +5811,34 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
     bool val_l = depressed_l > 0;
     bool val_r = depressed_r > 0;
 
-    /* This shouldn't be needed, but guard against any possibility of modifiers being stuck.
-     * Warn so if this happens it can be investigated. */
-    if (val) {
-      if (UNLIKELY(!(val_l || val_r))) {
-        if (show_warning) {
-          CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
-                    "modifier (%s) state is inconsistent (GHOST held keys do not match XKB)",
-                    mod_info.display_name);
+    if (is_keyboard_active) {
+      const bool val = (state & (1 << seat->xkb_keymap_mod_index[i])) != 0;
+      /* This shouldn't be needed, but guard against any possibility of modifiers being stuck.
+       * Warn so if this happens it can be investigated. */
+      if (val) {
+        if (UNLIKELY(!(val_l || val_r))) {
+          if (show_warning) {
+            CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
+                      "modifier (%s) state is inconsistent (GHOST held keys do not match XKB)",
+                      mod_info.display_name);
+          }
+          /* Picking the left is arbitrary. */
+          val_l = true;
+          depressed_l = 1;
         }
-        /* Picking the left is arbitrary. */
-        val_l = true;
-        depressed_l = 1;
       }
-    }
-    else {
-      if (UNLIKELY(val_l || val_r)) {
-        if (show_warning) {
-          CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
-                    "modifier (%s) state is inconsistent (GHOST released keys do not match XKB)",
-                    mod_info.display_name);
+      else {
+        if (UNLIKELY(val_l || val_r)) {
+          if (show_warning) {
+            CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
+                      "modifier (%s) state is inconsistent (GHOST released keys do not match XKB)",
+                      mod_info.display_name);
+          }
+          val_l = false;
+          val_r = false;
+          depressed_l = 0;
+          depressed_r = 0;
         }
-        val_l = false;
-        val_r = false;
-        depressed_l = 0;
-        depressed_r = 0;
       }
     }
 
