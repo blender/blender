@@ -1509,7 +1509,7 @@ static void followpath_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
                             NULL,
                             (data->followflag & FOLLOWPATH_FOLLOW) ? quat : NULL,
                             &radius,
-                            NULL)) { /* quat_pt is quat or NULL. */
+                            NULL)) {
         float totmat[4][4];
         unit_m4(totmat);
 
