@@ -73,6 +73,8 @@ using blender::IndexRange;
 using blender::Span;
 using blender::Vector;
 
+using namespace blender::bke::paint;
+
 static int sculpt_face_material_get(SculptSession *ss, PBVHFaceRef face)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -108,7 +110,7 @@ void SCULPT_face_check_origdata(SculptSession *ss, PBVHFaceRef face)
     return;
   }
 
-  short *s = BKE_sculpt_face_attr_get<short *>(face, ss->attrs.orig_fsets);
+  short *s = face_attr_ptr<short>(face, ss->attrs.orig_fsets);
 
   // pack ss->stroke_id in higher 16 bits
   if (s[1] != ss->stroke_id) {
@@ -123,7 +125,7 @@ int SCULPT_face_set_original_get(SculptSession *ss, PBVHFaceRef face)
     return SCULPT_face_set_get(ss, face);
   }
 
-  short *s = BKE_sculpt_face_attr_get<short *>(face, ss->attrs.orig_fsets);
+  short *s = face_attr_ptr<short>(face, ss->attrs.orig_fsets);
 
   if (s[1] != ss->stroke_id) {
     s[0] = SCULPT_face_set_get(ss, face);
@@ -422,9 +424,8 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
             const float3 &v = positions[vert_i];
             float fno[3];
 
-            *SCULPT_vertex_attr_get<int *>(
-                BKE_pbvh_make_vref(vert_i),
-                ss->attrs.boundary_flags) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+            *vertex_attr_ptr<int>(BKE_pbvh_make_vref(vert_i),
+                                  ss->attrs.boundary_flags) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
             copy_v3_v3(fno, ss->vert_normals[vert_i]);
             float mask = ss->vmask ? ss->vmask[vert_i] : 0.0f;
@@ -532,9 +533,8 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                 break;
               }
 
-              *SCULPT_vertex_attr_get<int *>(
-                  BKE_pbvh_make_vref((intptr_t)l->v),
-                  ss->attrs.boundary_flags) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+              *vertex_attr_ptr<int>(BKE_pbvh_make_vref((intptr_t)l->v),
+                                    ss->attrs.boundary_flags) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
             } while ((l = l->next) != f->l_first);
 
             if (ok) {
@@ -851,7 +851,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
       bool ok = true;
 
       if (ss->attrs.hide_poly) {
-        ok = *BKE_sculpt_face_attr_get<bool *>(fref, ss->attrs.hide_poly);
+        ok = *face_attr_ptr<bool>(fref, ss->attrs.hide_poly);
       }
 
       ok = ok && SCULPT_face_select_get(ss, fref);
@@ -1320,7 +1320,7 @@ void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool state)
   for (int i = 0; i < ss->totfaces; i++) {
     PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, i);
 
-    *BKE_sculpt_face_attr_get<bool *>(face, ss->attrs.hide_poly) = !state;
+    *face_attr_ptr<bool>(face, ss->attrs.hide_poly) = !state;
   }
 }
 
@@ -1329,7 +1329,7 @@ void SCULPT_face_sets_visibility_invert(SculptSession *ss)
   for (int i = 0; i < ss->totfaces; i++) {
     PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, i);
 
-    *BKE_sculpt_face_attr_get<bool *>(face, ss->attrs.hide_poly) ^= true;
+    *face_attr_ptr<bool>(face, ss->attrs.hide_poly) ^= true;
   }
 }
 
@@ -1397,7 +1397,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
         for (int i = 0; i < ss->totfaces; i++) {
           PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, i);
 
-          if (*BKE_sculpt_face_attr_get<bool *>(face, ss->attrs.hide_poly)) {
+          if (*face_attr_ptr<bool>(face, ss->attrs.hide_poly)) {
             hidden_vertex = true;
             break;
           }

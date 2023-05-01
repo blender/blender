@@ -31,6 +31,8 @@ using blender::float2;
 using blender::float3;
 using blender::Vector;
 
+using namespace blender::bke::paint;
+
 static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
                                                        float result[3],
                                                        PBVHVertRef vertex,
@@ -485,7 +487,7 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
                                                                 &automask_data);
 
     float disp[3];
-    float *detail_dir = SCULPT_vertex_attr_get<float *>(vd.vertex, ss->attrs.detail_directions);
+    float *detail_dir = vertex_attr_ptr<float>(vd.vertex, ss->attrs.detail_directions);
     madd_v3_v3v3fl(disp, vd.co, detail_dir, fade);
     SCULPT_clip(sd, ss, vd.co, disp);
 
@@ -525,7 +527,7 @@ static void SCULPT_enhance_details_brush(Sculpt *sd, Object *ob, Span<PBVHNode *
       float avg[3];
       SCULPT_neighbor_coords_average(
           ss, avg, vertex, projection, fset_projection, use_area_weights);
-      float *detail_dir = SCULPT_vertex_attr_get<float *>(vertex, ss->attrs.detail_directions);
+      float *detail_dir = vertex_attr_ptr<float>(vertex, ss->attrs.detail_directions);
 
       sub_v3_v3v3(detail_dir, avg, SCULPT_vertex_co_get(ss, vertex));
     }
@@ -727,7 +729,7 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
   mul_v3_v3fl(weigthed_o, origco, alpha);
   mul_v3_v3fl(weigthed_q, co, 1.0f - alpha);
   add_v3_v3v3(d, weigthed_o, weigthed_q);
-  float *laplacian_disp = SCULPT_vertex_attr_get<float *>(vertex, ss->attrs.laplacian_disp);
+  float *laplacian_disp = vertex_attr_ptr<float>(vertex, ss->attrs.laplacian_disp);
 
   sub_v3_v3v3(laplacian_disp, laplacian_smooth_co, d);
 
@@ -742,14 +744,14 @@ void SCULPT_surface_smooth_displace_step(
   int total = 0;
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    float *laplacian_disp = SCULPT_vertex_attr_get<float *>(ni.vertex, ss->attrs.laplacian_disp);
+    float *laplacian_disp = vertex_attr_ptr<float>(ni.vertex, ss->attrs.laplacian_disp);
     add_v3_v3(b_avg, laplacian_disp);
     total++;
   }
 
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   if (total > 0) {
-    float *laplacian_disp = SCULPT_vertex_attr_get<float *>(vertex, ss->attrs.laplacian_disp);
+    float *laplacian_disp = vertex_attr_ptr<float>(vertex, ss->attrs.laplacian_disp);
 
     mul_v3_v3fl(b_current_vertex, b_avg, (1.0f - beta) / total);
     madd_v3_v3fl(b_current_vertex, laplacian_disp, beta);

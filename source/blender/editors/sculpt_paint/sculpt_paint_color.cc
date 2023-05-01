@@ -35,6 +35,7 @@
 #include <cstdlib>
 
 using blender::Vector;
+using namespace blender::bke::paint;
 
 static void do_color_smooth_task_cb_exec(void *__restrict userdata,
                                          const int n,
@@ -148,8 +149,8 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     // our temp layer.  do this here before the brush check
     // to ensure any geomtry dyntopo might subdivide has
     // valid state.
-    float *color_buffer = SCULPT_vertex_attr_get<float *>(vd.vertex,
-                                                          buffer_scl);  // mv->origcolor;
+    float *color_buffer = vertex_attr_ptr<float>(vd.vertex,
+                                                 buffer_scl);  // mv->origcolor;
     if (SCULPT_stroke_id_test(ss, vd.vertex, STROKEID_USER_PREV_COLOR)) {
       zero_v4(color_buffer);
     }
@@ -474,7 +475,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
     float current_disp[3];
     float current_disp_norm[3];
     float interp_color[4];
-    float *prev_color = SCULPT_vertex_attr_get<float *>(vd.vertex, data->scl);
+    float *prev_color = vertex_attr_ptr<float>(vd.vertex, data->scl);
 
     copy_v4_v4(interp_color, prev_color);
 
@@ -552,7 +553,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
           continue;
         }
 
-        const float *neighbor_color = SCULPT_vertex_attr_get<const float *>(ni.vertex, data->scl);
+        const float *neighbor_color = vertex_attr_ptr<const float>(ni.vertex, data->scl);
         float color_interp = -dot_v3v3(current_disp_norm, vertex_disp_norm);
 
         /* Square directional weight to get a somewhat sharper result. */
@@ -589,7 +590,7 @@ static void do_smear_store_prev_colors_task_cb_exec(void *__restrict userdata,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_vertex_color_get(ss, vd.vertex, SCULPT_vertex_attr_get<float *>(vd.vertex, data->scl));
+    SCULPT_vertex_color_get(ss, vd.vertex, vertex_attr_ptr<float>(vd.vertex, data->scl));
   }
   BKE_pbvh_vertex_iter_end;
 }

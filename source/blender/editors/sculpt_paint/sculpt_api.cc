@@ -121,6 +121,8 @@
 using blender::IndexRange;
 using blender::OffsetIndices;
 
+using namespace blender::bke::paint;
+
 /**
  * Checks if the face sets of the adjacent faces to the edge between \a v1 and \a v2
  * in the base mesh are equal.
@@ -310,7 +312,7 @@ PBVHVertRef SCULPT_edge_other_vertex(const SculptSession *ss,
 
 static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef vertex)
 {
-  int *flag = SCULPT_vertex_attr_get<int *>(vertex, ss->attrs.boundary_flags);
+  int *flag = vertex_attr_ptr<int>(vertex, ss->attrs.boundary_flags);
 
   *flag = 0;
 
@@ -371,7 +373,7 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
 
   /* We have to handle boundary here seperately. */
 
-  int *flag = SCULPT_vertex_attr_get<int *>(vertex, ss->attrs.boundary_flags);
+  int *flag = vertex_attr_ptr<int>(vertex, ss->attrs.boundary_flags);
   *flag &= ~(SCULPT_CORNER_MESH | SCULPT_BOUNDARY_MESH);
 
   if (sculpt_check_boundary_vertex_in_base_mesh(ss, vertex.i)) {
@@ -399,7 +401,7 @@ eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
                                       const PBVHVertRef vertex,
                                       eSculptCorner cornertype)
 {
-  eSculptCorner flag = *SCULPT_vertex_attr_get<eSculptCorner *>(vertex, ss->attrs.boundary_flags);
+  eSculptCorner flag = *vertex_attr_ptr<eSculptCorner>(vertex, ss->attrs.boundary_flags);
   bool needs_update = flag & SCULPT_BOUNDARY_NEEDS_UPDATE;
 
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -434,7 +436,7 @@ eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
   }
 
   if (needs_update) {
-    flag = *SCULPT_vertex_attr_get<eSculptCorner *>(vertex, ss->attrs.boundary_flags);
+    flag = *vertex_attr_ptr<eSculptCorner>(vertex, ss->attrs.boundary_flags);
   }
 
   flag &= cornertype;
@@ -447,8 +449,7 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
                                           const PBVHVertRef vertex,
                                           eSculptBoundary boundary_types)
 {
-  eSculptBoundary flag = *SCULPT_vertex_attr_get<eSculptBoundary *>(vertex,
-                                                                    ss->attrs.boundary_flags);
+  eSculptBoundary flag = *vertex_attr_ptr<eSculptBoundary>(vertex, ss->attrs.boundary_flags);
   bool needs_update = flag & SCULPT_BOUNDARY_NEEDS_UPDATE;
 
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -504,7 +505,7 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
   }
 
   if (needs_update) {
-    flag = eSculptBoundary(*SCULPT_vertex_attr_get<int *>(vertex, ss->attrs.boundary_flags));
+    flag = eSculptBoundary(*vertex_attr_ptr<int>(vertex, ss->attrs.boundary_flags));
   }
 
   flag &= boundary_types;

@@ -40,6 +40,7 @@
 #include <cstdlib>
 #include <cstring>
 
+using namespace blender::bke::paint;
 using blender::Span;
 
 /* -------------------------------------------------------------------- */
@@ -1545,10 +1546,10 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     const int vi = vd.index;
     float *disp_factor;
     if (use_persistent_base) {
-      disp_factor = SCULPT_vertex_attr_get<float *>(vd.vertex, ss->attrs.persistent_disp);
+      disp_factor = vertex_attr_ptr<float>(vd.vertex, ss->attrs.persistent_disp);
     }
     else {
-      disp_factor = SCULPT_vertex_attr_get<float *>(vd.vertex, ss->attrs.layer_displayment);
+      disp_factor = vertex_attr_ptr<float>(vd.vertex, ss->attrs.layer_displayment);
 
       if (SCULPT_stroke_id_test(ss, vd.vertex, STROKEID_USER_LAYER_BRUSH)) {
         *disp_factor = 0.0f;

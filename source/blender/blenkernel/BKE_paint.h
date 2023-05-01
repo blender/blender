@@ -717,8 +717,8 @@ typedef struct SculptAttributePointers {
   SculptAttribute *boundary_flags;
   SculptAttribute *sculpt_vert;
   SculptAttribute *stroke_id;
-  SculptAttribute *sculpt_flags;      /* CD_PROP_INT8,   vert */
-  SculptAttribute *orig_fsets;        /* CD_PROP_INT32,  face */
+  SculptAttribute *sculpt_flags; /* CD_PROP_INT8,   vert */
+  SculptAttribute *orig_fsets;   /* CD_PROP_INT32,  face */
 
   SculptAttribute *smear_previous;
   SculptAttribute *hide_poly;
@@ -796,8 +796,18 @@ struct SculptSession {
 
   /* The 0 ID is not used by the tools or the visibility system, it is just used when creating new
    * geometry (the trim tool, for example) to detect which geometry was just added, so it can be
-   * assigned a valid Face Set after creation. Tools are not intended to run with Face Sets IDs set
-   * to 0. */
+<<<<<<<
+=======
+/* Destroy attributes that were marked as stroke only in SculptAttributeParams. */
+  void BKE_sculpt_attributes_destroy_temporary_stroke(struct Object *ob);
+
+  /**
+   * Create new color layer on object if it doesn't have one and if experimental feature set has
+   * sculpt vertex color enabled. Returns truth if new layer has been added, false otherwise.
+  >>>>>>>
+     * assigned a valid Face Set after creation. Tools are not intended to run with Face Sets IDs
+  set
+     * to 0. */
   int *face_sets;
   /**
    * A reference to the ".hide_poly" attribute, to store whether (base) polygons are hidden.
@@ -1195,58 +1205,88 @@ struct CurveMapping *BKE_sculpt_default_cavity_curve(void);
 
 #ifdef __cplusplus
 }
+namespace blender::bke::paint {
 
-template<typename Tptr>
-Tptr BKE_sculpt_vertex_attr_get(const PBVHVertRef vertex, const SculptAttribute *attr)
+/* Base implementation for vertex_attr_*** and face_attr_*** methods.
+ * Returns a pointer to the attribute data (as defined by attr) for elem.
+ */
+template<typename T, typename ElemRef = PBVHVertRef>
+static T *elem_attr_ptr(const ElemRef elem, const SculptAttribute *attr)
 {
   void *ptr = nullptr;
 
   if (attr->data) {
     char *p = (char *)attr->data;
-    int idx = (int)vertex.i;
+    int idx = (int)elem.i;
 
     if (attr->data_for_bmesh) {
-      BMElem *v = (BMElem *)vertex.i;
-      idx = v->head.index;
+      BMElem *e = (BMElem *)elem.i;
+      idx = e->head.index;
     }
 
     ptr = p + attr->elem_size * (int)idx;
   }
   else {
-    BMElem *v = (BMElem *)vertex.i;
+    BMElem *v = (BMElem *)elem.i;
     ptr = BM_ELEM_CD_GET_VOID_P(v, attr->bmesh_cd_offset);
   }
 
-  return static_cast<Tptr>(ptr);
+  return static_cast<T *>(ptr);
 }
 
-template<typename Tptr>
-static Tptr BKE_sculpt_face_attr_get(const PBVHFaceRef face, const SculptAttribute *attr)
+/*
+ * Get a pointer to attribute data at vertex.
+ *
+ * Example: float *persistent_co = vertex_attr_ptr<float>(vertex, ss->attrs.persistent_co);
+ */
+template<typename T>
+static T *vertex_attr_ptr(const PBVHVertRef vertex, const SculptAttribute *attr)
 {
-  void *ptr = nullptr;
-
-  if (attr->data) {
-    char *p = (char *)attr->data;
-    int idx = (int)face.i;
-
-    if (attr->data_for_bmesh) {
-      BMElem *v = (BMElem *)face.i;
-      idx = v->head.index;
-    }
-
-    ptr = p + attr->elem_size * (int)idx;
-  }
-  else {
-    BMElem *v = (BMElem *)face.i;
-    ptr = BM_ELEM_CD_GET_VOID_P(v, attr->bmesh_cd_offset);
-  }
-
-  return static_cast<Tptr>(ptr);
+  return elem_attr_ptr<T, PBVHVertRef>(vertex, attr);
 }
+
+/*
+ * Get attribute data at vertex.
+ *
+ * Example: float weight = vertex_attr_get<float>(vertex, ss->attrs.automasking_factor);
+ */
+template<typename T>
+static T vertex_attr_get(const PBVHVertRef vertex, const SculptAttribute *attr)
+{
+  return *vertex_attr_ptr<T>(vertex, attr);
+}
+
+/*
+ * Set attribute data at vertex.
+ *
+ * vertex_attr_set<float>(vertex, ss->attrs.automasking_factor, 1.0f);
+ */
+template<typename T>
+static void vertex_attr_set(const PBVHVertRef vertex, const SculptAttribute *attr, T data)
+{
+  *vertex_attr_ptr<T>(vertex, attr) = data;
+}
+
+template<typename T> static T *face_attr_ptr(const PBVHFaceRef face, const SculptAttribute *attr)
+{
+  return elem_attr_ptr<T, PBVHFaceRef>(face, attr);
+}
+
+template<typename T> static T face_attr_get(const PBVHFaceRef face, const SculptAttribute *attr)
+{
+  return *face_attr_ptr<T>(face, attr);
+}
+
+template<typename T>
+static void face_attr_set(const PBVHFaceRef face, const SculptAttribute *attr, T data)
+{
+  *face_attr_ptr<T>(face, attr) = data;
+}
+}  // namespace blender::bke::paint
 
 BLI_INLINE void BKE_sculpt_boundary_flag_update(SculptSession *ss, PBVHVertRef vertex)
 {
-  int *flags = BKE_sculpt_vertex_attr_get<int *>(vertex, ss->attrs.boundary_flags);
+  int *flags = blender::bke::paint::vertex_attr_ptr<int>(vertex, ss->attrs.boundary_flags);
   *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 }
 

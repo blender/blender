@@ -1907,6 +1907,9 @@ BLI_INLINE bool SCULPT_need_reproject(const SculptSession *ss)
   return !ss->ignore_uvs && ss->bm && CustomData_has_layer(&ss->bm->ldata, CD_PROP_FLOAT2);
 }
 
+int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);
+
+/** \} */
 void SCULPT_reproject_cdata(SculptSession *ss,
                             PBVHVertRef vertex,
                             float origco[3],
@@ -2443,11 +2446,6 @@ int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);
 
 /** \} */
 
-/* Make SCULPT_ alias to a few blenkernel sculpt methods. */
-
-#define SCULPT_vertex_attr_get BKE_sculpt_vertex_attr_get
-#define SCULPT_face_attr_get BKE_sculpt_face_attr_get
-
 /*
  * Stroke ID API.  This API is used to detect if
  * an element has already been processed for some task
@@ -2472,7 +2470,7 @@ ENUM_OPERATORS(StrokeIDUser, STROKEID_USER_LAYER_BRUSH);
 
 BLI_INLINE bool SCULPT_stroke_id_test(SculptSession *ss, PBVHVertRef vertex, StrokeIDUser user)
 {
-  StrokeID *id = SCULPT_vertex_attr_get<StrokeID *>(vertex, ss->attrs.stroke_id);
+  StrokeID *id = blender::bke::paint::vertex_attr_ptr<StrokeID>(vertex, ss->attrs.stroke_id);
   bool ret;
 
   if (id->id != ss->stroke_id) {
@@ -2493,7 +2491,7 @@ BLI_INLINE bool SCULPT_stroke_id_test_no_update(SculptSession *ss,
                                                 PBVHVertRef vertex,
                                                 StrokeIDUser user)
 {
-  StrokeID *id = SCULPT_vertex_attr_get<StrokeID *>(vertex, ss->attrs.stroke_id);
+  StrokeID *id = blender::bke::paint::vertex_attr_ptr<StrokeID>(vertex, ss->attrs.stroke_id);
 
   if (id->id != ss->stroke_id) {
     return true;

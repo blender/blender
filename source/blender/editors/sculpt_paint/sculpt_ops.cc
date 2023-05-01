@@ -12,6 +12,7 @@
 #include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
 #include "BLI_math.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rand.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -89,6 +90,9 @@
 #include <cstdlib>
 #include <cstring>
 
+using namespace blender::bke::paint;
+using blender::float3;
+
 /* Reset the copy of the mesh that is being sculpted on (currently just for the layer brush). */
 
 static int sculpt_set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
@@ -118,11 +122,9 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
-    copy_v3_v3(SCULPT_vertex_attr_get<float *>(vertex, ss->attrs.persistent_co),
-               SCULPT_vertex_co_get(ss, vertex));
-    SCULPT_vertex_normal_get(
-        ss, vertex, SCULPT_vertex_attr_get<float *>(vertex, ss->attrs.persistent_no));
-    (*SCULPT_vertex_attr_get<float *>(vertex, ss->attrs.persistent_disp)) = 0.0f;
+    vertex_attr_set<float3>(vertex, ss->attrs.persistent_co, SCULPT_vertex_co_get(ss, vertex));
+    SCULPT_vertex_normal_get(ss, vertex, vertex_attr_ptr<float>(vertex, ss->attrs.persistent_no));
+    vertex_attr_set<float>(vertex, ss->attrs.persistent_disp, 0.0f);
   }
 
   return OPERATOR_FINISHED;
@@ -1329,7 +1331,7 @@ static int sculpt_set_limit_surface_exec(bContext *C, wmOperator * /* op */)
   const bool weighted = false;
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-    float *f = SCULPT_vertex_attr_get<float *>(vertex, scl);
+    float *f = vertex_attr_ptr<float>(vertex, scl);
 
     SCULPT_neighbor_coords_average(ss, f, vertex, 0.0, true, weighted);
   }
@@ -1428,7 +1430,7 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
       BMVert *v = verts[i];
       PBVHVertRef vertex = {(intptr_t)v};
 
-      int *boundflag = SCULPT_vertex_attr_get<int *>(vertex, ss->attrs.boundary_flags);
+      int *boundflag = vertex_attr_ptr<int>(vertex, ss->attrs.boundary_flags);
 
       if (*boundflag & (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SHARP |
                         SCULPT_CORNER_SEAM)) {
@@ -1583,7 +1585,7 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
           MSculptVert *mv3 = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v3);
           PBVHVertRef vertex3 = {(intptr_t)v3};
 
-          int *boundflag3 = (int *)SCULPT_vertex_attr_get(vertex3, ss->attrs.boundary_flags);
+          int *boundflag3 = vertex_attr_ptr<int>(vertex3, ss->attrs.boundary_flags);
           if (*boundflag3 & boundtest) {
              continue;
           }
