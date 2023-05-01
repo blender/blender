@@ -33,11 +33,19 @@
     _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); \
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 #elif defined(__aarch64__) || defined(_M_ARM64)
-#  define _MM_FLUSH_ZERO_ON 24
-#  define __get_fpcr(__fpcr) __asm__ __volatile__("mrs %0,fpcr" : "=r"(__fpcr))
-#  define __set_fpcr(__fpcr) __asm__ __volatile__("msr fpcr,%0" : : "ri"(__fpcr))
-#  define SIMD_SET_FLUSH_TO_ZERO set_fz(_MM_FLUSH_ZERO_ON);
-#  define SIMD_GET_FLUSH_TO_ZERO get_fz(_MM_FLUSH_ZERO_ON)
+/* The get/set denormals to zero was implemented in sse2neon v1.5.0.
+ * Keep the compatibility code until the minimum library version is increased. */
+#  if defined(_MM_SET_FLUSH_ZERO_MODE)
+#    define SIMD_SET_FLUSH_TO_ZERO \
+      _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); \
+      _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+#  else
+#    define _MM_FLUSH_ZERO_ON 24
+#    define __get_fpcr(__fpcr) __asm__ __volatile__("mrs %0,fpcr" : "=r"(__fpcr))
+#    define __set_fpcr(__fpcr) __asm__ __volatile__("msr fpcr,%0" : : "ri"(__fpcr))
+#    define SIMD_SET_FLUSH_TO_ZERO set_fz(_MM_FLUSH_ZERO_ON);
+#    define SIMD_GET_FLUSH_TO_ZERO get_fz(_MM_FLUSH_ZERO_ON)
+#  endif
 #else
 #  define SIMD_SET_FLUSH_TO_ZERO
 #endif
@@ -111,7 +119,7 @@ static struct StepTy {
 } step ccl_attr_maybe_unused;
 
 #endif
-#if defined(__aarch64__) || defined(_M_ARM64)
+#if (defined(__aarch64__) || defined(_M_ARM64)) && !defined(_MM_SET_FLUSH_ZERO_MODE)
 __forceinline int set_fz(uint32_t flag)
 {
   uint64_t old_fpcr, new_fpcr;

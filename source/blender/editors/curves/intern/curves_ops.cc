@@ -33,6 +33,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_mesh_sample.hh"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
@@ -632,19 +633,11 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
           }
 
           if (!surface_uv_map.is_empty()) {
-            const MLoopTri &looptri = surface_looptris[looptri_index];
-            const int corner0 = looptri.tri[0];
-            const int corner1 = looptri.tri[1];
-            const int corner2 = looptri.tri[2];
-            const float2 &uv0 = surface_uv_map[corner0];
-            const float2 &uv1 = surface_uv_map[corner1];
-            const float2 &uv2 = surface_uv_map[corner2];
-            const float3 &p0_su = surface_positions[corner_verts[corner0]];
-            const float3 &p1_su = surface_positions[corner_verts[corner1]];
-            const float3 &p2_su = surface_positions[corner_verts[corner2]];
-            float3 bary_coords;
-            interp_weights_tri_v3(bary_coords, p0_su, p1_su, p2_su, new_first_point_pos_su);
-            const float2 uv = attribute_math::mix3(bary_coords, uv0, uv1, uv2);
+            const MLoopTri &tri = surface_looptris[looptri_index];
+            const float3 bary_coords = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
+                surface_positions, corner_verts, tri, new_first_point_pos_su);
+            const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
+                bary_coords, tri, surface_uv_map);
             surface_uv_coords[curve_i] = uv;
           }
         }

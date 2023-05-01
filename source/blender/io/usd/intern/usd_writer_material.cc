@@ -17,6 +17,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_memory_utils.hh"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
@@ -378,6 +379,7 @@ static std::string get_in_memory_texture_filename(Image *ima)
 
   ImageFormatData imageFormat;
   BKE_image_format_from_imbuf(&imageFormat, imbuf);
+  BKE_image_release_ibuf(ima, imbuf, nullptr);
 
   char file_name[FILE_MAX];
   /* Use the image name for the file name. */
@@ -405,6 +407,7 @@ static void export_in_memory_texture(Image *ima,
   }
 
   ImBuf *imbuf = BKE_image_acquire_ibuf(ima, nullptr, nullptr);
+  BLI_SCOPED_DEFER([&]() { BKE_image_release_ibuf(ima, imbuf, nullptr); });
   if (!imbuf) {
     return;
   }
@@ -444,7 +447,7 @@ static void get_absolute_path(Image *ima, char *r_path)
   /* Make absolute source path. */
   BLI_strncpy(r_path, ima->filepath, FILE_MAX);
   BLI_path_abs(r_path, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
-  BLI_path_normalize(nullptr, r_path);
+  BLI_path_normalize(r_path);
 }
 
 static pxr::TfToken get_node_tex_image_color_space(bNode *node)

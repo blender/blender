@@ -292,7 +292,7 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
       BLI_strncpy(dest_dir, export_params.file_base_for_tests, PATH_MAX);
     }
     BLI_path_slash_native(dest_dir);
-    BLI_path_normalize(nullptr, dest_dir);
+    BLI_path_normalize(dest_dir);
     mtl_writer->write_materials(export_params.blen_filepath,
                                 export_params.path_mode,
                                 dest_dir,

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -17963,6 +17963,18 @@ msgid "Constant"
 msgstr "Постоянная"
 
 
+msgid "Comb"
+msgstr "Расчёска"
+
+
+msgid "Puff"
+msgstr "Раздувание"
+
+
+msgid "Slide"
+msgstr "Передвинуть"
+
+
 msgid "Ratio of samples in a cycle that the brush is enabled"
 msgstr "Число сэмплов на цикли при включении кисти"
 
@@ -18049,10 +18061,6 @@ msgstr "Ластик"
 
 msgid "The brush is used for erasing strokes"
 msgstr "Эта кисть используется для стирания штрихов"
-
-
-msgid "Weight Paint for Vertex Groups"
-msgstr "Рисование весов для групп вершин"
 
 
 msgid "Gradient Spacing"
@@ -19507,6 +19515,10 @@ msgstr "Жирный и курсивный шрифт"
 
 msgid "Font Italic"
 msgstr "Курсивный шрифт"
+
+
+msgid "Text Selected"
+msgstr "Выдел. текст"
 
 
 msgid "X Offset"
@@ -44032,10 +44044,6 @@ msgid "Export vertex tangents with shape keys (morph targets)"
 msgstr "Экспортировать касательные вершин с ключами формы (целями морфинга)"
 
 
-msgid "Slide"
-msgstr "Передвинуть"
-
-
 msgid "Export vertex normals with meshes"
 msgstr "Экспортировать нормали вершин вместе с мешами"
 
@@ -44370,6 +44378,14 @@ msgstr "Выполнить окно файла"
 
 msgid "Execute selected file"
 msgstr "Запустить выбранный файл"
+
+
+msgid "Show"
+msgstr "Показать"
+
+
+msgid "Play"
+msgstr "Воспроизвести"
 
 
 msgctxt "Operator"
@@ -44827,6 +44843,10 @@ msgstr "Загрузить новый шрифт из файла"
 
 msgid "Select all text"
 msgstr "Выделить весь текст"
+
+
+msgid "Select word under cursor"
+msgstr "Выделить слово под курсором"
 
 
 msgctxt "Operator"
@@ -46371,6 +46391,15 @@ msgstr "Сгладить группу вершин"
 
 msgid "Smooth weights to the active vertex group"
 msgstr "Сгладить веса активной группы вершин"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "Вес сэмпла при рисовании весов"
+
+
+msgid "Use the mouse to sample a weight in the 3D view"
+msgstr "Снять образец веса в 3D-виде при помощи мыши"
 
 
 msgctxt "Operator"
@@ -52607,6 +52636,44 @@ msgid "Irradiance probe to capture diffuse indirect lighting"
 msgstr "Зонд освещённости для фиксирования отражённого диффузного света"
 
 
+msgctxt "Operator"
+msgid "Bake Light Cache"
+msgstr "Запечь кэш освещения"
+
+
+msgid "Bake the active view layer lighting"
+msgstr "Запечь освещение в активном слое визуализации"
+
+
+msgid "Delay in millisecond before baking starts"
+msgstr "Задержка в миллисекундах перед тем как начнётся запекание"
+
+
+msgid "Subset"
+msgstr "Подмножество"
+
+
+msgid "Subset of probes to update"
+msgstr "Блок зондов для обновления"
+
+
+msgid "Dirty Only"
+msgstr "Только грязные"
+
+
+msgid "Selected Only"
+msgstr "Только выделенное"
+
+
+msgctxt "Operator"
+msgid "Delete Light Cache"
+msgstr "Удалить кэш освещения"
+
+
+msgid "Delete cached indirect lighting"
+msgstr "Удалить закэшированный отражённый свет"
+
+
 msgid "Link objects to a collection"
 msgstr "Привязать объекты к коллекции"
 
@@ -53891,10 +53958,6 @@ msgid "Remove vertex group assignments which are not required"
 msgstr "Удалить ненужные назначения для группы вершин"
 
 
-msgid "Subset"
-msgstr "Подмножество"
-
-
 msgid "Keep Single"
 msgstr "Сохранить один раз"
 
@@ -55035,10 +55098,6 @@ msgid "Hide vertices"
 msgstr "Скрыть вершины"
 
 
-msgid "Show"
-msgstr "Показать"
-
-
 msgid "Show vertices"
 msgstr "Показать вершины"
 
@@ -55317,15 +55376,6 @@ msgstr "Режим рисования весов"
 
 msgid "Toggle weight paint mode in 3D view"
 msgstr "Переключить режим рисования весов в 3D-виде"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "Вес сэмпла при рисовании весов"
-
-
-msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "Снять образец веса в 3D-виде при помощи мыши"
 
 
 msgctxt "Operator"
@@ -55682,10 +55732,6 @@ msgstr "Применить позу в качестве позы покоя"
 
 msgid "Apply the current pose as the new rest pose"
 msgstr "Применить текущую позу а качестве новой позы покоя"
-
-
-msgid "Selected Only"
-msgstr "Только выделенное"
 
 
 msgid "Only apply the selected bones (with propagation to children)"
@@ -57130,29 +57176,8 @@ msgid "Add or remove grease pencil material preset"
 msgstr "Добавить или удалить предустановку материала Grease Pencil"
 
 
-msgctxt "Operator"
-msgid "Bake Light Cache"
-msgstr "Запечь кэш освещения"
-
-
-msgid "Bake the active view layer lighting"
-msgstr "Запечь освещение в активном слое визуализации"
-
-
-msgid "Delay in millisecond before baking starts"
-msgstr "Задержка в миллисекундах перед тем как начнётся запекание"
-
-
-msgid "Subset of probes to update"
-msgstr "Блок зондов для обновления"
-
-
 msgid "Bake both irradiance grids and reflection cubemaps"
 msgstr "Запечь и сетки освещённости, и кубические карты отражения"
-
-
-msgid "Dirty Only"
-msgstr "Только грязные"
 
 
 msgid "Cubemaps Only"
@@ -57161,15 +57186,6 @@ msgstr "Только кубические карты"
 
 msgid "Try to only bake reflection cubemaps if irradiance grids are up to date"
 msgstr "Попытаться запечь кубические карты отражения, если сетки интенсивностей освещённости устарели"
-
-
-msgctxt "Operator"
-msgid "Delete Light Cache"
-msgstr "Удалить кэш освещения"
-
-
-msgid "Delete cached indirect lighting"
-msgstr "Удалить закэшированный отражённый свет"
 
 
 msgctxt "Operator"
@@ -59363,10 +59379,6 @@ msgstr "Выделить строку"
 
 msgid "Select text by line"
 msgstr "Построчное выделение текста"
-
-
-msgid "Select word under cursor"
-msgstr "Выделить слово под курсором"
 
 
 msgctxt "Operator"
@@ -62660,10 +62672,6 @@ msgid "Run once and exit"
 msgstr "Выйти после одного прохода"
 
 
-msgid "Play"
-msgstr "Воспроизвести"
-
-
 msgid "Random Order"
 msgstr "Случайный порядок"
 
@@ -65200,9 +65208,25 @@ msgid "Comb"
 msgstr "Расчёска"
 
 
+msgid "Comb hairs"
+msgstr "Причесать волосы"
+
+
+msgid "Smooth hairs"
+msgstr "Сгладить волосы"
+
+
+msgid "Add hairs"
+msgstr "Добавить волосы"
+
+
 msgctxt "Operator"
 msgid "Length"
 msgstr "Длина"
+
+
+msgid "Make hairs longer or shorter"
+msgstr "Удлинить или укоротить волосы"
 
 
 msgctxt "Operator"
@@ -65210,9 +65234,21 @@ msgid "Puff"
 msgstr "Раздувание"
 
 
+msgid "Make hairs stand up"
+msgstr "Взлохматить волосы"
+
+
+msgid "Cut hairs"
+msgstr "Подстричь волосы"
+
+
 msgctxt "Operator"
 msgid "Weight"
 msgstr "Вес"
+
+
+msgid "Weight hair particles"
+msgstr "Вес участков волос"
 
 
 msgctxt "Operator"
@@ -65412,6 +65448,11 @@ msgstr "Интенсивность"
 msgctxt "Operator"
 msgid "Twist"
 msgstr "Скручивание"
+
+
+msgctxt "Operator"
+msgid "Slide"
+msgstr "Передвинуть"
 
 
 msgid "Clone from Paint Slot"
@@ -65644,42 +65685,6 @@ msgstr "Показывать частицы"
 
 msgid "Display actual particles"
 msgstr "Показывать фактические частицы"
-
-
-msgid "Comb"
-msgstr "Расчёска"
-
-
-msgid "Comb hairs"
-msgstr "Причесать волосы"
-
-
-msgid "Smooth hairs"
-msgstr "Сгладить волосы"
-
-
-msgid "Add hairs"
-msgstr "Добавить волосы"
-
-
-msgid "Make hairs longer or shorter"
-msgstr "Удлинить или укоротить волосы"
-
-
-msgid "Puff"
-msgstr "Раздувание"
-
-
-msgid "Make hairs stand up"
-msgstr "Взлохматить волосы"
-
-
-msgid "Cut hairs"
-msgstr "Подстричь волосы"
-
-
-msgid "Weight hair particles"
-msgstr "Вес участков волос"
 
 
 msgid "Auto Velocity"
@@ -66518,20 +66523,12 @@ msgid "Pose Matrix"
 msgstr "Матрица позы"
 
 
-msgid "Final 4x4 matrix after constraints and drivers are applied (object space)"
-msgstr "Итоговая матрица 4x4 после применения всех ограничителей и драйверов (в пространстве объекта)"
-
-
 msgid "Alternative access to location/scale/rotation relative to the parent and own rest bone"
 msgstr "Альтернативный доступ к положению/масштабу/вращению относительно родительской и собственной кости"
 
 
 msgid "Channel Matrix"
 msgstr "Матрица канала"
-
-
-msgid "4x4 matrix, before constraints"
-msgstr "Матрицы 4x4, перед ограничителями"
 
 
 msgid "Parent of this pose bone"
@@ -77650,10 +77647,6 @@ msgid "Shade Top"
 msgstr "Затенение сверху"
 
 
-msgid "Text Selected"
-msgstr "Выдел. текст"
-
-
 msgid "Theme Widget State Color"
 msgstr "Тема цветов состояний виджетов"
 
@@ -83035,11 +83028,6 @@ msgstr "Очистить каналы"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "Расширить"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "Передвинуть"
 
 
 msgctxt "Operator"

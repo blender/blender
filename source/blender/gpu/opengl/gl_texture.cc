@@ -178,7 +178,7 @@ bool GLTexture::init_internal(GPUVertBuf *vbo)
   return true;
 }
 
-bool GLTexture::init_internal(const GPUTexture *src, int mip_offset, int layer_offset)
+bool GLTexture::init_internal(GPUTexture *src, int mip_offset, int layer_offset)
 {
   BLI_assert(GLContext::texture_storage_support);
 

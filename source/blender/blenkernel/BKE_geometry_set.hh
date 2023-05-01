@@ -38,6 +38,9 @@ class CurvesEditHints;
 class Instances;
 }  // namespace blender::bke
 
+class GeometryComponent;
+using GeometryComponentPtr = blender::ImplicitSharingPtr<GeometryComponent>;
+
 /**
  * This is the base class for specialized geometry component types. A geometry component uses
  * implicit sharing to avoid read-only copies. It also integrates with attribute API, which
@@ -50,7 +53,7 @@ class GeometryComponent : public blender::ImplicitSharingMixin {
  public:
   GeometryComponent(GeometryComponentType type);
   virtual ~GeometryComponent() = default;
-  static GeometryComponent *create(GeometryComponentType component_type);
+  static GeometryComponentPtr create(GeometryComponentType component_type);
 
   int attribute_domain_size(eAttrDomain domain) const;
 
@@ -64,6 +67,9 @@ class GeometryComponent : public blender::ImplicitSharingMixin {
   /* The returned component should be of the same type as the type this is called on. */
   virtual GeometryComponent *copy() const = 0;
 
+  /** Remove referenced data from the geometry component. */
+  virtual void clear() = 0;
+
   /* Direct data is everything except for instances of objects/collections.
    * If this returns true, the geometry set can be cached and is still valid after e.g. modifier
    * evaluation ends. Instances can only be valid as long as the data they instance is valid. */
@@ -76,6 +82,7 @@ class GeometryComponent : public blender::ImplicitSharingMixin {
 
  private:
   void delete_self() override;
+  void delete_data_only() override;
 };
 
 template<typename T>
@@ -101,7 +108,6 @@ inline constexpr bool is_geometry_component_v = std::is_base_of_v<GeometryCompon
  */
 struct GeometrySet {
  private:
-  using GeometryComponentPtr = blender::ImplicitSharingPtr<class GeometryComponent>;
   /* Indexed by #GeometryComponentType. */
   std::array<GeometryComponentPtr, GEO_COMPONENT_TYPE_ENUM_SIZE> components_;
 
@@ -377,7 +383,7 @@ class MeshComponent : public GeometryComponent {
   ~MeshComponent();
   GeometryComponent *copy() const override;
 
-  void clear();
+  void clear() override;
   bool has_mesh() const;
   /**
    * Clear the component and replace it with the new mesh.
@@ -431,7 +437,7 @@ class PointCloudComponent : public GeometryComponent {
   ~PointCloudComponent();
   GeometryComponent *copy() const override;
 
-  void clear();
+  void clear() override;
   bool has_pointcloud() const;
   /**
    * Clear the component and replace it with the new point cloud.
@@ -493,7 +499,7 @@ class CurveComponent : public GeometryComponent {
   ~CurveComponent();
   GeometryComponent *copy() const override;
 
-  void clear();
+  void clear() override;
   bool has_curves() const;
   /**
    * Clear the component and replace it with the new curve.
@@ -534,7 +540,7 @@ class InstancesComponent : public GeometryComponent {
   ~InstancesComponent();
   GeometryComponent *copy() const override;
 
-  void clear();
+  void clear() override;
 
   const blender::bke::Instances *get_for_read() const;
   blender::bke::Instances *get_for_write();
@@ -568,7 +574,7 @@ class VolumeComponent : public GeometryComponent {
   ~VolumeComponent();
   GeometryComponent *copy() const override;
 
-  void clear();
+  void clear() override;
   bool has_volume() const;
   /**
    * Clear the component and replace it with the new volume.
@@ -620,6 +626,8 @@ class GeometryComponentEditData final : public GeometryComponent {
   GeometryComponent *copy() const final;
   bool owns_direct_data() const final;
   void ensure_owns_direct_data() final;
+
+  void clear() override;
 
   /**
    * The first node that does topology changing operations on curves should store the curve point

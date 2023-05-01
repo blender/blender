@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -2709,6 +2709,14 @@ msgid "Open"
 msgstr "เปิด"
 
 
+msgid "Show"
+msgstr "แสดง"
+
+
+msgid "Play"
+msgstr "เล่น"
+
+
 msgid "Increment"
 msgstr "จำนวนที่เพิ่มขึ้น"
 
@@ -3028,6 +3036,10 @@ msgid "Join"
 msgstr "เชื่อมโยง"
 
 
+msgid "Selected Only"
+msgstr "ที่ถูกเลือกเท่านั้น"
+
+
 msgid "Sets the object interaction mode"
 msgstr "ตั้งโหมดที่จะกระทำกับวัตถุ"
 
@@ -3129,10 +3141,6 @@ msgid "(De)select all"
 msgstr "(ยกเลิก)เลือกทั้งหมด"
 
 
-msgid "Show"
-msgstr "แสดง"
-
-
 msgid "Palette"
 msgstr "จานสี"
 
@@ -3140,10 +3148,6 @@ msgstr "จานสี"
 msgctxt "Operator"
 msgid "Mirror"
 msgstr "กระจกสะท้อน"
-
-
-msgid "Selected Only"
-msgstr "ที่ถูกเลือกเท่านั้น"
 
 
 msgid "Axis Lock"
@@ -3351,10 +3355,6 @@ msgstr "พัก"
 
 msgid "Render Anim"
 msgstr "เรนเดอร์อนิเมชัน"
-
-
-msgid "Play"
-msgstr "เล่น"
 
 
 msgctxt "Operator"

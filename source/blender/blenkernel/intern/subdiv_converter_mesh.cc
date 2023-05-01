@@ -161,7 +161,7 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter, int manif
     return 10.0f;
   }
 #endif
-  if (!storage->settings.use_creases || storage->cd_edge_crease == nullptr) {
+  if (storage->cd_edge_crease == nullptr) {
     return 0.0f;
   }
   const int edge_index = storage->manifold_edge_index_reverse[manifold_edge_index];
@@ -177,6 +177,9 @@ static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
     return true;
   }
 #endif
+  if (storage->infinite_sharp_vertices_map == nullptr) {
+    return false;
+  }
   const int vertex_index = storage->manifold_vertex_index_reverse[manifold_vertex_index];
   return BLI_BITMAP_TEST_BOOL(storage->infinite_sharp_vertices_map, vertex_index);
 }
@@ -184,7 +187,7 @@ static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
 static float get_vertex_sharpness(const OpenSubdiv_Converter *converter, int manifold_vertex_index)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  if (!storage->settings.use_creases || storage->cd_vertex_crease == nullptr) {
+  if (storage->cd_vertex_crease == nullptr) {
     return 0.0f;
   }
   const int vertex_index = storage->manifold_vertex_index_reverse[manifold_vertex_index];
@@ -211,16 +214,15 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
     storage->loop_uv_indices = static_cast<int *>(
         MEM_malloc_arrayN(mesh->totloop, sizeof(int), "loop uv vertex index"));
   }
-  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
-      storage->polys,
-      (const bool *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, ".hide_poly"),
-      (const bool *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, ".select_poly"),
-      storage->corner_verts.data(),
-      mloopuv,
-      num_vert,
-      limit,
-      false,
-      true);
+  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(storage->polys,
+                                                       nullptr,
+                                                       nullptr,
+                                                       storage->corner_verts.data(),
+                                                       mloopuv,
+                                                       num_vert,
+                                                       limit,
+                                                       false,
+                                                       true);
   /* NOTE: First UV vertex is supposed to be always marked as separate. */
   storage->num_uv_coordinates = -1;
   for (int vertex_index = 0; vertex_index < num_vert; vertex_index++) {
@@ -264,7 +266,7 @@ static void free_user_data(const OpenSubdiv_Converter *converter)
   ConverterStorage *user_data = static_cast<ConverterStorage *>(converter->user_data);
   MEM_SAFE_FREE(user_data->loop_uv_indices);
   MEM_freeN(user_data->manifold_vertex_index);
-  MEM_freeN(user_data->infinite_sharp_vertices_map);
+  MEM_SAFE_FREE(user_data->infinite_sharp_vertices_map);
   MEM_freeN(user_data->manifold_vertex_index_reverse);
   MEM_freeN(user_data->manifold_edge_index_reverse);
   MEM_freeN(user_data);
@@ -306,7 +308,7 @@ static void init_functions(OpenSubdiv_Converter *converter)
   converter->freeUserData = free_user_data;
 }
 
-static void initialize_manifold_index_array(const BLI_bitmap *used_map,
+static void initialize_manifold_index_array(const blender::BitSpan not_used_map,
                                             const int num_elements,
                                             int **r_indices,
                                             int **r_indices_reverse,
@@ -323,7 +325,7 @@ static void initialize_manifold_index_array(const BLI_bitmap *used_map,
   }
   int offset = 0;
   for (int i = 0; i < num_elements; i++) {
-    if (BLI_BITMAP_TEST_BOOL(used_map, i)) {
+    if (not_used_map.is_empty() || !not_used_map[i]) {
       if (indices != nullptr) {
         indices[i] = i - offset;
       }
@@ -349,42 +351,35 @@ static void initialize_manifold_index_array(const BLI_bitmap *used_map,
 
 static void initialize_manifold_indices(ConverterStorage *storage)
 {
+  using namespace blender;
   const Mesh *mesh = storage->mesh;
-  const blender::Span<blender::int2> edges = storage->edges;
-  const blender::OffsetIndices<int> polys = storage->polys;
-  const blender::Span<int> corner_verts = storage->corner_verts;
-  const blender::Span<int> corner_edges = storage->corner_edges;
-  /* Set bits of elements which are not loose. */
-  BLI_bitmap *vert_used_map = BLI_BITMAP_NEW(mesh->totvert, "vert used map");
-  BLI_bitmap *edge_used_map = BLI_BITMAP_NEW(mesh->totedge, "edge used map");
-  for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
-    for (const int corner : polys[poly_index]) {
-      BLI_BITMAP_ENABLE(vert_used_map, corner_verts[corner]);
-      BLI_BITMAP_ENABLE(edge_used_map, corner_edges[corner]);
-    }
-  }
-  initialize_manifold_index_array(vert_used_map,
+  const bke::LooseVertCache &loose_verts = mesh->verts_no_face();
+  const bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
+  initialize_manifold_index_array(loose_verts.is_loose_bits,
                                   mesh->totvert,
                                   &storage->manifold_vertex_index,
                                   &storage->manifold_vertex_index_reverse,
                                   &storage->num_manifold_vertices);
-  initialize_manifold_index_array(edge_used_map,
+  initialize_manifold_index_array(loose_edges.is_loose_bits,
                                   mesh->totedge,
                                   nullptr,
                                   &storage->manifold_edge_index_reverse,
                                   &storage->num_manifold_edges);
   /* Initialize infinite sharp mapping. */
-  storage->infinite_sharp_vertices_map = BLI_BITMAP_NEW(mesh->totvert, "vert used map");
-  for (int edge_index = 0; edge_index < mesh->totedge; edge_index++) {
-    if (!BLI_BITMAP_TEST_BOOL(edge_used_map, edge_index)) {
-      const blender::int2 &edge = edges[edge_index];
-      BLI_BITMAP_ENABLE(storage->infinite_sharp_vertices_map, edge[0]);
-      BLI_BITMAP_ENABLE(storage->infinite_sharp_vertices_map, edge[1]);
+  if (loose_edges.count > 0) {
+    const Span<int2> edges = storage->edges;
+    storage->infinite_sharp_vertices_map = BLI_BITMAP_NEW(mesh->totvert, "vert used map");
+    for (int edge_index = 0; edge_index < mesh->totedge; edge_index++) {
+      if (loose_edges.is_loose_bits[edge_index]) {
+        const int2 edge = edges[edge_index];
+        BLI_BITMAP_ENABLE(storage->infinite_sharp_vertices_map, edge[0]);
+        BLI_BITMAP_ENABLE(storage->infinite_sharp_vertices_map, edge[1]);
+      }
     }
   }
-  /* Free working variables. */
-  MEM_freeN(vert_used_map);
-  MEM_freeN(edge_used_map);
+  else {
+    storage->infinite_sharp_vertices_map = nullptr;
+  }
 }
 
 static void init_user_data(OpenSubdiv_Converter *converter,
@@ -399,10 +394,12 @@ static void init_user_data(OpenSubdiv_Converter *converter,
   user_data->polys = mesh->polys();
   user_data->corner_verts = mesh->corner_verts();
   user_data->corner_edges = mesh->corner_edges();
-  user_data->cd_vertex_crease = static_cast<const float *>(
-      CustomData_get_layer(&mesh->vdata, CD_CREASE));
-  user_data->cd_edge_crease = static_cast<const float *>(
-      CustomData_get_layer(&mesh->edata, CD_CREASE));
+  if (settings->use_creases) {
+    user_data->cd_vertex_crease = static_cast<const float *>(
+        CustomData_get_layer(&mesh->vdata, CD_CREASE));
+    user_data->cd_edge_crease = static_cast<const float *>(
+        CustomData_get_layer(&mesh->edata, CD_CREASE));
+  }
   user_data->loop_uv_indices = nullptr;
   initialize_manifold_indices(user_data);
   converter->user_data = user_data;

@@ -137,7 +137,7 @@ static bool lib_id_library_local_paths_callback(BPathForeachPathData *bpath_data
     /* Path was relative and is now absolute. Remap.
      * Important BLI_path_normalize runs before the path is made relative
      * because it won't work for paths that start with "//../" */
-    BLI_path_normalize(base_new, filepath);
+    BLI_path_normalize(filepath);
     BLI_path_rel(filepath, base_new);
     BLI_strncpy(r_path_dst, filepath, FILE_MAX);
     return true;
@@ -874,7 +874,12 @@ static void id_embedded_swap(ID **embedded_id_a,
                              struct IDRemapper *remapper_id_b)
 {
   if (embedded_id_a != NULL && *embedded_id_a != NULL) {
-    BLI_assert(embedded_id_b != NULL && *embedded_id_b != NULL);
+    BLI_assert(embedded_id_b != NULL);
+
+    if (*embedded_id_b == NULL) {
+      /* Cannot swap anything if one of the embedded IDs is NULL. */
+      return;
+    }
 
     /* Do not remap internal references to itself here, since embedded IDs pointers also need to be
      * potentially remapped in owner ID's data, which will also handle embedded IDs data. */

@@ -595,7 +595,7 @@ ccl_device_inline float4 ensure_finite(float4 v)
 
 ccl_device_inline float4 pow(float4 v, float e)
 {
-  return make_float4(powf(v.x, e), powf(v.y, e), powf(v.z, e), powf(v.z, e));
+  return make_float4(powf(v.x, e), powf(v.y, e), powf(v.z, e), powf(v.w, e));
 }
 
 CCL_NAMESPACE_END

@@ -165,10 +165,12 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
     const float(*vertexCos)[3] = mesh->runtime->edit_data->vertexCos;
 
     /* XXX: investigate using EditMesh data. */
-    const float(*loop_normals)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
-                                        static_cast<const float(*)[3]>(
-                                            CustomData_get_layer(&mesh->ldata, CD_NORMAL)) :
-                                        nullptr;
+    blender::Span<blender::float3> corner_normals;
+    if (flag & MESH_FOREACH_USE_NORMAL) {
+      corner_normals = {
+          static_cast<const blender::float3 *>(CustomData_get_layer(&mesh->ldata, CD_NORMAL)),
+          mesh->totloop};
+    }
 
     int f_idx;
 
@@ -181,16 +183,19 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
       do {
         const BMVert *eve = l_iter->v;
         const int v_idx = BM_elem_index_get(eve);
-        const float *no = loop_normals ? *loop_normals++ : nullptr;
+        const float *no = corner_normals.is_empty() ? nullptr :
+                                                      &corner_normals[BM_elem_index_get(l_iter)].x;
         func(userData, v_idx, f_idx, vertexCos ? vertexCos[v_idx] : eve->co, no);
       } while ((l_iter = l_iter->next) != l_first);
     }
   }
   else {
-    const float(*loop_normals)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
-                                        static_cast<const float(*)[3]>(
-                                            CustomData_get_layer(&mesh->ldata, CD_NORMAL)) :
-                                        nullptr;
+    blender::Span<blender::float3> corner_normals;
+    if (flag & MESH_FOREACH_USE_NORMAL) {
+      corner_normals = {
+          static_cast<const blender::float3 *>(CustomData_get_layer(&mesh->ldata, CD_NORMAL)),
+          mesh->totloop};
+    }
 
     const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
     const blender::OffsetIndices polys = mesh->polys();
@@ -202,10 +207,11 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
 
     if (v_index || f_index) {
       for (const int poly_i : polys.index_range()) {
-        for (const int vert : corner_verts.slice(polys[poly_i])) {
+        for (const int corner : polys[poly_i]) {
+          const int vert = corner_verts[corner];
           const int v_idx = v_index ? v_index[vert] : vert;
           const int f_idx = f_index ? f_index[poly_i] : poly_i;
-          const float *no = loop_normals ? *loop_normals++ : nullptr;
+          const float *no = corner_normals.is_empty() ? nullptr : &corner_normals[corner].x;
           if (ELEM(ORIGINDEX_NONE, v_idx, f_idx)) {
             continue;
           }
@@ -215,11 +221,10 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
     }
     else {
       for (const int poly_i : polys.index_range()) {
-        for (const int vert : corner_verts.slice(polys[poly_i])) {
-          const int v_idx = vert;
-          const int f_idx = poly_i;
-          const float *no = loop_normals ? *loop_normals++ : nullptr;
-          func(userData, v_idx, f_idx, positions[vert], no);
+        for (const int corner : polys[poly_i]) {
+          const int vert = corner_verts[corner];
+          const float *no = corner_normals.is_empty() ? nullptr : &corner_normals[corner].x;
+          func(userData, vert, poly_i, positions[vert], no);
         }
       }
     }

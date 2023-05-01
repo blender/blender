@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -3954,6 +3954,10 @@ msgid "Execute File Window"
 msgstr "Voer Bestand Scherm Uit"
 
 
+msgid "Play"
+msgstr "Afspelen"
+
+
 msgctxt "Operator"
 msgid "Increment Number in Filename"
 msgstr "Verhoog Nummer in Bestandsnaam"
@@ -6202,10 +6206,6 @@ msgstr "Tijd Min"
 
 msgid "Search Path"
 msgstr "Zoek Pad"
-
-
-msgid "Play"
-msgstr "Afspelen"
 
 
 msgid "Export grease pencil to PDF"

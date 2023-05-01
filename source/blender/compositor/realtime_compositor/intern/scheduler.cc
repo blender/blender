@@ -71,17 +71,11 @@ static const DTreeContext *find_active_context(const DerivedNodeTree &tree)
 }
 
 /* Return the output node which is marked as NODE_DO_OUTPUT. If multiple types of output nodes are
- * marked, then the preference will be CMP_NODE_COMPOSITE > CMP_NODE_VIEWER > CMP_NODE_SPLITVIEWER.
+ * marked, then the preference will be CMP_NODE_VIEWER > CMP_NODE_SPLITVIEWER > CMP_NODE_COMPOSITE.
  * If no output node exists, a null node will be returned. */
 static DNode find_output_in_context(const DTreeContext *context)
 {
   const bNodeTree &tree = context->btree();
-
-  for (const bNode *node : tree.nodes_by_type("CompositorNodeComposite")) {
-    if (node->flag & NODE_DO_OUTPUT) {
-      return DNode(context, node);
-    }
-  }
 
   for (const bNode *node : tree.nodes_by_type("CompositorNodeViewer")) {
     if (node->flag & NODE_DO_OUTPUT) {
@@ -90,6 +84,12 @@ static DNode find_output_in_context(const DTreeContext *context)
   }
 
   for (const bNode *node : tree.nodes_by_type("CompositorNodeSplitViewer")) {
+    if (node->flag & NODE_DO_OUTPUT) {
+      return DNode(context, node);
+    }
+  }
+
+  for (const bNode *node : tree.nodes_by_type("CompositorNodeComposite")) {
     if (node->flag & NODE_DO_OUTPUT) {
       return DNode(context, node);
     }

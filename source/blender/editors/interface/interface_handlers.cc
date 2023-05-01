@@ -3167,12 +3167,14 @@ static bool ui_textedit_insert_buf(uiBut *but,
   return changed;
 }
 
+#ifdef WITH_INPUT_IME
 static bool ui_textedit_insert_ascii(uiBut *but, uiHandleButtonData *data, const char ascii)
 {
   BLI_assert(isascii(ascii));
   const char buf[2] = {ascii, '\0'};
   return ui_textedit_insert_buf(but, data, buf, sizeof(buf) - 1);
 }
+#endif
 
 static void ui_textedit_move(uiBut *but,
                              uiHandleButtonData *data,
@@ -3476,7 +3478,9 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
      * #ui_but_update_view_for_active() to run after the layout is resolved. */
     but->changed = true;
   }
-  else {
+  else if ((but->block->flag & UI_BLOCK_CLIP_EVENTS) == 0) {
+    /* Blocks with UI_BLOCK_CLIP_EVENTS are overlapping their region, so scrolling
+     * that region to ensure it is in view can't work and causes issues. #97530 */
     UI_but_ensure_in_view(C, data->region, but);
   }
 
@@ -3949,9 +3953,6 @@ static void ui_do_but_textedit(
   else if (event->type == WM_IME_COMPOSITE_END) {
     changed = true;
   }
-#else
-  /* Prevent the function from being unused. */
-  (void)ui_textedit_insert_ascii;
 #endif
 
   if (changed) {

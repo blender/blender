@@ -380,6 +380,7 @@ void GIZMOGROUP_OT_gizmo_select(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = gizmo_select_invoke;
+  ot->poll = ED_operator_region_gizmo_active;
 
   ot->flag = OPTYPE_UNDO;
 
@@ -606,6 +607,7 @@ void GIZMOGROUP_OT_gizmo_tweak(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = gizmo_tweak_invoke;
   ot->modal = gizmo_tweak_modal;
+  ot->poll = ED_operator_region_gizmo_active;
 
   /* TODO(@ideasman42): This causes problems tweaking settings for operators,
    * need to find a way to support this. */

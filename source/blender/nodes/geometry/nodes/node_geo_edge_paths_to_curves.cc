@@ -76,7 +76,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    bke::MeshFieldContext context{*mesh, ATTR_DOMAIN_POINT};
+    const bke::MeshFieldContext context{*mesh, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator evaluator{context, mesh->totvert};
     evaluator.add(params.get_input<Field<int>>("Next Vertex Index"));
     evaluator.add(params.get_input<Field<bool>>("Start Vertices"));

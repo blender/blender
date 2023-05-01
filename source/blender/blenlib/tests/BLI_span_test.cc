@@ -225,7 +225,7 @@ TEST(span, FillIndices)
 {
   std::array<int, 5> a = {0, 0, 0, 0, 0};
   MutableSpan<int> a_span(a);
-  a_span.fill_indices({0, 2, 3}, 1);
+  a_span.fill_indices(Span({0, 2, 3}), 1);
   EXPECT_EQ(a[0], 1);
   EXPECT_EQ(a[1], 0);
   EXPECT_EQ(a[2], 1);

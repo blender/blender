@@ -175,6 +175,18 @@ bool sequencer_edit_poll(bContext *C)
   return (SEQ_editing_get(CTX_data_scene(C)) != NULL);
 }
 
+bool sequencer_edit_with_channel_region_poll(bContext *C)
+{
+  if (!sequencer_edit_poll(C)) {
+    return false;
+  }
+  ARegion *region = CTX_wm_region(C);
+  if (!(region && (region->regiontype == RGN_TYPE_CHANNELS))) {
+    return false;
+  }
+  return true;
+}
+
 bool sequencer_editing_initialized_and_active(bContext *C)
 {
   return ED_operator_sequencer_active(C) && sequencer_edit_poll(C);
@@ -1482,14 +1494,14 @@ static int sequencer_split_invoke(bContext *C, wmOperator *op, const wmEvent *ev
     }
   }
   float mouseloc[2];
-  UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mouseloc[0], &mouseloc[1]);
-  if (RNA_boolean_get(op->ptr, "use_cursor_position")) {
-    RNA_int_set(op->ptr, "frame", mouseloc[0]);
+  if (v2d) {
+    UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mouseloc[0], &mouseloc[1]);
+    if (RNA_boolean_get(op->ptr, "use_cursor_position")) {
+      split_frame = mouseloc[0];
+    }
+    RNA_int_set(op->ptr, "channel", mouseloc[1]);
   }
-  else {
-    RNA_int_set(op->ptr, "frame", split_frame);
-  }
-  RNA_int_set(op->ptr, "channel", mouseloc[1]);
+  RNA_int_set(op->ptr, "frame", split_frame);
   RNA_enum_set(op->ptr, "side", split_side);
   // RNA_enum_set(op->ptr, "type", split_hard);
 
@@ -1711,16 +1723,17 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
 
 static int sequencer_delete_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   ListBase *markers = &scene->markers;
 
-  if (region->regiontype == RGN_TYPE_WINDOW && !BLI_listbase_is_empty(markers)) {
-    /* Bounding box of 30 pixels is used for markers shortcuts,
-     * prevent conflict with markers shortcuts here.
-     */
-    if (event->mval[1] <= 30) {
-      return OPERATOR_PASS_THROUGH;
+  if (!BLI_listbase_is_empty(markers)) {
+    ARegion *region = CTX_wm_region(C);
+    if (region && (region->regiontype == RGN_TYPE_WINDOW)) {
+      /* Bounding box of 30 pixels is used for markers shortcuts,
+       * prevent conflict with markers shortcuts here. */
+      if (event->mval[1] <= 30) {
+        return OPERATOR_PASS_THROUGH;
+      }
     }
   }
 
@@ -1731,9 +1744,9 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
 {
 
   /* Identifiers. */
-  ot->name = "Erase Strips";
+  ot->name = "Delete Strips";
   ot->idname = "SEQUENCER_OT_delete";
-  ot->description = "Erase selected strips from the sequencer";
+  ot->description = "Delete selected strips from the sequencer";
 
   /* Api callbacks. */
   ot->invoke = sequencer_delete_invoke;

@@ -30,46 +30,32 @@
 /** \name Update Loose Geometry
  * \{ */
 
-static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBufferCache *cache)
+static void extract_set_bits(const blender::BitSpan bits, blender::MutableSpan<int> indices)
 {
-  using namespace blender;
-  BLI_bitmap *lvert_map = BLI_BITMAP_NEW(mr->vert_len, __func__);
-
-  const bke::LooseEdgeCache &loose_edges = mr->me->loose_edges();
-  if (loose_edges.count > 0) {
-    cache->loose_geom.edges.reinitialize(loose_edges.count);
-
-    int count = 0;
-    for (const int64_t i : loose_edges.is_loose_bits.index_range()) {
-      if (loose_edges.is_loose_bits[i]) {
-        cache->loose_geom.edges[count] = int(i);
-        count++;
-      }
-    }
-  }
-
-  /* Tag verts as not loose. */
-  for (const int2 &edge : mr->edges) {
-    BLI_BITMAP_ENABLE(lvert_map, edge[0]);
-    BLI_BITMAP_ENABLE(lvert_map, edge[1]);
-  }
-
   int count = 0;
-  Array<int> loose_verts(mr->vert_len);
-  for (int v = 0; v < mr->vert_len; v++) {
-    if (!BLI_BITMAP_TEST(lvert_map, v)) {
-      loose_verts[count] = v;
+  for (const int64_t i : bits.index_range()) {
+    if (bits[i]) {
+      indices[count] = int(i);
       count++;
     }
   }
-  if (count < mr->vert_len) {
-    cache->loose_geom.verts = loose_verts.as_span().take_front(count);
-  }
-  else {
-    cache->loose_geom.verts = std::move(loose_verts);
+  BLI_assert(count == indices.size());
+}
+
+static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBufferCache *cache)
+{
+  using namespace blender;
+  const bke::LooseEdgeCache &loose_edges = mr->me->loose_edges();
+  if (loose_edges.count > 0) {
+    cache->loose_geom.edges.reinitialize(loose_edges.count);
+    extract_set_bits(loose_edges.is_loose_bits, cache->loose_geom.edges);
   }
 
-  MEM_freeN(lvert_map);
+  const bke::LooseVertCache &loose_verts = mr->me->loose_verts();
+  if (loose_verts.count > 0) {
+    cache->loose_geom.verts.reinitialize(loose_verts.count);
+    extract_set_bits(loose_verts.is_loose_bits, cache->loose_geom.verts);
+  }
 }
 
 static void mesh_render_data_loose_verts_bm(const MeshRenderData *mr,
@@ -349,7 +335,7 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
       mr->loop_normals.reinitialize(mr->corner_verts.size());
-      short(*clnors)[2] = static_cast<short(*)[2]>(
+      blender::short2 *clnors = static_cast<blender::short2 *>(
           CustomData_get_layer_for_write(&mr->me->ldata, CD_CUSTOMLOOPNORMAL, mr->me->totloop));
       const bool *sharp_edges = static_cast<const bool *>(
           CustomData_get_layer_named(&mr->me->edata, CD_PROP_BOOL, "sharp_edge"));

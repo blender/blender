@@ -847,7 +847,7 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
     return;
   }
   if (value_type.is<std::string>()) {
-    ss << *static_cast<const std::string *>(buffer) << TIP_(" (String)");
+    ss << *static_cast<const std::string *>(buffer) << " " << TIP_("(String)");
     return;
   }
 
@@ -864,22 +864,22 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
   BLI_SCOPED_DEFER([&]() { socket_type.destruct(socket_value); });
 
   if (socket_type.is<int>()) {
-    ss << *static_cast<int *>(socket_value) << TIP_(" (Integer)");
+    ss << *static_cast<int *>(socket_value) << " " << TIP_("(Integer)");
   }
   else if (socket_type.is<float>()) {
-    ss << *static_cast<float *>(socket_value) << TIP_(" (Float)");
+    ss << *static_cast<float *>(socket_value) << " " << TIP_("(Float)");
   }
   else if (socket_type.is<blender::float3>()) {
-    ss << *static_cast<blender::float3 *>(socket_value) << TIP_(" (Vector)");
+    ss << *static_cast<blender::float3 *>(socket_value) << " " << TIP_("(Vector)");
   }
   else if (socket_type.is<blender::ColorGeometry4f>()) {
     const blender::ColorGeometry4f &color = *static_cast<blender::ColorGeometry4f *>(socket_value);
-    ss << "(" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")"
-       << TIP_(" (Color)");
+    ss << "(" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ") "
+       << TIP_("(Color)");
   }
   else if (socket_type.is<bool>()) {
-    ss << ((*static_cast<bool *>(socket_value)) ? TIP_("True") : TIP_("False"))
-       << TIP_(" (Boolean)");
+    ss << ((*static_cast<bool *>(socket_value)) ? TIP_("True") : TIP_("False")) << " "
+       << TIP_("(Boolean)");
   }
 }
 
@@ -893,32 +893,32 @@ static void create_inspection_string_for_field_info(const bNodeSocket &socket,
   if (input_tooltips.is_empty()) {
     /* Should have been logged as constant value. */
     BLI_assert_unreachable();
-    ss << "Value has not been logged";
+    ss << TIP_("Value has not been logged");
   }
   else {
     if (socket_type.is<int>()) {
-      ss << TIP_("Integer field");
+      ss << TIP_("Integer field based on:");
     }
     else if (socket_type.is<float>()) {
-      ss << TIP_("Float field");
+      ss << TIP_("Float field based on:");
     }
     else if (socket_type.is<blender::float3>()) {
-      ss << TIP_("Vector field");
+      ss << TIP_("Vector field based on:");
     }
     else if (socket_type.is<bool>()) {
-      ss << TIP_("Boolean field");
+      ss << TIP_("Boolean field based on:");
     }
     else if (socket_type.is<std::string>()) {
-      ss << TIP_("String field");
+      ss << TIP_("String field based on:");
     }
     else if (socket_type.is<blender::ColorGeometry4f>()) {
-      ss << TIP_("Color field");
+      ss << TIP_("Color field based on:");
     }
-    ss << TIP_(" based on:\n");
+    ss << "\n";
 
     for (const int i : input_tooltips.index_range()) {
       const blender::StringRef tooltip = input_tooltips[i];
-      ss << "\u2022 " << tooltip;
+      ss << "\u2022 " << TIP_(tooltip.data());
       if (i < input_tooltips.size() - 1) {
         ss << ".\n";
       }
@@ -941,7 +941,7 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
     return std::string(str);
   };
 
-  ss << TIP_("Geometry:\n");
+  ss << TIP_("Geometry:") << "\n";
   for (GeometryComponentType type : component_types) {
     switch (type) {
       case GEO_COMPONENT_TYPE_MESH: {
@@ -1865,7 +1865,7 @@ static char *named_attribute_tooltip(bContext * /*C*/, void *argN, const char * 
   NamedAttributeTooltipArg &arg = *static_cast<NamedAttributeTooltipArg *>(argN);
 
   std::stringstream ss;
-  ss << TIP_("Accessed named attributes:\n");
+  ss << TIP_("Accessed named attributes:") << "\n";
 
   struct NameWithUsage {
     StringRefNull name;
@@ -1917,7 +1917,7 @@ static NodeExtraInfoRow row_from_used_named_attribute(
 
   NodeExtraInfoRow row;
   row.text = std::to_string(attributes_num) +
-             TIP_(attributes_num == 1 ? " Named Attribute" : " Named Attributes");
+             (attributes_num == 1 ? TIP_(" Named Attribute") : TIP_(" Named Attributes"));
   row.icon = ICON_SPREADSHEET;
   row.tooltip_fn = named_attribute_tooltip;
   row.tooltip_fn_arg = new NamedAttributeTooltipArg{usage_by_attribute_name};

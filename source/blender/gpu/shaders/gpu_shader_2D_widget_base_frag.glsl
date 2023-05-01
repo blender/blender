@@ -8,7 +8,7 @@ vec3 compute_masks(vec2 uv)
 
   /* Correct aspect ratio for 2D views not using uniform scaling.
    * uv is already in pixel space so a uniform scale should give us a ratio of 1. */
-  float ratio = (butCo != -2.0) ? (dFdy(uv.y) / dFdx(uv.x)) : 1.0;
+  float ratio = (butCo != -2.0) ? abs(dFdy(uv.y) / dFdx(uv.x)) : 1.0;
   vec2 uv_sdf = uv;
   uv_sdf.x *= ratio;
 

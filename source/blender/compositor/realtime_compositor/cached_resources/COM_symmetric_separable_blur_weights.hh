@@ -3,7 +3,9 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
+#include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "GPU_shader.h"
@@ -48,6 +50,24 @@ class SymmetricSeparableBlurWeights : public CachedResource {
   void bind_as_texture(GPUShader *shader, const char *texture_name) const;
 
   void unbind_as_texture() const;
+};
+
+/* ------------------------------------------------------------------------------------------------
+ * Symmetric Separable Blur Weights Container.
+ */
+
+class SymmetricSeparableBlurWeightsContainer : public CachedResourceContainer {
+ private:
+  Map<SymmetricSeparableBlurWeightsKey, std::unique_ptr<SymmetricSeparableBlurWeights>> map_;
+
+ public:
+  void reset() override;
+
+  /* Check if there is an available SymmetricSeparableBlurWeights cached resource with the given
+   * parameters in the container, if one exists, return it, otherwise, return a newly created one
+   * and add it to the container. In both cases, tag the cached resource as needed to keep it
+   * cached for the next evaluation. */
+  SymmetricSeparableBlurWeights &get(int type, float radius);
 };
 
 }  // namespace blender::realtime_compositor

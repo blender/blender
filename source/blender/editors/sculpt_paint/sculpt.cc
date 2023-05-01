@@ -2049,7 +2049,7 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
   bool use_original = false;
   bool normal_test_r, area_test_r;
 
-  if (ss->cache && ss->cache->original) {
+  if (ss->cache && !ss->cache->accum) {
     unode = SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
     use_original = (unode->co || unode->bm_entry);
   }
@@ -3436,7 +3436,7 @@ static void sculpt_topology_update(Sculpt *sd,
 
   /* Build a list of all nodes that are potentially within the brush's area of influence. */
   const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
-                                                                             ss->cache->original;
+                                                                             !ss->cache->accum;
   const float radius_scale = 1.25f;
   Vector<PBVHNode *> nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale);
 
@@ -3547,7 +3547,7 @@ static void do_brush_action(Sculpt *sd,
   }
 
   const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
-                                                                             ss->cache->original;
+                                                                             !ss->cache->accum;
   const bool use_pixels = sculpt_needs_pbvh_pixels(paint_mode_settings, brush, ob);
 
   if (sculpt_needs_pbvh_pixels(paint_mode_settings, brush, ob)) {
@@ -4546,26 +4546,24 @@ static void sculpt_update_cache_invariants(
     normalize_v3(cache->true_gravity_direction);
   }
 
+  cache->accum = true;
+
   /* Make copies of the mesh vertex locations and normals for some tools. */
   if (brush->flag & BRUSH_ANCHORED) {
-    cache->original = true;
-  }
-
-  if (SCULPT_automasking_needs_original(sd, brush)) {
-    cache->original = true;
+    cache->accum = false;
   }
 
   /* Draw sharp does not need the original coordinates to produce the accumulate effect, so it
    * should work the opposite way. */
   if (brush->sculpt_tool == SCULPT_TOOL_DRAW_SHARP) {
-    cache->original = true;
+    cache->accum = false;
   }
 
   if (SCULPT_TOOL_HAS_ACCUMULATE(brush->sculpt_tool)) {
     if (!(brush->flag & BRUSH_ACCUMULATE)) {
-      cache->original = true;
+      cache->accum = false;
       if (brush->sculpt_tool == SCULPT_TOOL_DRAW_SHARP) {
-        cache->original = false;
+        cache->accum = true;
       }
     }
   }
@@ -4574,7 +4572,7 @@ static void sculpt_update_cache_invariants(
    * for image brushes. It's also not necessary, just disable it. */
   if (brush && brush->sculpt_tool == SCULPT_TOOL_PAINT &&
       SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
-    cache->original = false;
+    cache->accum = true;
   }
 
   cache->first_time = true;
@@ -5068,7 +5066,7 @@ float SCULPT_raycast_init(ViewContext *vc,
   float obimat[4][4];
   float dist;
   Object *ob = vc->obact;
-  RegionView3D *rv3d = static_cast<RegionView3D *>(vc->region->regiondata);
+  RegionView3D *rv3d = vc->rv3d;
   View3D *v3d = vc->v3d;
 
   /* TODO: what if the segment is totally clipped? (return == 0). */
@@ -5117,7 +5115,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   ob = vc.obact;
   ss = ob->sculpt;
 
-  if (!ss->pbvh) {
+  if (!ss->pbvh || !vc.rv3d) {
     zero_v3(out->location);
     zero_v3(out->normal);
     zero_v3(out->active_vertex_co);
@@ -5253,7 +5251,7 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
 
   ss = ob->sculpt;
   cache = ss->cache;
-  original = force_original || ((cache) ? cache->original : false);
+  original = force_original || ((cache) ? !cache->accum : false);
 
   const Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 

@@ -692,6 +692,7 @@ static void rna_tag_animation_update(Main *bmain, ID *id)
 static void rna_FCurve_update_data_ex(ID *id, FCurve *fcu, Main *bmain)
 {
   sort_time_fcurve(fcu);
+  /* TODO: Blender 4.0 should call BKE_fcurve_deduplicate_keys(fcu) here. */
   BKE_fcurve_handles_recalc(fcu);
 
   rna_tag_animation_update(bmain, id);
@@ -1071,24 +1072,12 @@ static BezTriple *rna_FKeyframe_points_insert(
 
 static void rna_FKeyframe_points_add(ID *id, FCurve *fcu, Main *bmain, int tot)
 {
-  if (tot > 0) {
-    BezTriple *bezt;
-
-    fcu->bezt = MEM_recallocN(fcu->bezt, sizeof(BezTriple) * (fcu->totvert + tot));
-
-    bezt = fcu->bezt + fcu->totvert;
-    fcu->totvert += tot;
-
-    while (tot--) {
-      /* Defaults, ignoring user-preference gives predictable results for API. */
-      bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
-      bezt->ipo = BEZT_IPO_BEZ;
-      bezt->h1 = bezt->h2 = HD_AUTO_ANIM;
-      bezt++;
-    }
-
-    rna_tag_animation_update(bmain, id);
+  if (tot <= 0) {
+    return;
   }
+
+  ED_keyframes_add(fcu, tot);
+  rna_tag_animation_update(bmain, id);
 }
 
 static void rna_FKeyframe_points_remove(
@@ -1115,6 +1104,24 @@ static void rna_FKeyframe_points_clear(ID *id, FCurve *fcu, Main *bmain)
 {
   BKE_fcurve_delete_keys_all(fcu);
 
+  rna_tag_animation_update(bmain, id);
+}
+
+static void rna_FKeyframe_points_sort(ID *id, FCurve *fcu, Main *bmain)
+{
+  sort_time_fcurve(fcu);
+  rna_tag_animation_update(bmain, id);
+}
+
+static void rna_FKeyframe_points_deduplicate(ID *id, FCurve *fcu, Main *bmain)
+{
+  BKE_fcurve_deduplicate_keys(fcu);
+  rna_tag_animation_update(bmain, id);
+}
+
+static void rna_FKeyframe_points_handles_recalc(ID *id, FCurve *fcu, Main *bmain)
+{
+  BKE_fcurve_handles_recalc(fcu);
   rna_tag_animation_update(bmain, id);
 }
 
@@ -2413,6 +2420,22 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "clear", "rna_FKeyframe_points_clear");
   RNA_def_function_ui_description(func, "Remove all keyframes from an F-Curve");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+
+  func = RNA_def_function(srna, "sort", "rna_FKeyframe_points_sort");
+  RNA_def_function_ui_description(func, "Ensure all keyframe points are chronologically sorted");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+
+  func = RNA_def_function(srna, "deduplicate", "rna_FKeyframe_points_deduplicate");
+  RNA_def_function_ui_description(
+      func,
+      "Ensure there are no duplicate keys. Assumes that the points have already been sorted");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+
+  func = RNA_def_function(srna, "handles_recalc", "rna_FKeyframe_points_handles_recalc");
+  RNA_def_function_ui_description(func,
+                                  "Update handles after modifications to the keyframe points, to "
+                                  "update things like auto-clamping");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 }
 

@@ -441,7 +441,7 @@ static bool relative_rebase_foreach_path_cb(BPathForeachPathData *bpath_data,
     return false;
   }
 
-  BLI_path_normalize(NULL, filepath);
+  BLI_path_normalize(filepath);
 
   /* This may fail, if so it's fine to leave absolute since the path is still valid. */
   BLI_path_rel(filepath, data->basedir_dst);
@@ -531,7 +531,7 @@ static bool absolute_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
     return false; /* Already absolute. */
   }
 
-  BLI_strncpy(path_dst, path_src, FILENAME_MAX);
+  BLI_strncpy(path_dst, path_src, FILE_MAX);
   BLI_path_abs(path_dst, data->basedir);
   if (BLI_path_is_rel(path_dst) == false) {
     data->count_changed++;

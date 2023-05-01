@@ -1121,7 +1121,7 @@ static void clip_id_remap(ScrArea * /*area*/, SpaceLink *slink, const struct IDR
   BKE_id_remapper_apply(mappings, (ID **)&sclip->mask_info.mask, ID_REMAP_APPLY_ENSURE_REAL);
 }
 
-static void clip_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
+static void clip_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
   SpaceClip *sclip = (SpaceClip *)sl;
 
@@ -1130,14 +1130,14 @@ static void clip_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
   sclip->scopes.ok = 0;
 }
 
-static void clip_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+static void clip_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceClip *sclip = (SpaceClip *)sl;
   BLO_read_id_address(reader, parent_id->lib, &sclip->clip);
   BLO_read_id_address(reader, parent_id->lib, &sclip->mask_info.mask);
 }
 
-static void clip_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void clip_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   BLO_write_struct(writer, SpaceClip, sl);
 }
@@ -1162,9 +1162,9 @@ void ED_spacetype_clip(void)
   st->dropboxes = clip_dropboxes;
   st->refresh = clip_refresh;
   st->id_remap = clip_id_remap;
-  st->blend_read_data = clip_blend_read_data;
-  st->blend_read_lib = clip_blend_read_lib;
-  st->blend_write = clip_blend_write;
+  st->blend_read_data = clip_space_blend_read_data;
+  st->blend_read_lib = clip_space_blend_read_lib;
+  st->blend_write = clip_space_blend_write;
 
   /* regions: main window */
   art = MEM_cnew<ARegionType>("spacetype clip region");

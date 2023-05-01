@@ -990,9 +990,7 @@ static bool seq_update_seq_cb(Sequence *seq, void *user_data)
     }
     BKE_sound_set_scene_sound_volume(
         seq->scene_sound, seq->volume, (seq->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
-    BKE_sound_set_scene_sound_pitch(seq->scene_sound,
-                                    SEQ_sound_pitch_get(scene, seq),
-                                    (seq->flag & SEQ_AUDIO_PITCH_ANIMATED) != 0);
+    SEQ_retiming_sound_animation_data_set(scene, seq);
     BKE_sound_set_scene_sound_pan(
         seq->scene_sound, seq->pan, (seq->flag & SEQ_AUDIO_PAN_ANIMATED) != 0);
   }

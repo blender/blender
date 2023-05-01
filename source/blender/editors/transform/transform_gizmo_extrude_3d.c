@@ -233,6 +233,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   Scene *scene = CTX_data_scene(C);
+  RegionView3D *rv3d = CTX_wm_region_data(C);
 
   int axis_type;
   {
@@ -255,7 +256,8 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
                                        &(struct TransformCalcParams){
                                            .orientation_index = V3D_ORIENT_NORMAL + 1,
                                        },
-                                       &tbounds_normal)) {
+                                       &tbounds_normal,
+                                       rv3d)) {
       unit_m3(tbounds_normal.axis);
     }
     copy_m3_m3(ggd->data.normal_mat3, tbounds_normal.axis);
@@ -266,7 +268,8 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
                                      &(struct TransformCalcParams){
                                          .orientation_index = ggd->data.orientation_index + 1,
                                      },
-                                     &tbounds)) {
+                                     &tbounds,
+                                     rv3d)) {
     return;
   }
 

@@ -8,6 +8,8 @@
  * Used for 3D View
  */
 
+#include "BLI_function_ref.hh"
+
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_lattice_types.h"
@@ -438,19 +440,6 @@ static void calc_tw_center(TransformBounds *tbounds, const float co[3])
   }
 }
 
-static void calc_tw_center_with_matrix(TransformBounds *tbounds,
-                                       const float co[3],
-                                       const bool use_matrix,
-                                       const float matrix[4][4])
-{
-  float co_world[3];
-  if (use_matrix) {
-    mul_v3_m4v3(co_world, matrix, co);
-    co = co_world;
-  }
-  calc_tw_center(tbounds, co);
-}
-
 static void protectflag_to_drawflags(short protectflag, short *drawflags)
 {
   if (protectflag & OB_LOCK_LOCX) {
@@ -484,50 +473,50 @@ static void protectflag_to_drawflags(short protectflag, short *drawflags)
   }
 }
 
-/* for pose mode */
-static void protectflag_to_drawflags_pchan(RegionView3D *rv3d,
-                                           const bPoseChannel *pchan,
-                                           short orientation_index)
-{
-  /* Protect-flags apply to local space in pose mode, so only let them influence axis
-   * visibility if we show the global orientation, otherwise it's confusing. */
-  if (ELEM(orientation_index, V3D_ORIENT_LOCAL, V3D_ORIENT_GIMBAL)) {
-    protectflag_to_drawflags(pchan->protectflag, &rv3d->twdrawflag);
-  }
-}
-
-/* For editmode. */
-static void protectflag_to_drawflags_ebone(RegionView3D *rv3d, const EditBone *ebo)
-{
-  if (ebo->flag & BONE_EDITMODE_LOCKED) {
-    protectflag_to_drawflags(OB_LOCK_LOC | OB_LOCK_ROT | OB_LOCK_SCALE, &rv3d->twdrawflag);
-  }
-}
-
-int ED_transform_calc_gizmo_stats(const bContext *C,
-                                  const TransformCalcParams *params,
-                                  TransformBounds *tbounds)
+/**
+ * Run \a user_fn for each coordinate of elements selected in View3D (vertices, particles...).
+ * \note Each coordinate has the space matrix of the active object.
+ *
+ * \param orient_index: A #TransformOrientationSlot.type. Here used for calculating \a r_drawflags.
+ * \param use_curve_handles: If true, the handles of curves are traversed.
+ * \param use_only_center: For objects in object mode, defines whether the corners of the bounds or
+ *                         just the center are traversed.
+ * \param user_fn: Callback that runs on each coordinate.
+ * \param r_mat: Returns the space matrix of the coordinates.
+ * \param r_drawflags: Drawing flags for gizmos. Usually stored in #RegionView3D::drawflags.
+ */
+static int gizmo_3d_foreach_selected(const bContext *C,
+                                     const short orient_index,
+                                     const bool use_curve_handles,
+                                     const bool use_only_center,
+                                     blender::FunctionRef<void(const blender::float3 &)> user_fn,
+                                     const float (**r_mat)[4],
+                                     short *r_drawflags)
 {
   using namespace blender;
+
+  const auto run_coord_with_matrix =
+      [&](const float co[3], const bool use_matrix, const float matrix[4][4]) {
+        float co_world[3];
+        if (use_matrix) {
+          mul_v3_m4v3(co_world, matrix, co);
+          co = co_world;
+        }
+        user_fn(co);
+      };
+
   ScrArea *area = CTX_wm_area(C);
-  ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   /* TODO(sergey): This function is used from operator's modal() and from gizmo's refresh().
    * Is it fine to possibly evaluate dependency graph here? */
   Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = static_cast<View3D *>(area->spacedata.first);
-  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   Base *base;
   bGPdata *gpd = CTX_data_gpencil_data(C);
   const bool is_gp_edit = GPENCIL_ANY_MODE(gpd);
   const bool is_curve_edit = GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
   int a, totsel = 0;
-
-  const int pivot_point = scene->toolsettings->transform_pivot_point;
-  const short orient_index = params->orientation_index ?
-                                 (params->orientation_index - 1) :
-                                 BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
 
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
@@ -537,42 +526,6 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     if (obpose != nullptr) {
       ob = obpose;
     }
-  }
-
-  tbounds->use_matrix_space = false;
-
-  /* transform widget matrix */
-  unit_m4(rv3d->twmat);
-
-  unit_m3(rv3d->tw_axis_matrix);
-  zero_v3(rv3d->tw_axis_min);
-  zero_v3(rv3d->tw_axis_max);
-
-  rv3d->twdrawflag = short(0xFFFF);
-
-  /* global, local or normal orientation?
-   * if we could check 'totsel' now, this should be skipped with no selection. */
-  if (ob) {
-    float mat[3][3];
-    ED_transform_calc_orientation_from_type_ex(
-        scene, view_layer, v3d, rv3d, ob, obedit, orient_index, pivot_point, mat);
-    copy_m4_m3(rv3d->twmat, mat);
-  }
-
-  /* transform widget centroid/center */
-  reset_tw_center(tbounds);
-
-  copy_m3_m4(tbounds->axis, rv3d->twmat);
-  if (params->use_local_axis && (ob && ob->mode & (OB_MODE_EDIT | OB_MODE_POSE))) {
-    float diff_mat[3][3];
-    copy_m3_m4(diff_mat, ob->object_to_world);
-    normalize_m3(diff_mat);
-    invert_m3(diff_mat);
-    mul_m3_m3m3(tbounds->axis, tbounds->axis, diff_mat);
-    normalize_m3(tbounds->axis);
-
-    tbounds->use_matrix_space = true;
-    copy_m4_m4(tbounds->matrix_space, ob->object_to_world);
   }
 
   if (is_gp_edit) {
@@ -605,7 +558,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
                 if (gpc_pt->flag & GP_CURVE_POINT_SELECT) {
                   for (uint32_t j = 0; j < 3; j++) {
                     if (BEZT_ISSEL_IDX(bezt, j)) {
-                      calc_tw_center_with_matrix(tbounds, bezt->vec[j], use_mat_local, diff_mat);
+                      run_coord_with_matrix(bezt->vec[j], use_mat_local, diff_mat);
                       totsel++;
                     }
                   }
@@ -622,7 +575,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
               /* Change selection status of all points, then make the stroke match */
               for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
                 if (pt->flag & GP_SPOINT_SELECT) {
-                  calc_tw_center_with_matrix(tbounds, &pt->x, use_mat_local, diff_mat);
+                  run_coord_with_matrix(&pt->x, use_mat_local, diff_mat);
                   totsel++;
                 }
               }
@@ -630,11 +583,6 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
           }
         }
       }
-    }
-
-    /* selection center */
-    if (totsel) {
-      mul_v3_fl(tbounds->center, 1.0f / float(totsel)); /* centroid! */
     }
   }
   else if (obedit) {
@@ -676,7 +624,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
         BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
           if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
             if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-              calc_tw_center_with_matrix(tbounds, eve->co, use_mat_local, mat_local);
+              run_coord_with_matrix(eve->co, use_mat_local, mat_local);
               totsel++;
             }
           }
@@ -695,18 +643,24 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
         LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
           if (EBONE_VISIBLE(arm, ebo)) {
             if (ebo->flag & BONE_TIPSEL) {
-              calc_tw_center_with_matrix(tbounds, ebo->tail, use_mat_local, mat_local);
+              run_coord_with_matrix(ebo->tail, use_mat_local, mat_local);
               totsel++;
             }
             if ((ebo->flag & BONE_ROOTSEL) &&
                 /* don't include same point multiple times */
                 ((ebo->flag & BONE_CONNECTED) && (ebo->parent != nullptr) &&
                  (ebo->parent->flag & BONE_TIPSEL) && EBONE_VISIBLE(arm, ebo->parent)) == 0) {
-              calc_tw_center_with_matrix(tbounds, ebo->head, use_mat_local, mat_local);
+              run_coord_with_matrix(ebo->head, use_mat_local, mat_local);
               totsel++;
-            }
-            if (ebo->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) {
-              protectflag_to_drawflags_ebone(rv3d, ebo);
+
+              if (r_drawflags) {
+                if (ebo->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) {
+                  if (ebo->flag & BONE_EDITMODE_LOCKED) {
+                    protectflag_to_drawflags(OB_LOCK_LOC | OB_LOCK_ROT | OB_LOCK_SCALE,
+                                             r_drawflags);
+                  }
+                }
+              }
             }
           }
         }
@@ -737,23 +691,23 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
                */
               if (v3d->overlay.handle_display == CURVE_HANDLE_NONE) {
                 if (bezt->f2 & SELECT) {
-                  calc_tw_center_with_matrix(tbounds, bezt->vec[1], use_mat_local, mat_local);
+                  run_coord_with_matrix(bezt->vec[1], use_mat_local, mat_local);
                   totsel++;
                 }
               }
               else if (bezt->f2 & SELECT) {
-                calc_tw_center_with_matrix(tbounds, bezt->vec[1], use_mat_local, mat_local);
+                run_coord_with_matrix(bezt->vec[1], use_mat_local, mat_local);
                 totsel++;
               }
               else {
                 if (bezt->f1 & SELECT) {
-                  const float *co = bezt->vec[(pivot_point == V3D_AROUND_LOCAL_ORIGINS) ? 1 : 0];
-                  calc_tw_center_with_matrix(tbounds, co, use_mat_local, mat_local);
+                  const float *co = bezt->vec[!use_curve_handles ? 1 : 0];
+                  run_coord_with_matrix(co, use_mat_local, mat_local);
                   totsel++;
                 }
                 if (bezt->f3 & SELECT) {
-                  const float *co = bezt->vec[(pivot_point == V3D_AROUND_LOCAL_ORIGINS) ? 1 : 2];
-                  calc_tw_center_with_matrix(tbounds, co, use_mat_local, mat_local);
+                  const float *co = bezt->vec[!use_curve_handles ? 1 : 2];
+                  run_coord_with_matrix(co, use_mat_local, mat_local);
                   totsel++;
                 }
               }
@@ -765,7 +719,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
             a = nu->pntsu * nu->pntsv;
             while (a--) {
               if (bp->f1 & SELECT) {
-                calc_tw_center_with_matrix(tbounds, bp->vec, use_mat_local, mat_local);
+                run_coord_with_matrix(bp->vec, use_mat_local, mat_local);
                 totsel++;
               }
               bp++;
@@ -787,7 +741,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
         LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
           if (ml->flag & SELECT) {
-            calc_tw_center_with_matrix(tbounds, &ml->x, use_mat_local, mat_local);
+            run_coord_with_matrix(&ml->x, use_mat_local, mat_local);
             totsel++;
           }
         }
@@ -807,7 +761,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
         while (a--) {
           if (bp->f1 & SELECT) {
-            calc_tw_center_with_matrix(tbounds, bp->vec, use_mat_local, mat_local);
+            run_coord_with_matrix(bp->vec, use_mat_local, mat_local);
             totsel++;
           }
           bp++;
@@ -832,7 +786,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
         const Span<float3> positions = deformation.positions;
         totsel += selected_points.size();
         for (const int point_i : selected_points) {
-          calc_tw_center_with_matrix(tbounds, positions[point_i], use_mat_local, mat_local.ptr());
+          run_coord_with_matrix(positions[point_i], use_mat_local, mat_local.ptr());
         }
       }
       FOREACH_EDIT_OBJECT_END();
@@ -840,14 +794,6 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
 #undef FOREACH_EDIT_OBJECT_BEGIN
 #undef FOREACH_EDIT_OBJECT_END
-
-    /* selection center */
-    if (totsel) {
-      mul_v3_fl(tbounds->center, 1.0f / float(totsel)); /* centroid! */
-      mul_m4_v3(obedit->object_to_world, tbounds->center);
-      mul_m4_v3(obedit->object_to_world, tbounds->min);
-      mul_m4_v3(obedit->object_to_world, tbounds->max);
-    }
   }
   else if (ob && (ob->mode & OB_MODE_POSE)) {
     invert_m4_m4(ob->world_to_object, ob->object_to_world);
@@ -873,27 +819,24 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
         if (!(pchan->bone->flag & BONE_TRANSFORM)) {
           continue;
         }
-        calc_tw_center_with_matrix(tbounds, pchan->pose_head, use_mat_local, mat_local);
-        protectflag_to_drawflags_pchan(rv3d, pchan, orient_index);
+        run_coord_with_matrix(pchan->pose_head, use_mat_local, mat_local);
         totsel++;
+
+        if (r_drawflags) {
+          /* Protect-flags apply to local space in pose mode, so only let them influence axis
+           * visibility if we show the global orientation, otherwise it's confusing. */
+          if (ELEM(orient_index, V3D_ORIENT_LOCAL, V3D_ORIENT_GIMBAL)) {
+            protectflag_to_drawflags(pchan->protectflag, r_drawflags);
+          }
+        }
       }
     }
     MEM_freeN(objects);
-
-    if (totsel) {
-      mul_v3_fl(tbounds->center, 1.0f / float(totsel)); /* centroid! */
-      mul_m4_v3(ob->object_to_world, tbounds->center);
-      mul_m4_v3(ob->object_to_world, tbounds->min);
-      mul_m4_v3(ob->object_to_world, tbounds->max);
-    }
   }
   else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
     if (ob->mode & OB_MODE_SCULPT) {
       totsel = 1;
-      calc_tw_center_with_matrix(tbounds, ob->sculpt->pivot_pos, false, ob->object_to_world);
-      mul_m4_v3(ob->object_to_world, tbounds->center);
-      mul_m4_v3(ob->object_to_world, tbounds->min);
-      mul_m4_v3(ob->object_to_world, tbounds->max);
+      run_coord_with_matrix(ob->sculpt->pivot_pos, false, ob->object_to_world);
     }
   }
   else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
@@ -911,15 +854,10 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
         for (k = 0, ek = point->keys; k < point->totkey; k++, ek++) {
           if (ek->flag & PEK_SELECT) {
-            calc_tw_center(tbounds, (ek->flag & PEK_USE_WCO) ? ek->world_co : ek->co);
+            user_fn((ek->flag & PEK_USE_WCO) ? ek->world_co : ek->co);
             totsel++;
           }
         }
-      }
-
-      /* selection center */
-      if (totsel) {
-        mul_v3_fl(tbounds->center, 1.0f / float(totsel)); /* centroid! */
       }
     }
   }
@@ -944,46 +882,139 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
       /* Get the boundbox out of the evaluated object. */
       const BoundBox *bb = nullptr;
-      if (params->use_only_center == false) {
+      if (use_only_center == false) {
         bb = BKE_object_boundbox_get(base->object);
       }
 
-      if (params->use_only_center || (bb == nullptr)) {
-        calc_tw_center(tbounds, base->object->object_to_world[3]);
+      if (use_only_center || (bb == nullptr)) {
+        user_fn(base->object->object_to_world[3]);
       }
       else {
         for (uint j = 0; j < 8; j++) {
           float co[3];
           mul_v3_m4v3(co, base->object->object_to_world, bb->vec[j]);
-          calc_tw_center(tbounds, co);
+          user_fn(co);
         }
       }
-
-      if (orient_index == V3D_ORIENT_GLOBAL) {
-        /* Protect-flags apply to world space in object mode,
-         * so only let them influence axis visibility if we show the global orientation,
-         * otherwise it's confusing. */
-        protectflag_to_drawflags(base->object->protectflag & OB_LOCK_LOC, &rv3d->twdrawflag);
-      }
-      else if (ELEM(orient_index, V3D_ORIENT_LOCAL, V3D_ORIENT_GIMBAL)) {
-        protectflag_to_drawflags(base->object->protectflag, &rv3d->twdrawflag);
-      }
       totsel++;
-    }
-
-    /* selection center */
-    if (totsel) {
-      mul_v3_fl(tbounds->center, 1.0f / float(totsel)); /* centroid! */
+      if (r_drawflags) {
+        if (orient_index == V3D_ORIENT_GLOBAL) {
+          /* Protect-flags apply to world space in object mode,
+           * so only let them influence axis visibility if we show the global orientation,
+           * otherwise it's confusing. */
+          protectflag_to_drawflags(base->object->protectflag & OB_LOCK_LOC, r_drawflags);
+        }
+        else if (ELEM(orient_index, V3D_ORIENT_LOCAL, V3D_ORIENT_GIMBAL)) {
+          protectflag_to_drawflags(base->object->protectflag, r_drawflags);
+        }
+      }
     }
   }
 
-  if (totsel == 0) {
-    unit_m4(rv3d->twmat);
+  if (r_mat && ob) {
+    *r_mat = ob->object_to_world;
   }
-  else {
-    copy_v3_v3(rv3d->tw_axis_min, tbounds->axis_min);
-    copy_v3_v3(rv3d->tw_axis_max, tbounds->axis_max);
-    copy_m3_m3(rv3d->tw_axis_matrix, tbounds->axis);
+
+  return totsel;
+}
+
+int ED_transform_calc_gizmo_stats(const bContext *C,
+                                  const TransformCalcParams *params,
+                                  TransformBounds *tbounds,
+                                  RegionView3D *rv3d)
+{
+  ScrArea *area = CTX_wm_area(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+  int totsel = 0;
+
+  const int pivot_point = scene->toolsettings->transform_pivot_point;
+  const short orient_index = params->orientation_index ?
+                                 (params->orientation_index - 1) :
+                                 BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
+
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
+  Object *obedit = OBEDIT_FROM_OBACT(ob);
+  if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
+    Object *obpose = BKE_object_pose_armature_get(ob);
+    if (obpose != nullptr) {
+      ob = obpose;
+    }
+  }
+
+  tbounds->use_matrix_space = false;
+  unit_m3(tbounds->axis);
+
+  /* global, local or normal orientation?
+   * if we could check 'totsel' now, this should be skipped with no selection. */
+  if (ob) {
+    float mat[3][3];
+    ED_transform_calc_orientation_from_type_ex(
+        scene, view_layer, v3d, rv3d, ob, obedit, orient_index, pivot_point, mat);
+    copy_m3_m3(tbounds->axis, mat);
+  }
+
+  reset_tw_center(tbounds);
+
+  if (rv3d) {
+    /* transform widget centroid/center */
+    copy_m4_m3(rv3d->twmat, tbounds->axis);
+    rv3d->twdrawflag = short(0xFFFF);
+  }
+
+  if (params->use_local_axis && (ob && ob->mode & (OB_MODE_EDIT | OB_MODE_POSE))) {
+    float diff_mat[3][3];
+    copy_m3_m4(diff_mat, ob->object_to_world);
+    normalize_m3(diff_mat);
+    invert_m3(diff_mat);
+    mul_m3_m3m3(tbounds->axis, tbounds->axis, diff_mat);
+    normalize_m3(tbounds->axis);
+
+    tbounds->use_matrix_space = true;
+    copy_m4_m4(tbounds->matrix_space, ob->object_to_world);
+  }
+
+  const auto gizmo_3d_tbounds_calc_fn = [&](const blender::float3 &co) {
+    calc_tw_center(tbounds, co);
+  };
+
+  totsel = gizmo_3d_foreach_selected(C,
+                                     orient_index,
+                                     (pivot_point != V3D_AROUND_LOCAL_ORIGINS),
+                                     params->use_only_center,
+                                     gizmo_3d_tbounds_calc_fn,
+                                     nullptr,
+                                     rv3d ? &rv3d->twdrawflag : nullptr);
+
+  if (totsel) {
+    mul_v3_fl(tbounds->center, 1.0f / float(totsel)); /* centroid! */
+
+    bGPdata *gpd = CTX_data_gpencil_data(C);
+    const bool is_gp_edit = GPENCIL_ANY_MODE(gpd);
+    if (!is_gp_edit && (obedit || (ob && (ob->mode & (OB_MODE_POSE | OB_MODE_SCULPT))))) {
+      if (ob && (ob->mode & OB_MODE_POSE)) {
+        invert_m4_m4(ob->world_to_object, ob->object_to_world);
+      }
+      mul_m4_v3(ob->object_to_world, tbounds->center);
+      mul_m4_v3(ob->object_to_world, tbounds->min);
+      mul_m4_v3(ob->object_to_world, tbounds->max);
+    }
+  }
+
+  if (rv3d) {
+    if (totsel == 0) {
+      unit_m4(rv3d->twmat);
+      unit_m3(rv3d->tw_axis_matrix);
+      zero_v3(rv3d->tw_axis_min);
+      zero_v3(rv3d->tw_axis_max);
+    }
+    else {
+      copy_m3_m3(rv3d->tw_axis_matrix, tbounds->axis);
+      copy_v3_v3(rv3d->tw_axis_min, tbounds->axis_min);
+      copy_v3_v3(rv3d->tw_axis_max, tbounds->axis_max);
+    }
   }
 
   return totsel;
@@ -999,46 +1030,87 @@ static void gizmo_get_idot(const RegionView3D *rv3d, float r_idot[3])
   }
 }
 
-void gizmo_prepare_mat(const bContext *C, RegionView3D *rv3d, const TransformBounds *tbounds)
+static bool gizmo_3d_calc_pos(const bContext *C,
+                              const Scene *scene,
+                              const TransformBounds *tbounds,
+                              const short pivot_type,
+                              float r_pivot_pos[3])
 {
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
+  zero_v3(r_pivot_pos);
 
-  switch (scene->toolsettings->transform_pivot_point) {
-    case V3D_AROUND_CENTER_BOUNDS:
+  switch (pivot_type) {
+    case V3D_AROUND_CURSOR:
+      copy_v3_v3(r_pivot_pos, scene->cursor.location);
+      return true;
     case V3D_AROUND_ACTIVE: {
-      mid_v3_v3v3(rv3d->twmat[3], tbounds->min, tbounds->max);
-
-      if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
-        BKE_view_layer_synced_ensure(scene, view_layer);
-        Object *ob = BKE_view_layer_active_object_get(view_layer);
-        if (ob != nullptr) {
-          /* Grease Pencil uses object origin. */
-          bGPdata *gpd = CTX_data_gpencil_data(C);
-          if (gpd && (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
-            ED_object_calc_active_center(ob, false, rv3d->twmat[3]);
-          }
-          else {
-            if ((ob->mode & OB_MODE_ALL_SCULPT) && ob->sculpt) {
-              SculptSession *ss = ob->sculpt;
-              copy_v3_v3(rv3d->twmat[3], ss->pivot_pos);
-            }
-            else {
-              ED_object_calc_active_center(ob, false, rv3d->twmat[3]);
-            }
-          }
+      ViewLayer *view_layer = CTX_data_view_layer(C);
+      BKE_view_layer_synced_ensure(scene, view_layer);
+      Object *ob = BKE_view_layer_active_object_get(view_layer);
+      if (ob != nullptr) {
+        if ((ob->mode & OB_MODE_ALL_SCULPT) && ob->sculpt) {
+          SculptSession *ss = ob->sculpt;
+          copy_v3_v3(r_pivot_pos, ss->pivot_pos);
+          return true;
         }
+        else if (ED_object_calc_active_center(ob, false, r_pivot_pos)) {
+          return true;
+        }
+      }
+    }
+      [[fallthrough]];
+    case V3D_AROUND_CENTER_BOUNDS: {
+      TransformBounds tbounds_stack;
+      if (tbounds == nullptr) {
+        TransformCalcParams calc_params{};
+        calc_params.use_only_center = true;
+        if (ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds_stack, nullptr)) {
+          tbounds = &tbounds_stack;
+        }
+      }
+      if (tbounds) {
+        mid_v3_v3v3(r_pivot_pos, tbounds->min, tbounds->max);
+        return true;
       }
       break;
     }
     case V3D_AROUND_LOCAL_ORIGINS:
-    case V3D_AROUND_CENTER_MEDIAN:
-      copy_v3_v3(rv3d->twmat[3], tbounds->center);
-      break;
-    case V3D_AROUND_CURSOR:
-      copy_v3_v3(rv3d->twmat[3], scene->cursor.location);
-      break;
+    case V3D_AROUND_CENTER_MEDIAN: {
+      if (tbounds) {
+        copy_v3_v3(r_pivot_pos, tbounds->center);
+        return true;
+      }
+
+      const auto gizmo_3d_calc_center_fn = [&](const blender::float3 &co) {
+        add_v3_v3(r_pivot_pos, co);
+      };
+      const float(*r_mat)[4] = nullptr;
+      int totsel;
+      totsel = gizmo_3d_foreach_selected(C,
+                                         0,
+                                         (pivot_type != V3D_AROUND_LOCAL_ORIGINS),
+                                         true,
+                                         gizmo_3d_calc_center_fn,
+                                         &r_mat,
+                                         nullptr);
+      if (totsel) {
+        mul_v3_fl(r_pivot_pos, 1.0f / float(totsel));
+        if (r_mat) {
+          mul_m4_v3(r_mat, r_pivot_pos);
+        }
+        return true;
+      }
+    }
   }
+
+  return false;
+}
+
+void gizmo_prepare_mat(const struct bContext *C,
+                       struct RegionView3D *rv3d,
+                       const struct TransformBounds *tbounds)
+{
+  Scene *scene = CTX_data_scene(C);
+  gizmo_3d_calc_pos(C, scene, tbounds, scene->toolsettings->transform_pivot_point, rv3d->twmat[3]);
 }
 
 /**
@@ -1598,7 +1670,7 @@ static int gizmo_modal(bContext *C,
 
     TransformCalcParams calc_params{};
     calc_params.use_only_center = true;
-    if (ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds)) {
+    if (ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds, rv3d)) {
       gizmo_prepare_mat(C, rv3d, &tbounds);
       for (wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.first); gz; gz = gz->next) {
         WM_gizmo_set_matrix_location(gz, rv3d->twmat[3]);
@@ -1875,11 +1947,12 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   TransformCalcParams calc_params{};
   calc_params.use_only_center = true;
   calc_params.orientation_index = orient_index + 1;
-  if ((ggd->all_hidden = (ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds) == 0))) {
+  if ((ggd->all_hidden = (ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds, rv3d) == 0))) {
     return;
   }
 
-  gizmo_prepare_mat(C, rv3d, &tbounds);
+  gizmo_3d_calc_pos(
+      C, scene, &tbounds, scene->toolsettings->transform_pivot_point, rv3d->twmat[3]);
 
   gizmogroup_refresh_from_matrix(gzgroup, rv3d->twmat, nullptr, false);
 }
@@ -2377,4 +2450,12 @@ void transform_gizmo_3d_model_from_constraint_and_mode_restore(TransInfo *t)
     gizmo_3d_setup_draw_from_twtype(axis, axis_idx, ggd->twtype);
   }
   MAN_ITER_AXES_END;
+}
+
+bool ED_transform_calc_pivot_pos(const struct bContext *C,
+                                 const short pivot_type,
+                                 float r_pivot_pos[3])
+{
+  Scene *scene = CTX_data_scene(C);
+  return gizmo_3d_calc_pos(C, scene, nullptr, pivot_type, r_pivot_pos);
 }

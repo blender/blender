@@ -532,7 +532,8 @@ typedef enum ObjectType {
 #define OB_TYPE_SUPPORT_MATERIAL(_type) \
   (((_type) >= OB_MESH && (_type) <= OB_MBALL) || \
    ((_type) >= OB_GPENCIL_LEGACY && (_type) <= OB_VOLUME))
-/** Does the object have some render-able geometry (unlike empties, cameras, etc.). */
+/** Does the object have some render-able geometry (unlike empties, cameras, etc.). True for
+ * #OB_CURVES_LEGACY, since these often evaluate to objects with geometry. */
 #define OB_TYPE_IS_GEOMETRY(_type) \
   (ELEM(_type, \
         OB_MESH, \
@@ -540,6 +541,7 @@ typedef enum ObjectType {
         OB_FONT, \
         OB_MBALL, \
         OB_GPENCIL_LEGACY, \
+        OB_CURVES_LEGACY, \
         OB_CURVES, \
         OB_POINTCLOUD, \
         OB_VOLUME))

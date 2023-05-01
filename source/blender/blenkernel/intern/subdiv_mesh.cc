@@ -1192,11 +1192,19 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
     BitVector<> &bit_vector = result->runtime->subsurf_optimal_display_edges;
     bit_vector.clear();
     bit_vector.resize(subdiv_context.subdiv_display_edges.size());
-    threading::parallel_for_aligned(span.index_range(), 4096, 64, [&](const IndexRange range) {
-      for (const int i : range) {
-        bit_vector[i].set(span[i]);
-      }
-    });
+    threading::parallel_for_aligned(
+        span.index_range(), 4096, bits::BitsPerInt, [&](const IndexRange range) {
+          for (const int i : range) {
+            bit_vector[i].set(span[i]);
+          }
+        });
+  }
+
+  if (coarse_mesh->verts_no_face().count == 0) {
+    result->tag_loose_verts_none();
+  }
+  if (coarse_mesh->loose_edges().count == 0) {
+    result->loose_edges_tag_none();
   }
 
   if (subdiv->settings.is_simple) {

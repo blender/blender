@@ -115,14 +115,14 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
     /* This is a direct copy of a main mesh, so for now it has the same topology. */
     mesh_dst->runtime->deformed_only = true;
   }
-  /* This option is set for run-time meshes that have been copied from the current objects mode.
+  /* This option is set for run-time meshes that have been copied from the current object's mode.
    * Currently this is used for edit-mesh although it could be used for sculpt or other
-   * kinds of data specific to an objects mode.
+   * kinds of data specific to an object's mode.
    *
    * The flag signals that the mesh hasn't been modified from the data that generated it,
    * allowing us to use the object-mode data for drawing.
    *
-   * While this could be the callers responsibility, keep here since it's
+   * While this could be the caller's responsibility, keep here since it's
    * highly unlikely we want to create a duplicate and not use it for drawing. */
   mesh_dst->runtime->is_original_bmesh = false;
 
@@ -130,6 +130,8 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
    * when the source is persistent and edits to the destination mesh don't affect the caches.
    * Caches will be "un-shared" as necessary later on. */
   mesh_dst->runtime->bounds_cache = mesh_src->runtime->bounds_cache;
+  mesh_dst->runtime->loose_verts_cache = mesh_src->runtime->loose_verts_cache;
+  mesh_dst->runtime->verts_no_face_cache = mesh_src->runtime->verts_no_face_cache;
   mesh_dst->runtime->loose_edges_cache = mesh_src->runtime->loose_edges_cache;
   mesh_dst->runtime->looptris_cache = mesh_src->runtime->looptris_cache;
 
@@ -1886,7 +1888,7 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
   const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : float(M_PI);
 
   /* may be nullptr */
-  short(*clnors)[2] = (short(*)[2])CustomData_get_layer_for_write(
+  blender::short2 *clnors = (blender::short2 *)CustomData_get_layer_for_write(
       &mesh->ldata, CD_CUSTOMLOOPNORMAL, mesh->totloop);
   const bool *sharp_edges = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"));

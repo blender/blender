@@ -1263,8 +1263,7 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
     /* Ensure tiled image sources contain a UDIM token. */
     LISTBASE_FOREACH (Image *, ima, &bmain->images) {
       if (ima->source == IMA_SRC_TILED) {
-        char *filename = (char *)BLI_path_basename(ima->filepath);
-        BKE_image_ensure_tile_token(filename);
+        BKE_image_ensure_tile_token(ima->filepath, sizeof(ima->filepath));
       }
     }
   }
@@ -1349,6 +1348,18 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 6)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed == nullptr) {
+        continue;
+      }
+
+      SEQ_for_each_callback(
+          &scene->ed->seqbase, do_versions_sequencer_init_retiming_tool_data, scene);
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1361,16 +1372,6 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
-      if (ed == nullptr) {
-        continue;
-      }
-
-      SEQ_for_each_callback(
-          &scene->ed->seqbase, do_versions_sequencer_init_retiming_tool_data, scene);
-    }
   }
 }
 

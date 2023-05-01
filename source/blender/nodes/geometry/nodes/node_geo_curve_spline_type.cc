@@ -51,7 +51,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
+    const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
     fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
     evaluator.set_selection(selection_field);
     evaluator.evaluate();

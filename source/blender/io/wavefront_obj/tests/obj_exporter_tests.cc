@@ -279,7 +279,8 @@ class obj_exporter_regression_test : public obj_exporter_test {
     strncpy(params.filepath, out_file_path.c_str(), FILE_MAX - 1);
     params.blen_filepath = bfile->main->filepath;
     std::string golden_file_path = blender::tests::flags_test_asset_dir() + SEP_STR + golden_obj;
-    BLI_split_dir_part(golden_file_path.c_str(), params.file_base_for_tests, PATH_MAX);
+    BLI_split_dir_part(
+        golden_file_path.c_str(), params.file_base_for_tests, sizeof(params.file_base_for_tests));
     export_frame(depsgraph, params, out_file_path.c_str());
     std::string output_str = read_temp_file_in_string(out_file_path);
 

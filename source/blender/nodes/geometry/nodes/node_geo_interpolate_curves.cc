@@ -593,8 +593,8 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
 }
 
 static void store_output_attributes(bke::CurvesGeometry &child_curves,
-                                    const AutoAnonymousAttributeID weight_attribute_id,
-                                    const AutoAnonymousAttributeID index_attribute_id,
+                                    const AnonymousAttributeIDPtr weight_attribute_id,
+                                    const AnonymousAttributeIDPtr index_attribute_id,
                                     const int max_neighbors,
                                     const Span<int> all_neighbor_counts,
                                     const Span<int> all_neighbor_indices,
@@ -658,8 +658,8 @@ static GeometrySet generate_interpolated_curves(
     const VArray<int> &point_group_ids,
     const int max_neighbors,
     const AnonymousAttributePropagationInfo &propagation_info,
-    const AutoAnonymousAttributeID &index_attribute_id,
-    const AutoAnonymousAttributeID &weight_attribute_id)
+    const AnonymousAttributeIDPtr &index_attribute_id,
+    const AnonymousAttributeIDPtr &weight_attribute_id)
 {
   const bke::CurvesGeometry &guide_curves = guide_curves_id.geometry.wrap();
 
@@ -793,7 +793,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const Curves &guide_curves_id = *guide_curves_geometry.get_curves_for_read();
 
-  bke::CurvesFieldContext curves_context{guide_curves_id.geometry.wrap(), ATTR_DOMAIN_CURVE};
+  const bke::CurvesFieldContext curves_context{guide_curves_id.geometry.wrap(), ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator curves_evaluator{curves_context, guide_curves_id.geometry.curve_num};
   curves_evaluator.add(guides_up_field);
   curves_evaluator.add(guide_group_field);
@@ -801,7 +801,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const VArray<float3> guides_up = curves_evaluator.get_evaluated<float3>(0);
   const VArray<int> guide_group_ids = curves_evaluator.get_evaluated<int>(1);
 
-  bke::GeometryFieldContext points_context(*points_component, ATTR_DOMAIN_POINT);
+  const bke::GeometryFieldContext points_context(*points_component, ATTR_DOMAIN_POINT);
   fn::FieldEvaluator points_evaluator{points_context,
                                       points_component->attribute_domain_size(ATTR_DOMAIN_POINT)};
   points_evaluator.add(points_up_field);
@@ -813,10 +813,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   const AnonymousAttributePropagationInfo propagation_info = params.get_output_propagation_info(
       "Curves");
 
-  AutoAnonymousAttributeID index_attribute_id = params.get_output_anonymous_attribute_id_if_needed(
+  AnonymousAttributeIDPtr index_attribute_id = params.get_output_anonymous_attribute_id_if_needed(
       "Closest Index");
-  AutoAnonymousAttributeID weight_attribute_id =
-      params.get_output_anonymous_attribute_id_if_needed("Closest Weight");
+  AnonymousAttributeIDPtr weight_attribute_id = params.get_output_anonymous_attribute_id_if_needed(
+      "Closest Weight");
 
   GeometrySet new_curves = generate_interpolated_curves(guide_curves_id,
                                                         *points_component->attributes(),
@@ -836,16 +836,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   params.set_output("Curves", std::move(new_curves));
-  if (index_attribute_id) {
-    params.set_output("Closest Index",
-                      AnonymousAttributeFieldInput::Create<int>(std::move(index_attribute_id),
-                                                                params.attribute_producer_name()));
-  }
-  if (weight_attribute_id) {
-    params.set_output("Closest Weight",
-                      AnonymousAttributeFieldInput::Create<float>(
-                          std::move(weight_attribute_id), params.attribute_producer_name()));
-  }
 }
 
 }  // namespace blender::nodes::node_geo_interpolate_curves_cc

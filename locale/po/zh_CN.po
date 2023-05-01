@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -19681,44 +19681,12 @@ msgid "Paint Selection"
 msgstr "绘制选择"
 
 
-msgid "Add Curves"
-msgstr "添加曲线"
+msgid "Comb"
+msgstr "梳理"
 
 
-msgid "Delete Curves"
-msgstr "删除曲线"
-
-
-msgid "Density Curves"
-msgstr "密度曲线"
-
-
-msgid "Comb Curves"
-msgstr "梳理曲线"
-
-
-msgid "Curves Snake Hook"
-msgstr "曲线蛇形钩"
-
-
-msgid "Grow / Shrink Curves"
-msgstr "生长/收缩曲线"
-
-
-msgid "Pinch Curves"
-msgstr "夹捏曲线"
-
-
-msgid "Puff Curves"
-msgstr "蓬松曲线"
-
-
-msgid "Smooth Curves"
-msgstr "平滑曲线"
-
-
-msgid "Slide Curves"
-msgstr "滑动曲线"
+msgid "Puff"
+msgstr "蓬松"
 
 
 msgid "Dash Ratio"
@@ -19891,10 +19859,6 @@ msgstr "蜡笔顶点绘制工具"
 
 msgid "Grease Pencil Weight Paint Tool"
 msgstr "蜡笔权重绘制工具"
-
-
-msgid "Weight Paint for Vertex Groups"
-msgstr "用于顶点组的权重绘制"
 
 
 msgid "Gradient Spacing"
@@ -22090,6 +22054,10 @@ msgstr "粗斜体"
 
 msgid "Font Italic"
 msgstr "斜体"
+
+
+msgid "Text Selected"
+msgstr "选择的文本"
 
 
 msgid "X Offset"
@@ -37585,20 +37553,8 @@ msgid "Density of the new volume"
 msgstr "新体积的密度"
 
 
-msgid "Exterior Band Width"
-msgstr "外部带宽"
-
-
-msgid "Width of the volume outside of the mesh"
-msgstr "网格外部的体积宽度"
-
-
 msgid "Interior Band Width"
 msgstr "内部带宽"
-
-
-msgid "Width of the volume inside of the mesh"
-msgstr "网格内体积的宽度"
 
 
 msgid "Resolution Mode"
@@ -37619,14 +37575,6 @@ msgstr "一个轴向上所需的体素数量"
 
 msgid "Desired voxel side length"
 msgstr "所需的体素边长度"
-
-
-msgid "Fill Volume"
-msgstr "填充体积"
-
-
-msgid "Initialize the density grid in every cell inside the enclosed volume"
-msgstr "初始化封闭体积内每个单元的密度网格"
 
 
 msgid "Approximate number of voxels along one axis"
@@ -45355,10 +45303,6 @@ msgstr "钳制编号为属性域的大小，而非输出可能无效的默认值
 
 msgid "Sample Nearest"
 msgstr "采样最近"
-
-
-msgid "Find the element of a geometry closest to a position"
-msgstr "查找最接近某个位置的几何元素"
 
 
 msgid "Sample Nearest Surface"
@@ -54373,10 +54317,6 @@ msgid "Optimize Animation Size"
 msgstr "优化动画大小"
 
 
-msgid "Reduce exported file size by removing duplicate keyframes (can cause problems with stepped animation)"
-msgstr "通过删除重复的关键帧来减小导出的文件大小(可能导致分步动画出现问题)"
-
-
 msgid "Export original PBR Specular"
 msgstr "导出原始 PBR 镜面反射"
 
@@ -54796,6 +54736,14 @@ msgstr "执行文件窗口"
 
 msgid "Execute selected file"
 msgstr "执行选择文件"
+
+
+msgid "Show"
+msgstr "显示"
+
+
+msgid "Play"
+msgstr "播放"
 
 
 msgctxt "Operator"
@@ -55389,6 +55337,10 @@ msgstr "从文件加载新字体文件"
 
 msgid "Select all text"
 msgstr "选择全部文本"
+
+
+msgid "Select word under cursor"
+msgstr "选定光标位置的文字"
 
 
 msgctxt "Operator"
@@ -58026,6 +57978,15 @@ msgstr "进入/退出蜡笔笔画的顶点绘制模式"
 msgctxt "Operator"
 msgid "Stroke Weight Paint"
 msgstr "笔画权重绘制"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "权重绘制采样值"
+
+
+msgid "Use the mouse to sample a weight in the 3D view"
+msgstr "使用鼠标在 3D 视图中拾取权重"
 
 
 msgctxt "Operator"
@@ -65741,6 +65702,52 @@ msgstr "捕获漫射间接照明的辐射体积光照探头"
 
 
 msgctxt "Operator"
+msgid "Bake Light Cache"
+msgstr "烘焙光照缓存"
+
+
+msgid "Bake the active view layer lighting"
+msgstr "烘焙活动视图层光照"
+
+
+msgid "Delay in millisecond before baking starts"
+msgstr "烘焙开始前延迟一毫秒"
+
+
+msgid "Subset"
+msgstr "子集"
+
+
+msgid "Subset of probes to update"
+msgstr "要更新的探头子集"
+
+
+msgid "All Light Probes"
+msgstr "全部光照探头"
+
+
+msgid "Dirty Only"
+msgstr "仅污迹"
+
+
+msgid "Only bake light probes that are marked as dirty"
+msgstr "仅烘焙标记为污迹的光探头"
+
+
+msgid "Selected Only"
+msgstr "仅选中"
+
+
+msgctxt "Operator"
+msgid "Delete Light Cache"
+msgstr "删除光照缓存"
+
+
+msgid "Delete cached indirect lighting"
+msgstr "删除缓存的间接光照明"
+
+
+msgctxt "Operator"
 msgid "Bake Line Art"
 msgstr "烘焙线条画"
 
@@ -67491,10 +67498,6 @@ msgid "Remove vertex group assignments which are not required"
 msgstr "移除不需要考虑制定属性的顶点组"
 
 
-msgid "Subset"
-msgstr "子集"
-
-
 msgid "Define which subset of groups shall be used"
 msgstr "定义要被使用的群组的子集"
 
@@ -68952,10 +68955,6 @@ msgid "Hide vertices"
 msgstr "隐藏顶点"
 
 
-msgid "Show"
-msgstr "显示"
-
-
 msgid "Show vertices"
 msgstr "显示顶点"
 
@@ -69315,15 +69314,6 @@ msgstr "权重绘制模式"
 
 msgid "Toggle weight paint mode in 3D view"
 msgstr "在 3D 视图中切换权重绘制模式"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "权重绘制采样值"
-
-
-msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "使用鼠标在 3D 视图中拾取权重"
 
 
 msgctxt "Operator"
@@ -69877,10 +69867,6 @@ msgstr "将当前姿态应用为静置姿态"
 
 msgid "Apply the current pose as the new rest pose"
 msgstr "将当前姿态用作新的静置姿态"
-
-
-msgid "Selected Only"
-msgstr "仅选中"
 
 
 msgid "Only apply the selected bones (with propagation to children)"
@@ -71467,37 +71453,8 @@ msgid "Add or remove grease pencil material preset"
 msgstr "添加或移除蜡笔材质预设"
 
 
-msgctxt "Operator"
-msgid "Bake Light Cache"
-msgstr "烘焙光照缓存"
-
-
-msgid "Bake the active view layer lighting"
-msgstr "烘焙活动视图层光照"
-
-
-msgid "Delay in millisecond before baking starts"
-msgstr "烘焙开始前延迟一毫秒"
-
-
-msgid "Subset of probes to update"
-msgstr "要更新的探头子集"
-
-
-msgid "All Light Probes"
-msgstr "全部光照探头"
-
-
 msgid "Bake both irradiance grids and reflection cubemaps"
 msgstr "烘焙辐射网格和反射立方体贴图"
-
-
-msgid "Dirty Only"
-msgstr "仅污迹"
-
-
-msgid "Only bake light probes that are marked as dirty"
-msgstr "仅烘焙标记为污迹的光探头"
 
 
 msgid "Cubemaps Only"
@@ -71506,15 +71463,6 @@ msgstr "仅立方体贴图"
 
 msgid "Try to only bake reflection cubemaps if irradiance grids are up to date"
 msgstr "尝试仅烘焙反射立方体贴图如果辐射网格已经存在"
-
-
-msgctxt "Operator"
-msgid "Delete Light Cache"
-msgstr "删除光照缓存"
-
-
-msgid "Delete cached indirect lighting"
-msgstr "删除缓存的间接光照明"
 
 
 msgctxt "Operator"
@@ -75075,10 +75023,6 @@ msgstr "选择行"
 
 msgid "Select text by line"
 msgstr "根据行号选择文字"
-
-
-msgid "Select word under cursor"
-msgstr "选定光标位置的文字"
 
 
 msgctxt "Operator"
@@ -79250,10 +79194,6 @@ msgid "Run once and exit"
 msgstr "运行一次并退出"
 
 
-msgid "Play"
-msgstr "播放"
-
-
 msgid "Random Order"
 msgstr "随机顺序"
 
@@ -79984,42 +79924,6 @@ msgstr "软限制最小值"
 
 msgid "Subtype"
 msgstr "子类型"
-
-
-msgid "Plain Data"
-msgstr "纯数据"
-
-
-msgid "Data values without special behavior"
-msgstr "没有特殊行为的数据值"
-
-
-msgid "Linear Color"
-msgstr "线性色"
-
-
-msgid "Color in the linear space"
-msgstr "线性空间中的颜色"
-
-
-msgid "Gamma-Corrected Color"
-msgstr "伽玛校正颜色"
-
-
-msgid "Color in the gamma corrected space"
-msgstr "伽玛校正空间中的颜色"
-
-
-msgid "Euler Angles"
-msgstr "欧拉角度"
-
-
-msgid "Euler rotation angles in radians"
-msgstr "欧拉旋转角度(单位为弧度)"
-
-
-msgid "Quaternion rotation (affects NLA blending)"
-msgstr "四元数旋转(影响 NLA 混合)"
 
 
 msgid "Soft Limits"
@@ -80838,10 +80742,6 @@ msgstr "如果已存在具有相同名称的材质，则引用该材质而非导
 
 msgid "Path Mask"
 msgstr "路径遮罩"
-
-
-msgid "Import only the subset of the USD scene rooted at the given primitive"
-msgstr "仅导入植根于给定基本体的USD场景的子集"
 
 
 msgid "Read mesh color attributes"
@@ -83222,9 +83122,25 @@ msgid "Comb"
 msgstr "梳理"
 
 
+msgid "Comb hairs"
+msgstr "梳理头发"
+
+
+msgid "Smooth hairs"
+msgstr "平滑毛发"
+
+
+msgid "Add hairs"
+msgstr "添加毛发"
+
+
 msgctxt "Operator"
 msgid "Length"
 msgstr "长度"
+
+
+msgid "Make hairs longer or shorter"
+msgstr "改变毛发长度"
 
 
 msgctxt "Operator"
@@ -83232,9 +83148,21 @@ msgid "Puff"
 msgstr "蓬松"
 
 
+msgid "Make hairs stand up"
+msgstr "使毛发挺立"
+
+
+msgid "Cut hairs"
+msgstr "切割毛发"
+
+
 msgctxt "Operator"
 msgid "Weight"
 msgstr "权重"
+
+
+msgid "Weight hair particles"
+msgstr "毛发粒子权重"
 
 
 msgctxt "Operator"
@@ -83514,6 +83442,11 @@ msgstr "强度/力度"
 msgctxt "Operator"
 msgid "Twist"
 msgstr "扭曲"
+
+
+msgctxt "Operator"
+msgid "Slide"
+msgstr "滑移"
 
 
 msgid "Clone from Paint Slot"
@@ -83834,42 +83767,6 @@ msgstr "显示粒子"
 
 msgid "Display actual particles"
 msgstr "显示实际粒子"
-
-
-msgid "Comb"
-msgstr "梳理"
-
-
-msgid "Comb hairs"
-msgstr "梳理头发"
-
-
-msgid "Smooth hairs"
-msgstr "平滑毛发"
-
-
-msgid "Add hairs"
-msgstr "添加毛发"
-
-
-msgid "Make hairs longer or shorter"
-msgstr "改变毛发长度"
-
-
-msgid "Puff"
-msgstr "蓬松"
-
-
-msgid "Make hairs stand up"
-msgstr "使毛发挺立"
-
-
-msgid "Cut hairs"
-msgstr "切割毛发"
-
-
-msgid "Weight hair particles"
-msgstr "毛发粒子权重"
 
 
 msgid "Auto Velocity"
@@ -84764,20 +84661,12 @@ msgid "Pose Matrix"
 msgstr "姿态矩阵"
 
 
-msgid "Final 4x4 matrix after constraints and drivers are applied (object space)"
-msgstr "应用了约束和驱动之后的 4x4 矩阵结果"
-
-
 msgid "Alternative access to location/scale/rotation relative to the parent and own rest bone"
 msgstr "相对于父级与自身骨骼的位置/缩放/旋转的选择性入口"
 
 
 msgid "Channel Matrix"
 msgstr "通道矩阵"
-
-
-msgid "4x4 matrix, before constraints"
-msgstr "4x4矩阵, 在约束之前"
 
 
 msgid "Parent of this pose bone"
@@ -99117,10 +99006,6 @@ msgid "Shade Top"
 msgstr "淡入"
 
 
-msgid "Text Selected"
-msgstr "选择的文本"
-
-
 msgid "Theme Widget State Color"
 msgstr "控制器色彩"
 
@@ -109011,11 +108896,6 @@ msgstr "清除通道"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "扩展"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "滑移"
 
 
 msgctxt "Operator"
@@ -119849,14 +119729,6 @@ msgid "Decimate F-Curves by specifying how much they can deviate from the origin
 msgstr "通过指定函数曲线与原始曲线的偏差程度来精简函数曲线"
 
 
-msgid "Blend to Default Value"
-msgstr "混合到默认值"
-
-
-msgid "Ease Keys"
-msgstr "缓动键"
-
-
 msgid "There is no animation data to operate on"
 msgstr "没有要操作的动画数据"
 
@@ -125718,6 +125590,10 @@ msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "大于阈值的值位于生成的网格内"
 
 
+msgid " node"
+msgstr " 节点"
+
+
 msgid "Missing Data-Block"
 msgstr "缺失数据块"
 
@@ -125740,10 +125616,6 @@ msgstr "忽略输入几何体中的已实现数据"
 
 msgid "Input geometry has unsupported type: "
 msgstr "输入几何体包含不受支持的类型: "
-
-
-msgid " node"
-msgstr " 节点"
 
 
 msgid "Undefined Node Tree Type"

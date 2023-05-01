@@ -255,7 +255,7 @@ class SampleNearestFunction : public mf::MultiFunction {
     const VArray<float3> &positions = params.readonly_single_input<float3>(0, "Position");
     MutableSpan<int> indices = params.uninitialized_single_output<int>(1, "Index");
     if (!src_component_) {
-      indices.fill_indices(mask, 0);
+      indices.fill_indices(mask.indices(), 0);
       return;
     }
 

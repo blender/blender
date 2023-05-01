@@ -260,6 +260,7 @@ void SCULPT_filter_cache_free(SculptSession *ss)
   MEM_SAFE_FREE(ss->filter_cache->limit_surface_co);
   MEM_SAFE_FREE(ss->filter_cache->pre_smoothed_color);
   MEM_delete<FilterCache>(ss->filter_cache);
+  ss->filter_cache = nullptr;
 }
 
 typedef enum eSculptMeshFilterType {

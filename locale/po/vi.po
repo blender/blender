@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -19121,44 +19121,12 @@ msgid "Paint Selection"
 msgstr "Sự Lựa Chọn Điểm"
 
 
-msgid "Add Curves"
-msgstr "Thêm Đường Cong"
+msgid "Comb"
+msgstr "Lược"
 
 
-msgid "Delete Curves"
-msgstr "Xóa Đường Cong"
-
-
-msgid "Density Curves"
-msgstr "Mật Độ Đường Cong"
-
-
-msgid "Comb Curves"
-msgstr "Chải Đường Cong"
-
-
-msgid "Curves Snake Hook"
-msgstr "Cây Móc Đường Cong"
-
-
-msgid "Grow / Shrink Curves"
-msgstr "Nhô / Rút Nhỏ Đường Cong"
-
-
-msgid "Pinch Curves"
-msgstr "Đường Cong Ngát"
-
-
-msgid "Puff Curves"
-msgstr "Phình Đường Cong"
-
-
-msgid "Smooth Curves"
-msgstr "Mịn Đường Cong"
-
-
-msgid "Slide Curves"
-msgstr "Trượt Đường Cong"
+msgid "Puff"
+msgstr "Sưng"
 
 
 msgid "Dash Ratio"
@@ -19331,10 +19299,6 @@ msgstr "Dụng Cụ Sơn Đỉnh Bút Sáp"
 
 msgid "Grease Pencil Weight Paint Tool"
 msgstr "Dụng Cụ Sơn Quyền Lượng Bút Sáp"
-
-
-msgid "Weight Paint for Vertex Groups"
-msgstr "Sơn Quyền Lượng cho Nhóm Đỉnh"
 
 
 msgid "Gradient Spacing"
@@ -21431,6 +21395,10 @@ msgstr "Phông Đậm Nghiêng"
 
 msgid "Font Italic"
 msgstr "Phông Nghiêng"
+
+
+msgid "Text Selected"
+msgstr "Văn Bản Được Chọn"
 
 
 msgid "X Offset"
@@ -36591,20 +36559,8 @@ msgid "Density of the new volume"
 msgstr "Tỉ trọng của thể tích mới"
 
 
-msgid "Exterior Band Width"
-msgstr "Bề Rộng Vành Đai Ngoại"
-
-
-msgid "Width of the volume outside of the mesh"
-msgstr "Bề rộng của thể tích ngoài mạng lưới"
-
-
 msgid "Interior Band Width"
 msgstr "Bề Rộng Vành Đai Nội"
-
-
-msgid "Width of the volume inside of the mesh"
-msgstr "Bề rộng của thể tích trong mạng lưới"
 
 
 msgid "Resolution Mode"
@@ -36625,14 +36581,6 @@ msgstr "Số lượng thể tích tử theo một trục"
 
 msgid "Desired voxel side length"
 msgstr "Bề dài thể tích tử như cầu"
-
-
-msgid "Fill Volume"
-msgstr "Đầy Thể Tích"
-
-
-msgid "Initialize the density grid in every cell inside the enclosed volume"
-msgstr "Khởi động tọa độ tỉ trọng trong mỗi tế bào ở trong thể tích được bao quanh"
 
 
 msgid "Approximate number of voxels along one axis"
@@ -53188,6 +53136,14 @@ msgid "Execute selected file"
 msgstr "Thực hành tập tin được chọn"
 
 
+msgid "Show"
+msgstr "Hiện"
+
+
+msgid "Play"
+msgstr "Hát"
+
+
 msgctxt "Operator"
 msgid "Increment Number in Filename"
 msgstr "Tiến Lên Số Trong Tên Tập Tin"
@@ -53769,6 +53725,10 @@ msgstr "Nhập phông mới từ tập tin"
 
 msgid "Select all text"
 msgstr "Chọn hết văn bản"
+
+
+msgid "Select word under cursor"
+msgstr "Chọn chữ ở đưới con trỏ"
 
 
 msgctxt "Operator"
@@ -56295,6 +56255,15 @@ msgstr "Vào/Thoát chế độ sơn đỉnh cho các nét Bút Sáp"
 msgctxt "Operator"
 msgid "Stroke Weight Paint"
 msgstr "Sơn Quyền Lượng Nét"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "Quyền Lượng Mẫu Vật Sơn Quyền Lượng"
+
+
+msgid "Use the mouse to sample a weight in the 3D view"
+msgstr "Dùng chuột cho lấy mẫu vật quyền lượng trong màn 3D"
 
 
 msgctxt "Operator"
@@ -63624,6 +63593,52 @@ msgstr "Sự rọi kế để bắt ánh sáng tán xạ gián tiếp"
 
 
 msgctxt "Operator"
+msgid "Bake Light Cache"
+msgstr "Đệm Chứa Ánh Sáng Nướng"
+
+
+msgid "Bake the active view layer lighting"
+msgstr "Nướng ánh sáng của lớp màn chiếu hoạt động"
+
+
+msgid "Delay in millisecond before baking starts"
+msgstr "Trì hoãn bằng 1/1000 giây"
+
+
+msgid "Subset"
+msgstr "Tập Phụ"
+
+
+msgid "Subset of probes to update"
+msgstr "Hạ tập của ánh sáng kế để nâng cấp"
+
+
+msgid "All Light Probes"
+msgstr "Hết Ánh Sáng Kế"
+
+
+msgid "Dirty Only"
+msgstr "Chỉ Dơ"
+
+
+msgid "Only bake light probes that are marked as dirty"
+msgstr "Chỉ nướng ánh sáng kế được ký dấu là dơ"
+
+
+msgid "Selected Only"
+msgstr "Chỉ Được Chọn"
+
+
+msgctxt "Operator"
+msgid "Delete Light Cache"
+msgstr "Xóa Đệm Chứa Ánh Sáng"
+
+
+msgid "Delete cached indirect lighting"
+msgstr "Xóa ánh sáng gián tiếp được chứa"
+
+
+msgctxt "Operator"
 msgid "Bake Line Art"
 msgstr "Nướng Nghệ Thuật Đường Nét"
 
@@ -65370,10 +65385,6 @@ msgid "Remove vertex group assignments which are not required"
 msgstr "Xóa chỉ định nhóm đỉnh thì không cần thiết"
 
 
-msgid "Subset"
-msgstr "Tập Phụ"
-
-
 msgid "Define which subset of groups shall be used"
 msgstr "Chỉ định sẽ dùng hạ tập hợp nào của các nhóm"
 
@@ -66831,10 +66842,6 @@ msgid "Hide vertices"
 msgstr "Ẩn đỉnh"
 
 
-msgid "Show"
-msgstr "Hiện"
-
-
 msgid "Show vertices"
 msgstr "Hiện đỉnh"
 
@@ -67172,15 +67179,6 @@ msgstr "Chế Độ Sơn Quyền Lượng"
 
 msgid "Toggle weight paint mode in 3D view"
 msgstr "Bật/tắt chế độ sơn quyền lượng trong màn 3D"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "Quyền Lượng Mẫu Vật Sơn Quyền Lượng"
-
-
-msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "Dùng chuột cho lấy mẫu vật quyền lượng trong màn 3D"
 
 
 msgctxt "Operator"
@@ -67720,10 +67718,6 @@ msgstr "Áp Dụng Dạng Đứng Làm Dạng Đứng Nghỉ"
 
 msgid "Apply the current pose as the new rest pose"
 msgstr "Áp dụng dạng đứng hiện tại làm dạng đứng nghỉ mới"
-
-
-msgid "Selected Only"
-msgstr "Chỉ Được Chọn"
 
 
 msgid "Only apply the selected bones (with propagation to children)"
@@ -69306,37 +69300,8 @@ msgid "Add or remove grease pencil material preset"
 msgstr "Thêm hay xóa đặt sẵn vật liệu bút sáp"
 
 
-msgctxt "Operator"
-msgid "Bake Light Cache"
-msgstr "Đệm Chứa Ánh Sáng Nướng"
-
-
-msgid "Bake the active view layer lighting"
-msgstr "Nướng ánh sáng của lớp màn chiếu hoạt động"
-
-
-msgid "Delay in millisecond before baking starts"
-msgstr "Trì hoãn bằng 1/1000 giây"
-
-
-msgid "Subset of probes to update"
-msgstr "Hạ tập của ánh sáng kế để nâng cấp"
-
-
-msgid "All Light Probes"
-msgstr "Hết Ánh Sáng Kế"
-
-
 msgid "Bake both irradiance grids and reflection cubemaps"
 msgstr "Nướng cả đồ thị sự rọi và bản đồ lập phương phản xạ"
-
-
-msgid "Dirty Only"
-msgstr "Chỉ Dơ"
-
-
-msgid "Only bake light probes that are marked as dirty"
-msgstr "Chỉ nướng ánh sáng kế được ký dấu là dơ"
 
 
 msgid "Cubemaps Only"
@@ -69345,15 +69310,6 @@ msgstr "Chỉ Bản Đồ Lập Phương"
 
 msgid "Try to only bake reflection cubemaps if irradiance grids are up to date"
 msgstr "Thử chỉ nướng bản đồ lập phương phản xạ nếu đồ thị sự rọi đã nâng cấp rồi"
-
-
-msgctxt "Operator"
-msgid "Delete Light Cache"
-msgstr "Xóa Đệm Chứa Ánh Sáng"
-
-
-msgid "Delete cached indirect lighting"
-msgstr "Xóa ánh sáng gián tiếp được chứa"
 
 
 msgctxt "Operator"
@@ -72799,10 +72755,6 @@ msgstr "Chọn Dòng"
 
 msgid "Select text by line"
 msgstr "Chọn văn bản tùy dòng"
-
-
-msgid "Select word under cursor"
-msgstr "Chọn chữ ở đưới con trỏ"
 
 
 msgctxt "Operator"
@@ -76824,10 +76776,6 @@ msgid "Run once and exit"
 msgstr "Chạy một lần và nghỉ"
 
 
-msgid "Play"
-msgstr "Hát"
-
-
 msgid "Random Order"
 msgstr "Thứ Tự Ngẫu Nhiên"
 
@@ -77514,42 +77462,6 @@ msgstr "Cực Tiểu Mềm"
 
 msgid "Subtype"
 msgstr "Loại Phù"
-
-
-msgid "Plain Data"
-msgstr "Dữ Liệu Đơn S"
-
-
-msgid "Data values without special behavior"
-msgstr "Giá trị dữ liệu không có hành vi đặc biệt"
-
-
-msgid "Linear Color"
-msgstr "Màu Tuyến Tính"
-
-
-msgid "Color in the linear space"
-msgstr "Mài sắc trong không gian tuyến tính"
-
-
-msgid "Gamma-Corrected Color"
-msgstr "Màu Được Chỉnh Sửa Gama"
-
-
-msgid "Color in the gamma corrected space"
-msgstr "Maôu trong không gian được chỉnh sửa gama"
-
-
-msgid "Euler Angles"
-msgstr "Góc Euler"
-
-
-msgid "Euler rotation angles in radians"
-msgstr "Góc Euler đơn vị radian"
-
-
-msgid "Quaternion rotation (affects NLA blending)"
-msgstr "Xoay quaternion (nó ảnh hưởng pha trộn NLA)"
 
 
 msgid "Soft Limits"
@@ -78336,10 +78248,6 @@ msgstr "Nếu một vật liệu có tên giống đang tồn tại, tham chiế
 
 msgid "Path Mask"
 msgstr "Mặt Nạ Đường Dẫn"
-
-
-msgid "Import only the subset of the USD scene rooted at the given primitive"
-msgstr "Chỉ nhập một phần của tập hợp của cảnh USD có rễ tại vật thể cơ bản"
 
 
 msgid "Read mesh color attributes"
@@ -80646,9 +80554,25 @@ msgid "Comb"
 msgstr "Lược"
 
 
+msgid "Comb hairs"
+msgstr "Chạy tóc"
+
+
+msgid "Smooth hairs"
+msgstr "Mịn tóc"
+
+
+msgid "Add hairs"
+msgstr "Thêm tóc"
+
+
 msgctxt "Operator"
 msgid "Length"
 msgstr "Bề Dài"
+
+
+msgid "Make hairs longer or shorter"
+msgstr "Làm tóc dài hơn hay ngắn hơn"
 
 
 msgctxt "Operator"
@@ -80656,9 +80580,21 @@ msgid "Puff"
 msgstr "Sưng"
 
 
+msgid "Make hairs stand up"
+msgstr "Làm tóc đứng lên"
+
+
+msgid "Cut hairs"
+msgstr "Cắt tóc"
+
+
 msgctxt "Operator"
 msgid "Weight"
 msgstr "Quyền Lượng"
+
+
+msgid "Weight hair particles"
+msgstr "Làm nặng hạt tóc"
 
 
 msgctxt "Operator"
@@ -80938,6 +80874,11 @@ msgstr "Sức Lực"
 msgctxt "Operator"
 msgid "Twist"
 msgstr "Xoắn"
+
+
+msgctxt "Operator"
+msgid "Slide"
+msgstr "Trượt"
 
 
 msgid "Clone from Paint Slot"
@@ -81250,42 +81191,6 @@ msgstr "Hiển Thị Hạt"
 
 msgid "Display actual particles"
 msgstr "Hiển thị hạt thật sự"
-
-
-msgid "Comb"
-msgstr "Lược"
-
-
-msgid "Comb hairs"
-msgstr "Chạy tóc"
-
-
-msgid "Smooth hairs"
-msgstr "Mịn tóc"
-
-
-msgid "Add hairs"
-msgstr "Thêm tóc"
-
-
-msgid "Make hairs longer or shorter"
-msgstr "Làm tóc dài hơn hay ngắn hơn"
-
-
-msgid "Puff"
-msgstr "Sưng"
-
-
-msgid "Make hairs stand up"
-msgstr "Làm tóc đứng lên"
-
-
-msgid "Cut hairs"
-msgstr "Cắt tóc"
-
-
-msgid "Weight hair particles"
-msgstr "Làm nặng hạt tóc"
 
 
 msgid "Auto Velocity"
@@ -82180,20 +82085,12 @@ msgid "Pose Matrix"
 msgstr "Ma Trận Dạng Đứng"
 
 
-msgid "Final 4x4 matrix after constraints and drivers are applied (object space)"
-msgstr "Ma trận 4x4 cuối cùng sau áp dụng ràng buộc và điều vận (không gian vật thể)"
-
-
 msgid "Alternative access to location/scale/rotation relative to the parent and own rest bone"
 msgstr "Lối thay phiên đến vị trí/phóng to/xoay tương đối với phụ huynh và xương nghỉ một mình"
 
 
 msgid "Channel Matrix"
 msgstr "Ma Trận Kênh"
-
-
-msgid "4x4 matrix, before constraints"
-msgstr "Ma trận 4x4, trước ràng buộc"
 
 
 msgid "Parent of this pose bone"
@@ -95962,10 +95859,6 @@ msgid "Shade Top"
 msgstr "Nhạt Trên"
 
 
-msgid "Text Selected"
-msgstr "Văn Bản Được Chọn"
-
-
 msgid "Theme Widget State Color"
 msgstr "Phong Cách Màu Trạng Thái Khiển Tố"
 
@@ -105173,11 +105066,6 @@ msgstr "Làm Sạch Kênh"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "Kéo Ra"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "Trượt"
 
 
 msgctxt "Operator"
@@ -115527,10 +115415,6 @@ msgid "Decimate F-Curves by specifying how much they can deviate from the origin
 msgstr "Cắt chẻ Cong-F bằng chỉ định mức độ chênh lệch từ đường cong nguyên bản"
 
 
-msgid "Blend to Default Value"
-msgstr "Pha Trộn đến Giá Trí Mặc Định"
-
-
 msgid "There is no animation data to operate on"
 msgstr "Không có dữ liệu hoạt hình để tương tác"
 
@@ -120650,6 +120534,10 @@ msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "Giá trị lớn hơn ngưỡng được chế tạo trong mạng lưới"
 
 
+msgid " node"
+msgstr " giao điểm"
+
+
 msgid "Missing Data-Block"
 msgstr "Cục Dữ Liệu Thiếu"
 
@@ -120668,10 +120556,6 @@ msgstr "Dữ liệu hình thành trong hình dạng ngõ vào đã bị không q
 
 msgid "Input geometry has unsupported type: "
 msgstr "Hình dạng ngõ vào có loại không hỗ trợ:"
-
-
-msgid " node"
-msgstr " giao điểm"
 
 
 msgid "Undefined Node Tree Type"

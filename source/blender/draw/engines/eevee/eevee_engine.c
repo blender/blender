@@ -19,6 +19,8 @@
 
 #include "DNA_world_types.h"
 
+#include "GPU_context.h"
+
 #include "IMB_imbuf.h"
 
 #include "eevee_private.h"
@@ -347,6 +349,16 @@ static void eevee_draw_scene(void *vedata)
        * washed out first bounce for SSR. */
       EEVEE_temporal_sampling_reset(vedata);
       stl->effects->ssr_was_valid_double_buffer = stl->g_data->valid_double_buffer;
+    }
+
+    /* Perform render step between samples to allow flushing of freed temporary GPUBackend
+     * resources. This prevents the GPU backend accumulating a high amount of in-flight memory when
+     * performing renders using eevee_draw_scene. e.g. During file thumbnail generation. */
+    if (loop_len > 2) {
+      if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+        GPU_flush();
+        GPU_render_step();
+      }
     }
   }
 

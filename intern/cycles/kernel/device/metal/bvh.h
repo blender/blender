@@ -224,10 +224,13 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   }
 
   int blas_index = metal_ancillaries->blas_userID_to_index_lookUp[local_object];
-  // transform the ray into object's local space
-  Transform itfm = kernel_data_fetch(objects, local_object).itfm;
-  r.origin = transform_point(&itfm, r.origin);
-  r.direction = transform_direction(&itfm, r.direction);
+
+  if (!(kernel_data_fetch(object_flag, local_object) & SD_OBJECT_TRANSFORM_APPLIED)) {
+    // transform the ray into object's local space
+    Transform itfm = kernel_data_fetch(objects, local_object).itfm;
+    r.origin = transform_point(&itfm, r.origin);
+    r.direction = transform_direction(&itfm, r.direction);
+  }
 
   intersection = metalrt_intersect.intersect(
       r,

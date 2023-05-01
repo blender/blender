@@ -654,8 +654,7 @@ int BKE_packedfile_unpack_image(Main *bmain,
           BLI_strncpy(ima->filepath, new_file_path, sizeof(imapf->filepath));
           if (ima->source == IMA_SRC_TILED) {
             /* Ensure that the Image filepath is kept in a tokenized format. */
-            char *filename = (char *)BLI_path_basename(ima->filepath);
-            BKE_image_ensure_tile_token(filename);
+            BKE_image_ensure_tile_token(ima->filepath, sizeof(ima->filepath));
           }
         }
         MEM_freeN(new_file_path);

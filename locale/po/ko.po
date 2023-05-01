@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -14902,6 +14902,14 @@ msgid "Editable falloff curve"
 msgstr "편집 가능한 커브 감소"
 
 
+msgid "Comb"
+msgstr "빗"
+
+
+msgid "Puff"
+msgstr "퍼프"
+
+
 msgid "Dash Ratio"
 msgstr "대시 비율"
 
@@ -15012,10 +15020,6 @@ msgstr "지우기"
 
 msgid "The brush is used for erasing strokes"
 msgstr "브러시는 스트로크를 지우는 데 사용됩니다"
-
-
-msgid "Weight Paint for Vertex Groups"
-msgstr "버텍스 그룹의 웨이트 페인트"
 
 
 msgid "Gradient Spacing"
@@ -16468,6 +16472,10 @@ msgstr "폰트 굵게 기울임 꼴"
 
 msgid "Font Italic"
 msgstr "폰트 기울임"
+
+
+msgid "Text Selected"
+msgstr "텍스트 선택됨"
 
 
 msgid "X Offset"
@@ -41001,6 +41009,14 @@ msgid "Execute selected file"
 msgstr "선택된 파일을 실행"
 
 
+msgid "Show"
+msgstr "표시"
+
+
+msgid "Play"
+msgstr "재생"
+
+
 msgctxt "Operator"
 msgid "Increment Number in Filename"
 msgstr "파일 이름에 증가 번호"
@@ -41489,6 +41505,10 @@ msgstr "파일에서 새로운 폰트를 불러오기"
 
 msgid "Select all text"
 msgstr "모든 텍스트를 선택"
+
+
+msgid "Select word under cursor"
+msgstr "커서 아래의 단어를 선택"
 
 
 msgctxt "Operator"
@@ -42948,6 +42968,15 @@ msgstr "스무스 버텍스 그룹"
 
 msgid "Smooth weights to the active vertex group"
 msgstr "활성 버텍스 그룹에 웨이트를 부드럽게합니다"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "웨이트 페인트 샘플 웨이트"
+
+
+msgid "Use the mouse to sample a weight in the 3D view"
+msgstr "3D 뷰에 웨이트를 샘플링하기 위해 마우스를 사용"
 
 
 msgctxt "Operator"
@@ -49168,6 +49197,44 @@ msgid "Irradiance probe to capture diffuse indirect lighting"
 msgstr "확산 간접 라이트닝을 포착하기 위한 방사선 조사 프로브"
 
 
+msgctxt "Operator"
+msgid "Bake Light Cache"
+msgstr "라이트 캐시를 베이크"
+
+
+msgid "Bake the active view layer lighting"
+msgstr "활성 뷰레이어 라이트닝을 베이크"
+
+
+msgid "Delay in millisecond before baking starts"
+msgstr "배이킹 시작전 밀리 초 지연"
+
+
+msgid "Subset"
+msgstr "집합"
+
+
+msgid "Subset of probes to update"
+msgstr "업데이트 할 프로브의 하위 설정"
+
+
+msgid "Dirty Only"
+msgstr "더티 만"
+
+
+msgid "Selected Only"
+msgstr "선택 항목 만"
+
+
+msgctxt "Operator"
+msgid "Delete Light Cache"
+msgstr "라이트 캐시를 삭제"
+
+
+msgid "Delete cached indirect lighting"
+msgstr "캐시된 간접 라이트닝을 삭제"
+
+
 msgid "Link objects to a collection"
 msgstr "컬렉션에 오브젝트를 연결"
 
@@ -50417,10 +50484,6 @@ msgid "Remove vertex group assignments which are not required"
 msgstr "필요없는 버텍스 그룹 할당을 제거합니다"
 
 
-msgid "Subset"
-msgstr "집합"
-
-
 msgid "Keep Single"
 msgstr "단일을 유지"
 
@@ -51557,10 +51620,6 @@ msgid "Hide vertices"
 msgstr "버텍스를 숨기기"
 
 
-msgid "Show"
-msgstr "표시"
-
-
 msgid "Show vertices"
 msgstr "버텍스를 표시"
 
@@ -51839,15 +51898,6 @@ msgstr "웨이트 페인트 모드"
 
 msgid "Toggle weight paint mode in 3D view"
 msgstr "3D 뷰에서 웨이트 페인트 모드를 토글"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "웨이트 페인트 샘플 웨이트"
-
-
-msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "3D 뷰에 웨이트를 샘플링하기 위해 마우스를 사용"
 
 
 msgctxt "Operator"
@@ -52204,10 +52254,6 @@ msgstr "레스트 포즈로 포즈를 적용"
 
 msgid "Apply the current pose as the new rest pose"
 msgstr "새로운 레스트 포즈로 현재 포즈를 적용"
-
-
-msgid "Selected Only"
-msgstr "선택 항목 만"
 
 
 msgid "Only apply the selected bones (with propagation to children)"
@@ -53652,29 +53698,8 @@ msgid "Add or remove grease pencil material preset"
 msgstr "그리이스 펜슬 매테리얼 프리셋을 추가 또는 제거"
 
 
-msgctxt "Operator"
-msgid "Bake Light Cache"
-msgstr "라이트 캐시를 베이크"
-
-
-msgid "Bake the active view layer lighting"
-msgstr "활성 뷰레이어 라이트닝을 베이크"
-
-
-msgid "Delay in millisecond before baking starts"
-msgstr "배이킹 시작전 밀리 초 지연"
-
-
-msgid "Subset of probes to update"
-msgstr "업데이트 할 프로브의 하위 설정"
-
-
 msgid "Bake both irradiance grids and reflection cubemaps"
 msgstr "방사 조도 격자 및 반사 큐브 맵을 모두 구워 내기"
-
-
-msgid "Dirty Only"
-msgstr "더티 만"
 
 
 msgid "Cubemaps Only"
@@ -53683,15 +53708,6 @@ msgstr "큐브맵 만"
 
 msgid "Try to only bake reflection cubemaps if irradiance grids are up to date"
 msgstr "방사 조도 격자가 최신인 경우에만 반사 큐브 맵을 베이크합니다"
-
-
-msgctxt "Operator"
-msgid "Delete Light Cache"
-msgstr "라이트 캐시를 삭제"
-
-
-msgid "Delete cached indirect lighting"
-msgstr "캐시된 간접 라이트닝을 삭제"
 
 
 msgctxt "Operator"
@@ -55833,10 +55849,6 @@ msgstr "라인을 선택"
 
 msgid "Select text by line"
 msgstr "라인으로 텍스트를 선택"
-
-
-msgid "Select word under cursor"
-msgstr "커서 아래의 단어를 선택"
 
 
 msgctxt "Operator"
@@ -59101,10 +59113,6 @@ msgid "Run once and exit"
 msgstr "한 번 실행 및 종료"
 
 
-msgid "Play"
-msgstr "재생"
-
-
 msgid "Random Order"
 msgstr "랜덤 순서"
 
@@ -61655,9 +61663,25 @@ msgid "Comb"
 msgstr "빗"
 
 
+msgid "Comb hairs"
+msgstr "헤어 빗"
+
+
+msgid "Smooth hairs"
+msgstr "스무스 헤어"
+
+
+msgid "Add hairs"
+msgstr "해어를 추가"
+
+
 msgctxt "Operator"
 msgid "Length"
 msgstr "길이"
+
+
+msgid "Make hairs longer or shorter"
+msgstr "길거나 짧은 헤어를 만들기"
 
 
 msgctxt "Operator"
@@ -61665,9 +61689,21 @@ msgid "Puff"
 msgstr "퍼프"
 
 
+msgid "Make hairs stand up"
+msgstr "일어난 헤어를 만들기"
+
+
+msgid "Cut hairs"
+msgstr "해어를 잘라내기"
+
+
 msgctxt "Operator"
 msgid "Weight"
 msgstr "웨이트"
+
+
+msgid "Weight hair particles"
+msgstr "웨이트 헤어 파티클"
 
 
 msgctxt "Operator"
@@ -61852,6 +61888,11 @@ msgstr "강도"
 msgctxt "Operator"
 msgid "Twist"
 msgstr "비틀기"
+
+
+msgctxt "Operator"
+msgid "Slide"
+msgstr "슬라이드"
 
 
 msgid "Clone from Paint Slot"
@@ -62088,42 +62129,6 @@ msgstr "파티클을 표시"
 
 msgid "Display actual particles"
 msgstr "실제 파티클을 표시"
-
-
-msgid "Comb"
-msgstr "빗"
-
-
-msgid "Comb hairs"
-msgstr "헤어 빗"
-
-
-msgid "Smooth hairs"
-msgstr "스무스 헤어"
-
-
-msgid "Add hairs"
-msgstr "해어를 추가"
-
-
-msgid "Make hairs longer or shorter"
-msgstr "길거나 짧은 헤어를 만들기"
-
-
-msgid "Puff"
-msgstr "퍼프"
-
-
-msgid "Make hairs stand up"
-msgstr "일어난 헤어를 만들기"
-
-
-msgid "Cut hairs"
-msgstr "해어를 잘라내기"
-
-
-msgid "Weight hair particles"
-msgstr "웨이트 헤어 파티클"
 
 
 msgid "Auto Velocity"
@@ -62962,20 +62967,12 @@ msgid "Pose Matrix"
 msgstr "포즈 매트릭스"
 
 
-msgid "Final 4x4 matrix after constraints and drivers are applied (object space)"
-msgstr "제약과 드라이버가 적용된 이후에 최종 4x4 행렬 (오브젝트 공간)"
-
-
 msgid "Alternative access to location/scale/rotation relative to the parent and own rest bone"
 msgstr "부모 및 자신의 나머지 본과 관련하여 위치/축적/회전에 대한 대안 액세스"
 
 
 msgid "Channel Matrix"
 msgstr "채널 매트릭스"
-
-
-msgid "4x4 matrix, before constraints"
-msgstr "4x4 매트릭스, 제약 이전에"
 
 
 msgid "Parent of this pose bone"
@@ -73957,10 +73954,6 @@ msgid "Shade Top"
 msgstr "셰이드 위쪽"
 
 
-msgid "Text Selected"
-msgstr "텍스트 선택됨"
-
-
 msgid "Theme Widget State Color"
 msgstr "테마 위젯 상태 컬러"
 
@@ -79042,11 +79035,6 @@ msgstr "채널을 정리"
 msgctxt "Operator"
 msgid "Extend"
 msgstr "확장"
-
-
-msgctxt "Operator"
-msgid "Slide"
-msgstr "슬라이드"
 
 
 msgctxt "Operator"

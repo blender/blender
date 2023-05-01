@@ -587,6 +587,7 @@ class AttributeAccessor {
 
   /**
    * Run the provided function for every attribute.
+   * Attributes should not be removed or added during iteration.
    */
   bool for_all(const AttributeForeachCallback fn) const
   {
@@ -652,6 +653,11 @@ class MutableAttributeAccessor : public AttributeAccessor {
     }
     return {};
   }
+
+  /**
+   * Replace the existing attribute with a new one with a different name.
+   */
+  bool rename(const AttributeIDRef &old_attribute_id, const AttributeIDRef &new_attribute_id);
 
   /**
    * Create a new attribute.

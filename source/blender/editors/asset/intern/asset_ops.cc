@@ -43,25 +43,32 @@ using namespace blender;
 using PointerRNAVec = blender::Vector<PointerRNA>;
 
 /**
- * Return the IDs to operate on as PointerRNA vector. Either a single one ("id" context member) or
- * multiple ones ("selected_ids" context member).
+ * Return the IDs to operate on as PointerRNA vector. Prioritizes multiple selected ones
+ * ("selected_ids" context member) over a single active one ("id" context member), since usually
+ * batch operations are more useful.
  */
 static PointerRNAVec asset_operation_get_ids_from_context(const bContext *C)
 {
   PointerRNAVec ids;
 
-  PointerRNA idptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
-  if (idptr.data) {
-    /* Single ID. */
-    ids.append(idptr);
-  }
-  else {
+  /* "selected_ids" context member. */
+  {
     ListBase list;
     CTX_data_selected_ids(C, &list);
     LISTBASE_FOREACH (CollectionPointerLink *, link, &list) {
       ids.append(link->ptr);
     }
     BLI_freelistN(&list);
+
+    if (!ids.is_empty()) {
+      return ids;
+    }
+  }
+
+  /* "id" context member. */
+  PointerRNA idptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
+  if (idptr.data) {
+    ids.append(idptr);
   }
 
   return ids;

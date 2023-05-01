@@ -168,7 +168,7 @@ static bool seq_proxy_get_fname(Scene *scene,
       BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
     }
     else { /* Per strip default. */
-      BLI_snprintf(dir, PROXY_MAXFILE, "%s/BL_proxy", seq->strip->dir);
+      BLI_snprintf(dir, PROXY_MAXFILE, "%s" SEP_STR "BL_proxy", seq->strip->dir);
     }
   }
 
@@ -209,7 +209,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline
   }
 
   if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
-    int frameno = (int)seq_give_frame_index(context->scene, seq, timeline_frame) +
+    int frameno = (int)SEQ_give_frame_index(context->scene, seq, timeline_frame) +
                   seq->anim_startofs;
     if (proxy->anim == NULL) {
       if (seq_proxy_get_fname(

@@ -159,7 +159,7 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
     }
 
     int range_len = min_ii((mip_texture_max_level_ - mip_texture_base_level_) + 1,
-                           texture_.mipmapLevelCount);
+                           texture_.mipmapLevelCount - mip_texture_base_level_);
     BLI_assert(range_len > 0);
     BLI_assert(mip_texture_base_level_ < texture_.mipmapLevelCount);
     BLI_assert(mip_texture_base_layer_ < num_slices);
@@ -1152,7 +1152,7 @@ void gpu::MTLTexture::ensure_mipmaps(int miplvl)
 void gpu::MTLTexture::generate_mipmap()
 {
   /* Fetch Active Context. */
-  MTLContext *ctx = reinterpret_cast<MTLContext *>(GPU_context_active_get());
+  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
   BLI_assert(ctx);
 
   if (!ctx->device) {
@@ -1265,7 +1265,7 @@ void gpu::MTLTexture::clear(eGPUDataFormat data_format, const void *data)
 
   /* Create clear framebuffer. */
   GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
-  FrameBuffer *fb = reinterpret_cast<FrameBuffer *>(this->get_blit_framebuffer(0, 0));
+  FrameBuffer *fb = unwrap(this->get_blit_framebuffer(0, 0));
   fb->bind(true);
   fb->clear_attachment(this->attachment_type(0), data_format, data);
   GPU_framebuffer_bind(prev_fb);
@@ -1805,7 +1805,7 @@ bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
   return true;
 }
 
-bool gpu::MTLTexture::init_internal(const GPUTexture *src, int mip_offset, int layer_offset)
+bool gpu::MTLTexture::init_internal(GPUTexture *src, int mip_offset, int layer_offset)
 {
   BLI_assert(src);
 
@@ -1817,12 +1817,17 @@ bool gpu::MTLTexture::init_internal(const GPUTexture *src, int mip_offset, int l
   source_texture_ = src;
   mip_texture_base_level_ = mip_offset;
   mip_texture_base_layer_ = layer_offset;
+  texture_view_dirty_flags_ |= TEXTURE_VIEW_MIP_DIRTY;
 
   /* Assign usage. */
   gpu_image_usage_flags_ = GPU_texture_usage(src);
+  BLI_assert_msg(
+      gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
+      "Source texture of TextureView must have GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW usage flag.");
 
   /* Assign texture as view. */
-  const gpu::MTLTexture *mtltex = static_cast<const gpu::MTLTexture *>(unwrap(src));
+  gpu::MTLTexture *mtltex = static_cast<gpu::MTLTexture *>(unwrap(src));
+  mtltex->ensure_baked();
   texture_ = mtltex->texture_;
   BLI_assert(texture_);
   [texture_ retain];

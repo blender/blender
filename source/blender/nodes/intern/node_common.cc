@@ -138,7 +138,7 @@ static std::function<ID *(const bNode &node)> get_default_id_getter(const bNodeT
       return nullptr;
     }
     const bNodeTree &ntree = *reinterpret_cast<const bNodeTree *>(node.id);
-    const bNodeSocket *io_socket;
+    const bNodeSocket *io_socket = nullptr;
     if (in_out == SOCK_IN) {
       /* Better be safe than sorry when the underlying node group changed. */
       if (socket_index < ntree.interface_inputs().size()) {
@@ -485,15 +485,6 @@ bNodeSocket *node_group_input_find_socket(bNode *node, const char *identifier)
 
 namespace blender::nodes {
 
-static SocketDeclarationPtr extend_declaration(const eNodeSocketInOut in_out)
-{
-  std::unique_ptr<decl::Extend> decl = std::make_unique<decl::Extend>();
-  decl->name = "";
-  decl->identifier = "__extend__";
-  decl->in_out = in_out;
-  return decl;
-}
-
 static void group_input_declare_dynamic(const bNodeTree &node_tree,
                                         const bNode & /*node*/,
                                         NodeDeclaration &r_declaration)
@@ -502,7 +493,7 @@ static void group_input_declare_dynamic(const bNodeTree &node_tree,
     r_declaration.outputs.append(declaration_for_interface_socket(node_tree, *input));
     r_declaration.outputs.last()->in_out = SOCK_OUT;
   }
-  r_declaration.outputs.append(extend_declaration(SOCK_OUT));
+  r_declaration.outputs.append(decl::create_extend_declaration(SOCK_OUT));
 }
 
 static void group_output_declare_dynamic(const bNodeTree &node_tree,
@@ -513,7 +504,7 @@ static void group_output_declare_dynamic(const bNodeTree &node_tree,
     r_declaration.inputs.append(declaration_for_interface_socket(node_tree, *input));
     r_declaration.inputs.last()->in_out = SOCK_IN;
   }
-  r_declaration.inputs.append(extend_declaration(SOCK_IN));
+  r_declaration.inputs.append(decl::create_extend_declaration(SOCK_IN));
 }
 
 static bool group_input_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
@@ -568,6 +559,7 @@ void register_node_type_group_input()
 
   node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE);
   node_type_size(ntype, 140, 80, 400);
+  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
   ntype->declare_dynamic = blender::nodes::group_input_declare_dynamic;
   ntype->insert_link = blender::nodes::group_input_insert_link;
 
@@ -593,6 +585,7 @@ void register_node_type_group_output()
 
   node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE);
   node_type_size(ntype, 140, 80, 400);
+  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
   ntype->declare_dynamic = blender::nodes::group_output_declare_dynamic;
   ntype->insert_link = blender::nodes::group_output_insert_link;
 

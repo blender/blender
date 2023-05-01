@@ -58,9 +58,6 @@ Static Source Code Checking
    * check_cppcheck:        Run blender source through cppcheck (C & C++).
    * check_clang_array:     Run blender source through clang array checking script (C & C++).
    * check_deprecated:      Check if there is any deprecated code to remove.
-   * check_splint:          Run blenders source through splint (C only).
-   * check_sparse:          Run blenders source through sparse (C only).
-   * check_smatch:          Run blenders source through smatch (C only).
    * check_descriptions:    Check for duplicate/invalid descriptions.
    * check_licenses:        Check license headers follow the SPDX license specification,
                             using one of the accepted licenses in 'doc/license/SPDX-license-identifiers.txt'
@@ -473,21 +470,6 @@ check_clang_array: .FORCE
 	@$(CMAKE_CONFIG)
 	@cd "$(BUILD_DIR)" ; \
 	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_clang_array.py"
-
-check_splint: .FORCE
-	@$(CMAKE_CONFIG)
-	@cd "$(BUILD_DIR)" ; \
-	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_splint.py"
-
-check_sparse: .FORCE
-	@$(CMAKE_CONFIG)
-	@cd "$(BUILD_DIR)" ; \
-	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_sparse.py"
-
-check_smatch: .FORCE
-	@$(CMAKE_CONFIG)
-	@cd "$(BUILD_DIR)" ; \
-	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_smatch.py"
 
 check_mypy: .FORCE
 	@$(PYTHON) "$(BLENDER_DIR)/tools/check_source/check_mypy.py"

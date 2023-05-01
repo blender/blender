@@ -1235,7 +1235,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
                                                  NULL,
                                                  NULL,
                                                  1,
-                                                 0,
+                                                 2,
                                                  m_is_debug_context);
 
     if (!context->initializeDrawingContext()) {

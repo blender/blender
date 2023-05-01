@@ -178,7 +178,7 @@ class OptionalOutputsFunction : public MultiFunction {
   {
     if (params.single_output_is_required(0, "Out 1")) {
       MutableSpan<int> values = params.uninitialized_single_output<int>(0, "Out 1");
-      values.fill_indices(mask, 5);
+      values.fill_indices(mask.indices(), 5);
     }
     MutableSpan<std::string> values = params.uninitialized_single_output<std::string>(1, "Out 2");
     for (const int i : mask) {

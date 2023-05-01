@@ -63,4 +63,5 @@ class VKBuffer {
   bool map(VKContext &context);
   void unmap(VKContext &context);
 };
+
 }  // namespace blender::gpu

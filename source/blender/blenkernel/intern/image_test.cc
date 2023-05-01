@@ -18,7 +18,7 @@ TEST(udim, image_ensure_tile_token)
     char result[FILE_MAX];
 
     BLI_strncpy(result, original, sizeof(result));
-    BKE_image_ensure_tile_token(result);
+    BKE_image_ensure_tile_token_filename_only(result, sizeof(result));
     EXPECT_STREQ(result, expected);
   };
 

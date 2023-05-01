@@ -29,7 +29,7 @@ static void set_radius_in_component(PointCloud &pointcloud,
   AttributeWriter<float> radii = attributes.lookup_or_add_for_write<float>("radius",
                                                                            ATTR_DOMAIN_POINT);
 
-  bke::PointCloudFieldContext field_context{pointcloud};
+  const bke::PointCloudFieldContext field_context{pointcloud};
   fn::FieldEvaluator evaluator{field_context, pointcloud.totpoint};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(radius_field, radii.varray);

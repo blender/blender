@@ -10,6 +10,7 @@
 #include "scene/bake.h"
 #include "scene/camera.h"
 #include "scene/curves.h"
+#include "scene/devicescene.h"
 #include "scene/film.h"
 #include "scene/integrator.h"
 #include "scene/light.h"
@@ -24,7 +25,6 @@
 #include "scene/svm.h"
 #include "scene/tables.h"
 #include "scene/volume.h"
-#include "scene/devicescene.h"
 #include "session/session.h"
 
 #include "util/foreach.h"
@@ -33,8 +33,6 @@
 #include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
-
-
 
 Scene::Scene(const SceneParams &params_, Device *device)
     : name("Scene"),
@@ -550,7 +548,7 @@ static void log_kernel_features(const uint features)
             << "\n";
   VLOG_INFO << "Use Shader Raytrace " << string_from_bool(features & KERNEL_FEATURE_NODE_RAYTRACE)
             << "\n";
-  VLOG_INFO << "Use MNEE" << string_from_bool(features & KERNEL_FEATURE_MNEE) << "\n";
+  VLOG_INFO << "Use MNEE " << string_from_bool(features & KERNEL_FEATURE_MNEE) << "\n";
   VLOG_INFO << "Use Transparent " << string_from_bool(features & KERNEL_FEATURE_TRANSPARENT)
             << "\n";
   VLOG_INFO << "Use Denoising " << string_from_bool(features & KERNEL_FEATURE_DENOISING) << "\n";

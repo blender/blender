@@ -11,6 +11,7 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_object_enums.h"
+#include "DNA_userdef_enums.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -234,7 +235,7 @@ bool BKE_object_obdata_is_libdata(const struct Object *ob);
  */
 struct Object *BKE_object_duplicate(struct Main *bmain,
                                     struct Object *ob,
-                                    uint dupflag,
+                                    eDupli_ID_Flags dupflag,
                                     uint duplicate_options);
 
 /**

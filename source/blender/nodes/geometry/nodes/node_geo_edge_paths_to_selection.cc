@@ -71,7 +71,7 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask /*mask*/) const final
   {
-    bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
+    const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator evaluator{context, mesh.totvert};
     evaluator.add(next_vertex_);
     evaluator.add(start_vertices_);

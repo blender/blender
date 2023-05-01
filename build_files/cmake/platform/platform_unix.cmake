@@ -692,10 +692,12 @@ if(WITH_GHOST_WAYLAND)
 
     if(WITH_GHOST_WAYLAND_LIBDECOR)
       if(_use_system_wayland)
-        pkg_check_modules(libdecor REQUIRED libdecor-0>=0.1)
+        pkg_check_modules(libdecor libdecor-0>=0.1)
       else()
         set(libdecor_INCLUDE_DIRS "${LIBDIR}/wayland_libdecor/include/libdecor-0")
+        set(libdecor_FOUND ON)
       endif()
+      set_and_warn_library_found("libdecor" libdecor_FOUND WITH_GHOST_WAYLAND_LIBDECOR)
     endif()
 
     if(WITH_GHOST_WAYLAND_DBUS)

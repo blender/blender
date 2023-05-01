@@ -184,29 +184,29 @@ BLI_INLINE const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *me)
 
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData *mr, int idx)
 {
-  return ((mr->p_origindex != NULL) && (mr->p_origindex[idx] != ORIGINDEX_NONE) && mr->bm) ?
+  return ((mr->p_origindex != nullptr) && (mr->p_origindex[idx] != ORIGINDEX_NONE) && mr->bm) ?
              BM_face_at_index(mr->bm, mr->p_origindex[idx]) :
-             NULL;
+             nullptr;
 }
 
 BLI_INLINE BMEdge *bm_original_edge_get(const MeshRenderData *mr, int idx)
 {
-  return ((mr->e_origindex != NULL) && (mr->e_origindex[idx] != ORIGINDEX_NONE) && mr->bm) ?
+  return ((mr->e_origindex != nullptr) && (mr->e_origindex[idx] != ORIGINDEX_NONE) && mr->bm) ?
              BM_edge_at_index(mr->bm, mr->e_origindex[idx]) :
-             NULL;
+             nullptr;
 }
 
 BLI_INLINE BMVert *bm_original_vert_get(const MeshRenderData *mr, int idx)
 {
-  return ((mr->v_origindex != NULL) && (mr->v_origindex[idx] != ORIGINDEX_NONE) && mr->bm) ?
+  return ((mr->v_origindex != nullptr) && (mr->v_origindex[idx] != ORIGINDEX_NONE) && mr->bm) ?
              BM_vert_at_index(mr->bm, mr->v_origindex[idx]) :
-             NULL;
+             nullptr;
 }
 
 BLI_INLINE const float *bm_vert_co_get(const MeshRenderData *mr, const BMVert *eve)
 {
   const float(*vert_coords)[3] = mr->bm_vert_coords;
-  if (vert_coords != NULL) {
+  if (vert_coords != nullptr) {
     return vert_coords[BM_elem_index_get(eve)];
   }
 
@@ -217,7 +217,7 @@ BLI_INLINE const float *bm_vert_co_get(const MeshRenderData *mr, const BMVert *e
 BLI_INLINE const float *bm_vert_no_get(const MeshRenderData *mr, const BMVert *eve)
 {
   const float(*vert_normals)[3] = mr->bm_vert_normals;
-  if (vert_normals != NULL) {
+  if (vert_normals != nullptr) {
     return vert_normals[BM_elem_index_get(eve)];
   }
 
@@ -228,7 +228,7 @@ BLI_INLINE const float *bm_vert_no_get(const MeshRenderData *mr, const BMVert *e
 BLI_INLINE const float *bm_face_no_get(const MeshRenderData *mr, const BMFace *efa)
 {
   const float(*poly_normals)[3] = mr->bm_poly_normals;
-  if (poly_normals != NULL) {
+  if (poly_normals != nullptr) {
     return poly_normals[BM_elem_index_get(efa)];
   }
 

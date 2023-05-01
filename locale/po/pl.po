@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -6447,6 +6447,10 @@ msgid "Open"
 msgstr "Otwórz"
 
 
+msgid "Play"
+msgstr "Start"
+
+
 msgid "Remove Pack"
 msgstr "Usuń paczkę (rozpakuj)"
 
@@ -6512,10 +6516,6 @@ msgstr "Obróć zaznaczone obiekty"
 
 msgid "Pinned"
 msgstr "Przypięty"
-
-
-msgid "Play"
-msgstr "Start"
 
 
 msgid "Property Name"

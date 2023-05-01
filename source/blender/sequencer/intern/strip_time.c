@@ -53,7 +53,16 @@ float seq_time_media_playback_rate_factor_get(const Scene *scene, const Sequence
   return seq->media_playback_rate / scene_playback_rate;
 }
 
-float seq_give_frame_index(const Scene *scene, Sequence *seq, float timeline_frame)
+int seq_time_strip_original_content_length_get(const Scene *scene, const Sequence *seq)
+{
+  if (seq->type == SEQ_TYPE_SOUND_RAM) {
+    return seq->len;
+  }
+
+  return seq->len / seq_time_media_playback_rate_factor_get(scene, seq);
+}
+
+float SEQ_give_frame_index(const Scene *scene, Sequence *seq, float timeline_frame)
 {
   float frame_index;
   float sta = SEQ_time_start_frame_get(seq);
@@ -494,10 +503,6 @@ bool SEQ_time_has_still_frames(const Scene *scene, const Sequence *seq)
 
 int SEQ_time_strip_length_get(const Scene *scene, const Sequence *seq)
 {
-  if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    return seq->len;
-  }
-
   if (SEQ_retiming_is_active(seq)) {
     SeqRetimingHandle *handle_start = seq->retiming_handles;
     SeqRetimingHandle *handle_end = seq->retiming_handles + (SEQ_retiming_handles_count(seq) - 1);

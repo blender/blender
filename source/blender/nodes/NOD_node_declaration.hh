@@ -322,7 +322,9 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   /**
    * For inputs this means that the input field is evaluated on all geometry inputs. For outputs
    * it means that this contains an anonymous attribute reference that is available on all geometry
-   * outputs.
+   * outputs. This sockets value does not have to be output manually in the node. It's done
+   * automatically by #LazyFunctionForGeometryNode. This allows outputting this field even if the
+   * geometry output does not have to be computed.
    */
   Self &field_on_all()
   {

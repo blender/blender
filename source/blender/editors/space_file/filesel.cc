@@ -203,8 +203,8 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     }
 
     if (params->dir[0]) {
-      BLI_path_normalize_dir(blendfile_path, params->dir, sizeof(params->dir));
       BLI_path_abs(params->dir, blendfile_path);
+      BLI_path_normalize_dir(params->dir, sizeof(params->dir));
     }
 
     params->flag = 0;

@@ -16,7 +16,6 @@
 #include "BKE_customdata.h"
 #include "BKE_mesh_types.h"
 
-struct BLI_Stack;
 struct BMesh;
 struct BMeshCreateParams;
 struct BMeshFromMeshParams;
@@ -42,13 +41,6 @@ struct Scene;
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-/* setting zero so we can catch bugs in OpenMP/BMesh */
-#ifdef DEBUG
-#  define BKE_MESH_OMP_LIMIT 0
-#else
-#  define BKE_MESH_OMP_LIMIT 10000
 #endif
 
 /*  mesh_runtime.cc  */
@@ -397,9 +389,6 @@ typedef struct MLoopNorSpace {
    *     - BMLoop pointers. */
   struct LinkNode *loops;
   char flags;
-
-  /** To be used for extended processing related to loop normal spaces (aka smooth fans). */
-  void *user_data;
 } MLoopNorSpace;
 /**
  * MLoopNorSpace.flags
@@ -449,6 +438,9 @@ void BKE_lnor_spacearr_tls_join(MLoopNorSpaceArray *lnors_spacearr,
                                 MLoopNorSpaceArray *lnors_spacearr_tls);
 
 MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr);
+
+#ifdef __cplusplus
+
 /**
  * Should only be called once.
  * Beware, this modifies ref_vec and other_vec in place!
@@ -459,7 +451,10 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
                            const float lnor[3],
                            float vec_ref[3],
                            float vec_other[3],
-                           struct BLI_Stack *edge_vectors);
+                           blender::Span<blender::float3> edge_vectors);
+
+#endif
+
 /**
  * Add a new given loop to given lnor_space.
  * Depending on \a lnor_space->data_type, we expect \a bm_loop to be a pointer to BMLoop struct

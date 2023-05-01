@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'dfa42c614fb4')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 09:43:08\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -1929,6 +1929,10 @@ msgid "Open"
 msgstr "Ачуу"
 
 
+msgid "Play"
+msgstr "Ойнотуу"
+
+
 msgid "Increment"
 msgstr "Өсүү"
 
@@ -2653,10 +2657,6 @@ msgstr "Фон сүрөтүн өчүрүү"
 
 msgid "Save a Collada file"
 msgstr "Collada файлын сактоо"
-
-
-msgid "Play"
-msgstr "Ойнотуу"
 
 
 msgctxt "Operator"

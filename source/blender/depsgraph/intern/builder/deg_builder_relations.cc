@@ -1329,8 +1329,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
             bool track = (scon->flag & CON_SHRINKWRAP_TRACK_NORMAL) != 0;
             if (track || BKE_shrinkwrap_needs_normals(scon->shrinkType, scon->shrinkMode)) {
               add_customdata_mask(ct->tar,
-                                  DEGCustomDataMeshMasks::MaskVert(CD_MASK_NORMAL) |
-                                      DEGCustomDataMeshMasks::MaskLoop(CD_MASK_CUSTOMLOOPNORMAL));
+                                  DEGCustomDataMeshMasks::MaskLoop(CD_MASK_CUSTOMLOOPNORMAL));
             }
             if (scon->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
               add_special_eval_flag(&ct->tar->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);

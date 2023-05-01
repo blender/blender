@@ -124,6 +124,10 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences,
       info.use_hardware_raytracing = false;
     }
 
+    if (info.type == DEVICE_HIP && !get_boolean(cpreferences, "use_hiprt")) {
+      info.use_hardware_raytracing = false;
+    }
+
     /* There is an accumulative logic here, because Multi-devices are support only for
      * the same backend + CPU in Blender right now, and both oneAPI and Metal have a
      * global boolean backend setting (see above) for enabling/disabling HW RT,

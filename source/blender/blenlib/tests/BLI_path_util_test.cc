@@ -42,29 +42,41 @@ static char *str_replace_char_strdup(const char *str, char src, char dst)
 /** \name Tests for: #BLI_path_normalize
  * \{ */
 
-#define NORMALIZE_WITH_BASEDIR(input, input_base, output_expect) \
+#define NORMALIZE(input, output_expect) \
   { \
     char path[FILE_MAX] = input; \
-    const char *input_base_test = input_base; \
     if (SEP == '\\') { \
       str_replace_char_with_relative_exception(path, '/', '\\'); \
-      input_base_test = str_replace_char_strdup(input_base_test, '/', '\\'); \
     } \
-    BLI_path_normalize(input_base_test, path); \
+    BLI_path_normalize(path); \
     if (SEP == '\\') { \
       BLI_str_replace_char(path, '\\', '/'); \
-      if (input_base_test) { \
-        free((void *)input_base_test); \
-      } \
     } \
     EXPECT_STREQ(path, output_expect); \
   } \
   ((void)0)
 
-#define NORMALIZE(input, output_expect) NORMALIZE_WITH_BASEDIR(input, nullptr, output_expect)
+/* #BLI_path_normalize: do nothing. */
+TEST(path_util, Normalize_Nop)
+{
+  NORMALIZE(".", ".");
+  NORMALIZE("./", "./");
+  NORMALIZE("/", "/");
+  NORMALIZE("//", "//");
+  NORMALIZE("//a", "//a");
+}
+
+TEST(path_util, Normalize_NopRelative)
+{
+  NORMALIZE("..", "..");
+  NORMALIZE("../", "../");
+  NORMALIZE("../", "../");
+  NORMALIZE("../..", "../..");
+  NORMALIZE("../../", "../../");
+}
 
 /* #BLI_path_normalize: "/./" -> "/" */
-TEST(path_util, Clean_Dot)
+TEST(path_util, Normalize_Dot)
 {
   NORMALIZE("/./", "/");
   NORMALIZE("/a/./b/./c/./", "/a/b/c/");
@@ -72,28 +84,73 @@ TEST(path_util, Clean_Dot)
   NORMALIZE("/a/./././b/", "/a/b/");
 }
 /* #BLI_path_normalize: complex "/./" -> "/", "//" -> "/", "./path/../" -> "./". */
-TEST(path_util, Clean_Complex)
+TEST(path_util, Normalize_ComplexAbsolute)
 {
   NORMALIZE("/a/./b/./c/./.././.././", "/a/");
   NORMALIZE("/a//.//b//.//c//.//..//.//..//.//", "/a/");
 }
+TEST(path_util, Normalize_ComplexRelative)
+{
+  NORMALIZE("a/b/c/d/e/f/g/../a/../b/../../c/../../../d/../../../..", ".");
+  NORMALIZE("a/b/c/d/e/f/g/../a/../../../../b/../../../c/../../d/..", ".");
+}
 /* #BLI_path_normalize: "//" -> "/" */
-TEST(path_util, Clean_DoubleSlash)
+TEST(path_util, Normalize_DoubleSlash)
 {
   NORMALIZE("//", "//"); /* Exception, double forward slash. */
   NORMALIZE(".//", "./");
   NORMALIZE("a////", "a/");
-  NORMALIZE("./a////", "./a/");
+  NORMALIZE("./a////", "a/");
 }
 /* #BLI_path_normalize: "foo/bar/../" -> "foo/" */
-TEST(path_util, Clean_Parent)
+TEST(path_util, Normalize_Parent)
 {
   NORMALIZE("/a/b/c/../../../", "/");
   NORMALIZE("/a/../a/b/../b/c/../c/", "/a/b/c/");
-  NORMALIZE_WITH_BASEDIR("//../", "/a/b/c/", "/a/b/");
+}
+/* #BLI_path_normalize: with too many "/../", match Python's behavior. */
+TEST(path_util, Normalize_UnbalancedAbsolute)
+{
+  NORMALIZE("/../", "/");
+  NORMALIZE("/../a", "/a");
+  NORMALIZE("/a/b/c/../../../../../d", "/d");
+  NORMALIZE("/a/b/c/../../../../d", "/d");
+  NORMALIZE("/a/b/c/../../../d", "/d");
 }
 
-#undef NORMALIZE_WITH_BASEDIR
+/* #BLI_path_normalize: with relative paths that result in leading "../". */
+TEST(path_util, Normalize_UnbalancedRelative)
+{
+  NORMALIZE("./a/b/c/../../../", ".");
+  NORMALIZE("a/b/c/../../../", ".");
+  NORMALIZE("//a/b/c/../../../", "//");
+
+  NORMALIZE("./a/../../../", "../../");
+  NORMALIZE("a/../../../", "../../");
+
+  NORMALIZE("///a/../../../", "//../../");
+  NORMALIZE("//./a/../../../", "//../../");
+
+  NORMALIZE("../a/../../../", "../../../");
+  NORMALIZE("a/b/../c/../../d/../../../e/../../../../f", "../../../../../f");
+  NORMALIZE(".../.../a/.../b/../c/../../d/../../../e/../../../.../../f", "../f");
+}
+
+TEST(path_util, Normalize_UnbalancedRelativeTrailing)
+{
+  NORMALIZE("./a/b/c/../../..", ".");
+  NORMALIZE("a/b/c/../../..", ".");
+  NORMALIZE("//a/b/c/../../..", "//");
+
+  NORMALIZE("./a/../../..", "../..");
+  NORMALIZE("a/../../..", "../..");
+
+  NORMALIZE("///a/../../..", "//../..");
+  NORMALIZE("//./a/../../..", "//../..");
+
+  NORMALIZE("../a/../../..", "../../..");
+}
+
 #undef NORMALIZE
 
 /** \} */
@@ -1002,7 +1059,8 @@ TEST(path_util, FrameGet)
     char head[FILE_MAX]; \
     char tail[FILE_MAX]; \
     ushort numdigits = 0; \
-    const int result = BLI_path_sequence_decode(path, head, tail, &numdigits); \
+    const int result = BLI_path_sequence_decode( \
+        path, head, sizeof(head), tail, sizeof(tail), &numdigits); \
     EXPECT_EQ(result, expect_result); \
     EXPECT_STREQ(head, expect_head); \
     EXPECT_STREQ(tail, expect_tail); \
