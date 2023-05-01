@@ -8317,8 +8317,8 @@ static void def_cmp_mask(StructRNA *srna)
 
   static const EnumPropertyItem aspect_type_items[] = {
       {0, "SCENE", 0, "Scene Size", ""},
-      {CMP_NODEFLAG_MASK_FIXED, "FIXED", 0, "Fixed", "Use pixel size for the buffer"},
-      {CMP_NODEFLAG_MASK_FIXED_SCENE,
+      {CMP_NODE_MASK_FLAG_SIZE_FIXED, "FIXED", 0, "Fixed", "Use pixel size for the buffer"},
+      {CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE,
        "FIXED_SCENE",
        0,
        "Fixed/Scene",
@@ -8334,12 +8334,12 @@ static void def_cmp_mask(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Mask", "");
 
   prop = RNA_def_property(srna, "use_feather", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "custom1", CMP_NODEFLAG_MASK_NO_FEATHER);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "custom1", CMP_NODE_MASK_FLAG_NO_FEATHER);
   RNA_def_property_ui_text(prop, "Feather", "Use feather information from the mask");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_motion_blur", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "custom1", CMP_NODEFLAG_MASK_MOTION_BLUR);
+  RNA_def_property_boolean_sdna(prop, NULL, "custom1", CMP_NODE_MASK_FLAG_MOTION_BLUR);
   RNA_def_property_ui_text(prop, "Motion Blur", "Use multi-sampled motion blur of the mask");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
