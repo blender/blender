@@ -1205,28 +1205,6 @@ bool BKE_mesh_validate_material_indices(Mesh *me)
 /** \name Mesh Stripping (removing invalid data)
  * \{ */
 
-void BKE_mesh_strip_loose_faces(Mesh *me)
-{
-  /* NOTE: We need to keep this for edge creation (for now?), and some old `readfile.c` code. */
-  MFace *f;
-  int a, b;
-  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&me->fdata, CD_MFACE, me->totface);
-
-  for (a = b = 0, f = mfaces; a < me->totface; a++, f++) {
-    if (f->v3) {
-      if (a != b) {
-        memcpy(&mfaces[b], f, sizeof(mfaces[b]));
-        CustomData_copy_data(&me->fdata, &me->fdata, a, b, 1);
-      }
-      b++;
-    }
-  }
-  if (a != b) {
-    CustomData_free_elem(&me->fdata, b, a - b);
-    me->totface = b;
-  }
-}
-
 void strip_loose_polysloops(Mesh *me, blender::BitSpan polys_to_remove)
 {
   MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
