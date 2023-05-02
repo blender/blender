@@ -4335,7 +4335,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
    * this property supports name editing. So assign value to name variable of Fmodifier otherwise
    * modifier interface would show an empty name field. Also ensure uniqueness when opening old
    * files. */
-  if (!MAIN_VERSION_ATLEAST(bmain, 306, 6)) {
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 7)) {
     LISTBASE_FOREACH (bAction *, act, &bmain->actions) {
       LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
         LISTBASE_FOREACH (FModifier *, fcm, &fcu->modifiers) {
