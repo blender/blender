@@ -1246,8 +1246,8 @@ void sequencer_image_seq_reserve_frames(
   RNA_END;
 
   if (filename) {
-    char ext[PATH_MAX];
-    char filename_stripped[PATH_MAX];
+    char ext[FILE_MAX];
+    char filename_stripped[FILE_MAX];
     /* Strip the frame from filename and substitute with `#`. */
     BLI_path_frame_strip(filename, ext, sizeof(ext));
 
