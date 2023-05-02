@@ -286,7 +286,7 @@ static void wm_window_match_keep_current_wm(const bContext *C,
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       WorkSpace *workspace;
 
-      BKE_workspace_layout_find_global(bmain, screen, &workspace);
+      WorkSpaceLayout *layout_old = BKE_workspace_layout_find_global(bmain, screen, &workspace);
       BKE_workspace_active_set(win->workspace_hook, workspace);
       win->scene = CTX_data_scene(C);
 
@@ -295,7 +295,9 @@ static void wm_window_match_keep_current_wm(const bContext *C,
         WM_window_set_active_screen(win, workspace, screen);
       }
       else {
+#if 0 /* NOTE(@ideasman42): The screen referenced from the window has been freed, see: 107525. */
         WorkSpaceLayout *layout_old = WM_window_get_active_layout(win);
+#endif
         WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(
             bmain, workspace, layout_old, win);
 
