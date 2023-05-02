@@ -2252,7 +2252,9 @@ static bool lib_override_library_resync(Main *bmain,
 
   /* Cleanup. */
   BKE_main_id_newptr_and_tag_clear(bmain);
-  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false); /* That one should not be needed in fact. */
+  /* That one should not be needed in fact, as #BKE_id_multi_tagged_delete call above should have
+   * deleted all tagged IDs. */
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
   return success;
 }
@@ -2730,6 +2732,10 @@ static void lib_override_library_main_resync_on_library_indirect_level(
   }
   BLI_listbase_clear(&no_main_ids_list);
 
+  /* Just in case, should not be needed in theory, since #lib_override_library_resync should have
+   * already cleared them all. */
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+
   /* Check there are no left-over IDs needing resync from the current (or higher) level of indirect
    * library level. */
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
@@ -2743,16 +2749,29 @@ static void lib_override_library_main_resync_on_library_indirect_level(
                                          LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT) != 0);
 
     if (need_resync && is_isolated_from_root) {
-      CLOG_INFO(&LOG,
-                3,
-                "ID override %s from library level %d still found as needing resync, and being "
-                "isolated from its hierarchy root. This can happen when its otherwise unchanged "
-                "linked reference was moved around in the library file (e.g. if an object was "
-                "moved into another sub-collection of the same hierarchy).",
-                id->name,
-                ID_IS_LINKED(id) ? id->lib->temp_index : 0);
-      id->tag &= ~LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
-      id->override_library->runtime->tag &= ~LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT;
+      if (!BKE_lib_override_library_is_user_edited(id)) {
+        CLOG_WARN(
+            &LOG,
+            "Deleting unused ID override %s from library level %d, still found as needing "
+            "resync, and being isolated from its hierarchy root. This can happen when its "
+            "otherwise unchanged linked reference was moved around in the library file (e.g. if "
+            "an object was moved into another sub-collection of the same hierarchy).",
+            id->name,
+            ID_IS_LINKED(id) ? id->lib->temp_index : 0);
+        id->tag |= LIB_TAG_DOIT;
+      }
+      else {
+        CLOG_WARN(
+            &LOG,
+            "Keeping user-edited ID override %s from library level %d still found as "
+            "needing resync, and being isolated from its hierarchy root. This can happen when its "
+            "otherwise unchanged linked reference was moved around in the library file (e.g. if "
+            "an object was moved into another sub-collection of the same hierarchy).",
+            id->name,
+            ID_IS_LINKED(id) ? id->lib->temp_index : 0);
+        id->tag &= ~LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
+        id->override_library->runtime->tag &= ~LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT;
+      }
     }
     else if (need_resync) {
       CLOG_ERROR(&LOG,
@@ -2774,6 +2793,10 @@ static void lib_override_library_main_resync_on_library_indirect_level(
     }
   }
   FOREACH_MAIN_ID_END;
+
+  /* Delete 'isolated from root' remaining IDs tagged in above check loop. */
+  BKE_id_multi_tagged_delete(bmain);
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
   BLI_ghash_free(id_roots, nullptr, MEM_freeN);
 
