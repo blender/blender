@@ -64,7 +64,6 @@ struct TableGSet;
 struct DMFlagMat;
 struct IsectRayPrecalc;
 struct MLoopTri;
-struct MSculptVert;
 struct Mesh;
 struct MeshElemMap;
 struct PBVH;
@@ -384,7 +383,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           struct BMIdMap *idmap,
                           const int cd_vert_node_offset,
                           const int cd_face_node_offset,
-                          const int cd_sculpt_vert,
                           const int cd_face_areas,
                           const int cd_boundary_flag,
                           const int cd_flag,
@@ -399,7 +397,6 @@ void BKE_pbvh_set_idmap(PBVH *pbvh, struct BMIdMap *idmap);
 void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_vert_node_offset,
                              const int cd_face_node_offset,
-                             const int cd_sculpt_vert,
                              const int cd_face_areas,
                              const int cd_boudnary_flags,
                              const int cd_flag,
@@ -419,9 +416,6 @@ void BKE_pbvh_free(PBVH *pbvh);
 void BKE_pbvh_set_bm_log(PBVH *pbvh, BMLog *log);
 BMLog *BKE_pbvh_get_bm_log(PBVH *pbvh);
 
-/* update MSculptVerts, doesn't take pbvh argument to allow usage if pbvh doesn't currently exist
- */
-void BKE_pbvh_update_sculpt_verts(PBVH *pbvh);
 
 /**
 checks if original data needs to be updated for v, and if so updates it.  Stroke_id
@@ -776,7 +770,6 @@ typedef struct PBVHVertexIter {
   struct TableGSet *bm_unique_verts, *bm_other_verts;
 
   struct CustomData *bm_vdata;
-  int cd_sculpt_vert;
   int cd_vert_mask_offset;
   int cd_vcol_offset;
 
@@ -789,9 +782,6 @@ typedef struct PBVHVertexIter {
   float *mask;
   bool visible;
 } PBVHVertexIter;
-
-#define BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v) \
-  ((MSculptVert *)BM_ELEM_CD_GET_VOID_P(v, cd_sculpt_vert))
 
 void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int mode);
 
@@ -1075,8 +1065,7 @@ PBVHNode *BKE_pbvh_node_from_face_bmesh(PBVH *pbvh, struct BMFace *f);
 PBVHNode *BKE_pbvh_node_from_index(PBVH *pbvh, int node_i);
 
 struct BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh);
-void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
-                                   int cd_faceset_offset,
+void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
                                    int cd_vcol,
@@ -1196,26 +1185,12 @@ bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v);
 
 void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh, PBVHVertRef vertex);
 
-#if 0
-#  include "DNA_meshdata_types.h"
-ATTR_NO_OPT static void MV_ADD_FLAG(MSculptVert *mv, int flag)
-{
-  if (flag & SCULPTVERT_NEED_BOUNDARY) {
-    flag |= flag;
-  }
-
-  mv->flag |= flag;
-}
-#else
-#  define MV_ADD_FLAG(mv, flag1) (mv)->flag |= (flag1)
-#endif
-
 #if 1
 #  include "atomic_ops.h"
 #  include <float.h>
 #  include <math.h>
 
-/*why is atomic_ops defining near & far macros?*/
+/* Why is atomic_ops defining near & far macros? */
 #  ifdef near
 #    undef near
 #  endif
@@ -1272,7 +1247,7 @@ existing_pbvh can be NULL.
 
 Note that all the sculpt customdata layers will be created
 if they don't exist, so cd_vert/face_node_offset, cd_mask_offset,
-cd_sculpt_vert, etc*/
+etc*/
 DynTopoState *BKE_dyntopo_init(struct BMesh *bm, PBVH *existing_pbvh);
 void BKE_dyntopo_free(DynTopoState *ds);
 void BKE_dyntopo_default_params(DynRemeshParams *params, float edge_size);
@@ -1302,7 +1277,6 @@ void BKE_pbvh_set_vemap(PBVH *pbvh, struct MeshElemMap *vemap);
 void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value);
 
 void BKE_pbvh_set_face_areas(PBVH *pbvh, float *face_areas);
-void BKE_pbvh_set_sculpt_verts(PBVH *pbvh, struct MSculptVert *sverts);
 void BKE_pbvh_set_pmap(PBVH *pbvh, SculptPMap *pmap);
 SculptPMap *BKE_pbvh_get_pmap(PBVH *pbvh);
 void BKE_pbvh_cache_remove(PBVH *pbvh);

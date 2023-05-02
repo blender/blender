@@ -410,7 +410,7 @@ struct SculptThreadedTaskData {
   ThreadMutex mutex;
 
   // Layer brush
-  int cd_temp, cd_temp2, cd_temp3, cd_sculpt_vert;
+  int cd_temp, cd_temp2, cd_temp3;
 
   float smooth_projection;
   float rake_projection;
@@ -1386,8 +1386,6 @@ bool SCULPT_face_select_get(SculptSession *ss, PBVHFaceRef face);
 /** \name Original Data API
  * \{ */
 
-MSculptVert *SCULPT_vertex_get_sculptvert(const SculptSession *ss, PBVHVertRef vertex);
-
 /**
  * DEPRECATED: use SCULPT_vertex_check_origdata and SCULPT_vertex_get_sculptvert
  * Initialize a #SculptOrigVertData for accessing original vertex data;
@@ -1876,7 +1874,6 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
                                         float projection,
                                         bool check_fsets,
                                         int cd_temp,
-                                        int cd_sculpt_vert,
                                         bool do_origco);
 
 void SCULPT_neighbor_coords_average(SculptSession *ss,

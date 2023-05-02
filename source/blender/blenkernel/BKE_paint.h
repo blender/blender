@@ -28,7 +28,6 @@ extern "C" {
 #endif
 
 struct SculptAttribute;
-struct MSculptVert;
 struct BMFace;
 struct BMesh;
 struct BMIdMap;
@@ -716,12 +715,12 @@ typedef struct SculptAttributePointers {
   SculptAttribute *smooth_bdist;
   SculptAttribute *smooth_vel;
 
-  SculptAttribute *boundary_flags;
-  SculptAttribute *sculpt_vert;
+  /* Sculpt utility attributes. */
   SculptAttribute *stroke_id;
-
+  SculptAttribute *boundary_flags;
   SculptAttribute *valence;           /* CD_PROP_INT32,  vert */
   SculptAttribute *flags;             /* CD_PROP_INT8,   vert */
+
   SculptAttribute *orig_co, *orig_no; /* CD_PROP_FLOAT3, vert */
   SculptAttribute *orig_fsets;        /* CD_PROP_INT32,  face */
   SculptAttribute *orig_color;        /* CD_PROP_FLOAT4, vert */
@@ -824,7 +823,6 @@ struct SculptSession {
   /* TODO: get rid of these cd_ members and use
    * .attrs.XXX.bmesh_cd_offset directly.
    */
-  int cd_sculpt_vert;
   int cd_vert_node_offset;
   int cd_face_node_offset;
   int cd_vcol_offset;
@@ -967,8 +965,6 @@ struct SculptSession {
   int boundary_symmetry;
 
   bool fast_draw;  // hides facesets/masks and forces smooth to save GPU bandwidth
-  struct MSculptVert *msculptverts;  // for non-bmesh
-  int last_msculptverts_count;
 
   /* This is a fixed-size array so we can pass pointers to its elements
    * to client code. This is important to keep bmesh offsets up to date.
@@ -1084,7 +1080,7 @@ void BKE_sculpt_attribute_destroy_temporary_all(struct Object *ob);
 /* Destroy attributes that were marked as stroke only in SculptAttributeParams. */
 void BKE_sculpt_attributes_destroy_temporary_stroke(struct Object *ob);
 
-bool BKE_sculptsession_check_sculptverts(struct Object *ob,
+bool BKE_sculpt_init_flags_valence(struct Object *ob,
                                          struct PBVH *pbvh,
                                          int totvert,
                                          bool reset_flags);

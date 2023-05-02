@@ -2897,7 +2897,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
 
     int cd_temp = data->scl->bmesh_cd_offset;
     SCULPT_bmesh_four_neighbor_average(
-        ss, avg, direction2, vd.bm_vert, 1.0f, true, cd_temp, ss->cd_sculpt_vert, false);
+        ss, avg, direction2, vd.bm_vert, 1.0f, true, cd_temp, false);
 
     sub_v3_v3v3(val, avg, vd.co);
 
@@ -3019,6 +3019,8 @@ void SCULPT_do_mask_brush_draw(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
 
+    BKE_sculpt_ensure_origmask(ob);
+
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data{};
   data.sd = sd;
@@ -3041,6 +3043,7 @@ void SCULPT_do_mask_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
       SCULPT_do_mask_brush_draw(sd, ob, nodes);
       break;
     case BRUSH_MASK_SMOOTH:
+      BKE_sculpt_ensure_origmask(ob);
       SCULPT_smooth(sd, ob, nodes, ss->cache->bstrength, true);
       break;
   }

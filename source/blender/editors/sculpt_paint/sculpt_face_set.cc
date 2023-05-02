@@ -2279,8 +2279,8 @@ static void sculpt_face_set_extrude_id(Object *ob,
 
   BM_mesh_select_mode_set(bm, SCE_SELECT_FACE);
 
-  int mupdateflag = SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_TRIANGULATE |
-                    SCULPTVERT_NEED_VALENCE;
+  int mupdateflag = SCULPTFLAG_NEED_DISK_SORT | SCULPTFLAG_NEED_TRIANGULATE |
+                    SCULPTFLAG_NEED_VALENCE;
 
   Vector<BMVert *> retvs, vs;
   Vector<BMEdge *> es;
@@ -2427,7 +2427,6 @@ static void sculpt_face_set_extrude_id(Object *ob,
   sculpt_bm_mesh_elem_hflag_disable_all(
       bm, BM_ALL_NOLOOP, BM_ELEM_SELECT | BM_ELEM_TAG_ALT | BM_ELEM_TAG);
 
-  int cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
   cd_faceset_offset = CustomData_get_offset_named(
       &bm->pdata, CD_PROP_INT32, ".sculpt_face_set");  // recalc in case bmop changed it
 
@@ -2516,15 +2515,12 @@ static void sculpt_face_set_extrude_id(Object *ob,
         case BM_FACE: {
           BMFace *f = (BMFace *)ele;
 
-          if (cd_sculpt_vert != -1) {
-            BMLoop *l = f->l_first;
-            do {
-              *(int *)BM_ELEM_CD_GET_VOID_P(l->v,
-                                            cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
-              uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(l->v, ss->attrs.flags->bmesh_cd_offset);
-              *flag |= mupdateflag;
-            } while ((l = l->next) != f->l_first);
-          }
+          BMLoop *l = f->l_first;
+          do {
+            *(int *)BM_ELEM_CD_GET_VOID_P(l->v, cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+            uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(l->v, ss->attrs.flags->bmesh_cd_offset);
+            *flag |= mupdateflag;
+          } while ((l = l->next) != f->l_first);
 
           if (ss->bm) {
             BKE_pbvh_bmesh_add_face(ss->pbvh, f, true, false);
@@ -2558,15 +2554,13 @@ static void sculpt_face_set_extrude_id(Object *ob,
       continue;
     }
 
-    if (cd_sculpt_vert >= 0) {
-      BMLoop *l = f->l_first;
-      do {
-        *(int *)BM_ELEM_CD_GET_VOID_P(l->v, cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+    BMLoop *l = f->l_first;
+    do {
+      *(int *)BM_ELEM_CD_GET_VOID_P(l->v, cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-        uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(l->v, ss->attrs.flags->bmesh_cd_offset);
-        *flag |= mupdateflag;
-      } while ((l = l->next) != f->l_first);
-    }
+      uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(l->v, ss->attrs.flags->bmesh_cd_offset);
+      *flag |= mupdateflag;
+    } while ((l = l->next) != f->l_first);
 
     if (ss->bm && !BM_elem_flag_test(f, tag1)) {
       BKE_pbvh_bmesh_add_face(ss->pbvh, f, true, false);
@@ -2590,8 +2584,6 @@ static void sculpt_face_set_extrude_id(Object *ob,
       continue;
     }
 
-    const int cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
-
     BMLoop *l = f->l_first;
 
     do {
@@ -2599,10 +2591,8 @@ static void sculpt_face_set_extrude_id(Object *ob,
         *(int *)BM_ELEM_CD_GET_VOID_P(l->v, cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
       }
 
-      if (cd_sculpt_vert != -1) {
-        uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(l->v, ss->attrs.flags->bmesh_cd_offset);
-        *flag |= mupdateflag;
-      }
+      uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(l->v, ss->attrs.flags->bmesh_cd_offset);
+      *flag |= mupdateflag;
     } while ((l = l->next) != f->l_first);
   }
 

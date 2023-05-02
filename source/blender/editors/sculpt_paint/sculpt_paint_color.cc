@@ -307,6 +307,8 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
     return;
   }
 
+  BKE_sculpt_ensure_origcolor(ob);
+
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
       ss->cache->density_seed = float(BLI_hash_int_01(ss->cache->location[0] * 1000));
@@ -401,6 +403,8 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
 
   SculptAttributeParams params_id = {};
   params_id.nointerp = params.stroke_only = true;
+
+  BKE_sculpt_ensure_origcolor(ob);
 
   if (!ss->attrs.smear_previous) {
     ss->attrs.smear_previous = BKE_sculpt_attribute_ensure(

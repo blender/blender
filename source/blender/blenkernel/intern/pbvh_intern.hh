@@ -24,7 +24,6 @@ struct PBVHGPUFormat;
 /** \file
  * \ingroup bke
  */
-struct MSculptVert;
 struct CustomData;
 struct PBVHTriBuf;
 
@@ -199,7 +198,6 @@ struct PBVH {
   const MLoopTri *looptri;
   blender::Span<blender::float3> origco, origno;
 
-  struct MSculptVert *msculptverts;
   /* Sculpt flags*/
   uint8_t *sculpt_flags;
 
@@ -241,7 +239,6 @@ struct PBVH {
   float bm_detail_range;
   struct BMIdMap *bm_idmap;
 
-  int cd_sculpt_vert;
   int cd_flag;
   int cd_valence;
   int cd_origco, cd_origno;
@@ -435,8 +432,7 @@ void pbvh_bmesh_check_nodes_simple(PBVH *pbvh);
 
 void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni);
 void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f);
-void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
-                                   int cd_faceset_offset,
+void bke_pbvh_update_vert_boundary(int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
                                    int cd_vcol_offset,
@@ -453,8 +449,7 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
   int *flag = (int *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_boundary_flag);
 
   if (*flag & SCULPT_BOUNDARY_NEEDS_UPDATE) {
-    bke_pbvh_update_vert_boundary(pbvh->cd_sculpt_vert,
-                                  pbvh->cd_faceset_offset,
+    bke_pbvh_update_vert_boundary(pbvh->cd_faceset_offset,
                                   pbvh->cd_vert_node_offset,
                                   pbvh->cd_face_node_offset,
                                   pbvh->cd_vcol_offset,

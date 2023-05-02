@@ -28,6 +28,16 @@ void bm_kill_only_loop(BMesh *bm, BMLoop *l);
 void bm_kill_only_face(BMesh *bm, BMFace *f);
 }
 
+static inline bool dyntopo_test_flag(PBVH *pbvh, BMVert *v, uint8_t flag)
+{
+  return *BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag) & flag;
+}
+
+static inline void dyntopo_add_flag(PBVH *pbvh, BMVert *v, uint8_t flag)
+{
+  *BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag) |= flag;
+}
+
 namespace blender::dyntopo {
 
 static int elem_sizes[] = {-1,
@@ -63,7 +73,7 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
 //#define WITH_ADAPTIVE_CURVATURE
 //#define DYNTOPO_NO_THREADING
 
-#define SCULPTVERT_VALENCE_TEMP SCULPTVERT_SPLIT_TEMP
+#define SCULPTVERT_VALENCE_TEMP SCULPTFLAG_SPLIT_TEMP
 
 #define SCULPTVERT_SMOOTH_BOUNDARY \
   (SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SHARP | \
@@ -200,7 +210,6 @@ struct EdgeQueueContext {
   BMesh *bm = nullptr;
   DyntopoMaskCB mask_cb = nullptr;
   void *mask_cb_data;
-  int cd_sculpt_vert;
   int cd_vert_mask_offset;
   int cd_vert_node_offset;
   int cd_face_node_offset;
@@ -332,10 +341,10 @@ inline void fix_mesh(PBVH *pbvh, BMesh *bm)
 
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     v->e = nullptr;
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-
-    MV_ADD_FLAG(mv,
-                SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_TRIANGULATE);
+    dyntopo_add_flag(pbvh,
+                     v,
+                     SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_DISK_SORT |
+                         SCULPTFLAG_NEED_TRIANGULATE);
   }
 
   BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
@@ -717,13 +726,3 @@ error:
   return false;
 }
 #endif
-
-static inline bool dyntopo_test_flag(PBVH *pbvh, BMVert *v, uint8_t flag)
-{
-  return *BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag) & flag;
-}
-
-static inline void dyntopo_add_flag(PBVH *pbvh, BMVert *v, uint8_t flag)
-{
-  *BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag) |= flag;
-}

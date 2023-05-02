@@ -206,7 +206,7 @@ static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
     case BM_VERT: {
       BMVert *v = reinterpret_cast<BMVert *>(elem);
 
-      dyntopo_add_flag(data->pbvh, v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+      dyntopo_add_flag(data->pbvh, v, SCULPTFLAG_NEED_DISK_SORT | SCULPTFLAG_NEED_VALENCE);
 
       BM_log_vert_removed(bm, data->pbvh->bm_log, v);
       pbvh_bmesh_vert_remove(data->pbvh, v);
@@ -261,7 +261,7 @@ static void collapse_ring_callback_post(BMElem *elem, void *userdata)
     case BM_VERT: {
       BMVert *v = reinterpret_cast<BMVert *>(elem);
 
-      dyntopo_add_flag(data->pbvh, v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+      dyntopo_add_flag(data->pbvh, v, SCULPTFLAG_NEED_DISK_SORT | SCULPTFLAG_NEED_VALENCE);
 
       check_new_elem_id(elem, data);
       BM_log_vert_added(bm, data->pbvh->bm_log, v);
@@ -564,8 +564,8 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   tdata.pbvh = pbvh;
   tdata.e = e;
 
-  const int mupdateflag = SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT;
-  // updateflag |= SCULPTVERT_NEED_TRIANGULATE;  // to check for non-manifold flaps
+  const int mupdateflag = SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_DISK_SORT;
+  // updateflag |= SCULPTFLAG_NEED_TRIANGULATE;  // to check for non-manifold flaps
 
   validate_edge(pbvh, pbvh->header.bm, e, true, true);
 

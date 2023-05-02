@@ -1551,70 +1551,6 @@ static bool layerValidate_propfloat2(void *data, const uint totitems, const bool
   return has_errors;
 }
 
-static void layerDynTopoVert_default(void *dest, int count)
-{
-  MSculptVert *mv = static_cast<MSculptVert *>(dest);
-
-  for (int i = 0; i < count; i++, mv++) {
-    memset(static_cast<void *>(mv), 0, sizeof(MSculptVert));
-    mv->flag = SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE;
-  }
-}
-
-static void layerDynTopoVert_copy(const void *source, void *dest, int count)
-{
-  memcpy(dest, source, count * sizeof(MSculptVert));
-}
-
-static void layerDynTopoVert_interp(
-    const void **sources, const float *weights, const float *sub_weights, int count, void *dest)
-{
-  float co[3], no[3], origmask, color[4], curv;
-  MSculptVert *mv = (MSculptVert *)dest;
-
-  // float totweight = 0.0f;
-
-  if (count == 0) {
-    memset(mv, 0, sizeof(*mv));
-    return;
-  }
-
-  zero_v3(co);
-  zero_v3(no);
-  origmask = 0.0f;
-  curv = 0.0f;
-  zero_v4(color);
-
-  for (int i = 0; i < count; i++) {
-    MSculptVert *mv2 = (MSculptVert *)sources[i];
-    float w;
-
-    if (i == 0) {  // copy flag from first source
-      mv->flag = mv2->flag;
-      mv->stroke_id = mv2->stroke_id;
-    }
-
-    w = weights[i];
-
-    madd_v3_v3fl(co, mv2->origco, w);
-    madd_v3_v3fl(no, mv2->origno, w);
-    madd_v4_v4fl(color, mv2->origcolor, w);
-    origmask += (float)mv2->origmask * w;
-    curv += (float)mv2->curv * w;
-
-    // totweight += w;
-  }
-
-  normalize_v3(no);
-
-  copy_v3_v3(mv->origco, co);
-  copy_v3_v3(mv->origno, no);
-  copy_v4_v4(mv->origcolor, color);
-
-  mv->curv = (short)curv;
-  mv->origmask = (short)origmask;
-}
-
 static void layerInterp_noop(const void **, const float *, const float *, int, void *)
 {
   // do nothing
@@ -2086,17 +2022,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr},
     /* 51: CD_HAIRLENGTH */
     {sizeof(float), "float", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
-    /* 52 CD_DYNTOPO_VERT */
-    {sizeof(MSculptVert),
-     "MSculptVert",
-     1,
-     nullptr,  // flag singleton layer
-     layerDynTopoVert_copy,
-     nullptr,
-     layerDynTopoVert_interp,
-     nullptr,
-     layerDynTopoVert_default},
-    /*53 CD_BMESH_TOOLFLAGS */
+    /*52 CD_BMESH_TOOLFLAGS */
     {sizeof(MToolFlags),
      "MToolFlags",
      1,
@@ -2173,7 +2099,6 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {/*   0-4 */
                                                   "CDPropBoolean",
                                                   /*51-53*/
                                                   "CDHairLength",
-                                                  "CDDyntopoVert",
                                                   "CDMToolFlags"};
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {
@@ -4315,6 +4240,7 @@ void CustomData_bmesh_free_block(CustomData *data, void **block)
   }
 
   if (data->totsize) {
+    CustomData_bmesh_asan_unpoison(data, *block);
     BLI_mempool_free(data->pool, *block);
   }
 

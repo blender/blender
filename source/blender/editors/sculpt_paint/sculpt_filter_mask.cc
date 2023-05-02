@@ -1048,6 +1048,7 @@ static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEven
   SCULPT_undo_push_begin(ob, op);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  BKE_sculpt_ensure_origmask(ob);
 
   const eSculptIPMaskFilterType filter_type = (eSculptIPMaskFilterType)RNA_enum_get(op->ptr,
                                                                                     "filter_type");
@@ -1073,6 +1074,8 @@ static int sculpt_ipmask_filter_exec(bContext *C, wmOperator *op)
 
   SCULPT_undo_push_begin(ob, op);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  BKE_sculpt_ensure_origmask(ob);
+
   ss->filter_cache = sculpt_ipmask_filter_cache_init(ob, sd, filter_type, false);
   sculpt_ipmask_store_initial_undo_step(ob);
   sculpt_ipmask_store_reference_step(ss);

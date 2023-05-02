@@ -528,41 +528,14 @@ typedef struct MRecast {
 
 /** \} */
 
-typedef struct MSculptVert {
-  unsigned short valence;
-
-  /* id of current stroke, used to detect
-     if vertex original data needs to be updated.
-   */
-  short stroke_id;
-
-  int flag;
-
-  /**original coordinates*/
-  float origco[3], origno[3];
-
-  /**original color*/
-  float origcolor[4];
-
-  unsigned short origmask;
-
-  /* curv is a fast curvature approximation used by dyntopo
-    adaptive curvature. */
-  unsigned short curv;
-
-  /* curvature_dir parallels a principle curvature direction */
-  float curvature_dir[3];
-} MSculptVert;
-
-/* MSculptVert->flag */
-enum {
-  SCULPTVERT_VERT_FSET_HIDDEN = (1 << 1),
-  SCULPTVERT_NEED_TRIANGULATE = (1 << 4),
-  SCULPTVERT_NEED_DISK_SORT = (1 << 5),
-  SCULPTVERT_NEED_VALENCE = (1 << 6),
-  SCULPTVERT_SPLIT_TEMP = (1 << 13),
-  SCULPTVERT_PBVH_BOUNDARY = (1 << 14),
-};
+typedef enum eSculptFlag {
+  SCULPTFLAG_VERT_FSET_HIDDEN = (1 << 1),
+  SCULPTFLAG_NEED_TRIANGULATE = (1 << 2),
+  SCULPTFLAG_NEED_DISK_SORT = (1 << 3),
+  SCULPTFLAG_NEED_VALENCE = (1 << 4),
+  SCULPTFLAG_SPLIT_TEMP = (1 << 5),
+  SCULPTFLAG_PBVH_BOUNDARY = (1 << 6),
+} eSculptFlag;
 
 /* for internal bmesh toolflags api */
 typedef struct MToolFlags {

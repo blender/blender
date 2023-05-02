@@ -408,8 +408,7 @@ eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
       if (needs_update) {
-        BKE_pbvh_update_vert_boundary(ss->cd_sculpt_vert,
-                                      ss->cd_faceset_offset,
+        BKE_pbvh_update_vert_boundary(ss->cd_faceset_offset,
                                       ss->cd_vert_node_offset,
                                       ss->cd_face_node_offset,
                                       ss->cd_vcol_offset,
@@ -458,8 +457,7 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
       if (needs_update) {
-        BKE_pbvh_update_vert_boundary(ss->cd_sculpt_vert,
-                                      ss->cd_faceset_offset,
+        BKE_pbvh_update_vert_boundary(ss->cd_faceset_offset,
                                       ss->cd_vert_node_offset,
                                       ss->cd_face_node_offset,
                                       ss->cd_vcol_offset,
@@ -540,8 +538,8 @@ int SCULPT_vertex_valence_get(const struct SculptSession *ss, PBVHVertRef vertex
   SculptVertexNeighborIter ni;
   uint8_t flag = vertex_attr_get<uint8_t>(vertex, ss->attrs.flags);
 
-  if (flag & SCULPTVERT_NEED_VALENCE) {
-    vertex_attr_set<uint8_t>(vertex, ss->attrs.flags, flag & ~SCULPTVERT_NEED_VALENCE);
+  if (flag & SCULPTFLAG_NEED_VALENCE) {
+    vertex_attr_set<uint8_t>(vertex, ss->attrs.flags, flag & ~SCULPTFLAG_NEED_VALENCE);
 
     int tot = 0;
 

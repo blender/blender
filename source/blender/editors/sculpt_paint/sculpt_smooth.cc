@@ -189,7 +189,6 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
                                         float projection,
                                         bool check_fsets,
                                         int cd_temp,
-                                        int cd_sculpt_vert,
                                         bool do_origco)
 {
   float avg_co[3] = {0.0f, 0.0f, 0.0f};

@@ -363,6 +363,8 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
   SCULPT_undo_push_begin(ob, op);
   BKE_sculpt_color_layer_create_if_needed(ob);
 
+  BKE_sculpt_ensure_origcolor(ob);
+
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of
    * earlier steps modifying the data. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);

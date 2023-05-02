@@ -595,28 +595,28 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
             &ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
         const int cd_boundary_flag = CustomData_get_offset_named(
             &ss->bm->vdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(boundary_flags));
+        const int cd_flag = CustomData_get_offset_named(
+            &ss->bm->vdata, CD_PROP_INT8, SCULPT_ATTRIBUTE_NAME(flags));
 
         if (ss->bm && cd_fset != -1) {
-          const int cd_sculptvert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);
-
           BMFace *f;
           BMVert *v;
           BMIter iter;
 
           const int next_face_set_id = SCULPT_face_set_next_available_get(ss);
 
-          const int updateflag = SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE |
-                                 SCULPTVERT_NEED_DISK_SORT;
+          const int updateflag = SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE |
+                                 SCULPTFLAG_NEED_DISK_SORT;
 
           BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-            MSculptVert *mv = (MSculptVert *)BM_ELEM_CD_GET_VOID_P(v, cd_sculptvert);
-
             if (cd_boundary_flag != -1) {
               int *flag = (int *)BM_ELEM_CD_GET_VOID_P(v, cd_boundary_flag);
               *flag |= SCULPT_BOUNDARY_NEEDS_UPDATE;
             }
 
-            mv->flag |= updateflag;
+            if (cd_flag != -1) {
+              *BM_ELEM_CD_PTR<uint8_t *>(v, cd_flag) |= updateflag;
+            }
           }
 
           BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {

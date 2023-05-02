@@ -89,6 +89,14 @@ using blender::Vector;
 
 using namespace blender::bke::paint;
 
+static bool is_realtime_restored(Brush *brush)
+{
+  return ((brush->flag & BRUSH_ANCHORED) ||
+          (ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ELASTIC_DEFORM) &&
+           BKE_brush_use_size_pressure(brush)) ||
+          (brush->flag & BRUSH_DRAG_DOT));
+}
+
 static float sculpt_calc_radius(ViewContext *vc,
                                 const Brush *brush,
                                 const Scene *scene,
@@ -163,23 +171,6 @@ void SCULPT_face_random_access_ensure(SculptSession *ss)
     BM_mesh_elem_index_ensure(ss->bm, BM_FACE);
     BM_mesh_elem_table_ensure(ss->bm, BM_FACE);
   }
-}
-
-MSculptVert *SCULPT_vertex_get_sculptvert(const SculptSession *ss, PBVHVertRef vertex)
-{
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_BMESH: {
-      BMVert *v = (BMVert *)vertex.i;
-      return BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
-    }
-
-    case PBVH_GRIDS:
-    case PBVH_FACES: {
-      return ss->msculptverts + vertex.i;
-    }
-  }
-
-  return nullptr;
 }
 
 const float *SCULPT_vertex_origco_get(SculptSession *ss, PBVHVertRef vertex)
@@ -1182,7 +1173,7 @@ static void sculpt_vertex_neighbors_get_bmesh(const SculptSession *ss,
 
     uint8_t flag = *BM_ELEM_CD_PTR<uint8_t *>(v2, ss->attrs.flags->bmesh_cd_offset);
 
-    if (!(flag & SCULPTVERT_VERT_FSET_HIDDEN)) {
+    if (!(flag & SCULPTFLAG_VERT_FSET_HIDDEN)) {
       sculpt_vertex_neighbor_add_nocheck(iter,
                                          BKE_pbvh_make_vref((intptr_t)v2),
                                          BKE_pbvh_make_eref((intptr_t)e),
@@ -1286,7 +1277,7 @@ static void sculpt_vertex_neighbors_get_faces_vemap(const SculptSession *ss,
     unsigned int v = e[0] == (unsigned int)vertex.i ? e[1] : e[0];
     int8_t flag = vertex_attr_get<uint8_t>(vertex, ss->attrs.flags);
 
-    if (flag & SCULPTVERT_VERT_FSET_HIDDEN) {
+    if (flag & SCULPTFLAG_VERT_FSET_HIDDEN) {
       /* Skip connectivity from hidden faces. */
       continue;
     }
@@ -1950,45 +1941,49 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_vertex_check_origdata(ss, vd.vertex);
-    MSculptVert *mv = SCULPT_vertex_get_sculptvert(ss, vd.vertex);
+    float *origco = vertex_attr_ptr<float>(vd.vertex, ss->attrs.orig_co);
+    float *origno = vertex_attr_ptr<float>(vd.vertex, ss->attrs.orig_no);
 
     if (type & SCULPT_UNDO_COORDS) {
-      if (len_squared_v3v3(vd.co, mv->origco) > FLT_EPSILON) {
+      if (len_squared_v3v3(vd.co, origco) > FLT_EPSILON) {
         modified = true;
       }
 
-      copy_v3_v3(vd.co, mv->origco);
+      copy_v3_v3(vd.co, origco);
 
       if (vd.no) {
-        copy_v3_v3(vd.no, mv->origno);
+        copy_v3_v3(vd.no, origno);
       }
       else {
-        copy_v3_v3(vd.fno, mv->origno);
+        copy_v3_v3(vd.fno, origno);
       }
       if (vd.is_mesh) {
         BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
       }
     }
 
-    if (type & SCULPT_UNDO_MASK) {
-      if ((*vd.mask - mv->origmask) * (*vd.mask - mv->origmask) > FLT_EPSILON) {
+    if ((type & SCULPT_UNDO_MASK) && ss->attrs.orig_mask) {
+      float origmask = vertex_attr_get<float>(vd.vertex, ss->attrs.orig_mask);
+
+      if ((*vd.mask - origmask) * (*vd.mask - origmask) > FLT_EPSILON) {
         modified = true;
       }
 
-      *vd.mask = mv->origmask;
+      *vd.mask = origmask;
     }
 
-    if (type & SCULPT_UNDO_COLOR) {
+    if ((type & SCULPT_UNDO_COLOR) && ss->attrs.orig_color) {
+      float *origcolor = vertex_attr_ptr<float>(vd.vertex, ss->attrs.orig_color);
       float color[4];
 
       if (SCULPT_has_colors(ss)) {
         SCULPT_vertex_color_get(ss, vd.vertex, color);
 
-        if (len_squared_v4v4(color, mv->origcolor) > FLT_EPSILON) {
+        if (len_squared_v4v4(color, origcolor) > FLT_EPSILON) {
           modified = true;
         }
 
-        SCULPT_vertex_color_set(ss, vd.vertex, mv->origcolor);
+        SCULPT_vertex_color_set(ss, vd.vertex, origcolor);
       }
     }
   }
@@ -5283,6 +5278,13 @@ static void sculpt_update_cache_invariants(
     BKE_pbvh_show_orig_set(ss->pbvh, tool_settings->show_origco);
   }
 
+  if (SCULPT_tool_is_paint(brush->sculpt_tool)) {
+    BKE_sculpt_ensure_origcolor(ob);
+  }
+  else if (SCULPT_tool_is_mask(brush->sculpt_tool)) {
+    BKE_sculpt_ensure_origmask(ob);
+  }
+
   SCULPT_apply_dyntopo_settings(ss, sd, brush);
 
   BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB);
@@ -6102,11 +6104,7 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
   }
 
   /* Restore the mesh before continuing with anchored stroke. */
-  if ((brush->flag & BRUSH_ANCHORED) ||
-      (ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ELASTIC_DEFORM) &&
-       BKE_brush_use_size_pressure(brush)) ||
-      (brush->flag & BRUSH_DRAG_DOT)) {
-
+  if (is_realtime_restored(brush)) {
     paint_mesh_restore_co(sd, ob);
   }
 }

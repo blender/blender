@@ -179,11 +179,17 @@ static void update_node_vb(PBVH *pbvh, PBVHNode *node, int updateflag)
       }
 
       if (do_orig) {
-        MSculptVert *mv = pbvh->header.type == PBVH_BMESH ?
-                              BM_ELEM_CD_GET_VOID_P(vd.bm_vert, pbvh->cd_sculpt_vert) :
-                              pbvh->msculptverts + vd.index;
+        float *origco = nullptr;
 
-        if (mv->stroke_id != pbvh->stroke_id) {
+        if (pbvh->header.type == PBVH_BMESH) {
+          origco = pbvh->cd_origco != -1 ? BM_ELEM_CD_PTR<float *>(vd.bm_vert, pbvh->cd_origco) :
+                                           nullptr;
+        }
+        else {
+          origco = pbvh->origco
+        }
+
+        if (origco) {
           BB_expand(&orig_vb, vd.co);
         }
         else {
@@ -985,7 +991,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   prim_bbc = MEM_mallocN(sizeof(BBC) * looptri_num, "prim_bbc");
 
   for (int i = 0; i < mesh->totvert; i++) {
-    msculptverts[i].flag &= ~SCULPTVERT_NEED_VALENCE;
+    msculptverts[i].flag &= ~SCULPTFLAG_NEED_VALENCE;
     msculptverts[i].valence = pmap->pmap[i].count;
   }
 
@@ -4791,7 +4797,7 @@ void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
   BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, &coord, false, &neighbors);
 
   mv->valence = neighbors.size;
-  mv->flag &= ~SCULPTVERT_NEED_VALENCE;
+  mv->flag &= ~SCULPTFLAG_NEED_VALENCE;
 }
 
 void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
@@ -4809,7 +4815,7 @@ void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
   MSculptVert *mv = msculptverts + vertex.i;
   const MeshElemMap *vert_map = &pmap[vertex.i];
 
-  mv->flag &= ~SCULPTVERT_VERT_FSET_HIDDEN;
+  mv->flag &= ~SCULPTFLAG_VERT_FSET_HIDDEN;
 
   int last_fset = -1;
   int last_fset2 = -1;
@@ -4869,7 +4875,7 @@ void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
   }
 
   if (!visible) {
-    mv->flag |= SCULPTVERT_VERT_FSET_HIDDEN;
+    mv->flag |= SCULPTFLAG_VERT_FSET_HIDDEN;
   }
 
   if (totsharp > 2) {

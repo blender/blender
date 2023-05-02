@@ -1467,8 +1467,6 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool /*reorder*/
     BMeshToMeshParams params = {0};
     params.update_shapekey_indices = true;
 
-    params.cd_mask_extra.vmask = CD_MASK_DYNTOPO_VERT;
-
     BM_mesh_bm_to_me(nullptr, ss->bm, static_cast<Mesh *>(ob->data), &params);
   }
 }
@@ -1545,10 +1543,6 @@ void BKE_sculptsession_free(Object *ob)
 {
   if (ob && ob->sculpt) {
     SculptSession *ss = ob->sculpt;
-
-    if (ss->msculptverts) {
-      ss->msculptverts = nullptr;
-    }
 
     if (ss->bm_idmap) {
       BM_idmap_destroy(ss->bm_idmap);
@@ -2059,7 +2053,7 @@ static void sculpt_update_object(
       break;
   }
 
-  BKE_sculptsession_check_sculptverts(ob, pbvh, totvert, false);
+  BKE_sculpt_init_flags_valence(ob, pbvh, totvert, false);
 
   if (ss->bm && me->key && ob->shapenr != ss->bm->shapenr) {
     KeyBlock *actkey = static_cast<KeyBlock *>(BLI_findlink(&me->key->block, ss->bm->shapenr - 1));
@@ -2220,7 +2214,6 @@ static void sculpt_update_object(
     blender::bke::pbvh::set_flags_valence(ss->pbvh,
                                           static_cast<uint8_t *>(ss->attrs.flags->data),
                                           static_cast<int *>(ss->attrs.valence->data));
-    BKE_pbvh_set_sculpt_verts(ss->pbvh, ss->msculptverts);
   }
 }
 
@@ -2572,7 +2565,6 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool /*update_sculptver
                        ob->sculpt->bm_idmap,
                        ob->sculpt->attrs.dyntopo_node_id_vertex->bmesh_cd_offset,
                        ob->sculpt->attrs.dyntopo_node_id_face->bmesh_cd_offset,
-                       ob->sculpt->cd_sculpt_vert,
                        ob->sculpt->attrs.face_areas->bmesh_cd_offset,
                        ob->sculpt->attrs.boundary_flags->bmesh_cd_offset,
                        ob->sculpt->attrs.flags ? ob->sculpt->attrs.flags->bmesh_cd_offset : -1,
@@ -2601,7 +2593,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
 
   PBVH *pbvh = ob->sculpt->pbvh = BKE_pbvh_new(PBVH_FACES);
 
-  BKE_sculptsession_check_sculptverts(ob, pbvh, me->totvert, true);
+  BKE_sculpt_init_flags_valence(ob, pbvh, me->totvert, true);
   sculpt_check_face_areas(ob, pbvh);
   BKE_sculptsession_update_attr_refs(ob);
   BKE_pbvh_set_pmap(pbvh, ss->pmap);
@@ -2658,15 +2650,15 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
   BKE_pbvh_set_pmap(pbvh, ss->pmap);
 
   int totvert = BKE_pbvh_get_grid_num_verts(pbvh);
-  BKE_sculptsession_check_sculptverts(ob, pbvh, totvert, true);
+  BKE_sculpt_init_flags_valence(ob, pbvh, totvert, true);
 
   return pbvh;
 }
 
-extern "C" bool BKE_sculptsession_check_sculptverts(Object *ob,
-                                                    struct PBVH *pbvh,
-                                                    int totvert,
-                                                    bool reset_flags)
+extern "C" bool BKE_sculpt_init_flags_valence(Object *ob,
+                                              struct PBVH *pbvh,
+                                              int totvert,
+                                              bool reset_flags)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -2686,30 +2678,20 @@ extern "C" bool BKE_sculptsession_check_sculptverts(Object *ob,
       BMIter iter;
 
       BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-        *BM_ELEM_CD_PTR<uint8_t *>(v, cd_flags) = SCULPTVERT_NEED_VALENCE |
-                                                  SCULPTVERT_NEED_TRIANGULATE |
-                                                  SCULPTVERT_NEED_DISK_SORT;
+        *BM_ELEM_CD_PTR<uint8_t *>(v, cd_flags) = SCULPTFLAG_NEED_VALENCE |
+                                                  SCULPTFLAG_NEED_TRIANGULATE |
+                                                  SCULPTFLAG_NEED_DISK_SORT;
       }
     }
     else {
       uint8_t *flags = static_cast<uint8_t *>(ss->attrs.flags->data);
 
       for (int i = 0; i < totvert; i++) {
-        flags[i] = SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE |
-                   SCULPTVERT_NEED_DISK_SORT;
+        flags[i] = SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE |
+                   SCULPTFLAG_NEED_DISK_SORT;
       }
     }
   }
-
-  if (!ss->attrs.sculpt_vert || !ss->attrs.sculpt_vert->data) {
-    SculptAttributeParams params = {0};
-
-    ss->attrs.sculpt_vert = sculpt_attribute_ensure_ex(
-        ob, ATTR_DOMAIN_POINT, CD_DYNTOPO_VERT, "", &params, BKE_pbvh_type(pbvh));
-  }
-
-  ss->msculptverts = static_cast<MSculptVert *>(ss->attrs.sculpt_vert->data);
-  BKE_pbvh_set_sculpt_verts(pbvh, ss->msculptverts);
 
   blender::bke::pbvh::set_flags_valence(ss->pbvh,
                                         static_cast<uint8_t *>(ss->attrs.flags->data),
@@ -2779,8 +2761,6 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       params.create_shapekey_layers = true;
       params.ignore_id_layers = false;
       params.copy_temp_cdlayers = true;
-
-      params.cd_mask_extra.vmask = CD_MASK_DYNTOPO_VERT;
 
       BM_mesh_bm_from_me(bm, mesh_orig, &params);
 
@@ -3423,7 +3403,7 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
     return attr;
   }
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS && domain == ATTR_DOMAIN_POINT) {
+  if (!ss->pbvh || (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS && domain == ATTR_DOMAIN_POINT)) {
     /* Don't pull from customdata for PBVH_GRIDS and vertex domain.
      * Multires vertex attributes don't go through CustomData.
      */
@@ -3516,7 +3496,6 @@ static void sculptsession_bmesh_attr_update_internal(Object *ob)
   }
 
   if (ss->pbvh) {
-    int cd_sculpt_vert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);
     int cd_face_area = ss->attrs.face_areas ? ss->attrs.face_areas->bmesh_cd_offset : -1;
     int cd_boundary_flags = ss->attrs.boundary_flags ? ss->attrs.boundary_flags->bmesh_cd_offset :
                                                        -1;
@@ -3533,7 +3512,6 @@ static void sculptsession_bmesh_attr_update_internal(Object *ob)
     BKE_pbvh_update_offsets(ss->pbvh,
                             cd_dyntopo_vert,
                             cd_dyntopo_face,
-                            cd_sculpt_vert,
                             cd_face_area,
                             cd_boundary_flags,
                             cd_flag,
@@ -3549,11 +3527,6 @@ static void sculptsession_bmesh_add_layers(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   SculptAttributeParams params = {0};
-
-  if (!ss->attrs.sculpt_vert) {
-    ss->attrs.sculpt_vert = sculpt_attribute_ensure_ex(
-        ob, ATTR_DOMAIN_POINT, CD_DYNTOPO_VERT, "", &params, PBVH_BMESH);
-  }
 
   if (!ss->attrs.face_areas) {
     SculptAttributeParams params = {0};
@@ -3588,7 +3561,6 @@ static void sculptsession_bmesh_add_layers(Object *ob)
   ss->cd_vert_node_offset = ss->attrs.dyntopo_node_id_vertex->bmesh_cd_offset;
   ss->cd_face_node_offset = ss->attrs.dyntopo_node_id_face->bmesh_cd_offset;
   ss->cd_face_areas = ss->attrs.face_areas ? ss->attrs.face_areas->bmesh_cd_offset : -1;
-  ss->cd_sculpt_vert = ss->attrs.sculpt_vert->bmesh_cd_offset;
 }
 
 template<typename T> static void sculpt_clear_attribute_bmesh(BMesh *bm, SculptAttribute *attr)
@@ -3655,7 +3627,6 @@ void BKE_sculpt_attributes_destroy_temporary_stroke(Object *ob)
 
 static void update_bmesh_offsets(Mesh *me, SculptSession *ss)
 {
-  ss->cd_sculpt_vert = ss->attrs.sculpt_vert ? ss->attrs.sculpt_vert->bmesh_cd_offset : -1;
   ss->cd_vert_node_offset = ss->attrs.dyntopo_node_id_vertex ?
                                 ss->attrs.dyntopo_node_id_vertex->bmesh_cd_offset :
                                 -1;
@@ -3693,7 +3664,6 @@ static void update_bmesh_offsets(Mesh *me, SculptSession *ss)
     BKE_pbvh_update_offsets(ss->pbvh,
                             ss->cd_vert_node_offset,
                             ss->cd_face_node_offset,
-                            ss->cd_sculpt_vert,
                             ss->cd_face_areas,
                             cd_boundary_flags,
                             ss->attrs.flags ? ss->attrs.flags->bmesh_cd_offset : -1,

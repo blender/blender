@@ -985,8 +985,6 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
       &mesh->vdata, CD_PROP_BOOL, ".hide_vert", mesh->totvert));
   pbvh->face_areas = static_cast<float *>(CustomData_get_layer_named_for_write(
       &mesh->pdata, CD_PROP_FLOAT2, SCULPT_ATTRIBUTE_NAME(face_areas), mesh->totpoly));
-  pbvh->msculptverts = static_cast<MSculptVert *>(
-      CustomData_get_layer_for_write(&mesh->vdata, CD_DYNTOPO_VERT, mesh->totvert));
 
   /* Make sure cached normals start out calculated. */
   mesh->vert_normals();
@@ -1056,8 +1054,6 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
 
   /* For each face, store the AABB and the AABB centroid */
   prim_bbc = (BBC *)MEM_mallocN(sizeof(BBC) * looptri_num, "prim_bbc");
-
-  SculptPMap *pmap = pbvh->pmap;
 
   for (int i = 0; i < looptri_num; i++) {
     const MLoopTri *lt = &looptri[i];
@@ -1525,7 +1521,7 @@ static bool update_search_cb(PBVHNode *node, void *data_v)
   return true;
 }
 
-typedef struct PBVHUpdateData {
+struct PBVHUpdateData {
   PBVH *pbvh;
   Mesh *mesh;
   Span<PBVHNode *> nodes;
@@ -2834,7 +2830,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
                                     PBVHVertRef *r_active_vertex,
                                     PBVHFaceRef *r_active_face,
                                     float *r_face_normal,
-                                    int stroke_id)
+                                    int /*stroke_id*/)
 {
   const float(*positions)[3] = pbvh->vert_positions;
   const int *corner_verts = pbvh->corner_verts;
@@ -3677,7 +3673,6 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     vi->bm_vdata = &pbvh->header.bm->vdata;
     vi->bm_vert = nullptr;
 
-    vi->cd_sculpt_vert = CustomData_get_offset(vi->bm_vdata, CD_DYNTOPO_VERT);
     vi->cd_vert_mask_offset = CustomData_get_offset(vi->bm_vdata, CD_PAINT_MASK);
   }
 
@@ -3835,7 +3830,7 @@ int BKE_pbvh_get_totnodes(PBVH *pbvh)
   return pbvh->totnode;
 }
 
-int BKE_pbvh_get_node_id(PBVH *pbvh, PBVHNode *node)
+int BKE_pbvh_get_node_id(PBVH */*pbvh*/, PBVHNode *node)
 {
   return node->id;
 }
@@ -4008,8 +4003,8 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-static void pbvh_pmap_to_edges_add(PBVH *pbvh,
-                                   PBVHVertRef vertex,
+static void pbvh_pmap_to_edges_add(PBVH */*pbvh*/,
+                                   PBVHVertRef /*vertex*/,
                                    int **r_edges,
                                    int *r_edges_size,
                                    bool *heap_alloc,
@@ -4299,11 +4294,6 @@ void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry)
   pbvh_boundaries_flag_update(pbvh);
 }
 
-void BKE_pbvh_set_sculpt_verts(PBVH *pbvh, struct MSculptVert *msculptverts)
-{
-  pbvh->msculptverts = msculptverts;
-}
-
 ATTR_NO_OPT void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh, PBVHVertRef vertex)
 {
   SubdivCCG *subdiv_ccg = pbvh->subdiv_ccg;
@@ -4328,7 +4318,7 @@ ATTR_NO_OPT void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh, PBVHVertRef ver
   BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, &coord, false, &neighbors);
 
   pbvh->valence[vertex.i] = neighbors.size;
-  pbvh->sculpt_flags[vertex.i] &= ~SCULPTVERT_NEED_VALENCE;
+  pbvh->sculpt_flags[vertex.i] &= ~SCULPTFLAG_NEED_VALENCE;
 
   /* Update boundary */
   int *boundary_flag = pbvh->boundary_flags + vertex.i;
@@ -4385,7 +4375,7 @@ void update_vert_boundary_faces(int *boundary_flags,
   const MeshElemMap *vert_map = &pmap[vertex.i];
   uint8_t *flag = flags + vertex.i;
 
-  *flag &= ~SCULPTVERT_VERT_FSET_HIDDEN;
+  *flag &= ~SCULPTFLAG_VERT_FSET_HIDDEN;
 
   int last_fset = -1;
   int last_fset2 = -1;
@@ -4449,7 +4439,7 @@ void update_vert_boundary_faces(int *boundary_flags,
   }
 
   if (!visible) {
-    *flag |= SCULPTVERT_VERT_FSET_HIDDEN;
+    *flag |= SCULPTFLAG_VERT_FSET_HIDDEN;
   }
 
   if (totsharp > 2) {

@@ -306,8 +306,8 @@ bool SCULPT_dyntopo_check_disk_sort(SculptSession *ss, PBVHVertRef vertex)
   BMVert *v = (BMVert *)vertex.i;
   uint8_t *flag = blender::bke::paint::vertex_attr_ptr<uint8_t>(vertex, ss->attrs.flags);
 
-  if (*flag & SCULPTVERT_NEED_DISK_SORT) {
-    *flag &= ~SCULPTVERT_NEED_DISK_SORT;
+  if (*flag & SCULPTFLAG_NEED_DISK_SORT) {
+    *flag &= ~SCULPTFLAG_NEED_DISK_SORT;
 
     BM_sort_disk_cycle(v);
 

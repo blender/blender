@@ -166,10 +166,9 @@ void pbvh_bmesh_check_nodes(PBVH *pbvh)
       _debugprint("vert in node->bm_other_verts");
     }
 
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
     BKE_pbvh_bmesh_check_valence(pbvh, (PBVHVertRef){.i = (intptr_t)v});
 
-    if (BM_vert_edge_count(v) != mv->valence) {
+    if (BM_vert_edge_count(v) != BM_ELEM_CD_GET_INT(v, pbvh->cd_valence)) {
       _debugprint("cached vertex valence mismatch; old: %d, should be: %d\n",
                   mv->valence,
                   BM_vert_edge_count(v));
@@ -293,7 +292,7 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
   BMVert *v = BM_vert_create(pbvh->header.bm, co, nullptr, BM_CREATE_NOP);
 
   pbvh_boundary_update_bmesh(pbvh, v);
-  dyntopo_add_flag(pbvh, v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+  dyntopo_add_flag(pbvh, v, SCULPTFLAG_NEED_DISK_SORT | SCULPTFLAG_NEED_VALENCE);
 
   if (v_example) {
     v->head.hflag = v_example->head.hflag;
@@ -416,7 +415,7 @@ BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
       }
 
       pbvh_boundary_update_bmesh(pbvh, l->v);
-      dyntopo_add_flag(pbvh, l->v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+      dyntopo_add_flag(pbvh, l->v, SCULPTFLAG_NEED_DISK_SORT | SCULPTFLAG_NEED_VALENCE);
 
       l = l->next;
     } while (l != f->l_first);
@@ -425,7 +424,7 @@ BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
     BMLoop *l = f->l_first;
     do {
       pbvh_boundary_update_bmesh(pbvh, l->v);
-      dyntopo_add_flag(pbvh, l->v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+      dyntopo_add_flag(pbvh, l->v, SCULPTFLAG_NEED_DISK_SORT | SCULPTFLAG_NEED_VALENCE);
     } while ((l = l->next) != f->l_first);
   }
 
@@ -468,7 +467,7 @@ BMVert *BKE_pbvh_vert_create_bmesh(
     BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
 
     pbvh_boundary_update_bmesh(pbvh, v);
-    dyntopo_add_flag(pbvh, v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+    dyntopo_add_flag(pbvh, v, SCULPTFLAG_NEED_DISK_SORT | SCULPTFLAG_NEED_VALENCE);
 
 #if 0 /* XXX: do we need to load origco here? */
     copy_v3_v3(mv->origco, co);
@@ -1538,7 +1537,6 @@ bool pbvh_bmesh_node_nearest_to_ray(SculptSession *ss,
 
   BKE_pbvh_bmesh_check_tris(pbvh, node);
   PBVHTriBuf *tribuf = node->tribuf;
-  const int cd_sculpt_vert = pbvh->cd_sculpt_vert;
 
   for (int i = 0; i < tribuf->tottri; i++) {
     PBVHTri *tri = tribuf->tris + i;
@@ -1559,9 +1557,9 @@ bool pbvh_bmesh_node_nearest_to_ray(SculptSession *ss,
       BKE_pbvh_bmesh_check_origdata(ss, v2, stroke_id);
       BKE_pbvh_bmesh_check_origdata(ss, v3, stroke_id);
 
-      co1 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v1)->origco;
-      co2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v2)->origco;
-      co3 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v3)->origco;
+      co1 = BM_ELEM_CD_PTR<float *>(v1, pbvh->cd_origco);
+      co2 = BM_ELEM_CD_PTR<float *>(v2, pbvh->cd_origco);
+      co3 = BM_ELEM_CD_PTR<float *>(v3, pbvh->cd_origco);
     }
     else {
       co1 = v1->co;
@@ -1578,7 +1576,7 @@ bool pbvh_bmesh_node_nearest_to_ray(SculptSession *ss,
 struct UpdateNormalsTaskData {
   PBVHNode *node;
   Vector<BMVert *> border_verts;
-  int cd_sculpt_vert;
+  int cd_flag;
   int cd_vert_node_offset;
   int cd_face_node_offset;
   int node_nr;
@@ -1604,7 +1602,7 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
 #endif
 #define NORMAL_VERT_BAD(v) \
   (!v->e || BM_ELEM_CD_GET_INT((v), cd_vert_node_offset) != node_nr || \
-   (BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, (v))->flag & SCULPTVERT_PBVH_BOUNDARY))
+   ((*BM_ELEM_CD_PTR<uint8_t *>(v, data->cd_flag)) & SCULPTFLAG_PBVH_BOUNDARY))
 
   const char tag = BM_ELEM_TAG_ALT;
 
@@ -1687,7 +1685,7 @@ void pbvh_bmesh_normals_update(PBVH *pbvh, Span<PBVHNode *> nodes)
 
   for (int i : nodes.index_range()) {
     datas[i].node = nodes[i];
-    datas[i].cd_sculpt_vert = pbvh->cd_sculpt_vert;
+    datas[i].cd_flag = pbvh->cd_flag;
     datas[i].cd_vert_node_offset = pbvh->cd_vert_node_offset;
     datas[i].cd_face_node_offset = pbvh->cd_face_node_offset;
     datas[i].node_nr = nodes[i] - pbvh->nodes;
@@ -2077,8 +2075,7 @@ static int color_boundary_key(float col[4])
 }
 #endif
 
-void bke_pbvh_update_vert_boundary(int /*cd_sculpt_vert*/,
-                                   int cd_faceset_offset,
+void bke_pbvh_update_vert_boundary(int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
                                    int /*cd_vcol*/,
@@ -2094,7 +2091,7 @@ void bke_pbvh_update_vert_boundary(int /*cd_sculpt_vert*/,
   int boundflag = 0;
 
   BMEdge *e = v->e;
-  newflag &= ~(SCULPTVERT_VERT_FSET_HIDDEN | SCULPTVERT_PBVH_BOUNDARY);
+  newflag &= ~(SCULPTFLAG_VERT_FSET_HIDDEN | SCULPTFLAG_PBVH_BOUNDARY);
 
   if (!e) {
     boundflag |= SCULPT_BOUNDARY_MESH;
@@ -2145,7 +2142,7 @@ void bke_pbvh_update_vert_boundary(int /*cd_sculpt_vert*/,
     BMVert *v2 = v == e->v1 ? e->v2 : e->v1;
 
     if (BM_ELEM_CD_GET_INT(v2, cd_vert_node_offset) != ni) {
-      newflag |= SCULPTVERT_PBVH_BOUNDARY;
+      newflag |= SCULPTFLAG_PBVH_BOUNDARY;
     }
 
     if (e->head.hflag & BM_ELEM_SEAM) {
@@ -2229,7 +2226,7 @@ void bke_pbvh_update_vert_boundary(int /*cd_sculpt_vert*/,
       }
 
       if (BM_ELEM_CD_GET_INT(e->l->f, cd_face_node_offset) != ni) {
-        newflag |= SCULPTVERT_PBVH_BOUNDARY;
+        newflag |= SCULPTFLAG_PBVH_BOUNDARY;
       }
 
       if (e->l != e->l->radial_next) {
@@ -2242,12 +2239,12 @@ void bke_pbvh_update_vert_boundary(int /*cd_sculpt_vert*/,
         }
 
         if (BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_face_node_offset) != ni) {
-          newflag |= SCULPTVERT_PBVH_BOUNDARY;
+          newflag |= SCULPTFLAG_PBVH_BOUNDARY;
         }
       }
 
       if (e->l->f->len > 3) {
-        newflag |= SCULPTVERT_NEED_TRIANGULATE;
+        newflag |= SCULPTFLAG_NEED_TRIANGULATE;
       }
 
       if (cd_faceset_offset != -1) {
@@ -2287,7 +2284,7 @@ void bke_pbvh_update_vert_boundary(int /*cd_sculpt_vert*/,
         }
 
         if (e->l->radial_next->f->len > 3) {
-          newflag |= SCULPTVERT_NEED_TRIANGULATE;
+          newflag |= SCULPTFLAG_NEED_TRIANGULATE;
         }
       }
     }
@@ -2330,8 +2327,7 @@ bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, BMVert *v)
   return pbvh_check_vert_boundary(pbvh, v);
 }
 
-void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
-                                   int cd_faceset_offset,
+void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
                                    int cd_vcol,
@@ -2344,8 +2340,7 @@ void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    const int totuv,
                                    const bool do_uvs)
 {
-  bke_pbvh_update_vert_boundary(cd_sculpt_vert,
-                                cd_faceset_offset,
+  bke_pbvh_update_vert_boundary(cd_faceset_offset,
                                 cd_vert_node_offset,
                                 cd_face_node_offset,
                                 cd_vcol,
@@ -2365,8 +2360,7 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
   BMIter iter;
 
   BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-    bke_pbvh_update_vert_boundary(pbvh->cd_sculpt_vert,
-                                  pbvh->cd_faceset_offset,
+    bke_pbvh_update_vert_boundary(pbvh->cd_faceset_offset,
                                   pbvh->cd_vert_node_offset,
                                   pbvh->cd_face_node_offset,
                                   pbvh->cd_vcol_offset,
@@ -2394,7 +2388,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           BMIdMap *idmap,
                           const int cd_vert_node_offset,
                           const int cd_face_node_offset,
-                          const int cd_sculpt_vert,
                           const int cd_face_areas,
                           const int cd_boundary_flag,
                           const int cd_flag_offset,
@@ -2411,7 +2404,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
-  pbvh->cd_sculpt_vert = cd_sculpt_vert;
   pbvh->cd_boundary_flag = cd_boundary_flag;
   pbvh->cd_origco = cd_origco;
   pbvh->cd_origno = cd_origno;
@@ -3094,7 +3086,7 @@ void BKE_pbvh_bmesh_flag_all_disk_sort(PBVH *pbvh)
   BMIter iter;
 
   BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-    dyntopo_add_flag(pbvh, v, SCULPTVERT_NEED_DISK_SORT);
+    dyntopo_add_flag(pbvh, v, SCULPTFLAG_NEED_DISK_SORT);
   }
 }
 
@@ -3127,8 +3119,8 @@ void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh)
 
     dyntopo_add_flag(pbvh,
                      v,
-                     SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_TRIANGULATE |
-                         SCULPTVERT_NEED_VALENCE);
+                     SCULPTFLAG_NEED_DISK_SORT | SCULPTFLAG_NEED_TRIANGULATE |
+                         SCULPTFLAG_NEED_VALENCE);
     BKE_pbvh_bmesh_update_valence(pbvh, BKE_pbvh_make_vref((intptr_t)v));
   }
 }
@@ -3137,8 +3129,8 @@ bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, PBVHVertRef vertex)
 {
   BMVert *v = (BMVert *)vertex.i;
 
-  bool ret = (*BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag)) & SCULPTVERT_NEED_VALENCE;
-  dyntopo_add_flag(pbvh, v, SCULPTVERT_NEED_VALENCE);
+  bool ret = (*BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag)) & SCULPTFLAG_NEED_VALENCE;
+  dyntopo_add_flag(pbvh, v, SCULPTFLAG_NEED_VALENCE);
 
   return ret;
 }
@@ -3147,7 +3139,7 @@ bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, PBVHVertRef vertex)
 {
   BMVert *v = (BMVert *)vertex.i;
 
-  if (*BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag) & SCULPTVERT_NEED_VALENCE) {
+  if (*BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag) & SCULPTFLAG_NEED_VALENCE) {
     BKE_pbvh_bmesh_update_valence(pbvh, vertex);
     return true;
   }
@@ -3163,7 +3155,7 @@ void BKE_pbvh_bmesh_update_valence(PBVH *pbvh, PBVHVertRef vertex)
   uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag);
   uint *valence = BM_ELEM_CD_PTR<uint *>(v, pbvh->cd_valence);
 
-  *flag &= ~SCULPTVERT_NEED_VALENCE;
+  *flag &= ~SCULPTFLAG_NEED_VALENCE;
 
   if (!v->e) {
     *valence = 0;
@@ -4040,7 +4032,6 @@ struct TableGSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node)
 void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_vert_node_offset,
                              const int cd_face_node_offset,
-                             const int cd_sculpt_vert,
                              const int cd_face_areas,
                              const int cd_boundary_flag,
                              const int cd_flag,
@@ -4053,7 +4044,6 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_area = cd_face_areas;
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK);
-  pbvh->cd_sculpt_vert = cd_sculpt_vert;
   pbvh->cd_faceset_offset = CustomData_get_offset_named(
       &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
@@ -5500,7 +5490,6 @@ static void pbvh_bmesh_fetch_cdrefs(PBVH *pbvh)
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
   pbvh->cd_faceset_offset = CustomData_get_offset_named(
       &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
-  pbvh->cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
 }
 
 void BKE_pbvh_bmesh_set_toolflags(PBVH *pbvh, bool use_toolflags)

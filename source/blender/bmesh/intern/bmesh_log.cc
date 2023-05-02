@@ -302,7 +302,7 @@ struct BMLogSetFull : public BMLogSetBase {
 
   void swap(BMesh *bm)
   {
-    CustomData_MeshMasks cd_mask_extra = {CD_MASK_DYNTOPO_VERT | CD_MASK_SHAPEKEY, 0, 0, 0, 0};
+    CustomData_MeshMasks cd_mask_extra = {0, 0, 0, 0, 0};
 
     BMeshToMeshParams params = {};
     params.update_shapekey_indices = false;

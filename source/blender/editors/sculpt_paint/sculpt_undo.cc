@@ -685,7 +685,7 @@ typedef struct BmeshUndoData {
   bool balance_pbvh;
   int cd_face_node_offset, cd_vert_node_offset;
   int cd_face_node_offset_old, cd_vert_node_offset_old;
-  int cd_sculpt_vert, cd_boundary_flag, cd_flags;
+  int cd_boundary_flag, cd_flags;
   bool regen_all_unique_verts;
   bool is_redo;
 } BmeshUndoData;
@@ -724,9 +724,9 @@ static void bmesh_undo_on_vert_add(BMVert *v, void *userdata)
   BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
 
   *(int *)BM_ELEM_CD_GET_VOID_P(v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
-  *BM_ELEM_CD_PTR<uint8_t *>(v, data->cd_flags) |= SCULPTVERT_NEED_DISK_SORT |
-                                                   SCULPTVERT_NEED_VALENCE |
-                                                   SCULPTVERT_NEED_TRIANGULATE;
+  *BM_ELEM_CD_PTR<uint8_t *>(v, data->cd_flags) |= SCULPTFLAG_NEED_DISK_SORT |
+                                                   SCULPTFLAG_NEED_VALENCE |
+                                                   SCULPTFLAG_NEED_TRIANGULATE;
 }
 
 static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
@@ -743,8 +743,8 @@ static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
 
   BMLoop *l = f->l_first;
   do {
-    *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTVERT_NEED_DISK_SORT |
-                                                        SCULPTVERT_NEED_VALENCE;
+    *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTFLAG_NEED_DISK_SORT |
+                                                        SCULPTFLAG_NEED_VALENCE;
     *BM_ELEM_CD_PTR<int *>(l->v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
   } while ((l = l->next) != f->l_first);
 
@@ -767,11 +767,11 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
   do {
     *(int *)BM_ELEM_CD_GET_VOID_P(l->v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-    *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTVERT_NEED_DISK_SORT |
-                                                        SCULPTVERT_NEED_VALENCE;
+    *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTFLAG_NEED_DISK_SORT |
+                                                        SCULPTFLAG_NEED_VALENCE;
 
     if (f->len > 3) {
-      *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTVERT_NEED_TRIANGULATE;
+      *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTFLAG_NEED_TRIANGULATE;
     }
 
     int ni_l = BM_ELEM_CD_GET_INT(l->v, data->cd_vert_node_offset);
@@ -810,12 +810,12 @@ static void bmesh_undo_on_edge_kill(BMEdge *e, void *userdata)
   *(int *)BM_ELEM_CD_GET_VOID_P(e->v1, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
   *(int *)BM_ELEM_CD_GET_VOID_P(e->v2, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-  *BM_ELEM_CD_PTR<uint8_t *>(e->v1, data->cd_flags) |= SCULPTVERT_NEED_DISK_SORT |
-                                                       SCULPTVERT_NEED_VALENCE |
-                                                       SCULPTVERT_NEED_TRIANGULATE;
-  *BM_ELEM_CD_PTR<uint8_t *>(e->v2, data->cd_flags) |= SCULPTVERT_NEED_DISK_SORT |
-                                                       SCULPTVERT_NEED_VALENCE |
-                                                       SCULPTVERT_NEED_TRIANGULATE;
+  *BM_ELEM_CD_PTR<uint8_t *>(e->v1, data->cd_flags) |= SCULPTFLAG_NEED_DISK_SORT |
+                                                       SCULPTFLAG_NEED_VALENCE |
+                                                       SCULPTFLAG_NEED_TRIANGULATE;
+  *BM_ELEM_CD_PTR<uint8_t *>(e->v2, data->cd_flags) |= SCULPTFLAG_NEED_DISK_SORT |
+                                                       SCULPTFLAG_NEED_VALENCE |
+                                                       SCULPTFLAG_NEED_TRIANGULATE;
 };
 ;
 static void bmesh_undo_on_edge_add(BMEdge *e, void *userdata)
@@ -825,12 +825,12 @@ static void bmesh_undo_on_edge_add(BMEdge *e, void *userdata)
   *(int *)BM_ELEM_CD_GET_VOID_P(e->v1, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
   *(int *)BM_ELEM_CD_GET_VOID_P(e->v2, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-  *BM_ELEM_CD_PTR<uint8_t *>(e->v1, data->cd_flags) |= SCULPTVERT_NEED_DISK_SORT |
-                                                       SCULPTVERT_NEED_VALENCE |
-                                                       SCULPTVERT_NEED_TRIANGULATE;
-  *BM_ELEM_CD_PTR<uint8_t *>(e->v2, data->cd_flags) |= SCULPTVERT_NEED_DISK_SORT |
-                                                       SCULPTVERT_NEED_VALENCE |
-                                                       SCULPTVERT_NEED_TRIANGULATE;
+  *BM_ELEM_CD_PTR<uint8_t *>(e->v1, data->cd_flags) |= SCULPTFLAG_NEED_DISK_SORT |
+                                                       SCULPTFLAG_NEED_VALENCE |
+                                                       SCULPTFLAG_NEED_TRIANGULATE;
+  *BM_ELEM_CD_PTR<uint8_t *>(e->v2, data->cd_flags) |= SCULPTFLAG_NEED_DISK_SORT |
+                                                       SCULPTFLAG_NEED_VALENCE |
+                                                       SCULPTFLAG_NEED_TRIANGULATE;
 }
 
 static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_customdata)
@@ -957,7 +957,6 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
                         ss->cd_vert_node_offset,
                         -1,
                         -1,
-                        ss->cd_sculpt_vert,
                         ss->attrs.boundary_flags->bmesh_cd_offset,
                         ss->attrs.flags->bmesh_cd_offset,
                         false,
@@ -3162,7 +3161,6 @@ extern "C" void SCULPT_substep_undo(bContext * /*C*/, int /*dir*/)
                         false,
                         ss->cd_face_node_offset,
                         ss->cd_vert_node_offset,
-                        ss->cd_sculpt_vert,
                         ss->attrs.boundary_flags->bmesh_cd_offset,
                         false,
                         false};
@@ -3205,7 +3203,6 @@ void ED_sculpt_fast_save_bmesh(Object *ob)
       Main * bmain, Object * ob, BMesh * bm, Mesh * me, const struct BMeshToMeshParams *params);
 
   params.update_shapekey_indices = true;
-  params.cd_mask_extra.vmask = CD_MASK_DYNTOPO_VERT;
 
   // BM_mesh_bm_to_me_threaded(nullptr, ob, bm, (Mesh *)ob->data, &params);
   BM_mesh_bm_to_me(nullptr, bm, (Mesh *)ob->data, &params);
