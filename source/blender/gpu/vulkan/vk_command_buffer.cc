@@ -120,7 +120,7 @@ void VKCommandBuffer::begin_render_pass(const VKFrameBuffer &framebuffer)
 
 void VKCommandBuffer::end_render_pass(const VKFrameBuffer &framebuffer)
 {
-  UNUSED_VARS_NDEBUG(framebuffer)
+  UNUSED_VARS_NDEBUG(framebuffer);
   validate_framebuffer_exists();
   BLI_assert(state.framebuffer_ == &framebuffer);
   ensure_no_active_framebuffer();
