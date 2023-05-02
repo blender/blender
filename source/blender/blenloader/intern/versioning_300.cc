@@ -1808,7 +1808,7 @@ static void version_liboverride_rnacollections_insertion_object_constraints(
     ListBase *constraints, IDOverrideLibraryProperty *op)
 {
   LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-    if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+    if (opop->operation != LIBOVERRIDE_OP_INSERT_AFTER) {
       continue;
     }
     bConstraint *constraint_anchor = static_cast<bConstraint *>(
@@ -1842,7 +1842,7 @@ static void version_liboverride_rnacollections_insertion_object(Object *object)
   op = BKE_lib_override_library_property_find(liboverride, "modifiers");
   if (op != nullptr) {
     LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-      if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+      if (opop->operation != LIBOVERRIDE_OP_INSERT_AFTER) {
         continue;
       }
       ModifierData *mod_anchor = static_cast<ModifierData *>(
@@ -1871,7 +1871,7 @@ static void version_liboverride_rnacollections_insertion_object(Object *object)
   op = BKE_lib_override_library_property_find(liboverride, "grease_pencil_modifiers");
   if (op != nullptr) {
     LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-      if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+      if (opop->operation != LIBOVERRIDE_OP_INSERT_AFTER) {
         continue;
       }
       GpencilModifierData *gp_mod_anchor = static_cast<GpencilModifierData *>(
@@ -1930,7 +1930,7 @@ static void version_liboverride_rnacollections_insertion_animdata(ID *id)
   op = BKE_lib_override_library_property_find(liboverride, "animation_data.nla_tracks");
   if (op != nullptr) {
     LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-      if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+      if (opop->operation != LIBOVERRIDE_OP_INSERT_AFTER) {
         continue;
       }
       /* NLA tracks are only referenced by index, which limits possibilities, basically they are
@@ -3502,7 +3502,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         /* Do not 'lock' an ID already edited by the user. */
         continue;
       }
-      id->override_library->flag |= IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+      id->override_library->flag |= LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
     }
     FOREACH_MAIN_ID_END;
 

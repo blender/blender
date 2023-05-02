@@ -160,7 +160,7 @@ static bool rna_Camera_background_images_override_apply(Main *bmain,
                                                         PointerRNA *UNUSED(ptr_item_storage),
                                                         IDOverrideLibraryPropertyOperation *opop)
 {
-  BLI_assert_msg(opop->operation == IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
+  BLI_assert_msg(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER,
                  "Unsupported RNA override operation on background images collection");
 
   Camera *cam_dst = (Camera *)ptr_dst->owner_id;

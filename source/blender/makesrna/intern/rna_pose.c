@@ -659,7 +659,7 @@ bool rna_PoseChannel_constraints_override_apply(Main *bmain,
                                                 PointerRNA *UNUSED(ptr_item_storage),
                                                 IDOverrideLibraryPropertyOperation *opop)
 {
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_INSERT_AFTER &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on constraints collection");
 
   bPoseChannel *pchan_dst = (bPoseChannel *)ptr_dst->data;

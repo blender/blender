@@ -257,7 +257,7 @@ bool rna_Cache_use_disk_cache_override_apply(Main *UNUSED(bmain),
                                              IDOverrideLibraryPropertyOperation *opop)
 {
   BLI_assert(RNA_property_type(prop_dst) == PROP_BOOLEAN);
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE);
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE);
   UNUSED_VARS_NDEBUG(opop);
 
   RNA_property_boolean_set(ptr_dst, prop_dst, RNA_property_boolean_get(ptr_src, prop_src));

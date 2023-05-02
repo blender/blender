@@ -1049,7 +1049,7 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
   data->selected_id_uid.add(id_root_reference->session_uuid);
 
   if (ID_IS_OVERRIDE_LIBRARY_REAL(id_root_reference) && !ID_IS_LINKED(id_root_reference)) {
-    id_root_reference->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+    id_root_reference->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
     return;
   }
 
@@ -1269,7 +1269,7 @@ static void id_override_library_create_hierarchy(
       success = id_root_override != nullptr;
       if (success) {
         BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root_override));
-        id_root_override->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+        id_root_override->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
       }
       /* Cleanup. */
       BKE_main_id_newptr_and_tag_clear(&bmain);
@@ -1330,7 +1330,7 @@ static void id_override_library_create_hierarchy_process(bContext *C,
     if (data.selected_id_uid.contains(id_iter->override_library->reference->session_uuid) ||
         data.selected_id_uid.contains(id_iter->session_uuid))
     {
-      id_iter->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+      id_iter->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
     }
   }
   FOREACH_MAIN_ID_END;
