@@ -332,8 +332,7 @@ bool BKE_lib_override_library_is_system_defined(const Main *bmain, const ID *id)
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
     const ID *override_owner_id;
     BKE_lib_override_library_get(bmain, id, nullptr, &override_owner_id);
-    return (override_owner_id->override_library->flag & LIBOVERRIDE_FLAG_SYSTEM_DEFINED) !=
-           0;
+    return (override_owner_id->override_library->flag & LIBOVERRIDE_FLAG_SYSTEM_DEFINED) != 0;
   }
   return false;
 }
@@ -2636,9 +2635,6 @@ static void lib_override_library_main_resync_on_library_indirect_level(
     }
 
     if (id->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) {
-      if (STREQ(id->name, "GRSE-rocket_interior")) {
-        printf("f\n");
-      }
       lib_override_resync_tagging_finalize_recurse(
           bmain, id, id_roots, library_indirect_level, false);
       continue;
@@ -3625,8 +3621,7 @@ void BKE_lib_override_library_operations_restore(Main *bmain, ID *local, int *r_
         BKE_lib_override_library_property_delete(local->override_library, op);
       }
       else {
-        BKE_lib_override_library_operations_tag(
-            op, LIBOVERRIDE_PROP_TAG_NEEDS_RETORE, false);
+        BKE_lib_override_library_operations_tag(op, LIBOVERRIDE_PROP_TAG_NEEDS_RETORE, false);
       }
     }
   }
