@@ -345,7 +345,8 @@ static void node_buts_image_user(uiLayout *layout,
   }
 
   if (show_layer_selection && RNA_enum_get(imaptr, "type") == IMA_TYPE_MULTILAYER &&
-      RNA_boolean_get(ptr, "has_layers")) {
+      RNA_boolean_get(ptr, "has_layers"))
+  {
     col = uiLayoutColumn(layout, false);
     uiItemR(col, ptr, "layer", DEFAULT_FLAGS, nullptr, ICON_NONE);
   }
@@ -1564,7 +1565,8 @@ void draw_nodespace_back_pix(const bContext &C,
       }
 
       if ((snode.nodetree->flag & NTREE_VIEWER_BORDER) &&
-          viewer_border->xmin < viewer_border->xmax && viewer_border->ymin < viewer_border->ymax) {
+          viewer_border->xmin < viewer_border->xmax && viewer_border->ymin < viewer_border->ymax)
+      {
         rcti pixel_border;
         BLI_rcti_init(&pixel_border,
                       x + snode.zoom * viewer_border->xmin * ibuf->x,
@@ -2057,7 +2059,8 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
   UI_GetThemeColor4fv(th_col3, draw_config.outline_color);
 
   if (snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
-      snode.overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS) {
+      snode.overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS)
+  {
     PointerRNA from_node_ptr, to_node_ptr;
     RNA_pointer_create((ID *)&node_tree, &RNA_Node, link.fromnode, &from_node_ptr);
     RNA_pointer_create((ID *)&node_tree, &RNA_Node, link.tonode, &to_node_ptr);
@@ -2208,7 +2211,8 @@ void node_draw_link(const bContext &C,
   /* Links from field to non-field sockets are not allowed. */
   if (snode.edittree->type == NTREE_GEOMETRY) {
     if ((link.fromsock && link.fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) &&
-        (link.tosock && link.tosock->display_shape == SOCK_DISPLAY_SHAPE_CIRCLE)) {
+        (link.tosock && link.tosock->display_shape == SOCK_DISPLAY_SHAPE_CIRCLE))
+    {
       th_col1 = th_col2 = th_col3 = TH_REDALERT;
     }
   }

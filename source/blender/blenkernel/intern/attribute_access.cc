@@ -532,7 +532,8 @@ bool CustomDataAttributeProvider::try_delete(void *owner, const AttributeIDRef &
   for (const int i : IndexRange(custom_data->totlayer)) {
     const CustomDataLayer &layer = custom_data->layers[i];
     if (this->type_is_supported((eCustomDataType)layer.type) &&
-        custom_data_layer_matches_attribute_id(layer, attribute_id)) {
+        custom_data_layer_matches_attribute_id(layer, attribute_id))
+    {
       CustomData_free_layer(custom_data, eCustomDataType(layer.type), element_num, i);
       return true;
     }
@@ -932,7 +933,8 @@ bool MutableAttributeAccessor::rename(const AttributeIDRef &old_attribute_id,
                    old_attribute.domain,
                    type,
                    AttributeInitShared{old_attribute.varray.get_internal_span().data(),
-                                       *old_attribute.sharing_info})) {
+                                       *old_attribute.sharing_info}))
+    {
       return false;
     }
   }
@@ -940,7 +942,8 @@ bool MutableAttributeAccessor::rename(const AttributeIDRef &old_attribute_id,
     if (!this->add(new_attribute_id,
                    old_attribute.domain,
                    type,
-                   AttributeInitVArray{old_attribute.varray})) {
+                   AttributeInitVArray{old_attribute.varray}))
+    {
       return false;
     }
   }

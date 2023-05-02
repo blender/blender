@@ -233,7 +233,8 @@ static bool do_init_cloth(Object *ob, ClothModifierData *clmd, Mesh *result, int
 
     ClothSimSettings *parms = clmd->sim_parms;
     if (parms->flags & CLOTH_SIMSETTINGS_FLAG_PRESSURE &&
-        !(parms->flags & CLOTH_SIMSETTINGS_FLAG_PRESSURE_VOL)) {
+        !(parms->flags & CLOTH_SIMSETTINGS_FLAG_PRESSURE_VOL))
+    {
       SIM_cloth_solver_set_volume(clmd);
     }
 
@@ -288,7 +289,8 @@ static int do_step_cloth(
   cloth_apply_vgroup(clmd, result);
 
   if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH) ||
-      (clmd->sim_parms->vgroup_shrink > 0) || (clmd->sim_parms->shrink_min != 0.0f)) {
+      (clmd->sim_parms->vgroup_shrink > 0) || (clmd->sim_parms->shrink_min != 0.0f))
+  {
     cloth_update_spring_lengths(clmd, result);
   }
 
@@ -372,7 +374,8 @@ void clothModifier_do(ClothModifierData *clmd,
   cache_result = BKE_ptcache_read(&pid, float(framenr) + scene->r.subframe, can_simulate);
 
   if (cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED ||
-      (!can_simulate && cache_result == PTCACHE_READ_OLD)) {
+      (!can_simulate && cache_result == PTCACHE_READ_OLD))
+  {
     SIM_cloth_solver_set_positions(clmd);
     cloth_to_object(ob, clmd, vertexCos);
 
@@ -391,15 +394,16 @@ void clothModifier_do(ClothModifierData *clmd,
   }
   else if (
       /* 2.4x disabled lib, but this can be used in some cases, testing further - campbell */
-      /*ob->id.lib ||*/ (cache->flag & PTCACHE_BAKED)) {
+      /*ob->id.lib ||*/ (cache->flag & PTCACHE_BAKED))
+  {
     /* if baked and nothing in cache, do nothing */
     BKE_ptcache_invalidate(cache);
     return;
   }
 
   /* if on second frame, write cache for first frame */
-  if (cache->simframe == startframe &&
-      (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0)) {
+  if (cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0))
+  {
     BKE_ptcache_write(&pid, startframe);
   }
 
@@ -754,7 +758,8 @@ static bool cloth_from_object(
   clmd->clothObject->sew_edge_graph = nullptr;
 
   if (clmd->sim_parms->shapekey_rest &&
-      !(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH)) {
+      !(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH))
+  {
     shapekey_rest = static_cast<const float(*)[3]>(
         CustomData_get_layer(&mesh->vdata, CD_CLOTH_ORCO));
   }
@@ -1143,7 +1148,8 @@ static void cloth_update_springs(ClothModifierData *clmd)
 
       /* Activate / Deactivate existing springs */
       if (!(cloth->verts[spring->ij].flags & CLOTH_VERT_FLAG_PINNED) &&
-          (cloth->verts[spring->ij].goal > ALMOST_ZERO)) {
+          (cloth->verts[spring->ij].goal > ALMOST_ZERO))
+      {
         spring->flags &= ~CLOTH_SPRING_FLAG_DEACTIVATE;
       }
       else {
@@ -1210,7 +1216,8 @@ static void cloth_update_spring_lengths(ClothModifierData *clmd, Mesh *mesh)
 
     if (spring->type != CLOTH_SPRING_TYPE_SEWING) {
       if (spring->type & (CLOTH_SPRING_TYPE_STRUCTURAL | CLOTH_SPRING_TYPE_SHEAR |
-                          CLOTH_SPRING_TYPE_BENDING | CLOTH_SPRING_TYPE_INTERNAL)) {
+                          CLOTH_SPRING_TYPE_BENDING | CLOTH_SPRING_TYPE_INTERNAL))
+      {
         shrink_factor = cloth_shrink_factor(clmd, cloth->verts, spring->ij, spring->kl);
       }
       else {
@@ -1523,7 +1530,8 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
 
     /* If using the rest shape key, it's necessary to make a copy of the mesh. */
     if (clmd->sim_parms->shapekey_rest &&
-        !(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH)) {
+        !(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH))
+    {
       tmp_mesh = cloth_make_rest_mesh(clmd, mesh);
     }
 
@@ -1543,7 +1551,8 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
               clmd->sim_parms->internal_spring_max_length,
               clmd->sim_parms->internal_spring_max_diversion,
               (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_INTERNAL_SPRINGS_NORMAL),
-              &tar_v_idx)) {
+              &tar_v_idx))
+      {
         if (BLI_edgeset_haskey(existing_vert_pairs, i, tar_v_idx)) {
           /* We have already created a spring between these verts! */
           continue;
@@ -1611,7 +1620,8 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     if (spring) {
       spring_verts_ordered_set(spring, edges[i][0], edges[i][1]);
       if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW && loose_edges.count > 0 &&
-          loose_edges.is_loose_bits[i]) {
+          loose_edges.is_loose_bits[i])
+      {
         /* handle sewing (loose edges will be pulled together) */
         spring->restlen = 0.0f;
         spring->lin_stiffness = 1.0f;
@@ -1725,7 +1735,8 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
             if (!cloth_bend_set_poly_vert_array(
                     &spring->pa, spring->la, &corner_verts[polys[curr_ref->index].start()]) ||
                 !cloth_bend_set_poly_vert_array(
-                    &spring->pb, spring->lb, &corner_verts[polys[i].start()])) {
+                    &spring->pb, spring->lb, &corner_verts[polys[i].start()]))
+            {
               cloth_free_errorsprings(cloth, edgelist, spring_ref);
               return false;
             }

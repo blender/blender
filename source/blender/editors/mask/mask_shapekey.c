@@ -142,7 +142,8 @@ static int mask_shape_key_feather_reset_exec(bContext *C, wmOperator *UNUSED(op)
       BKE_mask_layer_shape_from_mask(mask_layer, mask_layer_shape_reset);
 
       for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-           mask_layer_shape = mask_layer_shape->next) {
+           mask_layer_shape = mask_layer_shape->next)
+      {
 
         if (mask_layer_shape_reset->tot_vert == mask_layer_shape->tot_vert) {
           int i_abs = 0;
@@ -237,7 +238,8 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
       MaskLayerShape *mask_layer_shape_lastsel = NULL;
 
       for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-           mask_layer_shape = mask_layer_shape_next) {
+           mask_layer_shape = mask_layer_shape_next)
+      {
         MaskLayerShape *mask_layer_shape_a = NULL;
         MaskLayerShape *mask_layer_shape_b = NULL;
 
@@ -249,7 +251,8 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
             mask_layer_shape_lastsel = mask_layer_shape;
           }
           if ((mask_layer_shape->next == NULL) ||
-              (((MaskLayerShape *)mask_layer_shape->next)->flag & MASK_SHAPE_SELECT) == 0) {
+              (((MaskLayerShape *)mask_layer_shape->next)->flag & MASK_SHAPE_SELECT) == 0)
+          {
             mask_layer_shape_a = mask_layer_shape_lastsel;
             mask_layer_shape_b = mask_layer_shape;
             mask_layer_shape_lastsel = NULL;
@@ -270,7 +273,8 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
           /* move keys */
           for (mask_layer_shape_tmp = mask_layer_shape_a;
                mask_layer_shape_tmp && (mask_layer_shape_tmp != mask_layer_shape_tmp_last);
-               mask_layer_shape_tmp = mask_layer_shape_tmp_next) {
+               mask_layer_shape_tmp = mask_layer_shape_tmp_next)
+          {
             mask_layer_shape_tmp_next = mask_layer_shape_tmp->next;
             BLI_remlink(&mask_layer->splines_shapes, mask_layer_shape_tmp);
             BLI_addtail(&shapes_tmp, mask_layer_shape_tmp);
@@ -278,7 +282,8 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 
           /* re-key, NOTE: can't modify the keys here since it messes up. */
           for (mask_layer_shape_tmp = shapes_tmp.first; mask_layer_shape_tmp;
-               mask_layer_shape_tmp = mask_layer_shape_tmp->next) {
+               mask_layer_shape_tmp = mask_layer_shape_tmp->next)
+          {
             BKE_mask_layer_evaluate(mask_layer, mask_layer_shape_tmp->frame, true);
             mask_layer_shape_tmp_rekey = BKE_mask_layer_shape_verify_frame(
                 mask_layer, mask_layer_shape_tmp->frame);
@@ -288,7 +293,8 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 
           /* restore unselected points and free copies */
           for (mask_layer_shape_tmp = shapes_tmp.first; mask_layer_shape_tmp;
-               mask_layer_shape_tmp = mask_layer_shape_tmp_next) {
+               mask_layer_shape_tmp = mask_layer_shape_tmp_next)
+          {
             /* restore */
             int i_abs = 0;
             MaskLayerShapeElem *shape_ele_src;

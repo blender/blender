@@ -495,8 +495,8 @@ static void screen_opengl_render_apply(const bContext *C, OGLRender *oglrender)
   }
 
   rr = RE_AcquireResultRead(oglrender->re);
-  for (rv = static_cast<RenderView *>(rr->views.first), view_id = 0; rv;
-       rv = rv->next, view_id++) {
+  for (rv = static_cast<RenderView *>(rr->views.first), view_id = 0; rv; rv = rv->next, view_id++)
+  {
     BLI_assert(view_id < oglrender->views_len);
     RE_SetActiveRenderView(oglrender->re, rv->name);
     oglrender->view_id = view_id;
@@ -1002,7 +1002,8 @@ static bool screen_opengl_render_anim_init(bContext *C, wmOperator *op)
                                       oglrender->sizey,
                                       oglrender->reports,
                                       PRVRANGEON != 0,
-                                      suffix)) {
+                                      suffix))
+      {
         screen_opengl_render_end(C, oglrender);
         return false;
       }
@@ -1082,7 +1083,8 @@ static void write_result(TaskPool *__restrict pool, WriteTaskData *task_data)
   if (reports.list.first != nullptr) {
     BLI_spin_lock(&oglrender->reports_lock);
     for (Report *report = static_cast<Report *>(reports.list.first); report != nullptr;
-         report = report->next) {
+         report = report->next)
+    {
       BKE_report(oglrender->reports, static_cast<eReportType>(report->type), report->message);
     }
     BLI_spin_unlock(&oglrender->reports_lock);
@@ -1186,7 +1188,8 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
   }
 
   if (oglrender->render_frames == nullptr ||
-      BLI_BITMAP_TEST_BOOL(oglrender->render_frames, scene->r.cfra - PSFRA)) {
+      BLI_BITMAP_TEST_BOOL(oglrender->render_frames, scene->r.cfra - PSFRA))
+  {
     /* render into offscreen buffer */
     screen_opengl_render_apply(C, oglrender);
   }

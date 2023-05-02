@@ -119,7 +119,7 @@ class BlendFile : public AbstractFile {
   std::string get_filename() const
   {
     char filename[FILE_MAX];
-    BLI_split_file_part(get_file_path(), filename, sizeof(filename));
+    BLI_path_split_file_part(get_file_path(), filename, sizeof(filename));
     return std::string(filename);
   }
 

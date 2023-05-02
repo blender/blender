@@ -561,7 +561,8 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     double r[3];
 
     if ((stl->effects->enabled_effects & EFFECT_SSR) && (render_samples == 1) &&
-        !stl->effects->ssr_was_valid_double_buffer) {
+        !stl->effects->ssr_was_valid_double_buffer)
+    {
       /* SSR needs one iteration to start properly.
        * This iteration was done, reset to the original target sample count. */
       render_samples--;

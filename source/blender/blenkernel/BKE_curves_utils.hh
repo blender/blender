@@ -133,8 +133,10 @@ class IndexRangeCyclic {
     }
 
     const int num_remaining = iterator_size - num_until_loop;
-    const int num_full_cycles = num_remaining /
-                                iterable_range_size; /* Integer division (rounded down). */
+
+    /* Integer division (rounded down). */
+    const int num_full_cycles = num_remaining / iterable_range_size;
+
     const int end_index = num_remaining - num_full_cycles * iterable_range_size;
     return IndexRangeCyclic(start_index, end_index, iterable_range_size, num_full_cycles + 1);
   }

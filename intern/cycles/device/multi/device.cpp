@@ -72,7 +72,8 @@ class MultiDevice : public Device {
       foreach (SubDevice &peer_sub, devices) {
         if (peer_sub.peer_island_index < 0 &&
             peer_sub.device->info.type == sub.device->info.type &&
-            peer_sub.device->check_peer_access(sub.device)) {
+            peer_sub.device->check_peer_access(sub.device))
+        {
           peer_sub.peer_island_index = sub.peer_island_index;
           peer_islands[sub.peer_island_index].push_back(&peer_sub);
         }
@@ -205,7 +206,8 @@ class MultiDevice : public Device {
         /* Skip building a bottom level acceleration structure for non-instanced geometry on Embree
          * (since they are put into the top level directly, see bvh_embree.cpp) */
         if (!params.top_level && params.bvh_layout == BVH_LAYOUT_EMBREE &&
-            !bvh->geometry[0]->is_instanced()) {
+            !bvh->geometry[0]->is_instanced())
+        {
           i++;
           continue;
         }
@@ -251,8 +253,8 @@ class MultiDevice : public Device {
     SubDevice *owner_sub = &sub;
     if (owner_sub->ptr_map.find(key) == owner_sub->ptr_map.end()) {
       foreach (SubDevice *island_sub, peer_islands[sub.peer_island_index]) {
-        if (island_sub != owner_sub &&
-            island_sub->ptr_map.find(key) != island_sub->ptr_map.end()) {
+        if (island_sub != owner_sub && island_sub->ptr_map.find(key) != island_sub->ptr_map.end())
+        {
           owner_sub = island_sub;
         }
       }
@@ -268,7 +270,8 @@ class MultiDevice : public Device {
     SubDevice *owner_sub = island.front();
     foreach (SubDevice *island_sub, island) {
       if (key ? (island_sub->ptr_map.find(key) != island_sub->ptr_map.end()) :
-                (island_sub->device->stats.mem_used < owner_sub->device->stats.mem_used)) {
+                (island_sub->device->stats.mem_used < owner_sub->device->stats.mem_used))
+      {
         owner_sub = island_sub;
       }
     }

@@ -111,14 +111,16 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
     /* For cycles we have inverted Z */
     /* TODO: pass here the correct matrices */
     if (nodeprop->convert_from == SHD_VECT_TRANSFORM_SPACE_CAMERA &&
-        nodeprop->convert_to != SHD_VECT_TRANSFORM_SPACE_CAMERA) {
+        nodeprop->convert_to != SHD_VECT_TRANSFORM_SPACE_CAMERA)
+    {
       GPU_link(mat, "invert_z", inputlink, &inputlink);
     }
 
     GPU_link(mat, func_name, inputlink, &out[0].link);
 
     if (nodeprop->convert_to == SHD_VECT_TRANSFORM_SPACE_CAMERA &&
-        nodeprop->convert_from != SHD_VECT_TRANSFORM_SPACE_CAMERA) {
+        nodeprop->convert_from != SHD_VECT_TRANSFORM_SPACE_CAMERA)
+    {
       GPU_link(mat, "invert_z", out[0].link, &out[0].link);
     }
   }

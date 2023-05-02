@@ -135,7 +135,8 @@ static void infer_propagate_relations(const bNodeTree &tree,
         tree, *group_output_socket, [&](const bNodeSocket &output_socket) {
           Vector<int> indices;
           for (const aal::PropagateRelation &relation :
-               relations_by_node[output_socket.owner_node().index()]->propagate_relations) {
+               relations_by_node[output_socket.owner_node().index()]->propagate_relations)
+          {
             if (relation.to_geometry_output == output_socket.index()) {
               indices.append(relation.from_geometry_input);
             }
@@ -164,7 +165,8 @@ static void infer_reference_relations(const bNodeTree &tree,
         tree, *group_output_socket, [&](const bNodeSocket &output_socket) {
           Vector<int> indices;
           for (const aal::ReferenceRelation &relation :
-               relations_by_node[output_socket.owner_node().index()]->reference_relations) {
+               relations_by_node[output_socket.owner_node().index()]->reference_relations)
+          {
             if (relation.to_field_output == output_socket.index()) {
               indices.append(relation.from_field_input);
             }
@@ -173,7 +175,8 @@ static void infer_reference_relations(const bNodeTree &tree,
         });
     for (const int input_index : input_indices) {
       if (tree.runtime->field_inferencing_interface->inputs[input_index] !=
-          nodes::InputSocketFieldType::None) {
+          nodes::InputSocketFieldType::None)
+      {
         aal::ReferenceRelation relation;
         relation.from_field_input = input_index;
         relation.to_field_output = group_output_socket->index();
@@ -434,7 +437,8 @@ static void infer_eval_relations(const bNodeTree &tree,
 {
   for (const int input_index : tree.interface_inputs().index_range()) {
     if (tree.runtime->field_inferencing_interface->inputs[input_index] ==
-        nodes::InputSocketFieldType::None) {
+        nodes::InputSocketFieldType::None)
+    {
       continue;
     }
     const Vector<int> geometry_input_indices = find_eval_on_inputs(

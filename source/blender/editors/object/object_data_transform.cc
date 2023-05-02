@@ -155,7 +155,8 @@ static void edit_armature_coords_and_quats_get(const bArmature *arm, ElemData_Ar
 {
   ElemData_Armature *elem = elem_array;
   for (EditBone *ebone = static_cast<EditBone *>(arm->edbo->first); ebone;
-       ebone = ebone->next, elem++) {
+       ebone = ebone->next, elem++)
+  {
 
 #define COPY_PTR(member) memcpy(elem->member, ebone->member, sizeof(ebone->member))
 #define COPY_VAL(member) memcpy(&elem->member, &ebone->member, sizeof(ebone->member))
@@ -179,7 +180,8 @@ static void edit_armature_coords_and_quats_apply_with_mat4(bArmature *arm,
 {
   const ElemData_Armature *elem = elem_array;
   for (EditBone *ebone = static_cast<EditBone *>(arm->edbo->first); ebone;
-       ebone = ebone->next, elem++) {
+       ebone = ebone->next, elem++)
+  {
 
 #define COPY_PTR(member) memcpy(ebone->member, elem->member, sizeof(ebone->member))
 #define COPY_VAL(member) memcpy(&ebone->member, &elem->member, sizeof(ebone->member))
@@ -220,7 +222,8 @@ static void metaball_coords_and_quats_get(const MetaBall *mb, struct ElemData_Me
 {
   struct ElemData_MetaBall *elem = elem_array;
   for (const MetaElem *ml = static_cast<const MetaElem *>(mb->elems.first); ml;
-       ml = ml->next, elem++) {
+       ml = ml->next, elem++)
+  {
     copy_v3_v3(elem->co, &ml->x);
     copy_qt_qt(elem->quat, ml->quat);
     copy_v3_v3(elem->exp, &ml->expx);

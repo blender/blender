@@ -103,7 +103,8 @@ bool ExecutionGroup::add_operation(NodeOperation *operation)
   }
 
   if (!operation->get_flags().is_read_buffer_operation &&
-      !operation->get_flags().is_write_buffer_operation) {
+      !operation->get_flags().is_write_buffer_operation)
+  {
     flags_.complex = operation->get_flags().complex;
     flags_.open_cl = operation->get_flags().open_cl;
     flags_.single_threaded = operation->get_flags().single_threaded;
@@ -117,8 +118,8 @@ bool ExecutionGroup::add_operation(NodeOperation *operation)
 
 NodeOperation *ExecutionGroup::get_output_operation() const
 {
-  return this
-      ->operations_[0]; /* the first operation of the group is always the output operation. */
+  /* The first operation of the group is always the output operation. */
+  return this->operations_[0];
 }
 
 void ExecutionGroup::init_work_packages()
@@ -323,7 +324,8 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
     int number_evaluated = 0;
 
     for (int index = start_index; index < chunks_len_ && number_evaluated < max_number_evaluated;
-         index++) {
+         index++)
+    {
       chunk_index = chunk_order[index];
       int y_chunk = chunk_index / x_chunks_len_;
       int x_chunk = chunk_index - (y_chunk * x_chunks_len_);

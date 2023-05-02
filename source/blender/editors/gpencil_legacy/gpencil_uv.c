@@ -412,7 +412,8 @@ static int gpencil_transform_fill_modal(bContext *C, wmOperator *op, const wmEve
     case EVT_PADENTER:
     case EVT_RETKEY: {
       if ((event->val == KM_PRESS) ||
-          ((event->val == KM_RELEASE) && RNA_boolean_get(op->ptr, "release_confirm"))) {
+          ((event->val == KM_RELEASE) && RNA_boolean_get(op->ptr, "release_confirm")))
+      {
         gpencil_uv_transform_calc(C, op);
         gpencil_uv_transform_exit(C, op);
         return OPERATOR_FINISHED;

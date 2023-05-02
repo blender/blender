@@ -175,7 +175,8 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
   }
 
   if ((event->type == EVT_ESCKEY && event->val == KM_PRESS) ||
-      (event->type == RIGHTMOUSE && event->val == KM_PRESS)) {
+      (event->type == RIGHTMOUSE && event->val == KM_PRESS))
+  {
     /* Returning OPERATOR_CANCELLED will leak memory due to not finishing
      * undo. Better solution could be to make paint_mesh_restore_co work
      * for this case. */
@@ -185,7 +186,8 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
 
   if ((event->type == LEFTMOUSE && event->val == KM_RELEASE) ||
       (event->type == EVT_RETKEY && event->val == KM_PRESS) ||
-      (event->type == EVT_PADENTER && event->val == KM_PRESS)) {
+      (event->type == EVT_PADENTER && event->val == KM_PRESS))
+  {
 
     /* Smooth iterations. */
     BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);

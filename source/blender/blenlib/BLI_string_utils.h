@@ -38,7 +38,7 @@ size_t BLI_split_name_num(char *left, int *nr, const char *name, char delim);
 bool BLI_string_is_decimal(const char *string) ATTR_NONNULL();
 
 /**
- * Based on `BLI_split_dirfile()` / `os.path.splitext()`,
+ * Based on `BLI_path_split_dir_file()` / `os.path.splitext()`,
  * `"a.b.c"` -> (`"a.b"`, `".c"`).
  */
 void BLI_string_split_suffix(const char *string, char *r_body, char *r_suf, size_t str_len);

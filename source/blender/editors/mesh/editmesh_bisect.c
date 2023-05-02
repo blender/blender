@@ -106,7 +106,8 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   /* If the properties are set or there is no rv3d,
    * skip modal and exec immediately. */
   if ((CTX_wm_region_view3d(C) == NULL) || (RNA_struct_property_is_set(op->ptr, "plane_co") &&
-                                            RNA_struct_property_is_set(op->ptr, "plane_no"))) {
+                                            RNA_struct_property_is_set(op->ptr, "plane_no")))
+  {
     return mesh_bisect_exec(C, op);
   }
 

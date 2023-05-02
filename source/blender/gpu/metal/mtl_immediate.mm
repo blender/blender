@@ -66,7 +66,8 @@ void MTLImmediate::end()
 
     /* Skip draw if Metal shader is not valid. */
     if (active_mtl_shader == nullptr || !active_mtl_shader->is_valid() ||
-        active_mtl_shader->get_interface() == nullptr) {
+        active_mtl_shader->get_interface() == nullptr)
+    {
 
       const char *ptr = (active_mtl_shader) ? active_mtl_shader->name_get() : nullptr;
       MTL_LOG_WARNING(

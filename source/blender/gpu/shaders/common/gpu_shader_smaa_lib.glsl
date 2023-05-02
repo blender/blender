@@ -1127,7 +1127,8 @@ float SMAASearchXLeft(SMAATexture2D(edgesTex),
    */
   float2 e = float2(0.0, 1.0);
   while (texcoord.x > end && e.g > 0.8281 &&  // Is there some edge not activated?
-         e.r == 0.0) {                        // Or is there a crossing edge that breaks the line?
+         e.r == 0.0)                          // Or is there a crossing edge that breaks the line?
+  {
     e = SMAASampleLevelZero(edgesTex, texcoord).rg;
     texcoord = mad(-float2(2.0, 0.0), SMAA_RT_METRICS.xy, texcoord);
   }
@@ -1157,7 +1158,8 @@ float SMAASearchXRight(SMAATexture2D(edgesTex),
 {
   float2 e = float2(0.0, 1.0);
   while (texcoord.x < end && e.g > 0.8281 &&  // Is there some edge not activated?
-         e.r == 0.0) {                        // Or is there a crossing edge that breaks the line?
+         e.r == 0.0)                          // Or is there a crossing edge that breaks the line?
+  {
     e = SMAASampleLevelZero(edgesTex, texcoord).rg;
     texcoord = mad(float2(2.0, 0.0), SMAA_RT_METRICS.xy, texcoord);
   }
@@ -1170,7 +1172,8 @@ float SMAASearchYUp(SMAATexture2D(edgesTex), SMAATexture2D(searchTex), float2 te
 {
   float2 e = float2(1.0, 0.0);
   while (texcoord.y > end && e.r > 0.8281 &&  // Is there some edge not activated?
-         e.g == 0.0) {                        // Or is there a crossing edge that breaks the line?
+         e.g == 0.0)                          // Or is there a crossing edge that breaks the line?
+  {
     e = SMAASampleLevelZero(edgesTex, texcoord).rg;
     texcoord = mad(-float2(0.0, 2.0), SMAA_RT_METRICS.xy, texcoord);
   }
@@ -1186,7 +1189,8 @@ float SMAASearchYDown(SMAATexture2D(edgesTex),
 {
   float2 e = float2(1.0, 0.0);
   while (texcoord.y < end && e.r > 0.8281 &&  // Is there some edge not activated?
-         e.g == 0.0) {                        // Or is there a crossing edge that breaks the line?
+         e.g == 0.0)                          // Or is there a crossing edge that breaks the line?
+  {
     e = SMAASampleLevelZero(edgesTex, texcoord).rg;
     texcoord = mad(float2(0.0, 2.0), SMAA_RT_METRICS.xy, texcoord);
   }

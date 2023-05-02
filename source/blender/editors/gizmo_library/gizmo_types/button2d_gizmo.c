@@ -336,7 +336,8 @@ static bool gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box
   if (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
     ARegion *region = CTX_wm_region(C);
     if (ED_view3d_project_float_global(region, matrix_final[3], co_proj, V3D_PROJ_TEST_NOP) ==
-        V3D_PROJ_RET_OK) {
+        V3D_PROJ_RET_OK)
+    {
       float matrix_final_no_offset[4][4];
       const RegionView3D *rv3d = region->regiondata;
       WM_gizmo_calc_matrix_final_no_offset(gz, matrix_final_no_offset);

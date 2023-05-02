@@ -291,7 +291,8 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_
       }
       /* Numbers (digits not part of an identifier and periods followed by digits) */
       else if ((prev != FMT_TYPE_DEFAULT && text_check_digit(*str)) ||
-               (*str == '.' && text_check_digit(*(str + 1)))) {
+               (*str == '.' && text_check_digit(*(str + 1))))
+      {
         *fmt = FMT_TYPE_NUMERAL;
       }
       /* Punctuation */

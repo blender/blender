@@ -278,7 +278,8 @@ template<typename T> class AccumulateFieldInput final : public bke::GeometryFiel
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const AccumulateFieldInput *other_accumulate = dynamic_cast<const AccumulateFieldInput *>(
-            &other)) {
+            &other))
+    {
       return input_ == other_accumulate->input_ &&
              group_index_ == other_accumulate->group_index_ &&
              source_domain_ == other_accumulate->source_domain_ &&
@@ -392,8 +393,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<int> group_index_field = params.extract_input<Field<int>>("Group Index");
   attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
     using T = decltype(dummy);
-    if constexpr (std::is_same_v<T, int> || std::is_same_v<T, float> ||
-                  std::is_same_v<T, float3>) {
+    if constexpr (std::is_same_v<T, int> || std::is_same_v<T, float> || std::is_same_v<T, float3>)
+    {
       const std::string suffix = " " + identifier_suffix<T>();
       Field<T> input_field = params.extract_input<Field<T>>("Value" + suffix);
       if (params.output_is_required("Leading" + suffix)) {

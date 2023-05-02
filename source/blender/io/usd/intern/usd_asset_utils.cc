@@ -64,10 +64,10 @@ static std::string get_asset_base_name(const char *src_path)
                  src_path);
       return src_path;
     }
-    BLI_split_file_part(split.second.c_str(), base_name, sizeof(base_name));
+    BLI_path_split_file_part(split.second.c_str(), base_name, sizeof(base_name));
   }
   else {
-    BLI_split_file_part(src_path, base_name, sizeof(base_name));
+    BLI_path_split_file_part(src_path, base_name, sizeof(base_name));
   }
 
   return base_name;

@@ -2834,8 +2834,8 @@ static bool p_chart_symmetry_pins(PChart *chart, PEdge *outer, PVert **pin1, PVe
 
     nextbe = p_boundary_edge_next(be);
 
-    if ((be->vert->flag & PVERT_SPLIT) ||
-        (lastbe->vert->flag & nextbe->vert->flag & PVERT_SPLIT)) {
+    if ((be->vert->flag & PVERT_SPLIT) || (lastbe->vert->flag & nextbe->vert->flag & PVERT_SPLIT))
+    {
       if (!cure) {
         if (be == outer) {
           firste1 = be;

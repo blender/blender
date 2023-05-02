@@ -689,7 +689,8 @@ BVHNode *BVHBuild::build_node(const BVHObjectBinning &range, int level)
   if (!(range.size() > 0 && params.top_level && level == 0)) {
     /* Make leaf node when threshold reached or SAH tells us. */
     if ((params.small_enough_for_leaf(size, level)) ||
-        (range_within_max_leaf_size(range, references) && leafSAH < splitSAH)) {
+        (range_within_max_leaf_size(range, references) && leafSAH < splitSAH))
+    {
       return create_leaf_node(range, references);
     }
   }
@@ -708,7 +709,8 @@ BVHNode *BVHBuild::build_node(const BVHObjectBinning &range, int level)
     unalignedLeafSAH = params.sah_primitive_cost * unaligned_range.leafSAH;
     if (!(range.size() > 0 && params.top_level && level == 0)) {
       if (unalignedLeafSAH < unalignedSplitSAH && unalignedSplitSAH < splitSAH &&
-          range_within_max_leaf_size(range, references)) {
+          range_within_max_leaf_size(range, references))
+      {
         return create_leaf_node(range, references);
       }
     }

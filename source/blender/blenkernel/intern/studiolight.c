@@ -570,7 +570,8 @@ static void studiolight_calculate_radiance_buffer(ImBuf *ibuf,
                                                   const float zsign)
 {
   ITER_PIXELS (
-      float, colbuf, 4, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE) {
+      float, colbuf, 4, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE)
+  {
     float direction[3];
     direction[index_x] = xsign * (x - 0.5f);
     direction[index_y] = ysign * (y - 0.5f);
@@ -683,7 +684,8 @@ static void studiolight_spherical_harmonics_calculate_coefficients(StudioLight *
                  sl->radiance_cubemap_buffers[face]->rect_float,
                  4,
                  STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE,
-                 STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE) {
+                 STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE)
+    {
       float color[3], cubevec[3], weight;
       studiolight_calculate_cubemap_vector_weight(cubevec, &weight, face, x, y);
       mul_v3_v3fl(color, pixel, weight);
@@ -977,7 +979,8 @@ BLI_INLINE void studiolight_evaluate_specular_radiance_buffer(ImBuf *radiance_bu
                radiance_buffer->rect_float,
                4,
                STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE,
-               STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE) {
+               STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE)
+  {
     float direction[3];
     direction[zoffset] = zsign * 0.5f;
     direction[xoffset] = x - 0.5f;
@@ -1130,7 +1133,8 @@ static void studiolight_calculate_irradiance_equirect_image(StudioLight *sl)
                  colbuf,
                  4,
                  STUDIOLIGHT_IRRADIANCE_EQUIRECT_WIDTH,
-                 STUDIOLIGHT_IRRADIANCE_EQUIRECT_HEIGHT) {
+                 STUDIOLIGHT_IRRADIANCE_EQUIRECT_HEIGHT)
+    {
       float dir[3];
       equirect_to_direction(dir, x, y);
       studiolight_spherical_harmonics_eval(sl, pixel, dir);
@@ -1150,10 +1154,11 @@ static void studiolight_calculate_irradiance_equirect_image(StudioLight *sl)
 static StudioLight *studiolight_add_file(const char *path, int flag)
 {
   char filename[FILE_MAXFILE];
-  BLI_split_file_part(path, filename, FILE_MAXFILE);
+  BLI_path_split_file_part(path, filename, FILE_MAXFILE);
 
   if ((((flag & STUDIOLIGHT_TYPE_STUDIO) != 0) && BLI_path_extension_check(filename, ".sl")) ||
-      BLI_path_extension_check_array(filename, imb_ext_image)) {
+      BLI_path_extension_check_array(filename, imb_ext_image))
+  {
     StudioLight *sl = studiolight_create(STUDIOLIGHT_EXTERNAL_FILE | flag);
     BLI_strncpy(sl->name, filename, FILE_MAXFILE);
     BLI_strncpy(sl->path, path, FILE_MAXFILE);
@@ -1588,7 +1593,7 @@ StudioLight *BKE_studiolight_create(const char *path,
                                        STUDIOLIGHT_SPECULAR_HIGHLIGHT_PASS);
 
   char filename[FILE_MAXFILE];
-  BLI_split_file_part(path, filename, FILE_MAXFILE);
+  BLI_path_split_file_part(path, filename, FILE_MAXFILE);
   STRNCPY(sl->path, path);
   STRNCPY(sl->name, filename);
 

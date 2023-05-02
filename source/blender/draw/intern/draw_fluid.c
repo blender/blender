@@ -447,7 +447,8 @@ void DRW_smoke_ensure_coba_field(FluidModifierData *fmd)
                                 FLUID_DOMAIN_FIELD_PHI_OUT,
                                 FLUID_DOMAIN_FIELD_PHI_OBSTACLE,
                                 FLUID_DOMAIN_FIELD_FLAGS,
-                                FLUID_DOMAIN_FIELD_PRESSURE)) {
+                                FLUID_DOMAIN_FIELD_PRESSURE))
+    {
       fds->tex_coba = create_transfer_function(TFUNC_COLOR_RAMP, fds->coba);
       BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_coba));
     }

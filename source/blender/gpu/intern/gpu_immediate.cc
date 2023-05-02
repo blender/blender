@@ -169,7 +169,8 @@ static void wide_line_workaround_start(GPUPrimType prim_type)
 
   if (ELEM(polyline_sh,
            GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR,
-           GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR)) {
+           GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR))
+  {
     immUniformColor4fv(imm->uniform_color);
   }
 }

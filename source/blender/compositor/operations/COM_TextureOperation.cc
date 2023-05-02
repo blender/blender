@@ -50,7 +50,8 @@ void TextureBaseOperation::deinit_execution()
   BKE_image_pool_free(pool_);
   pool_ = nullptr;
   if (texture_ != nullptr && texture_->use_nodes && texture_->nodetree != nullptr &&
-      texture_->nodetree->runtime->execdata != nullptr) {
+      texture_->nodetree->runtime->execdata != nullptr)
+  {
     ntreeTexEndExecTree(texture_->nodetree->runtime->execdata);
   }
   NodeOperation::deinit_execution();

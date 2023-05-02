@@ -221,8 +221,8 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
     ls->D = z * B + sin_from_cos(z) * safe_normalize(C_ - dot(C_, B) * B);
 
     /* calculate intersection with the planar triangle */
-    if (!ray_triangle_intersect(
-            P, ls->D, 0.0f, FLT_MAX, V[0], V[1], V[2], &ls->u, &ls->v, &ls->t)) {
+    if (!ray_triangle_intersect(P, ls->D, 0.0f, FLT_MAX, V[0], V[1], V[2], &ls->u, &ls->v, &ls->t))
+    {
       ls->pdf = 0.0f;
       return false;
     }

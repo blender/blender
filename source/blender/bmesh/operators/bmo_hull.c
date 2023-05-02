@@ -71,7 +71,8 @@ static BMFace *hull_find_example_face(BMesh *bm, BMEdge *e)
 
   BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
     if (BMO_face_flag_test(bm, f, HULL_FLAG_INPUT) ||
-        BMO_face_flag_test(bm, f, HULL_FLAG_OUTPUT_GEOM) == false) {
+        BMO_face_flag_test(bm, f, HULL_FLAG_OUTPUT_GEOM) == false)
+    {
       return f;
     }
   }

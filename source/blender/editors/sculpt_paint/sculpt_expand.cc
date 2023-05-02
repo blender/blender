@@ -1008,7 +1008,8 @@ static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       if (!(SCULPT_vertex_has_face_set(ss, vertex, active_face_set) &&
-            SCULPT_vertex_has_unique_face_set(ss, vertex))) {
+            SCULPT_vertex_has_unique_face_set(ss, vertex)))
+      {
         continue;
       }
       expand_cache->vert_falloff[i] *= -1.0f;
@@ -1278,7 +1279,8 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
     const bool enabled = sculpt_expand_state_get(ss, expand_cache, vd.vertex);
 
     if (expand_cache->check_islands &&
-        !sculpt_expand_is_vert_in_active_component(ss, expand_cache, vd.vertex)) {
+        !sculpt_expand_is_vert_in_active_component(ss, expand_cache, vd.vertex))
+    {
       continue;
     }
 
@@ -1844,7 +1846,8 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         copy_v2_v2(expand_cache->initial_mouse_move, mval_fl);
         copy_v2_v2(expand_cache->original_mouse_move, expand_cache->initial_mouse);
         if (expand_cache->falloff_type == SCULPT_EXPAND_FALLOFF_GEODESIC &&
-            SCULPT_vertex_count_get(ss) > expand_cache->max_geodesic_move_preview) {
+            SCULPT_vertex_count_get(ss) > expand_cache->max_geodesic_move_preview)
+        {
           /* Set to spherical falloff for preview in high poly meshes as it is the fastest one.
            * In most cases it should match closely the preview from geodesic. */
           expand_cache->move_preview_falloff_type = SCULPT_EXPAND_FALLOFF_SPHERICAL;
@@ -2201,7 +2204,8 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   /* Face Set operations are not supported in dyntopo. */
   if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS &&
-      BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+      BKE_pbvh_type(ss->pbvh) == PBVH_BMESH)
+  {
     sculpt_expand_cache_free(ss);
     return OPERATOR_CANCELLED;
   }

@@ -103,7 +103,7 @@ typedef struct FFMpegContext {
 
 static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value);
 static void ffmpeg_filepath_get(FFMpegContext *context,
-                                char *string,
+                                char string[FILE_MAX],
                                 const struct RenderData *rd,
                                 bool preview,
                                 const char *suffix);
@@ -1217,7 +1217,8 @@ static int start_ffmpeg_impl(FFMpegContext *context,
   if (context->ffmpeg_type == FFMPEG_DV) {
     audio_codec = AV_CODEC_ID_PCM_S16LE;
     if (context->ffmpeg_audio_codec != AV_CODEC_ID_NONE &&
-        rd->ffcodecdata.audio_mixrate != 48000 && rd->ffcodecdata.audio_channels != 2) {
+        rd->ffcodecdata.audio_mixrate != 48000 && rd->ffcodecdata.audio_channels != 2)
+    {
       BKE_report(reports, RPT_ERROR, "FFMPEG only supports 48khz / stereo audio for DV!");
       goto fail;
     }
@@ -1356,8 +1357,11 @@ static void flush_ffmpeg(AVCodecContext *c, AVStream *stream, AVFormatContext *o
  * ********************************************************************** */
 
 /* Get the output filename-- similar to the other output formats */
-static void ffmpeg_filepath_get(
-    FFMpegContext *context, char *string, const RenderData *rd, bool preview, const char *suffix)
+static void ffmpeg_filepath_get(FFMpegContext *context,
+                                char string[FILE_MAX],
+                                const RenderData *rd,
+                                bool preview,
+                                const char *suffix)
 {
   char autosplit[20];
 
@@ -1378,7 +1382,7 @@ static void ffmpeg_filepath_get(
     efra = rd->efra;
   }
 
-  strcpy(string, rd->pic);
+  BLI_strncpy(string, rd->pic, FILE_MAX);
   BLI_path_abs(string, BKE_main_blendfile_path_from_global());
 
   BLI_make_existing_file(string);
@@ -1400,15 +1404,15 @@ static void ffmpeg_filepath_get(
     }
 
     if (*fe == NULL) {
-      strcat(string, autosplit);
+      BLI_strncat(string, autosplit, FILE_MAX);
 
       BLI_path_frame_range(string, sfra, efra, 4);
-      strcat(string, *exts);
+      BLI_strncat(string, *exts, FILE_MAX);
     }
     else {
       *(string + strlen(string) - strlen(*fe)) = '\0';
-      strcat(string, autosplit);
-      strcat(string, *fe);
+      BLI_strncat(string, autosplit, FILE_MAX);
+      BLI_strncat(string, *fe, FILE_MAX);
     }
   }
   else {
@@ -1416,7 +1420,7 @@ static void ffmpeg_filepath_get(
       BLI_path_frame_range(string, sfra, efra, 4);
     }
 
-    strcat(string, autosplit);
+    BLI_strncat(string, autosplit, FILE_MAX);
   }
 
   BLI_path_suffix(string, FILE_MAX, suffix, "");
@@ -1738,7 +1742,8 @@ void BKE_ffmpeg_image_type_verify(RenderData *rd, const ImageFormatData *imf)
 
   if (imf->imtype == R_IMF_IMTYPE_FFMPEG) {
     if (rd->ffcodecdata.type <= 0 || rd->ffcodecdata.codec <= 0 ||
-        rd->ffcodecdata.audio_codec <= 0 || rd->ffcodecdata.video_bitrate <= 1) {
+        rd->ffcodecdata.audio_codec <= 0 || rd->ffcodecdata.video_bitrate <= 1)
+    {
       BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_H264);
       rd->ffcodecdata.constant_rate_factor = FFM_CRF_MEDIUM;
       rd->ffcodecdata.ffmpeg_preset = FFM_PRESET_GOOD;

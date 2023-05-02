@@ -125,7 +125,8 @@ struct MTLVertexDescriptor {
   {
     if ((this->max_attribute_value != other.max_attribute_value) ||
         (this->total_attributes != other.total_attributes) ||
-        (this->num_vert_buffers != other.num_vert_buffers)) {
+        (this->num_vert_buffers != other.num_vert_buffers))
+    {
       return false;
     }
     if (this->prim_topology_class != other.prim_topology_class) {
@@ -227,7 +228,8 @@ struct MTLRenderPipelineStateDescriptor {
         (src_alpha_blend_factor != other.src_alpha_blend_factor) ||
         (src_rgb_blend_factor != other.src_rgb_blend_factor) ||
         (vertex_descriptor.prim_topology_class != other.vertex_descriptor.prim_topology_class) ||
-        (point_size != other.point_size)) {
+        (point_size != other.point_size))
+    {
       return false;
     }
 

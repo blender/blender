@@ -366,7 +366,8 @@ int BlenderFileLoader::testDegenerateTriangle(float v1[3], float v2[3], float v3
   }
   if (dist_squared_to_line_segment_v3(v1, v2, v3) < eps_sq ||
       dist_squared_to_line_segment_v3(v2, v1, v3) < eps_sq ||
-      dist_squared_to_line_segment_v3(v3, v1, v2) < eps_sq) {
+      dist_squared_to_line_segment_v3(v3, v1, v2) < eps_sq)
+  {
 #if 0
     if (verbose && G.debug & G_DEBUG_FREESTYLE) {
       printf("BlenderFileLoader::testDegenerateTriangle = 2\n");
@@ -591,7 +592,8 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 
       for (vector<Material *>::iterator it = meshMaterials.begin(), itend = meshMaterials.end();
            it != itend;
-           it++, i++) {
+           it++, i++)
+      {
         if (*it == mat) {
           ls.currentMIndex = i;
           found = true;
@@ -650,7 +652,8 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   uint mindex = 0;
   for (vector<FrsMaterial>::iterator m = meshFrsMaterials.begin(), mend = meshFrsMaterials.end();
        m != mend;
-       ++m) {
+       ++m)
+  {
     marray[mindex] = new FrsMaterial(*m);
     ++mindex;
   }

@@ -696,7 +696,8 @@ static void subdiv_mesh_ensure_vertex_interpolation(SubdivMeshContext *ctx,
   /* Check whether we've moved to another corner or polygon. */
   if (tls->vertex_interpolation_initialized) {
     if (tls->vertex_interpolation_coarse_poly_index != coarse_poly_index ||
-        tls->vertex_interpolation_coarse_corner != coarse_corner) {
+        tls->vertex_interpolation_coarse_corner != coarse_corner)
+    {
       vertex_interpolation_end(&tls->vertex_interpolation);
       tls->vertex_interpolation_initialized = false;
     }
@@ -707,7 +708,8 @@ static void subdiv_mesh_ensure_vertex_interpolation(SubdivMeshContext *ctx,
   }
   /* Update it for a new corner if needed. */
   if (!tls->vertex_interpolation_initialized ||
-      tls->vertex_interpolation_coarse_corner != coarse_corner) {
+      tls->vertex_interpolation_coarse_corner != coarse_corner)
+  {
     vertex_interpolation_from_corner(ctx, &tls->vertex_interpolation, coarse_poly, coarse_corner);
   }
   /* Store settings used for the current state of interpolator. */
@@ -868,7 +870,8 @@ static void subdiv_mesh_ensure_loop_interpolation(SubdivMeshContext *ctx,
   /* Check whether we've moved to another corner or polygon. */
   if (tls->loop_interpolation_initialized) {
     if (tls->loop_interpolation_coarse_poly_index != coarse_poly_index ||
-        tls->loop_interpolation_coarse_corner != coarse_corner) {
+        tls->loop_interpolation_coarse_corner != coarse_corner)
+    {
       loop_interpolation_end(&tls->loop_interpolation);
       tls->loop_interpolation_initialized = false;
     }
@@ -1151,7 +1154,8 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   /* Make sure evaluator is up to date with possible new topology, and that
    * it is refined for the new positions of coarse vertices. */
   if (!BKE_subdiv_eval_begin_from_mesh(
-          subdiv, coarse_mesh, nullptr, SUBDIV_EVALUATOR_TYPE_CPU, nullptr)) {
+          subdiv, coarse_mesh, nullptr, SUBDIV_EVALUATOR_TYPE_CPU, nullptr))
+  {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
      * - Something totally bad happened, and OpenSubdiv rejected our

@@ -72,7 +72,8 @@ static PyObject *pygpu_IndexBuf__tp_new(PyTypeObject *UNUSED(type), PyObject *ar
     }
 
     if (pybuffer.itemsize != 4 ||
-        PyC_StructFmt_type_is_float_any(PyC_StructFmt_type_from_str(pybuffer.format))) {
+        PyC_StructFmt_type_is_float_any(PyC_StructFmt_type_from_str(pybuffer.format)))
+    {
       PyErr_Format(PyExc_ValueError, "Each index must be an 4-bytes integer value");
       PyBuffer_Release(&pybuffer);
       return NULL;

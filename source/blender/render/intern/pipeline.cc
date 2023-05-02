@@ -732,12 +732,14 @@ void RE_InitState(Render *re,
 
   /* disable border if it's a full render anyway */
   if (re->r.border.xmin == 0.0f && re->r.border.xmax == 1.0f && re->r.border.ymin == 0.0f &&
-      re->r.border.ymax == 1.0f) {
+      re->r.border.ymax == 1.0f)
+  {
     re->r.mode &= ~R_BORDER;
   }
 
   if (re->rectx < 1 || re->recty < 1 ||
-      (BKE_imtype_is_movie(rd->im_format.imtype) && (re->rectx < 16 || re->recty < 16))) {
+      (BKE_imtype_is_movie(rd->im_format.imtype) && (re->rectx < 16 || re->recty < 16)))
+  {
     BKE_report(re->reports, RPT_ERROR, "Image too small");
     re->ok = false;
     return;
@@ -1473,11 +1475,12 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
     if (scene->ed) {
       LISTBASE_FOREACH (Sequence *, seq, &scene->ed->seqbase) {
         if ((seq->type == SEQ_TYPE_SCENE) && ((seq->flag & SEQ_SCENE_STRIPS) == 0) &&
-            (seq->scene != nullptr)) {
+            (seq->scene != nullptr))
+        {
           if (!seq->scene_camera) {
             if (!seq->scene->camera &&
-                !BKE_view_layer_camera_find(seq->scene,
-                                            BKE_view_layer_default_render(seq->scene))) {
+                !BKE_view_layer_camera_find(seq->scene, BKE_view_layer_default_render(seq->scene)))
+            {
               /* camera could be unneeded due to composite nodes */
               Object *override = (seq->scene == scene) ? camera_override : nullptr;
 
@@ -1758,7 +1761,8 @@ void RE_RenderFrame(Render *re,
   scene->r.subframe = subframe;
 
   if (render_init_from_main(
-          re, &scene->r, bmain, scene, single_layer, camera_override, false, false)) {
+          re, &scene->r, bmain, scene, single_layer, camera_override, false, false))
+  {
     RenderData rd;
     memcpy(&rd, &scene->r, sizeof(rd));
     MEM_reset_peak_memory();
@@ -1918,7 +1922,8 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
                             ibuf->x,
                             ibuf->y,
                             suffix,
-                            reports)) {
+                            reports))
+      {
         ok = false;
       }
 
@@ -1951,7 +1956,8 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
                           ibuf_arr[2]->x,
                           ibuf_arr[2]->y,
                           "",
-                          reports)) {
+                          reports))
+    {
       ok = false;
     }
 
@@ -2138,7 +2144,8 @@ void RE_RenderAnim(Render *re,
                            height,
                            re->reports,
                            false,
-                           suffix)) {
+                           suffix))
+      {
         is_error = true;
         break;
       }

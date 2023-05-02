@@ -524,7 +524,8 @@ static bke::CurvesGeometry fillet_curves(
            dst_attributes,
            ATTR_DOMAIN_MASK_POINT,
            propagation_info,
-           {"position", "handle_type_left", "handle_type_right", "handle_right", "handle_left"})) {
+           {"position", "handle_type_left", "handle_type_right", "handle_right", "handle_left"}))
+  {
     duplicate_fillet_point_data(src_points_by_curve,
                                 dst_points_by_curve,
                                 curve_selection,
@@ -536,7 +537,8 @@ static bke::CurvesGeometry fillet_curves(
 
   if (!unselected_ranges.is_empty()) {
     for (auto &attribute : bke::retrieve_attributes_for_transfer(
-             src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, propagation_info)) {
+             src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, propagation_info))
+    {
       bke::curves::copy_point_data(src_points_by_curve,
                                    dst_points_by_curve,
                                    unselected_ranges,

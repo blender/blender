@@ -376,7 +376,8 @@ struct CopyPixelTile {
       const CopyPixelGroup &group = groups[group_index];
       CopyPixelCommand copy_command(group);
       for (const DeltaCopyPixelCommand &item : Span<const DeltaCopyPixelCommand>(
-               &command_deltas[group.start_delta_index], group.num_deltas)) {
+               &command_deltas[group.start_delta_index], group.num_deltas))
+      {
         copy_command.apply(item);
         copy_command.mix_source_and_write_destination<T>(image_buffer);
       }

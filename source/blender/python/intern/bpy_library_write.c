@@ -105,7 +105,8 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
                                         PyC_ParseBool,
                                         &use_fake_user,
                                         PyC_ParseBool,
-                                        &use_compress)) {
+                                        &use_compress))
+  {
     return NULL;
   }
 

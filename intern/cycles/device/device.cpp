@@ -694,7 +694,8 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, size_t pitch_paddin
      * since other devices might be using the memory. */
 
     if (!move_texture_to_host && pitch_padding == 0 && mem.host_pointer &&
-        mem.host_pointer != shared_pointer) {
+        mem.host_pointer != shared_pointer)
+    {
       memcpy(shared_pointer, mem.host_pointer, size);
 
       /* A Call to device_memory::host_free() should be preceded by

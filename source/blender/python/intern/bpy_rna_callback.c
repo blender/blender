@@ -296,7 +296,8 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
                           pyrna_enum_value_parse_string,
                           &params.space_type_enum,
                           pyrna_enum_value_parse_string,
-                          &params.region_type_enum)) {
+                          &params.region_type_enum))
+    {
       return NULL;
     }
 
@@ -324,7 +325,8 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
                           pyrna_enum_value_parse_string,
                           &params.region_type_enum,
                           pyrna_enum_value_parse_string,
-                          &params.event_enum)) {
+                          &params.event_enum))
+    {
       return NULL;
     }
 
@@ -391,7 +393,8 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
 
   if (srna == &RNA_WindowManager) {
     if (!PyArg_ParseTuple(
-            args, "OO!:WindowManager.draw_cursor_remove", &cls, &PyCapsule_Type, &py_handle)) {
+            args, "OO!:WindowManager.draw_cursor_remove", &cls, &PyCapsule_Type, &py_handle))
+    {
       return NULL;
     }
     handle_removed = WM_paint_cursor_end(handle);
@@ -411,7 +414,8 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
                           &PyCapsule_Type,
                           &py_handle, /* already assigned, no matter */
                           pyrna_enum_value_parse_string,
-                          &params.region_type_enum)) {
+                          &params.region_type_enum))
+    {
       return NULL;
     }
 

@@ -65,7 +65,8 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
   else
 #endif
 #ifdef __POINTCLOUD__
-      if (sd->type & PRIMITIVE_POINT) {
+      if (sd->type & PRIMITIVE_POINT)
+  {
     /* point */
     point_shader_setup(kg, sd, isect, ray);
   }

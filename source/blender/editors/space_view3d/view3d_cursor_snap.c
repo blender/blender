@@ -533,7 +533,8 @@ static bool v3d_cursor_is_snap_invert(SnapCursorDataIntern *data_intern, const w
       if ((ELEM(kmi->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) && (event->modifier & KM_CTRL)) ||
           (ELEM(kmi->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) && (event->modifier & KM_SHIFT)) ||
           (ELEM(kmi->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && (event->modifier & KM_ALT)) ||
-          ((kmi->type == EVT_OSKEY) && (event->modifier & KM_OSKEY))) {
+          ((kmi->type == EVT_OSKEY) && (event->modifier & KM_OSKEY)))
+      {
         return true;
       }
     }
@@ -769,7 +770,8 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     snap_elem_index[0] = index;
   }
   else if (snap_elem &
-           (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+           (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR))
+  {
     snap_elem_index[1] = index;
   }
   else if (snap_elem == SCE_SNAP_MODE_FACE_RAYCAST) {

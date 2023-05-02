@@ -34,7 +34,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_MESH,
                                              GEO_COMPONENT_TYPE_POINT_CLOUD,
                                              GEO_COMPONENT_TYPE_CURVE,
-                                             GEO_COMPONENT_TYPE_INSTANCES}) {
+                                             GEO_COMPONENT_TYPE_INSTANCES})
+    {
       if (geometry_set.has(type)) {
         /* First check if the attribute exists before getting write access,
          * to avoid potentially expensive unnecessary copies. */

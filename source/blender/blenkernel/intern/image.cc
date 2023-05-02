@@ -280,7 +280,8 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
    * once to give it a meaningful value. */
   /* TODO re-assess whether this behavior is desired in the new generic code context. */
   if (!ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE, IMA_SRC_TILED) ||
-      ima->filepath[0] == '\0') {
+      ima->filepath[0] == '\0')
+  {
     return;
   }
 
@@ -290,7 +291,7 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   if (ima->source == IMA_SRC_TILED && (flag & BKE_BPATH_FOREACH_PATH_RESOLVE_TOKEN) != 0) {
     char temp_path[FILE_MAX], orig_file[FILE_MAXFILE];
     BLI_strncpy(temp_path, ima->filepath, sizeof(temp_path));
-    BLI_split_file_part(temp_path, orig_file, sizeof(orig_file));
+    BLI_path_split_file_part(temp_path, orig_file, sizeof(orig_file));
 
     eUDIM_TILE_FORMAT tile_format;
     char *udim_pattern = BKE_image_get_tile_strformat(temp_path, &tile_format);
@@ -302,7 +303,7 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     if (result) {
       /* Put the filepath back together using the new directory and the original file name. */
       char new_dir[FILE_MAXDIR];
-      BLI_split_dir_part(temp_path, new_dir, sizeof(new_dir));
+      BLI_path_split_dir_part(temp_path, new_dir, sizeof(new_dir));
       BLI_path_join(ima->filepath, sizeof(ima->filepath), new_dir, orig_file);
     }
   }
@@ -314,7 +315,8 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     if (flag & BKE_BPATH_FOREACH_PATH_RELOAD_EDITED) {
       if (!BKE_image_has_packedfile(ima) &&
           /* Image may have been painted onto (and not saved, #44543). */
-          !BKE_image_is_dirty(ima)) {
+          !BKE_image_is_dirty(ima))
+      {
         BKE_image_signal(bpath_data->bmain, ima, nullptr, IMA_SIGNAL_RELOAD);
       }
     }
@@ -361,8 +363,8 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   BLO_write_id_struct(writer, Image, id_address, &ima->id);
   BKE_id_blend_write(writer, &ima->id);
 
-  for (imapf = static_cast<ImagePackedFile *>(ima->packedfiles.first); imapf;
-       imapf = imapf->next) {
+  for (imapf = static_cast<ImagePackedFile *>(ima->packedfiles.first); imapf; imapf = imapf->next)
+  {
     BLO_write_struct(writer, ImagePackedFile, imapf);
     BKE_packedfile_blend_write(writer, imapf->packedfile);
   }
@@ -726,7 +728,8 @@ static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src)
 
   BLI_listbase_clear(lb_dst);
   for (imapf_src = static_cast<const ImagePackedFile *>(lb_src->first); imapf_src;
-       imapf_src = imapf_src->next) {
+       imapf_src = imapf_src->next)
+  {
     ImagePackedFile *imapf_dst = static_cast<ImagePackedFile *>(
         MEM_mallocN(sizeof(ImagePackedFile), "Image Packed Files (copy)"));
 
@@ -1054,7 +1057,8 @@ Image *BKE_image_load_exists_ex(Main *bmain, const char *filepath, bool *r_exist
 
   /* first search an identical filepath */
   for (ima = static_cast<Image *>(bmain->images.first); ima;
-       ima = static_cast<Image *>(ima->id.next)) {
+       ima = static_cast<Image *>(ima->id.next))
+  {
     if (!ELEM(ima->source, IMA_SRC_VIEWER, IMA_SRC_GENERATED)) {
       STRNCPY(strtest, ima->filepath);
       BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &ima->id));
@@ -1536,14 +1540,16 @@ void BKE_image_print_memlist(Main *bmain)
   uintptr_t size, totsize = 0;
 
   for (ima = static_cast<Image *>(bmain->images.first); ima;
-       ima = static_cast<Image *>(ima->id.next)) {
+       ima = static_cast<Image *>(ima->id.next))
+  {
     totsize += image_mem_size(ima);
   }
 
   printf("\ntotal image memory len: %.3f MB\n", double(totsize) / double(1024 * 1024));
 
   for (ima = static_cast<Image *>(bmain->images.first); ima;
-       ima = static_cast<Image *>(ima->id.next)) {
+       ima = static_cast<Image *>(ima->id.next))
+  {
     size = image_mem_size(ima);
 
     if (size) {
@@ -1571,7 +1577,8 @@ void BKE_image_free_all_textures(Main *bmain)
 #endif
 
   for (ima = static_cast<Image *>(bmain->images.first); ima;
-       ima = static_cast<Image *>(ima->id.next)) {
+       ima = static_cast<Image *>(ima->id.next))
+  {
     ima->id.tag &= ~LIB_TAG_DOIT;
   }
 
@@ -1583,7 +1590,8 @@ void BKE_image_free_all_textures(Main *bmain)
   }
 
   for (ima = static_cast<Image *>(bmain->images.first); ima;
-       ima = static_cast<Image *>(ima->id.next)) {
+       ima = static_cast<Image *>(ima->id.next))
+  {
     if (ima->cache && (ima->id.tag & LIB_TAG_DOIT)) {
 #ifdef CHECK_FREED_SIZE
       uintptr_t old_size = image_mem_size(ima);
@@ -1625,7 +1633,8 @@ void BKE_image_all_free_anim_ibufs(Main *bmain, int cfra)
   Image *ima;
 
   for (ima = static_cast<Image *>(bmain->images.first); ima;
-       ima = static_cast<Image *>(ima->id.next)) {
+       ima = static_cast<Image *>(ima->id.next))
+  {
     if (BKE_image_is_animated(ima)) {
       BKE_image_free_anim_ibufs(ima, cfra);
     }
@@ -2656,7 +2665,8 @@ Image *BKE_image_ensure_viewer(Main *bmain, int type, const char *name)
   Image *ima;
 
   for (ima = static_cast<Image *>(bmain->images.first); ima;
-       ima = static_cast<Image *>(ima->id.next)) {
+       ima = static_cast<Image *>(ima->id.next))
+  {
     if (ima->source == IMA_SRC_VIEWER) {
       if (ima->type == type) {
         break;
@@ -2893,47 +2903,56 @@ void BKE_image_walk_all_users(
     void callback(Image *ima, ID *iuser_id, ImageUser *iuser, void *customdata))
 {
   for (Scene *scene = static_cast<Scene *>(mainp->scenes.first); scene;
-       scene = static_cast<Scene *>(scene->id.next)) {
+       scene = static_cast<Scene *>(scene->id.next))
+  {
     image_walk_id_all_users(&scene->id, false, customdata, callback);
   }
 
   for (Object *ob = static_cast<Object *>(mainp->objects.first); ob;
-       ob = static_cast<Object *>(ob->id.next)) {
+       ob = static_cast<Object *>(ob->id.next))
+  {
     image_walk_id_all_users(&ob->id, false, customdata, callback);
   }
 
   for (bNodeTree *ntree = static_cast<bNodeTree *>(mainp->nodetrees.first); ntree;
-       ntree = static_cast<bNodeTree *>(ntree->id.next)) {
+       ntree = static_cast<bNodeTree *>(ntree->id.next))
+  {
     image_walk_id_all_users(&ntree->id, false, customdata, callback);
   }
 
   for (Material *ma = static_cast<Material *>(mainp->materials.first); ma;
-       ma = static_cast<Material *>(ma->id.next)) {
+       ma = static_cast<Material *>(ma->id.next))
+  {
     image_walk_id_all_users(&ma->id, false, customdata, callback);
   }
 
   for (Light *light = static_cast<Light *>(mainp->materials.first); light;
-       light = static_cast<Light *>(light->id.next)) {
+       light = static_cast<Light *>(light->id.next))
+  {
     image_walk_id_all_users(&light->id, false, customdata, callback);
   }
 
   for (World *world = static_cast<World *>(mainp->materials.first); world;
-       world = static_cast<World *>(world->id.next)) {
+       world = static_cast<World *>(world->id.next))
+  {
     image_walk_id_all_users(&world->id, false, customdata, callback);
   }
 
   for (Tex *tex = static_cast<Tex *>(mainp->textures.first); tex;
-       tex = static_cast<Tex *>(tex->id.next)) {
+       tex = static_cast<Tex *>(tex->id.next))
+  {
     image_walk_id_all_users(&tex->id, false, customdata, callback);
   }
 
   for (Camera *cam = static_cast<Camera *>(mainp->cameras.first); cam;
-       cam = static_cast<Camera *>(cam->id.next)) {
+       cam = static_cast<Camera *>(cam->id.next))
+  {
     image_walk_id_all_users(&cam->id, false, customdata, callback);
   }
-
+  /* Only ever 1 `wm`. */
   for (wmWindowManager *wm = static_cast<wmWindowManager *>(mainp->wm.first); wm;
-       wm = static_cast<wmWindowManager *>(wm->id.next)) { /* only 1 wm */
+       wm = static_cast<wmWindowManager *>(wm->id.next))
+  {
     image_walk_id_all_users(&wm->id, false, customdata, callback);
   }
 }
@@ -3251,8 +3270,8 @@ static RenderPass *image_render_pass_get(RenderLayer *rl,
   int rp_index = 0;
   const char *rp_name = "";
 
-  for (rpass = static_cast<RenderPass *>(rl->passes.first); rpass;
-       rpass = rpass->next, rp_index++) {
+  for (rpass = static_cast<RenderPass *>(rl->passes.first); rpass; rpass = rpass->next, rp_index++)
+  {
     if (rp_index == pass) {
       rpass_ret = rpass;
       if (view == 0) {
@@ -3300,7 +3319,7 @@ void BKE_image_get_tile_label(Image *ima, ImageTile *tile, char *label, int len_
 bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start, int *r_tile_range)
 {
   char filename[FILE_MAXFILE], dirname[FILE_MAXDIR];
-  BLI_split_dirfile(filepath, dirname, filename, sizeof(dirname), sizeof(filename));
+  BLI_path_split_dir_file(filepath, dirname, sizeof(dirname), filename, sizeof(filename));
 
   if (!BKE_image_is_filename_tokenized(filename)) {
     BKE_image_ensure_tile_token_filename_only(filename, sizeof(filename));
@@ -3321,8 +3340,8 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start,
       continue;
     }
 
-    if (!BKE_image_get_tile_number_from_filepath(
-            dirs[i].relname, udim_pattern, tile_format, &id)) {
+    if (!BKE_image_get_tile_number_from_filepath(dirs[i].relname, udim_pattern, tile_format, &id))
+    {
       continue;
     }
 
@@ -3362,7 +3381,8 @@ ImageTile *BKE_image_add_tile(struct Image *ima, int tile_number, const char *la
    * We then insert before that to keep the list sorted. */
   ImageTile *next_tile;
   for (next_tile = static_cast<ImageTile *>(ima->tiles.first); next_tile;
-       next_tile = next_tile->next) {
+       next_tile = next_tile->next)
+  {
     if (next_tile->tile_number == tile_number) {
       /* Tile already exists. */
       return nullptr;
@@ -3533,7 +3553,7 @@ bool BKE_image_tile_filepath_exists(const char *filepath)
   BLI_assert(!BLI_path_is_rel(filepath));
 
   char dirname[FILE_MAXDIR];
-  BLI_split_dir_part(filepath, dirname, sizeof(dirname));
+  BLI_path_split_dir_part(filepath, dirname, sizeof(dirname));
 
   eUDIM_TILE_FORMAT tile_format;
   char *udim_pattern = BKE_image_get_tile_strformat(filepath, &tile_format);
@@ -4242,7 +4262,8 @@ static ImBuf *image_load_image_file(
 
     /* multi-views/multi-layers OpenEXR files directly populate ima, and return null ibuf... */
     if (BKE_image_is_stereo(ima) && ima->views_format == R_IMF_VIEWS_STEREO_3D && ibuf_arr[0] &&
-        tot_viewfiles == 1 && totviews >= 2) {
+        tot_viewfiles == 1 && totviews >= 2)
+    {
       IMB_ImBufFromStereo3d(ima->stereo3d_format, ibuf_arr[0], ibuf_arr.data(), &ibuf_arr[1]);
     }
 
@@ -4842,7 +4863,8 @@ void BKE_image_pool_free(ImagePool *pool)
   BLI_mutex_lock(&pool->mutex);
   for (ImagePoolItem *item = static_cast<ImagePoolItem *>(pool->image_buffers.first);
        item != nullptr;
-       item = item->next) {
+       item = item->next)
+  {
     if (item->ibuf != nullptr) {
       BLI_mutex_lock(static_cast<ThreadMutex *>(item->image->runtime.cache_mutex));
       IMB_freeImBuf(item->ibuf);
@@ -5090,7 +5112,8 @@ static void image_user_id_eval_animation(Image *ima,
     Depsgraph *depsgraph = (Depsgraph *)customdata;
 
     if ((iuser->flag & IMA_ANIM_ALWAYS) || (iuser->flag & IMA_NEED_FRAME_RECALC) ||
-        (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER)) {
+        (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER))
+    {
       float cfra = DEG_get_ctime(depsgraph);
 
       BKE_image_user_frame_calc(ima, iuser, cfra);
@@ -5185,7 +5208,8 @@ void BKE_image_get_size(Image *image, ImageUser *iuser, int *r_width, int *r_hei
     *r_height = ibuf->y;
   }
   else if (image != nullptr && image->type == IMA_TYPE_R_RESULT && iuser != nullptr &&
-           iuser->scene != nullptr) {
+           iuser->scene != nullptr)
+  {
     BKE_render_resolution(&iuser->scene->r, true, r_width, r_height);
   }
   else {

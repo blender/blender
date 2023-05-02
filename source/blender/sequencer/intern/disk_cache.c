@@ -141,7 +141,7 @@ static DiskCacheFile *seq_disk_cache_add_file_to_list(SeqDiskCache *disk_cache, 
 
   DiskCacheFile *cache_file = MEM_callocN(sizeof(DiskCacheFile), "SeqDiskCacheFile");
   char dir[FILE_MAXDIR], file[FILE_MAX];
-  BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
+  BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
   BLI_strncpy(cache_file->path, path, sizeof(cache_file->path));
   BLI_strncpy(cache_file->dir, dir, sizeof(cache_file->dir));
   BLI_strncpy(cache_file->file, file, sizeof(cache_file->file));
@@ -176,7 +176,7 @@ static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, char *path)
     }
 
     char file[FILE_MAX];
-    BLI_split_dirfile(fl->path, NULL, file, 0, sizeof(file));
+    BLI_path_split_file_part(fl->path, file, sizeof(file));
 
     bool is_dir = BLI_is_dir(fl->path);
     if (is_dir && !FILENAME_IS_CURRPAR(file)) {
@@ -287,7 +287,8 @@ static void seq_disk_cache_update_file(SeqDiskCache *disk_cache, char *path)
 static void seq_disk_cache_get_project_dir(SeqDiskCache *disk_cache, char *path, size_t path_len)
 {
   char cache_dir[FILE_MAX];
-  BLI_split_file_part(BKE_main_blendfile_path(disk_cache->bmain), cache_dir, sizeof(cache_dir));
+  BLI_path_split_file_part(
+      BKE_main_blendfile_path(disk_cache->bmain), cache_dir, sizeof(cache_dir));
   /* Use suffix, so that the cache directory name does not conflict with the bmain's blend file. */
   const char *suffix = "_seq_cache";
   strncat(cache_dir, suffix, sizeof(cache_dir) - strlen(cache_dir) - 1);

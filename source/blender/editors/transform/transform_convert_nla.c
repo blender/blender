@@ -184,12 +184,14 @@ static void nlastrip_flag_overlaps(NlaStrip *strip)
 
   NlaStrip *adj_strip = strip->prev;
   if (adj_strip != NULL && !(adj_strip->flag & NLASTRIP_FLAG_SELECT) &&
-      nlastrip_is_overlap(strip, 0, adj_strip, 0)) {
+      nlastrip_is_overlap(strip, 0, adj_strip, 0))
+  {
     strip->flag |= NLASTRIP_FLAG_INVALID_LOCATION;
   }
   adj_strip = strip->next;
   if (adj_strip != NULL && !(adj_strip->flag & NLASTRIP_FLAG_SELECT) &&
-      nlastrip_is_overlap(strip, 0, adj_strip, 0)) {
+      nlastrip_is_overlap(strip, 0, adj_strip, 0))
+  {
     strip->flag |= NLASTRIP_FLAG_INVALID_LOCATION;
   }
 }
@@ -590,7 +592,8 @@ static void recalcData_nla(TransInfo *t)
         for (track = tdn->nlt->next, n = 0; (track) && (n < delta); track = track->next, n++) {
           /* check if space in this track for the strip */
           if (BKE_nlatrack_has_space(track, strip->start, strip->end) &&
-              !BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, track)) {
+              !BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, track))
+          {
             /* move strip to this track */
             BKE_nlatrack_remove_strip(tdn->nlt, strip);
             BKE_nlatrack_add_strip(track, strip, is_liboverride);
@@ -610,7 +613,8 @@ static void recalcData_nla(TransInfo *t)
         for (track = tdn->nlt->prev, n = 0; (track) && (n < delta); track = track->prev, n++) {
           /* check if space in this track for the strip */
           if (BKE_nlatrack_has_space(track, strip->start, strip->end) &&
-              !BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, track)) {
+              !BKE_nlatrack_is_nonlocal_in_liboverride(tdn->id, track))
+          {
             /* move strip to this track */
             BKE_nlatrack_remove_strip(tdn->nlt, strip);
             BKE_nlatrack_add_strip(track, strip, is_liboverride);

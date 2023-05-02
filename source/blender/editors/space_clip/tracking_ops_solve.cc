@@ -146,7 +146,8 @@ static void solve_camera_freejob(void *scv)
 
   /* Set blender camera focal length so result would look fine there. */
   if (scene->camera != nullptr && scene->camera->data &&
-      GS(((ID *)scene->camera->data)->name) == ID_CA) {
+      GS(((ID *)scene->camera->data)->name) == ID_CA)
+  {
     Camera *camera = (Camera *)scene->camera->data;
     int width, height;
     BKE_movieclip_get_size(clip, &scj->user, &width, &height);

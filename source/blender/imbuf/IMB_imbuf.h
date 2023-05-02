@@ -339,7 +339,7 @@ void IMB_anim_get_fname(struct anim *anim, char *file, int size);
 
 int IMB_anim_index_get_frame_index(struct anim *anim, IMB_Timecode_Type tc, int position);
 
-IMB_Proxy_Size IMB_anim_proxy_get_existing(struct anim *anim);
+int IMB_anim_proxy_get_existing(struct anim *anim);
 
 struct IndexBuildContext;
 
@@ -348,7 +348,7 @@ struct IndexBuildContext;
  */
 struct IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
                                                          IMB_Timecode_Type tcs_in_use,
-                                                         IMB_Proxy_Size proxy_sizes_in_use,
+                                                         int proxy_sizes_in_use,
                                                          int quality,
                                                          const bool overwrite,
                                                          struct GSet *file_list,

@@ -315,7 +315,8 @@ static void imapaint_pick_uv(
 
         if (!(slot && slot->uvname &&
               (mloopuv = CustomData_get_layer_named(
-                   &me_eval->ldata, CD_PROP_FLOAT2, slot->uvname)))) {
+                   &me_eval->ldata, CD_PROP_FLOAT2, slot->uvname))))
+        {
           mloopuv = CustomData_get_layer(&me_eval->ldata, CD_PROP_FLOAT2);
         }
       }

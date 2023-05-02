@@ -455,7 +455,8 @@ static void calc_tangent_spaces(const Mesh *mesh,
     normalize_v3(v_dir_prev);
 
     for (; next_corner != term_corner;
-         prev_corner = curr_corner, curr_corner = next_corner, next_corner++) {
+         prev_corner = curr_corner, curr_corner = next_corner, next_corner++)
+    {
       float(*ts)[3] = r_tangent_spaces[curr_corner];
 
       /* re-use the previous value */
@@ -582,7 +583,8 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   /* if rest bind_coords not are defined, set them (only run during bind) */
   if ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) &&
       /* signal to recalculate, whoever sets MUST also free bind coords */
-      (csmd->bind_coords_num == uint(-1))) {
+      (csmd->bind_coords_num == uint(-1)))
+  {
     if (DEG_is_active(depsgraph)) {
       BLI_assert(csmd->bind_coords == nullptr);
       csmd->bind_coords = static_cast<float(*)[3]>(MEM_dupallocN(vertexCos));
@@ -637,7 +639,8 @@ static void correctivesmooth_modifier_do(ModifierData *md,
 
   /* check to see if our deltas are still valid */
   if (!csmd->delta_cache.deltas || (csmd->delta_cache.deltas_num != corner_verts.size()) ||
-      force_delta_cache_update) {
+      force_delta_cache_update)
+  {
     const float(*rest_coords)[3];
     bool is_rest_coords_alloc = false;
 

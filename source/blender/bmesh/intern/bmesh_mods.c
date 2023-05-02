@@ -767,7 +767,8 @@ bool BM_edge_rotate_check_degenerate(BMEdge *e, BMLoop *l1, BMLoop *l2)
 
   /* result is zero area corner */
   if ((dot_v3v3(ed_dir_new, ed_dir_v1_new) > 0.999f) ||
-      (dot_v3v3(ed_dir_new_flip, ed_dir_v2_new) > 0.999f)) {
+      (dot_v3v3(ed_dir_new_flip, ed_dir_v2_new) > 0.999f))
+  {
     return false;
   }
 
@@ -860,7 +861,8 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
    * the #BM_edge_rotate_check will ensure this, but its possibly corrupt state or future edits
    * break this */
   if ((l1 = BM_face_vert_share_loop(f, v1)) && (l2 = BM_face_vert_share_loop(f, v2)) &&
-      BM_face_split(bm, f, l1, l2, NULL, NULL, true)) {
+      BM_face_split(bm, f, l1, l2, NULL, NULL, true))
+  {
     /* we should really be able to know the faces some other way,
      * rather than fetching them back from the edge, but this is predictable
      * where using the return values from face split isn't. - campbell */

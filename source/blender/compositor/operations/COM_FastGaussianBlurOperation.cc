@@ -361,7 +361,8 @@ void *FastGaussianBlurValueOperation::initialize_tile_data(rcti *rect)
       float *src = new_buf->get_buffer();
       float *dst = copy->get_buffer();
       for (int i = copy->get_width() * copy->get_height(); i != 0;
-           i--, src += COM_DATA_TYPE_VALUE_CHANNELS, dst += COM_DATA_TYPE_VALUE_CHANNELS) {
+           i--, src += COM_DATA_TYPE_VALUE_CHANNELS, dst += COM_DATA_TYPE_VALUE_CHANNELS)
+      {
         if (*src < *dst) {
           *dst = *src;
         }
@@ -371,7 +372,8 @@ void *FastGaussianBlurValueOperation::initialize_tile_data(rcti *rect)
       float *src = new_buf->get_buffer();
       float *dst = copy->get_buffer();
       for (int i = copy->get_width() * copy->get_height(); i != 0;
-           i--, src += COM_DATA_TYPE_VALUE_CHANNELS, dst += COM_DATA_TYPE_VALUE_CHANNELS) {
+           i--, src += COM_DATA_TYPE_VALUE_CHANNELS, dst += COM_DATA_TYPE_VALUE_CHANNELS)
+      {
         if (*src > *dst) {
           *dst = *src;
         }

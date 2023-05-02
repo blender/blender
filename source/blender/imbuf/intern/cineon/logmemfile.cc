@@ -33,7 +33,7 @@ int logimage_fseek(LogImageFile *logFile, intptr_t offset, int origin)
       logFile->memCursor = (logFile->memBuffer + logFile->memBufferSize) - offset;
     }
     else if (origin == SEEK_CUR) {
-      uintptr_t pos = (uintptr_t)logFile->memCursor - (uintptr_t)logFile->memBuffer;
+      uintptr_t pos = uintptr_t(logFile->memCursor) - uintptr_t(logFile->memBuffer);
       if (pos + offset > logFile->memBufferSize) {
         return 1;
       }
@@ -61,7 +61,7 @@ int logimage_fread(void *buffer, size_t size, uint count, LogImageFile *logFile)
   }
   /* we're reading from memory */
   uchar *buf = (uchar *)buffer;
-  uintptr_t pos = (uintptr_t)logFile->memCursor - (uintptr_t)logFile->memBuffer;
+  uintptr_t pos = uintptr_t(logFile->memCursor) - uintptr_t(logFile->memBuffer);
   size_t total_size = size * count;
   if (pos + total_size > logFile->memBufferSize) {
     /* how many elements can we read without overflow ? */
@@ -79,7 +79,7 @@ int logimage_fread(void *buffer, size_t size, uint count, LogImageFile *logFile)
 
 int logimage_read_uchar(uchar *x, LogImageFile *logFile)
 {
-  uintptr_t pos = (uintptr_t)logFile->memCursor - (uintptr_t)logFile->memBuffer;
+  uintptr_t pos = uintptr_t(logFile->memCursor) - uintptr_t(logFile->memBuffer);
   if (pos + sizeof(uchar) > logFile->memBufferSize) {
     return 1;
   }
@@ -91,7 +91,7 @@ int logimage_read_uchar(uchar *x, LogImageFile *logFile)
 
 int logimage_read_ushort(ushort *x, LogImageFile *logFile)
 {
-  uintptr_t pos = (uintptr_t)logFile->memCursor - (uintptr_t)logFile->memBuffer;
+  uintptr_t pos = uintptr_t(logFile->memCursor) - uintptr_t(logFile->memBuffer);
   if (pos + sizeof(ushort) > logFile->memBufferSize) {
     return 1;
   }
@@ -103,7 +103,7 @@ int logimage_read_ushort(ushort *x, LogImageFile *logFile)
 
 int logimage_read_uint(uint *x, LogImageFile *logFile)
 {
-  uintptr_t pos = (uintptr_t)logFile->memCursor - (uintptr_t)logFile->memBuffer;
+  uintptr_t pos = uintptr_t(logFile->memCursor) - uintptr_t(logFile->memBuffer);
   if (pos + sizeof(uint) > logFile->memBufferSize) {
     return 1;
   }

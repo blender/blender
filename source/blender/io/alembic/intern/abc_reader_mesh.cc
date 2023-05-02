@@ -143,8 +143,8 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
   const P3fArraySamplePtr &positions = mesh_data.positions;
 
   if (config.use_vertex_interpolation && config.weight != 0.0f &&
-      mesh_data.ceil_positions != nullptr &&
-      mesh_data.ceil_positions->size() == positions->size()) {
+      mesh_data.ceil_positions != nullptr && mesh_data.ceil_positions->size() == positions->size())
+  {
     read_mverts_interp(vert_positions, positions, mesh_data.ceil_positions, config.weight);
     BKE_mesh_tag_positions_changed(config.mesh);
     return;
@@ -732,7 +732,8 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
      * This prevents crash from #49813.
      * TODO(kevin): perhaps find a better way to do this? */
     if (face_counts->size() != existing_mesh->totpoly ||
-        face_indices->size() != existing_mesh->totloop) {
+        face_indices->size() != existing_mesh->totloop)
+    {
       settings.read_flag = MOD_MESHSEQ_READ_VERT;
 
       if (err_str) {
@@ -882,8 +883,8 @@ static void read_vertex_creases(Mesh *mesh,
                                 const Int32ArraySamplePtr &indices,
                                 const FloatArraySamplePtr &sharpnesses)
 {
-  if (!(indices && sharpnesses && indices->size() == sharpnesses->size() &&
-        indices->size() != 0)) {
+  if (!(indices && sharpnesses && indices->size() == sharpnesses->size() && indices->size() != 0))
+  {
     return;
   }
 
@@ -1065,7 +1066,8 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
      * This prevents crash from #49813.
      * TODO(kevin): perhaps find a better way to do this? */
     if (face_counts->size() != existing_mesh->totpoly ||
-        face_indices->size() != existing_mesh->totloop) {
+        face_indices->size() != existing_mesh->totloop)
+    {
       settings.read_flag = MOD_MESHSEQ_READ_VERT;
 
       if (err_str) {

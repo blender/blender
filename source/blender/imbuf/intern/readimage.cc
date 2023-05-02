@@ -35,7 +35,7 @@ static void imb_handle_alpha(ImBuf *ibuf,
                              char effective_colorspace[IM_MAX_SPACE])
 {
   if (colorspace) {
-    if (ibuf->rect != NULL && ibuf->rect_float == NULL) {
+    if (ibuf->rect != nullptr && ibuf->rect_float == nullptr) {
       /* byte buffer is never internally converted to some standard space,
        * store pointer to its color space descriptor instead
        */
@@ -88,9 +88,9 @@ ImBuf *IMB_ibImageFromMemory(
   const ImFileType *type;
   char effective_colorspace[IM_MAX_SPACE] = "";
 
-  if (mem == NULL) {
-    fprintf(stderr, "%s: NULL pointer\n", __func__);
-    return NULL;
+  if (mem == nullptr) {
+    fprintf(stderr, "%s: nullptr pointer\n", __func__);
+    return nullptr;
   }
 
   if (colorspace) {
@@ -111,7 +111,7 @@ ImBuf *IMB_ibImageFromMemory(
     fprintf(stderr, "%s: unknown file-format (%s)\n", __func__, descr);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const char *descr)
@@ -121,7 +121,7 @@ ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const
   size_t size;
 
   if (file == -1) {
-    return NULL;
+    return nullptr;
   }
 
   size = BLI_file_descriptor_size(file);
@@ -129,12 +129,12 @@ ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const
   imb_mmap_lock();
   BLI_mmap_file *mmap_file = BLI_mmap_open(file);
   imb_mmap_unlock();
-  if (mmap_file == NULL) {
+  if (mmap_file == nullptr) {
     fprintf(stderr, "%s: couldn't get mapping %s\n", __func__, descr);
-    return NULL;
+    return nullptr;
   }
 
-  mem = BLI_mmap_get_pointer(mmap_file);
+  mem = static_cast<uchar *>(BLI_mmap_get_pointer(mmap_file));
 
   ibuf = IMB_ibImageFromMemory(mem, size, flags, colorspace, descr);
 
@@ -154,7 +154,7 @@ ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_S
 
   file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (file == -1) {
-    return NULL;
+    return nullptr;
   }
 
   ibuf = IMB_loadifffile(file, flags, colorspace, filepath);
@@ -173,11 +173,11 @@ struct ImBuf *IMB_thumb_load_image(const char *filepath,
                                    char colorspace[IM_MAX_SPACE])
 {
   const ImFileType *type = IMB_file_type_from_ftype(IMB_ispic_type(filepath));
-  if (type == NULL) {
-    return NULL;
+  if (type == nullptr) {
+    return nullptr;
   }
 
-  ImBuf *ibuf = NULL;
+  ImBuf *ibuf = nullptr;
   int flags = IB_rect | IB_metadata;
   /* Size of the original image. */
   size_t width = 0;
@@ -195,8 +195,8 @@ struct ImBuf *IMB_thumb_load_image(const char *filepath,
   else {
     /* Skip images of other types if over 100MB. */
     const size_t file_size = BLI_file_size(filepath);
-    if (file_size != (size_t)-1 && file_size > THUMB_SIZE_MAX) {
-      return NULL;
+    if (file_size != size_t(-1) && file_size > THUMB_SIZE_MAX) {
+      return nullptr;
     }
     ibuf = IMB_loadiffname(filepath, flags, colorspace);
     if (ibuf) {
@@ -233,7 +233,7 @@ ImBuf *IMB_testiffname(const char *filepath, int flags)
 
   file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (file == -1) {
-    return NULL;
+    return nullptr;
   }
 
   ibuf = IMB_loadifffile(file, flags | IB_test | IB_multilayer, colorspace, filepath);

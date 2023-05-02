@@ -489,8 +489,9 @@ static bool rna_path_parse(const PointerRNA *ptr,
     *r_item_ptr = nextptr;
   }
 
-  if (prop_elem && (prop_elem->ptr.data != curptr.data || prop_elem->prop != prop ||
-                    prop_elem->index != index)) {
+  if (prop_elem &&
+      (prop_elem->ptr.data != curptr.data || prop_elem->prop != prop || prop_elem->index != index))
+  {
     prop_elem = MEM_cnew<PropertyElemRNA>(__func__);
     prop_elem->ptr = curptr;
     prop_elem->prop = prop;
@@ -811,7 +812,8 @@ static char *rna_idp_path(PointerRNA *ptr,
   link.index = -1;
 
   for (i = 0, iter = static_cast<IDProperty *>(haystack->data.group.first); iter;
-       iter = iter->next, i++) {
+       iter = iter->next, i++)
+  {
     if (needle == iter) { /* found! */
       link.name = iter->name;
       link.index = -1;

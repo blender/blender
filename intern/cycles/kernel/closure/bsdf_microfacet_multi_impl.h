@@ -38,7 +38,8 @@ ccl_device_forceinline Spectrum MF_FUNCTION_FULL_NAME(mf_eval)(float3 wi,
   }
   else
 #endif
-      if (wo.z < wi.z) {
+      if (wo.z < wi.z)
+  {
     swapped = true;
     float3 tmp = wo;
     wo = wi;

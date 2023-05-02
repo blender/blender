@@ -277,7 +277,8 @@ ccl_device_inline bool area_light_sample(const ccl_global KernelLight *klight,
                                          &sample_axis_v,
                                          &sample_len_v,
                                          klight->area.tan_half_spread,
-                                         &sample_rectangle)) {
+                                         &sample_rectangle))
+      {
         return false;
       }
     }
@@ -424,7 +425,8 @@ ccl_device_inline bool area_light_sample_from_intersection(
                                        &sample_axis_v,
                                        &sample_len_v,
                                        klight->area.tan_half_spread,
-                                       &sample_rectangle)) {
+                                       &sample_rectangle))
+    {
       return false;
     }
   }

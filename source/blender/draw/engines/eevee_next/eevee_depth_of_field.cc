@@ -126,7 +126,8 @@ void DepthOfField::sync()
 
   /* Balance blur radius between fx dof and jitter dof. */
   if (do_jitter_ && (inst_.sampling.dof_ring_count_get() > 0) && !camera.is_panoramic() &&
-      !inst_.is_viewport()) {
+      !inst_.is_viewport())
+  {
     /* Compute a minimal overblur radius to fill the gaps between the samples.
      * This is just the simplified form of dividing the area of the bokeh by
      * the number of samples. */

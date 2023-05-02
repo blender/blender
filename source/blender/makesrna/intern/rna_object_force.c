@@ -667,7 +667,8 @@ static void rna_FieldSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
     /* In the case of specific force-fields that are using the #EffectorData's normal, we need to
      * rebuild mesh and BVH-tree for #SurfaceModifier to work correctly. */
     if (ELEM(ob->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS) ||
-        ob->pd->forcefield == PFIELD_GUIDE) {
+        ob->pd->forcefield == PFIELD_GUIDE)
+    {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
 
@@ -841,8 +842,8 @@ static char *rna_EffectorWeight_path(const PointerRNA *ptr)
     md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
     if (md) {
       FluidModifierData *fmd = (FluidModifierData *)md;
-      if (fmd->type == MOD_FLUID_TYPE_DOMAIN && fmd->domain &&
-          fmd->domain->effector_weights == ew) {
+      if (fmd->type == MOD_FLUID_TYPE_DOMAIN && fmd->domain && fmd->domain->effector_weights == ew)
+      {
         char name_esc[sizeof(md->name) * 2];
         BLI_str_escape(name_esc, md->name, sizeof(name_esc));
         return BLI_sprintfN("modifiers[\"%s\"].domain_settings.effector_weights", name_esc);

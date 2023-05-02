@@ -831,7 +831,8 @@ cache_end:
            * Otherwise ensure the value is the smallest it can be,
            * relative to the active bone, as long as it's not the active bone. */
           if ((cycle_order.best.as_u32 == 0) ||
-              (cycle_order.test.as_u32 && (cycle_order.test.as_u32 < cycle_order.best.as_u32))) {
+              (cycle_order.test.as_u32 && (cycle_order.test.as_u32 < cycle_order.best.as_u32)))
+          {
             cycle_order.best = cycle_order.test;
             result_cycle.hitresult = hitresult;
             result_cycle.base = base;
@@ -1254,7 +1255,8 @@ bool ED_armature_edit_select_op_from_tagged(bArmature *arm, const int sel_op)
 
       /* When there is a partial selection without both endpoints, only select an endpoint. */
       if ((is_inside_flag & BONESEL_BONE) &&
-          ELEM(is_inside_flag & (BONESEL_ROOT | BONESEL_TIP), BONESEL_ROOT, BONESEL_TIP)) {
+          ELEM(is_inside_flag & (BONESEL_ROOT | BONESEL_TIP), BONESEL_ROOT, BONESEL_TIP))
+      {
         is_inside_flag &= ~BONESEL_BONE;
       }
 
@@ -1428,8 +1430,8 @@ static void armature_select_more(bArmature *arm, EditBone *ebone)
 
 static void armature_select_less(bArmature *UNUSED(arm), EditBone *ebone)
 {
-  if ((EBONE_PREV_FLAG_GET(ebone) & (BONE_ROOTSEL | BONE_TIPSEL)) !=
-      (BONE_ROOTSEL | BONE_TIPSEL)) {
+  if ((EBONE_PREV_FLAG_GET(ebone) & (BONE_ROOTSEL | BONE_TIPSEL)) != (BONE_ROOTSEL | BONE_TIPSEL))
+  {
     ED_armature_ebone_select_set(ebone, false);
   }
 
@@ -2137,7 +2139,8 @@ static int armature_select_mirror_exec(bContext *C, wmOperator *op)
         int flag_new = extend ? EBONE_PREV_FLAG_GET(ebone) : 0;
 
         if ((ebone_mirror = ED_armature_ebone_get_mirrored(arm->edbo, ebone)) &&
-            EBONE_VISIBLE(arm, ebone_mirror)) {
+            EBONE_VISIBLE(arm, ebone_mirror))
+        {
           const int flag_mirror = EBONE_PREV_FLAG_GET(ebone_mirror);
           flag_new |= flag_mirror;
 
@@ -2271,7 +2274,8 @@ static int armature_shortest_path_pick_invoke(bContext *C, wmOperator *op, const
 
   if (ebone_isect_parent) {
     if (armature_shortest_path_select(arm, ebone_isect_parent, ebone_src, false, true) &&
-        armature_shortest_path_select(arm, ebone_isect_parent, ebone_dst, false, true)) {
+        armature_shortest_path_select(arm, ebone_isect_parent, ebone_dst, false, true))
+    {
       armature_shortest_path_select(arm, ebone_isect_parent, ebone_src, false, false);
       armature_shortest_path_select(arm, ebone_isect_parent, ebone_dst, false, false);
       changed = true;

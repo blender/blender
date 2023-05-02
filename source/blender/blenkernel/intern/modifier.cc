@@ -59,6 +59,7 @@
 #include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
+#include "BKE_screen.h"
 
 /* may move these, only for BKE_modifier_path_relbase */
 #include "BKE_main.h"
@@ -120,9 +121,7 @@ const ModifierTypeInfo *BKE_modifier_get_info(ModifierType type)
 void BKE_modifier_type_panel_id(ModifierType type, char *r_idname)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(type);
-
-  strcpy(r_idname, MODIFIER_TYPE_PANEL_PREFIX);
-  strcat(r_idname, mti->name);
+  BLI_string_join(r_idname, sizeof(PanelType::idname), MODIFIER_TYPE_PANEL_PREFIX, mti->name);
 }
 
 void BKE_modifier_panel_expand(ModifierData *md)
@@ -256,7 +255,8 @@ bool BKE_modifier_is_preview(ModifierData *md)
 
   /* Constructive modifiers are highly likely to also modify data like vgroups or vertex-colors! */
   if (!((mti->flags & eModifierTypeFlag_UsesPreview) ||
-        (mti->type == eModifierTypeType_Constructive))) {
+        (mti->type == eModifierTypeType_Constructive)))
+  {
     return false;
   }
 
@@ -584,7 +584,8 @@ bool BKE_modifier_is_enabled(const struct Scene *scene, ModifierData *md, int re
     return false;
   }
   if (scene != nullptr && mti->isDisabled &&
-      mti->isDisabled(scene, md, required_mode == eModifierMode_Render)) {
+      mti->isDisabled(scene, md, required_mode == eModifierMode_Render))
+  {
     return false;
   }
   if (md->mode & eModifierMode_DisableTemporary) {

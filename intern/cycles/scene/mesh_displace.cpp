@@ -183,7 +183,8 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
                         num_verts,
                         3,
                         function_bind(&fill_shader_input, scene, mesh, object_index, _1),
-                        function_bind(&read_shader_output, scene, mesh, _1))) {
+                        function_bind(&read_shader_output, scene, mesh, _1)))
+  {
     return false;
   }
 

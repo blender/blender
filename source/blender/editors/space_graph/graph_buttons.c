@@ -895,7 +895,8 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
            DTAR_TRANSCHAN_ROTX,
            DTAR_TRANSCHAN_ROTY,
            DTAR_TRANSCHAN_ROTZ,
-           DTAR_TRANSCHAN_ROTW)) {
+           DTAR_TRANSCHAN_ROTW))
+  {
     uiItemR(sub, &dtar_ptr, "rotation_mode", 0, IFACE_("Mode"), ICON_NONE);
   }
 
@@ -1256,7 +1257,8 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
                 DTAR_TRANSCHAN_ROTY,
                 DTAR_TRANSCHAN_ROTZ,
                 DTAR_TRANSCHAN_ROTW) &&
-           dvar->targets[0].rotation_mode != DTAR_ROTMODE_QUATERNION)) {
+           dvar->targets[0].rotation_mode != DTAR_ROTMODE_QUATERNION))
+      {
         BLI_snprintf(
             valBuf, sizeof(valBuf), "%.3f (%4.1f°)", dvar->curval, RAD2DEGF(dvar->curval));
       }

@@ -219,7 +219,8 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
               (len_squared_v2v2(bezt->vec[0], bezt->vec[2]) > eps_sq) &&
               (len_squared_v2v2(bezt->vec[0], bezt->vec[2]) >
                max_ff(len_squared_v2v2(bezt->vec[0], bezt->vec[1]),
-                      len_squared_v2v2(bezt->vec[1], bezt->vec[2])))) {
+                      len_squared_v2v2(bezt->vec[1], bezt->vec[2]))))
+          {
             bezt->h1 = bezt->h2 = HD_ALIGN;
           }
           bezt->radius = 1.0f;
@@ -293,7 +294,8 @@ static FT_Face vfont_face_load_from_packed_file(FT_Library library, PackedFile *
   FT_UInt glyph_index = 0;
   FT_Get_First_Char(face, &glyph_index);
   if (!glyph_index ||
-      FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) != FT_Err_Ok) {
+      FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) != FT_Err_Ok)
+  {
     FT_Done_Face(face);
     return NULL;
   }

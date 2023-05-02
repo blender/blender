@@ -225,7 +225,8 @@ static void deformStroke(GpencilModifierData *md,
                                       lmd->flag & GP_LENGTH_INVERT_LAYER,
                                       lmd->flag & GP_LENGTH_INVERT_PASS,
                                       lmd->flag & GP_LENGTH_INVERT_LAYERPASS,
-                                      lmd->flag & GP_LENGTH_INVERT_MATERIAL)) {
+                                      lmd->flag & GP_LENGTH_INVERT_MATERIAL))
+  {
     return;
   }
   if ((gps->flag & GP_STROKE_CYCLIC) != 0) {

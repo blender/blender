@@ -680,7 +680,8 @@ static bool is_filtered_hidden(const char *filename,
 #endif
   /* For data-blocks (but not the group directories), check the asset-only filter. */
   if (!(file->typeflag & FILE_TYPE_DIR) && (file->typeflag & FILE_TYPE_BLENDERLIB) &&
-      (filter->flags & FLF_ASSETS_ONLY) && !(file->typeflag & FILE_TYPE_ASSET)) {
+      (filter->flags & FLF_ASSETS_ONLY) && !(file->typeflag & FILE_TYPE_ASSET))
+  {
     return true;
   }
 
@@ -836,8 +837,9 @@ static bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
   const AssetMetaData *asset_data = filelist_file_internal_get_asset_data(file);
 
   /* Not used yet for the asset view template. */
-  if (filter->asset_catalog_filter && !file_is_asset_visible_in_catalog_filter_settings(
-                                          filter->asset_catalog_filter, asset_data)) {
+  if (filter->asset_catalog_filter &&
+      !file_is_asset_visible_in_catalog_filter_settings(filter->asset_catalog_filter, asset_data))
+  {
     return false;
   }
 
@@ -1201,7 +1203,8 @@ static int filelist_geticon_ex(const FileList *filelist,
   const eFileSel_File_Types typeflag = (eFileSel_File_Types)file->typeflag;
 
   if ((typeflag & FILE_TYPE_DIR) &&
-      !(ignore_libdir && (typeflag & (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER)))) {
+      !(ignore_libdir && (typeflag & (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER))))
+  {
     if (FILENAME_IS_PARENT(file->relpath)) {
       return is_main ? ICON_FILE_PARENT : ICON_NONE;
     }
@@ -1491,8 +1494,8 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
   if (preview->flags & FILE_TYPE_IMAGE) {
     source = THB_SOURCE_IMAGE;
   }
-  else if (preview->flags &
-           (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB)) {
+  else if (preview->flags & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB))
+  {
     source = THB_SOURCE_BLEND;
   }
   else if (preview->flags & FILE_TYPE_MOVIE) {
@@ -1552,7 +1555,8 @@ static void filelist_cache_previews_clear(FileListEntryCache *cache)
 
     FileListEntryPreview *preview;
     while ((preview = static_cast<FileListEntryPreview *>(
-                BLI_thread_queue_pop_timeout(cache->previews_done, 0)))) {
+                BLI_thread_queue_pop_timeout(cache->previews_done, 0))))
+    {
       // printf("%s: DONE %d - %s - %p\n", __func__, preview->index, preview->path,
       // preview->img);
       if (preview->icon_id) {
@@ -1598,7 +1602,8 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
   }
 
   if (!(entry->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT |
-                           FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB))) {
+                           FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB)))
+  {
     return;
   }
 
@@ -2079,7 +2084,8 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
   ret->asset = reinterpret_cast<::AssetRepresentation *>(entry->asset);
   /* For some file types the preview is already available. */
   if (entry->local_data.preview_image &&
-      BKE_previewimg_is_finished(entry->local_data.preview_image, ICON_SIZE_PREVIEW)) {
+      BKE_previewimg_is_finished(entry->local_data.preview_image, ICON_SIZE_PREVIEW))
+  {
     ImBuf *ibuf = BKE_previewimg_to_imbuf(entry->local_data.preview_image, ICON_SIZE_PREVIEW);
     if (ibuf) {
       ret->preview_icon_id = BKE_icon_imbuf_create(ibuf);
@@ -2115,7 +2121,8 @@ FileDirEntry *filelist_file_ex(FileList *filelist, const int index, const bool u
   }
 
   if ((ret = static_cast<FileDirEntry *>(
-           BLI_ghash_lookup(cache->misc_entries, POINTER_FROM_INT(index))))) {
+           BLI_ghash_lookup(cache->misc_entries, POINTER_FROM_INT(index)))))
+  {
     return ret;
   }
 
@@ -2129,7 +2136,8 @@ FileDirEntry *filelist_file_ex(FileList *filelist, const int index, const bool u
   ret = filelist_file_create_entry(filelist, index);
   old_index = cache->misc_entries_indices[cache->misc_cursor];
   if ((old = static_cast<FileDirEntry *>(
-           BLI_ghash_popkey(cache->misc_entries, POINTER_FROM_INT(old_index), nullptr)))) {
+           BLI_ghash_popkey(cache->misc_entries, POINTER_FROM_INT(old_index), nullptr))))
+  {
     BLI_ghash_remove(cache->uids, POINTER_FROM_UINT(old->uid), nullptr, nullptr);
     filelist_file_release_entry(filelist, old);
   }
@@ -2255,7 +2263,8 @@ static bool filelist_file_cache_block_create(FileList *filelist,
 
     /* That entry might have already been requested and stored in misc cache... */
     if ((entry = static_cast<FileDirEntry *>(
-             BLI_ghash_popkey(cache->misc_entries, POINTER_FROM_INT(idx), nullptr))) == nullptr) {
+             BLI_ghash_popkey(cache->misc_entries, POINTER_FROM_INT(idx), nullptr))) == nullptr)
+    {
       entry = filelist_file_create_entry(filelist, idx);
       BLI_ghash_insert(cache->uids, POINTER_FROM_UINT(entry->uid), entry);
     }
@@ -2318,9 +2327,11 @@ bool filelist_file_cache_block(FileList *filelist, const int index)
 
   /* If we have something to (re)cache... */
   if (full_refresh || (start_index != cache->block_start_index) ||
-      (end_index != cache->block_end_index)) {
+      (end_index != cache->block_end_index))
+  {
     if (full_refresh || (start_index >= cache->block_end_index) ||
-        (end_index <= cache->block_start_index)) {
+        (end_index <= cache->block_start_index))
+    {
       int size1 = cache->block_end_index - cache->block_start_index;
       int size2 = 0;
       int idx1 = cache->block_cursor, idx2 = 0;
@@ -2646,7 +2657,8 @@ int ED_path_extension_type(const char *path)
                                  ".app",
                                  /* Safari in-progress/paused download */
                                  ".download",
-                                 nullptr)) {
+                                 nullptr))
+  {
     return FILE_TYPE_BUNDLE;
   }
 #endif
@@ -2663,11 +2675,13 @@ int ED_path_extension_type(const char *path)
                                  ".mcr",
                                  ".inc",
                                  ".fountain",
-                                 nullptr)) {
+                                 nullptr))
+  {
     return FILE_TYPE_TEXT;
   }
   if (BLI_path_extension_check_n(
-          path, ".ttf", ".ttc", ".pfb", ".otf", ".otc", ".woff", ".woff2", nullptr)) {
+          path, ".ttf", ".ttc", ".pfb", ".otf", ".otc", ".woff", ".woff2", nullptr))
+  {
     return FILE_TYPE_FTFONT;
   }
   if (BLI_path_extension_check(path, ".btx")) {
@@ -2688,17 +2702,9 @@ int ED_path_extension_type(const char *path)
   if (BLI_path_extension_check(path, ".zip")) {
     return FILE_TYPE_ARCHIVE;
   }
-  if (BLI_path_extension_check_n(path,
-                                 ".obj",
-                                 ".mtl",
-                                 ".3ds",
-                                 ".fbx",
-                                 ".glb",
-                                 ".gltf",
-                                 ".svg",
-                                 ".ply",
-                                 ".stl",
-                                 nullptr)) {
+  if (BLI_path_extension_check_n(
+          path, ".obj", ".mtl", ".3ds", ".fbx", ".glb", ".gltf", ".svg", ".ply", ".stl", nullptr))
+  {
     return FILE_TYPE_OBJECT_IO;
   }
   if (BLI_path_extension_check_array(path, imb_ext_image)) {
@@ -2776,7 +2782,8 @@ uint filelist_entry_select_set(const FileList *filelist,
   BLI_assert(ELEM(check, CHECK_DIRS, CHECK_FILES, CHECK_ALL));
 
   if ((check == CHECK_ALL) || ((check == CHECK_DIRS) && (entry->typeflag & FILE_TYPE_DIR)) ||
-      ((check == CHECK_FILES) && !(entry->typeflag & FILE_TYPE_DIR))) {
+      ((check == CHECK_FILES) && !(entry->typeflag & FILE_TYPE_DIR)))
+  {
     switch (select) {
       case FILE_SEL_REMOVE:
         entry_flag &= ~flag;
@@ -2830,7 +2837,8 @@ void filelist_entries_select_index_range_set(FileList *filelist,
 {
   /* select all valid files between first and last indicated */
   if ((sel->first >= 0) && (sel->first < filelist->filelist.entries_filtered_num) &&
-      (sel->last >= 0) && (sel->last < filelist->filelist.entries_filtered_num)) {
+      (sel->last >= 0) && (sel->last < filelist->filelist.entries_filtered_num))
+  {
     int current_file;
     for (current_file = sel->first; current_file <= sel->last; current_file++) {
       filelist_entry_select_index_set(filelist, current_file, select, flag, check);
@@ -2846,7 +2854,8 @@ eDirEntry_SelectFlag filelist_entry_select_get(FileList *filelist,
   BLI_assert(ELEM(check, CHECK_DIRS, CHECK_FILES, CHECK_ALL));
 
   if ((check == CHECK_ALL) || ((check == CHECK_DIRS) && (entry->typeflag & FILE_TYPE_DIR)) ||
-      ((check == CHECK_FILES) && !(entry->typeflag & FILE_TYPE_DIR))) {
+      ((check == CHECK_FILES) && !(entry->typeflag & FILE_TYPE_DIR)))
+  {
     /* Default nullptr pointer if not found is fine here! */
     return eDirEntry_SelectFlag(POINTER_AS_UINT(
         BLI_ghash_lookup(filelist->selection_state, POINTER_FROM_UINT(entry->uid))));
@@ -3023,7 +3032,8 @@ static int filelist_readjob_list_dir(FileListReadJob *job_params,
 #ifdef __APPLE__
           && !(ED_path_extension_type(full_path) & FILE_TYPE_BUNDLE)
 #endif
-      ) {
+      )
+      {
         entry->typeflag = FILE_TYPE_DIR;
       }
 
@@ -3554,7 +3564,8 @@ static bool filelist_readjob_should_recurse_into_entry(const int max_recursion,
   /* Show entries when recursion is set to `Blend file` even when `current_recursion_level`
    * exceeds `max_recursion`. */
   if (!is_lib && (current_recursion_level >= max_recursion) &&
-      ((entry->typeflag & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) == 0)) {
+      ((entry->typeflag & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) == 0))
+  {
     return false;
   }
   if (entry->typeflag & FILE_TYPE_BLENDERLIB) {

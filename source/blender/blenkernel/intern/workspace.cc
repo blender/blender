@@ -309,7 +309,8 @@ static bool UNUSED_FUNCTION(workspaces_is_screen_used)
     (const Main *bmain, bScreen *screen)
 {
   for (WorkSpace *workspace = static_cast<WorkSpace *>(bmain->workspaces.first); workspace;
-       workspace = static_cast<WorkSpace *>(workspace->id.next)) {
+       workspace = static_cast<WorkSpace *>(workspace->id.next))
+  {
     if (workspace_layout_find_exec(workspace, screen)) {
       return true;
     }
@@ -336,7 +337,8 @@ void BKE_workspace_remove(Main *bmain, WorkSpace *workspace)
   for (WorkSpaceLayout *layout = static_cast<WorkSpaceLayout *>(workspace->layouts.first),
                        *layout_next;
        layout;
-       layout = layout_next) {
+       layout = layout_next)
+  {
     layout_next = layout->next;
     BKE_workspace_layout_remove(bmain, workspace, layout);
   }
@@ -349,7 +351,8 @@ WorkSpaceInstanceHook *BKE_workspace_instance_hook_create(const Main *bmain, con
 
   /* set an active screen-layout for each possible window/workspace combination */
   for (WorkSpace *workspace = static_cast<WorkSpace *>(bmain->workspaces.first); workspace;
-       workspace = static_cast<WorkSpace *>(workspace->id.next)) {
+       workspace = static_cast<WorkSpace *>(workspace->id.next))
+  {
     BKE_workspace_active_layout_set(
         hook, winid, workspace, static_cast<WorkSpaceLayout *>(workspace->layouts.first));
   }
@@ -365,12 +368,14 @@ void BKE_workspace_instance_hook_free(const Main *bmain, WorkSpaceInstanceHook *
 
   /* Free relations for this hook */
   for (WorkSpace *workspace = static_cast<WorkSpace *>(bmain->workspaces.first); workspace;
-       workspace = static_cast<WorkSpace *>(workspace->id.next)) {
+       workspace = static_cast<WorkSpace *>(workspace->id.next))
+  {
     for (WorkSpaceDataRelation *relation = static_cast<WorkSpaceDataRelation *>(
                                    workspace->hook_layout_relations.first),
                                *relation_next;
          relation;
-         relation = relation_next) {
+         relation = relation_next)
+    {
       relation_next = relation->next;
       if (relation->parent == hook) {
         workspace_relation_remove(&workspace->hook_layout_relations, relation);
@@ -417,7 +422,8 @@ void BKE_workspace_relations_free(ListBase *relation_list)
            relation = static_cast<WorkSpaceDataRelation *>(relation_list->first),
           *relation_next;
        relation;
-       relation = relation_next) {
+       relation = relation_next)
+  {
     relation_next = relation->next;
     workspace_relation_remove(relation_list, relation);
   }
@@ -457,7 +463,8 @@ WorkSpaceLayout *BKE_workspace_layout_find_global(const Main *bmain,
   }
 
   for (WorkSpace *workspace = static_cast<WorkSpace *>(bmain->workspaces.first); workspace;
-       workspace = static_cast<WorkSpace *>(workspace->id.next)) {
+       workspace = static_cast<WorkSpace *>(workspace->id.next))
+  {
     if ((layout = workspace_layout_find_exec(workspace, screen))) {
       if (r_workspace) {
         *r_workspace = workspace;
@@ -519,7 +526,7 @@ void BKE_workspace_tool_id_replace_table(struct WorkSpace *workspace,
                                          int replace_table_num)
 {
   const size_t idname_prefix_len = idname_prefix_skip ? strlen(idname_prefix_skip) : 0;
-  const size_t idname_suffix_len = sizeof(((bToolRef *)nullptr)->idname) - idname_prefix_len;
+  const size_t idname_suffix_len = sizeof(bToolRef::idname) - idname_prefix_len;
 
   LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
     if (!(tref->space_type == space_type && tref->mode == mode)) {

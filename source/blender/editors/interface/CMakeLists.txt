@@ -90,6 +90,7 @@ set(SRC
   eyedroppers/eyedropper_intern.hh
   interface_intern.hh
   interface_regions_intern.hh
+  view2d_intern.hh
 )
 
 set(LIB

@@ -1260,7 +1260,8 @@ inline void devirtualize_varray(const VArray<T> &varray, const Func &func, bool 
 {
   if (enable) {
     if (call_with_devirtualized_parameters(
-            std::make_tuple(VArrayDevirtualizer<T, true, true>{varray}), func)) {
+            std::make_tuple(VArrayDevirtualizer<T, true, true>{varray}), func))
+    {
       return;
     }
   }
@@ -1282,7 +1283,8 @@ inline void devirtualize_varray2(const VArray<T1> &varray1,
     if (call_with_devirtualized_parameters(
             std::make_tuple(VArrayDevirtualizer<T1, true, true>{varray1},
                             VArrayDevirtualizer<T2, true, true>{varray2}),
-            func)) {
+            func))
+    {
       return;
     }
   }

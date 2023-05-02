@@ -71,7 +71,8 @@ static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObje
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, &region.curl, &region.curc, &region.sell, &region.selc)) {
+          args, kwds, &_parser, &region.curl, &region.curc, &region.sell, &region.selc))
+  {
     return NULL;
   }
 
@@ -136,7 +137,8 @@ static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args, PyOb
                                         &region.curl,
                                         &region.curc,
                                         &region.sell,
-                                        &region.selc)) {
+                                        &region.selc))
+  {
     return NULL;
   }
 

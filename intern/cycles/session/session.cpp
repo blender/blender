@@ -490,7 +490,8 @@ int2 Session::get_effective_tile_size() const
   const int64_t actual_tile_area = static_cast<int64_t>(tile_size) * tile_size;
 
   if (actual_tile_area >= image_area && image_width <= TileManager::MAX_TILE_SIZE &&
-      image_height <= TileManager::MAX_TILE_SIZE) {
+      image_height <= TileManager::MAX_TILE_SIZE)
+  {
     return make_int2(image_width, image_height);
   }
 

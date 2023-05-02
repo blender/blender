@@ -550,7 +550,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
                                            static_cast<IDProperty *>(op_props.data),
                                            true,
                                            shortcut_brush,
-                                           ARRAY_SIZE(shortcut_brush))) {
+                                           ARRAY_SIZE(shortcut_brush)))
+          {
             shortcut = BLI_strdup(shortcut_brush);
           }
           WM_operator_properties_free(&op_props);
@@ -567,7 +568,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
                                        nullptr,
                                        true,
                                        shortcut_toolbar,
-                                       ARRAY_SIZE(shortcut_toolbar))) {
+                                       ARRAY_SIZE(shortcut_toolbar)))
+      {
         /* Generate keymap in order to inspect it.
          * NOTE: we could make a utility to avoid the keymap generation part of this. */
         const char *expr_imports[] = {
@@ -645,7 +647,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
         /* pass */
       }
       else if (BPY_run_string_as_string_and_size(
-                   C, expr_imports, expr, nullptr, &expr_result, &expr_result_len)) {
+                   C, expr_imports, expr, nullptr, &expr_result, &expr_result_len))
+      {
         /* pass. */
       }
     }
@@ -668,7 +671,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
                                          static_cast<IDProperty *>(op_props.data),
                                          true,
                                          shortcut,
-                                         ARRAY_SIZE(shortcut))) {
+                                         ARRAY_SIZE(shortcut)))
+        {
           break;
         }
         item_step += strlen(item_step) + 1;
@@ -1062,7 +1066,8 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
           IDProperty *prop = static_cast<IDProperty *>(gzop->ptr.data);
           char buf[128];
           if (WM_key_event_operator_string(
-                  C, gzop->type->idname, WM_OP_INVOKE_DEFAULT, prop, true, buf, ARRAY_SIZE(buf))) {
+                  C, gzop->type->idname, WM_OP_INVOKE_DEFAULT, prop, true, buf, ARRAY_SIZE(buf)))
+          {
             uiTooltipField *field = text_field_add(
                 data, uiTooltipFormat::Style::Normal, uiTooltipFormat::ColorID::Value, true);
             field->text = BLI_sprintfN(TIP_("Shortcut: %s"), buf);

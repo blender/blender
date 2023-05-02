@@ -176,7 +176,7 @@ static void escape_uri_string(const char *string,
   escaped_string_size -= 1;
 
   for (q = escaped_string, p = string; (*p != '\0') && escaped_string_size; p++) {
-    c = (uchar)*p;
+    c = uchar(*p);
 
     if (!ACCEPTABLE(c)) {
       if (escaped_string_size < 3) {
@@ -201,7 +201,7 @@ static void escape_uri_string(const char *string,
 
 /* --- End of adapted code from glib. --- */
 
-static bool thumbhash_from_path(const char *UNUSED(path), ThumbSource source, char *r_hash)
+static bool thumbhash_from_path(const char * /*path*/, ThumbSource source, char *r_hash)
 {
   switch (source) {
     case THB_SOURCE_FONT:
@@ -227,7 +227,7 @@ static bool uri_from_filename(const char *path, char *uri)
       return 0;
     }
     /* on windows, using always uppercase drive/volume letter in uri */
-    vol[0] = (uchar)toupper(path[0]);
+    vol[0] = uchar(toupper(path[0]));
     vol[1] = ':';
     vol[2] = '\0';
     strcat(orig_uri, vol);
@@ -277,12 +277,12 @@ static bool thumbpathname_from_uri(
 
 static void thumbname_from_uri(const char *uri, char *thumb, const int thumb_len)
 {
-  thumbpathname_from_uri(uri, NULL, 0, thumb, thumb_len, THB_FAIL);
+  thumbpathname_from_uri(uri, nullptr, 0, thumb, thumb_len, THB_FAIL);
 }
 
 static bool thumbpath_from_uri(const char *uri, char *path, const int path_len, ThumbSize size)
 {
-  return thumbpathname_from_uri(uri, path, path_len, NULL, 0, size);
+  return thumbpathname_from_uri(uri, path, path_len, nullptr, 0, size);
 }
 
 void IMB_thumb_makedirs(void)
@@ -332,7 +332,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
       tsize = 1;
       break;
     default:
-      return NULL; /* unknown size */
+      return nullptr; /* unknown size */
   }
 
   if (get_thumb_dir(tdir, size)) {
@@ -340,21 +340,21 @@ static ImBuf *thumb_create_ex(const char *file_path,
     //      thumb[8] = '\0'; /* shorten for tempname, not needed anymore */
     BLI_snprintf(temp, FILE_MAX, "%sblender_%d_%s.png", tdir, abs(getpid()), thumb);
     if (BLI_path_ncmp(file_path, tdir, sizeof(tdir)) == 0) {
-      return NULL;
+      return nullptr;
     }
     if (size == THB_FAIL) {
       img = IMB_allocImBuf(1, 1, 32, IB_rect | IB_metadata);
       if (!img) {
-        return NULL;
+        return nullptr;
       }
     }
     else {
       if (ELEM(source, THB_SOURCE_IMAGE, THB_SOURCE_BLEND, THB_SOURCE_FONT)) {
         /* only load if we didn't give an image */
-        if (img == NULL) {
+        if (img == nullptr) {
           switch (source) {
             case THB_SOURCE_IMAGE:
-              img = IMB_thumb_load_image(file_path, tsize, NULL);
+              img = IMB_thumb_load_image(file_path, tsize, nullptr);
               break;
             case THB_SOURCE_BLEND:
               img = IMB_thumb_load_blend(file_path, blen_group, blen_id);
@@ -367,18 +367,18 @@ static ImBuf *thumb_create_ex(const char *file_path,
           }
         }
 
-        if (img != NULL) {
+        if (img != nullptr) {
           if (BLI_stat(file_path, &info) != -1) {
             BLI_snprintf(mtime, sizeof(mtime), "%ld", (long int)info.st_mtime);
           }
         }
       }
       else if (THB_SOURCE_MOVIE == source) {
-        struct anim *anim = NULL;
-        anim = IMB_open_anim(file_path, IB_rect | IB_metadata, 0, NULL);
-        if (anim != NULL) {
+        struct anim *anim = nullptr;
+        anim = IMB_open_anim(file_path, IB_rect | IB_metadata, 0, nullptr);
+        if (anim != nullptr) {
           img = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
-          if (img == NULL) {
+          if (img == nullptr) {
             printf("not an anim; %s\n", file_path);
           }
           else {
@@ -392,17 +392,17 @@ static ImBuf *thumb_create_ex(const char *file_path,
         }
       }
       if (!img) {
-        return NULL;
+        return nullptr;
       }
 
       if (img->x > tsize || img->y > tsize) {
-        float scale = MIN2((float)tsize / (float)img->x, (float)tsize / (float)img->y);
+        float scale = MIN2(float(tsize) / float(img->x), float(tsize) / float(img->y));
         /* Scaling down must never assign zero width/height, see: #89868. */
-        short ex = MAX2(1, (short)(img->x * scale));
-        short ey = MAX2(1, (short)(img->y * scale));
+        short ex = MAX2(1, short(img->x * scale));
+        short ey = MAX2(1, short(img->y * scale));
         /* Save some time by only scaling byte buf */
         if (img->rect_float) {
-          if (img->rect == NULL) {
+          if (img->rect == nullptr) {
             IMB_rect_from_float(img);
           }
           imb_freerectfloatImBuf(img);
@@ -449,16 +449,16 @@ static ImBuf *thumb_create_or_fail(const char *file_path,
                                    ThumbSource source)
 {
   ImBuf *img = thumb_create_ex(
-      file_path, uri, thumb, use_hash, hash, blen_group, blen_id, size, source, NULL);
+      file_path, uri, thumb, use_hash, hash, blen_group, blen_id, size, source, nullptr);
 
   if (!img) {
     /* thumb creation failed, write fail thumb */
     img = thumb_create_ex(
-        file_path, uri, thumb, use_hash, hash, blen_group, blen_id, THB_FAIL, source, NULL);
+        file_path, uri, thumb, use_hash, hash, blen_group, blen_id, THB_FAIL, source, nullptr);
     if (img) {
       /* we don't need failed thumb anymore */
       IMB_freeImBuf(img);
-      img = NULL;
+      img = nullptr;
     }
   }
 
@@ -471,25 +471,25 @@ ImBuf *IMB_thumb_create(const char *filepath, ThumbSize size, ThumbSource source
   char thumb_name[40];
 
   if (!uri_from_filename(filepath, uri)) {
-    return NULL;
+    return nullptr;
   }
   thumbname_from_uri(uri, thumb_name, sizeof(thumb_name));
 
   return thumb_create_ex(
-      filepath, uri, thumb_name, false, THUMB_DEFAULT_HASH, NULL, NULL, size, source, img);
+      filepath, uri, thumb_name, false, THUMB_DEFAULT_HASH, nullptr, nullptr, size, source, img);
 }
 
 ImBuf *IMB_thumb_read(const char *filepath, ThumbSize size)
 {
   char thumb[FILE_MAX];
   char uri[URI_MAX];
-  ImBuf *img = NULL;
+  ImBuf *img = nullptr;
 
   if (!uri_from_filename(filepath, uri)) {
-    return NULL;
+    return nullptr;
   }
   if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
-    img = IMB_loadiffname(thumb, IB_rect | IB_metadata, NULL);
+    img = IMB_loadiffname(thumb, IB_rect | IB_metadata, nullptr);
   }
 
   return img;
@@ -522,8 +522,8 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
   const char *file_path;
   const char *path;
   BLI_stat_t st;
-  ImBuf *img = NULL;
-  char *blen_group = NULL, *blen_id = NULL;
+  ImBuf *img = nullptr;
+  char *blen_group = nullptr, *blen_id = nullptr;
 
   path = file_path = filepath;
   if (source == THB_SOURCE_BLEND) {
@@ -531,7 +531,7 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
       if (blen_group) {
         if (!blen_id) {
           /* No preview for blen groups */
-          return NULL;
+          return nullptr;
         }
         file_path = path_buff; /* path needs to be a valid file! */
       }
@@ -539,10 +539,10 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
   }
 
   if (BLI_stat(file_path, &st) == -1) {
-    return NULL;
+    return nullptr;
   }
   if (!uri_from_filename(path, uri)) {
-    return NULL;
+    return nullptr;
   }
   if (thumbpath_from_uri(uri, thumb_path, sizeof(thumb_path), THB_FAIL)) {
     /* failure thumb exists, don't try recreating */
@@ -552,18 +552,19 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
         BLI_delete(thumb_path, false, false);
       }
       else {
-        return NULL;
+        return nullptr;
       }
     }
   }
 
   if (thumbpathname_from_uri(
-          uri, thumb_path, sizeof(thumb_path), thumb_name, sizeof(thumb_name), size)) {
+          uri, thumb_path, sizeof(thumb_path), thumb_name, sizeof(thumb_name), size))
+  {
     if (BLI_path_ncmp(path, thumb_path, sizeof(thumb_path)) == 0) {
-      img = IMB_loadiffname(path, IB_rect, NULL);
+      img = IMB_loadiffname(path, IB_rect, nullptr);
     }
     else {
-      img = IMB_loadiffname(thumb_path, IB_rect | IB_metadata, NULL);
+      img = IMB_loadiffname(thumb_path, IB_rect | IB_metadata, nullptr);
       if (img) {
         bool regenerate = false;
 
@@ -583,7 +584,8 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
 
         if (use_hash && !regenerate) {
           if (IMB_metadata_get_field(
-                  img->metadata, "X-Blender::Hash", thumb_hash_curr, sizeof(thumb_hash_curr))) {
+                  img->metadata, "X-Blender::Hash", thumb_hash_curr, sizeof(thumb_hash_curr)))
+          {
             regenerate = !STREQ(thumb_hash, thumb_hash_curr);
           }
           else {
@@ -594,7 +596,7 @@ ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source
         if (regenerate) {
           /* recreate all thumbs */
           IMB_freeImBuf(img);
-          img = NULL;
+          img = nullptr;
           IMB_thumb_delete(path, THB_NORMAL);
           IMB_thumb_delete(path, THB_LARGE);
           IMB_thumb_delete(path, THB_FAIL);
@@ -641,13 +643,13 @@ void IMB_thumb_locks_acquire(void)
   BLI_thread_lock(LOCK_IMAGE);
 
   if (thumb_locks.lock_counter == 0) {
-    BLI_assert(thumb_locks.locked_paths == NULL);
+    BLI_assert(thumb_locks.locked_paths == nullptr);
     thumb_locks.locked_paths = BLI_gset_str_new(__func__);
     BLI_condition_init(&thumb_locks.cond);
   }
   thumb_locks.lock_counter++;
 
-  BLI_assert(thumb_locks.locked_paths != NULL);
+  BLI_assert(thumb_locks.locked_paths != nullptr);
   BLI_assert(thumb_locks.lock_counter > 0);
   BLI_thread_unlock(LOCK_IMAGE);
 }
@@ -655,12 +657,12 @@ void IMB_thumb_locks_acquire(void)
 void IMB_thumb_locks_release(void)
 {
   BLI_thread_lock(LOCK_IMAGE);
-  BLI_assert((thumb_locks.locked_paths != NULL) && (thumb_locks.lock_counter > 0));
+  BLI_assert((thumb_locks.locked_paths != nullptr) && (thumb_locks.lock_counter > 0));
 
   thumb_locks.lock_counter--;
   if (thumb_locks.lock_counter == 0) {
     BLI_gset_free(thumb_locks.locked_paths, MEM_freeN);
-    thumb_locks.locked_paths = NULL;
+    thumb_locks.locked_paths = nullptr;
     BLI_condition_end(&thumb_locks.cond);
   }
 
@@ -672,7 +674,7 @@ void IMB_thumb_path_lock(const char *path)
   void *key = BLI_strdup(path);
 
   BLI_thread_lock(LOCK_IMAGE);
-  BLI_assert((thumb_locks.locked_paths != NULL) && (thumb_locks.lock_counter > 0));
+  BLI_assert((thumb_locks.locked_paths != nullptr) && (thumb_locks.lock_counter > 0));
 
   if (thumb_locks.locked_paths) {
     while (!BLI_gset_add(thumb_locks.locked_paths, key)) {
@@ -688,7 +690,7 @@ void IMB_thumb_path_unlock(const char *path)
   const void *key = path;
 
   BLI_thread_lock(LOCK_IMAGE);
-  BLI_assert((thumb_locks.locked_paths != NULL) && (thumb_locks.lock_counter > 0));
+  BLI_assert((thumb_locks.locked_paths != nullptr) && (thumb_locks.lock_counter > 0));
 
   if (thumb_locks.locked_paths) {
     if (!BLI_gset_remove(thumb_locks.locked_paths, key, MEM_freeN)) {

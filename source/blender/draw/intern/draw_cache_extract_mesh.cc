@@ -803,7 +803,8 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
 
   /* We use only one extractor for face dots, as the work is done in a single compute shader. */
   if (DRW_vbo_requested(mbuflist->vbo.fdots_nor) || DRW_vbo_requested(mbuflist->vbo.fdots_pos) ||
-      DRW_ibo_requested(mbuflist->ibo.fdots)) {
+      DRW_ibo_requested(mbuflist->ibo.fdots))
+  {
     extractors.append(&extract_fdots_pos);
   }
 

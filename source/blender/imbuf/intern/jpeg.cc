@@ -12,6 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -131,7 +132,7 @@ static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 
   if (num_bytes > 0) {
     /* prevent skipping over file end */
-    size_t skip_size = (size_t)num_bytes <= src->pub.bytes_in_buffer ? num_bytes :
+    size_t skip_size = size_t(num_bytes) <= src->pub.bytes_in_buffer ? num_bytes :
                                                                        src->pub.bytes_in_buffer;
 
     src->pub.next_input_byte = src->pub.next_input_byte + skip_size;
@@ -148,7 +149,7 @@ static void memory_source(j_decompress_ptr cinfo, const uchar *buffer, size_t si
 {
   my_src_ptr src;
 
-  if (cinfo->src == NULL) { /* first time for this JPEG object? */
+  if (cinfo->src == nullptr) { /* first time for this JPEG object? */
     cinfo->src = (struct jpeg_source_mgr *)(*cinfo->mem->alloc_small)(
         (j_common_ptr)cinfo, JPOOL_PERMANENT, sizeof(my_source_mgr));
   }
@@ -209,7 +210,7 @@ static void memory_source(j_decompress_ptr cinfo, const uchar *buffer, size_t si
  */
 #define INPUT_2BYTES(cinfo, V, action) \
   MAKESTMT(MAKE_BYTE_AVAIL(cinfo, action); bytes_in_buffer--; \
-           V = (uint)GETJOCTET(*next_input_byte++) << 8; \
+           V = uint(GETJOCTET(*next_input_byte++)) << 8; \
            MAKE_BYTE_AVAIL(cinfo, action); \
            bytes_in_buffer--; \
            V += GETJOCTET(*next_input_byte++);)
@@ -257,10 +258,10 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
                                    size_t *r_height)
 {
   JSAMPARRAY row_pointer;
-  JSAMPLE *buffer = NULL;
+  JSAMPLE *buffer = nullptr;
   int row_stride;
   int x, y, depth, r, g, b, k;
-  struct ImBuf *ibuf = NULL;
+  struct ImBuf *ibuf = nullptr;
   uchar *rect;
   jpeg_saved_marker_ptr marker;
   char *str, *key, *value;
@@ -288,9 +289,9 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
     if (max_size > 0) {
       /* `libjpeg` can more quickly decompress while scaling down to 1/2, 1/4, 1/8,
        * while `libjpeg-turbo` can also do 3/8, 5/8, etc. But max is 1/8. */
-      float scale = (float)max_size / MAX2(cinfo->image_width, cinfo->image_height);
+      float scale = float(max_size) / MAX2(cinfo->image_width, cinfo->image_height);
       cinfo->scale_denom = 8;
-      cinfo->scale_num = max_uu(1, min_uu(8, ceill(scale * (float)cinfo->scale_denom)));
+      cinfo->scale_num = max_uu(1, min_uu(8, ceill(scale * float(cinfo->scale_denom))));
       cinfo->dct_method = JDCT_FASTEST;
       cinfo->dither_mode = JDITHER_ORDERED;
     }
@@ -304,7 +305,7 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
       jpeg_abort_decompress(cinfo);
       ibuf = IMB_allocImBuf(x, y, 8 * depth, 0);
     }
-    else if ((ibuf = IMB_allocImBuf(x, y, 8 * depth, IB_rect)) == NULL) {
+    else if ((ibuf = IMB_allocImBuf(x, y, 8 * depth, IB_rect)) == nullptr) {
       jpeg_abort_decompress(cinfo);
     }
     else {
@@ -452,7 +453,7 @@ ImBuf *imb_load_jpeg(const uchar *buffer, size_t size, int flags, char colorspac
   ImBuf *ibuf;
 
   if (!imb_is_a_jpeg(buffer, size)) {
-    return NULL;
+    return nullptr;
   }
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
@@ -466,13 +467,13 @@ ImBuf *imb_load_jpeg(const uchar *buffer, size_t size, int flags, char colorspac
      * We need to clean up the JPEG object, close the input file, and return.
      */
     jpeg_destroy_decompress(cinfo);
-    return NULL;
+    return nullptr;
   }
 
   jpeg_create_decompress(cinfo);
   memory_source(cinfo, buffer, size);
 
-  ibuf = ibJpegImageFromCinfo(cinfo, flags, -1, NULL, NULL);
+  ibuf = ibJpegImageFromCinfo(cinfo, flags, -1, nullptr, nullptr);
 
   return ibuf;
 }
@@ -492,7 +493,7 @@ struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
 {
   struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
   struct my_error_mgr jerr;
-  FILE *infile = NULL;
+  FILE *infile = nullptr;
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
@@ -505,28 +506,30 @@ struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
      * We need to clean up the JPEG object, close the input file, and return.
      */
     jpeg_destroy_decompress(cinfo);
-    return NULL;
+    return nullptr;
   }
 
-  if ((infile = BLI_fopen(filepath, "rb")) == NULL) {
+  if ((infile = BLI_fopen(filepath, "rb")) == nullptr) {
     fprintf(stderr, "can't open %s\n", filepath);
-    return NULL;
+    return nullptr;
   }
 
   /* If file contains an embedded thumbnail, let's return that instead. */
 
   if ((fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_SOI) &&
-      (fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_APP1)) {
+      (fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_APP1))
+  {
     /* This is a JPEG in EXIF format (SOI + APP1), not JFIF (SOI + APP0). */
     uint i = JPEG_APP1_MAX;
     /* All EXIF data is within this 64K header segment. Skip ahead until next SOI for thumbnail. */
     while (!((fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_SOI)) &&
-           !feof(infile) && i--) {
+           !feof(infile) && i--)
+    {
     }
     if (i > 0 && !feof(infile)) {
       /* We found a JPEG thumbnail inside this image. */
-      ImBuf *ibuf = NULL;
-      uchar *buffer = MEM_callocN(JPEG_APP1_MAX, "thumbbuffer");
+      ImBuf *ibuf = nullptr;
+      uchar *buffer = static_cast<uchar *>(MEM_callocN(JPEG_APP1_MAX, "thumbbuffer"));
       /* Just put SOI directly in buffer rather than seeking back 2 bytes. */
       buffer[0] = JPEG_MARKER_MSB;
       buffer[1] = JPEG_MARKER_SOI;
@@ -560,7 +563,7 @@ struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
 
 static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
 {
-  JSAMPLE *buffer = NULL;
+  JSAMPLE *buffer = nullptr;
   JSAMPROW row_pointer[1];
   uchar *rect;
   int x, y;
@@ -575,11 +578,11 @@ static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
   neogeo_word->quality = ibuf->foptions.quality;
   jpeg_write_marker(cinfo, 0xe1, (JOCTET *)neogeo, 10);
   if (ibuf->metadata) {
-    IDProperty *prop;
+
     /* Static storage array for the short metadata. */
     char static_text[1024];
     const int static_text_size = ARRAY_SIZE(static_text);
-    for (prop = ibuf->metadata->data.group.first; prop; prop = prop->next) {
+    LISTBASE_FOREACH (IDProperty *, prop, &ibuf->metadata->data.group) {
       if (prop->type == IDP_STRING) {
         int text_len;
         if (STREQ(prop->name, "None")) {
@@ -589,10 +592,10 @@ static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
         char *text = static_text;
         int text_size = static_text_size;
         /* 7 is for Blender, 2 colon separators, length of property
-         * name and property value, followed by the NULL-terminator. */
+         * name and property value, followed by the nullptr-terminator. */
         const int text_length_required = 7 + 2 + strlen(prop->name) + strlen(IDP_String(prop)) + 1;
         if (text_length_required <= static_text_size) {
-          text = MEM_mallocN(text_length_required, "jpeg metadata field");
+          text = static_cast<char *>(MEM_mallocN(text_length_required, "jpeg metadata field"));
           text_size = text_length_required;
         }
 
@@ -619,8 +622,8 @@ static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
     }
   }
 
-  row_pointer[0] = MEM_mallocN(sizeof(JSAMPLE) * cinfo->input_components * cinfo->image_width,
-                               "jpeg row_pointer");
+  row_pointer[0] = static_cast<JSAMPROW>(MEM_mallocN(
+      sizeof(JSAMPLE) * cinfo->input_components * cinfo->image_width, "jpeg row_pointer"));
 
   for (y = ibuf->y - 1; y >= 0; y--) {
     rect = (uchar *)(ibuf->rect + y * ibuf->x);
@@ -718,7 +721,7 @@ static bool save_stdjpeg(const char *name, struct ImBuf *ibuf)
   struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
   struct my_error_mgr jerr;
 
-  if ((outfile = BLI_fopen(name, "wb")) == NULL) {
+  if ((outfile = BLI_fopen(name, "wb")) == nullptr) {
     return 0;
   }
 

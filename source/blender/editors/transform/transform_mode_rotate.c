@@ -120,7 +120,8 @@ static void transdata_elem_rotate(const TransInfo *t,
   if (is_large_rotation && td->ext != NULL && td->ext->rotOrder == ROT_MODE_EUL) {
     copy_v3_v3(td->ext->rot, td->ext->irot);
     for (float angle_progress = angle_step; fabsf(angle_progress) < fabsf(angle_final);
-         angle_progress += angle_step) {
+         angle_progress += angle_step)
+    {
       axis_angle_normalized_to_mat3(rmc->mat, axis_final, angle_progress);
       ElementRotation(t, tc, td, rmc->mat, t->around);
     }

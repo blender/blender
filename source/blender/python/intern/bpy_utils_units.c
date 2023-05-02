@@ -186,7 +186,8 @@ static PyObject *bpyunits_to_value(PyObject *UNUSED(self), PyObject *args, PyObj
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kw, &_parser, &usys_str, &ucat_str, &inpt, &str_len, &uref)) {
+          args, kw, &_parser, &usys_str, &ucat_str, &inpt, &str_len, &uref))
+  {
     return NULL;
   }
 
@@ -283,7 +284,8 @@ static PyObject *bpyunits_to_string(PyObject *UNUSED(self), PyObject *args, PyOb
                                         PyC_ParseBool,
                                         &split_unit,
                                         PyC_ParseBool,
-                                        &compatible_unit)) {
+                                        &compatible_unit))
+  {
     return NULL;
   }
 

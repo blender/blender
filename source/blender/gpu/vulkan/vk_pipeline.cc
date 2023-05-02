@@ -52,7 +52,8 @@ VKPipeline VKPipeline::create_compute_pipeline(
   VkPipeline vk_pipeline;
   if (vkCreateComputePipelines(
           vk_device, nullptr, 1, &pipeline_info, vk_allocation_callbacks, &vk_pipeline) !=
-      VK_SUCCESS) {
+      VK_SUCCESS)
+  {
     return VKPipeline();
   }
 

@@ -508,7 +508,8 @@ static PyObject *bpy_app_is_job_running(PyObject *UNUSED(self), PyObject *args, 
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, pyrna_enum_value_parse_string, &job_type_enum)) {
+          args, kwds, &_parser, pyrna_enum_value_parse_string, &job_type_enum))
+  {
     return NULL;
   }
   wmWindowManager *wm = G_MAIN->wm.first;

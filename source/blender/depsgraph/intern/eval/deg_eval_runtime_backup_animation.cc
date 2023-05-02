@@ -44,7 +44,8 @@ void animated_property_store_cb(ID *id, FCurve *fcurve, void *data_v)
   /* Resolve path to the property. */
   PathResolvedRNA resolved_rna;
   if (!BKE_animsys_rna_path_resolve(
-          &data->id_pointer_rna, fcurve->rna_path, fcurve->array_index, &resolved_rna)) {
+          &data->id_pointer_rna, fcurve->rna_path, fcurve->array_index, &resolved_rna))
+  {
     return;
   }
 
@@ -104,7 +105,8 @@ void AnimationBackup::restore_to_id(ID *id)
     if (!BKE_animsys_rna_path_resolve(&id_pointer_rna,
                                       value_backup.rna_path.c_str(),
                                       value_backup.array_index,
-                                      &resolved_rna)) {
+                                      &resolved_rna))
+    {
       return;
     }
 

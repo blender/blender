@@ -120,7 +120,8 @@ bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_regi
       RegionView3D *rv3d;
       if ((region->regiontype == RGN_TYPE_WINDOW) &&
           (rv3d = static_cast<RegionView3D *>(region->regiondata)) &&
-          (rv3d->viewlock & RV3D_LOCK_ROTATION) == 0) {
+          (rv3d->viewlock & RV3D_LOCK_ROTATION) == 0)
+      {
         *r_v3d = v3d;
         *r_region = region;
         return true;
@@ -2042,7 +2043,8 @@ static int view3d_asset_shelf_context(const bContext *C,
 static void view3d_id_remap_v3d_ob_centers(View3D *v3d, const struct IDRemapper *mappings)
 {
   if (BKE_id_remapper_apply(mappings, (ID **)&v3d->ob_center, ID_REMAP_APPLY_DEFAULT) ==
-      ID_REMAP_RESULT_SOURCE_UNASSIGNED) {
+      ID_REMAP_RESULT_SOURCE_UNASSIGNED)
+  {
     /* Otherwise, bone-name may remain valid...
      * We could be smart and check this, too? */
     v3d->ob_center_bone[0] = '\0';
@@ -2057,7 +2059,8 @@ static void view3d_id_remap_v3d(ScrArea *area,
 {
   ARegion *region;
   if (BKE_id_remapper_apply(mappings, (ID **)&v3d->camera, ID_REMAP_APPLY_DEFAULT) ==
-      ID_REMAP_RESULT_SOURCE_UNASSIGNED) {
+      ID_REMAP_RESULT_SOURCE_UNASSIGNED)
+  {
     /* 3D view might be inactive, in that case needs to use slink->regionbase */
     ListBase *regionbase = (slink == area->spacedata.first) ? &area->regionbase :
                                                               &slink->regionbase;
@@ -2076,8 +2079,9 @@ static void view3d_id_remap_v3d(ScrArea *area,
 static void view3d_id_remap(ScrArea *area, SpaceLink *slink, const struct IDRemapper *mappings)
 {
 
-  if (!BKE_id_remapper_has_mapping_for(
-          mappings, FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_IM | FILTER_ID_MC)) {
+  if (!BKE_id_remapper_has_mapping_for(mappings,
+                                       FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_IM | FILTER_ID_MC))
+  {
     return;
   }
 

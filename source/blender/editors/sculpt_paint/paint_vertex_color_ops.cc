@@ -200,8 +200,8 @@ static void face_corner_color_equalize_verts(Mesh &mesh, const IndexMask selecti
 static bool vertex_color_smooth(Object *ob)
 {
   Mesh *me;
-  if (((me = BKE_mesh_from_object(ob)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false)) {
+  if (((me = BKE_mesh_from_object(ob)) == nullptr) || (ED_mesh_color_ensure(me, nullptr) == false))
+  {
     return false;
   }
 
@@ -346,7 +346,8 @@ static int vertex_color_brightness_contrast_exec(bContext *C, wmOperator *op)
 
   Mesh *me;
   if (((me = BKE_mesh_from_object(obact)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false)) {
+      (ED_mesh_color_ensure(me, nullptr) == false))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -392,7 +393,8 @@ static int vertex_color_hsv_exec(bContext *C, wmOperator *op)
 
   Mesh *me;
   if (((me = BKE_mesh_from_object(obact)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false)) {
+      (ED_mesh_color_ensure(me, nullptr) == false))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -442,7 +444,8 @@ static int vertex_color_invert_exec(bContext *C, wmOperator *op)
 
   Mesh *me;
   if (((me = BKE_mesh_from_object(obact)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false)) {
+      (ED_mesh_color_ensure(me, nullptr) == false))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -479,7 +482,8 @@ static int vertex_color_levels_exec(bContext *C, wmOperator *op)
 
   Mesh *me;
   if (((me = BKE_mesh_from_object(obact)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false)) {
+      (ED_mesh_color_ensure(me, nullptr) == false))
+  {
     return OPERATOR_CANCELLED;
   }
 

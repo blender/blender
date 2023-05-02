@@ -27,7 +27,8 @@ void main()
 
   bool show_handle = showCurveHandles;
   if ((uint(curveHandleDisplay) == CURVE_HANDLE_SELECTED) &&
-      ((data & VERT_SELECTED_BEZT_HANDLE) == 0u)) {
+      ((data & VERT_SELECTED_BEZT_HANDLE) == 0u))
+  {
     show_handle = false;
   }
 

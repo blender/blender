@@ -505,7 +505,8 @@ int wm_gizmo_is_visible(wmGizmo *gz)
     return 0;
   }
   if ((gz->state & WM_GIZMO_STATE_MODAL) &&
-      !(gz->flag & (WM_GIZMO_DRAW_MODAL | WM_GIZMO_DRAW_VALUE))) {
+      !(gz->flag & (WM_GIZMO_DRAW_MODAL | WM_GIZMO_DRAW_VALUE)))
+  {
     /* don't draw while modal (dragging) */
     return 0;
   }

@@ -222,7 +222,7 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, char colorsp
     /* Transfer metadata to the ibuf if necessary. */
     if (ctx.flags & IB_metadata) {
       IMB_metadata_ensure(&ibuf->metadata);
-      ibuf->flags |= (spec.extra_attribs.empty()) ? 0 : IB_metadata;
+      ibuf->flags |= spec.extra_attribs.empty() ? 0 : IB_metadata;
 
       for (const auto &attrib : spec.extra_attribs) {
         IMB_metadata_set_field(ibuf->metadata, attrib.name().c_str(), attrib.get_string().c_str());
@@ -377,7 +377,8 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
 
   if (ctx.ibuf->metadata) {
     for (IDProperty *prop = static_cast<IDProperty *>(ctx.ibuf->metadata->data.group.first); prop;
-         prop = prop->next) {
+         prop = prop->next)
+    {
       if (prop->type == IDP_STRING) {
         /* If this property has a prefixed name (oiio:, tiff:, etc.) and it belongs to
          * oiio or a different format, then skip. */
@@ -385,7 +386,8 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
           std::string prefix(prop->name, colon);
           Strutil::to_lower(prefix);
           if (prefix == "oiio" ||
-              (!STREQ(prefix.c_str(), ctx.file_format) && OIIO::is_imageio_format_name(prefix))) {
+              (!STREQ(prefix.c_str(), ctx.file_format) && OIIO::is_imageio_format_name(prefix)))
+          {
             /* Skip this attribute. */
             continue;
           }

@@ -825,7 +825,8 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
 
       for (fy = -0.5f + jit[step & 255][0], y = 0; y < ysize; y++, fy += 1.0f) {
         for (fx = -0.5f + jit[step & 255][1], x = 0; x < xsize;
-             x++, fx += 1.0f, dimg += 4, dz1 += 4, dz2 += 4, dm++, dz++) {
+             x++, fx += 1.0f, dimg += 4, dz1 += 4, dz2 += 4, dm++, dz++)
+        {
           if (*dm > 1) {
             float jfx = fx + 0.5f;
             float jfy = fy + 0.5f;

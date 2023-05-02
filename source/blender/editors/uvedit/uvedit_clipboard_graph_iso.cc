@@ -191,7 +191,8 @@ static void generate_next_domains(uint8_t domains[][BDS],
   int bound = 0;
   uint8_t *bd;
   for (i = *bd_pos - 1, bd = &domains[i][L]; i >= 0 && bd[P] == cur_pos - 1;
-       i--, bd = &domains[i][L]) {
+       i--, bd = &domains[i][L])
+  {
 
     uint8_t l_len = partition(left, bd[L], bd[LL], adjmat0[v]);
     uint8_t r_len = partition(right, bd[R], bd[RL], adjmat1[w]);
@@ -256,7 +257,8 @@ static void select_bidomain(
   int best = INT_MAX;
   uint8_t *bd;
   for (i = bd_pos - 1, bd = &domains[i][L]; i >= 0 && bd[P] == current_matching_size;
-       i--, bd = &domains[i][L]) {
+       i--, bd = &domains[i][L])
+  {
     if (connected && current_matching_size > 0 && !bd[ADJ]) {
       continue;
     }

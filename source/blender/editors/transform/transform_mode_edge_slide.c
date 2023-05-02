@@ -444,7 +444,8 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
       if (is_visible) {
         if ((dist_best_sq == -1.0f) ||
             /* intentionally use 2d size on 3d vector */
-            (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f))) {
+            (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f)))
+        {
           dist_best_sq = dist_sq;
           sub_v3_v3v3(mval_dir, sco_b, sco_a);
         }
@@ -994,7 +995,8 @@ static EdgeSlideData *createEdgeSlideVerts_single_side(TransInfo *t, TransDataCo
 
           if ((BM_elem_flag_test(e_step, BM_ELEM_SELECT) &&
                BM_elem_flag_test(v_other, BM_ELEM_SELECT)) &&
-              (endpoint == 0)) {
+              (endpoint == 0))
+          {
             /* scan down the list */
             TransDataEdgeSlideVert *sv;
             BLI_assert(sv_table[BM_elem_index_get(v_other)] == -1);

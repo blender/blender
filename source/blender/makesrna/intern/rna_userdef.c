@@ -655,7 +655,8 @@ static void rna_UserDef_viewport_lights_update(Main *bmain, Scene *scene, Pointe
   /* If all lights are off gpu_draw resets them all, see: #27627,
    * so disallow them all to be disabled. */
   if (U.light_param[0].flag == 0 && U.light_param[1].flag == 0 && U.light_param[2].flag == 0 &&
-      U.light_param[3].flag == 0) {
+      U.light_param[3].flag == 0)
+  {
     SolidLight *light = ptr->data;
     light->flag |= 1;
   }

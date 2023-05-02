@@ -286,7 +286,8 @@ void AssetClearHelper::reportResults(const bContext *C, ReportList &reports) con
     /* Dedicated error message for when there is an active asset detected, but it's not an ID local
      * to this file. Helps users better understanding what's going on. */
     if (AssetHandle active_asset = CTX_wm_asset_handle(C, &is_valid);
-        is_valid && !ED_asset_handle_get_local_id(&active_asset)) {
+        is_valid && !ED_asset_handle_get_local_id(&active_asset))
+    {
       BKE_report(&reports,
                  RPT_ERROR,
                  "No asset data-blocks from the current file selected (assets must be stored in "

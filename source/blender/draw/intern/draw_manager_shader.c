@@ -571,7 +571,8 @@ void DRW_shader_queue_optimize_material(GPUMaterial *mat)
   if (ELEM(GPU_material_optimization_status(mat),
            GPU_MAT_OPTIMIZATION_SKIP,
            GPU_MAT_OPTIMIZATION_SUCCESS,
-           GPU_MAT_OPTIMIZATION_QUEUED)) {
+           GPU_MAT_OPTIMIZATION_QUEUED))
+  {
     return;
   }
 

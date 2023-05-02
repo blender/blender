@@ -130,7 +130,8 @@ void BKE_lib_override_library_main_proxy_convert(Main *bmain, BlendFileReadRepor
     FOREACH_SCENE_OBJECT_END;
 
     for (LinkNode *proxy_object_iter = proxy_objects.list; proxy_object_iter != NULL;
-         proxy_object_iter = proxy_object_iter->next) {
+         proxy_object_iter = proxy_object_iter->next)
+    {
       Object *proxy_object = proxy_object_iter->link;
       lib_override_library_proxy_convert_do(bmain, scene, proxy_object, reports);
     }

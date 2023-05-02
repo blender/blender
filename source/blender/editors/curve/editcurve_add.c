@@ -509,7 +509,8 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
   WM_operator_view3d_unit_defaults(C, op);
 
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, NULL, &enter_editmode, &local_view_bits, NULL)) {
+          C, op, 'Z', loc, rot, NULL, &enter_editmode, &local_view_bits, NULL))
+  {
     return OPERATOR_CANCELLED;
   }
 

@@ -160,7 +160,8 @@ static void extract_uv_neighbors(const MeshData &mesh_data,
 
       if (primitive_has_shared_uv_edge(mesh_data.uv_map,
                                        mesh_data.looptris[primitive_i],
-                                       mesh_data.looptris[other_primitive_i])) {
+                                       mesh_data.looptris[other_primitive_i]))
+      {
         prims_to_add.append(other_primitive_i);
       }
     }
@@ -1374,8 +1375,8 @@ UVEdge *UVPrimitive::get_uv_edge(const int v1, const int v2) const
 bool UVPrimitive::contains_uv_vertex(const UVVertex *uv_vertex) const
 {
   for (UVEdge *edge : edges) {
-    if (std::find(edge->vertices.begin(), edge->vertices.end(), uv_vertex) !=
-        edge->vertices.end()) {
+    if (std::find(edge->vertices.begin(), edge->vertices.end(), uv_vertex) != edge->vertices.end())
+    {
       return true;
     }
   }
@@ -1611,7 +1612,8 @@ static bool dilate_y(UVIslandsMask::Tile &islands_mask)
         changed = true;
       }
       else if (y < islands_mask.mask_resolution.y - 1 &&
-               prev_mask[offset + islands_mask.mask_resolution.x] != 0xffff) {
+               prev_mask[offset + islands_mask.mask_resolution.x] != 0xffff)
+      {
         islands_mask.mask[offset] = prev_mask[offset + islands_mask.mask_resolution.x];
         changed = true;
       }

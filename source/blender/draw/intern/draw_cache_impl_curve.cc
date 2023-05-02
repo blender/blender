@@ -121,7 +121,8 @@ static int curve_render_normal_len_get(const ListBase *lb, const CurveCache *ob_
   const BevList *bl;
   const Nurb *nu;
   for (bl = (const BevList *)ob_curve_cache->bev.first, nu = (const Nurb *)lb->first; nu && bl;
-       bl = bl->next, nu = nu->next) {
+       bl = bl->next, nu = nu->next)
+  {
     int nr = bl->nr;
     int skip = nu->resolu / 16;
 #if 0
@@ -584,7 +585,8 @@ static void curve_create_edit_curves_nor(CurveRenderData *rdata,
   for (bl = (const BevList *)rdata->ob_curve_cache->bev.first,
       nu = (const Nurb *)rdata->nurbs->first;
        nu && bl;
-       bl = bl->next, nu = nu->next) {
+       bl = bl->next, nu = nu->next)
+  {
     const BevPoint *bevp = bl->bevpoints;
     int nr = bl->nr;
     int skip = nu->resolu / 16;
@@ -900,7 +902,8 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const struct Scene *scen
     curve_create_curves_lines(rdata, cache->ibo.curves_lines);
   }
   if (DRW_vbo_requested(cache->edit.pos) || DRW_vbo_requested(cache->edit.data) ||
-      DRW_ibo_requested(cache->ibo.edit_verts) || DRW_ibo_requested(cache->ibo.edit_lines)) {
+      DRW_ibo_requested(cache->ibo.edit_verts) || DRW_ibo_requested(cache->ibo.edit_lines))
+  {
     curve_create_edit_data_and_handles(
         rdata, cache->edit.pos, cache->edit.data, cache->ibo.edit_verts, cache->ibo.edit_lines);
   }

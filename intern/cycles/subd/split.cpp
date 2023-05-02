@@ -692,7 +692,8 @@ void DiagSplit::post_split()
 
         /* Add to map */
         if (params.mesh->vert_to_stitching_key_map.find(vert) ==
-            params.mesh->vert_to_stitching_key_map.end()) {
+            params.mesh->vert_to_stitching_key_map.end())
+        {
           params.mesh->vert_to_stitching_key_map[vert] = key;
           params.mesh->vert_stitching_map.insert({key, vert});
         }

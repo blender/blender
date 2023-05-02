@@ -349,8 +349,8 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
 
   sculpt_init_session(bmain, depsgraph, scene, ob);
 
-  if (!(fabsf(ob->scale[0] - ob->scale[1]) < 1e-4f &&
-        fabsf(ob->scale[1] - ob->scale[2]) < 1e-4f)) {
+  if (!(fabsf(ob->scale[0] - ob->scale[1]) < 1e-4f && fabsf(ob->scale[1] - ob->scale[2]) < 1e-4f))
+  {
     BKE_report(
         reports, RPT_WARNING, "Object has non-uniform scale, sculpting may be unpredictable");
   }

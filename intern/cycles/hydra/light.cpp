@@ -168,7 +168,8 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
   }
   // Need to update shader graph when transform changes in case transform was baked into it
   else if (_light->tfm_is_modified() && (_lightType == HdPrimTypeTokens->domeLight ||
-                                         _light->get_shader()->has_surface_spatial_varying)) {
+                                         _light->get_shader()->has_surface_spatial_varying))
+  {
     PopulateShaderGraph(sceneDelegate);
   }
 

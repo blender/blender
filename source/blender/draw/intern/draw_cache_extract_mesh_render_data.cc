@@ -135,8 +135,8 @@ void mesh_render_data_update_loose_geom(MeshRenderData *mr,
                                         const eMRIterType iter_type,
                                         const eMRDataType data_flag)
 {
-  if ((iter_type & (MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT)) ||
-      (data_flag & MR_DATA_LOOSE_GEOM)) {
+  if ((iter_type & (MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT)) || (data_flag & MR_DATA_LOOSE_GEOM))
+  {
     mesh_render_data_loose_geom_ensure(mr, cache);
     mr->loose_edges = cache->loose_geom.edges;
     mr->loose_verts = cache->loose_geom.verts;
@@ -464,7 +464,8 @@ MeshRenderData *mesh_render_data_create(Object *object,
      * using the cage mesh with deformed coordinates. */
     if ((is_mode_active && mr->me->runtime->is_original_bmesh &&
          mr->me->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) ||
-        (do_uvedit && !do_final)) {
+        (do_uvedit && !do_final))
+    {
       mr->extract_type = MR_EXTRACT_BMESH;
     }
     else {

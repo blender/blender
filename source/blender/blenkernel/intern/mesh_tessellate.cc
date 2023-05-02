@@ -66,7 +66,8 @@ BLI_INLINE void mesh_calc_tessellation_for_face_impl(const Span<int> corner_vert
       if (UNLIKELY(is_quad_flip_v3_first_third_fast(positions[corner_verts[mlt_a->tri[0]]],
                                                     positions[corner_verts[mlt_a->tri[1]]],
                                                     positions[corner_verts[mlt_a->tri[2]]],
-                                                    positions[corner_verts[mlt_b->tri[2]]]))) {
+                                                    positions[corner_verts[mlt_b->tri[2]]])))
+      {
         /* Flip out of degenerate 0-2 state. */
         mlt_a->tri[2] = mlt_b->tri[2];
         mlt_b->tri[0] = mlt_a->tri[1];

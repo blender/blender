@@ -102,8 +102,8 @@ class LineRep : public Rep {
     if (0 != _vertices.size()) {
       _vertices.clear();
     }
-    for (vector<Vec3r>::const_iterator v = iVertices.begin(), end = iVertices.end(); v != end;
-         ++v) {
+    for (vector<Vec3r>::const_iterator v = iVertices.begin(), end = iVertices.end(); v != end; ++v)
+    {
       _vertices.push_back(*v);
     }
   }

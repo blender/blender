@@ -1370,7 +1370,8 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
     }
   }
   else if (STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_src") ||
-           STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_src")) {
+           STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_src"))
+  {
     Object *ob_src = dtmd->ob_source;
 
     if (ob_src) {
@@ -1487,7 +1488,8 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
     }
   }
   else if (STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ||
-           STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_dst")) {
+           STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_dst"))
+  {
     int multilayer_index = STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ?
                                DT_MULTILAYER_INDEX_VCOL_VERT :
                                DT_MULTILAYER_INDEX_VCOL_LOOP;

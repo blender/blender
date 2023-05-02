@@ -75,7 +75,8 @@ bool transdata_check_local_islands(TransInfo *t, short around)
 void setTransformViewMatrices(TransInfo *t)
 {
   if (!(t->options & CTX_PAINT_CURVE) && (t->spacetype == SPACE_VIEW3D) && t->region &&
-      (t->region->regiontype == RGN_TYPE_WINDOW)) {
+      (t->region->regiontype == RGN_TYPE_WINDOW))
+  {
     RegionView3D *rv3d = t->region->regiondata;
 
     copy_m4_m4(t->viewmat, rv3d->viewmat);
@@ -372,7 +373,8 @@ void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
 void applyAspectRatio(TransInfo *t, float vec[2])
 {
   if ((t->spacetype == SPACE_IMAGE) && (t->mode == TFM_TRANSLATION) &&
-      !(t->options & CTX_PAINT_CURVE)) {
+      !(t->options & CTX_PAINT_CURVE))
+  {
     SpaceImage *sima = t->area->spacedata.first;
 
     if ((sima->flag & SI_COORDFLOATS) == 0) {
@@ -647,7 +649,8 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
             * `Move` operation.
             *
             * Ideally we should check if it really uses the same key. */
-           t->mode != TFM_TRANSLATION)) {
+           t->mode != TFM_TRANSLATION))
+      {
         return false;
       }
       if (value == TFM_MODAL_TRACKBALL &&
@@ -660,7 +663,8 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
            * `Rotate` operation.
            *
            * Ideally we should check if it really uses the same key. */
-          t->mode != TFM_ROTATION) {
+          t->mode != TFM_ROTATION)
+      {
         return false;
       }
       if (value == TFM_MODAL_ROTATE_NORMALS) {
@@ -925,7 +929,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 
   /* Handle modal numinput events first, if already activated. */
   if (((event->val == KM_PRESS) || (event->type == EVT_MODAL_MAP)) && hasNumInput(&t->num) &&
-      handleNumInput(t->context, &(t->num), event)) {
+      handleNumInput(t->context, &(t->num), event))
+  {
     t->redraw |= TREDRAW_HARD;
     handled = true;
   }
@@ -970,7 +975,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
 
         if ((event->val == TFM_MODAL_TRANSLATE && t->mode == TFM_TRANSLATION) ||
-            (event->val == TFM_MODAL_RESIZE && t->mode == TFM_RESIZE)) {
+            (event->val == TFM_MODAL_RESIZE && t->mode == TFM_RESIZE))
+        {
           if (t->data_type == &TransConvertType_Tracking) {
             restoreTransObjects(t);
 
@@ -985,7 +991,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
             (event->val == TFM_MODAL_TRACKBALL && t->mode == TFM_TRACKBALL) ||
             (event->val == TFM_MODAL_ROTATE_NORMALS && t->mode == TFM_NORMAL_ROTATION) ||
             (event->val == TFM_MODAL_VERT_EDGE_SLIDE &&
-             ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE))) {
+             ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE)))
+        {
           break;
         }
 
@@ -1177,7 +1184,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
       case TFM_MODAL_AUTOCONSTRAINT:
       case TFM_MODAL_AUTOCONSTRAINTPLANE:
         if ((t->flag & T_RELEASE_CONFIRM) && (event->prev_val == KM_RELEASE) &&
-            event->prev_type == t->launch_event) {
+            event->prev_type == t->launch_event)
+        {
           /* Confirm transform if launch key is released after mouse move. */
           t->state = TRANS_CONFIRM;
         }
@@ -1326,13 +1334,15 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   /* Per transform event, if present */
   if (t->handleEvent && (!handled ||
                          /* Needed for vertex slide, see #38756. */
-                         (event->type == MOUSEMOVE))) {
+                         (event->type == MOUSEMOVE)))
+  {
     t->redraw |= t->handleEvent(t, event);
   }
 
   /* Try to init modal numinput now, if possible. */
   if (!(handled || t->redraw) && ((event->val == KM_PRESS) || (event->type == EVT_MODAL_MAP)) &&
-      handleNumInput(t->context, &(t->num), event)) {
+      handleNumInput(t->context, &(t->num), event))
+  {
     t->redraw |= TREDRAW_HARD;
     handled = true;
   }
@@ -1507,34 +1517,17 @@ static void drawTransformPixel(const struct bContext *C, ARegion *region, void *
 
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 {
-  if (t->state == TRANS_CANCEL) {
-    /* No need to edit operator properties or tool settings if we are canceling the operation.
-     * These properties must match the original ones. */
-    return;
-  }
-
   ToolSettings *ts = CTX_data_tool_settings(C);
   PropertyRNA *prop;
 
-  /* Save back mode in case we're in the generic operator */
-  if ((prop = RNA_struct_find_property(op->ptr, "mode"))) {
-    RNA_property_enum_set(op->ptr, prop, t->mode);
-  }
-
-  if ((prop = RNA_struct_find_property(op->ptr, "value"))) {
-    if (RNA_property_array_check(prop)) {
-      RNA_property_float_set_array(op->ptr, prop, t->values_final);
-    }
-    else {
-      RNA_property_float_set(op->ptr, prop, t->values_final[0]);
-    }
-  }
+  bool use_prop_edit = false;
+  int prop_edit_flag = 0;
 
   /* Save proportional edit settings.
-   * Skip saving proportional edit if it was not actually used. */
+   * Skip saving proportional edit if it was not actually used.
+   * Note that this value is being saved even if the operation is cancelled. This is to maintain a
+   * behavior already used by users. */
   if (!(t->options & CTX_NO_PET)) {
-    bool use_prop_edit = false;
-    int prop_edit_flag = 0;
     if (t->flag & T_PROP_EDIT_ALL) {
       if (t->flag & T_PROP_EDIT) {
         use_prop_edit = true;
@@ -1551,7 +1544,8 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     if ((t->flag & T_MODAL) || (op->flag & OP_IS_REPEAT)) {
       /* save settings if not set in operator */
       if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit")) &&
-          !RNA_property_is_set(op->ptr, prop)) {
+          !RNA_property_is_set(op->ptr, prop))
+      {
         BKE_view_layer_synced_ensure(t->scene, t->view_layer);
         const Object *obact = BKE_view_layer_active_object_get(t->view_layer);
 
@@ -1584,17 +1578,40 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
       }
 
       if ((prop = RNA_struct_find_property(op->ptr, "proportional_edit_falloff")) &&
-          !RNA_property_is_set(op->ptr, prop)) {
+          !RNA_property_is_set(op->ptr, prop))
+      {
         ts->prop_mode = t->prop_mode;
       }
     }
+  }
 
+  if (t->state == TRANS_CANCEL) {
+    /* No need to edit operator properties or tool settings if we are canceling the operation.
+     * These properties must match the original ones. */
+    return;
+  }
+
+  if (!(t->options & CTX_NO_PET)) {
     if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit"))) {
       RNA_property_boolean_set(op->ptr, prop, use_prop_edit);
       RNA_boolean_set(op->ptr, "use_proportional_connected", prop_edit_flag & PROP_EDIT_CONNECTED);
       RNA_boolean_set(op->ptr, "use_proportional_projected", prop_edit_flag & PROP_EDIT_PROJECTED);
       RNA_enum_set(op->ptr, "proportional_edit_falloff", t->prop_mode);
       RNA_float_set(op->ptr, "proportional_size", t->prop_size);
+    }
+  }
+
+  /* Save back mode in case we're in the generic operator */
+  if ((prop = RNA_struct_find_property(op->ptr, "mode"))) {
+    RNA_property_enum_set(op->ptr, prop, t->mode);
+  }
+
+  if ((prop = RNA_struct_find_property(op->ptr, "value"))) {
+    if (RNA_property_array_check(prop)) {
+      RNA_property_float_set_array(op->ptr, prop, t->values_final);
+    }
+    else {
+      RNA_property_float_set(op->ptr, prop, t->values_final[0]);
     }
   }
 
@@ -1690,7 +1707,8 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     }
 
     if ((prop = RNA_struct_find_property(op->ptr, "orient_matrix_type")) &&
-        !RNA_property_is_set(op->ptr, prop)) {
+        !RNA_property_is_set(op->ptr, prop))
+    {
       /* Set the first time to register on redo. */
       RNA_property_enum_set(op->ptr, prop, orient_type_set);
       RNA_float_set_array(op->ptr, "orient_matrix", &t->spacemtx[0][0]);
@@ -1786,28 +1804,32 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   t->state = TRANS_STARTING;
 
   if ((prop = RNA_struct_find_property(op->ptr, "cursor_transform")) &&
-      RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_is_set(op->ptr, prop))
+  {
     if (RNA_property_boolean_get(op->ptr, prop)) {
       options |= CTX_CURSOR;
     }
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "texture_space")) &&
-      RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_is_set(op->ptr, prop))
+  {
     if (RNA_property_boolean_get(op->ptr, prop)) {
       options |= CTX_TEXTURE_SPACE;
     }
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "gpencil_strokes")) &&
-      RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_is_set(op->ptr, prop))
+  {
     if (RNA_property_boolean_get(op->ptr, prop)) {
       options |= CTX_GPENCIL_STROKES;
     }
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "view2d_edge_pan")) &&
-      RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_is_set(op->ptr, prop))
+  {
     if (RNA_property_boolean_get(op->ptr, prop)) {
       options |= CTX_VIEW2D_EDGE_PAN;
     }
@@ -1839,7 +1861,8 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
                 SPACE_NODE,
                 SPACE_GRAPH,
                 SPACE_ACTION,
-                SPACE_SEQ)) {
+                SPACE_SEQ))
+  {
     t->draw_handle_view = ED_region_draw_cb_activate(
         t->region->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
     t->draw_handle_cursor = WM_paint_cursor_activate(
@@ -1896,7 +1919,8 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
               (ELEM(kmi->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) &&
                (event->modifier & KM_SHIFT)) ||
               (ELEM(kmi->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && (event->modifier & KM_ALT)) ||
-              ((kmi->type == EVT_OSKEY) && (event->modifier & KM_OSKEY))) {
+              ((kmi->type == EVT_OSKEY) && (event->modifier & KM_OSKEY)))
+          {
             t->modifiers |= MOD_SNAP_INVERT;
           }
           break;
@@ -1918,7 +1942,8 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
               (ELEM(kmi->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) &&
                (event->modifier & KM_SHIFT)) ||
               (ELEM(kmi->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && (event->modifier & KM_ALT)) ||
-              ((kmi->type == EVT_OSKEY) && (event->modifier & KM_OSKEY))) {
+              ((kmi->type == EVT_OSKEY) && (event->modifier & KM_OSKEY)))
+          {
             t->modifiers &= ~MOD_NODE_ATTACH;
           }
           break;
@@ -1947,7 +1972,8 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     /* Initialize accurate transform to settings requested by keymap. */
     bool use_accurate = false;
     if ((prop = RNA_struct_find_property(op->ptr, "use_accurate")) &&
-        RNA_property_is_set(op->ptr, prop)) {
+        RNA_property_is_set(op->ptr, prop))
+    {
       if (RNA_property_boolean_get(op->ptr, prop)) {
         use_accurate = true;
       }
@@ -1972,11 +1998,13 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   /* Transformation axis from operator */
   if ((prop = RNA_struct_find_property(op->ptr, "orient_axis")) &&
-      RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_is_set(op->ptr, prop))
+  {
     t->orient_axis = RNA_property_enum_get(op->ptr, prop);
   }
   if ((prop = RNA_struct_find_property(op->ptr, "orient_axis_ortho")) &&
-      RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_is_set(op->ptr, prop))
+  {
     t->orient_axis_ortho = RNA_property_enum_get(op->ptr, prop);
   }
 
@@ -2103,7 +2131,8 @@ bool checkUseAxisMatrix(TransInfo *t)
   /* currently only checks for editmode */
   if (t->flag & T_EDIT) {
     if ((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
-        ELEM(t->obedit_type, OB_MESH, OB_CURVES_LEGACY, OB_MBALL, OB_ARMATURE)) {
+        ELEM(t->obedit_type, OB_MESH, OB_CURVES_LEGACY, OB_MBALL, OB_ARMATURE))
+    {
       /* not all editmode supports axis-matrix */
       return true;
     }

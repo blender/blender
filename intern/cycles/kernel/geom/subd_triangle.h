@@ -135,7 +135,8 @@ ccl_device_noinline float subd_triangle_attribute_float(KernelGlobals kg,
   }
   else
 #endif /* __PATCH_EVAL__ */
-      if (desc.element == ATTR_ELEMENT_FACE) {
+      if (desc.element == ATTR_ELEMENT_FACE)
+  {
     if (dx)
       *dx = 0.0f;
     if (dy)
@@ -275,7 +276,8 @@ ccl_device_noinline float2 subd_triangle_attribute_float2(KernelGlobals kg,
   }
   else
 #endif /* __PATCH_EVAL__ */
-      if (desc.element == ATTR_ELEMENT_FACE) {
+      if (desc.element == ATTR_ELEMENT_FACE)
+  {
     if (dx)
       *dx = make_float2(0.0f, 0.0f);
     if (dy)
@@ -416,7 +418,8 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
   }
   else
 #endif /* __PATCH_EVAL__ */
-      if (desc.element == ATTR_ELEMENT_FACE) {
+      if (desc.element == ATTR_ELEMENT_FACE)
+  {
     if (dx)
       *dx = make_float3(0.0f, 0.0f, 0.0f);
     if (dy)
@@ -562,7 +565,8 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
   }
   else
 #endif /* __PATCH_EVAL__ */
-      if (desc.element == ATTR_ELEMENT_FACE) {
+      if (desc.element == ATTR_ELEMENT_FACE)
+  {
     if (dx)
       *dx = zero_float4();
     if (dy)

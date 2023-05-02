@@ -199,7 +199,8 @@ static void envelope_bone_weighting(Object *ob,
   bool use_mask = false;
 
   if ((ob->mode & OB_MODE_WEIGHT_PAINT) &&
-      (mesh->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL))) {
+      (mesh->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)))
+  {
     use_mask = true;
   }
 

@@ -147,7 +147,8 @@ static void mix_normals(const float mix_factor,
   }
 
   for (i = corner_verts.size(), no_new = nos_new, no_old = nos_old, wfac = facs; i--;
-       no_new++, no_old++, wfac++) {
+       no_new++, no_old++, wfac++)
+  {
     const float fac = facs ? *wfac * mix_factor : mix_factor;
 
     switch (mix_mode) {
@@ -325,7 +326,8 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
 
   if (do_polynors_fix &&
       polygons_check_flip(
-          corner_verts, corner_edges, nos.data(), &mesh->ldata, polys, mesh->poly_normals())) {
+          corner_verts, corner_edges, nos.data(), &mesh->ldata, polys, mesh->poly_normals()))
+  {
     BKE_mesh_tag_face_winding_changed(mesh);
   }
   const bool *sharp_faces = static_cast<const bool *>(
@@ -432,7 +434,8 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
 
   if (do_polynors_fix &&
       polygons_check_flip(
-          corner_verts, corner_edges, nos.data(), &mesh->ldata, polys, mesh->poly_normals())) {
+          corner_verts, corner_edges, nos.data(), &mesh->ldata, polys, mesh->poly_normals()))
+  {
     BKE_mesh_tag_face_winding_changed(mesh);
   }
   const bool *sharp_faces = static_cast<const bool *>(

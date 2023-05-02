@@ -1003,7 +1003,8 @@ static int sb_detect_aabb_collisionCached(float UNUSED(force[3]),
         if (ccdm) {
           if ((aabbmax[0] < ccdm->bbmin[0]) || (aabbmax[1] < ccdm->bbmin[1]) ||
               (aabbmax[2] < ccdm->bbmin[2]) || (aabbmin[0] > ccdm->bbmax[0]) ||
-              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2])) {
+              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2]))
+          {
             /* boxes don't intersect */
             BLI_ghashIterator_step(ihash);
             continue;
@@ -1075,7 +1076,8 @@ static int sb_detect_face_pointCached(const float face_v1[3],
           outerfacethickness = ob->pd->pdef_sboft;
           if ((aabbmax[0] < ccdm->bbmin[0]) || (aabbmax[1] < ccdm->bbmin[1]) ||
               (aabbmax[2] < ccdm->bbmin[2]) || (aabbmin[0] > ccdm->bbmax[0]) ||
-              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2])) {
+              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2]))
+          {
             /* boxes don't intersect */
             BLI_ghashIterator_step(ihash);
             continue;
@@ -1172,7 +1174,8 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
 
           if ((aabbmax[0] < ccdm->bbmin[0]) || (aabbmax[1] < ccdm->bbmin[1]) ||
               (aabbmax[2] < ccdm->bbmin[2]) || (aabbmin[0] > ccdm->bbmax[0]) ||
-              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2])) {
+              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2]))
+          {
             /* boxes don't intersect */
             BLI_ghashIterator_step(ihash);
             continue;
@@ -1189,7 +1192,8 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
         while (a--) {
           if ((aabbmax[0] < mima->minx) || (aabbmin[0] > mima->maxx) ||
               (aabbmax[1] < mima->miny) || (aabbmin[1] > mima->maxy) ||
-              (aabbmax[2] < mima->minz) || (aabbmin[2] > mima->maxz)) {
+              (aabbmax[2] < mima->minz) || (aabbmin[2] > mima->maxz))
+          {
             mima++;
             vt++;
             continue;
@@ -1220,7 +1224,8 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
           normalize_v3(d_nvect);
           if (isect_line_segment_tri_v3(nv1, nv2, face_v1, face_v2, face_v3, &t, NULL) ||
               isect_line_segment_tri_v3(nv2, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
-              isect_line_segment_tri_v3(nv3, nv1, face_v1, face_v2, face_v3, &t, NULL)) {
+              isect_line_segment_tri_v3(nv3, nv1, face_v1, face_v2, face_v3, &t, NULL))
+          {
             madd_v3_v3fl(force, d_nvect, -0.5f);
             *damp = tune * ob->pd->pdef_sbdamp;
             deflected = 2;
@@ -1259,7 +1264,8 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
                                          &damp,
                                          feedback,
                                          ob,
-                                         timenow)) {
+                                         timenow))
+      {
         madd_v3_v3fl(sb->bpoint[bf->v1].force, feedback, tune);
         madd_v3_v3fl(sb->bpoint[bf->v2].force, feedback, tune);
         madd_v3_v3fl(sb->bpoint[bf->v3].force, feedback, tune);
@@ -1280,7 +1286,8 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
                                        &damp,
                                        feedback,
                                        ob,
-                                       timenow)) {
+                                       timenow))
+        {
           madd_v3_v3fl(sb->bpoint[bf->v1].force, feedback, tune);
           madd_v3_v3fl(sb->bpoint[bf->v2].force, feedback, tune);
           madd_v3_v3fl(sb->bpoint[bf->v3].force, feedback, tune);
@@ -1348,7 +1355,8 @@ static int sb_detect_edge_collisionCached(const float edge_v1[3],
 
           if ((aabbmax[0] < ccdm->bbmin[0]) || (aabbmax[1] < ccdm->bbmin[1]) ||
               (aabbmax[2] < ccdm->bbmin[2]) || (aabbmin[0] > ccdm->bbmax[0]) ||
-              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2])) {
+              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2]))
+          {
             /* boxes don't intersect */
             BLI_ghashIterator_step(ihash);
             continue;
@@ -1365,7 +1373,8 @@ static int sb_detect_edge_collisionCached(const float edge_v1[3],
         while (a--) {
           if ((aabbmax[0] < mima->minx) || (aabbmin[0] > mima->maxx) ||
               (aabbmax[1] < mima->miny) || (aabbmin[1] > mima->maxy) ||
-              (aabbmax[2] < mima->minz) || (aabbmin[2] > mima->maxz)) {
+              (aabbmax[2] < mima->minz) || (aabbmin[2] > mima->maxz))
+          {
             mima++;
             vt++;
             continue;
@@ -1438,7 +1447,8 @@ static void _scan_for_ext_spring_forces(
         /* +++ springs colliding */
         if (ob->softflag & OB_SB_EDGECOLL) {
           if (sb_detect_edge_collisionCached(
-                  sb->bpoint[bs->v1].pos, sb->bpoint[bs->v2].pos, &damp, feedback, ob, timenow)) {
+                  sb->bpoint[bs->v1].pos, sb->bpoint[bs->v2].pos, &damp, feedback, ob, timenow))
+          {
             add_v3_v3(bs->ext_force, feedback);
             bs->flag |= BSF_INTERSECT;
             // bs->cf=damp;
@@ -1653,7 +1663,8 @@ static int sb_detect_vertex_collisionCached(float opco[3],
           maxz = ccdm->bbmax[2];
 
           if ((opco[0] < minx) || (opco[1] < miny) || (opco[2] < minz) || (opco[0] > maxx) ||
-              (opco[1] > maxy) || (opco[2] > maxz)) {
+              (opco[1] > maxy) || (opco[2] > maxz))
+          {
             /* Outside the padded bound-box -> collision object is too far away. */
             BLI_ghashIterator_step(ihash);
             continue;
@@ -1677,7 +1688,8 @@ static int sb_detect_vertex_collisionCached(float opco[3],
         /* Use mesh. */
         while (a--) {
           if ((opco[0] < mima->minx) || (opco[0] > mima->maxx) || (opco[1] < mima->miny) ||
-              (opco[1] > mima->maxy) || (opco[2] < mima->minz) || (opco[2] > mima->maxz)) {
+              (opco[1] > mima->maxy) || (opco[2] < mima->minz) || (opco[2] > mima->maxz))
+          {
             mima++;
             vt++;
             continue;
@@ -2050,8 +2062,8 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
         kd = sb->goalfrict * sb_fric_force_scale(ob);
         add_v3_v3v3(auxvect, velgoal, bp->vec);
 
-        if (forcetime >
-            0.0f) { /* make sure friction does not become rocket motor on time reversal */
+        /* Make sure friction does not become rocket motor on time reversal. */
+        if (forcetime > 0.0f) {
           bp->force[0] -= kd * (auxvect[0]);
           bp->force[1] -= kd * (auxvect[1]);
           bp->force[2] -= kd * (auxvect[2]);
@@ -3533,7 +3545,8 @@ void sbObjectStep(struct Depsgraph *depsgraph,
 
   /* verify if we need to create the softbody data */
   if (sb->bpoint == NULL ||
-      ((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) {
+      ((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob)))
+  {
 
     switch (ob->type) {
       case OB_MESH:
@@ -3581,13 +3594,15 @@ void sbObjectStep(struct Depsgraph *depsgraph,
   cache_result = BKE_ptcache_read(&pid, (float)framenr + scene->r.subframe, can_simulate);
 
   if (cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED ||
-      (!can_simulate && cache_result == PTCACHE_READ_OLD)) {
+      (!can_simulate && cache_result == PTCACHE_READ_OLD))
+  {
     softbody_to_object(ob, vertexCos, numVerts, sb->local);
 
     BKE_ptcache_validate(cache, framenr);
 
     if (cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED &&
-        can_write_cache) {
+        can_write_cache)
+    {
       BKE_ptcache_write(&pid, framenr);
     }
 
@@ -3600,7 +3615,8 @@ void sbObjectStep(struct Depsgraph *depsgraph,
   }
   else if (/*ob->id.lib || */
            /* "library linking & point-caches" has to be solved properly at some point. */
-           (cache->flag & PTCACHE_BAKED)) {
+           (cache->flag & PTCACHE_BAKED))
+  {
     /* If baked and nothing in cache, do nothing. */
     if (can_write_cache) {
       BKE_ptcache_invalidate(cache);
@@ -3613,8 +3629,8 @@ void sbObjectStep(struct Depsgraph *depsgraph,
   }
 
   /* if on second frame, write cache for first frame */
-  if (cache->simframe == startframe &&
-      (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0)) {
+  if (cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0))
+  {
     BKE_ptcache_write(&pid, startframe);
   }
 

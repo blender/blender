@@ -515,7 +515,7 @@ static void get_proxy_filepath(const MovieClip *clip,
   char dir[FILE_MAX], clipdir[FILE_MAX], clipfile[FILE_MAX];
   int proxynr = framenr - clip->start_frame + 1 + clip->frame_offset;
 
-  BLI_split_dirfile(clip->filepath, clipdir, clipfile, FILE_MAX, FILE_MAX);
+  BLI_path_split_dir_file(clip->filepath, clipdir, FILE_MAX, clipfile, FILE_MAX);
 
   if (clip->flag & MCLIP_USE_PROXY_CUSTOM_DIR) {
     BLI_strncpy(dir, clip->proxy.dir, sizeof(dir));
@@ -544,9 +544,8 @@ static void get_proxy_filepath(const MovieClip *clip,
   }
 
   BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
-  BLI_path_frame(filepath, 1, 0);
-
-  strcat(filepath, ".jpg");
+  BLI_path_frame(filepath, FILE_MAX, 1, 0);
+  BLI_strncat(filepath, ".jpg", FILE_MAX);
 }
 
 #ifdef WITH_OPENEXR
@@ -1382,7 +1381,8 @@ static ImBuf *movieclip_get_postprocessed_ibuf(
 
   /* Fallback render in case proxies are not enabled or built */
   if (!ibuf && user->render_flag & MCLIP_PROXY_RENDER_USE_FALLBACK_RENDER &&
-      user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL) {
+      user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL)
+  {
     MovieClipUser user_fallback = *user;
     user_fallback.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
 
@@ -1466,7 +1466,8 @@ static ImBuf *get_stable_cached_frame(MovieClip *clip,
 
   /* check for stabilization parameters */
   if (tscale != cache->stabilized.scale || tangle != cache->stabilized.angle ||
-      !equals_v2v2(tloc, cache->stabilized.loc)) {
+      !equals_v2v2(tloc, cache->stabilized.loc))
+  {
     return NULL;
   }
 

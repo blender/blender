@@ -94,7 +94,8 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
   /* Fix case were the pool was allocated width the dummy size (1,1,1). */
   if (txl->planar_pool && (num_planar_ref > 0) &&
       (GPU_texture_width(txl->planar_pool) != width ||
-       GPU_texture_height(txl->planar_pool) != height)) {
+       GPU_texture_height(txl->planar_pool) != height))
+  {
     DRW_TEXTURE_FREE_SAFE(txl->planar_pool);
     DRW_TEXTURE_FREE_SAFE(txl->planar_depth);
   }
@@ -148,7 +149,8 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
   else {
     if (scene_eval->eevee.light_cache_data &&
-        (scene_eval->eevee.light_cache_data->flag & LIGHTCACHE_NOT_USABLE)) {
+        (scene_eval->eevee.light_cache_data->flag & LIGHTCACHE_NOT_USABLE))
+    {
       /* Error message info. */
       BLI_snprintf(
           vedata->info, sizeof(vedata->info), "Error: LightCache cannot be loaded on this GPU");
@@ -437,7 +439,8 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
 
   if ((probe->type == LIGHTPROBE_TYPE_CUBE && pinfo->num_cube >= EEVEE_PROBE_MAX) ||
       (probe->type == LIGHTPROBE_TYPE_GRID && pinfo->num_grid >= EEVEE_PROBE_MAX) ||
-      (probe->type == LIGHTPROBE_TYPE_PLANAR && pinfo->num_planar >= MAX_PLANAR)) {
+      (probe->type == LIGHTPROBE_TYPE_PLANAR && pinfo->num_planar >= MAX_PLANAR))
+  {
     printf("Too many probes in the view !!!\n");
     return;
   }
@@ -708,7 +711,8 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
   /* If light-cache auto-update is enable we tag the relevant part
    * of the cache to update and fire up a baking job. */
   if (!DRW_state_is_image_render() && !DRW_state_is_opengl_render() &&
-      (pinfo->do_grid_update || pinfo->do_cube_update)) {
+      (pinfo->do_grid_update || pinfo->do_cube_update))
+  {
     BLI_assert(draw_ctx->evil_C);
 
     if (draw_ctx->scene->eevee.flag & SCE_EEVEE_GI_AUTOBAKE) {
@@ -1249,8 +1253,8 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
   LightCache *light_cache = vedata->stl->g_data->light_cache;
 
-  if ((light_cache->flag & LIGHTCACHE_UPDATE_WORLD) &&
-      (light_cache->flag & LIGHTCACHE_BAKED) == 0) {
+  if ((light_cache->flag & LIGHTCACHE_UPDATE_WORLD) && (light_cache->flag & LIGHTCACHE_BAKED) == 0)
+  {
     EEVEE_lightbake_update_world_quick(sldata, vedata, scene_eval);
   }
 }

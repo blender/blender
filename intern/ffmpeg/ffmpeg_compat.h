@@ -282,7 +282,8 @@ int av_image_deinterlace(
   if (pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUVJ420P &&
       pix_fmt != AV_PIX_FMT_YUV422P && pix_fmt != AV_PIX_FMT_YUVJ422P &&
       pix_fmt != AV_PIX_FMT_YUV444P && pix_fmt != AV_PIX_FMT_YUV411P &&
-      pix_fmt != AV_PIX_FMT_GRAY8) {
+      pix_fmt != AV_PIX_FMT_GRAY8)
+  {
     return -1;
   }
   if ((width & 3) != 0 || (height & 3) != 0) {

@@ -216,7 +216,8 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
     if (center_ray_hit.index >= 0) {
       const float3 hit_position_su = center_ray_hit.co;
       if (math::distance(center_ray_start_su, center_ray_end_su) >
-          math::distance(center_ray_start_su, hit_position_su)) {
+          math::distance(center_ray_start_su, hit_position_su))
+      {
         center_ray_end_su = hit_position_su;
         center_ray_end_wo = math::transform_point(surface_to_world_mat, center_ray_end_su);
       }

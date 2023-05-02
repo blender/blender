@@ -174,7 +174,8 @@ void BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
   }
   else {
     if (!library_foreach_ID_link(
-            data->bmain, data->owner_id, id, data->callback, data->user_data, data->flag, data)) {
+            data->bmain, data->owner_id, id, data->callback, data->user_data, data->flag, data))
+    {
       data->status |= IDWALK_STOP;
       return;
     }
@@ -280,7 +281,8 @@ static bool library_foreach_ID_link(Main *bmain,
     if (bmain != NULL && bmain->relations != NULL && (flag & IDWALK_READONLY) &&
         (flag & (IDWALK_DO_INTERNAL_RUNTIME_POINTERS | IDWALK_DO_LIBRARY_POINTER)) == 0 &&
         (((bmain->relations->flag & MAINIDRELATIONS_INCLUDE_UI) == 0) ==
-         ((data.flag & IDWALK_INCLUDE_UI) == 0))) {
+         ((data.flag & IDWALK_INCLUDE_UI) == 0)))
+    {
       /* Note that this is minor optimization, even in worst cases (like id being an object with
        * lots of drivers and constraints and modifiers, or material etc. with huge node tree),
        * but we might as well use it (Main->relations is always assumed valid,
@@ -289,7 +291,8 @@ static bool library_foreach_ID_link(Main *bmain,
       MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers,
                                                      id);
       for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != NULL;
-           to_id_entry = to_id_entry->next) {
+           to_id_entry = to_id_entry->next)
+      {
         BKE_lib_query_foreachid_process(
             &data, to_id_entry->id_pointer.to, to_id_entry->usage_flag);
         if (BKE_lib_query_foreachid_iter_stop(&data)) {
@@ -718,9 +721,11 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
    * ID reaching this point of the function can be tagged. */
   id->tag |= tag;
   for (MainIDRelationsEntryItem *id_from_item = id_relations->from_ids; id_from_item != NULL;
-       id_from_item = id_from_item->next) {
+       id_from_item = id_from_item->next)
+  {
     if ((id_from_item->usage_flag & ignored_usages) != 0 ||
-        (id_from_item->usage_flag & required_usages) == 0) {
+        (id_from_item->usage_flag & required_usages) == 0)
+    {
       continue;
     }
 

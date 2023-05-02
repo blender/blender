@@ -110,7 +110,8 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::setCurrentDisplaySetting(
   int i = 0;
   while (::EnumDisplaySettings(display_device.DeviceName, i++, &dm)) {
     if ((dm.dmBitsPerPel == match.bpp) && (dm.dmPelsWidth == match.xPixels) &&
-        (dm.dmPelsHeight == match.yPixels) && (dm.dmDisplayFrequency == match.frequency)) {
+        (dm.dmPelsHeight == match.yPixels) && (dm.dmDisplayFrequency == match.frequency))
+    {
       break;
     }
   }

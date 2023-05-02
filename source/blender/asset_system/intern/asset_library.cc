@@ -75,12 +75,13 @@ std::string AS_asset_library_find_suitable_root_path_from_path(
     const blender::StringRefNull input_path)
 {
   if (bUserAssetLibrary *preferences_lib = BKE_preferences_asset_library_containing_path(
-          &U, input_path.c_str())) {
+          &U, input_path.c_str()))
+  {
     return preferences_lib->path;
   }
 
   char buffer[FILE_MAXDIR];
-  BLI_split_dir_part(input_path.c_str(), buffer, FILE_MAXDIR);
+  BLI_path_split_dir_part(input_path.c_str(), buffer, FILE_MAXDIR);
   return buffer;
 }
 

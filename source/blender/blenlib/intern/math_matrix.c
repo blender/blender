@@ -1840,7 +1840,8 @@ bool is_uniform_scaled_m3(const float m[3][3])
   l6 = len_squared_v3(t[2]);
 
   if (fabsf(l2 - l1) <= eps && fabsf(l3 - l1) <= eps && fabsf(l4 - l1) <= eps &&
-      fabsf(l5 - l1) <= eps && fabsf(l6 - l1) <= eps) {
+      fabsf(l5 - l1) <= eps && fabsf(l6 - l1) <= eps)
+  {
     return true;
   }
 

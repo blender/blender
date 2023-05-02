@@ -1667,7 +1667,8 @@ Mesh *mesh_get_eval_final(struct Depsgraph *depsgraph,
   Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
   if ((mesh_eval == nullptr) ||
       !CustomData_MeshMasks_are_matching(&(ob->runtime.last_data_mask), &cddata_masks) ||
-      (need_mapping && !ob->runtime.last_need_mapping)) {
+      (need_mapping && !ob->runtime.last_need_mapping))
+  {
     CustomData_MeshMasks_update(&cddata_masks, &ob->runtime.last_data_mask);
 
     makeDerivedMesh(depsgraph, scene, ob, dataMask);
@@ -1709,7 +1710,8 @@ Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph,
 
   if (!ob->runtime.mesh_deform_eval ||
       !CustomData_MeshMasks_are_matching(&(ob->runtime.last_data_mask), &cddata_masks) ||
-      (need_mapping && !ob->runtime.last_need_mapping)) {
+      (need_mapping && !ob->runtime.last_need_mapping))
+  {
     CustomData_MeshMasks_update(&cddata_masks, &ob->runtime.last_data_mask);
     mesh_build_data(
         depsgraph, scene, ob, &cddata_masks, need_mapping || ob->runtime.last_need_mapping);
@@ -1767,7 +1769,8 @@ Mesh *editbmesh_get_eval_cage(struct Depsgraph *depsgraph,
   object_get_datamask(depsgraph, obedit, &cddata_masks, nullptr);
 
   if (!obedit->runtime.editmesh_eval_cage ||
-      !CustomData_MeshMasks_are_matching(&(obedit->runtime.last_data_mask), &cddata_masks)) {
+      !CustomData_MeshMasks_are_matching(&(obedit->runtime.last_data_mask), &cddata_masks))
+  {
     editbmesh_build_data(depsgraph, scene, obedit, em, &cddata_masks);
   }
 

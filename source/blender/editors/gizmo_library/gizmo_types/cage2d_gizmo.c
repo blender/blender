@@ -589,7 +589,8 @@ static void cage2d_draw_rect_corner_handles(const rctf *r,
 {
   /* Only draw corner handles when hovering over the corners. */
   if (highlighted < ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y ||
-      highlighted > ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y) {
+      highlighted > ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y)
+  {
     return;
   }
 
@@ -1013,7 +1014,8 @@ static int gizmo_cage2d_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
   WM_gizmo_calc_matrix_final_no_offset(gz, data->orig_matrix_final_no_offset);
 
   if (gizmo_window_project_2d(
-          C, gz, (const float[2]){UNPACK2(event->mval)}, 2, false, data->orig_mouse) == 0) {
+          C, gz, (const float[2]){UNPACK2(event->mval)}, 2, false, data->orig_mouse) == 0)
+  {
     zero_v2(data->orig_mouse);
   }
 

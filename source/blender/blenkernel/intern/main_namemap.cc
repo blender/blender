@@ -203,7 +203,8 @@ void BKE_main_namemap_clear(Main *bmain)
     }
     for (Library *lib_iter = static_cast<Library *>(bmain_iter->libraries.first);
          lib_iter != nullptr;
-         lib_iter = static_cast<Library *>(lib_iter->id.next)) {
+         lib_iter = static_cast<Library *>(lib_iter->id.next))
+    {
       if (lib_iter->runtime.name_map != nullptr) {
         BKE_main_namemap_destroy(&lib_iter->runtime.name_map);
       }
@@ -460,7 +461,8 @@ static bool main_namemap_validate_and_fix(Main *bmain, const bool do_fix)
     if (name_map != nullptr) {
       int i = 0;
       for (short idcode = BKE_idtype_idcode_iter_step(&i); idcode != 0;
-           idcode = BKE_idtype_idcode_iter_step(&i)) {
+           idcode = BKE_idtype_idcode_iter_step(&i))
+      {
         UniqueName_TypeMap *type_map = name_map->find_by_type(idcode);
         if (type_map != nullptr) {
           for (const UniqueName_Key &id_name : type_map->full_names) {

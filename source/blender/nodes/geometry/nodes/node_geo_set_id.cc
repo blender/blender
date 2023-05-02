@@ -59,7 +59,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_INSTANCES,
                                            GEO_COMPONENT_TYPE_MESH,
                                            GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                           GEO_COMPONENT_TYPE_CURVE}) {
+                                           GEO_COMPONENT_TYPE_CURVE})
+  {
     if (geometry_set.has(type)) {
       set_id_in_component(geometry_set.get_component_for_write(type), selection_field, id_field);
     }

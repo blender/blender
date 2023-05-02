@@ -991,14 +991,16 @@ void UI_panels_draw(const bContext *C, ARegion *region)
    * and we need child panels to draw on top. */
   LISTBASE_FOREACH_BACKWARD (uiBlock *, block, &region->uiblocks) {
     if (block->active && block->panel && !UI_panel_is_dragging(block->panel) &&
-        !UI_block_is_search_only(block)) {
+        !UI_block_is_search_only(block))
+    {
       UI_block_draw(C, block);
     }
   }
 
   LISTBASE_FOREACH_BACKWARD (uiBlock *, block, &region->uiblocks) {
     if (block->active && block->panel && UI_panel_is_dragging(block->panel) &&
-        !UI_block_is_search_only(block)) {
+        !UI_block_is_search_only(block))
+    {
       UI_block_draw(C, block);
     }
   }
@@ -2323,7 +2325,8 @@ int ui_handler_panel_region(bContext *C,
       }
     }
     else if (((event->type == EVT_TABKEY) && (event->modifier & KM_CTRL)) ||
-             ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
+             ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE))
+    {
       /* Cycle tabs. */
       retval = ui_handle_panel_category_cycling(event, region, active_but);
     }

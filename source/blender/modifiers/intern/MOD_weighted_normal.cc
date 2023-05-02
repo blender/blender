@@ -169,7 +169,8 @@ static void aggregate_item_normal(WeightedNormalModifierData *wnmd,
    * (since a few values will be used by most cases, we cache those). */
   const int loops_num = item_data->loops_num;
   if (loops_num < NUM_CACHED_INVERSE_POWERS_OF_WEIGHT &&
-      cached_inverse_powers_of_weight[loops_num] == 0.0f) {
+      cached_inverse_powers_of_weight[loops_num] == 0.0f)
+  {
     cached_inverse_powers_of_weight[loops_num] = 1.0f / powf(weight, loops_num);
   }
   const float inverted_n_weight = loops_num < NUM_CACHED_INVERSE_POWERS_OF_WEIGHT ?
@@ -464,7 +465,8 @@ static void wn_corner_angle(WeightedNormalModifierData *wnmd, WeightedNormalData
     ModePair *c_angl = &corner_angle[poly.start()];
     float *angl = index_angle;
     for (int ml_index = poly.start(); ml_index < poly.start() + poly.size();
-         ml_index++, c_angl++, angl++) {
+         ml_index++, c_angl++, angl++)
+    {
       c_angl->val = float(M_PI) - *angl;
       c_angl->index = ml_index;
     }
@@ -497,7 +499,8 @@ static void wn_face_with_angle(WeightedNormalModifierData *wnmd, WeightedNormalD
     ModePair *cmbnd = &combined[poly.start()];
     float *angl = index_angle;
     for (int ml_index = poly.start(); ml_index < poly.start() + poly.size();
-         ml_index++, cmbnd++, angl++) {
+         ml_index++, cmbnd++, angl++)
+    {
       /* In this case val is product of corner angle and face area. */
       cmbnd->val = (float(M_PI) - *angl) * face_area;
       cmbnd->index = ml_index;

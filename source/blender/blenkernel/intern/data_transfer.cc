@@ -267,25 +267,29 @@ static void data_transfer_mesh_attributes_transfer_active_color_string(
   if ((data_type == CD_PROP_COLOR) && !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
                                                                active_color_src,
                                                                CD_MASK_PROP_COLOR,
-                                                               ATTR_DOMAIN_MASK_COLOR)) {
+                                                               ATTR_DOMAIN_MASK_COLOR))
+  {
     return;
   }
   else if ((data_type == CD_PROP_BYTE_COLOR) &&
            !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
                                     active_color_src,
                                     CD_MASK_PROP_BYTE_COLOR,
-                                    ATTR_DOMAIN_MASK_COLOR)) {
+                                    ATTR_DOMAIN_MASK_COLOR))
+  {
     return;
   }
 
   if ((data_type == CD_PROP_COLOR) &&
       BKE_id_attribute_search(
-          &mesh_dst->id, active_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+          &mesh_dst->id, active_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR))
+  {
     mesh_dst->active_color_attribute = BLI_strdup(active_color_src);
   }
   else if ((data_type == CD_PROP_BYTE_COLOR) &&
            BKE_id_attribute_search(
-               &mesh_dst->id, active_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+               &mesh_dst->id, active_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR))
+  {
     mesh_dst->active_color_attribute = BLI_strdup(active_color_src);
   }
   else {
@@ -314,26 +318,29 @@ static void data_transfer_mesh_attributes_transfer_default_color_string(
   if ((data_type == CD_PROP_COLOR) && !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
                                                                default_color_src,
                                                                CD_MASK_PROP_COLOR,
-                                                               ATTR_DOMAIN_MASK_COLOR)) {
+                                                               ATTR_DOMAIN_MASK_COLOR))
+  {
     return;
   }
   else if ((data_type == CD_PROP_BYTE_COLOR) &&
            !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
                                     default_color_src,
                                     CD_MASK_PROP_BYTE_COLOR,
-                                    ATTR_DOMAIN_MASK_COLOR)) {
+                                    ATTR_DOMAIN_MASK_COLOR))
+  {
     return;
   }
 
   if ((data_type == CD_PROP_COLOR) &&
       BKE_id_attribute_search(
-          &mesh_dst->id, default_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR)) {
+          &mesh_dst->id, default_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR))
+  {
     mesh_dst->default_color_attribute = BLI_strdup(default_color_src);
   }
-  else if ((data_type == CD_PROP_BYTE_COLOR) && BKE_id_attribute_search(&mesh_dst->id,
-                                                                        default_color_src,
-                                                                        CD_MASK_PROP_BYTE_COLOR,
-                                                                        ATTR_DOMAIN_MASK_COLOR)) {
+  else if ((data_type == CD_PROP_BYTE_COLOR) &&
+           BKE_id_attribute_search(
+               &mesh_dst->id, default_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR))
+  {
     mesh_dst->default_color_attribute = BLI_strdup(default_color_src);
   }
   else {
@@ -465,7 +472,8 @@ float data_transfer_interp_float_do(const int mix_mode,
   float val_ret;
 
   if ((mix_mode == CDT_MIX_REPLACE_ABOVE_THRESHOLD && (val_dst < mix_factor)) ||
-      (mix_mode == CDT_MIX_REPLACE_BELOW_THRESHOLD && (val_dst > mix_factor))) {
+      (mix_mode == CDT_MIX_REPLACE_BELOW_THRESHOLD && (val_dst > mix_factor)))
+  {
     return val_dst; /* Do not affect destination. */
   }
 
@@ -935,7 +943,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                 fromlayers,
                                                 tolayers,
                                                 interp,
-                                                interp_data)) {
+                                                interp_data))
+      {
         /* We handle specific source selection cases here. */
         return false;
       }
@@ -987,7 +996,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                 fromlayers,
                                                 tolayers,
                                                 interp,
-                                                interp_data)) {
+                                                interp_data))
+      {
         /* We handle specific source selection cases here. */
         return false;
       }
@@ -1060,7 +1070,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                 fromlayers,
                                                 tolayers,
                                                 interp,
-                                                interp_data)) {
+                                                interp_data))
+      {
         /* We handle specific source selection cases here. */
         return false;
       }
@@ -1091,7 +1102,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                 fromlayers,
                                                 tolayers,
                                                 interp,
-                                                interp_data)) {
+                                                interp_data))
+      {
         /* We handle specific source selection cases here. */
         return false;
       }
@@ -1348,7 +1360,8 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
     me_src = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_src);
 
     if (me_src == nullptr ||
-        !CustomData_MeshMasks_are_matching(&ob_src->runtime.last_data_mask, &me_src_mask)) {
+        !CustomData_MeshMasks_are_matching(&ob_src->runtime.last_data_mask, &me_src_mask))
+    {
       CLOG_WARN(&LOG, "Data Transfer: source mesh data is not ready - dependency cycle?");
       return changed;
     }
@@ -1465,13 +1478,15 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                                use_delete,
                                                fromlayers,
                                                tolayers,
-                                               space_transform)) {
+                                               space_transform))
+      {
         CustomDataTransferLayerMap *lay_mapit;
 
         changed |= (lay_map.first != nullptr);
 
         for (lay_mapit = static_cast<CustomDataTransferLayerMap *>(lay_map.first); lay_mapit;
-             lay_mapit = lay_mapit->next) {
+             lay_mapit = lay_mapit->next)
+        {
           CustomData_data_transfer(&geom_map[VDATA], lay_mapit);
         }
 
@@ -1550,13 +1565,15 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                                use_delete,
                                                fromlayers,
                                                tolayers,
-                                               space_transform)) {
+                                               space_transform))
+      {
         CustomDataTransferLayerMap *lay_mapit;
 
         changed |= (lay_map.first != nullptr);
 
         for (lay_mapit = static_cast<CustomDataTransferLayerMap *>(lay_map.first); lay_mapit;
-             lay_mapit = lay_mapit->next) {
+             lay_mapit = lay_mapit->next)
+        {
           CustomData_data_transfer(&geom_map[EDATA], lay_mapit);
         }
 
@@ -1577,8 +1594,8 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
       if (!geom_map_init[LDATA]) {
         const int num_loops_src = me_src->totloop;
 
-        if ((map_loop_mode == MREMAP_MODE_TOPOLOGY) &&
-            (corner_verts_dst.size() != num_loops_src)) {
+        if ((map_loop_mode == MREMAP_MODE_TOPOLOGY) && (corner_verts_dst.size() != num_loops_src))
+        {
           BKE_report(reports,
                      RPT_ERROR,
                      "Source and destination meshes do not have the same amount of face corners, "
@@ -1651,13 +1668,15 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                                use_delete,
                                                fromlayers,
                                                tolayers,
-                                               space_transform)) {
+                                               space_transform))
+      {
         CustomDataTransferLayerMap *lay_mapit;
 
         changed |= (lay_map.first != nullptr);
 
         for (lay_mapit = static_cast<CustomDataTransferLayerMap *>(lay_map.first); lay_mapit;
-             lay_mapit = lay_mapit->next) {
+             lay_mapit = lay_mapit->next)
+        {
           CustomData_data_transfer(&geom_map[LDATA], lay_mapit);
         }
 
@@ -1737,13 +1756,15 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                                use_delete,
                                                fromlayers,
                                                tolayers,
-                                               space_transform)) {
+                                               space_transform))
+      {
         CustomDataTransferLayerMap *lay_mapit;
 
         changed |= (lay_map.first != nullptr);
 
         for (lay_mapit = static_cast<CustomDataTransferLayerMap *>(lay_map.first); lay_mapit;
-             lay_mapit = lay_mapit->next) {
+             lay_mapit = lay_mapit->next)
+        {
           CustomData_data_transfer(&geom_map[PDATA], lay_mapit);
         }
 

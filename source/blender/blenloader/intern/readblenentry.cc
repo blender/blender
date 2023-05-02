@@ -191,7 +191,8 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
       bool has_preview = false;
       /* See if we can find a preview in the data of this ID. */
       for (BHead *data_bhead = blo_bhead_next(fd, id_bhead); data_bhead->code == BLO_CODE_DATA;
-           data_bhead = blo_bhead_next(fd, data_bhead)) {
+           data_bhead = blo_bhead_next(fd, data_bhead))
+      {
         if (data_bhead->SDNAnr == sdna_nr_preview_image) {
           has_preview = true;
           break;
@@ -229,7 +230,8 @@ static BHead *blo_blendhandle_read_preview_rects(FileData *fd,
 {
   for (int preview_index = 0; preview_index < NUM_ICON_SIZES; preview_index++) {
     if (preview_from_file->rect[preview_index] && preview_from_file->w[preview_index] &&
-        preview_from_file->h[preview_index]) {
+        preview_from_file->h[preview_index])
+    {
       bhead = blo_bhead_next(fd, bhead);
       BLI_assert((preview_from_file->w[preview_index] * preview_from_file->h[preview_index] *
                   sizeof(uint)) == bhead->len);

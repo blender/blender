@@ -101,7 +101,8 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
           bez.h1 = bez.h2 = HD_AUTO;
 
           if (curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER ||
-              curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_STEP) {
+              curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_STEP)
+          {
             COLLADAFW::FloatOrDoubleArray &intan = curve->getInTangentValues();
             COLLADAFW::FloatOrDoubleArray &outtan = curve->getOutTangentValues();
 
@@ -715,7 +716,8 @@ void AnimationImporter::Assign_float_animations(const COLLADAFW::UniqueId &listi
          * Reason: old blender versions stored spot_size in radians (was a bug)
          */
         if (this->import_from_version.empty() ||
-            BLI_strcasecmp_natural(this->import_from_version.c_str(), "2.69.10") != -1) {
+            BLI_strcasecmp_natural(this->import_from_version.c_str(), "2.69.10") != -1)
+        {
           fcurve_deg_to_rad(fcu);
         }
       }
@@ -1888,7 +1890,8 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
             COLLADAFW::Transformation::ROTATE,
             COLLADAFW::Transformation::SCALE,
             COLLADAFW::Transformation::TRANSLATE,
-            COLLADAFW::Transformation::MATRIX)) {
+            COLLADAFW::Transformation::MATRIX))
+  {
     fprintf(stderr, "animation of transformation %d is not supported yet\n", type);
     return false;
   }

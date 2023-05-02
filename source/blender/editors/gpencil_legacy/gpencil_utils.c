@@ -672,8 +672,8 @@ void gpencil_point_to_xy(
   BLI_assert(!(gps->flag & GP_STROKE_2DSPACE) || (gsc->area->spacetype != SPACE_VIEW3D));
 
   if (gps->flag & GP_STROKE_3DSPACE) {
-    if (ED_view3d_project_int_global(region, &pt->x, xyval, V3D_PROJ_TEST_NOP) ==
-        V3D_PROJ_RET_OK) {
+    if (ED_view3d_project_int_global(region, &pt->x, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK)
+    {
       *r_x = xyval[0];
       *r_y = xyval[1];
     }
@@ -827,7 +827,8 @@ bool gpencil_point_xy_to_3d(const GP_SpaceConversion *gsc,
   float mval_prj[2];
 
   if (ED_view3d_project_float_global(gsc->region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
-      V3D_PROJ_RET_OK) {
+      V3D_PROJ_RET_OK)
+  {
     float dvec[3];
     float xy_delta[2];
     sub_v2_v2v2(xy_delta, mval_prj, screen_co);
@@ -1157,7 +1158,8 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
                                                &ray_normal[0],
                                                &depth,
                                                &location[0],
-                                               &normal[0])) {
+                                               &normal[0]))
+      {
         /* Apply offset over surface. */
         float normal_vector[3];
         sub_v3_v3v3(normal_vector, ray_start, location);
@@ -1787,7 +1789,8 @@ float ED_gpencil_radial_control_scale(struct bContext *C,
 {
   float scale_fac = 1.0f;
   if ((brush && brush->gpencil_settings) && (brush->ob_mode == OB_MODE_PAINT_GPENCIL) &&
-      (brush->gpencil_tool == GPAINT_TOOL_DRAW)) {
+      (brush->gpencil_tool == GPAINT_TOOL_DRAW))
+  {
     float cursor_radius = ED_gpencil_cursor_radius(C, mval[0], mval[1]);
     scale_fac = max_ff(cursor_radius, 1.0f) / max_ff(initial_value, 1.0f);
   }
@@ -1833,7 +1836,8 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
     /* while drawing hide */
     if ((gpd->runtime.sbuffer_used > 0) &&
         ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
-        ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0)) {
+        ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0))
+    {
       return;
     }
 
@@ -1860,7 +1864,8 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
       if ((gp_style) && GPENCIL_PAINT_MODE(gpd) &&
           ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
           ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
-          (brush->gpencil_tool == GPAINT_TOOL_DRAW)) {
+          (brush->gpencil_tool == GPAINT_TOOL_DRAW))
+      {
 
         const bool is_vertex_stroke =
             (GPENCIL_USE_VERTEX_COLOR_STROKE(ts, brush) &&
@@ -1904,8 +1909,8 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
     }
 
     radius = brush->size;
-    if (brush->gpencil_settings->sculpt_flag &
-        (GP_SCULPT_FLAG_INVERT | GP_SCULPT_FLAG_TMP_INVERT)) {
+    if (brush->gpencil_settings->sculpt_flag & (GP_SCULPT_FLAG_INVERT | GP_SCULPT_FLAG_TMP_INVERT))
+    {
       copy_v3_v3(color, brush->sub_col);
     }
     else {
@@ -1924,8 +1929,8 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
     }
 
     radius = brush->size;
-    if (brush->gpencil_settings->sculpt_flag &
-        (GP_SCULPT_FLAG_INVERT | GP_SCULPT_FLAG_TMP_INVERT)) {
+    if (brush->gpencil_settings->sculpt_flag & (GP_SCULPT_FLAG_INVERT | GP_SCULPT_FLAG_TMP_INVERT))
+    {
       copy_v3_v3(color, brush->sub_col);
     }
     else {
@@ -2089,8 +2094,8 @@ static void gpencil_stroke_convertcoords(ARegion *region,
 
   const float zfac = ED_view3d_calc_zfac(region->regiondata, rvec);
 
-  if (ED_view3d_project_float_global(region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
-      V3D_PROJ_RET_OK) {
+  if (ED_view3d_project_float_global(region, rvec, mval_prj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK)
+  {
     float dvec[3];
     float xy_delta[2];
     sub_v2_v2v2(xy_delta, mval_prj, point2D->m_xy);
@@ -3160,7 +3165,8 @@ bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
 
     /* Check if one of the ends is inside target stroke bounding box. */
     if (!ED_gpencil_stroke_check_collision(gsc, gps_target, pt2d_start, radius, diff_mat) &&
-        !ED_gpencil_stroke_check_collision(gsc, gps_target, pt2d_end, radius, diff_mat)) {
+        !ED_gpencil_stroke_check_collision(gsc, gps_target, pt2d_end, radius, diff_mat))
+    {
       continue;
     }
     /* Check the distance of the ends with the ends of target stroke to avoid middle contact.
@@ -3180,14 +3186,16 @@ bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
     if ((len_squared_v2v2(ctrl1, pt2d_target_start) > radius_sqr) &&
         (len_squared_v2v2(ctrl1, pt2d_target_end) > radius_sqr) &&
         (len_squared_v2v2(ctrl2, pt2d_target_start) > radius_sqr) &&
-        (len_squared_v2v2(ctrl2, pt2d_target_end) > radius_sqr)) {
+        (len_squared_v2v2(ctrl2, pt2d_target_end) > radius_sqr))
+    {
       continue;
     }
 
     if ((len_squared_v2v2(pt2d_start, pt2d_target_start) > radius_sqr) &&
         (len_squared_v2v2(pt2d_start, pt2d_target_end) > radius_sqr) &&
         (len_squared_v2v2(pt2d_end, pt2d_target_start) > radius_sqr) &&
-        (len_squared_v2v2(pt2d_end, pt2d_target_end) > radius_sqr)) {
+        (len_squared_v2v2(pt2d_end, pt2d_target_end) > radius_sqr))
+    {
       continue;
     }
 
@@ -3356,7 +3364,8 @@ void ED_gpencil_layer_merge(bGPdata *gpd,
   LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl_src->mask_layers) {
     /* Don't add merged layers or missing layer names. */
     if (!BKE_gpencil_layer_named_get(gpd, mask->name) || STREQ(mask->name, gpl_src->info) ||
-        STREQ(mask->name, gpl_dst->info)) {
+        STREQ(mask->name, gpl_dst->info))
+    {
       continue;
     }
     if (!BKE_gpencil_layer_mask_named_get(gpl_dst, mask->name)) {

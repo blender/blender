@@ -269,7 +269,8 @@ void VKFrameBuffer::render_pass_create()
     /* Keep the first attachment to the first color attachment, or to the depth buffer when there
      * is no color attachment. */
     if (attachment.tex != nullptr &&
-        (first_attachment == GPU_FB_MAX_ATTACHMENT || type >= GPU_FB_COLOR_ATTACHMENT0)) {
+        (first_attachment == GPU_FB_MAX_ATTACHMENT || type >= GPU_FB_COLOR_ATTACHMENT0))
+    {
       first_attachment = static_cast<GPUAttachmentType>(type);
     }
 

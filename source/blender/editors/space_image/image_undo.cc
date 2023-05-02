@@ -514,7 +514,8 @@ static void ubuf_ensure_compat_ibuf(const UndoImageBuf *ubuf, ImBuf *ibuf)
   }
 
   if (ibuf->x == ubuf->image_dims[0] && ibuf->y == ubuf->image_dims[1] &&
-      (ubuf->image_state.use_float ? (void *)ibuf->rect_float : (void *)ibuf->rect)) {
+      (ubuf->image_state.use_float ? (void *)ibuf->rect_float : (void *)ibuf->rect))
+  {
     return;
   }
 
@@ -748,7 +749,8 @@ static UndoImageBuf *ubuf_lookup_from_reference(ImageUndoStep *us_prev,
     if (ubuf_reference) {
       ubuf_reference = ubuf_reference->post;
       if ((ubuf_reference->image_dims[0] == ubuf->image_dims[0]) &&
-          (ubuf_reference->image_dims[1] == ubuf->image_dims[1])) {
+          (ubuf_reference->image_dims[1] == ubuf->image_dims[1]))
+      {
         return ubuf_reference;
       }
     }
@@ -837,7 +839,8 @@ static bool image_undosys_step_encode(struct bContext *C, struct Main * /*bmain*
         UndoImageBuf *ubuf_post = ubuf_pre->post;
 
         if (ubuf_pre->image_dims[0] != ubuf_post->image_dims[0] ||
-            ubuf_pre->image_dims[1] != ubuf_post->image_dims[1]) {
+            ubuf_pre->image_dims[1] != ubuf_post->image_dims[1])
+        {
           ubuf_from_image_all_tiles(ubuf_post, ibuf);
         }
         else {
@@ -857,7 +860,8 @@ static bool image_undosys_step_encode(struct bContext *C, struct Main * /*bmain*
                   ((ubuf_pre->tiles[i] == nullptr) ||
                    /* In this case the paint stroke as has added a tile
                     * which we have a duplicate reference available. */
-                   (ubuf_pre->tiles[i]->users == 1))) {
+                   (ubuf_pre->tiles[i]->users == 1)))
+              {
                 if (ubuf_pre->tiles[i] != nullptr) {
                   /* If we have a reference, re-use this single use tile for the post state. */
                   BLI_assert(ubuf_pre->tiles[i]->users == 1);

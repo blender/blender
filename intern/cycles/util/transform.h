@@ -339,7 +339,8 @@ ccl_device_inline bool transform_uniform_scale(const Transform &tfm, float &scal
   float stz = len_squared(transform_get_column(&tfm, 2));
 
   if (fabsf(sx - sy) < eps && fabsf(sx - sz) < eps && fabsf(sx - stx) < eps &&
-      fabsf(sx - sty) < eps && fabsf(sx - stz) < eps) {
+      fabsf(sx - sty) < eps && fabsf(sx - stz) < eps)
+  {
     scale = sx;
     return true;
   }

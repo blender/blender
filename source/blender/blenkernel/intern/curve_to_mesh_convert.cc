@@ -656,7 +656,8 @@ static void write_sharp_bezier_edges(const CurvesInfo &curves_info,
   const VArraySpan<int8_t> handle_types_left{profile.handle_types_left()};
   const VArraySpan<int8_t> handle_types_right{profile.handle_types_right()};
   if (!handle_types_left.contains(BEZIER_HANDLE_VECTOR) &&
-      !handle_types_right.contains(BEZIER_HANDLE_VECTOR)) {
+      !handle_types_right.contains(BEZIER_HANDLE_VECTOR))
+  {
     return;
   }
 
@@ -801,7 +802,8 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
 
   main_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
     if (!should_add_attribute_to_mesh(
-            main_attributes, mesh_attributes, id, meta_data, propagation_info)) {
+            main_attributes, mesh_attributes, id, meta_data, propagation_info))
+    {
       return true;
     }
     main_attributes_set.add_new(id);
@@ -839,7 +841,8 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
       return true;
     }
     if (!should_add_attribute_to_mesh(
-            profile_attributes, mesh_attributes, id, meta_data, propagation_info)) {
+            profile_attributes, mesh_attributes, id, meta_data, propagation_info))
+    {
       return true;
     }
     const eAttrDomain src_domain = meta_data.domain;

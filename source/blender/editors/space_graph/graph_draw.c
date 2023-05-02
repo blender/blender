@@ -273,14 +273,16 @@ static void draw_fcurve_selected_handle_vertices(
       if ((!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) ||
           (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ))) {
         if ((bezt->f1 & SELECT) == sel
-            /* && v2d->cur.xmin < bezt->vec[0][0] < v2d->cur.xmax) */) {
+            /* && v2d->cur.xmin < bezt->vec[0][0] < v2d->cur.xmax) */)
+        {
           immVertex2fv(pos, bezt->vec[0]);
         }
       }
 
       if (bezt->ipo == BEZT_IPO_BEZ) {
         if ((bezt->f3 & SELECT) == sel
-            /* && v2d->cur.xmin < bezt->vec[2][0] < v2d->cur.xmax) */) {
+            /* && v2d->cur.xmin < bezt->vec[2][0] < v2d->cur.xmax) */)
+        {
           immVertex2fv(pos, bezt->vec[2]);
         }
       }
@@ -389,7 +391,8 @@ static bool draw_fcurve_handles_check(SpaceGraph *sipo, FCurve *fcu)
       (fcu->flag & FCURVE_INT_VALUES) ||
 #endif
       /* group that curve belongs to is not editable */
-      ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED))) {
+      ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)))
+  {
     return false;
   }
   return true;
@@ -457,7 +460,8 @@ static void draw_fcurve_handles(SpaceGraph *sipo, FCurve *fcu)
       else {
         /* only draw first handle if previous segment was had handles, and selection is ok */
         if (((bezt->f1 & SELECT) == sel) && ((!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) ||
-                                             (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ)))) {
+                                             (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ))))
+        {
           UI_GetThemeColor3ubv(basecol + bezt->h1, col);
           col[3] = fcurve_display_alpha(fcu) * 255;
           immAttr4ubv(color, col);
@@ -739,7 +743,8 @@ static void draw_fcurve_curve_samples(bAnimContext *ac,
 
     /* y-value depends on the interpolation */
     if ((fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) ||
-        (fcu->totvert == 1)) {
+        (fcu->totvert == 1))
+    {
       /* just extend across the first keyframe's value */
       v[1] = prevfpt->vec[1];
     }
@@ -773,7 +778,8 @@ static void draw_fcurve_curve_samples(bAnimContext *ac,
 
     /* y-value depends on the interpolation */
     if ((fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) ||
-        (fcu->totvert == 1)) {
+        (fcu->totvert == 1))
+    {
       /* based on last keyframe's value */
       v[1] = prevfpt->vec[1];
     }
@@ -848,7 +854,8 @@ static void draw_fcurve_curve_bezts(
 
     /* y-value depends on the interpolation */
     if ((fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) || (prevbezt->ipo == BEZT_IPO_CONST) ||
-        (prevbezt->ipo == BEZT_IPO_LIN && fcu->totvert == 1)) {
+        (prevbezt->ipo == BEZT_IPO_LIN && fcu->totvert == 1))
+    {
       /* just extend across the first keyframe's value */
       v1[1] = prevbezt->vec[1][1];
     }
@@ -967,8 +974,8 @@ static void draw_fcurve_curve_bezts(
 
     /* y-value depends on the interpolation */
     if ((fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) ||
-        (prevbezt->ipo == BEZT_IPO_CONST) ||
-        (prevbezt->ipo == BEZT_IPO_LIN && fcu->totvert == 1)) {
+        (prevbezt->ipo == BEZT_IPO_CONST) || (prevbezt->ipo == BEZT_IPO_LIN && fcu->totvert == 1))
+    {
       /* based on last keyframe's value */
       v1[1] = prevbezt->vec[1][1];
     }
@@ -1018,7 +1025,8 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
 
   /* 1) draw curve line */
   if (((fcu->modifiers.first) || (fcu->flag & FCURVE_INT_VALUES)) ||
-      (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert))) {
+      (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)))
+  {
     /* set color/drawing style for curve itself */
     /* draw active F-Curve thicker than the rest to make it stand out */
     if (fcu->flag & FCURVE_ACTIVE) {

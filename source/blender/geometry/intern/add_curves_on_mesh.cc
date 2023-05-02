@@ -339,14 +339,12 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   /* Find surface normal at root points. */
   Array<float3> new_normals_su(added_curves_num);
-  bke::mesh_surface_sample::sample_corner_attribute(
-      inputs.surface_looptris,
-      looptri_indices,
-      bary_coords,
-      VArray<float3>::ForSpan(inputs.corner_normals_su),
-      IndexMask(added_curves_num),
-      new_normals_su.as_mutable_span());
-  /* TODO: Normalization. */
+  bke::mesh_surface_sample::sample_corner_normals(inputs.surface_looptris,
+                                                  looptri_indices,
+                                                  bary_coords,
+                                                  inputs.corner_normals_su,
+                                                  IndexMask(added_curves_num),
+                                                  new_normals_su);
 
   /* Initialize position attribute. */
   if (inputs.interpolate_shape) {

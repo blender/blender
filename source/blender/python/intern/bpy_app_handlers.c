@@ -310,7 +310,8 @@ void BPY_app_handlers_reset(const bool do_all)
 
         PyObject **dict_ptr;
         if (PyFunction_Check(item) && (dict_ptr = _PyObject_GetDictPtr(item)) && (*dict_ptr) &&
-            (PyDict_GetItem(*dict_ptr, perm_id_str) != NULL)) {
+            (PyDict_GetItem(*dict_ptr, perm_id_str) != NULL))
+        {
           /* keep */
         }
         else {

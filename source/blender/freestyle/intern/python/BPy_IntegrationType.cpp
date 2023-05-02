@@ -66,7 +66,8 @@ static PyObject *Integrator_integrate(PyObject * /*self*/, PyObject *args, PyObj
                                    &Interface0DIterator_Type,
                                    &obj3,
                                    &IntegrationType_Type,
-                                   &obj4)) {
+                                   &obj4))
+  {
     return nullptr;
   }
 

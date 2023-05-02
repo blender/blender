@@ -108,8 +108,8 @@ GeometryInfoLog::GeometryInfoLog(const GeometrySet &geometry_set)
       case GEO_COMPONENT_TYPE_EDIT: {
         const GeometryComponentEditData &edit_component = *(
             const GeometryComponentEditData *)component;
-        if (const bke::CurvesEditHints *curve_edit_hints =
-                edit_component.curves_edit_hints_.get()) {
+        if (const bke::CurvesEditHints *curve_edit_hints = edit_component.curves_edit_hints_.get())
+        {
           EditDataInfo &info = this->edit_data_info.emplace();
           info.has_deform_matrices = curve_edit_hints->deform_mats.has_value();
           info.has_deformed_positions = curve_edit_hints->positions.has_value();
@@ -446,7 +446,8 @@ GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compu
     parent_logger.children_hashes.append(compute_context.hash());
   }
   if (const bke::NodeGroupComputeContext *node_group_compute_context =
-          dynamic_cast<const bke::NodeGroupComputeContext *>(&compute_context)) {
+          dynamic_cast<const bke::NodeGroupComputeContext *>(&compute_context))
+  {
     tree_logger.group_node_id.emplace(node_group_compute_context->node_id());
   }
   return tree_logger;
@@ -549,7 +550,8 @@ GeoTreeLog *GeoModifierLog::get_tree_log_for_node_editor(const SpaceNode &snode)
   }
   if (const std::optional<ComputeContextHash> hash =
           GeoModifierLog::get_compute_context_hash_for_node_editor(
-              snode, object_and_modifier->nmd->modifier.name)) {
+              snode, object_and_modifier->nmd->modifier.name))
+  {
     return &modifier_log->get_tree_log(*hash);
   }
   return nullptr;

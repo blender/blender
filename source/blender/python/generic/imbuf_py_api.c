@@ -101,7 +101,8 @@ static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kw, &_parser, &size[0], &size[1], PyC_ParseStringEnum, &method)) {
+          args, kw, &_parser, &size[0], &size[1], PyC_ParseStringEnum, &method))
+  {
     return NULL;
   }
   if (size[0] <= 0 || size[1] <= 0) {
@@ -145,7 +146,8 @@ static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kw, &_parser, &crop.xmin, &crop.ymin, &crop.xmax, &crop.ymax)) {
+          args, kw, &_parser, &crop.xmin, &crop.ymin, &crop.xmax, &crop.ymax))
+  {
     return NULL;
   }
 
@@ -156,7 +158,8 @@ static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
       /* X order. */
       !(crop.xmin <= crop.xmax) ||
       /* Y order. */
-      !(crop.ymin <= crop.ymax)) {
+      !(crop.ymin <= crop.ymax))
+  {
     PyErr_SetString(PyExc_ValueError, "ImBuf crop min/max not in range");
     return NULL;
   }

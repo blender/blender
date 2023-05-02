@@ -21,11 +21,11 @@ set(SRC
   logImageCore.h
   logmemfile.h
 
-  cineon_dpx.c
-  cineonlib.c
-  dpxlib.c
-  logImageCore.c
-  logmemfile.c
+  cineon_dpx.cc
+  cineonlib.cc
+  dpxlib.cc
+  logImageCore.cc
+  logmemfile.cc
 )
 
 set(LIB

@@ -266,8 +266,8 @@ bool MTLFrameBuffer::check(char err_out[256])
       }
     }
     else {
-      if (dim_x != stencil_att.texture->width_get() ||
-          dim_y != stencil_att.texture->height_get()) {
+      if (dim_x != stencil_att.texture->width_get() || dim_y != stencil_att.texture->height_get())
+      {
         const char *format =
             "Framebuffer %s: Stencil attachment dimensions do not match that of previous "
             "attachment";
@@ -1235,7 +1235,8 @@ void MTLFrameBuffer::ensure_render_target_size()
 {
   /* If we have no attachments, reset width and height to zero. */
   if (colour_attachment_count_ == 0 && !this->has_depth_attachment() &&
-      !this->has_stencil_attachment()) {
+      !this->has_stencil_attachment())
+  {
 
     /* Reset default size for empty framebuffer. */
     this->default_size_set(0, 0);
@@ -1291,7 +1292,8 @@ bool MTLFrameBuffer::set_depth_attachment_clear_value(float depth_clear)
   BLI_assert(this);
 
   if (mtl_depth_attachment_.clear_value.depth != depth_clear ||
-      mtl_depth_attachment_.load_action != GPU_LOADACTION_CLEAR) {
+      mtl_depth_attachment_.load_action != GPU_LOADACTION_CLEAR)
+  {
     mtl_depth_attachment_.clear_value.depth = depth_clear;
     mtl_depth_attachment_.load_action = GPU_LOADACTION_CLEAR;
     this->mark_loadstore_dirty();
@@ -1304,7 +1306,8 @@ bool MTLFrameBuffer::set_stencil_attachment_clear_value(uint stencil_clear)
   BLI_assert(this);
 
   if (mtl_stencil_attachment_.clear_value.stencil != stencil_clear ||
-      mtl_stencil_attachment_.load_action != GPU_LOADACTION_CLEAR) {
+      mtl_stencil_attachment_.load_action != GPU_LOADACTION_CLEAR)
+  {
     mtl_stencil_attachment_.clear_value.stencil = stencil_clear;
     mtl_stencil_attachment_.load_action = GPU_LOADACTION_CLEAR;
     this->mark_loadstore_dirty();
@@ -1397,7 +1400,8 @@ bool MTLFrameBuffer::has_color_attachment_with_texture(gpu::MTLTexture *texture)
 
   for (int attachment = 0; attachment < this->get_attachment_limit(); attachment++) {
     if (mtl_color_attachments_[attachment].used &&
-        mtl_color_attachments_[attachment].texture == texture) {
+        mtl_color_attachments_[attachment].texture == texture)
+    {
       return true;
     }
   }
@@ -1423,7 +1427,8 @@ int MTLFrameBuffer::get_color_attachment_slot_from_texture(gpu::MTLTexture *text
 
   for (int attachment = 0; attachment < this->get_attachment_limit(); attachment++) {
     if (mtl_color_attachments_[attachment].used &&
-        (mtl_color_attachments_[attachment].texture == texture)) {
+        (mtl_color_attachments_[attachment].texture == texture))
+    {
       return attachment;
     }
   }
@@ -1564,8 +1569,8 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
       int len = 0;
       bool valid = true;
 
-      for (int attachment_ind = 0; attachment_ind < GPU_FB_MAX_COLOR_ATTACHMENT;
-           attachment_ind++) {
+      for (int attachment_ind = 0; attachment_ind < GPU_FB_MAX_COLOR_ATTACHMENT; attachment_ind++)
+      {
         if (mtl_color_attachments_[attachment_ind].used) {
           if (len == 0) {
             len = mtl_color_attachments_[attachment_ind].render_target_array_length;
@@ -1624,7 +1629,8 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
         id<MTLTexture> source_color_texture = texture;
         if (this->get_is_srgb() &&
             mtl_color_attachments_[attachment_ind].texture->is_format_srgb() &&
-            !this->get_srgb_enabled()) {
+            !this->get_srgb_enabled())
+        {
           source_color_texture =
               mtl_color_attachments_[attachment_ind].texture->get_non_srgb_handle();
           BLI_assert(source_color_texture != nil);
@@ -1637,8 +1643,8 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
           /* MTL_FB_CONFIG_LOAD must always load. */
           load_action = GPU_LOADACTION_LOAD;
         }
-        else if (descriptor_config == MTL_FB_CONFIG_CUSTOM &&
-                 load_action == GPU_LOADACTION_CLEAR) {
+        else if (descriptor_config == MTL_FB_CONFIG_CUSTOM && load_action == GPU_LOADACTION_CLEAR)
+        {
           /* Custom config should be LOAD or DONT_CARE only. */
           load_action = GPU_LOADACTION_LOAD;
         }
@@ -1781,7 +1787,8 @@ void MTLFrameBuffer::blit(uint read_slot,
   /* If the color format is not the same, we cannot use the BlitCommandEncoder, and instead use
    * a Graphics-based blit. */
   if (do_color && (this->get_color_attachment(read_slot).texture->format_get() !=
-                   metal_fb_write->get_color_attachment(read_slot).texture->format_get())) {
+                   metal_fb_write->get_color_attachment(read_slot).texture->format_get()))
+  {
 
     MTLAttachment src_attachment = this->get_color_attachment(read_slot);
     MTLAttachment dst_attachment = metal_fb_write->get_color_attachment(write_slot);

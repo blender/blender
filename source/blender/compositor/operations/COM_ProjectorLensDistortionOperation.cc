@@ -79,7 +79,8 @@ bool ProjectorLensDistortionOperation::determine_depending_area_of_interest(
     rcti disp_input;
     BLI_rcti_init(&disp_input, 0, 5, 0, 5);
     if (this->get_input_operation(1)->determine_depending_area_of_interest(
-            &disp_input, read_operation, output)) {
+            &disp_input, read_operation, output))
+    {
       return true;
     }
     new_input.xmin = input->xmin - 7; /* (0.25f * 20 * 1) + 2 == worse case dispersion */
@@ -88,7 +89,8 @@ bool ProjectorLensDistortionOperation::determine_depending_area_of_interest(
     new_input.xmax = input->xmax + 7; /* (0.25f * 20 * 1) + 2 == worse case dispersion */
   }
   if (this->get_input_operation(0)->determine_depending_area_of_interest(
-          &new_input, read_operation, output)) {
+          &new_input, read_operation, output))
+  {
     return true;
   }
   return false;

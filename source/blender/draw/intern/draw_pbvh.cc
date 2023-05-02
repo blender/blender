@@ -116,8 +116,8 @@ struct PBVHBatch {
   string key;
   GPUBatch *tris = nullptr, *lines = nullptr;
   int tris_count = 0, lines_count = 0;
-  bool is_coarse =
-      false; /* Coarse multires, will use full-sized VBOs only index buffer changes. */
+  /* Coarse multi-resolution, will use full-sized VBOs only index buffer changes. */
+  bool is_coarse = false;
 
   void sort_vbos(Vector<PBVHVbo> &master_vbos)
   {

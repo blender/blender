@@ -2182,7 +2182,8 @@ void ConvertNode::constant_fold(const ConstantFolder &folder)
       ShaderInput *prev_in = prev->inputs[0];
 
       if (SocketType::is_float3(from) && (to == SocketType::FLOAT || SocketType::is_float3(to)) &&
-          prev_in->link) {
+          prev_in->link)
+      {
         folder.bypass(prev_in->link);
       }
     }
@@ -2841,7 +2842,8 @@ void PrincipledBsdfNode::expand(ShaderGraph *graph)
   ShaderInput *emission_in = input("Emission");
   ShaderInput *emission_strength_in = input("Emission Strength");
   if ((emission_in->link || emission != zero_float3()) &&
-      (emission_strength_in->link || emission_strength != 0.0f)) {
+      (emission_strength_in->link || emission_strength != 0.0f))
+  {
     /* Create add closure and emission, and relink inputs. */
     AddClosureNode *add = graph->create_node<AddClosureNode>();
     EmissionNode *emission_node = graph->create_node<EmissionNode>();
@@ -5820,7 +5822,8 @@ void AttributeNode::attributes(Shader *shader, AttributeRequestSet *attributes)
   ShaderOutput *alpha_out = output("Alpha");
 
   if (!color_out->links.empty() || !vector_out->links.empty() || !fac_out->links.empty() ||
-      !alpha_out->links.empty()) {
+      !alpha_out->links.empty())
+  {
     attributes->add_standard(attribute);
   }
 
@@ -6619,7 +6622,8 @@ void VectorMathNode::compile(SVMCompiler &compiler)
 
   /* 3 Vector Operators */
   if (math_type == NODE_VECTOR_MATH_WRAP || math_type == NODE_VECTOR_MATH_FACEFORWARD ||
-      math_type == NODE_VECTOR_MATH_MULTIPLY_ADD) {
+      math_type == NODE_VECTOR_MATH_MULTIPLY_ADD)
+  {
     ShaderInput *vector3_in = input("Vector3");
     int vector3_stack_offset = compiler.stack_assign(vector3_in);
     compiler.add_node(

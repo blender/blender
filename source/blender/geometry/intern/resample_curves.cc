@@ -57,7 +57,8 @@ static bool interpolate_attribute_to_curves(const bke::AttributeIDRef &attribute
            "handle_type_left",
            "handle_type_right",
            "handle_left",
-           "handle_right")) {
+           "handle_right"))
+  {
     return type_counts[CURVE_TYPE_BEZIER] != 0;
   }
   if (ELEM(attribute_id.name(), "nurbs_weight")) {

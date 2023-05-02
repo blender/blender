@@ -72,8 +72,8 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
     const eCustomDataType type = item.value.data_type;
 
     const GAttributeReader src = src_attributes.lookup(id);
-    if (selection.size() == instances.instances_num() && src.sharing_info &&
-        src.varray.is_span()) {
+    if (selection.size() == instances.instances_num() && src.sharing_info && src.varray.is_span())
+    {
       const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
                                           *src.sharing_info);
       dst_attributes.add(id, ATTR_DOMAIN_POINT, type, init);

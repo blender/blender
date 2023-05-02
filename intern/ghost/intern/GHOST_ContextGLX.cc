@@ -113,7 +113,8 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
         (glXCreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB(
              (const GLubyte *)"glXCreateContextAttribsARB")) == nullptr ||
         (glXCreatePbuffer = (PFNGLXCREATEPBUFFERPROC)glXGetProcAddressARB(
-             (const GLubyte *)"glXCreatePbuffer")) == nullptr) {
+             (const GLubyte *)"glXCreatePbuffer")) == nullptr)
+    {
       extStart = (GLubyte *)"";
     }
   }

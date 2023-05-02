@@ -198,7 +198,8 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
     int corner_curr = corner_term - 1;
 
     for (; corner_next != corner_term;
-         corner_prev = corner_curr, corner_curr = corner_next, corner_next++) {
+         corner_prev = corner_curr, corner_curr = corner_next, corner_next++)
+    {
       const float *v_prev = sys->vertexCos[corner_verts[corner_prev]];
       const float *v_curr = sys->vertexCos[corner_verts[corner_curr]];
       const float *v_next = sys->vertexCos[corner_verts[corner_next]];
@@ -255,11 +256,13 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
     int corner_curr = corner_term - 1;
 
     for (; corner_next != corner_term;
-         corner_prev = corner_curr, corner_curr = corner_next, corner_next++) {
+         corner_prev = corner_curr, corner_curr = corner_next, corner_next++)
+    {
 
       /* Is ring if number of faces == number of edges around vertex. */
       if (sys->ne_ed_num[corner_verts[corner_curr]] == sys->ne_fa_num[corner_verts[corner_curr]] &&
-          sys->zerola[corner_verts[corner_curr]] == false) {
+          sys->zerola[corner_verts[corner_curr]] == false)
+      {
         EIG_linear_solver_matrix_add(sys->context,
                                      corner_verts[corner_curr],
                                      corner_verts[corner_next],
@@ -272,7 +275,8 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
                                          sys->vweights[corner_verts[corner_curr]]);
       }
       if (sys->ne_ed_num[corner_verts[corner_next]] == sys->ne_fa_num[corner_verts[corner_next]] &&
-          sys->zerola[corner_verts[corner_next]] == false) {
+          sys->zerola[corner_verts[corner_next]] == false)
+      {
         EIG_linear_solver_matrix_add(sys->context,
                                      corner_verts[corner_next],
                                      corner_verts[corner_curr],
@@ -285,7 +289,8 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
                                          sys->vweights[corner_verts[corner_next]]);
       }
       if (sys->ne_ed_num[corner_verts[corner_prev]] == sys->ne_fa_num[corner_verts[corner_prev]] &&
-          sys->zerola[corner_verts[corner_prev]] == false) {
+          sys->zerola[corner_verts[corner_prev]] == false)
+      {
         EIG_linear_solver_matrix_add(sys->context,
                                      corner_verts[corner_prev],
                                      corner_verts[corner_curr],
@@ -306,7 +311,8 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
     /* Is boundary */
     if (sys->ne_ed_num[idv1] != sys->ne_fa_num[idv1] &&
         sys->ne_ed_num[idv2] != sys->ne_fa_num[idv2] && sys->zerola[idv1] == false &&
-        sys->zerola[idv2] == false) {
+        sys->zerola[idv2] == false)
+    {
       EIG_linear_solver_matrix_add(
           sys->context, idv1, idv2, sys->eweights[i] * sys->vlengths[idv1]);
       EIG_linear_solver_matrix_add(

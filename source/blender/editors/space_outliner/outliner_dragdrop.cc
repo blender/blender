@@ -139,7 +139,8 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
 
     if (view_mval[1] < (te_hovered->ys + margin)) {
       if (TSELEM_OPEN(TREESTORE(te_hovered), space_outliner) &&
-          !BLI_listbase_is_empty(&te_hovered->subtree)) {
+          !BLI_listbase_is_empty(&te_hovered->subtree))
+      {
         /* inserting after a open item means we insert into it, but as first child */
         if (BLI_listbase_is_empty(&te_hovered->subtree)) {
           *r_insert_type = TE_INSERT_INTO;
@@ -385,7 +386,8 @@ static void parent_drop_set_parents(bContext *C,
       }
 
       if (ED_object_parent_set(
-              reports, C, scene, object, parent, parent_type, false, keep_transform, nullptr)) {
+              reports, C, scene, object, parent, parent_type, false, keep_transform, nullptr))
+      {
         parent_set = true;
       }
     }
@@ -724,7 +726,8 @@ static bool datastack_drop_init(bContext *C, const wmEvent *event, StackDropData
             TSE_CONSTRAINT,
             TSE_CONSTRAINT_BASE,
             TSE_GPENCIL_EFFECT,
-            TSE_GPENCIL_EFFECT_BASE)) {
+            TSE_GPENCIL_EFFECT_BASE))
+  {
     return false;
   }
 
@@ -762,7 +765,8 @@ static bool datastack_drop_init(bContext *C, const wmEvent *event, StackDropData
   if (ELEM(drop_data->drag_tselem->type,
            TSE_MODIFIER_BASE,
            TSE_CONSTRAINT_BASE,
-           TSE_GPENCIL_EFFECT_BASE)) {
+           TSE_GPENCIL_EFFECT_BASE))
+  {
     drop_data->insert_type = TE_INSERT_INTO;
     drop_data->drop_action = DATA_STACK_DROP_LINK;
 
@@ -821,7 +825,8 @@ static bool datastack_drop_are_types_valid(StackDropData *drop_data)
   if (tselem->type == TSE_CONSTRAINT) {
   }
   else if ((drop_data->pchan_parent && tselem->type != TSE_POSE_CHANNEL) ||
-           (!drop_data->pchan_parent && tselem->type == TSE_POSE_CHANNEL)) {
+           (!drop_data->pchan_parent && tselem->type == TSE_POSE_CHANNEL))
+  {
     return false;
   }
 

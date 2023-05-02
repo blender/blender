@@ -10,7 +10,8 @@ static bool drw_attributes_has_request(const DRW_Attributes *requests,
   for (int i = 0; i < requests->num_requests; i++) {
     const DRW_AttributeRequest &src_req = requests->requests[i];
     if (src_req.domain == req.domain && src_req.layer_index == req.layer_index &&
-        src_req.cd_type == req.cd_type) {
+        src_req.cd_type == req.cd_type)
+    {
       return true;
     }
   }
@@ -63,7 +64,8 @@ void drw_attributes_add_request(DRW_Attributes *attrs,
                                 const eAttrDomain domain)
 {
   if (attrs->num_requests >= GPU_MAX_ATTR ||
-      drw_attributes_has_request(attrs, {type, layer_index, domain})) {
+      drw_attributes_has_request(attrs, {type, layer_index, domain}))
+  {
     return;
   }
 

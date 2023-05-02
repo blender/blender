@@ -579,7 +579,8 @@ int rna_ID_is_runtime_editable(PointerRNA *ptr, const char **r_info)
   ID *id = (ID *)ptr->data;
   /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
   if (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_TEMP_MAIN | LIB_TAG_LOCALIZED |
-                 LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_COPIED_ON_WRITE)) {
+                 LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_COPIED_ON_WRITE))
+  {
     *r_info =
         "Cannot edit 'runtime' status of non-blendfile data-blocks, as they are by definition "
         "always runtime";
@@ -594,7 +595,8 @@ bool rna_ID_is_runtime_get(PointerRNA *ptr)
   ID *id = (ID *)ptr->data;
   /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
   if (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_TEMP_MAIN | LIB_TAG_LOCALIZED |
-                 LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_COPIED_ON_WRITE)) {
+                 LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_COPIED_ON_WRITE))
+  {
     return true;
   }
 
@@ -1141,7 +1143,8 @@ static void rna_ImagePreview_is_custom_set(PointerRNA *ptr, int value, enum eIco
   }
 
   if ((value && (prv_img->flag[size] & PRV_USER_EDITED)) ||
-      (!value && !(prv_img->flag[size] & PRV_USER_EDITED))) {
+      (!value && !(prv_img->flag[size] & PRV_USER_EDITED)))
+  {
     return;
   }
 
@@ -1407,7 +1410,8 @@ static void rna_ImagePreview_icon_reload(PreviewImage *prv)
 {
   /* will lazy load on next use, but only in case icon is not user-modified! */
   if (!(prv->flag[ICON_SIZE_ICON] & PRV_USER_EDITED) &&
-      !(prv->flag[ICON_SIZE_PREVIEW] & PRV_USER_EDITED)) {
+      !(prv->flag[ICON_SIZE_PREVIEW] & PRV_USER_EDITED))
+  {
     BKE_previewimg_clear(prv);
   }
 }

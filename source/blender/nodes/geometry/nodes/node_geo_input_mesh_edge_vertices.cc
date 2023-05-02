@@ -125,7 +125,8 @@ class EdgePositionFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const EdgePositionFieldInput *other_field = dynamic_cast<const EdgePositionFieldInput *>(
-            &other)) {
+            &other))
+    {
       return vertex_ == other_field->vertex_;
     }
     return false;

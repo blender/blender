@@ -303,20 +303,17 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
   uiBlock *block = uiLayoutGetBlock(layout);
 
   uiLayout *sub = uiLayoutRow(layout, true);
-  uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
-  uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
 
   /* Checkbox for 'active' status (for now). */
   uiItemR(sub, ptr, "active", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
   /* Name. */
   if (fmi) {
-    uiItemL(sub, IFACE_(fmi->name), ICON_NONE);
+    uiItemR(sub, ptr, "name", 0, "", ICON_NONE);
   }
   else {
     uiItemL(sub, IFACE_("<Unknown Modifier>"), ICON_NONE);
   }
-
   /* Right align. */
   sub = uiLayoutRow(layout, true);
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);

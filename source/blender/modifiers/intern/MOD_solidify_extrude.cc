@@ -93,7 +93,8 @@ static void mesh_calc_hq_normal(Mesh *mesh,
     int i;
     const blender::int2 *edge;
     for (i = 0, edge = edges.data(), edge_ref = edge_ref_array; i < edges.size();
-         i++, edge++, edge_ref++) {
+         i++, edge++, edge_ref++)
+    {
       /* Get the edge vert indices, and edge value (the face indices that use it) */
 
       if (edgeref_is_init(edge_ref) && (edge_ref->p1 != -1)) {
@@ -534,7 +535,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       for (uint i = 0; i < edges_num; i++) {
         const blender::int2 &edge = orig_edges[i];
         if (!ELEM(edge_user_pairs[i][0], INVALID_UNUSED, INVALID_PAIR) &&
-            !ELEM(edge_user_pairs[i][1], INVALID_UNUSED, INVALID_PAIR)) {
+            !ELEM(edge_user_pairs[i][1], INVALID_UNUSED, INVALID_PAIR))
+        {
           const float *n0 = poly_normals[edge_user_pairs[i][0]];
           const float *n1 = poly_normals[edge_user_pairs[i][1]];
           sub_v3_v3v3(e, orig_vert_positions[edge[0]], orig_vert_positions[edge[1]]);
@@ -744,7 +746,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         /* skip 3+ face user edges */
         if ((check_non_manifold == false) ||
             LIKELY(!BLI_BITMAP_TEST(edge_tmp_tag, poly_edges[i_curr]) &&
-                   !BLI_BITMAP_TEST(edge_tmp_tag, poly_edges[i_next]))) {
+                   !BLI_BITMAP_TEST(edge_tmp_tag, poly_edges[i_next])))
+        {
           vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], poly_normals[i]) *
                                angle;
         }
@@ -838,7 +841,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       for (i = 0; i < edges_num; i++) {
         const blender::int2 &edge = orig_edges[i];
         if (!ELEM(edge_user_pairs[i][0], INVALID_UNUSED, INVALID_PAIR) &&
-            !ELEM(edge_user_pairs[i][1], INVALID_UNUSED, INVALID_PAIR)) {
+            !ELEM(edge_user_pairs[i][1], INVALID_UNUSED, INVALID_PAIR))
+        {
           const float *n0 = poly_normals[edge_user_pairs[i][0]];
           const float *n1 = poly_normals[edge_user_pairs[i][1]];
           if (do_angle_clamp) {

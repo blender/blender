@@ -98,7 +98,8 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     return;
   }
   else if (params.node_tree().typeinfo->validate_link(
-               eNodeSocketDatatype(params.other_socket().type), SOCK_FLOAT)) {
+               eNodeSocketDatatype(params.other_socket().type), SOCK_FLOAT))
+  {
     params.add_item(IFACE_("Count"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("GeometryNodeMeshLine");
       node_storage(node).mode = GEO_NODE_MESH_LINE_MODE_OFFSET;

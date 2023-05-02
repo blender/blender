@@ -317,8 +317,8 @@ static void annotation_stroke_convertcoords(tGPsdata *p,
   if (gpd->runtime.sbuffer_sflag & GP_STROKE_3DSPACE) {
     int mval_i[2];
     round_v2i_v2fl(mval_i, mval);
-    if (annotation_project_check(p) &&
-        ED_view3d_autodist_simple(p->region, mval_i, out, 0, depth)) {
+    if (annotation_project_check(p) && ED_view3d_autodist_simple(p->region, mval_i, out, 0, depth))
+    {
       /* projecting onto 3D-Geometry
        * - nothing more needs to be done here, since view_autodist_simple() has already done it
        */
@@ -340,7 +340,8 @@ static void annotation_stroke_convertcoords(tGPsdata *p,
       const float zfac = ED_view3d_calc_zfac(p->region->regiondata, rvec);
 
       if (ED_view3d_project_float_global(p->region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
-          V3D_PROJ_RET_OK) {
+          V3D_PROJ_RET_OK)
+      {
         float dvec[3];
         float xy_delta[2];
         sub_v2_v2v2(xy_delta, mval_prj, mval);
@@ -897,7 +898,8 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
       /** Create arrow strokes. */
       /* End arrow stroke. */
       if ((runtime.sbuffer_sflag & GP_STROKE_USE_ARROW_END) &&
-          (runtime.arrow_end_style != GP_STROKE_ARROWSTYLE_NONE)) {
+          (runtime.arrow_end_style != GP_STROKE_ARROWSTYLE_NONE))
+      {
         int totarrowpoints = runtime.arrow_end_style;
 
         /* Setting up arrow stroke. */
@@ -918,7 +920,8 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
       }
       /* Start arrow stroke. */
       if ((runtime.sbuffer_sflag & GP_STROKE_USE_ARROW_START) &&
-          (runtime.arrow_start_style != GP_STROKE_ARROWSTYLE_NONE)) {
+          (runtime.arrow_start_style != GP_STROKE_ARROWSTYLE_NONE))
+      {
         int totarrowpoints = runtime.arrow_start_style;
 
         /* Setting up arrow stroke. */
@@ -968,7 +971,8 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
 
         if ((ED_view3d_depth_read_cached(depths, mval_i, depth_margin, depth_arr + i) == 0) &&
             (i && (ED_view3d_depth_read_cached_seg(
-                       depths, mval_i, mval_prev, depth_margin + 1, depth_arr + i) == 0))) {
+                       depths, mval_i, mval_prev, depth_margin + 1, depth_arr + i) == 0)))
+        {
           interp_depth = true;
         }
         else {
@@ -1022,8 +1026,8 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
     pt = gps->points;
 
     /* convert all points (normal behavior) */
-    for (i = 0, ptc = gpd->runtime.sbuffer; i < gpd->runtime.sbuffer_used && ptc;
-         i++, ptc++, pt++) {
+    for (i = 0, ptc = gpd->runtime.sbuffer; i < gpd->runtime.sbuffer_used && ptc; i++, ptc++, pt++)
+    {
       /* convert screen-coordinates to appropriate coordinates (and store them) */
       annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, depth_arr ? depth_arr + i : NULL);
 
@@ -1160,14 +1164,16 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
 
       /* Check that point segment of the bound-box of the eraser stroke. */
       if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1]) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
-          (!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1]) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1]))) {
+          (!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1]) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1])))
+      {
         /* Check if point segment of stroke had anything to do with
          * eraser region  (either within stroke painted, or on its lines)
          *  - this assumes that line-width is irrelevant.
          */
         if (gpencil_stroke_inside_circle(mval, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
           if ((annotation_stroke_eraser_is_occluded(p, pt1, pc1[0], pc1[1]) == false) ||
-              (annotation_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false)) {
+              (annotation_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false))
+          {
             /* Edge is affected - Check individual points now */
             if (len_v2v2_int(mval_i, pc1) <= radius) {
               pt1->flag |= GP_SPOINT_TAG;
@@ -2464,7 +2470,8 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
              EVT_DOWNARROWKEY,
              EVT_RIGHTARROWKEY,
              EVT_UPARROWKEY,
-             EVT_ZKEY)) {
+             EVT_ZKEY))
+    {
       /* allow some keys:
        *   - For frame changing #33412.
        *   - For undo (during sketching sessions).
@@ -2480,7 +2487,8 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
                   EVT_PAD6,
                   EVT_PAD7,
                   EVT_PAD8,
-                  EVT_PAD9)) {
+                  EVT_PAD9))
+    {
       /* Allow numpad keys so that camera/view manipulations can still take place
        * - #EVT_PAD0 in particular is really important for Grease Pencil drawing,
        *   as animators may be working "to camera", so having this working
@@ -2506,7 +2514,8 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
    * as that would break polyline #32647.
    */
   if (event->val == KM_PRESS &&
-      ELEM(event->type, EVT_RETKEY, EVT_PADENTER, EVT_ESCKEY, EVT_SPACEKEY, EVT_EKEY)) {
+      ELEM(event->type, EVT_RETKEY, EVT_PADENTER, EVT_ESCKEY, EVT_SPACEKEY, EVT_EKEY))
+  {
     /* exit() ends the current stroke before cleaning up */
     p->status = GP_STATUS_DONE;
     estate = OPERATOR_FINISHED;
@@ -2661,7 +2670,8 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
     }
     /* eraser size */
     else if ((p->paintmode == GP_PAINTMODE_ERASER) &&
-             ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, EVT_PADPLUSKEY, EVT_PADMINUS)) {
+             ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, EVT_PADPLUSKEY, EVT_PADMINUS))
+    {
       /* just resize the brush (local version)
        * TODO: fix the hardcoded size jumps (set to make a visible difference) and hardcoded keys
        */

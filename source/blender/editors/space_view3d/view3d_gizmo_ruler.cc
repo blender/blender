@@ -532,7 +532,8 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
   BKE_gpencil_free_strokes(gpf);
 
   for (ruler_item = gzgroup_ruler_item_first_get(gzgroup); ruler_item;
-       ruler_item = (RulerItem *)ruler_item->gz.next) {
+       ruler_item = (RulerItem *)ruler_item->gz.next)
+  {
     bGPDspoint *pt;
     int j;
 
@@ -865,7 +866,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     float rot_90_vec[2] = {-dir_ruler[1], dir_ruler[0]};
     normalize_v2(rot_90_vec);
     posit[1] += rot_90_vec[0] * numstr_size[1];
-    posit[0] += ((rot_90_vec[1] < 0)) ? numstr_size[0] : -numstr_size[0];
+    posit[0] += (rot_90_vec[1] < 0) ? numstr_size[0] : -numstr_size[0];
 
     /* draw text (bg) */
     if (proj_ok[1]) {
@@ -946,7 +947,8 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     const float len = len_v2v2(co_ss[0], co_ss[2]);
 
     if ((len < (numstr_size[1] * 2.5f)) ||
-        ((len < (numstr_size[0] + bg_margin + bg_margin)) && (fabs(rot_90_vec[0]) < 0.5f))) {
+        ((len < (numstr_size[0] + bg_margin + bg_margin)) && (fabs(rot_90_vec[0]) < 0.5f)))
+    {
       /* Super short, or quite short and also shallow angle. Position below line.*/
       posit[1] = MIN2(co_ss[0][1], co_ss[2][1]) - numstr_size[1] - bg_margin - bg_margin;
     }
@@ -1066,7 +1068,8 @@ static int gizmo_ruler_modal(bContext *C,
     if (ruler_info->state == RULER_STATE_DRAG) {
       struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       if (view3d_ruler_item_mousemove(
-              C, depsgraph, ruler_info, ruler_item, event->mval, do_thickness, do_snap)) {
+              C, depsgraph, ruler_info, ruler_item, event->mval, do_thickness, do_snap))
+      {
         do_draw = true;
       }
     }
@@ -1282,7 +1285,8 @@ static bool view3d_ruler_poll(bContext *C)
 {
   bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
   if ((tref_rt == nullptr) || !STREQ(view3d_gzgt_ruler_id, tref_rt->gizmo_group) ||
-      CTX_wm_region_view3d(C) == nullptr) {
+      CTX_wm_region_view3d(C) == nullptr)
+  {
     return false;
   }
   return true;
@@ -1316,7 +1320,8 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
   WM_gizmo_highlight_set(gzmap, &ruler_item->gz);
   if (WM_operator_name_call(
           C, "GIZMOGROUP_OT_gizmo_tweak", WM_OP_INVOKE_REGION_WIN, nullptr, event) ==
-      OPERATOR_RUNNING_MODAL) {
+      OPERATOR_RUNNING_MODAL)
+  {
     RulerInfo *ruler_info = static_cast<RulerInfo *>(gzgroup->customdata);
     RulerInteraction *inter = static_cast<RulerInteraction *>(ruler_item->gz.interaction_data);
     struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);

@@ -747,8 +747,8 @@ float2 PackIsland::get_diagonal_support(const float scale,
     return half_diagonal_ * scale + margin;
   }
 
-  if (rotation == DEG2RADF(-90.0f) || rotation == DEG2RADF(90.0f) ||
-      rotation == DEG2RADF(270.0f)) {
+  if (rotation == DEG2RADF(-90.0f) || rotation == DEG2RADF(90.0f) || rotation == DEG2RADF(270.0f))
+  {
     return float2(half_diagonal_.y / aspect_y, half_diagonal_.x * aspect_y) * scale + margin;
   }
 
@@ -761,7 +761,7 @@ float2 PackIsland::get_diagonal_support(const float scale,
   float sx = fabsf(diagonal_rotated[0]);
   float sy = fabsf(diagonal_rotated[1]);
 
-  return float2(sx + sy * 0.5f + margin, sx * 0.5f + sy + margin); /* Upper bound. */
+  return float2(sx + sy * 0.7071f + margin, sx * 0.7071f + sy + margin); /* Upper bound. */
 }
 
 float Occupancy::trace_island(const PackIsland *island,
@@ -954,13 +954,18 @@ static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
                                  float *r_max_u,
                                  float *r_max_v)
 {
+  if (island_indices.size() == 0) {
+    return false; /* Nothing to do. */
+  }
   if (!params.rotate) {
     return false; /* Unable to rotate. */
   }
   if (params.shape_method == ED_UVPACK_SHAPE_AABB) {
-    return false; /* AABB margin calculations are not preserved under rotations. */
+    /* AABB margin calculations are not preserved under rotations. */
+    if (island_indices.size() > 1) { /* Unless there's only one island...*/
+      return false;
+    }
   }
-  BLI_assert(islands.size() > 0);
 
   UVMinimumEnclosingSquareFinder square_finder(scale, margin, &params);
   square_finder.best_quad = std::max(*r_max_u / params.target_aspect_y, *r_max_v);
@@ -991,7 +996,7 @@ static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
 
   square_finder.indices.resize(square_finder.points.size());
   int convex_size = BLI_convexhull_2d(
-      source, static_cast<int>(square_finder.points.size()), square_finder.indices.data());
+      source, int(square_finder.points.size()), square_finder.indices.data());
   square_finder.indices.resize(convex_size);
 
   const float quad_180 = square_finder.update(DEG2RADF(-180.0f));
@@ -1100,7 +1105,8 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
         scan_line += 2;
       }
       if (scan_line < occupancy.bitmap_radix *
-                          sqrtf(std::min(params.target_aspect_y, 1.0f / params.target_aspect_y))) {
+                          sqrtf(std::min(params.target_aspect_y, 1.0f / params.target_aspect_y)))
+      {
         continue; /* Try again on next scan_line. */
       }
 
@@ -1123,7 +1129,8 @@ static void pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
                                margin,
                                r_phis,
                                &max_u,
-                               &max_v)) {
+                               &max_v))
+      {
         scan_line = 0;
         traced_islands = 0;
         occupancy.clear();
@@ -1262,6 +1269,15 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
 
   /* At this stage, `max_u` and `max_v` contain the box_pack/xatlas UVs. */
 
+  rotate_inside_square(aabbs.as_span().take_front(max_box_pack),
+                       islands,
+                       params,
+                       scale,
+                       margin,
+                       r_phis,
+                       &max_u,
+                       &max_v);
+
   /* Call Alpaca. */
   if (params.rotate) {
     pack_islands_alpaca_rotate(
@@ -1270,8 +1286,6 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   else {
     pack_islands_alpaca_turbo(max_box_pack, aabbs, params.target_aspect_y, r_phis, &max_u, &max_v);
   }
-
-  rotate_inside_square(aabbs, islands, params, scale, margin, r_phis, &max_u, &max_v);
 
   return std::max(max_u / params.target_aspect_y, max_v);
 }
@@ -1443,7 +1457,8 @@ class OverlapMerger {
                              a->triangle_vertices_[i + 2],
                              b->triangle_vertices_[j + 0],
                              b->triangle_vertices_[j + 1],
-                             b->triangle_vertices_[j + 2])) {
+                             b->triangle_vertices_[j + 2]))
+        {
           return true; /* Two triangles overlap => islands overlap. */
         }
       }
@@ -1554,7 +1569,8 @@ float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params 
   finalize_geometry(islands, params);
 
   if (params.margin_method == ED_UVPACK_MARGIN_FRACTION && params.margin > 0.0f &&
-      params.scale_to_fit) {
+      params.scale_to_fit)
+  {
     /* Uses a line search on scale. ~10x slower than other method. */
     return pack_islands_margin_fraction(islands, params.margin, params);
   }

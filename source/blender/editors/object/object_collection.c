@@ -578,7 +578,8 @@ static int collection_unlink_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   if (ID_IS_OVERRIDE_LIBRARY(collection) &&
-      collection->id.override_library->hierarchy_root != &collection->id) {
+      collection->id.override_library->hierarchy_root != &collection->id)
+  {
     BKE_report(op->reports,
                RPT_ERROR,
                "Cannot unlink a library override collection which is not the root of its override "

@@ -53,7 +53,8 @@ void MTLBufferPool::free()
   allocations_.clear();
 
   for (std::multiset<blender::gpu::MTLBufferHandle, blender::gpu::CompareMTLBuffer> *buffer_pool :
-       buffer_pools_.values()) {
+       buffer_pools_.values())
+  {
     delete buffer_pool;
   }
   buffer_pools_.clear();
@@ -117,7 +118,8 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
       uint64_t found_size = found_buffer->get_size();
 
       if (found_size >= aligned_alloc_size &&
-          found_size <= (aligned_alloc_size * mtl_buffer_size_threshold_factor_)) {
+          found_size <= (aligned_alloc_size * mtl_buffer_size_threshold_factor_))
+      {
         MTL_LOG_INFO(
             "[MemoryAllocator] Suitable Buffer of size %lld found, for requested size: %lld\n",
             found_size,
@@ -231,7 +233,8 @@ void MTLBufferPool::update_memory_pools()
 
   /* Always free oldest MTLSafeFreeList first. */
   for (int safe_pool_free_index = 0; safe_pool_free_index < completed_safelist_queue_.size();
-       safe_pool_free_index++) {
+       safe_pool_free_index++)
+  {
     MTLSafeFreeList *current_pool = completed_safelist_queue_[safe_pool_free_index];
 
     /* Iterate through all MTLSafeFreeList linked-chunks. */

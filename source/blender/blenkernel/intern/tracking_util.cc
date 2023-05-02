@@ -349,8 +349,8 @@ void tracking_principal_point_normalized_to_pixel(const float principal_point_no
                                                   const int frame_height,
                                                   float r_principal_point_pixel[2])
 {
-  const float frame_center_x = (float(frame_width)) / 2;
-  const float frame_center_y = (float(frame_height)) / 2;
+  const float frame_center_x = float(frame_width) / 2;
+  const float frame_center_y = float(frame_height) / 2;
 
   r_principal_point_pixel[0] = frame_center_x + principal_point_normalized[0] * frame_center_x;
   r_principal_point_pixel[1] = frame_center_y + principal_point_normalized[1] * frame_center_y;
@@ -361,8 +361,8 @@ void tracking_principal_point_pixel_to_normalized(const float principal_point_pi
                                                   const int frame_height,
                                                   float r_principal_point_normalized[2])
 {
-  const float frame_center_x = (float(frame_width)) / 2;
-  const float frame_center_y = (float(frame_height)) / 2;
+  const float frame_center_x = float(frame_width) / 2;
+  const float frame_center_y = float(frame_height) / 2;
 
   r_principal_point_normalized[0] = (principal_point_pixel[0] - frame_center_x) / frame_center_x;
   r_principal_point_normalized[1] = (principal_point_pixel[1] - frame_center_y) / frame_center_y;
@@ -626,7 +626,8 @@ static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
   const size_t num_pixels = size_t(grayscale->x) * size_t(grayscale->y);
   grayscale->channels = 1;
   if ((grayscale->rect_float = MEM_cnew_array<float>(num_pixels, "tracking grayscale image")) !=
-      nullptr) {
+      nullptr)
+  {
     grayscale->mall |= IB_rectfloat;
     grayscale->flags |= IB_rectfloat;
 
@@ -655,7 +656,8 @@ static ImBuf *float_image_to_ibuf(libmv_FloatImage *float_image)
   size_t num_total_channels = size_t(ibuf->x) * size_t(ibuf->y) * float_image->channels;
   ibuf->channels = float_image->channels;
   if ((ibuf->rect_float = MEM_cnew_array<float>(num_total_channels, "tracking grayscale image")) !=
-      nullptr) {
+      nullptr)
+  {
     ibuf->mall |= IB_rectfloat;
     ibuf->flags |= IB_rectfloat;
 

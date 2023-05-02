@@ -374,7 +374,8 @@ struct SlideOperationExecutor {
                                         ray_direction_su,
                                         old_first_pos_eval_su,
                                         looptri_index_eval,
-                                        hit_pos_eval_su)) {
+                                        hit_pos_eval_su))
+        {
           continue;
         }
 

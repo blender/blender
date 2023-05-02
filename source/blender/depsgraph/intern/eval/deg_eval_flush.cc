@@ -178,7 +178,8 @@ inline OperationNode *flush_schedule_children(OperationNode *op_node, FlushQueue
     /* Relation only allows flushes on user changes, but the node was not
      * affected by user. */
     if ((rel->flag & RELATION_FLAG_FLUSH_USER_EDIT_ONLY) &&
-        (op_node->flag & DEPSOP_FLAG_USER_MODIFIED) == 0) {
+        (op_node->flag & DEPSOP_FLAG_USER_MODIFIED) == 0)
+    {
       continue;
     }
     OperationNode *to_node = (OperationNode *)rel->to;

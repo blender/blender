@@ -109,6 +109,9 @@ size_t BLI_strncpy_rlen(char *__restrict dst,
 size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 
+char *BLI_strncat(char *__restrict dst, const char *__restrict src, size_t maxncpy)
+    ATTR_NONNULL(1, 2);
+
 /**
  * Return the range of the quoted string (excluding quotes) `str` after `prefix`.
  *

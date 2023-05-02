@@ -953,7 +953,8 @@ void BKE_sound_seek_scene(Main *bmain, Scene *scene)
     }
     AUD_Handle_resume(scene->playback_handle);
     if (scene->sound_scrub_handle &&
-        AUD_Handle_getStatus(scene->sound_scrub_handle) != AUD_STATUS_INVALID) {
+        AUD_Handle_getStatus(scene->sound_scrub_handle) != AUD_STATUS_INVALID)
+    {
       AUD_Handle_setPosition(scene->sound_scrub_handle, 0);
     }
     else {

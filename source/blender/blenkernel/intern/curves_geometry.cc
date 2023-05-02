@@ -737,7 +737,8 @@ Span<float3> CurvesGeometry::evaluated_tangents() const
 
           const float epsilon = 1e-6f;
           if (!math::almost_equal_relative(
-                  handles_right[points.first()], positions[points.first()], epsilon)) {
+                  handles_right[points.first()], positions[points.first()], epsilon))
+          {
             tangents[evaluated_points.first()] = math::normalize(handles_right[points.first()] -
                                                                  positions[points.first()]);
           }
@@ -1442,7 +1443,8 @@ void CurvesGeometry::reverse_curves(const IndexMask curves_to_reverse)
    * the left does, but there's no need to count on it, so check for both attributes. */
 
   if (attributes.contains(ATTR_HANDLE_POSITION_LEFT) &&
-      attributes.contains(ATTR_HANDLE_POSITION_RIGHT)) {
+      attributes.contains(ATTR_HANDLE_POSITION_RIGHT))
+  {
     reverse_swap_curve_point_data(*this,
                                   curves_to_reverse,
                                   this->handle_positions_left_for_write(),

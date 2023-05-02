@@ -105,7 +105,8 @@ class DisplaceOperation : public NodeOperation {
     const Result &input_x_scale = get_input("X Scale");
     const Result &input_y_scale = get_input("Y Scale");
     if (input_x_scale.is_single_value() && input_x_scale.get_float_value() == 0.0f &&
-        input_y_scale.is_single_value() && input_y_scale.get_float_value() == 0.0f) {
+        input_y_scale.is_single_value() && input_y_scale.get_float_value() == 0.0f)
+    {
       return true;
     }
 

@@ -452,7 +452,8 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
   vector<StrokeGroup *> *groups = hasTex ? &self->texturedStrokeGroups : &self->strokeGroups;
   StrokeGroup *group;
   if (groups->empty() || !(groups->back()->totvert + totvert < MESH_MAX_VERTS &&
-                           groups->back()->materials.size() + 1 < MAXMAT)) {
+                           groups->back()->materials.size() + 1 < MAXMAT))
+  {
     group = new StrokeGroup;
     groups->push_back(group);
   }
@@ -639,7 +640,8 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
   for (vector<StrokeRep *>::const_iterator it = group->strokes.begin(),
                                            itend = group->strokes.end();
        it != itend;
-       ++it) {
+       ++it)
+  {
     const int matnr = group->materials.lookup_default((*it)->getMaterial(), 0);
 
     vector<Strip *> &strips = (*it)->getStrips();

@@ -748,7 +748,8 @@ bool VKShader::finalize_pipeline_layout(VkDevice vk_device,
   }
 
   if (vkCreatePipelineLayout(
-          vk_device, &pipeline_info, vk_allocation_callbacks, &pipeline_layout_) != VK_SUCCESS) {
+          vk_device, &pipeline_info, vk_allocation_callbacks, &pipeline_layout_) != VK_SUCCESS)
+  {
     return false;
   };
 
@@ -942,7 +943,8 @@ bool VKShader::finalize_descriptor_set_layouts(VkDevice vk_device,
   VkDescriptorSetLayoutCreateInfo layout_info = create_descriptor_set_layout(
       shader_interface, all_resources, bindings);
   if (vkCreateDescriptorSetLayout(vk_device, &layout_info, vk_allocation_callbacks, &layout_) !=
-      VK_SUCCESS) {
+      VK_SUCCESS)
+  {
     return false;
   };
 

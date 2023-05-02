@@ -103,7 +103,8 @@ bool BLI_file_external_operation_execute(const char *filepath, FileExternalOpera
 #ifdef WIN32
   char *opstring = windows_operation_string(operation);
   if (BLI_windows_external_operation_supported(filepath, opstring) &&
-      BLI_windows_external_operation_execute(filepath, opstring)) {
+      BLI_windows_external_operation_execute(filepath, opstring))
+  {
     return true;
   }
   return false;
@@ -245,7 +246,7 @@ bool BLI_file_is_writable(const char *filepath)
   else {
     /* file doesn't exist -- check I can create it in parent directory */
     char parent[FILE_MAX];
-    BLI_split_dirfile(filepath, parent, NULL, sizeof(parent), 0);
+    BLI_path_split_dir_part(filepath, parent, sizeof(parent));
 #ifdef WIN32
     /* windows does not have X_OK */
     writable = BLI_access(parent, W_OK) == 0;
@@ -923,7 +924,8 @@ static int delete_soft(const char *file, const char **error_message)
   char *xdg_session_desktop = getenv("XDG_SESSION_DESKTOP");
 
   if ((xdg_current_desktop != NULL && STREQ(xdg_current_desktop, "KDE")) ||
-      (xdg_session_desktop != NULL && STREQ(xdg_session_desktop, "KDE"))) {
+      (xdg_session_desktop != NULL && STREQ(xdg_session_desktop, "KDE")))
+  {
     args[0] = "kioclient5";
     args[1] = "move";
     args[2] = file;

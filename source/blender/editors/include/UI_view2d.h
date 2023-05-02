@@ -122,8 +122,6 @@ struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
 
-typedef struct View2DScrollers View2DScrollers;
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -167,10 +165,6 @@ void UI_view2d_sync(struct bScreen *screen, struct ScrArea *area, struct View2D 
 void UI_view2d_curRect_changed(const struct bContext *C, struct View2D *v2d);
 
 void UI_view2d_totRect_set(struct View2D *v2d, int width, int height);
-/**
- * Change the size of the maximum viewable area (i.e. 'tot' rect).
- */
-void UI_view2d_totRect_set_resize(struct View2D *v2d, int width, int height, bool resize);
 
 void UI_view2d_mask_from_win(const struct View2D *v2d, struct rcti *r_mask);
 
@@ -270,13 +264,6 @@ void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *region,
 /* -------------------------------------------------------------------- */
 /** \name Scroll-bar Drawing
  * \{ */
-
-/**
- * Calculate relevant scroller properties.
- */
-void UI_view2d_scrollers_calc(struct View2D *v2d,
-                              const struct rcti *mask_custom,
-                              struct View2DScrollers *r_scrollers);
 
 /**
  * Draw scroll-bars in the given 2D-region.
@@ -559,8 +546,6 @@ typedef struct View2DEdgePanData {
   double edge_pan_last_time;
   double edge_pan_start_time_x, edge_pan_start_time_y;
 } View2DEdgePanData;
-
-bool UI_view2d_edge_pan_poll(struct bContext *C);
 
 void UI_view2d_edge_pan_init(struct bContext *C,
                              struct View2DEdgePanData *vpd,

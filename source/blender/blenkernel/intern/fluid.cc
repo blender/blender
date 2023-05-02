@@ -432,7 +432,8 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
 
   /* Prevent crash when initializing a plane as domain. */
   if (!init_resolution || (size[0] < FLT_EPSILON) || (size[1] < FLT_EPSILON) ||
-      (size[2] < FLT_EPSILON)) {
+      (size[2] < FLT_EPSILON))
+  {
     return;
   }
 
@@ -498,7 +499,8 @@ static bool fluid_modifier_init(
 
     /* Set resolutions. */
     if (fmd->domain->type == FLUID_DOMAIN_TYPE_GAS &&
-        fmd->domain->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) {
+        fmd->domain->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN)
+    {
       res[0] = res[1] = res[2] = 1; /* Use minimum res for adaptive init. */
     }
     else {
@@ -615,7 +617,8 @@ static bool is_static_object(Object *ob)
              eModifierType_Ocean,
              eModifierType_ShapeKey,
              eModifierType_Softbody,
-             eModifierType_Nodes)) {
+             eModifierType_Nodes))
+    {
       return false;
     }
   }
@@ -751,7 +754,8 @@ static void bb_combineMaps(FluidObjectBB *output,
 
         /* Initialize with first input if in range. */
         if (x >= bb1.min[0] && x < bb1.max[0] && y >= bb1.min[1] && y < bb1.max[1] &&
-            z >= bb1.min[2] && z < bb1.max[2]) {
+            z >= bb1.min[2] && z < bb1.max[2])
+        {
           int index_in = manta_get_index(
               x - bb1.min[0], bb1.res[0], y - bb1.min[1], bb1.res[1], z - bb1.min[2]);
 
@@ -768,7 +772,8 @@ static void bb_combineMaps(FluidObjectBB *output,
 
         /* Apply second input if in range. */
         if (x >= bb2->min[0] && x < bb2->max[0] && y >= bb2->min[1] && y < bb2->max[1] &&
-            z >= bb2->min[2] && z < bb2->max[2]) {
+            z >= bb2->min[2] && z < bb2->max[2])
+        {
           int index_in = manta_get_index(
               x - bb2->min[0], bb2->res[0], y - bb2->min[1], bb2->res[1], z - bb2->min[2]);
 
@@ -856,12 +861,14 @@ static void update_velocities(FluidEffectorSettings *fes,
    * I.e. the unit cube diagonal or sqrt(3).
    * This value is our nearest neighbor search distance. */
   const float surface_distance = 1.732;
-  nearest.dist_sq = surface_distance * surface_distance; /* find_nearest uses squared distance */
+  /* find_nearest uses squared distance */
+  nearest.dist_sq = surface_distance * surface_distance;
 
   /* Find the nearest point on the mesh. */
   if (has_velocity &&
       BLI_bvhtree_find_nearest(
-          tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1) {
+          tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1)
+  {
     float weights[3];
     int v1, v2, v3, f_index = nearest.index;
 
@@ -1698,8 +1705,8 @@ static void update_distances(int index,
      * I.e. the unit cube diagonal or sqrt(3).
      * This value is our nearest neighbor search distance. */
     const float surface_distance = 1.732;
-    nearest.dist_sq = surface_distance *
-                      surface_distance; /* find_nearest uses squared distance. */
+    /* find_nearest uses squared distance. */
+    nearest.dist_sq = surface_distance * surface_distance;
 
     /* Subtract optional surface thickness value and virtually increase the object size. */
     if (surface_thickness) {
@@ -1707,7 +1714,8 @@ static void update_distances(int index,
     }
 
     if (BLI_bvhtree_find_nearest(
-            tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1) {
+            tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1)
+    {
       float ray[3] = {0};
       sub_v3_v3v3(ray, ray_start, nearest.co);
       min_dist = len_v3(ray);
@@ -1819,7 +1827,8 @@ static void sample_mesh(FluidFlowSettings *ffs,
    * I.e. the unit cube diagonal or sqrt(3).
    * This value is our nearest neighbor search distance. */
   const float surface_distance = 1.732;
-  nearest.dist_sq = surface_distance * surface_distance; /* find_nearest uses squared distance. */
+  /* find_nearest uses squared distance. */
+  nearest.dist_sq = surface_distance * surface_distance;
 
   bool is_gas_flow = ELEM(
       ffs->type, FLUID_FLOW_TYPE_SMOKE, FLUID_FLOW_TYPE_FIRE, FLUID_FLOW_TYPE_SMOKEFIRE);
@@ -1837,7 +1846,8 @@ static void sample_mesh(FluidFlowSettings *ffs,
                              0.0f,
                              &hit,
                              tree_data->raycast_callback,
-                             tree_data) != -1) {
+                             tree_data) != -1)
+    {
       float dot = ray_dir[0] * hit.no[0] + ray_dir[1] * hit.no[1] + ray_dir[2] * hit.no[2];
       /* If ray and hit face normal are facing same direction hit point is inside a closed mesh. */
       if (dot >= 0) {
@@ -1863,7 +1873,8 @@ static void sample_mesh(FluidFlowSettings *ffs,
 
   /* Find the nearest point on the mesh. */
   if (BLI_bvhtree_find_nearest(
-          tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1) {
+          tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1)
+  {
     float weights[3];
     int v1, v2, v3, f_index = nearest.index;
     float hit_normal[3];
@@ -2553,10 +2564,10 @@ static void ensure_flowsfields(FluidDomainSettings *fds)
     /* Initialize all smoke with "active_color". */
     manta_smoke_ensure_colors(fds->fluid, fds->fmd);
   }
-  if (fds->type == FLUID_DOMAIN_TYPE_LIQUID &&
-      (fds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY ||
-       fds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM ||
-       fds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER)) {
+  if (fds->type == FLUID_DOMAIN_TYPE_LIQUID && (fds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY ||
+                                                fds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM ||
+                                                fds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER))
+  {
     manta_liquid_ensure_sndparts(fds->fluid, fds->fmd);
   }
   manta_update_pointers(fds->fluid, fds->fmd, false);
@@ -2610,12 +2621,13 @@ static void update_flowsflags(FluidDomainSettings *fds, Object **flowobjs, int n
       }
       /* Activate fuel field if a flow object is of fire type. */
       if (ffs->fuel_amount != 0.0 || ffs->type == FLUID_FLOW_TYPE_FIRE ||
-          ffs->type == FLUID_FLOW_TYPE_SMOKEFIRE) {
+          ffs->type == FLUID_FLOW_TYPE_SMOKEFIRE)
+      {
         active_fields |= FLUID_DOMAIN_ACTIVE_FIRE;
       }
       /* Activate color field if flows add smoke with varying colors. */
-      if (ffs->density != 0.0 &&
-          ELEM(ffs->type, FLUID_FLOW_TYPE_SMOKE, FLUID_FLOW_TYPE_SMOKEFIRE)) {
+      if (ffs->density != 0.0 && ELEM(ffs->type, FLUID_FLOW_TYPE_SMOKE, FLUID_FLOW_TYPE_SMOKEFIRE))
+      {
         if (!(active_fields & FLUID_DOMAIN_ACTIVE_COLOR_SET)) {
           copy_v3_v3(fds->active_color, ffs->color);
           active_fields |= FLUID_DOMAIN_ACTIVE_COLOR_SET;
@@ -3654,13 +3666,15 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
     case FLUID_DOMAIN_CACHE_MODULAR:
       if (fds->cache_frame_offset > 0) {
         if (scene_framenr < fds->cache_frame_start ||
-            scene_framenr > fds->cache_frame_end + fds->cache_frame_offset) {
+            scene_framenr > fds->cache_frame_end + fds->cache_frame_offset)
+        {
           escape = true;
         }
       }
       else {
         if (scene_framenr < fds->cache_frame_start + fds->cache_frame_offset ||
-            scene_framenr > fds->cache_frame_end) {
+            scene_framenr > fds->cache_frame_end)
+        {
           escape = true;
         }
       }
@@ -4097,7 +4111,8 @@ Mesh *BKE_fluid_modifier_do(
         baking_guide = fds->cache_flag & FLUID_DOMAIN_BAKING_GUIDE;
 
         if (with_mesh && !baking_data && !baking_noise && !baking_mesh && !baking_particles &&
-            !baking_guide) {
+            !baking_guide)
+        {
           needs_viewport_update = true;
         }
       }
@@ -4613,7 +4628,8 @@ void BKE_fluid_fields_sanitize(FluidDomainSettings *settings)
              FLUID_DOMAIN_FIELD_PHI,
              FLUID_DOMAIN_FIELD_PHI_IN,
              FLUID_DOMAIN_FIELD_PHI_OUT,
-             FLUID_DOMAIN_FIELD_PHI_OBSTACLE)) {
+             FLUID_DOMAIN_FIELD_PHI_OBSTACLE))
+    {
       /* Defaulted to density for gas domain. */
       settings->coba_field = FLUID_DOMAIN_FIELD_DENSITY;
     }
@@ -4631,7 +4647,8 @@ void BKE_fluid_fields_sanitize(FluidDomainSettings *settings)
              FLUID_DOMAIN_FIELD_DENSITY,
              FLUID_DOMAIN_FIELD_FLAME,
              FLUID_DOMAIN_FIELD_FUEL,
-             FLUID_DOMAIN_FIELD_HEAT)) {
+             FLUID_DOMAIN_FIELD_HEAT))
+    {
       /* Defaulted to phi for liquid domain. */
       settings->coba_field = FLUID_DOMAIN_FIELD_PHI;
     }

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -24,7 +25,7 @@
 
 void IMB_metadata_ensure(struct IDProperty **metadata)
 {
-  if (*metadata != NULL) {
+  if (*metadata != nullptr) {
     return;
   }
 
@@ -34,7 +35,7 @@ void IMB_metadata_ensure(struct IDProperty **metadata)
 
 void IMB_metadata_free(struct IDProperty *metadata)
 {
-  if (metadata == NULL) {
+  if (metadata == nullptr) {
     return;
   }
 
@@ -48,7 +49,7 @@ bool IMB_metadata_get_field(struct IDProperty *metadata,
 {
   IDProperty *prop;
 
-  if (metadata == NULL) {
+  if (metadata == nullptr) {
     return false;
   }
 
@@ -75,25 +76,26 @@ void IMB_metadata_set_field(struct IDProperty *metadata, const char *key, const 
   BLI_assert(metadata);
   IDProperty *prop = IDP_GetPropertyFromGroup(metadata, key);
 
-  if (prop != NULL && prop->type != IDP_STRING) {
+  if (prop != nullptr && prop->type != IDP_STRING) {
     IDP_FreeFromGroup(metadata, prop);
-    prop = NULL;
+    prop = nullptr;
   }
 
-  if (prop == NULL) {
-    prop = IDP_NewString(value, key, 0);
+  if (prop) {
+    IDP_AssignString(prop, value);
+  }
+  else if (prop == nullptr) {
+    prop = IDP_NewString(value, key);
     IDP_AddToGroup(metadata, prop);
   }
-
-  IDP_AssignString(prop, value, 0);
 }
 
 void IMB_metadata_foreach(struct ImBuf *ibuf, IMBMetadataForeachCb callback, void *userdata)
 {
-  if (ibuf->metadata == NULL) {
+  if (ibuf->metadata == nullptr) {
     return;
   }
-  for (IDProperty *prop = ibuf->metadata->data.group.first; prop != NULL; prop = prop->next) {
+  LISTBASE_FOREACH (IDProperty *, prop, &ibuf->metadata->data.group) {
     callback(prop->name, IDP_String(prop), userdata);
   }
 }

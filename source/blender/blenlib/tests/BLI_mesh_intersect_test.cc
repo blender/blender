@@ -298,7 +298,8 @@ TEST(mesh_intersect, TriTri)
     EXPECT_TRUE(v0 != nullptr && v1 != nullptr && v2 != nullptr);
     EXPECT_TRUE(v3 != nullptr && v4 != nullptr && v5 != nullptr);
     if (v0 != nullptr && v1 != nullptr && v2 != nullptr && v3 != nullptr && v4 != nullptr &&
-        v5 != nullptr) {
+        v5 != nullptr)
+    {
       EXPECT_EQ(v0->orig, 0);
       EXPECT_EQ(v1->orig, 1);
       const Face *f0 = find_tri_with_verts(out, v4, v1, v5);
@@ -369,7 +370,8 @@ TEST(mesh_intersect, TriTriReversed)
     EXPECT_TRUE(v0 != nullptr && v1 != nullptr && v2 != nullptr);
     EXPECT_TRUE(v3 != nullptr && v4 != nullptr && v5 != nullptr);
     if (v0 != nullptr && v1 != nullptr && v2 != nullptr && v3 != nullptr && v4 != nullptr &&
-        v5 != nullptr) {
+        v5 != nullptr)
+    {
       EXPECT_EQ(v0->orig, 0);
       EXPECT_EQ(v1->orig, 1);
       const Face *f0 = find_tri_with_verts(out, v4, v5, v1);

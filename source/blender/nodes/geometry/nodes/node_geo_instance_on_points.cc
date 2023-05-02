@@ -95,7 +95,8 @@ static void add_instances_from_component(
   Array<int> handle_mapping;
   /* Only fill #handle_mapping when it may be used below. */
   if (src_instances != nullptr &&
-      (!pick_instance.is_single() || pick_instance.get_internal_single())) {
+      (!pick_instance.is_single() || pick_instance.get_internal_single()))
+  {
     Span<bke::InstanceReference> src_references = src_instances->references();
     handle_mapping.reinitialize(src_references.size());
     for (const int src_instance_handle : src_references.index_range()) {

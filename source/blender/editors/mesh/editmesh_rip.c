@@ -138,7 +138,8 @@ static float edbm_rip_edge_side_measure(
   score = len_v2v2(e_v1_co, e_v2_co);
 
   if (dist_squared_to_line_segment_v2(fmval_tweak, e_v1_co, e_v2_co) >
-      dist_squared_to_line_segment_v2(fmval, e_v1_co, e_v2_co)) {
+      dist_squared_to_line_segment_v2(fmval, e_v1_co, e_v2_co))
+  {
     return score;
   }
   return -score;

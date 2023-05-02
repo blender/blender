@@ -171,7 +171,8 @@ void CryptomatteNode::input_operations_from_image_source(
     int layer_index;
     LISTBASE_FOREACH_INDEX (RenderLayer *, render_layer, &image->rr->layers, layer_index) {
       if (!blender::StringRef(prefix).startswith(blender::StringRef(
-              render_layer->name, BLI_strnlen(render_layer->name, sizeof(render_layer->name))))) {
+              render_layer->name, BLI_strnlen(render_layer->name, sizeof(render_layer->name)))))
+      {
         continue;
       }
       LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {

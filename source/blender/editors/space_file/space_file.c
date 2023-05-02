@@ -204,7 +204,8 @@ static void file_refresh(const bContext *C, ScrArea *area)
   folder_history_list_ensure_for_active_browse_mode(sfile);
 
   if (sfile->files && (sfile->tags & FILE_TAG_REBUILD_MAIN_FILES) &&
-      filelist_needs_reset_on_main_changes(sfile->files)) {
+      filelist_needs_reset_on_main_changes(sfile->files))
+  {
     filelist_tag_force_reset_mainfiles(sfile->files);
   }
   sfile->tags &= ~FILE_TAG_REBUILD_MAIN_FILES;
@@ -508,7 +509,8 @@ static bool file_main_region_needs_refresh_before_draw(SpaceFile *sfile)
 
   /* File reading tagged the space because main data changed that may require a filelist reset. */
   if (filelist_needs_reset_on_main_changes(sfile->files) &&
-      (sfile->tags & FILE_TAG_REBUILD_MAIN_FILES)) {
+      (sfile->tags & FILE_TAG_REBUILD_MAIN_FILES))
+  {
     return true;
   }
 

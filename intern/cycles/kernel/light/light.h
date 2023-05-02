@@ -140,7 +140,8 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
 
     /* Exclude synthetic meshes from shadow catcher pass. */
     if ((path_flag & PATH_RAY_SHADOW_CATCHER_PASS) &&
-        !(kernel_data_fetch(object_flag, object) & SD_OBJECT_SHADOW_CATCHER)) {
+        !(kernel_data_fetch(object_flag, object) & SD_OBJECT_SHADOW_CATCHER))
+    {
       return false;
     }
 
@@ -192,7 +193,8 @@ ccl_device bool lights_intersect(KernelGlobals kg,
       /* This path should have been resolved with mnee, it will
        * generate a firefly for small lights since it is improbable. */
       if ((INTEGRATOR_STATE(state, path, mnee) & PATH_MNEE_CULL_LIGHT_CONNECTION) &&
-          klight->use_caustics) {
+          klight->use_caustics)
+      {
         continue;
       }
 #endif
@@ -227,7 +229,8 @@ ccl_device bool lights_intersect(KernelGlobals kg,
     }
 
     if (t < isect->t &&
-        !(last_prim == lamp && last_object == OBJECT_NONE && last_type == PRIMITIVE_LAMP)) {
+        !(last_prim == lamp && last_object == OBJECT_NONE && last_type == PRIMITIVE_LAMP))
+    {
       isect->t = t;
       isect->u = u;
       isect->v = v;

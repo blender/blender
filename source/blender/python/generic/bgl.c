@@ -825,7 +825,8 @@ static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
                    pybuffer.format);
     }
     else if (ndimensions != pybuffer.ndim ||
-             !compare_dimensions(ndimensions, dimensions, pybuffer.shape)) {
+             !compare_dimensions(ndimensions, dimensions, pybuffer.shape))
+    {
       PyErr_Format(PyExc_TypeError, "array size does not match");
     }
     else {

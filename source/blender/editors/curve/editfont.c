@@ -1075,7 +1075,8 @@ static int paste_text_exec(bContext *C, wmOperator *op)
   }
   else {
     if ((clipboard_system.len <= MAXTEXT) &&
-        font_paste_utf8(C, clipboard_system.buf, clipboard_system.len)) {
+        font_paste_utf8(C, clipboard_system.buf, clipboard_system.len))
+    {
       text_update_edited(C, obedit, FO_EDIT);
       retval = OPERATOR_FINISHED;
     }
@@ -2399,7 +2400,8 @@ bool ED_curve_editfont_select_pick(
 
     for (j = 0; j < 4; j++) {
       if (ED_view3d_project_float_object(
-              vc.region, obedit_co[j], screen_co[j], V3D_PROJ_TEST_CLIP_BB) == V3D_PROJ_RET_OK) {
+              vc.region, obedit_co[j], screen_co[j], V3D_PROJ_TEST_CLIP_BB) == V3D_PROJ_RET_OK)
+      {
         project_ok |= (1 << j);
       }
     }
