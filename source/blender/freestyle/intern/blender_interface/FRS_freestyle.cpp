@@ -45,7 +45,7 @@ using namespace Freestyle;
 
 #include "DEG_depsgraph_query.h"
 
-#include "pipeline.h"
+#include "pipeline.hh"
 
 #include "FRS_freestyle.h"
 
