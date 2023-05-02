@@ -66,7 +66,7 @@ static IDProperty *shortcut_property_from_rna(bContext *C, uiBut *but)
   /* Create ID property of data path, to pass to the operator. */
   const IDPropertyTemplate val = {0};
   IDProperty *prop = IDP_New(IDP_GROUP, &val, __func__);
-  IDP_AddToGroup(prop, IDP_NewString(final_data_path, "data_path", strlen(final_data_path) + 1));
+  IDP_AddToGroup(prop, IDP_NewString(final_data_path, "data_path"));
 
   MEM_freeN((void *)final_data_path);
 

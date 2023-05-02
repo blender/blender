@@ -3395,7 +3395,7 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
     /* both IDP_STRING_SUB_BYTE / IDP_STRING_SUB_UTF8 */
-    IDP_AssignString(idprop, value, RNA_property_string_maxlength(prop) - 1);
+    IDP_AssignStringMaxSize(idprop, value, RNA_property_string_maxlength(prop));
     rna_idproperty_touch(idprop);
   }
   else if (sprop->set) {
@@ -3409,8 +3409,9 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 
     group = RNA_struct_idprops(ptr, 1);
     if (group) {
-      IDP_AddToGroup(group,
-                     IDP_NewString(value, prop->identifier, RNA_property_string_maxlength(prop)));
+      IDP_AddToGroup(
+          group,
+          IDP_NewStringMaxSize(value, prop->identifier, RNA_property_string_maxlength(prop)));
     }
   }
 }

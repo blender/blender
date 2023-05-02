@@ -81,10 +81,10 @@ void IMB_metadata_set_field(struct IDProperty *metadata, const char *key, const 
   }
 
   if (prop) {
-    IDP_AssignString(prop, value, 0);
+    IDP_AssignString(prop, value);
   }
   else if (prop == NULL) {
-    prop = IDP_NewString(value, key, 0);
+    prop = IDP_NewString(value, key);
     IDP_AddToGroup(metadata, prop);
   }
 }

@@ -671,7 +671,7 @@ static void update_input_properties_from_node_tree(const bNodeTree &tree,
 
       if (old_properties == nullptr) {
         if (socket.default_attribute_name && socket.default_attribute_name[0] != '\0') {
-          IDP_AssignString(attribute_prop, socket.default_attribute_name, MAX_NAME);
+          IDP_AssignStringMaxSize(attribute_prop, socket.default_attribute_name, MAX_NAME);
           IDP_Int(use_attribute_prop) = 1;
         }
       }
@@ -705,7 +705,7 @@ static void update_output_properties_from_node_tree(const bNodeTree &tree,
     }
 
     const std::string idprop_name = socket.identifier + attribute_name_suffix;
-    IDProperty *new_prop = IDP_NewString("", idprop_name.c_str(), MAX_NAME);
+    IDProperty *new_prop = IDP_NewString("", idprop_name.c_str());
     if (socket.description[0] != '\0') {
       IDPropertyUIData *ui_data = IDP_ui_data_ensure(new_prop);
       ui_data->description = BLI_strdup(socket.description);
@@ -714,7 +714,7 @@ static void update_output_properties_from_node_tree(const bNodeTree &tree,
 
     if (old_properties == nullptr) {
       if (socket.default_attribute_name && socket.default_attribute_name[0] != '\0') {
-        IDP_AssignString(new_prop, socket.default_attribute_name, MAX_NAME);
+        IDP_AssignStringMaxSize(new_prop, socket.default_attribute_name, MAX_NAME);
       }
     }
     else {
@@ -1498,7 +1498,7 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
   const std::string attribute_prop_name = data.socket_identifier + attribute_name_suffix;
   IDProperty &name_property = *IDP_GetPropertyFromGroup(nmd->settings.properties,
                                                         attribute_prop_name.c_str());
-  IDP_AssignString(&name_property, item.name.c_str(), 0);
+  IDP_AssignString(&name_property, item.name.c_str());
 
   ED_undo_push(C, "Assign Attribute Name");
 }
