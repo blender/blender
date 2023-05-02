@@ -102,9 +102,13 @@ void ED_asset_shelf_region_listen(const wmRegionListenerParams *params)
 
 void ED_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
 {
-  ED_region_panels_init(wm, region);
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_PANELS_UI, region->winx, region->winy);
+
+  wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "View2D Buttons List", 0, 0);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
 
   region->v2d.scroll = V2D_SCROLL_RIGHT;
+  region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
   region->v2d.keepofs |= V2D_KEEPOFS_Y;
   region->v2d.keeptot |= V2D_KEEPTOT_STRICT;
 
