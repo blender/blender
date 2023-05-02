@@ -262,6 +262,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
         if (!(lnor_space->flags & MLNOR_SPACE_IS_SINGLE)) {
           for (LinkNode *lnode = lnor_space->loops; lnode; lnode = lnode->next) {
             const int ml_fan_index = POINTER_AS_INT(lnode->link);
+            item_index_per_corner[ml_fan_index] = item_index;
             BLI_BITMAP_ENABLE(done_loops, ml_fan_index);
           }
         }
