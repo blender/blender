@@ -4331,6 +4331,19 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     do_versions_rename_id(bmain, ID_BR, "Draw Weight", "Weight Draw");
   }
 
+  /* fcm->name was never used to store modifier name so it has always been an empty string. Now
+   * this property supports name editing. So assign value to name variable of Fmodifier otherwise
+   * modifier interface would show an empty name field. Also ensure uniqueness when opening old
+   * files. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 6)) {
+    LISTBASE_FOREACH (bAction *, act, &bmain->actions) {
+      LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
+        LISTBASE_FOREACH (FModifier *, fcm, &fcu->modifiers) {
+          BKE_fmodifier_name_set(fcm, "");
+        }
+      }
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *

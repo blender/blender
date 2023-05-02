@@ -22,6 +22,7 @@
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_sort_utils.h"
+#include "BLI_string_utils.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
@@ -155,6 +156,18 @@ void BKE_fcurves_copy(ListBase *dst, ListBase *src)
     FCurve *dfcu = BKE_fcurve_copy(sfcu);
     BLI_addtail(dst, dfcu);
   }
+}
+
+void BKE_fmodifier_name_set(FModifier *fcm, const char *name)
+{
+  /* Copy new Modifier name. */
+  BLI_strncpy(fcm->name, name, sizeof(fcm->name));
+
+  /* Set default modifier name when name parameter is an empty string.
+   * Ensure the name is unique. */
+  const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(fcm->type);
+  ListBase list = BLI_listbase_from_link((Link *)fcm);
+  BLI_uniquename(&list, fcm, fmi->name, '.', offsetof(FModifier, name), sizeof(fcm->name));
 }
 
 void BKE_fcurve_foreach_id(FCurve *fcu, LibraryForeachIDData *data)
