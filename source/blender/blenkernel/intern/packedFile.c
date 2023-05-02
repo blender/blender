@@ -490,7 +490,7 @@ static void unpack_generate_paths(const char *name,
   char tempname[FILE_MAX];
   char tempdir[FILE_MAXDIR];
 
-  BLI_split_dirfile(name, tempdir, tempname, sizeof(tempdir), sizeof(tempname));
+  BLI_path_split_dir_file(name, tempdir, sizeof(tempdir), tempname, sizeof(tempname));
 
   if (tempname[0] == '\0') {
     /* NOTE: we generally do not have any real way to re-create extension out of data. */

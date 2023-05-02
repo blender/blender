@@ -77,7 +77,7 @@ static void fileselect_initialize_params_common(SpaceFile *sfile, FileSelectPara
 
   if (!params->dir[0]) {
     if (blendfile_path[0] != '\0') {
-      BLI_split_dir_part(blendfile_path, params->dir, sizeof(params->dir));
+      BLI_path_split_dir_part(blendfile_path, params->dir, sizeof(params->dir));
     }
     else {
       const char *doc_path = BKE_appdir_folder_default();
@@ -147,11 +147,11 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     sfile->params = static_cast<FileSelectParams *>(
         MEM_callocN(sizeof(FileSelectParams), "fileselparams"));
     /* set path to most recently opened .blend */
-    BLI_split_dirfile(blendfile_path,
-                      sfile->params->dir,
-                      sfile->params->file,
-                      sizeof(sfile->params->dir),
-                      sizeof(sfile->params->file));
+    BLI_path_split_dir_file(blendfile_path,
+                            sfile->params->dir,
+                            sizeof(sfile->params->dir),
+                            sfile->params->file,
+                            sizeof(sfile->params->file));
     sfile->params->filter_glob[0] = '\0';
     sfile->params->thumbnail_size = U_default.file_space_data.thumbnail_size;
     sfile->params->details_flags = U_default.file_space_data.details_flags;
@@ -187,8 +187,8 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
         params->file[0] = '\0';
       }
       else {
-        BLI_split_dirfile(
-            name, params->dir, params->file, sizeof(params->dir), sizeof(params->file));
+        BLI_path_split_dir_file(
+            name, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
       }
     }
     else {
@@ -1221,7 +1221,7 @@ int autocomplete_directory(struct bContext *C, char *str, void * /*arg_v*/)
     DIR *dir;
     struct dirent *de;
 
-    BLI_split_dir_part(str, dirname, sizeof(dirname));
+    BLI_path_split_dir_part(str, dirname, sizeof(dirname));
 
     dir = opendir(dirname);
 

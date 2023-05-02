@@ -903,7 +903,7 @@ static int lib_relocate(
     Library *lib = (Library *)tselem->id;
     char dir[FILE_MAXDIR], filename[FILE_MAX];
 
-    BLI_split_dirfile(lib->filepath_abs, dir, filename, sizeof(dir), sizeof(filename));
+    BLI_path_split_dir_file(lib->filepath_abs, dir, sizeof(dir), filename, sizeof(filename));
 
     printf("%s, %s\n", tselem->id->name, lib->filepath_abs);
 

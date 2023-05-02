@@ -873,7 +873,7 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
   /* Test if file exists. */
   if (!BLI_exists(filepath)) {
     char filename[FILE_MAX];
-    BLI_split_file_part(filepath, filename, sizeof(filename));
+    BLI_path_split_file_part(filepath, filename, sizeof(filename));
     grids.error_msg = filename + std::string(" not found");
     CLOG_INFO(&LOG, 1, "Volume %s: %s", volume_name, grids.error_msg.c_str());
     return false;

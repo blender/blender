@@ -643,7 +643,7 @@ TEST(path_util, Frame)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Tests for: #BLI_split_dirfile
+/** \name Tests for: #BLI_path_split_dir_file
  * \{ */
 
 TEST(path_util, SplitDirfile)
@@ -651,7 +651,7 @@ TEST(path_util, SplitDirfile)
   {
     const char *path = "";
     char dir[FILE_MAX], file[FILE_MAX];
-    BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
+    BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
     EXPECT_STREQ(dir, "");
     EXPECT_STREQ(file, "");
   }
@@ -659,7 +659,7 @@ TEST(path_util, SplitDirfile)
   {
     const char *path = "/";
     char dir[FILE_MAX], file[FILE_MAX];
-    BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
+    BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
     EXPECT_STREQ(dir, "/");
     EXPECT_STREQ(file, "");
   }
@@ -667,7 +667,7 @@ TEST(path_util, SplitDirfile)
   {
     const char *path = "fileonly";
     char dir[FILE_MAX], file[FILE_MAX];
-    BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
+    BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
     EXPECT_STREQ(dir, "");
     EXPECT_STREQ(file, "fileonly");
   }
@@ -675,7 +675,7 @@ TEST(path_util, SplitDirfile)
   {
     const char *path = "dironly/";
     char dir[FILE_MAX], file[FILE_MAX];
-    BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
+    BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
     EXPECT_STREQ(dir, "dironly/");
     EXPECT_STREQ(file, "");
   }
@@ -683,7 +683,7 @@ TEST(path_util, SplitDirfile)
   {
     const char *path = "/a/b";
     char dir[FILE_MAX], file[FILE_MAX];
-    BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
+    BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
     EXPECT_STREQ(dir, "/a/");
     EXPECT_STREQ(file, "b");
   }
@@ -691,11 +691,11 @@ TEST(path_util, SplitDirfile)
   {
     const char *path = "/dirtoobig/filetoobig";
     char dir[5], file[5];
-    BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
+    BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
     EXPECT_STREQ(dir, "/dir");
     EXPECT_STREQ(file, "file");
 
-    BLI_split_dirfile(path, dir, file, 1, 1);
+    BLI_path_split_dir_file(path, dir, 1, file, 1);
     EXPECT_STREQ(dir, "");
     EXPECT_STREQ(file, "");
   }

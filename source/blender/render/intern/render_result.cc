@@ -852,7 +852,7 @@ static void render_result_exr_file_cache_path(Scene *sce,
   /* If root is relative, use either current .blend file dir, or temp one if not saved. */
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
   if (blendfile_path[0] != '\0') {
-    BLI_split_dirfile(blendfile_path, dirname, filename, sizeof(dirname), sizeof(filename));
+    BLI_path_split_dir_file(blendfile_path, dirname, sizeof(dirname), filename, sizeof(filename));
     BLI_path_extension_strip(filename); /* Strip `.blend`. */
     BLI_hash_md5_buffer(blendfile_path, strlen(blendfile_path), path_digest);
   }

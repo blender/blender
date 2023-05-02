@@ -27,7 +27,7 @@
 #  include "DNA_mask_types.h"
 #  include "DNA_sound_types.h"
 
-#  include "BLI_path_util.h" /* BLI_split_dirfile */
+#  include "BLI_path_util.h" /* #BLI_path_split_dir_file */
 
 #  include "BKE_image.h"
 #  include "BKE_mask.h"
@@ -256,7 +256,7 @@ static Sequence *rna_Sequences_new_image(ID *id,
   Sequence *seq = SEQ_add_image_strip(bmain, scene, seqbase, &load_data);
 
   char dir[FILE_MAX], filename[FILE_MAX];
-  BLI_split_dirfile(file, dir, filename, sizeof(dir), sizeof(filename));
+  BLI_path_split_dir_file(file, dir, sizeof(dir), filename, sizeof(filename));
   SEQ_add_image_set_directory(seq, dir);
   SEQ_add_image_load_file(scene, seq, 0, filename);
   SEQ_add_image_init_alpha_mode(seq);

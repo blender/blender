@@ -1690,8 +1690,8 @@ void file_operator_to_sfile(Main *bmain, SpaceFile *sfile, wmOperator *op)
   if ((prop = RNA_struct_find_property(op->ptr, "filepath"))) {
     char filepath[FILE_MAX];
     RNA_property_string_get(op->ptr, prop, filepath);
-    BLI_split_dirfile(
-        filepath, params->dir, params->file, sizeof(params->dir), sizeof(params->file));
+    BLI_path_split_dir_file(
+        filepath, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
   }
   else {
     if ((prop = RNA_struct_find_property(op->ptr, "filename"))) {
@@ -1719,11 +1719,11 @@ void file_sfile_filepath_set(SpaceFile *sfile, const char *filepath)
   }
   else {
     if ((params->flag & FILE_DIRSEL_ONLY) == 0) {
-      BLI_split_dirfile(
-          filepath, params->dir, params->file, sizeof(params->dir), sizeof(params->file));
+      BLI_path_split_dir_file(
+          filepath, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
     }
     else {
-      BLI_split_dir_part(filepath, params->dir, sizeof(params->dir));
+      BLI_path_split_dir_part(filepath, params->dir, sizeof(params->dir));
     }
   }
 }
@@ -2048,11 +2048,11 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
   if (file && file->redirection_path) {
     /* redirection_path is an absolute path that takes precedence
      * over using params->dir + params->file. */
-    BLI_split_dirfile(file->redirection_path,
-                      params->dir,
-                      params->file,
-                      sizeof(params->dir),
-                      sizeof(params->file));
+    BLI_path_split_dir_file(file->redirection_path,
+                            params->dir,
+                            sizeof(params->dir),
+                            params->file,
+                            sizeof(params->file));
     /* Update relpath with redirected filename as well so that the alternative
      * combination of params->dir + relpath remains valid as well. */
     MEM_freeN(file->relpath);
@@ -2805,8 +2805,8 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
       if (BLI_is_file(params->dir)) {
         char path[sizeof(params->dir)];
         BLI_strncpy(path, params->dir, sizeof(path));
-        BLI_split_dirfile(
-            path, params->dir, params->file, sizeof(params->dir), sizeof(params->file));
+        BLI_path_split_dir_file(
+            path, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
       }
       else if (BKE_blendfile_library_path_explode(params->dir, tdir, &group, &name)) {
         if (group) {

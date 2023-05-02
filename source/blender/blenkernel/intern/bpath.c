@@ -174,7 +174,7 @@ bool BKE_bpath_foreach_path_dirfile_fixed_process(BPathForeachPathData *bpath_da
   }
 
   if (bpath_data->callback_function(bpath_data, path_dst, (const char *)path_src)) {
-    BLI_split_dirfile(path_dst, path_dir, path_file, FILE_MAXDIR, FILE_MAXFILE);
+    BLI_path_split_dir_file(path_dst, path_dir, FILE_MAXDIR, path_file, FILE_MAXFILE);
     bpath_data->is_path_modified = true;
     return true;
   }

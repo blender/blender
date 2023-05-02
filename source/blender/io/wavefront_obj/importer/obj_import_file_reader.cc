@@ -841,7 +841,7 @@ void OBJParser::add_default_mtl_library()
   BLI_path_extension_replace(mtl_file_path, sizeof(mtl_file_path), ".mtl");
   if (BLI_exists(mtl_file_path)) {
     char mtl_file_base[FILE_MAX];
-    BLI_split_file_part(mtl_file_path, mtl_file_base, sizeof(mtl_file_base));
+    BLI_path_split_file_part(mtl_file_path, mtl_file_base, sizeof(mtl_file_base));
     add_mtl_library(mtl_file_base);
   }
 }
@@ -849,9 +849,9 @@ void OBJParser::add_default_mtl_library()
 MTLParser::MTLParser(StringRefNull mtl_library, StringRefNull obj_filepath)
 {
   char obj_file_dir[FILE_MAXDIR];
-  BLI_split_dir_part(obj_filepath.data(), obj_file_dir, FILE_MAXDIR);
+  BLI_path_split_dir_part(obj_filepath.data(), obj_file_dir, FILE_MAXDIR);
   BLI_path_join(mtl_file_path_, FILE_MAX, obj_file_dir, mtl_library.data());
-  BLI_split_dir_part(mtl_file_path_, mtl_dir_path_, FILE_MAXDIR);
+  BLI_path_split_dir_part(mtl_file_path_, mtl_dir_path_, FILE_MAXDIR);
 }
 
 void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_materials)

@@ -1326,7 +1326,7 @@ static int ptcache_path(PTCacheID *pid, char dirname[MAX_PTCACHE_PATH])
   if ((blendfile_path[0] != '\0') || lib) {
     char file[MAX_PTCACHE_PATH]; /* we don't want the dir, only the file */
 
-    BLI_split_file_part(blendfilename, file, sizeof(file));
+    BLI_path_split_file_part(blendfilename, file, sizeof(file));
     i = strlen(file);
 
     /* remove .blend */

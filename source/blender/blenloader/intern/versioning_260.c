@@ -271,7 +271,8 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
         char basepath[FILE_MAXDIR];
 
         /* split off filename from the old path, to be used as socket sub-path */
-        BLI_split_dirfile(old_data->name, basepath, filename, sizeof(basepath), sizeof(filename));
+        BLI_path_split_dir_file(
+            old_data->name, basepath, sizeof(basepath), filename, sizeof(filename));
 
         BLI_strncpy(nimf->base_path, basepath, sizeof(nimf->base_path));
         nimf->format = old_data->im_format;

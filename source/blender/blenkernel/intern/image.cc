@@ -291,7 +291,7 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   if (ima->source == IMA_SRC_TILED && (flag & BKE_BPATH_FOREACH_PATH_RESOLVE_TOKEN) != 0) {
     char temp_path[FILE_MAX], orig_file[FILE_MAXFILE];
     BLI_strncpy(temp_path, ima->filepath, sizeof(temp_path));
-    BLI_split_file_part(temp_path, orig_file, sizeof(orig_file));
+    BLI_path_split_file_part(temp_path, orig_file, sizeof(orig_file));
 
     eUDIM_TILE_FORMAT tile_format;
     char *udim_pattern = BKE_image_get_tile_strformat(temp_path, &tile_format);
@@ -303,7 +303,7 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     if (result) {
       /* Put the filepath back together using the new directory and the original file name. */
       char new_dir[FILE_MAXDIR];
-      BLI_split_dir_part(temp_path, new_dir, sizeof(new_dir));
+      BLI_path_split_dir_part(temp_path, new_dir, sizeof(new_dir));
       BLI_path_join(ima->filepath, sizeof(ima->filepath), new_dir, orig_file);
     }
   }
@@ -3319,7 +3319,7 @@ void BKE_image_get_tile_label(Image *ima, ImageTile *tile, char *label, int len_
 bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start, int *r_tile_range)
 {
   char filename[FILE_MAXFILE], dirname[FILE_MAXDIR];
-  BLI_split_dirfile(filepath, dirname, filename, sizeof(dirname), sizeof(filename));
+  BLI_path_split_dir_file(filepath, dirname, sizeof(dirname), filename, sizeof(filename));
 
   if (!BKE_image_is_filename_tokenized(filename)) {
     BKE_image_ensure_tile_token_filename_only(filename, sizeof(filename));
@@ -3553,7 +3553,7 @@ bool BKE_image_tile_filepath_exists(const char *filepath)
   BLI_assert(!BLI_path_is_rel(filepath));
 
   char dirname[FILE_MAXDIR];
-  BLI_split_dir_part(filepath, dirname, sizeof(dirname));
+  BLI_path_split_dir_part(filepath, dirname, sizeof(dirname));
 
   eUDIM_TILE_FORMAT tile_format;
   char *udim_pattern = BKE_image_get_tile_strformat(filepath, &tile_format);

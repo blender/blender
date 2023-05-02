@@ -592,7 +592,7 @@ void WM_file_autoexec_init(const char *filepath)
 
   if (G.f & G_FLAG_SCRIPT_AUTOEXEC) {
     char dirpath[FILE_MAX];
-    BLI_split_dir_part(filepath, dirpath, sizeof(dirpath));
+    BLI_path_split_dir_part(filepath, dirpath, sizeof(dirpath));
     if (BKE_autoexec_match(dirpath)) {
       G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
     }
@@ -3759,7 +3759,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   const char *blendfile_path = BKE_main_blendfile_path(CTX_data_main(C));
   char filename[FILE_MAX];
   if (blendfile_path[0] != '\0') {
-    BLI_split_file_part(blendfile_path, filename, sizeof(filename));
+    BLI_path_split_file_part(blendfile_path, filename, sizeof(filename));
   }
   else {
     SNPRINTF(filename, "%s.blend", DATA_("untitled"));

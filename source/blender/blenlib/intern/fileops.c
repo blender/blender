@@ -246,7 +246,7 @@ bool BLI_file_is_writable(const char *filepath)
   else {
     /* file doesn't exist -- check I can create it in parent directory */
     char parent[FILE_MAX];
-    BLI_split_dirfile(filepath, parent, NULL, sizeof(parent), 0);
+    BLI_path_split_dir_file(filepath, parent, sizeof(parent), NULL, 0);
 #ifdef WIN32
     /* windows does not have X_OK */
     writable = BLI_access(parent, W_OK) == 0;

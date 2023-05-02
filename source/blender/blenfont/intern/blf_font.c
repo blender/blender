@@ -1543,7 +1543,7 @@ FontBLF *blf_font_new_ex(const char *name,
     const struct FaceDetails *static_details = NULL;
     char filename[256];
     for (int i = 0; i < (int)ARRAY_SIZE(static_face_details); i++) {
-      BLI_split_file_part(font->filepath, filename, sizeof(filename));
+      BLI_path_split_file_part(font->filepath, filename, sizeof(filename));
       if (STREQ(static_face_details[i].name, filename)) {
         static_details = &static_face_details[i];
         font->unicode_ranges[0] = static_details->coverage1;

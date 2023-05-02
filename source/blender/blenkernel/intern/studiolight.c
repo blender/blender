@@ -1154,7 +1154,7 @@ static void studiolight_calculate_irradiance_equirect_image(StudioLight *sl)
 static StudioLight *studiolight_add_file(const char *path, int flag)
 {
   char filename[FILE_MAXFILE];
-  BLI_split_file_part(path, filename, FILE_MAXFILE);
+  BLI_path_split_file_part(path, filename, FILE_MAXFILE);
 
   if ((((flag & STUDIOLIGHT_TYPE_STUDIO) != 0) && BLI_path_extension_check(filename, ".sl")) ||
       BLI_path_extension_check_array(filename, imb_ext_image))
@@ -1593,7 +1593,7 @@ StudioLight *BKE_studiolight_create(const char *path,
                                        STUDIOLIGHT_SPECULAR_HIGHLIGHT_PASS);
 
   char filename[FILE_MAXFILE];
-  BLI_split_file_part(path, filename, FILE_MAXFILE);
+  BLI_path_split_file_part(path, filename, FILE_MAXFILE);
   STRNCPY(sl->path, path);
   STRNCPY(sl->name, filename);
 

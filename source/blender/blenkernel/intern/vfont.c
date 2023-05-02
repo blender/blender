@@ -327,7 +327,7 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
     is_builtin = true;
   }
   else {
-    BLI_split_file_part(filepath, filename, sizeof(filename));
+    BLI_path_split_file_part(filepath, filename, sizeof(filename));
     pf = BKE_packedfile_new(NULL, filepath, BKE_main_blendfile_path(bmain));
 
     is_builtin = false;

@@ -935,7 +935,7 @@ bool DocumentImporter::writeImage(const COLLADAFW::Image *image)
   char absolute_path[FILE_MAX];
   const char *workpath;
 
-  BLI_split_dir_part(this->import_settings->filepath, dir, sizeof(dir));
+  BLI_path_split_dir_part(this->import_settings->filepath, dir, sizeof(dir));
   BLI_path_join(absolute_path, sizeof(absolute_path), dir, imagepath.c_str());
   if (BLI_exists(absolute_path)) {
     workpath = absolute_path;

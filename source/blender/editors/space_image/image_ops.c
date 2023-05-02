@@ -2250,7 +2250,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
   }
 
   /* get a filename for menu */
-  BLI_split_dir_part(first_ibuf->name, di, sizeof(di));
+  BLI_path_split_dir_part(first_ibuf->name, di, sizeof(di));
   BKE_reportf(op->reports, RPT_INFO, "%d image(s) will be saved in %s", tot, di);
 
   iter = IMB_moviecacheIter_new(image->cache);

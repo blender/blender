@@ -415,7 +415,7 @@ static void export_in_memory_texture(Image *ima,
   char file_name[FILE_MAX];
   if (strlen(ima->filepath) > 0) {
     get_absolute_path(ima, image_abs_path);
-    BLI_split_file_part(image_abs_path, file_name, FILE_MAX);
+    BLI_path_split_file_part(image_abs_path, file_name, FILE_MAX);
   }
   else {
     /* Use the image name for the file name. */
@@ -630,7 +630,7 @@ static std::string get_tex_image_asset_path(bNode *node,
 
     char exp_path[FILE_MAX];
     char file_path[FILE_MAX];
-    BLI_split_file_part(path.c_str(), file_path, FILE_MAX);
+    BLI_path_split_file_part(path.c_str(), file_path, FILE_MAX);
 
     if (export_params.relative_paths) {
       BLI_path_join(exp_path, FILE_MAX, ".", "textures", file_path);
@@ -644,7 +644,7 @@ static std::string get_tex_image_asset_path(bNode *node,
       }
 
       char dir_path[FILE_MAX];
-      BLI_split_dir_part(stage_path.c_str(), dir_path, FILE_MAX);
+      BLI_path_split_dir_part(stage_path.c_str(), dir_path, FILE_MAX);
       BLI_path_join(exp_path, FILE_MAX, dir_path, "textures", file_path);
     }
     BLI_str_replace_char(exp_path, '\\', '/');
@@ -699,7 +699,7 @@ static void copy_tiled_textures(Image *ima,
         src_tile_path, udim_pattern, tile_format, tile->tile_number);
 
     char dest_filename[FILE_MAXFILE];
-    BLI_split_file_part(src_tile_path, dest_filename, sizeof(dest_filename));
+    BLI_path_split_file_part(src_tile_path, dest_filename, sizeof(dest_filename));
 
     char dest_tile_path[FILE_MAX];
     BLI_path_join(dest_tile_path, FILE_MAX, dest_dir.c_str(), dest_filename);
@@ -734,7 +734,7 @@ static void copy_single_file(Image *ima, const std::string &dest_dir, const bool
   get_absolute_path(ima, source_path);
 
   char file_name[FILE_MAX];
-  BLI_split_file_part(source_path, file_name, FILE_MAX);
+  BLI_path_split_file_part(source_path, file_name, FILE_MAX);
 
   char dest_path[FILE_MAX];
   BLI_path_join(dest_path, FILE_MAX, dest_dir.c_str(), file_name);
@@ -780,7 +780,7 @@ static void export_texture(bNode *node,
   }
 
   char usd_dir_path[FILE_MAX];
-  BLI_split_dir_part(stage_path.c_str(), usd_dir_path, FILE_MAX);
+  BLI_path_split_dir_part(stage_path.c_str(), usd_dir_path, FILE_MAX);
 
   char tex_dir_path[FILE_MAX];
   BLI_path_join(tex_dir_path, FILE_MAX, usd_dir_path, "textures", SEP_STR);

@@ -503,11 +503,11 @@ static int get_sequence_len(const char *filename, int *ofs)
   }
 
   char path[FILE_MAX];
-  BLI_split_dir_part(filename, path, FILE_MAX);
+  BLI_path_split_dir_part(filename, path, FILE_MAX);
 
   if (path[0] == '\0') {
     /* The filename had no path, so just use the blend file path. */
-    BLI_split_dir_part(BKE_main_blendfile_path_from_global(), path, FILE_MAX);
+    BLI_path_split_dir_part(BKE_main_blendfile_path_from_global(), path, FILE_MAX);
   }
   else {
     BLI_path_abs(path, BKE_main_blendfile_path_from_global());

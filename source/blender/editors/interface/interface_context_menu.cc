@@ -441,7 +441,7 @@ static void ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
   UNUSED_VARS_NDEBUG(subtype);
 
   RNA_property_string_get(ptr, prop, filepath);
-  BLI_split_dirfile(filepath, dir, file, sizeof(dir), sizeof(file));
+  BLI_path_split_dir_file(filepath, dir, sizeof(dir), file, sizeof(file));
 
   if (file[0]) {
     BLI_assert(subtype == PROP_FILEPATH);

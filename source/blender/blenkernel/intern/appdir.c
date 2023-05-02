@@ -896,13 +896,14 @@ void BKE_appdir_program_path_init(const char *argv0)
   if (g_app.program_dirname[0] == '\0') {
     /* First time initializing, the file binary path isn't valid from a Python module.
      * Calling again must set the `filepath` and leave the directory as-is. */
-    BLI_split_dir_part(
+    BLI_path_split_dir_part(
         g_app.program_filepath, g_app.program_dirname, sizeof(g_app.program_dirname));
     g_app.program_filepath[0] = '\0';
   }
 #else
   where_am_i(g_app.program_filepath, sizeof(g_app.program_filepath), argv0);
-  BLI_split_dir_part(g_app.program_filepath, g_app.program_dirname, sizeof(g_app.program_dirname));
+  BLI_path_split_dir_part(
+      g_app.program_filepath, g_app.program_dirname, sizeof(g_app.program_dirname));
 #endif
 }
 

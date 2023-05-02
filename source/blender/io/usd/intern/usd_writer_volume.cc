@@ -124,11 +124,11 @@ std::optional<std::string> USDVolumeWriter::construct_vdb_file_path(const Volume
 
   char usd_directory_path[FILE_MAX];
   char usd_file_name[FILE_MAXFILE];
-  BLI_split_dirfile(usd_file_path.c_str(),
-                    usd_directory_path,
-                    usd_file_name,
-                    sizeof(usd_directory_path),
-                    sizeof(usd_file_name));
+  BLI_path_split_dir_file(usd_file_path.c_str(),
+                          usd_directory_path,
+                          sizeof(usd_directory_path),
+                          usd_file_name,
+                          sizeof(usd_file_name));
 
   if (usd_directory_path[0] == '\0' || usd_file_name[0] == '\0') {
     return std::nullopt;
