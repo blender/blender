@@ -263,19 +263,18 @@ class SampleNearestFunction : public mf::MultiFunction {
       case GEO_COMPONENT_TYPE_MESH: {
         const MeshComponent &component = *static_cast<const MeshComponent *>(src_component_);
         const Mesh &mesh = *component.get_for_read();
-        Array<float> distances(mask.min_array_size());
         switch (domain_) {
           case ATTR_DOMAIN_POINT:
-            get_closest_mesh_points(mesh, positions, mask, indices, distances, {});
+            get_closest_mesh_points(mesh, positions, mask, indices, {}, {});
             break;
           case ATTR_DOMAIN_EDGE:
-            get_closest_mesh_edges(mesh, positions, mask, indices, distances, {});
+            get_closest_mesh_edges(mesh, positions, mask, indices, {}, {});
             break;
           case ATTR_DOMAIN_FACE:
-            get_closest_mesh_polys(mesh, positions, mask, indices, distances, {});
+            get_closest_mesh_polys(mesh, positions, mask, indices, {}, {});
             break;
           case ATTR_DOMAIN_CORNER:
-            get_closest_mesh_corners(mesh, positions, mask, indices, distances, {});
+            get_closest_mesh_corners(mesh, positions, mask, indices, {}, {});
             break;
           default:
             break;
@@ -286,8 +285,7 @@ class SampleNearestFunction : public mf::MultiFunction {
         const PointCloudComponent &component = *static_cast<const PointCloudComponent *>(
             src_component_);
         const PointCloud &points = *component.get_for_read();
-        Array<float> distances(mask.min_array_size());
-        get_closest_pointcloud_points(points, positions, mask, indices, distances);
+        get_closest_pointcloud_points(points, positions, mask, indices, {});
         break;
       }
       default:
