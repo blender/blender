@@ -176,7 +176,7 @@ static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, char *path)
     }
 
     char file[FILE_MAX];
-    BLI_path_split_dir_file(fl->path, NULL, 0, file, sizeof(file));
+    BLI_path_split_file_part(fl->path, file, sizeof(file));
 
     bool is_dir = BLI_is_dir(fl->path);
     if (is_dir && !FILENAME_IS_CURRPAR(file)) {

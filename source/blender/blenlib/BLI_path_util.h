@@ -49,10 +49,12 @@ bool BLI_make_existing_file(const char *name);
  * - Won't change \a string.
  * - Won't create any directories.
  * - Doesn't use CWD, or deal with relative paths.
- * - Only fill's in \a dir and \a file when they are non NULL.
  */
-void BLI_path_split_dir_file(
-    const char *string, char *dir, size_t dirlen, char *file, size_t filelen);
+void BLI_path_split_dir_file(const char *string,
+                             char *dir,
+                             size_t dirlen,
+                             char *file,
+                             size_t filelen) ATTR_NONNULL(1, 2, 4);
 /**
  * Copies the parent directory part of string into `dir`, max length `dirlen`.
  */
