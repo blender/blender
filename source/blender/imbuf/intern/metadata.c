@@ -80,12 +80,13 @@ void IMB_metadata_set_field(struct IDProperty *metadata, const char *key, const 
     prop = NULL;
   }
 
-  if (prop == NULL) {
+  if (prop) {
+    IDP_AssignString(prop, value, 0);
+  }
+  else if (prop == NULL) {
     prop = IDP_NewString(value, key, 0);
     IDP_AddToGroup(metadata, prop);
   }
-
-  IDP_AssignString(prop, value, 0);
 }
 
 void IMB_metadata_foreach(struct ImBuf *ibuf, IMBMetadataForeachCb callback, void *userdata)
