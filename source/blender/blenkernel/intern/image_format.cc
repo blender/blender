@@ -525,7 +525,7 @@ int BKE_image_path_ensure_ext_from_imtype(char *string, const char imtype)
   return do_add_image_extension(string, imtype, nullptr);
 }
 
-static void do_makepicstring(char *string,
+static void do_makepicstring(char string[FILE_MAX],
                              const char *base,
                              const char *relbase,
                              int frame,
@@ -542,7 +542,7 @@ static void do_makepicstring(char *string,
   BLI_path_abs(string, relbase);
 
   if (use_frames) {
-    BLI_path_frame(string, frame, 4);
+    BLI_path_frame(string, FILE_MAX, frame, 4);
   }
 
   if (suffix) {

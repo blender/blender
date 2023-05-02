@@ -544,7 +544,7 @@ static void get_proxy_filepath(const MovieClip *clip,
   }
 
   BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
-  BLI_path_frame(filepath, 1, 0);
+  BLI_path_frame(filepath, FILE_MAX, 1, 0);
   BLI_strncat(filepath, ".jpg", FILE_MAX);
 }
 

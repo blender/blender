@@ -2322,6 +2322,6 @@ string MANTA::getFile(
   string path = getDirectory(fmd, subdirectory);
   string filename = fname + "_####" + extension;
   BLI_path_join(targetFile, sizeof(targetFile), path.c_str(), filename.c_str());
-  BLI_path_frame(targetFile, framenr, 0);
+  BLI_path_frame(targetFile, sizeof(targetFile), framenr, 0);
   return targetFile;
 }

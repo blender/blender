@@ -852,7 +852,7 @@ static void ensure_digits(char *path, int digits)
   }
 }
 
-bool BLI_path_frame(char *path, int frame, int digits)
+bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits)
 {
   int ch_sta, ch_end;
 
@@ -864,7 +864,7 @@ bool BLI_path_frame(char *path, int frame, int digits)
     char tmp[FILE_MAX];
     BLI_snprintf(
         tmp, sizeof(tmp), "%.*s%.*d%s", ch_sta, path, ch_end - ch_sta, frame, path + ch_end);
-    BLI_strncpy(path, tmp, FILE_MAX);
+    BLI_strncpy(path, tmp, path_maxncpy);
     return true;
   }
   return false;

@@ -423,7 +423,7 @@ bool BLI_path_abs(char *path, const char *basepath) ATTR_NONNULL();
  * Replaces "#" character sequence in last slash-separated component of `path`
  * with frame as decimal integer, with leading zeroes as necessary, to make digits.
  */
-bool BLI_path_frame(char *path, int frame, int digits) ATTR_NONNULL();
+bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits) ATTR_NONNULL();
 /**
  * Replaces "#" character sequence in last slash-separated component of `path`
  * with sta and end as decimal integers, with leading zeroes as necessary, to make digits

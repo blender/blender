@@ -147,7 +147,7 @@ std::optional<std::string> USDVolumeWriter::construct_vdb_file_path(const Volume
   if (!timecode.IsDefault()) {
     const int frame = int(timecode.GetValue());
     const int num_frame_digits = frame == 0 ? 1 : integer_digits_i(abs(frame));
-    BLI_path_frame(vdb_file_name, frame, num_frame_digits);
+    BLI_path_frame(vdb_file_name, sizeof(vdb_file_name), frame, num_frame_digits);
   }
   BLI_strncat(vdb_file_name, ".vdb", sizeof(vdb_file_name));
 

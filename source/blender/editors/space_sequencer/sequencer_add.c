@@ -1253,7 +1253,7 @@ void sequencer_image_seq_reserve_frames(
 
     for (int i = 0; i < len; i++, se++) {
       BLI_strncpy(filename_stripped, filename, sizeof(filename_stripped));
-      BLI_path_frame(filename_stripped, minframe + i, numdigits);
+      BLI_path_frame(filename_stripped, sizeof(filename_stripped), minframe + i, numdigits);
       BLI_snprintf(se->name, sizeof(se->name), "%s%s", filename_stripped, ext);
     }
 
