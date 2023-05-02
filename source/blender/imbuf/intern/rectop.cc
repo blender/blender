@@ -202,14 +202,14 @@ void IMB_blend_color_float(float dst[4],
 
 static void rect_crop_4bytes(void **buf_p, const int size_src[2], const rcti *crop)
 {
-  if (*buf_p == NULL) {
+  if (*buf_p == nullptr) {
     return;
   }
   const int size_dst[2] = {
       BLI_rcti_size_x(crop) + 1,
       BLI_rcti_size_y(crop) + 1,
   };
-  uint *src = *buf_p;
+  uint *src = static_cast<uint *>(*buf_p);
   uint *dst = src + crop->ymin * size_src[0] + crop->xmin;
   for (int y = 0; y < size_dst[1]; y++, src += size_dst[0], dst += size_src[0]) {
     memmove(src, dst, sizeof(uint) * size_dst[0]);
@@ -219,14 +219,14 @@ static void rect_crop_4bytes(void **buf_p, const int size_src[2], const rcti *cr
 
 static void rect_crop_16bytes(void **buf_p, const int size_src[2], const rcti *crop)
 {
-  if (*buf_p == NULL) {
+  if (*buf_p == nullptr) {
     return;
   }
   const int size_dst[2] = {
       BLI_rcti_size_x(crop) + 1,
       BLI_rcti_size_y(crop) + 1,
   };
-  uint(*src)[4] = *buf_p;
+  uint(*src)[4] = static_cast<uint(*)[4]>(*buf_p);
   uint(*dst)[4] = src + crop->ymin * size_src[0] + crop->xmin;
   for (int y = 0; y < size_dst[1]; y++, src += size_dst[0], dst += size_src[0]) {
     memmove(src, dst, sizeof(uint[4]) * size_dst[0]);
@@ -266,7 +266,7 @@ void IMB_rect_crop(ImBuf *ibuf, const rcti *crop)
  */
 static void rect_realloc_4bytes(void **buf_p, const uint size[2])
 {
-  if (*buf_p == NULL) {
+  if (*buf_p == nullptr) {
     return;
   }
   MEM_freeN(*buf_p);
@@ -275,7 +275,7 @@ static void rect_realloc_4bytes(void **buf_p, const uint size[2])
 
 static void rect_realloc_16bytes(void **buf_p, const uint size[2])
 {
-  if (*buf_p == NULL) {
+  if (*buf_p == nullptr) {
     return;
   }
   MEM_freeN(*buf_p);
@@ -313,7 +313,7 @@ void IMB_rectclip(ImBuf *dbuf,
 {
   int tmp;
 
-  if (dbuf == NULL) {
+  if (dbuf == nullptr) {
     return;
   }
 
@@ -378,7 +378,7 @@ static void imb_rectclip3(ImBuf *dbuf,
 {
   int tmp;
 
-  if (dbuf == NULL) {
+  if (dbuf == nullptr) {
     return;
   }
 
@@ -471,9 +471,9 @@ void IMB_rectcpy(ImBuf *dbuf,
   IMB_rectblend(dbuf,
                 dbuf,
                 sbuf,
-                NULL,
-                NULL,
-                NULL,
+                nullptr,
+                nullptr,
+                nullptr,
                 0,
                 destx,
                 desty,
@@ -508,16 +508,16 @@ void IMB_rectblend(ImBuf *dbuf,
                    IMB_BlendMode mode,
                    bool accumulate)
 {
-  uint *drect = NULL, *orect = NULL, *srect = NULL, *dr, * or, *sr;
-  float *drectf = NULL, *orectf = NULL, *srectf = NULL, *drf, *orf, *srf;
+  uint *drect = nullptr, *orect = nullptr, *srect = nullptr, *dr, *outr, *sr;
+  float *drectf = nullptr, *orectf = nullptr, *srectf = nullptr, *drf, *orf, *srf;
   const ushort *cmaskrect = curvemask, *cmr;
   ushort *dmaskrect = dmask, *dmr;
   const ushort *texmaskrect = texmask, *tmr;
   int srcskip, destskip, origskip, x;
-  IMB_blend_func func = NULL;
-  IMB_blend_func_float func_float = NULL;
+  IMB_blend_func func = nullptr;
+  IMB_blend_func_float func_float = nullptr;
 
-  if (dbuf == NULL || obuf == NULL) {
+  if (dbuf == nullptr || obuf == nullptr) {
     return;
   }
 
@@ -752,7 +752,7 @@ void IMB_rectblend(ImBuf *dbuf,
     for (; height > 0; height--) {
       if (do_char) {
         dr = drect;
-        or = orect;
+        outr = orect;
         sr = srect;
 
         if (cmaskrect) {
@@ -763,7 +763,7 @@ void IMB_rectblend(ImBuf *dbuf,
           /* destination mask present, do max alpha masking */
           if (dmaskrect) {
             dmr = dmaskrect;
-            for (x = width; x > 0; x--, dr++, or ++, sr++, dmr++, cmr++) {
+            for (x = width; x > 0; x--, dr++, outr++, sr++, dmr++, cmr++) {
               uchar *src = (uchar *)sr;
               float mask_lim = mask_max * (*cmr);
 
@@ -795,11 +795,11 @@ void IMB_rectblend(ImBuf *dbuf,
                   if (mode == IMB_BLEND_INTERPOLATE) {
                     mask_src[3] = src[3];
                     blend_color_interpolate_byte(
-                        (uchar *)dr, (uchar *) or, mask_src, mask / 65535.0f);
+                        (uchar *)dr, (uchar *)outr, mask_src, mask / 65535.0f);
                   }
                   else {
                     mask_src[3] = divide_round_i(src[3] * mask, 65535);
-                    func((uchar *)dr, (uchar *) or, mask_src);
+                    func((uchar *)dr, (uchar *)outr, mask_src);
                   }
                 }
               }
@@ -808,7 +808,7 @@ void IMB_rectblend(ImBuf *dbuf,
           }
           /* no destination mask buffer, do regular blend with masktexture if present */
           else {
-            for (x = width; x > 0; x--, dr++, or ++, sr++, cmr++) {
+            for (x = width; x > 0; x--, dr++, outr++, sr++, cmr++) {
               uchar *src = (uchar *)sr;
               float mask = (float)mask_max * (float)(*cmr);
 
@@ -828,11 +828,11 @@ void IMB_rectblend(ImBuf *dbuf,
                 if (mode == IMB_BLEND_INTERPOLATE) {
                   mask_src[3] = src[3];
                   blend_color_interpolate_byte(
-                      (uchar *)dr, (uchar *) or, mask_src, mask / 65535.0f);
+                      (uchar *)dr, (uchar *)outr, mask_src, mask / 65535.0f);
                 }
                 else {
                   mask_src[3] = divide_round_i(src[3] * mask, 65535);
-                  func((uchar *)dr, (uchar *) or, mask_src);
+                  func((uchar *)dr, (uchar *)outr, mask_src);
                 }
               }
             }
@@ -845,9 +845,9 @@ void IMB_rectblend(ImBuf *dbuf,
         }
         else {
           /* regular blending */
-          for (x = width; x > 0; x--, dr++, or ++, sr++) {
+          for (x = width; x > 0; x--, dr++, outr++, sr++) {
             if (((uchar *)sr)[3]) {
-              func((uchar *)dr, (uchar *) or, (uchar *)sr);
+              func((uchar *)dr, (uchar *)outr, (uchar *)sr);
             }
           }
         }
@@ -1104,7 +1104,8 @@ void IMB_rectfill_area_replace(
     return;
   }
 
-  uchar col_char[4] = {col[0] * 255, col[1] * 255, col[2] * 255, col[3] * 255};
+  uchar col_char[4] = {
+      uchar(col[0] * 255), uchar(col[1] * 255), uchar(col[2] * 255), uchar(col[3] * 255)};
 
   for (int y = y1; y < y2; y++) {
     for (int x = x1; x < x2; x++) {

@@ -313,7 +313,7 @@ void IMB_mask_filter_extend(char *mask, int width, int height)
   rowlen = width;
 
   /* make a copy, to prevent flooding */
-  temprect = MEM_dupallocN(mask);
+  temprect = static_cast<char *>(MEM_dupallocN(mask));
 
   for (y = 1; y <= height; y++) {
     /* setup rows */
@@ -391,7 +391,7 @@ static int check_pixel_assigned(
   if (index >= 0) {
     const int alpha_index = depth * index + (depth - 1);
 
-    if (mask != NULL) {
+    if (mask != nullptr) {
       res = mask[index] != 0 ? 1 : 0;
     }
     else if ((is_float && ((const float *)buffer)[alpha_index] != 0.0f) ||
@@ -411,10 +411,10 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
   const int depth = 4; /* always 4 channels */
   const int chsize = ibuf->rect_float ? sizeof(float) : sizeof(uchar);
   const size_t bsize = ((size_t)width) * height * depth * chsize;
-  const bool is_float = (ibuf->rect_float != NULL);
+  const bool is_float = (ibuf->rect_float != nullptr);
   void *dstbuf = (void *)MEM_dupallocN(ibuf->rect_float ? (void *)ibuf->rect_float :
                                                           (void *)ibuf->rect);
-  char *dstmask = mask == NULL ? NULL : (char *)MEM_dupallocN(mask);
+  char *dstmask = mask == nullptr ? nullptr : (char *)MEM_dupallocN(mask);
   void *srcbuf = ibuf->rect_float ? (void *)ibuf->rect_float : (void *)ibuf->rect;
   char *srcmask = mask;
   int cannot_early_out = 1, r, n, k, i, j, c;
@@ -514,7 +514,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
                 }
               }
 
-              if (dstmask != NULL) {
+              if (dstmask != nullptr) {
                 dstmask[index] = FILTER_MASK_MARGIN; /* assigned */
               }
               cannot_early_out = 1;
@@ -526,14 +526,14 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 
     /* keep the original buffer up to date. */
     memcpy(srcbuf, dstbuf, bsize);
-    if (dstmask != NULL) {
+    if (dstmask != nullptr) {
       memcpy(srcmask, dstmask, ((size_t)width) * height);
     }
   }
 
   /* free memory */
   MEM_freeN(dstbuf);
-  if (dstmask != NULL) {
+  if (dstmask != nullptr) {
     MEM_freeN(dstmask);
   }
 }
@@ -665,7 +665,7 @@ void IMB_premultiply_rect_float(float *rect_float, int channels, int w, int h)
 
 void IMB_premultiply_alpha(ImBuf *ibuf)
 {
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     return;
   }
 
@@ -727,7 +727,7 @@ void IMB_unpremultiply_rect_float(float *rect_float, int channels, int w, int h)
 
 void IMB_unpremultiply_alpha(ImBuf *ibuf)
 {
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     return;
   }
 

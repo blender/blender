@@ -31,7 +31,7 @@ static DitherContext *create_dither_context(float dither)
 {
   DitherContext *di;
 
-  di = MEM_mallocN(sizeof(DitherContext), "dithering context");
+  di = MEM_cnew<DitherContext>("dithering context");
   di->dither = dither;
 
   return di;
@@ -105,7 +105,7 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
 {
   float tmp[4];
   int x, y;
-  DitherContext *di = NULL;
+  DitherContext *di = nullptr;
   float inv_width = 1.0f / width;
   float inv_height = 1.0f / height;
 
@@ -269,7 +269,7 @@ void IMB_buffer_byte_from_float_mask(uchar *rect_to,
                                      char *mask)
 {
   int x, y;
-  DitherContext *di = NULL;
+  DitherContext *di = nullptr;
   float inv_width = 1.0f / width, inv_height = 1.0f / height;
 
   if (dither) {
@@ -696,27 +696,27 @@ void IMB_buffer_byte_from_byte(uchar *rect_to,
 void IMB_rect_from_float(ImBuf *ibuf)
 {
   /* verify we have a float buffer */
-  if (ibuf->rect_float == NULL) {
+  if (ibuf->rect_float == nullptr) {
     return;
   }
 
   /* create byte rect if it didn't exist yet */
-  if (ibuf->rect == NULL) {
+  if (ibuf->rect == nullptr) {
     if (imb_addrectImBuf(ibuf) == 0) {
       return;
     }
   }
 
-  const char *from_colorspace = (ibuf->float_colorspace == NULL) ?
+  const char *from_colorspace = (ibuf->float_colorspace == nullptr) ?
                                     IMB_colormanagement_role_colorspace_name_get(
                                         COLOR_ROLE_SCENE_LINEAR) :
                                     ibuf->float_colorspace->name;
-  const char *to_colorspace = (ibuf->rect_colorspace == NULL) ?
+  const char *to_colorspace = (ibuf->rect_colorspace == nullptr) ?
                                   IMB_colormanagement_role_colorspace_name_get(
                                       COLOR_ROLE_DEFAULT_BYTE) :
                                   ibuf->rect_colorspace->name;
 
-  float *buffer = MEM_dupallocN(ibuf->rect_float);
+  float *buffer = static_cast<float *>(MEM_dupallocN(ibuf->rect_float));
 
   /* first make float buffer in byte space */
   const bool predivide = IMB_alpha_affects_rgb(ibuf);
@@ -751,9 +751,9 @@ void IMB_float_from_rect_ex(struct ImBuf *dst,
                             const struct ImBuf *src,
                             const rcti *region_to_update)
 {
-  BLI_assert_msg(dst->rect_float != NULL,
+  BLI_assert_msg(dst->rect_float != nullptr,
                  "Destination buffer should have a float buffer assigned.");
-  BLI_assert_msg(src->rect != NULL, "Source buffer should have a byte buffer assigned.");
+  BLI_assert_msg(src->rect != nullptr, "Source buffer should have a byte buffer assigned.");
   BLI_assert_msg(dst->x == src->x, "Source and destination buffer should have the same dimension");
   BLI_assert_msg(dst->y == src->y, "Source and destination buffer should have the same dimension");
   BLI_assert_msg(dst->channels = 4, "Destination buffer should have 4 channels.");
@@ -807,7 +807,7 @@ void IMB_float_from_rect(ImBuf *ibuf)
   float *rect_float;
 
   /* verify if we byte and float buffers */
-  if (ibuf->rect == NULL) {
+  if (ibuf->rect == nullptr) {
     return;
   }
 
@@ -816,11 +816,11 @@ void IMB_float_from_rect(ImBuf *ibuf)
    * interfere with other parts of blender
    */
   rect_float = ibuf->rect_float;
-  if (rect_float == NULL) {
+  if (rect_float == nullptr) {
     const size_t size = IMB_get_rect_len(ibuf) * sizeof(float[4]);
-    rect_float = MEM_callocN(size, "IMB_float_from_rect");
+    rect_float = static_cast<float *>(MEM_callocN(size, "IMB_float_from_rect"));
 
-    if (rect_float == NULL) {
+    if (rect_float == nullptr) {
       return;
     }
 

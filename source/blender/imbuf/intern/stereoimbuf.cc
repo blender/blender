@@ -703,16 +703,25 @@ int *IMB_stereo3d_from_rect(const ImageFormatData *im_format,
                             int *rect_right)
 {
   int *rect_result;
-  Stereo3DData s3d_data = {{NULL}};
+  Stereo3DData s3d_data = {{nullptr}};
   size_t width, height;
   const bool is_float = im_format->depth > 8;
 
   IMB_stereo3d_write_dimensions(
       im_format->stereo3d_format.display_mode, false, x, y, &width, &height);
-  rect_result = MEM_mallocN(channels * sizeof(int) * width * height, __func__);
+  rect_result = static_cast<int *>(MEM_mallocN(channels * sizeof(int) * width * height, __func__));
 
-  imb_stereo3d_data_init(
-      &s3d_data, is_float, x, y, channels, rect_left, rect_right, rect_result, NULL, NULL, NULL);
+  imb_stereo3d_data_init(&s3d_data,
+                         is_float,
+                         x,
+                         y,
+                         channels,
+                         rect_left,
+                         rect_right,
+                         rect_result,
+                         nullptr,
+                         nullptr,
+                         nullptr);
   imb_stereo3d_write_doit(&s3d_data, &im_format->stereo3d_format);
   imb_stereo3d_squeeze_rect(rect_result, &im_format->stereo3d_format, x, y, channels);
 
@@ -727,22 +736,23 @@ float *IMB_stereo3d_from_rectf(const ImageFormatData *im_format,
                                float *rectf_right)
 {
   float *rectf_result;
-  Stereo3DData s3d_data = {{NULL}};
+  Stereo3DData s3d_data = {{nullptr}};
   size_t width, height;
   const bool is_float = im_format->depth > 8;
 
   IMB_stereo3d_write_dimensions(
       im_format->stereo3d_format.display_mode, false, x, y, &width, &height);
-  rectf_result = MEM_mallocN(channels * sizeof(float) * width * height, __func__);
+  rectf_result = static_cast<float *>(
+      MEM_mallocN(channels * sizeof(float) * width * height, __func__));
 
   imb_stereo3d_data_init(&s3d_data,
                          is_float,
                          x,
                          y,
                          channels,
-                         NULL,
-                         NULL,
-                         NULL,
+                         nullptr,
+                         nullptr,
+                         nullptr,
                          rectf_left,
                          rectf_right,
                          rectf_result);
@@ -754,8 +764,8 @@ float *IMB_stereo3d_from_rectf(const ImageFormatData *im_format,
 
 ImBuf *IMB_stereo3d_ImBuf(const ImageFormatData *im_format, ImBuf *ibuf_left, ImBuf *ibuf_right)
 {
-  ImBuf *ibuf_stereo = NULL;
-  Stereo3DData s3d_data = {{NULL}};
+  ImBuf *ibuf_stereo = nullptr;
+  Stereo3DData s3d_data = {{nullptr}};
   size_t width, height;
   const bool is_float = im_format->depth > 8;
 
@@ -796,11 +806,12 @@ static void imb_stereo3d_write_doit(Stereo3DData *s3d_data, const Stereo3dFormat
 {
   switch (s3d->display_mode) {
     case S3D_DISPLAY_ANAGLYPH:
-      imb_stereo3d_write_anaglyph(s3d_data, s3d->anaglyph_type);
+      imb_stereo3d_write_anaglyph(s3d_data, eStereo3dAnaglyphType(s3d->anaglyph_type));
       break;
     case S3D_DISPLAY_INTERLACE:
-      imb_stereo3d_write_interlace(
-          s3d_data, s3d->interlace_type, (s3d->flag & S3D_INTERLACE_SWAP) != 0);
+      imb_stereo3d_write_interlace(s3d_data,
+                                   eStereo3dInterlaceType(s3d->interlace_type),
+                                   (s3d->flag & S3D_INTERLACE_SWAP) != 0);
       break;
     case S3D_DISPLAY_SIDEBYSIDE:
       imb_stereo3d_write_sidebyside(s3d_data, (s3d->flag & S3D_SIDEBYSIDE_CROSSEYED) != 0);
@@ -1279,10 +1290,10 @@ void IMB_ImBufFromStereo3d(const Stereo3dFormat *s3d,
                            ImBuf **r_ibuf_left,
                            ImBuf **r_ibuf_right)
 {
-  Stereo3DData s3d_data = {{NULL}};
+  Stereo3DData s3d_data = {{nullptr}};
   ImBuf *ibuf_left, *ibuf_right;
   size_t width, height;
-  const bool is_float = (ibuf_stereo3d->rect_float != NULL);
+  const bool is_float = (ibuf_stereo3d->rect_float != nullptr);
 
   IMB_stereo3d_read_dimensions(s3d->display_mode,
                                ((s3d->flag & S3D_SQUEEZED_FRAME) == 0),
@@ -1364,11 +1375,12 @@ static void imb_stereo3d_read_doit(Stereo3DData *s3d_data, const Stereo3dFormat 
 {
   switch (s3d->display_mode) {
     case S3D_DISPLAY_ANAGLYPH:
-      imb_stereo3d_read_anaglyph(s3d_data, s3d->anaglyph_type);
+      imb_stereo3d_read_anaglyph(s3d_data, eStereo3dAnaglyphType(s3d->anaglyph_type));
       break;
     case S3D_DISPLAY_INTERLACE:
-      imb_stereo3d_read_interlace(
-          s3d_data, s3d->interlace_type, (s3d->flag & S3D_INTERLACE_SWAP) != 0);
+      imb_stereo3d_read_interlace(s3d_data,
+                                  eStereo3dInterlaceType(s3d->interlace_type),
+                                  (s3d->flag & S3D_INTERLACE_SWAP) != 0);
       break;
     case S3D_DISPLAY_SIDEBYSIDE:
       imb_stereo3d_read_sidebyside(s3d_data, (s3d->flag & S3D_SIDEBYSIDE_CROSSEYED) != 0);

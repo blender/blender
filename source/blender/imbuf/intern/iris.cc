@@ -210,7 +210,7 @@ static void test_endian_zbuf(struct ImBuf *ibuf)
   return;
 #endif
 
-  if (ibuf->zbuf == NULL) {
+  if (ibuf->zbuf == nullptr) {
     return;
   }
 
@@ -239,25 +239,25 @@ bool imb_is_a_iris(const uchar *mem, size_t size)
 
 struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
-  uint *base, *lptr = NULL;
-  float *fbase, *fptr = NULL;
+  uint *base, *lptr = nullptr;
+  float *fbase, *fptr = nullptr;
   uint *zbase, *zptr;
   const uchar *rledat;
   const uchar *mem_end = mem + size;
   MFileOffset _inf_data = {mem, 0}, *inf = &_inf_data;
   IMAGE image;
   int bpp, rle, cur, badorder;
-  ImBuf *ibuf = NULL;
+  ImBuf *ibuf = nullptr;
   uchar dirty_flag = 0;
 
   if (!imb_is_a_iris(mem, size)) {
-    return NULL;
+    return nullptr;
   }
 
   /* Could be part of the magic check above,
    * by convention this check only requests the size needed to read it's magic though. */
   if (size < HEADER_SIZE) {
-    return NULL;
+    return nullptr;
   }
 
   /* OCIO_TODO: only tested with 1 byte per pixel, not sure how to test with other settings */
@@ -266,18 +266,18 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
   readheader(inf, &image);
   if (image.imagic != IMAGIC) {
     fprintf(stderr, "longimagedata: bad magic number in image file\n");
-    return NULL;
+    return nullptr;
   }
 
   rle = ISRLE(image.type);
   bpp = BPP(image.type);
   if (!ELEM(bpp, 1, 2)) {
     fprintf(stderr, "longimagedata: image must have 1 or 2 byte per pix chan\n");
-    return NULL;
+    return nullptr;
   }
   if ((uint)image.zsize > 8) {
     fprintf(stderr, "longimagedata: channels over 8 not supported\n");
-    return NULL;
+    return nullptr;
   }
 
   const int xsize = image.xsize;
@@ -296,8 +296,8 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
     size_t tablen = (size_t)ysize * (size_t)zsize * sizeof(int);
     MFILE_SEEK(inf, HEADER_SIZE);
 
-    uint *starttab = MEM_mallocN(tablen, "iris starttab");
-    uint *lengthtab = MEM_mallocN(tablen, "iris endtab");
+    uint *starttab = static_cast<uint *>(MEM_mallocN(tablen, "iris starttab"));
+    uint *lengthtab = static_cast<uint *>(MEM_mallocN(tablen, "iris endtab"));
 
 #define MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(p) \
   if (UNLIKELY((p) > mem_end)) { \
@@ -430,7 +430,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
     MEM_freeN(lengthtab);
 
     if (!ibuf) {
-      return NULL;
+      return nullptr;
     }
   }
   else {
@@ -506,7 +506,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 #undef MFILE_CAPACITY_AT_PTR_OK_OR_FAIL
   fail_uncompressed:
     if (!ibuf) {
-      return NULL;
+      return nullptr;
     }
   }
 
@@ -783,7 +783,7 @@ fail:
 /**
  * \param filepath: The file path to write to.
  * \param lptr: an array of integers to an iris image file (each int represents one pixel).
- * \param zptr: depth-buffer (optional, may be NULL).
+ * \param zptr: depth-buffer (optional, may be nullptr).
  * \param xsize: with width of the pixel-array.
  * \param ysize: height of the pixel-array.
  * \param zsize: specifies what kind of image file to write out.
@@ -965,7 +965,7 @@ bool imb_saveiris(struct ImBuf *ibuf, const char *filepath, int flags)
   short zsize;
 
   zsize = (ibuf->planes + 7) >> 3;
-  if (flags & IB_zbuf && ibuf->zbuf != NULL) {
+  if (flags & IB_zbuf && ibuf->zbuf != nullptr) {
     zsize = 8;
   }
 

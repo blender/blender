@@ -31,7 +31,7 @@
 
 bool imb_is_a_webp(const uchar *buf, size_t size)
 {
-  if (WebPGetInfo(buf, size, NULL, NULL)) {
+  if (WebPGetInfo(buf, size, nullptr, nullptr)) {
     return true;
   }
   return false;
@@ -40,7 +40,7 @@ bool imb_is_a_webp(const uchar *buf, size_t size)
 ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
   if (!imb_is_a_webp(mem, size)) {
-    return NULL;
+    return nullptr;
   }
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
@@ -48,15 +48,15 @@ ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, char colorspace[IM
   WebPBitstreamFeatures features;
   if (WebPGetFeatures(mem, size, &features) != VP8_STATUS_OK) {
     fprintf(stderr, "WebP: Failed to parse features\n");
-    return NULL;
+    return nullptr;
   }
 
   const int planes = features.has_alpha ? 32 : 24;
   ImBuf *ibuf = IMB_allocImBuf(features.width, features.height, planes, 0);
 
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     fprintf(stderr, "WebP: Failed to allocate image memory\n");
-    return NULL;
+    return nullptr;
   }
 
   if ((flags & IB_test) == 0) {
@@ -65,7 +65,7 @@ ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, char colorspace[IM
     /* Flip the image during decoding to match Blender. */
     uchar *last_row = (uchar *)(ibuf->rect + (ibuf->y - 1) * ibuf->x);
     if (WebPDecodeRGBAInto(mem, size, last_row, (size_t)(ibuf->x) * ibuf->y * 4, -4 * ibuf->x) ==
-        NULL) {
+        nullptr) {
       fprintf(stderr, "WebP: Failed to decode image\n");
     }
   }
@@ -74,7 +74,7 @@ ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, char colorspace[IM
 }
 
 struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
-                                               const int UNUSED(flags),
+                                               const int /*flags*/,
                                                const size_t max_thumb_size,
                                                char colorspace[],
                                                size_t *r_width,
@@ -82,7 +82,7 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
 {
   const int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (file == -1) {
-    return NULL;
+    return nullptr;
   }
 
   const size_t data_size = BLI_file_descriptor_size(file);
@@ -91,11 +91,11 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   BLI_mmap_file *mmap_file = BLI_mmap_open(file);
   imb_mmap_unlock();
   close(file);
-  if (mmap_file == NULL) {
-    return NULL;
+  if (mmap_file == nullptr) {
+    return nullptr;
   }
 
-  const uchar *data = BLI_mmap_get_pointer(mmap_file);
+  const uchar *data = static_cast<const uchar *>(BLI_mmap_get_pointer(mmap_file));
 
   WebPDecoderConfig config;
   if (!data || !WebPInitDecoderConfig(&config) ||
@@ -105,7 +105,7 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
     imb_mmap_lock();
     BLI_mmap_free(mmap_file);
     imb_mmap_unlock();
-    return NULL;
+    return nullptr;
   }
 
   /* Return full size of the image. */
@@ -118,12 +118,12 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
   struct ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_rect);
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     fprintf(stderr, "WebP: Failed to allocate image memory\n");
     imb_mmap_lock();
     BLI_mmap_free(mmap_file);
     imb_mmap_unlock();
-    return NULL;
+    return nullptr;
   }
 
   config.options.no_fancy_upsampling = 1;
@@ -144,7 +144,7 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
     imb_mmap_lock();
     BLI_mmap_free(mmap_file);
     imb_mmap_unlock();
-    return NULL;
+    return nullptr;
   }
 
   /* Free the output buffer. */
@@ -157,7 +157,7 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   return ibuf;
 }
 
-bool imb_savewebp(struct ImBuf *ibuf, const char *name, int UNUSED(flags))
+bool imb_savewebp(struct ImBuf *ibuf, const char *name, int /*flags*/)
 {
   const int bytesperpixel = (ibuf->planes + 7) >> 3;
   uchar *encoded_data, *last_row;
@@ -167,7 +167,8 @@ bool imb_savewebp(struct ImBuf *ibuf, const char *name, int UNUSED(flags))
     /* We must convert the ImBuf RGBA buffer to RGB as WebP expects a RGB buffer. */
     const size_t num_pixels = ibuf->x * ibuf->y;
     const uint8_t *rgba_rect = (uint8_t *)ibuf->rect;
-    uint8_t *rgb_rect = MEM_mallocN(sizeof(uint8_t) * num_pixels * 3, "webp rgb_rect");
+    uint8_t *rgb_rect = static_cast<uint8_t *>(
+        MEM_mallocN(sizeof(uint8_t) * num_pixels * 3, "webp rgb_rect"));
     for (int i = 0; i < num_pixels; i++) {
       rgb_rect[i * 3 + 0] = rgba_rect[i * 4 + 0];
       rgb_rect[i * 3 + 1] = rgba_rect[i * 4 + 1];
@@ -203,7 +204,7 @@ bool imb_savewebp(struct ImBuf *ibuf, const char *name, int UNUSED(flags))
     return false;
   }
 
-  if (encoded_data != NULL) {
+  if (encoded_data != nullptr) {
     FILE *fp = BLI_fopen(name, "wb");
     if (!fp) {
       free(encoded_data);

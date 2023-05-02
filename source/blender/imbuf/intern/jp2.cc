@@ -123,14 +123,14 @@ struct BufInfo {
   OPJ_OFF_T len;
 };
 
-static void opj_read_from_buffer_free(void *UNUSED(p_user_data))
+static void opj_read_from_buffer_free(void * /*p_user_data*/)
 {
   /* NOP. */
 }
 
 static OPJ_SIZE_T opj_read_from_buffer(void *p_buffer, OPJ_SIZE_T p_nb_bytes, void *p_user_data)
 {
-  struct BufInfo *p_file = p_user_data;
+  struct BufInfo *p_file = static_cast<struct BufInfo *>(p_user_data);
   OPJ_UINT32 l_nb_read;
 
   if (p_file->cur + p_nb_bytes < p_file->buf + p_file->len) {
@@ -158,7 +158,7 @@ static OPJ_SIZE_T opj_write_from_buffer(void *p_buffer, OPJ_SIZE_T p_nb_bytes, v
 
 static OPJ_OFF_T opj_skip_from_buffer(OPJ_OFF_T p_nb_bytes, void *p_user_data)
 {
-  struct BufInfo *p_file = p_user_data;
+  struct BufInfo *p_file = static_cast<struct BufInfo *>(p_user_data);
   if (p_file->cur + p_nb_bytes < p_file->buf + p_file->len) {
     p_file->cur += p_nb_bytes;
     return p_nb_bytes;
@@ -169,7 +169,7 @@ static OPJ_OFF_T opj_skip_from_buffer(OPJ_OFF_T p_nb_bytes, void *p_user_data)
 
 static OPJ_BOOL opj_seek_from_buffer(OPJ_OFF_T p_nb_bytes, void *p_user_data)
 {
-  struct BufInfo *p_file = p_user_data;
+  struct BufInfo *p_file = static_cast<struct BufInfo *>(p_user_data);
   if (p_nb_bytes < p_file->len) {
     p_file->cur = p_file->buf + p_nb_bytes;
     return OPJ_TRUE;
@@ -187,8 +187,8 @@ static opj_stream_t *opj_stream_create_from_buffer(struct BufInfo *p_file,
                                                    OPJ_BOOL p_is_read_stream)
 {
   opj_stream_t *l_stream = opj_stream_create(p_size, p_is_read_stream);
-  if (l_stream == NULL) {
-    return NULL;
+  if (l_stream == nullptr) {
+    return nullptr;
   }
   opj_stream_set_user_data(l_stream, p_file, opj_read_from_buffer_free);
   opj_stream_set_user_data_length(l_stream, p_file->len);
@@ -210,13 +210,13 @@ static opj_stream_t *opj_stream_create_from_buffer(struct BufInfo *p_file,
 
 static void opj_free_from_file(void *p_user_data)
 {
-  FILE *f = p_user_data;
+  FILE *f = static_cast<FILE *>(p_user_data);
   fclose(f);
 }
 
 static OPJ_UINT64 opj_get_data_length_from_file(void *p_user_data)
 {
-  FILE *p_file = p_user_data;
+  FILE *p_file = static_cast<FILE *>(p_user_data);
   OPJ_OFF_T file_length = 0;
 
   fseek(p_file, 0, SEEK_END);
@@ -228,20 +228,20 @@ static OPJ_UINT64 opj_get_data_length_from_file(void *p_user_data)
 
 static OPJ_SIZE_T opj_read_from_file(void *p_buffer, OPJ_SIZE_T p_nb_bytes, void *p_user_data)
 {
-  FILE *p_file = p_user_data;
+  FILE *p_file = static_cast<FILE *>(p_user_data);
   OPJ_SIZE_T l_nb_read = fread(p_buffer, 1, p_nb_bytes, p_file);
   return l_nb_read ? l_nb_read : (OPJ_SIZE_T)-1;
 }
 
 static OPJ_SIZE_T opj_write_from_file(void *p_buffer, OPJ_SIZE_T p_nb_bytes, void *p_user_data)
 {
-  FILE *p_file = p_user_data;
+  FILE *p_file = static_cast<FILE *>(p_user_data);
   return fwrite(p_buffer, 1, p_nb_bytes, p_file);
 }
 
 static OPJ_OFF_T opj_skip_from_file(OPJ_OFF_T p_nb_bytes, void *p_user_data)
 {
-  FILE *p_file = p_user_data;
+  FILE *p_file = static_cast<FILE *>(p_user_data);
   if (fseek(p_file, p_nb_bytes, SEEK_CUR)) {
     return -1;
   }
@@ -250,7 +250,7 @@ static OPJ_OFF_T opj_skip_from_file(OPJ_OFF_T p_nb_bytes, void *p_user_data)
 
 static OPJ_BOOL opj_seek_from_file(OPJ_OFF_T p_nb_bytes, void *p_user_data)
 {
-  FILE *p_file = p_user_data;
+  FILE *p_file = static_cast<FILE *>(p_user_data);
   if (fseek(p_file, p_nb_bytes, SEEK_SET)) {
     return OPJ_FALSE;
   }
@@ -268,14 +268,14 @@ static opj_stream_t *opj_stream_create_from_file(const char *filepath,
                                                  FILE **r_file)
 {
   FILE *p_file = BLI_fopen(filepath, p_is_read_stream ? "rb" : "wb");
-  if (p_file == NULL) {
-    return NULL;
+  if (p_file == nullptr) {
+    return nullptr;
   }
 
   opj_stream_t *l_stream = opj_stream_create(p_size, p_is_read_stream);
-  if (l_stream == NULL) {
+  if (l_stream == nullptr) {
     fclose(p_file);
-    return NULL;
+    return nullptr;
   }
 
   opj_stream_set_user_data(l_stream, p_file, opj_free_from_file);
@@ -302,11 +302,10 @@ ImBuf *imb_load_jp2(const uchar *mem, size_t size, int flags, char colorspace[IM
 {
   const OPJ_CODEC_FORMAT format = (size > JP2_FILEHEADER_SIZE) ? format_from_header(mem, size) :
                                                                  OPJ_CODEC_UNKNOWN;
-  struct BufInfo buf_wrapper = {
-      .buf = mem,
-      .cur = mem,
-      .len = size,
-  };
+  struct BufInfo buf_wrapper = {};
+  buf_wrapper.buf = mem;
+  buf_wrapper.cur = mem;
+  buf_wrapper.len = OPJ_OFF_T(size);
   opj_stream_t *stream = opj_stream_create_from_buffer(
       &buf_wrapper, OPJ_J2K_STREAM_CHUNK_SIZE, true);
   ImBuf *ibuf = imb_load_jp2_stream(stream, format, flags, colorspace);
@@ -316,17 +315,17 @@ ImBuf *imb_load_jp2(const uchar *mem, size_t size, int flags, char colorspace[IM
 
 ImBuf *imb_load_jp2_filepath(const char *filepath, int flags, char colorspace[IM_MAX_SPACE])
 {
-  FILE *p_file = NULL;
+  FILE *p_file = nullptr;
   uchar mem[JP2_FILEHEADER_SIZE];
   opj_stream_t *stream = opj_stream_create_from_file(
       filepath, OPJ_J2K_STREAM_CHUNK_SIZE, true, &p_file);
   if (stream) {
-    return NULL;
+    return nullptr;
   }
 
   if (fread(mem, sizeof(mem), 1, p_file) != sizeof(mem)) {
     opj_stream_destroy(stream);
-    return NULL;
+    return nullptr;
   }
 
   fseek(p_file, 0, SEEK_SET);
@@ -343,10 +342,10 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
                                   char colorspace[IM_MAX_SPACE])
 {
   if (format == OPJ_CODEC_UNKNOWN) {
-    return NULL;
+    return nullptr;
   }
 
-  struct ImBuf *ibuf = NULL;
+  struct ImBuf *ibuf = nullptr;
   bool use_float = false; /* for precision higher than 8 use float */
   bool use_alpha = false;
 
@@ -359,8 +358,8 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
 
   opj_dparameters_t parameters; /* decompression parameters */
 
-  opj_image_t *image = NULL;
-  opj_codec_t *codec = NULL; /* handle to a decompressor */
+  opj_image_t *image = nullptr;
+  opj_codec_t *codec = nullptr; /* handle to a decompressor */
 
   /* both 8, 12 and 16 bit JP2Ks are default to standard byte colorspace */
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
@@ -438,7 +437,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
 
   ibuf = IMB_allocImBuf(w, h, planes, use_float ? IB_rectfloat : IB_rect);
 
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     goto finally;
   }
 
@@ -455,7 +454,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
 
     if (image->numcomps < 3) {
       r = image->comps[0].data;
-      a = (use_alpha) ? image->comps[1].data : NULL;
+      a = (use_alpha) ? image->comps[1].data : nullptr;
 
       /* Gray-scale 12bits+ */
       if (use_alpha) {
@@ -508,7 +507,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
 
     if (image->numcomps < 3) {
       r = image->comps[0].data;
-      a = (use_alpha) ? image->comps[1].data : NULL;
+      a = (use_alpha) ? image->comps[1].data : nullptr;
 
       /* Gray-scale. */
       if (use_alpha) {
@@ -817,7 +816,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
   int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
   OPJ_COLOR_SPACE color_space;
   opj_image_cmptparm_t cmptparm[4]; /* maximum of 4 components */
-  opj_image_t *image = NULL;
+  opj_image_t *image = nullptr;
 
   float (*chanel_colormanage_cb)(float);
 
@@ -898,7 +897,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
   image = opj_image_create(numcomps, &cmptparm[0], color_space);
   if (!image) {
     printf("Error: opj_image_create() failed\n");
-    return NULL;
+    return nullptr;
   }
 
   /* set image offset and reference grid */
@@ -915,11 +914,11 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
   r = image->comps[0].data;
   g = image->comps[1].data;
   b = image->comps[2].data;
-  a = (numcomps == 4) ? image->comps[3].data : NULL;
+  a = (numcomps == 4) ? image->comps[3].data : nullptr;
 
   if (rect_float && rect_uchar && prec == 8) {
     /* No need to use the floating point buffer, just write the 8 bits from the char buffer */
-    rect_float = NULL;
+    rect_float = nullptr;
   }
 
   if (rect_float) {
@@ -1185,8 +1184,8 @@ bool imb_save_jp2_stream(struct ImBuf *ibuf, opj_stream_t *stream, int flags);
 bool imb_save_jp2(struct ImBuf *ibuf, const char *filepath, int flags)
 {
   opj_stream_t *stream = opj_stream_create_from_file(
-      filepath, OPJ_J2K_STREAM_CHUNK_SIZE, false, NULL);
-  if (stream == NULL) {
+      filepath, OPJ_J2K_STREAM_CHUNK_SIZE, false, nullptr);
+  if (stream == nullptr) {
     return 0;
   }
   const bool ok = imb_save_jp2_stream(ibuf, stream, flags);
@@ -1195,12 +1194,12 @@ bool imb_save_jp2(struct ImBuf *ibuf, const char *filepath, int flags)
 }
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
-bool imb_save_jp2_stream(struct ImBuf *ibuf, opj_stream_t *stream, int UNUSED(flags))
+bool imb_save_jp2_stream(struct ImBuf *ibuf, opj_stream_t *stream, int /*flags*/)
 {
   int quality = ibuf->foptions.quality;
 
   opj_cparameters_t parameters; /* compression parameters */
-  opj_image_t *image = NULL;
+  opj_image_t *image = nullptr;
 
   /* set encoding parameters to default values */
   opj_set_default_encoder_parameters(&parameters);
@@ -1215,7 +1214,7 @@ bool imb_save_jp2_stream(struct ImBuf *ibuf, opj_stream_t *stream, int UNUSED(fl
 
   image = ibuftoimage(ibuf, &parameters);
 
-  opj_codec_t *codec = NULL;
+  opj_codec_t *codec = nullptr;
   bool ok = false;
   /* JP2 format output */
   {
