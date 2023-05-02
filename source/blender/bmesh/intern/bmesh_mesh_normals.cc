@@ -703,6 +703,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
         }
 
         BKE_lnor_space_define(lnor_space, lnor, vec_org, vec_next, *edge_vectors);
+        edge_vectors->clear();
 
         if (has_clnors) {
           if (clnors_invalid) {
