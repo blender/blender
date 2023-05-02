@@ -751,8 +751,8 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
   if (but->func != oldbut->func) {
     return false;
   }
-  if (but->apply_func.target<void(bContext &)>() !=
-      oldbut->apply_func.target<void(bContext &)>()) {
+  if (but->apply_func.target<void(bContext &)>() != oldbut->apply_func.target<void(bContext &)>())
+  {
     return false;
   }
   if (but->funcN != oldbut->funcN) {

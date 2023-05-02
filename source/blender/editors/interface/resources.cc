@@ -196,7 +196,8 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           else if (ELEM(g_theme_state.regionid,
                         RGN_TYPE_HEADER,
                         RGN_TYPE_FOOTER,
-                        RGN_TYPE_ASSET_SHELF_FOOTER)) {
+                        RGN_TYPE_ASSET_SHELF_FOOTER))
+          {
             cp = ts->header_text;
           }
           else {
@@ -213,7 +214,8 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           else if (ELEM(g_theme_state.regionid,
                         RGN_TYPE_HEADER,
                         RGN_TYPE_FOOTER,
-                        RGN_TYPE_ASSET_SHELF_FOOTER)) {
+                        RGN_TYPE_ASSET_SHELF_FOOTER))
+          {
             cp = ts->header_text_hi;
           }
           else {
@@ -230,7 +232,8 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           else if (ELEM(g_theme_state.regionid,
                         RGN_TYPE_HEADER,
                         RGN_TYPE_FOOTER,
-                        RGN_TYPE_ASSET_SHELF_FOOTER)) {
+                        RGN_TYPE_ASSET_SHELF_FOOTER))
+          {
             cp = ts->header_title;
           }
           else {

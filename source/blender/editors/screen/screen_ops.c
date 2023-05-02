@@ -2658,7 +2658,8 @@ static int area_max_regionsize(ScrArea *area, ARegion *scale_region, AZEdge edge
                                                               RGN_TYPE_HEADER,
                                                               RGN_TYPE_TOOL_HEADER,
                                                               RGN_TYPE_FOOTER,
-                                                              RGN_TYPE_ASSET_SHELF_FOOTER))) {
+                                                              RGN_TYPE_ASSET_SHELF_FOOTER)))
+      {
         dist -= region->winy;
       }
       else if (scale_region->alignment == RGN_ALIGN_BOTTOM &&
@@ -2666,7 +2667,8 @@ static int area_max_regionsize(ScrArea *area, ARegion *scale_region, AZEdge edge
                                                            RGN_TYPE_HEADER,
                                                            RGN_TYPE_TOOL_HEADER,
                                                            RGN_TYPE_FOOTER,
-                                                           RGN_TYPE_ASSET_SHELF_FOOTER))) {
+                                                           RGN_TYPE_ASSET_SHELF_FOOTER)))
+      {
         dist -= region->winy;
       }
     }
