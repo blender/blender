@@ -86,7 +86,7 @@ void IMB_flipx(struct ImBuf *ibuf)
 
   if (ibuf->rect) {
     for (yi = y - 1; yi >= 0; yi--) {
-      const size_t x_offset = (size_t)x * yi;
+      const size_t x_offset = size_t(x) * yi;
       for (xr = x - 1, xl = 0; xr >= xl; xr--, xl++) {
         SWAP(uint, ibuf->rect[x_offset + xr], ibuf->rect[x_offset + xl]);
       }
@@ -95,7 +95,7 @@ void IMB_flipx(struct ImBuf *ibuf)
 
   if (ibuf->rect_float) {
     for (yi = y - 1; yi >= 0; yi--) {
-      const size_t x_offset = (size_t)x * yi;
+      const size_t x_offset = size_t(x) * yi;
       for (xr = x - 1, xl = 0; xr >= xl; xr--, xl++) {
         memcpy(&px_f, &ibuf->rect_float[(x_offset + xr) * 4], sizeof(float[4]));
         memcpy(&ibuf->rect_float[(x_offset + xr) * 4],

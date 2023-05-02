@@ -996,7 +996,7 @@ static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
 
   square_finder.indices.resize(square_finder.points.size());
   int convex_size = BLI_convexhull_2d(
-      source, static_cast<int>(square_finder.points.size()), square_finder.indices.data());
+      source, int(square_finder.points.size()), square_finder.indices.data());
   square_finder.indices.resize(convex_size);
 
   const float quad_180 = square_finder.update(DEG2RADF(-180.0f));

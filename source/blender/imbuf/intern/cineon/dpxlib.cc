@@ -320,7 +320,7 @@ LogImageFile *dpxOpen(const uchar *byteStuff, int fromMemory, size_t bufferSize)
         }
 
         if (dpx->element[i].refHighData == DPX_UNDEFINED_U32) {
-          dpx->element[i].refHighData = (uint)dpx->element[i].maxValue;
+          dpx->element[i].refHighData = uint(dpx->element[i].maxValue);
         }
 
         if (IS_DPX_UNDEFINED_R32(dpx->element[i].refLowQuantity)) {

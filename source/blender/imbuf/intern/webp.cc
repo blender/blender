@@ -64,8 +64,9 @@ ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, char colorspace[IM
     imb_addrectImBuf(ibuf);
     /* Flip the image during decoding to match Blender. */
     uchar *last_row = (uchar *)(ibuf->rect + (ibuf->y - 1) * ibuf->x);
-    if (WebPDecodeRGBAInto(mem, size, last_row, (size_t)(ibuf->x) * ibuf->y * 4, -4 * ibuf->x) ==
-        nullptr) {
+    if (WebPDecodeRGBAInto(mem, size, last_row, size_t(ibuf->x) * ibuf->y * 4, -4 * ibuf->x) ==
+        nullptr)
+    {
       fprintf(stderr, "WebP: Failed to decode image\n");
     }
   }
@@ -109,12 +110,12 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   }
 
   /* Return full size of the image. */
-  *r_width = (size_t)config.input.width;
-  *r_height = (size_t)config.input.height;
+  *r_width = size_t(config.input.width);
+  *r_height = size_t(config.input.height);
 
-  const float scale = (float)max_thumb_size / MAX2(config.input.width, config.input.height);
-  const int dest_w = MAX2((int)(config.input.width * scale), 1);
-  const int dest_h = MAX2((int)(config.input.height * scale), 1);
+  const float scale = float(max_thumb_size) / MAX2(config.input.width, config.input.height);
+  const int dest_w = MAX2(int(config.input.width * scale), 1);
+  const int dest_h = MAX2(int(config.input.height * scale), 1);
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
   struct ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_rect);
@@ -137,7 +138,7 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   config.output.colorspace = MODE_RGBA;
   config.output.u.RGBA.rgba = (uint8_t *)ibuf->rect;
   config.output.u.RGBA.stride = 4 * ibuf->x;
-  config.output.u.RGBA.size = (size_t)(config.output.u.RGBA.stride * ibuf->y);
+  config.output.u.RGBA.size = size_t(config.output.u.RGBA.stride * ibuf->y);
 
   if (WebPDecode(data, data_size, &config) != VP8_STATUS_OK) {
     fprintf(stderr, "WebP: Failed to decode image\n");

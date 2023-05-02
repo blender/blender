@@ -290,7 +290,7 @@ static int logImageSetData8(LogImageFile *logImage, LogImageElement logElement, 
 
   for (size_t y = 0; y < logImage->height; y++) {
     for (size_t x = 0; x < logImage->width * logImage->depth; x++) {
-      row[x] = (uchar)float_uint(data[y * logImage->width * logImage->depth + x], 255);
+      row[x] = uchar(float_uint(data[y * logImage->width * logImage->depth + x], 255));
     }
 
     if (logimage_fwrite(row, rowLength, 1, logImage) == 0) {
@@ -325,7 +325,7 @@ static int logImageSetData10(LogImageFile *logImage, LogImageElement logElement,
     pixel = 0;
 
     for (size_t x = 0; x < logImage->width * logImage->depth; x++) {
-      pixel |= (uint)float_uint(data[y * logImage->width * logImage->depth + x], 1023) << offset;
+      pixel |= uint(float_uint(data[y * logImage->width * logImage->depth + x], 1023)) << offset;
       offset -= 10;
       if (offset < 0) {
         row[index] = swap_uint(pixel, logImage->isMSB);
@@ -366,7 +366,7 @@ static int logImageSetData12(LogImageFile *logImage, LogImageElement logElement,
   for (size_t y = 0; y < logImage->height; y++) {
     for (size_t x = 0; x < logImage->width * logImage->depth; x++) {
       row[x] = swap_ushort(
-          (ushort)float_uint(data[y * logImage->width * logImage->depth + x], 4095) << 4,
+          ushort(float_uint(data[y * logImage->width * logImage->depth + x], 4095)) << 4,
           logImage->isMSB);
     }
 
@@ -398,7 +398,7 @@ static int logImageSetData16(LogImageFile *logImage, LogImageElement logElement,
   for (size_t y = 0; y < logImage->height; y++) {
     for (size_t x = 0; x < logImage->width * logImage->depth; x++) {
       row[x] = swap_ushort(
-          (ushort)float_uint(data[y * logImage->width * logImage->depth + x], 65535),
+          ushort(float_uint(data[y * logImage->width * logImage->depth + x], 65535)),
           logImage->isMSB);
     }
 
@@ -716,8 +716,8 @@ static int logImageElementGetData1(LogImageFile *logImage, LogImageElement logEl
       }
       pixel = swap_uint(pixel, logImage->isMSB);
       for (int offset = 0; offset < 32 && x + offset < logImage->width; offset++) {
-        data[y * logImage->width * logElement.depth + x + offset] = (float)((pixel >> offset) &
-                                                                            0x01);
+        data[y * logImage->width * logElement.depth + x + offset] = float((pixel >> offset) &
+                                                                          0x01);
       }
     }
   }
@@ -734,7 +734,7 @@ static int logImageElementGetData8(LogImageFile *logImage, LogImageElement logEl
     /* 8 bits are 32-bits padded so we need to seek at each row */
     if (logimage_fseek(logImage, logElement.dataOffset + y * rowLength, SEEK_SET) != 0) {
       if (verbose) {
-        printf("DPX/Cineon: Couldn't seek at %d\n", (int)(logElement.dataOffset + y * rowLength));
+        printf("DPX/Cineon: Couldn't seek at %d\n", int(logElement.dataOffset + y * rowLength));
       }
       return 1;
     }
@@ -746,7 +746,7 @@ static int logImageElementGetData8(LogImageFile *logImage, LogImageElement logEl
         }
         return 1;
       }
-      data[y * logImage->width * logElement.depth + x] = (float)pixel / 255.0f;
+      data[y * logImage->width * logElement.depth + x] = float(pixel) / 255.0f;
     }
   }
   return 0;
@@ -787,7 +787,7 @@ static int logImageElementGetData10(LogImageFile *logImage,
           }
           pixel = swap_uint(pixel, logImage->isMSB);
         }
-        data[y * logImage->width * logElement.depth + x] = (float)((pixel >> offset) & 0x3ff) /
+        data[y * logImage->width * logElement.depth + x] = float((pixel >> offset) & 0x3ff) /
                                                            1023.0f;
         offset += 10;
       }
@@ -814,7 +814,7 @@ static int logImageElementGetData10(LogImageFile *logImage,
           }
           pixel = swap_uint(pixel, logImage->isMSB);
         }
-        data[y * logImage->width * logElement.depth + x] = (float)((pixel >> offset) & 0x3ff) /
+        data[y * logImage->width * logElement.depth + x] = float((pixel >> offset) & 0x3ff) /
                                                            1023.0f;
         offset -= 10;
       }
@@ -836,7 +836,7 @@ static int logImageElementGetData10Packed(LogImageFile *logImage,
     /* seek to data */
     if (logimage_fseek(logImage, y * rowLength + logElement.dataOffset, SEEK_SET) != 0) {
       if (verbose) {
-        printf("DPX/Cineon: Couldn't seek at %u\n", (uint)(y * rowLength + logElement.dataOffset));
+        printf("DPX/Cineon: Couldn't seek at %u\n", uint(y * rowLength + logElement.dataOffset));
       }
       return 1;
     }
@@ -872,7 +872,7 @@ static int logImageElementGetData10Packed(LogImageFile *logImage,
         pixel = swap_uint(pixel, logImage->isMSB);
       }
       data[y * logImage->width * logElement.depth + x] =
-          (float)((((pixel << offset2) >> offset) & 0x3ff) | oldPixel) / 1023.0f;
+          float((((pixel << offset2) >> offset) & 0x3ff) | oldPixel) / 1023.0f;
       offset += 10;
     }
   }
@@ -908,10 +908,10 @@ static int logImageElementGetData12(LogImageFile *logImage,
     pixel = swap_ushort(pixel, logImage->isMSB);
 
     if (logElement.packing == 1) { /* padded to the right */
-      data[sampleIndex] = (float)(pixel >> 4) / 4095.0f;
+      data[sampleIndex] = float(pixel >> 4) / 4095.0f;
     }
     else if (logElement.packing == 2) { /* padded to the left */
-      data[sampleIndex] = (float)pixel / 4095.0f;
+      data[sampleIndex] = float(pixel) / 4095.0f;
     }
   }
   return 0;
@@ -929,7 +929,7 @@ static int logImageElementGetData12Packed(LogImageFile *logImage,
     /* seek to data */
     if (logimage_fseek(logImage, y * rowLength + logElement.dataOffset, SEEK_SET) != 0) {
       if (verbose) {
-        printf("DPX/Cineon: Couldn't seek at %u\n", (uint)(y * rowLength + logElement.dataOffset));
+        printf("DPX/Cineon: Couldn't seek at %u\n", uint(y * rowLength + logElement.dataOffset));
       }
       return 1;
     }
@@ -965,7 +965,7 @@ static int logImageElementGetData12Packed(LogImageFile *logImage,
         pixel = swap_uint(pixel, logImage->isMSB);
       }
       data[y * logImage->width * logElement.depth + x] =
-          (float)((((pixel << offset2) >> offset) & 0xfff) | oldPixel) / 4095.0f;
+          float((((pixel << offset2) >> offset) & 0xfff) | oldPixel) / 4095.0f;
       offset += 12;
     }
   }
@@ -996,7 +996,7 @@ static int logImageElementGetData16(LogImageFile *logImage,
       return 1;
     }
     pixel = swap_ushort(pixel, logImage->isMSB);
-    data[sampleIndex] = (float)pixel / 65535.0f;
+    data[sampleIndex] = float(pixel) / 65535.0f;
   }
 
   return 0;
@@ -1009,8 +1009,8 @@ static int logImageElementGetData16(LogImageFile *logImage,
 static int getYUVtoRGBMatrix(float *matrix, LogImageElement logElement)
 {
   float scaleY, scaleCbCr;
-  float refHighData = (float)logElement.refHighData / logElement.maxValue;
-  float refLowData = (float)logElement.refLowData / logElement.maxValue;
+  float refHighData = float(logElement.refHighData) / logElement.maxValue;
+  float refLowData = float(logElement.refLowData) / logElement.maxValue;
 
   scaleY = 1.0f / (refHighData - refLowData);
   scaleCbCr = scaleY * ((940.0f - 64.0f) / (960.0f - 64.0f));
@@ -1074,7 +1074,7 @@ static float *getLinToLogLut(LogImageFile *logImage, LogImageElement logElement)
 {
   float *lut;
   float gain, negativeFilmGamma, offset, step;
-  uint lutsize = (uint)(logElement.maxValue + 1);
+  uint lutsize = uint(logElement.maxValue + 1);
   uint i;
 
   lut = static_cast<float *>(MEM_mallocN(sizeof(float) * lutsize, "getLinToLogLut"));
@@ -1102,7 +1102,7 @@ static float *getLogToLinLut(LogImageFile *logImage, LogImageElement logElement)
   float *lut;
   float breakPoint, gain, kneeGain, kneeOffset, negativeFilmGamma, offset, step, softClip;
   /* float filmGamma; unused */
-  uint lutsize = (uint)(logElement.maxValue + 1);
+  uint lutsize = uint(logElement.maxValue + 1);
   uint i;
 
   lut = static_cast<float *>(MEM_mallocN(sizeof(float) * lutsize, "getLogToLinLut"));
@@ -1138,7 +1138,7 @@ static float *getLogToLinLut(LogImageFile *logImage, LogImageElement logElement)
     }
     else {
       lut[i] = (powf(10,
-                     ((float)i - logImage->referenceWhite) * step / negativeFilmGamma *
+                     (float(i) - logImage->referenceWhite) * step / negativeFilmGamma *
                          logImage->gamma / 1.7f) *
                     gain -
                 offset) /
@@ -1152,13 +1152,13 @@ static float *getLogToLinLut(LogImageFile *logImage, LogImageElement logElement)
 static float *getLinToSrgbLut(LogImageElement logElement)
 {
   float col, *lut;
-  uint lutsize = (uint)(logElement.maxValue + 1);
+  uint lutsize = uint(logElement.maxValue + 1);
   uint i;
 
   lut = static_cast<float *>(MEM_mallocN(sizeof(float) * lutsize, "getLogToLinLut"));
 
   for (i = 0; i < lutsize; i++) {
-    col = (float)i / logElement.maxValue;
+    col = float(i) / logElement.maxValue;
     if (col < 0.0031308f) {
       lut[i] = (col < 0.0f) ? 0.0f : col * 12.92f;
     }
@@ -1173,13 +1173,13 @@ static float *getLinToSrgbLut(LogImageElement logElement)
 static float *getSrgbToLinLut(LogImageElement logElement)
 {
   float col, *lut;
-  uint lutsize = (uint)(logElement.maxValue + 1);
+  uint lutsize = uint(logElement.maxValue + 1);
   uint i;
 
   lut = static_cast<float *>(MEM_mallocN(sizeof(float) * lutsize, "getLogToLinLut"));
 
   for (i = 0; i < lutsize; i++) {
-    col = (float)i / logElement.maxValue;
+    col = float(i) / logElement.maxValue;
     if (col < 0.04045f) {
       lut[i] = (col < 0.0f) ? 0.0f : col * (1.0f / 12.92f);
     }
@@ -1315,7 +1315,7 @@ static int convertRGBA_RGBA(float *src,
     case transfer_UserDefined:
     case transfer_Linear:
     case transfer_Logarithmic: {
-      memcpy(dst, src, 4 * (size_t)logImage->width * (size_t)logImage->height * sizeof(float));
+      memcpy(dst, src, 4 * size_t(logImage->width) * size_t(logImage->height) * sizeof(float));
       return 0;
     }
 
@@ -1414,7 +1414,7 @@ static int convertCbYCr_RGBA(float *src,
     return 1;
   }
 
-  refLowData = (float)logElement.refLowData / logElement.maxValue;
+  refLowData = float(logElement.refLowData) / logElement.maxValue;
 
   for (i = 0; i < logImage->width * logImage->height; i++) {
     cb = *(src_ptr++) - 0.5f;
@@ -1446,7 +1446,7 @@ static int convertCbYCrA_RGBA(float *src,
     return 1;
   }
 
-  refLowData = (float)logElement.refLowData / logElement.maxValue;
+  refLowData = float(logElement.refLowData) / logElement.maxValue;
 
   for (i = 0; i < logImage->width * logImage->height; i++) {
     cb = *(src_ptr++) - 0.5f;
@@ -1479,7 +1479,7 @@ static int convertCbYCrY_RGBA(float *src,
     return 1;
   }
 
-  refLowData = (float)logElement.refLowData / logElement.maxValue;
+  refLowData = float(logElement.refLowData) / logElement.maxValue;
 
   for (i = 0; i < logImage->width * logImage->height / 2; i++) {
     cb = *(src_ptr++) - 0.5f;
@@ -1531,7 +1531,7 @@ static int convertCbYACrYA_RGBA(float *src,
     return 1;
   }
 
-  refLowData = (float)logElement.refLowData / logElement.maxValue;
+  refLowData = float(logElement.refLowData) / logElement.maxValue;
 
   for (i = 0; i < logImage->width * logImage->height / 2; i++) {
     cb = *(src_ptr++) - 0.5f;
@@ -1585,7 +1585,7 @@ static int convertLuminance_RGBA(float *src,
     return 1;
   }
 
-  refLowData = (float)logElement.refLowData / logElement.maxValue;
+  refLowData = float(logElement.refLowData) / logElement.maxValue;
 
   for (i = 0; i < logImage->width * logImage->height; i++) {
     value = clamp_float((*(src_ptr++) - refLowData) * conversionMatrix[0], 0.0f, 1.0f);
@@ -1611,7 +1611,7 @@ static int convertYA_RGBA(float *src,
     return 1;
   }
 
-  refLowData = (float)logElement.refLowData / logElement.maxValue;
+  refLowData = float(logElement.refLowData) / logElement.maxValue;
 
   for (i = 0; i < logImage->width * logImage->height; i++) {
     value = clamp_float((*(src_ptr++) - refLowData) * conversionMatrix[0], 0.0f, 1.0f);
@@ -1711,7 +1711,7 @@ static int convertRGBAToLogElement(
       return 1;
     }
 
-    memcpy(srgbSrc, src, 4 * (size_t)logImage->width * (size_t)logImage->height * sizeof(float));
+    memcpy(srgbSrc, src, 4 * size_t(logImage->width) * size_t(logImage->height) * sizeof(float));
     srgbSrc_ptr = srgbSrc;
 
     /* convert data from Linear RGB to sRGB via lut */

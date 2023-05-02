@@ -410,7 +410,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
   const int height = ibuf->y;
   const int depth = 4; /* always 4 channels */
   const int chsize = ibuf->rect_float ? sizeof(float) : sizeof(uchar);
-  const size_t bsize = ((size_t)width) * height * depth * chsize;
+  const size_t bsize = size_t(width) * height * depth * chsize;
   const bool is_float = (ibuf->rect_float != nullptr);
   void *dstbuf = (void *)MEM_dupallocN(ibuf->rect_float ? (void *)ibuf->rect_float :
                                                           (void *)ibuf->rect);
@@ -427,7 +427,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
   k = 0;
   for (i = -n; i <= n; i++) {
     for (j = -n; j <= n; j++) {
-      weight[k++] = sqrt((float)i * i + j * j);
+      weight[k++] = sqrt(float(i) * i + j * j);
     }
   }
 #endif
@@ -480,7 +480,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
                     }
                     else {
                       for (c = 0; c < depth; c++) {
-                        tmp[c] = (float)((const uchar *)srcbuf)[depth * tmpindex + c];
+                        tmp[c] = float(((const uchar *)srcbuf)[depth * tmpindex + c]);
                       }
                     }
 
@@ -510,7 +510,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
                   ((uchar *)dstbuf)[depth * index + c] = acc[c] > 255 ?
                                                              255 :
                                                              (acc[c] < 0 ? 0 :
-                                                                           (uchar)roundf(acc[c]));
+                                                                           uchar(roundf(acc[c])));
                 }
               }
 
@@ -527,7 +527,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
     /* keep the original buffer up to date. */
     memcpy(srcbuf, dstbuf, bsize);
     if (dstmask != nullptr) {
-      memcpy(srcmask, dstmask, ((size_t)width) * height);
+      memcpy(srcmask, dstmask, size_t(width) * height);
     }
   }
 
@@ -698,7 +698,7 @@ void IMB_unpremultiply_rect(uint *rect, char planes, int w, int h)
 
     for (y = 0; y < h; y++) {
       for (x = 0; x < w; x++, cp += 4) {
-        val = cp[3] != 0 ? 1.0f / (float)cp[3] : 1.0f;
+        val = cp[3] != 0 ? 1.0f / float(cp[3]) : 1.0f;
         cp[0] = unit_float_to_uchar_clamp(cp[0] * val);
         cp[1] = unit_float_to_uchar_clamp(cp[1] * val);
         cp[2] = unit_float_to_uchar_clamp(cp[2] * val);

@@ -825,7 +825,7 @@ int *BKE_mesh_calc_smoothgroups(const int totedge,
                                             const MeshElemMap &edge_poly_map_elem) {
     /* Edge is sharp if one of its polys is flat, or edge itself is sharp,
      * or edge is not used by exactly two polygons. */
-    if ((poly_is_smooth(poly_index)) && !(sharp_edges && sharp_edges[edge_index]) &&
+    if (poly_is_smooth(poly_index) && !(sharp_edges && sharp_edges[edge_index]) &&
         (edge_user_count == 2))
     {
       /* In that case, edge appears to be smooth, but we need to check its other poly too. */

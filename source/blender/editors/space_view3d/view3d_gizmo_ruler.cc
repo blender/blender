@@ -866,7 +866,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     float rot_90_vec[2] = {-dir_ruler[1], dir_ruler[0]};
     normalize_v2(rot_90_vec);
     posit[1] += rot_90_vec[0] * numstr_size[1];
-    posit[0] += ((rot_90_vec[1] < 0)) ? numstr_size[0] : -numstr_size[0];
+    posit[0] += (rot_90_vec[1] < 0) ? numstr_size[0] : -numstr_size[0];
 
     /* draw text (bg) */
     if (proj_ok[1]) {

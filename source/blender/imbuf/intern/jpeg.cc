@@ -132,7 +132,7 @@ static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 
   if (num_bytes > 0) {
     /* prevent skipping over file end */
-    size_t skip_size = (size_t)num_bytes <= src->pub.bytes_in_buffer ? num_bytes :
+    size_t skip_size = size_t(num_bytes) <= src->pub.bytes_in_buffer ? num_bytes :
                                                                        src->pub.bytes_in_buffer;
 
     src->pub.next_input_byte = src->pub.next_input_byte + skip_size;
@@ -210,7 +210,7 @@ static void memory_source(j_decompress_ptr cinfo, const uchar *buffer, size_t si
  */
 #define INPUT_2BYTES(cinfo, V, action) \
   MAKESTMT(MAKE_BYTE_AVAIL(cinfo, action); bytes_in_buffer--; \
-           V = (uint)GETJOCTET(*next_input_byte++) << 8; \
+           V = uint(GETJOCTET(*next_input_byte++)) << 8; \
            MAKE_BYTE_AVAIL(cinfo, action); \
            bytes_in_buffer--; \
            V += GETJOCTET(*next_input_byte++);)
@@ -289,9 +289,9 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
     if (max_size > 0) {
       /* `libjpeg` can more quickly decompress while scaling down to 1/2, 1/4, 1/8,
        * while `libjpeg-turbo` can also do 3/8, 5/8, etc. But max is 1/8. */
-      float scale = (float)max_size / MAX2(cinfo->image_width, cinfo->image_height);
+      float scale = float(max_size) / MAX2(cinfo->image_width, cinfo->image_height);
       cinfo->scale_denom = 8;
-      cinfo->scale_num = max_uu(1, min_uu(8, ceill(scale * (float)cinfo->scale_denom)));
+      cinfo->scale_num = max_uu(1, min_uu(8, ceill(scale * float(cinfo->scale_denom))));
       cinfo->dct_method = JDCT_FASTEST;
       cinfo->dither_mode = JDITHER_ORDERED;
     }

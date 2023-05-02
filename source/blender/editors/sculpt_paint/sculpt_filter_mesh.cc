@@ -354,11 +354,11 @@ static bool sculpt_mesh_filter_needs_pmap(eSculptMeshFilterType filter_type)
 
 static bool sculpt_mesh_filter_is_continuous(eSculptMeshFilterType type)
 {
-  return (ELEM(type,
-               MESH_FILTER_SHARPEN,
-               MESH_FILTER_SMOOTH,
-               MESH_FILTER_RELAX,
-               MESH_FILTER_RELAX_FACE_SETS));
+  return ELEM(type,
+              MESH_FILTER_SHARPEN,
+              MESH_FILTER_SMOOTH,
+              MESH_FILTER_RELAX,
+              MESH_FILTER_RELAX_FACE_SETS);
 }
 
 static void mesh_filter_task_cb(void *__restrict userdata,

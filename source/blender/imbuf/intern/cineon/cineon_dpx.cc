@@ -151,10 +151,10 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon
       for (x = 0; x < ibuf->x; x++) {
         fbuf_ptr = fbuf + 4 * ((ibuf->y - y - 1) * ibuf->x + x);
         rect_ptr = (uchar *)ibuf->rect + 4 * (y * ibuf->x + x);
-        fbuf_ptr[0] = (float)rect_ptr[0] / 255.0f;
-        fbuf_ptr[1] = (float)rect_ptr[1] / 255.0f;
-        fbuf_ptr[2] = (float)rect_ptr[2] / 255.0f;
-        fbuf_ptr[3] = (depth == 4) ? ((float)rect_ptr[3] / 255.0f) : 1.0f;
+        fbuf_ptr[0] = float(rect_ptr[0]) / 255.0f;
+        fbuf_ptr[1] = float(rect_ptr[1]) / 255.0f;
+        fbuf_ptr[2] = float(rect_ptr[2]) / 255.0f;
+        fbuf_ptr[3] = (depth == 4) ? (float(rect_ptr[3]) / 255.0f) : 1.0f;
       }
     }
     rvalue = (logImageSetDataRGBA(logImage, fbuf, 0) == 0);

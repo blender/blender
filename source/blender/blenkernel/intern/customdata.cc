@@ -4833,8 +4833,8 @@ static void copy_bit_flag(void *dst, const void *src, const size_t data_size, co
 {
 #define COPY_BIT_FLAG(_type, _dst, _src, _f) \
   { \
-    const _type _val = *((_type *)(_src)) & ((_type)(_f)); \
-    *((_type *)(_dst)) &= ~((_type)(_f)); \
+    const _type _val = *((_type *)(_src)) & (_type)(_f); \
+    *((_type *)(_dst)) &= ~(_type)(_f); \
     *((_type *)(_dst)) |= _val; \
   } \
   (void)0

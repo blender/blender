@@ -187,7 +187,7 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
   else {
     if (verbose) {
       printf("Cineon: Bad magic number %lu in \"%s\".\n",
-             (ulong)header.fileHeader.magic_num,
+             ulong(header.fileHeader.magic_num),
              byteStuff);
     }
     logImageClose(cineon);
@@ -296,7 +296,7 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
     }
 
     if (cineon->element[i].refHighData == CINEON_UNDEFINED_U32) {
-      cineon->element[i].refHighData = (uint)cineon->element[i].maxValue;
+      cineon->element[i].refHighData = uint(cineon->element[i].maxValue);
     }
 
     if (cineon->element[i].refLowQuantity == CINEON_UNDEFINED_R32 ||

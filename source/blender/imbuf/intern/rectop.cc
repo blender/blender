@@ -537,16 +537,16 @@ void IMB_rectblend(ImBuf *dbuf,
   const bool do_float = (sbuf && sbuf->rect_float && dbuf->rect_float && obuf->rect_float);
 
   if (do_char) {
-    drect = dbuf->rect + ((size_t)desty) * dbuf->x + destx;
-    orect = obuf->rect + ((size_t)origy) * obuf->x + origx;
+    drect = dbuf->rect + size_t(desty) * dbuf->x + destx;
+    orect = obuf->rect + size_t(origy) * obuf->x + origx;
   }
   if (do_float) {
-    drectf = dbuf->rect_float + (((size_t)desty) * dbuf->x + destx) * 4;
-    orectf = obuf->rect_float + (((size_t)origy) * obuf->x + origx) * 4;
+    drectf = dbuf->rect_float + (size_t(desty) * dbuf->x + destx) * 4;
+    orectf = obuf->rect_float + (size_t(origy) * obuf->x + origx) * 4;
   }
 
   if (dmaskrect) {
-    dmaskrect += ((size_t)origy) * obuf->x + origx;
+    dmaskrect += size_t(origy) * obuf->x + origx;
   }
 
   destskip = dbuf->x;
@@ -554,19 +554,19 @@ void IMB_rectblend(ImBuf *dbuf,
 
   if (sbuf) {
     if (do_char) {
-      srect = sbuf->rect + ((size_t)srcy) * sbuf->x + srcx;
+      srect = sbuf->rect + size_t(srcy) * sbuf->x + srcx;
     }
     if (do_float) {
-      srectf = sbuf->rect_float + (((size_t)srcy) * sbuf->x + srcx) * 4;
+      srectf = sbuf->rect_float + (size_t(srcy) * sbuf->x + srcx) * 4;
     }
     srcskip = sbuf->x;
 
     if (cmaskrect) {
-      cmaskrect += ((size_t)srcy) * sbuf->x + srcx;
+      cmaskrect += size_t(srcy) * sbuf->x + srcx;
     }
 
     if (texmaskrect) {
-      texmaskrect += ((size_t)srcy) * sbuf->x + srcx;
+      texmaskrect += size_t(srcy) * sbuf->x + srcx;
     }
   }
   else {
@@ -810,10 +810,10 @@ void IMB_rectblend(ImBuf *dbuf,
           else {
             for (x = width; x > 0; x--, dr++, outr++, sr++, cmr++) {
               uchar *src = (uchar *)sr;
-              float mask = (float)mask_max * (float)(*cmr);
+              float mask = float(mask_max) * float(*cmr);
 
               if (texmaskrect) {
-                mask *= ((float)(*tmr++) / 65535.0f);
+                mask *= (float(*tmr++) / 65535.0f);
               }
 
               mask = min_ff(mask, 65535.0);
@@ -908,10 +908,10 @@ void IMB_rectblend(ImBuf *dbuf,
           /* no destination mask buffer, do regular blend with masktexture if present */
           else {
             for (x = width; x > 0; x--, drf += 4, orf += 4, srf += 4, cmr++) {
-              float mask = (float)mask_max * (float)(*cmr);
+              float mask = float(mask_max) * float(*cmr);
 
               if (texmaskrect) {
-                mask *= ((float)(*tmr++) / 65535.0f);
+                mask *= (float(*tmr++) / 65535.0f);
               }
 
               mask = min_ff(mask, 65535.0);
@@ -1004,7 +1004,7 @@ void IMB_rectblend_threaded(ImBuf *dbuf,
                             IMB_BlendMode mode,
                             bool accumulate)
 {
-  if (((size_t)width) * height < 64 * 64) {
+  if (size_t(width) * height < 64 * 64) {
     IMB_rectblend(dbuf,
                   obuf,
                   sbuf,
@@ -1053,10 +1053,10 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
     uint *rrect = drect->rect;
     char ccol[4];
 
-    ccol[0] = (int)(col[0] * 255);
-    ccol[1] = (int)(col[1] * 255);
-    ccol[2] = (int)(col[2] * 255);
-    ccol[3] = (int)(col[3] * 255);
+    ccol[0] = int(col[0] * 255);
+    ccol[1] = int(col[1] * 255);
+    ccol[2] = int(col[2] * 255);
+    ccol[3] = int(col[3] * 255);
 
     num = drect->x * drect->y;
     for (; num > 0; num--) {
@@ -1109,7 +1109,7 @@ void IMB_rectfill_area_replace(
 
   for (int y = y1; y < y2; y++) {
     for (int x = x1; x < x2; x++) {
-      size_t offset = ((size_t)ibuf->x) * y * 4 + 4 * x;
+      size_t offset = size_t(ibuf->x) * y * 4 + 4 * x;
 
       if (ibuf->rect) {
         uchar *rrect = (uchar *)ibuf->rect + offset;
@@ -1192,10 +1192,10 @@ void buf_rectfill_area(uchar *rect,
           }
           else {
             int alphatest;
-            pixel[0] = (char)((fr + ((float)pixel[0] * aich)) * 255.0f);
-            pixel[1] = (char)((fg + ((float)pixel[1] * aich)) * 255.0f);
-            pixel[2] = (char)((fb + ((float)pixel[2] * aich)) * 255.0f);
-            pixel[3] = (char)((alphatest = ((int)pixel[3] + alphaint)) < 255 ? alphatest : 255);
+            pixel[0] = char((fr + (float(pixel[0]) * aich)) * 255.0f);
+            pixel[1] = char((fg + (float(pixel[1]) * aich)) * 255.0f);
+            pixel[2] = char((fb + (float(pixel[2]) * aich)) * 255.0f);
+            pixel[3] = char((alphatest = (int(pixel[3]) + alphaint)) < 255 ? alphatest : 255);
           }
         }
       }

@@ -139,7 +139,7 @@ int IMB_ispic_type(const char *filepath)
   if (buf_size <= 0) {
     return IMB_FTYPE_NONE;
   }
-  return IMB_ispic_type_from_memory(buf, (size_t)buf_size);
+  return IMB_ispic_type_from_memory(buf, size_t(buf_size));
 }
 
 bool IMB_ispic_type_matches(const char *filepath, int filetype)
@@ -156,7 +156,7 @@ bool IMB_ispic_type_matches(const char *filepath, int filetype)
      * Keep the check for developers. */
     BLI_assert(type->is_a != nullptr);
     if (type->is_a != nullptr) {
-      return type->is_a(buf, (size_t)buf_size);
+      return type->is_a(buf, size_t(buf_size));
     }
   }
   return false;

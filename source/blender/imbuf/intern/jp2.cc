@@ -101,11 +101,11 @@ static void info_callback(const char *msg, void *client_data)
 #endif
 
 #define PIXEL_LOOPER_BEGIN(_rect) \
-  for (y = h - 1; y != (uint)(-1); y--) { \
+  for (y = h - 1; y != uint(-1); y--) { \
     for (i = y * w, i_next = (y + 1) * w; i < i_next; i++, _rect += 4) {
 
 #define PIXEL_LOOPER_BEGIN_CHANNELS(_rect, _channels) \
-  for (y = h - 1; y != (uint)(-1); y--) { \
+  for (y = h - 1; y != uint(-1); y--) { \
     for (i = y * w, i_next = (y + 1) * w; i < i_next; i++, _rect += _channels) {
 
 #define PIXEL_LOOPER_END \
@@ -460,7 +460,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
       if (use_alpha) {
         a = image->comps[1].data;
         PIXEL_LOOPER_BEGIN (rect_float) {
-          rect_float[0] = rect_float[1] = rect_float[2] = (float)(r[i] + signed_offsets[0]) /
+          rect_float[0] = rect_float[1] = rect_float[2] = float(r[i] + signed_offsets[0]) /
                                                           float_divs[0];
           rect_float[3] = (a[i] + signed_offsets[1]) / float_divs[1];
         }
@@ -468,7 +468,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
       }
       else {
         PIXEL_LOOPER_BEGIN (rect_float) {
-          rect_float[0] = rect_float[1] = rect_float[2] = (float)(r[i] + signed_offsets[0]) /
+          rect_float[0] = rect_float[1] = rect_float[2] = float(r[i] + signed_offsets[0]) /
                                                           float_divs[0];
           rect_float[3] = 1.0f;
         }
@@ -484,18 +484,18 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
       if (use_alpha) {
         a = image->comps[3].data;
         PIXEL_LOOPER_BEGIN (rect_float) {
-          rect_float[0] = (float)(r[i] + signed_offsets[0]) / float_divs[0];
-          rect_float[1] = (float)(g[i] + signed_offsets[1]) / float_divs[1];
-          rect_float[2] = (float)(b[i] + signed_offsets[2]) / float_divs[2];
-          rect_float[3] = (float)(a[i] + signed_offsets[3]) / float_divs[3];
+          rect_float[0] = float(r[i] + signed_offsets[0]) / float_divs[0];
+          rect_float[1] = float(g[i] + signed_offsets[1]) / float_divs[1];
+          rect_float[2] = float(b[i] + signed_offsets[2]) / float_divs[2];
+          rect_float[3] = float(a[i] + signed_offsets[3]) / float_divs[3];
         }
         PIXEL_LOOPER_END;
       }
       else {
         PIXEL_LOOPER_BEGIN (rect_float) {
-          rect_float[0] = (float)(r[i] + signed_offsets[0]) / float_divs[0];
-          rect_float[1] = (float)(g[i] + signed_offsets[1]) / float_divs[1];
-          rect_float[2] = (float)(b[i] + signed_offsets[2]) / float_divs[2];
+          rect_float[0] = float(r[i] + signed_offsets[0]) / float_divs[0];
+          rect_float[1] = float(g[i] + signed_offsets[1]) / float_divs[1];
+          rect_float[2] = float(b[i] + signed_offsets[2]) / float_divs[2];
           rect_float[3] = 1.0f;
         }
         PIXEL_LOOPER_END;
@@ -586,11 +586,11 @@ static opj_image_t *rawtoimage(const char *filename,
 #  define UPSAMPLE_8_TO_16(_val) ((_val << 8) + _val)
 
 #  define DOWNSAMPLE_FLOAT_TO_8BIT(_val) \
-    (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 255 : (int)(255.0f * (_val)))
+    (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 255 : int(255.0f * (_val)))
 #  define DOWNSAMPLE_FLOAT_TO_12BIT(_val) \
-    (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 4095 : (int)(4095.0f * (_val)))
+    (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 4095 : int(4095.0f * (_val)))
 #  define DOWNSAMPLE_FLOAT_TO_16BIT(_val) \
-    (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 65535 : (int)(65535.0f * (_val)))
+    (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 65535 : int(65535.0f * (_val)))
 #else
 
 BLI_INLINE int UPSAMPLE_8_TO_12(const uchar _val)
@@ -604,15 +604,15 @@ BLI_INLINE int UPSAMPLE_8_TO_16(const uchar _val)
 
 BLI_INLINE int DOWNSAMPLE_FLOAT_TO_8BIT(const float _val)
 {
-  return (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 255 : (int)(255.0f * (_val)));
+  return (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 255 : int(255.0f * (_val)));
 }
 BLI_INLINE int DOWNSAMPLE_FLOAT_TO_12BIT(const float _val)
 {
-  return (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 4095 : (int)(4095.0f * (_val)));
+  return (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 4095 : int(4095.0f * (_val)));
 }
 BLI_INLINE int DOWNSAMPLE_FLOAT_TO_16BIT(const float _val)
 {
-  return (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 65535 : (int)(65535.0f * (_val)));
+  return (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 65535 : int(65535.0f * (_val)));
 }
 #endif
 
@@ -744,17 +744,17 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,
       for (i = 0; i < parameters->tcp_numlayers; i++) {
         temp_rate = 0;
         if (img_fol->rates[i] == 0) {
-          parameters->tcp_rates[0] = (float)(image->numcomps * image->comps[0].w *
-                                             image->comps[0].h * image->comps[0].prec) /
+          parameters->tcp_rates[0] = float(image->numcomps * image->comps[0].w *
+                                           image->comps[0].h * image->comps[0].prec) /
                                      (CINEMA_24_CS * 8 * image->comps[0].dx * image->comps[0].dy);
         }
         else {
-          temp_rate = (float)(image->numcomps * image->comps[0].w * image->comps[0].h *
-                              image->comps[0].prec) /
+          temp_rate = float(image->numcomps * image->comps[0].w * image->comps[0].h *
+                            image->comps[0].prec) /
                       (img_fol->rates[i] * 8 * image->comps[0].dx * image->comps[0].dy);
           if (temp_rate > CINEMA_24_CS) {
-            parameters->tcp_rates[i] = (float)(image->numcomps * image->comps[0].w *
-                                               image->comps[0].h * image->comps[0].prec) /
+            parameters->tcp_rates[i] = float(image->numcomps * image->comps[0].w *
+                                             image->comps[0].h * image->comps[0].prec) /
                                        (CINEMA_24_CS * 8 * image->comps[0].dx *
                                         image->comps[0].dy);
           }
@@ -770,17 +770,17 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters,
       for (i = 0; i < parameters->tcp_numlayers; i++) {
         temp_rate = 0;
         if (img_fol->rates[i] == 0) {
-          parameters->tcp_rates[0] = (float)(image->numcomps * image->comps[0].w *
-                                             image->comps[0].h * image->comps[0].prec) /
+          parameters->tcp_rates[0] = float(image->numcomps * image->comps[0].w *
+                                           image->comps[0].h * image->comps[0].prec) /
                                      (CINEMA_48_CS * 8 * image->comps[0].dx * image->comps[0].dy);
         }
         else {
-          temp_rate = (float)(image->numcomps * image->comps[0].w * image->comps[0].h *
-                              image->comps[0].prec) /
+          temp_rate = float(image->numcomps * image->comps[0].w * image->comps[0].h *
+                            image->comps[0].prec) /
                       (img_fol->rates[i] * 8 * image->comps[0].dx * image->comps[0].dy);
           if (temp_rate > CINEMA_48_CS) {
-            parameters->tcp_rates[0] = (float)(image->numcomps * image->comps[0].w *
-                                               image->comps[0].h * image->comps[0].prec) /
+            parameters->tcp_rates[0] = float(image->numcomps * image->comps[0].w *
+                                             image->comps[0].h * image->comps[0].prec) /
                                        (CINEMA_48_CS * 8 * image->comps[0].dx *
                                         image->comps[0].dy);
           }

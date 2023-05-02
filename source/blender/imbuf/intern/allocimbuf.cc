@@ -233,7 +233,8 @@ bool addzbufImBuf(ImBuf *ibuf)
   IMB_freezbufImBuf(ibuf);
 
   if ((ibuf->zbuf = static_cast<int *>(
-           imb_alloc_pixels(ibuf->x, ibuf->y, 1, sizeof(uint), __func__)))) {
+           imb_alloc_pixels(ibuf->x, ibuf->y, 1, sizeof(uint), __func__))))
+  {
     ibuf->mall |= IB_zbuf;
     ibuf->flags |= IB_zbuf;
     return true;
@@ -251,7 +252,8 @@ bool addzbuffloatImBuf(ImBuf *ibuf)
   IMB_freezbuffloatImBuf(ibuf);
 
   if ((ibuf->zbuf_float = static_cast<float *>(
-           imb_alloc_pixels(ibuf->x, ibuf->y, 1, sizeof(float), __func__)))) {
+           imb_alloc_pixels(ibuf->x, ibuf->y, 1, sizeof(float), __func__))))
+  {
     ibuf->mall |= IB_zbuffloat;
     ibuf->flags |= IB_zbuffloat;
     return true;
@@ -274,8 +276,8 @@ bool imb_addencodedbufferImBuf(ImBuf *ibuf)
 
   ibuf->encodedsize = 0;
 
-  if ((ibuf->encodedbuffer = static_cast<unsigned char *>(
-           MEM_mallocN(ibuf->encodedbuffersize, __func__)))) {
+  if ((ibuf->encodedbuffer = static_cast<uchar *>(MEM_mallocN(ibuf->encodedbuffersize, __func__))))
+  {
     ibuf->mall |= IB_mem;
     ibuf->flags |= IB_mem;
     return true;
@@ -321,7 +323,7 @@ bool imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
 
   ibuf->encodedbuffersize = newsize;
   ibuf->encodedsize = encodedsize;
-  ibuf->encodedbuffer = static_cast<unsigned char *>(newbuffer);
+  ibuf->encodedbuffer = static_cast<uchar *>(newbuffer);
   ibuf->mall |= IB_mem;
   ibuf->flags |= IB_mem;
 
@@ -332,11 +334,11 @@ void *imb_alloc_pixels(uint x, uint y, uint channels, size_t typesize, const cha
 {
   /* Protect against buffer overflow vulnerabilities from files specifying
    * a width and height that overflow and alloc too little memory. */
-  if (!((uint64_t)x * (uint64_t)y < (SIZE_MAX / (channels * typesize)))) {
+  if (!(uint64_t(x) * uint64_t(y) < (SIZE_MAX / (channels * typesize)))) {
     return nullptr;
   }
 
-  size_t size = (size_t)x * (size_t)y * (size_t)channels * typesize;
+  size_t size = size_t(x) * size_t(y) * size_t(channels) * typesize;
   return MEM_callocN(size, name);
 }
 
@@ -352,7 +354,8 @@ bool imb_addrectfloatImBuf(ImBuf *ibuf, const uint channels)
 
   ibuf->channels = channels;
   if ((ibuf->rect_float = static_cast<float *>(
-           imb_alloc_pixels(ibuf->x, ibuf->y, channels, sizeof(float), __func__)))) {
+           imb_alloc_pixels(ibuf->x, ibuf->y, channels, sizeof(float), __func__))))
+  {
     ibuf->mall |= IB_rectfloat;
     ibuf->flags |= IB_rectfloat;
     return true;
@@ -376,8 +379,9 @@ bool imb_addrectImBuf(ImBuf *ibuf)
   }
   ibuf->rect = nullptr;
 
-  if ((ibuf->rect = static_cast<unsigned int *>(
-           imb_alloc_pixels(ibuf->x, ibuf->y, 4, sizeof(uchar), __func__)))) {
+  if ((ibuf->rect = static_cast<uint *>(
+           imb_alloc_pixels(ibuf->x, ibuf->y, 4, sizeof(uchar), __func__))))
+  {
     ibuf->mall |= IB_rect;
     ibuf->flags |= IB_rect;
     if (ibuf->planes > 32) {
@@ -445,7 +449,7 @@ struct ImBuf *IMB_allocFromBuffer(
   }
   if (rect) {
     const size_t size = sizeof(uchar[4]) * w * h;
-    ibuf->rect = static_cast<unsigned int *>(MEM_mallocN(size, __func__));
+    ibuf->rect = static_cast<uint *>(MEM_mallocN(size, __func__));
     memcpy(ibuf->rect, rect, size);
 
     ibuf->flags |= IB_rect;
@@ -546,20 +550,19 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   }
 
   if (flags & IB_rect) {
-    memcpy(ibuf2->rect, ibuf1->rect, ((size_t)x) * y * sizeof(int));
+    memcpy(ibuf2->rect, ibuf1->rect, size_t(x) * y * sizeof(int));
   }
 
   if (flags & IB_rectfloat) {
-    memcpy(
-        ibuf2->rect_float, ibuf1->rect_float, ((size_t)ibuf1->channels) * x * y * sizeof(float));
+    memcpy(ibuf2->rect_float, ibuf1->rect_float, size_t(ibuf1->channels) * x * y * sizeof(float));
   }
 
   if (flags & IB_zbuf) {
-    memcpy(ibuf2->zbuf, ibuf1->zbuf, ((size_t)x) * y * sizeof(int));
+    memcpy(ibuf2->zbuf, ibuf1->zbuf, size_t(x) * y * sizeof(int));
   }
 
   if (flags & IB_zbuffloat) {
-    memcpy(ibuf2->zbuf_float, ibuf1->zbuf_float, ((size_t)x) * y * sizeof(float));
+    memcpy(ibuf2->zbuf_float, ibuf1->zbuf_float, size_t(x) * y * sizeof(float));
   }
 
   if (ibuf1->encodedbuffer) {
@@ -603,7 +606,7 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
 
 size_t IMB_get_rect_len(const ImBuf *ibuf)
 {
-  return (size_t)ibuf->x * (size_t)ibuf->y;
+  return size_t(ibuf->x) * size_t(ibuf->y);
 }
 
 size_t IMB_get_size_in_memory(ImBuf *ibuf)

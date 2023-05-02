@@ -222,7 +222,7 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, char colorsp
     /* Transfer metadata to the ibuf if necessary. */
     if (ctx.flags & IB_metadata) {
       IMB_metadata_ensure(&ibuf->metadata);
-      ibuf->flags |= (spec.extra_attribs.empty()) ? 0 : IB_metadata;
+      ibuf->flags |= spec.extra_attribs.empty() ? 0 : IB_metadata;
 
       for (const auto &attrib : spec.extra_attribs) {
         IMB_metadata_set_field(ibuf->metadata, attrib.name().c_str(), attrib.get_string().c_str());

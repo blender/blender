@@ -320,10 +320,10 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
   /* Correct the smaller size to maintain the original aspect ratio of the image. */
   if (do_rescale && ibuf->x != ibuf->y) {
     if (size[0] > size[1]) {
-      size[1] = (int)(ibuf->y * ((float)size[0] / ibuf->x));
+      size[1] = int(ibuf->y * (float(size[0]) / ibuf->x));
     }
     else {
-      size[0] = (int)(ibuf->x * ((float)size[1] / ibuf->y));
+      size[0] = int(ibuf->x * (float(size[1]) / ibuf->y));
     }
   }
 

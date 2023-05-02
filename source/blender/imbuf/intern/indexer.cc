@@ -418,12 +418,8 @@ static bool get_proxy_filepath(struct anim *anim,
     BLI_snprintf(stream_suffix, sizeof(stream_suffix), "_st%d", anim->streamindex);
   }
 
-  BLI_snprintf(proxy_name,
-               sizeof(proxy_name),
-               name,
-               (int)(proxy_fac[i] * 100),
-               stream_suffix,
-               anim->suffix);
+  BLI_snprintf(
+      proxy_name, sizeof(proxy_name), name, int(proxy_fac[i] * 100), stream_suffix, anim->suffix);
 
   get_index_dir(anim, index_dir, sizeof(index_dir));
 
@@ -1054,9 +1050,8 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
   context->pts_time_base = av_q2d(context->iStream->time_base);
 
   while (av_read_frame(context->iFormatCtx, next_packet) >= 0) {
-    float next_progress = (float)(int)floor(
-                              ((double)next_packet->pos) * 100 / ((double)stream_size) + 0.5) /
-                          100;
+    float next_progress =
+        float(int(floor(double(next_packet->pos) * 100 / double(stream_size) + 0.5))) / 100;
 
     if (*progress != next_progress) {
       *progress = next_progress;
@@ -1277,7 +1272,7 @@ static AviMovie *alloc_proxy_output_avi(
   x = width;
   y = height;
 
-  framerate = (double)frs_sec / (double)frs_sec_base;
+  framerate = double(frs_sec) / double(frs_sec_base);
 
   avi = MEM_cnew<AviMovie>("avimovie");
 
@@ -1376,7 +1371,7 @@ static void index_rebuild_fallback(FallbackIndexBuilderContext *context,
   for (pos = 0; pos < count; pos++) {
     struct ImBuf *ibuf = IMB_anim_absolute(anim, pos, IMB_TC_NONE, IMB_PROXY_NONE);
     struct ImBuf *tmp_ibuf = IMB_dupImBuf(ibuf);
-    float next_progress = (float)pos / (float)count;
+    float next_progress = float(pos) / float(count);
 
     if (*progress != next_progress) {
       *progress = next_progress;

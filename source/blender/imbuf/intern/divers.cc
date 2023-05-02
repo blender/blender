@@ -64,7 +64,7 @@ MINLINE uchar ftochar(float value)
 MINLINE void ushort_to_byte_dither_v4(
     uchar b[4], const ushort us[4], DitherContext *di, float s, float t)
 {
-#define USHORTTOFLOAT(val) ((float)val / 65535.0f)
+#define USHORTTOFLOAT(val) (float(val) / 65535.0f)
   float dither_value = dither_random_value(s, t) * 0.0033f * di->dither;
 
   b[0] = ftochar(dither_value + USHORTTOFLOAT(us[0]));
@@ -122,8 +122,8 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
 
     if (channels_from == 1) {
       /* single channel input */
-      const float *from = rect_from + ((size_t)stride_from) * y;
-      uchar *to = rect_to + ((size_t)stride_to) * y * 4;
+      const float *from = rect_from + size_t(stride_from) * y;
+      uchar *to = rect_to + size_t(stride_to) * y * 4;
 
       for (x = 0; x < width; x++, from++, to += 4) {
         to[0] = to[1] = to[2] = to[3] = unit_float_to_uchar_clamp(from[0]);
@@ -131,8 +131,8 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
     }
     else if (channels_from == 3) {
       /* RGB input */
-      const float *from = rect_from + ((size_t)stride_from) * y * 3;
-      uchar *to = rect_to + ((size_t)stride_to) * y * 4;
+      const float *from = rect_from + size_t(stride_from) * y * 3;
+      uchar *to = rect_to + size_t(stride_to) * y * 4;
 
       if (profile_to == profile_from) {
         /* no color space conversion */
@@ -160,8 +160,8 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
     }
     else if (channels_from == 4) {
       /* RGBA input */
-      const float *from = rect_from + ((size_t)stride_from) * y * 4;
-      uchar *to = rect_to + ((size_t)stride_to) * y * 4;
+      const float *from = rect_from + size_t(stride_from) * y * 4;
+      uchar *to = rect_to + size_t(stride_to) * y * 4;
 
       if (profile_to == profile_from) {
         float straight[4];
@@ -170,12 +170,12 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
         if (dither && predivide) {
           for (x = 0; x < width; x++, from += 4, to += 4) {
             premul_to_straight_v4_v4(straight, from);
-            float_to_byte_dither_v4(to, straight, di, (float)x * inv_width, t);
+            float_to_byte_dither_v4(to, straight, di, float(x) * inv_width, t);
           }
         }
         else if (dither) {
           for (x = 0; x < width; x++, from += 4, to += 4) {
-            float_to_byte_dither_v4(to, from, di, (float)x * inv_width, t);
+            float_to_byte_dither_v4(to, from, di, float(x) * inv_width, t);
           }
         }
         else if (predivide) {
@@ -199,13 +199,13 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
           for (x = 0; x < width; x++, from += 4, to += 4) {
             premul_to_straight_v4_v4(straight, from);
             linearrgb_to_srgb_ushort4(us, from);
-            ushort_to_byte_dither_v4(to, us, di, (float)x * inv_width, t);
+            ushort_to_byte_dither_v4(to, us, di, float(x) * inv_width, t);
           }
         }
         else if (dither) {
           for (x = 0; x < width; x++, from += 4, to += 4) {
             linearrgb_to_srgb_ushort4(us, from);
-            ushort_to_byte_dither_v4(to, us, di, (float)x * inv_width, t);
+            ushort_to_byte_dither_v4(to, us, di, float(x) * inv_width, t);
           }
         }
         else if (predivide) {
@@ -227,13 +227,13 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
         if (dither && predivide) {
           for (x = 0; x < width; x++, from += 4, to += 4) {
             srgb_to_linearrgb_predivide_v4(tmp, from);
-            float_to_byte_dither_v4(to, tmp, di, (float)x * inv_width, t);
+            float_to_byte_dither_v4(to, tmp, di, float(x) * inv_width, t);
           }
         }
         else if (dither) {
           for (x = 0; x < width; x++, from += 4, to += 4) {
             srgb_to_linearrgb_v4(tmp, from);
-            float_to_byte_dither_v4(to, tmp, di, (float)x * inv_width, t);
+            float_to_byte_dither_v4(to, tmp, di, float(x) * inv_width, t);
           }
         }
         else if (predivide) {
@@ -281,8 +281,8 @@ void IMB_buffer_byte_from_float_mask(uchar *rect_to,
 
     if (channels_from == 1) {
       /* single channel input */
-      const float *from = rect_from + ((size_t)stride_from) * y;
-      uchar *to = rect_to + ((size_t)stride_to) * y * 4;
+      const float *from = rect_from + size_t(stride_from) * y;
+      uchar *to = rect_to + size_t(stride_to) * y * 4;
 
       for (x = 0; x < width; x++, from++, to += 4) {
         if (*mask++ == FILTER_MASK_USED) {
@@ -292,8 +292,8 @@ void IMB_buffer_byte_from_float_mask(uchar *rect_to,
     }
     else if (channels_from == 3) {
       /* RGB input */
-      const float *from = rect_from + ((size_t)stride_from) * y * 3;
-      uchar *to = rect_to + ((size_t)stride_to) * y * 4;
+      const float *from = rect_from + size_t(stride_from) * y * 3;
+      uchar *to = rect_to + size_t(stride_to) * y * 4;
 
       for (x = 0; x < width; x++, from += 3, to += 4) {
         if (*mask++ == FILTER_MASK_USED) {
@@ -304,8 +304,8 @@ void IMB_buffer_byte_from_float_mask(uchar *rect_to,
     }
     else if (channels_from == 4) {
       /* RGBA input */
-      const float *from = rect_from + ((size_t)stride_from) * y * 4;
-      uchar *to = rect_to + ((size_t)stride_to) * y * 4;
+      const float *from = rect_from + size_t(stride_from) * y * 4;
+      uchar *to = rect_to + size_t(stride_to) * y * 4;
 
       float straight[4];
 
@@ -313,14 +313,14 @@ void IMB_buffer_byte_from_float_mask(uchar *rect_to,
         for (x = 0; x < width; x++, from += 4, to += 4) {
           if (*mask++ == FILTER_MASK_USED) {
             premul_to_straight_v4_v4(straight, from);
-            float_to_byte_dither_v4(to, straight, di, (float)x * inv_width, t);
+            float_to_byte_dither_v4(to, straight, di, float(x) * inv_width, t);
           }
         }
       }
       else if (dither) {
         for (x = 0; x < width; x++, from += 4, to += 4) {
           if (*mask++ == FILTER_MASK_USED) {
-            float_to_byte_dither_v4(to, from, di, (float)x * inv_width, t);
+            float_to_byte_dither_v4(to, from, di, float(x) * inv_width, t);
           }
         }
       }
@@ -366,8 +366,8 @@ void IMB_buffer_float_from_byte(float *rect_to,
 
   /* RGBA input */
   for (y = 0; y < height; y++) {
-    const uchar *from = rect_from + ((size_t)stride_from) * y * 4;
-    float *to = rect_to + ((size_t)stride_to) * y * 4;
+    const uchar *from = rect_from + size_t(stride_from) * y * 4;
+    float *to = rect_to + size_t(stride_to) * y * 4;
 
     if (profile_to == profile_from) {
       /* no color space conversion */
@@ -426,8 +426,8 @@ void IMB_buffer_float_from_float(float *rect_to,
   if (channels_from == 1) {
     /* single channel input */
     for (y = 0; y < height; y++) {
-      const float *from = rect_from + ((size_t)stride_from) * y;
-      float *to = rect_to + ((size_t)stride_to) * y * 4;
+      const float *from = rect_from + size_t(stride_from) * y;
+      float *to = rect_to + size_t(stride_to) * y * 4;
 
       for (x = 0; x < width; x++, from++, to += 4) {
         to[0] = to[1] = to[2] = to[3] = from[0];
@@ -437,8 +437,8 @@ void IMB_buffer_float_from_float(float *rect_to,
   else if (channels_from == 3) {
     /* RGB input */
     for (y = 0; y < height; y++) {
-      const float *from = rect_from + ((size_t)stride_from) * y * 3;
-      float *to = rect_to + ((size_t)stride_to) * y * 4;
+      const float *from = rect_from + size_t(stride_from) * y * 3;
+      float *to = rect_to + size_t(stride_to) * y * 4;
 
       if (profile_to == profile_from) {
         /* no color space conversion */
@@ -466,12 +466,12 @@ void IMB_buffer_float_from_float(float *rect_to,
   else if (channels_from == 4) {
     /* RGBA input */
     for (y = 0; y < height; y++) {
-      const float *from = rect_from + ((size_t)stride_from) * y * 4;
-      float *to = rect_to + ((size_t)stride_to) * y * 4;
+      const float *from = rect_from + size_t(stride_from) * y * 4;
+      float *to = rect_to + size_t(stride_to) * y * 4;
 
       if (profile_to == profile_from) {
         /* same profile, copy */
-        memcpy(to, from, sizeof(float) * ((size_t)4) * width);
+        memcpy(to, from, sizeof(float) * size_t(4) * width);
       }
       else if (profile_to == IB_PROFILE_LINEAR_RGB) {
         /* convert to sRGB to linear */
@@ -519,8 +519,8 @@ static void imb_buffer_float_from_float_thread_do(void *data_v, int scanline)
 {
   const int num_scanlines = 1;
   FloatToFloatThreadData *data = (FloatToFloatThreadData *)data_v;
-  size_t offset_from = ((size_t)scanline) * data->stride_from * data->channels_from;
-  size_t offset_to = ((size_t)scanline) * data->stride_to * data->channels_from;
+  size_t offset_from = size_t(scanline) * data->stride_from * data->channels_from;
+  size_t offset_to = size_t(scanline) * data->stride_to * data->channels_from;
   IMB_buffer_float_from_float(data->rect_to + offset_to,
                               data->rect_from + offset_from,
                               data->channels_from,
@@ -544,7 +544,7 @@ void IMB_buffer_float_from_float_threaded(float *rect_to,
                                           int stride_to,
                                           int stride_from)
 {
-  if (((size_t)width) * height < 64 * 64) {
+  if (size_t(width) * height < 64 * 64) {
     IMB_buffer_float_from_float(rect_to,
                                 rect_from,
                                 channels_from,
@@ -585,8 +585,8 @@ void IMB_buffer_float_from_float_mask(float *rect_to,
   if (channels_from == 1) {
     /* single channel input */
     for (y = 0; y < height; y++) {
-      const float *from = rect_from + ((size_t)stride_from) * y;
-      float *to = rect_to + ((size_t)stride_to) * y * 4;
+      const float *from = rect_from + size_t(stride_from) * y;
+      float *to = rect_to + size_t(stride_to) * y * 4;
 
       for (x = 0; x < width; x++, from++, to += 4) {
         if (*mask++ == FILTER_MASK_USED) {
@@ -598,8 +598,8 @@ void IMB_buffer_float_from_float_mask(float *rect_to,
   else if (channels_from == 3) {
     /* RGB input */
     for (y = 0; y < height; y++) {
-      const float *from = rect_from + ((size_t)stride_from) * y * 3;
-      float *to = rect_to + ((size_t)stride_to) * y * 4;
+      const float *from = rect_from + size_t(stride_from) * y * 3;
+      float *to = rect_to + size_t(stride_to) * y * 4;
 
       for (x = 0; x < width; x++, from += 3, to += 4) {
         if (*mask++ == FILTER_MASK_USED) {
@@ -612,8 +612,8 @@ void IMB_buffer_float_from_float_mask(float *rect_to,
   else if (channels_from == 4) {
     /* RGBA input */
     for (y = 0; y < height; y++) {
-      const float *from = rect_from + ((size_t)stride_from) * y * 4;
-      float *to = rect_to + ((size_t)stride_to) * y * 4;
+      const float *from = rect_from + size_t(stride_from) * y * 4;
+      float *to = rect_to + size_t(stride_to) * y * 4;
 
       for (x = 0; x < width; x++, from += 4, to += 4) {
         if (*mask++ == FILTER_MASK_USED) {
@@ -643,8 +643,8 @@ void IMB_buffer_byte_from_byte(uchar *rect_to,
 
   /* always RGBA input */
   for (y = 0; y < height; y++) {
-    const uchar *from = rect_from + ((size_t)stride_from) * y * 4;
-    uchar *to = rect_to + ((size_t)stride_to) * y * 4;
+    const uchar *from = rect_from + size_t(stride_from) * y * 4;
+    uchar *to = rect_to + size_t(stride_to) * y * 4;
 
     if (profile_to == profile_from) {
       /* same profile, copy */
@@ -862,7 +862,7 @@ void IMB_color_to_bw(ImBuf *ibuf)
 
 void IMB_buffer_float_unpremultiply(float *buf, int width, int height)
 {
-  size_t total = ((size_t)width) * height;
+  size_t total = size_t(width) * height;
   float *fp = buf;
   while (total--) {
     premul_to_straight_v4(fp);
@@ -872,7 +872,7 @@ void IMB_buffer_float_unpremultiply(float *buf, int width, int height)
 
 void IMB_buffer_float_premultiply(float *buf, int width, int height)
 {
-  size_t total = ((size_t)width) * height;
+  size_t total = size_t(width) * height;
   float *fp = buf;
   while (total--) {
     straight_to_premul_v4(fp);

@@ -176,7 +176,7 @@ static void escape_uri_string(const char *string,
   escaped_string_size -= 1;
 
   for (q = escaped_string, p = string; (*p != '\0') && escaped_string_size; p++) {
-    c = (uchar)*p;
+    c = uchar(*p);
 
     if (!ACCEPTABLE(c)) {
       if (escaped_string_size < 3) {
@@ -227,7 +227,7 @@ static bool uri_from_filename(const char *path, char *uri)
       return 0;
     }
     /* on windows, using always uppercase drive/volume letter in uri */
-    vol[0] = (uchar)toupper(path[0]);
+    vol[0] = uchar(toupper(path[0]));
     vol[1] = ':';
     vol[2] = '\0';
     strcat(orig_uri, vol);
@@ -396,10 +396,10 @@ static ImBuf *thumb_create_ex(const char *file_path,
       }
 
       if (img->x > tsize || img->y > tsize) {
-        float scale = MIN2((float)tsize / (float)img->x, (float)tsize / (float)img->y);
+        float scale = MIN2(float(tsize) / float(img->x), float(tsize) / float(img->y));
         /* Scaling down must never assign zero width/height, see: #89868. */
-        short ex = MAX2(1, (short)(img->x * scale));
-        short ey = MAX2(1, (short)(img->y * scale));
+        short ex = MAX2(1, short(img->x * scale));
+        short ey = MAX2(1, short(img->y * scale));
         /* Save some time by only scaling byte buf */
         if (img->rect_float) {
           if (img->rect == nullptr) {
