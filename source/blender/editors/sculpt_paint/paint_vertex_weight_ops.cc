@@ -832,7 +832,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   data.dvert = dverts;
   data.select_vert = (const bool *)CustomData_get_layer_named(
       &me->vdata, CD_PROP_BOOL, ".select_vert");
-  data.hide_vert = attributes.lookup_or_default<bool>(".hide_vert", ATTR_DOMAIN_POINT, false);
+  data.hide_vert = *attributes.lookup_or_default<bool>(".hide_vert", ATTR_DOMAIN_POINT, false);
   data.sco_start = sco_start;
   data.sco_end = sco_end;
   data.sco_line_div = 1.0f / len_v2v2(sco_start, sco_end);
