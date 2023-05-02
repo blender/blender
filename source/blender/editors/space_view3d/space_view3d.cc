@@ -1915,10 +1915,10 @@ static void view3d_tools_region_draw(const bContext *C, ARegion *region)
   ED_region_panels_ex(C, region, contexts);
 }
 
-static void view3d_asset_shelf_region_draw(const bContext *C, ARegion *region)
+static void view3d_asset_shelf_region_layout(const bContext *C, ARegion *region)
 {
   View3D *v3d = CTX_wm_view3d(C);
-  ED_asset_shelf_region_draw(C, region, v3d->asset_shelf);
+  ED_asset_shelf_region_layout(C, region, v3d->asset_shelf);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -2263,7 +2263,8 @@ void ED_spacetype_view3d()
   art->snap_size = ED_asset_shelf_region_snap;
   art->context = view3d_asset_shelf_context;
   art->init = view3d_asset_shelf_region_init;
-  art->draw = view3d_asset_shelf_region_draw;
+  art->layout = view3d_asset_shelf_region_layout;
+  art->draw = ED_asset_shelf_region_draw;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: asset shelf footer */

@@ -134,6 +134,7 @@ int ED_asset_shelf_region_snap(const ARegion *region, const int size, const int 
     return size;
   }
 
+  /* Using scaled values only simplifies things. Simply divide the result by the scale again. */
   const int size_scaled = size * UI_SCALE_FAC;
 
   const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
@@ -175,24 +176,36 @@ static bool asset_shelf_region_header_type_poll(const bContext *C, HeaderType * 
   return asset_shelf_poll(C, CTX_wm_space_data(C));
 }
 
-void ED_asset_shelf_region_draw(const bContext *C,
-                                ARegion *region,
-                                AssetShelfSettings *shelf_settings)
+/**
+ * Ensure the region height is snapped to the closest multiple of the row height.
+ */
+static void asset_shelf_region_snap_height_to_closest(ScrArea *area, ARegion *region)
+{
+  const int tile_height = ED_asset_shelf_default_tile_height();
+  /* Increase the size by half a row, the snapping below shrinks it to a multiple of the row (plus
+   * paddings), effectively rounding it. */
+  const int ceiled_size_y = region->sizey + ((tile_height / UI_SCALE_FAC) * 0.5);
+  const int new_size_y = ED_asset_shelf_region_snap(region, ceiled_size_y, 1);
+
+  if (region->sizey != new_size_y) {
+    region->sizey = new_size_y;
+    area->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+  }
+}
+
+void ED_asset_shelf_region_layout(const bContext *C,
+                                  ARegion *region,
+                                  AssetShelfSettings *shelf_settings)
 {
   AssetLibraryReference all_library_ref = {};
   all_library_ref.type = ASSET_LIBRARY_ALL;
   all_library_ref.custom_library_index = -1;
 
-  ED_region_clear(C, region, TH_BACK);
-
-  /* Set view2d view matrix for scrolling. */
-  UI_view2d_view_ortho(&region->v2d);
-
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
 
   const uiStyle *style = UI_style_get_dpi();
-  const float padding_y = main_region_padding_y();
-  const float padding_x = main_region_padding_x();
+  const int padding_y = main_region_padding_y();
+  const int padding_x = main_region_padding_x();
   uiLayout *layout = UI_block_layout(block,
                                      UI_LAYOUT_VERTICAL,
                                      UI_LAYOUT_PANEL,
@@ -211,8 +224,22 @@ void ED_asset_shelf_region_draw(const bContext *C,
   UI_view2d_totRect_set(&region->v2d, region->winx - 1, layout_height - padding_y);
   UI_view2d_curRect_validate(&region->v2d);
 
+  asset_shelf_region_snap_height_to_closest(CTX_wm_area(C), region);
+
   UI_block_end(C, block);
-  UI_block_draw(C, block);
+}
+
+void ED_asset_shelf_region_draw(const bContext *C, ARegion *region)
+{
+  ED_region_clear(C, region, TH_BACK);
+
+  /* Set view2d view matrix for scrolling. */
+  UI_view2d_view_ortho(&region->v2d);
+
+  /* View2D matrix might have changed due to dynamic sized regions. */
+  UI_blocklist_update_window_matrix(C, &region->uiblocks);
+
+  UI_blocklist_draw(C, &region->uiblocks);
 
   /* Restore view matrix. */
   UI_view2d_view_restore(C);
