@@ -3338,7 +3338,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
   }
 
   /* clear baking flag */
-  if (pid) {
+  if (pid && cache) {
     cache->flag &= ~(PTCACHE_BAKING | PTCACHE_REDO_NEEDED);
     cache->flag |= PTCACHE_SIMULATION_VALID;
     if (bake) {
