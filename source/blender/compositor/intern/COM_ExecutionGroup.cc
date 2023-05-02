@@ -118,8 +118,8 @@ bool ExecutionGroup::add_operation(NodeOperation *operation)
 
 NodeOperation *ExecutionGroup::get_output_operation() const
 {
-  return this
-      ->operations_[0]; /* the first operation of the group is always the output operation. */
+  /* The first operation of the group is always the output operation. */
+  return this->operations_[0];
 }
 
 void ExecutionGroup::init_work_packages()

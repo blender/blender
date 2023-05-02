@@ -1935,9 +1935,10 @@ void BKE_fcurve_deduplicate_keys(FCurve *fcu)
 static float fcurve_eval_keyframes_extrapolate(
     FCurve *fcu, BezTriple *bezts, float evaltime, int endpoint_offset, int direction_to_neighbor)
 {
-  const BezTriple *endpoint_bezt = bezts + endpoint_offset; /* The first/last keyframe. */
-  const BezTriple *neighbor_bezt = endpoint_bezt +
-                                   direction_to_neighbor; /* The second (to last) keyframe. */
+  /* The first/last keyframe. */
+  const BezTriple *endpoint_bezt = bezts + endpoint_offset;
+  /* The second (to last) keyframe. */
+  const BezTriple *neighbor_bezt = endpoint_bezt + direction_to_neighbor;
 
   if (endpoint_bezt->ipo == BEZT_IPO_CONST || fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT ||
       (fcu->flag & FCURVE_DISCRETE_VALUES) != 0)

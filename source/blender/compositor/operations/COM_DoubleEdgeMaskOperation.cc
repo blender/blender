@@ -1199,10 +1199,9 @@ void DoubleEdgeMaskOperation::do_double_edge_mask(float *imask, float *omask, fl
 
     rw = this->get_width();            /* Width of a row of pixels. */
     t = (rw * this->get_height()) - 1; /* Determine size of the frame. */
-    memset(res,
-           0,
-           sizeof(float) *
-               (t + 1)); /* Clear output buffer (not all pixels will be written later). */
+
+    /* Clear output buffer (not all pixels will be written later). */
+    memset(res, 0, sizeof(float) * (t + 1));
 
     lres = (uint *)res;     /* Pointer to output buffer (for bit level ops).. */
     limask = (uint *)imask; /* Pointer to input mask (for bit level ops).. */

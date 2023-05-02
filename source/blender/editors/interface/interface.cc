@@ -5019,11 +5019,10 @@ int UI_preview_tile_size_y(void)
 {
   const uiStyle *style = UI_style_get();
   const float font_height = style->widget.points * UI_SCALE_FAC;
+  /* Add some extra padding to make things less tight vertically. */
   const float pad = PREVIEW_TILE_PAD;
 
-  return round_fl_to_int(UI_preview_tile_size_y_no_label() + font_height +
-                         /* Add some extra padding to make things less tight vertically. */
-                         pad);
+  return round_fl_to_int(UI_preview_tile_size_y_no_label() + font_height + pad);
 }
 
 int UI_preview_tile_size_y_no_label(void)

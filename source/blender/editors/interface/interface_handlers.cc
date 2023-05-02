@@ -7566,8 +7566,8 @@ static int ui_do_but_CURVEPROFILE(
 
       /* Check for selecting of a point by finding closest point in radius. */
       CurveProfilePoint *pts = profile->path;
-      float dist_min_sq = square_f(UI_SCALE_FAC *
-                                   14.0f); /* 14 pixels radius for selecting points. */
+      /* 14 pixels radius for selecting points. */
+      float dist_min_sq = square_f(UI_SCALE_FAC * 14.0f);
       int i_selected = -1;
       short selection_type = 0; /* For handle selection. */
       for (int i = 0; i < profile->path_len; i++) {

@@ -1382,8 +1382,9 @@ bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
 
   char err_out[256] = "unknown";
   bool failure = false;
-  eGPUTextureFormat format =
-      GPU_R8; /* Initialize with some unsupported format to check following switch statement. */
+
+  /* Initialize with some unsupported format to check following switch statement. */
+  eGPUTextureFormat format = GPU_R8;
 
   switch (draw_view->swapchain_format) {
     case GHOST_kXrSwapchainFormatRGBA8:

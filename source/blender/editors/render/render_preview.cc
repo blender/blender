@@ -140,8 +140,9 @@ struct IconPreview {
   Depsgraph *depsgraph; /* May be nullptr (see #WM_OT_previews_ensure). */
   Scene *scene;
   void *owner;
-  ID *id,
-      *id_copy; /* May be nullptr! (see ICON_TYPE_PREVIEW case in #ui_icon_ensure_deferred()) */
+  /** May be nullptr! (see #ICON_TYPE_PREVIEW case in #ui_icon_ensure_deferred()). */
+  ID *id;
+  ID *id_copy;
   ListBase sizes;
 
   /* May be nullptr, is used for rendering IDs that require some other object for it to be applied

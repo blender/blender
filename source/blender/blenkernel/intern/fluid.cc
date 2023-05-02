@@ -861,7 +861,8 @@ static void update_velocities(FluidEffectorSettings *fes,
    * I.e. the unit cube diagonal or sqrt(3).
    * This value is our nearest neighbor search distance. */
   const float surface_distance = 1.732;
-  nearest.dist_sq = surface_distance * surface_distance; /* find_nearest uses squared distance */
+  /* find_nearest uses squared distance */
+  nearest.dist_sq = surface_distance * surface_distance;
 
   /* Find the nearest point on the mesh. */
   if (has_velocity &&
@@ -1704,8 +1705,8 @@ static void update_distances(int index,
      * I.e. the unit cube diagonal or sqrt(3).
      * This value is our nearest neighbor search distance. */
     const float surface_distance = 1.732;
-    nearest.dist_sq = surface_distance *
-                      surface_distance; /* find_nearest uses squared distance. */
+    /* find_nearest uses squared distance. */
+    nearest.dist_sq = surface_distance * surface_distance;
 
     /* Subtract optional surface thickness value and virtually increase the object size. */
     if (surface_thickness) {
@@ -1826,7 +1827,8 @@ static void sample_mesh(FluidFlowSettings *ffs,
    * I.e. the unit cube diagonal or sqrt(3).
    * This value is our nearest neighbor search distance. */
   const float surface_distance = 1.732;
-  nearest.dist_sq = surface_distance * surface_distance; /* find_nearest uses squared distance. */
+  /* find_nearest uses squared distance. */
+  nearest.dist_sq = surface_distance * surface_distance;
 
   bool is_gas_flow = ELEM(
       ffs->type, FLUID_FLOW_TYPE_SMOKE, FLUID_FLOW_TYPE_FIRE, FLUID_FLOW_TYPE_SMOKEFIRE);

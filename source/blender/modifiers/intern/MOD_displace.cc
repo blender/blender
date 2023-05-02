@@ -176,8 +176,8 @@ static void displaceModifier_do_task(void *__restrict userdata,
   float(*vertexCos)[3] = data->vertexCos;
   float(*vert_clnors)[3] = data->vert_clnors;
 
-  const float delta_fixed = 1.0f -
-                            dmd->midlevel; /* when no texture is used, we fallback to white */
+  /* When no texture is used, we fallback to white. */
+  const float delta_fixed = 1.0f - dmd->midlevel;
 
   TexResult texres;
   float strength = dmd->strength;

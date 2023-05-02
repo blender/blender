@@ -971,8 +971,8 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
         grid_size = int((edge_dst_len / ray_radius) + 0.5f);
         CLAMP(grid_size, num_rays_min, num_rays_max); /* min 5 rays/edge, max 100. */
 
-        grid_step = 1.0f /
-                    float(grid_size); /* Not actual distance here, rather an interp fac... */
+        /* Not actual distance here, rather an interp fac... */
+        grid_step = 1.0f / float(grid_size);
 
         /* And now we can cast all our rays, and see what we get! */
         for (j = 0; j < grid_size; j++) {
