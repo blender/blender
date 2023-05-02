@@ -60,21 +60,24 @@ static int Interface0DIterator_init(BPy_Interface0DIterator *self, PyObject *arg
   PyObject *brother, *inter;
 
   if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "O&", (char **)kwlist_1, convert_nested_it, &nested_it)) {
+          args, kwds, "O&", (char **)kwlist_1, convert_nested_it, &nested_it))
+  {
     self->if0D_it = new Interface0DIterator(nested_it->copy());
     self->at_start = true;
     self->reversed = false;
   }
   else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(
-               args, kwds, "O!", (char **)kwlist_2, &Interface1D_Type, &inter)) {
+               args, kwds, "O!", (char **)kwlist_2, &Interface1D_Type, &inter))
+  {
     self->if0D_it = new Interface0DIterator(((BPy_Interface1D *)inter)->if1D->verticesBegin());
     self->at_start = true;
     self->reversed = false;
   }
   else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(
-               args, kwds, "O!", (char **)kwlist_3, &Interface0DIterator_Type, &brother)) {
+               args, kwds, "O!", (char **)kwlist_3, &Interface0DIterator_Type, &brother))
+  {
     self->if0D_it = new Interface0DIterator(*(((BPy_Interface0DIterator *)brother)->if0D_it));
     self->at_start = ((BPy_Interface0DIterator *)brother)->at_start;
     self->reversed = ((BPy_Interface0DIterator *)brother)->reversed;

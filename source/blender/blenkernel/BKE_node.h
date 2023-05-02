@@ -474,7 +474,8 @@ struct GHashIterator *ntreeTypeGetIterator(void);
   { \
     GHashIterator *__node_tree_type_iter__ = ntreeTypeGetIterator(); \
     for (; !BLI_ghashIterator_done(__node_tree_type_iter__); \
-         BLI_ghashIterator_step(__node_tree_type_iter__)) { \
+         BLI_ghashIterator_step(__node_tree_type_iter__)) \
+    { \
       bNodeTreeType *ntype = (bNodeTreeType *)BLI_ghashIterator_getValue(__node_tree_type_iter__);
 
 #define NODE_TREE_TYPES_END \
@@ -649,7 +650,8 @@ const char *nodeSocketSubTypeLabel(int subtype);
   { \
     GHashIterator *__node_socket_type_iter__ = nodeSocketTypeGetIterator(); \
     for (; !BLI_ghashIterator_done(__node_socket_type_iter__); \
-         BLI_ghashIterator_step(__node_socket_type_iter__)) { \
+         BLI_ghashIterator_step(__node_socket_type_iter__)) \
+    { \
       bNodeSocketType *stype = (bNodeSocketType *)BLI_ghashIterator_getValue( \
           __node_socket_type_iter__);
 

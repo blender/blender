@@ -4484,7 +4484,8 @@ void ANIM_channel_draw(
     if (ELEM(ac->spacetype, SPACE_ACTION, SPACE_GRAPH) &&
         (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE) ||
          acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)) &&
-        !ELEM(ale->type, ANIMTYPE_GPLAYER, ANIMTYPE_DSGPENCIL)) {
+        !ELEM(ale->type, ANIMTYPE_GPLAYER, ANIMTYPE_DSGPENCIL))
+    {
       /* for F-Curves, draw color-preview of curve left to the visibility icon */
       if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
         FCurve *fcu = (FCurve *)ale->data;
@@ -4576,7 +4577,8 @@ void ANIM_channel_draw(
    *  - Exception for graph editor, which needs extra space for the scroll bar.
    */
   if (ac->spacetype == SPACE_GRAPH &&
-      ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_GROUP)) {
+      ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_GROUP))
+  {
     offset = V2D_SCROLL_WIDTH;
   }
   else {
@@ -4614,8 +4616,8 @@ void ANIM_channel_draw(
     }
 
     /* check if there's enough space for the toggles if the sliders are drawn too */
-    if (!(draw_sliders) ||
-        (BLI_rcti_size_x(&v2d->mask) > ANIM_UI_get_channel_button_width() / 2)) {
+    if (!(draw_sliders) || (BLI_rcti_size_x(&v2d->mask) > ANIM_UI_get_channel_button_width() / 2))
+    {
       /* protect... */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
         offset += ICON_WIDTH;
@@ -4658,7 +4660,8 @@ void ANIM_channel_draw(
      *   to keep a clean line down the side.
      */
     if ((draw_sliders) &&
-        ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_SHAPEKEY, ANIMTYPE_GPLAYER)) {
+        ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_SHAPEKEY, ANIMTYPE_GPLAYER))
+    {
       /* adjust offset */
       offset += SLIDER_WIDTH;
     }
@@ -5173,8 +5176,8 @@ static void draw_setting_widget(bAnimContext *ac,
   }
 
   if ((ale->fcurve_owner_id != NULL && !BKE_id_is_editable(ac->bmain, ale->fcurve_owner_id)) ||
-      (ale->fcurve_owner_id == NULL && ale->id != NULL &&
-       !BKE_id_is_editable(ac->bmain, ale->id))) {
+      (ale->fcurve_owner_id == NULL && ale->id != NULL && !BKE_id_is_editable(ac->bmain, ale->id)))
+  {
     if (setting != ACHANNEL_SETTING_EXPAND) {
       UI_but_disable(but, TIP_("Can't edit this property from a linked data-block"));
     }
@@ -5232,7 +5235,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
     if (ELEM(ac->spacetype, SPACE_ACTION, SPACE_GRAPH) &&
         (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE) ||
          acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)) &&
-        (ale->type != ANIMTYPE_GPLAYER)) {
+        (ale->type != ANIMTYPE_GPLAYER))
+    {
       /* Pin toggle. */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)) {
         draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_ALWAYS_VISIBLE);
@@ -5332,8 +5336,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
     }
 
     /* check if there's enough space for the toggles if the sliders are drawn too */
-    if (!(draw_sliders) ||
-        (BLI_rcti_size_x(&v2d->mask) > ANIM_UI_get_channel_button_width() / 2)) {
+    if (!(draw_sliders) || (BLI_rcti_size_x(&v2d->mask) > ANIM_UI_get_channel_button_width() / 2))
+    {
       /* protect... */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
         offset -= ICON_WIDTH;
@@ -5367,7 +5371,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
 
       /* NLA Action "pushdown" */
       if ((ale->type == ANIMTYPE_NLAACTION) && (ale->adt && ale->adt->action) &&
-          !(ale->adt->flag & ADT_NLA_EDIT_ON)) {
+          !(ale->adt->flag & ADT_NLA_EDIT_ON))
+      {
         uiBut *but;
         PointerRNA *opptr_b;
 
@@ -5409,7 +5414,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
                                 ANIMTYPE_NLACURVE,
                                 ANIMTYPE_SHAPEKEY,
                                 ANIMTYPE_GPLAYER)) ||
-        ale->type == ANIMTYPE_SHAPEKEY) {
+        ale->type == ANIMTYPE_SHAPEKEY)
+    {
       /* adjust offset */
       /* TODO: make slider width dynamic,
        * so that they can be easier to use when the view is wide enough. */

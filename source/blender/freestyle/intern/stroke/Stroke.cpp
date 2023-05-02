@@ -410,7 +410,8 @@ Stroke::Stroke(const Stroke &iBrother) : Interface1D(iBrother)
   for (vertex_container::const_iterator v = iBrother._Vertices.begin(),
                                         vend = iBrother._Vertices.end();
        v != vend;
-       v++) {
+       v++)
+  {
     _Vertices.push_back(*v);
   }
   _Length = 0;
@@ -436,8 +437,8 @@ Stroke::Stroke(const Stroke &iBrother) : Interface1D(iBrother)
 Stroke::~Stroke()
 {
   if (!_Vertices.empty()) {
-    for (vertex_container::iterator v = _Vertices.begin(), vend = _Vertices.end(); v != vend;
-         v++) {
+    for (vertex_container::iterator v = _Vertices.begin(), vend = _Vertices.end(); v != vend; v++)
+    {
       delete (*v);
     }
     _Vertices.clear();
@@ -459,7 +460,8 @@ Stroke &Stroke::operator=(const Stroke &iBrother)
   for (vertex_container::const_iterator v = iBrother._Vertices.begin(),
                                         vend = iBrother._Vertices.end();
        v != vend;
-       v++) {
+       v++)
+  {
     _Vertices.push_back(*v);
   }
   _Length = iBrother._Length;
@@ -560,7 +562,8 @@ int Stroke::Resample(int iNPoints)
     resampled = false;
     for (vector<StrokeSegment>::iterator s = strokeSegments.begin(), send = strokeSegments.end();
          s != send;
-         ++s) {
+         ++s)
+    {
       if (s->_sampling == 0.0f) {
         continue;
       }
@@ -592,7 +595,8 @@ int Stroke::Resample(int iNPoints)
   // actually resample:
   for (vector<StrokeSegment>::iterator s = strokeSegments.begin(), send = strokeSegments.end();
        s != send;
-       ++s) {
+       ++s)
+  {
     newVertices.push_back(&*(s->_begin));
     if (s->_sampling < _sampling) {
       _sampling = s->_sampling;

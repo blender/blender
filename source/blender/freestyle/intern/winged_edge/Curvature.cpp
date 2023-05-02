@@ -391,7 +391,8 @@ void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, V
 
   /* check for solvability of the linear system */
   if (((aterm_da * bterm_db - aterm_db * bterm_da) != 0.0) &&
-      ((const_da != 0.0) || (const_db != 0.0))) {
+      ((const_da != 0.0) || (const_db != 0.0)))
+  {
     linsolve(aterm_da, bterm_da, -const_da, aterm_db, bterm_db, -const_db, &a, &b);
 
     c = normKh - a;

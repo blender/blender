@@ -33,7 +33,7 @@ int BLI_windows_get_executable_dir(char *str)
   int a;
   /* Change to utf support. */
   GetModuleFileName(NULL, str, FILE_MAX);
-  BLI_split_dir_part(str, dir, sizeof(dir)); /* shouldn't be relative */
+  BLI_path_split_dir_part(str, dir, sizeof(dir)); /* shouldn't be relative */
   a = strlen(dir);
   if (dir[a - 1] == '\\') {
     dir[a - 1] = 0;

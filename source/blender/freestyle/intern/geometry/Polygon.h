@@ -45,7 +45,8 @@ template<class Point> class Polygon {
     Point p;
     for (typename vector<Point>::const_iterator it = poly.getVertices().begin();
          it != poly.getVertices().end();
-         it++) {
+         it++)
+    {
       p = *it;
       _vertices.push_back(p);
     }
@@ -103,8 +104,8 @@ template<class Point> class Polygon {
   {
     _vertices.clear();
     Point p;
-    for (typename vector<Point>::const_iterator it = vertices.begin(); it != vertices.end();
-         it++) {
+    for (typename vector<Point>::const_iterator it = vertices.begin(); it != vertices.end(); it++)
+    {
       p = *it;
       _vertices.push_back(p);
     }

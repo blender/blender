@@ -85,7 +85,8 @@ static bool lineart_point_overlapping(LineartEdgeChainItem *eci,
     return false;
   }
   if (((eci->pos[0] + threshold) >= x) && ((eci->pos[0] - threshold) <= x) &&
-      ((eci->pos[1] + threshold) >= y) && ((eci->pos[1] - threshold) <= y)) {
+      ((eci->pos[1] + threshold) >= y) && ((eci->pos[1] - threshold) <= y))
+  {
     return true;
   }
   return false;
@@ -234,7 +235,8 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
                                 es->shadow_mask_bits,
                                 e->v1->index);
     while (ba && (new_e = lineart_line_get_connected(
-                      ba, new_vt, &new_vt, e->flags, ec->intersection_mask, ec->object_ref))) {
+                      ba, new_vt, &new_vt, e->flags, ec->intersection_mask, ec->object_ref)))
+    {
       new_e->flags |= LRT_EDGE_FLAG_CHAIN_PICKED;
 
       if (new_e->t1 || new_e->t2) {
@@ -378,7 +380,8 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
     ba = MOD_lineart_get_bounding_area(ld, e->v2->fbcoord[0], e->v2->fbcoord[1]);
     new_vt = e->v2;
     while (ba && (new_e = lineart_line_get_connected(
-                      ba, new_vt, &new_vt, e->flags, ec->intersection_mask, ec->object_ref))) {
+                      ba, new_vt, &new_vt, e->flags, ec->intersection_mask, ec->object_ref)))
+    {
       new_e->flags |= LRT_EDGE_FLAG_CHAIN_PICKED;
 
       if (new_e->t1 || new_e->t2) {
@@ -613,7 +616,8 @@ static bool lineart_chain_fix_ambiguous_segments(LineartEdgeChain *ec,
       break;
     }
     if (eci->material_mask_bits == fixed_mask && eci->occlusion == fixed_occ &&
-        eci->shadow_mask_bits == fixed_shadow) {
+        eci->shadow_mask_bits == fixed_shadow)
+    {
       can_skip_to = eci;
     }
   }
@@ -624,7 +628,8 @@ static bool lineart_chain_fix_ambiguous_segments(LineartEdgeChain *ec,
     for (LineartEdgeChainItem *eci = last_matching_eci->next; eci != can_skip_to; eci = next_eci) {
       next_eci = eci->next;
       if (eci->material_mask_bits == fixed_mask && eci->occlusion == fixed_occ &&
-          eci->shadow_mask_bits == fixed_shadow) {
+          eci->shadow_mask_bits == fixed_shadow)
+      {
         continue;
       }
       if (preserve_details) {
@@ -671,7 +676,8 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartData *ld)
     for (eci = first_eci->next; eci; eci = next_eci) {
       next_eci = eci->next;
       if (eci->occlusion != fixed_occ || eci->material_mask_bits != fixed_mask ||
-          eci->shadow_mask_bits != fixed_shadow) {
+          eci->shadow_mask_bits != fixed_shadow)
+      {
         if (next_eci) {
           if (lineart_point_overlapping(next_eci, eci->pos[0], eci->pos[1], 1e-5)) {
             continue;
@@ -680,7 +686,8 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartData *ld)
                                                    eci->prev,
                                                    ld->conf.chaining_image_threshold,
                                                    ld->conf.chain_preserve_details,
-                                                   &next_eci)) {
+                                                   &next_eci))
+          {
             continue;
           }
         }
@@ -824,7 +831,8 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
     }
     if (cre->ec == ec || (!cre->ec->chain.first) || (cre->ec->level != occlusion) ||
         (cre->ec->material_mask_bits != material_mask_bits) ||
-        (cre->ec->intersection_mask != isec_mask) || (cre->ec->shadow_mask_bits != shadow_mask)) {
+        (cre->ec->intersection_mask != isec_mask) || (cre->ec->shadow_mask_bits != shadow_mask))
+    {
       continue;
     }
     if (!ld->conf.fuzzy_everything) {
@@ -847,7 +855,8 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
      * distance is small enough. This way we can better chain smaller loops and smooth them out
      * later. */
     if (((cre->ec->loop_id == loop_id) && (new_len < dist)) ||
-        ((cre->ec->loop_id != loop_id) && (new_len < dist / 10))) {
+        ((cre->ec->loop_id != loop_id) && (new_len < dist / 10)))
+    {
       closest_cre = cre;
       dist = new_len;
       if (result_new_len) {
@@ -936,7 +945,8 @@ void MOD_lineart_chain_connect(LineartData *ld)
     eci_l = ec->chain.first;
     eci_r = ec->chain.last;
     while ((ba_l = lineart_bounding_area_get_end_point(ld, eci_l)) &&
-           (ba_r = lineart_bounding_area_get_end_point(ld, eci_r))) {
+           (ba_r = lineart_bounding_area_get_end_point(ld, eci_r)))
+    {
       closest_cre_l = lineart_chain_get_closest_cre(ld,
                                                     ba_l,
                                                     ec,
@@ -1067,7 +1077,8 @@ void MOD_lineart_finalize_chains(LineartData *ld)
     if (ELEM(ec->type,
              LRT_EDGE_FLAG_INTERSECTION,
              LRT_EDGE_FLAG_PROJECTED_SHADOW,
-             LRT_EDGE_FLAG_LIGHT_CONTOUR)) {
+             LRT_EDGE_FLAG_LIGHT_CONTOUR))
+    {
       continue;
     }
     LineartElementLinkNode *eln = lineart_find_matching_eln_obj(&ld->geom.vertex_buffer_pointers,
@@ -1088,8 +1099,8 @@ void MOD_lineart_smooth_chains(LineartData *ld, float tolerance)
   LISTBASE_FOREACH (LineartEdgeChain *, ec, &ld->chains) {
     /* Go through the chain two times, once from each direction. */
     for (int times = 0; times < 2; times++) {
-      for (LineartEdgeChainItem *eci = ec->chain.first, *next_eci = eci->next; eci;
-           eci = next_eci) {
+      for (LineartEdgeChainItem *eci = ec->chain.first, *next_eci = eci->next; eci; eci = next_eci)
+      {
         LineartEdgeChainItem *eci2, *eci3, *eci4;
 
         if (!(eci2 = eci->next) || !(eci3 = eci2->next)) {

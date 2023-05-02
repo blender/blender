@@ -205,7 +205,8 @@ void SCULPT_filter_cache_init(bContext *C,
     nodes = blender::bke::pbvh::search_gather(pbvh, SCULPT_search_sphere_cb, &search_data2);
 
     if (BKE_paint_brush(&sd->paint) &&
-        SCULPT_pbvh_calc_area_normal(brush, ob, nodes, true, ss->filter_cache->initial_normal)) {
+        SCULPT_pbvh_calc_area_normal(brush, ob, nodes, true, ss->filter_cache->initial_normal))
+    {
       copy_v3_v3(ss->last_normal, ss->filter_cache->initial_normal);
     }
     else {
@@ -353,11 +354,11 @@ static bool sculpt_mesh_filter_needs_pmap(eSculptMeshFilterType filter_type)
 
 static bool sculpt_mesh_filter_is_continuous(eSculptMeshFilterType type)
 {
-  return (ELEM(type,
-               MESH_FILTER_SHARPEN,
-               MESH_FILTER_SMOOTH,
-               MESH_FILTER_RELAX,
-               MESH_FILTER_RELAX_FACE_SETS));
+  return ELEM(type,
+              MESH_FILTER_SHARPEN,
+              MESH_FILTER_SMOOTH,
+              MESH_FILTER_RELAX,
+              MESH_FILTER_RELAX_FACE_SETS);
 }
 
 static void mesh_filter_task_cb(void *__restrict userdata,
@@ -402,7 +403,8 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     }
 
     if (ELEM(filter_type, MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS) ||
-        ss->filter_cache->no_orig_co) {
+        ss->filter_cache->no_orig_co)
+    {
       copy_v3_v3(orig_co, vd.co);
     }
     else {
@@ -645,7 +647,8 @@ static void mesh_filter_sharpen_init(SculptSession *ss,
   /* Smooth the calculated factors and directions to remove high frequency detail. */
   for (int smooth_iterations = 0;
        smooth_iterations < filter_cache->sharpen_curvature_smooth_iterations;
-       smooth_iterations++) {
+       smooth_iterations++)
+  {
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 

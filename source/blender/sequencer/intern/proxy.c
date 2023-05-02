@@ -146,7 +146,8 @@ static bool seq_proxy_get_fname(Scene *scene,
 
   /* Per strip with Custom file situation is handled separately. */
   if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE &&
-      ed->proxy_storage != SEQ_EDIT_PROXY_DIR_STORAGE) {
+      ed->proxy_storage != SEQ_EDIT_PROXY_DIR_STORAGE)
+  {
     if (seq_proxy_get_custom_file_fname(seq, name, view_id)) {
       return true;
     }
@@ -232,8 +233,8 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline
     return IMB_anim_absolute(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
   }
 
-  if (seq_proxy_get_fname(context->scene, seq, timeline_frame, psize, name, context->view_id) ==
-      0) {
+  if (seq_proxy_get_fname(context->scene, seq, timeline_frame, psize, name, context->view_id) == 0)
+  {
     return NULL;
   }
 
@@ -263,8 +264,8 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
   ImBuf *ibuf_tmp, *ibuf;
   Scene *scene = context->scene;
 
-  if (!seq_proxy_get_fname(
-          scene, seq, timeline_frame, proxy_render_size, name, context->view_id)) {
+  if (!seq_proxy_get_fname(scene, seq, timeline_frame, proxy_render_size, name, context->view_id))
+  {
     return;
   }
 
@@ -392,7 +393,7 @@ static bool seq_proxy_need_rebuild(Sequence *seq, struct anim *anim)
   }
 
   IMB_Proxy_Size required_proxies = seq->strip->proxy->build_size_flags;
-  IMB_Proxy_Size built_proxies = IMB_anim_proxy_get_existing(anim);
+  int built_proxies = IMB_anim_proxy_get_existing(anim);
   return (required_proxies & built_proxies) != required_proxies;
 }
 
@@ -521,7 +522,8 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context, bool *stop, bool *do_updat
 
   for (timeline_frame = SEQ_time_left_handle_frame_get(scene, seq);
        timeline_frame < SEQ_time_right_handle_frame_get(scene, seq);
-       timeline_frame++) {
+       timeline_frame++)
+  {
     if (context->size_flags & IMB_PROXY_25) {
       seq_proxy_build_frame(&render_context, &state, seq, timeline_frame, 25, overwrite);
     }

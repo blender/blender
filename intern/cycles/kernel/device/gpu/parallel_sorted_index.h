@@ -53,7 +53,8 @@ ccl_device_inline void gpu_parallel_sort_bucket_pass(const uint num_states,
   const uint partition_end = min(num_states, partition_start + partition_size);
 
   for (int state_index = partition_start + uint(local_id); state_index < partition_end;
-       state_index += uint(local_size)) {
+       state_index += uint(local_size))
+  {
     ushort kernel_index = d_queued_kernel[state_index];
     if (kernel_index == queued_kernel) {
       uint key = d_shader_sort_key[state_index] % max_shaders;
@@ -115,7 +116,8 @@ ccl_device_inline void gpu_parallel_sort_write_pass(const uint num_states,
   ccl_global int *key_offsets = partition_key_offsets + (uint(grid_id) * max_shaders);
 
   for (int state_index = partition_start + uint(local_id); state_index < partition_end;
-       state_index += uint(local_size)) {
+       state_index += uint(local_size))
+  {
     ushort kernel_index = d_queued_kernel[state_index];
     if (kernel_index == queued_kernel) {
       uint key = d_shader_sort_key[state_index] % max_shaders;

@@ -146,7 +146,8 @@ int BM_mesh_edgeloops_find(BMesh *bm,
 
       /* add both directions */
       if (bm_loop_build(el_store, e->v1, e->v2, 1) && bm_loop_build(el_store, e->v2, e->v1, -1) &&
-          el_store->len > 1) {
+          el_store->len > 1)
+      {
         BLI_addtail(r_eloops, el_store);
         count++;
       }

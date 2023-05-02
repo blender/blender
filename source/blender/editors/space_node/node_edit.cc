@@ -656,7 +656,8 @@ void snode_set_context(const bContext &C)
   }
 
   if (snode->nodetree != ntree || snode->id != id || snode->from != from ||
-      (snode->treepath.last == nullptr && ntree)) {
+      (snode->treepath.last == nullptr && ntree))
+  {
     ED_node_tree_start(snode, ntree, id, from);
   }
 }
@@ -700,7 +701,8 @@ void ED_node_set_active(
              SH_NODE_OUTPUT_MATERIAL,
              SH_NODE_OUTPUT_WORLD,
              SH_NODE_OUTPUT_LIGHT,
-             SH_NODE_OUTPUT_LINESTYLE)) {
+             SH_NODE_OUTPUT_LINESTYLE))
+    {
       for (bNode *node_iter : ntree->all_nodes()) {
         if (node_iter->type == node->type) {
           node_iter->flag &= ~NODE_DO_OUTPUT;
@@ -1291,7 +1293,8 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
     /* This creates new links between copied nodes. If keep_inputs is set, also copies input links
      * from unselected (when fromnode is null)! */
     if (link->tonode && (link->tonode->flag & NODE_SELECT) &&
-        (keep_inputs || (link->fromnode && (link->fromnode->flag & NODE_SELECT)))) {
+        (keep_inputs || (link->fromnode && (link->fromnode->flag & NODE_SELECT))))
+    {
       bNodeLink *newlink = MEM_cnew<bNodeLink>("bNodeLink");
       newlink->flag = link->flag;
       newlink->tonode = node_map.lookup(link->tonode);
@@ -1389,7 +1392,8 @@ static int node_read_viewlayers_exec(bContext *C, wmOperator * /*op*/)
 
   for (bNode *node : edit_tree.all_nodes()) {
     if ((node->type == CMP_NODE_R_LAYERS) ||
-        (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER)) {
+        (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER))
+    {
       ID *id = node->id;
       if (id == nullptr) {
         continue;
@@ -1491,7 +1495,8 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
         continue;
       }
       if (toggle_flag == NODE_OPTIONS &&
-          !(node->typeinfo->draw_buttons || node->typeinfo->draw_buttons_ex)) {
+          !(node->typeinfo->draw_buttons || node->typeinfo->draw_buttons_ex))
+      {
         continue;
       }
 
@@ -1510,7 +1515,8 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
         continue;
       }
       if (toggle_flag == NODE_OPTIONS &&
-          !(node->typeinfo->draw_buttons || node->typeinfo->draw_buttons_ex)) {
+          !(node->typeinfo->draw_buttons || node->typeinfo->draw_buttons_ex))
+      {
         continue;
       }
 
@@ -2031,6 +2037,7 @@ static int node_output_file_move_active_socket_exec(bContext *C, wmOperator *op)
     nimf->active_input++;
   }
 
+  BKE_ntree_update_tag_node_property(snode->edittree, node);
   ED_node_tree_propagate_change(C, CTX_data_main(C), snode->edittree);
 
   return OPERATOR_FINISHED;

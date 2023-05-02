@@ -63,7 +63,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry::try_curves_conversion_in_place(
             selection, dst_type, [&]() -> bke::CurvesGeometry & {
               return geometry_set.get_curves_for_write()->geometry.wrap();
-            })) {
+            }))
+    {
       return;
     }
 

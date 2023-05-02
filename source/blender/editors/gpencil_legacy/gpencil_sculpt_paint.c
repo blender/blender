@@ -639,7 +639,8 @@ static void gpencil_brush_calc_midpoint(tGP_BrushEditData *gso)
   float mval_prj[2];
 
   if (ED_view3d_project_float_global(gso->region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
-      V3D_PROJ_RET_OK) {
+      V3D_PROJ_RET_OK)
+  {
     float dvec[3];
     float xy_delta[2];
     sub_v2_v2v2(xy_delta, mval_prj, gso->mval);
@@ -1529,7 +1530,8 @@ static bool gpencil_sculpt_brush_do_stroke(tGP_BrushEditData *gso,
 
       /* Check that point segment of the bound-box of the selection stroke. */
       if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1]) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
-          (!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1]) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1]))) {
+          (!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1]) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1])))
+      {
         /* Check if point segment of stroke had anything to do with
          * brush region  (either within stroke painted, or on its lines)
          * - this assumes that line-width is irrelevant.
@@ -1647,7 +1649,8 @@ static bool gpencil_sculpt_brush_do_frame(bContext *C,
 
     /* Check if the stroke collide with brush. */
     if ((gps->totpoints > 1) &&
-        !ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, bound_mat)) {
+        !ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, bound_mat))
+    {
       continue;
     }
 
@@ -1914,7 +1917,8 @@ static bool get_automasking_strokes_list(tGP_BrushEditData *gso)
 
         /* Check if the stroke collide with brush. */
         if ((is_masking_stroke) &&
-            ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, bound_mat)) {
+            ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, bound_mat))
+        {
 
           bGPDspoint *pt1, *pt2;
           int pc1[2] = {0};
@@ -1956,8 +1960,9 @@ static bool get_automasking_strokes_list(tGP_BrushEditData *gso)
               }
 
               /* Check segment. */
-              if (!pick_stroke && gpencil_stroke_inside_circle(
-                                      gso->mval, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
+              if (!pick_stroke &&
+                  gpencil_stroke_inside_circle(gso->mval, radius, pc1[0], pc1[1], pc2[0], pc2[1]))
+              {
                 pick_stroke = true;
                 i = gps->totpoints;
               }
@@ -2139,7 +2144,8 @@ static void gpencil_sculpt_brush_apply(bContext *C, wmOperator *op, PointerRNA *
       (ts->gp_sculpt.flag &
        (GP_SCULPT_SETT_FLAG_AUTOMASK_STROKE | GP_SCULPT_SETT_FLAG_AUTOMASK_LAYER_STROKE |
         GP_SCULPT_SETT_FLAG_AUTOMASK_MATERIAL_STROKE | GP_SCULPT_SETT_FLAG_AUTOMASK_LAYER_ACTIVE |
-        GP_SCULPT_SETT_FLAG_AUTOMASK_MATERIAL_ACTIVE))) {
+        GP_SCULPT_SETT_FLAG_AUTOMASK_MATERIAL_ACTIVE)))
+  {
     gso->automasking_ready = get_automasking_strokes_list(gso);
   }
 

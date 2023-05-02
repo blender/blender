@@ -159,7 +159,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_MESH,
                                            GEO_COMPONENT_TYPE_POINT_CLOUD,
                                            GEO_COMPONENT_TYPE_CURVE,
-                                           GEO_COMPONENT_TYPE_INSTANCES}) {
+                                           GEO_COMPONENT_TYPE_INSTANCES})
+  {
     if (geometry.has(type)) {
       set_position_in_component(geometry, type, selection_field, position_field, offset_field);
     }

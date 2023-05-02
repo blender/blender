@@ -342,7 +342,8 @@ static int workspace_append_activate_exec(bContext *C, wmOperator *op)
   char idname[MAX_ID_NAME - 2], filepath[FILE_MAX];
 
   if (!RNA_struct_property_is_set(op->ptr, "idname") ||
-      !RNA_struct_property_is_set(op->ptr, "filepath")) {
+      !RNA_struct_property_is_set(op->ptr, "filepath"))
+  {
     return OPERATOR_CANCELLED;
   }
   RNA_string_get(op->ptr, "idname", idname);
@@ -480,7 +481,8 @@ static void workspace_add_menu(bContext *UNUSED(C), uiLayout *layout, void *temp
 
     LISTBASE_FOREACH (WorkSpace *, workspace, &builtin_config->workspaces) {
       if (startup_config &&
-          BLI_findstring(&startup_config->workspaces, workspace->id.name, offsetof(ID, name))) {
+          BLI_findstring(&startup_config->workspaces, workspace->id.name, offsetof(ID, name)))
+      {
         continue;
       }
 

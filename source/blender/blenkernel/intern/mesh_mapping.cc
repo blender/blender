@@ -132,7 +132,8 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> polys,
         sub_v2_v2v2(uvdiff, uv2, uv);
 
         if (fabsf(uv[0] - uv2[0]) < limit[0] && fabsf(uv[1] - uv2[1]) < limit[1] &&
-            (!use_winding || winding[iterv->poly_index] == winding[v->poly_index])) {
+            (!use_winding || winding[iterv->poly_index] == winding[v->poly_index]))
+        {
           if (lastv) {
             lastv->next = next;
           }
@@ -824,8 +825,9 @@ int *BKE_mesh_calc_smoothgroups(const int totedge,
                                             const MeshElemMap &edge_poly_map_elem) {
     /* Edge is sharp if one of its polys is flat, or edge itself is sharp,
      * or edge is not used by exactly two polygons. */
-    if ((poly_is_smooth(poly_index)) && !(sharp_edges && sharp_edges[edge_index]) &&
-        (edge_user_count == 2)) {
+    if (poly_is_smooth(poly_index) && !(sharp_edges && sharp_edges[edge_index]) &&
+        (edge_user_count == 2))
+    {
       /* In that case, edge appears to be smooth, but we need to check its other poly too. */
       const int other_poly_index = (poly_index == edge_poly_map_elem.indices[0]) ?
                                        edge_poly_map_elem.indices[1] :
@@ -1033,7 +1035,8 @@ static bool mesh_calc_islands_loop_poly_uv(const int totedge,
       for (int i = 2; i < edge_to_loops.count; i += 2) {
         if (corner_verts[edge_to_loops.indices[i]] == v1) {
           if (!equals_v2v2(uvco_v1, luvs[edge_to_loops.indices[i]]) ||
-              !equals_v2v2(uvco_v2, luvs[edge_to_loops.indices[i + 1]])) {
+              !equals_v2v2(uvco_v2, luvs[edge_to_loops.indices[i + 1]]))
+          {
             return true;
           }
         }
@@ -1041,7 +1044,8 @@ static bool mesh_calc_islands_loop_poly_uv(const int totedge,
           BLI_assert(corner_verts[edge_to_loops.indices[i]] == v2);
           UNUSED_VARS_NDEBUG(v2);
           if (!equals_v2v2(uvco_v2, luvs[edge_to_loops.indices[i]]) ||
-              !equals_v2v2(uvco_v1, luvs[edge_to_loops.indices[i + 1]])) {
+              !equals_v2v2(uvco_v1, luvs[edge_to_loops.indices[i + 1]]))
+          {
             return true;
           }
         }

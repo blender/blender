@@ -407,7 +407,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
         /* set filepath */
         BLI_path_join(
             filepath, sizeof(filepath), surface->image_output_path, surface->output_name);
-        BLI_path_frame(filepath, frame, 4);
+        BLI_path_frame(filepath, sizeof(filepath), frame, 4);
 
         /* save image */
         dynamicPaint_outputSurfaceImage(surface, filepath, 0);
@@ -417,7 +417,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
         /* set filepath */
         BLI_path_join(
             filepath, sizeof(filepath), surface->image_output_path, surface->output_name2);
-        BLI_path_frame(filepath, frame, 4);
+        BLI_path_frame(filepath, sizeof(filepath), frame, 4);
 
         /* save image */
         dynamicPaint_outputSurfaceImage(surface, filepath, 1);

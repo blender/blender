@@ -302,7 +302,8 @@ static int txtfmt_py_literal_numeral(const char *string, char prev_fmt)
     }
   }
   else if ((prev_fmt != FMT_TYPE_DEFAULT) &&
-           (text_check_digit(first) || (first == '.' && text_check_digit(second)))) {
+           (text_check_digit(first) || (first == '.' && text_check_digit(second))))
+  {
     /* New numeral, starting with a digit or a decimal point followed by a digit. */
     return txtfmt_py_find_numeral_inner(string);
   }
@@ -446,7 +447,8 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
       }
       else if (((ELEM(*str, 'f', 'F') && ELEM(*(str + 1), 'r', 'R')) ||
                 (ELEM(*str, 'r', 'R') && ELEM(*(str + 1), 'f', 'F'))) &&
-               ELEM(*(str + 2), '"', '\'')) {
+               ELEM(*(str + 2), '"', '\''))
+      {
         /* Strings with two letter prefixes (raw f-strings).
          * Format the prefix as part of the string. */
         *fmt = FMT_TYPE_STRING;

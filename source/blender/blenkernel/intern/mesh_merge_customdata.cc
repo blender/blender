@@ -52,7 +52,8 @@ static int compare_v2_classify(const float uv_a[2], const float uv_b[2])
   const int diff_ulp = 12;
 
   if (compare_ff_relative(uv_a[0], uv_b[0], diff_abs, diff_ulp) &&
-      compare_ff_relative(uv_a[1], uv_b[1], diff_abs, diff_ulp)) {
+      compare_ff_relative(uv_a[1], uv_b[1], diff_abs, diff_ulp))
+  {
     return CMP_CLOSE;
   }
   return CMP_APART;

@@ -1738,8 +1738,8 @@ static void rna_Object_modifier_remove(Object *object,
                                        PointerRNA *md_ptr)
 {
   ModifierData *md = md_ptr->data;
-  if (ED_object_modifier_remove(reports, CTX_data_main(C), CTX_data_scene(C), object, md) ==
-      false) {
+  if (ED_object_modifier_remove(reports, CTX_data_main(C), CTX_data_scene(C), object, md) == false)
+  {
     /* error is already set */
     return;
   }

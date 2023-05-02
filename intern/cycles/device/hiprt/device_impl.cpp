@@ -387,7 +387,8 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
   geom_input.geomType = Triangle;
 
   if (mesh->has_motion_blur() &&
-      !(bvh->params.num_motion_triangle_steps == 0 || bvh->params.use_spatial_split)) {
+      !(bvh->params.num_motion_triangle_steps == 0 || bvh->params.use_spatial_split))
+  {
 
     const Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     const size_t num_triangles = mesh->num_triangles();

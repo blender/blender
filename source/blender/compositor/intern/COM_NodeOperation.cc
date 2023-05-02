@@ -225,8 +225,9 @@ bool NodeOperation::determine_depending_area_of_interest(rcti *input,
   bool first = true;
   for (int i = 0; i < get_number_of_input_sockets(); i++) {
     NodeOperation *input_operation = this->get_input_operation(i);
-    if (input_operation && input_operation->determine_depending_area_of_interest(
-                               input, read_operation, &temp_output)) {
+    if (input_operation &&
+        input_operation->determine_depending_area_of_interest(input, read_operation, &temp_output))
+    {
       if (first) {
         output->xmin = temp_output.xmin;
         output->ymin = temp_output.ymin;

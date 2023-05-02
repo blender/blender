@@ -208,7 +208,8 @@ static void deformStroke(GpencilModifierData *md,
                                       mmd->flag & GP_HOOK_INVERT_LAYER,
                                       mmd->flag & GP_HOOK_INVERT_PASS,
                                       mmd->flag & GP_HOOK_INVERT_LAYERPASS,
-                                      mmd->flag & GP_HOOK_INVERT_MATERIAL)) {
+                                      mmd->flag & GP_HOOK_INVERT_MATERIAL))
+  {
     return;
   }
   bGPdata *gpd = ob->data;
@@ -329,7 +330,8 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   col = uiLayoutColumn(layout, false);
   uiItemR(col, ptr, "object", 0, NULL, ICON_NONE);
   if (!RNA_pointer_is_null(&hook_object_ptr) &&
-      RNA_enum_get(&hook_object_ptr, "type") == OB_ARMATURE) {
+      RNA_enum_get(&hook_object_ptr, "type") == OB_ARMATURE)
+  {
     PointerRNA hook_object_data_ptr = RNA_pointer_get(&hook_object_ptr, "data");
     uiItemPointerR(
         col, ptr, "subtarget", &hook_object_data_ptr, "bones", IFACE_("Bone"), ICON_NONE);

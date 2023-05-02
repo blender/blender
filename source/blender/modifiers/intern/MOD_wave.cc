@@ -436,7 +436,8 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
     uiItemR(col, ptr, "texture_coords_object", 0, IFACE_("Object"), ICON_NONE);
     PointerRNA texture_coords_obj_ptr = RNA_pointer_get(ptr, "texture_coords_object");
     if (!RNA_pointer_is_null(&texture_coords_obj_ptr) &&
-        (RNA_enum_get(&texture_coords_obj_ptr, "type") == OB_ARMATURE)) {
+        (RNA_enum_get(&texture_coords_obj_ptr, "type") == OB_ARMATURE))
+    {
       PointerRNA texture_coords_obj_data_ptr = RNA_pointer_get(&texture_coords_obj_ptr, "data");
       uiItemPointerR(col,
                      ptr,

@@ -165,7 +165,8 @@ int get_output_edge_index(const CDT_result<T> &out, int out_index_1, int out_ind
   int ne = int(out.edge.size());
   for (int i = 0; i < ne; ++i) {
     if ((out.edge[i].first == out_index_1 && out.edge[i].second == out_index_2) ||
-        (out.edge[i].first == out_index_2 && out.edge[i].second == out_index_1)) {
+        (out.edge[i].first == out_index_2 && out.edge[i].second == out_index_1))
+    {
       return i;
     }
   }

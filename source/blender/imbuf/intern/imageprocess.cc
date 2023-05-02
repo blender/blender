@@ -61,7 +61,7 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 static void pixel_from_buffer(const struct ImBuf *ibuf, uchar **outI, float **outF, int x, int y)
 
 {
-  size_t offset = ((size_t)ibuf->x) * y * 4 + 4 * x;
+  size_t offset = size_t(ibuf->x) * y * 4 + 4 * x;
 
   if (ibuf->rect) {
     *outI = (uchar *)ibuf->rect + offset;
@@ -89,10 +89,10 @@ void bicubic_interpolation_color(
 
 void bicubic_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
 {
-  uchar *outI = NULL;
-  float *outF = NULL;
+  uchar *outI = nullptr;
+  float *outF = nullptr;
 
-  if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) {
+  if (in == nullptr || (in->rect == nullptr && in->rect_float == nullptr)) {
     return;
   }
 
@@ -109,7 +109,7 @@ void bicubic_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xo
  * \{ */
 
 void bilinear_interpolation_color_fl(
-    const struct ImBuf *in, uchar UNUSED(outI[4]), float outF[4], float u, float v)
+    const struct ImBuf *in, uchar /*outI*/[4], float outF[4], float u, float v)
 {
   BLI_assert(outF);
   BLI_assert(in->rect_float);
@@ -117,7 +117,7 @@ void bilinear_interpolation_color_fl(
 }
 
 void bilinear_interpolation_color_char(
-    const struct ImBuf *in, uchar outI[4], float UNUSED(outF[4]), float u, float v)
+    const struct ImBuf *in, uchar outI[4], float /*outF*/[4], float u, float v)
 {
   BLI_assert(outI);
   BLI_assert(in->rect);
@@ -148,10 +148,10 @@ void bilinear_interpolation_color_wrap(
 
   /* ImBuf in must have a valid rect or rect_float, assume this is already checked */
 
-  x1 = (int)floor(u);
-  x2 = (int)ceil(u);
-  y1 = (int)floor(v);
-  y2 = (int)ceil(v);
+  x1 = int(floor(u));
+  x2 = int(ceil(u));
+  y1 = int(floor(v));
+  y2 = int(ceil(v));
 
   /* sample area entirely outside image? */
   if (x2 < 0 || x1 > in->x - 1 || y2 < 0 || y1 > in->y - 1) {
@@ -182,10 +182,10 @@ void bilinear_interpolation_color_wrap(
 
   if (outF) {
     /* sample including outside of edges of image */
-    row1 = in->rect_float + ((size_t)in->x) * y1 * 4 + 4 * x1;
-    row2 = in->rect_float + ((size_t)in->x) * y2 * 4 + 4 * x1;
-    row3 = in->rect_float + ((size_t)in->x) * y1 * 4 + 4 * x2;
-    row4 = in->rect_float + ((size_t)in->x) * y2 * 4 + 4 * x2;
+    row1 = in->rect_float + size_t(in->x) * y1 * 4 + 4 * x1;
+    row2 = in->rect_float + size_t(in->x) * y2 * 4 + 4 * x1;
+    row3 = in->rect_float + size_t(in->x) * y1 * 4 + 4 * x2;
+    row4 = in->rect_float + size_t(in->x) * y2 * 4 + 4 * x2;
 
     outF[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0];
     outF[1] = ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1];
@@ -197,10 +197,10 @@ void bilinear_interpolation_color_wrap(
   }
   if (outI) {
     /* sample including outside of edges of image */
-    row1I = (uchar *)in->rect + ((size_t)in->x) * y1 * 4 + 4 * x1;
-    row2I = (uchar *)in->rect + ((size_t)in->x) * y2 * 4 + 4 * x1;
-    row3I = (uchar *)in->rect + ((size_t)in->x) * y1 * 4 + 4 * x2;
-    row4I = (uchar *)in->rect + ((size_t)in->x) * y2 * 4 + 4 * x2;
+    row1I = (uchar *)in->rect + size_t(in->x) * y1 * 4 + 4 * x1;
+    row2I = (uchar *)in->rect + size_t(in->x) * y2 * 4 + 4 * x1;
+    row3I = (uchar *)in->rect + size_t(in->x) * y1 * 4 + 4 * x2;
+    row4I = (uchar *)in->rect + size_t(in->x) * y2 * 4 + 4 * x2;
 
     /* Tested with white images and this should not wrap back to zero. */
     outI[0] = roundf(ma_mb * row1I[0] + a_mb * row3I[0] + ma_b * row2I[0] + a_b * row4I[0]);
@@ -212,10 +212,10 @@ void bilinear_interpolation_color_wrap(
 
 void bilinear_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
 {
-  uchar *outI = NULL;
-  float *outF = NULL;
+  uchar *outI = nullptr;
+  float *outF = nullptr;
 
-  if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) {
+  if (in == nullptr || (in->rect == nullptr && in->rect_float == nullptr)) {
     return;
   }
 
@@ -232,13 +232,13 @@ void bilinear_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int x
  * \{ */
 
 void nearest_interpolation_color_char(
-    const struct ImBuf *in, uchar outI[4], float UNUSED(outF[4]), float u, float v)
+    const struct ImBuf *in, uchar outI[4], float /*outF*/[4], float u, float v)
 {
   BLI_assert(outI);
   BLI_assert(in->rect);
   /* ImBuf in must have a valid rect or rect_float, assume this is already checked */
-  int x1 = (int)(u);
-  int y1 = (int)(v);
+  int x1 = int(u);
+  int y1 = int(v);
 
   /* sample area entirely outside image? */
   if (x1 < 0 || x1 >= in->x || y1 < 0 || y1 >= in->y) {
@@ -246,7 +246,7 @@ void nearest_interpolation_color_char(
     return;
   }
 
-  const size_t offset = ((size_t)in->x * y1 + x1) * 4;
+  const size_t offset = (size_t(in->x) * y1 + x1) * 4;
   const uchar *dataI = (uchar *)in->rect + offset;
   outI[0] = dataI[0];
   outI[1] = dataI[1];
@@ -255,13 +255,13 @@ void nearest_interpolation_color_char(
 }
 
 void nearest_interpolation_color_fl(
-    const struct ImBuf *in, uchar UNUSED(outI[4]), float outF[4], float u, float v)
+    const struct ImBuf *in, uchar /*outI*/[4], float outF[4], float u, float v)
 {
   BLI_assert(outF);
   BLI_assert(in->rect_float);
   /* ImBuf in must have a valid rect or rect_float, assume this is already checked */
-  int x1 = (int)(u);
-  int y1 = (int)(v);
+  int x1 = int(u);
+  int y1 = int(v);
 
   /* sample area entirely outside image? */
   if (x1 < 0 || x1 >= in->x || y1 < 0 || y1 >= in->y) {
@@ -269,7 +269,7 @@ void nearest_interpolation_color_fl(
     return;
   }
 
-  const size_t offset = ((size_t)in->x * y1 + x1) * 4;
+  const size_t offset = (size_t(in->x) * y1 + x1) * 4;
   const float *dataF = in->rect_float + offset;
   copy_v4_v4(outF, dataF);
 }
@@ -294,8 +294,8 @@ void nearest_interpolation_color_wrap(
 
   /* ImBuf in must have a valid rect or rect_float, assume this is already checked */
 
-  x = (int)floor(u);
-  y = (int)floor(v);
+  x = int(floor(u));
+  y = int(floor(v));
 
   x = x % in->x;
   y = y % in->y;
@@ -308,14 +308,14 @@ void nearest_interpolation_color_wrap(
     y += in->y;
   }
 
-  dataI = (uchar *)in->rect + ((size_t)in->x) * y * 4 + 4 * x;
+  dataI = (uchar *)in->rect + size_t(in->x) * y * 4 + 4 * x;
   if (outI) {
     outI[0] = dataI[0];
     outI[1] = dataI[1];
     outI[2] = dataI[2];
     outI[3] = dataI[3];
   }
-  dataF = in->rect_float + ((size_t)in->x) * y * 4 + 4 * x;
+  dataF = in->rect_float + size_t(in->x) * y * 4 + 4 * x;
   if (outF) {
     outF[0] = dataF[0];
     outF[1] = dataF[1];
@@ -326,10 +326,10 @@ void nearest_interpolation_color_wrap(
 
 void nearest_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
 {
-  uchar *outI = NULL;
-  float *outF = NULL;
+  uchar *outI = nullptr;
+  float *outF = nullptr;
 
-  if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) {
+  if (in == nullptr || (in->rect == nullptr && in->rect_float == nullptr)) {
     return;
   }
 
@@ -366,7 +366,7 @@ void IMB_processor_apply_threaded(
   int total_tasks = (buffer_lines + lines_per_task - 1) / lines_per_task;
   int i, start_line;
 
-  task_pool = BLI_task_pool_create(do_thread, TASK_PRIORITY_HIGH);
+  task_pool = BLI_task_pool_create(reinterpret_cast<void *>(do_thread), TASK_PRIORITY_HIGH);
 
   handles = MEM_callocN(handle_size * total_tasks, "processor apply threaded handles");
 
@@ -385,7 +385,7 @@ void IMB_processor_apply_threaded(
 
     init_handle(handle, start_line, lines_per_current_task, init_customdata);
 
-    BLI_task_pool_push(task_pool, processor_apply_func, handle, false, NULL);
+    BLI_task_pool_push(task_pool, processor_apply_func, handle, false, nullptr);
 
     start_line += lines_per_task;
   }
@@ -405,9 +405,9 @@ typedef struct ScanlineGlobalData {
 
 static void processor_apply_parallel(void *__restrict userdata,
                                      const int scanline,
-                                     const TaskParallelTLS *__restrict UNUSED(tls))
+                                     const TaskParallelTLS *__restrict /*tls*/)
 {
-  ScanlineGlobalData *data = userdata;
+  ScanlineGlobalData *data = static_cast<ScanlineGlobalData *>(userdata);
   data->do_thread(data->custom_data, scanline);
 }
 
@@ -416,10 +416,9 @@ void IMB_processor_apply_threaded_scanlines(int total_scanlines,
                                             void *custom_data)
 {
   TaskParallelSettings settings;
-  ScanlineGlobalData data = {
-      .do_thread = do_thread,
-      .custom_data = custom_data,
-  };
+  ScanlineGlobalData data = {};
+  data.do_thread = do_thread;
+  data.custom_data = custom_data;
 
   BLI_parallel_range_settings_defaults(&settings);
   BLI_task_parallel_range(0, total_scanlines, &data, processor_apply_parallel, &settings);
@@ -433,7 +432,7 @@ void IMB_processor_apply_threaded_scanlines(int total_scanlines,
 
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3])
 {
-  size_t a = ((size_t)x) * y;
+  size_t a = size_t(x) * y;
   float *fp = rect_float;
 
   while (a--) {
@@ -447,7 +446,7 @@ void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[
 
 void IMB_alpha_under_color_byte(uchar *rect, int x, int y, const float backcol[3])
 {
-  size_t a = ((size_t)x) * y;
+  size_t a = size_t(x) * y;
   uchar *cp = rect;
 
   while (a--) {
@@ -483,11 +482,11 @@ void IMB_alpha_under_color_byte(uchar *rect, int x, int y, const float backcol[3
 void IMB_sampleImageAtLocation(ImBuf *ibuf, float x, float y, bool make_linear_rgb, float color[4])
 {
   if (ibuf->rect_float) {
-    nearest_interpolation_color(ibuf, NULL, color, x, y);
+    nearest_interpolation_color(ibuf, nullptr, color, x, y);
   }
   else {
     uchar byte_color[4];
-    nearest_interpolation_color(ibuf, byte_color, NULL, x, y);
+    nearest_interpolation_color(ibuf, byte_color, nullptr, x, y);
     rgba_uchar_to_float(color, byte_color);
     if (make_linear_rgb) {
       IMB_colormanagement_colorspace_to_scene_linear_v4(color, false, ibuf->rect_colorspace);

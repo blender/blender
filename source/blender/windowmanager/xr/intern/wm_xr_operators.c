@@ -474,8 +474,8 @@ static void wm_xr_navigation_grab_apply(wmXrData *xr,
   /* Limit scale to reasonable values. */
   nav_scale = len_v3(out[0]);
 
-  if (!(nav_scale < xr->session_settings.clip_start ||
-        nav_scale > xr->session_settings.clip_end)) {
+  if (!(nav_scale < xr->session_settings.clip_start || nav_scale > xr->session_settings.clip_end))
+  {
     WM_xr_session_state_nav_location_set(xr, out[3]);
     if (!data->rot_lock) {
       mat4_to_quat(nav_pose.orientation_quat, out);

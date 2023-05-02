@@ -762,7 +762,8 @@ class WFace {
     int index = 0;
     for (vector<WOEdge *>::iterator woe = _OEdgeList.begin(), woend = _OEdgeList.end();
          woe != woend;
-         woe++) {
+         woe++)
+    {
       if ((*woe)->GetaVertex() == iVertex) {
         return index;
       }
@@ -775,7 +776,8 @@ class WFace {
   {
     for (vector<WOEdge *>::iterator woe = _OEdgeList.begin(), woend = _OEdgeList.end();
          woe != woend;
-         woe++) {
+         woe++)
+    {
       oVertices.push_back((*woe)->GetaVertex());
     }
   }
@@ -784,7 +786,8 @@ class WFace {
   {
     for (vector<WOEdge *>::iterator woe = _OEdgeList.begin(), woend = _OEdgeList.end();
          woe != woend;
-         woe++) {
+         woe++)
+    {
       WFace *af;
       if ((af = (*woe)->GetaFace())) {
         oWFaces.push_back(af);
@@ -836,7 +839,8 @@ class WFace {
     int index = 0;
     for (vector<WOEdge *>::const_iterator woe = _OEdgeList.begin(), woend = _OEdgeList.end();
          woe != woend;
-         woe++) {
+         woe++)
+    {
       if ((*woe)->GetaVertex() == iVertex) {
         index = i;
         break;
@@ -887,7 +891,8 @@ class WFace {
   {
     for (vector<WOEdge *>::const_iterator woe = _OEdgeList.begin(), woeend = _OEdgeList.end();
          woe != woeend;
-         ++woe) {
+         ++woe)
+    {
       if ((*woe)->GetOwner()->GetbOEdge() == 0) {
         return true;
       }

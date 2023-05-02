@@ -233,7 +233,8 @@ FSMenuEntry *ED_fsmenu_get_entry(struct FSMenu *fsmenu, FSMenuCategory category,
   FSMenuEntry *fsm_iter;
 
   for (fsm_iter = ED_fsmenu_get_category(fsmenu, category); fsm_iter && idx;
-       fsm_iter = fsm_iter->next) {
+       fsm_iter = fsm_iter->next)
+  {
     idx--;
   }
 
@@ -356,7 +357,8 @@ short fsmenu_can_save(struct FSMenu *fsmenu, FSMenuCategory category, int idx)
   FSMenuEntry *fsm_iter;
 
   for (fsm_iter = ED_fsmenu_get_category(fsmenu, category); fsm_iter && idx;
-       fsm_iter = fsm_iter->next) {
+       fsm_iter = fsm_iter->next)
+  {
     idx--;
   }
 
@@ -533,7 +535,8 @@ bool fsmenu_write_file(struct FSMenu *fsmenu, const char *filepath)
   bool has_error = false;
   has_error |= (fprintf(fp, "[Bookmarks]\n") < 0);
   for (fsm_iter = ED_fsmenu_get_category(fsmenu, FS_CATEGORY_BOOKMARKS); fsm_iter;
-       fsm_iter = fsm_iter->next) {
+       fsm_iter = fsm_iter->next)
+  {
     if (fsm_iter->path && fsm_iter->save) {
       fsmenu_entry_generate_name(fsm_iter, fsm_name, sizeof(fsm_name));
       if (fsm_iter->name[0] && !STREQ(fsm_iter->name, fsm_name)) {
@@ -545,7 +548,8 @@ bool fsmenu_write_file(struct FSMenu *fsmenu, const char *filepath)
   has_error = (fprintf(fp, "[Recent]\n") < 0);
   for (fsm_iter = ED_fsmenu_get_category(fsmenu, FS_CATEGORY_RECENT);
        fsm_iter && (nwritten < FSMENU_RECENT_MAX);
-       fsm_iter = fsm_iter->next, nwritten++) {
+       fsm_iter = fsm_iter->next, nwritten++)
+  {
     if (fsm_iter->path && fsm_iter->save) {
       fsmenu_entry_generate_name(fsm_iter, fsm_name, sizeof(fsm_name));
       if (fsm_iter->name[0] && !STREQ(fsm_iter->name, fsm_name)) {
@@ -889,7 +893,8 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
         CFStringRef pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
 
         if (pathString == NULL ||
-            !CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingUTF8)) {
+            !CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingUTF8))
+        {
           continue;
         }
 

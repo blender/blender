@@ -88,7 +88,8 @@ static PyObject *UnaryFunction0DMaterial___call__(BPy_UnaryFunction0DMaterial *s
   PyObject *obj;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj)) {
+          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
+  {
     return nullptr;
   }
 

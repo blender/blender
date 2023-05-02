@@ -353,7 +353,8 @@ bool WM_event_consecutive_gesture_test_break(const wmWindow *win, const wmEvent 
     /* Mouse motion is checked because the user may navigate to a new area
      * and perform the same gesture - logically it's best to view this as two separate gestures. */
     if (len_manhattan_v2v2_int(event->xy, win->event_queue_consecutive_gesture_xy) >
-        WM_EVENT_CURSOR_MOTION_THRESHOLD) {
+        WM_EVENT_CURSOR_MOTION_THRESHOLD)
+    {
       return true;
     }
   }

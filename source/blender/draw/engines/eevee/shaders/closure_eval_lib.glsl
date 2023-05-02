@@ -82,8 +82,8 @@
       } \
 \
       /* Starts at 1 because 0 is world irradiance. */ \
-      for (int i = 1; cl_common.diffuse_accum > 0.0 && i < prbNumRenderGrid && i < MAX_GRID; \
-           i++) { \
+      for (int i = 1; cl_common.diffuse_accum > 0.0 && i < prbNumRenderGrid && i < MAX_GRID; i++) \
+      { \
         ClosureGridData grid = closure_grid_eval_init(i, cl_common); \
         if (grid.attenuation > 1e-8) { \
           CLOSURE_META_SUBROUTINE_DATA(grid_eval, grid, t0, t1, t2, t3); \

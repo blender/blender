@@ -51,7 +51,8 @@ static void select_engine_framebuffer_setup(void)
   }
 
   if ((e_data.texture_u32 != NULL) && ((GPU_texture_width(e_data.texture_u32) != size[0]) ||
-                                       (GPU_texture_height(e_data.texture_u32) != size[1]))) {
+                                       (GPU_texture_height(e_data.texture_u32) != size[1])))
+  {
     GPU_texture_free(e_data.texture_u32);
     e_data.texture_u32 = NULL;
   }

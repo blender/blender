@@ -68,7 +68,8 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
     }
 
     if (!(sd->flag & SD_TRANSPARENT) || kernel_data.film.pass_alpha_threshold == 0.0f ||
-        average(surface_shader_alpha(kg, sd)) >= kernel_data.film.pass_alpha_threshold) {
+        average(surface_shader_alpha(kg, sd)) >= kernel_data.film.pass_alpha_threshold)
+    {
       if (flag & PASSMASK(NORMAL)) {
         const float3 normal = surface_shader_average_normal(kg, sd);
         film_write_pass_float3(buffer + kernel_data.film.pass_normal, normal);

@@ -129,7 +129,8 @@ static bke::curves::CurvePoint lookup_point_bezier(
     const int num_curve_points)
 {
   if (bke::curves::bezier::has_vector_handles(
-          num_curve_points, evaluated_points_by_curve[curve_index].size(), cyclic, resolution)) {
+          num_curve_points, evaluated_points_by_curve[curve_index].size(), cyclic, resolution))
+  {
     const Span<int> bezier_offsets = src_curves.bezier_evaluated_offsets_for_curve(curve_index);
     return lookup_point_bezier(
         bezier_offsets, accumulated_lengths, sample_length, cyclic, num_curve_points);
@@ -553,7 +554,8 @@ static void sample_interval_bezier(const Span<float3> src_positions,
           src_positions, src_handles_l, src_handles_r, end_point);
 
       if ((start_point.parameter >= end_point.parameter && end_point.index == start_point.index) ||
-          (start_point.parameter == 0.0f && end_point.next_index == start_point.index)) {
+          (start_point.parameter == 0.0f && end_point.next_index == start_point.index))
+      {
         /* Start point is next controlpoint. */
         dst_handles_l[dst_range.first()] = end_point_insert.handle_next;
         /* No need to change handle type (remains the same). */
@@ -1071,7 +1073,8 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
 
     Set<std::string> copy_point_skip;
     if (!dst_curves.has_curve_with_type(CURVE_TYPE_NURBS) &&
-        src_curves.has_curve_with_type(CURVE_TYPE_NURBS)) {
+        src_curves.has_curve_with_type(CURVE_TYPE_NURBS))
+    {
       copy_point_skip.add("nurbs_weight");
     }
 
@@ -1080,7 +1083,8 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
                                                                  dst_attributes,
                                                                  ATTR_DOMAIN_MASK_POINT,
                                                                  propagation_info,
-                                                                 copy_point_skip)) {
+                                                                 copy_point_skip))
+    {
       bke::curves::copy_point_data(src_points_by_curve,
                                    dst_points_by_curve,
                                    unselected_ranges,

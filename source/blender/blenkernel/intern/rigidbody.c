@@ -208,7 +208,8 @@ bool BKE_rigidbody_is_affected_by_simulation(Object *ob)
 
   RigidBodyOb *rbo = ob->rigidbody_object;
   if (rbo == NULL || rbo->flag & RBO_FLAG_KINEMATIC || rbo->type == RBO_TYPE_PASSIVE ||
-      obCompoundParent) {
+      obCompoundParent)
+  {
     return false;
   }
 
@@ -587,7 +588,8 @@ static void rigidbody_validate_sim_shape(RigidBodyWorld *rbw, Object *ob, bool r
 
   /* Also don't create a shape if this object is parent of a compound shape */
   if (ob->parent != NULL && ob->parent->rigidbody_object != NULL &&
-      ob->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND) {
+      ob->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND)
+  {
     return;
   }
 
@@ -794,7 +796,8 @@ static void rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, bool 
     }
     /* Don't create rigid body object if the parent is a compound shape */
     if (ob->parent != NULL && ob->parent->rigidbody_object != NULL &&
-        ob->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND) {
+        ob->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND)
+    {
       return;
     }
 
@@ -1602,7 +1605,8 @@ static void rigidbody_update_ob_array(RigidBodyWorld *rbw)
     (void)object;
     /* Ignore if this object is the direct child of an object with a compound shape */
     if (object->parent == NULL || object->parent->rigidbody_object == NULL ||
-        object->parent->rigidbody_object->shape != RB_SHAPE_COMPOUND) {
+        object->parent->rigidbody_object->shape != RB_SHAPE_COMPOUND)
+    {
       n++;
     }
   }
@@ -1617,7 +1621,8 @@ static void rigidbody_update_ob_array(RigidBodyWorld *rbw)
   FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->group, object) {
     /* Ignore if this object is the direct child of an object with a compound shape */
     if (object->parent == NULL || object->parent->rigidbody_object == NULL ||
-        object->parent->rigidbody_object->shape != RB_SHAPE_COMPOUND) {
+        object->parent->rigidbody_object->shape != RB_SHAPE_COMPOUND)
+    {
       rbw->objects[i] = object;
       i++;
     }
@@ -1938,8 +1943,8 @@ static void rigidbody_update_external_forces(Depsgraph *depsgraph,
 
     /* update influence of effectors - but don't do it on an effector */
     /* only dynamic bodies need effector update */
-    if (rbo->type == RBO_TYPE_ACTIVE &&
-        ((ob->pd == NULL) || (ob->pd->forcefield == PFIELD_NULL))) {
+    if (rbo->type == RBO_TYPE_ACTIVE && ((ob->pd == NULL) || (ob->pd->forcefield == PFIELD_NULL)))
+    {
       EffectorWeights *effector_weights = rbw->effector_weights;
       EffectedPoint epoint;
       ListBase *effectors;
@@ -2008,7 +2013,8 @@ static void rigidbody_update_simulation_post_step(Depsgraph *depsgraph, RigidBod
     RigidBodyOb *rbo = ob->rigidbody_object;
     /* Reset kinematic state for transformed objects. */
     if (rbo && base && (base->flag & BASE_SELECTED) && (G.moving & G_TRANSFORM_OBJ) &&
-        rbo->shared->physics_object) {
+        rbo->shared->physics_object)
+    {
       RB_body_set_kinematic_state(rbo->shared->physics_object,
                                   rbo->flag & RBO_FLAG_KINEMATIC || rbo->flag & RBO_FLAG_DISABLED);
       RB_body_set_mass(rbo->shared->physics_object, RBO_GET_MASS(rbo));
@@ -2037,7 +2043,8 @@ void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
 
   /* use rigid body transform after cache start frame if objects is not being transformed */
   if (BKE_rigidbody_check_sim_running(rbw, ctime) &&
-      !(ob->base_flag & BASE_SELECTED && G.moving & G_TRANSFORM_OBJ)) {
+      !(ob->base_flag & BASE_SELECTED && G.moving & G_TRANSFORM_OBJ))
+  {
     float mat[4][4], size_mat[4][4], size[3];
 
     normalize_qt(rbo->orn); /* RB_TODO investigate why quaternion isn't normalized at this point */
@@ -2152,7 +2159,8 @@ void BKE_rigidbody_rebuild_world(Depsgraph *depsgraph, Scene *scene, float ctime
     (void)object;
     /* Ignore if this object is the direct child of an object with a compound shape */
     if (object->parent == NULL || object->parent->rigidbody_object == NULL ||
-        object->parent->rigidbody_object->shape != RB_SHAPE_COMPOUND) {
+        object->parent->rigidbody_object->shape != RB_SHAPE_COMPOUND)
+    {
       n++;
     }
   }

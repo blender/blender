@@ -947,8 +947,8 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       }
     }
     else if (unode->maxgrid && subdiv_ccg != nullptr) {
-      if ((subdiv_ccg->num_grids != unode->maxgrid) ||
-          (subdiv_ccg->grid_size != unode->gridsize)) {
+      if ((subdiv_ccg->num_grids != unode->maxgrid) || (subdiv_ccg->grid_size != unode->gridsize))
+      {
         continue;
       }
 
@@ -1742,7 +1742,8 @@ static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr)
     return;
   }
   if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & ATTR_DOMAIN_MASK_COLOR) ||
-      !(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL)) {
+      !(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL))
+  {
     return;
   }
   attr->domain = meta_data->domain;
@@ -1854,7 +1855,8 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
     layer = BKE_id_attribute_search(&me->id, attr->name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
     if (layer) {
       if (ED_geometry_attribute_convert(
-              me, attr->name, eCustomDataType(attr->type), attr->domain, nullptr)) {
+              me, attr->name, eCustomDataType(attr->type), attr->domain, nullptr))
+      {
         layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
       }
     }

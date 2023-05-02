@@ -313,7 +313,7 @@ void IMB_mask_filter_extend(char *mask, int width, int height)
   rowlen = width;
 
   /* make a copy, to prevent flooding */
-  temprect = MEM_dupallocN(mask);
+  temprect = static_cast<char *>(MEM_dupallocN(mask));
 
   for (y = 1; y <= height; y++) {
     /* setup rows */
@@ -391,11 +391,12 @@ static int check_pixel_assigned(
   if (index >= 0) {
     const int alpha_index = depth * index + (depth - 1);
 
-    if (mask != NULL) {
+    if (mask != nullptr) {
       res = mask[index] != 0 ? 1 : 0;
     }
     else if ((is_float && ((const float *)buffer)[alpha_index] != 0.0f) ||
-             (!is_float && ((const uchar *)buffer)[alpha_index] != 0)) {
+             (!is_float && ((const uchar *)buffer)[alpha_index] != 0))
+    {
       res = 1;
     }
   }
@@ -409,11 +410,11 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
   const int height = ibuf->y;
   const int depth = 4; /* always 4 channels */
   const int chsize = ibuf->rect_float ? sizeof(float) : sizeof(uchar);
-  const size_t bsize = ((size_t)width) * height * depth * chsize;
-  const bool is_float = (ibuf->rect_float != NULL);
+  const size_t bsize = size_t(width) * height * depth * chsize;
+  const bool is_float = (ibuf->rect_float != nullptr);
   void *dstbuf = (void *)MEM_dupallocN(ibuf->rect_float ? (void *)ibuf->rect_float :
                                                           (void *)ibuf->rect);
-  char *dstmask = mask == NULL ? NULL : (char *)MEM_dupallocN(mask);
+  char *dstmask = mask == nullptr ? nullptr : (char *)MEM_dupallocN(mask);
   void *srcbuf = ibuf->rect_float ? (void *)ibuf->rect_float : (void *)ibuf->rect;
   char *srcmask = mask;
   int cannot_early_out = 1, r, n, k, i, j, c;
@@ -426,7 +427,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
   k = 0;
   for (i = -n; i <= n; i++) {
     for (j = -n; j <= n; j++) {
-      weight[k++] = sqrt((float)i * i + j * j);
+      weight[k++] = sqrt(float(i) * i + j * j);
     }
   }
 #endif
@@ -464,7 +465,8 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
               check_pixel_assigned(
                   srcbuf, srcmask, filter_make_index(x, y - 1, width, height), depth, is_float) ||
               check_pixel_assigned(
-                  srcbuf, srcmask, filter_make_index(x, y + 1, width, height), depth, is_float)) {
+                  srcbuf, srcmask, filter_make_index(x, y + 1, width, height), depth, is_float))
+          {
             for (i = -n; i <= n; i++) {
               for (j = -n; j <= n; j++) {
                 if (i != 0 || j != 0) {
@@ -478,7 +480,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
                     }
                     else {
                       for (c = 0; c < depth; c++) {
-                        tmp[c] = (float)((const uchar *)srcbuf)[depth * tmpindex + c];
+                        tmp[c] = float(((const uchar *)srcbuf)[depth * tmpindex + c]);
                       }
                     }
 
@@ -508,11 +510,11 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
                   ((uchar *)dstbuf)[depth * index + c] = acc[c] > 255 ?
                                                              255 :
                                                              (acc[c] < 0 ? 0 :
-                                                                           (uchar)roundf(acc[c]));
+                                                                           uchar(roundf(acc[c])));
                 }
               }
 
-              if (dstmask != NULL) {
+              if (dstmask != nullptr) {
                 dstmask[index] = FILTER_MASK_MARGIN; /* assigned */
               }
               cannot_early_out = 1;
@@ -524,14 +526,14 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 
     /* keep the original buffer up to date. */
     memcpy(srcbuf, dstbuf, bsize);
-    if (dstmask != NULL) {
-      memcpy(srcmask, dstmask, ((size_t)width) * height);
+    if (dstmask != nullptr) {
+      memcpy(srcmask, dstmask, size_t(width) * height);
     }
   }
 
   /* free memory */
   MEM_freeN(dstbuf);
-  if (dstmask != NULL) {
+  if (dstmask != nullptr) {
     MEM_freeN(dstmask);
   }
 }
@@ -663,7 +665,7 @@ void IMB_premultiply_rect_float(float *rect_float, int channels, int w, int h)
 
 void IMB_premultiply_alpha(ImBuf *ibuf)
 {
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     return;
   }
 
@@ -696,7 +698,7 @@ void IMB_unpremultiply_rect(uint *rect, char planes, int w, int h)
 
     for (y = 0; y < h; y++) {
       for (x = 0; x < w; x++, cp += 4) {
-        val = cp[3] != 0 ? 1.0f / (float)cp[3] : 1.0f;
+        val = cp[3] != 0 ? 1.0f / float(cp[3]) : 1.0f;
         cp[0] = unit_float_to_uchar_clamp(cp[0] * val);
         cp[1] = unit_float_to_uchar_clamp(cp[1] * val);
         cp[2] = unit_float_to_uchar_clamp(cp[2] * val);
@@ -725,7 +727,7 @@ void IMB_unpremultiply_rect_float(float *rect_float, int channels, int w, int h)
 
 void IMB_unpremultiply_alpha(ImBuf *ibuf)
 {
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     return;
   }
 

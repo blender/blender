@@ -78,7 +78,8 @@ static bool bm_loop_region_test_chain(BMLoop *l, int *const depths[2], const int
   }
   if (BM_vert_is_edge_pair_manifold(l->v) && bm_loop_pair_ends(l, l_end_pair) &&
       bm_loop_region_test(l_end_pair[0], depths, pass) &&
-      bm_loop_region_test(l_end_pair[1], depths, pass)) {
+      bm_loop_region_test(l_end_pair[1], depths, pass))
+  {
     return true;
   }
 
@@ -249,7 +250,8 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
                 while (BM_vert_is_edge_pair_manifold(l_b->v) &&
                        ((depths[side][l_b_index] == -1) &&
                         /* Don't walk back to the beginning */
-                        (l_b != (j ? l_iter->prev : l_iter->next)))) {
+                        (l_b != (j ? l_iter->prev : l_iter->next))))
+                {
                   depths[side][l_b_index] = pass;
 
                   l_b = j ? l_b->next : l_b->prev;

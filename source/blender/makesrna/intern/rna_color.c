@@ -705,7 +705,8 @@ static float rna_CurveMapping_evaluateF(struct CurveMapping *cumap,
                                         float value)
 {
   if (&cumap->cm[0] != cuma && &cumap->cm[1] != cuma && &cumap->cm[2] != cuma &&
-      &cumap->cm[3] != cuma) {
+      &cumap->cm[3] != cuma)
+  {
     BKE_report(reports, RPT_ERROR, "CurveMapping does not own CurveMap");
     return 0.0f;
   }

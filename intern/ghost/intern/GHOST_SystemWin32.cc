@@ -958,7 +958,8 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
          * event queue. */
         MSG msg;
         if (PeekMessage(&msg, window->getHWND(), message, message, PM_REMOVE | PM_NOYIELD) &&
-            msg.message != WM_QUIT) {
+            msg.message != WM_QUIT)
+        {
 
           WINTAB_PRINTF(" ... associated to system button\n");
           window->updateMouseCapture(MouseReleased);
@@ -2311,7 +2312,8 @@ void GHOST_SystemWin32::putClipboard(const char *buffer, bool selection) const
 GHOST_TSuccess GHOST_SystemWin32::hasClipboardImage(void) const
 {
   if (IsClipboardFormatAvailable(CF_DIBV5) ||
-      IsClipboardFormatAvailable(RegisterClipboardFormat("PNG"))) {
+      IsClipboardFormatAvailable(RegisterClipboardFormat("PNG")))
+  {
     return GHOST_kSuccess;
   }
 

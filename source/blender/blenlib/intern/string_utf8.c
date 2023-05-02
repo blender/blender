@@ -415,7 +415,8 @@ char32_t BLI_str_utf32_char_to_upper(const char32_t wc)
     if ((wc <= U'z' && wc >= U'a') || (wc <= U'\xF6' && wc >= U'\xE0') ||
         /* Correct but the first case is know, only check the second */
         // (wc <= U'\xFE' && wc >= U'\xF8')
-        (wc >= U'\xF8')) {
+        (wc >= U'\xF8'))
+    {
       return wc - 32;
     }
     return wc;
@@ -438,7 +439,8 @@ char32_t BLI_str_utf32_char_to_upper(const char32_t wc)
 
   /* There are only three remaining ranges that contain capitalization. */
   if (!(wc <= U'\x0292' && wc >= U'\x00FF') && !(wc <= U'\x04F9' && wc >= U'\x03AC') &&
-      !(wc <= U'\x1FE1' && wc >= U'\x1E01')) {
+      !(wc <= U'\x1FE1' && wc >= U'\x1E01'))
+  {
     return wc;
   }
 
@@ -543,7 +545,8 @@ char32_t BLI_str_utf32_char_to_lower(const char32_t wc)
 
   /* There are only three remaining ranges that contain capitalization. */
   if (!(wc <= U'\x0216' && wc >= U'\x00D8') && !(wc <= U'\x04F8' && wc >= U'\x0386') &&
-      !(wc <= U'\x1FE9' && wc >= U'\x1E00')) {
+      !(wc <= U'\x1FE9' && wc >= U'\x1E00'))
+  {
     return wc;
   }
 
@@ -962,7 +965,8 @@ size_t BLI_str_partition_ex_utf8(const char *str,
   for (char *sep = (char *)(from_right ? BLI_str_find_prev_char_utf8(end, str) : str);
        from_right ? (sep > str) : ((sep < end) && (*sep != '\0'));
        sep = (char *)(from_right ? (str != sep ? BLI_str_find_prev_char_utf8(sep, str) : NULL) :
-                                   str + index)) {
+                                   str + index))
+  {
     size_t index_ofs = 0;
     const uint c = BLI_str_utf8_as_unicode_step_or_error(sep, (size_t)(end - sep), &index_ofs);
     if (UNLIKELY(c == BLI_UTF8_ERR)) {

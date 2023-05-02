@@ -234,7 +234,8 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
            ANIMCONT_FCURVES,
            ANIMCONT_NLA,
            ANIMCONT_CHANNEL,
-           ANIMCONT_TIMELINE)) {
+           ANIMCONT_TIMELINE))
+  {
     /* handling depends on the type of animation-context we've got */
     if (ale) {
       /* NLA Control Curves occur on NLA strips,

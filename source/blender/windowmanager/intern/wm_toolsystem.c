@@ -523,7 +523,8 @@ void WM_toolsystem_refresh_active(bContext *C)
         /* Don't change the space type of the active tool, only update its mode. */
         const int space_type_mask = (1 << area->spacetype);
         if ((space_type_mask & WM_TOOLSYSTEM_SPACE_MASK) &&
-            ((space_type_mask_handled & space_type_mask) == 0)) {
+            ((space_type_mask_handled & space_type_mask) == 0))
+        {
           space_type_mask_handled |= space_type_mask;
           const bToolKey tkey = {
               .space_type = area->spacetype,

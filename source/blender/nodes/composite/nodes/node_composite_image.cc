@@ -310,7 +310,8 @@ static void cmp_node_rlayer_create_outputs(bNodeTree *ntree,
         RE_engine_free(engine);
 
         if ((scene->r.mode & R_EDGE_FRS) &&
-            (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS)) {
+            (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS))
+        {
           node_cmp_rlayers_register_pass(
               ntree, node, scene, view_layer, RE_PASSNAME_FREESTYLE, SOCK_RGBA);
         }

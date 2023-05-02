@@ -47,13 +47,15 @@ static void node_label(const bNodeTree * /*tree*/, const bNode *node, char *labe
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   if (!params.node_tree().typeinfo->validate_link(
-          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_BOOLEAN)) {
+          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_BOOLEAN))
+  {
     return;
   }
 
   for (const EnumPropertyItem *item = rna_enum_node_boolean_math_items;
        item->identifier != nullptr;
-       item++) {
+       item++)
+  {
     if (item->name != nullptr && item->identifier[0] != '\0') {
       NodeBooleanMathOperation operation = static_cast<NodeBooleanMathOperation>(item->value);
       params.add_item(IFACE_(item->name), [operation](LinkSearchOpParams &params) {

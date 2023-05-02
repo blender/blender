@@ -233,7 +233,8 @@ static void statvis_calc_thickness(const MeshRenderData *mr, float *r_thickness)
         hit.dist = face_dists[index];
         if ((BLI_bvhtree_ray_cast(
                  tree, ray_co, ray_no, 0.0f, &hit, treeData.raycast_callback, &treeData) != -1) &&
-            hit.dist < face_dists[index]) {
+            hit.dist < face_dists[index])
+        {
           float angle_fac = fabsf(dot_v3v3(mr->poly_normals[index], hit.no));
           angle_fac = 1.0f - angle_fac;
           angle_fac = angle_fac * angle_fac * angle_fac;
@@ -350,7 +351,8 @@ static void statvis_calc_intersect(const MeshRenderData *mr, float *r_intersect)
       for (int i = 0; i < overlap_len; i++) {
 
         for (const IndexRange f_hit : {mr->polys[mr->looptris[overlap[i].indexA].poly],
-                                       mr->polys[mr->looptris[overlap[i].indexB].poly]}) {
+                                       mr->polys[mr->looptris[overlap[i].indexB].poly]})
+        {
           int l_index = f_hit.start();
           for (int k = 0; k < f_hit.size(); k++, l_index++) {
             r_intersect[l_index] = 1.0f;

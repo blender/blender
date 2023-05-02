@@ -1672,7 +1672,8 @@ static int ghost_wl_display_event_pump(struct wl_display *wl_display)
   if (wl_display_prepare_read(wl_display) == 0) {
     /* Use #GWL_IOR_NO_RETRY to ensure #SIGINT will break us out of our wait. */
     if (file_descriptor_is_io_ready(
-            wl_display_get_fd(wl_display), GWL_IOR_READ | GWL_IOR_NO_RETRY, 0) > 0) {
+            wl_display_get_fd(wl_display), GWL_IOR_READ | GWL_IOR_NO_RETRY, 0) > 0)
+    {
       err = wl_display_read_events(wl_display);
     }
     else {
@@ -2139,7 +2140,8 @@ static void data_source_handle_send(void *data,
   auto write_file_fn = [](GWL_Seat *seat, const int fd) {
     if (UNLIKELY(write(fd,
                        seat->data_source->buffer_out.data,
-                       seat->data_source->buffer_out.data_size) < 0)) {
+                       seat->data_source->buffer_out.data_size) < 0))
+    {
       CLOG_WARN(LOG, "error writing to clipboard: %s", std::strerror(errno));
     }
     close(fd);
@@ -3974,7 +3976,8 @@ static void keyboard_handle_key(void *data,
   if (key_repeat_payload == nullptr) {
     /* Start timer for repeating key, if applicable. */
     if ((seat->key_repeat.rate > 0) && (etype == GHOST_kEventKeyDown) &&
-        xkb_keymap_key_repeats(xkb_state_get_keymap(seat->xkb_state), key_code)) {
+        xkb_keymap_key_repeats(xkb_state_get_keymap(seat->xkb_state), key_code))
+    {
       key_repeat_payload = new GWL_KeyRepeatPlayload();
       key_repeat_payload->seat = seat;
       key_repeat_payload->key_code = key_code;
@@ -4175,7 +4178,8 @@ static void primary_selection_source_send(void *data,
   auto write_file_fn = [](GWL_PrimarySelection *primary, const int fd) {
     if (UNLIKELY(write(fd,
                        primary->data_source->buffer_out.data,
-                       primary->data_source->buffer_out.data_size) < 0)) {
+                       primary->data_source->buffer_out.data_size) < 0))
+    {
       CLOG_WARN(LOG, "error writing to primary clipboard: %s", std::strerror(errno));
     }
     close(fd);
@@ -4468,7 +4472,8 @@ static void xdg_output_handle_logical_size(void *data,
      * done (we can't match exactly because fractional scaling can't be
      * detected otherwise), then override if necessary. */
     if ((output->size_logical[0] == width) &&
-        (output->scale_fractional == (1 * FRACTIONAL_DENOMINATOR))) {
+        (output->scale_fractional == (1 * FRACTIONAL_DENOMINATOR)))
+    {
       GHOST_PRINT("xdg_output scale did not match, overriding with wl_output scale\n");
 
 #ifdef USE_GNOME_CONFINE_HACK
@@ -5313,7 +5318,8 @@ static int gwl_registry_handler_interface_slot_max()
 static int gwl_registry_handler_interface_slot_from_string(const char *interface)
 {
   for (const GWL_RegistryHandler *handler = gwl_registry_handlers; handler->interface_p != nullptr;
-       handler++) {
+       handler++)
+  {
     if (STREQ(interface, *handler->interface_p)) {
       return int(handler - gwl_registry_handlers);
     }
@@ -5438,7 +5444,8 @@ static void *gwl_display_event_thread_fn(void *display_voidp)
   while (display->events_pthread_is_active) {
     /* Wait for an event, this thread is dedicated to event handling. */
     if (ghost_wl_display_event_pump_from_thread(
-            display->wl_display, fd, display->system->server_mutex) == -1) {
+            display->wl_display, fd, display->system->server_mutex) == -1)
+    {
       break;
     }
   }
@@ -7317,7 +7324,8 @@ bool ghost_wl_dynload_libraries_init()
   if (wayland_dynload_client_init(verbose) && /* `libwayland-client`. */
       wayland_dynload_cursor_init(verbose) && /* `libwayland-cursor`. */
       wayland_dynload_egl_init(verbose)       /* `libwayland-egl`. */
-  ) {
+  )
+  {
 #  ifdef WITH_GHOST_WAYLAND_LIBDECOR
     has_libdecor = wayland_dynload_libdecor_init(verbose); /* `libdecor-0`. */
 #  endif

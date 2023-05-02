@@ -134,7 +134,8 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
 
   const SpreadsheetColumn *column = lookup_visible_column_for_filter(*sspreadsheet, column_name);
   if (!(sspreadsheet->filter_flag & SPREADSHEET_FILTER_ENABLE) ||
-      (column == nullptr && !column_name.is_empty())) {
+      (column == nullptr && !column_name.is_empty()))
+  {
     uiLayoutSetActive(layout, false);
   }
 
@@ -180,7 +181,8 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
   const SpreadsheetColumn *column = lookup_visible_column_for_filter(*sspreadsheet, column_name);
   if (!(sspreadsheet->filter_flag & SPREADSHEET_FILTER_ENABLE) ||
       !(filter->flag & SPREADSHEET_ROW_FILTER_ENABLED) ||
-      (column == nullptr && !column_name.is_empty())) {
+      (column == nullptr && !column_name.is_empty()))
+  {
     uiLayoutSetActive(layout, false);
   }
 

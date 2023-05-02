@@ -452,7 +452,8 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
            GP_STROKE_ARC,
            GP_STROKE_LINE,
            GP_STROKE_BOX,
-           GP_STROKE_POLYLINE)) {
+           GP_STROKE_POLYLINE))
+  {
     if (hasNumInput(&tgpi->num)) {
       char str_ofs[NUM_STR_REP_LEN];
 
@@ -788,7 +789,8 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
       round_v2i_v2fl(mval_i, ptc->m_xy);
       if ((ED_view3d_depth_read_cached(depths, mval_i, depth_margin, depth_arr + i) == 0) &&
           (i && (ED_view3d_depth_read_cached_seg(
-                     depths, mval_i, mval_prev, depth_margin + 1, depth_arr + i) == 0))) {
+                     depths, mval_i, mval_prev, depth_margin + 1, depth_arr + i) == 0)))
+      {
         interp_depth = true;
       }
       else {
@@ -818,7 +820,8 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
       else {
         if ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) &&
             ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_ENDPOINTS) ||
-             (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_FIRST))) {
+             (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_FIRST)))
+        {
           int first_valid = 0;
           int last_valid = 0;
 
@@ -1491,7 +1494,8 @@ static void gpencil_primitive_edit_event_handling(
           copy_v2_v2(tgpi->end, tgpi->mval);
         }
         else if (tgpi->sel_cp == SELECT_CP1 ||
-                 (tgpi->sel_cp == SELECT_CP2 && tgpi->type != GP_STROKE_CURVE)) {
+                 (tgpi->sel_cp == SELECT_CP2 && tgpi->type != GP_STROKE_CURVE))
+        {
           float dx = (tgpi->mval[0] - tgpi->mvalo[0]);
           float dy = (tgpi->mval[1] - tgpi->mvalo[1]);
           tgpi->cp1[0] += dx;
@@ -1808,14 +1812,16 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
         }
       }
       else if ((event->val == KM_RELEASE) && (tgpi->flag == IN_PROGRESS) &&
-               !ELEM(tgpi->type, GP_STROKE_POLYLINE)) {
+               !ELEM(tgpi->type, GP_STROKE_POLYLINE))
+      {
         /* set control points and enter edit mode */
         tgpi->flag = IN_CURVE_EDIT;
         gpencil_primitive_update_cps(tgpi);
         gpencil_primitive_update(C, op, tgpi);
       }
       else if ((event->val == KM_RELEASE) && (tgpi->flag == IN_PROGRESS) &&
-               !ELEM(tgpi->type, GP_STROKE_CURVE, GP_STROKE_POLYLINE)) {
+               !ELEM(tgpi->type, GP_STROKE_CURVE, GP_STROKE_POLYLINE))
+      {
         /* stop drawing primitive */
         tgpi->flag = IDLE;
         gpencil_primitive_interaction_end(C, op, win, tgpi);
@@ -1823,7 +1829,8 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
         return OPERATOR_FINISHED;
       }
       else if ((event->val == KM_RELEASE) && (tgpi->flag == IN_PROGRESS) &&
-               ELEM(tgpi->type, GP_STROKE_POLYLINE)) {
+               ELEM(tgpi->type, GP_STROKE_POLYLINE))
+      {
         /* set control points and enter edit mode */
         tgpi->flag = IN_POLYLINE;
         gpencil_primitive_update(C, op, tgpi);
@@ -1973,7 +1980,8 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     }
     default: {
       if (tgpi->flag != IN_CURVE_EDIT && (event->val == KM_PRESS) &&
-          handleNumInput(C, &tgpi->num, event)) {
+          handleNumInput(C, &tgpi->num, event))
+      {
         float value;
 
         /* Grab data from numeric input, and store this new value (the user see an int) */

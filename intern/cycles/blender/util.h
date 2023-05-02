@@ -588,7 +588,8 @@ static inline BL::FluidDomainSettings object_fluid_gas_domain_find(BL::Object &b
       BL::FluidModifier b_mmd(b_mod);
 
       if (b_mmd.fluid_type() == BL::FluidModifier::fluid_type_DOMAIN &&
-          b_mmd.domain_settings().domain_type() == BL::FluidDomainSettings::domain_type_GAS) {
+          b_mmd.domain_settings().domain_type() == BL::FluidDomainSettings::domain_type_GAS)
+      {
         return b_mmd.domain_settings();
       }
     }
@@ -637,7 +638,8 @@ static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
     bool enabled = preview ? mod.show_viewport() : mod.show_render();
 
     if (enabled && mod.type() == BL::Modifier::type_SUBSURF &&
-        RNA_boolean_get(&cobj, "use_adaptive_subdivision")) {
+        RNA_boolean_get(&cobj, "use_adaptive_subdivision"))
+    {
       BL::SubsurfModifier subsurf(mod);
 
       if (subsurf.subdivision_type() == BL::SubsurfModifier::subdivision_type_CATMULL_CLARK) {

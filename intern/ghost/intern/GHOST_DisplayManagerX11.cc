@@ -171,13 +171,15 @@ GHOST_TSuccess GHOST_DisplayManagerX11::setCurrentDisplaySetting(
 
       if (best_fit == -1 || (vidmodes[i]->hdisplay < vidmodes[best_fit]->hdisplay) ||
           (vidmodes[i]->hdisplay == vidmodes[best_fit]->hdisplay &&
-           vidmodes[i]->vdisplay < vidmodes[best_fit]->vdisplay)) {
+           vidmodes[i]->vdisplay < vidmodes[best_fit]->vdisplay))
+      {
         best_fit = i;
         continue;
       }
 
       if ((vidmodes[i]->hdisplay == vidmodes[best_fit]->hdisplay) &&
-          (vidmodes[i]->vdisplay == vidmodes[best_fit]->vdisplay)) {
+          (vidmodes[i]->vdisplay == vidmodes[best_fit]->vdisplay))
+      {
         if (!setting.frequency) {
           /* Higher is better, right? */
           if (calculate_rate(vidmodes[i]) > calculate_rate(vidmodes[best_fit])) {
@@ -186,7 +188,8 @@ GHOST_TSuccess GHOST_DisplayManagerX11::setCurrentDisplaySetting(
         }
         else {
           if (abs(calculate_rate(vidmodes[i]) - int(setting.frequency)) <
-              abs(calculate_rate(vidmodes[best_fit]) - int(setting.frequency))) {
+              abs(calculate_rate(vidmodes[best_fit]) - int(setting.frequency)))
+          {
             best_fit = i;
           }
         }

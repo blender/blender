@@ -47,7 +47,8 @@ static PyObject *bpy_bm_new(PyObject *UNUSED(self), PyObject *args, PyObject *kw
   bool use_operators = true;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "|$O&:new", (char **)kwlist, PyC_ParseBool, &use_operators)) {
+          args, kw, "|$O&:new", (char **)kwlist, PyC_ParseBool, &use_operators))
+  {
     return NULL;
   }
 
@@ -115,7 +116,8 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args,
                                    PyC_ParseBool,
                                    &do_loop_triangles,
                                    PyC_ParseBool,
-                                   &is_destructive)) {
+                                   &is_destructive))
+  {
     return NULL;
   }
 

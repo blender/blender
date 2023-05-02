@@ -47,6 +47,7 @@ static const pxr::TfToken primvar_float2("UsdPrimvarReader_float2", pxr::TfToken
 static const pxr::TfToken roughness("roughness", pxr::TfToken::Immortal);
 static const pxr::TfToken specular("specular", pxr::TfToken::Immortal);
 static const pxr::TfToken opacity("opacity", pxr::TfToken::Immortal);
+static const pxr::TfToken opacityThreshold("opacityThreshold", pxr::TfToken::Immortal);
 static const pxr::TfToken surface("surface", pxr::TfToken::Immortal);
 static const pxr::TfToken perspective("perspective", pxr::TfToken::Immortal);
 static const pxr::TfToken orthographic("orthographic", pxr::TfToken::Immortal);
@@ -144,6 +145,8 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
 
   const InputSpecMap &input_map = preview_surface_input_map();
 
+  bool has_opacity = false;
+
   /* Set the preview surface inputs. */
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
 
@@ -167,6 +170,10 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
       preview_surface.CreateInput(input_spec.input_name, input_spec.input_type)
           .ConnectToSource(created_shader.ConnectableAPI(), input_spec.source_name);
       set_normal_texture_range(created_shader, input_spec);
+
+      if (input_spec.input_name == usdtokens::opacity) {
+        has_opacity = true;
+      }
     }
     else if (input_spec.set_default_value) {
       /* Set hardcoded value. */
@@ -202,6 +209,15 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
 
     create_uvmap_shader(
         usd_export_context, input_node, usd_material, created_shader, default_uv_sampler);
+  }
+
+  /* Set opacityThreshold if an alpha cutout is used. */
+  if (has_opacity) {
+    if ((material->blend_method == MA_BM_CLIP) && (material->alpha_threshold > 0.0)) {
+      pxr::UsdShadeInput opacity_threshold_input = preview_surface.CreateInput(
+          usdtokens::opacityThreshold, pxr::SdfValueTypeNames->Float);
+      opacity_threshold_input.GetAttr().Set(pxr::VtValue(material->alpha_threshold));
+    }
   }
 }
 
@@ -399,7 +415,7 @@ static void export_in_memory_texture(Image *ima,
   char file_name[FILE_MAX];
   if (strlen(ima->filepath) > 0) {
     get_absolute_path(ima, image_abs_path);
-    BLI_split_file_part(image_abs_path, file_name, FILE_MAX);
+    BLI_path_split_file_part(image_abs_path, file_name, FILE_MAX);
   }
   else {
     /* Use the image name for the file name. */
@@ -614,7 +630,7 @@ static std::string get_tex_image_asset_path(bNode *node,
 
     char exp_path[FILE_MAX];
     char file_path[FILE_MAX];
-    BLI_split_file_part(path.c_str(), file_path, FILE_MAX);
+    BLI_path_split_file_part(path.c_str(), file_path, FILE_MAX);
 
     if (export_params.relative_paths) {
       BLI_path_join(exp_path, FILE_MAX, ".", "textures", file_path);
@@ -628,7 +644,7 @@ static std::string get_tex_image_asset_path(bNode *node,
       }
 
       char dir_path[FILE_MAX];
-      BLI_split_dir_part(stage_path.c_str(), dir_path, FILE_MAX);
+      BLI_path_split_dir_part(stage_path.c_str(), dir_path, FILE_MAX);
       BLI_path_join(exp_path, FILE_MAX, dir_path, "textures", file_path);
     }
     BLI_str_replace_char(exp_path, '\\', '/');
@@ -683,7 +699,7 @@ static void copy_tiled_textures(Image *ima,
         src_tile_path, udim_pattern, tile_format, tile->tile_number);
 
     char dest_filename[FILE_MAXFILE];
-    BLI_split_file_part(src_tile_path, dest_filename, sizeof(dest_filename));
+    BLI_path_split_file_part(src_tile_path, dest_filename, sizeof(dest_filename));
 
     char dest_tile_path[FILE_MAX];
     BLI_path_join(dest_tile_path, FILE_MAX, dest_dir.c_str(), dest_filename);
@@ -718,7 +734,7 @@ static void copy_single_file(Image *ima, const std::string &dest_dir, const bool
   get_absolute_path(ima, source_path);
 
   char file_name[FILE_MAX];
-  BLI_split_file_part(source_path, file_name, FILE_MAX);
+  BLI_path_split_file_part(source_path, file_name, FILE_MAX);
 
   char dest_path[FILE_MAX];
   BLI_path_join(dest_path, FILE_MAX, dest_dir.c_str(), file_name);
@@ -764,7 +780,7 @@ static void export_texture(bNode *node,
   }
 
   char usd_dir_path[FILE_MAX];
-  BLI_split_dir_part(stage_path.c_str(), usd_dir_path, FILE_MAX);
+  BLI_path_split_dir_part(stage_path.c_str(), usd_dir_path, FILE_MAX);
 
   char tex_dir_path[FILE_MAX];
   BLI_path_join(tex_dir_path, FILE_MAX, usd_dir_path, "textures", SEP_STR);

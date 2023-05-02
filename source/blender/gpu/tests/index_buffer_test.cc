@@ -27,7 +27,8 @@ static void test_index_buffer_subbuilders()
   for (int subbuilder_index = 0; subbuilder_index < num_subbuilders; subbuilder_index++) {
     GPUIndexBufBuilder &subbuilder = subbuilders[subbuilder_index];
     for (int subbuilder_vert_index = 0; subbuilder_vert_index < verts_per_subbuilders;
-         subbuilder_vert_index++) {
+         subbuilder_vert_index++)
+    {
       int vert_index_to_update = subbuilder_index * verts_per_subbuilders + subbuilder_vert_index;
       GPU_indexbuf_set_point_vert(&subbuilder, vert_index_to_update, vert_index_to_update);
     }

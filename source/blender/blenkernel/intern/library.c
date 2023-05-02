@@ -62,8 +62,8 @@ static void library_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 
   /* FIXME: Find if we should respect #BKE_BPATH_FOREACH_PATH_SKIP_PACKED here, and if not, explain
    * why. */
-  if (lib->packedfile !=
-      NULL /*&& (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0 */) {
+  if (lib->packedfile != NULL /*&& (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0 */)
+  {
     return;
   }
 

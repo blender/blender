@@ -54,7 +54,8 @@ static int Chain_init(BPy_Chain *self, PyObject *args, PyObject *kwds)
     }
   }
   else if ((void)PyErr_Clear(),
-           PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_2, &Id_Type, &obj)) {
+           PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_2, &Id_Type, &obj))
+  {
     self->c = new Chain(*(((BPy_Id *)obj)->id));
   }
   else {
@@ -84,7 +85,8 @@ static PyObject *Chain_push_viewedge_back(BPy_Chain *self, PyObject *args, PyObj
   PyObject *obj1 = nullptr, *obj2 = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!O!", (char **)kwlist, &ViewEdge_Type, &obj1, &PyBool_Type, &obj2)) {
+          args, kwds, "O!O!", (char **)kwlist, &ViewEdge_Type, &obj1, &PyBool_Type, &obj2))
+  {
     return nullptr;
   }
   ViewEdge *ve = ((BPy_ViewEdge *)obj1)->ve;
@@ -110,7 +112,8 @@ static PyObject *Chain_push_viewedge_front(BPy_Chain *self, PyObject *args, PyOb
   PyObject *obj1 = nullptr, *obj2 = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!O!", (char **)kwlist, &ViewEdge_Type, &obj1, &PyBool_Type, &obj2)) {
+          args, kwds, "O!O!", (char **)kwlist, &ViewEdge_Type, &obj1, &PyBool_Type, &obj2))
+  {
     return nullptr;
   }
   ViewEdge *ve = ((BPy_ViewEdge *)obj1)->ve;

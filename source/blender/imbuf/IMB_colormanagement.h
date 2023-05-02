@@ -531,4 +531,4 @@ void IMB_colormanagement_wavelength_to_rgb_table(float *r_table, int width);
 }
 #endif
 
-#include "intern/colormanagement_inline.c"
+#include "intern/colormanagement_inline.h"

@@ -211,7 +211,8 @@ bool AVI_is_avi(const char *name)
 
   if (GET_FCC(movie.fp) != FCC("AVI ") || GET_FCC(movie.fp) != FCC("LIST") || !GET_FCC(movie.fp) ||
       GET_FCC(movie.fp) != FCC("hdrl") || (movie.header->fcc = GET_FCC(movie.fp)) != FCC("avih") ||
-      !(movie.header->size = GET_FCC(movie.fp))) {
+      !(movie.header->size = GET_FCC(movie.fp)))
+  {
     DEBUG_PRINT("bad initial header info\n");
     fclose(movie.fp);
     return 0;
@@ -250,7 +251,8 @@ bool AVI_is_avi(const char *name)
     if (GET_FCC(movie.fp) != FCC("LIST") || !GET_FCC(movie.fp) ||
         GET_FCC(movie.fp) != FCC("strl") ||
         (movie.streams[temp].sh.fcc = GET_FCC(movie.fp)) != FCC("strh") ||
-        !(movie.streams[temp].sh.size = GET_FCC(movie.fp))) {
+        !(movie.streams[temp].sh.size = GET_FCC(movie.fp)))
+    {
       DEBUG_PRINT("bad stream header information\n");
 
       MEM_freeN(movie.streams);
@@ -265,7 +267,8 @@ bool AVI_is_avi(const char *name)
 
     if (movie.streams[temp].sh.Type == FCC("vids")) {
       if (fcca == FCC("DIB ") || fcca == FCC("RGB ") || fcca == FCC("rgb ") ||
-          fcca == FCC("RAW ") || fcca == 0) {
+          fcca == FCC("RAW ") || fcca == 0)
+      {
         movie.streams[temp].format = AVI_FORMAT_AVI_RGB;
       }
       else if (fcca == FCC("mjpg") || fcca == FCC("MJPG")) {
@@ -331,7 +334,8 @@ bool AVI_is_avi(const char *name)
 
         if (movie.streams[temp].format == AVI_FORMAT_AVI_RGB) {
           if (fcca == FCC("DIB ") || fcca == FCC("RGB ") || fcca == FCC("rgb ") ||
-              fcca == FCC("RAW ") || fcca == 0) {
+              fcca == FCC("RAW ") || fcca == 0)
+          {
             /* pass */
           }
           else if (fcca == FCC("mjpg") || fcca == FCC("MJPG")) {
@@ -400,7 +404,8 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
   if (GET_FCC(movie->fp) != FCC("AVI ") || GET_FCC(movie->fp) != FCC("LIST") ||
       !GET_FCC(movie->fp) || GET_FCC(movie->fp) != FCC("hdrl") ||
       (movie->header->fcc = GET_FCC(movie->fp)) != FCC("avih") ||
-      !(movie->header->size = GET_FCC(movie->fp))) {
+      !(movie->header->size = GET_FCC(movie->fp)))
+  {
     DEBUG_PRINT("bad initial header info\n");
     return AVI_ERROR_FORMAT;
   }
@@ -437,7 +442,8 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
     if (GET_FCC(movie->fp) != FCC("LIST") || !GET_FCC(movie->fp) ||
         GET_FCC(movie->fp) != FCC("strl") ||
         (movie->streams[temp].sh.fcc = GET_FCC(movie->fp)) != FCC("strh") ||
-        !(movie->streams[temp].sh.size = GET_FCC(movie->fp))) {
+        !(movie->streams[temp].sh.size = GET_FCC(movie->fp)))
+    {
       DEBUG_PRINT("bad stream header information\n");
       return AVI_ERROR_FORMAT;
     }
@@ -449,7 +455,8 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 
     if (movie->streams[temp].sh.Type == FCC("vids")) {
       if (fcca == FCC("DIB ") || fcca == FCC("RGB ") || fcca == FCC("rgb ") ||
-          fcca == FCC("RAW ") || fcca == 0) {
+          fcca == FCC("RAW ") || fcca == 0)
+      {
         movie->streams[temp].format = AVI_FORMAT_AVI_RGB;
       }
       else if (fcca == FCC("mjpg") || fcca == FCC("MJPG")) {
@@ -511,7 +518,8 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 
         if (movie->streams[temp].format == AVI_FORMAT_AVI_RGB) {
           if (fcca == FCC("DIB ") || fcca == FCC("RGB ") || fcca == FCC("rgb ") ||
-              fcca == FCC("RAW ") || fcca == 0) {
+              fcca == FCC("RAW ") || fcca == 0)
+          {
             /* pass */
           }
           else if (fcca == FCC("mjpg") || fcca == FCC("MJPG")) {

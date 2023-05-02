@@ -617,7 +617,8 @@ static void graph_listener(const wmSpaceTypeListenerParams *params)
       break;
     case NC_WINDOW:
       if (sipo->runtime.flag &
-          (SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC | SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR)) {
+          (SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC | SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR))
+      {
         /* force redraw/refresh after undo/redo - prevents "black curve" problem */
         ED_area_tag_refresh(area);
       }

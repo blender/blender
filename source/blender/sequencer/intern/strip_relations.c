@@ -49,7 +49,8 @@ static bool seq_relations_check_depend(const Scene *scene, Sequence *seq, Sequen
 
   /* sequences are not intersecting in time, assume no dependency exists between them */
   if (SEQ_time_right_handle_frame_get(scene, cur) < SEQ_time_left_handle_frame_get(scene, seq) ||
-      SEQ_time_left_handle_frame_get(scene, cur) > SEQ_time_right_handle_frame_get(scene, seq)) {
+      SEQ_time_left_handle_frame_get(scene, cur) > SEQ_time_right_handle_frame_get(scene, seq))
+  {
     return false;
   }
 
@@ -63,7 +64,8 @@ static bool seq_relations_check_depend(const Scene *scene, Sequence *seq, Sequen
    */
   if ((cur->type & SEQ_TYPE_EFFECT) == 0 &&
       ((cur->blend_mode == SEQ_BLEND_REPLACE) ||
-       (cur->blend_mode == SEQ_TYPE_CROSS && cur->blend_opacity == 100.0f))) {
+       (cur->blend_mode == SEQ_TYPE_CROSS && cur->blend_opacity == 100.0f)))
+  {
     return false;
   }
 
@@ -280,7 +282,8 @@ static void sequencer_all_free_anim_ibufs(const Scene *scene,
   Editing *ed = SEQ_editing_get(scene);
   for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
     if (!SEQ_time_strip_intersects_frame(scene, seq, timeline_frame) ||
-        !((frame_range[0] <= timeline_frame) && (frame_range[1] > timeline_frame))) {
+        !((frame_range[0] <= timeline_frame) && (frame_range[1] > timeline_frame)))
+    {
       SEQ_relations_sequence_free_anim(seq);
     }
     if (seq->type == SEQ_TYPE_META) {
@@ -375,7 +378,8 @@ bool SEQ_relations_render_loop_check(Sequence *seq_main, Sequence *seq)
 
   if ((seq_main->seq1 && SEQ_relations_render_loop_check(seq_main->seq1, seq)) ||
       (seq_main->seq2 && SEQ_relations_render_loop_check(seq_main->seq2, seq)) ||
-      (seq_main->seq3 && SEQ_relations_render_loop_check(seq_main->seq3, seq))) {
+      (seq_main->seq3 && SEQ_relations_render_loop_check(seq_main->seq3, seq)))
+  {
     return true;
   }
 
@@ -451,8 +455,8 @@ struct Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase, Sequence *met
     if (seq == iseq) {
       return meta;
     }
-    if (iseq->seqbase.first &&
-        (rval = SEQ_find_metastrip_by_sequence(&iseq->seqbase, iseq, seq))) {
+    if (iseq->seqbase.first && (rval = SEQ_find_metastrip_by_sequence(&iseq->seqbase, iseq, seq)))
+    {
       return rval;
     }
   }

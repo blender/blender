@@ -321,7 +321,8 @@ static void ui_colorpicker_hide_reveal(uiBlock *block, ePickerType colormode)
   /* tag buttons */
   LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
     if ((bt->func == ui_colorpicker_rgba_update_cb) && (bt->type == UI_BTYPE_NUM_SLIDER) &&
-        (bt->rnaindex != 3)) {
+        (bt->rnaindex != 3))
+    {
       /* RGB sliders (color circle and alpha are always shown) */
       SET_FLAG_FROM_TEST(bt->flag, (colormode != PICKER_TYPE_RGB), UI_HIDDEN);
     }

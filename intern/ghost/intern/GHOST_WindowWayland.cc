@@ -587,7 +587,8 @@ static void gwl_window_frame_pending_fractional_scale_set(GWL_Window *win,
                                                           bool *r_surface_needs_buffer_scale)
 {
   if (win->frame_pending.fractional_scale == win->frame.fractional_scale &&
-      win->frame_pending.buffer_scale == win->frame.buffer_scale) {
+      win->frame_pending.buffer_scale == win->frame.buffer_scale)
+  {
     return;
   }
 
@@ -631,7 +632,8 @@ static void gwl_window_frame_pending_size_set(GWL_Window *win,
   win->frame.size[1] = win->frame_pending.size[1];
 
   if (win->frame_pending.fractional_scale != win->frame.fractional_scale ||
-      win->frame_pending.buffer_scale != win->frame.buffer_scale) {
+      win->frame_pending.buffer_scale != win->frame.buffer_scale)
+  {
     gwl_window_frame_pending_fractional_scale_set(
         win, r_surface_needs_commit, r_surface_needs_buffer_scale);
   }
@@ -717,7 +719,8 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
 
   if (win->frame_pending.size[0] != 0 && win->frame_pending.size[1] != 0) {
     if ((win->frame.size[0] != win->frame_pending.size[0]) ||
-        (win->frame.size[1] != win->frame_pending.size[1])) {
+        (win->frame.size[1] != win->frame_pending.size[1]))
+    {
       gwl_window_frame_pending_size_set(
           win, &surface_needs_commit, &surface_needs_egl_resize, &surface_needs_buffer_scale);
     }
@@ -1460,7 +1463,8 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mo
                                       bounds,
                                       m_cursorGrabAxis,
                                       window_->wl_surface,
-                                      this->scale_params())) {
+                                      this->scale_params()))
+  {
     return GHOST_kSuccess;
   }
   return GHOST_kFailure;
@@ -2021,7 +2025,8 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
 
   if ((fractional_scale_prev != fractional_scale_next) ||
       (window_->frame_pending.buffer_scale != window_->frame.buffer_scale) ||
-      (force_frame_update == true)) {
+      (force_frame_update == true))
+  {
     /* Resize the window failing to do so results in severe flickering with a
      * multi-monitor setup when multiple monitors have different scales.
      *

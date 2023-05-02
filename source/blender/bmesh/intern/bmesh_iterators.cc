@@ -112,7 +112,8 @@ int BMO_iter_as_array(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
     void *ele;
 
     for (ele = BMO_iter_new(&oiter, slot_args, slot_name, restrictmask); ele;
-         ele = BMO_iter_step(&oiter)) {
+         ele = BMO_iter_step(&oiter))
+    {
       array[i] = ele;
       i++;
       if (i == len) {
@@ -185,7 +186,8 @@ void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
   BLI_assert(stack_array_size == 0 || (stack_array_size && stack_array));
 
   if ((ele = static_cast<BMElem *>(BMO_iter_new(&iter, slot_args, slot_name, restrictmask))) &&
-      slot_len > 0) {
+      slot_len > 0)
+  {
     BMElem **array = slot_len > stack_array_size ?
                          static_cast<BMElem **>(MEM_mallocN(sizeof(ele) * slot_len, __func__)) :
                          reinterpret_cast<BMElem **>(stack_array);

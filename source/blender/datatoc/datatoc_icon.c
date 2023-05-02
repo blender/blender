@@ -219,8 +219,8 @@ static struct IconInfo *icon_merge_context_info_for_icon_head(struct IconMergeCo
   for (int i = 0; i < context->num_read_icons; i++) {
     struct IconInfo *read_icon_info = &context->read_icons[i];
     const struct IconHead *read_icon_head = &read_icon_info->head;
-    if (read_icon_head->orig_x == icon_head->orig_x &&
-        read_icon_head->orig_y == icon_head->orig_y) {
+    if (read_icon_head->orig_x == icon_head->orig_x && read_icon_head->orig_y == icon_head->orig_y)
+    {
       return read_icon_info;
     }
   }

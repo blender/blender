@@ -666,7 +666,8 @@ static void wm_draw_region_buffer_create(ARegion *region, bool stereo, bool use_
       /* Free offscreen buffer on size changes. Viewport auto resizes. */
       GPUOffScreen *offscreen = region->draw_buffer->offscreen;
       if (offscreen && (GPU_offscreen_width(offscreen) != region->winx ||
-                        GPU_offscreen_height(offscreen) != region->winy)) {
+                        GPU_offscreen_height(offscreen) != region->winy))
+      {
         wm_draw_region_buffer_free(region);
       }
     }
@@ -906,7 +907,8 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
                                      !(region->flag & RGN_FLAG_HIDDEN);
 
       if ((region->visible || ignore_visibility) && region->do_draw && region->type &&
-          region->type->layout) {
+          region->type->layout)
+      {
         CTX_wm_region_set(C, region);
         ED_region_do_layout(C, region);
         CTX_wm_region_set(C, NULL);

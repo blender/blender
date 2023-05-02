@@ -153,7 +153,8 @@ ccl_device void integrator_volume_stack_init(KernelGlobals kg, IntegratorState s
   int step = 0;
 
   while (stack_index < volume_stack_size - 1 && enclosed_index < MAX_VOLUME_STACK_SIZE - 1 &&
-         step < 2 * volume_stack_size) {
+         step < 2 * volume_stack_size)
+  {
     Intersection isect;
     if (!scene_intersect_volume(kg, &volume_ray, &isect, visibility)) {
       break;

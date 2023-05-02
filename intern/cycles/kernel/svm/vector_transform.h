@@ -49,7 +49,8 @@ ccl_device_noinline void svm_node_vector_transform(KernelGlobals kg,
   /* From camera */
   else if (from == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_CAMERA) {
     if (to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD ||
-        to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT) {
+        to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT)
+    {
       tfm = kernel_data.cam.cameratoworld;
       if (is_direction)
         in = transform_direction(&tfm, in);
@@ -68,7 +69,8 @@ ccl_device_noinline void svm_node_vector_transform(KernelGlobals kg,
   else if (from == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT) {
     if ((to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD ||
          to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_CAMERA) &&
-        is_object) {
+        is_object)
+    {
       if (is_direction)
         object_dir_transform(kg, sd, &in);
       else

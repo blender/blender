@@ -749,7 +749,8 @@ const char *BKE_appdir_folder_id_create(const int folder_id, const char *subfold
             BLENDER_USER_DATAFILES,
             BLENDER_USER_CONFIG,
             BLENDER_USER_SCRIPTS,
-            BLENDER_USER_AUTOSAVE)) {
+            BLENDER_USER_AUTOSAVE))
+  {
     BLI_assert_unreachable();
     return NULL;
   }
@@ -895,13 +896,14 @@ void BKE_appdir_program_path_init(const char *argv0)
   if (g_app.program_dirname[0] == '\0') {
     /* First time initializing, the file binary path isn't valid from a Python module.
      * Calling again must set the `filepath` and leave the directory as-is. */
-    BLI_split_dir_part(
+    BLI_path_split_dir_part(
         g_app.program_filepath, g_app.program_dirname, sizeof(g_app.program_dirname));
     g_app.program_filepath[0] = '\0';
   }
 #else
   where_am_i(g_app.program_filepath, sizeof(g_app.program_filepath), argv0);
-  BLI_split_dir_part(g_app.program_filepath, g_app.program_dirname, sizeof(g_app.program_dirname));
+  BLI_path_split_dir_part(
+      g_app.program_filepath, g_app.program_dirname, sizeof(g_app.program_dirname));
 #endif
 }
 
@@ -963,7 +965,8 @@ bool BKE_appdir_program_python_search(char *fullpath,
 #else
             BLI_exists(fullpath)
 #endif
-        ) {
+        )
+        {
           is_found = true;
           break;
         }
@@ -1013,7 +1016,8 @@ bool BKE_appdir_app_template_any(void)
     if (BKE_appdir_folder_id_ex(app_template_directory_id[i],
                                 app_template_directory_search[i],
                                 temp_dir,
-                                sizeof(temp_dir))) {
+                                sizeof(temp_dir)))
+    {
       return true;
     }
   }
@@ -1060,7 +1064,8 @@ void BKE_appdir_app_templates(ListBase *templates)
     if (!BKE_appdir_folder_id_ex(app_template_directory_id[i],
                                  app_template_directory_search[i],
                                  subdir,
-                                 sizeof(subdir))) {
+                                 sizeof(subdir)))
+    {
       continue;
     }
 

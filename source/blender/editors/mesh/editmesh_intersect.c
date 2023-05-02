@@ -655,7 +655,8 @@ static void bm_face_split_by_edges_island_connect(
                                               true,
                                               mem_arena_edgenet,
                                               &edge_arr_holes,
-                                              &edge_arr_holes_len)) {
+                                              &edge_arr_holes_len))
+    {
       edge_arr_len = edge_arr_holes_len;
       edge_arr = edge_arr_holes; /* owned by the arena */
     }
@@ -921,7 +922,8 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
                 if (angle_signed_on_axis_v3v3v3_v3(
                         l->prev->v->co, l->v->co, v_other->co, l->f->no) <
                     angle_signed_on_axis_v3v3v3_v3(
-                        l->prev->v->co, l->v->co, l->next->v->co, l->f->no)) {
+                        l->prev->v->co, l->v->co, l->next->v->co, l->f->no))
+                {
                   dot_best = dot_test;
                   l_best = l;
                 }

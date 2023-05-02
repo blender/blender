@@ -54,7 +54,8 @@ DIR *opendir(const char *path)
   DIR *newd = NULL;
 
   if ((GetFileAttributesW(path_16) & FILE_ATTRIBUTE_DIRECTORY) &&
-      ((path_len = strlen(path)) < (sizeof(newd->path) - PATH_SUFFIX_LEN))) {
+      ((path_len = strlen(path)) < (sizeof(newd->path) - PATH_SUFFIX_LEN)))
+  {
     newd = MEM_mallocN(sizeof(DIR), "opendir");
     newd->handle = INVALID_HANDLE_VALUE;
     memcpy(newd->path, path, path_len);

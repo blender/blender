@@ -147,7 +147,8 @@ bool ED_mesh_mirrtopo_recalc_check(BMEditMesh *em, Mesh *me, MirrTopoStore_t *me
 
   if ((mesh_topo_store->index_lookup == nullptr) ||
       (mesh_topo_store->prev_is_editmode != is_editmode) ||
-      (totvert != mesh_topo_store->prev_vert_tot) || (totedge != mesh_topo_store->prev_edge_tot)) {
+      (totvert != mesh_topo_store->prev_vert_tot) || (totedge != mesh_topo_store->prev_edge_tot))
+  {
     return true;
   }
   return false;

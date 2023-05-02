@@ -376,7 +376,8 @@ static Sequence *effect_input_get(const Scene *scene, Sequence *effect, SeqInput
   if (effect->seq2 && (SEQ_time_left_handle_frame_get(scene, effect->seq2) -
                        SEQ_time_left_handle_frame_get(scene, effect->seq1)) *
                               side >
-                          0) {
+                          0)
+  {
     input = effect->seq2;
   }
   return input;

@@ -852,11 +852,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
     if (xe->type == xi_presence) {
       XDevicePresenceNotifyEvent *notify_event = (XDevicePresenceNotifyEvent *)xe;
-      if (ELEM(notify_event->devchange,
-               DeviceEnabled,
-               DeviceDisabled,
-               DeviceAdded,
-               DeviceRemoved)) {
+      if (ELEM(notify_event->devchange, DeviceEnabled, DeviceDisabled, DeviceAdded, DeviceRemoved))
+      {
         refreshXInputDevices();
 
         /* update all window events */
@@ -1058,7 +1055,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       const uint mode_switch_mask = XkbKeysymToModifiers(xke->display, XK_Mode_switch);
       const uint number_hack_forbidden_kmods_mask = mode_switch_mask | ShiftMask;
       if ((xke->keycode >= 10 && xke->keycode < 20) &&
-          ((xke->state & number_hack_forbidden_kmods_mask) == 0)) {
+          ((xke->state & number_hack_forbidden_kmods_mask) == 0))
+      {
         key_sym = XLookupKeysym(xke, ShiftMask);
         if (!((key_sym >= XK_0) && (key_sym <= XK_9))) {
           key_sym = XLookupKeysym(xke, 0);
@@ -1129,7 +1127,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
        * The modified key is sent in the 'ascii's variable anyway.
        */
       if ((xke->keycode >= 10 && xke->keycode < 20) &&
-          ((key_sym = XLookupKeysym(xke, ShiftMask)) >= XK_0) && (key_sym <= XK_9)) {
+          ((key_sym = XLookupKeysym(xke, ShiftMask)) >= XK_0) && (key_sym <= XK_9))
+      {
         /* Pass (keep shifted `key_sym`). */
       }
       else {
@@ -1640,7 +1639,8 @@ GHOST_TSuccess GHOST_SystemX11::getButtons(GHOST_Buttons &buttons) const
                     &ry,
                     &wx,
                     &wy,
-                    &mask_return) == True) {
+                    &mask_return) == True)
+  {
     buttons.set(GHOST_kButtonMaskLeft, (mask_return & Button1Mask) != 0);
     buttons.set(GHOST_kButtonMaskMiddle, (mask_return & Button2Mask) != 0);
     buttons.set(GHOST_kButtonMaskRight, (mask_return & Button3Mask) != 0);
@@ -1671,7 +1671,8 @@ static GHOST_TSuccess getCursorPosition_impl(Display *display,
                     &ry,
                     &wx,
                     &wy,
-                    &mask_return) == False) {
+                    &mask_return) == False)
+  {
     return GHOST_kFailure;
   }
 

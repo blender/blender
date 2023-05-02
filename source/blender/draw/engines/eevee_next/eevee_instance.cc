@@ -286,7 +286,8 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
   /* The vector pass is initialized to weird values. Set it to neutral value if not rendered. */
   if ((pass_bits & EEVEE_RENDER_PASS_VECTOR) == 0) {
     for (std::string vector_pass_name :
-         Film::pass_to_render_pass_names(EEVEE_RENDER_PASS_VECTOR, view_layer)) {
+         Film::pass_to_render_pass_names(EEVEE_RENDER_PASS_VECTOR, view_layer))
+    {
       RenderPass *vector_rp = RE_pass_find_by_name(
           render_layer, vector_pass_name.c_str(), view_name);
       if (vector_rp) {

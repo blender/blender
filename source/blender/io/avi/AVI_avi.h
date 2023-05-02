@@ -25,6 +25,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "BLI_sys_types.h"
 #include <stdio.h> /* for FILE */
 
@@ -279,3 +283,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...);
  * Unused but still external
  */
 AviError AVI_print_error(AviError error);
+
+#ifdef __cplusplus
+}
+#endif

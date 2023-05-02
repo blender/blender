@@ -398,7 +398,8 @@ void BKE_nlatrack_insert_after(ListBase *nla_tracks,
   if (is_liboverride && prev != NULL && (prev->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) == 0) {
     NlaTrack *first_local = prev->next;
     for (; first_local != NULL && (first_local->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) == 0;
-         first_local = first_local->next) {
+         first_local = first_local->next)
+    {
     }
     prev = first_local != NULL ? first_local->prev : NULL;
   }
@@ -1250,7 +1251,8 @@ bool BKE_nlatrack_add_strip(NlaTrack *nlt, NlaStrip *strip, const bool is_libove
    * Do not allow adding strips if this track is locked, or not a local one in liboverride case.
    */
   if (nlt->flag & NLATRACK_PROTECTED ||
-      (is_liboverride && (nlt->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) == 0)) {
+      (is_liboverride && (nlt->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) == 0))
+  {
     return false;
   }
 
@@ -1442,11 +1444,13 @@ bool BKE_nlastrip_within_bounds(NlaStrip *strip, float min, float max)
    * - second 2 cases cover when the strip length is greater than the bounding area
    */
   if ((stripLen < boundsLen) &&
-      !(IN_RANGE(strip->start, min, max) || IN_RANGE(strip->end, min, max))) {
+      !(IN_RANGE(strip->start, min, max) || IN_RANGE(strip->end, min, max)))
+  {
     return false;
   }
   if ((stripLen > boundsLen) &&
-      !(IN_RANGE(min, strip->start, strip->end) || IN_RANGE(max, strip->start, strip->end))) {
+      !(IN_RANGE(min, strip->start, strip->end) || IN_RANGE(max, strip->start, strip->end)))
+  {
     return false;
   }
 
@@ -2317,7 +2321,8 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
     for (strip = nlt->strips.first; strip; strip = strip->next) {
       /* sync strip extents if this strip uses the same action */
       if ((adt->actstrip) && (adt->actstrip->act == strip->act) &&
-          (strip->flag & NLASTRIP_FLAG_SYNC_LENGTH)) {
+          (strip->flag & NLASTRIP_FLAG_SYNC_LENGTH))
+      {
         BKE_nlastrip_recalculate_bounds_sync_action(strip);
       }
 

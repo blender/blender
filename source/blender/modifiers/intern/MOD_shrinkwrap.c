@@ -96,8 +96,8 @@ static void deformVerts(ModifierData *md,
   struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   Mesh *mesh_src = NULL;
 
-  if (ELEM(ctx->object->type, OB_MESH, OB_LATTICE) ||
-      (swmd->shrinkType == MOD_SHRINKWRAP_PROJECT)) {
+  if (ELEM(ctx->object->type, OB_MESH, OB_LATTICE) || (swmd->shrinkType == MOD_SHRINKWRAP_PROJECT))
+  {
     /* mesh_src is needed for vgroups, but also used as ShrinkwrapCalcData.vert when projecting.
      * Avoid time-consuming mesh conversion for curves when not projecting. */
     mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
@@ -208,7 +208,8 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   if (ELEM(wrap_method,
            MOD_SHRINKWRAP_PROJECT,
            MOD_SHRINKWRAP_NEAREST_SURFACE,
-           MOD_SHRINKWRAP_TARGET_PROJECT)) {
+           MOD_SHRINKWRAP_TARGET_PROJECT))
+  {
     uiItemR(layout, ptr, "wrap_mode", 0, NULL, ICON_NONE);
   }
 

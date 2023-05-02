@@ -251,8 +251,8 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
   }
 
   for (vfont = bmain->fonts.first; vfont; vfont = vfont->id.next) {
-    if (vfont->packedfile == NULL && !ID_IS_LINKED(vfont) &&
-        BKE_vfont_is_builtin(vfont) == false) {
+    if (vfont->packedfile == NULL && !ID_IS_LINKED(vfont) && BKE_vfont_is_builtin(vfont) == false)
+    {
       vfont->packedfile = BKE_packedfile_new(
           reports, vfont->filepath, BKE_main_blendfile_path(bmain));
       tot++;
@@ -490,7 +490,7 @@ static void unpack_generate_paths(const char *name,
   char tempname[FILE_MAX];
   char tempdir[FILE_MAXDIR];
 
-  BLI_split_dirfile(name, tempdir, tempname, sizeof(tempdir), sizeof(tempname));
+  BLI_path_split_dir_file(name, tempdir, sizeof(tempdir), tempname, sizeof(tempname));
 
   if (tempname[0] == '\0') {
     /* NOTE: we generally do not have any real way to re-create extension out of data. */

@@ -130,7 +130,8 @@ static void deformVerts(ModifierData *md,
 
     if ((mesh_verts_num != surmd->runtime.verts_num) ||
         (surmd->runtime.vert_positions_prev == NULL) || (surmd->runtime.vert_velocities == NULL) ||
-        (cfra != surmd->runtime.cfra_prev + 1)) {
+        (cfra != surmd->runtime.cfra_prev + 1))
+    {
 
       MEM_SAFE_FREE(surmd->runtime.vert_positions_prev);
       MEM_SAFE_FREE(surmd->runtime.vert_velocities);

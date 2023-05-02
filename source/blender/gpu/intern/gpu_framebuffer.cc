@@ -97,7 +97,8 @@ void FrameBuffer::attachment_set(GPUAttachmentType type, const GPUAttachment &ne
   GPUAttachment &attachment = attachments_[type];
 
   if (attachment.tex == new_attachment.tex && attachment.layer == new_attachment.layer &&
-      attachment.mip == new_attachment.mip) {
+      attachment.mip == new_attachment.mip)
+  {
     return; /* Exact same texture already bound here. */
   }
   /* Unbind previous and bind new. */

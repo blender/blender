@@ -97,7 +97,8 @@ static void deformStroke(GpencilModifierData *md,
                                       mmd->flag & GP_THICK_INVERT_LAYER,
                                       mmd->flag & GP_THICK_INVERT_PASS,
                                       mmd->flag & GP_THICK_INVERT_LAYERPASS,
-                                      mmd->flag & GP_THICK_INVERT_MATERIAL)) {
+                                      mmd->flag & GP_THICK_INVERT_MATERIAL))
+  {
     return;
   }
 

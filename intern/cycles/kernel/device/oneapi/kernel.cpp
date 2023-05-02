@@ -217,7 +217,8 @@ bool oneapi_load_kernels(SyclQueue *queue_,
         const std::string &kernel_name = kernel_id.get_name();
 
         if (!oneapi_kernel_is_required_for_features(kernel_name, kernel_features) ||
-            !oneapi_kernel_is_using_embree(kernel_name)) {
+            !oneapi_kernel_is_using_embree(kernel_name))
+        {
           continue;
         }
 
@@ -259,7 +260,8 @@ bool oneapi_load_kernels(SyclQueue *queue_,
       /* In case HWRT is on, compilation of kernels using Embree is already handled in previous
        * block. */
       if (!oneapi_kernel_is_required_for_features(kernel_name, kernel_features) ||
-          (use_hardware_raytracing && oneapi_kernel_is_using_embree(kernel_name))) {
+          (use_hardware_raytracing && oneapi_kernel_is_using_embree(kernel_name)))
+      {
         continue;
       }
 
@@ -323,7 +325,8 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
       device_kernel == DEVICE_KERNEL_INTEGRATOR_TERMINATED_PATHS_ARRAY ||
       device_kernel == DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY ||
       device_kernel == DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY ||
-      device_kernel == DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY) {
+      device_kernel == DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY)
+  {
     int num_states = *((int *)(args[0]));
     /* Round up to the next work-group. */
     size_t groups_count = (num_states + local_size - 1) / local_size;

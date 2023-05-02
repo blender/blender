@@ -378,7 +378,8 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     int i;
     KeyBlock *block;
     for (i = 0, block = static_cast<KeyBlock *>(me->key->block.first); i < tot_shape_keys;
-         block = block->next, i++) {
+         block = block->next, i++)
+    {
       if (is_new) {
         CustomData_add_layer_named(&bm->vdata, CD_SHAPEKEY, CD_SET_DEFAULT, 0, block->name);
         int j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
@@ -620,7 +621,8 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, const int old_verts_num)
           /* Not fool-proof, but chances are if we have many verts with the same index,
            * we will want to use the first one,
            * since the second is more likely to be a duplicate. */
-          (vertMap[keyi] == nullptr)) {
+          (vertMap[keyi] == nullptr))
+      {
         vertMap[keyi] = eve;
       }
     }
@@ -799,7 +801,8 @@ static void bm_to_mesh_shape(BMesh *bm,
       /* Original key-indices are only used to check the vertex existed when entering edit-mode. */
       (cd_shape_keyindex_offset != -1) &&
       /* Offsets are only needed if the current shape is a basis for others. */
-      BKE_keyblock_is_basis(key, bm->shapenr - 1)) {
+      BKE_keyblock_is_basis(key, bm->shapenr - 1))
+  {
 
     BLI_assert(actkey != nullptr); /* Assured by `actkey_has_layer` check. */
     const int actkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, actkey);
@@ -927,7 +930,8 @@ static void bm_to_mesh_shape(BMesh *bm,
 
         if ((currkey->data != nullptr) && (cd_shape_keyindex_offset != -1) &&
             ((keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset)) != ORIGINDEX_NONE) &&
-            (keyi < currkey->totelem)) {
+            (keyi < currkey->totelem))
+        {
           /* Reconstruct keys via vertices original key indices.
            * WARNING(@ideasman42): `currkey->data` is known to be unreliable as the edit-mesh
            * coordinates may be flushed back to the shape-key when exporting or rendering.

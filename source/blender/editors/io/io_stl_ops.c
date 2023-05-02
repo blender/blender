@@ -76,7 +76,8 @@ static bool wm_stl_import_check(bContext *UNUSED(C), wmOperator *op)
   const int num_axes = 3;
   /* Both forward and up axes cannot be the same (or same except opposite sign). */
   if (RNA_enum_get(op->ptr, "forward_axis") % num_axes ==
-      (RNA_enum_get(op->ptr, "up_axis") % num_axes)) {
+      (RNA_enum_get(op->ptr, "up_axis") % num_axes))
+  {
     RNA_enum_set(op->ptr, "up_axis", RNA_enum_get(op->ptr, "up_axis") % num_axes + 1);
     return true;
   }

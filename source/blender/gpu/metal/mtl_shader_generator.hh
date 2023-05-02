@@ -787,7 +787,8 @@ inline char *next_word_in_range(char *begin, char *end)
   for (char *a = begin; a < end; a++) {
     char chr = *a;
     if ((chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z') || (chr >= '0' && chr <= '9') ||
-        (chr == '_')) {
+        (chr == '_'))
+    {
       return a;
     }
   }

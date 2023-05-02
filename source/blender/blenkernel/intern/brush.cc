@@ -614,7 +614,8 @@ bool BKE_brush_delete(Main *bmain, Brush *brush)
     return false;
   }
   if (ID_REAL_USERS(brush) <= 1 && ID_EXTRA_USERS(brush) == 0 &&
-      BKE_library_ID_is_indirectly_used(bmain, brush)) {
+      BKE_library_ID_is_indirectly_used(bmain, brush))
+  {
     return false;
   }
 
@@ -2649,7 +2650,8 @@ bool BKE_brush_has_cube_tip(const Brush *brush, ePaintMode paint_mode)
       }
 
       if (ELEM(brush->sculpt_tool, SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_PAINT) &&
-          brush->tip_roundness < 1.0f) {
+          brush->tip_roundness < 1.0f)
+      {
         return true;
       }
 

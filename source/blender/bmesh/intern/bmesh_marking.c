@@ -319,7 +319,8 @@ static void bm_mesh_select_mode_flush_vert_to_edge_iter_fn(void *UNUSED(userdata
   const bool is_selected = BM_elem_flag_test(e, BM_ELEM_SELECT);
   const bool is_hidden = BM_elem_flag_test(e, BM_ELEM_HIDDEN);
   if (!is_hidden &&
-      (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) && BM_elem_flag_test(e->v2, BM_ELEM_SELECT))) {
+      (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) && BM_elem_flag_test(e->v2, BM_ELEM_SELECT)))
+  {
     BM_elem_flag_enable(e, BM_ELEM_SELECT);
     chunk_data->delta_selection_len += is_selected ? 0 : 1;
   }
@@ -442,8 +443,8 @@ void BM_mesh_deselect_flush(BMesh *bm)
   BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
     if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
       if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-        if (!BM_elem_flag_test(e->v1, BM_ELEM_SELECT) ||
-            !BM_elem_flag_test(e->v2, BM_ELEM_SELECT)) {
+        if (!BM_elem_flag_test(e->v1, BM_ELEM_SELECT) || !BM_elem_flag_test(e->v2, BM_ELEM_SELECT))
+        {
           BM_elem_flag_disable(e, BM_ELEM_SELECT);
         }
       }
@@ -480,7 +481,8 @@ void BM_mesh_select_flush(BMesh *bm)
 
   BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
     if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) && BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
-        !BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+        !BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+    {
       BM_elem_flag_enable(e, BM_ELEM_SELECT);
     }
   }
@@ -1233,7 +1235,8 @@ void BM_mesh_elem_hflag_disable_test(BMesh *bm,
   }
 
   if ((htype == (BM_VERT | BM_EDGE | BM_FACE)) && (hflag == BM_ELEM_SELECT) &&
-      (respecthide == false) && (hflag_test == 0)) {
+      (respecthide == false) && (hflag_test == 0))
+  {
     /* fast path for deselect all, avoid topology loops
      * since we know all will be de-selected anyway. */
     for (i = 0; i < 3; i++) {

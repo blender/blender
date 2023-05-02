@@ -30,12 +30,15 @@
 
 #  include "BKE_global.h" /* G.debug */
 
+extern "C" {
 #  include <libavcodec/avcodec.h>
 #  include <libavdevice/avdevice.h>
 #  include <libavformat/avformat.h>
 #  include <libavutil/log.h>
 
 #  include "ffmpeg_compat.h"
+}
+
 #endif
 
 #define UTIL_DEBUG 0
@@ -56,13 +59,13 @@ const char *imb_ext_image[] = {
 #ifdef WITH_WEBP
     ".webp",
 #endif
-    NULL,
+    nullptr,
 };
 
 const char *imb_ext_movie[] = {
     ".avi",  ".flc", ".mov", ".movie", ".mp4",  ".m4v",  ".m2v", ".m2t",  ".m2ts", ".mts",
     ".ts",   ".mv",  ".avs", ".wmv",   ".ogv",  ".ogg",  ".r3d", ".dv",   ".mpeg", ".mpg",
-    ".mpg2", ".vob", ".mkv", ".flv",   ".divx", ".xvid", ".mxf", ".webm", NULL,
+    ".mpg2", ".vob", ".mkv", ".flv",   ".divx", ".xvid", ".mxf", ".webm", nullptr,
 };
 
 /** Sort of wrong having audio extensions in imbuf. */
@@ -82,7 +85,7 @@ const char *imb_ext_audio[] = {
     ".aiff",
     ".m4a",
     ".mka",
-    NULL,
+    nullptr,
 };
 
 /* Increased from 32 to 64 because of the bitmaps header size. */
@@ -119,7 +122,7 @@ static ssize_t imb_ispic_read_header_from_filepath(const char *filepath, uchar b
 int IMB_ispic_type_from_memory(const uchar *buf, const size_t buf_size)
 {
   for (const ImFileType *type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
-    if (type->is_a != NULL) {
+    if (type->is_a != nullptr) {
       if (type->is_a(buf, buf_size)) {
         return type->filetype;
       }
@@ -136,7 +139,7 @@ int IMB_ispic_type(const char *filepath)
   if (buf_size <= 0) {
     return IMB_FTYPE_NONE;
   }
-  return IMB_ispic_type_from_memory(buf, (size_t)buf_size);
+  return IMB_ispic_type_from_memory(buf, size_t(buf_size));
 }
 
 bool IMB_ispic_type_matches(const char *filepath, int filetype)
@@ -148,12 +151,12 @@ bool IMB_ispic_type_matches(const char *filepath, int filetype)
   }
 
   const ImFileType *type = IMB_file_type_from_ftype(filetype);
-  if (type != NULL) {
+  if (type != nullptr) {
     /* Requesting to load a type that can't check its own header doesn't make sense.
      * Keep the check for developers. */
-    BLI_assert(type->is_a != NULL);
-    if (type->is_a != NULL) {
-      return type->is_a(buf, (size_t)buf_size);
+    BLI_assert(type->is_a != nullptr);
+    if (type->is_a != nullptr) {
+      return type->is_a(buf, size_t(buf_size));
     }
   }
   return false;
@@ -231,7 +234,7 @@ const char *IMB_ffmpeg_last_error(void)
 
 static int isffmpeg(const char *filepath)
 {
-  AVFormatContext *pFormatCtx = NULL;
+  AVFormatContext *pFormatCtx = nullptr;
   uint i;
   int videoStream;
   const AVCodec *pCodec;
@@ -249,18 +252,19 @@ static int isffmpeg(const char *filepath)
                                  ".exr",
                                  ".cin",
                                  ".wav",
-                                 NULL)) {
+                                 nullptr))
+  {
     return 0;
   }
 
-  if (avformat_open_input(&pFormatCtx, filepath, NULL, NULL) != 0) {
+  if (avformat_open_input(&pFormatCtx, filepath, nullptr, nullptr) != 0) {
     if (UTIL_DEBUG) {
       fprintf(stderr, "isffmpeg: av_open_input_file failed\n");
     }
     return 0;
   }
 
-  if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
+  if (avformat_find_stream_info(pFormatCtx, nullptr) < 0) {
     if (UTIL_DEBUG) {
       fprintf(stderr, "isffmpeg: avformat_find_stream_info failed\n");
     }
@@ -276,7 +280,8 @@ static int isffmpeg(const char *filepath)
   videoStream = -1;
   for (i = 0; i < pFormatCtx->nb_streams; i++) {
     if (pFormatCtx->streams[i] && pFormatCtx->streams[i]->codecpar &&
-        (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)) {
+        (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO))
+    {
       videoStream = i;
       break;
     }
@@ -291,7 +296,7 @@ static int isffmpeg(const char *filepath)
 
   /* Find the decoder for the video stream */
   pCodec = avcodec_find_decoder(codec_par->codec_id);
-  if (pCodec == NULL) {
+  if (pCodec == nullptr) {
     avformat_close_input(&pFormatCtx);
     return 0;
   }

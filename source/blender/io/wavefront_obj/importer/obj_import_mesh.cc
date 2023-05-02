@@ -283,7 +283,8 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
     for (int idx = 0; idx < curr_face.corner_count_; ++idx) {
       const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
       if (curr_corner.uv_vert_index >= 0 &&
-          curr_corner.uv_vert_index < global_vertices_.uv_vertices.size()) {
+          curr_corner.uv_vert_index < global_vertices_.uv_vertices.size())
+      {
         uv_map.span[tot_loop_idx] = global_vertices_.uv_vertices[curr_corner.uv_vert_index];
         added_uv = true;
       }
@@ -396,7 +397,8 @@ void MeshFromGeometry::create_colors(Mesh *mesh)
   /* Find which vertex color block is for this mesh (if any). */
   for (const auto &block : global_vertices_.vertex_colors) {
     if (mesh_geometry_.vertex_index_min_ >= block.start_vertex_index &&
-        mesh_geometry_.vertex_index_max_ < block.start_vertex_index + block.colors.size()) {
+        mesh_geometry_.vertex_index_max_ < block.start_vertex_index + block.colors.size())
+    {
       /* This block is suitable, use colors from it. */
       CustomDataLayer *color_layer = BKE_id_attribute_new(
           &mesh->id, "Color", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);

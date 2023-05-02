@@ -98,7 +98,8 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
 
   /* Check if any points. */
   if ((fcu == NULL) || (fcu->bezt == NULL) || (fcu->totvert == 0) ||
-      (!cleardefault && fcu->totvert == 1)) {
+      (!cleardefault && fcu->totvert == 1))
+  {
     return;
   }
 
@@ -558,7 +559,8 @@ static void decimate_fcurve_segment(FCurve *fcu,
    * has a check that prevents removal of the first and last index in the
    * passed array. */
   if (bezt_segment_len + bezt_segment_start_idx != fcu->totvert &&
-      prepare_for_decimate(fcu, bezt_segment_len + bezt_segment_start_idx)) {
+      prepare_for_decimate(fcu, bezt_segment_len + bezt_segment_start_idx))
+  {
     bezt_segment_len++;
   }
   if (bezt_segment_start_idx != 0 && prepare_for_decimate(fcu, bezt_segment_start_idx - 1)) {
@@ -917,7 +919,8 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
      * - this check should also eliminate any problems associated with using sample-data
      */
     if (ANIM_fcurve_keyframes_loop(
-            NULL, fcu, NULL, ANIM_editkeyframes_ok(BEZT_OK_SELECTED), NULL) == 0) {
+            NULL, fcu, NULL, ANIM_editkeyframes_ok(BEZT_OK_SELECTED), NULL) == 0)
+    {
       continue;
     }
 
@@ -1151,15 +1154,18 @@ static void do_curve_mirror_flippping(tAnimCopybufItem *aci, BezTriple *bezt)
       flip = true;
     }
     else if (BLI_strn_endswith(aci->rna_path, "rotation_quaternion", slength) &&
-             ELEM(aci->array_index, 2, 3)) {
+             ELEM(aci->array_index, 2, 3))
+    {
       flip = true;
     }
     else if (BLI_strn_endswith(aci->rna_path, "rotation_euler", slength) &&
-             ELEM(aci->array_index, 1, 2)) {
+             ELEM(aci->array_index, 1, 2))
+    {
       flip = true;
     }
     else if (BLI_strn_endswith(aci->rna_path, "rotation_axis_angle", slength) &&
-             ELEM(aci->array_index, 2, 3)) {
+             ELEM(aci->array_index, 2, 3))
+    {
       flip = true;
     }
 

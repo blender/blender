@@ -61,7 +61,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
   char export_file[FILE_MAX];
 
   /* Destination folder for exported assets */
-  BLI_split_dir_part(this->export_settings.get_filepath(), export_dir, sizeof(export_dir));
+  BLI_path_split_dir_part(this->export_settings.get_filepath(), export_dir, sizeof(export_dir));
 
   if (is_generated || is_dirty || use_copies || is_packed) {
 

@@ -120,7 +120,8 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   bool need_transform_relation = false;
 
   if (dmd->space == MOD_DISP_SPACE_GLOBAL &&
-      ELEM(dmd->direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ)) {
+      ELEM(dmd->direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ))
+  {
     need_transform_relation = true;
   }
 
@@ -175,8 +176,8 @@ static void displaceModifier_do_task(void *__restrict userdata,
   float(*vertexCos)[3] = data->vertexCos;
   float(*vert_clnors)[3] = data->vert_clnors;
 
-  const float delta_fixed = 1.0f -
-                            dmd->midlevel; /* when no texture is used, we fallback to white */
+  /* When no texture is used, we fallback to white. */
+  const float delta_fixed = 1.0f - dmd->midlevel;
 
   TexResult texres;
   float strength = dmd->strength;
@@ -322,7 +323,8 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
     }
   }
   else if (ELEM(direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ) &&
-           use_global_direction) {
+           use_global_direction)
+  {
     copy_m4_m4(local_mat, ob->object_to_world);
   }
 
@@ -426,7 +428,8 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(col, ptr, "texture_coords_object", 0, IFACE_("Object"), ICON_NONE);
     PointerRNA texture_coords_obj_ptr = RNA_pointer_get(ptr, "texture_coords_object");
     if (!RNA_pointer_is_null(&texture_coords_obj_ptr) &&
-        (RNA_enum_get(&texture_coords_obj_ptr, "type") == OB_ARMATURE)) {
+        (RNA_enum_get(&texture_coords_obj_ptr, "type") == OB_ARMATURE))
+    {
       PointerRNA texture_coords_obj_data_ptr = RNA_pointer_get(&texture_coords_obj_ptr, "data");
       uiItemPointerR(col,
                      ptr,
@@ -449,7 +452,8 @@ static void panel_draw(const bContext *C, Panel *panel)
            MOD_DISP_DIR_X,
            MOD_DISP_DIR_Y,
            MOD_DISP_DIR_Z,
-           MOD_DISP_DIR_RGB_XYZ)) {
+           MOD_DISP_DIR_RGB_XYZ))
+  {
     uiItemR(col, ptr, "space", 0, nullptr, ICON_NONE);
   }
 

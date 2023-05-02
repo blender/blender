@@ -309,11 +309,13 @@ static bool EEVEE_lightcache_validate(const LightCache *light_cache,
     /* See if we need the same amount of texture space. */
     if ((irr_size[0] == light_cache->grid_tx.tex_size[0]) &&
         (irr_size[1] == light_cache->grid_tx.tex_size[1]) &&
-        (irr_size[2] == light_cache->grid_tx.tex_size[2]) && (grid_len == light_cache->grid_len)) {
+        (irr_size[2] == light_cache->grid_tx.tex_size[2]) && (grid_len == light_cache->grid_len))
+    {
       int mip_len = log2_floor_u(cube_res) - MIN_CUBE_LOD_LEVEL;
       if ((cube_res == light_cache->cube_tx.tex_size[0]) &&
           (cube_len == light_cache->cube_tx.tex_size[2] / 6) &&
-          (cube_len == light_cache->cube_len) && (mip_len == light_cache->mips_len)) {
+          (cube_len == light_cache->cube_len) && (mip_len == light_cache->mips_len))
+      {
         return true;
       }
     }
@@ -386,7 +388,8 @@ static bool eevee_lightcache_static_load(LightCache *lcache)
 {
   /* We use fallback if a texture is not setup and there is no data to restore it. */
   if ((!lcache->grid_tx.tex && !lcache->grid_tx.data) || !lcache->grid_data ||
-      (!lcache->cube_tx.tex && !lcache->cube_tx.data) || !lcache->cube_data) {
+      (!lcache->cube_tx.tex && !lcache->cube_tx.data) || !lcache->cube_data)
+  {
     return false;
   }
   /* If cache is too big for this GPU. */
@@ -731,7 +734,8 @@ static void eevee_lightbake_create_resources(EEVEE_LightBake *lbake)
 
   /* TODO: validate irradiance and reflection cache independently... */
   if (!EEVEE_lightcache_validate(
-          lbake->lcache, lbake->cube_len, lbake->ref_cube_res, lbake->grid_len, lbake->irr_size)) {
+          lbake->lcache, lbake->cube_len, lbake->ref_cube_res, lbake->grid_len, lbake->irr_size))
+  {
     eevee->light_cache_data = lbake->lcache = NULL;
   }
 
@@ -1104,10 +1108,12 @@ static void compute_cell_id(EEVEE_LightGrid *egrid,
       *r_final_idx = i;
       cell_id_to_grid_loc(egrid, *r_final_idx, r_local_cell);
       if (((r_local_cell[0] % *r_stride) == 0) && ((r_local_cell[1] % *r_stride) == 0) &&
-          ((r_local_cell[2] % *r_stride) == 0)) {
+          ((r_local_cell[2] % *r_stride) == 0))
+      {
         if (!(((r_local_cell[0] % prev_stride) == 0) && ((r_local_cell[1] % prev_stride) == 0) &&
               ((r_local_cell[2] % prev_stride) == 0)) ||
-            ((i == 0) && (lvl == max_lvl))) {
+            ((i == 0) && (lvl == max_lvl)))
+        {
           if (visited_cells == cell_idx) {
             return;
           }
@@ -1209,7 +1215,8 @@ static void eevee_lightbake_render_grid_sample(void *ved, void *user_data)
 
   /* If it is the last sample grid sample (and last bounce). */
   if ((lbake->bounce_curr == lbake->bounce_len - 1) && (lbake->grid_curr == lbake->grid_len - 1) &&
-      (lbake->grid_sample == lbake->grid_sample_len - 1)) {
+      (lbake->grid_sample == lbake->grid_sample_len - 1))
+  {
     lcache->flag &= ~LIGHTCACHE_UPDATE_GRID;
   }
 }
@@ -1458,7 +1465,8 @@ void EEVEE_lightbake_job(void *custom_data, bool *stop, bool *do_update, float *
       lbake->probe = lbake->grid_prb + 1;
       lbake->grid = lcache->grid_data + 1;
       for (lbake->grid_curr = 1; lbake->grid_curr < lbake->grid_len;
-           lbake->grid_curr++, lbake->probe++, lbake->grid++) {
+           lbake->grid_curr++, lbake->probe++, lbake->grid++)
+      {
         LightProbe *prb = *lbake->probe;
         lbake->grid_sample_len = prb->grid_resolution_x * prb->grid_resolution_y *
                                  prb->grid_resolution_z;
@@ -1476,7 +1484,8 @@ void EEVEE_lightbake_job(void *custom_data, bool *stop, bool *do_update, float *
     lbake->probe = lbake->cube_prb + 1;
     lbake->cube = lcache->cube_data + 1;
     for (lbake->cube_offset = 1; lbake->cube_offset < lbake->cube_len;
-         lbake->cube_offset++, lbake->probe++, lbake->cube++) {
+         lbake->cube_offset++, lbake->probe++, lbake->cube++)
+    {
       lightbake_do_sample(lbake, eevee_lightbake_render_probe_sample);
     }
   }

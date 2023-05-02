@@ -144,7 +144,8 @@ static void object_clear_rot(Object *ob, const bool clear_delta)
           ob->rotAxis[1] = 1.0f;
         }
         if (IS_EQF(ob->drotAxis[0], ob->drotAxis[1]) && IS_EQF(ob->drotAxis[1], ob->drotAxis[2]) &&
-            clear_delta) {
+            clear_delta)
+        {
           ob->drotAxis[1] = 1.0f;
         }
       }
@@ -712,7 +713,8 @@ static int apply_objects_internal(bContext *C,
              OB_FONT,
              OB_GPENCIL_LEGACY,
              OB_CURVES,
-             OB_POINTCLOUD)) {
+             OB_POINTCLOUD))
+    {
       ID *obdata = static_cast<ID *>(ob->data);
       if (!do_multi_user && ID_REAL_USERS(obdata) > 1) {
         BKE_reportf(reports,
@@ -1397,7 +1399,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
     if (ob->data == nullptr) {
       /* Special support for instanced collections. */
       if ((ob->transflag & OB_DUPLICOLLECTION) && ob->instance_collection &&
-          (ob->instance_collection->id.tag & LIB_TAG_DOIT) == 0) {
+          (ob->instance_collection->id.tag & LIB_TAG_DOIT) == 0)
+      {
         if (!BKE_id_is_editable(bmain, &ob->instance_collection->id)) {
           tot_lib_error++;
         }
@@ -1677,7 +1680,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       Curves &curves_id = *static_cast<Curves *>(ob->data);
       bke::CurvesGeometry &curves = curves_id.geometry.wrap();
       if (ELEM(centermode, ORIGIN_TO_CENTER_OF_MASS_SURFACE, ORIGIN_TO_CENTER_OF_MASS_VOLUME) ||
-          !ELEM(around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEDIAN)) {
+          !ELEM(around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEDIAN))
+      {
         BKE_report(
             op->reports, RPT_WARNING, "Curves Object does not support this set origin operation");
         continue;
@@ -1712,7 +1716,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       bke::SpanAttributeWriter positions = attributes.lookup_or_add_for_write_span<float3>(
           "position", ATTR_DOMAIN_POINT);
       if (ELEM(centermode, ORIGIN_TO_CENTER_OF_MASS_SURFACE, ORIGIN_TO_CENTER_OF_MASS_VOLUME) ||
-          !ELEM(around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEDIAN)) {
+          !ELEM(around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEDIAN))
+      {
         BKE_report(op->reports,
                    RPT_WARNING,
                    "Point cloud object does not support this set origin operation");
@@ -1774,7 +1779,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         if ((ob_other->flag & OB_DONE) == 0 &&
             ((ob->data && (ob->data == ob_other->data)) ||
              (ob->instance_collection == ob_other->instance_collection &&
-              (ob->transflag | ob_other->transflag) & OB_DUPLICOLLECTION))) {
+              (ob->transflag | ob_other->transflag) & OB_DUPLICOLLECTION)))
+        {
           ob_other->flag |= OB_DONE;
           DEG_id_tag_update(&ob_other->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
@@ -2287,7 +2293,8 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
           else {
             for (XFormAxisItem &item : xfd->object_data) {
               if (object_orient_to_location(
-                      item.ob, item.rot_mat, item.rot_mat[2], location_world, item.is_z_flip)) {
+                      item.ob, item.rot_mat, item.rot_mat[2], location_world, item.is_z_flip))
+              {
                 DEG_id_tag_update(&item.ob->id, ID_RECALC_TRANSFORM);
                 WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item.ob);
               }

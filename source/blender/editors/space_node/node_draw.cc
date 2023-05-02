@@ -745,7 +745,8 @@ static void node_socket_draw(const bNodeSocket &sock,
   if (ELEM(sock.display_shape,
            SOCK_DISPLAY_SHAPE_DIAMOND_DOT,
            SOCK_DISPLAY_SHAPE_SQUARE_DOT,
-           SOCK_DISPLAY_SHAPE_CIRCLE_DOT)) {
+           SOCK_DISPLAY_SHAPE_CIRCLE_DOT))
+  {
     flags |= GPU_KEYFRAME_SHAPE_INNER_DOT;
   }
 
@@ -1078,20 +1079,24 @@ static std::optional<std::string> create_socket_inspection_string(TreeDrawContex
   ValueLog *value_log = tree_draw_ctx.geo_tree_log->find_socket_value_log(socket);
   std::stringstream ss;
   if (const geo_log::GenericValueLog *generic_value_log =
-          dynamic_cast<const geo_log::GenericValueLog *>(value_log)) {
+          dynamic_cast<const geo_log::GenericValueLog *>(value_log))
+  {
     create_inspection_string_for_generic_value(socket, generic_value_log->value, ss);
   }
   else if (const geo_log::FieldInfoLog *gfield_value_log =
-               dynamic_cast<const geo_log::FieldInfoLog *>(value_log)) {
+               dynamic_cast<const geo_log::FieldInfoLog *>(value_log))
+  {
     create_inspection_string_for_field_info(socket, *gfield_value_log, ss);
   }
   else if (const geo_log::GeometryInfoLog *geo_value_log =
-               dynamic_cast<const geo_log::GeometryInfoLog *>(value_log)) {
+               dynamic_cast<const geo_log::GeometryInfoLog *>(value_log))
+  {
     create_inspection_string_for_geometry_info(*geo_value_log, ss);
   }
 
   if (const nodes::decl::Geometry *socket_decl = dynamic_cast<const nodes::decl::Geometry *>(
-          socket.runtime->declaration)) {
+          socket.runtime->declaration))
+  {
     const bool after_log = value_log != nullptr;
     create_inspection_string_for_geometry_socket(ss, socket_decl, after_log);
   }
@@ -1725,7 +1730,8 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
                                           float &icon_offset)
 {
   if (tree_draw_ctx.used_by_realtime_compositor &&
-      node.typeinfo->realtime_compositor_unsupported_message) {
+      node.typeinfo->realtime_compositor_unsupported_message)
+  {
     node_add_unsupported_compositor_operation_error_message_button(node, block, rect, icon_offset);
     return;
   }
@@ -1792,8 +1798,8 @@ static std::optional<std::chrono::nanoseconds> node_get_execution_time(
         }
       }
       else {
-        if (const geo_log::GeoNodeLog *node_log = tree_log->nodes.lookup_ptr_as(
-                tnode->identifier)) {
+        if (const geo_log::GeoNodeLog *node_log = tree_log->nodes.lookup_ptr_as(tnode->identifier))
+        {
           found_node = true;
           run_time += node_log->run_time;
         }
@@ -1934,7 +1940,8 @@ static std::optional<NodeExtraInfoRow> node_get_accessed_attributes_row(
   if (ELEM(node.type,
            GEO_NODE_STORE_NAMED_ATTRIBUTE,
            GEO_NODE_REMOVE_ATTRIBUTE,
-           GEO_NODE_INPUT_NAMED_ATTRIBUTE)) {
+           GEO_NODE_INPUT_NAMED_ATTRIBUTE))
+  {
     /* Only show the overlay when the name is passed in from somewhere else. */
     for (const bNodeSocket *socket : node.input_sockets()) {
       if (STREQ(socket->name, "Name")) {
@@ -1965,7 +1972,8 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(TreeDrawContext &tree_draw_c
   }
 
   if (snode.overlay.flag & SN_OVERLAY_SHOW_NAMED_ATTRIBUTES &&
-      snode.edittree->type == NTREE_GEOMETRY) {
+      snode.edittree->type == NTREE_GEOMETRY)
+  {
     if (std::optional<NodeExtraInfoRow> row = node_get_accessed_attributes_row(tree_draw_ctx,
                                                                                node)) {
       rows.append(std::move(*row));
@@ -1974,7 +1982,8 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(TreeDrawContext &tree_draw_c
 
   if (snode.overlay.flag & SN_OVERLAY_SHOW_TIMINGS && snode.edittree->type == NTREE_GEOMETRY &&
       (ELEM(node.typeinfo->nclass, NODE_CLASS_GEOMETRY, NODE_CLASS_GROUP, NODE_CLASS_ATTRIBUTE) ||
-       ELEM(node.type, NODE_FRAME, NODE_GROUP_OUTPUT))) {
+       ELEM(node.type, NODE_FRAME, NODE_GROUP_OUTPUT)))
+  {
     NodeExtraInfoRow row;
     row.text = node_get_execution_time_label(tree_draw_ctx, snode, node);
     if (!row.text.empty()) {
@@ -2961,7 +2970,8 @@ static void reroute_node_draw(
   /* Skip if out of view. */
   const rctf &rct = node.runtime->totr;
   if (rct.xmax < region.v2d.cur.xmin || rct.xmin > region.v2d.cur.xmax ||
-      rct.ymax < region.v2d.cur.ymin || node.runtime->totr.ymin > region.v2d.cur.ymax) {
+      rct.ymax < region.v2d.cur.ymin || node.runtime->totr.ymin > region.v2d.cur.ymax)
+  {
     UI_block_end(&C, &block);
     return;
   }

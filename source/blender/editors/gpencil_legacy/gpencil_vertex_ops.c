@@ -674,7 +674,8 @@ static bool gpencil_extract_palette_from_vertex(bContext *C,
 
         /* Only solid strokes or stencil. */
         if ((use_stroke) && ((gp_style->stroke_style == GP_MATERIAL_STROKE_STYLE_TEXTURE) &&
-                             ((gp_style->flag & GP_MATERIAL_STROKE_PATTERN) == 0))) {
+                             ((gp_style->flag & GP_MATERIAL_STROKE_PATTERN) == 0)))
+        {
           continue;
         }
 
@@ -863,7 +864,8 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
 
         /* Only solid strokes or stencil. */
         if ((use_stroke) && ((gp_style->stroke_style == GP_MATERIAL_STROKE_STYLE_TEXTURE) &&
-                             ((gp_style->flag & GP_MATERIAL_STROKE_PATTERN) == 0))) {
+                             ((gp_style->flag & GP_MATERIAL_STROKE_PATTERN) == 0)))
+        {
           continue;
         }
 

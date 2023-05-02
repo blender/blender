@@ -335,7 +335,8 @@ typedef void (*BKE_scene_collections_Cb)(struct Collection *ob, void *data);
                                                                  OB_HIDE_RENDER; \
     int _base_id = 0; \
     for (Base *_base = (Base *)BKE_collection_object_cache_get(_collection).first; _base; \
-         _base = _base->next, _base_id++) { \
+         _base = _base->next, _base_id++) \
+    { \
       Object *_object = _base->object; \
       if ((_base->flag & _base_flag) && \
           (_object->visibility_flag & _object_visibility_flag) == 0) {
@@ -348,7 +349,8 @@ typedef void (*BKE_scene_collections_Cb)(struct Collection *ob, void *data);
 
 #define FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(_collection, _object) \
   for (Base *_base = (Base *)BKE_collection_object_cache_get(_collection).first; _base; \
-       _base = _base->next) { \
+       _base = _base->next) \
+  { \
     Object *_object = _base->object; \
     BLI_assert(_object != NULL);
 

@@ -197,7 +197,8 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
            MAT_PIPE_FORWARD,
            MAT_PIPE_FORWARD_PREPASS,
            MAT_PIPE_FORWARD_PREPASS_VELOCITY) &&
-      GPU_material_flag_get(matpass.gpumat, GPU_MATFLAG_TRANSPARENT)) {
+      GPU_material_flag_get(matpass.gpumat, GPU_MATFLAG_TRANSPARENT))
+  {
     /* Transparent pass is generated later. */
     matpass.sub_pass = nullptr;
   }

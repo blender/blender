@@ -325,7 +325,8 @@ static bool addGPULut1D2D(OCIO_GPUTextures &textures,
   const float *values;
   shader_desc->getTextureValues(index, values);
   if (texture_name == nullptr || sampler_name == nullptr || width == 0 || height == 0 ||
-      values == nullptr) {
+      values == nullptr)
+  {
     return false;
   }
 
@@ -569,9 +570,11 @@ static OCIO_GPUDisplayShader &getGPUDisplayShader(
   const bool use_curve_mapping = (curve_mapping_settings != nullptr);
   for (std::list<OCIO_GPUDisplayShader>::iterator it = SHADER_CACHE.begin();
        it != SHADER_CACHE.end();
-       it++) {
+       it++)
+  {
     if (it->input == input && it->view == view && it->display == display && it->look == look &&
-        it->use_curve_mapping == use_curve_mapping) {
+        it->use_curve_mapping == use_curve_mapping)
+    {
       /* Move to front of the cache to mark as most recently used. */
       if (it != SHADER_CACHE.begin()) {
         SHADER_CACHE.splice(SHADER_CACHE.begin(), SHADER_CACHE, it);
@@ -642,7 +645,8 @@ static OCIO_GPUDisplayShader &getGPUDisplayShader(
                         display_shader.textures,
                         shaderdesc_to_scene_linear,
                         shaderdesc_to_display,
-                        use_curve_mapping)) {
+                        use_curve_mapping))
+    {
       display_shader.valid = true;
     }
   }

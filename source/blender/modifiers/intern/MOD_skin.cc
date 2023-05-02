@@ -326,7 +326,8 @@ static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
     if (!frame->detached && (!BM_edge_exists(frame->verts[0], frame->verts[1]) ||
                              !BM_edge_exists(frame->verts[1], frame->verts[2]) ||
                              !BM_edge_exists(frame->verts[2], frame->verts[3]) ||
-                             !BM_edge_exists(frame->verts[3], frame->verts[0]))) {
+                             !BM_edge_exists(frame->verts[3], frame->verts[0])))
+    {
       frame->detached = true;
     }
   }
@@ -852,7 +853,8 @@ static int calc_edge_subdivisions(const float (*vert_positions)[3],
   /* If either end is a branch node marked 'loose', don't subdivide
    * the edge (or subdivide just twice if both are branches) */
   if ((v1_branch && (evs[0]->flag & MVERT_SKIN_LOOSE)) ||
-      (v2_branch && (evs[1]->flag & MVERT_SKIN_LOOSE))) {
+      (v2_branch && (evs[1]->flag & MVERT_SKIN_LOOSE)))
+  {
     if (v1_branch && v2_branch) {
       return 2;
     }
@@ -1469,7 +1471,8 @@ static void quad_from_tris(BMEdge *e, BMFace *adj[2], BMVert *ndx[4])
     /* When the triangle edge cuts across our quad-to-be,
      * throw in the second triangle's vertex */
     if (ELEM(tri[0][i], e->v1, e->v2) &&
-        (tri[0][(i + 1) % 3] == e->v1 || tri[0][(i + 1) % 3] == e->v2)) {
+        (tri[0][(i + 1) % 3] == e->v1 || tri[0][(i + 1) % 3] == e->v2))
+    {
       j++;
       ndx[j] = opp;
     }
@@ -1548,7 +1551,8 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
       /* If both triangles still free, and if they don't already
        * share a border with another face, output as a quad */
       if (!BM_elem_flag_test(adj[0], BM_ELEM_TAG) && !BM_elem_flag_test(adj[1], BM_ELEM_TAG) &&
-          !BM_face_share_face_check(adj[0], adj[1])) {
+          !BM_face_share_face_check(adj[0], adj[1]))
+      {
         add_quad_from_tris(so, e, adj);
         BM_elem_flag_enable(adj[0], BM_ELEM_TAG);
         BM_elem_flag_enable(adj[1], BM_ELEM_TAG);

@@ -900,7 +900,8 @@ static LayerCollectionResync *layer_collection_resync_find(LayerCollectionResync
 
     if (current_layer_resync->collection == child_collection &&
         (current_layer_resync->parent_layer_resync == layer_resync ||
-         (!current_layer_resync->is_used && !current_layer_resync->is_valid_as_child))) {
+         (!current_layer_resync->is_used && !current_layer_resync->is_valid_as_child)))
+    {
       /* This layer is a valid candidate, because its collection matches the seeked one, AND:
        *  - It is a direct child of the initial given parent ('unchanged hierarchy' case), OR
        *  - It is not currently used, and not part of a valid hierarchy (sub-)chain.
@@ -909,9 +910,9 @@ static LayerCollectionResync *layer_collection_resync_find(LayerCollectionResync
     }
 
     /* Else, add all its direct children for further searching. */
-    LISTBASE_FOREACH (LayerCollectionResync *,
-                      child_layer_resync,
-                      &current_layer_resync->children_layer_resync) {
+    LISTBASE_FOREACH (
+        LayerCollectionResync *, child_layer_resync, &current_layer_resync->children_layer_resync)
+    {
       /* Add to tail of the queue. */
       queue_tail->queue_next = child_layer_resync;
       child_layer_resync->queue_next = nullptr;
@@ -926,7 +927,8 @@ static LayerCollectionResync *layer_collection_resync_find(LayerCollectionResync
     if (queue_head == nullptr && root_layer_resync->parent_layer_resync != nullptr) {
       LISTBASE_FOREACH (LayerCollectionResync *,
                         sibling_layer_resync,
-                        &root_layer_resync->parent_layer_resync->children_layer_resync) {
+                        &root_layer_resync->parent_layer_resync->children_layer_resync)
+      {
         if (sibling_layer_resync == root_layer_resync) {
           continue;
         }
@@ -951,7 +953,8 @@ static void layer_collection_resync_unused_layers_free(ViewLayer *view_layer,
                                                        LayerCollectionResync *layer_resync)
 {
   LISTBASE_FOREACH (
-      LayerCollectionResync *, child_layer_resync, &layer_resync->children_layer_resync) {
+      LayerCollectionResync *, child_layer_resync, &layer_resync->children_layer_resync)
+  {
     layer_collection_resync_unused_layers_free(view_layer, child_layer_resync);
   }
 
@@ -998,7 +1001,8 @@ void BKE_scene_view_layers_synced_ensure(const Scene *scene)
 void BKE_main_view_layers_synced_ensure(const Main *bmain)
 {
   for (const Scene *scene = static_cast<const Scene *>(bmain->scenes.first); scene;
-       scene = static_cast<const Scene *>(scene->id.next)) {
+       scene = static_cast<const Scene *>(scene->id.next))
+  {
     BKE_scene_view_layers_synced_ensure(scene);
   }
 
@@ -1205,7 +1209,8 @@ static void layer_collection_sync(ViewLayer *view_layer,
     }
 
     if (((child_layer->runtime_flag & LAYER_COLLECTION_HIDE_VIEWPORT) == 0) &&
-        ((child_layer_restrict & LAYER_COLLECTION_HIDE) == 0)) {
+        ((child_layer_restrict & LAYER_COLLECTION_HIDE) == 0))
+    {
       child_layer->runtime_flag |= LAYER_COLLECTION_VISIBLE_VIEW_LAYER;
     }
   }
@@ -1276,7 +1281,8 @@ void BKE_layer_collection_doversion_2_80(const Scene *scene, ViewLayer *view_lay
   LayerCollection *first_layer_collection = static_cast<LayerCollection *>(
       view_layer->layer_collections.first);
   if (BLI_listbase_count_at_most(&view_layer->layer_collections, 2) > 1 ||
-      first_layer_collection->collection != scene->master_collection) {
+      first_layer_collection->collection != scene->master_collection)
+  {
     /* In some cases (from older files) we do have a master collection, but no matching layer,
      * instead all the children of the master collection have their layer collections in the
      * viewlayer's list. This is not a valid situation, add a layer for the master collection and
@@ -1420,7 +1426,8 @@ void BKE_main_collection_sync(const Main *bmain)
   /* TODO: optimize for file load so only linked collections get checked? */
 
   for (const Scene *scene = static_cast<const Scene *>(bmain->scenes.first); scene;
-       scene = static_cast<const Scene *>(scene->id.next)) {
+       scene = static_cast<const Scene *>(scene->id.next))
+  {
     BKE_scene_collection_sync(scene);
   }
 
@@ -1439,7 +1446,8 @@ void BKE_main_collection_sync_remap(const Main *bmain)
   BKE_main_collections_object_cache_free(bmain);
 
   for (Scene *scene = static_cast<Scene *>(bmain->scenes.first); scene;
-       scene = static_cast<Scene *>(scene->id.next)) {
+       scene = static_cast<Scene *>(scene->id.next))
+  {
     LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
       MEM_SAFE_FREE(view_layer->object_bases_array);
 
@@ -1459,7 +1467,8 @@ void BKE_main_collection_sync_remap(const Main *bmain)
   }
 
   for (Collection *collection = static_cast<Collection *>(bmain->collections.first); collection;
-       collection = static_cast<Collection *>(collection->id.next)) {
+       collection = static_cast<Collection *>(collection->id.next))
+  {
     DEG_id_tag_update_ex((Main *)bmain, &collection->id, ID_RECALC_COPY_ON_WRITE);
   }
 
@@ -1526,7 +1535,8 @@ bool BKE_layer_collection_has_selected_objects(const Scene *scene,
       Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
 
       if (base && (base->flag & BASE_SELECTED) &&
-          (base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT)) {
+          (base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT))
+      {
         return true;
       }
     }
@@ -1623,7 +1633,8 @@ bool BKE_object_is_visible_in_viewport(const View3D *v3d, const Object *ob)
   }
 
   if ((v3d->flag & V3D_LOCAL_COLLECTIONS) &&
-      ((v3d->local_collections_uuid & ob->runtime.local_collections_bits) == 0)) {
+      ((v3d->local_collections_uuid & ob->runtime.local_collections_bits) == 0))
+  {
     return false;
   }
 
@@ -2264,7 +2275,8 @@ void BKE_view_layer_bases_in_mode_iterator_next(BLI_Iterator *iter)
 
   while (base) {
     if ((base != data->base_active) && base_is_in_mode(data, base) &&
-        BKE_base_is_visible(data->v3d, base)) {
+        BKE_base_is_visible(data->v3d, base))
+    {
       iter->current = base;
       return;
     }

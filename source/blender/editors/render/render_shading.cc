@@ -1169,7 +1169,7 @@ void SCENE_OT_view_layer_add_lightgroup(wmOperatorType *ot)
   ot->prop = RNA_def_string(ot->srna,
                             "name",
                             nullptr,
-                            sizeof(((ViewLayerLightgroup *)nullptr)->name),
+                            sizeof(ViewLayerLightgroup::name),
                             "Name",
                             "Name of newly created lightgroup");
 }
@@ -1248,7 +1248,8 @@ static int view_layer_add_used_lightgroups_exec(bContext *C, wmOperator * /*op*/
   GSet *used_lightgroups = get_used_lightgroups(scene);
   GSET_FOREACH_BEGIN (const char *, used_lightgroup, used_lightgroups) {
     if (!BLI_findstring(
-            &view_layer->lightgroups, used_lightgroup, offsetof(ViewLayerLightgroup, name))) {
+            &view_layer->lightgroups, used_lightgroup, offsetof(ViewLayerLightgroup, name)))
+    {
       BKE_view_layer_add_lightgroup(view_layer, used_lightgroup);
     }
   }

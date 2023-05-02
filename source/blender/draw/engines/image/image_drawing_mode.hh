@@ -208,7 +208,8 @@ template<size_t Divisions> class ScreenTileTextures : public BaseTextureMethod {
       bool assigned = false;
       for (TextureInfoBounds &info_bound : info_bounds) {
         if (info_bound.info == nullptr &&
-            BLI_rctf_compare(&info_bound.uv_bounds, &info.clipping_uv_bounds, 0.001)) {
+            BLI_rctf_compare(&info_bound.uv_bounds, &info.clipping_uv_bounds, 0.001))
+        {
           info_bound.info = &info;
           info.tile_id = info_bound.tile_id;
           assigned = true;
@@ -490,8 +491,8 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
             &extracted_buffer, texture_region_width, texture_region_height, 32, IB_rectfloat);
 
         int offset = 0;
-        for (int y = gpu_texture_region_to_update.ymin; y < gpu_texture_region_to_update.ymax;
-             y++) {
+        for (int y = gpu_texture_region_to_update.ymin; y < gpu_texture_region_to_update.ymax; y++)
+        {
           float yf = y / (float)texture_height;
           float v = info.clipping_uv_bounds.ymax * yf + info.clipping_uv_bounds.ymin * (1.0 - yf) -
                     tile_offset_y;

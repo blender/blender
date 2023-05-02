@@ -468,7 +468,8 @@ static void pose_slide_apply_vec3(tPoseSlideOp *pso,
     BLI_assert(fcu->array_index < 3);
 
     if ((lock == 0) || ((lock & PS_LOCK_X) && (idx == 0)) || ((lock & PS_LOCK_Y) && (idx == 1)) ||
-        ((lock & PS_LOCK_Z) && (idx == 2))) {
+        ((lock & PS_LOCK_Z) && (idx == 2)))
+    {
       /* Just work on these channels one by one... there's no interaction between values. */
       pose_slide_apply_val(pso, fcu, pfl->ob, &vec[fcu->array_index]);
     }
@@ -739,7 +740,8 @@ static void pose_slide_rest_pose_apply_vec3(tPoseSlideOp *pso, float vec[3], flo
   const int lock = pso->axislock;
   for (int idx = 0; idx < 3; idx++) {
     if ((lock == 0) || ((lock & PS_LOCK_X) && (idx == 0)) || ((lock & PS_LOCK_Y) && (idx == 1)) ||
-        ((lock & PS_LOCK_Z) && (idx == 2))) {
+        ((lock & PS_LOCK_Z) && (idx == 2)))
+    {
       float diff_val = default_value - vec[idx];
       if (pso->mode == POSESLIDE_RELAX_REST) {
         vec[idx] += ED_slider_factor_get(pso->slider) * diff_val;

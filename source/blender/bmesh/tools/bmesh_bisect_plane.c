@@ -348,7 +348,8 @@ static void bm_face_bisect_verts(
             /* It would be nice to avoid loop lookup here,
              * but we need to know which face the verts are in. */
             if ((l_a = BM_face_vert_share_loop(face_split_arr[j], v_a)) &&
-                (l_b = BM_face_vert_share_loop(face_split_arr[j], v_b))) {
+                (l_b = BM_face_vert_share_loop(face_split_arr[j], v_b)))
+            {
               found = true;
               break;
             }

@@ -355,7 +355,8 @@ static bool sort_vertex_polys(const Span<int2> edges,
       const int corner_1 = poly_vertex_corners[i].first;
       const int corner_2 = poly_vertex_corners[i].second;
       if (edge_types[corner_edges[corner_1]] == EdgeType::Boundary &&
-          corner_verts[corner_1] == vertex_index) {
+          corner_verts[corner_1] == vertex_index)
+      {
         shared_edge_i = corner_edges[corner_2];
         r_sorted_corners[0] = poly_vertex_corners[i].first;
         std::swap(connected_polys[i], connected_polys[0]);
@@ -363,7 +364,8 @@ static bool sort_vertex_polys(const Span<int2> edges,
         break;
       }
       if (edge_types[corner_edges[corner_2]] == EdgeType::Boundary &&
-          corner_verts[corner_2] == vertex_index) {
+          corner_verts[corner_2] == vertex_index)
+      {
         shared_edge_i = corner_edges[corner_1];
         r_sorted_corners[0] = poly_vertex_corners[i].second;
         std::swap(connected_polys[i], connected_polys[0]);
@@ -564,13 +566,15 @@ static void dissolve_redundant_verts(const Span<int2> edges,
       const int2 &edge = edges[edge_i];
       bool mark_edge = false;
       if (vertex_needs_dissolving(
-              edge[0], first_poly_index, second_poly_index, vertex_types, vert_to_poly_map)) {
+              edge[0], first_poly_index, second_poly_index, vertex_types, vert_to_poly_map))
+      {
         /* This vertex is now 'removed' and should be ignored elsewhere. */
         vertex_types[edge[0]] = VertexType::Loose;
         mark_edge = true;
       }
       if (vertex_needs_dissolving(
-              edge[1], first_poly_index, second_poly_index, vertex_types, vert_to_poly_map)) {
+              edge[1], first_poly_index, second_poly_index, vertex_types, vert_to_poly_map))
+      {
         /* This vertex is now 'removed' and should be ignored elsewhere. */
         vertex_types[edge[1]] = VertexType::Loose;
         mark_edge = true;
@@ -625,7 +629,8 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
   threading::parallel_for(vert_to_poly_map.index_range(), 512, [&](IndexRange range) {
     for (const int i : range) {
       if (vertex_types[i] == VertexType::Loose || vertex_types[i] >= VertexType::NonManifold ||
-          (!keep_boundaries && vertex_types[i] == VertexType::Boundary)) {
+          (!keep_boundaries && vertex_types[i] == VertexType::Boundary))
+      {
         /* Bad vertex that we can't work with. */
         continue;
       }
@@ -721,7 +726,8 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
 
   for (const int i : IndexRange(src_mesh.totvert)) {
     if (vertex_types[i] == VertexType::Loose || vertex_types[i] >= VertexType::NonManifold ||
-        (!keep_boundaries && vertex_types[i] == VertexType::Boundary)) {
+        (!keep_boundaries && vertex_types[i] == VertexType::Boundary))
+    {
       /* Bad vertex that we can't work with. */
       continue;
     }

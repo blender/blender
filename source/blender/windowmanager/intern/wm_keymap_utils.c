@@ -202,7 +202,8 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
   }
   /* Screen & Render */
   else if (STRPREFIX(opname, "SCREEN_OT") || STRPREFIX(opname, "RENDER_OT") ||
-           STRPREFIX(opname, "SOUND_OT") || STRPREFIX(opname, "SCENE_OT")) {
+           STRPREFIX(opname, "SOUND_OT") || STRPREFIX(opname, "SCENE_OT"))
+  {
     km = WM_keymap_find_all(wm, "Screen", 0, 0);
   }
   /* Grease Pencil */
@@ -233,7 +234,8 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
   }
   /* Object mode related */
   else if (STRPREFIX(opname, "GROUP_OT") || STRPREFIX(opname, "MATERIAL_OT") ||
-           STRPREFIX(opname, "PTCACHE_OT") || STRPREFIX(opname, "RIGIDBODY_OT")) {
+           STRPREFIX(opname, "PTCACHE_OT") || STRPREFIX(opname, "RIGIDBODY_OT"))
+  {
     km = WM_keymap_find_all(wm, "Object Mode", 0, 0);
   }
 

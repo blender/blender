@@ -93,7 +93,8 @@ static void assign_materials(Main *bmain,
 
   for (std::map<pxr::SdfPath, int>::const_iterator it = mat_index_map.begin();
        it != mat_index_map.end();
-       ++it) {
+       ++it)
+  {
 
     Material *assigned_mat = blender::io::usd::find_existing_material(
         it->first, params, mat_name_to_mat, usd_path_to_mat_name);
@@ -336,7 +337,8 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
       }
       /* Early out if not first load and UVs aren't animated. */
       if (!load_uvs && primvar_varying_map_.find(uv_token) != primvar_varying_map_.end() &&
-          !primvar_varying_map_.at(uv_token)) {
+          !primvar_varying_map_.at(uv_token))
+      {
         continue;
       }
 
@@ -378,9 +380,9 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
 
         const UVSample &sample = uv_primvars[layer_idx];
 
-        if (!ELEM(sample.interpolation,
-                  pxr::UsdGeomTokens->faceVarying,
-                  pxr::UsdGeomTokens->vertex)) {
+        if (!ELEM(
+                sample.interpolation, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->vertex))
+        {
           std::cerr << "WARNING: unexpected interpolation type " << sample.interpolation
                     << " for uv " << layer->name << std::endl;
           continue;
@@ -433,7 +435,8 @@ void USDMeshReader::read_color_data_all_primvars(Mesh *mesh, const double motion
     if (!ELEM(type,
               pxr::SdfValueTypeNames->Color3hArray,
               pxr::SdfValueTypeNames->Color3fArray,
-              pxr::SdfValueTypeNames->Color3dArray)) {
+              pxr::SdfValueTypeNames->Color3dArray))
+    {
       continue;
     }
 
@@ -494,7 +497,8 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
       (interp == pxr::UsdGeomTokens->varying && usd_colors.size() != mesh->totloop) ||
       (interp == pxr::UsdGeomTokens->vertex && usd_colors.size() != mesh->totvert) ||
       (interp == pxr::UsdGeomTokens->constant && usd_colors.size() != 1) ||
-      (interp == pxr::UsdGeomTokens->uniform && usd_colors.size() != mesh->totpoly)) {
+      (interp == pxr::UsdGeomTokens->uniform && usd_colors.size() != mesh->totpoly))
+  {
     WM_reportf(RPT_WARNING,
                "USD Import: color attribute value '%s' count inconsistent with interpolation type",
                color_primvar.GetName().GetText());
@@ -509,7 +513,8 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
   if (ELEM(interp,
            pxr::UsdGeomTokens->varying,
            pxr::UsdGeomTokens->faceVarying,
-           pxr::UsdGeomTokens->uniform)) {
+           pxr::UsdGeomTokens->uniform))
+  {
     color_domain = ATTR_DOMAIN_CORNER;
   }
 
@@ -531,7 +536,8 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
   else {
     /* Check for situations that allow for a straight-forward copy by index. */
     if ((ELEM(interp, pxr::UsdGeomTokens->vertex)) ||
-        (color_domain == ATTR_DOMAIN_CORNER && !is_left_handed_)) {
+        (color_domain == ATTR_DOMAIN_CORNER && !is_left_handed_))
+    {
       for (int i = 0; i < usd_colors.size(); i++) {
         ColorGeometry4f color = ColorGeometry4f(
             usd_colors[i][0], usd_colors[i][1], usd_colors[i][2], 1.0f);
@@ -756,7 +762,8 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
 
   /* Process point normals after reading polys. */
   if ((settings->read_flag & MOD_MESHSEQ_READ_VERT) != 0 &&
-      normal_interpolation_ == pxr::UsdGeomTokens->vertex) {
+      normal_interpolation_ == pxr::UsdGeomTokens->vertex)
+  {
     process_normals_vertex_varying(mesh);
   }
 
@@ -899,7 +906,8 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
       if (ELEM(type,
                pxr::SdfValueTypeNames->TexCoord2hArray,
                pxr::SdfValueTypeNames->TexCoord2fArray,
-               pxr::SdfValueTypeNames->TexCoord2dArray)) {
+               pxr::SdfValueTypeNames->TexCoord2dArray))
+      {
         is_uv = true;
       }
       /* In some cases, the st primvar is stored as float2 values. */

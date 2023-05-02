@@ -196,7 +196,8 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           else if (ELEM(g_theme_state.regionid,
                         RGN_TYPE_HEADER,
                         RGN_TYPE_FOOTER,
-                        RGN_TYPE_ASSET_SHELF_FOOTER)) {
+                        RGN_TYPE_ASSET_SHELF_FOOTER))
+          {
             cp = ts->header_text;
           }
           else {
@@ -213,7 +214,8 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           else if (ELEM(g_theme_state.regionid,
                         RGN_TYPE_HEADER,
                         RGN_TYPE_FOOTER,
-                        RGN_TYPE_ASSET_SHELF_FOOTER)) {
+                        RGN_TYPE_ASSET_SHELF_FOOTER))
+          {
             cp = ts->header_text_hi;
           }
           else {
@@ -230,7 +232,8 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           else if (ELEM(g_theme_state.regionid,
                         RGN_TYPE_HEADER,
                         RGN_TYPE_FOOTER,
-                        RGN_TYPE_ASSET_SHELF_FOOTER)) {
+                        RGN_TYPE_ASSET_SHELF_FOOTER))
+          {
             cp = ts->header_title;
           }
           else {
@@ -1419,8 +1422,8 @@ bool UI_GetIconThemeColor4ubv(int colorid, uchar col[4])
               g_theme_state.regionid == RGN_TYPE_WINDOW) ||
              (g_theme_state.spacetype == SPACE_PROPERTIES &&
               g_theme_state.regionid == RGN_TYPE_NAV_BAR) ||
-             (g_theme_state.spacetype == SPACE_FILE &&
-              g_theme_state.regionid == RGN_TYPE_WINDOW))) {
+             (g_theme_state.spacetype == SPACE_FILE && g_theme_state.regionid == RGN_TYPE_WINDOW)))
+  {
     /* Only colored icons in specific places, overall UI is intended
      * to stay monochrome and out of the way except a few places where it
      * is important to communicate different data types. */

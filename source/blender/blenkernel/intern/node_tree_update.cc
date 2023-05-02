@@ -487,7 +487,8 @@ class NodeTreeMainUpdater {
     }
 
     if (ntree.runtime->changed_flag & NTREE_CHANGED_INTERFACE ||
-        ntree.runtime->changed_flag & NTREE_CHANGED_ANY) {
+        ntree.runtime->changed_flag & NTREE_CHANGED_ANY)
+    {
       result.interface_changed = true;
     }
 
@@ -722,7 +723,8 @@ class NodeTreeMainUpdater {
     for (const StringRefNull idname : {"ShaderNodeOutputMaterial",
                                        "ShaderNodeOutputLight",
                                        "ShaderNodeOutputWorld",
-                                       "ShaderNodeOutputAOV"}) {
+                                       "ShaderNodeOutputAOV"})
+    {
       const Span<const bNode *> nodes = ntree.nodes_by_type(idname);
       if (!nodes.is_empty()) {
         ntree.runtime->runtime_flag |= NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT;
@@ -806,7 +808,8 @@ class NodeTreeMainUpdater {
 
     /* The topology hash can only be used when only topology-changing operations have been done. */
     if (tree.runtime->changed_flag ==
-        (tree.runtime->changed_flag & (NTREE_CHANGED_LINK | NTREE_CHANGED_REMOVED_NODE))) {
+        (tree.runtime->changed_flag & (NTREE_CHANGED_LINK | NTREE_CHANGED_REMOVED_NODE)))
+    {
       if (old_topology_hash == new_topology_hash) {
         return false;
       }
@@ -847,7 +850,8 @@ class NodeTreeMainUpdater {
     if (node.type == NODE_GROUP) {
       const bNodeTree *node_group = reinterpret_cast<const bNodeTree *>(node.id);
       if (node_group != nullptr &&
-          node_group->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT) {
+          node_group->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT)
+      {
         return true;
       }
     }

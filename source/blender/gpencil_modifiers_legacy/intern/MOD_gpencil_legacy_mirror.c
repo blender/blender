@@ -129,7 +129,8 @@ static void generate_geometry(
                                            mmd->flag & GP_MIRROR_INVERT_LAYER,
                                            mmd->flag & GP_MIRROR_INVERT_PASS,
                                            mmd->flag & GP_MIRROR_INVERT_LAYERPASS,
-                                           mmd->flag & GP_MIRROR_INVERT_MATERIAL)) {
+                                           mmd->flag & GP_MIRROR_INVERT_MATERIAL))
+        {
           gps_new = BKE_gpencil_stroke_duplicate(gps, true, true);
           update_position(ob, mmd, gps_new, xi);
           if (update) {

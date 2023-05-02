@@ -923,7 +923,8 @@ id<MTLBuffer> MTLBatch::get_emulated_toplogy_buffer(GPUPrimType &in_out_prim_typ
 
   /* Check if topology buffer exists and is valid. */
   if (this->emulated_topology_buffer_ != nullptr &&
-      (emulated_topology_type_ != input_prim_type || topology_buffer_input_v_count_ != v_count)) {
+      (emulated_topology_type_ != input_prim_type || topology_buffer_input_v_count_ != v_count))
+  {
 
     /* Release existing topology buffer. */
     emulated_topology_buffer_->free();

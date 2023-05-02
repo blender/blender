@@ -67,7 +67,8 @@ static int SpatialNoiseShader___init__(BPy_SpatialNoiseShader *self,
                                    &PyBool_Type,
                                    &obj4,
                                    &PyBool_Type,
-                                   &obj5)) {
+                                   &obj5))
+  {
     return -1;
   }
   self->py_ss.ss = new SpatialNoiseShader(

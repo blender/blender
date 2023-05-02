@@ -53,7 +53,8 @@ VtValue ComputeTriangulatedFaceVaryingPrimvar(VtValue value,
                                               HdMeshUtil &meshUtil)
 {
   if (meshUtil.ComputeTriangulatedFaceVaryingPrimvar(
-          HdGetValueData(value), value.GetArraySize(), valueType, &value)) {
+          HdGetValueData(value), value.GetArraySize(), valueType, &value))
+  {
     return value;
   }
 
@@ -113,7 +114,8 @@ HdDirtyBits HdCyclesMesh::_PropagateDirtyBits(HdDirtyBits bits) const
   }
 
   if (bits & (HdChangeTracker::DirtyTopology | HdChangeTracker::DirtyDisplayStyle |
-              HdChangeTracker::DirtySubdivTags)) {
+              HdChangeTracker::DirtySubdivTags))
+  {
     // Do full topology update when display style or subdivision changes
     bits |= HdChangeTracker::DirtyTopology | HdChangeTracker::DirtyDisplayStyle |
             HdChangeTracker::DirtySubdivTags;
@@ -159,7 +161,8 @@ void HdCyclesMesh::PopulatePoints(HdSceneDelegate *sceneDelegate)
   VtValue value;
 
   for (const HdExtComputationPrimvarDescriptor &desc :
-       sceneDelegate->GetExtComputationPrimvarDescriptors(GetId(), HdInterpolationVertex)) {
+       sceneDelegate->GetExtComputationPrimvarDescriptors(GetId(), HdInterpolationVertex))
+  {
     if (desc.name == HdTokens->points) {
       auto valueStore = HdExtComputationUtils::GetComputedPrimvarValues({desc}, sceneDelegate);
       const auto valueStoreIt = valueStore.find(desc.name);
@@ -208,7 +211,8 @@ void HdCyclesMesh::PopulateNormals(HdSceneDelegate *sceneDelegate)
   for (int i = 0; i < HdInterpolationCount && interpolation == HdInterpolationCount; ++i) {
     for (const HdExtComputationPrimvarDescriptor &desc :
          sceneDelegate->GetExtComputationPrimvarDescriptors(GetId(),
-                                                            static_cast<HdInterpolation>(i))) {
+                                                            static_cast<HdInterpolation>(i)))
+    {
       if (desc.name == HdTokens->normals) {
         auto valueStore = HdExtComputationUtils::GetComputedPrimvarValues({desc}, sceneDelegate);
         const auto valueStoreIt = valueStore.find(desc.name);
@@ -270,7 +274,8 @@ void HdCyclesMesh::PopulateNormals(HdSceneDelegate *sceneDelegate)
     TF_VERIFY(normals.size() == static_cast<size_t>(_topology.GetNumFaceVaryings()));
 
     if (!_util.ComputeTriangulatedFaceVaryingPrimvar(
-            normals.data(), normals.size(), HdTypeFloatVec3, &value)) {
+            normals.data(), normals.size(), HdTypeFloatVec3, &value))
+    {
       return;
     }
 
@@ -340,7 +345,8 @@ void HdCyclesMesh::PopulatePrimvars(HdSceneDelegate *sceneDelegate)
 
       // Skip attributes that are not needed
       if ((std != ATTR_STD_NONE && _geom->need_attribute(scene, std)) ||
-          _geom->need_attribute(scene, name)) {
+          _geom->need_attribute(scene, name))
+      {
         const HdType valueType = HdGetValueTupleType(value).type;
 
         if (!subdivision) {

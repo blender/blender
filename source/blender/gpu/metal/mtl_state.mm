@@ -147,7 +147,8 @@ void MTLStateManager::set_mutable_state(const GPUStateMutable &state)
   }
 
   if (changed.stencil_compare_mask != 0 || changed.stencil_reference != 0 ||
-      changed.stencil_write_mask != 0) {
+      changed.stencil_write_mask != 0)
+  {
     set_stencil_mask((eGPUStencilTest)current_.stencil_test, state);
   }
 

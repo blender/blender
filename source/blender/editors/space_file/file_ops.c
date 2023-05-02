@@ -171,7 +171,8 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
 
   /* make the selected file active */
   if ((selected_idx >= 0) && (selected_idx < numfiles) &&
-      (file = filelist_file(sfile->files, selected_idx))) {
+      (file = filelist_file(sfile->files, selected_idx)))
+  {
     params->highlight_file = selected_idx;
     params->active_file = selected_idx;
 
@@ -314,7 +315,8 @@ static void file_ensure_selection_inside_viewbounds(ARegion *region,
   const FileLayout *layout = ED_fileselect_get_layout(sfile, region);
 
   if (((layout->flag & FILE_LAYOUT_HOR) && region->winx <= (1.2f * layout->tile_w)) &&
-      ((layout->flag & FILE_LAYOUT_VER) && region->winy <= (2.0f * layout->tile_h))) {
+      ((layout->flag & FILE_LAYOUT_VER) && region->winy <= (2.0f * layout->tile_h)))
+  {
     return;
   }
 
@@ -421,7 +423,8 @@ static int file_box_select_find_last_selected(SpaceFile *sfile,
 
   /* are first and last in the same column (horizontal layout)/row (vertical layout)? */
   if ((layout->flag & FILE_LAYOUT_HOR && bounds_first.xmin == bounds_last.xmin) ||
-      (layout->flag & FILE_LAYOUT_VER && bounds_first.ymin != bounds_last.ymin)) {
+      (layout->flag & FILE_LAYOUT_VER && bounds_first.ymin != bounds_last.ymin))
+  {
     /* use vertical distance */
     const int my_loc = (int)mouseco_view[1];
     dist_first = BLI_rcti_length_y(&bounds_first, my_loc);
@@ -731,7 +734,8 @@ static bool file_walk_select_selection_set(struct bContext *C,
 
   if (has_selection) {
     if (extend && filelist_entry_select_index_get(files, active_old, CHECK_ALL) &&
-        filelist_entry_select_index_get(files, active_new, CHECK_ALL)) {
+        filelist_entry_select_index_get(files, active_new, CHECK_ALL))
+    {
       /* conditions for deselecting: initial file is selected, new file is
        * selected and either other_side isn't selected/found or we use fill */
       deselect = (fill || other_site == -1 ||
@@ -850,22 +854,26 @@ static bool file_walk_select_do(bContext *C,
     const int idx_shift = (layout->flag & FILE_LAYOUT_HOR) ? layout->rows : layout->flow_columns;
 
     if ((layout->flag & FILE_LAYOUT_HOR && direction == UI_SELECT_WALK_UP) ||
-        (layout->flag & FILE_LAYOUT_VER && direction == UI_SELECT_WALK_LEFT)) {
+        (layout->flag & FILE_LAYOUT_VER && direction == UI_SELECT_WALK_LEFT))
+    {
       active_new = active_old - 1;
       other_site = active_old + 1;
     }
     else if ((layout->flag & FILE_LAYOUT_HOR && direction == UI_SELECT_WALK_DOWN) ||
-             (layout->flag & FILE_LAYOUT_VER && direction == UI_SELECT_WALK_RIGHT)) {
+             (layout->flag & FILE_LAYOUT_VER && direction == UI_SELECT_WALK_RIGHT))
+    {
       active_new = active_old + 1;
       other_site = active_old - 1;
     }
     else if ((layout->flag & FILE_LAYOUT_HOR && direction == UI_SELECT_WALK_LEFT) ||
-             (layout->flag & FILE_LAYOUT_VER && direction == UI_SELECT_WALK_UP)) {
+             (layout->flag & FILE_LAYOUT_VER && direction == UI_SELECT_WALK_UP))
+    {
       active_new = active_old - idx_shift;
       other_site = active_old + idx_shift;
     }
     else if ((layout->flag & FILE_LAYOUT_HOR && direction == UI_SELECT_WALK_RIGHT) ||
-             (layout->flag & FILE_LAYOUT_VER && direction == UI_SELECT_WALK_DOWN)) {
+             (layout->flag & FILE_LAYOUT_VER && direction == UI_SELECT_WALK_DOWN))
+    {
 
       active_new = active_old + idx_shift;
       other_site = active_old - idx_shift;
@@ -1481,7 +1489,8 @@ static int file_column_sort_ui_context_invoke(bContext *C,
   SpaceFile *sfile = CTX_wm_space_file(C);
 
   if (file_attribute_column_header_is_inside(
-          &region->v2d, sfile->layout, event->mval[0], event->mval[1])) {
+          &region->v2d, sfile->layout, event->mval[0], event->mval[1]))
+  {
     FileSelectParams *params = ED_fileselect_get_active_params(sfile);
     const FileAttributeColumnType column_type = file_attribute_column_type_find_isect(
         &region->v2d, params, sfile->layout, event->mval[0]);
@@ -1681,8 +1690,8 @@ void file_operator_to_sfile(Main *bmain, SpaceFile *sfile, wmOperator *op)
   if ((prop = RNA_struct_find_property(op->ptr, "filepath"))) {
     char filepath[FILE_MAX];
     RNA_property_string_get(op->ptr, prop, filepath);
-    BLI_split_dirfile(
-        filepath, params->dir, params->file, sizeof(params->dir), sizeof(params->file));
+    BLI_path_split_dir_file(
+        filepath, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
   }
   else {
     if ((prop = RNA_struct_find_property(op->ptr, "filename"))) {
@@ -1710,11 +1719,11 @@ void file_sfile_filepath_set(SpaceFile *sfile, const char *filepath)
   }
   else {
     if ((params->flag & FILE_DIRSEL_ONLY) == 0) {
-      BLI_split_dirfile(
-          filepath, params->dir, params->file, sizeof(params->dir), sizeof(params->file));
+      BLI_path_split_dir_file(
+          filepath, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
     }
     else {
-      BLI_split_dir_part(filepath, params->dir, sizeof(params->dir));
+      BLI_path_split_dir_part(filepath, params->dir, sizeof(params->dir));
     }
   }
 }
@@ -1826,8 +1835,8 @@ static int file_external_operation_exec(bContext *C, wmOperator *op)
   PointerRNA op_props;
   WM_operator_properties_create_ptr(&op_props, ot);
   RNA_string_set(&op_props, "filepath", filepath);
-  if (WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &op_props, NULL) ==
-      OPERATOR_FINISHED) {
+  if (WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &op_props, NULL) == OPERATOR_FINISHED)
+  {
     WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
     return OPERATOR_FINISHED;
   }
@@ -2039,11 +2048,11 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
   if (file && file->redirection_path) {
     /* redirection_path is an absolute path that takes precedence
      * over using params->dir + params->file. */
-    BLI_split_dirfile(file->redirection_path,
-                      params->dir,
-                      params->file,
-                      sizeof(params->dir),
-                      sizeof(params->file));
+    BLI_path_split_dir_file(file->redirection_path,
+                            params->dir,
+                            sizeof(params->dir),
+                            params->file,
+                            sizeof(params->file));
     /* Update relpath with redirected filename as well so that the alternative
      * combination of params->dir + relpath remains valid as well. */
     MEM_freeN(file->relpath);
@@ -2140,7 +2149,8 @@ static int file_execute_mouse_invoke(bContext *C, wmOperator *UNUSED(op), const 
   SpaceFile *sfile = CTX_wm_space_file(C);
 
   if (!ED_fileselect_layout_is_inside_pt(
-          sfile->layout, &region->v2d, event->mval[0], event->mval[1])) {
+          sfile->layout, &region->v2d, event->mval[0], event->mval[1]))
+  {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
@@ -2353,7 +2363,8 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
    * so we also have to handle switching to rename mode here. */
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   if ((params->rename_flag &
-       (FILE_PARAMS_RENAME_PENDING | FILE_PARAMS_RENAME_POSTSCROLL_PENDING)) != 0) {
+       (FILE_PARAMS_RENAME_PENDING | FILE_PARAMS_RENAME_POSTSCROLL_PENDING)) != 0)
+  {
     file_params_renamefile_activate(sfile, params);
   }
 
@@ -2361,7 +2372,8 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
   int edit_idx = -1;
   for (i = 0; i < numfiles; i++) {
     if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL) &
-        (FILE_SEL_EDITING | FILE_SEL_HIGHLIGHTED)) {
+        (FILE_SEL_EDITING | FILE_SEL_HIGHLIGHTED))
+    {
       edit_idx = i;
       break;
     }
@@ -2646,7 +2658,8 @@ static int file_directory_new_exec(bContext *C, wmOperator *op)
   if (!BLI_dir_create_recursive(path) ||
       /* Should no more be needed,
        * now that BLI_dir_create_recursive returns a success state - but kept just in case. */
-      !BLI_exists(path)) {
+      !BLI_exists(path))
+  {
     BKE_reportf(op->reports,
                 RPT_ERROR,
                 "Could not create new folder: %s",
@@ -2792,8 +2805,8 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
       if (BLI_is_file(params->dir)) {
         char path[sizeof(params->dir)];
         BLI_strncpy(path, params->dir, sizeof(path));
-        BLI_split_dirfile(
-            path, params->dir, params->file, sizeof(params->dir), sizeof(params->file));
+        BLI_path_split_dir_file(
+            path, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
       }
       else if (BKE_blendfile_library_path_explode(params->dir, tdir, &group, &name)) {
         if (group) {
@@ -3043,7 +3056,8 @@ static void file_rename_state_activate(SpaceFile *sfile, int file_idx, bool requ
     FileDirEntry *file = filelist_file(sfile->files, file_idx);
 
     if ((require_selected == false) ||
-        (filelist_entry_select_get(sfile->files, file, CHECK_ALL) & FILE_SEL_SELECTED)) {
+        (filelist_entry_select_get(sfile->files, file, CHECK_ALL) & FILE_SEL_SELECTED))
+    {
       FileSelectParams *params = ED_fileselect_get_active_params(sfile);
 
       filelist_entry_select_index_set(

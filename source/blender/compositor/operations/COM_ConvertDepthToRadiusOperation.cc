@@ -50,8 +50,8 @@ void ConvertDepthToRadiusOperation::init_execution()
                 (this->get_width() / float(this->get_height()));
   aperture_ = 0.5f * (cam_lens_ / (aspect_ * cam_sensor)) / f_stop_;
   const float minsz = MIN2(get_width(), get_height());
-  dof_sp_ = minsz / ((cam_sensor / 2.0f) /
-                     cam_lens_); /* <- == `aspect * MIN2(img->x, img->y) / tan(0.5f * fov)` */
+  /* Equal to: `aspect * MIN2(img->x, img->y) / tan(0.5f * fov)`. */
+  dof_sp_ = minsz / ((cam_sensor / 2.0f) / cam_lens_);
 
   if (blur_post_operation_) {
     blur_post_operation_->set_sigma(MIN2(aperture_ * 128.0f, max_radius_));

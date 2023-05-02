@@ -341,8 +341,8 @@ static PyObject *py_bvhtree_ray_cast(PyBVHTree *self, PyObject *args)
     }
 
     if ((mathutils_array_parse(co, 2, 3 | MU_ARRAY_ZERO, py_co, error_prefix) == -1) ||
-        (mathutils_array_parse(direction, 2, 3 | MU_ARRAY_ZERO, py_direction, error_prefix) ==
-         -1)) {
+        (mathutils_array_parse(direction, 2, 3 | MU_ARRAY_ZERO, py_direction, error_prefix) == -1))
+    {
       return nullptr;
     }
 
@@ -668,12 +668,14 @@ static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyOb
                                    &py_tris,
                                    PyC_ParseBool,
                                    &all_triangles,
-                                   &epsilon)) {
+                                   &epsilon))
+  {
     return nullptr;
   }
 
   if (!(py_coords_fast = PySequence_Fast(py_coords, error_prefix)) ||
-      !(py_tris_fast = PySequence_Fast(py_tris, error_prefix))) {
+      !(py_tris_fast = PySequence_Fast(py_tris, error_prefix)))
+  {
     Py_XDECREF(py_coords_fast);
     return nullptr;
   }
@@ -940,7 +942,8 @@ static PyObject *C_BVHTree_FromBMesh(PyObject * /*cls*/, PyObject *args, PyObjec
                                    (char **)keywords,
                                    &BPy_BMesh_Type,
                                    &py_bm,
-                                   &epsilon)) {
+                                   &epsilon))
+  {
     return nullptr;
   }
 
@@ -1125,7 +1128,8 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
                                    &epsilon) ||
       ((ob = static_cast<Object *>(PyC_RNA_AsPointer(py_ob, "Object"))) == nullptr) ||
       ((depsgraph = static_cast<Depsgraph *>(PyC_RNA_AsPointer(py_depsgraph, "Depsgraph"))) ==
-       nullptr)) {
+       nullptr))
+  {
     return nullptr;
   }
 

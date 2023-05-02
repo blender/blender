@@ -235,7 +235,8 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
 
   if (component_->type() == GEO_COMPONENT_TYPE_INSTANCES) {
     if (const bke::Instances *instances =
-            static_cast<const InstancesComponent &>(*component_).get_for_read()) {
+            static_cast<const InstancesComponent &>(*component_).get_for_read())
+    {
       if (STREQ(column_id.name, "Name")) {
         Span<int> reference_handles = instances->reference_handles();
         Span<bke::InstanceReference> references = instances->references();
@@ -265,7 +266,8 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     const MeshComponent &component = static_cast<const MeshComponent &>(*component_);
     if (const Mesh *mesh = component.get_for_read()) {
       if (std::unique_ptr<ColumnValues> values = build_mesh_debug_columns(
-              *mesh, domain_, column_id.name)) {
+              *mesh, domain_, column_id.name))
+      {
         return values;
       }
     }
@@ -525,7 +527,8 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
     else {
       if (const ViewerNodeLog *viewer_log =
               nodes::geo_eval_log::GeoModifierLog::find_viewer_node_log_for_path(
-                  sspreadsheet->viewer_path)) {
+                  sspreadsheet->viewer_path))
+      {
         geometry_set = viewer_log->geometry;
       }
     }

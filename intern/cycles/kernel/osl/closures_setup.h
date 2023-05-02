@@ -52,7 +52,8 @@ ccl_device_forceinline bool osl_closure_skip(KernelGlobals kg,
   /* caustic options */
   if ((scattering & LABEL_GLOSSY) && (path_flag & PATH_RAY_DIFFUSE)) {
     if ((!kernel_data.integrator.caustics_reflective && (scattering & LABEL_REFLECT)) ||
-        (!kernel_data.integrator.caustics_refractive && (scattering & LABEL_TRANSMIT))) {
+        (!kernel_data.integrator.caustics_refractive && (scattering & LABEL_TRANSMIT)))
+    {
       return true;
     }
   }
@@ -215,7 +216,8 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
 
   /* GGX */
   if (closure->distribution == make_string("ggx", 11253504724482777663ull) ||
-      closure->distribution == make_string("default", 4430693559278735917ull)) {
+      closure->distribution == make_string("default", 4430693559278735917ull))
+  {
     if (has_reflection && has_transmission) {
       sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
     }
@@ -274,7 +276,8 @@ ccl_device void osl_closure_conductor_bsdf_setup(KernelGlobals kg,
 
   /* GGX */
   if (closure->distribution == make_string("ggx", 11253504724482777663ull) ||
-      closure->distribution == make_string("default", 4430693559278735917ull)) {
+      closure->distribution == make_string("default", 4430693559278735917ull))
+  {
     sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
   }
   /* Beckmann */
@@ -324,7 +327,8 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
 
   /* GGX */
   if (closure->distribution == make_string("ggx", 11253504724482777663ull) ||
-      closure->distribution == make_string("default", 4430693559278735917ull)) {
+      closure->distribution == make_string("default", 4430693559278735917ull))
+  {
     if (has_reflection && has_transmission) {
       sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
     }

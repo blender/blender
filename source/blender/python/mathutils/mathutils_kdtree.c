@@ -320,7 +320,8 @@ static PyObject *py_kdtree_find_range(PyKDTree *self, PyObject *args, PyObject *
   const char *keywords[] = {"co", "radius", NULL};
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwargs, "Of:find_range", (char **)keywords, &py_co, &radius)) {
+          args, kwargs, "Of:find_range", (char **)keywords, &py_co, &radius))
+  {
     return NULL;
   }
 

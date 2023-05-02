@@ -377,7 +377,8 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
    * think it would be worth it.
    */
   for (Object *ob_src = static_cast<Object *>(bmain->objects.first);
-       ob_src != nullptr && !ID_IS_LINKED(ob_src);) {
+       ob_src != nullptr && !ID_IS_LINKED(ob_src);)
+  {
     if (ob_src->data != metaball_src) {
       ob_src = static_cast<Object *>(ob_src->id.next);
       continue;
@@ -398,7 +399,8 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
     BLI_split_name_num(obactive_name, &obactive_nr, ob_src->id.name + 2, '.');
 
     for (ob_iter = static_cast<Object *>(ob_src->id.prev); ob_iter != nullptr;
-         ob_iter = static_cast<Object *>(ob_iter->id.prev)) {
+         ob_iter = static_cast<Object *>(ob_iter->id.prev))
+    {
       if (ob_iter->id.name[2] != obactive_name[0]) {
         break;
       }
@@ -414,7 +416,8 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
     }
 
     for (ob_iter = static_cast<Object *>(ob_src->id.next); ob_iter != nullptr;
-         ob_iter = static_cast<Object *>(ob_iter->id.next)) {
+         ob_iter = static_cast<Object *>(ob_iter->id.next))
+    {
       if (ob_iter->id.name[2] != obactive_name[0] || ID_IS_LINKED(ob_iter)) {
         break;
       }

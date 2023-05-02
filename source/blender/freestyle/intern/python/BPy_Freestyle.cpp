@@ -168,7 +168,8 @@ static PyObject *Freestyle_blendRamp(PyObject * /*self*/, PyObject *args)
                             3,
                             obj1,
                             "argument 2 must be a 3D vector "
-                            "(either a tuple/list of 3 elements or Vector)") == -1) {
+                            "(either a tuple/list of 3 elements or Vector)") == -1)
+  {
     return nullptr;
   }
   if (mathutils_array_parse(b,
@@ -176,7 +177,8 @@ static PyObject *Freestyle_blendRamp(PyObject * /*self*/, PyObject *args)
                             3,
                             obj2,
                             "argument 4 must be a 3D vector "
-                            "(either a tuple/list of 3 elements or Vector)") == -1) {
+                            "(either a tuple/list of 3 elements or Vector)") == -1)
+  {
     return nullptr;
   }
   ramp_blend(type, a, fac, b);

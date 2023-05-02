@@ -404,12 +404,14 @@ static bool pose_topology_floodfill_cb(
   }
 
   if (len_squared_v3v3(data->pose_initial_co, data->fallback_floodfill_origin) <
-      len_squared_v3v3(data->pose_initial_co, co)) {
+      len_squared_v3v3(data->pose_initial_co, co))
+  {
     copy_v3_v3(data->fallback_floodfill_origin, co);
   }
 
   if (sculpt_pose_brush_is_vertex_inside_brush_radius(
-          co, data->pose_initial_co, data->radius, data->symm)) {
+          co, data->pose_initial_co, data->radius, data->symm))
+  {
     return true;
   }
   if (SCULPT_check_vertex_pivot_symmetry(co, data->pose_initial_co, data->symm)) {
@@ -444,7 +446,8 @@ static bool pose_face_sets_floodfill_cb(
     BLI_BITMAP_ENABLE(data->is_weighted, index);
 
     if (sculpt_pose_brush_is_vertex_inside_brush_radius(
-            co, data->pose_initial_co, data->radius, data->symm)) {
+            co, data->pose_initial_co, data->radius, data->symm))
+    {
       const int visited_face_set = SCULPT_vertex_face_set_get(ss, vertex);
       BLI_gset_add(data->visited_face_sets, POINTER_FROM_INT(visited_face_set));
     }
@@ -500,7 +503,8 @@ static bool pose_face_sets_floodfill_cb(
 
     /* Check if we can get a valid face set for the next iteration from this neighbor. */
     if (SCULPT_vertex_has_unique_face_set(ss, ni.vertex) &&
-        !BLI_gset_haskey(data->visited_face_sets, POINTER_FROM_INT(next_face_set_candidate))) {
+        !BLI_gset_haskey(data->visited_face_sets, POINTER_FROM_INT(next_face_set_candidate)))
+    {
       if (!data->next_face_set_found) {
         data->next_face_set = next_face_set_candidate;
         data->next_vertex = ni.vertex;
@@ -638,7 +642,8 @@ static int pose_brush_num_effective_segments(const Brush *brush)
    * artifacts in the areas affected by multiple segments. */
   if (ELEM(brush->pose_deform_type,
            BRUSH_POSE_DEFORM_SCALE_TRASLATE,
-           BRUSH_POSE_DEFORM_SQUASH_STRETCH)) {
+           BRUSH_POSE_DEFORM_SQUASH_STRETCH))
+  {
     return 1;
   }
   return brush->pose_ik_segments;
@@ -815,7 +820,8 @@ static bool pose_face_sets_fk_find_masked_floodfill_cb(
   if (!BLI_gset_haskey(data->visited_face_sets, POINTER_FROM_INT(to_face_set))) {
     if (SCULPT_vertex_has_unique_face_set(ss, to_v) &&
         !SCULPT_vertex_has_unique_face_set(ss, from_v) &&
-        SCULPT_vertex_has_face_set(ss, from_v, to_face_set)) {
+        SCULPT_vertex_has_face_set(ss, from_v, to_face_set))
+    {
 
       BLI_gset_add(data->visited_face_sets, POINTER_FROM_INT(to_face_set));
 
@@ -881,7 +887,8 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
 
     if (fdata.floodfill_it[i] != 0 &&
         SCULPT_vertex_has_face_set(ss, vertex, fdata.initial_face_set) &&
-        SCULPT_vertex_has_face_set(ss, vertex, fdata.masked_face_set)) {
+        SCULPT_vertex_has_face_set(ss, vertex, fdata.masked_face_set))
+    {
       add_v3_v3(origin_acc, SCULPT_vertex_co_get(ss, vertex));
       origin_count++;
     }
@@ -895,7 +902,8 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
 
       if (fdata.floodfill_it[i] != 0 &&
           SCULPT_vertex_has_face_set(ss, vertex, fdata.initial_face_set) &&
-          SCULPT_vertex_has_face_set(ss, vertex, fdata.target_face_set)) {
+          SCULPT_vertex_has_face_set(ss, vertex, fdata.target_face_set))
+      {
         add_v3_v3(target_acc, SCULPT_vertex_co_get(ss, vertex));
         target_count++;
       }

@@ -387,7 +387,8 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
     for (uint base_index = 0; base_index < bases_len; base_index++) {
       Object *ob_iter = bases[base_index]->object;
       if (BKE_modifiers_is_deformed_by_lattice(ob_iter) ||
-          BKE_modifiers_is_deformed_by_armature(ob_iter)) {
+          BKE_modifiers_is_deformed_by_armature(ob_iter))
+      {
         BKE_report(
             op->reports, RPT_WARNING, "Loop cut does not work well on deformed edit mesh display");
         break;

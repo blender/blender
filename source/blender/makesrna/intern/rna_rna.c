@@ -756,7 +756,8 @@ static const EnumPropertyItem *rna_Property_tags_itemf(bContext *UNUSED(C),
 
   for (const EnumPropertyItem *struct_tags = RNA_struct_property_tag_defines(srna);
        struct_tags != NULL && struct_tags->identifier != NULL;
-       struct_tags++) {
+       struct_tags++)
+  {
     memcpy(&tmp, struct_tags, sizeof(tmp));
     RNA_enum_item_add(&prop_tags, &totitem, &tmp);
   }
@@ -989,7 +990,8 @@ static const EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C,
   }
 
   if ((eprop->item_fn == NULL) || (eprop->item_fn == rna_EnumProperty_default_itemf) ||
-      (ptr->type == &RNA_EnumProperty) || (C == NULL)) {
+      (ptr->type == &RNA_EnumProperty) || (C == NULL))
+  {
     if (eprop->item) {
       return eprop->item;
     }
@@ -1322,7 +1324,8 @@ static bool rna_property_override_diff_propptr_validate_diffing(PointerRNA *prop
     }
     if (propname_a != NULL && propname_b != NULL) {
       if (propname_a_len != propname_b_len || propname_a[0] != propname_b[0] ||
-          !STREQ(propname_a, propname_b)) {
+          !STREQ(propname_a, propname_b))
+      {
         is_valid_for_diffing = false;
         //              printf("%s: different names\n", rna_path ? rna_path : "<UNKNOWN>");
       }
@@ -1418,7 +1421,8 @@ static int rna_property_override_diff_propptr(Main *bmain,
 
           IDOverrideLibraryPropertyOperation *opop = NULL;
           if (created || rna_itemname_a != NULL || rna_itemname_b != NULL ||
-              rna_itemindex_a != -1 || rna_itemindex_b != -1) {
+              rna_itemindex_a != -1 || rna_itemindex_b != -1)
+          {
             opop = BKE_lib_override_library_property_operation_get(op,
                                                                    IDOVERRIDE_LIBRARY_OP_REPLACE,
                                                                    rna_itemname_b,
@@ -1462,7 +1466,8 @@ static int rna_property_override_diff_propptr(Main *bmain,
               opop->flag &= ~IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE;
             }
             else if ((owner_id_a->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) != 0 ||
-                     (owner_id_b->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) != 0) {
+                     (owner_id_b->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) != 0)
+            {
               /* In case one of the owner of the checked property is tagged as needing resync, do
                * not change the 'match reference' status of its ID pointer properties overrides,
                * since many non-matching ones are likely due to missing resync. */
@@ -1501,7 +1506,8 @@ static int rna_property_override_diff_propptr(Main *bmain,
        * Note that we do not need the RNA path for insertion operations. */
       if (rna_path) {
         if ((rna_itemname_a != NULL && rna_itemname_a[0] != '\0') &&
-            (rna_itemname_b != NULL && rna_itemname_b[0] != '\0')) {
+            (rna_itemname_b != NULL && rna_itemname_b[0] != '\0'))
+        {
           BLI_assert(STREQ(rna_itemname_a, rna_itemname_b));
 
           char esc_item_name[RNA_PATH_BUFFSIZE];
@@ -1534,7 +1540,8 @@ static int rna_property_override_diff_propptr(Main *bmain,
             uint index;
             for (index = rna_itemindex_a;
                  index > 0 && item_index_buff_len < sizeof(item_index_buff);
-                 index /= 10) {
+                 index /= 10)
+            {
               item_index_buff[item_index_buff_len++] = '0' + (char)(index % 10);
             }
             BLI_assert(index == 0);
@@ -2085,7 +2092,8 @@ int rna_property_override_diff_default(Main *bmain,
           prev_propname_a[0] = '\0';
           if (propname_a != NULL &&
               BLI_strncpy_rlen(prev_propname_a, propname_a, sizeof(buff_prev_a)) >=
-                  sizeof(buff_prev_a) - 1) {
+                  sizeof(buff_prev_a) - 1)
+          {
             prev_propname_a = BLI_strdup(propname_a);
           }
           if (propname_a != buff_a) {
@@ -2170,7 +2178,8 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
   if (!ELEM(opop->operation,
             IDOVERRIDE_LIBRARY_OP_ADD,
             IDOVERRIDE_LIBRARY_OP_SUBTRACT,
-            IDOVERRIDE_LIBRARY_OP_MULTIPLY)) {
+            IDOVERRIDE_LIBRARY_OP_MULTIPLY))
+  {
     return changed;
   }
 
@@ -2724,7 +2733,8 @@ bool rna_property_override_apply_default(Main *bmain,
                                                             prop_dst,
                                                             opop->subitem_reference_name,
                                                             &item_ptr_ref,
-                                                            &item_index_ref)) {
+                                                            &item_index_ref))
+            {
               is_valid = true;
               item_index_dst = item_index_ref + 1;
             }
@@ -2734,7 +2744,8 @@ bool rna_property_override_apply_default(Main *bmain,
             if (RNA_property_collection_lookup_int(
                     ptr_src, prop_src, opop->subitem_local_index, &item_ptr_src) &&
                 RNA_property_collection_lookup_int(
-                    ptr_dst, prop_dst, opop->subitem_reference_index, &item_ptr_ref)) {
+                    ptr_dst, prop_dst, opop->subitem_reference_index, &item_ptr_ref))
+            {
               item_index_dst = opop->subitem_reference_index + 1;
               is_valid = true;
             }

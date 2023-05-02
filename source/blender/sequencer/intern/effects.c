@@ -143,7 +143,8 @@ static ImBuf *prepare_effect_imbufs(const SeqRenderData *context,
     out = IMB_allocImBuf(x, y, 32, IB_rect);
   }
   else if ((ibuf1 && ibuf1->rect_float) || (ibuf2 && ibuf2->rect_float) ||
-           (ibuf3 && ibuf3->rect_float)) {
+           (ibuf3 && ibuf3->rect_float))
+  {
     /* if any inputs are rectfloat, output is float too */
 
     out = IMB_allocImBuf(x, y, 32, IB_rectfloat);
@@ -3283,7 +3284,8 @@ static int early_out_text(Sequence *seq, float UNUSED(fac))
   TextVars *data = seq->effectdata;
   if (data->text[0] == 0 || data->text_size < 1.0f ||
       ((data->color[3] == 0.0f) &&
-       (data->shadow_color[3] == 0.0f || (data->flag & SEQ_TEXT_SHADOW) == 0))) {
+       (data->shadow_color[3] == 0.0f || (data->flag & SEQ_TEXT_SHADOW) == 0)))
+  {
     return EARLY_USE_INPUT_1;
   }
   return EARLY_NO_INPUT;

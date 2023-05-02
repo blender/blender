@@ -75,7 +75,8 @@ static bool node_group_operator_active_poll(bContext *C)
                  "ShaderNodeTree",
                  "CompositorNodeTree",
                  "TextureNodeTree",
-                 "GeometryNodeTree")) {
+                 "GeometryNodeTree"))
+    {
       return true;
     }
   }
@@ -91,7 +92,8 @@ static bool node_group_operator_editable(bContext *C)
      * Disabled otherwise to allow python-nodes define their own operators
      * with same key-map. */
     if (ED_node_is_shader(snode) || ED_node_is_compositor(snode) || ED_node_is_texture(snode) ||
-        ED_node_is_geometry(snode)) {
+        ED_node_is_geometry(snode))
+    {
       return true;
     }
   }
@@ -322,7 +324,8 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 
         /* find external links to this input */
         for (bNodeLink *tlink = (bNodeLink *)ntree->links.first; tlink != glinks_first->next;
-             tlink = tlink->next) {
+             tlink = tlink->next)
+        {
           if (tlink->tonode == gnode && STREQ(tlink->tosock->identifier, identifier)) {
             nodeAddLink(ntree, tlink->fromnode, tlink->fromsock, link->tonode, link->tosock);
             num_external_links++;
@@ -349,7 +352,8 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 
     /* output links */
     for (bNodeLink *link = (bNodeLink *)ntree->links.first; link != glinks_first->next;
-         link = link->next) {
+         link = link->next)
+    {
       if (link->fromnode == gnode) {
         const char *identifier = link->fromsock->identifier;
         int num_internal_links = 0;
@@ -694,7 +698,8 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
       return false;
     };
     if (sockets_connected_to_group(node->input_sockets()) &&
-        sockets_connected_to_group(node->output_sockets())) {
+        sockets_connected_to_group(node->output_sockets()))
+    {
       return false;
     }
   }

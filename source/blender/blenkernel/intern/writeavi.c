@@ -119,7 +119,8 @@ bMovieHandle *BKE_movie_handle_get(const char imtype)
            R_IMF_IMTYPE_H264,
            R_IMF_IMTYPE_XVID,
            R_IMF_IMTYPE_THEORA,
-           R_IMF_IMTYPE_AV1)) {
+           R_IMF_IMTYPE_AV1))
+  {
     mh.start_movie = BKE_ffmpeg_start;
     mh.append_movie = BKE_ffmpeg_append;
     mh.end_movie = BKE_ffmpeg_end;
@@ -164,7 +165,7 @@ static void filepath_avi(char *string, const RenderData *rd, bool preview, const
   if (rd->scemode & R_EXTENSION) {
     if (!BLI_path_extension_check(string, ".avi")) {
       BLI_path_frame_range(string, sfra, efra, 4);
-      strcat(string, ".avi");
+      BLI_strncat(string, ".avi", FILE_MAX);
     }
   }
   else {

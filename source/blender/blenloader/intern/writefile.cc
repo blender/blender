@@ -624,7 +624,8 @@ static void mywrite_id_begin(WriteData *wd, ID *id)
     if (wd->mem.id_session_uuid_mapping != nullptr &&
         (curr_memchunk == nullptr || curr_memchunk->id_session_uuid != id->session_uuid ||
          (prev_memchunk != nullptr &&
-          (prev_memchunk->id_session_uuid == curr_memchunk->id_session_uuid)))) {
+          (prev_memchunk->id_session_uuid == curr_memchunk->id_session_uuid))))
+    {
       void *ref = BLI_ghash_lookup(wd->mem.id_session_uuid_mapping,
                                    POINTER_FROM_UINT(id->session_uuid));
       if (ref != nullptr) {
@@ -959,9 +960,9 @@ static void write_libraries(WriteData *wd, Main *main)
       found_one = false;
       while (!found_one && tot--) {
         for (id = static_cast<ID *>(lbarray[tot]->first); id; id = static_cast<ID *>(id->next)) {
-          if (id->us > 0 &&
-              ((id->tag & LIB_TAG_EXTERN) ||
-               ((id->tag & LIB_TAG_INDIRECT) && (id->flag & LIB_INDIRECT_WEAK_LINK)))) {
+          if (id->us > 0 && ((id->tag & LIB_TAG_EXTERN) || ((id->tag & LIB_TAG_INDIRECT) &&
+                                                            (id->flag & LIB_INDIRECT_WEAK_LINK))))
+          {
             found_one = true;
             break;
           }
@@ -995,9 +996,9 @@ static void write_libraries(WriteData *wd, Main *main)
       /* Write link placeholders for all direct linked IDs. */
       while (a--) {
         for (id = static_cast<ID *>(lbarray[a]->first); id; id = static_cast<ID *>(id->next)) {
-          if (id->us > 0 &&
-              ((id->tag & LIB_TAG_EXTERN) ||
-               ((id->tag & LIB_TAG_INDIRECT) && (id->flag & LIB_INDIRECT_WEAK_LINK)))) {
+          if (id->us > 0 && ((id->tag & LIB_TAG_EXTERN) || ((id->tag & LIB_TAG_INDIRECT) &&
+                                                            (id->flag & LIB_INDIRECT_WEAK_LINK))))
+          {
             if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
               CLOG_ERROR(&LOG,
                          "Data-block '%s' from lib '%s' is not linkable, but is flagged as "
@@ -1473,13 +1474,13 @@ bool BLO_write_file(Main *mainvar,
 
     /* Normalize the paths in case there is some subtle difference (so they can be compared). */
     if (relbase_valid) {
-      BLI_split_dir_part(mainvar->filepath, dir_src, sizeof(dir_src));
+      BLI_path_split_dir_part(mainvar->filepath, dir_src, sizeof(dir_src));
       BLI_path_normalize(dir_src);
     }
     else {
       dir_src[0] = '\0';
     }
-    BLI_split_dir_part(filepath, dir_dst, sizeof(dir_dst));
+    BLI_path_split_dir_part(filepath, dir_dst, sizeof(dir_dst));
     BLI_path_normalize(dir_dst);
 
     /* Only for relative, not relative-all, as this means making existing paths relative. */

@@ -227,14 +227,16 @@ bool MOD_meshcache_read_mdd_frame(FILE *fp,
                                interp,
                                index_range,
                                &factor, /* read into these values */
-                               err_str) == false) {
+                               err_str) == false)
+  {
     return false;
   }
 
   if (index_range[0] == index_range[1]) {
     /* read single */
     if ((BLI_fseek(fp, 0, SEEK_SET) == 0) &&
-        MOD_meshcache_read_mdd_index(fp, vertexCos, verts_tot, index_range[0], 1.0f, err_str)) {
+        MOD_meshcache_read_mdd_index(fp, vertexCos, verts_tot, index_range[0], 1.0f, err_str))
+    {
       return true;
     }
 
@@ -245,7 +247,8 @@ bool MOD_meshcache_read_mdd_frame(FILE *fp,
   if ((BLI_fseek(fp, 0, SEEK_SET) == 0) &&
       MOD_meshcache_read_mdd_index(fp, vertexCos, verts_tot, index_range[0], 1.0f, err_str) &&
       (BLI_fseek(fp, 0, SEEK_SET) == 0) &&
-      MOD_meshcache_read_mdd_index(fp, vertexCos, verts_tot, index_range[1], factor, err_str)) {
+      MOD_meshcache_read_mdd_index(fp, vertexCos, verts_tot, index_range[1], factor, err_str))
+  {
     return true;
   }
 

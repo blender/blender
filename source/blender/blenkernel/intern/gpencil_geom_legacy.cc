@@ -315,7 +315,8 @@ static int stroke_march_next_point_no_interp(const bGPDstroke *gps,
     if (next_point_index < gps->totpoints - 1 &&
         angle_v3v3v3(&gps->points[next_point_index - 1].x,
                      &gps->points[next_point_index].x,
-                     &gps->points[next_point_index + 1].x) < sharp_threshold) {
+                     &gps->points[next_point_index + 1].x) < sharp_threshold)
+    {
       copy_v3_v3(result, &pt->x);
       pt->flag |= GP_SPOINT_TEMP_TAG;
       next_point_index++;
@@ -367,7 +368,8 @@ static int stroke_march_count(const bGPDstroke *gps, const float dist, const flo
   }
 
   while ((next_point_index = stroke_march_next_point_no_interp(
-              gps, next_point_index, point, dist, sharp_threshold, point)) > -1) {
+              gps, next_point_index, point, dist, sharp_threshold, point)) > -1)
+  {
     point_count++;
     if (next_point_index == 0) {
       break; /* last point finished */
@@ -523,7 +525,8 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd,
                                                      &uv_rot,
                                                      &ratio_result,
                                                      &index_from,
-                                                     &index_to)) > -1) {
+                                                     &index_to)) > -1)
+  {
     if (is_cyclic && next_point_index == 0) {
       break; /* last point finished */
     }
@@ -2306,7 +2309,8 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
       float mid[3];
       /* extreme points are not changed */
       for (int i = cyclic ? 0 : 2, j = cyclic ? gps->totpoints - 2 : 0; i < gps->totpoints - 2;
-           j = i, i += 2) {
+           j = i, i += 2)
+      {
         bGPDspoint *prev = &gps->points[j + 1];
         bGPDspoint *pt = &gps->points[i];
         bGPDspoint *next = &gps->points[i + 1];
@@ -2655,7 +2659,8 @@ static Material *gpencil_add_material(Main *bmain,
 
   /* Check at least one is enabled. */
   if (((gp_style->flag & GP_MATERIAL_STROKE_SHOW) == 0) &&
-      ((gp_style->flag & GP_MATERIAL_FILL_SHOW) == 0)) {
+      ((gp_style->flag & GP_MATERIAL_FILL_SHOW) == 0))
+  {
     gp_style->flag |= GP_MATERIAL_STROKE_SHOW;
   }
 
@@ -2705,7 +2710,8 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
   using namespace blender;
   using namespace blender::bke;
   if (ELEM(nullptr, ob_gp, ob_mesh) || (ob_gp->type != OB_GPENCIL_LEGACY) ||
-      (ob_gp->data == nullptr)) {
+      (ob_gp->data == nullptr))
+  {
     return false;
   }
 

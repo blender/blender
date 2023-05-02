@@ -130,7 +130,8 @@ void Canvas::Clear()
   if (!_StyleModules.empty()) {
     for (deque<StyleModule *>::iterator s = _StyleModules.begin(), send = _StyleModules.end();
          s != send;
-         ++s) {
+         ++s)
+    {
       if (*s) {
         delete (*s);
       }
@@ -188,7 +189,8 @@ void Canvas::RemoveStyleModule(uint index)
   if (!_StyleModules.empty()) {
     for (deque<StyleModule *>::iterator s = _StyleModules.begin(), send = _StyleModules.end();
          s != send;
-         ++s, ++i) {
+         ++s, ++i)
+    {
       if (i == index) {
         // remove shader
         if (*s) {
@@ -203,7 +205,8 @@ void Canvas::RemoveStyleModule(uint index)
   if (!_Layers.empty()) {
     i = 0;
     for (deque<StrokeLayer *>::iterator sl = _Layers.begin(), slend = _Layers.end(); sl != slend;
-         ++sl, ++i) {
+         ++sl, ++i)
+    {
       if (i == index) {
         // remove layer
         if (*sl) {
@@ -234,7 +237,8 @@ void Canvas::ReplaceStyleModule(uint index, StyleModule *iStyleModule)
   uint i = 0;
   for (deque<StyleModule *>::iterator s = _StyleModules.begin(), send = _StyleModules.end();
        s != send;
-       ++s, ++i) {
+       ++s, ++i)
+  {
     if (i == index) {
       if (*s) {
         delete *s;

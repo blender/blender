@@ -79,28 +79,32 @@ static void linestyle_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const
   BLI_listbase_clear(&linestyle_dst->color_modifiers);
   for (linestyle_modifier = (LineStyleModifier *)linestyle_src->color_modifiers.first;
        linestyle_modifier;
-       linestyle_modifier = linestyle_modifier->next) {
+       linestyle_modifier = linestyle_modifier->next)
+  {
     BKE_linestyle_color_modifier_copy(linestyle_dst, linestyle_modifier, flag_subdata);
   }
 
   BLI_listbase_clear(&linestyle_dst->alpha_modifiers);
   for (linestyle_modifier = (LineStyleModifier *)linestyle_src->alpha_modifiers.first;
        linestyle_modifier;
-       linestyle_modifier = linestyle_modifier->next) {
+       linestyle_modifier = linestyle_modifier->next)
+  {
     BKE_linestyle_alpha_modifier_copy(linestyle_dst, linestyle_modifier, flag_subdata);
   }
 
   BLI_listbase_clear(&linestyle_dst->thickness_modifiers);
   for (linestyle_modifier = (LineStyleModifier *)linestyle_src->thickness_modifiers.first;
        linestyle_modifier;
-       linestyle_modifier = linestyle_modifier->next) {
+       linestyle_modifier = linestyle_modifier->next)
+  {
     BKE_linestyle_thickness_modifier_copy(linestyle_dst, linestyle_modifier, flag_subdata);
   }
 
   BLI_listbase_clear(&linestyle_dst->geometry_modifiers);
   for (linestyle_modifier = (LineStyleModifier *)linestyle_src->geometry_modifiers.first;
        linestyle_modifier;
-       linestyle_modifier = linestyle_modifier->next) {
+       linestyle_modifier = linestyle_modifier->next)
+  {
     BKE_linestyle_geometry_modifier_copy(linestyle_dst, linestyle_modifier, flag_subdata);
   }
 }
@@ -2010,8 +2014,8 @@ bool BKE_linestyle_use_textures(FreestyleLineStyle *linestyle, const bool use_sh
     if (linestyle && linestyle->use_nodes && linestyle->nodetree) {
       bNode *node;
 
-      for (node = static_cast<bNode *>(linestyle->nodetree->nodes.first); node;
-           node = node->next) {
+      for (node = static_cast<bNode *>(linestyle->nodetree->nodes.first); node; node = node->next)
+      {
         if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
           return true;
         }

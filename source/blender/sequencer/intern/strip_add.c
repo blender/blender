@@ -325,7 +325,8 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   Strip *strip = seq->strip;
   /* We only need 1 element to store the filename. */
   StripElem *se = strip->stripdata = MEM_callocN(sizeof(StripElem), "stripelem");
-  BLI_split_dirfile(load_data->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
+  BLI_path_split_dir_file(
+      load_data->path, strip->dir, sizeof(strip->dir), se->name, sizeof(se->name));
 
   if (seq != NULL && seq->sound != NULL) {
     if (load_data->flags & SEQ_LOAD_SOUND_MONO) {
@@ -501,7 +502,8 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   strip->stripdata->orig_width = orig_width;
   strip->stripdata->orig_height = orig_height;
   strip->stripdata->orig_fps = video_fps;
-  BLI_split_dirfile(load_data->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
+  BLI_path_split_dir_file(
+      load_data->path, strip->dir, sizeof(strip->dir), se->name, sizeof(se->name));
 
   seq_add_set_view_transform(scene, seq, load_data);
   seq_add_set_name(scene, seq, load_data);
@@ -524,7 +526,8 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
            SEQ_TYPE_SCENE,
            SEQ_TYPE_META,
            SEQ_TYPE_MOVIECLIP,
-           SEQ_TYPE_MASK) == 0) {
+           SEQ_TYPE_MASK) == 0)
+  {
     return;
   }
 

@@ -143,7 +143,7 @@ float seq_retiming_evaluate(const Sequence *seq, const float frame_index)
 
   const int segment_length = next_handle->strip_frame_index - previous_handle->strip_frame_index;
   const float segment_frame_index = frame_index - previous_handle->strip_frame_index;
-  const float segment_fac = segment_frame_index / (float)segment_length;
+  const float segment_fac = segment_frame_index / float(segment_length);
   const float target_diff = next_handle->retiming_factor - previous_handle->retiming_factor;
   return previous_handle->retiming_factor + (target_diff * segment_fac);
 }

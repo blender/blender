@@ -156,7 +156,8 @@ void GpencilExporterPDF::export_gpencil_layers()
         const float stroke_opacity = stroke_color_[3] * stroke_average_opacity_get() *
                                      gpl->opacity;
         if ((fill_opacity < GPENCIL_ALPHA_OPACITY_THRESH) &&
-            (stroke_opacity < GPENCIL_ALPHA_OPACITY_THRESH)) {
+            (stroke_opacity < GPENCIL_ALPHA_OPACITY_THRESH))
+        {
           continue;
         }
 

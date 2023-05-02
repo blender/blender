@@ -932,7 +932,8 @@ static void bmw_EdgeLoopWalker_begin(BMWalker *walker, void *data)
       /* Without checking the face count, the 3 edges could be this edge
        * plus two boundary edges (which would not be stepped over), see #84906. */
       ((vert_edge_count[0] == 3 && vert_face_count[0] == 3) ||
-       (vert_edge_count[1] == 3 && vert_face_count[1] == 3))) {
+       (vert_edge_count[1] == 3 && vert_face_count[1] == 3)))
+  {
     BMIter iter;
     BMFace *f_iter;
     BMFace *f_best = NULL;
@@ -1005,7 +1006,8 @@ static void *bmw_EdgeLoopWalker_step(BMWalker *walker)
 
       if (bmw_mask_check_edge(walker, nexte) && !BLI_gset_haskey(walker->visit_set, nexte) &&
           /* Never step onto a boundary edge, this gives odd-results. */
-          (BM_edge_is_boundary(nexte) == false)) {
+          (BM_edge_is_boundary(nexte) == false))
+      {
         lwalk = BMW_state_add(walker);
         lwalk->cur = nexte;
         lwalk->lastv = v;
@@ -1027,7 +1029,8 @@ static void *bmw_EdgeLoopWalker_step(BMWalker *walker)
 
       BM_ITER_ELEM (nexte, &eiter, v, BM_EDGES_OF_VERT) {
         if ((nexte->l == NULL) && bmw_mask_check_edge(walker, nexte) &&
-            !BLI_gset_haskey(walker->visit_set, nexte)) {
+            !BLI_gset_haskey(walker->visit_set, nexte))
+        {
           lwalk = BMW_state_add(walker);
           lwalk->cur = nexte;
           lwalk->lastv = v;
@@ -1097,7 +1100,8 @@ static void *bmw_EdgeLoopWalker_step(BMWalker *walker)
 
         /* Initial edge was a boundary, so is this edge and vertex is only a part of this face
          * this lets us walk over the boundary of an ngon which is handy. */
-        (owalk.is_single == true && vert_edge_tot == 2 && BM_edge_is_boundary(e))) {
+        (owalk.is_single == true && vert_edge_tot == 2 && BM_edge_is_boundary(e)))
+    {
       /* Find next boundary edge in the fan. */
       do {
         l = BM_loop_other_edge_loop(l, v);

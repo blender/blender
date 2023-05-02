@@ -60,7 +60,8 @@ class AtomicDisjointSet {
           /* Implement union by rank heuristic. */
           x_item.rank > y_item.rank
           /* If the rank is the same, make a consistent decision. */
-          || (x_item.rank == y_item.rank && x < y)) {
+          || (x_item.rank == y_item.rank && x < y))
+      {
         std::swap(x_item, y_item);
         std::swap(x, y);
       }

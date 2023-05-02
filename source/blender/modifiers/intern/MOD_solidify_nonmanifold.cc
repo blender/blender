@@ -388,7 +388,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             bool can_merge = true;
             for (uint k = 0; k < edges_num && can_merge; k++) {
               if (k != i && edge_adj_faces_len[k] > 0 &&
-                  (ELEM(vm[orig_edges[k][0]], v1, v2) != ELEM(vm[orig_edges[k][1]], v1, v2))) {
+                  (ELEM(vm[orig_edges[k][0]], v1, v2) != ELEM(vm[orig_edges[k][1]], v1, v2)))
+              {
                 for (uint j = 0; j < edge_adj_faces[k]->faces_len && can_merge; j++) {
                   const blender::IndexRange poly = orig_polys[edge_adj_faces[k]->faces[j]];
                   uint changes = 0;
@@ -550,7 +551,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             for (uint k = 0; k < i_adj_faces->faces_len; k++) {
               for (uint l = 0; l < invalid_adj_faces->faces_len; l++) {
                 if (i_adj_faces->faces[k] == invalid_adj_faces->faces[l] &&
-                    i_adj_faces->faces[k] != MOD_SOLIDIFY_EMPTY_TAG) {
+                    i_adj_faces->faces[k] != MOD_SOLIDIFY_EMPTY_TAG)
+                {
                   i_adj_faces->faces[k] = MOD_SOLIDIFY_EMPTY_TAG;
                   invalid_adj_faces->faces[l] = MOD_SOLIDIFY_EMPTY_TAG;
                   j++;
@@ -974,7 +976,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               while (!edge && j < unassigned_edges_len) {
                 edge = unassigned_edges[j++];
                 if (edge && last_open_edge_track &&
-                    (edge->faces[0] != last_open_edge_track || edge->faces[1] != nullptr)) {
+                    (edge->faces[0] != last_open_edge_track || edge->faces[1] != nullptr))
+                {
                   edge = nullptr;
                 }
               }
@@ -1160,7 +1163,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                          (g.is_orig_closed &&
                           (real_k <=
                                (first_unique_end == -1 ? 0 : first_unique_end) + int(edges_len) ||
-                           first_split != last_split))) {
+                           first_split != last_split)))
+                  {
                     const uint k = real_k % edges_len;
                     if (!doubles[k]) {
                       if (first_unique_end != -1 && unique_start == -1) {
@@ -1457,7 +1461,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                   for (uint l = 0; l < 2; l++) {
                     NewFaceRef *face = edge->faces[l];
                     if (face && (first_edge == nullptr ||
-                                 (first_edge->faces[0] != face && first_edge->faces[1] != face))) {
+                                 (first_edge->faces[0] != face && first_edge->faces[1] != face)))
+                    {
                       float ofs = face->reversed ? ofs_back_clamped : ofs_front_clamped;
                       /* Use face_weight here to make faces thinner. */
                       if (do_flat_faces) {
@@ -1669,7 +1674,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                   for (uint l = 0; l < 2; l++) {
                     NewFaceRef *face = edge->faces[l];
                     if (face && (first_edge == nullptr ||
-                                 (first_edge->faces[0] != face && first_edge->faces[1] != face))) {
+                                 (first_edge->faces[0] != face && first_edge->faces[1] != face)))
+                    {
                       float angle = 1.0f;
                       float ofs = face->reversed ? -ofs_back_clamped : ofs_front_clamped;
                       /* Use face_weight here to make faces thinner. */
@@ -2050,7 +2056,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             const uint v2 = (*l)->link_edge_groups[1]->new_vert;
             uint insert = edge_index;
             if (has_singularities && ((*l)->link_edge_groups[0]->is_singularity &&
-                                      (*l)->link_edge_groups[1]->is_singularity)) {
+                                      (*l)->link_edge_groups[1]->is_singularity))
+            {
               uint j = 0;
               for (uint(*p)[2] = singularity_edges; j < totsingularity; p++, j++) {
                 if (((*p)[0] == v1 && (*p)[1] == v2) || ((*p)[0] == v2 && (*p)[1] == v1)) {
@@ -2525,7 +2532,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
       uint valid_edges = 0;
       uint k = 0;
       while (totloop > 0 && (!fr->link_edges[totloop - 1] ||
-                             fr->link_edges[totloop - 1]->new_edge == MOD_SOLIDIFY_EMPTY_TAG)) {
+                             fr->link_edges[totloop - 1]->new_edge == MOD_SOLIDIFY_EMPTY_TAG))
+      {
         totloop--;
       }
       if (totloop > 0) {

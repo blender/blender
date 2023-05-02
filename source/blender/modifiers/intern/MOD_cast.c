@@ -363,7 +363,8 @@ static void cuboid_do(CastModifierData *cmd,
 
     if (has_radius) {
       if (fabsf(tmp_co[0]) > cmd->radius || fabsf(tmp_co[1]) > cmd->radius ||
-          fabsf(tmp_co[2]) > cmd->radius) {
+          fabsf(tmp_co[2]) > cmd->radius)
+      {
         continue;
       }
     }

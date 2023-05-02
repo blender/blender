@@ -49,17 +49,20 @@ bool BLI_make_existing_file(const char *name);
  * - Won't change \a string.
  * - Won't create any directories.
  * - Doesn't use CWD, or deal with relative paths.
- * - Only fill's in \a dir and \a file when they are non NULL.
  */
-void BLI_split_dirfile(const char *string, char *dir, char *file, size_t dirlen, size_t filelen);
+void BLI_path_split_dir_file(const char *string,
+                             char *dir,
+                             size_t dirlen,
+                             char *file,
+                             size_t filelen) ATTR_NONNULL(1, 2, 4);
 /**
  * Copies the parent directory part of string into `dir`, max length `dirlen`.
  */
-void BLI_split_dir_part(const char *string, char *dir, size_t dirlen);
+void BLI_path_split_dir_part(const char *string, char *dir, size_t dirlen);
 /**
  * Copies the leaf filename part of string into `file`, max length `filelen`.
  */
-void BLI_split_file_part(const char *string, char *file, size_t filelen);
+void BLI_path_split_file_part(const char *string, char *file, size_t filelen);
 /**
  * Returns a pointer to the last extension (e.g. the position of the last period).
  * Returns a pointer to the nil byte when no extension is found.
@@ -423,7 +426,7 @@ bool BLI_path_abs(char *path, const char *basepath) ATTR_NONNULL();
  * Replaces "#" character sequence in last slash-separated component of `path`
  * with frame as decimal integer, with leading zeroes as necessary, to make digits.
  */
-bool BLI_path_frame(char *path, int frame, int digits) ATTR_NONNULL();
+bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits) ATTR_NONNULL();
 /**
  * Replaces "#" character sequence in last slash-separated component of `path`
  * with sta and end as decimal integers, with leading zeroes as necessary, to make digits
