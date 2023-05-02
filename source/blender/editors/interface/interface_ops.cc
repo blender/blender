@@ -1900,7 +1900,7 @@ static void edittranslation_find_po_file(const char *root,
       }
 
       BLI_path_join(path, maxlen, root, tstr);
-      strcat(tstr, ".po");
+      BLI_strncat(tstr, ".po", sizeof(tstr));
       BLI_path_append(path, maxlen, tstr);
       if (BLI_is_file(path)) {
         return;

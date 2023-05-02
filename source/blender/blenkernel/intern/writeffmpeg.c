@@ -1357,8 +1357,11 @@ static void flush_ffmpeg(AVCodecContext *c, AVStream *stream, AVFormatContext *o
  * ********************************************************************** */
 
 /* Get the output filename-- similar to the other output formats */
-static void ffmpeg_filepath_get(
-    FFMpegContext *context, char *string, const RenderData *rd, bool preview, const char *suffix)
+static void ffmpeg_filepath_get(FFMpegContext *context,
+                                char string[FILE_MAX],
+                                const RenderData *rd,
+                                bool preview,
+                                const char *suffix)
 {
   char autosplit[20];
 
@@ -1379,7 +1382,7 @@ static void ffmpeg_filepath_get(
     efra = rd->efra;
   }
 
-  strcpy(string, rd->pic);
+  BLI_strncpy(string, rd->pic, FILE_MAX);
   BLI_path_abs(string, BKE_main_blendfile_path_from_global());
 
   BLI_make_existing_file(string);
@@ -1401,15 +1404,15 @@ static void ffmpeg_filepath_get(
     }
 
     if (*fe == NULL) {
-      strcat(string, autosplit);
+      BLI_strncat(string, autosplit, FILE_MAX);
 
       BLI_path_frame_range(string, sfra, efra, 4);
-      strcat(string, *exts);
+      BLI_strncat(string, *exts, FILE_MAX);
     }
     else {
       *(string + strlen(string) - strlen(*fe)) = '\0';
-      strcat(string, autosplit);
-      strcat(string, *fe);
+      BLI_strncat(string, autosplit, FILE_MAX);
+      BLI_strncat(string, *fe, FILE_MAX);
     }
   }
   else {
@@ -1417,7 +1420,7 @@ static void ffmpeg_filepath_get(
       BLI_path_frame_range(string, sfra, efra, 4);
     }
 
-    strcat(string, autosplit);
+    BLI_strncat(string, autosplit, FILE_MAX);
   }
 
   BLI_path_suffix(string, FILE_MAX, suffix, "");

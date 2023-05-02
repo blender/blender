@@ -138,6 +138,19 @@ size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src)
   return srclen;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name String Append
+ * \{ */
+
+char *BLI_strncat(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
+{
+  size_t len = BLI_strnlen(dst, maxncpy);
+  if (len < maxncpy) {
+    BLI_strncpy(dst + len, src, maxncpy - len);
+  }
+  return dst;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
