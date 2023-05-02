@@ -59,6 +59,7 @@
 #include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
+#include "BKE_screen.h"
 
 /* may move these, only for BKE_modifier_path_relbase */
 #include "BKE_main.h"
@@ -120,9 +121,7 @@ const ModifierTypeInfo *BKE_modifier_get_info(ModifierType type)
 void BKE_modifier_type_panel_id(ModifierType type, char *r_idname)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(type);
-
-  strcpy(r_idname, MODIFIER_TYPE_PANEL_PREFIX);
-  strcat(r_idname, mti->name);
+  BLI_string_join(r_idname, sizeof(PanelType::idname), MODIFIER_TYPE_PANEL_PREFIX, mti->name);
 }
 
 void BKE_modifier_panel_expand(ModifierData *md)

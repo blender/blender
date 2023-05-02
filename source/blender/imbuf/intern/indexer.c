@@ -16,6 +16,7 @@
 #include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #ifdef _WIN32
@@ -66,9 +67,9 @@ anim_index_builder *IMB_index_builder_create(const char *name)
   fprintf(stderr, "Starting work on index: %s\n", name);
 
   BLI_strncpy(rv->name, name, sizeof(rv->name));
-  BLI_strncpy(rv->temp_name, name, sizeof(rv->temp_name));
 
-  strcat(rv->temp_name, temp_ext);
+  BLI_strncpy(rv->temp_name, name, sizeof(rv->temp_name));
+  BLI_string_join(rv->temp_name, sizeof(rv->temp_name), name, temp_ext);
 
   BLI_make_existing_file(rv->temp_name);
 
