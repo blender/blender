@@ -1657,6 +1657,8 @@ static void vwpaint_update_cache_invariants(
   copy_v3_v3(cache->view_normal, cache->true_view_normal);
   cache->bstrength = BKE_brush_alpha_get(scene, brush);
   cache->is_last_valid = false;
+
+  cache->accum = true;
 }
 
 /* Initialize the stroke cache variants from operator properties */
