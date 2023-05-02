@@ -324,13 +324,19 @@ typedef struct IDOverrideLibraryRuntime {
 /* IDOverrideLibraryRuntime->tag. */
 enum {
   /** This override needs to be reloaded. */
-  IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RELOAD = 1 << 0,
+  LIBOVERRIDE_TAG_NEEDS_RELOAD = 1 << 0,
 
   /**
    * This override contains properties with forbidden changes, which should be restored to their
    * linked reference value.
    */
-  IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RESTORE = 1 << 1,
+  LIBOVERRIDE_TAG_NEEDS_RESTORE = 1 << 1,
+
+  /**
+   * This override is detected as being cut from its hierarchy root. Temporarily used during
+   * resync process.
+   */
+  LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT = 1 << 2,
 };
 
 /* Main container for all overriding data info of a data-block. */

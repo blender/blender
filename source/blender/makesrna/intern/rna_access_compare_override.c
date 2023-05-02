@@ -865,7 +865,7 @@ bool RNA_struct_override_matches(Main *bmain,
                * a NOOP operation to enforce no change on that property, etc.). */
               op->tag |= IDOVERRIDE_LIBRARY_PROPERTY_TAG_NEEDS_RETORE;
               opop_restore->tag |= IDOVERRIDE_LIBRARY_PROPERTY_TAG_NEEDS_RETORE;
-              override->runtime->tag |= IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RESTORE;
+              override->runtime->tag |= LIBOVERRIDE_TAG_NEEDS_RESTORE;
 
               if (r_report_flags) {
                 *r_report_flags |= RNA_OVERRIDE_MATCH_RESULT_RESTORE_TAGGED;
