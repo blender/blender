@@ -769,7 +769,7 @@ void bc_enable_fcurves(bAction *act, char *bone_name)
   char prefix[200];
 
   if (bone_name) {
-    char bone_name_esc[sizeof(((Bone *)nullptr)->name) * 2];
+    char bone_name_esc[sizeof(Bone::name) * 2];
     BLI_str_escape(bone_name_esc, bone_name, sizeof(bone_name_esc));
     BLI_snprintf(prefix, sizeof(prefix), "pose.bones[\"%s\"]", bone_name_esc);
   }

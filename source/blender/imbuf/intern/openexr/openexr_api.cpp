@@ -824,7 +824,7 @@ static void imb_exr_insert_view_name(char *name_full, const char *passname, cons
   BLI_assert(!ELEM(name_full, passname, viewname));
 
   if (viewname == nullptr || viewname[0] == '\0') {
-    BLI_strncpy(name_full, passname, sizeof(((ExrChannel *)nullptr)->name));
+    BLI_strncpy(name_full, passname, sizeof(ExrChannel::name));
     return;
   }
 

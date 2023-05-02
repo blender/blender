@@ -526,7 +526,7 @@ void BKE_workspace_tool_id_replace_table(struct WorkSpace *workspace,
                                          int replace_table_num)
 {
   const size_t idname_prefix_len = idname_prefix_skip ? strlen(idname_prefix_skip) : 0;
-  const size_t idname_suffix_len = sizeof(((bToolRef *)nullptr)->idname) - idname_prefix_len;
+  const size_t idname_suffix_len = sizeof(bToolRef::idname) - idname_prefix_len;
 
   LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
     if (!(tref->space_type == space_type && tref->mode == mode)) {

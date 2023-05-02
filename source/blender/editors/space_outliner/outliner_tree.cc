@@ -1634,7 +1634,7 @@ static void outliner_filter_tree(SpaceOutliner *space_outliner,
                                  const Scene *scene,
                                  ViewLayer *view_layer)
 {
-  char search_buff[sizeof(((struct SpaceOutliner *)nullptr)->search_string) + 2];
+  char search_buff[sizeof(SpaceOutliner::search_string) + 2];
   char *search_string;
 
   const int exclude_filter = outliner_exclude_filter_get(space_outliner);

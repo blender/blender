@@ -2076,13 +2076,13 @@ static void outliner_buttons(const bContext *C,
   /* If we add support to rename Sequence, need change this. */
 
   if (tselem->type == TSE_EBONE) {
-    len = sizeof(((EditBone *)nullptr)->name);
+    len = sizeof(EditBone::name);
   }
   else if (tselem->type == TSE_MODIFIER) {
-    len = sizeof(((ModifierData *)nullptr)->name);
+    len = sizeof(ModifierData::name);
   }
   else if (tselem->id && GS(tselem->id->name) == ID_LI) {
-    len = sizeof(((Library *)nullptr)->filepath);
+    len = sizeof(Library::filepath);
   }
   else {
     len = MAX_ID_NAME - 2;
