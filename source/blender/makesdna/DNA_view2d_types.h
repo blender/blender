@@ -124,6 +124,9 @@ enum {
   V2D_IS_NAVIGATING = (1 << 9),
   /* view settings need to be set still... */
   V2D_IS_INIT = (1 << 10),
+  /* Ensure scrolling always snaps to multiples of #View2D.page_size_y or the #View2D.mask height
+   * if this is 0. Zooming doesn't respect this. */
+  V2D_SNAP_TO_PAGESIZE_Y = (1 << 11),
 };
 
 /** Scroller flags for View2D (#View2D.scroll). */

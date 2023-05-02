@@ -103,8 +103,16 @@ void ED_asset_shelf_region_listen(const wmRegionListenerParams *params)
 void ED_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
 {
   ED_region_panels_init(wm, region);
+
   region->v2d.scroll = V2D_SCROLL_RIGHT;
+  region->v2d.keepofs |= V2D_KEEPOFS_Y;
+  region->v2d.keeptot |= V2D_KEEPTOT_STRICT;
+
+  region->v2d.flag |= V2D_SNAP_TO_PAGESIZE_Y;
   region->v2d.page_size_y = ED_asset_shelf_default_tile_height();
+
+  /* Ensure the view is snapped to a page still, especially for DPI changes. */
+  UI_view2d_offset_y_snap_to_closest_page(&region->v2d);
 }
 
 static int main_region_padding_y()
@@ -182,17 +190,16 @@ void ED_asset_shelf_region_draw(const bContext *C,
 
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
 
-  const uiStyle *style = UI_style_get();
+  const uiStyle *style = UI_style_get_dpi();
   const float padding_y = main_region_padding_y();
   const float padding_x = main_region_padding_x();
-  const float scale_x = UI_view2d_scale_get_x(&region->v2d);
   uiLayout *layout = UI_block_layout(block,
                                      UI_LAYOUT_VERTICAL,
                                      UI_LAYOUT_PANEL,
                                      padding_x,
                                      -padding_y,
-                                     (region->winx - 2 * padding_x) / scale_x,
-                                     1,
+                                     region->winx - 2 * padding_x,
+                                     0,
                                      0,
                                      style);
 
@@ -200,7 +207,8 @@ void ED_asset_shelf_region_draw(const bContext *C,
 
   int layout_height;
   UI_block_layout_resolve(block, nullptr, &layout_height);
-  UI_view2d_totRect_set(&region->v2d, region->winx, layout_height);
+  BLI_assert(layout_height <= 0);
+  UI_view2d_totRect_set(&region->v2d, region->winx - 1, layout_height - padding_y);
   UI_view2d_curRect_validate(&region->v2d);
 
   UI_block_end(C, block);
