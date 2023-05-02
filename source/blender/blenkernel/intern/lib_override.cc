@@ -2463,7 +2463,7 @@ static bool lib_override_resync_tagging_finalize_recurse(
     if ((id->override_library->runtime->tag & LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT) != 0) {
       BLI_assert(id != id_root);
       CLOG_INFO(&LOG,
-                4,
+                3,
                 "ID %s (%p) is tagged as needing resync, but is cut from its hierarchy root ID %s "
                 "in its current override hierarchy. This could be the sign of a deleted or moved "
                 "around linked data, do not consider it as a partial resync root.",
@@ -2473,7 +2473,7 @@ static bool lib_override_resync_tagging_finalize_recurse(
     }
     else {
       CLOG_INFO(&LOG,
-                4,
+                3,
                 "ID %s (%p) is tagged as needing resync, but none of its override hierarchy "
                 "ancestors are tagged for resync, so it is a partial resync root",
                 id->name,
@@ -2593,8 +2593,6 @@ static void lib_override_library_main_resync_on_library_indirect_level(
 
     if (id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) {
       CLOG_INFO(&LOG, 4, "ID %s (%p) was already tagged as needing resync", id->name, id->lib);
-      lib_override_resync_tagging_finalize_recurse(
-          bmain, id, id_roots, library_indirect_level, false);
       continue;
     }
 
@@ -2612,7 +2610,6 @@ static void lib_override_library_main_resync_on_library_indirect_level(
 
       /* Case where this ID pointer was to a linked ID, that now needs to be overridden. */
       if (ID_IS_LINKED(id_to) && (id_to->lib != id->lib) && (id_to->tag & LIB_TAG_DOIT) != 0) {
-        id->tag |= LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
         CLOG_INFO(&LOG,
                   3,
                   "ID %s (%p) now tagged as needing resync because they use linked %s (%p) that "
@@ -2621,10 +2618,30 @@ static void lib_override_library_main_resync_on_library_indirect_level(
                   id->lib,
                   id_to->name,
                   id_to->lib);
-        lib_override_resync_tagging_finalize_recurse(
-            bmain, id, id_roots, library_indirect_level, false);
+        id->tag |= LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
         break;
       }
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  /* Handling hierarchy relations for final tagging needs to happen after all IDs in a given
+   * hierarchy have been tagged for resync in previous loop above. Otherwise, some resync roots may
+   * be missing, and other may be created that are not actually needed (when a liboverride is
+   * tagged for resync after being checked in #lib_override_resync_tagging_finalize_recurse as part
+   * of the parent hierarchy of another liboverride e.g.). */
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (lib_override_library_main_resync_id_skip_check(id, library_indirect_level)) {
+      continue;
+    }
+
+    if (id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) {
+      if (STREQ(id->name, "GRSE-rocket_interior")) {
+        printf("f\n");
+      }
+      lib_override_resync_tagging_finalize_recurse(
+          bmain, id, id_roots, library_indirect_level, false);
+      continue;
     }
   }
   FOREACH_MAIN_ID_END;
@@ -2641,6 +2658,23 @@ static void lib_override_library_main_resync_on_library_indirect_level(
           BLI_ghashIterator_getValue(id_roots_iter));
       CLOG_INFO(
           &LOG, 2, "Checking validity of computed TODO data for root '%s'... \n", id_root->name);
+
+      if (id_root->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) {
+        LinkNode *id_resync_root_iter = id_resync_roots->list;
+        ID *id_resync_root = static_cast<ID *>(id_resync_root_iter->link);
+
+        if (id_resync_roots->list != id_resync_roots->last_node || id_resync_root != id_root) {
+          CLOG_ERROR(&LOG,
+                     "Hierarchy root ID is tagged for resync, yet it is not the only partial "
+                     "resync roots, this should not happen."
+                     "\n\tRoot ID: %s"
+                     "\n\tFirst Resync root ID: %s"
+                     "\n\tLast Resync root ID: %s",
+                     id_root->name,
+                     static_cast<ID *>(id_resync_roots->list->link)->name,
+                     static_cast<ID *>(id_resync_roots->last_node->link)->name);
+        }
+      }
       for (LinkNode *id_resync_root_iter = id_resync_roots->list; id_resync_root_iter != nullptr;
            id_resync_root_iter = id_resync_root_iter->next)
       {
