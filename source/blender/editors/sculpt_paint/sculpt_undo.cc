@@ -685,7 +685,7 @@ typedef struct BmeshUndoData {
   bool balance_pbvh;
   int cd_face_node_offset, cd_vert_node_offset;
   int cd_face_node_offset_old, cd_vert_node_offset_old;
-  int cd_sculpt_vert, cd_boundary_flag;
+  int cd_sculpt_vert, cd_boundary_flag, cd_flags;
   bool regen_all_unique_verts;
   bool is_redo;
 } BmeshUndoData;
@@ -724,10 +724,9 @@ static void bmesh_undo_on_vert_add(BMVert *v, void *userdata)
   BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
 
   *(int *)BM_ELEM_CD_GET_VOID_P(v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
-
-  MSculptVert *mv = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, v);
-  MV_ADD_FLAG(mv,
-              SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE);
+  *BM_ELEM_CD_PTR<uint8_t *>(v, data->cd_flags) |= SCULPTVERT_NEED_DISK_SORT |
+                                                   SCULPTVERT_NEED_VALENCE |
+                                                   SCULPTVERT_NEED_TRIANGULATE;
 }
 
 static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
@@ -744,9 +743,9 @@ static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
 
   BMLoop *l = f->l_first;
   do {
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, l->v);
-    MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
-    *(int *)BM_ELEM_CD_GET_VOID_P(l->v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+    *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTVERT_NEED_DISK_SORT |
+                                                        SCULPTVERT_NEED_VALENCE;
+    *BM_ELEM_CD_PTR<int *>(l->v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
   } while ((l = l->next) != f->l_first);
 
   // data->do_full_recalc = true;
@@ -768,11 +767,11 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
   do {
     *(int *)BM_ELEM_CD_GET_VOID_P(l->v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, l->v);
-    MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
+    *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTVERT_NEED_DISK_SORT |
+                                                        SCULPTVERT_NEED_VALENCE;
 
     if (f->len > 3) {
-      MV_ADD_FLAG(mv, SCULPTVERT_NEED_TRIANGULATE);
+      *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTVERT_NEED_TRIANGULATE;
     }
 
     int ni_l = BM_ELEM_CD_GET_INT(l->v, data->cd_vert_node_offset);
@@ -808,30 +807,30 @@ static void bmesh_undo_on_edge_kill(BMEdge *e, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
 
-  MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, e->v1);
-  MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, e->v2);
-
   *(int *)BM_ELEM_CD_GET_VOID_P(e->v1, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
   *(int *)BM_ELEM_CD_GET_VOID_P(e->v2, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-  MV_ADD_FLAG(mv1,
-              SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
-  MV_ADD_FLAG(mv2,
-              SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE);
-}
-
+  *BM_ELEM_CD_PTR<uint8_t *>(e->v1, data->cd_flags) |= SCULPTVERT_NEED_DISK_SORT |
+                                                       SCULPTVERT_NEED_VALENCE |
+                                                       SCULPTVERT_NEED_TRIANGULATE;
+  *BM_ELEM_CD_PTR<uint8_t *>(e->v2, data->cd_flags) |= SCULPTVERT_NEED_DISK_SORT |
+                                                       SCULPTVERT_NEED_VALENCE |
+                                                       SCULPTVERT_NEED_TRIANGULATE;
+};
+;
 static void bmesh_undo_on_edge_add(BMEdge *e, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
 
-  MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, e->v1);
-  MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, e->v2);
-
   *(int *)BM_ELEM_CD_GET_VOID_P(e->v1, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
   *(int *)BM_ELEM_CD_GET_VOID_P(e->v2, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-  mv1->flag |= SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE;
-  mv2->flag |= SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE;
+  *BM_ELEM_CD_PTR<uint8_t *>(e->v1, data->cd_flags) |= SCULPTVERT_NEED_DISK_SORT |
+                                                       SCULPTVERT_NEED_VALENCE |
+                                                       SCULPTVERT_NEED_TRIANGULATE;
+  *BM_ELEM_CD_PTR<uint8_t *>(e->v2, data->cd_flags) |= SCULPTVERT_NEED_DISK_SORT |
+                                                       SCULPTVERT_NEED_VALENCE |
+                                                       SCULPTVERT_NEED_TRIANGULATE;
 }
 
 static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_customdata)
@@ -960,6 +959,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
                         -1,
                         ss->cd_sculpt_vert,
                         ss->attrs.boundary_flags->bmesh_cd_offset,
+                        ss->attrs.flags->bmesh_cd_offset,
                         false,
                         !unode->applied};
 
@@ -1052,7 +1052,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
   BKE_sculptsession_update_attr_refs(ob);
 
   if (ss->pbvh) {
-    SCULPT_load_all_original(ob);
+    blender::bke::paint::load_all_original(ob);
   }
 
   if (ss->bm_idmap) {
@@ -2032,8 +2032,8 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
         copy_v3_v3(unode->orig_co[vd.i], cos[vd.index]);
       }
       else {
-        MSculptVert *mv = SCULPT_vertex_get_sculptvert(ss, vd.vertex);
-        copy_v3_v3(unode->orig_co[vd.i], mv->origco);
+        copy_v3_v3(unode->orig_co[vd.i],
+                   blender::bke::paint::vertex_attr_ptr<float>(vd.vertex, ss->attrs.orig_co));
       }
     }
   }
@@ -2293,28 +2293,24 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
         }
         eAttrDomain domain = BKE_id_attribute_domain(&mesh->id, color_layer);
 
-        switch (domain) {
-          case ATTR_DOMAIN_POINT: {
-            BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-              bm_logstack_push();
-              BM_log_vert_before_modified(ss->bm, ss->bm_log, vd.bm_vert);
-              bm_logstack_pop();
-            }
-            BKE_pbvh_vertex_iter_end;
-            break;
+        if (domain == ATTR_DOMAIN_POINT) {
+          BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+            bm_logstack_push();
+            BM_log_vert_before_modified(ss->bm, ss->bm_log, vd.bm_vert);
+            bm_logstack_pop();
           }
-          case ATTR_DOMAIN_CORNER: {
-            TableGSet *faces = BKE_pbvh_bmesh_node_faces(node);
-            BMFace *f;
-
-            TGSET_ITER (f, faces) {
-              BM_log_face_modified(ss->bm, ss->bm_log, f);
-            }
-            TGSET_ITER_END
-
-            break;
-          }
+          BKE_pbvh_vertex_iter_end;
         }
+        else if (domain == ATTR_DOMAIN_CORNER) {
+          TableGSet *faces = BKE_pbvh_bmesh_node_faces(node);
+          BMFace *f;
+
+          TGSET_ITER (f, faces) {
+            BM_log_face_modified(ss->bm, ss->bm_log, f);
+          }
+          TGSET_ITER_END
+        }
+
         break;
       }
       case SCULPT_UNDO_FACE_SETS: {
@@ -2332,6 +2328,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_DYNTOPO_END:
       case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
       case SCULPT_UNDO_GEOMETRY:
+      case SCULPT_UNDO_NO_TYPE:
         break;
     }
   }

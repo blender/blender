@@ -227,8 +227,10 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
       vcolor[3] = 1.0f;
     }
     else {
-      MSculptVert *mv = SCULPT_vertex_get_sculptvert(ss, vd.vertex);
-      IMB_blend_color_float(vcolor, mv->origcolor, buffer_color, IMB_BlendMode(brush->blend));
+      IMB_blend_color_float(vcolor,
+                            vertex_attr_ptr<float>(vd.vertex, ss->attrs.orig_color),
+                            buffer_color,
+                            IMB_BlendMode(brush->blend));
     }
 
     CLAMP4(vcolor, 0.0f, 1.0f);

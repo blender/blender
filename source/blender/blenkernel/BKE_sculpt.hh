@@ -40,7 +40,10 @@ BLI_INLINE bool stroke_id_clear(SculptSession *ss, PBVHVertRef vertex, StrokeIDU
 {
   StrokeID *id = blender::bke::paint::vertex_attr_ptr<StrokeID>(vertex, ss->attrs.stroke_id);
 
+  bool retval = id->userflag & user;
   id->userflag &= ~user;
+
+  return retval;
 }
 
 BLI_INLINE bool stroke_id_test(SculptSession *ss, PBVHVertRef vertex, StrokeIDUser user)

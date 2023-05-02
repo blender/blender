@@ -248,7 +248,7 @@ extern "C" void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh)
   pbvh_bmesh_check_nodes(pbvh);
 }
 #else
-extern "C" void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh) {}
+extern "C" void BKE_pbvh_bmesh_check_nodes(PBVH * /*pbvh*/) {}
 #endif
 
 /** \} */
@@ -283,7 +283,7 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
                                       const float co[3],
                                       const float no[3],
                                       BMVert *v_example,
-                                      const int cd_vert_mask_offset)
+                                      const int /*cd_vert_mask_offset*/)
 {
   PBVHNode *node = &pbvh->nodes[node_index];
 
@@ -626,7 +626,6 @@ void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
   const int updateflag = PBVH_UpdateDrawBuffers | PBVH_UpdateBB | PBVH_UpdateTris |
                          PBVH_UpdateNormals | PBVH_UpdateOtherVerts;
 
-  int ni = pbvh_bmesh_node_index_from_vert(pbvh, v);
   PBVHNode *v_node = pbvh_bmesh_node_from_vert(pbvh, v);
 
   if (v_node && v_node->bm_unique_verts) {
@@ -1127,8 +1126,11 @@ void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
 
       node2->flag |= updateflag;
 
+      float *origco = pbvh->cd_origco != -1 ? BM_ELEM_CD_PTR<float *>(l->v, pbvh->cd_origco) :
+                                              l->v->co;
+
       BB_expand(&node2->vb, l->v->co);
-      BB_expand(&node2->orig_vb, mv->origco);
+      BB_expand(&node2->orig_vb, origco);
     }
     l = l->next;
   } while (l != f->l_first);
@@ -1358,7 +1360,7 @@ static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
   BLI_table_gset_free(old_other_verts, nullptr);
 }
 
-void BKE_pbvh_bmesh_mark_node_regen(PBVH *pbvh, PBVHNode *node)
+void BKE_pbvh_bmesh_mark_node_regen(PBVH * /*pbvh*/, PBVHNode *node)
 {
   node->flag |= PBVH_RebuildNodeVerts;
 }
@@ -1390,15 +1392,15 @@ void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh)
 
 /************************* Called from pbvh.c *************************/
 
-static bool pbvh_poly_hidden(PBVH *pbvh, BMFace *f)
+static bool pbvh_poly_hidden(PBVH * /*pbvh*/, BMFace *f)
 {
   return BM_elem_flag_test(f, BM_ELEM_HIDDEN);
 }
 
-bool BKE_pbvh_bmesh_check_origdata(SculptSession *ss, BMVert *v, int stroke_id)
+bool BKE_pbvh_bmesh_check_origdata(SculptSession *ss, BMVert *v, int /*stroke_id*/)
 {
   PBVHVertRef vertex = {(intptr_t)v};
-  blender::bke::paint::get_original_vertex(ss, vertex, nullptr, nullptr, nullptr, nullptr);
+  return blender::bke::paint::get_original_vertex(ss, vertex, nullptr, nullptr, nullptr, nullptr);
 }
 
 bool pbvh_bmesh_node_raycast(SculptSession *ss,
@@ -1418,8 +1420,6 @@ bool pbvh_bmesh_node_raycast(SculptSession *ss,
 {
   bool hit = false;
   float nearest_vertex_co[3] = {0.0f};
-
-  GSetIterator gs_iter;
 
   BKE_pbvh_bmesh_check_tris(pbvh, node);
 
@@ -2077,25 +2077,11 @@ static int color_boundary_key(float col[4])
 }
 #endif
 
-/* calls atomic_cas_uint32 on two adjacent (and int aligned) shorts */
-BLI_INLINE void atomic_cas_short2(ushort *base, ushort olda, ushort oldb, ushort newa, ushort newb)
-{
-  uint oldi, newi;
-
-  ((ushort *)&oldi)[0] = olda;
-  ((ushort *)&oldi)[1] = oldb;
-
-  ((ushort *)&newi)[0] = newa;
-  ((ushort *)&newi)[1] = newb;
-
-  atomic_cas_uint32((uint32_t *)base, oldi, newi);
-}
-
-void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
+void bke_pbvh_update_vert_boundary(int /*cd_sculpt_vert*/,
                                    int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
-                                   int cd_vcol,
+                                   int /*cd_vcol*/,
                                    int cd_boundary_flag,
                                    int cd_flag,
                                    int cd_valence,
@@ -2105,8 +2091,6 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    const int totuv)
 {
   int newflag = *BM_ELEM_CD_PTR<uint8_t *>(v, cd_flag);
-  int oldflag = newflag;
-  int oldval = BM_ELEM_CD_GET_INT(v, cd_valence);
   int boundflag = 0;
 
   BMEdge *e = v->e;
@@ -2285,10 +2269,6 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
       // also check e->l->radial_next, in case we are not manifold
       // which can mess up the loop order
       if (e->l->radial_next != e->l) {
-        float th = saacos(dot_v3v3(e->l->f->no, e->l->radial_next->f->no));
-
-        th *= M_1_PI * 0.25f;
-
         if (cd_faceset_offset != -1) {
           // fset = abs(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset));
           int fset2 = BKE_pbvh_do_fset_symmetry(
@@ -2338,8 +2318,6 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
   if ((boundflag & SCULPT_BOUNDARY_MESH) && quadcount >= 3) {
     boundflag |= SCULPT_CORNER_MESH;
   }
-
-  int oldboundflag = BM_ELEM_CD_GET_INT(v, cd_boundary_flag);
 
   /* XXX: does this need to be threadsafe? */
   BM_ELEM_CD_SET_INT(v, cd_boundary_flag, boundflag);
@@ -2435,10 +2413,15 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
   pbvh->cd_sculpt_vert = cd_sculpt_vert;
   pbvh->cd_boundary_flag = cd_boundary_flag;
-  pbvh->cd_flag = cd_flag_offset;
-  pbvh->cd_valence = cd_valence_offset;
   pbvh->cd_origco = cd_origco;
   pbvh->cd_origno = cd_origno;
+
+  pbvh->cd_flag = CustomData_get_offset_named(
+      &pbvh->header.bm->vdata, CD_PROP_INT8, ".sculpt_flags");
+  pbvh->cd_valence = CustomData_get_offset_named(
+      &pbvh->header.bm->vdata, CD_PROP_INT8, ".sculpt_valence");
+  pbvh->cd_boundary_flag = CustomData_get_offset_named(
+      &pbvh->header.bm->vdata, CD_PROP_INT8, ".sculpt_boundary_flags");
 
   pbvh->mesh = me;
 
@@ -2506,14 +2489,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   bm->elem_index_dirty |= BM_FACE;
 
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    dyntopo_add_flag(pbvh,
-                     v,
-                     SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE |
-                         SCULPTVERT_NEED_DISK_SORT);
-
-    int *flags = BM_ELEM_CD_PTR<int *>(v, pbvh->cd_boundary_flag);
-    *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
-
     BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, DYNTOPO_NODE_NONE);
   }
 
@@ -2617,7 +2592,8 @@ void BKE_pbvh_set_bm_log(PBVH *pbvh, BMLog *log)
   BM_log_set_idmap(log, pbvh->bm_idmap);
 }
 
-bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
+bool BKE_pbvh_bmesh_update_topology_nodes(SculptSession *ss,
+                                          PBVH *pbvh,
                                           bool (*searchcb)(PBVHNode *node, void *data),
                                           void (*undopush)(PBVHNode *node, void *data),
                                           void *searchdata,
@@ -2656,7 +2632,8 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
     BKE_pbvh_node_mark_topology_update(node);
   }
 
-  modified = BKE_pbvh_bmesh_update_topology(pbvh,
+  modified = BKE_pbvh_bmesh_update_topology(ss,
+                                            pbvh,
                                             mode,
                                             center,
                                             view_normal,
@@ -2702,7 +2679,7 @@ PBVHTriBuf *BKE_pbvh_bmesh_get_tris(PBVH *pbvh, PBVHNode *node)
   return node->tribuf;
 }
 
-void BKE_pbvh_bmesh_free_tris(PBVH *pbvh, PBVHNode *node)
+void BKE_pbvh_bmesh_free_tris(PBVH * /*pbvh*/, PBVHNode *node)
 {
   if (node->tribuf) {
     pbvh_free_tribuf(node->tribuf);
@@ -3144,13 +3121,14 @@ void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh)
     }
   }
 
-  const int cd_sculpt_vert = pbvh->cd_sculpt_vert;
-
   BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
     int *flags = BM_ELEM_CD_PTR<int *>(v, pbvh->cd_boundary_flag);
     *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-    dyntopo_add_flag(pbvh, v, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_VALENCE);
+    dyntopo_add_flag(pbvh,
+                     v,
+                     SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_TRIANGULATE |
+                         SCULPTVERT_NEED_VALENCE);
     BKE_pbvh_bmesh_update_valence(pbvh, BKE_pbvh_make_vref((intptr_t)v));
   }
 }
@@ -3258,7 +3236,7 @@ static void pbvh_bmesh_join_subnodes(PBVH *pbvh, PBVHNode *node, PBVHNode *paren
   TGSET_ITER_END
 }
 
-static void BKE_pbvh_bmesh_correct_tree(PBVH *pbvh, PBVHNode *node, PBVHNode *parent)
+static void BKE_pbvh_bmesh_correct_tree(PBVH *pbvh, PBVHNode *node, PBVHNode * /*parent*/)
 {
   const int size_lower = pbvh->leaf_limit - (pbvh->leaf_limit >> 1);
 
@@ -4068,7 +4046,8 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_flag,
                              const int cd_valence,
                              const int cd_origco,
-                             const int cd_origno)
+                             const int cd_origno,
+                             const int cd_curvature_dir)
 {
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
@@ -4080,6 +4059,7 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
 
   pbvh->totuv = CustomData_number_of_layers(&pbvh->header.bm->ldata, CD_PROP_FLOAT2);
   pbvh->cd_boundary_flag = cd_boundary_flag;
+  pbvh->cd_curvature_dir = cd_curvature_dir;
 
   if (pbvh->bm_idmap) {
     BM_idmap_check_attributes(pbvh->bm_idmap);
@@ -4089,153 +4069,6 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
   pbvh->cd_valence = cd_valence;
   pbvh->cd_origco = cd_origco;
   pbvh->cd_origno = cd_origno;
-}
-
-static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)
-{
-  Vector<BMFace *> faces;
-  Vector<BMEdge *> newedges;
-  Vector<BMVert *> newverts;
-  Vector<BMVert *> fmap;
-  Vector<int> emap;
-
-  // remove e from radial list of e->v2
-  for (int i = 0; i < totedge; i++) {
-    BMEdge *e = edges[i];
-
-    BMDiskLink *prev;
-    BMDiskLink *next;
-
-    if (e->v2_disk_link.prev->v1 == e->v2) {
-      prev = &e->v2_disk_link.prev->v1_disk_link;
-    }
-    else {
-      prev = &e->v2_disk_link.prev->v2_disk_link;
-    }
-
-    if (e->v2_disk_link.next->v1 == e->v2) {
-      next = &e->v2_disk_link.next->v1_disk_link;
-    }
-    else {
-      next = &e->v2_disk_link.next->v2_disk_link;
-    }
-
-    prev->next = e->v2_disk_link.next;
-    next->prev = e->v2_disk_link.prev;
-  }
-
-  for (int i = 0; i < totedge; i++) {
-    BMEdge *e = edges[i];
-
-    BMVert *v2 = static_cast<BMVert *>(BLI_mempool_alloc(bm->vpool));
-    memset(v2, 0, sizeof(*v2));
-    v2->head.data = BLI_mempool_alloc(bm->vdata.pool);
-
-    newverts.append(v2);
-
-    BMEdge *e2 = static_cast<BMEdge *>(BLI_mempool_alloc(bm->epool));
-    newedges.append(e2);
-
-    memset(e2, 0, sizeof(*e2));
-    if (bm->edata.pool) {
-      e2->head.data = BLI_mempool_alloc(bm->edata.pool);
-    }
-
-    BMLoop *l = e->l;
-
-    if (!l) {
-      continue;
-    }
-
-    do {
-      faces.append(l->f);
-      BMFace *f2 = static_cast<BMFace *>(BLI_mempool_alloc(bm->fpool));
-
-      faces.append(l->f);
-      fmap.append(v2);
-      emap.append(i);
-
-      faces.append(f2);
-      fmap.append(v2);
-      emap.append(i);
-
-      memset(f2, 0, sizeof(*f2));
-      f2->head.data = BLI_mempool_alloc(bm->ldata.pool);
-
-      BMLoop *prev = nullptr;
-      BMLoop *l2 = nullptr;
-
-      for (int j = 0; j < 3; j++) {
-        l2 = (BMLoop *)BLI_mempool_alloc(bm->lpool);
-        memset(l2, 0, sizeof(*l2));
-        l2->head.data = BLI_mempool_alloc(bm->ldata.pool);
-
-        l2->prev = prev;
-
-        if (prev) {
-          prev->next = l2;
-        }
-        else {
-          f2->l_first = l2;
-        }
-      }
-
-      f2->l_first->prev = l2;
-      l2->next = f2->l_first;
-
-      faces.append(f2);
-      l = l->radial_next;
-    } while (l != e->l);
-  }
-
-  for (int i : IndexRange(newedges.size())) {
-    BMEdge *e1 = edges[i];
-    BMEdge *e2 = newedges[i];
-    BMVert *v = newverts[i];
-
-    add_v3_v3v3(v->co, e1->v1->co, e1->v2->co);
-    mul_v3_fl(v->co, 0.5f);
-
-    e2->v1 = v;
-    e2->v2 = e1->v2;
-    e1->v2 = v;
-
-    v->e = e1;
-
-    e1->v2_disk_link.next = e1->v2_disk_link.prev = e2;
-    e2->v1_disk_link.next = e2->v1_disk_link.prev = e1;
-  }
-
-  for (int i : IndexRange(faces.size())) {
-    BMFace *f1 = faces[i], *f2 = faces[i + 1];
-    BMEdge *e1 = edges[emap[i]];
-    BMEdge *e2 = newedges[emap[i]];
-    BMVert *nv = fmap[i];
-
-    // make sure first loop points to e1->v1
-    BMLoop *l = f1->l_first;
-    do {
-      if (l->v == e1->v1) {
-        break;
-      }
-      l = l->next;
-    } while (l != f1->l_first);
-
-    f1->l_first = l;
-
-    BMLoop *l2 = f2->l_first;
-
-    l2->f = l2->next->f = l2->prev->f = f2;
-    l2->v = nv;
-    l2->next->v = l->next->v;
-    l2->prev->v = l->prev->v;
-    l2->e = e2;
-    l2->next->e = l->next->e;
-    l2->prev->e = l->prev->e;
-
-    l->next->v = nv;
-    l->next->e = e2;
-  }
 }
 
 #define MAX_RE_CHILD 3
@@ -5225,7 +5058,7 @@ static void free_meshtest(MeshTest *m)
 
 #define SMOOTH_TEST_STEPS 20
 
-double pbvh_bmesh_smooth_test(BMesh *bm, PBVH *pbvh)
+double pbvh_bmesh_smooth_test(BMesh *bm, PBVH * /*pbvh*/)
 {
   double average = 0.0f;
   double average_tot = 0.0f;
@@ -5290,7 +5123,7 @@ double pbvh_bmesh_smooth_test(BMesh *bm, PBVH *pbvh)
   return average / average_tot;
 }
 
-double pbvh_meshtest2_smooth_test(MeshTest2 *m2, PBVH *pbvh)
+double pbvh_meshtest2_smooth_test(MeshTest2 *m2, PBVH * /*pbvh*/)
 {
   double average = 0.0f;
   double average_tot = 0.0f;
@@ -5358,7 +5191,7 @@ double pbvh_meshtest2_smooth_test(MeshTest2 *m2, PBVH *pbvh)
   return average / average_tot;
 }
 
-double pbvh_meshtest_smooth_test(MeshTest *m, PBVH *pbvh)
+double pbvh_meshtest_smooth_test(MeshTest *m, PBVH * /*pbvh*/)
 {
   double average = 0.0f;
   double average_tot = 0.0f;

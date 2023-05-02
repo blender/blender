@@ -114,7 +114,6 @@ BLI_INLINE void surface_smooth_v_safe(SculptSession *ss, PBVH *pbvh, BMVert *v, 
     pbvh_check_vert_boundary(pbvh, v);
   }
 
-  const int cd_sculpt_vert = pbvh->cd_sculpt_vert;
   const int boundflag = BM_ELEM_CD_GET_INT(v, pbvh->cd_boundary_flag);
 
   const bool bound1 = boundflag & SCULPTVERT_SMOOTH_BOUNDARY;
@@ -129,7 +128,7 @@ BLI_INLINE void surface_smooth_v_safe(SculptSession *ss, PBVH *pbvh, BMVert *v, 
 
   do {
     BMVert *v2 = e->v1 == v ? e->v2 : e->v1;
-    PBVHVertRef vertex2 = { reinterpret_cast<intptr_t>(v2)};
+    PBVHVertRef vertex2 = {reinterpret_cast<intptr_t>(v2)};
 
     /* Note: we can't validate the boundary flags from with a thread
      * so they may not be up to date.
@@ -195,7 +194,7 @@ BLI_INLINE void surface_smooth_v_safe(SculptSession *ss, PBVH *pbvh, BMVert *v, 
   atomic_cas_float(&start_origco[1], y, ny);
   atomic_cas_float(&start_origco[2], z, nz);
 
-  PBVH_CHECK_NAN(start_origco[0]);
+  PBVH_CHECK_NAN(start_origco);
   PBVH_CHECK_NAN(v->co);
   // atomic_cas_int32(&mv1->stroke_id, stroke_id, pbvh->stroke_id);
 }
@@ -1288,8 +1287,6 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
 
   BLI_task_parallel_range(0, count, (void *)tdata.data(), unified_edge_queue_task_cb, &settings);
 
-  const int cd_sculpt_vert = pbvh->cd_sculpt_vert;
-
   for (int i = 0; i < count; i++) {
     EdgeQueueThreadData *td = &tdata[i];
     BMEdge **edges = td->edges;
@@ -2039,7 +2036,8 @@ float mask_cb_nop(PBVHVertRef /*vertex*/, void * /*userdata*/)
 }
 
 /* Collapse short edges, subdivide long edges */
-extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
+extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
+                                               PBVH *pbvh,
                                                PBVHTopologyUpdateMode mode,
                                                const float center[3],
                                                const float view_normal[3],
@@ -2122,6 +2120,8 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   }
 
   EdgeQueueContext eq_ctx = {};
+
+  eq_ctx.ss = ss;
 
   eq_ctx.pool = nullptr;
   eq_ctx.bm = pbvh->header.bm;
@@ -3156,9 +3156,7 @@ DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
                                 {CD_DYNTOPO_VERT, nullptr, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
                                 {CD_PROP_INT32,
                                  SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_vertex),
-                                 CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
-                                {CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(valence), CD_FLAG_TEMPORARY},
-                                {CD_PROP_INT8, SCULPT_ATTRIBUTE_NAME(flags), CD_FLAG_TEMPORARY}};
+                                 CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
 
   BMCustomLayerReq flayers[] = {
       {CD_PROP_FLOAT2, SCULPT_ATTRIBUTE_NAME(face_areas), CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
@@ -3250,21 +3248,6 @@ void BKE_dyntopo_free(DynTopoState *ds)
   MEM_freeN(ds);
 }
 
-/*
-bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
-                                    PBVHTopologyUpdateMode mode,
-                                    const float center[3],
-                                    const float view_normal[3],
-                                    float radius,
-                                    const bool use_frontface,
-                                    const bool use_projected,
-                                    int sym_axis,
-                                    bool updatePBVH,
-                                    DyntopoMaskCB mask_cb,
-                                    void *mask_cb_data,
-                                    int custom_max_steps,
-                                    bool disable_surface_relax)
-*/
 void BKE_dyntopo_remesh(DynTopoState *ds,
                         DynRemeshParams *params,
                         int steps,
@@ -3298,7 +3281,8 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
 
   /* subdivide once */
   if (mode & PBVH_Subdivide) {
-    BKE_pbvh_bmesh_update_topology(ds->pbvh,
+    BKE_pbvh_bmesh_update_topology(nullptr,
+                                   ds->pbvh,
                                    PBVH_Subdivide,
                                    cent,
                                    view,
@@ -3323,7 +3307,8 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
       }
     }
 
-    BKE_pbvh_bmesh_update_topology(ds->pbvh,
+    BKE_pbvh_bmesh_update_topology(nullptr,
+                                   ds->pbvh,
                                    mode,
                                    cent,
                                    view,

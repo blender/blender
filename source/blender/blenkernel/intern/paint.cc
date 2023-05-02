@@ -1457,7 +1457,7 @@ void BKE_sculptsession_free_vwpaint_data(SculptSession *ss)
 /**
  * Write out the sculpt dynamic-topology #BMesh to the #Mesh.
  */
-static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
+static void sculptsession_bm_to_me_update_data_only(Object *ob, bool /*reorder*/)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -1888,15 +1888,6 @@ static void sculpt_update_object(
     }
   }
 
-  /* Sculpt Face Sets. */
-  if (use_face_sets) {
-    ss->face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-        &me->pdata, CD_PROP_INT32, ".sculpt_face_set", me->totpoly));
-  }
-  else {
-    ss->face_sets = nullptr;
-  }
-
   ss->hide_poly = (bool *)CustomData_get_layer_named_for_write(
       &me->pdata, CD_PROP_BOOL, ".hide_poly", me->totpoly);
 
@@ -1905,6 +1896,29 @@ static void sculpt_update_object(
 
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
   sculpt_check_face_areas(ob, pbvh);
+
+  /* Sculpt Face Sets. */
+  if (use_face_sets) {
+    int *face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
+        &me->pdata, CD_PROP_INT32, ".sculpt_face_set", me->totpoly));
+
+    if (face_sets) {
+      /* Load into sculpt attribute system. */
+      ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
+    }
+    else {
+      ss->face_sets = nullptr;
+      if (ss->pbvh && !ss->bm) {
+        BKE_pbvh_face_sets_set(ss->pbvh, nullptr);
+      }
+    }
+  }
+  else {
+    ss->face_sets = nullptr;
+    if (ss->pbvh && !ss->bm) {
+      BKE_pbvh_face_sets_set(ss->pbvh, nullptr);
+    }
+  }
 
   sculpt_boundary_flags_ensure(ob, pbvh, BKE_sculptsession_vertex_count(ss));
 
@@ -1923,7 +1937,7 @@ static void sculpt_update_object(
   if (ss->subdiv_ccg) {
     BKE_pbvh_subdiv_ccg_set(ss->pbvh, ss->subdiv_ccg);
   }
-  BKE_pbvh_face_sets_set(ss->pbvh, ss->face_sets);
+
   BKE_pbvh_update_hide_attributes_from_mesh(ss->pbvh);
 
   BKE_pbvh_face_sets_color_set(ss->pbvh, me->face_sets_color_seed, me->face_sets_color_default);
@@ -2045,7 +2059,7 @@ static void sculpt_update_object(
       break;
   }
 
-  BKE_sculptsession_check_sculptverts(ob, pbvh, totvert);
+  BKE_sculptsession_check_sculptverts(ob, pbvh, totvert, false);
 
   if (ss->bm && me->key && ob->shapenr != ss->bm->shapenr) {
     KeyBlock *actkey = static_cast<KeyBlock *>(BLI_findlink(&me->key->block, ss->bm->shapenr - 1));
@@ -2203,6 +2217,9 @@ static void sculpt_update_object(
   }
 
   if (ss->pbvh) {
+    blender::bke::pbvh::set_flags_valence(ss->pbvh,
+                                          static_cast<uint8_t *>(ss->attrs.flags->data),
+                                          static_cast<int *>(ss->attrs.valence->data));
     BKE_pbvh_set_sculpt_verts(ss->pbvh, ss->msculptverts);
   }
 }
@@ -2278,53 +2295,55 @@ void BKE_sculpt_update_object_for_edit(
 {
   /* Update from sculpt operators and undo, to update sculpt session
    * and PBVH after edits. */
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_orig);
 
   sculpt_update_object(depsgraph, ob_orig, ob_eval, need_pmap, is_paint_tool);
 }
 
-int *BKE_sculpt_face_sets_ensure(Object *ob)
+ATTR_NO_OPT int *BKE_sculpt_face_sets_ensure(Object *ob)
 {
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
   SculptSession *ss = ob->sculpt;
 
-  if (ss && ss->bm) {
-    if (CustomData_get_named_layer_index(&ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set") !=
-        -1) {
-      return nullptr;
+  if (!ss->attrs.face_set) {
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    SculptAttributeParams params = {};
+    params.permanent = true;
+
+    CustomData *cdata = ss->bm ? &ss->bm->pdata : &mesh->pdata;
+    bool clear = CustomData_get_named_layer_index(
+                     cdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(face_set)) == -1;
+
+    ss->attrs.face_set = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_FACE, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(face_set), &params);
+
+    if (clear) {
+      if (ss->bm) {
+        BMFace *f;
+        BMIter iter;
+        int cd_faceset = ss->attrs.face_set->bmesh_cd_offset;
+
+        BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+          BM_ELEM_CD_SET_INT(f, cd_faceset, 1);
+        }
+      }
+      else {
+        int *face_sets = static_cast<int *>(ss->attrs.face_set->data);
+
+        for (int i : IndexRange(ss->totfaces)) {
+          face_sets[i] = 1;
+        }
+      }
+
+      Mesh *mesh = static_cast<Mesh *>(ob->data);
+      mesh->face_sets_color_default = 1;
     }
-
-    BM_data_layer_add_named(ss->bm, &ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
-
-    const int cd_faceset_offset = CustomData_get_offset_named(
-        &ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
-
-    BMIter iter;
-    BMFace *f;
-    BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-      BM_ELEM_CD_SET_INT(f, cd_faceset_offset, 1);
-    }
-
-    BKE_sculptsession_update_attr_refs(ob);
-
-    return nullptr;
   }
 
-  using namespace blender;
-  using namespace blender::bke;
-
-  MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  if (!attributes.contains(".sculpt_face_set")) {
-    SpanAttributeWriter<int> face_sets = attributes.lookup_or_add_for_write_only_span<int>(
-        ".sculpt_face_set", ATTR_DOMAIN_FACE);
-    face_sets.span.fill(1);
-    mesh->face_sets_color_default = 1;
-    face_sets.finish();
+  if (ss->pbvh && !ss->bm) {
+    BKE_pbvh_face_sets_set(ss->pbvh, static_cast<int *>(ss->attrs.face_set->data));
   }
 
-  return static_cast<int *>(CustomData_get_layer_named_for_write(
-      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly));
+  return static_cast<int *>(ss->attrs.face_set->data);
 }
 
 bool *BKE_sculpt_hide_poly_ensure(Object *ob)
@@ -2531,9 +2550,8 @@ void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
   }
 }
 
-static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool update_sculptverts)
+static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool /*update_sculptverts*/)
 {
-  Mesh *me = BKE_object_get_original_mesh(ob);
   PBVH *pbvh = ob->sculpt->pbvh = BKE_pbvh_new(PBVH_BMESH);
   BKE_pbvh_set_bmesh(pbvh, ob->sculpt->bm);
 
@@ -2583,7 +2601,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
 
   PBVH *pbvh = ob->sculpt->pbvh = BKE_pbvh_new(PBVH_FACES);
 
-  BKE_sculptsession_check_sculptverts(ob, pbvh, me->totvert);
+  BKE_sculptsession_check_sculptverts(ob, pbvh, me->totvert, true);
   sculpt_check_face_areas(ob, pbvh);
   BKE_sculptsession_update_attr_refs(ob);
   BKE_pbvh_set_pmap(pbvh, ss->pmap);
@@ -2610,7 +2628,6 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
 
   Mesh *base_mesh = BKE_mesh_from_object(ob);
 
-  int totgridfaces = base_mesh->totloop * (key.grid_size - 1) * (key.grid_size - 1);
   BKE_sculpt_sync_face_visibility_to_grids(base_mesh, subdiv_ccg);
 
   BKE_sculptsession_update_attr_refs(ob);
@@ -2641,25 +2658,28 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
   BKE_pbvh_set_pmap(pbvh, ss->pmap);
 
   int totvert = BKE_pbvh_get_grid_num_verts(pbvh);
-  BKE_sculptsession_check_sculptverts(ob, pbvh, totvert);
-
-  for (int i = 0; i < totvert; i++) {
-    ss->msculptverts[i].stroke_id = -1;
-    ss->msculptverts[i].flag |= SCULPTVERT_NEED_VALENCE;
-  }
-
-  BKE_pbvh_set_sculpt_verts(pbvh, ss->msculptverts);
+  BKE_sculptsession_check_sculptverts(ob, pbvh, totvert, true);
 
   return pbvh;
 }
 
-extern "C" bool BKE_sculptsession_check_sculptverts(Object *ob, struct PBVH *pbvh, int totvert)
+extern "C" bool BKE_sculptsession_check_sculptverts(Object *ob,
+                                                    struct PBVH *pbvh,
+                                                    int totvert,
+                                                    bool reset_flags)
 {
   SculptSession *ss = ob->sculpt;
 
   if (!ss->attrs.flags) {
     BKE_sculpt_ensure_sculpt_layers(ob);
 
+    reset_flags = true;
+  }
+
+  BKE_sculpt_ensure_origco(ob);
+  sculpt_boundary_flags_ensure(ob, pbvh, totvert);
+
+  if (reset_flags) {
     if (ss->bm) {
       int cd_flags = ss->attrs.flags->bmesh_cd_offset;
       BMVert *v;
@@ -2681,10 +2701,6 @@ extern "C" bool BKE_sculptsession_check_sculptverts(Object *ob, struct PBVH *pbv
     }
   }
 
-  BKE_sculpt_ensure_origco(ob);
-
-  sculpt_boundary_flags_ensure(ob, pbvh, totvert);
-
   if (!ss->attrs.sculpt_vert || !ss->attrs.sculpt_vert->data) {
     SculptAttributeParams params = {0};
 
@@ -2694,6 +2710,10 @@ extern "C" bool BKE_sculptsession_check_sculptverts(Object *ob, struct PBVH *pbv
 
   ss->msculptverts = static_cast<MSculptVert *>(ss->attrs.sculpt_vert->data);
   BKE_pbvh_set_sculpt_verts(pbvh, ss->msculptverts);
+
+  blender::bke::pbvh::set_flags_valence(ss->pbvh,
+                                        static_cast<uint8_t *>(ss->attrs.flags->data),
+                                        static_cast<int *>(ss->attrs.valence->data));
 
   return false;
 }
@@ -2745,8 +2765,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     ob->sculpt->pbvh = pbvh;
   }
   else {
-#if 1  // def WHEN_GLOBAL_UNDO_WORKS
-    /*detect if we are loading from an undo memfile step*/
+    /* Detect if we are loading from an undo memfile step. */
     Mesh *mesh_orig = BKE_object_get_original_mesh(ob);
     bool is_dyntopo = (mesh_orig->flag & ME_SCULPT_DYNAMIC_TOPOLOGY);
 
@@ -2785,20 +2804,6 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
         pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform);
       }
     }
-#else
-    Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
-    Mesh *mesh_eval = static_cast<Mesh *>(object_eval->data);
-    if (mesh_eval->runtime->subdiv_ccg != nullptr) {
-      pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime->subdiv_ccg);
-    }
-    else if (ob->type == OB_MESH) {
-      Mesh *me_eval_deform = object_eval->runtime.mesh_deform_eval;
-
-      BKE_sculptsession_check_sculptverts(ob, me_eval_deform->totvert);
-
-      pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform);
-    }
-#endif
   }
 
   if (!ob->sculpt->pmap) {
@@ -3156,14 +3161,14 @@ static int sculpt_attr_elem_count_get(Object *ob, eAttrDomain domain)
   }
 }
 
-static bool sculpt_attribute_create(SculptSession *ss,
-                                    Object *ob,
-                                    eAttrDomain domain,
-                                    eCustomDataType proptype,
-                                    const char *name,
-                                    SculptAttribute *out,
-                                    const SculptAttributeParams *params,
-                                    PBVHType pbvhtype)
+ATTR_NO_OPT static bool sculpt_attribute_create(SculptSession *ss,
+                                                Object *ob,
+                                                eAttrDomain domain,
+                                                eCustomDataType proptype,
+                                                const char *name,
+                                                SculptAttribute *out,
+                                                const SculptAttributeParams *params,
+                                                PBVHType pbvhtype)
 {
   Mesh *me = BKE_object_get_original_mesh(ob);
 
@@ -3176,7 +3181,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
   BLI_strncpy_utf8(out->name, name, sizeof(out->name));
 
   /* Force non-CustomData simple_array mode if not PBVH_FACES. */
-  if (pbvhtype == PBVH_GRIDS) {
+  if (pbvhtype == PBVH_GRIDS && domain == ATTR_DOMAIN_POINT) {
     if (permanent) {
       printf(
           "%s: error: tried to make permanent customdata in multires; will make "
@@ -3236,7 +3241,6 @@ static bool sculpt_attribute_create(SculptSession *ss,
 
       if (!permanent && !ss->save_temp_layers) {
         cdata->layers[index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
-        out->params.permanent = true;
       }
 
       out->data = nullptr;
@@ -3245,6 +3249,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
       out->elem_size = CustomData_sizeof(proptype);
       break;
     }
+    case PBVH_GRIDS:
     case PBVH_FACES: {
       CustomData *cdata = nullptr;
 
@@ -3266,7 +3271,6 @@ static bool sculpt_attribute_create(SculptSession *ss,
       int index = CustomData_get_named_layer_index(cdata, proptype, name);
 
       if (!permanent && !ss->save_temp_layers) {
-        out->params.permanent = true;
         cdata->layers[index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
       }
 
@@ -3276,11 +3280,6 @@ static bool sculpt_attribute_create(SculptSession *ss,
       out->bmesh_cd_offset = -1;
       out->elem_size = CustomData_sizeof(proptype);
 
-      break;
-    }
-    case PBVH_GRIDS: {
-      /* GRIDS should have been handled as simple arrays. */
-      BLI_assert_unreachable();
       break;
     }
     default:
@@ -3294,7 +3293,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
   return true;
 }
 
-static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
+ATTR_NO_OPT static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
 {
   SculptSession *ss = ob->sculpt;
   int elem_num = sculpt_attr_elem_count_get(ob, attr->domain);
@@ -3306,8 +3305,8 @@ static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
   }
 
   /* Check if we are a coerced simple array and shouldn't be. */
-  bad |= attr->simple_array && !attr->params.simple_array &&
-         !ELEM(BKE_pbvh_type(ss->pbvh), PBVH_GRIDS, PBVH_BMESH);
+  bad |= (attr->simple_array && !attr->params.simple_array) &&
+         !(BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS && attr->domain == ATTR_DOMAIN_POINT);
 
   CustomData *cdata = sculpt_get_cdata(ob, attr->domain);
   if (cdata && !attr->simple_array) {
@@ -3344,6 +3343,10 @@ static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
   if (bad) {
     if (attr->simple_array) {
       MEM_SAFE_FREE(attr->data);
+    }
+
+    if (pbvhtype != PBVH_GRIDS && (attr->simple_array && !attr->params.simple_array)) {
+      attr->simple_array = false;
     }
 
     sculpt_attribute_create(
@@ -3420,16 +3423,29 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
     return attr;
   }
 
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS && domain == ATTR_DOMAIN_POINT) {
+    /* Don't pull from customdata for PBVH_GRIDS and vertex domain.
+     * Multires vertex attributes don't go through CustomData.
+     */
+    return nullptr;
+  }
+
   /* Does attribute exist in CustomData layout? */
   CustomData *cdata = sculpt_get_cdata(ob, domain);
   if (cdata) {
     int index = CustomData_get_named_layer_index(cdata, proptype, name);
 
     if (index != -1) {
-      int totelem = sculpt_attr_elem_count_get(ob, ATTR_DOMAIN_POINT);
+      int totelem = sculpt_attr_elem_count_get(ob, domain);
 
       attr = sculpt_alloc_attr(ss);
 
+      if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES ||
+          (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS && domain == ATTR_DOMAIN_FACE)) {
+        attr->data = cdata->layers[index].data;
+      }
+
+      attr->params.permanent = !(cdata->layers[index].flag & CD_FLAG_TEMPORARY);
       attr->used = true;
       attr->domain = domain;
       attr->proptype = proptype;
@@ -3438,6 +3454,7 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
       attr->elem_num = totelem;
       attr->layer = cdata->layers + index;
       attr->elem_size = CustomData_sizeof(proptype);
+      attr->data_for_bmesh = ss->bm && attr->bmesh_cd_offset != -1;
 
       BLI_strncpy_utf8(attr->name, name, sizeof(attr->name));
       return attr;
@@ -3618,21 +3635,15 @@ void BKE_sculpt_attributes_destroy_temporary_stroke(Object *ob)
        */
 
       if (!attr->params.simple_array && ss->bm) {
-        BMIter iter;
-        int size = CustomData_sizeof(attr->proptype);
-
         /* Zero the attribute in an attempt to emulate the behavior of releasing it. */
-        switch (attr->domain) {
-          case ATTR_DOMAIN_POINT: {
-            sculpt_clear_attribute_bmesh<BMVert>(ss->bm, attr);
-            break;
-          }
-          case ATTR_DOMAIN_EDGE:
-            sculpt_clear_attribute_bmesh<BMEdge>(ss->bm, attr);
-            break;
-          case ATTR_DOMAIN_FACE:
-            sculpt_clear_attribute_bmesh<BMFace>(ss->bm, attr);
-            break;
+        if (attr->domain == ATTR_DOMAIN_POINT) {
+          sculpt_clear_attribute_bmesh<BMVert>(ss->bm, attr);
+        }
+        else if (attr->domain == ATTR_DOMAIN_EDGE) {
+          sculpt_clear_attribute_bmesh<BMEdge>(ss->bm, attr);
+        }
+        else if (attr->domain == ATTR_DOMAIN_FACE) {
+          sculpt_clear_attribute_bmesh<BMFace>(ss->bm, attr);
         }
         continue;
       }
@@ -3725,6 +3736,15 @@ static void sculpt_attribute_update_refs(Object *ob)
 
   if (ss->bm) {
     update_bmesh_offsets(me, ss);
+  }
+  else if (ss->pbvh) {
+    if (ss->attrs.orig_co && ss->attrs.orig_no) {
+      const int verts_count = BKE_sculptsession_vertex_count(ss);
+      blender::bke::pbvh::set_original(
+          ob->sculpt->pbvh,
+          {static_cast<float3 *>(ss->attrs.orig_co->data), verts_count},
+          {static_cast<float3 *>(ss->attrs.orig_no->data), verts_count});
+    }
   }
 }
 
@@ -3843,14 +3863,24 @@ bool BKE_sculpt_has_persistent_base(SculptSession *ss)
 
 void BKE_sculpt_ensure_origco(struct Object *ob)
 {
+  SculptSession *ss = ob->sculpt;
   SculptAttributeParams params = {};
-  if (!ob->sculpt->attrs.orig_co) {
-    ob->sculpt->attrs.orig_co = BKE_sculpt_attribute_ensure(
+
+  if (!ss->attrs.orig_co) {
+    ss->attrs.orig_co = BKE_sculpt_attribute_ensure(
         ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(orig_co), &params);
   }
-  if (!ob->sculpt->attrs.orig_no) {
-    ob->sculpt->attrs.orig_no = BKE_sculpt_attribute_ensure(
+  if (!ss->attrs.orig_no) {
+    ss->attrs.orig_no = BKE_sculpt_attribute_ensure(
         ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(orig_no), &params);
+  }
+
+  if (ss->pbvh) {
+    const int verts_count = BKE_sculptsession_vertex_count(ss);
+    blender::bke::pbvh::set_original(
+        ob->sculpt->pbvh,
+        {static_cast<float3 *>(ss->attrs.orig_co->data), verts_count},
+        {static_cast<float3 *>(ss->attrs.orig_no->data), verts_count});
   }
 }
 
@@ -3898,20 +3928,29 @@ void BKE_sculpt_ensure_sculpt_layers(struct Object *ob)
         ob, ATTR_DOMAIN_POINT, CD_PROP_INT8, SCULPT_ATTRIBUTE_NAME(flags), &params);
   }
   if (!ob->sculpt->attrs.valence) {
-    ob->sculpt->attrs.flags = BKE_sculpt_attribute_ensure(
+    ob->sculpt->attrs.valence = BKE_sculpt_attribute_ensure(
         ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(valence), &params);
+  }
+  if (!ob->sculpt->attrs.stroke_id) {
+    ob->sculpt->attrs.stroke_id = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(stroke_id), &params);
+  }
+
+  if (ob->sculpt->pbvh) {
+    blender::bke::pbvh::set_flags_valence(ob->sculpt->pbvh,
+                                          static_cast<uint8_t *>(ob->sculpt->attrs.flags->data),
+                                          static_cast<int *>(ob->sculpt->attrs.valence->data));
   }
 }
 
 namespace blender::bke::paint {
 bool get_original_vertex(SculptSession *ss,
                          PBVHVertRef vertex,
-                         const float **r_co,
+                         float **r_co,
                          float **r_no,
                          float **r_color,
                          float **r_mask)
 {
-  uint8_t flags = vertex_attr_get<uint8_t>(vertex, ss->attrs.flags);
   bool retval = false;
 
   if (sculpt::stroke_id_test(ss, vertex, STROKEID_USER_ORIGINAL)) {
@@ -3919,11 +3958,12 @@ bool get_original_vertex(SculptSession *ss,
       const float *co = nullptr, *no = nullptr;
 
       switch (BKE_pbvh_type(ss->pbvh)) {
-        case PBVH_BMESH:
+        case PBVH_BMESH: {
           BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
           co = v->co;
           no = v->no;
           break;
+        }
         case PBVH_FACES:
           if (ss->shapekey_active || ss->deform_modifiers_active) {
             co = BKE_pbvh_get_vert_positions(ss->pbvh)[vertex.i];
@@ -4009,7 +4049,7 @@ bool get_original_vertex(SculptSession *ss,
   return retval;
 }
 
-void SCULPT_load_all_original(Object *ob)
+void load_all_original(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -4018,7 +4058,7 @@ void SCULPT_load_all_original(Object *ob)
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     blender::bke::sculpt::stroke_id_clear(ss, vertex, STROKEID_USER_ORIGINAL);
-    SCULPT_get_original(ss, vertex);
+    get_original_vertex(ss, vertex, nullptr, nullptr, nullptr, nullptr);
   }
 }
 

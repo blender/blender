@@ -72,9 +72,6 @@ using blender::Vector;
 #define CUSTOMDATA_GROW 5
 
 #define BM_ASAN_PAD 32
-#if defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)
-#  define CD_HAVE_ASAN
-#endif
 
 /* ensure typemap size is ok */
 BLI_STATIC_ASSERT(ARRAY_SIZE(((CustomData *)nullptr)->typemap) == CD_NUMTYPES, "size mismatch");
@@ -2858,7 +2855,7 @@ static void customData_update_offsets(CustomData *data)
     int size = (int)typeInfo->size;
 
     /* Float vectors get 4-byte alignment. */
-    if (ELEM(layer->type, CD_PROP_COLOR, CD_PROP_FLOAT2, CD_PROP_FLOAT3)) {
+    if (ELEM(layer->type, CD_PROP_COLOR, CD_PROP_FLOAT2, CD_PROP_FLOAT3, CD_PROP_INT32_2D)) {
       alignment = max_ii(alignment, 4);
     }
     else if (size > 4) {
@@ -2883,14 +2880,14 @@ static void customData_update_offsets(CustomData *data)
         size += 8 - (size & 7);
       }
 
-#ifdef CD_HAVE_ASAN
+#ifdef WITH_ASAN
       offset += BM_ASAN_PAD;
 #endif
 
       layer->offset = offset;
       offset += size;
 
-#ifdef CD_HAVE_ASAN
+#ifdef WITH_ASAN
       offset += BM_ASAN_PAD;
 #endif
     }
@@ -2911,7 +2908,7 @@ static void customData_update_offsets(CustomData *data)
         continue;
       }
 
-#ifdef CD_HAVE_ASAN
+#ifdef WITH_ASAN
       offset += BM_ASAN_PAD;
 #endif
 
@@ -2925,7 +2922,7 @@ static void customData_update_offsets(CustomData *data)
       layer->offset = offset;
       offset += size;
 
-#ifdef CD_HAVE_ASAN
+#ifdef WITH_ASAN
       offset += BM_ASAN_PAD;
 #endif
     }
@@ -2942,7 +2939,7 @@ static void customData_update_offsets(CustomData *data)
 
 void CustomData_bmesh_asan_poison(const CustomData *data, void *block)
 {
-#ifdef CD_HAVE_ASAN
+#ifdef WITH_ASAN
   if (!block) {
     return;
   }
@@ -2953,7 +2950,7 @@ void CustomData_bmesh_asan_poison(const CustomData *data, void *block)
 
   for (int i = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = data->layers + i;
-    const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+    const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(layer->type));
 
     BLI_asan_poison((ptr + layer->offset - BM_ASAN_PAD), BM_ASAN_PAD);
     BLI_asan_poison((ptr + layer->offset + typeInfo->size), BM_ASAN_PAD);

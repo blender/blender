@@ -196,10 +196,9 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
   float tot_co = 0.0f;
 
   float buckets[8] = {0};
+  PBVHVertRef vertex = {(intptr_t)v};
 
   // zero_v3(direction);
-
-  MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
 
   float *col = BM_ELEM_CD_PTR<float *>(v, cd_temp);
   float dir[3];
@@ -210,31 +209,33 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
 
   SCULPT_vertex_check_origdata(ss, BKE_pbvh_make_vref(intptr_t(v)));
 
+  float *origco = BM_ELEM_CD_PTR<float *>(v, ss->attrs.orig_co->bmesh_cd_offset);
+  float *origno = BM_ELEM_CD_PTR<float *>(v, ss->attrs.orig_no->bmesh_cd_offset);
+
   if (do_origco) {
     // SCULPT_vertex_check_origdata(ss, (PBVHVertRef){.i = (intptr_t)v});
-    madd_v3_v3fl(direction, mv->origno, -dot_v3v3(mv->origno, direction));
+    madd_v3_v3fl(direction, origno, -dot_v3v3(origno, direction));
     normalize_v3(direction);
   }
 
-  float *co1 = do_origco ? mv->origco : v->co;
-  float *no1 = do_origco ? mv->origno : v->no;
+  float *co1 = do_origco ? origco : v->co;
+  float *no1 = do_origco ? origno : v->no;
+
+  int valence = SCULPT_vertex_valence_get(ss, vertex);
 
   if (weighted) {
-    PBVHVertRef vertex = {(intptr_t)v};
+    areas = (float *)BLI_array_alloca(areas, valence * 2);
 
-    int val = SCULPT_vertex_valence_get(ss, vertex);
-    areas = (float *)BLI_array_alloca(areas, val * 2);
-
-    BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, val);
+    BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, valence);
     float totarea = 0.0f;
 
-    for (int i = 0; i < val; i++) {
+    for (int i = 0; i < valence; i++) {
       totarea += areas[i];
     }
 
     totarea = totarea != 0.0f ? 1.0f / totarea : 0.0f;
 
-    for (int i = 0; i < val; i++) {
+    for (int i = 0; i < valence; i++) {
       areas[i] *= totarea;
     }
   }
@@ -245,12 +246,12 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     copy_v3_v3(dir, direction);
   }
   else {
-    closest_vec_to_perp(dir, direction, no1, buckets, 1.0f);  // col[3]);
+    closest_vec_to_perp(dir, direction, no1, buckets, 1.0f);
   }
 
   float totdir3 = 0.0f;
 
-  const float selfw = (float)mv->valence * 0.0025f;
+  const float selfw = (float)valence * 0.0025f;
   madd_v3_v3fl(dir3, direction, selfw);
 
   totdir3 += selfw;
@@ -262,20 +263,21 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
 
   BM_ITER_ELEM_INDEX (e, &eiter, v, BM_EDGES_OF_VERT, area_i) {
     BMVert *v_other = (e->v1 == v) ? e->v2 : e->v1;
+    PBVHVertRef vertex_other = {reinterpret_cast<intptr_t>(v_other)};
 
     float dir2[3];
     float *col2 = BM_ELEM_CD_PTR<float *>(v_other, cd_temp);
 
     float bucketw = 1.0f;
 
-    MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v_other);
     float *co2;
 
-    if (!do_origco || mv2->stroke_id != ss->stroke_id) {
+    if (!do_origco ||
+        blender::bke::sculpt::stroke_id_test_no_update(ss, vertex_other, STROKEID_USER_ORIGINAL)) {
       co2 = v_other->co;
     }
     else {
-      co2 = mv2->origco;
+      co2 = BM_ELEM_CD_PTR<float *>(v_other, ss->attrs.orig_co->bmesh_cd_offset);
     }
 
     eSculptBoundary bflag = SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_MESH |
@@ -355,7 +357,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
   }
 
   if (totdir3 > 0.0f) {
-    float outdir = totdir3 / (float)mv->valence;
+    float outdir = totdir3 / (float)valence;
 
     // mul_v3_fl(dir3, 1.0 / totdir3);
     normalize_v3(dir3);
@@ -887,8 +889,6 @@ void SCULPT_reproject_cdata(SculptSession *ss,
     return;
   }
 
-  MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
-
   // int totuv = CustomData_number_of_layers(&ss->bm->ldata, CD_PROP_FLOAT2);
   CustomData *ldata = &ss->bm->ldata;
 
@@ -1019,7 +1019,8 @@ void SCULPT_reproject_cdata(SculptSession *ss,
   const float *v_proj_axis = v->no;
   float v_proj[3][3];
 
-  project_plane_normalized_v3_v3v3(v_proj[1], mv->origco, v_proj_axis);
+  float *old_origco = BM_ELEM_CD_PTR<float *>(v, ss->attrs.orig_co->bmesh_cd_offset);
+  project_plane_normalized_v3_v3v3(v_proj[1], old_origco, v_proj_axis);
 
   /* original (l->prev, l, l->next) projections for each loop ('l' remains unchanged) */
 
@@ -1100,22 +1101,22 @@ void SCULPT_reproject_cdata(SculptSession *ss,
     *fakef = *l->f;
     fakef->l_first = fakels;
 
-    // set original face normal
-    // normalize_v3(no);
-    // copy_v3_v3(fakef->no, no);
-
-    // interpolate
+    /* Interpolate. */
     BMLoop _interpl, *interpl = &_interpl;
 
-    MSculptVert saved = *mv;
+    uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(v, ss->attrs.flags->bmesh_cd_offset);
+    uint8_t *stroke_id = BM_ELEM_CD_PTR<uint8_t *>(v, ss->attrs.stroke_id->bmesh_cd_offset);
+
+    int flag_saved = *flag;
+    int stroke_id_saved = *stroke_id;
 
     *interpl = *l;
     interpl->head.data = blocks[i];
-    // memcpy(interpl->head.data, l2->head.data, ldata->totsize);
 
     BM_loop_interp_from_face(ss->bm, interpl, fakef, false, false);
 
-    *mv = saved;
+    *stroke_id = stroke_id_saved;
+    *flag = flag_saved;
 
     CustomData_bmesh_copy_data(&ss->bm->ldata, &ss->bm->ldata, interpl->head.data, &l->head.data);
   }

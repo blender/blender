@@ -311,21 +311,6 @@ BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
 }  // namespace blender::dyntopo
 
 extern "C" {
-bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
-                                    PBVHTopologyUpdateMode mode,
-                                    const float center[3],
-                                    const float view_normal[3],
-                                    float radius,
-                                    const bool use_frontface,
-                                    const bool use_projected,
-                                    int sym_axis,
-                                    bool updatePBVH,
-                                    DyntopoMaskCB mask_cb,
-                                    void *mask_cb_data,
-                                    int custom_max_steps,
-                                    bool disable_surface_relax,
-                                    bool is_snake_hook);
-
 void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, BMFace *f, bool log_face);
 void BKE_pbvh_bmesh_remove_edge(PBVH *pbvh, BMEdge *e, bool log_edge);
 void BKE_pbvh_bmesh_remove_vertex(PBVH *pbvh, BMVert *v, bool log_vert);

@@ -40,6 +40,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_sculpt.hh"
 #include "BKE_subdiv_ccg.h"
 
 #include "DEG_depsgraph_query.h"
@@ -196,16 +197,12 @@ static void update_node_vb(PBVH *pbvh, PBVHNode *node, int updateflag)
       }
 
       if (do_orig) {
-        MSculptVert *mv = pbvh->header.type == PBVH_BMESH ? (MSculptVert *)BM_ELEM_CD_GET_VOID_P(
-                                                                vd.bm_vert, pbvh->cd_sculpt_vert) :
-                                                            pbvh->msculptverts + vd.index;
+        const float *origco = pbvh->header.type == PBVH_BMESH ?
+                                  BM_ELEM_CD_PTR<const float *>(vd.bm_vert, pbvh->cd_origco) :
+                                  reinterpret_cast<const float *>(&pbvh->origco[vd.index]);
 
-        if (mv->stroke_id != pbvh->stroke_id) {
-          BB_expand(&orig_vb, vd.co);
-        }
-        else {
-          BB_expand(&orig_vb, mv->origco);
-        }
+        /* XXX check stroke id here and use v->co? */
+        BB_expand(&orig_vb, origco);
       }
     }
     BKE_pbvh_vertex_iter_end;
@@ -814,6 +811,8 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
   args->mesh_verts_num = pbvh->totvert;
   args->mesh_grids_num = pbvh->totgrid;
   args->node = node;
+  args->origco = pbvh->origco;
+  args->origno = pbvh->origno;
 
   BKE_pbvh_node_num_verts(pbvh, node, nullptr, &args->node_verts_num);
 
@@ -829,7 +828,6 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
   args->mlooptri = pbvh->looptri;
   args->flat_vcol_shading = pbvh->flat_vcol_shading;
   args->updategen = node->updategen;
-  args->msculptverts = pbvh->msculptverts;
 
   if (ELEM(pbvh->header.type, PBVH_FACES, PBVH_GRIDS)) {
     args->hide_poly = (const bool *)(pbvh->pdata ? CustomData_get_layer_named(
@@ -1060,13 +1058,6 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
   prim_bbc = (BBC *)MEM_mallocN(sizeof(BBC) * looptri_num, "prim_bbc");
 
   SculptPMap *pmap = pbvh->pmap;
-  MSculptVert *msculptverts = pbvh->msculptverts;
-
-  for (int i = 0; i < mesh->totvert; i++) {
-    msculptverts[i].flag &= ~SCULPTVERT_NEED_VALENCE;
-    msculptverts[i].valence = pmap->pmap[i].count;
-    msculptverts[i].stroke_id = -1;
-  }
 
   for (int i = 0; i < looptri_num; i++) {
     const MLoopTri *lt = &looptri[i];
@@ -4313,18 +4304,12 @@ void BKE_pbvh_set_sculpt_verts(PBVH *pbvh, struct MSculptVert *msculptverts)
   pbvh->msculptverts = msculptverts;
 }
 
-void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
-                                         struct SubdivCCG *subdiv_ccg,
-                                         PBVHVertRef vertex)
+ATTR_NO_OPT void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh, PBVHVertRef vertex)
 {
-  MSculptVert *mv = pbvh->msculptverts + vertex.i;
-
-  int *flags = pbvh->boundary_flags + vertex.i;
-  *flags = 0;
-
-  /* TODO: finish this function. */
-
+  SubdivCCG *subdiv_ccg = pbvh->subdiv_ccg;
   int index = (int)vertex.i;
+
+  /* Update valence. */
 
   /* TODO: optimize this. We could fill #SculptVertexNeighborIter directly,
    * maybe provide coordinate and mask pointers directly rather than converting
@@ -4342,36 +4327,71 @@ void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
   SubdivCCGNeighbors neighbors;
   BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, &coord, false, &neighbors);
 
-  mv->valence = neighbors.size;
-  mv->flag &= ~SCULPTVERT_NEED_VALENCE;
+  pbvh->valence[vertex.i] = neighbors.size;
+  pbvh->sculpt_flags[vertex.i] &= ~SCULPTVERT_NEED_VALENCE;
+
+  /* Update boundary */
+  int *boundary_flag = pbvh->boundary_flags + vertex.i;
+  *boundary_flag = 0;
+
+  int face = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, grid_index);
+  int fset = pbvh->face_sets ? pbvh->face_sets[face] : 0;
+
+  for (int i : IndexRange(neighbors.size)) {
+    int grid_index2 = neighbors.coords[i].grid_index;
+
+    if (grid_index == grid_index2) {
+      continue;
+    }
+
+    int face2 = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, grid_index2);
+    int fset2 = pbvh->face_sets ? pbvh->face_sets[face2] : 0;
+
+    if (fset2 != fset) {
+      *boundary_flag |= SCULPT_BOUNDARY_FACE_SET;
+    }
+  }
 }
 
 namespace blender::bke::pbvh {
+void set_flags_valence(PBVH *pbvh, uint8_t *flags, int *valence)
+{
+  pbvh->sculpt_flags = flags;
+  pbvh->valence = valence;
+}
+
+void set_original(PBVH *pbvh, Span<float3> origco, Span<float3> origno)
+{
+  pbvh->origco = origco;
+  pbvh->origno = origno;
+}
+
 void update_vert_boundary_faces(int *boundary_flags,
                                 const int *face_sets,
                                 const bool *hide_poly,
                                 const float (*vert_positions)[3],
-                                const int2 *medge,
+                                const int2 * /*medge*/,
                                 const int *corner_verts,
                                 const int *corner_edges,
                                 OffsetIndices<int> polys,
-                                int totpoly,
-                                MSculptVert *msculptverts,
+                                int /*totpoly*/,
                                 const MeshElemMap *pmap,
                                 PBVHVertRef vertex,
                                 const bool *sharp_edges,
-                                const bool *seam_edges)
+                                const bool *seam_edges,
+                                uint8_t *flags,
+                                int * /*valence*/)
 {
-  MSculptVert *mv = msculptverts + vertex.i;
   const MeshElemMap *vert_map = &pmap[vertex.i];
+  uint8_t *flag = flags + vertex.i;
 
-  mv->flag &= ~SCULPTVERT_VERT_FSET_HIDDEN;
+  *flag &= ~SCULPTVERT_VERT_FSET_HIDDEN;
 
   int last_fset = -1;
   int last_fset2 = -1;
 
-  int *flags = boundary_flags + vertex.i;
-  *flags = 0;
+  int *boundary_flag = boundary_flags + vertex.i;
+  *boundary_flag = 0;
 
   int totsharp = 0, totseam = 0;
   int visible = false;
@@ -4396,12 +4416,12 @@ void update_vert_boundary_faces(int *boundary_flags,
       int e_index = corner_edges[loopstart + j];
 
       if (sharp_edges && sharp_edges[e_index]) {
-        *flags |= SCULPT_BOUNDARY_SHARP;
+        *boundary_flag |= SCULPT_BOUNDARY_SHARP;
         totsharp++;
       }
 
       if (seam_edges && seam_edges[e_index]) {
-        *flags |= SCULPT_BOUNDARY_SEAM;
+        *boundary_flag |= SCULPT_BOUNDARY_SEAM;
         totseam++;
       }
     }
@@ -4413,11 +4433,11 @@ void update_vert_boundary_faces(int *boundary_flags,
     }
 
     if (i > 0 && fset != last_fset) {
-      *flags |= SCULPT_BOUNDARY_FACE_SET;
+      *boundary_flag |= SCULPT_BOUNDARY_FACE_SET;
 
       if (i > 1 && last_fset2 != last_fset && last_fset != -1 && last_fset2 != -1 && fset != -1 &&
           last_fset2 != fset) {
-        *flags |= SCULPT_CORNER_FACE_SET;
+        *boundary_flag |= SCULPT_CORNER_FACE_SET;
       }
     }
 
@@ -4429,15 +4449,15 @@ void update_vert_boundary_faces(int *boundary_flags,
   }
 
   if (!visible) {
-    mv->flag |= SCULPTVERT_VERT_FSET_HIDDEN;
+    *flag |= SCULPTVERT_VERT_FSET_HIDDEN;
   }
 
   if (totsharp > 2) {
-    *flags |= SCULPT_CORNER_SHARP;
+    *boundary_flag |= SCULPT_CORNER_SHARP;
   }
 
   if (totseam > 2) {
-    *flags |= SCULPT_CORNER_SEAM;
+    *boundary_flag |= SCULPT_CORNER_SEAM;
   }
 }
 }  // namespace blender::bke::pbvh

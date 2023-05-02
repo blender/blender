@@ -184,36 +184,12 @@ MSculptVert *SCULPT_vertex_get_sculptvert(const SculptSession *ss, PBVHVertRef v
 
 const float *SCULPT_vertex_origco_get(SculptSession *ss, PBVHVertRef vertex)
 {
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_BMESH: {
-      BMVert *v = (BMVert *)vertex.i;
-      return BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v)->origco;
-    }
-
-    case PBVH_GRIDS:
-    case PBVH_FACES: {
-      return ss->msculptverts[vertex.i].origco;
-    }
-  }
-
-  return nullptr;
+  return vertex_attr_ptr<float>(vertex, ss->attrs.orig_co);
 }
 
 const float *SCULPT_vertex_origno_get(SculptSession *ss, PBVHVertRef vertex)
 {
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_BMESH: {
-      BMVert *v = (BMVert *)vertex.i;
-      return BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v)->origno;
-    }
-
-    case PBVH_GRIDS:
-    case PBVH_FACES: {
-      return ss->msculptverts[vertex.i].origno;
-    }
-  }
-
-  return nullptr;
+  return vertex_attr_ptr<float>(vertex, ss->attrs.orig_no);
 }
 
 int SCULPT_vertex_count_get(const SculptSession *ss)
@@ -1204,9 +1180,9 @@ static void sculpt_vertex_neighbors_get_bmesh(const SculptSession *ss,
     e2 = BM_DISK_EDGE_NEXT(e, v);
     v2 = v == e->v1 ? e->v2 : e->v1;
 
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v2);
+    uint8_t flag = *BM_ELEM_CD_PTR<uint8_t *>(v2, ss->attrs.flags->bmesh_cd_offset);
 
-    if (!(mv->flag & SCULPTVERT_VERT_FSET_HIDDEN)) {  // && (e->head.hflag & BM_ELEM_DRAW)) {
+    if (!(flag & SCULPTVERT_VERT_FSET_HIDDEN)) {
       sculpt_vertex_neighbor_add_nocheck(iter,
                                          BKE_pbvh_make_vref((intptr_t)v2),
                                          BKE_pbvh_make_eref((intptr_t)e),
@@ -1308,9 +1284,9 @@ static void sculpt_vertex_neighbors_get_faces_vemap(const SculptSession *ss,
     const int2 &e = ss->edges[vert_map->indices[i]];
 
     unsigned int v = e[0] == (unsigned int)vertex.i ? e[1] : e[0];
-    MSculptVert *mv = ss->msculptverts + v;
+    int8_t flag = vertex_attr_get<uint8_t>(vertex, ss->attrs.flags);
 
-    if (mv->flag & SCULPTVERT_VERT_FSET_HIDDEN) {
+    if (flag & SCULPTVERT_VERT_FSET_HIDDEN) {
       /* Skip connectivity from hidden faces. */
       continue;
     }
@@ -1415,46 +1391,6 @@ static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss, c
 {
   BLI_assert(ss->vertex_info.boundary);
   return BLI_BITMAP_TEST(ss->vertex_info.boundary, index);
-}
-
-bool SCULPT_vertex_is_boundary(const SculptSession *ss, const PBVHVertRef vertex)
-{
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES: {
-      if (!SCULPT_vertex_all_faces_visible_get(ss, vertex)) {
-        return true;
-      }
-      return sculpt_check_boundary_vertex_in_base_mesh(ss, vertex.i);
-    }
-    case PBVH_BMESH: {
-      BMVert *v = (BMVert *)vertex.i;
-      return BM_vert_is_boundary(v);
-    }
-
-    case PBVH_GRIDS: {
-      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
-      const int grid_index = vertex.i / key->grid_area;
-      const int vertex_index = vertex.i - grid_index * key->grid_area;
-      SubdivCCGCoord coord{};
-      coord.grid_index = grid_index;
-      coord.x = vertex_index % key->grid_size;
-      coord.y = vertex_index / key->grid_size;
-      int v1, v2;
-      const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg, &coord, ss->corner_verts, ss->polys, &v1, &v2);
-      switch (adjacency) {
-        case SUBDIV_CCG_ADJACENT_VERTEX:
-          return sculpt_check_boundary_vertex_in_base_mesh(ss, v1);
-        case SUBDIV_CCG_ADJACENT_EDGE:
-          return sculpt_check_boundary_vertex_in_base_mesh(ss, v1) &&
-                 sculpt_check_boundary_vertex_in_base_mesh(ss, v2);
-        case SUBDIV_CCG_ADJACENT_NONE:
-          return false;
-      }
-    }
-  }
-
-  return false;
 }
 
 /* Utilities */
@@ -2645,17 +2581,8 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
       float no_s[3];
 
       if (use_original) {
-        if (unode->bm_entry) {
-          BMVert *v = vd.bm_vert;
-          MSculptVert *mv = BKE_PBVH_SCULPTVERT(vd.cd_sculpt_vert, v);
-
-          copy_v3_v3(no_s, mv->origno);
-          copy_v3_v3(co, mv->origco);
-        }
-        else {
-          copy_v3_v3(co, unode->co[vd.i]);
-          copy_v3_v3(no_s, unode->no[vd.i]);
-        }
+        copy_v3_v3(co, vertex_attr_ptr<float>(vd.vertex, ss->attrs.orig_co));
+        copy_v3_v3(no_s, vertex_attr_ptr<float>(vd.vertex, ss->attrs.orig_no));
       }
       else {
         copy_v3_v3(co, vd.co);
@@ -4125,7 +4052,8 @@ static void sculpt_topology_update(Sculpt *sd,
   }
 
   /* do nodes under the brush cursor */
-  BKE_pbvh_bmesh_update_topology_nodes(ss->pbvh,
+  BKE_pbvh_bmesh_update_topology_nodes(ss,
+                                       ss->pbvh,
                                        SCULPT_search_sphere_cb,
                                        topology_undopush_cb,
                                        &sdata,
@@ -4399,6 +4327,13 @@ static void do_brush_action(Sculpt *sd,
           break;
         case SCULPT_UNDO_COORDS:
           BKE_pbvh_node_mark_update(nodes[i]);
+          break;
+        case SCULPT_UNDO_HIDDEN:
+        case SCULPT_UNDO_DYNTOPO_BEGIN:
+        case SCULPT_UNDO_DYNTOPO_END:
+        case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
+        case SCULPT_UNDO_GEOMETRY:
+        case SCULPT_UNDO_NO_TYPE:
           break;
       }
 
@@ -7059,7 +6994,7 @@ void SCULPT_automasking_node_begin(Object *ob,
   }
 }
 
-void SCULPT_automasking_node_update(SculptSession * ss,
+void SCULPT_automasking_node_update(SculptSession *ss,
                                     AutomaskingNodeData *automask_data,
                                     PBVHVertexIter *vd)
 {

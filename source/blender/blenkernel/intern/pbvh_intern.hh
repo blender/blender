@@ -4,6 +4,7 @@
 
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_customdata_types.h"
@@ -196,7 +197,15 @@ struct PBVH {
   const int *corner_edges;
   /* Owned by the #PBVH, because after deformations they have to be recomputed. */
   const MLoopTri *looptri;
+  blender::Span<blender::float3> origco, origno;
+
   struct MSculptVert *msculptverts;
+  /* Sculpt flags*/
+  uint8_t *sculpt_flags;
+
+  /* Cached vertex valences */
+  int *valence;
+
   CustomData *vdata;
   CustomData *ldata;
   CustomData *pdata;
@@ -282,6 +291,8 @@ struct PBVH {
 
   int *boundary_flags;
   int cd_boundary_flag;
+  int cd_curvature_dir;
+
   PBVHGPUFormat *vbo_id;
 
   PBVHPixels pixels;
@@ -430,6 +441,8 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_face_node_offset,
                                    int cd_vcol_offset,
                                    int cd_boundary_flags,
+                                   int cd_flags,
+                                   int cd_valence,
                                    BMVert *v,
                                    int bound_symmetry,
                                    const struct CustomData *ldata,

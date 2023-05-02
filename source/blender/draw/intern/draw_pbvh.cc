@@ -582,9 +582,7 @@ struct PBVHBatches {
         if (args->show_orig) {
           foreach_faces(
               [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri * /*tri*/) {
-                MSculptVert *mv = args->msculptverts + vertex_i;
-
-                *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = mv->origco;
+                *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = args->origco[vertex_i];
               });
         }
         else {
@@ -999,13 +997,12 @@ struct PBVHBatches {
       }
       case CD_PBVH_CO_TYPE:
         if (args->show_orig) {
-          int cd_sculpt_vert = CustomData_get_offset(&args->bm->vdata, CD_DYNTOPO_VERT);
+          int cd_origco = CustomData_get_offset_named(
+              &args->bm->vdata, CD_PROP_INT32, ".sculpt_orig_co");
 
           foreach_bmesh([&](BMLoop *l) {
-            MSculptVert *mv = static_cast<MSculptVert *>(
-                BM_ELEM_CD_GET_VOID_P(l->v, cd_sculpt_vert));
-
-            *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = mv->origco;
+            *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = BM_ELEM_CD_PTR<float *>(
+                l->v, cd_origco);
           });
         }
         else {
@@ -1017,14 +1014,13 @@ struct PBVHBatches {
 
       case CD_PBVH_NO_TYPE:
         if (args->show_orig) {
-          int cd_sculpt_vert = CustomData_get_offset(&args->bm->vdata, CD_DYNTOPO_VERT);
+          int cd_origco = CustomData_get_offset_named(
+              &args->bm->vdata, CD_PROP_INT32, ".sculpt_orig_co");
 
           foreach_bmesh([&](BMLoop *l) {
-            MSculptVert *mv = static_cast<MSculptVert *>(
-                BM_ELEM_CD_GET_VOID_P(l->v, cd_sculpt_vert));
             short no[3];
 
-            normal_float_to_short_v3(no, mv->origno);
+            normal_float_to_short_v3(no, BM_ELEM_CD_PTR<float *>(l->v, cd_origco));
             *static_cast<short3 *>(GPU_vertbuf_raw_step(&access)) = no;
           });
         }

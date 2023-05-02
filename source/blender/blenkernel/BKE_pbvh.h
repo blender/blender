@@ -423,10 +423,6 @@ BMLog *BKE_pbvh_get_bm_log(PBVH *pbvh);
  */
 void BKE_pbvh_update_sculpt_verts(PBVH *pbvh);
 
-/** update original data, only data whose r_** parameters are passed in will be updated*/
-bool BKE_pbvh_get_origvert(
-    PBVH *pbvh, PBVHVertRef vertex, const float **r_co, float **r_no, float **r_color);
-
 /**
 checks if original data needs to be updated for v, and if so updates it.  Stroke_id
 is provided by the sculpt code and is used to detect updates.  The reason we do it
@@ -462,7 +458,7 @@ void BKE_pbvh_raycast(PBVH *pbvh,
                       bool original,
                       int stroke_id);
 
-bool BKE_pbvh_node_raycast(SculptSession *ss,
+bool BKE_pbvh_node_raycast(struct SculptSession *ss,
                            PBVH *pbvh,
                            PBVHNode *node,
                            float (*origco)[3],
@@ -499,7 +495,7 @@ void BKE_pbvh_find_nearest_to_ray(PBVH *pbvh,
                                   const float ray_normal[3],
                                   bool original);
 
-bool BKE_pbvh_node_find_nearest_to_ray(SculptSession *ss,
+bool BKE_pbvh_node_find_nearest_to_ray(struct SculptSession *ss,
                                        PBVH *pbvh,
                                        PBVHNode *node,
                                        float (*origco)[3],
@@ -586,6 +582,7 @@ ENUM_OPERATORS(PBVHTopologyUpdateMode, PBVH_LocalCollapse);
 typedef float (*DyntopoMaskCB)(PBVHVertRef vertex, void *userdata);
 
 bool BKE_pbvh_bmesh_update_topology(
+    struct SculptSession *ss,
     PBVH *pbvh,
     PBVHTopologyUpdateMode mode,
     const float center[3],
@@ -601,7 +598,8 @@ bool BKE_pbvh_bmesh_update_topology(
     bool disable_surface_relax,
     bool is_snake_hook);
 
-bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
+bool BKE_pbvh_bmesh_update_topology_nodes(struct SculptSession *ss,
+                                          PBVH *pbvh,
                                           bool (*searchcb)(PBVHNode *node, void *data),
                                           void (*undopush)(PBVHNode *node, void *data),
                                           void *searchdata,
@@ -1196,9 +1194,7 @@ typedef struct SculptLayerEntry {
 int BKE_pbvh_do_fset_symmetry(int fset, const int symflag, const float *co);
 bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v);
 
-void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
-                                         struct SubdivCCG *subdiv_ccg,
-                                         PBVHVertRef vertex);
+void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh, PBVHVertRef vertex);
 
 #if 0
 #  include "DNA_meshdata_types.h"
@@ -1327,6 +1323,9 @@ bool BKE_pbvh_show_orig_get(PBVH *pbvh);
 #  include "BLI_math_vector.hh"
 
 namespace blender::bke::pbvh {
+void set_flags_valence(PBVH *pbvh, uint8_t *flags, int *valence);
+void set_original(PBVH *pbvh, Span<float3> origco, Span<float3> origno);
+
 void update_vert_boundary_faces(int *boundary_flags,
                                 const int *face_sets,
                                 const bool *hide_poly,
@@ -1336,11 +1335,12 @@ void update_vert_boundary_faces(int *boundary_flags,
                                 const int *corner_edges,
                                 blender::OffsetIndices<int> polys,
                                 int totpoly,
-                                MSculptVert *msculptverts,
                                 const MeshElemMap *pmap,
                                 PBVHVertRef vertex,
                                 const bool *sharp_edges,
-                                const bool *seam_edges);
+                                const bool *seam_edges,
+                                uint8_t *flags,
+                                int *valence);
 
 Vector<PBVHNode *> search_gather(PBVH *pbvh,
                                  BKE_pbvh_SearchCallback scb,

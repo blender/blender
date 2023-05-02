@@ -2521,8 +2521,8 @@ static void sculpt_face_set_extrude_id(Object *ob,
             do {
               *(int *)BM_ELEM_CD_GET_VOID_P(l->v,
                                             cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
-              MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, l->v);
-              MV_ADD_FLAG(mv, mupdateflag);
+              uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(l->v, ss->attrs.flags->bmesh_cd_offset);
+              *flag |= mupdateflag;
             } while ((l = l->next) != f->l_first);
           }
 
@@ -2563,8 +2563,8 @@ static void sculpt_face_set_extrude_id(Object *ob,
       do {
         *(int *)BM_ELEM_CD_GET_VOID_P(l->v, cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-        MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, l->v);
-        MV_ADD_FLAG(mv, mupdateflag);
+        uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(l->v, ss->attrs.flags->bmesh_cd_offset);
+        *flag |= mupdateflag;
       } while ((l = l->next) != f->l_first);
     }
 
@@ -2600,9 +2600,8 @@ static void sculpt_face_set_extrude_id(Object *ob,
       }
 
       if (cd_sculpt_vert != -1) {
-        MSculptVert *mv = (MSculptVert *)BM_ELEM_CD_GET_VOID_P(l->v, cd_sculpt_vert);
-
-        MV_ADD_FLAG(mv, mupdateflag);
+        uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(l->v, ss->attrs.flags->bmesh_cd_offset);
+        *flag |= mupdateflag;
       }
     } while ((l = l->next) != f->l_first);
   }

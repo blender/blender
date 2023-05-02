@@ -133,7 +133,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   bool modified = true;
 
   while (modified) {
-    modified = BKE_pbvh_bmesh_update_topology(ss->pbvh,
+    modified = BKE_pbvh_bmesh_update_topology(ss,
+                                              ss->pbvh,
                                               PBVH_Collapse,
                                               center,
                                               nullptr,
@@ -152,7 +153,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
       BKE_pbvh_node_mark_topology_update(nodes[j]);
     }
 
-    modified |= BKE_pbvh_bmesh_update_topology(ss->pbvh,
+    modified |= BKE_pbvh_bmesh_update_topology(ss,
+                                               ss->pbvh,
                                                PBVH_Subdivide,
                                                center,
                                                nullptr,
@@ -181,7 +183,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
       BKE_pbvh_node_mark_topology_update(nodes[j]);
     }
 
-    BKE_pbvh_bmesh_update_topology(ss->pbvh,
+    BKE_pbvh_bmesh_update_topology(ss,
+                                   ss->pbvh,
                                    PBVH_Cleanup,
                                    center,
                                    nullptr,

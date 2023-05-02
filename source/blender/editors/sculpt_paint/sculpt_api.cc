@@ -365,11 +365,12 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
                                                  ss->corner_edges.data(),
                                                  ss->polys,
                                                  ss->totfaces,
-                                                 ss->msculptverts,
                                                  ss->pmap->pmap,
                                                  vertex,
                                                  ss->sharp_edge,
-                                                 ss->seam_edge);
+                                                 ss->seam_edge,
+                                                 static_cast<uint8_t *>(ss->attrs.flags->data),
+                                                 static_cast<int *>(ss->attrs.valence->data));
 
   /* We have to handle boundary here seperately. */
 
@@ -463,6 +464,8 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
                                       ss->cd_face_node_offset,
                                       ss->cd_vcol_offset,
                                       ss->attrs.boundary_flags->bmesh_cd_offset,
+                                      ss->attrs.flags->bmesh_cd_offset,
+                                      ss->attrs.valence->bmesh_cd_offset,
                                       (BMVert *)vertex.i,
                                       ss->boundary_symmetry,
                                       &ss->bm->ldata,
@@ -480,28 +483,39 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
     }
 
     case PBVH_GRIDS: {
-      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
-      const int grid_index = vertex.i / key->grid_area;
-      const int vertex_index = vertex.i - grid_index * key->grid_area;
-      SubdivCCGCoord coord{};
-      coord.grid_index = grid_index;
-      coord.x = vertex_index % key->grid_size;
-      coord.y = vertex_index / key->grid_size;
-      int v1, v2;
-      const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg, &coord, ss->corner_verts, ss->polys, &v1, &v2);
+      if (needs_update) {
+        BKE_pbvh_update_vert_boundary_grids(ss->pbvh, vertex);
+        needs_update = false;
+      }
 
-      switch (adjacency) {
-        case SUBDIV_CCG_ADJACENT_VERTEX:
-          return sculpt_check_boundary_vertex_in_base_mesh(ss, v1) ? SCULPT_BOUNDARY_MESH :
-                                                                     (eSculptBoundary)0;
-        case SUBDIV_CCG_ADJACENT_EDGE:
-          if (sculpt_check_boundary_vertex_in_base_mesh(ss, v1) &&
-              sculpt_check_boundary_vertex_in_base_mesh(ss, v2)) {
-            return SCULPT_BOUNDARY_MESH;
-          }
-        case SUBDIV_CCG_ADJACENT_NONE:
-          return (eSculptBoundary)0;
+      flag = eSculptBoundary(vertex_attr_get<int>(vertex, ss->attrs.boundary_flags));
+
+      /* BKE_pbvh_update_vert_boundary_grids does not yet support mesh boundaries for PBVH_GRIDS.
+       */
+      if (boundary_types & SCULPT_BOUNDARY_MESH) {
+        const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+        const int grid_index = vertex.i / key->grid_area;
+        const int vertex_index = vertex.i - grid_index * key->grid_area;
+        SubdivCCGCoord coord{};
+        coord.grid_index = grid_index;
+        coord.x = vertex_index % key->grid_size;
+        coord.y = vertex_index / key->grid_size;
+        int v1, v2;
+        const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
+            ss->subdiv_ccg, &coord, ss->corner_verts, ss->polys, &v1, &v2);
+
+        switch (adjacency) {
+          case SUBDIV_CCG_ADJACENT_VERTEX:
+            flag |= sculpt_check_boundary_vertex_in_base_mesh(ss, v1) ? SCULPT_BOUNDARY_MESH :
+                                                                        (eSculptBoundary)0;
+          case SUBDIV_CCG_ADJACENT_EDGE:
+            if (sculpt_check_boundary_vertex_in_base_mesh(ss, v1) &&
+                sculpt_check_boundary_vertex_in_base_mesh(ss, v2)) {
+              flag |= SCULPT_BOUNDARY_MESH;
+            }
+          case SUBDIV_CCG_ADJACENT_NONE:
+            break;
+        }
       }
     }
   }
@@ -546,16 +560,7 @@ int SCULPT_vertex_valence_get(const struct SculptSession *ss, PBVHVertRef vertex
 /* See SCULPT_stroke_id_test. */
 void SCULPT_stroke_id_ensure(Object *ob)
 {
-  SculptSession *ss = ob->sculpt;
-
-  if (!ss->attrs.stroke_id) {
-    SculptAttributeParams params = {0};
-    ss->attrs.stroke_id = BKE_sculpt_attribute_ensure(ob,
-                                                      ATTR_DOMAIN_POINT,
-                                                      CD_PROP_INT32,
-                                                      SCULPT_ATTRIBUTE_NAME(automasking_stroke_id),
-                                                      &params);
-  }
+  BKE_sculpt_ensure_sculpt_layers(ob);
 }
 
 int SCULPT_get_tool(const SculptSession *ss, const Brush *br)

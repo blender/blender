@@ -7,6 +7,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BLI_asan.h"
 #include "BLI_hash.hh"
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_map.hh"
@@ -99,6 +100,14 @@ template<typename T> struct BMLogElem {
   BMID<T> id = BMID<T>(-1);
   void *customdata = nullptr;
   char flag = 0;
+
+#ifdef WITH_ASAN
+  bool dead = false;
+  ~BMLogElem()
+  {
+    dead = true;
+  }
+#endif
 };
 
 template<typename T> struct LogElemAlloc {
@@ -603,6 +612,7 @@ struct BMLogEntry {
   void free_logvert(BMLogVert *lv)
   {
     if (lv->customdata) {
+      CustomData_bmesh_asan_unpoison(&vdata, lv->customdata);
       BLI_mempool_free(vdata.pool, lv->customdata);
     }
 
@@ -638,9 +648,14 @@ struct BMLogEntry {
     CustomData_bmesh_copy_data(&bm->edata, &edata, e->head.data, &le->customdata);
   }
 
-  void free_logedge(BMesh * /*bm*/, BMLogEdge *e)
+  void free_logedge(BMesh * /*bm*/, BMLogEdge *le)
   {
-    epool.free(e);
+    if (le->customdata) {
+      CustomData_bmesh_asan_unpoison(&edata, le->customdata);
+      BLI_mempool_free(edata.pool, le->customdata);
+    }
+
+    epool.free(le);
   }
 
   BMLogFace *alloc_logface(BMesh *bm, BMFace *f)
@@ -693,11 +708,13 @@ struct BMLogEntry {
   {
     if (lf->loop_customdata[0]) {
       for (int i = 0; i < lf->verts.size(); i++) {
+        CustomData_bmesh_asan_unpoison(&ldata, lf->loop_customdata[i]);
         BLI_mempool_free(ldata.pool, lf->loop_customdata[i]);
       }
     }
 
     if (lf->customdata) {
+      CustomData_bmesh_asan_unpoison(&pdata, lf->customdata);
       BLI_mempool_free(pdata.pool, lf->customdata);
     }
 

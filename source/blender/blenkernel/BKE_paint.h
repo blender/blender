@@ -687,6 +687,8 @@ typedef struct SculptAttribute {
 /* Convenience pointers for standard sculpt attributes. */
 
 typedef struct SculptAttributePointers {
+  SculptAttribute *face_set;
+
   /* Persistent base. */
   SculptAttribute *persistent_co;
   SculptAttribute *persistent_no;
@@ -725,7 +727,7 @@ typedef struct SculptAttributePointers {
   SculptAttribute *orig_color;        /* CD_PROP_FLOAT4, vert */
   SculptAttribute *orig_mask;         /* CD_PROP_FLOAT   vert */
 
-  SculptAttribute *curvature_dir;     /* Curvature direction vectors, CD_PROP_FLOAT3 */
+  SculptAttribute *curvature_dir; /* Curvature direction vectors, CD_PROP_FLOAT3 */
 
   SculptAttribute *smear_previous;
   SculptAttribute *hide_poly;
@@ -1053,7 +1055,7 @@ void BKE_sculpt_ensure_origcolor(struct Object *ob);
 void BKE_sculpt_ensure_origfset(struct Object *ob);
 void BKE_sculpt_ensure_curvature_dir(struct Object *ob);
 
-    /* Ensures Sculpt_flags and sculpt_valence layers. */
+/* Ensures Sculpt_flags and sculpt_valence layers. */
 void BKE_sculpt_ensure_sculpt_layers(struct Object *ob);
 
 /* Ensure an attribute layer exists. */
@@ -1082,7 +1084,10 @@ void BKE_sculpt_attribute_destroy_temporary_all(struct Object *ob);
 /* Destroy attributes that were marked as stroke only in SculptAttributeParams. */
 void BKE_sculpt_attributes_destroy_temporary_stroke(struct Object *ob);
 
-bool BKE_sculptsession_check_sculptverts(struct Object *ob, struct PBVH *pbvh, int totvert);
+bool BKE_sculptsession_check_sculptverts(struct Object *ob,
+                                         struct PBVH *pbvh,
+                                         int totvert,
+                                         bool reset_flags);
 
 struct BMesh *BKE_sculptsession_empty_bmesh_create(void);
 void BKE_sculptsession_bmesh_attr_update_internal(struct Object *ob);
@@ -1292,10 +1297,11 @@ static void face_attr_set(const PBVHFaceRef face, const SculptAttribute *attr, T
 
 bool get_original_vertex(SculptSession *ss,
                          PBVHVertRef vertex,
-                         const float **r_co,
+                         float **r_co,
                          float **r_no,
                          float **r_color,
                          float **r_mask);
+void load_all_original(Object *ob);
 }  // namespace blender::bke::paint
 
 BLI_INLINE void BKE_sculpt_boundary_flag_update(SculptSession *ss, PBVHVertRef vertex)

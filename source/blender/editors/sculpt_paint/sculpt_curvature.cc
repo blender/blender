@@ -276,7 +276,6 @@ void SCULPT_curvature_begin(SculptSession *ss, struct PBVHNode *node, bool useAc
 
     BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vi, PBVH_ITER_UNIQUE) {
       BMVert *v = (BMVert *)vi.vertex.i;
-      MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
 
       SculptCurvatureData curv;
       SCULPT_calc_principle_curvatures(ss, vi.vertex, &curv, useAccurateSolver);

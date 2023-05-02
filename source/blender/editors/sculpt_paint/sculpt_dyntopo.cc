@@ -304,10 +304,10 @@ void SCULT_dyntopo_flag_all_disk_sort(SculptSession *ss)
 bool SCULPT_dyntopo_check_disk_sort(SculptSession *ss, PBVHVertRef vertex)
 {
   BMVert *v = (BMVert *)vertex.i;
-  MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
+  uint8_t *flag = blender::bke::paint::vertex_attr_ptr<uint8_t>(vertex, ss->attrs.flags);
 
-  if (mv->flag & SCULPTVERT_NEED_DISK_SORT) {
-    mv->flag &= ~SCULPTVERT_NEED_DISK_SORT;
+  if (*flag & SCULPTVERT_NEED_DISK_SORT) {
+    *flag &= ~SCULPTVERT_NEED_DISK_SORT;
 
     BM_sort_disk_cycle(v);
 
@@ -528,8 +528,9 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
 #endif
 
   if (ss->pbvh) {
-    BKE_sculptsession_update_attr_refs(ob);
-    SCULPT_load_all_original(ob);
+    BKE_sculpt_ensure_sculpt_layers(ob);
+    BKE_sculpt_ensure_origco(ob);
+    blender::bke::paint::load_all_original(ob);
   }
 
   if (ss->pbvh && SCULPT_has_persistent_base(ss)) {
@@ -552,7 +553,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
   }
 
   if (ss->pbvh) {
-    SCULPT_load_all_original(ob);
+    blender::bke::paint::load_all_original(ob);
   }
 
   /* Make sure the data for existing faces are initialized. */

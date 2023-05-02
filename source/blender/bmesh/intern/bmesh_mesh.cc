@@ -202,6 +202,14 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
   return bm;
 }
 
+ATTR_NO_OPT static void customdata_pool_destroy(BMesh */*bm*/, CustomData *cdata)
+{
+  if (cdata->pool) {
+    BLI_mempool_destroy(cdata->pool);
+    cdata->pool = nullptr;
+  }
+}
+
 void BM_mesh_data_free(BMesh *bm)
 {
   BMVert *v;
@@ -266,16 +274,16 @@ void BM_mesh_data_free(BMesh *bm)
 
   /* Free custom data pools, This should probably go in CustomData_free? */
   if (bm->vdata.totlayer) {
-    BLI_mempool_destroy(bm->vdata.pool);
+    customdata_pool_destroy(bm, &bm->vdata);
   }
   if (bm->edata.totlayer) {
-    BLI_mempool_destroy(bm->edata.pool);
+    customdata_pool_destroy(bm, &bm->edata);
   }
   if (bm->ldata.totlayer) {
-    BLI_mempool_destroy(bm->ldata.pool);
+    customdata_pool_destroy(bm, &bm->ldata);
   }
   if (bm->pdata.totlayer) {
-    BLI_mempool_destroy(bm->pdata.pool);
+    customdata_pool_destroy(bm, &bm->pdata);
   }
 
   /* free custom data */
@@ -1638,25 +1646,13 @@ void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
   }
 }
 
-static void on_vert_kill(BMesh * /*bm*/, BMVert * /*v*/, void * /*userdata*/)
-{
-}
-static void on_edge_kill(BMesh * /*bm*/, BMEdge * /*e*/, void * /*userdata*/)
-{
-}
-static void on_face_kill(BMesh * /*bm*/, BMFace * /*f*/, void * /*userdata*/)
-{
-}
+static void on_vert_kill(BMesh * /*bm*/, BMVert * /*v*/, void * /*userdata*/) {}
+static void on_edge_kill(BMesh * /*bm*/, BMEdge * /*e*/, void * /*userdata*/) {}
+static void on_face_kill(BMesh * /*bm*/, BMFace * /*f*/, void * /*userdata*/) {}
 
-static void on_vert_create(BMesh * /*bm*/, BMVert * /*v*/, void * /*userdata*/)
-{
-}
-static void on_edge_create(BMesh * /*bm*/, BMEdge * /*v*/, void * /*userdata*/)
-{
-}
-static void on_face_create(BMesh * /*bm*/, BMFace * /*v*/, void * /*userdata*/)
-{
-}
+static void on_vert_create(BMesh * /*bm*/, BMVert * /*v*/, void * /*userdata*/) {}
+static void on_edge_create(BMesh * /*bm*/, BMEdge * /*v*/, void * /*userdata*/) {}
+static void on_face_create(BMesh * /*bm*/, BMFace * /*v*/, void * /*userdata*/) {}
 
 void BM_empty_tracer(BMTracer *tracer, void *userdata)
 {
