@@ -397,7 +397,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
 
   void *init_storage(LinearAllocator<> &allocator) const
   {
-    return allocator.construct<EvalData>().get();
+    return allocator.construct<EvalData>().release();
   }
 
   void destruct_storage(void *storage) const
