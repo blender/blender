@@ -1174,6 +1174,7 @@ static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
   }
 
   STRNCPY(ibuf->filepath, ima->filepath);
+  BLI_path_abs(ibuf->filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
 
   /* Mark the tile itself as having been generated. */
   tile->gen_flag |= IMA_GEN_TILE;
