@@ -45,7 +45,7 @@ class AssetGridViewItem : public ui::PreviewGridItem {
   std::string asset_identifier_;
 
  public:
-  AssetGridViewItem(const AssetLibraryReference &asset_library_ref, AssetHandle &);
+  AssetGridViewItem(AssetHandle &);
 };
 
 void asset_view_create_in_layout(const bContext &C,

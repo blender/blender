@@ -38,9 +38,7 @@ struct AssetViewListData {
   bool show_names;
 };
 
-static void asset_view_item_but_drag_set(uiBut *but,
-                                         AssetViewListData *list_data,
-                                         AssetHandle *asset_handle)
+static void asset_view_item_but_drag_set(uiBut *but, AssetHandle *asset_handle)
 {
   ID *id = ED_asset_handle_get_local_id(asset_handle);
   if (id != nullptr) {
@@ -56,14 +54,13 @@ static void asset_view_item_but_drag_set(uiBut *but,
 
   if (blend_path[0]) {
     ImBuf *imbuf = ED_assetlist_asset_image_get(asset_handle);
-    UI_but_drag_set_asset(
-        but,
-        asset_handle,
-        BLI_strdup(blend_path),
-        import_method,
-        ED_assetlist_asset_preview_icon_id_request(&list_data->asset_library_ref, asset_handle),
-        imbuf,
-        1.0f);
+    UI_but_drag_set_asset(but,
+                          asset_handle,
+                          BLI_strdup(blend_path),
+                          import_method,
+                          ED_assetlist_asset_preview_icon_id_request(asset_handle),
+                          imbuf,
+                          1.0f);
   }
 }
 
@@ -94,29 +91,27 @@ static void asset_view_draw_item(uiList *ui_list,
   const bool show_names = list_data->show_names;
   const int size_x = UI_preview_tile_size_x();
   const int size_y = show_names ? UI_preview_tile_size_y() : UI_preview_tile_size_y_no_label();
-  uiBut *but = uiDefIconTextBut(
-      block,
-      UI_BTYPE_PREVIEW_TILE,
-      0,
-      ED_assetlist_asset_preview_icon_id_request(&list_data->asset_library_ref, &asset_handle),
-      show_names ? ED_asset_handle_get_name(&asset_handle) : "",
-      0,
-      0,
-      size_x,
-      size_y,
-      nullptr,
-      0,
-      0,
-      0,
-      0,
-      "");
-  ui_def_but_icon(
-      but,
-      ED_assetlist_asset_preview_icon_id_request(&list_data->asset_library_ref, &asset_handle),
-      /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
-      UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+  uiBut *but = uiDefIconTextBut(block,
+                                UI_BTYPE_PREVIEW_TILE,
+                                0,
+                                ED_assetlist_asset_preview_icon_id_request(&asset_handle),
+                                show_names ? ED_asset_handle_get_name(&asset_handle) : "",
+                                0,
+                                0,
+                                size_x,
+                                size_y,
+                                nullptr,
+                                0,
+                                0,
+                                0,
+                                0,
+                                "");
+  ui_def_but_icon(but,
+                  ED_assetlist_asset_preview_icon_id_request(&asset_handle),
+                  /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
+                  UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
   if (!ui_list->dyn_data->custom_drag_optype) {
-    asset_view_item_but_drag_set(but, list_data, &asset_handle);
+    asset_view_item_but_drag_set(but, &asset_handle);
   }
 }
 

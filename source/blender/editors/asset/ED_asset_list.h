@@ -55,10 +55,8 @@ void ED_assetlist_storage_exit(void);
 AssetHandle *ED_assetlist_asset_get_by_index(const AssetLibraryReference *library_reference,
                                              int asset_index);
 
-struct PreviewImage *ED_assetlist_asset_preview_request(
-    const struct AssetLibraryReference *library_reference, AssetHandle *asset_handle);
-int ED_assetlist_asset_preview_icon_id_request(const AssetLibraryReference *library_reference,
-                                               AssetHandle *asset_handle);
+struct PreviewImage *ED_assetlist_asset_preview_request(AssetHandle *asset_handle);
+int ED_assetlist_asset_preview_icon_id_request(AssetHandle *asset_handle);
 struct ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle);
 
 struct AssetLibrary *ED_assetlist_library_get(

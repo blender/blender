@@ -470,8 +470,7 @@ AssetHandle *ED_assetlist_asset_get_by_index(const AssetLibraryReference *librar
   return list->asset_get_by_index(asset_index);
 }
 
-PreviewImage *ED_assetlist_asset_preview_request(const AssetLibraryReference *library_reference,
-                                                 AssetHandle *asset_handle)
+PreviewImage *ED_assetlist_asset_preview_request(AssetHandle *asset_handle)
 {
   if (asset_handle->preview) {
     return asset_handle->preview;
@@ -493,10 +492,9 @@ PreviewImage *ED_assetlist_asset_preview_request(const AssetLibraryReference *li
   return asset_handle->preview;
 }
 
-int ED_assetlist_asset_preview_icon_id_request(const AssetLibraryReference *library_reference,
-                                               AssetHandle *asset_handle)
+int ED_assetlist_asset_preview_icon_id_request(AssetHandle *asset_handle)
 {
-  PreviewImage *preview = ED_assetlist_asset_preview_request(library_reference, asset_handle);
+  PreviewImage *preview = ED_assetlist_asset_preview_request(asset_handle);
   ID *local_id = ED_asset_handle_get_local_id(asset_handle);
   return BKE_icon_preview_ensure(local_id, preview);
 }

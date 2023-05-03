@@ -36,7 +36,7 @@ void AssetGridView::build_items()
 {
   int idx = 0;
   ED_assetlist_iterate(asset_library_ref_, [this, &idx](AssetHandle &asset) {
-    AssetGridViewItem &item = add_item<AssetGridViewItem>(asset_library_ref_, asset);
+    AssetGridViewItem &item = add_item<AssetGridViewItem>(asset);
 
     item.set_is_active_fn([this, idx]() -> bool {
       return idx == RNA_property_int_get(&active_asset_idx_owner_, &active_asset_idx_prop_);
@@ -58,11 +58,10 @@ bool AssetGridView::listen(const wmNotifier &notifier) const
 
 /* ---------------------------------------------------------------------- */
 
-AssetGridViewItem::AssetGridViewItem(const AssetLibraryReference &asset_library_ref,
-                                     AssetHandle &asset)
+AssetGridViewItem::AssetGridViewItem(AssetHandle &asset)
     : ui::PreviewGridItem(ED_asset_handle_get_identifier(&asset),
                           ED_asset_handle_get_name(&asset),
-                          ED_assetlist_asset_preview_icon_id_request(&asset_library_ref, &asset)),
+                          ED_assetlist_asset_preview_icon_id_request(&asset)),
       /* Get a copy so the identifier is always available (the file data wrapped by the handle may
        * be freed). */
       asset_identifier_(identifier_)
