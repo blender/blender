@@ -1220,7 +1220,7 @@ bool BLI_path_program_search(char *program_filepath, const size_t maxlen, const 
       BLI_path_append(filepath_test, maxlen, program_name);
       if (
 #ifdef _WIN32
-          BLI_path_program_extensions_add_win32(filepath_test, maxlen)
+          BLI_path_program_extensions_add_win32(filepath_test, sizeof(filepath_test))
 #else
           BLI_exists(filepath_test)
 #endif
