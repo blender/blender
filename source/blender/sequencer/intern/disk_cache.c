@@ -307,8 +307,8 @@ static void seq_disk_cache_get_dir(
   BLI_snprintf(
       scene_name, sizeof(scene_name), "%s-%" PRId64, scene->id.name, disk_cache->timestamp);
   BLI_strncpy(seq_name, seq->name, sizeof(seq_name));
-  BLI_filename_make_safe(scene_name);
-  BLI_filename_make_safe(seq_name);
+  BLI_path_make_safe_filename(scene_name);
+  BLI_path_make_safe_filename(seq_name);
 
   BLI_path_join(path, path_len, project_dir, scene_name, seq_name);
 }

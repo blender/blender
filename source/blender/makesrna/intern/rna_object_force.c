@@ -310,7 +310,7 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
     }
 
     if (use_new_name) {
-      BLI_filename_make_safe(cache->name);
+      BLI_path_make_safe_filename(cache->name);
 
       if (pid2 && cache->flag & PTCACHE_DISK_CACHE) {
         char old_name[80];

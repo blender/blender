@@ -365,7 +365,7 @@ void BLI_path_normalize_dir(char *dir, size_t dir_maxlen)
   BLI_path_slash_ensure(dir, dir_maxlen);
 }
 
-bool BLI_filename_make_safe_ex(char *fname, bool allow_tokens)
+bool BLI_path_make_safe_filename_ex(char *fname, bool allow_tokens)
 {
 #define INVALID_CHARS \
   "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f" \
@@ -441,14 +441,14 @@ bool BLI_filename_make_safe_ex(char *fname, bool allow_tokens)
   return changed;
 }
 
-bool BLI_filename_make_safe(char *fname)
+bool BLI_path_make_safe_filename(char *fname)
 {
-  return BLI_filename_make_safe_ex(fname, false);
+  return BLI_path_make_safe_filename_ex(fname, false);
 }
 
 bool BLI_path_make_safe(char *path)
 {
-  /* Simply apply #BLI_filename_make_safe() over each component of the path.
+  /* Simply apply #BLI_path_make_safe_filename() over each component of the path.
    * Luckily enough, same *safe* rules applies to file & directory names. */
   char *curr_slash, *curr_path = path;
   bool changed = false;
@@ -466,14 +466,14 @@ bool BLI_path_make_safe(char *path)
   {
     const char backup = *curr_slash;
     *curr_slash = '\0';
-    if (!skip_first && (*curr_path != '\0') && BLI_filename_make_safe(curr_path)) {
+    if (!skip_first && (*curr_path != '\0') && BLI_path_make_safe_filename(curr_path)) {
       changed = true;
     }
     skip_first = false;
     curr_path = curr_slash + 1;
     *curr_slash = backup;
   }
-  if (BLI_filename_make_safe(curr_path)) {
+  if (BLI_path_make_safe_filename(curr_path)) {
     changed = true;
   }
 

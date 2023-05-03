@@ -517,7 +517,7 @@ static void unpack_generate_paths(const char *name,
       }
     }
 
-    BLI_filename_make_safe(tempname);
+    BLI_path_make_safe_filename(tempname);
     printf("%s\n", tempname);
   }
 

@@ -2895,7 +2895,7 @@ void file_filename_enter_handle(bContext *C, void *UNUSED(arg_unused), void *arg
 
     /* *After* file_select_match! */
     const bool allow_tokens = (params->flag & FILE_PATH_TOKENS_ALLOW) != 0;
-    BLI_filename_make_safe_ex(params->file, allow_tokens);
+    BLI_path_make_safe_filename_ex(params->file, allow_tokens);
 
     if (matches) {
       /* replace the pattern (or filename that the user typed in,

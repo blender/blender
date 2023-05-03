@@ -600,7 +600,7 @@ static void renamebutton_cb(bContext *C, void * /*arg1*/, char *oldname)
 
   BLI_path_join(orgname, sizeof(orgname), params->dir, oldname);
   BLI_strncpy(filename, params->renamefile, sizeof(filename));
-  BLI_filename_make_safe(filename);
+  BLI_path_make_safe_filename(filename);
   BLI_path_join(newname, sizeof(newname), params->dir, filename);
 
   if (!STREQ(orgname, newname)) {

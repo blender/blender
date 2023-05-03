@@ -385,8 +385,8 @@ void BLI_path_normalize_dir(char *dir, size_t dir_maxlen) ATTR_NONNULL(1);
  * \note On Windows, it also checks for forbidden names
  * (see https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx ).
  */
-bool BLI_filename_make_safe_ex(char *fname, bool allow_tokens) ATTR_NONNULL(1);
-bool BLI_filename_make_safe(char *fname) ATTR_NONNULL(1);
+bool BLI_path_make_safe_filename_ex(char *fname, bool allow_tokens) ATTR_NONNULL(1);
+bool BLI_path_make_safe_filename(char *fname) ATTR_NONNULL(1);
 
 /**
  * Make given path OS-safe.
