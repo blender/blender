@@ -2540,7 +2540,8 @@ void node_socket_move_default_value(Main & /*bmain*/,
            SOCK_IMAGE,
            SOCK_MATERIAL,
            SOCK_TEXTURE,
-           SOCK_OBJECT)) {
+           SOCK_OBJECT))
+  {
     src_type.value_initialize(src_value);
   }
 }

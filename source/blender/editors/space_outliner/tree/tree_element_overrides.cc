@@ -228,10 +228,7 @@ TreeElementOverridesPropertyOperation::TreeElementOverridesPropertyOperation(
 
 StringRefNull TreeElementOverridesPropertyOperation::getOverrideOperationLabel() const
 {
-  if (ELEM(operation_->operation,
-           LIBOVERRIDE_OP_INSERT_AFTER,
-           LIBOVERRIDE_OP_INSERT_BEFORE))
-  {
+  if (ELEM(operation_->operation, LIBOVERRIDE_OP_INSERT_AFTER, LIBOVERRIDE_OP_INSERT_BEFORE)) {
     return TIP_("Added through override");
   }
 

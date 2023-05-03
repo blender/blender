@@ -498,10 +498,8 @@ static bool rna_property_override_operation_store(Main *bmain,
 
   LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
     /* Only needed for diff operations. */
-    if (!ELEM(opop->operation,
-              LIBOVERRIDE_OP_ADD,
-              LIBOVERRIDE_OP_SUBTRACT,
-              LIBOVERRIDE_OP_MULTIPLY))
+    if (!ELEM(
+            opop->operation, LIBOVERRIDE_OP_ADD, LIBOVERRIDE_OP_SUBTRACT, LIBOVERRIDE_OP_MULTIPLY))
     {
       continue;
     }
@@ -1175,9 +1173,8 @@ static void rna_property_override_apply_ex(Main *bmain,
       continue;
     }
 
-    if (!do_insert != !ELEM(opop->operation,
-                            LIBOVERRIDE_OP_INSERT_AFTER,
-                            LIBOVERRIDE_OP_INSERT_BEFORE))
+    if (!do_insert !=
+        !ELEM(opop->operation, LIBOVERRIDE_OP_INSERT_AFTER, LIBOVERRIDE_OP_INSERT_BEFORE))
     {
       if (!do_insert) {
         CLOG_INFO(&LOG, 5, "Skipping insert override operations in first pass (%s)", op->rna_path);

@@ -1945,9 +1945,7 @@ int rna_property_override_diff_default(Main *bmain,
         op = BKE_lib_override_library_property_find(override, rna_path);
         if (op != NULL) {
           LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-            if (ELEM(opop->operation,
-                     LIBOVERRIDE_OP_INSERT_AFTER,
-                     LIBOVERRIDE_OP_INSERT_BEFORE)) {
+            if (ELEM(opop->operation, LIBOVERRIDE_OP_INSERT_AFTER, LIBOVERRIDE_OP_INSERT_BEFORE)) {
               BKE_lib_override_library_property_operation_delete(op, opop);
             }
           }
@@ -2175,10 +2173,7 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
   const bool is_array = len_local > 0;
   const int index = is_array ? opop->subitem_reference_index : 0;
 
-  if (!ELEM(opop->operation,
-            LIBOVERRIDE_OP_ADD,
-            LIBOVERRIDE_OP_SUBTRACT,
-            LIBOVERRIDE_OP_MULTIPLY))
+  if (!ELEM(opop->operation, LIBOVERRIDE_OP_ADD, LIBOVERRIDE_OP_SUBTRACT, LIBOVERRIDE_OP_MULTIPLY))
   {
     return changed;
   }
@@ -2212,9 +2207,8 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
           case LIBOVERRIDE_OP_ADD:
           case LIBOVERRIDE_OP_SUBTRACT: {
             const int fac = opop->operation == LIBOVERRIDE_OP_ADD ? 1 : -1;
-            const int other_op = opop->operation == LIBOVERRIDE_OP_ADD ?
-                                     LIBOVERRIDE_OP_SUBTRACT :
-                                     LIBOVERRIDE_OP_ADD;
+            const int other_op = opop->operation == LIBOVERRIDE_OP_ADD ? LIBOVERRIDE_OP_SUBTRACT :
+                                                                         LIBOVERRIDE_OP_ADD;
             bool do_set = true;
             array_b = (len_local > RNA_STACK_ARRAY) ?
                           MEM_mallocN(sizeof(*array_b) * len_local, __func__) :
@@ -2262,9 +2256,8 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
           case LIBOVERRIDE_OP_ADD:
           case LIBOVERRIDE_OP_SUBTRACT: {
             const int fac = opop->operation == LIBOVERRIDE_OP_ADD ? 1 : -1;
-            const int other_op = opop->operation == LIBOVERRIDE_OP_ADD ?
-                                     LIBOVERRIDE_OP_SUBTRACT :
-                                     LIBOVERRIDE_OP_ADD;
+            const int other_op = opop->operation == LIBOVERRIDE_OP_ADD ? LIBOVERRIDE_OP_SUBTRACT :
+                                                                         LIBOVERRIDE_OP_ADD;
             int b = fac * (RNA_PROPERTY_GET_SINGLE(int, ptr_local, prop_local, index) - value);
             if (b < prop_min || b > prop_max) {
               opop->operation = other_op;
@@ -2302,9 +2295,8 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
           case LIBOVERRIDE_OP_ADD:
           case LIBOVERRIDE_OP_SUBTRACT: {
             const float fac = opop->operation == LIBOVERRIDE_OP_ADD ? 1.0 : -1.0;
-            const int other_op = opop->operation == LIBOVERRIDE_OP_ADD ?
-                                     LIBOVERRIDE_OP_SUBTRACT :
-                                     LIBOVERRIDE_OP_ADD;
+            const int other_op = opop->operation == LIBOVERRIDE_OP_ADD ? LIBOVERRIDE_OP_SUBTRACT :
+                                                                         LIBOVERRIDE_OP_ADD;
             bool do_set = true;
             array_b = (len_local > RNA_STACK_ARRAY) ?
                           MEM_mallocN(sizeof(*array_b) * len_local, __func__) :
@@ -2375,9 +2367,8 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
           case LIBOVERRIDE_OP_ADD:
           case LIBOVERRIDE_OP_SUBTRACT: {
             const float fac = opop->operation == LIBOVERRIDE_OP_ADD ? 1.0f : -1.0f;
-            const int other_op = opop->operation == LIBOVERRIDE_OP_ADD ?
-                                     LIBOVERRIDE_OP_SUBTRACT :
-                                     LIBOVERRIDE_OP_ADD;
+            const int other_op = opop->operation == LIBOVERRIDE_OP_ADD ? LIBOVERRIDE_OP_SUBTRACT :
+                                                                         LIBOVERRIDE_OP_ADD;
             float b = fac * (RNA_PROPERTY_GET_SINGLE(float, ptr_local, prop_local, index) - value);
             if (b < prop_min || b > prop_max) {
               opop->operation = other_op;
