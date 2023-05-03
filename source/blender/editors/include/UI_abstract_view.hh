@@ -76,6 +76,12 @@ class AbstractView {
    */
   virtual std::unique_ptr<AbstractViewDropTarget> create_drop_target();
 
+  /**
+   * Iterate over all elements in the view executing \a iter_fn for each. Typically views would
+   * want to implement their own `foreach_item()` function with a more specific type.
+   */
+  virtual void foreach_abstract_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const = 0;
+
   /** Listen to a notifier, returning true if a redraw is needed. */
   virtual bool listen(const wmNotifier &) const;
 
@@ -129,6 +135,7 @@ class AbstractViewItem {
   AbstractView *view_ = nullptr;
   bool is_interactive_ = true;
   bool is_active_ = false;
+  bool is_selected_ = false;
   bool is_renaming_ = false;
 
  public:
@@ -182,6 +189,22 @@ class AbstractViewItem {
    * can't be sure about the item state.
    */
   bool is_active() const;
+
+  /**
+   * Mark this item as selected.
+   * \return True if the selection state changed (redraw needed).
+   */
+  bool select();
+  /**
+   * Mark this item as not selected.
+   * \return True if the selection state changed (redraw needed).
+   */
+  bool deselect();
+  /**
+   * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise we
+   * can't be sure about the item state.
+   */
+  bool is_selected() const;
 
   bool is_renaming() const;
   void begin_renaming();

@@ -2276,7 +2276,10 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
 
         is_push = -1;
         if (view_item_but->view_item) {
-          is_push = UI_view_item_is_active(view_item_but->view_item);
+          /* Consider both active and selected as pushed state. Drawing can differentiate the state
+           * further for visual feedback. */
+          is_push = UI_view_item_is_active(view_item_but->view_item) ||
+                    UI_view_item_is_selected(view_item_but->view_item);
         }
         break;
       }

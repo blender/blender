@@ -874,7 +874,7 @@ def km_view2d_buttons_list(_params):
     return keymap
 
 
-def km_user_interface(_params):
+def km_user_interface(params):
     items = []
     keymap = (
         "User Interface",
@@ -908,6 +908,8 @@ def km_user_interface(_params):
         ("ui.reset_default_button", {"type": 'BACK_SPACE', "value": 'PRESS'}, {"properties": [("all", True)]}),
         # UI lists (polls check if there's a UI list under the cursor).
         ("ui.list_start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
+        # UI views (polls check if there's a UI view under the cursor).
+        *_template_items_select_actions(params, "ui.view_select_all"),
     ])
 
     return keymap

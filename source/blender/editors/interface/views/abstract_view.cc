@@ -4,6 +4,8 @@
  * \ingroup edinterface
  */
 
+#include "ED_select_utils.h"
+
 #include "interface_intern.hh"
 
 #include "UI_abstract_view.hh"
@@ -113,6 +115,70 @@ MutableSpan<char> AbstractView::get_rename_buffer()
 std::optional<rcti> AbstractView::get_bounds() const
 {
   return bounds_;
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Selection API
+ * \{ */
+
+/**
+ * If \a action is #SEL_TOGGLE, check the selection if the actual action to apply should be
+ * #SEL_DESELECT or #SEL_SELECT and return that.
+ */
+static SelectAction select_all_refine_action_type(const AbstractView &view, SelectAction action)
+{
+  if (action != SEL_TOGGLE) {
+    return action;
+  }
+
+  bool any_selected = false;
+  view.foreach_abstract_item([&any_selected](AbstractViewItem &item) {
+    if (item.is_selected()) {
+      any_selected = true;
+    }
+  });
+
+  return any_selected ? SEL_DESELECT : SEL_SELECT;
+}
+
+bool view_select_all_items(uiViewHandle *view_handle, const int /*SelectAction*/ action)
+{
+  AbstractView &view = reinterpret_cast<AbstractView &>(*view_handle);
+  const SelectAction refined_action = select_all_refine_action_type(view, SelectAction(action));
+
+  bool changed = false;
+  view.foreach_abstract_item([&changed, refined_action](AbstractViewItem &item) {
+    switch (refined_action) {
+      case SEL_SELECT:
+        if (item.select()) {
+          changed = true;
+        }
+        break;
+      case SEL_DESELECT:
+        if (item.deselect()) {
+          changed = true;
+        }
+        break;
+      case SEL_INVERT:
+        if (item.is_selected()) {
+          item.deselect();
+        }
+        else {
+          item.select();
+        }
+        changed = true;
+        break;
+      case SEL_TOGGLE:
+        BLI_assert_msg(false,
+                       "TOGGLE action should have been refined to be either SELECT or DESELECT at "
+                       "this point");
+        break;
+    }
+  });
+
+  return changed;
 }
 
 /** \} */

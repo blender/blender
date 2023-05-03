@@ -15,12 +15,12 @@ extern "C" {
 struct KDTree_1d;
 struct wmOperatorType;
 
-enum {
+typedef enum SelectAction {
   SEL_TOGGLE = 0,
   SEL_SELECT = 1,
   SEL_DESELECT = 2,
   SEL_INVERT = 3,
-};
+} SelectAction;
 
 typedef enum WalkSelectDirection {
   UI_SELECT_WALK_UP,

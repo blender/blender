@@ -47,7 +47,8 @@ AbstractTreeViewItem &TreeViewItemContainer::add_tree_item(
   return added_item;
 }
 
-void TreeViewItemContainer::foreach_item_recursive(ItemIterFn iter_fn, IterOptions options) const
+void TreeViewItemContainer::foreach_item_recursive(
+    FunctionRef<void(AbstractTreeViewItem &)> iter_fn, IterOptions options) const
 {
   for (const auto &child : children_) {
     iter_fn(*child);
@@ -61,7 +62,13 @@ void TreeViewItemContainer::foreach_item_recursive(ItemIterFn iter_fn, IterOptio
 
 /* ---------------------------------------------------------------------- */
 
-void AbstractTreeView::foreach_item(ItemIterFn iter_fn, IterOptions options) const
+void AbstractTreeView::foreach_abstract_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const
+{
+  foreach_item_recursive([&iter_fn](AbstractTreeViewItem &item) { iter_fn(item); });
+}
+
+void AbstractTreeView::foreach_item(FunctionRef<void(AbstractTreeViewItem &)> iter_fn,
+                                    IterOptions options) const
 {
   foreach_item_recursive(iter_fn, options);
 }

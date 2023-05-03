@@ -25,6 +25,7 @@ namespace blender::ui {
 void AbstractViewItem::update_from_old(const AbstractViewItem &old)
 {
   is_active_ = old.is_active_;
+  is_selected_ = old.is_selected_;
   is_renaming_ = old.is_renaming_;
 }
 
@@ -221,6 +222,31 @@ bool AbstractViewItem::is_active() const
   return is_active_;
 }
 
+bool AbstractViewItem::select()
+{
+  if (is_selected_) {
+    return false;
+  }
+  is_selected_ = true;
+  return true;
+}
+
+bool AbstractViewItem::deselect()
+{
+  if (!is_selected_) {
+    return false;
+  }
+  is_selected_ = false;
+  return true;
+}
+
+bool AbstractViewItem::is_selected() const
+{
+  BLI_assert_msg(get_view().is_reconstructed(),
+                 "State can't be queried until reconstruction is completed");
+  return is_selected_;
+}
+
 /** \} */
 
 /* ---------------------------------------------------------------------- */
@@ -298,6 +324,12 @@ bool UI_view_item_is_active(const uiViewItemHandle *item_handle)
 {
   const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_handle);
   return item.is_active();
+}
+
+bool UI_view_item_is_selected(const uiViewItemHandle *item_handle)
+{
+  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_handle);
+  return item.is_selected();
 }
 
 bool UI_view_item_matches(const uiViewItemHandle *a_handle, const uiViewItemHandle *b_handle)

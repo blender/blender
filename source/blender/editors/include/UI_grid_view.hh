@@ -105,6 +105,7 @@ class AbstractGridView : public AbstractView {
   AbstractGridView();
   virtual ~AbstractGridView() = default;
 
+  void foreach_abstract_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const override;
   using ItemIterFn = FunctionRef<void(AbstractGridViewItem &)>;
   void foreach_item(ItemIterFn iter_fn) const;
 

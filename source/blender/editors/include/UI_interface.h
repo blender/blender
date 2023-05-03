@@ -3260,6 +3260,7 @@ void UI_interface_tag_script_reload(void);
 
 bool UI_view_item_is_interactive(const uiViewItemHandle *item_handle);
 bool UI_view_item_is_active(const uiViewItemHandle *item_handle);
+bool UI_view_item_is_selected(const uiViewItemHandle *item_handle);
 bool UI_view_item_matches(const uiViewItemHandle *a_handle, const uiViewItemHandle *b_handle);
 /**
  * Can \a item_handle be renamed right now? Note that this isn't just a mere wrapper around
@@ -3284,7 +3285,9 @@ bool UI_view_item_drag_start(struct bContext *C, const uiViewItemHandle *item_);
  * \param xy: Coordinate to find a view item at, in window space.
  * \param pad: Extra padding added to the bounding box of the view.
  */
-uiViewHandle *UI_region_view_find_at(const struct ARegion *region, const int xy[2], int pad);
+uiViewHandle *UI_region_view_find_at(const struct ARegion *region,
+                                     const int xy[2],
+                                     int pad CPP_ARG_DEFAULT(0));
 /**
  * \param xy: Coordinate to find a view item at, in window space.
  */

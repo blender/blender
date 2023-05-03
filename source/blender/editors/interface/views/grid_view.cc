@@ -35,6 +35,11 @@ AbstractGridViewItem &AbstractGridView::add_item(std::unique_ptr<AbstractGridVie
   return added_item;
 }
 
+void AbstractGridView::foreach_abstract_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const
+{
+  foreach_item([&iter_fn](AbstractGridViewItem &item) { iter_fn(item); });
+}
+
 void AbstractGridView::foreach_item(ItemIterFn iter_fn) const
 {
   for (const auto &item_ptr : items_) {

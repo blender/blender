@@ -2369,6 +2369,48 @@ static void UI_OT_list_start_filter(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name UI View Select All Operator
+ * \{ */
+
+static bool ui_view_under_cursor_poll(bContext *C)
+{
+  const wmWindow *win = CTX_wm_window(C);
+  const ARegion *region = CTX_wm_region(C);
+  if (region == nullptr) {
+    return false;
+  }
+  return UI_region_view_find_at(region, win->eventstate->xy) != nullptr;
+}
+
+static int ui_view_select_all_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  ARegion *region = CTX_wm_region(C);
+  uiViewHandle *view = UI_region_view_find_at(region, event->xy);
+
+  const int action = RNA_enum_get(op->ptr, "action");
+
+  if (view_select_all_items(view, action)) {
+    ED_region_tag_redraw(region);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_view_select_all(wmOperatorType *ot)
+{
+  ot->name = "View Select All";
+  ot->idname = "UI_OT_view_select_all";
+  ot->description = "Select or deselect all items in the view";
+
+  ot->invoke = ui_view_select_all_invoke;
+  ot->poll = ui_view_under_cursor_poll;
+
+  WM_operator_properties_select_all(ot);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name UI View Drop Operator
  * \{ */
 
@@ -2555,6 +2597,7 @@ void ED_operatortypes_ui(void)
 
   WM_operatortype_append(UI_OT_list_start_filter);
 
+  WM_operatortype_append(UI_OT_view_select_all);
   WM_operatortype_append(UI_OT_view_drop);
   WM_operatortype_append(UI_OT_view_item_rename);
 

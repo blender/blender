@@ -121,6 +121,11 @@ std::unique_ptr<DropTargetInterface> view_item_drop_target(uiViewItemHandle *ite
 std::unique_ptr<DropTargetInterface> region_views_find_drop_target_at(const ARegion *region,
                                                                       const int xy[2]);
 
+/**
+ * \return True if any selection state changed (redraw necessary).
+ */
+bool view_select_all_items(uiViewHandle *view_handle, int /*SelectAction*/ action);
+
 }  // namespace blender::ui
 
 enum eUIListFilterResult {
