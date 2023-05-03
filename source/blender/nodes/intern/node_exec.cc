@@ -18,7 +18,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "node_exec.h"
-#include "node_util.h"
+#include "node_util.hh"
 
 static int node_exec_socket_use_stack(bNodeSocket *sock)
 {

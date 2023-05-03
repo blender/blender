@@ -76,7 +76,7 @@ set(SRC
   NOD_texture.h
   intern/node_common.h
   intern/node_exec.h
-  intern/node_util.h
+  intern/node_util.hh
 )
 
 set(LIB

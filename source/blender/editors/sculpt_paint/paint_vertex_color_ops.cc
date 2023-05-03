@@ -266,7 +266,7 @@ static void transform_active_color_data(Mesh &mesh, const TransformFn &transform
   Vector<int64_t> indices;
   const IndexMask selection = get_selected_indices(mesh, color_attribute.domain, indices);
 
-  attribute_math::convert_to_static_type(color_attribute.varray.type(), [&](auto dummy) {
+  bke::attribute_math::convert_to_static_type(color_attribute.varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
       for ([[maybe_unused]] const int i : selection.slice(range)) {

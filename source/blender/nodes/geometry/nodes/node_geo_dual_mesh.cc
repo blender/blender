@@ -170,7 +170,7 @@ static void transfer_attributes(
       continue;
     }
 
-    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
       VArraySpan<T> span{src_attribute.varray.typed<T>()};
       MutableSpan<T> dst_span = dst_attribute.span.typed<T>();

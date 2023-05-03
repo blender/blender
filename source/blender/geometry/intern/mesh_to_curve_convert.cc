@@ -59,7 +59,7 @@ bke::CurvesGeometry create_curve_from_vert_indices(
     }
 
     /* Copy attribute based on the map for this curve. */
-    attribute_math::convert_to_static_type(mesh_attribute.type(), [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(mesh_attribute.type(), [&](auto dummy) {
       using T = decltype(dummy);
       bke::SpanAttributeWriter<T> attribute =
           curves_attributes.lookup_or_add_for_write_only_span<T>(attribute_id, ATTR_DOMAIN_POINT);

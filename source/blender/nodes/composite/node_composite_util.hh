@@ -13,7 +13,7 @@
 #include "BLT_translation.h"
 
 #include "node_composite_register.hh"
-#include "node_util.h"
+#include "node_util.hh"
 
 #include "NOD_composite.h"
 #include "NOD_socket.h"

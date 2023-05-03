@@ -193,6 +193,14 @@ class ImplicitSharingMixin : public ImplicitSharingInfo {
   virtual void delete_self() = 0;
 };
 
+/**
+ * Utility that contains sharing information and the data that is shared.
+ */
+struct ImplicitSharingInfoAndData {
+  const ImplicitSharingInfo *sharing_info = nullptr;
+  const void *data = nullptr;
+};
+
 namespace implicit_sharing {
 
 namespace detail {

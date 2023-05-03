@@ -329,7 +329,7 @@ static void sample_interval_linear(const Span<T> src_data,
   }
   else {
     /* General case, sample 'start_point' */
-    dst_data[dst_index] = attribute_math::mix2(
+    dst_data[dst_index] = bke::attribute_math::mix2(
         start_point.parameter, src_data[start_point.index], src_data[start_point.next_index]);
     ++dst_index;
   }
@@ -345,7 +345,7 @@ static void sample_interval_linear(const Span<T> src_data,
     /* 'end_point' is included in the copy iteration. */
   }
   else {
-    dst_data[dst_index] = attribute_math::mix2(
+    dst_data[dst_index] = bke::attribute_math::mix2(
         end_point.parameter, src_data[end_point.index], src_data[end_point.next_index]);
 #ifdef DEBUG
     ++dst_index;
@@ -594,7 +594,7 @@ static void trim_attribute_linear(const bke::CurvesGeometry &src_curves,
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
   for (bke::AttributeTransferData &attribute : transfer_attributes) {
-    attribute_math::convert_to_static_type(attribute.meta_data.data_type, [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(attribute.meta_data.data_type, [&](auto dummy) {
       using T = decltype(dummy);
 
       threading::parallel_for(selection.index_range(), 512, [&](const IndexRange range) {
@@ -682,7 +682,7 @@ static void trim_catmull_rom_curves(const bke::CurvesGeometry &src_curves,
   fill_nurbs_data(dst_curves, selection);
 
   for (bke::AttributeTransferData &attribute : transfer_attributes) {
-    attribute_math::convert_to_static_type(attribute.meta_data.data_type, [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(attribute.meta_data.data_type, [&](auto dummy) {
       using T = decltype(dummy);
 
       threading::parallel_for(selection.index_range(), 512, [&](const IndexRange range) {
@@ -786,7 +786,7 @@ static void trim_evaluated_curves(const bke::CurvesGeometry &src_curves,
   fill_nurbs_data(dst_curves, selection);
 
   for (bke::AttributeTransferData &attribute : transfer_attributes) {
-    attribute_math::convert_to_static_type(attribute.meta_data.data_type, [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(attribute.meta_data.data_type, [&](auto dummy) {
       using T = decltype(dummy);
 
       threading::parallel_for(selection.index_range(), 512, [&](const IndexRange range) {

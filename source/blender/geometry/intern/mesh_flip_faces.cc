@@ -47,7 +47,7 @@ void flip_faces(Mesh &mesh, const IndexMask &selection)
           return true;
         }
         bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(attribute_id);
-        attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+        bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
           using T = decltype(dummy);
           MutableSpan<T> dst_span = attribute.span.typed<T>();
           threading::parallel_for(selection.index_range(), 1024, [&](const IndexRange range) {

@@ -4329,6 +4329,83 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /* Rename Grease Pencil weight draw brush. */
     do_versions_rename_id(bmain, ID_BR, "Draw Weight", "Weight Draw");
+
+    /* Identifier generation for simulation node sockets changed.
+     * Update identifiers so links are not removed during validation.
+     * This only affects files that have been created using simulation nodes before they were first
+     * officially released. */
+    if (!DNA_struct_elem_find(fd->filesdna, "NodeSimulationItem", "int", "identifier")) {
+      static auto set_socket_identifiers =
+          [](bNode *node, const bNode *output_node, int extra_outputs) {
+            const NodeGeometrySimulationOutput *output_data =
+                static_cast<const NodeGeometrySimulationOutput *>(output_node->storage);
+            /* Includes extension socket. */
+            BLI_assert(BLI_listbase_count(&node->inputs) == output_data->items_num + 1);
+            /* Includes extension socket. */
+            BLI_assert(BLI_listbase_count(&node->outputs) ==
+                       output_data->items_num + 1 + extra_outputs);
+
+            int i;
+            LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->inputs, i) {
+              /* Skip extension socket. */
+              if (i >= output_data->items_num) {
+                break;
+              }
+              BLI_snprintf(sock->identifier,
+                           sizeof(sock->identifier),
+                           "Item_%d",
+                           output_data->items[i].identifier);
+            }
+            LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
+              const int item_i = i - extra_outputs;
+              /* Skip extra outputs. */
+              if (i < extra_outputs) {
+                continue;
+              }
+              /* Skip extension socket. */
+              if (item_i >= output_data->items_num) {
+                break;
+              }
+              BLI_snprintf(sock->identifier,
+                           sizeof(sock->identifier),
+                           "Item_%d",
+                           output_data->items[i - extra_outputs].identifier);
+            }
+          };
+
+      LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+        if (ntree->type == NTREE_GEOMETRY) {
+          /* Initialize item identifiers. */
+          LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+            if (node->type == GEO_NODE_SIMULATION_OUTPUT) {
+              NodeGeometrySimulationOutput *data = static_cast<NodeGeometrySimulationOutput *>(
+                  node->storage);
+              for (int i = 0; i < data->items_num; ++i) {
+                data->items[i].identifier = i;
+              }
+              data->next_identifier = data->items_num;
+            }
+          }
+
+          LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+            if (node->type == GEO_NODE_SIMULATION_INPUT) {
+              const NodeGeometrySimulationInput *input_data =
+                  static_cast<const NodeGeometrySimulationInput *>(node->storage);
+              LISTBASE_FOREACH (bNode *, output_node, &ntree->nodes) {
+                if (output_node->identifier == input_data->output_node_id) {
+                  /* 'Delta Time' socket in input nodes */
+                  set_socket_identifiers(node, output_node, 1);
+                  break;
+                }
+              }
+            }
+            if (node->type == GEO_NODE_SIMULATION_OUTPUT) {
+              set_socket_identifiers(node, node, 0);
+            }
+          }
+        }
+      }
+    }
   }
 
   /* fcm->name was never used to store modifier name so it has always been an empty string. Now

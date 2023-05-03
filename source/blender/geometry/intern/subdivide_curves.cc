@@ -59,7 +59,7 @@ static inline void linear_interpolation(const T &a, const T &b, MutableSpan<T> d
   dst.first() = a;
   const float step = 1.0f / dst.size();
   for (const int i : dst.index_range().drop_front(1)) {
-    dst[i] = attribute_math::mix2(i * step, a, b);
+    dst[i] = bke::attribute_math::mix2(i * step, a, b);
   }
 }
 
@@ -101,7 +101,7 @@ static void subdivide_attribute_linear(const OffsetIndices<int> src_points_by_cu
                                        const GSpan src,
                                        GMutableSpan dst)
 {
-  attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
+  bke::attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
     using T = decltype(dummy);
     subdivide_attribute_linear(src_points_by_curve,
                                dst_points_by_curve,
@@ -143,7 +143,7 @@ static void subdivide_attribute_catmull_rom(const OffsetIndices<int> src_points_
                                             const GSpan src,
                                             GMutableSpan dst)
 {
-  attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
+  bke::attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
     using T = decltype(dummy);
     subdivide_attribute_catmull_rom(src_points_by_curve,
                                     dst_points_by_curve,

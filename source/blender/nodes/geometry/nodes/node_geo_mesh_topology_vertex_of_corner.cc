@@ -58,7 +58,7 @@ class CornerVertFieldInput final : public bke::MeshFieldInput {
 static void node_geo_exec(GeoNodeExecParams params)
 {
   params.set_output("Vertex Index",
-                    Field<int>(std::make_shared<FieldAtIndexInput>(
+                    Field<int>(std::make_shared<EvaluateAtIndexInput>(
                         params.extract_input<Field<int>>("Corner Index"),
                         Field<int>(std::make_shared<CornerVertFieldInput>()),
                         ATTR_DOMAIN_CORNER)));

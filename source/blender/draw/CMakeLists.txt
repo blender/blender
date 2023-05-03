@@ -91,7 +91,7 @@ set(SRC
   intern/draw_manager.cc
   intern/draw_manager_data.cc
   intern/draw_manager_exec.c
-  intern/draw_manager_profiling.c
+  intern/draw_manager_profiling.cc
   intern/draw_manager_shader.c
   intern/draw_manager_text.cc
   intern/draw_manager_texture.c
@@ -242,7 +242,7 @@ set(SRC
   intern/draw_instance_data.h
   intern/draw_manager.h
   intern/draw_manager.hh
-  intern/draw_manager_profiling.h
+  intern/draw_manager_profiling.hh
   intern/draw_manager_testing.h
   intern/draw_manager_text.h
   intern/draw_pass.hh

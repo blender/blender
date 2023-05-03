@@ -30,7 +30,7 @@
 
 #include "NOD_common.h"
 
-#include "node_util.h"
+#include "node_util.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Storage Data

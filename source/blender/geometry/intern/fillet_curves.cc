@@ -52,7 +52,7 @@ static void duplicate_fillet_point_data(const OffsetIndices<int> src_points_by_c
                                         const GSpan src,
                                         GMutableSpan dst)
 {
-  attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
+  bke::attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
     using T = decltype(dummy);
     duplicate_fillet_point_data(src_points_by_curve,
                                 dst_points_by_curve,

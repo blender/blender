@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_function_util.hh"
-#include "node_util.h"
+#include "node_util.hh"
 
 #include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"

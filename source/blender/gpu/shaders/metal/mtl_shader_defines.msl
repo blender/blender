@@ -189,13 +189,14 @@ template<typename T> T atomicXor(device T &mem, T data)
   return atomic_fetch_xor_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
 }
 
-/* Unblock texture atomic compilation. 
- * TODO(Metal): This is not correct for global atomic behaviour, but will be safe within a single thread.
+/* Unblock texture atomic compilation.
+ * TODO(Metal): This is not correct for global atomic behaviour, but will be safe within a single
+ * thread.
  * We need to re-visit the solution for this use-case and use a 2D texture buffer instead. */
 #define imageAtomicMin(tex, coord, data) \
-    uint val = _texelFetch_internal(tex, coord, 0).r;\
-    _texture_write_internal(tex, coord, uint4((val < data) ? val : data));\
-    tex.texture->fence();
+  uint val = _texelFetch_internal(tex, coord, 0).r; \
+  _texture_write_internal(tex, coord, uint4((val < data) ? val : data)); \
+  tex.texture->fence();
 
 /* Used to replace 'out' in function parameters with threadlocal reference
  * shortened to avoid expanding the glsl source string. */
@@ -1186,17 +1187,16 @@ inline float4 uintBitsToFloat(uint4 f)
 template<typename T> T findLSB(T x)
 {
   /* ctz returns the number of trailing zeroes. To fetch the index of the LSB, we can also use this
-   * value as index, however need to filter out the case where the input value is zero to match
+   * value as index, however we need to filter out the case where the input value is zero to match
    * GLSL functionality. */
   return (x == T(0)) ? T(-1) : T(ctz(x));
 }
 
 template<typename T> T findMSB(T x)
 {
-  /* clz returns the number of leading zeroes. To fetch the index of the LSB, we can also use this
-   * value as index when offset by 1. however need to filter out the case where the input value is
-   * zero to match GLSL functionality. 000000010*/
-  return (x == T(0)) ? T(-1) : (clz(T(0)) - clz(x) - T(1));
+  /* clz returns the number of leading zeroes. To fetch the index of the MSB, we can also use this
+   * value as index when offset by 1. */
+  return (sizeof(T) * 8) - T(1) - clz(x);
 }
 
 /* Texture size functions. Add texture types as needed. */

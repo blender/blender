@@ -110,14 +110,14 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<int> corner_index = params.extract_input<Field<int>>("Corner Index");
   if (params.output_is_required("Next Edge Index")) {
     params.set_output("Next Edge Index",
-                      Field<int>(std::make_shared<FieldAtIndexInput>(
+                      Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           corner_index,
                           Field<int>(std::make_shared<CornerNextEdgeFieldInput>()),
                           ATTR_DOMAIN_CORNER)));
   }
   if (params.output_is_required("Previous Edge Index")) {
     params.set_output("Previous Edge Index",
-                      Field<int>(std::make_shared<FieldAtIndexInput>(
+                      Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           corner_index,
                           Field<int>(std::make_shared<CornerPreviousEdgeFieldInput>()),
                           ATTR_DOMAIN_CORNER)));

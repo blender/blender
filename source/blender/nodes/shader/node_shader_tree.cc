@@ -48,7 +48,7 @@
 #include "node_common.h"
 #include "node_exec.h"
 #include "node_shader_util.hh"
-#include "node_util.h"
+#include "node_util.hh"
 
 using blender::Array;
 using blender::Vector;

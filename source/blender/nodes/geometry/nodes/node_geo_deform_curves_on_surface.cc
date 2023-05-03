@@ -29,8 +29,8 @@
 
 namespace blender::nodes::node_geo_deform_curves_on_surface_cc {
 
-using attribute_math::mix3;
 using bke::CurvesGeometry;
+using bke::attribute_math::mix3;
 using geometry::ReverseUVSampler;
 
 NODE_STORAGE_FUNCS(NodeGeometryCurveTrim)
