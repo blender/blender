@@ -13,9 +13,9 @@
 
 namespace blender::nodes {
 
-FieldAtIndexInput::FieldAtIndexInput(Field<int> index_field,
-                                     GField value_field,
-                                     eAttrDomain value_field_domain)
+EvaluateAtIndexInput::EvaluateAtIndexInput(Field<int> index_field,
+                                           GField value_field,
+                                           eAttrDomain value_field_domain)
     : bke::GeometryFieldInput(value_field.cpp_type(), "Evaluate at Index"),
       index_field_(std::move(index_field)),
       value_field_(std::move(value_field)),
@@ -23,18 +23,17 @@ FieldAtIndexInput::FieldAtIndexInput(Field<int> index_field,
 {
 }
 
-GVArray FieldAtIndexInput::get_varray_for_context(const bke::GeometryFieldContext &context,
-                                                  const IndexMask mask) const
+GVArray EvaluateAtIndexInput::get_varray_for_context(const bke::GeometryFieldContext &context,
+                                                     const IndexMask mask) const
 {
   const std::optional<AttributeAccessor> attributes = context.attributes();
   if (!attributes) {
     return {};
   }
 
-  const bke::GeometryFieldContext value_field_context{
+  const bke::GeometryFieldContext value_context{
       context.geometry(), context.type(), value_field_domain_};
-  FieldEvaluator value_evaluator{value_field_context,
-                                 attributes->domain_size(value_field_domain_)};
+  FieldEvaluator value_evaluator{value_context, attributes->domain_size(value_field_domain_)};
   value_evaluator.add(value_field_);
   value_evaluator.evaluate();
   const GVArray &values = value_evaluator.get_evaluated(0);
@@ -163,9 +162,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     using T = decltype(dummy);
     static const std::string identifier = "Value_" + identifier_suffix(data_type);
     Field<T> output_field{
-        std::make_shared<FieldAtIndexInput>(params.extract_input<Field<int>>("Index"),
-                                            params.extract_input<Field<T>>(identifier),
-                                            domain)};
+        std::make_shared<EvaluateAtIndexInput>(params.extract_input<Field<int>>("Index"),
+                                               params.extract_input<Field<T>>(identifier),
+                                               domain)};
     params.set_output(identifier, std::move(output_field));
   });
 }

@@ -115,14 +115,14 @@ void initialize_volume_component_from_points(GeoNodeExecParams &params,
                                              openvdb::GridClass gridClass);
 #endif
 
-class FieldAtIndexInput final : public bke::GeometryFieldInput {
+class EvaluateAtIndexInput final : public bke::GeometryFieldInput {
  private:
   Field<int> index_field_;
   GField value_field_;
   eAttrDomain value_field_domain_;
 
  public:
-  FieldAtIndexInput(Field<int> index_field, GField value_field, eAttrDomain value_field_domain);
+  EvaluateAtIndexInput(Field<int> index_field, GField value_field, eAttrDomain value_field_domain);
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
                                  const IndexMask mask) const final;
