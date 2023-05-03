@@ -46,6 +46,7 @@ namespace blender::gpu {
 class MTLContext;
 class MTLCommandBufferManager;
 class MTLUniformBuf;
+class MTLStorageBuf;
 
 /* Structs containing information on current binding state for textures and samplers. */
 struct MTLTextureBinding {
@@ -436,6 +437,11 @@ struct MTLUniformBufferBinding {
   MTLUniformBuf *ubo;
 };
 
+struct MTLStorageBufferBinding {
+  bool bound;
+  MTLStorageBuf *ssbo;
+};
+
 struct MTLContextGlobalShaderPipelineState {
   bool initialised;
 
@@ -455,11 +461,17 @@ struct MTLContextGlobalShaderPipelineState {
   MTLShader *active_shader;
 
   /* Global Uniform Buffers. */
-  MTLUniformBufferBinding ubo_bindings[MTL_MAX_UNIFORM_BUFFER_BINDINGS];
+  MTLUniformBufferBinding ubo_bindings[MTL_MAX_BUFFER_BINDINGS];
+
+  /* Storage buffer. */
+  MTLStorageBufferBinding ssbo_bindings[MTL_MAX_BUFFER_BINDINGS];
 
   /* Context Texture bindings. */
   MTLTextureBinding texture_bindings[MTL_MAX_TEXTURE_SLOTS];
   MTLSamplerBinding sampler_bindings[MTL_MAX_SAMPLER_SLOTS];
+
+  /* Image bindings. */
+  MTLTextureBinding image_bindings[MTL_MAX_TEXTURE_SLOTS];
 
   /*** --- Render Pipeline State --- ***/
   /* Track global render pipeline state for the current context. The functions in GPU_state.h
@@ -771,10 +783,10 @@ class MTLContext : public Context {
   MTLFrameBuffer *get_default_framebuffer();
 
   /* Context Global-State Texture Binding. */
-  void texture_bind(gpu::MTLTexture *mtl_texture, uint texture_unit);
+  void texture_bind(gpu::MTLTexture *mtl_texture, uint texture_unit, bool is_image);
   void sampler_bind(MTLSamplerState, uint sampler_unit);
-  void texture_unbind(gpu::MTLTexture *mtl_texture);
-  void texture_unbind_all();
+  void texture_unbind(gpu::MTLTexture *mtl_texture, bool is_image);
+  void texture_unbind_all(bool is_image);
   void sampler_state_cache_init();
   id<MTLSamplerState> get_sampler_from_state(MTLSamplerState state);
   id<MTLSamplerState> get_default_sampler_state();
@@ -822,6 +834,7 @@ class MTLContext : public Context {
   /* Compute. */
   bool ensure_compute_pipeline_state();
   void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len);
+  void compute_dispatch_indirect(StorageBuf *indirect_buf);
 
   /* State assignment. */
   void set_viewport(int origin_x, int origin_y, int width, int height);

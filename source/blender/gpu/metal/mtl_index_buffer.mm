@@ -7,6 +7,7 @@
 #include "mtl_index_buffer.hh"
 #include "mtl_context.hh"
 #include "mtl_debug.hh"
+#include "mtl_storage_buffer.hh"
 
 #include "BLI_span.hh"
 
@@ -22,6 +23,11 @@ MTLIndexBuf::~MTLIndexBuf()
     ibo_->free();
   }
   this->free_optimized_buffer();
+
+  if (ssbo_wrapper_) {
+    delete ssbo_wrapper_;
+    ssbo_wrapper_ = nullptr;
+  }
 }
 
 void MTLIndexBuf::free_optimized_buffer()
@@ -42,8 +48,14 @@ void MTLIndexBuf::bind_as_ssbo(uint32_t binding)
   /* Ensure we have a valid IBO. */
   BLI_assert(this->ibo_);
 
-  /* TODO(Metal): Support index buffer SSBO's. Dependent on compute implementation. */
-  MTL_LOG_WARNING("MTLIndexBuf::bind_as_ssbo not yet implemented!\n");
+  /* Ensure resource is initialized. */
+  this->upload_data();
+
+  /* Create MTLStorageBuffer to wrap this resource and use conventional binding. */
+  if (ssbo_wrapper_ == nullptr) {
+    ssbo_wrapper_ = new MTLStorageBuf(this, alloc_size_);
+  }
+  ssbo_wrapper_->bind(binding);
 }
 
 void MTLIndexBuf::read(uint32_t *data) const
