@@ -197,7 +197,8 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_ik_pose(Object *object,
                              bPoseChannel *pchan,
                              bConstraint *con,
-                             RootPChanMap *root_map);
+                             RootPChanMap *root_map,
+                             GHash *solverchan_from_chain_rootchan);
   virtual void build_splineik_pose(Object *object,
                                    bPoseChannel *pchan,
                                    bConstraint *con,

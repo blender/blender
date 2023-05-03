@@ -248,11 +248,20 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
 
         tool_settings = context.tool_settings
 
-        layout.prop(pose, "use_auto_ik")
-        layout.prop(pose, "use_mirror_x")
-        col = layout.column()
-        col.active = pose.use_mirror_x and not pose.use_auto_ik
-        col.prop(pose, "use_mirror_relative")
+        col = layout.column(align=True)
+        col.prop(pose, "use_auto_ik")
+        col.prop(pose, "use_auto_ik_selection_pin_head")
+        col.prop(pose, "use_auto_ik_selection_pin_tail")
+        col.prop(pose, "use_auto_ik_selection_pin_rotation")
+        col.prop(pose, "use_auto_ik_op_chain_length")
+        col.prop(pose, "do_auto_ik_snap_target_on_confirm")
+        
+        mirror_col = layout.column(align=True)
+        mirror_col.active = not pose.use_auto_ik
+        mirror_col.prop(pose, "use_mirror_x")
+        sub_col = mirror_col.column(align=True)
+        sub_col.active = pose.use_mirror_x
+        sub_col.prop(pose, "use_mirror_relative")
 
         layout.label(text="Affect Only")
         layout.prop(tool_settings, "use_transform_pivot_point_align", text="Locations")

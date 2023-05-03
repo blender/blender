@@ -225,7 +225,13 @@ typedef struct bPoseChannel {
   /** Dynamic, for detecting transform changes. */
   short flag;
   /** Settings for IK bones. */
-  short ikflag;
+  short ikflag; /* rotation */
+  short ikflag_location;
+  short ikflag_stretch;
+  char ikflag_general;
+  char autoik_chain_length;
+  char ik_animspace_override_type;
+  char _pad0[5];
   /** Protect channels from being transformed. */
   short protectflag;
   /** Index of action-group this bone belongs to (0 = default/no group). */
@@ -236,7 +242,6 @@ typedef struct bPoseChannel {
   char selectflag;
   char drawflag;
   char bboneflag DNA_DEPRECATED;
-  char _pad0[4];
 
   /** Set on read file or rebuild pose. */
   struct Bone *bone;
@@ -320,10 +325,16 @@ typedef struct bPoseChannel {
   /** DOF stiffness. */
   float stiffness[3];
   float ikstretch;
+  float limitmin_stretch, limitmax_stretch;
   /** Weight of joint rotation constraint. */
   float ikrotweight;
   /** Weight of joint stretch constraint. */
   float iklinweight;
+
+  float limitmin_location[3], limitmax_location[3];
+  /** DOF stiffness. */
+  float stiffness_location[3];
+  char _pad2[4];
 
   /**
    * Curved bones settings - these are for animating,
@@ -391,6 +402,10 @@ typedef enum ePchan_ConstFlag {
   PCHAN_HAS_CONST = (1 << 1),
   /* only used for drawing Posemode, not stored in channel */
   /* PCHAN_HAS_ACTION = (1 << 2), */ /* UNUSED */
+  /* Has targetless IK constraint
+   * GG: TODO: CLEANUP: This flag is redundant, equivalent to:
+   *   (ikflag_general & (BONE_AUTOIK_DO_PIN | BONE_AUTOIK_DO_PIN_ANY)) > BONE_AUTOIK_DO_PIN
+   */
   PCHAN_HAS_TARGET = (1 << 3),
   /* only for drawing Posemode too */
   /* PCHAN_HAS_STRIDE = (1 << 4), */ /* UNUSED */
@@ -398,7 +413,9 @@ typedef enum ePchan_ConstFlag {
   PCHAN_HAS_SPLINEIK = (1 << 5),
 } ePchan_ConstFlag;
 
-/* PoseChannel->ikflag */
+/* PoseChannel->ikflag
+ * PoseChannel->ikflag_location
+ * PoseChannel->ikflag_stretch */
 typedef enum ePchan_IkFlag {
   BONE_IK_NO_XDOF = (1 << 0),
   BONE_IK_NO_YDOF = (1 << 1),
@@ -410,11 +427,44 @@ typedef enum ePchan_IkFlag {
 
   BONE_IK_ROTCTL = (1 << 6),
   BONE_IK_LINCTL = (1 << 7),
+  /* If set, then IK solver uses rest pose (relative to animated parent) as basis for locked
+   * channels and limits. Otherwise, it uses animated pose. */
+  BONE_IK_DOF_SPACE_REST = (1 << 9),
 
   BONE_IK_NO_XDOF_TEMP = (1 << 10),
   BONE_IK_NO_YDOF_TEMP = (1 << 11),
   BONE_IK_NO_ZDOF_TEMP = (1 << 12),
 } ePchan_IkFlag;
+
+/* PoseChannel->ikflag_general */
+typedef enum ePchan_IkFlagGeneral {
+  BONE_AUTOIK_DO_PIN = (1 << 0),
+
+  /* Pin bone during IK evaluation. */
+  BONE_AUTOIK_DO_PIN_HEAD = (1 << 1),
+  /* Pin bone during IK evaluation. */
+  BONE_AUTOIK_DO_PIN_TAIL = (1 << 2),
+  /* Pin bone during IK evaluation. */
+  BONE_AUTOIK_DO_PIN_ROTATION = (1 << 3),
+  BONE_AUTOIK_DO_PIN_ANY = BONE_AUTOIK_DO_PIN_HEAD | BONE_AUTOIK_DO_PIN_TAIL |
+                           BONE_AUTOIK_DO_PIN_ROTATION,
+  BONE_AUTOIK_INHERIT_CHAIN_LENGTH = (1 << 4),
+  BONE_AUTOIK_DERIVE_CHAIN_LENGTH_FROM_CONNECT = (1 << 5),
+
+} ePchan_IkFlagGeneral;
+
+/* PoseChannel->ik_animspace_override_type */
+typedef enum ePchan_IKAnimSpaceOverrideType {
+  IK_ANIMSPACE_OVERRIDE_TYPE_NO_OVERRIDE = 0,
+  /* During the transform of any bone, fully lock animspace DOF, independent of this bone's
+     selection. */
+  IK_ANIMSPACE_OVERRIDE_TYPE_DO_RESTRICT_FULL = 1,
+  /* During the transform of any bone, fully lock animspace DOFs only if this bone is not
+     transformed (checked by selection) */
+  IK_ANIMSPACE_OVERRIDE_TYPE_DO_RESTRICT_PARTIAL = 2,
+  /* During the transform of any bone, fully free animspace DOFs. */
+  IK_ANIMSPACE_OVERRIDE_TYPE_DO_FREE = 3,
+} ePchan_IKAnimSpaceOverrideType;
 
 /* PoseChannel->drawflag */
 typedef enum ePchan_DrawFlag {
@@ -479,7 +529,8 @@ typedef struct bPose {
   bPoseChannel **chan_array;
 
   short flag;
-  char _pad[2];
+  char flag1;
+  char _pad[1];
 
   /** Local action time of this pose. */
   float ctime;
@@ -527,8 +578,27 @@ typedef enum ePose_Flags {
   POSE_MIRROR_EDIT = (1 << 9),
   /* Use relative mirroring in mirror mode */
   POSE_MIRROR_RELATIVE = (1 << 10),
+  /* During AutoIK, selected bones do not use their specific pin flags. They use the pose's pin
+     flags. */
+  POSE_AUTO_IK_SELECTION_PIN_HEAD = (1 << 11),
+  /* During AutoIK, selected bones do not use their specific pin flags. They use the pose's pin
+     flags. */
+  POSE_AUTO_IK_SELECTION_PIN_TAIL = (1 << 12),
+  /* During AutoIK, selected bones do not use their specific pin flags. They use the pose's pin
+     flags. */
+  POSE_AUTO_IK_SELECTION_PIN_ROTATION = (1 << 13),
+  POSE_AUTO_IK_USE_OPERATOR_CHAIN_LENGTH = (1 << 14),
+  /* Snap IK target and pole on transform confirm such that the chain's pose doesn't change after
+     confirming*/
+  POSE_AUTO_IK_SNAP_TARGET_ON_CONFIRM = (1 << 15),
 } ePose_Flags;
 
+// GG: Q: I'm not sure about the gotchas/caveats/rules of increasing the size of a flag, so I just
+// made a new flag member instead.
+/* Pose->flag1*/
+typedef enum ePose_Flags1 {
+  POSE1_IS_TRANSFORMING_PCHAN = (1 << 0),
+} ePose_Flags1;
 /* IK Solvers ------------------------------------ */
 
 /* bPose->iksolver and bPose->ikparam->iksolver */

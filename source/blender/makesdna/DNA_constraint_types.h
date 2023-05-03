@@ -159,10 +159,12 @@ typedef struct bPythonConstraint {
 typedef struct bKinematicConstraint {
   /** All: target object in case constraint needs a target. */
   struct Object *tar;
+  int _pad1;
+  short _pad0;
   /** All: Maximum number of iterations to try. */
   short iterations;
   /** All & CopyPose: some options Like CONSTRAINT_IK_TIP. */
-  short flag;
+  int flag;
   /** All: index to rootbone, if zero go all the way to mother bone. */
   short rootbone;
   /** CopyPose: for auto-ik, maximum length of chain. */
@@ -179,14 +181,31 @@ typedef struct bKinematicConstraint {
   float weight;
   /** CopyPose: Amount of rotation a target applies on chain. */
   float orientweight;
-  /** CopyPose: for target-less IK. */
+  /** CopyPose: for target-less IK. Head target */
   float grabtarget[3];
+  float rotation_target[3][3];
+
+  float autoik_target_tail[3];
+  float autoik_weight_head;
+  float autoik_weight_tail;
+  float autoik_weight_rotation;
+  char autoik_flag;
+  char _pad5[3];
+
   /** Sub-type of IK constraint: #eConstraint_IK_Type. */
   short type;
   /** Distance: how to limit in relation to clamping sphere: LIMITDIST_... */
   short mode;
   /** Distance: distance (radius of clamping sphere) from target. */
   float dist;
+  /** Index to rootbone of target, if zero go all the way to target's root bone.
+   * For non-one values, the behavior is a two-way IK where the target and the chain tip move
+   * towards eachother and both hierarchies affect the other's hierarchy.
+   */
+  short rootbone_target;
+  short _pad2[1];
+  int _pad3;
+
 } bKinematicConstraint;
 
 typedef enum eConstraint_IK_Type {
@@ -677,6 +696,7 @@ typedef enum eBConstraint_Flags {
 #endif
   /* pre-check for illegal object name or bone name */
   CONSTRAINT_DISABLE = (1 << 2),
+  CONSTRAINT_TEMP_DISABLED_DURING_TRANSFORM = (1 << 3),
   /* to indicate which Ipo should be shown, maybe for 3d access later too */
   CONSTRAINT_ACTIVE = (1 << 4),
   /* to indicate that the owner's space should only be changed into ownspace, but not out of it */
@@ -964,6 +984,7 @@ typedef enum eClampTo_Flags {
 
 /* bKinematicConstraint->flag */
 typedef enum eKinematic_Flags {
+  /* Use tip's parent as end effector bone. */
   CONSTRAINT_IK_TIP = (1 << 0),
   CONSTRAINT_IK_ROT = (1 << 1),
   /* targetless */
@@ -972,8 +993,8 @@ typedef enum eKinematic_Flags {
   CONSTRAINT_IK_TEMP = (1 << 3),
   CONSTRAINT_IK_STRETCH = (1 << 4),
   CONSTRAINT_IK_POS = (1 << 5),
-  CONSTRAINT_IK_SETANGLE = (1 << 6),
-  CONSTRAINT_IK_GETANGLE = (1 << 7),
+  CONSTRAINT_IK_SETANGLE = (1 << 6), /* UNUSED */
+  CONSTRAINT_IK_GETANGLE = (1 << 7), /* UNUSED */
   /* limit axis */
   CONSTRAINT_IK_NO_POS_X = (1 << 8),
   CONSTRAINT_IK_NO_POS_Y = (1 << 9),
@@ -983,7 +1004,53 @@ typedef enum eKinematic_Flags {
   CONSTRAINT_IK_NO_ROT_Z = (1 << 13),
   /* axis relative to target */
   CONSTRAINT_IK_TARGETAXIS = (1 << 14),
+
+  /* Use end effector's head as the source position that goals to the IK target's position.
+   * We don't merge this behavior with CONSTRAINT_IK_TIP since its behavior might exist for
+   * backwards compatibility reasons and the new behavior wouldn't support it w/o manually fixing
+   * files to move the IK constraint onto parent bones. */
+  CONSTRAINT_IK_TIP_HEAD_AS_EE_POS = (1 << 15),
+  /** IK Solver ordering control simplifies rigging. This will dissolve the target's chain root's
+   * posetree to be the same as this owner chain's posetree. As to how to conceptually figure out
+   * whether this leads to valid rigs or dependency cycles or missed dependency relations, this
+   * flag is equivalent to creating a dummy chain that uses the same target and roots to this
+   * constraint owner, makes it 2way (for dissolve to occur w/o this flag), with the entire chain
+   * (except the tip) being implicit or locked. Under that circumstance, things work fine. Thus,
+   * this flag shouldn't break things in any new ways.
+   *
+   * XXX: ... its not equivalent.. atleast not to AutoIK. A target that gets explicitly dissolved
+   * and then midchain split by autoIK won't dissolve the same after the split, effectively (I
+   * think) causing a diff eval order of the IK tree, which means it likely wont move the way the
+   * user expects.
+   *    a flag: LOCK_OWNER/TARGET_CHAIN durin solving might wokr. Though it still requires explicit
+   *    support by AutoIK. A split chain needs to propagate that flag. Atm, I don't check
+   *    constraint data at all during splits.. This flag would only be used by iksolver to lock the
+   *    chain. That way, all the depsgraph handling, posetree root stuff works all the same w/o
+   *    any changes needed.
+   *
+   *  */
+  // CONSTRAINT_IK_FORCE_SAME_POSETREE_AS_TARGET = (1 << 16),
+  CONSTRAINT_IK_IS_TWOWAY = (1 << 16),
+  /* Use: simplify AutoIK implementation. This allows an ik constraint on some owner pchan to be
+   * both a pin for all posetrees that contain the owner and be able to create a posetree. Without
+   * this, the constraint is exclusively a targetless pin or a posetree generator. AutoIK
+   * implementation can now just duplicate and temporarily disable the original IK, tag as
+   * CONSTRAINT_AUTOIK_ENABLED, then finally sync the grabtarget and rotation_target. This
+   * way, we're not modifying any posetree chains and ik constraints can use both real targets and
+   * a pin target (grabtarget). Really duplicating isn't necessary, we just do it to reduce how
+   * much we're modifying user data. */
+  CONSTRAINT_IK_DO_NOT_CREATE_POSETREE = (1 << 17),
 } eKinematic_Flags;
+
+typedef enum eKinematicAuto_Flags {
+  /* Posetrees that include the owner bone will still create iksolver goals. Intended to be used
+   * with AutoIK to simplify implementation (no need to find which posetree evaluates last and
+   * includes the owner bone)*/
+  CONSTRAINT_AUTOIK_ENABLED = (1 << 0),
+  CONSTRAINT_AUTOIK_USE_HEAD = (1 << 1),
+  CONSTRAINT_AUTOIK_USE_TAIL = (1 << 2),
+  CONSTRAINT_AUTOIK_USE_ROTATION = (1 << 3),
+} eKinematicAuto_Flags;
 
 /* bSplineIKConstraint->flag */
 typedef enum eSplineIK_Flags {

@@ -6,6 +6,7 @@
  */
 
 #include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_mesh_types.h"
 
@@ -15,6 +16,7 @@
 #include "BLI_linklist_stack.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
@@ -330,19 +332,30 @@ static bool pchan_autoik_adjust(bPoseChannel *pchan, short chainlen)
   for (con = pchan->constraints.first; con; con = con->next) {
     if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce != 0.0f)) {
       bKinematicConstraint *data = con->data;
+      if (data->flag & CONSTRAINT_IK_DO_NOT_CREATE_POSETREE) {
+        continue;
+      }
+
+      if (data->tar) {
+        /* Do not modify the chain length for temp constraints that are duplicated from a base IK
+         * with a real target. */
+        continue;
+      }
+
+      // if(data->max_rootbone > 0){
+      //   /* Do not modify for temp constraints that are duplicated from base targetless IK. */
+      //   continue;
+      // }
 
       /* only accept if a temporary one (for auto-ik) */
-      if (data->flag & CONSTRAINT_IK_TEMP) {
-        /* chainlen is new chainlen, but is limited by maximum chainlen */
-        const int old_rootbone = data->rootbone;
-        if ((chainlen == 0) || (chainlen > data->max_rootbone)) {
-          data->rootbone = data->max_rootbone;
-        }
-        else {
-          data->rootbone = chainlen;
-        }
-        changed |= (data->rootbone != old_rootbone);
+      if ((data->flag & CONSTRAINT_IK_TEMP) == 0) {
+        continue;
       }
+
+      /* chainlen is new chainlen, but is limited by maximum chainlen */
+      const int old_rootbone = data->rootbone;
+      data->rootbone = chainlen;
+      changed |= (data->rootbone != old_rootbone);
     }
   }
 
@@ -354,35 +367,137 @@ void transform_autoik_update(TransInfo *t, short mode)
   Main *bmain = CTX_data_main(t->context);
 
   short *chainlen = &t->settings->autoik_chainlen;
+  char *settings_rootchan_name = t->settings->autoik_root_pchan_name;
   bPoseChannel *pchan;
 
-  /* mode determines what change to apply to chainlen */
-  if (mode == 1) {
-    /* mode=1 is from WHEELMOUSEDOWN... increases len */
-    (*chainlen)++;
-  }
-  else if (mode == -1) {
-    /* mode==-1 is from WHEELMOUSEUP... decreases len */
-    if (*chainlen > 0) {
-      (*chainlen)--;
-    }
-    else {
-      /* IK length did not change, skip updates. */
-      return;
-    }
-  }
+  /* mode=1 is from WHEELMOUSEDOWN...  */
+  /* mode==-1 is from WHEELMOUSEUP... */
+  const int MODE_DECREASE_LENGTH = 1;
+  const int MODE_INCREASE_LENGTH = -1;
 
-  /* apply to all pose-channels */
-  bool changed = false;
-
+  int initial_chainlen = *chainlen;
+  /* NOTE: If there are multiple bones selected with differing max chain
+   * lengths, then which is the effective max  is arbitrary from the users
+   * perspective. Same for the stored rootchan. */
+  int segcount = 0;
+  bPoseChannel *chanlist[256];
+  bool is_found_rootchan = false;
+  /* Apply rootchan_name based clamping to chainlen. */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-
     /* sanity checks (don't assume t->poseobj is set, or that it is an armature) */
     if (ELEM(NULL, tc->poseobj, tc->poseobj->pose)) {
       continue;
     }
 
+    const bool do_op_chain_length_override_pose = (tc->poseobj->pose->flag &
+                                                   POSE_AUTO_IK_USE_OPERATOR_CHAIN_LENGTH) != 0;
+
+    bPoseChannel *rootchan = BKE_pose_channel_find_name(tc->poseobj->pose, settings_rootchan_name);
     for (pchan = tc->poseobj->pose->chanbase.first; pchan; pchan = pchan->next) {
+      // Assumes every selected bone is being AutoIK-ed.
+      if ((pchan->bone->flag & BONE_SELECTED) == 0) {
+        continue;
+      }
+
+      segcount = 0;
+      if (rootchan != NULL) {
+        bPoseChannel *iter_chan = pchan;
+        while (iter_chan != NULL && iter_chan != rootchan) {
+          chanlist[segcount] = iter_chan;
+          segcount++;
+          iter_chan = iter_chan->parent;
+        }
+        is_found_rootchan = iter_chan == rootchan;
+        if (is_found_rootchan) {
+          chanlist[segcount] = rootchan;
+          segcount++;
+        }
+      }
+      else {
+        is_found_rootchan = true;
+        segcount = 0;
+        for (bPoseChannel *iter_chan = pchan; iter_chan; iter_chan = iter_chan->parent) {
+          chanlist[segcount] = iter_chan;
+          segcount++;
+
+          if (segcount == *chainlen || segcount > 255) {
+            BLI_assert(segcount <= 255);
+            break; /* 255 is weak */
+          }
+        }
+        rootchan = chanlist[segcount - 1];
+      }
+
+      // if (!is_found_rootchan){
+      //   continue;
+      // }
+
+      if (!do_op_chain_length_override_pose) {
+        // Sync chainlen on AutoIK start.
+        *chainlen = segcount;
+        BLI_strncpy(settings_rootchan_name, rootchan->name, MAXBONENAME);
+      }
+      else if (mode == MODE_DECREASE_LENGTH) {
+        *chainlen = segcount - 1;
+        if (segcount > 1) {
+          rootchan = chanlist[segcount - 2];
+          BLI_strncpy(settings_rootchan_name, rootchan->name, MAXBONENAME);
+        }
+      }
+      else if (mode == MODE_INCREASE_LENGTH) {
+        if (rootchan->parent != NULL) {
+          *chainlen = segcount + 1;
+          rootchan = rootchan->parent;
+          BLI_strncpy(settings_rootchan_name, rootchan->name, MAXBONENAME);
+        }
+      }
+      else {
+        // Sync chainlen on AutoIK start.
+        *chainlen = segcount;
+        BLI_strncpy(settings_rootchan_name, rootchan->name, MAXBONENAME);
+      }
+      break;
+    }
+    // GG: CLEANUP: redundant check? It's always set for the very first selected bone.
+    // .. though i suppose it fails if, somehow, no bones are selected?
+    if (is_found_rootchan) {
+      break;
+    }
+  }
+
+  if (!is_found_rootchan) {
+    /* mode determines what change to apply to chainlen */
+    if (mode == MODE_DECREASE_LENGTH) {
+      if (*chainlen > 0) {
+        (*chainlen)--;
+      }
+    }
+    else if (mode == MODE_INCREASE_LENGTH) {
+      (*chainlen)++;
+    }
+  }
+
+  if (mode != 0 && initial_chainlen == *chainlen) {
+    return;
+  }
+  /* apply to all pose-channels */
+  bool changed = false;
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    /* sanity checks (don't assume t->poseobj is set, or that it is an armature) */
+    if (ELEM(NULL, tc->poseobj, tc->poseobj->pose)) {
+      continue;
+    }
+
+    const bool do_op_chain_length_override_pose = (tc->poseobj->pose->flag &
+                                                   POSE_AUTO_IK_USE_OPERATOR_CHAIN_LENGTH) != 0;
+    if (!do_op_chain_length_override_pose) {
+      continue;
+    }
+
+    for (pchan = tc->poseobj->pose->chanbase.first; pchan; pchan = pchan->next) {
+      if ((pchan->bone->flag & BONE_SELECTED) == 0) {
+        continue;
+      }
       changed |= pchan_autoik_adjust(pchan, *chainlen);
     }
   }

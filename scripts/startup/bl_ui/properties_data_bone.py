@@ -330,63 +330,145 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):
         ob = context.object
         bone = context.bone
         pchan = ob.pose.bones[bone.name]
+        
+        layout.prop(pchan, "ik_animspace_override_type")
+        layout.separator()
 
-        active = pchan.is_in_ik_chain
-
-        col = layout.column()
-        col.prop(pchan, "ik_stretch", slider=True)
-        col.active = active
+        autoik_layout = layout.column(align=True)
+        autoik_layout.active = ob.pose.use_auto_ik
+        
+        col = autoik_layout.column(align=True)
+        col.prop(pchan, "do_autoik_pin", text="Do AutoIK Pin")
+        col.prop(pchan, "do_autoik_pin_head", text="Head")
+        col.prop(pchan, "do_autoik_pin_tail", text="Tail")
+        col.prop(pchan, "do_autoik_pin_rotation", text="Rotation")
+        col.separator()
+        col.prop(pchan, "do_autoik_inherit_chain_length")
+        col.prop(pchan, "do_autoik_derive_chain_length_from_connect")
+        subcol = col.column(align=True)
+        subcol.active = not pchan.do_autoik_derive_chain_length_from_connect
+        subcol.prop(pchan, "autoik_chain_length")
 
         layout.separator()
 
         col = layout.column(align=True)
+        col.prop(pchan, "ik_stretch_dof_space_rest", text="IK Stretch DOF Rest Space")
+        col.prop(pchan, "lock_ik_y_stretch", text="IK Stretch Lock")
+        
+        sub = col.column(align=True)
+        sub.active = pchan.lock_ik_y_stretch is False
+        sub.prop(pchan, "ik_stretch", text="IK Stretch Weight", slider=True)
+        sub.prop(pchan, "use_ik_limit_y_stretch", text="Limit")
 
-        col.prop(pchan, "lock_ik_x", text="Lock IK X")
+        sub = col.column(align=True)
+        sub.active = pchan.lock_ik_y_stretch is False and pchan.use_ik_limit_y_stretch
+        sub.prop(pchan, "ik_min_y_stretch", text="Min")
+        sub.prop(pchan, "ik_max_y_stretch", text="Max")
+
+        col.separator()
+        col = layout.column(align=True)
+
+        col.prop(pchan, "ik_location_dof_space_rest", text="Location DOF Rest Space")
+        col.prop(pchan, "lock_ik_x_location", text="Location Lock IK X")
+        col.prop(pchan, "lock_ik_y_location", text="Y")
+        col.prop(pchan, "lock_ik_z_location", text="Z")
+
+        col = layout.column(align=True)
+
+        sub = col.column(align=True)
+        sub.active = pchan.lock_ik_x_location is False
+        sub.prop(pchan, "ik_stiffness_x_location", text="Location Stiffness X", slider=True)
+        sub = col.column(align=True)
+        sub.active = pchan.lock_ik_y_location is False
+        sub.prop(pchan, "ik_stiffness_y_location", text="Y", slider=True)
+        sub = col.column(align=True)
+        sub.active = pchan.lock_ik_z_location is False
+        sub.prop(pchan, "ik_stiffness_z_location", text="Z", slider=True)
+
+        col = layout.column(align=True)
+
+        sub = col.column()
+        sub.active = pchan.lock_ik_x_location is False
+        sub.prop(pchan, "use_ik_limit_x_location", text="Location Limit X")
+
+        sub = col.column(align=True)
+        sub.active = pchan.lock_ik_x_location is False and pchan.use_ik_limit_x_location
+        sub.prop(pchan, "ik_min_x_location", text="Min")
+        sub.prop(pchan, "ik_max_x_location", text="Max")
+
+        col.separator()
+
+        sub = col.column()
+        sub.active = pchan.lock_ik_y_location is False
+        sub.prop(pchan, "use_ik_limit_y_location", text="Location Limit Y")
+
+        sub = col.column(align=True)
+        sub.active = pchan.lock_ik_y_location is False and pchan.use_ik_limit_y_location
+        sub.prop(pchan, "ik_min_y_location", text="Min")
+        sub.prop(pchan, "ik_max_y_location", text="Max")
+
+        col.separator()
+
+        sub = col.column()
+        sub.active = pchan.lock_ik_z_location is False
+        sub.prop(pchan, "use_ik_limit_z_location", text="Location Limit Z")
+
+        sub = col.column(align=True)
+        sub.active = pchan.lock_ik_z_location is False and pchan.use_ik_limit_z_location
+        sub.prop(pchan, "ik_min_z_location", text="Min")
+        sub.prop(pchan, "ik_max_z_location", text="Max")
+
+        col.separator()
+
+        col = layout.column(align=True)
+
+        col.prop(pchan, "ik_rotation_dof_space_rest", text="Rotation DOF Rest Space")
+        col.prop(pchan, "lock_ik_x", text="Rotation Lock IK X")
         col.prop(pchan, "lock_ik_y", text="Y")
         col.prop(pchan, "lock_ik_z", text="Z")
 
         col = layout.column(align=True)
 
         sub = col.column(align=True)
-        sub.active = pchan.lock_ik_x is False and active
-        sub.prop(pchan, "ik_stiffness_x", text="Stiffness X", slider=True)
+        sub.active = pchan.lock_ik_x is False
+        sub.prop(pchan, "ik_stiffness_x", text="Rotation Stiffness X", slider=True)
         sub = col.column(align=True)
-        sub.active = pchan.lock_ik_y is False and active
+        sub.active = pchan.lock_ik_y is False
         sub.prop(pchan, "ik_stiffness_y", text="Y", slider=True)
         sub = col.column(align=True)
-        sub.active = pchan.lock_ik_z is False and active
+        sub.active = pchan.lock_ik_z is False
         sub.prop(pchan, "ik_stiffness_z", text="Z", slider=True)
 
         col = layout.column(align=True)
 
         sub = col.column()
-        sub.active = pchan.lock_ik_x is False and active
-        sub.prop(pchan, "use_ik_limit_x", text="Limit X")
+        sub.active = pchan.lock_ik_x is False
+        sub.prop(pchan, "use_ik_limit_x", text="Rotation Limit X")
 
         sub = col.column(align=True)
-        sub.active = pchan.lock_ik_x is False and pchan.use_ik_limit_x and active
+        sub.active = pchan.lock_ik_x is False and pchan.use_ik_limit_x
         sub.prop(pchan, "ik_min_x", text="Min")
         sub.prop(pchan, "ik_max_x", text="Max")
 
         col.separator()
 
         sub = col.column()
-        sub.active = pchan.lock_ik_y is False and active
-        sub.prop(pchan, "use_ik_limit_y", text="Limit Y")
+        sub.active = pchan.lock_ik_y is False
+        sub.prop(pchan, "use_ik_limit_y", text="Rotation Limit Y")
 
         sub = col.column(align=True)
-        sub.active = pchan.lock_ik_y is False and pchan.use_ik_limit_y and active
+        sub.active = pchan.lock_ik_y is False and pchan.use_ik_limit_y
         sub.prop(pchan, "ik_min_y", text="Min")
         sub.prop(pchan, "ik_max_y", text="Max")
 
         col.separator()
 
         sub = col.column()
-        sub.active = pchan.lock_ik_z is False and active
-        sub.prop(pchan, "use_ik_limit_z", text="Limit Z")
+        sub.active = pchan.lock_ik_z is False
+        sub.prop(pchan, "use_ik_limit_z", text="Rotation Limit Z")
 
         sub = col.column(align=True)
-        sub.active = pchan.lock_ik_z is False and pchan.use_ik_limit_z and active
+        sub.active = pchan.lock_ik_z is False and pchan.use_ik_limit_z
         sub.prop(pchan, "ik_min_z", text="Min")
         sub.prop(pchan, "ik_max_z", text="Max")
 
@@ -396,12 +478,10 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):
 
             col = layout.column()
             col.prop(pchan, "use_ik_rotation_control", text="Control Rotation")
-            col.active = active
 
             col = layout.column()
 
             col.prop(pchan, "ik_rotation_weight", text="IK Rotation Weight", slider=True)
-            col.active = active
             # not supported yet
             # row = layout.row()
             # row.prop(pchan, "use_ik_linear_control", text="Joint Size")

@@ -18,8 +18,14 @@ struct RootPChanMap {
   /** Add a mapping. */
   void add_bone(const char *bone, const char *root);
 
+  bool has_root(const char *bone, const char *root) const;
   /** Check if there's a common root bone between two bones. */
   bool has_common_root(const char *bone1, const char *bone2) const;
+  /** TODO: GG: COMMIT: remove unused function that I added. */
+  bool has_common_root_specified(const char *bone1,
+                                 const char *bone2,
+                                 const char *bone_root) const;
+  Set<StringRefNull> *get_roots(const char *bone);
 
  protected:
   /**

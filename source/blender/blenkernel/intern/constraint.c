@@ -1315,6 +1315,7 @@ static void kinematic_new_data(void *cdata)
   data->weight = 1.0f;
   data->orientweight = 1.0f;
   data->iterations = 500;
+  data->rootbone_target = 0;
   data->dist = 1.0f;
   data->flag = CONSTRAINT_IK_TIP | CONSTRAINT_IK_STRETCH | CONSTRAINT_IK_POS;
 }
@@ -1387,8 +1388,13 @@ static void kinematic_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
         float vec[3];
         /* move grabtarget into world space */
         mul_v3_m4v3(vec, ob->object_to_world, data->grabtarget);
-        copy_m4_m4(ct->matrix, ob->object_to_world);
+        mul_m4_m4m3(ct->matrix, ob->object_to_world, data->rotation_target);
         copy_v3_v3(ct->matrix[3], vec);
+        /* Remove scaling. */
+        normalize_m4(ct->matrix);
+        /* The matrix was never initialized to unit mat4, so we have to ensure this entry.
+         * Otherwise it won't affect relative translations as expected. */
+        ct->matrix[3][3] = 1;
       }
     }
     else {

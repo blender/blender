@@ -1234,9 +1234,41 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
       prop, "Chain Length", "How many bones are included in the IK effect - 0 uses all bones");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
+  prop = RNA_def_property(srna, "chain_count_target", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "rootbone_target");
+  /* Changing the IK chain length requires a rebuild of depsgraph relations. This makes it
+   * unsuitable for animation. */
+  RNA_def_property_int_default(prop, 1);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_range(prop, 0, 255);
+  RNA_def_property_ui_text(prop,
+                           "Chain Length Target",
+                           "How many bones are included in the IK effect - 0 uses all bones");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
   prop = RNA_def_property(srna, "use_tail", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_IK_TIP);
-  RNA_def_property_ui_text(prop, "Use Tail", "Include bone's tail as last element in chain");
+  RNA_def_property_ui_text(
+      prop,
+      "Use Self As Tip",
+      "Include bone's tail as last element in chain. Otherwise, use parent as tip");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+  prop = RNA_def_property(srna, "use_head_of_tip", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_IK_TIP_HEAD_AS_EE_POS);
+  RNA_def_property_boolean_default(prop, false);
+  RNA_def_property_ui_text(
+      prop,
+      "Use Head Of Tip",
+      "Use tip's head as the source position that goals to the IK target position");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+  prop = RNA_def_property(srna, "use_twoway_evaluation", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_IK_IS_TWOWAY);
+  RNA_def_property_boolean_default(prop, false);
+  RNA_def_property_ui_text(prop,
+                           "Do Two-Way Evaluation",
+                           "Evaluate with the target chain being goaling towards the tip bone");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
   prop = RNA_def_property(srna, "reference_axis", PROP_ENUM, PROP_NONE);

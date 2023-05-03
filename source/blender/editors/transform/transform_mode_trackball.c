@@ -136,6 +136,15 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 
   copy_v2_v2(t->values_final, phi);
 
+  if (t->flag & T_AUTOIK) {
+    short chainlen = t->settings->autoik_chainlen;
+    char *root_name = t->settings->autoik_root_pchan_name;
+    ofs += BLI_snprintf_rlen(
+        str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("Auto IK Length: %d "), chainlen);
+    ofs += BLI_snprintf_rlen(str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("(%s)"), root_name);
+    ofs += BLI_strncpy_rlen(str + ofs, "   ", UI_MAX_DRAW_STR - ofs);
+  }
+
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN * 2];
 

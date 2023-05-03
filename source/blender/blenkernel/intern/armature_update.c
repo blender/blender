@@ -7,6 +7,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -977,6 +978,342 @@ void BKE_pose_eval_bbone_segments(struct Depsgraph *depsgraph,
       BKE_pchan_bbone_segments_cache_copy(pchan->orig_pchan, pchan);
     }
   }
+}
+
+static void BKE_determine_posetree_roots__cache_chain(const struct bPoseChannel *rootchan,
+                                                      const struct bPoseChannel *tipchan,
+                                                      const int chain_len,
+                                                      struct GHash *chain_from_chainroot)
+{
+  GSet *cached_chain = NULL;
+  {
+    GSet **p_cached_chain;
+    bool is_chain_initialized = BLI_ghash_ensure_p(
+        chain_from_chainroot, rootchan, (void ***)&p_cached_chain);
+    if (!is_chain_initialized) {
+      *p_cached_chain = BLI_gset_ptr_new(__func__);
+    }
+    cached_chain = *p_cached_chain;
+  }
+
+  int segment_index = chain_len;
+  if (segment_index <= 0) {
+    segment_index = -1;
+  }
+  bPoseChannel *iter_chan = tipchan;
+  for (; iter_chan && (segment_index != 0); iter_chan = iter_chan->parent, segment_index--) {
+    BLI_gset_add(cached_chain, iter_chan);
+  }
+}
+
+GHash *BKE_determine_posetree_roots(struct ListBase *chanbase)
+{
+  /** GG: CLEANUP: Make a function for calculating target chain root. I think I've copy pasted the
+   * same calc more than 5 times...
+   */
+  /* Go through all cons and store their roots along with which root is the solver. For 2way IK
+   * chains, if both reference different solvers, then dissolve one of the solvers into the other.
+   * All references to the dissolved solver will then point to the newly one.
+   *
+   * This also stores all the pchans associated with each chain root.
+   */
+  GHash *solver_from_chain_root = BLI_ghash_ptr_new(__func__);
+  LISTBASE_FOREACH (bPoseChannel *, pchan, chanbase) {
+    LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
+      if ((con->flag & CONSTRAINT_DISABLE) != 0) {
+        continue;
+      }
+
+      if (con->type != CONSTRAINT_TYPE_KINEMATIC) {
+        continue;
+      }
+
+      bKinematicConstraint *data = (bKinematicConstraint *)con->data;
+      if (data->flag & CONSTRAINT_IK_DO_NOT_CREATE_POSETREE) {
+        continue;
+      }
+
+      bPoseChannel *owner_rootchan = BKE_armature_ik_solver_find_root(pchan, data);
+      if (owner_rootchan == NULL) {
+        /* Invalid data. */
+        continue;
+      }
+
+      bPoseChannel **p_owner_solver_value;
+      bool is_owner_newly_added = !BLI_ghash_ensure_p(
+          solver_from_chain_root, owner_rootchan, (void ***)&p_owner_solver_value);
+      /* Default to placing solver on owner if it's not already associated with a solver. */
+      if (is_owner_newly_added) {
+        *p_owner_solver_value = owner_rootchan;
+      }
+
+      bPoseChannel *target_rootchan = NULL;
+      if (data->tar && (data->tar->type == OB_ARMATURE) && (data->subtarget[0])) {
+        const bool is_twoway = (data->flag & CONSTRAINT_IK_IS_TWOWAY) != 0;
+        if (is_twoway) {
+          bPoseChannel *target_tipchan = BKE_pose_channel_find_name(data->tar->pose,
+                                                                    data->subtarget);
+          target_rootchan = BKE_armature_ik_solver_find_root_ex(target_tipchan,
+                                                                data->rootbone_target);
+        }
+      }
+
+      if (target_rootchan == NULL) {
+        continue;
+      }
+
+      if (target_rootchan == owner_rootchan) {
+        continue;
+      }
+
+      bPoseChannel **p_target_solver_value;
+      const bool is_target_newly_added = !BLI_ghash_ensure_p(
+          solver_from_chain_root, target_rootchan, (void ***)&p_target_solver_value);
+
+      if (is_target_newly_added && is_owner_newly_added) {
+        *p_owner_solver_value = owner_rootchan;
+        *p_target_solver_value = *p_owner_solver_value;
+      }
+      else if (is_target_newly_added) {
+        *p_target_solver_value = *p_owner_solver_value;
+      }
+      else if (is_owner_newly_added) {
+        *p_owner_solver_value = *p_target_solver_value;
+      }
+      else if (*p_owner_solver_value != *p_target_solver_value) {
+        /* Dissolve one of the solvers, it doesn't matter which. For the dissolved solver, redirect
+         * all roots which reference it to the remaining solver. */
+        bPoseChannel *dissolved_solver_pchan = *p_target_solver_value;
+        bPoseChannel *redirected_solver_pchan = *p_owner_solver_value;
+
+        GHashIterator gh_iter;
+        GHASH_ITER (gh_iter, solver_from_chain_root) {
+          /** GG: XXX: definitely going to have ot debug through this to ensure ptr derefs are
+           * right.. */
+          void **p_value = BLI_ghashIterator_getValue_p(&gh_iter);
+          if (*p_value != dissolved_solver_pchan) {
+            continue;
+          }
+          *p_value = redirected_solver_pchan;
+        }
+      }
+    }
+  }
+
+  return solver_from_chain_root;
+}
+
+void BKE_determine_posetree_pchan_implicity(
+    struct ListBase *chanbase,
+    const struct GHash *posetree_chan_from_chainroot_chan,
+    struct GHash **r_allocated_explicit_pchans_from_posetree_pchan,
+    struct GHash **r_allocated_implicit_pchans_from_posetree_pchan)
+{
+  /**  GG: CLEANUP: EFFICIENCY: instead of posetree_chan_from_chainroot_chan, I should use the
+   * chaintip instead. That prevents the need to walk chains so much. And deg_builder_.._rig.cc
+   * won't have to walk the chain just to root_map.add(subtarget, posetree). Yeah, i think every
+   * usage of this data is simplified if we store tips instead of roots
+   */
+  const GHash *solver_from_chain_root = posetree_chan_from_chainroot_chan;
+  /*Key: bPoseChannel* , value: GSet of bPoseChannel* (gset instead of list since single root can
+   * be assoc w/ multiple chains)*/
+  GHash *explicit_chain_from_chain_root = BLI_ghash_ptr_new(__func__);
+  LISTBASE_FOREACH (bPoseChannel *, pchan, chanbase) {
+    LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
+      if ((con->flag & CONSTRAINT_DISABLE) != 0) {
+        continue;
+      }
+      if (con->type != CONSTRAINT_TYPE_KINEMATIC) {
+        continue;
+      }
+
+      bKinematicConstraint *data = (bKinematicConstraint *)con->data;
+      if (data->flag & CONSTRAINT_IK_DO_NOT_CREATE_POSETREE) {
+        continue;
+      }
+
+      bPoseChannel *owner_rootchan = BKE_armature_ik_solver_find_root(pchan, data);
+      if (owner_rootchan == NULL) {
+        /* Invalid data. */
+        continue;
+      }
+
+      /* NOTE: tip is never NULL at this point since, if it's NULL, then so is
+       * owner_rootchan. But then we would've skipped anyways. */
+      bPoseChannel *owner_tipchan = pchan;
+      if ((data->flag & CONSTRAINT_IK_TIP) == 0) {
+        owner_tipchan = pchan->parent;
+      }
+
+      /* Store chain association. */
+      BKE_determine_posetree_roots__cache_chain(
+          owner_rootchan, owner_tipchan, data->rootbone, explicit_chain_from_chain_root);
+
+      bPoseChannel *target_rootchan = NULL;
+      bPoseChannel *target_tipchan = NULL;
+      if (data->tar && (data->tar->type == OB_ARMATURE) && (data->subtarget[0])) {
+        const bool is_twoway = (data->flag & CONSTRAINT_IK_IS_TWOWAY) != 0;
+        if (is_twoway) {
+          target_tipchan = BKE_pose_channel_find_name(data->tar->pose, data->subtarget);
+          target_rootchan = BKE_armature_ik_solver_find_root_ex(target_tipchan,
+                                                                data->rootbone_target);
+        }
+      }
+
+      if (target_rootchan == NULL) {
+        continue;
+      }
+
+      BKE_determine_posetree_roots__cache_chain(
+          target_rootchan, target_tipchan, data->rootbone_target, explicit_chain_from_chain_root);
+    }
+  }
+
+  /* Store all pchans associated with each posetree root. */
+  /* Key: bPoseChannel* , value: GSet of bPoseChannel* (gset instead of list since single root
+   * can be assoc w/ multiple chains)*/
+  GHash *explicit_nodes_from_posetree = BLI_ghash_ptr_new(__func__);
+  GHashIterator gh_iter;
+  /* Ensure there is a set for every posetree chan so users don't have to do NULL checks. */
+  GHASH_ITER (gh_iter, solver_from_chain_root) {
+    bPoseChannel *posetree_rootchan = BLI_ghashIterator_getValue(&gh_iter);
+    if (BLI_ghash_lookup(explicit_nodes_from_posetree, posetree_rootchan)) {
+      continue;
+    }
+    BLI_ghash_insert(explicit_nodes_from_posetree, posetree_rootchan, BLI_gset_ptr_new(__func__));
+  }
+
+  GHASH_ITER (gh_iter, explicit_chain_from_chain_root) {
+
+    bPoseChannel *posetree_rootchan = NULL;
+    {
+      bPoseChannel *rootchan = BLI_ghashIterator_getKey(&gh_iter);
+      BLI_assert(rootchan);
+      posetree_rootchan = BLI_ghash_lookup(solver_from_chain_root, rootchan);
+    }
+    BLI_assert(posetree_rootchan);
+
+    GSet *posetree_pchans = BLI_ghash_lookup(explicit_nodes_from_posetree, posetree_rootchan);
+    // BLI_assert_msg(BLI_ghash_haskey(explicit_nodes_from_posetree, posetree_rootchan), "..
+    // expectedd ghash_lookup to error or soemthing");
+
+    GSet *chain_pchans = BLI_ghashIterator_getValue(&gh_iter);
+    BLI_assert(chain_pchans);
+    GSetIterator gs_iter;
+    GSET_ITER (gs_iter, chain_pchans) {
+      bPoseChannel *iter_chan = BLI_gsetIterator_getKey(&gs_iter);
+      BLI_assert(iter_chan);
+      BLI_gset_add(posetree_pchans, iter_chan);
+    }
+  }
+
+  /* Store all implicit pchans per posetree. */
+  /* Same key/value types as explicit data. */
+  GHash *implicit_nodes_from_posetree = BLI_ghash_ptr_new(__func__);
+  /* Ensure there is a set for every posetree chan so users don't have to do NULL checks. */
+  GHASH_ITER (gh_iter, solver_from_chain_root) {
+    bPoseChannel *posetree_rootchan = BLI_ghashIterator_getValue(&gh_iter);
+    if (BLI_ghash_lookup(implicit_nodes_from_posetree, posetree_rootchan)) {
+      continue;
+    }
+    BLI_ghash_insert(implicit_nodes_from_posetree, posetree_rootchan, BLI_gset_ptr_new(__func__));
+  }
+
+  GHASH_ITER (gh_iter, explicit_chain_from_chain_root) {
+    bPoseChannel *rootchan = BLI_ghashIterator_getKey(&gh_iter);
+    BLI_assert(rootchan);
+
+    if (rootchan->parent == NULL) {
+      continue;
+    }
+
+    GSet *posetree_pchans_explicit = NULL;
+    GSet *posetree_pchans_implicit = NULL;
+    {
+      bPoseChannel *posetree_rootchan = BLI_ghash_lookup(solver_from_chain_root, rootchan);
+      BLI_assert(posetree_rootchan);
+
+      posetree_pchans_explicit = BLI_ghash_lookup(explicit_nodes_from_posetree, posetree_rootchan);
+      posetree_pchans_implicit = BLI_ghash_lookup(implicit_nodes_from_posetree, posetree_rootchan);
+    }
+    BLI_assert(posetree_pchans_explicit);
+    BLI_assert(posetree_pchans_implicit);
+
+    /* Find the earliest parent that's part of the posetree. Stores NULL if none of parents are
+     * part of the posetree. */
+    bPoseChannel *parchan_sentinel = NULL;
+    {
+      parchan_sentinel = rootchan->parent;
+      while (parchan_sentinel != NULL) {
+        if (BLI_gset_haskey(posetree_pchans_explicit, parchan_sentinel)) {
+          break;
+        }
+        if (BLI_gset_haskey(posetree_pchans_implicit, parchan_sentinel)) {
+          break;
+        }
+        parchan_sentinel = parchan_sentinel->parent;
+      }
+    }
+
+    if (parchan_sentinel == NULL) {
+      continue;
+    }
+    /* Upstream hierarchy of rootchan is part of the posetree. */
+
+    bPoseChannel *parchan = rootchan->parent;
+    while (parchan != parchan_sentinel) {
+      BLI_gset_add(posetree_pchans_implicit, parchan);
+      parchan = parchan->parent;
+    }
+  }
+
+  BLI_ghash_free(explicit_chain_from_chain_root, NULL, BLI_gset_freefp_no_keyfree);
+  explicit_chain_from_chain_root = NULL;
+
+  *r_allocated_explicit_pchans_from_posetree_pchan = explicit_nodes_from_posetree;
+  *r_allocated_implicit_pchans_from_posetree_pchan = implicit_nodes_from_posetree;
+}
+
+struct GHash *BKE_union_pchans_from_posetree(struct GHash *explicit_pchans_from_posetree_pchan,
+                                             struct GHash *implicit_pchans_from_posetree_pchan)
+{
+  GHash *pchans_from_posetree_pchan = BLI_ghash_ptr_new(__func__);
+  GHashIterator gh_iter;
+  GHASH_ITER (gh_iter, explicit_pchans_from_posetree_pchan) {
+    bPoseChannel *posetree_chan = BLI_ghashIterator_getKey(&gh_iter);
+
+    // printf_s("posetree: %s\n", posetree_chan->name);
+    GSet *all_pchans = BLI_gset_ptr_new(__func__);
+    BLI_ghash_insert(pchans_from_posetree_pchan, posetree_chan, all_pchans);
+
+    GSet *explicit_pchans = BLI_ghashIterator_getValue(&gh_iter);
+    GSET_FOREACH_BEGIN (bPoseChannel *, pchan, explicit_pchans) {
+      BLI_gset_add(all_pchans, pchan);
+      // printf_s("\t%s\n", pchan->name);
+    }
+    GSET_FOREACH_END();
+
+    GSet *implicit_pchans = BLI_ghash_lookup(implicit_pchans_from_posetree_pchan, posetree_chan);
+    GSET_FOREACH_BEGIN (bPoseChannel *, pchan, implicit_pchans) {
+      BLI_gset_add(all_pchans, pchan);
+      // printf_s("\t%s\n", pchan->name);
+    }
+    GSET_FOREACH_END();
+  }
+  return pchans_from_posetree_pchan;
+}
+
+bool BKE_posetree_any_has_pchan(struct GHash *all_pchans_from_posetree, struct bPoseChannel *pchan)
+{
+  GHashIterator gh_iter;
+  GHASH_ITER (gh_iter, all_pchans_from_posetree) {
+    GSet *all_pchans = BLI_ghashIterator_getValue(&gh_iter);
+    if (!BLI_gset_haskey(all_pchans, pchan)) {
+      continue;
+    }
+    return true;
+  }
+  return false;
 }
 
 void BKE_pose_iktree_evaluate(struct Depsgraph *depsgraph,

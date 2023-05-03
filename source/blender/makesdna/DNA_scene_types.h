@@ -26,6 +26,7 @@
 #include "DNA_scene_enums.h"
 #include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
+// #include "DNA_armature_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1551,6 +1552,9 @@ typedef struct ToolSettings {
   /* Auto-IK. */
   /** Runtime only. */
   short autoik_chainlen;
+  char _pad8[2];
+  char autoik_root_pchan_name[64];  // MAXBONENAME];
+  char _pad9[6];
 
   /* Grease Pencil. */
   /** Flags/options for how the tool works. */

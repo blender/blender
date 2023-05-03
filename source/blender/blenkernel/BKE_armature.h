@@ -112,8 +112,10 @@ typedef struct EditBone {
 typedef struct PoseTarget {
   struct PoseTarget *next, *prev;
 
-  struct bConstraint *con; /* the constraint of this target */
-  int tip;                 /* index of tip pchan in PoseTree */
+  struct bConstraint *con;        /* the constraint of this target */
+  int tip;                        /* index of tip pchan in PoseTree */
+  int target;                     /* -1 if not stored in the posetree */
+  int zero_weight_sentinel_index; /* -1 for NULL */
 } PoseTarget;
 
 typedef struct PoseTree {
@@ -122,15 +124,35 @@ typedef struct PoseTree {
   int type;       /* type of IK that this serves (CONSTRAINT_TYPE_KINEMATIC or ..._SPLINEIK) */
   int totchannel; /* number of pose channels */
 
-  struct ListBase targets;     /* list of targets of the tree */
+  struct ListBase targets; /* list of targets of the tree */
+  /* Subtle note: Currently the posetree may be stored on any pchan that's evaluated which isn't
+   * necessarily pchan[0]. The first pchan is treated as the first root of the posetree
+   * evaluation.*/
   struct bPoseChannel **pchan; /* array of pose channels */
-  int *parent;                 /* and their parents */
 
-  float (*basis_change)[3][3]; /* basis change result from solver */
-  int iterations;              /* iterations from the constraint */
-  int stretch;                 /* disable stretching */
+  int *parent; /* and their parents */
+
+  float (*basis_change)[3][3];    /* basis change result from solver */
+  float (*translation_change)[3]; /** TODO: GG: really should be part of the matrix*/
+
+  int iterations; /* iterations from the constraint */
+  int stretch;    /* disable stretching */
+
+  /* These pchans are upstream parents of explicit IK chains that are affected by the solver.
+   * Explicit pchans are those that are from constraint tip to constraint chain root, those
+   * marked by the animator or rigger using chain length. If a pchan is implicit to one chain but
+   * explicit to another, it's considered explicit to the posetree and won't be stored in this set.
+   * Implicit chans evaluate as locked IK_QSegments.
+   *
+   * For more info, see:
+   *    BKE_determine_posetree_pchan_implicity()
+   *    BKE_determine_posetree_roots()
+   */
+  struct GSet *explicit_pchans;
+  struct GSet *implicit_pchans;
 } PoseTree;
 
+// typedef struct PoseTreeNodes {}
 /* Core armature functionality. */
 
 struct bArmature *BKE_armature_add(struct Main *bmain, const char *name);
@@ -582,6 +604,11 @@ struct bSplineIKConstraint;
 
 struct bPoseChannel *BKE_armature_ik_solver_find_root(struct bPoseChannel *pchan,
                                                       struct bKinematicConstraint *data);
+
+/* Assumes tip_pchan is nonNull. */
+struct bPoseChannel *BKE_armature_ik_solver_find_root_ex(const struct bPoseChannel *tip_pchan,
+                                                         const int seg_count);
+
 struct bPoseChannel *BKE_armature_splineik_solver_find_root(struct bPoseChannel *pchan,
                                                             struct bSplineIKConstraint *data);
 
@@ -615,6 +642,57 @@ void BKE_pose_bone_done(struct Depsgraph *depsgraph, struct Object *object, int 
 void BKE_pose_eval_bbone_segments(struct Depsgraph *depsgraph,
                                   struct Object *object,
                                   int pchan_index);
+
+/**
+ * Key: bPoseChannel*,  references an IK chain root
+ * Value: bPoseChannel* that contains the solver
+ *
+ * IK Solver relation with posetree chan: All IK constraints with shared chain roots assumed
+ * to evaluate as a single posetree. Assumes the despgraph IK solver evaluation node is stored on
+ * posetree chan.
+ *
+ * GG: TODO: rename related funcs to BKE_posetree_..
+ *
+ * GG: XXX: Some race conditions aren't handled properly yet:
+ *    -When two oneway IK chains target eahother in the middle, causing 2 posetree solvers.
+ *    -Similar as above, but with 2way IK chains that are shorter, causing 2posetree solvers.
+ * The only well-defined solution is to dissolve the psoetree solvers to one solver. But I need to
+ * ensure that the way I solve this doesn't prevent setups that aren't race conditions (IK chain
+ * extensions, branching, 2ndary IK solver that evals after a main one,etc). A: When two solvers
+ * form a dependency cycle, then you dissolve them. It's not enough for one solver to be affectd by
+ * another (this is used for 2ndary post solvers), there must be a cycle. This is low priority
+ * since these cases don't actualy cause a depsgraph dep cycle atm and the fix results in a setup
+ * that the user can manually create themselves by just extending chains to be longer.
+ * */
+struct GHash *BKE_determine_posetree_roots(struct ListBase *chanbase);
+
+/*
+ * posetree_chan_from_chainroot_chan: use the result from BKE_determine_posetree_roots()
+ *
+ * r_allocated_explicit_pchans_from_poseroot_pchan: outputs a key-value pair where the key is a
+ * bPoseChannel* and references a posetree pchan. The value is an allocated GSet that contains
+ * all pchans that are evaluated by the posetree and explicitly specified by the IK constraints.
+ *
+ * r_allocated_implicit_pchans_from_poseroot_pchan: Difference with explicit is that these pchans
+ * are evaluated by the posetee but are not specified by the IK constraints. They must be
+ * evaluted because some pchan in their upstream hierarchy is explicitly specified and thus
+ * affected by the solver.
+ *
+ * Every posetree channel has a nonNull set in both returned hashes. A set can be empty.
+ **/
+void BKE_determine_posetree_pchan_implicity(
+    struct ListBase *chanbase,
+    const struct GHash *posetree_chan_from_chainroot_chan,
+    struct GHash **r_allocated_explicit_pchans_from_posetree_pchan,
+    struct GHash **r_allocated_implicit_pchans_from_posetree_pchan);
+
+/* Combines the ghashes returned from BKE_determine_posetree_pchan_implicity() into a single hash.
+ * key: (bPoseChannel*) posetree's root
+ * value: (GSet*) union of implicit and explicit gsets. */
+struct GHash *BKE_union_pchans_from_posetree(struct GHash *explicit_pchans_from_posetree_pchan,
+                                             struct GHash *implicit_pchans_from_posetree_pchan);
+bool BKE_posetree_any_has_pchan(struct GHash *all_pchans_from_posetree,
+                                struct bPoseChannel *pchan);
 
 void BKE_pose_iktree_evaluate(struct Depsgraph *depsgraph,
                               struct Scene *scene,

@@ -196,8 +196,10 @@ void IK_QJacobian::InvertSDLS()
   m_d_theta.setZero();
   m_min_damp = 1.0;
 
+  // GG: m_norm[i] = vector length of joint effect on endeffector?
   for (i = 0; i < m_dof; i++) {
-    m_norm[i] = 0.0;
+    m_norm[i] = 0.0;  // GG: m_norm is unsused i think? outside of this func ataleast...
+    // GG: it seems to affect M later, which affects dampng.
     for (j = 0; j < m_task_size; j += 3) {
       double n = 0.0;
       n += m_jacobian(j, i) * m_jacobian(j, i);
@@ -216,7 +218,11 @@ void IK_QJacobian::InvertSDLS()
     double N = 0.0;
 
     // compute alpha and N
+    // GG: This computes the i-th entry of inverse(U) * m_beta = alpha.
     for (j = 0; j < m_svd_u.rows(); j += 3) {
+      // GG: alpha = U.col[i] <dot> m_beta where m_beta is the end effector delta due input delta
+      // GG: So this is just plain matrix inversion so far (I'm assuming rows() == 3, single task i
+      // think)
       alpha += m_svd_u(j, i) * m_beta[j];
       alpha += m_svd_u(j + 1, i) * m_beta[j + 1];
       alpha += m_svd_u(j + 2, i) * m_beta[j + 2];
@@ -227,8 +233,12 @@ void IK_QJacobian::InvertSDLS()
       tmp = m_svd_u(j, i) * m_svd_u(j, i);
       tmp += m_svd_u(j + 1, i) * m_svd_u(j + 1, i);
       tmp += m_svd_u(j + 2, i) * m_svd_u(j + 2, i);
+      // GG: N= Sum( length(U.col[i]) ), asuming rows() == 3 (iteration and sum ocurs once)
+      // GG: unsure use of N, M, m_norm so far.
       N += sqrt(tmp);
     }
+    // GG: apply  inversion of W for i-th entry of (inv(U) * m_beta):
+    // alpha = inv(W) * inv(U) * m_beta, for i-th component of an alpha vector.
     alpha *= wInv;
 
     // compute M, dTheta and max_dtheta
@@ -236,9 +246,23 @@ void IK_QJacobian::InvertSDLS()
     double max_dtheta = 0.0, abs_dtheta;
 
     for (j = 0; j < m_d_theta.size(); j++) {
+      // GG: subtle but notice that we're using accessing V as transpose(V).
+      // that's why it's (j, i) instead of (i, j), where j: column associated with a particular
+      // input, i: associated with rows.
       double v = m_svd_v(j, i);
+      // GG: M += abs(V[j,i]]) * m_norm[j]
+      // nnote that V is orthonormalized, so this can be seen as a normalized weighting wit hweight
+      // v. then M+= [some weight, v] * total_offset_distance_on_end_effector[j]
+      // vaguely, so M = some weighted average offset distance on end effector?
       M += fabs(v) * m_norm[j];
 
+      // GG: maybe V was already transposed? Thus
+      // this next line calcs teh i-th summation alpha term?
+      // That means that later, before the outter loop finishes, this tmp must be summed.
+      // Note to self: GG: Much easier to understand this code when I break it into intents:
+      //  1) to invert an SVD (trivial, it seems). ]
+      //  2) to apply a damping effect on inputs (currently ignored while trying to understand (1))
+      // By not worrying about (2), its much easier to see (1).
       // compute tmporary dTheta's
       m_d_theta_tmp[j] = v * alpha;
 
@@ -248,14 +272,20 @@ void IK_QJacobian::InvertSDLS()
       if (abs_dtheta > max_dtheta)
         max_dtheta = abs_dtheta;
     }
-
+    // GG: Is M related to some implicit maximum end effector delta? Why mul by wInv otherwise?
     M *= wInv;
 
     // compute damping term and damp the dTheta's
     double gamma = max_angle_change;
+    // GG: N is 1 when tehr is only one end effector.
+    // GG: I wonder if I caould just printout the values of M? Do they make gamma very small i
+    // ngeneral? Therefore: gamma = max_angle / avg = a limit to avg on all inputs?
     if (N < M)
       gamma *= N / M;
 
+    // GG: if (max_dtheta < limit) then damp = 1.0 (no damping)
+    //    if (past limit) then damp = limit / max_dtheta => such that damp * max_dtheta = limit.
+    // GG: so? damp limits input deltas to be lss than some kind of averag-limit thing?
     double damp = (gamma < max_dtheta) ? gamma / max_dtheta : 1.0;
 
     for (j = 0; j < m_d_theta.size(); j++) {
@@ -264,21 +294,41 @@ void IK_QJacobian::InvertSDLS()
       // better to go a little to slow than to far
 
       double dofdamp = damp / m_weight[j];
+      // GG: a wieght of 0.2 (stiffness .80) => damp / .2 = damp * 5, thus I aswsume
+      // and shold proiniout.. that damp is a very small number in general since we don't
+      // except stfufness = .8 to even be close to clipping inputs (i.e. condition being true).
+      // GG:.. hold on.. if the stfiffness == 1, then weight = 0, and dof =infinity => 1.0..
+      // the input theta = 0.8 * tmp... I'm wrong seomwerhere...If stiffness == 0 the nweight = 1
+      // and dof_damp definintely < 1, always and only gets larger with a larger stiffness..
+      // AHh, maybe that's why the mul by m_weight afterwards?... but.. then why? its a null
+      // effect, right?? It literally appears like, w/o this condition, that m_weight does nothing
+      // .. yet I knjow that if I change the stiffness slider in Blender UI, that the solve
+      // changes..
       if (dofdamp > 1.0)
         dofdamp = 1.0;
 
+      // GG: is this 0.80 why stiffness does nothing uintil 0.98??
+      // using 0.80 means that stiffness can never be < 0.20...
+      // but that has nothing to do with the upper range so idk...
+      // maybe the gamma is very small?
+      // GG: yep, here is the sum, if you ignore the damping stuff. Afterwards, thheres is nothing
+      // else' to invert, and so its the end end of the outter loop too. We have our input delta.
       m_d_theta[j] += 0.80 * dofdamp * m_d_theta_tmp[j];
     }
 
     if (damp < m_min_damp)
-      m_min_damp = damp;
+      m_min_damp = damp;  // GG: unused
   }
 
   // weight + prevent from doing angle updates with angles > max_angle_change
   double max_angle = 0.0, abs_angle;
-
+  // GG: the rest of this is just additonal damping and stiffness stuff?
   for (j = 0; j < m_dof; j++) {
-    m_d_theta[j] *= m_weight[j];
+    // GG: doesn't this remove the effect of m_weight division in prior loop?
+    /** GG:sqr() commented out for now, to reduce cahnges to algo behavior.
+     * Yeah, AutoIK leads to better posing w/o the sqr()
+     */
+    m_d_theta[j] *= m_weight[j];  //* m_weight[j];
 
     abs_angle = fabs(m_d_theta[j]);
 
@@ -286,6 +336,7 @@ void IK_QJacobian::InvertSDLS()
       max_angle = abs_angle;
   }
 
+  // GG: Is this double damping?
   if (max_angle > max_angle_change) {
     double damp = (max_angle_change) / (max_angle_change + max_angle);
 
@@ -370,17 +421,21 @@ void IK_QJacobian::Lock(int dof_id, double delta)
 {
   int i;
 
+  // GG: remove dof's/joint's stored effect on end effector (zero out entry in m_beta, and it's
+  // entry in jacobian)
   for (i = 0; i < m_task_size; i++) {
     m_beta[i] -= m_jacobian(i, dof_id) * delta;
     m_jacobian(i, dof_id) = 0.0;
   }
 
   m_norm[dof_id] = 0.0;  // unneeded
+  // GG: zero out apparent solved-for input delta.
   m_d_theta[dof_id] = 0.0;
 }
 
 double IK_QJacobian::AngleUpdate(int dof_id) const
 {
+  // GG: m_d_theta is the solved-for input delta.
   return m_d_theta[dof_id];
 }
 

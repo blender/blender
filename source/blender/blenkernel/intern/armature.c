@@ -1787,6 +1787,9 @@ void BKE_bone_parent_transform_calc_from_matrices(int bone_flag,
       mul_m3_m3m3(bone_rotscale, tmat3, bone_rotscale);
 
       copy_m4_m3(tmat4, bone_rotscale);
+      /** GG: CLEANUP: ... a lot of redundant matrix copying??
+       * r_bpt->loc_mat = loc_only(parent_pose_mat * offs_bone[3]) * rot_only(parent_pose_mat)
+       * ... =  bone's head location in pose space with parent orientation ... */
       mul_m4_m4m4(r_bpt->loc_mat, bone_loc, tmat4);
     }
     /* Those flags do not affect position, use plain parent transform space! */
@@ -2752,6 +2755,8 @@ bPoseChannel *BKE_armature_ik_solver_find_root(bPoseChannel *pchan, bKinematicCo
     /* Exclude tip from chain. */
     rootchan = rootchan->parent;
   }
+  /** GG: XXX: This will probably cause me a lot of confusion, that rootchan can be NULL, if we use
+   * the tip.. */
   if (rootchan != NULL) {
     int segcount = 0;
     while (rootchan->parent) {
@@ -2766,6 +2771,27 @@ bPoseChannel *BKE_armature_ik_solver_find_root(bPoseChannel *pchan, bKinematicCo
   return rootchan;
 }
 
+bPoseChannel *BKE_armature_ik_solver_find_root_ex(const bPoseChannel *tip_pchan,
+                                                  const int seg_count)
+{
+  /* Assertion in case some caller does sends NULL due to unchecked BKE_pose_channel_find_name()
+   * being passed. Caller should validate data beforehand. */
+  BLI_assert(tip_pchan);
+
+  int segment_index = seg_count;
+  if (segment_index <= 0) {
+    segment_index = -1;
+  }
+
+  bPoseChannel *rootchan = tip_pchan;
+  segment_index--;
+
+  for (; rootchan && rootchan->parent && (segment_index != 0);
+       rootchan = rootchan->parent, segment_index--)
+  {
+  }
+  return rootchan;
+}
 bPoseChannel *BKE_armature_splineik_solver_find_root(bPoseChannel *pchan,
                                                      bSplineIKConstraint *data)
 {

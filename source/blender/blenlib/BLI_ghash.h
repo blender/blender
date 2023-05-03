@@ -368,6 +368,8 @@ unsigned int BLI_gset_len(const GSet *gs) ATTR_WARN_UNUSED_RESULT;
 void BLI_gset_flag_set(GSet *gs, unsigned int flag);
 void BLI_gset_flag_clear(GSet *gs, unsigned int flag);
 void BLI_gset_free(GSet *gs, GSetKeyFreeFP keyfreefp);
+void BLI_gset_freefp_no_keyfree(void *gs);
+
 /**
  * Adds the key to the set (no checks for unique keys!).
  * Matching #BLI_ghash_insert

@@ -3812,6 +3812,38 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
   }
+  if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "short", "ikflag_location")) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->type != OB_ARMATURE || ob->pose == nullptr) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+        pchan->ikflag |= BONE_IK_DOF_SPACE_REST;
+
+        pchan->ikflag_location = BONE_IK_DOF_SPACE_REST | BONE_IK_NO_XDOF | BONE_IK_NO_YDOF |
+                                 BONE_IK_NO_ZDOF;
+        pchan->limitmin_location[0] = pchan->limitmin_location[1] = pchan->limitmin_location[2] =
+            0;
+        pchan->limitmax_location[0] = pchan->limitmax_location[1] = pchan->limitmax_location[2] =
+            0;
+        pchan->stiffness_location[0] = pchan->stiffness_location[1] =
+            pchan->stiffness_location[2] = 0.0f;
+
+        pchan->ikflag_stretch = BONE_IK_DOF_SPACE_REST;  // | BONE_IK_NO_YDOF;
+        pchan->limitmin_stretch = 1;
+        pchan->limitmax_stretch = 1;
+        if (IS_EQF(pchan->ikflag_stretch, 0.0f)) {
+          pchan->ikflag_stretch &= ~BONE_IK_NO_YDOF;
+        }
+
+        pchan->ikflag_general = BONE_AUTOIK_INHERIT_CHAIN_LENGTH |
+                                BONE_AUTOIK_DERIVE_CHAIN_LENGTH_FROM_CONNECT;
+        pchan->autoik_chain_length = 0;
+        pchan->ik_animspace_override_type = IK_ANIMSPACE_OVERRIDE_TYPE_NO_OVERRIDE;
+      }
+    }
+  }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 302, 14)) {
     /* Compensate for previously wrong squared distance. */

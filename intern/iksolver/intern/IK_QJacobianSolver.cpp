@@ -9,12 +9,22 @@
 
 #include "IK_QJacobianSolver.h"
 
-//#include "analyze.h"
-IK_QJacobianSolver::IK_QJacobianSolver()
+// #include "analyze.h"
+IK_QJacobianSolver::IK_QJacobianSolver() {}
+
+IK_QJacobianSolver::~IK_QJacobianSolver()
 {
-  m_poleconstraint = false;
-  m_getpoleangle = false;
-  m_rootmatrix.setIdentity();
+
+  std::vector<IK_QPoleVectorConstraint *>::iterator con;
+  for (con = m_pole_constraints_oneway.begin(); con != m_pole_constraints_oneway.end(); con++)
+    delete (*con);
+
+  for (con = m_pole_constraints_twoway.begin(); con != m_pole_constraints_twoway.end(); con++)
+    delete (*con);
+
+  std::vector<Affine3d *>::iterator matrix;
+  for (matrix = m_root_matrices.begin(); matrix != m_root_matrices.end(); matrix++)
+    delete (*matrix);
 }
 
 double IK_QJacobianSolver::ComputeScale()
@@ -42,9 +52,21 @@ void IK_QJacobianSolver::Scale(double scale, std::list<IK_QTask *> &tasks)
   for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
     (*seg)->Scale(scale);
 
-  m_rootmatrix.translation() *= scale;
-  m_goal *= scale;
-  m_polegoal *= scale;
+  std::vector<Affine3d *>::iterator matrix;
+  for (matrix = m_root_matrices.begin(); matrix != m_root_matrices.end(); matrix++)
+    (*matrix)->translation() *= scale;
+
+  std::vector<IK_QPoleVectorConstraint *>::iterator con;
+  for (con = m_pole_constraints_oneway.begin(); con != m_pole_constraints_oneway.end(); con++) {
+    (*con)->m_pole_pos *= scale;
+    (*con)->m_chain_goal_pos *= scale;
+    // segments are already scaled above
+  }
+  for (con = m_pole_constraints_twoway.begin(); con != m_pole_constraints_twoway.end(); con++) {
+    (*con)->m_pole_pos *= scale;
+    (*con)->m_chain_goal_pos *= scale;
+    // segments are already scaled above
+  }
 }
 
 void IK_QJacobianSolver::AddSegmentList(IK_QSegment *seg)
@@ -56,10 +78,19 @@ void IK_QJacobianSolver::AddSegmentList(IK_QSegment *seg)
     AddSegmentList(child);
 }
 
-bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask *> &tasks)
+bool IK_QJacobianSolver::Setup(IK_QSegment **roots,
+                               const int root_count,
+                               std::list<IK_QTask *> &tasks)
 {
   m_segments.clear();
-  AddSegmentList(root);
+  for (int r = 0; r < root_count; r++)
+    AddSegmentList(roots[r]);
+
+  for (int r = 0; r < root_count; r++) {
+    Affine3d *root_matrix = new Affine3d();
+    root_matrix->setIdentity();
+    m_root_matrices.push_back(root_matrix);
+  }
 
   // assign each segment a unique id for the jacobian
   std::vector<IK_QSegment *>::iterator seg;
@@ -132,81 +163,96 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask *> &tasks)
   return true;
 }
 
-void IK_QJacobianSolver::SetPoleVectorConstraint(
-    IK_QSegment *tip, Vector3d &goal, Vector3d &polegoal, float poleangle, bool getangle)
+void IK_QJacobianSolver::AddPoleVectorConstraint(int root_index,
+                                                 IK_QSegment *tip,
+                                                 Vector3d &goal,
+                                                 Vector3d &polegoal,
+                                                 float poleangle,
+                                                 IK_QSegment *m_goal_segment)
 {
-  m_poleconstraint = true;
-  m_poletip = tip;
-  m_goal = goal;
-  m_polegoal = polegoal;
-  m_poleangle = (getangle) ? 0.0f : poleangle;
-  m_getpoleangle = getangle;
+  IK_QPoleVectorConstraint *con = new IK_QPoleVectorConstraint();
+  con->m_chain_root_index = root_index;
+  con->m_chain_tip_seg = tip;
+  con->m_chain_goal_pos = goal;
+  con->m_pole_pos = polegoal;
+  con->m_pole_angle = poleangle;
+  con->m_chain_goal_seg = m_goal_segment;
+
+  if (m_goal_segment == nullptr) {
+    m_pole_constraints_oneway.push_back(con);
+  }
+  else {
+    m_pole_constraints_twoway.push_back(con);
+  }
 }
 
-void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTask *> &tasks)
+void IK_QJacobianSolver::ConstrainPoleVector_OneWays(IK_QSegment **roots, int root_count)
 {
+  // Assumes one constraint per root. Otherwise, undefined behavior. NOTE: maybe as simple as
+  // evaluating this per ik solve iter.
+
+  /** GG: TODO: figure out proper math to support ik pole on 2wayIK's target
+   * chain. It will constrain target's tip to target's root. */
+
   // this function will be called before and after solving. calling it before
   // solving gives predictable solutions by rotating towards the solution,
   // and calling it afterwards ensures the solution is exact.
 
-  if (!m_poleconstraint)
-    return;
-
-  // disable pole vector constraint in case of multiple position tasks
-  std::list<IK_QTask *>::iterator task;
-  int positiontasks = 0;
-
-  for (task = tasks.begin(); task != tasks.end(); task++)
-    if ((*task)->PositionTask())
-      positiontasks++;
-
-  if (positiontasks >= 2) {
-    m_poleconstraint = false;
-    return;
-  }
+  /* In case of multiple constraints on the same root, maybe we should constrain
+   * the next child segment?*/
+  /** We can't twist the posetree while keeping 3 non-colinear points unchanged.
+   * GG: CONSIDER: For a single 2way posetree w/o goalRot, we can either twist either chains (2
+   * poles) through their tips or twist through both chain roots.*/
 
   // get positions and rotations
-  root->UpdateTransform(m_rootmatrix);
 
-  const Vector3d rootpos = root->GlobalStart();
-  const Vector3d endpos = m_poletip->GlobalEnd();
-  const Matrix3d &rootbasis = root->GlobalTransform().linear();
+  std::vector<IK_QPoleVectorConstraint *>::iterator iter;
+  for (iter = m_pole_constraints_oneway.begin(); iter != m_pole_constraints_oneway.end(); iter++) {
+    IK_QPoleVectorConstraint *con = *iter;
 
-  // construct "lookat" matrices (like gluLookAt), based on a direction and
-  // an up vector, with the direction going from the root to the end effector
-  // and the up vector going from the root to the pole constraint position.
-  Vector3d dir = normalize(endpos - rootpos);
-  Vector3d rootx = rootbasis.col(0);
-  Vector3d rootz = rootbasis.col(2);
-  Vector3d up = rootx * cos(m_poleangle) + rootz * sin(m_poleangle);
+    const int root_index = con->m_chain_root_index;
+    if (root_index < 0 || root_index >= root_count) {
+      assert(false);
+      continue;
+    }
+    if (root_index >= m_root_matrices.size()) {
+      assert(false);
+      continue;
+    }
 
-  // in post, don't rotate towards the goal but only correct the pole up
-  Vector3d poledir = (m_getpoleangle) ? dir : normalize(m_goal - rootpos);
-  Vector3d poleup = normalize(m_polegoal - rootpos);
+    IK_QSegment *root = roots[root_index];
+    Affine3d *root_pre_matrix_ptr = m_root_matrices[root_index];
+    root->UpdateTransform_Root(*root_pre_matrix_ptr);
 
-  Matrix3d mat, polemat;
+    const Vector3d rootpos = root->GlobalStart();
+    const Vector3d endpos = con->m_chain_tip_seg->GlobalEnd();
+    const Matrix3d &rootbasis = root->Composite()->GlobalTransform().linear();
 
-  mat.row(0) = normalize(dir.cross(up));
-  mat.row(1) = mat.row(0).cross(dir);
-  mat.row(2) = -dir;
+    float pole_angle = con->m_pole_angle;
+    // construct "lookat" matrices (like gluLookAt), based on a direction and
+    // an up vector, with the direction going from the root to the end effector
+    // and the up vector going from the root to the pole constraint position.
+    Vector3d dir = normalize(endpos - rootpos);
+    Vector3d rootx = rootbasis.col(0);
+    Vector3d rootz = rootbasis.col(2);
+    Vector3d up = rootx * cos(pole_angle) + rootz * sin(pole_angle);
 
-  polemat.row(0) = normalize(poledir.cross(poleup));
-  polemat.row(1) = polemat.row(0).cross(poledir);
-  polemat.row(2) = -poledir;
+    Vector3d goal_pos = con->m_chain_goal_pos;
+    const Vector3d pole_pos = con->m_pole_pos;
+    // in post, don't rotate towards the goal but only correct the pole up
+    Vector3d poledir = normalize(goal_pos - rootpos);
+    Vector3d poleup = normalize(pole_pos - rootpos);
 
-  if (m_getpoleangle) {
-    // we compute the pole angle that to rotate towards the target
-    m_poleangle = angle(mat.row(1), polemat.row(1));
+    Matrix3d mat, polemat;
 
-    double dt = rootz.dot(mat.row(1) * cos(m_poleangle) + mat.row(0) * sin(m_poleangle));
-    if (dt > 0.0)
-      m_poleangle = -m_poleangle;
+    mat.row(0) = normalize(dir.cross(up));
+    mat.row(1) = mat.row(0).cross(dir);
+    mat.row(2) = -dir;
 
-    // solve again, with the pole angle we just computed
-    m_getpoleangle = false;
-    ConstrainPoleVector(root, tasks);
-  }
-  else {
+    polemat.row(0) = normalize(poledir.cross(poleup));
+    polemat.row(1) = polemat.row(0).cross(poledir);
+    polemat.row(2) = -poledir;
+
     // now we set as root matrix the difference between the current and
     // desired rotation based on the pole vector constraint. we use
     // transpose instead of inverse because we have orthogonal matrices
@@ -214,7 +260,98 @@ void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTa
     Affine3d trans;
     trans.linear() = polemat.transpose() * mat;
     trans.translation() = Vector3d(0, 0, 0);
-    m_rootmatrix = trans * m_rootmatrix;
+    (*root_pre_matrix_ptr) = trans * (*root_pre_matrix_ptr);
+  }
+}
+void IK_QJacobianSolver::ConstrainPoleVector_TwoWays(IK_QSegment **roots, int root_count)
+{
+  // Assumes one constraint per root. Otherwise, undefined behavior. NOTE: maybe as simple as
+  // evaluating this per ik solve iter. This algo differs from .._OneWays() in that this
+  // only twists the root, it does not align the axis of (end effector to root) with the axis of
+  // (goal to root).
+
+  /**
+   *
+   * GG: TODO: no need for m_goal_segment ref? not used.
+   */
+  std::vector<IK_QPoleVectorConstraint *>::iterator iter;
+  for (iter = m_pole_constraints_twoway.begin(); iter != m_pole_constraints_twoway.end(); iter++) {
+    IK_QPoleVectorConstraint *con = *iter;
+
+    const int root_index = con->m_chain_root_index;
+    if (root_index < 0 || root_index >= root_count) {
+      assert(false);
+      continue;
+    }
+    if (root_index >= m_root_matrices.size()) {
+      assert(false);
+      continue;
+    }
+
+    IK_QSegment *root = roots[root_index];
+    Affine3d *root_pre_matrix_ptr = m_root_matrices[root_index];
+    root->UpdateTransform_Root(*root_pre_matrix_ptr);
+
+    const Vector3d rootpos = root->GlobalStart();
+    const Vector3d endpos = con->m_chain_tip_seg->GlobalEnd();
+    const Matrix3d &rootbasis = root->Composite()->GlobalTransform().linear();
+
+    float pole_angle = con->m_pole_angle;
+    // construct "lookat" matrices (like gluLookAt), based on a direction and
+    // an up vector, with the direction going from the root to the end effector
+    // and the up vector going from the root to the pole constraint position.
+    Vector3d dir = normalize(endpos - rootpos);
+    Vector3d rootx = rootbasis.col(0);
+    Vector3d rootz = rootbasis.col(2);
+    Vector3d up = rootx * cos(pole_angle) + rootz * sin(pole_angle);
+
+    // Vector3d goal_pos;
+    // {
+    //   IK_QSegment *chain_goal_root_seg;
+    //   for (chain_goal_root_seg = con->m_chain_goal_seg;
+    //        chain_goal_root_seg && chain_goal_root_seg->Parent();
+    //        chain_goal_root_seg = chain_goal_root_seg->Parent())
+    //   {
+    //   }
+
+    //   int root_index_in_solver = -1;
+    //   for (int r = 0; r < root_count; r++) {
+    //     if (chain_goal_root_seg != roots[r]) {
+    //       continue;
+    //     }
+    //     root_index_in_solver = r;
+    //     break;
+    //   }
+    //   assert(root_index_in_solver != -1);
+    //   Affine3d *goal_pre_matrix_ptr = m_root_matrices[root_index_in_solver];
+    //   chain_goal_root_seg->UpdateTransform_Root(*goal_pre_matrix_ptr);
+
+    //   goal_pos = con->m_chain_goal_seg->GlobalStart();
+    // }
+
+    // // in post, don't rotate towards the goal but only correct the pole up
+    // Vector3d poledir = normalize(goal_pos - rootpos);
+    const Vector3d pole_pos = con->m_pole_pos;
+    Vector3d poleup = normalize(pole_pos - rootpos);
+
+    Matrix3d mat, polemat;
+
+    mat.row(0) = normalize(dir.cross(up));
+    mat.row(1) = mat.row(0).cross(dir);
+    mat.row(2) = -dir;
+
+    polemat.row(0) = normalize(dir.cross(poleup));
+    polemat.row(1) = polemat.row(0).cross(dir);
+    polemat.row(2) = -dir;
+
+    // now we set as root matrix the difference between the current and
+    // desired rotation based on the pole vector constraint. we use
+    // transpose instead of inverse because we have orthogonal matrices
+    // anyway, and in case of a singular matrix we don't get NaN's.
+    Affine3d trans;
+    trans.linear() = polemat.transpose() * mat;
+    trans.translation() = Vector3d(0, 0, 0);
+    (*root_pre_matrix_ptr) = trans * (*root_pre_matrix_ptr);
   }
 }
 
@@ -273,25 +410,45 @@ bool IK_QJacobianSolver::UpdateAngles(double &norm)
   return locked;
 }
 
-bool IK_QJacobianSolver::Solve(IK_QSegment *root,
+bool IK_QJacobianSolver::Solve(IK_QSegment **roots,
+                               const int root_count,
                                std::list<IK_QTask *> tasks,
                                const double,
                                const int max_iterations)
 {
   float scale = ComputeScale();
+  // scale = 1;
   bool solved = false;
   // double dt = analyze_time();
 
   Scale(scale, tasks);
 
-  ConstrainPoleVector(root, tasks);
+  ConstrainPoleVector_OneWays(roots, root_count);
+  ConstrainPoleVector_TwoWays(roots, root_count);
 
-  root->UpdateTransform(m_rootmatrix);
+  for (int r = 0; r < root_count; r++) {
+    int max_recursion_depth = roots[r]->UpdateTransform_Root(*m_root_matrices[r]);
+    // printf("deepeest recursion_depth %d\n", max_recursion_depth);
+    if (max_recursion_depth > 50) {
+      printf("!!!!!deepest recursion_depth %d\n", max_recursion_depth);
+    }
+  }
 
   // iterate
   for (int iterations = 0; iterations < max_iterations; iterations++) {
     // update transform
-    root->UpdateTransform(m_rootmatrix);
+
+    /* Poles on twoway chains need to be frequently evaluated to ensure the constrained root's pole
+     * plane always includes the pole. One ways don't have this additional computation just to
+     * match vanilla blender behavior, which works fine. */
+    ConstrainPoleVector_TwoWays(roots, root_count);
+    for (int r = 0; r < root_count; r++) {
+      int max_recursion_depth = roots[r]->UpdateTransform_Root(*m_root_matrices[r]);
+      // printf("deepeest recursion_depth %d\n", max_recursion_depth);
+      if (max_recursion_depth > 50) {
+        printf("!!!!!deepest recursion_depth %d\n", max_recursion_depth);
+      }
+    }
 
     std::list<IK_QTask *>::iterator task;
 
@@ -337,8 +494,8 @@ bool IK_QJacobianSolver::Solve(IK_QSegment *root,
     }
   }
 
-  if (m_poleconstraint)
-    root->PrependBasis(m_rootmatrix.linear());
+  for (int r = 0; r < root_count; r++)
+    roots[r]->PrependBasis(m_root_matrices[r]->linear());
 
   Scale(1.0f / scale, tasks);
 

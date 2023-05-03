@@ -115,6 +115,8 @@ void quat_to_mat4(float m[4][4], const float q[4]);
 /**
  * Apply the rotation of \a a to \a q keeping the values compatible with \a old.
  * Avoid axis flipping for animated f-curves for eg.
+ *
+ * Assumes \a q != \a old (pointer-wise)
  */
 void quat_to_compatible_quat(float q[4], const float a[4], const float old[4]);
 

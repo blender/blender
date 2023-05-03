@@ -8,15 +8,16 @@
 #include "IK_QSegment.h"
 
 // IK_QSegment
-
-IK_QSegment::IK_QSegment(int num_DoF, bool translational)
+IK_QSegment::IK_QSegment(int num_DoF, bool translational, bool is_stretch)
     : m_parent(NULL),
       m_child(NULL),
       m_sibling(NULL),
       m_composite(NULL),
       m_num_DoF(num_DoF),
-      m_translational(translational)
+      m_translational(translational),
+      m_stretch(is_stretch)
 {
+  m_cname = nullptr;
   m_locked[0] = m_locked[1] = m_locked[2] = false;
   m_weight[0] = m_weight[1] = m_weight[2] = 1.0;
 
@@ -45,6 +46,7 @@ void IK_QSegment::Reset()
 
 void IK_QSegment::SetTransform(const Vector3d &start,
                                const Matrix3d &rest_basis,
+                               const Matrix3d &initial_basis,
                                const Matrix3d &basis,
                                const double length)
 {
@@ -53,11 +55,31 @@ void IK_QSegment::SetTransform(const Vector3d &start,
   m_start = start;
   m_rest_basis = rest_basis;
 
-  m_orig_basis = basis;
+  m_orig_basis = initial_basis;
   SetBasis(basis);
 
   m_translation = Vector3d(0, length, 0);
   m_orig_translation = m_translation;
+}
+
+void IK_QSegment::SetTransform_Translation(const Vector3d &start,
+                                           const Matrix3d &rest_basis,
+                                           const Vector3d &initial_loc,
+                                           const Vector3d &basis_loc)
+{
+  m_max_extension = start.norm() + initial_loc.norm();
+
+  m_start = start;
+
+  Matrix3d m3_identity;
+  m3_identity.setIdentity();
+
+  m_rest_basis = rest_basis;
+  m_orig_basis = m3_identity;
+  SetBasis(m3_identity);
+
+  m_orig_translation = initial_loc;
+  m_translation = basis_loc;
 }
 
 Matrix3d IK_QSegment::BasisChange() const
@@ -117,7 +139,30 @@ void IK_QSegment::RemoveChild(IK_QSegment *child)
   }
 }
 
-void IK_QSegment::UpdateTransform(const Affine3d &global)
+int IK_QSegment::UpdateTransform_Root(const Affine3d &pole_constraint)
+{
+  /* We apply the pole constraint to the rotational part, not the /... wait.. roots 1st segmetn is
+   * its trns, nnot rotl..*/
+  // compute the global transform at the end of the segment
+  m_global_start = m_start;
+
+  m_global_transform.translation() = m_global_start;
+  m_global_transform.linear() = m_rest_basis * m_basis;
+  m_global_transform.translate(m_translation);
+
+  int max_recursion_depth = 0;
+
+  Affine3d global_with_pole = m_global_transform * pole_constraint;
+  int child_recursion_depth = m_child->UpdateTransform_Child(global_with_pole, 1);
+  if (m_child->m_sibling != nullptr) {
+    printf(
+        "!!!!! Expected root segment to only have only one child, the rotational root segment "
+        "part.");
+  }
+  return max_recursion_depth;
+}
+
+int IK_QSegment::UpdateTransform_Child(const Affine3d &global, int recursion_level)
 {
   // compute the global transform at the end of the segment
   m_global_start = global.translation() + global.linear() * m_start;
@@ -126,13 +171,33 @@ void IK_QSegment::UpdateTransform(const Affine3d &global)
   m_global_transform.linear() = global.linear() * m_rest_basis * m_basis;
   m_global_transform.translate(m_translation);
 
+  /* Every bone is 3 segments, and I assume there's less than 20 bones in the posetree. So this
+  should show if there's an inifnision recursion happening */
+  // if (recursion_level > 60) {
+  //   recursion_level += 1;
+  // }
+
+  int max_recursion_depth = recursion_level;
   // update child transforms
-  for (IK_QSegment *seg = m_child; seg; seg = seg->m_sibling)
-    seg->UpdateTransform(m_global_transform);
+  for (IK_QSegment *seg = m_child; seg; seg = seg->m_sibling) {
+
+    int child_recursion_depth = seg->UpdateTransform_Child(m_global_transform,
+                                                           recursion_level + 1);
+    if (child_recursion_depth > max_recursion_depth) {
+      max_recursion_depth = child_recursion_depth;
+    }
+  }
+  return max_recursion_depth;
 }
 
 void IK_QSegment::PrependBasis(const Matrix3d &mat)
 {
+  if (Translational() && Composite()) {
+    IK_QSegment *rot_segment = this->Composite();
+    rot_segment->PrependBasis(mat);
+    return;
+  }
+
   m_basis = m_rest_basis.inverse() * mat * m_rest_basis * m_basis;
 }
 
@@ -149,7 +214,7 @@ void IK_QSegment::Scale(double scale)
 // IK_QSphericalSegment
 
 IK_QSphericalSegment::IK_QSphericalSegment()
-    : IK_QSegment(3, false), m_limit_x(false), m_limit_y(false), m_limit_z(false)
+    : IK_QSegment(3, false, false), m_limit_x(false), m_limit_y(false), m_limit_z(false)
 {
 }
 
@@ -339,12 +404,15 @@ void IK_QSphericalSegment::UpdateAngleApply()
 
 // IK_QNullSegment
 
-IK_QNullSegment::IK_QNullSegment() : IK_QSegment(0, false) {}
+IK_QNullSegment::IK_QNullSegment(bool translational, bool is_stretch)
+    : IK_QSegment(0, translational, is_stretch)
+{
+}
 
 // IK_QRevoluteSegment
 
 IK_QRevoluteSegment::IK_QRevoluteSegment(int axis)
-    : IK_QSegment(1, false), m_axis(axis), m_angle(0.0), m_limit(false)
+    : IK_QSegment(1, false, false), m_axis(axis), m_angle(0.0), m_limit(false)
 {
 }
 
@@ -425,7 +493,10 @@ void IK_QRevoluteSegment::SetWeight(int axis, double weight)
 
 // IK_QSwingSegment
 
-IK_QSwingSegment::IK_QSwingSegment() : IK_QSegment(2, false), m_limit_x(false), m_limit_z(false) {}
+IK_QSwingSegment::IK_QSwingSegment()
+    : IK_QSegment(2, false, false), m_limit_x(false), m_limit_z(false)
+{
+}
 
 void IK_QSwingSegment::SetBasis(const Matrix3d &basis)
 {
@@ -489,13 +560,12 @@ bool IK_QSwingSegment::UpdateAngle(const IK_QJacobian &jacobian, Vector3d &delta
 
   Vector3d a = SphericalRangeParameters(m_new_basis);
   double ax = 0, az = 0;
+  ax = a.x();
+  az = a.z();
 
   clamp[0] = clamp[1] = false;
 
   if (m_limit_x && m_limit_z) {
-    ax = a.x();
-    az = a.z();
-
     if (EllipseClamp(ax, az, m_min, m_max))
       clamp[0] = clamp[1] = true;
   }
@@ -589,7 +659,7 @@ void IK_QSwingSegment::SetWeight(int axis, double weight)
 // IK_QElbowSegment
 
 IK_QElbowSegment::IK_QElbowSegment(int axis)
-    : IK_QSegment(2, false),
+    : IK_QSegment(2, false, false),
       m_axis(axis),
       m_twist(0.0),
       m_angle(0.0),
@@ -727,7 +797,8 @@ void IK_QElbowSegment::SetWeight(int axis, double weight)
 
 // IK_QTranslateSegment
 
-IK_QTranslateSegment::IK_QTranslateSegment(int axis1) : IK_QSegment(1, true)
+IK_QTranslateSegment::IK_QTranslateSegment(int axis1, bool is_stretch)
+    : IK_QSegment(1, true, is_stretch)
 {
   m_axis_enabled[0] = m_axis_enabled[1] = m_axis_enabled[2] = false;
   m_axis_enabled[axis1] = true;
@@ -737,7 +808,7 @@ IK_QTranslateSegment::IK_QTranslateSegment(int axis1) : IK_QSegment(1, true)
   m_limit[0] = m_limit[1] = m_limit[2] = false;
 }
 
-IK_QTranslateSegment::IK_QTranslateSegment(int axis1, int axis2) : IK_QSegment(2, true)
+IK_QTranslateSegment::IK_QTranslateSegment(int axis1, int axis2) : IK_QSegment(2, true, false)
 {
   m_axis_enabled[0] = m_axis_enabled[1] = m_axis_enabled[2] = false;
   m_axis_enabled[axis1] = true;
@@ -749,7 +820,7 @@ IK_QTranslateSegment::IK_QTranslateSegment(int axis1, int axis2) : IK_QSegment(2
   m_limit[0] = m_limit[1] = m_limit[2] = false;
 }
 
-IK_QTranslateSegment::IK_QTranslateSegment() : IK_QSegment(3, true)
+IK_QTranslateSegment::IK_QTranslateSegment() : IK_QSegment(3, true, false)
 {
   m_axis_enabled[0] = m_axis_enabled[1] = m_axis_enabled[2] = true;
 
@@ -840,8 +911,8 @@ void IK_QTranslateSegment::Scale(double scale)
   IK_QSegment::Scale(scale);
 
   for (i = 0; i < 3; i++) {
-    m_min[0] *= scale;
-    m_max[1] *= scale;
+    m_min[i] *= scale;
+    m_max[i] *= scale;
   }
 
   m_new_translation *= scale;

@@ -877,6 +877,8 @@ class ConstraintButtonsPanel:
             if con.pole_target:
                 col.prop(con, "pole_angle")
             col.prop(con, "use_tail")
+            # TODO: GG: Make analogous updates to ITASC ik solver. (unlikely, not enough personal interest)
+            # col.prop(con, "use_head_of_tip")
             col.prop(con, "use_stretch")
             col.prop(con, "chain_count")
 
@@ -935,8 +937,12 @@ class ConstraintButtonsPanel:
                 col.prop(con, "pole_angle")
             col.prop(con, "iterations")
             col.prop(con, "chain_count")
+            if(con.use_twoway_evaluation):
+                col.prop(con, "chain_count_target")
             col.prop(con, "use_tail")
+            col.prop(con, "use_head_of_tip")
             col.prop(con, "use_stretch")
+            col.prop(con, "use_twoway_evaluation")
 
             col = layout.column()
             row = col.row(align=True, heading="Weight Position")

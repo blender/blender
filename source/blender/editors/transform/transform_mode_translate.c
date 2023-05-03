@@ -261,11 +261,11 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
 
   if (t->flag & T_AUTOIK) {
     short chainlen = t->settings->autoik_chainlen;
-    if (chainlen) {
-      ofs += BLI_snprintf_rlen(
-          str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("Auto IK Length: %d"), chainlen);
-      ofs += BLI_strncpy_rlen(str + ofs, "   ", UI_MAX_DRAW_STR - ofs);
-    }
+    char *root_name = t->settings->autoik_root_pchan_name;
+    ofs += BLI_snprintf_rlen(
+        str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("Auto IK Length: %d "), chainlen);
+    ofs += BLI_snprintf_rlen(str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("(%s)"), root_name);
+    ofs += BLI_strncpy_rlen(str + ofs, "   ", UI_MAX_DRAW_STR - ofs);
   }
 
   if (t->con.mode & CON_APPLY) {

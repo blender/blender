@@ -1038,6 +1038,10 @@ void BLI_gset_free(GSet *gs, GSetKeyFreeFP keyfreefp)
 {
   BLI_ghash_free((GHash *)gs, keyfreefp, NULL);
 }
+void BLI_gset_freefp_no_keyfree(void *gs)
+{
+  BLI_gset_free(gs, NULL);
+}
 
 void BLI_gset_flag_set(GSet *gs, uint flag)
 {

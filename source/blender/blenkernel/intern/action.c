@@ -659,9 +659,26 @@ bPoseChannel *BKE_pose_channel_ensure(bPose *pose, const char *name)
   copy_v3_fl(chan->scale_in, 1.0f);
   copy_v3_fl(chan->scale_out, 1.0f);
 
+  chan->ikflag = 0;  // ~BONE_IK_DOF_SPACE_REST;
   chan->limitmin[0] = chan->limitmin[1] = chan->limitmin[2] = -M_PI;
   chan->limitmax[0] = chan->limitmax[1] = chan->limitmax[2] = M_PI;
   chan->stiffness[0] = chan->stiffness[1] = chan->stiffness[2] = 0.0f;
+
+  chan->ikflag_location = 0;  // ~BONE_IK_DOF_SPACE_REST;
+  chan->ikflag_location |= BONE_IK_NO_XDOF | BONE_IK_NO_YDOF | BONE_IK_NO_ZDOF;
+  chan->limitmin_location[0] = chan->limitmin_location[1] = chan->limitmin_location[2] = 0;
+  chan->limitmax_location[0] = chan->limitmax_location[1] = chan->limitmax_location[2] = 0;
+  chan->stiffness_location[0] = chan->stiffness_location[1] = chan->stiffness_location[2] = 0.0f;
+
+  chan->ikflag_stretch |= (BONE_IK_DOF_SPACE_REST | BONE_IK_NO_YDOF);
+  chan->limitmin_stretch = 1;
+  chan->limitmax_stretch = 1;
+
+  chan->ikflag_general = BONE_AUTOIK_INHERIT_CHAIN_LENGTH |
+                         BONE_AUTOIK_DERIVE_CHAIN_LENGTH_FROM_CONNECT;
+  chan->autoik_chain_length = 0;
+  chan->ik_animspace_override_type = IK_ANIMSPACE_OVERRIDE_TYPE_NO_OVERRIDE;
+
   chan->ikrotweight = chan->iklinweight = 0.0f;
   unit_m4(chan->constinv);
 
@@ -803,6 +820,10 @@ void BKE_pose_copy_data_ex(bPose **dst,
   outPose->ikdata = NULL;
   outPose->ikparam = MEM_dupallocN(src->ikparam);
   outPose->avs = src->avs;
+  // These flags are modified on original and should be accessible to copies within
+  // iksolver_plugin.c and overlay_armataure.c
+  outPose->flag = src->flag & (POSE_AUTO_IK);
+  outPose->flag1 = src->flag1 & (POSE1_IS_TRANSFORMING_PCHAN);
 
   for (pchan = outPose->chanbase.first; pchan; pchan = pchan->next) {
     if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
@@ -1143,6 +1164,7 @@ void BKE_pose_free(bPose *pose)
 
 void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_from)
 {
+  /** TODO: GG: copy new properties (ik stuff)*/
   /* copy transform locks */
   pchan->protectflag = pchan_from->protectflag;
 
@@ -1154,9 +1176,19 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
 
   /* IK (DOF) settings. */
   pchan->ikflag = pchan_from->ikflag;
+  pchan->ikflag_location = pchan_from->ikflag_location;
+  pchan->ikflag_stretch = pchan_from->ikflag_stretch;
+  pchan->ikflag_general = pchan_from->ikflag_general;
+  pchan->autoik_chain_length = pchan_from->autoik_chain_length;
+  pchan->ik_animspace_override_type = pchan_from->ik_animspace_override_type;
   copy_v3_v3(pchan->limitmin, pchan_from->limitmin);
   copy_v3_v3(pchan->limitmax, pchan_from->limitmax);
   copy_v3_v3(pchan->stiffness, pchan_from->stiffness);
+  copy_v3_v3(pchan->limitmin_location, pchan_from->limitmin_location);
+  copy_v3_v3(pchan->limitmax_location, pchan_from->limitmax_location);
+  copy_v3_v3(pchan->stiffness_location, pchan_from->stiffness_location);
+  pchan->limitmin_stretch = pchan_from->limitmin_stretch;
+  pchan->limitmax_stretch = pchan_from->limitmax_stretch;
   pchan->ikstretch = pchan_from->ikstretch;
   pchan->ikrotweight = pchan_from->ikrotweight;
   pchan->iklinweight = pchan_from->iklinweight;

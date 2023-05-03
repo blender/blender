@@ -73,6 +73,16 @@ void DepsgraphNodeBuilder::build_ik_pose(Object *object, bPoseChannel *pchan, bC
     return;
   }
 
+  /** TODO: GG: For 2way IK, only one of the roots should have the solver. For all IK's (1/2 way)
+   * that use an existing tree's root, then that gets redirected to the same single solver.
+   *
+   * So really, ik_solver_find_root() needs to return the root with the solver. For a tree with
+   * only 1way IK's, this is trivial and there is only one root with a solver. For  a tree with
+   * atleast one 2way, then any root can have a solver, but only one root should ever execute the
+   * solver. When no root has a solver yet then we can just use any root (hopefully there's no diff
+   * in IK eval). When finding the solver root, we need to support redirects, basically explcitly
+   * referencing which root has the solver. If a root
+   */
   if (has_operation_node(
           &object->id, NodeType::EVAL_POSE, rootchan->name, OperationCode::POSE_IK_SOLVER))
   {
@@ -218,6 +228,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
                        pchan->name,
                        OperationCode::BONE_POSE_PARENT,
                        [scene_cow, object_cow, pchan_index](::Depsgraph *depsgraph) {
+                         /** GG: Q: ... are constraints being evaluated .. twice? */
                          BKE_pose_eval_bone(depsgraph, scene_cow, object_cow, pchan_index);
                        });
 
@@ -269,10 +280,6 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
      * - Animated chain-lengths are a problem. */
     LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
       switch (con->type) {
-        case CONSTRAINT_TYPE_KINEMATIC:
-          build_ik_pose(object, pchan, con);
-          break;
-
         case CONSTRAINT_TYPE_SPLINEIK:
           build_splineik_pose(object, pchan, con);
           break;
@@ -288,6 +295,58 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
     }
     pchan_index++;
   }
-}
 
+  /** We do IK constraints in a separate pass since we must ensure only one solver.execute() node
+   * is created per posetree. An example case where it's required: when two two-way IK chains exist
+   * and both target chains go to the same root.
+   *
+   * For relations building, to find the right root that has the solver, it'll be the only root
+   * with a solver. A twoway IK constraint has 2 roots: target chain root and owner chain root. The
+   * target chain root uses the owner as the posetree solver node container. Any additional one way
+   * that roots to an existing root will re-use t
+   */
+  /**
+   * GG: TODO: wrap the following function in IK library as: determine_posetree_root_solvers()
+   * so that both the ik and depg match in which bone the root solver is stored on, since that's
+   * the one that the ik solver will do IK eval on and grab the tree from. Basically the return
+   * data is the ghash (solverpchan_from_rootpchan).
+   *
+   * XXX: for relations building... how will i find the bone that has the solver??
+   */
+  /* Key: IK chain pchan root pointer
+   * Value: pchan pointer for solver container
+   */
+  GHash *solver_from_chain_root = BKE_determine_posetree_roots(&object->pose->chanbase);
+
+  /* Add the solver nodes. */
+  GHashIterator gh_iter;
+  GHASH_ITER (gh_iter, solver_from_chain_root) {
+    bPoseChannel *rootchan = static_cast<bPoseChannel *>(BLI_ghashIterator_getValue(&gh_iter));
+    BLI_assert(rootchan);
+
+    if (has_operation_node(
+            &object->id, NodeType::EVAL_POSE, rootchan->name, OperationCode::POSE_IK_SOLVER))
+    {
+      continue;
+    }
+
+    int rootchan_index = BLI_findindex(&object->pose->chanbase, rootchan);
+    BLI_assert(rootchan_index != -1);
+
+    /* Operation node for evaluating/running IK Solver. */
+    Scene *scene_cow = get_cow_datablock(scene_);
+    Object *object_cow = get_cow_datablock(object);
+    add_operation_node(&object->id,
+                       NodeType::EVAL_POSE,
+                       rootchan->name,
+                       OperationCode::POSE_IK_SOLVER,
+                       [scene_cow, object_cow, rootchan_index](::Depsgraph *depsgraph) {
+                         BKE_pose_iktree_evaluate(
+                             depsgraph, scene_cow, object_cow, rootchan_index);
+                       });
+  }
+
+  BLI_ghash_free(solver_from_chain_root, nullptr, nullptr);
+  solver_from_chain_root = NULL;
+}
 }  // namespace blender::deg

@@ -73,7 +73,11 @@ class IK_QTask {
 
 class IK_QPositionTask : public IK_QTask {
  public:
-  IK_QPositionTask(bool primary, const IK_QSegment *segment, const Vector3d &goal);
+  IK_QPositionTask(bool primary,
+                   const IK_QSegment *segment,
+                   const Vector3d &goal,
+                   const IK_QSegment *goalseg,
+                   const IK_QSegment *zero_weight_sentinel);
 
   void ComputeJacobian(IK_QJacobian &jacobian);
 
@@ -92,11 +96,21 @@ class IK_QPositionTask : public IK_QTask {
  private:
   Vector3d m_goal;
   double m_clamp_length;
+  const IK_QSegment *m_goalsegment;
+  /* Marks the segment to force zero weights. This is set for 2way IK when both chains share an
+   * upstream ik hierarchy. The sentinel marks the closest shared ancestor.  Applying a delta
+   * transform to the shared upstream hierarchy is redundant so there is no delta xform that brings
+   * the tip closer to the target. */
+  const IK_QSegment *m_zero_weight_sentinel;
 };
 
 class IK_QOrientationTask : public IK_QTask {
  public:
-  IK_QOrientationTask(bool primary, const IK_QSegment *segment, const Matrix3d &goal);
+  IK_QOrientationTask(bool primary,
+                      const IK_QSegment *segment,
+                      const Matrix3d &goal,
+                      const IK_QSegment *goalseg,
+                      const IK_QSegment *zero_weight_sentinel);
 
   double Distance() const
   {
@@ -107,6 +121,8 @@ class IK_QOrientationTask : public IK_QTask {
  private:
   Matrix3d m_goal;
   double m_distance;
+  const IK_QSegment *m_goalsegment;
+  const IK_QSegment *m_zero_weight_sentinel;
 };
 
 class IK_QCenterOfMassTask : public IK_QTask {

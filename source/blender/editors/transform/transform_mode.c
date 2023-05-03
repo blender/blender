@@ -519,6 +519,15 @@ void headerRotation(TransInfo *t, char *str, const int str_size, float final)
 {
   size_t ofs = 0;
 
+  if (t->flag & T_AUTOIK) {
+    short chainlen = t->settings->autoik_chainlen;
+    char *root_name = t->settings->autoik_root_pchan_name;
+    ofs += BLI_snprintf_rlen(
+        str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("Auto IK Length: %d "), chainlen);
+    ofs += BLI_snprintf_rlen(str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("(%s)"), root_name);
+    ofs += BLI_strncpy_rlen(str + ofs, "   ", UI_MAX_DRAW_STR - ofs);
+  }
+
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
 
@@ -602,10 +611,15 @@ void ElementRotation_ex(const TransInfo *t,
     /* Extract and invert armature object matrix */
 
     if ((td->flag & TD_NO_LOC) == 0) {
+      /* GG: I'm guessing center is relative to bone thus vec now stores the offset: to
+      td->center from center?  */
       sub_v3_v3v3(vec, td->center, center);
 
-      mul_m3_v3(tc->mat3, vec);  /* To Global space. */
-      mul_m3_v3(mat, vec);       /* Applying rotation. */
+      /* GG: however mat(transform rotation matrix) is in global space so we must convert vec to
+       * there.*/
+      mul_m3_v3(tc->mat3, vec); /* To Global space. */
+      mul_m3_v3(mat, vec);      /* Applying rotation. */
+      /* GG: Then we go back to doing calculation in bone space */
       mul_m3_v3(tc->imat3, vec); /* To Local space. */
 
       add_v3_v3(vec, center);
@@ -627,7 +641,11 @@ void ElementRotation_ex(const TransInfo *t,
       }
 
       protectedTransBits(td->protectflag, vec);
-
+      /* GG:... and td->loc is in pose space... OK....
+       * GG: so we have worldspace rotaiton matrix (mat),
+       *   a bone-local space (center and td->center)
+       *   a pose-space (td->loc)
+       * */
       add_v3_v3v3(td->loc, td->iloc, vec);
 
       constraintTransLim(t, td);

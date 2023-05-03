@@ -84,7 +84,10 @@ enum IK_SegmentFlag {
   IK_ZDOF = 4,
   IK_TRANS_XDOF = 8,
   IK_TRANS_YDOF = 16,
-  IK_TRANS_ZDOF = 32
+  IK_TRANS_ZDOF = 32,
+  /* Solver does not support scale, so we call it extension instead, which is a location type of
+     data. */
+  IK_EXTENSION_YDOF = 128,
 };
 
 typedef enum IK_SegmentAxis {
@@ -93,20 +96,30 @@ typedef enum IK_SegmentAxis {
   IK_Z = 2,
   IK_TRANS_X = 3,
   IK_TRANS_Y = 4,
-  IK_TRANS_Z = 5
+  IK_TRANS_Z = 5,
+  IK_EXTENSION_Y = 7,
 } IK_SegmentAxis;
 
-extern IK_Segment *IK_CreateSegment(int flag);
+extern IK_Segment *IK_CreateSegment(int flag, char *name);
 extern void IK_FreeSegment(IK_Segment *seg);
 
 extern void IK_SetParent(IK_Segment *seg, IK_Segment *parent);
-extern void IK_SetTransform(
-    IK_Segment *seg, float start[3], float rest_basis[][3], float basis[][3], float length);
+extern void IK_SetTransform_TranslationSegment(IK_Segment *seg,
+                                               float start[3],
+                                               float rest[][3],
+                                               float initial_location[3],
+                                               float location[3]);
+extern void IK_SetTransform_RotationSegment(IK_Segment *seg,
+                                            float rest[][3],
+                                            float initial_basis[][3],
+                                            float basis[][3]);
+extern void IK_SetTransform_ExtensionSegment(IK_Segment *seg, float initial_length, float length);
 extern void IK_SetLimit(IK_Segment *seg, IK_SegmentAxis axis, float lmin, float lmax);
 extern void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness);
 
 extern void IK_GetBasisChange(IK_Segment *seg, float basis_change[][3]);
 extern void IK_GetTranslationChange(IK_Segment *seg, float *translation_change);
+extern void IK_GetStretchChange(IK_Segment *seg, float *stretch_change);
 
 /**
  * An IK_Solver must be created to be able to execute the solver.
@@ -123,27 +136,40 @@ extern void IK_GetTranslationChange(IK_Segment *seg, float *translation_change);
 
 typedef void IK_Solver;
 
-IK_Solver *IK_CreateSolver(IK_Segment *root);
+IK_Solver *IK_CreateSolver(IK_Segment **roots, int root_count);
+void IK_DEBUG_print_matrices(IK_Segment **_roots,
+                             const int root_count,
+                             float prepend_rot[][3],
+                             float preprend_origin[3]);
 void IK_FreeSolver(IK_Solver *solver);
 
-void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float weight);
+void IK_SolverAddGoal(IK_Solver *solver,
+                      IK_Segment *tip,
+                      float goal[3],
+                      float weight,
+                      bool use_tip_composite_tip,
+                      IK_Segment *goalseg,
+                      bool use_goal_composite_tip,
+                      IK_Segment *zero_weight_sentinel_seg);
 void IK_SolverAddGoalOrientation(IK_Solver *solver,
                                  IK_Segment *tip,
                                  float goal[][3],
-                                 float weight);
-void IK_SolverSetPoleVectorConstraint(IK_Solver *solver,
+                                 float weight,
+                                 IK_Segment *goalseg,
+                                 IK_Segment *zero_weight_sentinel_seg);
+void IK_SolverAddPoleVectorConstraint(IK_Solver *solver,
+                                      int root_index,
                                       IK_Segment *tip,
+                                      const bool use_tip_composite_tip,
                                       float goal[3],
                                       float polegoal[3],
                                       float poleangle,
-                                      int getangle);
-float IK_SolverGetPoleAngle(IK_Solver *solver);
+                                      IK_Segment *goalseg,
+                                      const bool use_goal_composite_tip);
 
 int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations);
 
 #define IK_STRETCH_STIFF_EPS 0.01f
-#define IK_STRETCH_STIFF_MIN 0.001f
-#define IK_STRETCH_STIFF_MAX 1e10
 
 #ifdef __cplusplus
 }

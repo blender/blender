@@ -44,8 +44,14 @@ class IK_QSegment {
 
   void SetTransform(const Vector3d &start,
                     const Matrix3d &rest_basis,
+                    const Matrix3d &initial_basis,
                     const Matrix3d &basis,
                     const double length);
+
+  void SetTransform_Translation(const Vector3d &start,
+                                const Matrix3d &rest_basis,
+                                const Vector3d &initial_loc,
+                                const Vector3d &basis_loc);
 
   // tree structure access
   void SetParent(IK_QSegment *parent);
@@ -71,6 +77,14 @@ class IK_QSegment {
   IK_QSegment *Composite() const
   {
     return m_composite;
+  }
+
+  IK_QSegment *Composite_Tip()
+  {
+    if (m_composite != NULL) {
+      return m_composite->Composite_Tip();
+    }
+    return this;
   }
 
   // number of degrees of freedom
@@ -123,6 +137,11 @@ class IK_QSegment {
     return m_translational;
   }
 
+  bool Stretchable() const
+  {
+    return m_stretch;
+  }
+
   // locking (during inner clamping loop)
   bool Locked(int dof) const
   {
@@ -147,7 +166,8 @@ class IK_QSegment {
 
   // recursively update the global coordinates of this segment, 'global'
   // is the global transformation from the parent segment
-  void UpdateTransform(const Affine3d &global);
+  int UpdateTransform_Child(const Affine3d &global, int recursion_level);
+  int UpdateTransform_Root(const Affine3d &pole_constraint_matrix);
 
   // get axis from rotation matrix for derivative computation
   virtual Vector3d Axis(int dof) const = 0;
@@ -175,9 +195,11 @@ class IK_QSegment {
   // scale
   virtual void Scale(double scale);
 
+  char *m_cname;
+
  protected:
   // num_DoF: number of degrees of freedom
-  IK_QSegment(int num_DoF, bool translational);
+  IK_QSegment(int num_DoF, bool translational, bool is_stretch);
 
   // remove child as a child of this segment
   void RemoveChild(IK_QSegment *child);
@@ -188,11 +210,25 @@ class IK_QSegment {
   IK_QSegment *m_sibling;
   IK_QSegment *m_composite;
 
-  // full transform =
-  // start * rest_basis * basis * translation
+  /** Per segment full transform = [parent] * start * rest_basis * basis * translation.
+   *
+   * For a bone, segments are:
+   *  bone_full_transform = parent.full_transform * TranslationSegment * RotationSegment *
+   * ExtensionSegment
+   *
+   * where translation segment represents the bone head and extension segment represents the tail.
+   *
+   * Rotation Limits are applied directly to Rot segment's m_basis and translation limits are
+   * applied directly to translation segment's m_translation, so ensure that rest_basis and m_start
+   * are properly set, along with the rest of the segments.
+   */
+  /* Relative to parent segment */
   Vector3d m_start;
+  /* Relative to parent segment */
   Matrix3d m_rest_basis;
+  /* Relative to m_rest_basis */
   Matrix3d m_basis;
+  /* Relative to m_basis */
   Vector3d m_translation;
 
   // original basis
@@ -211,6 +247,11 @@ class IK_QSegment {
 
   bool m_locked[3];
   bool m_translational;
+  /* Solver-wise, stretch segments are treated equivalently to translation segments. When this
+   * flag is on, then so should m_translational. Flag used for proper caller handling of output
+   * translation changes. */
+  bool m_stretch;
+
   double m_weight[3];
 };
 
@@ -239,7 +280,7 @@ class IK_QSphericalSegment : public IK_QSegment {
 
 class IK_QNullSegment : public IK_QSegment {
  public:
-  IK_QNullSegment();
+  IK_QNullSegment(bool translational, bool is_stretch);
 
   bool UpdateAngle(const IK_QJacobian &, Vector3d &, bool *)
   {
@@ -250,10 +291,6 @@ class IK_QNullSegment : public IK_QSegment {
   Vector3d Axis(int) const
   {
     return Vector3d(0, 0, 0);
-  }
-  void SetBasis(const Matrix3d &)
-  {
-    m_basis.setIdentity();
   }
 };
 
@@ -330,7 +367,7 @@ class IK_QElbowSegment : public IK_QSegment {
 class IK_QTranslateSegment : public IK_QSegment {
  public:
   // 1DOF, 2DOF or 3DOF translational segments
-  IK_QTranslateSegment(int axis1);
+  IK_QTranslateSegment(int axis1, bool is_stretch);
   IK_QTranslateSegment(int axis1, int axis2);
   IK_QTranslateSegment();
 

@@ -189,7 +189,9 @@ static inline Eigen::Vector3d MatrixToAxisAngle(const Eigen::Matrix3d &R)
   return delta;
 }
 
-static inline bool EllipseClamp(double &ax, double &az, double *amin, double *amax)
+/// @param amin Assumes amin <= 0
+/// @param amax Assumes amax >= 0
+static inline bool EllipseClamp_AroundZero(double &ax, double &az, double *amin, double *amax)
 {
   double xlim, zlim, x, z;
 
@@ -244,5 +246,49 @@ static inline bool EllipseClamp(double &ax, double &az, double *amin, double *am
   ax = (ax < 0.0) ? -x : x;
   az = (az < 0.0) ? -z : z;
 
+  return true;
+}
+
+/// @param amin can be any value. Assumed amin <= amax.
+/// @param amax can be any value. Assumed amax >= amin.
+static inline bool EllipseClamp(double &ax, double &az, double *amin, double *amax)
+{
+  return EllipseClamp_AroundZero(ax, az, amin, amax);
+
+  // GG: Q: should we only recenter if amin >0 or amax<0? Since the base clamp has hard edges
+  // when amin=0 or amax=0 and soft rounded edges otherwise. This recentering results in
+  // soft edge limits always.
+  // GG:XXX: TODO: maybe i should draw it recentered to see what the bounds actually lokos like?
+  // reason for not using this function: positive-min and negative-max rendered limits are not
+  // supported.
+  //      and amin=0 or amax=0 doesn't include zero... So a restspace limit with a boundary at zero
+  //      doesn't include zero as a solution when we recenter.. The ideal solution is to add
+  //      support for user to choose the kind of boundary they want, whether its hard angle checks,
+  //      or elliptical with support for choosing edge softness (the current behavior of the
+  //      softess boundary being the largest boundary value is arbitrary for animation limits and
+  //      has a sharp boundary near zero). So until such support is added, it' just more
+  //      user-friendly to keep the restriction of min<=0 and max>=0.
+  double center[2] = {
+      (amax[0] + amin[0]) * 0.5f,
+      (amax[1] + amin[1]) * 0.5f,
+  };
+  double recentered_amin[2] = {
+      amin[0] - center[0],
+      amin[1] - center[1],
+  };
+  double recentered_amax[2] = {
+      amax[0] - center[0],
+      amax[1] - center[1],
+  };
+
+  double recentered_ax = ax - center[0];
+  double recentered_az = az - center[1];
+
+  if (!EllipseClamp_AroundZero(recentered_ax, recentered_az, recentered_amin, recentered_amax)) {
+    return false;
+  }
+
+  ax = recentered_ax + center[0];
+  az = recentered_az + center[1];
   return true;
 }

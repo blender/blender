@@ -30,6 +30,14 @@ void RootPChanMap::add_bone(const char *bone, const char *root)
   map_.lookup_or_add_default(bone).add(root);
 }
 
+bool RootPChanMap::has_root(const char *bone, const char *root) const
+{
+  const Set<StringRefNull> *bone1_roots = map_.lookup_ptr(bone);
+  if (bone1_roots == nullptr) {
+    return false;
+  }
+  return bone1_roots->contains(root);
+}
 bool RootPChanMap::has_common_root(const char *bone1, const char *bone2) const
 {
   const Set<StringRefNull> *bone1_roots = map_.lookup_ptr(bone1);
@@ -48,6 +56,31 @@ bool RootPChanMap::has_common_root(const char *bone1, const char *bone2) const
   }
 
   return Set<StringRefNull>::Intersects(*bone1_roots, *bone2_roots);
+}
+bool RootPChanMap::has_common_root_specified(const char *bone1,
+                                             const char *bone2,
+                                             const char *bone_root) const
+{
+  const Set<StringRefNull> *bone1_roots = map_.lookup_ptr(bone1);
+  const Set<StringRefNull> *bone2_roots = map_.lookup_ptr(bone2);
+
+  if (bone1_roots == nullptr) {
+    // fprintf("RootPChanMap: bone1 '%s' not found (%s => %s)\n", bone1, bone1, bone2);
+    // print_debug();
+    return false;
+  }
+
+  if (bone2_roots == nullptr) {
+    // fprintf("RootPChanMap: bone2 '%s' not found (%s => %s)\n", bone2, bone1, bone2);
+    // print_debug();
+    return false;
+  }
+  return bone1_roots->contains(bone_root) && bone2_roots->contains(bone_root);
+}
+
+Set<StringRefNull> *RootPChanMap::get_roots(const char *bone)
+{
+  return map_.lookup_ptr(bone);
 }
 
 }  // namespace blender::deg

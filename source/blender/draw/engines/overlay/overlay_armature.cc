@@ -1885,6 +1885,7 @@ static void draw_bone_octahedral(ArmatureDrawContext *ctx,
 
 static void draw_bone_degrees_of_freedom(ArmatureDrawContext *ctx, bPoseChannel *pchan)
 {
+  const bool draw_post_ik_limits = false;
   BoneInstanceData inst_data;
   float tmp[4][4], posetrans[4][4];
   float xminmax[2], zminmax[2];
@@ -1911,6 +1912,21 @@ static void draw_bone_degrees_of_freedom(ArmatureDrawContext *ctx, bPoseChannel 
   /* ... but own rest-space. */
   mul_m4_m4m3(posetrans, posetrans, pchan->bone->bone_mat);
 
+  float base_posetrans[4][4];
+  copy_m4_m4(base_posetrans, posetrans);
+
+  // GG: TODO: Add support for drawing overlays for translation limits and stretch limits.
+  // const bool use_animspace_trans = (pchan->ikflag_location & BONE_IK_DOF_SPACE_REST) == 0;
+  const bool use_animspace_rot = (pchan->ikflag & BONE_IK_DOF_SPACE_REST) == 0;
+  // const bool use_animspace_stretch = (pchan->ikflag_stretch & BONE_IK_DOF_SPACE_REST) == 0;
+  if (use_animspace_rot) {
+    // While using AutoIK, w/o overriding the animspace limits, this will draw
+    // the pre-AutoIK-transformed limits, the current effective limits of AutoIK.
+    float tmp1[3][3];
+    BKE_pchan_rot_to_mat3(pchan, tmp1);
+    mul_m4_m4m3(posetrans, base_posetrans, tmp1);
+  }
+
   float scale = pchan->bone->length * pchan->size[1];
   scale_m4_fl(tmp, scale);
   tmp[1][1] = -tmp[1][1];
@@ -1918,12 +1934,56 @@ static void draw_bone_degrees_of_freedom(ArmatureDrawContext *ctx, bPoseChannel 
 
   /* into world space. */
   mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world, posetrans);
+  const float alpha = (use_animspace_rot && draw_post_ik_limits) ? 0.125f : 0.25f;
 
   if ((pchan->ikflag & BONE_IK_XLIMIT) && (pchan->ikflag & BONE_IK_ZLIMIT)) {
     bone_instance_data_set_angle_minmax(
         &inst_data, xminmax[0], zminmax[0], xminmax[1], zminmax[1]);
 
-    copy_v4_fl4(color, 0.25f, 0.25f, 0.25f, 0.25f);
+    copy_v4_fl4(color, 0.25f, 0.25f, 0.25f, alpha);
+    DRW_buffer_add_entry(ctx->dof_sphere, color, &inst_data);
+
+    copy_v4_fl4(color, 0.0f, 0.0f, 0.0f, 1.0f);
+    DRW_buffer_add_entry(ctx->dof_lines, color, &inst_data);
+  }
+  if (pchan->ikflag & BONE_IK_XLIMIT) {
+    bone_instance_data_set_angle_minmax(&inst_data, xminmax[0], 0.0f, xminmax[1], 0.0f);
+    copy_v4_fl4(color, 1.0f, 0.0f, 0.0f, 1.0f);
+    DRW_buffer_add_entry(ctx->dof_lines, color, &inst_data);
+  }
+  if (pchan->ikflag & BONE_IK_ZLIMIT) {
+    bone_instance_data_set_angle_minmax(&inst_data, 0.0f, zminmax[0], 0.0f, zminmax[1]);
+    copy_v4_fl4(color, 0.0f, 0.0f, 1.0f, 1.0f);
+    DRW_buffer_add_entry(ctx->dof_lines, color, &inst_data);
+  }
+
+  if (!draw_post_ik_limits) {
+    return;
+  }
+
+  if (!use_animspace_rot) {
+    return;
+  }
+
+  // Draw the limits relative to the current animated channels.
+  float tmp1[4][4];
+  copy_m4_m4(tmp1, pchan->pose_mat);
+  normalize_m4(tmp1);
+  copy_v3_v3(tmp1[3], base_posetrans[3]);
+  // XXX: copy_m3_m4() clears the translation part..
+  copy_m4_m4(posetrans, tmp1);
+
+  scale_m4_fl(tmp, scale);
+  tmp[1][1] = -tmp[1][1];
+  mul_m4_m4m4(posetrans, posetrans, tmp);
+
+  mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world, posetrans);
+
+  if ((pchan->ikflag & BONE_IK_XLIMIT) && (pchan->ikflag & BONE_IK_ZLIMIT)) {
+    bone_instance_data_set_angle_minmax(
+        &inst_data, xminmax[0], zminmax[0], xminmax[1], zminmax[1]);
+
+    copy_v4_fl4(color, 0.25f, 0.25f, 0.25f, alpha);
     DRW_buffer_add_entry(ctx->dof_sphere, color, &inst_data);
 
     copy_v4_fl4(color, 0.0f, 0.0f, 0.0f, 1.0f);
@@ -1956,13 +2016,19 @@ static void pchan_draw_ik_lines(ArmatureDrawContext *ctx,
   bPoseChannel *parchan;
   float *line_start = nullptr, *line_end = nullptr;
 
-  for (con = static_cast<bConstraint *>(pchan->constraints.first); con; con = con->next) {
+  bool has_drawn_ik = false;
+  for (con = static_cast<bConstraint *>(pchan->constraints.last); con; con = con->prev) {
     if (con->enforce == 0.0f) {
       continue;
     }
 
     switch (con->type) {
       case CONSTRAINT_TYPE_KINEMATIC: {
+
+        if (has_drawn_ik) {
+          break;
+        }
+
         bKinematicConstraint *data = (bKinematicConstraint *)con->data;
         int segcount = 0;
 
@@ -1971,6 +2037,10 @@ static void pchan_draw_ik_lines(ArmatureDrawContext *ctx,
           continue;
         }
 
+        if (data->flag & CONSTRAINT_IK_DO_NOT_CREATE_POSETREE) {
+          has_drawn_ik = true;
+          continue;
+        }
         /* exclude tip from chain? */
         parchan = ((data->flag & CONSTRAINT_IK_TIP) == 0) ? pchan->parent : pchan;
         line_start = parchan->pose_tail;
@@ -1987,6 +2057,7 @@ static void pchan_draw_ik_lines(ArmatureDrawContext *ctx,
         if (parchan) {
           line_end = parchan->pose_head;
 
+          has_drawn_ik = true;
           if (constflag & PCHAN_HAS_TARGET) {
             drw_shgroup_bone_ik_lines(ctx, line_start, line_end);
           }
@@ -1994,6 +2065,25 @@ static void pchan_draw_ik_lines(ArmatureDrawContext *ctx,
             drw_shgroup_bone_ik_no_target_lines(ctx, line_start, line_end);
           }
         }
+
+        if ((data->flag & CONSTRAINT_IK_IS_TWOWAY) == 0) {
+          break;
+        }
+
+        if (data->tar && (data->tar->type == OB_ARMATURE) && (data->subtarget[0])) {
+          const bool is_twoway = (data->flag & CONSTRAINT_IK_IS_TWOWAY) != 0;
+          if (is_twoway) {
+            bPoseChannel *target_tipchan = BKE_pose_channel_find_name(data->tar->pose,
+                                                                      data->subtarget);
+            line_start = target_tipchan->pose_tail;
+
+            bPoseChannel *target_rootchan = BKE_armature_ik_solver_find_root_ex(
+                target_tipchan, data->rootbone_target);
+            line_end = target_rootchan->pose_head;
+            drw_shgroup_bone_ik_no_target_lines(ctx, line_start, line_end);
+          }
+        }
+
         break;
       }
       case CONSTRAINT_TYPE_SPLINEIK: {
@@ -2026,6 +2116,48 @@ static void pchan_draw_ik_lines(ArmatureDrawContext *ctx,
       }
     }
   }
+
+  if (has_drawn_ik) {
+    return;
+  }
+
+  if ((pchan->ikflag_general & BONE_AUTOIK_DO_PIN) == 0) {
+    return;
+  }
+  if ((pchan->ikflag_general & BONE_AUTOIK_DO_PIN_ANY) == 0) {
+    return;
+  }
+
+  parchan = pchan;
+  line_start = parchan->pose_tail;
+
+  // NOTE: An inherited chain length never reached this code path
+  // (BONE_AUTOIK_INHERIT_CHAIN_LENGTH).
+  const bool use_manual_length = (pchan->ikflag_general &
+                                  BONE_AUTOIK_DERIVE_CHAIN_LENGTH_FROM_CONNECT) == 0;
+  if (use_manual_length) {
+    int chain_length = pchan->autoik_chain_length;
+    int segcount = 0;
+    while (parchan->parent) {
+      segcount++;
+      if (segcount == chain_length || segcount > 255) {
+        break; /* 255 is weak */
+      }
+      parchan = parchan->parent;
+    }
+  }
+  else {
+    int segcount = 0;
+    while (parchan->parent && (parchan->bone->flag & BONE_CONNECTED)) {
+      segcount++;
+      if (segcount > 255) {
+        break; /* 255 is weak */
+      }
+      parchan = parchan->parent;
+    }
+  }
+  line_end = parchan->pose_head;
+  drw_shgroup_bone_ik_lines(ctx, line_start, line_end);
 }
 
 static void draw_bone_bone_relationship_line(ArmatureDrawContext *ctx,
@@ -2397,7 +2529,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
   }
 
   const DRWView *view = is_pose_select ? DRW_view_default_get() : nullptr;
-
+  const bool pose_do_autoik = (ob->pose->flag & POSE_AUTO_IK) != 0;
   for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
        pchan = pchan->next, index += 0x10000)
   {
@@ -2411,7 +2543,14 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
                                ((ob->base_flag & BASE_FROM_DUPLI) == 0) &&
                                (pchan->ikflag & (BONE_IK_XLIMIT | BONE_IK_ZLIMIT));
         const int select_id = is_pose_select ? index : uint(-1);
-        const short constflag = pchan->constflag;
+
+        const bool do_autoik = (pchan->ikflag_general & BONE_AUTOIK_DO_PIN) != 0;
+        const bool do_autoik_any_component = (pchan->ikflag_general & BONE_AUTOIK_DO_PIN_ANY) != 0;
+        const short constflag_from_autoik = (pose_do_autoik && do_autoik &&
+                                             do_autoik_any_component) ?
+                                                (PCHAN_HAS_TARGET | PCHAN_HAS_IK) :
+                                                0;
+        const short constflag = pchan->constflag | constflag_from_autoik;
 
         pchan_draw_data_init(pchan);
 

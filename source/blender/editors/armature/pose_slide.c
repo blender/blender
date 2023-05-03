@@ -717,7 +717,10 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
     }
 
     /* Apply final to the pose bone, keeping compatible for similar keyframe positions. */
-    quat_to_compatible_quat(pchan->quat, quat_final, pchan->quat);
+
+    float quat_orig[4];
+    copy_v4_v4(quat_orig, pchan->quat);
+    quat_to_compatible_quat(pchan->quat, quat_final, quat_orig);
   }
 
   /* Free the path now. */

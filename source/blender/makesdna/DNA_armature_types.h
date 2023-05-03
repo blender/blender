@@ -42,7 +42,9 @@ typedef struct Bone {
   float head[3];
   /** Head/tail and roll in Bone Space. */
   float tail[3];
-  /** Rotation derived from head/tail/roll. */
+  /** Rotation derived from head/tail/roll.
+   * space: parent_from_bone
+   */
   float bone_mat[3][3];
 
   int flag;
@@ -53,7 +55,9 @@ typedef struct Bone {
   float arm_head[3];
   /** Head/tail in Armature Space (rest pose). */
   float arm_tail[3];
-  /** Matrix: `(bonemat(b)+head(b))*arm_mat(b-1)`, rest pose. */
+  /** Matrix: `(bonemat(b)+head(b))*arm_mat(b-1)`, rest pose.
+   * space: armatureEdit_from_bone
+   */
   float arm_mat[4][4];
   /** Roll in Armature Space (rest pose). */
   float arm_roll;

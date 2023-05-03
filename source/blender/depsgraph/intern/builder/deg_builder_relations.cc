@@ -1298,6 +1298,9 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
         else if ((ct->tar->type == OB_ARMATURE) && (ct->subtarget[0])) {
           OperationCode opcode;
           /* relation to bone */
+          /** GG: ... isn't root_map NULL??? How does this not crash?? Seems to be null for object
+           * ebing constrained to its own aramture? */
+          BLI_assert(root_map);
           opcode = bone_target_opcode(
               &ct->tar->id, ct->subtarget, id, component_subdata, root_map);
           /* Armature constraint always wants the final position and chan_mat. */

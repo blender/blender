@@ -16,6 +16,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_action_types.h"
@@ -51,7 +52,8 @@ namespace blender::deg {
 void DepsgraphRelationBuilder::build_ik_pose(Object *object,
                                              bPoseChannel *pchan,
                                              bConstraint *con,
-                                             RootPChanMap *root_map)
+                                             RootPChanMap *root_map,
+                                             GHash *solverchan_from_chain_rootchan)
 {
   if ((con->flag & CONSTRAINT_DISABLE) != 0) {
     /* Do not add disabled IK constraints to the relations. If these needs to be temporarily
@@ -60,16 +62,25 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
   }
 
   bKinematicConstraint *data = (bKinematicConstraint *)con->data;
-  /* Attach owner to IK Solver to. */
-  bPoseChannel *rootchan = BKE_armature_ik_solver_find_root(pchan, data);
-  if (rootchan == nullptr) {
+  if (data->flag & CONSTRAINT_IK_DO_NOT_CREATE_POSETREE) {
     return;
   }
+
+  /* Attach owner to IK Solver to. */
+  bPoseChannel *chain_rootchan = BKE_armature_ik_solver_find_root(pchan, data);
+  if (chain_rootchan == nullptr) {
+    return;
+  }
+
+  bPoseChannel *posetree_rootchan = static_cast<bPoseChannel *>(
+      BLI_ghash_lookup(solverchan_from_chain_rootchan, chain_rootchan));
+  BLI_assert(posetree_rootchan);
+
   OperationKey pchan_local_key(
       &object->id, NodeType::BONE, pchan->name, OperationCode::BONE_LOCAL);
   OperationKey init_ik_key(&object->id, NodeType::EVAL_POSE, OperationCode::POSE_INIT_IK);
   OperationKey solver_key(
-      &object->id, NodeType::EVAL_POSE, rootchan->name, OperationCode::POSE_IK_SOLVER);
+      &object->id, NodeType::EVAL_POSE, posetree_rootchan->name, OperationCode::POSE_IK_SOLVER);
   OperationKey pose_cleanup_key(&object->id, NodeType::EVAL_POSE, OperationCode::POSE_CLEANUP);
   /* If any of the constraint parameters are animated, connect the relation. Since there is only
    * one Init IK node per armature, this link has quite high risk of spurious dependency cycles.
@@ -88,6 +99,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
    */
   OperationKey target_dependent_key = is_itasc ? init_ik_key : solver_key;
   /* IK target */
+  bPoseChannel *targetchan = nullptr;
   /* TODO(sergey): This should get handled as part of the constraint code. */
   if (data->tar != nullptr) {
     /* Different object - requires its transform. */
@@ -102,9 +114,48 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
     /* Subtarget references: */
     if ((data->tar->type == OB_ARMATURE) && (data->subtarget[0])) {
       /* Bone - use the final transformation. */
-      OperationKey target_key(
-          &data->tar->id, NodeType::BONE, data->subtarget, OperationCode::BONE_DONE);
-      add_relation(target_key, target_dependent_key, con->name);
+      targetchan = BKE_pose_channel_find_name(data->tar->pose, data->subtarget);
+
+      const bool is_twoway = (data->flag & CONSTRAINT_IK_IS_TWOWAY) != 0;
+      /* Target will have root whenever the objects are the same, so we need to further check if
+       * the target is affected by the ik solver. */
+      if (root_map->has_root(data->subtarget, posetree_rootchan->name) && is_twoway) {
+        OperationKey target_key(
+            &data->tar->id, NodeType::BONE, data->subtarget, OperationCode::BONE_READY);
+        add_relation(target_key, target_dependent_key, con->name);
+      }
+      else {
+        OperationKey target_key(
+            &data->tar->id, NodeType::BONE, data->subtarget, OperationCode::BONE_DONE);
+        add_relation(target_key, target_dependent_key, con->name);
+      }
+
+      if (is_twoway) {
+        /** GG: CLEANUP: These 2 lines are redundant? maybe it differs if using itasc?*/
+        bPoseChannel *parchan = targetchan;
+        int segcount_target = 0;
+        while (parchan != nullptr) {
+          OperationKey parent_key(
+              &object->id, NodeType::BONE, parchan->name, OperationCode::BONE_READY);
+          add_relation(parent_key, solver_key, "IK Chain Parent");
+          OperationKey bone_done_key(
+              &object->id, NodeType::BONE, parchan->name, OperationCode::BONE_DONE);
+          add_relation(solver_key, bone_done_key, "IK Chain Result");
+          parchan->flag |= POSE_DONE;
+
+          /* continue up chain, until we reach target number of items. */
+          DEG_DEBUG_PRINTF(
+              (::Depsgraph *)graph_, BUILD, "  %d = %s\n", segcount_target, parchan->name);
+          /* TODO(sergey): This is an arbitrary value, which was just following
+           * old code convention. */
+          segcount_target++;
+          if ((segcount_target == data->rootbone_target) || (segcount_target > 255)) {
+            BLI_assert(segcount_target <= 255);
+            break;
+          }
+          parchan = parchan->parent;
+        }
+      }
     }
     else if (data->subtarget[0] && ELEM(data->tar->type, OB_MESH, OB_LATTICE)) {
       /* Vertex group target. */
@@ -113,11 +164,6 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
       ComponentKey target_key(&data->tar->id, NodeType::GEOMETRY);
       add_relation(target_key, target_dependent_key, con->name);
       add_customdata_mask(data->tar, DEGCustomDataMeshMasks::MaskVert(CD_MASK_MDEFORMVERT));
-    }
-    if (data->tar == object && data->subtarget[0]) {
-      /* Prevent target's constraints from linking to anything from same
-       * chain that it controls. */
-      root_map->add_bone(data->subtarget, rootchan->name);
     }
   }
   /* Pole Target. */
@@ -161,7 +207,6 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
   if (!(data->flag & CONSTRAINT_IK_TIP)) {
     parchan = pchan->parent;
   }
-  root_map->add_bone(parchan->name, rootchan->name);
   OperationKey parchan_transforms_key(
       &object->id, NodeType::BONE, parchan->name, OperationCode::BONE_READY);
   add_relation(parchan_transforms_key, solver_key, "IK Solver Owner");
@@ -172,6 +217,9 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
      * after the standard results of the bone are know. Validate links step
      * on the bone will ensure that users of this bone only grab the result
      * with IK solver results. */
+    /** GG: CLEANUP: This branch is so redundant. Can pull else up above.. or even just remove the
+     * condition altogether.. and delete above parchan_transforms_key ..
+     */
     if (parchan != pchan) {
       OperationKey parent_key(
           &object->id, NodeType::BONE, parchan->name, OperationCode::BONE_READY);
@@ -186,13 +234,13 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
       add_relation(solver_key, final_transforms_key, "IK Solver Result");
     }
     parchan->flag |= POSE_DONE;
-    root_map->add_bone(parchan->name, rootchan->name);
     /* continue up chain, until we reach target number of items. */
     DEG_DEBUG_PRINTF((::Depsgraph *)graph_, BUILD, "  %d = %s\n", segcount, parchan->name);
     /* TODO(sergey): This is an arbitrary value, which was just following
      * old code convention. */
     segcount++;
     if ((segcount == data->rootbone) || (segcount > 255)) {
+      BLI_assert(segcount <= 255);
       break;
     }
     parchan = parchan->parent;
@@ -200,8 +248,95 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
   OperationKey pose_done_key(&object->id, NodeType::EVAL_POSE, OperationCode::POSE_DONE);
   add_relation(solver_key, pose_done_key, "PoseEval Result-Bone Link");
 
-  /* Add relation when the root of this IK chain is influenced by another IK chain. */
-  build_inter_ik_chains(object, solver_key, rootchan, root_map);
+  /* Add relation when the root of this IK chain is influenced by another IK chain. For twoway
+   * IK's, this also checks that target chain root. */
+  // build_inter_ik_chains(object, solver_key, posetree_rootchan, root_map);
+  bPoseChannel *owner_and_target_pchans[2] = {chain_rootchan, nullptr};
+  const bool is_twoway = (data->flag & CONSTRAINT_IK_IS_TWOWAY) != 0;
+  if (is_twoway && (targetchan != nullptr)) {
+    /** If oneway, then this solver already implicitly depends on target's DONE
+     * (assuming not part of child of owner chain) and so there's no need to add any relations.
+     * When its any other value, then it's affected by some solver so we must add relations for our
+     * solver. */
+    bPoseChannel *target_rootchan = BKE_armature_ik_solver_find_root_ex(targetchan,
+                                                                        data->rootbone_target);
+    owner_and_target_pchans[1] = target_rootchan;
+  }
+  for (int i = 0; i < 2; i++) {
+    bPoseChannel *_rootchan = owner_and_target_pchans[i];
+    if (_rootchan == nullptr) {
+      continue;
+    }
+    Set<StringRefNull> *child_root_names = root_map->get_roots(_rootchan->name);
+
+    parchan = _rootchan->parent;
+    while (parchan != nullptr) {
+      /**
+       * root_map contains each bone's posetree solver and a ref to each chains' root its part of.
+       * If a parent doesn't solve as part of a posetree of the chain root, then the child's solver
+       * must wait for parent IK solvers to finish.
+       *
+       * TODO: GG: CLEANUP: move this outside of bone iter loop? will need to re-iter all rootse
+       * tho.. can do as cleanup its not required anyways..buyt then, well these roots nor the
+       * posetree ever change.. wrell i suppose the ineffiicwency is if multiple cons use the same
+       * root, then this is called for the same rootchan bone mul times which is redundant.
+       *
+       */
+      Set<StringRefNull> *parent_root_names = root_map->get_roots(parchan->name);
+      if (parent_root_names == nullptr) {
+        /* If any parent isn't part of a solver, then there's no way for chain_rootchan's
+         * associated solver to evaluate in the wrong order. chain_rootchan's READY will depend
+         * on this parent's DONE since it doesn't share any common root in root_map. And the
+         * solver depends on rootchan's READY already.
+         *
+         * The case where we do need to ensure proper relations occurs when an upstream parent is
+         * evaluated as part of any same posetree as chain_rootchan and a different branching
+         * solver affects the upstream too without including chain_rootchan. In this case,
+         * chain_rootchan's solver depends on that branching solver. The former means
+         * chain_rootchan's READY only depends on its upstream parents' READY which means
+         * chain_roothchan's IK solver isn't implicitly dependent on any upstream solver's DONE.
+         * */
+        break;
+      }
+
+      bool child_uses_different_solver = false;
+
+      for (auto iter = child_root_names->begin(), end = child_root_names->end(); iter != end;
+           iter++) {
+        const char *child_root_name = iter->c_str();
+        /* Shared rootname means shared posetree. */
+        if (parent_root_names->contains(child_root_name)) {
+          continue;
+        }
+        bPoseChannel *child_root_pchan = BKE_pose_channel_find_name(object->pose, child_root_name);
+        BLI_assert(child_root_pchan);
+        /** GG: CLEANUP: make solverchan mapping store bone names to prevent the posechannel
+         * lookup..*/
+        bPoseChannel *posetree_root = static_cast<bPoseChannel *>(
+            BLI_ghash_lookup(solverchan_from_chain_rootchan, child_root_pchan));
+        BLI_assert(posetree_root);
+        /* Ensure that parent doesn't evaluate as part of this posetree. */
+        if (parent_root_names->contains(posetree_root->name)) {
+          continue;
+        }
+        child_uses_different_solver = true;
+        break;
+      }
+
+      if (child_uses_different_solver) {
+        /* Using _rootchan or parchan are interchangable. It shouldn't change anything. */
+        OperationKey parent_bone_key(
+            &object->id, NodeType::BONE, _rootchan->parent->name, OperationCode::BONE_DONE);
+        add_relation(parent_bone_key, solver_key, "IK Chain Overlap");
+
+        /* No need to keep checking upstream, as the upstream of this current parent eventually
+         * leads to another rootchan, which has the proper relation added too. */
+        break;
+      }
+
+      parchan = parchan->parent;
+    }
+  }
 }
 
 /* Spline IK Eval Steps */
@@ -269,6 +404,11 @@ void DepsgraphRelationBuilder::build_inter_ik_chains(Object *object,
   const char *root_name = rootchan->name;
 
   /* Find shared IK chain root. */
+  /** GG: ... shouldn't every common root have the relation added? Doesn't this break down
+   * For case of 3 ik chains, all w/ diff ik chain roots on same hierarchy?
+   * A: Yeah, it breaks in that case. Really.. why not just skip the "has_common_root()" check
+   * and just plain add the relation to the parent?
+   */
   for (bPoseChannel *parchan = rootchan->parent; parchan; parchan = parchan->parent) {
     if (!root_map->has_common_root(root_name, parchan->name)) {
       break;
@@ -322,35 +462,184 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
    * - Animated chain-lengths are a problem. */
   RootPChanMap root_map;
   bool pose_depends_on_local_transform = false;
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-    const BuilderStack::ScopedEntry stack_entry = stack_.trace(*pchan);
+  /* Fill in root_map data, associating all IK evaluated pchans with their posetrees. For
+   * implicitly evaluated pchans, we also add relations (pchan READY -> IK Solver -> pchan
+   * DONE). This is necessary so owner/target chain's BONE_READY leads to hierarchy updates and
+   * BONE_DONE set by this IK solver while avoiding a cyclic dependency. */
+  {
+    GHash *solver_from_chain_root = BKE_determine_posetree_roots(&object->pose->chanbase);
+    GHash *explicit_pchans_from_posetree_pchan;
+    GHash *implicit_pchans_from_posetree_pchan;
+    BKE_determine_posetree_pchan_implicity(&object->pose->chanbase,
+                                           solver_from_chain_root,
+                                           &explicit_pchans_from_posetree_pchan,
+                                           &implicit_pchans_from_posetree_pchan);
+    {
+      /* Add explicit mappings. */
+      GHashIterator gh_iter;
+      GHASH_ITER (gh_iter, explicit_pchans_from_posetree_pchan) {
+        GSet *pchans_set = static_cast<GSet *>(BLI_ghashIterator_getValue(&gh_iter));
+        BLI_assert(pchans_set);
 
-    LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-      const BuilderStack::ScopedEntry stack_entry = stack_.trace(*con);
+        char *posetree_name = NULL;
+        {
+          bPoseChannel *posetree_chan = static_cast<bPoseChannel *>(
+              BLI_ghashIterator_getKey(&gh_iter));
+          /** GG: CLEANUP: I wonder if these asserts are just not necessary.. Do i assume
+           * debugger caught it earlier or not?*/
+          BLI_assert(posetree_chan);
+          posetree_name = posetree_chan->name;
+        }
 
-      switch (con->type) {
-        case CONSTRAINT_TYPE_KINEMATIC:
-          build_ik_pose(object, pchan, con, &root_map);
-          pose_depends_on_local_transform = true;
-          break;
-        case CONSTRAINT_TYPE_SPLINEIK:
-          build_splineik_pose(object, pchan, con, &root_map);
-          pose_depends_on_local_transform = true;
-          break;
-        /* Constraints which needs world's matrix for transform.
-         * TODO(sergey): More constraints here? */
-        case CONSTRAINT_TYPE_ROTLIKE:
-        case CONSTRAINT_TYPE_SIZELIKE:
-        case CONSTRAINT_TYPE_LOCLIKE:
-        case CONSTRAINT_TYPE_TRANSLIKE:
-          /* TODO(sergey): Add used space check. */
-          pose_depends_on_local_transform = true;
-          break;
-        default:
-          break;
+        GSetIterator gs_iter;
+        GSET_ITER (gs_iter, pchans_set) {
+          bPoseChannel *chain_chan = static_cast<bPoseChannel *>(
+              BLI_gsetIterator_getKey(&gs_iter));
+          BLI_assert(chain_chan);
+
+          root_map.add_bone(chain_chan->name, posetree_name);
+        }
+      }
+
+      /* Add mappings when an IK chain root's hierarchy is implicitly part of the same posetree.
+       * This occurs when 2 two-way chains exist for an armature, let's call them L/R chains.
+       * Both chains branch from a common hierarchy. The Lchain goes to armature root and the
+       * Rchain is shorter w/o overlapping the Lchain. Now, the entire armature is affected by
+       * the same singular posetree. However the nonoverlapping part of Rchain is only implicitly
+       * part of the posetree. Despite the rigger or animator explicitly setting a shorter chain
+       * length, the common hierarchy will be affected by the posetree solver which means the
+       * nonoverlapping part of Rchain is also affected. Thus, we must ensure the Rchain root and
+       * the entire implicit chain depends on its parent's BONE_READY instead of BONE_DONE,
+       * otherwise a cyclic dependency occurs: -L/R Chain Common IK Affected Parent Done (CAPD)
+       *      -> Implicit Chain Root Parent Pose
+       *      -> ..
+       *      -> RChain Root Ready
+       *      -> IK Solver
+       *      -> CAPD DONE
+       *
+       * We must also add relations between the IK solver and the implicit chain. Bones in an
+       * implicit chain needs the relations to all IK solvers its implicit to.
+       */
+      GHASH_ITER (gh_iter, implicit_pchans_from_posetree_pchan) {
+        GSet *pchans_set = static_cast<GSet *>(BLI_ghashIterator_getValue(&gh_iter));
+        BLI_assert(pchans_set);
+
+        char *posetree_name = NULL;
+        {
+          bPoseChannel *posetree_chan = static_cast<bPoseChannel *>(
+              BLI_ghashIterator_getKey(&gh_iter));
+          /** GG: CLEANUP: I wonder if these asserts are just not necessary.. Do i assume
+           * debugger caught it earlier or not?*/
+          BLI_assert(posetree_chan);
+          posetree_name = posetree_chan->name;
+        }
+
+        OperationKey solver_key(
+            &object->id, NodeType::EVAL_POSE, posetree_name, OperationCode::POSE_IK_SOLVER);
+
+        GSetIterator gs_iter;
+        GSET_ITER (gs_iter, pchans_set) {
+          bPoseChannel *chain_chan = static_cast<bPoseChannel *>(
+              BLI_gsetIterator_getKey(&gs_iter));
+          BLI_assert(chain_chan);
+
+          root_map.add_bone(chain_chan->name, posetree_name);
+
+          /* NOTE: These same relations are added for explicit pchans within
+           * build_ik_pose().
+           *
+           * GG: CLEANUP: It would probably be clearer to put the loop above
+           * instead of in that function. */
+          OperationKey parent_key(
+              &object->id, NodeType::BONE, chain_chan->name, OperationCode::BONE_READY);
+          add_relation(parent_key, solver_key, "Implicit IK Chain Parent");
+          OperationKey bone_done_key(
+              &object->id, NodeType::BONE, chain_chan->name, OperationCode::BONE_DONE);
+          add_relation(solver_key, bone_done_key, "Implicit IK Chain Result");
+        }
+      }
+
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
+        const BuilderStack::ScopedEntry stack_entry = stack_.trace(*pchan);
+
+        LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
+          const BuilderStack::ScopedEntry stack_entry = stack_.trace(*con);
+          if ((con->flag & CONSTRAINT_DISABLE) != 0) {
+            continue;
+          }
+          if (con->type != CONSTRAINT_TYPE_KINEMATIC) {
+            continue;
+          }
+
+          bKinematicConstraint *data = (bKinematicConstraint *)con->data;
+          if (data->tar == nullptr) {
+            continue;
+          }
+          if (data->tar->type != OB_ARMATURE) {
+            continue;
+          }
+          if (data->subtarget[0] == '\0') {
+            continue;
+          }
+
+          if (data->tar != object) {
+            continue;
+          }
+
+          bPoseChannel *chain_rootchan = BKE_armature_ik_solver_find_root(pchan, data);
+          if (chain_rootchan == nullptr) {
+            continue;
+          }
+
+          bPoseChannel *posetree_rootchan = static_cast<bPoseChannel *>(
+              BLI_ghash_lookup(solver_from_chain_root, chain_rootchan));
+          BLI_assert(posetree_rootchan);
+
+          /* Prevent target's constraints from linking to anything from same
+           * chain that it controls. */
+          root_map.add_bone(data->subtarget, posetree_rootchan->name);
+        }
       }
     }
+
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
+      const BuilderStack::ScopedEntry stack_entry = stack_.trace(*pchan);
+
+      LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
+        const BuilderStack::ScopedEntry stack_entry = stack_.trace(*con);
+
+        switch (con->type) {
+          case CONSTRAINT_TYPE_KINEMATIC:
+            build_ik_pose(object, pchan, con, &root_map, solver_from_chain_root);
+            pose_depends_on_local_transform = true;
+            break;
+          case CONSTRAINT_TYPE_SPLINEIK:
+            build_splineik_pose(object, pchan, con, &root_map);
+            pose_depends_on_local_transform = true;
+            break;
+          /* Constraints which needs world's matrix for transform.
+           * TODO(sergey): More constraints here? */
+          case CONSTRAINT_TYPE_ROTLIKE:
+          case CONSTRAINT_TYPE_SIZELIKE:
+          case CONSTRAINT_TYPE_LOCLIKE:
+          case CONSTRAINT_TYPE_TRANSLIKE:
+            /* TODO(sergey): Add used space check. */
+            pose_depends_on_local_transform = true;
+            break;
+          default:
+            break;
+        }
+      }
+    }
+
+    BLI_ghash_free(solver_from_chain_root, NULL, NULL);
+    BLI_ghash_free(explicit_pchans_from_posetree_pchan, NULL, BLI_gset_freefp_no_keyfree);
+    BLI_ghash_free(implicit_pchans_from_posetree_pchan, NULL, BLI_gset_freefp_no_keyfree);
+    solver_from_chain_root = NULL;
+    explicit_pchans_from_posetree_pchan = NULL;
+    implicit_pchans_from_posetree_pchan = NULL;
   }
+
   // root_map.print_debug();
   if (pose_depends_on_local_transform) {
     /* TODO(sergey): Once partial updates are possible use relation between
@@ -385,6 +674,33 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
         parent_key_opcode = OperationCode::BONE_READY;
       }
       else {
+        /** TODO: GG: Need to check if pchan and any parent in its hierarchy share a common
+         * root that's the root and any IK chain.. This means that I need to maintain another
+         * map since it currently is a mapping from-- wait i wonder if I can re-use root_map
+         * and also store the roots of all chains instead of just a ref to the solver? Nothign
+         * else uses such info, and I only really use it to test whether two bones eval as part
+         * of any same posetree. To share roots also means you eval as part of the same
+         * posetree for some posetree.
+         *
+         * Maybe it'd be simplest to make a function in the iksolver (or armature_update where
+         * solver also has access) that effectively calcualtes all the posetree data. Then
+         * depsgraph and iksolver use this. That way both are in sync and its easier to work
+         * with. I mean, the root_map  check is to check if you're part of the same posetree..
+         * so why not just calculate it already... -maybe because it might slow down depsgarph
+         * build?
+         *
+         * Also why is IK tree initialization/posetree-build part of depsgrpah eval when
+         * anything that changes teh posetree requires the depspgraph to rebuild anyways...
+         * might as well just initialize it once on depsgraph build..maybe that is how it sorta
+         * works and init doesn't occur that often. The reason is probably that i'm wrong.
+         * posetree building mght still depend on things, so its order of eval is important
+         * which is why its in the depsgraph..No bceause that inherently means the depsgraph
+         * needs to be rebuilt too..
+         *
+         * I think I can calc all the data needed in the same func that determines pose tree
+         * solver roots? As I walk the chains, just plain add the bones to their chain roots.
+         * In hte post process pass, i'll also add them to the solver root?
+         */
         parent_key_opcode = OperationCode::BONE_DONE;
       }
 
@@ -418,6 +734,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
      *       For IK chains however, an additional rel is created from IK
      *       to done, with transitive reduction removing this one. */
     add_relation(bone_ready_key, bone_done_key, "Ready -> Done");
+
     /* B-Bone shape is the real final step after Done if present. */
     if (check_pchan_has_bbone(object, pchan)) {
       OperationKey bone_segments_key(
