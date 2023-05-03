@@ -276,6 +276,7 @@ set(METAL_SRC
   metal/mtl_shader.mm
   metal/mtl_shader_generator.mm
   metal/mtl_shader_interface.mm
+  metal/mtl_shader_log.mm
   metal/mtl_state.mm
   metal/mtl_storage_buffer.mm
   metal/mtl_texture.mm
@@ -301,6 +302,7 @@ set(METAL_SRC
   metal/mtl_shader_generator.hh
   metal/mtl_shader_interface.hh
   metal/mtl_shader_interface_type.hh
+  metal/mtl_shader_log.hh
   metal/mtl_shader_shared.h
   metal/mtl_state.hh
   metal/mtl_storage_buffer.hh

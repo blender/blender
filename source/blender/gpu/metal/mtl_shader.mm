@@ -30,6 +30,7 @@
 #include "mtl_shader.hh"
 #include "mtl_shader_generator.hh"
 #include "mtl_shader_interface.hh"
+#include "mtl_shader_log.hh"
 #include "mtl_texture.hh"
 #include "mtl_vertex_buffer.hh"
 
@@ -40,6 +41,21 @@ using namespace blender::gpu;
 using namespace blender::gpu::shader;
 
 namespace blender::gpu {
+
+const char *to_string(ShaderStage stage)
+{
+  switch (stage) {
+    case ShaderStage::VERTEX:
+      return "Vertex Shader";
+    case ShaderStage::FRAGMENT:
+      return "Fragment Shader";
+    case ShaderStage::COMPUTE:
+      return "Compute Shader";
+    case ShaderStage::ANY:
+      break;
+  }
+  return "Unknown Shader Stage";
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Creation / Destruction.
@@ -322,10 +338,18 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
       if (error) {
         /* Only exit out if genuine error and not warning. */
         if ([[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
-            NSNotFound) {
-          NSLog(@"Compile Error - Metal Shader Library (Stage: %hhu), error %@ \n",
-                src_stage,
-                error);
+            NSNotFound)
+        {
+          const char *errors_c_str = [[error localizedDescription] UTF8String];
+          const char *sources_c_str = shd_builder_->glsl_fragment_source_.c_str();
+
+          MTLLogParser parser;
+          print_log(Span<const char *>(&sources_c_str, 1),
+                    errors_c_str,
+                    to_string(src_stage),
+                    true,
+                    &parser);
+
           BLI_assert(false);
 
           /* Release temporary compilation resources. */
@@ -856,7 +880,8 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
     }
     else {
       for (const uint i :
-           IndexRange(pipeline_descriptor.vertex_descriptor.max_attribute_value + 1)) {
+           IndexRange(pipeline_descriptor.vertex_descriptor.max_attribute_value + 1))
+      {
 
         /* Metal back-end attribute descriptor state. */
         const MTLVertexAttributeDescriptorPSO &attribute_desc =
@@ -1049,7 +1074,8 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
     bool null_pointsize = true;
     float MTL_pointsize = pipeline_descriptor.point_size;
     if (pipeline_descriptor.vertex_descriptor.prim_topology_class ==
-        MTLPrimitiveTopologyClassPoint) {
+        MTLPrimitiveTopologyClassPoint)
+    {
       /* `if pointsize is > 0.0`, PROGRAM_POINT_SIZE is enabled, and `gl_PointSize` shader keyword
        * overrides the value. Otherwise, if < 0.0, use global constant point size. */
       if (MTL_pointsize < 0.0) {
@@ -1074,11 +1100,19 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
                                                      constantValues:values
                                                               error:&error];
     if (error) {
-      NSLog(@"Compile Error - Metal Shader vertex function, error %@", error);
+      bool has_error = (
+          [[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
+          NSNotFound);
+
+      const char *errors_c_str = [[error localizedDescription] UTF8String];
+      const char *sources_c_str = shd_builder_->glsl_fragment_source_.c_str();
+
+      MTLLogParser parser;
+      print_log(
+          Span<const char *>(&sources_c_str, 1), errors_c_str, "VertShader", has_error, &parser);
 
       /* Only exit out if genuine error and not warning */
-      if ([[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
-          NSNotFound) {
+      if (has_error) {
         BLI_assert(false);
         return nullptr;
       }
@@ -1090,11 +1124,19 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
                                                          constantValues:values
                                                                   error:&error];
       if (error) {
-        NSLog(@"Compile Error - Metal Shader fragment function, error %@", error);
+        bool has_error = (
+            [[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
+            NSNotFound);
+
+        const char *errors_c_str = [[error localizedDescription] UTF8String];
+        const char *sources_c_str = shd_builder_->glsl_fragment_source_.c_str();
+
+        MTLLogParser parser;
+        print_log(
+            Span<const char *>(&sources_c_str, 1), errors_c_str, "FragShader", has_error, &parser);
 
         /* Only exit out if genuine error and not warning */
-        if ([[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
-            NSNotFound) {
+        if (has_error) {
           BLI_assert(false);
           return nullptr;
         }
@@ -1107,7 +1149,8 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
 
     /* Setup pixel format state */
     for (int color_attachment = 0; color_attachment < GPU_FB_MAX_COLOR_ATTACHMENT;
-         color_attachment++) {
+         color_attachment++)
+    {
       /* Fetch color attachment pixel format in back-end pipeline state. */
       MTLPixelFormat pixel_format = pipeline_descriptor.color_attachment_format[color_attachment];
       /* Populate MTL API PSO attachment descriptor. */
@@ -1348,7 +1391,8 @@ bool MTLShader::bake_compute_pipeline_state(MTLContext *ctx)
 
       /* Only exit out if genuine error and not warning */
       if ([[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
-          NSNotFound) {
+          NSNotFound)
+      {
         BLI_assert(false);
         return false;
       }
@@ -1565,4 +1609,4 @@ bool MTLShader::has_transform_feedback_varying(std::string str)
           tf_output_name_list_.end());
 }
 
-}  // blender::gpu::shdaer
+}  // namespace blender::gpu
