@@ -467,10 +467,10 @@ static void customdata_strip_templayers(CustomData *cdata, int totelem)
   }
 }
 
-void SCULPT_dynamic_topology_enable_ex(Main *bmain,
-                                       Depsgraph *depsgraph,
-                                       Scene * /*scene*/,
-                                       Object *ob)
+ATTR_NO_OPT void SCULPT_dynamic_topology_enable_ex(Main *bmain,
+                                                   Depsgraph *depsgraph,
+                                                   Scene * /*scene*/,
+                                                   Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
@@ -505,6 +505,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
 
   /* Dynamic topology doesn't ensure selection state is valid, so remove #36280. */
   BKE_mesh_mselect_clear(me);
+  bool tag_update = false;
 
   if (!ss->bm) {
     ss->bm = BKE_sculptsession_empty_bmesh_create();
@@ -516,11 +517,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
     params.active_shapekey = ob->shapenr;
 
     BM_mesh_bm_from_me(ss->bm, me, &params);
-
-    if (ss->pbvh) {
-      BKE_sculptsession_update_attr_refs(ob);
-      BKE_pbvh_set_bmesh(ss->pbvh, ss->bm);
-    }
+    tag_update = true;
   }
 
 #ifndef DYNTOPO_DYNAMIC_TESS
@@ -528,32 +525,14 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
 #endif
 
   if (ss->pbvh) {
-    BKE_sculpt_ensure_sculpt_layers(ob);
-    BKE_sculpt_ensure_origco(ob);
-    blender::bke::paint::load_all_original(ob);
-  }
-
-  if (ss->pbvh && SCULPT_has_persistent_base(ss)) {
-    SCULPT_ensure_persistent_layers(ss, ob);
-  }
-
-  if (!CustomData_has_layer(&ss->bm->vdata, CD_PAINT_MASK)) {
-    BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
-  }
-
-  if (ss->pbvh) {
     BKE_sculptsession_update_attr_refs(ob);
   }
 
+  /* XXX Delete this block of code? Might be old fake quadrangulation edge hiding. */
   BMIter iter;
   BMEdge *e;
-
   BM_ITER_MESH (e, &iter, ss->bm, BM_EDGES_OF_MESH) {
     e->head.hflag |= BM_ELEM_DRAW;
-  }
-
-  if (ss->pbvh) {
-    blender::bke::paint::load_all_original(ob);
   }
 
   /* Make sure the data for existing faces are initialized. */
@@ -574,14 +553,34 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
     ss->bm_log = BM_log_create(ss->bm, ss->bm_idmap);
   }
 
+  tag_update |= !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH;
+
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
    * are re-evaluated and the PBVH is re-created. */
-  if (!ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+  if (tag_update) {
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    BKE_scene_graph_update_tagged(depsgraph, bmain);
   }
 
-  // TODO: this line here is being slow, do we need it? - joeedh
-  BKE_scene_graph_update_tagged(depsgraph, bmain);
+  /* ss->pbvh should exist by this point. */
+
+  if (ss->pbvh) {
+    BKE_sculpt_ensure_sculpt_layers(ob);
+    BKE_sculpt_ensure_origco(ob);
+    blender::bke::paint::load_all_original(ob);
+  }
+
+  if (ss->pbvh && SCULPT_has_persistent_base(ss)) {
+    SCULPT_ensure_persistent_layers(ss, ob);
+  }
+
+  if (!CustomData_has_layer(&ss->bm->vdata, CD_PAINT_MASK)) {
+    BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+  }
+
+  if (ss->pbvh) {
+    blender::bke::paint::load_all_original(ob);
+  }
 }
 
 /* Free the sculpt BMesh and BMLog
