@@ -334,11 +334,11 @@ static void seq_disk_cache_get_file_path(SeqDiskCache *disk_cache,
   BLI_path_append(path, path_len, cache_filename);
 }
 
-static void seq_disk_cache_create_version_file(char *path)
+static void seq_disk_cache_create_version_file(char *filepath)
 {
-  BLI_file_ensure_parent_dir_exists(path);
+  BLI_file_ensure_parent_dir_exists(filepath);
 
-  FILE *file = BLI_fopen(path, "w");
+  FILE *file = BLI_fopen(filepath, "w");
   if (file) {
     fprintf(file, "%d", DCACHE_CURRENT_VERSION);
     fclose(file);

@@ -27,7 +27,7 @@ class OutputOpenExrSingleLayerMultiViewOperation : public OutputSingleLayerOpera
                                              const char *view_name,
                                              bool save_as_render);
 
-  void *get_handle(const char *filename);
+  void *get_handle(const char *filepath);
   void deinit_execution() override;
 };
 
@@ -43,13 +43,14 @@ class OutputOpenExrMultiLayerMultiViewOperation : public OutputOpenExrMultiLayer
                                             bool exr_half_float,
                                             const char *view_name);
 
-  void *get_handle(const char *filename);
+  void *get_handle(const char *filepath);
   void deinit_execution() override;
 };
 
 class OutputStereoOperation : public OutputSingleLayerOperation {
  private:
-  char name_[FILE_MAX];
+  /* NOTE: Using FILE_MAX here is misleading, this is not a file path. */
+  char pass_name_[FILE_MAX];
   size_t channels_;
 
  public:
@@ -59,10 +60,10 @@ class OutputStereoOperation : public OutputSingleLayerOperation {
                         DataType datatype,
                         const struct ImageFormatData *format,
                         const char *path,
-                        const char *name,
+                        const char *pass_name,
                         const char *view_name,
                         bool save_as_render);
-  void *get_handle(const char *filename);
+  void *get_handle(const char *filepath);
   void deinit_execution() override;
 };
 

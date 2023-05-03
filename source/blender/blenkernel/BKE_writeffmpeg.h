@@ -64,7 +64,7 @@ int BKE_ffmpeg_append(void *context_v,
                       int recty,
                       const char *suffix,
                       struct ReportList *reports);
-void BKE_ffmpeg_filepath_get(char *string,
+void BKE_ffmpeg_filepath_get(char *filepath,
                              const struct RenderData *rd,
                              bool preview,
                              const char *suffix);

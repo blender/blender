@@ -217,7 +217,7 @@ static void file_draw_string(int sx,
 {
   uiFontStyle fs;
   rcti rect;
-  char fname[FILE_MAXFILE];
+  char filename[FILE_MAXFILE];
 
   if (string[0] == '\0' || width < 1) {
     return;
@@ -226,8 +226,8 @@ static void file_draw_string(int sx,
   const uiStyle *style = UI_style_get();
   fs = style->widget;
 
-  BLI_strncpy(fname, string, FILE_MAXFILE);
-  UI_text_clip_middle_ex(&fs, fname, width, UI_ICON_SIZE, sizeof(fname), '\0');
+  BLI_strncpy(filename, string, FILE_MAXFILE);
+  UI_text_clip_middle_ex(&fs, filename, width, UI_ICON_SIZE, sizeof(filename), '\0');
 
   /* no text clipping needed, UI_fontstyle_draw does it but is a bit too strict
    * (for buttons it works) */
@@ -239,7 +239,7 @@ static void file_draw_string(int sx,
   uiFontStyleDraw_Params font_style_params{};
   font_style_params.align = align;
 
-  UI_fontstyle_draw(&fs, &rect, fname, sizeof(fname), col, &font_style_params);
+  UI_fontstyle_draw(&fs, &rect, filename, sizeof(filename), col, &font_style_params);
 }
 
 /**

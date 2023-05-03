@@ -1470,13 +1470,13 @@ void wm_history_file_read(void)
     return;
   }
 
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
   LinkNode *l;
   int num;
 
-  BLI_path_join(name, sizeof(name), cfgdir, BLENDER_HISTORY_FILE);
+  BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_HISTORY_FILE);
 
-  LinkNode *lines = BLI_file_read_as_lines(name);
+  LinkNode *lines = BLI_file_read_as_lines(filepath);
 
   wm_history_files_free();
 
@@ -1529,7 +1529,7 @@ static RecentFile *wm_file_history_find(const char *filepath)
 static void wm_history_file_write(void)
 {
   const char *user_config_dir;
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
   FILE *fp;
 
   /* will be nullptr in background mode */
@@ -1538,9 +1538,9 @@ static void wm_history_file_write(void)
     return;
   }
 
-  BLI_path_join(name, sizeof(name), user_config_dir, BLENDER_HISTORY_FILE);
+  BLI_path_join(filepath, sizeof(filepath), user_config_dir, BLENDER_HISTORY_FILE);
 
-  fp = BLI_fopen(name, "w");
+  fp = BLI_fopen(filepath, "w");
   if (fp) {
     LISTBASE_FOREACH (RecentFile *, recent, &G.recent_files) {
       fprintf(fp, "%s\n", recent->filepath);

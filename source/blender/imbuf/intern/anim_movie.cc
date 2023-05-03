@@ -272,14 +272,14 @@ struct IDProperty *IMB_anim_load_metadata(struct anim *anim)
   return anim->metadata;
 }
 
-struct anim *IMB_open_anim(const char *name,
+struct anim *IMB_open_anim(const char *filepath,
                            int ib_flags,
                            int streamindex,
                            char colorspace[IM_MAX_SPACE])
 {
   struct anim *anim;
 
-  BLI_assert(!BLI_path_is_rel(name));
+  BLI_assert(!BLI_path_is_rel(filepath));
 
   anim = (struct anim *)MEM_callocN(sizeof(struct anim), "anim struct");
   if (anim != nullptr) {
@@ -292,7 +292,7 @@ struct anim *IMB_open_anim(const char *name,
           anim->colorspace, sizeof(anim->colorspace), COLOR_ROLE_DEFAULT_BYTE);
     }
 
-    BLI_strncpy(anim->name, name, sizeof(anim->name));
+    BLI_strncpy(anim->filepath, filepath, sizeof(anim->filepath));
     anim->ib_flags = ib_flags;
     anim->streamindex = streamindex;
   }
@@ -343,16 +343,16 @@ static int startavi(struct anim *anim)
   anim->avi = MEM_cnew<AviMovie>("animavi");
 
   if (anim->avi == nullptr) {
-    printf("Can't open avi: %s\n", anim->name);
+    printf("Can't open avi: %s\n", anim->filepath);
     return -1;
   }
 
-  avierror = AVI_open_movie(anim->name, anim->avi);
+  avierror = AVI_open_movie(anim->filepath, anim->avi);
 
 #  if defined(_WIN32)
   if (avierror == AVI_ERROR_COMPRESSION) {
     AVIFileInit();
-    hr = AVIFileOpen(&anim->pfile, anim->name, OF_READ, 0L);
+    hr = AVIFileOpen(&anim->pfile, anim->filepath, OF_READ, 0L);
     if (hr == 0) {
       anim->pfileopen = 1;
       for (i = 0; i < MAXNUMSTREAMS; i++) {
@@ -412,7 +412,7 @@ static int startavi(struct anim *anim)
 
   if (avierror != AVI_ERROR_NONE) {
     AVI_print_error(avierror);
-    printf("Error loading avi: %s\n", anim->name);
+    printf("Error loading avi: %s\n", anim->filepath);
     free_anim_avi(anim);
     return -1;
   }
@@ -476,7 +476,7 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
         anim->avi, AVI_FORMAT_RGB32, position, AVI_get_stream(anim->avi, AVIST_VIDEO, 0)));
 
     if (tmp == nullptr) {
-      printf("Error reading frame from AVI: '%s'\n", anim->name);
+      printf("Error reading frame from AVI: '%s'\n", anim->filepath);
       IMB_freeImBuf(ibuf);
       return nullptr;
     }
@@ -520,7 +520,7 @@ static int startffmpeg(struct anim *anim)
 
   streamcount = anim->streamindex;
 
-  if (avformat_open_input(&pFormatCtx, anim->name, nullptr, nullptr) != 0) {
+  if (avformat_open_input(&pFormatCtx, anim->filepath, nullptr, nullptr) != 0) {
     return -1;
   }
 
@@ -529,7 +529,7 @@ static int startffmpeg(struct anim *anim)
     return -1;
   }
 
-  av_dump_format(pFormatCtx, 0, anim->name, 0);
+  av_dump_format(pFormatCtx, 0, anim->filepath, 0);
 
   /* Find the video stream */
   video_stream_index = -1;
@@ -1532,13 +1532,13 @@ static bool anim_getnew(struct anim *anim)
   free_anim_ffmpeg(anim);
 #endif
 
-  anim->curtype = imb_get_anim_type(anim->name);
+  anim->curtype = imb_get_anim_type(anim->filepath);
 
   switch (anim->curtype) {
     case ANIM_SEQUENCE: {
-      ImBuf *ibuf = IMB_loadiffname(anim->name, anim->ib_flags, anim->colorspace);
+      ImBuf *ibuf = IMB_loadiffname(anim->filepath, anim->ib_flags, anim->colorspace);
       if (ibuf) {
-        BLI_strncpy(anim->first, anim->name, sizeof(anim->first));
+        BLI_strncpy(anim->filepath_first, anim->filepath, sizeof(anim->filepath_first));
         anim->duration_in_frames = 1;
         IMB_freeImBuf(ibuf);
       }
@@ -1627,10 +1627,10 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
 
   switch (anim->curtype) {
     case ANIM_SEQUENCE:
-      pic = an_stringdec(anim->first, head, tail, &digits);
+      pic = an_stringdec(anim->filepath_first, head, tail, &digits);
       pic += position;
-      an_stringenc(anim->name, sizeof(anim->name), head, tail, digits, pic);
-      ibuf = IMB_loadiffname(anim->name, IB_rect, anim->colorspace);
+      an_stringenc(anim->filepath, sizeof(anim->filepath), head, tail, digits, pic);
+      ibuf = IMB_loadiffname(anim->filepath, IB_rect, anim->colorspace);
       if (ibuf) {
         anim->cur_position = position;
       }
@@ -1665,7 +1665,8 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
     if (filter_y) {
       IMB_filtery(ibuf);
     }
-    BLI_snprintf(ibuf->name, sizeof(ibuf->name), "%s.%04d", anim->name, anim->cur_position + 1);
+    BLI_snprintf(
+        ibuf->filepath, sizeof(ibuf->filepath), "%s.%04d", anim->filepath, anim->cur_position + 1);
   }
   return ibuf;
 }

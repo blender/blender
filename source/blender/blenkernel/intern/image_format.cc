@@ -386,7 +386,7 @@ char BKE_imtype_from_arg(const char *imtype_arg)
 
 /* File Paths */
 
-static bool do_add_image_extension(char *string,
+static bool do_add_image_extension(char *filepath,
                                    const char imtype,
                                    const ImageFormatData *im_format)
 {
@@ -395,17 +395,17 @@ static bool do_add_image_extension(char *string,
   (void)im_format; /* may be unused, depends on build options */
 
   if (imtype == R_IMF_IMTYPE_IRIS) {
-    if (!BLI_path_extension_check(string, extension_test = ".rgb")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".rgb")) {
       extension = extension_test;
     }
   }
   else if (imtype == R_IMF_IMTYPE_IRIZ) {
-    if (!BLI_path_extension_check(string, extension_test = ".rgb")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".rgb")) {
       extension = extension_test;
     }
   }
   else if (imtype == R_IMF_IMTYPE_RADHDR) {
-    if (!BLI_path_extension_check(string, extension_test = ".hdr")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".hdr")) {
       extension = extension_test;
     }
   }
@@ -417,50 +417,50 @@ static bool do_add_image_extension(char *string,
                 R_IMF_IMTYPE_XVID,
                 R_IMF_IMTYPE_AV1))
   {
-    if (!BLI_path_extension_check(string, extension_test = ".png")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".png")) {
       extension = extension_test;
     }
   }
   else if (imtype == R_IMF_IMTYPE_DDS) {
-    if (!BLI_path_extension_check(string, extension_test = ".dds")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".dds")) {
       extension = extension_test;
     }
   }
   else if (ELEM(imtype, R_IMF_IMTYPE_TARGA, R_IMF_IMTYPE_RAWTGA)) {
-    if (!BLI_path_extension_check(string, extension_test = ".tga")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".tga")) {
       extension = extension_test;
     }
   }
   else if (imtype == R_IMF_IMTYPE_BMP) {
-    if (!BLI_path_extension_check(string, extension_test = ".bmp")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".bmp")) {
       extension = extension_test;
     }
   }
   else if (imtype == R_IMF_IMTYPE_TIFF) {
-    if (!BLI_path_extension_check_n(string, extension_test = ".tif", ".tiff", nullptr)) {
+    if (!BLI_path_extension_check_n(filepath, extension_test = ".tif", ".tiff", nullptr)) {
       extension = extension_test;
     }
   }
   else if (imtype == R_IMF_IMTYPE_PSD) {
-    if (!BLI_path_extension_check(string, extension_test = ".psd")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".psd")) {
       extension = extension_test;
     }
   }
 #ifdef WITH_OPENEXR
   else if (ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
-    if (!BLI_path_extension_check(string, extension_test = ".exr")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".exr")) {
       extension = extension_test;
     }
   }
 #endif
 #ifdef WITH_CINEON
   else if (imtype == R_IMF_IMTYPE_CINEON) {
-    if (!BLI_path_extension_check(string, extension_test = ".cin")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".cin")) {
       extension = extension_test;
     }
   }
   else if (imtype == R_IMF_IMTYPE_DPX) {
-    if (!BLI_path_extension_check(string, extension_test = ".dpx")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".dpx")) {
       extension = extension_test;
     }
   }
@@ -469,12 +469,12 @@ static bool do_add_image_extension(char *string,
   else if (imtype == R_IMF_IMTYPE_JP2) {
     if (im_format) {
       if (im_format->jp2_codec == R_IMF_JP2_CODEC_JP2) {
-        if (!BLI_path_extension_check(string, extension_test = ".jp2")) {
+        if (!BLI_path_extension_check(filepath, extension_test = ".jp2")) {
           extension = extension_test;
         }
       }
       else if (im_format->jp2_codec == R_IMF_JP2_CODEC_J2K) {
-        if (!BLI_path_extension_check(string, extension_test = ".j2c")) {
+        if (!BLI_path_extension_check(filepath, extension_test = ".j2c")) {
           extension = extension_test;
         }
       }
@@ -483,7 +483,7 @@ static bool do_add_image_extension(char *string,
       }
     }
     else {
-      if (!BLI_path_extension_check(string, extension_test = ".jp2")) {
+      if (!BLI_path_extension_check(filepath, extension_test = ".jp2")) {
         extension = extension_test;
       }
     }
@@ -491,13 +491,13 @@ static bool do_add_image_extension(char *string,
 #endif
 #ifdef WITH_WEBP
   else if (imtype == R_IMF_IMTYPE_WEBP) {
-    if (!BLI_path_extension_check(string, extension_test = ".webp")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".webp")) {
       extension = extension_test;
     }
   }
 #endif
   else {  //   R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90 etc
-    if (!BLI_path_extension_check_n(string, extension_test = ".jpg", ".jpeg", nullptr)) {
+    if (!BLI_path_extension_check_n(filepath, extension_test = ".jpg", ".jpeg", nullptr)) {
       extension = extension_test;
     }
   }
@@ -505,27 +505,27 @@ static bool do_add_image_extension(char *string,
   if (extension) {
     /* prefer this in many cases to avoid .png.tga, but in certain cases it breaks */
     /* remove any other known image extension */
-    if (BLI_path_extension_check_array(string, imb_ext_image)) {
-      return BLI_path_extension_replace(string, FILE_MAX, extension);
+    if (BLI_path_extension_check_array(filepath, imb_ext_image)) {
+      return BLI_path_extension_replace(filepath, FILE_MAX, extension);
     }
 
-    return BLI_path_extension_ensure(string, FILE_MAX, extension);
+    return BLI_path_extension_ensure(filepath, FILE_MAX, extension);
   }
 
   return false;
 }
 
-int BKE_image_path_ensure_ext_from_imformat(char *string, const ImageFormatData *im_format)
+int BKE_image_path_ensure_ext_from_imformat(char *filepath, const ImageFormatData *im_format)
 {
-  return do_add_image_extension(string, im_format->imtype, im_format);
+  return do_add_image_extension(filepath, im_format->imtype, im_format);
 }
 
-int BKE_image_path_ensure_ext_from_imtype(char *string, const char imtype)
+int BKE_image_path_ensure_ext_from_imtype(char *filepath, const char imtype)
 {
-  return do_add_image_extension(string, imtype, nullptr);
+  return do_add_image_extension(filepath, imtype, nullptr);
 }
 
-static void do_makepicstring(char string[FILE_MAX],
+static void do_makepicstring(char filepath[FILE_MAX],
                              const char *base,
                              const char *relbase,
                              int frame,
@@ -535,26 +535,26 @@ static void do_makepicstring(char string[FILE_MAX],
                              const bool use_frames,
                              const char *suffix)
 {
-  if (string == nullptr) {
+  if (filepath == nullptr) {
     return;
   }
-  BLI_strncpy(string, base, FILE_MAX - 10); /* weak assumption */
-  BLI_path_abs(string, relbase);
+  BLI_strncpy(filepath, base, FILE_MAX - 10); /* weak assumption */
+  BLI_path_abs(filepath, relbase);
 
   if (use_frames) {
-    BLI_path_frame(string, FILE_MAX, frame, 4);
+    BLI_path_frame(filepath, FILE_MAX, frame, 4);
   }
 
   if (suffix) {
-    BLI_path_suffix(string, FILE_MAX, suffix, "");
+    BLI_path_suffix(filepath, FILE_MAX, suffix, "");
   }
 
   if (use_ext) {
-    do_add_image_extension(string, imtype, im_format);
+    do_add_image_extension(filepath, imtype, im_format);
   }
 }
 
-void BKE_image_path_from_imformat(char *string,
+void BKE_image_path_from_imformat(char *filepath,
                                   const char *base,
                                   const char *relbase,
                                   int frame,
@@ -564,10 +564,10 @@ void BKE_image_path_from_imformat(char *string,
                                   const char *suffix)
 {
   do_makepicstring(
-      string, base, relbase, frame, im_format->imtype, im_format, use_ext, use_frames, suffix);
+      filepath, base, relbase, frame, im_format->imtype, im_format, use_ext, use_frames, suffix);
 }
 
-void BKE_image_path_from_imtype(char *string,
+void BKE_image_path_from_imtype(char *filepath,
                                 const char *base,
                                 const char *relbase,
                                 int frame,
@@ -576,7 +576,7 @@ void BKE_image_path_from_imtype(char *string,
                                 const bool use_frames,
                                 const char *suffix)
 {
-  do_makepicstring(string, base, relbase, frame, imtype, nullptr, use_ext, use_frames, suffix);
+  do_makepicstring(filepath, base, relbase, frame, imtype, nullptr, use_ext, use_frames, suffix);
 }
 
 /* ImBuf Conversion */

@@ -829,11 +829,11 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
       CFURLGetFileSystemRepresentation(cfURL, false, (UInt8 *)defPath, FILE_MAX);
 
       /* Get name of the volume. */
-      char name[FILE_MAXFILE] = "";
+      char display_name[FILE_MAXFILE] = "";
       CFStringRef nameString = NULL;
       CFURLCopyResourcePropertyForKey(cfURL, kCFURLVolumeLocalizedNameKey, &nameString, NULL);
       if (nameString != NULL) {
-        CFStringGetCString(nameString, name, sizeof(name), kCFStringEncodingUTF8);
+        CFStringGetCString(nameString, display_name, sizeof(display_name), kCFStringEncodingUTF8);
         CFRelease(nameString);
       }
 
@@ -858,8 +858,12 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
         CFRelease(localKey);
       }
 
-      fsmenu_insert_entry(
-          fsmenu, FS_CATEGORY_SYSTEM, defPath, name[0] ? name : NULL, icon, FS_INSERT_SORTED);
+      fsmenu_insert_entry(fsmenu,
+                          FS_CATEGORY_SYSTEM,
+                          defPath,
+                          display_name[0] ? display_name : NULL,
+                          icon,
+                          FS_INSERT_SORTED);
     }
 
     CFRelease(volEnum);
@@ -987,9 +991,9 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
       const char *const xdg_runtime_dir = BLI_getenv("XDG_RUNTIME_DIR");
       if (xdg_runtime_dir != NULL) {
         struct direntry *dirs;
-        char name[FILE_MAX];
-        BLI_path_join(name, sizeof(name), xdg_runtime_dir, "gvfs/");
-        const uint dirs_num = BLI_filelist_dir_contents(name, &dirs);
+        char filepath[FILE_MAX];
+        BLI_path_join(filepath, sizeof(filepath), xdg_runtime_dir, "gvfs/");
+        const uint dirs_num = BLI_filelist_dir_contents(filepath, &dirs);
         for (uint i = 0; i < dirs_num; i++) {
           if (dirs[i].type & S_IFDIR) {
             const char *dirname = dirs[i].relname;
@@ -1003,7 +1007,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
                 const char *label_test = label + 6;
                 label = *label_test ? label_test : dirname;
               }
-              BLI_snprintf(line, sizeof(line), "%s%s", name, dirname);
+              BLI_snprintf(line, sizeof(line), "%s%s", filepath, dirname);
               fsmenu_insert_entry(
                   fsmenu, FS_CATEGORY_SYSTEM, line, label, ICON_NETWORK_DRIVE, FS_INSERT_SORTED);
               found = 1;

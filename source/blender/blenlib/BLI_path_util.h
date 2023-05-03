@@ -242,12 +242,13 @@ void BLI_path_slash_rstrip(char *string) ATTR_NONNULL(1);
 void BLI_path_slash_native(char *path) ATTR_NONNULL(1);
 
 #ifdef _WIN32
-bool BLI_path_program_extensions_add_win32(char *name, size_t maxlen);
+bool BLI_path_program_extensions_add_win32(char *program_name, size_t maxlen);
 #endif
 /**
  * Search for a binary (executable)
  */
-bool BLI_path_program_search(char *fullname, size_t maxlen, const char *name) ATTR_NONNULL(1, 3);
+bool BLI_path_program_search(char *program_filepath, size_t maxlen, const char *program_name)
+    ATTR_NONNULL(1, 3);
 
 /**
  * \return true when `str` end with `ext` (case insensitive).

@@ -86,29 +86,29 @@ bool BKE_imbuf_alpha_test(struct ImBuf *ibuf);
 int BKE_imbuf_write_stamp(const struct Scene *scene,
                           const struct RenderResult *rr,
                           struct ImBuf *ibuf,
-                          const char *name,
+                          const char *filepath,
                           const struct ImageFormatData *imf);
 /**
  * \note imf->planes is ignored here, its assumed the image channels are already set.
  */
-int BKE_imbuf_write(struct ImBuf *ibuf, const char *name, const struct ImageFormatData *imf);
+int BKE_imbuf_write(struct ImBuf *ibuf, const char *filepath, const struct ImageFormatData *imf);
 /**
  * Same as #BKE_imbuf_write() but crappy workaround not to permanently modify _some_,
  * values in the imbuf.
  */
 int BKE_imbuf_write_as(struct ImBuf *ibuf,
-                       const char *name,
+                       const char *filepath,
                        const struct ImageFormatData *imf,
                        bool save_copy);
 
 /**
  * Used by sequencer too.
  */
-struct anim *openanim(const char *name,
+struct anim *openanim(const char *filepath,
                       int flags,
                       int streamindex,
                       char colorspace[IMA_MAX_SPACE]);
-struct anim *openanim_noload(const char *name,
+struct anim *openanim_noload(const char *filepath,
                              int flags,
                              int streamindex,
                              char colorspace[IMA_MAX_SPACE]);
@@ -237,11 +237,13 @@ void BKE_image_ensure_viewer_views(const struct RenderData *rd,
  */
 void BKE_image_user_frame_calc(struct Image *ima, struct ImageUser *iuser, int cfra);
 int BKE_image_user_frame_get(const struct ImageUser *iuser, int cfra, bool *r_is_in_range);
-void BKE_image_user_file_path(const struct ImageUser *iuser, const struct Image *ima, char *path);
+void BKE_image_user_file_path(const struct ImageUser *iuser,
+                              const struct Image *ima,
+                              char *filepath);
 void BKE_image_user_file_path_ex(const struct Main *bmain,
                                  const struct ImageUser *iuser,
                                  const struct Image *ima,
-                                 char *path,
+                                 char *filepath,
                                  const bool resolve_udim,
                                  const bool resolve_multiview);
 void BKE_image_editors_update_frame(const struct Main *bmain, int cfra);
@@ -477,7 +479,7 @@ bool BKE_image_has_loaded_ibuf(struct Image *image);
  * References the result, #BKE_image_release_ibuf is to be called to de-reference.
  * Use lock=NULL when calling #BKE_image_release_ibuf().
  */
-struct ImBuf *BKE_image_get_ibuf_with_name(struct Image *image, const char *name);
+struct ImBuf *BKE_image_get_ibuf_with_name(struct Image *image, const char *filepath);
 /**
  * References the result, #BKE_image_release_ibuf is to be called to de-reference.
  * Use lock=NULL when calling #BKE_image_release_ibuf().

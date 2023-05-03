@@ -1119,8 +1119,8 @@ void ED_file_read_bookmarks(void)
   fsmenu_read_system(ED_fsmenu_get(), true);
 
   if (cfgdir) {
-    char name[FILE_MAX];
-    BLI_path_join(name, sizeof(name), cfgdir, BLENDER_BOOKMARK_FILE);
-    fsmenu_read_bookmarks(ED_fsmenu_get(), name);
+    char filepath[FILE_MAX];
+    BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_BOOKMARK_FILE);
+    fsmenu_read_bookmarks(ED_fsmenu_get(), filepath);
   }
 }

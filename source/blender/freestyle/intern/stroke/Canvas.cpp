@@ -422,11 +422,11 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, uint iNbLevels
       }
     }
     // soc qtmp.save(base + QString::number(i) + ".bmp", "BMP");
-    stringstream filename;
-    filename << base;
-    filename << i << ".bmp";
+    stringstream filepath;
+    filepath << base;
+    filepath << i << ".bmp";
     qtmp->ftype = IMB_FTYPE_BMP;
-    IMB_saveiff(qtmp, const_cast<char *>(filename.str().c_str()), 0);
+    IMB_saveiff(qtmp, const_cast<char *>(filepath.str().c_str()), 0);
   }
 
 #if 0

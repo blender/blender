@@ -42,7 +42,7 @@
 static int BLI_path_unc_prefix_len(const char *path);
 
 #ifdef WIN32
-static bool BLI_path_is_abs_win32(const char *name);
+static bool BLI_path_is_abs_win32(const char *path);
 #endif /* WIN32 */
 
 // #define DEBUG_STRSIZE
@@ -485,9 +485,9 @@ bool BLI_path_is_rel(const char *path)
   return path[0] == '/' && path[1] == '/';
 }
 
-bool BLI_path_is_unc(const char *name)
+bool BLI_path_is_unc(const char *path)
 {
-  return name[0] == '\\' && name[1] == '\\';
+  return path[0] == '\\' && path[1] == '\\';
 }
 
 /**
@@ -520,9 +520,9 @@ static int BLI_path_unc_prefix_len(const char *path)
  * \note Not to be confused with the opposite of #BLI_path_is_rel which checks for the
  * Blender specific convention of using `//` prefix for blend-file relative paths.
  */
-static bool BLI_path_is_abs_win32(const char *name)
+static bool BLI_path_is_abs_win32(const char *path)
 {
-  return (name[1] == ':' && ELEM(name[2], '\\', '/')) || BLI_path_is_unc(name);
+  return (path[1] == ':' && ELEM(path[2], '\\', '/')) || BLI_path_is_unc(path);
 }
 
 static wchar_t *next_slash(wchar_t *path)
@@ -1140,7 +1140,7 @@ bool BLI_path_abs_from_cwd(char *path, const size_t maxlen)
  * environment variable (Windows-only) onto `name` in turn until such a file is found.
  * Returns success/failure.
  */
-bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen)
+bool BLI_path_program_extensions_add_win32(char *program_name, const size_t maxlen)
 {
   bool retval = false;
   int type;
@@ -1187,10 +1187,10 @@ bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen)
 }
 #endif /* WIN32 */
 
-bool BLI_path_program_search(char *fullname, const size_t maxlen, const char *name)
+bool BLI_path_program_search(char *program_filepath, const size_t maxlen, const char *program_name)
 {
 #ifdef DEBUG_STRSIZE
-  memset(fullname, 0xff, sizeof(*fullname) * maxlen);
+  memset(program_filepath, 0xff, sizeof(*program_filepath) * maxlen);
 #endif
   const char *path;
   bool retval = false;
@@ -1217,7 +1217,7 @@ bool BLI_path_program_search(char *fullname, const size_t maxlen, const char *na
         BLI_strncpy(filepath_test, path, sizeof(filepath_test));
       }
 
-      BLI_path_append(filepath_test, maxlen, name);
+      BLI_path_append(filepath_test, maxlen, program_name);
       if (
 #ifdef _WIN32
           BLI_path_program_extensions_add_win32(filepath_test, maxlen)
@@ -1226,7 +1226,7 @@ bool BLI_path_program_search(char *fullname, const size_t maxlen, const char *na
 #endif
       )
       {
-        BLI_strncpy(fullname, filepath_test, maxlen);
+        BLI_strncpy(program_filepath, filepath_test, maxlen);
         retval = true;
         break;
       }
@@ -1234,7 +1234,7 @@ bool BLI_path_program_search(char *fullname, const size_t maxlen, const char *na
   }
 
   if (retval == false) {
-    *fullname = '\0';
+    *program_filepath = '\0';
   }
 
   return retval;

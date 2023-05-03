@@ -184,7 +184,7 @@ AviError AVI_print_error(AviError in_error)
   return in_error;
 }
 
-bool AVI_is_avi(const char *name)
+bool AVI_is_avi(const char *filepath)
 {
   int temp, fcca, j;
   AviMovie movie = {NULL};
@@ -195,7 +195,7 @@ bool AVI_is_avi(const char *name)
   DEBUG_PRINT("opening movie\n");
 
   movie.type = AVI_MOVIE_READ;
-  movie.fp = BLI_fopen(name, "rb");
+  movie.fp = BLI_fopen(filepath, "rb");
   movie.offset_table = NULL;
 
   if (movie.fp == NULL) {
@@ -379,7 +379,7 @@ bool AVI_is_avi(const char *name)
   return (movie_tracks != 0);
 }
 
-AviError AVI_open_movie(const char *name, AviMovie *movie)
+AviError AVI_open_movie(const char *filepath, AviMovie *movie)
 {
   int temp, fcca, size, j;
 
@@ -388,7 +388,7 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
   memset(movie, 0, sizeof(AviMovie));
 
   movie->type = AVI_MOVIE_READ;
-  movie->fp = BLI_fopen(name, "rb");
+  movie->fp = BLI_fopen(filepath, "rb");
   movie->offset_table = NULL;
 
   if (movie->fp == NULL) {
@@ -700,7 +700,7 @@ AviError AVI_close(AviMovie *movie)
   return AVI_ERROR_NONE;
 }
 
-AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
+AviError AVI_open_compress(char *filepath, AviMovie *movie, int streams, ...)
 {
   va_list ap;
   AviList list;
@@ -711,7 +711,7 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
   int64_t junk_pos;
 
   movie->type = AVI_MOVIE_WRITE;
-  movie->fp = BLI_fopen(name, "wb");
+  movie->fp = BLI_fopen(filepath, "wb");
 
   movie->index_entries = 0;
 

@@ -202,16 +202,16 @@ void SEQ_add_image_load_file(Scene *scene, Sequence *seq, size_t strip_frame, ch
 void SEQ_add_image_init_alpha_mode(Sequence *seq)
 {
   if (seq->strip && seq->strip->stripdata) {
-    char name[FILE_MAX];
+    char filepath[FILE_MAX];
     ImBuf *ibuf;
 
-    BLI_path_join(name, sizeof(name), seq->strip->dir, seq->strip->stripdata->name);
-    BLI_path_abs(name, BKE_main_blendfile_path_from_global());
+    BLI_path_join(filepath, sizeof(filepath), seq->strip->dir, seq->strip->stripdata->name);
+    BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
     /* Initialize input color space. */
     if (seq->type == SEQ_TYPE_IMAGE) {
       ibuf = IMB_loadiffname(
-          name, IB_test | IB_alphamode_detect, seq->strip->colorspace_settings.name);
+          filepath, IB_test | IB_alphamode_detect, seq->strip->colorspace_settings.name);
 
       /* Byte images are default to straight alpha, however sequencer
        * works in premul space, so mark strip to be premultiplied first.

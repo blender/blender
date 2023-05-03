@@ -330,7 +330,7 @@ bool imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
   return true;
 }
 
-void *imb_alloc_pixels(uint x, uint y, uint channels, size_t typesize, const char *name)
+void *imb_alloc_pixels(uint x, uint y, uint channels, size_t typesize, const char *alloc_name)
 {
   /* Protect against buffer overflow vulnerabilities from files specifying
    * a width and height that overflow and alloc too little memory. */
@@ -339,7 +339,7 @@ void *imb_alloc_pixels(uint x, uint y, uint channels, size_t typesize, const cha
   }
 
   size_t size = size_t(x) * size_t(y) * size_t(channels) * typesize;
-  return MEM_callocN(size, name);
+  return MEM_callocN(size, alloc_name);
 }
 
 bool imb_addrectfloatImBuf(ImBuf *ibuf, const uint channels)

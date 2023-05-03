@@ -242,7 +242,8 @@ typedef struct PlayAnimPict {
   struct PlayAnimPict *next, *prev;
   uchar *mem;
   int size;
-  const char *name;
+  /** The allocated file-path to the image. */
+  const char *filepath;
   struct ImBuf *ibuf;
   struct anim *anim;
   int frame;
@@ -352,11 +353,11 @@ static ImBuf *ibuf_from_picture(PlayAnimPict *pic)
   }
   else if (pic->mem) {
     /* use correct colorspace here */
-    ibuf = IMB_ibImageFromMemory(pic->mem, pic->size, pic->IB_flags, NULL, pic->name);
+    ibuf = IMB_ibImageFromMemory(pic->mem, pic->size, pic->IB_flags, NULL, pic->filepath);
   }
   else {
     /* use correct colorspace here */
-    ibuf = IMB_loadiffname(pic->name, pic->IB_flags, NULL);
+    ibuf = IMB_loadiffname(pic->filepath, pic->IB_flags, NULL);
   }
 
   return ibuf;
@@ -537,7 +538,7 @@ static void playanim_toscreen(
     PlayState *ps, PlayAnimPict *picture, struct ImBuf *ibuf, int fontid, int fstep)
 {
   if (ibuf == NULL) {
-    printf("%s: no ibuf for picture '%s'\n", __func__, picture ? picture->name : "<NIL>");
+    printf("%s: no ibuf for picture '%s'\n", __func__, picture ? picture->filepath : "<NIL>");
     return;
   }
 
@@ -579,7 +580,7 @@ static void playanim_toscreen(
     int sizex, sizey;
     float fsizex_inv, fsizey_inv;
     char str[32 + FILE_MAX];
-    BLI_snprintf(str, sizeof(str), "%s | %.2f frames/s", picture->name, fstep / swaptime);
+    BLI_snprintf(str, sizeof(str), "%s | %.2f frames/s", picture->filepath, fstep / swaptime);
 
     playanim_window_get_size(&sizex, &sizey);
     fsizex_inv = 1.0f / sizex;
@@ -622,11 +623,11 @@ static void playanim_toscreen(
 }
 
 static void build_pict_list_ex(
-    PlayState *ps, const char *first, int totframes, int fstep, int fontid)
+    PlayState *ps, const char *filepath_first, int totframes, int fstep, int fontid)
 {
-  if (IMB_isanim(first)) {
+  if (IMB_isanim(filepath_first)) {
     /* OCIO_TODO: support different input color space */
-    struct anim *anim = IMB_open_anim(first, IB_rect, 0, NULL);
+    struct anim *anim = IMB_open_anim(filepath_first, IB_rect, 0, NULL);
     if (anim) {
       int pic;
       struct ImBuf *ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
@@ -640,12 +641,12 @@ static void build_pict_list_ex(
         picture->anim = anim;
         picture->frame = pic;
         picture->IB_flags = IB_rect;
-        picture->name = BLI_sprintfN("%s : %4.d", first, pic + 1);
+        picture->filepath = BLI_sprintfN("%s : %4.d", filepath_first, pic + 1);
         BLI_addtail(&picsbase, picture);
       }
     }
     else {
-      printf("couldn't open anim %s\n", first);
+      printf("couldn't open anim %s\n", filepath_first);
     }
   }
   else {
@@ -666,7 +667,7 @@ static void build_pict_list_ex(
     } fp_decoded;
 
     char filepath[FILE_MAX];
-    BLI_strncpy(filepath, first, sizeof(filepath));
+    BLI_strncpy(filepath, filepath_first, sizeof(filepath));
     fp_framenr = BLI_path_sequence_decode(filepath,
                                           fp_decoded.head,
                                           sizeof(fp_decoded.head),
@@ -739,7 +740,7 @@ static void build_pict_list_ex(
       }
 
       picture->mem = mem;
-      picture->name = BLI_strdup(filepath);
+      picture->filepath = BLI_strdup(filepath);
       picture->frame = count;
       close(file);
       BLI_addtail(&picsbase, picture);
@@ -797,10 +798,11 @@ static void build_pict_list_ex(
   }
 }
 
-static void build_pict_list(PlayState *ps, const char *first, int totframes, int fstep, int fontid)
+static void build_pict_list(
+    PlayState *ps, const char *filepath_first, int totframes, int fstep, int fontid)
 {
   ps->loading = true;
-  build_pict_list_ex(ps, first, totframes, fstep, fontid);
+  build_pict_list_ex(ps, filepath_first, totframes, fstep, fontid);
   ps->loading = false;
 }
 
@@ -1078,7 +1080,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
             if (g_WS.qual & WS_QUAL_SHIFT) {
               if (ps->picture && ps->picture->ibuf) {
                 printf(" Name: %s | Speed: %.2f frames/s\n",
-                       ps->picture->ibuf->name,
+                       ps->picture->ibuf->filepath,
                        ps->fstep / swaptime);
               }
             }
@@ -1702,11 +1704,11 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 #endif /* USE_FRAME_CACHE_LIMIT */
 
-        BLI_strncpy(ibuf->name, ps.picture->name, sizeof(ibuf->name));
+        BLI_strncpy(ibuf->filepath, ps.picture->filepath, sizeof(ibuf->filepath));
 
         /* why only windows? (from 2.4x) - campbell */
 #ifdef _WIN32
-        GHOST_SetTitle(g_WS.ghost_window, ps.picture->name);
+        GHOST_SetTitle(g_WS.ghost_window, ps.picture->filepath);
 #endif
 
         while (pupdate_time()) {
@@ -1796,7 +1798,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
       MEM_freeN(ps.picture->mem);
     }
 
-    MEM_freeN((void *)ps.picture->name);
+    MEM_freeN((void *)ps.picture->filepath);
     MEM_freeN(ps.picture);
   }
 

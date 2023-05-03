@@ -221,12 +221,12 @@ typedef enum {
 /**
  * Test whether this is an avi-format.
  */
-bool AVI_is_avi(const char *name);
+bool AVI_is_avi(const char *filepath);
 
 /**
  * Open a compressed file, decompress it into memory.
  */
-AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...);
+AviError AVI_open_compress(char *filepath, AviMovie *movie, int streams, ...);
 
 /**
  * Finalize a compressed output stream.
@@ -263,7 +263,7 @@ int AVI_get_stream(AviMovie *movie, int avist_type, int stream_num);
 /**
  * Open a movie stream from file.
  */
-AviError AVI_open_movie(const char *name, AviMovie *movie);
+AviError AVI_open_movie(const char *filepath, AviMovie *movie);
 
 /**
  * Read a frame from a movie stream.
