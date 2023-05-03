@@ -56,7 +56,7 @@
 #include "NOD_socket_declarations.hh"
 
 #include "node_shader_register.hh"
-#include "node_util.h"
+#include "node_util.hh"
 
 #include "RE_pipeline.h"
 #include "RE_texture.h"

@@ -25,7 +25,7 @@
 #include "RNA_access.h"
 
 #include "node_geometry_register.hh"
-#include "node_util.h"
+#include "node_util.hh"
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/Types.h>

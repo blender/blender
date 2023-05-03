@@ -25,7 +25,7 @@
 #include "UI_resources.h"
 
 #include "node_common.h"
-#include "node_util.h"
+#include "node_util.hh"
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"

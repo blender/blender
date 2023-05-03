@@ -13,7 +13,7 @@
 
 #include "BKE_node.h"
 
-#include "node_util.h"
+#include "node_util.hh"
 
 #include "RNA_types.h"
 

@@ -27,7 +27,7 @@
 #include "node_common.h"
 #include "node_exec.h"
 #include "node_texture_util.hh"
-#include "node_util.h"
+#include "node_util.hh"
 
 #include "DEG_depsgraph.h"
 
