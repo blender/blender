@@ -888,15 +888,19 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
 /* Render output. */
 
-static void image_render_print_save_message(ReportList *reports, const char *name, int ok, int err)
+static void image_render_print_save_message(ReportList *reports,
+                                            const char *filepath,
+                                            int ok,
+                                            int err)
 {
   if (ok) {
     /* no need to report, just some helpful console info */
-    printf("Saved: '%s'\n", name);
+    printf("Saved: '%s'\n", filepath);
   }
   else {
     /* report on error since users will want to know what failed */
-    BKE_reportf(reports, RPT_ERROR, "Render error (%s) cannot save: '%s'", strerror(err), name);
+    BKE_reportf(
+        reports, RPT_ERROR, "Render error (%s) cannot save: '%s'", strerror(err), filepath);
   }
 }
 
@@ -904,7 +908,7 @@ static int image_render_write_stamp_test(ReportList *reports,
                                          const Scene *scene,
                                          const RenderResult *rr,
                                          ImBuf *ibuf,
-                                         const char *name,
+                                         const char *filepath,
                                          const ImageFormatData *imf,
                                          const bool stamp)
 {
@@ -912,13 +916,13 @@ static int image_render_write_stamp_test(ReportList *reports,
 
   if (stamp) {
     /* writes the name of the individual cameras */
-    ok = BKE_imbuf_write_stamp(scene, rr, ibuf, name, imf);
+    ok = BKE_imbuf_write_stamp(scene, rr, ibuf, filepath, imf);
   }
   else {
-    ok = BKE_imbuf_write(ibuf, name, imf);
+    ok = BKE_imbuf_write(ibuf, filepath, imf);
   }
 
-  image_render_print_save_message(reports, name, ok, errno);
+  image_render_print_save_message(reports, filepath, ok, errno);
 
   return ok;
 }

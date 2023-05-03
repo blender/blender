@@ -527,17 +527,17 @@ static void wm_init_userdef(Main *bmain)
  * \{ */
 
 /* intended to check for non-blender formats but for now it only reads blends */
-static int wm_read_exotic(const char *name)
+static int wm_read_exotic(const char *filepath)
 {
   /* make sure we're not trying to read a directory.... */
 
-  int namelen = strlen(name);
-  if (namelen > 0 && ELEM(name[namelen - 1], '/', '\\')) {
+  int filepath_len = strlen(filepath);
+  if (filepath_len > 0 && ELEM(filepath[filepath_len - 1], '/', '\\')) {
     return BKE_READ_EXOTIC_FAIL_PATH;
   }
 
   /* open the file. */
-  const int filedes = BLI_open(name, O_BINARY | O_RDONLY, 0);
+  const int filedes = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (filedes == -1) {
     return BKE_READ_EXOTIC_FAIL_OPEN;
   }

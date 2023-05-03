@@ -28,7 +28,7 @@
 
 extern "C" {
 
-bool imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
+bool imb_save_dds(struct ImBuf *ibuf, const char *filepath, int /*flags*/)
 {
   return false; /* TODO: finish this function. */
 
@@ -44,11 +44,11 @@ bool imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
   std::ofstream fildes;
 
 #if defined(WIN32)
-  wchar_t *wname = alloc_utf16_from_8(name, 0);
+  wchar_t *wname = alloc_utf16_from_8(filepath, 0);
   fildes.open(wname);
   free(wname);
 #else
-  fildes.open(name);
+  fildes.open(filepath);
 #endif
 
   /* write header */
