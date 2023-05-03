@@ -75,7 +75,7 @@ set(SRC
   NOD_static_types.h
   NOD_texture.h
   intern/node_common.h
-  intern/node_exec.h
+  intern/node_exec.hh
   intern/node_util.hh
 )
 
