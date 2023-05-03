@@ -51,6 +51,44 @@ static const aal::RelationsInNode &get_relations_in_node(const bNode &node, Reso
       return geometry_relations;
     }
   }
+  if (ELEM(node.type, GEO_NODE_SIMULATION_INPUT, GEO_NODE_SIMULATION_OUTPUT)) {
+    aal::RelationsInNode &relations = scope.construct<aal::RelationsInNode>();
+    {
+      /* Add eval relations. */
+      int last_geometry_index = -1;
+      for (const int i : node.input_sockets().index_range()) {
+        const bNodeSocket &socket = node.input_socket(i);
+        if (socket.type == SOCK_GEOMETRY) {
+          last_geometry_index = i;
+        }
+        else if (socket_is_field(socket)) {
+          if (last_geometry_index != -1) {
+            relations.eval_relations.append({i, last_geometry_index});
+          }
+        }
+      }
+    }
+
+    {
+      /* Add available relations. */
+      int last_geometry_index = -1;
+      for (const int i : node.output_sockets().index_range()) {
+        const bNodeSocket &socket = node.output_socket(i);
+        if (socket.type == SOCK_GEOMETRY) {
+          last_geometry_index = i;
+        }
+        else if (socket_is_field(socket)) {
+          if (last_geometry_index == -1) {
+            relations.available_on_none.append(i);
+          }
+          else {
+            relations.available_relations.append({i, last_geometry_index});
+          }
+        }
+      }
+    }
+    return relations;
+  }
   if (const NodeDeclaration *node_decl = node.declaration()) {
     if (const aal::RelationsInNode *relations = node_decl->anonymous_attribute_relations()) {
       return *relations;

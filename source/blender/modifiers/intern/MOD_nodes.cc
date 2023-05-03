@@ -54,6 +54,8 @@
 #include "BKE_pointcloud.h"
 #include "BKE_screen.h"
 #include "BKE_simulation.h"
+#include "BKE_simulation_state.hh"
+#include "BKE_simulation_state_serialize.hh"
 #include "BKE_workspace.h"
 
 #include "BLO_read_write.h"
@@ -302,6 +304,9 @@ static bool check_tree_for_time_node(const bNodeTree &tree, Set<const bNodeTree 
   }
   tree.ensure_topology_cache();
   if (!tree.nodes_by_type("GeometryNodeInputSceneTime").is_empty()) {
+    return true;
+  }
+  if (!tree.nodes_by_type("GeometryNodeSimulationInput").is_empty()) {
     return true;
   }
   for (const bNode *node : tree.group_nodes()) {
@@ -1125,6 +1130,96 @@ static void store_output_attributes(GeometrySet &geometry,
   store_computed_output_attributes(geometry, attributes_to_store);
 }
 
+static void prepare_simulation_states_for_evaluation(const NodesModifierData &nmd,
+                                                     NodesModifierData &nmd_orig,
+                                                     const ModifierEvalContext &ctx,
+                                                     nodes::GeoNodesModifierData &exec_data)
+{
+  const Main *bmain = DEG_get_bmain(ctx.depsgraph);
+  const SubFrame current_frame = DEG_get_ctime(ctx.depsgraph);
+  const Scene *scene = DEG_get_input_scene(ctx.depsgraph);
+  const SubFrame start_frame = scene->r.sfra;
+  const bool is_start_frame = current_frame == start_frame;
+
+  if (DEG_is_active(ctx.depsgraph)) {
+    if (nmd_orig.simulation_cache == nullptr) {
+      nmd_orig.simulation_cache = MEM_new<bke::sim::ModifierSimulationCache>(__func__);
+    }
+
+    {
+      /* Try to use baked data. */
+      const StringRefNull bmain_path = BKE_main_blendfile_path(bmain);
+      if (nmd_orig.simulation_cache->cache_state() != bke::sim::CacheState::Baked &&
+          !bmain_path.is_empty())
+      {
+        nmd_orig.simulation_cache->try_discover_bake(
+            bke::sim::get_meta_directory(*bmain, *ctx.object, nmd.modifier),
+            bke::sim::get_bdata_directory(*bmain, *ctx.object, nmd.modifier));
+      }
+    }
+
+    {
+      /* Reset cached data if necessary. */
+      const bke::sim::StatesAroundFrame sim_states =
+          nmd_orig.simulation_cache->get_states_around_frame(current_frame);
+      if (nmd_orig.simulation_cache->cache_state() == bke::sim::CacheState::Invalid &&
+          (current_frame == start_frame ||
+           (sim_states.current == nullptr && sim_states.prev == nullptr &&
+            sim_states.next != nullptr)))
+      {
+        nmd_orig.simulation_cache->reset();
+      }
+    }
+    /* Decide if a new simulation state should be created in this evaluation. */
+    const bke::sim::StatesAroundFrame sim_states =
+        nmd_orig.simulation_cache->get_states_around_frame(current_frame);
+    if (nmd_orig.simulation_cache->cache_state() != bke::sim::CacheState::Baked) {
+      if (sim_states.current == nullptr) {
+        if (is_start_frame || !nmd_orig.simulation_cache->has_states()) {
+          bke::sim::ModifierSimulationState &current_sim_state =
+              nmd_orig.simulation_cache->get_state_at_frame_for_write(current_frame);
+          exec_data.current_simulation_state_for_write = &current_sim_state;
+          exec_data.simulation_time_delta = 0.0f;
+          if (!is_start_frame) {
+            /* When starting a new simulation at another frame than the start frame, it can't match
+             * what would be baked, so invalidate it immediately. */
+            nmd_orig.simulation_cache->invalidate();
+          }
+        }
+        else if (sim_states.prev != nullptr && sim_states.next == nullptr) {
+          const float delta_frames = float(current_frame) - float(sim_states.prev->frame);
+          if (delta_frames <= 1.0f) {
+            bke::sim::ModifierSimulationState &current_sim_state =
+                nmd_orig.simulation_cache->get_state_at_frame_for_write(current_frame);
+            exec_data.current_simulation_state_for_write = &current_sim_state;
+            const float delta_seconds = delta_frames / FPS;
+            exec_data.simulation_time_delta = delta_seconds;
+          }
+        }
+      }
+    }
+  }
+
+  /* Load read-only states to give nodes access to cached data. */
+  const bke::sim::StatesAroundFrame sim_states =
+      nmd_orig.simulation_cache->get_states_around_frame(current_frame);
+  if (sim_states.current) {
+    sim_states.current->state.ensure_bake_loaded();
+    exec_data.current_simulation_state = &sim_states.current->state;
+  }
+  if (sim_states.prev) {
+    sim_states.prev->state.ensure_bake_loaded();
+    exec_data.prev_simulation_state = &sim_states.prev->state;
+    if (sim_states.next) {
+      sim_states.next->state.ensure_bake_loaded();
+      exec_data.next_simulation_state = &sim_states.next->state;
+      exec_data.simulation_state_mix_factor =
+          (float(current_frame) - float(sim_states.prev->frame)) /
+          (float(sim_states.next->frame) - float(sim_states.prev->frame));
+    }
+  }
+}
+
 /**
  * Evaluate a node group to compute the output geometry.
  */
@@ -1135,6 +1230,9 @@ static GeometrySet compute_geometry(const bNodeTree &btree,
                                     NodesModifierData *nmd,
                                     const ModifierEvalContext *ctx)
 {
+  NodesModifierData *nmd_orig = reinterpret_cast<NodesModifierData *>(
+      BKE_modifier_get_original(ctx->object, &nmd->modifier));
+
   const nodes::GeometryNodeLazyFunctionGraphMapping &mapping = lf_graph_info.mapping;
 
   Vector<const lf::OutputSocket *> graph_inputs = mapping.group_input_sockets;
@@ -1159,6 +1257,8 @@ static GeometrySet compute_geometry(const bNodeTree &btree,
   geo_nodes_modifier_data.depsgraph = ctx->depsgraph;
   geo_nodes_modifier_data.self_object = ctx->object;
   auto eval_log = std::make_unique<geo_log::GeoModifierLog>();
+
+  prepare_simulation_states_for_evaluation(*nmd, *nmd_orig, *ctx, geo_nodes_modifier_data);
 
   Set<ComputeContextHash> socket_log_contexts;
   if (logging_enabled(ctx)) {
@@ -1240,8 +1340,6 @@ static GeometrySet compute_geometry(const bNodeTree &btree,
   }
 
   if (logging_enabled(ctx)) {
-    NodesModifierData *nmd_orig = reinterpret_cast<NodesModifierData *>(
-        BKE_modifier_get_original(ctx->object, &nmd->modifier));
     delete static_cast<geo_log::GeoModifierLog *>(nmd_orig->runtime_eval_log);
     nmd_orig->runtime_eval_log = eval_log.release();
   }
@@ -1928,6 +2026,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
     IDP_BlendDataRead(reader, &nmd->settings.properties);
   }
   nmd->runtime_eval_log = nullptr;
+  nmd->simulation_cache = nullptr;
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -1938,6 +2037,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   BKE_modifier_copydata_generic(md, target, flag);
 
   tnmd->runtime_eval_log = nullptr;
+  tnmd->simulation_cache = nullptr;
 
   if (nmd->settings.properties != nullptr) {
     tnmd->settings.properties = IDP_CopyProperty_ex(nmd->settings.properties, flag);
@@ -1951,6 +2051,8 @@ static void freeData(ModifierData *md)
     IDP_FreeProperty_ex(nmd->settings.properties, false);
     nmd->settings.properties = nullptr;
   }
+
+  MEM_delete(nmd->simulation_cache);
 
   clear_runtime_data(nmd);
 }

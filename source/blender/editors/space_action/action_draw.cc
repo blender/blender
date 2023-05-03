@@ -21,6 +21,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -28,6 +29,7 @@
 #include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_pointcache.h"
+#include "BKE_simulation_state.hh"
 
 /* Everything from source (BIF, BDR, BSE) ------------------------------ */
 
@@ -679,6 +681,51 @@ static void timeline_cache_draw_single(PTCacheID *pid, float y_offset, float hei
   GPU_matrix_pop();
 }
 
+static void timeline_cache_draw_simulation_nodes(
+    const Scene &scene,
+    const blender::bke::sim::ModifierSimulationCache &cache,
+    const float y_offset,
+    const float height,
+    const uint pos_id)
+{
+  GPU_matrix_push();
+  GPU_matrix_translate_2f(0.0, (float)V2D_SCROLL_HANDLE_HEIGHT + y_offset);
+  GPU_matrix_scale_2f(1.0, height);
+
+  float color[4];
+  switch (cache.cache_state()) {
+    case blender::bke::sim::CacheState::Invalid: {
+      copy_v4_fl4(color, 0.8, 0.8, 0.2, 0.3);
+      break;
+    }
+    case blender::bke::sim::CacheState::Valid: {
+      copy_v4_fl4(color, 0.8, 0.8, 0.2, 1.0);
+      break;
+    }
+    case blender::bke::sim::CacheState::Baked: {
+      copy_v4_fl4(color, 1.0, 0.6, 0.2, 1.0);
+      break;
+    }
+  }
+
+  immUniformColor4fv(color);
+
+  const int start_frame = scene.r.sfra;
+  const int end_frame = scene.r.efra;
+  const int frames_num = end_frame - start_frame + 1;
+  const blender::IndexRange frames_range(start_frame, frames_num);
+
+  immBeginAtMost(GPU_PRIM_TRIS, frames_num * 6);
+  for (const int frame : frames_range) {
+    if (cache.has_state_at_frame(frame)) {
+      immRectf_fast(pos_id, frame - 0.5f, 0, frame + 0.5f, 1.0f);
+    }
+  }
+  immEnd();
+
+  GPU_matrix_pop();
+}
+
 void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Scene *scene)
 {
   if ((saction->cache_display & TIME_CACHE_DISPLAY) == 0 || ob == nullptr) {
@@ -709,6 +756,16 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
     timeline_cache_draw_single(pid, y_offset, cache_draw_height, pos_id);
 
     y_offset += cache_draw_height;
+  }
+  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+    if (md->type == eModifierType_Nodes) {
+      const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+      if (nmd->simulation_cache != nullptr) {
+        timeline_cache_draw_simulation_nodes(
+            *scene, *nmd->simulation_cache, y_offset, cache_draw_height, pos_id);
+        y_offset += cache_draw_height;
+      }
+    }
   }
 
   GPU_blend(GPU_BLEND_NONE);
