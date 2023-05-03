@@ -42,13 +42,13 @@ bool BLI_string_is_decimal(const char *string) ATTR_NONNULL(1);
  * Based on `BLI_path_split_dir_file()` / `os.path.splitext()`,
  * `"a.b.c"` -> (`"a.b"`, `".c"`).
  */
-void BLI_string_split_suffix(const char *string, char *r_body, char *r_suf, size_t str_len)
-    ATTR_NONNULL(1, 2, 3);
+void BLI_string_split_suffix(const char *string, size_t string_maxlen, char *r_body, char *r_suf)
+    ATTR_NONNULL(1, 3, 4);
 /**
  * `"a.b.c"` -> (`"a."`, `"b.c"`).
  */
-void BLI_string_split_prefix(const char *string, char *r_pre, char *r_body, size_t str_len)
-    ATTR_NONNULL(1, 2, 3);
+void BLI_string_split_prefix(const char *string, size_t string_maxlen, char *r_pre, char *r_body)
+    ATTR_NONNULL(1, 3, 4);
 
 /**
  * A version of #BLI_string_join_array_by_sep_charN that takes a table array.

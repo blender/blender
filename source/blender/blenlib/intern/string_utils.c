@@ -75,9 +75,12 @@ static bool is_char_sep(const char c)
   return ELEM(c, '.', ' ', '-', '_');
 }
 
-void BLI_string_split_suffix(const char *string, char *r_body, char *r_suf, const size_t str_len)
+void BLI_string_split_suffix(const char *string,
+                             const size_t string_maxlen,
+                             char *r_body,
+                             char *r_suf)
 {
-  size_t len = BLI_strnlen(string, str_len);
+  size_t len = BLI_strnlen(string, string_maxlen);
   size_t i;
 
   r_body[0] = r_suf[0] = '\0';
@@ -93,9 +96,12 @@ void BLI_string_split_suffix(const char *string, char *r_body, char *r_suf, cons
   memcpy(r_body, string, len + 1);
 }
 
-void BLI_string_split_prefix(const char *string, char *r_pre, char *r_body, const size_t str_len)
+void BLI_string_split_prefix(const char *string,
+                             const size_t string_maxlen,
+                             char *r_pre,
+                             char *r_body)
 {
-  size_t len = BLI_strnlen(string, str_len);
+  size_t len = BLI_strnlen(string, string_maxlen);
   size_t i;
 
   r_body[0] = r_pre[0] = '\0';
