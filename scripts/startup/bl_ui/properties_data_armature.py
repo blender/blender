@@ -110,7 +110,8 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.type == 'ARMATURE' and context.object.pose)
+        ob = context.object
+        return (ob and ob.type == 'ARMATURE' and ob.pose)
 
     def draw(self, context):
         layout = self.layout

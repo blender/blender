@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 from bpy.types import Menu, Panel, UIList, ViewLayer
+from bpy.app.translations import contexts as i18n_contexts
 
 from rna_prop_ui import PropertyPanel
 
@@ -79,31 +80,6 @@ class VIEWLAYER_PT_eevee_next_layer_passes_data(ViewLayerButtonsPanel, Panel):
     bl_label = "Data"
     bl_parent_id = "VIEWLAYER_PT_layer_passes"
 
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        scene = context.scene
-        view_layer = context.view_layer
-
-        col = layout.column()
-        col.prop(view_layer, "use_pass_combined")
-        col.prop(view_layer, "use_pass_z")
-        col.prop(view_layer, "use_pass_mist")
-        col.prop(view_layer, "use_pass_normal")
-        col.prop(view_layer, "use_pass_position")
-        sub = col.column()
-        sub.active = not scene.eevee.use_motion_blur
-        sub.prop(view_layer, "use_pass_vector")
-
-
-class VIEWLAYER_PT_eevee_next_layer_passes_data(ViewLayerButtonsPanel, Panel):
-    bl_label = "Data"
-    bl_parent_id = "VIEWLAYER_PT_layer_passes"
-
     COMPAT_ENGINES = {'BLENDER_WORKBENCH_NEXT'}
 
     def draw(self, context):
@@ -140,7 +116,7 @@ class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_glossy_direct", text="Light")
         col.prop(view_layer, "use_pass_glossy_color", text="Color")
 
-        col = layout.column(heading="Volume", align=True)
+        col = layout.column(heading="Volume", heading_ctxt=i18n_contexts.id_id, align=True)
         col.prop(view_layer_eevee, "use_pass_volume_direct", text="Light")
 
         col = layout.column(heading="Other", align=True)

@@ -44,7 +44,8 @@ ostream &operator<<(ostream &out, const Stroke &iStroke)
   out << "  medium type : " << iStroke.getMediumType() << endl;
   for (Stroke::const_vertex_iterator v = iStroke.vertices_begin(), vend = iStroke.vertices_end();
        v != vend;
-       ++v) {
+       ++v)
+  {
     out << *(*v) << endl;
   }
   return out;

@@ -1,7 +1,7 @@
 # This script defines functions to be used directly in driver expressions to
 # extend the built-in set of python functions.
 #
-# This can be executed on manually or set to 'Register' to
+# This can be executed on manually or set to "Register" to
 # initialize the functions on file load.
 
 

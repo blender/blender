@@ -34,7 +34,7 @@ static IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves,
   if (meta_data && meta_data->domain == ATTR_DOMAIN_POINT) {
     /* Avoid the interpolation from interpolating the attribute to the
      * curve domain by retrieving the point domain values directly. */
-    const VArray<bool> selection = attributes.lookup_or_default<bool>(
+    const VArray<bool> selection = *attributes.lookup_or_default<bool>(
         ".selection", ATTR_DOMAIN_POINT, true);
     if (selection.is_single()) {
       return selection.get_internal_single() ? IndexMask(curves_range) : IndexMask();
@@ -49,7 +49,7 @@ static IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves,
           return point_selection.as_span().contains(true);
         });
   }
-  const VArray<bool> selection = attributes.lookup_or_default<bool>(
+  const VArray<bool> selection = *attributes.lookup_or_default<bool>(
       ".selection", ATTR_DOMAIN_CURVE, true);
   return index_mask_ops::find_indices_from_virtual_array(curves_range, selection, 2048, r_indices);
 }
@@ -64,7 +64,7 @@ IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves, Vector<int
 {
   return index_mask_ops::find_indices_from_virtual_array(
       curves.points_range(),
-      curves.attributes().lookup_or_default<bool>(".selection", ATTR_DOMAIN_POINT, true),
+      *curves.attributes().lookup_or_default<bool>(".selection", ATTR_DOMAIN_POINT, true),
       2048,
       r_indices);
 }
@@ -166,7 +166,7 @@ bool has_anything_selected(const VArray<bool> &varray, const IndexRange range_to
 
 bool has_anything_selected(const bke::CurvesGeometry &curves)
 {
-  const VArray<bool> selection = curves.attributes().lookup<bool>(".selection");
+  const VArray<bool> selection = *curves.attributes().lookup<bool>(".selection");
   return !selection || contains(selection, selection.index_range(), true);
 }
 
@@ -726,7 +726,8 @@ bool select_lasso(const ViewContext &vc,
         /* Check the lasso bounding box first as an optimization. */
         if (BLI_rcti_isect_pt_v(&bbox, int2(pos_proj)) &&
             BLI_lasso_is_point_inside(
-                coord_array, coords.size(), int(pos_proj.x), int(pos_proj.y), IS_CLIPPED)) {
+                coord_array, coords.size(), int(pos_proj.x), int(pos_proj.y), IS_CLIPPED))
+        {
           apply_selection_operation_at_index(selection.span, point_i, sel_op);
           changed = true;
         }
@@ -744,7 +745,8 @@ bool select_lasso(const ViewContext &vc,
           /* Check the lasso bounding box first as an optimization. */
           if (BLI_rcti_isect_pt_v(&bbox, int2(pos_proj)) &&
               BLI_lasso_is_point_inside(
-                  coord_array, coords.size(), int(pos_proj.x), int(pos_proj.y), IS_CLIPPED)) {
+                  coord_array, coords.size(), int(pos_proj.x), int(pos_proj.y), IS_CLIPPED))
+          {
             apply_selection_operation_at_index(selection.span, curve_i, sel_op);
             changed = true;
           }
@@ -766,7 +768,8 @@ bool select_lasso(const ViewContext &vc,
                                        int(pos1_proj.y),
                                        int(pos2_proj.x),
                                        int(pos2_proj.y),
-                                       IS_CLIPPED)) {
+                                       IS_CLIPPED))
+          {
             apply_selection_operation_at_index(selection.span, curve_i, sel_op);
             changed = true;
             break;

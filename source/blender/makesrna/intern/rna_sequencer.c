@@ -62,7 +62,7 @@ typedef struct EffectInfo {
 } EffectInfo;
 
 const EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
-    {seqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Bright/Contrast", ""},
+    {seqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Brightness/Contrast", ""},
     {seqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""},
     {seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""},
     {seqModifierType_HueCorrect, "HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
@@ -845,11 +845,11 @@ static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *
 static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 {
   Sequence *seq = (Sequence *)(ptr->data);
-  BLI_split_dirfile(value,
-                    seq->strip->dir,
-                    seq->strip->stripdata->name,
-                    sizeof(seq->strip->dir),
-                    sizeof(seq->strip->stripdata->name));
+  BLI_path_split_dir_file(value,
+                          seq->strip->dir,
+                          sizeof(seq->strip->dir),
+                          seq->strip->stripdata->name,
+                          sizeof(seq->strip->stripdata->name));
 }
 
 static void rna_Sequence_filepath_get(PointerRNA *ptr, char *value)
@@ -871,7 +871,7 @@ static int rna_Sequence_filepath_length(PointerRNA *ptr)
 static void rna_Sequence_proxy_filepath_set(PointerRNA *ptr, const char *value)
 {
   StripProxy *proxy = (StripProxy *)(ptr->data);
-  BLI_split_dirfile(value, proxy->dir, proxy->file, sizeof(proxy->dir), sizeof(proxy->file));
+  BLI_path_split_dir_file(value, proxy->dir, sizeof(proxy->dir), proxy->file, sizeof(proxy->file));
   if (proxy->anim) {
     IMB_free_anim(proxy->anim);
     proxy->anim = NULL;
@@ -971,17 +971,17 @@ static void rna_Sequence_input_2_set(PointerRNA *ptr,
 static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
 {
   Sequence *seq = (Sequence *)(ptr->data);
-  BLI_split_dirfile(value,
+  BLI_path_split_dir_file(value,
                     seq->strip->dir,
-                    seq->strip->stripdata->name,
                     sizeof(seq->strip->dir),
+                    seq->strip->stripdata->name,
                     sizeof(seq->strip->stripdata->name));
 }
 
 static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
 {
   StripElem *elem = (StripElem *)(ptr->data);
-  BLI_split_file_part(value, elem->name, sizeof(elem->name));
+  BLI_path_split_file_part(value, elem->name, sizeof(elem->name));
 }
 #  endif
 
@@ -1496,8 +1496,8 @@ static void rna_SequenceTimelineChannel_name_set(PointerRNA *ptr, const char *va
                  sizeof(channel->name));
 }
 
-static void rna_SequenceTimelineChannel_mute_update(Main *UNUSED(bmain),
-                                                    Scene *UNUSED(active_scene),
+static void rna_SequenceTimelineChannel_mute_update(Main *bmain,
+                                                    Scene *active_scene,
                                                     PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
@@ -1516,6 +1516,8 @@ static void rna_SequenceTimelineChannel_mute_update(Main *UNUSED(bmain),
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     SEQ_relations_invalidate_cache_composite(scene, seq);
   }
+
+  rna_Sequence_sound_update(bmain, active_scene, ptr);
 }
 
 static char *rna_SeqTimelineChannel_path(const PointerRNA *ptr)

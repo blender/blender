@@ -99,6 +99,7 @@
  \
     .mtex = _DNA_DEFAULT_MTex, \
     .mask_mtex = _DNA_DEFAULT_MTex, \
+    .falloff_shape = 0,\
   }
 
 /** \} */

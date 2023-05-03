@@ -132,7 +132,7 @@ bool Texture::init_buffer(GPUVertBuf *vbo, eGPUTextureFormat format)
   return this->init_internal(vbo);
 }
 
-bool Texture::init_view(const GPUTexture *src_,
+bool Texture::init_view(GPUTexture *src_,
                         eGPUTextureFormat format,
                         eGPUTextureType type,
                         int mip_start,
@@ -448,7 +448,7 @@ GPUTexture *GPU_texture_create_error(int dimension, bool is_array)
 }
 
 GPUTexture *GPU_texture_create_view(const char *name,
-                                    const GPUTexture *src,
+                                    GPUTexture *src,
                                     eGPUTextureFormat format,
                                     int mip_start,
                                     int mip_len,
@@ -458,6 +458,9 @@ GPUTexture *GPU_texture_create_view(const char *name,
 {
   BLI_assert(mip_len > 0);
   BLI_assert(layer_len > 0);
+  BLI_assert_msg(
+      GPU_texture_usage(src) & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
+      "Source texture of TextureView must have GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW usage flag.");
   Texture *view = GPUBackend::get()->texture_alloc(name);
   view->init_view(src,
                   format,
@@ -714,6 +717,11 @@ int GPU_texture_width(const GPUTexture *tex)
 int GPU_texture_height(const GPUTexture *tex)
 {
   return reinterpret_cast<const Texture *>(tex)->height_get();
+}
+
+int GPU_texture_depth(const GPUTexture *tex)
+{
+  return reinterpret_cast<const Texture *>(tex)->depth_get();
 }
 
 int GPU_texture_layer_count(const GPUTexture *tex)

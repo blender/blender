@@ -69,7 +69,8 @@ void ShadowTileMap::sync_cubeface(
     const float4x4 &object_mat_, float near_, float far_, eCubeFace face, float lod_bias_)
 {
   if (projection_type != SHADOW_PROJECTION_CUBEFACE || (cubeface != face) || (near != near_) ||
-      (far != far_)) {
+      (far != far_))
+  {
     set_dirty();
   }
   projection_type = SHADOW_PROJECTION_CUBEFACE;
@@ -1018,7 +1019,8 @@ void ShadowModule::debug_end_sync()
             eDebugMode::DEBUG_SHADOW_TILEMAPS,
             eDebugMode::DEBUG_SHADOW_VALUES,
             eDebugMode::DEBUG_SHADOW_TILE_RANDOM_COLOR,
-            eDebugMode::DEBUG_SHADOW_TILEMAP_RANDOM_COLOR)) {
+            eDebugMode::DEBUG_SHADOW_TILEMAP_RANDOM_COLOR))
+  {
     return;
   }
 
@@ -1156,7 +1158,8 @@ void ShadowModule::debug_draw(View &view, GPUFrameBuffer *view_fb)
             eDebugMode::DEBUG_SHADOW_TILEMAPS,
             eDebugMode::DEBUG_SHADOW_VALUES,
             eDebugMode::DEBUG_SHADOW_TILE_RANDOM_COLOR,
-            eDebugMode::DEBUG_SHADOW_TILEMAP_RANDOM_COLOR)) {
+            eDebugMode::DEBUG_SHADOW_TILEMAP_RANDOM_COLOR))
+  {
     return;
   }
 

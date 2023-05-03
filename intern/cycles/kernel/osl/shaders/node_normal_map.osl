@@ -31,7 +31,8 @@ shader node_normal_map(float Strength = 1.0,
 
     // get _unnormalized_ interpolated normal and tangent
     if (getattribute(attr_name, tangent) && getattribute(attr_sign_name, tangent_sign) &&
-        (!is_smooth || getattribute("geom:normal_map_normal", ninterp))) {
+        (!is_smooth || getattribute("geom:normal_map_normal", ninterp)))
+    {
       // apply normal map
       vector B = tangent_sign * cross(ninterp, tangent);
       Normal = normalize(mcolor[0] * tangent + mcolor[1] * B + mcolor[2] * ninterp);

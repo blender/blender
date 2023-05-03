@@ -123,6 +123,17 @@ int insert_vert_fcurve(struct FCurve *fcu,
                        eBezTriple_KeyframeType keyframe_type,
                        eInsertKeyFlags flag);
 
+/**
+ * Add the given number of keyframes to the FCurve. Their coordinates are
+ * uninitialized, so the curve should not be used without further attention.
+ *
+ * The newly created keys are selected, existing keys are not touched.
+ *
+ * This can be used to allocate all the keys at once, and then update them
+ * afterwards.
+ */
+void ED_keyframes_add(struct FCurve *fcu, int num_keys_to_add);
+
 /* -------- */
 
 /**

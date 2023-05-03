@@ -296,7 +296,8 @@ struct Rows {
           tile_pixels.pixel_rows, [&](const PackedPixelRow &encoded_pixels) {
             for (int x = encoded_pixels.start_image_coordinate.x;
                  x < encoded_pixels.start_image_coordinate.x + encoded_pixels.num_pixels;
-                 x++) {
+                 x++)
+            {
               int64_t index = encoded_pixels.start_image_coordinate.y * resolution.x + x;
               pixels[index].type = PixelType::Brush;
               pixels[index].distance = 0.0f;

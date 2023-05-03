@@ -39,7 +39,7 @@ bool MetalDevice::is_device_cancelled(int ID)
   return get_device_by_ID(ID, lock) == nullptr;
 }
 
-BVHLayoutMask MetalDevice::get_bvh_layout_mask() const
+BVHLayoutMask MetalDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
 {
   return use_metalrt ? BVH_LAYOUT_METAL : BVH_LAYOUT_BVH2;
 }
@@ -100,16 +100,15 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     }
     case METAL_GPU_AMD: {
       max_threads_per_threadgroup = 128;
-      use_metalrt = info.use_metalrt;
       break;
     }
     case METAL_GPU_APPLE: {
       max_threads_per_threadgroup = 512;
-      use_metalrt = info.use_metalrt;
       break;
     }
   }
 
+  use_metalrt = info.use_hardware_raytracing;
   if (auto metalrt = getenv("CYCLES_METALRT")) {
     use_metalrt = (atoi(metalrt) != 0);
   }
@@ -1033,8 +1032,7 @@ void MetalDevice::const_copy_to(const char *name, void *host, size_t size)
         offsetof(KernelParamsMetal, integrator_state), host, size, pointer_block_size);
   }
 #  define KERNEL_DATA_ARRAY(data_type, tex_name) \
-    else if (strcmp(name, #tex_name) == 0) \
-    { \
+    else if (strcmp(name, #tex_name) == 0) { \
       update_launch_pointers(offsetof(KernelParamsMetal, tex_name), host, size, size); \
     }
 #  include "kernel/data_arrays.h"
@@ -1097,9 +1095,8 @@ void MetalDevice::tex_alloc(device_texture &mem)
   }
   MTLStorageMode storage_mode = MTLStorageModeManaged;
   if (@available(macos 10.15, *)) {
-    if ([mtlDevice hasUnifiedMemory] &&
-        device_vendor !=
-            METAL_GPU_INTEL) { /* Intel GPUs don't support MTLStorageModeShared for MTLTextures */
+    /* Intel GPUs don't support MTLStorageModeShared for MTLTextures. */
+    if ([mtlDevice hasUnifiedMemory] && device_vendor != METAL_GPU_INTEL) {
       storage_mode = MTLStorageModeShared;
     }
   }

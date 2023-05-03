@@ -240,6 +240,8 @@ class GRAPH_MT_key(Menu):
     bl_label = "Key"
 
     def draw(self, _context):
+        from bl_ui_utils.layout import operator_context
+
         layout = self.layout
 
         layout.menu("GRAPH_MT_key_transform", text="Transform")
@@ -267,15 +269,13 @@ class GRAPH_MT_key(Menu):
         layout.operator_menu_enum("graph.easing_type", "type", text="Easing Type")
 
         layout.separator()
-        operator_context = layout.operator_context
 
         layout.operator("graph.decimate", text="Decimate (Ratio)").mode = 'RATIO'
 
         # Using the modal operation doesn't make sense for this variant
         # as we do not have a modal mode for it, so just execute it.
-        layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("graph.decimate", text="Decimate (Allowed Change)").mode = 'ERROR'
-        layout.operator_context = operator_context
+        with operator_context(layout, 'EXEC_REGION_WIN'):
+            layout.operator("graph.decimate", text="Decimate (Allowed Change)").mode = 'ERROR'
 
         layout.menu("GRAPH_MT_slider", text="Slider Operators")
 

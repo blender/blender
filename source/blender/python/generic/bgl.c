@@ -557,7 +557,7 @@ static PySequenceMethods Buffer_SeqMethods = {
 };
 
 static PyMappingMethods Buffer_AsMapping = {
-    /*mp_len*/ (lenfunc)Buffer_len,
+    /*mp_length*/ (lenfunc)Buffer_len,
     /*mp_subscript*/ (binaryfunc)Buffer_subscript,
     /*mp_ass_subscript*/ (objobjargproc)Buffer_ass_subscript,
 };
@@ -825,7 +825,8 @@ static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
                    pybuffer.format);
     }
     else if (ndimensions != pybuffer.ndim ||
-             !compare_dimensions(ndimensions, dimensions, pybuffer.shape)) {
+             !compare_dimensions(ndimensions, dimensions, pybuffer.shape))
+    {
       PyErr_Format(PyExc_TypeError, "array size does not match");
     }
     else {

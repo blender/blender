@@ -659,7 +659,7 @@ bool rna_PoseChannel_constraints_override_apply(Main *bmain,
                                                 PointerRNA *UNUSED(ptr_item_storage),
                                                 IDOverrideLibraryPropertyOperation *opop)
 {
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_INSERT_AFTER &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on constraints collection");
 
   bPoseChannel *pchan_dst = (bPoseChannel *)ptr_dst->data;
@@ -1134,7 +1134,10 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "chan_mat");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Channel Matrix", "4x4 matrix, before constraints");
+  RNA_def_property_ui_text(prop,
+                           "Channel Matrix",
+                           "4x4 matrix of the bone's location/rotation/scale channels (including "
+                           "animation and drivers) and the effect of bone constraints");
 
   /* writable because it touches loc/scale/rot directly */
   prop = RNA_def_property(srna, "matrix_basis", PROP_FLOAT, PROP_MATRIX);
@@ -1156,7 +1159,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Pose Matrix",
-      "Final 4x4 matrix after constraints and drivers are applied (object space)");
+      "Final 4x4 matrix after constraints and drivers are applied, in the armature object space");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
   /* Head/Tail Coordinates (in Pose Space) - Automatically calculated... */

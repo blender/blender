@@ -30,7 +30,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 }
 
 struct AttributeOutputs {
-  AutoAnonymousAttributeID intersecting_edges_id;
+  AnonymousAttributeIDPtr intersecting_edges_id;
 };
 
 static void node_update(bNodeTree *ntree, bNode *node)
@@ -160,11 +160,6 @@ static void node_geo_exec(GeoNodeExecParams params)
       selection.span[i] = true;
     }
     selection.finish();
-
-    params.set_output(
-        "Intersecting Edges",
-        AnonymousAttributeFieldInput::Create<bool>(
-            std::move(attribute_outputs.intersecting_edges_id), params.attribute_producer_name()));
   }
 
   params.set_output("Mesh", GeometrySet::create_with_mesh(result));

@@ -235,34 +235,34 @@ class TOPBAR_MT_file_cleanup(Menu):
         layout = self.layout
         layout.separator()
 
-        op_props = layout.operator("outliner.orphans_purge", text="Unused Data-Blocks")
-        op_props.do_local_ids = True
-        op_props.do_linked_ids = True
-        op_props.do_recursive = False
-        op_props = layout.operator("outliner.orphans_purge", text="Recursive Unused Data-Blocks")
-        op_props.do_local_ids = True
-        op_props.do_linked_ids = True
-        op_props.do_recursive = True
+        props = layout.operator("outliner.orphans_purge", text="Unused Data-Blocks")
+        props.do_local_ids = True
+        props.do_linked_ids = True
+        props.do_recursive = False
+        props = layout.operator("outliner.orphans_purge", text="Recursive Unused Data-Blocks")
+        props.do_local_ids = True
+        props.do_linked_ids = True
+        props.do_recursive = True
 
         layout.separator()
-        op_props = layout.operator("outliner.orphans_purge", text="Unused Linked Data-Blocks")
-        op_props.do_local_ids = False
-        op_props.do_linked_ids = True
-        op_props.do_recursive = False
-        op_props = layout.operator("outliner.orphans_purge", text="Recursive Unused Linked Data-Blocks")
-        op_props.do_local_ids = False
-        op_props.do_linked_ids = True
-        op_props.do_recursive = True
+        props = layout.operator("outliner.orphans_purge", text="Unused Linked Data-Blocks")
+        props.do_local_ids = False
+        props.do_linked_ids = True
+        props.do_recursive = False
+        props = layout.operator("outliner.orphans_purge", text="Recursive Unused Linked Data-Blocks")
+        props.do_local_ids = False
+        props.do_linked_ids = True
+        props.do_recursive = True
 
         layout.separator()
-        op_props = layout.operator("outliner.orphans_purge", text="Unused Local Data-Blocks")
-        op_props.do_local_ids = True
-        op_props.do_linked_ids = False
-        op_props.do_recursive = False
-        op_props = layout.operator("outliner.orphans_purge", text="Recursive Unused Local Data-Blocks")
-        op_props.do_local_ids = True
-        op_props.do_linked_ids = False
-        op_props.do_recursive = True
+        props = layout.operator("outliner.orphans_purge", text="Unused Local Data-Blocks")
+        props.do_local_ids = True
+        props.do_linked_ids = False
+        props.do_recursive = False
+        props = layout.operator("outliner.orphans_purge", text="Recursive Unused Local Data-Blocks")
+        props.do_local_ids = True
+        props.do_linked_ids = False
+        props.do_recursive = True
 
 
 class TOPBAR_MT_file(Menu):
@@ -642,10 +642,9 @@ class TOPBAR_MT_window(Menu):
 
     def draw(self, context):
         import sys
+        from bl_ui_utils.layout import operator_context
 
         layout = self.layout
-
-        operator_context_default = layout.operator_context
 
         layout.operator("wm.window_new")
         layout.operator("wm.window_new_main")
@@ -673,9 +672,8 @@ class TOPBAR_MT_window(Menu):
         # - From the top-bar, the text replaces the file-menu (not so bad but strange).
         # - From menu-search it replaces the area that the user may want to screen-shot.
         # Setting the context to screen causes the status to show in the global status-bar.
-        layout.operator_context = 'INVOKE_SCREEN'
-        layout.operator("screen.screenshot_area")
-        layout.operator_context = operator_context_default
+        with operator_context(layout, 'INVOKE_SCREEN'):
+            layout.operator("screen.screenshot_area")
 
         if sys.platform[:3] == "win":
             layout.separator()

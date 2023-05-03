@@ -102,7 +102,7 @@ static bool vertex_paint_from_weight(Object *ob)
 
   /* Retrieve the vertex group with the domain and type of the existing color
    * attribute, in order to let the attribute API handle both conversions. */
-  const GVArray vertex_group = attributes.lookup(
+  const GVArray vertex_group = *attributes.lookup(
       deform_group->name,
       ATTR_DOMAIN_POINT,
       bke::cpp_type_to_custom_data_type(color_attribute.varray.type()));
@@ -162,13 +162,13 @@ static IndexMask get_selected_indices(const Mesh &mesh,
   const bke::AttributeAccessor attributes = mesh.attributes();
 
   if (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) {
-    const VArray<bool> selection = attributes.lookup_or_default<bool>(
+    const VArray<bool> selection = *attributes.lookup_or_default<bool>(
         ".select_poly", domain, false);
     return index_mask_ops::find_indices_from_virtual_array(
         selection.index_range(), selection, 4096, indices);
   }
   if (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) {
-    const VArray<bool> selection = attributes.lookup_or_default<bool>(
+    const VArray<bool> selection = *attributes.lookup_or_default<bool>(
         ".select_vert", domain, false);
     return index_mask_ops::find_indices_from_virtual_array(
         selection.index_range(), selection, 4096, indices);
@@ -190,7 +190,7 @@ static void face_corner_color_equalize_verts(Mesh &mesh, const IndexMask selecti
     return;
   }
 
-  GVArray color_attribute_point = attributes.lookup(name, ATTR_DOMAIN_POINT);
+  GVArray color_attribute_point = *attributes.lookup(name, ATTR_DOMAIN_POINT);
   GVArray color_attribute_corner = attributes.adapt_domain(
       color_attribute_point, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER);
   color_attribute_corner.materialize(selection, attribute.span.data());
@@ -200,8 +200,8 @@ static void face_corner_color_equalize_verts(Mesh &mesh, const IndexMask selecti
 static bool vertex_color_smooth(Object *ob)
 {
   Mesh *me;
-  if (((me = BKE_mesh_from_object(ob)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false)) {
+  if (((me = BKE_mesh_from_object(ob)) == nullptr) || (ED_mesh_color_ensure(me, nullptr) == false))
+  {
     return false;
   }
 
@@ -300,18 +300,17 @@ static void transform_active_color(bContext *C, wmOperator *op, const TransformF
       CTX_data_ensure_evaluated_depsgraph(C), obact, true, false, true);
 
   SCULPT_undo_push_begin(obact, op);
-  PBVHNode **nodes;
-  int nodes_num;
 
-  BKE_pbvh_search_gather(obact->sculpt->pbvh, nullptr, nullptr, &nodes, &nodes_num);
-  for (int i : IndexRange(nodes_num)) {
-    SCULPT_undo_push_node(obact, nodes[i], SCULPT_UNDO_COLOR);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
+      obact->sculpt->pbvh, nullptr, nullptr);
+  for (PBVHNode *node : nodes) {
+    SCULPT_undo_push_node(obact, node, SCULPT_UNDO_COLOR);
   }
 
   transform_active_color_data(*BKE_mesh_from_object(obact), transform_fn);
 
-  for (int i : IndexRange(nodes_num)) {
-    BKE_pbvh_node_mark_update_color(nodes[i]);
+  for (PBVHNode *node : nodes) {
+    BKE_pbvh_node_mark_update_color(node);
   }
 
   SCULPT_undo_push_end(obact);
@@ -347,7 +346,8 @@ static int vertex_color_brightness_contrast_exec(bContext *C, wmOperator *op)
 
   Mesh *me;
   if (((me = BKE_mesh_from_object(obact)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false)) {
+      (ED_mesh_color_ensure(me, nullptr) == false))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -393,7 +393,8 @@ static int vertex_color_hsv_exec(bContext *C, wmOperator *op)
 
   Mesh *me;
   if (((me = BKE_mesh_from_object(obact)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false)) {
+      (ED_mesh_color_ensure(me, nullptr) == false))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -420,9 +421,9 @@ static int vertex_color_hsv_exec(bContext *C, wmOperator *op)
 void PAINT_OT_vertex_color_hsv(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Vertex Paint Hue Saturation Value";
+  ot->name = "Vertex Paint Hue/Saturation/Value";
   ot->idname = "PAINT_OT_vertex_color_hsv";
-  ot->description = "Adjust vertex color HSV values";
+  ot->description = "Adjust vertex color Hue/Saturation/Value";
 
   /* api callbacks */
   ot->exec = vertex_color_hsv_exec;
@@ -443,7 +444,8 @@ static int vertex_color_invert_exec(bContext *C, wmOperator *op)
 
   Mesh *me;
   if (((me = BKE_mesh_from_object(obact)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false)) {
+      (ED_mesh_color_ensure(me, nullptr) == false))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -480,7 +482,8 @@ static int vertex_color_levels_exec(bContext *C, wmOperator *op)
 
   Mesh *me;
   if (((me = BKE_mesh_from_object(obact)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false)) {
+      (ED_mesh_color_ensure(me, nullptr) == false))
+  {
     return OPERATOR_CANCELLED;
   }
 

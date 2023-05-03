@@ -11,15 +11,39 @@
 
 namespace blender::gpu {
 
-void VKIndexBuffer::upload_data() {}
-
-void VKIndexBuffer::bind_as_ssbo(uint binding)
+void VKIndexBuffer::ensure_updated()
 {
+  if (is_subrange_) {
+    src_->upload_data();
+    return;
+  }
+
   VKContext &context = *VKContext::get();
   if (!buffer_.is_allocated()) {
     allocate(context);
   }
 
+  if (data_ != nullptr) {
+    buffer_.update(data_);
+    MEM_SAFE_FREE(data_);
+  }
+}
+
+void VKIndexBuffer::upload_data()
+{
+  ensure_updated();
+}
+
+void VKIndexBuffer::bind(VKContext &context)
+{
+  context.command_buffer_get().bind(*this, to_vk_index_type(index_type_));
+}
+
+void VKIndexBuffer::bind_as_ssbo(uint binding)
+{
+  ensure_updated();
+
+  VKContext &context = *VKContext::get();
   VKShader *shader = static_cast<VKShader *>(context.shader);
   const VKShaderInterface &shader_interface = shader->interface_get();
   const VKDescriptorSet::Location location = shader_interface.descriptor_set_location(
@@ -48,6 +72,7 @@ void VKIndexBuffer::allocate(VKContext &context)
                  usage,
                  static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                                                     VK_BUFFER_USAGE_INDEX_BUFFER_BIT));
+  debug::object_label(&context, buffer_.vk_handle(), "IndexBuffer");
 }
 
 }  // namespace blender::gpu

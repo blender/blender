@@ -766,12 +766,17 @@ class Texture : NonCopyable {
     return GPU_texture_height(tx_);
   }
 
+  int depth() const
+  {
+    return GPU_texture_depth(tx_);
+  }
+
   int pixel_count() const
   {
     return GPU_texture_width(tx_) * GPU_texture_height(tx_);
   }
 
-  bool depth() const
+  bool is_depth() const
   {
     return GPU_texture_has_depth_format(tx_);
   }
@@ -884,7 +889,8 @@ class Texture : NonCopyable {
       int3 size(0);
       GPU_texture_get_mipmap_size(tx_, 0, size);
       if (size != int3(w, h, d) || GPU_texture_format(tx_) != format ||
-          GPU_texture_is_cube(tx_) != cubemap || GPU_texture_is_array(tx_) != layered) {
+          GPU_texture_is_cube(tx_) != cubemap || GPU_texture_is_array(tx_) != layered)
+      {
         free();
       }
     }

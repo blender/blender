@@ -331,6 +331,27 @@ class GHOST_System : public GHOST_ISystem {
   virtual void putClipboard(const char *buffer, bool selection) const = 0;
 
   /**
+   * Returns GHOST_kSuccess if the clipboard contains an image.
+   */
+  GHOST_TSuccess hasClipboardImage(void) const;
+
+  /**
+   * Get image data from the Clipboard
+   * \param r_width: the returned image width in pixels.
+   * \param r_height: the returned image height in pixels.
+   * \return pointer uint array in RGBA byte order. Caller must free.
+   */
+  uint *getClipboardImage(int *r_width, int *r_height) const;
+
+  /**
+   * Put image data to the Clipboard
+   * \param rgba: uint array in RGBA byte order.
+   * \param width: the image width in pixels.
+   * \param height: the image height in pixels.
+   */
+  GHOST_TSuccess putClipboardImage(uint *rgba, int width, int height) const;
+
+  /**
    * Show a system message box
    * \param title: The title of the message box.
    * \param message: The message to display.

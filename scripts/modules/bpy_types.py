@@ -440,7 +440,7 @@ class _GenericBone:
     def _other_bones(self):
         id_data = self.id_data
 
-        # `id_data` is an 'Object' for `PosePone`, otherwise it's an `Armature`.
+        # `id_data` is an `Object` for `PosePone`, otherwise it's an `Armature`.
         if isinstance(self, PoseBone):
             return id_data.pose.bones
         if isinstance(self, EditBone):
@@ -580,7 +580,6 @@ class Mesh(bpy_types.ID):
         vertex_indices = tuple(chain.from_iterable(faces))
         loop_starts = tuple(islice(chain([0], accumulate(face_lengths)), faces_len))
 
-        self.polygons.foreach_set("loop_total", face_lengths)
         self.polygons.foreach_set("loop_start", loop_starts)
         self.polygons.foreach_set("vertices", vertex_indices)
 
@@ -689,7 +688,7 @@ class RNAMetaPropGroup(StructMetaPropGroup, RNAMeta):
     pass
 
 
-# Same as 'Operator'
+# Same as `Operator`.
 # only without 'as_keywords'
 class Gizmo(StructRNA):
     __slots__ = ()

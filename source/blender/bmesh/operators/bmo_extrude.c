@@ -191,7 +191,8 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
   }
 
   for (e = BMO_iter_new(&siter, dupeop.slots_out, "boundary_map.out", 0); e;
-       e = BMO_iter_step(&siter)) {
+       e = BMO_iter_step(&siter))
+  {
     BMVert *f_verts[4];
     e_new = BMO_iter_map_value_ptr(&siter);
 
@@ -455,7 +456,8 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 
   slot_edges_exclude = BMO_slot_get(op->slots_in, "edges_exclude");
   for (e = BMO_iter_new(&siter, dupeop.slots_out, "boundary_map.out", 0); e;
-       e = BMO_iter_step(&siter)) {
+       e = BMO_iter_step(&siter))
+  {
     BMVert *f_verts[4];
 #ifdef USE_EDGE_REGION_FLAGS
     BMEdge *f_edges[4];
@@ -581,7 +583,8 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 
   /* link isolated vert */
   for (v = BMO_iter_new(&siter, dupeop.slots_out, "isovert_map.out", 0); v;
-       v = BMO_iter_step(&siter)) {
+       v = BMO_iter_step(&siter))
+  {
     BMVert *v2 = BMO_iter_map_value_ptr(&siter);
 
     /* not essential, but ensures face normals from extruded edges are contiguous */

@@ -154,7 +154,7 @@ static void deformVerts(ModifierData *md,
   }
 
   /* make new mesh */
-  psmd->mesh_final = BKE_mesh_copy_for_eval(mesh_src, false);
+  psmd->mesh_final = BKE_mesh_copy_for_eval(mesh_src);
   BKE_mesh_vert_coords_apply(psmd->mesh_final, vertexCos);
 
   BKE_mesh_tessface_ensure(psmd->mesh_final);
@@ -185,7 +185,7 @@ static void deformVerts(ModifierData *md,
       /* Make a persistent copy of the mesh. We don't actually need
        * all this data, just some topology for remapping. Could be
        * optimized once. */
-      psmd->mesh_original = BKE_mesh_copy_for_eval(mesh_original, false);
+      psmd->mesh_original = BKE_mesh_copy_for_eval(mesh_original);
     }
 
     BKE_mesh_tessface_ensure(psmd->mesh_original);
@@ -201,7 +201,8 @@ static void deformVerts(ModifierData *md,
    * instance. */
   if (had_mesh_final && (psmd->mesh_final->totvert != psmd->totdmvert ||
                          psmd->mesh_final->totedge != psmd->totdmedge ||
-                         psmd->mesh_final->totface != psmd->totdmface)) {
+                         psmd->mesh_final->totface != psmd->totdmface))
+  {
     psys->recalc |= ID_RECALC_PSYS_RESET;
   }
   psmd->totdmvert = psmd->mesh_final->totvert;

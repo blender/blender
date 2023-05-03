@@ -56,6 +56,7 @@
 #include "WM_types.h"
 
 using blender::float3;
+using blender::int2;
 using blender::MutableSpan;
 using blender::Span;
 
@@ -73,7 +74,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
                              Object *ob_src,
                              const float imat[4][4],
                              float3 **vert_positions_pp,
-                             MEdge **medge_pp,
+                             blender::int2 **medge_pp,
                              int **corner_verts_pp,
                              int **corner_edges_pp,
                              int *all_poly_offsets,
@@ -99,13 +100,13 @@ static void join_mesh_single(Depsgraph *depsgraph,
 
   Mesh *me = static_cast<Mesh *>(ob_src->data);
   float3 *vert_positions = *vert_positions_pp;
-  MEdge *edge = *medge_pp;
+  blender::int2 *edge = *medge_pp;
   int *corner_verts = *corner_verts_pp;
   int *corner_edges = *corner_edges_pp;
 
   if (me->totvert) {
     /* standard data */
-    CustomData_merge(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
+    CustomData_merge_layout(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
     CustomData_copy_data_named(&me->vdata, vdata, 0, *vertofs, me->totvert);
 
     /* vertex groups */
@@ -205,12 +206,11 @@ static void join_mesh_single(Depsgraph *depsgraph,
   }
 
   if (me->totedge) {
-    CustomData_merge(&me->edata, edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
+    CustomData_merge_layout(&me->edata, edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
     CustomData_copy_data_named(&me->edata, edata, 0, *edgeofs, me->totedge);
 
     for (a = 0; a < me->totedge; a++, edge++) {
-      edge->v1 += *vertofs;
-      edge->v2 += *vertofs;
+      (*edge) += *vertofs;
     }
   }
 
@@ -226,7 +226,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    CustomData_merge(&me->ldata, ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
+    CustomData_merge_layout(&me->ldata, ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
     CustomData_copy_data_named(&me->ldata, ldata, 0, *loopofs, me->totloop);
 
     for (a = 0; a < me->totloop; a++) {
@@ -250,7 +250,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    CustomData_merge(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
+    CustomData_merge_layout(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
     CustomData_copy_data_named(&me->pdata, pdata, 0, *polyofs, me->totpoly);
 
     /* Apply matmap. In case we don't have material indices yet, create them if more than one
@@ -336,7 +336,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Material **matar = nullptr, *ma;
   Mesh *me;
-  MEdge *edge = nullptr;
+  blender::int2 *edge = nullptr;
   Key *key, *nkey = nullptr;
   float imat[4][4];
   int a, b, totcol, totmat = 0, totedge = 0, totvert = 0;
@@ -416,14 +416,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
                 MESH_MAX_VERTS);
     return OPERATOR_CANCELLED;
   }
-
-  /* remove tessface to ensure we don't hold references to invalid faces */
-  BKE_mesh_tessface_clear(me);
-
-  /* Clear any run-time data.
-   * Even though this mesh wont typically have run-time data, the Python API can for e.g.
-   * create loop-triangle cache here, which is confusing when left in the mesh, see: #90798. */
-  BKE_mesh_runtime_clear_geometry(me);
 
   /* new material indices and material array */
   if (totmat) {
@@ -586,7 +578,8 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   float3 *vert_positions = (float3 *)CustomData_add_layer_named(
       &vdata, CD_PROP_FLOAT3, CD_SET_DEFAULT, totvert, "position");
-  edge = (MEdge *)CustomData_add_layer(&edata, CD_MEDGE, CD_SET_DEFAULT, totedge);
+  edge = (int2 *)CustomData_add_layer_named(
+      &edata, CD_PROP_INT32_2D, CD_CONSTRUCT, totedge, ".edge_verts");
   int *corner_verts = (int *)CustomData_add_layer_named(
       &ldata, CD_PROP_INT32, CD_CONSTRUCT, totloop, ".corner_vert");
   int *corner_edges = (int *)CustomData_add_layer_named(
@@ -683,12 +676,13 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   /* return to mesh we're merging to */
   me = static_cast<Mesh *>(ob->data);
 
-  CustomData_free(&me->vdata, me->totvert);
-  CustomData_free(&me->edata, me->totedge);
-  CustomData_free(&me->ldata, me->totloop);
-  CustomData_free(&me->pdata, me->totpoly);
-  MEM_SAFE_FREE(me->poly_offset_indices);
-  me->poly_offset_indices = poly_offsets;
+  BKE_mesh_clear_geometry(me);
+
+  if (totpoly) {
+    me->poly_offset_indices = poly_offsets;
+    me->runtime->poly_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
+        poly_offsets);
+  }
 
   me->totvert = totvert;
   me->totedge = totedge;
@@ -1244,7 +1238,8 @@ static void ed_mesh_pick_face_vert__mpoly_find(
     float sco[2];
     const int v_idx = corner_verts[poly[j]];
     if (ED_view3d_project_float_object(region, vert_positions[v_idx], sco, V3D_PROJ_TEST_NOP) ==
-        V3D_PROJ_RET_OK) {
+        V3D_PROJ_RET_OK)
+    {
       const float len_test = len_manhattan_v2v2(mval, sco);
       if (len_test < *r_len_best) {
         *r_len_best = len_test;
@@ -1354,7 +1349,8 @@ static void ed_mesh_pick_vert__mapFunc(void *userData,
   }
   float sco[2];
   if (ED_view3d_project_float_object(data->region, co, sco, V3D_PROJ_TEST_CLIP_DEFAULT) ==
-      V3D_PROJ_RET_OK) {
+      V3D_PROJ_RET_OK)
+  {
     const float len = len_manhattan_v2v2(data->mval_f, sco);
     if (len < data->len_best) {
       data->len_best = len;

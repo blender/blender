@@ -130,6 +130,10 @@ int filelist_file_find_id(const struct FileList *filelist, const struct ID *id);
  * Get the ID a file represents (if any). For #FILE_MAIN, #FILE_MAIN_ASSET.
  */
 struct ID *filelist_file_get_id(const struct FileDirEntry *file);
+/**
+ * Same as #filelist_file_get_id(), but gets the file by index (doesn't require the file to be
+ * cached, uses #FileListInternEntry only). */
+struct ID *filelist_entry_get_id(const struct FileList *filelist, int index);
 bool filelist_uid_is_set(const FileUID uid);
 void filelist_uid_unset(FileUID *r_uid);
 void filelist_file_cache_slidingwindow_set(struct FileList *filelist, size_t window_size);

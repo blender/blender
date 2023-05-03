@@ -649,12 +649,12 @@ void BKE_sound_destroy_scene(Scene *scene)
   }
 }
 
-void BKE_sound_lock()
+void BKE_sound_lock(void)
 {
   AUD_Device_lock(sound_device);
 }
 
-void BKE_sound_unlock()
+void BKE_sound_unlock(void)
 {
   AUD_Device_unlock(sound_device);
 }
@@ -819,6 +819,15 @@ void BKE_sound_set_scene_sound_pitch(void *handle, float pitch, char animated)
   AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PITCH, sound_cfra, &pitch, animated);
 }
 
+void BKE_sound_set_scene_sound_pitch_constant_range(void *handle,
+                                                    int frame_start,
+                                                    int frame_end,
+                                                    float pitch)
+{
+  AUD_SequenceEntry_setConstantRangeAnimationData(
+      handle, AUD_AP_PITCH, frame_start, frame_end, &pitch);
+}
+
 void BKE_sound_set_scene_sound_pan(void *handle, float pan, char animated)
 {
   AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PANNING, sound_cfra, &pan, animated);
@@ -944,7 +953,8 @@ void BKE_sound_seek_scene(Main *bmain, Scene *scene)
     }
     AUD_Handle_resume(scene->playback_handle);
     if (scene->sound_scrub_handle &&
-        AUD_Handle_getStatus(scene->sound_scrub_handle) != AUD_STATUS_INVALID) {
+        AUD_Handle_getStatus(scene->sound_scrub_handle) != AUD_STATUS_INVALID)
+    {
       AUD_Handle_setPosition(scene->sound_scrub_handle, 0);
     }
     else {
@@ -1367,6 +1377,12 @@ void BKE_sound_set_scene_volume(Scene *UNUSED(scene), float UNUSED(volume)) {}
 void BKE_sound_set_scene_sound_pitch(void *UNUSED(handle),
                                      float UNUSED(pitch),
                                      char UNUSED(animated))
+{
+}
+void BKE_sound_set_scene_sound_pitch_constant_range(void *UNUSED(handle),
+                                                    int UNUSED(frame_start),
+                                                    int UNUSED(frame_end),
+                                                    float UNUSED(pitch))
 {
 }
 float BKE_sound_get_length(struct Main *UNUSED(bmain), bSound *UNUSED(sound))

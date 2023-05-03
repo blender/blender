@@ -1188,7 +1188,8 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA 
 
   View3DShading *shading = ptr->data;
   if (shading->type == OB_MATERIAL ||
-      (shading->type == OB_RENDER && !BKE_scene_uses_blender_workbench(scene))) {
+      (shading->type == OB_RENDER && !BKE_scene_uses_blender_workbench(scene)))
+  {
     /* When switching from workbench to render or material mode the geometry of any
      * active sculpt session needs to be recalculated. */
     for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
@@ -1497,11 +1498,13 @@ static const EnumPropertyItem *rna_3DViewShading_render_pass_itemf(bContext *C,
                   EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT,
                   EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET,
                   EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL) &&
-             !eevee_next_active) {
+             !eevee_next_active)
+    {
     }
     else if (!((!bloom_enabled &&
                 (item->value == EEVEE_RENDER_PASS_BLOOM || STREQ(item->name, "Effects"))) ||
-               (!aov_available && STREQ(item->name, "Shader AOV")))) {
+               (!aov_available && STREQ(item->name, "Shader AOV"))))
+    {
       RNA_enum_item_add(&result, &totitem, item);
     }
   }
@@ -3255,7 +3258,8 @@ static void rna_SpaceSpreadsheet_geometry_component_type_update(Main *UNUSED(bma
                 ATTR_DOMAIN_POINT,
                 ATTR_DOMAIN_EDGE,
                 ATTR_DOMAIN_FACE,
-                ATTR_DOMAIN_CORNER)) {
+                ATTR_DOMAIN_CORNER))
+      {
         sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
       }
       break;
@@ -3308,7 +3312,8 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext *UN
   EnumPropertyItem *item_array = NULL;
   int items_len = 0;
   for (const EnumPropertyItem *item = rna_enum_attribute_domain_items; item->identifier != NULL;
-       item++) {
+       item++)
+  {
     if (component_type == GEO_COMPONENT_TYPE_MESH) {
       if (!ELEM(item->value,
                 ATTR_DOMAIN_CORNER,
@@ -4599,7 +4604,10 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "show_retopology", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_RETOPOLOGY);
-  RNA_def_property_ui_text(prop, "Retopology", "Use retopology display");
+  RNA_def_property_ui_text(prop,
+                           "Retopology",
+                           "Hide the solid mesh and offset the overlay towards the view. "
+                           "Selection is occluded by inactive geometry, unless X-Ray is enabled");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
 
   prop = RNA_def_property(srna, "retopology_offset", PROP_FLOAT, PROP_DISTANCE);
@@ -8047,6 +8055,11 @@ static void rna_def_spreadsheet_row_filter(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "value_int");
   RNA_def_property_range(prop, -128, 127);
   RNA_def_property_ui_text(prop, "8-Bit Integer Value", "");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
+
+  prop = RNA_def_property(srna, "value_int2", PROP_INT, PROP_NONE);
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_ui_text(prop, "2D Vector Value", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
 
   prop = RNA_def_property(srna, "value_boolean", PROP_BOOLEAN, PROP_NONE);

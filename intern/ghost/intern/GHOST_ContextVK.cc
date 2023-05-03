@@ -424,7 +424,8 @@ static void enableLayer(vector<VkLayerProperties> &layers_available,
 {
 #define PUSH_VKLAYER(name, name2) \
   if (vklayer_config_exist("VkLayer_" #name ".json") && \
-      checkLayerSupport(layers_available, "VK_LAYER_" #name2)) { \
+      checkLayerSupport(layers_available, "VK_LAYER_" #name2)) \
+  { \
     layers_enabled.push_back("VK_LAYER_" #name2); \
     enabled = true; \
   } \
@@ -579,7 +580,8 @@ static GHOST_TSuccess getGraphicQueueFamily(VkPhysicalDevice device, uint32_t *r
      * and compute pipelines. We select this one; compute only queue family hints at async compute
      * implementations. */
     if ((queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
-        (queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
+        (queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT))
+    {
       return GHOST_kSuccess;
     }
     (*r_queue_index)++;
@@ -903,12 +905,13 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   auto extensions_available = getExtensionsAvailable();
 
   vector<const char *> layers_enabled;
-  if (m_debug) {
-    enableLayer(layers_available, layers_enabled, VkLayer::KHRONOS_validation, m_debug);
-  }
-
   vector<const char *> extensions_device;
   vector<const char *> extensions_enabled;
+
+  if (m_debug) {
+    enableLayer(layers_available, layers_enabled, VkLayer::KHRONOS_validation, m_debug);
+    requireExtension(extensions_available, extensions_enabled, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+  }
 
   if (use_window_surface) {
     const char *native_surface_extension_name = getPlatformSpecificSurfaceExtension();

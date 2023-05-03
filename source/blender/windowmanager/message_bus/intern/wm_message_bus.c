@@ -68,8 +68,8 @@ void WM_msgbus_clear_by_owner(struct wmMsgBus *mbus, void *owner)
     msg_key_next = msg_key->next;
 
     wmMsgSubscribeValueLink *msg_lnk_next;
-    for (wmMsgSubscribeValueLink *msg_lnk = msg_key->values.first; msg_lnk;
-         msg_lnk = msg_lnk_next) {
+    for (wmMsgSubscribeValueLink *msg_lnk = msg_key->values.first; msg_lnk; msg_lnk = msg_lnk_next)
+    {
       msg_lnk_next = msg_lnk->next;
       if (msg_lnk->params.owner == owner) {
         if (msg_lnk->params.tag) {
@@ -154,7 +154,8 @@ wmMsgSubscribeKey *WM_msg_subscribe_with_key(struct wmMsgBus *mbus,
     LISTBASE_FOREACH (wmMsgSubscribeValueLink *, msg_lnk, &key->values) {
       if ((msg_lnk->params.notify == msg_val_params->notify) &&
           (msg_lnk->params.owner == msg_val_params->owner) &&
-          (msg_lnk->params.user_data == msg_val_params->user_data)) {
+          (msg_lnk->params.user_data == msg_val_params->user_data))
+      {
         return key;
       }
     }

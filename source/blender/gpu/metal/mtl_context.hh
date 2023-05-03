@@ -336,7 +336,7 @@ struct MTLContextTextureUtils {
 
   template<typename T> void free_cached_pso_map(blender::Map<T, id<MTLComputePipelineState>> &map)
   {
-    for (typename blender::Map<T, id<MTLComputePipelineState>>::MutableItem item : map.items()) {
+    for (typename blender::MutableMapItem<T, id<MTLComputePipelineState>> item : map.items()) {
       [item.value release];
     }
     map.clear();

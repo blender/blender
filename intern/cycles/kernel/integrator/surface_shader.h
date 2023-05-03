@@ -66,7 +66,8 @@ ccl_device_inline void surface_shader_prepare_guiding(KernelGlobals kg,
 
   /* Init guiding (diffuse BSDFs only for now). */
   if (!(diffuse_sampling_fraction > 0.0f &&
-        guiding_bsdf_init(kg, state, sd->P, sd->N, rand_bsdf_guiding))) {
+        guiding_bsdf_init(kg, state, sd->P, sd->N, rand_bsdf_guiding)))
+  {
     state->guiding.use_surface_guiding = false;
     return;
   }
@@ -106,12 +107,14 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
             (CLOSURE_IS_BSDF_GLOSSY(sc->type) &&
              (kernel_data.integrator.filter_closures & FILTER_CLOSURE_GLOSSY)) ||
             (CLOSURE_IS_BSDF_TRANSMISSION(sc->type) &&
-             (kernel_data.integrator.filter_closures & FILTER_CLOSURE_TRANSMISSION))) {
+             (kernel_data.integrator.filter_closures & FILTER_CLOSURE_TRANSMISSION)))
+        {
           sc->type = CLOSURE_NONE_ID;
           sc->sample_weight = 0.0f;
         }
         else if ((CLOSURE_IS_BSDF_TRANSPARENT(sc->type) &&
-                  (kernel_data.integrator.filter_closures & FILTER_CLOSURE_TRANSPARENT))) {
+                  (kernel_data.integrator.filter_closures & FILTER_CLOSURE_TRANSPARENT)))
+        {
           sc->type = CLOSURE_HOLDOUT_ID;
           sc->sample_weight = 0.0f;
           sd->flag |= SD_HOLDOUT;
@@ -127,7 +130,8 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
    * a good heuristic. */
   if (INTEGRATOR_STATE(state, path, bounce) + INTEGRATOR_STATE(state, path, transparent_bounce) ==
           0 &&
-      sd->num_closure > 1) {
+      sd->num_closure > 1)
+  {
     float sum = 0.0f;
 
     for (int i = 0; i < sd->num_closure; i++) {
@@ -153,7 +157,8 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
 #ifdef __MNEE__
       && !(INTEGRATOR_STATE(state, path, mnee) & PATH_MNEE_VALID)
 #endif
-  ) {
+  )
+  {
     float blur_pdf = kernel_data.integrator.filter_glossy *
                      INTEGRATOR_STATE(state, path, min_ray_pdf);
 

@@ -158,9 +158,7 @@ BLI_INLINE bool BLI_edgehashIterator_isDone(const EdgeHashIterator *ehi)
 {
   return ehi->index >= ehi->length;
 }
-BLI_INLINE void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi,
-                                            unsigned int *r_v0,
-                                            unsigned int *r_v1)
+BLI_INLINE void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, int *r_v0, int *r_v1)
 {
   struct _EdgeHash_Edge edge = ehi->entries[ehi->index].edge;
   *r_v0 = edge.v_low;
@@ -219,9 +217,7 @@ void BLI_edgeset_free(EdgeSet *es);
 EdgeSetIterator *BLI_edgesetIterator_new(EdgeSet *es);
 void BLI_edgesetIterator_free(EdgeSetIterator *esi);
 
-BLI_INLINE void BLI_edgesetIterator_getKey(EdgeSetIterator *esi,
-                                           unsigned int *r_v0,
-                                           unsigned int *r_v1)
+BLI_INLINE void BLI_edgesetIterator_getKey(EdgeSetIterator *esi, int *r_v0, int *r_v1)
 {
   struct _EdgeHash_Edge edge = esi->edges[esi->index];
   *r_v0 = edge.v_low;

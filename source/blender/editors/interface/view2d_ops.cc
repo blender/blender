@@ -32,6 +32,8 @@
 
 #include "PIL_time.h" /* USER_ZOOM_CONTINUE */
 
+#include "view2d_intern.hh"
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
@@ -388,7 +390,7 @@ static void VIEW2D_OT_edge_pan(wmOperatorType *ot)
   ot->invoke = view_edge_pan_invoke;
   ot->modal = view_edge_pan_modal;
   ot->cancel = view_edge_pan_cancel;
-  ot->poll = UI_view2d_edge_pan_poll;
+  ot->poll = view2d_edge_pan_poll;
 
   /* operator is modal */
   ot->flag = OPTYPE_INTERNAL;
@@ -1244,7 +1246,8 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
       /* Only respect user setting zoom axis if the view does not have any zoom restrictions
        * any will be scaled uniformly */
       if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 && (v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 &&
-          (v2d->keepzoom & V2D_KEEPASPECT)) {
+          (v2d->keepzoom & V2D_KEEPASPECT))
+      {
         if (U.uiflag & USER_ZOOM_HORIZ) {
           facy = 0.0f;
         }
@@ -1751,23 +1754,6 @@ struct v2dScrollerMove {
   int lastx, lasty;
 };
 
-/**
- * #View2DScrollers is typedef'd in UI_view2d.h
- * This is a CUT DOWN VERSION of the 'real' version, which is defined in view2d.c,
- * as we only need focus bubble info.
- *
- * \warning The start of this struct must not change,
- * so that it stays in sync with the 'real' version.
- * For now, we don't need to have a separate (internal) header for structs like this...
- */
-struct View2DScrollers {
-  int vert_min, vert_max; /* vertical scrollbar */
-  int hor_min, hor_max;   /* horizontal scrollbar */
-
-  /* These values are written into, even if we don't use them. */
-  rcti _hor, _vert;
-};
-
 /* quick enum for vsm->zone (scroller handles) */
 enum {
   SCROLLHANDLE_MIN = -1,
@@ -1873,7 +1859,7 @@ static void scroller_activate_init(bContext *C,
    * - zooming must be allowed on this axis, otherwise, default to pan
    */
   View2DScrollers scrollers;
-  UI_view2d_scrollers_calc(v2d, nullptr, &scrollers);
+  view2d_scrollers_calc(v2d, nullptr, &scrollers);
 
   /* Use a union of 'cur' & 'tot' in case the current view is far outside 'tot'. In this cases
    * moving the scroll bars has far too little effect and the view can get stuck #31476. */
@@ -2120,7 +2106,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
      */
     if (ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
       if (((vsm->scroller == 'h') && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) == 0) ||
-          ((vsm->scroller == 'v') && (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) == 0)) {
+          ((vsm->scroller == 'v') && (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) == 0))
+      {
         /* switch to bar (i.e. no scaling gets handled) */
         vsm->zone = SCROLLHANDLE_BAR;
       }
@@ -2129,7 +2116,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
     /* check if zone is inappropriate (i.e. 'bar' but panning is banned), so cannot continue */
     if (vsm->zone == SCROLLHANDLE_BAR) {
       if (((vsm->scroller == 'h') && (v2d->keepofs & V2D_LOCKOFS_X)) ||
-          ((vsm->scroller == 'v') && (v2d->keepofs & V2D_LOCKOFS_Y))) {
+          ((vsm->scroller == 'v') && (v2d->keepofs & V2D_LOCKOFS_Y)))
+      {
         /* free customdata initialized */
         scroller_activate_exit(C, op);
 
@@ -2140,7 +2128,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
 
     /* zone is also inappropriate if scroller is not visible... */
     if (((vsm->scroller == 'h') && (v2d->scroll & V2D_SCROLL_HORIZONTAL_FULLR)) ||
-        ((vsm->scroller == 'v') && (v2d->scroll & V2D_SCROLL_VERTICAL_FULLR))) {
+        ((vsm->scroller == 'v') && (v2d->scroll & V2D_SCROLL_VERTICAL_FULLR)))
+    {
       /* free customdata initialized */
       scroller_activate_exit(C, op);
 

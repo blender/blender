@@ -50,6 +50,8 @@ enum eSculptColorFilterTypes {
   COLOR_FILTER_SMOOTH,
 };
 
+static const float fill_filter_default_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+
 static EnumPropertyItem prop_color_filter_types[] = {
     {COLOR_FILTER_FILL, "FILL", 0, "Fill", "Fill with a specific color"},
     {COLOR_FILTER_HUE, "HUE", 0, "Hue", "Change hue"},
@@ -289,8 +291,9 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object *ob)
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
 
-  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
-  BLI_task_parallel_range(0, ss->filter_cache->totnode, &data, color_filter_task_cb, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
+  BLI_task_parallel_range(
+      0, ss->filter_cache->nodes.size(), &data, color_filter_task_cb, &settings);
 
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
 }
@@ -332,7 +335,6 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
-  PBVH *pbvh = ob->sculpt->pbvh;
   View3D *v3d = CTX_wm_view3d(C);
 
   int mval[2];
@@ -357,6 +359,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  const PBVHType pbvh_type_prev = BKE_pbvh_type(ss->pbvh);
   SCULPT_undo_push_begin(ob, op);
   BKE_sculpt_color_layer_create_if_needed(ob);
 
@@ -364,8 +367,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
    * earlier steps modifying the data. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, true);
-
-  if (BKE_pbvh_type(pbvh) == PBVH_FACES && !ob->sculpt->pmap) {
+  if (pbvh_type_prev == PBVH_FACES && !ob->sculpt->pmap) {
     return OPERATOR_CANCELLED;
   }
 
@@ -465,9 +467,17 @@ void SCULPT_OT_color_filter(wmOperatorType *ot)
   /* rna */
   SCULPT_mesh_filter_properties(ot);
 
-  RNA_def_enum(ot->srna, "type", prop_color_filter_types, COLOR_FILTER_HUE, "Filter Type", "");
+  RNA_def_enum(ot->srna, "type", prop_color_filter_types, COLOR_FILTER_FILL, "Filter Type", "");
 
-  PropertyRNA *prop = RNA_def_float_color(
-      ot->srna, "fill_color", 3, nullptr, 0.0f, FLT_MAX, "Fill Color", "", 0.0f, 1.0f);
+  PropertyRNA *prop = RNA_def_float_color(ot->srna,
+                                          "fill_color",
+                                          3,
+                                          fill_filter_default_color,
+                                          0.0f,
+                                          FLT_MAX,
+                                          "Fill Color",
+                                          "",
+                                          0.0f,
+                                          1.0f);
   RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
 }

@@ -135,7 +135,8 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
   else {
     for (const StringRefNull name :
-         {"Mean", "Median", "Sum", "Min", "Max", "Range", "Standard Deviation", "Variance"}) {
+         {"Mean", "Median", "Sum", "Min", "Max", "Range", "Standard Deviation", "Variance"})
+    {
       params.add_item(IFACE_(name.c_str()), [node_type, name, type](LinkSearchOpParams &params) {
         bNode &node = params.add_node(node_type);
         node.custom1 = *type;
@@ -200,10 +201,8 @@ static void node_geo_exec(GeoNodeExecParams params)
           continue;
         }
         if (attributes->domain_supported(domain)) {
-          bke::GeometryFieldContext field_context{*component, domain};
-          const int domain_num = attributes->domain_size(domain);
-
-          fn::FieldEvaluator data_evaluator{field_context, domain_num};
+          const bke::GeometryFieldContext field_context{*component, domain};
+          fn::FieldEvaluator data_evaluator{field_context, attributes->domain_size(domain)};
           data_evaluator.add(input_field);
           data_evaluator.set_selection(selection_field);
           data_evaluator.evaluate();
@@ -282,10 +281,8 @@ static void node_geo_exec(GeoNodeExecParams params)
           continue;
         }
         if (attributes->domain_supported(domain)) {
-          bke::GeometryFieldContext field_context{*component, domain};
-          const int domain_num = attributes->domain_size(domain);
-
-          fn::FieldEvaluator data_evaluator{field_context, domain_num};
+          const bke::GeometryFieldContext field_context{*component, domain};
+          fn::FieldEvaluator data_evaluator{field_context, attributes->domain_size(domain)};
           data_evaluator.add(input_field);
           data_evaluator.set_selection(selection_field);
           data_evaluator.evaluate();

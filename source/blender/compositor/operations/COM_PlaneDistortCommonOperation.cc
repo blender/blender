@@ -254,7 +254,8 @@ void PlaneDistortMaskOperation::execute_pixel_sampled(float output[4],
           isect_point_tri_v2(point,
                              sample_data->frame_space_corners[0],
                              sample_data->frame_space_corners[2],
-                             sample_data->frame_space_corners[3])) {
+                             sample_data->frame_space_corners[3]))
+      {
         inside_counter++;
       }
     }
@@ -273,7 +274,8 @@ void PlaneDistortMaskOperation::execute_pixel_sampled(float output[4],
             isect_point_tri_v2(point,
                                sample_data->frame_space_corners[0],
                                sample_data->frame_space_corners[2],
-                               sample_data->frame_space_corners[3])) {
+                               sample_data->frame_space_corners[3]))
+        {
           inside_counter++;
         }
       }
@@ -312,7 +314,8 @@ int PlaneDistortMaskOperation::get_jitter_samples_inside_count(int x,
         isect_point_tri_v2(point,
                            sample_data.frame_space_corners[0],
                            sample_data.frame_space_corners[2],
-                           sample_data.frame_space_corners[3])) {
+                           sample_data.frame_space_corners[3]))
+    {
       inside_count++;
     }
   }

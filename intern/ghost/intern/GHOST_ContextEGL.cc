@@ -204,7 +204,8 @@ GHOST_ContextEGL::GHOST_ContextEGL(const GHOST_System *const system,
       m_swap_interval(1),
       m_sharedContext(
           choose_api(api, s_gl_sharedContext, s_gles_sharedContext, s_vg_sharedContext)),
-      m_sharedCount(choose_api(api, s_gl_sharedCount, s_gles_sharedCount, s_vg_sharedCount))
+      m_sharedCount(choose_api(api, s_gl_sharedCount, s_gles_sharedCount, s_vg_sharedCount)),
+      m_surface_from_native_window(false)
 {
 }
 
@@ -341,7 +342,8 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   }
 
   if (!EGL_CHK(::eglInitialize(m_display, &egl_major, &egl_minor)) ||
-      (egl_major == 0 && egl_minor == 0)) {
+      (egl_major == 0 && egl_minor == 0))
+  {
     /* We failed to create a regular render window, retry and see if we can create a headless
      * render context. */
     ::eglTerminate(m_display);
@@ -350,7 +352,8 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
     assert(egl_extension_st != nullptr);
     assert(strstr(egl_extension_st, "EGL_MESA_platform_surfaceless") != nullptr);
     if (egl_extension_st == nullptr ||
-        strstr(egl_extension_st, "EGL_MESA_platform_surfaceless") == nullptr) {
+        strstr(egl_extension_st, "EGL_MESA_platform_surfaceless") == nullptr)
+    {
       goto error;
     }
 
@@ -406,7 +409,8 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
           (m_contextMajorVersion == 2 && epoxy_egl_version(m_display) >= 13) ||
           (m_contextMajorVersion == 3 &&
            epoxy_has_egl_extension(m_display, "KHR_create_context")) ||
-          (m_contextMajorVersion == 3 && epoxy_egl_version(m_display) >= 15))) {
+          (m_contextMajorVersion == 3 && epoxy_egl_version(m_display) >= 15)))
+    {
       fprintf(stderr,
               "Warning! May not be able to create a version %d.%d ES context with version %d.%d "
               "of EGL\n",
@@ -454,6 +458,7 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 
   if (m_nativeWindow != 0) {
     m_surface = ::eglCreateWindowSurface(m_display, m_config, m_nativeWindow, nullptr);
+    m_surface_from_native_window = true;
   }
   else {
     static const EGLint pb_attrib_list[] = {
@@ -598,8 +603,12 @@ error:
 
 GHOST_TSuccess GHOST_ContextEGL::releaseNativeHandles()
 {
-  m_nativeWindow = 0;
   m_nativeDisplay = nullptr;
+
+  m_nativeWindow = 0;
+  if (m_surface_from_native_window) {
+    m_surface = EGL_NO_SURFACE;
+  }
 
   return GHOST_kSuccess;
 }

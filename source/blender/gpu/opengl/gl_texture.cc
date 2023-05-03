@@ -178,7 +178,7 @@ bool GLTexture::init_internal(GPUVertBuf *vbo)
   return true;
 }
 
-bool GLTexture::init_internal(const GPUTexture *src, int mip_offset, int layer_offset)
+bool GLTexture::init_internal(GPUTexture *src, int mip_offset, int layer_offset)
 {
   BLI_assert(GLContext::texture_storage_support);
 
@@ -729,7 +729,8 @@ bool GLTexture::proxy_check(int mip)
 
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_ANY) ||
       GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_OFFICIAL) ||
-      GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL)) {
+      GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL))
+  {
     /* Some AMD drivers have a faulty `GL_PROXY_TEXTURE_..` check.
      * (see #55888, #56185, #59351).
      * Checking with `GL_PROXY_TEXTURE_..` doesn't prevent `Out Of Memory` issue,
@@ -740,7 +741,8 @@ bool GLTexture::proxy_check(int mip)
   }
 
   if ((type_ == GPU_TEXTURE_CUBE_ARRAY) &&
-      GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY)) {
+      GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY))
+  {
     /* Special fix for #79703. */
     return true;
   }

@@ -232,7 +232,8 @@ int PathTraceWorkCPU::adaptive_sampling_converge_filter_count_active(float thres
       uint num_row_pixels_active = 0;
       for (int x = 0; x < width; ++x) {
         if (!kernels_.adaptive_sampling_convergence_check(
-                kernel_globals, render_buffer, full_x + x, y, threshold, reset, offset, stride)) {
+                kernel_globals, render_buffer, full_x + x, y, threshold, reset, offset, stride))
+        {
           ++num_row_pixels_active;
           row_converged = false;
         }
@@ -357,8 +358,12 @@ void PathTraceWorkCPU::guiding_push_sample_data_to_global_storage(
 #  if PATH_GUIDING_LEVEL >= 2
   const bool use_direct_light = kernel_data.integrator.use_guiding_direct_light;
   const bool use_mis_weights = kernel_data.integrator.use_guiding_mis_weights;
+#    if OPENPGL_VERSION_MINOR >= 5
+  kg->opgl_path_segment_storage->PrepareSamples(use_mis_weights, use_direct_light, false);
+#    else
   kg->opgl_path_segment_storage->PrepareSamples(
       false, nullptr, use_mis_weights, use_direct_light, false);
+#    endif
 #  endif
 
 #  ifdef WITH_CYCLES_DEBUG

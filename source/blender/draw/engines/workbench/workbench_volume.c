@@ -75,7 +75,8 @@ static void workbench_volume_modifier_cache_populate(WORKBENCH_Data *vedata,
   }
 
   if ((!fds->use_coba && (fds->tex_density == NULL && fds->tex_color == NULL)) ||
-      (fds->use_coba && fds->tex_field == NULL)) {
+      (fds->use_coba && fds->tex_field == NULL))
+  {
     return;
   }
 

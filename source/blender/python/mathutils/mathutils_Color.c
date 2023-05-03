@@ -74,7 +74,8 @@ static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
       break;
     case 1:
       if (mathutils_array_parse(
-              col, COLOR_SIZE, COLOR_SIZE, PyTuple_GET_ITEM(args, 0), "mathutils.Color()") == -1) {
+              col, COLOR_SIZE, COLOR_SIZE, PyTuple_GET_ITEM(args, 0), "mathutils.Color()") == -1)
+      {
         return NULL;
       }
       break;
@@ -457,7 +458,8 @@ static int Color_ass_slice(ColorObject *self, int begin, int end, PyObject *seq)
   begin = MIN2(begin, end);
 
   if ((size = mathutils_array_parse(col, 0, COLOR_SIZE, seq, "mathutils.Color[begin:end] = []")) ==
-      -1) {
+      -1)
+  {
     return -1;
   }
 
@@ -838,7 +840,7 @@ static PySequenceMethods Color_SeqMethods = {
 };
 
 static PyMappingMethods Color_AsMapping = {
-    /*mp_len*/ (lenfunc)Color_len,
+    /*mp_length*/ (lenfunc)Color_len,
     /*mp_subscript*/ (binaryfunc)Color_subscript,
     /*mp_ass_subscript*/ (objobjargproc)Color_ass_subscript,
 };

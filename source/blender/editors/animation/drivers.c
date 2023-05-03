@@ -173,14 +173,16 @@ static int add_driver_with_target(ReportList *UNUSED(reports),
      */
     /* XXX: if we have N-1 mapping, should we include all those in the expression? */
     if ((RNA_property_unit(dst_prop) == PROP_UNIT_ROTATION) &&
-        (RNA_property_unit(src_prop) != PROP_UNIT_ROTATION)) {
+        (RNA_property_unit(src_prop) != PROP_UNIT_ROTATION))
+    {
       /* Rotation Destination:  normal -> radians,  so convert src to radians
        * (However, if both input and output is a rotation, don't apply such corrections)
        */
       BLI_strncpy(driver->expression, "radians(var)", sizeof(driver->expression));
     }
     else if ((RNA_property_unit(src_prop) == PROP_UNIT_ROTATION) &&
-             (RNA_property_unit(dst_prop) != PROP_UNIT_ROTATION)) {
+             (RNA_property_unit(dst_prop) != PROP_UNIT_ROTATION))
+    {
       /* Rotation Source: radians -> normal, so convert src to degrees
        * (However, if both input and output is a rotation, don't apply such corrections)
        */
@@ -203,7 +205,8 @@ static int add_driver_with_target(ReportList *UNUSED(reports),
     if (ELEM(src_ptr->type, &RNA_Object, &RNA_PoseBone) &&
         (STREQ(prop_name, "location") || STREQ(prop_name, "scale") ||
          STRPREFIX(prop_name, "rotation_")) &&
-        (src_ptr->data != dst_ptr->data)) {
+        (src_ptr->data != dst_ptr->data))
+    {
       /* Transform Channel */
       DriverTarget *dtar;
 
@@ -310,7 +313,8 @@ int ANIM_add_driver_with_target(ReportList *reports,
 
   RNA_id_pointer_create(src_id, &id_ptr2);
   if ((RNA_path_resolve_property(&id_ptr2, src_path, &ptr2, &prop2) == false) ||
-      (mapping_type == CREATEDRIVER_MAPPING_NONE)) {
+      (mapping_type == CREATEDRIVER_MAPPING_NONE))
+  {
     /* No target - So, fall back to default method for adding a "simple" driver normally */
     return ANIM_add_driver(
         reports, dst_id, dst_path, dst_index, flag | CREATEDRIVER_WITH_DEFAULT_DVAR, driver_type);
@@ -741,7 +745,7 @@ bool ANIM_driver_vars_paste(ReportList *reports, FCurve *fcu, bool replace)
 
   /* sanity checks */
   if (BLI_listbase_is_empty(&driver_vars_copybuf)) {
-    BKE_report(reports, RPT_ERROR, "No driver variables in clipboard to paste");
+    BKE_report(reports, RPT_ERROR, "No driver variables in the internal clipboard to paste");
     return false;
   }
 
@@ -992,7 +996,8 @@ static int add_driver_button_menu_invoke(bContext *C, wmOperator *op, const wmEv
   PropertyRNA *prop;
 
   if ((prop = RNA_struct_find_property(op->ptr, "mapping_type")) &&
-      RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_is_set(op->ptr, prop))
+  {
     /* Mapping Type is Set - Directly go into creating drivers */
     return add_driver_button_menu_exec(C, op);
   }
@@ -1257,7 +1262,7 @@ void ANIM_OT_paste_driver_button(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Paste Driver";
   ot->idname = "ANIM_OT_paste_driver_button";
-  ot->description = "Paste the driver in the clipboard to the highlighted button";
+  ot->description = "Paste the driver in the internal clipboard to the highlighted button";
 
   /* callbacks */
   ot->exec = paste_driver_button_exec;

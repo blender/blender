@@ -132,7 +132,8 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> polys,
         sub_v2_v2v2(uvdiff, uv2, uv);
 
         if (fabsf(uv[0] - uv2[0]) < limit[0] && fabsf(uv[1] - uv2[1]) < limit[1] &&
-            (!use_winding || winding[iterv->poly_index] == winding[v->poly_index])) {
+            (!use_winding || winding[iterv->poly_index] == winding[v->poly_index]))
+        {
           if (lastv) {
             lastv->next = next;
           }
@@ -294,7 +295,7 @@ void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
 }
 
 void BKE_mesh_vert_edge_map_create(
-    MeshElemMap **r_map, int **r_mem, const MEdge *edges, int totvert, int totedge)
+    MeshElemMap **r_map, int **r_mem, const blender::int2 *edges, int totvert, int totedge)
 {
   MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(totvert), __func__);
   int *indices = static_cast<int *>(MEM_mallocN(sizeof(int[2]) * size_t(totedge), __func__));
@@ -304,8 +305,8 @@ void BKE_mesh_vert_edge_map_create(
 
   /* Count number of edges for each vertex */
   for (i = 0; i < totedge; i++) {
-    map[edges[i].v1].count++;
-    map[edges[i].v2].count++;
+    map[edges[i][0]].count++;
+    map[edges[i][1]].count++;
   }
 
   /* Assign indices mem */
@@ -319,7 +320,7 @@ void BKE_mesh_vert_edge_map_create(
 
   /* Find the users */
   for (i = 0; i < totedge; i++) {
-    const uint v[2] = {edges[i].v1, edges[i].v2};
+    const int v[2] = {edges[i][0], edges[i][1]};
 
     map[v[0]].indices[map[v[0]].count] = i;
     map[v[1]].indices[map[v[1]].count] = i;
@@ -333,7 +334,7 @@ void BKE_mesh_vert_edge_map_create(
 }
 
 void BKE_mesh_vert_edge_vert_map_create(
-    MeshElemMap **r_map, int **r_mem, const MEdge *edges, int totvert, int totedge)
+    MeshElemMap **r_map, int **r_mem, const blender::int2 *edges, int totvert, int totedge)
 {
   MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(totvert), __func__);
   int *indices = static_cast<int *>(MEM_mallocN(sizeof(int[2]) * size_t(totedge), __func__));
@@ -343,8 +344,8 @@ void BKE_mesh_vert_edge_vert_map_create(
 
   /* Count number of edges for each vertex */
   for (i = 0; i < totedge; i++) {
-    map[edges[i].v1].count++;
-    map[edges[i].v2].count++;
+    map[edges[i][0]].count++;
+    map[edges[i][1]].count++;
   }
 
   /* Assign indices mem */
@@ -358,7 +359,7 @@ void BKE_mesh_vert_edge_vert_map_create(
 
   /* Find the users */
   for (i = 0; i < totedge; i++) {
-    const uint v[2] = {edges[i].v1, edges[i].v2};
+    const int v[2] = {edges[i][0], edges[i][1]};
 
     map[v[0]].indices[map[v[0]].count] = int(v[1]);
     map[v[1]].indices[map[v[1]].count] = int(v[0]);
@@ -530,12 +531,12 @@ Array<int> build_loop_to_poly_map(const OffsetIndices<int> polys)
   return map;
 }
 
-Array<Vector<int>> build_vert_to_edge_map(const Span<MEdge> edges, const int verts_num)
+Array<Vector<int>> build_vert_to_edge_map(const Span<int2> edges, const int verts_num)
 {
   Array<Vector<int>> map(verts_num);
   for (const int64_t i : edges.index_range()) {
-    map[edges[i].v1].append(int(i));
-    map[edges[i].v2].append(int(i));
+    map[edges[i][0]].append(int(i));
+    map[edges[i][1]].append(int(i));
   }
   return map;
 }
@@ -824,8 +825,9 @@ int *BKE_mesh_calc_smoothgroups(const int totedge,
                                             const MeshElemMap &edge_poly_map_elem) {
     /* Edge is sharp if one of its polys is flat, or edge itself is sharp,
      * or edge is not used by exactly two polygons. */
-    if ((poly_is_smooth(poly_index)) && !(sharp_edges && sharp_edges[edge_index]) &&
-        (edge_user_count == 2)) {
+    if (poly_is_smooth(poly_index) && !(sharp_edges && sharp_edges[edge_index]) &&
+        (edge_user_count == 2))
+    {
       /* In that case, edge appears to be smooth, but we need to check its other poly too. */
       const int other_poly_index = (poly_index == edge_poly_map_elem.indices[0]) ?
                                        edge_poly_map_elem.indices[1] :
@@ -1033,7 +1035,8 @@ static bool mesh_calc_islands_loop_poly_uv(const int totedge,
       for (int i = 2; i < edge_to_loops.count; i += 2) {
         if (corner_verts[edge_to_loops.indices[i]] == v1) {
           if (!equals_v2v2(uvco_v1, luvs[edge_to_loops.indices[i]]) ||
-              !equals_v2v2(uvco_v2, luvs[edge_to_loops.indices[i + 1]])) {
+              !equals_v2v2(uvco_v2, luvs[edge_to_loops.indices[i + 1]]))
+          {
             return true;
           }
         }
@@ -1041,7 +1044,8 @@ static bool mesh_calc_islands_loop_poly_uv(const int totedge,
           BLI_assert(corner_verts[edge_to_loops.indices[i]] == v2);
           UNUSED_VARS_NDEBUG(v2);
           if (!equals_v2v2(uvco_v2, luvs[edge_to_loops.indices[i]]) ||
-              !equals_v2v2(uvco_v1, luvs[edge_to_loops.indices[i + 1]])) {
+              !equals_v2v2(uvco_v1, luvs[edge_to_loops.indices[i + 1]]))
+          {
             return true;
           }
         }
@@ -1147,7 +1151,7 @@ static bool mesh_calc_islands_loop_poly_uv(const int totedge,
 
 bool BKE_mesh_calc_islands_loop_poly_edgeseam(const float (*vert_positions)[3],
                                               const int totvert,
-                                              const MEdge *edges,
+                                              const blender::int2 *edges,
                                               const int totedge,
                                               const bool *uv_seams,
                                               const blender::OffsetIndices<int> polys,
@@ -1163,7 +1167,7 @@ bool BKE_mesh_calc_islands_loop_poly_edgeseam(const float (*vert_positions)[3],
 
 bool BKE_mesh_calc_islands_loop_poly_uvmap(float (*vert_positions)[3],
                                            const int totvert,
-                                           MEdge *edges,
+                                           blender::int2 *edges,
                                            const int totedge,
                                            const bool *uv_seams,
                                            const blender::OffsetIndices<int> polys,

@@ -1175,7 +1175,8 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
       /* find the boundary of one of the split edges */
       for (a = 0; a < vlen; a++) {
         if (!BMO_vert_flag_test(bm, loops[a ? (a - 1) : (vlen - 1)]->v, ELE_INNER) &&
-            BMO_vert_flag_test(bm, loops[a]->v, ELE_INNER)) {
+            BMO_vert_flag_test(bm, loops[a]->v, ELE_INNER))
+        {
           break;
         }
       }
@@ -1190,7 +1191,8 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
         for (j = 0; j < vlen; j++) {
           b = (j + a + numcuts + 1) % vlen;
           if (!BMO_vert_flag_test(bm, loops[b == 0 ? vlen - 1 : b - 1]->v, ELE_INNER) &&
-              BMO_vert_flag_test(bm, loops[b]->v, ELE_INNER)) {
+              BMO_vert_flag_test(bm, loops[b]->v, ELE_INNER))
+          {
             break;
           }
         }

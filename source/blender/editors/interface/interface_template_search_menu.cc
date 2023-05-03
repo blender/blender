@@ -197,7 +197,8 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
                                                         &but->rnapoin,
                                                         but->rnaprop,
                                                         value_enum,
-                                                        &enum_item)) {
+                                                        &enum_item))
+        {
           drawstr_override = enum_item.name;
         }
         else {
@@ -378,8 +379,8 @@ static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
 
   MemArena *memarena = data->memarena;
   GHashIterator iter;
-  for (WM_operatortype_iter(&iter); !BLI_ghashIterator_done(&iter);
-       BLI_ghashIterator_step(&iter)) {
+  for (WM_operatortype_iter(&iter); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter))
+  {
     wmOperatorType *ot = (wmOperatorType *)BLI_ghashIterator_getValue(&iter);
 
     if ((ot->flag & OPTYPE_INTERNAL) && (G.debug & G_DEBUG_WM) == 0) {
@@ -562,7 +563,8 @@ static MenuSearch_Data *menu_items_from_ui_create(
   GHashIterator iter;
 
   for (int space_type_ui_index = -1; space_type_ui_index < space_type_ui_items_len;
-       space_type_ui_index += 1) {
+       space_type_ui_index += 1)
+  {
 
     ScrArea *area = nullptr;
     ARegion *region = nullptr;

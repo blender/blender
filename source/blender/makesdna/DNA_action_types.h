@@ -290,13 +290,14 @@ typedef struct bPoseChannel {
   char _pad[2];
 
   /**
-   * Matrix result of location/rotation/scale components & constraints.
+   * Matrix result of location/rotation/scale components, and evaluation of
+   * animation data and constraints.
+   *
    * This is the dynamic component of `pose_mat` (without #Bone.arm_mat).
    */
   float chan_mat[4][4];
   /**
-   * Constraints accumulate here. in the end, `pose_mat = bone->arm_mat * chan_mat`
-   * this matrix is object space.
+   * Channel matrix in the armature object space, i.e. `pose_mat = bone->arm_mat * chan_mat`.
    */
   float pose_mat[4][4];
   /** For display, pose_mat with bone length applied. */

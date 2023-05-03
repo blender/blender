@@ -37,15 +37,15 @@ bool ghost_wl_output_own(const struct wl_output *wl_output);
 void ghost_wl_output_tag(struct wl_output *wl_output);
 struct GWL_Output *ghost_wl_output_user_data(struct wl_output *wl_output);
 
-bool ghost_wl_surface_own(const struct wl_surface *surface);
-void ghost_wl_surface_tag(struct wl_surface *surface);
-GHOST_WindowWayland *ghost_wl_surface_user_data(struct wl_surface *surface);
+bool ghost_wl_surface_own(const struct wl_surface *wl_surface);
+void ghost_wl_surface_tag(struct wl_surface *wl_surface);
+GHOST_WindowWayland *ghost_wl_surface_user_data(struct wl_surface *wl_surface);
 
-bool ghost_wl_surface_own_cursor_pointer(const struct wl_surface *surface);
-void ghost_wl_surface_tag_cursor_pointer(struct wl_surface *surface);
+bool ghost_wl_surface_own_cursor_pointer(const struct wl_surface *wl_surface);
+void ghost_wl_surface_tag_cursor_pointer(struct wl_surface *wl_surface);
 
-bool ghost_wl_surface_own_cursor_tablet(const struct wl_surface *surface);
-void ghost_wl_surface_tag_cursor_tablet(struct wl_surface *surface);
+bool ghost_wl_surface_own_cursor_tablet(const struct wl_surface *wl_surface);
+void ghost_wl_surface_tag_cursor_tablet(struct wl_surface *wl_surface);
 
 /* Scaling to: translates from WAYLAND into GHOST (viewport local) coordinates.
  * Scaling from: performs the reverse translation.
@@ -66,6 +66,8 @@ wl_fixed_t gwl_window_scale_wl_fixed_from(const GWL_WindowScaleParams &scale_par
 
 int gwl_window_scale_int_to(const GWL_WindowScaleParams &scale_params, int value);
 int gwl_window_scale_int_from(const GWL_WindowScaleParams &scale_params, int value);
+
+#define FRACTIONAL_DENOMINATOR 120
 
 #ifdef WITH_GHOST_WAYLAND_DYNLOAD
 /**
@@ -100,10 +102,10 @@ struct GWL_Output {
    * as this is what is used for most API calls.
    * Only use fractional scaling to calculate the DPI.
    *
-   * \note Internally an #wl_fixed_t is used to store the scale of the display,
-   * so use the same value here (avoid floating point arithmetic in general).
+   * \note Use the same scale as #wp_fractional_scale_manager_v1
+   * (avoid floating point arithmetic in general).
    */
-  wl_fixed_t scale_fractional = wl_fixed_from_int(1);
+  int scale_fractional = (1 * FRACTIONAL_DENOMINATOR);
   bool has_scale_fractional = false;
 
   std::string make;

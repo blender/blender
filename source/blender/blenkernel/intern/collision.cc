@@ -289,7 +289,8 @@ static float compute_collision_point_tri_tri(const float a1[3],
       for (int j = 0; j < 3; j++) {
         if (isect_line_plane_v3(tmp_co1, a[j], a[next_ind(j)], b[i], dir) &&
             point_in_slice_seg(tmp_co1, a[j], a[next_ind(j)]) &&
-            point_in_slice_seg(tmp_co1, b[i], b[next_ind(i)])) {
+            point_in_slice_seg(tmp_co1, b[i], b[next_ind(i)]))
+        {
           closest_to_line_v3(tmp_co2, tmp_co1, b[i], b[next_ind(i)]);
           sub_v3_v3v3(tmp_vec, tmp_co1, tmp_co2);
           tmp = len_v3(tmp_vec);
@@ -476,7 +477,8 @@ static float compute_collision_point_edge_tri(const float a1[3],
 
       if (isect_line_plane_v3(tmp_co1, a[0], a[1], b[i], dir) &&
           point_in_slice_seg(tmp_co1, a[0], a[1]) &&
-          point_in_slice_seg(tmp_co1, b[i], b[next_ind(i)])) {
+          point_in_slice_seg(tmp_co1, b[i], b[next_ind(i)]))
+      {
         closest_to_line_v3(tmp_co2, tmp_co1, b[i], b[next_ind(i)]);
         sub_v3_v3v3(tmp_vec, tmp_co1, tmp_co2);
         tmp = len_v3(tmp_vec);
@@ -1176,7 +1178,6 @@ static void hair_collision(void *__restrict userdata,
   CollisionModifierData *collmd = data->collmd;
   CollPair *collpair = data->collisions;
   const MVertTri *tri_coll;
-  const MEdge *edge_coll;
   ClothVertex *verts1 = clmd->clothObject->verts;
   float distance = 0.0f;
   float epsilon1 = clmd->coll_parms->epsilon;
@@ -1185,12 +1186,13 @@ static void hair_collision(void *__restrict userdata,
 
   /* TODO: This is not efficient. Might be wise to instead build an array before iterating, to
    * avoid walking the list every time. */
-  edge_coll = &clmd->clothObject->edges[data->overlap[index].indexA];
+  const blender::int2 &edge_coll = reinterpret_cast<const blender::int2 *>(
+      clmd->clothObject->edges)[data->overlap[index].indexA];
   tri_coll = &collmd->tri[data->overlap[index].indexB];
 
   /* Compute distance and normal. */
-  distance = compute_collision_point_edge_tri(verts1[edge_coll->v1].tx,
-                                              verts1[edge_coll->v2].tx,
+  distance = compute_collision_point_edge_tri(verts1[edge_coll[0]].tx,
+                                              verts1[edge_coll[1]].tx,
                                               collmd->current_x[tri_coll->tri[0]],
                                               collmd->current_x[tri_coll->tri[1]],
                                               collmd->current_x[tri_coll->tri[2]],
@@ -1201,8 +1203,8 @@ static void hair_collision(void *__restrict userdata,
                                               vect);
 
   if ((distance <= (epsilon1 + epsilon2 + ALMOST_ZERO)) && (len_squared_v3(vect) > ALMOST_ZERO)) {
-    collpair[index].ap1 = edge_coll->v1;
-    collpair[index].ap2 = edge_coll->v2;
+    collpair[index].ap1 = edge_coll[0];
+    collpair[index].ap2 = edge_coll[1];
 
     collpair[index].bp1 = tri_coll->tri[0];
     collpair[index].bp2 = tri_coll->tri[1];
@@ -1221,7 +1223,7 @@ static void hair_collision(void *__restrict userdata,
 
     /* Compute barycentric coordinates for the collision points. */
     collpair[index].aw2 = line_point_factor_v3(
-        pa, verts1[edge_coll->v1].tx, verts1[edge_coll->v2].tx);
+        pa, verts1[edge_coll[0]].tx, verts1[edge_coll[1]].tx);
 
     collpair[index].aw1 = 1.0f - collpair[index].aw2;
 
@@ -1685,8 +1687,8 @@ int cloth_bvh_collision(
           collisions = (CollPair *)MEM_mallocN(sizeof(CollPair) * coll_count_self,
                                                "collision array");
 
-          if (cloth_bvh_selfcollisions_nearcheck(
-                  clmd, collisions, coll_count_self, overlap_self)) {
+          if (cloth_bvh_selfcollisions_nearcheck(clmd, collisions, coll_count_self, overlap_self))
+          {
             ret += cloth_bvh_selfcollisions_resolve(clmd, collisions, coll_count_self, dt);
             ret2 += ret;
           }

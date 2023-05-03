@@ -750,7 +750,8 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
     ebp_b = ebp_a->next;
 
     if (((ebp_a->head_owner == ebp_b->tail_owner) && (ebp_a->head_owner != NULL)) ||
-        ((ebp_a->tail_owner == ebp_b->head_owner) && (ebp_a->tail_owner != NULL))) {
+        ((ebp_a->tail_owner == ebp_b->head_owner) && (ebp_a->tail_owner != NULL)))
+    {
       BKE_report(op->reports, RPT_ERROR, "Same bone selected...");
       BLI_freelistN(&points);
       return OPERATOR_CANCELLED;
@@ -1018,7 +1019,8 @@ static void fix_connected_bone(EditBone *ebone)
   float diff[3];
 
   if (!(ebone->parent) || !(ebone->flag & BONE_CONNECTED) ||
-      equals_v3v3(ebone->parent->tail, ebone->head)) {
+      equals_v3v3(ebone->parent->tail, ebone->head))
+  {
     return;
   }
 
@@ -1381,12 +1383,14 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator *UNUSED(op))
     for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
       /* break connections for unseen bones */
       if (((arm->layer & ebone->layer) &&
-           (ED_armature_ebone_selectflag_get(ebone) & (BONE_TIPSEL | BONE_SELECTED))) == 0) {
+           (ED_armature_ebone_selectflag_get(ebone) & (BONE_TIPSEL | BONE_SELECTED))) == 0)
+      {
         ebone->temp.ebone = NULL;
       }
 
       if (((arm->layer & ebone->layer) &&
-           (ED_armature_ebone_selectflag_get(ebone) & (BONE_ROOTSEL | BONE_SELECTED))) == 0) {
+           (ED_armature_ebone_selectflag_get(ebone) & (BONE_ROOTSEL | BONE_SELECTED))) == 0)
+      {
         if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
           ebone->parent->temp.ebone = NULL;
         }

@@ -271,7 +271,8 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
 
     if (ob_visibility & OB_VISIBLE_INSTANCES) {
       if ((data->flag & DEG_ITER_OBJECT_FLAG_DUPLI) &&
-          ((object->transflag & OB_DUPLI) || object->runtime.geometry_set_eval != nullptr)) {
+          ((object->transflag & OB_DUPLI) || object->runtime.geometry_set_eval != nullptr))
+      {
         ListBase *duplis = object_duplilist(data->graph, data->scene, object);
         deg_iterator_duplis_init(data, object, duplis);
       }

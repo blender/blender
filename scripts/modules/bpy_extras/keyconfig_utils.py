@@ -94,9 +94,7 @@ def keyconfig_test(kc):
                     if testEntry(kc, child, src, parent):
                         result = True
             else:
-                for i in range(len(km.keymap_items)):
-                    src = km.keymap_items[i]
-
+                for i, src in enumerate(km.keymap_items):
                     for child in children:
                         if testEntry(kc, child, src, km):
                             result = True

@@ -174,16 +174,16 @@ PackedFile *BKE_packedfile_new_from_memory(void *mem, int memlen)
   return pf;
 }
 
-PackedFile *BKE_packedfile_new(ReportList *reports, const char *filepath, const char *basepath)
+PackedFile *BKE_packedfile_new(ReportList *reports, const char *filepath_rel, const char *basepath)
 {
   PackedFile *pf = NULL;
   int file, filelen;
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
   void *data;
 
   /* render result has no filepath and can be ignored
    * any other files with no name can be ignored too */
-  if (filepath[0] == '\0') {
+  if (filepath_rel[0] == '\0') {
     return pf;
   }
 
@@ -191,15 +191,15 @@ PackedFile *BKE_packedfile_new(ReportList *reports, const char *filepath, const 
 
   /* convert relative filenames to absolute filenames */
 
-  BLI_strncpy(name, filepath, sizeof(name));
-  BLI_path_abs(name, basepath);
+  BLI_strncpy(filepath, filepath_rel, sizeof(filepath));
+  BLI_path_abs(filepath, basepath);
 
   /* open the file
    * and create a PackedFile structure */
 
-  file = BLI_open(name, O_BINARY | O_RDONLY, 0);
+  file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (file == -1) {
-    BKE_reportf(reports, RPT_ERROR, "Unable to pack file, source path '%s' not found", name);
+    BKE_reportf(reports, RPT_ERROR, "Unable to pack file, source path '%s' not found", filepath);
   }
   else {
     filelen = BLI_file_descriptor_size(file);
@@ -251,8 +251,8 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
   }
 
   for (vfont = bmain->fonts.first; vfont; vfont = vfont->id.next) {
-    if (vfont->packedfile == NULL && !ID_IS_LINKED(vfont) &&
-        BKE_vfont_is_builtin(vfont) == false) {
+    if (vfont->packedfile == NULL && !ID_IS_LINKED(vfont) && BKE_vfont_is_builtin(vfont) == false)
+    {
       vfont->packedfile = BKE_packedfile_new(
           reports, vfont->filepath, BKE_main_blendfile_path(bmain));
       tot++;
@@ -285,28 +285,28 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
 
 int BKE_packedfile_write_to_file(ReportList *reports,
                                  const char *ref_file_name,
-                                 const char *filepath,
+                                 const char *filepath_rel,
                                  PackedFile *pf,
                                  const bool guimode)
 {
   int file, number;
   int ret_value = RET_OK;
   bool remove_tmp = false;
-  char name[FILE_MAX];
-  char tempname[FILE_MAX];
+  char filepath[FILE_MAX];
+  char filepath_temp[FILE_MAX];
   /*      void *data; */
 
   if (guimode) {
   }  // XXX  waitcursor(1);
 
-  BLI_strncpy(name, filepath, sizeof(name));
-  BLI_path_abs(name, ref_file_name);
+  BLI_strncpy(filepath, filepath_rel, sizeof(filepath));
+  BLI_path_abs(filepath, ref_file_name);
 
-  if (BLI_exists(name)) {
+  if (BLI_exists(filepath)) {
     for (number = 1; number <= 999; number++) {
-      BLI_snprintf(tempname, sizeof(tempname), "%s.%03d_", name, number);
-      if (!BLI_exists(tempname)) {
-        if (BLI_copy(name, tempname) == RET_OK) {
+      BLI_snprintf(filepath_temp, sizeof(filepath_temp), "%s.%03d_", filepath, number);
+      if (!BLI_exists(filepath_temp)) {
+        if (BLI_copy(filepath, filepath_temp) == RET_OK) {
           remove_tmp = true;
         }
         break;
@@ -314,21 +314,20 @@ int BKE_packedfile_write_to_file(ReportList *reports,
     }
   }
 
-  /* make sure the path to the file exists... */
-  BLI_make_existing_file(name);
+  BLI_file_ensure_parent_dir_exists(filepath);
 
-  file = BLI_open(name, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
+  file = BLI_open(filepath, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
   if (file == -1) {
-    BKE_reportf(reports, RPT_ERROR, "Error creating file '%s'", name);
+    BKE_reportf(reports, RPT_ERROR, "Error creating file '%s'", filepath);
     ret_value = RET_ERROR;
   }
   else {
     if (write(file, pf->data, pf->size) != pf->size) {
-      BKE_reportf(reports, RPT_ERROR, "Error writing file '%s'", name);
+      BKE_reportf(reports, RPT_ERROR, "Error writing file '%s'", filepath);
       ret_value = RET_ERROR;
     }
     else {
-      BKE_reportf(reports, RPT_INFO, "Saved packed file to: %s", name);
+      BKE_reportf(reports, RPT_INFO, "Saved packed file to: %s", filepath);
     }
 
     close(file);
@@ -336,17 +335,17 @@ int BKE_packedfile_write_to_file(ReportList *reports,
 
   if (remove_tmp) {
     if (ret_value == RET_ERROR) {
-      if (BLI_rename(tempname, name) != 0) {
+      if (BLI_rename(filepath_temp, filepath) != 0) {
         BKE_reportf(reports,
                     RPT_ERROR,
                     "Error restoring temp file (check files '%s' '%s')",
-                    tempname,
-                    name);
+                    filepath_temp,
+                    filepath);
       }
     }
     else {
-      if (BLI_delete(tempname, false, false) != 0) {
-        BKE_reportf(reports, RPT_ERROR, "Error deleting '%s' (ignored)", tempname);
+      if (BLI_delete(filepath_temp, false, false) != 0) {
+        BKE_reportf(reports, RPT_ERROR, "Error deleting '%s' (ignored)", filepath_temp);
       }
     }
   }
@@ -358,18 +357,18 @@ int BKE_packedfile_write_to_file(ReportList *reports,
 }
 
 enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
-                                                    const char *filepath,
+                                                    const char *filepath_rel,
                                                     PackedFile *pf)
 {
   BLI_stat_t st;
   enum ePF_FileCompare ret_val;
   char buf[4096];
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
 
-  BLI_strncpy(name, filepath, sizeof(name));
-  BLI_path_abs(name, ref_file_name);
+  BLI_strncpy(filepath, filepath_rel, sizeof(filepath));
+  BLI_path_abs(filepath, ref_file_name);
 
-  if (BLI_stat(name, &st) == -1) {
+  if (BLI_stat(filepath, &st) == -1) {
     ret_val = PF_CMP_NOFILE;
   }
   else if (st.st_size != pf->size) {
@@ -378,7 +377,7 @@ enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
   else {
     /* we'll have to compare the two... */
 
-    const int file = BLI_open(name, O_BINARY | O_RDONLY, 0);
+    const int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
     if (file == -1) {
       ret_val = PF_CMP_NOFILE;
     }
@@ -479,7 +478,7 @@ char *BKE_packedfile_unpack_to_file(ReportList *reports,
   return newname;
 }
 
-static void unpack_generate_paths(const char *name,
+static void unpack_generate_paths(const char *filepath,
                                   ID *id,
                                   char *r_abspath,
                                   char *r_relpath,
@@ -487,15 +486,16 @@ static void unpack_generate_paths(const char *name,
                                   size_t relpathlen)
 {
   const short id_type = GS(id->name);
-  char tempname[FILE_MAX];
-  char tempdir[FILE_MAXDIR];
+  char temp_filename[FILE_MAX];
+  char temp_dirname[FILE_MAXDIR];
 
-  BLI_split_dirfile(name, tempdir, tempname, sizeof(tempdir), sizeof(tempname));
+  BLI_path_split_dir_file(
+      filepath, temp_dirname, sizeof(temp_dirname), temp_filename, sizeof(temp_filename));
 
-  if (tempname[0] == '\0') {
+  if (temp_filename[0] == '\0') {
     /* NOTE: we generally do not have any real way to re-create extension out of data. */
-    const size_t len = BLI_strncpy_rlen(tempname, id->name + 2, sizeof(tempname));
-    printf("%s\n", tempname);
+    const size_t len = BLI_strncpy_rlen(temp_filename, id->name + 2, sizeof(temp_filename));
+    printf("%s\n", temp_filename);
 
     /* For images ensure that the temporary filename contains tile number information as well as
      * a file extension based on the file magic. */
@@ -508,22 +508,22 @@ static void unpack_generate_paths(const char *name,
         if (ima->source == IMA_SRC_TILED) {
           char tile_number[6];
           BLI_snprintf(tile_number, sizeof(tile_number), ".%d", imapf->tile_number);
-          BLI_strncpy(tempname + len, tile_number, sizeof(tempname) - len);
+          BLI_strncpy(temp_filename + len, tile_number, sizeof(temp_filename) - len);
         }
         if (ftype != IMB_FTYPE_NONE) {
           const int imtype = BKE_ftype_to_imtype(ftype, NULL);
-          BKE_image_path_ensure_ext_from_imtype(tempname, imtype);
+          BKE_image_path_ensure_ext_from_imtype(temp_filename, imtype);
         }
       }
     }
 
-    BLI_filename_make_safe(tempname);
-    printf("%s\n", tempname);
+    BLI_path_make_safe_filename(temp_filename);
+    printf("%s\n", temp_filename);
   }
 
-  if (tempdir[0] == '\0') {
+  if (temp_dirname[0] == '\0') {
     /* Fallback to relative dir. */
-    BLI_strncpy(tempdir, "//", sizeof(tempdir));
+    BLI_strncpy(temp_dirname, "//", sizeof(temp_dirname));
   }
 
   {
@@ -545,13 +545,13 @@ static void unpack_generate_paths(const char *name,
         break;
     }
     if (dir_name) {
-      BLI_path_join(r_relpath, relpathlen, "//", dir_name, tempname);
+      BLI_path_join(r_relpath, relpathlen, "//", dir_name, temp_filename);
     }
   }
 
   {
-    size_t len = BLI_strncpy_rlen(r_abspath, tempdir, abspathlen);
-    BLI_strncpy(r_abspath + len, tempname, abspathlen - len);
+    size_t len = BLI_strncpy_rlen(r_abspath, temp_dirname, abspathlen);
+    BLI_strncpy(r_abspath + len, temp_filename, abspathlen - len);
   }
 }
 
@@ -654,8 +654,7 @@ int BKE_packedfile_unpack_image(Main *bmain,
           BLI_strncpy(ima->filepath, new_file_path, sizeof(imapf->filepath));
           if (ima->source == IMA_SRC_TILED) {
             /* Ensure that the Image filepath is kept in a tokenized format. */
-            char *filename = (char *)BLI_path_basename(ima->filepath);
-            BKE_image_ensure_tile_token(filename);
+            BKE_image_ensure_tile_token(ima->filepath, sizeof(ima->filepath));
           }
         }
         MEM_freeN(new_file_path);

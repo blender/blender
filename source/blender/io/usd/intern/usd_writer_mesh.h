@@ -4,6 +4,8 @@
 
 #include "usd_writer_abstract.h"
 
+#include "BKE_attribute.hh"
+
 #include <pxr/usd/usdGeom/mesh.h>
 
 namespace blender::io::usd {
@@ -34,6 +36,12 @@ class USDGenericMeshWriter : public USDAbstractWriter {
   void write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_surface_velocity(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+
+  void write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+  void write_color_data(const Mesh *mesh,
+                        pxr::UsdGeomMesh usd_mesh,
+                        const bke::AttributeIDRef &attribute_id,
+                        const bke::AttributeMetaData &meta_data);
 };
 
 class USDMeshWriter : public USDGenericMeshWriter {

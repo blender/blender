@@ -28,7 +28,7 @@ def rna_backup_gen(data, include_props=None, exclude_props=None, root=()):
     # only writable properties...
     for p in data.bl_rna.properties:
         pid = p.identifier
-        if pid == "rna_type" or pid == "original":
+        if pid in {"rna_type", "original"}:
             continue
         path = root + (pid,)
         if include_props is not None and path not in include_props:
@@ -68,7 +68,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
         if engine == '__SCENE':
             backup_scene, backup_world, backup_camera, backup_light, backup_camera_data, backup_light_data = [()] * 6
             scene = bpy.context.window.scene
-            exclude_props = {('world',), ('camera',), ('tool_settings',), ('preview',)}
+            exclude_props = {("world",), ("camera",), ("tool_settings",), ("preview",)}
             backup_scene = tuple(rna_backup_gen(scene, exclude_props=exclude_props))
             world = scene.world
             camera = scene.camera
@@ -343,7 +343,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
                 ob.hide_render = False
             bpy.context.view_layer.update()
 
-            preview_render_do(render_context, 'objects', root.name, objects)
+            preview_render_do(render_context, "objects", root.name, objects)
 
             # XXX Hyper Super Uber Suspicious Hack!
             #     Without this, on windows build, script excepts with following message:
@@ -390,7 +390,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
 
             offset_matrix = Matrix.Translation(grp.instance_offset).inverted()
 
-            preview_render_do(render_context, 'collections', grp.name, objects, offset_matrix)
+            preview_render_do(render_context, "collections", grp.name, objects, offset_matrix)
 
             scene = bpy.data.scenes[render_context.scene, None]
             scene.collection.objects.unlink(bpy.data.objects[grp_obname, None])
@@ -413,7 +413,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
                 objects = tuple((ob.name, ob.library.filepath if ob.library else None) for ob in scene.objects
                                 if (not ob.hide_render) and (ob.type in OBJECT_TYPES_RENDER))
 
-            preview_render_do(render_context, 'scenes', scene.name, objects)
+            preview_render_do(render_context, "scenes", scene.name, objects)
 
             if not render_context_delete(render_context):
                 do_save = False

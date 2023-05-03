@@ -171,6 +171,20 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
  */
 int BLI_wcwidth(char32_t ucs) ATTR_WARN_UNUSED_RESULT;
 int BLI_wcswidth(const char32_t *pwcs, size_t n) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+
+/**
+ * Return the uppercase of a 32-bit character or the character when no case change is needed.
+ *
+ * \note A 1:1 mapping doesn't account for multiple characters as part of conversion in some cases.
+ */
+char32_t BLI_str_utf32_char_to_upper(char32_t wc);
+/**
+ * Return the lowercase of a 32-bit character or the character when no case change is needed.
+ *
+ * \note A 1:1 mapping doesn't account for multiple characters as part of conversion in some cases.
+ */
+char32_t BLI_str_utf32_char_to_lower(char32_t wc);
+
 /**
  * \warning can return -1 on bad chars.
  */

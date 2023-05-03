@@ -52,7 +52,7 @@ struct LaplacianSystem {
 
   /* Pointers to data. */
   float (*vertexCos)[3];
-  blender::Span<MEdge> edges;
+  blender::Span<blender::int2> edges;
   blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
   LinearSolver *context;
@@ -168,8 +168,8 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
   uint idv1, idv2;
 
   for (i = 0; i < sys->edges.size(); i++) {
-    idv1 = sys->edges[i].v1;
-    idv2 = sys->edges[i].v2;
+    idv1 = sys->edges[i][0];
+    idv2 = sys->edges[i][1];
 
     v1 = sys->vertexCos[idv1];
     v2 = sys->vertexCos[idv2];
@@ -198,7 +198,8 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
     int corner_curr = corner_term - 1;
 
     for (; corner_next != corner_term;
-         corner_prev = corner_curr, corner_curr = corner_next, corner_next++) {
+         corner_prev = corner_curr, corner_curr = corner_next, corner_next++)
+    {
       const float *v_prev = sys->vertexCos[corner_verts[corner_prev]];
       const float *v_curr = sys->vertexCos[corner_verts[corner_curr]];
       const float *v_next = sys->vertexCos[corner_verts[corner_next]];
@@ -229,8 +230,8 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
     }
   }
   for (i = 0; i < sys->edges.size(); i++) {
-    idv1 = sys->edges[i].v1;
-    idv2 = sys->edges[i].v2;
+    idv1 = sys->edges[i][0];
+    idv2 = sys->edges[i][1];
     /* if is boundary, apply scale-dependent umbrella operator only with neighbors in boundary */
     if (sys->ne_ed_num[idv1] != sys->ne_fa_num[idv1] &&
         sys->ne_ed_num[idv2] != sys->ne_fa_num[idv2]) {
@@ -255,11 +256,13 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
     int corner_curr = corner_term - 1;
 
     for (; corner_next != corner_term;
-         corner_prev = corner_curr, corner_curr = corner_next, corner_next++) {
+         corner_prev = corner_curr, corner_curr = corner_next, corner_next++)
+    {
 
       /* Is ring if number of faces == number of edges around vertex. */
       if (sys->ne_ed_num[corner_verts[corner_curr]] == sys->ne_fa_num[corner_verts[corner_curr]] &&
-          sys->zerola[corner_verts[corner_curr]] == false) {
+          sys->zerola[corner_verts[corner_curr]] == false)
+      {
         EIG_linear_solver_matrix_add(sys->context,
                                      corner_verts[corner_curr],
                                      corner_verts[corner_next],
@@ -272,7 +275,8 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
                                          sys->vweights[corner_verts[corner_curr]]);
       }
       if (sys->ne_ed_num[corner_verts[corner_next]] == sys->ne_fa_num[corner_verts[corner_next]] &&
-          sys->zerola[corner_verts[corner_next]] == false) {
+          sys->zerola[corner_verts[corner_next]] == false)
+      {
         EIG_linear_solver_matrix_add(sys->context,
                                      corner_verts[corner_next],
                                      corner_verts[corner_curr],
@@ -285,7 +289,8 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
                                          sys->vweights[corner_verts[corner_next]]);
       }
       if (sys->ne_ed_num[corner_verts[corner_prev]] == sys->ne_fa_num[corner_verts[corner_prev]] &&
-          sys->zerola[corner_verts[corner_prev]] == false) {
+          sys->zerola[corner_verts[corner_prev]] == false)
+      {
         EIG_linear_solver_matrix_add(sys->context,
                                      corner_verts[corner_prev],
                                      corner_verts[corner_curr],
@@ -301,12 +306,13 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
   }
 
   for (i = 0; i < sys->edges.size(); i++) {
-    idv1 = sys->edges[i].v1;
-    idv2 = sys->edges[i].v2;
+    idv1 = sys->edges[i][0];
+    idv2 = sys->edges[i][1];
     /* Is boundary */
     if (sys->ne_ed_num[idv1] != sys->ne_fa_num[idv1] &&
         sys->ne_ed_num[idv2] != sys->ne_fa_num[idv2] && sys->zerola[idv1] == false &&
-        sys->zerola[idv2] == false) {
+        sys->zerola[idv2] == false)
+    {
       EIG_linear_solver_matrix_add(
           sys->context, idv1, idv2, sys->eweights[i] * sys->vlengths[idv1]);
       EIG_linear_solver_matrix_add(

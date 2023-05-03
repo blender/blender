@@ -299,6 +299,12 @@ typedef struct bNodeType {
   void (*copyfunc_api)(struct PointerRNA *ptr, const struct bNode *src_node);
 
   /**
+   * An additional poll test for deciding whether nodes should be an option in search menus.
+   * Potentially more strict poll than #poll(), but doesn't have to check the same things.
+   */
+  bool (*add_ui_poll)(const struct bContext *C);
+
+  /**
    * Can this node type be added to a node tree?
    * \param r_disabled_hint: Hint to display in the UI when the poll fails.
    *                         The callback can set this to a static string without having to
@@ -468,7 +474,8 @@ struct GHashIterator *ntreeTypeGetIterator(void);
   { \
     GHashIterator *__node_tree_type_iter__ = ntreeTypeGetIterator(); \
     for (; !BLI_ghashIterator_done(__node_tree_type_iter__); \
-         BLI_ghashIterator_step(__node_tree_type_iter__)) { \
+         BLI_ghashIterator_step(__node_tree_type_iter__)) \
+    { \
       bNodeTreeType *ntype = (bNodeTreeType *)BLI_ghashIterator_getValue(__node_tree_type_iter__);
 
 #define NODE_TREE_TYPES_END \
@@ -643,7 +650,8 @@ const char *nodeSocketSubTypeLabel(int subtype);
   { \
     GHashIterator *__node_socket_type_iter__ = nodeSocketTypeGetIterator(); \
     for (; !BLI_ghashIterator_done(__node_socket_type_iter__); \
-         BLI_ghashIterator_step(__node_socket_type_iter__)) { \
+         BLI_ghashIterator_step(__node_socket_type_iter__)) \
+    { \
       bNodeSocketType *stype = (bNodeSocketType *)BLI_ghashIterator_getValue( \
           __node_socket_type_iter__);
 
@@ -1575,6 +1583,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_SDF_VOLUME_SPHERE 1196
 #define GEO_NODE_MEAN_FILTER_SDF_VOLUME 1197
 #define GEO_NODE_OFFSET_SDF_VOLUME 1198
+#define GEO_NODE_INDEX_OF_NEAREST 1199
 
 /** \} */
 

@@ -333,10 +333,7 @@ option(WITH_MOD_OCEANSIM        "Enable Ocean Modifier" ON)
 # Image format support
 option(WITH_IMAGE_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
 option(WITH_IMAGE_OPENJPEG      "Enable OpenJpeg Support (http://www.openjpeg.org)" ON)
-option(WITH_IMAGE_TIFF          "Enable LibTIFF Support" ON)
-option(WITH_IMAGE_DDS           "Enable DDS Image Support" ON)
 option(WITH_IMAGE_CINEON        "Enable CINEON and DPX Image Support" ON)
-option(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
 option(WITH_IMAGE_WEBP          "Enable WebP Image Support" ON)
 
 # Audio/Video format support
@@ -524,9 +521,16 @@ endif()
 if(NOT APPLE)
   option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" ON)
   option(WITH_CYCLES_HIP_BINARIES      "Build Cycles AMD HIP binaries" OFF)
-  set(CYCLES_HIP_BINARIES_ARCH gfx900 gfx906 gfx90c gfx902 gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 gfx1035 gfx1100 gfx1101 gfx1102 CACHE STRING "AMD HIP architectures to build binaries for")
+  # Radeon VII (gfx906) not currently working with HIP SDK, so left out of the list.
+  set(CYCLES_HIP_BINARIES_ARCH gfx900 gfx90c gfx902 gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 gfx1035 gfx1100 gfx1101 gfx1102 CACHE STRING "AMD HIP architectures to build binaries for")
   mark_as_advanced(WITH_CYCLES_DEVICE_HIP)
   mark_as_advanced(CYCLES_HIP_BINARIES_ARCH)
+
+  # HIPRT is only available on Windows for now.
+  if(WIN32)
+    option(WITH_CYCLES_DEVICE_HIPRT      "Enable Cycles AMD HIPRT support" OFF)
+    mark_as_advanced(WITH_CYCLES_DEVICE_HIPRT)
+  endif()
 endif()
 
 # Apple Metal
@@ -648,15 +652,15 @@ if(WIN32)
 endif()
 
 # Compiler tool-chain.
-if(UNIX AND NOT APPLE)
+if(UNIX)
   if(CMAKE_COMPILER_IS_GNUCC)
     option(WITH_LINKER_GOLD "Use ld.gold linker which is usually faster than ld.bfd" ON)
     mark_as_advanced(WITH_LINKER_GOLD)
-    option(WITH_LINKER_LLD "Use ld.lld linker which is usually faster than ld.gold" OFF)
-    mark_as_advanced(WITH_LINKER_LLD)
   endif()
   if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-    option(WITH_LINKER_MOLD "Use ld.mold linker which is usually faster than ld.gold & ld.lld." OFF)
+    option(WITH_LINKER_LLD "Use ld.lld linker which is usually faster than ld.gold" OFF)
+    mark_as_advanced(WITH_LINKER_LLD)
+    option(WITH_LINKER_MOLD "Use ld.mold linker which is usually faster than ld.gold & ld.lld. Needs \"sold\" subscription on macOS." OFF)
     mark_as_advanced(WITH_LINKER_MOLD)
   endif()
 endif()
@@ -693,8 +697,10 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
       else()
         string(APPEND _asan_defaults " -fsanitize=object-size")
       endif()
-    else()
+    elseif(CMAKE_COMPILER_IS_GNUCC)
       string(APPEND _asan_defaults " -fsanitize=leak -fsanitize=object-size")
+    else()
+      string(APPEND _asan_defaults " -fsanitize=leak")
     endif()
 
     set(COMPILER_ASAN_CFLAGS "${_asan_defaults}" CACHE STRING "C flags for address sanitizer")
@@ -711,6 +717,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\LLVM\\LLVM;]/lib/clang/7.0.0/lib/windows
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\LLVM\\LLVM;]/lib/clang/6.0.0/lib/windows
       )
+      mark_as_advanced(COMPILER_ASAN_LIBRARY)
     elseif(APPLE)
       execute_process(COMMAND ${CMAKE_CXX_COMPILER}
         -print-file-name=lib
@@ -725,13 +732,14 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
           "${CLANG_LIB_DIR}/darwin/"
       )
       unset(CLANG_LIB_DIR)
-    else()
+      mark_as_advanced(COMPILER_ASAN_LIBRARY)
+    elseif(CMAKE_COMPILER_IS_GNUCC)
       find_library(
         COMPILER_ASAN_LIBRARY asan ${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}
       )
+      mark_as_advanced(COMPILER_ASAN_LIBRARY)
     endif()
 
-    mark_as_advanced(COMPILER_ASAN_LIBRARY)
   endif()
 endif()
 
@@ -891,9 +899,6 @@ set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_OPENVDB OFF)
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_ALEMBIC OFF)
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_VULKAN_BACKEND OFF)
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_CYCLES_OSL OFF)
-
-# Haru needs `TIFFFaxBlackCodes` & `TIFFFaxWhiteCodes` symbols from TIFF.
-set_and_warn_dependency(WITH_IMAGE_TIFF WITH_HARU       OFF)
 
 # auto enable openimageio for cycles
 if(WITH_CYCLES)
@@ -1582,6 +1587,9 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_MISSING_NORETURN -Wno-missing-noreturn)
   add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_BUT_SET_VARIABLE -Wno-unused-but-set-variable)
   add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_STRICT_PROTOTYPES -Wno-strict-prototypes)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_BITWISE_INSTEAD_OF_LOGICAL -Wno-bitwise-instead-of-logical)
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_IMPLICIT_CONST_INT_FLOAT_CONVERSION -Wno-implicit-const-int-float-conversion)
 
   add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_PARAMETER -Wno-unused-parameter)
   add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_PRIVATE_FIELD -Wno-unused-private-field)
@@ -1595,6 +1603,8 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNDEFINED_VAR_TEMPLATE -Wno-undefined-var-template)
   add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_INSTANTIATION_AFTER_SPECIALIZATION -Wno-instantiation-after-specialization)
   add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_MISLEADING_INDENTATION    -Wno-misleading-indentation)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_BITWISE_INSTEAD_OF_LOGICAL -Wno-bitwise-instead-of-logical)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_IMPLICIT_CONST_INT_FLOAT_CONVERSION -Wno-implicit-const-int-float-conversion)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 
@@ -1937,11 +1947,8 @@ if(FIRST_RUN)
 
   info_cfg_text("Image Formats:")
   info_cfg_option(WITH_IMAGE_CINEON)
-  info_cfg_option(WITH_IMAGE_DDS)
-  info_cfg_option(WITH_IMAGE_HDR)
   info_cfg_option(WITH_IMAGE_OPENEXR)
   info_cfg_option(WITH_IMAGE_OPENJPEG)
-  info_cfg_option(WITH_IMAGE_TIFF)
 
   info_cfg_text("Audio:")
   info_cfg_option(WITH_CODEC_AVI)
@@ -1982,10 +1989,13 @@ if(FIRST_RUN)
       info_cfg_option(WITH_CYCLES_DEVICE_OPTIX)
       info_cfg_option(WITH_CYCLES_DEVICE_CUDA)
       info_cfg_option(WITH_CYCLES_CUDA_BINARIES)
-      info_cfg_option(WITH_CYCLES_DEVICE_HIP)
-      info_cfg_option(WITH_CYCLES_HIP_BINARIES)
       info_cfg_option(WITH_CYCLES_DEVICE_ONEAPI)
       info_cfg_option(WITH_CYCLES_ONEAPI_BINARIES)
+      info_cfg_option(WITH_CYCLES_DEVICE_HIP)
+      info_cfg_option(WITH_CYCLES_HIP_BINARIES)
+    endif()
+    if(WIN32)
+      info_cfg_option(WITH_CYCLES_DEVICE_HIPRT)
     endif()
   endif()
 

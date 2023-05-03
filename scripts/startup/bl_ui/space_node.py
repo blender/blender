@@ -261,6 +261,7 @@ class NODE_MT_view(Menu):
 
         layout.separator()
 
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("node.view_selected")
         layout.operator("node.view_all")
 
@@ -555,8 +556,8 @@ class NODE_MT_context_menu(Menu):
             layout.operator("node.group_edit", text="Edit").exit = False
             layout.operator("node.group_ungroup", text="Ungroup")
 
-            if is_nested:
-                layout.operator("node.tree_path_parent", text="Exit Group", icon='FILE_PARENT')
+        if is_nested:
+            layout.operator("node.tree_path_parent", text="Exit Group", icon='FILE_PARENT')
 
         layout.separator()
 
@@ -903,7 +904,10 @@ class NodeTreeInterfacePanel(Panel):
                     props = property_row.operator_menu_enum(
                         "node.tree_socket_change_subtype",
                         "socket_subtype",
-                        text=active_socket.bl_subtype_label if active_socket.bl_subtype_label else active_socket.bl_idname
+                        text=(
+                            active_socket.bl_subtype_label if active_socket.bl_subtype_label else
+                            active_socket.bl_idname
+                        ),
                     )
 
             layout.use_property_split = True

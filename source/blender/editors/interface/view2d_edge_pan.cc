@@ -25,11 +25,13 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "view2d_intern.hh"
+
 /* -------------------------------------------------------------------- */
 /** \name Edge Pan Operator Utilities
  * \{ */
 
-bool UI_view2d_edge_pan_poll(bContext *C)
+bool view2d_edge_pan_poll(bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
 
@@ -58,7 +60,7 @@ void UI_view2d_edge_pan_init(bContext *C,
                              float delay,
                              float zoom_influence)
 {
-  if (!UI_view2d_edge_pan_poll(C)) {
+  if (!view2d_edge_pan_poll(C)) {
     return;
   }
 

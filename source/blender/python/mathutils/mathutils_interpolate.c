@@ -45,7 +45,8 @@ static PyObject *M_Interpolate_poly_3d_calc(PyObject *UNUSED(self), PyObject *ar
   }
 
   if (mathutils_array_parse(
-          fp, 2, 3 | MU_ARRAY_ZERO, point, "pt must be a 2-3 dimensional vector") == -1) {
+          fp, 2, 3 | MU_ARRAY_ZERO, point, "pt must be a 2-3 dimensional vector") == -1)
+  {
     return NULL;
   }
 

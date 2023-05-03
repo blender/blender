@@ -6,6 +6,7 @@
 #include "GPU_texture.h"
 
 #include "COM_context.hh"
+#include "COM_result.hh"
 #include "COM_utilities.hh"
 
 #include "COM_algorithm_smaa.hh"
@@ -22,10 +23,25 @@ static Result detect_edges(Context &context,
   GPUShader *shader = context.shader_manager().get("compositor_smaa_edge_detection");
   GPU_shader_bind(shader);
 
-  float luminance_coefficients[3];
-  IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
+  switch (input.type()) {
+    case ResultType::Color: {
+      float luminance_coefficients[3];
+      IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
+      GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
+      break;
+    }
+    case ResultType::Vector: {
+      float luminance_coefficients[3] = {1.0f, 1.0f, 1.0f};
+      GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
+      break;
+    }
+    case ResultType::Float: {
+      float luminance_coefficients[3] = {1.0f, 0.0f, 0.0f};
+      GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
+      break;
+    }
+  }
 
-  GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
   GPU_shader_uniform_1f(shader, "smaa_threshold", threshold);
   GPU_shader_uniform_1f(
       shader, "smaa_local_contrast_adaptation_factor", local_contrast_adaptation_factor);
@@ -57,7 +73,7 @@ static Result calculate_blending_weights(Context &context, Result &edges, int co
   edges.bind_as_texture(shader, "edges_tx");
 
   const SMAAPrecomputedTextures &smaa_precomputed_textures =
-      context.cache_manager().get_smaa_precomputed_textures();
+      context.cache_manager().smaa_precomputed_textures.get();
   smaa_precomputed_textures.bind_area_texture(shader, "area_tx");
   smaa_precomputed_textures.bind_search_texture(shader, "search_tx");
 
@@ -78,7 +94,9 @@ static Result calculate_blending_weights(Context &context, Result &edges, int co
 
 static void blend_neighborhood(Context &context, Result &input, Result &weights, Result &output)
 {
-  GPUShader *shader = context.shader_manager().get("compositor_smaa_neighborhood_blending");
+  GPUShader *shader = context.shader_manager().get(
+      input.type() == ResultType::Float ? "compositor_smaa_neighborhood_blending_float" :
+                                          "compositor_smaa_neighborhood_blending_color");
   GPU_shader_bind(shader);
 
   GPU_texture_filter_mode(input.texture(), true);

@@ -269,6 +269,15 @@ static void wm_window_substitute_old(wmWindowManager *oldwm,
   win->posy = oldwin->posy;
 }
 
+/**
+ * Support loading older files without multiple windows (pre 2.5),
+ * in this case the #bScreen from the users file should be used but the current
+ * windows (from `current_wm_list` are kept).
+ *
+ * As the original file did not have multiple windows, duplicate the layout into each window.
+ * An alternative solution could also be to close all windows except the first however this is
+ * enough of a corner case that it's the current behavior is acceptable.
+ */
 static void wm_window_match_keep_current_wm(const bContext *C,
                                             ListBase *current_wm_list,
                                             const bool load_ui,
@@ -286,7 +295,7 @@ static void wm_window_match_keep_current_wm(const bContext *C,
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       WorkSpace *workspace;
 
-      BKE_workspace_layout_find_global(bmain, screen, &workspace);
+      WorkSpaceLayout *layout_ref = BKE_workspace_layout_find_global(bmain, screen, &workspace);
       BKE_workspace_active_set(win->workspace_hook, workspace);
       win->scene = CTX_data_scene(C);
 
@@ -295,9 +304,13 @@ static void wm_window_match_keep_current_wm(const bContext *C,
         WM_window_set_active_screen(win, workspace, screen);
       }
       else {
-        WorkSpaceLayout *layout_old = WM_window_get_active_layout(win);
+#if 0
+        /* NOTE(@ideasman42): The screen referenced from the window has been freed,
+         * see: #107525. */
+        WorkSpaceLayout *layout_ref = WM_window_get_active_layout(win);
+#endif
         WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(
-            bmain, workspace, layout_old, win);
+            bmain, workspace, layout_ref, win);
 
         WM_window_set_active_layout(win, workspace, layout_new);
       }
@@ -467,8 +480,6 @@ static void wm_init_userdef(Main *bmain)
   /* Not versioning, just avoid errors. */
 #ifndef WITH_CYCLES
   BKE_addon_remove_safe(&U.addons, "cycles");
-#else
-  UNUSED_VARS(BKE_addon_remove_safe);
 #endif
 
   UI_init_userdef();
@@ -516,17 +527,17 @@ static void wm_init_userdef(Main *bmain)
  * \{ */
 
 /* intended to check for non-blender formats but for now it only reads blends */
-static int wm_read_exotic(const char *name)
+static int wm_read_exotic(const char *filepath)
 {
   /* make sure we're not trying to read a directory.... */
 
-  int namelen = strlen(name);
-  if (namelen > 0 && ELEM(name[namelen - 1], '/', '\\')) {
+  int filepath_len = strlen(filepath);
+  if (filepath_len > 0 && ELEM(filepath[filepath_len - 1], '/', '\\')) {
     return BKE_READ_EXOTIC_FAIL_PATH;
   }
 
   /* open the file. */
-  const int filedes = BLI_open(name, O_BINARY | O_RDONLY, 0);
+  const int filedes = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (filedes == -1) {
     return BKE_READ_EXOTIC_FAIL_OPEN;
   }
@@ -592,7 +603,7 @@ void WM_file_autoexec_init(const char *filepath)
 
   if (G.f & G_FLAG_SCRIPT_AUTOEXEC) {
     char dirpath[FILE_MAX];
-    BLI_split_dir_part(filepath, dirpath, sizeof(dirpath));
+    BLI_path_split_dir_part(filepath, dirpath, sizeof(dirpath));
     if (BKE_autoexec_match(dirpath)) {
       G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
     }
@@ -604,8 +615,8 @@ void wm_file_read_report(bContext *C, Main *bmain)
   ReportList *reports = nullptr;
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->r.engine[0] &&
-        BLI_findstring(&R_engines, scene->r.engine, offsetof(RenderEngineType, idname)) ==
-            nullptr) {
+        BLI_findstring(&R_engines, scene->r.engine, offsetof(RenderEngineType, idname)) == nullptr)
+    {
       if (reports == nullptr) {
         reports = CTX_wm_reports(C);
       }
@@ -880,7 +891,8 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
 
   if (bf_reports->resynced_lib_overrides_libraries_count != 0) {
     for (LinkNode *node_lib = bf_reports->resynced_lib_overrides_libraries; node_lib != nullptr;
-         node_lib = node_lib->next) {
+         node_lib = node_lib->next)
+    {
       Library *library = static_cast<Library *>(node_lib->link);
       BKE_reportf(bf_reports->reports,
                   RPT_INFO,
@@ -920,7 +932,8 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
   }
 
   if (bf_reports->count.proxies_to_lib_overrides_success != 0 ||
-      bf_reports->count.proxies_to_lib_overrides_failures != 0) {
+      bf_reports->count.proxies_to_lib_overrides_failures != 0)
+  {
     BKE_reportf(bf_reports->reports,
                 RPT_WARNING,
                 "Proxies have been removed from Blender (%d proxies were automatically converted "
@@ -1256,7 +1269,8 @@ void wm_homefile_read_ex(bContext *C,
 
   if ((app_template != nullptr) && (app_template[0] != '\0')) {
     if (!BKE_appdir_app_template_id_search(
-            app_template, app_template_system, sizeof(app_template_system))) {
+            app_template, app_template_system, sizeof(app_template_system)))
+    {
       /* Can safely continue with code below, just warn it's not found. */
       BKE_reportf(reports, RPT_WARNING, "Application Template \"%s\" not found", app_template);
     }
@@ -1471,13 +1485,13 @@ void wm_history_file_read(void)
     return;
   }
 
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
   LinkNode *l;
   int num;
 
-  BLI_path_join(name, sizeof(name), cfgdir, BLENDER_HISTORY_FILE);
+  BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_HISTORY_FILE);
 
-  LinkNode *lines = BLI_file_read_as_lines(name);
+  LinkNode *lines = BLI_file_read_as_lines(filepath);
 
   wm_history_files_free();
 
@@ -1530,7 +1544,7 @@ static RecentFile *wm_file_history_find(const char *filepath)
 static void wm_history_file_write(void)
 {
   const char *user_config_dir;
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
   FILE *fp;
 
   /* will be nullptr in background mode */
@@ -1539,9 +1553,9 @@ static void wm_history_file_write(void)
     return;
   }
 
-  BLI_path_join(name, sizeof(name), user_config_dir, BLENDER_HISTORY_FILE);
+  BLI_path_join(filepath, sizeof(filepath), user_config_dir, BLENDER_HISTORY_FILE);
 
-  fp = BLI_fopen(name, "w");
+  fp = BLI_fopen(filepath, "w");
   if (fp) {
     LISTBASE_FOREACH (RecentFile *, recent, &G.recent_files) {
       fprintf(fp, "%s\n", recent->filepath);
@@ -1575,7 +1589,8 @@ static void wm_history_file_update(void)
       RecentFile *recent_next;
       for (recent = static_cast<RecentFile *>(BLI_findlink(&G.recent_files, U.recent_files - 1));
            recent;
-           recent = recent_next) {
+           recent = recent_next)
+      {
         recent_next = recent->next;
         wm_history_file_free(recent);
       }
@@ -1588,7 +1603,7 @@ static void wm_history_file_update(void)
     /* Write current file to #BLENDER_HISTORY_FILE. */
     wm_history_file_write();
 
-    /* also update most recent files on System */
+    /* Also update most recent files on system. */
     GHOST_addToSystemRecentFiles(blendfile_path);
   }
 }
@@ -1633,8 +1648,11 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **r_t
     win = win->parent;
   }
 
+  wmWindowManager *wm = CTX_wm_manager(C);
   int win_size[2];
-  uint *buffer = WM_window_pixels_read(CTX_wm_manager(C), win, win_size);
+  /* NOTE: always read from front-buffer as drawing a window can cause problems while saving,
+   * even if this means the thumbnail from the screen-shot fails to be created, see: #98462. */
+  uint *buffer = WM_window_pixels_read_from_frontbuffer(wm, win, win_size);
   ImBuf *ibuf = IMB_allocFromBufferOwn(buffer, nullptr, win_size[0], win_size[1], 24);
 
   if (ibuf) {
@@ -3266,8 +3284,9 @@ static bool wm_save_mainfile_check(bContext * /*C*/, wmOperator *op)
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
   if (!BKE_blendfile_extension_check(filepath)) {
-    /* some users would prefer BLI_path_extension_replace(),
-     * we keep getting nitpicking bug reports about this - campbell */
+    /* NOTE(@ideasman42): some users would prefer #BLI_path_extension_replace(),
+     * we have had some nitpicking bug reports about this.
+     * Always adding the extension as users may use '.' as part of the file-name. */
     BLI_path_extension_ensure(filepath, FILE_MAX, ".blend");
     RNA_string_set(op->ptr, "filepath", filepath);
     return true;
@@ -3685,7 +3704,8 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
 
   if (file_has_been_saved_before) {
     if (WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, nullptr, nullptr) &
-        OPERATOR_CANCELLED) {
+        OPERATOR_CANCELLED)
+    {
       execute_callback = false;
     }
   }
@@ -3754,7 +3774,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   const char *blendfile_path = BKE_main_blendfile_path(CTX_data_main(C));
   char filename[FILE_MAX];
   if (blendfile_path[0] != '\0') {
-    BLI_split_file_part(blendfile_path, filename, sizeof(filename));
+    BLI_path_split_file_part(blendfile_path, filename, sizeof(filename));
   }
   else {
     SNPRINTF(filename, "%s.blend", DATA_("untitled"));
@@ -3928,7 +3948,8 @@ bool wm_operator_close_file_dialog_if_needed(bContext *C,
                                              wmGenericCallbackFn post_action_fn)
 {
   if (U.uiflag & USER_SAVE_PROMPT &&
-      wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C), CTX_wm_manager(C))) {
+      wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C), CTX_wm_manager(C)))
+  {
     wmGenericCallback *callback = MEM_cnew<wmGenericCallback>(__func__);
     callback->exec = post_action_fn;
     callback->user_data = IDP_CopyProperty(op->properties);

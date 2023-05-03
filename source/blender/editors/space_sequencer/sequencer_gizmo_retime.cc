@@ -104,5 +104,3 @@ void SEQUENCER_GGT_gizmo_retime(wmGizmoGroupType *gzgt)
   gzgt->poll = gizmogroup_retime_poll;
   gzgt->setup = gizmogroup_retime_setup;
 }
-
-/** \} */

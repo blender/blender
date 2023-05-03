@@ -176,13 +176,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   const float(*me_positions)[3] = BKE_mesh_vert_positions(me);
-  const blender::Span<MEdge> me_edges = me->edges();
+  const blender::Span<blender::int2> me_edges = me->edges();
   const float(*result_positions)[3] = BKE_mesh_vert_positions(result);
-  const blender::Span<MEdge> result_edges = result->edges();
+  const blender::Span<blender::int2> result_edges = result->edges();
 
   if (((result == me) || (me_positions == result_positions) ||
        (me_edges.data() == result_edges.data())) &&
-      (dtmd->data_types & DT_TYPES_AFFECT_MESH)) {
+      (dtmd->data_types & DT_TYPES_AFFECT_MESH))
+  {
     /* We need to duplicate data here, otherwise setting custom normals, edges' sharpness, etc.,
      * could modify org mesh, see #43671. */
     result = (Mesh *)BKE_id_copy_ex(nullptr, &me_mod->id, nullptr, LIB_ID_COPY_LOCALIZE);
@@ -213,7 +214,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                                   dtmd->mix_factor,
                                   dtmd->defgrp_name,
                                   invert_vgroup,
-                                  &reports)) {
+                                  &reports))
+  {
     result->runtime->is_original_bmesh = false;
   }
 

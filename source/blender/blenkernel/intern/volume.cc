@@ -699,10 +699,8 @@ static int volume_sequence_frame(const Depsgraph *depsgraph, const Volume *volum
     return 0;
   }
 
-  char filepath[FILE_MAX];
-  STRNCPY(filepath, volume->filepath);
   int path_frame, path_digits;
-  if (!(volume->is_sequence && BLI_path_frame_get(filepath, &path_frame, &path_digits))) {
+  if (!(volume->is_sequence && BLI_path_frame_get(volume->filepath, &path_frame, &path_digits))) {
     return 0;
   }
 
@@ -770,8 +768,8 @@ static void volume_filepath_get(const Main *bmain, const Volume *volume, char r_
   int path_frame, path_digits;
   if (volume->is_sequence && BLI_path_frame_get(r_filepath, &path_frame, &path_digits)) {
     char ext[32];
-    BLI_path_frame_strip(r_filepath, ext);
-    BLI_path_frame(r_filepath, volume->runtime.frame, path_digits);
+    BLI_path_frame_strip(r_filepath, ext, sizeof(ext));
+    BLI_path_frame(r_filepath, FILE_MAX, volume->runtime.frame, path_digits);
     BLI_path_extension_ensure(r_filepath, FILE_MAX, ext);
   }
 }
@@ -875,7 +873,7 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
   /* Test if file exists. */
   if (!BLI_exists(filepath)) {
     char filename[FILE_MAX];
-    BLI_split_file_part(filepath, filename, sizeof(filename));
+    BLI_path_split_file_part(filepath, filename, sizeof(filename));
     grids.error_msg = filename + std::string(" not found");
     CLOG_INFO(&LOG, 1, "Volume %s: %s", volume_name, grids.error_msg.c_str());
     return false;
@@ -1525,17 +1523,10 @@ Volume *BKE_volume_new_for_eval(const Volume *volume_src)
   return volume_dst;
 }
 
-Volume *BKE_volume_copy_for_eval(Volume *volume_src, bool reference)
+Volume *BKE_volume_copy_for_eval(Volume *volume_src)
 {
-  int flags = LIB_ID_COPY_LOCALIZE;
-
-  if (reference) {
-    flags |= LIB_ID_COPY_CD_REFERENCE;
-  }
-
-  Volume *result = (Volume *)BKE_id_copy_ex(nullptr, &volume_src->id, nullptr, flags);
-
-  return result;
+  return reinterpret_cast<Volume *>(
+      BKE_id_copy_ex(nullptr, &volume_src->id, nullptr, LIB_ID_COPY_LOCALIZE));
 }
 
 #ifdef WITH_OPENVDB

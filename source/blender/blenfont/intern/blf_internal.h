@@ -42,14 +42,11 @@ void blf_batch_draw(void);
 
 unsigned int blf_next_p2(unsigned int x);
 unsigned int blf_hash(unsigned int val);
-
-char *blf_dir_search(const char *file);
 /**
  * Some font have additional file with metrics information,
  * in general, the extension of the file is: `.afm` or `.pfm`
  */
 char *blf_dir_metrics_search(const char *filepath);
-// int blf_dir_split(const char *str, char *file, int *size); /*UNUSED*/
 
 int blf_font_init(void);
 void blf_font_exit(void);
@@ -70,18 +67,7 @@ void blf_ensure_size(struct FontBLF *font);
 void blf_draw_buffer__start(struct FontBLF *font);
 void blf_draw_buffer__end(void);
 
-/**
- * Create a new font from filename OR memory pointer.
- * For normal operation pass NULL as FT_Library object. Pass a custom FT_Library if you
- * want to use the font without its lifetime being managed by the FreeType cache subsystem.
- */
-struct FontBLF *blf_font_new_ex(const char *name,
-                                const char *filepath,
-                                const unsigned char *mem,
-                                size_t mem_size,
-                                void *ft_library);
-
-struct FontBLF *blf_font_new(const char *name, const char *filepath);
+struct FontBLF *blf_font_new_from_filepath(const char *filepath);
 struct FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, size_t mem_size);
 void blf_font_attach_from_mem(struct FontBLF *font, const unsigned char *mem, size_t mem_size);
 

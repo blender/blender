@@ -65,13 +65,15 @@ bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
     if (seq->flag & SELECT) {
       if ((seq->seq1 && (seq->seq1->flag & SELECT) == 0) ||
           (seq->seq2 && (seq->seq2->flag & SELECT) == 0) ||
-          (seq->seq3 && (seq->seq3->flag & SELECT) == 0)) {
+          (seq->seq3 && (seq->seq3->flag & SELECT) == 0))
+      {
         return false;
       }
     }
     else {
       if ((seq->seq1 && (seq->seq1->flag & SELECT)) || (seq->seq2 && (seq->seq2->flag & SELECT)) ||
-          (seq->seq3 && (seq->seq3->flag & SELECT))) {
+          (seq->seq3 && (seq->seq3->flag & SELECT)))
+      {
         return false;
       }
     }
@@ -405,25 +407,29 @@ static eOvelapDescrition overlap_description_get(const Scene *scene,
   if (SEQ_time_left_handle_frame_get(scene, transformed) <=
           SEQ_time_left_handle_frame_get(scene, target) &&
       SEQ_time_right_handle_frame_get(scene, transformed) >=
-          SEQ_time_right_handle_frame_get(scene, target)) {
+          SEQ_time_right_handle_frame_get(scene, target))
+  {
     return STRIP_OVERLAP_IS_FULL;
   }
   if (SEQ_time_left_handle_frame_get(scene, transformed) >
           SEQ_time_left_handle_frame_get(scene, target) &&
       SEQ_time_right_handle_frame_get(scene, transformed) <
-          SEQ_time_right_handle_frame_get(scene, target)) {
+          SEQ_time_right_handle_frame_get(scene, target))
+  {
     return STRIP_OVERLAP_IS_INSIDE;
   }
   if (SEQ_time_left_handle_frame_get(scene, transformed) <=
           SEQ_time_left_handle_frame_get(scene, target) &&
       SEQ_time_left_handle_frame_get(scene, target) <=
-          SEQ_time_right_handle_frame_get(scene, transformed)) {
+          SEQ_time_right_handle_frame_get(scene, transformed))
+  {
     return STRIP_OVERLAP_LEFT_SIDE;
   }
   if (SEQ_time_left_handle_frame_get(scene, transformed) <=
           SEQ_time_right_handle_frame_get(scene, target) &&
       SEQ_time_right_handle_frame_get(scene, target) <=
-          SEQ_time_right_handle_frame_get(scene, transformed)) {
+          SEQ_time_right_handle_frame_get(scene, transformed))
+  {
     return STRIP_OVERLAP_RIGHT_SIDE;
   }
   return STRIP_OVERLAP_NONE;

@@ -168,6 +168,7 @@ static void collection_free_data(ID *id)
 static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Collection *collection = (Collection *)id;
+  const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
 
   BKE_LIB_FOREACHID_PROCESS_ID(
       data, collection->runtime.owner_id, IDWALK_CB_LOOPBACK | IDWALK_CB_NEVER_SELF);
@@ -197,8 +198,9 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
     /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
      * anyway... */
     const int cb_flag = ((parent->collection != NULL &&
+                          (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0 &&
                           (parent->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
-                             IDWALK_CB_EMBEDDED :
+                             IDWALK_CB_EMBEDDED_NOT_OWNING :
                              IDWALK_CB_NOP);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(
         data, parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK | cb_flag);
@@ -495,7 +497,8 @@ void BKE_collection_add_from_object(Main *bmain,
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
     if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDABLE_LIBRARY(collection) &&
-        BKE_collection_has_object(collection, ob_src)) {
+        BKE_collection_has_object(collection, ob_src))
+    {
       collection_child_add(collection, collection_dst, 0, true);
       is_instantiated = true;
     }
@@ -518,7 +521,8 @@ void BKE_collection_add_from_collection(Main *bmain,
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
     if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDABLE_LIBRARY(collection) &&
-        collection_find_child(collection, collection_src)) {
+        collection_find_child(collection, collection_src))
+    {
       collection_child_add(collection, collection_dst, 0, true);
       is_instantiated = true;
     }
@@ -885,19 +889,31 @@ ListBase BKE_collection_object_cache_instanced_get(Collection *collection)
 
 static void collection_object_cache_free(Collection *collection)
 {
-  /* Clear own cache an for all parents, since those are affected by changes as well. */
   collection->flag &= ~(COLLECTION_HAS_OBJECT_CACHE | COLLECTION_HAS_OBJECT_CACHE_INSTANCED);
   BLI_freelistN(&collection->runtime.object_cache);
   BLI_freelistN(&collection->runtime.object_cache_instanced);
 }
 
-void BKE_collection_object_cache_free(Collection *collection)
+static void collection_object_cache_free_parent_recursive(Collection *collection)
 {
   collection_object_cache_free(collection);
 
+  /* Clear cache in all parents recursively, since those are affected by changes as well. */
   LISTBASE_FOREACH (CollectionParent *, parent, &collection->runtime.parents) {
-    collection_object_cache_free(parent->collection);
+    /* In theory there should be no NULL pointer here. However, this code can be called from
+     * non-valid temporary states (e.g. indirectly from #BKE_collections_object_remove_invalids
+     * as part of ID remapping process). */
+    if (parent->collection == NULL) {
+      continue;
+    }
+    collection_object_cache_free_parent_recursive(parent->collection);
   }
+}
+
+void BKE_collection_object_cache_free(Collection *collection)
+{
+  BLI_assert(collection != NULL);
+  collection_object_cache_free_parent_recursive(collection);
 }
 
 void BKE_main_collections_object_cache_free(const Main *bmain)
@@ -907,7 +923,8 @@ void BKE_main_collections_object_cache_free(const Main *bmain)
   }
 
   for (Collection *collection = bmain->collections.first; collection != NULL;
-       collection = collection->id.next) {
+       collection = collection->id.next)
+  {
     collection_object_cache_free(collection);
   }
 }
@@ -1257,7 +1274,8 @@ static Collection *collection_parent_editable_find_recursive(const ViewLayer *vi
                                                              Collection *collection)
 {
   if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection) &&
-      (view_layer == NULL || BKE_view_layer_has_collection(view_layer, collection))) {
+      (view_layer == NULL || BKE_view_layer_has_collection(view_layer, collection)))
+  {
     return collection;
   }
 
@@ -1267,9 +1285,11 @@ static Collection *collection_parent_editable_find_recursive(const ViewLayer *vi
 
   LISTBASE_FOREACH (CollectionParent *, collection_parent, &collection->runtime.parents) {
     if (!ID_IS_LINKED(collection_parent->collection) &&
-        !ID_IS_OVERRIDE_LIBRARY(collection_parent->collection)) {
+        !ID_IS_OVERRIDE_LIBRARY(collection_parent->collection))
+    {
       if (view_layer != NULL &&
-          !BKE_view_layer_has_collection(view_layer, collection_parent->collection)) {
+          !BKE_view_layer_has_collection(view_layer, collection_parent->collection))
+      {
         /* In case this parent collection is not in given view_layer, there is no point in
          * searching in its ancestors either, we can skip that whole parenting branch. */
         continue;
@@ -1292,7 +1312,8 @@ static bool collection_object_add(
   if (ob->instance_collection) {
     /* Cyclic dependency check. */
     if ((ob->instance_collection == collection) ||
-        collection_find_child_recursive(ob->instance_collection, collection)) {
+        collection_find_child_recursive(ob->instance_collection, collection))
+    {
       return false;
     }
   }
@@ -1417,7 +1438,8 @@ void BKE_collection_object_add_from(Main *bmain, Scene *scene, Object *ob_src, O
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
     if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection) &&
-        BKE_collection_has_object(collection, ob_src)) {
+        BKE_collection_has_object(collection, ob_src))
+    {
       collection_object_add(bmain, collection, ob_dst, 0, true);
       is_instantiated = true;
     }
@@ -1467,11 +1489,16 @@ bool BKE_collection_object_replace(Main *bmain,
     return false;
   }
 
-  id_us_min(&cob->ob->id);
-  cob->ob = ob_new;
-  id_us_plus(&cob->ob->id);
+  if (!BLI_ghash_haskey(collection->runtime.gobject_hash, ob_new)) {
+    id_us_min(&cob->ob->id);
+    cob->ob = ob_new;
+    id_us_plus(&cob->ob->id);
 
-  BLI_ghash_insert(collection->runtime.gobject_hash, cob->ob, cob);
+    BLI_ghash_insert(collection->runtime.gobject_hash, cob->ob, cob);
+  }
+  else {
+    collection_object_remove_no_gobject_hash(bmain, collection, cob, false);
+  }
 
   if (BKE_collection_is_in_scene(collection)) {
     BKE_main_collection_sync(bmain);
@@ -1644,14 +1671,16 @@ static bool collection_instance_find_recursive(Collection *collection,
   LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
     if (collection_object->ob != NULL &&
         /* Object from a given collection should never instantiate that collection either. */
-        ELEM(collection_object->ob->instance_collection, instance_collection, collection)) {
+        ELEM(collection_object->ob->instance_collection, instance_collection, collection))
+    {
       return true;
     }
   }
 
   LISTBASE_FOREACH (CollectionChild *, collection_child, &collection->children) {
     if (collection_child->collection != NULL &&
-        collection_instance_find_recursive(collection_child->collection, instance_collection)) {
+        collection_instance_find_recursive(collection_child->collection, instance_collection))
+    {
       return true;
     }
   }
@@ -1686,8 +1715,8 @@ static bool collection_instance_fix_recursive(Collection *parent_collection,
   bool cycles_found = false;
 
   LISTBASE_FOREACH (CollectionObject *, collection_object, &parent_collection->gobject) {
-    if (collection_object->ob != NULL &&
-        collection_object->ob->instance_collection == collection) {
+    if (collection_object->ob != NULL && collection_object->ob->instance_collection == collection)
+    {
       id_us_min(&collection->id);
       collection_object->ob->instance_collection = NULL;
       cycles_found = true;

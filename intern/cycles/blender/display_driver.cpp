@@ -312,7 +312,8 @@ class DisplayGPUPixelBuffer {
     /* Try to re-use the existing PBO if it has usable size. */
     if (gpu_pixel_buffer) {
       if (new_width != width || new_height != height ||
-          GPU_pixel_buffer_size(gpu_pixel_buffer) < required_size) {
+          GPU_pixel_buffer_size(gpu_pixel_buffer) < required_size)
+      {
         gpu_resources_destroy();
       }
     }
@@ -513,7 +514,8 @@ bool BlenderDisplayDriver::update_begin(const Params &params,
   const int buffer_height = params.size.y;
 
   if (!current_tile_buffer_object.gpu_resources_ensure(buffer_width, buffer_height) ||
-      !current_tile.texture.gpu_resources_ensure(texture_width, texture_height)) {
+      !current_tile.texture.gpu_resources_ensure(texture_width, texture_height))
+  {
     tiles_->current_tile.gpu_resources_destroy();
     gpu_context_disable();
     return false;
@@ -563,7 +565,8 @@ void BlenderDisplayDriver::update_end()
    * renders while Blender is drawing. As a workaround update texture during draw, under assumption
    * that there is no graphics interop on macOS and viewport render has a single tile. */
   if (!background_ &&
-      GPU_type_matches_ex(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_ANY)) {
+      GPU_type_matches_ex(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_ANY))
+  {
     tiles_->current_tile.need_update_texture_pixels = true;
   }
   else {
@@ -708,7 +711,8 @@ static void draw_tile(const float2 &zoom,
     GPU_texture_bind_ex(texture.gpu_texture, GPUSamplerState::default_sampler(), 0);
   }
   else if (zoomed_width - draw_tile.params.size.x > 0.5f ||
-           zoomed_height - draw_tile.params.size.y > 0.5f) {
+           zoomed_height - draw_tile.params.size.y > 0.5f)
+  {
     GPU_texture_bind_ex(texture.gpu_texture, GPUSamplerState::default_sampler(), 0);
   }
   else {

@@ -35,7 +35,7 @@ bool HIPDevice::have_precompiled_kernels()
   return path_exists(fatbins_path);
 }
 
-BVHLayoutMask HIPDevice::get_bvh_layout_mask() const
+BVHLayoutMask HIPDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
 {
   return BVH_LAYOUT_BVH2;
 }
@@ -812,7 +812,8 @@ void HIPDevice::tex_alloc(device_texture &mem)
   if (mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
       mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 &&
       mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
-      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FP16) {
+      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FP16)
+  {
     /* Bindless textures. */
     hipResourceDesc resDesc;
     memset(&resDesc, 0, sizeof(resDesc));

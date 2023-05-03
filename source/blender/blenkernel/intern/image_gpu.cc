@@ -345,7 +345,8 @@ void BKE_image_ensure_gpu_texture(Image *image, ImageUser *image_user)
   /* Note that the image can cache both stereo views, so we only invalidate the cache if the view
    * index is more than 2. */
   if (image->gpu_pass != image_user->pass || image->gpu_layer != image_user->layer ||
-      (image->gpu_view != image_user->multi_index && image_user->multi_index >= 2)) {
+      (image->gpu_view != image_user->multi_index && image_user->multi_index >= 2))
+  {
     BKE_image_partial_update_mark_full_update(image);
   }
 }
@@ -375,7 +376,8 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
     requested_view = 0;
   }
   if (ima->gpu_pass != requested_pass || ima->gpu_layer != requested_layer ||
-      ima->gpu_view != requested_view) {
+      ima->gpu_view != requested_view)
+  {
     ima->gpu_pass = requested_pass;
     ima->gpu_layer = requested_layer;
     ima->gpu_view = requested_view;
@@ -769,7 +771,8 @@ static void gpu_texture_update_from_ibuf(
       /* Non-color data, just store buffer as is. */
     }
     else if (IMB_colormanagement_space_is_srgb(ibuf->rect_colorspace) ||
-             IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace)) {
+             IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace))
+    {
       /* sRGB or scene linear, store as byte texture that the GPU can decode directly. */
       rect = (uchar *)MEM_mallocN(sizeof(uchar[4]) * w * h, __func__);
       if (rect == nullptr) {
@@ -881,7 +884,8 @@ void BKE_image_update_gputexture_delayed(struct Image *ima,
 {
   /* Check for full refresh. */
   if (ibuf != nullptr && ima->source != IMA_SRC_TILED && x == 0 && y == 0 && w == ibuf->x &&
-      h == ibuf->y) {
+      h == ibuf->y)
+  {
     BKE_image_partial_update_mark_full_update(ima);
   }
   else {

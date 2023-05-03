@@ -624,7 +624,8 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
     COLLADAFW::Node *node = *ri;
     /* for shared armature check if bone tree is already created */
     if (shared && std::find(skin_root_joints.begin(), skin_root_joints.end(), node) !=
-                      skin_root_joints.end()) {
+                      skin_root_joints.end())
+    {
       continue;
     }
 
@@ -1011,7 +1012,7 @@ void ArmatureImporter::get_rna_path_for_joint(COLLADAFW::Node *node,
                                               char *joint_path,
                                               size_t count)
 {
-  char bone_name_esc[sizeof(((Bone *)nullptr)->name) * 2];
+  char bone_name_esc[sizeof(Bone::name) * 2];
   BLI_str_escape(bone_name_esc, bc_get_joint_name(node), sizeof(bone_name_esc));
   BLI_snprintf(joint_path, count, "pose.bones[\"%s\"]", bone_name_esc);
 }

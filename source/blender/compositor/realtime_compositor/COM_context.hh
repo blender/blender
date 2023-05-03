@@ -5,6 +5,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 
+#include "DNA_ID.h"
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
@@ -70,8 +71,19 @@ class Context {
    * appropriate place, which can be directly in the UI or just logged to the output stream. */
   virtual void set_info_message(StringRef message) const = 0;
 
+  /* Returns the ID recalculate flag of the given ID and reset it to zero. The given ID is assumed
+   * to be one that has a DrawDataList and conforms to the IdDdtTemplate.
+   *
+   * The ID recalculate flag is a mechanism through which one can identify if an ID has changed
+   * since the last time the flag was reset, hence why the method reset the flag after querying it,
+   * that is, to ready it to track the next change. */
+  virtual IDRecalcFlag query_id_recalc_flag(ID *id) const = 0;
+
   /* Get the size of the compositing region. See get_compositing_region(). */
   int2 get_compositing_region_size() const;
+
+  /* Get the normalized render percentage of the active scene. */
+  float get_render_percentage() const;
 
   /* Get the current frame number of the active scene. */
   int get_frame_number() const;

@@ -44,7 +44,7 @@ static PointCloud *pointcloud_merge_by_distance(
     const Field<bool> &selection_field,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
-  bke::PointCloudFieldContext context{src_points};
+  const bke::PointCloudFieldContext context{src_points};
   FieldEvaluator evaluator{context, src_points.totpoint};
   evaluator.add(selection_field);
   evaluator.evaluate();
@@ -63,7 +63,7 @@ static std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
                                                               const Field<bool> &selection_field)
 {
   Array<bool> selection(mesh.totvert);
-  bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
+  const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
   FieldEvaluator evaluator{context, mesh.totvert};
   evaluator.add_with_destination(selection_field, selection.as_mutable_span());
   evaluator.evaluate();
@@ -75,7 +75,7 @@ static std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
                                                         const float merge_distance,
                                                         const Field<bool> &selection_field)
 {
-  bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
+  const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
   FieldEvaluator evaluator{context, mesh.totvert};
   evaluator.add(selection_field);
   evaluator.evaluate();

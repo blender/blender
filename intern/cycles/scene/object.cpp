@@ -296,7 +296,8 @@ float Object::compute_volume_step_size() const
     Shader *shader = static_cast<Shader *>(node);
     if (shader->has_volume) {
       if ((shader->get_heterogeneous_volume() && shader->has_volume_spatial_varying) ||
-          (shader->has_volume_attribute_dependency)) {
+          (shader->has_volume_attribute_dependency))
+      {
         step_rate = fminf(shader->get_volume_step_rate(), step_rate);
       }
     }
@@ -473,8 +474,8 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   }
   else if (geom->is_volume()) {
     Volume *volume = static_cast<Volume *>(geom);
-    if (volume->attributes.find(ATTR_STD_VOLUME_VELOCITY) &&
-        volume->get_velocity_scale() != 0.0f) {
+    if (volume->attributes.find(ATTR_STD_VOLUME_VELOCITY) && volume->get_velocity_scale() != 0.0f)
+    {
       flag |= SD_OBJECT_HAS_VOLUME_MOTION;
       kobject.velocity_scale = volume->get_velocity_scale();
     }
@@ -595,9 +596,11 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 void ObjectManager::device_update_prim_offsets(Device *device, DeviceScene *dscene, Scene *scene)
 {
   if (!scene->integrator->get_use_light_tree()) {
-    BVHLayoutMask layout_mask = device->get_bvh_layout_mask();
+    BVHLayoutMask layout_mask = device->get_bvh_layout_mask(dscene->data.kernel_features);
     if (layout_mask != BVH_LAYOUT_METAL && layout_mask != BVH_LAYOUT_MULTI_METAL &&
-        layout_mask != BVH_LAYOUT_MULTI_METAL_EMBREE) {
+        layout_mask != BVH_LAYOUT_MULTI_METAL_EMBREE && layout_mask != BVH_LAYOUT_HIPRT &&
+        layout_mask != BVH_LAYOUT_MULTI_HIPRT && layout_mask != BVH_LAYOUT_MULTI_HIPRT_EMBREE)
+    {
       return;
     }
   }

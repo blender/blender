@@ -565,13 +565,13 @@ static void nla_id_remap(ScrArea *UNUSED(area),
   BKE_id_remapper_apply(mappings, (ID **)&snla->ads->source, ID_REMAP_APPLY_DEFAULT);
 }
 
-static void nla_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+static void nla_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceNla *snla = (SpaceNla *)sl;
   BLO_read_data_address(reader, &snla->ads);
 }
 
-static void nla_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+static void nla_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceNla *snla = (SpaceNla *)sl;
   bDopeSheet *ads = snla->ads;
@@ -582,7 +582,7 @@ static void nla_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink 
   }
 }
 
-static void nla_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void nla_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceNla *snla = (SpaceNla *)sl;
 
@@ -608,9 +608,9 @@ void ED_spacetype_nla(void)
   st->listener = nla_listener;
   st->keymap = nla_keymap;
   st->id_remap = nla_id_remap;
-  st->blend_read_data = nla_blend_read_data;
-  st->blend_read_lib = nla_blend_read_lib;
-  st->blend_write = nla_blend_write;
+  st->blend_read_data = nla_space_blend_read_data;
+  st->blend_read_lib = nla_space_blend_read_lib;
+  st->blend_write = nla_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype nla region");

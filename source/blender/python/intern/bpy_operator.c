@@ -70,7 +70,8 @@ static void op_context_override_deprecated_warning(const char *action, const cha
           "Passing in context overrides is deprecated in favor of "
           "Context.temp_override(..), %s \"%s\"",
           action,
-          opname) < 0) {
+          opname) < 0)
+  {
     /* The function has no return value, the exception cannot
      * be reported to the caller, so just log it. */
     PyErr_WriteUnraisable(NULL);
@@ -196,7 +197,8 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
                         &PyDict_Type,
                         &kw,
                         &context_str,
-                        &is_undo)) {
+                        &is_undo))
+  {
     return NULL;
   }
 
@@ -397,7 +399,8 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
                         PyC_ParseBool,
                         &all_args,
                         PyC_ParseBool,
-                        &macro_args)) {
+                        &macro_args))
+  {
     return NULL;
   }
 

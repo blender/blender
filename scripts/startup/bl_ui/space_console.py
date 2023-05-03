@@ -7,8 +7,7 @@ class CONSOLE_HT_header(Header):
     bl_space_type = 'CONSOLE'
 
     def draw(self, context):
-        layout = self.layout.row()
-
+        layout = self.layout
         layout.template_header()
 
         CONSOLE_MT_editor_menus.draw_collapsible(context, layout)

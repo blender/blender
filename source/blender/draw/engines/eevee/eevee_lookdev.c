@@ -111,7 +111,8 @@ void EEVEE_lookdev_init(EEVEE_Data *vedata)
     const int sphere_size = U.lookdev_sphere_size * UI_SCALE_FAC * viewport_scale;
 
     if (sphere_size != effects->sphere_size || rect->xmax != effects->anchor[0] ||
-        rect->ymin != effects->anchor[1]) {
+        rect->ymin != effects->anchor[1])
+    {
       /* Make sphere resolution adaptive to viewport_scale, DPI and #U.lookdev_sphere_size. */
       float res_scale = clamp_f(
           (U.lookdev_sphere_size / 400.0f) * viewport_scale * UI_SCALE_FAC, 0.1f, 1.0f);
@@ -176,7 +177,8 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
     /* If one of the component is missing we start from scratch. */
     if ((stl->lookdev_grid_data == NULL) || (stl->lookdev_cube_data == NULL) ||
         (txl->lookdev_grid_tx == NULL) || (txl->lookdev_cube_tx == NULL) ||
-        (g_data->light_cache && g_data->light_cache->ref_res != cube_res)) {
+        (g_data->light_cache && g_data->light_cache->ref_res != cube_res))
+    {
       eevee_lookdev_lightcache_delete(vedata);
     }
 
@@ -257,7 +259,8 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
         g_data->studiolight_intensity != shading->studiolight_intensity ||
         g_data->studiolight_cubemap_res != scene->eevee.gi_cubemap_resolution ||
         g_data->studiolight_glossy_clamp != scene->eevee.gi_glossy_clamp ||
-        g_data->studiolight_filter_quality != scene->eevee.gi_filter_quality) {
+        g_data->studiolight_filter_quality != scene->eevee.gi_filter_quality)
+    {
       stl->lookdev_lightcache->flag |= LIGHTCACHE_UPDATE_WORLD;
       g_data->studiolight_index = sl->index;
       copy_m3_m3(g_data->studiolight_matrix, studiolight_matrix);

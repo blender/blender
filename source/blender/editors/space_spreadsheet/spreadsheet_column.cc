@@ -30,6 +30,9 @@ eSpreadsheetColumnValueType cpp_type_to_column_type(const CPPType &type)
   if (type.is<int>()) {
     return SPREADSHEET_VALUE_TYPE_INT32;
   }
+  if (type.is<int2>()) {
+    return SPREADSHEET_VALUE_TYPE_INT32_2D;
+  }
   if (type.is<float>()) {
     return SPREADSHEET_VALUE_TYPE_FLOAT;
   }

@@ -40,7 +40,7 @@
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_keyframes_edit.h"
 #include "ED_keyframing.h"
 #include "ED_markers.h"
@@ -192,7 +192,8 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
         /* Find mask layer which is less than or equal to current-frame. */
         for (masklay_shape = static_cast<MaskLayerShape *>(masklay->splines_shapes.first);
              masklay_shape;
-             masklay_shape = masklay_shape->next) {
+             masklay_shape = masklay_shape->next)
+        {
           const float framenum = float(masklay_shape->frame);
           *min = min_ff(*min, framenum);
           *max = max_ff(*max, framenum);
@@ -327,12 +328,14 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *r_min
   float ymax = ANIM_UI_get_first_channel_top(&ac->region->v2d);
   const float channel_step = ANIM_UI_get_channel_step();
   for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
-       ale = ale->next, ymax -= channel_step) {
+       ale = ale->next, ymax -= channel_step)
+  {
     const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 
     /* must be selected... */
     if (acf && acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT) &&
-        ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT)) {
+        ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT))
+    {
       /* update best estimate */
       *r_min = ymax - ANIM_UI_get_channel_height();
       *r_max = ymax;
@@ -547,7 +550,8 @@ static eKeyPasteError paste_action_keys(bAnimContext *ac,
             ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS);
 
   if (ANIM_animdata_filter(
-          ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, eAnimCont_Types(ac->datatype)) == 0) {
+          ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, eAnimCont_Types(ac->datatype)) == 0)
+  {
     ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
   }
 
@@ -576,7 +580,7 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
   if (ac.datatype == ANIMCONT_GPENCIL) {
     if (ED_gpencil_anim_copybuf_copy(&ac) == false) {
       /* check if anything ended up in the buffer */
-      BKE_report(op->reports, RPT_ERROR, "No keyframes copied to keyframes copy/paste buffer");
+      BKE_report(op->reports, RPT_ERROR, "No keyframes copied to the internal clipboard");
       return OPERATOR_CANCELLED;
     }
   }
@@ -591,7 +595,7 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
     const bool gpf_ok = ED_gpencil_anim_copybuf_copy(&ac);
 
     if (kf_empty && !gpf_ok) {
-      BKE_report(op->reports, RPT_ERROR, "No keyframes copied to keyframes copy/paste buffer");
+      BKE_report(op->reports, RPT_ERROR, "No keyframes copied to the internal clipboard");
       return OPERATOR_CANCELLED;
     }
   }
@@ -604,7 +608,7 @@ void ACTION_OT_copy(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Copy Keyframes";
   ot->idname = "ACTION_OT_copy";
-  ot->description = "Copy selected keyframes to the copy/paste buffer";
+  ot->description = "Copy selected keyframes to the internal clipboard";
 
   /* api callbacks */
   ot->exec = actkeys_copy_exec;
@@ -635,7 +639,7 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
   /* paste keyframes */
   if (ac.datatype == ANIMCONT_GPENCIL) {
     if (ED_gpencil_anim_copybuf_paste(&ac, offset_mode) == false) {
-      BKE_report(op->reports, RPT_ERROR, "No data in buffer to paste");
+      BKE_report(op->reports, RPT_ERROR, "No data in the internal clipboard to paste");
       return OPERATOR_CANCELLED;
     }
   }
@@ -664,7 +668,7 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
           return OPERATOR_CANCELLED;
 
         case KEYFRAME_PASTE_NOTHING_TO_PASTE:
-          BKE_report(op->reports, RPT_ERROR, "No data in buffer to paste");
+          BKE_report(op->reports, RPT_ERROR, "No data in the internal clipboard to paste");
           return OPERATOR_CANCELLED;
       }
     }
@@ -698,7 +702,8 @@ void ACTION_OT_paste(wmOperatorType *ot)
   ot->name = "Paste Keyframes";
   ot->idname = "ACTION_OT_paste";
   ot->description =
-      "Paste keyframes from copy/paste buffer for the selected channels, starting on the current "
+      "Paste keyframes from the internal clipboard for the selected channels, starting on the "
+      "current "
       "frame";
 
   /* api callbacks */

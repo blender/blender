@@ -16,12 +16,12 @@ TEMP_N = len(TEMP)
 
 def is_dict(obj):
     """Returns whether obj is a dictionary"""
-    return hasattr(obj, 'keys') and hasattr(getattr(obj, 'keys'), '__call__')
+    return hasattr(obj, "keys") and hasattr(getattr(obj, "keys"), "__call__")
 
 
 def is_struct_seq(obj):
     """Returns whether obj is a structured sequence subclass: sys.float_info"""
-    return isinstance(obj, tuple) and hasattr(obj, 'n_fields')
+    return isinstance(obj, tuple) and hasattr(obj, "n_fields")
 
 
 def complete_names(word, namespace):

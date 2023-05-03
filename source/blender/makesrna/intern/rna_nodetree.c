@@ -2190,15 +2190,18 @@ static void rna_GeometryNodeCompare_data_type_update(Main *bmain, Scene *scene, 
                                                     NODE_COMPARE_EQUAL,
                                                     NODE_COMPARE_NOT_EQUAL,
                                                     NODE_COMPARE_COLOR_BRIGHTER,
-                                                    NODE_COMPARE_COLOR_DARKER)) {
+                                                    NODE_COMPARE_COLOR_DARKER))
+  {
     node_storage->operation = NODE_COMPARE_EQUAL;
   }
   else if (node_storage->data_type == SOCK_STRING &&
-           !ELEM(node_storage->operation, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL)) {
+           !ELEM(node_storage->operation, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL))
+  {
     node_storage->operation = NODE_COMPARE_EQUAL;
   }
   else if (node_storage->data_type != SOCK_RGBA &&
-           ELEM(node_storage->operation, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER)) {
+           ELEM(node_storage->operation, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER))
+  {
     node_storage->operation = NODE_COMPARE_EQUAL;
   }
 
@@ -5014,7 +5017,7 @@ static void def_vector_math(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
   RNA_def_property_enum_items(prop, rna_enum_node_vec_math_items);
   RNA_def_property_ui_text(prop, "Operation", "");
-  RNA_def_struct_translation_context(srna, BLT_I18NCONTEXT_ID_NODETREE);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
 }
 
@@ -8280,7 +8283,7 @@ static void def_cmp_stabilize2d(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "custom2", CMP_NODEFLAG_STABILIZE_INVERSE);
+  RNA_def_property_boolean_sdna(prop, NULL, "custom2", CMP_NODE_STABILIZE_FLAG_INVERSE);
   RNA_def_property_ui_text(
       prop, "Invert", "Invert stabilization to re-introduce motion to the frame");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
@@ -8317,8 +8320,8 @@ static void def_cmp_mask(StructRNA *srna)
 
   static const EnumPropertyItem aspect_type_items[] = {
       {0, "SCENE", 0, "Scene Size", ""},
-      {CMP_NODEFLAG_MASK_FIXED, "FIXED", 0, "Fixed", "Use pixel size for the buffer"},
-      {CMP_NODEFLAG_MASK_FIXED_SCENE,
+      {CMP_NODE_MASK_FLAG_SIZE_FIXED, "FIXED", 0, "Fixed", "Use pixel size for the buffer"},
+      {CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE,
        "FIXED_SCENE",
        0,
        "Fixed/Scene",
@@ -8334,12 +8337,12 @@ static void def_cmp_mask(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Mask", "");
 
   prop = RNA_def_property(srna, "use_feather", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "custom1", CMP_NODEFLAG_MASK_NO_FEATHER);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "custom1", CMP_NODE_MASK_FLAG_NO_FEATHER);
   RNA_def_property_ui_text(prop, "Feather", "Use feather information from the mask");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_motion_blur", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "custom1", CMP_NODEFLAG_MASK_MOTION_BLUR);
+  RNA_def_property_boolean_sdna(prop, NULL, "custom1", CMP_NODE_MASK_FLAG_MOTION_BLUR);
   RNA_def_property_ui_text(prop, "Motion Blur", "Use multi-sampled motion blur of the mask");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 

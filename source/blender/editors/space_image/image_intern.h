@@ -62,6 +62,8 @@ void IMAGE_OT_save_sequence(struct wmOperatorType *ot);
 void IMAGE_OT_save_all_modified(struct wmOperatorType *ot);
 void IMAGE_OT_pack(struct wmOperatorType *ot);
 void IMAGE_OT_unpack(struct wmOperatorType *ot);
+void IMAGE_OT_clipboard_copy(struct wmOperatorType *ot);
+void IMAGE_OT_clipboard_paste(struct wmOperatorType *ot);
 
 void IMAGE_OT_flip(struct wmOperatorType *ot);
 void IMAGE_OT_invert(struct wmOperatorType *ot);

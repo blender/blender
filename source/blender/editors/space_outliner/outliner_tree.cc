@@ -701,7 +701,8 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
         /* do not extend Armature when we have posemode */
         tselem = TREESTORE(te->parent);
         if (TSE_IS_REAL_ID(tselem) && GS(tselem->id->name) == ID_OB &&
-            ((Object *)tselem->id)->mode & OB_MODE_POSE) {
+            ((Object *)tselem->id)->mode & OB_MODE_POSE)
+        {
           /* pass */
         }
         else {
@@ -869,7 +870,8 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (ELEM(type,
                 TSE_LIBRARY_OVERRIDE_BASE,
                 TSE_LIBRARY_OVERRIDE,
-                TSE_LIBRARY_OVERRIDE_OPERATION)) {
+                TSE_LIBRARY_OVERRIDE_OPERATION))
+  {
     if (!te->abstract_element) {
       BLI_assert_msg(0,
                      "Expected override types to be ported to new Outliner tree-element design");
@@ -912,7 +914,8 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                 TSE_SEQUENCE,
                 TSE_SEQ_STRIP,
                 TSE_SEQUENCE_DUP,
-                TSE_GENERIC_LABEL)) {
+                TSE_GENERIC_LABEL))
+  {
     BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");
   }
 
@@ -992,8 +995,8 @@ static int treesort_alpha_ob(const void *v1, const void *v2)
   if (comp == 3) {
     /* Among objects first come the ones in the collection, followed by the ones not on it.
      * This way we can have the dashed lines in a separate style connecting the former. */
-    if ((x1->te->flag & TE_CHILD_NOT_IN_COLLECTION) !=
-        (x2->te->flag & TE_CHILD_NOT_IN_COLLECTION)) {
+    if ((x1->te->flag & TE_CHILD_NOT_IN_COLLECTION) != (x2->te->flag & TE_CHILD_NOT_IN_COLLECTION))
+    {
       return (x1->te->flag & TE_CHILD_NOT_IN_COLLECTION) ? 1 : -1;
     }
 
@@ -1093,7 +1096,8 @@ static void outliner_sort(ListBase *lb)
 
   /* Sorting rules; only object lists, ID lists, or deform-groups. */
   if (ELEM(last_tselem->type, TSE_DEFGROUP, TSE_ID_BASE) ||
-      ((last_tselem->type == TSE_SOME_ID) && (last_te->idcode == ID_OB))) {
+      ((last_tselem->type == TSE_SOME_ID) && (last_te->idcode == ID_OB)))
+  {
     int totelem = BLI_listbase_count(lb);
 
     if (totelem > 1) {
@@ -1288,7 +1292,8 @@ static TreeElement *outliner_find_first_desired_element_at_y(const SpaceOutliner
 
   bool (*callback_test)(TreeElement *);
   if ((space_outliner->outlinevis == SO_VIEW_LAYER) &&
-      (space_outliner->filter & SO_FILTER_NO_COLLECTION)) {
+      (space_outliner->filter & SO_FILTER_NO_COLLECTION))
+  {
     callback_test = test_object_callback;
   }
   else {
@@ -1493,14 +1498,16 @@ static bool outliner_element_visible_get(const Scene *scene,
     }
 
     if ((te->parent != nullptr) && (TREESTORE(te->parent)->type == TSE_SOME_ID) &&
-        (te->parent->idcode == ID_OB)) {
+        (te->parent->idcode == ID_OB))
+    {
       if (exclude_filter & SO_FILTER_NO_CHILDREN) {
         return false;
       }
     }
   }
   else if ((te->parent != nullptr) && (TREESTORE(te->parent)->type == TSE_SOME_ID) &&
-           (te->parent->idcode == ID_OB)) {
+           (te->parent->idcode == ID_OB))
+  {
     if (exclude_filter & SO_FILTER_NO_OB_CONTENT) {
       return false;
     }
@@ -1602,8 +1609,8 @@ static int outliner_filter_subtree(SpaceOutliner *space_outliner,
 
       if (!TSELEM_OPEN(tselem, space_outliner) ||
           outliner_filter_subtree(
-              space_outliner, scene, view_layer, &te->subtree, search_string, exclude_filter) ==
-              0) {
+              space_outliner, scene, view_layer, &te->subtree, search_string, exclude_filter) == 0)
+      {
         outliner_free_tree_element(te, lb);
       }
     }
@@ -1627,7 +1634,7 @@ static void outliner_filter_tree(SpaceOutliner *space_outliner,
                                  const Scene *scene,
                                  ViewLayer *view_layer)
 {
-  char search_buff[sizeof(((struct SpaceOutliner *)nullptr)->search_string) + 2];
+  char search_buff[sizeof(SpaceOutliner::search_string) + 2];
   char *search_string;
 
   const int exclude_filter = outliner_exclude_filter_get(space_outliner);
@@ -1681,7 +1688,8 @@ void outliner_build_tree(Main *mainvar,
   }
 
   if (space_outliner->runtime->tree_hash && (space_outliner->storeflag & SO_TREESTORE_REBUILD) &&
-      space_outliner->treestore) {
+      space_outliner->treestore)
+  {
     space_outliner->runtime->tree_hash->rebuild_from_treestore(*space_outliner->treestore);
   }
   space_outliner->storeflag &= ~SO_TREESTORE_REBUILD;

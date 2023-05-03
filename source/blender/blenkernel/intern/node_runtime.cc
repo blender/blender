@@ -342,7 +342,8 @@ static void update_toposort(const bNodeTree &ntree,
     }
     if ((direction == ToposortDirection::LeftToRight) ?
             node->runtime->has_available_linked_outputs :
-            node->runtime->has_available_linked_inputs) {
+            node->runtime->has_available_linked_inputs)
+    {
       /* Ignore non-start nodes. */
       continue;
     }

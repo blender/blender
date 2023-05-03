@@ -241,7 +241,7 @@ Mesh *BKE_multires_create_mesh(struct Depsgraph *depsgraph,
   Mesh *result = mti->modifyMesh(&mmd->modifier, &modifier_ctx, deformed_mesh);
 
   if (result == deformed_mesh) {
-    result = BKE_mesh_copy_for_eval(deformed_mesh, true);
+    result = BKE_mesh_copy_for_eval(deformed_mesh);
   }
   return result;
 }
@@ -412,7 +412,8 @@ void multires_flush_sculpt_updates(Object *object)
 
   SculptSession *sculpt_session = object->sculpt;
   if (BKE_pbvh_type(sculpt_session->pbvh) != PBVH_GRIDS || !sculpt_session->multires.active ||
-      sculpt_session->multires.modifier == nullptr) {
+      sculpt_session->multires.modifier == nullptr)
+  {
     return;
   }
 

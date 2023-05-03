@@ -307,7 +307,8 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
                                             ccl_private float4 *dy)
 {
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER |
-                      ATTR_ELEMENT_CORNER_BYTE)) {
+                      ATTR_ELEMENT_CORNER_BYTE))
+  {
     float4 f0, f1, f2;
 
     if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {

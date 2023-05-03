@@ -487,14 +487,12 @@ if(WITH_IMAGE_OPENEXR)
   endif()
 endif()
 
-if(WITH_IMAGE_TIFF)
-  # Try to find tiff first then complain and set static and maybe wrong paths
-  windows_find_package(TIFF)
-  if(NOT TIFF_FOUND)
-    warn_hardcoded_paths(libtiff)
-    set(TIFF_LIBRARY ${LIBDIR}/tiff/lib/libtiff.lib)
-    set(TIFF_INCLUDE_DIR ${LIBDIR}/tiff/include)
-  endif()
+# Try to find tiff first then complain and set static and maybe wrong paths
+windows_find_package(TIFF)
+if(NOT TIFF_FOUND)
+  warn_hardcoded_paths(libtiff)
+  set(TIFF_LIBRARY ${LIBDIR}/tiff/lib/libtiff.lib)
+  set(TIFF_INCLUDE_DIR ${LIBDIR}/tiff/include)
 endif()
 
 if(WITH_JACK)
@@ -1088,7 +1086,7 @@ if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_
     ${SYCL_ROOT_DIR}/bin/sycl[0-9].dll
   )
   foreach(sycl_runtime_library IN LISTS _sycl_runtime_libraries_glob)
-    string(REPLACE ".dll" "_d.dll" sycl_runtime_library_debug ${sycl_runtime_library})
+    string(REPLACE ".dll" "d.dll" sycl_runtime_library_debug ${sycl_runtime_library})
     list(APPEND _sycl_runtime_libraries RELEASE ${sycl_runtime_library})
     list(APPEND _sycl_runtime_libraries DEBUG ${sycl_runtime_library_debug})
   endforeach()

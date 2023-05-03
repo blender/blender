@@ -39,7 +39,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(3.0f)
       .min(1.01f)
       .max(10.0f);
-  b.add_output<decl::Geometry>(N_("Volume"));
+  b.add_output<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
+      .translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static void search_node_add_ops(GatherAddNodeSearchParams &params)

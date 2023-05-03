@@ -1678,8 +1678,8 @@ void BKE_tracking_plane_tracks_remove_point_track(MovieTracking *tracking,
                                                   MovieTrackingTrack *track)
 {
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-  LISTBASE_FOREACH_MUTABLE (
-      MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
+  LISTBASE_FOREACH_MUTABLE (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks)
+  {
     if (BKE_tracking_plane_track_has_point_track(plane_track, track)) {
       if (!BKE_tracking_plane_track_remove_point_track(plane_track, track)) {
         /* Delete planes with less than 3 point tracks in it. */
@@ -2718,7 +2718,8 @@ ImBuf *BKE_tracking_get_search_imbuf(const ImBuf *ibuf,
 
   if (disable_channels) {
     if ((track->flag & TRACK_PREVIEW_GRAYSCALE) || (track->flag & TRACK_DISABLE_RED) ||
-        (track->flag & TRACK_DISABLE_GREEN) || (track->flag & TRACK_DISABLE_BLUE)) {
+        (track->flag & TRACK_DISABLE_GREEN) || (track->flag & TRACK_DISABLE_BLUE))
+    {
       disable_imbuf_channels(searchibuf, track, true);
     }
   }

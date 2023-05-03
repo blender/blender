@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -453,10 +453,6 @@ msgstr "भार"
 
 msgid "Brushes"
 msgstr "तूलिका"
-
-
-msgid "Grease Pencil"
-msgstr "तैलीय पेंसिल"
 
 
 msgid "Images"
@@ -1445,6 +1441,10 @@ msgid "Fonts"
 msgstr "मुद्र्"
 
 
+msgid "Grease Pencil"
+msgstr "तैलीय पेंसिल"
+
+
 msgid "Save"
 msgstr "सहेजें"
 
@@ -1848,6 +1848,10 @@ msgstr "गतिकी"
 
 msgid "Add Color"
 msgstr "रंग जोड़ें"
+
+
+msgid "Puff"
+msgstr "कश"
 
 
 msgid "Repeat"
@@ -2553,10 +2557,6 @@ msgstr "वर्तमान रेखा"
 
 msgid "Memory"
 msgstr "स्मृति"
-
-
-msgid "Modified"
-msgstr "संशोधित"
 
 
 msgid "Register"
@@ -3386,10 +3386,6 @@ msgid "Air"
 msgstr "वायु"
 
 
-msgid "Wrap"
-msgstr "आच्छादन"
-
-
 msgid "At"
 msgstr "पर"
 
@@ -3810,6 +3806,14 @@ msgid "Open"
 msgstr "खोलें"
 
 
+msgid "Show"
+msgstr "दिखाएँ"
+
+
+msgid "Play"
+msgstr "चलाएँ"
+
+
 msgid "Next"
 msgstr "अगला"
 
@@ -4163,10 +4167,6 @@ msgid "Reset"
 msgstr "पूर्ववत करें"
 
 
-msgid "Show"
-msgstr "दिखाएँ"
-
-
 msgid "Fill the whole mask with a given value, or invert its values"
 msgstr "पूरे मुखौटा एक दिए गए मान के साथ भरने, या इसके मान पलटना"
 
@@ -4494,6 +4494,10 @@ msgid "Cylinder Projection"
 msgstr "बेलन प्रक्षेपण"
 
 
+msgid "Modified"
+msgstr "संशोधित"
+
+
 msgctxt "Operator"
 msgid "Pin"
 msgstr "कील"
@@ -4551,6 +4555,10 @@ msgid "Pan Right"
 msgstr "दाएँ पैन करें"
 
 
+msgid "Wrap"
+msgstr "आच्छादन"
+
+
 msgctxt "Operator"
 msgid "Demo"
 msgstr "प्रदर्शित करें"
@@ -4562,10 +4570,6 @@ msgstr "पिछ"
 
 msgid "Pause"
 msgstr "विराम दें"
-
-
-msgid "Play"
-msgstr "चलाएँ"
 
 
 msgctxt "Operator"
@@ -4697,10 +4701,6 @@ msgid "Color Presets"
 msgstr "पूर्वनिश्चित रंग"
 
 
-msgid "Lens"
-msgstr "केन्द्रण-वीक्ष"
-
-
 msgid "Cloth Presets"
 msgstr "पूर्वनिश्चित कपड़ा"
 
@@ -4817,10 +4817,6 @@ msgstr "संपादन योग्य"
 
 msgid "Tip"
 msgstr "युक्ति"
-
-
-msgid "Puff"
-msgstr "कश"
 
 
 msgid "Enemy"
@@ -5213,6 +5209,10 @@ msgstr "पाठ ढूँढें"
 
 msgid "Replace Text"
 msgstr "पाठ बदलें"
+
+
+msgid "Lens"
+msgstr "केन्द्रण-वीक्ष"
 
 
 msgid "Lock Camera to View"
@@ -5684,10 +5684,6 @@ msgstr "स्पष्ट"
 msgctxt "Operator"
 msgid "All"
 msgstr "सभी"
-
-
-msgid "Old"
-msgstr "पुराने"
 
 
 msgid "Date"
@@ -7056,6 +7052,10 @@ msgstr "एफ़एसी"
 
 msgid "Dot"
 msgstr "बिन्दु"
+
+
+msgid "Old"
+msgstr "पुराने"
 
 
 msgid "AO"

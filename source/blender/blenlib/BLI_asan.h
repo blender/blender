@@ -7,8 +7,10 @@
 #  define __has_feature(x) 0
 #endif
 
-#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)) && !defined(_MSC_VER)
+#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)) && \
+    (!defined(_MSC_VER) || _MSC_VER > 1929) /* MSVC 2019 and below doesn't ship ASAN headers. */
 #  include "sanitizer/asan_interface.h"
+#  define WITH_ASAN
 #else
 /* Ensure return value is used. Just using UNUSED_VARS results in a warning. */
 #  define ASAN_POISON_MEMORY_REGION(addr, size) (void)(0 && ((size) != 0 && (addr) != NULL))

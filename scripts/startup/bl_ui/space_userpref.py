@@ -418,7 +418,7 @@ class USERPREF_PT_edit_objects_duplicate_data(EditingPanel, CenterAlignMixIn, Pa
         col.prop(edit, "use_duplicate_surface", text="Surface")
         col.prop(edit, "use_duplicate_text", text="Text")
         # col.prop(edit, "use_duplicate_texture", text="Texture")  # Not implemented.
-        col.prop(edit, "use_duplicate_volume", text="Volume")
+        col.prop(edit, "use_duplicate_volume", text="Volume", text_ctxt=i18n_contexts.id_id)
 
 
 class USERPREF_PT_edit_cursor(EditingPanel, CenterAlignMixIn, Panel):
@@ -1332,9 +1332,50 @@ class USERPREF_PT_file_paths_data(FilePathsPanel, Panel):
         col = self.layout.column()
         col.prop(paths, "font_directory", text="Fonts")
         col.prop(paths, "texture_directory", text="Textures")
-        col.prop(paths, "script_directory", text="Scripts")
         col.prop(paths, "sound_directory", text="Sounds")
         col.prop(paths, "temporary_directory", text="Temporary Files")
+
+
+class USERPREF_PT_file_paths_script_directories(FilePathsPanel, Panel):
+    bl_label = "Script Directories"
+
+    def draw(self, context):
+        layout = self.layout
+
+        paths = context.preferences.filepaths
+
+        if len(paths.script_directories) == 0:
+            layout.operator("preferences.script_directory_add", text="Add", icon='ADD')
+            return
+
+        layout.use_property_split = False
+        layout.use_property_decorate = False
+
+        box = layout.box()
+        split = box.split(factor=0.35)
+        name_col = split.column()
+        path_col = split.column()
+
+        row = name_col.row(align=True)  # Padding
+        row.separator()
+        row.label(text="Name")
+
+        row = path_col.row(align=True)  # Padding
+        row.separator()
+        row.label(text="Path")
+
+        row.operator("preferences.script_directory_add", text="", icon='ADD', emboss=False)
+
+        for i, script_directory in enumerate(paths.script_directories):
+            row = name_col.row()
+            row.alert = not script_directory.name
+            row.prop(script_directory, "name", text="")
+
+            row = path_col.row()
+            subrow = row.row()
+            subrow.alert = not script_directory.directory
+            subrow.prop(script_directory, "directory", text="")
+            row.operator("preferences.script_directory_remove", text="", icon='X', emboss=False).index = i
 
 
 class USERPREF_PT_file_paths_render(FilePathsPanel, Panel):
@@ -1449,6 +1490,7 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
         active_library = paths.asset_libraries[active_library_index]
         layout.prop(active_library, "path")
         layout.prop(active_library, "import_method", text="Import Method")
+        layout.prop(active_library, "use_relative_path")
 
 
 class USERPREF_UL_asset_libraries(bpy.types.UIList):
@@ -1877,7 +1919,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         if not user_addon_paths:
             for path in (
                     bpy.utils.script_path_user(),
-                    bpy.utils.script_path_pref(),
+                    *bpy.utils.script_paths_pref(),
             ):
                 if path is not None:
                     user_addon_paths.append(os.path.join(path, "addons"))
@@ -1909,7 +1951,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
         addon_user_dirs = tuple(
             p for p in (
-                os.path.join(prefs.filepaths.script_directory, "addons"),
+                *[os.path.join(pref_p, "addons") for pref_p in bpy.utils.script_paths_pref()],
                 bpy.utils.user_resource('SCRIPTS', path="addons"),
             )
             if p
@@ -2163,12 +2205,12 @@ class StudioLightPanelMixin:
 
         row.template_icon(layout.icon(studio_light), scale=3.0)
         col = row.column()
-        op = col.operator("preferences.studiolight_uninstall", text="", icon='REMOVE')
-        op.index = studio_light.index
+        props = col.operator("preferences.studiolight_uninstall", text="", icon='REMOVE')
+        props.index = studio_light.index
 
         if studio_light.type == 'STUDIO':
-            op = col.operator("preferences.studiolight_copy_settings", text="", icon='IMPORT')
-            op.index = studio_light.index
+            props = col.operator("preferences.studiolight_copy_settings", text="", icon='IMPORT')
+            props.index = studio_light.index
 
         box.label(text=studio_light.name)
 
@@ -2205,9 +2247,9 @@ class USERPREF_PT_studiolight_lights(StudioLightPanel, StudioLightPanelMixin, Pa
 
     def draw_header_preset(self, _context):
         layout = self.layout
-        op = layout.operator("preferences.studiolight_install", icon='IMPORT', text="Install...")
-        op.type = 'STUDIO'
-        op.filter_glob = ".sl"
+        props = layout.operator("preferences.studiolight_install", icon='IMPORT', text="Install...")
+        props.type = 'STUDIO'
+        props.filter_glob = ".sl"
         layout.separator()
 
     def get_error_message(self):
@@ -2456,6 +2498,7 @@ classes = (
     USERPREF_PT_theme_strip_colors,
 
     USERPREF_PT_file_paths_data,
+    USERPREF_PT_file_paths_script_directories,
     USERPREF_PT_file_paths_render,
     USERPREF_PT_file_paths_applications,
     USERPREF_PT_file_paths_development,

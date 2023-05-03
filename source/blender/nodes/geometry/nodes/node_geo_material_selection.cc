@@ -35,7 +35,7 @@ static VArray<bool> select_mesh_faces_by_material(const Mesh &mesh,
   }
 
   const AttributeAccessor attributes = mesh.attributes();
-  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   if (material_indices.is_single()) {
     const int slot_i = material_indices.get_internal_single();
@@ -93,7 +93,8 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const MaterialSelectionFieldInput *other_material_selection =
-            dynamic_cast<const MaterialSelectionFieldInput *>(&other)) {
+            dynamic_cast<const MaterialSelectionFieldInput *>(&other))
+    {
       return material_ == other_material_selection->material_;
     }
     return false;

@@ -728,7 +728,8 @@ void ui_draw_but_WAVEFORM(ARegion * /*region*/,
                   SCOPES_WAVEFRM_RGB_PARADE,
                   SCOPES_WAVEFRM_YCC_601,
                   SCOPES_WAVEFRM_YCC_709,
-                  SCOPES_WAVEFRM_YCC_JPEG)) {
+                  SCOPES_WAVEFRM_YCC_JPEG))
+    {
       const int rgb = (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB_PARADE);
 
       GPU_matrix_push();
@@ -2035,7 +2036,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
   }
   else if ((scopes->track_search) &&
            ((!scopes->track_preview) ||
-            (scopes->track_preview->x != width || scopes->track_preview->y != height))) {
+            (scopes->track_preview->x != width || scopes->track_preview->y != height)))
+  {
     if (scopes->track_preview) {
       IMB_freeImBuf(scopes->track_preview);
     }

@@ -147,7 +147,8 @@ static void mix_normals(const float mix_factor,
   }
 
   for (i = corner_verts.size(), no_new = nos_new, no_old = nos_old, wfac = facs; i--;
-       no_new++, no_old++, wfac++) {
+       no_new++, no_old++, wfac++)
+  {
     const float fac = facs ? *wfac * mix_factor : mix_factor;
 
     switch (mix_mode) {
@@ -222,7 +223,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                          const ModifierEvalContext * /*ctx*/,
                                          Object *ob,
                                          Mesh *mesh,
-                                         short (*clnors)[2],
+                                         blender::MutableSpan<blender::short2> clnors,
                                          blender::MutableSpan<blender::float3> loop_normals,
                                          const short mix_mode,
                                          const float mix_factor,
@@ -231,7 +232,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                          const int defgrp_index,
                                          const bool use_invert_vgroup,
                                          blender::Span<blender::float3> vert_positions,
-                                         const blender::Span<MEdge> edges,
+                                         const blender::Span<blender::int2> edges,
                                          blender::MutableSpan<bool> sharp_edges,
                                          blender::MutableSpan<int> corner_verts,
                                          blender::MutableSpan<int> corner_edges,
@@ -325,7 +326,8 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
 
   if (do_polynors_fix &&
       polygons_check_flip(
-          corner_verts, corner_edges, nos.data(), &mesh->ldata, polys, mesh->poly_normals())) {
+          corner_verts, corner_edges, nos.data(), &mesh->ldata, polys, mesh->poly_normals()))
+  {
     BKE_mesh_tag_face_winding_changed(mesh);
   }
   const bool *sharp_faces = static_cast<const bool *>(
@@ -350,7 +352,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                               const ModifierEvalContext * /*ctx*/,
                                               Object *ob,
                                               Mesh *mesh,
-                                              short (*clnors)[2],
+                                              blender::MutableSpan<blender::short2> clnors,
                                               blender::MutableSpan<blender::float3> loop_normals,
                                               const short mix_mode,
                                               const float mix_factor,
@@ -359,7 +361,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                               const int defgrp_index,
                                               const bool use_invert_vgroup,
                                               const blender::Span<blender::float3> positions,
-                                              const blender::Span<MEdge> edges,
+                                              const blender::Span<blender::int2> edges,
                                               blender::MutableSpan<bool> sharp_edges,
                                               blender::MutableSpan<int> corner_verts,
                                               blender::MutableSpan<int> corner_edges,
@@ -432,7 +434,8 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
 
   if (do_polynors_fix &&
       polygons_check_flip(
-          corner_verts, corner_edges, nos.data(), &mesh->ldata, polys, mesh->poly_normals())) {
+          corner_verts, corner_edges, nos.data(), &mesh->ldata, polys, mesh->poly_normals()))
+  {
     BKE_mesh_tag_face_winding_changed(mesh);
   }
   const bool *sharp_faces = static_cast<const bool *>(
@@ -514,7 +517,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   }
 
   const blender::Span<blender::float3> positions = result->vert_positions();
-  const blender::Span<MEdge> edges = result->edges();
+  const blender::Span<int2> edges = result->edges();
   const OffsetIndices polys = result->polys();
   blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
@@ -530,10 +533,10 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_edge", ATTR_DOMAIN_EDGE);
 
-  short(*clnors)[2] = static_cast<short(*)[2]>(
+  blender::short2 *clnors = static_cast<blender::short2 *>(
       CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
   if (use_current_clnors) {
-    clnors = static_cast<short(*)[2]>(
+    clnors = static_cast<blender::short2 *>(
         CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
     loop_normals.reinitialize(corner_verts.size());
     const bool *sharp_faces = static_cast<const bool *>(
@@ -556,7 +559,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   }
 
   if (clnors == nullptr) {
-    clnors = static_cast<short(*)[2]>(
+    clnors = static_cast<blender::short2 *>(
         CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, corner_verts.size()));
   }
 
@@ -567,7 +570,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                  ctx,
                                  ob,
                                  result,
-                                 clnors,
+                                 {clnors, result->totloop},
                                  loop_normals,
                                  enmd->mix_mode,
                                  enmd->mix_factor,
@@ -587,7 +590,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       ctx,
                                       ob,
                                       result,
-                                      clnors,
+                                      {clnors, result->totloop},
                                       loop_normals,
                                       enmd->mix_mode,
                                       enmd->mix_factor,

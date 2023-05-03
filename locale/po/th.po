@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -2709,6 +2709,14 @@ msgid "Open"
 msgstr "เปิด"
 
 
+msgid "Show"
+msgstr "แสดง"
+
+
+msgid "Play"
+msgstr "เล่น"
+
+
 msgid "Increment"
 msgstr "จำนวนที่เพิ่มขึ้น"
 
@@ -3028,6 +3036,10 @@ msgid "Join"
 msgstr "เชื่อมโยง"
 
 
+msgid "Selected Only"
+msgstr "ที่ถูกเลือกเท่านั้น"
+
+
 msgid "Sets the object interaction mode"
 msgstr "ตั้งโหมดที่จะกระทำกับวัตถุ"
 
@@ -3129,10 +3141,6 @@ msgid "(De)select all"
 msgstr "(ยกเลิก)เลือกทั้งหมด"
 
 
-msgid "Show"
-msgstr "แสดง"
-
-
 msgid "Palette"
 msgstr "จานสี"
 
@@ -3140,10 +3148,6 @@ msgstr "จานสี"
 msgctxt "Operator"
 msgid "Mirror"
 msgstr "กระจกสะท้อน"
-
-
-msgid "Selected Only"
-msgstr "ที่ถูกเลือกเท่านั้น"
 
 
 msgid "Axis Lock"
@@ -3303,10 +3307,6 @@ msgid "Path to the matching po file"
 msgstr "ตำแหน่งไปยังไฟล์ po ที่ตรงกัน"
 
 
-msgid "New Image"
-msgstr "ภาพใหม่"
-
-
 msgid "Reset UV projection"
 msgstr "ตั้งค่าการฉาย UV ใหม่"
 
@@ -3355,10 +3355,6 @@ msgstr "พัก"
 
 msgid "Render Anim"
 msgstr "เรนเดอร์อนิเมชัน"
-
-
-msgid "Play"
-msgstr "เล่น"
 
 
 msgctxt "Operator"
@@ -3430,10 +3426,6 @@ msgstr "การแสดงหน้ากาก"
 msgctxt "MovieClip"
 msgid "Scene Setup"
 msgstr "การติดตั้งฉาก"
-
-
-msgid "Lens"
-msgstr "เลนส์"
 
 
 msgid "Transparent"
@@ -3888,6 +3880,10 @@ msgid "Top Line"
 msgstr "เส้นบน"
 
 
+msgid "Lens"
+msgstr "เลนส์"
+
+
 msgid "Lock to Cursor"
 msgstr "ล็อกที่เคอร์เซอร์"
 
@@ -4205,10 +4201,6 @@ msgstr "ทั้งหมด"
 msgctxt "Operator"
 msgid "None"
 msgstr "ไม่มี"
-
-
-msgid "Old"
-msgstr "เก่า"
 
 
 msgid "Date"
@@ -5630,6 +5622,10 @@ msgstr "แทนที่อันดั้งเดิม"
 
 msgid "Val"
 msgstr "Val"
+
+
+msgid "Old"
+msgstr "เก่า"
 
 
 msgid "Shader Editor"

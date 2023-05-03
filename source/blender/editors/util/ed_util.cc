@@ -37,7 +37,7 @@
 
 #include "ED_armature.h"
 #include "ED_asset.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -131,7 +131,8 @@ void ED_editors_init(bContext *C)
     }
     /* Object mode is enforced for non-editable data (or their obdata). */
     if (!BKE_id_is_editable(bmain, &ob->id) ||
-        (ob_data != nullptr && !BKE_id_is_editable(bmain, ob_data))) {
+        (ob_data != nullptr && !BKE_id_is_editable(bmain, ob_data)))
+    {
       continue;
     }
 
@@ -146,7 +147,8 @@ void ED_editors_init(bContext *C)
      * modes like Sculpt.
      * Ref. #98225. */
     if (!BKE_collection_has_object_recursive(scene->master_collection, ob) ||
-        !BKE_scene_has_object(scene, ob) || (ob->visibility_flag & OB_HIDE_VIEWPORT) != 0) {
+        !BKE_scene_has_object(scene, ob) || (ob->visibility_flag & OB_HIDE_VIEWPORT) != 0)
+    {
       continue;
     }
 
@@ -377,7 +379,7 @@ void unpack_menu(bContext *C,
   if (blendfile_path[0] != '\0') {
     char local_name[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
 
-    BLI_split_file_part(abs_name, fi, sizeof(fi));
+    BLI_path_split_file_part(abs_name, fi, sizeof(fi));
     BLI_path_join(local_name, sizeof(local_name), "//", folder, fi);
     if (!STREQ(abs_name, local_name)) {
       switch (BKE_packedfile_compare_to_file(blendfile_path, local_name, pf)) {

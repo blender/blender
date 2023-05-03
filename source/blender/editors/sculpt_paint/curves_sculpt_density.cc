@@ -134,9 +134,9 @@ struct DensityAddOperationExecutor {
     /* Find UV map. */
     VArraySpan<float2> surface_uv_map;
     if (curves_id_orig_->surface_uv_map != nullptr) {
-      surface_uv_map = surface_orig_->attributes().lookup<float2>(curves_id_orig_->surface_uv_map,
-                                                                  ATTR_DOMAIN_CORNER);
-      surface_uv_map_eval_ = surface_eval_->attributes().lookup<float2>(
+      surface_uv_map = *surface_orig_->attributes().lookup<float2>(curves_id_orig_->surface_uv_map,
+                                                                   ATTR_DOMAIN_CORNER);
+      surface_uv_map_eval_ = *surface_eval_->attributes().lookup<float2>(
           curves_id_orig_->surface_uv_map, ATTR_DOMAIN_CORNER);
     }
     if (surface_uv_map.is_empty()) {
@@ -386,7 +386,7 @@ struct DensityAddOperationExecutor {
       }
 
       for (const int i : bary_coords.index_range()) {
-        const float2 uv = bke::mesh_surface_sample::sample_corner_attrribute_with_bary_coords(
+        const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
             bary_coords[i], surface_looptris_eval_[looptri_indices[i]], surface_uv_map_eval_);
         r_uvs.append(uv);
       }
@@ -462,7 +462,7 @@ struct DensityAddOperationExecutor {
       }
 
       for (const int i : bary_coords.index_range()) {
-        const float2 uv = bke::mesh_surface_sample::sample_corner_attrribute_with_bary_coords(
+        const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
             bary_coords[i], surface_looptris_eval_[looptri_indices[i]], surface_uv_map_eval_);
         r_uvs.append(uv);
       }

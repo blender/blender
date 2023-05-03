@@ -57,7 +57,8 @@ static int LocalAverageDepthF1D___init__(BPy_LocalAverageDepthF1D *self,
   double d;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "d|O!", (char **)kwlist, &d, &IntegrationType_Type, &obj)) {
+          args, kwds, "d|O!", (char **)kwlist, &d, &IntegrationType_Type, &obj))
+  {
     return -1;
   }
   IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;

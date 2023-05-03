@@ -378,7 +378,9 @@ class SmoothStrokePanel(BrushPanel):
         settings = self.paint_settings(context)
         brush = settings.brush
 
-        self.layout.prop(brush, "use_smooth_stroke", text="")
+        self.layout.use_property_split = False
+        self.layout.prop(brush, "use_smooth_stroke",
+                         text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         layout = self.layout
@@ -472,8 +474,8 @@ class DisplayPanel(BrushPanel):
 
         if self.is_popover:
             row = layout.row(align=True)
-            row.prop(settings, "show_brush", text="")
-            row.label(text="Display Cursor")
+            row.use_property_split = False
+            row.prop(settings, "show_brush", text="Display Cursor")
 
         col = layout.column()
         col.active = brush.brush_capabilities.has_overlay and settings.show_brush
@@ -1413,7 +1415,11 @@ def brush_basic_gpencil_weight_settings(layout, _context, brush, *, compact=Fals
     row.prop(brush, "strength", slider=True)
     row.prop(brush, "use_pressure_strength", text="")
 
-    layout.prop(brush, "weight", slider=True)
+    if brush.gpencil_weight_tool in {'WEIGHT'}:
+        layout.prop(brush, "weight", slider=True)
+
+        gp_settings = brush.gpencil_settings
+        layout.prop(gp_settings, "direction", expand=True, text="" if compact else "Direction")
 
 
 def brush_basic_gpencil_vertex_settings(layout, _context, brush, *, compact=False):

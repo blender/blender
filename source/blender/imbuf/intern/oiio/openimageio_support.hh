@@ -4,10 +4,13 @@
 
 #include <memory>
 
+/* Include our own math header first to avoid warnings about M_PI
+ * redefinition between OpenImageIO and Windows headers. */
+#include "BLI_math_base.h"
+#include "BLI_sys_types.h"
+
 #include <OpenImageIO/filesystem.h>
 #include <OpenImageIO/imageio.h>
-
-#include "BLI_sys_types.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -40,13 +43,12 @@ struct ReadContext {
 struct WriteContext {
   const char *file_format;
   ImBuf *ibuf;
+  int flags;
 
+  uchar *mem_start;
   OIIO::stride_t mem_xstride;
   OIIO::stride_t mem_ystride;
-  OIIO::TypeDesc mem_format;
-  uchar *mem_start;
-
-  int flags;
+  OIIO::ImageSpec mem_spec;
 };
 
 /**

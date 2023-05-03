@@ -191,7 +191,8 @@ static void external_cache_populate(void *vedata, Object *ob)
   }
 
   if (!(DRW_object_is_renderable(ob) &&
-        DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
+        DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF))
+  {
     return;
   }
 

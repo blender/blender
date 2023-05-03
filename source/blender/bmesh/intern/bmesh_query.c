@@ -223,7 +223,8 @@ static float bm_face_calc_split_dot(BMLoop *l_a, BMLoop *l_b)
   float no[2][3];
 
   if ((BM_face_calc_normal_subset(l_a, l_b, no[0]) != 0.0f) &&
-      (BM_face_calc_normal_subset(l_b, l_a, no[1]) != 0.0f)) {
+      (BM_face_calc_normal_subset(l_b, l_a, no[1]) != 0.0f))
+  {
     return dot_v3v3(no[0], no[1]);
   }
   return -1.0f;
@@ -904,7 +905,8 @@ bool BM_edge_is_contiguous_loop_cd(const BMEdge *e,
       l_iter_cd_v2 = BM_ELEM_CD_GET_VOID_P(l_iter_v2, cd_loop_offset);
 
       if ((CustomData_data_equals(cd_loop_type, l_base_cd_v1, l_iter_cd_v1) == 0) ||
-          (CustomData_data_equals(cd_loop_type, l_base_cd_v2, l_iter_cd_v2) == 0)) {
+          (CustomData_data_equals(cd_loop_type, l_base_cd_v2, l_iter_cd_v2) == 0))
+      {
         return false;
       }
 
@@ -1403,7 +1405,8 @@ float BM_vert_calc_edge_angle_ex(const BMVert *v, const float fallback)
 
   if ((e1 = v->e) && (e2 = bmesh_disk_edge_next(e1, v)) && (e1 != e2) &&
       /* make sure we come full circle and only have 2 connected edges */
-      (e1 == bmesh_disk_edge_next(e2, v))) {
+      (e1 == bmesh_disk_edge_next(e2, v)))
+  {
     BMVert *v1 = BM_edge_other_vert(e1, v);
     BMVert *v2 = BM_edge_other_vert(e2, v);
 
@@ -1768,7 +1771,8 @@ bool BM_face_exists_multi(BMVert **varr, BMEdge **earr, int len)
           BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG) == false &&
           /* ...using boundary verts */
           BM_elem_flag_test(e->v1, BM_ELEM_INTERNAL_TAG) &&
-          BM_elem_flag_test(e->v2, BM_ELEM_INTERNAL_TAG)) {
+          BM_elem_flag_test(e->v2, BM_ELEM_INTERNAL_TAG))
+      {
         int tot_face_tag = 0;
         BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
           if (BM_elem_flag_test(f, BM_ELEM_INTERNAL_TAG)) {

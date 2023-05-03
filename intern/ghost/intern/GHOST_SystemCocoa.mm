@@ -761,7 +761,7 @@ GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GLSettings glSet
 #ifdef WITH_VULKAN_BACKEND
   if (glSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
     const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
-    GHOST_Context *context = new GHOST_ContextVK(false, NULL, 1, 0, debug_context);
+    GHOST_Context *context = new GHOST_ContextVK(false, NULL, 1, 2, debug_context);
     if (!context->initializeDrawingContext()) {
       delete context;
       return NULL;
@@ -900,10 +900,13 @@ GHOST_TSuccess GHOST_SystemCocoa::getButtons(GHOST_Buttons &buttons) const
 
 GHOST_TCapabilityFlag GHOST_SystemCocoa::getCapabilities() const
 {
-  return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL &
-                               ~(
-                                   /* Cocoa has no support for a primary selection clipboard. */
-                                   GHOST_kCapabilityPrimaryClipboard));
+  return GHOST_TCapabilityFlag(
+      GHOST_CAPABILITY_FLAG_ALL &
+      ~(
+          /* Cocoa has no support for a primary selection clipboard. */
+          GHOST_kCapabilityPrimaryClipboard |
+          /* This Cocoa back-end has not yet implemented image copy/paste. */
+          GHOST_kCapabilityClipboardImages));
 }
 
 #pragma mark Event handlers
@@ -962,7 +965,8 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
       // special hotkeys to switch between views, so override directly
 
       if ([event type] == NSEventTypeKeyDown && [event keyCode] == kVK_Tab &&
-          ([event modifierFlags] & NSEventModifierFlagControl)) {
+          ([event modifierFlags] & NSEventModifierFlagControl))
+      {
         handleKeyEvent(event);
       }
       else {
@@ -1254,7 +1258,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             return GHOST_kFailure;
 
           if (([bitmapImage bitsPerPixel] == 32) && (([bitmapImage bitmapFormat] & 0x5) == 0) &&
-              ![bitmapImage isPlanar]) {
+              ![bitmapImage isPlanar])
+          {
             /* Try a fast copy if the image is a meshed RGBA 32bit bitmap. */
             toIBuf = (uint8_t *)ibuf->rect;
             rasterRGB = (uint8_t *)[bitmapImage bitmapData];
@@ -1400,7 +1405,9 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
     [[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
   }
 
-  GHOST_Window *window = (GHOST_Window *)m_windowManager->getActiveWindow();
+  GHOST_Window *window = m_windowManager->getWindows().empty() ?
+                             NULL :
+                             (GHOST_Window *)m_windowManager->getWindows().front();
 
   if (!window) {
     return NO;
@@ -1913,8 +1920,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
             GHOST_kKeyLeftControl,
             false));
       }
-      if ((modifiers & NSEventModifierFlagOption) !=
-          (m_modifierMask & NSEventModifierFlagOption)) {
+      if ((modifiers & NSEventModifierFlagOption) != (m_modifierMask & NSEventModifierFlagOption))
+      {
         pushEvent(new GHOST_EventKey(
             [event timestamp] * 1000,
             (modifiers & NSEventModifierFlagOption) ? GHOST_kEventKeyDown : GHOST_kEventKeyUp,

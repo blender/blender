@@ -19,7 +19,7 @@ class MyCustomTree(NodeTree):
 # Custom socket type
 class MyCustomSocket(NodeSocket):
     # Description string
-    '''Custom node socket type'''
+    """Custom node socket type"""
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'CustomSocketType'
     # Label for nice name display

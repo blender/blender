@@ -172,7 +172,8 @@ static void hud_region_layout(const bContext *C, ARegion *region)
   ED_region_panels_layout(C, region);
 
   if (region->panels.first &&
-      ((area->flag & AREA_FLAG_REGION_SIZE_UPDATE) || (region->sizey != size_y))) {
+      ((area->flag & AREA_FLAG_REGION_SIZE_UPDATE) || (region->sizey != size_y)))
+  {
     int winx_new = UI_SCALE_FAC * (region->sizex + 0.5f);
     int winy_new = UI_SCALE_FAC * (region->sizey + 0.5f);
     View2D *v2d = &region->v2d;

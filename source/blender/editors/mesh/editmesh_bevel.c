@@ -671,13 +671,15 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* When activated from toolbar, need to convert left-mouse release to confirm. */
   if (ELEM(etype, LEFTMOUSE, opdata->launch_event) && (eval == KM_RELEASE) &&
-      RNA_boolean_get(op->ptr, "release_confirm")) {
+      RNA_boolean_get(op->ptr, "release_confirm"))
+  {
     etype = EVT_MODAL_MAP;
     eval = BEV_MODAL_CONFIRM;
   }
   /* Modal numinput active, try to handle numeric inputs first... */
   if (etype != EVT_MODAL_MAP && eval == KM_PRESS && has_numinput &&
-      handleNumInput(C, &opdata->num_input[opdata->value_mode], event)) {
+      handleNumInput(C, &opdata->num_input[opdata->value_mode], event))
+  {
     edbm_bevel_numinput_set_value(op);
     edbm_bevel_calc(op);
     edbm_bevel_update_status_text(C, op);
@@ -882,7 +884,8 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* Modal numinput inactive, try to handle numeric inputs last... */
   if (!handled && eval == KM_PRESS &&
-      handleNumInput(C, &opdata->num_input[opdata->value_mode], event)) {
+      handleNumInput(C, &opdata->num_input[opdata->value_mode], event))
+  {
     edbm_bevel_numinput_set_value(op);
     edbm_bevel_calc(op);
     edbm_bevel_update_status_text(C, op);

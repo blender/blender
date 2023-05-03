@@ -366,7 +366,8 @@ ccl_device_inline void film_write_emission_or_background_pass(
 
   const bool is_shadowcatcher = (path_flag & PATH_RAY_SHADOW_CATCHER_HIT) != 0;
   if (!is_shadowcatcher && lightgroup != LIGHTGROUP_NONE &&
-      kernel_data.film.pass_lightgroup != PASS_UNUSED) {
+      kernel_data.film.pass_lightgroup != PASS_UNUSED)
+  {
     film_write_pass_spectrum(buffer + kernel_data.film.pass_lightgroup + 3 * lightgroup,
                              contribution);
   }

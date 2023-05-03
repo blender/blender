@@ -844,7 +844,8 @@ void BKE_mask_layer_evaluate_animation(MaskLayer *masklay, const float ctime)
   MaskLayerShape *masklay_shape_b;
   int found;
   if ((found = BKE_mask_layer_shape_find_frame_range(
-           masklay, ctime, &masklay_shape_a, &masklay_shape_b))) {
+           masklay, ctime, &masklay_shape_a, &masklay_shape_b)))
+  {
     if (found == 1) {
 #if 0
       printf("%s: exact %d %d (%d)\n",
@@ -912,7 +913,8 @@ void BKE_mask_eval_animation(struct Depsgraph *depsgraph, Mask *mask)
   float ctime = DEG_get_ctime(depsgraph);
   DEG_debug_print_eval(depsgraph, __func__, mask->id.name, mask);
   for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer != NULL;
-       mask_layer = mask_layer->next) {
+       mask_layer = mask_layer->next)
+  {
     BKE_mask_layer_evaluate_animation(mask_layer, ctime);
   }
 }
@@ -923,7 +925,8 @@ void BKE_mask_eval_update(struct Depsgraph *depsgraph, Mask *mask)
   float ctime = DEG_get_ctime(depsgraph);
   DEG_debug_print_eval(depsgraph, __func__, mask->id.name, mask);
   for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer != NULL;
-       mask_layer = mask_layer->next) {
+       mask_layer = mask_layer->next)
+  {
     BKE_mask_layer_evaluate_deform(mask_layer, ctime);
   }
 
@@ -932,11 +935,13 @@ void BKE_mask_eval_update(struct Depsgraph *depsgraph, Mask *mask)
     for (MaskLayer *masklay_orig = mask_orig->masklayers.first,
                    *masklay_eval = mask->masklayers.first;
          masklay_orig != NULL;
-         masklay_orig = masklay_orig->next, masklay_eval = masklay_eval->next) {
+         masklay_orig = masklay_orig->next, masklay_eval = masklay_eval->next)
+    {
       for (MaskSpline *spline_orig = masklay_orig->splines.first,
                       *spline_eval = masklay_eval->splines.first;
            spline_orig != NULL;
-           spline_orig = spline_orig->next, spline_eval = spline_eval->next) {
+           spline_orig = spline_orig->next, spline_eval = spline_eval->next)
+      {
         for (int i = 0; i < spline_eval->tot_point; i++) {
           MaskSplinePoint *point_eval = &spline_eval->points[i];
           MaskSplinePoint *point_orig = &spline_orig->points[i];

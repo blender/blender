@@ -4,7 +4,6 @@
 #ifndef __UTIL_VECTOR_H__
 #define __UTIL_VECTOR_H__
 
-#include <cassert>
 #include <cstring>
 #include <vector>
 

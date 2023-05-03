@@ -51,10 +51,10 @@ Mesh *create_grid_mesh(const int verts_x,
   const int edges_y = verts_y - 1;
   Mesh *mesh = BKE_mesh_new_nomain(verts_x * verts_y,
                                    edges_x * verts_y + edges_y * verts_x,
-                                   edges_x * edges_y * 4,
-                                   edges_x * edges_y);
+                                   edges_x * edges_y,
+                                   edges_x * edges_y * 4);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<int2> edges = mesh->edges_for_write();
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
@@ -97,9 +97,9 @@ Mesh *create_grid_mesh(const int verts_x,
       threading::parallel_for(IndexRange(edges_y), 512, [&](IndexRange y_range) {
         for (const int y : y_range) {
           const int vert_index = y_vert_offset + y;
-          MEdge &edge = edges[y_edge_offset + y];
-          edge.v1 = vert_index;
-          edge.v2 = vert_index + 1;
+          int2 &edge = edges[y_edge_offset + y];
+          edge[0] = vert_index;
+          edge[1] = vert_index + 1;
         }
       });
     }
@@ -112,9 +112,9 @@ Mesh *create_grid_mesh(const int verts_x,
       threading::parallel_for(IndexRange(edges_x), 512, [&](IndexRange x_range) {
         for (const int x : x_range) {
           const int vert_index = x * verts_y + y;
-          MEdge &edge = edges[x_edge_offset + x];
-          edge.v1 = vert_index;
-          edge.v2 = vert_index + verts_y;
+          int2 &edge = edges[x_edge_offset + x];
+          edge[0] = vert_index;
+          edge[1] = vert_index + verts_y;
         }
       });
     }
@@ -149,6 +149,7 @@ Mesh *create_grid_mesh(const int verts_x,
     calculate_uvs(mesh, positions, corner_verts, size_x, size_y, uv_map_id);
   }
 
+  mesh->tag_loose_verts_none();
   mesh->loose_edges_tag_none();
 
   const float3 bounds = float3(size_x * 0.5f, size_y * 0.5f, 0.0f);
@@ -198,19 +199,12 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  AutoAnonymousAttributeID uv_map_id = params.get_output_anonymous_attribute_id_if_needed(
-      "UV Map");
+  AnonymousAttributeIDPtr uv_map_id = params.get_output_anonymous_attribute_id_if_needed("UV Map");
 
   Mesh *mesh = create_grid_mesh(verts_x, verts_y, size_x, size_y, uv_map_id.get());
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
-
-  if (uv_map_id) {
-    params.set_output("UV Map",
-                      AnonymousAttributeFieldInput::Create<float3>(
-                          std::move(uv_map_id), params.attribute_producer_name()));
-  }
 }
 
 }  // namespace blender::nodes::node_geo_mesh_primitive_grid_cc

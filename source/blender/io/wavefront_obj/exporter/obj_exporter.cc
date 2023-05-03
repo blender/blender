@@ -286,13 +286,13 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
     mtl_writer->write_header(export_params.blen_filepath);
     char dest_dir[PATH_MAX];
     if (export_params.file_base_for_tests[0] == '\0') {
-      BLI_split_dir_part(export_params.filepath, dest_dir, PATH_MAX);
+      BLI_path_split_dir_part(export_params.filepath, dest_dir, PATH_MAX);
     }
     else {
       BLI_strncpy(dest_dir, export_params.file_base_for_tests, PATH_MAX);
     }
     BLI_path_slash_native(dest_dir);
-    BLI_path_normalize(nullptr, dest_dir);
+    BLI_path_normalize(dest_dir);
     mtl_writer->write_materials(export_params.blen_filepath,
                                 export_params.path_mode,
                                 dest_dir,
@@ -304,9 +304,9 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
 bool append_frame_to_filename(const char *filepath, const int frame, char *r_filepath_with_frames)
 {
   BLI_strncpy(r_filepath_with_frames, filepath, FILE_MAX);
-  BLI_path_extension_replace(r_filepath_with_frames, FILE_MAX, "");
+  BLI_path_extension_strip(r_filepath_with_frames);
   const int digits = frame == 0 ? 1 : integer_digits_i(abs(frame));
-  BLI_path_frame(r_filepath_with_frames, frame, digits);
+  BLI_path_frame(r_filepath_with_frames, FILE_MAX, frame, digits);
   return BLI_path_extension_replace(r_filepath_with_frames, FILE_MAX, ".obj");
 }
 

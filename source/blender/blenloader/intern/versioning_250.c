@@ -640,7 +640,7 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
   /* don't know, if anybody used that this way, but just in case, upgrade to new way... */
   if ((seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) && !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
-    BLI_snprintf(seq->strip->proxy->dir, FILE_MAXDIR, "%s/BL_proxy", seq->strip->dir);
+    BLI_snprintf(seq->strip->proxy->dir, FILE_MAXDIR, "%s" SEP_STR "BL_proxy", seq->strip->dir);
   }
 #undef SEQ_USE_PROXY_CUSTOM_DIR
 #undef SEQ_USE_PROXY_CUSTOM_FILE
@@ -908,7 +908,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     /* Add default gravity to scenes */
     for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
       if ((sce->physics_settings.flag & PHYS_GLOBAL_GRAVITY) == 0 &&
-          is_zero_v3(sce->physics_settings.gravity)) {
+          is_zero_v3(sce->physics_settings.gravity))
+      {
         sce->physics_settings.gravity[0] = sce->physics_settings.gravity[1] = 0.0f;
         sce->physics_settings.gravity[2] = -9.81f;
         sce->physics_settings.flag = PHYS_GLOBAL_GRAVITY;
@@ -1406,7 +1407,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     /* initialize to sane default so toggling on border shows something */
     for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
       if (sce->r.border.xmin == 0.0f && sce->r.border.ymin == 0.0f && sce->r.border.xmax == 0.0f &&
-          sce->r.border.ymax == 0.0f) {
+          sce->r.border.ymax == 0.0f)
+      {
         sce->r.border.xmin = 0.0f;
         sce->r.border.ymin = 0.0f;
         sce->r.border.xmax = 1.0f;

@@ -164,9 +164,9 @@ struct AddOperationExecutor {
     /* Find UV map. */
     VArraySpan<float2> surface_uv_map;
     if (curves_id_orig_->surface_uv_map != nullptr) {
-      surface_uv_map = surface_orig.attributes().lookup<float2>(curves_id_orig_->surface_uv_map,
-                                                                ATTR_DOMAIN_CORNER);
-      surface_uv_map_eval_ = surface_eval_->attributes().lookup<float2>(
+      surface_uv_map = *surface_orig.attributes().lookup<float2>(curves_id_orig_->surface_uv_map,
+                                                                 ATTR_DOMAIN_CORNER);
+      surface_uv_map_eval_ = *surface_eval_->attributes().lookup<float2>(
           curves_id_orig_->surface_uv_map, ATTR_DOMAIN_CORNER);
     }
 
@@ -233,7 +233,8 @@ struct AddOperationExecutor {
     add_inputs.corner_normals_su = corner_normals_su;
 
     if (add_inputs.interpolate_length || add_inputs.interpolate_shape ||
-        add_inputs.interpolate_point_count || add_inputs.interpolate_resolution) {
+        add_inputs.interpolate_point_count || add_inputs.interpolate_resolution)
+    {
       this->ensure_curve_roots_kdtree();
       add_inputs.old_roots_kdtree = self_->curve_roots_kdtree_;
     }
@@ -306,7 +307,7 @@ struct AddOperationExecutor {
     const float3 bary_coords = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
         surface_positions_eval_, surface_corner_verts_eval_, looptri, brush_pos_su);
 
-    const float2 uv = bke::mesh_surface_sample::sample_corner_attrribute_with_bary_coords(
+    const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
         bary_coords, looptri, surface_uv_map_eval_);
     r_sampled_uvs.append(uv);
   }
@@ -364,7 +365,7 @@ struct AddOperationExecutor {
           positions_su);
 
       for (const int i : IndexRange(new_points)) {
-        const float2 uv = bke::mesh_surface_sample::sample_corner_attrribute_with_bary_coords(
+        const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
             bary_coords[i], surface_looptris_eval_[looptri_indices[i]], surface_uv_map_eval_);
         r_sampled_uvs.append(uv);
       }
@@ -487,7 +488,7 @@ struct AddOperationExecutor {
           looptri_indices,
           positions_su);
       for (const int i : IndexRange(new_points)) {
-        const float2 uv = bke::mesh_surface_sample::sample_corner_attrribute_with_bary_coords(
+        const float2 uv = bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
             bary_coords[i], surface_looptris_eval_[looptri_indices[i]], surface_uv_map_eval_);
         r_sampled_uvs.append(uv);
       }
@@ -504,10 +505,10 @@ struct AddOperationExecutor {
   {
     if (self_->curve_roots_kdtree_ == nullptr) {
       self_->curve_roots_kdtree_ = BLI_kdtree_3d_new(curves_orig_->curves_num());
+      const Span<int> offsets = curves_orig_->offsets();
+      const Span<float3> positions = curves_orig_->positions();
       for (const int curve_i : curves_orig_->curves_range()) {
-        const int root_point_i = curves_orig_->offsets()[curve_i];
-        const float3 &root_pos_cu = curves_orig_->positions()[root_point_i];
-        BLI_kdtree_3d_insert(self_->curve_roots_kdtree_, curve_i, root_pos_cu);
+        BLI_kdtree_3d_insert(self_->curve_roots_kdtree_, curve_i, positions[offsets[curve_i]]);
       }
       BLI_kdtree_3d_balance(self_->curve_roots_kdtree_);
     }

@@ -53,7 +53,7 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
       return {};
     }
 
-    bke::CurvesFieldContext size_context{curves, ATTR_DOMAIN_CURVE};
+    const bke::CurvesFieldContext size_context{curves, ATTR_DOMAIN_CURVE};
     fn::FieldEvaluator evaluator{size_context, curves.curves_num()};
     evaluator.add(start_size_);
     evaluator.add(end_size_);

@@ -263,14 +263,15 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
                                          name.c_str(),
                                          eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
                                          eAttrDomain(RNA_enum_get(op->ptr, "domain")),
-                                         op->reports)) {
+                                         op->reports))
+      {
         return OPERATOR_CANCELLED;
       }
       break;
     }
     case ConvertAttributeMode::VertexGroup: {
       Array<float> src_weights(mesh->totvert);
-      VArray<float> src_varray = attributes.lookup_or_default<float>(
+      VArray<float> src_varray = *attributes.lookup_or_default<float>(
           name, ATTR_DOMAIN_POINT, 0.0f);
       src_varray.materialize(src_weights);
       attributes.remove(name);
@@ -565,7 +566,8 @@ static bool geometry_color_attribute_convert_poll(bContext *C)
     return false;
   }
   if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & ATTR_DOMAIN_MASK_COLOR) ||
-      !(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL)) {
+      !(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL))
+  {
     return false;
   }
 
@@ -703,13 +705,15 @@ bool ED_geometry_attribute_convert(Mesh *mesh,
   }
 
   const std::string name_copy = name;
-  const GVArray varray = attributes.lookup_or_default(name_copy, dst_domain, dst_type);
+  const GVArray varray = *attributes.lookup_or_default(name_copy, dst_domain, dst_type);
 
   const CPPType &cpp_type = varray.type();
   void *new_data = MEM_malloc_arrayN(varray.size(), cpp_type.size(), __func__);
   varray.materialize_to_uninitialized(new_data);
   attributes.remove(name_copy);
-  attributes.add(name_copy, dst_domain, dst_type, bke::AttributeInitMoveArray(new_data));
+  if (!attributes.add(name_copy, dst_domain, dst_type, bke::AttributeInitMoveArray(new_data))) {
+    MEM_freeN(new_data);
+  }
 
   return true;
 }

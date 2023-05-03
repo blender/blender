@@ -84,7 +84,8 @@ static void createTransEdge(bContext *UNUSED(C), TransInfo *t)
 
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
       if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) &&
-          (BM_elem_flag_test(eed, BM_ELEM_SELECT) || is_prop_edit)) {
+          (BM_elem_flag_test(eed, BM_ELEM_SELECT) || is_prop_edit))
+      {
         float *fl_ptr;
         /* need to set center for center calculations */
         mid_v3_v3v3(td->center, eed->v1->co, eed->v2->co);

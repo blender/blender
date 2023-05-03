@@ -120,7 +120,8 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
      * Only apply this if mipmap is the only change, and we have not previously generated
      * a texture view. For textures which are created as views, this should also be skipped. */
     if (resource_mode_ != MTL_TEXTURE_MODE_TEXTURE_VIEW &&
-        texture_view_dirty_flags_ == TEXTURE_VIEW_MIP_DIRTY && mip_swizzle_view_ == nil) {
+        texture_view_dirty_flags_ == TEXTURE_VIEW_MIP_DIRTY && mip_swizzle_view_ == nil)
+    {
 
       if (mip_texture_base_level_ == 0 && mip_texture_max_level_ == mtl_max_mips_) {
         texture_view_dirty_flags_ = TEXTURE_VIEW_NOT_DIRTY;
@@ -159,7 +160,7 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
     }
 
     int range_len = min_ii((mip_texture_max_level_ - mip_texture_base_level_) + 1,
-                           texture_.mipmapLevelCount);
+                           texture_.mipmapLevelCount - mip_texture_base_level_);
     BLI_assert(range_len > 0);
     BLI_assert(mip_texture_base_level_ < texture_.mipmapLevelCount);
     BLI_assert(mip_texture_base_layer_ < num_slices);
@@ -534,7 +535,8 @@ void gpu::MTLTexture::update_sub(
     /* Determine whether we can do direct BLIT or not. */
     bool can_use_direct_blit = true;
     if (expected_dst_bytes_per_pixel != input_bytes_per_pixel ||
-        num_channels != destination_num_channels) {
+        num_channels != destination_num_channels)
+    {
       can_use_direct_blit = false;
     }
 
@@ -628,7 +630,8 @@ void gpu::MTLTexture::update_sub(
        * format is unwritable, if our texture has not been initialized with
        * texture view support, use a staging texture. */
       if ((compatible_write_format != destination_format) &&
-          !(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW)) {
+          !(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW))
+      {
         use_staging_texture = true;
       }
     }
@@ -1152,7 +1155,7 @@ void gpu::MTLTexture::ensure_mipmaps(int miplvl)
 void gpu::MTLTexture::generate_mipmap()
 {
   /* Fetch Active Context. */
-  MTLContext *ctx = reinterpret_cast<MTLContext *>(GPU_context_active_get());
+  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
   BLI_assert(ctx);
 
   if (!ctx->device) {
@@ -1176,7 +1179,8 @@ void gpu::MTLTexture::generate_mipmap()
   /* Verify if we can perform mipmap generation. */
   if (format_ == GPU_DEPTH_COMPONENT32F || format_ == GPU_DEPTH_COMPONENT24 ||
       format_ == GPU_DEPTH_COMPONENT16 || format_ == GPU_DEPTH32F_STENCIL8 ||
-      format_ == GPU_DEPTH24_STENCIL8) {
+      format_ == GPU_DEPTH24_STENCIL8)
+  {
     MTL_LOG_WARNING("Cannot generate mipmaps for textures using DEPTH formats\n");
     return;
   }
@@ -1265,7 +1269,7 @@ void gpu::MTLTexture::clear(eGPUDataFormat data_format, const void *data)
 
   /* Create clear framebuffer. */
   GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
-  FrameBuffer *fb = reinterpret_cast<FrameBuffer *>(this->get_blit_framebuffer(0, 0));
+  FrameBuffer *fb = unwrap(this->get_blit_framebuffer(0, 0));
   fb->bind(true);
   fb->clear_attachment(this->attachment_type(0), data_format, data);
   GPU_framebuffer_bind(prev_fb);
@@ -1330,7 +1334,8 @@ void gpu::MTLTexture::mip_range_set(int min, int max)
   mip_max_ = max;
 
   if ((type_ == GPU_TEXTURE_1D || type_ == GPU_TEXTURE_1D_ARRAY || type_ == GPU_TEXTURE_BUFFER) &&
-      max > 1) {
+      max > 1)
+  {
 
     MTL_LOG_ERROR(
         " MTLTexture of type TEXTURE_1D_ARRAY or TEXTURE_BUFFER cannot have a mipcount "
@@ -1805,7 +1810,7 @@ bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
   return true;
 }
 
-bool gpu::MTLTexture::init_internal(const GPUTexture *src, int mip_offset, int layer_offset)
+bool gpu::MTLTexture::init_internal(GPUTexture *src, int mip_offset, int layer_offset)
 {
   BLI_assert(src);
 
@@ -1817,12 +1822,17 @@ bool gpu::MTLTexture::init_internal(const GPUTexture *src, int mip_offset, int l
   source_texture_ = src;
   mip_texture_base_level_ = mip_offset;
   mip_texture_base_layer_ = layer_offset;
+  texture_view_dirty_flags_ |= TEXTURE_VIEW_MIP_DIRTY;
 
   /* Assign usage. */
   gpu_image_usage_flags_ = GPU_texture_usage(src);
+  BLI_assert_msg(
+      gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
+      "Source texture of TextureView must have GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW usage flag.");
 
   /* Assign texture as view. */
-  const gpu::MTLTexture *mtltex = static_cast<const gpu::MTLTexture *>(unwrap(src));
+  gpu::MTLTexture *mtltex = static_cast<gpu::MTLTexture *>(unwrap(src));
+  mtltex->ensure_baked();
   texture_ = mtltex->texture_;
   BLI_assert(texture_);
   [texture_ retain];

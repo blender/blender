@@ -28,6 +28,11 @@ class SharedDataContainer {
  public:
   SharedDataContainer() : data_(MEM_new<ImplicitlySharedData>(__func__)) {}
 
+  const ImplicitSharingInfo *sharing_info() const
+  {
+    return data_.get();
+  }
+
   const ImplicitlySharedData *get_for_read() const
   {
     return data_.get();
@@ -39,6 +44,7 @@ class SharedDataContainer {
       return nullptr;
     }
     if (data_->is_mutable()) {
+      data_->tag_ensured_mutable();
       return data_.get();
     }
     data_ = data_->copy();
@@ -78,6 +84,31 @@ TEST(implicit_sharing, CopyOnWriteAccess)
   EXPECT_EQ(b.get_for_write(), nullptr);
   EXPECT_EQ(d.get_for_read(), data_b1);
   EXPECT_EQ(d.get_for_write(), data_b1);
+}
+
+TEST(implicit_sharing, WeakUser)
+{
+  SharedDataContainer a;
+  const ImplicitSharingInfo *sharing_info = a.sharing_info();
+  EXPECT_FALSE(sharing_info->is_expired());
+  EXPECT_TRUE(sharing_info->is_mutable());
+  sharing_info->add_weak_user();
+  EXPECT_FALSE(sharing_info->is_expired());
+  EXPECT_TRUE(sharing_info->is_mutable());
+  a = {};
+  EXPECT_TRUE(sharing_info->is_expired());
+  sharing_info->remove_weak_user_and_delete_if_last();
+}
+
+TEST(implicit_sharing, Version)
+{
+  SharedDataContainer a;
+  const ImplicitSharingInfo *sharing_info = a.sharing_info();
+  const int old_version = sharing_info->version();
+  a.get_for_read();
+  EXPECT_EQ(old_version, sharing_info->version());
+  a.get_for_write();
+  EXPECT_LT(old_version, sharing_info->version());
 }
 
 }  // namespace blender::tests

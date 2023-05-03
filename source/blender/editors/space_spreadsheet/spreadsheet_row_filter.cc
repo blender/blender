@@ -140,6 +140,36 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
       }
     }
   }
+  else if (column_data.type().is<int2>()) {
+    const int2 value = row_filter.value_int2;
+    switch (row_filter.operation) {
+      case SPREADSHEET_ROW_FILTER_EQUAL: {
+        const float threshold_sq = pow2f(row_filter.threshold);
+        apply_filter_operation(
+            column_data.typed<int2>(),
+            [&](const int2 cell) { return math::distance_squared(cell, value) <= threshold_sq; },
+            prev_mask,
+            new_indices);
+        break;
+      }
+      case SPREADSHEET_ROW_FILTER_GREATER: {
+        apply_filter_operation(
+            column_data.typed<int2>(),
+            [&](const int2 cell) { return cell.x > value.x && cell.y > value.y; },
+            prev_mask,
+            new_indices);
+        break;
+      }
+      case SPREADSHEET_ROW_FILTER_LESS: {
+        apply_filter_operation(
+            column_data.typed<int2>(),
+            [&](const int2 cell) { return cell.x < value.x && cell.y < value.y; },
+            prev_mask,
+            new_indices);
+        break;
+      }
+    }
+  }
   else if (column_data.type().is<float2>()) {
     const float2 value = row_filter.value_float2;
     switch (row_filter.operation) {

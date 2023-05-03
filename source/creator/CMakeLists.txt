@@ -11,6 +11,7 @@ set(INC
   ../blender/gpu
   ../blender/imbuf
   ../blender/io/usd
+  ../blender/bmesh
   ../blender/makesdna
   ../blender/makesrna
   ../blender/render
@@ -1658,14 +1659,20 @@ endif()
 if(UNIX AND NOT APPLE)
   if(NOT WITH_PYTHON_MODULE)
     if(WITH_DOC_MANPAGE)
+      # Only run the command to generate the man-page when it may be outdated.
+      # The `IS_NEWER_THAN` checks always run when files are missing.
       install(
         CODE "\
-execute_process(\
-  COMMAND \
-  \"${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py\" \
-  --blender \"${EXECUTABLE_OUTPUT_PATH}/blender\" \
-  --output \"${CMAKE_CURRENT_BINARY_DIR}/blender.1\"\
-)"
+set(BLENDER_BIN \"${EXECUTABLE_OUTPUT_PATH}/blender\")\n\
+set(MANPAGE_GEN \"${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py\")\n\
+set(MANPAGE_OUT \"${CMAKE_CURRENT_BINARY_DIR}/blender.1\")\n\
+if(\n\
+  ($\{BLENDER_BIN\} IS_NEWER_THAN $\{MANPAGE_OUT\}) OR\n\
+  ($\{MANPAGE_GEN\} IS_NEWER_THAN $\{MANPAGE_OUT\})\n\
+)\n\
+  execute_process(COMMAND $\{MANPAGE_GEN\} --blender $\{BLENDER_BIN\} --output $\{MANPAGE_OUT\})\n\
+endif()\n\
+"
         DEPENDS blender
       )
 

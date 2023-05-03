@@ -13,6 +13,10 @@
 #  include "util/windows.h"
 #endif /* WITH_HIP */
 
+#ifdef WITH_HIPRT
+#  include "device/hiprt/device_impl.h"
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 bool device_hip_init()
@@ -65,7 +69,12 @@ bool device_hip_init()
 
 Device *device_hip_create(const DeviceInfo &info, Stats &stats, Profiler &profiler)
 {
-#ifdef WITH_HIP
+#ifdef WITH_HIPRT
+  if (info.use_hardware_raytracing)
+    return new HIPRTDevice(info, stats, profiler);
+  else
+    return new HIPDevice(info, stats, profiler);
+#elif defined(WITH_HIP)
   return new HIPDevice(info, stats, profiler);
 #else
   (void)info;
@@ -82,10 +91,12 @@ Device *device_hip_create(const DeviceInfo &info, Stats &stats, Profiler &profil
 static hipError_t device_hip_safe_init()
 {
 #  ifdef _WIN32
-  __try {
+  __try
+  {
     return hipInit(0);
   }
-  __except (EXCEPTION_EXECUTE_HANDLER) {
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
     /* Ignore crashes inside the HIP driver and hope we can
      * survive even with corrupted HIP installs. */
     fprintf(stderr, "Cycles HIP: driver crashed, continuing without HIP.\n");
@@ -115,6 +126,12 @@ void device_hip_info(vector<DeviceInfo> &devices)
     return;
   }
 
+#  ifdef WITH_HIPRT
+  const bool has_hardware_raytracing = hiprtewInit();
+#  else
+  const bool has_hardware_raytracing = false;
+#  endif
+
   vector<DeviceInfo> display_devices;
 
   for (int num = 0; num < count; num++) {
@@ -137,7 +154,7 @@ void device_hip_info(vector<DeviceInfo> &devices)
     info.num = num;
 
     info.has_nanovdb = true;
-    info.has_light_tree = false;
+    info.has_light_tree = true;
     info.denoisers = 0;
 
     info.has_gpu_queue = true;
@@ -149,6 +166,8 @@ void device_hip_info(vector<DeviceInfo> &devices)
         info.has_peer_memory = (can_access != 0);
       }
     }
+
+    info.use_hardware_raytracing = has_hardware_raytracing;
 
     int pci_location[3] = {0, 0, 0};
     hipDeviceGetAttribute(&pci_location[0], hipDeviceAttributePciDomainID, num);
@@ -176,6 +195,7 @@ void device_hip_info(vector<DeviceInfo> &devices)
       VLOG_INFO << "Device has compute preemption or is not used for display.";
       devices.push_back(info);
     }
+
     VLOG_INFO << "Added device \"" << name << "\" with id \"" << info.id << "\".";
   }
 

@@ -41,6 +41,9 @@ void SCENE_OT_view_layer_remove_unused_lightgroups(struct wmOperatorType *ot);
 void SCENE_OT_light_cache_bake(struct wmOperatorType *ot);
 void SCENE_OT_light_cache_free(struct wmOperatorType *ot);
 
+void OBJECT_OT_lightprobe_cache_bake(struct wmOperatorType *ot);
+void OBJECT_OT_lightprobe_cache_free(struct wmOperatorType *ot);
+
 void SCENE_OT_render_view_add(struct wmOperatorType *ot);
 void SCENE_OT_render_view_remove(struct wmOperatorType *ot);
 

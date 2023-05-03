@@ -250,8 +250,8 @@ static void userdef_free_keymaps(UserDef *userdef)
 
 static void userdef_free_keyconfig_prefs(UserDef *userdef)
 {
-  for (wmKeyConfigPref *kpt = userdef->user_keyconfig_prefs.first, *kpt_next; kpt;
-       kpt = kpt_next) {
+  for (wmKeyConfigPref *kpt = userdef->user_keyconfig_prefs.first, *kpt_next; kpt; kpt = kpt_next)
+  {
     kpt_next = kpt->next;
     IDP_FreeProperty(kpt->prop);
     MEM_freeN(kpt);
@@ -296,6 +296,7 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
   }
 
   BLI_freelistN(&userdef->autoexec_paths);
+  BLI_freelistN(&userdef->script_directories);
   BLI_freelistN(&userdef->asset_libraries);
 
   BLI_freelistN(&userdef->uistyles);

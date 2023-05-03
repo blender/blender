@@ -32,13 +32,15 @@ ViewMap::~ViewMap()
   // The view vertices must be deleted here as some of them are shared between two shapes:
   for (vector<ViewVertex *>::iterator vv = _VVertices.begin(), vvend = _VVertices.end();
        vv != vvend;
-       vv++) {
+       vv++)
+  {
     delete (*vv);
   }
   _VVertices.clear();
 
   for (vector<ViewShape *>::iterator vs = _VShapes.begin(), vsend = _VShapes.end(); vs != vsend;
-       vs++) {
+       vs++)
+  {
     delete (*vs);
   }
   _VShapes.clear();
@@ -53,7 +55,8 @@ void ViewMap::Clean()
   vector<FEdge *> tmpEdges;
 
   for (vector<ViewShape *>::iterator vs = _VShapes.begin(), vsend = _VShapes.end(); vs != vsend;
-       vs++) {
+       vs++)
+  {
     vector<FEdge *> &edges = (*vs)->sshape()->getEdgeList();
     for (vector<FEdge *>::iterator it = edges.begin(), itend = edges.end(); it != itend; it++) {
       if ((*it)->isTemporary()) {
@@ -63,10 +66,11 @@ void ViewMap::Clean()
     }
   }
 
-  for (vector<FEdge *>::iterator it = tmpEdges.begin(), itend = tmpEdges.end(); it != itend;
-       it++) {
+  for (vector<FEdge *>::iterator it = tmpEdges.begin(), itend = tmpEdges.end(); it != itend; it++)
+  {
     for (vector<ViewShape *>::iterator vs = _VShapes.begin(), vsend = _VShapes.end(); vs != vsend;
-         vs++) {
+         vs++)
+    {
       (*vs)->sshape()->RemoveEdge(*it);
     }
     (*it)->vertexA()->RemoveFEdge(*it);
@@ -93,7 +97,8 @@ const FEdge *ViewMap::getClosestFEdge(real x, real y) const
   real minDist = DBL_MAX;
   FEdge *winner = nullptr;
   for (fedges_container::const_iterator fe = _FEdges.begin(), feend = _FEdges.end(); fe != feend;
-       fe++) {
+       fe++)
+  {
     Vec2d A((*fe)->vertexA()->point2D()[0], (*fe)->vertexA()->point2D()[1]);
     Vec2d B((*fe)->vertexB()->point2D()[0], (*fe)->vertexB()->point2D()[1]);
     real dist = GeomUtils::distPointSegment<Vec2r>(Vec2r(x, y), A, B);
@@ -112,7 +117,8 @@ const ViewEdge *ViewMap::getClosestViewEdge(real x, real y) const
   real minDist = DBL_MAX;
   FEdge *winner = nullptr;
   for (fedges_container::const_iterator fe = _FEdges.begin(), feend = _FEdges.end(); fe != feend;
-       fe++) {
+       fe++)
+  {
     Vec2d A((*fe)->vertexA()->point2D()[0], (*fe)->vertexA()->point2D()[1]);
     Vec2d B((*fe)->vertexB()->point2D()[0], (*fe)->vertexB()->point2D()[1]);
     real dist = GeomUtils::distPointSegment<Vec2r>(Vec2r(x, y), A, B);
@@ -451,7 +457,8 @@ ViewVertex::edge_iterator TVertex::edges_iterator(ViewEdge *iEdge)
 {
   for (edge_pointers_container::iterator it = _sortedEdges.begin(), itend = _sortedEdges.end();
        it != itend;
-       it++) {
+       it++)
+  {
     if ((*it)->first == iEdge) {
       return edge_iterator(_sortedEdges.begin(), _sortedEdges.end(), it);
     }
@@ -481,7 +488,8 @@ ViewVertex::const_edge_iterator TVertex::edges_iterator(ViewEdge *iEdge) const
   for (edge_pointers_container::const_iterator it = _sortedEdges.begin(),
                                                itend = _sortedEdges.end();
        it != itend;
-       it++) {
+       it++)
+  {
     if ((*it)->first == iEdge) {
       return const_edge_iterator(_sortedEdges.begin(), _sortedEdges.end(), it);
     }
@@ -522,7 +530,8 @@ ViewVertexInternal::orientedViewEdgeIterator TVertex::edgesIterator(ViewEdge *iE
 {
   for (edge_pointers_container::iterator it = _sortedEdges.begin(), itend = _sortedEdges.end();
        it != itend;
-       it++) {
+       it++)
+  {
     if ((*it)->first == iEdge) {
       return ViewVertexInternal::orientedViewEdgeIterator(
           _sortedEdges.begin(), _sortedEdges.end(), it);
@@ -596,7 +605,8 @@ ViewVertex::const_edge_iterator NonTVertex::edges_end() const
 ViewVertex::edge_iterator NonTVertex::edges_iterator(ViewEdge *iEdge)
 {
   for (edges_container::iterator it = _ViewEdges.begin(), itend = _ViewEdges.end(); it != itend;
-       it++) {
+       it++)
+  {
     if ((it)->first == iEdge) {
       return edge_iterator(_ViewEdges.begin(), _ViewEdges.end(), it);
     }
@@ -608,7 +618,8 @@ ViewVertex::const_edge_iterator NonTVertex::edges_iterator(ViewEdge *iEdge) cons
 {
   for (edges_container::const_iterator it = _ViewEdges.begin(), itend = _ViewEdges.end();
        it != itend;
-       it++) {
+       it++)
+  {
     if ((it)->first == iEdge) {
       return const_edge_iterator(_ViewEdges.begin(), _ViewEdges.end(), it);
     }
@@ -631,7 +642,8 @@ ViewVertexInternal::orientedViewEdgeIterator NonTVertex::edgesEnd()
 ViewVertexInternal::orientedViewEdgeIterator NonTVertex::edgesIterator(ViewEdge *iEdge)
 {
   for (edges_container::iterator it = _ViewEdges.begin(), itend = _ViewEdges.end(); it != itend;
-       it++) {
+       it++)
+  {
     if ((it)->first == iEdge) {
       return ViewVertexInternal::orientedViewEdgeIterator(
           _ViewEdges.begin(), _ViewEdges.end(), it);
@@ -800,7 +812,8 @@ void ViewShape::RemoveEdge(ViewEdge *iViewEdge)
 void ViewShape::RemoveVertex(ViewVertex *iViewVertex)
 {
   for (vector<ViewVertex *>::iterator vv = _Vertices.begin(), vvend = _Vertices.end(); vv != vvend;
-       vv++) {
+       vv++)
+  {
     if (iViewVertex == (*vv)) {
       _Vertices.erase(vv);
       break;

@@ -10,7 +10,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
   b.add_output<decl::Geometry>(N_("Point Cloud")).propagate_all();
   b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
-  b.add_output<decl::Geometry>(N_("Volume")).propagate_all();
+  b.add_output<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
+      .translation_context(BLT_I18NCONTEXT_ID_ID)
+      .propagate_all();
   b.add_output<decl::Geometry>(N_("Instances")).propagate_all();
 }
 

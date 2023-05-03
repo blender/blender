@@ -59,7 +59,8 @@ void ColorMatteOperation::execute_pixel_sampled(float output[4],
        * otherwise 0.5 would key all hue's */
 
       /* hue */
-      ((h_wrap = 2.0f * fabsf(in_color[0] - in_key[0])) < hue || (2.0f - h_wrap) < hue)) {
+      ((h_wrap = 2.0f * fabsf(in_color[0] - in_key[0])) < hue || (2.0f - h_wrap) < hue))
+  {
     output[0] = 0.0f; /* make transparent */
   }
 
@@ -94,7 +95,8 @@ void ColorMatteOperation::update_memory_buffer_partial(MemoryBuffer *output,
          * otherwise 0.5 would key all hue's. */
 
         /* #hue */
-        ((h_wrap = 2.0f * fabsf(in_color[0] - in_key[0])) < hue || (2.0f - h_wrap) < hue)) {
+        ((h_wrap = 2.0f * fabsf(in_color[0] - in_key[0])) < hue || (2.0f - h_wrap) < hue))
+    {
       it.out[0] = 0.0f; /* Make transparent. */
     }
 

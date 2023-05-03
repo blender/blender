@@ -320,7 +320,8 @@ static void do_versions_compositor_render_passes_storage(bNode *node)
   int pass_index = 0;
   const char *sockname;
   for (bNodeSocket *sock = node->outputs.first; sock && pass_index < 31;
-       sock = sock->next, pass_index++) {
+       sock = sock->next, pass_index++)
+  {
     if (sock->storage == NULL) {
       NodeImageLayer *sockdata = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
       sock->storage = sockdata;
@@ -690,7 +691,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     Brush *br;
     for (br = bmain->brushes.first; br; br = br->id.next) {
       if ((br->ob_mode & OB_MODE_SCULPT) &&
-          ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK)) {
+          ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK))
+      {
         br->alpha = 1.0f;
       }
     }
@@ -1402,8 +1404,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    if (!DNA_struct_elem_find(
-            fd->filesdna, "MovieTrackingStabilization", "int", "tot_rot_track")) {
+    if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingStabilization", "int", "tot_rot_track"))
+    {
       MovieClip *clip;
       for (clip = bmain->movieclips.first; clip != NULL; clip = clip->id.next) {
         if (clip->tracking.stabilization.rot_track_legacy) {
@@ -1539,8 +1541,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
       LISTBASE_FOREACH (MaskLayer *, mlayer, &mask->masklayers) {
         LISTBASE_FOREACH (MaskSpline *, mspline, &mlayer->splines) {
           int i = 0;
-          for (MaskSplinePoint *mspoint = mspline->points; i < mspline->tot_point;
-               mspoint++, i++) {
+          for (MaskSplinePoint *mspoint = mspline->points; i < mspline->tot_point; mspoint++, i++)
+          {
             if (mspoint->parent.id_type == 0) {
               BKE_mask_parent_init(&mspoint->parent);
             }
@@ -1685,7 +1687,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     if (!DNA_struct_elem_find(
-            fd->filesdna, "ParticleInstanceModifierData", "float", "particle_amount")) {
+            fd->filesdna, "ParticleInstanceModifierData", "float", "particle_amount"))
+    {
       for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_ParticleInstance) {

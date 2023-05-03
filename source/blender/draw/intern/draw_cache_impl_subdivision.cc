@@ -273,7 +273,8 @@ static GPUShader *get_subdiv_shader(int shader_type)
            SHADER_PATCH_EVALUATION,
            SHADER_PATCH_EVALUATION_FVAR,
            SHADER_PATCH_EVALUATION_FACE_DOTS,
-           SHADER_PATCH_EVALUATION_ORCO)) {
+           SHADER_PATCH_EVALUATION_ORCO))
+  {
     return get_patch_evaluation_shader(shader_type);
   }
 
@@ -291,7 +292,8 @@ static GPUShader *get_subdiv_shader(int shader_type)
              SHADER_BUFFER_LINES,
              SHADER_BUFFER_LNOR,
              SHADER_BUFFER_TRIS_MULTIPLE_MATERIALS,
-             SHADER_BUFFER_UV_STRETCH_AREA)) {
+             SHADER_BUFFER_UV_STRETCH_AREA))
+    {
       defines = "#define SUBDIV_POLYGON_OFFSET\n";
     }
     else if (shader_type == SHADER_BUFFER_TRIS) {
@@ -1199,8 +1201,8 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
   cache_building_context.cache = cache;
 
   do_subdiv_traversal(&cache_building_context, subdiv);
-  if (cache->num_subdiv_loops == 0 && cache->num_subdiv_verts == 0 &&
-      !cache->may_have_loose_geom) {
+  if (cache->num_subdiv_loops == 0 && cache->num_subdiv_verts == 0 && !cache->may_have_loose_geom)
+  {
     /* Either the traversal failed, or we have an empty mesh, either way we cannot go any further.
      * The subdiv_polygon_offset cannot then be reliably stored in the cache, so free it directly.
      */
@@ -2040,7 +2042,8 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache *cache,
     return;
   }
 
-  const blender::VArraySpan<int> material_indices = mesh_eval->attributes().lookup_or_default<int>(
+  const blender::bke::AttributeAccessor attributes = mesh_eval->attributes();
+  const blender::VArraySpan<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
 
   /* Count number of subdivided polygons for each material. */
@@ -2127,7 +2130,8 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
   }
 
   if (!BKE_subdiv_eval_begin_from_mesh(
-          subdiv, mesh_eval, nullptr, SUBDIV_EVALUATOR_TYPE_GPU, evaluator_cache)) {
+          subdiv, mesh_eval, nullptr, SUBDIV_EVALUATOR_TYPE_GPU, evaluator_cache))
+  {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
      * - Something totally bad happened, and OpenSubdiv rejected our
@@ -2230,7 +2234,7 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
 
   /* Subdivide each loose coarse edge. */
   const Span<float3> coarse_positions = coarse_mesh->vert_positions();
-  const Span<MEdge> coarse_edges = coarse_mesh->edges();
+  const Span<int2> coarse_edges = coarse_mesh->edges();
 
   int *vert_to_edge_buffer;
   MeshElemMap *vert_to_edge_map;
@@ -2242,7 +2246,7 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
 
   for (int i = 0; i < coarse_loose_edge_len; i++) {
     const int coarse_edge_index = cache->loose_geom.edges[i];
-    const MEdge *coarse_edge = &coarse_edges[cache->loose_geom.edges[i]];
+    const blender::int2 &coarse_edge = coarse_edges[cache->loose_geom.edges[i]];
 
     /* Perform interpolation of each vertex. */
     for (int i = 0; i < resolution - 1; i++, subd_edge_offset++) {
@@ -2251,7 +2255,7 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
 
       /* First vert. */
       DRWSubdivLooseVertex &subd_v1 = loose_subd_verts[subd_vert_offset];
-      subd_v1.coarse_vertex_index = (i == 0) ? coarse_edge->v1 : -1u;
+      subd_v1.coarse_vertex_index = (i == 0) ? coarse_edge[0] : -1u;
       const float u1 = i * inv_resolution_1;
       BKE_subdiv_mesh_interpolate_position_on_edge(
           reinterpret_cast<const float(*)[3]>(coarse_positions.data()),
@@ -2266,7 +2270,7 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
 
       /* Second vert. */
       DRWSubdivLooseVertex &subd_v2 = loose_subd_verts[subd_vert_offset];
-      subd_v2.coarse_vertex_index = ((i + 1) == resolution - 1) ? coarse_edge->v2 : -1u;
+      subd_v2.coarse_vertex_index = ((i + 1) == resolution - 1) ? coarse_edge[1] : -1u;
       const float u2 = (i + 1) * inv_resolution_1;
       BKE_subdiv_mesh_interpolate_position_on_edge(
           reinterpret_cast<const float(*)[3]>(coarse_positions.data()),
@@ -2350,7 +2354,8 @@ void DRW_create_subdivision(Object *ob,
                                             do_cage,
                                             ts,
                                             use_hide,
-                                            g_evaluator_cache)) {
+                                            g_evaluator_cache))
+  {
     return;
   }
 

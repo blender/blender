@@ -667,7 +667,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   int i, v1, v2, v3, v4, esplit, v[4] = {0, 0, 0, 0}, /* To quite gcc barking... */
       uv[4] = {0, 0, 0, 0};                           /* To quite gcc barking... */
   int layers_num;
-  uint ed_v1, ed_v2;
+  int ed_v1, ed_v2;
 
   edgehash = BLI_edgehash_new(__func__);
 
@@ -923,7 +923,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   const int *facepa = emd->facepa;
   int totdup = 0, totvert = 0, totface = 0, totpart = 0, delface = 0;
   int i, v, u;
-  uint ed_v1, ed_v2, mindex = 0;
+  int ed_v1, ed_v2, mindex = 0;
 
   totface = mesh->totface;
   totvert = mesh->totvert;
@@ -950,7 +950,8 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
       if ((pa->alive == PARS_UNBORN && (emd->flag & eExplodeFlag_Unborn) == 0) ||
           (pa->alive == PARS_ALIVE && (emd->flag & eExplodeFlag_Alive) == 0) ||
-          (pa->alive == PARS_DEAD && (emd->flag & eExplodeFlag_Dead) == 0)) {
+          (pa->alive == PARS_DEAD && (emd->flag & eExplodeFlag_Dead) == 0))
+      {
         delface++;
         continue;
       }
@@ -1161,7 +1162,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* 1. find faces to be exploded if needed */
     if (emd->facepa == nullptr || psmd->flag & eParticleSystemFlag_Pars ||
         emd->flag & eExplodeFlag_CalcFaces ||
-        MEM_allocN_len(emd->facepa) / sizeof(int) != mesh->totface) {
+        MEM_allocN_len(emd->facepa) / sizeof(int) != mesh->totface)
+    {
       if (psmd->flag & eParticleSystemFlag_Pars) {
         psmd->flag &= ~eParticleSystemFlag_Pars;
       }

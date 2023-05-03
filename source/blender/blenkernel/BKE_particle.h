@@ -9,6 +9,7 @@
  */
 
 #include "BLI_buffer.h"
+#include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_particle_types.h"
@@ -376,7 +377,8 @@ void psys_reset(struct ParticleSystem *psys, int mode);
 
 void psys_find_parents(struct ParticleSimulationData *sim, bool use_render_params);
 
-void psys_unique_name(struct Object *object, struct ParticleSystem *psys, const char *defname);
+void psys_unique_name(struct Object *object, struct ParticleSystem *psys, const char *defname)
+    ATTR_NONNULL(1, 2, 3);
 
 /**
  * Calculates paths ready for drawing/rendering

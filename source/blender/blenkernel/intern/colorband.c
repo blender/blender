@@ -189,7 +189,8 @@ static void colorband_init_from_table_rgba_resample(ColorBand *coba,
   }
 
   while ((carr_len > 1 && !BLI_heap_is_empty(heap)) &&
-         ((carr_len >= MAXCOLORBAND) || (BLI_heap_top_value(heap) <= eps_2x))) {
+         ((carr_len >= MAXCOLORBAND) || (BLI_heap_top_value(heap) <= eps_2x)))
+  {
     c = BLI_heap_pop_min(heap);
     struct ColorResampleElem *c_next = c->next, *c_prev = c->prev;
     c_prev->next = c_next;
@@ -416,7 +417,8 @@ bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4])
     out[3] = cbd1->a;
   }
   else if ((in <= cbd1->pos) &&
-           ELEM(ipotype, COLBAND_INTERP_LINEAR, COLBAND_INTERP_EASE, COLBAND_INTERP_CONSTANT)) {
+           ELEM(ipotype, COLBAND_INTERP_LINEAR, COLBAND_INTERP_EASE, COLBAND_INTERP_CONSTANT))
+  {
     /* We are before first color stop. */
     out[0] = cbd1->r;
     out[1] = cbd1->g;
@@ -449,7 +451,8 @@ bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4])
     }
 
     if ((a == coba->tot) &&
-        ELEM(ipotype, COLBAND_INTERP_LINEAR, COLBAND_INTERP_EASE, COLBAND_INTERP_CONSTANT)) {
+        ELEM(ipotype, COLBAND_INTERP_LINEAR, COLBAND_INTERP_EASE, COLBAND_INTERP_CONSTANT))
+    {
       /* We are after last color stop. */
       out[0] = cbd2->r;
       out[1] = cbd2->g;

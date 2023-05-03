@@ -401,13 +401,15 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
   for (int i = 0; i < count; i++) {
     Sequence *seq = seq_arr[i];
     if (seq->type == SEQ_TYPE_META &&
-        seq_prefetch_scene_strip_is_rendered(pfjob, channels, &seq->seqbase, scene_strips, true)) {
+        seq_prefetch_scene_strip_is_rendered(pfjob, channels, &seq->seqbase, scene_strips, true))
+    {
       return true;
     }
 
     /* Disable prefetching 3D scene strips, but check for disk cache. */
     if (seq->type == SEQ_TYPE_SCENE && (seq->flag & SEQ_SCENE_STRIPS) == 0 &&
-        !seq_prefetch_seq_has_disk_cache(pfjob, seq, !is_recursive_check)) {
+        !seq_prefetch_seq_has_disk_cache(pfjob, seq, !is_recursive_check))
+    {
       return true;
     }
 
@@ -456,7 +458,8 @@ static void seq_prefetch_do_suspend(PrefetchJob *pfjob)
 {
   BLI_mutex_lock(&pfjob->prefetch_suspend_mutex);
   while (seq_prefetch_need_suspend(pfjob) &&
-         (pfjob->scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) && !pfjob->stop) {
+         (pfjob->scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) && !pfjob->stop)
+  {
     pfjob->waiting = true;
     BLI_condition_wait(&pfjob->prefetch_suspend_cond, &pfjob->prefetch_suspend_mutex);
     seq_prefetch_update_area(pfjob);
@@ -501,8 +504,8 @@ static void *seq_prefetch_frames(void *job)
     seq_prefetch_do_suspend(pfjob);
 
     /* Avoid "collision" with main thread, but make sure to fetch at least few frames */
-    if (pfjob->num_frames_prefetched > 5 &&
-        (seq_prefetch_cfra(pfjob) - pfjob->scene->r.cfra) < 2) {
+    if (pfjob->num_frames_prefetched > 5 && (seq_prefetch_cfra(pfjob) - pfjob->scene->r.cfra) < 2)
+    {
       break;
     }
 
@@ -575,7 +578,8 @@ void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
      * important, see D7820.
      */
     if ((ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) && !running && !scrubbing && !playing &&
-        ed->cache_flag & SEQ_CACHE_ALL_TYPES && has_strips && !G.is_rendering && !G.moving) {
+        ed->cache_flag & SEQ_CACHE_ALL_TYPES && has_strips && !G.is_rendering && !G.moving)
+    {
 
       seq_prefetch_start_ex(context, timeline_frame);
     }

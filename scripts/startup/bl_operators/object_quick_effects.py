@@ -121,8 +121,16 @@ class QuickFur(ObjectModeOperator, Operator):
 
         material = bpy.data.materials.new("Fur Material")
 
+        mesh_with_zero_area = False
+        mesh_missing_uv_map = False
+        modifier_apply_error = False
+
         for mesh_object in mesh_objects:
             mesh = mesh_object.data
+            if len(mesh.uv_layers) == 0:
+                mesh_missing_uv_map = True
+                continue
+
             with context.temp_override(active_object=mesh_object):
                 bpy.ops.object.curves_empty_hair_add()
             curves_object = context.active_object
@@ -132,7 +140,11 @@ class QuickFur(ObjectModeOperator, Operator):
             area = 0.0
             for poly in mesh.polygons:
                 area += poly.area
-            density = count / area
+            if area == 0.0:
+                mesh_with_zero_area = True
+                density = 10
+            else:
+                density = count / area
 
             generate_modifier = curves_object.modifiers.new(name="Generate", type='NODES')
             generate_modifier.node_group = generate_group
@@ -166,13 +178,23 @@ class QuickFur(ObjectModeOperator, Operator):
 
             if self.apply_hair_guides:
                 with context.temp_override(object=curves_object):
-                    bpy.ops.object.modifier_apply(modifier=generate_modifier.name)
+                    try:
+                        bpy.ops.object.modifier_apply(modifier=generate_modifier.name)
+                    except:
+                        modifier_apply_error = True
 
             curves_object.modifiers.move(0, len(curves_object.modifiers) - 1)
 
             # Workaround for #105965: Rebuild UI data of modifier input properties.
             for modifier in curves_object.modifiers:
                 modifier.node_group = modifier.node_group
+
+        if mesh_with_zero_area:
+            self.report({'WARNING'}, "Mesh has no face area")
+        if mesh_missing_uv_map:
+            self.report({'WARNING'}, "Mesh UV map required")
+        if modifier_apply_error and not mesh_with_zero_area:
+            self.report({'WARNING'}, "Unable to apply \"Generate\" modifier")
 
         return {'FINISHED'}
 
@@ -295,7 +317,7 @@ class QuickExplode(ObjectModeOperator, Operator):
                         node_out_mat = node
                         break
 
-                node_surface = node_out_mat.inputs['Surface'].links[0].from_node
+                node_surface = node_out_mat.inputs["Surface"].links[0].from_node
 
                 node_x = node_surface.location[0]
                 node_y = node_surface.location[1] - 400
@@ -304,7 +326,7 @@ class QuickExplode(ObjectModeOperator, Operator):
                 node_mix = nodes.new('ShaderNodeMixShader')
                 node_mix.location = (node_x - offset_x, node_y)
                 mat.node_tree.links.new(node_surface.outputs[0], node_mix.inputs[1])
-                mat.node_tree.links.new(node_mix.outputs["Shader"], node_out_mat.inputs['Surface'])
+                mat.node_tree.links.new(node_mix.outputs["Shader"], node_out_mat.inputs["Surface"])
                 offset_x += 200
 
                 node_trans = nodes.new('ShaderNodeBsdfTransparent')
@@ -454,7 +476,7 @@ class QuickSmoke(ObjectModeOperator, Operator):
         # setup smoke domain
         bpy.ops.object.modifier_add(type='FLUID')
         obj.modifiers[-1].fluid_type = 'DOMAIN'
-        if self.style == 'FIRE' or self.style == 'BOTH':
+        if self.style == {'FIRE', 'BOTH'}:
             obj.modifiers[-1].domain_settings.use_noise = True
 
         # ensure correct cache file format for smoke

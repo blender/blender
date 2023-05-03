@@ -484,10 +484,12 @@ void GHOST_WindowCocoa::setTitle(const char *title)
       associatedFileName = [windowTitle substringWithRange:fileStrRange];
       [m_window setTitle:[associatedFileName lastPathComponent]];
 
-      @try {
+      @try
+      {
         [m_window setRepresentedFilename:associatedFileName];
       }
-      @catch (NSException *e) {
+      @catch (NSException *e)
+      {
         printf("\nInvalid file path given in window title");
       }
     }
@@ -815,7 +817,7 @@ GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType ty
 {
 #ifdef WITH_VULKAN_BACKEND
   if (type == GHOST_kDrawingContextTypeVulkan) {
-    GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual, m_metalLayer, 1, 0, true);
+    GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual, m_metalLayer, 1, 2, true);
 
     if (!context->initializeDrawingContext()) {
       delete context;

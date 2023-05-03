@@ -170,7 +170,8 @@ static void sync_viewport_camera_smoothview(bContext *C,
   for (bScreen *screen = bmain->screens.first; screen != NULL; screen = screen->id.next) {
     for (ScrArea *area = screen->areabase.first; area != NULL; area = area->next) {
       for (SpaceLink *space_link = area->spacedata.first; space_link != NULL;
-           space_link = space_link->next) {
+           space_link = space_link->next)
+      {
         if (space_link->spacetype == SPACE_VIEW3D) {
           View3D *other_v3d = (View3D *)space_link;
           if (other_v3d == v3d) {
@@ -179,7 +180,8 @@ static void sync_viewport_camera_smoothview(bContext *C,
           if (other_v3d->camera == ob) {
             continue;
           }
-          if (v3d->scenelock) {
+          /* Checking the other view is needed to prevent local cameras being modified. */
+          if (v3d->scenelock && other_v3d->scenelock) {
             ListBase *lb = (space_link == area->spacedata.first) ? &area->regionbase :
                                                                    &space_link->regionbase;
             for (ARegion *other_region = lb->first; other_region != NULL;
@@ -512,7 +514,8 @@ eV3DSelectObjectFilter ED_view3d_select_filter_from_mode(const Scene *scene, con
 {
   if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
     if (obact && (obact->mode & OB_MODE_ALL_WEIGHT_PAINT) &&
-        BKE_object_pose_armature_get((Object *)obact)) {
+        BKE_object_pose_armature_get((Object *)obact))
+    {
       return VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK;
     }
     return VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK;

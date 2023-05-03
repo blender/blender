@@ -38,6 +38,14 @@ void VKStateManager::image_unbind(Texture * /*tex*/) {}
 
 void VKStateManager::image_unbind_all() {}
 
-void VKStateManager::texture_unpack_row_length_set(uint /*len*/) {}
+void VKStateManager::texture_unpack_row_length_set(uint len)
+{
+  texture_unpack_row_length_ = len;
+}
+
+uint VKStateManager::texture_unpack_row_length_get() const
+{
+  return texture_unpack_row_length_;
+}
 
 }  // namespace blender::gpu

@@ -139,7 +139,8 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     search_link_ops_for_declarations(params, declaration.outputs);
   }
   else if (params.node_tree().typeinfo->validate_link(
-               eNodeSocketDatatype(params.other_socket().type), SOCK_FLOAT)) {
+               eNodeSocketDatatype(params.other_socket().type), SOCK_FLOAT))
+  {
     params.add_item(IFACE_("Width"),
                     SocketSearchOp{"Width", GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE});
     params.add_item(IFACE_("Height"),

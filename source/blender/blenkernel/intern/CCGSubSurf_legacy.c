@@ -174,8 +174,8 @@ static void ccgSubSurf__calcVertNormals_faces_accumulate_cb(
           NormAdd(FACE_getIFNo(f, lvl, S, x + 0, y + 1), no);
         }
         if (xPlusOk && yPlusOk) {
-          if (x < gridSize - 2 || y < gridSize - 2 ||
-              FACE_getVerts(f)[S]->flags & Vert_eEffected) {
+          if (x < gridSize - 2 || y < gridSize - 2 || FACE_getVerts(f)[S]->flags & Vert_eEffected)
+          {
             NormAdd(FACE_getIFNo(f, lvl, S, x + 1, y + 1), no);
           }
         }

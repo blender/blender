@@ -28,10 +28,9 @@ static void gather_point_data_from_component(Field<float> radius_field,
   if (component.is_empty()) {
     return;
   }
-  VArray<float3> positions = component.attributes()->lookup_or_default<float3>(
-      "position", ATTR_DOMAIN_POINT, {0, 0, 0});
+  const VArray<float3> positions = *component.attributes()->lookup<float3>("position");
 
-  bke::GeometryFieldContext field_context{component, ATTR_DOMAIN_POINT};
+  const bke::GeometryFieldContext field_context{component, ATTR_DOMAIN_POINT};
   const int domain_num = component.attribute_domain_size(ATTR_DOMAIN_POINT);
 
   r_positions.resize(r_positions.size() + domain_num);
@@ -87,7 +86,8 @@ void initialize_volume_component_from_points(GeoNodeExecParams &params,
   Field<float> radius_field = params.get_input<Field<float>>("Radius");
 
   for (const GeometryComponentType type :
-       {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE}) {
+       {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE})
+  {
     if (r_geometry_set.has(type)) {
       gather_point_data_from_component(
           radius_field, *r_geometry_set.get_component_for_read(type), positions, radii);
@@ -161,7 +161,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .field_on_all();
-  b.add_output<decl::Geometry>(N_("Volume"));
+  b.add_output<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
+      .translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

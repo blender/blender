@@ -57,4 +57,4 @@ class GHOST_IXrGraphicsBinding {
 };
 
 std::unique_ptr<GHOST_IXrGraphicsBinding> GHOST_XrGraphicsBindingCreateFromType(
-    GHOST_TXrGraphicsBinding type, GHOST_Context &ghost_ctx);
+    GHOST_TXrGraphicsBinding type, GHOST_Context &context);

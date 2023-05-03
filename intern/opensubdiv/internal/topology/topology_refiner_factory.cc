@@ -380,7 +380,7 @@ TopologyRefinerImpl *TopologyRefinerImpl::createFromConverter(
   TopologyRefinerImpl *topology_refiner_impl = new TopologyRefinerImpl();
   topology_refiner_impl->topology_refiner = topology_refiner;
   topology_refiner_impl->settings = settings;
-  topology_refiner_impl->base_mesh_topology = move(base_mesh_topology);
+  topology_refiner_impl->base_mesh_topology = std::move(base_mesh_topology);
 
   return topology_refiner_impl;
 }

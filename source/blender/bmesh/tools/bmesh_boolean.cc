@@ -112,7 +112,8 @@ static bool bmvert_attached_to_hidden_face(BMVert *bmv)
   BMIter iter;
   for (BMFace *bmf = static_cast<BMFace *>(BM_iter_new(&iter, nullptr, BM_FACES_OF_VERT, bmv));
        bmf;
-       bmf = static_cast<BMFace *>(BM_iter_step(&iter))) {
+       bmf = static_cast<BMFace *>(BM_iter_step(&iter)))
+  {
     if (BM_elem_flag_test(bmf, BM_ELEM_HIDDEN)) {
       return true;
     }
@@ -155,7 +156,8 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out, bool keep_hidden
     BMVert *bmv = BM_vert_at_index(bm, v);
     if ((keep_hidden &&
          (BM_elem_flag_test(bmv, BM_ELEM_HIDDEN) || bmvert_attached_to_hidden_face(bmv))) ||
-        bmvert_attached_to_wire(bmv)) {
+        bmvert_attached_to_wire(bmv))
+    {
       BM_elem_flag_enable(bmv, KEEP_FLAG);
     }
     else {

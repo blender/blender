@@ -278,9 +278,11 @@ bool Attribute::same_storage(TypeDesc a, TypeDesc b)
     return true;
 
   if (a == TypeDesc::TypeColor || a == TypeDesc::TypePoint || a == TypeDesc::TypeVector ||
-      a == TypeDesc::TypeNormal) {
+      a == TypeDesc::TypeNormal)
+  {
     if (b == TypeDesc::TypeColor || b == TypeDesc::TypePoint || b == TypeDesc::TypeVector ||
-        b == TypeDesc::TypeNormal) {
+        b == TypeDesc::TypeNormal)
+    {
       return true;
     }
   }

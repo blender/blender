@@ -56,6 +56,8 @@
 
 #include "RE_texture.h"
 
+#include "DRW_engine.h"
+
 #include "BLO_read_write.h"
 
 static void texture_init_data(ID *id)
@@ -100,6 +102,8 @@ static void texture_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const i
     texture_dst->nodetree->owner_id = &texture_dst->id;
   }
 
+  BLI_listbase_clear((ListBase *)&texture_dst->drawdata);
+
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
     BKE_previewimg_id_copy(&texture_dst->id, &texture_src->id);
   }
@@ -111,6 +115,8 @@ static void texture_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const i
 static void texture_free_data(ID *id)
 {
   Tex *texture = (Tex *)id;
+
+  DRW_drawdata_free(id);
 
   /* is no lib link block, but texture extension */
   if (texture->nodetree) {
@@ -155,8 +161,17 @@ static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 
   /* nodetree is integral part of texture, no libdata */
   if (tex->nodetree) {
-    BLO_write_struct(writer, bNodeTree, tex->nodetree);
-    ntreeBlendWrite(writer, tex->nodetree);
+    BLO_Write_IDBuffer *temp_embedded_id_buffer = BLO_write_allocate_id_buffer();
+    BLO_write_init_id_buffer_from_id(
+        temp_embedded_id_buffer, &tex->nodetree->id, BLO_write_is_undo(writer));
+    BLO_write_struct_at_address(writer,
+                                bNodeTree,
+                                tex->nodetree,
+                                BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
+    ntreeBlendWrite(
+        writer,
+        reinterpret_cast<bNodeTree *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
+    BLO_write_destroy_id_buffer(&temp_embedded_id_buffer);
   }
 
   BKE_previewimg_blend_write(writer, tex->preview);
@@ -257,7 +272,8 @@ void BKE_texture_mapping_init(TexMapping *texmap)
   float smat[4][4], rmat[4][4], tmat[4][4], proj[4][4], size[3];
 
   if (texmap->projx == PROJ_X && texmap->projy == PROJ_Y && texmap->projz == PROJ_Z &&
-      is_zero_v3(texmap->loc) && is_zero_v3(texmap->rot) && is_one_v3(texmap->size)) {
+      is_zero_v3(texmap->loc) && is_zero_v3(texmap->rot) && is_one_v3(texmap->size))
+  {
     unit_m4(texmap->mat);
 
     texmap->flag |= TEXMAP_UNIT_MATRIX;

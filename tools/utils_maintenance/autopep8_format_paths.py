@@ -48,6 +48,7 @@ def compute_paths(paths: List[str], use_default_paths: bool) -> List[str]:
             "build_files",
             "intern",
             "release",
+            "scripts",
             "doc",
             "source",
             "tests",

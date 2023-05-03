@@ -920,7 +920,7 @@ static bool rna_HookModifier_object_override_apply(Main *bmain,
                                                    IDOverrideLibraryPropertyOperation *opop)
 {
   BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
              "Unsupported RNA override operation on Hook modifier target object pointer");
   UNUSED_VARS_NDEBUG(ptr_storage, len_dst, len_src, len_storage, opop);
 
@@ -1370,7 +1370,8 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
     }
   }
   else if (STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_src") ||
-           STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_src")) {
+           STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_src"))
+  {
     Object *ob_src = dtmd->ob_source;
 
     if (ob_src) {
@@ -1487,7 +1488,8 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
     }
   }
   else if (STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ||
-           STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_dst")) {
+           STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_dst"))
+  {
     int multilayer_index = STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ?
                                DT_MULTILAYER_INDEX_VCOL_VERT :
                                DT_MULTILAYER_INDEX_VCOL_LOOP;
@@ -7085,19 +7087,9 @@ static void rna_def_modifier_mesh_to_volume(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, INT_MAX);
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-  prop = RNA_def_property(srna, "use_fill_volume", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "fill_volume", 1);
-  RNA_def_property_ui_text(
-      prop, "Fill Volume", "Initialize the density grid in every cell inside the enclosed volume");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
   prop = RNA_def_property(srna, "interior_band_width", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Interior Band Width", "Width of the volume inside of the mesh");
-  RNA_def_property_range(prop, 0.0, FLT_MAX);
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-  prop = RNA_def_property(srna, "exterior_band_width", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Exterior Band Width", "Width of the volume outside of the mesh");
+  RNA_def_property_ui_text(
+      prop, "Interior Band Width", "Width of the gradient inside of the mesh");
   RNA_def_property_range(prop, 0.0, FLT_MAX);
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 

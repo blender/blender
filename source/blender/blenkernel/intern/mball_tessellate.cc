@@ -417,7 +417,8 @@ static float metaball(PROCESS *process, float x, float y, float z)
 
     for (int i = 0; i < 2; i++) {
       if ((node->bb[i].min[0] <= x) && (node->bb[i].max[0] >= x) && (node->bb[i].min[1] <= y) &&
-          (node->bb[i].max[1] >= y) && (node->bb[i].min[2] <= z) && (node->bb[i].max[2] >= z)) {
+          (node->bb[i].max[1] >= y) && (node->bb[i].min[2] <= z) && (node->bb[i].max[2] >= z))
+      {
         if (node->child[i]) {
           process->bvh_queue[front++] = node->child[i];
         }
@@ -1181,7 +1182,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
              ob->object_to_world); /* to cope with duplicators from BKE_scene_base_iter_next */
   invert_m4_m4(obinv, ob->object_to_world);
 
-  BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
+  BLI_string_split_name_number(ob->id.name + 2, '.', obname, &obnr);
 
   /* make main array */
   BKE_scene_base_iter_next(depsgraph, &iter, &sce_iter, 0, nullptr, nullptr);
@@ -1194,7 +1195,8 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
        * the instancer is visible too. */
       if ((base->flag_legacy & OB_FROMDUPLI) == 0 && ob->parent != nullptr &&
           (ob->parent->transflag & parenting_dupli_transflag) != 0 &&
-          (BKE_object_visibility(ob->parent, deg_eval_mode) & OB_VISIBLE_SELF) == 0) {
+          (BKE_object_visibility(ob->parent, deg_eval_mode) & OB_VISIBLE_SELF) == 0)
+      {
         continue;
       }
 
@@ -1212,7 +1214,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
         char name[MAX_ID_NAME];
         int nr;
 
-        BLI_split_name_num(name, &nr, bob->id.name + 2, '.');
+        BLI_string_split_name_number(bob->id.name + 2, '.', name, &nr);
         if (STREQ(obname, name)) {
           mb = static_cast<MetaBall *>(bob->data);
 
@@ -1438,7 +1440,8 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
    * the open movie "Sintel", using 0.00001f. */
   if (ob->scale[0] < 0.00001f * (process.allbb.max[0] - process.allbb.min[0]) ||
       ob->scale[1] < 0.00001f * (process.allbb.max[1] - process.allbb.min[1]) ||
-      ob->scale[2] < 0.00001f * (process.allbb.max[2] - process.allbb.min[2])) {
+      ob->scale[2] < 0.00001f * (process.allbb.max[2] - process.allbb.min[2]))
+  {
     freepolygonize(&process);
     return nullptr;
   }
@@ -1451,18 +1454,17 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   freepolygonize(&process);
 
-  Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)ob->data)->name + 2);
+  int corners_num = 0;
+  for (uint i = 0; i < process.curindex; i++) {
+    const int *indices = process.indices[i];
+    const int count = indices[2] != indices[3] ? 4 : 3;
+    corners_num += count;
+  }
 
-  mesh->totvert = int(process.co.size());
-  CustomData_add_layer_named(
-      &mesh->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh->totvert, "position");
+  Mesh *mesh = BKE_mesh_new_nomain(int(process.co.size()), 0, int(process.curindex), corners_num);
   mesh->vert_positions_for_write().copy_from(process.co);
-
-  mesh->totpoly = int(process.curindex);
-  BKE_mesh_poly_offsets_ensure_alloc(mesh);
   blender::MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
-  int *corner_verts = static_cast<int *>(CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh->totpoly * 4, ".corner_vert"));
+  blender::MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   int loop_offset = 0;
   for (int i = 0; i < mesh->totpoly; i++) {
@@ -1489,9 +1491,6 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
          process.no.data(),
          sizeof(float[3]) * size_t(mesh->totvert));
   BKE_mesh_vert_normals_clear_dirty(mesh);
-
-  mesh->totloop = loop_offset;
-  poly_offsets.last() = loop_offset;
 
   BKE_mesh_calc_edges(mesh, false, false);
 

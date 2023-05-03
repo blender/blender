@@ -40,14 +40,16 @@ char *GLLogParser::parse_line(char *log_line, GPULogItem &log_item)
   if ((log_item.cursor.row != -1) && (log_item.cursor.column != -1)) {
     if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) ||
         GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_OFFICIAL) ||
-        GPU_type_matches(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_OFFICIAL)) {
+        GPU_type_matches(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_OFFICIAL))
+    {
       /* 0:line */
       log_item.cursor.row = log_item.cursor.column;
       log_item.cursor.column = -1;
     }
     else if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL) &&
              /* WORKAROUND(@fclem): Both Mesa and AMDGPU-PRO are reported as official. */
-             StringRefNull(GPU_platform_version()).find(" Mesa ") == -1) {
+             StringRefNull(GPU_platform_version()).find(" Mesa ") == -1)
+    {
       /* source:row */
       log_item.cursor.source = log_item.cursor.row;
       log_item.cursor.row = log_item.cursor.column;

@@ -110,7 +110,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                        STRSAFE_NULL_ON_FAILURE,
                        L"\"%s\" %s",
                        path,
-                       pCmdLine) != S_OK) {
+                       pCmdLine) != S_OK)
+  {
     free(buffer);
     return -1;
   }

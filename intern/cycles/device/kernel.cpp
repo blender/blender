@@ -3,7 +3,9 @@
 
 #include "device/kernel.h"
 
-#include "util/log.h"
+#ifndef __KERNEL_ONEAPI__
+#  include "util/log.h"
+#endif
 
 CCL_NAMESPACE_BEGIN
 
@@ -153,10 +155,13 @@ const char *device_kernel_as_string(DeviceKernel kernel)
     case DEVICE_KERNEL_NUM:
       break;
   };
+#ifndef __KERNEL_ONEAPI__
   LOG(FATAL) << "Unhandled kernel " << static_cast<int>(kernel) << ", should never happen.";
+#endif
   return "UNKNOWN";
 }
 
+#ifndef __KERNEL_ONEAPI__
 std::ostream &operator<<(std::ostream &os, DeviceKernel kernel)
 {
   os << device_kernel_as_string(kernel);
@@ -178,5 +183,6 @@ string device_kernel_mask_as_string(DeviceKernelMask mask)
 
   return str;
 }
+#endif
 
 CCL_NAMESPACE_END

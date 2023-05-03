@@ -27,7 +27,7 @@ static void fill_mesh_topology(const int vert_offset,
                                const bool main_cyclic,
                                const bool profile_cyclic,
                                const bool fill_caps,
-                               MutableSpan<MEdge> edges,
+                               MutableSpan<int2> edges,
                                MutableSpan<int> corner_verts,
                                MutableSpan<int> corner_edges,
                                MutableSpan<int> poly_offsets)
@@ -37,15 +37,15 @@ static void fill_mesh_topology(const int vert_offset,
 
   if (profile_point_num == 1) {
     for (const int i : IndexRange(main_point_num - 1)) {
-      MEdge &edge = edges[edge_offset + i];
-      edge.v1 = vert_offset + i;
-      edge.v2 = vert_offset + i + 1;
+      int2 &edge = edges[edge_offset + i];
+      edge[0] = vert_offset + i;
+      edge[1] = vert_offset + i + 1;
     }
 
     if (main_cyclic && main_segment_num > 1) {
-      MEdge &edge = edges[edge_offset + main_segment_num - 1];
-      edge.v1 = vert_offset + main_point_num - 1;
-      edge.v2 = vert_offset;
+      int2 &edge = edges[edge_offset + main_segment_num - 1];
+      edge[0] = vert_offset + main_point_num - 1;
+      edge[1] = vert_offset;
     }
     return;
   }
@@ -60,9 +60,9 @@ static void fill_mesh_topology(const int vert_offset,
       const int ring_vert_offset = vert_offset + profile_point_num * i_ring;
       const int next_ring_vert_offset = vert_offset + profile_point_num * i_next_ring;
 
-      MEdge &edge = edges[profile_edge_offset + i_ring];
-      edge.v1 = ring_vert_offset + i_profile;
-      edge.v2 = next_ring_vert_offset + i_profile;
+      int2 &edge = edges[profile_edge_offset + i_ring];
+      edge[0] = ring_vert_offset + i_profile;
+      edge[1] = next_ring_vert_offset + i_profile;
     }
   }
 
@@ -75,9 +75,9 @@ static void fill_mesh_topology(const int vert_offset,
     for (const int i_profile : IndexRange(profile_segment_num)) {
       const int i_next_profile = (i_profile == profile_point_num - 1) ? 0 : i_profile + 1;
 
-      MEdge &edge = edges[ring_edge_offset + i_profile];
-      edge.v1 = ring_vert_offset + i_profile;
-      edge.v2 = ring_vert_offset + i_next_profile;
+      int2 &edge = edges[ring_edge_offset + i_profile];
+      edge[0] = ring_vert_offset + i_profile;
+      edge[1] = ring_vert_offset + i_next_profile;
     }
   }
 
@@ -237,7 +237,8 @@ struct ResultOffsets {
   Array<int> profile_indices;
 
   /** Whether any curve in the profile or curve input has only a single evaluated point. */
-  bool any_single_point_curve;
+  bool any_single_point_main;
+  bool any_single_point_profile;
 };
 static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool fill_caps)
 {
@@ -315,10 +316,8 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
           }
         }
       },
-      [&]() {
-        result.any_single_point_curve = offsets_contain_single_point(main_offsets) ||
-                                        offsets_contain_single_point(profile_offsets);
-      });
+      [&]() { result.any_single_point_main = offsets_contain_single_point(main_offsets); },
+      [&]() { result.any_single_point_profile = offsets_contain_single_point(profile_offsets); });
 
   return result;
 }
@@ -657,7 +656,8 @@ static void write_sharp_bezier_edges(const CurvesInfo &curves_info,
   const VArraySpan<int8_t> handle_types_left{profile.handle_types_left()};
   const VArraySpan<int8_t> handle_types_right{profile.handle_types_right()};
   if (!handle_types_left.contains(BEZIER_HANDLE_VECTOR) &&
-      !handle_types_right.contains(BEZIER_HANDLE_VECTOR)) {
+      !handle_types_right.contains(BEZIER_HANDLE_VECTOR))
+  {
     return;
   }
 
@@ -691,11 +691,11 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(
-      offsets.vert.last(), offsets.edge.last(), offsets.loop.last(), offsets.poly.last());
+      offsets.vert.last(), offsets.edge.last(), offsets.poly.last(), offsets.loop.last());
   mesh->flag |= ME_AUTOSMOOTH;
   mesh->smoothresh = DEG2RADF(180.0f);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<int2> edges = mesh->edges_for_write();
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
@@ -747,7 +747,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   Span<float> radii = {};
   if (main_attributes.contains("radius")) {
     radii = evaluated_attribute_if_necessary(
-                main_attributes.lookup_or_default<float>("radius", ATTR_DOMAIN_POINT, 1.0f),
+                *main_attributes.lookup_or_default<float>("radius", ATTR_DOMAIN_POINT, 1.0f),
                 main,
                 main.curve_type_counts(),
                 eval_buffer)
@@ -765,9 +765,13 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
                         positions.slice(info.vert_range));
   });
 
-  if (!offsets.any_single_point_curve) {
-    /* If there are no single point curves, every curve combination will always have faces. */
-    mesh->loose_edges_tag_none();
+  if (!offsets.any_single_point_main) {
+    /* If there are no single point curves, every combination will have at least loose edges. */
+    mesh->tag_loose_verts_none();
+    if (!offsets.any_single_point_profile) {
+      /* If there are no single point profiles, every combination will have faces. */
+      mesh->loose_edges_tag_none();
+    }
   }
 
   SpanAttributeWriter<bool> sharp_edges;
@@ -798,14 +802,15 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
 
   main_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
     if (!should_add_attribute_to_mesh(
-            main_attributes, mesh_attributes, id, meta_data, propagation_info)) {
+            main_attributes, mesh_attributes, id, meta_data, propagation_info))
+    {
       return true;
     }
     main_attributes_set.add_new(id);
 
     const eAttrDomain src_domain = meta_data.domain;
     const eCustomDataType type = meta_data.data_type;
-    GVArray src = main_attributes.lookup(id, src_domain, type);
+    const GVArray src = *main_attributes.lookup(id, src_domain, type);
 
     const eAttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, id);
     GSpanAttributeWriter dst = mesh_attributes.lookup_or_add_for_write_only_span(
@@ -836,12 +841,13 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
       return true;
     }
     if (!should_add_attribute_to_mesh(
-            profile_attributes, mesh_attributes, id, meta_data, propagation_info)) {
+            profile_attributes, mesh_attributes, id, meta_data, propagation_info))
+    {
       return true;
     }
     const eAttrDomain src_domain = meta_data.domain;
     const eCustomDataType type = meta_data.data_type;
-    GVArray src = profile_attributes.lookup(id, src_domain, type);
+    const GVArray src = *profile_attributes.lookup(id, src_domain, type);
 
     const eAttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, id);
     GSpanAttributeWriter dst = mesh_attributes.lookup_or_add_for_write_only_span(

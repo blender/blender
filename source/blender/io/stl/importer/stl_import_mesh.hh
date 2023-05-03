@@ -65,7 +65,7 @@ class STLMeshHelper {
                     const float3 &b,
                     const float3 &c,
                     const float3 &custom_normal);
-  Mesh *to_mesh(Main *bmain, char *mesh_name);
+  Mesh *to_mesh();
 };
 
 }  // namespace blender::io::stl

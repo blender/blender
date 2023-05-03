@@ -241,11 +241,8 @@ class MeshFairingContext : public FairingContext {
 
   int other_vertex_index_from_loop(const int loop, const uint v) override
   {
-    const MEdge *edge = &edges_[corner_edges_[loop]];
-    if (edge->v1 == v) {
-      return edge->v2;
-    }
-    return edge->v1;
+    const blender::int2 &edge = edges_[corner_edges_[loop]];
+    return blender::bke::mesh::edge_other_vert(edge, v);
   }
 
  protected:
@@ -253,7 +250,7 @@ class MeshFairingContext : public FairingContext {
   Span<int> corner_verts_;
   Span<int> corner_edges_;
   blender::OffsetIndices<int> polys;
-  Span<MEdge> edges_;
+  Span<blender::int2> edges_;
   Array<int> loop_to_poly_map_;
 };
 

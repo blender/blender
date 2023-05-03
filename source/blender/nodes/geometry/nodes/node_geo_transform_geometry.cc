@@ -30,7 +30,8 @@ static bool use_translate(const float3 rotation, const float3 scale)
     return false;
   }
   if (compare_ff(scale.x, 1.0f, 1e-9f) != 1 || compare_ff(scale.y, 1.0f, 1e-9f) != 1 ||
-      compare_ff(scale.z, 1.0f, 1e-9f) != 1) {
+      compare_ff(scale.z, 1.0f, 1e-9f) != 1)
+  {
     return false;
   }
   return true;
@@ -132,7 +133,7 @@ static void transform_volume(GeoNodeExecParams &params,
     VolumeGrid *volume_grid = BKE_volume_grid_get_for_write(&volume, i);
     float4x4 grid_matrix;
     BKE_volume_grid_transform_matrix(volume_grid, grid_matrix.ptr());
-    grid_matrix *= transform;
+    grid_matrix = transform * grid_matrix;
     const float determinant = math::determinant(grid_matrix);
     if (!BKE_volume_grid_determinant_valid(determinant)) {
       found_too_small_scale = true;

@@ -128,7 +128,8 @@ static std::optional<eNodeSocketDatatype> get_compare_type_for_operation(
                 NODE_COMPARE_COLOR_BRIGHTER,
                 NODE_COMPARE_COLOR_DARKER,
                 NODE_COMPARE_EQUAL,
-                NODE_COMPARE_NOT_EQUAL)) {
+                NODE_COMPARE_NOT_EQUAL))
+      {
         return SOCK_VECTOR;
       }
       return type;
@@ -152,11 +153,13 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   const StringRef socket_name = params.in_out() == SOCK_IN ? "A" : "Result";
   for (const EnumPropertyItem *item = rna_enum_node_compare_operation_items;
        item->identifier != nullptr;
-       item++) {
+       item++)
+  {
     if (item->name != nullptr && item->identifier[0] != '\0') {
       const NodeCompareOperation operation = NodeCompareOperation(item->value);
       if (const std::optional<eNodeSocketDatatype> fixed_type = get_compare_type_for_operation(
-              type, operation)) {
+              type, operation))
+      {
         params.add_item(IFACE_(item->name), SocketSearchOp{socket_name, *fixed_type, operation});
       }
     }

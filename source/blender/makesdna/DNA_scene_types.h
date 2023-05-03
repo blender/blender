@@ -177,6 +177,8 @@ typedef struct AudioData {
   char _pad2[4];
 } AudioData;
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Render Layers
  * \{ */
@@ -1979,6 +1981,7 @@ typedef struct Scene {
 
   struct PreviewImage *preview;
 
+  /** ViewLayer, defined in DNA_layer_types.h */
   ListBase view_layers;
   /** Not an actual data-block, but memory owned by scene. */
   struct Collection *master_collection;
@@ -2189,7 +2192,7 @@ extern const char *RE_engine_id_CYCLES;
 #define BASE_EDITABLE(v3d, base) \
   (BASE_VISIBLE(v3d, base) && !ID_IS_LINKED((base)->object) && \
    (!ID_IS_OVERRIDE_LIBRARY_REAL((base)->object) || \
-    ((base)->object->id.override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) == 0))
+    ((base)->object->id.override_library->flag & LIBOVERRIDE_FLAG_SYSTEM_DEFINED) == 0))
 #define BASE_SELECTED_EDITABLE(v3d, base) \
   (BASE_EDITABLE(v3d, base) && (((base)->flag & BASE_SELECTED) != 0))
 

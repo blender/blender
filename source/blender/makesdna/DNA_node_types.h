@@ -770,15 +770,15 @@ enum {
   CMP_NODE_INPAINT_SIMPLE = 0,
 };
 
-enum {
+typedef enum CMPNodeMaskFlags {
   /* CMP_NODEFLAG_MASK_AA          = (1 << 0), */ /* DEPRECATED */
-  CMP_NODEFLAG_MASK_NO_FEATHER = (1 << 1),
-  CMP_NODEFLAG_MASK_MOTION_BLUR = (1 << 2),
+  CMP_NODE_MASK_FLAG_NO_FEATHER = (1 << 1),
+  CMP_NODE_MASK_FLAG_MOTION_BLUR = (1 << 2),
 
   /* We may want multiple aspect options, exposed as an rna enum. */
-  CMP_NODEFLAG_MASK_FIXED = (1 << 8),
-  CMP_NODEFLAG_MASK_FIXED_SCENE = (1 << 9),
-};
+  CMP_NODE_MASK_FLAG_SIZE_FIXED = (1 << 8),
+  CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE = (1 << 9),
+} CMPNodeMaskFlags;
 
 enum {
   CMP_NODEFLAG_BLUR_VARIABLE_SIZE = (1 << 0),
@@ -2096,16 +2096,22 @@ typedef enum CMPNodeGlareType {
   CMP_NODE_GLARE_GHOST = 3,
 } CMPNodeGlareType;
 
+/* Stabilize 2D node. Stored in custom1. */
+typedef enum CMPNodeStabilizeInterpolation {
+  CMP_NODE_STABILIZE_INTERPOLATION_NEAREST = 0,
+  CMP_NODE_STABILIZE_INTERPOLATION_BILINEAR = 1,
+  CMP_NODE_STABILIZE_INTERPOLATION_BICUBIC = 2,
+} CMPNodeStabilizeInterpolation;
+
+/* Stabilize 2D node. Stored in custom2. */
+typedef enum CMPNodeStabilizeInverse {
+  CMP_NODE_STABILIZE_FLAG_INVERSE = 1,
+} CMPNodeStabilizeInverse;
+
 /* Plane track deform node. */
 
 enum {
   CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR = 1,
-};
-
-/* Stabilization node. */
-
-enum {
-  CMP_NODEFLAG_STABILIZE_INVERSE = 1,
 };
 
 /* Set Alpha Node. */

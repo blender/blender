@@ -277,7 +277,8 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
   Object *ob_parent = ob ? ob : base->object;
 
   for (Object *ob_iter = static_cast<Object *>(bmain->objects.first); ob_iter;
-       ob_iter = static_cast<Object *>(ob_iter->id.next)) {
+       ob_iter = static_cast<Object *>(ob_iter->id.next))
+  {
     if (BKE_object_is_child_recursive(ob_parent, ob_iter)) {
       if (ob) {
         RNA_id_pointer_create(&ob_iter->id, &ptr);
@@ -438,7 +439,8 @@ static bool outliner_collection_is_isolated(Scene *scene,
   else if (collection_ensure == collection_ensure_cmp) {
   }
   else if (BKE_collection_has_collection(collection_ensure, (Collection *)collection_ensure_cmp) ||
-           BKE_collection_has_collection((Collection *)collection_ensure_cmp, collection_ensure)) {
+           BKE_collection_has_collection((Collection *)collection_ensure_cmp, collection_ensure))
+  {
     /* This collection is either a parent or a child of the collection.
      * We expect it to be set "visible" already. */
     if (value != value_cmp) {
@@ -469,7 +471,8 @@ static bool outliner_collection_is_isolated(Scene *scene,
                                          value_cmp,
                                          layer_or_collection_prop,
                                          layer_collection_iter,
-                                         collection_iter)) {
+                                         collection_iter))
+    {
       return false;
     }
   }
@@ -1097,7 +1100,8 @@ static void outliner_draw_restrictbuts(uiBlock *block,
     restrict_offsets.select = (++restrict_column_offset) * UI_UNIT_X + V2D_SCROLL_WIDTH;
   }
   if (space_outliner->outlinevis == SO_VIEW_LAYER &&
-      space_outliner->show_restrict_flags & SO_RESTRICT_ENABLE) {
+      space_outliner->show_restrict_flags & SO_RESTRICT_ENABLE)
+  {
     restrict_offsets.enable = (++restrict_column_offset) * UI_UNIT_X + V2D_SCROLL_WIDTH;
   }
 
@@ -1139,7 +1143,8 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         }
       }
       else if (((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) &&
-               (te->flag & TE_CHILD_NOT_IN_COLLECTION)) {
+               (te->flag & TE_CHILD_NOT_IN_COLLECTION))
+      {
         /* Don't show restrict columns for children that are not directly inside the collection. */
       }
       else if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
@@ -1488,7 +1493,8 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         PointerRNA layer_collection_ptr;
 
         if (outliner_restrict_properties_collection_set(
-                scene, te, &collection_ptr, &layer_collection_ptr, &props, &props_active)) {
+                scene, te, &collection_ptr, &layer_collection_ptr, &props, &props_active))
+        {
 
           LayerCollection *layer_collection = (tselem->type == TSE_LAYER_COLLECTION) ?
                                                   static_cast<LayerCollection *>(te->directdata) :
@@ -1843,7 +1849,8 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
     }
 
     if (const TreeElementOverridesPropertyOperation *override_op_elem =
-            tree_element_cast<TreeElementOverridesPropertyOperation>(te)) {
+            tree_element_cast<TreeElementOverridesPropertyOperation>(te))
+    {
       StringRefNull op_label = override_op_elem->getOverrideOperationLabel();
       uiDefBut(block,
                UI_BTYPE_LABEL,
@@ -2034,7 +2041,8 @@ static void outliner_draw_rnabuts(uiBlock *block,
       }
     }
     else if (TreeElementRNAArrayElement *te_rna_array_elem =
-                 tree_element_cast<TreeElementRNAArrayElement>(te)) {
+                 tree_element_cast<TreeElementRNAArrayElement>(te))
+    {
       ptr = te_rna_array_elem->getPointerRNA();
       prop = te_rna_array_elem->getPropertyRNA();
 
@@ -2068,13 +2076,13 @@ static void outliner_buttons(const bContext *C,
   /* If we add support to rename Sequence, need change this. */
 
   if (tselem->type == TSE_EBONE) {
-    len = sizeof(((EditBone *)nullptr)->name);
+    len = sizeof(EditBone::name);
   }
   else if (tselem->type == TSE_MODIFIER) {
-    len = sizeof(((ModifierData *)nullptr)->name);
+    len = sizeof(ModifierData::name);
   }
   else if (tselem->id && GS(tselem->id->name) == ID_LI) {
-    len = sizeof(((Library *)nullptr)->filepath);
+    len = sizeof(Library::filepath);
   }
   else {
     len = MAX_ID_NAME - 2;
@@ -2203,7 +2211,8 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
 
   if (ID_IS_LINKED(&ob->id) ||
       (ID_IS_OVERRIDE_LIBRARY_REAL(ob) &&
-       (ob->id.override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) != 0)) {
+       (ob->id.override_library->flag & LIBOVERRIDE_FLAG_SYSTEM_DEFINED) != 0))
+  {
     UI_but_disable(but, TIP_("Can't edit library or non-editable override data"));
   }
 }
@@ -3070,7 +3079,8 @@ static void outliner_draw_iconrow(bContext *C,
      * collection). */
     const bool is_bone = ELEM(tselem->type, TSE_BONE, TSE_EBONE, TSE_POSE_CHANNEL);
     if ((level < 1) || ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) ||
-        (in_bone_hierarchy && is_bone)) {
+        (in_bone_hierarchy && is_bone))
+    {
       /* active blocks get white circle */
       if (tselem->type == TSE_SOME_ID) {
         if (te->idcode == ID_OB) {
@@ -3100,7 +3110,8 @@ static void outliner_draw_iconrow(bContext *C,
                 TSE_EBONE,
                 TSE_POSE_CHANNEL,
                 TSE_POSEGRP,
-                TSE_DEFGROUP)) {
+                TSE_DEFGROUP))
+      {
         outliner_draw_iconrow_doit(block, te, xmax, offsx, ys, alpha_fac, active, 1);
       }
       else {
@@ -3308,7 +3319,8 @@ static void outliner_draw_tree_element(bContext *C,
       /* Scene collection in view layer can't expand/collapse. */
     }
     else if (te->subtree.first || ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_SCE)) ||
-             (te->flag & TE_PRETEND_HAS_CHILDREN)) {
+             (te->flag & TE_PRETEND_HAS_CHILDREN))
+    {
       /* Open/close icon, only when sub-levels, except for scene. */
       int icon_x = startx;
 
@@ -3338,7 +3350,8 @@ static void outliner_draw_tree_element(bContext *C,
                          te,
                          (tselem->flag & TSE_HIGHLIGHTED_ICON) ? alpha_fac + 0.5f : alpha_fac,
                          true,
-                         1)) {
+                         1))
+    {
       offsx += UI_UNIT_X + 4 * ufac;
     }
     else {
@@ -3347,7 +3360,8 @@ static void outliner_draw_tree_element(bContext *C,
 
     const TreeElementRNAStruct *te_rna_struct = tree_element_cast<TreeElementRNAStruct>(te);
     if (ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION) ||
-        (te_rna_struct && RNA_struct_is_ID(te_rna_struct->getPointerRNA().type))) {
+        (te_rna_struct && RNA_struct_is_ID(te_rna_struct->getPointerRNA().type)))
+    {
       const BIFIconID lib_icon = (BIFIconID)UI_icon_from_library(tselem->id);
       if (lib_icon != ICON_NONE) {
         UI_icon_draw_alpha(
@@ -3868,7 +3882,8 @@ void draw_outliner(const bContext *C)
             SO_OVERRIDES_LIBRARY,
             SO_DATA_API,
             SO_ID_ORPHANS) &&
-      space_outliner->flag & SO_SYNC_SELECT) {
+      space_outliner->flag & SO_SYNC_SELECT)
+  {
     outliner_sync_selection(C, space_outliner);
   }
 

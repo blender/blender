@@ -24,7 +24,8 @@ void getPathName(const string &path, const string &base, vector<string> &pathnam
   pathnames.push_back(base);
 
   for (uint pos = 0, sep = path.find(Config::PATH_SEP, pos); pos < size;
-       pos = sep + 1, sep = path.find(Config::PATH_SEP, pos)) {
+       pos = sep + 1, sep = path.find(Config::PATH_SEP, pos))
+  {
     if (sep == uint(string::npos)) {
       sep = size;
     }
@@ -32,7 +33,7 @@ void getPathName(const string &path, const string &base, vector<string> &pathnam
     dir = path.substr(pos, sep - pos);
 
     BLI_strncpy(cleaned, dir.c_str(), FILE_MAX);
-    BLI_path_normalize(nullptr, cleaned);
+    BLI_path_normalize(cleaned);
     res = string(cleaned);
 
     if (!base.empty()) {

@@ -19,6 +19,8 @@
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
 
+#include <epoxy/gl.h>
+
 #include <cassert>
 #include <vector>
 
@@ -401,8 +403,8 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
         }
       }
       const int max_ctx_attempts = increasedSamplerLimit ? 2 : 1;
-      for (int ctx_create_attempt = 0; ctx_create_attempt < max_ctx_attempts;
-           ctx_create_attempt++) {
+      for (int ctx_create_attempt = 0; ctx_create_attempt < max_ctx_attempts; ctx_create_attempt++)
+      {
 
         attribs.clear();
         attribs.reserve(40);
@@ -754,7 +756,8 @@ void GHOST_ContextCGL::metalUpdateFramebuffer()
     /* NOTE(Metal): Metal API Path. */
     if (m_defaultFramebufferMetalTexture[current_swapchain_index].texture &&
         m_defaultFramebufferMetalTexture[current_swapchain_index].texture.width == width &&
-        m_defaultFramebufferMetalTexture[current_swapchain_index].texture.height == height) {
+        m_defaultFramebufferMetalTexture[current_swapchain_index].texture.height == height)
+    {
       return;
     }
 

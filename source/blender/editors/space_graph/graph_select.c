@@ -115,7 +115,8 @@ static void nearest_fcurve_vert_store(ListBase *matches,
                                       &screen_co[0],
                                       &screen_co[1]) &&
         /* check if distance from mouse cursor to vert in screen space is within tolerance */
-        ((dist = len_v2v2_int(mval, screen_co)) <= GVERTSEL_TOL)) {
+        ((dist = len_v2v2_int(mval, screen_co)) <= GVERTSEL_TOL))
+    {
       tNearestVertInfo *nvi = (tNearestVertInfo *)matches->last;
       bool replace = false;
 
@@ -172,9 +173,8 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
    */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY |
             ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
-  if (U.animation_flag &
-      USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) { /* FIXME: this should really be check for by the
-                                                  * filtering code. */
+  /* FIXME: this should really be check for by the filtering code. */
+  if (U.animation_flag & USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) {
     filter |= ANIMFILTER_SEL;
   }
   mapping_flag |= ANIM_get_normalization_flags(ac);

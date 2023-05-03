@@ -59,6 +59,7 @@ void register_node_type_geo_geometry_to_instance();
 void register_node_type_geo_image_info();
 void register_node_type_geo_image_texture();
 void register_node_type_geo_image();
+void register_node_type_geo_index_of_nearest();
 void register_node_type_geo_input_curve_handles();
 void register_node_type_geo_input_curve_tilt();
 void register_node_type_geo_input_id();

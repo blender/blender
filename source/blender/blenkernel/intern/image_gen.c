@@ -147,9 +147,11 @@ static void image_buf_fill_checker_slice(
       float h = 0.125f * floorf(x / checkerwidth);
 
       if ((abs((x % checkerwidth) - (checkerwidth / 2)) < 4) &&
-          (abs((y % checkerwidth) - (checkerwidth / 2)) < 4)) {
+          (abs((y % checkerwidth) - (checkerwidth / 2)) < 4))
+      {
         if ((abs((x % checkerwidth) - (checkerwidth / 2)) < 1) ||
-            (abs((y % checkerwidth) - (checkerwidth / 2)) < 1)) {
+            (abs((y % checkerwidth) - (checkerwidth / 2)) < 1))
+        {
           hsv[0] = fmodf(fabsf(h - hoffs), 1.0f);
           hsv_to_rgb_v(hsv, rgb);
 

@@ -140,7 +140,8 @@ typedef struct GPULoadStore {
     GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_DONT_CARE \
   }
 
-/* Load store config array (load_store_actions) matches attachment structure of
+/**
+ * Load store config array (load_store_actions) matches attachment structure of
  * GPU_framebuffer_config_array. This allows us to explicitly specify whether attachment data needs
  * to be loaded and stored on a per-attachment basis. This enables a number of bandwidth
  * optimizations:
@@ -157,7 +158,7 @@ typedef struct GPULoadStore {
  *         {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE}, // Color attachment 1
  *         {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE} // Color attachment 2
  * })
- * \encode
+ * \endcode
  */
 void GPU_framebuffer_bind_loadstore(GPUFrameBuffer *framebuffer,
                                     const GPULoadStore *load_store_actions,
@@ -185,7 +186,7 @@ void GPU_framebuffer_bind_loadstore(GPUFrameBuffer *framebuffer,
  *         GPU_ATTACHMENT_TEXTURE_CUBEFACE(tex2, 0),
  *         GPU_ATTACHMENT_TEXTURE_LAYER_MIP(tex2, 0, 0)
  * })
- * \encode
+ * \endcode
  *
  * \note Unspecified attachments (i.e: those beyond the last
  * GPU_ATTACHMENT_* in GPU_framebuffer_ensure_config list) are left unchanged.
@@ -539,7 +540,7 @@ void GPU_framebuffer_read_color(GPUFrameBuffer *framebuffer,
  * TODO: Emulate this by doing some slow texture copy on the backend side or try to read the areas
  * offscreen textures directly.
  */
-void GPU_frontbuffer_read_pixels(
+void GPU_frontbuffer_read_color(
     int x, int y, int width, int height, int channels, eGPUDataFormat data_format, void *r_data);
 
 /**
@@ -588,9 +589,14 @@ typedef struct GPUOffScreen GPUOffScreen;
  * \a format is the format of the color buffer.
  * If \a err_out is not `nullptr` it will be use to write any configuration error message..
  * \note This function binds the framebuffer to the active context.
+ * \note `GPU_TEXTURE_USAGE_ATTACHMENT` is added to the usage parameter by default.
  */
-GPUOffScreen *GPU_offscreen_create(
-    int width, int height, bool with_depth_buffer, eGPUTextureFormat format, char err_out[256]);
+GPUOffScreen *GPU_offscreen_create(int width,
+                                   int height,
+                                   bool with_depth_buffer,
+                                   eGPUTextureFormat format,
+                                   eGPUTextureUsage usage,
+                                   char err_out[256]);
 
 /**
  * Free a #GPUOffScreen.
@@ -618,7 +624,12 @@ void GPU_offscreen_unbind(GPUOffScreen *offscreen, bool restore);
  * attachment type.
  * IMPORTANT: \a r_data must be big enough for all pixels in \a data_format .
  */
-void GPU_offscreen_read_pixels(GPUOffScreen *offscreen, eGPUDataFormat data_format, void *r_data);
+void GPU_offscreen_read_color(GPUOffScreen *offscreen, eGPUDataFormat data_format, void *r_data);
+/**
+ * A version of #GPU_offscreen_read_color that reads into a region.
+ */
+void GPU_offscreen_read_color_region(
+    GPUOffScreen *offscreen, eGPUDataFormat data_format, int x, int y, int w, int h, void *r_data);
 
 /**
  * Blit the offscreen color texture to the active framebuffer at the `(x, y)` location.

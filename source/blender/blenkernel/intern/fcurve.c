@@ -22,6 +22,7 @@
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_sort_utils.h"
+#include "BLI_string_utils.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
@@ -157,6 +158,18 @@ void BKE_fcurves_copy(ListBase *dst, ListBase *src)
   }
 }
 
+void BKE_fmodifier_name_set(FModifier *fcm, const char *name)
+{
+  /* Copy new Modifier name. */
+  BLI_strncpy(fcm->name, name, sizeof(fcm->name));
+
+  /* Set default modifier name when name parameter is an empty string.
+   * Ensure the name is unique. */
+  const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(fcm->type);
+  ListBase list = BLI_listbase_from_link((Link *)fcm);
+  BLI_uniquename(&list, fcm, fmi->name, '.', offsetof(FModifier, name), sizeof(fcm->name));
+}
+
 void BKE_fcurve_foreach_id(FCurve *fcu, LibraryForeachIDData *data)
 {
   ChannelDriver *driver = fcu->driver;
@@ -251,7 +264,8 @@ FCurve *BKE_fcurve_find(ListBase *list, const char rna_path[], const int array_i
     /* Check indices first, much cheaper than a string comparison. */
     /* Simple string-compare (this assumes that they have the same root...) */
     if (UNLIKELY(fcu->array_index == array_index && fcu->rna_path &&
-                 fcu->rna_path[0] == rna_path[0] && STREQ(fcu->rna_path, rna_path))) {
+                 fcu->rna_path[0] == rna_path[0] && STREQ(fcu->rna_path, rna_path)))
+    {
       return fcu;
     }
   }
@@ -883,6 +897,14 @@ int BKE_fcurve_active_keyframe_index(const FCurve *fcu)
 
 /** \} */
 
+void BKE_fcurve_keyframe_move_time_with_handles(BezTriple *keyframe, const float new_time)
+{
+  const float time_delta = new_time - keyframe->vec[1][0];
+  keyframe->vec[0][0] += time_delta;
+  keyframe->vec[1][0] = new_time;
+  keyframe->vec[2][0] += time_delta;
+}
+
 void BKE_fcurve_keyframe_move_value_with_handles(struct BezTriple *keyframe, const float new_value)
 {
   const float value_delta = new_value - keyframe->vec[1][1];
@@ -1135,7 +1157,8 @@ void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
 
   /* Copy actual sample points. */
   for (; keyframes_to_insert && sample_points;
-       cur_pos++, bezt++, keyframes_to_insert--, fpt++, sample_points--) {
+       cur_pos++, bezt++, keyframes_to_insert--, fpt++, sample_points--)
+  {
     init_unbaked_bezt_data(bezt);
     copy_v2_v2(bezt->vec[1], fpt->vec);
   }
@@ -1178,13 +1201,14 @@ eFCU_Cycle_Type BKE_fcurve_get_cycle_type(const FCurve *fcu)
   FMod_Cycles *data = (FMod_Cycles *)fcm->data;
 
   if (data && data->after_cycles == 0 && data->before_cycles == 0) {
-    if (data->before_mode == FCM_EXTRAPOLATE_CYCLIC &&
-        data->after_mode == FCM_EXTRAPOLATE_CYCLIC) {
+    if (data->before_mode == FCM_EXTRAPOLATE_CYCLIC && data->after_mode == FCM_EXTRAPOLATE_CYCLIC)
+    {
       return FCU_CYCLE_PERFECT;
     }
 
     if (ELEM(data->before_mode, FCM_EXTRAPOLATE_CYCLIC, FCM_EXTRAPOLATE_CYCLIC_OFFSET) &&
-        ELEM(data->after_mode, FCM_EXTRAPOLATE_CYCLIC, FCM_EXTRAPOLATE_CYCLIC_OFFSET)) {
+        ELEM(data->after_mode, FCM_EXTRAPOLATE_CYCLIC, FCM_EXTRAPOLATE_CYCLIC_OFFSET))
+    {
       return FCU_CYCLE_OFFSET;
     }
   }
@@ -1290,7 +1314,8 @@ void BKE_fcurve_handles_recalc_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
 
   /* If cyclic extrapolation and Auto Clamp has triggered, ensure it is symmetric. */
   if (cycle && (first->auto_handle_type != HD_AUTOTYPE_NORMAL ||
-                last->auto_handle_type != HD_AUTOTYPE_NORMAL)) {
+                last->auto_handle_type != HD_AUTOTYPE_NORMAL))
+  {
     first->vec[0][1] = first->vec[2][1] = first->vec[1][1];
     last->vec[0][1] = last->vec[2][1] = last->vec[1][1];
     first->auto_handle_type = last->auto_handle_type = HD_AUTOTYPE_LOCKED_FINAL;
@@ -1626,7 +1651,8 @@ bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
                 prev_handle_right[0],
                 next_handle_left[0],
                 next_coords[0],
-                roots)) {
+                roots))
+  {
     return false;
   }
 
@@ -1657,6 +1683,24 @@ bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
 
   *r_pdelta = diff_coords[1];
   return true;
+}
+
+void BKE_fcurve_bezt_shrink(struct FCurve *fcu, const int new_totvert)
+{
+  BLI_assert(new_totvert >= 0);
+  BLI_assert(new_totvert <= fcu->totvert);
+
+  /* No early return when new_totvert == fcu->totvert. There is no way to know the intention of the
+   * caller, nor the history of the FCurve so far, so `fcu->bezt` may actually have allocated space
+   * for more than `fcu->totvert` keys. */
+
+  if (new_totvert == 0) {
+    fcurve_bezt_free(fcu);
+    return;
+  }
+
+  fcu->bezt = MEM_reallocN(fcu->bezt, new_totvert * sizeof(*(fcu->bezt)));
+  fcu->totvert = new_totvert;
 }
 
 void BKE_fcurve_delete_key(FCurve *fcu, int index)
@@ -1849,6 +1893,52 @@ void BKE_fcurve_merge_duplicate_keys(FCurve *fcu, const int sel_flag, const bool
   BLI_freelistN(&retained_keys);
 }
 
+void BKE_fcurve_deduplicate_keys(FCurve *fcu)
+{
+  BLI_assert_msg(fcu->bezt, "this function only works with regular (non-sampled) FCurves");
+  if (fcu->totvert < 2 || fcu->bezt == NULL) {
+    return;
+  }
+
+  int prev_bezt_index = 0;
+  for (int i = 1; i < fcu->totvert; i++) {
+    BezTriple *bezt = &fcu->bezt[i];
+    BezTriple *prev_bezt = &fcu->bezt[prev_bezt_index];
+
+    const float bezt_x = bezt->vec[1][0];
+    const float prev_x = prev_bezt->vec[1][0];
+
+    if (bezt_x - prev_x <= BEZT_BINARYSEARCH_THRESH) {
+      /* Replace 'prev_bezt', as it has the same X-coord as 'bezt' and the last one wins. */
+      *prev_bezt = *bezt;
+
+      if (floor(bezt_x) == bezt_x) {
+        /* Keep the 'bezt_x' coordinate, as being on a frame is more desirable
+         * than being ever so slightly off. */
+      }
+      else {
+        /* Move the retained key to the old X-coordinate, to 'anchor' the X-coordinate used for
+         * subsequent comparisons. Without this, the reference X-coordinate would keep moving
+         * forward in time, potentially merging in more keys than desired. */
+        BKE_fcurve_keyframe_move_time_with_handles(prev_bezt, prev_x);
+      }
+      continue;
+    }
+
+    /* Next iteration should look at the current element. However, because of the deletions, that
+     * may not be at index 'i'; after this increment, `prev_bezt_index` points at where the current
+     * element should go. */
+    prev_bezt_index++;
+
+    if (prev_bezt_index != i) {
+      /* This bezt should be kept, so copy it to its new location in the array. */
+      fcu->bezt[prev_bezt_index] = *bezt;
+    }
+  }
+
+  BKE_fcurve_bezt_shrink(fcu, prev_bezt_index + 1);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1858,12 +1948,14 @@ void BKE_fcurve_merge_duplicate_keys(FCurve *fcu, const int sel_flag, const bool
 static float fcurve_eval_keyframes_extrapolate(
     FCurve *fcu, BezTriple *bezts, float evaltime, int endpoint_offset, int direction_to_neighbor)
 {
-  const BezTriple *endpoint_bezt = bezts + endpoint_offset; /* The first/last keyframe. */
-  const BezTriple *neighbor_bezt = endpoint_bezt +
-                                   direction_to_neighbor; /* The second (to last) keyframe. */
+  /* The first/last keyframe. */
+  const BezTriple *endpoint_bezt = bezts + endpoint_offset;
+  /* The second (to last) keyframe. */
+  const BezTriple *neighbor_bezt = endpoint_bezt + direction_to_neighbor;
 
   if (endpoint_bezt->ipo == BEZT_IPO_CONST || fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT ||
-      (fcu->flag & FCURVE_DISCRETE_VALUES) != 0) {
+      (fcu->flag & FCURVE_DISCRETE_VALUES) != 0)
+  {
     /* Constant (BEZT_IPO_HORIZ) extrapolation or constant interpolation, so just extend the
      * endpoint's value. */
     return endpoint_bezt->vec[1][1];
@@ -1963,8 +2055,8 @@ static float fcurve_eval_keyframes_interpolate(const FCurve *fcu,
   const float period = prevbezt->period;
 
   /* Value depends on interpolation mode. */
-  if ((prevbezt->ipo == BEZT_IPO_CONST) || (fcu->flag & FCURVE_DISCRETE_VALUES) ||
-      (duration == 0)) {
+  if ((prevbezt->ipo == BEZT_IPO_CONST) || (fcu->flag & FCURVE_DISCRETE_VALUES) || (duration == 0))
+  {
     /* Constant (evaltime not relevant, so no interpolation needed). */
     return prevbezt->vec[1][1];
   }
@@ -1987,7 +2079,8 @@ static float fcurve_eval_keyframes_interpolate(const FCurve *fcu,
       v4[1] = bezt->vec[1][1];
 
       if (fabsf(v1[1] - v4[1]) < FLT_EPSILON && fabsf(v2[1] - v3[1]) < FLT_EPSILON &&
-          fabsf(v3[1] - v4[1]) < FLT_EPSILON) {
+          fabsf(v3[1] - v4[1]) < FLT_EPSILON)
+      {
         /* Optimization: If all the handles are flat/at the same values,
          * the value is simply the shared value (see #40372 -> F91346).
          */
@@ -2300,7 +2393,8 @@ float evaluate_fcurve_driver(PathResolvedRNA *anim_rna,
       LISTBASE_FOREACH (FModifier *, fcm, &fcu->modifiers) {
         /* If there are range-restrictions, we must definitely block #36950. */
         if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) == 0 ||
-            (fcm->sfra <= evaltime && fcm->efra >= evaltime)) {
+            (fcm->sfra <= evaltime && fcm->efra >= evaltime))
+        {
           /* Within range: here it probably doesn't matter,
            * though we'd want to check on additive. */
         }

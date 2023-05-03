@@ -209,7 +209,8 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
         /* check use of dupli objects here */
         if (psys->part && (psys->part->draw_as == PART_DRAW_REND || use_render_params) &&
             ((psys->part->ren_as == PART_DRAW_OB && psys->part->instance_object) ||
-             (psys->part->ren_as == PART_DRAW_GR && psys->part->instance_collection))) {
+             (psys->part->ren_as == PART_DRAW_GR && psys->part->instance_collection)))
+        {
           ob->transflag |= OB_DUPLIPARTS;
         }
 
@@ -265,7 +266,8 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   for (ModifierData *md = static_cast<ModifierData *>(object->modifiers.first),
                     *md_orig = static_cast<ModifierData *>(object_orig->modifiers.first);
        md != nullptr && md_orig != nullptr;
-       md = md->next, md_orig = md_orig->next) {
+       md = md->next, md_orig = md_orig->next)
+  {
     BLI_assert(md->type == md_orig->type && STREQ(md->name, md_orig->name));
     MEM_SAFE_FREE(md_orig->error);
     if (md->error != nullptr) {
@@ -425,7 +427,8 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
   if (object->mode == OB_MODE_PARTICLE_EDIT) {
     for (ParticleSystem *psys = static_cast<ParticleSystem *>(object->particlesystem.first);
          psys != nullptr;
-         psys = psys->next) {
+         psys = psys->next)
+    {
       BKE_particle_batch_cache_dirty_tag(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
     }
   }

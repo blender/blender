@@ -288,8 +288,8 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
         Object *ob_arm = agmd->object;
         if (ob_arm != NULL) {
           Base *base_arm = BKE_view_layer_base_find(view_layer, ob_arm);
-          if ((base_arm != NULL) && (base_arm != base_select) &&
-              (base_arm->flag & BASE_SELECTED)) {
+          if ((base_arm != NULL) && (base_arm != base_select) && (base_arm->flag & BASE_SELECTED))
+          {
             ED_object_base_select(base_arm, BA_DESELECT);
           }
         }
@@ -305,8 +305,8 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
         Object *ob_arm = amd->object;
         if (ob_arm != NULL) {
           Base *base_arm = BKE_view_layer_base_find(view_layer, ob_arm);
-          if ((base_arm != NULL) && (base_arm != base_select) &&
-              (base_arm->flag & BASE_SELECTED)) {
+          if ((base_arm != NULL) && (base_arm != base_select) && (base_arm->flag & BASE_SELECTED))
+          {
             ED_object_base_select(base_arm, BA_DESELECT);
           }
         }
@@ -696,7 +696,8 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op
 
             /* Any armature that is also in pose mode should be selected. */
             if ((ct->subtarget[0] != '\0') && (ob != NULL) && (ob->type == OB_ARMATURE) &&
-                (ob->mode == OB_MODE_POSE)) {
+                (ob->mode == OB_MODE_POSE))
+            {
               bPoseChannel *pchanc = BKE_pose_channel_find_name(ob->pose, ct->subtarget);
               if ((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE)) {
                 pchanc->bone->flag |= BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL;
@@ -1237,7 +1238,8 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
         int flag_new = extend ? PBONE_PREV_FLAG_GET(pchan) : 0;
 
         if ((pchan_mirror = BKE_pose_channel_get_mirrored(ob->pose, pchan->name)) &&
-            PBONE_VISIBLE(arm, pchan_mirror->bone)) {
+            PBONE_VISIBLE(arm, pchan_mirror->bone))
+        {
           const int flag_mirror = PBONE_PREV_FLAG_GET(pchan_mirror);
           flag_new |= flag_mirror;
 

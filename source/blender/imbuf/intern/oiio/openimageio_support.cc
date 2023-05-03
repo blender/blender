@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "openimageio_support.hh"
+#include <OpenImageIO/imagebuf.h>
+#include <OpenImageIO/imagebufalgo.h>
 
 #include "BLI_blenlib.h"
 
@@ -220,7 +222,7 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, char colorsp
     /* Transfer metadata to the ibuf if necessary. */
     if (ctx.flags & IB_metadata) {
       IMB_metadata_ensure(&ibuf->metadata);
-      ibuf->flags |= (spec.extra_attribs.empty()) ? 0 : IB_metadata;
+      ibuf->flags |= spec.extra_attribs.empty() ? 0 : IB_metadata;
 
       for (const auto &attrib : spec.extra_attribs) {
         IMB_metadata_set_field(ibuf->metadata, attrib.name().c_str(), attrib.get_string().c_str());
@@ -289,10 +291,19 @@ bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSp
     return false;
   }
 
-  auto write_op = [&out, &ctx]() {
-    return out->write_image(
-        ctx.mem_format, ctx.mem_start, ctx.mem_xstride, -ctx.mem_ystride, AutoStride);
-  };
+  ImageBuf orig_buf(ctx.mem_spec, ctx.mem_start, ctx.mem_xstride, -ctx.mem_ystride, AutoStride);
+  ImageBuf final_buf{};
+
+  /* Grayscale images need to be based on luminance weights rather than only
+   * using a single channel from the source. */
+  if (file_spec.nchannels == 1) {
+    float weights[4]{};
+    IMB_colormanagement_get_luminance_coefficients(weights);
+    ImageBufAlgo::channel_sum(final_buf, orig_buf, {weights, orig_buf.nchannels()});
+  }
+  else {
+    final_buf = std::move(orig_buf);
+  }
 
   bool ok = false;
   if (ctx.flags & IB_mem) {
@@ -301,12 +312,14 @@ bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSp
 
     imb_addencodedbufferImBuf(ctx.ibuf);
     out->set_ioproxy(&writer);
-    out->open("", file_spec);
-    ok = write_op();
+    if (out->open("", file_spec)) {
+      ok = final_buf.write(out.get());
+    }
   }
   else {
-    out->open(filepath, file_spec);
-    ok = write_op();
+    if (out->open(filepath, file_spec)) {
+      ok = final_buf.write(out.get());
+    }
   }
 
   out->close();
@@ -330,15 +343,15 @@ WriteContext imb_create_write_context(const char *file_format,
     const int mem_channels = ibuf->channels ? ibuf->channels : 4;
     ctx.mem_xstride = sizeof(float) * mem_channels;
     ctx.mem_ystride = width * ctx.mem_xstride;
-    ctx.mem_format = TypeDesc::FLOAT;
     ctx.mem_start = reinterpret_cast<uchar *>(ibuf->rect_float);
+    ctx.mem_spec = ImageSpec(width, height, mem_channels, TypeDesc::FLOAT);
   }
   else {
     const int mem_channels = 4;
     ctx.mem_xstride = sizeof(uchar) * mem_channels;
     ctx.mem_ystride = width * ctx.mem_xstride;
-    ctx.mem_format = TypeDesc::UINT8;
     ctx.mem_start = reinterpret_cast<uchar *>(ibuf->rect);
+    ctx.mem_spec = ImageSpec(width, height, mem_channels, TypeDesc::UINT8);
   }
 
   /* We always write using a negative y-stride so ensure we start at the end. */
@@ -364,7 +377,8 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
 
   if (ctx.ibuf->metadata) {
     for (IDProperty *prop = static_cast<IDProperty *>(ctx.ibuf->metadata->data.group.first); prop;
-         prop = prop->next) {
+         prop = prop->next)
+    {
       if (prop->type == IDP_STRING) {
         /* If this property has a prefixed name (oiio:, tiff:, etc.) and it belongs to
          * oiio or a different format, then skip. */
@@ -372,7 +386,8 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
           std::string prefix(prop->name, colon);
           Strutil::to_lower(prefix);
           if (prefix == "oiio" ||
-              (!STREQ(prefix.c_str(), ctx.file_format) && OIIO::is_imageio_format_name(prefix))) {
+              (!STREQ(prefix.c_str(), ctx.file_format) && OIIO::is_imageio_format_name(prefix)))
+          {
             /* Skip this attribute. */
             continue;
           }

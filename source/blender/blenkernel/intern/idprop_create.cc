@@ -49,7 +49,7 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create(const StringRefNull prop_n
 std::unique_ptr<IDProperty, IDPropertyDeleter> create(const StringRefNull prop_name,
                                                       const StringRefNull value)
 {
-  IDProperty *property = IDP_NewString(value.c_str(), prop_name.c_str(), value.size() + 1);
+  IDProperty *property = IDP_NewString(value.c_str(), prop_name.c_str());
   return std::unique_ptr<IDProperty, IDPropertyDeleter>(property);
 }
 

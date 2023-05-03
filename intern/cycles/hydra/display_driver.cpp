@@ -226,7 +226,8 @@ void HdCyclesDisplayDriver::draw(const Params &params)
   const auto renderBuffer = static_cast<HdCyclesRenderBuffer *>(
       _renderParam->GetDisplayAovBinding().renderBuffer);
   if (!renderBuffer ||  // Ensure this render buffer matches the texture dimensions
-      (renderBuffer->GetWidth() != params.size.x || renderBuffer->GetHeight() != params.size.y)) {
+      (renderBuffer->GetWidth() != params.size.x || renderBuffer->GetHeight() != params.size.y))
+  {
     return;
   }
 

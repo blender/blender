@@ -4,6 +4,19 @@
  * \ingroup GHOST
  */
 
+/* NOTE(@ideasman42): 2023-04-07, see: !106608.
+ * Even though Ubuntu's Unity (desktop-environment)
+ * is no longer in widespread use, DBUS API's defined by: `libunity.so`
+ * are still supported by some KDE/GNOME docks (as close as it gets to a standard it seems).
+ * So when `libunity.so` is available, it can still be used to update a progress bar.
+ *
+ * Over time `libunity.so` has become less common on the Linux Desktop.
+ * (it's no longer installed by default on most distributions, or even easily available).
+ * So long term Blender should be updated to talk to DBUS directly,
+ * perhaps as a dynamically loaded library which is used when available.
+ *
+ * This would allow X11/WAYLAND to share their task-bar implementation too. */
+
 #include "GHOST_TaskbarX11.hh"
 
 #include <cassert>

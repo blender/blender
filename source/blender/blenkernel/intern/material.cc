@@ -185,8 +185,15 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
 
   /* nodetree is integral part of material, no libdata */
   if (ma->nodetree) {
-    BLO_write_struct(writer, bNodeTree, ma->nodetree);
-    ntreeBlendWrite(writer, ma->nodetree);
+    BLO_Write_IDBuffer *temp_embedded_id_buffer = BLO_write_allocate_id_buffer();
+    BLO_write_init_id_buffer_from_id(
+        temp_embedded_id_buffer, &ma->nodetree->id, BLO_write_is_undo(writer));
+    BLO_write_struct_at_address(
+        writer, bNodeTree, ma->nodetree, BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
+    ntreeBlendWrite(
+        writer,
+        reinterpret_cast<bNodeTree *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
+    BLO_write_destroy_id_buffer(&temp_embedded_id_buffer);
   }
 
   BKE_previewimg_blend_write(writer, ma->preview);
@@ -1309,7 +1316,8 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
   const int actcol = ob->actcol;
 
   for (Object *obt = static_cast<Object *>(bmain->objects.first); obt;
-       obt = static_cast<Object *>(obt->id.next)) {
+       obt = static_cast<Object *>(obt->id.next))
+  {
     if (obt->data == ob->data) {
       /* Can happen when object material lists are used, see: #52953 */
       if (actcol > obt->totcol) {
@@ -1390,7 +1398,8 @@ static bool ntree_foreach_texnode_recursive(bNodeTree *nodetree,
   const bool do_color_attributes = (slot_filter & PAINT_SLOT_COLOR_ATTRIBUTE) != 0;
   for (bNode *node : nodetree->all_nodes()) {
     if (do_image_nodes && node->typeinfo->nclass == NODE_CLASS_TEXTURE &&
-        node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id) {
+        node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id)
+    {
       if (!callback(node, userdata)) {
         return false;
       }
@@ -1402,8 +1411,8 @@ static bool ntree_foreach_texnode_recursive(bNodeTree *nodetree,
     }
     else if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
       /* recurse into the node group and see if it contains any textures */
-      if (!ntree_foreach_texnode_recursive(
-              (bNodeTree *)node->id, callback, userdata, slot_filter)) {
+      if (!ntree_foreach_texnode_recursive((bNodeTree *)node->id, callback, userdata, slot_filter))
+      {
         return false;
       }
     }
@@ -1569,7 +1578,8 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const struct Ob
       ma->paint_clone_slot != prev_paint_clone_slot ||
       (ma->texpaintslot && prev_texpaintslot &&
        memcmp(ma->texpaintslot, prev_texpaintslot, sizeof(*ma->texpaintslot) * ma->tot_slots) !=
-           0)) {
+           0))
+  {
     DEG_id_tag_update(&ma->id, ID_RECALC_SHADING | ID_RECALC_COPY_ON_WRITE);
   }
 

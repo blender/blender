@@ -13,7 +13,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_material.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_object.h"
 
 #include "gpencil_io_import_base.hh"

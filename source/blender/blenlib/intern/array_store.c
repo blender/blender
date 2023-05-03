@@ -1166,7 +1166,8 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
   if (!BLI_listbase_is_empty(&chunk_list_reference->chunk_refs)) {
     const BChunkRef *cref = chunk_list_reference->chunk_refs.last;
     while ((cref->prev != NULL) && (cref != cref_match_first) &&
-           (cref->link->data_len <= data_len - i_prev)) {
+           (cref->link->data_len <= data_len - i_prev))
+    {
       BChunk *chunk_test = cref->link;
       size_t offset = data_len - chunk_test->data_len;
       if (bchunk_data_compare(chunk_test, data, data_len, offset)) {
@@ -1237,7 +1238,8 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
   }
   else if ((data_len - i_prev >= info->chunk_byte_size) &&
            (chunk_list_reference->chunk_refs_len >= chunk_list_reference_skip_len) &&
-           (chunk_list_reference->chunk_refs.first != NULL)) {
+           (chunk_list_reference->chunk_refs.first != NULL))
+  {
 
     /* --------------------------------------------------------------------
      * Non-Aligned Chunk De-Duplication. */
@@ -1304,7 +1306,8 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
 #endif
 
       while ((cref != chunk_list_reference_last) &&
-             (chunk_list_reference_bytes_remaining >= info->accum_read_ahead_bytes)) {
+             (chunk_list_reference_bytes_remaining >= info->accum_read_ahead_bytes))
+      {
         hash_key key = key_from_chunk_ref(info,
                                           cref
 

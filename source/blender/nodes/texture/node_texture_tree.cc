@@ -261,8 +261,8 @@ static void tex_free_delegates(bNodeTreeExec *exec)
   int th, a;
 
   for (th = 0; th < BLENDER_MAX_THREADS; th++) {
-    for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[th].first); nts;
-         nts = nts->next) {
+    for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[th].first); nts; nts = nts->next)
+    {
       for (ns = nts->stack, a = 0; a < exec->stacksize; a++, ns++) {
         if (ns->data && !ns->is_copy) {
           MEM_freeN(ns->data);
@@ -281,8 +281,8 @@ void ntreeTexEndExecTree_internal(bNodeTreeExec *exec)
     tex_free_delegates(exec);
 
     for (a = 0; a < BLENDER_MAX_THREADS; a++) {
-      for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[a].first); nts;
-           nts = nts->next) {
+      for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[a].first); nts; nts = nts->next)
+      {
         if (nts->stack) {
           MEM_freeN(nts->stack);
         }

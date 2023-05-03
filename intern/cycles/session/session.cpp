@@ -490,7 +490,8 @@ int2 Session::get_effective_tile_size() const
   const int64_t actual_tile_area = static_cast<int64_t>(tile_size) * tile_size;
 
   if (actual_tile_area >= image_area && image_width <= TileManager::MAX_TILE_SIZE &&
-      image_height <= TileManager::MAX_TILE_SIZE) {
+      image_height <= TileManager::MAX_TILE_SIZE)
+  {
     return make_int2(image_width, image_height);
   }
 
@@ -621,12 +622,12 @@ void Session::set_pause(bool pause)
 
 void Session::set_output_driver(unique_ptr<OutputDriver> driver)
 {
-  path_trace_->set_output_driver(move(driver));
+  path_trace_->set_output_driver(std::move(driver));
 }
 
 void Session::set_display_driver(unique_ptr<DisplayDriver> driver)
 {
-  path_trace_->set_display_driver(move(driver));
+  path_trace_->set_display_driver(std::move(driver));
 }
 
 double Session::get_estimated_remaining_time() const

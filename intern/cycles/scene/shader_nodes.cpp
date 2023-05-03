@@ -758,12 +758,7 @@ static void sky_texture_precompute_nishita(SunSky *sunsky,
   float pixel_top[3];
   SKY_nishita_skymodel_precompute_sun(
       sun_elevation, sun_size, altitude, air_density, dust_density, pixel_bottom, pixel_top);
-  /* limit sun rotation between 0 and 360 degrees */
-  sun_rotation = fmodf(sun_rotation, M_2PI_F);
-  if (sun_rotation < 0.0f) {
-    sun_rotation += M_2PI_F;
-  }
-  sun_rotation = M_2PI_F - sun_rotation;
+
   /* send data to svm_sky */
   sunsky->nishita_data[0] = pixel_bottom[0];
   sunsky->nishita_data[1] = pixel_bottom[1];
@@ -872,6 +867,37 @@ NODE_DEFINE(SkyTextureNode)
 }
 
 SkyTextureNode::SkyTextureNode() : TextureNode(get_node_type()) {}
+
+void SkyTextureNode::simplify_settings(Scene * /* scene */)
+{
+  /* Patch sun position so users are able to animate the daylight cycle while keeping the shading
+   * code simple. */
+  float new_sun_elevation = sun_elevation;
+  float new_sun_rotation = sun_rotation;
+
+  /* Wrap `new_sun_elevation` into [-2PI..2PI] range. */
+  new_sun_elevation = fmodf(new_sun_elevation, M_2PI_F);
+  /* Wrap `new_sun_elevation` into [-PI..PI] range. */
+  if (fabsf(new_sun_elevation) >= M_PI_F) {
+    new_sun_elevation -= copysignf(2.0f, new_sun_elevation) * M_PI_F;
+  }
+  /* Wrap `new_sun_elevation` into [-PI/2..PI/2] range while keeping the same absolute position. */
+  if (new_sun_elevation >= M_PI_2_F || new_sun_elevation <= -M_PI_2_F) {
+    new_sun_elevation = copysignf(M_PI_F, new_sun_elevation) - new_sun_elevation;
+    new_sun_rotation += M_PI_F;
+  }
+
+  /* Wrap `new_sun_rotation` into [-2PI..2PI] range. */
+  new_sun_rotation = fmodf(new_sun_rotation, M_2PI_F);
+  /* Wrap `new_sun_rotation` into [0..2PI] range. */
+  if (new_sun_rotation < 0.0f) {
+    new_sun_rotation += M_2PI_F;
+  }
+  new_sun_rotation = M_2PI_F - new_sun_rotation;
+
+  sun_elevation = new_sun_elevation;
+  sun_rotation = new_sun_rotation;
+}
 
 void SkyTextureNode::compile(SVMCompiler &compiler)
 {
@@ -2156,7 +2182,8 @@ void ConvertNode::constant_fold(const ConstantFolder &folder)
       ShaderInput *prev_in = prev->inputs[0];
 
       if (SocketType::is_float3(from) && (to == SocketType::FLOAT || SocketType::is_float3(to)) &&
-          prev_in->link) {
+          prev_in->link)
+      {
         folder.bypass(prev_in->link);
       }
     }
@@ -2815,7 +2842,8 @@ void PrincipledBsdfNode::expand(ShaderGraph *graph)
   ShaderInput *emission_in = input("Emission");
   ShaderInput *emission_strength_in = input("Emission Strength");
   if ((emission_in->link || emission != zero_float3()) &&
-      (emission_strength_in->link || emission_strength != 0.0f)) {
+      (emission_strength_in->link || emission_strength != 0.0f))
+  {
     /* Create add closure and emission, and relink inputs. */
     AddClosureNode *add = graph->create_node<AddClosureNode>();
     EmissionNode *emission_node = graph->create_node<EmissionNode>();
@@ -5726,7 +5754,7 @@ void SeparateHSVNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_separate_hsv");
 }
 
-/* Hue Saturation Value */
+/* Hue/Saturation/Value */
 
 NODE_DEFINE(HSVNode)
 {
@@ -5794,7 +5822,8 @@ void AttributeNode::attributes(Shader *shader, AttributeRequestSet *attributes)
   ShaderOutput *alpha_out = output("Alpha");
 
   if (!color_out->links.empty() || !vector_out->links.empty() || !fac_out->links.empty() ||
-      !alpha_out->links.empty()) {
+      !alpha_out->links.empty())
+  {
     attributes->add_standard(attribute);
   }
 
@@ -6593,7 +6622,8 @@ void VectorMathNode::compile(SVMCompiler &compiler)
 
   /* 3 Vector Operators */
   if (math_type == NODE_VECTOR_MATH_WRAP || math_type == NODE_VECTOR_MATH_FACEFORWARD ||
-      math_type == NODE_VECTOR_MATH_MULTIPLY_ADD) {
+      math_type == NODE_VECTOR_MATH_MULTIPLY_ADD)
+  {
     ShaderInput *vector3_in = input("Vector3");
     int vector3_stack_offset = compiler.stack_assign(vector3_in);
     compiler.add_node(

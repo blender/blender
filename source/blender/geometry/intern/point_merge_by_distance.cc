@@ -19,8 +19,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
                                     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const bke::AttributeAccessor src_attributes = src_points.attributes();
-  VArraySpan<float3> positions = src_attributes.lookup_or_default<float3>(
-      "position", ATTR_DOMAIN_POINT, float3(0));
+  const Span<float3> positions = src_points.positions();
   const int src_size = positions.size();
 
   /* Create the KD tree based on only the selected points, to speed up merge detection and
@@ -109,7 +108,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
 
   /* Transfer the ID attribute if it exists, using the ID of the first merged point. */
   if (attribute_ids.contains("id")) {
-    VArraySpan<int> src = src_attributes.lookup_or_default<int>("id", ATTR_DOMAIN_POINT, 0);
+    VArraySpan<int> src = *src_attributes.lookup_or_default<int>("id", ATTR_DOMAIN_POINT, 0);
     bke::SpanAttributeWriter<int> dst = dst_attributes.lookup_or_add_for_write_only_span<int>(
         "id", ATTR_DOMAIN_POINT);
 

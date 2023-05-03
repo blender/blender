@@ -372,7 +372,8 @@ bool AbstractTreeViewItem::matches(const AbstractViewItem &other) const
 
   for (AbstractTreeViewItem *parent = parent_, *other_parent = other_tree_item.parent_;
        parent && other_parent;
-       parent = parent->parent_, other_parent = other_parent->parent_) {
+       parent = parent->parent_, other_parent = other_parent->parent_)
+  {
     if (!parent->matches_single(*other_parent)) {
       return false;
     }
@@ -437,7 +438,8 @@ void TreeViewLayoutBuilder::polish_layout(const uiBlock &block)
   LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block.buttons) {
     if (AbstractTreeViewItem::is_collapse_chevron_but(but) && but->next &&
         /* Embossed buttons with padding-less text padding look weird, so don't touch them. */
-        ELEM(but->next->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS)) {
+        ELEM(but->next->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS))
+    {
       UI_but_drawflag_enable(static_cast<uiBut *>(but->next), UI_BUT_NO_TEXT_PADDING);
     }
 

@@ -550,11 +550,13 @@ static bool bake_pass_filter_check(eScenePassType pass_type,
       }
 
       if (((pass_filter & R_BAKE_PASS_FILTER_DIRECT) != 0) ||
-          ((pass_filter & R_BAKE_PASS_FILTER_INDIRECT) != 0)) {
+          ((pass_filter & R_BAKE_PASS_FILTER_INDIRECT) != 0))
+      {
         if (((pass_filter & R_BAKE_PASS_FILTER_DIFFUSE) != 0) ||
             ((pass_filter & R_BAKE_PASS_FILTER_GLOSSY) != 0) ||
             ((pass_filter & R_BAKE_PASS_FILTER_TRANSM) != 0) ||
-            ((pass_filter & R_BAKE_PASS_FILTER_SUBSURFACE) != 0)) {
+            ((pass_filter & R_BAKE_PASS_FILTER_SUBSURFACE) != 0))
+        {
           return true;
         }
 
@@ -576,7 +578,8 @@ static bool bake_pass_filter_check(eScenePassType pass_type,
     case SCE_PASS_SUBSURFACE_COLOR:
       if (((pass_filter & R_BAKE_PASS_FILTER_COLOR) != 0) ||
           ((pass_filter & R_BAKE_PASS_FILTER_DIRECT) != 0) ||
-          ((pass_filter & R_BAKE_PASS_FILTER_INDIRECT) != 0)) {
+          ((pass_filter & R_BAKE_PASS_FILTER_INDIRECT) != 0))
+      {
         return true;
       }
       else {
@@ -871,9 +874,9 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
     BakeImage *bk_image = &targets->images[i];
 
     BakeData *bake = &bkr->scene->r.bake;
-    char name[FILE_MAX];
+    char filepath[FILE_MAX];
 
-    BKE_image_path_from_imtype(name,
+    BKE_image_path_from_imtype(filepath,
                                bkr->filepath,
                                BKE_main_blendfile_path(bkr->main),
                                0,
@@ -883,33 +886,33 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
                                nullptr);
 
     if (bkr->is_automatic_name) {
-      BLI_path_suffix(name, FILE_MAX, ob->id.name + 2, "_");
-      BLI_path_suffix(name, FILE_MAX, bkr->identifier, "_");
+      BLI_path_suffix(filepath, FILE_MAX, ob->id.name + 2, "_");
+      BLI_path_suffix(filepath, FILE_MAX, bkr->identifier, "_");
     }
 
     if (bkr->is_split_materials) {
       if (ob_eval->mat[i]) {
-        BLI_path_suffix(name, FILE_MAX, ob_eval->mat[i]->id.name + 2, "_");
+        BLI_path_suffix(filepath, FILE_MAX, ob_eval->mat[i]->id.name + 2, "_");
       }
       else if (mesh_eval->mat[i]) {
-        BLI_path_suffix(name, FILE_MAX, mesh_eval->mat[i]->id.name + 2, "_");
+        BLI_path_suffix(filepath, FILE_MAX, mesh_eval->mat[i]->id.name + 2, "_");
       }
       else {
         /* if everything else fails, use the material index */
         char tmp[5];
         BLI_snprintf(tmp, sizeof(tmp), "%d", i % 1000);
-        BLI_path_suffix(name, FILE_MAX, tmp, "_");
+        BLI_path_suffix(filepath, FILE_MAX, tmp, "_");
       }
     }
 
     if (bk_image->tile_number) {
       char tmp[FILE_MAX];
       SNPRINTF(tmp, "%d", bk_image->tile_number);
-      BLI_path_suffix(name, FILE_MAX, tmp, "_");
+      BLI_path_suffix(filepath, FILE_MAX, tmp, "_");
     }
 
     /* save it externally */
-    const bool ok = write_external_bake_pixels(name,
+    const bool ok = write_external_bake_pixels(filepath,
                                                pixel_array + bk_image->offset,
                                                targets->result +
                                                    bk_image->offset * targets->channels_num,
@@ -924,11 +927,11 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
                                                bk_image->uv_offset);
 
     if (!ok) {
-      BKE_reportf(reports, RPT_ERROR, "Problem saving baked map in \"%s\"", name);
+      BKE_reportf(reports, RPT_ERROR, "Problem saving baked map in \"%s\"", filepath);
       all_ok = false;
     }
     else {
-      BKE_reportf(reports, RPT_INFO, "Baking map written to \"%s\"", name);
+      BKE_reportf(reports, RPT_INFO, "Baking map written to \"%s\"", filepath);
     }
 
     if (!bkr->is_split_materials) {
@@ -1430,7 +1433,8 @@ static int bake(const BakeAPIRender *bkr,
 
   /* for multires bake, use linear UV subdivision to match low res UVs */
   if (bkr->pass_type == SCE_PASS_NORMAL && bkr->normal_space == R_BAKE_SPACE_TANGENT &&
-      !bkr->is_selected_to_active) {
+      !bkr->is_selected_to_active)
+  {
     mmd_low = (MultiresModifierData *)BKE_modifiers_findby_type(ob_low, eModifierType_Multires);
     if (mmd_low) {
       mmd_flags_low = mmd_low->flags;
@@ -1466,7 +1470,8 @@ static int bake(const BakeAPIRender *bkr,
     if (ob_cage) {
       me_cage_eval = bake_mesh_new_from_object(depsgraph, ob_cage_eval, preserve_origindex);
       if ((me_low_eval->totpoly != me_cage_eval->totpoly) ||
-          (me_low_eval->totloop != me_cage_eval->totloop)) {
+          (me_low_eval->totloop != me_cage_eval->totloop))
+      {
         BKE_report(reports,
                    RPT_ERROR,
                    "Invalid cage object, the cage mesh must have the same number "
@@ -1565,7 +1570,8 @@ static int bake(const BakeAPIRender *bkr,
             bkr->max_ray_distance,
             ob_low_eval->object_to_world,
             (ob_cage ? ob_cage->object_to_world : ob_low_eval->object_to_world),
-            me_cage_eval)) {
+            me_cage_eval))
+    {
       BKE_report(reports, RPT_ERROR, "Error handling selected objects");
       goto cleanup;
     }
@@ -1616,7 +1622,8 @@ static int bake(const BakeAPIRender *bkr,
       case R_BAKE_SPACE_WORLD: {
         /* Cycles internal format */
         if ((bkr->normal_swizzle[0] == R_BAKE_POSX) && (bkr->normal_swizzle[1] == R_BAKE_POSY) &&
-            (bkr->normal_swizzle[2] == R_BAKE_POSZ)) {
+            (bkr->normal_swizzle[2] == R_BAKE_POSZ))
+        {
           break;
         }
         RE_bake_normal_world_to_world(pixel_array_low,
@@ -1801,7 +1808,8 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
   }
 
   if (((bkr->pass_type == SCE_PASS_NORMAL) && (bkr->normal_space == R_BAKE_SPACE_TANGENT)) ||
-      bkr->pass_type == SCE_PASS_UV) {
+      bkr->pass_type == SCE_PASS_UV)
+  {
     bkr->margin_type = R_BAKE_EXTEND;
   }
 }
@@ -1835,7 +1843,8 @@ static int bake_exec(bContext *C, wmOperator *op)
                           &bkr.selected_objects,
                           bkr.reports,
                           bkr.is_selected_to_active,
-                          bkr.target)) {
+                          bkr.target))
+  {
     goto finally;
   }
 
@@ -1854,7 +1863,8 @@ static int bake_exec(bContext *C, wmOperator *op)
     CollectionPointerLink *link;
     bkr.is_clear = bkr.is_clear && BLI_listbase_is_single(&bkr.selected_objects);
     for (link = static_cast<CollectionPointerLink *>(bkr.selected_objects.first); link;
-         link = link->next) {
+         link = link->next)
+    {
       Object *ob_iter = static_cast<Object *>(link->ptr.data);
       result = bake(&bkr, ob_iter, nullptr, bkr.reports);
     }
@@ -1890,7 +1900,8 @@ static void bake_startjob(void *bkv, bool * /*stop*/, bool *do_update, float *pr
                           &bkr->selected_objects,
                           bkr->reports,
                           bkr->is_selected_to_active,
-                          bkr->target)) {
+                          bkr->target))
+  {
     bkr->result = OPERATOR_CANCELLED;
     return;
   }
@@ -1908,7 +1919,8 @@ static void bake_startjob(void *bkv, bool * /*stop*/, bool *do_update, float *pr
     CollectionPointerLink *link;
     bkr->is_clear = bkr->is_clear && BLI_listbase_is_single(&bkr->selected_objects);
     for (link = static_cast<CollectionPointerLink *>(bkr->selected_objects.first); link;
-         link = link->next) {
+         link = link->next)
+    {
       Object *ob_iter = static_cast<Object *>(link->ptr.data);
       bkr->result = bake(bkr, ob_iter, nullptr, bkr->reports);
 

@@ -1023,7 +1023,8 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
                               &hit,
                               harmonic_ray_callback,
                               &data,
-                              BVH_RAYCAST_WATERTIGHT) != -1) {
+                              BVH_RAYCAST_WATERTIGHT) != -1)
+  {
     const blender::Span<int> corner_verts = mdb->cagemesh_cache.corner_verts;
     const MLoopTri *lt = &mdb->cagemesh_cache.looptris[hit.index];
     const blender::IndexRange poly = mdb->cagemesh_cache.polys[lt->poly];
@@ -1171,7 +1172,8 @@ static void meshdeform_bind_floodfill(MeshDeformBind *mdb)
 
       if (b != -1) {
         if (tag[b] == MESHDEFORM_TAG_UNTYPED ||
-            (tag[b] == MESHDEFORM_TAG_BOUNDARY && !mdb->boundisect[a][i - 1])) {
+            (tag[b] == MESHDEFORM_TAG_BOUNDARY && !mdb->boundisect[a][i - 1]))
+        {
           tag[b] = MESHDEFORM_TAG_EXTERIOR;
           stack[stacksize++] = b;
         }

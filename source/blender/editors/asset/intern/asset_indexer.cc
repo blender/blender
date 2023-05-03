@@ -119,7 +119,7 @@ class BlendFile : public AbstractFile {
   std::string get_filename() const
   {
     char filename[FILE_MAX];
-    BLI_split_file_part(get_file_path(), filename, sizeof(filename));
+    BLI_path_split_file_part(get_file_path(), filename, sizeof(filename));
     return std::string(filename);
   }
 
@@ -657,8 +657,7 @@ struct AssetIndex {
   AssetIndex(const FileIndexerEntries &indexer_entries)
   {
     std::unique_ptr<DictionaryValue> root = std::make_unique<DictionaryValue>();
-    DictionaryValue::Items &root_attributes = root->elements();
-    root_attributes.append_as(std::pair(ATTRIBUTE_VERSION, new IntValue(CURRENT_VERSION)));
+    root->append_int(ATTRIBUTE_VERSION, CURRENT_VERSION);
     init_value_from_file_indexer_entries(*root, indexer_entries);
 
     contents = std::move(root);
@@ -762,9 +761,7 @@ class AssetIndexFile : public AbstractFile {
 
   bool ensure_parent_path_exists() const
   {
-    /* `BLI_make_existing_file` only ensures parent path, otherwise than expected from the name of
-     * the function. */
-    return BLI_make_existing_file(get_file_path());
+    return BLI_file_ensure_parent_dir_exists(get_file_path());
   }
 
   void write_contents(AssetIndex &content)

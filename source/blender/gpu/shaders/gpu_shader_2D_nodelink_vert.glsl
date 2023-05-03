@@ -111,7 +111,8 @@ void main(void)
   /* If the link is not muted or is not a reroute arrow the points are squashed to the center of
    * the line. Magic numbers are defined in drawnode.c */
   if ((expand.x == 1.0 && !doMuted) ||
-      (expand.y != 1.0 && (pos.x < 0.70 || pos.x > 0.71) && !doArrow)) {
+      (expand.y != 1.0 && (pos.x < 0.70 || pos.x > 0.71) && !doArrow))
+  {
     gl_Position.xy *= 0.0;
   }
 }

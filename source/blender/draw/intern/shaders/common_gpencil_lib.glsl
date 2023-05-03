@@ -316,7 +316,8 @@ vec4 gpencil_vertex(vec4 viewport_size,
 
       /* Reminder: we packed the cap flag into the sign of strength and thickness sign. */
       if ((is_stroke_start && strength1 > 0.0) || (is_stroke_end && thickness1 > 0.0) ||
-          (miter_break && !is_stroke_start && !is_stroke_end)) {
+          (miter_break && !is_stroke_start && !is_stroke_end))
+      {
         screen_ofs += line * x;
       }
 

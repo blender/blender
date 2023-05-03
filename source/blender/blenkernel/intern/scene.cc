@@ -290,7 +290,8 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
   for (ViewLayer *view_layer_src = static_cast<ViewLayer *>(scene_src->view_layers.first),
                  *view_layer_dst = static_cast<ViewLayer *>(scene_dst->view_layers.first);
        view_layer_src;
-       view_layer_src = view_layer_src->next, view_layer_dst = view_layer_dst->next) {
+       view_layer_src = view_layer_src->next, view_layer_dst = view_layer_dst->next)
+  {
     BKE_view_layer_copy_data(scene_dst, scene_src, view_layer_dst, view_layer_src, flag_subdata);
   }
 
@@ -758,12 +759,12 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
 
 static void scene_foreach_layer_collection(LibraryForeachIDData *data, ListBase *lb)
 {
+  const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
-    /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
-     * anyway... */
     const int cb_flag = (lc->collection != nullptr &&
+                         (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0 &&
                          (lc->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
-                            IDWALK_CB_EMBEDDED :
+                            IDWALK_CB_EMBEDDED_NOT_OWNING :
                             IDWALK_CB_NOP;
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, lc->collection, cb_flag | IDWALK_CB_DIRECT_WEAK_LINK);
     scene_foreach_layer_collection(data, &lc->layer_collections);
@@ -947,6 +948,8 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 {
   Scene *sce = (Scene *)id;
 
+  BLO_Write_IDBuffer *temp_embedded_id_buffer = BLO_write_allocate_id_buffer();
+
   if (BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
     /* XXX This UI data should not be stored in Scene at all... */
@@ -1074,8 +1077,15 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
 
   if (sce->nodetree) {
-    BLO_write_struct(writer, bNodeTree, sce->nodetree);
-    ntreeBlendWrite(writer, sce->nodetree);
+    BLO_write_init_id_buffer_from_id(
+        temp_embedded_id_buffer, &sce->nodetree->id, BLO_write_is_undo(writer));
+    BLO_write_struct_at_address(writer,
+                                bNodeTree,
+                                sce->nodetree,
+                                BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
+    ntreeBlendWrite(
+        writer,
+        reinterpret_cast<bNodeTree *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
   }
 
   BKE_color_managed_view_settings_blend_write(writer, &sce->view_settings);
@@ -1102,8 +1112,15 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
 
   if (sce->master_collection) {
-    BLO_write_struct(writer, Collection, sce->master_collection);
-    BKE_collection_blend_write_nolib(writer, sce->master_collection);
+    BLO_write_init_id_buffer_from_id(
+        temp_embedded_id_buffer, &sce->master_collection->id, BLO_write_is_undo(writer));
+    BLO_write_struct_at_address(writer,
+                                Collection,
+                                sce->master_collection,
+                                BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
+    BKE_collection_blend_write_nolib(
+        writer,
+        reinterpret_cast<Collection *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
   }
 
   /* Eevee Light-cache */
@@ -1116,6 +1133,8 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
   /* Freed on `do_versions()`. */
   BLI_assert(sce->layer_properties == nullptr);
+
+  BLO_write_destroy_id_buffer(&temp_embedded_id_buffer);
 }
 
 static void direct_link_paint_helper(BlendDataReader *reader, const Scene *scene, Paint **paint)
@@ -1456,7 +1475,8 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
   for (bNode *node : ntree->all_nodes()) {
     if (node->id == nullptr &&
         ((node->type == CMP_NODE_R_LAYERS) ||
-         (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER))) {
+         (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER)))
+    {
       node->id = &scene->id;
     }
   }
@@ -2401,7 +2421,8 @@ const char *BKE_scene_find_marker_name(const Scene *scene, int frame)
   for (m1 = static_cast<const TimeMarker *>(markers->first),
       m2 = static_cast<const TimeMarker *>(markers->last);
        m1 && m2;
-       m1 = m1->next, m2 = m2->prev) {
+       m1 = m1->next, m2 = m2->prev)
+  {
     if (m1->frame == frame) {
       return m1->name;
     }
@@ -2610,7 +2631,8 @@ static void prepare_mesh_for_viewport_render(Main *bmain,
   if (obedit) {
     Mesh *mesh = static_cast<Mesh *>(obedit->data);
     if ((obedit->type == OB_MESH) &&
-        ((obedit->id.recalc & ID_RECALC_ALL) || (mesh->id.recalc & ID_RECALC_ALL))) {
+        ((obedit->id.recalc & ID_RECALC_ALL) || (mesh->id.recalc & ID_RECALC_ALL)))
+    {
       if (check_rendered_viewport_visible(bmain)) {
         BMesh *bm = mesh->edit_mesh->bm;
         BMeshToMeshParams params{};
@@ -3340,7 +3362,8 @@ void BKE_scene_multiview_view_prefix_get(Scene *scene,
     if (BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
       const size_t suffix_len = strlen(srv->suffix);
       if (basename_len >= suffix_len &&
-          STREQLEN(name + basename_len - suffix_len, srv->suffix, suffix_len)) {
+          STREQLEN(name + basename_len - suffix_len, srv->suffix, suffix_len))
+      {
         BLI_strncpy(r_prefix, name, basename_len - suffix_len + 1);
         break;
       }
@@ -3484,7 +3507,8 @@ static Depsgraph **scene_get_depsgraph_p(Scene *scene,
 
   DepsgraphKey **key_ptr;
   if (BLI_ghash_ensure_p_ex(
-          scene->depsgraph_hash, &key, (void ***)&key_ptr, (void ***)&depsgraph_ptr)) {
+          scene->depsgraph_hash, &key, (void ***)&key_ptr, (void ***)&depsgraph_ptr))
+  {
     return depsgraph_ptr;
   }
 

@@ -624,7 +624,8 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
         }
 
         for (el_store_ring = eloops_ring->first; el_store_ring;
-             el_store_ring = BM_EDGELOOP_NEXT(el_store_ring)) {
+             el_store_ring = BM_EDGELOOP_NEXT(el_store_ring))
+        {
           ListBase *lb_ring = BM_edgeloop_verts_get(el_store_ring);
           LinkData *v_iter;
 
@@ -709,7 +710,8 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
       tri_end = tri_array[resolu - 1];
 
       for (el_store_ring = eloops_ring->first; el_store_ring;
-           el_store_ring = BM_EDGELOOP_NEXT(el_store_ring)) {
+           el_store_ring = BM_EDGELOOP_NEXT(el_store_ring))
+      {
         ListBase *lb_ring = BM_edgeloop_verts_get(el_store_ring);
         LinkData *v_iter;
 
@@ -718,7 +720,8 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
 
         /* skip first and last */
         for (v_iter = ((LinkData *)lb_ring->first)->next, i = 1; v_iter != lb_ring->last;
-             v_iter = v_iter->next, i++) {
+             v_iter = v_iter->next, i++)
+        {
           float co_a[3], co_b[3];
 
           tri_tmp = tri_array[i];
@@ -740,7 +743,8 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
 
       /* calculate a bezier handle per edge ring */
       for (el_store_ring = eloops_ring->first; el_store_ring;
-           el_store_ring = BM_EDGELOOP_NEXT(el_store_ring)) {
+           el_store_ring = BM_EDGELOOP_NEXT(el_store_ring))
+      {
         ListBase *lb_ring = BM_edgeloop_verts_get(el_store_ring);
         LinkData *v_iter;
 
@@ -790,7 +794,8 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
 
         /* skip first and last */
         for (v_iter = ((LinkData *)lb_ring->first)->next, i = 1; v_iter != lb_ring->last;
-             v_iter = v_iter->next, i++) {
+             v_iter = v_iter->next, i++)
+        {
           if (i > 0 && i < resolu - 1) {
             copy_v3_v3(((BMVert *)v_iter->data)->co, coord_array[i]);
 
@@ -1030,7 +1035,8 @@ static void bm_edgering_pair_subdiv(BMesh *bm,
 
   /* Clear tags so subdiv verts don't get tagged too. */
   for (el_store_ring = eloops_ring->first; el_store_ring;
-       el_store_ring = BM_EDGELOOP_NEXT(el_store_ring)) {
+       el_store_ring = BM_EDGELOOP_NEXT(el_store_ring))
+  {
     bm_edgeloop_vert_tag(el_store_ring, false);
   }
 

@@ -165,6 +165,7 @@ class GHOST_WindowWayland : public GHOST_Window {
    * Return true when the windows scale or DPI changes.
    */
   bool outputs_changed_update_scale();
+  void outputs_changed_update_scale_tag();
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
   void pending_actions_handle();

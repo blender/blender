@@ -551,9 +551,10 @@ template<typename T> class MutableSpan {
    * Replace a subset of all elements with the given value. This invokes undefined behavior when
    * one of the indices is out of bounds.
    */
-  constexpr void fill_indices(Span<int64_t> indices, const T &value)
+  template<typename IndexT> constexpr void fill_indices(Span<IndexT> indices, const T &value)
   {
-    for (int64_t i : indices) {
+    static_assert(std::is_integral_v<IndexT>);
+    for (IndexT i : indices) {
       BLI_assert(i < size_);
       data_[i] = value;
     }

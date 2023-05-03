@@ -16,7 +16,7 @@ std::string path_reference(StringRefNull filepath,
   char filepath_abs[PATH_MAX];
   BLI_strncpy(filepath_abs, filepath.c_str(), PATH_MAX);
   BLI_path_abs(filepath_abs, base_src.c_str());
-  BLI_path_normalize(nullptr, filepath_abs);
+  BLI_path_normalize(filepath_abs);
 
   /* Figure out final mode to be used. */
   if (mode == PATH_REFERENCE_MATCH) {
@@ -67,7 +67,7 @@ void path_reference_copy(const Set<std::pair<std::string, std::string>> &copy_se
     if (0 == BLI_path_cmp_normalized(src, dst)) {
       continue; /* Source and dest are the same. */
     }
-    if (!BLI_make_existing_file(dst)) {
+    if (!BLI_file_ensure_parent_dir_exists(dst)) {
       fprintf(stderr, "Can't make directory for '%s', not copying\n", dst);
       continue;
     }

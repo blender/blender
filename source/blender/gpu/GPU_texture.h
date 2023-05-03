@@ -703,7 +703,7 @@ void GPU_texture_free(GPUTexture *texture);
  * TODO(fclem): Target conversion (ex: Texture 2D as Texture 2D Array) is not implemented yet.
  */
 GPUTexture *GPU_texture_create_view(const char *name,
-                                    const GPUTexture *source_texture,
+                                    GPUTexture *source_texture,
                                     eGPUTextureFormat view_format,
                                     int mip_start,
                                     int mip_len,
@@ -939,6 +939,12 @@ int GPU_texture_width(const GPUTexture *texture);
  * Return the height of \a tex . Correspond to number of layers for 1D array texture.
  */
 int GPU_texture_height(const GPUTexture *texture);
+
+/**
+ * Return the depth of \a tex . Correspond to number of layers for 2D array texture.
+ * NOTE: return 0 for 1D & 2D textures.
+ */
+int GPU_texture_depth(const GPUTexture *texture);
 
 /**
  * Return the number of layers of \a tex . Return 1 if the texture is not layered.

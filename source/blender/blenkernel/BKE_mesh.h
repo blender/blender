@@ -16,7 +16,6 @@
 #include "BKE_customdata.h"
 #include "BKE_mesh_types.h"
 
-struct BLI_Stack;
 struct BMesh;
 struct BMeshCreateParams;
 struct BMeshFromMeshParams;
@@ -31,7 +30,6 @@ struct LinkNode;
 struct ListBase;
 struct MDeformVert;
 struct MDisps;
-struct MEdge;
 struct MFace;
 struct MLoopTri;
 struct Main;
@@ -43,13 +41,6 @@ struct Scene;
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-/* setting zero so we can catch bugs in OpenMP/BMesh */
-#ifdef DEBUG
-#  define BKE_MESH_OMP_LIMIT 0
-#else
-#  define BKE_MESH_OMP_LIMIT 10000
 #endif
 
 /*  mesh_runtime.cc  */
@@ -108,21 +99,36 @@ void BKE_mesh_ensure_default_orig_index_customdata(struct Mesh *mesh);
  */
 void BKE_mesh_ensure_default_orig_index_customdata_no_check(struct Mesh *mesh);
 
+#ifdef __cplusplus
+
 /**
  * Sets each output array element to the edge index if it is a real edge, or -1.
  */
-void BKE_mesh_looptri_get_real_edges(const struct MEdge *edges,
+void BKE_mesh_looptri_get_real_edges(const blender::int2 *edges,
                                      const int *corner_verts,
                                      const int *corner_edges,
                                      const struct MLoopTri *tri,
                                      int r_edges[3]);
+
+#endif
 
 /**
  * Free (or release) any data used by this mesh (does not free the mesh itself).
  * Only use for undo, in most cases `BKE_id_free(nullptr, me)` should be used.
  */
 void BKE_mesh_free_data_for_undo(struct Mesh *me);
+
+/**
+ * Remove all geometry and derived data like caches from the mesh.
+ */
 void BKE_mesh_clear_geometry(struct Mesh *me);
+
+/**
+ * Same as #BKE_mesh_clear_geometry, but also clears attribute meta-data like active attribute
+ * names and vertex group names. Used when the geometry is *entirely* replaced.
+ */
+void BKE_mesh_clear_geometry_and_metadata(struct Mesh *me);
+
 struct Mesh *BKE_mesh_add(struct Main *bmain, const char *name);
 
 void BKE_mesh_free_editmesh(struct Mesh *mesh);
@@ -144,15 +150,15 @@ void BKE_mesh_ensure_skin_customdata(struct Mesh *me);
 /** Add poly offsets to describe faces to a new mesh. */
 void BKE_mesh_poly_offsets_ensure_alloc(struct Mesh *mesh);
 
-struct Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int loops_len, int polys_len);
+struct Mesh *BKE_mesh_new_nomain(int verts_num, int edges_num, int polys_num, int loops_num);
 struct Mesh *BKE_mesh_new_nomain_from_template(
-    const struct Mesh *me_src, int verts_len, int edges_len, int loops_len, int polys_len);
+    const struct Mesh *me_src, int verts_num, int edges_num, int polys_num, int loops_num);
 struct Mesh *BKE_mesh_new_nomain_from_template_ex(const struct Mesh *me_src,
-                                                  int verts_len,
-                                                  int edges_len,
-                                                  int tessface_len,
-                                                  int loops_len,
-                                                  int polys_len,
+                                                  int verts_num,
+                                                  int edges_num,
+                                                  int tessface_num,
+                                                  int polys_num,
+                                                  int loops_num,
                                                   struct CustomData_MeshMasks mask);
 
 void BKE_mesh_eval_delete(struct Mesh *mesh_eval);
@@ -161,7 +167,7 @@ void BKE_mesh_eval_delete(struct Mesh *mesh_eval);
  * Performs copy for use during evaluation,
  * optional referencing original arrays to reduce memory.
  */
-struct Mesh *BKE_mesh_copy_for_eval(const struct Mesh *source, bool reference);
+struct Mesh *BKE_mesh_copy_for_eval(const struct Mesh *source);
 
 /**
  * These functions construct a new Mesh,
@@ -383,9 +389,6 @@ typedef struct MLoopNorSpace {
    *     - BMLoop pointers. */
   struct LinkNode *loops;
   char flags;
-
-  /** To be used for extended processing related to loop normal spaces (aka smooth fans). */
-  void *user_data;
 } MLoopNorSpace;
 /**
  * MLoopNorSpace.flags
@@ -435,6 +438,9 @@ void BKE_lnor_spacearr_tls_join(MLoopNorSpaceArray *lnors_spacearr,
                                 MLoopNorSpaceArray *lnors_spacearr_tls);
 
 MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr);
+
+#ifdef __cplusplus
+
 /**
  * Should only be called once.
  * Beware, this modifies ref_vec and other_vec in place!
@@ -445,7 +451,10 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
                            const float lnor[3],
                            float vec_ref[3],
                            float vec_other[3],
-                           struct BLI_Stack *edge_vectors);
+                           blender::Span<blender::float3> edge_vectors);
+
+#endif
+
 /**
  * Add a new given loop to given lnor_space.
  * Depending on \a lnor_space->data_type, we expect \a bm_loop to be a pointer to BMLoop struct
@@ -654,6 +663,8 @@ bool BKE_mesh_is_valid(struct Mesh *me);
  */
 bool BKE_mesh_validate_material_indices(struct Mesh *me);
 
+#ifdef __cplusplus
+
 /**
  * Validate the mesh, \a do_fixes requires \a mesh to be non-null.
  *
@@ -672,7 +683,7 @@ bool BKE_mesh_validate_material_indices(struct Mesh *me);
 bool BKE_mesh_validate_arrays(struct Mesh *me,
                               float (*vert_positions)[3],
                               unsigned int totvert,
-                              struct MEdge *edges,
+                              blender::int2 *edges,
                               unsigned int totedge,
                               struct MFace *mfaces,
                               unsigned int totface,
@@ -685,6 +696,8 @@ bool BKE_mesh_validate_arrays(struct Mesh *me,
                               bool do_verbose,
                               bool do_fixes,
                               bool *r_change);
+
+#endif
 
 /**
  * \returns is_valid.
@@ -776,23 +789,11 @@ BLI_INLINE float (*BKE_mesh_vert_positions_for_write(Mesh *mesh))[3]
       &mesh->vdata, CD_PROP_FLOAT3, "position", mesh->totvert);
 }
 
-BLI_INLINE const MEdge *BKE_mesh_edges(const Mesh *mesh)
-{
-  return (const MEdge *)CustomData_get_layer(&mesh->edata, CD_MEDGE);
-}
-BLI_INLINE MEdge *BKE_mesh_edges_for_write(Mesh *mesh)
-{
-  return (MEdge *)CustomData_get_layer_for_write(&mesh->edata, CD_MEDGE, mesh->totedge);
-}
-
 BLI_INLINE const int *BKE_mesh_poly_offsets(const Mesh *mesh)
 {
   return mesh->poly_offset_indices;
 }
-BLI_INLINE int *BKE_mesh_poly_offsets_for_write(Mesh *mesh)
-{
-  return mesh->poly_offset_indices;
-}
+int *BKE_mesh_poly_offsets_for_write(Mesh *mesh);
 
 BLI_INLINE const int *BKE_mesh_corner_verts(const Mesh *mesh)
 {

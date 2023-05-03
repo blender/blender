@@ -912,6 +912,27 @@ extern char *GHOST_getClipboard(bool selection);
 extern void GHOST_putClipboard(const char *buffer, bool selection);
 
 /**
+ * Returns GHOST_kSuccess if the clipboard contains an image.
+ */
+extern GHOST_TSuccess GHOST_hasClipboardImage(void);
+
+/**
+ * Get image data from the Clipboard
+ * \param r_width: the returned image width in pixels.
+ * \param r_height: the returned image height in pixels.
+ * \return pointer uint array in RGBA byte order. Caller must free.
+ */
+extern uint *GHOST_getClipboardImage(int *r_width, int *r_height);
+
+/**
+ * Put image data to the Clipboard
+ * \param rgba: uint array in RGBA byte order.
+ * \param width: the image width in pixels.
+ * \param height: the image height in pixels.
+ */
+extern GHOST_TSuccess GHOST_putClipboardImage(uint *rgba, int width, int height);
+
+/**
  * Set the Console State
  * \param action: console state
  * \return current status (1 -visible, 0 - hidden)

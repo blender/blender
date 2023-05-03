@@ -87,7 +87,8 @@ isect_result<mpq2> isect_seg_seg(const mpq2 &v1, const mpq2 &v2, const mpq2 &v3,
     /* Avoid dividing mu by div: it is expensive in multi-precision. */
     mpq_class mudiv = ((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1]));
     if (ans.lambda >= 0 && ans.lambda <= 1 &&
-        ((div > 0 && mudiv >= 0 && mudiv <= div) || (div < 0 && mudiv <= 0 && mudiv >= div))) {
+        ((div > 0 && mudiv >= 0 && mudiv <= div) || (div < 0 && mudiv <= 0 && mudiv >= div)))
+    {
       if (ans.lambda == 0 || ans.lambda == 1 || mudiv == 0 || mudiv == div) {
         ans.kind = isect_result<mpq2>::LINE_LINE_EXACT;
       }

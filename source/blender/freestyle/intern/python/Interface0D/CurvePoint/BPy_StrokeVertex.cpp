@@ -65,8 +65,8 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
   PyObject *obj1 = nullptr, *obj2 = nullptr;
   float t3d;
 
-  if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist_1, &StrokeVertex_Type, &obj1)) {
+  if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &StrokeVertex_Type, &obj1))
+  {
     if (!obj1) {
       self->sv = new StrokeVertex();
     }
@@ -87,7 +87,8 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
                                        &obj1,
                                        &StrokeVertex_Type,
                                        &obj2,
-                                       &t3d)) {
+                                       &t3d))
+  {
     StrokeVertex *sv1 = ((BPy_StrokeVertex *)obj1)->sv;
     StrokeVertex *sv2 = ((BPy_StrokeVertex *)obj2)->sv;
     if (!sv1 || (sv1->A() == nullptr && sv1->B() == nullptr)) {
@@ -102,7 +103,8 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
   }
   else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(
-               args, kwds, "O!", (char **)kwlist_3, &CurvePoint_Type, &obj1)) {
+               args, kwds, "O!", (char **)kwlist_3, &CurvePoint_Type, &obj1))
+  {
     CurvePoint *cp = ((BPy_CurvePoint *)obj1)->cp;
     if (!cp || cp->A() == nullptr || cp->B() == nullptr) {
       PyErr_SetString(PyExc_TypeError, "argument 1 is an invalid CurvePoint object");
@@ -119,7 +121,8 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
                                        &SVertex_Type,
                                        &obj1,
                                        &StrokeAttribute_Type,
-                                       &obj2)) {
+                                       &obj2))
+  {
     if (!obj2) {
       self->sv = new StrokeVertex(((BPy_SVertex *)obj1)->sv);
     }

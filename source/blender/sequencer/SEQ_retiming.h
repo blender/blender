@@ -39,6 +39,7 @@ float SEQ_retiming_handle_speed_get(const struct Sequence *seq,
                                     const struct SeqRetimingHandle *handle);
 int SEQ_retiming_handle_index_get(const struct Sequence *seq,
                                   const struct SeqRetimingHandle *handle);
+void SEQ_retiming_sound_animation_data_set(const struct Scene *scene, const struct Sequence *seq);
 float SEQ_retiming_handle_timeline_frame_get(const struct Scene *scene,
                                              const struct Sequence *seq,
                                              const struct SeqRetimingHandle *handle);

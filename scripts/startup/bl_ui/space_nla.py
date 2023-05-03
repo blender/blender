@@ -150,7 +150,7 @@ class NLA_MT_marker(Menu):
 
 
 class NLA_MT_marker_select(Menu):
-    bl_label = 'Select'
+    bl_label = "Select"
 
     def draw(self, _context):
         layout = self.layout

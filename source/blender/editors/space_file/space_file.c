@@ -204,7 +204,8 @@ static void file_refresh(const bContext *C, ScrArea *area)
   folder_history_list_ensure_for_active_browse_mode(sfile);
 
   if (sfile->files && (sfile->tags & FILE_TAG_REBUILD_MAIN_FILES) &&
-      filelist_needs_reset_on_main_changes(sfile->files)) {
+      filelist_needs_reset_on_main_changes(sfile->files))
+  {
     filelist_tag_force_reset_mainfiles(sfile->files);
   }
   sfile->tags &= ~FILE_TAG_REBUILD_MAIN_FILES;
@@ -508,7 +509,8 @@ static bool file_main_region_needs_refresh_before_draw(SpaceFile *sfile)
 
   /* File reading tagged the space because main data changed that may require a filelist reset. */
   if (filelist_needs_reset_on_main_changes(sfile->files) &&
-      (sfile->tags & FILE_TAG_REBUILD_MAIN_FILES)) {
+      (sfile->tags & FILE_TAG_REBUILD_MAIN_FILES))
+  {
     return true;
   }
 
@@ -613,6 +615,7 @@ static void file_operatortypes(void)
   WM_operatortype_append(FILE_OT_start_filter);
   WM_operatortype_append(FILE_OT_edit_directory_path);
   WM_operatortype_append(FILE_OT_view_selected);
+  WM_operatortype_append(FILE_OT_external_operation);
 }
 
 /* NOTE: do not add .blend file reading on this level */
@@ -822,6 +825,7 @@ const char *file_context_dir[] = {
     "asset_library_ref",
     "selected_asset_files",
     "id",
+    "selected_ids",
     NULL,
 };
 
@@ -910,6 +914,24 @@ static int /*eContextResult*/ file_context(const bContext *C,
     CTX_data_id_pointer_set(result, id);
     return CTX_RESULT_OK;
   }
+  if (CTX_data_equals(member, "selected_ids")) {
+    const int num_files_filtered = filelist_files_ensure(sfile->files);
+
+    for (int file_index = 0; file_index < num_files_filtered; file_index++) {
+      if (!filelist_entry_is_selected(sfile->files, file_index)) {
+        continue;
+      }
+      ID *id = filelist_entry_get_id(sfile->files, file_index);
+      if (!id) {
+        continue;
+      }
+
+      CTX_data_id_list_add(result, id);
+    }
+
+    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+    return CTX_RESULT_OK;
+  }
 
   return CTX_RESULT_MEMBER_NOT_FOUND;
 }
@@ -925,7 +947,7 @@ static void file_id_remap(ScrArea *area, SpaceLink *sl, const struct IDRemapper 
   file_reset_filelist_showing_main_data(area, sfile);
 }
 
-static void file_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+static void file_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceFile *sfile = (SpaceFile *)sl;
 
@@ -950,15 +972,15 @@ static void file_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   }
 }
 
-static void file_blend_read_lib(BlendLibReader *UNUSED(reader),
-                                ID *UNUSED(parent_id),
-                                SpaceLink *sl)
+static void file_space_blend_read_lib(BlendLibReader *UNUSED(reader),
+                                      ID *UNUSED(parent_id),
+                                      SpaceLink *sl)
 {
   SpaceFile *sfile = (SpaceFile *)sl;
   sfile->tags |= FILE_TAG_REBUILD_MAIN_FILES;
 }
 
-static void file_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void file_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceFile *sfile = (SpaceFile *)sl;
 
@@ -994,9 +1016,9 @@ void ED_spacetype_file(void)
   st->space_subtype_set = file_space_subtype_set;
   st->context = file_context;
   st->id_remap = file_id_remap;
-  st->blend_read_data = file_blend_read_data;
-  st->blend_read_lib = file_blend_read_lib;
-  st->blend_write = file_blend_write;
+  st->blend_read_data = file_space_blend_read_data;
+  st->blend_read_lib = file_space_blend_read_lib;
+  st->blend_write = file_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype file region");
@@ -1063,6 +1085,7 @@ void ED_spacetype_file(void)
   art->draw = file_tools_region_draw;
   BLI_addhead(&st->regiontypes, art);
   file_tool_props_region_panels_register(art);
+  file_external_operations_menu_register();
 
   BKE_spacetype_register(st);
 }
@@ -1096,8 +1119,8 @@ void ED_file_read_bookmarks(void)
   fsmenu_read_system(ED_fsmenu_get(), true);
 
   if (cfgdir) {
-    char name[FILE_MAX];
-    BLI_path_join(name, sizeof(name), cfgdir, BLENDER_BOOKMARK_FILE);
-    fsmenu_read_bookmarks(ED_fsmenu_get(), name);
+    char filepath[FILE_MAX];
+    BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_BOOKMARK_FILE);
+    fsmenu_read_bookmarks(ED_fsmenu_get(), filepath);
   }
 }

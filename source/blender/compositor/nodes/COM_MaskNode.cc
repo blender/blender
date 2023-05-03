@@ -27,11 +27,11 @@ void MaskNode::convert_to_operations(NodeConverter &converter,
   /* Always connect the output image. */
   MaskOperation *operation = new MaskOperation();
 
-  if (editor_node->custom1 & CMP_NODEFLAG_MASK_FIXED) {
+  if (editor_node->custom1 & CMP_NODE_MASK_FLAG_SIZE_FIXED) {
     operation->set_mask_width(data->size_x);
     operation->set_mask_height(data->size_y);
   }
-  else if (editor_node->custom1 & CMP_NODEFLAG_MASK_FIXED_SCENE) {
+  else if (editor_node->custom1 & CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE) {
     operation->set_mask_width(data->size_x * render_size_factor);
     operation->set_mask_height(data->size_y * render_size_factor);
   }
@@ -42,10 +42,11 @@ void MaskNode::convert_to_operations(NodeConverter &converter,
 
   operation->set_mask(mask);
   operation->set_framenumber(context.get_framenumber());
-  operation->set_feather(bool(editor_node->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
+  operation->set_feather(bool(editor_node->custom1 & CMP_NODE_MASK_FLAG_NO_FEATHER) == 0);
 
-  if ((editor_node->custom1 & CMP_NODEFLAG_MASK_MOTION_BLUR) && (editor_node->custom2 > 1) &&
-      (editor_node->custom3 > FLT_EPSILON)) {
+  if ((editor_node->custom1 & CMP_NODE_MASK_FLAG_MOTION_BLUR) && (editor_node->custom2 > 1) &&
+      (editor_node->custom3 > FLT_EPSILON))
+  {
     operation->set_motion_blur_samples(editor_node->custom2);
     operation->set_motion_blur_shutter(editor_node->custom3);
   }

@@ -743,7 +743,8 @@ static void bpy_prop_boolean_array_get_fn(struct PointerRNA *ptr,
                                          ret,
                                          &array_len_info,
                                          &PyBool_Type,
-                                         "BoolVectorProperty get callback") == -1) {
+                                         "BoolVectorProperty get callback") == -1)
+    {
       PyC_Err_PrintWithFunc(py_func);
     }
     else {
@@ -1004,7 +1005,8 @@ static void bpy_prop_int_array_get_fn(struct PointerRNA *ptr,
                                          ret,
                                          &array_len_info,
                                          &PyLong_Type,
-                                         "IntVectorProperty get callback") == -1) {
+                                         "IntVectorProperty get callback") == -1)
+    {
       PyC_Err_PrintWithFunc(py_func);
     }
     else {
@@ -1266,7 +1268,8 @@ static void bpy_prop_float_array_get_fn(struct PointerRNA *ptr,
                                          ret,
                                          &array_len_info,
                                          &PyFloat_Type,
-                                         "FloatVectorProperty get callback") == -1) {
+                                         "FloatVectorProperty get callback") == -1)
+    {
       PyC_Err_PrintWithFunc(py_func);
     }
     else {
@@ -2009,7 +2012,8 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
         (item_size != 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value)) &&
         (item_size != 5 || ((py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.icon) ||
                              (tmp_icon = PyUnicode_AsUTF8(PyTuple_GET_ITEM(item, 3)))) &&
-                            py_long_as_int(PyTuple_GET_ITEM(item, 4), &tmp.value)))) {
+                            py_long_as_int(PyTuple_GET_ITEM(item, 4), &tmp.value))))
+    {
       if (is_enum_flag) {
         if (item_size < 4) {
           tmp.value = 1 << i;
@@ -2027,7 +2031,8 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
 
         if (default_py && default_used == 0) {
           if ((default_str_cmp != NULL && STREQ(default_str_cmp, tmp.identifier)) ||
-              (default_str_cmp == NULL && default_int_cmp == tmp.value)) {
+              (default_str_cmp == NULL && default_int_cmp == tmp.value))
+          {
             *r_default_value = tmp.value;
             default_used++; /* only ever 1 */
           }
@@ -2161,7 +2166,8 @@ static const EnumPropertyItem *bpy_prop_enum_itemf_fn(struct bContext *C,
 
     if (!(items_fast = PySequence_Fast(items,
                                        "EnumProperty(...): "
-                                       "return value from the callback was not a sequence"))) {
+                                       "return value from the callback was not a sequence")))
+    {
       err = -1;
     }
     else {
@@ -2571,7 +2577,8 @@ static int bpy_prop_arg_parse_id(PyObject *o, void *p)
 
   parse_data->prop_free_handle = NULL;
   if (UNLIKELY(RNA_def_property_free_identifier_deferred_prepare(
-                   srna, id, &parse_data->prop_free_handle) == -1)) {
+                   srna, id, &parse_data->prop_free_handle) == -1))
+  {
     PyErr_Format(PyExc_TypeError,
                  "'%s' is defined as a non-dynamic type for '%s'",
                  id,
@@ -2840,7 +2847,8 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
                                         &subtype_enum,
                                         &update_fn,
                                         &get_fn,
-                                        &set_fn)) {
+                                        &set_fn))
+  {
     return NULL;
   }
 
@@ -2990,7 +2998,8 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
                                         &array_len_info,
                                         &update_fn,
                                         &get_fn,
-                                        &set_fn)) {
+                                        &set_fn))
+  {
     return NULL;
   }
 
@@ -3000,7 +3009,8 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
                                          default_py,
                                          &array_len_info,
                                          &PyBool_Type,
-                                         "BoolVectorProperty(default=sequence)") == -1) {
+                                         "BoolVectorProperty(default=sequence)") == -1)
+    {
       return NULL;
     }
   }
@@ -3177,7 +3187,8 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
                                         &subtype_enum,
                                         &update_fn,
                                         &get_fn,
-                                        &set_fn)) {
+                                        &set_fn))
+  {
     return NULL;
   }
 
@@ -3354,7 +3365,8 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
                                         &array_len_info,
                                         &update_fn,
                                         &get_fn,
-                                        &set_fn)) {
+                                        &set_fn))
+  {
     return NULL;
   }
 
@@ -3364,7 +3376,8 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
                                          default_py,
                                          &array_len_info,
                                          &PyLong_Type,
-                                         "IntVectorProperty(default=sequence)") == -1) {
+                                         "IntVectorProperty(default=sequence)") == -1)
+    {
       return NULL;
     }
   }
@@ -3543,7 +3556,8 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
                                         &unit_enum,
                                         &update_fn,
                                         &get_fn,
-                                        &set_fn)) {
+                                        &set_fn))
+  {
     return NULL;
   }
 
@@ -3719,7 +3733,8 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
                                         &array_len_info,
                                         &update_fn,
                                         &get_fn,
-                                        &set_fn)) {
+                                        &set_fn))
+  {
     return NULL;
   }
 
@@ -3729,7 +3744,8 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
                                          default_py,
                                          &array_len_info,
                                          &PyFloat_Type,
-                                         "FloatVectorProperty(default=sequence)") == -1) {
+                                         "FloatVectorProperty(default=sequence)") == -1)
+    {
       return NULL;
     }
     if (bpy_prop_array_is_matrix_compatible_ex(subtype_enum.value, &array_len_info)) {
@@ -3909,7 +3925,8 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
                                         &set_fn,
                                         &search_fn,
                                         pyrna_enum_bitfield_parse_set,
-                                        &search_options_enum)) {
+                                        &search_options_enum))
+  {
     return NULL;
   }
 
@@ -4096,7 +4113,8 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
                                         &tags_enum,
                                         &update_fn,
                                         &get_fn,
-                                        &set_fn)) {
+                                        &set_fn))
+  {
     return NULL;
   }
 
@@ -4116,9 +4134,9 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
     default_py = NULL;
   }
 
-  /* items can be a list or a callable */
-  if (PyFunction_Check(
-          items)) { /* don't use PyCallable_Check because we need the function code for errors */
+  /* Items can be a list or a callable.
+   * NOTE: Don't use #PyCallable_Check because we need the function code for errors. */
+  if (PyFunction_Check(items)) {
     PyCodeObject *f_code = (PyCodeObject *)PyFunction_GET_CODE(items);
     if (f_code->co_argcount != 2) {
       PyErr_Format(PyExc_ValueError,
@@ -4145,7 +4163,8 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
     if (!(items_fast = PySequence_Fast(
               items,
               "EnumProperty(...): "
-              "expected a sequence of tuples for the enum items or a function"))) {
+              "expected a sequence of tuples for the enum items or a function")))
+    {
       return NULL;
     }
 
@@ -4310,7 +4329,8 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
                                         bpy_prop_arg_parse_tag_defines,
                                         &tags_enum,
                                         &poll_fn,
-                                        &update_fn)) {
+                                        &update_fn))
+  {
     return NULL;
   }
 
@@ -4440,7 +4460,8 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
                                         pyrna_enum_bitfield_parse_set,
                                         &override_enum,
                                         bpy_prop_arg_parse_tag_defines,
-                                        &tags_enum)) {
+                                        &tags_enum))
+  {
     return NULL;
   }
 

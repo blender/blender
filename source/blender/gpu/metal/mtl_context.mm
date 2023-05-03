@@ -189,6 +189,16 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
   [this->queue retain];
   [this->device retain];
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-method-access"
+  /* Enable increased concurrent shader compiler limit.
+   * Note: Disable warning for missing method when building on older OS's, as compiled code will
+   * still work correctly when run on a system with the API available. */
+  if (@available(macOS 13.3, *)) {
+    [this->device setShouldMaximizeConcurrentCompilation:YES];
+  }
+#pragma clang diagnostic pop
+
   /* Register present callback. */
   this->ghost_context_->metalRegisterPresentCallback(&present);
 
@@ -261,7 +271,8 @@ MTLContext::~MTLContext()
   /* Unbind UBOs */
   for (int i = 0; i < MTL_MAX_UNIFORM_BUFFER_BINDINGS; i++) {
     if (this->pipeline_state.ubo_bindings[i].bound &&
-        this->pipeline_state.ubo_bindings[i].ubo != nullptr) {
+        this->pipeline_state.ubo_bindings[i].ubo != nullptr)
+    {
       GPUUniformBuf *ubo = wrap(
           static_cast<UniformBuf *>(this->pipeline_state.ubo_bindings[i].ubo));
       GPU_uniformbuf_unbind(ubo);
@@ -362,7 +373,8 @@ void MTLContext::activate()
   /* Reset UBO bind state. */
   for (int i = 0; i < MTL_MAX_UNIFORM_BUFFER_BINDINGS; i++) {
     if (this->pipeline_state.ubo_bindings[i].bound &&
-        this->pipeline_state.ubo_bindings[i].ubo != nullptr) {
+        this->pipeline_state.ubo_bindings[i].ubo != nullptr)
+    {
       this->pipeline_state.ubo_bindings[i].bound = false;
       this->pipeline_state.ubo_bindings[i].ubo = nullptr;
     }
@@ -430,7 +442,8 @@ id<MTLRenderCommandEncoder> MTLContext::ensure_begin_render_pass()
   /* Ensure command buffer workload submissions are optimal --
    * Though do not split a batch mid-IMM recording. */
   if (this->main_command_buffer.do_break_submission() &&
-      !((MTLImmediate *)(this->imm))->imm_is_recording()) {
+      !((MTLImmediate *)(this->imm))->imm_is_recording())
+  {
     this->flush();
   }
 
@@ -439,7 +452,8 @@ id<MTLRenderCommandEncoder> MTLContext::ensure_begin_render_pass()
   if (!this->main_command_buffer.is_inside_render_pass() ||
       this->active_fb != this->main_command_buffer.get_active_framebuffer() ||
       this->main_command_buffer.get_active_framebuffer()->get_dirty() ||
-      this->is_visibility_dirty()) {
+      this->is_visibility_dirty())
+  {
 
     /* Validate bound framebuffer before beginning render pass. */
     if (!static_cast<MTLFrameBuffer *>(this->active_fb)->validate_render_pass()) {
@@ -497,7 +511,7 @@ id<MTLBuffer> MTLContext::get_null_buffer()
   null_buffer_ = [this->device newBufferWithLength:null_buffer_size
                                            options:MTLResourceStorageModeManaged];
   [null_buffer_ retain];
-  uint32_t *null_data = (uint32_t *)calloc(0, null_buffer_size);
+  uint32_t *null_data = (uint32_t *)calloc(1, null_buffer_size);
   memcpy([null_buffer_ contents], null_data, null_buffer_size);
   [null_buffer_ didModifyRange:NSMakeRange(0, null_buffer_size)];
   free(null_data);
@@ -949,20 +963,23 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
 
         /* Some scissor assignments exceed the bounds of the viewport due to implicitly added
          * padding to the width/height - Clamp width/height. */
-        BLI_assert(scissor.x >= 0 && scissor.x < render_fb->get_width());
-        BLI_assert(scissor.y >= 0 && scissor.y < render_fb->get_height());
-        scissor.width = min_ii(scissor.width, render_fb->get_width() - scissor.x);
-        scissor.height = min_ii(scissor.height, render_fb->get_height() - scissor.y);
-        BLI_assert(scissor.width > 0 && (scissor.x + scissor.width <= render_fb->get_width()));
-        BLI_assert(scissor.height > 0 && (scissor.height <= render_fb->get_height()));
+        BLI_assert(scissor.x >= 0 && scissor.x < render_fb->get_default_width());
+        BLI_assert(scissor.y >= 0 && scissor.y < render_fb->get_default_height());
+        scissor.width = (uint)min_ii(scissor.width,
+                                     max_ii(render_fb->get_default_width() - (int)(scissor.x), 0));
+        scissor.height = (uint)min_ii(
+            scissor.height, max_ii(render_fb->get_default_height() - (int)(scissor.y), 0));
+        BLI_assert(scissor.width > 0 &&
+                   (scissor.x + scissor.width <= render_fb->get_default_width()));
+        BLI_assert(scissor.height > 0 && (scissor.height <= render_fb->get_default_height()));
       }
       else {
         /* Scissor is disabled, reset to default size as scissor state may have been previously
          * assigned on this encoder. */
         scissor.x = 0;
         scissor.y = 0;
-        scissor.width = render_fb->get_width();
-        scissor.height = render_fb->get_height();
+        scissor.width = render_fb->get_default_width();
+        scissor.height = render_fb->get_default_height();
       }
 
       /* Scissor state can still be flagged as changed if it is toggled on and off, without
@@ -1049,7 +1066,8 @@ bool MTLContext::ensure_uniform_buffer_bindings(
      * the current RenderCommandEncoder. */
     if (this->pipeline_state.active_shader->get_push_constant_is_dirty() ||
         active_shader_changed || !rps.cached_vertex_buffer_bindings[buffer_index].is_bytes ||
-        !rps.cached_fragment_buffer_bindings[buffer_index].is_bytes || true) {
+        !rps.cached_fragment_buffer_bindings[buffer_index].is_bytes || true)
+    {
 
       /* Bind push constant data. */
       BLI_assert(this->pipeline_state.active_shader->get_push_constant_data() != nullptr);
@@ -1968,7 +1986,8 @@ void MTLContext::texture_bind(gpu::MTLTexture *mtl_texture, uint texture_unit)
   BLI_assert(mtl_texture);
 
   if (texture_unit < 0 || texture_unit >= GPU_max_textures() ||
-      texture_unit >= MTL_MAX_TEXTURE_SLOTS) {
+      texture_unit >= MTL_MAX_TEXTURE_SLOTS)
+  {
     MTL_LOG_WARNING("Attempting to bind texture '%s' to invalid texture unit %d\n",
                     mtl_texture->get_name(),
                     texture_unit);
@@ -1986,7 +2005,8 @@ void MTLContext::sampler_bind(MTLSamplerState sampler_state, uint sampler_unit)
 {
   BLI_assert(this);
   if (sampler_unit < 0 || sampler_unit >= GPU_max_textures() ||
-      sampler_unit >= MTL_MAX_SAMPLER_SLOTS) {
+      sampler_unit >= MTL_MAX_SAMPLER_SLOTS)
+  {
     MTL_LOG_WARNING("Attempting to bind sampler to invalid sampler unit %d\n", sampler_unit);
     BLI_assert(false);
     return;
@@ -2017,7 +2037,8 @@ void MTLContext::texture_unbind_all()
   /* Iterate through context's bound textures. */
   for (int t = 0; t < min_uu(GPU_max_textures(), MTL_MAX_TEXTURE_SLOTS); t++) {
     if (this->pipeline_state.texture_bindings[t].used &&
-        this->pipeline_state.texture_bindings[t].texture_resource) {
+        this->pipeline_state.texture_bindings[t].texture_resource)
+    {
 
       this->pipeline_state.texture_bindings[t].used = false;
       this->pipeline_state.texture_bindings[t].texture_resource = nullptr;
@@ -2187,16 +2208,6 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
    * for rendering as the main context does. */
   id<MTLCommandBuffer> cmdbuf = [ctx->queue commandBuffer];
   MTLCommandBufferManager::num_active_cmd_bufs++;
-
-  if (MTLCommandBufferManager::sync_event != nil) {
-    /* Release synchronization primitive for current frame to avoid cross-frame dependencies.
-     * We require MTLEvents to ensure correct ordering of workload submissions within a frame,
-     * however, we should not create long chains of dependencies spanning several drawables as any
-     * temporary stalls can then trigger erroneous GPU timeouts in non-dependent submissions.  */
-    [MTLCommandBufferManager::sync_event release];
-    MTLCommandBufferManager::sync_event = nil;
-    MTLCommandBufferManager::event_signal_val = 0;
-  }
 
   /* Do Present Call and final Blit to MTLDrawable. */
   id<MTLRenderCommandEncoder> enc = [cmdbuf renderCommandEncoderWithDescriptor:blit_descriptor];

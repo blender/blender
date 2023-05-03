@@ -44,7 +44,7 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
     mesh_edges_ = export_mesh_->edges();
     mesh_polys_ = export_mesh_->polys();
     mesh_corner_verts_ = export_mesh_->corner_verts();
-    sharp_faces_ = export_mesh_->attributes().lookup_or_default<bool>(
+    sharp_faces_ = *export_mesh_->attributes().lookup_or_default<bool>(
         "sharp_face", ATTR_DOMAIN_FACE, false);
   }
   else {
@@ -78,7 +78,7 @@ void OBJMesh::set_mesh(Mesh *mesh)
   mesh_edges_ = mesh->edges();
   mesh_polys_ = mesh->polys();
   mesh_corner_verts_ = mesh->corner_verts();
-  sharp_faces_ = export_mesh_->attributes().lookup_or_default<bool>(
+  sharp_faces_ = *export_mesh_->attributes().lookup_or_default<bool>(
       "sharp_face", ATTR_DOMAIN_FACE, false);
 }
 
@@ -214,7 +214,7 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
 void OBJMesh::calc_poly_order()
 {
   const bke::AttributeAccessor attributes = export_mesh_->attributes();
-  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   if (material_indices.is_single() && material_indices.get_internal_single() == 0) {
     return;
@@ -296,7 +296,7 @@ void OBJMesh::store_uv_coords_and_indices()
     return;
   }
   const bke::AttributeAccessor attributes = export_mesh_->attributes();
-  const VArraySpan<float2> uv_map = attributes.lookup<float2>(active_uv_name, ATTR_DOMAIN_CORNER);
+  const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_name, ATTR_DOMAIN_CORNER);
   if (uv_map.is_empty()) {
     uv_coords_.clear();
     return;

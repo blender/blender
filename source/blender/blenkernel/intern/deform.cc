@@ -1045,7 +1045,7 @@ void BKE_defvert_extract_vgroup_to_vertweights(const MDeformVert *dvert,
 void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int verts_num,
-                                               const MEdge *edges,
+                                               const blender::int2 *edges,
                                                const int edges_num,
                                                const bool invert_vgroup,
                                                float *r_weights)
@@ -1059,9 +1059,9 @@ void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
         dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
 
     while (i--) {
-      const MEdge *edge = &edges[i];
+      const blender::int2 &edge = edges[i];
 
-      r_weights[i] = (tmp_weights[edge->v1] + tmp_weights[edge->v2]) * 0.5f;
+      r_weights[i] = (tmp_weights[edge[0]] + tmp_weights[edge[1]]) * 0.5f;
     }
 
     MEM_freeN(tmp_weights);
@@ -1301,7 +1301,8 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
 
       for (idx_src = 0, dg_src = static_cast<bDeformGroup *>(src_list->first);
            idx_src < num_layers_src;
-           idx_src++, dg_src = dg_src->next) {
+           idx_src++, dg_src = dg_src->next)
+      {
         if (!use_layers_src[idx_src]) {
           continue;
         }
@@ -1610,7 +1611,8 @@ void BKE_defvert_blend_read(BlendDataReader *reader, int count, MDeformVert *mdv
     /* Convert to vertex group allocation system. */
     MDeformWeight *dw;
     if (mdverts->dw &&
-        (dw = static_cast<MDeformWeight *>(BLO_read_get_new_data_address(reader, mdverts->dw)))) {
+        (dw = static_cast<MDeformWeight *>(BLO_read_get_new_data_address(reader, mdverts->dw))))
+    {
       const size_t dw_len = sizeof(MDeformWeight) * mdverts->totweight;
       void *dw_tmp = MEM_mallocN(dw_len, __func__);
       memcpy(dw_tmp, dw, dw_len);

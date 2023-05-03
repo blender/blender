@@ -123,7 +123,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
   }
 
   bPose *pose = pbd->ob->pose;
-  bAction *act = pbd->act;
+  bAction *act = poselib_action_to_blend(pbd);
 
   KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
   ListBase dsources = {NULL, NULL};
@@ -138,7 +138,8 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
     }
 
     if (BKE_pose_backup_is_selection_relevant(pbd->pose_backup) &&
-        !PBONE_SELECTED(armature, pchan->bone)) {
+        !PBONE_SELECTED(armature, pchan->bone))
+    {
       continue;
     }
 
@@ -222,7 +223,8 @@ static int poselib_blend_handle_event(bContext *UNUSED(C), wmOperator *op, const
 
   /* Handle the release confirm event directly, it has priority over others. */
   if (pbd->release_confirm_info.use_release_confirm &&
-      (event->type == pbd->release_confirm_info.init_event_type) && (event->val == KM_RELEASE)) {
+      (event->type == pbd->release_confirm_info.init_event_type) && (event->val == KM_RELEASE))
+  {
     pbd->state = POSE_BLEND_CONFIRM;
     return OPERATOR_RUNNING_MODAL;
   }

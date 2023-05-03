@@ -149,8 +149,8 @@ static bool parse_int_range_relative(const char *str,
                                      const char **r_err_msg)
 {
   if (parse_int_relative(str, str_end_range, pos, neg, &r_value_range[0], r_err_msg) &&
-      parse_int_relative(
-          str_end_range + 2, str_end_test, pos, neg, &r_value_range[1], r_err_msg)) {
+      parse_int_relative(str_end_range + 2, str_end_test, pos, neg, &r_value_range[1], r_err_msg))
+  {
     return true;
   }
   return false;
@@ -329,7 +329,8 @@ static int (*parse_int_range_relative_clamp_n(const char *str,
                  parse_int_range_relative_clamp(
                      str, str_end_range, str_end, pos, neg, min, max, values[i], r_err_msg) :
                  parse_int_relative_clamp(
-                     str, str_end, pos, neg, min, max, &values[i][0], r_err_msg)) {
+                     str, str_end, pos, neg, min, max, &values[i][0], r_err_msg))
+    {
       if (str_end_range == NULL) {
         values[i][1] = values[i][0];
       }
@@ -395,7 +396,8 @@ static void arg_py_context_restore(bContext *C, struct BlendePyContextStore *c_p
   /* script may load a file, check old data is valid before using */
   if (c_py->has_win) {
     if ((c_py->win == NULL) || ((BLI_findindex(&G_MAIN->wm, c_py->wm) != -1) &&
-                                (BLI_findindex(&c_py->wm->windows, c_py->win) != -1))) {
+                                (BLI_findindex(&c_py->wm->windows, c_py->win) != -1)))
+    {
       CTX_wm_window_set(C, c_py->win);
     }
   }
@@ -1675,7 +1677,8 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
                                                               MINAFRAME,
                                                               MAXFRAME,
                                                               &frames_range_len,
-                                                              &err_msg)) == NULL) {
+                                                              &err_msg)) == NULL)
+      {
         fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
         return 1;
       }
@@ -1774,7 +1777,8 @@ static int arg_handle_frame_start_set(int argc, const char **argv, void *data)
                                     MINAFRAME,
                                     MAXFRAME,
                                     &scene->r.sfra,
-                                    &err_msg)) {
+                                    &err_msg))
+      {
         fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
       }
       else {
@@ -1807,7 +1811,8 @@ static int arg_handle_frame_end_set(int argc, const char **argv, void *data)
                                     MINAFRAME,
                                     MAXFRAME,
                                     &scene->r.efra,
-                                    &err_msg)) {
+                                    &err_msg))
+      {
         fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
       }
       else {
@@ -2060,7 +2065,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
   BLI_strncpy(filepath, argv[0], sizeof(filepath));
   BLI_path_slash_native(filepath);
   BLI_path_abs_from_cwd(filepath, sizeof(filepath));
-  BLI_path_normalize(NULL, filepath);
+  BLI_path_normalize(filepath);
 
   /* load the file */
   BKE_reports_init(&reports, RPT_PRINT);

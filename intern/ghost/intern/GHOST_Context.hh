@@ -11,8 +11,6 @@
 #include "GHOST_IContext.hh"
 #include "GHOST_Types.h"
 
-#include <epoxy/gl.h>
-
 #include <cstdlib>  // for NULL
 
 class GHOST_Context : public GHOST_IContext {

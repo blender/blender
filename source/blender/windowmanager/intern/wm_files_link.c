@@ -126,7 +126,8 @@ static int wm_link_append_flag(wmOperator *op)
     flag |= FILE_ACTIVE_COLLECTION;
   }
   if ((prop = RNA_struct_find_property(op->ptr, "relative_path")) &&
-      RNA_property_boolean_get(op->ptr, prop)) {
+      RNA_property_boolean_get(op->ptr, prop))
+  {
     flag |= FILE_RELPATH;
   }
   if (RNA_boolean_get(op->ptr, "link")) {
@@ -177,7 +178,8 @@ static bool wm_link_append_item_poll(ReportList *reports,
   idcode = BKE_idtype_idcode_from_name(group);
 
   if (!BKE_idtype_idcode_is_linkable(idcode) ||
-      (!do_append && BKE_idtype_idcode_is_only_appendable(idcode))) {
+      (!do_append && BKE_idtype_idcode_is_only_appendable(idcode)))
+  {
     if (reports) {
       if (do_append) {
         BKE_reportf(reports,

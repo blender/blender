@@ -84,10 +84,14 @@ static void report_job_duration(const ExportJobData *data)
 static bool perform_usdz_conversion(const ExportJobData *data)
 {
   char usdc_temp_dir[FILE_MAX], usdc_file[FILE_MAX];
-  BLI_split_dirfile(data->unarchived_filepath, usdc_temp_dir, usdc_file, FILE_MAX, FILE_MAX);
+  BLI_path_split_dir_file(data->unarchived_filepath,
+                          usdc_temp_dir,
+                          sizeof(usdc_temp_dir),
+                          usdc_file,
+                          sizeof(usdc_file));
 
   char usdz_file[FILE_MAX];
-  BLI_split_file_part(data->usdz_filepath, usdz_file, FILE_MAX);
+  BLI_path_split_file_part(data->usdz_filepath, usdz_file, FILE_MAX);
 
   char original_working_dir_buff[FILE_MAX];
   char *original_working_dir = BLI_current_working_dir(original_working_dir_buff,
@@ -251,7 +255,7 @@ static void export_endjob_usdz_cleanup(const ExportJobData *data)
   }
 
   char dir[FILE_MAX];
-  BLI_split_dir_part(data->unarchived_filepath, dir, FILE_MAX);
+  BLI_path_split_dir_part(data->unarchived_filepath, dir, FILE_MAX);
 
   char usdc_temp_dir[FILE_MAX];
   BLI_path_join(usdc_temp_dir, FILE_MAX, BKE_tempdir_session(), "USDZ", SEP_STR);
@@ -292,7 +296,7 @@ static void create_temp_path_for_usdz_export(const char *filepath,
                                              blender::io::usd::ExportJobData *job)
 {
   char file[FILE_MAX];
-  BLI_split_file_part(filepath, file, FILE_MAX);
+  BLI_path_split_file_part(filepath, file, FILE_MAX);
   char *usdc_file = BLI_str_replaceN(file, ".usdz", ".usdc");
 
   char usdc_temp_filepath[FILE_MAX];

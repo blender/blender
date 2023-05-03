@@ -62,97 +62,7 @@ using blender::MutableSpan;
 using blender::Span;
 using blender::StringRefNull;
 
-/* Define for cases when you want extra validation of mesh
- * after certain modifications.
- */
-// #undef VALIDATE_MESH
-
-#ifdef VALIDATE_MESH
-#  define ASSERT_IS_VALID_MESH(mesh) \
-    (BLI_assert((mesh == nullptr) || (BKE_mesh_is_valid(mesh) == true)))
-#else
-#  define ASSERT_IS_VALID_MESH(mesh)
-#endif
-
 static CLG_LogRef LOG = {"bke.mesh_convert"};
-
-static void poly_edgehash_insert(EdgeHash *ehash, const Span<int> poly_verts)
-{
-  int i = poly_verts.size();
-
-  int next = 0;              /* first loop */
-  int poly_corner = (i - 1); /* last loop */
-
-  while (i-- != 0) {
-    BLI_edgehash_reinsert(ehash, poly_verts[poly_corner], poly_verts[next], nullptr);
-
-    poly_corner = next;
-    next++;
-  }
-}
-
-/**
- * Specialized function to use when we _know_ existing edges don't overlap with poly edges.
- */
-static void make_edges_mdata_extend(Mesh &mesh)
-{
-  int totedge = mesh.totedge;
-
-  const blender::OffsetIndices polys = mesh.polys();
-  const Span<int> corner_verts = mesh.corner_verts();
-  MutableSpan<int> corner_edges = mesh.corner_edges_for_write();
-
-  const int eh_reserve = max_ii(totedge, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(mesh.totpoly));
-  EdgeHash *eh = BLI_edgehash_new_ex(__func__, eh_reserve);
-
-  for (const int i : polys.index_range()) {
-    poly_edgehash_insert(eh, corner_verts.slice(polys[i]));
-  }
-
-  const int totedge_new = BLI_edgehash_len(eh);
-
-#ifdef DEBUG
-  /* ensure that there's no overlap! */
-  if (totedge_new) {
-    for (const MEdge &edge : mesh.edges()) {
-      BLI_assert(BLI_edgehash_haskey(eh, edge.v1, edge.v2) == false);
-    }
-  }
-#endif
-
-  if (totedge_new) {
-    /* The only layer should be edges, so no other layers need to be initialized. */
-    BLI_assert(mesh.edata.totlayer == 1);
-    CustomData_realloc(&mesh.edata, totedge, totedge + totedge_new);
-    mesh.totedge += totedge_new;
-    MutableSpan<MEdge> edges = mesh.edges_for_write();
-    MEdge *edge = &edges[totedge];
-
-    EdgeHashIterator *ehi;
-    uint e_index = totedge;
-    for (ehi = BLI_edgehashIterator_new(eh); BLI_edgehashIterator_isDone(ehi) == false;
-         BLI_edgehashIterator_step(ehi), ++edge, e_index++) {
-      BLI_edgehashIterator_getKey(ehi, &edge->v1, &edge->v2);
-      BLI_edgehashIterator_setValue(ehi, POINTER_FROM_UINT(e_index));
-    }
-    BLI_edgehashIterator_free(ehi);
-
-    for (const int i : polys.index_range()) {
-      const IndexRange poly = polys[i];
-      int corner = poly.start();
-      int corner_prev = poly.start() + (poly.size() - 1);
-      int j;
-      for (j = 0; j < poly.size(); j++, corner++) {
-        /* lookup hashed edge index */
-        corner_edges[corner_prev] = POINTER_AS_UINT(
-            BLI_edgehash_lookup(eh, corner_verts[corner_prev], corner_verts[corner]));
-        corner_prev = corner;
-      }
-    }
-  }
-
-  BLI_edgehash_free(eh, nullptr);
-}
 
 static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispbase)
 {
@@ -203,9 +113,9 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
     return BKE_mesh_new_nomain(0, 0, 0, 0);
   }
 
-  Mesh *mesh = BKE_mesh_new_nomain(totvert, totedge, totloop, totpoly);
+  Mesh *mesh = BKE_mesh_new_nomain(totvert, totedge, totpoly, totloop);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<blender::int2> edges = mesh->edges_for_write();
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
@@ -238,8 +148,8 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
       for (a = 0; a < dl->parts; a++) {
         ofs = a * dl->nr;
         for (b = 1; b < dl->nr; b++) {
-          edges[dst_edge].v1 = startvert + ofs + b - 1;
-          edges[dst_edge].v2 = startvert + ofs + b;
+          edges[dst_edge][0] = startvert + ofs + b - 1;
+          edges[dst_edge][1] = startvert + ofs + b;
 
           dst_edge++;
         }
@@ -259,12 +169,12 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
         for (a = 0; a < dl->parts; a++) {
           ofs = a * dl->nr;
           for (b = 0; b < dl->nr; b++) {
-            edges[dst_edge].v1 = startvert + ofs + b;
+            edges[dst_edge][0] = startvert + ofs + b;
             if (b == dl->nr - 1) {
-              edges[dst_edge].v2 = startvert + ofs;
+              edges[dst_edge][1] = startvert + ofs;
             }
             else {
-              edges[dst_edge].v2 = startvert + ofs + b + 1;
+              edges[dst_edge][1] = startvert + ofs + b + 1;
             }
             dst_edge++;
           }
@@ -393,7 +303,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   }
 
   if (totpoly) {
-    make_edges_mdata_extend(*mesh);
+    BKE_mesh_calc_edges(mesh, true, false);
   }
 
   material_indices.finish();
@@ -467,7 +377,7 @@ static void appendPolyLineVert(ListBase *lb, uint index)
 void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int edge_users_test)
 {
   const Span<float3> positions = me->vert_positions();
-  const Span<MEdge> mesh_edges = me->edges();
+  const Span<blender::int2> mesh_edges = me->edges();
   const blender::OffsetIndices polys = me->polys();
   const Span<int> corner_edges = me->corner_edges();
 
@@ -502,9 +412,9 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
       ListBase polyline = {nullptr, nullptr}; /* store a list of VertLink's */
       bool closed = false;
       int totpoly = 0;
-      MEdge *edge_current = (MEdge *)((EdgeLink *)edges.last)->edge;
-      uint startVert = edge_current->v1;
-      uint endVert = edge_current->v2;
+      blender::int2 &edge_current = *(blender::int2 *)((EdgeLink *)edges.last)->edge;
+      uint startVert = edge_current[0];
+      uint endVert = edge_current[1];
       bool ok = true;
 
       appendPolyLineVert(&polyline, startVert);
@@ -519,31 +429,31 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
         while (edl) {
           EdgeLink *edl_prev = edl->prev;
 
-          const MEdge *edge = (MEdge *)edl->edge;
+          const blender::int2 &edge = *(blender::int2 *)edl->edge;
 
-          if (edge->v1 == endVert) {
-            endVert = edge->v2;
+          if (edge[0] == endVert) {
+            endVert = edge[1];
             appendPolyLineVert(&polyline, endVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
             ok = true;
           }
-          else if (edge->v2 == endVert) {
-            endVert = edge->v1;
+          else if (edge[1] == endVert) {
+            endVert = edge[0];
             appendPolyLineVert(&polyline, endVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
             ok = true;
           }
-          else if (edge->v1 == startVert) {
-            startVert = edge->v2;
+          else if (edge[0] == startVert) {
+            startVert = edge[1];
             prependPolyLineVert(&polyline, startVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
             ok = true;
           }
-          else if (edge->v2 == startVert) {
-            startVert = edge->v1;
+          else if (edge[1] == startVert) {
+            startVert = edge[0];
             prependPolyLineVert(&polyline, startVert);
             totpoly++;
             BLI_freelinkN(&edges, edl);
@@ -625,7 +535,7 @@ void BKE_pointcloud_from_mesh(const Mesh *me, PointCloud *pointcloud)
 {
   CustomData_free(&pointcloud->pdata, pointcloud->totpoint);
   pointcloud->totpoint = me->totvert;
-  CustomData_merge(&me->vdata, &pointcloud->pdata, CD_MASK_PROP_ALL, CD_DUPLICATE, me->totvert);
+  CustomData_merge(&me->vdata, &pointcloud->pdata, CD_MASK_PROP_ALL, me->totvert);
 }
 
 void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
@@ -652,8 +562,7 @@ void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
 void BKE_mesh_from_pointcloud(const PointCloud *pointcloud, Mesh *me)
 {
   me->totvert = pointcloud->totpoint;
-  CustomData_merge(
-      &pointcloud->pdata, &me->vdata, CD_MASK_PROP_ALL, CD_DUPLICATE, pointcloud->totpoint);
+  CustomData_merge(&pointcloud->pdata, &me->vdata, CD_MASK_PROP_ALL, pointcloud->totpoint);
 }
 
 void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
@@ -784,7 +693,7 @@ static const Curves *get_evaluated_curves_from_object(const Object *object)
 static Mesh *mesh_new_from_evaluated_curve_type_object(const Object *evaluated_object)
 {
   if (const Mesh *mesh = BKE_object_get_evaluated_mesh(evaluated_object)) {
-    return BKE_mesh_copy_for_eval(mesh, false);
+    return BKE_mesh_copy_for_eval(mesh);
   }
   if (const Curves *curves = get_evaluated_curves_from_object(evaluated_object)) {
     const blender::bke::AnonymousAttributePropagationInfo propagation_info;
@@ -843,7 +752,7 @@ static Mesh *mesh_new_from_mball_object(Object *object)
     return (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)object->data)->name + 2);
   }
 
-  return BKE_mesh_copy_for_eval(mesh_eval, false);
+  return BKE_mesh_copy_for_eval(mesh_eval);
 }
 
 static Mesh *mesh_new_from_mesh(Object *object, Mesh *mesh)
@@ -1088,7 +997,7 @@ static void move_shapekey_layers_to_keyblocks(const Mesh &mesh,
     if (kb->uid == actshape_uid) {
       kb->data = MEM_malloc_arrayN(kb->totelem, sizeof(float3), __func__);
       MutableSpan<float3> kb_coords(static_cast<float3 *>(kb->data), kb->totelem);
-      mesh.attributes().lookup<float3>("position").materialize(kb_coords);
+      mesh.attributes().lookup<float3>("position").varray.materialize(kb_coords);
     }
     else {
       kb->data = layer.data;
@@ -1114,14 +1023,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
     BLI_assert(mesh_dst == ob->data);
   }
 
-  BKE_mesh_clear_geometry(mesh_dst);
-
-  /* Make sure referenced layers have a single user so assigning them to the mesh in main doesn't
-   * share them. "Referenced" layers are not expected to be shared between original meshes. */
-  CustomData_duplicate_referenced_layers(&mesh_src->vdata, mesh_src->totvert);
-  CustomData_duplicate_referenced_layers(&mesh_src->edata, mesh_src->totedge);
-  CustomData_duplicate_referenced_layers(&mesh_src->pdata, mesh_src->totpoly);
-  CustomData_duplicate_referenced_layers(&mesh_src->ldata, mesh_src->totloop);
+  BKE_mesh_clear_geometry_and_metadata(mesh_dst);
 
   const bool verts_num_changed = mesh_dst->totvert != mesh_src->totvert;
   mesh_dst->totvert = mesh_src->totvert;
@@ -1131,26 +1033,18 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
 
   /* Using #CD_MASK_MESH ensures that only data that should exist in Main meshes is moved. */
   const CustomData_MeshMasks mask = CD_MASK_MESH;
-  CustomData_copy(&mesh_src->vdata, &mesh_dst->vdata, mask.vmask, CD_ASSIGN, mesh_src->totvert);
-  CustomData_copy(&mesh_src->edata, &mesh_dst->edata, mask.emask, CD_ASSIGN, mesh_src->totedge);
-  CustomData_copy(&mesh_src->pdata, &mesh_dst->pdata, mask.pmask, CD_ASSIGN, mesh_src->totpoly);
-  CustomData_copy(&mesh_src->ldata, &mesh_dst->ldata, mask.lmask, CD_ASSIGN, mesh_src->totloop);
-  mesh_dst->poly_offset_indices = static_cast<int *>(mesh_src->poly_offset_indices);
-  mesh_src->poly_offset_indices = nullptr;
+  CustomData_copy(&mesh_src->vdata, &mesh_dst->vdata, mask.vmask, mesh_src->totvert);
+  CustomData_copy(&mesh_src->edata, &mesh_dst->edata, mask.emask, mesh_src->totedge);
+  CustomData_copy(&mesh_src->pdata, &mesh_dst->pdata, mask.pmask, mesh_src->totpoly);
+  CustomData_copy(&mesh_src->ldata, &mesh_dst->ldata, mask.lmask, mesh_src->totloop);
+  std::swap(mesh_dst->poly_offset_indices, mesh_src->poly_offset_indices);
+  std::swap(mesh_dst->runtime->poly_offsets_sharing_info,
+            mesh_src->runtime->poly_offsets_sharing_info);
 
-  /* Make sure active/default color attribute (names) are brought over. */
-  if (mesh_src->active_color_attribute) {
-    MEM_SAFE_FREE(mesh_dst->active_color_attribute);
-    mesh_dst->active_color_attribute = BLI_strdup(mesh_src->active_color_attribute);
-  }
-  if (mesh_src->default_color_attribute) {
-    MEM_SAFE_FREE(mesh_dst->default_color_attribute);
-    mesh_dst->default_color_attribute = BLI_strdup(mesh_src->default_color_attribute);
-  }
-
-  BLI_freelistN(&mesh_dst->vertex_group_names);
-  mesh_dst->vertex_group_names = mesh_src->vertex_group_names;
-  BLI_listbase_clear(&mesh_src->vertex_group_names);
+  /* Make sure attribute names are moved. */
+  std::swap(mesh_dst->active_color_attribute, mesh_src->active_color_attribute);
+  std::swap(mesh_dst->default_color_attribute, mesh_src->default_color_attribute);
+  std::swap(mesh_dst->vertex_group_names, mesh_src->vertex_group_names);
 
   BKE_mesh_copy_parameters(mesh_dst, mesh_src);
 

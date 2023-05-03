@@ -68,7 +68,8 @@ void deg_foreach_dependent_operation(const Depsgraph * /*graph*/,
     }
 
     if (source_component_type != DEG_OB_COMP_ANY &&
-        nodeTypeToObjectComponent(comp_node->type) != source_component_type) {
+        nodeTypeToObjectComponent(comp_node->type) != source_component_type)
+    {
       continue;
     }
     for (OperationNode *op_node : comp_node->operations) {

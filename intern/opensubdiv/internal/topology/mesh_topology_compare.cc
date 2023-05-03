@@ -133,7 +133,8 @@ bool isEqualGeometry(const MeshTopology &mesh_topology, const OpenSubdiv_Convert
 float getEffectiveVertexSharpness(const OpenSubdiv_Converter *converter, const int vertex_index)
 {
   if (converter->isInfiniteSharpVertex != nullptr &&
-      converter->isInfiniteSharpVertex(converter, vertex_index)) {
+      converter->isInfiniteSharpVertex(converter, vertex_index))
+  {
     return OpenSubdiv::Sdc::Crease::SHARPNESS_INFINITE;
   }
 

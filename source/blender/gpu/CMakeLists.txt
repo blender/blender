@@ -212,8 +212,8 @@ set(VULKAN_SRC
   vulkan/vk_fence.cc
   vulkan/vk_framebuffer.cc
   vulkan/vk_index_buffer.cc
-  vulkan/vk_memory_layout.cc
   vulkan/vk_memory.cc
+  vulkan/vk_memory_layout.cc
   vulkan/vk_pipeline.cc
   vulkan/vk_pixel_buffer.cc
   vulkan/vk_push_constants.cc
@@ -235,14 +235,15 @@ set(VULKAN_SRC
   vulkan/vk_common.hh
   vulkan/vk_context.hh
   vulkan/vk_data_conversion.hh
+  vulkan/vk_debug.hh
   vulkan/vk_descriptor_pools.hh
   vulkan/vk_descriptor_set.hh
   vulkan/vk_drawlist.hh
   vulkan/vk_fence.hh
   vulkan/vk_framebuffer.hh
   vulkan/vk_index_buffer.hh
-  vulkan/vk_memory_layout.hh
   vulkan/vk_memory.hh
+  vulkan/vk_memory_layout.hh
   vulkan/vk_pipeline.hh
   vulkan/vk_pixel_buffer.hh
   vulkan/vk_push_constants.hh
@@ -337,7 +338,13 @@ if(WITH_VULKAN_BACKEND)
     ${MOLTENVK_LIBRARIES}
     extern_vulkan_memory_allocator
   )
+
   add_definitions(-DWITH_VULKAN_BACKEND)
+  if(WIN32)
+    if(EXISTS ${LIBDIR}/imath/bin/imath.dll)
+      add_definitions(-DIMATH_DLL)
+    endif()
+  endif()
 endif()
 
 if(WITH_VULKAN_GUARDEDALLOC)
@@ -736,10 +743,6 @@ file(GENERATE OUTPUT ${shader_create_info_list_file} CONTENT "${SHADER_CREATE_IN
 
 if(WITH_MOD_FLUID)
   add_definitions(-DWITH_FLUID)
-endif()
-
-if(WITH_IMAGE_DDS)
-  add_definitions(-DWITH_DDS)
 endif()
 
 if(WITH_OPENCOLORIO)

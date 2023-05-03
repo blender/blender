@@ -492,10 +492,11 @@ static void do_multires_bake(MultiresBakeRender *bkr,
   void *bake_data = nullptr;
 
   Mesh *temp_mesh = BKE_mesh_new_nomain(
-      dm->getNumVerts(dm), dm->getNumEdges(dm), dm->getNumLoops(dm), dm->getNumPolys(dm));
+      dm->getNumVerts(dm), dm->getNumEdges(dm), dm->getNumPolys(dm), dm->getNumLoops(dm));
   temp_mesh->vert_positions_for_write().copy_from(
       {reinterpret_cast<const blender::float3 *>(dm->getVertArray(dm)), temp_mesh->totvert});
-  temp_mesh->edges_for_write().copy_from({dm->getEdgeArray(dm), temp_mesh->totedge});
+  temp_mesh->edges_for_write().copy_from(
+      {reinterpret_cast<const blender::int2 *>(dm->getEdgeArray(dm)), temp_mesh->totedge});
   temp_mesh->poly_offsets_for_write().copy_from({dm->getPolyArray(dm), temp_mesh->totpoly + 1});
   temp_mesh->corner_verts_for_write().copy_from({dm->getCornerVertArray(dm), temp_mesh->totloop});
   temp_mesh->corner_edges_for_write().copy_from({dm->getCornerEdgeArray(dm), temp_mesh->totloop});

@@ -123,8 +123,8 @@ static PyObject *py_blf_color(PyObject *UNUSED(self), PyObject *args)
   int fontid;
   float rgba[4];
 
-  if (!PyArg_ParseTuple(
-          args, "iffff:blf.color", &fontid, &rgba[0], &rgba[1], &rgba[2], &rgba[3])) {
+  if (!PyArg_ParseTuple(args, "iffff:blf.color", &fontid, &rgba[0], &rgba[1], &rgba[2], &rgba[3]))
+  {
     return NULL;
   }
 
@@ -361,7 +361,8 @@ static PyObject *py_blf_shadow(PyObject *UNUSED(self), PyObject *args)
   float rgba[4];
 
   if (!PyArg_ParseTuple(
-          args, "iiffff:blf.shadow", &fontid, &level, &rgba[0], &rgba[1], &rgba[2], &rgba[3])) {
+          args, "iiffff:blf.shadow", &fontid, &level, &rgba[0], &rgba[1], &rgba[2], &rgba[3]))
+  {
     return NULL;
   }
 

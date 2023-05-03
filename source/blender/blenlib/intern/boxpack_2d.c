@@ -424,7 +424,8 @@ void BLI_box_pack_2d(
           if (/* Constrain boxes to positive X/Y values */
               box_xmin_get(box) < 0.0f || box_ymin_get(box) < 0.0f ||
               /* check for last intersected */
-              (vert->isect_cache[j] && box_isect(box, vert->isect_cache[j]))) {
+              (vert->isect_cache[j] && box_isect(box, vert->isect_cache[j])))
+          {
             /* Here we check that the last intersected
              * box will intersect with this one using
              * isect_cache that can store a pointer to a

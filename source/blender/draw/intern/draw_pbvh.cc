@@ -116,8 +116,8 @@ struct PBVHBatch {
   string key;
   GPUBatch *tris = nullptr, *lines = nullptr;
   int tris_count = 0, lines_count = 0;
-  bool is_coarse =
-      false; /* Coarse multires, will use full-sized VBOs only index buffer changes. */
+  /* Coarse multi-resolution, will use full-sized VBOs only index buffer changes. */
+  bool is_coarse = false;
 
   void sort_vbos(Vector<PBVHVbo> &master_vbos)
   {
@@ -977,7 +977,7 @@ struct PBVHBatches {
       material_index = mat_index[poly_index];
     }
 
-    const blender::Span<MEdge> edges = args->me->edges();
+    const blender::Span<blender::int2> edges = args->me->edges();
 
     /* Calculate number of edges. */
     int edge_count = 0;

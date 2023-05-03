@@ -210,7 +210,8 @@ bool GHOST_DropTargetX11::GHOST_HandleClientMessage(XEvent *event)
                     &dropBufferSize,
                     &dropType,
                     &dropX,
-                    &dropY)) {
+                    &dropY))
+  {
     void *data = getGhostData(dropType, dropBuffer, dropBufferSize);
 
     if (data) {

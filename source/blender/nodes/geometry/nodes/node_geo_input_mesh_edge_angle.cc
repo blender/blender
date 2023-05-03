@@ -117,7 +117,7 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
                                  const IndexMask /*mask*/) const final
   {
     const Span<float3> positions = mesh.vert_positions();
-    const Span<MEdge> edges = mesh.edges();
+    const Span<int2> edges = mesh.edges();
     const OffsetIndices polys = mesh.polys();
     const Span<int> corner_verts = mesh.corner_verts();
     const Span<int> corner_edges = mesh.corner_edges();
@@ -138,7 +138,7 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
                                                                corner_verts.slice(poly_2));
 
       /* Find the centerpoint of the axis edge */
-      const float3 edge_centerpoint = (positions[edges[i].v1] + positions[edges[i].v2]) * 0.5f;
+      const float3 edge_centerpoint = (positions[edges[i][0]] + positions[edges[i][1]]) * 0.5f;
 
       /* Get the centerpoint of poly 2 and subtract the edge centerpoint to get a tangent
        * normal for poly 2. */

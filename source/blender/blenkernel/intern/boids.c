@@ -112,7 +112,8 @@ static bool rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val,
         /* skip current object */
       }
       else if (pd->forcefield == PFIELD_BOID && mul * pd->f_strength > 0.0f &&
-               get_effector_data(cur, &cur_efd, &epoint, 0)) {
+               get_effector_data(cur, &cur_efd, &epoint, 0))
+      {
         float temp = mul * pd->f_strength *
                      effector_falloff(cur, &cur_efd, &epoint, bbd->part->effector_weights);
 
@@ -146,10 +147,10 @@ static bool rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val,
     priority = 1.0f;
   }
 
-  /* then use that effector */
-  if (priority > (rule->type == eBoidRuleType_Avoid ?
-                      gabr->fear_factor :
-                      0.0f)) { /* with avoid, factor is "fear factor" */
+  /* Then use that effector. */
+
+  /* With avoid, factor is "fear factor". */
+  if (priority > (rule->type == eBoidRuleType_Avoid ? gabr->fear_factor : 0.0f)) {
     Object *eob = eff->ob;
     PartDeflect *pd = eff->pd;
     float surface = (pd && pd->shape == PFIELD_SHAPE_SURFACE) ? 1.0f : 0.0f;
@@ -172,7 +173,8 @@ static bool rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val,
       }
     }
     else if ((rule->type == eBoidRuleType_Avoid) && (bpa->data.mode == eBoidMode_Climbing) &&
-             (priority > 2.0f * gabr->fear_factor)) {
+             (priority > 2.0f * gabr->fear_factor))
+    {
       /* detach from surface and try to fly away from danger */
       negate_v3_v3(efd.vec_to_point, bpa->gravity);
     }
@@ -759,7 +761,8 @@ static bool rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Part
     /* check if boid doesn't want to fight */
     bpa = pa->boid;
     if (bpa->data.health / bbd->part->boids->health * bbd->part->boids->aggression <
-        e_strength / f_strength) {
+        e_strength / f_strength)
+    {
       /* decide to flee */
       if (closest_dist < fbr->flee_distance * fbr->distance) {
         negate_v3(bbd->wanted_co);
@@ -938,8 +941,8 @@ static bool boid_rule_applies(ParticleData *pa, BoidSettings *UNUSED(boids), Boi
     return false;
   }
 
-  if (ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing) &&
-      rule->flag & BOIDRULE_ON_LAND) {
+  if (ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing) && rule->flag & BOIDRULE_ON_LAND)
+  {
     return true;
   }
 
@@ -1015,7 +1018,8 @@ static bool apply_boid_rule(
 
   if (fuzziness < 0.0f || compare_len_v3v3(bbd->wanted_co,
                                            pa->prev_state.vel,
-                                           fuzziness * len_v3(pa->prev_state.vel)) == 0) {
+                                           fuzziness * len_v3(pa->prev_state.vel)) == 0)
+  {
     return true;
   }
   return false;
@@ -1231,7 +1235,8 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
   /* if boids can't fly they fall to the ground */
   if ((boids->options & BOID_ALLOW_FLIGHT) == 0 &&
       ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing) == 0 &&
-      psys_uses_gravity(bbd->sim)) {
+      psys_uses_gravity(bbd->sim))
+  {
     bpa->data.mode = eBoidMode_Falling;
   }
 
@@ -1419,7 +1424,8 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 
       /* stick boid on goal when close enough */
       if (bbd->goal_ob && boid_goal_signed_dist(pa->state.co, bbd->goal_co, bbd->goal_nor) <=
-                              pa->size * boids->height) {
+                              pa->size * boids->height)
+      {
         bpa->data.mode = eBoidMode_Climbing;
         bpa->ground = bbd->goal_ob;
         boid_find_ground(bbd, pa, ground_co, ground_nor);
@@ -1454,7 +1460,8 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
       if (boids->options & BOID_ALLOW_LAND) {
         /* stick boid on goal when close enough */
         if (bbd->goal_ob && boid_goal_signed_dist(pa->state.co, bbd->goal_co, bbd->goal_nor) <=
-                                pa->size * boids->height) {
+                                pa->size * boids->height)
+        {
           bpa->data.mode = eBoidMode_Climbing;
           bpa->ground = bbd->goal_ob;
           boid_find_ground(bbd, pa, ground_co, ground_nor);
@@ -1499,7 +1506,8 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
     case eBoidMode_OnLand: {
       /* stick boid on goal when close enough */
       if (bbd->goal_ob && boid_goal_signed_dist(pa->state.co, bbd->goal_co, bbd->goal_nor) <=
-                              pa->size * boids->height) {
+                              pa->size * boids->height)
+      {
         bpa->data.mode = eBoidMode_Climbing;
         bpa->ground = bbd->goal_ob;
         boid_find_ground(bbd, pa, ground_co, ground_nor);

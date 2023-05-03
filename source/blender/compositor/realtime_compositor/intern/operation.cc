@@ -34,6 +34,8 @@ void Operation::evaluate()
   execute();
 
   release_inputs();
+
+  release_unneeded_results();
 }
 
 Result &Operation::get_result(StringRef identifier)
@@ -198,6 +200,15 @@ void Operation::release_inputs()
 {
   for (Result *result : results_mapped_to_inputs_.values()) {
     result->release();
+  }
+}
+
+void Operation::release_unneeded_results()
+{
+  for (Result &result : results_.values()) {
+    if (!result.should_compute() && result.is_allocated()) {
+      result.release();
+    }
   }
 }
 

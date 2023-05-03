@@ -162,22 +162,6 @@ static bool use_gnome_confine_hack = false;
 #endif
 
 /**
- * GNOME (mutter 42.5) doesn't follow the WAYLAND spec regarding keyboard handling,
- * unlike (other compositors: KDE-plasma, River & Sway which work without problems).
- *
- * This means GNOME can't know which modifiers are held when activating windows,
- * so we guess the left modifiers are held.
- *
- * This define could be removed without changing any functionality,
- * it just means GNOME users will see verbose warning messages that alert them about
- * a known problem that needs to be fixed up-stream.
- *
- * This has been fixed for GNOME 43. Keep the workaround until support for gnome 42 is dropped.
- * See: https://gitlab.gnome.org/GNOME/mutter/-/issues/2457
- */
-#define USE_GNOME_KEYBOARD_SUPPRESS_WARNING
-
-/**
  * KDE (plasma 5.26.1) has a bug where the cursor surface needs to be committed
  * (via `wl_surface_commit`) when it was hidden and is being set to visible again, see: #102048.
  * See: https://bugs.kde.org/show_bug.cgi?id=461001
@@ -192,6 +176,8 @@ static bool use_gnome_confine_hack = false;
 #if defined(WITH_GHOST_WAYLAND_LIBDECOR) && defined(WITH_GHOST_X11)
 #  define USE_GNOME_NEEDS_LIBDECOR_HACK
 #endif
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Local Defines
@@ -764,13 +750,6 @@ struct GWL_Seat {
   /** Keys held matching `xkb_state`. */
   struct GWL_KeyboardDepressedState key_depressed;
 
-#ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
-  struct {
-    bool any_mod_held = false;
-    bool any_keys_held_on_enter = false;
-  } key_depressed_suppress_warning;
-#endif
-
   /**
    * Cache result of `xkb_keymap_mod_get_index`
    * so every time a modifier is accessed a string lookup isn't required.
@@ -840,21 +819,6 @@ static GWL_SeatStatePointer *gwl_seat_state_pointer_from_cursor_surface(
   }
   GHOST_ASSERT(0, "Surface found without pointer/tablet tag");
   return nullptr;
-}
-
-static bool gwl_seat_key_depressed_suppress_warning(const GWL_Seat *seat)
-{
-  bool suppress_warning = false;
-
-#ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
-  if ((seat->key_depressed_suppress_warning.any_mod_held == true) &&
-      (seat->key_depressed_suppress_warning.any_keys_held_on_enter == false)) {
-    /* The compositor gave us invalid information, don't show a warning. */
-    suppress_warning = true;
-  }
-#endif
-
-  return suppress_warning;
 }
 
 /**
@@ -1708,7 +1672,8 @@ static int ghost_wl_display_event_pump(struct wl_display *wl_display)
   if (wl_display_prepare_read(wl_display) == 0) {
     /* Use #GWL_IOR_NO_RETRY to ensure #SIGINT will break us out of our wait. */
     if (file_descriptor_is_io_ready(
-            wl_display_get_fd(wl_display), GWL_IOR_READ | GWL_IOR_NO_RETRY, 0) > 0) {
+            wl_display_get_fd(wl_display), GWL_IOR_READ | GWL_IOR_NO_RETRY, 0) > 0)
+    {
       err = wl_display_read_events(wl_display);
     }
     else {
@@ -1865,17 +1830,13 @@ static void keyboard_depressed_state_key_event(GWL_Seat *seat,
                                                const GHOST_TKey gkey,
                                                const GHOST_TEventType etype)
 {
-  const bool show_warning = !gwl_seat_key_depressed_suppress_warning(seat);
-
   if (GHOST_KEY_MODIFIER_CHECK(gkey)) {
     const int index = GHOST_KEY_MODIFIER_TO_INDEX(gkey);
     int16_t &value = seat->key_depressed.mods[index];
     if (etype == GHOST_kEventKeyUp) {
       value -= 1;
       if (UNLIKELY(value < 0)) {
-        if (show_warning) {
-          CLOG_WARN(LOG, "modifier (%d) has negative keys held (%d)!", index, value);
-        }
+        CLOG_WARN(LOG, "modifier (%d) has negative keys held (%d)!", index, value);
         value = 0;
       }
     }
@@ -2179,7 +2140,8 @@ static void data_source_handle_send(void *data,
   auto write_file_fn = [](GWL_Seat *seat, const int fd) {
     if (UNLIKELY(write(fd,
                        seat->data_source->buffer_out.data,
-                       seat->data_source->buffer_out.data_size) < 0)) {
+                       seat->data_source->buffer_out.data_size) < 0))
+    {
       CLOG_WARN(LOG, "error writing to clipboard: %s", std::strerror(errno));
     }
     close(fd);
@@ -3791,10 +3753,6 @@ static void keyboard_handle_enter(void *data,
   }
 
   keyboard_depressed_state_push_events_from_change(seat, key_depressed_prev);
-
-#ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
-  seat->key_depressed_suppress_warning.any_keys_held_on_enter = keys->size != 0;
-#endif
 }
 
 /**
@@ -3825,11 +3783,6 @@ static void keyboard_handle_leave(void *data,
       keyboard_handle_key_repeat_cancel(seat);
     }
   }
-
-#ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
-  seat->key_depressed_suppress_warning.any_mod_held = false;
-  seat->key_depressed_suppress_warning.any_keys_held_on_enter = false;
-#endif
 }
 
 /**
@@ -4023,7 +3976,8 @@ static void keyboard_handle_key(void *data,
   if (key_repeat_payload == nullptr) {
     /* Start timer for repeating key, if applicable. */
     if ((seat->key_repeat.rate > 0) && (etype == GHOST_kEventKeyDown) &&
-        xkb_keymap_key_repeats(xkb_state_get_keymap(seat->xkb_state), key_code)) {
+        xkb_keymap_key_repeats(xkb_state_get_keymap(seat->xkb_state), key_code))
+    {
       key_repeat_payload = new GWL_KeyRepeatPlayload();
       key_repeat_payload->seat = seat;
       key_repeat_payload->key_code = key_code;
@@ -4085,10 +4039,6 @@ static void keyboard_handle_modifiers(void *data,
       keyboard_handle_key_repeat_reset(seat, true);
     }
   }
-
-#ifdef USE_GNOME_KEYBOARD_SUPPRESS_WARNING
-  seat->key_depressed_suppress_warning.any_mod_held = mods_depressed != 0;
-#endif
 
   seat->data_source_serial = serial;
 }
@@ -4228,7 +4178,8 @@ static void primary_selection_source_send(void *data,
   auto write_file_fn = [](GWL_PrimarySelection *primary, const int fd) {
     if (UNLIKELY(write(fd,
                        primary->data_source->buffer_out.data,
-                       primary->data_source->buffer_out.data_size) < 0)) {
+                       primary->data_source->buffer_out.data_size) < 0))
+    {
       CLOG_WARN(LOG, "error writing to primary clipboard: %s", std::strerror(errno));
     }
     close(fd);
@@ -4520,7 +4471,9 @@ static void xdg_output_handle_logical_size(void *data,
      * Until this is fixed, validate that _some_ kind of scaling is being
      * done (we can't match exactly because fractional scaling can't be
      * detected otherwise), then override if necessary. */
-    if ((output->size_logical[0] == width) && (output->scale_fractional == wl_fixed_from_int(1))) {
+    if ((output->size_logical[0] == width) &&
+        (output->scale_fractional == (1 * FRACTIONAL_DENOMINATOR)))
+    {
       GHOST_PRINT("xdg_output scale did not match, overriding with wl_output scale\n");
 
 #ifdef USE_GNOME_CONFINE_HACK
@@ -4667,7 +4620,7 @@ static void output_handle_done(void *data, struct wl_output * /*wl_output*/)
     GHOST_ASSERT(size_native[0] && output->size_logical[0],
                  "Screen size values were not set when they were expected to be.");
 
-    output->scale_fractional = wl_fixed_from_int(size_native[0]) / output->size_logical[0];
+    output->scale_fractional = (size_native[0] * FRACTIONAL_DENOMINATOR) / output->size_logical[0];
     output->has_scale_fractional = true;
   }
 }
@@ -5365,7 +5318,8 @@ static int gwl_registry_handler_interface_slot_max()
 static int gwl_registry_handler_interface_slot_from_string(const char *interface)
 {
   for (const GWL_RegistryHandler *handler = gwl_registry_handlers; handler->interface_p != nullptr;
-       handler++) {
+       handler++)
+  {
     if (STREQ(interface, *handler->interface_p)) {
       return int(handler - gwl_registry_handlers);
     }
@@ -5490,7 +5444,8 @@ static void *gwl_display_event_thread_fn(void *display_voidp)
   while (display->events_pthread_is_active) {
     /* Wait for an event, this thread is dedicated to event handling. */
     if (ghost_wl_display_event_pump_from_thread(
-            display->wl_display, fd, display->system->server_mutex) == -1) {
+            display->wl_display, fd, display->system->server_mutex) == -1)
+    {
       break;
     }
   }
@@ -5583,8 +5538,6 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
 #  endif
       display_destroy_and_free_all();
       throw std::runtime_error("Wayland: unable to find libdecor!");
-
-      use_libdecor = true;
     }
   }
   else {
@@ -5607,7 +5560,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
   (void)background;
 #endif
   {
-    GWL_XDG_Decor_System &decor = *display_->xdg_decor;
+    const GWL_XDG_Decor_System &decor = *display_->xdg_decor;
     if (!decor.shell) {
       display_destroy_and_free_all();
       throw std::runtime_error("Wayland: unable to access xdg_shell!");
@@ -5769,9 +5722,27 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
     return GHOST_kFailure;
   }
 
-  const xkb_mod_mask_t state = xkb_state_serialize_mods(seat->xkb_state, XKB_STATE_MODS_DEPRESSED);
-
-  const bool show_warning = !gwl_seat_key_depressed_suppress_warning(seat);
+  /* Only read the underlying `seat->xkb_state` when there is an active window.
+   * Without this, the following situation occurs:
+   *
+   * - A window is activated (before the #wl_keyboard_listener::enter has run).
+   * - The modifiers from `seat->xkb_state` don't match `seat->key_depressed`.
+   * - Dummy values are written into `seat->key_depressed` to account for the discrepancy
+   *   (as `seat->xkb_state` is the source of truth), however the number of held modifiers
+   *   is not longer valid (because it's not known from dummy values).
+   * - #wl_keyboard_listener::enter runs, however the events generated from the state change
+   *   may not match the physically held keys because the dummy values are not accurate.
+   *
+   * As this is an edge-case caused by the order of callbacks that run on window activation,
+   * don't attempt to *fix* the values in `seat->key_depressed` before the keyboard enter
+   * handler runs. This means the result of `getModifierKeys` may be momentarily incorrect
+   * however it's corrected once #wl_keyboard_listener::enter runs.
+   */
+  const bool is_keyboard_active = seat->keyboard.wl_surface_window != nullptr;
+  const xkb_mod_mask_t state = is_keyboard_active ?
+                                   xkb_state_serialize_mods(seat->xkb_state,
+                                                            XKB_STATE_MODS_DEPRESSED) :
+                                   0;
 
   /* Use local #GWL_KeyboardDepressedState to check which key is pressed.
    * Use XKB as the source of truth, if there is any discrepancy. */
@@ -5779,33 +5750,42 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
     if (UNLIKELY(seat->xkb_keymap_mod_index[i] == XKB_MOD_INVALID)) {
       continue;
     }
-    const GWL_ModifierInfo &mod_info = g_modifier_info_table[i];
-    const bool val = (state & (1 << seat->xkb_keymap_mod_index[i])) != 0;
-    bool val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(mod_info.key_l)] > 0;
-    bool val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(mod_info.key_r)] > 0;
 
-    /* This shouldn't be needed, but guard against any possibility of modifiers being stuck.
-     * Warn so if this happens it can be investigated. */
-    if (val) {
-      if (UNLIKELY(!(val_l || val_r))) {
-        if (show_warning) {
+    const GWL_ModifierInfo &mod_info = g_modifier_info_table[i];
+    /* NOTE(@ideasman42): it's important to write the XKB state back to #GWL_KeyboardDepressedState
+     * otherwise changes to modifiers in the future wont generate events.
+     * This can cause modifiers to be stuck when switching between windows in GNOME because
+     * window activation is handled before the keyboard enter callback runs, see: #107314. */
+    int16_t &depressed_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(mod_info.key_l)];
+    int16_t &depressed_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(mod_info.key_r)];
+    bool val_l = depressed_l > 0;
+    bool val_r = depressed_r > 0;
+
+    if (is_keyboard_active) {
+      const bool val = (state & (1 << seat->xkb_keymap_mod_index[i])) != 0;
+      /* This shouldn't be needed, but guard against any possibility of modifiers being stuck.
+       * Warn so if this happens it can be investigated. */
+      if (val) {
+        if (UNLIKELY(!(val_l || val_r))) {
           CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
                     "modifier (%s) state is inconsistent (GHOST held keys do not match XKB)",
                     mod_info.display_name);
+
+          /* Picking the left is arbitrary. */
+          val_l = true;
+          depressed_l = 1;
         }
-        /* Picking the left is arbitrary. */
-        val_l = true;
       }
-    }
-    else {
-      if (UNLIKELY(val_l || val_r)) {
-        if (show_warning) {
+      else {
+        if (UNLIKELY(val_l || val_r)) {
           CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
                     "modifier (%s) state is inconsistent (GHOST released keys do not match XKB)",
                     mod_info.display_name);
+          val_l = false;
+          val_r = false;
+          depressed_l = 0;
+          depressed_r = 0;
         }
-        val_l = false;
-        val_r = false;
       }
     }
 
@@ -6068,10 +6048,8 @@ static GHOST_TSuccess getCursorPositionClientRelative_impl(
     /* As the cursor is restored at the warped location,
      * apply warping when requesting the cursor location. */
     GHOST_Rect wrap_bounds{};
-    if (win->getCursorGrabModeIsWarp()) {
-      if (win->getCursorGrabBounds(wrap_bounds) == GHOST_kFailure) {
-        win->getClientBounds(wrap_bounds);
-      }
+    if (win->getCursorGrabBounds(wrap_bounds) == GHOST_kFailure) {
+      win->getClientBounds(wrap_bounds);
     }
     int xy_wrap[2] = {
         seat_state_pointer->xy[0],
@@ -6299,13 +6277,14 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings glS
                                                  wl_surface,
                                                  display_->wl_display,
                                                  1,
-                                                 0,
+                                                 2,
                                                  debug_context);
 
     if (!context->initializeDrawingContext()) {
       delete context;
       return nullptr;
     }
+    context->setUserData(wl_surface);
     return context;
   }
 #else
@@ -6338,13 +6317,16 @@ GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
-
   struct wl_surface *wl_surface = (struct wl_surface *)((GHOST_Context *)context)->getUserData();
-  wl_egl_window *egl_window = (wl_egl_window *)wl_surface_get_user_data(wl_surface);
-  wl_egl_window_destroy(egl_window);
-  wl_surface_destroy(wl_surface);
-
+  /* Delete the context before the window so the context is able to release
+   * native resources (such as the #EGLSurface) before WAYLAND frees them. */
   delete context;
+
+  wl_egl_window *egl_window = (wl_egl_window *)wl_surface_get_user_data(wl_surface);
+  if (egl_window != nullptr) {
+    wl_egl_window_destroy(egl_window);
+  }
+  wl_surface_destroy(wl_surface);
 
   return GHOST_kSuccess;
 }
@@ -6673,10 +6655,9 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(uint8_t *bitmap,
   static constexpr uint32_t transparent = 0x00000000;
 
   uint8_t datab = 0, maskb = 0;
-  uint32_t *pixel;
 
   for (int y = 0; y < sizey; ++y) {
-    pixel = &static_cast<uint32_t *>(cursor->custom_data)[y * sizex];
+    uint32_t *pixel = &static_cast<uint32_t *>(cursor->custom_data)[y * sizex];
     for (int x = 0; x < sizex; ++x) {
       if ((x % 8) == 0) {
         datab = *bitmap++;
@@ -6760,7 +6741,21 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
           GHOST_kCapabilityWindowPosition |
           /* WAYLAND doesn't support setting the cursor position directly,
            * this is an intentional choice, forcing us to use a software cursor in this case. */
-          GHOST_kCapabilityCursorWarp));
+          GHOST_kCapabilityCursorWarp |
+          /* Some drivers don't support front-buffer reading, see: #98462 & #106264.
+           *
+           * NOTE(@ideasman42): the EGL flag `EGL_BUFFER_PRESERVED` is intended request support for
+           * front-buffer reading however in my tests requesting the flag didn't work with AMD,
+           * and it's not even requirement - so we can't rely on this feature being supported.
+           *
+           * Instead of assuming this is not supported, the graphics card driver could be inspected
+           * (enable for NVIDIA for e.g.), but the advantage in supporting this is minimal.
+           * In practice it means an off-screen buffer is used to redraw the window for the
+           * screen-shot and eye-dropper sampling logic, both operations where the overhead
+           * is negligible. */
+          GHOST_kCapabilityGPUReadFrontBuffer |
+          /* This WAYLAND back-end has not yet implemented image copy/paste. */
+          GHOST_kCapabilityClipboardImages));
 }
 
 bool GHOST_SystemWayland::cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode)
@@ -7063,6 +7058,7 @@ bool GHOST_SystemWayland::output_unref(wl_output *wl_output)
     for (GHOST_IWindow *iwin : window_manager->getWindows()) {
       GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
       if (win->outputs_leave(output)) {
+        win->outputs_changed_update_scale_tag();
         changed = true;
       }
     }
@@ -7087,7 +7083,7 @@ void GHOST_SystemWayland::output_scale_update(GWL_Output *output)
       GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
       const std::vector<GWL_Output *> &outputs = win->outputs();
       if (!(std::find(outputs.begin(), outputs.end(), output) == outputs.cend())) {
-        win->outputs_changed_update_scale();
+        win->outputs_changed_update_scale_tag();
       }
     }
   }
@@ -7328,7 +7324,8 @@ bool ghost_wl_dynload_libraries_init()
   if (wayland_dynload_client_init(verbose) && /* `libwayland-client`. */
       wayland_dynload_cursor_init(verbose) && /* `libwayland-cursor`. */
       wayland_dynload_egl_init(verbose)       /* `libwayland-egl`. */
-  ) {
+  )
+  {
 #  ifdef WITH_GHOST_WAYLAND_LIBDECOR
     has_libdecor = wayland_dynload_libdecor_init(verbose); /* `libdecor-0`. */
 #  endif

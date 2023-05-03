@@ -98,7 +98,8 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   /* TODO: compute snap to maxZBuffer for clustered rendering. */
   if ((common_data->vol_tex_size[0] != tex_size[0]) ||
       (common_data->vol_tex_size[1] != tex_size[1]) ||
-      (common_data->vol_tex_size[2] != tex_size[2])) {
+      (common_data->vol_tex_size[2] != tex_size[2]))
+  {
     DRW_TEXTURE_FREE_SAFE(txl->volume_prop_scattering);
     DRW_TEXTURE_FREE_SAFE(txl->volume_prop_extinction);
     DRW_TEXTURE_FREE_SAFE(txl->volume_prop_emission);
@@ -192,8 +193,11 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   if (!e_data.dummy_scatter) {
     const float scatter[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     const float transmit[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-    e_data.dummy_scatter = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, scatter);
-    e_data.dummy_transmit = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, transmit);
+    eGPUTextureUsage dummy_usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+    e_data.dummy_scatter = DRW_texture_create_3d_ex(
+        1, 1, 1, GPU_RGBA8, dummy_usage, DRW_TEX_WRAP, scatter);
+    e_data.dummy_transmit = DRW_texture_create_3d_ex(
+        1, 1, 1, GPU_RGBA8, dummy_usage, DRW_TEX_WRAP, transmit);
   }
 }
 
@@ -240,8 +244,8 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   /* World Volumetric */
   struct World *wo = scene->world;
-  if (wo != NULL && wo->use_nodes && wo->nodetree &&
-      !LOOK_DEV_STUDIO_LIGHT_ENABLED(draw_ctx->v3d)) {
+  if (wo != NULL && wo->use_nodes && wo->nodetree && !LOOK_DEV_STUDIO_LIGHT_ENABLED(draw_ctx->v3d))
+  {
     struct GPUMaterial *mat = EEVEE_material_get(vedata, scene, NULL, wo, VAR_MAT_VOLUME);
 
     if (mat && GPU_material_has_volume_output(mat)) {
@@ -424,31 +428,54 @@ void EEVEE_volumes_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     if (txl->volume_prop_scattering == NULL) {
       /* Volume properties: We evaluate all volumetric objects
        * and store their final properties into each froxel */
-      txl->volume_prop_scattering = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-      txl->volume_prop_extinction = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-      txl->volume_prop_emission = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-      txl->volume_prop_phase = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_RG16F, DRW_TEX_FILTER, NULL);
+      eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+      txl->volume_prop_scattering = DRW_texture_create_3d_ex(
+          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, usage, DRW_TEX_FILTER, NULL);
+      txl->volume_prop_extinction = DRW_texture_create_3d_ex(
+          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, usage, DRW_TEX_FILTER, NULL);
+      txl->volume_prop_emission = DRW_texture_create_3d_ex(
+          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, usage, DRW_TEX_FILTER, NULL);
+      txl->volume_prop_phase = DRW_texture_create_3d_ex(
+          tex_size[0], tex_size[1], tex_size[2], GPU_RG16F, usage, DRW_TEX_FILTER, NULL);
 
       /* Volume scattering: We compute for each froxel the
        * Scattered light towards the view. We also resolve temporal
        * super sampling during this stage. */
-      txl->volume_scatter = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-      txl->volume_transmit = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
+      eGPUTextureUsage usage_write = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ |
+                                     GPU_TEXTURE_USAGE_SHADER_WRITE;
+      txl->volume_scatter = DRW_texture_create_3d_ex(tex_size[0],
+                                                     tex_size[1],
+                                                     tex_size[2],
+                                                     GPU_R11F_G11F_B10F,
+                                                     usage_write,
+                                                     DRW_TEX_FILTER,
+                                                     NULL);
+      txl->volume_transmit = DRW_texture_create_3d_ex(tex_size[0],
+                                                      tex_size[1],
+                                                      tex_size[2],
+                                                      GPU_R11F_G11F_B10F,
+                                                      usage_write,
+                                                      DRW_TEX_FILTER,
+                                                      NULL);
 
       /* Final integration: We compute for each froxel the
        * amount of scattered light and extinction coef at this
        * given depth. We use these textures as double buffer
        * for the volumetric history. */
-      txl->volume_scatter_history = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-      txl->volume_transmit_history = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
+      txl->volume_scatter_history = DRW_texture_create_3d_ex(tex_size[0],
+                                                             tex_size[1],
+                                                             tex_size[2],
+                                                             GPU_R11F_G11F_B10F,
+                                                             usage_write,
+                                                             DRW_TEX_FILTER,
+                                                             NULL);
+      txl->volume_transmit_history = DRW_texture_create_3d_ex(tex_size[0],
+                                                              tex_size[1],
+                                                              tex_size[2],
+                                                              GPU_R11F_G11F_B10F,
+                                                              usage_write,
+                                                              DRW_TEX_FILTER,
+                                                              NULL);
     }
 
     GPU_framebuffer_ensure_config(&fbl->volumetric_fb,

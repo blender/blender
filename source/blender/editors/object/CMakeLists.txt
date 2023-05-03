@@ -9,7 +9,7 @@ set(INC
   ../../bmesh
   ../../depsgraph
   ../../functions
-  ../../gpencil_modifiers
+  ../../gpencil_modifiers_legacy
   ../../gpu
   ../../ikplugin
   ../../imbuf

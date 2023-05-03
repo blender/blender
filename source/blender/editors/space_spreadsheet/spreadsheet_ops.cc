@@ -102,6 +102,7 @@ static void SPREADSHEET_OT_change_spreadsheet_data_source(wmOperatorType *ot)
   ot->idname = "SPREADSHEET_OT_change_spreadsheet_data_source";
 
   ot->invoke = select_component_domain_invoke;
+  ot->poll = ED_operator_spreadsheet_active;
 
   RNA_def_int(ot->srna, "component_type", 0, 0, INT16_MAX, "Component Type", "", 0, INT16_MAX);
   RNA_def_int(ot->srna,

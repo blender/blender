@@ -204,7 +204,7 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 void GeometryExporter::createLooseEdgeList(Object *ob, Mesh *me, std::string &geom_id)
 {
   using namespace blender;
-  const Span<MEdge> edges = me->edges();
+  const Span<int2> edges = me->edges();
   int edges_in_linelist = 0;
   std::vector<uint> edge_list;
   int index;
@@ -215,10 +215,10 @@ void GeometryExporter::createLooseEdgeList(Object *ob, Mesh *me, std::string &ge
   if (loose_edges.count > 0) {
     for (const int64_t i : edges.index_range()) {
       if (loose_edges.is_loose_bits[i]) {
-        const MEdge *edge = &edges[i];
+        const int2 &edge = edges[i];
         edges_in_linelist += 1;
-        edge_list.push_back(edge->v1);
-        edge_list.push_back(edge->v2);
+        edge_list.push_back(edge[0]);
+        edge_list.push_back(edge[1]);
       }
     }
   }
@@ -294,7 +294,7 @@ static bool collect_vertex_counts_per_poly(Mesh *me,
 {
   const blender::OffsetIndices polys = me->polys();
   const blender::bke::AttributeAccessor attributes = me->attributes();
-  const blender::VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const blender::VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   bool is_triangulated = true;
 
@@ -404,7 +404,7 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
   prepareToAppendValues(is_triangulated, *primitive_list, vcount_list);
 
   const blender::bke::AttributeAccessor attributes = me->attributes();
-  const blender::VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const blender::VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
 
   /* <p> */
@@ -623,7 +623,7 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
   bool use_custom_normals = false;
 
   const bke::AttributeAccessor attributes = me->attributes();
-  const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
+  const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
       "sharp_face", ATTR_DOMAIN_FACE, false);
 
   BKE_mesh_calc_normals_split(me);

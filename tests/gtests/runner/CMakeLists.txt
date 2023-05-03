@@ -20,10 +20,6 @@ endif()
 get_property(_test_libs GLOBAL PROPERTY BLENDER_TEST_LIBS)
 if(WIN32 OR APPLE)
   # Windows and macOS set target_link_options after target creation.
-  #
-  # Still need to ensure dependency between the test libraries and the blender_test binary, so that
-  # the latter one is re-linked when the test library is re-compiled.
-  list(APPEND TEST_LIBS ${_test_libs})
 elseif(UNIX)
   list(APPEND TEST_LIBS "-Wl,--whole-archive" ${_test_libs} "-Wl,--no-whole-archive")
 else()
@@ -49,32 +45,11 @@ if(WIN32)
   endforeach()
   set_target_properties(blender_test PROPERTIES VS_DEBUGGER_ENVIRONMENT "${PLATFORM_ENV_INSTALL};$<TARGET_FILE_DIR:blender>")
 elseif(APPLE)
-  # force_load for `_test_libs` ensures that all symbols definitely make it into the test binary.
-  # But linking against them again using `target_link_libraries` creates duplicate symbol
-  # errors when linker cannot deduplicate a force loaded and linked library.
-  # So force load test libraries separately, and link against their non-"test libraries"
-  # dependencies separately.
-
-  # Gather dependencies of all test libraries.
-  set(_test_libs_dependencies)
   foreach(_lib ${_test_libs})
-    get_target_property(_interface_libs ${_lib} INTERFACE_LINK_LIBRARIES)
-    if(_interface_libs)
-      list(APPEND _test_libs_dependencies ${_interface_libs})
-    endif()
-    unset(_interface_libs)
+    # We need -force_load for every test library and target_link_libraries will
+    # deduplicate it. So explicitly set as linker option for every test lib.
+    target_link_libraries(blender_test ${_lib} "-Wl,-force_load,$<TARGET_PROPERTY:${_lib},IMPORTED_LOCATION>")
   endforeach()
-
-  # Force load test libraries. Ensure that they are not linked twice in case they
-  # are used as dependencies of other test libraries.
-  foreach(_lib ${_test_libs})
-    list(REMOVE_ITEM _test_libs_dependencies ${_lib})
-    add_dependencies(blender_test ${_lib})
-    target_link_options(blender_test PRIVATE "LINKER:-force_load,$<TARGET_FILE:${_lib}>")
-  endforeach()
-
-  target_link_libraries(blender_test "${_test_libs_dependencies}")
-  unset(_test_libs_dependencies)
 endif()
 
 unset(_test_libs)

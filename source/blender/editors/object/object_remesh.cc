@@ -135,7 +135,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 
   /* Output mesh will be all smooth or all flat shading. */
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArray<bool> sharp_faces = attributes.lookup_or_default<bool>(
+  const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
       "sharp_face", ATTR_DOMAIN_FACE, false);
   const bool smooth_normals = !sharp_faces[0];
 
@@ -388,7 +388,8 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
 
   /* Cancel modal operator */
   if ((event->type == EVT_ESCKEY && event->val == KM_PRESS) ||
-      (event->type == RIGHTMOUSE && event->val == KM_PRESS)) {
+      (event->type == RIGHTMOUSE && event->val == KM_PRESS))
+  {
     voxel_size_edit_cancel(C, op);
     ED_region_tag_redraw(region);
     return OPERATOR_FINISHED;
@@ -397,7 +398,8 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
   /* Finish modal operator */
   if ((event->type == LEFTMOUSE && event->val == KM_RELEASE) ||
       (event->type == EVT_RETKEY && event->val == KM_PRESS) ||
-      (event->type == EVT_PADENTER && event->val == KM_PRESS)) {
+      (event->type == EVT_PADENTER && event->val == KM_PRESS))
+  {
     ED_region_draw_cb_exit(region->type, cd->draw_handle);
     mesh->remesh_voxel_size = cd->voxel_size;
     MEM_freeN(op->customdata);
@@ -679,7 +681,7 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
    * flip
    */
   const Span<float3> positions = mesh->vert_positions();
-  const Span<MEdge> edges = mesh->edges();
+  const Span<blender::int2> edges = mesh->edges();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
 
@@ -719,7 +721,7 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
         break;
       }
       /* Check for zero length edges */
-      if (compare_v3v3(positions[edges[i].v1], positions[edges[i].v2], 1e-4f)) {
+      if (compare_v3v3(positions[edges[i][0]], positions[edges[i][1]], 1e-4f)) {
         is_manifold_consistent = false;
         break;
       }
@@ -778,7 +780,7 @@ static Mesh *remesh_symmetry_bisect(Mesh *mesh, eSymmetryAxes symmetry_axes)
   mmd.tolerance = QUADRIFLOW_MIRROR_BISECT_TOLERANCE;
 
   Mesh *mesh_bisect, *mesh_bisect_temp;
-  mesh_bisect = BKE_mesh_copy_for_eval(mesh, false);
+  mesh_bisect = BKE_mesh_copy_for_eval(mesh);
 
   int axis;
   float plane_co[3], plane_no[3];
@@ -860,7 +862,7 @@ static void quadriflow_start_job(void *customdata, bool *stop, bool *do_update, 
 
   /* Run Quadriflow bisect operations on a copy of the mesh to keep the code readable without
    * freeing the original ID */
-  bisect_mesh = BKE_mesh_copy_for_eval(mesh, false);
+  bisect_mesh = BKE_mesh_copy_for_eval(mesh);
 
   /* Bisect the input mesh using the paint symmetry settings */
   bisect_mesh = remesh_symmetry_bisect(bisect_mesh, qj->symmetry_axes);
@@ -934,7 +936,7 @@ static void quadriflow_end_job(void *customdata)
       WM_reportf(RPT_ERROR, "QuadriFlow: Remeshing failed");
       break;
     case -1:
-      WM_report(RPT_WARNING, "QuadriFlow: Remeshing cancelled");
+      WM_report(RPT_WARNING, "QuadriFlow: Remeshing canceled");
       break;
     case -2:
       WM_report(RPT_WARNING,

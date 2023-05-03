@@ -18,7 +18,10 @@ struct Circle {
 
 Circle shape_circle(vec2 center, float radius)
 {
-  return Circle(center, radius);
+  Circle circle;
+  circle.center = center;
+  circle.radius = radius;
+  return circle;
 }
 
 /** \} */
@@ -34,7 +37,10 @@ struct Sphere {
 
 Sphere shape_sphere(vec3 center, float radius)
 {
-  return Sphere(center, radius);
+  Sphere sphere;
+  sphere.center = center;
+  sphere.radius = radius;
+  return sphere;
 }
 
 /** \} */
@@ -192,6 +198,14 @@ Frustum shape_frustum(vec3 corners[8])
 struct Cone {
   vec3 direction;
   float angle_cos;
+
+#ifdef GPU_METAL
+  inline Cone() = default;
+  inline Cone(vec3 in_direction, float in_angle_cos)
+      : direction(in_direction), angle_cos(in_angle_cos)
+  {
+  }
+#endif
 };
 
 Cone shape_cone(vec3 direction, float angle_cosine)

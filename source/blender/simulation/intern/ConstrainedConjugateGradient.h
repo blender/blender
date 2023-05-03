@@ -89,9 +89,10 @@ EIGEN_DONT_INLINE void constrained_conjugate_gradient(const MatrixType &mat,
 
     RealScalar absOld = absNew;
     absNew = numext::real(residual.dot(z)); /* update the absolute value of r */
-    RealScalar beta =
-        absNew /
-        absOld; /* calculate the Gram-Schmidt value used to create the new search direction */
+
+    /* Calculate the Gram-Schmidt value used to create the new search direction. */
+    RealScalar beta = absNew / absOld;
+
     p = filter * (z + beta * p); /* update search direction */
     i++;
   }

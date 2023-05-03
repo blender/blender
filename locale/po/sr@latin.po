@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'e05010b2f292')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 10:36:36\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -765,10 +765,6 @@ msgstr "Putanja do .blend datoteke"
 
 msgid "Vector Fonts"
 msgstr "Fontovi"
-
-
-msgid "Grease Pencil"
-msgstr "Skiciranje"
 
 
 msgid "Images"
@@ -4285,6 +4281,10 @@ msgid "Fonts"
 msgstr "Fontovi"
 
 
+msgid "Grease Pencil"
+msgstr "Skiciranje"
+
+
 msgid "File Select Parameters"
 msgstr "Parametri izbora datoteka"
 
@@ -5440,6 +5440,10 @@ msgstr "Oduzimanje boje"
 
 msgid "Mask Texture Overlay Alpha"
 msgstr "Maskiraj providnost preklapanja teksture"
+
+
+msgid "Comb"
+msgstr "Češalj"
 
 
 msgid "Fill Threshold"
@@ -7994,10 +7998,6 @@ msgstr "Indeks tekuće linije"
 
 msgid "Memory"
 msgstr "Memorija"
-
-
-msgid "Modified"
-msgstr "Izmenjen"
 
 
 msgid "Lines of text"
@@ -11202,10 +11202,6 @@ msgid "Width of the box"
 msgstr "Širina kutije"
 
 
-msgid "Bright/Contrast"
-msgstr "Svetlina/kontrast"
-
-
 msgid "Channel Key"
 msgstr "Ključ kanala"
 
@@ -11496,10 +11492,6 @@ msgstr "Okretanje 45"
 
 msgid "Hue Correct"
 msgstr "Korekcija tona"
-
-
-msgid "Hue Saturation Value"
-msgstr "Vredsnot tona i zasićenosti"
 
 
 msgid "Inpaint"
@@ -12076,14 +12068,6 @@ msgstr "Donja polovina teksture je za vrhove poteza"
 
 msgid "UV coordinates to be used for mapping"
 msgstr "UV koordinate za mapiranje"
-
-
-msgid "Modulo"
-msgstr "Modul"
-
-
-msgid "Wrap"
-msgstr "Prelom teksta"
 
 
 msgid "Z Axis"
@@ -13175,10 +13159,6 @@ msgid "Copy Tracks"
 msgstr "Spoji staze"
 
 
-msgid "Copy selected tracks to clipboard"
-msgstr "Ubacuje izabrani tekst među isečke"
-
-
 msgctxt "Operator"
 msgid "Set 2D Cursor"
 msgstr "3D kursor"
@@ -13357,10 +13337,6 @@ msgstr "Datoteke"
 msgctxt "Operator"
 msgid "Paste Tracks"
 msgstr "Ostavi staze"
-
-
-msgid "Paste tracks from clipboard"
-msgstr "Ubaci objekte iz spiska isečaka"
 
 
 msgctxt "Operator"
@@ -14494,6 +14470,14 @@ msgid "Open new directory"
 msgstr "Otvori novi direktorijum"
 
 
+msgid "Show"
+msgstr "Prikaži"
+
+
+msgid "Play"
+msgstr "Pokreni"
+
+
 msgctxt "Operator"
 msgid "Increment Number in Filename"
 msgstr "Uvećaj broj naziva datoteke"
@@ -14695,6 +14679,10 @@ msgstr "Otvori font"
 
 msgid "Select all text"
 msgstr "Izaberi sav tekst"
+
+
+msgid "Select word under cursor"
+msgstr "Izaberi reč pod kursorom"
 
 
 msgctxt "Operator"
@@ -15092,6 +15080,15 @@ msgstr "Izaberi grupu temena"
 
 msgid "Select all the vertices assigned to the active vertex group"
 msgstr "Označava sva temena povezana sa aktivnom UV mapom"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Sample Weight"
+msgstr "Bojenje čvorova "
+
+
+msgid "Use the mouse to sample a weight in the 3D view"
+msgstr "Način prikaza/senčenja objekata u 3D pogledu"
 
 
 msgctxt "Operator"
@@ -15568,10 +15565,6 @@ msgstr "Postavlja mapiranje teksture u modu slikanja"
 
 msgid "Set the mask's parenting"
 msgstr "Postavlja mapiranje teksture u modu slikanja"
-
-
-msgid "Paste splines from clipboard"
-msgstr "Ubaci krive iz ostave"
 
 
 msgctxt "Operator"
@@ -16713,10 +16706,6 @@ msgstr "Uvećanje pozadinske slike"
 
 msgid "Zoom in/out the background image"
 msgstr "Spisak pozadinskih slika"
-
-
-msgid "Copies selected nodes to the clipboard"
-msgstr "Ubacuje izabrani tekst u ostavu"
 
 
 msgctxt "Operator"
@@ -17895,10 +17884,6 @@ msgid "Hide vertices"
 msgstr "3 temena"
 
 
-msgid "Show"
-msgstr "Prikaži"
-
-
 msgid "Show vertices"
 msgstr "Prikaži temena"
 
@@ -18009,15 +17994,6 @@ msgstr "Bojenje uticaja"
 msgctxt "Operator"
 msgid "Weight Paint Mode"
 msgstr "Režim bojenja težine"
-
-
-msgctxt "Operator"
-msgid "Weight Paint Sample Weight"
-msgstr "Bojenje čvorova "
-
-
-msgid "Use the mouse to sample a weight in the 3D view"
-msgstr "Način prikaza/senčenja objekata u 3D pogledu"
 
 
 msgctxt "Operator"
@@ -18183,10 +18159,6 @@ msgstr "Kopiraj ograničenja na druge izabrane kosti"
 msgctxt "Operator"
 msgid "Copy Pose"
 msgstr "Kopiraj pozu"
-
-
-msgid "Copies the current pose of the selected bones to copy/paste buffer"
-msgstr "Kopiraj tekuću pozu izabranih kostiju u bafer kopiranja"
 
 
 msgctxt "Operator"
@@ -19553,10 +19525,6 @@ msgid "Select text by line"
 msgstr "Izaberi tekst po liniji"
 
 
-msgid "Select word under cursor"
-msgstr "Izaberi reč pod kursorom"
-
-
 msgctxt "Operator"
 msgid "Find"
 msgstr "Pronađi"
@@ -19952,6 +19920,10 @@ msgid "PNG Image (.png)"
 msgstr "PNG slika (.png)"
 
 
+msgid "Modified"
+msgstr "Izmenjen"
+
+
 msgid "Fill Opacity"
 msgstr "Providnost ispune"
 
@@ -19962,10 +19934,6 @@ msgstr "Režim dužine ivica"
 
 msgid "Length Average"
 msgstr "Prosečno"
-
-
-msgid "New Image"
-msgstr "Slika:"
 
 
 msgid "Pack Quality"
@@ -20424,10 +20392,6 @@ msgid "Save a Collada file"
 msgstr "Sačuvaj kao Collada datoteku"
 
 
-msgid "Apply modifiers to exported mesh (non destructive))"
-msgstr "Primeni modifikatore pi izvozu meša (bez gubitka kvaliteta)"
-
-
 msgid "Only export deforming bones with armatures"
 msgstr "Izvozi samo kosti deformacije sa kosturom"
 
@@ -20483,6 +20447,10 @@ msgstr "Atributi:"
 
 msgid "Cycle backwards"
 msgstr "Unazad"
+
+
+msgid "Wrap"
+msgstr "Prelom teksta"
 
 
 msgid "Header Text"
@@ -20542,10 +20510,6 @@ msgstr "Putanja pretrage"
 
 msgid "Run once and exit"
 msgstr "Pokreni jednom i izađi"
-
-
-msgid "Play"
-msgstr "Pokreni"
 
 
 msgid "Random Order"
@@ -20950,10 +20914,6 @@ msgid "Tracking Settings"
 msgstr "Podešavanje praćenja"
 
 
-msgid "Lens"
-msgstr "Sočiva"
-
-
 msgid "Predefined tracking settings"
 msgstr "Predefinisana podešavanja praćenja"
 
@@ -21184,6 +21144,34 @@ msgid "Pose Library"
 msgstr "Zbirka poza"
 
 
+msgid "Comb hairs"
+msgstr "Očešljaj kosu"
+
+
+msgid "Smooth hairs"
+msgstr "Umekšaj kosu"
+
+
+msgid "Add hairs"
+msgstr "Dodaj kosu"
+
+
+msgid "Make hairs longer or shorter"
+msgstr "Produži ili skrati kosu"
+
+
+msgid "Make hairs stand up"
+msgstr "Izdigni kosu"
+
+
+msgid "Cut hairs"
+msgstr "Iseci kosu"
+
+
+msgid "Weight hair particles"
+msgstr "Težina dlaka kose"
+
+
 msgctxt "Operator"
 msgid "Erase"
 msgstr "Obriši"
@@ -21351,38 +21339,6 @@ msgstr "Savet"
 
 msgid "Tip select mode"
 msgstr "Izbor vrhova"
-
-
-msgid "Comb"
-msgstr "Češalj"
-
-
-msgid "Comb hairs"
-msgstr "Očešljaj kosu"
-
-
-msgid "Smooth hairs"
-msgstr "Umekšaj kosu"
-
-
-msgid "Add hairs"
-msgstr "Dodaj kosu"
-
-
-msgid "Make hairs longer or shorter"
-msgstr "Produži ili skrati kosu"
-
-
-msgid "Make hairs stand up"
-msgstr "Izdigni kosu"
-
-
-msgid "Cut hairs"
-msgstr "Iseci kosu"
-
-
-msgid "Weight hair particles"
-msgstr "Težina dlaka kose"
 
 
 msgid "Auto Velocity"
@@ -22481,10 +22437,6 @@ msgid "Bias"
 msgstr "Pristrasnost"
 
 
-msgid "Bias towards faces further away from the object (in blender units)"
-msgstr "Pristrasnost prema licima udaljenim od objekta (u blenderovim jedinicama)"
-
-
 msgid "Number of samples used for ambient occlusion baking from multires"
 msgstr "Broj uzoraka korišćenih za pečenje ambijentalnog senčenja za višerezolucijone objekte"
 
@@ -23067,10 +23019,6 @@ msgstr "Video sekvenca"
 
 msgid "Scene Sequence"
 msgstr "Sekvenca scene"
-
-
-msgid "Override the scenes active camera"
-msgstr "Veličina teksta"
 
 
 msgid "Sound Sequence"
@@ -23709,6 +23657,10 @@ msgstr "Traži ponovo"
 
 msgid "3D View Space"
 msgstr "3D pogled"
+
+
+msgid "Lens"
+msgstr "Sočiva"
 
 
 msgid "Lock Camera to View"
@@ -25329,10 +25281,6 @@ msgid "Invert"
 msgstr "Obrnuto"
 
 
-msgid "Old"
-msgstr "Staro"
-
-
 msgid "Date"
 msgstr "Datum"
 
@@ -25867,16 +25815,16 @@ msgid "One Object Per Line"
 msgstr "Jedan objekat po liniji"
 
 
-msgid "File: %s"
-msgstr "Datoteka: %s"
-
-
 msgid "Text: External"
 msgstr "Tekst: spoljašnji"
 
 
 msgid "Text: Internal"
 msgstr "Tekst: unutrašnji"
+
+
+msgid "File: %s"
+msgstr "Datoteka: %s"
 
 
 msgctxt "Operator"
@@ -27917,6 +27865,10 @@ msgid "Val"
 msgstr "Vr."
 
 
+msgid "Old"
+msgstr "Staro"
+
+
 msgid "Edge Crease"
 msgstr "Nabor ivice"
 
@@ -28113,11 +28065,6 @@ msgstr "Odnos boja"
 msgctxt "Sequence"
 msgid "Curves"
 msgstr "Krive"
-
-
-msgctxt "Sequence"
-msgid "Bright/Contrast"
-msgstr "Svetlina/kontrast"
 
 
 msgid "Strips must be the same length"

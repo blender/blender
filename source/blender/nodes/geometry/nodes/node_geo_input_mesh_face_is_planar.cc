@@ -44,7 +44,7 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
     const Span<int> corner_verts = mesh.corner_verts();
     const Span<float3> poly_normals = mesh.poly_normals();
 
-    bke::MeshFieldContext context{mesh, ATTR_DOMAIN_FACE};
+    const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_FACE};
     fn::FieldEvaluator evaluator{context, polys.size()};
     evaluator.add(threshold_);
     evaluator.evaluate();

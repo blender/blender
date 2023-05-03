@@ -61,7 +61,7 @@ static int screenshot_data_create(bContext *C, wmOperator *op, ScrArea *area)
   /* do redraw so we don't show popups/menus */
   WM_redraw_windows(C);
 
-  uint *dumprect = WM_window_pixels_read_offscreen(C, win, dumprect_size);
+  uint *dumprect = WM_window_pixels_read(C, win, dumprect_size);
 
   if (dumprect) {
     ScreenshotData *scd = MEM_callocN(sizeof(ScreenshotData), "screenshot");
@@ -127,7 +127,8 @@ static int screenshot_exec(bContext *C, wmOperator *op)
       }
 
       if ((scd->im_format.planes == R_IMF_PLANES_BW) &&
-          (scd->im_format.imtype != R_IMF_IMTYPE_MULTILAYER)) {
+          (scd->im_format.imtype != R_IMF_IMTYPE_MULTILAYER))
+      {
         /* bw screenshot? - users will notice if it fails! */
         IMB_color_to_bw(ibuf);
       }
@@ -167,11 +168,14 @@ static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     /* extension is added by 'screenshot_check' after */
     char filepath[FILE_MAX];
-    BLI_snprintf(filepath, FILE_MAX, "//%s", DATA_("screen"));
     const char *blendfile_path = BKE_main_blendfile_path_from_global();
     if (blendfile_path[0] != '\0') {
       BLI_strncpy(filepath, blendfile_path, sizeof(filepath));
-      BLI_path_extension_replace(filepath, sizeof(filepath), ""); /* strip '.blend' */
+      BLI_path_extension_strip(filepath); /* Strip `.blend`. */
+    }
+    else {
+      /* As the file isn't saved, only set the name and let the file selector pick a directory. */
+      STRNCPY(filepath, DATA_("screen"));
     }
     RNA_string_set(op->ptr, "filepath", filepath);
 

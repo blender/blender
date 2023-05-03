@@ -317,7 +317,8 @@ void OVERLAY_empty_shape(OVERLAY_ExtraCallBuffers *cb,
 void OVERLAY_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   if (((ob->base_flag & BASE_FROM_DUPLI) != 0) && ((ob->transflag & OB_DUPLICOLLECTION) != 0) &&
-      ob->instance_collection) {
+      ob->instance_collection)
+  {
     return;
   }
 
@@ -980,7 +981,8 @@ static void camera_view3d_reconstruction(
     }
 
     if ((v3d->flag2 & V3D_SHOW_CAMERAPATH) && (tracking_object->flag & TRACKING_OBJECT_CAMERA) &&
-        !is_select) {
+        !is_select)
+    {
       const MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
 
       if (reconstruction->camnr) {
@@ -1295,7 +1297,8 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
   for (GpencilModifierData *md =
            static_cast<GpencilModifierData *>(ob->greasepencil_modifiers.first);
        md;
-       md = md->next) {
+       md = md->next)
+  {
     if (md->type == eGpencilModifierType_Hook) {
       HookGpencilModifierData *hmd = (HookGpencilModifierData *)md;
       float center[3];

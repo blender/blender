@@ -222,7 +222,7 @@ void MeshesToIMeshInfo::input_medge_for_orig_index(int orig_index,
  * first Mesh. To do this transformation, we also need the transformation
  * obmats corresponding to the Meshes, so they are in the `obmats` argument.
  * The 'original' indexes in the IMesh are the indexes you get by
- * a scheme that offsets each vertex, MEdge, and polygon index by the sum of the
+ * a scheme that offsets each vertex, edge, and polygon index by the sum of the
  * vertices, edges, and polys in the preceding Meshes in the mesh span.
  * The `*r_info class` is filled in with information needed to make the
  * correspondence between the Mesh MVerts/MPolys and the IMesh Verts/Faces.
@@ -282,7 +282,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
   /* For each input `Mesh`, make `Vert`s and `Face`s for the corresponding
    * vertices and polygons, and keep track of the original indices (using the
    * concatenating offset scheme) inside the `Vert`s and `Face`s.
-   * When making `Face`s, we also put in the original indices for `MEdge`s that
+   * When making `Face`s, we also put in the original indices for edges that
    * make up the polygons using the same scheme. */
   for (int mi : meshes.index_range()) {
     const Mesh *me = meshes[mi];
@@ -411,7 +411,7 @@ static void copy_poly_attributes(Mesh *dest_mesh,
   }
 
   /* Fix material indices after they have been transferred as a generic attribute. */
-  const VArray<int> src_material_indices = orig_me->attributes().lookup_or_default<int>(
+  const VArray<int> src_material_indices = *orig_me->attributes().lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   const int src_index = src_material_indices[index_in_orig_me];
   if (material_remap.index_range().contains(src_index)) {
@@ -434,8 +434,10 @@ static void copy_edge_attributes(Mesh *dest_mesh,
   const CustomData *source_cd = &orig_me->edata;
   for (int source_layer_i = 0; source_layer_i < source_cd->totlayer; ++source_layer_i) {
     const eCustomDataType ty = eCustomDataType(source_cd->layers[source_layer_i].type);
-    if (ty == CD_MEDGE) {
-      continue;
+    if (ty == CD_PROP_INT32_2D) {
+      if (STREQ(source_cd->layers[source_layer_i].name, ".edge_verts")) {
+        continue;
+      }
     }
     const char *name = source_cd->layers[source_layer_i].name;
     int target_layer_i = CustomData_get_named_layer_index(target_cd, ty, name);
@@ -656,15 +658,15 @@ static void merge_vertex_loop_poly_customdata_layers(Mesh *target, MeshesToIMesh
   for (int mesh_index = 1; mesh_index < mim.meshes.size(); ++mesh_index) {
     const Mesh *me = mim.meshes[mesh_index];
     if (me->totvert) {
-      CustomData_merge(
+      CustomData_merge_layout(
           &me->vdata, &target->vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, target->totvert);
     }
     if (me->totloop) {
-      CustomData_merge(
+      CustomData_merge_layout(
           &me->ldata, &target->ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, target->totloop);
     }
     if (me->totpoly) {
-      CustomData_merge(
+      CustomData_merge_layout(
           &me->pdata, &target->pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, target->totpoly);
     }
   }
@@ -675,7 +677,7 @@ static void merge_edge_customdata_layers(Mesh *target, MeshesToIMeshInfo &mim)
   for (int mesh_index = 0; mesh_index < mim.meshes.size(); ++mesh_index) {
     const Mesh *me = mim.meshes[mesh_index];
     if (me->totedge) {
-      CustomData_merge(
+      CustomData_merge_layout(
           &me->edata, &target->edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, target->totedge);
     }
   }
@@ -698,7 +700,7 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
   }
   /* Will calculate edges later. */
   Mesh *result = BKE_mesh_new_nomain_from_template(
-      mim.meshes[0], out_totvert, 0, out_totloop, out_totpoly);
+      mim.meshes[0], out_totvert, 0, out_totpoly, out_totloop);
 
   merge_vertex_loop_poly_customdata_layers(result, mim);
   /* Set the vertex coordinate values and other data. */

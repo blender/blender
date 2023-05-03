@@ -114,7 +114,8 @@ const IDTypeInfo *BKE_idtype_get_info_from_idcode(const short id_code)
   int id_index = BKE_idtype_idcode_to_index(id_code);
 
   if (id_index >= 0 && id_index < ARRAY_SIZE(id_types) && id_types[id_index] != NULL &&
-      id_types[id_index]->name[0] != '\0') {
+      id_types[id_index]->name[0] != '\0')
+  {
     return id_types[id_index];
   }
 

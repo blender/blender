@@ -284,7 +284,8 @@ static PyObject *pygpu_framebuffer__tp_new(PyTypeObject *UNUSED(self),
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, &depth_attachment, &color_attachements)) {
+          args, kwds, &_parser, &depth_attachment, &color_attachements))
+  {
     return NULL;
   }
 
@@ -514,7 +515,8 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
                                         PyC_ParseStringEnum,
                                         &pygpu_dataformat,
                                         &BPyGPU_BufferType,
-                                        &py_buffer)) {
+                                        &py_buffer))
+  {
     return NULL;
   }
 
@@ -598,7 +600,8 @@ static PyObject *pygpu_framebuffer_read_depth(BPyGPUFrameBuffer *self,
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, &x, &y, &w, &h, &BPyGPU_BufferType, &py_buffer)) {
+          args, kwds, &_parser, &x, &y, &w, &h, &BPyGPU_BufferType, &py_buffer))
+  {
     return NULL;
   }
 

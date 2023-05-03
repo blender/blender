@@ -147,7 +147,8 @@ static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *ef
     Curve *cu = eff->ob->data;
     if (cu->flag & CU_PATH) {
       if (eff->ob->runtime.curve_cache == NULL ||
-          eff->ob->runtime.curve_cache->anim_path_accum_length == NULL) {
+          eff->ob->runtime.curve_cache->anim_path_accum_length == NULL)
+      {
         BKE_displist_make_curveTypes(depsgraph, eff->scene, eff->ob, false);
       }
 
@@ -511,7 +512,8 @@ static float eff_calc_visibility(ListBase *colliders,
                                   &hit,
                                   eff_tri_ray_hit,
                                   NULL,
-                                  raycast_flag) != -1) {
+                                  raycast_flag) != -1)
+      {
         absorption = col->ob->pd->absorption;
 
         /* visibility is only between 0 and 1, calculated from 1-absorption */

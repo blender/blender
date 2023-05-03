@@ -441,7 +441,8 @@ ccl_device_forceinline void volume_integrate_step_scattering(
   /* Equiangular sampling for direct lighting. */
   if (vstate.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR && !result.direct_scatter) {
     if (result.direct_t >= vstate.tmin && result.direct_t <= vstate.tmax &&
-        vstate.equiangular_pdf > VOLUME_SAMPLE_PDF_CUTOFF) {
+        vstate.equiangular_pdf > VOLUME_SAMPLE_PDF_CUTOFF)
+    {
       const float new_dt = result.direct_t - vstate.tmin;
       const Spectrum new_transmittance = volume_color_transmittance(coeff.sigma_t, new_dt);
 
@@ -720,7 +721,8 @@ ccl_device_forceinline bool integrate_volume_equiangular_sample_light(
                                         ray->tmax - ray->tmin,
                                         bounce,
                                         path_flag,
-                                        &ls)) {
+                                        &ls))
+  {
     return false;
   }
 
@@ -784,7 +786,8 @@ ccl_device_forceinline void integrate_volume_direct_light(
                                     SD_BSDF_HAS_TRANSMISSION,
                                     bounce,
                                     path_flag,
-                                    &ls)) {
+                                    &ls))
+    {
       return;
     }
   }

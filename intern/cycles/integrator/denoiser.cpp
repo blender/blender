@@ -109,8 +109,8 @@ static Device *find_best_device(Device *device, DenoiserType type)
     }
     else {
       /* Prefer a device that can use graphics interop for faster display update. */
-      if (sub_device->should_use_graphics_interop() &&
-          !best_device->should_use_graphics_interop()) {
+      if (sub_device->should_use_graphics_interop() && !best_device->should_use_graphics_interop())
+      {
         best_device = sub_device;
       }
 

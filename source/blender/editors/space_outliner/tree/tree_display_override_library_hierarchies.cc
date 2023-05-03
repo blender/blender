@@ -55,7 +55,8 @@ ListBase TreeDisplayOverrideLibraryHierarchies::buildTree(const TreeSourceData &
 
   /* Second step: Build hierarchies for external libraries. */
   for (Library *lib = (Library *)source_data.bmain->libraries.first; lib;
-       lib = (Library *)lib->id.next) {
+       lib = (Library *)lib->id.next)
+  {
     TreeElement *tenlib = outliner_add_element(
         &space_outliner_, &tree, lib, nullptr, TSE_SOME_ID, 0);
     build_hierarchy_for_lib_or_main(source_data.bmain, *tenlib, lib);
@@ -264,7 +265,8 @@ static void foreach_natural_hierarchy_child(const MainIDRelations &id_relations,
 
   /* Iterate over all IDs used by the parent ID (e.g. the child-collections of a collection). */
   for (MainIDRelationsEntryItem *to_id_entry = relations_of_id->to_ids; to_id_entry;
-       to_id_entry = to_id_entry->next) {
+       to_id_entry = to_id_entry->next)
+  {
     /* An ID pointed to (used) by the ID to recurse into. */
     ID &target_id = **to_id_entry->id_pointer.to;
 
@@ -293,7 +295,8 @@ static void foreach_natural_hierarchy_child(const MainIDRelations &id_relations,
   /* If the ID is an object, find and iterate over any child objects. */
   if (GS(parent_id.name) == ID_OB) {
     for (MainIDRelationsEntryItem *from_id_entry = relations_of_id->from_ids; from_id_entry;
-         from_id_entry = from_id_entry->next) {
+         from_id_entry = from_id_entry->next)
+    {
       ID &potential_child_id = *from_id_entry->id_pointer.from;
 
       if (GS(potential_child_id.name) != ID_OB) {

@@ -57,7 +57,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 }
 
 struct IndexAttributes {
-  AutoAnonymousAttributeID duplicate_index;
+  AnonymousAttributeIDPtr duplicate_index;
 };
 
 /* -------------------------------------------------------------------- */
@@ -178,11 +178,9 @@ static void copy_attributes_without_id(const OffsetIndices<int> offsets,
                                        const bke::AttributeAccessor src_attributes,
                                        bke::MutableAttributeAccessor dst_attributes)
 {
-  for (auto &attribute : bke::retrieve_attributes_for_transfer(src_attributes,
-                                                               dst_attributes,
-                                                               ATTR_DOMAIN_AS_MASK(domain),
-                                                               propagation_info,
-                                                               {"id"})) {
+  for (auto &attribute : bke::retrieve_attributes_for_transfer(
+           src_attributes, dst_attributes, ATTR_DOMAIN_AS_MASK(domain), propagation_info, {"id"}))
+  {
     attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
       using T = decltype(dummy);
       const Span<T> src = attribute.src.typed<T>();
@@ -217,7 +215,8 @@ static void copy_curve_attributes_without_id(
                                                                dst_curves.attributes_for_write(),
                                                                ATTR_DOMAIN_MASK_ALL,
                                                                propagation_info,
-                                                               {"id"})) {
+                                                               {"id"}))
+  {
     attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
       using T = decltype(dummy);
       const Span<T> src = attribute.src.typed<T>();
@@ -305,7 +304,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
   const Curves &curves_id = *geometry_set.get_curves_for_read();
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
 
-  bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
+  const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
   FieldEvaluator evaluator{field_context, curves.curves_num()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -389,12 +388,13 @@ static void copy_face_attributes_without_id(
     const bke::AttributeAccessor src_attributes,
     bke::MutableAttributeAccessor dst_attributes)
 {
-  for (auto &attribute :
-       bke::retrieve_attributes_for_transfer(src_attributes,
-                                             dst_attributes,
-                                             ATTR_DOMAIN_MASK_ALL,
-                                             propagation_info,
-                                             {"id", ".corner_vert", ".corner_edge"})) {
+  for (auto &attribute : bke::retrieve_attributes_for_transfer(
+           src_attributes,
+           dst_attributes,
+           ATTR_DOMAIN_MASK_ALL,
+           propagation_info,
+           {"id", ".corner_vert", ".corner_edge", ".edge_verts"}))
+  {
     attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
       using T = decltype(dummy);
       const Span<T> src = attribute.src.typed<T>();
@@ -486,12 +486,12 @@ static void duplicate_faces(GeometrySet &geometry_set,
   geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
 
   const Mesh &mesh = *geometry_set.get_mesh_for_read();
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
   const OffsetIndices polys = mesh.polys();
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int> corner_edges = mesh.corner_edges();
 
-  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
+  const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
   FieldEvaluator evaluator(field_context, polys.size());
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -512,8 +512,8 @@ static void duplicate_faces(GeometrySet &geometry_set,
 
   const OffsetIndices<int> duplicates(offset_data);
 
-  Mesh *new_mesh = BKE_mesh_new_nomain(total_loops, total_loops, total_loops, total_polys);
-  MutableSpan<MEdge> new_edges = new_mesh->edges_for_write();
+  Mesh *new_mesh = BKE_mesh_new_nomain(total_loops, total_loops, total_polys, total_loops);
+  MutableSpan<int2> new_edges = new_mesh->edges_for_write();
   MutableSpan<int> new_poly_offsets = new_mesh->poly_offsets_for_write();
   MutableSpan<int> new_corner_verts = new_mesh->corner_verts_for_write();
   MutableSpan<int> new_corner_edges = new_mesh->corner_edges_for_write();
@@ -536,12 +536,12 @@ static void duplicate_faces(GeometrySet &geometry_set,
         vert_mapping[loop_index] = corner_verts[src_corner];
         new_edges[loop_index] = edges[corner_edges[src_corner]];
         edge_mapping[loop_index] = corner_edges[src_corner];
-        new_edges[loop_index].v1 = loop_index;
+        new_edges[loop_index][0] = loop_index;
         if (i_loops + 1 != source.size()) {
-          new_edges[loop_index].v2 = loop_index + 1;
+          new_edges[loop_index][1] = loop_index + 1;
         }
         else {
-          new_edges[loop_index].v2 = new_poly_offsets[poly_index];
+          new_edges[loop_index][1] = new_poly_offsets[poly_index];
         }
         new_corner_verts[loop_index] = loop_index;
         new_corner_edges[loop_index] = loop_index;
@@ -551,6 +551,7 @@ static void duplicate_faces(GeometrySet &geometry_set,
     }
   }
 
+  new_mesh->tag_loose_verts_none();
   new_mesh->loose_edges_tag_none();
 
   copy_face_attributes_without_id(edge_mapping,
@@ -603,7 +604,8 @@ static void copy_edge_attributes_without_id(
                                              dst_attributes,
                                              ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_EDGE,
                                              propagation_info,
-                                             {"id"})) {
+                                             {"id", ".edge_verts"}))
+  {
     attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
       using T = decltype(dummy);
       const Span<T> src = attribute.src.typed<T>();
@@ -645,7 +647,7 @@ static void copy_stable_id_edges(const Mesh &mesh,
     return;
   }
 
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
 
   VArraySpan<int> src{src_attribute.varray.typed<int>()};
   MutableSpan<int> dst = dst_attribute.span.typed<int>();
@@ -655,14 +657,14 @@ static void copy_stable_id_edges(const Mesh &mesh,
       if (edge_range.size() == 0) {
         continue;
       }
-      const MEdge &edge = edges[selection[i_selection]];
+      const int2 &edge = edges[selection[i_selection]];
       const IndexRange vert_range = {edge_range.start() * 2, edge_range.size() * 2};
 
-      dst[vert_range[0]] = src[edge.v1];
-      dst[vert_range[1]] = src[edge.v2];
+      dst[vert_range[0]] = src[edge[0]];
+      dst[vert_range[1]] = src[edge[1]];
       for (const int i_duplicate : IndexRange(1, edge_range.size() - 1)) {
-        dst[vert_range[i_duplicate * 2]] = noise::hash(src[edge.v1], i_duplicate);
-        dst[vert_range[i_duplicate * 2 + 1]] = noise::hash(src[edge.v2], i_duplicate);
+        dst[vert_range[i_duplicate * 2]] = noise::hash(src[edge[0]], i_duplicate);
+        dst[vert_range[i_duplicate * 2 + 1]] = noise::hash(src[edge[1]], i_duplicate);
       }
     }
   });
@@ -680,9 +682,9 @@ static void duplicate_edges(GeometrySet &geometry_set,
     return;
   };
   const Mesh &mesh = *geometry_set.get_mesh_for_read();
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
 
-  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_EDGE};
+  const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_EDGE};
   FieldEvaluator evaluator{field_context, edges.size()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -696,18 +698,18 @@ static void duplicate_edges(GeometrySet &geometry_set,
   const int output_edges_num = duplicates.total_size();
 
   Mesh *new_mesh = BKE_mesh_new_nomain(output_edges_num * 2, output_edges_num, 0, 0);
-  MutableSpan<MEdge> new_edges = new_mesh->edges_for_write();
+  MutableSpan<int2> new_edges = new_mesh->edges_for_write();
 
   Array<int> vert_orig_indices(output_edges_num * 2);
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
     for (const int i_selection : range) {
-      const MEdge &edge = edges[selection[i_selection]];
+      const int2 &edge = edges[selection[i_selection]];
       const IndexRange edge_range = duplicates[i_selection];
       const IndexRange vert_range(edge_range.start() * 2, edge_range.size() * 2);
 
       for (const int i_duplicate : IndexRange(edge_range.size())) {
-        vert_orig_indices[vert_range[i_duplicate * 2]] = edge.v1;
-        vert_orig_indices[vert_range[i_duplicate * 2 + 1]] = edge.v2;
+        vert_orig_indices[vert_range[i_duplicate * 2]] = edge[0];
+        vert_orig_indices[vert_range[i_duplicate * 2 + 1]] = edge[1];
       }
     }
   });
@@ -717,9 +719,9 @@ static void duplicate_edges(GeometrySet &geometry_set,
       const IndexRange edge_range = duplicates[i_selection];
       const IndexRange vert_range(edge_range.start() * 2, edge_range.size() * 2);
       for (const int i_duplicate : IndexRange(edge_range.size())) {
-        MEdge &new_edge = new_edges[edge_range[i_duplicate]];
-        new_edge.v1 = vert_range[i_duplicate * 2];
-        new_edge.v2 = vert_range[i_duplicate * 2] + 1;
+        int2 &new_edge = new_edges[edge_range[i_duplicate]];
+        new_edge[0] = vert_range[i_duplicate * 2];
+        new_edge[1] = vert_range[i_duplicate * 2] + 1;
       }
     }
   });
@@ -763,7 +765,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
     return;
   }
 
-  bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_POINT};
+  const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_POINT};
   FieldEvaluator evaluator{field_context, src_curves.points_num()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -791,7 +793,8 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
                                                                new_curves.attributes_for_write(),
                                                                ATTR_DOMAIN_MASK_ALL,
                                                                propagation_info,
-                                                               {"id"})) {
+                                                               {"id"}))
+  {
     attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
       using T = decltype(dummy);
       const Span<T> src = attribute.src.typed<T>();
@@ -843,7 +846,7 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
 {
   const Mesh &mesh = *geometry_set.get_mesh_for_read();
 
-  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_POINT};
+  const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_POINT};
   FieldEvaluator evaluator{field_context, mesh.totvert};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -891,7 +894,7 @@ static void duplicate_points_pointcloud(GeometrySet &geometry_set,
 {
   const PointCloud &src_points = *geometry_set.get_pointcloud_for_read();
 
-  bke::PointCloudFieldContext field_context{src_points};
+  const bke::PointCloudFieldContext field_context{src_points};
   FieldEvaluator evaluator{field_context, src_points.totpoint};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -1097,12 +1100,6 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  if (attribute_outputs.duplicate_index) {
-    params.set_output(
-        "Duplicate Index",
-        AnonymousAttributeFieldInput::Create<int>(std::move(attribute_outputs.duplicate_index),
-                                                  params.attribute_producer_name()));
-  }
   params.set_output("Geometry", std::move(geometry_set));
 }
 

@@ -2215,6 +2215,15 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
         case GP_BRUSH_ICON_GPBRUSH_WEIGHT:
           br->id.icon_id = ICON_GPBRUSH_WEIGHT;
           break;
+        case GP_BRUSH_ICON_GPBRUSH_BLUR:
+          br->id.icon_id = ICON_BRUSH_BLUR;
+          break;
+        case GP_BRUSH_ICON_GPBRUSH_AVERAGE:
+          br->id.icon_id = ICON_BRUSH_BLUR;
+          break;
+        case GP_BRUSH_ICON_GPBRUSH_SMEAR:
+          br->id.icon_id = ICON_BRUSH_BLUR;
+          break;
         default:
           br->id.icon_id = ICON_GPBRUSH_PEN;
           break;
@@ -2291,7 +2300,8 @@ int UI_icon_from_library(const ID *id)
   }
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
     if (!ID_IS_OVERRIDE_LIBRARY_REAL(id) ||
-        (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) != 0) {
+        (id->override_library->flag & LIBOVERRIDE_FLAG_SYSTEM_DEFINED) != 0)
+    {
       return ICON_LIBRARY_DATA_OVERRIDE_NONEDITABLE;
     }
     return ICON_LIBRARY_DATA_OVERRIDE;

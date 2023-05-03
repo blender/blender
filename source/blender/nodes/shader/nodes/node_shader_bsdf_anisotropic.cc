@@ -67,6 +67,7 @@ void register_node_type_sh_bsdf_anisotropic()
 
   sh_node_type_base(&ntype, SH_NODE_BSDF_ANISOTROPIC, "Anisotropic BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
+  ntype.add_ui_poll = object_cycles_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_anisotropic;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   ntype.initfunc = file_ns::node_shader_init_anisotropic;
