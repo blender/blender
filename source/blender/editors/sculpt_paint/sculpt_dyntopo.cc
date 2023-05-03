@@ -448,8 +448,8 @@ void SCULPT_pbvh_clear(Object *ob)
 }
 
 /**
-  Syncs customdata layers with internal bmesh, but ignores deleted layers.
-*/
+ * Syncs customdata layers with internal bmesh, but ignores deleted layers.
+ */
 void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
 {
   BKE_sculptsession_sync_attributes(ob, me);
