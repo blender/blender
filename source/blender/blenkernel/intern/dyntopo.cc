@@ -233,8 +233,8 @@ BLI_INLINE float calc_weighted_length(EdgeQueueContext *eq_ctx, BMVert *v1, BMVe
 
 static void edge_queue_insert_unified(EdgeQueueContext *eq_ctx, BMEdge *e)
 {
-  if (/*BLI_mm_heap_len(eq_ctx->heap_mm) < eq_ctx->max_heap_mm &&*/ !(e->head.hflag &
-                                                                      BM_ELEM_TAG)) {
+  if (/*BLI_mm_heap_len(eq_ctx->heap_mm) < eq_ctx->max_heap_mm &&*/ !(e->head.hflag & BM_ELEM_TAG))
+  {
     float lensqr = len_squared_v3v3(e->v1->co, e->v2->co);
 
     float len = sqrtf(lensqr);
@@ -1332,7 +1332,8 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
       }
 
       if (eq_ctx->use_view_normal && (dot_v3v3(e->v1->no, eq_ctx->view_normal) < 0.0f &&
-                                      dot_v3v3(e->v2->no, eq_ctx->view_normal) < 0.0f)) {
+                                      dot_v3v3(e->v2->no, eq_ctx->view_normal) < 0.0f))
+      {
         return;
       }
 
@@ -1421,7 +1422,8 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
     EdgeQueueThreadData td;
 
     if ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology) &&
-        !(node->flag & PBVH_FullyHidden)) {
+        !(node->flag & PBVH_FullyHidden))
+    {
       memset(&td, 0, sizeof(td));
       td.pbvh = pbvh;
       td.node = node;
@@ -1688,7 +1690,8 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx,
     PBVHVertRef sv = {(intptr_t)v};
 
     if (len_squared_v3v3(v->co, center) >= rsqr || !v->e ||
-        ectx->mask_cb(sv, ectx->mask_cb_data) < 0.5f) {
+        ectx->mask_cb(sv, ectx->mask_cb_data) < 0.5f)
+    {
       continue;
     }
 
@@ -1750,7 +1753,8 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx,
 
       /*ignore non-manifold edges along with ones flagged as sharp*/
       if (l->radial_next == l || l->radial_next->radial_next != l ||
-          !(l->e->head.hflag & BM_ELEM_SMOOTH)) {
+          !(l->e->head.hflag & BM_ELEM_SMOOTH))
+      {
         bad = true;
         break;
       }
@@ -2274,7 +2278,8 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
     }
 
     if (curop == 0 && count_subd >= max_subd && totop > 1 && ops[0] == PBVH_Subdivide &&
-        ops[1] == PBVH_Collapse) {
+        ops[1] == PBVH_Collapse)
+    {
       curop = 1;
     }
 
@@ -2287,7 +2292,8 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
         e = eq_ctx.edge_heap.pop_max();
         while (!eq_ctx.edge_heap.empty() && e &&
                (bm_elem_is_free((BMElem *)e, BM_EDGE) ||
-                calc_weighted_length(&eq_ctx, e->v1, e->v2, -1.0) < limit_len_subd)) {
+                calc_weighted_length(&eq_ctx, e->v1, e->v2, -1.0) < limit_len_subd))
+        {
           e = eq_ctx.edge_heap.pop_max();
         }
 
@@ -2326,7 +2332,8 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
         e = eq_ctx.edge_heap.pop_min();
         while (!eq_ctx.edge_heap.empty() && e &&
                (bm_elem_is_free((BMElem *)e, BM_EDGE) ||
-                calc_weighted_length(&eq_ctx, e->v1, e->v2, 1.0) > limit_len_cold)) {
+                calc_weighted_length(&eq_ctx, e->v1, e->v2, 1.0) > limit_len_cold))
+        {
           e = eq_ctx.edge_heap.pop_min();
         }
 
@@ -2334,8 +2341,8 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
           break;
         }
 
-        if (bm_elem_is_free((BMElem *)e->v1, BM_VERT) ||
-            bm_elem_is_free((BMElem *)e->v2, BM_VERT)) {
+        if (bm_elem_is_free((BMElem *)e->v1, BM_VERT) || bm_elem_is_free((BMElem *)e->v2, BM_VERT))
+        {
           printf("%s: error! operated on freed bmesh elements! e: %p, e->v1: %p, e->v2: %p\n",
                  __func__,
                  e,
@@ -2412,7 +2419,8 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
       PBVHNode *node = pbvh->nodes + i;
 
       if ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology) &&
-          !(node->flag & PBVH_FullyHidden)) {
+          !(node->flag & PBVH_FullyHidden))
+      {
 
         /* do not clear PBVH_UpdateTopology here in case split messes with it */
 

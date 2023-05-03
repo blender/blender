@@ -2655,7 +2655,8 @@ bool ray_face_intersection_quad(const float ray_start[3],
   if ((isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, NULL) &&
        (depth_test < *depth)) ||
       (isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t2, t3, &depth_test, NULL) &&
-       (depth_test < *depth))) {
+       (depth_test < *depth)))
+  {
     *depth = depth_test;
     return true;
   }
@@ -2672,7 +2673,8 @@ bool ray_face_intersection_tri(const float ray_start[3],
 {
   float depth_test;
   if (isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, NULL) &&
-      (depth_test < *depth)) {
+      (depth_test < *depth))
+  {
     *depth = depth_test;
     return true;
   }
@@ -2711,7 +2713,8 @@ bool ray_face_intersection_depth_quad(const float ray_start[3],
 {
   float depth_test;
   if (!(isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, NULL) ||
-        isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t2, t3, &depth_test, NULL))) {
+        isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t2, t3, &depth_test, NULL)))
+  {
     return false;
   }
   return ray_update_depth_and_hit_count(depth_test, r_depth, r_back_depth, hit_count);
@@ -2772,11 +2775,13 @@ bool ray_face_nearest_quad(const float ray_start[3],
   float co[3], depth_test;
 
   if ((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
-           ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq) {
+           ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq)
+  {
     *dist_sq = dist_sq_test;
     *depth = depth_test;
     if ((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
-             ray_start, ray_normal, t0, t2, t3, co, &depth_test)) < *dist_sq) {
+             ray_start, ray_normal, t0, t2, t3, co, &depth_test)) < *dist_sq)
+    {
       *dist_sq = dist_sq_test;
       *depth = depth_test;
     }
@@ -2798,7 +2803,8 @@ bool ray_face_nearest_tri(const float ray_start[3],
   float co[3], depth_test;
 
   if ((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
-           ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq) {
+           ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq)
+  {
     *dist_sq = dist_sq_test;
     *depth = depth_test;
     return true;
@@ -2851,7 +2857,8 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
     }
 
     if (!ray_face_intersection_depth_tri(
-            ray_start, isect_precalc, co[0], co[1], co[2], depth, depth_back, hit_count)) {
+            ray_start, isect_precalc, co[0], co[1], co[2], depth, depth_back, hit_count))
+    {
       continue;
     }
 
@@ -2943,7 +2950,8 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
                                               co[3],
                                               depth,
                                               back_depth,
-                                              hit_count)) {
+                                              hit_count))
+        {
           continue;
         }
         hit = true;
@@ -4862,7 +4870,8 @@ void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
       *flags |= SCULPT_BOUNDARY_FACE_SET;
 
       if (i > 1 && last_fset2 != last_fset && last_fset != -1 && last_fset2 != -1 && fset != -1 &&
-          last_fset2 != fset) {
+          last_fset2 != fset)
+      {
         *flags |= SCULPT_CORNER_FACE_SET;
       }
     }
@@ -5768,7 +5777,8 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
           int grid_index = mp->loopstart + loop_index;
 
           if (pbvh->grid_hidden[grid_index] &&
-              BLI_BITMAP_TEST(pbvh->grid_hidden[grid_index], key.grid_area - 1)) {
+              BLI_BITMAP_TEST(pbvh->grid_hidden[grid_index], key.grid_area - 1))
+          {
             hidden = true;
 
             break;

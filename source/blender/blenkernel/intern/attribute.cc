@@ -969,4 +969,3 @@ void BKE_id_attribute_copy_domains_temp(short id_type,
 
   *((short *)r_id->name) = id_type;
 }
-

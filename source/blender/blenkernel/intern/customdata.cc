@@ -4421,7 +4421,8 @@ void CustomData_bmesh_swap_data(CustomData *source,
      * (this should work because layers are ordered by type)
      */
     while (dest_i_start < dest->totlayer &&
-           dest->layers[dest_i_start].type < source->layers[src_i].type) {
+           dest->layers[dest_i_start].type < source->layers[src_i].type)
+    {
       dest_i_start++;
     }
 
@@ -4440,7 +4441,8 @@ void CustomData_bmesh_swap_data(CustomData *source,
     while (dest_i < dest->totlayer && dest->layers[dest_i].type == source->layers[src_i].type) {
       /* if we found a matching layer, copy the data */
       if (dest->layers[dest_i].type == source->layers[src_i].type &&
-          STREQ(dest->layers[dest_i].name, source->layers[src_i].name)) {
+          STREQ(dest->layers[dest_i].name, source->layers[src_i].name))
+      {
         void *src_data = POINTER_OFFSET(src_block, source->layers[src_i].offset);
         void *dest_data = POINTER_OFFSET(*dest_block, dest->layers[dest_i].offset);
         const LayerTypeInfo *typeInfo = layerType_getInfo(

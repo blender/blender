@@ -416,7 +416,6 @@ void BKE_pbvh_free(PBVH *pbvh);
 void BKE_pbvh_set_bm_log(PBVH *pbvh, BMLog *log);
 BMLog *BKE_pbvh_get_bm_log(PBVH *pbvh);
 
-
 /**
 checks if original data needs to be updated for v, and if so updates it.  Stroke_id
 is provided by the sculpt code and is used to detect updates.  The reason we do it

@@ -403,8 +403,8 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
           /* Sample faces that are within
            * 8 pixels of the center of the brush.
            */
-          if (set_active_faceset &&
-              fset != abs(ss->cache->automasking->settings.initial_face_set)) {
+          if (set_active_faceset && fset != abs(ss->cache->automasking->settings.initial_face_set))
+          {
 
             float radius = ss->cache->radius;
             float pixels = 8;  // TODO: multiply with DPI
@@ -690,7 +690,8 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nod
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     if (ss->cache->invert && ss->cache->automasking &&
-        (automasking_flags & BRUSH_AUTOMASKING_FACE_SETS)) {
+        (automasking_flags & BRUSH_AUTOMASKING_FACE_SETS))
+    {
       ss->cache->automasking->settings.current_face_set =
           ss->cache->automasking->settings.initial_face_set;
     }
@@ -699,7 +700,8 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nod
   bool threaded = true;
   if (ss->cache->invert && !ss->cache->alt_smooth && ss->cache->automasking &&
       ss->cache->automasking->settings.initial_face_set ==
-          ss->cache->automasking->settings.current_face_set) {
+          ss->cache->automasking->settings.current_face_set)
+  {
     threaded = false;
   }
 
@@ -1820,7 +1822,8 @@ static void sculpt_face_set_shrink_bmesh(Object * /*ob*/,
 
       if (l->radial_next != l &&
           abs(BM_ELEM_CD_GET_INT(l->radial_next->f, ss->cd_faceset_offset)) !=
-              abs(active_face_set_id)) {
+              abs(active_face_set_id))
+      {
         int fset = BM_ELEM_CD_GET_INT(l->radial_next->f, ss->cd_faceset_offset);
         BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, fset);
         break;
@@ -2887,8 +2890,8 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
 
   float grabtan[3];
   sub_v3_v3v3(grabtan, new_pos, depth_world_space);
-  if (dot_v3v3(fsecd->start_no, fsecd->start_no) > 0.0f &&
-      dot_v3v3(grabtan, fsecd->start_no) < 0) {
+  if (dot_v3v3(fsecd->start_no, fsecd->start_no) > 0.0f && dot_v3v3(grabtan, fsecd->start_no) < 0)
+  {
     extrude_disp *= -1.0f;
   }
 

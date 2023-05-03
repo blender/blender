@@ -1115,9 +1115,7 @@ char *SCULPT_replay_serialize()
   return ret;
 }
 
-static void SCULPT_replay_deserialize(SculptReplayLog *log)
-{
-}
+static void SCULPT_replay_deserialize(SculptReplayLog *log) {}
 
 static void replay_samples_ensure_size(SculptReplayLog *log)
 {

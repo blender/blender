@@ -4302,7 +4302,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!DNA_struct_elem_find(fd->filesdna, "Brush", "DynTopoSettings", "dyntopo") ||
-      !MAIN_VERSION_ATLEAST(bmain, 306, 4)) {
+      !MAIN_VERSION_ATLEAST(bmain, 306, 4))
+  {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       DynTopoSettings *ds = &brush->dyntopo;
       brush->dyntopo = *DNA_struct_default_get(DynTopoSettings);
@@ -4314,7 +4315,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
                SCULPT_TOOL_ROTATE,
                SCULPT_TOOL_GRAB,
                SCULPT_TOOL_CLOTH,
-               SCULPT_TOOL_PAINT)) {
+               SCULPT_TOOL_PAINT))
+      {
         brush->dyntopo.flag |= DYNTOPO_DISABLED;
       }
 

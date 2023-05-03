@@ -718,8 +718,8 @@ typedef struct SculptAttributePointers {
   /* Sculpt utility attributes. */
   SculptAttribute *stroke_id;
   SculptAttribute *boundary_flags;
-  SculptAttribute *valence;           /* CD_PROP_INT32,  vert */
-  SculptAttribute *flags;             /* CD_PROP_INT8,   vert */
+  SculptAttribute *valence; /* CD_PROP_INT32,  vert */
+  SculptAttribute *flags;   /* CD_PROP_INT8,   vert */
 
   SculptAttribute *orig_co, *orig_no; /* CD_PROP_FLOAT3, vert */
   SculptAttribute *orig_fsets;        /* CD_PROP_INT32,  face */
@@ -1081,9 +1081,9 @@ void BKE_sculpt_attribute_destroy_temporary_all(struct Object *ob);
 void BKE_sculpt_attributes_destroy_temporary_stroke(struct Object *ob);
 
 bool BKE_sculpt_init_flags_valence(struct Object *ob,
-                                         struct PBVH *pbvh,
-                                         int totvert,
-                                         bool reset_flags);
+                                   struct PBVH *pbvh,
+                                   int totvert,
+                                   bool reset_flags);
 
 struct BMesh *BKE_sculptsession_empty_bmesh_create(void);
 void BKE_sculptsession_bmesh_attr_update_internal(struct Object *ob);

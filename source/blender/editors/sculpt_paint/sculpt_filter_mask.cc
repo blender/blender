@@ -946,7 +946,8 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   const int iteration_count = RNA_int_get(op->ptr, "iterations");
 
   if ((event->type == EVT_ESCKEY && event->val == KM_PRESS) ||
-      (event->type == RIGHTMOUSE && event->val == KM_PRESS)) {
+      (event->type == RIGHTMOUSE && event->val == KM_PRESS))
+  {
     sculpt_ipmask_filter_cancel(C, op);
     return OPERATOR_FINISHED;
   }

@@ -578,7 +578,8 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
             const int v_other_i = BM_elem_index_get(v_other);
 
             if (sculpt_geodesic_mesh_test_dist_add_bmesh(
-                    v_other, v1, v2, dists, initial_verts, r_closest_verts, cos)) {
+                    v_other, v1, v2, dists, initial_verts, r_closest_verts, cos))
+            {
               BMIter eiter;
               BMEdge *e_other;
 
@@ -874,7 +875,8 @@ static float *SCULPT_geodesic_grids_create(Object *ob,
         //}
 
         if (sculpt_geodesic_grids_test_dist_add(
-                ss, v_other, v1, v2, dists, initial_verts, r_closest_verts, cos)) {
+                ss, v_other, v1, v2, dists, initial_verts, r_closest_verts, cos))
+        {
           for (int edge_map_index = 0; edge_map_index < vmap[v_other].count; edge_map_index++) {
             const int e_other = vmap[v_other].indices[edge_map_index];
             int ev_other;

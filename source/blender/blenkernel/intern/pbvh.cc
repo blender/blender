@@ -2724,7 +2724,8 @@ bool ray_face_intersection_depth_quad(const float ray_start[3],
 {
   float depth_test;
   if (!(isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, nullptr) ||
-        isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t2, t3, &depth_test, nullptr))) {
+        isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t2, t3, &depth_test, nullptr)))
+  {
     return false;
   }
   return ray_update_depth_and_hit_count(depth_test, r_depth, r_back_depth, hit_count);
@@ -2867,7 +2868,8 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
     }
 
     if (!ray_face_intersection_depth_tri(
-            ray_start, isect_precalc, co[0], co[1], co[2], depth, depth_back, hit_count)) {
+            ray_start, isect_precalc, co[0], co[1], co[2], depth, depth_back, hit_count))
+    {
       continue;
     }
 
@@ -2959,7 +2961,8 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
                                               co[3],
                                               depth,
                                               back_depth,
-                                              hit_count)) {
+                                              hit_count))
+        {
           continue;
         }
         hit = true;
@@ -3835,7 +3838,7 @@ int BKE_pbvh_get_totnodes(PBVH *pbvh)
   return pbvh->totnode;
 }
 
-int BKE_pbvh_get_node_id(PBVH */*pbvh*/, PBVHNode *node)
+int BKE_pbvh_get_node_id(PBVH * /*pbvh*/, PBVHNode *node)
 {
   return node->id;
 }
@@ -4008,7 +4011,7 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-static void pbvh_pmap_to_edges_add(PBVH */*pbvh*/,
+static void pbvh_pmap_to_edges_add(PBVH * /*pbvh*/,
                                    PBVHVertRef /*vertex*/,
                                    int **r_edges,
                                    int *r_edges_size,
@@ -4431,7 +4434,8 @@ void update_vert_boundary_faces(int *boundary_flags,
       *boundary_flag |= SCULPT_BOUNDARY_FACE_SET;
 
       if (i > 1 && last_fset2 != last_fset && last_fset != -1 && last_fset2 != -1 && fset != -1 &&
-          last_fset2 != fset) {
+          last_fset2 != fset)
+      {
         *boundary_flag |= SCULPT_CORNER_FACE_SET;
       }
     }
@@ -4677,8 +4681,8 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
         fd->bm_faces_iter_++;
       }
 
-      while (fd->bm_faces_iter_ < fd->bm_faces_->cur &&
-             !fd->bm_faces_->elems[fd->bm_faces_iter_]) {
+      while (fd->bm_faces_iter_ < fd->bm_faces_->cur && !fd->bm_faces_->elems[fd->bm_faces_iter_])
+      {
         fd->bm_faces_iter_++;
       }
 

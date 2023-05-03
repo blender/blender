@@ -345,7 +345,8 @@ static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef ver
       }
 
       if (sculpt_check_boundary_vertex_in_base_mesh(ss, v1) &&
-          sculpt_check_boundary_vertex_in_base_mesh(ss, v2)) {
+          sculpt_check_boundary_vertex_in_base_mesh(ss, v2))
+      {
         *flag |= SCULPT_BOUNDARY_MESH;
       }
       break;
@@ -508,7 +509,8 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
                                                                         (eSculptBoundary)0;
           case SUBDIV_CCG_ADJACENT_EDGE:
             if (sculpt_check_boundary_vertex_in_base_mesh(ss, v1) &&
-                sculpt_check_boundary_vertex_in_base_mesh(ss, v2)) {
+                sculpt_check_boundary_vertex_in_base_mesh(ss, v2))
+            {
               flag |= SCULPT_BOUNDARY_MESH;
             }
           case SUBDIV_CCG_ADJACENT_NONE:

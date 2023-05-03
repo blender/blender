@@ -3387,8 +3387,8 @@ static void bmesh_kernel_vert_separate__cleanup(BMesh *bm, LinkNode *edges_separ
       do {
         BMEdge *e = n_step->link;
         BLI_assert(e != e_orig);
-        if ((e->v1 == e_orig->v1) && (e->v2 == e_orig->v2) &&
-            BM_edge_splice(bm, e_orig, e, false)) {
+        if ((e->v1 == e_orig->v1) && (e->v2 == e_orig->v2) && BM_edge_splice(bm, e_orig, e, false))
+        {
           /* don't visit again */
           n_prev->next = n_step->next;
         }

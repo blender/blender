@@ -71,7 +71,8 @@ typedef void (*StrokeUpdateStep)(struct bContext *C,
                                  struct PaintStroke *stroke,
                                  struct PointerRNA *itemptr);
 typedef void (*StrokeRedraw)(const struct bContext *C, struct PaintStroke *stroke, bool final);
-typedef void (*StrokeDone)(const struct bContext *C, struct PaintStroke *stroke);;
+typedef void (*StrokeDone)(const struct bContext *C, struct PaintStroke *stroke);
+;
 
 struct PaintStroke *paint_stroke_new(struct bContext *C,
                                      struct wmOperator *op,

@@ -259,7 +259,7 @@ void BM_idmap_check_ids(BMIdMap *idmap)
     int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[int(elem->head.htype)]);
 
     if (id == BM_ID_NONE || id < 0 || (id < idmap->map_size && idmap->map[id])) {
-      //printf("%s: Allocating new id for %p(%d): %d\n", __func__, elem, id, max_id);
+      // printf("%s: Allocating new id for %p(%d): %d\n", __func__, elem, id, max_id);
       id = max_id++;
       BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[int(elem->head.htype)], id);
     }

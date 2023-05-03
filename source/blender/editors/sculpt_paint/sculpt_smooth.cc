@@ -272,7 +272,8 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     float *co2;
 
     if (!do_origco ||
-        blender::bke::sculpt::stroke_id_test_no_update(ss, vertex_other, STROKEID_USER_ORIGINAL)) {
+        blender::bke::sculpt::stroke_id_test_no_update(ss, vertex_other, STROKEID_USER_ORIGINAL))
+    {
       co2 = v_other->co;
     }
     else {
@@ -897,7 +898,8 @@ void SCULPT_reproject_cdata(SculptSession *ss,
   if (ldata->typemap[CD_PROP_FLOAT2] != -1) {
     for (int i = ldata->typemap[CD_PROP_FLOAT2];
          i < ldata->totlayer && ldata->layers[i].type == CD_PROP_FLOAT2;
-         i++) {
+         i++)
+    {
       totuv++;
     }
 

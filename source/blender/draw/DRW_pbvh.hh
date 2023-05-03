@@ -10,9 +10,9 @@
 /* Needed for BKE_ccg.h. */
 #include "BLI_assert.h"
 #include "BLI_bitmap.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
-#include "BLI_math_vector_types.hh"
 
 #include "BKE_ccg.h"
 

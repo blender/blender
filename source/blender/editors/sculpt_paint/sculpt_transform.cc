@@ -80,7 +80,8 @@ void ED_sculpt_init_transform(bContext *C, Object *ob, const int mval[2], const 
   }
 
   if (sd->transform_mode == SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC ||
-      sd->transform_deform_target == SCULPT_TRANSFORM_DEFORM_TARGET_CLOTH_SIM) {
+      sd->transform_deform_target == SCULPT_TRANSFORM_DEFORM_TARGET_CLOTH_SIM)
+  {
     ss->filter_cache->transform_displacement_mode = SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL;
   }
   else {

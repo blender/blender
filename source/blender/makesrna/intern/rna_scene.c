@@ -3063,7 +3063,6 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "show_origco", 1);
   RNA_def_property_ui_text(prop, "Show Original", "");
 
-
   prop = RNA_def_property(srna, "sculpt", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Sculpt");
   RNA_def_property_ui_text(prop, "Sculpt", "");

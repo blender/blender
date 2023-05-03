@@ -215,7 +215,7 @@ static void pbvh_vertex_color_set_bmesh(PBVH &pbvh, PBVHVertRef vertex, const fl
     } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
   }
   else {
-    from_float(color, *reinterpret_cast<T*>(BM_ELEM_CD_GET_VOID_P(v, pbvh.cd_vcol_offset)));
+    from_float(color, *reinterpret_cast<T *>(BM_ELEM_CD_GET_VOID_P(v, pbvh.cd_vcol_offset)));
   }
 }
 

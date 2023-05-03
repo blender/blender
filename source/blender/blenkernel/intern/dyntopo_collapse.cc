@@ -398,7 +398,8 @@ bool pbvh_bmesh_collapse_edge_uvs(
     totuv = 0;
 
     while (uvidx < pbvh->header.bm->ldata.totlayer &&
-           pbvh->header.bm->ldata.layers[uvidx].type == CD_PROP_FLOAT2) {
+           pbvh->header.bm->ldata.layers[uvidx].type == CD_PROP_FLOAT2)
+    {
       uvidx++;
       totuv++;
     }
@@ -577,7 +578,8 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   /* one of the two vertices may be masked, select the correct one for deletion */
   if (!(boundflag1 & SCULPTVERT_ALL_CORNER) || DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v1) <
-                                                   DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v2)) {
+                                                   DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v2))
+  {
     v_del = v1;
     v_conn = v2;
   }
@@ -590,7 +592,8 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   /* Don't collapse across boundaries. */
   if ((boundflag1 & SCULPTVERT_ALL_CORNER) ||
-      (boundflag1 & SCULPTVERT_ALL_BOUNDARY) != (boundflag2 & SCULPTVERT_ALL_BOUNDARY)) {
+      (boundflag1 & SCULPTVERT_ALL_BOUNDARY) != (boundflag2 & SCULPTVERT_ALL_BOUNDARY))
+  {
     bm_logstack_pop();
     return nullptr;
   }

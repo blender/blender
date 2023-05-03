@@ -3423,7 +3423,8 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
       attr = sculpt_alloc_attr(ss);
 
       if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES ||
-          (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS && domain == ATTR_DOMAIN_FACE)) {
+          (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS && domain == ATTR_DOMAIN_FACE))
+      {
         attr->data = cdata->layers[index].data;
       }
 

@@ -2155,7 +2155,8 @@ void SCULPT_undo_ensure_bmlog(Object *ob)
   if (!us) {
     // check next step
     if (ustack->step_active && ustack->step_active->next &&
-        ustack->step_active->next->type == BKE_UNDOSYS_TYPE_SCULPT) {
+        ustack->step_active->next->type == BKE_UNDOSYS_TYPE_SCULPT)
+    {
       us = ustack->step_active->next;
     }
   }
@@ -2603,7 +2604,8 @@ static void sculpt_save_active_attribute_color(Object *ob, SculptAttrRef *attr)
       (layer = BKE_id_attribute_search(&me->id,
                                        BKE_id_attributes_active_color_name(&me->id),
                                        CD_MASK_COLOR_ALL,
-                                       ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER))) {
+                                       ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER)))
+  {
     attr->domain = BKE_id_attribute_domain((ID *)me, layer);
     BLI_strncpy(attr->name, layer->name, sizeof(attr->name));
     attr->type = eCustomDataType(layer->type);

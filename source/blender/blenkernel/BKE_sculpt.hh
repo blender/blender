@@ -76,7 +76,8 @@ BLI_INLINE bool stroke_id_test_no_update(SculptSession *ss, PBVHVertRef vertex, 
   return !(id->userflag & (int)user);
 }
 
-BLI_INLINE void add_sculpt_flag(SculptSession *ss, PBVHVertRef vertex, uint8_t flag) {
+BLI_INLINE void add_sculpt_flag(SculptSession *ss, PBVHVertRef vertex, uint8_t flag)
+{
   *blender::bke::paint::vertex_attr_ptr<uint8_t>(vertex, ss->attrs.flags) |= flag;
 }
 BLI_INLINE void clear_sculpt_flag(SculptSession *ss, PBVHVertRef vertex, uint8_t flag)

@@ -35,9 +35,7 @@ class MinMaxHeap {
     }
   }
 
-  ~MinMaxHeap()
-  {
-  }
+  ~MinMaxHeap() {}
 
   MinMaxHeapNode *insert(float weight, Value value)
   {

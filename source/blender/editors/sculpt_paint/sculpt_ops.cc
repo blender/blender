@@ -1432,8 +1432,9 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
 
       int *boundflag = vertex_attr_ptr<int>(vertex, ss->attrs.boundary_flags);
 
-      if (*boundflag & (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SHARP |
-                        SCULPT_CORNER_SEAM)) {
+      if (*boundflag &
+          (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SHARP | SCULPT_CORNER_SEAM))
+      {
         continue;
       }
 

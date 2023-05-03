@@ -140,7 +140,8 @@ static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const
   int new_face_set = SCULPT_FACE_SET_NONE;
 
   if (repeat_previous && ss->face_set_last_created != SCULPT_FACE_SET_NONE &&
-      initial_poly.i != ss->face_set_last_poly.i && initial_edge.i != ss->face_set_last_edge.i) {
+      initial_poly.i != ss->face_set_last_poly.i && initial_edge.i != ss->face_set_last_edge.i)
+  {
     new_face_set = ss->face_set_last_created;
   }
   else {
@@ -160,7 +161,7 @@ static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const
   ss->face_set_last_poly = initial_poly;
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
-  //SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
+  // SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
 
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_vert_tag_update_normal_visibility(nodes[i]);

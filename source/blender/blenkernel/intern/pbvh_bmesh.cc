@@ -1026,8 +1026,8 @@ bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
   TableGSet *bm_faces = pbvh->nodes[node_index].bm_faces;
   const int bm_faces_size = BLI_table_gset_len(bm_faces);
 
-  if (bm_faces_size <= pbvh->leaf_limit ||
-      pbvh->nodes[node_index].depth >= PBVH_STACK_FIXED_DEPTH) {
+  if (bm_faces_size <= pbvh->leaf_limit || pbvh->nodes[node_index].depth >= PBVH_STACK_FIXED_DEPTH)
+  {
     /* Node limit not exceeded */
     return false;
   }
@@ -1454,7 +1454,8 @@ bool pbvh_bmesh_node_raycast(SculptSession *ss,
     }
 
     if (ray_face_intersection_depth_tri(
-            ray_start, isect_precalc, cos[0], cos[1], cos[2], depth, back_depth, hit_count)) {
+            ray_start, isect_precalc, cos[0], cos[1], cos[2], depth, back_depth, hit_count))
+    {
       hit = true;
 
       if (r_face_normal) {
@@ -1951,7 +1952,8 @@ static void pbvh_bmesh_create_leaf_fast_task_cb(void *__restrict userdata,
       ptr += pbvh->cd_vert_node_offset;
 
       if (old == DYNTOPO_NODE_NONE &&
-          atomic_cas_int32((int32_t *)ptr, DYNTOPO_NODE_NONE, node_index) == DYNTOPO_NODE_NONE) {
+          atomic_cas_int32((int32_t *)ptr, DYNTOPO_NODE_NONE, node_index) == DYNTOPO_NODE_NONE)
+      {
         BLI_table_gset_insert(n->bm_unique_verts, v);
       }
       else {
@@ -3692,7 +3694,8 @@ static void pbvh_fix_orphan_leaves(PBVH *pbvh)
     PBVHNode *node = pbvh->nodes + i;
 
     if (!(node->flag & PBVH_Leaf) || (node->flag & PBVH_Delete) ||
-        BLI_table_gset_len(node->bm_faces) != 0) {
+        BLI_table_gset_len(node->bm_faces) != 0)
+    {
       continue;
     }
 
@@ -3722,8 +3725,8 @@ static void pbvh_fix_orphan_leaves(PBVH *pbvh)
       PBVHNode *a = pbvh->nodes + other->children_offset;
       PBVHNode *b = pbvh->nodes + other->children_offset + 1;
 
-      if (!(a->flag & PBVH_Delete) && (a->flag & PBVH_Leaf) &&
-          BLI_table_gset_len(a->bm_faces) > 1) {
+      if (!(a->flag & PBVH_Delete) && (a->flag & PBVH_Leaf) && BLI_table_gset_len(a->bm_faces) > 1)
+      {
         other = a;
       }
       else if (!(b->flag & PBVH_Delete) && (b->flag & PBVH_Leaf) &&
