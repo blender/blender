@@ -74,7 +74,8 @@ void HdCyclesPoints::PopulatePoints(HdSceneDelegate *sceneDelegate)
   VtValue value;
 
   for (const HdExtComputationPrimvarDescriptor &desc :
-       sceneDelegate->GetExtComputationPrimvarDescriptors(GetId(), HdInterpolationVertex)) {
+       sceneDelegate->GetExtComputationPrimvarDescriptors(GetId(), HdInterpolationVertex))
+  {
     if (desc.name == HdTokens->points) {
       auto valueStore = HdExtComputationUtils::GetComputedPrimvarValues({desc}, sceneDelegate);
       const auto valueStoreIt = valueStore.find(desc.name);
@@ -187,7 +188,8 @@ void HdCyclesPoints::PopulatePrimvars(HdSceneDelegate *sceneDelegate)
 
       // Skip attributes that are not needed
       if ((std != ATTR_STD_NONE && _geom->need_attribute(scene, std)) ||
-          _geom->need_attribute(scene, name)) {
+          _geom->need_attribute(scene, name))
+      {
         ApplyPrimvars(_geom->attributes, name, value, interpolation.second, std);
       }
     }

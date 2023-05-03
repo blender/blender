@@ -271,7 +271,8 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
         char basepath[FILE_MAXDIR];
 
         /* split off filename from the old path, to be used as socket sub-path */
-        BLI_split_dirfile(old_data->name, basepath, filename, sizeof(basepath), sizeof(filename));
+        BLI_path_split_dir_file(
+            old_data->name, basepath, sizeof(basepath), filename, sizeof(filename));
 
         BLI_strncpy(nimf->base_path, basepath, sizeof(nimf->base_path));
         nimf->format = old_data->im_format;
@@ -455,7 +456,8 @@ static void do_versions_affine_tracker_track(MovieTrackingTrack *track)
     MovieTrackingMarker *marker = &track->markers[i];
 
     if (is_zero_v2(marker->pattern_corners[0]) && is_zero_v2(marker->pattern_corners[1]) &&
-        is_zero_v2(marker->pattern_corners[2]) && is_zero_v2(marker->pattern_corners[3])) {
+        is_zero_v2(marker->pattern_corners[2]) && is_zero_v2(marker->pattern_corners[3]))
+    {
       marker->pattern_corners[0][0] = track->pat_min_legacy[0];
       marker->pattern_corners[0][1] = track->pat_min_legacy[1];
 
@@ -1623,7 +1625,8 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
       MovieTrackingObject *tracking_object;
 
       for (tracking_object = tracking->objects.first; tracking_object;
-           tracking_object = tracking_object->next) {
+           tracking_object = tracking_object->next)
+      {
         if (tracking_object->keyframe1 == 0 && tracking_object->keyframe2 == 0) {
           tracking_object->keyframe1 = tracking->settings.keyframe1_legacy;
           tracking_object->keyframe2 = tracking->settings.keyframe2_legacy;
@@ -1684,7 +1687,8 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
             if (sl->spacetype == SPACE_VIEW3D) {
               View3D *v3d = (View3D *)sl;
               if (v3d->render_border.xmin == 0.0f && v3d->render_border.ymin == 0.0f &&
-                  v3d->render_border.xmax == 0.0f && v3d->render_border.ymax == 0.0f) {
+                  v3d->render_border.xmax == 0.0f && v3d->render_border.ymax == 0.0f)
+              {
                 v3d->render_border.xmax = 1.0f;
                 v3d->render_border.ymax = 1.0f;
               }
@@ -2045,7 +2049,8 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
         if (ELEM(srl->freestyleConfig.raycasting_algorithm,
                  FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE,
-                 FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL)) {
+                 FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL))
+        {
           srl->freestyleConfig.raycasting_algorithm = 0; /* deprecated */
           srl->freestyleConfig.flags |= FREESTYLE_CULLING;
         }
@@ -2328,11 +2333,9 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
           if (sl->spacetype == SPACE_OUTLINER) {
             SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
 
-            if (!ELEM(space_outliner->outlinevis,
-                      SO_SCENES,
-                      SO_LIBRARIES,
-                      SO_SEQUENCE,
-                      SO_DATA_API)) {
+            if (!ELEM(
+                    space_outliner->outlinevis, SO_SCENES, SO_LIBRARIES, SO_SEQUENCE, SO_DATA_API))
+            {
               space_outliner->outlinevis = SO_SCENES;
             }
           }
@@ -2453,7 +2456,8 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
       for (clip = bmain->movieclips.first; clip; clip = clip->id.next) {
         MovieTrackingPlaneTrack *plane_track;
         for (plane_track = clip->tracking.plane_tracks_legacy.first; plane_track;
-             plane_track = plane_track->next) {
+             plane_track = plane_track->next)
+        {
           plane_track->image_opacity = 1.0f;
         }
       }

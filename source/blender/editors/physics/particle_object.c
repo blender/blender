@@ -773,7 +773,8 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
 
   int i;
   for (i = 0, tpa = target_psys->particles, pa = psys->particles; i < target_psys->totpart;
-       i++, tpa++, pa++) {
+       i++, tpa++, pa++)
+  {
     float from_co[3];
     BVHTreeNearest nearest;
 
@@ -857,7 +858,8 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
 
       if (edit_point) {
         for (k = 0, key = pa->hair, tkey = tpa->hair, ekey = edit_point->keys; k < tpa->totkey;
-             k++, key++, tkey++, ekey++) {
+             k++, key++, tkey++, ekey++)
+        {
           float co_orig[3];
 
           if (from_global) {
@@ -1128,8 +1130,8 @@ static bool copy_particle_systems_to_object(const bContext *C,
   psys_start = totpsys > 0 ? tmp_psys[0] : NULL;
 
   /* now append psys to the object and make modifiers */
-  for (i = 0, psys_from = PSYS_FROM_FIRST; i < totpsys;
-       ++i, psys_from = PSYS_FROM_NEXT(psys_from)) {
+  for (i = 0, psys_from = PSYS_FROM_FIRST; i < totpsys; ++i, psys_from = PSYS_FROM_NEXT(psys_from))
+  {
     ParticleSystemModifierData *psmd;
 
     psys = tmp_psys[i];
@@ -1164,7 +1166,8 @@ static bool copy_particle_systems_to_object(const bContext *C,
    * the remapping otherwise makes final_dm invalid!
    */
   for (psys = psys_start, psys_from = PSYS_FROM_FIRST, i = 0; psys;
-       psys = psys->next, psys_from = PSYS_FROM_NEXT(psys_from), i++) {
+       psys = psys->next, psys_from = PSYS_FROM_NEXT(psys_from), i++)
+  {
     float(*from_mat)[4], (*to_mat)[4];
 
     switch (space) {

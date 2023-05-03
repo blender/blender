@@ -1939,10 +1939,9 @@ static void object_simplify_update(Object *ob)
   ob->id.tag &= ~LIB_TAG_DOIT;
 
   for (md = ob->modifiers.first; md; md = md->next) {
-    if (ELEM(md->type,
-             eModifierType_Subsurf,
-             eModifierType_Multires,
-             eModifierType_ParticleSystem)) {
+    if (ELEM(
+            md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem))
+    {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
   }
@@ -2768,7 +2767,8 @@ static void rna_FFmpegSettings_codec_update(Main *UNUSED(bmain),
             AV_CODEC_ID_H264,
             AV_CODEC_ID_MPEG4,
             AV_CODEC_ID_VP9,
-            AV_CODEC_ID_DNXHD)) {
+            AV_CODEC_ID_DNXHD))
+  {
     /* Constant Rate Factor (CRF) setting is only available for H264,
      * MPEG4 and WEBM/VP9 codecs. So changing encoder quality mode to
      * CBR as CRF is not supported.

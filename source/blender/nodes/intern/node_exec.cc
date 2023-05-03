@@ -56,7 +56,8 @@ static void node_init_input_index(bNodeSocket *sock, int *index)
 {
   /* Only consider existing link if from socket is valid! */
   if (sock->link && !(sock->link->flag & NODE_LINK_MUTED) && sock->link->fromsock &&
-      sock->link->fromsock->stack_index >= 0) {
+      sock->link->fromsock->stack_index >= 0)
+  {
     sock->stack_index = sock->link->fromsock->stack_index;
   }
   else {

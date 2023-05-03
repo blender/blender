@@ -778,7 +778,8 @@ static bool azone_clipped_rect_calc(const AZone *az, rcti *r_rect_clip)
   if (az->type == AZONE_REGION) {
     if (region->overlap && (region->v2d.keeptot != V2D_KEEPTOT_STRICT) &&
         /* Only when this isn't hidden (where it's displayed as an button that expands). */
-        ((az->region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) == 0)) {
+        ((az->region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) == 0))
+    {
       /* A floating region to be resized, clip by the visible region. */
       switch (az->edge) {
         case AE_TOP_TO_BOTTOMRIGHT:
@@ -823,7 +824,8 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
     rcti az_rect_clip;
     if (BLI_rcti_isect_pt_v(&az->rect, xy) &&
         /* Check clipping if this is clipped */
-        (!azone_clipped_rect_calc(az, &az_rect_clip) || BLI_rcti_isect_pt_v(&az_rect_clip, xy))) {
+        (!azone_clipped_rect_calc(az, &az_rect_clip) || BLI_rcti_isect_pt_v(&az_rect_clip, xy)))
+    {
 
       if (az->type == AZONE_AREA) {
         break;
@@ -881,7 +883,8 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
 
         /* Check if we even have scroll bars. */
         if (((az->direction == AZ_SCROLL_HOR) && !(scroll_flag & V2D_SCROLL_HORIZONTAL)) ||
-            ((az->direction == AZ_SCROLL_VERT) && !(scroll_flag & V2D_SCROLL_VERTICAL))) {
+            ((az->direction == AZ_SCROLL_VERT) && !(scroll_flag & V2D_SCROLL_VERTICAL)))
+        {
           /* No scroll-bars, do nothing. */
         }
         else if (test_only) {
@@ -1109,7 +1112,8 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
         /* Have we dragged off the zone and are not on an edge? */
         if ((ED_area_actionzone_find_xy(sad->sa1, event->xy) != sad->az) &&
             (screen_geom_area_map_find_active_scredge(
-                 AREAMAP_FROM_SCREEN(screen), &screen_rect, event->xy[0], event->xy[1]) == NULL)) {
+                 AREAMAP_FROM_SCREEN(screen), &screen_rect, event->xy[0], event->xy[1]) == NULL))
+        {
 
           /* What area are we now in? */
           ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy);
@@ -2086,7 +2090,8 @@ static bool area_split_allowed(const ScrArea *area, const eScreenAxis dir_axis)
   }
 
   if ((dir_axis == SCREEN_AXIS_V && area->winx <= 2 * AREAMINX * UI_SCALE_FAC) ||
-      (dir_axis == SCREEN_AXIS_H && area->winy <= 2 * ED_area_headersize())) {
+      (dir_axis == SCREEN_AXIS_H && area->winy <= 2 * ED_area_headersize()))
+  {
     /* Must be at least double minimum sizes to split into two. */
     return false;
   }
@@ -2650,14 +2655,14 @@ static int area_max_regionsize(ScrArea *area, ARegion *scale_region, AZEdge edge
       }
       else if (scale_region->alignment == RGN_ALIGN_TOP &&
                (region->alignment == RGN_ALIGN_BOTTOM ||
-                ELEM(
-                    region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER))) {
+                ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER)))
+      {
         dist -= region->winy;
       }
       else if (scale_region->alignment == RGN_ALIGN_BOTTOM &&
                (region->alignment == RGN_ALIGN_TOP ||
-                ELEM(
-                    region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER))) {
+                ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER, RGN_TYPE_FOOTER)))
+      {
         dist -= region->winy;
       }
     }
@@ -2704,7 +2709,8 @@ static int region_scale_invoke(bContext *C, wmOperator *op, const wmEvent *event
      * the parent region if the azone edge is not the edge splitting
      * both regions */
     if ((az->region->alignment & RGN_SPLIT_PREV) && az->region->prev &&
-        !is_split_edge(RGN_ALIGN_ENUM_FROM_MASK(az->region->alignment), az->edge)) {
+        !is_split_edge(RGN_ALIGN_ENUM_FROM_MASK(az->region->alignment), az->edge))
+    {
       rmd->region = az->region->prev;
     }
     else {
@@ -2779,7 +2785,8 @@ static void region_scale_toggle_hidden(bContext *C, RegionMoveData *rmd)
       ARegion *region_tool_header = BKE_area_find_region_type(rmd->area, RGN_TYPE_TOOL_HEADER);
       if (region_tool_header != NULL) {
         if ((region_tool_header->flag & RGN_FLAG_HIDDEN_BY_USER) == 0 &&
-            (region_tool_header->flag & RGN_FLAG_HIDDEN) != 0) {
+            (region_tool_header->flag & RGN_FLAG_HIDDEN) != 0)
+        {
           region_toggle_hidden(C, region_tool_header, 0);
         }
       }
@@ -2941,12 +2948,13 @@ static void areas_do_frame_follow(bContext *C, bool middle)
         if (screen_ctx->redraws_flag & TIME_FOLLOW) {
           if ((region->regiontype == RGN_TYPE_WINDOW &&
                ELEM(area->spacetype, SPACE_SEQ, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) ||
-              (area->spacetype == SPACE_CLIP && region->regiontype == RGN_TYPE_PREVIEW)) {
+              (area->spacetype == SPACE_CLIP && region->regiontype == RGN_TYPE_PREVIEW))
+          {
             float w = BLI_rctf_size_x(&region->v2d.cur);
 
             if (middle) {
-              if ((scene->r.cfra < region->v2d.cur.xmin) ||
-                  (scene->r.cfra > region->v2d.cur.xmax)) {
+              if ((scene->r.cfra < region->v2d.cur.xmin) || (scene->r.cfra > region->v2d.cur.xmax))
+              {
                 region->v2d.cur.xmax = scene->r.cfra + (w / 2);
                 region->v2d.cur.xmin = scene->r.cfra - (w / 2);
               }
@@ -4537,7 +4545,8 @@ static void screen_animation_region_tag_redraw(
 {
   /* Do follow time here if editor type supports it */
   if ((redraws & TIME_FOLLOW) &&
-      screen_animation_region_supports_time_follow(area->spacetype, region->regiontype)) {
+      screen_animation_region_supports_time_follow(area->spacetype, region->regiontype))
+  {
     float w = BLI_rctf_size_x(&region->v2d.cur);
     if (scene->r.cfra < region->v2d.cur.xmin) {
       region->v2d.cur.xmax = scene->r.cfra;
@@ -4637,7 +4646,8 @@ static int screen_animation_step_invoke(bContext *C, wmOperator *UNUSED(op), con
      * dependency graph update. */
   }
   else if ((scene->audio.flag & AUDIO_SYNC) && (sad->flag & ANIMPLAY_FLAG_REVERSE) == false &&
-           isfinite(time = BKE_sound_sync_scene(scene_eval))) {
+           isfinite(time = BKE_sound_sync_scene(scene_eval)))
+  {
     double newfra = time * FPS;
 
     /* give some space here to avoid jumps */
@@ -5097,7 +5107,8 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
                      false,
                      false,
                      true,
-                     WIN_ALIGN_LOCATION_CENTER) != NULL) {
+                     WIN_ALIGN_LOCATION_CENTER) != NULL)
+  {
     /* The header only contains the editor switcher and looks empty.
      * So hiding in the temp window makes sense. */
     ScrArea *area = CTX_wm_area(C);
@@ -5169,7 +5180,8 @@ static int drivers_editor_show_exec(bContext *C, wmOperator *op)
                      false,
                      false,
                      true,
-                     WIN_ALIGN_LOCATION_CENTER) != NULL) {
+                     WIN_ALIGN_LOCATION_CENTER) != NULL)
+  {
     ED_drivers_editor_init(C, CTX_wm_area(C));
 
     /* activate driver F-Curve for the property under the cursor */
@@ -5238,7 +5250,8 @@ static int info_log_show_exec(bContext *C, wmOperator *op)
                      false,
                      false,
                      true,
-                     WIN_ALIGN_LOCATION_CENTER) != NULL) {
+                     WIN_ALIGN_LOCATION_CENTER) != NULL)
+  {
     return OPERATOR_FINISHED;
   }
   BKE_report(op->reports, RPT_ERROR, "Failed to open window!");

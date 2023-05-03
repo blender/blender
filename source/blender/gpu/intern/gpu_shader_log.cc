@@ -95,7 +95,8 @@ void Shader::print_log(Span<const char *> sources,
     /* Silence not useful lines. */
     StringRef logref = StringRefNull(log_line).substr(0, size_t(line_end) - size_t(log_line));
     if (logref.endswith(" shader failed to compile with the following errors:") ||
-        logref.endswith(" No code generated")) {
+        logref.endswith(" No code generated"))
+    {
       log_line += size_t(line_end) - size_t(log_line);
       continue;
     }
@@ -123,7 +124,8 @@ void Shader::print_log(Span<const char *> sources,
 
     /* Separate from previous block. */
     if (previous_location.source != log_item.cursor.source ||
-        previous_location.row != log_item.cursor.row) {
+        previous_location.row != log_item.cursor.row)
+    {
       BLI_dynstr_appendf(dynstr, "%s%s%s\n", info_col, line_prefix, reset_col);
     }
     else if (log_item.cursor.column != previous_location.column) {
@@ -131,7 +133,8 @@ void Shader::print_log(Span<const char *> sources,
     }
     /* Print line from the source file that is producing the error. */
     if ((log_item.cursor.row != -1) && (log_item.cursor.row != previous_location.row ||
-                                        log_item.cursor.column != previous_location.column)) {
+                                        log_item.cursor.column != previous_location.column))
+    {
       const char *src_line_end;
       found_line_id = false;
       /* error_line is 1 based in this case. */

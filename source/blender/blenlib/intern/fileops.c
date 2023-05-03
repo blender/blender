@@ -103,7 +103,8 @@ bool BLI_file_external_operation_execute(const char *filepath, FileExternalOpera
 #ifdef WIN32
   char *opstring = windows_operation_string(operation);
   if (BLI_windows_external_operation_supported(filepath, opstring) &&
-      BLI_windows_external_operation_execute(filepath, opstring)) {
+      BLI_windows_external_operation_execute(filepath, opstring))
+  {
     return true;
   }
   return false;
@@ -245,7 +246,7 @@ bool BLI_file_is_writable(const char *filepath)
   else {
     /* file doesn't exist -- check I can create it in parent directory */
     char parent[FILE_MAX];
-    BLI_split_dirfile(filepath, parent, NULL, sizeof(parent), 0);
+    BLI_path_split_dir_part(filepath, parent, sizeof(parent));
 #ifdef WIN32
     /* windows does not have X_OK */
     writable = BLI_access(parent, W_OK) == 0;
@@ -256,9 +257,9 @@ bool BLI_file_is_writable(const char *filepath)
   return writable;
 }
 
-bool BLI_file_touch(const char *file)
+bool BLI_file_touch(const char *filepath)
 {
-  FILE *f = BLI_fopen(file, "r+b");
+  FILE *f = BLI_fopen(filepath, "r+b");
 
   if (f != NULL) {
     int c = getc(f);
@@ -266,7 +267,7 @@ bool BLI_file_touch(const char *file)
     if (c == EOF) {
       /* Empty file, reopen in truncate write mode... */
       fclose(f);
-      f = BLI_fopen(file, "w+b");
+      f = BLI_fopen(filepath, "w+b");
     }
     else {
       /* Otherwise, rewrite first byte. */
@@ -275,13 +276,22 @@ bool BLI_file_touch(const char *file)
     }
   }
   else {
-    f = BLI_fopen(file, "wb");
+    f = BLI_fopen(filepath, "wb");
   }
   if (f) {
     fclose(f);
     return true;
   }
   return false;
+}
+
+bool BLI_file_ensure_parent_dir_exists(const char *filepath)
+{
+  char di[FILE_MAX];
+  BLI_path_split_dir_part(filepath, di, sizeof(di));
+
+  /* Make if the dir doesn't exist. */
+  return BLI_dir_create_recursive(di);
 }
 
 #ifdef WIN32
@@ -458,9 +468,9 @@ static bool delete_recursive(const char *dir)
   i = filelist_num = BLI_filelist_dir_contents(dir, &filelist);
   fl = filelist;
   while (i--) {
-    const char *file = BLI_path_basename(fl->path);
+    const char *filename = BLI_path_basename(fl->path);
 
-    if (FILENAME_IS_CURRPAR(file)) {
+    if (FILENAME_IS_CURRPAR(filename)) {
       /* Skip! */
     }
     else if (S_ISDIR(fl->type)) {
@@ -491,17 +501,17 @@ static bool delete_recursive(const char *dir)
   return err;
 }
 
-int BLI_delete(const char *file, bool dir, bool recursive)
+int BLI_delete(const char *path, bool dir, bool recursive)
 {
   int err;
 
-  BLI_assert(!BLI_path_is_rel(file));
+  BLI_assert(!BLI_path_is_rel(path));
 
   if (recursive) {
-    err = delete_recursive(file);
+    err = delete_recursive(path);
   }
   else {
-    err = delete_unique(file, dir);
+    err = delete_unique(path, dir);
   }
 
   return err;
@@ -923,7 +933,8 @@ static int delete_soft(const char *file, const char **error_message)
   char *xdg_session_desktop = getenv("XDG_SESSION_DESKTOP");
 
   if ((xdg_current_desktop != NULL && STREQ(xdg_current_desktop, "KDE")) ||
-      (xdg_session_desktop != NULL && STREQ(xdg_session_desktop, "KDE"))) {
+      (xdg_session_desktop != NULL && STREQ(xdg_session_desktop, "KDE")))
+  {
     args[0] = "kioclient5";
     args[1] = "move";
     args[2] = file;
@@ -995,17 +1006,17 @@ int BLI_access(const char *filepath, int mode)
   return access(filepath, mode);
 }
 
-int BLI_delete(const char *file, bool dir, bool recursive)
+int BLI_delete(const char *path, bool dir, bool recursive)
 {
-  BLI_assert(!BLI_path_is_rel(file));
+  BLI_assert(!BLI_path_is_rel(path));
 
   if (recursive) {
-    return recursive_operation(file, NULL, NULL, delete_single_file, delete_callback_post);
+    return recursive_operation(path, NULL, NULL, delete_single_file, delete_callback_post);
   }
   if (dir) {
-    return rmdir(file);
+    return rmdir(path);
   }
-  return remove(file);
+  return remove(path);
 }
 
 int BLI_delete_soft(const char *file, const char **error_message)

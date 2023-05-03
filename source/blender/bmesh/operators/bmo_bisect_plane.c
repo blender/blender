@@ -72,7 +72,8 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
 
     BMO_ITER (v, &siter, op->slots_in, "geom", BM_VERT) {
       if ((clear_outer && plane_point_side_v3(plane_outer, v->co) > 0.0f) ||
-          (clear_inner && plane_point_side_v3(plane_inner, v->co) < 0.0f)) {
+          (clear_inner && plane_point_side_v3(plane_inner, v->co) < 0.0f))
+      {
         STACK_PUSH(vert_arr, v);
       }
     }

@@ -79,7 +79,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet output = GeometrySet::create_with_curves(curves);
 
   if (AnonymousAttributeIDPtr outer_points_id = params.get_output_anonymous_attribute_id_if_needed(
-          "Outer Points")) {
+          "Outer Points"))
+  {
     create_selection_output(output.get_component_for_write<CurveComponent>(), outer_points_id);
   }
   params.set_output("Curve", std::move(output));

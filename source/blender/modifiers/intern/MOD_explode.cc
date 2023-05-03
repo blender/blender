@@ -950,7 +950,8 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
       if ((pa->alive == PARS_UNBORN && (emd->flag & eExplodeFlag_Unborn) == 0) ||
           (pa->alive == PARS_ALIVE && (emd->flag & eExplodeFlag_Alive) == 0) ||
-          (pa->alive == PARS_DEAD && (emd->flag & eExplodeFlag_Dead) == 0)) {
+          (pa->alive == PARS_DEAD && (emd->flag & eExplodeFlag_Dead) == 0))
+      {
         delface++;
         continue;
       }
@@ -1161,7 +1162,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* 1. find faces to be exploded if needed */
     if (emd->facepa == nullptr || psmd->flag & eParticleSystemFlag_Pars ||
         emd->flag & eExplodeFlag_CalcFaces ||
-        MEM_allocN_len(emd->facepa) / sizeof(int) != mesh->totface) {
+        MEM_allocN_len(emd->facepa) / sizeof(int) != mesh->totface)
+    {
       if (psmd->flag & eParticleSystemFlag_Pars) {
         psmd->flag &= ~eParticleSystemFlag_Pars;
       }

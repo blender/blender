@@ -951,7 +951,8 @@ void ElementResize(const TransInfo *t,
              &TransConvertType_Sculpt,
              &TransConvertType_Object,
              &TransConvertType_ObjectTexSpace,
-             &TransConvertType_Pose)) {
+             &TransConvertType_Pose))
+    {
       float obsizemat[3][3];
       /* Reorient the size mat to fit the oriented object. */
       mul_m3_m3m3(obsizemat, tmat, td->axismtx);
@@ -1245,7 +1246,8 @@ void transform_mode_default_modal_orientation_set(TransInfo *t, int type)
   View3D *v3d = NULL;
   RegionView3D *rv3d = NULL;
   if ((type == V3D_ORIENT_VIEW) && (t->spacetype == SPACE_VIEW3D) && t->region &&
-      (t->region->regiontype == RGN_TYPE_WINDOW)) {
+      (t->region->regiontype == RGN_TYPE_WINDOW))
+  {
     v3d = t->view;
     rv3d = t->region->regiondata;
   }

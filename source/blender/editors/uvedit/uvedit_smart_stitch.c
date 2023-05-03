@@ -359,7 +359,8 @@ static bool stitch_check_edges_stitchable(const int cd_loop_uv_offset,
     float *luv_iter2 = BM_ELEM_CD_GET_FLOAT_P(state->uvs[edge_iter->uv2]->l, cd_loop_uv_offset);
 
     if (fabsf(luv_orig1[0] - luv_iter1[0]) < limit && fabsf(luv_orig1[1] - luv_iter1[1]) < limit &&
-        fabsf(luv_orig2[0] - luv_iter2[0]) < limit && fabsf(luv_orig2[1] - luv_iter2[1]) < limit) {
+        fabsf(luv_orig2[0] - luv_iter2[0]) < limit && fabsf(luv_orig2[1] - luv_iter2[1]) < limit)
+    {
       return 1;
     }
     return 0;
@@ -373,7 +374,8 @@ static bool stitch_check_uvs_state_stitchable(const int cd_loop_uv_offset,
                                               StitchStateContainer *ssc)
 {
   if ((ssc->snap_islands && element->island == element_iter->island) ||
-      (!ssc->midpoints && element->island == element_iter->island)) {
+      (!ssc->midpoints && element->island == element_iter->island))
+  {
     return 0;
   }
 
@@ -387,7 +389,8 @@ static bool stitch_check_edges_state_stitchable(const int cd_loop_uv_offset,
                                                 StitchState *state)
 {
   if ((ssc->snap_islands && edge->element->island == edge_iter->element->island) ||
-      (!ssc->midpoints && edge->element->island == edge_iter->element->island)) {
+      (!ssc->midpoints && edge->element->island == edge_iter->element->island))
+  {
     return 0;
   }
 
@@ -432,7 +435,8 @@ static void stitch_calculate_island_snapping(const int cd_loop_uv_offset,
       island_stitch_data[i].medianPoint[1] /= state->aspect;
       if ((island_stitch_data[i].rotation + island_stitch_data[i].rotation_neg < (float)M_PI_2) ||
           island_stitch_data[i].num_rot_elements == 0 ||
-          island_stitch_data[i].num_rot_elements_neg == 0) {
+          island_stitch_data[i].num_rot_elements_neg == 0)
+      {
         rotation = (island_stitch_data[i].rotation * island_stitch_data[i].num_rot_elements -
                     island_stitch_data[i].rotation_neg *
                         island_stitch_data[i].num_rot_elements_neg) /
@@ -559,7 +563,8 @@ static void stitch_island_calculate_vert_rotation(const int cd_loop_uv_offset,
   UvElement *element_iter = BM_uv_element_get_head(state->element_map, element);
   for (; element_iter; element_iter = element_iter->next) {
     if (element_iter->separate &&
-        stitch_check_uvs_state_stitchable(cd_loop_uv_offset, element, element_iter, ssc)) {
+        stitch_check_uvs_state_stitchable(cd_loop_uv_offset, element, element_iter, ssc))
+    {
       float normal[2];
 
       /* only calculate rotation against static island uv verts */
@@ -862,7 +867,8 @@ static void stitch_validate_edge_stitchability(const int cd_loop_uv_offset,
     }
     if (stitch_check_edges_state_stitchable(cd_loop_uv_offset, edge, edge_iter, ssc, state)) {
       if ((edge_iter->element->island == ssc->static_island) ||
-          (edge->element->island == ssc->static_island)) {
+          (edge->element->island == ssc->static_island))
+      {
         edge->flag |= STITCH_STITCHABLE;
         preview->num_stitchable++;
         stitch_setup_face_preview_for_uv_group(
@@ -1277,14 +1283,14 @@ static int stitch_process_data(StitchStateContainer *ssc,
         state->uvs[edge->uv1]->flag |= STITCH_STITCHABLE;
         state->uvs[edge->uv2]->flag |= STITCH_STITCHABLE;
 
-        if (ssc->snap_islands && edge->element->island == ssc->static_island &&
-            !stitch_midpoints) {
+        if (ssc->snap_islands && edge->element->island == ssc->static_island && !stitch_midpoints)
+        {
           continue;
         }
 
         for (edge_iter = edge->first; edge_iter; edge_iter = edge_iter->next) {
-          if (stitch_check_edges_state_stitchable(
-                  cd_loop_uv_offset, edge, edge_iter, ssc, state)) {
+          if (stitch_check_edges_state_stitchable(cd_loop_uv_offset, edge, edge_iter, ssc, state))
+          {
             l = state->uvs[edge_iter->uv1]->l;
             luv1 = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
             l = state->uvs[edge_iter->uv2]->l;
@@ -1343,7 +1349,8 @@ static int stitch_process_data(StitchStateContainer *ssc,
       for (i = 0; i < state->total_separate_edges; i++) {
         UvEdge *edge = state->edges + i;
         if ((edge->flag & STITCH_BOUNDARY) && (state->uvs[edge->uv1]->flag & STITCH_STITCHABLE) &&
-            (state->uvs[edge->uv2]->flag & STITCH_STITCHABLE)) {
+            (state->uvs[edge->uv2]->flag & STITCH_STITCHABLE))
+        {
           stitch_island_calculate_edge_rotation(cd_loop_uv_offset,
                                                 edge,
                                                 ssc,
@@ -1360,7 +1367,8 @@ static int stitch_process_data(StitchStateContainer *ssc,
         for (i = 0; i < state->total_separate_edges; i++) {
           UvEdge *edge = state->edges + i;
           if ((state->uvs[edge->uv1]->flag & STITCH_STITCHABLE) &&
-              (state->uvs[edge->uv2]->flag & STITCH_STITCHABLE)) {
+              (state->uvs[edge->uv2]->flag & STITCH_STITCHABLE))
+          {
             BM_elem_flag_disable(edge->element->l->e, BM_ELEM_SEAM);
           }
         }
@@ -2078,7 +2086,8 @@ static StitchState *stitch_init(bContext *C,
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         if (!(ts->uv_flag & UV_SYNC_SELECTION) &&
-            (BM_elem_flag_test(efa, BM_ELEM_HIDDEN) || !BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
+            (BM_elem_flag_test(efa, BM_ELEM_HIDDEN) || !BM_elem_flag_test(efa, BM_ELEM_SELECT)))
+        {
           continue;
         }
 
@@ -2227,7 +2236,8 @@ static int stitch_init_all(bContext *C, wmOperator *op)
   StitchStateInit *state_init = NULL;
 
   if (RNA_struct_property_is_set(op->ptr, "selection") &&
-      RNA_struct_property_is_set(op->ptr, "objects_selection_count")) {
+      RNA_struct_property_is_set(op->ptr, "objects_selection_count"))
+  {
     /* Retrieve list of selected UVs, one list contains all selected UVs
      * for all objects. */
 

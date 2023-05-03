@@ -43,7 +43,8 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 
   if (scene_eval->eevee.flag & SCE_EEVEE_GTAO_ENABLED ||
-      stl->g_data->render_passes & EEVEE_RENDER_PASS_AO) {
+      stl->g_data->render_passes & EEVEE_RENDER_PASS_AO)
+  {
     const float *viewport_size = DRW_viewport_size_get();
     const int fs_size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
@@ -203,8 +204,8 @@ void EEVEE_occlusion_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     }
 
     if (GPU_mip_render_workaround() ||
-        GPU_type_matches_ex(
-            GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
+        GPU_type_matches_ex(GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL))
+    {
       /* Fix dot corruption on intel HD5XX/HD6XX series. */
       GPU_flush();
     }

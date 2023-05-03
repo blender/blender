@@ -291,8 +291,8 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
                                    shd_builder_->msl_source_frag_);
 
       /* Transform feedback, skip compilation. */
-      if (src_stage == ShaderStage::FRAGMENT &&
-          (transform_feedback_type_ != GPU_SHADER_TFB_NONE)) {
+      if (src_stage == ShaderStage::FRAGMENT && (transform_feedback_type_ != GPU_SHADER_TFB_NONE))
+      {
         shader_library_frag_ = nil;
         break;
       }
@@ -576,7 +576,8 @@ void MTLShader::uniform_int(int location, int comp_len, int array_size, const in
    * Metal, as we cannot point a texture binding at a different slot. */
   MTLShaderInterface *mtl_interface = this->get_interface();
   if (location >= mtl_interface->get_total_uniforms() &&
-      location < (mtl_interface->get_total_uniforms() + mtl_interface->get_total_textures())) {
+      location < (mtl_interface->get_total_uniforms() + mtl_interface->get_total_textures()))
+  {
     MTL_LOG_WARNING(
         "Texture uniform location re-mapping unsupported in Metal. (Possibly also bad uniform "
         "location %d)\n",
@@ -893,7 +894,8 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
                             type:MTLDataTypeInt
                         withName:[NSString stringWithFormat:@"MTL_AttributeConvert%d", i]];
         if (MTL_attribute_conversion_mode == GPU_FETCH_INT_TO_FLOAT_UNIT ||
-            MTL_attribute_conversion_mode == GPU_FETCH_INT_TO_FLOAT) {
+            MTL_attribute_conversion_mode == GPU_FETCH_INT_TO_FLOAT)
+        {
           shader_debug_printf(
               "TODO(Metal): Shader %s needs to support internal format conversion\n",
               mtl_interface->name);
@@ -926,7 +928,8 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
       /* Mark empty attribute conversion. */
       for (int i = pipeline_descriptor.vertex_descriptor.max_attribute_value + 1;
            i < GPU_VERT_ATTR_MAX_LEN;
-           i++) {
+           i++)
+      {
         int MTL_attribute_conversion_mode = 0;
         [values setConstantValue:&MTL_attribute_conversion_mode
                             type:MTLDataTypeInt

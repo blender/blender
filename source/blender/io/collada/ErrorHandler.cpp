@@ -37,7 +37,8 @@ bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
     error_message = parserError.getErrorMessage();
 
     if (parserError.getErrorType() ==
-        GeneratedSaxParser::ParserError::ERROR_VALIDATION_MIN_OCCURS_UNMATCHED) {
+        GeneratedSaxParser::ParserError::ERROR_VALIDATION_MIN_OCCURS_UNMATCHED)
+    {
       if (STREQ(parserError.getElement(), "effect")) {
         isError = false;
       }
@@ -45,9 +46,11 @@ bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 
     else if (parserError.getErrorType() ==
              GeneratedSaxParser::ParserError::
-                 ERROR_VALIDATION_SEQUENCE_PREVIOUS_SIBLING_NOT_PRESENT) {
+                 ERROR_VALIDATION_SEQUENCE_PREVIOUS_SIBLING_NOT_PRESENT)
+    {
       if (!(STREQ(parserError.getElement(), "extra") &&
-            STREQ(parserError.getAdditionalText().c_str(), "sibling: fx_profile_abstract"))) {
+            STREQ(parserError.getAdditionalText().c_str(), "sibling: fx_profile_abstract")))
+      {
         isError = false;
       }
     }
@@ -59,7 +62,8 @@ bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
     }
 
     else if (parserError.getErrorType() ==
-             GeneratedSaxParser::ParserError::ERROR_REQUIRED_ATTRIBUTE_MISSING) {
+             GeneratedSaxParser::ParserError::ERROR_REQUIRED_ATTRIBUTE_MISSING)
+    {
       isError = true;
     }
 

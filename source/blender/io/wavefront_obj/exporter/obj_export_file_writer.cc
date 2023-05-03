@@ -172,7 +172,11 @@ void OBJWriter::write_mtllib_name(const StringRefNull mtl_filepath) const
   /* Split .MTL file path into parent directory and filename. */
   char mtl_file_name[FILE_MAXFILE];
   char mtl_dir_name[FILE_MAXDIR];
-  BLI_split_dirfile(mtl_filepath.data(), mtl_dir_name, mtl_file_name, FILE_MAXDIR, FILE_MAXFILE);
+  BLI_path_split_dir_file(mtl_filepath.data(),
+                          mtl_dir_name,
+                          sizeof(mtl_dir_name),
+                          mtl_file_name,
+                          sizeof(mtl_file_name));
   FormatHandler fh;
   fh.write_obj_mtllib(mtl_file_name);
   fh.write_to_file(outfile_);
@@ -610,8 +614,8 @@ void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl, bool write_pbr)
     if (mtl.aniso_rot >= 0.0f) {
       fmt_handler_.write_mtl_float("anisor", mtl.aniso_rot);
     }
-    if (mtl.transmit_color.x > 0.0f || mtl.transmit_color.y > 0.0f ||
-        mtl.transmit_color.z > 0.0f) {
+    if (mtl.transmit_color.x > 0.0f || mtl.transmit_color.y > 0.0f || mtl.transmit_color.z > 0.0f)
+    {
       fmt_handler_.write_mtl_float3(
           "Tf", mtl.transmit_color.x, mtl.transmit_color.y, mtl.transmit_color.z);
     }
@@ -667,7 +671,7 @@ void MTLWriter::write_materials(const char *blen_filepath,
   }
 
   char blen_filedir[PATH_MAX];
-  BLI_split_dir_part(blen_filepath, blen_filedir, PATH_MAX);
+  BLI_path_split_dir_part(blen_filepath, blen_filedir, PATH_MAX);
   BLI_path_slash_native(blen_filedir);
   BLI_path_normalize(blen_filedir);
 

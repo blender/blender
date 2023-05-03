@@ -248,35 +248,35 @@ typedef struct IDOverrideLibraryPropertyOperation {
 /* IDOverrideLibraryPropertyOperation->operation. */
 enum {
   /* Basic operations. */
-  IDOVERRIDE_LIBRARY_OP_NOOP = 0, /* Special value, forbids any overriding. */
+  LIBOVERRIDE_OP_NOOP = 0, /* Special value, forbids any overriding. */
 
-  IDOVERRIDE_LIBRARY_OP_REPLACE = 1, /* Fully replace local value by reference one. */
+  LIBOVERRIDE_OP_REPLACE = 1, /* Fully replace local value by reference one. */
 
   /* Numeric-only operations. */
-  IDOVERRIDE_LIBRARY_OP_ADD = 101, /* Add local value to reference one. */
+  LIBOVERRIDE_OP_ADD = 101, /* Add local value to reference one. */
   /* Subtract local value from reference one (needed due to unsigned values etc.). */
-  IDOVERRIDE_LIBRARY_OP_SUBTRACT = 102,
+  LIBOVERRIDE_OP_SUBTRACT = 102,
   /* Multiply reference value by local one (more useful than diff for scales and the like). */
-  IDOVERRIDE_LIBRARY_OP_MULTIPLY = 103,
+  LIBOVERRIDE_OP_MULTIPLY = 103,
 
   /* Collection-only operations. */
-  IDOVERRIDE_LIBRARY_OP_INSERT_AFTER = 201,  /* Insert after given reference's subitem. */
-  IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE = 202, /* Insert before given reference's subitem. */
+  LIBOVERRIDE_OP_INSERT_AFTER = 201,  /* Insert after given reference's subitem. */
+  LIBOVERRIDE_OP_INSERT_BEFORE = 202, /* Insert before given reference's subitem. */
   /* We can add more if needed (move, delete, ...). */
 };
 
 /* IDOverrideLibraryPropertyOperation->flag. */
 enum {
   /** User cannot remove that override operation. */
-  IDOVERRIDE_LIBRARY_FLAG_MANDATORY = 1 << 0,
+  LIBOVERRIDE_OP_FLAG_MANDATORY = 1 << 0,
   /** User cannot change that override operation. */
-  IDOVERRIDE_LIBRARY_FLAG_LOCKED = 1 << 1,
+  LIBOVERRIDE_OP_FLAG_LOCKED = 1 << 1,
 
   /**
    * For overrides of ID pointers: this override still matches (follows) the hierarchy of the
    * reference linked data.
    */
-  IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE = 1 << 8,
+  LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE = 1 << 8,
 };
 
 /** A single overridden property, contain all operations on this one. */
@@ -308,10 +308,10 @@ typedef struct IDOverrideLibraryProperty {
 /* IDOverrideLibraryProperty->tag and IDOverrideLibraryPropertyOperation->tag. */
 enum {
   /** This override property (operation) is unused and should be removed by cleanup process. */
-  IDOVERRIDE_LIBRARY_TAG_UNUSED = 1 << 0,
+  LIBOVERRIDE_PROP_OP_TAG_UNUSED = 1 << 0,
 
   /** This override property is forbidden and should be restored to its linked reference value. */
-  IDOVERRIDE_LIBRARY_PROPERTY_TAG_NEEDS_RETORE = 1 << 1,
+  LIBOVERRIDE_PROP_TAG_NEEDS_RETORE = 1 << 1,
 };
 
 #
@@ -324,13 +324,19 @@ typedef struct IDOverrideLibraryRuntime {
 /* IDOverrideLibraryRuntime->tag. */
 enum {
   /** This override needs to be reloaded. */
-  IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RELOAD = 1 << 0,
+  LIBOVERRIDE_TAG_NEEDS_RELOAD = 1 << 0,
 
   /**
    * This override contains properties with forbidden changes, which should be restored to their
    * linked reference value.
    */
-  IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RESTORE = 1 << 1,
+  LIBOVERRIDE_TAG_NEEDS_RESTORE = 1 << 1,
+
+  /**
+   * This override is detected as being cut from its hierarchy root. Temporarily used during
+   * resync process.
+   */
+  LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT = 1 << 2,
 };
 
 /* Main container for all overriding data info of a data-block. */
@@ -364,12 +370,12 @@ enum {
    * The override data-block should not be considered as part of an override hierarchy (generally
    * because it was created as an single override, outside of any hierarchy consideration).
    */
-  IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY = 1 << 0,
+  LIBOVERRIDE_FLAG_NO_HIERARCHY = 1 << 0,
   /**
    * The override ID is required for the system to work (because of ID dependencies), but is not
    * seen as editable by the user.
    */
-  IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED = 1 << 1,
+  LIBOVERRIDE_FLAG_SYSTEM_DEFINED = 1 << 1,
 };
 
 /* watch it: Sequence has identical beginning. */
@@ -778,19 +784,19 @@ enum {
    *
    * RESET_NEVER
    */
-  LIB_TAG_OVERRIDE_LIBRARY_REFOK = 1 << 6,
+  LIB_TAG_LIBOVERRIDE_REFOK = 1 << 6,
   /**
    * ID needs an auto-diffing execution, if enabled (only for library overrides).
    *
    * RESET_NEVER
    */
-  LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH = 1 << 7,
+  LIB_TAG_LIBOVERRIDE_AUTOREFRESH = 1 << 7,
   /**
    * ID is a library override that needs re-sync to its linked reference.
    *
    * RESET_NEVER
    */
-  LIB_TAG_LIB_OVERRIDE_NEED_RESYNC = 1 << 8,
+  LIB_TAG_LIBOVERRIDE_NEED_RESYNC = 1 << 8,
 
   /**
    * Short-life tags used during specific processes, like blend-file reading.

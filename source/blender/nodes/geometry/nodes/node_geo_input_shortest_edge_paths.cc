@@ -144,7 +144,8 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const ShortestEdgePathsNextVertFieldInput *other_field =
-            dynamic_cast<const ShortestEdgePathsNextVertFieldInput *>(&other)) {
+            dynamic_cast<const ShortestEdgePathsNextVertFieldInput *>(&other))
+    {
       return other_field->end_selection_ == end_selection_ && other_field->cost_ == cost_;
     }
     return false;
@@ -212,7 +213,8 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const ShortestEdgePathsCostFieldInput *other_field =
-            dynamic_cast<const ShortestEdgePathsCostFieldInput *>(&other)) {
+            dynamic_cast<const ShortestEdgePathsCostFieldInput *>(&other))
+    {
       return other_field->end_selection_ == end_selection_ && other_field->cost_ == cost_;
     }
     return false;

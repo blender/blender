@@ -71,7 +71,8 @@ static PyObject *pygpu_batch__tp_new(PyTypeObject *UNUSED(type), PyObject *args,
                                         &BPyGPUVertBuf_Type,
                                         &py_vertbuf,
                                         &BPyGPUIndexBuf_Type,
-                                        &py_indexbuf)) {
+                                        &py_indexbuf))
+  {
     return NULL;
   }
 
@@ -136,8 +137,8 @@ static PyObject *pygpu_batch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *py_bu
     return NULL;
   }
 
-  if (GPU_vertbuf_get_vertex_len(self->batch->verts[0]) !=
-      GPU_vertbuf_get_vertex_len(py_buf->buf)) {
+  if (GPU_vertbuf_get_vertex_len(self->batch->verts[0]) != GPU_vertbuf_get_vertex_len(py_buf->buf))
+  {
     PyErr_Format(PyExc_TypeError,
                  "Expected %d length, got %d",
                  GPU_vertbuf_get_vertex_len(self->batch->verts[0]),
@@ -264,7 +265,8 @@ static PyObject *pygpu_batch_draw_instanced(BPyGPUBatch *self, PyObject *args, P
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kw, &_parser, &BPyGPUShader_Type, &py_program, &instance_start, &instance_count)) {
+          args, kw, &_parser, &BPyGPUShader_Type, &py_program, &instance_start, &instance_count))
+  {
     return NULL;
   }
 
@@ -305,7 +307,8 @@ static PyObject *pygpu_batch_draw_range(BPyGPUBatch *self, PyObject *args, PyObj
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kw, &_parser, &BPyGPUShader_Type, &py_program, &elem_start, &elem_count)) {
+          args, kw, &_parser, &BPyGPUShader_Type, &py_program, &elem_start, &elem_count))
+  {
     return NULL;
   }
 

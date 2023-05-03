@@ -273,7 +273,8 @@ static GPUShader *get_subdiv_shader(int shader_type)
            SHADER_PATCH_EVALUATION,
            SHADER_PATCH_EVALUATION_FVAR,
            SHADER_PATCH_EVALUATION_FACE_DOTS,
-           SHADER_PATCH_EVALUATION_ORCO)) {
+           SHADER_PATCH_EVALUATION_ORCO))
+  {
     return get_patch_evaluation_shader(shader_type);
   }
 
@@ -291,7 +292,8 @@ static GPUShader *get_subdiv_shader(int shader_type)
              SHADER_BUFFER_LINES,
              SHADER_BUFFER_LNOR,
              SHADER_BUFFER_TRIS_MULTIPLE_MATERIALS,
-             SHADER_BUFFER_UV_STRETCH_AREA)) {
+             SHADER_BUFFER_UV_STRETCH_AREA))
+    {
       defines = "#define SUBDIV_POLYGON_OFFSET\n";
     }
     else if (shader_type == SHADER_BUFFER_TRIS) {
@@ -1199,8 +1201,8 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
   cache_building_context.cache = cache;
 
   do_subdiv_traversal(&cache_building_context, subdiv);
-  if (cache->num_subdiv_loops == 0 && cache->num_subdiv_verts == 0 &&
-      !cache->may_have_loose_geom) {
+  if (cache->num_subdiv_loops == 0 && cache->num_subdiv_verts == 0 && !cache->may_have_loose_geom)
+  {
     /* Either the traversal failed, or we have an empty mesh, either way we cannot go any further.
      * The subdiv_polygon_offset cannot then be reliably stored in the cache, so free it directly.
      */
@@ -2128,7 +2130,8 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
   }
 
   if (!BKE_subdiv_eval_begin_from_mesh(
-          subdiv, mesh_eval, nullptr, SUBDIV_EVALUATOR_TYPE_GPU, evaluator_cache)) {
+          subdiv, mesh_eval, nullptr, SUBDIV_EVALUATOR_TYPE_GPU, evaluator_cache))
+  {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
      * - Something totally bad happened, and OpenSubdiv rejected our
@@ -2351,7 +2354,8 @@ void DRW_create_subdivision(Object *ob,
                                             do_cage,
                                             ts,
                                             use_hide,
-                                            g_evaluator_cache)) {
+                                            g_evaluator_cache))
+  {
     return;
   }
 

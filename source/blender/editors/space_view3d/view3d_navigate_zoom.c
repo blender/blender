@@ -336,7 +336,8 @@ static void viewzoom_apply(ViewOpsData *vod,
   const bool zoom_to_pos = (vod->viewops_flag & VIEWOPS_FLAG_ZOOM_TO_MOUSE) != 0;
 
   if ((vod->rv3d->persp == RV3D_CAMOB) &&
-      (vod->rv3d->is_persp && ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) == 0) {
+      (vod->rv3d->is_persp && ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) == 0)
+  {
     viewzoom_apply_camera(vod, xy, viewzoom, zoom_invert, zoom_to_pos);
   }
   else {

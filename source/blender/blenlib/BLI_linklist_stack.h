@@ -146,7 +146,8 @@
     LinkNode *_##var##_iter; \
     unsigned int i; \
     for (_##var##_iter = _##var##_stack, i = 0; _##var##_iter; \
-         _##var##_iter = _##var##_iter->next, i++) { \
+         _##var##_iter = _##var##_iter->next, i++) \
+    { \
       (data)[i] = _BLI_SMALLSTACK_CAST(var)(_##var##_iter->link); \
     } \
   } \

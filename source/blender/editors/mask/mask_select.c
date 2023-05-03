@@ -453,14 +453,16 @@ static int box_select_exec(bContext *C, wmOperator *op)
   for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
                  *mask_layer_eval = mask_eval->masklayers.first;
        mask_layer_orig != NULL;
-       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next) {
+       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
+  {
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
     for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
                     *spline_eval = mask_layer_eval->splines.first;
          spline_orig != NULL;
-         spline_orig = spline_orig->next, spline_eval = spline_eval->next) {
+         spline_orig = spline_orig->next, spline_eval = spline_eval->next)
+    {
 
       MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline_eval);
 
@@ -546,14 +548,16 @@ static bool do_lasso_select_mask(bContext *C,
   for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
                  *mask_layer_eval = mask_eval->masklayers.first;
        mask_layer_orig != NULL;
-       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next) {
+       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
+  {
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
     for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
                     *spline_eval = mask_layer_eval->splines.first;
          spline_orig != NULL;
-         spline_orig = spline_orig->next, spline_eval = spline_eval->next) {
+         spline_orig = spline_orig->next, spline_eval = spline_eval->next)
+    {
 
       MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline_eval);
 
@@ -579,7 +583,8 @@ static bool do_lasso_select_mask(bContext *C,
                                    &screen_co[1]);
 
         if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
-            BLI_lasso_is_point_inside(mcoords, mcoords_len, screen_co[0], screen_co[1], INT_MAX)) {
+            BLI_lasso_is_point_inside(mcoords, mcoords_len, screen_co[0], screen_co[1], INT_MAX))
+        {
           BKE_mask_point_select_set(point, select);
           BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_BOTH, select);
           changed = true;
@@ -695,14 +700,16 @@ static int circle_select_exec(bContext *C, wmOperator *op)
   for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
                  *mask_layer_eval = mask_eval->masklayers.first;
        mask_layer_orig != NULL;
-       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next) {
+       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
+  {
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
     for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
                     *spline_eval = mask_layer_eval->splines.first;
          spline_orig != NULL;
-         spline_orig = spline_orig->next, spline_eval = spline_eval->next) {
+         spline_orig = spline_orig->next, spline_eval = spline_eval->next)
+    {
 
       MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline_eval);
 

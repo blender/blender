@@ -769,7 +769,7 @@ static void volume_filepath_get(const Main *bmain, const Volume *volume, char r_
   if (volume->is_sequence && BLI_path_frame_get(r_filepath, &path_frame, &path_digits)) {
     char ext[32];
     BLI_path_frame_strip(r_filepath, ext, sizeof(ext));
-    BLI_path_frame(r_filepath, volume->runtime.frame, path_digits);
+    BLI_path_frame(r_filepath, FILE_MAX, volume->runtime.frame, path_digits);
     BLI_path_extension_ensure(r_filepath, FILE_MAX, ext);
   }
 }
@@ -873,7 +873,7 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
   /* Test if file exists. */
   if (!BLI_exists(filepath)) {
     char filename[FILE_MAX];
-    BLI_split_file_part(filepath, filename, sizeof(filename));
+    BLI_path_split_file_part(filepath, filename, sizeof(filename));
     grids.error_msg = filename + std::string(" not found");
     CLOG_INFO(&LOG, 1, "Volume %s: %s", volume_name, grids.error_msg.c_str());
     return false;

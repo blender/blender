@@ -66,7 +66,8 @@ TEST(udim, image_ensure_tile_token)
                                 "test.u_v2.png",
                                 "test.u2v3.png",
                                 "test.u123_v1.png",
-                                "test.u1_v12345.png"}) {
+                                "test.u1_v12345.png"})
+  {
     /* These should not result in modifications happening. */
     verify(incorrect, incorrect);
   }

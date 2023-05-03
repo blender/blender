@@ -269,7 +269,8 @@ bool PlaneCornerPinWarpImageOperation::determine_depending_area_of_interest(
 {
   for (int i = 0; i < 4; i++) {
     if (get_input_operation(i + 1)->determine_depending_area_of_interest(
-            input, read_operation, output)) {
+            input, read_operation, output))
+    {
       return true;
     }
   }

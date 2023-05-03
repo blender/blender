@@ -141,7 +141,8 @@ TEST_F(AssetLibraryServiceTest, library_path_trailing_slashes)
   /* Ensure #asset_lib_no_slash has no trailing slash, regardless of what was passed on the CLI to
    * the unit test. */
   while (strlen(asset_lib_no_slash) &&
-         ELEM(asset_lib_no_slash[strlen(asset_lib_no_slash) - 1], SEP, ALTSEP)) {
+         ELEM(asset_lib_no_slash[strlen(asset_lib_no_slash) - 1], SEP, ALTSEP))
+  {
     asset_lib_no_slash[strlen(asset_lib_no_slash) - 1] = '\0';
   }
 

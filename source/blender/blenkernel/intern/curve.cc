@@ -558,7 +558,8 @@ void BKE_curve_texspace_calc(Curve *cu)
 void BKE_curve_texspace_ensure(Curve *cu)
 {
   if ((cu->texspace_flag & CU_TEXSPACE_FLAG_AUTO) &&
-      (cu->texspace_flag & CU_TEXSPACE_FLAG_AUTO_EVALUATED) == 0) {
+      (cu->texspace_flag & CU_TEXSPACE_FLAG_AUTO_EVALUATED) == 0)
+  {
     BKE_curve_texspace_calc(cu);
   }
 }
@@ -3290,7 +3291,8 @@ static void calchandleNurb_intern(BezTriple *bezt,
       /* When one handle is free, aligning makes no sense, see: #35952 */
       ELEM(HD_FREE, bezt->h1, bezt->h2) ||
       /* Also when no handles are aligned, skip this step. */
-      (!ELEM(HD_ALIGN, bezt->h1, bezt->h2) && !ELEM(HD_ALIGN_DOUBLESIDE, bezt->h1, bezt->h2))) {
+      (!ELEM(HD_ALIGN, bezt->h1, bezt->h2) && !ELEM(HD_ALIGN_DOUBLESIDE, bezt->h1, bezt->h2)))
+  {
     /* Handles need to be updated during animation and applying stuff like hooks,
      * but in such situations it's quite difficult to distinguish in which order
      * align handles should be aligned so skip them for now. */

@@ -920,7 +920,7 @@ static bool rna_HookModifier_object_override_apply(Main *bmain,
                                                    IDOverrideLibraryPropertyOperation *opop)
 {
   BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
              "Unsupported RNA override operation on Hook modifier target object pointer");
   UNUSED_VARS_NDEBUG(ptr_storage, len_dst, len_src, len_storage, opop);
 
@@ -1369,7 +1369,8 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
     }
   }
   else if (STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_src") ||
-           STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_src")) {
+           STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_src"))
+  {
     Object *ob_src = dtmd->ob_source;
 
     if (ob_src) {
@@ -1486,7 +1487,8 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
     }
   }
   else if (STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ||
-           STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_dst")) {
+           STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_dst"))
+  {
     int multilayer_index = STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ?
                                DT_MULTILAYER_INDEX_VCOL_VERT :
                                DT_MULTILAYER_INDEX_VCOL_LOOP;

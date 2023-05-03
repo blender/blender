@@ -83,7 +83,8 @@ static void geom_add_vertex(const char *p, const char *end, GlobalVertices &r_gl
       /* If we don't have vertex colors yet, or the previous vertex
        * was without color, we need to start a new vertex colors block. */
       if (blocks.is_empty() || (blocks.last().start_vertex_index + blocks.last().colors.size() !=
-                                r_global_vertices.vertices.size() - 1)) {
+                                r_global_vertices.vertices.size() - 1))
+      {
         GlobalVertices::VertexColorsBlock block;
         block.start_vertex_index = r_global_vertices.vertices.size() - 1;
         blocks.append(block);
@@ -118,7 +119,8 @@ static void geom_add_mrgb_colors(const char *p, const char *end, GlobalVertices 
     /* If we don't have vertex colors yet, or the previous vertex
      * was without color, we need to start a new vertex colors block. */
     if (blocks.is_empty() || (blocks.last().start_vertex_index + blocks.last().colors.size() !=
-                              r_global_vertices.vertices.size())) {
+                              r_global_vertices.vertices.size()))
+    {
       GlobalVertices::VertexColorsBlock block;
       block.start_vertex_index = r_global_vertices.vertices.size();
       blocks.append(block);
@@ -287,7 +289,8 @@ static void geom_add_polygon(Geometry *geom,
                                         global_vertices.vert_normals.size() :
                                         -1;
       if (corner.vertex_normal_index < 0 ||
-          corner.vertex_normal_index >= global_vertices.vert_normals.size()) {
+          corner.vertex_normal_index >= global_vertices.vert_normals.size())
+      {
         fprintf(stderr,
                 "Invalid normal index %i (valid range [0, %zu)), ignoring face\n",
                 corner.vertex_normal_index,
@@ -386,7 +389,8 @@ static void geom_add_curve_parameters(Geometry *geom, const char *p, const char 
 static void geom_update_group(const StringRef rest_line, std::string &r_group_name)
 {
   if (rest_line.find("off") != string::npos || rest_line.find("null") != string::npos ||
-      rest_line.find("default") != string::npos) {
+      rest_line.find("default") != string::npos)
+  {
     /* Set group for future elements like faces or curves to empty. */
     r_group_name = "";
     return;
@@ -470,10 +474,10 @@ static void use_all_vertices_if_no_faces(Geometry *geom,
                                          const GlobalVertices &global_vertices)
 {
   if (!global_vertices.vertices.is_empty() && geom && geom->geom_type_ == GEOM_MESH) {
-    if (std::all_of(
-            all_geometries.begin(), all_geometries.end(), [](const std::unique_ptr<Geometry> &g) {
-              return g->get_vertex_count() == 0;
-            })) {
+    if (std::all_of(all_geometries.begin(),
+                    all_geometries.end(),
+                    [](const std::unique_ptr<Geometry> &g) { return g->get_vertex_count() == 0; }))
+    {
       geom->track_all_vertices(global_vertices.vertices.size());
     }
   }
@@ -578,7 +582,8 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
         /* If we don't have a material index assigned yet, get one.
          * It means "usemtl" state came from the previous object. */
         if (state_material_index == -1 && !state_material_name.empty() &&
-            curr_geom->material_indices_.is_empty()) {
+            curr_geom->material_indices_.is_empty())
+        {
           curr_geom->material_indices_.add_new(state_material_name, 0);
           curr_geom->material_order_.append(state_material_name);
           state_material_index = 0;
@@ -705,7 +710,8 @@ static MTLTexMapType mtl_line_start_to_texture_type(const char *&p, const char *
     return MTLTexMapType::Emission;
   }
   if (parse_keyword(p, end, "bump") || parse_keyword(p, end, "map_Bump") ||
-      parse_keyword(p, end, "map_bump")) {
+      parse_keyword(p, end, "map_bump"))
+  {
     return MTLTexMapType::Normal;
   }
   if (parse_keyword(p, end, "map_Pr")) {
@@ -835,7 +841,7 @@ void OBJParser::add_default_mtl_library()
   BLI_path_extension_replace(mtl_file_path, sizeof(mtl_file_path), ".mtl");
   if (BLI_exists(mtl_file_path)) {
     char mtl_file_base[FILE_MAX];
-    BLI_split_file_part(mtl_file_path, mtl_file_base, sizeof(mtl_file_base));
+    BLI_path_split_file_part(mtl_file_path, mtl_file_base, sizeof(mtl_file_base));
     add_mtl_library(mtl_file_base);
   }
 }
@@ -843,9 +849,9 @@ void OBJParser::add_default_mtl_library()
 MTLParser::MTLParser(StringRefNull mtl_library, StringRefNull obj_filepath)
 {
   char obj_file_dir[FILE_MAXDIR];
-  BLI_split_dir_part(obj_filepath.data(), obj_file_dir, FILE_MAXDIR);
+  BLI_path_split_dir_part(obj_filepath.data(), obj_file_dir, FILE_MAXDIR);
   BLI_path_join(mtl_file_path_, FILE_MAX, obj_file_dir, mtl_library.data());
-  BLI_split_dir_part(mtl_file_path_, mtl_dir_path_, FILE_MAXDIR);
+  BLI_path_split_dir_part(mtl_file_path_, mtl_dir_path_, FILE_MAXDIR);
 }
 
 void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_materials)

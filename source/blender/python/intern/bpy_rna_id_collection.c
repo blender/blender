@@ -168,7 +168,8 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, &subset, &PySet_Type, &key_types, &PySet_Type, &val_types)) {
+          args, kwds, &_parser, &subset, &PySet_Type, &key_types, &PySet_Type, &val_types))
+  {
     return NULL;
   }
 
@@ -226,7 +227,8 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
           (key_types_bitmap == NULL || id_check_type(id, key_types_bitmap)) &&
           /* We do not want to pre-add keys when we have filter on value types,
            * but not on key types. */
-          (val_types_bitmap == NULL || key_types_bitmap != NULL)) {
+          (val_types_bitmap == NULL || key_types_bitmap != NULL))
+      {
         PyObject *key = pyrna_id_CreatePyObject(id);
         PyObject *set;
 
@@ -394,7 +396,8 @@ static PyObject *bpy_orphans_purge(PyObject *UNUSED(self), PyObject *args, PyObj
                                         PyC_ParseBool,
                                         &do_linked_ids,
                                         PyC_ParseBool,
-                                        &do_recursive_cleanup)) {
+                                        &do_recursive_cleanup))
+  {
     return NULL;
   }
 

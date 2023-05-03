@@ -177,7 +177,8 @@ BLI_INLINE SmallHashEntry *smallhash_lookup(SmallHash *sh, const uintptr_t key)
   /* NOTE: there are always more buckets than entries,
    * so we know there will always be a free bucket if the key isn't found. */
   for (e = &sh->buckets[h % (uintptr_t)sh->nbuckets]; e->val != SMHASH_CELL_FREE;
-       h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets]) {
+       h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets])
+  {
     if (e->key == key) {
       /* should never happen because unused keys are zero'd */
       BLI_assert(e->val != SMHASH_CELL_UNUSED);
@@ -197,7 +198,8 @@ BLI_INLINE SmallHashEntry *smallhash_lookup_first_free(SmallHash *sh, const uint
   uintptr_t hoff = 1;
 
   for (e = &sh->buckets[h % (uintptr_t)sh->nbuckets]; smallhash_val_is_used(e->val);
-       h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets]) {
+       h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets])
+  {
     /* pass */
   }
 
@@ -305,7 +307,8 @@ bool BLI_smallhash_ensure_p(SmallHash *sh, uintptr_t key, void ***item)
   /* NOTE: there are always more buckets than entries,
    * so we know there will always be a free bucket if the key isn't found. */
   for (e = &sh->buckets[h % (uintptr_t)sh->nbuckets]; e->val != SMHASH_CELL_FREE;
-       h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets]) {
+       h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets])
+  {
     if (e->key == key) {
       /* should never happen because unused keys are zero'd */
       BLI_assert(e->val != SMHASH_CELL_UNUSED);
@@ -388,7 +391,8 @@ bool BLI_smallhash_remove(SmallHash *sh, uintptr_t key)
   uintptr_t hoff = 1;
 
   for (e = &sh->buckets[h % (uintptr_t)sh->nbuckets]; e->val != SMHASH_CELL_FREE;
-       h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets]) {
+       h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets])
+  {
     if (e->key == key) {
       /* should never happen because unused keys are zero'd */
       BLI_assert(e->val != SMHASH_CELL_UNUSED);
@@ -578,7 +582,8 @@ double BLI_smallhash_calc_quality(SmallHash *sh)
       uintptr_t hoff = 1;
 
       for (e = &sh->buckets[h % (uintptr_t)sh->nbuckets]; e != e_final;
-           h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets]) {
+           h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets])
+      {
         count += 1;
       }
 

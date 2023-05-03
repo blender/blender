@@ -1258,7 +1258,8 @@ Node *Octree::connectFace(
     PathElement *newEleN;
     if (curEleN->pos[0] != stN[0] || curEleN->pos[1] != stN[1] || curEleN->pos[2] != stN[2]) {
       if (curEleN->next->pos[0] != stN[0] || curEleN->next->pos[1] != stN[1] ||
-          curEleN->next->pos[2] != stN[2]) {
+          curEleN->next->pos[2] != stN[2])
+      {
         newEleN = new PathElement;
         newEleN->next = curEleN->next;
         newEleN->pos[0] = stN[0];
@@ -2302,7 +2303,8 @@ void Octree::computeMinimizer(const LeafNode *leaf, int st[3], int len, float rv
 
       if (rvalue[0] < st[0] - nh1 || rvalue[1] < st[1] - nh1 || rvalue[2] < st[2] - nh1 ||
 
-          rvalue[0] > st[0] + nh2 || rvalue[1] > st[1] + nh2 || rvalue[2] > st[2] + nh2) {
+          rvalue[0] > st[0] + nh2 || rvalue[1] > st[1] + nh2 || rvalue[2] > st[2] + nh2)
+      {
         // Use mass point instead
         rvalue[0] = mp[0];
         rvalue[1] = mp[1];

@@ -1267,7 +1267,8 @@ void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
 #define SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
   SCULPT_vertex_neighbors_get(ss, v_index, true, &neighbor_iterator); \
   for (neighbor_iterator.i = neighbor_iterator.size - 1; neighbor_iterator.i >= 0; \
-       neighbor_iterator.i--) { \
+       neighbor_iterator.i--) \
+  { \
     neighbor_iterator.has_edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge.i != \
                                  PBVH_REF_NONE; \
     neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i].vertex; \
@@ -1287,7 +1288,8 @@ void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
 
 #define SCULPT_VERTEX_NEIGHBORS_ITER_FREE(neighbor_iterator) \
   if (neighbor_iterator.neighbors && !neighbor_iterator.no_free && \
-      neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
+      neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) \
+  { \
     MEM_freeN(neighbor_iterator.neighbors); \
     MEM_freeN(neighbor_iterator.neighbor_indices); \
   } \
@@ -1468,7 +1470,8 @@ BLI_INLINE bool SCULPT_tool_needs_all_pbvh_nodes(const Brush *brush)
   }
 
   if (brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK &&
-      brush->snake_hook_deform_type == BRUSH_SNAKE_HOOK_DEFORM_ELASTIC) {
+      brush->snake_hook_deform_type == BRUSH_SNAKE_HOOK_DEFORM_ELASTIC)
+  {
     /* Snake hook in elastic deform type has same requirements as the elastic deform tool. */
     return true;
   }

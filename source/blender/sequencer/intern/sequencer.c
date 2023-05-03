@@ -979,7 +979,8 @@ static bool seq_update_seq_cb(Sequence *seq, void *user_data)
     if (seq->type == SEQ_TYPE_SCENE && seq->scene != NULL) {
       BKE_sound_set_scene_volume(seq->scene, seq->scene->audio.volume);
       if ((seq->flag & SEQ_SCENE_STRIPS) == 0 && seq->scene->sound_scene != NULL &&
-          seq->scene->ed != NULL) {
+          seq->scene->ed != NULL)
+      {
         SEQ_for_each_callback(&seq->scene->ed->seqbase, seq_disable_sound_strips_cb, seq->scene);
       }
     }

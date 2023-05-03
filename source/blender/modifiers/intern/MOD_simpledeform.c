@@ -532,7 +532,8 @@ static void restrictions_panel_draw(const bContext *UNUSED(C), Panel *panel)
   if (ELEM(deform_method,
            MOD_SIMPLEDEFORM_MODE_TAPER,
            MOD_SIMPLEDEFORM_MODE_STRETCH,
-           MOD_SIMPLEDEFORM_MODE_TWIST)) {
+           MOD_SIMPLEDEFORM_MODE_TWIST))
+  {
     int deform_axis = RNA_enum_get(ptr, "deform_axis");
 
     row = uiLayoutRowWithHeading(layout, true, IFACE_("Lock"));

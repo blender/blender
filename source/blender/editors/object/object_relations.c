@@ -823,7 +823,8 @@ static bool parent_set_nonvertex_parent(bContext *C, struct ParentingContext *pa
                               parenting_context->partype,
                               parenting_context->xmirror,
                               parenting_context->keep_transform,
-                              NULL)) {
+                              NULL))
+    {
       return false;
     }
   }
@@ -854,7 +855,8 @@ static bool parent_set_vertex_parent_with_kdtree(bContext *C,
                               parenting_context->partype,
                               parenting_context->xmirror,
                               parenting_context->keep_transform,
-                              vert_par)) {
+                              vert_par))
+    {
       return false;
     }
   }
@@ -1431,7 +1433,8 @@ static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst
           /* Linking non-grease-pencil materials to a grease-pencil object causes issues.
            * We make sure that if one of the objects is a grease-pencil object, the other must be
            * as well. */
-          ((ob_src->type == OB_GPENCIL_LEGACY) == (ob_dst->type == OB_GPENCIL_LEGACY))) {
+          ((ob_src->type == OB_GPENCIL_LEGACY) == (ob_dst->type == OB_GPENCIL_LEGACY)))
+      {
         return true;
       }
       break;
@@ -1449,8 +1452,8 @@ static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst
       }
       break;
     case MAKE_LINKS_FONTS:
-      if ((ob_src->data != ob_dst->data) && (ob_src->type == OB_FONT) &&
-          (ob_dst->type == OB_FONT)) {
+      if ((ob_src->data != ob_dst->data) && (ob_src->type == OB_FONT) && (ob_dst->type == OB_FONT))
+      {
         return true;
       }
       break;
@@ -2289,7 +2292,8 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
   bool user_overrides_from_selected_objects = false;
 
   if (!ID_IS_LINKED(obact) && obact->instance_collection != NULL &&
-      ID_IS_LINKED(obact->instance_collection)) {
+      ID_IS_LINKED(obact->instance_collection))
+  {
     if (!ID_IS_OVERRIDABLE_LIBRARY(obact->instance_collection)) {
       BKE_reportf(op->reports,
                   RPT_ERROR_INVALID_INPUT,
@@ -2331,7 +2335,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
   bool is_active_override = false;
   FOREACH_SELECTED_OBJECT_BEGIN (view_layer, CTX_wm_view3d(C), ob_iter) {
     if (ID_IS_OVERRIDE_LIBRARY_REAL(ob_iter) && !ID_IS_LINKED(ob_iter)) {
-      ob_iter->id.override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+      ob_iter->id.override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
       is_active_override = is_active_override || (&ob_iter->id == id_root);
       DEG_id_tag_update(&ob_iter->id, ID_RECALC_COPY_ON_WRITE);
     }
@@ -2385,7 +2389,8 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
       }
       LISTBASE_FOREACH (CollectionObject *, coll_ob_iter, &coll_iter->gobject) {
         if (BLI_gset_haskey(user_overrides_objects_uids,
-                            POINTER_FROM_UINT(coll_ob_iter->ob->id.session_uuid))) {
+                            POINTER_FROM_UINT(coll_ob_iter->ob->id.session_uuid)))
+        {
           /* Tag for remapping when creating overrides. */
           coll_iter->id.tag |= LIB_TAG_DOIT;
           break;
@@ -2411,12 +2416,14 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     ID *id_iter;
     FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
       if (ID_IS_LINKED(id_iter) || !ID_IS_OVERRIDE_LIBRARY_REAL(id_iter) ||
-          id_iter->override_library->hierarchy_root != id_hierarchy_root_override) {
+          id_iter->override_library->hierarchy_root != id_hierarchy_root_override)
+      {
         continue;
       }
       if (BLI_gset_haskey(user_overrides_objects_uids,
-                          POINTER_FROM_UINT(id_iter->override_library->reference->session_uuid))) {
-        id_iter->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+                          POINTER_FROM_UINT(id_iter->override_library->reference->session_uuid)))
+      {
+        id_iter->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
       }
     }
     FOREACH_MAIN_ID_END;
@@ -2438,7 +2445,8 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
           LISTBASE_FOREACH_MUTABLE (
               CollectionParent *, collection_parent, &collection_root->runtime.parents) {
             if (ID_IS_LINKED(collection_parent->collection) ||
-                !BKE_view_layer_has_collection(view_layer, collection_parent->collection)) {
+                !BKE_view_layer_has_collection(view_layer, collection_parent->collection))
+            {
               continue;
             }
             BKE_collection_child_remove(bmain, collection_parent->collection, collection_root);
@@ -2479,7 +2487,8 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
 
   if ((!ID_IS_LINKED(obact) && obact->instance_collection != NULL &&
        ID_IS_OVERRIDABLE_LIBRARY(obact->instance_collection)) ||
-      make_override_library_object_overridable_check(bmain, obact)) {
+      make_override_library_object_overridable_check(bmain, obact))
+  {
     return make_override_library_exec(C, op);
   }
 
@@ -2496,7 +2505,8 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
   LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
     /* Only check for directly linked collections. */
     if (!ID_IS_LINKED(&collection->id) || (collection->id.tag & LIB_TAG_INDIRECT) != 0 ||
-        !BKE_view_layer_has_collection(view_layer, collection)) {
+        !BKE_view_layer_has_collection(view_layer, collection))
+    {
       continue;
     }
     if (BKE_collection_has_object_recursive(collection, obact)) {
@@ -2637,7 +2647,8 @@ static int clear_override_library_exec(bContext *C, wmOperator *UNUSED(op))
   FOREACH_SELECTED_OBJECT_END;
 
   for (todo_object_iter = todo_objects; todo_object_iter != NULL;
-       todo_object_iter = todo_object_iter->next) {
+       todo_object_iter = todo_object_iter->next)
+  {
     Object *ob_iter = todo_object_iter->link;
     if (BKE_lib_override_library_is_hierarchy_leaf(bmain, &ob_iter->id)) {
       bool do_remap_active = false;

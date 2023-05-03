@@ -295,8 +295,8 @@ static void subdiv_foreach_corner_vertices_regular_do(
   const int ptex_face_index = ctx->face_ptex_offset[coarse_poly_index];
   for (int corner = 0; corner < coarse_poly.size(); corner++) {
     const int coarse_vert = ctx->coarse_corner_verts[coarse_poly[corner]];
-    if (check_usage &&
-        BLI_BITMAP_TEST_AND_SET_ATOMIC(ctx->coarse_vertices_used_map, coarse_vert)) {
+    if (check_usage && BLI_BITMAP_TEST_AND_SET_ATOMIC(ctx->coarse_vertices_used_map, coarse_vert))
+    {
       continue;
     }
     const int coarse_vertex_index = coarse_vert;
@@ -334,8 +334,8 @@ static void subdiv_foreach_corner_vertices_special_do(
   int ptex_face_index = ctx->face_ptex_offset[coarse_poly_index];
   for (int corner = 0; corner < coarse_poly.size(); corner++, ptex_face_index++) {
     const int coarse_vert = ctx->coarse_corner_verts[coarse_poly[corner]];
-    if (check_usage &&
-        BLI_BITMAP_TEST_AND_SET_ATOMIC(ctx->coarse_vertices_used_map, coarse_vert)) {
+    if (check_usage && BLI_BITMAP_TEST_AND_SET_ATOMIC(ctx->coarse_vertices_used_map, coarse_vert))
+    {
       continue;
     }
     const int coarse_vertex_index = coarse_vert;
@@ -430,7 +430,8 @@ static void subdiv_foreach_edge_vertices_regular_do(SubdivForeachTaskContext *ct
     int subdiv_vertex_index = ctx->vertices_edge_offset +
                               coarse_edge_index * num_subdiv_vertices_per_coarse_edge;
     for (int vertex_index = 0; vertex_index < num_subdiv_vertices_per_coarse_edge;
-         vertex_index++, subdiv_vertex_index++) {
+         vertex_index++, subdiv_vertex_index++)
+    {
       float fac = (vertex_index + 1) * inv_resolution_1;
       if (flip) {
         fac = 1.0f - fac;
@@ -498,7 +499,8 @@ static void subdiv_foreach_edge_vertices_special_do(SubdivForeachTaskContext *ct
       vertex_delta = -1;
     }
     for (int vertex_index = 1; vertex_index < num_vertices_per_ptex_edge;
-         vertex_index++, subdiv_vertex_index += vertex_delta) {
+         vertex_index++, subdiv_vertex_index += vertex_delta)
+    {
       const float u = vertex_index * inv_ptex_resolution_1;
       vertex_edge(ctx->foreach_context,
                   tls,
@@ -513,7 +515,8 @@ static void subdiv_foreach_edge_vertices_special_do(SubdivForeachTaskContext *ct
     const int next_corner = (corner + 1) % coarse_poly.size();
     const int next_ptex_face_index = ptex_face_start_index + next_corner;
     for (int vertex_index = 1; vertex_index < num_vertices_per_ptex_edge - 1;
-         vertex_index++, subdiv_vertex_index += vertex_delta) {
+         vertex_index++, subdiv_vertex_index += vertex_delta)
+    {
       const float v = 1.0f - vertex_index * inv_ptex_resolution_1;
       vertex_edge(ctx->foreach_context,
                   tls,
@@ -1402,7 +1405,8 @@ static void subdiv_foreach_loops_special(SubdivForeachTaskContext *ctx,
                                     coarse_poly.size() * num_inner_edges_per_ptex_face +
                                     ptex_face_inner_resolution - 1;
     for (int corner = 0, prev_corner = coarse_poly.size() - 1; corner < coarse_poly.size();
-         prev_corner = corner, corner++, subdiv_loop_index += 4) {
+         prev_corner = corner, corner++, subdiv_loop_index += 4)
+    {
       const int corner_edge_index = start_edge_index + corner * num_inner_edges_per_ptex_face;
       const int current_patch_end_vertex_index = start_vertex_index +
                                                  corner * num_inner_vertices_per_ptex +
@@ -1443,7 +1447,8 @@ static void subdiv_foreach_loops_special(SubdivForeachTaskContext *ctx,
   }
   /* Loops for faces connecting inner ptex part with boundary. */
   for (int prev_corner = coarse_poly.size() - 1, corner = 0; corner < coarse_poly.size();
-       prev_corner = corner, corner++) {
+       prev_corner = corner, corner++)
+  {
     const int coarse_vert = ctx->coarse_corner_verts[coarse_poly[corner]];
     const int coarse_edge_i = ctx->coarse_corner_edges[coarse_poly[corner]];
     const int coase_prev_vert = ctx->coarse_corner_verts[coarse_poly[prev_corner]];
@@ -1636,9 +1641,11 @@ static void subdiv_foreach_polys(SubdivForeachTaskContext *ctx, void *tls, int p
   /* Hi-poly subdivided mesh. */
   int subdiv_polyon_index = start_poly_index;
   for (int ptex_of_poly_index = 0; ptex_of_poly_index < num_ptex_faces_per_poly;
-       ptex_of_poly_index++) {
+       ptex_of_poly_index++)
+  {
     for (int subdiv_poly_index = 0; subdiv_poly_index < num_polys_per_ptex;
-         subdiv_poly_index++, subdiv_polyon_index++) {
+         subdiv_poly_index++, subdiv_polyon_index++)
+    {
       const int loopstart = start_loop_index + (ptex_of_poly_index * num_loops_per_ptex) +
                             (subdiv_poly_index * 4);
       ctx->foreach_context->poly(
@@ -1810,7 +1817,8 @@ bool BKE_subdiv_foreach_subdiv_geometry(Subdiv *subdiv,
                                 ctx.num_subdiv_edges,
                                 ctx.num_subdiv_loops,
                                 ctx.num_subdiv_polygons,
-                                ctx.subdiv_polygon_offset)) {
+                                ctx.subdiv_polygon_offset))
+    {
       subdiv_foreach_ctx_free(&ctx);
       return false;
     }

@@ -714,7 +714,8 @@ static const char *unit_find_str(const char *str, const char *substr, bool case_
       if (str_found == str ||
           /* Weak unicode support!, so "µm" won't match up be replaced by "m"
            * since non ascii utf8 values will NEVER return true */
-          isalpha_or_utf8(*BLI_str_find_prev_char_utf8(str_found, str)) == 0) {
+          isalpha_or_utf8(*BLI_str_find_prev_char_utf8(str_found, str)) == 0)
+      {
         /* Next char cannot be alpha-numeric. */
         int len_name = strlen(substr);
 
@@ -812,7 +813,8 @@ static char *find_next_op(const char *str, char *remaining_str, int len_max)
       if (remaining_str != str && i != 0) {
         /* Check for velocity or acceleration (e.g. '/' in 'ft/s' is not an op). */
         if ((remaining_str[i] == '/') && ELEM(remaining_str[i - 1], 't', 'T', 'm', 'M') &&
-            ELEM(remaining_str[i + 1], 's', 'S')) {
+            ELEM(remaining_str[i + 1], 's', 'S'))
+        {
           continue;
         }
 
@@ -1110,7 +1112,8 @@ bool BKE_unit_replace_string(
   /* Apply the default unit on the whole expression, this allows to handle nasty cases like
    * '2+2in'. */
   if (BLI_snprintf(str_tmp, sizeof(str_tmp), "(%s)*%.9g", str, default_unit->scalar) <
-      sizeof(str_tmp)) {
+      sizeof(str_tmp))
+  {
     strncpy(str, str_tmp, len_max);
   }
   else {

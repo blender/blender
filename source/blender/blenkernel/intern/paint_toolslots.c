@@ -139,8 +139,8 @@ void BKE_paint_toolslots_brush_validate(Main *bmain, Paint *paint)
   for (int i = 0; i < paint->tool_slots_len; i++) {
     PaintToolSlot *tslot = &paint->tool_slots[i];
     if (tslot->brush) {
-      if ((i != BKE_brush_tool_get(tslot->brush, paint)) ||
-          (tslot->brush->ob_mode & ob_mode) == 0) {
+      if ((i != BKE_brush_tool_get(tslot->brush, paint)) || (tslot->brush->ob_mode & ob_mode) == 0)
+      {
         id_us_min(&tslot->brush->id);
         tslot->brush = NULL;
       }

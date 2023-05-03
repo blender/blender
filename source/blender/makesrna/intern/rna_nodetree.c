@@ -2190,15 +2190,18 @@ static void rna_GeometryNodeCompare_data_type_update(Main *bmain, Scene *scene, 
                                                     NODE_COMPARE_EQUAL,
                                                     NODE_COMPARE_NOT_EQUAL,
                                                     NODE_COMPARE_COLOR_BRIGHTER,
-                                                    NODE_COMPARE_COLOR_DARKER)) {
+                                                    NODE_COMPARE_COLOR_DARKER))
+  {
     node_storage->operation = NODE_COMPARE_EQUAL;
   }
   else if (node_storage->data_type == SOCK_STRING &&
-           !ELEM(node_storage->operation, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL)) {
+           !ELEM(node_storage->operation, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL))
+  {
     node_storage->operation = NODE_COMPARE_EQUAL;
   }
   else if (node_storage->data_type != SOCK_RGBA &&
-           ELEM(node_storage->operation, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER)) {
+           ELEM(node_storage->operation, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER))
+  {
     node_storage->operation = NODE_COMPARE_EQUAL;
   }
 
@@ -8280,7 +8283,7 @@ static void def_cmp_stabilize2d(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "custom2", CMP_NODEFLAG_STABILIZE_INVERSE);
+  RNA_def_property_boolean_sdna(prop, NULL, "custom2", CMP_NODE_STABILIZE_FLAG_INVERSE);
   RNA_def_property_ui_text(
       prop, "Invert", "Invert stabilization to re-introduce motion to the frame");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");

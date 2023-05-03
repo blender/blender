@@ -479,7 +479,8 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
   const float dtp_other = dot_v3v3(vec_other, lnor);
 
   if (UNLIKELY(fabsf(dtp_ref) >= LNOR_SPACE_TRIGO_THRESHOLD ||
-               fabsf(dtp_other) >= LNOR_SPACE_TRIGO_THRESHOLD)) {
+               fabsf(dtp_other) >= LNOR_SPACE_TRIGO_THRESHOLD))
+  {
     /* If vec_ref or vec_other are too much aligned with lnor, we can't build lnor space,
      * tag it as invalid and abort. */
     lnor_space->ref_alpha = lnor_space->ref_beta = 0.0f;
@@ -710,7 +711,7 @@ static void mesh_edges_sharp_tag(const OffsetIndices<int> polys,
         /* 'Empty' edge until now, set e2l[0] (and e2l[1] to INDEX_UNSET to tag it as unset). */
         e2l[0] = loop_index;
         /* We have to check this here too, else we might miss some flat faces!!! */
-        e2l[1] = (poly_is_smooth(poly_i)) ? INDEX_UNSET : INDEX_INVALID;
+        e2l[1] = poly_is_smooth(poly_i) ? INDEX_UNSET : INDEX_INVALID;
       }
       else if (e2l[1] == INDEX_UNSET) {
         const bool is_angle_sharp = (check_angle &&
@@ -723,7 +724,8 @@ static void mesh_edges_sharp_tag(const OffsetIndices<int> polys,
          * same vertex, or angle between both its polys' normals is above split_angle value.
          */
         if (!poly_is_smooth(poly_i) || (!sharp_edges.is_empty() && sharp_edges[edge_i]) ||
-            vert_i == corner_verts[e2l[0]] || is_angle_sharp) {
+            vert_i == corner_verts[e2l[0]] || is_angle_sharp)
+        {
           /* NOTE: we are sure that loop != 0 here ;). */
           e2l[1] = INDEX_INVALID;
 
@@ -812,7 +814,8 @@ static void loop_manifold_fan_around_vert_next(const Span<int> corner_verts,
   const int vert_fan_next = corner_verts[*r_mlfan_curr_index];
   const IndexRange poly_fan_next = polys[*r_mpfan_curr_index];
   if ((vert_fan_orig == vert_fan_next && vert_fan_orig == vert_pivot) ||
-      !ELEM(vert_fan_orig, vert_fan_next, vert_pivot)) {
+      !ELEM(vert_fan_orig, vert_fan_next, vert_pivot))
+  {
     /* We need the previous loop, but current one is our vertex's loop. */
     *r_mlfan_vert_index = *r_mlfan_curr_index;
     if (--(*r_mlfan_curr_index) < poly_fan_next.start()) {
@@ -1175,12 +1178,14 @@ static void loop_split_generator(LoopSplitTaskDataCommon *common_data,
                                             skip_loops,
                                             ml_curr_index,
                                             ml_prev_index,
-                                            poly_index))) {
+                                            poly_index)))
+      {
         // printf("SKIPPING!\n");
       }
       else {
         if (IS_EDGE_SHARP(edge_to_loops[corner_edges[ml_curr_index]]) &&
-            IS_EDGE_SHARP(edge_to_loops[corner_edges[ml_prev_index]])) {
+            IS_EDGE_SHARP(edge_to_loops[corner_edges[ml_prev_index]]))
+        {
           /* Simple case (both edges around that vertex are sharp in current polygon),
            * this corner just takes its poly normal. */
           r_single_corners.append(ml_curr_index);

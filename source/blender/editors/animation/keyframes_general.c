@@ -98,7 +98,8 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
 
   /* Check if any points. */
   if ((fcu == NULL) || (fcu->bezt == NULL) || (fcu->totvert == 0) ||
-      (!cleardefault && fcu->totvert == 1)) {
+      (!cleardefault && fcu->totvert == 1))
+  {
     return;
   }
 
@@ -227,18 +228,6 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
   }
 }
 
-static void move_key(BezTriple *bezt, const float key_y_value)
-{
-  const float delta = key_y_value - bezt->vec[1][1];
-  bezt->vec[1][1] = key_y_value;
-  /* When handle type is HD_ALIGN handles would get stuck unless we move them along with the key.
-   */
-  if (ELEM(HD_ALIGN, bezt->h1, bezt->h2)) {
-    bezt->vec[0][1] += delta;
-    bezt->vec[2][1] += delta;
-  }
-}
-
 /**
  * Find the first segment of consecutive selected curve points, starting from \a start_index.
  * Keys that have BEZT_FLAG_IGNORE_TAG set are treated as unselected.
@@ -332,7 +321,7 @@ void blend_to_neighbor_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const
   for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
     const float key_y_value = interpf(
         target_bezt->vec[1][1], fcu->bezt[i].vec[1][1], blend_factor);
-    move_key(&fcu->bezt[i], key_y_value);
+    BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
   }
 }
 
@@ -394,7 +383,7 @@ void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, const float factor
       continue;
     }
     const float key_y_value = interpf(default_value, fcu->bezt[i].vec[1][1], factor);
-    move_key(&fcu->bezt[i], key_y_value);
+    BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
   }
 }
 /* ---------------- */
@@ -444,7 +433,7 @@ void smooth_fcurve_segment(FCurve *fcu,
       filter_result += samples[sample_index - j] * kernel_value;
     }
     const float key_y_value = interpf((float)filter_result, samples[sample_index], factor);
-    move_key(&fcu->bezt[i], key_y_value);
+    BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
   }
 }
 /* ---------------- */
@@ -484,7 +473,7 @@ void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor
     }
 
     const float key_y_value = left_y + normalized_y * key_y_range;
-    move_key(&fcu->bezt[i], key_y_value);
+    BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
   }
 }
 
@@ -498,7 +487,7 @@ void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float f
 
   for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
     const float key_y_value = interpf(right_bezt->vec[1][1], left_bezt->vec[1][1], factor);
-    move_key(&fcu->bezt[i], key_y_value);
+    BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
   }
 }
 
@@ -558,7 +547,8 @@ static void decimate_fcurve_segment(FCurve *fcu,
    * has a check that prevents removal of the first and last index in the
    * passed array. */
   if (bezt_segment_len + bezt_segment_start_idx != fcu->totvert &&
-      prepare_for_decimate(fcu, bezt_segment_len + bezt_segment_start_idx)) {
+      prepare_for_decimate(fcu, bezt_segment_len + bezt_segment_start_idx))
+  {
     bezt_segment_len++;
   }
   if (bezt_segment_start_idx != 0 && prepare_for_decimate(fcu, bezt_segment_start_idx - 1)) {
@@ -917,7 +907,8 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
      * - this check should also eliminate any problems associated with using sample-data
      */
     if (ANIM_fcurve_keyframes_loop(
-            NULL, fcu, NULL, ANIM_editkeyframes_ok(BEZT_OK_SELECTED), NULL) == 0) {
+            NULL, fcu, NULL, ANIM_editkeyframes_ok(BEZT_OK_SELECTED), NULL) == 0)
+    {
       continue;
     }
 
@@ -1151,15 +1142,18 @@ static void do_curve_mirror_flippping(tAnimCopybufItem *aci, BezTriple *bezt)
       flip = true;
     }
     else if (BLI_strn_endswith(aci->rna_path, "rotation_quaternion", slength) &&
-             ELEM(aci->array_index, 2, 3)) {
+             ELEM(aci->array_index, 2, 3))
+    {
       flip = true;
     }
     else if (BLI_strn_endswith(aci->rna_path, "rotation_euler", slength) &&
-             ELEM(aci->array_index, 1, 2)) {
+             ELEM(aci->array_index, 1, 2))
+    {
       flip = true;
     }
     else if (BLI_strn_endswith(aci->rna_path, "rotation_axis_angle", slength) &&
-             ELEM(aci->array_index, 2, 3)) {
+             ELEM(aci->array_index, 2, 3))
+    {
       flip = true;
     }
 

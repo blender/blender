@@ -160,7 +160,8 @@ void GLStateManager::set_mutable_state(const GPUStateMutable &state)
   }
 
   if (changed.stencil_compare_mask != 0 || changed.stencil_reference != 0 ||
-      changed.stencil_write_mask != 0) {
+      changed.stencil_write_mask != 0)
+  {
     set_stencil_mask((eGPUStencilTest)current_.stencil_test, state);
   }
 
@@ -453,7 +454,8 @@ void GLStateManager::texture_bind(Texture *tex_, GPUSamplerState sampler_state, 
   }
   /* Eliminate redundant binds. */
   if ((textures_[unit] == tex->tex_id_) &&
-      (samplers_[unit] == GLTexture::get_sampler(sampler_state))) {
+      (samplers_[unit] == GLTexture::get_sampler(sampler_state)))
+  {
     return;
   }
   targets_[unit] = tex->target_;

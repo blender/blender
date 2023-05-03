@@ -104,8 +104,8 @@ bool debug_tilemaps(vec3 P, LightData light)
     int tile_index = shadow_tile_offset(px % SHADOW_TILEMAP_RES, tilemap.tiles_index, 0);
     ShadowTileData tile = shadow_tile_unpack(tiles_buf[tile_index]);
     /* Leave 1 px border between tilemaps. */
-    if (!any(
-            equal(ivec2(gl_FragCoord.xy) % (SHADOW_TILEMAP_RES * debug_tile_size_px), ivec2(0)))) {
+    if (!any(equal(ivec2(gl_FragCoord.xy) % (SHADOW_TILEMAP_RES * debug_tile_size_px), ivec2(0))))
+    {
       gl_FragDepth = 0.0;
       out_color_add = vec4(debug_tile_state_color(tile), 0.0);
       out_color_mul = vec4(0.0);

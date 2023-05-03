@@ -703,8 +703,8 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
 
   /* This algorithm uses mesh data (polys and loops), so this falloff type can't be initialized for
    * Multires. Also supports non-tri PBVH_BMESH, though untested until we implement that properly*/
-  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES ||
-      (ss->bm && ss->bm->totloop != ss->bm->totvert * 3)) {
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES || (ss->bm && ss->bm->totloop != ss->bm->totvert * 3))
+  {
     return dists;
   }
 
@@ -1074,7 +1074,8 @@ static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
       PBVHVertRef vref = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       if (!(SCULPT_vertex_has_face_set(ss, vref, active_face_set) &&
-            SCULPT_vertex_has_unique_face_set(ss, vref))) {
+            SCULPT_vertex_has_unique_face_set(ss, vref)))
+      {
         continue;
       }
       expand_cache->vert_falloff[i] *= -1.0f;
@@ -1349,7 +1350,8 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
     const bool enabled = sculpt_expand_state_get(ss, expand_cache, vd.vertex);
 
     if (expand_cache->check_islands &&
-        !sculpt_expand_is_vert_in_active_component(ss, expand_cache, vd.vertex)) {
+        !sculpt_expand_is_vert_in_active_component(ss, expand_cache, vd.vertex))
+    {
       continue;
     }
 
@@ -1923,7 +1925,8 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         copy_v2_v2(expand_cache->initial_mouse_move, mval_fl);
         copy_v2_v2(expand_cache->original_mouse_move, expand_cache->initial_mouse);
         if (expand_cache->falloff_type == SCULPT_EXPAND_FALLOFF_GEODESIC &&
-            SCULPT_vertex_count_get(ss) > expand_cache->max_geodesic_move_preview) {
+            SCULPT_vertex_count_get(ss) > expand_cache->max_geodesic_move_preview)
+        {
           /* Set to spherical falloff for preview in high poly meshes as it is the fastest one.
            * In most cases it should match closely the preview from geodesic. */
           expand_cache->move_preview_falloff_type = SCULPT_EXPAND_FALLOFF_SPHERICAL;
@@ -2191,7 +2194,8 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
   bool all_same_id = true;
   for (int i = 0; i < totface; i++) {
     if (!sculpt_expand_is_face_in_active_component(
-            ss, expand_cache, BKE_pbvh_index_to_face(ss->pbvh, i))) {
+            ss, expand_cache, BKE_pbvh_index_to_face(ss->pbvh, i)))
+    {
       continue;
     }
     if (r_face_sets[i] != delete_id) {
@@ -2438,8 +2442,8 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
       RNA_enum_get(op->ptr, "falloff_type"));
 
   /* When starting from a boundary vertex, set the initial falloff to boundary. */
-  if (SCULPT_vertex_is_boundary(
-          ss, ss->expand_cache->initial_active_vertex, SCULPT_BOUNDARY_MESH)) {
+  if (SCULPT_vertex_is_boundary(ss, ss->expand_cache->initial_active_vertex, SCULPT_BOUNDARY_MESH))
+  {
     falloff_type = SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
   }
 

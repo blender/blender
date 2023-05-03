@@ -399,7 +399,8 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
    * - Purely refractive closures can't have reflection.
    */
   if ((cos_NI <= 0) || (alpha_x * alpha_y <= 1e-7f) || ((cos_NgO < 0.0f) != is_refraction) ||
-      (is_refraction && !m_refractive) || (!is_refraction && m_refractive && !m_glass)) {
+      (is_refraction && !m_refractive) || (!is_refraction && m_refractive && !m_glass))
+  {
     *pdf = 0.0f;
     return zero_spectrum();
   }

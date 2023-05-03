@@ -363,7 +363,8 @@ bool Scene::need_global_attribute(AttributeStandard std)
   else if (std == ATTR_STD_MOTION_VERTEX_NORMAL)
     return need_motion() == MOTION_BLUR;
   else if (std == ATTR_STD_VOLUME_VELOCITY || std == ATTR_STD_VOLUME_VELOCITY_X ||
-           std == ATTR_STD_VOLUME_VELOCITY_Y || std == ATTR_STD_VOLUME_VELOCITY_Z) {
+           std == ATTR_STD_VOLUME_VELOCITY_Y || std == ATTR_STD_VOLUME_VELOCITY_Z)
+  {
     return need_motion() != MOTION_NONE;
   }
 

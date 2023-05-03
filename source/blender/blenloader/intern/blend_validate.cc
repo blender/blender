@@ -46,7 +46,8 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
   int i = set_listbasepointers(bmain, lbarray);
   while (i--) {
     for (ID *id = static_cast<ID *>(lbarray[i]->first); id != nullptr;
-         id = static_cast<ID *>(id->next)) {
+         id = static_cast<ID *>(id->next))
+    {
       if (ID_IS_LINKED(id)) {
         is_valid = false;
         BKE_reportf(reports,

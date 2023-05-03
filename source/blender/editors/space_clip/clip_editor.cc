@@ -779,7 +779,8 @@ static uchar *prefetch_thread_next_frame(PrefetchQueue *queue,
 
   BLI_spin_lock(&queue->spin);
   if (!*queue->stop && !check_prefetch_break() &&
-      IN_RANGE_INCL(queue->current_frame, queue->start_frame, queue->end_frame)) {
+      IN_RANGE_INCL(queue->current_frame, queue->start_frame, queue->end_frame))
+  {
     int current_frame;
 
     if (queue->forward) {
@@ -1163,7 +1164,8 @@ void ED_clip_view_lock_state_store(const bContext *C, ClipViewLockState *state)
   }
 
   if (!clip_view_calculate_view_selection(
-          C, false, &state->offset_x, &state->offset_y, &state->zoom)) {
+          C, false, &state->offset_x, &state->offset_y, &state->zoom))
+  {
     return;
   }
 

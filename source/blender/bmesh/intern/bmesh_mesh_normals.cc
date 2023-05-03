@@ -501,10 +501,12 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
    * BM_vert_step_fan_loop() is quite cheap in term of CPU cycles,
    * so really think it's not worth it. */
   if (BM_elem_flag_test(l_curr->e, BM_ELEM_TAG) &&
-      (BM_elem_flag_test(l_curr, BM_ELEM_TAG) || !BM_loop_check_cyclic_smooth_fan(l_curr))) {
+      (BM_elem_flag_test(l_curr, BM_ELEM_TAG) || !BM_loop_check_cyclic_smooth_fan(l_curr)))
+  {
   }
   else if (!BM_elem_flag_test(l_curr->e, BM_ELEM_TAG) &&
-           !BM_elem_flag_test(l_curr->prev->e, BM_ELEM_TAG)) {
+           !BM_elem_flag_test(l_curr->prev->e, BM_ELEM_TAG))
+  {
     /* Simple case (both edges around that vertex are sharp in related polygon),
      * this vertex just takes its poly normal.
      */
@@ -701,6 +703,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
         }
 
         BKE_lnor_space_define(lnor_space, lnor, vec_org, vec_next, *edge_vectors);
+        edge_vectors->clear();
 
         if (has_clnors) {
           if (clnors_invalid) {
@@ -913,7 +916,8 @@ static void bm_mesh_loops_calc_normals_for_vert_with_clnors(
           continue;
         }
         if (do_rebuild && !BM_ELEM_API_FLAG_TEST(l_curr, BM_LNORSPACE_UPDATE) &&
-            !(bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL)) {
+            !(bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL))
+        {
           continue;
         }
         BM_elem_flag_disable(l_curr, BM_ELEM_TAG);
@@ -1036,7 +1040,8 @@ static void bm_mesh_loops_calc_normals_for_vert_without_clnors(
         continue;
       }
       if (do_rebuild && !BM_ELEM_API_FLAG_TEST(l_curr, BM_LNORSPACE_UPDATE) &&
-          !(bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL)) {
+          !(bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL))
+      {
         continue;
       }
       bm_mesh_loops_calc_normals_for_loop(bm,
@@ -1130,7 +1135,8 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
     l_curr = l_first = BM_FACE_FIRST_LOOP(f_curr);
     do {
       if (do_rebuild && !BM_ELEM_API_FLAG_TEST(l_curr, BM_LNORSPACE_UPDATE) &&
-          !(bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL)) {
+          !(bm->spacearr_dirty & BM_SPACEARR_DIRTY_ALL))
+      {
         continue;
       }
       bm_mesh_loops_calc_normals_for_loop(bm,
@@ -1785,7 +1791,8 @@ void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)
         /* Note that we only handle unselected neighbor vertices here, main loop will take care of
          * selected ones. */
         if (!BM_elem_flag_test(l->prev->v, BM_ELEM_SELECT) &&
-            !BLI_BITMAP_TEST(done_verts, BM_elem_index_get(l->prev->v))) {
+            !BLI_BITMAP_TEST(done_verts, BM_elem_index_get(l->prev->v)))
+        {
 
           BMLoop *l_prev;
           BMIter liter_prev;
@@ -1796,7 +1803,8 @@ void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)
         }
 
         if (!BM_elem_flag_test(l->next->v, BM_ELEM_SELECT) &&
-            !BLI_BITMAP_TEST(done_verts, BM_elem_index_get(l->next->v))) {
+            !BLI_BITMAP_TEST(done_verts, BM_elem_index_get(l->next->v)))
+        {
 
           BMLoop *l_next;
           BMIter liter_next;
@@ -2256,7 +2264,8 @@ bool BM_custom_loop_normals_to_vector_layer(BMesh *bm)
 void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges)
 {
   if (!CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL) ||
-      !CustomData_has_layer(&bm->ldata, CD_NORMAL)) {
+      !CustomData_has_layer(&bm->ldata, CD_NORMAL))
+  {
     return;
   }
 

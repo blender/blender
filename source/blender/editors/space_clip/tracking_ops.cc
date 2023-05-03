@@ -219,8 +219,8 @@ static int delete_track_exec(bContext *C, wmOperator * /*op*/)
   bool changed = false;
 
   /* Delete selected plane tracks. */
-  LISTBASE_FOREACH_MUTABLE (
-      MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
+  LISTBASE_FOREACH_MUTABLE (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks)
+  {
     if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
       clip_delete_plane_track(C, clip, plane_track);
       changed = true;
@@ -282,8 +282,8 @@ static int delete_marker_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  LISTBASE_FOREACH_MUTABLE (
-      MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
+  LISTBASE_FOREACH_MUTABLE (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks)
+  {
     if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
       MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get_exact(plane_track,
                                                                                    framenr);
@@ -462,7 +462,8 @@ static MovieTrackingTrack *tracking_marker_check_slide(
   const PointTrackPick track_pick = ed_tracking_pick_point_track(&options, C, co);
 
   if (ed_tracking_point_track_pick_empty(&track_pick) ||
-      !ed_tracking_point_track_pick_can_slide(space_clip, &track_pick)) {
+      !ed_tracking_point_track_pick_can_slide(space_clip, &track_pick))
+  {
     return nullptr;
   }
 
@@ -1103,8 +1104,8 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
     }
 
     delta = pos == 1 ? 1 : -1;
-    while (sc->user.framenr + delta >= scene->r.sfra &&
-           sc->user.framenr + delta <= scene->r.efra) {
+    while (sc->user.framenr + delta >= scene->r.sfra && sc->user.framenr + delta <= scene->r.efra)
+    {
       int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, sc->user.framenr + delta);
       MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(active_track, framenr);
 
@@ -2130,7 +2131,8 @@ static bool update_image_from_plane_marker_poll(bContext *C)
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
 
   if (tracking_object->active_plane_track == nullptr ||
-      tracking_object->active_plane_track->image == nullptr) {
+      tracking_object->active_plane_track->image == nullptr)
+  {
     return false;
   }
 

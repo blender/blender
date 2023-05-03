@@ -34,12 +34,13 @@ static ImBuf *imb_thumb_load_from_blend_id(const char *blen_path,
                                            const char *blen_group,
                                            const char *blen_id)
 {
-  ImBuf *ima = NULL;
-  BlendFileReadReport bf_reports = {.reports = NULL};
+  ImBuf *ima = nullptr;
+  BlendFileReadReport bf_reports = {};
+  bf_reports.reports = nullptr;
 
   struct BlendHandle *libfiledata = BLO_blendhandle_from_file(blen_path, &bf_reports);
-  if (libfiledata == NULL) {
-    return NULL;
+  if (libfiledata == nullptr) {
+    return nullptr;
   }
 
   int idcode = BKE_idtype_idcode_from_name(blen_group);
@@ -56,7 +57,7 @@ static ImBuf *imb_thumb_load_from_blend_id(const char *blen_path,
 static ImBuf *imb_thumb_load_from_blendfile(const char *blen_path)
 {
   BlendThumbnail *data = BLO_thumbnail_from_file(blen_path);
-  ImBuf *ima = BKE_main_thumbnail_to_imbuf(NULL, data);
+  ImBuf *ima = BKE_main_thumbnail_to_imbuf(nullptr, data);
 
   if (data) {
     MEM_freeN(data);

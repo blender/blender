@@ -60,7 +60,8 @@ TreeElementOverridesBase::TreeElementOverridesBase(TreeElement &legacy_te, ID &i
 {
   BLI_assert(legacy_te.store_elem->type == TSE_LIBRARY_OVERRIDE_BASE);
   if (legacy_te.parent != nullptr &&
-      ELEM(legacy_te.parent->store_elem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION)) {
+      ELEM(legacy_te.parent->store_elem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION))
+  {
     legacy_te.name = IFACE_("Library Overrides");
   }
   else {
@@ -92,7 +93,8 @@ static void iterate_properties_to_display(ID &id,
   RNA_id_pointer_create(&id, &idpoin);
 
   for (IDOverrideLibraryProperty *override_prop :
-       ListBaseWrapper<IDOverrideLibraryProperty>(id.override_library->properties)) {
+       ListBaseWrapper<IDOverrideLibraryProperty>(id.override_library->properties))
+  {
     int rnaprop_index = 0;
     const bool is_rna_path_valid = BKE_lib_override_rna_property_find(
         &idpoin, override_prop, &override_rna_ptr, &override_rna_prop, &rnaprop_index);
@@ -105,10 +107,12 @@ static void iterate_properties_to_display(ID &id,
 
       /* Matching ID pointers are considered as system overrides. */
       if (ELEM(override_prop->rna_prop_type, PROP_POINTER, PROP_COLLECTION) &&
-          RNA_struct_is_ID(RNA_property_pointer_type(&override_rna_ptr, override_rna_prop))) {
+          RNA_struct_is_ID(RNA_property_pointer_type(&override_rna_ptr, override_rna_prop)))
+      {
         for (IDOverrideLibraryPropertyOperation *override_prop_op :
-             ListBaseWrapper<IDOverrideLibraryPropertyOperation>(override_prop->operations)) {
-          if ((override_prop_op->flag & IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE) == 0) {
+             ListBaseWrapper<IDOverrideLibraryPropertyOperation>(override_prop->operations))
+        {
+          if ((override_prop_op->flag & LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) == 0) {
             do_skip = false;
             break;
           }
@@ -118,7 +122,8 @@ static void iterate_properties_to_display(ID &id,
 
       /* Animated/driven properties are considered as system overrides. */
       if (!is_system_override && !BKE_lib_override_library_property_is_animated(
-                                     &id, override_prop, override_rna_prop, rnaprop_index)) {
+                                     &id, override_prop, override_rna_prop, rnaprop_index))
+      {
         do_skip = false;
       }
 
@@ -223,9 +228,7 @@ TreeElementOverridesPropertyOperation::TreeElementOverridesPropertyOperation(
 
 StringRefNull TreeElementOverridesPropertyOperation::getOverrideOperationLabel() const
 {
-  if (ELEM(operation_->operation,
-           IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
-           IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE)) {
+  if (ELEM(operation_->operation, LIBOVERRIDE_OP_INSERT_AFTER, LIBOVERRIDE_OP_INSERT_BEFORE)) {
     return TIP_("Added through override");
   }
 
@@ -248,7 +251,8 @@ std::optional<PointerRNA> TreeElementOverridesPropertyOperation::get_collection_
   if (RNA_property_collection_lookup_int(const_cast<PointerRNA *>(&override_rna_ptr),
                                          &override_rna_prop,
                                          operation_->subitem_local_index,
-                                         &col_item_ptr)) {
+                                         &col_item_ptr))
+  {
     return col_item_ptr;
   }
 

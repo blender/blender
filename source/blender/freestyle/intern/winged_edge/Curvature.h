@@ -86,7 +86,8 @@ class Face_Curvature_Info {
     for (vector<CurvatureInfo *>::iterator ci = vec_curvature_info.begin(),
                                            ciend = vec_curvature_info.end();
          ci != ciend;
-         ++ci) {
+         ++ci)
+    {
       delete (*ci);
     }
     vec_curvature_info.clear();

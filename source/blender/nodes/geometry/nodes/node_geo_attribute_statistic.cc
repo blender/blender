@@ -135,7 +135,8 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
   else {
     for (const StringRefNull name :
-         {"Mean", "Median", "Sum", "Min", "Max", "Range", "Standard Deviation", "Variance"}) {
+         {"Mean", "Median", "Sum", "Min", "Max", "Range", "Standard Deviation", "Variance"})
+    {
       params.add_item(IFACE_(name.c_str()), [node_type, name, type](LinkSearchOpParams &params) {
         bNode &node = params.add_node(node_type);
         node.custom1 = *type;

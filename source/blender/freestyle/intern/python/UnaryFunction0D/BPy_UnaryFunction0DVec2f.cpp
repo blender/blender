@@ -94,7 +94,8 @@ static PyObject *UnaryFunction0DVec2f___call__(BPy_UnaryFunction0DVec2f *self,
   PyObject *obj;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj)) {
+          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
+  {
     return nullptr;
   }
 

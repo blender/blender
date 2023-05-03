@@ -734,7 +734,8 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
            (iter->curchunk != NULL) && (atomic_cas_ptr((void **)ts_iter->curchunk_threaded_shared,
                                                        iter->curchunk,
                                                        iter->curchunk->next) != iter->curchunk);
-           iter->curchunk = *ts_iter->curchunk_threaded_shared) {
+           iter->curchunk = *ts_iter->curchunk_threaded_shared)
+      {
         /* pass. */
       }
       if (UNLIKELY(iter->curchunk == NULL)) {

@@ -29,7 +29,7 @@ struct ImBuf *IMB_thumb_load_font(const char *filename, uint x, uint y)
 
   if (!BLF_thumb_preview(filename, (uchar *)ibuf->rect, ibuf->x, ibuf->y, ibuf->channels)) {
     IMB_freeImBuf(ibuf);
-    ibuf = NULL;
+    ibuf = nullptr;
   }
 
   return ibuf;

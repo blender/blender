@@ -429,8 +429,8 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
         if (flag & INSERTKEY_CYCLE_AWARE) {
           /* If replacing an end point of a cyclic curve without offset,
            * modify the other end too. */
-          if (ELEM(i, 0, fcu->totvert - 1) &&
-              BKE_fcurve_get_cycle_type(fcu) == FCU_CYCLE_PERFECT) {
+          if (ELEM(i, 0, fcu->totvert - 1) && BKE_fcurve_get_cycle_type(fcu) == FCU_CYCLE_PERFECT)
+          {
             replace_bezt_keyframe_ypos(&fcu->bezt[i == 0 ? fcu->totvert - 1 : 0], bezt);
           }
         }
@@ -1567,7 +1567,8 @@ int insert_keyframe(Main *bmain,
                                          &remapped_context,
                                          values[array_index],
                                          keytype,
-                                         flag)) {
+                                         flag))
+        {
           ret++;
           exclude = array_index;
           break;
@@ -1624,7 +1625,8 @@ int insert_keyframe(Main *bmain,
   /* Key a single index. */
   else {
     if (array_index >= 0 && array_index < value_count &&
-        BLI_BITMAP_TEST_BOOL(successful_remaps, array_index)) {
+        BLI_BITMAP_TEST_BOOL(successful_remaps, array_index))
+    {
       ret += insert_keyframe_fcurve_value(bmain,
                                           reports,
                                           &ptr,
@@ -2307,8 +2309,8 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
             /* Get bone-name, and check if this bone is selected. */
             bPoseChannel *pchan = NULL;
             char bone_name[sizeof(pchan->name)];
-            if (BLI_str_quoted_substr(
-                    fcu->rna_path, "pose.bones[", bone_name, sizeof(bone_name))) {
+            if (BLI_str_quoted_substr(fcu->rna_path, "pose.bones[", bone_name, sizeof(bone_name)))
+            {
               pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
               /* Delete if bone is selected. */
               if ((pchan) && (pchan->bone)) {
@@ -2593,7 +2595,8 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
         }
         else if ((ptr.type == &RNA_Object) &&
                  (strstr(identifier, "location") || strstr(identifier, "rotation") ||
-                  strstr(identifier, "scale"))) {
+                  strstr(identifier, "scale")))
+        {
           /* NOTE: Keep this label in sync with the "ID" case in
            * keyingsets_utils.py :: get_transform_generators_base_info()
            */

@@ -120,7 +120,8 @@ namespace {
 bool driver_target_depends_on_time(const DriverTarget *target)
 {
   if (target->idtype == ID_SCE &&
-      (target->rna_path != nullptr && STREQ(target->rna_path, "frame_current"))) {
+      (target->rna_path != nullptr && STREQ(target->rna_path, "frame_current")))
+  {
     return true;
   }
   return false;
@@ -313,8 +314,8 @@ void DepsgraphRelationBuilder::add_depends_on_transform_relation(const DepsNodeH
 void DepsgraphRelationBuilder::add_customdata_mask(Object *object,
                                                    const DEGCustomDataMeshMasks &customdata_masks)
 {
-  if (customdata_masks != DEGCustomDataMeshMasks() && object != nullptr &&
-      object->type == OB_MESH) {
+  if (customdata_masks != DEGCustomDataMeshMasks() && object != nullptr && object->type == OB_MESH)
+  {
     IDNode *id_node = graph_->find_id_node(&object->id);
 
     if (id_node == nullptr) {
@@ -428,14 +429,16 @@ void DepsgraphRelationBuilder::add_particle_forcefield_relations(const Operation
       add_relation(eff_key, key, name);
 
       if (ELEM(relation->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS) ||
-          relation->pd->forcefield == PFIELD_GUIDE) {
+          relation->pd->forcefield == PFIELD_GUIDE)
+      {
         ComponentKey mod_key(&relation->ob->id, NodeType::GEOMETRY);
         add_relation(mod_key, key, name);
       }
 
       /* Force field Texture. */
       if ((relation->pd != nullptr) && (relation->pd->forcefield == PFIELD_TEXTURE) &&
-          (relation->pd->tex != nullptr)) {
+          (relation->pd->tex != nullptr))
+      {
         ComponentKey tex_key(&relation->pd->tex->id, NodeType::GENERIC_DATABLOCK);
         add_relation(tex_key, key, "Force field Texture");
       }
@@ -788,7 +791,8 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 
   /* Force field Texture. */
   if ((object->pd != nullptr) && (object->pd->forcefield == PFIELD_TEXTURE) &&
-      (object->pd->tex != nullptr)) {
+      (object->pd->tex != nullptr))
+  {
     build_texture(object->pd->tex);
   }
 
@@ -1236,7 +1240,8 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
     if (ELEM(cti->type,
              CONSTRAINT_TYPE_FOLLOWTRACK,
              CONSTRAINT_TYPE_CAMERASOLVER,
-             CONSTRAINT_TYPE_OBJECTSOLVER)) {
+             CONSTRAINT_TYPE_OBJECTSOLVER))
+    {
       bool depends_on_camera = false;
       if (cti->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
         bFollowTrackConstraint *data = (bFollowTrackConstraint *)con->data;
@@ -1300,7 +1305,8 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
           }
           /* if needs bbone shape, reference the segment computation */
           if (BKE_constraint_target_uses_bbone(con, ct) &&
-              check_pchan_has_bbone_segments(ct->tar, ct->subtarget)) {
+              check_pchan_has_bbone_segments(ct->tar, ct->subtarget))
+          {
             opcode = OperationCode::BONE_SEGMENTS;
           }
           OperationKey target_key(&ct->tar->id, NodeType::BONE, ct->subtarget, opcode);
@@ -1376,7 +1382,8 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
                  CONSTRAINT_TYPE_ROTLIKE,
                  CONSTRAINT_TYPE_SIZELIKE,
                  CONSTRAINT_TYPE_LOCLIKE,
-                 CONSTRAINT_TYPE_TRANSLIKE)) {
+                 CONSTRAINT_TYPE_TRANSLIKE))
+        {
           /* TODO(sergey): Add used space check. */
           ComponentKey target_transform_key(&ct->tar->id, NodeType::TRANSFORM);
           add_relation(target_transform_key, constraint_op_key, cti->name);
@@ -1540,8 +1547,8 @@ void DepsgraphRelationBuilder::build_animation_images(ID *id)
   bool has_image_animation = false;
   if (ELEM(GS(id->name), ID_MA, ID_WO)) {
     bNodeTree *ntree = *BKE_ntree_ptr_from_id(id);
-    if (ntree != nullptr &&
-        ntree->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION) {
+    if (ntree != nullptr && ntree->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION)
+    {
       has_image_animation = true;
     }
   }
@@ -1782,7 +1789,8 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
       }
       /* Special handling for directly-named bones. */
       if ((dtar->flag & DTAR_FLAG_STRUCT_REF) && (object && object->type == OB_ARMATURE) &&
-          (dtar->pchan_name[0])) {
+          (dtar->pchan_name[0]))
+      {
         bPoseChannel *target_pchan = BKE_pose_channel_find_name(object->pose, dtar->pchan_name);
         if (target_pchan == nullptr) {
           continue;
@@ -1811,7 +1819,8 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
           continue;
         }
         if (is_same_bone_dependency(variable_exit_key, self_key) ||
-            is_same_nodetree_node_dependency(variable_exit_key, self_key)) {
+            is_same_nodetree_node_dependency(variable_exit_key, self_key))
+        {
           continue;
         }
         add_relation(variable_exit_key, driver_key, "RNA Target -> Driver");
@@ -1994,7 +2003,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
         add_relation(effector_geometry_key, rb_init_key, "RigidBody Field");
       }
       if ((effector_relation->pd->forcefield == PFIELD_TEXTURE) &&
-          (effector_relation->pd->tex != nullptr)) {
+          (effector_relation->pd->tex != nullptr))
+      {
         ComponentKey tex_key(&effector_relation->pd->tex->id, NodeType::GENERIC_DATABLOCK);
         add_relation(tex_key, rb_init_key, "Force field Texture");
       }
@@ -2012,7 +2022,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
       }
 
       if (object->parent != nullptr && object->parent->rigidbody_object != nullptr &&
-          object->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND) {
+          object->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND)
+      {
         /* If we are a child of a compound shape object, the transforms and sim evaluation will be
          * handled by the parent compound shape object. Do not add any evaluation triggers
          * for the child objects.
@@ -2105,7 +2116,8 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
           psys_key, object, part->collision_group, "Particle Collision");
     }
     else if ((psys->flag & PSYS_HAIR_DYNAMICS) && psys->clmd != nullptr &&
-             psys->clmd->coll_parms != nullptr) {
+             psys->clmd->coll_parms != nullptr)
+    {
       add_particle_collision_relations(
           psys_key, object, psys->clmd->coll_parms->group, "Hair Collision");
     }
@@ -3212,7 +3224,8 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
     }
     int rel_flag = (RELATION_FLAG_NO_FLUSH | RELATION_FLAG_GODMODE);
     if ((ELEM(id_type, ID_ME, ID_CV, ID_PT, ID_VO) && comp_node->type == NodeType::GEOMETRY) ||
-        (id_type == ID_CF && comp_node->type == NodeType::CACHE)) {
+        (id_type == ID_CF && comp_node->type == NodeType::CACHE))
+    {
       rel_flag &= ~RELATION_FLAG_NO_FLUSH;
     }
     /* TODO(sergey): Needs better solution for this. */

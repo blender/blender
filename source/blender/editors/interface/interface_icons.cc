@@ -2300,7 +2300,8 @@ int UI_icon_from_library(const ID *id)
   }
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
     if (!ID_IS_OVERRIDE_LIBRARY_REAL(id) ||
-        (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) != 0) {
+        (id->override_library->flag & LIBOVERRIDE_FLAG_SYSTEM_DEFINED) != 0)
+    {
       return ICON_LIBRARY_DATA_OVERRIDE_NONEDITABLE;
     }
     return ICON_LIBRARY_DATA_OVERRIDE;

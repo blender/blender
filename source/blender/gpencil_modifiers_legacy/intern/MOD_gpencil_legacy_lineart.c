@@ -225,7 +225,8 @@ static void add_this_collection(Collection *c,
   FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (c, ob, mode) {
     if (ELEM(ob->type, OB_MESH, OB_MBALL, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
       if ((ob->lineart.usage == OBJECT_LRT_INHERIT && default_add) ||
-          ob->lineart.usage != OBJECT_LRT_EXCLUDE) {
+          ob->lineart.usage != OBJECT_LRT_EXCLUDE)
+      {
         DEG_add_object_relation(ctx->node, ob, DEG_OB_COMP_GEOMETRY, "Line Art Modifier");
         DEG_add_object_relation(ctx->node, ob, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
       }

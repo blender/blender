@@ -195,7 +195,8 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   if (use_wire && pd->wireframe_mode && ob->particlesystem.first) {
     for (ParticleSystem *psys = static_cast<ParticleSystem *>(ob->particlesystem.first);
          psys != nullptr;
-         psys = psys->next) {
+         psys = psys->next)
+    {
       if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
         continue;
       }

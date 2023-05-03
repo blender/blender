@@ -289,7 +289,7 @@ static void wm_window_match_keep_current_wm(const bContext *C,
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       WorkSpace *workspace;
 
-      BKE_workspace_layout_find_global(bmain, screen, &workspace);
+      WorkSpaceLayout *layout_old = BKE_workspace_layout_find_global(bmain, screen, &workspace);
       BKE_workspace_active_set(win->workspace_hook, workspace);
       win->scene = CTX_data_scene(C);
 
@@ -298,7 +298,9 @@ static void wm_window_match_keep_current_wm(const bContext *C,
         WM_window_set_active_screen(win, workspace, screen);
       }
       else {
+#if 0 /* NOTE(@ideasman42): The screen referenced from the window has been freed, see: 107525. */
         WorkSpaceLayout *layout_old = WM_window_get_active_layout(win);
+#endif
         WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(
             bmain, workspace, layout_old, win);
 
@@ -593,7 +595,7 @@ void WM_file_autoexec_init(const char *filepath)
 
   if (G.f & G_FLAG_SCRIPT_AUTOEXEC) {
     char dirpath[FILE_MAX];
-    BLI_split_dir_part(filepath, dirpath, sizeof(dirpath));
+    BLI_path_split_dir_part(filepath, dirpath, sizeof(dirpath));
     if (BKE_autoexec_match(dirpath)) {
       G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
     }
@@ -605,8 +607,8 @@ void wm_file_read_report(bContext *C, Main *bmain)
   ReportList *reports = nullptr;
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->r.engine[0] &&
-        BLI_findstring(&R_engines, scene->r.engine, offsetof(RenderEngineType, idname)) ==
-            nullptr) {
+        BLI_findstring(&R_engines, scene->r.engine, offsetof(RenderEngineType, idname)) == nullptr)
+    {
       if (reports == nullptr) {
         reports = CTX_wm_reports(C);
       }
@@ -877,7 +879,8 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
 
   if (bf_reports->resynced_lib_overrides_libraries_count != 0) {
     for (LinkNode *node_lib = bf_reports->resynced_lib_overrides_libraries; node_lib != nullptr;
-         node_lib = node_lib->next) {
+         node_lib = node_lib->next)
+    {
       Library *library = static_cast<Library *>(node_lib->link);
       BKE_reportf(bf_reports->reports,
                   RPT_INFO,
@@ -917,7 +920,8 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
   }
 
   if (bf_reports->count.proxies_to_lib_overrides_success != 0 ||
-      bf_reports->count.proxies_to_lib_overrides_failures != 0) {
+      bf_reports->count.proxies_to_lib_overrides_failures != 0)
+  {
     BKE_reportf(bf_reports->reports,
                 RPT_WARNING,
                 "Proxies have been removed from Blender (%d proxies were automatically converted "
@@ -1253,7 +1257,8 @@ void wm_homefile_read_ex(bContext *C,
 
   if ((app_template != nullptr) && (app_template[0] != '\0')) {
     if (!BKE_appdir_app_template_id_search(
-            app_template, app_template_system, sizeof(app_template_system))) {
+            app_template, app_template_system, sizeof(app_template_system)))
+    {
       /* Can safely continue with code below, just warn it's not found. */
       BKE_reportf(reports, RPT_WARNING, "Application Template \"%s\" not found", app_template);
     }
@@ -1468,13 +1473,13 @@ void wm_history_file_read(void)
     return;
   }
 
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
   LinkNode *l;
   int num;
 
-  BLI_path_join(name, sizeof(name), cfgdir, BLENDER_HISTORY_FILE);
+  BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_HISTORY_FILE);
 
-  LinkNode *lines = BLI_file_read_as_lines(name);
+  LinkNode *lines = BLI_file_read_as_lines(filepath);
 
   wm_history_files_free();
 
@@ -1527,7 +1532,7 @@ static RecentFile *wm_file_history_find(const char *filepath)
 static void wm_history_file_write(void)
 {
   const char *user_config_dir;
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
   FILE *fp;
 
   /* will be nullptr in background mode */
@@ -1536,9 +1541,9 @@ static void wm_history_file_write(void)
     return;
   }
 
-  BLI_path_join(name, sizeof(name), user_config_dir, BLENDER_HISTORY_FILE);
+  BLI_path_join(filepath, sizeof(filepath), user_config_dir, BLENDER_HISTORY_FILE);
 
-  fp = BLI_fopen(name, "w");
+  fp = BLI_fopen(filepath, "w");
   if (fp) {
     LISTBASE_FOREACH (RecentFile *, recent, &G.recent_files) {
       fprintf(fp, "%s\n", recent->filepath);
@@ -1572,7 +1577,8 @@ static void wm_history_file_update(void)
       RecentFile *recent_next;
       for (recent = static_cast<RecentFile *>(BLI_findlink(&G.recent_files, U.recent_files - 1));
            recent;
-           recent = recent_next) {
+           recent = recent_next)
+      {
         recent_next = recent->next;
         wm_history_file_free(recent);
       }
@@ -3724,7 +3730,8 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
 
   if (file_has_been_saved_before) {
     if (WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, nullptr, nullptr) &
-        OPERATOR_CANCELLED) {
+        OPERATOR_CANCELLED)
+    {
       execute_callback = false;
     }
   }
@@ -3793,7 +3800,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   const char *blendfile_path = BKE_main_blendfile_path(CTX_data_main(C));
   char filename[FILE_MAX];
   if (blendfile_path[0] != '\0') {
-    BLI_split_file_part(blendfile_path, filename, sizeof(filename));
+    BLI_path_split_file_part(blendfile_path, filename, sizeof(filename));
   }
   else {
     SNPRINTF(filename, "%s.blend", DATA_("untitled"));
@@ -3967,7 +3974,8 @@ bool wm_operator_close_file_dialog_if_needed(bContext *C,
                                              wmGenericCallbackFn post_action_fn)
 {
   if (U.uiflag & USER_SAVE_PROMPT &&
-      wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C), CTX_wm_manager(C))) {
+      wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C), CTX_wm_manager(C)))
+  {
     wmGenericCallback *callback = MEM_cnew<wmGenericCallback>(__func__);
     callback->exec = post_action_fn;
     callback->user_data = IDP_CopyProperty(op->properties);

@@ -38,7 +38,8 @@ BLI_INLINE eParticleRefineShaderType drw_curves_shader_type_get()
    * parallel with fragment work, whereas compute inserts an explicit dependency,
    * due to switching of command encoder types. */
   if (GPU_compute_shader_support() && GPU_shader_storage_buffer_objects_support() &&
-      (GPU_backend_get_type() != GPU_BACKEND_METAL)) {
+      (GPU_backend_get_type() != GPU_BACKEND_METAL))
+  {
     return PART_REFINE_SHADER_COMPUTE;
   }
   if (GPU_transform_feedback_support()) {

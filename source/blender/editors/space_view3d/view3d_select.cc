@@ -461,7 +461,8 @@ static bool view3d_selectable_data(bContext *C)
     }
     else {
       if ((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) &&
-          !BKE_paint_select_elem_test(ob)) {
+          !BKE_paint_select_elem_test(ob))
+      {
         return false;
       }
     }
@@ -528,7 +529,8 @@ static void do_lasso_select_pose__do_tag(void *userData,
 
   if (BLI_rctf_isect_segment(data->rect_fl, screen_co_a, screen_co_b) &&
       BLI_lasso_is_edge_inside(
-          data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), UNPACK2(screen_co_b), INT_MAX)) {
+          data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), UNPACK2(screen_co_b), INT_MAX))
+  {
     pchan->bone->flag |= BONE_DONE;
     data->is_changed = true;
   }
@@ -610,7 +612,8 @@ static blender::Vector<Base *> do_pose_tag_select_op_prepare(ViewContext *vc)
   blender::Vector<Base *> bases;
 
   FOREACH_BASE_IN_MODE_BEGIN (
-      vc->scene, vc->view_layer, vc->v3d, OB_ARMATURE, OB_MODE_POSE, base_iter) {
+      vc->scene, vc->view_layer, vc->v3d, OB_ARMATURE, OB_MODE_POSE, base_iter)
+  {
     Object *ob_iter = base_iter->object;
     bArmature *arm = static_cast<bArmature *>(ob_iter->data);
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob_iter->pose->chanbase) {
@@ -1021,8 +1024,8 @@ static void do_lasso_select_armature__doSelectBone(void *userData,
 
   if (screen_co_a[0] != IS_CLIPPED) {
     if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_a)) &&
-        BLI_lasso_is_point_inside(
-            data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), INT_MAX)) {
+        BLI_lasso_is_point_inside(data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), INT_MAX))
+    {
       is_inside_flag |= BONESEL_ROOT;
     }
   }
@@ -1032,8 +1035,8 @@ static void do_lasso_select_armature__doSelectBone(void *userData,
 
   if (screen_co_b[0] != IS_CLIPPED) {
     if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_b)) &&
-        BLI_lasso_is_point_inside(
-            data->mcoords, data->mcoords_len, UNPACK2(screen_co_b), INT_MAX)) {
+        BLI_lasso_is_point_inside(data->mcoords, data->mcoords_len, UNPACK2(screen_co_b), INT_MAX))
+    {
       is_inside_flag |= BONESEL_TIP;
     }
   }
@@ -1043,11 +1046,9 @@ static void do_lasso_select_armature__doSelectBone(void *userData,
 
   if (is_ignore_flag == 0) {
     if (is_inside_flag == (BONE_ROOTSEL | BONE_TIPSEL) ||
-        BLI_lasso_is_edge_inside(data->mcoords,
-                                 data->mcoords_len,
-                                 UNPACK2(screen_co_a),
-                                 UNPACK2(screen_co_b),
-                                 INT_MAX)) {
+        BLI_lasso_is_edge_inside(
+            data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), UNPACK2(screen_co_b), INT_MAX))
+    {
       is_inside_flag |= BONESEL_BONE;
     }
   }
@@ -1076,7 +1077,8 @@ static void do_lasso_select_armature__doSelectBone_clip_content(void *userData,
   }
 
   if (BLI_lasso_is_edge_inside(
-          data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), UNPACK2(screen_co_b), INT_MAX)) {
+          data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), UNPACK2(screen_co_b), INT_MAX))
+  {
     is_inside_flag |= BONESEL_BONE;
   }
 
@@ -1339,8 +1341,8 @@ static bool view3d_lasso_select(bContext *C,
     }
   }
   else { /* Edit Mode */
-    FOREACH_OBJECT_IN_MODE_BEGIN (
-        vc->scene, vc->view_layer, vc->v3d, ob->type, ob->mode, ob_iter) {
+    FOREACH_OBJECT_IN_MODE_BEGIN (vc->scene, vc->view_layer, vc->v3d, ob->type, ob->mode, ob_iter)
+    {
       ED_view3d_viewcontext_init_object(vc, ob_iter);
       bool changed = false;
 
@@ -2259,7 +2261,8 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
         const int select_id_active = base->object->runtime.select_id;
         for (int i_next = 0, i_prev = hits - 1; i_next < hits; i_prev = i_next++) {
           if ((select_id_active == (buffer[i_prev].id & 0xFFFF)) &&
-              (select_id_active != (buffer[i_next].id & 0xFFFF))) {
+              (select_id_active != (buffer[i_next].id & 0xFFFF)))
+          {
             hit_index = i_next;
             break;
           }
@@ -2323,7 +2326,8 @@ static Base *mouse_select_object_center(ViewContext *vc, Base *startbase, const 
       float screen_co[2];
       if (ED_view3d_project_float_global(
               region, base->object->object_to_world[3], screen_co, V3D_PROJ_TEST_CLIP_DEFAULT) ==
-          V3D_PROJ_RET_OK) {
+          V3D_PROJ_RET_OK)
+      {
         float dist_test = len_manhattan_v2v2(mval_fl, screen_co);
         if (base == oldbasact) {
           dist_test += penalty_dist;
@@ -2689,7 +2693,8 @@ static bool ed_object_select_pick(bContext *C,
     /* Select pose-bones or camera-tracks. */
     if (((gpu->hits > 0) && gpu->has_bones) ||
         /* Special case, even when there are no hits, pose logic may de-select all bones. */
-        ((gpu->hits == 0) && has_pose_old)) {
+        ((gpu->hits == 0) && has_pose_old))
+    {
 
       if (basact && (gpu->has_bones && (basact->object->type == OB_CAMERA))) {
         MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
@@ -2717,7 +2722,8 @@ static bool ed_object_select_pick(bContext *C,
                                                         gpu->buffer,
                                                         gpu->hits,
                                                         params,
-                                                        gpu->do_nearest)) {
+                                                        gpu->do_nearest))
+      {
 
         changed_pose = true;
 
@@ -2794,7 +2800,8 @@ static bool ed_object_select_pick(bContext *C,
          * special exception for edit-mode - vertex-parent operator. */
         if (basact && oldbasact) {
           if ((oldbasact->object->mode != basact->object->mode) &&
-              (oldbasact->object->mode & basact->object->mode) == 0) {
+              (oldbasact->object->mode & basact->object->mode) == 0)
+          {
             basact = nullptr;
           }
         }
@@ -3089,7 +3096,8 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   Object *obact = CTX_data_active_object(C);
 
   if (obact && obact->type == OB_GPENCIL_LEGACY && GPENCIL_ANY_MODE((bGPdata *)obact->data) &&
-      (BKE_object_pose_armature_get_with_wpaint_check(obact) == nullptr)) {
+      (BKE_object_pose_armature_get_with_wpaint_check(obact) == nullptr))
+  {
     /* Prevent acting on Grease Pencil (when not in object mode -- or not in weight-paint + pose
      * selection), it implements its own selection operator in other modes. We might still fall
      * trough to here (because that operator uses OPERATOR_PASS_THROUGH to make tweak work) but if
@@ -3900,7 +3908,8 @@ static bool do_object_box_select(bContext *C,
   qsort(buffer, hits, sizeof(GPUSelectResult), opengl_bone_select_buffer_cmp);
 
   for (const GPUSelectResult *buf_iter = buffer, *buf_end = buf_iter + hits; buf_iter < buf_end;
-       buf_iter++) {
+       buf_iter++)
+  {
     bPoseChannel *pchan_dummy;
     Base *base = ED_armature_base_and_pchan_from_select_buffer(
         bases.data(), bases.size(), buf_iter->id, &pchan_dummy);
@@ -3963,7 +3972,8 @@ static bool do_pose_box_select(bContext *C,
     qsort(buffer, hits, sizeof(GPUSelectResult), opengl_bone_select_buffer_cmp);
 
     for (const GPUSelectResult *buf_iter = buffer, *buf_end = buf_iter + hits; buf_iter < buf_end;
-         buf_iter++) {
+         buf_iter++)
+    {
       Bone *bone;
       Base *base = ED_armature_base_and_bone_from_select_buffer(
           bases.data(), bases.size(), buf_iter->id, &bone);
@@ -4033,7 +4043,8 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
 
   if (vc.obedit) {
     FOREACH_OBJECT_IN_MODE_BEGIN (
-        vc.scene, vc.view_layer, vc.v3d, vc.obedit->type, vc.obedit->mode, ob_iter) {
+        vc.scene, vc.view_layer, vc.v3d, vc.obedit->type, vc.obedit->mode, ob_iter)
+    {
       ED_view3d_viewcontext_init_object(&vc, ob_iter);
       bool changed = false;
 
@@ -4587,7 +4598,8 @@ static void do_circle_select_pose__doSelectBone(void *userData,
    * It works nicer to only do this if the head or tail are not in the circle,
    * otherwise there is no way to circle select joints alone */
   if ((is_point_done == false) && (points_proj_tot == 2) &&
-      edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b)) {
+      edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b))
+  {
     if (data->select) {
       pchan->bone->flag |= BONE_SELECTED;
     }
@@ -4701,7 +4713,8 @@ static void do_circle_select_armature__doSelectBone(void *userData,
    * It works nicer to only do this if the head or tail are not in the circle,
    * otherwise there is no way to circle select joints alone */
   if ((is_point_done == false) && (points_proj_tot == 2) &&
-      edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b)) {
+      edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b))
+  {
     SET_FLAG_FROM_TEST(ebone->flag, data->select, BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
     is_edge_done = true;
     data->is_changed = true;
@@ -4896,7 +4909,8 @@ static bool object_circle_select(ViewContext *vc,
       if (ED_view3d_project_float_global(vc->region,
                                          base->object->object_to_world[3],
                                          screen_co,
-                                         V3D_PROJ_TEST_CLIP_DEFAULT) == V3D_PROJ_RET_OK) {
+                                         V3D_PROJ_TEST_CLIP_DEFAULT) == V3D_PROJ_RET_OK)
+      {
         if (len_squared_v2v2(mval_fl, screen_co) <= radius_squared) {
           ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
           changed = true;
@@ -4920,7 +4934,8 @@ static void view3d_circle_select_recalc(void *user_data)
         ViewContext vc;
         em_setup_viewcontext(C, &vc);
         FOREACH_OBJECT_IN_MODE_BEGIN (
-            vc.scene, vc.view_layer, vc.v3d, vc.obact->type, vc.obact->mode, ob_iter) {
+            vc.scene, vc.view_layer, vc.v3d, vc.obact->type, vc.obact->mode, ob_iter)
+        {
           ED_view3d_viewcontext_init_object(&vc, ob_iter);
           BM_mesh_select_mode_flush_ex(
               vc.em->bm, vc.em->selectmode, BM_SELECT_LEN_FLUSH_RECALC_ALL);

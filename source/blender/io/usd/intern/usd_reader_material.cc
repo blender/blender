@@ -125,7 +125,8 @@ static pxr::SdfLayerHandle get_layer_handle(const pxr::UsdAttribute &attribute)
 {
   for (auto PropertySpec : attribute.GetPropertyStack(pxr::UsdTimeCode::EarliestTime())) {
     if (PropertySpec->HasDefaultValue() ||
-        PropertySpec->GetLayer()->GetNumTimeSamplesForPath(PropertySpec->GetPath()) > 0) {
+        PropertySpec->GetLayer()->GetNumTimeSamplesForPath(PropertySpec->GetPath()) > 0)
+    {
       return PropertySpec->GetLayer();
     }
   }
@@ -212,7 +213,8 @@ static float get_opacity_threshold(const pxr::UsdShadeShader &usd_shader,
 
   pxr::VtValue val;
   if (opacity_threshold_input.GetAttr().HasAuthoredValue() &&
-      opacity_threshold_input.GetAttr().Get(&val)) {
+      opacity_threshold_input.GetAttr().Get(&val))
+  {
     return val.Get<float>();
   }
 
@@ -272,7 +274,8 @@ static void set_viewport_material_props(Material *mtl, const pxr::UsdShadeShader
   if (pxr::UsdShadeInput diffuse_color_input = usd_preview.GetInput(usdtokens::diffuseColor)) {
     pxr::VtValue val;
     if (diffuse_color_input.GetAttr().HasAuthoredValue() &&
-        diffuse_color_input.GetAttr().Get(&val) && val.IsHolding<pxr::GfVec3f>()) {
+        diffuse_color_input.GetAttr().Get(&val) && val.IsHolding<pxr::GfVec3f>())
+    {
       pxr::GfVec3f color = val.UncheckedGet<pxr::GfVec3f>();
       mtl->r = color[0];
       mtl->g = color[1];
@@ -283,7 +286,8 @@ static void set_viewport_material_props(Material *mtl, const pxr::UsdShadeShader
   if (pxr::UsdShadeInput metallic_input = usd_preview.GetInput(usdtokens::metallic)) {
     pxr::VtValue val;
     if (metallic_input.GetAttr().HasAuthoredValue() && metallic_input.GetAttr().Get(&val) &&
-        val.IsHolding<float>()) {
+        val.IsHolding<float>())
+    {
       mtl->metallic = val.Get<float>();
     }
   }
@@ -291,7 +295,8 @@ static void set_viewport_material_props(Material *mtl, const pxr::UsdShadeShader
   if (pxr::UsdShadeInput roughness_input = usd_preview.GetInput(usdtokens::roughness)) {
     pxr::VtValue val;
     if (roughness_input.GetAttr().HasAuthoredValue() && roughness_input.GetAttr().Get(&val) &&
-        val.IsHolding<float>()) {
+        val.IsHolding<float>())
+    {
       mtl->roughness = val.Get<float>();
     }
   }
@@ -456,7 +461,8 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
   }
 
   if (pxr::UsdShadeInput clearcoat_roughness_input = usd_shader.GetInput(
-          usdtokens::clearcoatRoughness)) {
+          usdtokens::clearcoatRoughness))
+  {
     set_node_input(
         clearcoat_roughness_input, principled, "Clearcoat Roughness", ntree, column, &context);
   }
@@ -750,7 +756,8 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   }
 
   if (import_textures && params_.import_textures_mode == USD_TEX_IMPORT_PACK &&
-      !BKE_image_has_packedfile(image)) {
+      !BKE_image_has_packedfile(image))
+  {
     BKE_image_packfiles(nullptr, image, ID_BLEND_PATH(bmain_, &image->id));
     if (BLI_is_dir(temp_textures_dir())) {
       BLI_delete(temp_textures_dir(), true, true);

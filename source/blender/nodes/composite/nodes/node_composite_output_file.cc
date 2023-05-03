@@ -246,7 +246,8 @@ static void copy_output_file(bNodeTree * /*dst_ntree*/, bNode *dest_node, const 
   for (src_sock = (bNodeSocket *)src_node->inputs.first,
       dest_sock = (bNodeSocket *)dest_node->inputs.first;
        src_sock && dest_sock;
-       src_sock = src_sock->next, dest_sock = (bNodeSocket *)dest_sock->next) {
+       src_sock = src_sock->next, dest_sock = (bNodeSocket *)dest_sock->next)
+  {
     dest_sock->storage = MEM_dupallocN(src_sock->storage);
     NodeImageMultiFileSocket *dest_sockdata = (NodeImageMultiFileSocket *)dest_sock->storage;
     NodeImageMultiFileSocket *src_sockdata = (NodeImageMultiFileSocket *)src_sock->storage;

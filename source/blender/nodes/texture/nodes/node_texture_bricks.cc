@@ -80,7 +80,8 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
   CLAMP(tint, 0.0f, 1.0f);
 
   if (ins_x < mortar_thickness || ins_y < mortar_thickness ||
-      ins_x > (brick_width - mortar_thickness) || ins_y > (row_height - mortar_thickness)) {
+      ins_x > (brick_width - mortar_thickness) || ins_y > (row_height - mortar_thickness))
+  {
     copy_v4_v4(out, mortar);
   }
   else {

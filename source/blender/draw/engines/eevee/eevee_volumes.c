@@ -98,7 +98,8 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   /* TODO: compute snap to maxZBuffer for clustered rendering. */
   if ((common_data->vol_tex_size[0] != tex_size[0]) ||
       (common_data->vol_tex_size[1] != tex_size[1]) ||
-      (common_data->vol_tex_size[2] != tex_size[2])) {
+      (common_data->vol_tex_size[2] != tex_size[2]))
+  {
     DRW_TEXTURE_FREE_SAFE(txl->volume_prop_scattering);
     DRW_TEXTURE_FREE_SAFE(txl->volume_prop_extinction);
     DRW_TEXTURE_FREE_SAFE(txl->volume_prop_emission);
@@ -243,8 +244,8 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   /* World Volumetric */
   struct World *wo = scene->world;
-  if (wo != NULL && wo->use_nodes && wo->nodetree &&
-      !LOOK_DEV_STUDIO_LIGHT_ENABLED(draw_ctx->v3d)) {
+  if (wo != NULL && wo->use_nodes && wo->nodetree && !LOOK_DEV_STUDIO_LIGHT_ENABLED(draw_ctx->v3d))
+  {
     struct GPUMaterial *mat = EEVEE_material_get(vedata, scene, NULL, wo, VAR_MAT_VOLUME);
 
     if (mat && GPU_material_has_volume_output(mat)) {

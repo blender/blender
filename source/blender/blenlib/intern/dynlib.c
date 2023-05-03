@@ -66,7 +66,8 @@ char *BLI_dynlib_get_error_as_string(DynamicLibrary *lib)
                       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                       buf,
                       sizeof(buf),
-                      NULL)) {
+                      NULL))
+    {
       return buf;
     }
   }

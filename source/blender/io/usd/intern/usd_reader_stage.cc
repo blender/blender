@@ -88,8 +88,9 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
     return new USDMeshReader(prim, params_, settings_);
   }
 #if PXR_VERSION >= 2111
-  if (params_.import_lights && (prim.IsA<pxr::UsdLuxBoundableLightBase>() ||
-                                prim.IsA<pxr::UsdLuxNonboundableLightBase>())) {
+  if (params_.import_lights &&
+      (prim.IsA<pxr::UsdLuxBoundableLightBase>() || prim.IsA<pxr::UsdLuxNonboundableLightBase>()))
+  {
 #else
   if (params_.import_lights && prim.IsA<pxr::UsdLuxLight>()) {
 #endif
@@ -336,7 +337,8 @@ void USDStageReader::import_all_materials(Main *bmain)
     }
 
     if (blender::io::usd::find_existing_material(
-            prim.GetPath(), params_, settings_.mat_name_to_mat, settings_.usd_path_to_mat_name)) {
+            prim.GetPath(), params_, settings_.mat_name_to_mat, settings_.usd_path_to_mat_name))
+    {
       /* The material already exists. */
       continue;
     }
@@ -362,7 +364,8 @@ void USDStageReader::fake_users_for_unused_materials()
   /* Iterate over the imported materials and set a fake user for any unused
    * materials. */
   for (const std::pair<const std::string, std::string> &path_mat_pair :
-       settings_.usd_path_to_mat_name) {
+       settings_.usd_path_to_mat_name)
+  {
 
     std::map<std::string, Material *>::iterator mat_it = settings_.mat_name_to_mat.find(
         path_mat_pair.second);

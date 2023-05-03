@@ -70,7 +70,8 @@ static GlyphCacheBLF *blf_glyph_cache_find(const FontBLF *font, const float size
     if (gc->size == size && (gc->bold == ((font->flags & BLF_BOLD) != 0)) &&
         (gc->italic == ((font->flags & BLF_ITALIC) != 0)) &&
         (gc->char_weight == font->char_weight) && (gc->char_slant == font->char_slant) &&
-        (gc->char_width == font->char_width) && (gc->char_spacing == font->char_spacing)) {
+        (gc->char_width == font->char_width) && (gc->char_spacing == font->char_spacing))
+    {
       return gc;
     }
     gc = gc->next;
@@ -637,7 +638,8 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
     FontBLF *f = global_font[i];
     if (!f || f == *font || !(f->face) || !(f->flags & BLF_DEFAULT) ||
         (!((*font)->flags & BLF_MONOSPACED) && (f->flags & BLF_MONOSPACED)) ||
-        f->flags & BLF_LAST_RESORT) {
+        f->flags & BLF_LAST_RESORT)
+    {
       continue;
     }
     if (coverage_bit < 0 || blf_font_has_coverage_bit(f, coverage_bit)) {
@@ -654,7 +656,8 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
     FontBLF *f = global_font[i];
     if (!f || f == *font || (f->face) || !(f->flags & BLF_DEFAULT) ||
         (!((*font)->flags & BLF_MONOSPACED) && (f->flags & BLF_MONOSPACED)) ||
-        f->flags & BLF_LAST_RESORT) {
+        f->flags & BLF_LAST_RESORT)
+    {
       continue;
     }
     if (coverage_bit < 0 || blf_font_has_coverage_bit(f, coverage_bit)) {

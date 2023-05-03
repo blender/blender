@@ -61,7 +61,8 @@ static void shapekey_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, c
   for (kb_src = static_cast<KeyBlock *>(key_src->block.first),
       kb_dst = static_cast<KeyBlock *>(key_dst->block.first);
        kb_dst;
-       kb_src = kb_src->next, kb_dst = kb_dst->next) {
+       kb_src = kb_src->next, kb_dst = kb_dst->next)
+  {
     if (kb_dst->data) {
       kb_dst->data = MEM_dupallocN(kb_dst->data);
     }
@@ -901,7 +902,8 @@ static void key_evaluate_relative(const int start,
   /* step 2: do it */
 
   for (kb = static_cast<KeyBlock *>(key->block.first), keyblock_index = 0; kb;
-       kb = kb->next, keyblock_index++) {
+       kb = kb->next, keyblock_index++)
+  {
     if (kb != key->refkey) {
       float icuval = kb->curval;
 
@@ -1348,7 +1350,8 @@ static float **keyblock_get_per_block_weights(Object *ob, Key *key, WeightsArray
       MEM_mallocN(sizeof(*per_keyblock_weights) * key->totkey, "per keyblock weights"));
 
   for (keyblock = static_cast<KeyBlock *>(key->block.first), keyblock_index = 0; keyblock;
-       keyblock = keyblock->next, keyblock_index++) {
+       keyblock = keyblock->next, keyblock_index++)
+  {
     per_keyblock_weights[keyblock_index] = get_weights_array(ob, keyblock->vgroup, cache);
   }
 
@@ -1645,7 +1648,8 @@ int BKE_keyblock_element_count_from_shape(const Key *key, const int shape_index)
   int result = 0;
   int index = 0;
   for (const KeyBlock *kb = static_cast<const KeyBlock *>(key->block.first); kb;
-       kb = kb->next, index++) {
+       kb = kb->next, index++)
+  {
     if (ELEM(shape_index, -1, index)) {
       result += kb->totelem;
     }
@@ -1680,7 +1684,8 @@ void BKE_keyblock_data_get_from_shape(const Key *key, float (*arr)[3], const int
   uint8_t *elements = (uint8_t *)arr;
   int index = 0;
   for (const KeyBlock *kb = static_cast<const KeyBlock *>(key->block.first); kb;
-       kb = kb->next, index++) {
+       kb = kb->next, index++)
+  {
     if (ELEM(shape_index, -1, index)) {
       const int block_elem_len = kb->totelem * key->elemsize;
       memcpy(elements, kb->data, block_elem_len);
@@ -2154,7 +2159,8 @@ static void keyblock_data_convert_to_curve(const float *fp, ListBase *nurb, int 
     if (nu->bezt != nullptr) {
       BezTriple *bezt = nu->bezt;
       for (int i = nu->pntsu; i && (totpoint -= KEYELEM_ELEM_LEN_BEZTRIPLE) >= 0;
-           i--, bezt++, fp += KEYELEM_FLOAT_LEN_BEZTRIPLE) {
+           i--, bezt++, fp += KEYELEM_FLOAT_LEN_BEZTRIPLE)
+      {
         for (int j = 0; j < 3; j++) {
           copy_v3_v3(bezt->vec[j], &fp[j * 3]);
         }
@@ -2165,7 +2171,8 @@ static void keyblock_data_convert_to_curve(const float *fp, ListBase *nurb, int 
     else {
       BPoint *bp = nu->bp;
       for (int i = nu->pntsu * nu->pntsv; i && (totpoint -= KEYELEM_ELEM_LEN_BPOINT) >= 0;
-           i--, bp++, fp += KEYELEM_FLOAT_LEN_BPOINT) {
+           i--, bp++, fp += KEYELEM_FLOAT_LEN_BPOINT)
+      {
         copy_v3_v3(bp->vec, fp);
         bp->tilt = fp[3];
         bp->radius = fp[4];
@@ -2524,7 +2531,8 @@ bool BKE_keyblock_move(Object *ob, int org_index, int new_index)
   for (kb = static_cast<KeyBlock *>(rev ? key->block.last : key->block.first),
       i = (rev ? totkey - 1 : 0);
        kb;
-       kb = (rev ? kb->prev : kb->next), rev ? i-- : i++) {
+       kb = (rev ? kb->prev : kb->next), rev ? i-- : i++)
+  {
     if (i == org_index) {
       in_range = true; /* Start list items swapping... */
     }

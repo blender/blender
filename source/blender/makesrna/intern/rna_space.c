@@ -1167,7 +1167,8 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA 
 
   View3DShading *shading = ptr->data;
   if (shading->type == OB_MATERIAL ||
-      (shading->type == OB_RENDER && !BKE_scene_uses_blender_workbench(scene))) {
+      (shading->type == OB_RENDER && !BKE_scene_uses_blender_workbench(scene)))
+  {
     /* When switching from workbench to render or material mode the geometry of any
      * active sculpt session needs to be recalculated. */
     for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
@@ -1476,11 +1477,13 @@ static const EnumPropertyItem *rna_3DViewShading_render_pass_itemf(bContext *C,
                   EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT,
                   EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET,
                   EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL) &&
-             !eevee_next_active) {
+             !eevee_next_active)
+    {
     }
     else if (!((!bloom_enabled &&
                 (item->value == EEVEE_RENDER_PASS_BLOOM || STREQ(item->name, "Effects"))) ||
-               (!aov_available && STREQ(item->name, "Shader AOV")))) {
+               (!aov_available && STREQ(item->name, "Shader AOV"))))
+    {
       RNA_enum_item_add(&result, &totitem, item);
     }
   }
@@ -3234,7 +3237,8 @@ static void rna_SpaceSpreadsheet_geometry_component_type_update(Main *UNUSED(bma
                 ATTR_DOMAIN_POINT,
                 ATTR_DOMAIN_EDGE,
                 ATTR_DOMAIN_FACE,
-                ATTR_DOMAIN_CORNER)) {
+                ATTR_DOMAIN_CORNER))
+      {
         sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
       }
       break;
@@ -3287,7 +3291,8 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext *UN
   EnumPropertyItem *item_array = NULL;
   int items_len = 0;
   for (const EnumPropertyItem *item = rna_enum_attribute_domain_items; item->identifier != NULL;
-       item++) {
+       item++)
+  {
     if (component_type == GEO_COMPONENT_TYPE_MESH) {
       if (!ELEM(item->value,
                 ATTR_DOMAIN_CORNER,

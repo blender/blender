@@ -109,7 +109,8 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
   switch (ob->type) {
     case OB_MESH:
       if (mode & (OB_MODE_EDIT | OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT |
-                  OB_MODE_TEXTURE_PAINT)) {
+                  OB_MODE_TEXTURE_PAINT))
+      {
         return true;
       }
       if (mode & OB_MODE_PARTICLE_EDIT) {

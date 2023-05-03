@@ -2096,16 +2096,22 @@ typedef enum CMPNodeGlareType {
   CMP_NODE_GLARE_GHOST = 3,
 } CMPNodeGlareType;
 
+/* Stabilize 2D node. Stored in custom1. */
+typedef enum CMPNodeStabilizeInterpolation {
+  CMP_NODE_STABILIZE_INTERPOLATION_NEAREST = 0,
+  CMP_NODE_STABILIZE_INTERPOLATION_BILINEAR = 1,
+  CMP_NODE_STABILIZE_INTERPOLATION_BICUBIC = 2,
+} CMPNodeStabilizeInterpolation;
+
+/* Stabilize 2D node. Stored in custom2. */
+typedef enum CMPNodeStabilizeInverse {
+  CMP_NODE_STABILIZE_FLAG_INVERSE = 1,
+} CMPNodeStabilizeInverse;
+
 /* Plane track deform node. */
 
 enum {
   CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR = 1,
-};
-
-/* Stabilization node. */
-
-enum {
-  CMP_NODEFLAG_STABILIZE_INVERSE = 1,
 };
 
 /* Set Alpha Node. */

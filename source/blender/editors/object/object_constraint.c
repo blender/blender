@@ -522,8 +522,8 @@ static void test_constraint(
           if (ct->tar->type != OB_ARMATURE) {
             con->flag |= CONSTRAINT_DISABLE;
           }
-          else if (!BKE_armature_find_bone_name(BKE_armature_from_object(ct->tar),
-                                                ct->subtarget)) {
+          else if (!BKE_armature_find_bone_name(BKE_armature_from_object(ct->tar), ct->subtarget))
+          {
             /* bone must exist in armature... */
             con->flag |= CONSTRAINT_DISABLE;
           }
@@ -719,7 +719,8 @@ static bool edit_constraint_invoke_properties(bContext *C,
   ListBase *list;
 
   if (RNA_struct_property_is_set(op->ptr, "constraint") &&
-      RNA_struct_property_is_set(op->ptr, "owner")) {
+      RNA_struct_property_is_set(op->ptr, "owner"))
+  {
     return true;
   }
 
@@ -1064,7 +1065,8 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
     Curve *cu = (Curve *)data->tar->data;
 
     if (ELEM(NULL, cu->adt, cu->adt->action) ||
-        (BKE_fcurve_find(&cu->adt->action->curves, "eval_time", 0) == NULL)) {
+        (BKE_fcurve_find(&cu->adt->action->curves, "eval_time", 0) == NULL))
+    {
       /* create F-Curve for path animation */
       act = ED_id_action_ensure(bmain, &cu->id);
       fcu = ED_action_fcurve_ensure(bmain, act, NULL, NULL, "eval_time", 0);
@@ -2043,7 +2045,7 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Clear Pose Constraints";
   ot->idname = "POSE_OT_constraints_clear";
-  ot->description = "Clear all the constraints for the selected bones";
+  ot->description = "Clear all constraints from the selected bones";
 
   /* callbacks */
   ot->exec = pose_constraints_clear_exec;
@@ -2082,7 +2084,7 @@ void OBJECT_OT_constraints_clear(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Clear Object Constraints";
   ot->idname = "OBJECT_OT_constraints_clear";
-  ot->description = "Clear all the constraints for the active object only";
+  ot->description = "Clear all constraints from the selected objects";
 
   /* callbacks */
   ot->exec = object_constraints_clear_exec;
@@ -2275,8 +2277,8 @@ static bool get_new_constraint_target(
         /* for armatures in pose mode, look inside the armature for the active bone
          * so that we set up cross-armature constraints with less effort
          */
-        if ((ob->type == OB_ARMATURE) && (ob->mode & OB_MODE_POSE) &&
-            (!only_curve && !only_mesh)) {
+        if ((ob->type == OB_ARMATURE) && (ob->mode & OB_MODE_POSE) && (!only_curve && !only_mesh))
+        {
 
           /* Only use the object & bone if the bone is visible & selected
            * since we may have multiple objects in pose mode at once. */

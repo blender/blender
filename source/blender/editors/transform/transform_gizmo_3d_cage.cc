@@ -112,7 +112,8 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgr
   calc_params.use_local_axis = true;
   calc_params.orientation_index = orient_index + 1;
   if ((ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds, rv3d) == 0) ||
-      equals_v3v3(rv3d->tw_axis_min, rv3d->tw_axis_max)) {
+      equals_v3v3(rv3d->tw_axis_min, rv3d->tw_axis_max))
+  {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
   }
   else {

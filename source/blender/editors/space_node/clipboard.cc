@@ -212,8 +212,8 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   for (NodeClipboardItem &item : clipboard.nodes) {
     const bNode &node = *item.node;
     const char *disabled_hint = nullptr;
-    if (node.typeinfo->poll_instance &&
-        node.typeinfo->poll_instance(&node, &tree, &disabled_hint)) {
+    if (node.typeinfo->poll_instance && node.typeinfo->poll_instance(&node, &tree, &disabled_hint))
+    {
       bNode *new_node = bke::node_copy_with_mapping(
           &tree, node, LIB_ID_COPY_DEFAULT, true, socket_map);
       node_map.add_new(&node, new_node);

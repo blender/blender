@@ -94,10 +94,11 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     s_xrGetOpenGLGraphicsRequirementsKHR_fn = nullptr;
     //}
     if (!s_xrGetOpenGLGraphicsRequirementsKHR_fn &&
-        XR_FAILED(xrGetInstanceProcAddr(
-            instance,
-            "xrGetOpenGLGraphicsRequirementsKHR",
-            (PFN_xrVoidFunction *)&s_xrGetOpenGLGraphicsRequirementsKHR_fn))) {
+        XR_FAILED(
+            xrGetInstanceProcAddr(instance,
+                                  "xrGetOpenGLGraphicsRequirementsKHR",
+                                  (PFN_xrVoidFunction *)&s_xrGetOpenGLGraphicsRequirementsKHR_fn)))
+    {
       s_xrGetOpenGLGraphicsRequirementsKHR_fn = nullptr;
       return false;
     }
@@ -352,10 +353,11 @@ class GHOST_XrGraphicsBindingD3D : public GHOST_IXrGraphicsBinding {
     s_xrGetD3D11GraphicsRequirementsKHR_fn = nullptr;
     //}
     if (!s_xrGetD3D11GraphicsRequirementsKHR_fn &&
-        XR_FAILED(xrGetInstanceProcAddr(
-            instance,
-            "xrGetD3D11GraphicsRequirementsKHR",
-            (PFN_xrVoidFunction *)&s_xrGetD3D11GraphicsRequirementsKHR_fn))) {
+        XR_FAILED(
+            xrGetInstanceProcAddr(instance,
+                                  "xrGetD3D11GraphicsRequirementsKHR",
+                                  (PFN_xrVoidFunction *)&s_xrGetD3D11GraphicsRequirementsKHR_fn)))
+    {
       s_xrGetD3D11GraphicsRequirementsKHR_fn = nullptr;
       return false;
     }

@@ -49,7 +49,8 @@ bool ED_masklayer_frames_looper(MaskLayer *mask_layer,
 
   /* do loop */
   for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = mask_layer_shape->next) {
+       mask_layer_shape = mask_layer_shape->next)
+  {
     /* execute callback */
     if (mask_layer_shape_cb(mask_layer_shape, scene)) {
       return true;
@@ -75,7 +76,8 @@ void ED_masklayer_make_cfra_list(MaskLayer *mask_layer, ListBase *elems, bool on
 
   /* loop through mask-frames, adding */
   for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = mask_layer_shape->next) {
+       mask_layer_shape = mask_layer_shape->next)
+  {
     if ((onlysel == false) || (mask_layer_shape->flag & MASK_SHAPE_SELECT)) {
       ce = MEM_callocN(sizeof(CfraElem), "CfraElem");
 
@@ -101,7 +103,8 @@ bool ED_masklayer_frame_select_check(const MaskLayer *mask_layer)
 
   /* stop at the first one found */
   for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = mask_layer_shape->next) {
+       mask_layer_shape = mask_layer_shape->next)
+  {
     if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
       return true;
     }
@@ -142,7 +145,8 @@ void ED_mask_select_frames(MaskLayer *mask_layer, short select_mode)
 
   /* handle according to mode */
   for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = mask_layer_shape->next) {
+       mask_layer_shape = mask_layer_shape->next)
+  {
     mask_layer_shape_select(mask_layer_shape, select_mode);
   }
 }
@@ -183,7 +187,8 @@ void ED_masklayer_frames_select_box(MaskLayer *mask_layer, float min, float max,
 
   /* only select those frames which are in bounds */
   for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = mask_layer_shape->next) {
+       mask_layer_shape = mask_layer_shape->next)
+  {
     if (IN_RANGE(mask_layer_shape->frame, min, max)) {
       mask_layer_shape_select(mask_layer_shape, select_mode);
     }
@@ -203,7 +208,8 @@ void ED_masklayer_frames_select_region(KeyframeEditData *ked,
 
   /* only select frames which are within the region */
   for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = mask_layer_shape->next) {
+       mask_layer_shape = mask_layer_shape->next)
+  {
     /* construct a dummy point coordinate to do this testing with */
     float pt[2] = {0};
 
@@ -241,7 +247,8 @@ bool ED_masklayer_frames_delete(MaskLayer *mask_layer)
 
   /* check for frames to delete */
   for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = mask_layer_shape_next) {
+       mask_layer_shape = mask_layer_shape_next)
+  {
     mask_layer_shape_next = mask_layer_shape->next;
 
     if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
@@ -264,7 +271,8 @@ void ED_masklayer_frames_duplicate(MaskLayer *mask_layer)
 
   /* Duplicate selected frames. */
   for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = gpfn) {
+       mask_layer_shape = gpfn)
+  {
     gpfn = mask_layer_shape->next;
 
     /* Duplicate this frame. */

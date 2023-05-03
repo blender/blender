@@ -66,7 +66,8 @@ static bool bpy_gizmotype_target_property_def(wmGizmoType *gzt, PyObject *item)
                                         &params.id,
                                         pyrna_enum_value_parse_string,
                                         &params.type_enum,
-                                        &params.array_length)) {
+                                        &params.array_length))
+  {
     goto fail;
   }
 
@@ -117,7 +118,8 @@ static void gizmo_properties_init(wmGizmoType *gzt)
     if (bl_target_properties != NULL) {
       PyObject *bl_target_properties_fast;
       if (!(bl_target_properties_fast = PySequence_Fast(bl_target_properties,
-                                                        "bl_target_properties sequence"))) {
+                                                        "bl_target_properties sequence")))
+      {
         /* PySequence_Fast sets the error */
         PyErr_Print();
         PyErr_Clear();

@@ -140,7 +140,8 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                                        visibility,
                                        prim_object,
                                        prim,
-                                       prim_addr)) {
+                                       prim_addr))
+                {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)
                     return true;
@@ -159,7 +160,8 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                                               visibility,
                                               prim_object,
                                               prim,
-                                              prim_addr)) {
+                                              prim_addr))
+                {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)
                     return true;

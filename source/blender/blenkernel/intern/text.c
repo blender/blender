@@ -1150,7 +1150,8 @@ static void txt_curs_swap(Text *text)
 static void txt_pop_first(Text *text)
 {
   if (txt_get_span(text->curl, text->sell) < 0 ||
-      (text->curl == text->sell && text->curc > text->selc)) {
+      (text->curl == text->sell && text->curc > text->selc))
+  {
     txt_curs_swap(text);
   }
 
@@ -1160,7 +1161,8 @@ static void txt_pop_first(Text *text)
 static void txt_pop_last(Text *text)
 {
   if (txt_get_span(text->curl, text->sell) > 0 ||
-      (text->curl == text->sell && text->curc < text->selc)) {
+      (text->curl == text->sell && text->curc < text->selc))
+  {
     txt_curs_swap(text);
   }
 
@@ -1185,13 +1187,15 @@ void txt_order_cursors(Text *text, const bool reverse)
   /* Flip so text->curl is before/after text->sell */
   if (reverse == false) {
     if ((txt_get_span(text->curl, text->sell) < 0) ||
-        (text->curl == text->sell && text->curc > text->selc)) {
+        (text->curl == text->sell && text->curc > text->selc))
+    {
       txt_curs_swap(text);
     }
   }
   else {
     if ((txt_get_span(text->curl, text->sell) > 0) ||
-        (text->curl == text->sell && text->curc < text->selc)) {
+        (text->curl == text->sell && text->curc < text->selc))
+    {
       txt_curs_swap(text);
     }
   }

@@ -248,7 +248,8 @@ static void ensure_seg_pt_count(PTCacheEdit *edit,
                                 ParticleHairCache *hair_cache)
 {
   if ((hair_cache->pos != NULL && hair_cache->indices != NULL) ||
-      (hair_cache->proc_point_buf != NULL)) {
+      (hair_cache->proc_point_buf != NULL))
+  {
     return;
   }
 
@@ -978,8 +979,8 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   }
   else {
     int curr_point = 0;
-    if ((psys->pathcache != NULL) &&
-        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+    if ((psys->pathcache != NULL) && (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+    {
       curr_point = particle_batch_cache_fill_strands_data(psys,
                                                           psmd,
                                                           psys->pathcache,
@@ -1078,8 +1079,8 @@ static void particle_batch_cache_ensure_procedural_indices(PTCacheEdit *edit,
   }
   else {
     int curr_point = 0;
-    if ((psys->pathcache != NULL) &&
-        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+    if ((psys->pathcache != NULL) && (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+    {
       curr_point = particle_batch_cache_fill_segments_indices(
           psys->pathcache, 0, psys->totpart, verts_per_hair, &elb);
     }
@@ -1269,8 +1270,8 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
                                                     hair_cache);
   }
   else {
-    if ((psys->pathcache != NULL) &&
-        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+    if ((psys->pathcache != NULL) && (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+    {
       curr_point = particle_batch_cache_fill_segments(psys,
                                                       psmd,
                                                       psys->pathcache,
@@ -1702,7 +1703,8 @@ bool particles_ensure_procedural_data(Object *object,
 
   /* Refreshed on combing and simulation. */
   if ((*r_hair_cache)->proc_point_buf == NULL ||
-      (gpu_material && (*r_hair_cache)->proc_length_buf == NULL)) {
+      (gpu_material && (*r_hair_cache)->proc_length_buf == NULL))
+  {
     ensure_seg_pt_count(source.edit, source.psys, &cache->hair);
     particle_batch_cache_ensure_procedural_pos(
         source.edit, source.psys, &cache->hair, gpu_material);

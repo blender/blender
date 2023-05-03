@@ -654,7 +654,8 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
 
     /* view */
     if (BLI_listbase_count_at_most(&rr->views, 2) > 1 &&
-        ((!show_stereo) || !RE_RenderResult_is_stereo(rr))) {
+        ((!show_stereo) || !RE_RenderResult_is_stereo(rr)))
+    {
       rview = BLI_findlink(&rr->views, iuser->view);
       display_name = rview ? rview->name : "";
 
@@ -676,7 +677,8 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
 
   /* stereo image */
   else if ((BKE_image_is_stereo(image) && (!show_stereo)) ||
-           (BKE_image_is_multiview(image) && !BKE_image_is_stereo(image))) {
+           (BKE_image_is_multiview(image) && !BKE_image_is_stereo(image)))
+  {
     ImageView *iv;
     int nr = 0;
 
@@ -994,7 +996,8 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
            R_IMF_CHAN_DEPTH_12,
            R_IMF_CHAN_DEPTH_16,
            R_IMF_CHAN_DEPTH_24,
-           R_IMF_CHAN_DEPTH_32) == 0) {
+           R_IMF_CHAN_DEPTH_32) == 0)
+  {
     uiItemR(uiLayoutRow(col, true), imfptr, "color_depth", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
   }
 
@@ -1250,8 +1253,8 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
     }
     else if (ima->source == IMA_SRC_SEQUENCE && ibuf) {
       /* Image sequence frame number + filename */
-      const char *filename = BLI_path_slash_rfind(ibuf->name);
-      filename = (filename == NULL) ? ibuf->name : filename + 1;
+      const char *filename = BLI_path_slash_rfind(ibuf->filepath);
+      filename = (filename == NULL) ? ibuf->filepath : filename + 1;
       BLI_snprintf(str, MAX_IMAGE_INFO_LEN, TIP_("Frame %d: %s"), framenr, filename);
     }
     else {

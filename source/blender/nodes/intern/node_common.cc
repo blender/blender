@@ -115,7 +115,8 @@ bool nodeGroupPoll(const bNodeTree *nodetree,
 
   for (const bNode *node : grouptree->all_nodes()) {
     if (node->typeinfo->poll_instance &&
-        !node->typeinfo->poll_instance(node, nodetree, r_disabled_hint)) {
+        !node->typeinfo->poll_instance(node, nodetree, r_disabled_hint))
+    {
       return false;
     }
   }

@@ -84,7 +84,8 @@ bool ui_but_is_interactive_ex(const uiBut *but, const bool labeledit, const bool
     return false;
   }
   if ((but->type == UI_BTYPE_TEXT) &&
-      ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS) && !labeledit) {
+      ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS) && !labeledit)
+  {
     return false;
   }
   if ((but->type == UI_BTYPE_LISTROW) && labeledit) {
@@ -551,7 +552,8 @@ bool ui_but_is_cursor_warp(const uiBut *but)
              UI_BTYPE_HSVCUBE,
              UI_BTYPE_HSVCIRCLE,
              UI_BTYPE_CURVE,
-             UI_BTYPE_CURVEPROFILE)) {
+             UI_BTYPE_CURVEPROFILE))
+    {
       return true;
     }
   }
@@ -764,7 +766,8 @@ bool ui_region_contains_point_px(const ARegion *region, const int xy[2])
 
     ui_window_to_region(region, &mx, &my);
     if (!BLI_rcti_isect_pt(&v2d->mask, mx, my) ||
-        UI_view2d_mouse_in_scrollers(region, &region->v2d, xy)) {
+        UI_view2d_mouse_in_scrollers(region, &region->v2d, xy))
+    {
       return false;
     }
   }
@@ -786,7 +789,8 @@ bool ui_region_contains_rect_px(const ARegion *region, const rcti *rect_px)
     rcti rect_region;
     ui_window_to_region_rcti(region, &rect_region, rect_px);
     if (!BLI_rcti_isect(&v2d->mask, &rect_region, nullptr) ||
-        UI_view2d_rect_in_scrollers(region, &region->v2d, rect_px)) {
+        UI_view2d_rect_in_scrollers(region, &region->v2d, rect_px))
+    {
       return false;
     }
   }

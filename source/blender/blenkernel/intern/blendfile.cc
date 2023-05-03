@@ -535,7 +535,8 @@ static void handle_subversion_warning(Main *main, BlendFileReadReport *reports)
 {
   if (main->minversionfile > BLENDER_FILE_VERSION ||
       (main->minversionfile == BLENDER_FILE_VERSION &&
-       main->minsubversionfile > BLENDER_FILE_SUBVERSION)) {
+       main->minsubversionfile > BLENDER_FILE_SUBVERSION))
+  {
     BKE_reportf(reports->reports,
                 RPT_WARNING,
                 "File written by newer Blender binary (%d.%d), expect loss of data!",
@@ -939,12 +940,13 @@ bool BKE_blendfile_workspace_config_write(Main *bmain, const char *filepath, Rep
   BKE_blendfile_write_partial_begin(bmain);
 
   for (WorkSpace *workspace = static_cast<WorkSpace *>(bmain->workspaces.first); workspace;
-       workspace = static_cast<WorkSpace *>(workspace->id.next)) {
+       workspace = static_cast<WorkSpace *>(workspace->id.next))
+  {
     BKE_blendfile_write_partial_tag_ID(&workspace->id, true);
   }
 
-  if (BKE_blendfile_write_partial(
-          bmain, filepath, fileflags, BLO_WRITE_PATH_REMAP_NONE, reports)) {
+  if (BKE_blendfile_write_partial(bmain, filepath, fileflags, BLO_WRITE_PATH_REMAP_NONE, reports))
+  {
     retval = true;
   }
 

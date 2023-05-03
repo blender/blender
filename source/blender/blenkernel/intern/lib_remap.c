@@ -214,7 +214,8 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
   /* Exit, when no modifications will be done; ensuring id->runtime counters won't changed. */
   if (ELEM(expected_mapping_result,
            ID_REMAP_RESULT_SOURCE_UNAVAILABLE,
-           ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE)) {
+           ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE))
+  {
     BLI_assert_msg(id_remap_data->type == ID_REMAP_TYPE_REMAP,
                    "Cleanup should always do unassign.");
     return IDWALK_RET_NOP;
@@ -260,7 +261,8 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
   if ((violates_never_null && skip_never_null) ||
       (is_obj_editmode && (((Object *)id_owner)->data == *id_p) &&
        (expected_mapping_result == ID_REMAP_RESULT_SOURCE_REMAPPED)) ||
-      (skip_indirect && is_indirect) || (is_reference && skip_reference)) {
+      (skip_indirect && is_indirect) || (is_reference && skip_reference))
+  {
     foreach_libblock_remap_callback_skip(id_owner,
                                          id_p,
                                          cb_flag,
@@ -432,7 +434,8 @@ static void libblock_remap_data_update_tags(ID *old_id, ID *new_id, void *user_d
   }
 
   if (new_id != NULL && (new_id->tag & LIB_TAG_INDIRECT) &&
-      (new_id->runtime.remap.status & ID_REMAP_IS_LINKED_DIRECT)) {
+      (new_id->runtime.remap.status & ID_REMAP_IS_LINKED_DIRECT))
+  {
     new_id->tag &= ~LIB_TAG_INDIRECT;
     new_id->flag &= ~LIB_INDIRECT_WEAK_LINK;
     new_id->tag |= LIB_TAG_EXTERN;
@@ -562,7 +565,8 @@ static void libblock_remap_foreach_idpair_cb(ID *old_id, ID *new_id, void *user_
      * count has actually been incremented for that, we have to decrease once more its user
      * count... unless we had to skip some 'user_one' cases. */
     if ((old_id->tag & LIB_TAG_EXTRAUSER_SET) &&
-        !(old_id->runtime.remap.status & ID_REMAP_IS_USER_ONE_SKIPPED)) {
+        !(old_id->runtime.remap.status & ID_REMAP_IS_USER_ONE_SKIPPED))
+    {
       id_us_clear_real(old_id);
     }
   }

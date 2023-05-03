@@ -189,7 +189,8 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   foreach (Shader *shader, scene->shaders) {
     /* keep this in sync with SD_HAS_TRANSPARENT_SHADOW in shader.cpp */
     if ((shader->has_surface_transparent && shader->get_use_transparent_shadow()) ||
-        shader->has_volume) {
+        shader->has_volume)
+    {
       kintegrator->transparent_shadows = true;
       break;
     }
@@ -266,7 +267,8 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
       next_power_of_two(aa_samples - 1), MIN_TAB_SOBOL_SAMPLES, MAX_TAB_SOBOL_SAMPLES);
   if (kintegrator->sampling_pattern == SAMPLING_PATTERN_TABULATED_SOBOL &&
       dscene->sample_pattern_lut.size() !=
-          (sequence_size * NUM_TAB_SOBOL_PATTERNS * NUM_TAB_SOBOL_DIMENSIONS)) {
+          (sequence_size * NUM_TAB_SOBOL_PATTERNS * NUM_TAB_SOBOL_DIMENSIONS))
+  {
     kintegrator->tabulated_sobol_sequence_size = sequence_size;
 
     if (dscene->sample_pattern_lut.size() != 0) {

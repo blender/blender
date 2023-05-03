@@ -368,7 +368,8 @@ void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view,
    * stretch over the entire width. */
   if (grid_view.get_item_count() < cols_per_row) {
     for (int padding_item_idx = 0; padding_item_idx < (cols_per_row - grid_view.get_item_count());
-         padding_item_idx++) {
+         padding_item_idx++)
+    {
       uiItemS(grid_layout);
     }
   }

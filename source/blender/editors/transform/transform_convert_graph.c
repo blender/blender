@@ -538,7 +538,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
            * - If so, change them auto-handles to aligned handles so that handles get affected too
            */
           if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) && ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) &&
-              ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
+              ELEM(t->mode, TFM_ROTATION, TFM_RESIZE))
+          {
             if (hdata && (sel_left) && (sel_right)) {
               bezt->h1 = HD_ALIGN;
               bezt->h2 = HD_ALIGN;
@@ -654,7 +655,8 @@ static void flushTransGraphData(TransInfo *t)
 
   /* flush to 2d vector from internally used 3d vector */
   for (a = 0, td = tc->data, td2d = tc->data_2d, tdg = tc->custom.type.data; a < tc->data_len;
-       a++, td++, td2d++, tdg++) {
+       a++, td++, td2d++, tdg++)
+  {
     /* pointers to relevant AnimData blocks are stored in the td->extra pointers */
     AnimData *adt = (AnimData *)td->extra;
 
@@ -758,7 +760,8 @@ static void sort_time_beztmaps(BeztMap *bezms, int totvert)
        */
       if (bezm->swapHs == 0) {
         if ((bezm->bezt->vec[0][0] > bezm->bezt->vec[1][0]) &&
-            (bezm->bezt->vec[2][0] < bezm->bezt->vec[1][0])) {
+            (bezm->bezt->vec[2][0] < bezm->bezt->vec[1][0]))
+        {
           /* handles need to be swapped */
           bezm->swapHs = 1;
         }

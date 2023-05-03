@@ -59,7 +59,8 @@ void main()
   vec3 prev_volume = ndc_to_volume(prev_ndc * 0.5 + 0.5);
 
   if ((volHistoryAlpha > 0.0) && all(greaterThan(prev_volume, vec3(0.0))) &&
-      all(lessThan(prev_volume, vec3(1.0)))) {
+      all(lessThan(prev_volume, vec3(1.0))))
+  {
     vec4 h_Scattering = texture(historyScattering, prev_volume);
     vec4 h_Transmittance = texture(historyTransmittance, prev_volume);
     outScattering = mix(outScattering, h_Scattering, volHistoryAlpha);

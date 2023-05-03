@@ -571,7 +571,8 @@ static void outliner_do_libdata_operation_selection_set(bContext *C,
     bool is_selected = tselem->flag & TSE_SELECTED;
     if ((is_selected && do_selected) || (has_parent_selected && do_content)) {
       if (((tselem->type == TSE_SOME_ID) && (element->idcode != 0)) ||
-          tselem->type == TSE_LAYER_COLLECTION) {
+          tselem->type == TSE_LAYER_COLLECTION)
+      {
         TreeStoreElem *tsep = element->parent ? TREESTORE(element->parent) : nullptr;
         operation_fn(C, reports, scene, element, tsep, tselem, user_data);
       }
@@ -906,7 +907,8 @@ static void outliner_object_delete_fn(bContext *C, ReportList *reports, Scene *s
       return;
     }
     if (ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0 &&
-        BKE_library_ID_is_indirectly_used(bmain, ob)) {
+        BKE_library_ID_is_indirectly_used(bmain, ob))
+    {
       BKE_reportf(reports,
                   RPT_WARNING,
                   "Cannot delete object '%s' from scene '%s', indirectly used objects need at "
@@ -1036,7 +1038,8 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
   ID *id_root_reference = tselem->id;
 
   if (!BKE_idtype_idcode_is_linkable(GS(id_root_reference->name)) ||
-      (id_root_reference->flag & (LIB_EMBEDDED_DATA | LIB_EMBEDDED_DATA_LIB_OVERRIDE)) != 0) {
+      (id_root_reference->flag & (LIB_EMBEDDED_DATA | LIB_EMBEDDED_DATA_LIB_OVERRIDE)) != 0)
+  {
     return;
   }
 
@@ -1046,7 +1049,7 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
   data->selected_id_uid.add(id_root_reference->session_uuid);
 
   if (ID_IS_OVERRIDE_LIBRARY_REAL(id_root_reference) && !ID_IS_LINKED(id_root_reference)) {
-    id_root_reference->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+    id_root_reference->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
     return;
   }
 
@@ -1065,7 +1068,8 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
   ID *id_instance_hint = nullptr;
   bool is_override_instancing_object = false;
   if (tsep != nullptr && tsep->type == TSE_SOME_ID && tsep->id != nullptr &&
-      GS(tsep->id->name) == ID_OB && !ID_IS_OVERRIDE_LIBRARY(tsep->id)) {
+      GS(tsep->id->name) == ID_OB && !ID_IS_OVERRIDE_LIBRARY(tsep->id))
+  {
     Object *ob = reinterpret_cast<Object *>(tsep->id);
     if (ob->type == OB_EMPTY && &ob->instance_collection->id == id_root_reference) {
       BLI_assert(GS(id_root_reference->name) == ID_GR);
@@ -1077,7 +1081,8 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
   }
 
   if (!ID_IS_OVERRIDABLE_LIBRARY(id_root_reference) &&
-      !(ID_IS_LINKED(id_root_reference) && do_hierarchy)) {
+      !(ID_IS_LINKED(id_root_reference) && do_hierarchy))
+  {
     return;
   }
 
@@ -1107,8 +1112,8 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
          * access its hierarchy root directly. */
         if (!ID_IS_LINKED(id_current_hierarchy_root) &&
             ID_IS_OVERRIDE_LIBRARY_REAL(id_current_hierarchy_root) &&
-            id_current_hierarchy_root->override_library->reference->lib ==
-                id_root_reference->lib) {
+            id_current_hierarchy_root->override_library->reference->lib == id_root_reference->lib)
+        {
           id_hierarchy_root_reference =
               id_current_hierarchy_root->override_library->hierarchy_root;
           BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root_reference));
@@ -1157,7 +1162,8 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
           (!ID_IS_LINKED(id_hierarchy_root_reference) &&
            ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root_reference) &&
            id_hierarchy_root_reference->override_library->reference->lib ==
-               id_root_reference->lib))) {
+               id_root_reference->lib)))
+    {
       BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
       BKE_reportf(reports,
                   RPT_WARNING,
@@ -1263,7 +1269,7 @@ static void id_override_library_create_hierarchy(
       success = id_root_override != nullptr;
       if (success) {
         BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root_override));
-        id_root_override->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+        id_root_override->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
       }
       /* Cleanup. */
       BKE_main_id_newptr_and_tag_clear(&bmain);
@@ -1322,8 +1328,9 @@ static void id_override_library_create_hierarchy_process(bContext *C,
       continue;
     }
     if (data.selected_id_uid.contains(id_iter->override_library->reference->session_uuid) ||
-        data.selected_id_uid.contains(id_iter->session_uuid)) {
-      id_iter->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+        data.selected_id_uid.contains(id_iter->session_uuid))
+    {
+      id_iter->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
     }
   }
   FOREACH_MAIN_ID_END;
@@ -2180,7 +2187,8 @@ static void outliner_batch_delete_object_tag(ReportList *reports,
   /* FIXME: This code checking object user-count won't work as expected if a same object belongs to
    * more than one collection in the scene. */
   if (ID_REAL_USERS(object) <= 1 && ID_EXTRA_USERS(object) == 0 &&
-      BKE_library_ID_is_indirectly_used(bmain, object)) {
+      BKE_library_ID_is_indirectly_used(bmain, object))
+  {
     BKE_reportf(reports,
                 RPT_WARNING,
                 "Cannot delete object '%s' from scene '%s', indirectly used objects need at least "
@@ -2205,12 +2213,14 @@ static void outliner_batch_delete_object_hierarchy_tag(
    * deletable. */
   for (Base *base_iter = static_cast<Base *>(BKE_view_layer_object_bases_get(view_layer)->first);
        base_iter != nullptr;
-       base_iter = base_iter->next) {
+       base_iter = base_iter->next)
+  {
     Object *parent_ob_iter;
     for (parent_ob_iter = base_iter->object->parent;
          (parent_ob_iter != nullptr && parent_ob_iter != object &&
           (parent_ob_iter->id.tag & LIB_TAG_DOIT) == 0);
-         parent_ob_iter = parent_ob_iter->parent) {
+         parent_ob_iter = parent_ob_iter->parent)
+    {
       /* pass */
     }
     if (parent_ob_iter != nullptr) {
@@ -2223,7 +2233,8 @@ static void outliner_batch_delete_object_hierarchy_tag(
       for (parent_ob_iter = base_iter->object;
            (parent_ob_iter != nullptr && parent_ob_iter != object &&
             (parent_ob_iter->id.tag & LIB_TAG_DOIT) == 0);
-           parent_ob_iter = parent_ob_iter->parent) {
+           parent_ob_iter = parent_ob_iter->parent)
+      {
         outliner_batch_delete_object_tag(reports, bmain, scene, parent_ob_iter);
       }
     }
@@ -2454,8 +2465,8 @@ static TreeTraversalAction outliner_collect_objects_to_delete(TreeElement *te, v
     return TRAVERSE_CONTINUE;
   }
 
-  if ((tselem->type != TSE_SOME_ID) || (tselem->id == nullptr) ||
-      (GS(tselem->id->name) != ID_OB)) {
+  if ((tselem->type != TSE_SOME_ID) || (tselem->id == nullptr) || (GS(tselem->id->name) != ID_OB))
+  {
     return TRAVERSE_SKIP_CHILDS;
   }
 

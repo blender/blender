@@ -188,8 +188,8 @@ static void populate_asset_collection(const AssetLibraryReference &asset_library
     RNA_warning("Expected a collection property");
     return;
   }
-  if (!RNA_struct_is_a(RNA_property_pointer_type(&assets_dataptr, assets_prop),
-                       &RNA_AssetHandle)) {
+  if (!RNA_struct_is_a(RNA_property_pointer_type(&assets_dataptr, assets_prop), &RNA_AssetHandle))
+  {
     RNA_warning("Expected a collection property for AssetHandle items");
     return;
   }

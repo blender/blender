@@ -185,7 +185,8 @@ static void bm_loop_customdata_merge(BMesh *bm,
                                 BM_ELEM_CD_GET_VOID_P(l_a_inner, offset),
                                 BM_ELEM_CD_GET_VOID_P(l_b_inner, offset)) == false)
 #  endif
-    ) {
+    )
+    {
       /* no need to allocate a temp block:
        * a = (a + b);
        * a *= 0.5f;
@@ -207,7 +208,8 @@ static void bm_loop_customdata_merge(BMesh *bm,
 
       /* check if the 2 faces share an edge */
       if (is_flip ? (l_b_inner_inset->e == l_a_inner_inset->prev->e) :
-                    (l_a_inner_inset->e == l_b_inner_inset->prev->e)) {
+                    (l_a_inner_inset->e == l_b_inner_inset->prev->e))
+      {
         /* simple case, we have all loops already */
       }
       else {
@@ -222,7 +224,8 @@ static void bm_loop_customdata_merge(BMesh *bm,
               void *data_dst = BM_ELEM_CD_GET_VOID_P(l_iter, offset);
 
               if (CustomData_data_equals(type, data_dst, data_cmp_a) ||
-                  CustomData_data_equals(type, data_dst, data_cmp_b)) {
+                  CustomData_data_equals(type, data_dst, data_cmp_b))
+              {
                 CustomData_data_copy_value(type, data_src, data_dst);
               }
             }
@@ -721,7 +724,8 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
         (use_boundary && BM_edge_is_boundary(e) && BM_elem_flag_test(e->l->f, BM_ELEM_TAG)) ||
 
         /* tag if edge is an interior edge in between a tagged and untagged face */
-        bm_edge_is_mixed_face_tag(e->l)) {
+        bm_edge_is_mixed_face_tag(e->l))
+    {
       /* tag */
       BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
       BM_elem_flag_enable(e->v2, BM_ELEM_TAG);

@@ -54,7 +54,8 @@ static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, P
   PyObject *obj1 = nullptr, *obj2 = nullptr, *obj3 = nullptr;
 
   if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist_1, &AdjacencyIterator_Type, &obj1)) {
+          args, kwds, "|O!", (char **)kwlist_1, &AdjacencyIterator_Type, &obj1))
+  {
     if (!obj1) {
       self->a_it = new AdjacencyIterator();
       self->at_start = true;
@@ -75,7 +76,8 @@ static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, P
                                        &PyBool_Type,
                                        &obj2,
                                        &PyBool_Type,
-                                       &obj3)) {
+                                       &obj3))
+  {
     bool restrictToSelection = (!obj2) ? true : bool_from_PyBool(obj2);
     bool restrictToUnvisited = (!obj3) ? true : bool_from_PyBool(obj3);
     self->a_it = new AdjacencyIterator(

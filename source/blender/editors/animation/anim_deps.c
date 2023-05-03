@@ -62,11 +62,8 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
   }
 
   /* Tag copy on the main object if updating anything directly inside AnimData */
-  if (ELEM(ale->type,
-           ANIMTYPE_ANIMDATA,
-           ANIMTYPE_NLAACTION,
-           ANIMTYPE_NLATRACK,
-           ANIMTYPE_NLACURVE)) {
+  if (ELEM(ale->type, ANIMTYPE_ANIMDATA, ANIMTYPE_NLAACTION, ANIMTYPE_NLATRACK, ANIMTYPE_NLACURVE))
+  {
     DEG_id_tag_update(id, ID_RECALC_ANIMATION);
     return;
   }
@@ -370,7 +367,8 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
                   ANIMTYPE_ANIMDATA,
                   ANIMTYPE_NLAACTION,
                   ANIMTYPE_NLATRACK,
-                  ANIMTYPE_NLACURVE)) {
+                  ANIMTYPE_NLACURVE))
+    {
       if (ale->update & ANIM_UPDATE_DEPS) {
         ale->update &= ~ANIM_UPDATE_DEPS;
         ANIM_list_elem_update(ac->bmain, ac->scene, ale);

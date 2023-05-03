@@ -91,7 +91,8 @@ static void deformStroke(GpencilModifierData *md,
                                       mmd->flag & GP_COLOR_INVERT_LAYER,
                                       mmd->flag & GP_COLOR_INVERT_PASS,
                                       mmd->flag & GP_COLOR_INVERT_LAYERPASS,
-                                      mmd->flag & GP_COLOR_INVERT_MATERIAL)) {
+                                      mmd->flag & GP_COLOR_INVERT_MATERIAL))
+  {
     return;
   }
 
@@ -102,8 +103,8 @@ static void deformStroke(GpencilModifierData *md,
   /* Fill */
   if (mmd->modify_color != GP_MODIFY_COLOR_STROKE) {
     /* If not using Vertex Color, use the material color. */
-    if ((gp_style != NULL) && (gps->vert_color_fill[3] == 0.0f) &&
-        (gp_style->fill_rgba[3] > 0.0f)) {
+    if ((gp_style != NULL) && (gps->vert_color_fill[3] == 0.0f) && (gp_style->fill_rgba[3] > 0.0f))
+    {
       copy_v4_v4(gps->vert_color_fill, gp_style->fill_rgba);
       gps->vert_color_fill[3] = 1.0f;
     }

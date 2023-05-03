@@ -417,7 +417,8 @@ static float metaball(PROCESS *process, float x, float y, float z)
 
     for (int i = 0; i < 2; i++) {
       if ((node->bb[i].min[0] <= x) && (node->bb[i].max[0] >= x) && (node->bb[i].min[1] <= y) &&
-          (node->bb[i].max[1] >= y) && (node->bb[i].min[2] <= z) && (node->bb[i].max[2] >= z)) {
+          (node->bb[i].max[1] >= y) && (node->bb[i].min[2] <= z) && (node->bb[i].max[2] >= z))
+      {
         if (node->child[i]) {
           process->bvh_queue[front++] = node->child[i];
         }
@@ -1181,7 +1182,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
              ob->object_to_world); /* to cope with duplicators from BKE_scene_base_iter_next */
   invert_m4_m4(obinv, ob->object_to_world);
 
-  BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
+  BLI_string_split_name_number(ob->id.name + 2, '.', obname, &obnr);
 
   /* make main array */
   BKE_scene_base_iter_next(depsgraph, &iter, &sce_iter, 0, nullptr, nullptr);
@@ -1194,7 +1195,8 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
        * the instancer is visible too. */
       if ((base->flag_legacy & OB_FROMDUPLI) == 0 && ob->parent != nullptr &&
           (ob->parent->transflag & parenting_dupli_transflag) != 0 &&
-          (BKE_object_visibility(ob->parent, deg_eval_mode) & OB_VISIBLE_SELF) == 0) {
+          (BKE_object_visibility(ob->parent, deg_eval_mode) & OB_VISIBLE_SELF) == 0)
+      {
         continue;
       }
 
@@ -1212,7 +1214,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
         char name[MAX_ID_NAME];
         int nr;
 
-        BLI_split_name_num(name, &nr, bob->id.name + 2, '.');
+        BLI_string_split_name_number(bob->id.name + 2, '.', name, &nr);
         if (STREQ(obname, name)) {
           mb = static_cast<MetaBall *>(bob->data);
 
@@ -1438,7 +1440,8 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
    * the open movie "Sintel", using 0.00001f. */
   if (ob->scale[0] < 0.00001f * (process.allbb.max[0] - process.allbb.min[0]) ||
       ob->scale[1] < 0.00001f * (process.allbb.max[1] - process.allbb.min[1]) ||
-      ob->scale[2] < 0.00001f * (process.allbb.max[2] - process.allbb.min[2])) {
+      ob->scale[2] < 0.00001f * (process.allbb.max[2] - process.allbb.min[2]))
+  {
     freepolygonize(&process);
     return nullptr;
   }

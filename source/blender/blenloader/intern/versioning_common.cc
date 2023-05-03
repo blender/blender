@@ -207,7 +207,8 @@ void version_node_socket_index_animdata(Main *bmain,
    * keyframe data. Not sure what causes that, so I (Sybren) moved the code here from
    * versioning_290.cc as-is (structure-wise). */
   for (int input_index = total_number_of_sockets - 1; input_index >= socket_index_orig;
-       input_index--) {
+       input_index--)
+  {
     FOREACH_NODETREE_BEGIN (bmain, ntree, owner_id) {
       if (ntree->type != node_tree_type) {
         continue;

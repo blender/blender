@@ -518,7 +518,8 @@ static void blf_glyph_draw_buffer(FontBufInfoBLF *buf_info,
       chx >= buf_info->dims[0] ||                /* Out of bounds: right. */
       (ft_pix_to_int(pen_y) + g->dims[1]) < 0 || /* Out of bounds: bottom. */
       ft_pix_to_int(pen_y) >= buf_info->dims[1]  /* Out of bounds: top. */
-  ) {
+  )
+  {
     return;
   }
 
@@ -692,7 +693,8 @@ size_t blf_font_width_to_strlen(
   const int width_i = (int)width;
 
   for (i_prev = i = 0, width_new = pen_x = 0, g_prev = NULL; (i < str_len) && str[i];
-       i_prev = i, width_new = pen_x, g_prev = g) {
+       i_prev = i, width_new = pen_x, g_prev = g)
+  {
     g = blf_glyph_from_utf8_and_step(font, gc, str, str_len, &i);
 
     if (blf_font_width_to_strlen_glyph_process(font, g_prev, g, &pen_x, width_i)) {
@@ -727,7 +729,8 @@ size_t blf_font_width_to_rstrlen(
   i_tmp = i;
   g = blf_glyph_from_utf8_and_step(font, gc, str, str_len, &i_tmp);
   for (width_new = pen_x = 0; (s != NULL);
-       i = i_prev, s = s_prev, g = g_prev, g_prev = NULL, width_new = pen_x) {
+       i = i_prev, s = s_prev, g = g_prev, g_prev = NULL, width_new = pen_x)
+  {
     s_prev = BLI_str_find_prev_char_utf8(s, str);
     i_prev = (size_t)(s_prev - str);
 
@@ -1540,7 +1543,7 @@ FontBLF *blf_font_new_ex(const char *name,
     const struct FaceDetails *static_details = NULL;
     char filename[256];
     for (int i = 0; i < (int)ARRAY_SIZE(static_face_details); i++) {
-      BLI_split_file_part(font->filepath, filename, sizeof(filename));
+      BLI_path_split_file_part(font->filepath, filename, sizeof(filename));
       if (STREQ(static_face_details[i].name, filename)) {
         static_details = &static_face_details[i];
         font->unicode_ranges[0] = static_details->coverage1;
@@ -1562,7 +1565,8 @@ FontBLF *blf_font_new_ex(const char *name,
 
   /* Detect "Last resort" fonts. They have everything. Usually except last 5 bits. */
   if (font->unicode_ranges[0] == 0xffffffffU && font->unicode_ranges[1] == 0xffffffffU &&
-      font->unicode_ranges[2] == 0xffffffffU && font->unicode_ranges[3] >= 0x7FFFFFFU) {
+      font->unicode_ranges[2] == 0xffffffffU && font->unicode_ranges[3] >= 0x7FFFFFFU)
+  {
     font->flags |= BLF_LAST_RESORT;
   }
 

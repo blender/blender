@@ -500,7 +500,8 @@ static void eevee_cryptomatte_postprocess_weights(EEVEE_Data *vedata)
   int accum_pixel_stride = eevee_cryptomatte_pixel_stride(view_layer);
 
   for (int pixel_index = 0; pixel_index < buffer_size;
-       pixel_index++, accum_pixel_index += accum_pixel_stride) {
+       pixel_index++, accum_pixel_index += accum_pixel_stride)
+  {
     float coverage = 1.0f;
     if (volumetric_transmittance_buffer != NULL) {
       coverage = (volumetric_transmittance_buffer[pixel_index * 4] +

@@ -156,7 +156,8 @@ static int geometry_extract_apply(bContext *C,
                            0.1,
                            true,
                            true,
-                           true)) {
+                           true))
+        {
           continue;
         }
       }
@@ -179,7 +180,8 @@ static int geometry_extract_apply(bContext *C,
                            0.1,
                            true,
                            true,
-                           true)) {
+                           true))
+        {
           continue;
         }
       }

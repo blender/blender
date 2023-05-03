@@ -231,7 +231,8 @@ static void view3d_preselect_update_preview_triangle_from_vert(struct EditMesh_P
       BMEdge *e_iter = v_act->e;
       do {
         if ((BM_elem_flag_test(e_iter, BM_ELEM_HIDDEN) == false) &&
-            (allow_wire ? BM_edge_is_wire(e_iter) : BM_edge_is_boundary(e_iter))) {
+            (allow_wire ? BM_edge_is_wire(e_iter) : BM_edge_is_boundary(e_iter)))
+        {
           if (i == 2) {
             e_pair[0] = e_pair[1] = NULL;
             break;

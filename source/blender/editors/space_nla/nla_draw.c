@@ -488,7 +488,8 @@ static void nla_draw_strip(SpaceNla *snla,
 
   /* draw 'inside' of strip itself */
   if (solo && is_nlastrip_enabled(adt, nlt, strip) &&
-      !(strip->flag & NLASTRIP_FLAG_INVALID_LOCATION)) {
+      !(strip->flag & NLASTRIP_FLAG_INVALID_LOCATION))
+  {
     immUnbindProgram();
 
     /* strip is in normal track */
@@ -761,14 +762,16 @@ static ListBase get_visible_nla_strips(NlaTrack *nlt, View2D *v2d)
     NlaStrip *first_strip = nlt->strips.first;
     NlaStrip *last_strip = nlt->strips.last;
     if (first_strip && v2d->cur.xmax < first_strip->start &&
-        first_strip->extendmode == NLASTRIP_EXTEND_HOLD) {
+        first_strip->extendmode == NLASTRIP_EXTEND_HOLD)
+    {
       /* The view is to the left of all strips and the first strip has an
        * extendmode that should be drawn.
        */
       first = last = first_strip;
     }
     else if (last_strip && v2d->cur.xmin > last_strip->end &&
-             last_strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
+             last_strip->extendmode != NLASTRIP_EXTEND_NOTHING)
+    {
       /* The view is to the right of all strips and the last strip has an
        * extendmode that should be drawn.
        */

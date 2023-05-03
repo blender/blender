@@ -73,38 +73,38 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_override_library_property_operation_items[] = {
-    {IDOVERRIDE_LIBRARY_OP_NOOP,
+    {LIBOVERRIDE_OP_NOOP,
      "NOOP",
      0,
      "No-Op",
      "Does nothing, prevents adding actual overrides (NOT USED)"},
-    {IDOVERRIDE_LIBRARY_OP_REPLACE,
+    {LIBOVERRIDE_OP_REPLACE,
      "REPLACE",
      0,
      "Replace",
      "Replace value of reference by overriding one"},
-    {IDOVERRIDE_LIBRARY_OP_ADD,
+    {LIBOVERRIDE_OP_ADD,
      "DIFF_ADD",
      0,
      "Differential",
      "Stores and apply difference between reference and local value (NOT USED)"},
-    {IDOVERRIDE_LIBRARY_OP_SUBTRACT,
+    {LIBOVERRIDE_OP_SUBTRACT,
      "DIFF_SUB",
      0,
      "Differential",
      "Stores and apply difference between reference and local value (NOT USED)"},
-    {IDOVERRIDE_LIBRARY_OP_MULTIPLY,
+    {LIBOVERRIDE_OP_MULTIPLY,
      "FACT_MULTIPLY",
      0,
      "Factor",
      "Stores and apply multiplication factor between reference and local value (NOT USED)"},
-    {IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
+    {LIBOVERRIDE_OP_INSERT_AFTER,
      "INSERT_AFTER",
      0,
      "Insert After",
      "Insert a new item into collection after the one referenced in subitem_reference_name or "
      "_index"},
-    {IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE,
+    {LIBOVERRIDE_OP_INSERT_BEFORE,
      "INSERT_BEFORE",
      0,
      "Insert Before",
@@ -579,7 +579,8 @@ int rna_ID_is_runtime_editable(PointerRNA *ptr, const char **r_info)
   ID *id = (ID *)ptr->data;
   /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
   if (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_TEMP_MAIN | LIB_TAG_LOCALIZED |
-                 LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_COPIED_ON_WRITE)) {
+                 LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_COPIED_ON_WRITE))
+  {
     *r_info =
         "Cannot edit 'runtime' status of non-blendfile data-blocks, as they are by definition "
         "always runtime";
@@ -594,7 +595,8 @@ bool rna_ID_is_runtime_get(PointerRNA *ptr)
   ID *id = (ID *)ptr->data;
   /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
   if (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_TEMP_MAIN | LIB_TAG_LOCALIZED |
-                 LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_COPIED_ON_WRITE)) {
+                 LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_COPIED_ON_WRITE))
+  {
     return true;
   }
 
@@ -1141,7 +1143,8 @@ static void rna_ImagePreview_is_custom_set(PointerRNA *ptr, int value, enum eIco
   }
 
   if ((value && (prv_img->flag[size] & PRV_USER_EDITED)) ||
-      (!value && !(prv_img->flag[size] & PRV_USER_EDITED))) {
+      (!value && !(prv_img->flag[size] & PRV_USER_EDITED)))
+  {
     return;
   }
 
@@ -1407,7 +1410,8 @@ static void rna_ImagePreview_icon_reload(PreviewImage *prv)
 {
   /* will lazy load on next use, but only in case icon is not user-modified! */
   if (!(prv->flag[ICON_SIZE_ICON] & PRV_USER_EDITED) &&
-      !(prv->flag[ICON_SIZE_PREVIEW] & PRV_USER_EDITED)) {
+      !(prv->flag[ICON_SIZE_PREVIEW] & PRV_USER_EDITED))
+  {
     BKE_previewimg_clear(prv);
   }
 }
@@ -1685,12 +1689,12 @@ static void rna_def_ID_override_library_property_operation(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem override_library_property_flag_items[] = {
-      {IDOVERRIDE_LIBRARY_FLAG_MANDATORY,
+      {LIBOVERRIDE_OP_FLAG_MANDATORY,
        "MANDATORY",
        0,
        "Mandatory",
        "For templates, prevents the user from removing predefined operation (NOT USED)"},
-      {IDOVERRIDE_LIBRARY_FLAG_LOCKED,
+      {LIBOVERRIDE_OP_FLAG_LOCKED,
        "LOCKED",
        0,
        "Locked",
@@ -1706,7 +1710,7 @@ static void rna_def_ID_override_library_property_operation(BlenderRNA *brna)
   prop = RNA_def_enum(srna,
                       "operation",
                       rna_enum_override_library_property_operation_items,
-                      IDOVERRIDE_LIBRARY_OP_REPLACE,
+                      LIBOVERRIDE_OP_REPLACE,
                       "Operation",
                       "What override operation is performed");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* For now. */
@@ -1780,7 +1784,7 @@ static void rna_def_ID_override_library_property_operations(BlenderRNA *brna, Pr
   parm = RNA_def_enum(func,
                       "operation",
                       rna_enum_override_library_property_operation_items,
-                      IDOVERRIDE_LIBRARY_OP_REPLACE,
+                      LIBOVERRIDE_OP_REPLACE,
                       "Operation",
                       "What override operation is performed");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -1927,7 +1931,7 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
                          "Whether this library override is defined as part of a library "
                          "hierarchy, or as a single, isolated and autonomous override");
   RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", LIBOVERRIDE_FLAG_NO_HIERARCHY);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_boolean(srna,
@@ -1937,7 +1941,7 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
                          "Whether this library override exists only for the override hierarchy, "
                          "or if it is actually editable by the user");
   RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", LIBOVERRIDE_FLAG_SYSTEM_DEFINED);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_collection(srna,

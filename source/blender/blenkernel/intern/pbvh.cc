@@ -2666,7 +2666,8 @@ bool ray_face_intersection_quad(const float ray_start[3],
   if ((isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, nullptr) &&
        (depth_test < *depth)) ||
       (isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t2, t3, &depth_test, nullptr) &&
-       (depth_test < *depth))) {
+       (depth_test < *depth)))
+  {
     *depth = depth_test;
     return true;
   }
@@ -2683,7 +2684,8 @@ bool ray_face_intersection_tri(const float ray_start[3],
 {
   float depth_test;
   if (isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, nullptr) &&
-      (depth_test < *depth)) {
+      (depth_test < *depth))
+  {
     *depth = depth_test;
     return true;
   }
@@ -2783,11 +2785,13 @@ bool ray_face_nearest_quad(const float ray_start[3],
   float co[3], depth_test;
 
   if ((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
-           ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq) {
+           ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq)
+  {
     *dist_sq = dist_sq_test;
     *depth = depth_test;
     if ((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
-             ray_start, ray_normal, t0, t2, t3, co, &depth_test)) < *dist_sq) {
+             ray_start, ray_normal, t0, t2, t3, co, &depth_test)) < *dist_sq)
+    {
       *dist_sq = dist_sq_test;
       *depth = depth_test;
     }
@@ -2809,7 +2813,8 @@ bool ray_face_nearest_tri(const float ray_start[3],
   float co[3], depth_test;
 
   if ((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
-           ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq) {
+           ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq)
+  {
     *dist_sq = dist_sq_test;
     *depth = depth_test;
     return true;
@@ -4875,7 +4880,8 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
           int grid_index = poly[loop_index];
 
           if (pbvh->grid_hidden[grid_index] &&
-              BLI_BITMAP_TEST(pbvh->grid_hidden[grid_index], key.grid_area - 1)) {
+              BLI_BITMAP_TEST(pbvh->grid_hidden[grid_index], key.grid_area - 1))
+          {
             hidden = true;
 
             break;

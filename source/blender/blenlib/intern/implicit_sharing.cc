@@ -83,7 +83,8 @@ void *resize_trivial_array_impl(void *old_data,
   BLI_assert(old_size != 0);
   if ((*sharing_info)->is_mutable()) {
     if (auto *info = const_cast<MEMFreeImplicitSharing *>(
-            dynamic_cast<const MEMFreeImplicitSharing *>(*sharing_info))) {
+            dynamic_cast<const MEMFreeImplicitSharing *>(*sharing_info)))
+    {
       /* If the array was allocated with the MEM allocator, we can use realloc directly, which
        * could theoretically give better performance if the data can be reused in place. */
       void *new_data = static_cast<int *>(MEM_reallocN(old_data, new_size));

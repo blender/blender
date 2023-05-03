@@ -47,7 +47,7 @@ set(SRC
   RE_texture.h
   RE_texture_margin.h
 
-  intern/pipeline.h
+  intern/pipeline.hh
   intern/render_result.h
   intern/render_types.h
   intern/texture_common.h

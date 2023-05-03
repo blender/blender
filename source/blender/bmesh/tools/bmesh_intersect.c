@@ -234,7 +234,8 @@ static void face_edges_split(BMesh *bm,
                                               use_partial_connect,
                                               mem_arena_edgenet,
                                               &edge_arr_holes,
-                                              &edge_arr_holes_len)) {
+                                              &edge_arr_holes_len))
+    {
       edge_arr_len = edge_arr_holes_len;
       edge_arr = edge_arr_holes; /* owned by the arena */
     }
@@ -294,8 +295,8 @@ static enum ISectType intersect_line_tri(const float p0[3],
           copy_v3_v3(ix_pair[1], ix_pair[0]);
         }
 
-        if ((ix_pair_type == 1) ||
-            (len_squared_v3v3(ix_pair[0], ix_pair[1]) <= e->eps_margin_sq)) {
+        if ((ix_pair_type == 1) || (len_squared_v3v3(ix_pair[0], ix_pair[1]) <= e->eps_margin_sq))
+        {
           fac = line_point_factor_v3(ix_pair[1], t_cos[i_t0], t_cos[i_t1]);
           if ((fac >= e->eps_margin) && (fac <= 1.0f - e->eps_margin)) {
             fac = line_point_factor_v3(ix_pair[0], p0, p1);
@@ -311,13 +312,14 @@ static enum ISectType intersect_line_tri(const float p0[3],
 
   /* check ray isn't planar with tri */
   if (fabsf(dot_v3v3(p_dir, t_nor)) >= e->eps) {
-    if (isect_line_segment_tri_epsilon_v3(
-            p0, p1, t_cos[0], t_cos[1], t_cos[2], &fac, NULL, 0.0f)) {
+    if (isect_line_segment_tri_epsilon_v3(p0, p1, t_cos[0], t_cos[1], t_cos[2], &fac, NULL, 0.0f))
+    {
       if ((fac >= e->eps_margin) && (fac <= 1.0f - e->eps_margin)) {
         interp_v3_v3v3(r_ix, p0, p1, fac);
         if (min_fff(len_squared_v3v3(t_cos[0], r_ix),
                     len_squared_v3v3(t_cos[1], r_ix),
-                    len_squared_v3v3(t_cos[2], r_ix)) >= e->eps_margin_sq) {
+                    len_squared_v3v3(t_cos[2], r_ix)) >= e->eps_margin_sq)
+        {
           return IX_EDGE_TRI;
         }
       }
@@ -513,7 +515,8 @@ static void bm_isect_tri_tri(
 
   if (no_shared) {
     if (UNLIKELY(ELEM(fv_a[0], UNPACK3(fv_b)) || ELEM(fv_a[1], UNPACK3(fv_b)) ||
-                 ELEM(fv_a[2], UNPACK3(fv_b)))) {
+                 ELEM(fv_a[2], UNPACK3(fv_b))))
+    {
       return;
     }
   }
@@ -580,7 +583,8 @@ static void bm_isect_tri_tri(
           uint i_b_e1 = (i_b_e0 + 1) % 3;
 
           if (BM_ELEM_API_FLAG_TEST(fv_b[i_b_e0], VERT_VISIT_B) ||
-              BM_ELEM_API_FLAG_TEST(fv_b[i_b_e1], VERT_VISIT_B)) {
+              BM_ELEM_API_FLAG_TEST(fv_b[i_b_e1], VERT_VISIT_B))
+          {
             continue;
           }
 
@@ -622,7 +626,8 @@ static void bm_isect_tri_tri(
           uint i_a_e1 = (i_a_e0 + 1) % 3;
 
           if (BM_ELEM_API_FLAG_TEST(fv_a[i_a_e0], VERT_VISIT_A) ||
-              BM_ELEM_API_FLAG_TEST(fv_a[i_a_e1], VERT_VISIT_A)) {
+              BM_ELEM_API_FLAG_TEST(fv_a[i_a_e1], VERT_VISIT_A))
+          {
             continue;
           }
 
@@ -732,7 +737,8 @@ static void bm_isect_tri_tri(
       BMVert *iv;
 
       if (BM_ELEM_API_FLAG_TEST(fv_a[i_a_e0], VERT_VISIT_A) ||
-          BM_ELEM_API_FLAG_TEST(fv_a[i_a_e1], VERT_VISIT_A)) {
+          BM_ELEM_API_FLAG_TEST(fv_a[i_a_e1], VERT_VISIT_A))
+      {
         continue;
       }
 
@@ -753,7 +759,8 @@ static void bm_isect_tri_tri(
       BMVert *iv;
 
       if (BM_ELEM_API_FLAG_TEST(fv_b[i_b_e0], VERT_VISIT_B) ||
-          BM_ELEM_API_FLAG_TEST(fv_b[i_b_e1], VERT_VISIT_B)) {
+          BM_ELEM_API_FLAG_TEST(fv_b[i_b_e1], VERT_VISIT_B))
+      {
         continue;
       }
 
@@ -855,7 +862,8 @@ static void raycast_callback(void *userdata,
 #  else
       isect_ray_tri_epsilon_v3(ray->origin, ray->direction, v0, v1, v2, &dist, NULL, FLT_EPSILON)
 #  endif
-  ) {
+  )
+  {
     if (dist >= 0.0f) {
 #  ifdef USE_DUMP
       printf("%s:\n", __func__);
@@ -1194,7 +1202,8 @@ bool BM_mesh_intersect(BMesh *bm,
           BLI_assert(BM_vert_in_edge(e, v_end));
 
           if (!BM_edge_exists(v_prev, vi) && !BM_vert_splice_check_double(v_prev, vi) &&
-              !BM_vert_pair_share_face_check(v_prev, vi)) {
+              !BM_vert_pair_share_face_check(v_prev, vi))
+          {
             BM_vert_splice(bm, vi, v_prev);
           }
           else {
@@ -1409,7 +1418,8 @@ bool BM_mesh_intersect(BMesh *bm,
         uint i;
         for (i = 0; i < STACK_SIZE(splice_ls); i++) {
           if (!BLI_gset_haskey(verts_invalid, splice_ls[i][0]) &&
-              !BLI_gset_haskey(verts_invalid, splice_ls[i][1])) {
+              !BLI_gset_haskey(verts_invalid, splice_ls[i][1]))
+          {
             if (!BM_edge_exists(UNPACK2(splice_ls[i])) &&
                 !BM_vert_splice_check_double(UNPACK2(splice_ls[i]))) {
               BM_vert_splice(bm, splice_ls[i][1], splice_ls[i][0]);

@@ -67,7 +67,7 @@
  **************************************/
 
 /* Util macro. */
-#define OUT_OF_MEMORY() ((void)printf("WeightVGProximity: Out of memory.\n"))
+#define OUT_OF_MEMORY() (void)printf("WeightVGProximity: Out of memory.\n")
 
 struct Vert2GeomData {
   /* Read-only data */

@@ -325,7 +325,8 @@ void GHOST_ImeWin32::GetCaret(HIMC imm_context, LPARAM lparam, ImeComposition *c
             target_start = 0;
           }
           if (target_start != -1 && target_start < attribute_size &&
-              attribute_data[target_start] == ATTR_TARGET_NOTCONVERTED) {
+              attribute_data[target_start] == ATTR_TARGET_NOTCONVERTED)
+          {
             composition->cursor_position = target_start;
           }
         }

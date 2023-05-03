@@ -394,7 +394,8 @@ CCGError ccgSubSurf_setUseAgeCounts(
   if (useAgeCounts) {
     if ((vertUserOffset + 4 > ss->meshIFC.vertUserSize) ||
         (edgeUserOffset + 4 > ss->meshIFC.edgeUserSize) ||
-        (faceUserOffset + 4 > ss->meshIFC.faceUserSize)) {
+        (faceUserOffset + 4 > ss->meshIFC.faceUserSize))
+    {
       return eCCGError_InvalidValue;
     }
     ss->useAgeCounts = 1;
@@ -553,7 +554,8 @@ CCGError ccgSubSurf_syncVert(
       v->flags = Vert_eEffected | seamflag;
     }
     else if (!VertDataEqual(vertData, ccg_vert_getCo(v, 0, ss->meshIFC.vertDataSize), ss) ||
-             ((v->flags & Vert_eSeam) != seamflag)) {
+             ((v->flags & Vert_eSeam) != seamflag))
+    {
       int i, j;
 
       VertDataCopy(ccg_vert_getCo(v, 0, ss->meshIFC.vertDataSize), vertData, ss);
@@ -585,7 +587,8 @@ CCGError ccgSubSurf_syncVert(
       v->flags = Vert_eEffected | seamflag;
     }
     else if (!VertDataEqual(vertData, ccg_vert_getCo(v, 0, ss->meshIFC.vertDataSize), ss) ||
-             ((v->flags & Vert_eSeam) != seamflag)) {
+             ((v->flags & Vert_eSeam) != seamflag))
+    {
       *prevp = v->next;
       ccg_ehash_insert(ss->vMap, (EHEntry *)v);
       VertDataCopy(ccg_vert_getCo(v, 0, ss->meshIFC.vertDataSize), vertData, ss);
@@ -696,7 +699,8 @@ CCGError ccgSubSurf_syncFace(
     if (f) {
       if (f->numVerts != numVerts ||
           memcmp(FACE_getVerts(f), ss->tempVerts, sizeof(*ss->tempVerts) * numVerts) != 0 ||
-          memcmp(FACE_getEdges(f), ss->tempEdges, sizeof(*ss->tempEdges) * numVerts) != 0) {
+          memcmp(FACE_getEdges(f), ss->tempEdges, sizeof(*ss->tempEdges) * numVerts) != 0)
+      {
         topologyChanged = 1;
       }
     }
@@ -767,7 +771,8 @@ CCGError ccgSubSurf_syncFace(
     if (f) {
       if (f->numVerts != numVerts ||
           memcmp(FACE_getVerts(f), ss->tempVerts, sizeof(*ss->tempVerts) * numVerts) != 0 ||
-          memcmp(FACE_getEdges(f), ss->tempEdges, sizeof(*ss->tempEdges) * numVerts) != 0) {
+          memcmp(FACE_getEdges(f), ss->tempEdges, sizeof(*ss->tempEdges) * numVerts) != 0)
+      {
         topologyChanged = 1;
       }
     }

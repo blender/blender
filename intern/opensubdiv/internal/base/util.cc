@@ -44,7 +44,8 @@ void stringSplit(vector<string> *tokens,
   }
   // Append token which might be at the end of the string.
   if ((token_length != 0) ||
-      (!skip_empty && token_start > 0 && separators.find(str[token_start - 1]) != string::npos)) {
+      (!skip_empty && token_start > 0 && separators.find(str[token_start - 1]) != string::npos))
+  {
     string token = str.substr(token_start, token_length);
     tokens->push_back(token);
   }

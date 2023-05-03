@@ -2654,7 +2654,7 @@ static bool rna_Mesh_materials_override_apply(Main *bmain,
                                               PointerRNA *UNUSED(ptr_item_storage),
                                               IDOverrideLibraryPropertyOperation *opop)
 {
-  BLI_assert_msg(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE,
+  BLI_assert_msg(opop->operation == LIBOVERRIDE_OP_REPLACE,
                  "Unsupported RNA override operation on collections' objects");
   UNUSED_VARS_NDEBUG(opop);
 

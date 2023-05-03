@@ -290,7 +290,8 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
   for (ViewLayer *view_layer_src = static_cast<ViewLayer *>(scene_src->view_layers.first),
                  *view_layer_dst = static_cast<ViewLayer *>(scene_dst->view_layers.first);
        view_layer_src;
-       view_layer_src = view_layer_src->next, view_layer_dst = view_layer_dst->next) {
+       view_layer_src = view_layer_src->next, view_layer_dst = view_layer_dst->next)
+  {
     BKE_view_layer_copy_data(scene_dst, scene_src, view_layer_dst, view_layer_src, flag_subdata);
   }
 
@@ -1474,7 +1475,8 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
   for (bNode *node : ntree->all_nodes()) {
     if (node->id == nullptr &&
         ((node->type == CMP_NODE_R_LAYERS) ||
-         (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER))) {
+         (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER)))
+    {
       node->id = &scene->id;
     }
   }
@@ -2419,7 +2421,8 @@ const char *BKE_scene_find_marker_name(const Scene *scene, int frame)
   for (m1 = static_cast<const TimeMarker *>(markers->first),
       m2 = static_cast<const TimeMarker *>(markers->last);
        m1 && m2;
-       m1 = m1->next, m2 = m2->prev) {
+       m1 = m1->next, m2 = m2->prev)
+  {
     if (m1->frame == frame) {
       return m1->name;
     }
@@ -2628,7 +2631,8 @@ static void prepare_mesh_for_viewport_render(Main *bmain,
   if (obedit) {
     Mesh *mesh = static_cast<Mesh *>(obedit->data);
     if ((obedit->type == OB_MESH) &&
-        ((obedit->id.recalc & ID_RECALC_ALL) || (mesh->id.recalc & ID_RECALC_ALL))) {
+        ((obedit->id.recalc & ID_RECALC_ALL) || (mesh->id.recalc & ID_RECALC_ALL)))
+    {
       if (check_rendered_viewport_visible(bmain)) {
         BMesh *bm = mesh->edit_mesh->bm;
         BMeshToMeshParams params{};
@@ -3358,7 +3362,8 @@ void BKE_scene_multiview_view_prefix_get(Scene *scene,
     if (BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
       const size_t suffix_len = strlen(srv->suffix);
       if (basename_len >= suffix_len &&
-          STREQLEN(name + basename_len - suffix_len, srv->suffix, suffix_len)) {
+          STREQLEN(name + basename_len - suffix_len, srv->suffix, suffix_len))
+      {
         BLI_strncpy(r_prefix, name, basename_len - suffix_len + 1);
         break;
       }
@@ -3502,7 +3507,8 @@ static Depsgraph **scene_get_depsgraph_p(Scene *scene,
 
   DepsgraphKey **key_ptr;
   if (BLI_ghash_ensure_p_ex(
-          scene->depsgraph_hash, &key, (void ***)&key_ptr, (void ***)&depsgraph_ptr)) {
+          scene->depsgraph_hash, &key, (void ***)&key_ptr, (void ***)&depsgraph_ptr))
+  {
     return depsgraph_ptr;
   }
 

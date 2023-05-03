@@ -284,7 +284,8 @@ static void sculpt_raycast_detail_cb(PBVHNode *node, void *data_v, float *tmin)
                                            srd->ray_start,
                                            &srd->isect_precalc,
                                            &srd->depth,
-                                           &srd->edge_length)) {
+                                           &srd->edge_length))
+    {
       srd->hit = true;
       *tmin = srd->depth;
     }
@@ -744,7 +745,8 @@ static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmE
 
   /* Cancel modal operator */
   if ((event->type == EVT_ESCKEY && event->val == KM_PRESS) ||
-      (event->type == RIGHTMOUSE && event->val == KM_PRESS)) {
+      (event->type == RIGHTMOUSE && event->val == KM_PRESS))
+  {
     dyntopo_detail_size_edit_cancel(C, op);
     ED_region_tag_redraw(region);
     return OPERATOR_FINISHED;
@@ -753,7 +755,8 @@ static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmE
   /* Finish modal operator */
   if ((event->type == LEFTMOUSE && event->val == KM_RELEASE) ||
       (event->type == EVT_RETKEY && event->val == KM_PRESS) ||
-      (event->type == EVT_PADENTER && event->val == KM_PRESS)) {
+      (event->type == EVT_PADENTER && event->val == KM_PRESS))
+  {
     ED_region_draw_cb_exit(region->type, cd->draw_handle);
 
     if (brush->dyntopo.inherit & DYNTOPO_INHERIT_CONSTANT_DETAIL) {

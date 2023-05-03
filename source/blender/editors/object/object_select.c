@@ -822,7 +822,8 @@ static bool select_grouped_collection(bContext *C, Object *ob)
 
   for (collection = bmain->collections.first;
        collection && (collection_count < COLLECTION_MENU_MAX);
-       collection = collection->id.next) {
+       collection = collection->id.next)
+  {
     if (BKE_collection_has_object(collection, ob)) {
       ob_collections[collection_count] = collection;
       collection_count++;

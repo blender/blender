@@ -89,8 +89,8 @@ static void editmesh_tessface_calc_intern(BMEditMesh *em,
   if ((em->looptris != nullptr) &&
       // (*em->tottri >= looptris_tot))
       /* Check against allocated size in case we over allocated a little. */
-      ((looptris_tot_prev_alloc >= looptris_tot) &&
-       (looptris_tot_prev_alloc <= looptris_tot * 2))) {
+      ((looptris_tot_prev_alloc >= looptris_tot) && (looptris_tot_prev_alloc <= looptris_tot * 2)))
+  {
     looptris = em->looptris;
   }
   else {
@@ -234,7 +234,8 @@ const float (*BKE_editmesh_vert_coords_when_deformed(Depsgraph *depsgraph,
     coords = me->runtime->edit_data->vertexCos;
   }
   else if ((editmesh_eval_final != nullptr) &&
-           (editmesh_eval_final->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH)) {
+           (editmesh_eval_final->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH))
+  {
     /* If this is an edit-mesh type, leave nullptr as we can use the vertex coords. */
   }
   else {

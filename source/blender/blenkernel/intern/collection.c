@@ -497,7 +497,8 @@ void BKE_collection_add_from_object(Main *bmain,
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
     if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDABLE_LIBRARY(collection) &&
-        BKE_collection_has_object(collection, ob_src)) {
+        BKE_collection_has_object(collection, ob_src))
+    {
       collection_child_add(collection, collection_dst, 0, true);
       is_instantiated = true;
     }
@@ -520,7 +521,8 @@ void BKE_collection_add_from_collection(Main *bmain,
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
     if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDABLE_LIBRARY(collection) &&
-        collection_find_child(collection, collection_src)) {
+        collection_find_child(collection, collection_src))
+    {
       collection_child_add(collection, collection_dst, 0, true);
       is_instantiated = true;
     }
@@ -924,7 +926,8 @@ void BKE_main_collections_object_cache_free(const Main *bmain)
   }
 
   for (Collection *collection = bmain->collections.first; collection != NULL;
-       collection = collection->id.next) {
+       collection = collection->id.next)
+  {
     collection_object_cache_free(collection);
   }
 }
@@ -1274,7 +1277,8 @@ static Collection *collection_parent_editable_find_recursive(const ViewLayer *vi
                                                              Collection *collection)
 {
   if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection) &&
-      (view_layer == NULL || BKE_view_layer_has_collection(view_layer, collection))) {
+      (view_layer == NULL || BKE_view_layer_has_collection(view_layer, collection)))
+  {
     return collection;
   }
 
@@ -1284,9 +1288,11 @@ static Collection *collection_parent_editable_find_recursive(const ViewLayer *vi
 
   LISTBASE_FOREACH (CollectionParent *, collection_parent, &collection->runtime.parents) {
     if (!ID_IS_LINKED(collection_parent->collection) &&
-        !ID_IS_OVERRIDE_LIBRARY(collection_parent->collection)) {
+        !ID_IS_OVERRIDE_LIBRARY(collection_parent->collection))
+    {
       if (view_layer != NULL &&
-          !BKE_view_layer_has_collection(view_layer, collection_parent->collection)) {
+          !BKE_view_layer_has_collection(view_layer, collection_parent->collection))
+      {
         /* In case this parent collection is not in given view_layer, there is no point in
          * searching in its ancestors either, we can skip that whole parenting branch. */
         continue;
@@ -1309,7 +1315,8 @@ static bool collection_object_add(
   if (ob->instance_collection) {
     /* Cyclic dependency check. */
     if ((ob->instance_collection == collection) ||
-        collection_find_child_recursive(ob->instance_collection, collection)) {
+        collection_find_child_recursive(ob->instance_collection, collection))
+    {
       return false;
     }
   }
@@ -1434,7 +1441,8 @@ void BKE_collection_object_add_from(Main *bmain, Scene *scene, Object *ob_src, O
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
     if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection) &&
-        BKE_collection_has_object(collection, ob_src)) {
+        BKE_collection_has_object(collection, ob_src))
+    {
       collection_object_add(bmain, collection, ob_dst, 0, true);
       is_instantiated = true;
     }
@@ -1666,14 +1674,16 @@ static bool collection_instance_find_recursive(Collection *collection,
   LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
     if (collection_object->ob != NULL &&
         /* Object from a given collection should never instantiate that collection either. */
-        ELEM(collection_object->ob->instance_collection, instance_collection, collection)) {
+        ELEM(collection_object->ob->instance_collection, instance_collection, collection))
+    {
       return true;
     }
   }
 
   LISTBASE_FOREACH (CollectionChild *, collection_child, &collection->children) {
     if (collection_child->collection != NULL &&
-        collection_instance_find_recursive(collection_child->collection, instance_collection)) {
+        collection_instance_find_recursive(collection_child->collection, instance_collection))
+    {
       return true;
     }
   }
@@ -1708,8 +1718,8 @@ static bool collection_instance_fix_recursive(Collection *parent_collection,
   bool cycles_found = false;
 
   LISTBASE_FOREACH (CollectionObject *, collection_object, &parent_collection->gobject) {
-    if (collection_object->ob != NULL &&
-        collection_object->ob->instance_collection == collection) {
+    if (collection_object->ob != NULL && collection_object->ob->instance_collection == collection)
+    {
       id_us_min(&collection->id);
       collection_object->ob->instance_collection = NULL;
       cycles_found = true;

@@ -250,7 +250,8 @@ static bool gizmo_is_axis_visible(const RegionView3D *rv3d,
 
   if ((axis_type == MAN_AXES_TRANSLATE && !(twtype & V3D_GIZMO_SHOW_OBJECT_TRANSLATE)) ||
       (axis_type == MAN_AXES_ROTATE && !(twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE)) ||
-      (axis_type == MAN_AXES_SCALE && !(twtype & V3D_GIZMO_SHOW_OBJECT_SCALE))) {
+      (axis_type == MAN_AXES_SCALE && !(twtype & V3D_GIZMO_SHOW_OBJECT_SCALE)))
+  {
     return false;
   }
 
@@ -649,7 +650,8 @@ static int gizmo_3d_foreach_selected(const bContext *C,
             if ((ebo->flag & BONE_ROOTSEL) &&
                 /* don't include same point multiple times */
                 ((ebo->flag & BONE_CONNECTED) && (ebo->parent != nullptr) &&
-                 (ebo->parent->flag & BONE_TIPSEL) && EBONE_VISIBLE(arm, ebo->parent)) == 0) {
+                 (ebo->parent->flag & BONE_TIPSEL) && EBONE_VISIBLE(arm, ebo->parent)) == 0)
+            {
               run_coord_with_matrix(ebo->head, use_mat_local, mat_local);
               totsel++;
 
@@ -872,7 +874,8 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     }
 
     for (base = static_cast<Base *>(BKE_view_layer_object_bases_get(view_layer)->first); base;
-         base = base->next) {
+         base = base->next)
+    {
       if (!BASE_SELECTED_EDITABLE(v3d, base)) {
         continue;
       }
@@ -1192,8 +1195,8 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
     }
   }
 
-  if ((ts->transform_pivot_point == V3D_AROUND_CURSOR) ||
-      (orient_slot->type == V3D_ORIENT_CURSOR)) {
+  if ((ts->transform_pivot_point == V3D_AROUND_CURSOR) || (orient_slot->type == V3D_ORIENT_CURSOR))
+  {
     /* We could be more specific here, for now subscribe to any cursor change. */
     PointerRNA cursor_ptr;
     RNA_pointer_create(&scene->id, &RNA_View3DCursor, &scene->cursor, &cursor_ptr);
@@ -2130,7 +2133,8 @@ static void WIDGETGROUP_gizmo_invoke_prepare(const bContext *C,
     const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get_from_flag(
         scene, ggd->twtype_init);
     if ((gz == ggd->gizmos[MAN_AXIS_ROT_C]) ||
-        (orient_slot == &scene->orientation_slots[SCE_ORIENT_DEFAULT])) {
+        (orient_slot == &scene->orientation_slots[SCE_ORIENT_DEFAULT]))
+    {
       /* #MAN_AXIS_ROT_C always uses the #V3D_ORIENT_VIEW orientation,
        * optionally we could set this orientation instead of unset the property. */
       RNA_property_unset(ptr, prop_orient_type);
@@ -2204,7 +2208,8 @@ static bool WIDGETGROUP_gizmo_poll_context(const bContext *C, wmGizmoGroupType *
     return false;
   }
   if ((v3d->gizmo_show_object & (V3D_GIZMO_SHOW_OBJECT_TRANSLATE | V3D_GIZMO_SHOW_OBJECT_ROTATE |
-                                 V3D_GIZMO_SHOW_OBJECT_SCALE)) == 0) {
+                                 V3D_GIZMO_SHOW_OBJECT_SCALE)) == 0)
+  {
     return false;
   }
 
@@ -2332,7 +2337,8 @@ void transform_gizmo_3d_model_from_constraint_and_mode_init(TransInfo *t)
                                      nullptr;
   if (!gizmo_modal_current || !ELEM(gizmo_modal_current->parent_gzgroup->type,
                                     g_GGT_xform_gizmo,
-                                    g_GGT_xform_gizmo_context)) {
+                                    g_GGT_xform_gizmo_context))
+  {
     t->flag |= T_NO_GIZMO;
   }
 }

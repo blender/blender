@@ -396,7 +396,8 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
 
   /* get uvco */
   if (r_uv && ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME) &&
-      !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
+      !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD))
+  {
 
     const MFace *mface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
     const MTFace *mtface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MTFACE);

@@ -98,7 +98,8 @@ static bool vertex_group_use_vert_sel(Object *ob)
     return true;
   }
   if ((ob->type == OB_MESH) &&
-      ((Mesh *)ob->data)->editflag & (ME_EDIT_PAINT_VERT_SEL | ME_EDIT_PAINT_FACE_SEL)) {
+      ((Mesh *)ob->data)->editflag & (ME_EDIT_PAINT_VERT_SEL | ME_EDIT_PAINT_FACE_SEL))
+  {
     return true;
   }
   return false;
@@ -274,7 +275,8 @@ void ED_vgroup_parray_mirror_sync(Object *ob,
 
   /* get an array of all verts, not only selected */
   if (ED_vgroup_parray_alloc(
-          static_cast<ID *>(ob->data), &dvert_array_all, &dvert_tot_all, false) == false) {
+          static_cast<ID *>(ob->data), &dvert_array_all, &dvert_tot_all, false) == false)
+  {
     BLI_assert(0);
     return;
   }
@@ -314,7 +316,8 @@ void ED_vgroup_parray_mirror_assign(Object *ob, MDeformVert **dvert_array, const
 
   /* get an array of all verts, not only selected */
   if (ED_vgroup_parray_alloc(
-          static_cast<ID *>(ob->data), &dvert_array_all, &dvert_tot_all, false) == false) {
+          static_cast<ID *>(ob->data), &dvert_array_all, &dvert_tot_all, false) == false)
+  {
     BLI_assert(0);
     return;
   }
@@ -399,13 +402,15 @@ bool ED_vgroup_array_copy(Object *ob, Object *ob_from)
     ED_vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, false);
 
     if ((dvert_array == nullptr) && (dvert_array_from != nullptr) &&
-        BKE_object_defgroup_data_create(static_cast<ID *>(ob->data))) {
+        BKE_object_defgroup_data_create(static_cast<ID *>(ob->data)))
+    {
       ED_vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, false);
       new_vgroup = true;
     }
 
     if (dvert_tot == 0 || (dvert_tot != dvert_tot_from) || dvert_array_from == nullptr ||
-        dvert_array == nullptr) {
+        dvert_array == nullptr)
+    {
       if (dvert_array) {
         MEM_freeN(dvert_array);
       }
@@ -2030,7 +2035,8 @@ void ED_vgroup_mirror(Object *ob,
   const ListBase *defbase = BKE_object_defgroup_list(ob);
 
   if ((mirror_weights == false && flip_vgroups == false) ||
-      (BLI_findlink(defbase, def_nr) == nullptr)) {
+      (BLI_findlink(defbase, def_nr) == nullptr))
+  {
     return;
   }
 
@@ -3577,7 +3583,8 @@ static char *vgroup_init_remap(Object *ob)
 
   name = name_array;
   for (const bDeformGroup *def = static_cast<const bDeformGroup *>(defbase->first); def;
-       def = def->next) {
+       def = def->next)
+  {
     BLI_strncpy(name, def->name, MAX_VGROUP_NAME);
     name += MAX_VGROUP_NAME;
   }

@@ -446,7 +446,8 @@ static const char *wm_context_member_from_ptr(const bContext *C,
     { \
       const char *ctx_member = member; \
       if (RNA_struct_is_a((rna_ptr)->type, &(rna_type)) && \
-          (rna_ptr)->data == (CTX_data_pointer_get_type(C, ctx_member, &(rna_type)).data)) { \
+          (rna_ptr)->data == (CTX_data_pointer_get_type(C, ctx_member, &(rna_type)).data)) \
+      { \
         member_id = ctx_member; \
         break; \
       } \
@@ -2304,7 +2305,8 @@ static void radial_control_set_tex(RadialControl *rc)
       if ((ibuf = BKE_brush_gen_radial_control_imbuf(
                rc->image_id_ptr.data,
                rc->use_secondary_tex,
-               !ELEM(rc->subtype, PROP_NONE, PROP_PIXEL, PROP_DISTANCE)))) {
+               !ELEM(rc->subtype, PROP_NONE, PROP_PIXEL, PROP_DISTANCE))))
+      {
 
         rc->texture = GPU_texture_create_2d("radial_control",
                                             ibuf->x,
@@ -2336,8 +2338,9 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
     PointerRNA *fill_ptr;
     PropertyRNA *fill_prop;
 
-    if (rc->fill_col_override_prop && RNA_property_boolean_get(&rc->fill_col_override_test_ptr,
-                                                               rc->fill_col_override_test_prop)) {
+    if (rc->fill_col_override_prop &&
+        RNA_property_boolean_get(&rc->fill_col_override_test_ptr, rc->fill_col_override_test_prop))
+    {
       fill_ptr = &rc->fill_col_override_ptr;
       fill_prop = rc->fill_col_override_prop;
     }
@@ -2631,7 +2634,8 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
     PropertyType prop_type = RNA_property_type(*r_prop);
 
     if (((flags & RC_PROP_REQUIRE_BOOL) && (prop_type != PROP_BOOLEAN)) ||
-        ((flags & RC_PROP_REQUIRE_FLOAT) && (prop_type != PROP_FLOAT))) {
+        ((flags & RC_PROP_REQUIRE_FLOAT) && (prop_type != PROP_FLOAT)))
+    {
       MEM_freeN(str);
       BKE_reportf(op->reports, RPT_ERROR, "Property from path '%s' is not a float", name);
       return 0;
@@ -2673,7 +2677,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &use_secondary_ptr,
                                &use_secondary_prop,
                                0,
-                               (RC_PROP_ALLOW_MISSING | RC_PROP_REQUIRE_BOOL))) {
+                               (RC_PROP_ALLOW_MISSING | RC_PROP_REQUIRE_BOOL)))
+  {
     return 0;
   }
 
@@ -2695,12 +2700,14 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
   }
 
   if (!radial_control_get_path(
-          &ctx_ptr, op, "rotation_path", &rc->rot_ptr, &rc->rot_prop, 0, RC_PROP_REQUIRE_FLOAT)) {
+          &ctx_ptr, op, "rotation_path", &rc->rot_ptr, &rc->rot_prop, 0, RC_PROP_REQUIRE_FLOAT))
+  {
     return 0;
   }
 
   if (!radial_control_get_path(
-          &ctx_ptr, op, "color_path", &rc->col_ptr, &rc->col_prop, 4, RC_PROP_REQUIRE_FLOAT)) {
+          &ctx_ptr, op, "color_path", &rc->col_ptr, &rc->col_prop, 4, RC_PROP_REQUIRE_FLOAT))
+  {
     return 0;
   }
 
@@ -2710,7 +2717,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &rc->fill_col_ptr,
                                &rc->fill_col_prop,
                                3,
-                               RC_PROP_REQUIRE_FLOAT)) {
+                               RC_PROP_REQUIRE_FLOAT))
+  {
     return 0;
   }
 
@@ -2720,7 +2728,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &rc->fill_col_override_ptr,
                                &rc->fill_col_override_prop,
                                3,
-                               RC_PROP_REQUIRE_FLOAT)) {
+                               RC_PROP_REQUIRE_FLOAT))
+  {
     return 0;
   }
   if (!radial_control_get_path(&ctx_ptr,
@@ -2729,7 +2738,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &rc->fill_col_override_test_ptr,
                                &rc->fill_col_override_test_prop,
                                0,
-                               RC_PROP_REQUIRE_BOOL)) {
+                               RC_PROP_REQUIRE_BOOL))
+  {
     return 0;
   }
 
@@ -2742,7 +2752,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &rc->zoom_ptr,
                                &rc->zoom_prop,
                                2,
-                               RC_PROP_REQUIRE_FLOAT | RC_PROP_ALLOW_MISSING)) {
+                               RC_PROP_REQUIRE_FLOAT | RC_PROP_ALLOW_MISSING))
+  {
     return 0;
   }
 
@@ -2821,7 +2832,8 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
             PROP_FACTOR,
             PROP_PERCENTAGE,
             PROP_ANGLE,
-            PROP_PIXEL)) {
+            PROP_PIXEL))
+  {
     BKE_report(op->reports,
                RPT_ERROR,
                "Property must be a none, distance, factor, percentage, angle, or pixel");
@@ -3085,7 +3097,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
   }
 
   if (!handled && (event->val == KM_RELEASE) && (rc->init_event == event->type) &&
-      RNA_boolean_get(op->ptr, "release_confirm")) {
+      RNA_boolean_get(op->ptr, "release_confirm"))
+  {
     ret = OPERATOR_FINISHED;
   }
 

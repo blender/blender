@@ -2814,7 +2814,8 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop,
 
     int dnaoffset = 0;
     if (lengthpropname[0] == 0 ||
-        rna_find_sdna_member(DefRNA.sdna, structname, lengthpropname, &smember, &dnaoffset)) {
+        rna_find_sdna_member(DefRNA.sdna, structname, lengthpropname, &smember, &dnaoffset))
+    {
       if (lengthpropname[0] == 0) {
         dp->dnalengthfixed = prop->totarraylength;
         prop->arraydimension = 0;

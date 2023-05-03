@@ -268,7 +268,8 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_Modifier) &&
            (contains(prop_identifier, "show_viewport") ||
-            contains(prop_identifier, "show_render"))) {
+            contains(prop_identifier, "show_render")))
+  {
     node_identifier.type = NodeType::GEOMETRY;
     node_identifier.operation_code = OperationCode::VISIBILITY;
     return node_identifier;
@@ -281,7 +282,8 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
            RNA_struct_is_a(ptr->type, &RNA_MeshUVLoop) ||
            RNA_struct_is_a(ptr->type, &RNA_MeshLoopColor) ||
            RNA_struct_is_a(ptr->type, &RNA_VertexGroupElement) ||
-           RNA_struct_is_a(ptr->type, &RNA_ShaderFx)) {
+           RNA_struct_is_a(ptr->type, &RNA_ShaderFx))
+  {
     /* When modifier is used as FROM operation this is likely referencing to
      * the property (for example, modifier's influence).
      * But when it's used as TO operation, this is geometry component. */
@@ -313,7 +315,8 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
           contains(prop_identifier, "delta_location") ||
           contains(prop_identifier, "delta_rotation_euler") ||
           contains(prop_identifier, "delta_rotation_quaternion") ||
-          contains(prop_identifier, "delta_scale")) {
+          contains(prop_identifier, "delta_scale"))
+      {
         node_identifier.type = NodeType::TRANSFORM;
         return node_identifier;
       }

@@ -136,7 +136,7 @@ double BLI_dir_free_space(const char *dir)
   struct statfs disk;
 #  endif
 
-  char name[FILE_MAXDIR], *slash;
+  char dirname[FILE_MAXDIR], *slash;
   int len = strlen(dir);
 
   if (len >= FILE_MAXDIR) {
@@ -144,28 +144,28 @@ double BLI_dir_free_space(const char *dir)
     return -1;
   }
 
-  strcpy(name, dir);
+  strcpy(dirname, dir);
 
   if (len) {
-    slash = strrchr(name, '/');
+    slash = strrchr(dirname, '/');
     if (slash) {
       slash[1] = 0;
     }
   }
   else {
-    strcpy(name, "/");
+    strcpy(dirname, "/");
   }
 
 #  if defined(USE_STATFS_STATVFS)
-  if (statvfs(name, &disk)) {
+  if (statvfs(dirname, &disk)) {
     return -1;
   }
 #  elif defined(USE_STATFS_4ARGS)
-  if (statfs(name, &disk, sizeof(struct statfs), 0)) {
+  if (statfs(dirname, &disk, sizeof(struct statfs), 0)) {
     return -1;
   }
 #  else
-  if (statfs(name, &disk)) {
+  if (statfs(dirname, &disk)) {
     return -1;
   }
 #  endif
@@ -268,7 +268,8 @@ eFileAttributes BLI_file_attributes(const char *path)
     ret |= FILE_ATTR_SPARSE_FILE;
   }
   if (attr & FILE_ATTRIBUTE_OFFLINE || attr & FILE_ATTRIBUTE_RECALL_ON_OPEN ||
-      attr & FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS) {
+      attr & FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS)
+  {
     ret |= FILE_ATTR_OFFLINE;
   }
   if (attr & FILE_ATTRIBUTE_REPARSE_POINT) {

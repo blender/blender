@@ -214,7 +214,8 @@ static void node_socket_add_replace(const bContext *C,
 
   if (node_from) {
     if (node_from->inputs.first || node_from->typeinfo->draw_buttons ||
-        node_from->typeinfo->draw_buttons_ex) {
+        node_from->typeinfo->draw_buttons_ex)
+    {
       node_from = nullptr;
     }
   }
@@ -277,7 +278,8 @@ static void node_socket_add_replace(const bContext *C,
     if (node_from->typeinfo->nclass == NODE_CLASS_TEXTURE &&
         node_prev->typeinfo->nclass == NODE_CLASS_TEXTURE &&
         /* White noise texture node does not have NodeTexBase. */
-        node_from->storage != nullptr && node_prev->storage != nullptr) {
+        node_from->storage != nullptr && node_prev->storage != nullptr)
+    {
       memcpy(node_from->storage, node_prev->storage, sizeof(NodeTexBase));
     }
 
@@ -321,20 +323,22 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
     int i;
 
     for (ngroup = (bNodeTree *)arg->bmain->nodetrees.first; ngroup;
-         ngroup = (bNodeTree *)ngroup->id.next) {
+         ngroup = (bNodeTree *)ngroup->id.next)
+    {
       const char *disabled_hint;
-      if ((ngroup->type != arg->ntree->type) ||
-          !nodeGroupPoll(arg->ntree, ngroup, &disabled_hint)) {
+      if ((ngroup->type != arg->ntree->type) || !nodeGroupPoll(arg->ntree, ngroup, &disabled_hint))
+      {
         continue;
       }
     }
 
     i = 0;
     for (ngroup = (bNodeTree *)arg->bmain->nodetrees.first; ngroup;
-         ngroup = (bNodeTree *)ngroup->id.next) {
+         ngroup = (bNodeTree *)ngroup->id.next)
+    {
       const char *disabled_hint;
-      if ((ngroup->type != arg->ntree->type) ||
-          !nodeGroupPoll(arg->ntree, ngroup, &disabled_hint)) {
+      if ((ngroup->type != arg->ntree->type) || !nodeGroupPoll(arg->ntree, ngroup, &disabled_hint))
+      {
         continue;
       }
 

@@ -99,7 +99,8 @@
 
   /* Start or continue composing? */
   if ([[event characters] length] == 0 || [[event charactersIgnoringModifiers] length] == 0 ||
-      composing || ime_process) {
+      composing || ime_process)
+  {
     composing = YES;
 
     // interpret event to call insertText

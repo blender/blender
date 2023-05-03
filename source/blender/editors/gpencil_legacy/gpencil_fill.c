@@ -516,7 +516,8 @@ static void gpencil_stroke_collision(
                                gps_a->boundbox_max,
                                gps_b->boundbox_min,
                                gps_b->boundbox_max,
-                               1.1f)) {
+                               1.1f))
+    {
       continue;
     }
 
@@ -524,7 +525,8 @@ static void gpencil_stroke_collision(
     for (int i = 0; i < gps_b->totpoints - 1; i++) {
       /* Skip segments over same pixel. */
       if (((int)a1xy[0] == (int)stroke->points2d[i + 1][0]) &&
-          ((int)a1xy[1] == (int)stroke->points2d[i + 1][1])) {
+          ((int)a1xy[1] == (int)stroke->points2d[i + 1][1]))
+      {
         continue;
       }
 
@@ -624,7 +626,8 @@ static void gpencil_cut_extensions(tGPDfill *tgpf)
                                    gps_a->boundbox_max,
                                    gps_b->boundbox_min,
                                    gps_b->boundbox_max,
-                                   1.1f)) {
+                                   1.1f))
+        {
           continue;
         }
 
@@ -791,7 +794,8 @@ static void gpencil_create_extensions_radius(tGPDfill *tgpf)
       BLI_gset_add(connected_endpoints, stroke1_end);
     }
     for (bGPDstroke *gps2 = (bGPDstroke *)(((Link *)gps)->next); gps2 != NULL;
-         gps2 = (bGPDstroke *)(((Link *)gps2)->next)) {
+         gps2 = (bGPDstroke *)(((Link *)gps2)->next))
+    {
       /* Don't check distance to temporary extensions. */
       if ((gps2->flag & GP_STROKE_NOFILL) && (gps2->flag & GP_STROKE_TAG)) {
         continue;
@@ -803,7 +807,8 @@ static void gpencil_create_extensions_radius(tGPDfill *tgpf)
                                  gps->boundbox_max,
                                  gps2->boundbox_min,
                                  gps2->boundbox_max,
-                                 connection_dist)) {
+                                 connection_dist))
+      {
         continue;
       }
 
@@ -867,8 +872,8 @@ static bool gpencil_stroke_is_drawable(tGPDfill *tgpf, bGPDstroke *gps)
   const bool is_help_stroke = (gps->flag & GP_STROKE_NOFILL) && (gps->flag & GP_STROKE_HELP);
   const bool stroke_collide = (gps->flag & GP_STROKE_COLLIDE) != 0;
 
-  if (is_line_mode && is_extend_stroke && tgpf->is_render && use_stroke_collide &&
-      !stroke_collide) {
+  if (is_line_mode && is_extend_stroke && tgpf->is_render && use_stroke_collide && !stroke_collide)
+  {
     return false;
   }
 
@@ -1171,7 +1176,8 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
       /* Normal strokes. */
       if (ELEM(tgpf->fill_draw_mode, GP_FILL_DMODE_STROKE, GP_FILL_DMODE_BOTH)) {
         if (gpencil_stroke_is_drawable(tgpf, gps) && ((gps->flag & GP_STROKE_TAG) == 0) &&
-            ((gps->flag & GP_STROKE_HELP) == 0)) {
+            ((gps->flag & GP_STROKE_HELP) == 0))
+        {
           ED_gpencil_draw_fill(&tgpw);
         }
         /* In stroke mode, still must draw the extend lines. */
@@ -2017,7 +2023,8 @@ static void gpencil_get_outline_points(tGPDfill *tgpf, const bool dilate)
     }
     /* Current pixel is equal to starting or first pixel. */
     if ((boundary_co[0] == start_co[0] && boundary_co[1] == start_co[1]) ||
-        (boundary_co[0] == first_co[0] && boundary_co[1] == first_co[1])) {
+        (boundary_co[0] == first_co[0] && boundary_co[1] == first_co[1]))
+    {
       BLI_stack_pop(tgpf->stack, &v);
       break;
     }
@@ -2072,7 +2079,8 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
 
       if ((ED_view3d_depth_read_cached(depths, mval_i, depth_margin, tgpf->depth_arr + i) == 0) &&
           (i && (ED_view3d_depth_read_cached_seg(
-                     depths, mval_i, mval_prev, depth_margin + 1, tgpf->depth_arr + i) == 0))) {
+                     depths, mval_i, mval_prev, depth_margin + 1, tgpf->depth_arr + i) == 0)))
+      {
         interp_depth = true;
       }
       else {
@@ -2326,7 +2334,8 @@ static bool gpencil_fill_poll(bContext *C)
     ScrArea *area = CTX_wm_area(C);
     if (area->spacetype == SPACE_VIEW3D) {
       if ((obact == NULL) || (obact->type != OB_GPENCIL_LEGACY) ||
-          (obact->mode != OB_MODE_PAINT_GPENCIL)) {
+          (obact->mode != OB_MODE_PAINT_GPENCIL))
+      {
         return false;
       }
 

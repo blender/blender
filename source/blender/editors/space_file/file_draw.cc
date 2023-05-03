@@ -217,7 +217,7 @@ static void file_draw_string(int sx,
 {
   uiFontStyle fs;
   rcti rect;
-  char fname[FILE_MAXFILE];
+  char filename[FILE_MAXFILE];
 
   if (string[0] == '\0' || width < 1) {
     return;
@@ -226,8 +226,8 @@ static void file_draw_string(int sx,
   const uiStyle *style = UI_style_get();
   fs = style->widget;
 
-  BLI_strncpy(fname, string, FILE_MAXFILE);
-  UI_text_clip_middle_ex(&fs, fname, width, UI_ICON_SIZE, sizeof(fname), '\0');
+  BLI_strncpy(filename, string, FILE_MAXFILE);
+  UI_text_clip_middle_ex(&fs, filename, width, UI_ICON_SIZE, sizeof(filename), '\0');
 
   /* no text clipping needed, UI_fontstyle_draw does it but is a bit too strict
    * (for buttons it works) */
@@ -239,7 +239,7 @@ static void file_draw_string(int sx,
   uiFontStyleDraw_Params font_style_params{};
   font_style_params.align = align;
 
-  UI_fontstyle_draw(&fs, &rect, fname, sizeof(fname), col, &font_style_params);
+  UI_fontstyle_draw(&fs, &rect, filename, sizeof(filename), col, &font_style_params);
 }
 
 /**
@@ -373,7 +373,8 @@ static void file_draw_preview(const FileDirEntry *file,
   ui_imby = imb->y * UI_SCALE_FAC;
   /* Unlike thumbnails, icons are not scaled up. */
   if (((ui_imbx > layout->prv_w) || (ui_imby > layout->prv_h)) ||
-      (!is_icon && ((ui_imbx < layout->prv_w) || (ui_imby < layout->prv_h)))) {
+      (!is_icon && ((ui_imbx < layout->prv_w) || (ui_imby < layout->prv_h))))
+  {
     if (imb->x > imb->y) {
       scaledx = float(layout->prv_w);
       scaledy = (float(imb->y) / float(imb->x)) * layout->prv_w;
@@ -599,7 +600,7 @@ static void renamebutton_cb(bContext *C, void * /*arg1*/, char *oldname)
 
   BLI_path_join(orgname, sizeof(orgname), params->dir, oldname);
   BLI_strncpy(filename, params->renamefile, sizeof(filename));
-  BLI_filename_make_safe(filename);
+  BLI_path_make_safe_filename(filename);
   BLI_path_join(newname, sizeof(newname), params->dir, filename);
 
   if (!STREQ(orgname, newname)) {
@@ -826,7 +827,8 @@ static const char *filelist_get_details_column_string(
       break;
     case COLUMN_SIZE:
       if ((file->typeflag & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) ||
-          !(file->typeflag & (FILE_TYPE_DIR | FILE_TYPE_BLENDERLIB))) {
+          !(file->typeflag & (FILE_TYPE_DIR | FILE_TYPE_BLENDERLIB)))
+      {
         if ((file->draw_data.size_str[0] == '\0') || update_stat_strings) {
           BLI_filelist_entry_size_to_string(
               nullptr, file->size, small_size, file->draw_data.size_str);
@@ -1007,7 +1009,8 @@ void file_draw_list(const bContext *C, ARegion *region)
 
     if (!(file_selflag & FILE_SEL_EDITING)) {
       if ((params->highlight_file == i) || (file_selflag & FILE_SEL_HIGHLIGHTED) ||
-          (file_selflag & FILE_SEL_SELECTED)) {
+          (file_selflag & FILE_SEL_SELECTED))
+      {
         int colorid = (file_selflag & FILE_SEL_SELECTED) ? TH_HILITE : TH_BACK;
         int shade = (params->highlight_file == i) || (file_selflag & FILE_SEL_HIGHLIGHTED) ? 35 :
                                                                                              0;
@@ -1240,7 +1243,8 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
   }
   /* Check if the library exists. */
   if ((asset_params->asset_library_ref.type == ASSET_LIBRARY_LOCAL) ||
-      filelist_is_dir(sfile->files, asset_params->base_params.dir)) {
+      filelist_is_dir(sfile->files, asset_params->base_params.dir))
+  {
     return false;
   }
 

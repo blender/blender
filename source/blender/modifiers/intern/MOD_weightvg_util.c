@@ -48,15 +48,16 @@ void weightvg_do_map(
 
   /* Return immediately, if we have nothing to do! */
   /* Also security checks... */
-  if (!do_invert && (((falloff_type == MOD_WVG_MAPPING_CURVE) && (cmap == NULL)) ||
-                     !ELEM(falloff_type,
-                           MOD_WVG_MAPPING_CURVE,
-                           MOD_WVG_MAPPING_SHARP,
-                           MOD_WVG_MAPPING_SMOOTH,
-                           MOD_WVG_MAPPING_ROOT,
-                           MOD_WVG_MAPPING_SPHERE,
-                           MOD_WVG_MAPPING_RANDOM,
-                           MOD_WVG_MAPPING_STEP))) {
+  if (!do_invert &&
+      (((falloff_type == MOD_WVG_MAPPING_CURVE) && (cmap == NULL)) || !ELEM(falloff_type,
+                                                                            MOD_WVG_MAPPING_CURVE,
+                                                                            MOD_WVG_MAPPING_SHARP,
+                                                                            MOD_WVG_MAPPING_SMOOTH,
+                                                                            MOD_WVG_MAPPING_ROOT,
+                                                                            MOD_WVG_MAPPING_SPHERE,
+                                                                            MOD_WVG_MAPPING_RANDOM,
+                                                                            MOD_WVG_MAPPING_STEP)))
+  {
     return;
   }
 

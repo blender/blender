@@ -92,7 +92,8 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
       (RNA_property_editable(&eye->ptr, eye->prop) == false) ||
       (RNA_property_array_length(&eye->ptr, eye->prop) < 3) ||
       (RNA_property_type(eye->prop) != PROP_FLOAT) ||
-      (ELEM(prop_subtype, PROP_COLOR, PROP_COLOR_GAMMA) == 0)) {
+      (ELEM(prop_subtype, PROP_COLOR, PROP_COLOR_GAMMA) == 0))
+  {
     MEM_freeN(eye);
     return false;
   }
@@ -173,7 +174,8 @@ static bool eyedropper_cryptomatte_sample_renderlayer_fl(RenderLayer *render_lay
 
   LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {
     if (STRPREFIX(render_pass->name, render_pass_name_prefix) &&
-        !STREQLEN(render_pass->name, render_pass_name_prefix, sizeof(render_pass->name))) {
+        !STREQLEN(render_pass->name, render_pass_name_prefix, sizeof(render_pass->name)))
+    {
       BLI_assert(render_pass->channels == 4);
       const int x = int(fpos[0] * render_pass->rectx);
       const int y = int(fpos[1] * render_pass->recty);

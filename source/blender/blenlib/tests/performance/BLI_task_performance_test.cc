@@ -120,7 +120,8 @@ static void task_listbase_test_do(ListBase *list,
     LinkData *item;
     int j;
     for (j = 0, item = (LinkData *)list->first; j < items_num && item != nullptr;
-         j++, item = item->next) {
+         j++, item = item->next)
+    {
       EXPECT_EQ(POINTER_AS_INT(item->data), j);
       item->data = POINTER_FROM_INT(0);
     }

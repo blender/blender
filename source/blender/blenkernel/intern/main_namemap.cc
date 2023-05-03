@@ -203,7 +203,8 @@ void BKE_main_namemap_clear(Main *bmain)
     }
     for (Library *lib_iter = static_cast<Library *>(bmain_iter->libraries.first);
          lib_iter != nullptr;
-         lib_iter = static_cast<Library *>(lib_iter->id.next)) {
+         lib_iter = static_cast<Library *>(lib_iter->id.next))
+    {
       if (lib_iter->runtime.name_map != nullptr) {
         BKE_main_namemap_destroy(&lib_iter->runtime.name_map);
       }
@@ -233,7 +234,7 @@ static void main_namemap_populate(UniqueName_Map *name_map, struct Main *bmain, 
 
     /* Get the name and number parts ("name.number"). */
     int number = MIN_NUMBER;
-    BLI_split_name_num(key.name, &number, id->name + 2, '.');
+    BLI_string_split_name_number(id->name + 2, '.', key.name, &number);
 
     /* Get and update the entry for this base name. */
     UniqueName_Value &val = type_map->base_name_to_num_suffix.lookup_or_add_default(key);
@@ -283,7 +284,7 @@ bool BKE_main_namemap_get_name(struct Main *bmain, struct ID *id, char *name)
 
     /* Get the name and number parts ("name.number"). */
     int number = MIN_NUMBER;
-    size_t base_name_len = BLI_split_name_num(key.name, &number, name, '.');
+    size_t base_name_len = BLI_string_split_name_number(name, '.', key.name, &number);
 
     bool added_new = false;
     UniqueName_Value &val = type_map->base_name_to_num_suffix.lookup_or_add_cb(key, [&]() {
@@ -372,7 +373,7 @@ void BKE_main_namemap_remove_name(struct Main *bmain, struct ID *id, const char 
   type_map->full_names.remove(key);
 
   int number = MIN_NUMBER;
-  BLI_split_name_num(key.name, &number, name, '.');
+  BLI_string_split_name_number(name, '.', key.name, &number);
   UniqueName_Value *val = type_map->base_name_to_num_suffix.lookup_ptr(key);
   if (val == nullptr) {
     return;
@@ -460,7 +461,8 @@ static bool main_namemap_validate_and_fix(Main *bmain, const bool do_fix)
     if (name_map != nullptr) {
       int i = 0;
       for (short idcode = BKE_idtype_idcode_iter_step(&i); idcode != 0;
-           idcode = BKE_idtype_idcode_iter_step(&i)) {
+           idcode = BKE_idtype_idcode_iter_step(&i))
+      {
         UniqueName_TypeMap *type_map = name_map->find_by_type(idcode);
         if (type_map != nullptr) {
           for (const UniqueName_Key &id_name : type_map->full_names) {

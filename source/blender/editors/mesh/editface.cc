@@ -393,8 +393,8 @@ void paintface_select_more(Mesh *mesh, const bool face_step)
         continue;
       }
       const IndexRange poly = polys[i];
-      if (poly_has_selected_neighbor(
-              corner_edges.slice(poly), edges, select_vert.span, face_step)) {
+      if (poly_has_selected_neighbor(corner_edges.slice(poly), edges, select_vert.span, face_step))
+      {
         select_poly.span[i] = true;
       }
     }
@@ -460,7 +460,8 @@ void paintface_select_less(Mesh *mesh, const bool face_step)
       }
       const IndexRange poly = polys[i];
       if (poly_has_unselected_neighbor(
-              corner_edges.slice(poly), edges, verts_of_unselected_faces, face_step)) {
+              corner_edges.slice(poly), edges, verts_of_unselected_faces, face_step))
+      {
         select_poly.span[i] = false;
       }
     }
@@ -747,8 +748,8 @@ void paintvert_select_linked_pick(bContext *C,
                                   const bool select)
 {
   uint index = uint(-1);
-  if (!ED_mesh_pick_vert(
-          C, ob, region_coordinates, ED_MESH_PICK_DEFAULT_VERT_DIST, true, &index)) {
+  if (!ED_mesh_pick_vert(C, ob, region_coordinates, ED_MESH_PICK_DEFAULT_VERT_DIST, true, &index))
+  {
     return;
   }
 

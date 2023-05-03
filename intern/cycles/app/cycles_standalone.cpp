@@ -511,7 +511,8 @@ static void options_parse(int argc, const char **argv)
     exit(EXIT_FAILURE);
   }
   else if (options.scene_params.shadingsystem == SHADINGSYSTEM_OSL &&
-           options.session_params.device.type != DEVICE_CPU) {
+           options.session_params.device.type != DEVICE_CPU)
+  {
     fprintf(stderr, "OSL shading system only works with CPU device\n");
     exit(EXIT_FAILURE);
   }

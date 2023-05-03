@@ -163,12 +163,14 @@ static GHash *text_autocomplete_build(Text *text)
         i_pos = i_start;
         while ((i_start < linep->len) &&
                !text_check_identifier_nodigit_unicode(
-                   BLI_str_utf8_as_unicode_step(linep->line, linep->len, &i_pos))) {
+                   BLI_str_utf8_as_unicode_step(linep->line, linep->len, &i_pos)))
+        {
           i_start = i_pos;
         }
         i_pos = i_end = i_start;
         while ((i_end < linep->len) && text_check_identifier_unicode(BLI_str_utf8_as_unicode_step(
-                                           linep->line, linep->len, &i_pos))) {
+                                           linep->line, linep->len, &i_pos)))
+        {
           i_end = i_pos;
         }
 
@@ -176,12 +178,14 @@ static GHash *text_autocomplete_build(Text *text)
             /* Check we're at the beginning of a line or that the previous char is not an
              * identifier this prevents digits from being added. */
             ((i_start < 1) ||
-             !text_check_identifier_unicode(BLI_str_utf8_as_unicode(&linep->line[i_start - 1])))) {
+             !text_check_identifier_unicode(BLI_str_utf8_as_unicode(&linep->line[i_start - 1]))))
+        {
           char *str_sub = &linep->line[i_start];
           const int choice_len = i_end - i_start;
 
           if ((choice_len > seek_len) && (seek_len == 0 || STREQLEN(seek, str_sub, seek_len)) &&
-              (seek != str_sub)) {
+              (seek != str_sub))
+          {
             // printf("Adding: %s\n", s);
             char str_sub_last = str_sub[choice_len];
             str_sub[choice_len] = '\0';

@@ -140,8 +140,9 @@ struct IconPreview {
   Depsgraph *depsgraph; /* May be nullptr (see #WM_OT_previews_ensure). */
   Scene *scene;
   void *owner;
-  ID *id,
-      *id_copy; /* May be nullptr! (see ICON_TYPE_PREVIEW case in #ui_icon_ensure_deferred()) */
+  /** May be nullptr! (see #ICON_TYPE_PREVIEW case in #ui_icon_ensure_deferred()). */
+  ID *id;
+  ID *id_copy;
   ListBase sizes;
 
   /* May be nullptr, is used for rendering IDs that require some other object for it to be applied
@@ -744,7 +745,8 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
      * or if the job is running and the size of preview changed */
     if ((sbuts != nullptr && sbuts->preview) ||
         (!ok && !WM_jobs_test(wm, area, WM_JOB_TYPE_RENDER_PREVIEW)) ||
-        (sp && (abs(sp->sizex - newx) >= 2 || abs(sp->sizey - newy) > 2))) {
+        (sp && (abs(sp->sizex - newx) >= 2 || abs(sp->sizey - newy) > 2)))
+    {
       if (sbuts != nullptr) {
         sbuts->preview = 0;
       }
@@ -1576,7 +1578,8 @@ static void icon_preview_startjob_all_sizes(void *customdata,
   IconPreviewSize *cur_size;
 
   for (cur_size = static_cast<IconPreviewSize *>(ip->sizes.first); cur_size;
-       cur_size = cur_size->next) {
+       cur_size = cur_size->next)
+  {
     PreviewImage *prv = static_cast<PreviewImage *>(ip->owner);
     /* Is this a render job or a deferred loading job? */
     const ePreviewRenderMethod pr_method = (prv->tag & PRV_TAG_DEFFERED) ? PR_ICON_DEFERRED :
@@ -1599,7 +1602,8 @@ static void icon_preview_startjob_all_sizes(void *customdata,
      * necessary to know here what happens inside lower-level functions. */
     const bool use_solid_render_mode = (ip->id != nullptr) && ELEM(GS(ip->id->name), ID_OB, ID_AC);
     if (!use_solid_render_mode && preview_method_is_render(pr_method) &&
-        !check_engine_supports_preview(ip->scene)) {
+        !check_engine_supports_preview(ip->scene))
+    {
       continue;
     }
 
@@ -1810,7 +1814,8 @@ void PreviewLoadJob::run_fn(void *customdata, bool *stop, bool *do_update, float
   IMB_thumb_locks_acquire();
 
   while (RequestedPreview *request = static_cast<RequestedPreview *>(
-             BLI_thread_queue_pop_timeout(job_data->todo_queue_, 100))) {
+             BLI_thread_queue_pop_timeout(job_data->todo_queue_, 100)))
+  {
     if (*stop) {
       break;
     }
@@ -1865,7 +1870,8 @@ void PreviewLoadJob::update_fn(void *customdata)
   PreviewLoadJob *job_data = static_cast<PreviewLoadJob *>(customdata);
 
   for (auto request_it = job_data->requested_previews_.begin();
-       request_it != job_data->requested_previews_.end();) {
+       request_it != job_data->requested_previews_.end();)
+  {
     RequestedPreview &requested = *request_it;
     /* Skip items that are not done loading yet. */
     if (requested.preview->tag & PRV_TAG_DEFFERED_RENDERING) {

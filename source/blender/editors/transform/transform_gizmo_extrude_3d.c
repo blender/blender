@@ -257,7 +257,8 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
                                            .orientation_index = V3D_ORIENT_NORMAL + 1,
                                        },
                                        &tbounds_normal,
-                                       rv3d)) {
+                                       rv3d))
+    {
       unit_m3(tbounds_normal.axis);
     }
     copy_m3_m3(ggd->data.normal_mat3, tbounds_normal.axis);
@@ -269,7 +270,8 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
                                          .orientation_index = ggd->data.orientation_index + 1,
                                      },
                                      &tbounds,
-                                     rv3d)) {
+                                     rv3d))
+  {
     return;
   }
 

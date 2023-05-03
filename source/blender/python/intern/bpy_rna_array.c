@@ -144,7 +144,8 @@ static int validate_array_type(PyObject *seq,
                                    is_dynamic,
                                    check_item_type,
                                    item_type_str,
-                                   error_prefix) == -1) {
+                                   error_prefix) == -1)
+      {
         ok = 0;
       }
 
@@ -402,7 +403,8 @@ static int validate_array(PyObject *rvalue,
                             (prop_flag & PROP_DYNAMIC) != 0,
                             check_item_type,
                             item_type_str,
-                            error_prefix) == -1) {
+                            error_prefix) == -1)
+    {
       return -1;
     }
 
@@ -537,7 +539,8 @@ static int py_to_array(PyObject *seq,
                      check_item_type,
                      item_type_str,
                      &totitem,
-                     error_prefix) == -1) {
+                     error_prefix) == -1)
+  {
     return -1;
   }
 
@@ -643,7 +646,8 @@ static int py_to_array_index(PyObject *py,
                        check_item_type,
                        item_type_str,
                        &totitem,
-                       error_prefix) == -1) {
+                       error_prefix) == -1)
+    {
       return -1;
     }
 

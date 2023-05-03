@@ -1614,7 +1614,8 @@ static void icu_to_fcurves(ID *id,
          * - we need radians for RNA to do the right thing
          */
         if (((icu->blocktype == ID_OB) && ELEM(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) ||
-            ((icu->blocktype == ID_PO) && ELEM(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z))) {
+            ((icu->blocktype == ID_PO) && ELEM(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z)))
+        {
           const float fac = (float)M_PI / 18.0f; /* 10.0f * M_PI/180.0f; */
 
           dst->vec[0][1] *= fac;
@@ -1627,7 +1628,8 @@ static void icu_to_fcurves(ID *id,
          * - we now need as 'frames'
          */
         if ((id) && (icu->blocktype == GS(id->name)) &&
-            (fcu->rna_path && STREQ(fcu->rna_path, "eval_time"))) {
+            (fcu->rna_path && STREQ(fcu->rna_path, "eval_time")))
+        {
           Curve *cu = (Curve *)id;
 
           dst->vec[0][1] *= cu->pathlen;
@@ -1644,10 +1646,8 @@ static void icu_to_fcurves(ID *id,
           DriverVar *dvar = fcu->driver->variables.first;
           DriverTarget *dtar = &dvar->targets[0];
 
-          if (ELEM(dtar->transChan,
-                   DTAR_TRANSCHAN_ROTX,
-                   DTAR_TRANSCHAN_ROTY,
-                   DTAR_TRANSCHAN_ROTZ)) {
+          if (ELEM(dtar->transChan, DTAR_TRANSCHAN_ROTX, DTAR_TRANSCHAN_ROTY, DTAR_TRANSCHAN_ROTZ))
+          {
             const float fac = (float)M_PI / 18.0f;
 
             dst->vec[0][0] *= fac;

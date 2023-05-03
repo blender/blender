@@ -157,7 +157,8 @@ static Material *gpencil_add_from_curve_material(Main *bmain,
 
   /* Check at least one is enabled. */
   if (((gp_style->flag & GP_MATERIAL_STROKE_SHOW) == 0) &&
-      ((gp_style->flag & GP_MATERIAL_FILL_SHOW) == 0)) {
+      ((gp_style->flag & GP_MATERIAL_FILL_SHOW) == 0))
+  {
     gp_style->flag |= GP_MATERIAL_STROKE_SHOW;
   }
 
@@ -1123,7 +1124,8 @@ void BKE_gpencil_editcurve_recalculate_handles(bGPDstroke *gps)
     bGPDcurve_point *gpc_pt_next = &gpc->curve_points[i + 1];
     /* update handle if point or neighbor is selected */
     if (gpc_pt->flag & GP_CURVE_POINT_SELECT || gpc_pt_prev->flag & GP_CURVE_POINT_SELECT ||
-        gpc_pt_next->flag & GP_CURVE_POINT_SELECT) {
+        gpc_pt_next->flag & GP_CURVE_POINT_SELECT)
+    {
       BezTriple *bezt = &gpc_pt->bezt;
       BezTriple *bezt_prev = &gpc_pt_prev->bezt;
       BezTriple *bezt_next = &gpc_pt_next->bezt;

@@ -59,7 +59,7 @@ static void fillCineonMainHeader(LogImageFile *cineon,
                                            cineon->isMSB);
   STRNCPY(header->fileHeader.version, "v4.5");
   STRNCPY(header->fileHeader.file_name, filepath);
-  fileClock = time(NULL);
+  fileClock = time(nullptr);
   fileTime = localtime(&fileClock);
   strftime(header->fileHeader.creation_date, 12, "%Y:%m:%d", fileTime);
   strftime(header->fileHeader.creation_time, 12, "%H:%M:%S%Z", fileTime);
@@ -129,32 +129,32 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
   int i;
   uint dataOffset;
 
-  if (cineon == NULL) {
+  if (cineon == nullptr) {
     if (verbose) {
       printf("Cineon: Failed to malloc cineon file structure.\n");
     }
-    return NULL;
+    return nullptr;
   }
 
   /* zero the header */
   memset(&header, 0, sizeof(CineonMainHeader));
 
   /* for close routine */
-  cineon->file = NULL;
+  cineon->file = nullptr;
 
   if (fromMemory == 0) {
     /* byteStuff is then the filepath */
     cineon->file = BLI_fopen(filepath, "rb");
-    if (cineon->file == NULL) {
+    if (cineon->file == nullptr) {
       if (verbose) {
         printf("Cineon: Failed to open file \"%s\".\n", filepath);
       }
       logImageClose(cineon);
-      return NULL;
+      return nullptr;
     }
     /* not used in this case */
-    cineon->memBuffer = NULL;
-    cineon->memCursor = NULL;
+    cineon->memBuffer = nullptr;
+    cineon->memCursor = nullptr;
     cineon->memBufferSize = 0;
   }
   else {
@@ -168,7 +168,7 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
       printf("Cineon: Not enough data for header in \"%s\".\n", byteStuff);
     }
     logImageClose(cineon);
-    return NULL;
+    return nullptr;
   }
 
   /* endianness determination */
@@ -187,11 +187,11 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
   else {
     if (verbose) {
       printf("Cineon: Bad magic number %lu in \"%s\".\n",
-             (ulong)header.fileHeader.magic_num,
+             ulong(header.fileHeader.magic_num),
              byteStuff);
     }
     logImageClose(cineon);
-    return NULL;
+    return nullptr;
   }
 
   cineon->width = swap_uint(header.imageHeader.element[0].pixels_per_line, cineon->isMSB);
@@ -202,7 +202,7 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
       printf("Cineon: Wrong image dimension: %dx%d\n", cineon->width, cineon->height);
     }
     logImageClose(cineon);
-    return NULL;
+    return nullptr;
   }
 
   cineon->depth = header.imageHeader.elements_per_image;
@@ -219,7 +219,7 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
       printf("Cineon: Data interleave not supported: %d\n", header.imageHeader.interleave);
     }
     logImageClose(cineon);
-    return NULL;
+    return nullptr;
   }
 
   if (cineon->depth == 1) {
@@ -252,7 +252,7 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
       printf("Cineon: Cineon image depth unsupported: %d\n", cineon->depth);
     }
     logImageClose(cineon);
-    return NULL;
+    return nullptr;
   }
 
   dataOffset = swap_uint(header.fileHeader.offset, cineon->isMSB);
@@ -288,7 +288,7 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
           printf("Cineon: packing unsupported: %d\n", header.imageHeader.packing);
         }
         logImageClose(cineon);
-        return NULL;
+        return nullptr;
     }
 
     if (cineon->element[i].refLowData == CINEON_UNDEFINED_U32) {
@@ -296,16 +296,18 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
     }
 
     if (cineon->element[i].refHighData == CINEON_UNDEFINED_U32) {
-      cineon->element[i].refHighData = (uint)cineon->element[i].maxValue;
+      cineon->element[i].refHighData = uint(cineon->element[i].maxValue);
     }
 
     if (cineon->element[i].refLowQuantity == CINEON_UNDEFINED_R32 ||
-        isnan(cineon->element[i].refLowQuantity)) {
+        isnan(cineon->element[i].refLowQuantity))
+    {
       cineon->element[i].refLowQuantity = 0.0f;
     }
 
     if (cineon->element[i].refHighQuantity == CINEON_UNDEFINED_R32 ||
-        isnan(cineon->element[i].refHighQuantity)) {
+        isnan(cineon->element[i].refHighQuantity))
+    {
       if (cineon->element[i].transfer == transfer_PrintingDensity) {
         cineon->element[i].refHighQuantity = 2.048f;
       }
@@ -352,15 +354,15 @@ LogImageFile *cineonCreate(
     const char *filepath, int width, int height, int bitsPerSample, const char *creator)
 {
   CineonMainHeader header;
-  const char *shortFilename = NULL;
+  const char *shortFilename = nullptr;
   /* uchar pad[6044]; */
 
   LogImageFile *cineon = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
-  if (cineon == NULL) {
+  if (cineon == nullptr) {
     if (verbose) {
       printf("cineon: Failed to malloc cineon file structure.\n");
     }
-    return NULL;
+    return nullptr;
   }
 
   /* Only 10 bits Cineon are supported */
@@ -369,7 +371,7 @@ LogImageFile *cineonCreate(
       printf("cineon: Only 10 bits Cineon are supported.\n");
     }
     logImageClose(cineon);
-    return NULL;
+    return nullptr;
   }
 
   cineon->width = width;
@@ -393,7 +395,7 @@ LogImageFile *cineonCreate(
   cineon->gamma = 1.7f;
 
   shortFilename = strrchr(filepath, PATHSEP_CHAR);
-  if (shortFilename == NULL) {
+  if (shortFilename == nullptr) {
     shortFilename = filepath;
   }
   else {
@@ -401,12 +403,12 @@ LogImageFile *cineonCreate(
   }
 
   cineon->file = BLI_fopen(filepath, "wb");
-  if (cineon->file == NULL) {
+  if (cineon->file == nullptr) {
     if (verbose) {
       printf("cineon: Couldn't open file %s\n", filepath);
     }
     logImageClose(cineon);
-    return NULL;
+    return nullptr;
   }
 
   fillCineonMainHeader(cineon, &header, shortFilename, creator);
@@ -416,7 +418,7 @@ LogImageFile *cineonCreate(
       printf("cineon: Couldn't write image header\n");
     }
     logImageClose(cineon);
-    return NULL;
+    return nullptr;
   }
 
   return cineon;

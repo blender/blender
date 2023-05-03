@@ -315,7 +315,8 @@ float dof_history_blend_factor(
   blend = mix(blend, 1.0, coc_diff_ratio);
   /* Discard out of view history. */
   if (any(lessThan(texel, vec2(0))) ||
-      any(greaterThanEqual(texel, vec2(imageSize(out_history_img))))) {
+      any(greaterThanEqual(texel, vec2(imageSize(out_history_img)))))
+  {
     blend = 1.0;
   }
   /* Discard history if invalid. */

@@ -52,12 +52,13 @@ static int point_data_used(PointDensity *pd)
 
   if (pd->source == TEX_PD_PSYS) {
     if ((pd->falloff_type == TEX_PD_FALLOFF_PARTICLE_VEL) ||
-        (pd->color_source == TEX_PD_COLOR_PARTVEL) ||
-        (pd->color_source == TEX_PD_COLOR_PARTSPEED)) {
+        (pd->color_source == TEX_PD_COLOR_PARTVEL) || (pd->color_source == TEX_PD_COLOR_PARTSPEED))
+    {
       pd_bitflag |= POINT_DATA_VEL;
     }
     if ((pd->color_source == TEX_PD_COLOR_PARTAGE) ||
-        (pd->falloff_type == TEX_PD_FALLOFF_PARTICLE_AGE)) {
+        (pd->falloff_type == TEX_PD_FALLOFF_PARTICLE_AGE))
+    {
       pd_bitflag |= POINT_DATA_LIFE;
     }
   }

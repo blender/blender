@@ -45,7 +45,7 @@ enum ePF_FileStatus {
 
 struct PackedFile *BKE_packedfile_duplicate(const struct PackedFile *pf_src);
 struct PackedFile *BKE_packedfile_new(struct ReportList *reports,
-                                      const char *filepath,
+                                      const char *filepath_rel,
                                       const char *basepath);
 struct PackedFile *BKE_packedfile_new_from_memory(void *mem, int memlen);
 

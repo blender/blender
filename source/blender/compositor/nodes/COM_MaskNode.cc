@@ -45,7 +45,8 @@ void MaskNode::convert_to_operations(NodeConverter &converter,
   operation->set_feather(bool(editor_node->custom1 & CMP_NODE_MASK_FLAG_NO_FEATHER) == 0);
 
   if ((editor_node->custom1 & CMP_NODE_MASK_FLAG_MOTION_BLUR) && (editor_node->custom2 > 1) &&
-      (editor_node->custom3 > FLT_EPSILON)) {
+      (editor_node->custom3 > FLT_EPSILON))
+  {
     operation->set_motion_blur_samples(editor_node->custom2);
     operation->set_motion_blur_shutter(editor_node->custom3);
   }

@@ -99,7 +99,8 @@ static void convert_stroke(GpencilModifierData *md,
                                       mmd->flag & GP_OUTLINE_INVERT_LAYER,
                                       mmd->flag & GP_OUTLINE_INVERT_PASS,
                                       mmd->flag & GP_OUTLINE_INVERT_LAYERPASS,
-                                      mmd->flag & GP_OUTLINE_INVERT_MATERIAL)) {
+                                      mmd->flag & GP_OUTLINE_INVERT_MATERIAL))
+  {
     return;
   }
 

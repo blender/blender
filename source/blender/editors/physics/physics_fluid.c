@@ -617,7 +617,8 @@ static int fluid_free_exec(struct bContext *C, struct wmOperator *op)
 
   /* Cannot free data if other bakes currently working */
   if (fmd->domain->cache_flag & (FLUID_DOMAIN_BAKING_DATA | FLUID_DOMAIN_BAKING_NOISE |
-                                 FLUID_DOMAIN_BAKING_MESH | FLUID_DOMAIN_BAKING_PARTICLES)) {
+                                 FLUID_DOMAIN_BAKING_MESH | FLUID_DOMAIN_BAKING_PARTICLES))
+  {
     BKE_report(op->reports, RPT_ERROR, "Bake free failed: pending bake jobs found");
     return OPERATOR_CANCELLED;
   }

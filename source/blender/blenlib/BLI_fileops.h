@@ -49,14 +49,14 @@ int BLI_rename(const char *from, const char *to) ATTR_NONNULL();
  *
  * \return zero on success (matching 'remove' behavior).
  */
-int BLI_delete(const char *file, bool dir, bool recursive) ATTR_NONNULL();
+int BLI_delete(const char *path, bool dir, bool recursive) ATTR_NONNULL();
 /**
  * Soft deletes the specified file or directory (depending on dir) by moving the files to the
  * recycling bin, optionally doing recursive delete of directory contents.
  *
  * \return zero on success (matching 'remove' behavior).
  */
-int BLI_delete_soft(const char *file, const char **error_message) ATTR_NONNULL();
+int BLI_delete_soft(const char *filepath, const char **error_message) ATTR_NONNULL();
 /**
  * When `path` points to a directory, moves all its contents into `to`,
  * else rename `path` itself to `to`.
@@ -276,7 +276,14 @@ bool BLI_file_is_writable(const char *filepath) ATTR_WARN_UNUSED_RESULT ATTR_NON
  * Creates the file with nothing in it, or updates its last-modified date if it already exists.
  * Returns true if successful (like the unix touch command).
  */
-bool BLI_file_touch(const char *file) ATTR_NONNULL();
+bool BLI_file_touch(const char *filepath) ATTR_NONNULL(1);
+/**
+ * Ensures that the parent directory of `filepath` exists.
+ *
+ * \return true on success (i.e. given path now exists on file-system), false otherwise.
+ */
+bool BLI_file_ensure_parent_dir_exists(const char *filepath) ATTR_NONNULL(1);
+
 bool BLI_file_alias_target(const char *filepath, char *r_targetpath) ATTR_WARN_UNUSED_RESULT;
 
 bool BLI_file_magic_is_gzip(const char header[4]);

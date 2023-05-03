@@ -17,7 +17,7 @@ void IMB_flipy(struct ImBuf *ibuf)
 {
   size_t x_size, y_size;
 
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     return;
   }
 
@@ -31,7 +31,7 @@ void IMB_flipy(struct ImBuf *ibuf)
 
     top = ibuf->rect;
     bottom = top + ((y_size - 1) * x_size);
-    line = MEM_mallocN(stride, "linebuf");
+    line = static_cast<uint *>(MEM_mallocN(stride, "linebuf"));
 
     y_size >>= 1;
 
@@ -47,7 +47,7 @@ void IMB_flipy(struct ImBuf *ibuf)
   }
 
   if (ibuf->rect_float) {
-    float *topf = NULL, *bottomf = NULL, *linef = NULL;
+    float *topf = nullptr, *bottomf = nullptr, *linef = nullptr;
 
     x_size = ibuf->x;
     y_size = ibuf->y;
@@ -56,7 +56,7 @@ void IMB_flipy(struct ImBuf *ibuf)
 
     topf = ibuf->rect_float;
     bottomf = topf + 4 * ((y_size - 1) * x_size);
-    linef = MEM_mallocN(stride, "linebuf");
+    linef = static_cast<float *>(MEM_mallocN(stride, "linebuf"));
 
     y_size >>= 1;
 
@@ -77,7 +77,7 @@ void IMB_flipx(struct ImBuf *ibuf)
   int x, y, xr, xl, yi;
   float px_f[4];
 
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     return;
   }
 
@@ -86,7 +86,7 @@ void IMB_flipx(struct ImBuf *ibuf)
 
   if (ibuf->rect) {
     for (yi = y - 1; yi >= 0; yi--) {
-      const size_t x_offset = (size_t)x * yi;
+      const size_t x_offset = size_t(x) * yi;
       for (xr = x - 1, xl = 0; xr >= xl; xr--, xl++) {
         SWAP(uint, ibuf->rect[x_offset + xr], ibuf->rect[x_offset + xl]);
       }
@@ -95,7 +95,7 @@ void IMB_flipx(struct ImBuf *ibuf)
 
   if (ibuf->rect_float) {
     for (yi = y - 1; yi >= 0; yi--) {
-      const size_t x_offset = (size_t)x * yi;
+      const size_t x_offset = size_t(x) * yi;
       for (xr = x - 1, xl = 0; xr >= xl; xr--, xl++) {
         memcpy(&px_f, &ibuf->rect_float[(x_offset + xr) * 4], sizeof(float[4]));
         memcpy(&ibuf->rect_float[(x_offset + xr) * 4],
