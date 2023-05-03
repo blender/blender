@@ -5431,6 +5431,7 @@ bool BKE_image_has_loaded_ibuf(Image *image)
 
 ImBuf *BKE_image_get_ibuf_with_name(Image *image, const char *filepath)
 {
+  BLI_assert(!BLI_path_is_rel(filepath));
   ImBuf *ibuf = nullptr;
 
   BLI_mutex_lock(static_cast<ThreadMutex *>(image->runtime.cache_mutex));
