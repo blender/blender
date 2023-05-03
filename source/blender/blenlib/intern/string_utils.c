@@ -321,7 +321,7 @@ bool BLI_uniquename(
   BLI_assert(name_len > 1);
 
   /* See if we are given an empty string */
-  if (ELEM(NULL, vlink, defname)) {
+  if (ELEM(NULL, vlink)) {
     return false;
   }
 

@@ -112,7 +112,7 @@ bool BLI_uniquename(struct ListBase *list,
                     const char *defname,
                     char delim,
                     int name_offset,
-                    size_t name_len) ATTR_NONNULL(1);
+                    size_t name_len) ATTR_NONNULL(1, 3);
 
 /* Expand array functions. */
 
