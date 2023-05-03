@@ -149,4 +149,9 @@ void simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_i
                                 const bNode &sim_output_node,
                                 Span<void *> r_output_values);
 
+void copy_with_checked_indices(const GVArray &src,
+                               const VArray<int> &indices,
+                               IndexMask mask,
+                               GMutableSpan dst);
+
 }  // namespace blender::nodes
