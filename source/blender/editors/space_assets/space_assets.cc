@@ -75,7 +75,7 @@ static SpaceLink *asset_browser_create(const ScrArea * /*area*/, const Scene * /
     BLI_addtail(&assets_space->regionbase, region);
     region->regiontype = RGN_TYPE_WINDOW;
 
-    region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+    region->v2d.scroll = V2D_SCROLL_RIGHT;
     region->v2d.align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
     region->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
     region->v2d.keeptot = V2D_KEEPTOT_STRICT;
