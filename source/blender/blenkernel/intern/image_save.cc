@@ -267,7 +267,7 @@ static void image_save_post(ReportList *reports,
                             ImBuf *ibuf,
                             int ok,
                             const ImageSaveOptions *opts,
-                            int save_copy,
+                            const bool save_copy,
                             const char *filepath,
                             bool *r_colorspace_changed)
 {
@@ -350,7 +350,8 @@ static void imbuf_save_post(ImBuf *ibuf, ImBuf *colormanaged_ibuf)
 
 /**
  * \return success.
- * \note `ima->filepath` and `ibuf->filepath` should end up the same.
+ * \note `ima->filepath` and `ibuf->filepath` will reference the same path
+ * (although `ima->filepath` may be blend-file relative).
  * \note for multi-view the first `ibuf` is important to get the settings.
  */
 static bool image_save_single(ReportList *reports,

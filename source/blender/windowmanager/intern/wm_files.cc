@@ -269,6 +269,15 @@ static void wm_window_substitute_old(wmWindowManager *oldwm,
   win->posy = oldwin->posy;
 }
 
+/**
+ * Support loading older files without multiple windows (pre 2.5),
+ * in this case the #bScreen from the users file should be used but the current
+ * windows (from `current_wm_list` are kept).
+ *
+ * As the original file did not have multiple windows, duplicate the layout into each window.
+ * An alternative solution could also be to close all windows except the first however this is
+ * enough of a corner case that it's the current behavior is acceptable.
+ */
 static void wm_window_match_keep_current_wm(const bContext *C,
                                             ListBase *current_wm_list,
                                             const bool load_ui,
@@ -286,7 +295,7 @@ static void wm_window_match_keep_current_wm(const bContext *C,
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       WorkSpace *workspace;
 
-      WorkSpaceLayout *layout_old = BKE_workspace_layout_find_global(bmain, screen, &workspace);
+      WorkSpaceLayout *layout_ref = BKE_workspace_layout_find_global(bmain, screen, &workspace);
       BKE_workspace_active_set(win->workspace_hook, workspace);
       win->scene = CTX_data_scene(C);
 
@@ -295,11 +304,13 @@ static void wm_window_match_keep_current_wm(const bContext *C,
         WM_window_set_active_screen(win, workspace, screen);
       }
       else {
-#if 0 /* NOTE(@ideasman42): The screen referenced from the window has been freed, see: 107525. */
-        WorkSpaceLayout *layout_old = WM_window_get_active_layout(win);
+#if 0
+        /* NOTE(@ideasman42): The screen referenced from the window has been freed,
+         * see: #107525. */
+        WorkSpaceLayout *layout_ref = WM_window_get_active_layout(win);
 #endif
         WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(
-            bmain, workspace, layout_old, win);
+            bmain, workspace, layout_ref, win);
 
         WM_window_set_active_layout(win, workspace, layout_new);
       }
