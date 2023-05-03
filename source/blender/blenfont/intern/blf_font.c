@@ -1471,7 +1471,7 @@ bool blf_ensure_face(FontBLF *font)
 }
 
 struct FaceDetails {
-  char name[50];
+  char filename[50];
   uint coverage1;
   uint coverage2;
   uint coverage3;
@@ -1545,12 +1545,10 @@ static FontBLF *blf_font_new_impl(const char *filepath,
   bool face_needed = true;
 
   if (font->filepath) {
-    const struct FaceDetails *static_details = NULL;
-    char filename[256];
+    const char *filename = BLI_path_basename(font->filepath);
     for (int i = 0; i < (int)ARRAY_SIZE(static_face_details); i++) {
-      BLI_path_split_file_part(font->filepath, filename, sizeof(filename));
-      if (STREQ(static_face_details[i].name, filename)) {
-        static_details = &static_face_details[i];
+      if (STREQ(static_face_details[i].filename, filename)) {
+        const struct FaceDetails *static_details = &static_face_details[i];
         font->unicode_ranges[0] = static_details->coverage1;
         font->unicode_ranges[1] = static_details->coverage2;
         font->unicode_ranges[2] = static_details->coverage3;
