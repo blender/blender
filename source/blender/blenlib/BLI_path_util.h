@@ -38,25 +38,22 @@ void BLI_setenv_if_new(const char *env, const char *val) ATTR_NONNULL(1);
 const char *BLI_getenv(const char *env) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
 /**
- * Converts `/foo/bar.txt` to `/foo/` and `bar.txt`
- *
- * - Won't change \a string.
- * - Won't create any directories.
- * - Doesn't use CWD, or deal with relative paths.
+ * Copies directory and file components from `filepath` into `dir` and `file`, e.g.
+ * `/foo/bar.txt` to `/foo/` and `bar.txt`
  */
-void BLI_path_split_dir_file(const char *string,
+void BLI_path_split_dir_file(const char *filepath,
                              char *dir,
                              size_t dirlen,
                              char *file,
                              size_t filelen) ATTR_NONNULL(1, 2, 4);
 /**
- * Copies the parent directory part of string into `dir`, max length `dirlen`.
+ * Copies the parent directory part of filepath into `dir`, max length `dirlen`.
  */
-void BLI_path_split_dir_part(const char *string, char *dir, size_t dirlen) ATTR_NONNULL(1, 2);
+void BLI_path_split_dir_part(const char *filepath, char *dir, size_t dirlen) ATTR_NONNULL(1, 2);
 /**
- * Copies the leaf filename part of string into `file`, max length `filelen`.
+ * Copies the leaf filename part of filepath into `file`, max length `filelen`.
  */
-void BLI_path_split_file_part(const char *string, char *file, size_t filelen) ATTR_NONNULL(1, 2);
+void BLI_path_split_file_part(const char *filepath, char *file, size_t filelen) ATTR_NONNULL(1, 2);
 /**
  * Returns a pointer to the last extension (e.g. the position of the last period).
  * Returns a pointer to the nil byte when no extension is found.

@@ -1525,7 +1525,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
   /* Save proportional edit settings.
    * Skip saving proportional edit if it was not actually used.
-   * Note that this value is being saved even if the operation is cancelled. This is to maintain a
+   * Note that this value is being saved even if the operation is canceled. This is to maintain a
    * behavior already used by users. */
   if (!(t->options & CTX_NO_PET)) {
     if (t->flag & T_PROP_EDIT_ALL) {

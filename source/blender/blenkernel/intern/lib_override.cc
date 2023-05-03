@@ -2010,7 +2010,7 @@ static bool lib_override_library_resync(Main *bmain,
 
           id_override_new->override_library->flag = id_override_old->override_library->flag;
 
-          /* NOTE: Since `runtime.tag` is not copied from old to new liboverride, the potenial
+          /* NOTE: Since `runtime.tag` is not copied from old to new liboverride, the potential
            * `LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT` is kept on the old, to-be-freed
            * liboverride, and the new one is assumed to be properly part of its hierarchy again. */
 
@@ -2196,7 +2196,7 @@ static bool lib_override_library_resync(Main *bmain,
         id->tag &= ~LIB_TAG_MISSING;
       }
       else if (id->override_library->runtime != nullptr) {
-        /* Cleanup of this temporary tag, since that somewhat broken liboverride is explicitely
+        /* Cleanup of this temporary tag, since that somewhat broken liboverride is explicitly
          * kept for now. */
         id->override_library->runtime->tag &= ~LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT;
       }

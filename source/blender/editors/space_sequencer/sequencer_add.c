@@ -1283,7 +1283,7 @@ static void sequencer_add_image_strip_load_files(wmOperator *op,
 {
   const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
   /* size of Strip->dir. */
-  char directory[768];
+  char directory[FILE_MAXDIR];
   BLI_path_split_dir_part(load_data->path, directory, sizeof(directory));
   SEQ_add_image_set_directory(seq, directory);
 
