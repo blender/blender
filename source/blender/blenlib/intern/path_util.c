@@ -1145,19 +1145,19 @@ bool BLI_path_program_extensions_add_win32(char *program_name, const size_t maxl
   bool retval = false;
   int type;
 
-  type = BLI_exists(name);
+  type = BLI_exists(program_name);
   if ((type == 0) || S_ISDIR(type)) {
     /* Typically 3-5, ".EXE", ".BAT"... etc. */
     const int ext_max = 12;
     const char *ext = BLI_getenv("PATHEXT");
     if (ext) {
-      const int name_len = strlen(name);
+      const int name_len = strlen(program_name);
       char *filename = alloca(name_len + ext_max);
       char *filename_ext;
       const char *ext_next;
 
       /* Null terminated in the loop. */
-      memcpy(filename, name, name_len);
+      memcpy(filename, program_name, name_len);
       filename_ext = filename + name_len;
 
       do {
@@ -1172,7 +1172,7 @@ bool BLI_path_program_extensions_add_win32(char *program_name, const size_t maxl
           type = BLI_exists(filename);
           if (type && (!S_ISDIR(type))) {
             retval = true;
-            BLI_strncpy(name, filename, maxlen);
+            BLI_strncpy(program_name, filename, maxlen);
             break;
           }
         }
