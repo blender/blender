@@ -84,6 +84,17 @@ class ASSETBROWSER_PT_metadata(Panel):
     bl_options = {'HIDE_HEADER'}
     bl_category = 'Metadata'
 
+
+    @staticmethod
+    def metadata_prop(layout, asset_data, propname):
+        """
+        Only display properties that are either set or can be modified (i.e. the
+        asset is in the current file). Empty, non-editable fields are not really useful.
+        """
+        if getattr(asset_data, propname) or not asset_data.is_property_readonly(propname):
+            layout.prop(asset_data, propname)
+
+
     def draw(self, context):
         layout = self.layout
         wm = context.window_manager
@@ -93,9 +104,6 @@ class ASSETBROWSER_PT_metadata(Panel):
         if asset_handle is None:
             layout.label(text="No active asset", icon='INFO')
             return
-
-        asset_library_ref = context.asset_library_ref
-        asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset_file, asset_library_ref)
 
         prefs = context.preferences
         show_asset_debug_info = prefs.view.show_developer_ui and prefs.experimental.show_asset_debug_info
@@ -126,8 +134,11 @@ class ASSETBROWSER_PT_metadata(Panel):
         row.prop(wm, "asset_path_dummy", text="Source")
         row.operator("asset.open_containing_blend_file", text="", icon='TOOL_SETTINGS')
 
-        layout.prop(asset_file.asset_data, "description")
-        layout.prop(asset_file.asset_data, "author")
+        asset_data = asset_file.asset_data
+        self.metadata_prop(layout, asset_data, "description")
+        self.metadata_prop(layout, asset_data, "license")
+        self.metadata_prop(layout, asset_data, "copyright")
+        self.metadata_prop(layout, asset_data, "author")
 
 
 class ASSETBROWSER_PT_metadata_preview(Panel):
@@ -139,11 +150,10 @@ class ASSETBROWSER_PT_metadata_preview(Panel):
     def draw(self, context):
         layout = self.layout
         asset_handle = context.asset_handle
-        asset_file = asset_handle.file_data
 
         row = layout.row()
         box = row.box()
-        box.template_icon(icon_value=asset_file.preview_icon_id, scale=5.0)
+        box.template_icon(icon_value=asset_handle.preview_icon_id, scale=5.0)
 
         col = row.column(align=True)
         col.operator("ed.lib_id_load_custom_preview", icon='FILEBROWSER', text="")

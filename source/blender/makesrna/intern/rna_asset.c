@@ -373,6 +373,12 @@ static PointerRNA rna_AssetHandle_local_id_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_ID, id);
 }
 
+static int rna_AssetHandle_preview_icon_id_get(PointerRNA *ptr)
+{
+  AssetHandle *asset = ptr->data;
+  return ED_assetlist_asset_preview_icon_id_request(asset);
+}
+
 const EnumPropertyItem *rna_asset_library_reference_itemf(bContext *UNUSED(C),
                                                           PointerRNA *UNUSED(ptr),
                                                           PropertyRNA *UNUSED(prop),
@@ -578,6 +584,19 @@ static void rna_def_asset_handle(BlenderRNA *brna)
                            "The local data-block this asset represents; only valid if that is a "
                            "data-block in this file");
   RNA_def_property_flag(prop, PROP_HIDDEN);
+
+  prop = RNA_def_int(
+      srna,
+      "preview_icon_id",
+      0,
+      INT_MIN,
+      INT_MAX,
+      "Icon ID",
+      "Unique integer identifying the preview of this asset as an icon (zero means invalid)",
+      INT_MIN,
+      INT_MAX);
+  RNA_def_property_int_funcs(prop, "rna_AssetHandle_preview_icon_id_get", NULL, NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   rna_def_asset_handle_api(srna);
 }
