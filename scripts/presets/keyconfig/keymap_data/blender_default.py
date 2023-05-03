@@ -2189,6 +2189,7 @@ def km_info(params):
 # ------------------------------------------------------------------------------
 # Editor (File Browser)
 
+
 def km_file_browser(params):
     items = []
     keymap = (

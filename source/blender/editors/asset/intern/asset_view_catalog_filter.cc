@@ -50,7 +50,8 @@ bool asset_view_set_catalog_filter_settings(
   }
 
   if (filter_settings->filter_settings.filter_mode == ASSET_CATALOG_SHOW_ASSETS_FROM_CATALOG &&
-      !BLI_uuid_equal(filter_settings->filter_settings.active_catalog_id, catalog_id)) {
+      !BLI_uuid_equal(filter_settings->filter_settings.active_catalog_id, catalog_id))
+  {
     filter_settings->filter_settings.active_catalog_id = catalog_id;
     needs_update = true;
   }

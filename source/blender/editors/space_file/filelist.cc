@@ -840,7 +840,8 @@ static bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
 
   /* Not used yet for the asset view template. */
   if (filter->asset_catalog_filter && !asset_view_is_asset_visible_in_catalog_filter_settings(
-                                          filter->asset_catalog_filter, asset_data)) {
+                                          filter->asset_catalog_filter, asset_data))
+  {
     return false;
   }
 
