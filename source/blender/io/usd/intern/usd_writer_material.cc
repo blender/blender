@@ -55,6 +55,7 @@ static const pxr::TfToken rgb("rgb", pxr::TfToken::Immortal);
 static const pxr::TfToken r("r", pxr::TfToken::Immortal);
 static const pxr::TfToken g("g", pxr::TfToken::Immortal);
 static const pxr::TfToken b("b", pxr::TfToken::Immortal);
+static const pxr::TfToken a("a", pxr::TfToken::Immortal);
 static const pxr::TfToken st("st", pxr::TfToken::Immortal);
 static const pxr::TfToken result("result", pxr::TfToken::Immortal);
 static const pxr::TfToken varname("varname", pxr::TfToken::Immortal);
@@ -81,7 +82,6 @@ namespace blender::io::usd {
 struct InputSpec {
   pxr::TfToken input_name;
   pxr::SdfValueTypeName input_type;
-  pxr::TfToken source_name;
   /* Whether a default value should be set
    * if the node socket has not input. Usually
    * false for the Normal input. */
@@ -113,7 +113,7 @@ static std::string get_tex_image_asset_path(bNode *node,
                                             const pxr::UsdStageRefPtr stage,
                                             const USDExportParams &export_params);
 static InputSpecMap &preview_surface_input_map();
-static bNode *traverse_channel(bNodeSocket *input, short target_type);
+static bNodeLink *traverse_channel(bNodeSocket *input, short target_type);
 
 template<typename T1, typename T2>
 void create_input(pxr::UsdShadeShader &shader, const InputSpec &spec, const void *value);
@@ -145,8 +145,6 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
 
   const InputSpecMap &input_map = preview_surface_input_map();
 
-  bool has_opacity = false;
-
   /* Set the preview surface inputs. */
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
 
@@ -157,22 +155,54 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
       continue;
     }
 
-    pxr::UsdShadeShader created_shader;
-
-    bNode *input_node = traverse_channel(sock, SH_NODE_TEX_IMAGE);
-
     const InputSpec &input_spec = it->second;
 
-    if (input_node) {
-      /* Create connection. */
-      created_shader = create_usd_preview_shader(usd_export_context, usd_material, input_node);
+    if (bNodeLink *input_link = traverse_channel(sock, SH_NODE_TEX_IMAGE)) {
+      /* Convert the texture image node connected to this input. */
+      bNode *input_node = input_link->fromnode;
+      pxr::UsdShadeShader usd_shader = create_usd_preview_shader(
+          usd_export_context, usd_material, input_node);
 
+      /* Determine the name of the USD texture node attribute that should be
+       * connected to this input. */
+      pxr::TfToken source_name;
+      if (input_spec.input_type == pxr::SdfValueTypeNames->Float) {
+        /* If the input is a float, we connect it to either the texture alpha or red channels. */
+        source_name = strcmp(input_link->fromsock->identifier, "Alpha") == 0 ? usdtokens::a :
+                                                                               usdtokens::r;
+      }
+      else {
+        source_name = usdtokens::rgb;
+      }
+
+      /* Create the preview surface input and connect it to the shader. */
+      pxr::UsdShadeConnectionSourceInfo source_info(
+          usd_shader.ConnectableAPI(), source_name, pxr::UsdShadeAttributeType::Output);
       preview_surface.CreateInput(input_spec.input_name, input_spec.input_type)
-          .ConnectToSource(created_shader.ConnectableAPI(), input_spec.source_name);
-      set_normal_texture_range(created_shader, input_spec);
+          .ConnectToSource(source_info);
 
-      if (input_spec.input_name == usdtokens::opacity) {
-        has_opacity = true;
+      set_normal_texture_range(usd_shader, input_spec);
+
+      /* Export the texture, if necessary. */
+      if (usd_export_context.export_params.export_textures) {
+        export_texture(input_node,
+                       usd_export_context.stage,
+                       usd_export_context.export_params.overwrite_textures);
+      }
+
+      /* Look for a connected uv node. */
+      create_uvmap_shader(
+          usd_export_context, input_node, usd_material, usd_shader, default_uv_sampler);
+
+      set_normal_texture_range(usd_shader, input_spec);
+
+      /* Set opacityThreshold if an alpha cutout is used. */
+      if ((input_spec.input_name == usdtokens::opacity) &&
+          (material->blend_method == MA_BM_CLIP) && (material->alpha_threshold > 0.0))
+      {
+        pxr::UsdShadeInput opacity_threshold_input = preview_surface.CreateInput(
+            usdtokens::opacityThreshold, pxr::SdfValueTypeNames->Float);
+        opacity_threshold_input.GetAttr().Set(pxr::VtValue(material->alpha_threshold));
       }
     }
     else if (input_spec.set_default_value) {
@@ -193,30 +223,6 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
         default:
           break;
       }
-    }
-
-    /* If any input texture node has been found, export the texture, if necessary,
-     * and look for a connected uv node. */
-    if (!(created_shader && input_node && input_node->type == SH_NODE_TEX_IMAGE)) {
-      continue;
-    }
-
-    if (usd_export_context.export_params.export_textures) {
-      export_texture(input_node,
-                     usd_export_context.stage,
-                     usd_export_context.export_params.overwrite_textures);
-    }
-
-    create_uvmap_shader(
-        usd_export_context, input_node, usd_material, created_shader, default_uv_sampler);
-  }
-
-  /* Set opacityThreshold if an alpha cutout is used. */
-  if (has_opacity) {
-    if ((material->blend_method == MA_BM_CLIP) && (material->alpha_threshold > 0.0)) {
-      pxr::UsdShadeInput opacity_threshold_input = preview_surface.CreateInput(
-          usdtokens::opacityThreshold, pxr::SdfValueTypeNames->Float);
-      opacity_threshold_input.GetAttr().Set(pxr::VtValue(material->alpha_threshold));
     }
   }
 }
@@ -282,19 +288,18 @@ void create_usd_viewport_material(const USDExporterContext &usd_export_context,
 static InputSpecMap &preview_surface_input_map()
 {
   static InputSpecMap input_map = {
-      {"Base Color",
-       {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, usdtokens::rgb, true}},
-      {"Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, usdtokens::rgb, true}},
-      {"Roughness", {usdtokens::roughness, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
-      {"Metallic", {usdtokens::metallic, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
-      {"Specular", {usdtokens::specular, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
-      {"Alpha", {usdtokens::opacity, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
-      {"IOR", {usdtokens::ior, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
+      {"Base Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, true}},
+      {"Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, true}},
+      {"Roughness", {usdtokens::roughness, pxr::SdfValueTypeNames->Float, true}},
+      {"Metallic", {usdtokens::metallic, pxr::SdfValueTypeNames->Float, true}},
+      {"Specular", {usdtokens::specular, pxr::SdfValueTypeNames->Float, true}},
+      {"Alpha", {usdtokens::opacity, pxr::SdfValueTypeNames->Float, true}},
+      {"IOR", {usdtokens::ior, pxr::SdfValueTypeNames->Float, true}},
       /* Note that for the Normal input set_default_value is false. */
-      {"Normal", {usdtokens::normal, pxr::SdfValueTypeNames->Float3, usdtokens::rgb, false}},
-      {"Clearcoat", {usdtokens::clearcoat, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
+      {"Normal", {usdtokens::normal, pxr::SdfValueTypeNames->Float3, false}},
+      {"Clearcoat", {usdtokens::clearcoat, pxr::SdfValueTypeNames->Float, true}},
       {"Clearcoat Roughness",
-       {usdtokens::clearcoatRoughness, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
+       {usdtokens::clearcoatRoughness, pxr::SdfValueTypeNames->Float, true}},
   };
 
   return input_map;
@@ -330,13 +335,13 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
       continue;
     }
 
-    bNode *uv_node = traverse_channel(tex_node_sock, SH_NODE_UVMAP);
-    if (uv_node == nullptr) {
+    bNodeLink *uv_node_link = traverse_channel(tex_node_sock, SH_NODE_UVMAP);
+    if (uv_node_link == nullptr) {
       continue;
     }
 
     pxr::UsdShadeShader uv_shader = create_usd_preview_shader(
-        usd_export_context, usd_material, uv_node);
+        usd_export_context, usd_material, uv_node_link->fromnode);
 
     if (!uv_shader.GetPrim().IsValid()) {
       continue;
@@ -344,7 +349,9 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
 
     found_uv_node = true;
 
-    if (NodeShaderUVMap *shader_uv_map = static_cast<NodeShaderUVMap *>(uv_node->storage)) {
+    if (NodeShaderUVMap *shader_uv_map = static_cast<NodeShaderUVMap *>(
+            uv_node_link->fromnode->storage))
+    {
       /* We need to make valid here because actual uv primvar has been. */
       std::string uv_set = pxr::TfMakeValidIdentifier(shader_uv_map->uv_map);
 
@@ -484,24 +491,25 @@ static pxr::TfToken get_node_tex_image_color_space(bNode *node)
   return pxr::TfToken();
 }
 
-/* Search the upstream nodes connected to the given socket and return the first occurrence
- * of the node of the given type. Return null if no node of this type was found. */
-static bNode *traverse_channel(bNodeSocket *input, const short target_type)
+/* Search the upstream node links connected to the given socket and return the first occurrence
+ * of the link connected to the node of the given type. Return null if no such link was found.
+ * The 'fromnode' and 'fromsock' members of the returned link are guaranteed to be not null. */
+static bNodeLink *traverse_channel(bNodeSocket *input, const short target_type)
 {
-  if (!input->link) {
+  if (!(input->link && input->link->fromnode && input->link->fromsock)) {
     return nullptr;
   }
 
   bNode *linked_node = input->link->fromnode;
   if (linked_node->type == target_type) {
     /* Return match. */
-    return linked_node;
+    return input->link;
   }
 
   /* Recursively traverse the linked node's sockets. */
   LISTBASE_FOREACH (bNodeSocket *, sock, &linked_node->inputs) {
-    if (bNode *found_node = traverse_channel(sock, target_type)) {
-      return found_node;
+    if (bNodeLink *found_link = traverse_channel(sock, target_type)) {
+      return found_link;
     }
   }
 
