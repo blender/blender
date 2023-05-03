@@ -76,7 +76,7 @@
 
 #include "draw_color_management.h"
 #include "draw_manager.h"
-#include "draw_manager_profiling.h"
+#include "draw_manager_profiling.hh"
 #include "draw_manager_testing.h"
 #include "draw_manager_text.h"
 #include "draw_shader.h"

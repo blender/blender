@@ -22,7 +22,7 @@
 
 #include "UI_resources.h"
 
-#include "draw_manager_profiling.h"
+#include "draw_manager_profiling.hh"
 
 #define MAX_TIMER_NAME 32
 #define MAX_NESTED_TIMER 8
@@ -45,32 +45,33 @@ static struct DRWTimerPool {
   int end_increment;   /* Keep track of bad usage. */
   bool is_recording;   /* Are we in the render loop? */
   bool is_querying;    /* Keep track of bad usage. */
-} DTP = {NULL};
+} DTP = {nullptr};
 
-void DRW_stats_free(void)
+void DRW_stats_free()
 {
-  if (DTP.timers != NULL) {
+  if (DTP.timers != nullptr) {
     // for (int i = 0; i < DTP.timer_count; i++) {
     // DRWTimer *timer = &DTP.timers[i];
     // glDeleteQueries(2, timer->query);
     // }
     MEM_freeN(DTP.timers);
-    DTP.timers = NULL;
+    DTP.timers = nullptr;
   }
 }
 
-void DRW_stats_begin(void)
+void DRW_stats_begin()
 {
   if (G.debug_value > 20 && G.debug_value < 30) {
     DTP.is_recording = true;
   }
 
-  if (DTP.is_recording && DTP.timers == NULL) {
+  if (DTP.is_recording && DTP.timers == nullptr) {
     DTP.chunk_count = 1;
     DTP.timer_count = DTP.chunk_count * MIM_RANGE_LEN;
-    DTP.timers = MEM_callocN(sizeof(DRWTimer) * DTP.timer_count, "DRWTimer stack");
+    DTP.timers = static_cast<DRWTimer *>(
+        MEM_callocN(sizeof(DRWTimer) * DTP.timer_count, "DRWTimer stack"));
   }
-  else if (!DTP.is_recording && DTP.timers != NULL) {
+  else if (!DTP.is_recording && DTP.timers != nullptr) {
     DRW_stats_free();
   }
 
@@ -79,13 +80,14 @@ void DRW_stats_begin(void)
   DTP.end_increment = 0;
 }
 
-static DRWTimer *drw_stats_timer_get(void)
+static DRWTimer *drw_stats_timer_get()
 {
   if (UNLIKELY(DTP.timer_increment >= DTP.timer_count)) {
     /* Resize the stack. */
     DTP.chunk_count++;
     DTP.timer_count = DTP.chunk_count * MIM_RANGE_LEN;
-    DTP.timers = MEM_recallocN(DTP.timers, sizeof(DRWTimer) * DTP.timer_count);
+    DTP.timers = static_cast<DRWTimer *>(
+        MEM_recallocN(DTP.timers, sizeof(DRWTimer) * DTP.timer_count));
   }
 
   return &DTP.timers[DTP.timer_increment++];
@@ -121,7 +123,7 @@ void DRW_stats_group_start(const char *name)
   GPU_debug_group_begin(name);
 }
 
-void DRW_stats_group_end(void)
+void DRW_stats_group_end()
 {
   GPU_debug_group_end();
   if (DTP.is_recording) {
@@ -147,7 +149,7 @@ void DRW_stats_query_end(void)
   }
 }
 
-void DRW_stats_reset(void)
+void DRW_stats_reset()
 {
   BLI_assert((DTP.timer_increment - DTP.end_increment) <= 0 &&
              "You forgot a DRW_stats_group/query_end somewhere!");
@@ -215,7 +217,8 @@ void DRW_stats_draw(const rcti *rect)
   int fontid = BLF_default();
   UI_FontThemeColor(fontid, TH_TEXT_HI);
   BLF_enable(fontid, BLF_SHADOW);
-  BLF_shadow(fontid, 5, (const float[4]){0.0f, 0.0f, 0.0f, 0.75f});
+  const float rgba[]{0.0f, 0.0f, 0.0f, 0.75f};
+  BLF_shadow(fontid, 5, rgba);
   BLF_shadow_offset(fontid, 0, -1);
 
   BLF_batch_draw_begin();
@@ -317,7 +320,7 @@ void DRW_stats_draw(const rcti *rect)
   for (int i = 0; i < DTP.timer_increment; i++) {
     double time_ms, time_percent;
     DRWTimer *timer = &DTP.timers[i];
-    DRWTimer *timer_parent = (timer->lvl > 0) ? &DTP.timers[lvl_index[timer->lvl - 1]] : NULL;
+    DRWTimer *timer_parent = (timer->lvl > 0) ? &DTP.timers[lvl_index[timer->lvl - 1]] : nullptr;
 
     /* Only display a number of lvl at a time */
     if ((G.debug_value - 21) < timer->lvl) {
@@ -329,7 +332,7 @@ void DRW_stats_draw(const rcti *rect)
 
     time_ms = timer->time_average / 1000000.0;
 
-    if (timer_parent != NULL) {
+    if (timer_parent != nullptr) {
       time_percent = ((double)timer->time_average / (double)timer_parent->time_average) * 100.0;
     }
     else {
