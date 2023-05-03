@@ -34,7 +34,8 @@ typedef bool (*UniquenameCheckCallback)(void *arg, const char *name);
  * \param delim: Delimiter character`.
  * \return Length of \a left.
  */
-size_t BLI_split_name_num(char *left, int *nr, const char *name, char delim) ATTR_NONNULL(1, 2, 3);
+size_t BLI_string_split_name_number(const char *name, char delim, char *r_name_left, int *r_number)
+    ATTR_NONNULL(1, 3, 4);
 bool BLI_string_is_decimal(const char *string) ATTR_NONNULL(1);
 
 /**

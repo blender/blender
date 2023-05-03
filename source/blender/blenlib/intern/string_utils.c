@@ -22,23 +22,26 @@
 #  pragma GCC diagnostic error "-Wsign-conversion"
 #endif
 
-size_t BLI_split_name_num(char *left, int *nr, const char *name, const char delim)
+size_t BLI_string_split_name_number(const char *name,
+                                    const char delim,
+                                    char *r_name_left,
+                                    int *r_number)
 {
   const size_t name_len = strlen(name);
 
-  *nr = 0;
-  memcpy(left, name, (name_len + 1) * sizeof(char));
+  *r_number = 0;
+  memcpy(r_name_left, name, (name_len + 1) * sizeof(char));
 
   /* name doesn't end with a delimiter "foo." */
   if ((name_len > 1 && name[name_len - 1] == delim) == 0) {
     size_t a = name_len;
     while (a--) {
       if (name[a] == delim) {
-        left[a] = '\0'; /* truncate left part here */
-        *nr = atol(name + a + 1);
+        r_name_left[a] = '\0'; /* truncate left part here */
+        *r_number = atol(name + a + 1);
         /* casting down to an int, can overflow for large numbers */
-        if (*nr < 0) {
-          *nr = 0;
+        if (*r_number < 0) {
+          *r_number = 0;
         }
         return a;
       }
@@ -246,7 +249,7 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
     char *tempname = alloca(name_len);
     char *left = alloca(name_len);
     int number;
-    size_t len = BLI_split_name_num(left, &number, name, delim);
+    size_t len = BLI_string_split_name_number(name, delim, left, &number);
     do {
       /* add 1 to account for \0 */
       const size_t numlen = BLI_snprintf(numstr, sizeof(numstr), "%c%03d", delim, ++number) + 1;
