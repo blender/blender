@@ -1558,43 +1558,44 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
       }
       continue;
     }
+    if (!done_loops[i]) {
+      continue;
+    }
 
-    if (done_loops[i]) {
-      /* Note we accumulate and average all custom normals in current smooth fan,
-       * to avoid getting different clnors data (tiny differences in plain custom normals can
-       * give rather huge differences in computed 2D factors). */
-      LinkNode *loop_link = lnors_spacearr.lspacearr[i]->loops;
-      if (lnors_spacearr.lspacearr[i]->flags & MLNOR_SPACE_IS_SINGLE) {
-        BLI_assert(POINTER_AS_INT(loop_link) == i);
-        const int nidx = use_vertices ? corner_verts[i] : i;
+    /* Note we accumulate and average all custom normals in current smooth fan,
+     * to avoid getting different clnors data (tiny differences in plain custom normals can
+     * give rather huge differences in computed 2D factors). */
+    LinkNode *loop_link = lnors_spacearr.lspacearr[i]->loops;
+    if (lnors_spacearr.lspacearr[i]->flags & MLNOR_SPACE_IS_SINGLE) {
+      BLI_assert(POINTER_AS_INT(loop_link) == i);
+      const int nidx = use_vertices ? corner_verts[i] : i;
+      float *nor = r_custom_loop_normals[nidx];
+
+      BKE_lnor_space_custom_normal_to_data(lnors_spacearr.lspacearr[i], nor, r_clnors_data[i]);
+      done_loops[i].reset();
+    }
+    else {
+      int avg_nor_count = 0;
+      float3 avg_nor(0.0f);
+      while (loop_link) {
+        const int lidx = POINTER_AS_INT(loop_link->link);
+        const int nidx = use_vertices ? corner_verts[lidx] : lidx;
         float *nor = r_custom_loop_normals[nidx];
 
-        BKE_lnor_space_custom_normal_to_data(lnors_spacearr.lspacearr[i], nor, r_clnors_data[i]);
-        done_loops[i].reset();
+        avg_nor_count++;
+        add_v3_v3(avg_nor, nor);
+        processed_corners.append(lidx);
+
+        loop_link = loop_link->next;
+        done_loops[lidx].reset();
       }
-      else {
-        int avg_nor_count = 0;
-        float3 avg_nor(0.0f);
-        while (loop_link) {
-          const int lidx = POINTER_AS_INT(loop_link->link);
-          const int nidx = use_vertices ? corner_verts[lidx] : lidx;
-          float *nor = r_custom_loop_normals[nidx];
 
-          avg_nor_count++;
-          add_v3_v3(avg_nor, nor);
-          processed_corners.append(lidx);
+      mul_v3_fl(avg_nor, 1.0f / float(avg_nor_count));
+      short2 clnor_data_tmp;
+      BKE_lnor_space_custom_normal_to_data(lnors_spacearr.lspacearr[i], avg_nor, clnor_data_tmp);
 
-          loop_link = loop_link->next;
-          done_loops[lidx].reset();
-        }
-
-        mul_v3_fl(avg_nor, 1.0f / float(avg_nor_count));
-        short2 clnor_data_tmp;
-        BKE_lnor_space_custom_normal_to_data(lnors_spacearr.lspacearr[i], avg_nor, clnor_data_tmp);
-
-        r_clnors_data.fill_indices(processed_corners.as_span(), clnor_data_tmp);
-        processed_corners.clear();
-      }
+      r_clnors_data.fill_indices(processed_corners.as_span(), clnor_data_tmp);
+      processed_corners.clear();
     }
   }
 
