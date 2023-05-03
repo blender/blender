@@ -1292,15 +1292,6 @@ const char *BLI_getenv(const char *env)
 #endif
 }
 
-bool BLI_make_existing_file(const char *name)
-{
-  char di[FILE_MAX];
-  BLI_path_split_dir_part(name, di, sizeof(di));
-
-  /* Make if the dir doesn't exist. */
-  return BLI_dir_create_recursive(di);
-}
-
 static bool path_extension_check_ex(const char *str,
                                     const size_t str_len,
                                     const char *ext,

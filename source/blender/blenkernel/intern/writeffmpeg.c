@@ -1385,7 +1385,7 @@ static void ffmpeg_filepath_get(FFMpegContext *context,
   BLI_strncpy(string, rd->pic, FILE_MAX);
   BLI_path_abs(string, BKE_main_blendfile_path_from_global());
 
-  BLI_make_existing_file(string);
+  BLI_file_ensure_parent_dir_exists(string);
 
   autosplit[0] = '\0';
 

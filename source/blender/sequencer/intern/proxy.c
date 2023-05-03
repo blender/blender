@@ -299,7 +299,7 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
     ibuf->planes = 24;
   }
 
-  BLI_make_existing_file(name);
+  BLI_file_ensure_parent_dir_exists(name);
 
   const bool ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
   if (ok == false) {

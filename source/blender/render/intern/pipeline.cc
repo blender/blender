@@ -2249,7 +2249,7 @@ void RE_RenderAnim(Render *re,
         if (rd.mode & R_TOUCH) {
           if (!is_multiview_name) {
             if (!BLI_exists(name)) {
-              BLI_make_existing_file(name); /* makes the dir if its not there */
+              BLI_file_ensure_parent_dir_exists(name);
               BLI_file_touch(name);
             }
           }
@@ -2264,7 +2264,7 @@ void RE_RenderAnim(Render *re,
               BKE_scene_multiview_filepath_get(srv, name, filepath);
 
               if (!BLI_exists(filepath)) {
-                BLI_make_existing_file(filepath); /* makes the dir if its not there */
+                BLI_file_ensure_parent_dir_exists(filepath);
                 BLI_file_touch(filepath);
               }
             }

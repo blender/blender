@@ -3,6 +3,8 @@
 
 #include "COM_OutputFileMultiViewOperation.h"
 
+#include "BLI_fileops.h"
+
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_main.h"
@@ -56,7 +58,7 @@ void *OutputOpenExrSingleLayerMultiViewOperation::get_handle(const char *filenam
       add_exr_channels(exrhandle, nullptr, datatype_, srv->name, width, false, nullptr);
     }
 
-    BLI_make_existing_file(filename);
+    BLI_file_ensure_parent_dir_exists(filename);
 
     /* prepare the file with all the channels */
 
@@ -169,7 +171,7 @@ void *OutputOpenExrMultiLayerMultiViewOperation::get_handle(const char *filename
       }
     }
 
-    BLI_make_existing_file(filename);
+    BLI_file_ensure_parent_dir_exists(filename);
 
     /* prepare the file with all the channels for the header */
     StampData *stamp_data = create_stamp_data();

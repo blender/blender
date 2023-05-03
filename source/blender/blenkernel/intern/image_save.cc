@@ -8,6 +8,7 @@
 #include <cerrno>
 #include <cstring>
 
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -862,7 +863,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
   errno = 0;
 
-  BLI_make_existing_file(filepath);
+  BLI_file_ensure_parent_dir_exists(filepath);
 
   int compress = (imf ? imf->exr_codec : 0);
   bool success = IMB_exr_begin_write(

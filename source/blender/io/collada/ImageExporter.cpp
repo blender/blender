@@ -72,8 +72,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 
     BLI_path_join(export_path, sizeof(export_path), export_dir, export_file);
 
-    /* make dest directory if it doesn't exist */
-    BLI_make_existing_file(export_path);
+    BLI_file_ensure_parent_dir_exists(export_path);
   }
 
   if (is_generated || is_dirty || is_packed) {

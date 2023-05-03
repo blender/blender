@@ -75,7 +75,7 @@ anim_index_builder *IMB_index_builder_create(const char *name)
   BLI_strncpy(rv->temp_name, name, sizeof(rv->temp_name));
   BLI_string_join(rv->temp_name, sizeof(rv->temp_name), name, temp_ext);
 
-  BLI_make_existing_file(rv->temp_name);
+  BLI_file_ensure_parent_dir_exists(rv->temp_name);
 
   rv->fp = BLI_fopen(rv->temp_name, "wb");
 
@@ -497,7 +497,7 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->anim = anim;
 
   get_proxy_filepath(rv->anim, rv->proxy_size, filepath, true);
-  if (!BLI_make_existing_file(filepath)) {
+  if (!BLI_file_ensure_parent_dir_exists(filepath)) {
     return nullptr;
   }
 
@@ -1321,7 +1321,7 @@ static IndexBuildContext *index_fallback_create_context(struct anim *anim,
       char filepath[FILE_MAX];
 
       get_proxy_filepath(anim, proxy_sizes[i], filepath, true);
-      BLI_make_existing_file(filepath);
+      BLI_file_ensure_parent_dir_exists(filepath);
 
       context->proxy_ctx[i] = alloc_proxy_output_avi(
           anim, filepath, anim->x * proxy_fac[i], anim->y * proxy_fac[i], quality);

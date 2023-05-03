@@ -160,7 +160,7 @@ static void filepath_avi(char *string, const RenderData *rd, bool preview, const
   strcpy(string, rd->pic);
   BLI_path_abs(string, BKE_main_blendfile_path_from_global());
 
-  BLI_make_existing_file(string);
+  BLI_file_ensure_parent_dir_exists(string);
 
   if (rd->scemode & R_EXTENSION) {
     if (!BLI_path_extension_check(string, ".avi")) {

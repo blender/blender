@@ -276,7 +276,14 @@ bool BLI_file_is_writable(const char *filepath) ATTR_WARN_UNUSED_RESULT ATTR_NON
  * Creates the file with nothing in it, or updates its last-modified date if it already exists.
  * Returns true if successful (like the unix touch command).
  */
-bool BLI_file_touch(const char *file) ATTR_NONNULL();
+bool BLI_file_touch(const char *file) ATTR_NONNULL(1);
+/**
+ * Ensures that the parent directory of `filepath` exists.
+ *
+ * \return true on success (i.e. given path now exists on file-system), false otherwise.
+ */
+bool BLI_file_ensure_parent_dir_exists(const char *filepath) ATTR_NONNULL(1);
+
 bool BLI_file_alias_target(const char *filepath, char *r_targetpath) ATTR_WARN_UNUSED_RESULT;
 
 bool BLI_file_magic_is_gzip(const char header[4]);

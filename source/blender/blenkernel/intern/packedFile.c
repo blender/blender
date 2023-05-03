@@ -314,8 +314,7 @@ int BKE_packedfile_write_to_file(ReportList *reports,
     }
   }
 
-  /* make sure the path to the file exists... */
-  BLI_make_existing_file(name);
+  BLI_file_ensure_parent_dir_exists(name);
 
   file = BLI_open(name, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
   if (file == -1) {

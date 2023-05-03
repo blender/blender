@@ -2554,7 +2554,7 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *name, const ImageFormatData *imf)
 {
   BKE_image_format_to_imbuf(ibuf, imf);
 
-  BLI_make_existing_file(name);
+  BLI_file_ensure_parent_dir_exists(name);
 
   const bool ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
   if (ok == 0) {

@@ -285,6 +285,15 @@ bool BLI_file_touch(const char *file)
   return false;
 }
 
+bool BLI_file_ensure_parent_dir_exists(const char *filepath)
+{
+  char di[FILE_MAX];
+  BLI_path_split_dir_part(filepath, di, sizeof(di));
+
+  /* Make if the dir doesn't exist. */
+  return BLI_dir_create_recursive(di);
+}
+
 #ifdef WIN32
 
 static void callLocalErrorCallBack(const char *err)

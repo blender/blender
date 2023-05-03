@@ -38,12 +38,6 @@ void BLI_setenv_if_new(const char *env, const char *val) ATTR_NONNULL(1);
 const char *BLI_getenv(const char *env) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
 /**
- * Ensures that the parent directory of `name` exists.
- *
- * \return true on success (i.e. given path now exists on file-system), false otherwise.
- */
-bool BLI_make_existing_file(const char *name) ATTR_NONNULL(1);
-/**
  * Converts `/foo/bar.txt` to `/foo/` and `bar.txt`
  *
  * - Won't change \a string.

@@ -3,8 +3,8 @@
 
 #include "COM_OutputFileOperation.h"
 
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
-#include "BLI_path_util.h"
 #include "BLI_string.h"
 
 #include "BKE_image.h"
@@ -408,7 +408,7 @@ void OutputOpenExrMultiLayerOperation::deinit_execution()
                                (rd_->scemode & R_EXTENSION) != 0,
                                true,
                                suffix);
-    BLI_make_existing_file(filename);
+    BLI_file_ensure_parent_dir_exists(filename);
 
     for (uint i = 0; i < layers_.size(); i++) {
       OutputOpenExrLayer &layer = layers_[i];
