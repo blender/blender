@@ -350,8 +350,6 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
                     true,
                     &parser);
 
-          BLI_assert(false);
-
           /* Release temporary compilation resources. */
           delete shd_builder_;
           shd_builder_ = nullptr;
@@ -1113,7 +1111,6 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
 
       /* Only exit out if genuine error and not warning */
       if (has_error) {
-        BLI_assert(false);
         return nullptr;
       }
     }
@@ -1137,7 +1134,6 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
 
         /* Only exit out if genuine error and not warning */
         if (has_error) {
-          BLI_assert(false);
           return nullptr;
         }
       }
