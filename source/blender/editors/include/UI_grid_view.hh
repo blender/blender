@@ -61,14 +61,7 @@ class AbstractGridViewItem : public AbstractViewItem {
    */
   virtual std::optional<bool> should_be_active() const;
 
-  /**
-   * Activates this item, deactivates other items, and calls the
-   * #AbstractGridViewItem::on_activate() function.
-   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise the
-   * actual item state is unknown, possibly calling state-change update functions incorrectly.
-   */
-  void activate();
-  void deactivate();
+  bool activate() override;
 
  private:
   /** See #AbstractTreeView::change_state_delayed() */

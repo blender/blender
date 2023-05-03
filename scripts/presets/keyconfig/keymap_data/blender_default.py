@@ -910,6 +910,12 @@ def km_user_interface(params):
         ("ui.list_start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
         # UI views (polls check if there's a UI view under the cursor).
         *_template_items_select_actions(params, "ui.view_select_all"),
+        ("ui.view_item_select", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+         {"properties": [("deselect_all", not params.legacy)]}),
+        ("ui.view_item_select", {"type": 'LEFTMOUSE', "value": 'CLICK', "ctrl": True},
+         {"properties": [("extend", True), ("toggle", True)]}),
+        ("ui.view_item_select", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True},
+         {"properties": [("extend", True), ("fill", True)]}),
     ])
 
     return keymap

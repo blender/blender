@@ -56,6 +56,7 @@
 
 #include "ED_object.h"
 #include "ED_paint.h"
+#include "ED_select_utils.h"
 
 /* for Copy As Driver */
 #include "ED_keyframing.h"
@@ -2369,7 +2370,7 @@ static void UI_OT_list_start_filter(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name UI View Select All Operator
+/** \name UI View Item Select Operator
  * \{ */
 
 static bool ui_view_under_cursor_poll(bContext *C)
@@ -2382,6 +2383,95 @@ static bool ui_view_under_cursor_poll(bContext *C)
   return UI_region_view_find_at(region, win->eventstate->xy) != nullptr;
 }
 
+static int ui_view_item_select_exec(bContext *C, wmOperator *op)
+{
+  ARegion *region = CTX_wm_region(C);
+
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  const bool deselect = RNA_boolean_get(op->ptr, "deselect");
+  const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
+  const bool toggle = RNA_boolean_get(op->ptr, "toggle");
+  //  const bool fill = RNA_boolean_get(op->ptr, "fill");
+
+  int xy[2];
+  xy[0] = RNA_int_get(op->ptr, "mouse_x");
+  xy[1] = RNA_int_get(op->ptr, "mouse_y");
+  ui_region_to_window(region, &xy[0], &xy[1]);
+
+  uiViewHandle *view = UI_region_view_find_at(region, xy);
+  uiViewItemHandle *hovered_item = UI_region_views_find_item_at(region, xy);
+
+  bool changed = false;
+
+  bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
+
+  if (extend || toggle) {
+    wait_to_deselect_others = false;
+  }
+
+  if (hovered_item) {
+    const bool is_selected = UI_view_item_is_selected(hovered_item);
+
+    if (wait_to_deselect_others && is_selected) {
+      return OPERATOR_RUNNING_MODAL;
+    }
+    else if (!extend) {
+      changed |= view_select_all_from_action(view, SEL_DESELECT);
+    }
+
+    SelectAction action = deselect ? SEL_DESELECT : SEL_SELECT;
+    if (toggle) {
+      action = SEL_INVERT;
+    }
+    changed |= view_item_select_from_action(hovered_item, action);
+
+    /* The last selected item should be activated. */
+    if (UI_view_item_is_selected(hovered_item) ||
+        /* Items may not support selection but a click should still activate it. */
+        (action == SEL_SELECT))
+    {
+      changed |= UI_view_item_activate(hovered_item);
+    }
+  }
+  /* Click on empty space, deselect all if requested. */
+  else if (deselect_all) {
+    changed |= view_select_all_from_action(view, SEL_DESELECT);
+  }
+
+  if (changed) {
+    ED_region_tag_redraw(region);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_view_item_select(wmOperatorType *ot)
+{
+  ot->name = "View Item Select";
+  ot->idname = "UI_OT_view_item_select";
+  ot->description = "Select or deselect the item under the cursor";
+
+  ot->poll = ui_view_under_cursor_poll;
+  ot->exec = ui_view_item_select_exec;
+  ot->invoke = WM_generic_select_invoke;
+  ot->modal = WM_generic_select_modal;
+
+  PropertyRNA *prop;
+
+  WM_operator_properties_generic_select(ot);
+  WM_operator_properties_mouse_select(ot);
+
+  prop = RNA_def_boolean(
+      ot->srna, "fill", false, "Fill", "Select everything beginning with the last selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UI View Select All Operator
+ * \{ */
+
 static int ui_view_select_all_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
@@ -2389,7 +2479,7 @@ static int ui_view_select_all_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   const int action = RNA_enum_get(op->ptr, "action");
 
-  if (view_select_all_items(view, action)) {
+  if (view_select_all_from_action(view, action)) {
     ED_region_tag_redraw(region);
   }
 
@@ -2597,6 +2687,7 @@ void ED_operatortypes_ui(void)
 
   WM_operatortype_append(UI_OT_list_start_filter);
 
+  WM_operatortype_append(UI_OT_view_item_select);
   WM_operatortype_append(UI_OT_view_select_all);
   WM_operatortype_append(UI_OT_view_drop);
   WM_operatortype_append(UI_OT_view_item_rename);

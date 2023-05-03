@@ -3639,23 +3639,12 @@ static void widget_progressbar(uiBut *but,
   widgetbase_draw(&wtb_bar, wcol);
 }
 
-static void widget_view_item(uiBut *but,
-                             uiWidgetColors *wcol,
+static void widget_view_item(uiWidgetColors *wcol,
                              rcti *rect,
                              const uiWidgetStateInfo *state,
                              int /*roundboxalign*/,
                              const float zoom)
 {
-  const bool is_selected = state->but_flag & UI_SELECT;
-
-  if (but->type == UI_BTYPE_VIEW_ITEM) {
-    uiButViewItem *view_item_but = static_cast<uiButViewItem *>(but);
-    if (is_selected && view_item_but->view_item &&
-        UI_view_item_is_active(view_item_but->view_item)) {
-      widget_active_color(wcol);
-    }
-  }
-
   uiWidgetBase wtb;
   widget_init(&wtb);
 
@@ -4572,7 +4561,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 
     case UI_WTYPE_VIEW_ITEM:
       wt.wcol_theme = &btheme->tui.wcol_view_item;
-      wt.custom = widget_view_item;
+      wt.draw = widget_view_item;
       break;
 
     case UI_WTYPE_NODESOCKET:

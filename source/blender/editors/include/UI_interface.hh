@@ -122,9 +122,16 @@ std::unique_ptr<DropTargetInterface> region_views_find_drop_target_at(const AReg
                                                                       const int xy[2]);
 
 /**
+ * \note #SEL_TOGGLE is ignored here as it has no meaning for individual items (should be refined
+ * to #SEL_SELECT or #SEL_DESELECT based on the selection state of other items).
  * \return True if any selection state changed (redraw necessary).
  */
-bool view_select_all_items(uiViewHandle *view_handle, int /*SelectAction*/ action);
+bool view_item_select_from_action(uiViewItemHandle *item_handle,
+                                  const int /*SelectAction*/ action);
+/**
+ * \return True if any selection state changed (redraw necessary).
+ */
+bool view_select_all_from_action(uiViewHandle *view_handle, int /*SelectAction*/ action);
 
 }  // namespace blender::ui
 

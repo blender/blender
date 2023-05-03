@@ -4806,10 +4806,6 @@ static int ui_do_but_VIEW_ITEM(bContext *C,
           data->dragstarty = event->xy[1];
           return WM_UI_HANDLER_CONTINUE;
 
-        case KM_CLICK:
-          button_activate_state(C, but, BUTTON_STATE_EXIT);
-          return WM_UI_HANDLER_BREAK;
-
         case KM_DBL_CLICK:
           data->cancel = true;
           UI_view_item_begin_rename(view_item_but->view_item);

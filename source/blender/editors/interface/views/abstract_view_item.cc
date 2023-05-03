@@ -215,6 +215,31 @@ bool AbstractViewItem::is_interactive() const
   return is_interactive_;
 }
 
+bool AbstractViewItem::activate()
+{
+  BLI_assert_msg(get_view().is_reconstructed(),
+                 "Item activation can't be done until reconstruction is completed");
+
+  if (is_active()) {
+    return false;
+  }
+
+  /* Deactivate other items in the tree. */
+  get_view().foreach_abstract_item([](auto &item) { item.deactivate(); });
+
+  is_active_ = true;
+  return true;
+}
+
+bool AbstractViewItem::deactivate()
+{
+  if (!is_active_) {
+    return false;
+  }
+  is_active_ = false;
+  return true;
+}
+
 bool AbstractViewItem::is_active() const
 {
   BLI_assert_msg(get_view().is_reconstructed(),
@@ -222,8 +247,21 @@ bool AbstractViewItem::is_active() const
   return is_active_;
 }
 
+void AbstractViewItem::enable_selectable()
+{
+  is_selectable_ = true;
+}
+
+bool AbstractViewItem::is_selectable() const
+{
+  return is_selectable_;
+}
+
 bool AbstractViewItem::select()
 {
+  if (!is_selectable_) {
+    return false;
+  }
   if (is_selected_) {
     return false;
   }
@@ -320,10 +358,22 @@ bool UI_view_item_is_interactive(const uiViewItemHandle *item_handle)
   return item.is_interactive();
 }
 
+bool UI_view_item_activate(uiViewItemHandle *item_handle)
+{
+  AbstractViewItem &item = reinterpret_cast<AbstractViewItem &>(*item_handle);
+  return item.activate();
+}
+
 bool UI_view_item_is_active(const uiViewItemHandle *item_handle)
 {
   const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_handle);
   return item.is_active();
+}
+
+bool UI_view_item_is_selectable(const uiViewItemHandle *item_handle)
+{
+  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_handle);
+  return item.is_selectable();
 }
 
 bool UI_view_item_is_selected(const uiViewItemHandle *item_handle)

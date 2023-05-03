@@ -68,6 +68,8 @@ AssetGridViewItem::AssetGridViewItem(AssetHandle &asset)
 {
   /* Update reference so we don't point into the possibly freed file data. */
   identifier_ = asset_identifier_;
+
+  enable_selectable();
 }
 
 /* ---------------------------------------------------------------------- */

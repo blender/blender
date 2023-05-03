@@ -133,7 +133,10 @@ class AbstractViewItem {
    * If this wasn't done, the behavior of items is undefined.
    */
   AbstractView *view_ = nullptr;
+  /* Behavior toggles. */
   bool is_interactive_ = true;
+  bool is_selectable_ = false;
+  /* State properties. */
   bool is_active_ = false;
   bool is_selected_ = false;
   bool is_renaming_ = false;
@@ -185,13 +188,23 @@ class AbstractViewItem {
   bool is_interactive() const;
 
   /**
+   * Activates this item and deactivates other items (only one can be active at any time).
+   * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise the
+   * actual item state is unknown, possibly calling state-change update functions incorrectly.
+   */
+  virtual bool activate();
+  virtual bool deactivate();
+  /**
    * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise we
    * can't be sure about the item state.
    */
   bool is_active() const;
 
+  void enable_selectable();
+  bool is_selectable() const;
   /**
-   * Mark this item as selected.
+   * Mark this item as selected if it supports selection (#AbstractViewItem::supports_selection()
+   * returns true).
    * \return True if the selection state changed (redraw needed).
    */
   bool select();

@@ -2273,13 +2273,21 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
         break;
       case UI_BTYPE_VIEW_ITEM: {
         const uiButViewItem *view_item_but = (const uiButViewItem *)but;
+        const uiViewItemHandle *view_item = view_item_but->view_item;
 
         is_push = -1;
-        if (view_item_but->view_item) {
-          /* Consider both active and selected as pushed state. Drawing can differentiate the state
-           * further for visual feedback. */
-          is_push = UI_view_item_is_active(view_item_but->view_item) ||
-                    UI_view_item_is_selected(view_item_but->view_item);
+        if (!view_item) {
+          break;
+        }
+
+        /* Highlights for active items tend to look as if they were selected, so don't highlight
+         * them when the item is also selectable. For not selectable items, the active state is
+         * important to display though. */
+        if (UI_view_item_is_selectable(view_item)) {
+          is_push = UI_view_item_is_selected(view_item);
+        }
+        else {
+          is_push = UI_view_item_is_active(view_item);
         }
         break;
       }

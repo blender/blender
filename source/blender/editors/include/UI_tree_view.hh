@@ -228,13 +228,10 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   virtual bool matches_single(const AbstractTreeViewItem &other) const;
 
   /**
-   * Activates this item, deactivates other items, calls the #AbstractTreeViewItem::on_activate()
-   * function and ensures this item's parents are not collapsed (so the item is visible).
-   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise the
-   * actual item state is unknown, possibly calling state-change update functions incorrectly.
+   * Calls #AbstractViewItem::activate(), #AbstractTreeViewItem::on_activate() and ensures this
+   * item's parents are not collapsed (so the item is visible).
    */
-  void activate();
-  void deactivate();
+  bool activate() override;
 
   /**
    * Can be called from the #AbstractTreeViewItem::build_row() implementation, but not earlier. The

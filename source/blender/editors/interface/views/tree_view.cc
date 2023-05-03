@@ -131,7 +131,6 @@ void AbstractTreeViewItem::tree_row_click_fn(struct bContext * /*C*/,
   uiButViewItem *item_but = (uiButViewItem *)but_arg1;
   AbstractTreeViewItem &tree_item = reinterpret_cast<AbstractTreeViewItem &>(*item_but->view_item);
 
-  tree_item.activate();
   /* Not only activate the item, also show its children. Maybe this should be optional, or
    * controlled by the specific tree-view. */
   tree_item.set_collapsed(false);
@@ -295,28 +294,15 @@ int AbstractTreeViewItem::count_parents() const
   return i;
 }
 
-void AbstractTreeViewItem::activate()
+bool AbstractTreeViewItem::activate()
 {
-  BLI_assert_msg(get_tree_view().is_reconstructed(),
-                 "Item activation can't be done until reconstruction is completed");
-
-  if (is_active()) {
-    return;
-  }
-
-  /* Deactivate other items in the tree. */
-  get_tree_view().foreach_item([](auto &item) { item.deactivate(); });
+  const bool changed = AbstractViewItem::activate();
 
   on_activate();
   /* Make sure the active item is always visible. */
   ensure_parents_uncollapsed();
 
-  is_active_ = true;
-}
-
-void AbstractTreeViewItem::deactivate()
-{
-  is_active_ = false;
+  return changed;
 }
 
 bool AbstractTreeViewItem::is_hovered() const

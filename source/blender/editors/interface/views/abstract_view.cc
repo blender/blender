@@ -120,7 +120,7 @@ std::optional<rcti> AbstractView::get_bounds() const
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name Selection API
+/** \name Selection
  * \{ */
 
 /**
@@ -143,39 +143,45 @@ static SelectAction select_all_refine_action_type(const AbstractView &view, Sele
   return any_selected ? SEL_DESELECT : SEL_SELECT;
 }
 
-bool view_select_all_items(uiViewHandle *view_handle, const int /*SelectAction*/ action)
+static bool view_item_select_from_action(AbstractViewItem &item, const SelectAction action)
+{
+  switch (action) {
+    case SEL_SELECT:
+      return item.select();
+    case SEL_DESELECT:
+      return item.deselect();
+    case SEL_INVERT:
+      if (item.is_selected()) {
+        item.deselect();
+      }
+      else {
+        item.select();
+      }
+      return true;
+    case SEL_TOGGLE:
+      BLI_assert_msg(
+          false,
+          "TOGGLE action should have been refined to be either SELECT or DESELECT at this point");
+      break;
+  }
+
+  return false;
+}
+
+bool view_item_select_from_action(uiViewItemHandle *item_handle, const int /*SelectAction*/ action)
+{
+  AbstractViewItem &item = reinterpret_cast<AbstractViewItem &>(*item_handle);
+  return view_item_select_from_action(item, SelectAction(action));
+}
+
+bool view_select_all_from_action(uiViewHandle *view_handle, const int /*SelectAction*/ action)
 {
   AbstractView &view = reinterpret_cast<AbstractView &>(*view_handle);
   const SelectAction refined_action = select_all_refine_action_type(view, SelectAction(action));
 
   bool changed = false;
   view.foreach_abstract_item([&changed, refined_action](AbstractViewItem &item) {
-    switch (refined_action) {
-      case SEL_SELECT:
-        if (item.select()) {
-          changed = true;
-        }
-        break;
-      case SEL_DESELECT:
-        if (item.deselect()) {
-          changed = true;
-        }
-        break;
-      case SEL_INVERT:
-        if (item.is_selected()) {
-          item.deselect();
-        }
-        else {
-          item.select();
-        }
-        changed = true;
-        break;
-      case SEL_TOGGLE:
-        BLI_assert_msg(false,
-                       "TOGGLE action should have been refined to be either SELECT or DESELECT at "
-                       "this point");
-        break;
-    }
+    changed |= view_item_select_from_action(item, refined_action);
   });
 
   return changed;

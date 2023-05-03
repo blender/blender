@@ -101,17 +101,6 @@ bool AbstractGridViewItem::matches(const AbstractViewItem &other) const
   return identifier_ == other_grid_item.identifier_;
 }
 
-void AbstractGridViewItem::grid_tile_click_fn(struct bContext * /*C*/,
-                                              void *but_arg1,
-                                              void * /*arg2*/)
-{
-  uiButViewItem *view_item_but = (uiButViewItem *)but_arg1;
-  AbstractGridViewItem &grid_item = reinterpret_cast<AbstractGridViewItem &>(
-      *view_item_but->view_item);
-
-  grid_item.activate();
-}
-
 void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
 {
   const GridViewStyle &style = get_view().get_style();
@@ -131,7 +120,6 @@ void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
                                              "");
 
   view_item_but_->view_item = reinterpret_cast<uiViewItemHandle *>(this);
-  UI_but_func_set(view_item_but_, grid_tile_click_fn, view_item_but_, nullptr);
 }
 
 void AbstractGridViewItem::on_activate()
@@ -152,26 +140,11 @@ void AbstractGridViewItem::change_state_delayed()
   }
 }
 
-void AbstractGridViewItem::activate()
+bool AbstractGridViewItem::activate()
 {
-  BLI_assert_msg(get_view().is_reconstructed(),
-                 "Item activation can't be done until reconstruction is completed");
-
-  if (is_active()) {
-    return;
-  }
-
-  /* Deactivate other items in the tree. */
-  get_view().foreach_item([](auto &item) { item.deactivate(); });
-
+  const bool changed = AbstractViewItem::activate();
   on_activate();
-
-  is_active_ = true;
-}
-
-void AbstractGridViewItem::deactivate()
-{
-  is_active_ = false;
+  return changed;
 }
 
 const AbstractGridView &AbstractGridViewItem::get_view() const
