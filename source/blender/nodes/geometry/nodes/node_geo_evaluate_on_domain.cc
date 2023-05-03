@@ -149,7 +149,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const eAttrDomain domain = eAttrDomain(node.custom1);
   const eCustomDataType data_type = eCustomDataType(node.custom2);
 
-  attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+  bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
     using T = decltype(dummy);
     static const std::string identifier = "Value_" + identifier_suffix(data_type);
     Field<T> src_field = params.extract_input<Field<T>>(identifier);

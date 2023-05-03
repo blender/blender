@@ -40,7 +40,7 @@ void copy_with_checked_indices(const GVArray &src,
                                const IndexMask mask,
                                GMutableSpan dst)
 {
-  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
+  bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
     copy_with_checked_indices(src.typed<T>(), indices, mask, dst.typed<T>());
   });
@@ -249,7 +249,7 @@ class SampleIndexFunction : public mf::MultiFunction {
     }
 
     if (clamp_) {
-      attribute_math::convert_to_static_type(type, [&](auto dummy) {
+      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
         using T = decltype(dummy);
         copy_with_clamped_indices(src_data_->typed<T>(), indices, mask, dst.typed<T>());
       });
