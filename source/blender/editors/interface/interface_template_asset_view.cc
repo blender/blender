@@ -109,6 +109,7 @@ static void asset_view_draw_item(uiList *ui_list,
                   ED_asset_handle_get_preview_icon_id(&asset_handle),
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
                   UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+  but->emboss = UI_EMBOSS_NONE;
   if (!ui_list->dyn_data->custom_drag_optype) {
     asset_view_item_but_drag_set(but, &asset_handle);
   }
