@@ -60,8 +60,8 @@ static void mask_spline_color_get(MaskLayer *mask_layer,
   r_rgb[3] = 255;
 }
 
-static void mask_spline_feather_color_get(MaskLayer *UNUSED(mask_layer),
-                                          MaskSpline *UNUSED(spline),
+static void mask_spline_feather_color_get(MaskLayer * /*mask_layer*/,
+                                          MaskSpline * /*spline*/,
                                           const bool is_sel,
                                           uchar r_rgb[4])
 {
@@ -391,7 +391,7 @@ static void mask_draw_curve_type(const bContext *C,
     const bool undistort = sc->clip && (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT);
 
     if (undistort) {
-      points = MEM_callocN(2 * tot_point * sizeof(float), "undistorthed mask curve");
+      points = MEM_cnew_array<float[2]>(tot_point, "undistorthed mask curve");
 
       for (int i = 0; i < tot_point; i++) {
         mask_point_undistort_pos(sc, points[i], orig_points[i]);
@@ -579,9 +579,9 @@ static void draw_layer_splines(const bContext *C,
 
     /* show undeform for testing */
     if (0) {
-      void *back = spline->points_deform;
+      MaskSplinePoint *back = spline->points_deform;
 
-      spline->points_deform = NULL;
+      spline->points_deform = nullptr;
       draw_spline_curve(C, layer, spline, draw_type, is_active, width, height);
       draw_spline_points(C, layer, spline, draw_type);
       spline->points_deform = back;
@@ -595,13 +595,9 @@ static void draw_mask_layers(
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_program_point_size(true);
 
-  MaskLayer *mask_layer;
+  MaskLayer *active = nullptr;
   int i;
-
-  MaskLayer *active = NULL;
-  for (mask_layer = mask->masklayers.first, i = 0; mask_layer != NULL;
-       mask_layer = mask_layer->next, i++)
-  {
+  LISTBASE_FOREACH_INDEX (MaskLayer *, mask_layer, &mask->masklayers, i) {
     const bool is_active = (i == mask->masklay_act);
 
     if (mask_layer->visibility_flag & MASK_HIDE_VIEW) {
@@ -616,7 +612,7 @@ static void draw_mask_layers(
     draw_layer_splines(C, mask_layer, draw_type, width, height, is_active);
   }
 
-  if (active != NULL) {
+  if (active != nullptr) {
     draw_layer_splines(C, active, draw_type, width, height, true);
   }
 
@@ -627,7 +623,7 @@ static void draw_mask_layers(
 static float *mask_rasterize(Mask *mask, const int width, const int height)
 {
   MaskRasterHandle *handle;
-  float *buffer = MEM_mallocN(sizeof(float) * height * width, "rasterized mask buffer");
+  float *buffer = MEM_cnew_array<float>(height * width, "rasterized mask buffer");
 
   /* Initialize rasterization handle. */
   handle = BKE_maskrasterize_handle_new();
@@ -735,7 +731,7 @@ void ED_mask_draw_region(
     }
     else {
       immDrawPixelsTexTiled(
-          &state, 0.0f, 0.0f, width, height, GPU_R16F, false, buffer, 1.0f, 1.0f, NULL);
+          &state, 0.0f, 0.0f, width, height, GPU_R16F, false, buffer, 1.0f, 1.0f, nullptr);
     }
     GPU_matrix_pop();
 
@@ -778,7 +774,7 @@ void ED_mask_draw_frames(
   const float framelen = region->winx / (float)(efra - sfra + 1);
 
   MaskLayer *mask_layer = BKE_mask_layer_active(mask);
-  if (mask_layer == NULL) {
+  if (mask_layer == nullptr) {
     return;
   }
 
@@ -799,10 +795,7 @@ void ED_mask_draw_frames(
 
   immBegin(GPU_PRIM_LINES, 2 * num_lines);
 
-  for (MaskLayerShape *mask_layer_shape = mask_layer->splines_shapes.first;
-       mask_layer_shape != NULL;
-       mask_layer_shape = mask_layer_shape->next)
-  {
+  LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
     int frame = mask_layer_shape->frame;
 
     // draw_keyframe(i, scene->r.cfra, sfra, framelen, 1);

@@ -208,7 +208,7 @@ MaskRasterHandle *BKE_maskrasterize_handle_new(void)
 {
   MaskRasterHandle *mr_handle;
 
-  mr_handle = MEM_callocN(sizeof(MaskRasterHandle), "MaskRasterHandle");
+  mr_handle = MEM_cnew<MaskRasterHandle>("MaskRasterHandle");
 
   return mr_handle;
 }
@@ -426,8 +426,8 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
     float(*cos)[3] = layer->face_coords;
 
     const uint bucket_tot = layer->buckets_x * layer->buckets_y;
-    LinkNode **bucketstore = MEM_callocN(bucket_tot * sizeof(LinkNode *), __func__);
-    uint *bucketstore_tot = MEM_callocN(bucket_tot * sizeof(uint), __func__);
+    LinkNode **bucketstore = MEM_cnew_array<LinkNode *>(bucket_tot, __func__);
+    uint *bucketstore_tot = MEM_cnew_array<uint>(bucket_tot, __func__);
 
     uint face_index;
 
@@ -525,12 +525,12 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 
     if (1) {
       /* Now convert link-nodes into arrays for faster per pixel access. */
-      uint **buckets_face = MEM_mallocN(bucket_tot * sizeof(*buckets_face), __func__);
+      uint **buckets_face = MEM_cnew_array<uint *>(bucket_tot, __func__);
       uint bucket_index;
 
       for (bucket_index = 0; bucket_index < bucket_tot; bucket_index++) {
         if (bucketstore_tot[bucket_index]) {
-          uint *bucket = MEM_mallocN((bucketstore_tot[bucket_index] + 1) * sizeof(uint), __func__);
+          uint *bucket = MEM_cnew_array<uint>((bucketstore_tot[bucket_index] + 1), __func__);
           LinkNode *bucket_node;
 
           buckets_face[bucket_index] = bucket;
@@ -577,22 +577,18 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
   MemArena *sf_arena;
 
   mr_handle->layers_tot = (uint)BLI_listbase_count(&mask->masklayers);
-  mr_handle->layers = MEM_mallocN(sizeof(MaskRasterLayer) * mr_handle->layers_tot,
-                                  "MaskRasterLayer");
+  mr_handle->layers = MEM_cnew_array<MaskRasterLayer>(mr_handle->layers_tot, "MaskRasterLayer");
   BLI_rctf_init_minmax(&mr_handle->bounds);
 
   sf_arena = BLI_memarena_new(BLI_SCANFILL_ARENA_SIZE, __func__);
 
-  for (masklay = mask->masklayers.first, masklay_index = 0; masklay;
+  for (masklay = static_cast<MaskLayer *>(mask->masklayers.first), masklay_index = 0; masklay;
        masklay = masklay->next, masklay_index++)
   {
-
     /* we need to store vertex ranges for open splines for filling */
     uint tot_splines;
     MaskRasterSplineInfo *open_spline_ranges;
     uint open_spline_index = 0;
-
-    MaskSpline *spline;
 
     /* scanfill */
     ScanFillContext sf_ctx;
@@ -616,11 +612,11 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
     }
 
     tot_splines = (uint)BLI_listbase_count(&masklay->splines);
-    open_spline_ranges = MEM_callocN(sizeof(*open_spline_ranges) * tot_splines, __func__);
+    open_spline_ranges = MEM_cnew_array<MaskRasterSplineInfo>(tot_splines, __func__);
 
     BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
 
-    for (spline = masklay->splines.first; spline; spline = spline->next) {
+    LISTBASE_FOREACH (MaskSpline *, spline, &masklay->splines) {
       const bool is_cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
       const bool is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
 
@@ -686,8 +682,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         if (do_mask_aa == true) {
           if (do_feather == false) {
             tot_diff_feather_points = tot_diff_point;
-            diff_feather_points = MEM_mallocN(
-                sizeof(*diff_feather_points) * (size_t)tot_diff_feather_points, __func__);
+            diff_feather_points = MEM_cnew_array<float[2]>((size_t)tot_diff_feather_points,
+                                                           __func__);
             /* add single pixel feather */
             maskrasterize_spline_differentiate_point_outset(
                 diff_feather_points, diff_points, tot_diff_point, pixel_size, false);
@@ -722,7 +718,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
           }
 
           sf_vert = sf_vert_prev;
-          sf_vert_prev = sf_ctx.fillvertbase.last;
+          sf_vert_prev = static_cast<ScanFillVert *>(sf_ctx.fillvertbase.last);
 
           for (j = 0; j < tot_diff_point; j++) {
             ScanFillEdge *sf_edge = BLI_scanfill_edge_add(&sf_ctx, sf_vert_prev, sf_vert);
@@ -758,8 +754,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
           if (diff_feather_points) {
 
             if (spline->flag & MASK_SPLINE_NOINTERSECT) {
-              diff_feather_points_flip = MEM_mallocN(sizeof(float[2]) * tot_diff_feather_points,
-                                                     "diff_feather_points_flip");
+              diff_feather_points_flip = MEM_cnew_array<float[2]>(tot_diff_feather_points,
+                                                                  "diff_feather_points_flip");
 
               float co_diff[2];
               for (j = 0; j < tot_diff_point; j++) {
@@ -913,14 +909,16 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       ListBase isect_remedgebase = {NULL, NULL};
 
       /* now we have all the splines */
-      face_coords = MEM_mallocN(sizeof(float[3]) * sf_vert_tot, "maskrast_face_coords");
+      face_coords = MEM_cnew_array<float[3]>(sf_vert_tot, "maskrast_face_coords");
 
       /* init bounds */
       BLI_rctf_init_minmax(&bounds);
 
       /* coords */
       cos = (float *)face_coords;
-      for (sf_vert = sf_ctx.fillvertbase.first; sf_vert; sf_vert = sf_vert_next) {
+      for (sf_vert = static_cast<ScanFillVert *>(sf_ctx.fillvertbase.first); sf_vert;
+           sf_vert = sf_vert_next)
+      {
         sf_vert_next = sf_vert->next;
         copy_v3_v3(cos, sf_vert->co);
 
@@ -946,12 +944,14 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         uint sf_vert_tot_isect = (uint)BLI_listbase_count(&sf_ctx.fillvertbase);
         uint i = sf_vert_tot;
 
-        face_coords = MEM_reallocN(face_coords,
-                                   sizeof(float[3]) * (sf_vert_tot + sf_vert_tot_isect));
+        face_coords = static_cast<float(*)[3]>(
+            MEM_reallocN(face_coords, sizeof(float[3]) * (sf_vert_tot + sf_vert_tot_isect)));
 
         cos = (float *)&face_coords[sf_vert_tot][0];
 
-        for (sf_vert = sf_ctx.fillvertbase.first; sf_vert; sf_vert = sf_vert->next) {
+        for (sf_vert = static_cast<ScanFillVert *>(sf_ctx.fillvertbase.first); sf_vert;
+             sf_vert = sf_vert->next)
+        {
           copy_v3_v3(cos, sf_vert->co);
           sf_vert->tmp.u = i++;
           cos += 3;
@@ -978,14 +978,16 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         BLI_movelisttolist(&sf_ctx.filledgebase, &isect_remedgebase);
       }
 
-      face_array = MEM_mallocN(sizeof(*face_array) *
-                                   ((size_t)sf_tri_tot + (size_t)tot_feather_quads),
-                               "maskrast_face_index");
+      face_array = static_cast<uint(*)[4]>(
+          MEM_mallocN(sizeof(*face_array) * ((size_t)sf_tri_tot + (size_t)tot_feather_quads),
+                      "maskrast_face_index"));
       face_index = 0;
 
       /* faces */
       face = (uint *)face_array;
-      for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
+      for (sf_tri = static_cast<ScanFillFace *>(sf_ctx.fillfacebase.first); sf_tri;
+           sf_tri = sf_tri->next)
+      {
         *(face++) = sf_tri->v3->tmp.u;
         *(face++) = sf_tri->v2->tmp.u;
         *(face++) = sf_tri->v1->tmp.u;
@@ -1003,7 +1005,9 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       if (tot_feather_quads) {
         ScanFillEdge *sf_edge;
 
-        for (sf_edge = sf_ctx.filledgebase.first; sf_edge; sf_edge = sf_edge->next) {
+        for (sf_edge = static_cast<ScanFillEdge *>(sf_ctx.filledgebase.first); sf_edge;
+             sf_edge = sf_edge->next)
+        {
           if (sf_edge->tmp.c == SF_EDGE_IS_BOUNDARY) {
             *(face++) = sf_edge->v1->tmp.u;
             *(face++) = sf_edge->v2->tmp.u;
@@ -1430,9 +1434,9 @@ typedef struct MaskRasterizeBufferData {
 
 static void maskrasterize_buffer_cb(void *__restrict userdata,
                                     const int y,
-                                    const TaskParallelTLS *__restrict UNUSED(tls))
+                                    const TaskParallelTLS *__restrict /*tls*/)
 {
-  MaskRasterizeBufferData *data = userdata;
+  MaskRasterizeBufferData *data = static_cast<MaskRasterizeBufferData *>(userdata);
 
   MaskRasterHandle *mr_handle = data->mr_handle;
   float *buffer = data->buffer;
@@ -1461,15 +1465,14 @@ void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
   const float x_inv = 1.0f / (float)width;
   const float y_inv = 1.0f / (float)height;
 
-  MaskRasterizeBufferData data = {
-      .mr_handle = mr_handle,
-      .x_inv = x_inv,
-      .y_inv = y_inv,
-      .x_px_ofs = x_inv * 0.5f,
-      .y_px_ofs = y_inv * 0.5f,
-      .width = width,
-      .buffer = buffer,
-  };
+  MaskRasterizeBufferData data{};
+  data.mr_handle = mr_handle;
+  data.x_inv = x_inv;
+  data.y_inv = y_inv;
+  data.x_px_ofs = x_inv * 0.5f;
+  data.y_px_ofs = y_inv * 0.5f;
+  data.width = width;
+  data.buffer = buffer;
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = ((size_t)height * width > 10000);

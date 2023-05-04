@@ -52,7 +52,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
 
   MaskLayer *point_mask_layer;
   MaskSpline *point_spline;
-  MaskSplinePoint *point = NULL;
+  MaskSplinePoint *point = nullptr;
   float dist_best_sq = FLT_MAX, co[2];
   int width, height;
   float u = 0.0f;
@@ -67,18 +67,18 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
   co[0] = normal_co[0] * scalex;
   co[1] = normal_co[1] * scaley;
 
-  for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
-                 *mask_layer_eval = mask_eval->masklayers.first;
-       mask_layer_orig != NULL;
+  for (MaskLayer *mask_layer_orig = static_cast<MaskLayer *>(mask_orig->masklayers.first),
+                 *mask_layer_eval = static_cast<MaskLayer *>(mask_eval->masklayers.first);
+       mask_layer_orig != nullptr;
        mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
   {
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
-    for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
-                    *spline_eval = mask_layer_eval->splines.first;
-         spline_orig != NULL;
+    for (MaskSpline *spline_orig = static_cast<MaskSpline *>(mask_layer_orig->splines.first),
+                    *spline_eval = static_cast<MaskSpline *>(mask_layer_eval->splines.first);
+         spline_orig != nullptr;
          spline_orig = spline_orig->next, spline_eval = spline_eval->next)
     {
       int i;
@@ -95,7 +95,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
         if (diff_points) {
           int j, tot_point;
           uint tot_feather_point;
-          float *feather_points = NULL, *points;
+          float *feather_points = nullptr, *points;
 
           if (feather) {
             feather_points = BKE_mask_point_segment_feather_diff(
@@ -135,7 +135,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
             }
           }
 
-          if (feather_points != NULL) {
+          if (feather_points != nullptr) {
             MEM_freeN(feather_points);
           }
           MEM_freeN(diff_points);
@@ -174,15 +174,15 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
   }
 
   if (r_mask_layer) {
-    *r_mask_layer = NULL;
+    *r_mask_layer = nullptr;
   }
 
   if (r_spline) {
-    *r_spline = NULL;
+    *r_spline = nullptr;
   }
 
   if (r_point) {
-    *r_point = NULL;
+    *r_point = nullptr;
   }
 
   return false;
@@ -211,9 +211,9 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
-  MaskLayer *point_mask_layer = NULL;
-  MaskSpline *point_spline = NULL;
-  MaskSplinePoint *point = NULL;
+  MaskLayer *point_mask_layer = nullptr;
+  MaskSpline *point_spline = nullptr;
+  MaskSplinePoint *point = nullptr;
   float co[2];
   const float threshold_sq = threshold * threshold;
   float len_sq = FLT_MAX, scalex, scaley;
@@ -229,9 +229,9 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
   co[0] = normal_co[0] * scalex;
   co[1] = normal_co[1] * scaley;
 
-  for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
-                 *mask_layer_eval = mask_eval->masklayers.first;
-       mask_layer_orig != NULL;
+  for (MaskLayer *mask_layer_orig = static_cast<MaskLayer *>(mask_orig->masklayers.first),
+                 *mask_layer_eval = static_cast<MaskLayer *>(mask_eval->masklayers.first);
+       mask_layer_orig != nullptr;
        mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
   {
 
@@ -239,9 +239,9 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
       continue;
     }
 
-    for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
-                    *spline_eval = mask_layer_eval->splines.first;
-         spline_orig != NULL;
+    for (MaskSpline *spline_orig = static_cast<MaskSpline *>(mask_layer_orig->splines.first),
+                    *spline_eval = static_cast<MaskSpline *>(mask_layer_eval->splines.first);
+         spline_orig != nullptr;
          spline_orig = spline_orig->next, spline_eval = spline_eval->next)
     {
       MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline_eval);
@@ -341,18 +341,18 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
   }
 
   if (r_mask_layer) {
-    *r_mask_layer = NULL;
+    *r_mask_layer = nullptr;
   }
 
   if (r_spline) {
-    *r_spline = NULL;
+    *r_spline = nullptr;
   }
 
   if (r_which_handle) {
     *r_which_handle = MASK_WHICH_HANDLE_NONE;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 bool ED_mask_feather_find_nearest(const bContext *C,
@@ -368,10 +368,10 @@ bool ED_mask_feather_find_nearest(const bContext *C,
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
-  MaskLayer *point_mask_layer = NULL;
-  MaskSpline *point_spline = NULL;
-  MaskSplinePoint *point = NULL;
-  MaskSplinePointUW *uw = NULL;
+  MaskLayer *point_mask_layer = nullptr;
+  MaskSpline *point_spline = nullptr;
+  MaskSplinePoint *point = nullptr;
+  MaskSplinePointUW *uw = nullptr;
   const float threshold_sq = threshold * threshold;
   float len = FLT_MAX, co[2];
   float scalex, scaley;
@@ -386,15 +386,15 @@ bool ED_mask_feather_find_nearest(const bContext *C,
   co[0] = normal_co[0] * scalex;
   co[1] = normal_co[1] * scaley;
 
-  for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
-                 *mask_layer_eval = mask_eval->masklayers.first;
-       mask_layer_orig != NULL;
+  for (MaskLayer *mask_layer_orig = static_cast<MaskLayer *>(mask_orig->masklayers.first),
+                 *mask_layer_eval = static_cast<MaskLayer *>(mask_eval->masklayers.first);
+       mask_layer_orig != nullptr;
        mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
   {
 
-    for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
-                    *spline_eval = mask_layer_eval->splines.first;
-         spline_orig != NULL;
+    for (MaskSpline *spline_orig = static_cast<MaskSpline *>(mask_layer_orig->splines.first),
+                    *spline_eval = static_cast<MaskSpline *>(mask_layer_eval->splines.first);
+         spline_orig != nullptr;
          spline_orig = spline_orig->next, spline_eval = spline_eval->next)
     {
       // MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
@@ -421,9 +421,9 @@ bool ED_mask_feather_find_nearest(const bContext *C,
 
           cur_len_sq = len_squared_v2v2(vec, co);
 
-          if (point == NULL || cur_len_sq < len) {
+          if (point == nullptr || cur_len_sq < len) {
             if (j == 0) {
-              uw = NULL;
+              uw = nullptr;
             }
             else {
               uw = &cur_point_orig->uw[j - 1];
@@ -468,15 +468,15 @@ bool ED_mask_feather_find_nearest(const bContext *C,
   }
 
   if (r_mask_layer) {
-    *r_mask_layer = NULL;
+    *r_mask_layer = nullptr;
   }
 
   if (r_spline) {
-    *r_spline = NULL;
+    *r_spline = nullptr;
   }
 
   if (r_point) {
-    *r_point = NULL;
+    *r_point = nullptr;
   }
 
   return false;
@@ -487,7 +487,7 @@ void ED_mask_mouse_pos(ScrArea *area, ARegion *region, const int mval[2], float 
   if (area) {
     switch (area->spacetype) {
       case SPACE_CLIP: {
-        SpaceClip *sc = area->spacedata.first;
+        SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
         ED_clip_mouse_pos(sc, region, mval, co);
         BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
         break;
@@ -497,7 +497,7 @@ void ED_mask_mouse_pos(ScrArea *area, ARegion *region, const int mval[2], float 
         break;
       }
       case SPACE_IMAGE: {
-        SpaceImage *sima = area->spacedata.first;
+        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
         ED_image_mouse_pos(sima, region, mval, co);
         BKE_mask_coord_from_image(sima->image, &sima->iuser, co, co);
         break;
@@ -522,7 +522,7 @@ void ED_mask_point_pos(ScrArea *area, ARegion *region, float x, float y, float *
   if (area) {
     switch (area->spacetype) {
       case SPACE_CLIP: {
-        SpaceClip *sc = area->spacedata.first;
+        SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
         ED_clip_point_stable_pos(sc, region, x, y, &co[0], &co[1]);
         BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
         break;
@@ -531,7 +531,7 @@ void ED_mask_point_pos(ScrArea *area, ARegion *region, float x, float y, float *
         zero_v2(co); /* MASKTODO */
         break;
       case SPACE_IMAGE: {
-        SpaceImage *sima = area->spacedata.first;
+        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
         ED_image_point_pos(sima, region, x, y, &co[0], &co[1]);
         BKE_mask_coord_from_image(sima->image, &sima->iuser, co, co);
         break;
@@ -560,7 +560,7 @@ void ED_mask_point_pos__reverse(
   if (area) {
     switch (area->spacetype) {
       case SPACE_CLIP: {
-        SpaceClip *sc = area->spacedata.first;
+        SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
         co[0] = x;
         co[1] = y;
         BKE_mask_coord_to_movieclip(sc->clip, &sc->user, co, co);
@@ -571,7 +571,7 @@ void ED_mask_point_pos__reverse(
         zero_v2(co); /* MASKTODO */
         break;
       case SPACE_IMAGE: {
-        SpaceImage *sima = area->spacedata.first;
+        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
         co[0] = x;
         co[1] = y;
         BKE_mask_coord_to_image(sima->image, &sima->iuser, co, co);
@@ -616,7 +616,7 @@ bool ED_mask_selected_minmax(const bContext *C,
 
   bool ok = false;
 
-  if (mask == NULL) {
+  if (mask == nullptr) {
     return ok;
   }
 
@@ -626,13 +626,11 @@ bool ED_mask_selected_minmax(const bContext *C,
   Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask->id);
 
   INIT_MINMAX2(min, max);
-  for (MaskLayer *mask_layer = mask_eval->masklayers.first; mask_layer != NULL;
-       mask_layer = mask_layer->next)
-  {
+  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask_eval->masklayers) {
     if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
-    for (MaskSpline *spline = mask_layer->splines.first; spline != NULL; spline = spline->next) {
+    LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
       MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
       for (int i = 0; i < spline->tot_point; i++) {
         const MaskSplinePoint *point = &spline->points[i];
@@ -684,17 +682,17 @@ void ED_mask_get_size(ScrArea *area, int *width, int *height)
   if (area && area->spacedata.first) {
     switch (area->spacetype) {
       case SPACE_CLIP: {
-        SpaceClip *sc = area->spacedata.first;
+        SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
         ED_space_clip_get_size(sc, width, height);
         break;
       }
       case SPACE_SEQ: {
-        //              Scene *scene = CTX_data_scene(C);
-        //              BKE_render_resolution(&scene->r, false, width, height);
+        // Scene *scene = CTX_data_scene(C);
+        // BKE_render_resolution(&scene->r, false, width, height);
         break;
       }
       case SPACE_IMAGE: {
-        SpaceImage *sima = area->spacedata.first;
+        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
         ED_space_image_get_size(sima, width, height);
         break;
       }
@@ -718,7 +716,7 @@ void ED_mask_zoom(ScrArea *area, ARegion *region, float *zoomx, float *zoomy)
   if (area && area->spacedata.first) {
     switch (area->spacetype) {
       case SPACE_CLIP: {
-        SpaceClip *sc = area->spacedata.first;
+        SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
         ED_space_clip_get_zoom(sc, region, zoomx, zoomy);
         break;
       }
@@ -727,7 +725,7 @@ void ED_mask_zoom(ScrArea *area, ARegion *region, float *zoomx, float *zoomy)
         break;
       }
       case SPACE_IMAGE: {
-        SpaceImage *sima = area->spacedata.first;
+        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
         ED_space_image_get_zoom(sima, region, zoomx, zoomy);
         break;
       }
@@ -744,12 +742,12 @@ void ED_mask_zoom(ScrArea *area, ARegion *region, float *zoomx, float *zoomy)
   }
 }
 
-void ED_mask_get_aspect(ScrArea *area, ARegion *UNUSED(region), float *aspx, float *aspy)
+void ED_mask_get_aspect(ScrArea *area, ARegion * /*region*/, float *aspx, float *aspy)
 {
   if (area && area->spacedata.first) {
     switch (area->spacetype) {
       case SPACE_CLIP: {
-        SpaceClip *sc = area->spacedata.first;
+        SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
         ED_space_clip_get_aspect(sc, aspx, aspy);
         break;
       }
@@ -758,7 +756,7 @@ void ED_mask_get_aspect(ScrArea *area, ARegion *UNUSED(region), float *aspx, flo
         break;
       }
       case SPACE_IMAGE: {
-        SpaceImage *sima = area->spacedata.first;
+        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
         ED_space_image_get_aspect(sima, aspx, aspy);
         break;
       }
@@ -780,7 +778,7 @@ void ED_mask_pixelspace_factor(ScrArea *area, ARegion *region, float *scalex, fl
   if (area && area->spacedata.first) {
     switch (area->spacetype) {
       case SPACE_CLIP: {
-        SpaceClip *sc = area->spacedata.first;
+        SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
         float aspx, aspy;
 
         UI_view2d_scale_get(&region->v2d, scalex, scaley);
@@ -795,7 +793,7 @@ void ED_mask_pixelspace_factor(ScrArea *area, ARegion *region, float *scalex, fl
         break;
       }
       case SPACE_IMAGE: {
-        SpaceImage *sima = area->spacedata.first;
+        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
         float aspx, aspy;
 
         UI_view2d_scale_get(&region->v2d, scalex, scaley);
@@ -823,7 +821,7 @@ void ED_mask_cursor_location_get(ScrArea *area, float cursor[2])
   if (area) {
     switch (area->spacetype) {
       case SPACE_CLIP: {
-        SpaceClip *space_clip = area->spacedata.first;
+        SpaceClip *space_clip = static_cast<SpaceClip *>(area->spacedata.first);
         copy_v2_v2(cursor, space_clip->cursor);
         break;
       }
@@ -832,7 +830,7 @@ void ED_mask_cursor_location_get(ScrArea *area, float cursor[2])
         break;
       }
       case SPACE_IMAGE: {
-        SpaceImage *space_image = area->spacedata.first;
+        SpaceImage *space_image = static_cast<SpaceImage *>(area->spacedata.first);
         copy_v2_v2(cursor, space_image->cursor);
         break;
       }

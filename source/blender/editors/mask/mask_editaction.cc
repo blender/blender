@@ -40,17 +40,13 @@ bool ED_masklayer_frames_looper(MaskLayer *mask_layer,
                                 Scene *scene,
                                 bool (*mask_layer_shape_cb)(MaskLayerShape *, Scene *))
 {
-  MaskLayerShape *mask_layer_shape;
-
   /* error checker */
-  if (mask_layer == NULL) {
+  if (mask_layer == nullptr) {
     return false;
   }
 
   /* do loop */
-  for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = mask_layer_shape->next)
-  {
+  LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
     /* execute callback */
     if (mask_layer_shape_cb(mask_layer_shape, scene)) {
       return true;
@@ -66,20 +62,16 @@ bool ED_masklayer_frames_looper(MaskLayer *mask_layer,
 
 void ED_masklayer_make_cfra_list(MaskLayer *mask_layer, ListBase *elems, bool onlysel)
 {
-  MaskLayerShape *mask_layer_shape;
-  CfraElem *ce;
 
   /* error checking */
-  if (ELEM(NULL, mask_layer, elems)) {
+  if (ELEM(nullptr, mask_layer, elems)) {
     return;
   }
 
   /* loop through mask-frames, adding */
-  for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = mask_layer_shape->next)
-  {
+  LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
     if ((onlysel == false) || (mask_layer_shape->flag & MASK_SHAPE_SELECT)) {
-      ce = MEM_callocN(sizeof(CfraElem), "CfraElem");
+      CfraElem *ce = MEM_cnew<CfraElem>("CfraElem");
 
       ce->cfra = (float)mask_layer_shape->frame;
       ce->sel = (mask_layer_shape->flag & MASK_SHAPE_SELECT) ? 1 : 0;
@@ -94,17 +86,13 @@ void ED_masklayer_make_cfra_list(MaskLayer *mask_layer, ListBase *elems, bool on
 
 bool ED_masklayer_frame_select_check(const MaskLayer *mask_layer)
 {
-  MaskLayerShape *mask_layer_shape;
-
   /* error checking */
-  if (mask_layer == NULL) {
+  if (mask_layer == nullptr) {
     return 0;
   }
 
   /* stop at the first one found */
-  for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = mask_layer_shape->next)
-  {
+  LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
     if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
       return true;
     }
@@ -117,7 +105,7 @@ bool ED_masklayer_frame_select_check(const MaskLayer *mask_layer)
 /* helper function - select mask-frame based on SELECT_* mode */
 static void mask_layer_shape_select(MaskLayerShape *mask_layer_shape, short select_mode)
 {
-  if (mask_layer_shape == NULL) {
+  if (mask_layer_shape == nullptr) {
     return;
   }
 
@@ -136,17 +124,13 @@ static void mask_layer_shape_select(MaskLayerShape *mask_layer_shape, short sele
 
 void ED_mask_select_frames(MaskLayer *mask_layer, short select_mode)
 {
-  MaskLayerShape *mask_layer_shape;
-
   /* error checking */
-  if (mask_layer == NULL) {
+  if (mask_layer == nullptr) {
     return;
   }
 
   /* handle according to mode */
-  for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = mask_layer_shape->next)
-  {
+  LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
     mask_layer_shape_select(mask_layer_shape, select_mode);
   }
 }
@@ -154,7 +138,7 @@ void ED_mask_select_frames(MaskLayer *mask_layer, short select_mode)
 void ED_masklayer_frame_select_set(MaskLayer *mask_layer, short mode)
 {
   /* error checking */
-  if (mask_layer == NULL) {
+  if (mask_layer == nullptr) {
     return;
   }
 
@@ -166,7 +150,7 @@ void ED_mask_select_frame(MaskLayer *mask_layer, int selx, short select_mode)
 {
   MaskLayerShape *mask_layer_shape;
 
-  if (mask_layer == NULL) {
+  if (mask_layer == nullptr) {
     return;
   }
 
@@ -179,16 +163,12 @@ void ED_mask_select_frame(MaskLayer *mask_layer, int selx, short select_mode)
 
 void ED_masklayer_frames_select_box(MaskLayer *mask_layer, float min, float max, short select_mode)
 {
-  MaskLayerShape *mask_layer_shape;
-
-  if (mask_layer == NULL) {
+  if (mask_layer == nullptr) {
     return;
   }
 
   /* only select those frames which are in bounds */
-  for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = mask_layer_shape->next)
-  {
+  LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
     if (IN_RANGE(mask_layer_shape->frame, min, max)) {
       mask_layer_shape_select(mask_layer_shape, select_mode);
     }
@@ -200,16 +180,12 @@ void ED_masklayer_frames_select_region(KeyframeEditData *ked,
                                        short tool,
                                        short select_mode)
 {
-  MaskLayerShape *mask_layer_shape;
-
-  if (mask_layer == NULL) {
+  if (mask_layer == nullptr) {
     return;
   }
 
   /* only select frames which are within the region */
-  for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = mask_layer_shape->next)
-  {
+  LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
     /* construct a dummy point coordinate to do this testing with */
     float pt[2] = {0};
 
@@ -219,13 +195,13 @@ void ED_masklayer_frames_select_region(KeyframeEditData *ked,
     /* check the necessary regions */
     if (tool == BEZT_OK_CHANNEL_LASSO) {
       /* Lasso */
-      if (keyframe_region_lasso_test(ked->data, pt)) {
+      if (keyframe_region_lasso_test(static_cast<KeyframeEdit_LassoData *>(ked->data), pt)) {
         mask_layer_shape_select(mask_layer_shape, select_mode);
       }
     }
     else if (tool == BEZT_OK_CHANNEL_CIRCLE) {
       /* Circle */
-      if (keyframe_region_circle_test(ked->data, pt)) {
+      if (keyframe_region_circle_test(static_cast<KeyframeEdit_CircleData *>(ked->data), pt)) {
         mask_layer_shape_select(mask_layer_shape, select_mode);
       }
     }
@@ -237,20 +213,15 @@ void ED_masklayer_frames_select_region(KeyframeEditData *ked,
 
 bool ED_masklayer_frames_delete(MaskLayer *mask_layer)
 {
-  MaskLayerShape *mask_layer_shape, *mask_layer_shape_next;
   bool changed = false;
 
   /* error checking */
-  if (mask_layer == NULL) {
+  if (mask_layer == nullptr) {
     return false;
   }
 
   /* check for frames to delete */
-  for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = mask_layer_shape_next)
-  {
-    mask_layer_shape_next = mask_layer_shape->next;
-
+  LISTBASE_FOREACH_MUTABLE (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
     if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
       BKE_mask_layer_shape_unlink(mask_layer, mask_layer_shape);
       changed = true;
@@ -262,18 +233,13 @@ bool ED_masklayer_frames_delete(MaskLayer *mask_layer)
 
 void ED_masklayer_frames_duplicate(MaskLayer *mask_layer)
 {
-  MaskLayerShape *mask_layer_shape, *gpfn;
-
   /* Error checking. */
-  if (mask_layer == NULL) {
+  if (mask_layer == nullptr) {
     return;
   }
 
   /* Duplicate selected frames. */
-  for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-       mask_layer_shape = gpfn)
-  {
-    gpfn = mask_layer_shape->next;
+  LISTBASE_FOREACH_MUTABLE (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
 
     /* Duplicate this frame. */
     if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
@@ -292,7 +258,7 @@ void ED_masklayer_frames_duplicate(MaskLayer *mask_layer)
 /* -------------------------------------- */
 /* Snap Tools */
 
-static bool snap_mask_layer_nearest(MaskLayerShape *mask_layer_shape, Scene *UNUSED(scene))
+static bool snap_mask_layer_nearest(MaskLayerShape *mask_layer_shape, Scene * /*scene*/)
 {
   if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
     mask_layer_shape->frame = (int)floor(mask_layer_shape->frame + 0.5);

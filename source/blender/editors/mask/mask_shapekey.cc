@@ -30,7 +30,7 @@
 
 #include "mask_intern.h" /* own include */
 
-static int mask_shape_key_insert_exec(bContext *C, wmOperator *UNUSED(op))
+static int mask_shape_key_insert_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   const int frame = scene->r.cfra;
@@ -73,7 +73,7 @@ void MASK_OT_shape_key_insert(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int mask_shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
+static int mask_shape_key_clear_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   const int frame = scene->r.cfra;
@@ -119,7 +119,7 @@ void MASK_OT_shape_key_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int mask_shape_key_feather_reset_exec(bContext *C, wmOperator *UNUSED(op))
+static int mask_shape_key_feather_reset_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   const int frame = scene->r.cfra;
@@ -134,17 +134,13 @@ static int mask_shape_key_feather_reset_exec(bContext *C, wmOperator *UNUSED(op)
 
     if (mask_layer->splines_shapes.first) {
       MaskLayerShape *mask_layer_shape_reset;
-      MaskLayerShape *mask_layer_shape;
 
       /* Get the shape-key of the current state. */
       mask_layer_shape_reset = BKE_mask_layer_shape_alloc(mask_layer, frame);
       /* Initialize from mask - as if inserting a keyframe. */
       BKE_mask_layer_shape_from_mask(mask_layer, mask_layer_shape_reset);
 
-      for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
-           mask_layer_shape = mask_layer_shape->next)
-      {
-
+      LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
         if (mask_layer_shape_reset->tot_vert == mask_layer_shape->tot_vert) {
           int i_abs = 0;
           MaskLayerShapeElem *shape_ele_src;
@@ -235,27 +231,28 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 
     if (mask_layer->splines_shapes.first) {
       MaskLayerShape *mask_layer_shape, *mask_layer_shape_next;
-      MaskLayerShape *mask_layer_shape_lastsel = NULL;
+      MaskLayerShape *mask_layer_shape_lastsel = nullptr;
 
-      for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
+      for (mask_layer_shape = static_cast<MaskLayerShape *>(mask_layer->splines_shapes.first);
+           mask_layer_shape;
            mask_layer_shape = mask_layer_shape_next)
       {
-        MaskLayerShape *mask_layer_shape_a = NULL;
-        MaskLayerShape *mask_layer_shape_b = NULL;
+        MaskLayerShape *mask_layer_shape_a = nullptr;
+        MaskLayerShape *mask_layer_shape_b = nullptr;
 
         mask_layer_shape_next = mask_layer_shape->next;
 
         /* find contiguous selections */
         if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
-          if (mask_layer_shape_lastsel == NULL) {
+          if (mask_layer_shape_lastsel == nullptr) {
             mask_layer_shape_lastsel = mask_layer_shape;
           }
-          if ((mask_layer_shape->next == NULL) ||
+          if ((mask_layer_shape->next == nullptr) ||
               (((MaskLayerShape *)mask_layer_shape->next)->flag & MASK_SHAPE_SELECT) == 0)
           {
             mask_layer_shape_a = mask_layer_shape_lastsel;
             mask_layer_shape_b = mask_layer_shape;
-            mask_layer_shape_lastsel = NULL;
+            mask_layer_shape_lastsel = nullptr;
 
             /* this will be freed below, step over selection */
             mask_layer_shape_next = mask_layer_shape->next;
@@ -264,7 +261,7 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 
         /* we have a from<>to? - re-interpolate! */
         if (mask_layer_shape_a && mask_layer_shape_b) {
-          ListBase shapes_tmp = {NULL, NULL};
+          ListBase shapes_tmp = {nullptr, nullptr};
           MaskLayerShape *mask_layer_shape_tmp;
           MaskLayerShape *mask_layer_shape_tmp_next;
           MaskLayerShape *mask_layer_shape_tmp_last = mask_layer_shape_b->next;
@@ -281,7 +278,8 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
           }
 
           /* re-key, NOTE: can't modify the keys here since it messes up. */
-          for (mask_layer_shape_tmp = shapes_tmp.first; mask_layer_shape_tmp;
+          for (mask_layer_shape_tmp = static_cast<MaskLayerShape *>(shapes_tmp.first);
+               mask_layer_shape_tmp;
                mask_layer_shape_tmp = mask_layer_shape_tmp->next)
           {
             BKE_mask_layer_evaluate(mask_layer, mask_layer_shape_tmp->frame, true);
@@ -292,7 +290,8 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
           }
 
           /* restore unselected points and free copies */
-          for (mask_layer_shape_tmp = shapes_tmp.first; mask_layer_shape_tmp;
+          for (mask_layer_shape_tmp = static_cast<MaskLayerShape *>(shapes_tmp.first);
+               mask_layer_shape_tmp;
                mask_layer_shape_tmp = mask_layer_shape_tmp_next)
           {
             /* restore */

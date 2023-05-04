@@ -240,7 +240,7 @@ static int select_exec(bContext *C, wmOperator *op)
   Mask *mask = CTX_data_edit_mask(C);
   MaskLayer *mask_layer;
   MaskSpline *spline;
-  MaskSplinePoint *point = NULL;
+  MaskSplinePoint *point = nullptr;
   float co[2];
   bool extend = RNA_boolean_get(op->ptr, "extend");
   bool deselect = RNA_boolean_get(op->ptr, "deselect");
@@ -255,7 +255,7 @@ static int select_exec(bContext *C, wmOperator *op)
   RNA_float_get_array(op->ptr, "location", co);
 
   point = ED_mask_point_find_nearest(
-      C, mask, co, threshold, &mask_layer, &spline, &which_handle, NULL);
+      C, mask, co, threshold, &mask_layer, &spline, &which_handle, nullptr);
 
   if (extend == false && deselect == false && toggle == false) {
     ED_mask_select_toggle_all(mask, SEL_DESELECT);
@@ -323,7 +323,8 @@ static int select_exec(bContext *C, wmOperator *op)
   MaskSplinePointUW *uw;
 
   if (ED_mask_feather_find_nearest(
-          C, mask, co, threshold, &mask_layer, &spline, &point, &uw, NULL)) {
+          C, mask, co, threshold, &mask_layer, &spline, &point, &uw, nullptr))
+  {
 
     if (extend) {
       mask_layer->act_spline = spline;
@@ -408,7 +409,7 @@ void MASK_OT_select(wmOperatorType *ot)
   RNA_def_float_vector(ot->srna,
                        "location",
                        2,
-                       NULL,
+                       nullptr,
                        -FLT_MAX,
                        FLT_MAX,
                        "Location",
@@ -436,7 +437,7 @@ static int box_select_exec(bContext *C, wmOperator *op)
   rctf rectf;
   bool changed = false;
 
-  const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     ED_mask_select_toggle_all(mask_orig, SEL_DESELECT);
@@ -450,17 +451,17 @@ static int box_select_exec(bContext *C, wmOperator *op)
   ED_mask_point_pos(area, region, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
   /* do actual selection */
-  for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
-                 *mask_layer_eval = mask_eval->masklayers.first;
-       mask_layer_orig != NULL;
+  for (MaskLayer *mask_layer_orig = static_cast<MaskLayer *>(mask_orig->masklayers.first),
+                 *mask_layer_eval = static_cast<MaskLayer *>(mask_eval->masklayers.first);
+       mask_layer_orig != nullptr;
        mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
   {
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
-    for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
-                    *spline_eval = mask_layer_eval->splines.first;
-         spline_orig != NULL;
+    for (MaskSpline *spline_orig = static_cast<MaskSpline *>(mask_layer_orig->splines.first),
+                    *spline_eval = static_cast<MaskSpline *>(mask_layer_eval->splines.first);
+         spline_orig != nullptr;
          spline_orig = spline_orig->next, spline_eval = spline_eval->next)
     {
 
@@ -545,17 +546,17 @@ static bool do_lasso_select_mask(bContext *C,
   BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
   /* do actual selection */
-  for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
-                 *mask_layer_eval = mask_eval->masklayers.first;
-       mask_layer_orig != NULL;
+  for (MaskLayer *mask_layer_orig = static_cast<MaskLayer *>(mask_orig->masklayers.first),
+                 *mask_layer_eval = static_cast<MaskLayer *>(mask_eval->masklayers.first);
+       mask_layer_orig != nullptr;
        mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
   {
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
-    for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
-                    *spline_eval = mask_layer_eval->splines.first;
-         spline_orig != NULL;
+    for (MaskSpline *spline_orig = static_cast<MaskSpline *>(mask_layer_orig->splines.first),
+                    *spline_eval = static_cast<MaskSpline *>(mask_layer_eval->splines.first);
+         spline_orig != nullptr;
          spline_orig = spline_orig->next, spline_eval = spline_eval->next)
     {
 
@@ -609,7 +610,7 @@ static int clip_lasso_select_exec(bContext *C, wmOperator *op)
   const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
 
   if (mcoords) {
-    const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+    const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
     do_lasso_select_mask(C, mcoords, mcoords_len, sel_op);
 
     MEM_freeN((void *)mcoords);
@@ -688,8 +689,9 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 
   ED_mask_point_pos(area, region, x, y, &offset[0], &offset[1]);
 
-  const eSelectOp sel_op = ED_select_op_modal(RNA_enum_get(op->ptr, "mode"),
-                                              WM_gesture_is_modal_first(op->customdata));
+  const eSelectOp sel_op = ED_select_op_modal(
+      eSelectOp(RNA_enum_get(op->ptr, "mode")),
+      WM_gesture_is_modal_first(static_cast<wmGesture *>(op->customdata)));
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     ED_mask_select_toggle_all(mask_orig, SEL_DESELECT);
@@ -697,17 +699,17 @@ static int circle_select_exec(bContext *C, wmOperator *op)
   }
 
   /* do actual selection */
-  for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
-                 *mask_layer_eval = mask_eval->masklayers.first;
-       mask_layer_orig != NULL;
+  for (MaskLayer *mask_layer_orig = static_cast<MaskLayer *>(mask_orig->masklayers.first),
+                 *mask_layer_eval = static_cast<MaskLayer *>(mask_eval->masklayers.first);
+       mask_layer_orig != nullptr;
        mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next)
   {
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
-    for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
-                    *spline_eval = mask_layer_eval->splines.first;
-         spline_orig != NULL;
+    for (MaskSpline *spline_orig = static_cast<MaskSpline *>(mask_layer_orig->splines.first),
+                    *spline_eval = static_cast<MaskSpline *>(mask_layer_eval->splines.first);
+         spline_orig != nullptr;
          spline_orig = spline_orig->next, spline_eval = spline_eval->next)
     {
 
@@ -775,7 +777,7 @@ static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
   Mask *mask = CTX_data_edit_mask(C);
   MaskLayer *mask_layer;
   MaskSpline *spline;
-  MaskSplinePoint *point = NULL;
+  MaskSplinePoint *point = nullptr;
   float co[2];
   bool do_select = !RNA_boolean_get(op->ptr, "deselect");
   const float threshold = 19;
@@ -783,7 +785,8 @@ static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 
   ED_mask_mouse_pos(area, region, event->mval, co);
 
-  point = ED_mask_point_find_nearest(C, mask, co, threshold, &mask_layer, &spline, NULL, NULL);
+  point = ED_mask_point_find_nearest(
+      C, mask, co, threshold, &mask_layer, &spline, nullptr, nullptr);
 
   if (point) {
     ED_mask_spline_select_set(spline, do_select);
@@ -828,7 +831,7 @@ void MASK_OT_select_linked_pick(wmOperatorType *ot)
 /** \name Select Linked Operator
  * \{ */
 
-static int mask_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
+static int mask_select_linked_exec(bContext *C, wmOperator * /*op*/)
 {
   Mask *mask = CTX_data_edit_mask(C);
 
@@ -954,7 +957,7 @@ static int mask_select_more_less(bContext *C, bool more)
   return OPERATOR_FINISHED;
 }
 
-static int mask_select_more_exec(bContext *C, wmOperator *UNUSED(op))
+static int mask_select_more_exec(bContext *C, wmOperator * /*op*/)
 {
   return mask_select_more_less(C, true);
 }
@@ -974,7 +977,7 @@ void MASK_OT_select_more(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int mask_select_less_exec(bContext *C, wmOperator *UNUSED(op))
+static int mask_select_less_exec(bContext *C, wmOperator * /*op*/)
 {
   return mask_select_more_less(C, false);
 }

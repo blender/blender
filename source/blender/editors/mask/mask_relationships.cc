@@ -26,7 +26,7 @@
 
 #include "mask_intern.h" /* own include */
 
-static int mask_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
+static int mask_parent_clear_exec(bContext *C, wmOperator * /*op*/)
 {
   Mask *mask = CTX_data_edit_mask(C);
 
@@ -40,7 +40,7 @@ static int mask_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
         MaskSplinePoint *point = &spline->points[i];
 
         if (MASKPOINT_ISSEL_ANY(point)) {
-          point->parent.id = NULL;
+          point->parent.id = nullptr;
         }
       }
     }
@@ -68,7 +68,7 @@ void MASK_OT_parent_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
+static int mask_parent_set_exec(bContext *C, wmOperator * /*op*/)
 {
   Mask *mask = CTX_data_edit_mask(C);
 
@@ -84,7 +84,7 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
   float parmask_pos[2], orig_corners[4][2];
   const char *sub_parent_name;
 
-  if (ELEM(NULL, sc, clip)) {
+  if (ELEM(nullptr, sc, clip)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -92,11 +92,11 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 
   tracking_object = BKE_tracking_object_get_active(&clip->tracking);
 
-  if (tracking_object == NULL) {
+  if (tracking_object == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  if ((track = tracking_object->active_track) != NULL) {
+  if ((track = tracking_object->active_track) != nullptr) {
     MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
     float marker_pos_ofs[2];
 
@@ -108,7 +108,7 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
     parent_type = MASK_PARENT_POINT_TRACK;
     memset(orig_corners, 0, sizeof(orig_corners));
   }
-  else if ((plane_track = tracking_object->active_plane_track) != NULL) {
+  else if ((plane_track = tracking_object->active_plane_track) != nullptr) {
     MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track, framenr);
 
     zero_v2(parmask_pos);
