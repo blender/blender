@@ -282,7 +282,7 @@ bool VKTexture::allocate()
   if (result != VK_SUCCESS) {
     return false;
   }
-  debug::object_label( vk_image_, name_);
+  debug::object_label(vk_image_, name_);
 
   /* Promote image to the correct layout. */
   layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
@@ -300,7 +300,7 @@ bool VKTexture::allocate()
 
   result = vkCreateImageView(
       device.device_get(), &image_view_info, vk_allocation_callbacks, &vk_image_view_);
-  debug::object_label( vk_image_view_, name_);
+  debug::object_label(vk_image_view_, name_);
   return result == VK_SUCCESS;
 }
 

@@ -60,7 +60,6 @@ class VKContext : public Context, NonCopyable {
 
   const VKStateManager &state_manager_get() const;
 
-
  private:
   bool has_active_framebuffer() const;
 };
