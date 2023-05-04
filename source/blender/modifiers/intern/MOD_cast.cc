@@ -48,7 +48,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(cmd, DNA_struct_default_get(CastModifierData), modifier);
 }
 
-static bool isDisabled(const  Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   CastModifierData *cmd = (CastModifierData *)md;
   short flag;
@@ -66,7 +66,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
 {
   CastModifierData *cmd = (CastModifierData *)md;
 
-  /* ask for vertexgroups if we need them */
+  /* Ask for vertex-groups if we need them. */
   if (cmd->defgrp_name[0] != '\0') {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   }
@@ -119,9 +119,9 @@ static void sphere_do(CastModifierData *cmd,
 
   ctrl_ob = cmd->object;
 
-  /* spherify's center is {0, 0, 0} (the ob's own center in its local
-   * space), by default, but if the user defined a control object,
-   * we use its location, transformed to ob's local space */
+  /* The spheres center is {0, 0, 0} (the ob's own center in its local space),
+   * by default, but if the user defined a control object,
+   * we use its location, transformed to ob's local space. */
   if (ctrl_ob) {
     if (flag & MOD_CAST_USE_OB_TRANSFORM) {
       invert_m4_m4(imat, ctrl_ob->object_to_world);
@@ -482,7 +482,7 @@ static void deformVerts(ModifierData *md,
 
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                           BMEditMesh *editData,
+                          BMEditMesh *editData,
                           Mesh *mesh,
                           float (*vertexCos)[3],
                           int verts_num)

@@ -35,7 +35,7 @@ class MTLStorageBuf : public StorageBuf {
   } storage_source_ = MTL_STORAGE_BUF_TYPE_DEFAULT;
 
   union {
-    /* Own alloation. */
+    /** Own allocation. */
     gpu::MTLBuffer *metal_buffer_;
     /* Wrapped type. */
     MTLUniformBuf *uniform_buffer_;

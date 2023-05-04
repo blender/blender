@@ -850,12 +850,11 @@ static AVFrame *ffmpeg_double_buffer_frame_fallback_get(struct anim *anim)
   return nullptr;
 }
 
-/* postprocess the image in anim->pFrame and do color conversion
- * and deinterlacing stuff.
+/**
+ * Postprocess the image in anim->pFrame and do color conversion and de-interlacing stuff.
  *
- * Output is anim->cur_frame_final
+ * Output is `anim->cur_frame_final`.
  */
-
 static void ffmpeg_postprocess(struct anim *anim, AVFrame *input)
 {
   ImBuf *ibuf = anim->cur_frame_final;

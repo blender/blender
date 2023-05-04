@@ -897,7 +897,7 @@ static int mask_select_more_less(bContext *C, bool more)
       const bool cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
       bool start_sel, end_sel, prev_sel, cur_sel;
 
-      /* reselect point if any handle is selected to make the result more predictable */
+      /* Re-select point if any handle is selected to make the result more predictable. */
       for (int i = 0; i < spline->tot_point; i++) {
         BKE_mask_point_select_set(spline->points + i, MASKPOINT_ISSEL_ANY(spline->points + i));
       }

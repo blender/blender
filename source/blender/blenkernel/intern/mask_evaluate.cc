@@ -70,7 +70,7 @@ uint BKE_mask_spline_feather_resolution(MaskSpline *spline, int width, int heigh
   uint resol = BKE_mask_spline_resolution(spline, width, height);
   float max_jump = 0.0f;
 
-  /* avoid checking the featrher if we already hit the maximum value */
+  /* Avoid checking the feather if we already hit the maximum value. */
   if (resol >= MASK_RESOL_MAX) {
     return MASK_RESOL_MAX;
   }
@@ -365,7 +365,7 @@ void BKE_mask_spline_feather_collapse_inner_loops(MaskSpline *spline,
     }
   }
 
-  /* prevent divisionsby zero by ensuring bounding box is not collapsed */
+  /* Prevent divisions by zero by ensuring bounding box is not collapsed. */
   if (max[0] - min[0] < FLT_EPSILON) {
     max[0] += 0.01f;
     min[0] -= 0.01f;

@@ -448,7 +448,8 @@ int rna_Mesh_loop_triangles_lookup_int(PointerRNA *ptr, int index, PointerRNA *r
   return true;
 }
 
-static void rna_Mesh_loop_triangle_faces_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Mesh_loop_triangle_polygons_begin(CollectionPropertyIterator *iter,
+                                                  PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   rna_iterator_array_begin(iter,
@@ -459,7 +460,7 @@ static void rna_Mesh_loop_triangle_faces_begin(CollectionPropertyIterator *iter,
                            NULL);
 }
 
-int rna_Mesh_loop_triangle_faces_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+int rna_Mesh_loop_triangle_polygons_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   if (index < 0 || index >= BKE_mesh_runtime_looptri_len(mesh)) {
@@ -4376,12 +4377,12 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "loop_triangle_polygons", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_funcs(prop,
-                                    "rna_Mesh_loop_triangle_faces_begin",
+                                    "rna_Mesh_loop_triangle_polygons_begin",
                                     "rna_iterator_array_next",
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_Mesh_loop_triangles_length",
-                                    "rna_Mesh_loop_triangle_faces_lookup_int",
+                                    "rna_Mesh_loop_triangle_polygons_lookup_int",
                                     NULL,
                                     NULL);
   RNA_def_property_struct_type(prop, "ReadOnlyInteger");

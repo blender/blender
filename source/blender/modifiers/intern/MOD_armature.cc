@@ -67,7 +67,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 
 static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
 {
-  /* ask for vertexgroups */
+  /* Ask for vertex-groups. */
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 }
 

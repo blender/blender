@@ -2448,7 +2448,7 @@ static bool lib_override_resync_tagging_finalize_recurse(
 
     BLI_assert(id_root->override_library != nullptr);
 
-    /* This address a very intricated case. It can happen that the current (non-hierarchy root)
+    /* This address a very intricate case. It can happen that the current (non-hierarchy root)
      * override is not currently part of any liboverride hierarchy (it lost its parent(s) in it).
      *
      * For example, an object may have been moved from one sub-collection to another in the

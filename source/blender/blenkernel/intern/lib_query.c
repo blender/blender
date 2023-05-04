@@ -769,7 +769,7 @@ static bool lib_query_unused_ids_tag_recurse(Main *bmain,
 
   /* This ID is not being processed anymore.
    *
-   * However, we can only tag is as sucessfully processed if either it was detected as part of a
+   * However, we can only tag is as successfully processed if either it was detected as part of a
    * valid usage hierarchy, or, if detected as unused, if it was not part of a dependency loop.
    *
    * Otherwise, this is an undecided state, it will be resolved at the entry point of this
