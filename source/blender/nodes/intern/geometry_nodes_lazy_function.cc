@@ -838,12 +838,9 @@ class LazyFunctionForViewerInputUsage : public LazyFunction {
 };
 
 class LazyFunctionForSimulationInputsUsage : public LazyFunction {
- private:
-  const bNode &sim_output_node_;
 
  public:
-  LazyFunctionForSimulationInputsUsage(const bNode &sim_output_node)
-      : sim_output_node_(sim_output_node)
+  LazyFunctionForSimulationInputsUsage()
   {
     debug_name_ = "Simulation Inputs Usage";
     outputs_.append_as("Is Initialization", CPPType::get<bool>());
@@ -2416,8 +2413,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
   {
     BLI_assert(sim_output_bnode.type == GEO_NODE_SIMULATION_OUTPUT);
     return *simulation_inputs_usage_nodes_.lookup_or_add_cb(&sim_output_bnode, [&]() {
-      auto lazy_function = std::make_unique<LazyFunctionForSimulationInputsUsage>(
-          sim_output_bnode);
+      auto lazy_function = std::make_unique<LazyFunctionForSimulationInputsUsage>();
       lf::Node &lf_node = lf_graph_->add_function(*lazy_function);
       lf_graph_info_->functions.append(std::move(lazy_function));
       return &lf_node;

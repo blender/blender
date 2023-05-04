@@ -294,12 +294,12 @@ static void rna_TexPaintSlot_name_get(PointerRNA *ptr, char *value)
   TexPaintSlot *data = (TexPaintSlot *)(ptr->data);
 
   if (data->ima != NULL) {
-    BLI_strncpy_utf8(value, data->ima->id.name + 2, MAX_NAME);
+    strcpy(value, data->ima->id.name + 2);
     return;
   }
 
   if (data->attribute_name != NULL) {
-    BLI_strncpy_utf8(value, data->attribute_name, MAX_NAME);
+    strcpy(value, data->attribute_name);
     return;
   }
 

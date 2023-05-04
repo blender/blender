@@ -164,13 +164,7 @@ class GHOST_ContextVK : public GHOST_Context {
   const int m_context_minor_version;
   const int m_debug;
 
-  VkInstance m_instance;
-  VkPhysicalDevice m_physical_device;
-  VkDevice m_device;
   VkCommandPool m_command_pool;
-
-  uint32_t m_queue_family_graphic;
-  uint32_t m_queue_family_present;
 
   VkQueue m_graphic_queue;
   VkQueue m_present_queue;
@@ -196,7 +190,6 @@ class GHOST_ContextVK : public GHOST_Context {
   uint32_t m_swapchain_id = 0;
 
   const char *getPlatformSpecificSurfaceExtension() const;
-  GHOST_TSuccess pickPhysicalDevice(std::vector<const char *> required_exts);
   GHOST_TSuccess createSwapchain();
   GHOST_TSuccess destroySwapchain();
   GHOST_TSuccess createCommandPools();

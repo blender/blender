@@ -5,13 +5,15 @@
  * \ingroup gpu
  */
 
-#include "vk_shader_log.hh"
+#include "BLI_string_ref.hh"
 
 #include "GPU_platform.h"
 
+#include "mtl_shader_log.hh"
+
 namespace blender::gpu {
 
-const char *VKLogParser::parse_line(const char *log_line, GPULogItem &log_item)
+const char *MTLLogParser::parse_line(const char *log_line, GPULogItem &log_item)
 {
   log_line = skip_name(log_line);
   log_line = skip_separators(log_line, ":");
@@ -19,7 +21,11 @@ const char *VKLogParser::parse_line(const char *log_line, GPULogItem &log_item)
   /* Parse error line & char numbers. */
   if (at_number(log_line)) {
     const char *error_line_number_end;
+
     log_item.cursor.row = parse_number(log_line, &error_line_number_end);
+    log_line = error_line_number_end;
+    log_line = skip_separators(log_line, ": ");
+    log_item.cursor.column = parse_number(log_line, &error_line_number_end);
     log_line = error_line_number_end;
   }
   log_line = skip_separators(log_line, ": ");
@@ -31,12 +37,12 @@ const char *VKLogParser::parse_line(const char *log_line, GPULogItem &log_item)
   return log_line;
 }
 
-const char *VKLogParser::skip_name(const char *log_line)
+const char *MTLLogParser::skip_name(const char *log_line)
 {
   return skip_until(log_line, ':');
 }
 
-const char *VKLogParser::skip_severity_keyword(const char *log_line, GPULogItem &log_item)
+const char *MTLLogParser::skip_severity_keyword(const char *log_line, GPULogItem &log_item)
 {
   return skip_severity(log_line, log_item, "error", "warning", "note");
 }

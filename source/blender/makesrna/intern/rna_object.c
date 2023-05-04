@@ -909,7 +909,7 @@ void rna_object_vgroup_name_index_get(PointerRNA *ptr, char *value, int index)
   const bDeformGroup *dg = BLI_findlink(defbase, index - 1);
 
   if (dg) {
-    BLI_strncpy(value, dg->name, sizeof(dg->name));
+    strcpy(value, dg->name);
   }
   else {
     value[0] = '\0';

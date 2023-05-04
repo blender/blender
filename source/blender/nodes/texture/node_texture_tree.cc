@@ -25,7 +25,7 @@
 
 #include "NOD_texture.h"
 #include "node_common.h"
-#include "node_exec.h"
+#include "node_exec.hh"
 #include "node_texture_util.hh"
 #include "node_util.hh"
 

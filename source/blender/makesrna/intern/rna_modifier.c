@@ -1084,7 +1084,7 @@ static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
   Object *ob = (Object *)ptr->owner_id;
   CustomDataExternal *external = ((Mesh *)ob->data)->ldata.external;
 
-  BLI_strncpy(value, (external) ? external->filepath : "", sizeof(external->filepath));
+  strcpy(value, (external) ? external->filepath : "");
 }
 
 static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value)

@@ -6,14 +6,14 @@
  */
 
 #include "vk_buffer.hh"
+#include "vk_backend.hh"
 #include "vk_context.hh"
 
 namespace blender::gpu {
 
 VKBuffer::~VKBuffer()
 {
-  VKContext &context = *VKContext::get();
-  free(context);
+  free();
 }
 
 bool VKBuffer::is_allocated() const
@@ -41,16 +41,16 @@ static VmaAllocationCreateFlagBits vma_allocation_flags(GPUUsageType usage)
                                                   VMA_ALLOCATION_CREATE_MAPPED_BIT);
 }
 
-bool VKBuffer::create(VKContext &context,
-                      int64_t size_in_bytes,
+bool VKBuffer::create(int64_t size_in_bytes,
                       GPUUsageType usage,
                       VkBufferUsageFlagBits buffer_usage)
 {
   BLI_assert(!is_allocated());
 
   size_in_bytes_ = size_in_bytes;
+  const VKDevice &device = VKBackend::get().device_get();
 
-  VmaAllocator allocator = context.mem_allocator_get();
+  VmaAllocator allocator = device.mem_allocator_get();
   VkBufferCreateInfo create_info = {};
   create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
   create_info.flags = 0;
@@ -60,7 +60,7 @@ bool VKBuffer::create(VKContext &context,
    * exclusive resource handling. */
   create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
   create_info.queueFamilyIndexCount = 1;
-  create_info.pQueueFamilyIndices = context.queue_family_ptr_get();
+  create_info.pQueueFamilyIndices = device.queue_family_ptr_get();
 
   VmaAllocationCreateInfo vma_create_info = {};
   vma_create_info.flags = vma_allocation_flags(usage);
@@ -74,7 +74,7 @@ bool VKBuffer::create(VKContext &context,
   }
 
   /* All buffers are mapped to virtual memory. */
-  return map(context);
+  return map();
 }
 
 void VKBuffer::update(const void *data) const
@@ -82,9 +82,9 @@ void VKBuffer::update(const void *data) const
   BLI_assert_msg(is_mapped(), "Cannot update a non-mapped buffer.");
   memcpy(mapped_memory_, data, size_in_bytes_);
 
-  VKContext &context = *VKContext::get();
-  VmaAllocator mem_allocator = context.mem_allocator_get();
-  vmaFlushAllocation(mem_allocator, allocation_, 0, VK_WHOLE_SIZE);
+  const VKDevice &device = VKBackend::get().device_get();
+  VmaAllocator allocator = device.mem_allocator_get();
+  vmaFlushAllocation(allocator, allocation_, 0, VK_WHOLE_SIZE);
 }
 
 void VKBuffer::clear(VKContext &context, uint32_t clear_value)
@@ -110,29 +110,32 @@ bool VKBuffer::is_mapped() const
   return mapped_memory_ != nullptr;
 }
 
-bool VKBuffer::map(VKContext &context)
+bool VKBuffer::map()
 {
   BLI_assert(!is_mapped());
-  VmaAllocator allocator = context.mem_allocator_get();
+  const VKDevice &device = VKBackend::get().device_get();
+  VmaAllocator allocator = device.mem_allocator_get();
   VkResult result = vmaMapMemory(allocator, allocation_, &mapped_memory_);
   return result == VK_SUCCESS;
 }
 
-void VKBuffer::unmap(VKContext &context)
+void VKBuffer::unmap()
 {
   BLI_assert(is_mapped());
-  VmaAllocator allocator = context.mem_allocator_get();
+  const VKDevice &device = VKBackend::get().device_get();
+  VmaAllocator allocator = device.mem_allocator_get();
   vmaUnmapMemory(allocator, allocation_);
   mapped_memory_ = nullptr;
 }
 
-bool VKBuffer::free(VKContext &context)
+bool VKBuffer::free()
 {
   if (is_mapped()) {
-    unmap(context);
+    unmap();
   }
 
-  VmaAllocator allocator = context.mem_allocator_get();
+  const VKDevice &device = VKBackend::get().device_get();
+  VmaAllocator allocator = device.mem_allocator_get();
   vmaDestroyBuffer(allocator, vk_buffer_, allocation_);
   return true;
 }

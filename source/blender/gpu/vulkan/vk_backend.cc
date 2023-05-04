@@ -52,7 +52,12 @@ void VKBackend::platform_exit()
   GPG.clear();
 }
 
-void VKBackend::delete_resources() {}
+void VKBackend::delete_resources()
+{
+  if (device_.is_initialized()) {
+    device_.deinit();
+  }
+}
 
 void VKBackend::samplers_update() {}
 
@@ -151,9 +156,10 @@ shaderc::Compiler &VKBackend::get_shaderc_compiler()
   return shaderc_compiler_;
 }
 
-void VKBackend::capabilities_init(VKContext &context)
+void VKBackend::capabilities_init()
 {
-  const VkPhysicalDeviceLimits limits = context.physical_device_limits_get();
+  const VkPhysicalDeviceLimits &limits =
+      VKBackend::get().device_get().physical_device_limits_get();
 
   /* Reset all capabilities from previous context. */
   GCaps = {};

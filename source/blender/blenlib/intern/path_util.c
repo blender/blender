@@ -45,34 +45,30 @@ static int BLI_path_unc_prefix_len(const char *path);
 static bool BLI_path_is_abs_win32(const char *path);
 #endif /* WIN32 */
 
-// #define DEBUG_STRSIZE
-
-int BLI_path_sequence_decode(const char *string,
+int BLI_path_sequence_decode(const char *path,
                              char *head,
                              const size_t head_maxncpy,
                              char *tail,
                              const size_t tail_maxncpy,
                              ushort *r_digits_len)
 {
-#ifdef DEBUG_STRSIZE
   if (head) {
-    memset(head, 0xff, sizeof(*head) * head_maxncpy);
+    BLI_string_debug_size(head, head_maxncpy);
   }
   if (tail) {
-    memset(tail, 0xff, sizeof(*tail) * tail_maxncpy);
+    BLI_string_debug_size(tail, tail_maxncpy);
   }
-#endif
 
   uint nums = 0, nume = 0;
   int i;
   bool found_digit = false;
-  const char *const lslash = BLI_path_slash_rfind(string);
-  const char *const extension = BLI_path_extension_or_end(lslash ? lslash : string);
-  const uint lslash_len = lslash != NULL ? (int)(lslash - string) : 0;
-  const uint name_end = (uint)(extension - string);
+  const char *const lslash = BLI_path_slash_rfind(path);
+  const char *const extension = BLI_path_extension_or_end(lslash ? lslash : path);
+  const uint lslash_len = lslash != NULL ? (int)(lslash - path) : 0;
+  const uint name_end = (uint)(extension - path);
 
   for (i = name_end - 1; i >= (int)lslash_len; i--) {
-    if (isdigit(string[i])) {
+    if (isdigit(path[i])) {
       if (found_digit) {
         nums = i;
       }
@@ -90,13 +86,13 @@ int BLI_path_sequence_decode(const char *string,
   }
 
   if (found_digit) {
-    const long long int ret = strtoll(&(string[nums]), NULL, 10);
+    const long long int ret = strtoll(&(path[nums]), NULL, 10);
     if (ret >= INT_MIN && ret <= INT_MAX) {
       if (tail) {
-        strcpy(tail, &string[nume + 1]);
+        strcpy(tail, &path[nume + 1]);
       }
       if (head) {
-        BLI_strncpy(head, string, MIN2(head_maxncpy, nums + 1));
+        BLI_strncpy(head, path, MIN2(head_maxncpy, nums + 1));
       }
       if (r_digits_len) {
         *r_digits_len = nume - nums + 1;
@@ -106,12 +102,12 @@ int BLI_path_sequence_decode(const char *string,
   }
 
   if (tail) {
-    BLI_strncpy(tail, string + name_end, tail_maxncpy);
+    BLI_strncpy(tail, path + name_end, tail_maxncpy);
   }
   if (head) {
     /* Name_end points to last character of head,
      * make it +1 so null-terminator is nicely placed. */
-    BLI_strncpy(head, string, name_end + 1);
+    BLI_strncpy(head, path, name_end + 1);
   }
   if (r_digits_len) {
     *r_digits_len = 0;
@@ -119,17 +115,16 @@ int BLI_path_sequence_decode(const char *string,
   return 0;
 }
 
-void BLI_path_sequence_encode(char *string,
-                              const size_t string_maxncpy,
+void BLI_path_sequence_encode(char *path,
+                              const size_t path_maxncpy,
                               const char *head,
                               const char *tail,
                               ushort numlen,
                               int pic)
 {
-#ifdef DEBUG_STRSIZE
-  memset(string, 0xff, sizeof(*string) * string_maxncpy);
-#endif
-  BLI_snprintf(string, string_maxncpy, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
+  BLI_string_debug_size(path, path_maxncpy);
+
+  BLI_snprintf(path, path_maxncpy, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
 }
 
 void BLI_path_normalize(char *path)
@@ -354,7 +349,7 @@ void BLI_path_normalize(char *path)
 #undef IS_PARENT_DIR
 }
 
-void BLI_path_normalize_dir(char *dir, size_t dir_maxlen)
+void BLI_path_normalize_dir(char *dir, size_t dir_maxncpy)
 {
   /* Would just create an unexpected "/" path, just early exit entirely. */
   if (dir[0] == '\0') {
@@ -362,7 +357,7 @@ void BLI_path_normalize_dir(char *dir, size_t dir_maxlen)
   }
 
   BLI_path_normalize(dir);
-  BLI_path_slash_ensure(dir, dir_maxlen);
+  BLI_path_slash_ensure(dir, dir_maxncpy);
 }
 
 bool BLI_path_make_safe_filename_ex(char *fname, bool allow_tokens)
@@ -575,11 +570,11 @@ static void BLI_path_unc_to_short(wchar_t *unc)
   }
 }
 
-void BLI_path_normalize_unc(char *path, int maxlen)
+void BLI_path_normalize_unc(char *path, int path_maxncpy)
 {
   wchar_t *tmp_16 = alloc_utf16_from_8(path, 1);
   BLI_path_normalize_unc_16(tmp_16);
-  conv_utf_16_to_8(tmp_16, path, maxlen);
+  conv_utf_16_to_8(tmp_16, path, path_maxncpy);
 }
 
 void BLI_path_normalize_unc_16(wchar_t *path_16)
@@ -589,40 +584,42 @@ void BLI_path_normalize_unc_16(wchar_t *path_16)
 }
 #endif
 
-void BLI_path_rel(char *file, const char *relfile)
+void BLI_path_rel(char *path, const char *basename)
 {
+  BLI_string_debug_size_after_nil(path, FILE_MAX);
+
   const char *lslash;
   char temp[FILE_MAX];
   char res[FILE_MAX];
 
-  /* If file is already relative, bail out. */
-  if (BLI_path_is_rel(file)) {
+  /* If path is already relative, bail out. */
+  if (BLI_path_is_rel(path)) {
     return;
   }
 
   /* Also bail out if relative path is not set. */
-  if (relfile[0] == '\0') {
+  if (basename[0] == '\0') {
     return;
   }
 
 #ifdef WIN32
-  if (BLI_strnlen(relfile, 3) > 2 && !BLI_path_is_abs_win32(relfile)) {
+  if (BLI_strnlen(basename, 3) > 2 && !BLI_path_is_abs_win32(basename)) {
     char *ptemp;
     /* Fix missing volume name in relative base,
      * can happen with old `recent-files.txt` files. */
     BLI_windows_get_default_root_dir(temp);
     ptemp = &temp[2];
-    if (!ELEM(relfile[0], '\\', '/')) {
+    if (!ELEM(basename[0], '\\', '/')) {
       ptemp++;
     }
-    BLI_strncpy(ptemp, relfile, FILE_MAX - 3);
+    BLI_strncpy(ptemp, basename, FILE_MAX - 3);
   }
   else {
-    BLI_strncpy(temp, relfile, FILE_MAX);
+    BLI_strncpy(temp, basename, FILE_MAX);
   }
 
-  if (BLI_strnlen(file, 3) > 2) {
-    bool is_unc = BLI_path_is_unc(file);
+  if (BLI_strnlen(path, 3) > 2) {
+    bool is_unc = BLI_path_is_unc(path);
 
     /* Ensure paths are both UNC paths or are both drives. */
     if (BLI_path_is_unc(temp) != is_unc) {
@@ -634,7 +631,7 @@ void BLI_path_rel(char *file, const char *relfile)
       int off;
       int slash = 0;
       for (off = 0; temp[off] && slash < 4; off++) {
-        if (temp[off] != file[off]) {
+        if (temp[off] != path[off]) {
           return;
         }
 
@@ -643,29 +640,29 @@ void BLI_path_rel(char *file, const char *relfile)
         }
       }
     }
-    else if ((temp[1] == ':' && file[1] == ':') && (tolower(temp[0]) != tolower(file[0]))) {
+    else if ((temp[1] == ':' && path[1] == ':') && (tolower(temp[0]) != tolower(path[0]))) {
       return;
     }
   }
 #else
-  BLI_strncpy(temp, relfile, FILE_MAX);
+  BLI_strncpy(temp, basename, FILE_MAX);
 #endif
 
   BLI_str_replace_char(temp + BLI_path_unc_prefix_len(temp), '\\', '/');
-  BLI_str_replace_char(file + BLI_path_unc_prefix_len(file), '\\', '/');
+  BLI_str_replace_char(path + BLI_path_unc_prefix_len(path), '\\', '/');
 
   /* Remove `/./` which confuse the following slash counting. */
-  BLI_path_normalize(file);
+  BLI_path_normalize(path);
   BLI_path_normalize(temp);
 
-  /* The last slash in the file indicates where the path part ends. */
+  /* The last slash in the path indicates where the path part ends. */
   lslash = BLI_path_slash_rfind(temp);
 
   if (lslash) {
     /* Find the prefix of the filename that is equal for both filenames.
      * This is replaced by the two slashes at the beginning. */
     const char *p = temp;
-    const char *q = file;
+    const char *q = path;
     char *r = res;
 
 #ifdef WIN32
@@ -686,7 +683,7 @@ void BLI_path_rel(char *file, const char *relfile)
     /* We might have passed the slash when the beginning of a dir matches
      * so we rewind. Only check on the actual filename. */
     if (*q != '/') {
-      while ((q >= file) && (*q != '/')) {
+      while ((q >= path) && (*q != '/')) {
         q--;
         p--;
       }
@@ -720,29 +717,28 @@ void BLI_path_rel(char *file, const char *relfile)
 #ifdef WIN32
     BLI_str_replace_char(res + 2, '/', '\\');
 #endif
-    strcpy(file, res);
+    strcpy(path, res);
   }
 }
 
-bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char *sep)
+bool BLI_path_suffix(char *path, size_t path_maxncpy, const char *suffix, const char *sep)
 {
-#ifdef DEBUG_STRSIZE
-  memset(string, 0xff, sizeof(*string) * maxlen);
-#endif
+  BLI_string_debug_size_after_nil(path, path_maxncpy);
+
   const size_t suffix_len = strlen(suffix);
   const size_t sep_len = strlen(sep);
-  char *extension = (char *)BLI_path_extension_or_end(string);
+  char *extension = (char *)BLI_path_extension_or_end(path);
   const size_t extension_len = strlen(extension);
-  const size_t string_end = extension - string;
-  const size_t string_len = string_end + extension_len;
-  if (string_len + sep_len + suffix_len >= maxlen) {
+  const size_t path_end = extension - path;
+  const size_t path_len = path_end + extension_len;
+  if (path_len + sep_len + suffix_len >= path_maxncpy) {
     return false;
   }
 
   if (extension_len) {
     memmove(extension + (sep_len + suffix_len), extension, extension_len);
   }
-  char *c = string + string_end;
+  char *c = path + path_end;
   if (sep_len) {
     memcpy(c, sep, sep_len);
     c += sep_len;
@@ -854,6 +850,8 @@ static void ensure_digits(char *path, int digits)
 
 bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits)
 {
+  BLI_string_debug_size_after_nil(path, path_maxncpy);
+
   int ch_sta, ch_end;
 
   if (digits) {
@@ -872,6 +870,8 @@ bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits)
 
 bool BLI_path_frame_range(char *path, int sta, int end, int digits)
 {
+  BLI_string_debug_size_after_nil(path, FILE_MAX);
+
   int ch_sta, ch_end;
 
   if (digits) {
@@ -925,8 +925,9 @@ bool BLI_path_frame_get(const char *path, int *r_frame, int *r_digits_len)
   return true;
 }
 
-void BLI_path_frame_strip(char *path, char *r_ext, const size_t ext_maxlen)
+void BLI_path_frame_strip(char *path, char *r_ext, const size_t ext_maxncpy)
 {
+  BLI_string_debug_size(r_ext, ext_maxncpy);
   *r_ext = '\0';
   if (*path == '\0') {
     return;
@@ -943,7 +944,7 @@ void BLI_path_frame_strip(char *path, char *r_ext, const size_t ext_maxlen)
   }
   c++;
 
-  BLI_strncpy(r_ext, file_ext, ext_maxlen);
+  BLI_strncpy(r_ext, file_ext, ext_maxncpy);
 
   /* Replace the number with the suffix and terminate the string. */
   while (digits_len--) {
@@ -958,15 +959,17 @@ bool BLI_path_frame_check_chars(const char *path)
   return stringframe_chars(path, &ch_sta_dummy, &ch_end_dummy);
 }
 
-void BLI_path_to_display_name(char *display_name, int maxlen, const char *name)
+void BLI_path_to_display_name(char *display_name, int display_name_maxncpy, const char *name)
 {
+  BLI_string_debug_size(display_name, display_name_maxncpy);
+
   /* Strip leading underscores and spaces. */
   int strip_offset = 0;
   while (ELEM(name[strip_offset], '_', ' ')) {
     strip_offset++;
   }
 
-  BLI_strncpy(display_name, name + strip_offset, maxlen);
+  BLI_strncpy(display_name, name + strip_offset, display_name_maxncpy);
 
   /* Replace underscores with spaces. */
   BLI_str_replace_char(display_name, '_', ' ');
@@ -997,6 +1000,8 @@ void BLI_path_to_display_name(char *display_name, int maxlen, const char *name)
 
 bool BLI_path_abs(char *path, const char *basepath)
 {
+  BLI_string_debug_size_after_nil(path, FILE_MAX);
+
   const bool wasrelative = BLI_path_is_rel(path);
   char tmp[FILE_MAX];
   char base[FILE_MAX];
@@ -1111,11 +1116,9 @@ bool BLI_path_is_abs_from_cwd(const char *path)
   return is_abs;
 }
 
-bool BLI_path_abs_from_cwd(char *path, const size_t maxlen)
+bool BLI_path_abs_from_cwd(char *path, const size_t path_maxncpy)
 {
-#ifdef DEBUG_STRSIZE
-  memset(path, 0xff, sizeof(*path) * maxlen);
-#endif
+  BLI_string_debug_size_after_nil(path, path_maxncpy);
 
   if (!BLI_path_is_abs_from_cwd(path)) {
     char cwd[FILE_MAX];
@@ -1123,7 +1126,7 @@ bool BLI_path_abs_from_cwd(char *path, const size_t maxlen)
     if (BLI_current_working_dir(cwd, sizeof(cwd))) {
       char origpath[FILE_MAX];
       BLI_strncpy(origpath, path, FILE_MAX);
-      BLI_path_join(path, maxlen, cwd, origpath);
+      BLI_path_join(path, path_maxncpy, cwd, origpath);
     }
     else {
       printf("Could not get the current working directory - $PWD for an unknown reason.\n");
@@ -1140,7 +1143,7 @@ bool BLI_path_abs_from_cwd(char *path, const size_t maxlen)
  * environment variable (Windows-only) onto `program_name` in turn until such a file is found.
  * Returns success/failure.
  */
-bool BLI_path_program_extensions_add_win32(char *program_name, const size_t maxlen)
+bool BLI_path_program_extensions_add_win32(char *program_name, const size_t program_name_maxncpy)
 {
   bool retval = false;
   int type;
@@ -1151,14 +1154,14 @@ bool BLI_path_program_extensions_add_win32(char *program_name, const size_t maxl
     const int ext_max = 12;
     const char *ext = BLI_getenv("PATHEXT");
     if (ext) {
-      const int name_len = strlen(program_name);
-      char *filename = alloca(name_len + ext_max);
+      const int program_name_len = strlen(program_name);
+      char *filename = alloca(program_name_len + ext_max);
       char *filename_ext;
       const char *ext_next;
 
       /* Null terminated in the loop. */
-      memcpy(filename, program_name, name_len);
-      filename_ext = filename + name_len;
+      memcpy(filename, program_name, program_name_len);
+      filename_ext = filename + program_name_len;
 
       do {
         int ext_len;
@@ -1172,7 +1175,7 @@ bool BLI_path_program_extensions_add_win32(char *program_name, const size_t maxl
           type = BLI_exists(filename);
           if (type && (!S_ISDIR(type))) {
             retval = true;
-            BLI_strncpy(program_name, filename, maxlen);
+            BLI_strncpy(program_name, filename, program_name_maxncpy);
             break;
           }
         }
@@ -1187,11 +1190,12 @@ bool BLI_path_program_extensions_add_win32(char *program_name, const size_t maxl
 }
 #endif /* WIN32 */
 
-bool BLI_path_program_search(char *program_filepath, const size_t maxlen, const char *program_name)
+bool BLI_path_program_search(char *program_filepath,
+                             const size_t program_filepath_maxncpy,
+                             const char *program_name)
 {
-#ifdef DEBUG_STRSIZE
-  memset(program_filepath, 0xff, sizeof(*program_filepath) * maxlen);
-#endif
+  BLI_string_debug_size(program_filepath, program_filepath_maxncpy);
+
   const char *path;
   bool retval = false;
 
@@ -1217,16 +1221,16 @@ bool BLI_path_program_search(char *program_filepath, const size_t maxlen, const 
         BLI_strncpy(filepath_test, path, sizeof(filepath_test));
       }
 
-      BLI_path_append(filepath_test, maxlen, program_name);
+      BLI_path_append(filepath_test, program_filepath_maxncpy, program_name);
       if (
 #ifdef _WIN32
-          BLI_path_program_extensions_add_win32(filepath_test, maxlen)
+          BLI_path_program_extensions_add_win32(filepath_test, sizeof(filepath_test))
 #else
           BLI_exists(filepath_test)
 #endif
       )
       {
-        BLI_strncpy(program_filepath, filepath_test, maxlen);
+        BLI_strncpy(program_filepath, filepath_test, program_filepath_maxncpy);
         retval = true;
         break;
       }
@@ -1292,35 +1296,35 @@ const char *BLI_getenv(const char *env)
 #endif
 }
 
-static bool path_extension_check_ex(const char *str,
-                                    const size_t str_len,
+static bool path_extension_check_ex(const char *path,
+                                    const size_t path_len,
                                     const char *ext,
                                     const size_t ext_len)
 {
-  BLI_assert(strlen(str) == str_len);
+  BLI_assert(strlen(path) == path_len);
   BLI_assert(strlen(ext) == ext_len);
 
-  return (((str_len == 0 || ext_len == 0 || ext_len >= str_len) == 0) &&
-          (BLI_strcasecmp(ext, str + str_len - ext_len) == 0));
+  return (((path_len == 0 || ext_len == 0 || ext_len >= path_len) == 0) &&
+          (BLI_strcasecmp(ext, path + path_len - ext_len) == 0));
 }
 
-bool BLI_path_extension_check(const char *str, const char *ext)
+bool BLI_path_extension_check(const char *path, const char *ext)
 {
-  return path_extension_check_ex(str, strlen(str), ext, strlen(ext));
+  return path_extension_check_ex(path, strlen(path), ext, strlen(ext));
 }
 
-bool BLI_path_extension_check_n(const char *str, ...)
+bool BLI_path_extension_check_n(const char *path, ...)
 {
-  const size_t str_len = strlen(str);
+  const size_t path_len = strlen(path);
 
   va_list args;
   const char *ext;
   bool ret = false;
 
-  va_start(args, str);
+  va_start(args, path);
 
   while ((ext = (const char *)va_arg(args, void *))) {
-    if (path_extension_check_ex(str, str_len, ext, strlen(ext))) {
+    if (path_extension_check_ex(path, path_len, ext, strlen(ext))) {
       ret = true;
       break;
     }
@@ -1331,13 +1335,13 @@ bool BLI_path_extension_check_n(const char *str, ...)
   return ret;
 }
 
-bool BLI_path_extension_check_array(const char *str, const char **ext_array)
+bool BLI_path_extension_check_array(const char *path, const char **ext_array)
 {
-  const size_t str_len = strlen(str);
+  const size_t path_len = strlen(path);
   int i = 0;
 
   while (ext_array[i]) {
-    if (path_extension_check_ex(str, str_len, ext_array[i], strlen(ext_array[i]))) {
+    if (path_extension_check_ex(path, path_len, ext_array[i], strlen(ext_array[i]))) {
       return true;
     }
 
@@ -1346,7 +1350,7 @@ bool BLI_path_extension_check_array(const char *str, const char **ext_array)
   return false;
 }
 
-bool BLI_path_extension_check_glob(const char *str, const char *ext_fnmatch)
+bool BLI_path_extension_check_glob(const char *path, const char *ext_fnmatch)
 {
   const char *ext_step = ext_fnmatch;
   char pattern[16];
@@ -1363,7 +1367,7 @@ bool BLI_path_extension_check_glob(const char *str, const char *ext_fnmatch)
       len_ext = BLI_strncpy_rlen(pattern, ext_step, sizeof(pattern));
     }
 
-    if (fnmatch(pattern, str, FNM_CASEFOLD) == 0) {
+    if (fnmatch(pattern, path, FNM_CASEFOLD) == 0) {
       return true;
     }
     ext_step += len_ext;
@@ -1398,14 +1402,13 @@ bool BLI_path_extension_glob_validate(char *ext_fnmatch)
   return false;
 }
 
-bool BLI_path_extension_replace(char *path, size_t maxlen, const char *ext)
+bool BLI_path_extension_replace(char *path, size_t path_maxncpy, const char *ext)
 {
-#ifdef DEBUG_STRSIZE
-  memset(path, 0xff, sizeof(*path) * maxlen);
-#endif
+  BLI_string_debug_size_after_nil(path, path_maxncpy);
+
   char *path_ext = (char *)BLI_path_extension_or_end(path);
   const size_t ext_len = strlen(ext);
-  if ((path_ext - path) + ext_len >= maxlen) {
+  if ((path_ext - path) + ext_len >= path_maxncpy) {
     return false;
   }
 
@@ -1423,11 +1426,10 @@ bool BLI_path_extension_strip(char *path)
   return true;
 }
 
-bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext)
+bool BLI_path_extension_ensure(char *path, size_t path_maxncpy, const char *ext)
 {
-#ifdef DEBUG_STRSIZE
-  memset(path, 0xff, sizeof(*path) * maxlen);
-#endif
+  BLI_string_debug_size_after_nil(path, path_maxncpy);
+
   /* First check the extension is already there.
    * If `path_ext` is the end of the string this is simply checking if `ext` is also empty. */
   const char *path_ext = BLI_path_extension_or_end(path);
@@ -1449,7 +1451,7 @@ bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext)
   }
   a++;
 
-  if (a + ext_len >= maxlen) {
+  if (a + ext_len >= path_maxncpy) {
     return false;
   }
 
@@ -1457,64 +1459,61 @@ bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext)
   return true;
 }
 
-bool BLI_path_filename_ensure(char *filepath, size_t maxlen, const char *filename)
+bool BLI_path_filename_ensure(char *filepath, size_t filepath_maxncpy, const char *file)
 {
-#ifdef DEBUG_STRSIZE
-  memset(filepath, 0xff, sizeof(*filepath) * maxlen);
-#endif
+  BLI_string_debug_size_after_nil(filepath, filepath_maxncpy);
+
   char *c = (char *)BLI_path_slash_rfind(filepath);
-  if (!c || ((c - filepath) < maxlen - (strlen(filename) + 1))) {
-    strcpy(c ? &c[1] : filepath, filename);
+  if (!c || ((c - filepath) < filepath_maxncpy - (strlen(file) + 1))) {
+    strcpy(c ? &c[1] : filepath, file);
     return true;
   }
   return false;
 }
 
-static size_t path_split_dir_file_offset(const char *string)
+static size_t path_split_dir_file_offset(const char *path)
 {
-  const char *lslash_str = BLI_path_slash_rfind(string);
-  const size_t lslash = lslash_str ? (size_t)(lslash_str - string) + 1 : 0;
+  const char *lslash_str = BLI_path_slash_rfind(path);
+  const size_t lslash = lslash_str ? (size_t)(lslash_str - path) + 1 : 0;
   return lslash;
 }
 
-void BLI_path_split_dir_file(
-    const char *filepath, char *dir, const size_t dirlen, char *file, const size_t filelen)
+void BLI_path_split_dir_file(const char *filepath,
+                             char *dir,
+                             const size_t dir_maxncpy,
+                             char *file,
+                             const size_t file_maxncpy)
 {
-#ifdef DEBUG_STRSIZE
-  memset(dir, 0xff, sizeof(*dir) * dirlen);
-  memset(file, 0xff, sizeof(*file) * filelen);
-#endif
+  BLI_string_debug_size(dir, dir_maxncpy);
+  BLI_string_debug_size(file, file_maxncpy);
+
   const size_t lslash = path_split_dir_file_offset(filepath);
   if (lslash) { /* +1 to include the slash and the last char. */
-    BLI_strncpy(dir, filepath, MIN2(dirlen, lslash + 1));
+    BLI_strncpy(dir, filepath, MIN2(dir_maxncpy, lslash + 1));
   }
   else {
     dir[0] = '\0';
   }
-  BLI_strncpy(file, filepath + lslash, filelen);
+  BLI_strncpy(file, filepath + lslash, file_maxncpy);
 }
 
-void BLI_path_split_dir_part(const char *filepath, char *dir, const size_t dirlen)
+void BLI_path_split_dir_part(const char *filepath, char *dir, const size_t dir_maxncpy)
 {
-#ifdef DEBUG_STRSIZE
-  memset(dir, 0xff, sizeof(*dir) * dirlen);
-#endif
+  BLI_string_debug_size(dir, dir_maxncpy);
   const size_t lslash = path_split_dir_file_offset(filepath);
   if (lslash) { /* +1 to include the slash and the last char. */
-    BLI_strncpy(dir, filepath, MIN2(dirlen, lslash + 1));
+    BLI_strncpy(dir, filepath, MIN2(dir_maxncpy, lslash + 1));
   }
   else {
     dir[0] = '\0';
   }
 }
 
-void BLI_path_split_file_part(const char *filepath, char *file, const size_t filelen)
+void BLI_path_split_file_part(const char *filepath, char *file, const size_t file_maxncpy)
 {
-#ifdef DEBUG_STRSIZE
-  memset(file, 0xff, sizeof(*file) * filelen);
-#endif
+  BLI_string_debug_size(file, file_maxncpy);
   const size_t lslash = path_split_dir_file_offset(filepath);
-  BLI_strncpy(file, filepath + lslash, filelen);
+  BLI_strncpy(file, filepath + lslash, file_maxncpy);
 }
 
 const char *BLI_path_extension_or_end(const char *filepath)
@@ -1560,27 +1559,30 @@ const char *BLI_path_extension(const char *filepath)
   return *ext ? ext : NULL;
 }
 
-size_t BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__restrict file)
+size_t BLI_path_append(char *__restrict dst, const size_t dst_maxncpy, const char *__restrict file)
 {
-  size_t dirlen = BLI_strnlen(dst, maxlen);
+  BLI_string_debug_size_after_nil(dst, dst_maxncpy);
 
+  size_t dirlen = BLI_strnlen(dst, dst_maxncpy);
   /* Inline #BLI_path_slash_ensure. */
   if ((dirlen > 0) && !BLI_path_slash_is_native_compat(dst[dirlen - 1])) {
     dst[dirlen++] = SEP;
     dst[dirlen] = '\0';
   }
 
-  if (dirlen >= maxlen) {
+  if (dirlen >= dst_maxncpy) {
     return dirlen; /* Fills the path. */
   }
 
-  return dirlen + BLI_strncpy_rlen(dst + dirlen, file, maxlen - dirlen);
+  return dirlen + BLI_strncpy_rlen(dst + dirlen, file, dst_maxncpy - dirlen);
 }
 
-size_t BLI_path_append_dir(char *__restrict dst, const size_t maxlen, const char *__restrict dir)
+size_t BLI_path_append_dir(char *__restrict dst,
+                           const size_t dst_maxncpy,
+                           const char *__restrict dir)
 {
-  size_t dirlen = BLI_path_append(dst, maxlen, dir);
-  if (dirlen + 1 < maxlen) {
+  size_t dirlen = BLI_path_append(dst, dst_maxncpy, dir);
+  if (dirlen + 1 < dst_maxncpy) {
     /* Inline #BLI_path_slash_ensure. */
     if ((dirlen > 0) && !BLI_path_slash_is_native_compat(dst[dirlen - 1])) {
       dst[dirlen++] = SEP;
@@ -1591,21 +1593,20 @@ size_t BLI_path_append_dir(char *__restrict dst, const size_t maxlen, const char
 }
 
 size_t BLI_path_join_array(char *__restrict dst,
-                           const size_t dst_len,
+                           const size_t dst_maxncpy,
                            const char *path_array[],
                            const int path_array_num)
 {
   BLI_assert(path_array_num > 0);
-#ifdef DEBUG_STRSIZE
-  memset(dst, 0xff, sizeof(*dst) * dst_len);
-#endif
-  if (UNLIKELY(dst_len == 0)) {
+  BLI_string_debug_size(dst, dst_maxncpy);
+
+  if (UNLIKELY(dst_maxncpy == 0)) {
     return 0;
   }
   const char *path = path_array[0];
 
-  const size_t dst_last = dst_len - 1;
-  size_t ofs = BLI_strncpy_rlen(dst, path, dst_len);
+  const size_t dst_last = dst_maxncpy - 1;
+  size_t ofs = BLI_strncpy_rlen(dst, path, dst_maxncpy);
 
   if (ofs == dst_last) {
     return ofs;
@@ -1626,7 +1627,7 @@ size_t BLI_path_join_array(char *__restrict dst,
       /* All slashes, keep them as-is, and join the remaining path array. */
       return path_array_num > 1 ?
                  BLI_path_join_array(
-                     dst + ofs, dst_len - ofs, &path_array[1], path_array_num - 1) :
+                     dst + ofs, dst_maxncpy - ofs, &path_array[1], path_array_num - 1) :
                  ofs;
     }
   }
@@ -1813,10 +1814,10 @@ bool BLI_path_contains(const char *container_path, const char *containee_path)
   return BLI_str_startswith(containee_native, container_native);
 }
 
-const char *BLI_path_slash_find(const char *string)
+const char *BLI_path_slash_find(const char *path)
 {
-  const char *const ffslash = strchr(string, '/');
-  const char *const fbslash = strchr(string, '\\');
+  const char *const ffslash = strchr(path, '/');
+  const char *const fbslash = strchr(path, '\\');
 
   if (!ffslash) {
     return fbslash;
@@ -1828,10 +1829,10 @@ const char *BLI_path_slash_find(const char *string)
   return (ffslash < fbslash) ? ffslash : fbslash;
 }
 
-const char *BLI_path_slash_rfind(const char *string)
+const char *BLI_path_slash_rfind(const char *path)
 {
-  const char *const lfslash = strrchr(string, '/');
-  const char *const lbslash = strrchr(string, '\\');
+  const char *const lfslash = strrchr(path, '/');
+  const char *const lbslash = strrchr(path, '\\');
 
   if (!lfslash) {
     return lbslash;
@@ -1843,27 +1844,29 @@ const char *BLI_path_slash_rfind(const char *string)
   return (lfslash > lbslash) ? lfslash : lbslash;
 }
 
-int BLI_path_slash_ensure(char *string, size_t string_maxlen)
+int BLI_path_slash_ensure(char *path, size_t path_maxncpy)
 {
-  int len = strlen(string);
-  BLI_assert(len < string_maxlen);
-  if (len == 0 || !BLI_path_slash_is_native_compat(string[len - 1])) {
+  BLI_string_debug_size_after_nil(path, path_maxncpy);
+
+  int len = strlen(path);
+  BLI_assert(len < path_maxncpy);
+  if (len == 0 || !BLI_path_slash_is_native_compat(path[len - 1])) {
     /* Avoid unlikely buffer overflow. */
-    if (len + 1 < string_maxlen) {
-      string[len] = SEP;
-      string[len + 1] = '\0';
+    if (len + 1 < path_maxncpy) {
+      path[len] = SEP;
+      path[len + 1] = '\0';
       return len + 1;
     }
   }
   return len;
 }
 
-void BLI_path_slash_rstrip(char *string)
+void BLI_path_slash_rstrip(char *path)
 {
-  int len = strlen(string);
+  int len = strlen(path);
   while (len) {
-    if (BLI_path_slash_is_native_compat(string[len - 1])) {
-      string[len - 1] = '\0';
+    if (BLI_path_slash_is_native_compat(path[len - 1])) {
+      path[len - 1] = '\0';
       len--;
     }
     else {
