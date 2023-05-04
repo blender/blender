@@ -1200,6 +1200,10 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
     }
   }
 
+  if (nmd_orig.simulation_cache == nullptr) {
+    return;
+  }
+
   /* Load read-only states to give nodes access to cached data. */
   const bke::sim::StatesAroundFrame sim_states =
       nmd_orig.simulation_cache->get_states_around_frame(current_frame);
