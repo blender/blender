@@ -563,18 +563,23 @@ typedef struct LibraryWeakReference {
   char _pad[2];
 } LibraryWeakReference;
 
-/* for PreviewImage->flag */
+/* PreviewImage.flag */
 enum ePreviewImage_Flag {
   PRV_CHANGED = (1 << 0),
-  PRV_USER_EDITED = (1 << 1), /* if user-edited, do not auto-update this anymore! */
-  PRV_RENDERING = (1 << 2),   /* Rendering was invoked. Cleared on file read. */
+  /** If user-edited, do not auto-update this anymore! */
+  PRV_USER_EDITED = (1 << 1),
+  /* Rendering was invoked. Cleared on file read. */
+  PRV_RENDERING = (1 << 2),
 };
 
-/* for PreviewImage->tag */
+/* PreviewImage.tag */
 enum {
-  PRV_TAG_DEFFERED = (1 << 0),           /* Actual loading of preview is deferred. */
-  PRV_TAG_DEFFERED_RENDERING = (1 << 1), /* Deferred preview is being loaded. */
-  PRV_TAG_DEFFERED_DELETE = (1 << 2),    /* Deferred preview should be deleted asap. */
+  /** Actual loading of preview is deferred. */
+  PRV_TAG_DEFFERED = (1 << 0),
+  /** Deferred preview is being loaded. */
+  PRV_TAG_DEFFERED_RENDERING = (1 << 1),
+  /** Deferred preview should be deleted asap. */
+  PRV_TAG_DEFFERED_DELETE = (1 << 2),
 };
 
 typedef struct PreviewImage {
