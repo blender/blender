@@ -5,7 +5,7 @@
  * \ingroup modifiers
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
@@ -35,8 +35,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 static void initData(ModifierData *md)
 {
@@ -67,9 +67,7 @@ static bool is_disabled(LatticeModifierData *lmd)
   return !lmd->object || lmd->object->type != OB_LATTICE;
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(userRenderParams))
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
   return is_disabled(lmd);
@@ -96,13 +94,12 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 
 static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
-                        struct Mesh *mesh,
+                        Mesh *mesh,
                         float (*vertexCos)[3],
                         int verts_num)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
-  struct Mesh *mesh_src = MOD_deform_mesh_eval_get(
-      ctx->object, NULL, mesh, NULL, verts_num, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
 
   MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
@@ -115,19 +112,19 @@ static void deformVerts(ModifierData *md,
                                       lmd->strength,
                                       mesh_src);
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                          struct BMEditMesh *em,
-                          struct Mesh *mesh,
+                          BMEditMesh *em,
+                          Mesh *mesh,
                           float (*vertexCos)[3],
                           int verts_num)
 {
-  if (mesh != NULL) {
+  if (mesh != nullptr) {
     deformVerts(md, ctx, mesh, vertexCos, verts_num);
     return;
   }
@@ -140,7 +137,7 @@ static void deformVertsEM(ModifierData *md,
       lmd->object, ctx->object, vertexCos, verts_num, lmd->flag, lmd->name, lmd->strength, em);
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -149,11 +146,11 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "object", 0, nullptr, ICON_NONE);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
-  uiItemR(layout, ptr, "strength", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "strength", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -176,23 +173,23 @@ ModifierTypeInfo modifierType_Lattice = {
     /*copyData*/ BKE_modifier_copydata_generic,
 
     /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ NULL,
+    /*deformMatrices*/ nullptr,
     /*deformVertsEM*/ deformVertsEM,
-    /*deformMatricesEM*/ NULL,
-    /*modifyMesh*/ NULL,
-    /*modifyGeometrySet*/ NULL,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ nullptr,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ NULL,
+    /*freeData*/ nullptr,
     /*isDisabled*/ isDisabled,
     /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ NULL,
-    /*dependsOnNormals*/ NULL,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
     /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

@@ -33,18 +33,18 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h" /* Self include */
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh" /* Self include */
 
 /**
  * Poll function so these modifier panels don't show for other object types with modifiers (only
  * grease pencil currently).
  */
-static bool modifier_ui_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool modifier_ui_poll(const bContext *C, PanelType * /*pt*/)
 {
   Object *ob = ED_object_active_context(C);
 
-  return (ob != NULL) && (ob->type != OB_GPENCIL_LEGACY);
+  return (ob != nullptr) && (ob->type != OB_GPENCIL_LEGACY);
 }
 
 /* -------------------------------------------------------------------- */
@@ -64,18 +64,18 @@ static void modifier_reorder(bContext *C, Panel *panel, int new_index)
   WM_operator_properties_create_ptr(&props_ptr, ot);
   RNA_string_set(&props_ptr, "modifier", md->name);
   RNA_int_set(&props_ptr, "index", new_index);
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, NULL);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, nullptr);
   WM_operator_properties_free(&props_ptr);
 }
 
-static short get_modifier_expand_flag(const bContext *UNUSED(C), Panel *panel)
+static short get_modifier_expand_flag(const bContext * /*C*/, Panel *panel)
 {
   PointerRNA *md_ptr = UI_panel_custom_data_get(panel);
   ModifierData *md = (ModifierData *)md_ptr->data;
   return md->ui_expand_flag;
 }
 
-static void set_modifier_expand_flag(const bContext *UNUSED(C), Panel *panel, short expand_flag)
+static void set_modifier_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
   PointerRNA *md_ptr = UI_panel_custom_data_get(panel);
   ModifierData *md = (ModifierData *)md_ptr->data;
@@ -90,7 +90,7 @@ static void set_modifier_expand_flag(const bContext *UNUSED(C), Panel *panel, sh
 
 void modifier_panel_end(uiLayout *layout, PointerRNA *ptr)
 {
-  ModifierData *md = ptr->data;
+  ModifierData *md = static_cast<ModifierData *>(ptr->data);
   if (md->error) {
     uiLayout *row = uiLayoutRow(layout, false);
     uiItemL(row, TIP_(md->error), ICON_ERROR);
@@ -110,7 +110,7 @@ PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_
   BLI_assert(!RNA_pointer_is_null(ptr));
   BLI_assert(RNA_struct_is_a(ptr->type, &RNA_Modifier));
 
-  if (r_ob_ptr != NULL) {
+  if (r_ob_ptr != nullptr) {
     RNA_pointer_create(ptr->owner_id, &RNA_Object, ptr->owner_id, r_ob_ptr);
   }
 
@@ -133,7 +133,7 @@ void modifier_vgroup_ui(uiLayout *layout,
 
   uiLayout *row = uiLayoutRow(layout, true);
   uiItemPointerR(row, ptr, vgroup_prop, ob_ptr, "vertex_groups", text, ICON_NONE);
-  if (invert_vgroup_prop != NULL) {
+  if (invert_vgroup_prop != nullptr) {
     uiLayout *sub = uiLayoutRow(row, true);
     uiLayoutSetActive(sub, has_vertex_group);
     uiLayoutSetPropDecorate(sub, false);
@@ -254,7 +254,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
               "OBJECT_OT_modifier_move_to_index",
               IFACE_("Move to First"),
               ICON_TRIA_UP,
-              NULL,
+              nullptr,
               WM_OP_INVOKE_DEFAULT,
               0,
               &op_ptr);
@@ -269,7 +269,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
               "OBJECT_OT_modifier_move_to_index",
               IFACE_("Move to Last"),
               ICON_TRIA_DOWN,
-              NULL,
+              nullptr,
               WM_OP_INVOKE_DEFAULT,
               0,
               &op_ptr);
@@ -281,9 +281,9 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
   if (md->type == eModifierType_Nodes) {
     uiItemFullO(layout,
                 "OBJECT_OT_geometry_nodes_move_to_nodes",
-                NULL,
+                nullptr,
                 ICON_NONE,
-                NULL,
+                nullptr,
                 WM_OP_INVOKE_DEFAULT,
                 0,
                 &op_ptr);
@@ -302,7 +302,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
 
   UI_panel_context_pointer_set(panel, "modifier", ptr);
 
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
   Scene *scene = CTX_data_scene(C);
   int index = BLI_findindex(&ob->modifiers, md);
 
@@ -453,7 +453,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
 
 PanelType *modifier_panel_register(ARegionType *region_type, ModifierType type, PanelDrawFn draw)
 {
-  PanelType *panel_type = MEM_callocN(sizeof(PanelType), __func__);
+  PanelType *panel_type = MEM_cnew<PanelType>(__func__);
 
   BKE_modifier_type_panel_id(type, panel_type->idname);
   BLI_strncpy(panel_type->label, "", BKE_ST_MAXNAME);
@@ -484,7 +484,7 @@ PanelType *modifier_subpanel_register(ARegionType *region_type,
                                       PanelDrawFn draw,
                                       PanelType *parent)
 {
-  PanelType *panel_type = MEM_callocN(sizeof(PanelType), __func__);
+  PanelType *panel_type = MEM_cnew<PanelType>(__func__);
 
   BLI_snprintf(panel_type->idname, BKE_ST_MAXNAME, "%s_%s", parent->idname, name);
   BLI_strncpy(panel_type->label, label, BKE_ST_MAXNAME);
@@ -497,7 +497,7 @@ PanelType *modifier_subpanel_register(ARegionType *region_type,
   panel_type->poll = modifier_ui_poll;
   panel_type->flag = PANEL_TYPE_DEFAULT_CLOSED;
 
-  BLI_assert(parent != NULL);
+  BLI_assert(parent != nullptr);
   BLI_strncpy(panel_type->parent_id, parent->idname, BKE_ST_MAXNAME);
   panel_type->parent = parent;
   BLI_addtail(&parent->children, BLI_genericNodeN(panel_type));

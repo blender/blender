@@ -4,7 +4,7 @@
  * \ingroup modifiers
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
@@ -26,8 +26,8 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
 
 #include "bmesh.h"
 #include "tools/bmesh_wireframe.h"
@@ -51,7 +51,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool dependsOnNormals(ModifierData *UNUSED(md))
+static bool dependsOnNormals(ModifierData * /*md*/)
 {
   return true;
 }
@@ -63,18 +63,18 @@ static Mesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, Mesh *
 
   const int defgrp_index = BKE_id_defgroup_name_index(&mesh->id, wmd->defgrp_name);
 
-  bm = BKE_mesh_to_bmesh_ex(mesh,
-                            &(struct BMeshCreateParams){0},
-                            &(struct BMeshFromMeshParams){
-                                .calc_face_normal = true,
-                                .calc_vert_normal = true,
-                                .add_key_index = false,
-                                .use_shapekey = false,
-                                .active_shapekey = 0,
-                                .cd_mask_extra = {.vmask = CD_MASK_ORIGINDEX,
-                                                  .emask = CD_MASK_ORIGINDEX,
-                                                  .pmask = CD_MASK_ORIGINDEX},
-                            });
+  BMeshCreateParams create_params{};
+  BMeshFromMeshParams convert_params{};
+  convert_params.calc_face_normal = true;
+  convert_params.calc_vert_normal = true;
+  convert_params.add_key_index = false;
+  convert_params.use_shapekey = false;
+  convert_params.active_shapekey = 0;
+  convert_params.cd_mask_extra.vmask = CD_MASK_ORIGINDEX;
+  convert_params.cd_mask_extra.emask = CD_MASK_ORIGINDEX;
+  convert_params.cd_mask_extra.pmask = CD_MASK_ORIGINDEX;
+
+  bm = BKE_mesh_to_bmesh_ex(mesh, &create_params, &convert_params);
 
   BM_mesh_wireframe(bm,
                     wmd->offset,
@@ -92,18 +92,18 @@ static Mesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, Mesh *
                     MAX2(ob->totcol - 1, 0),
                     false);
 
-  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
   BM_mesh_free(bm);
 
   return result;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const struct ModifierEvalContext *ctx, struct Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   return WireframeModifier_do((WireframeModifierData *)md, ctx->object, mesh);
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col, *row, *sub;
   uiLayout *layout = panel->layout;
@@ -114,7 +114,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiItemR(layout, ptr, "thickness", 0, IFACE_("Thickness"), ICON_NONE);
-  uiItemR(layout, ptr, "offset", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "offset", 0, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
   uiItemR(col, ptr, "use_boundary", 0, IFACE_("Boundary"), ICON_NONE);
@@ -135,7 +135,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void vertex_group_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void vertex_group_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
@@ -147,7 +147,7 @@ static void vertex_group_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   row = uiLayoutRow(layout, true);
   uiLayoutSetActive(row, has_vertex_group);
@@ -159,7 +159,7 @@ static void panelRegister(ARegionType *region_type)
   PanelType *panel_type = modifier_panel_register(
       region_type, eModifierType_Wireframe, panel_draw);
   modifier_subpanel_register(
-      region_type, "vertex_group", "Vertex Group", NULL, vertex_group_panel_draw, panel_type);
+      region_type, "vertex_group", "Vertex Group", nullptr, vertex_group_panel_draw, panel_type);
 }
 
 ModifierTypeInfo modifierType_Wireframe = {
@@ -173,24 +173,24 @@ ModifierTypeInfo modifierType_Wireframe = {
 
     /*copyData*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ NULL,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ NULL,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
-    /*updateDepgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
     /*dependsOnNormals*/ dependsOnNormals,
-    /*foreachIDLink*/ NULL,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*foreachIDLink*/ nullptr,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

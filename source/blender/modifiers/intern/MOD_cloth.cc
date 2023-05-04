@@ -5,7 +5,7 @@
  * \ingroup modifiers
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
@@ -45,8 +45,8 @@
 #include "DEG_depsgraph_physics.h"
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 static void initData(ModifierData *md)
 {
@@ -66,7 +66,7 @@ static void initData(ModifierData *md)
   }
 
   if (!clmd->sim_parms->effector_weights) {
-    clmd->sim_parms->effector_weights = BKE_effector_add_weights(NULL);
+    clmd->sim_parms->effector_weights = BKE_effector_add_weights(nullptr);
   }
 
   if (clmd->point_cache) {
@@ -93,13 +93,13 @@ static void deformVerts(ModifierData *md,
     }
   }
 
-  if (mesh == NULL) {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, NULL, NULL, verts_num, false);
+  if (mesh == nullptr) {
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, nullptr, verts_num, false);
   }
   else {
     /* Not possible to use get_mesh() in this case as we'll modify its vertices
      * and get_mesh() would return 'mesh' directly. */
-    mesh_src = (Mesh *)BKE_id_copy_ex(NULL, (ID *)mesh, NULL, LIB_ID_COPY_LOCALIZE);
+    mesh_src = (Mesh *)BKE_id_copy_ex(nullptr, (ID *)mesh, nullptr, LIB_ID_COPY_LOCALIZE);
   }
 
   /* TODO(sergey): For now it actually duplicates logic from DerivedMesh.cc
@@ -108,16 +108,16 @@ static void deformVerts(ModifierData *md,
    *
    * Also hopefully new cloth system will arrive soon..
    */
-  if (mesh == NULL && clmd->sim_parms->shapekey_rest) {
+  if (mesh == nullptr && clmd->sim_parms->shapekey_rest) {
     KeyBlock *kb = BKE_keyblock_from_key(BKE_key_from_object(ctx->object),
                                          clmd->sim_parms->shapekey_rest);
-    if (kb && kb->data != NULL) {
+    if (kb && kb->data != nullptr) {
       float(*layerorco)[3];
-      if (!(layerorco = CustomData_get_layer_for_write(
-                &mesh_src->vdata, CD_CLOTH_ORCO, mesh_src->totvert)))
+      if (!(layerorco = static_cast<float(*)[3]>(CustomData_get_layer_for_write(
+                &mesh_src->vdata, CD_CLOTH_ORCO, mesh_src->totvert))))
       {
-        layerorco = CustomData_add_layer(
-            &mesh_src->vdata, CD_CLOTH_ORCO, CD_SET_DEFAULT, mesh_src->totvert);
+        layerorco = static_cast<float(*)[3]>(CustomData_add_layer(
+            &mesh_src->vdata, CD_CLOTH_ORCO, CD_SET_DEFAULT, mesh_src->totvert));
       }
 
       memcpy(layerorco, kb->data, sizeof(float[3]) * verts_num);
@@ -128,19 +128,19 @@ static void deformVerts(ModifierData *md,
 
   clothModifier_do(clmd, ctx->depsgraph, scene, ctx->object, mesh_src, vertexCos);
 
-  BKE_id_free(NULL, mesh_src);
+  BKE_id_free(nullptr, mesh_src);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   ClothModifierData *clmd = (ClothModifierData *)md;
-  if (clmd != NULL) {
+  if (clmd != nullptr) {
     if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
       DEG_add_collision_relations(ctx->node,
                                   ctx->object,
                                   clmd->coll_parms->group,
                                   eModifierType_Collision,
-                                  NULL,
+                                  nullptr,
                                   "Cloth Collision");
     }
     DEG_add_forcefield_relations(
@@ -188,20 +188,22 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   else {
     const int clmd_point_cache_index = BLI_findindex(&clmd->ptcaches, clmd->point_cache);
     BKE_ptcache_copy_list(&tclmd->ptcaches, &clmd->ptcaches, flag);
-    tclmd->point_cache = BLI_findlink(&tclmd->ptcaches, clmd_point_cache_index);
+    tclmd->point_cache = static_cast<PointCache *>(
+        BLI_findlink(&tclmd->ptcaches, clmd_point_cache_index));
   }
 
-  tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);
+  tclmd->sim_parms = static_cast<ClothSimSettings *>(MEM_dupallocN(clmd->sim_parms));
   if (clmd->sim_parms->effector_weights) {
-    tclmd->sim_parms->effector_weights = MEM_dupallocN(clmd->sim_parms->effector_weights);
+    tclmd->sim_parms->effector_weights = static_cast<EffectorWeights *>(
+        MEM_dupallocN(clmd->sim_parms->effector_weights));
   }
-  tclmd->coll_parms = MEM_dupallocN(clmd->coll_parms);
-  tclmd->clothObject = NULL;
-  tclmd->hairdata = NULL;
-  tclmd->solver_result = NULL;
+  tclmd->coll_parms = static_cast<ClothCollSettings *>(MEM_dupallocN(clmd->coll_parms));
+  tclmd->clothObject = nullptr;
+  tclmd->hairdata = nullptr;
+  tclmd->solver_result = nullptr;
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *UNUSED(md))
+static bool dependsOnTime( Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }
@@ -233,7 +235,7 @@ static void freeData(ModifierData *md)
     else {
       BKE_ptcache_free_list(&clmd->ptcaches);
     }
-    clmd->point_cache = NULL;
+    clmd->point_cache = nullptr;
 
     if (clmd->hairdata) {
       MEM_freeN(clmd->hairdata);
@@ -258,11 +260,11 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
   }
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiItemL(layout, TIP_("Settings are inside the Physics tab"), ICON_NONE);
 
@@ -287,23 +289,23 @@ ModifierTypeInfo modifierType_Cloth = {
     /*copyData*/ copyData,
 
     /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
-    /*modifyMesh*/ NULL,
-    /*modifyGeometrySet*/ NULL,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ nullptr,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
     /*freeData*/ freeData,
-    /*isDisabled*/ NULL,
+    /*isDisabled*/ nullptr,
     /*updateDepsgraph*/ updateDepsgraph,
     /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ NULL,
+    /*dependsOnNormals*/ nullptr,
     /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

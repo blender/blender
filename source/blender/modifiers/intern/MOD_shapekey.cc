@@ -21,13 +21,13 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "MOD_modifiertypes.h"
+#include "MOD_modifiertypes.hh"
 
 #include "UI_resources.h"
 
-static void deformVerts(ModifierData *UNUSED(md),
+static void deformVerts(ModifierData * /*md*/,
                         const ModifierEvalContext *ctx,
-                        Mesh *UNUSED(mesh),
+                        Mesh * /*mesh*/,
                         float (*vertexCos)[3],
                         int verts_num)
 {
@@ -35,8 +35,11 @@ static void deformVerts(ModifierData *UNUSED(md),
 
   if (key && key->block.first) {
     int deformedVerts_tot;
-    BKE_key_evaluate_object_ex(
-        ctx->object, &deformedVerts_tot, (float *)vertexCos, sizeof(*vertexCos) * verts_num, NULL);
+    BKE_key_evaluate_object_ex(ctx->object,
+                               &deformedVerts_tot,
+                               (float *)vertexCos,
+                               sizeof(*vertexCos) * verts_num,
+                               nullptr);
   }
 }
 
@@ -73,7 +76,7 @@ static void deformMatrices(ModifierData *md,
 
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                          struct BMEditMesh *UNUSED(editData),
+                          BMEditMesh * /*editData*/,
                           Mesh *mesh,
                           float (*vertexCos)[3],
                           int verts_num)
@@ -85,10 +88,10 @@ static void deformVertsEM(ModifierData *md,
   }
 }
 
-static void deformMatricesEM(ModifierData *UNUSED(md),
+static void deformMatricesEM(ModifierData * /*md*/,
                              const ModifierEvalContext *ctx,
-                             struct BMEditMesh *UNUSED(editData),
-                             Mesh *UNUSED(mesh),
+                             BMEditMesh * /*editData*/,
+                             Mesh * /*mesh*/,
                              float (*vertexCos)[3],
                              float (*defMats)[3][3],
                              int verts_num)
@@ -118,26 +121,26 @@ ModifierTypeInfo modifierType_ShapeKey = {
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_DOT,
 
-    /*copyData*/ NULL,
+    /*copyData*/ nullptr,
 
     /*deformVerts*/ deformVerts,
     /*deformMatrices*/ deformMatrices,
     /*deformVertsEM*/ deformVertsEM,
     /*deformMatricesEM*/ deformMatricesEM,
-    /*modifyMesh*/ NULL,
-    /*modifyGeometrySet*/ NULL,
+    /*modifyMesh*/ nullptr,
+    /*modifyGeometrySet*/ nullptr,
 
-    /*initData*/ NULL,
-    /*requiredDataMask*/ NULL,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
-    /*updateDepsgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
-    /*dependsOnNormals*/ NULL,
-    /*foreachIDLink*/ NULL,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
-    /*panelRegister*/ NULL,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*initData*/ nullptr,
+    /*requiredDataMask*/ nullptr,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ nullptr,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ nullptr,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

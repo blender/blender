@@ -38,9 +38,9 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 #include "BLO_read_write.h"
 
@@ -62,7 +62,7 @@ static void freeData(ModifierData *md)
   if (collmd) { /* Seriously? */
     if (collmd->bvhtree) {
       BLI_bvhtree_free(collmd->bvhtree);
-      collmd->bvhtree = NULL;
+      collmd->bvhtree = nullptr;
     }
 
     MEM_SAFE_FREE(collmd->x);
@@ -80,7 +80,7 @@ static void freeData(ModifierData *md)
   }
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *UNUSED(md))
+static bool dependsOnTime( Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }
@@ -105,13 +105,13 @@ static void deformVerts(ModifierData *md,
     return;
   }
 
-  if (mesh == NULL) {
-    mesh_src = MOD_deform_mesh_eval_get(ob, NULL, NULL, NULL, verts_num, false);
+  if (mesh == nullptr) {
+    mesh_src = MOD_deform_mesh_eval_get(ob, nullptr, nullptr, nullptr, verts_num, false);
   }
   else {
     /* Not possible to use get_mesh() in this case as we'll modify its vertices
      * and get_mesh() would return 'mesh' directly. */
-    mesh_src = (Mesh *)BKE_id_copy_ex(NULL, (ID *)mesh, NULL, LIB_ID_COPY_LOCALIZE);
+    mesh_src = (Mesh *)BKE_id_copy_ex(nullptr, (ID *)mesh, nullptr, LIB_ID_COPY_LOCALIZE);
   }
 
   if (mesh_src) {
@@ -144,24 +144,26 @@ static void deformVerts(ModifierData *md,
 
     if (collmd->time_xnew == -1000) { /* first time */
 
-      collmd->x = MEM_dupallocN(BKE_mesh_vert_positions(mesh_src)); /* frame start position */
+      collmd->x = static_cast<float(*)[3]>(
+          MEM_dupallocN(BKE_mesh_vert_positions(mesh_src))); /* frame start position */
 
       for (uint i = 0; i < mvert_num; i++) {
         /* we save global positions */
         mul_m4_v3(ob->object_to_world, collmd->x[i]);
       }
 
-      collmd->xnew = MEM_dupallocN(collmd->x);         /* Frame end position. */
-      collmd->current_x = MEM_dupallocN(collmd->x);    /* Inter-frame. */
-      collmd->current_xnew = MEM_dupallocN(collmd->x); /* Inter-frame. */
-      collmd->current_v = MEM_dupallocN(collmd->x);    /* Inter-frame. */
+      collmd->xnew = static_cast<float(*)[3]>(MEM_dupallocN(collmd->x)); /* Frame end position. */
+      collmd->current_x = static_cast<float(*)[3]>(MEM_dupallocN(collmd->x));    /* Inter-frame. */
+      collmd->current_xnew = static_cast<float(*)[3]>(MEM_dupallocN(collmd->x)); /* Inter-frame. */
+      collmd->current_v = static_cast<float(*)[3]>(MEM_dupallocN(collmd->x));    /* Inter-frame. */
 
       collmd->mvert_num = mvert_num;
 
       {
         const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh_src);
         collmd->tri_num = BKE_mesh_runtime_looptri_len(mesh_src);
-        MVertTri *tri = MEM_mallocN(sizeof(*tri) * collmd->tri_num, __func__);
+        MVertTri *tri = static_cast<MVertTri *>(
+            MEM_mallocN(sizeof(*tri) * collmd->tri_num, __func__));
         BKE_mesh_runtime_verttri_from_looptri(
             tri, BKE_mesh_corner_verts(mesh_src), looptri, collmd->tri_num);
         collmd->tri = tri;
@@ -228,21 +230,21 @@ static void deformVerts(ModifierData *md,
     }
   }
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
-static void updateDepsgraph(ModifierData *UNUSED(md), const ModifierUpdateDepsgraphContext *ctx)
+static void updateDepsgraph(ModifierData * /*md*/, const ModifierUpdateDepsgraphContext *ctx)
 {
   DEG_add_depends_on_transform_relation(ctx->node, "Collision Modifier");
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiItemL(layout, TIP_("Settings are inside the Physics tab"), ICON_NONE);
 
@@ -254,7 +256,7 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_Collision, panel_draw);
 }
 
-static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
+static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
 {
   CollisionModifierData *collmd = (CollisionModifierData *)md;
 #if 0
@@ -269,17 +271,17 @@ static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
       collmd->current_v = MEM_calloc_arrayN(collmd->mvert_num, sizeof(float[3]), "current_v");
 #endif
 
-  collmd->x = NULL;
-  collmd->xnew = NULL;
-  collmd->current_x = NULL;
-  collmd->current_xnew = NULL;
-  collmd->current_v = NULL;
+  collmd->x = nullptr;
+  collmd->xnew = nullptr;
+  collmd->current_x = nullptr;
+  collmd->current_xnew = nullptr;
+  collmd->current_v = nullptr;
   collmd->time_x = collmd->time_xnew = -1000;
   collmd->mvert_num = 0;
   collmd->tri_num = 0;
   collmd->is_static = false;
-  collmd->bvhtree = NULL;
-  collmd->tri = NULL;
+  collmd->bvhtree = nullptr;
+  collmd->tri = nullptr;
 }
 
 ModifierTypeInfo modifierType_Collision = {
@@ -291,26 +293,26 @@ ModifierTypeInfo modifierType_Collision = {
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_Single,
     /*icon*/ ICON_MOD_PHYSICS,
 
-    /*copyData*/ NULL,
+    /*copyData*/ nullptr,
 
     /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
-    /*modifyMesh*/ NULL,
-    /*modifyGeometrySet*/ NULL,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ nullptr,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
-    /*requiredDataMask*/ NULL,
+    /*requiredDataMask*/ nullptr,
     /*freeData*/ freeData,
-    /*isDisabled*/ NULL,
+    /*isDisabled*/ nullptr,
     /*updateDepsgraph*/ updateDepsgraph,
     /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ NULL,
-    /*foreachIDLink*/ NULL,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ nullptr,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
+    /*blendWrite*/ nullptr,
     /*blendRead*/ blendRead,
 };

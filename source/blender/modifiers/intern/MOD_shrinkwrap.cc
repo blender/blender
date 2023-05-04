@@ -5,7 +5,7 @@
  * \ingroup modifiers
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
@@ -34,8 +34,8 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 static bool dependsOnNormals(ModifierData *md);
 
@@ -58,9 +58,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
 
@@ -93,49 +91,49 @@ static void deformVerts(ModifierData *md,
                         int verts_num)
 {
   ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
-  struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-  Mesh *mesh_src = NULL;
+  Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+  Mesh *mesh_src = nullptr;
 
   if (ELEM(ctx->object->type, OB_MESH, OB_LATTICE) || (swmd->shrinkType == MOD_SHRINKWRAP_PROJECT))
   {
     /* mesh_src is needed for vgroups, but also used as ShrinkwrapCalcData.vert when projecting.
      * Avoid time-consuming mesh conversion for curves when not projecting. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
   }
 
-  const MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = nullptr;
   int defgrp_index = -1;
   MOD_get_vgroup(ctx->object, mesh_src, swmd->vgroup_name, &dvert, &defgrp_index);
 
   shrinkwrapModifier_deform(
       swmd, ctx, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, verts_num);
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                          struct BMEditMesh *editData,
+                          BMEditMesh *editData,
                           Mesh *mesh,
                           float (*vertexCos)[3],
                           int verts_num)
 {
   ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
-  struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-  Mesh *mesh_src = NULL;
+  Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+  Mesh *mesh_src = nullptr;
 
   if ((swmd->vgroup_name[0] != '\0') || (swmd->shrinkType == MOD_SHRINKWRAP_PROJECT)) {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr, verts_num, false);
   }
 
   /* TODO(@ideasman42): use edit-mode data only (remove this line). */
-  if (mesh_src != NULL) {
+  if (mesh_src != nullptr) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
 
-  const MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = nullptr;
   int defgrp_index = -1;
   if (swmd->vgroup_name[0] != '\0') {
     MOD_get_vgroup(ctx->object, mesh_src, swmd->vgroup_name, &dvert, &defgrp_index);
@@ -144,8 +142,8 @@ static void deformVertsEM(ModifierData *md,
   shrinkwrapModifier_deform(
       swmd, ctx, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, verts_num);
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
@@ -158,7 +156,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     mask.lmask |= CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL;
   }
 
-  if (smd->target != NULL) {
+  if (smd->target != nullptr) {
     DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
     DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
     DEG_add_customdata_mask(ctx->node, smd->target, &mask);
@@ -166,7 +164,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
       DEG_add_special_eval_flag(ctx->node, &smd->target->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
     }
   }
-  if (smd->auxTarget != NULL) {
+  if (smd->auxTarget != nullptr) {
     DEG_add_object_relation(
         ctx->node, smd->auxTarget, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
     DEG_add_object_relation(
@@ -190,7 +188,7 @@ static bool dependsOnNormals(ModifierData *md)
   return false;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row, *col;
   uiLayout *layout = panel->layout;
@@ -203,44 +201,44 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   int wrap_method = RNA_enum_get(ptr, "wrap_method");
 
-  uiItemR(layout, ptr, "wrap_method", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "wrap_method", 0, nullptr, ICON_NONE);
 
   if (ELEM(wrap_method,
            MOD_SHRINKWRAP_PROJECT,
            MOD_SHRINKWRAP_NEAREST_SURFACE,
            MOD_SHRINKWRAP_TARGET_PROJECT))
   {
-    uiItemR(layout, ptr, "wrap_mode", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "wrap_mode", 0, nullptr, ICON_NONE);
   }
 
   if (wrap_method == MOD_SHRINKWRAP_PROJECT) {
     uiItemR(layout, ptr, "project_limit", 0, IFACE_("Limit"), ICON_NONE);
-    uiItemR(layout, ptr, "subsurf_levels", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "subsurf_levels", 0, nullptr, ICON_NONE);
 
     col = uiLayoutColumn(layout, false);
     row = uiLayoutRowWithHeading(col, true, IFACE_("Axis"));
-    uiItemR(row, ptr, "use_project_x", toggles_flag, NULL, ICON_NONE);
-    uiItemR(row, ptr, "use_project_y", toggles_flag, NULL, ICON_NONE);
-    uiItemR(row, ptr, "use_project_z", toggles_flag, NULL, ICON_NONE);
+    uiItemR(row, ptr, "use_project_x", toggles_flag, nullptr, ICON_NONE);
+    uiItemR(row, ptr, "use_project_y", toggles_flag, nullptr, ICON_NONE);
+    uiItemR(row, ptr, "use_project_z", toggles_flag, nullptr, ICON_NONE);
 
-    uiItemR(col, ptr, "use_negative_direction", 0, NULL, ICON_NONE);
-    uiItemR(col, ptr, "use_positive_direction", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "use_negative_direction", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "use_positive_direction", 0, nullptr, ICON_NONE);
 
-    uiItemR(layout, ptr, "cull_face", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "cull_face", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
     col = uiLayoutColumn(layout, false);
     uiLayoutSetActive(col,
                       RNA_boolean_get(ptr, "use_negative_direction") &&
                           RNA_enum_get(ptr, "cull_face") != 0);
-    uiItemR(col, ptr, "use_invert_cull", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "use_invert_cull", 0, nullptr, ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "target", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "target", 0, nullptr, ICON_NONE);
   if (wrap_method == MOD_SHRINKWRAP_PROJECT) {
-    uiItemR(layout, ptr, "auxiliary_target", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "auxiliary_target", 0, nullptr, ICON_NONE);
   }
-  uiItemR(layout, ptr, "offset", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "offset", 0, nullptr, ICON_NONE);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   modifier_panel_end(layout, ptr);
 }
@@ -264,23 +262,23 @@ ModifierTypeInfo modifierType_Shrinkwrap = {
     /*copyData*/ BKE_modifier_copydata_generic,
 
     /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ NULL,
+    /*deformMatrices*/ nullptr,
     /*deformVertsEM*/ deformVertsEM,
-    /*deformMatricesEM*/ NULL,
-    /*modifyMesh*/ NULL,
-    /*modifyGeometrySet*/ NULL,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ nullptr,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ NULL,
+    /*freeData*/ nullptr,
     /*isDisabled*/ isDisabled,
     /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ NULL,
+    /*dependsOnTime*/ nullptr,
     /*dependsOnNormals*/ dependsOnNormals,
     /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

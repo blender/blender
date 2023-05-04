@@ -4,8 +4,8 @@
  * \ingroup modifiers
  */
 
-#include <stddef.h>
-#include <string.h>
+#include <cstddef>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
@@ -39,8 +39,8 @@
 #include "DEG_depsgraph_physics.h"
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
 
 static void initData(ModifierData *md)
 {
@@ -61,7 +61,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 
 static void freeRuntimeData(void *runtime_data_v)
 {
-  if (runtime_data_v == NULL) {
+  if (runtime_data_v == nullptr) {
     return;
   }
   DynamicPaintRuntime *runtime_data = (DynamicPaintRuntime *)runtime_data_v;
@@ -79,7 +79,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
   if (pmd->canvas) {
-    DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
+    DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(pmd->canvas->surfaces.first);
     for (; surface; surface = surface->next) {
       /* UVs: #CD_PROP_FLOAT2. */
       if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ ||
@@ -113,17 +113,17 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return mesh;
 }
 
-static bool is_brush_cb(Object *UNUSED(ob), ModifierData *md)
+static bool is_brush_cb(Object * /*ob*/, ModifierData *md)
 {
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
-  return (pmd->brush != NULL && pmd->type == MOD_DYNAMICPAINT_TYPE_BRUSH);
+  return (pmd->brush != nullptr && pmd->type == MOD_DYNAMICPAINT_TYPE_BRUSH);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
   /* Add relation from canvases to all brush objects. */
-  if (pmd->canvas != NULL && pmd->type == MOD_DYNAMICPAINT_TYPE_CANVAS) {
+  if (pmd->canvas != nullptr && pmd->type == MOD_DYNAMICPAINT_TYPE_CANVAS) {
     LISTBASE_FOREACH (DynamicPaintSurface *, surface, &pmd->canvas->surfaces) {
       if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) {
         DEG_add_forcefield_relations(
@@ -142,7 +142,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *UNUSED(md))
+static bool dependsOnTime(Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }
@@ -152,7 +152,7 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
   if (pmd->canvas) {
-    DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
+    DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(pmd->canvas->surfaces.first);
 
     for (; surface; surface = surface->next) {
       walk(userData, ob, (ID **)&surface->brush_group, IDWALK_CB_NOP);
@@ -164,19 +164,19 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
   }
 }
 
-static void foreachTexLink(ModifierData *UNUSED(md),
-                           Object *UNUSED(ob),
-                           TexWalkFunc UNUSED(walk),
-                           void *UNUSED(userData))
+static void foreachTexLink(ModifierData * /*md*/,
+                           Object * /*ob*/,
+                           TexWalkFunc /*walk*/,
+                           void * /*userData*/)
 {
   // walk(userData, ob, md, ""); /* re-enable when possible */
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiItemL(layout, TIP_("Settings are inside the Physics tab"), ICON_NONE);
 
@@ -201,24 +201,24 @@ ModifierTypeInfo modifierType_DynamicPaint = {
 
     /*copyData*/ copyData,
 
-    /*deformVerts*/ NULL,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ NULL,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
     /*freeData*/ freeData,
-    /*isDisabled*/ NULL,
+    /*isDisabled*/ nullptr,
     /*updateDepsgraph*/ updateDepsgraph,
     /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ NULL,
+    /*dependsOnNormals*/ nullptr,
     /*foreachIDLink*/ foreachIDLink,
     /*foreachTexLink*/ foreachTexLink,
     /*freeRuntimeData*/ freeRuntimeData,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

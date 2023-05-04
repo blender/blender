@@ -35,8 +35,8 @@
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
 
 /* For edge split modifier node. */
 Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd);
@@ -49,22 +49,22 @@ Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd)
   BMEdge *e;
   const float threshold = cosf(emd->split_angle + 0.000000175f);
   const bool do_split_angle = (emd->flags & MOD_EDGESPLIT_FROMANGLE) != 0 &&
-                              emd->split_angle < (float)M_PI;
+                              emd->split_angle < float(M_PI);
   const bool do_split_all = do_split_angle && emd->split_angle < FLT_EPSILON;
   const bool calc_face_normals = do_split_angle && !do_split_all;
 
-  bm = BKE_mesh_to_bmesh_ex(mesh,
-                            &(struct BMeshCreateParams){0},
-                            &(struct BMeshFromMeshParams){
-                                .calc_face_normal = calc_face_normals,
-                                .calc_vert_normal = false,
-                                .add_key_index = false,
-                                .use_shapekey = false,
-                                .active_shapekey = 0,
-                                .cd_mask_extra = {.vmask = CD_MASK_ORIGINDEX,
-                                                  .emask = CD_MASK_ORIGINDEX,
-                                                  .pmask = CD_MASK_ORIGINDEX},
-                            });
+  BMeshCreateParams create_params{};
+  BMeshFromMeshParams convert_params{};
+  convert_params.calc_face_normal = calc_face_normals;
+  convert_params.calc_vert_normal = false;
+  convert_params.add_key_index = false;
+  convert_params.use_shapekey = false;
+  convert_params.active_shapekey = 0;
+  convert_params.cd_mask_extra.vmask = CD_MASK_ORIGINDEX;
+  convert_params.cd_mask_extra.emask = CD_MASK_ORIGINDEX;
+  convert_params.cd_mask_extra.pmask = CD_MASK_ORIGINDEX;
+
+  bm = BKE_mesh_to_bmesh_ex(mesh, &create_params, &convert_params);
 
   if (do_split_angle) {
     BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
@@ -100,7 +100,7 @@ Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd)
   /* Uncomment for troubleshooting. */
   // BM_mesh_validate(bm);
 
-  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
   BM_mesh_free(bm);
 
   return result;
@@ -115,7 +115,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(emd, DNA_struct_default_get(EdgeSplitModifierData), modifier);
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx), Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
 {
   Mesh *result;
   EdgeSplitModifierData *emd = (EdgeSplitModifierData *)md;
@@ -129,12 +129,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
   return result;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row, *sub;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -167,24 +167,24 @@ ModifierTypeInfo modifierType_EdgeSplit = {
 
     /*copyData*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ NULL,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ NULL,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
-    /*requiredDataMask*/ NULL,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
-    /*updateDepsgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
-    /*dependsOnNormals*/ NULL,
-    /*foreachIDLink*/ NULL,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*requiredDataMask*/ nullptr,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ nullptr,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

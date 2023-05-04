@@ -8,10 +8,6 @@
 
 #include "BKE_modifier.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* ****************** Type structures for all modifiers ****************** */
 
 extern ModifierTypeInfo modifierType_None;
@@ -82,7 +78,3 @@ extern ModifierTypeInfo modifierType_VolumeToMesh;
  * Only called by `BKE_modifier.h/modifier.cc`
  */
 void modifier_type_init(ModifierTypeInfo *types[]);
-
-#ifdef __cplusplus
-}
-#endif

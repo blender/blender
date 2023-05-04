@@ -42,8 +42,8 @@
 #  include "PIL_time_utildefines.h"
 #endif
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 static void initData(ModifierData *md)
 {
@@ -87,11 +87,11 @@ static void updateFaceCount(const ModifierEvalContext *ctx,
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *meshData)
 {
   DecimateModifierData *dmd = (DecimateModifierData *)md;
-  Mesh *mesh = meshData, *result = NULL;
+  Mesh *mesh = meshData, *result = nullptr;
   BMesh *bm;
   bool calc_vert_normal;
   bool calc_face_normal;
-  float *vweights = NULL;
+  float *vweights = nullptr;
 
 #ifdef USE_TIMEIT
   TIMEIT_START(decim);
@@ -142,7 +142,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         const uint vert_tot = mesh->totvert;
         uint i;
 
-        vweights = MEM_malloc_arrayN(vert_tot, sizeof(float), __func__);
+        vweights = static_cast<float *>(MEM_malloc_arrayN(vert_tot, sizeof(float), __func__));
 
         if (dmd->flag & MOD_DECIM_FLAG_INVERT_VGROUP) {
           for (i = 0; i < vert_tot; i++) {
@@ -158,15 +158,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
   }
 
-  bm = BKE_mesh_to_bmesh_ex(mesh,
-                            &(struct BMeshCreateParams){0},
-                            &(struct BMeshFromMeshParams){
-                                .calc_face_normal = calc_face_normal,
-                                .calc_vert_normal = calc_vert_normal,
-                                .cd_mask_extra = {.vmask = CD_MASK_ORIGINDEX,
-                                                  .emask = CD_MASK_ORIGINDEX,
-                                                  .pmask = CD_MASK_ORIGINDEX},
-                            });
+  BMeshCreateParams create_params{};
+  BMeshFromMeshParams convert_params{};
+  convert_params.calc_face_normal = calc_face_normal;
+  convert_params.calc_vert_normal = calc_vert_normal;
+  convert_params.cd_mask_extra.vmask = CD_MASK_ORIGINDEX;
+  convert_params.cd_mask_extra.emask = CD_MASK_ORIGINDEX;
+  convert_params.cd_mask_extra.pmask = CD_MASK_ORIGINDEX;
+
+  bm = BKE_mesh_to_bmesh_ex(mesh, &create_params, &convert_params);
 
   switch (dmd->mode) {
     case MOD_DECIM_MODE_COLLAPSE: {
@@ -200,9 +200,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   updateFaceCount(ctx, dmd, bm->totface);
 
   /* make sure we never alloc'd these */
-  BLI_assert(bm->vtoolflagpool == NULL && bm->etoolflagpool == NULL && bm->ftoolflagpool == NULL);
+  BLI_assert(bm->vtoolflagpool == nullptr && bm->etoolflagpool == nullptr &&
+             bm->ftoolflagpool == nullptr);
 
-  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
 
   BM_mesh_free(bm);
 
@@ -213,7 +214,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *sub, *row;
   uiLayout *layout = panel->layout;
@@ -225,12 +226,12 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   char count_info[64];
   snprintf(count_info, 32, TIP_("Face Count: %d"), RNA_int_get(ptr, "face_count"));
 
-  uiItemR(layout, ptr, "decimate_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "decimate_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
   if (decimate_type == MOD_DECIM_MODE_COLLAPSE) {
-    uiItemR(layout, ptr, "ratio", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "ratio", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
 
     row = uiLayoutRowWithHeading(layout, true, IFACE_("Symmetry"));
     uiLayoutSetPropDecorate(row, false);
@@ -238,25 +239,25 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemR(sub, ptr, "use_symmetry", 0, "", ICON_NONE);
     sub = uiLayoutRow(sub, true);
     uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_symmetry"));
-    uiItemR(sub, ptr, "symmetry_axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+    uiItemR(sub, ptr, "symmetry_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
     uiItemDecoratorR(row, ptr, "symmetry_axis", 0);
 
-    uiItemR(layout, ptr, "use_collapse_triangulate", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "use_collapse_triangulate", 0, nullptr, ICON_NONE);
 
-    modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+    modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
     sub = uiLayoutRow(layout, true);
     bool has_vertex_group = RNA_string_length(ptr, "vertex_group") != 0;
     uiLayoutSetActive(sub, has_vertex_group);
-    uiItemR(sub, ptr, "vertex_group_factor", 0, NULL, ICON_NONE);
+    uiItemR(sub, ptr, "vertex_group_factor", 0, nullptr, ICON_NONE);
   }
   else if (decimate_type == MOD_DECIM_MODE_UNSUBDIV) {
-    uiItemR(layout, ptr, "iterations", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "iterations", 0, nullptr, ICON_NONE);
   }
   else { /* decimate_type == MOD_DECIM_MODE_DISSOLVE. */
-    uiItemR(layout, ptr, "angle_limit", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "angle_limit", 0, nullptr, ICON_NONE);
     uiLayout *col = uiLayoutColumn(layout, false);
-    uiItemR(col, ptr, "delimit", 0, NULL, ICON_NONE);
-    uiItemR(layout, ptr, "use_dissolve_boundaries", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "delimit", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "use_dissolve_boundaries", 0, nullptr, ICON_NONE);
   }
   uiItemL(layout, count_info, ICON_NONE);
 
@@ -279,24 +280,24 @@ ModifierTypeInfo modifierType_Decimate = {
 
     /*copyData*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ NULL,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ NULL,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
-    /*updateDepsgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
-    /*dependsOnNormals*/ NULL,
-    /*foreachIDLink*/ NULL,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ nullptr,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

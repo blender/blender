@@ -34,8 +34,8 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 #define BEND_EPS 0.000001f
 
@@ -95,7 +95,7 @@ static void axis_limit(const int axis, const float limits[2], float co[3], float
 }
 
 static void simpleDeform_taper(const float factor,
-                               const int UNUSED(axis),
+                               const int /*axis*/,
                                const float dcut[3],
                                float r_co[3])
 {
@@ -110,7 +110,7 @@ static void simpleDeform_taper(const float factor,
 }
 
 static void simpleDeform_stretch(const float factor,
-                                 const int UNUSED(axis),
+                                 const int /*axis*/,
                                  const float dcut[3],
                                  float r_co[3])
 {
@@ -127,7 +127,7 @@ static void simpleDeform_stretch(const float factor,
 }
 
 static void simpleDeform_twist(const float factor,
-                               const int UNUSED(axis),
+                               const int /*axis*/,
                                const float *dcut,
                                float r_co[3])
 {
@@ -204,9 +204,9 @@ static void simpleDeform_bend(const float factor,
 
 static void simple_helper(void *__restrict userdata,
                           const int iter,
-                          const TaskParallelTLS *__restrict UNUSED(tls))
+                          const TaskParallelTLS *__restrict /*tls*/)
 {
-  const struct DeformUserData *curr_deform_data = userdata;
+  const DeformUserData *curr_deform_data = static_cast<const DeformUserData *>(userdata);
   float weight = BKE_defvert_array_find_weight_safe(
       curr_deform_data->dvert, iter, curr_deform_data->vgroup);
   const uint *axis_map = axis_map_table[(curr_deform_data->mode != MOD_SIMPLEDEFORM_MODE_BEND) ?
@@ -282,15 +282,15 @@ static void simple_helper(void *__restrict userdata,
 
 /* simple deform modifier */
 static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
-                                    const ModifierEvalContext *UNUSED(ctx),
-                                    struct Object *ob,
-                                    struct Mesh *mesh,
+                                    const ModifierEvalContext * /*ctx*/,
+                                    Object *ob,
+                                    Mesh *mesh,
                                     float (*vertexCos)[3],
                                     int verts_num)
 {
   int i;
   float smd_limit[2], smd_factor;
-  SpaceTransform *transf = NULL, tmp_transf;
+  SpaceTransform *transf = nullptr, tmp_transf;
   int vgroup;
   const MDeformVert *dvert;
 
@@ -316,7 +316,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
 
   /* Safe-check */
   if (smd->origin == ob) {
-    smd->origin = NULL; /* No self references */
+    smd->origin = nullptr; /* No self references */
   }
 
   if (smd->limit[0] < 0.0f) {
@@ -329,7 +329,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
   smd->limit[0] = min_ff(smd->limit[0], smd->limit[1]); /* Upper limit >= than lower limit */
 
   /* Calculate matrix to convert between coordinate spaces. */
-  if (smd->origin != NULL) {
+  if (smd->origin != nullptr) {
     transf = &tmp_transf;
     BLI_SPACE_TRANSFORM_SETUP(transf, ob, smd->origin);
   }
@@ -382,20 +382,20 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
   const bool invert_vgroup = (smd->flag & MOD_SIMPLEDEFORM_FLAG_INVERT_VGROUP) != 0;
 
   /* Build our data. */
-  const struct DeformUserData deform_pool_data = {
-      .mode = smd->mode,
-      .smd_factor = smd_factor,
-      .deform_axis = deform_axis,
-      .transf = transf,
-      .vertexCos = vertexCos,
-      .invert_vgroup = invert_vgroup,
-      .lock_axis = lock_axis,
-      .vgroup = vgroup,
-      .smd_limit[0] = smd_limit[0],
-      .smd_limit[1] = smd_limit[1],
-      .dvert = dvert,
-      .limit_axis = limit_axis,
-  };
+  DeformUserData deform_pool_data{};
+  deform_pool_data.mode = smd->mode;
+  deform_pool_data.smd_factor = smd_factor;
+  deform_pool_data.deform_axis = deform_axis;
+  deform_pool_data.transf = transf;
+  deform_pool_data.vertexCos = vertexCos;
+  deform_pool_data.invert_vgroup = invert_vgroup;
+  deform_pool_data.lock_axis = lock_axis;
+  deform_pool_data.vgroup = vgroup;
+  deform_pool_data.smd_limit[0] = smd_limit[0];
+  deform_pool_data.smd_limit[1] = smd_limit[1];
+  deform_pool_data.dvert = dvert;
+  deform_pool_data.limit_axis = limit_axis;
+
   /* Do deformation. */
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
@@ -431,7 +431,7 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
-  if (smd->origin != NULL) {
+  if (smd->origin != nullptr) {
     DEG_add_object_relation(
         ctx->node, smd->origin, DEG_OB_COMP_TRANSFORM, "SimpleDeform Modifier");
     DEG_add_depends_on_transform_relation(ctx->node, "SimpleDeform Modifier");
@@ -440,53 +440,53 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 
 static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
-                        struct Mesh *mesh,
+                        Mesh *mesh,
                         float (*vertexCos)[3],
                         int verts_num)
 {
   SimpleDeformModifierData *sdmd = (SimpleDeformModifierData *)md;
-  Mesh *mesh_src = NULL;
+  Mesh *mesh_src = nullptr;
 
   if (ctx->object->type == OB_MESH && sdmd->vgroup_name[0] != '\0') {
     /* mesh_src is only needed for vgroups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
   }
 
   SimpleDeformModifier_do(sdmd, ctx, ctx->object, mesh_src, vertexCos, verts_num);
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                          struct BMEditMesh *editData,
-                          struct Mesh *mesh,
+                          BMEditMesh *editData,
+                          Mesh *mesh,
                           float (*vertexCos)[3],
                           int verts_num)
 {
   SimpleDeformModifierData *sdmd = (SimpleDeformModifierData *)md;
-  Mesh *mesh_src = NULL;
+  Mesh *mesh_src = nullptr;
 
   if (ctx->object->type == OB_MESH && sdmd->vgroup_name[0] != '\0') {
     /* mesh_src is only needed for vgroups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr, verts_num, false);
   }
 
   /* TODO(@ideasman42): use edit-mode data only (remove this line). */
-  if (mesh_src != NULL) {
+  if (mesh_src != nullptr) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
 
   SimpleDeformModifier_do(sdmd, ctx, ctx->object, mesh_src, vertexCos, verts_num);
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
@@ -497,24 +497,24 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   int deform_method = RNA_enum_get(ptr, "deform_method");
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, ptr, "deform_method", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(row, ptr, "deform_method", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
   if (ELEM(deform_method, MOD_SIMPLEDEFORM_MODE_TAPER, MOD_SIMPLEDEFORM_MODE_STRETCH)) {
-    uiItemR(layout, ptr, "factor", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "factor", 0, nullptr, ICON_NONE);
   }
   else {
-    uiItemR(layout, ptr, "angle", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "angle", 0, nullptr, ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "origin", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "deform_axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "origin", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "deform_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
 
-static void restrictions_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
@@ -527,7 +527,7 @@ static void restrictions_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "limits", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "limits", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
 
   if (ELEM(deform_method,
            MOD_SIMPLEDEFORM_MODE_TAPER,
@@ -538,17 +538,17 @@ static void restrictions_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
     row = uiLayoutRowWithHeading(layout, true, IFACE_("Lock"));
     if (deform_axis != 0) {
-      uiItemR(row, ptr, "lock_x", toggles_flag, NULL, ICON_NONE);
+      uiItemR(row, ptr, "lock_x", toggles_flag, nullptr, ICON_NONE);
     }
     if (deform_axis != 1) {
-      uiItemR(row, ptr, "lock_y", toggles_flag, NULL, ICON_NONE);
+      uiItemR(row, ptr, "lock_y", toggles_flag, nullptr, ICON_NONE);
     }
     if (deform_axis != 2) {
-      uiItemR(row, ptr, "lock_z", toggles_flag, NULL, ICON_NONE);
+      uiItemR(row, ptr, "lock_z", toggles_flag, nullptr, ICON_NONE);
     }
   }
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 }
 
 static void panelRegister(ARegionType *region_type)
@@ -556,7 +556,7 @@ static void panelRegister(ARegionType *region_type)
   PanelType *panel_type = modifier_panel_register(
       region_type, eModifierType_SimpleDeform, panel_draw);
   modifier_subpanel_register(
-      region_type, "restrictions", "Restrictions", NULL, restrictions_panel_draw, panel_type);
+      region_type, "restrictions", "Restrictions", nullptr, restrictions_panel_draw, panel_type);
 }
 
 ModifierTypeInfo modifierType_SimpleDeform = {
@@ -574,23 +574,23 @@ ModifierTypeInfo modifierType_SimpleDeform = {
     /*copyData*/ BKE_modifier_copydata_generic,
 
     /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ NULL,
+    /*deformMatrices*/ nullptr,
     /*deformVertsEM*/ deformVertsEM,
-    /*deformMatricesEM*/ NULL,
-    /*modifyMesh*/ NULL,
-    /*modifyGeometrySet*/ NULL,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ nullptr,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
     /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ NULL,
-    /*dependsOnNormals*/ NULL,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
     /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

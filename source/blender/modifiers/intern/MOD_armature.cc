@@ -5,7 +5,7 @@
  * \ingroup modifiers
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
@@ -42,8 +42,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 static void initData(ModifierData *md)
 {
@@ -62,18 +62,16 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   ArmatureModifierData *tamd = (ArmatureModifierData *)target;
 
   BKE_modifier_copydata_generic(md, target, flag);
-  tamd->vert_coords_prev = NULL;
+  tamd->vert_coords_prev = nullptr;
 }
 
-static void requiredDataMask(ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
 {
   /* ask for vertexgroups */
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
@@ -95,10 +93,10 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
-  if (amd->object != NULL) {
+  if (amd->object != nullptr) {
     /* If not using envelopes,
      * create relations to individual bones for more rigging flexibility. */
-    if ((amd->deformflag & ARM_DEF_ENVELOPE) == 0 && (amd->object->pose != NULL) &&
+    if ((amd->deformflag & ARM_DEF_ENVELOPE) == 0 && (amd->object->pose != nullptr) &&
         ELEM(ctx->object->type, OB_MESH, OB_LATTICE, OB_GPENCIL_LEGACY))
     {
       /* If neither vertex groups nor envelopes are used, the modifier has no bone dependencies. */
@@ -106,7 +104,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
         /* Enumerate groups that match existing bones. */
         const ListBase *defbase = BKE_object_defgroup_list(ctx->object);
         LISTBASE_FOREACH (bDeformGroup *, dg, defbase) {
-          if (BKE_pose_channel_find_name(amd->object->pose, dg->name) != NULL) {
+          if (BKE_pose_channel_find_name(amd->object->pose, dg->name) != nullptr) {
             /* Can't check BONE_NO_DEFORM because it can be animated. */
             DEG_add_bone_relation(
                 ctx->node, amd->object, dg->name, DEG_OB_COMP_BONE, "Armature Modifier");
@@ -137,7 +135,7 @@ static void deformVerts(ModifierData *md,
   BKE_armature_deform_coords_with_mesh(amd->object,
                                        ctx->object,
                                        vertexCos,
-                                       NULL,
+                                       nullptr,
                                        verts_num,
                                        amd->deformflag,
                                        amd->vert_coords_prev,
@@ -150,12 +148,12 @@ static void deformVerts(ModifierData *md,
 
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                          struct BMEditMesh *em,
+                          BMEditMesh *em,
                           Mesh *mesh,
                           float (*vertexCos)[3],
                           int verts_num)
 {
-  if (mesh != NULL) {
+  if (mesh != nullptr) {
     deformVerts(md, ctx, mesh, vertexCos, verts_num);
     return;
   }
@@ -167,7 +165,7 @@ static void deformVertsEM(ModifierData *md,
   BKE_armature_deform_coords_with_editmesh(amd->object,
                                            ctx->object,
                                            vertexCos,
-                                           NULL,
+                                           nullptr,
                                            verts_num,
                                            amd->deformflag,
                                            amd->vert_coords_prev,
@@ -180,8 +178,8 @@ static void deformVertsEM(ModifierData *md,
 
 static void deformMatricesEM(ModifierData *md,
                              const ModifierEvalContext *ctx,
-                             struct BMEditMesh *em,
-                             Mesh *UNUSED(mesh),
+                             BMEditMesh *em,
+                             Mesh * /*mesh*/,
                              float (*vertexCos)[3],
                              float (*defMats)[3][3],
                              int verts_num)
@@ -194,7 +192,7 @@ static void deformMatricesEM(ModifierData *md,
                                            defMats,
                                            verts_num,
                                            amd->deformflag,
-                                           NULL,
+                                           nullptr,
                                            amd->defgrp_name,
                                            em);
 }
@@ -207,7 +205,7 @@ static void deformMatrices(ModifierData *md,
                            int verts_num)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
 
   BKE_armature_deform_coords_with_mesh(amd->object,
                                        ctx->object,
@@ -215,16 +213,16 @@ static void deformMatrices(ModifierData *md,
                                        defMats,
                                        verts_num,
                                        amd->deformflag,
-                                       NULL,
+                                       nullptr,
                                        amd->defgrp_name,
                                        mesh_src);
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
@@ -234,12 +232,12 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  uiItemR(layout, ptr, "object", 0, nullptr, ICON_NONE);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "use_deform_preserve_volume", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "use_multi_modifier", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_deform_preserve_volume", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_multi_modifier", 0, nullptr, ICON_NONE);
 
   col = uiLayoutColumnWithHeading(layout, true, IFACE_("Bind To"));
   uiItemR(col, ptr, "use_vertex_groups", 0, IFACE_("Vertex Groups"), ICON_NONE);
@@ -253,11 +251,11 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_Armature, panel_draw);
 }
 
-static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
+static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
-  amd->vert_coords_prev = NULL;
+  amd->vert_coords_prev = nullptr;
 }
 
 ModifierTypeInfo modifierType_Armature = {
@@ -276,20 +274,20 @@ ModifierTypeInfo modifierType_Armature = {
     /*deformMatrices*/ deformMatrices,
     /*deformVertsEM*/ deformVertsEM,
     /*deformMatricesEM*/ deformMatricesEM,
-    /*modifyMesh*/ NULL,
-    /*modifyGeometrySet*/ NULL,
+    /*modifyMesh*/ nullptr,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ NULL,
+    /*freeData*/ nullptr,
     /*isDisabled*/ isDisabled,
     /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ NULL,
-    /*dependsOnNormals*/ NULL,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
     /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
+    /*blendWrite*/ nullptr,
     /*blendRead*/ blendRead,
 };

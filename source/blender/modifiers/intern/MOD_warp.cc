@@ -4,7 +4,7 @@
  * \ingroup modifiers
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -46,8 +46,8 @@
 
 #include "RE_texture.h"
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 static void initData(ModifierData *md)
 {
@@ -101,7 +101,7 @@ static void matrix_from_obj_pchan(float mat[4][4],
   }
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
+static bool dependsOnTime(Scene * /*scene*/, ModifierData *md)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
@@ -118,9 +118,7 @@ static void freeData(ModifierData *md)
   BKE_curvemapping_free(wmd->curfalloff);
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(userRenderParams))
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
@@ -147,7 +145,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   WarpModifierData *wmd = (WarpModifierData *)md;
   bool need_transform_relation = false;
 
-  if (wmd->object_from != NULL && wmd->object_to != NULL) {
+  if (wmd->object_from != nullptr && wmd->object_to != nullptr) {
     MOD_depsgraph_update_object_bone_relation(
         ctx->node, wmd->object_from, wmd->bone_from, "Warp Modifier");
     MOD_depsgraph_update_object_bone_relation(
@@ -155,10 +153,10 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     need_transform_relation = true;
   }
 
-  if (wmd->texture != NULL) {
+  if (wmd->texture != nullptr) {
     DEG_add_generic_id_relation(ctx->node, &wmd->texture->id, "Warp Modifier");
 
-    if ((wmd->texmapping == MOD_DISP_MAP_OBJECT) && wmd->map_object != NULL) {
+    if ((wmd->texmapping == MOD_DISP_MAP_OBJECT) && wmd->map_object != nullptr) {
       MOD_depsgraph_update_object_bone_relation(
           ctx->node, wmd->map_object, wmd->map_bone, "Warp Modifier");
       need_transform_relation = true;
@@ -194,20 +192,20 @@ static void warpModifier_do(WarpModifierData *wmd,
   float fac = 1.0f, weight;
   int i;
   int defgrp_index;
-  const MDeformVert *dvert, *dv = NULL;
+  const MDeformVert *dvert, *dv = nullptr;
   const bool invert_vgroup = (wmd->flag & MOD_WARP_INVERT_VGROUP) != 0;
-  float(*tex_co)[3] = NULL;
+  float(*tex_co)[3] = nullptr;
 
   if (!(wmd->object_from && wmd->object_to)) {
     return;
   }
 
   MOD_get_vgroup(ob, mesh, wmd->defgrp_name, &dvert, &defgrp_index);
-  if (dvert == NULL) {
+  if (dvert == nullptr) {
     defgrp_index = -1;
   }
 
-  if (wmd->curfalloff == NULL) { /* should never happen, but bad lib linking could cause it */
+  if (wmd->curfalloff == nullptr) { /* should never happen, but bad lib linking could cause it */
     wmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   }
 
@@ -240,8 +238,8 @@ static void warpModifier_do(WarpModifierData *wmd,
   weight = strength;
 
   Tex *tex_target = wmd->texture;
-  if (mesh != NULL && tex_target != NULL) {
-    tex_co = MEM_malloc_arrayN(verts_num, sizeof(*tex_co), "warpModifier_do tex_co");
+  if (mesh != nullptr && tex_target != nullptr) {
+    tex_co = static_cast<float(*)[3]>(MEM_malloc_arrayN(verts_num, sizeof(*tex_co), __func__));
     MOD_get_texture_coords((MappingInfoModifierData *)wmd, ctx, ob, mesh, vertexCos, tex_co);
 
     MOD_init_texture((MappingInfoModifierData *)wmd, ctx);
@@ -299,7 +297,7 @@ static void warpModifier_do(WarpModifierData *wmd,
       fac *= weight;
 
       if (tex_co) {
-        struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+        Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
         TexResult texres;
         BKE_texture_get_value(scene, tex_target, tex_co[i], &texres, false);
         fac *= texres.tin;
@@ -343,48 +341,48 @@ static void deformVerts(ModifierData *md,
                         int verts_num)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
-  Mesh *mesh_src = NULL;
+  Mesh *mesh_src = nullptr;
 
-  if (wmd->defgrp_name[0] != '\0' || wmd->texture != NULL) {
+  if (wmd->defgrp_name[0] != '\0' || wmd->texture != nullptr) {
     /* mesh_src is only needed for vgroups and textures. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
   }
 
   warpModifier_do(wmd, ctx, mesh_src, vertexCos, verts_num);
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                          struct BMEditMesh *em,
+                          BMEditMesh *em,
                           Mesh *mesh,
                           float (*vertexCos)[3],
                           int verts_num)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
-  Mesh *mesh_src = NULL;
+  Mesh *mesh_src = nullptr;
 
-  if (wmd->defgrp_name[0] != '\0' || wmd->texture != NULL) {
+  if (wmd->defgrp_name[0] != '\0' || wmd->texture != nullptr) {
     /* mesh_src is only needed for vgroups and textures. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, nullptr, verts_num, false);
   }
 
   /* TODO(@ideasman42): use edit-mode data only (remove this line). */
-  if (mesh_src != NULL) {
+  if (mesh_src != nullptr) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
 
   warpModifier_do(wmd, ctx, mesh_src, vertexCos, verts_num);
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
@@ -395,7 +393,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "object_from", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "object_from", 0, nullptr, ICON_NONE);
   PointerRNA from_obj_ptr = RNA_pointer_get(ptr, "object_from");
   if (!RNA_pointer_is_null(&from_obj_ptr) && RNA_enum_get(&from_obj_ptr, "type") == OB_ARMATURE) {
 
@@ -404,36 +402,36 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "object_to", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "object_to", 0, nullptr, ICON_NONE);
   PointerRNA to_obj_ptr = RNA_pointer_get(ptr, "object_to");
   if (!RNA_pointer_is_null(&to_obj_ptr) && RNA_enum_get(&to_obj_ptr, "type") == OB_ARMATURE) {
     PointerRNA to_obj_data_ptr = RNA_pointer_get(&to_obj_ptr, "data");
     uiItemPointerR(col, ptr, "bone_to", &to_obj_data_ptr, "bones", IFACE_("Bone"), ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "use_volume_preserve", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_volume_preserve", 0, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "strength", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "strength", 0, nullptr, ICON_NONE);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   modifier_panel_end(layout, ptr);
 }
 
-static void falloff_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   bool use_falloff = (RNA_enum_get(ptr, "falloff_type") != eWarp_Falloff_None);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "falloff_type", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "falloff_type", 0, nullptr, ICON_NONE);
 
   if (use_falloff) {
-    uiItemR(layout, ptr, "falloff_radius", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "falloff_radius", 0, nullptr, ICON_NONE);
   }
 
   if (use_falloff && RNA_enum_get(ptr, "falloff_type") == eWarp_Falloff_Curve) {
@@ -451,7 +449,7 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
 
   int texture_coords = RNA_enum_get(ptr, "texture_coords");
 
-  uiTemplateID(layout, C, ptr, "texture", "texture.new", NULL, NULL, 0, ICON_NONE, NULL);
+  uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr, 0, ICON_NONE, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -475,7 +473,7 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
   }
   else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
     PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
-    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", NULL, ICON_NONE);
+    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
   }
 }
 
@@ -483,12 +481,12 @@ static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Warp, panel_draw);
   modifier_subpanel_register(
-      region_type, "falloff", "Falloff", NULL, falloff_panel_draw, panel_type);
+      region_type, "falloff", "Falloff", nullptr, falloff_panel_draw, panel_type);
   modifier_subpanel_register(
-      region_type, "texture", "Texture", NULL, texture_panel_draw, panel_type);
+      region_type, "texture", "Texture", nullptr, texture_panel_draw, panel_type);
 }
 
-static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
 {
   const WarpModifierData *wmd = (const WarpModifierData *)md;
 
@@ -521,11 +519,11 @@ ModifierTypeInfo modifierType_Warp = {
     /*copyData*/ copyData,
 
     /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ NULL,
+    /*deformMatrices*/ nullptr,
     /*deformVertsEM*/ deformVertsEM,
-    /*deformMatricesEM*/ NULL,
-    /*modifyMesh*/ NULL,
-    /*modifyGeometrySet*/ NULL,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ nullptr,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
@@ -533,10 +531,10 @@ ModifierTypeInfo modifierType_Warp = {
     /*isDisabled*/ isDisabled,
     /*updateDepsgraph*/ updateDepsgraph,
     /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ NULL,
+    /*dependsOnNormals*/ nullptr,
     /*foreachIDLink*/ foreachIDLink,
     /*foreachTexLink*/ foreachTexLink,
-    /*freeRuntimeData*/ NULL,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
     /*blendWrite*/ blendWrite,
     /*blendRead*/ blendRead,

@@ -18,9 +18,9 @@
 #include "BKE_mesh.hh"
 #include "BKE_particle.h"
 
-#include "MOD_modifiertypes.h"
+#include "MOD_modifiertypes.hh"
 #include "MOD_solidify_util.hh" /* Own include. */
-#include "MOD_util.h"
+#include "MOD_util.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities

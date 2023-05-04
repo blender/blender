@@ -37,8 +37,8 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 static void generate_vert_coordinates(Mesh *mesh,
                                       Object *ob,

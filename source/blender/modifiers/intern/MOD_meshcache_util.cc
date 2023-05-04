@@ -10,7 +10,7 @@
 
 #include "DNA_modifier_types.h"
 
-#include "MOD_meshcache_util.h"
+#include "MOD_meshcache_util.hh"
 
 void MOD_meshcache_calc_range(const float frame,
                               const char interp,
@@ -25,7 +25,7 @@ void MOD_meshcache_calc_range(const float frame,
   else {
     const float tframe = floorf(frame);
     const float range = frame - tframe;
-    r_index_range[0] = (int)tframe;
+    r_index_range[0] = int(tframe);
     if (range <= FRAME_SNAP_EPS) {
       /* we're close enough not to need blending */
       r_index_range[1] = r_index_range[0];

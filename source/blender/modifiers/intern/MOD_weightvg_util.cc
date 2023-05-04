@@ -36,9 +36,9 @@
 #include "DEG_depsgraph_query.h"
 
 #include "MEM_guardedalloc.h"
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
-#include "MOD_weightvg_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
+#include "MOD_weightvg_util.hh"
 #include "RE_texture.h" /* Texture masking. */
 
 void weightvg_do_map(
@@ -49,7 +49,7 @@ void weightvg_do_map(
   /* Return immediately, if we have nothing to do! */
   /* Also security checks... */
   if (!do_invert &&
-      (((falloff_type == MOD_WVG_MAPPING_CURVE) && (cmap == NULL)) || !ELEM(falloff_type,
+      (((falloff_type == MOD_WVG_MAPPING_CURVE) && (cmap == nullptr)) || !ELEM(falloff_type,
                                                                             MOD_WVG_MAPPING_CURVE,
                                                                             MOD_WVG_MAPPING_SHARP,
                                                                             MOD_WVG_MAPPING_SMOOTH,
@@ -131,7 +131,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
   }
 
   /* If we want to mask vgroup weights from a texture. */
-  if (texture != NULL) {
+  if (texture != nullptr) {
     /* The texture coordinates. */
     float(*tex_co)[3];
     /* See mapping note below... */
@@ -149,8 +149,8 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     BLI_strncpy(t_map.uvlayer_name, tex_uvlayer_name, sizeof(t_map.uvlayer_name));
     t_map.texmapping = tex_mapping;
 
-    tex_co = MEM_calloc_arrayN(verts_num, sizeof(*tex_co), "WeightVG Modifier, TEX mode, tex_co");
-    MOD_get_texture_coords(&t_map, ctx, ob, mesh, NULL, tex_co);
+    tex_co = static_cast<float(*)[3]>(MEM_calloc_arrayN(verts_num, sizeof(*tex_co), __func__));
+    MOD_get_texture_coords(&t_map, ctx, ob, mesh, nullptr, tex_co);
 
     MOD_init_texture(&t_map, ctx);
 
@@ -213,9 +213,10 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
 
     /* Proceed only if vgroup is valid, else use constant factor. */
     /* Get actual dverts (ie vertex group data). */
-    const MDeformVert *dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
+    const MDeformVert *dvert = static_cast<const MDeformVert *>(
+        CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT));
     /* Proceed only if vgroup is valid, else assume factor = O. */
-    if (dvert == NULL) {
+    if (dvert == nullptr) {
       return;
     }
 
@@ -283,7 +284,7 @@ void weightvg_update_vg(MDeformVert *dvert,
     float w = weights[i];
     MDeformVert *dv = &dvert[indices ? indices[i] : i];
     MDeformWeight *dw = dws ? dws[i] :
-                              ((defgrp_idx >= 0) ? BKE_defvert_find_index(dv, defgrp_idx) : NULL);
+                              ((defgrp_idx >= 0) ? BKE_defvert_find_index(dv, defgrp_idx) : nullptr);
 
     if (do_normalize) {
       w = (w - min_w) * norm_fac;
@@ -292,7 +293,7 @@ void weightvg_update_vg(MDeformVert *dvert,
     CLAMP(w, 0.0f, 1.0f);
 
     /* If the vertex is in this vgroup, remove it if needed, or just update it. */
-    if (dw != NULL) {
+    if (dw != nullptr) {
       if (do_rem && w < rem_thresh) {
         BKE_defvert_remove_group(dv, dw);
       }
@@ -319,7 +320,7 @@ void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, 
   uiItemR(layout, ptr, "mask_constant", UI_ITEM_R_SLIDER, IFACE_("Global Influence:"), ICON_NONE);
 
   if (!has_mask_texture) {
-    modifier_vgroup_ui(layout, ptr, ob_ptr, "mask_vertex_group", "invert_mask_vertex_group", NULL);
+    modifier_vgroup_ui(layout, ptr, ob_ptr, "mask_vertex_group", "invert_mask_vertex_group", nullptr);
   }
 
   if (!has_mask_vertex_group) {
@@ -328,15 +329,15 @@ void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, 
                  ptr,
                  "mask_texture",
                  "texture.new",
-                 NULL,
-                 NULL,
+                 nullptr,
+                 nullptr,
                  0,
                  ICON_NONE,
                  IFACE_("Mask Texture"));
 
     if (has_mask_texture) {
       uiItemR(layout, ptr, "mask_tex_use_channel", 0, IFACE_("Channel"), ICON_NONE);
-      uiItemR(layout, ptr, "mask_tex_mapping", 0, NULL, ICON_NONE);
+      uiItemR(layout, ptr, "mask_tex_mapping", 0, nullptr, ICON_NONE);
 
       if (mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
         uiItemR(layout, ptr, "mask_tex_map_object", 0, IFACE_("Object"), ICON_NONE);
@@ -344,7 +345,7 @@ void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, 
       else if (mask_tex_mapping == MOD_DISP_MAP_UV && RNA_enum_get(ob_ptr, "type") == OB_MESH) {
         PointerRNA obj_data_ptr = RNA_pointer_get(ob_ptr, "data");
         uiItemPointerR(
-            layout, ptr, "mask_tex_uv_layer", &obj_data_ptr, "uv_layers", NULL, ICON_NONE);
+            layout, ptr, "mask_tex_uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
       }
     }
   }

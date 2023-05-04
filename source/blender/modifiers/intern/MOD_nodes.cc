@@ -75,9 +75,9 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_modifiertypes.h"
+#include "MOD_modifiertypes.hh"
 #include "MOD_nodes.h"
-#include "MOD_ui_common.h"
+#include "MOD_ui_common.hh"
 
 #include "ED_object.h"
 #include "ED_screen.h"

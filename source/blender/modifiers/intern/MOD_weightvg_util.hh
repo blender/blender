@@ -7,10 +7,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct CurveMapping;
 struct MDeformVert;
 struct MDeformWeight;
@@ -49,12 +45,8 @@ struct uiLayout;
  * mapping to the real vertex index (in case the weight tables do not cover the whole vertices...).
  * cmap might be NULL, in which case curve mapping mode will return unmodified data.
  */
-void weightvg_do_map(int num,
-                     float *new_w,
-                     short falloff_type,
-                     bool do_invert,
-                     struct CurveMapping *cmap,
-                     struct RNG *rng);
+void weightvg_do_map(
+    int num, float *new_w, short falloff_type, bool do_invert, CurveMapping *cmap, RNG *rng);
 
 /**
  * Applies new_w weights to org_w ones, using either a texture, vgroup or constant value as factor.
@@ -70,10 +62,10 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
                       float *org_w,
                       const float *new_w,
                       Object *ob,
-                      struct Mesh *mesh,
+                      Mesh *mesh,
                       float fact,
                       const char defgrp_name[MAX_VGROUP_NAME],
-                      struct Scene *scene,
+                      Scene *scene,
                       Tex *texture,
                       int tex_use_channel,
                       int tex_mapping,
@@ -89,9 +81,9 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
  * If indices is not NULL, it must be an array of same length as weights, mapping to the real
  * vertex index (in case the weight array does not cover the whole vertices...).
  */
-void weightvg_update_vg(struct MDeformVert *dvert,
+void weightvg_update_vg(MDeformVert *dvert,
                         int defgrp_idx,
-                        struct MDeformWeight **dws,
+                        MDeformWeight **dws,
                         int num,
                         const int *indices,
                         const float *weights,
@@ -105,7 +97,3 @@ void weightvg_update_vg(struct MDeformVert *dvert,
  * Common vertex weight mask interface elements for the modifier panels.
  */
 void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, uiLayout *layout);
-
-#ifdef __cplusplus
-}
-#endif

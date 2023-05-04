@@ -35,8 +35,8 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 static void uv_warp_from_mat4_pair(float uv_dst[2],
                                    const float uv_src[2],

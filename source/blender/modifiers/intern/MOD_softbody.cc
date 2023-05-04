@@ -5,7 +5,7 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_utildefines.h"
 
@@ -33,12 +33,12 @@
 #include "DEG_depsgraph_physics.h"
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
 
-static void deformVerts(ModifierData *UNUSED(md),
+static void deformVerts(ModifierData * /*md*/,
                         const ModifierEvalContext *ctx,
-                        Mesh *UNUSED(derivedData),
+                        Mesh * /*mesh*/,
                         float (*vertexCos)[3],
                         int verts_num)
 {
@@ -47,12 +47,12 @@ static void deformVerts(ModifierData *UNUSED(md),
       ctx->depsgraph, scene, ctx->object, DEG_get_ctime(ctx->depsgraph), vertexCos, verts_num);
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *UNUSED(md))
+static bool dependsOnTime( Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }
 
-static void updateDepsgraph(ModifierData *UNUSED(md), const ModifierUpdateDepsgraphContext *ctx)
+static void updateDepsgraph(ModifierData * /*md*/, const ModifierUpdateDepsgraphContext *ctx)
 {
   if (ctx->object->soft) {
     /* Actual code uses ccd_build_deflector_hash */
@@ -60,7 +60,7 @@ static void updateDepsgraph(ModifierData *UNUSED(md), const ModifierUpdateDepsgr
                                 ctx->object,
                                 ctx->object->soft->collision_group,
                                 eModifierType_Collision,
-                                NULL,
+                                nullptr,
                                 "Softbody Collision");
     DEG_add_forcefield_relations(
         ctx->node, ctx->object, ctx->object->soft->effector_weights, true, 0, "Softbody Field");
@@ -69,11 +69,11 @@ static void updateDepsgraph(ModifierData *UNUSED(md), const ModifierUpdateDepsgr
   DEG_add_depends_on_transform_relation(ctx->node, "SoftBody Modifier");
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiItemL(layout, TIP_("Settings are inside the Physics tab"), ICON_NONE);
 
@@ -96,26 +96,26 @@ ModifierTypeInfo modifierType_Softbody = {
         eModifierTypeFlag_UsesPointCache,
     /*icon*/ ICON_MOD_SOFT,
 
-    /*copyData*/ NULL,
+    /*copyData*/ nullptr,
 
     /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
-    /*modifyMesh*/ NULL,
-    /*modifyGeometrySet*/ NULL,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ nullptr,
+    /*modifyGeometrySet*/ nullptr,
 
-    /*initData*/ NULL,
-    /*requiredDataMask*/ NULL,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
+    /*initData*/ nullptr,
+    /*requiredDataMask*/ nullptr,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
     /*updateDepsgraph*/ updateDepsgraph,
     /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ NULL,
-    /*foreachIDLink*/ NULL,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ nullptr,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

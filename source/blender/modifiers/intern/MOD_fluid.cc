@@ -5,7 +5,7 @@
  * \ingroup modifiers
  */
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "MEM_guardedalloc.h"
 
@@ -40,16 +40,16 @@
 #include "DEG_depsgraph_physics.h"
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
 
 static void initData(ModifierData *md)
 {
   FluidModifierData *fmd = (FluidModifierData *)md;
 
-  fmd->domain = NULL;
-  fmd->flow = NULL;
-  fmd->effector = NULL;
+  fmd->domain = nullptr;
+  fmd->flow = nullptr;
+  fmd->effector = nullptr;
   fmd->type = 0;
   fmd->time = -1;
 }
@@ -96,14 +96,14 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-typedef struct FluidIsolationData {
+struct FluidIsolationData {
   Depsgraph *depsgraph;
   Object *object;
   Mesh *mesh;
   FluidModifierData *fmd;
 
   Mesh *result;
-} FluidIsolationData;
+};
 
 #ifdef WITH_FLUID
 static void fluid_modifier_do_isolated(void *userdata)
@@ -149,18 +149,18 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 #endif /* WITH_FLUID */
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *UNUSED(md))
+static bool dependsOnTime(Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }
 
-static bool is_flow_cb(Object *UNUSED(ob), ModifierData *md)
+static bool is_flow_cb(Object * /*ob*/, ModifierData *md)
 {
   FluidModifierData *fmd = (FluidModifierData *)md;
   return (fmd->type & MOD_FLUID_TYPE_FLOW) && fmd->flow;
 }
 
-static bool is_coll_cb(Object *UNUSED(ob), ModifierData *md)
+static bool is_coll_cb(Object * /*ob*/, ModifierData *md)
 {
   FluidModifierData *fmd = (FluidModifierData *)md;
   return (fmd->type & MOD_FLUID_TYPE_EFFEC) && fmd->effector;
@@ -190,7 +190,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
                                  PFIELD_FLUIDFLOW,
                                  "Fluid Force Field");
 
-    if (fmd->domain->guide_parent != NULL) {
+    if (fmd->domain->guide_parent != nullptr) {
       DEG_add_object_relation(
           ctx->node, fmd->domain->guide_parent, DEG_OB_COMP_TRANSFORM, "Fluid Guiding Object");
       DEG_add_object_relation(
@@ -222,11 +222,11 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
   }
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiItemL(layout, TIP_("Settings are inside the Physics tab"), ICON_NONE);
 
@@ -249,24 +249,24 @@ ModifierTypeInfo modifierType_Fluid = {
 
     /*copyData*/ copyData,
 
-    /*deformVerts*/ NULL,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ NULL,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
     /*freeData*/ freeData,
-    /*isDisabled*/ NULL,
+    /*isDisabled*/ nullptr,
     /*updateDepsgraph*/ updateDepsgraph,
     /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ NULL,
+    /*dependsOnNormals*/ nullptr,
     /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

@@ -33,9 +33,9 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 #include "BLO_read_write.h"
 
@@ -70,8 +70,8 @@ static void freeData(ModifierData *md)
     }
 
     if (surmd->runtime.mesh) {
-      BKE_id_free(NULL, surmd->runtime.mesh);
-      surmd->runtime.mesh = NULL;
+      BKE_id_free(nullptr, surmd->runtime.mesh);
+      surmd->runtime.mesh = nullptr;
     }
 
     MEM_SAFE_FREE(surmd->runtime.vert_positions_prev);
@@ -80,7 +80,7 @@ static void freeData(ModifierData *md)
   }
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *UNUSED(md))
+static bool dependsOnTime(Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }
@@ -92,7 +92,7 @@ static void deformVerts(ModifierData *md,
                         int verts_num)
 {
   SurfaceModifierData *surmd = (SurfaceModifierData *)md;
-  const int cfra = (int)DEG_get_ctime(ctx->depsgraph);
+  const int cfra = int(DEG_get_ctime(ctx->depsgraph));
 
   /* Free mesh and BVH cache. */
   if (surmd->runtime.bvhtree) {
@@ -101,18 +101,19 @@ static void deformVerts(ModifierData *md,
   }
 
   if (surmd->runtime.mesh) {
-    BKE_id_free(NULL, surmd->runtime.mesh);
-    surmd->runtime.mesh = NULL;
+    BKE_id_free(nullptr, surmd->runtime.mesh);
+    surmd->runtime.mesh = nullptr;
   }
 
   if (mesh) {
     /* Not possible to use get_mesh() in this case as we'll modify its vertices
      * and get_mesh() would return 'mesh' directly. */
-    surmd->runtime.mesh = (Mesh *)BKE_id_copy_ex(NULL, (ID *)mesh, NULL, LIB_ID_COPY_LOCALIZE);
+    surmd->runtime.mesh = (Mesh *)BKE_id_copy_ex(
+        nullptr, (ID *)mesh, nullptr, LIB_ID_COPY_LOCALIZE);
   }
   else {
     surmd->runtime.mesh = MOD_deform_mesh_eval_get(
-        ctx->object, NULL, NULL, NULL, verts_num, false);
+        ctx->object, nullptr, nullptr, nullptr, verts_num, false);
   }
 
   if (!ctx->object->pd) {
@@ -129,17 +130,17 @@ static void deformVerts(ModifierData *md,
     mesh_verts_num = surmd->runtime.mesh->totvert;
 
     if ((mesh_verts_num != surmd->runtime.verts_num) ||
-        (surmd->runtime.vert_positions_prev == NULL) || (surmd->runtime.vert_velocities == NULL) ||
-        (cfra != surmd->runtime.cfra_prev + 1))
+        (surmd->runtime.vert_positions_prev == nullptr) ||
+        (surmd->runtime.vert_velocities == nullptr) || (cfra != surmd->runtime.cfra_prev + 1))
     {
 
       MEM_SAFE_FREE(surmd->runtime.vert_positions_prev);
       MEM_SAFE_FREE(surmd->runtime.vert_velocities);
 
-      surmd->runtime.vert_positions_prev = MEM_calloc_arrayN(
-          mesh_verts_num, sizeof(float[3]), __func__);
-      surmd->runtime.vert_velocities = MEM_calloc_arrayN(
-          mesh_verts_num, sizeof(float[3]), __func__);
+      surmd->runtime.vert_positions_prev = static_cast<float(*)[3]>(
+          MEM_calloc_arrayN(mesh_verts_num, sizeof(float[3]), __func__));
+      surmd->runtime.vert_velocities = static_cast<float(*)[3]>(
+          MEM_calloc_arrayN(mesh_verts_num, sizeof(float[3]), __func__));
 
       surmd->runtime.verts_num = mesh_verts_num;
 
@@ -167,7 +168,8 @@ static void deformVerts(ModifierData *md,
     const bool has_poly = surmd->runtime.mesh->totpoly > 0;
     const bool has_edge = surmd->runtime.mesh->totedge > 0;
     if (has_poly || has_edge) {
-      surmd->runtime.bvhtree = MEM_callocN(sizeof(BVHTreeFromMesh), "BVHTreeFromMesh");
+      surmd->runtime.bvhtree = static_cast<BVHTreeFromMesh *>(
+          MEM_callocN(sizeof(BVHTreeFromMesh), __func__));
 
       if (has_poly) {
         BKE_bvhtree_from_mesh_get(
@@ -181,11 +183,11 @@ static void deformVerts(ModifierData *md,
   }
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiItemL(layout, TIP_("Settings are inside the Physics tab"), ICON_NONE);
 
@@ -197,7 +199,7 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_Surface, panel_draw);
 }
 
-static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
+static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
 {
   SurfaceModifierData *surmd = (SurfaceModifierData *)md;
 
@@ -217,23 +219,23 @@ ModifierTypeInfo modifierType_Surface = {
     /*copyData*/ copyData,
 
     /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
-    /*modifyMesh*/ NULL,
-    /*modifyGeometrySet*/ NULL,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ nullptr,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
-    /*requiredDataMask*/ NULL,
+    /*requiredDataMask*/ nullptr,
     /*freeData*/ freeData,
-    /*isDisabled*/ NULL,
-    /*updateDepsgraph*/ NULL,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ nullptr,
     /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ NULL,
-    /*foreachIDLink*/ NULL,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ nullptr,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
+    /*blendWrite*/ nullptr,
     /*blendRead*/ blendRead,
 };

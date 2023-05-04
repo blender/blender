@@ -34,8 +34,8 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 #include "BLO_read_write.h"
 
@@ -90,7 +90,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   BMVert *v;
   float weight, weight2;
   int vgroup = -1;
-  const MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = nullptr;
   BevelModifierData *bmd = (BevelModifierData *)md;
   const float threshold = cosf(bmd->bevel_angle + 0.000000175f);
   const bool do_clamp = !(bmd->flags & MOD_BEVEL_OVERLAP_OK);
@@ -108,20 +108,18 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   const float spread = bmd->spread;
   const bool invert_vgroup = (bmd->flags & MOD_BEVEL_INVERT_VGROUP) != 0;
 
-  bm = BKE_mesh_to_bmesh_ex(mesh,
-                            &(struct BMeshCreateParams){0},
-                            &(struct BMeshFromMeshParams){
-                                .calc_face_normal = true,
-                                .calc_vert_normal = true,
-                                .add_key_index = false,
-                                .use_shapekey = false,
-                                .active_shapekey = 0,
-                                /* XXX We probably can use CD_MASK_BAREMESH_ORIGDINDEX here instead
-                                 * (also for other modifiers cases)? */
-                                .cd_mask_extra = {.vmask = CD_MASK_ORIGINDEX,
-                                                  .emask = CD_MASK_ORIGINDEX,
-                                                  .pmask = CD_MASK_ORIGINDEX},
-                            });
+  BMeshCreateParams create_params{};
+  BMeshFromMeshParams convert_params{};
+  convert_params.calc_face_normal = true;
+  convert_params.calc_vert_normal = true;
+  convert_params.add_key_index = false;
+  convert_params.use_shapekey = false;
+  convert_params.active_shapekey = 0;
+  convert_params.cd_mask_extra.vmask = CD_MASK_ORIGINDEX;
+  convert_params.cd_mask_extra.emask = CD_MASK_ORIGINDEX;
+  convert_params.cd_mask_extra.pmask = CD_MASK_ORIGINDEX;
+
+  bm = BKE_mesh_to_bmesh_ex(mesh, &create_params, &convert_params);
 
   if ((bmd->lim_flags & MOD_BEVEL_VGROUP) && bmd->defgrp_name[0]) {
     MOD_get_vgroup(ctx->object, mesh, bmd->defgrp_name, &dvert, &vgroup);
@@ -223,17 +221,18 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                 bmd->custom_profile,
                 bmd->vmesh_method);
 
-  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
 
   /* Make sure we never alloc'd these. */
-  BLI_assert(bm->vtoolflagpool == NULL && bm->etoolflagpool == NULL && bm->ftoolflagpool == NULL);
+  BLI_assert(bm->vtoolflagpool == nullptr && bm->etoolflagpool == nullptr &&
+             bm->ftoolflagpool == nullptr);
 
   BM_mesh_free(bm);
 
   return result;
 }
 
-static bool dependsOnNormals(ModifierData *UNUSED(md))
+static bool dependsOnNormals(ModifierData * /*md*/)
 {
   return true;
 }
@@ -244,13 +243,13 @@ static void freeData(ModifierData *md)
   BKE_curveprofile_free(bmd->custom_profile);
 }
 
-static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED(userRenderParams))
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   BevelModifierData *bmd = (BevelModifierData *)md;
   return (bmd->value == 0.0f);
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col, *sub;
   uiLayout *layout = panel->layout;
@@ -260,51 +259,51 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   bool edge_bevel = RNA_enum_get(ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
-  uiItemR(layout, ptr, "affect", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "affect", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "offset_type", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "offset_type", 0, nullptr, ICON_NONE);
   if (RNA_enum_get(ptr, "offset_type") == BEVEL_AMT_PERCENT) {
-    uiItemR(col, ptr, "width_pct", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "width_pct", 0, nullptr, ICON_NONE);
   }
   else {
     uiItemR(col, ptr, "width", 0, IFACE_("Amount"), ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "segments", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "segments", 0, nullptr, ICON_NONE);
 
   uiItemS(layout);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "limit_method", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "limit_method", 0, nullptr, ICON_NONE);
   int limit_method = RNA_enum_get(ptr, "limit_method");
   if (limit_method == MOD_BEVEL_ANGLE) {
     sub = uiLayoutColumn(col, false);
     uiLayoutSetActive(sub, edge_bevel);
-    uiItemR(col, ptr, "angle_limit", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "angle_limit", 0, nullptr, ICON_NONE);
   }
   else if (limit_method == MOD_BEVEL_VGROUP) {
-    modifier_vgroup_ui(col, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+    modifier_vgroup_ui(col, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
   }
 
   modifier_panel_end(layout, ptr);
 }
 
-static void profile_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void profile_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   int profile_type = RNA_enum_get(ptr, "profile_type");
   int miter_inner = RNA_enum_get(ptr, "miter_inner");
   int miter_outer = RNA_enum_get(ptr, "miter_outer");
   bool edge_bevel = RNA_enum_get(ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
-  uiItemR(layout, ptr, "profile_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "profile_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -331,12 +330,12 @@ static void profile_panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
 }
 
-static void geometry_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void geometry_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   bool edge_bevel = RNA_enum_get(ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
@@ -351,53 +350,53 @@ static void geometry_panel_draw(const bContext *UNUSED(C), Panel *panel)
   if (RNA_enum_get(ptr, "miter_inner") == BEVEL_MITER_ARC) {
     row = uiLayoutRow(layout, false);
     uiLayoutSetActive(row, edge_bevel);
-    uiItemR(row, ptr, "spread", 0, NULL, ICON_NONE);
+    uiItemR(row, ptr, "spread", 0, nullptr, ICON_NONE);
   }
   uiItemS(layout);
 
   row = uiLayoutRow(layout, false);
   uiLayoutSetActive(row, edge_bevel);
   uiItemR(row, ptr, "vmesh_method", 0, IFACE_("Intersections"), ICON_NONE);
-  uiItemR(layout, ptr, "use_clamp_overlap", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_clamp_overlap", 0, nullptr, ICON_NONE);
   row = uiLayoutRow(layout, false);
   uiLayoutSetActive(row, edge_bevel);
-  uiItemR(row, ptr, "loop_slide", 0, NULL, ICON_NONE);
+  uiItemR(row, ptr, "loop_slide", 0, nullptr, ICON_NONE);
 }
 
-static void shading_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void shading_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   bool edge_bevel = RNA_enum_get(ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "harden_normals", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "harden_normals", 0, nullptr, ICON_NONE);
 
   col = uiLayoutColumnWithHeading(layout, true, IFACE_("Mark"));
   uiLayoutSetActive(col, edge_bevel);
   uiItemR(col, ptr, "mark_seam", 0, IFACE_("Seam"), ICON_NONE);
   uiItemR(col, ptr, "mark_sharp", 0, IFACE_("Sharp"), ICON_NONE);
 
-  uiItemR(layout, ptr, "material", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "face_strength_mode", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "material", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "face_strength_mode", 0, nullptr, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Bevel, panel_draw);
   modifier_subpanel_register(
-      region_type, "profile", "Profile", NULL, profile_panel_draw, panel_type);
+      region_type, "profile", "Profile", nullptr, profile_panel_draw, panel_type);
   modifier_subpanel_register(
-      region_type, "geometry", "Geometry", NULL, geometry_panel_draw, panel_type);
+      region_type, "geometry", "Geometry", nullptr, geometry_panel_draw, panel_type);
   modifier_subpanel_register(
-      region_type, "shading", "Shading", NULL, shading_panel_draw, panel_type);
+      region_type, "shading", "Shading", nullptr, shading_panel_draw, panel_type);
 }
 
-static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
 {
   const BevelModifierData *bmd = (const BevelModifierData *)md;
 
@@ -428,22 +427,22 @@ ModifierTypeInfo modifierType_Bevel = {
         eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_AcceptsCVs,
     /*icon*/ ICON_MOD_BEVEL,
     /*copyData*/ copyData,
-    /*deformVerts*/ NULL,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ NULL,
+    /*modifyGeometrySet*/ nullptr,
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
     /*freeData*/ freeData,
     /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
+    /*updateDepsgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
     /*dependsOnNormals*/ dependsOnNormals,
-    /*foreachIDLink*/ NULL,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*foreachIDLink*/ nullptr,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*uiPanel*/ panelRegister,
     /*blendWrite*/ blendWrite,
     /*blendRead*/ blendRead,
