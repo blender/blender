@@ -4114,7 +4114,9 @@ static void widget_preview_tile(uiBut *but,
                                 int roundboxalign,
                                 const float zoom)
 {
-  widget_list_itembut(wcol, rect, state, roundboxalign, zoom);
+  if (!ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS)) {
+    widget_list_itembut(wcol, rect, state, roundboxalign, zoom);
+  }
 
   ui_draw_preview_item_stateless(
       &UI_style_get()->widget, rect, but->drawstr, but->icon, wcol->text, UI_STYLE_TEXT_CENTER);
@@ -4684,6 +4686,9 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
         if (!(but->flag & UI_HAS_ICON)) {
           but->drawflag |= UI_BUT_NO_TEXT_PADDING;
         }
+        break;
+      case UI_BTYPE_PREVIEW_TILE:
+        wt = widget_type(UI_WTYPE_PREVIEW_TILE);
         break;
       default:
         wt = widget_type(UI_WTYPE_ICON);

@@ -436,6 +436,7 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
                   preview_icon_id,
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
                   UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+  but->emboss = UI_EMBOSS_NONE;
 }
 
 void PreviewGridItem::set_on_activate_fn(ActivateFn fn)
