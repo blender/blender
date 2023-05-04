@@ -98,7 +98,7 @@ static void setup_vertex_point(Mask *mask,
     if (spline->tot_point != 1) {
       MaskSplinePoint *prev_point, *next_point, *close_point;
 
-      const int index = (int)(new_point - spline->points);
+      const int index = int(new_point - spline->points);
       if (spline->flag & MASK_SPLINE_CYCLIC) {
         prev_point = &spline->points[mod_i(index - 1, spline->tot_point)];
         next_point = &spline->points[mod_i(index + 1, spline->tot_point)];
@@ -379,7 +379,7 @@ static bool add_vertex_extrude(const bContext *C,
   setup_vertex_point(mask, spline, new_point, co, 0.5f, ctime, ref_point, false);
 
   if (mask_layer->splines_shapes.first) {
-    point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
+    point_index = ((int(new_point - spline->points) + 0) % spline->tot_point);
     BKE_mask_layer_shape_changed_add(mask_layer,
                                      BKE_mask_layer_shape_spline_to_index(mask_layer, spline) +
                                          point_index,
@@ -418,7 +418,7 @@ static bool add_vertex_new(const bContext *C, Mask *mask, MaskLayer *mask_layer,
   setup_vertex_point(mask, spline, new_point, co, 0.5f, ctime, ref_point, false);
 
   {
-    int point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
+    int point_index = ((int(new_point - spline->points) + 0) % spline->tot_point);
     BKE_mask_layer_shape_changed_add(mask_layer,
                                      BKE_mask_layer_shape_spline_to_index(mask_layer, spline) +
                                          point_index,
@@ -744,7 +744,7 @@ static int create_primitive_from_points(
 
   int width, height;
   ED_mask_get_size(area, &width, &height);
-  float scale = (float)size / max_ii(width, height);
+  float scale = float(size) / max_ii(width, height);
 
   /* Get location in mask space. */
   float frame_size[2];

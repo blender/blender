@@ -349,9 +349,9 @@ static void draw_spline_points(const bContext *C,
 static void mask_color_active_tint(uchar r_rgb[4], const uchar rgb[4], const bool is_active)
 {
   if (!is_active) {
-    r_rgb[0] = (uchar)(((int)rgb[0] + 128) / 2);
-    r_rgb[1] = (uchar)(((int)rgb[1] + 128) / 2);
-    r_rgb[2] = (uchar)(((int)rgb[2] + 128) / 2);
+    r_rgb[0] = uchar((int(rgb[0]) + 128) / 2);
+    r_rgb[1] = uchar((int(rgb[1]) + 128) / 2);
+    r_rgb[2] = uchar((int(rgb[2]) + 128) / 2);
     r_rgb[3] = rgb[3];
   }
   else {
@@ -445,9 +445,9 @@ static void mask_draw_curve_type(const bContext *C,
       }
 
       if (is_feather) {
-        rgb_tmp[0] = (uchar)(((short)rgb_tmp[0] + (short)rgb_spline[0]) / 2);
-        rgb_tmp[1] = (uchar)(((short)rgb_tmp[1] + (short)rgb_spline[1]) / 2);
-        rgb_tmp[2] = (uchar)(((short)rgb_tmp[2] + (short)rgb_spline[2]) / 2);
+        rgb_tmp[0] = uchar((short(rgb_tmp[0]) + short(rgb_spline[0])) / 2);
+        rgb_tmp[1] = uchar((short(rgb_tmp[1]) + short(rgb_spline[1])) / 2);
+        rgb_tmp[2] = uchar((short(rgb_tmp[2]) + short(rgb_spline[2])) / 2);
       }
 
       mask_color_active_tint(rgb_tmp, rgb_tmp, is_active);
@@ -661,7 +661,7 @@ void ED_mask_draw_region(
   Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_->id);
 
   /* aspect always scales vertically in movie and image spaces */
-  const float width = width_i, height = (float)height_i * (aspy / aspx);
+  const float width = width_i, height = float(height_i) * (aspy / aspx);
 
   int x, y;
   /* int w, h; */
@@ -677,8 +677,8 @@ void ED_mask_draw_region(
   // w = BLI_rctf_size_x(&v2d->tot);
   // h = BLI_rctf_size_y(&v2d->tot);
 
-  zoomx = (float)(BLI_rcti_size_x(&region->winrct) + 1) / BLI_rctf_size_x(&region->v2d.cur);
-  zoomy = (float)(BLI_rcti_size_y(&region->winrct) + 1) / BLI_rctf_size_y(&region->v2d.cur);
+  zoomx = float(BLI_rcti_size_x(&region->winrct) + 1) / BLI_rctf_size_x(&region->v2d.cur);
+  zoomy = float(BLI_rcti_size_y(&region->winrct) + 1) / BLI_rctf_size_y(&region->v2d.cur);
 
   if (do_scale_applied) {
     zoomx /= width;
@@ -771,7 +771,7 @@ void ED_mask_draw_region(
 void ED_mask_draw_frames(
     Mask *mask, ARegion *region, const int cfra, const int sfra, const int efra)
 {
-  const float framelen = region->winx / (float)(efra - sfra + 1);
+  const float framelen = region->winx / float(efra - sfra + 1);
 
   MaskLayer *mask_layer = BKE_mask_layer_active(mask);
   if (mask_layer == nullptr) {

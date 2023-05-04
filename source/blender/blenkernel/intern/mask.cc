@@ -595,8 +595,8 @@ float BKE_mask_spline_project_co(MaskSpline *spline,
 
         if (len_squared_v2(v1) > proj_eps_sq) {
           ang1 = angle_v2v2(v1, n1);
-          if (ang1 > (float)M_PI_2) {
-            ang1 = (float)M_PI - ang1;
+          if (ang1 > float(M_PI_2)) {
+            ang1 = float(M_PI) - ang1;
           }
 
           if (ang < 0.0f || ang1 < ang) {
@@ -622,8 +622,8 @@ float BKE_mask_spline_project_co(MaskSpline *spline,
 
         if (len_squared_v2(v2) > proj_eps_sq) {
           ang2 = angle_v2v2(v2, n2);
-          if (ang2 > (float)M_PI_2) {
-            ang2 = (float)M_PI - ang2;
+          if (ang2 > float(M_PI_2)) {
+            ang2 = float(M_PI) - ang2;
           }
 
           if (ang2 < ang) {
@@ -1468,8 +1468,8 @@ void BKE_mask_calc_handle_adjacent_interp(MaskSpline *spline,
   }
 
   if (length_tot) {
-    length_average /= (float)length_tot;
-    weight_average /= (float)length_tot;
+    length_average /= float(length_tot);
+    weight_average /= float(length_tot);
 
     dist_ensure_v2_v2fl(point->bezt.vec[0], point->bezt.vec[1], length_average);
     dist_ensure_v2_v2fl(point->bezt.vec[2], point->bezt.vec[1], length_average);

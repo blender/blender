@@ -131,7 +131,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
                           &spline_orig->points[(cur_point_eval - spline_eval->points_deform)] :
                           &spline_orig->points[(cur_point_eval - spline_eval->points)];
               dist_best_sq = dist_sq;
-              u = (float)j / tot_point;
+              u = float(j) / tot_point;
             }
           }
 

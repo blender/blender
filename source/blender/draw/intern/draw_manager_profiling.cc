@@ -301,15 +301,15 @@ void DRW_stats_draw(const rcti *rect)
   BLI_snprintf(stat_string, sizeof(stat_string), "GPU Memory");
   draw_stat(rect, 0, v, stat_string, sizeof(stat_string));
   BLI_snprintf(
-      stat_string, sizeof(stat_string), "%.2fMB", (double)(tex_mem + vbo_mem) / 1000000.0);
+      stat_string, sizeof(stat_string), "%.2fMB", double(tex_mem + vbo_mem) / 1000000.0);
   draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
   BLI_snprintf(stat_string, sizeof(stat_string), "Textures");
   draw_stat(rect, 1, v, stat_string, sizeof(stat_string));
-  BLI_snprintf(stat_string, sizeof(stat_string), "%.2fMB", (double)tex_mem / 1000000.0);
+  BLI_snprintf(stat_string, sizeof(stat_string), "%.2fMB", double(tex_mem) / 1000000.0);
   draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
   BLI_snprintf(stat_string, sizeof(stat_string), "Meshes");
   draw_stat(rect, 1, v, stat_string, sizeof(stat_string));
-  BLI_snprintf(stat_string, sizeof(stat_string), "%.2fMB", (double)vbo_mem / 1000000.0);
+  BLI_snprintf(stat_string, sizeof(stat_string), "%.2fMB", double(vbo_mem) / 1000000.0);
   draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
   v += 1;
 
@@ -333,7 +333,7 @@ void DRW_stats_draw(const rcti *rect)
     time_ms = timer->time_average / 1000000.0;
 
     if (timer_parent != nullptr) {
-      time_percent = ((double)timer->time_average / (double)timer_parent->time_average) * 100.0;
+      time_percent = (double(timer->time_average) / double(timer_parent->time_average)) * 100.0;
     }
     else {
       time_percent = 100.0;

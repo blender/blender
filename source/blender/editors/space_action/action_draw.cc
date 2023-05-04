@@ -689,7 +689,7 @@ static void timeline_cache_draw_simulation_nodes(
     const uint pos_id)
 {
   GPU_matrix_push();
-  GPU_matrix_translate_2f(0.0, (float)V2D_SCROLL_HANDLE_HEIGHT + y_offset);
+  GPU_matrix_translate_2f(0.0, float(V2D_SCROLL_HANDLE_HEIGHT) + y_offset);
   GPU_matrix_scale_2f(1.0, height);
 
   float color[4];

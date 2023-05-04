@@ -208,7 +208,7 @@ void ED_operatormacros_mask(void)
 void ED_mask_view_lock_state_store(const bContext *C, MaskViewLockState *state)
 {
   SpaceClip *space_clip = CTX_wm_space_clip(C);
-  if (space_clip != NULL) {
+  if (space_clip != nullptr) {
     ED_clip_view_lock_state_store(C, &state->space_clip_state);
   }
 }
@@ -216,7 +216,7 @@ void ED_mask_view_lock_state_store(const bContext *C, MaskViewLockState *state)
 void ED_mask_view_lock_state_restore_no_jump(const bContext *C, const MaskViewLockState *state)
 {
   SpaceClip *space_clip = CTX_wm_space_clip(C);
-  if (space_clip != NULL) {
+  if (space_clip != nullptr) {
     if ((space_clip->flag & SC_LOCK_SELECTION) == 0) {
       /* Early output if the editor is not locked to selection.
        * Avoids forced dependency graph evaluation here. */

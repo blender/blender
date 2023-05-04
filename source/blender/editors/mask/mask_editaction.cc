@@ -73,7 +73,7 @@ void ED_masklayer_make_cfra_list(MaskLayer *mask_layer, ListBase *elems, bool on
     if ((onlysel == false) || (mask_layer_shape->flag & MASK_SHAPE_SELECT)) {
       CfraElem *ce = MEM_cnew<CfraElem>("CfraElem");
 
-      ce->cfra = (float)mask_layer_shape->frame;
+      ce->cfra = float(mask_layer_shape->frame);
       ce->sel = (mask_layer_shape->flag & MASK_SHAPE_SELECT) ? 1 : 0;
 
       BLI_addtail(elems, ce);
@@ -261,16 +261,16 @@ void ED_masklayer_frames_duplicate(MaskLayer *mask_layer)
 static bool snap_mask_layer_nearest(MaskLayerShape *mask_layer_shape, Scene * /*scene*/)
 {
   if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
-    mask_layer_shape->frame = (int)floor(mask_layer_shape->frame + 0.5);
+    mask_layer_shape->frame = int(floor(mask_layer_shape->frame + 0.5));
   }
   return false;
 }
 
 static bool snap_mask_layer_nearestsec(MaskLayerShape *mask_layer_shape, Scene *scene)
 {
-  float secf = (float)FPS;
+  float secf = float(FPS);
   if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
-    mask_layer_shape->frame = (int)(floorf(mask_layer_shape->frame / secf + 0.5f) * secf);
+    mask_layer_shape->frame = int(floorf(mask_layer_shape->frame / secf + 0.5f) * secf);
   }
   return false;
 }
@@ -278,7 +278,7 @@ static bool snap_mask_layer_nearestsec(MaskLayerShape *mask_layer_shape, Scene *
 static bool snap_mask_layer_cframe(MaskLayerShape *mask_layer_shape, Scene *scene)
 {
   if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
-    mask_layer_shape->frame = (int)scene->r.cfra;
+    mask_layer_shape->frame = int(scene->r.cfra);
   }
   return false;
 }
@@ -287,7 +287,7 @@ static bool snap_mask_layer_nearmarker(MaskLayerShape *mask_layer_shape, Scene *
 {
   if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
     mask_layer_shape->frame = (int)ED_markers_find_nearest_marker_time(
-        &scene->markers, (float)mask_layer_shape->frame);
+        &scene->markers, float(mask_layer_shape->frame));
   }
   return false;
 }
