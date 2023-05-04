@@ -59,6 +59,7 @@ static const EnumPropertyItem space_items[] = {
 #  include "BKE_main.h"
 #  include "BKE_mball.h"
 #  include "BKE_mesh.h"
+#  include "BKE_mesh_runtime.h"
 #  include "BKE_modifier.h"
 #  include "BKE_object.h"
 #  include "BKE_report.h"
@@ -546,10 +547,12 @@ static void rna_Mesh_assign_verts_to_group(
 #  endif
 
 /* don't call inside a loop */
-static int mesh_looptri_to_poly_index(Mesh *me_eval, const MLoopTri *lt)
+static int mesh_looptri_to_poly_index(Mesh *me_eval, const int tri_index)
 {
+  const int *looptri_polys = BKE_mesh_runtime_looptri_polys_ensure(me_eval);
+  const int poly_i = looptri_polys[tri_index];
   const int *index_mp_to_orig = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
-  return index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
+  return index_mp_to_orig ? index_mp_to_orig[poly_i] : poly_i;
 }
 
 /* TODO(sergey): Make the Python API more clear that evaluation might happen, or require
@@ -635,7 +638,7 @@ static void rna_Object_ray_cast(Object *ob,
 
           copy_v3_v3(r_location, hit.co);
           copy_v3_v3(r_normal, hit.no);
-          *r_index = mesh_looptri_to_poly_index(mesh_eval, &treeData.looptri[hit.index]);
+          *r_index = mesh_looptri_to_poly_index(mesh_eval, hit.index);
         }
       }
 
@@ -693,7 +696,7 @@ static void rna_Object_closest_point_on_mesh(Object *ob,
 
       copy_v3_v3(r_location, nearest.co);
       copy_v3_v3(r_normal, nearest.no);
-      *r_index = mesh_looptri_to_poly_index(mesh_eval, &treeData.looptri[nearest.index]);
+      *r_index = mesh_looptri_to_poly_index(mesh_eval, nearest.index);
 
       goto finally;
     }

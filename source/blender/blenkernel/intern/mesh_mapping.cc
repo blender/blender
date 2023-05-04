@@ -498,7 +498,7 @@ void BKE_mesh_origindex_map_create(MeshElemMap **r_map,
 void BKE_mesh_origindex_map_create_looptri(MeshElemMap **r_map,
                                            int **r_mem,
                                            const blender::OffsetIndices<int> polys,
-                                           const MLoopTri *looptri,
+                                           const int *looptri_polys,
                                            const int looptri_num)
 {
   MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(polys.size()), __func__);
@@ -514,7 +514,7 @@ void BKE_mesh_origindex_map_create_looptri(MeshElemMap **r_map,
 
   /* assign poly-tessface users */
   for (int i = 0; i < looptri_num; i++) {
-    MeshElemMap *map_ele = &map[looptri[i].poly];
+    MeshElemMap *map_ele = &map[looptri_polys[i]];
     map_ele->indices[map_ele->count++] = i;
   }
 

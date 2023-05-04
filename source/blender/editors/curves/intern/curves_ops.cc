@@ -268,9 +268,9 @@ static void try_convert_single_object(Object &curves_ob,
   BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
 
   const Span<float3> positions_cu = curves.positions();
-  const Span<MLoopTri> looptris = surface_me.looptris();
+  const Span<int> looptri_polys = surface_me.looptri_polys();
 
-  if (looptris.is_empty()) {
+  if (looptri_polys.is_empty()) {
     *r_could_not_convert_some_curves = true;
   }
 
@@ -338,8 +338,7 @@ static void try_convert_single_object(Object &curves_ob,
     BLI_assert(nearest.index >= 0);
 
     const int looptri_i = nearest.index;
-    const MLoopTri &looptri = looptris[looptri_i];
-    const int poly_i = looptri.poly;
+    const int poly_i = looptri_polys[looptri_i];
 
     const int mface_i = find_mface_for_root_position(
         positions, mfaces, poly_to_mface_map[poly_i], root_pos_su);
