@@ -761,7 +761,7 @@ class ASSETBROWSEROLD_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
         self.metadata_prop(layout, asset_data, "author")
 
 
-class ASSETBROWSEROLD_PT_metadata_preview(asset_utils.AssetMetaDataPanel, Panel):
+class ASSETBROWSEROLD_PT_metadata_preview(asset_utils.AssetMetaDataPanelOLD, Panel):
     bl_label = "Preview"
 
     def draw(self, context):
@@ -787,7 +787,7 @@ class ASSETBROWSEROLD_MT_metadata_preview_menu(bpy.types.Menu):
         layout.operator("ed.lib_id_generate_preview_from_object", text="Render Active Object")
 
 
-class ASSETBROWSEROLD_PT_metadata_tags(asset_utils.AssetMetaDataPanel, Panel):
+class ASSETBROWSEROLD_PT_metadata_tags(asset_utils.AssetMetaDataPanelOLD, Panel):
     bl_label = "Tags"
 
     def draw(self, context):

@@ -42,7 +42,7 @@ class AssetBrowserPanel:
         return cls.asset_browser_panel_poll(context)
 
 
-class AssetMetaDataPanel:
+class AssetMetaDataPanelOLD:
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOL_PROPS'
 
@@ -50,3 +50,14 @@ class AssetMetaDataPanel:
     def poll(cls, context):
         active_file = context.active_file
         return SpaceAssetInfo.is_asset_browser_poll(context) and active_file and active_file.asset_data
+
+
+class AssetMetaDataPanel:
+    bl_space_type = 'ASSET_BROWSER'
+    bl_region_type = 'UI'
+    bl_category = 'Metadata'
+
+    @classmethod
+    def poll(cls, context):
+        active_asset = context.asset_handle
+        return active_asset

@@ -4,6 +4,10 @@
 import bpy
 from bpy.types import Header, Menu, Panel, UIList
 
+from bpy_extras import (
+    asset_utils,
+)
+
 
 class ASSETBROWSER_HT_header(Header):
     bl_space_type = 'ASSET_BROWSER'
@@ -77,13 +81,14 @@ class ASSETBROWSER_MT_edit(Menu):
         layout.operator("asset.catalog_redo", text="Redo")
 
 
+# Doesn't use the AssetMetaDataPanel mixin because when there is no active asset
+# this shows a info label instead.
 class ASSETBROWSER_PT_metadata(Panel):
     bl_space_type = 'ASSET_BROWSER'
     bl_region_type = 'UI'
     bl_label = "Asset Metadata"
     bl_options = {'HIDE_HEADER'}
     bl_category = 'Metadata'
-
 
     @staticmethod
     def metadata_prop(layout, asset_data, propname):
@@ -94,16 +99,16 @@ class ASSETBROWSER_PT_metadata(Panel):
         if getattr(asset_data, propname) or not asset_data.is_property_readonly(propname):
             layout.prop(asset_data, propname)
 
-
     def draw(self, context):
         layout = self.layout
         wm = context.window_manager
         asset_handle = context.asset_handle
-        asset_file = asset_handle.file_data
 
         if asset_handle is None:
             layout.label(text="No active asset", icon='INFO')
             return
+
+        asset_file = asset_handle.file_data
 
         prefs = context.preferences
         show_asset_debug_info = prefs.view.show_developer_ui and prefs.experimental.show_asset_debug_info
@@ -141,11 +146,8 @@ class ASSETBROWSER_PT_metadata(Panel):
         self.metadata_prop(layout, asset_data, "author")
 
 
-class ASSETBROWSER_PT_metadata_preview(Panel):
-    bl_space_type = 'ASSET_BROWSER'
-    bl_region_type = 'UI'
+class ASSETBROWSER_PT_metadata_preview(asset_utils.AssetMetaDataPanel, Panel):
     bl_label = "Preview"
-    bl_category = 'Metadata'
 
     def draw(self, context):
         layout = self.layout
@@ -170,11 +172,8 @@ class ASSETBROWSER_MT_metadata_preview_menu(Menu):
         layout.operator("ed.lib_id_generate_preview_from_object", text="Render Active Object")
 
 
-class ASSETBROWSER_PT_metadata_tags(Panel):
-    bl_space_type = 'ASSET_BROWSER'
-    bl_region_type = 'UI'
+class ASSETBROWSER_PT_metadata_tags(asset_utils.AssetMetaDataPanel, Panel):
     bl_label = "Tags"
-    bl_category = 'Metadata'
 
     def draw(self, context):
         layout = self.layout
