@@ -181,6 +181,10 @@ void IMB_freeImBuf(ImBuf *ibuf)
   BLI_spin_unlock(&refcounter_spin);
 
   if (needs_free) {
+    /* Include this check here as the path may be manipulated after creation. */
+    BLI_assert_msg(!(ibuf->filepath[0] == '/' && ibuf->filepath[1] == '/'),
+                   "'.blend' relative \"//\" must not be used in ImBuf!");
+
     imb_freerectImbuf_all(ibuf);
     IMB_metadata_free(ibuf->metadata);
     colormanage_cache_free(ibuf);
