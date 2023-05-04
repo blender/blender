@@ -974,29 +974,29 @@ static void expand_node_socket(BlendExpander *expander, bNodeSocket *sock)
 {
   IDP_BlendReadExpand(expander, sock->prop);
 
-  if (sock->default_value != nullptr) {
+  if (sock->default_value == nullptr) {
     return;
   }
 
   switch (eNodeSocketDatatype(sock->type)) {
     case SOCK_OBJECT: {
-      BLO_expand(expander, &sock->default_value_typed<bNodeSocketValueObject>()->value);
+      BLO_expand(expander, sock->default_value_typed<bNodeSocketValueObject>()->value);
       break;
     }
     case SOCK_IMAGE: {
-      BLO_expand(expander, &sock->default_value_typed<bNodeSocketValueImage>()->value);
+      BLO_expand(expander, sock->default_value_typed<bNodeSocketValueImage>()->value);
       break;
     }
     case SOCK_COLLECTION: {
-      BLO_expand(expander, &sock->default_value_typed<bNodeSocketValueCollection>()->value);
+      BLO_expand(expander, sock->default_value_typed<bNodeSocketValueCollection>()->value);
       break;
     }
     case SOCK_TEXTURE: {
-      BLO_expand(expander, &sock->default_value_typed<bNodeSocketValueTexture>()->value);
+      BLO_expand(expander, sock->default_value_typed<bNodeSocketValueTexture>()->value);
       break;
     }
     case SOCK_MATERIAL: {
-      BLO_expand(expander, &sock->default_value_typed<bNodeSocketValueMaterial>()->value);
+      BLO_expand(expander, sock->default_value_typed<bNodeSocketValueMaterial>()->value);
       break;
     }
     case SOCK_FLOAT:
