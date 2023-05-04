@@ -140,6 +140,19 @@ void ui_block_views_listen(const uiBlock *block, const wmRegionListenerParams *l
   }
 }
 
+uiViewHandle *UI_region_view_find_from_idname(const ARegion *region, const char *idname)
+{
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    LISTBASE_FOREACH (ViewLink *, view_link, &block->views) {
+      if (view_link->idname == idname) {
+        return reinterpret_cast<uiViewHandle *>(view_link->view.get());
+      }
+    }
+  }
+
+  return nullptr;
+}
+
 uiViewHandle *UI_region_view_find_at(const ARegion *region, const int xy[2], const int pad)
 {
   /* NOTE: Similar to #ui_but_find_mouse_over_ex(). */

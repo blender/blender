@@ -2369,6 +2369,9 @@ def km_asset_browser(params):
         *_template_space_region_type_toggle(
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
+        # UI keymap already adds "select all" items for the hovered view. We add our own here that
+        # don't rely on the hovered view, so they can be displayed with shortcuts in menus.
+        *_template_items_select_actions(params, "assetbrowser.select_all"),
     ])
 
     return keymap

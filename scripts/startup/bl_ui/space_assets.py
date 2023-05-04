@@ -70,6 +70,14 @@ class ASSETBROWSER_MT_select(Menu):
     def draw(self, _context):
         layout = self.layout
 
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator("assetbrowser.select_all", text="All").action = 'SELECT'
+        layout.operator("assetbrowser.select_all", text="None").action = 'DESELECT'
+        layout.operator("assetbrowser.select_all", text="Inverse").action = 'INVERT'
+
+        # TODO box select
+
 
 class ASSETBROWSER_MT_edit(Menu):
     bl_label = "Edit"

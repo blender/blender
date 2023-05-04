@@ -3284,6 +3284,7 @@ void UI_view_item_context_menu_build(struct bContext *C,
  */
 bool UI_view_item_drag_start(struct bContext *C, const uiViewItemHandle *item_);
 
+uiViewHandle *UI_region_view_find_from_idname(const struct ARegion *region, const char *idname);
 /**
  * \param xy: Coordinate to find a view item at, in window space.
  * \param pad: Extra padding added to the bounding box of the view.

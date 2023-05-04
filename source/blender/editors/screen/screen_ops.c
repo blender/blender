@@ -313,6 +313,11 @@ bool ED_operator_asset_browsing_active(bContext *C)
   return false;
 }
 
+bool ED_operator_asset_browser_active(bContext *C)
+{
+  return ed_spacetype_test(C, SPACE_ASSETS);
+}
+
 bool ED_operator_spreadsheet_active(bContext *C)
 {
   return ed_spacetype_test(C, SPACE_SPREADSHEET);
