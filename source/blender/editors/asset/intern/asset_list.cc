@@ -37,6 +37,9 @@
 #include "ED_asset_list.hh"
 #include "asset_library_reference.hh"
 
+#include "UI_interface_icons.h"
+#include "UI_resources.h"
+
 namespace blender::ed::asset {
 
 /* -------------------------------------------------------------------- */
@@ -492,11 +495,29 @@ PreviewImage *ED_assetlist_asset_preview_request(AssetHandle *asset_handle)
   return asset_handle->preview;
 }
 
+static int preview_icon_id_ensure(AssetHandle *asset_handle, PreviewImage *preview)
+{
+  ID *local_id = ED_asset_handle_get_local_id(asset_handle);
+  return BKE_icon_preview_ensure(local_id, preview);
+}
+
 int ED_assetlist_asset_preview_icon_id_request(AssetHandle *asset_handle)
 {
   PreviewImage *preview = ED_assetlist_asset_preview_request(asset_handle);
-  ID *local_id = ED_asset_handle_get_local_id(asset_handle);
-  return BKE_icon_preview_ensure(local_id, preview);
+  return preview_icon_id_ensure(asset_handle, preview);
+}
+
+int ED_assetlist_asset_preview_or_type_icon_id_request(AssetHandle *asset_handle)
+{
+  PreviewImage *preview = ED_assetlist_asset_preview_request(asset_handle);
+
+  /* Preview is invalid or still loading. Return an icon ID based on the type. */
+  if (preview->tag & (PRV_TAG_LOADING_FAILED | PRV_TAG_DEFFERED_RENDERING)) {
+    ID_Type id_type = ED_asset_handle_get_id_type(asset_handle);
+    return UI_icon_from_idcode(id_type);
+  }
+
+  return preview_icon_id_ensure(asset_handle, preview);
 }
 
 ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)

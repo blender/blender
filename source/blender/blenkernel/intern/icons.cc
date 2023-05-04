@@ -561,6 +561,11 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
         }
         IMB_freeImBuf(thumb);
       }
+      else {
+        /* Thumbnail loading doesn't differentiate between sizes, so if loading for one size fails
+         * it would fail for the other too. No point in tagging the sizes separately. */
+        prv->tag |= PRV_TAG_LOADING_FAILED;
+      }
     }
   }
 }

@@ -575,6 +575,8 @@ enum {
   PRV_TAG_DEFFERED = (1 << 0),           /* Actual loading of preview is deferred. */
   PRV_TAG_DEFFERED_RENDERING = (1 << 1), /* Deferred preview is being loaded. */
   PRV_TAG_DEFFERED_DELETE = (1 << 2),    /* Deferred preview should be deleted asap. */
+  /** Attempted to load this preview from disk (deferred loading), but it couldn't be found. */
+  PRV_TAG_LOADING_FAILED = (1 << 3),
 };
 
 typedef struct PreviewImage {

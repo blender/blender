@@ -60,12 +60,13 @@ bool AssetGridView::listen(const wmNotifier &notifier) const
 
 AssetGridViewItem::AssetGridViewItem(AssetHandle &asset)
     : ui::PreviewGridItem(ED_asset_handle_get_identifier(&asset),
-                          ED_asset_handle_get_name(&asset),
-                          ED_assetlist_asset_preview_icon_id_request(&asset)),
+                          ED_asset_handle_get_name(&asset)),
       /* Get a copy so the identifier is always available (the file data wrapped by the handle may
        * be freed). */
       asset_identifier_(identifier_)
 {
+  preview_icon_id = ED_assetlist_asset_preview_or_type_icon_id_request(&asset);
+
   /* Update reference so we don't point into the possibly freed file data. */
   identifier_ = asset_identifier_;
 

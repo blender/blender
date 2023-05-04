@@ -376,7 +376,7 @@ static PointerRNA rna_AssetHandle_local_id_get(PointerRNA *ptr)
 static int rna_AssetHandle_preview_icon_id_get(PointerRNA *ptr)
 {
   AssetHandle *asset = ptr->data;
-  return ED_assetlist_asset_preview_icon_id_request(asset);
+  return ED_assetlist_asset_preview_or_type_icon_id_request(asset);
 }
 
 const EnumPropertyItem *rna_asset_library_reference_itemf(bContext *UNUSED(C),

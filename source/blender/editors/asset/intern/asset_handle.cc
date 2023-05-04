@@ -49,11 +49,6 @@ ID_Type ED_asset_handle_get_id_type(const AssetHandle *asset)
   return static_cast<ID_Type>(asset->file_data->blentype);
 }
 
-int ED_asset_handle_get_preview_icon_id(const AssetHandle *asset)
-{
-  return asset->file_data->preview_icon_id;
-}
-
 std::optional<eAssetImportMethod> ED_asset_handle_get_import_method(
     const AssetHandle *asset_handle)
 {

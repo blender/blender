@@ -1842,6 +1842,9 @@ void PreviewLoadJob::run_fn(void *customdata, bool *stop, bool *do_update, float
                      preview->rect[request->icon_size]);
       IMB_freeImBuf(thumb);
     }
+    else {
+      preview->tag |= PRV_TAG_LOADING_FAILED;
+    }
 
     *do_update = true;
   }

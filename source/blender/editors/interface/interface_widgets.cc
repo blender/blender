@@ -5490,7 +5490,14 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
     rect->ymin += round_fl_to_int(font_dims[1] + 2 * padding);
   }
   GPU_blend(GPU_BLEND_ALPHA);
-  widget_draw_preview(BIFIconID(iconid), 1.0f, rect);
+  if (iconid < BIFICONID_LAST) {
+    const int x = BLI_rcti_cent_x(rect) - ICON_DEFAULT_WIDTH_SCALE / 2;
+    const int y = BLI_rcti_cent_y(rect) - ICON_DEFAULT_HEIGHT_SCALE / 2;
+    UI_icon_draw(x, y, iconid);
+  }
+  else {
+    widget_draw_preview(BIFIconID(iconid), 1.0f, rect);
+  }
   GPU_blend(GPU_BLEND_NONE);
 
   if (!has_text) {
