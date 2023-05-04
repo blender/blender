@@ -970,8 +970,8 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
     GPU_matrix_bind(reinterpret_cast<struct GPUShader *>(
         static_cast<Shader *>(this->pipeline_state.active_shader)));
 
-    /* Bind Uniforms */
-    this->ensure_uniform_buffer_bindings(rec, shader_interface, pipeline_state_instance);
+    /* Bind buffers. */
+    this->ensure_buffer_bindings(rec, shader_interface, pipeline_state_instance);
 
     /* Bind Null attribute buffer, if needed. */
     if (pipeline_state_instance->null_attribute_buffer_index >= 0) {
@@ -1087,9 +1087,9 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
   return result;
 }
 
-/* Bind uniform buffers to an active render command encoder using the rendering state of the
+/* Bind UBOs and SSBOs to an active render command encoder using the rendering state of the
  * current context -> Active shader, Bound UBOs). */
-bool MTLContext::ensure_uniform_buffer_bindings(
+bool MTLContext::ensure_buffer_bindings(
     id<MTLRenderCommandEncoder> rec,
     const MTLShaderInterface *shader_interface,
     const MTLRenderPipelineStateInstance *pipeline_state_instance)
@@ -1332,9 +1332,9 @@ bool MTLContext::ensure_uniform_buffer_bindings(
   return true;
 }
 
-/* Variant for compute. Bind uniform buffers to an active compute command encoder using the
+/* Variant for compute. Bind UBOs and SSBOs to an active compute command encoder using the
  * rendering state of the current context -> Active shader, Bound UBOs). */
-bool MTLContext::ensure_uniform_buffer_bindings(
+bool MTLContext::ensure_buffer_bindings(
     id<MTLComputeCommandEncoder> rec,
     const MTLShaderInterface *shader_interface,
     const MTLComputePipelineStateInstance &pipeline_state_instance)
@@ -2147,7 +2147,7 @@ void MTLContext::compute_dispatch(int groups_x_len, int groups_y_len, int groups
   cs.bind_pso(compute_pso_inst.pso);
 
   /* Bind buffers. */
-  this->ensure_uniform_buffer_bindings(compute_encoder, shader_interface, compute_pso_inst);
+  this->ensure_buffer_bindings(compute_encoder, shader_interface, compute_pso_inst);
   /** Ensure resource bindings. */
   /* Texture Bindings. */
   /* We will iterate through all texture bindings on the context and determine if any of the
@@ -2184,7 +2184,7 @@ void MTLContext::compute_dispatch_indirect(StorageBuf *indirect_buf)
     cs.bind_pso(compute_pso_inst.pso);
 
     /* Bind buffers. */
-    this->ensure_uniform_buffer_bindings(compute_encoder, shader_interface, compute_pso_inst);
+    this->ensure_buffer_bindings(compute_encoder, shader_interface, compute_pso_inst);
     /** Ensure resource bindings. */
     /* Texture Bindings. */
     /* We will iterate through all texture bindings on the context and determine if any of the

@@ -810,14 +810,12 @@ class MTLContext : public Context {
    * `ensure_render_pipeline_state` will return false if the state is
    * invalid and cannot be applied. This should cancel a draw call. */
   bool ensure_render_pipeline_state(MTLPrimitiveType prim_type);
-  bool ensure_uniform_buffer_bindings(
-      id<MTLRenderCommandEncoder> rec,
-      const MTLShaderInterface *shader_interface,
-      const MTLRenderPipelineStateInstance *pipeline_state_instance);
-  bool ensure_uniform_buffer_bindings(
-      id<MTLComputeCommandEncoder> rec,
-      const MTLShaderInterface *shader_interface,
-      const MTLComputePipelineStateInstance &pipeline_state_instance);
+  bool ensure_buffer_bindings(id<MTLRenderCommandEncoder> rec,
+                              const MTLShaderInterface *shader_interface,
+                              const MTLRenderPipelineStateInstance *pipeline_state_instance);
+  bool ensure_buffer_bindings(id<MTLComputeCommandEncoder> rec,
+                              const MTLShaderInterface *shader_interface,
+                              const MTLComputePipelineStateInstance &pipeline_state_instance);
   void ensure_texture_bindings(id<MTLRenderCommandEncoder> rec,
                                MTLShaderInterface *shader_interface,
                                const MTLRenderPipelineStateInstance *pipeline_state_instance);
