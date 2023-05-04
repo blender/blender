@@ -2397,6 +2397,7 @@ static bool lib_override_resync_tagging_finalize_recurse(
     }
 
     ID *id_from = entry_item->id_pointer.from;
+    BKE_lib_override_library_get(bmain, id_from, nullptr, &id_from);
 
     /* Check if this ID has an override hierarchy ancestor already tagged for resync. */
     if (id_from != id && ID_IS_OVERRIDE_LIBRARY_REAL(id_from) && id_from->lib == id->lib &&
