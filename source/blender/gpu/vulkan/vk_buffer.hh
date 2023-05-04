@@ -31,14 +31,11 @@ class VKBuffer {
   /** Has this buffer been allocated? */
   bool is_allocated() const;
 
-  bool create(VKContext &context,
-              int64_t size,
-              GPUUsageType usage,
-              VkBufferUsageFlagBits buffer_usage);
+  bool create(int64_t size, GPUUsageType usage, VkBufferUsageFlagBits buffer_usage);
   void clear(VKContext &context, uint32_t clear_value);
   void update(const void *data) const;
   void read(void *data) const;
-  bool free(VKContext &context);
+  bool free();
 
   int64_t size_in_bytes() const
   {
@@ -60,8 +57,8 @@ class VKBuffer {
  private:
   /** Check if this buffer is mapped. */
   bool is_mapped() const;
-  bool map(VKContext &context);
-  void unmap(VKContext &context);
+  bool map();
+  void unmap();
 };
 
 }  // namespace blender::gpu

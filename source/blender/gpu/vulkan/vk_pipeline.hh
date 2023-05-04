@@ -40,8 +40,7 @@ class VKPipeline : NonCopyable {
     return *this;
   }
 
-  static VKPipeline create_compute_pipeline(VKContext &context,
-                                            VkShaderModule compute_module,
+  static VKPipeline create_compute_pipeline(VkShaderModule compute_module,
                                             VkDescriptorSetLayout &descriptor_set_layout,
                                             VkPipelineLayout &pipeline_layouts,
                                             const VKPushConstants::Layout &push_constants_layout);
