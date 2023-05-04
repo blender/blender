@@ -203,7 +203,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   tclmd->solver_result = nullptr;
 }
 
-static bool dependsOnTime( Scene * /*scene*/, ModifierData * /*md*/)
+static bool dependsOnTime(Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }

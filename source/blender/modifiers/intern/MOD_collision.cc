@@ -80,7 +80,7 @@ static void freeData(ModifierData *md)
   }
 }
 
-static bool dependsOnTime( Scene * /*scene*/, ModifierData * /*md*/)
+static bool dependsOnTime(Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }

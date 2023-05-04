@@ -129,7 +129,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool isDisabled(const  Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 
@@ -453,7 +453,7 @@ static void deformVerts(ModifierData *md,
 
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                           BMEditMesh *editData,
+                          BMEditMesh *editData,
                           Mesh *mesh,
                           float (*vertexCos)[3],
                           int verts_num)
