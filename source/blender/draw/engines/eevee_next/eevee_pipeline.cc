@@ -45,6 +45,8 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   world_ps_.bind_image("rp_specular_color_img", &rbufs.specular_color_tx);
   world_ps_.bind_image("rp_emission_img", &rbufs.emission_tx);
   world_ps_.bind_image("rp_cryptomatte_img", &rbufs.cryptomatte_tx);
+  /* Required by validation layers. */
+  inst_.cryptomatte.bind_resources(&world_ps_);
 
   world_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
