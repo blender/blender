@@ -80,6 +80,9 @@ void BLI_string_split_suffix(const char *string,
                              char *r_body,
                              char *r_suf)
 {
+  BLI_string_debug_size(r_body, string_maxlen);
+  BLI_string_debug_size(r_suf, string_maxlen);
+
   size_t len = BLI_strnlen(string, string_maxlen);
   size_t i;
 
@@ -101,6 +104,9 @@ void BLI_string_split_prefix(const char *string,
                              char *r_pre,
                              char *r_body)
 {
+  BLI_string_debug_size(r_pre, string_maxlen);
+  BLI_string_debug_size(r_body, string_maxlen);
+
   size_t len = BLI_strnlen(string, string_maxlen);
   size_t i;
 
@@ -123,6 +129,8 @@ size_t BLI_string_flip_side_name(char *r_name,
                                  const bool strip_number,
                                  const size_t name_len)
 {
+  BLI_string_debug_size(r_name, name_len);
+
   size_t len;
   char *prefix = alloca(name_len);  /* The part before the facing */
   char *suffix = alloca(name_len);  /* The part after the facing */
@@ -246,6 +254,8 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
                        char *name,
                        size_t name_len)
 {
+  BLI_string_debug_size_after_nil(name, name_len);
+
   if (name[0] == '\0') {
     BLI_strncpy(name, defname, name_len);
   }
@@ -373,6 +383,8 @@ size_t BLI_string_join_array(char *result,
 size_t BLI_string_join_array_by_sep_char(
     char *result, size_t result_len, char sep, const char *strings[], uint strings_len)
 {
+  BLI_string_debug_size(result, result_len);
+
   char *c = result;
   char *c_end = &result[result_len - 1];
   for (uint i = 0; i < strings_len; i++) {
