@@ -733,6 +733,7 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
 
       args->prim_indices = node->prim_indices;
       args->face_sets = pbvh->face_sets;
+      args->looptri_polys = pbvh->looptri_polys;
       break;
     case PBVH_GRIDS:
       args->vdata = pbvh->vdata;
@@ -756,6 +757,7 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       args->vert_normals = pbvh->vert_normals;
 
       args->face_sets = pbvh->face_sets;
+      args->looptri_polys = pbvh->looptri_polys;
       break;
     case PBVH_BMESH:
       args->bm = pbvh->header.bm;
