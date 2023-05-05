@@ -739,7 +739,7 @@ ccl_device float light_tree_pdf(
 
   ccl_global const KernelLightTreeEmitter *kemitter = &kernel_data_fetch(light_tree_emitters,
                                                                          target);
-  int root_index, target_leaf;
+  int root_index;
   uint bit_trail, target_emitter;
 
   if (is_triangle(kemitter)) {
@@ -748,7 +748,6 @@ ccl_device float light_tree_pdf(
     target_emitter = kernel_data_fetch(object_to_tree, object);
     ccl_global const KernelLightTreeEmitter *kmesh = &kernel_data_fetch(light_tree_emitters,
                                                                         target_emitter);
-    target_leaf = kmesh->parent_index;
     root_index = kmesh->mesh.node_id;
     ccl_global const KernelLightTreeNode *kroot = &kernel_data_fetch(light_tree_nodes, root_index);
     bit_trail = kroot->bit_trail;
@@ -759,8 +758,7 @@ ccl_device float light_tree_pdf(
   }
   else {
     root_index = 0;
-    target_leaf = kemitter->parent_index;
-    bit_trail = kernel_data_fetch(light_tree_nodes, target_leaf).bit_trail;
+    bit_trail = kemitter->bit_trail;
     target_emitter = target;
   }
 
@@ -772,18 +770,14 @@ ccl_device float light_tree_pdf(
     const ccl_global KernelLightTreeNode *knode = &kernel_data_fetch(light_tree_nodes, node_index);
 
     if (is_leaf(knode)) {
-      kernel_assert(node_index == target_leaf);
-      ccl_global const KernelLightTreeNode *kleaf = &kernel_data_fetch(light_tree_nodes,
-                                                                       target_leaf);
-
       /* Iterate through leaf node to find the probability of sampling the target emitter. */
       float target_max_importance = 0.0f;
       float target_min_importance = 0.0f;
       float total_max_importance = 0.0f;
       float total_min_importance = 0.0f;
       int num_has_importance = 0;
-      for (int i = 0; i < kleaf->num_emitters; i++) {
-        const int emitter = kleaf->leaf.first_emitter + i;
+      for (int i = 0; i < knode->num_emitters; i++) {
+        const int emitter = knode->leaf.first_emitter + i;
         float max_importance, min_importance;
         light_tree_emitter_importance<false>(
             kg, P, N, 0, has_transmission, emitter, max_importance, min_importance);
@@ -813,12 +807,10 @@ ccl_device float light_tree_pdf(
         node_index = root_index;
         root_index = 0;
         target_emitter = target;
-        target_leaf = kemitter->parent_index;
-        bit_trail = kernel_data_fetch(light_tree_nodes, target_leaf).bit_trail;
+        bit_trail = kemitter->bit_trail;
         continue;
       }
       else {
-        kernel_assert(node_index == target_leaf);
         return pdf;
       }
     }
