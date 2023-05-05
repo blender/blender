@@ -848,6 +848,7 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
   pbvh->polys = mesh->polys();
   pbvh->corner_verts = mesh->corner_verts().data();
   pbvh->looptri_polys = mesh->looptri_polys().data();
+
   if (!pbvh->deformed) {
     /* Deformed positions not matching the original mesh are owned directly by the PBVH, and are
      * set separately by #BKE_pbvh_vert_coords_apply. */

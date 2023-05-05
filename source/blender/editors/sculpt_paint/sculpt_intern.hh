@@ -1672,6 +1672,7 @@ void SCULPT_OT_project_line_gesture(wmOperatorType *ot);
 
 void SCULPT_OT_face_sets_randomize_colors(wmOperatorType *ot);
 void SCULPT_OT_face_sets_change_visibility(wmOperatorType *ot);
+void SCULPT_OT_face_sets_invert_visibility(wmOperatorType *ot);
 void SCULPT_OT_face_sets_init(wmOperatorType *ot);
 void SCULPT_OT_face_sets_create(wmOperatorType *ot);
 void SCULPT_OT_face_sets_edit(wmOperatorType *ot);

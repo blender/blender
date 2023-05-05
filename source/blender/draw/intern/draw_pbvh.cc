@@ -611,8 +611,8 @@ struct PBVHBatches {
           int last_poly = -1;
           uchar fset_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
 
-          foreach_faces([&](int /*buffer_i*/, int tri_i, int /*vertex_i*/, const int /*tri*/) {
-            const int poly_i = args->looptri_polys[tri_i];
+          foreach_faces([&](int /*buffer_i*/, int tri_i, int /*vertex_i*/, const int tri) {
+            const int poly_i = args->looptri_polys[tri];
             if (last_poly != poly_i) {
               last_poly = poly_i;
 
