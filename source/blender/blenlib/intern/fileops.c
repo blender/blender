@@ -1309,7 +1309,7 @@ bool BLI_dir_create_recursive(const char *dirname)
   tmp = static_buf;
 #  else
   size = strlen(dirname) + 1;
-  tmp = MEM_callocN(size, __func__);
+  tmp = MEM_mallocN(size, __func__);
 #  endif
 
   BLI_strncpy(tmp, dirname, size);
