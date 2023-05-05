@@ -2298,25 +2298,8 @@ static bool lib_override_resync_id_lib_level_is_valid(ID *id,
                            id_lib_level <= library_indirect_level;
 }
 
-/* Find the root of the override hierarchy the given `id` belongs to. */
-static ID *lib_override_library_main_resync_root_get(Main * /*bmain*/, ID *id)
-{
-  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
-    ID *id_owner = BKE_id_owner_get(id);
-    if (id_owner != nullptr) {
-      id = id_owner;
-    }
-    BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id));
-  }
-
-  ID *hierarchy_root_id = id->override_library->hierarchy_root;
-  BLI_assert(hierarchy_root_id != nullptr);
-  BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(hierarchy_root_id));
-  return hierarchy_root_id;
-}
-
 /* Check ancestors overrides for resync, to ensure all IDs in-between two tagged-for-resync ones
- * are also properly tagged, and to identify the resync root of this subset of the whole hierarchy.
+ * are also properly tagged.
  *
  * WARNING: Expects `bmain` to have valid relation data.
  *
@@ -2324,71 +2307,132 @@ static ID *lib_override_library_main_resync_root_get(Main * /*bmain*/, ID *id)
  * needing resync, `false` otherwise.
  *
  * NOTE: If `check_only` is true, it only does the check and returns, without any modification to
- * the data. Used for debug/data validation purposes.
+ * the data.
  */
-static bool lib_override_resync_tagging_finalize_recurse(
-    Main *bmain, ID *id, GHash *id_roots, const int library_indirect_level, const bool check_only)
+static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
+                                                         ID *id_root,
+                                                         ID *id_from,
+                                                         const int library_indirect_level,
+                                                         bool is_in_partial_resync_hierarchy)
 {
-  BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id));
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
+  BLI_assert(id_root->override_library->hierarchy_root != nullptr);
 
-  if (!lib_override_resync_id_lib_level_is_valid(id, library_indirect_level, false) && !check_only)
-  {
+  if (!lib_override_resync_id_lib_level_is_valid(id_root, library_indirect_level, false)) {
     CLOG_ERROR(
         &LOG,
         "While processing indirect level %d, ID %s from lib %s of indirect level %d detected "
-        "as needing resync, skipping.",
+        "as needing resync, skipping",
         library_indirect_level,
-        id->name,
-        id->lib->filepath,
-        id->lib->temp_index);
-    id->tag &= ~LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
-    return false;
+        id_root->name,
+        id_root->lib ? id_root->lib->filepath : "<LOCAL>",
+        id_root->lib ? id_root->lib->temp_index : 0);
+    id_root->tag &= ~LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
+    return;
   }
 
   MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-      BLI_ghash_lookup(bmain->relations->relations_from_pointers, id));
+      BLI_ghash_lookup(bmain->relations->relations_from_pointers, id_root));
   BLI_assert(entry != nullptr);
 
-  if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) {
+  bool is_reprocessing_current_entry = false;
+  if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS) {
+    /* This ID is already being processed, this indicates a dependency loop. */
+    BLI_assert((entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) == 0);
+
+    if (id_root->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) {
+      /* This ID is already tagged for resync, then the loop leading back to it is also fully
+       * tagged for resync, nothing else to do. */
+      BLI_assert(is_in_partial_resync_hierarchy);
+      return;
+    }
+    else if (!is_in_partial_resync_hierarchy) {
+      /* This ID is not tagged for resync, and is part of a loop where none of the other IDs are
+       * tagged for resync, nothing else to to. */
+      return;
+    }
+    /* This ID is not yet tagged for resync, but is part of a loop which is (partially) tagged
+     * for resync.
+     * The whole loop needs to be processed a second time to ensure all of its members are properly
+     * tagged for resync then. */
+    is_reprocessing_current_entry = true;
+
+    CLOG_INFO(&LOG,
+              4,
+              "ID %s (%p) is detected as part of a hierarchy dependency loop requiring resync, it "
+              "is now being re-processed to ensure proper tagging of the whole loop",
+              id_root->name,
+              id_root->lib);
+  }
+  else if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) {
     /* This ID has already been processed. */
-    return (ID_IS_OVERRIDE_LIBRARY(id) && (id->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) != 0);
+    BLI_assert((entry->tags & MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS) == 0);
+
+    /* If it was already detected as needing resync, then its whole sub-tree should also be fully
+     * processed. Only need to ensure that it is not tagged as potential partial resync root
+     * anymore, if now processed as part of another partial resync hierarchy. */
+    if (id_root->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) {
+      if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_DOIT && is_in_partial_resync_hierarchy) {
+        CLOG_INFO(
+            &LOG,
+            4,
+            "ID %s (%p) was marked as a potential root for partial resync, but it is used by "
+            "%s (%p), which is also tagged for resync, so it is not a root after all",
+            id_root->name,
+            id_root->lib,
+            id_from->name,
+            id_from->lib);
+
+        entry->tags &= ~MAINIDRELATIONS_ENTRY_TAGS_DOIT;
+      }
+      return;
+    }
+    /* Else, if it is not being processed as part of a resync hierarchy, nothing more to do either,
+     * its current status and the one of its whole dependency tree is also assumed valid. */
+    else if (!is_in_partial_resync_hierarchy) {
+      return;
+    }
+
+    /* Else, this ID was processed before and not detected as needing resync, but it now needs
+     * resync, so its whole sub-tree needs to be re-processed to be properly tagged as needing
+     * resync. */
+    entry->tags &= ~MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
   }
 
-  /* This way we won't process again that ID, should we encounter it again through another
-   * relationship hierarchy. */
-  entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+  if (is_in_partial_resync_hierarchy) {
+    BLI_assert(id_from != nullptr);
 
-  /* There can be dependency loops in relationships, e.g.:
-   *   - Rig object uses armature ID.
-   *   - Armature ID has some drivers using rig object as variable.
-   *
-   * In that case, if this function is initially called on the rig object (therefore tagged as
-   * needing resync), it will:
-   *   - Process the rig object
-   *   -- Recurse over the armature ID
-   *   --- Recurse over the rig object again
-   *   --- The rig object is detected as already processed and returns true.
-   *   -- The armature has a tagged ancestor (the rig object), so it is not a resync root.
-   *   - The rig object has a tagged ancestor (the armature), so it is not a resync root.
-   * ...and this ends up with no resync root.
-   *
-   * Removing the 'need resync' tag before doing the recursive calls allow to break this loop and
-   * results in actually getting a resync root, even though it may not be the 'logical' one.
-   *
-   * In the example above, the armature will become the resync root.
-   */
-  const int id_tag_need_resync = (id->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC);
-  id->tag &= ~LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
-
-  /* Pre-set the 'isolated from root' tag, it will be cleared if a valid path to its root is found
-   * in its parents hierarchy. See comment below when this tag is checked for details. */
-  override_library_runtime_ensure(id->override_library);
-  if (id != id->override_library->hierarchy_root) {
-    id->override_library->runtime->tag |= LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT;
+    if ((id_root->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) == 0) {
+      CLOG_INFO(&LOG,
+                4,
+                "ID %s (%p) now tagged as needing resync because they are used by %s (%p) "
+                "that needs to be resynced",
+                id_root->name,
+                id_root->lib,
+                id_from->name,
+                id_from->lib);
+      id_root->tag |= LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
+    }
+  }
+  else if (id_root->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) {
+    /* Not yet whithin a partial resync hierarchy, and this ID is tagged for resync, it is a
+     * potential partial resync root. */
+    is_in_partial_resync_hierarchy = true;
   }
 
-  bool is_ancestor_tagged_for_resync = false;
-  for (MainIDRelationsEntryItem *entry_item = entry->from_ids; entry_item != nullptr;
+  /* Temporary tag to help manage dependency loops. */
+  if (!is_reprocessing_current_entry) {
+    BLI_assert((entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) == 0);
+    entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS;
+
+    /* Since this ID is reached from the hierarchy root, it is not isolated from it. */
+    if (id_root->override_library->hierarchy_root != id_root) {
+      id_root->override_library->runtime->tag &= ~LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT;
+    }
+  }
+
+  /* Check the whole sub-tree hierarchy of this ID. */
+  for (MainIDRelationsEntryItem *entry_item = entry->to_ids; entry_item != nullptr;
        entry_item = entry_item->next)
   {
     if (entry_item->usage_flag & (IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE | IDWALK_CB_LOOPBACK))
@@ -2396,99 +2440,43 @@ static bool lib_override_resync_tagging_finalize_recurse(
       continue;
     }
 
-    ID *id_from = entry_item->id_pointer.from;
-    BKE_lib_override_library_get(bmain, id_from, nullptr, &id_from);
+    ID *id_to = *(entry_item->id_pointer.to);
+    /* Ensure the 'real' override is processed, in case `id_to` is e.g. an embedded ID, get its
+     * owner instead. */
+    BKE_lib_override_library_get(bmain, id_to, nullptr, &id_to);
 
-    /* Check if this ID has an override hierarchy ancestor already tagged for resync. */
-    if (id_from != id && ID_IS_OVERRIDE_LIBRARY_REAL(id_from) && id_from->lib == id->lib &&
-        id_from->override_library->hierarchy_root == id->override_library->hierarchy_root)
+    if (id_to == id_root || !ID_IS_OVERRIDE_LIBRARY_REAL(id_to) || id_to->lib != id_root->lib ||
+        id_to->override_library->hierarchy_root != id_root->override_library->hierarchy_root)
     {
-      const bool is_ancestor_tagged_for_resync_prev = is_ancestor_tagged_for_resync;
-      is_ancestor_tagged_for_resync |= lib_override_resync_tagging_finalize_recurse(
-          bmain, id_from, id_roots, library_indirect_level, check_only);
+      continue;
+    }
 
-      /* If at least one parent is not cut from root, then this liboverride is not either. */
-      if ((id_from->override_library->runtime->tag & LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT) ==
-          0) {
-        id->override_library->runtime->tag &= ~LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT;
-      }
+    lib_override_resync_tagging_finalize_recurse(
+        bmain, id_to, id_root, library_indirect_level, is_in_partial_resync_hierarchy);
 
-      if (!check_only && is_ancestor_tagged_for_resync && !is_ancestor_tagged_for_resync_prev) {
-        CLOG_INFO(&LOG,
-                  4,
-                  "ID %s (%p) now tagged as needing resync because they are used by %s (%p) "
-                  "that needs to be resynced",
-                  id->name,
-                  id->lib,
-                  id_from->name,
-                  id_from->lib);
-      }
+    /* Call above may have changed that status in case of dependency loop, update it for the next
+     * dependency processing. */
+    is_in_partial_resync_hierarchy = (id_root->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) != 0;
+  }
+
+  if (!is_reprocessing_current_entry) {
+    BLI_assert((entry->tags & MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS) != 0);
+    BLI_assert((entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) == 0);
+
+    entry->tags &= ~MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS;
+    entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+
+    if (is_in_partial_resync_hierarchy &&
+        (id_from == nullptr || (id_from->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) == 0))
+    {
+      /* This ID (and its whole sub-tree of dependencies) is now considered as processed. If it is
+       * tagged for resync, but its 'calling parent' is not, it is a potential partial resync root.
+       */
+      CLOG_INFO(
+          &LOG, 4, "Potential root for partial resync: %s (%p)", id_root->name, id_root->lib);
+      entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_DOIT;
     }
   }
-
-  /* Re-enable 'need resync' tag if needed. */
-  id->tag |= id_tag_need_resync;
-
-  if (check_only) {
-    return is_ancestor_tagged_for_resync;
-  }
-
-  if (is_ancestor_tagged_for_resync) {
-    /* If a tagged-for-resync ancestor was found, this id is not a resync sub-tree root, but it is
-     * part of one, and therefore needs to be tagged for resync too. */
-    id->tag |= LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
-  }
-  else if (id->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) {
-    /* If no tagged-for-resync ancestor was found, but this id is tagged for resync, then it is a
-     * root of a resync sub-tree. Find the root of the whole override hierarchy and add this ID as
-     * one of its resync sub-tree roots. */
-    ID *id_root = lib_override_library_main_resync_root_get(bmain, id);
-    BLI_assert(id_root->lib == id->lib);
-
-    CLOG_INFO(&LOG, 4, "Found root ID '%s' for resync root ID '%s'", id_root->name, id->name);
-
-    BLI_assert(id_root->override_library != nullptr);
-
-    /* This address a very intricate case. It can happen that the current (non-hierarchy root)
-     * override is not currently part of any liboverride hierarchy (it lost its parent(s) in it).
-     *
-     * For example, an object may have been moved from one sub-collection to another in the
-     * library. In such cases, its override in the local file will not be part of any liboverride
-     * collections of its hierarchy (the old one lost it, and since there has been no resync yet,
-     * its new liboverride collection currently uses its linked reference).
-     *
-     * Proper exact handling of such case is not obvious, for now simply consider it as needing
-     * tagging, and that it had a not-yet-known ancestor also tagged for resync, i.e. it is not a
-     * valid partial resync root. */
-    if ((id->override_library->runtime->tag & LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT) != 0) {
-      BLI_assert(id != id_root);
-      CLOG_INFO(&LOG,
-                3,
-                "ID %s (%p) is tagged as needing resync, but is cut from its hierarchy root ID %s "
-                "in its current override hierarchy. This could be the sign of a deleted or moved "
-                "around linked data, do not consider it as a partial resync root.",
-                id->name,
-                id->lib,
-                id_root->name);
-    }
-    else {
-      CLOG_INFO(&LOG,
-                3,
-                "ID %s (%p) is tagged as needing resync, but none of its override hierarchy "
-                "ancestors are tagged for resync, so it is a partial resync root",
-                id->name,
-                id->lib);
-
-      LinkNodePair **id_resync_roots_p;
-      if (!BLI_ghash_ensure_p(id_roots, id_root, reinterpret_cast<void ***>(&id_resync_roots_p))) {
-        *id_resync_roots_p = MEM_cnew<LinkNodePair>(__func__);
-      }
-      BLI_linklist_append(*id_resync_roots_p, id);
-    }
-    is_ancestor_tagged_for_resync = true;
-  }
-
-  return is_ancestor_tagged_for_resync;
 }
 
 /* Return true if the ID should be skipped for resync given current context. */
@@ -2525,6 +2513,124 @@ static bool lib_override_library_main_resync_id_skip_check(ID *id,
   }
 
   return false;
+}
+
+/* Once all IDs needing resync have been tagged, partial ID roots can be found by processing each
+ * tagged-for-resync IDs' ancestors within their liboverride hierarchy. */
+static void lib_override_resync_tagging_finalize(Main *bmain,
+                                                 GHash *id_roots,
+                                                 const int library_indirect_level)
+{
+  ID *id_iter;
+
+  /* Tag all IDs to be processed, which are real liboverrides part of a hierarchy, and not the
+   * root of their hierarchy, as potentially isolated from ther hierarchy root. */
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (lib_override_library_main_resync_id_skip_check(id_iter, library_indirect_level)) {
+      continue;
+    }
+
+    if (!ELEM(id_iter->override_library->hierarchy_root, id_iter, nullptr)) {
+      override_library_runtime_ensure(id_iter->override_library)->tag |=
+          LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT;
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  /* Finalize all IDs needing tagging for resync, and tag partial resync roots. Will also clear the
+   * 'isolated' tag from all processed IDs. */
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (lib_override_library_main_resync_id_skip_check(id_iter, library_indirect_level)) {
+      continue;
+    }
+
+    /* Only process hierarchy root IDs here. */
+    if (id_iter->override_library->hierarchy_root != id_iter) {
+      continue;
+    }
+
+    lib_override_resync_tagging_finalize_recurse(
+        bmain, id_iter, nullptr, library_indirect_level, false);
+  }
+  FOREACH_MAIN_ID_END;
+
+  /* Process above cleared all IDs actually still in relation with their root from the tag.
+   *
+   * Remaining ones are in a limbo, typically they could have been removed or moved around in the
+   * hierarchy (e.g. an object moved into another sub-collection). Tag them as needing resync,
+   * actual resyncing code will handle them as needed. */
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (lib_override_library_main_resync_id_skip_check(id_iter, library_indirect_level)) {
+      continue;
+    }
+
+    if (!ELEM(id_iter->override_library->hierarchy_root, id_iter, nullptr) &&
+        (id_iter->override_library->runtime->tag & LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT))
+    {
+      CLOG_INFO(&LOG,
+                4,
+                "ID %s (%p) detected as 'isolated' from its hierarchy root, tagging it as needing "
+                "resync",
+                id_iter->name,
+                id_iter->lib);
+      id_iter->tag |= LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  /* If no tagged-for-resync ancestor was found, but the iterated ID is tagged for resync, then it
+   * is a root of a resync sub-tree. Find the root of the whole override hierarchy and add the
+   * iterated ID as one of its resync sub-tree roots. */
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (lib_override_library_main_resync_id_skip_check(id_iter, library_indirect_level)) {
+      continue;
+    }
+    if ((id_iter->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) == 0) {
+      continue;
+    }
+
+    MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
+        BLI_ghash_lookup(bmain->relations->relations_from_pointers, id_iter));
+    BLI_assert(entry != nullptr);
+    BLI_assert((entry->tags & MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS) == 0);
+
+    if ((entry->tags & MAINIDRELATIONS_ENTRY_TAGS_DOIT) == 0) {
+      continue;
+    }
+
+    BLI_assert(entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED);
+
+    ID *hierarchy_root = id_iter->override_library->hierarchy_root;
+    BLI_assert(hierarchy_root->lib == id_iter->lib);
+
+    if (id_iter != hierarchy_root) {
+      CLOG_INFO(&LOG,
+                4,
+                "Found root ID '%s' for partial resync root ID '%s'",
+                hierarchy_root->name,
+                id_iter->name);
+
+      BLI_assert(hierarchy_root->override_library != nullptr);
+
+      BLI_assert((id_iter->override_library->runtime->tag &
+                  LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT) == 0);
+    }
+
+    LinkNodePair **id_resync_roots_p;
+    if (!BLI_ghash_ensure_p(
+            id_roots, hierarchy_root, reinterpret_cast<void ***>(&id_resync_roots_p))) {
+      *id_resync_roots_p = MEM_cnew<LinkNodePair>(__func__);
+    }
+    BLI_linklist_append(*id_resync_roots_p, id_iter);
+  }
+  FOREACH_MAIN_ID_END;
+
+  BKE_main_relations_tag_set(
+      bmain,
+      static_cast<const eMainIDRelationsEntryTags>(MAINIDRELATIONS_ENTRY_TAGS_PROCESSED |
+                                                   MAINIDRELATIONS_ENTRY_TAGS_DOIT |
+                                                   MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS),
+      false);
 }
 
 /* Ensure resync of all overrides at one level of indirect usage.
@@ -2585,7 +2691,6 @@ static void lib_override_library_main_resync_on_library_indirect_level(
 
   /* Now check existing overrides, those needing resync will be the one either already tagged as
    * such, or the one using linked data that is now tagged as needing override. */
-  BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (lib_override_library_main_resync_id_skip_check(id, library_indirect_level)) {
       continue;
@@ -2627,21 +2732,8 @@ static void lib_override_library_main_resync_on_library_indirect_level(
 
   /* Handling hierarchy relations for final tagging needs to happen after all IDs in a given
    * hierarchy have been tagged for resync in previous loop above. Otherwise, some resync roots may
-   * be missing, and other may be created that are not actually needed (when a liboverride is
-   * tagged for resync after being checked in #lib_override_resync_tagging_finalize_recurse as part
-   * of the parent hierarchy of another liboverride e.g.). */
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (lib_override_library_main_resync_id_skip_check(id, library_indirect_level)) {
-      continue;
-    }
-
-    if (id->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) {
-      lib_override_resync_tagging_finalize_recurse(
-          bmain, id, id_roots, library_indirect_level, false);
-      continue;
-    }
-  }
-  FOREACH_MAIN_ID_END;
+   * be missing. */
+  lib_override_resync_tagging_finalize(bmain, id_roots, library_indirect_level);
 
 #ifndef NDEBUG
   /* Check for validity/integrity of the computed set of root IDs, and their sub-branches defined
@@ -2691,17 +2783,6 @@ static void lib_override_library_main_resync_on_library_indirect_level(
                        static_cast<ID *>(id_resync_roots->list->link)->name,
                        static_cast<ID *>(id_resync_roots->last_node->link)->name);
           }
-        }
-        if (lib_override_resync_tagging_finalize_recurse(
-                bmain, id_resync_root, id_roots, library_indirect_level, true))
-        {
-          CLOG_ERROR(&LOG,
-                     "Resync root ID still has ancestors tagged for resync, this should not "
-                     "happen at this point."
-                     "\n\tRoot ID: %s"
-                     "\n\tResync root ID: %s",
-                     id_root->name,
-                     id_resync_root->name);
         }
       }
       BLI_ghashIterator_step(id_roots_iter);
