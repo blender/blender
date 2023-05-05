@@ -3305,19 +3305,20 @@ static RenderPass *image_render_pass_get(RenderLayer *rl,
   return rpass_ret;
 }
 
-void BKE_image_get_tile_label(Image *ima, ImageTile *tile, char *label, int len_label)
+int BKE_image_get_tile_label(const Image *ima,
+                             const ImageTile *tile,
+                             char *label,
+                             const int label_maxncpy)
 {
   label[0] = '\0';
   if (ima == nullptr || tile == nullptr) {
-    return;
+    return 0;
   }
 
   if (tile->label[0]) {
-    BLI_strncpy(label, tile->label, len_label);
+    return BLI_strncpy_rlen(label, tile->label, label_maxncpy);
   }
-  else {
-    BLI_snprintf(label, len_label, "%d", tile->tile_number);
-  }
+  return BLI_snprintf_rlen(label, label_maxncpy, "%d", tile->tile_number);
 }
 
 bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start, int *r_tile_range)

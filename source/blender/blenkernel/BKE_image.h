@@ -345,11 +345,12 @@ bool BKE_image_has_opengl_texture(struct Image *ima);
 
 /**
  * Get tile index for tiled images.
+ * \return The string length.
  */
-void BKE_image_get_tile_label(struct Image *ima,
-                              struct ImageTile *tile,
-                              char *label,
-                              int len_label);
+int BKE_image_get_tile_label(const struct Image *ima,
+                             const struct ImageTile *tile,
+                             char *label,
+                             int label_maxncpy);
 
 /**
  * Checks whether the given filepath refers to a UDIM tiled texture.
