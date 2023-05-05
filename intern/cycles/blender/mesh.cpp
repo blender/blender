@@ -319,10 +319,10 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
       }
       else {
         const int tris_num = b_mesh.loop_triangles.length();
-        const MLoopTri *looptris = static_cast<const MLoopTri *>(
-            b_mesh.loop_triangles[0].ptr.data);
+        const int *looptri_polys = static_cast<const int *>(
+            b_mesh.loop_triangle_polygons[0].ptr.data);
         for (int i = 0; i < tris_num; i++) {
-          data[i] = get_value_at_index(looptris[i].poly);
+          data[i] = get_value_at_index(looptri_polys[i]);
         }
       }
       break;
@@ -1095,9 +1095,10 @@ static void create_mesh(Scene *scene,
     }
 
     if (material_indices) {
+      const int *looptri_polys = static_cast<const int *>(
+          b_mesh.loop_triangle_polygons[0].ptr.data);
       for (int i = 0; i < numtris; i++) {
-        const int poly_index = looptris[i].poly;
-        shader[i] = clamp_material_index(material_indices[poly_index]);
+        shader[i] = clamp_material_index(material_indices[looptri_polys[i]]);
       }
     }
     else {
@@ -1105,9 +1106,10 @@ static void create_mesh(Scene *scene,
     }
 
     if (sharp_faces && !(use_loop_normals && corner_normals)) {
+      const int *looptri_polys = static_cast<const int *>(
+          b_mesh.loop_triangle_polygons[0].ptr.data);
       for (int i = 0; i < numtris; i++) {
-        const int poly_index = looptris[i].poly;
-        smooth[i] = !sharp_faces[poly_index];
+        smooth[i] = !sharp_faces[looptri_polys[i]];
       }
     }
     else {

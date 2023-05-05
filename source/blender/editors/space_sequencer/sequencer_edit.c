@@ -3187,7 +3187,7 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
 
   /* Avoid File write exceptions. */
   if (!BLI_exists(filepath)) {
-    BLI_make_existing_file(filepath);
+    BLI_file_ensure_parent_dir_exists(filepath);
     if (!BLI_file_touch(filepath)) {
       BKE_report(op->reports, RPT_ERROR, "Can't create subtitle file");
       return OPERATOR_CANCELLED;

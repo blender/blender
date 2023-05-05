@@ -1001,6 +1001,7 @@ class IMAGE_PT_proportional_edit(Panel):
         col.separator()
 
         col.prop(tool_settings, "proportional_edit_falloff", expand=True)
+        col.prop(tool_settings, "proportional_size")
 
 
 class IMAGE_PT_image_properties(Panel):

@@ -63,27 +63,27 @@ static IMB_Timecode_Type tc_types[] = {
  * - time code index functions
  * ---------------------------------------------------------------------- */
 
-anim_index_builder *IMB_index_builder_create(const char *name)
+anim_index_builder *IMB_index_builder_create(const char *filepath)
 {
 
   anim_index_builder *rv = MEM_cnew<anim_index_builder>("index builder");
 
-  fprintf(stderr, "Starting work on index: %s\n", name);
+  fprintf(stderr, "Starting work on index: %s\n", filepath);
 
-  BLI_strncpy(rv->name, name, sizeof(rv->name));
+  BLI_strncpy(rv->filepath, filepath, sizeof(rv->filepath));
 
-  BLI_strncpy(rv->temp_name, name, sizeof(rv->temp_name));
-  BLI_string_join(rv->temp_name, sizeof(rv->temp_name), name, temp_ext);
+  BLI_strncpy(rv->filepath_temp, filepath, sizeof(rv->filepath_temp));
+  BLI_string_join(rv->filepath_temp, sizeof(rv->filepath_temp), filepath, temp_ext);
 
-  BLI_make_existing_file(rv->temp_name);
+  BLI_file_ensure_parent_dir_exists(rv->filepath_temp);
 
-  rv->fp = BLI_fopen(rv->temp_name, "wb");
+  rv->fp = BLI_fopen(rv->filepath_temp, "wb");
 
   if (!rv->fp) {
     fprintf(stderr,
             "Couldn't open index target: %s! "
             "Index build broken!\n",
-            rv->temp_name);
+            rv->filepath_temp);
     MEM_freeN(rv);
     return nullptr;
   }
@@ -144,21 +144,21 @@ void IMB_index_builder_finish(anim_index_builder *fp, int rollback)
   fclose(fp->fp);
 
   if (rollback) {
-    unlink(fp->temp_name);
+    unlink(fp->filepath_temp);
   }
   else {
-    unlink(fp->name);
-    BLI_rename(fp->temp_name, fp->name);
+    unlink(fp->filepath);
+    BLI_rename(fp->filepath_temp, fp->filepath);
   }
 
   MEM_freeN(fp);
 }
 
-struct anim_index *IMB_indexer_open(const char *name)
+struct anim_index *IMB_indexer_open(const char *filepath)
 {
   char header[13];
   struct anim_index *idx;
-  FILE *fp = BLI_fopen(name, "rb");
+  FILE *fp = BLI_fopen(filepath, "rb");
   int i;
 
   if (!fp) {
@@ -166,7 +166,7 @@ struct anim_index *IMB_indexer_open(const char *name)
   }
 
   if (fread(header, 12, 1, fp) != 1) {
-    fprintf(stderr, "Couldn't read indexer file: %s\n", name);
+    fprintf(stderr, "Couldn't read indexer file: %s\n", filepath);
     fclose(fp);
     return nullptr;
   }
@@ -174,20 +174,20 @@ struct anim_index *IMB_indexer_open(const char *name)
   header[12] = 0;
 
   if (memcmp(header, binary_header_str, 8) != 0) {
-    fprintf(stderr, "Error reading %s: Binary file type string mismatch\n", name);
+    fprintf(stderr, "Error reading %s: Binary file type string mismatch\n", filepath);
     fclose(fp);
     return nullptr;
   }
 
   if (atoi(header + 9) != INDEX_FILE_VERSION) {
-    fprintf(stderr, "Error reading %s: File version mismatch\n", name);
+    fprintf(stderr, "Error reading %s: File version mismatch\n", filepath);
     fclose(fp);
     return nullptr;
   }
 
   idx = MEM_cnew<anim_index>("anim_index");
 
-  BLI_strncpy(idx->name, name, sizeof(idx->name));
+  BLI_strncpy(idx->filepath, filepath, sizeof(idx->filepath));
 
   fseek(fp, 0, SEEK_END);
 
@@ -213,7 +213,7 @@ struct anim_index *IMB_indexer_open(const char *name)
   }
 
   if (UNLIKELY(items_read != idx->num_entries * 5)) {
-    fprintf(stderr, "Error: Element data size mismatch in: %s\n", name);
+    fprintf(stderr, "Error: Element data size mismatch in: %s\n", filepath);
     MEM_freeN(idx->entries);
     MEM_freeN(idx);
     fclose(fp);
@@ -383,7 +383,7 @@ static void get_index_dir(struct anim *anim, char *index_dir, size_t index_dir_l
   if (!anim->index_dir[0]) {
     char filename[FILE_MAXFILE];
     char dirname[FILE_MAXDIR];
-    BLI_path_split_dir_file(anim->name, dirname, sizeof(dirname), filename, sizeof(filename));
+    BLI_path_split_dir_file(anim->filepath, dirname, sizeof(dirname), filename, sizeof(filename));
     BLI_path_join(index_dir, index_dir_len, dirname, "BL_proxy", filename);
   }
   else {
@@ -391,9 +391,9 @@ static void get_index_dir(struct anim *anim, char *index_dir, size_t index_dir_l
   }
 }
 
-void IMB_anim_get_fname(struct anim *anim, char *file, int size)
+void IMB_anim_get_filename(struct anim *anim, char *filename, int filename_maxncpy)
 {
-  BLI_path_split_file_part(anim->name, file, size);
+  BLI_path_split_file_part(anim->filepath, filename, filename_maxncpy);
 }
 
 static bool get_proxy_filepath(struct anim *anim,
@@ -421,7 +421,7 @@ static bool get_proxy_filepath(struct anim *anim,
 
   get_index_dir(anim, index_dir, sizeof(index_dir));
 
-  if (BLI_path_ncmp(anim->name, index_dir, FILE_MAXDIR) == 0) {
+  if (BLI_path_ncmp(anim->filepath, index_dir, FILE_MAXDIR) == 0) {
     return false;
   }
 
@@ -497,7 +497,7 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->anim = anim;
 
   get_proxy_filepath(rv->anim, rv->proxy_size, filepath, true);
-  if (!BLI_make_existing_file(filepath)) {
+  if (!BLI_file_ensure_parent_dir_exists(filepath)) {
     return nullptr;
   }
 
@@ -846,7 +846,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim,
   memset(context->proxy_ctx, 0, sizeof(context->proxy_ctx));
   memset(context->indexer, 0, sizeof(context->indexer));
 
-  if (avformat_open_input(&context->iFormatCtx, anim->name, nullptr, nullptr) != 0) {
+  if (avformat_open_input(&context->iFormatCtx, anim->filepath, nullptr, nullptr) != 0) {
     MEM_freeN(context);
     return nullptr;
   }
@@ -1321,7 +1321,7 @@ static IndexBuildContext *index_fallback_create_context(struct anim *anim,
       char filepath[FILE_MAX];
 
       get_proxy_filepath(anim, proxy_sizes[i], filepath, true);
-      BLI_make_existing_file(filepath);
+      BLI_file_ensure_parent_dir_exists(filepath);
 
       context->proxy_ctx[i] = alloc_proxy_output_avi(
           anim, filepath, anim->x * proxy_fac[i], anim->y * proxy_fac[i], quality);
@@ -1480,11 +1480,11 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
     UNUSED_VARS(build_only_on_bad_performance);
 #endif
 
-#ifdef WITH_AVI
     default:
+#ifdef WITH_AVI
       context = index_fallback_create_context(anim, tcs_in_use, proxy_sizes_to_build, quality);
-      break;
 #endif
+      break;
   }
 
   if (context) {
@@ -1512,11 +1512,11 @@ void IMB_anim_index_rebuild(struct IndexBuildContext *context,
       }
       break;
 #endif
-#ifdef WITH_AVI
     default:
+#ifdef WITH_AVI
       index_rebuild_fallback((FallbackIndexBuilderContext *)context, stop, do_update, progress);
-      break;
 #endif
+      break;
   }
 
   UNUSED_VARS(stop, do_update, progress);
@@ -1530,11 +1530,11 @@ void IMB_anim_index_rebuild_finish(IndexBuildContext *context, const bool stop)
       index_rebuild_ffmpeg_finish((FFmpegIndexBuilderContext *)context, stop);
       break;
 #endif
-#ifdef WITH_AVI
     default:
+#ifdef WITH_AVI
       index_rebuild_fallback_finish((FallbackIndexBuilderContext *)context, stop);
-      break;
 #endif
+      break;
   }
 
   /* static defined at top of the file */

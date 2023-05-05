@@ -761,9 +761,7 @@ class AssetIndexFile : public AbstractFile {
 
   bool ensure_parent_path_exists() const
   {
-    /* `BLI_make_existing_file` only ensures parent path, otherwise than expected from the name of
-     * the function. */
-    return BLI_make_existing_file(get_file_path());
+    return BLI_file_ensure_parent_dir_exists(get_file_path());
   }
 
   void write_contents(AssetIndex &content)

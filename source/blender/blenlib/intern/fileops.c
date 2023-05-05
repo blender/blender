@@ -257,9 +257,9 @@ bool BLI_file_is_writable(const char *filepath)
   return writable;
 }
 
-bool BLI_file_touch(const char *file)
+bool BLI_file_touch(const char *filepath)
 {
-  FILE *f = BLI_fopen(file, "r+b");
+  FILE *f = BLI_fopen(filepath, "r+b");
 
   if (f != NULL) {
     int c = getc(f);
@@ -267,7 +267,7 @@ bool BLI_file_touch(const char *file)
     if (c == EOF) {
       /* Empty file, reopen in truncate write mode... */
       fclose(f);
-      f = BLI_fopen(file, "w+b");
+      f = BLI_fopen(filepath, "w+b");
     }
     else {
       /* Otherwise, rewrite first byte. */
@@ -276,13 +276,22 @@ bool BLI_file_touch(const char *file)
     }
   }
   else {
-    f = BLI_fopen(file, "wb");
+    f = BLI_fopen(filepath, "wb");
   }
   if (f) {
     fclose(f);
     return true;
   }
   return false;
+}
+
+bool BLI_file_ensure_parent_dir_exists(const char *filepath)
+{
+  char di[FILE_MAX];
+  BLI_path_split_dir_part(filepath, di, sizeof(di));
+
+  /* Make if the dir doesn't exist. */
+  return BLI_dir_create_recursive(di);
 }
 
 #ifdef WIN32
@@ -459,9 +468,9 @@ static bool delete_recursive(const char *dir)
   i = filelist_num = BLI_filelist_dir_contents(dir, &filelist);
   fl = filelist;
   while (i--) {
-    const char *file = BLI_path_basename(fl->path);
+    const char *filename = BLI_path_basename(fl->path);
 
-    if (FILENAME_IS_CURRPAR(file)) {
+    if (FILENAME_IS_CURRPAR(filename)) {
       /* Skip! */
     }
     else if (S_ISDIR(fl->type)) {
@@ -492,17 +501,17 @@ static bool delete_recursive(const char *dir)
   return err;
 }
 
-int BLI_delete(const char *file, bool dir, bool recursive)
+int BLI_delete(const char *path, bool dir, bool recursive)
 {
   int err;
 
-  BLI_assert(!BLI_path_is_rel(file));
+  BLI_assert(!BLI_path_is_rel(path));
 
   if (recursive) {
-    err = delete_recursive(file);
+    err = delete_recursive(path);
   }
   else {
-    err = delete_unique(file, dir);
+    err = delete_unique(path, dir);
   }
 
   return err;
@@ -997,17 +1006,17 @@ int BLI_access(const char *filepath, int mode)
   return access(filepath, mode);
 }
 
-int BLI_delete(const char *file, bool dir, bool recursive)
+int BLI_delete(const char *path, bool dir, bool recursive)
 {
-  BLI_assert(!BLI_path_is_rel(file));
+  BLI_assert(!BLI_path_is_rel(path));
 
   if (recursive) {
-    return recursive_operation(file, NULL, NULL, delete_single_file, delete_callback_post);
+    return recursive_operation(path, NULL, NULL, delete_single_file, delete_callback_post);
   }
   if (dir) {
-    return rmdir(file);
+    return rmdir(path);
   }
-  return remove(file);
+  return remove(path);
 }
 
 int BLI_delete_soft(const char *file, const char **error_message)
@@ -1287,11 +1296,12 @@ bool BLI_dir_create_recursive(const char *dirname)
   char *tmp;
   bool ret = true;
 
-  if (BLI_is_dir(dirname)) {
-    return true;
-  }
-  if (BLI_exists(dirname)) {
-    return false;
+  const int mode = BLI_exists(dirname);
+  if (mode != 0) {
+    /* The file exists, either it's a directory (ok), or not,
+     * in which case this function can't do anything useful
+     * (the caller could remove it and re-run this function).  */
+    return S_ISDIR(mode) ? true : false;
   }
 
 #  ifdef MAXPATHLEN
@@ -1299,7 +1309,7 @@ bool BLI_dir_create_recursive(const char *dirname)
   tmp = static_buf;
 #  else
   size = strlen(dirname) + 1;
-  tmp = MEM_callocN(size, __func__);
+  tmp = MEM_mallocN(size, __func__);
 #  endif
 
   BLI_strncpy(tmp, dirname, size);

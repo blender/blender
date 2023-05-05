@@ -715,13 +715,13 @@ static int init_jpeg(FILE *outfile, struct jpeg_compress_struct *cinfo, struct I
   return 0;
 }
 
-static bool save_stdjpeg(const char *name, struct ImBuf *ibuf)
+static bool save_stdjpeg(const char *filepath, struct ImBuf *ibuf)
 {
   FILE *outfile;
   struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
   struct my_error_mgr jerr;
 
-  if ((outfile = BLI_fopen(name, "wb")) == nullptr) {
+  if ((outfile = BLI_fopen(filepath, "wb")) == nullptr) {
     return 0;
   }
 
@@ -735,7 +735,7 @@ static bool save_stdjpeg(const char *name, struct ImBuf *ibuf)
      */
     jpeg_destroy_compress(cinfo);
     fclose(outfile);
-    remove(name);
+    remove(filepath);
     return 0;
   }
 

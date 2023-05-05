@@ -352,6 +352,7 @@ set(SRC
   BLI_string_search.h
   BLI_string_utf8.h
   BLI_string_utils.h
+  BLI_sub_frame.hh
   BLI_sys_types.h
   BLI_system.h
   BLI_task.h

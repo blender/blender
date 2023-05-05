@@ -87,6 +87,7 @@
 #include "BKE_scene.h"
 #include "BKE_shader_fx.h"
 #include "BKE_simulation.h"
+#include "BKE_simulation_state.hh"
 #include "BKE_sound.h"
 #include "BKE_tracking.h"
 #include "BKE_volume.h"
@@ -906,6 +907,20 @@ void DepsgraphNodeBuilder::build_object_modifiers(Object *object)
   LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
     OperationNode *modifier_node = add_operation_node(
         &object->id, NodeType::GEOMETRY, OperationCode::MODIFIER, nullptr, modifier->name);
+    if (modifier->type == eModifierType_Nodes) {
+      modifier_node->evaluate = [nmd = reinterpret_cast<NodesModifierData *>(modifier),
+                                 modifier_node](::Depsgraph *depsgraph) {
+        if (!DEG_is_active(depsgraph)) {
+          return;
+        }
+        if (modifier_node->flag & DEPSOP_FLAG_USER_MODIFIED) {
+          if (nmd->simulation_cache &&
+              nmd->simulation_cache->cache_state() == bke::sim::CacheState::Valid) {
+            nmd->simulation_cache->invalidate();
+          }
+        }
+      };
+    }
 
     /* Mute modifier mode if the modifier is not enabled for the dependency graph mode.
      * This handles static (non-animated) mode of the modifier. */

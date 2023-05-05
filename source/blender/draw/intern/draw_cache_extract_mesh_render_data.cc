@@ -310,6 +310,7 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
     /* Mesh */
     if ((iter_type & MR_ITER_LOOPTRI) || (data_flag & MR_DATA_LOOPTRI)) {
       mr->looptris = mr->me->looptris();
+      mr->looptri_polys = mr->me->looptri_polys();
     }
   }
   else {

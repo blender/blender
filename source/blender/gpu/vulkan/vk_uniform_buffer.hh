@@ -38,7 +38,7 @@ class VKUniformBuffer : public UniformBuf, NonCopyable {
   }
 
  private:
-  void allocate(VKContext &context);
+  void allocate();
   void bind(int slot, shader::ShaderCreateInfo::Resource::BindType bind_type);
 };
 

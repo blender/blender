@@ -893,7 +893,7 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
  */
 static ImBuf *seq_render_image_strip_view(const SeqRenderData *context,
                                           Sequence *seq,
-                                          char *name,
+                                          char *filepath,
                                           char *prefix,
                                           const char *ext,
                                           int view_id)
@@ -907,13 +907,13 @@ static ImBuf *seq_render_image_strip_view(const SeqRenderData *context,
   }
 
   if (prefix[0] == '\0') {
-    ibuf = IMB_loadiffname(name, flag, seq->strip->colorspace_settings.name);
+    ibuf = IMB_loadiffname(filepath, flag, seq->strip->colorspace_settings.name);
   }
   else {
-    char str[FILE_MAX];
-    BKE_scene_multiview_view_prefix_get(context->scene, name, prefix, &ext);
-    seq_multiview_name(context->scene, view_id, prefix, ext, str, FILE_MAX);
-    ibuf = IMB_loadiffname(str, flag, seq->strip->colorspace_settings.name);
+    char filepath_view[FILE_MAX];
+    BKE_scene_multiview_view_prefix_get(context->scene, filepath, prefix, &ext);
+    seq_multiview_name(context->scene, view_id, prefix, ext, filepath_view, FILE_MAX);
+    ibuf = IMB_loadiffname(filepath_view, flag, seq->strip->colorspace_settings.name);
   }
 
   if (ibuf == NULL) {
@@ -953,7 +953,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
                                      float timeline_frame,
                                      bool *r_is_proxy_image)
 {
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
   const char *ext = NULL;
   char prefix[FILE_MAX];
   ImBuf *ibuf = NULL;
@@ -963,8 +963,8 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
     return NULL;
   }
 
-  BLI_path_join(name, sizeof(name), seq->strip->dir, s_elem->name);
-  BLI_path_abs(name, BKE_main_blendfile_path_from_global());
+  BLI_path_join(filepath, sizeof(filepath), seq->strip->dir, s_elem->name);
+  BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
   /* Try to get a proxy image. */
   ibuf = seq_proxy_fetch(context, seq, timeline_frame);
@@ -976,14 +976,15 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
   /* Proxy not found, render original. */
   const int totfiles = seq_num_files(context->scene, seq->views_format, true);
   bool is_multiview_render = seq_image_strip_is_multiview_render(
-      context->scene, seq, totfiles, name, prefix, ext);
+      context->scene, seq, totfiles, filepath, prefix, ext);
 
   if (is_multiview_render) {
     int totviews = BKE_scene_multiview_num_views_get(&context->scene->r);
     ImBuf **ibufs_arr = MEM_callocN(sizeof(ImBuf *) * totviews, "Sequence Image Views Imbufs");
 
     for (int view_id = 0; view_id < totfiles; view_id++) {
-      ibufs_arr[view_id] = seq_render_image_strip_view(context, seq, name, prefix, ext, view_id);
+      ibufs_arr[view_id] = seq_render_image_strip_view(
+          context, seq, filepath, prefix, ext, view_id);
     }
 
     if (ibufs_arr[0] == NULL) {
@@ -1017,7 +1018,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
     MEM_freeN(ibufs_arr);
   }
   else {
-    ibuf = seq_render_image_strip_view(context, seq, name, prefix, ext, context->view_id);
+    ibuf = seq_render_image_strip_view(context, seq, filepath, prefix, ext, context->view_id);
   }
 
   if (ibuf == NULL) {
@@ -1034,12 +1035,12 @@ static ImBuf *seq_render_movie_strip_custom_file_proxy(const SeqRenderData *cont
                                                        Sequence *seq,
                                                        int timeline_frame)
 {
-  char name[PROXY_MAXFILE];
+  char filepath[PROXY_MAXFILE];
   StripProxy *proxy = seq->strip->proxy;
 
   if (proxy->anim == NULL) {
-    if (seq_proxy_get_custom_file_fname(seq, name, context->view_id)) {
-      proxy->anim = openanim(name, IB_rect, 0, seq->strip->colorspace_settings.name);
+    if (seq_proxy_get_custom_file_fname(seq, filepath, context->view_id)) {
+      proxy->anim = openanim(filepath, IB_rect, 0, seq->strip->colorspace_settings.name);
     }
     if (proxy->anim == NULL) {
       return NULL;

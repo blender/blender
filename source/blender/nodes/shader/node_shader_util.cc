@@ -18,7 +18,7 @@
 
 #include "RE_engine.h"
 
-#include "node_exec.h"
+#include "node_exec.hh"
 
 bool sh_node_poll_default(const bNodeType * /*ntype*/,
                           const bNodeTree *ntree,

@@ -943,7 +943,7 @@ class UVMinimumEnclosingSquareFinder {
 /**
  * Find the minimum bounding square that encloses the UVs as specified in `r_phis`.
  * If that square is smaller than `r_max_u` and `r_max_v`, then update `r_phis` accordingly.
- * \return True iff `r_phis`, `r_max_u` and `r_max_v` are modified.
+ * \return True if `r_phis`, `r_max_u` and `r_max_v` are modified.
  */
 static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
                                  const Span<PackIsland *> islands,

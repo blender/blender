@@ -24,7 +24,7 @@
 #include "BKE_camera.h"
 
 /* this module */
-#include "pipeline.h"
+#include "pipeline.hh"
 #include "render_types.h"
 
 /* ****************** MASKS and LUTS **************** */

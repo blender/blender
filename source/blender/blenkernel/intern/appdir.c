@@ -812,13 +812,13 @@ const char *BKE_appdir_resource_path_id(const int folder_id, const bool check_is
  * adds the correct extension (`.com` `.exe` etc) from
  * `$PATHEXT` if necessary. Also on Windows it translates
  * the name to its 8.3 version to prevent problems with
- * spaces and stuff. Final result is returned in \a fullname.
+ * spaces and stuff. Final result is returned in \a program_filepath.
  *
- * \param fullname: The full path and full name of the executable
+ * \param program_filepath: The full path and full name of the executable
  * (must be #FILE_MAX minimum)
  * \param name: The name of the executable (usually `argv[0]`) to be checked
  */
-static void where_am_i(char *fullname, const size_t maxlen, const char *name)
+static void where_am_i(char *program_filepath, const size_t maxlen, const char *program_name)
 {
 #  ifdef WITH_BINRELOC
   /* Linux uses `binreloc` since `argv[0]` is not reliable, call `br_init(NULL)` first. */
@@ -826,7 +826,7 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
     const char *path = NULL;
     path = br_find_exe(NULL);
     if (path) {
-      BLI_strncpy(fullname, path, maxlen);
+      BLI_strncpy(program_filepath, path, maxlen);
       free((void *)path);
       return;
     }
@@ -837,9 +837,9 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
   {
     wchar_t *fullname_16 = MEM_mallocN(maxlen * sizeof(wchar_t), "ProgramPath");
     if (GetModuleFileNameW(0, fullname_16, maxlen)) {
-      conv_utf_16_to_8(fullname_16, fullname, maxlen);
-      if (!BLI_exists(fullname)) {
-        CLOG_ERROR(&LOG, "path can't be found: \"%.*s\"", (int)maxlen, fullname);
+      conv_utf_16_to_8(fullname_16, program_filepath, maxlen);
+      if (!BLI_exists(program_filepath)) {
+        CLOG_ERROR(&LOG, "path can't be found: \"%.*s\"", (int)maxlen, program_filepath);
         MessageBox(
             NULL, "path contains invalid characters or is too long (see console)", "Error", MB_OK);
       }
@@ -852,31 +852,31 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
 #  endif
 
   /* Unix and non Linux. */
-  if (name && name[0]) {
+  if (program_name && program_name[0]) {
 
-    BLI_strncpy(fullname, name, maxlen);
-    if (name[0] == '.') {
-      BLI_path_abs_from_cwd(fullname, maxlen);
+    BLI_strncpy(program_filepath, program_name, maxlen);
+    if (program_name[0] == '.') {
+      BLI_path_abs_from_cwd(program_filepath, maxlen);
 #  ifdef _WIN32
-      BLI_path_program_extensions_add_win32(fullname, maxlen);
+      BLI_path_program_extensions_add_win32(program_filepath, maxlen);
 #  endif
     }
-    else if (BLI_path_slash_rfind(name)) {
+    else if (BLI_path_slash_rfind(program_name)) {
       /* Full path. */
-      BLI_strncpy(fullname, name, maxlen);
+      BLI_strncpy(program_filepath, program_name, maxlen);
 #  ifdef _WIN32
-      BLI_path_program_extensions_add_win32(fullname, maxlen);
+      BLI_path_program_extensions_add_win32(program_filepath, maxlen);
 #  endif
     }
     else {
-      BLI_path_program_search(fullname, maxlen, name);
+      BLI_path_program_search(program_filepath, maxlen, program_name);
     }
     /* Remove "/./" and "/../" so string comparisons can be used on the path. */
-    BLI_path_normalize(fullname);
+    BLI_path_normalize(program_filepath);
 
 #  if defined(DEBUG)
-    if (!STREQ(name, fullname)) {
-      CLOG_INFO(&LOG, 2, "guessing '%s' == '%s'", name, fullname);
+    if (!STREQ(program_name, program_filepath)) {
+      CLOG_INFO(&LOG, 2, "guessing '%s' == '%s'", program_name, program_filepath);
     }
 #  endif
   }
@@ -921,8 +921,8 @@ const char *BKE_appdir_program_dir(void)
   return g_app.program_dirname;
 }
 
-bool BKE_appdir_program_python_search(char *fullpath,
-                                      const size_t fullpath_len,
+bool BKE_appdir_program_python_search(char *program_filepath,
+                                      const size_t program_filepath_maxncpy,
                                       const int version_major,
                                       const int version_minor)
 {
@@ -957,13 +957,13 @@ bool BKE_appdir_program_python_search(char *fullpath,
     if (python_bin_dir) {
 
       for (int i = 0; i < ARRAY_SIZE(python_names); i++) {
-        BLI_path_join(fullpath, fullpath_len, python_bin_dir, python_names[i]);
+        BLI_path_join(program_filepath, program_filepath_maxncpy, python_bin_dir, python_names[i]);
 
         if (
 #ifdef _WIN32
-            BLI_path_program_extensions_add_win32(fullpath, fullpath_len)
+            BLI_path_program_extensions_add_win32(program_filepath, program_filepath_maxncpy)
 #else
-            BLI_exists(fullpath)
+            BLI_exists(program_filepath)
 #endif
         )
         {
@@ -976,7 +976,7 @@ bool BKE_appdir_program_python_search(char *fullpath,
 
   if (is_found == false) {
     for (int i = 0; i < ARRAY_SIZE(python_names); i++) {
-      if (BLI_path_program_search(fullpath, fullpath_len, python_names[i])) {
+      if (BLI_path_program_search(program_filepath, program_filepath_maxncpy, python_names[i])) {
         is_found = true;
         break;
       }
@@ -984,7 +984,7 @@ bool BKE_appdir_program_python_search(char *fullpath,
   }
 
   if (is_found == false) {
-    *fullpath = '\0';
+    *program_filepath = '\0';
   }
 
   return is_found;

@@ -211,7 +211,7 @@ void BKE_mesh_origindex_map_create(
 void BKE_mesh_origindex_map_create_looptri(MeshElemMap **r_map,
                                            int **r_mem,
                                            blender::OffsetIndices<int> polys,
-                                           const struct MLoopTri *looptri,
+                                           const int *looptri_polys,
                                            int looptri_num);
 
 /* islands */

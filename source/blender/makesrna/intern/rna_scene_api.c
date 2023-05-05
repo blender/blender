@@ -98,7 +98,7 @@ static void rna_Scene_uvedit_aspect(Scene *UNUSED(scene), Object *ob, float aspe
 }
 
 static void rna_SceneRender_get_frame_path(
-    RenderData *rd, Main *bmain, int frame, bool preview, const char *view, char *name)
+    RenderData *rd, Main *bmain, int frame, bool preview, const char *view, char *filepath)
 {
   const char *suffix = BKE_scene_multiview_view_suffix_get(rd, view);
 
@@ -108,10 +108,10 @@ static void rna_SceneRender_get_frame_path(
   }
 
   if (BKE_imtype_is_movie(rd->im_format.imtype)) {
-    BKE_movie_filepath_get(name, rd, preview != 0, suffix);
+    BKE_movie_filepath_get(filepath, rd, preview != 0, suffix);
   }
   else {
-    BKE_image_path_from_imformat(name,
+    BKE_image_path_from_imformat(filepath,
                                  rd->pic,
                                  BKE_main_blendfile_path(bmain),
                                  (frame == INT_MIN) ? rd->cfra : frame,

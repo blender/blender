@@ -52,11 +52,7 @@ class MTLBackend : public GPUBackend {
 
   void samplers_update() override;
   void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len) override;
-
-  void compute_dispatch_indirect(StorageBuf *indirect_buf) override
-  {
-    /* Placeholder */
-  }
+  void compute_dispatch_indirect(StorageBuf *indirect_buf) override;
 
   /* MTL Allocators need to be implemented in separate .mm files, due to allocation of Objective-C
    * objects. */

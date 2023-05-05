@@ -83,13 +83,13 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-class InterpolateDomain final : public bke::GeometryFieldInput {
+class EvaluateOnDomainInput final : public bke::GeometryFieldInput {
  private:
   GField src_field_;
   eAttrDomain src_domain_;
 
  public:
-  InterpolateDomain(GField field, eAttrDomain domain)
+  EvaluateOnDomainInput(GField field, eAttrDomain domain)
       : bke::GeometryFieldInput(field.cpp_type(), "Evaluate on Domain"),
         src_field_(std::move(field)),
         src_domain_(domain)
@@ -149,11 +149,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   const eAttrDomain domain = eAttrDomain(node.custom1);
   const eCustomDataType data_type = eCustomDataType(node.custom2);
 
-  attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+  bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
     using T = decltype(dummy);
     static const std::string identifier = "Value_" + identifier_suffix(data_type);
     Field<T> src_field = params.extract_input<Field<T>>(identifier);
-    Field<T> dst_field{std::make_shared<InterpolateDomain>(std::move(src_field), domain)};
+    Field<T> dst_field{std::make_shared<EvaluateOnDomainInput>(std::move(src_field), domain)};
     params.set_output(identifier, std::move(dst_field));
   });
 }

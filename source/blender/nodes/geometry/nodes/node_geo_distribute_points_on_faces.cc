@@ -274,7 +274,7 @@ BLI_NOINLINE static void interpolate_attribute(const Mesh &mesh,
       break;
     }
     case ATTR_DOMAIN_FACE: {
-      bke::mesh_surface_sample::sample_face_attribute(mesh.looptris(),
+      bke::mesh_surface_sample::sample_face_attribute(mesh.looptri_polys(),
                                                       looptri_indices,
                                                       source_data,
                                                       IndexMask(output_data.size()),

@@ -121,7 +121,7 @@ static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind
       continue;
     }
 
-    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
       VArraySpan<T> span{attribute.varray.typed<T>()};
       MutableSpan<T> out_span = result_attribute.span.typed<T>();

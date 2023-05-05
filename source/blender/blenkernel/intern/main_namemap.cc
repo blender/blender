@@ -234,7 +234,7 @@ static void main_namemap_populate(UniqueName_Map *name_map, struct Main *bmain, 
 
     /* Get the name and number parts ("name.number"). */
     int number = MIN_NUMBER;
-    BLI_split_name_num(key.name, &number, id->name + 2, '.');
+    BLI_string_split_name_number(id->name + 2, '.', key.name, &number);
 
     /* Get and update the entry for this base name. */
     UniqueName_Value &val = type_map->base_name_to_num_suffix.lookup_or_add_default(key);
@@ -284,7 +284,7 @@ bool BKE_main_namemap_get_name(struct Main *bmain, struct ID *id, char *name)
 
     /* Get the name and number parts ("name.number"). */
     int number = MIN_NUMBER;
-    size_t base_name_len = BLI_split_name_num(key.name, &number, name, '.');
+    size_t base_name_len = BLI_string_split_name_number(name, '.', key.name, &number);
 
     bool added_new = false;
     UniqueName_Value &val = type_map->base_name_to_num_suffix.lookup_or_add_cb(key, [&]() {
@@ -373,7 +373,7 @@ void BKE_main_namemap_remove_name(struct Main *bmain, struct ID *id, const char 
   type_map->full_names.remove(key);
 
   int number = MIN_NUMBER;
-  BLI_split_name_num(key.name, &number, name, '.');
+  BLI_string_split_name_number(name, '.', key.name, &number);
   UniqueName_Value *val = type_map->base_name_to_num_suffix.lookup_ptr(key);
   if (val == nullptr) {
     return;

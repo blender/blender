@@ -3,8 +3,8 @@
 
 #include "COM_OutputFileOperation.h"
 
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
-#include "BLI_path_util.h"
 #include "BLI_string.h"
 
 #include "BKE_image.h"
@@ -253,7 +253,7 @@ void OutputSingleLayerOperation::deinit_execution()
 
     int size = get_datatype_size(datatype_);
     ImBuf *ibuf = IMB_allocImBuf(this->get_width(), this->get_height(), format_.planes, 0);
-    char filename[FILE_MAX];
+    char filepath[FILE_MAX];
     const char *suffix;
 
     ibuf->channels = size;
@@ -265,7 +265,7 @@ void OutputSingleLayerOperation::deinit_execution()
 
     suffix = BKE_scene_multiview_view_suffix_get(rd_, view_name_);
 
-    BKE_image_path_from_imformat(filename,
+    BKE_image_path_from_imformat(filepath,
                                  path_,
                                  BKE_main_blendfile_path_from_global(),
                                  rd_->cfra,
@@ -274,11 +274,11 @@ void OutputSingleLayerOperation::deinit_execution()
                                  true,
                                  suffix);
 
-    if (0 == BKE_imbuf_write(ibuf, filename, &format_)) {
-      printf("Cannot save Node File Output to %s\n", filename);
+    if (0 == BKE_imbuf_write(ibuf, filepath, &format_)) {
+      printf("Cannot save Node File Output to %s\n", filepath);
     }
     else {
-      printf("Saved: %s\n", filename);
+      printf("Saved: %s\n", filepath);
     }
 
     IMB_freeImBuf(ibuf);
@@ -395,12 +395,12 @@ void OutputOpenExrMultiLayerOperation::deinit_execution()
   uint width = this->get_width();
   uint height = this->get_height();
   if (width != 0 && height != 0) {
-    char filename[FILE_MAX];
+    char filepath[FILE_MAX];
     const char *suffix;
     void *exrhandle = IMB_exr_get_handle();
 
     suffix = BKE_scene_multiview_view_suffix_get(rd_, view_name_);
-    BKE_image_path_from_imtype(filename,
+    BKE_image_path_from_imtype(filepath,
                                path_,
                                BKE_main_blendfile_path_from_global(),
                                rd_->cfra,
@@ -408,7 +408,7 @@ void OutputOpenExrMultiLayerOperation::deinit_execution()
                                (rd_->scemode & R_EXTENSION) != 0,
                                true,
                                suffix);
-    BLI_make_existing_file(filename);
+    BLI_file_ensure_parent_dir_exists(filepath);
 
     for (uint i = 0; i < layers_.size(); i++) {
       OutputOpenExrLayer &layer = layers_[i];
@@ -425,9 +425,9 @@ void OutputOpenExrMultiLayerOperation::deinit_execution()
                        layers_[i].output_buffer);
     }
 
-    /* when the filename has no permissions, this can fail */
+    /* When the filepath has no permissions, this can fail. */
     StampData *stamp_data = create_stamp_data();
-    if (IMB_exr_begin_write(exrhandle, filename, width, height, exr_codec_, stamp_data)) {
+    if (IMB_exr_begin_write(exrhandle, filepath, width, height, exr_codec_, stamp_data)) {
       IMB_exr_write_channels(exrhandle);
     }
     else {

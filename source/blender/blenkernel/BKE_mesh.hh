@@ -37,6 +37,8 @@ void looptris_calc_with_normals(Span<float3> vert_positions,
                                 Span<float3> poly_normals,
                                 MutableSpan<MLoopTri> looptris);
 
+void looptris_calc_poly_indices(OffsetIndices<int> polys, MutableSpan<int> looptri_polys);
+
 /** Calculate the average position of the vertices in the polygon. */
 float3 poly_center_calc(Span<float3> vert_positions, Span<int> poly_verts);
 

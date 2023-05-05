@@ -163,6 +163,7 @@ struct PBVH {
   const int *corner_verts;
   /* Owned by the #PBVH, because after deformations they have to be recomputed. */
   const MLoopTri *looptri;
+  const int *looptri_polys;
   CustomData *vdata;
   CustomData *ldata;
   CustomData *pdata;

@@ -505,7 +505,7 @@ static void rna_pose_bgroup_name_index_get(PointerRNA *ptr, char *value, int ind
   grp = BLI_findlink(&pose->agroups, index - 1);
 
   if (grp) {
-    BLI_strncpy(value, grp->name, sizeof(grp->name));
+    strcpy(value, grp->name);
   }
   else {
     value[0] = '\0';
@@ -659,7 +659,7 @@ bool rna_PoseChannel_constraints_override_apply(Main *bmain,
                                                 PointerRNA *UNUSED(ptr_item_storage),
                                                 IDOverrideLibraryPropertyOperation *opop)
 {
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_INSERT_AFTER &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on constraints collection");
 
   bPoseChannel *pchan_dst = (bPoseChannel *)ptr_dst->data;

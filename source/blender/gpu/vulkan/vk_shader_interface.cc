@@ -6,6 +6,7 @@
  */
 
 #include "vk_shader_interface.hh"
+#include "vk_backend.hh"
 #include "vk_context.hh"
 
 namespace blender::gpu {
@@ -47,9 +48,9 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
 
   /* Reserve 1 uniform buffer for push constants fallback. */
   size_t names_size = info.interface_names_size_;
-  VKContext &context = *VKContext::get();
+  const VKDevice &device = VKBackend::get().device_get();
   const VKPushConstants::StorageType push_constants_storage_type =
-      VKPushConstants::Layout::determine_storage_type(info, context.physical_device_limits_get());
+      VKPushConstants::Layout::determine_storage_type(info, device.physical_device_limits_get());
   if (push_constants_storage_type == VKPushConstants::StorageType::UNIFORM_BUFFER) {
     ubo_len_++;
     names_size += PUSH_CONSTANTS_FALLBACK_NAME_LEN + 1;

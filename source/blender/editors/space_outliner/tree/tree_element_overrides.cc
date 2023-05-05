@@ -112,7 +112,7 @@ static void iterate_properties_to_display(ID &id,
         for (IDOverrideLibraryPropertyOperation *override_prop_op :
              ListBaseWrapper<IDOverrideLibraryPropertyOperation>(override_prop->operations))
         {
-          if ((override_prop_op->flag & IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE) == 0) {
+          if ((override_prop_op->flag & LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) == 0) {
             do_skip = false;
             break;
           }
@@ -228,10 +228,7 @@ TreeElementOverridesPropertyOperation::TreeElementOverridesPropertyOperation(
 
 StringRefNull TreeElementOverridesPropertyOperation::getOverrideOperationLabel() const
 {
-  if (ELEM(operation_->operation,
-           IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
-           IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE))
-  {
+  if (ELEM(operation_->operation, LIBOVERRIDE_OP_INSERT_AFTER, LIBOVERRIDE_OP_INSERT_BEFORE)) {
     return TIP_("Added through override");
   }
 

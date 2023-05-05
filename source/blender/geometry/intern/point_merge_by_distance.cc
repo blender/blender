@@ -130,9 +130,9 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
     }
 
     bke::GAttributeReader src_attribute = src_attributes.lookup(id);
-    attribute_math::convert_to_static_type(src_attribute.varray.type(), [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(src_attribute.varray.type(), [&](auto dummy) {
       using T = decltype(dummy);
-      if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
+      if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
         bke::SpanAttributeWriter<T> dst_attribute =
             dst_attributes.lookup_or_add_for_write_only_span<T>(id, ATTR_DOMAIN_POINT);
         VArraySpan<T> src = src_attribute.varray.typed<T>();
@@ -141,7 +141,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
           for (const int i_dst : range) {
             /* Create a separate mixer for every point to avoid allocating temporary buffers
              * in the mixer the size of the result point cloud and to improve memory locality. */
-            attribute_math::DefaultMixer<T> mixer{dst_attribute.span.slice(i_dst, 1)};
+            bke::attribute_math::DefaultMixer<T> mixer{dst_attribute.span.slice(i_dst, 1)};
 
             const IndexRange points(map_offsets[i_dst],
                                     map_offsets[i_dst + 1] - map_offsets[i_dst]);

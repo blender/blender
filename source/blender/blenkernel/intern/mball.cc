@@ -305,8 +305,8 @@ bool BKE_mball_is_same_group(const Object *ob1, const Object *ob2)
     return false;
   }
 
-  BLI_split_name_num(basis1name, &basis1nr, ob1->id.name + 2, '.');
-  BLI_split_name_num(basis2name, &basis2nr, ob2->id.name + 2, '.');
+  BLI_string_split_name_number(ob1->id.name + 2, '.', basis1name, &basis1nr);
+  BLI_string_split_name_number(ob2->id.name + 2, '.', basis2name, &basis2nr);
 
   return STREQ(basis1name, basis2name);
 }
@@ -396,7 +396,7 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
     Object *ob_iter = nullptr;
     int obactive_nr, ob_nr;
     char obactive_name[MAX_ID_NAME], ob_name[MAX_ID_NAME];
-    BLI_split_name_num(obactive_name, &obactive_nr, ob_src->id.name + 2, '.');
+    BLI_string_split_name_number(ob_src->id.name + 2, '.', obactive_name, &obactive_nr);
 
     for (ob_iter = static_cast<Object *>(ob_src->id.prev); ob_iter != nullptr;
          ob_iter = static_cast<Object *>(ob_iter->id.prev))
@@ -407,7 +407,7 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
       if (ob_iter->type != OB_MBALL || ob_iter->data == metaball_src) {
         continue;
       }
-      BLI_split_name_num(ob_name, &ob_nr, ob_iter->id.name + 2, '.');
+      BLI_string_split_name_number(ob_iter->id.name + 2, '.', ob_name, &ob_nr);
       if (!STREQ(obactive_name, ob_name)) {
         break;
       }
@@ -424,7 +424,7 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
       if (ob_iter->type != OB_MBALL || ob_iter->data == metaball_src) {
         continue;
       }
-      BLI_split_name_num(ob_name, &ob_nr, ob_iter->id.name + 2, '.');
+      BLI_string_split_name_number(ob_iter->id.name + 2, '.', ob_name, &ob_nr);
       if (!STREQ(obactive_name, ob_name)) {
         break;
       }
@@ -442,7 +442,7 @@ Object *BKE_mball_basis_find(Scene *scene, Object *object)
   int basisnr, obnr;
   char basisname[MAX_ID_NAME], obname[MAX_ID_NAME];
 
-  BLI_split_name_num(basisname, &basisnr, object->id.name + 2, '.');
+  BLI_string_split_name_number(object->id.name + 2, '.', basisname, &basisnr);
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     BKE_view_layer_synced_ensure(scene, view_layer);
@@ -450,7 +450,7 @@ Object *BKE_mball_basis_find(Scene *scene, Object *object)
       Object *ob = base->object;
       if ((ob->type == OB_MBALL) && !(base->flag & BASE_FROM_DUPLI)) {
         if (ob != bob) {
-          BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
+          BLI_string_split_name_number(ob->id.name + 2, '.', obname, &obnr);
 
           /* Object ob has to be in same "group" ... it means,
            * that it has to have same base of its name. */

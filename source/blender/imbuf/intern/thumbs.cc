@@ -337,7 +337,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
 
   if (get_thumb_dir(tdir, size)) {
     BLI_snprintf(tpath, FILE_MAX, "%s%s", tdir, thumb);
-    //      thumb[8] = '\0'; /* shorten for tempname, not needed anymore */
+    // thumb[8] = '\0'; /* shorten for `temp` name, not needed anymore */
     BLI_snprintf(temp, FILE_MAX, "%sblender_%d_%s.png", tdir, abs(getpid()), thumb);
     if (BLI_path_ncmp(file_path, tdir, sizeof(tdir)) == 0) {
       return nullptr;
@@ -400,7 +400,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
         /* Scaling down must never assign zero width/height, see: #89868. */
         short ex = MAX2(1, short(img->x * scale));
         short ey = MAX2(1, short(img->y * scale));
-        /* Save some time by only scaling byte buf */
+        /* Save some time by only scaling byte buffer. */
         if (img->rect_float) {
           if (img->rect == nullptr) {
             IMB_rect_from_float(img);

@@ -81,9 +81,9 @@ struct anim {
   int x, y;
 
   /* for number */
-  char name[1024];
+  char filepath[1024];
   /* for sequence */
-  char first[1024];
+  char filepath_first[1024];
 
   /* movie */
   void *movie;

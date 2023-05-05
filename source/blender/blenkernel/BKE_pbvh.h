@@ -713,7 +713,7 @@ typedef struct PBVHFaceIter {
   bool *hide_poly_;
   int *face_sets_;
   const int *poly_offsets_;
-  const struct MLoopTri *looptri_;
+  const int *looptri_polys_;
   const int *corner_verts_;
   int prim_index_;
   const struct SubdivCCG *subdiv_ccg_;

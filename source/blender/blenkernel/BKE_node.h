@@ -1584,6 +1584,9 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_MEAN_FILTER_SDF_VOLUME 1197
 #define GEO_NODE_OFFSET_SDF_VOLUME 1198
 #define GEO_NODE_INDEX_OF_NEAREST 1199
+/* Function nodes use the range starting at 1200. */
+#define GEO_NODE_SIMULATION_INPUT 2100
+#define GEO_NODE_SIMULATION_OUTPUT 2101
 
 /** \} */
 

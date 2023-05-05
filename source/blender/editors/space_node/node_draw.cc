@@ -22,6 +22,7 @@
 #include "DNA_world_types.h"
 
 #include "BLI_array.hh"
+#include "BLI_convexhull_2d.h"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
@@ -32,12 +33,15 @@
 
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.h"
+#include "BKE_curves.hh"
+#include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
+#include "BKE_node_tree_zones.hh"
 #include "BKE_object.h"
 #include "BKE_type_conversions.hh"
 
@@ -80,11 +84,15 @@
 #include "FN_field.hh"
 #include "FN_field_cpp_type.hh"
 
+#include "GEO_fillet_curves.hh"
+
 #include "../interface/interface_intern.hh" /* TODO: Remove */
 
 #include "node_intern.hh" /* own include */
 
 namespace geo_log = blender::nodes::geo_eval_log;
+using blender::bke::node_tree_zones::TreeZone;
+using blender::bke::node_tree_zones::TreeZones;
 
 /**
  * This is passed to many functions which draw the node editor.
@@ -2149,7 +2157,9 @@ static void node_draw_basis(const bContext &C,
   }
 
   /* Shadow. */
-  node_draw_shadow(snode, node, BASIS_RAD, 1.0f);
+  if (!ELEM(node.type, GEO_NODE_SIMULATION_INPUT, GEO_NODE_SIMULATION_OUTPUT)) {
+    node_draw_shadow(snode, node, BASIS_RAD, 1.0f);
+  }
 
   const rctf &rct = node.runtime->totr;
   float color[4];
@@ -2422,6 +2432,10 @@ static void node_draw_basis(const bContext &C,
     }
     else if (nodeTypeUndefined(&node)) {
       UI_GetThemeColor4fv(TH_REDALERT, color_outline);
+    }
+    else if (ELEM(node.type, GEO_NODE_SIMULATION_INPUT, GEO_NODE_SIMULATION_OUTPUT)) {
+      UI_GetThemeColor4fv(TH_NODE_ZONE_SIMULATION, color_outline);
+      color_outline[3] = 1.0f;
     }
     else {
       UI_GetThemeColorBlendShade4fv(TH_BACK, TH_NODE, 0.4f, -20, color_outline);
@@ -3036,6 +3050,173 @@ static void node_draw(const bContext &C,
   }
 }
 
+static void add_rect_corner_positions(Vector<float2> &positions, const rctf &rect)
+{
+  positions.append({rect.xmin, rect.ymin});
+  positions.append({rect.xmin, rect.ymax});
+  positions.append({rect.xmax, rect.ymin});
+  positions.append({rect.xmax, rect.ymax});
+}
+
+static void find_bounds_by_zone_recursive(const SpaceNode &snode,
+                                          const TreeZone &zone,
+                                          const Span<std::unique_ptr<TreeZone>> all_zones,
+                                          MutableSpan<Vector<float2>> r_bounds_by_zone)
+{
+  const float node_padding = UI_UNIT_X;
+  const float zone_padding = 0.3f * UI_UNIT_X;
+
+  Vector<float2> &bounds = r_bounds_by_zone[zone.index];
+  if (!bounds.is_empty()) {
+    return;
+  }
+
+  Vector<float2> possible_bounds;
+  for (const TreeZone *child_zone : zone.child_zones) {
+    find_bounds_by_zone_recursive(snode, *child_zone, all_zones, r_bounds_by_zone);
+    const Span<float2> child_bounds = r_bounds_by_zone[child_zone->index];
+    for (const float2 &pos : child_bounds) {
+      rctf rect;
+      BLI_rctf_init_pt_radius(&rect, pos, zone_padding);
+      add_rect_corner_positions(possible_bounds, rect);
+    }
+  }
+  for (const bNode *child_node : zone.child_nodes) {
+    rctf rect = child_node->runtime->totr;
+    BLI_rctf_pad(&rect, node_padding, node_padding);
+    add_rect_corner_positions(possible_bounds, rect);
+  }
+  if (zone.input_node) {
+    const rctf &totr = zone.input_node->runtime->totr;
+    rctf rect = totr;
+    BLI_rctf_pad(&rect, node_padding, node_padding);
+    rect.xmin = math::interpolate(totr.xmin, totr.xmax, 0.25f);
+    add_rect_corner_positions(possible_bounds, rect);
+  }
+  if (zone.output_node) {
+    const rctf &totr = zone.output_node->runtime->totr;
+    rctf rect = totr;
+    BLI_rctf_pad(&rect, node_padding, node_padding);
+    rect.xmax = math::interpolate(totr.xmin, totr.xmax, 0.75f);
+    add_rect_corner_positions(possible_bounds, rect);
+  }
+
+  if (snode.runtime->linkdrag) {
+    for (const bNodeLink &link : snode.runtime->linkdrag->links) {
+      if (link.fromnode == nullptr) {
+        continue;
+      }
+      if (zone.contains_node_recursively(*link.fromnode) || zone.input_node == link.fromnode) {
+        const float2 pos = node_link_bezier_points_dragged(snode, link)[3];
+        rctf rect;
+        BLI_rctf_init_pt_radius(&rect, pos, node_padding);
+        add_rect_corner_positions(possible_bounds, rect);
+      }
+    }
+  }
+
+  Vector<int> convex_indices(possible_bounds.size());
+  const int convex_positions_num = BLI_convexhull_2d(
+      reinterpret_cast<float(*)[2]>(possible_bounds.data()),
+      possible_bounds.size(),
+      convex_indices.data());
+  convex_indices.resize(convex_positions_num);
+
+  for (const int i : convex_indices) {
+    bounds.append(possible_bounds[i]);
+  }
+}
+
+static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
+                            const ARegion &region,
+                            const SpaceNode &snode,
+                            const bNodeTree &ntree)
+{
+  const TreeZones *zones = bke::node_tree_zones::get_tree_zones(ntree);
+  if (zones == nullptr) {
+    return;
+  }
+
+  Array<Vector<float2>> bounds_by_zone(zones->zones.size());
+  Array<bke::CurvesGeometry> fillet_curve_by_zone(zones->zones.size());
+
+  for (const int zone_i : zones->zones.index_range()) {
+    const TreeZone &zone = *zones->zones[zone_i];
+
+    find_bounds_by_zone_recursive(snode, zone, zones->zones, bounds_by_zone);
+    const Span<float2> boundary_positions = bounds_by_zone[zone_i];
+    const int boundary_positions_num = boundary_positions.size();
+
+    bke::CurvesGeometry boundary_curve(boundary_positions_num, 1);
+    boundary_curve.cyclic_for_write().first() = true;
+    boundary_curve.fill_curve_types(CURVE_TYPE_POLY);
+    MutableSpan<float3> boundary_curve_positions = boundary_curve.positions_for_write();
+    boundary_curve.offsets_for_write().copy_from({0, boundary_positions_num});
+    for (const int i : boundary_positions.index_range()) {
+      boundary_curve_positions[i] = float3(boundary_positions[i], 0.0f);
+    }
+
+    fillet_curve_by_zone[zone_i] = geometry::fillet_curves_poly(
+        boundary_curve,
+        IndexRange(1),
+        VArray<float>::ForSingle(BASIS_RAD, boundary_positions_num),
+        VArray<int>::ForSingle(5, boundary_positions_num),
+        true,
+        {});
+  }
+
+  const View2D &v2d = region.v2d;
+  float scale;
+  UI_view2d_scale_get(&v2d, &scale, nullptr);
+  float line_width = 1.0f * scale;
+  float viewport[4] = {};
+  GPU_viewport_size_get_f(viewport);
+  float zone_color[4];
+  UI_GetThemeColor4fv(TH_NODE_ZONE_SIMULATION, zone_color);
+
+  const uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
+  /* Draw all the contour lines after to prevent them from getting hidden by overlapping zones. */
+  for (const int zone_i : zones->zones.index_range()) {
+    if (zone_color[3] == 0.0f) {
+      break;
+    }
+    const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i].positions();
+    /* Draw the background. */
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+    immUniformThemeColorBlend(TH_BACK, TH_NODE_ZONE_SIMULATION, zone_color[3]);
+
+    immBegin(GPU_PRIM_TRI_FAN, fillet_boundary_positions.size() + 1);
+    for (const float3 &p : fillet_boundary_positions) {
+      immVertex3fv(pos, p);
+    }
+    immVertex3fv(pos, fillet_boundary_positions[0]);
+    immEnd();
+
+    immUnbindProgram();
+  }
+
+  for (const int zone_i : zones->zones.index_range()) {
+    const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i].positions();
+    /* Draw the contour lines. */
+    immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+
+    immUniform2fv("viewportSize", &viewport[2]);
+    immUniform1f("lineWidth", line_width * U.pixelsize);
+
+    immUniformThemeColorAlpha(TH_NODE_ZONE_SIMULATION, 1.0f);
+    immBegin(GPU_PRIM_LINE_STRIP, fillet_boundary_positions.size() + 1);
+    for (const float3 &p : fillet_boundary_positions) {
+      immVertex3fv(pos, p);
+    }
+    immVertex3fv(pos, fillet_boundary_positions[0]);
+    immEnd();
+
+    immUnbindProgram();
+  }
+}
+
 #define USE_DRAW_TOT_UPDATE
 
 static void node_draw_nodetree(const bContext &C,
@@ -3203,6 +3384,7 @@ static void draw_nodetree(const bContext &C,
   }
 
   node_update_nodetree(C, tree_draw_ctx, ntree, nodes, blocks);
+  node_draw_zones(tree_draw_ctx, region, *snode, ntree);
   node_draw_nodetree(C, tree_draw_ctx, region, *snode, ntree, nodes, blocks, parent_key);
 }
 
@@ -3229,6 +3411,9 @@ static void draw_background_color(const SpaceNode &snode)
 
 void node_draw_space(const bContext &C, ARegion &region)
 {
+  if (G.is_rendering) {
+    return;
+  }
   wmWindow *win = CTX_wm_window(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   View2D &v2d = region.v2d;

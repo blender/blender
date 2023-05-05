@@ -21,8 +21,12 @@
 
 extern "C" {
 void BKE_image_user_frame_calc(void *ima, void *iuser, int cfra);
-void BKE_image_user_file_path_ex(
-    void *bmain, void *iuser, void *ima, char *path, bool resolve_udim, bool resolve_multiview);
+void BKE_image_user_file_path_ex(void *bmain,
+                                 void *iuser,
+                                 void *ima,
+                                 char *filepath,
+                                 bool resolve_udim,
+                                 bool resolve_multiview);
 unsigned char *BKE_image_get_pixels_for_frame(void *image, int frame, int tile);
 float *BKE_image_get_float_pixels_for_frame(void *image, int frame, int tile);
 }

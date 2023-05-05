@@ -140,11 +140,11 @@ bMovieHandle *BKE_movie_handle_get(const char imtype)
 
 #ifdef WITH_AVI
 
-static void filepath_avi(char *string, const RenderData *rd, bool preview, const char *suffix)
+static void filepath_avi(char *filepath, const RenderData *rd, bool preview, const char *suffix)
 {
   int sfra, efra;
 
-  if (string == NULL) {
+  if (filepath == NULL) {
     return;
   }
 
@@ -157,24 +157,24 @@ static void filepath_avi(char *string, const RenderData *rd, bool preview, const
     efra = rd->efra;
   }
 
-  strcpy(string, rd->pic);
-  BLI_path_abs(string, BKE_main_blendfile_path_from_global());
+  strcpy(filepath, rd->pic);
+  BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
-  BLI_make_existing_file(string);
+  BLI_file_ensure_parent_dir_exists(filepath);
 
   if (rd->scemode & R_EXTENSION) {
-    if (!BLI_path_extension_check(string, ".avi")) {
-      BLI_path_frame_range(string, sfra, efra, 4);
-      BLI_strncat(string, ".avi", FILE_MAX);
+    if (!BLI_path_extension_check(filepath, ".avi")) {
+      BLI_path_frame_range(filepath, sfra, efra, 4);
+      BLI_strncat(filepath, ".avi", FILE_MAX);
     }
   }
   else {
-    if (BLI_path_frame_check_chars(string)) {
-      BLI_path_frame_range(string, sfra, efra, 4);
+    if (BLI_path_frame_check_chars(filepath)) {
+      BLI_path_frame_range(filepath, sfra, efra, 4);
     }
   }
 
-  BLI_path_suffix(string, FILE_MAX, suffix, "");
+  BLI_path_suffix(filepath, FILE_MAX, suffix, "");
 }
 
 static int start_avi(void *context_v,
@@ -297,13 +297,13 @@ static void context_free_avi(void *context_v)
 
 #endif /* WITH_AVI */
 
-void BKE_movie_filepath_get(char *string, const RenderData *rd, bool preview, const char *suffix)
+void BKE_movie_filepath_get(char *filepath, const RenderData *rd, bool preview, const char *suffix)
 {
   bMovieHandle *mh = BKE_movie_handle_get(rd->im_format.imtype);
   if (mh && mh->get_movie_path) {
-    mh->get_movie_path(string, rd, preview, suffix);
+    mh->get_movie_path(filepath, rd, preview, suffix);
   }
   else {
-    string[0] = '\0';
+    filepath[0] = '\0';
   }
 }
