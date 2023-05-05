@@ -13,7 +13,15 @@ extern "C" {
 
 bool imb_is_a_tiff(const uchar *mem, size_t size)
 {
-  return imb_oiio_check(mem, size, "tif");
+  constexpr int MAGIC_SIZE = 4;
+  if (size < MAGIC_SIZE) {
+    return false;
+  }
+
+  const char big_endian[MAGIC_SIZE] = {0x4d, 0x4d, 0x00, 0x2a};
+  const char lil_endian[MAGIC_SIZE] = {0x49, 0x49, 0x2a, 0x00};
+  return ((memcmp(big_endian, mem, MAGIC_SIZE) == 0) ||
+          (memcmp(lil_endian, mem, MAGIC_SIZE) == 0));
 }
 
 ImBuf *imb_load_tiff(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])

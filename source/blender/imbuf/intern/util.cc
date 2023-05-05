@@ -88,8 +88,8 @@ const char *imb_ext_audio[] = {
     nullptr,
 };
 
-/* Increased from 32 to 64 because of the bitmaps header size. */
-#define HEADER_SIZE 64
+/* OIIO will validate the entire header of some files and DPX requires 2048 */
+#define HEADER_SIZE 2048
 
 static ssize_t imb_ispic_read_header_from_filepath(const char *filepath, uchar buf[HEADER_SIZE])
 {
