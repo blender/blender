@@ -174,6 +174,7 @@ class ImBufBrokenTest(AbstractImBufTest):
 
             bpy.ops.image.open(filepath=str(image_path))
 
+
 class ImBufLoadBrokenTest(ImBufBrokenTest):
     def test_load_exr(self):
         self.skip_if_format_missing("OPENEXR")

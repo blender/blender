@@ -48,15 +48,15 @@ void weightvg_do_map(
 
   /* Return immediately, if we have nothing to do! */
   /* Also security checks... */
-  if (!do_invert &&
-      (((falloff_type == MOD_WVG_MAPPING_CURVE) && (cmap == nullptr)) || !ELEM(falloff_type,
-                                                                            MOD_WVG_MAPPING_CURVE,
-                                                                            MOD_WVG_MAPPING_SHARP,
-                                                                            MOD_WVG_MAPPING_SMOOTH,
-                                                                            MOD_WVG_MAPPING_ROOT,
-                                                                            MOD_WVG_MAPPING_SPHERE,
-                                                                            MOD_WVG_MAPPING_RANDOM,
-                                                                            MOD_WVG_MAPPING_STEP)))
+  if (!do_invert && (((falloff_type == MOD_WVG_MAPPING_CURVE) && (cmap == nullptr)) ||
+                     !ELEM(falloff_type,
+                           MOD_WVG_MAPPING_CURVE,
+                           MOD_WVG_MAPPING_SHARP,
+                           MOD_WVG_MAPPING_SMOOTH,
+                           MOD_WVG_MAPPING_ROOT,
+                           MOD_WVG_MAPPING_SPHERE,
+                           MOD_WVG_MAPPING_RANDOM,
+                           MOD_WVG_MAPPING_STEP)))
   {
     return;
   }
@@ -283,8 +283,9 @@ void weightvg_update_vg(MDeformVert *dvert,
   for (i = 0; i < num; i++) {
     float w = weights[i];
     MDeformVert *dv = &dvert[indices ? indices[i] : i];
-    MDeformWeight *dw = dws ? dws[i] :
-                              ((defgrp_idx >= 0) ? BKE_defvert_find_index(dv, defgrp_idx) : nullptr);
+    MDeformWeight *dw = dws ?
+                            dws[i] :
+                            ((defgrp_idx >= 0) ? BKE_defvert_find_index(dv, defgrp_idx) : nullptr);
 
     if (do_normalize) {
       w = (w - min_w) * norm_fac;
@@ -320,7 +321,8 @@ void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, 
   uiItemR(layout, ptr, "mask_constant", UI_ITEM_R_SLIDER, IFACE_("Global Influence:"), ICON_NONE);
 
   if (!has_mask_texture) {
-    modifier_vgroup_ui(layout, ptr, ob_ptr, "mask_vertex_group", "invert_mask_vertex_group", nullptr);
+    modifier_vgroup_ui(
+        layout, ptr, ob_ptr, "mask_vertex_group", "invert_mask_vertex_group", nullptr);
   }
 
   if (!has_mask_vertex_group) {

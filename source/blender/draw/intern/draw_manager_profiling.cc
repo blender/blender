@@ -300,8 +300,7 @@ void DRW_stats_draw(const rcti *rect)
 
   BLI_snprintf(stat_string, sizeof(stat_string), "GPU Memory");
   draw_stat(rect, 0, v, stat_string, sizeof(stat_string));
-  BLI_snprintf(
-      stat_string, sizeof(stat_string), "%.2fMB", double(tex_mem + vbo_mem) / 1000000.0);
+  BLI_snprintf(stat_string, sizeof(stat_string), "%.2fMB", double(tex_mem + vbo_mem) / 1000000.0);
   draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
   BLI_snprintf(stat_string, sizeof(stat_string), "Textures");
   draw_stat(rect, 1, v, stat_string, sizeof(stat_string));
