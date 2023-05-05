@@ -1216,7 +1216,10 @@ static StructRNA *rna_wmKeyConfigPref_refine(PointerRNA *ptr)
 static void rna_wmKeyMapItem_idname_get(PointerRNA *ptr, char *value)
 {
   wmKeyMapItem *kmi = ptr->data;
-  WM_operator_py_idname(value, kmi->idname);
+  /* Pass in a fixed size buffer as the value may be allocated based on the callbacks length. */
+  char value_buf[OP_MAX_TYPENAME];
+  int len = WM_operator_py_idname(value_buf, kmi->idname);
+  memcpy(value, value_buf, len + 1);
 }
 
 static int rna_wmKeyMapItem_idname_length(PointerRNA *ptr)
@@ -1826,13 +1829,13 @@ static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
     { \
       const wmOperator *data = (wmOperator *)(ptr->data); \
       const char *str = data->type->attr; \
-      BLI_strncpy(value, str ? str : "", len); \
+      strcpy(value, str ? str : ""); \
     } \
     static int rna_Operator_bl_##attr##_length(PointerRNA *ptr) \
     { \
       const wmOperator *data = (wmOperator *)(ptr->data); \
       const char *str = data->type->attr; \
-      return BLI_strnlen(str ? str : "", len); \
+      return str ? strlen(str) : 0; \
     }
 
 OPERATOR_STR_MAYBE_NULL_GETSET(translation_context, BKE_ST_MAXNAME)

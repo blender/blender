@@ -422,11 +422,11 @@ static void screen_opengl_render_write(OGLRender *oglrender)
   Scene *scene = oglrender->scene;
   RenderResult *rr;
   bool ok;
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
 
   rr = RE_AcquireResultRead(oglrender->re);
 
-  BKE_image_path_from_imformat(name,
+  BKE_image_path_from_imformat(filepath,
                                scene->r.pic,
                                BKE_main_blendfile_path(oglrender->bmain),
                                scene->r.cfra,
@@ -437,15 +437,15 @@ static void screen_opengl_render_write(OGLRender *oglrender)
 
   /* write images as individual images or stereo */
   BKE_render_result_stamp_info(scene, scene->camera, rr, false);
-  ok = BKE_image_render_write(oglrender->reports, rr, scene, false, name);
+  ok = BKE_image_render_write(oglrender->reports, rr, scene, false, filepath);
 
   RE_ReleaseResultImage(oglrender->re);
 
   if (ok) {
-    printf("OpenGL Render written to '%s'\n", name);
+    printf("OpenGL Render written to '%s'\n", filepath);
   }
   else {
-    printf("OpenGL Render failed to write '%s'\n", name);
+    printf("OpenGL Render failed to write '%s'\n", filepath);
   }
 }
 
@@ -1064,8 +1064,8 @@ static void write_result(TaskPool *__restrict pool, WriteTaskData *task_data)
     /* TODO(sergey): We can in theory save some CPU ticks here because we
      * calculate file name again here.
      */
-    char name[FILE_MAX];
-    BKE_image_path_from_imformat(name,
+    char filepath[FILE_MAX];
+    BKE_image_path_from_imformat(filepath,
                                  scene->r.pic,
                                  BKE_main_blendfile_path(oglrender->bmain),
                                  cfra,
@@ -1075,9 +1075,9 @@ static void write_result(TaskPool *__restrict pool, WriteTaskData *task_data)
                                  nullptr);
 
     BKE_render_result_stamp_info(scene, scene->camera, rr, false);
-    ok = BKE_image_render_write(nullptr, rr, scene, true, name);
+    ok = BKE_image_render_write(nullptr, rr, scene, true, filepath);
     if (!ok) {
-      BKE_reportf(&reports, RPT_ERROR, "Write error: cannot save %s", name);
+      BKE_reportf(&reports, RPT_ERROR, "Write error: cannot save %s", filepath);
     }
   }
   if (reports.list.first != nullptr) {
@@ -1133,7 +1133,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
   OGLRender *oglrender = static_cast<OGLRender *>(op->customdata);
   Scene *scene = oglrender->scene;
   Depsgraph *depsgraph = oglrender->depsgraph;
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
   bool ok = false;
   const bool view_context = (oglrender->v3d != nullptr);
   bool is_movie;
@@ -1151,7 +1151,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
   is_movie = BKE_imtype_is_movie(scene->r.im_format.imtype);
 
   if (!is_movie) {
-    BKE_image_path_from_imformat(name,
+    BKE_image_path_from_imformat(filepath,
                                  scene->r.pic,
                                  BKE_main_blendfile_path(oglrender->bmain),
                                  scene->r.cfra,
@@ -1160,9 +1160,9 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
                                  true,
                                  nullptr);
 
-    if ((scene->r.mode & R_NO_OVERWRITE) && BLI_exists(name)) {
+    if ((scene->r.mode & R_NO_OVERWRITE) && BLI_exists(filepath)) {
       BLI_spin_lock(&oglrender->reports_lock);
-      BKE_reportf(op->reports, RPT_INFO, "Skipping existing frame \"%s\"", name);
+      BKE_reportf(op->reports, RPT_INFO, "Skipping existing frame \"%s\"", filepath);
       BLI_spin_unlock(&oglrender->reports_lock);
       ok = true;
       goto finally;

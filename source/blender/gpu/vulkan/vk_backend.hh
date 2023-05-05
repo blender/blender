@@ -14,12 +14,15 @@
 #endif
 
 #include "vk_common.hh"
+#include "vk_device.hh"
 
 #include "shaderc/shaderc.hpp"
 
 namespace blender::gpu {
 
 class VKContext;
+class VKDescriptorSet;
+class VKDescriptorSetTracker;
 
 class VKBackend : public GPUBackend {
  private:
@@ -27,6 +30,8 @@ class VKBackend : public GPUBackend {
 #ifdef WITH_RENDERDOC
   renderdoc::api::Renderdoc renderdoc_api_;
 #endif
+  /* Global instance to device handles. */
+  VKDevice device_;
 
  public:
   VKBackend()
@@ -66,21 +71,31 @@ class VKBackend : public GPUBackend {
   void render_end() override;
   void render_step() override;
 
-  bool debug_capture_begin(VkInstance vk_instance);
-  void debug_capture_end(VkInstance vk_instance);
+  bool debug_capture_begin();
+  void debug_capture_end();
 
   shaderc::Compiler &get_shaderc_compiler();
 
-  static void capabilities_init(VKContext &context);
+  static void capabilities_init();
 
   static VKBackend &get()
   {
     return *static_cast<VKBackend *>(GPUBackend::get());
   }
 
+  const VKDevice &device_get() const
+  {
+    return device_;
+  }
+
  private:
   static void init_platform();
   static void platform_exit();
+
+  /* These classes are allowed to modify the global device. */
+  friend class VKContext;
+  friend class VKDescriptorSet;
+  friend class VKDescriptorSetTracker;
 };
 
 }  // namespace blender::gpu

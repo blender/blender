@@ -190,6 +190,10 @@ void node_socket_select(bNode *node, bNodeSocket &sock);
 void node_socket_deselect(bNode *node, bNodeSocket &sock, bool deselect_node);
 void node_deselect_all_input_sockets(bNodeTree &node_tree, bool deselect_nodes);
 void node_deselect_all_output_sockets(bNodeTree &node_tree, bool deselect_nodes);
+/**
+ * Select nodes that are paired to a selected node.
+ */
+void node_select_paired(bNodeTree &node_tree);
 void node_select_single(bContext &C, bNode &node);
 
 void NODE_OT_select(wmOperatorType *ot);
@@ -247,6 +251,8 @@ void node_draw_link_bezier(const bContext &C,
                            int th_col3,
                            bool selected);
 
+std::array<float2, 4> node_link_bezier_points_dragged(const SpaceNode &snode,
+                                                      const bNodeLink &link);
 void node_link_bezier_points_evaluated(const bNodeLink &link,
                                        std::array<float2, NODE_LINK_RESOL + 1> &coords);
 

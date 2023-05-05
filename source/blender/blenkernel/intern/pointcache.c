@@ -1312,7 +1312,6 @@ static int ptcache_path(PTCacheID *pid, char dirname[MAX_PTCACHE_PATH])
   const char *blendfilename = (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH) == 0) ?
                                   lib->filepath_abs :
                                   blendfile_path;
-  size_t i;
 
   if (pid->cache->flag & PTCACHE_EXTERNAL) {
     BLI_strncpy(dirname, pid->cache->path, MAX_PTCACHE_PATH);
@@ -1327,12 +1326,8 @@ static int ptcache_path(PTCacheID *pid, char dirname[MAX_PTCACHE_PATH])
     char file[MAX_PTCACHE_PATH]; /* we don't want the dir, only the file */
 
     BLI_path_split_file_part(blendfilename, file, sizeof(file));
-    i = strlen(file);
-
-    /* remove .blend */
-    if (i > 6) {
-      file[i - 6] = '\0';
-    }
+    /* Remove the `.blend` extension. */
+    BLI_path_extension_strip(file);
 
     /* Add blend file name to pointcache dir. */
     BLI_snprintf(dirname, MAX_PTCACHE_PATH, "//" PTCACHE_PATH "%s", file);
@@ -1475,13 +1470,11 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
     fp = BLI_fopen(filepath, "rb");
   }
   else if (mode == PTCACHE_FILE_WRITE) {
-    /* Will create the dir if needs be, same as "//textures" is created. */
-    BLI_make_existing_file(filepath);
-
+    BLI_file_ensure_parent_dir_exists(filepath);
     fp = BLI_fopen(filepath, "wb");
   }
   else if (mode == PTCACHE_FILE_UPDATE) {
-    BLI_make_existing_file(filepath);
+    BLI_file_ensure_parent_dir_exists(filepath);
     fp = BLI_fopen(filepath, "rb+");
   }
 
@@ -3338,7 +3331,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
   }
 
   /* clear baking flag */
-  if (pid) {
+  if (pid && cache) {
     cache->flag &= ~(PTCACHE_BAKING | PTCACHE_REDO_NEEDED);
     cache->flag |= PTCACHE_SIMULATION_VALID;
     if (bake) {

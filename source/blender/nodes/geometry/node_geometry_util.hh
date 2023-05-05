@@ -25,7 +25,7 @@
 #include "RNA_access.h"
 
 #include "node_geometry_register.hh"
-#include "node_util.h"
+#include "node_util.hh"
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/Types.h>
@@ -115,14 +115,14 @@ void initialize_volume_component_from_points(GeoNodeExecParams &params,
                                              openvdb::GridClass gridClass);
 #endif
 
-class FieldAtIndexInput final : public bke::GeometryFieldInput {
+class EvaluateAtIndexInput final : public bke::GeometryFieldInput {
  private:
   Field<int> index_field_;
   GField value_field_;
   eAttrDomain value_field_domain_;
 
  public:
-  FieldAtIndexInput(Field<int> index_field, GField value_field, eAttrDomain value_field_domain);
+  EvaluateAtIndexInput(Field<int> index_field, GField value_field, eAttrDomain value_field_domain);
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
                                  const IndexMask mask) const final;
@@ -132,5 +132,26 @@ class FieldAtIndexInput final : public bke::GeometryFieldInput {
     return value_field_domain_;
   }
 };
+
+std::string socket_identifier_for_simulation_item(const NodeSimulationItem &item);
+
+void socket_declarations_for_simulation_items(Span<NodeSimulationItem> items,
+                                              NodeDeclaration &r_declaration);
+const CPPType &get_simulation_item_cpp_type(eNodeSocketDatatype socket_type);
+const CPPType &get_simulation_item_cpp_type(const NodeSimulationItem &item);
+void values_to_simulation_state(const Span<NodeSimulationItem> node_simulation_items,
+                                const Span<void *> input_values,
+                                bke::sim::SimulationZoneState &r_zone_state);
+void simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
+                                const bke::sim::SimulationZoneState &zone_state,
+                                const Object &self_object,
+                                const ComputeContext &compute_context,
+                                const bNode &sim_output_node,
+                                Span<void *> r_output_values);
+
+void copy_with_checked_indices(const GVArray &src,
+                               const VArray<int> &indices,
+                               IndexMask mask,
+                               GMutableSpan dst);
 
 }  // namespace blender::nodes

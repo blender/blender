@@ -15,8 +15,10 @@
 
 namespace blender::gpu {
 class VKContext;
+class VKDevice;
+
 namespace debug {
-typedef struct VKDebuggingTools {
+struct VKDebuggingTools {
   bool enabled = false;
   /* Function pointer definitions. */
   PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT_r = nullptr;
@@ -31,16 +33,12 @@ typedef struct VKDebuggingTools {
   PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT_r = nullptr;
   PFN_vkSetDebugUtilsObjectTagEXT vkSetDebugUtilsObjectTagEXT_r = nullptr;
 
-} VKDebuggingTools;
+  void init(VkInstance vk_instance);
+  void deinit();
+};
 
-bool init_callbacks(VKContext *context, PFN_vkGetInstanceProcAddr instance_proc_addr);
-void destroy_callbacks(VKContext *context);
-void object_label(VKContext *context,
-                  VkObjectType vk_object_type,
-                  uint64_t object_handle,
-                  const char *name);
-
-template<typename T> void object_label(VKContext *context, T vk_object_type, const char *name)
+void object_label(VkObjectType vk_object_type, uint64_t object_handle, const char *name);
+template<typename T> void object_label(T vk_object_type, const char *name)
 {
   if (!(G.debug & G_DEBUG_GPU)) {
     return;
@@ -50,15 +48,14 @@ template<typename T> void object_label(VKContext *context, T vk_object_type, con
   memset(label, 0, label_size);
   static int stats = 0;
   SNPRINTF(label, "%s_%d", name, stats++);
-  object_label(
-      context, to_vk_object_type(vk_object_type), (uint64_t)vk_object_type, (const char *)label);
+  object_label(to_vk_object_type(vk_object_type), (uint64_t)vk_object_type, (const char *)label);
 };
 
-void push_marker(VKContext *context, VkCommandBuffer vk_command_buffer, const char *name);
-void set_marker(VKContext *context, VkCommandBuffer vk_command_buffer, const char *name);
-void pop_marker(VKContext *context, VkCommandBuffer vk_command_buffer);
-void push_marker(VKContext *context, VkQueue vk_queue, const char *name);
-void set_marker(VKContext *context, VkQueue vk_queue, const char *name);
-void pop_marker(VKContext *context, VkQueue vk_queue);
+void push_marker(VkCommandBuffer vk_command_buffer, const char *name);
+void set_marker(VkCommandBuffer vk_command_buffer, const char *name);
+void pop_marker(VkCommandBuffer vk_command_buffer);
+void push_marker(const VKDevice &device, const char *name);
+void set_marker(const VKDevice &device, const char *name);
+void pop_marker(const VKDevice &device);
 }  // namespace debug
 }  // namespace blender::gpu

@@ -26,7 +26,7 @@ extern "C" {
  */
 
 #define IMB_MIPMAP_LEVELS 20
-#define IMB_FILENAME_SIZE 1024
+#define IMB_FILEPATH_SIZE 1024
 
 typedef struct DDSData {
   /** DDS fourcc info */
@@ -79,9 +79,10 @@ enum eImbFileType {
 /* Only for readability. */
 #define IMB_FTYPE_NONE 0
 
-/* ibuf->foptions flag, type specific options.
- * Some formats include compression rations on some bits */
-
+/**
+ * #ImBuf::foptions.flag, type specific options.
+ * Some formats include compression rations on some bits.
+ */
 #define OPENEXR_HALF (1 << 8)
 /* careful changing this, it's used in DNA as well */
 #define OPENEXR_COMPRESS (15)
@@ -221,8 +222,8 @@ typedef struct ImBuf {
   enum eImbFileType ftype;
   /** file format specific flags */
   ImbFormatOptions foptions;
-  /** filename associated with this image */
-  char name[IMB_FILENAME_SIZE];
+  /** The absolute file path associated with this image. */
+  char filepath[IMB_FILEPATH_SIZE];
 
   /* memory cache limiter */
   /** reference counter for multiple users */

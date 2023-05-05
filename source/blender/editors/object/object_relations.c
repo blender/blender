@@ -2335,7 +2335,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
   bool is_active_override = false;
   FOREACH_SELECTED_OBJECT_BEGIN (view_layer, CTX_wm_view3d(C), ob_iter) {
     if (ID_IS_OVERRIDE_LIBRARY_REAL(ob_iter) && !ID_IS_LINKED(ob_iter)) {
-      ob_iter->id.override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+      ob_iter->id.override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
       is_active_override = is_active_override || (&ob_iter->id == id_root);
       DEG_id_tag_update(&ob_iter->id, ID_RECALC_COPY_ON_WRITE);
     }
@@ -2423,7 +2423,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
       if (BLI_gset_haskey(user_overrides_objects_uids,
                           POINTER_FROM_UINT(id_iter->override_library->reference->session_uuid)))
       {
-        id_iter->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+        id_iter->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
       }
     }
     FOREACH_MAIN_ID_END;

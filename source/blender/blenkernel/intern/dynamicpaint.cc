@@ -3315,11 +3315,11 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
   }
 #endif
   BLI_strncpy(output_file, filepath, sizeof(output_file));
-  BKE_image_path_ensure_ext_from_imtype(output_file, format);
+  BKE_image_path_ext_from_imtype_ensure(output_file, sizeof(output_file), format);
 
   /* Validate output file path */
   BLI_path_abs(output_file, BKE_main_blendfile_path_from_global());
-  BLI_make_existing_file(output_file);
+  BLI_file_ensure_parent_dir_exists(output_file);
 
   /* Init image buffer */
   ibuf = IMB_allocImBuf(surface->image_resolution, surface->image_resolution, 32, IB_rectfloat);

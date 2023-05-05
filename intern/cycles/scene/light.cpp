@@ -286,12 +286,12 @@ void LightManager::device_update_distribution(Device *,
   /* Distribution size. */
   kintegrator->num_distribution = num_distribution;
 
-  VLOG_INFO << "Total " << num_distribution << " of light distribution primitives.";
-
   if (kintegrator->use_light_tree) {
     dscene->light_distribution.free();
     return;
   }
+
+  VLOG_INFO << "Use light distribution with " << num_distribution << " emitters.";
 
   /* Emission area. */
   KernelLightDistribution *distribution = dscene->light_distribution.alloc(num_distribution + 1);
@@ -433,6 +433,187 @@ void LightManager::device_update_distribution(Device *,
   dscene->light_distribution.copy_to_device();
 }
 
+/* Arguments for functions to convert the light tree to the kernel representation. */
+struct LightTreeFlatten {
+  const Scene *scene;
+  const LightTreeEmitter *emitters;
+  const uint *object_lookup_offset;
+  uint *light_array;
+  uint *mesh_array;
+  uint *triangle_array;
+
+  /* Map from instance node to its node index. */
+  std::unordered_map<LightTreeNode *, int> instances;
+};
+
+static void light_tree_node_copy_to_device(KernelLightTreeNode &knode,
+                                           const LightTreeNode &node,
+                                           const int child_index)
+{
+  /* Convert node to kernel representation. */
+  knode.energy = node.measure.energy;
+
+  knode.bbox.min = node.measure.bbox.min;
+  knode.bbox.max = node.measure.bbox.max;
+
+  knode.bcone.axis = node.measure.bcone.axis;
+  knode.bcone.theta_o = node.measure.bcone.theta_o;
+  knode.bcone.theta_e = node.measure.bcone.theta_e;
+
+  knode.bit_trail = node.bit_trail;
+  knode.type = static_cast<LightTreeNodeType>(node.type);
+
+  if (node.is_leaf() || node.is_distant()) {
+    knode.num_emitters = node.get_leaf().num_emitters;
+    knode.leaf.first_emitter = node.get_leaf().first_emitter_index;
+  }
+  else if (node.is_inner()) {
+    knode.num_emitters = -1;
+    knode.inner.right_child = child_index;
+  }
+}
+
+static int light_tree_flatten(LightTreeFlatten &flatten,
+                              const LightTreeNode *node,
+                              KernelLightTreeNode *knodes,
+                              KernelLightTreeEmitter *kemitters,
+                              int &next_node_index);
+
+static void light_tree_leaf_emitters_copy_and_flatten(LightTreeFlatten &flatten,
+                                                      const LightTreeNode &node,
+                                                      KernelLightTreeNode *knodes,
+                                                      KernelLightTreeEmitter *kemitters,
+                                                      int &next_node_index)
+{
+  /* Convert emitters to kernel representation. */
+  for (int i = 0; i < node.get_leaf().num_emitters; i++) {
+    int emitter_index = i + node.get_leaf().first_emitter_index;
+    const LightTreeEmitter &emitter = flatten.emitters[emitter_index];
+    KernelLightTreeEmitter &kemitter = kemitters[emitter_index];
+
+    kemitter.energy = emitter.measure.energy;
+    kemitter.theta_o = emitter.measure.bcone.theta_o;
+    kemitter.theta_e = emitter.measure.bcone.theta_e;
+
+    if (emitter.is_triangle()) {
+      /* Triangle. */
+      int shader_flag = 0;
+      Object *object = flatten.scene->objects[emitter.object_id];
+      Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
+      Shader *shader = static_cast<Shader *>(
+          mesh->get_used_shaders()[mesh->get_shader()[emitter.prim_id]]);
+
+      if (!(object->get_visibility() & PATH_RAY_CAMERA)) {
+        shader_flag |= SHADER_EXCLUDE_CAMERA;
+      }
+      if (!(object->get_visibility() & PATH_RAY_DIFFUSE)) {
+        shader_flag |= SHADER_EXCLUDE_DIFFUSE;
+      }
+      if (!(object->get_visibility() & PATH_RAY_GLOSSY)) {
+        shader_flag |= SHADER_EXCLUDE_GLOSSY;
+      }
+      if (!(object->get_visibility() & PATH_RAY_TRANSMIT)) {
+        shader_flag |= SHADER_EXCLUDE_TRANSMIT;
+      }
+      if (!(object->get_visibility() & PATH_RAY_VOLUME_SCATTER)) {
+        shader_flag |= SHADER_EXCLUDE_SCATTER;
+      }
+      if (!(object->get_is_shadow_catcher())) {
+        shader_flag |= SHADER_EXCLUDE_SHADOW_CATCHER;
+      }
+
+      kemitter.triangle.id = emitter.prim_id + mesh->prim_offset;
+      kemitter.mesh_light.shader_flag = shader_flag;
+      kemitter.mesh_light.object_id = emitter.object_id;
+      kemitter.triangle.emission_sampling = shader->emission_sampling;
+      flatten.triangle_array[emitter.prim_id + flatten.object_lookup_offset[emitter.object_id]] =
+          emitter_index;
+    }
+    else if (emitter.is_light()) {
+      /* Light object. */
+      kemitter.light.id = emitter.light_id;
+      kemitter.mesh_light.shader_flag = 0;
+      kemitter.mesh_light.object_id = OBJECT_NONE;
+      flatten.light_array[~emitter.light_id] = emitter_index;
+    }
+    else {
+      /* Mesh instance. */
+      assert(emitter.is_mesh());
+      kemitter.mesh.object_id = emitter.object_id;
+      kemitter.mesh_light.shader_flag = 0;
+      kemitter.mesh_light.object_id = OBJECT_NONE;
+      flatten.mesh_array[emitter.object_id] = emitter_index;
+
+      /* Create instance node. One instance node will be the same as the
+       * reference node, and for that it will recursively build the subtree. */
+      LightTreeNode *instance_node = emitter.root.get();
+      LightTreeNode *reference_node = instance_node->get_reference();
+
+      auto map_it = flatten.instances.find(reference_node);
+      if (map_it == flatten.instances.end()) {
+        if (instance_node != reference_node) {
+          /* Flatten the node with the subtree first so the subsequent instances know the index. */
+          std::swap(instance_node->type, reference_node->type);
+          std::swap(instance_node->variant_type, reference_node->variant_type);
+        }
+        instance_node->type &= ~LIGHT_TREE_INSTANCE;
+      }
+
+      kemitter.mesh.node_id = light_tree_flatten(
+          flatten, instance_node, knodes, kemitters, next_node_index);
+
+      KernelLightTreeNode &kinstance_node = knodes[kemitter.mesh.node_id];
+      kinstance_node.bit_trail = node.bit_trail;
+
+      if (map_it != flatten.instances.end()) {
+        kinstance_node.instance.reference = map_it->second;
+      }
+      else {
+        flatten.instances[reference_node] = kemitter.mesh.node_id;
+      }
+    }
+    kemitter.bit_trail = node.bit_trail;
+  }
+}
+
+static int light_tree_flatten(LightTreeFlatten &flatten,
+                              const LightTreeNode *node,
+                              KernelLightTreeNode *knodes,
+                              KernelLightTreeEmitter *kemitters,
+                              int &next_node_index)
+{
+  /* Convert both inner nodes and primitives to device representation. */
+  const int node_index = next_node_index++;
+  int child_index = -1;
+
+  if (node->is_leaf() || node->is_distant()) {
+    light_tree_leaf_emitters_copy_and_flatten(flatten, *node, knodes, kemitters, next_node_index);
+  }
+  else if (node->is_inner()) {
+    /* Nodes are stored in depth first order so that the left child node
+     * immediately follows the parent, and only the right child index needs
+     * to be stored. */
+    light_tree_flatten(flatten,
+                       node->get_inner().children[LightTree::left].get(),
+                       knodes,
+                       kemitters,
+                       next_node_index);
+    child_index = light_tree_flatten(flatten,
+                                     node->get_inner().children[LightTree::right].get(),
+                                     knodes,
+                                     kemitters,
+                                     next_node_index);
+  }
+  else {
+    /* Instance node that is not inner or leaf, but just references another. */
+    assert(node->is_instance());
+  }
+
+  light_tree_node_copy_to_device(knodes[node_index], *node, child_index);
+
+  return node_index;
+}
+
 void LightManager::device_update_tree(Device *,
                                       DeviceScene *dscene,
                                       Scene *scene,
@@ -455,170 +636,33 @@ void LightManager::device_update_tree(Device *,
     return;
   }
 
+  /* Create arguments for recursive tree flatten. */
+  LightTreeFlatten flatten;
+  flatten.scene = scene;
+  flatten.emitters = light_tree.get_emitters();
+  flatten.object_lookup_offset = dscene->object_lookup_offset.data();
   /* We want to create separate arrays corresponding to triangles and lights,
    * which will be used to index back into the light tree for PDF calculations. */
-  uint *light_array = dscene->light_to_tree.alloc(kintegrator->num_lights);
-  uint *mesh_array = dscene->object_to_tree.alloc(scene->objects.size());
-  uint *triangle_array = dscene->triangle_to_tree.alloc(light_tree.num_triangles);
+  flatten.light_array = dscene->light_to_tree.alloc(kintegrator->num_lights);
+  flatten.mesh_array = dscene->object_to_tree.alloc(scene->objects.size());
+  flatten.triangle_array = dscene->triangle_to_tree.alloc(light_tree.num_triangles);
 
-  /* First initialize the light tree's nodes. */
+  /* Allocate emitters and nodes. */
   const size_t num_emitters = light_tree.num_emitters();
-  KernelLightTreeNode *light_tree_nodes = dscene->light_tree_nodes.alloc(light_tree.num_nodes);
-  KernelLightTreeEmitter *light_tree_emitters = dscene->light_tree_emitters.alloc(num_emitters);
+  KernelLightTreeEmitter *kemitters = dscene->light_tree_emitters.alloc(num_emitters);
+  KernelLightTreeNode *knodes = dscene->light_tree_nodes.alloc(light_tree.num_nodes);
 
   /* Update integrator state. */
   kintegrator->use_direct_light = num_emitters > 0;
 
-  /* Copy the light tree nodes to an array in the device. */
-  /* The nodes are arranged in a depth-first order, meaning the left child of each inner node
-   * always comes immediately after that inner node in the array, so that we only need to store the
-   * index of the right child.
-   * To do so, we repeatedly move to the left child of the current node until we reach the leftmost
-   * descendant, while keeping track of the right child of each node we visited by storing the
-   * pointer in the `right_node_stack`.
-   * Once finished visiting the left subtree, we retrieve the last stored pointer from
-   * `right_node_stack`, assign it to its parent (retrieved from `left_index_stack`), and repeat
-   * the process from there. */
-
-  std::stack<int> left_indices;
-  std::stack<LightTreeNode *> right_nodes;
-
-  /* Subtree. */
-  int top_level_stack_size = -1;
-  std::queue<LightTreeNode *> mesh_light_nodes;
-  std::unordered_map<LightTreeNode *, int> processed_mesh;
-
-  LightTreeNode *node = root;
-
-  for (int node_index = 0; node_index < light_tree.num_nodes; node_index++) {
-    if (node->is_instance()) {
-      KernelLightTreeEmitter *mesh_light = &light_tree_emitters[mesh_array[node->object_id]];
-      mesh_light->mesh.node_id = node_index;
-      node->bit_trail = light_tree_nodes[mesh_light->parent_index].bit_trail;
-      LightTreeNode *reference = node->get_reference();
-
-      auto map_it = processed_mesh.find(reference);
-      if (map_it != processed_mesh.end()) {
-        light_tree_nodes[node_index].instance.reference = map_it->second;
-      }
-      else {
-        if (node != reference) {
-          /* Flatten the node with the subtree first so the subsequent instances know the index. */
-          std::swap(node->type, reference->type);
-          std::swap(node->variant_type, reference->variant_type);
-        }
-        node->type &= ~LIGHT_TREE_INSTANCE;
-        processed_mesh[reference] = node_index;
-      }
-    }
-
-    light_tree_nodes[node_index].energy = node->measure.energy;
-
-    light_tree_nodes[node_index].bbox.min = node->measure.bbox.min;
-    light_tree_nodes[node_index].bbox.max = node->measure.bbox.max;
-
-    light_tree_nodes[node_index].bcone.axis = node->measure.bcone.axis;
-    light_tree_nodes[node_index].bcone.theta_o = node->measure.bcone.theta_o;
-    light_tree_nodes[node_index].bcone.theta_e = node->measure.bcone.theta_e;
-
-    light_tree_nodes[node_index].bit_trail = node->bit_trail;
-    light_tree_nodes[node_index].type = static_cast<LightTreeNodeType>(node->type);
-
-    if (node->is_inner()) {
-      light_tree_nodes[node_index].num_emitters = -1;
-      /* Fill in the stacks. */
-      left_indices.push(node_index);
-      right_nodes.push(node->get_inner().children[LightTree::right].get());
-      node = node->get_inner().children[LightTree::left].get();
-      continue;
-    }
-    if (node->is_leaf() || node->is_distant()) {
-      light_tree_nodes[node_index].num_emitters = node->get_leaf().num_emitters;
-      light_tree_nodes[node_index].leaf.first_emitter = node->get_leaf().first_emitter_index;
-
-      for (int i = 0; i < node->get_leaf().num_emitters; i++) {
-        int emitter_index = i + node->get_leaf().first_emitter_index;
-        const LightTreeEmitter &emitter = light_tree.get_emitter(emitter_index);
-
-        light_tree_emitters[emitter_index].energy = emitter.measure.energy;
-        light_tree_emitters[emitter_index].theta_o = emitter.measure.bcone.theta_o;
-        light_tree_emitters[emitter_index].theta_e = emitter.measure.bcone.theta_e;
-
-        if (emitter.is_triangle()) {
-
-          int shader_flag = 0;
-          Object *object = scene->objects[emitter.object_id];
-          Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
-          Shader *shader = static_cast<Shader *>(
-              mesh->get_used_shaders()[mesh->get_shader()[emitter.prim_id]]);
-
-          if (!(object->get_visibility() & PATH_RAY_CAMERA)) {
-            shader_flag |= SHADER_EXCLUDE_CAMERA;
-          }
-          if (!(object->get_visibility() & PATH_RAY_DIFFUSE)) {
-            shader_flag |= SHADER_EXCLUDE_DIFFUSE;
-          }
-          if (!(object->get_visibility() & PATH_RAY_GLOSSY)) {
-            shader_flag |= SHADER_EXCLUDE_GLOSSY;
-          }
-          if (!(object->get_visibility() & PATH_RAY_TRANSMIT)) {
-            shader_flag |= SHADER_EXCLUDE_TRANSMIT;
-          }
-          if (!(object->get_visibility() & PATH_RAY_VOLUME_SCATTER)) {
-            shader_flag |= SHADER_EXCLUDE_SCATTER;
-          }
-          if (!(object->get_is_shadow_catcher())) {
-            shader_flag |= SHADER_EXCLUDE_SHADOW_CATCHER;
-          }
-
-          light_tree_emitters[emitter_index].triangle.id = emitter.prim_id + mesh->prim_offset;
-          light_tree_emitters[emitter_index].mesh_light.shader_flag = shader_flag;
-          light_tree_emitters[emitter_index].mesh_light.object_id = emitter.object_id;
-          light_tree_emitters[emitter_index].triangle.emission_sampling =
-              shader->emission_sampling;
-          triangle_array[emitter.prim_id + dscene->object_lookup_offset[emitter.object_id]] =
-              emitter_index;
-        }
-        else if (emitter.is_light()) {
-          light_tree_emitters[emitter_index].light.id = emitter.light_id;
-          light_tree_emitters[emitter_index].mesh_light.shader_flag = 0;
-          light_tree_emitters[emitter_index].mesh_light.object_id = OBJECT_NONE;
-          light_array[~emitter.light_id] = emitter_index;
-        }
-        else {
-          assert(emitter.is_mesh());
-          light_tree_emitters[emitter_index].mesh.object_id = emitter.object_id;
-          light_tree_emitters[emitter_index].mesh_light.shader_flag = 0;
-          light_tree_emitters[emitter_index].mesh_light.object_id = OBJECT_NONE;
-          mesh_array[emitter.object_id] = emitter_index;
-          mesh_light_nodes.push(emitter.root.get());
-          top_level_stack_size = left_indices.size();
-        }
-        light_tree_emitters[emitter_index].parent_index = node_index;
-      }
-    }
-
-    if (left_indices.empty()) {
-      break;
-    }
-
-    if (left_indices.size() == top_level_stack_size) {
-      if (!mesh_light_nodes.empty()) {
-        node = mesh_light_nodes.front();
-        mesh_light_nodes.pop();
-        continue;
-      }
-      /* Finished processing subtrees in the last leaf node, go back to the top level tree. */
-      top_level_stack_size = -1;
-    }
-
-    /* Retrieve from the stacks. */
-    light_tree_nodes[left_indices.top()].inner.right_child = node_index + 1;
-    node = right_nodes.top();
-
-    left_indices.pop();
-    right_nodes.pop();
+  /* Copy nodes and emitters. */
+  if (root) {
+    int next_node_index = 0;
+    light_tree_flatten(flatten, root, knodes, kemitters, next_node_index);
   }
+
+  VLOG_INFO << "Use light tree with " << num_emitters << " emitters and " << light_tree.num_nodes
+            << " nodes.";
 
   /* Copy arrays to device. */
   dscene->light_tree_nodes.copy_to_device();

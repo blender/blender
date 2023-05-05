@@ -272,6 +272,7 @@ static void imapaint_pick_uv(
 
   const MLoopTri *lt = BKE_mesh_runtime_looptri_ensure(me_eval);
   const int tottri = BKE_mesh_runtime_looptri_len(me_eval);
+  const int *looptri_polys = BKE_mesh_runtime_looptri_polys_ensure(me_eval);
 
   const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
   const int *corner_verts = BKE_mesh_corner_verts(me_eval);
@@ -294,7 +295,8 @@ static void imapaint_pick_uv(
   /* test all faces in the derivedmesh with the original index of the picked face */
   /* face means poly here, not triangle, indeed */
   for (i = 0; i < tottri; i++, lt++) {
-    findex = index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
+    const int poly_i = looptri_polys[i];
+    findex = index_mp_to_orig ? index_mp_to_orig[poly_i] : poly_i;
 
     if (findex == faceindex) {
       const float(*mloopuv)[2];
@@ -309,8 +311,8 @@ static void imapaint_pick_uv(
         const Material *ma;
         const TexPaintSlot *slot;
 
-        ma = BKE_object_material_get(
-            ob_eval, material_indices == NULL ? 1 : material_indices[lt->poly] + 1);
+        ma = BKE_object_material_get(ob_eval,
+                                     material_indices == NULL ? 1 : material_indices[poly_i] + 1);
         slot = &ma->texpaintslot[ma->paint_active_slot];
 
         if (!(slot && slot->uvname &&

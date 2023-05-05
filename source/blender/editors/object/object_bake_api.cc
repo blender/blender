@@ -874,9 +874,9 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
     BakeImage *bk_image = &targets->images[i];
 
     BakeData *bake = &bkr->scene->r.bake;
-    char name[FILE_MAX];
+    char filepath[FILE_MAX];
 
-    BKE_image_path_from_imtype(name,
+    BKE_image_path_from_imtype(filepath,
                                bkr->filepath,
                                BKE_main_blendfile_path(bkr->main),
                                0,
@@ -886,33 +886,33 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
                                nullptr);
 
     if (bkr->is_automatic_name) {
-      BLI_path_suffix(name, FILE_MAX, ob->id.name + 2, "_");
-      BLI_path_suffix(name, FILE_MAX, bkr->identifier, "_");
+      BLI_path_suffix(filepath, FILE_MAX, ob->id.name + 2, "_");
+      BLI_path_suffix(filepath, FILE_MAX, bkr->identifier, "_");
     }
 
     if (bkr->is_split_materials) {
       if (ob_eval->mat[i]) {
-        BLI_path_suffix(name, FILE_MAX, ob_eval->mat[i]->id.name + 2, "_");
+        BLI_path_suffix(filepath, FILE_MAX, ob_eval->mat[i]->id.name + 2, "_");
       }
       else if (mesh_eval->mat[i]) {
-        BLI_path_suffix(name, FILE_MAX, mesh_eval->mat[i]->id.name + 2, "_");
+        BLI_path_suffix(filepath, FILE_MAX, mesh_eval->mat[i]->id.name + 2, "_");
       }
       else {
         /* if everything else fails, use the material index */
         char tmp[5];
         BLI_snprintf(tmp, sizeof(tmp), "%d", i % 1000);
-        BLI_path_suffix(name, FILE_MAX, tmp, "_");
+        BLI_path_suffix(filepath, FILE_MAX, tmp, "_");
       }
     }
 
     if (bk_image->tile_number) {
       char tmp[FILE_MAX];
       SNPRINTF(tmp, "%d", bk_image->tile_number);
-      BLI_path_suffix(name, FILE_MAX, tmp, "_");
+      BLI_path_suffix(filepath, FILE_MAX, tmp, "_");
     }
 
     /* save it externally */
-    const bool ok = write_external_bake_pixels(name,
+    const bool ok = write_external_bake_pixels(filepath,
                                                pixel_array + bk_image->offset,
                                                targets->result +
                                                    bk_image->offset * targets->channels_num,
@@ -927,11 +927,11 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
                                                bk_image->uv_offset);
 
     if (!ok) {
-      BKE_reportf(reports, RPT_ERROR, "Problem saving baked map in \"%s\"", name);
+      BKE_reportf(reports, RPT_ERROR, "Problem saving baked map in \"%s\"", filepath);
       all_ok = false;
     }
     else {
-      BKE_reportf(reports, RPT_INFO, "Baking map written to \"%s\"", name);
+      BKE_reportf(reports, RPT_INFO, "Baking map written to \"%s\"", filepath);
     }
 
     if (!bkr->is_split_materials) {
@@ -1039,6 +1039,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   const blender::Span<int> corner_verts = me_eval->corner_verts();
   blender::bke::mesh::looptris_calc(
       me_eval->vert_positions(), me_eval->polys(), corner_verts, {looptri, tottri});
+  const blender::Span<int> looptri_polys = me_eval->looptri_polys();
 
   /* For mapping back to original mesh in case there are modifiers. */
   const int *vert_origindex = static_cast<const int *>(
@@ -1050,6 +1051,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
 
   for (int i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
+    const int poly_i = looptri_polys[i];
 
     for (int j = 0; j < 3; j++) {
       uint l = lt->tri[j];
@@ -1058,7 +1060,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
       /* Map back to original loop if there are modifiers. */
       if (vert_origindex != nullptr && poly_origindex != nullptr) {
         l = find_original_loop(
-            orig_polys, orig_corner_verts, vert_origindex, poly_origindex, lt->poly, v);
+            orig_polys, orig_corner_verts, vert_origindex, poly_origindex, poly_i, v);
         if (l == ORIGINDEX_NONE || l >= me->totloop) {
           continue;
         }

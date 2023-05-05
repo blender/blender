@@ -515,20 +515,20 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   ListBase *mainlist = fd->mainlist;
   Main *m;
   Library *lib;
-  char name1[FILE_MAX];
+  char filepath_abs[FILE_MAX];
 
-  BLI_strncpy(name1, filepath, sizeof(name1));
-  BLI_path_abs(name1, relabase);
-  BLI_path_normalize(name1);
+  BLI_strncpy(filepath_abs, filepath, sizeof(filepath_abs));
+  BLI_path_abs(filepath_abs, relabase);
+  BLI_path_normalize(filepath_abs);
 
   //  printf("blo_find_main: relabase  %s\n", relabase);
   //  printf("blo_find_main: original in  %s\n", filepath);
-  //  printf("blo_find_main: converted to %s\n", name1);
+  //  printf("blo_find_main: converted to %s\n", filepath_abs);
 
   for (m = static_cast<Main *>(mainlist->first); m; m = m->next) {
     const char *libname = (m->curlib) ? m->curlib->filepath_abs : m->filepath;
 
-    if (BLI_path_cmp(name1, libname) == 0) {
+    if (BLI_path_cmp(filepath_abs, libname) == 0) {
       if (G.debug & G_DEBUG) {
         CLOG_INFO(&LOG, 3, "Found library %s", libname);
       }
@@ -551,7 +551,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   id_us_ensure_real(&lib->id);
 
   BLI_strncpy(lib->filepath, filepath, sizeof(lib->filepath));
-  BLI_strncpy(lib->filepath_abs, name1, sizeof(lib->filepath_abs));
+  BLI_strncpy(lib->filepath_abs, filepath_abs, sizeof(lib->filepath_abs));
 
   m->curlib = lib;
 

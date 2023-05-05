@@ -165,29 +165,35 @@ void imb_freerectImbuf_all(ImBuf *ibuf)
 
 void IMB_freeImBuf(ImBuf *ibuf)
 {
-  if (ibuf) {
-    bool needs_free = false;
+  if (ibuf == nullptr) {
+    return;
+  }
 
-    BLI_spin_lock(&refcounter_spin);
-    if (ibuf->refcounter > 0) {
-      ibuf->refcounter--;
-    }
-    else {
-      needs_free = true;
-    }
-    BLI_spin_unlock(&refcounter_spin);
+  bool needs_free = false;
 
-    if (needs_free) {
-      imb_freerectImbuf_all(ibuf);
-      IMB_metadata_free(ibuf->metadata);
-      colormanage_cache_free(ibuf);
+  BLI_spin_lock(&refcounter_spin);
+  if (ibuf->refcounter > 0) {
+    ibuf->refcounter--;
+  }
+  else {
+    needs_free = true;
+  }
+  BLI_spin_unlock(&refcounter_spin);
 
-      if (ibuf->dds_data.data != nullptr) {
-        /* dds_data.data is allocated by DirectDrawSurface::readData(), so don't use MEM_freeN! */
-        free(ibuf->dds_data.data);
-      }
-      MEM_freeN(ibuf);
+  if (needs_free) {
+    /* Include this check here as the path may be manipulated after creation. */
+    BLI_assert_msg(!(ibuf->filepath[0] == '/' && ibuf->filepath[1] == '/'),
+                   "'.blend' relative \"//\" must not be used in ImBuf!");
+
+    imb_freerectImbuf_all(ibuf);
+    IMB_metadata_free(ibuf->metadata);
+    colormanage_cache_free(ibuf);
+
+    if (ibuf->dds_data.data != nullptr) {
+      /* dds_data.data is allocated by DirectDrawSurface::readData(), so don't use MEM_freeN! */
+      free(ibuf->dds_data.data);
     }
+    MEM_freeN(ibuf);
   }
 }
 
@@ -200,22 +206,18 @@ void IMB_refImBuf(ImBuf *ibuf)
 
 ImBuf *IMB_makeSingleUser(ImBuf *ibuf)
 {
-  ImBuf *rval;
-
-  if (ibuf) {
-    bool is_single;
-    BLI_spin_lock(&refcounter_spin);
-    is_single = (ibuf->refcounter == 0);
-    BLI_spin_unlock(&refcounter_spin);
-    if (is_single) {
-      return ibuf;
-    }
-  }
-  else {
+  if (ibuf == nullptr) {
     return nullptr;
   }
 
-  rval = IMB_dupImBuf(ibuf);
+  BLI_spin_lock(&refcounter_spin);
+  const bool is_single = (ibuf->refcounter == 0);
+  BLI_spin_unlock(&refcounter_spin);
+  if (is_single) {
+    return ibuf;
+  }
+
+  ImBuf *rval = IMB_dupImBuf(ibuf);
 
   IMB_metadata_copy(rval, ibuf);
 
@@ -330,7 +332,7 @@ bool imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
   return true;
 }
 
-void *imb_alloc_pixels(uint x, uint y, uint channels, size_t typesize, const char *name)
+void *imb_alloc_pixels(uint x, uint y, uint channels, size_t typesize, const char *alloc_name)
 {
   /* Protect against buffer overflow vulnerabilities from files specifying
    * a width and height that overflow and alloc too little memory. */
@@ -339,7 +341,7 @@ void *imb_alloc_pixels(uint x, uint y, uint channels, size_t typesize, const cha
   }
 
   size_t size = size_t(x) * size_t(y) * size_t(channels) * typesize;
-  return MEM_callocN(size, name);
+  return MEM_callocN(size, alloc_name);
 }
 
 bool imb_addrectfloatImBuf(ImBuf *ibuf, const uint channels)

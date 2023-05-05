@@ -205,7 +205,7 @@ typedef struct ColormanageCacheKey {
 
 typedef struct ColormanageCacheData {
   int flag;                    /* view flags of cached buffer */
-  int look;                    /* Additional artistics transform */
+  int look;                    /* Additional artistic transform. */
   float exposure;              /* exposure value cached buffer is calculated with */
   float gamma;                 /* gamma value cached buffer is calculated with */
   float dither;                /* dither value cached buffer is calculated with */

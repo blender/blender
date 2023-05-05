@@ -3536,10 +3536,8 @@ void UI_block_free(const bContext *C, uiBlock *block)
 
 void UI_block_listen(const uiBlock *block, const wmRegionListenerParams *listener_params)
 {
-  /* Don't need to let invisible blocks (old blocks from previous redraw) listen. */
-  if (!block->active) {
-    return;
-  }
+  /* Note that #uiBlock.active shouldn't be checked here, since notifier listening happens before
+   * drawing, so there are no active blocks at this point. */
 
   LISTBASE_FOREACH (uiBlockDynamicListener *, listener, &block->dynamic_listeners) {
     listener->listener_func(listener_params);

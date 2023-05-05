@@ -675,8 +675,8 @@ ID *ui_template_id_liboverride_hierarchy_make(
     if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
       BKE_lib_override_library_get(bmain, id, nullptr, &id);
     }
-    if (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) {
-      id->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+    if (id->override_library->flag & LIBOVERRIDE_FLAG_SYSTEM_DEFINED) {
+      id->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
       *r_undo_push_label = "Make Library Override Hierarchy Editable";
     }
     else {
@@ -895,7 +895,7 @@ ID *ui_template_id_liboverride_hierarchy_make(
   }
 
   if (id_override != nullptr) {
-    id_override->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+    id_override->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
     *r_undo_push_label = "Make Library Override Hierarchy";
 
     /* In theory we could rely on setting/updating the RNA ID pointer property (as done by calling

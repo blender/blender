@@ -265,7 +265,8 @@ bool BKE_id_attribute_calc_unique_name(ID *id, const char *name, char *outname)
     BLI_strncpy_utf8(outname, name, maxlength);
   }
 
-  return BLI_uniquename_cb(unique_name_cb, &data, nullptr, '.', outname, maxlength);
+  const char *defname = ""; /* Dummy argument, never used as `name` is never zero length. */
+  return BLI_uniquename_cb(unique_name_cb, &data, defname, '.', outname, maxlength);
 }
 
 CustomDataLayer *BKE_id_attribute_new(ID *id,

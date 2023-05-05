@@ -180,15 +180,15 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     }
 
     if (is_filepath && RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-      char name[FILE_MAX];
-      RNA_string_get(op->ptr, "filepath", name);
+      char filepath[FILE_MAX];
+      RNA_string_get(op->ptr, "filepath", filepath);
       if (params->type == FILE_LOADLIB) {
-        BLI_strncpy(params->dir, name, sizeof(params->dir));
+        BLI_strncpy(params->dir, filepath, sizeof(params->dir));
         params->file[0] = '\0';
       }
       else {
         BLI_path_split_dir_file(
-            name, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
+            filepath, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
       }
     }
     else {

@@ -568,20 +568,20 @@ static int override_type_set_button_exec(bContext *C, wmOperator *op)
 
   switch (op_type) {
     case UIOverride_Type_NOOP:
-      operation = IDOVERRIDE_LIBRARY_OP_NOOP;
+      operation = LIBOVERRIDE_OP_NOOP;
       break;
     case UIOverride_Type_Replace:
-      operation = IDOVERRIDE_LIBRARY_OP_REPLACE;
+      operation = LIBOVERRIDE_OP_REPLACE;
       break;
     case UIOverride_Type_Difference:
       /* override code will automatically switch to subtract if needed. */
-      operation = IDOVERRIDE_LIBRARY_OP_ADD;
+      operation = LIBOVERRIDE_OP_ADD;
       break;
     case UIOverride_Type_Factor:
-      operation = IDOVERRIDE_LIBRARY_OP_MULTIPLY;
+      operation = LIBOVERRIDE_OP_MULTIPLY;
       break;
     default:
-      operation = IDOVERRIDE_LIBRARY_OP_REPLACE;
+      operation = LIBOVERRIDE_OP_REPLACE;
       BLI_assert(0);
       break;
   }
@@ -619,7 +619,7 @@ static int override_type_set_button_invoke(bContext *C, wmOperator *op, const wm
 #if 0 /* Disabled for now */
   return WM_menu_invoke_ex(C, op, WM_OP_INVOKE_DEFAULT);
 #else
-  RNA_enum_set(op->ptr, "type", IDOVERRIDE_LIBRARY_OP_REPLACE);
+  RNA_enum_set(op->ptr, "type", LIBOVERRIDE_OP_REPLACE);
   return override_type_set_button_exec(C, op);
 #endif
 }

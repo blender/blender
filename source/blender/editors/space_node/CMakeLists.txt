@@ -12,6 +12,7 @@ set(INC
   ../../depsgraph
   ../../draw
   ../../functions
+  ../../geometry
   ../../gpu
   ../../imbuf
   ../../makesdna

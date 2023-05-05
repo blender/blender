@@ -252,12 +252,12 @@ void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *upd
          * changed. CoW IDs indirectly modified because of changes in other IDs should never
          * require a lib-override diffing. */
         if (ID_IS_OVERRIDE_LIBRARY_REAL(id_orig)) {
-          id_orig->tag |= LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
+          id_orig->tag |= LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
         }
         else if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id_orig)) {
           switch (GS(id_orig->name)) {
             case ID_KE:
-              ((Key *)id_orig)->from->tag |= LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
+              ((Key *)id_orig)->from->tag |= LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
               break;
             case ID_GR:
               BLI_assert(id_orig->flag & LIB_EMBEDDED_DATA);

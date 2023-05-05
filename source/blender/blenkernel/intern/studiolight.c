@@ -141,7 +141,7 @@ static void studiolight_free(struct StudioLight *sl)
 static struct StudioLight *studiolight_create(int flag)
 {
   struct StudioLight *sl = MEM_callocN(sizeof(*sl), __func__);
-  sl->path[0] = 0x00;
+  sl->filepath[0] = 0x00;
   sl->name[0] = 0x00;
   sl->path_irr_cache = NULL;
   sl->path_sh_cache = NULL;
@@ -201,7 +201,7 @@ static struct StudioLight *studiolight_create(int flag)
 
 static void studiolight_load_solid_light(StudioLight *sl)
 {
-  LinkNode *lines = BLI_file_read_as_lines(sl->path);
+  LinkNode *lines = BLI_file_read_as_lines(sl->filepath);
   if (lines) {
     READ_VEC3("light_ambient", sl->light_ambient, lines);
     READ_SOLIDLIGHT(sl->light, 0, lines);
@@ -238,7 +238,7 @@ static void studiolight_load_solid_light(StudioLight *sl)
 
 static void studiolight_write_solid_light(StudioLight *sl)
 {
-  FILE *fp = BLI_fopen(sl->path, "wb");
+  FILE *fp = BLI_fopen(sl->filepath, "wb");
   if (fp) {
     DynStr *str = BLI_dynstr_new();
 
@@ -393,7 +393,7 @@ static void studiolight_multilayer_addpass(void *base,
 static void studiolight_load_equirect_image(StudioLight *sl)
 {
   if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
-    ImBuf *ibuf = IMB_loadiffname(sl->path, IB_multilayer, NULL);
+    ImBuf *ibuf = IMB_loadiffname(sl->filepath, IB_multilayer, NULL);
     ImBuf *specular_ibuf = NULL;
     ImBuf *diffuse_ibuf = NULL;
     const bool failed = (ibuf == NULL);
@@ -1151,24 +1151,24 @@ static void studiolight_calculate_irradiance_equirect_image(StudioLight *sl)
   sl->flag |= STUDIOLIGHT_EQUIRECT_IRRADIANCE_IMAGE_CALCULATED;
 }
 
-static StudioLight *studiolight_add_file(const char *path, int flag)
+static StudioLight *studiolight_add_file(const char *filepath, int flag)
 {
   char filename[FILE_MAXFILE];
-  BLI_path_split_file_part(path, filename, FILE_MAXFILE);
+  BLI_path_split_file_part(filepath, filename, FILE_MAXFILE);
 
   if ((((flag & STUDIOLIGHT_TYPE_STUDIO) != 0) && BLI_path_extension_check(filename, ".sl")) ||
       BLI_path_extension_check_array(filename, imb_ext_image))
   {
     StudioLight *sl = studiolight_create(STUDIOLIGHT_EXTERNAL_FILE | flag);
-    BLI_strncpy(sl->name, filename, FILE_MAXFILE);
-    BLI_strncpy(sl->path, path, FILE_MAXFILE);
+    STRNCPY(sl->name, filename);
+    STRNCPY(sl->filepath, filepath);
 
     if ((flag & STUDIOLIGHT_TYPE_STUDIO) != 0) {
       studiolight_load_solid_light(sl);
     }
     else {
-      sl->path_irr_cache = BLI_string_joinN(path, ".irr");
-      sl->path_sh_cache = BLI_string_joinN(path, ".sh2");
+      sl->path_irr_cache = BLI_string_joinN(filepath, ".irr");
+      sl->path_sh_cache = BLI_string_joinN(filepath, ".sh2");
     }
     BLI_addtail(&studiolights, sl);
     return sl;
@@ -1578,13 +1578,13 @@ void BKE_studiolight_remove(StudioLight *sl)
   }
 }
 
-StudioLight *BKE_studiolight_load(const char *path, int type)
+StudioLight *BKE_studiolight_load(const char *filepath, int type)
 {
-  StudioLight *sl = studiolight_add_file(path, type | STUDIOLIGHT_USER_DEFINED);
+  StudioLight *sl = studiolight_add_file(filepath, type | STUDIOLIGHT_USER_DEFINED);
   return sl;
 }
 
-StudioLight *BKE_studiolight_create(const char *path,
+StudioLight *BKE_studiolight_create(const char *filepath,
                                     const SolidLight light[4],
                                     const float light_ambient[3])
 {
@@ -1593,8 +1593,8 @@ StudioLight *BKE_studiolight_create(const char *path,
                                        STUDIOLIGHT_SPECULAR_HIGHLIGHT_PASS);
 
   char filename[FILE_MAXFILE];
-  BLI_path_split_file_part(path, filename, FILE_MAXFILE);
-  STRNCPY(sl->path, path);
+  BLI_path_split_file_part(filepath, filename, FILE_MAXFILE);
+  STRNCPY(sl->filepath, filepath);
   STRNCPY(sl->name, filename);
 
   memcpy(sl->light, light, sizeof(*light) * 4);

@@ -209,7 +209,7 @@ ListBase *SEQ_get_seqbase_from_sequence(Sequence *seq, ListBase **r_channels, in
 void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 {
   char dir[FILE_MAX];
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
   StripProxy *proxy;
   bool use_proxy;
   bool is_multiview_loaded = false;
@@ -224,8 +224,8 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   /* reset all the previously created anims */
   SEQ_relations_sequence_free_anim(seq);
 
-  BLI_path_join(name, sizeof(name), seq->strip->dir, seq->strip->stripdata->name);
-  BLI_path_abs(name, BKE_main_blendfile_path_from_global());
+  BLI_path_join(filepath, sizeof(filepath), seq->strip->dir, seq->strip->stripdata->name);
+  BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
   proxy = seq->strip->proxy;
 
@@ -253,7 +253,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
     const char *ext = NULL;
     int i;
 
-    BKE_scene_multiview_view_prefix_get(scene, name, prefix, &ext);
+    BKE_scene_multiview_view_prefix_get(scene, filepath, prefix, &ext);
 
     if (prefix[0] != '\0') {
       for (i = 0; i < totfiles; i++) {
@@ -285,13 +285,13 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
         }
         else {
           if (openfile) {
-            sanim->anim = openanim(name,
+            sanim->anim = openanim(filepath,
                                    IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                                    seq->streamindex,
                                    seq->strip->colorspace_settings.name);
           }
           else {
-            sanim->anim = openanim_noload(name,
+            sanim->anim = openanim_noload(filepath,
                                           IB_rect |
                                               ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                                           seq->streamindex,
@@ -317,13 +317,13 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
     BLI_addtail(&seq->anims, sanim);
 
     if (openfile) {
-      sanim->anim = openanim(name,
+      sanim->anim = openanim(filepath,
                              IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                              seq->streamindex,
                              seq->strip->colorspace_settings.name);
     }
     else {
-      sanim->anim = openanim_noload(name,
+      sanim->anim = openanim_noload(filepath,
                                     IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                                     seq->streamindex,
                                     seq->strip->colorspace_settings.name);

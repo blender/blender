@@ -269,6 +269,15 @@ static void wm_window_substitute_old(wmWindowManager *oldwm,
   win->posy = oldwin->posy;
 }
 
+/**
+ * Support loading older files without multiple windows (pre 2.5),
+ * in this case the #bScreen from the users file should be used but the current
+ * windows (from `current_wm_list` are kept).
+ *
+ * As the original file did not have multiple windows, duplicate the layout into each window.
+ * An alternative solution could also be to close all windows except the first however this is
+ * enough of a corner case that it's the current behavior is acceptable.
+ */
 static void wm_window_match_keep_current_wm(const bContext *C,
                                             ListBase *current_wm_list,
                                             const bool load_ui,
@@ -286,7 +295,7 @@ static void wm_window_match_keep_current_wm(const bContext *C,
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       WorkSpace *workspace;
 
-      WorkSpaceLayout *layout_old = BKE_workspace_layout_find_global(bmain, screen, &workspace);
+      WorkSpaceLayout *layout_ref = BKE_workspace_layout_find_global(bmain, screen, &workspace);
       BKE_workspace_active_set(win->workspace_hook, workspace);
       win->scene = CTX_data_scene(C);
 
@@ -295,11 +304,13 @@ static void wm_window_match_keep_current_wm(const bContext *C,
         WM_window_set_active_screen(win, workspace, screen);
       }
       else {
-#if 0 /* NOTE(@ideasman42): The screen referenced from the window has been freed, see: 107525. */
-        WorkSpaceLayout *layout_old = WM_window_get_active_layout(win);
+#if 0
+        /* NOTE(@ideasman42): The screen referenced from the window has been freed,
+         * see: #107525. */
+        WorkSpaceLayout *layout_ref = WM_window_get_active_layout(win);
 #endif
         WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(
-            bmain, workspace, layout_old, win);
+            bmain, workspace, layout_ref, win);
 
         WM_window_set_active_layout(win, workspace, layout_new);
       }
@@ -516,17 +527,17 @@ static void wm_init_userdef(Main *bmain)
  * \{ */
 
 /* intended to check for non-blender formats but for now it only reads blends */
-static int wm_read_exotic(const char *name)
+static int wm_read_exotic(const char *filepath)
 {
   /* make sure we're not trying to read a directory.... */
 
-  int namelen = strlen(name);
-  if (namelen > 0 && ELEM(name[namelen - 1], '/', '\\')) {
+  int filepath_len = strlen(filepath);
+  if (filepath_len > 0 && ELEM(filepath[filepath_len - 1], '/', '\\')) {
     return BKE_READ_EXOTIC_FAIL_PATH;
   }
 
   /* open the file. */
-  const int filedes = BLI_open(name, O_BINARY | O_RDONLY, 0);
+  const int filedes = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (filedes == -1) {
     return BKE_READ_EXOTIC_FAIL_OPEN;
   }
@@ -1470,13 +1481,13 @@ void wm_history_file_read(void)
     return;
   }
 
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
   LinkNode *l;
   int num;
 
-  BLI_path_join(name, sizeof(name), cfgdir, BLENDER_HISTORY_FILE);
+  BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_HISTORY_FILE);
 
-  LinkNode *lines = BLI_file_read_as_lines(name);
+  LinkNode *lines = BLI_file_read_as_lines(filepath);
 
   wm_history_files_free();
 
@@ -1529,7 +1540,7 @@ static RecentFile *wm_file_history_find(const char *filepath)
 static void wm_history_file_write(void)
 {
   const char *user_config_dir;
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
   FILE *fp;
 
   /* will be nullptr in background mode */
@@ -1538,9 +1549,9 @@ static void wm_history_file_write(void)
     return;
   }
 
-  BLI_path_join(name, sizeof(name), user_config_dir, BLENDER_HISTORY_FILE);
+  BLI_path_join(filepath, sizeof(filepath), user_config_dir, BLENDER_HISTORY_FILE);
 
-  fp = BLI_fopen(name, "w");
+  fp = BLI_fopen(filepath, "w");
   if (fp) {
     LISTBASE_FOREACH (RecentFile *, recent, &G.recent_files) {
       fprintf(fp, "%s\n", recent->filepath);

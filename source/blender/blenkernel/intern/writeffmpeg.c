@@ -1097,7 +1097,7 @@ static int start_ffmpeg_impl(FFMpegContext *context,
   /* Handle to the output file */
   AVFormatContext *of;
   const AVOutputFormat *fmt;
-  char name[FILE_MAX], error[1024];
+  char filepath[FILE_MAX], error[1024];
   const char **exts;
 
   context->ffmpeg_type = rd->ffcodecdata.type;
@@ -1115,14 +1115,14 @@ static int start_ffmpeg_impl(FFMpegContext *context,
   }
 
   /* Determine the correct filename */
-  ffmpeg_filepath_get(context, name, rd, context->ffmpeg_preview, suffix);
+  ffmpeg_filepath_get(context, filepath, rd, context->ffmpeg_preview, suffix);
   PRINT(
       "Starting output to %s(ffmpeg)...\n"
       "  Using type=%d, codec=%d, audio_codec=%d,\n"
       "  video_bitrate=%d, audio_bitrate=%d,\n"
       "  gop_size=%d, autosplit=%d\n"
       "  render width=%d, render height=%d\n",
-      name,
+      filepath,
       context->ffmpeg_type,
       context->ffmpeg_codec,
       context->ffmpeg_audio_codec,
@@ -1155,7 +1155,7 @@ static int start_ffmpeg_impl(FFMpegContext *context,
   enum AVCodecID audio_codec = context->ffmpeg_audio_codec;
   enum AVCodecID video_codec = context->ffmpeg_codec;
 
-  of->url = av_strdup(name);
+  of->url = av_strdup(filepath);
   /* Check if we need to force change the codec because of file type codec restrictions */
   switch (context->ffmpeg_type) {
     case FFMPEG_OGG:
@@ -1256,7 +1256,7 @@ static int start_ffmpeg_impl(FFMpegContext *context,
     }
   }
   if (!(fmt->flags & AVFMT_NOFILE)) {
-    if (avio_open(&of->pb, name, AVIO_FLAG_WRITE) < 0) {
+    if (avio_open(&of->pb, filepath, AVIO_FLAG_WRITE) < 0) {
       BKE_report(reports, RPT_ERROR, "Could not open file for writing");
       PRINT("Could not open file for writing\n");
       goto fail;
@@ -1278,7 +1278,7 @@ static int start_ffmpeg_impl(FFMpegContext *context,
   }
 
   context->outfile = of;
-  av_dump_format(of, 0, name, 1);
+  av_dump_format(of, 0, filepath, 1);
 
   return 1;
 
@@ -1385,7 +1385,7 @@ static void ffmpeg_filepath_get(FFMpegContext *context,
   BLI_strncpy(string, rd->pic, FILE_MAX);
   BLI_path_abs(string, BKE_main_blendfile_path_from_global());
 
-  BLI_make_existing_file(string);
+  BLI_file_ensure_parent_dir_exists(string);
 
   autosplit[0] = '\0';
 
@@ -1426,9 +1426,12 @@ static void ffmpeg_filepath_get(FFMpegContext *context,
   BLI_path_suffix(string, FILE_MAX, suffix, "");
 }
 
-void BKE_ffmpeg_filepath_get(char *string, const RenderData *rd, bool preview, const char *suffix)
+void BKE_ffmpeg_filepath_get(char *filepath,
+                             const RenderData *rd,
+                             bool preview,
+                             const char *suffix)
 {
-  ffmpeg_filepath_get(NULL, string, rd, preview, suffix);
+  ffmpeg_filepath_get(NULL, filepath, rd, preview, suffix);
 }
 
 int BKE_ffmpeg_start(void *context_v,

@@ -63,6 +63,7 @@ struct PBVH_GPU_Args {
   int node_verts_num;
 
   const MLoopTri *mlooptri;
+  const int *looptri_polys;
   PBVHNode *node;
 
   /* BMesh. */

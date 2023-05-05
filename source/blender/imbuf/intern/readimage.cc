@@ -160,7 +160,7 @@ ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_S
   ibuf = IMB_loadifffile(file, flags, colorspace, filepath);
 
   if (ibuf) {
-    BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
+    BLI_strncpy(ibuf->filepath, filepath, sizeof(ibuf->filepath));
   }
 
   close(file);
@@ -239,7 +239,7 @@ ImBuf *IMB_testiffname(const char *filepath, int flags)
   ibuf = IMB_loadifffile(file, flags | IB_test | IB_multilayer, colorspace, filepath);
 
   if (ibuf) {
-    BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
+    BLI_strncpy(ibuf->filepath, filepath, sizeof(ibuf->filepath));
   }
 
   close(file);

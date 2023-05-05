@@ -67,7 +67,7 @@ void path_reference_copy(const Set<std::pair<std::string, std::string>> &copy_se
     if (0 == BLI_path_cmp_normalized(src, dst)) {
       continue; /* Source and dest are the same. */
     }
-    if (!BLI_make_existing_file(dst)) {
+    if (!BLI_file_ensure_parent_dir_exists(dst)) {
       fprintf(stderr, "Can't make directory for '%s', not copying\n", dst);
       continue;
     }

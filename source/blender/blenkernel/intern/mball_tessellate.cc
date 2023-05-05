@@ -1182,7 +1182,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
              ob->object_to_world); /* to cope with duplicators from BKE_scene_base_iter_next */
   invert_m4_m4(obinv, ob->object_to_world);
 
-  BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
+  BLI_string_split_name_number(ob->id.name + 2, '.', obname, &obnr);
 
   /* make main array */
   BKE_scene_base_iter_next(depsgraph, &iter, &sce_iter, 0, nullptr, nullptr);
@@ -1214,7 +1214,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
         char name[MAX_ID_NAME];
         int nr;
 
-        BLI_split_name_num(name, &nr, bob->id.name + 2, '.');
+        BLI_string_split_name_number(bob->id.name + 2, '.', name, &nr);
         if (STREQ(obname, name)) {
           mb = static_cast<MetaBall *>(bob->data);
 

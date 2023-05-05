@@ -849,7 +849,8 @@ static void lnor_space_for_single_fan(LoopSplitTaskDataCommon *common_data,
     const Span<int> corner_edges = common_data->corner_edges;
     const Span<short2> clnors_data = common_data->clnors_data;
 
-    float vec_curr[3], vec_prev[3];
+    float3 vec_curr;
+    float3 vec_prev;
     const int poly_index = loop_to_poly[ml_curr_index];
     const int ml_prev_index = mesh::poly_corner_prev(polys[poly_index], ml_curr_index);
 
@@ -906,11 +907,13 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
   /* `ml_curr_index` would be mlfan_prev if we needed that one. */
   const int2 &edge_orig = edges[corner_edges[ml_curr_index]];
 
-  float vec_curr[3], vec_prev[3], vec_org[3];
+  float3 vec_curr;
+  float3 vec_prev;
+  float3 vec_org;
   float3 lnor(0.0f);
 
   /* We validate clnors data on the fly - cheapest way to do! */
-  int clnors_avg[2] = {0, 0};
+  int2 clnors_avg(0);
   short2 *clnor_ref = nullptr;
   int clnors_count = 0;
   bool clnors_invalid = false;
@@ -961,7 +964,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
       /* Calculate angle between the two poly edges incident on this vertex. */
       const float fac = saacos(dot_v3v3(vec_curr, vec_prev));
       /* Accumulate */
-      madd_v3_v3fl(lnor, poly_normals[mpfan_curr_index], fac);
+      lnor += poly_normals[mpfan_curr_index] * fac;
 
       if (!clnors_data.is_empty()) {
         /* Accumulate all clnors, if they are not all equal we have to fix that! */
@@ -992,11 +995,10 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
     if (IS_EDGE_SHARP(edge_to_loops[corner_edges[mlfan_curr_index]]) || (edge == edge_orig)) {
       /* Current edge is sharp and we have finished with this fan of faces around this vert,
        * or this vert is smooth, and we have completed a full turn around it. */
-      // printf("FAN: Finished!\n");
       break;
     }
 
-    copy_v3_v3(vec_prev, vec_curr);
+    vec_prev = vec_curr;
 
     /* Find next loop of the smooth fan. */
     loop_manifold_fan_around_vert_next(corner_verts,
@@ -1009,46 +1011,45 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
                                        &mpfan_curr_index);
   }
 
-  {
-    float lnor_len = normalize_v3(lnor);
+  float length;
+  lnor = math::normalize_and_get_length(lnor, length);
 
-    /* If we are generating lnor spacearr, we can now define the one for this fan,
-     * and optionally compute final lnor from custom data too!
-     */
-    if (lnors_spacearr) {
-      if (UNLIKELY(lnor_len == 0.0f)) {
-        /* Use vertex normal as fallback! */
-        copy_v3_v3(lnor, loop_normals[mlfan_vert_index]);
-        lnor_len = 1.0f;
-      }
+  /* If we are generating lnor spacearr, we can now define the one for this fan,
+   * and optionally compute final lnor from custom data too!
+   */
+  if (lnors_spacearr) {
+    if (UNLIKELY(length == 0.0f)) {
+      /* Use vertex normal as fallback! */
+      lnor = loop_normals[mlfan_vert_index];
+      length = 1.0f;
+    }
 
-      BKE_lnor_space_define(lnor_space, lnor, vec_org, vec_curr, *edge_vectors);
-      edge_vectors->clear();
+    BKE_lnor_space_define(lnor_space, lnor, vec_org, vec_curr, *edge_vectors);
+    edge_vectors->clear();
 
-      if (!clnors_data.is_empty()) {
-        if (clnors_invalid) {
-          clnors_avg[0] /= clnors_count;
-          clnors_avg[1] /= clnors_count;
-          /* Fix/update all clnors of this fan with computed average value. */
-          if (G.debug & G_DEBUG) {
-            printf("Invalid clnors in this fan!\n");
-          }
-          clnors_data.fill_indices(processed_corners.as_span(),
-                                   short2(clnors_avg[0], clnors_avg[1]));
-          // print_v2("new clnors", clnors_avg);
+    if (!clnors_data.is_empty()) {
+      if (clnors_invalid) {
+        clnors_avg[0] /= clnors_count;
+        clnors_avg[1] /= clnors_count;
+        /* Fix/update all clnors of this fan with computed average value. */
+        if (G.debug & G_DEBUG) {
+          printf("Invalid clnors in this fan!\n");
         }
-        /* Extra bonus: since small-stack is local to this function,
-         * no more need to empty it at all cost! */
-
-        BKE_lnor_space_custom_data_to_normal(lnor_space, *clnor_ref, lnor);
+        clnors_data.fill_indices(processed_corners.as_span(),
+                                 short2(clnors_avg[0], clnors_avg[1]));
+        // print_v2("new clnors", clnors_avg);
       }
-    }
+      /* Extra bonus: since small-stack is local to this function,
+       * no more need to empty it at all cost! */
 
-    /* In case we get a zero normal here, just use vertex normal already set! */
-    if (LIKELY(lnor_len != 0.0f)) {
-      /* Copy back the final computed normal into all related loop-normals. */
-      loop_normals.fill_indices(processed_corners.as_span(), lnor);
+      BKE_lnor_space_custom_data_to_normal(lnor_space, *clnor_ref, lnor);
     }
+  }
+
+  /* In case we get a zero normal here, just use vertex normal already set! */
+  if (LIKELY(length != 0.0f)) {
+    /* Copy back the final computed normal into all related loop-normals. */
+    loop_normals.fill_indices(processed_corners.as_span(), lnor);
   }
 }
 
@@ -1557,43 +1558,44 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
       }
       continue;
     }
+    if (!done_loops[i]) {
+      continue;
+    }
 
-    if (done_loops[i]) {
-      /* Note we accumulate and average all custom normals in current smooth fan,
-       * to avoid getting different clnors data (tiny differences in plain custom normals can
-       * give rather huge differences in computed 2D factors). */
-      LinkNode *loop_link = lnors_spacearr.lspacearr[i]->loops;
-      if (lnors_spacearr.lspacearr[i]->flags & MLNOR_SPACE_IS_SINGLE) {
-        BLI_assert(POINTER_AS_INT(loop_link) == i);
-        const int nidx = use_vertices ? corner_verts[i] : i;
+    /* Note we accumulate and average all custom normals in current smooth fan,
+     * to avoid getting different clnors data (tiny differences in plain custom normals can
+     * give rather huge differences in computed 2D factors). */
+    LinkNode *loop_link = lnors_spacearr.lspacearr[i]->loops;
+    if (lnors_spacearr.lspacearr[i]->flags & MLNOR_SPACE_IS_SINGLE) {
+      BLI_assert(POINTER_AS_INT(loop_link) == i);
+      const int nidx = use_vertices ? corner_verts[i] : i;
+      float *nor = r_custom_loop_normals[nidx];
+
+      BKE_lnor_space_custom_normal_to_data(lnors_spacearr.lspacearr[i], nor, r_clnors_data[i]);
+      done_loops[i].reset();
+    }
+    else {
+      int avg_nor_count = 0;
+      float3 avg_nor(0.0f);
+      while (loop_link) {
+        const int lidx = POINTER_AS_INT(loop_link->link);
+        const int nidx = use_vertices ? corner_verts[lidx] : lidx;
         float *nor = r_custom_loop_normals[nidx];
 
-        BKE_lnor_space_custom_normal_to_data(lnors_spacearr.lspacearr[i], nor, r_clnors_data[i]);
-        done_loops[i].reset();
+        avg_nor_count++;
+        add_v3_v3(avg_nor, nor);
+        processed_corners.append(lidx);
+
+        loop_link = loop_link->next;
+        done_loops[lidx].reset();
       }
-      else {
-        int avg_nor_count = 0;
-        float3 avg_nor(0.0f);
-        while (loop_link) {
-          const int lidx = POINTER_AS_INT(loop_link->link);
-          const int nidx = use_vertices ? corner_verts[lidx] : lidx;
-          float *nor = r_custom_loop_normals[nidx];
 
-          avg_nor_count++;
-          add_v3_v3(avg_nor, nor);
-          processed_corners.append(lidx);
+      mul_v3_fl(avg_nor, 1.0f / float(avg_nor_count));
+      short2 clnor_data_tmp;
+      BKE_lnor_space_custom_normal_to_data(lnors_spacearr.lspacearr[i], avg_nor, clnor_data_tmp);
 
-          loop_link = loop_link->next;
-          done_loops[lidx].reset();
-        }
-
-        mul_v3_fl(avg_nor, 1.0f / float(avg_nor_count));
-        short2 clnor_data_tmp;
-        BKE_lnor_space_custom_normal_to_data(lnors_spacearr.lspacearr[i], avg_nor, clnor_data_tmp);
-
-        r_clnors_data.fill_indices(processed_corners.as_span(), clnor_data_tmp);
-        processed_corners.clear();
-      }
+      r_clnors_data.fill_indices(processed_corners.as_span(), clnor_data_tmp);
+      processed_corners.clear();
     }
   }
 

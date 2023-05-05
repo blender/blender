@@ -1881,7 +1881,7 @@ static void movieclip_build_proxy_ibuf(
    */
   BLI_thread_lock(LOCK_MOVIECLIP);
 
-  BLI_make_existing_file(filepath);
+  BLI_file_ensure_parent_dir_exists(filepath);
   if (IMB_saveiff(scaleibuf, filepath, IB_rect) == 0) {
     perror(filepath);
   }

@@ -600,8 +600,7 @@ static void nla_panel_modifiers(const bContext *C, Panel *panel)
 
     /* FIXME: we need to set the only-active property so that this
      * will only add modifiers for the active strip (not all selected). */
-    uiItemMenuEnumO(
-        row, (bContext *)C, "NLA_OT_fmodifier_add", "type", IFACE_("Add Modifier"), ICON_NONE);
+    uiItemMenuEnumO(row, C, "NLA_OT_fmodifier_add", "type", IFACE_("Add Modifier"), ICON_NONE);
 
     /* copy/paste (as sub-row) */
     row = uiLayoutRow(row, true);

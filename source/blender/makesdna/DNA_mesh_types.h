@@ -292,9 +292,14 @@ typedef struct Mesh {
   blender::MutableSpan<MDeformVert> deform_verts_for_write();
 
   /**
-   * Cached triangulation of the mesh.
+   * Cached triangulation of mesh faces, depending on the face topology and the vertex positions.
    */
   blender::Span<MLoopTri> looptris() const;
+
+  /**
+   * A map containing the face index that each cached triangle from #Mesh::looptris() came from.
+   */
+  blender::Span<int> looptri_polys() const;
 
   /** Set cached mesh bounds to a known-correct value to avoid their lazy calculation later on. */
   void bounds_set_eager(const blender::Bounds<blender::float3> &bounds);

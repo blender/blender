@@ -7,6 +7,8 @@
 
 #include "vk_data_conversion.hh"
 
+#include "BLI_color.hh"
+
 #include "Imath/half.h"
 
 namespace blender::gpu {
@@ -46,6 +48,12 @@ enum class ConversionType {
   /** Convert device 16F to floats. */
   HALF_TO_FLOAT,
   FLOAT_TO_HALF,
+
+  FLOAT_TO_SRGBA8,
+  SRGBA8_TO_FLOAT,
+
+  FLOAT_TO_DEPTH_COMPONENT24,
+  DEPTH_COMPONENT24_TO_FLOAT,
 
   /**
    * The requested conversion isn't supported.
@@ -90,6 +98,12 @@ static ConversionType type_of_conversion_float(eGPUTextureFormat device_format)
     case GPU_R16_SNORM:
       return ConversionType::FLOAT_TO_SNORM16;
 
+    case GPU_SRGB8_A8:
+      return ConversionType::FLOAT_TO_SRGBA8;
+
+    case GPU_DEPTH_COMPONENT24:
+      return ConversionType::FLOAT_TO_DEPTH_COMPONENT24;
+
     case GPU_RGB32F: /* GPU_RGB32F Not supported by vendors. */
     case GPU_RGBA8UI:
     case GPU_RGBA8I:
@@ -114,7 +128,6 @@ static ConversionType type_of_conversion_float(eGPUTextureFormat device_format)
     case GPU_R11F_G11F_B10F:
     case GPU_DEPTH32F_STENCIL8:
     case GPU_DEPTH24_STENCIL8:
-    case GPU_SRGB8_A8:
     case GPU_RGB8UI:
     case GPU_RGB8I:
     case GPU_RGB8:
@@ -131,7 +144,6 @@ static ConversionType type_of_conversion_float(eGPUTextureFormat device_format)
     case GPU_RGBA8_DXT5:
     case GPU_SRGB8:
     case GPU_RGB9_E5:
-    case GPU_DEPTH_COMPONENT24:
     case GPU_DEPTH_COMPONENT16:
       return ConversionType::UNSUPPORTED;
   }
@@ -512,6 +524,8 @@ static ConversionType reversed(ConversionType type)
       CASE_PAIR(UI32, UI8)
       CASE_PAIR(I32, I8)
       CASE_PAIR(FLOAT, HALF)
+      CASE_PAIR(FLOAT, SRGBA8)
+      CASE_PAIR(FLOAT, DEPTH_COMPONENT24)
 
     case ConversionType::UNSUPPORTED:
       return ConversionType::UNSUPPORTED;
@@ -528,6 +542,44 @@ static ConversionType reversed(ConversionType type)
 /* -------------------------------------------------------------------- */
 /** \name Data Conversion
  * \{ */
+
+template<typename InnerType> struct ComponentValue {
+  InnerType value;
+};
+template<typename InnerType> struct PixelValue {
+  InnerType value;
+};
+
+using UI8 = ComponentValue<uint8_t>;
+using UI16 = ComponentValue<uint16_t>;
+using UI32 = ComponentValue<uint32_t>;
+using I8 = ComponentValue<int8_t>;
+using I16 = ComponentValue<int16_t>;
+using I32 = ComponentValue<int32_t>;
+using F32 = ComponentValue<float>;
+using F16 = ComponentValue<uint16_t>;
+using SRGBA8 = PixelValue<ColorSceneLinearByteEncoded4b<eAlpha::Premultiplied>>;
+using FLOAT4 = PixelValue<ColorSceneLinear4f<eAlpha::Premultiplied>>;
+
+class DepthComponent24 : public ComponentValue<uint32_t> {
+ public:
+  operator uint32_t() const
+  {
+    return value;
+  }
+
+  DepthComponent24 &operator=(uint32_t new_value)
+  {
+    value = new_value;
+    return *this;
+  }
+
+  /* Depth component24 are 4 bytes, but 1 isn't used. */
+  static constexpr size_t used_byte_size()
+  {
+    return 3;
+  }
+};
 
 template<typename InnerType> struct SignedNormalized {
   static_assert(std::is_same<InnerType, uint8_t>() || std::is_same<InnerType, uint16_t>());
@@ -550,35 +602,33 @@ template<typename InnerType> struct SignedNormalized {
 };
 
 template<typename InnerType> struct UnsignedNormalized {
-  static_assert(std::is_same<InnerType, uint8_t>() || std::is_same<InnerType, uint16_t>());
+  static_assert(std::is_same<InnerType, uint8_t>() || std::is_same<InnerType, uint16_t>() ||
+                std::is_same<InnerType, DepthComponent24>());
   InnerType value;
+
+  static constexpr size_t used_byte_size()
+  {
+    if constexpr (std::is_same<InnerType, DepthComponent24>()) {
+      return InnerType::used_byte_size();
+    }
+    else {
+      return sizeof(InnerType);
+    }
+  }
 
   static constexpr int32_t scalar()
   {
-    return (1 << (sizeof(InnerType) * 8)) - 1;
+
+    return (1 << (used_byte_size() * 8)) - 1;
   }
 
   static constexpr int32_t max()
   {
-    return ((1 << (sizeof(InnerType) * 8)) - 1);
+    return ((1 << (used_byte_size() * 8)) - 1);
   }
 };
 
-template<typename InnerType> struct ComponentValue {
-  InnerType value;
-};
-
-using UI8 = ComponentValue<uint8_t>;
-using UI16 = ComponentValue<uint16_t>;
-using UI32 = ComponentValue<uint32_t>;
-using I8 = ComponentValue<int8_t>;
-using I16 = ComponentValue<int16_t>;
-using I32 = ComponentValue<int32_t>;
-using F32 = ComponentValue<float>;
-using F16 = ComponentValue<uint16_t>;
-
-template<typename StorageType>
-void convert_component(SignedNormalized<StorageType> &dst, const F32 &src)
+template<typename StorageType> void convert(SignedNormalized<StorageType> &dst, const F32 &src)
 {
   static constexpr int32_t scalar = SignedNormalized<StorageType>::scalar();
   static constexpr int32_t delta = SignedNormalized<StorageType>::delta();
@@ -586,32 +636,29 @@ void convert_component(SignedNormalized<StorageType> &dst, const F32 &src)
   dst.value = (clamp_i((src.value * scalar + delta), 0, max));
 }
 
-template<typename StorageType>
-void convert_component(F32 &dst, const SignedNormalized<StorageType> &src)
+template<typename StorageType> void convert(F32 &dst, const SignedNormalized<StorageType> &src)
 {
   static constexpr int32_t scalar = SignedNormalized<StorageType>::scalar();
   static constexpr int32_t delta = SignedNormalized<StorageType>::delta();
   dst.value = float(int32_t(src.value) - delta) / scalar;
 }
 
-template<typename StorageType>
-void convert_component(UnsignedNormalized<StorageType> &dst, const F32 &src)
+template<typename StorageType> void convert(UnsignedNormalized<StorageType> &dst, const F32 &src)
 {
   static constexpr int32_t scalar = UnsignedNormalized<StorageType>::scalar();
   static constexpr int32_t max = scalar;
   dst.value = (clamp_i((src.value * scalar), 0, max));
 }
 
-template<typename StorageType>
-void convert_component(F32 &dst, const UnsignedNormalized<StorageType> &src)
+template<typename StorageType> void convert(F32 &dst, const UnsignedNormalized<StorageType> &src)
 {
   static constexpr int32_t scalar = UnsignedNormalized<StorageType>::scalar();
-  dst.value = float(src.value) / scalar;
+  dst.value = float(int32_t(src.value)) / scalar;
 }
 
 /* Copy the contents of src to dst with out performing any actual conversion. */
 template<typename DestinationType, typename SourceType>
-void convert_component(DestinationType &dst, const SourceType &src)
+void convert(DestinationType &dst, const SourceType &src)
 {
   static_assert(std::is_same<DestinationType, UI8>() || std::is_same<DestinationType, UI16>() ||
                 std::is_same<DestinationType, UI32>() || std::is_same<DestinationType, I8>() ||
@@ -623,24 +670,34 @@ void convert_component(DestinationType &dst, const SourceType &src)
   dst.value = src.value;
 }
 
-static void convert_component(F16 &dst, const F32 &src)
+static void convert(F16 &dst, const F32 &src)
 {
   dst.value = imath_float_to_half(src.value);
 }
 
-static void convert_component(F32 &dst, const F16 &src)
+static void convert(F32 &dst, const F16 &src)
 {
   dst.value = imath_half_to_float(src.value);
+}
+
+static void convert(SRGBA8 &dst, const FLOAT4 &src)
+{
+  dst.value = src.value.encode();
+}
+
+static void convert(FLOAT4 &dst, const SRGBA8 &src)
+{
+  dst.value = src.value.decode();
 }
 
 /* \} */
 
 template<typename DestinationType, typename SourceType>
-void convert_per_component(MutableSpan<DestinationType> dst, Span<SourceType> src)
+void convert(MutableSpan<DestinationType> dst, Span<SourceType> src)
 {
   BLI_assert(src.size() == dst.size());
   for (int64_t index : IndexRange(src.size())) {
-    convert_component(dst[index], src[index]);
+    convert(dst[index], src[index]);
   }
 }
 
@@ -655,7 +712,17 @@ void convert_per_component(void *dst_memory,
                                           total_components);
   MutableSpan<DestinationType> dst = MutableSpan<DestinationType>(
       static_cast<DestinationType *>(dst_memory), total_components);
-  convert_per_component<DestinationType, SourceType>(dst, src);
+  convert<DestinationType, SourceType>(dst, src);
+}
+
+template<typename DestinationType, typename SourceType>
+void convert_per_pixel(void *dst_memory, const void *src_memory, size_t buffer_size)
+{
+  Span<SourceType> src = Span<SourceType>(static_cast<const SourceType *>(src_memory),
+                                          buffer_size);
+  MutableSpan<DestinationType> dst = MutableSpan<DestinationType>(
+      static_cast<DestinationType *>(dst_memory), buffer_size);
+  convert<DestinationType, SourceType>(dst, src);
 }
 
 static void convert_buffer(void *dst_memory,
@@ -745,6 +812,22 @@ static void convert_buffer(void *dst_memory,
       break;
     case ConversionType::HALF_TO_FLOAT:
       convert_per_component<F32, F16>(dst_memory, src_memory, buffer_size, device_format);
+      break;
+
+    case ConversionType::FLOAT_TO_SRGBA8:
+      convert_per_pixel<SRGBA8, FLOAT4>(dst_memory, src_memory, buffer_size);
+      break;
+    case ConversionType::SRGBA8_TO_FLOAT:
+      convert_per_pixel<FLOAT4, SRGBA8>(dst_memory, src_memory, buffer_size);
+      break;
+
+    case ConversionType::FLOAT_TO_DEPTH_COMPONENT24:
+      convert_per_component<UnsignedNormalized<DepthComponent24>, F32>(
+          dst_memory, src_memory, buffer_size, device_format);
+      break;
+    case ConversionType::DEPTH_COMPONENT24_TO_FLOAT:
+      convert_per_component<F32, UnsignedNormalized<DepthComponent24>>(
+          dst_memory, src_memory, buffer_size, device_format);
       break;
   }
 }

@@ -238,15 +238,14 @@ typedef struct FontBufInfoBLF {
 } FontBufInfoBLF;
 
 typedef struct FontBLF {
-  /** Font name. */
-  char *name;
-
   /** Full path to font file or NULL if from memory. */
   char *filepath;
 
   /** Pointer to in-memory font, or NULL if from file. */
   void *mem;
   size_t mem_size;
+  /** Handle for in-memory fonts to avoid loading them multiple times. */
+  char *mem_name;
 
   /**
    * Copied from the SFNT OS/2 table. Bit flags for unicode blocks and ranges
@@ -342,11 +341,3 @@ typedef struct FontBLF {
   /** Mutex lock for glyph cache. */
   ThreadMutex glyph_cache_mutex;
 } FontBLF;
-
-typedef struct DirBLF {
-  struct DirBLF *next;
-  struct DirBLF *prev;
-
-  /** Full path where search fonts. */
-  char *path;
-} DirBLF;

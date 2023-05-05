@@ -42,7 +42,8 @@ struct AssetTagEnsureResult {
   bool is_new;
 };
 
-struct AssetTag *BKE_asset_metadata_tag_add(struct AssetMetaData *asset_data, const char *name);
+struct AssetTag *BKE_asset_metadata_tag_add(struct AssetMetaData *asset_data, const char *name)
+    ATTR_NONNULL(1, 2);
 /**
  * Make sure there is a tag with name \a name, create one if needed.
  */

@@ -1259,12 +1259,12 @@ void BKE_paint_blend_read_lib(BlendLibReader *reader, Scene *sce, Paint *p)
   }
 }
 
-bool paint_is_face_hidden(const MLoopTri *lt, const bool *hide_poly)
+bool paint_is_face_hidden(const int *looptri_polys, const bool *hide_poly, const int tri_index)
 {
   if (!hide_poly) {
     return false;
   }
-  return hide_poly[lt->poly];
+  return hide_poly[looptri_polys[tri_index]];
 }
 
 bool paint_is_grid_face_hidden(const uint *grid_hidden, int gridsize, int x, int y)

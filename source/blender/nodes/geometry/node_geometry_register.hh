@@ -152,6 +152,8 @@ void register_node_type_geo_set_position();
 void register_node_type_geo_set_shade_smooth();
 void register_node_type_geo_set_spline_cyclic();
 void register_node_type_geo_set_spline_resolution();
+void register_node_type_geo_simulation_input();
+void register_node_type_geo_simulation_output();
 void register_node_type_geo_store_named_attribute();
 void register_node_type_geo_string_join();
 void register_node_type_geo_string_to_curves();

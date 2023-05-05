@@ -18,56 +18,23 @@ namespace blender::gpu {
 
 VKContext::VKContext(void *ghost_window, void *ghost_context)
 {
-  VK_ALLOCATION_CALLBACKS;
   ghost_window_ = ghost_window;
   if (ghost_window) {
     ghost_context = GHOST_GetDrawingContext((GHOST_WindowHandle)ghost_window);
   }
   ghost_context_ = ghost_context;
-
-  GHOST_GetVulkanHandles((GHOST_ContextHandle)ghost_context,
-                         &vk_instance_,
-                         &vk_physical_device_,
-                         &vk_device_,
-                         &vk_queue_family_,
-                         &vk_queue_);
-  debug::init_callbacks(this, vkGetInstanceProcAddr);
-  init_physical_device_limits();
-
-  debug::object_label(this, vk_device_, "LogicalDevice");
-  debug::object_label(this, vk_queue_, "GenericQueue");
-
-  /* Initialize the memory allocator. */
-  VmaAllocatorCreateInfo info = {};
-  info.vulkanApiVersion = VK_API_VERSION_1_2;
-  info.physicalDevice = vk_physical_device_;
-  info.device = vk_device_;
-  info.instance = vk_instance_;
-  info.pAllocationCallbacks = vk_allocation_callbacks;
-  vmaCreateAllocator(&info, &mem_allocator_);
-  descriptor_pools_.init(vk_device_);
+  VKDevice &device = VKBackend::get().device_;
+  if (!device.is_initialized()) {
+    device.init(ghost_context);
+  }
 
   state_manager = new VKStateManager();
-
-  VKBackend::capabilities_init(*this);
 
   /* For off-screen contexts. Default frame-buffer is empty. */
   back_left = new VKFrameBuffer("back_left");
 }
 
-VKContext::~VKContext()
-{
-  vmaDestroyAllocator(mem_allocator_);
-  debug::destroy_callbacks(this);
-}
-
-void VKContext::init_physical_device_limits()
-{
-  BLI_assert(vk_physical_device_ != VK_NULL_HANDLE);
-  VkPhysicalDeviceProperties properties = {};
-  vkGetPhysicalDeviceProperties(vk_physical_device_, &properties);
-  vk_physical_device_limits_ = properties.limits;
-}
+VKContext::~VKContext() {}
 
 void VKContext::activate()
 {
@@ -100,10 +67,10 @@ void VKContext::begin_frame()
 {
   VkCommandBuffer command_buffer = VK_NULL_HANDLE;
   GHOST_GetVulkanCommandBuffer(static_cast<GHOST_ContextHandle>(ghost_context_), &command_buffer);
-  command_buffer_.init(vk_device_, vk_queue_, command_buffer);
+  VKDevice &device = VKBackend::get().device_;
+  command_buffer_.init(device.device_get(), device.queue_get(), command_buffer);
   command_buffer_.begin_recording();
-
-  descriptor_pools_.reset();
+  device.descriptor_pools_get().reset();
 }
 
 void VKContext::end_frame()

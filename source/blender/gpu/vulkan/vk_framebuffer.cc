@@ -6,6 +6,7 @@
  */
 
 #include "vk_framebuffer.hh"
+#include "vk_backend.hh"
 #include "vk_memory.hh"
 #include "vk_texture.hh"
 
@@ -344,9 +345,9 @@ void VKFrameBuffer::render_pass_create()
   render_pass_info.subpassCount = 1;
   render_pass_info.pSubpasses = &subpass;
 
-  VKContext &context = *VKContext::get();
+  const VKDevice &device = VKBackend::get().device_get();
   vkCreateRenderPass(
-      context.device_get(), &render_pass_info, vk_allocation_callbacks, &vk_render_pass_);
+      device.device_get(), &render_pass_info, vk_allocation_callbacks, &vk_render_pass_);
 
   /* We might want to split frame-buffer and render pass. */
   VkFramebufferCreateInfo framebuffer_create_info = {};
@@ -359,7 +360,7 @@ void VKFrameBuffer::render_pass_create()
   framebuffer_create_info.layers = 1;
 
   vkCreateFramebuffer(
-      context.device_get(), &framebuffer_create_info, vk_allocation_callbacks, &vk_framebuffer_);
+      device.device_get(), &framebuffer_create_info, vk_allocation_callbacks, &vk_framebuffer_);
 }
 
 void VKFrameBuffer::render_pass_free()
@@ -370,9 +371,9 @@ void VKFrameBuffer::render_pass_free()
   }
   VK_ALLOCATION_CALLBACKS
 
-  VKContext &context = *VKContext::get();
-  vkDestroyRenderPass(context.device_get(), vk_render_pass_, vk_allocation_callbacks);
-  vkDestroyFramebuffer(context.device_get(), vk_framebuffer_, vk_allocation_callbacks);
+  const VKDevice &device = VKBackend::get().device_get();
+  vkDestroyRenderPass(device.device_get(), vk_render_pass_, vk_allocation_callbacks);
+  vkDestroyFramebuffer(device.device_get(), vk_framebuffer_, vk_allocation_callbacks);
   vk_render_pass_ = VK_NULL_HANDLE;
   vk_framebuffer_ = VK_NULL_HANDLE;
 }

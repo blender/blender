@@ -50,7 +50,7 @@
 
 #include "WM_api.h"
 
-#include "pipeline.h"
+#include "pipeline.hh"
 #include "render_result.h"
 #include "render_types.h"
 

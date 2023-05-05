@@ -921,6 +921,7 @@ typedef struct MeshDeformBind {
     blender::OffsetIndices<int> polys;
     blender::Span<int> corner_verts;
     blender::Span<MLoopTri> looptris;
+    blender::Span<int> looptri_polys;
     blender::Span<blender::float3> poly_normals;
   } cagemesh_cache;
 } MeshDeformBind;
@@ -951,6 +952,7 @@ static void harmonic_ray_callback(void *userdata,
   MeshRayCallbackData *data = static_cast<MeshRayCallbackData *>(userdata);
   MeshDeformBind *mdb = data->mdb;
   const blender::Span<int> corner_verts = mdb->cagemesh_cache.corner_verts;
+  const blender::Span<int> looptri_polys = mdb->cagemesh_cache.looptri_polys;
   const blender::Span<blender::float3> poly_normals = mdb->cagemesh_cache.poly_normals;
   MeshDeformIsect *isec = data->isec;
   float no[3], co[3], dist;
@@ -970,7 +972,7 @@ static void harmonic_ray_callback(void *userdata,
   }
 
   if (!poly_normals.is_empty()) {
-    copy_v3_v3(no, poly_normals[lt->poly]);
+    copy_v3_v3(no, poly_normals[looptri_polys[index]]);
   }
   else {
     normal_tri_v3(no, UNPACK3(face));
@@ -1026,8 +1028,8 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
                               BVH_RAYCAST_WATERTIGHT) != -1)
   {
     const blender::Span<int> corner_verts = mdb->cagemesh_cache.corner_verts;
-    const MLoopTri *lt = &mdb->cagemesh_cache.looptris[hit.index];
-    const blender::IndexRange poly = mdb->cagemesh_cache.polys[lt->poly];
+    const int poly_i = mdb->cagemesh_cache.looptri_polys[hit.index];
+    const blender::IndexRange poly = mdb->cagemesh_cache.polys[poly_i];
     const float(*cagecos)[3] = mdb->cagecos;
     const float len = isect_mdef.lambda;
     MDefBoundIsect *isect;
@@ -1043,7 +1045,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
 
     isect->facing = isect_mdef.isect;
 
-    isect->poly_index = lt->poly;
+    isect->poly_index = poly_i;
 
     isect->len = max_ff(len_v3v3(co1, isect->co), MESHDEFORM_LEN_THRESHOLD);
 
@@ -1626,6 +1628,7 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
     mdb->cagemesh_cache.polys = me->polys();
     mdb->cagemesh_cache.corner_verts = me->corner_verts();
     mdb->cagemesh_cache.looptris = me->looptris();
+    mdb->cagemesh_cache.looptri_polys = me->looptri_polys();
     mdb->cagemesh_cache.poly_normals = me->poly_normals();
   }
 

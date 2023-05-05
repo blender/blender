@@ -11,7 +11,7 @@
 
 #include "BKE_customdata.h"
 
-namespace blender::attribute_math {
+namespace blender::bke::attribute_math {
 
 /**
  * Utility function that simplifies calling a templated function based on a run-time data type.
@@ -587,4 +587,4 @@ template<typename T> using DefaultMixer = typename DefaultMixerStruct<T>::type;
 
 /** \} */
 
-}  // namespace blender::attribute_math
+}  // namespace blender::bke::attribute_math

@@ -181,7 +181,7 @@ static void copy_attributes_without_id(const OffsetIndices<int> offsets,
   for (auto &attribute : bke::retrieve_attributes_for_transfer(
            src_attributes, dst_attributes, ATTR_DOMAIN_AS_MASK(domain), propagation_info, {"id"}))
   {
-    attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
       using T = decltype(dummy);
       const Span<T> src = attribute.src.typed<T>();
       MutableSpan<T> dst = attribute.dst.span.typed<T>();
@@ -217,7 +217,7 @@ static void copy_curve_attributes_without_id(
                                                                propagation_info,
                                                                {"id"}))
   {
-    attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
       using T = decltype(dummy);
       const Span<T> src = attribute.src.typed<T>();
       MutableSpan<T> dst = attribute.dst.span.typed<T>();
@@ -395,7 +395,7 @@ static void copy_face_attributes_without_id(
            propagation_info,
            {"id", ".corner_vert", ".corner_edge", ".edge_verts"}))
   {
-    attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
       using T = decltype(dummy);
       const Span<T> src = attribute.src.typed<T>();
       MutableSpan<T> dst = attribute.dst.span.typed<T>();
@@ -606,7 +606,7 @@ static void copy_edge_attributes_without_id(
                                              propagation_info,
                                              {"id", ".edge_verts"}))
   {
-    attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
       using T = decltype(dummy);
       const Span<T> src = attribute.src.typed<T>();
       MutableSpan<T> dst = attribute.dst.span.typed<T>();
@@ -795,7 +795,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
                                                                propagation_info,
                                                                {"id"}))
   {
-    attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
       using T = decltype(dummy);
       const Span<T> src = attribute.src.typed<T>();
       MutableSpan<T> dst = attribute.dst.span.typed<T>();

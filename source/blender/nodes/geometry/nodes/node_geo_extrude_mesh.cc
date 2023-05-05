@@ -205,7 +205,7 @@ template<typename T, typename GetMixIndicesFn>
 void copy_with_mixing(MutableSpan<T> dst, Span<T> src, GetMixIndicesFn get_mix_indices_fn)
 {
   threading::parallel_for(dst.index_range(), 512, [&](const IndexRange range) {
-    attribute_math::DefaultPropagationMixer<T> mixer{dst.slice(range)};
+    bke::attribute_math::DefaultPropagationMixer<T> mixer{dst.slice(range)};
     for (const int i_dst : IndexRange(range.size())) {
       for (const int i_src : get_mix_indices_fn(range[i_dst])) {
         mixer.mix_in(i_dst, src[i_src]);
@@ -281,7 +281,7 @@ static void extrude_mesh_vertices(Mesh &mesh,
         array_utils::gather(attribute.span, selection, attribute.span.slice(new_vert_range));
         break;
       case ATTR_DOMAIN_EDGE:
-        attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+        bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
           using T = decltype(dummy);
           MutableSpan<T> data = attribute.span.typed<T>();
           /* New edge values are mixed from of all the edges connected to the source vertex. */
@@ -414,7 +414,7 @@ static void extrude_mesh_edges(Mesh &mesh,
   Array<float3> vert_offsets;
   if (!edge_offsets.is_single()) {
     vert_offsets.reinitialize(orig_vert_size);
-    attribute_math::DefaultPropagationMixer<float3> mixer(vert_offsets);
+    bke::attribute_math::DefaultPropagationMixer<float3> mixer(vert_offsets);
     for (const int i_edge : edge_selection) {
       const int2 &edge = orig_edges[i_edge];
       const float3 offset = edge_offsets[i_edge];
@@ -521,7 +521,7 @@ static void extrude_mesh_edges(Mesh &mesh,
     GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
         id, meta_data.domain, meta_data.data_type);
 
-    attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
       using T = decltype(dummy);
       MutableSpan<T> data = attribute.span.typed<T>();
       switch (attribute.domain) {
@@ -571,7 +571,7 @@ static void extrude_mesh_edges(Mesh &mesh,
               /* Both corners on each vertical edge of the side polygon get the same value,
                * so there are only two unique values to mix. */
               Array<T> side_poly_corner_data(2);
-              attribute_math::DefaultPropagationMixer<T> mixer{side_poly_corner_data};
+              bke::attribute_math::DefaultPropagationMixer<T> mixer{side_poly_corner_data};
 
               const int2 &duplicate_edge = duplicate_edges[i_edge_selection];
               const int new_vert_1 = duplicate_edge[0];
@@ -704,7 +704,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   Array<float3> vert_offsets;
   if (!poly_position_offsets.is_single()) {
     vert_offsets.reinitialize(orig_vert_size);
-    attribute_math::DefaultPropagationMixer<float3> mixer(vert_offsets);
+    bke::attribute_math::DefaultPropagationMixer<float3> mixer(vert_offsets);
     for (const int i_poly : poly_selection) {
       const float3 offset = poly_position_offsets[i_poly];
       for (const int vert : orig_corner_verts.slice(orig_polys[i_poly])) {
@@ -921,7 +921,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
     GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
         id, meta_data.domain, meta_data.data_type);
 
-    attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
       using T = decltype(dummy);
       MutableSpan<T> data = attribute.span.typed<T>();
       switch (attribute.domain) {
@@ -1221,7 +1221,7 @@ static void extrude_individual_mesh_faces(
     GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
         id, meta_data.domain, meta_data.data_type);
 
-    attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
       using T = decltype(dummy);
       MutableSpan<T> data = attribute.span.typed<T>();
       switch (attribute.domain) {
@@ -1256,7 +1256,7 @@ static void extrude_individual_mesh_faces(
                   connect_data[i_extrude] = data[orig_edge] || data[orig_edge_prev];
                 }
                 else {
-                  connect_data[i_extrude] = attribute_math::mix2(
+                  connect_data[i_extrude] = bke::attribute_math::mix2(
                       0.5f, data[orig_edge], data[orig_edge_prev]);
                 }
               }

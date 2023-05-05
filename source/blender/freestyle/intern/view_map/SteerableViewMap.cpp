@@ -237,7 +237,7 @@ void SteerableViewMap::saveSteerableViewMap() const
 
     // soc QString base("SteerableViewMap");
     string base("SteerableViewMap");
-    stringstream filename;
+    stringstream filepath;
 
     for (int j = 0; j < _imagesPyramids[i]->getNumberOfLevels(); ++j) {  // soc
       float coeff = 1.0f;  // 1 / 255.0f; // 100 * 255; // * pow(2, j);
@@ -261,10 +261,10 @@ void SteerableViewMap::saveSteerableViewMap() const
       }
 
       // soc qtmp.save(base+QString::number(i)+"-"+QString::number(j)+".png", "PNG");
-      filename << base;
-      filename << i << "-" << j << ".png";
+      filepath << base;
+      filepath << i << "-" << j << ".png";
       ibuf->ftype = IMB_FTYPE_PNG;
-      IMB_saveiff(ibuf, const_cast<char *>(filename.str().c_str()), 0);
+      IMB_saveiff(ibuf, const_cast<char *>(filepath.str().c_str()), 0);
     }
 #if 0
     QString base("SteerableViewMap");

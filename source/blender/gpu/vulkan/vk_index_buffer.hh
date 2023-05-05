@@ -33,7 +33,7 @@ class VKIndexBuffer : public IndexBuf {
 
  private:
   void strip_restart_indices() override;
-  void allocate(VKContext &context);
+  void allocate();
   void ensure_updated();
 };
 

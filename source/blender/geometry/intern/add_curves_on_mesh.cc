@@ -83,7 +83,7 @@ void interpolate_from_neighbors(const Span<NeighborCurves> neighbors_per_curve,
                                 const GetValueF &get_value_from_neighbor,
                                 MutableSpan<T> r_interpolated_values)
 {
-  attribute_math::DefaultMixer<T> mixer{r_interpolated_values};
+  bke::attribute_math::DefaultMixer<T> mixer{r_interpolated_values};
   threading::parallel_for(r_interpolated_values.index_range(), 512, [&](const IndexRange range) {
     for (const int i : range) {
       const NeighborCurves &neighbors = neighbors_per_curve[i];
@@ -255,7 +255,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
     const MLoopTri &looptri = inputs.surface_looptris[result.looptri_index];
     bary_coords.append(result.bary_weights);
     looptri_indices.append(result.looptri_index);
-    const float3 root_position_su = attribute_math::mix3<float3>(
+    const float3 root_position_su = bke::attribute_math::mix3<float3>(
         result.bary_weights,
         surface_positions[surface_corner_verts[looptri.tri[0]]],
         surface_positions[surface_corner_verts[looptri.tri[1]]],

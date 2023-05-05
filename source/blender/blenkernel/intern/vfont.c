@@ -1475,38 +1475,6 @@ static bool vfont_to_curve(Object *ob,
     }
   }
 
-  if (cursor_params) {
-    cursor_params->r_string_offset = -1;
-    for (i = 0; i <= slen; i++, ct++) {
-      info = &custrinfo[i];
-      ascii = mem[i];
-      if (info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
-        ascii = towupper(ascii);
-      }
-      ct = &chartransdata[i];
-      che = find_vfont_char(vfd, ascii);
-      float charwidth = char_width(cu, che, info);
-      float charhalf = (charwidth / 2.0f);
-      if (cursor_params->cursor_location[1] >= ct->yof - (0.25f * linedist) &&
-          cursor_params->cursor_location[1] <= (ct->yof + (0.75f * linedist)))
-      {
-        /* On this row. */
-        if (cursor_params->cursor_location[0] >= (ct->xof) &&
-            cursor_params->cursor_location[0] <= (ct->xof + charhalf))
-        {
-          /* Left half of character. */
-          cursor_params->r_string_offset = i;
-        }
-        else if (cursor_params->cursor_location[0] >= (ct->xof + charhalf) &&
-                 cursor_params->cursor_location[0] <= (ct->xof + charwidth))
-        {
-          /* Right half of character. */
-          cursor_params->r_string_offset = i + 1;
-        }
-      }
-    }
-  }
-
   if (ELEM(mode, FO_CURSUP, FO_CURSDOWN, FO_PAGEUP, FO_PAGEDOWN) &&
       iter_data->status == VFONT_TO_CURVE_INIT)
   {
@@ -1767,6 +1735,38 @@ static bool vfont_to_curve(Object *ob,
             iter_data->scale_to_fit = iter_data->bisect.min;
             iter_data->status = VFONT_TO_CURVE_SCALE_ONCE;
           }
+        }
+      }
+    }
+  }
+
+  if (cursor_params) {
+    cursor_params->r_string_offset = -1;
+    for (i = 0; i <= slen; i++, ct++) {
+      info = &custrinfo[i];
+      ascii = mem[i];
+      if (info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
+        ascii = towupper(ascii);
+      }
+      ct = &chartransdata[i];
+      che = find_vfont_char(vfd, ascii);
+      float charwidth = char_width(cu, che, info);
+      float charhalf = (charwidth / 2.0f);
+      if (cursor_params->cursor_location[1] >= (ct->yof - (0.25f * linedist)) * font_size &&
+          cursor_params->cursor_location[1] <= (ct->yof + (0.75f * linedist)) * font_size)
+      {
+        /* On this row. */
+        if (cursor_params->cursor_location[0] >= (ct->xof * font_size) &&
+            cursor_params->cursor_location[0] <= ((ct->xof + charhalf) * font_size))
+        {
+          /* Left half of character. */
+          cursor_params->r_string_offset = i;
+        }
+        else if (cursor_params->cursor_location[0] >= ((ct->xof + charhalf) * font_size) &&
+                 cursor_params->cursor_location[0] <= ((ct->xof + charwidth) * font_size))
+        {
+          /* Right half of character. */
+          cursor_params->r_string_offset = i + 1;
         }
       }
     }
