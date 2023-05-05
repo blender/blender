@@ -24,7 +24,7 @@
 #define CULLING_SELECT_GROUP_SIZE 256
 #define CULLING_SORT_GROUP_SIZE 256
 #define CULLING_ZBIN_GROUP_SIZE 1024
-#define CULLING_TILE_GROUP_SIZE 1024
+#define CULLING_TILE_GROUP_SIZE 256
 
 /**
  * IMPORTANT: Some data packing are tweaked for these values.
