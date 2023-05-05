@@ -3315,7 +3315,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
   }
 #endif
   BLI_strncpy(output_file, filepath, sizeof(output_file));
-  BKE_image_path_ensure_ext_from_imtype(output_file, format);
+  BKE_image_path_ext_from_imtype_ensure(output_file, sizeof(output_file), format);
 
   /* Validate output file path */
   BLI_path_abs(output_file, BKE_main_blendfile_path_from_global());
