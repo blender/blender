@@ -2717,22 +2717,21 @@ void BKE_view_layer_rename_lightgroup(Scene *scene,
   }
 }
 
-void BKE_lightgroup_membership_get(LightgroupMembership *lgm, char *name)
+int BKE_lightgroup_membership_get(const LightgroupMembership *lgm, char *name)
 {
-  if (lgm != nullptr) {
-    BLI_strncpy(name, lgm->name, sizeof(lgm->name));
-  }
-  else {
+  if (lgm == nullptr) {
     name[0] = '\0';
+    return 0;
   }
+  return BLI_strncpy_rlen(name, lgm->name, sizeof(lgm->name));
 }
 
-int BKE_lightgroup_membership_length(LightgroupMembership *lgm)
+int BKE_lightgroup_membership_length(const LightgroupMembership *lgm)
 {
-  if (lgm != nullptr) {
-    return strlen(lgm->name);
+  if (lgm == nullptr) {
+    return 0;
   }
-  return 0;
+  return strlen(lgm->name);
 }
 
 void BKE_lightgroup_membership_set(LightgroupMembership **lgm, const char *name)

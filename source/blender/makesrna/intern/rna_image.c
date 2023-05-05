@@ -389,9 +389,10 @@ static void rna_UDIMTile_label_get(PointerRNA *ptr, char *value)
   const ImageTile *tile = (ImageTile *)ptr->data;
   const Image *image = (Image *)ptr->owner_id;
 
-  /* We don't know the length of the target string here, so we assume
-   * that it has been allocated according to what rna_UDIMTile_label_length returned. */
-  BKE_image_get_tile_label(image, tile, value, sizeof(tile->label));
+  /* Pass in a fixed size buffer as the value may be allocated based on the callbacks length. */
+  char value_buf[sizeof(tile->label)];
+  int len = BKE_image_get_tile_label(image, tile, value_buf, sizeof(tile->label));
+  memcpy(value, value_buf, len + 1);
 }
 
 static int rna_UDIMTile_label_length(PointerRNA *ptr)

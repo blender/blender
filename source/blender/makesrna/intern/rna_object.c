@@ -1007,7 +1007,7 @@ void rna_object_BKE_object_facemap_name_index_get(PointerRNA *ptr, char *value, 
   fmap = BLI_findlink(&ob->fmaps, index - 1);
 
   if (fmap) {
-    BLI_strncpy(value, fmap->name, sizeof(fmap->name));
+    strcpy(value, fmap->name);
   }
   else {
     value[0] = '\0';
@@ -2330,12 +2330,16 @@ static int rna_Object_mesh_symmetry_yz_editable(PointerRNA *ptr, const char **UN
 
 void rna_Object_lightgroup_get(PointerRNA *ptr, char *value)
 {
-  BKE_lightgroup_membership_get(((Object *)ptr->owner_id)->lightgroup, value);
+  const LightgroupMembership *lgm = ((Object *)ptr->owner_id)->lightgroup;
+  char value_buf[sizeof(lgm->name)];
+  int len = BKE_lightgroup_membership_get(lgm, value_buf);
+  memcpy(value, value_buf, len + 1);
 }
 
 int rna_Object_lightgroup_length(PointerRNA *ptr)
 {
-  return BKE_lightgroup_membership_length(((Object *)ptr->owner_id)->lightgroup);
+  const LightgroupMembership *lgm = ((Object *)ptr->owner_id)->lightgroup;
+  return BKE_lightgroup_membership_length(lgm);
 }
 
 void rna_Object_lightgroup_set(PointerRNA *ptr, const char *value)

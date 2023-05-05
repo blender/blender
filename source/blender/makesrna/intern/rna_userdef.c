@@ -978,7 +978,7 @@ static StudioLight *rna_StudioLights_new(UserDef *userdef, const char *filepath)
 static void rna_UserDef_studiolight_name_get(PointerRNA *ptr, char *value)
 {
   StudioLight *sl = (StudioLight *)ptr->data;
-  BLI_strncpy(value, sl->name, FILE_MAXFILE);
+  strcpy(value, sl->name);
 }
 
 static int rna_UserDef_studiolight_name_length(PointerRNA *ptr)
@@ -991,7 +991,7 @@ static int rna_UserDef_studiolight_name_length(PointerRNA *ptr)
 static void rna_UserDef_studiolight_path_get(PointerRNA *ptr, char *value)
 {
   StudioLight *sl = (StudioLight *)ptr->data;
-  BLI_strncpy(value, sl->filepath, FILE_MAX);
+  strcpy(value, sl->filepath);
 }
 
 static int rna_UserDef_studiolight_path_length(PointerRNA *ptr)
@@ -1005,7 +1005,7 @@ static void rna_UserDef_studiolight_path_irr_cache_get(PointerRNA *ptr, char *va
 {
   StudioLight *sl = (StudioLight *)ptr->data;
   if (sl->path_irr_cache) {
-    BLI_strncpy(value, sl->path_irr_cache, FILE_MAX);
+    strcpy(value, sl->path_irr_cache);
   }
   else {
     value[0] = '\0';
@@ -1026,7 +1026,7 @@ static void rna_UserDef_studiolight_path_sh_cache_get(PointerRNA *ptr, char *val
 {
   StudioLight *sl = (StudioLight *)ptr->data;
   if (sl->path_sh_cache) {
-    BLI_strncpy(value, sl->path_sh_cache, FILE_MAX);
+    strcpy(value, sl->path_sh_cache);
   }
   else {
     value[0] = '\0';

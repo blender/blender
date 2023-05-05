@@ -2521,7 +2521,7 @@ void rna_ViewLayer_active_lightgroup_index_set(PointerRNA *ptr, int value)
 static void rna_ViewLayerLightgroup_name_get(PointerRNA *ptr, char *value)
 {
   ViewLayerLightgroup *lightgroup = (ViewLayerLightgroup *)ptr->data;
-  BLI_strncpy(value, lightgroup->name, sizeof(lightgroup->name));
+  strcpy(value, lightgroup->name);
 }
 
 static int rna_ViewLayerLightgroup_name_length(PointerRNA *ptr)

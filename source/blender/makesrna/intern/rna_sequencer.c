@@ -675,7 +675,7 @@ static void rna_Sequence_text_font_set(PointerRNA *ptr,
 static void rna_Sequence_name_get(PointerRNA *ptr, char *value)
 {
   Sequence *seq = (Sequence *)ptr->data;
-  BLI_strncpy(value, seq->name + 2, sizeof(seq->name) - 2);
+  strcpy(value, seq->name + 2);
 }
 
 static int rna_Sequence_name_length(PointerRNA *ptr)
