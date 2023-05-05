@@ -202,36 +202,35 @@ int BLI_str_utf8_invalid_strip(char *str, size_t length)
   return tot;
 }
 
-/** Compatible with #BLI_strncpy, but ensure no partial UTF8 chars. */
-#define BLI_STR_UTF8_CPY(dst, src, maxncpy) \
-  { \
-    size_t utf8_size; \
-    /* Cast to `uint8_t` is a no-op, quiets array subscript of type `char` warning. */ \
-    while (*src != '\0' && (utf8_size = utf8_skip_data[(uint8_t)*src]) < maxncpy) { \
-      maxncpy -= utf8_size; \
-      switch (utf8_size) { \
-        case 6: \
-          *dst++ = *src++; \
-          ATTR_FALLTHROUGH; \
-        case 5: \
-          *dst++ = *src++; \
-          ATTR_FALLTHROUGH; \
-        case 4: \
-          *dst++ = *src++; \
-          ATTR_FALLTHROUGH; \
-        case 3: \
-          *dst++ = *src++; \
-          ATTR_FALLTHROUGH; \
-        case 2: \
-          *dst++ = *src++; \
-          ATTR_FALLTHROUGH; \
-        case 1: \
-          *dst++ = *src++; \
-      } \
-    } \
-    *dst = '\0'; \
-  } \
-  (void)0
+/**
+ * Internal utility for implementing #BLI_strncpy_utf8 / #BLI_strncpy_utf8_rlen.
+ *
+ * Compatible with #BLI_strncpy, but ensure no partial UTF8 chars.
+ *
+ * \note currently we don't attempt to deal with invalid utf8 chars.
+ * See #BLI_str_utf8_invalid_strip for if that is needed.
+ */
+BLI_INLINE char *str_utf8_copy_max_bytes_impl(char *dst, const char *src, size_t maxncpy)
+{
+  /* Cast to `uint8_t` is a no-op, quiets array subscript of type `char` warning. */
+  size_t utf8_size;
+  while (*src != '\0' && (utf8_size = utf8_skip_data[(uint8_t)*src]) < maxncpy) {
+    maxncpy -= utf8_size;
+    /* Prefer more compact block. */
+    /* clang-format off */
+    switch (utf8_size) {
+      case 6: *dst++ = *src++; ATTR_FALLTHROUGH;
+      case 5: *dst++ = *src++; ATTR_FALLTHROUGH;
+      case 4: *dst++ = *src++; ATTR_FALLTHROUGH;
+      case 3: *dst++ = *src++; ATTR_FALLTHROUGH;
+      case 2: *dst++ = *src++; ATTR_FALLTHROUGH;
+      case 1: *dst++ = *src++;
+    }
+    /* clang-format on */
+  }
+  *dst = '\0';
+  return dst;
+}
 
 char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t maxncpy)
 {
@@ -239,8 +238,7 @@ char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t 
   BLI_string_debug_size(dst, maxncpy);
 
   char *r_dst = dst;
-  /* NOTE: currently we don't attempt to deal with invalid utf8 chars. */
-  BLI_STR_UTF8_CPY(dst, src, maxncpy);
+  str_utf8_copy_max_bytes_impl(dst, src, maxncpy);
 
   return r_dst;
 }
@@ -251,13 +249,10 @@ size_t BLI_strncpy_utf8_rlen(char *__restrict dst, const char *__restrict src, s
   BLI_string_debug_size(dst, maxncpy);
 
   char *r_dst = dst;
-  /* NOTE: currently we don't attempt to deal with invalid utf8 chars. */
-  BLI_STR_UTF8_CPY(dst, src, maxncpy);
+  dst = str_utf8_copy_max_bytes_impl(dst, src, maxncpy);
 
   return (size_t)(dst - r_dst);
 }
-
-#undef BLI_STR_UTF8_CPY
 
 /* -------------------------------------------------------------------- */
 /* wchar_t / utf8 functions */
