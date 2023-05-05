@@ -53,6 +53,8 @@ void BLI_path_split_dir_part(const char *filepath, char *dir, size_t dir_maxncpy
     ATTR_NONNULL(1, 2);
 /**
  * Copies the leaf filename part of `filepath` into `file`, max length `file_maxncpy`.
+ *
+ * \note If there is no need to make a copy the path, #BLI_path_basename can be used instead.
  */
 void BLI_path_split_file_part(const char *filepath, char *file, size_t file_maxncpy)
     ATTR_NONNULL(1, 2);

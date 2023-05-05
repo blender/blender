@@ -1471,13 +1471,6 @@ bool BLI_path_filename_ensure(char *filepath, size_t filepath_maxncpy, const cha
   return false;
 }
 
-static size_t path_split_dir_file_offset(const char *path)
-{
-  const char *lslash_str = BLI_path_slash_rfind(path);
-  const size_t lslash = lslash_str ? (size_t)(lslash_str - path) + 1 : 0;
-  return lslash;
-}
-
 void BLI_path_split_dir_file(const char *filepath,
                              char *dir,
                              const size_t dir_maxncpy,
@@ -1487,22 +1480,24 @@ void BLI_path_split_dir_file(const char *filepath,
   BLI_string_debug_size(dir, dir_maxncpy);
   BLI_string_debug_size(file, file_maxncpy);
 
-  const size_t lslash = path_split_dir_file_offset(filepath);
-  if (lslash) { /* +1 to include the slash and the last char. */
-    BLI_strncpy(dir, filepath, MIN2(dir_maxncpy, lslash + 1));
+  const char *basename = BLI_path_basename(filepath);
+  if (basename != filepath) {
+    const size_t dir_size = (basename - filepath) + 1;
+    BLI_strncpy(dir, filepath, MIN2(dir_maxncpy, dir_size));
   }
   else {
     dir[0] = '\0';
   }
-  BLI_strncpy(file, filepath + lslash, file_maxncpy);
+  BLI_strncpy(file, basename, file_maxncpy);
 }
 
 void BLI_path_split_dir_part(const char *filepath, char *dir, const size_t dir_maxncpy)
 {
   BLI_string_debug_size(dir, dir_maxncpy);
-  const size_t lslash = path_split_dir_file_offset(filepath);
-  if (lslash) { /* +1 to include the slash and the last char. */
-    BLI_strncpy(dir, filepath, MIN2(dir_maxncpy, lslash + 1));
+  const char *basename = BLI_path_basename(filepath);
+  if (basename != filepath) {
+    const size_t dir_size = (basename - filepath) + 1;
+    BLI_strncpy(dir, filepath, MIN2(dir_maxncpy, dir_size));
   }
   else {
     dir[0] = '\0';
@@ -1512,8 +1507,8 @@ void BLI_path_split_dir_part(const char *filepath, char *dir, const size_t dir_m
 void BLI_path_split_file_part(const char *filepath, char *file, const size_t file_maxncpy)
 {
   BLI_string_debug_size(file, file_maxncpy);
-  const size_t lslash = path_split_dir_file_offset(filepath);
-  BLI_strncpy(file, filepath + lslash, file_maxncpy);
+  const char *basename = BLI_path_basename(filepath);
+  BLI_strncpy(file, basename, file_maxncpy);
 }
 
 const char *BLI_path_extension_or_end(const char *filepath)
