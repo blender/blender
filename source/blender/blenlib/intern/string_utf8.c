@@ -206,7 +206,8 @@ int BLI_str_utf8_invalid_strip(char *str, size_t length)
 #define BLI_STR_UTF8_CPY(dst, src, maxncpy) \
   { \
     size_t utf8_size; \
-    while (*src != '\0' && (utf8_size = utf8_skip_data[*src]) < maxncpy) { \
+    /* Cast to `uint8_t` is a no-op, quiets array subscript of type `char` warning. */ \
+    while (*src != '\0' && (utf8_size = utf8_skip_data[(uint8_t)*src]) < maxncpy) { \
       maxncpy -= utf8_size; \
       switch (utf8_size) { \
         case 6: \
