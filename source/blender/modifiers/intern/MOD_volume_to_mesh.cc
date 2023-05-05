@@ -14,8 +14,8 @@
 
 #include "BLT_translation.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

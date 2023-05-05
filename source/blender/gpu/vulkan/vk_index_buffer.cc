@@ -18,9 +18,8 @@ void VKIndexBuffer::ensure_updated()
     return;
   }
 
-  VKContext &context = *VKContext::get();
   if (!buffer_.is_allocated()) {
-    allocate(context);
+    allocate();
   }
 
   if (data_ != nullptr) {
@@ -64,15 +63,14 @@ void VKIndexBuffer::update_sub(uint /*start*/, uint /*len*/, const void * /*data
 
 void VKIndexBuffer::strip_restart_indices() {}
 
-void VKIndexBuffer::allocate(VKContext &context)
+void VKIndexBuffer::allocate()
 {
   GPUUsageType usage = data_ == nullptr ? GPU_USAGE_DEVICE_ONLY : GPU_USAGE_STATIC;
-  buffer_.create(context,
-                 size_get(),
+  buffer_.create(size_get(),
                  usage,
                  static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                                                     VK_BUFFER_USAGE_INDEX_BUFFER_BIT));
-  debug::object_label(&context, buffer_.vk_handle(), "IndexBuffer");
+  debug::object_label(buffer_.vk_handle(), "IndexBuffer");
 }
 
 }  // namespace blender::gpu

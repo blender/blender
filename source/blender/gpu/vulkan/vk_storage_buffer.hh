@@ -45,7 +45,7 @@ class VKStorageBuffer : public StorageBuf {
   }
 
  private:
-  void allocate(VKContext &context);
+  void allocate();
 };
 
 }  // namespace blender::gpu

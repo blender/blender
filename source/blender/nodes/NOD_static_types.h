@@ -419,6 +419,8 @@ DefNode(GeometryNode, GEO_NODE_SET_POSITION, 0, "SET_POSITION", SetPosition, "Se
 DefNode(GeometryNode, GEO_NODE_SET_SHADE_SMOOTH, 0, "SET_SHADE_SMOOTH", SetShadeSmooth, "Set Shade Smooth", "Control the smoothness of mesh normals around each face by changing the \"shade smooth\" attribute")
 DefNode(GeometryNode, GEO_NODE_SET_SPLINE_CYCLIC, 0, "SET_SPLINE_CYCLIC", SetSplineCyclic, "Set Spline Cyclic", "Control whether each spline loops back on itself by changing the \"cyclic\" attribute")
 DefNode(GeometryNode, GEO_NODE_SET_SPLINE_RESOLUTION, 0, "SET_SPLINE_RESOLUTION", SetSplineResolution, "Set Spline Resolution", "Control how many evaluated points should be generated on every curve segment")
+DefNode(GeometryNode, GEO_NODE_SIMULATION_INPUT, def_geo_simulation_input, "SIMULATION_INPUT", SimulationInput, "Simulation Input", "")
+DefNode(GeometryNode, GEO_NODE_SIMULATION_OUTPUT, def_geo_simulation_output, "SIMULATION_OUTPUT", SimulationOutput, "Simulation Output", "")
 DefNode(GeometryNode, GEO_NODE_SPLIT_EDGES, 0, "SPLIT_EDGES", SplitEdges, "Split Edges", "Duplicate mesh edges and break connections with the surrounding faces")
 DefNode(GeometryNode, GEO_NODE_STORE_NAMED_ATTRIBUTE, def_geo_store_named_attribute, "STORE_NAMED_ATTRIBUTE", StoreNamedAttribute, "Store Named Attribute", "Store the result of a field on a geometry as an attribute with the specified name")
 DefNode(GeometryNode, GEO_NODE_STRING_JOIN, 0, "STRING_JOIN", StringJoin, "Join Strings", "Combine any number of input strings")

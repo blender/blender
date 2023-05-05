@@ -1296,11 +1296,12 @@ bool BLI_dir_create_recursive(const char *dirname)
   char *tmp;
   bool ret = true;
 
-  if (BLI_is_dir(dirname)) {
-    return true;
-  }
-  if (BLI_exists(dirname)) {
-    return false;
+  const int mode = BLI_exists(dirname);
+  if (mode != 0) {
+    /* The file exists, either it's a directory (ok), or not,
+     * in which case this function can't do anything useful
+     * (the caller could remove it and re-run this function).  */
+    return S_ISDIR(mode) ? true : false;
   }
 
 #  ifdef MAXPATHLEN
@@ -1308,7 +1309,7 @@ bool BLI_dir_create_recursive(const char *dirname)
   tmp = static_buf;
 #  else
   size = strlen(dirname) + 1;
-  tmp = MEM_callocN(size, __func__);
+  tmp = MEM_mallocN(size, __func__);
 #  endif
 
   BLI_strncpy(tmp, dirname, size);

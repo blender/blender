@@ -190,7 +190,8 @@ static void extract_tris_single_mat_iter_looptri_mesh(const MeshRenderData *mr,
                                                       void *_data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
-  const bool hidden = mr->use_hide && mr->hide_poly && mr->hide_poly[mlt->poly];
+  const int poly_i = mr->looptri_polys[mlt_index];
+  const bool hidden = mr->use_hide && mr->hide_poly && mr->hide_poly[poly_i];
   if (hidden) {
     GPU_indexbuf_set_tri_restart(elb, mlt_index);
   }

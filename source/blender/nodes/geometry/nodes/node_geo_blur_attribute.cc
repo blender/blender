@@ -259,7 +259,7 @@ static Span<T> blur_on_mesh_exec(const Span<float> neighbor_weights,
 
   for ([[maybe_unused]] const int64_t iteration : IndexRange(iterations)) {
     std::swap(src, dst);
-    attribute_math::DefaultMixer<T> mixer{dst, IndexMask(0)};
+    bke::attribute_math::DefaultMixer<T> mixer{dst, IndexMask(0)};
     threading::parallel_for(dst.index_range(), 1024, [&](const IndexRange range) {
       for (const int64_t index : range) {
         const Span<int> neighbors = neighbors_map[index];
@@ -288,7 +288,7 @@ static GSpan blur_on_mesh(const Mesh &mesh,
     return buffer_a;
   }
   GSpan result_buffer;
-  attribute_math::convert_to_static_type(buffer_a.type(), [&](auto dummy) {
+  bke::attribute_math::convert_to_static_type(buffer_a.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_same_v<T, bool>) {
       result_buffer = blur_on_mesh_exec<T>(
@@ -313,7 +313,7 @@ static Span<T> blur_on_curve_exec(const bke::CurvesGeometry &curves,
 
   for ([[maybe_unused]] const int iteration : IndexRange(iterations)) {
     std::swap(src, dst);
-    attribute_math::DefaultMixer<T> mixer{dst, IndexMask(0)};
+    bke::attribute_math::DefaultMixer<T> mixer{dst, IndexMask(0)};
     threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
       for (const int curve_i : range) {
         const IndexRange points = points_by_curve[curve_i];
@@ -363,7 +363,7 @@ static GSpan blur_on_curves(const bke::CurvesGeometry &curves,
                             const GMutableSpan buffer_b)
 {
   GSpan result_buffer;
-  attribute_math::convert_to_static_type(buffer_a.type(), [&](auto dummy) {
+  bke::attribute_math::convert_to_static_type(buffer_a.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_same_v<T, bool>) {
       result_buffer = blur_on_curve_exec<T>(
@@ -494,7 +494,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const int iterations = params.extract_input<int>("Iterations");
   Field<float> weight_field = params.extract_input<Field<float>>("Weight");
 
-  attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+  bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
     using T = decltype(dummy);
     static const std::string identifier = "Value_" + identifier_suffix(data_type);
     Field<T> value_field = params.extract_input<Field<T>>(identifier);

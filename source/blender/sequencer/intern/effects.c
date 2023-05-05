@@ -3232,7 +3232,11 @@ void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
   if (vfont->packedfile != NULL) {
     PackedFile *pf = vfont->packedfile;
     /* Create a name that's unique between library data-blocks to avoid loading
-     * a font per strip which will load fonts many times. */
+     * a font per strip which will load fonts many times.
+     *
+     * WARNING: this isn't fool proof!
+     * The #VFont may be renamed which will cause this to load multiple times,
+     * in practice this isn't so likely though. */
     char name[MAX_ID_FULL_NAME];
     BKE_id_full_name_get(name, &vfont->id, 0);
 

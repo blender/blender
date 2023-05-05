@@ -204,6 +204,8 @@ struct PBVH {
   /* Cached vertex valences */
   int *valence;
 
+  const int *looptri_polys;
+
   CustomData *vdata;
   CustomData *ldata;
   CustomData *pdata;

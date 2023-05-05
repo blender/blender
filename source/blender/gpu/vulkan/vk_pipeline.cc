@@ -6,6 +6,7 @@
  */
 
 #include "vk_pipeline.hh"
+#include "vk_backend.hh"
 #include "vk_context.hh"
 #include "vk_memory.hh"
 
@@ -23,21 +24,20 @@ VKPipeline::VKPipeline(VkPipeline vk_pipeline,
 VKPipeline::~VKPipeline()
 {
   VK_ALLOCATION_CALLBACKS
-  VkDevice vk_device = VKContext::get()->device_get();
+  const VKDevice &device = VKBackend::get().device_get();
   if (vk_pipeline_ != VK_NULL_HANDLE) {
-    vkDestroyPipeline(vk_device, vk_pipeline_, vk_allocation_callbacks);
+    vkDestroyPipeline(device.device_get(), vk_pipeline_, vk_allocation_callbacks);
   }
 }
 
 VKPipeline VKPipeline::create_compute_pipeline(
-    VKContext &context,
     VkShaderModule compute_module,
     VkDescriptorSetLayout &descriptor_set_layout,
     VkPipelineLayout &pipeline_layout,
     const VKPushConstants::Layout &push_constants_layout)
 {
   VK_ALLOCATION_CALLBACKS
-  VkDevice vk_device = context.device_get();
+  const VKDevice &device = VKBackend::get().device_get();
   VkComputePipelineCreateInfo pipeline_info = {};
   pipeline_info.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
   pipeline_info.flags = 0;
@@ -50,9 +50,12 @@ VKPipeline VKPipeline::create_compute_pipeline(
   pipeline_info.stage.pName = "main";
 
   VkPipeline vk_pipeline;
-  if (vkCreateComputePipelines(
-          vk_device, nullptr, 1, &pipeline_info, vk_allocation_callbacks, &vk_pipeline) !=
-      VK_SUCCESS)
+  if (vkCreateComputePipelines(device.device_get(),
+                               nullptr,
+                               1,
+                               &pipeline_info,
+                               vk_allocation_callbacks,
+                               &vk_pipeline) != VK_SUCCESS)
   {
     return VKPipeline();
   }

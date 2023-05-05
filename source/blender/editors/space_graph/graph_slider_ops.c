@@ -469,7 +469,7 @@ static int decimate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   tGraphSliderOp *gso = op->customdata;
   gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
   gso->modal_update = decimate_modal_update;
-  ED_slider_allow_overshoot_set(gso->slider, false);
+  ED_slider_allow_overshoot_set(gso->slider, false, false);
 
   return invoke_result;
 }
@@ -1091,7 +1091,7 @@ static int gaussian_smooth_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   gaussian_smooth_allocate_operator_data(gso, filter_width, sigma);
   gso->free_operator_data = gaussian_smooth_free_operator_data;
 
-  ED_slider_allow_overshoot_set(gso->slider, false);
+  ED_slider_allow_overshoot_set(gso->slider, false, false);
   ED_slider_factor_set(gso->slider, 0.0f);
   common_draw_status_header(C, gso, "Gaussian Smooth");
 

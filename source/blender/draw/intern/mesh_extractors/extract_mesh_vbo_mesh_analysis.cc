@@ -214,8 +214,9 @@ static void statvis_calc_thickness(const MeshRenderData *mr, float *r_thickness)
 
     BVHTree *tree = BKE_bvhtree_from_mesh_get(&treeData, mr->me, BVHTREE_FROM_LOOPTRI, 4);
     const Span<MLoopTri> looptris = mr->looptris;
+    const Span<int> looptri_polys = mr->looptri_polys;
     for (const int i : looptris.index_range()) {
-      const int index = looptris[i].poly;
+      const int index = looptri_polys[i];
       const float *cos[3] = {mr->vert_positions[mr->corner_verts[looptris[i].tri[0]]],
                              mr->vert_positions[mr->corner_verts[looptris[i].tri[1]]],
                              mr->vert_positions[mr->corner_verts[looptris[i].tri[2]]]};
@@ -261,6 +262,7 @@ struct BVHTree_OverlapData {
   Span<float3> positions;
   Span<int> corner_verts;
   Span<MLoopTri> looptris;
+  Span<int> looptri_polys;
   float epsilon;
 };
 
@@ -268,12 +270,12 @@ static bool bvh_overlap_cb(void *userdata, int index_a, int index_b, int /*threa
 {
   struct BVHTree_OverlapData *data = static_cast<struct BVHTree_OverlapData *>(userdata);
 
-  const MLoopTri *tri_a = &data->looptris[index_a];
-  const MLoopTri *tri_b = &data->looptris[index_b];
-
-  if (UNLIKELY(tri_a->poly == tri_b->poly)) {
+  if (UNLIKELY(data->looptri_polys[index_a] == data->looptri_polys[index_b])) {
     return false;
   }
+
+  const MLoopTri *tri_a = &data->looptris[index_a];
+  const MLoopTri *tri_b = &data->looptris[index_b];
 
   const float *tri_a_co[3] = {data->positions[data->corner_verts[tri_a->tri[0]]],
                               data->positions[data->corner_verts[tri_a->tri[1]]],
@@ -344,14 +346,15 @@ static void statvis_calc_intersect(const MeshRenderData *mr, float *r_intersect)
     data.positions = mr->vert_positions;
     data.corner_verts = mr->corner_verts;
     data.looptris = mr->looptris;
+    data.looptri_polys = mr->looptri_polys;
     data.epsilon = BLI_bvhtree_get_epsilon(tree);
 
     BVHTreeOverlap *overlap = BLI_bvhtree_overlap_self(tree, &overlap_len, bvh_overlap_cb, &data);
     if (overlap) {
       for (int i = 0; i < overlap_len; i++) {
 
-        for (const IndexRange f_hit : {mr->polys[mr->looptris[overlap[i].indexA].poly],
-                                       mr->polys[mr->looptris[overlap[i].indexB].poly]})
+        for (const IndexRange f_hit : {mr->polys[mr->looptri_polys[overlap[i].indexA]],
+                                       mr->polys[mr->looptri_polys[overlap[i].indexB]]})
         {
           int l_index = f_hit.start();
           for (int k = 0; k < f_hit.size(); k++, l_index++) {

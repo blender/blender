@@ -65,6 +65,7 @@
 #include "BKE_node.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
+#include "BKE_node_tree_zones.hh"
 #include "BKE_type_conversions.hh"
 
 #include "RNA_access.h"
@@ -173,6 +174,10 @@ static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
     if (node->parent) {
       node->parent = dst_runtime.nodes_by_id.lookup_key_as(node->parent->identifier);
     }
+  }
+
+  for (bNode *node : ntree_dst->all_nodes()) {
+    nodeDeclarationEnsure(ntree_dst, node);
   }
 
   /* copy interface sockets */
@@ -609,6 +614,14 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
         BLO_write_struct(writer, NodeImageLayer, sock->storage);
       }
     }
+    if (node->type == GEO_NODE_SIMULATION_OUTPUT) {
+      const NodeGeometrySimulationOutput &storage =
+          *static_cast<const NodeGeometrySimulationOutput *>(node->storage);
+      BLO_write_struct_array(writer, NodeSimulationItem, storage.items_num, storage.items);
+      for (const NodeSimulationItem &item : Span(storage.items, storage.items_num)) {
+        BLO_write_string(writer, item.name);
+      }
+    }
   }
 
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
@@ -784,6 +797,16 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
           BLO_read_data_address(reader, &storage->string);
           break;
         }
+        case GEO_NODE_SIMULATION_OUTPUT: {
+          NodeGeometrySimulationOutput &storage = *static_cast<NodeGeometrySimulationOutput *>(
+              node->storage);
+          BLO_read_data_address(reader, &storage.items);
+          for (const NodeSimulationItem &item : Span(storage.items, storage.items_num)) {
+            BLO_read_data_address(reader, &item.name);
+          }
+          break;
+        }
+
         default:
           break;
       }
@@ -951,29 +974,29 @@ static void expand_node_socket(BlendExpander *expander, bNodeSocket *sock)
 {
   IDP_BlendReadExpand(expander, sock->prop);
 
-  if (sock->default_value != nullptr) {
+  if (sock->default_value == nullptr) {
     return;
   }
 
   switch (eNodeSocketDatatype(sock->type)) {
     case SOCK_OBJECT: {
-      BLO_expand(expander, &sock->default_value_typed<bNodeSocketValueObject>()->value);
+      BLO_expand(expander, sock->default_value_typed<bNodeSocketValueObject>()->value);
       break;
     }
     case SOCK_IMAGE: {
-      BLO_expand(expander, &sock->default_value_typed<bNodeSocketValueImage>()->value);
+      BLO_expand(expander, sock->default_value_typed<bNodeSocketValueImage>()->value);
       break;
     }
     case SOCK_COLLECTION: {
-      BLO_expand(expander, &sock->default_value_typed<bNodeSocketValueCollection>()->value);
+      BLO_expand(expander, sock->default_value_typed<bNodeSocketValueCollection>()->value);
       break;
     }
     case SOCK_TEXTURE: {
-      BLO_expand(expander, &sock->default_value_typed<bNodeSocketValueTexture>()->value);
+      BLO_expand(expander, sock->default_value_typed<bNodeSocketValueTexture>()->value);
       break;
     }
     case SOCK_MATERIAL: {
-      BLO_expand(expander, &sock->default_value_typed<bNodeSocketValueMaterial>()->value);
+      BLO_expand(expander, sock->default_value_typed<bNodeSocketValueMaterial>()->value);
       break;
     }
     case SOCK_FLOAT:
@@ -1139,7 +1162,12 @@ static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
   BLI_strncpy(node->name, DATA_(ntype->ui_name), NODE_MAXSTR);
   nodeUniqueName(ntree, node);
 
-  node_add_sockets_from_type(ntree, node, ntype);
+  /* Generally sockets should be added after the initialization, because the set of sockets might
+   * depend on node properties. */
+  const bool add_sockets_before_init = node->type == CMP_NODE_R_LAYERS;
+  if (add_sockets_before_init) {
+    node_add_sockets_from_type(ntree, node, ntype);
+  }
 
   if (ntype->initfunc != nullptr) {
     ntype->initfunc(ntree, node);
@@ -1147,6 +1175,10 @@ static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
 
   if (ntree->typeinfo && ntree->typeinfo->node_add_init) {
     ntree->typeinfo->node_add_init(ntree, node);
+  }
+
+  if (!add_sockets_before_init) {
+    node_add_sockets_from_type(ntree, node, ntype);
   }
 
   if (node->id) {
@@ -2300,7 +2332,8 @@ bNode *nodeAddNode(const bContext *C, bNodeTree *ntree, const char *idname)
 
   BKE_ntree_update_tag_node_new(ntree, node);
 
-  if (ELEM(node->type, GEO_NODE_INPUT_SCENE_TIME, GEO_NODE_SELF_OBJECT)) {
+  if (ELEM(node->type, GEO_NODE_INPUT_SCENE_TIME, GEO_NODE_SELF_OBJECT, GEO_NODE_SIMULATION_INPUT))
+  {
     DEG_relations_tag_update(CTX_data_main(C));
   }
 
@@ -2422,11 +2455,6 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
     RNA_pointer_create(reinterpret_cast<ID *>(dst_tree), &RNA_Node, node_dst, &ptr);
 
     node_dst->typeinfo->copyfunc_api(&ptr, &node_src);
-  }
-
-  /* Reset the declaration of the new node in real tree. */
-  if (dst_tree != nullptr) {
-    nodeDeclarationEnsure(dst_tree, node_dst);
   }
 
   return node_dst;
@@ -3265,7 +3293,9 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, const bool do_id
 
   /* Also update relations for the scene time node, which causes a dependency
    * on time that users expect to be removed when the node is removed. */
-  if (node_has_id || ELEM(node->type, GEO_NODE_INPUT_SCENE_TIME, GEO_NODE_SELF_OBJECT)) {
+  if (node_has_id ||
+      ELEM(node->type, GEO_NODE_INPUT_SCENE_TIME, GEO_NODE_SELF_OBJECT, GEO_NODE_SIMULATION_INPUT))
+  {
     if (bmain != nullptr) {
       DEG_relations_tag_update(bmain);
     }
@@ -3826,8 +3856,7 @@ bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *ntree, bNode *node)
   if (node->typeinfo->declare_dynamic) {
     BLI_assert(ntree != nullptr);
     BLI_assert(node != nullptr);
-    node->runtime->declaration = new blender::nodes::NodeDeclaration();
-    blender::nodes::build_node_declaration_dynamic(*ntree, *node, *node->runtime->declaration);
+    blender::nodes::update_node_declaration_and_sockets(*ntree, *node);
     return true;
   }
   if (node->typeinfo->declare) {

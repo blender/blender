@@ -25,9 +25,9 @@ VKTexture::~VKTexture()
 {
   VK_ALLOCATION_CALLBACKS
 
-  VKContext &context = *VKContext::get();
-  vmaDestroyImage(context.mem_allocator_get(), vk_image_, allocation_);
-  vkDestroyImageView(context.device_get(), vk_image_view_, vk_allocation_callbacks);
+  const VKDevice &device = VKBackend::get().device_get();
+  vmaDestroyImage(device.mem_allocator_get(), vk_image_, allocation_);
+  vkDestroyImageView(device.device_get(), vk_image_view_, vk_allocation_callbacks);
 }
 
 void VKTexture::generate_mipmap() {}
@@ -75,7 +75,7 @@ void *VKTexture::read(int mip, eGPUDataFormat format)
   size_t host_memory_size = sample_len * to_bytesize(format_, format);
 
   staging_buffer.create(
-      context, device_memory_size, GPU_USAGE_DEVICE_ONLY, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+      device_memory_size, GPU_USAGE_DEVICE_ONLY, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
   VkBufferImageCopy region = {};
   region.imageExtent.width = extent[0];
@@ -113,7 +113,7 @@ void VKTexture::update_sub(
   size_t device_memory_size = sample_len * to_bytesize(format_);
 
   staging_buffer.create(
-      context, device_memory_size, GPU_USAGE_DEVICE_ONLY, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+      device_memory_size, GPU_USAGE_DEVICE_ONLY, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 
   uint buffer_row_length = context.state_manager_get().texture_unpack_row_length_get();
   if (buffer_row_length) {
@@ -234,6 +234,7 @@ bool VKTexture::allocate()
   mip_size_get(0, extent);
 
   VKContext &context = *VKContext::get();
+  const VKDevice &device = VKBackend::get().device_get();
   VkImageCreateInfo image_info = {};
   image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
   image_info.imageType = to_vk_image_type(type_);
@@ -256,7 +257,7 @@ bool VKTexture::allocate()
   VkResult result;
   if (G.debug & G_DEBUG_GPU) {
     VkImageFormatProperties image_format = {};
-    result = vkGetPhysicalDeviceImageFormatProperties(context.physical_device_get(),
+    result = vkGetPhysicalDeviceImageFormatProperties(device.physical_device_get(),
                                                       image_info.format,
                                                       image_info.imageType,
                                                       image_info.tiling,
@@ -272,7 +273,7 @@ bool VKTexture::allocate()
   VmaAllocationCreateInfo allocCreateInfo = {};
   allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
   allocCreateInfo.priority = 1.0f;
-  result = vmaCreateImage(context.mem_allocator_get(),
+  result = vmaCreateImage(device.mem_allocator_get(),
                           &image_info,
                           &allocCreateInfo,
                           &vk_image_,
@@ -281,7 +282,7 @@ bool VKTexture::allocate()
   if (result != VK_SUCCESS) {
     return false;
   }
-  debug::object_label(&context, vk_image_, name_);
+  debug::object_label(vk_image_, name_);
 
   /* Promote image to the correct layout. */
   layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
@@ -298,8 +299,8 @@ bool VKTexture::allocate()
   image_view_info.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
 
   result = vkCreateImageView(
-      context.device_get(), &image_view_info, vk_allocation_callbacks, &vk_image_view_);
-  debug::object_label(&context, vk_image_view_, name_);
+      device.device_get(), &image_view_info, vk_allocation_callbacks, &vk_image_view_);
+  debug::object_label(vk_image_view_, name_);
   return result == VK_SUCCESS;
 }
 

@@ -1160,8 +1160,8 @@ static StudioLight *studiolight_add_file(const char *filepath, int flag)
       BLI_path_extension_check_array(filename, imb_ext_image))
   {
     StudioLight *sl = studiolight_create(STUDIOLIGHT_EXTERNAL_FILE | flag);
-    BLI_strncpy(sl->name, filename, FILE_MAXFILE);
-    BLI_strncpy(sl->filepath, filepath, FILE_MAXFILE);
+    STRNCPY(sl->name, filename);
+    STRNCPY(sl->filepath, filepath);
 
     if ((flag & STUDIOLIGHT_TYPE_STUDIO) != 0) {
       studiolight_load_solid_light(sl);

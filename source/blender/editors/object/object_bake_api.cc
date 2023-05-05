@@ -1039,6 +1039,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   const blender::Span<int> corner_verts = me_eval->corner_verts();
   blender::bke::mesh::looptris_calc(
       me_eval->vert_positions(), me_eval->polys(), corner_verts, {looptri, tottri});
+  const blender::Span<int> looptri_polys = me_eval->looptri_polys();
 
   /* For mapping back to original mesh in case there are modifiers. */
   const int *vert_origindex = static_cast<const int *>(
@@ -1050,6 +1051,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
 
   for (int i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
+    const int poly_i = looptri_polys[i];
 
     for (int j = 0; j < 3; j++) {
       uint l = lt->tri[j];
@@ -1058,7 +1060,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
       /* Map back to original loop if there are modifiers. */
       if (vert_origindex != nullptr && poly_origindex != nullptr) {
         l = find_original_loop(
-            orig_polys, orig_corner_verts, vert_origindex, poly_origindex, lt->poly, v);
+            orig_polys, orig_corner_verts, vert_origindex, poly_origindex, poly_i, v);
         if (l == ORIGINDEX_NONE || l >= me->totloop) {
           continue;
         }

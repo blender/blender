@@ -383,10 +383,10 @@ struct SlideOperationExecutor {
         const MLoopTri &looptri_eval = surface_looptris_eval_[looptri_index_eval];
         const float3 bary_weights_eval = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
             surface_positions_eval_, surface_corner_verts_eval_, looptri_eval, hit_pos_eval_su);
-        const float2 uv = attribute_math::mix3(bary_weights_eval,
-                                               surface_uv_map_eval_[looptri_eval.tri[0]],
-                                               surface_uv_map_eval_[looptri_eval.tri[1]],
-                                               surface_uv_map_eval_[looptri_eval.tri[2]]);
+        const float2 uv = bke::attribute_math::mix3(bary_weights_eval,
+                                                    surface_uv_map_eval_[looptri_eval.tri[0]],
+                                                    surface_uv_map_eval_[looptri_eval.tri[1]],
+                                                    surface_uv_map_eval_[looptri_eval.tri[2]]);
 
         /* Try to find the same uv on the original surface. */
         const ReverseUVSampler::Result result = reverse_uv_sampler_orig.sample(uv);
@@ -405,7 +405,7 @@ struct SlideOperationExecutor {
                 looptri_orig, result.bary_weights, corner_normals_orig_su_)));
 
         /* Gather old and new surface position. */
-        const float3 new_first_pos_orig_su = attribute_math::mix3<float3>(
+        const float3 new_first_pos_orig_su = bke::attribute_math::mix3<float3>(
             bary_weights_orig,
             positions_orig_su[corner_verts_orig[looptri_orig.tri[0]]],
             positions_orig_su[corner_verts_orig[looptri_orig.tri[1]]],

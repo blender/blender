@@ -458,7 +458,7 @@ static void openexr_header_metadata_callback(void *data,
   header->insert(propname, StringAttribute(prop));
 }
 
-static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags)
+static bool imb_save_openexr_half(ImBuf *ibuf, const char *filepath, const int flags)
 {
   const int channels = ibuf->channels;
   const bool is_alpha = (channels >= 4) && (ibuf->planes == 32);
@@ -492,7 +492,7 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags
       file_stream = new OMemStream(ibuf);
     }
     else {
-      file_stream = new OFileStream(name);
+      file_stream = new OFileStream(filepath);
     }
     OutputFile file(*file_stream, header);
 
@@ -571,7 +571,7 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags
   return true;
 }
 
-static bool imb_save_openexr_float(ImBuf *ibuf, const char *name, const int flags)
+static bool imb_save_openexr_float(ImBuf *ibuf, const char *filepath, const int flags)
 {
   const int channels = ibuf->channels;
   const bool is_alpha = (channels >= 4) && (ibuf->planes == 32);
@@ -604,7 +604,7 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *name, const int flag
       file_stream = new OMemStream(ibuf);
     }
     else {
-      file_stream = new OFileStream(name);
+      file_stream = new OFileStream(filepath);
     }
     OutputFile file(*file_stream, header);
 
@@ -652,7 +652,7 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *name, const int flag
   return true;
 }
 
-bool imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
+bool imb_save_openexr(struct ImBuf *ibuf, const char *filepath, int flags)
 {
   if (flags & IB_mem) {
     imb_addencodedbufferImBuf(ibuf);
@@ -660,15 +660,15 @@ bool imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
   }
 
   if (ibuf->foptions.flag & OPENEXR_HALF) {
-    return imb_save_openexr_half(ibuf, name, flags);
+    return imb_save_openexr_half(ibuf, filepath, flags);
   }
 
   /* when no float rect, we save as half (16 bits is sufficient) */
   if (ibuf->rect_float == nullptr) {
-    return imb_save_openexr_half(ibuf, name, flags);
+    return imb_save_openexr_half(ibuf, filepath, flags);
   }
 
-  return imb_save_openexr_float(ibuf, name, flags);
+  return imb_save_openexr_float(ibuf, filepath, flags);
 }
 
 /* ******* Nicer API, MultiLayer and with Tile file support ************************************ */

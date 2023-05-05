@@ -1115,16 +1115,10 @@ bool CurvesGeometry::bounds_min_max(float3 &min, float3 &max) const
   return true;
 }
 
-static void copy_between_buffers(const CPPType &type,
-                                 const void *src_buffer,
-                                 void *dst_buffer,
-                                 const IndexRange src_range,
-                                 const IndexRange dst_range)
+static void copy_construct_data(const GSpan src, GMutableSpan dst)
 {
-  BLI_assert(src_range.size() == dst_range.size());
-  type.copy_construct_n(POINTER_OFFSET(src_buffer, type.size() * src_range.start()),
-                        POINTER_OFFSET(dst_buffer, type.size() * dst_range.start()),
-                        src_range.size());
+  BLI_assert(src.size() == dst.size());
+  src.type().copy_construct_n(src.data(), dst.data(), src.size());
 }
 
 static void copy_with_map(const GSpan src, const Span<int> map, GMutableSpan dst)
@@ -1203,11 +1197,9 @@ static CurvesGeometry copy_with_removed_points(
           threading::parallel_for(copy_point_ranges.index_range(), 128, [&](IndexRange range) {
             for (const int range_i : range) {
               const IndexRange src_range = copy_point_ranges[range_i];
-              copy_between_buffers(attribute.src.type(),
-                                   attribute.src.data(),
-                                   attribute.dst.span.data(),
-                                   src_range,
-                                   {copy_point_range_dst_offsets[range_i], src_range.size()});
+              const IndexRange dst_range(copy_point_range_dst_offsets[range_i], src_range.size());
+              copy_construct_data(attribute.src.slice(src_range),
+                                  attribute.dst.span.slice(dst_range));
             }
           });
         }
@@ -1321,11 +1313,8 @@ static CurvesGeometry copy_with_removed_curves(
         for (bke::AttributeTransferData &attribute : point_attributes) {
           threading::parallel_for(old_curve_ranges.index_range(), 128, [&](IndexRange range) {
             for (const int range_i : range) {
-              copy_between_buffers(attribute.src.type(),
-                                   attribute.src.data(),
-                                   attribute.dst.span.data(),
-                                   old_point_ranges[range_i],
-                                   new_point_ranges[range_i]);
+              copy_construct_data(attribute.src.slice(old_point_ranges[range_i]),
+                                  attribute.dst.span.slice(new_point_ranges[range_i]));
             }
           });
         }
@@ -1335,11 +1324,8 @@ static CurvesGeometry copy_with_removed_curves(
         for (bke::AttributeTransferData &attribute : curve_attributes) {
           threading::parallel_for(old_curve_ranges.index_range(), 128, [&](IndexRange range) {
             for (const int range_i : range) {
-              copy_between_buffers(attribute.src.type(),
-                                   attribute.src.data(),
-                                   attribute.dst.span.data(),
-                                   old_curve_ranges[range_i],
-                                   new_curve_ranges[range_i]);
+              copy_construct_data(attribute.src.slice(old_curve_ranges[range_i]),
+                                  attribute.dst.span.slice(new_curve_ranges[range_i]));
             }
           });
         }

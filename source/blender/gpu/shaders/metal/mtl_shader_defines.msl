@@ -34,6 +34,7 @@ using mat4x3 = float4x3;
 using mat4x4 = float4x4;
 using mat2 = float2x2;
 using mat3 = float3x3;
+using mat3x4 = float3x4;
 using mat4 = float4x4;
 using ivec2 = int2;
 using ivec3 = int3;
@@ -158,6 +159,10 @@ template<typename T> T atomicXor(threadgroup T &mem, T data)
 {
   return atomic_fetch_xor_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
 }
+template<typename T> T atomicExchange(threadgroup T &mem, T data)
+{
+  return atomic_exchange_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
 
 /* Device memory. */
 template<typename T> T atomicMax(device T &mem, T data)
@@ -188,14 +193,19 @@ template<typename T> T atomicXor(device T &mem, T data)
 {
   return atomic_fetch_xor_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
 }
+template<typename T> T atomicExchange(device T &mem, T data)
+{
+  return atomic_exchange_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
+}
 
-/* Unblock texture atomic compilation. 
- * TODO(Metal): This is not correct for global atomic behaviour, but will be safe within a single thread.
+/* Unblock texture atomic compilation.
+ * TODO(Metal): This is not correct for global atomic behaviour, but will be safe within a single
+ * thread.
  * We need to re-visit the solution for this use-case and use a 2D texture buffer instead. */
 #define imageAtomicMin(tex, coord, data) \
-    uint val = _texelFetch_internal(tex, coord, 0).r;\
-    _texture_write_internal(tex, coord, uint4((val < data) ? val : data));\
-    tex.texture->fence();
+  uint val = _texelFetch_internal(tex, coord, 0).r; \
+  _texture_write_internal(tex, coord, uint4((val < data) ? val : data)); \
+  tex.texture->fence();
 
 /* Used to replace 'out' in function parameters with threadlocal reference
  * shortened to avoid expanding the glsl source string. */
@@ -1186,17 +1196,16 @@ inline float4 uintBitsToFloat(uint4 f)
 template<typename T> T findLSB(T x)
 {
   /* ctz returns the number of trailing zeroes. To fetch the index of the LSB, we can also use this
-   * value as index, however need to filter out the case where the input value is zero to match
+   * value as index, however we need to filter out the case where the input value is zero to match
    * GLSL functionality. */
   return (x == T(0)) ? T(-1) : T(ctz(x));
 }
 
 template<typename T> T findMSB(T x)
 {
-  /* clz returns the number of leading zeroes. To fetch the index of the LSB, we can also use this
-   * value as index when offset by 1. however need to filter out the case where the input value is
-   * zero to match GLSL functionality. 000000010*/
-  return (x == T(0)) ? T(-1) : (clz(T(0)) - clz(x) - T(1));
+  /* clz returns the number of leading zeroes. To fetch the index of the MSB, we can also use this
+   * value as index when offset by 1. */
+  return (sizeof(T) * 8) - T(1) - clz(x);
 }
 
 /* Texture size functions. Add texture types as needed. */
@@ -1503,6 +1512,10 @@ mat3 MAT3x3(mat4 m)
 {
   return mat3(m[0].xyz, m[1].xyz, m[2].xyz);
 }
+mat3 MAT3x3(mat3x4 m)
+{
+  return mat3(m[0].xyz, m[1].xyz, m[2].xyz);
+}
 mat3 MAT3x3(mat2 m)
 {
   return mat3(vec3(m[0].xy, 0.0), vec3(m[1].xy, 0.0), vec3(0.0, 0.0, 1.0));
@@ -1541,12 +1554,52 @@ mat4 MAT4x4(mat3 m)
   return mat4(
       vec4(m[0].xyz, 0.0), vec4(m[1].xyz, 0.0), vec4(m[2].xyz, 0.0), vec4(0.0, 0.0, 0.0, 1.0));
 }
+mat4 MAT4x4(mat3x4 m)
+{
+  return mat4(m[0], m[1], m[2], vec4(0.0, 0.0, 0.0, 1.0));
+}
 mat4 MAT4x4(mat2 m)
 {
   return mat4(vec4(m[0].xy, 0.0, 0.0),
               vec4(m[1].xy, 0.0, 0.0),
               vec4(0.0, 0.0, 1.0, 0.0),
               vec4(0.0, 0.0, 0.0, 1.0));
+}
+
+mat3x4 MAT3x4(vec4 a, vec4 b, vec4 c)
+{
+  return mat3x4(a, b, c);
+}
+mat3x4 MAT3x4(float a1,
+            float a2,
+            float a3,
+            float a4,
+            float b1,
+            float b2,
+            float b3,
+            float b4,
+            float c1,
+            float c2,
+            float c3,
+            float c4)
+{
+  return mat3x4(
+      vec4(a1, a2, a3, a4), vec4(b1, b2, b3, b4), vec4(c1, c2, c3, c4));
+}
+mat3x4 MAT3x4(float f)
+{
+  return mat3x4(f);
+}
+mat3x4 MAT3x4(mat3 m)
+{
+  return mat3x4(
+      vec4(m[0].xyz, 0.0), vec4(m[1].xyz, 0.0), vec4(m[2].xyz, 0.0));
+}
+mat3x4 MAT3x4(mat2 m)
+{
+  return mat3x4(vec4(m[0].xy, 0.0, 0.0),
+                vec4(m[1].xy, 0.0, 0.0),
+                vec4(0.0, 0.0, 1.0, 0.0));
 }
 
 #define MAT2 MAT2x2

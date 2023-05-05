@@ -1174,6 +1174,7 @@ static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
   }
 
   STRNCPY(ibuf->filepath, ima->filepath);
+  BLI_path_abs(ibuf->filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
 
   /* Mark the tile itself as having been generated. */
   tile->gen_flag |= IMA_GEN_TILE;
@@ -3304,19 +3305,20 @@ static RenderPass *image_render_pass_get(RenderLayer *rl,
   return rpass_ret;
 }
 
-void BKE_image_get_tile_label(Image *ima, ImageTile *tile, char *label, int len_label)
+int BKE_image_get_tile_label(const Image *ima,
+                             const ImageTile *tile,
+                             char *label,
+                             const int label_maxncpy)
 {
   label[0] = '\0';
   if (ima == nullptr || tile == nullptr) {
-    return;
+    return 0;
   }
 
   if (tile->label[0]) {
-    BLI_strncpy(label, tile->label, len_label);
+    return BLI_strncpy_rlen(label, tile->label, label_maxncpy);
   }
-  else {
-    BLI_snprintf(label, len_label, "%d", tile->tile_number);
-  }
+  return BLI_snprintf_rlen(label, label_maxncpy, "%d", tile->tile_number);
 }
 
 bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start, int *r_tile_range)
@@ -5430,6 +5432,7 @@ bool BKE_image_has_loaded_ibuf(Image *image)
 
 ImBuf *BKE_image_get_ibuf_with_name(Image *image, const char *filepath)
 {
+  BLI_assert(!BLI_path_is_rel(filepath));
   ImBuf *ibuf = nullptr;
 
   BLI_mutex_lock(static_cast<ThreadMutex *>(image->runtime.cache_mutex));

@@ -266,7 +266,7 @@ int rna_ID_override_library_property_operation_locname_length(PointerRNA *ptr)
 void rna_ID_name_get(PointerRNA *ptr, char *value)
 {
   ID *id = (ID *)ptr->data;
-  BLI_strncpy(value, id->name + 2, sizeof(id->name) - 2);
+  strcpy(value, id->name + 2);
 }
 
 int rna_ID_name_length(PointerRNA *ptr)

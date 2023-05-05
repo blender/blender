@@ -1471,7 +1471,7 @@ bool blf_ensure_face(FontBLF *font)
 }
 
 struct FaceDetails {
-  char name[50];
+  char filename[50];
   uint coverage1;
   uint coverage2;
   uint coverage3;
@@ -1508,15 +1508,20 @@ static const struct FaceDetails static_face_details[] = {
     {"NotoSansThai-VariableFont_wdth,wght.woff2", TT_UCR_THAI, 0, 0, 0},
 };
 
-FontBLF *blf_font_new_ex(const char *name,
-                         const char *filepath,
-                         const uchar *mem,
-                         const size_t mem_size,
-                         void *ft_library)
+/**
+ * Create a new font from filename OR memory pointer.
+ * For normal operation pass NULL as FT_Library object. Pass a custom FT_Library if you
+ * want to use the font without its lifetime being managed by the FreeType cache subsystem.
+ */
+static FontBLF *blf_font_new_impl(const char *filepath,
+                                  const char *mem_name,
+                                  const uchar *mem,
+                                  const size_t mem_size,
+                                  void *ft_library)
 {
   FontBLF *font = (FontBLF *)MEM_callocN(sizeof(FontBLF), "blf_font_new");
 
-  font->name = BLI_strdup(name);
+  font->mem_name = mem_name ? BLI_strdup(mem_name) : NULL;
   font->filepath = filepath ? BLI_strdup(filepath) : NULL;
   if (mem) {
     font->mem = (void *)mem;
@@ -1540,12 +1545,10 @@ FontBLF *blf_font_new_ex(const char *name,
   bool face_needed = true;
 
   if (font->filepath) {
-    const struct FaceDetails *static_details = NULL;
-    char filename[256];
+    const char *filename = BLI_path_basename(font->filepath);
     for (int i = 0; i < (int)ARRAY_SIZE(static_face_details); i++) {
-      BLI_path_split_file_part(font->filepath, filename, sizeof(filename));
-      if (STREQ(static_face_details[i].name, filename)) {
-        static_details = &static_face_details[i];
+      if (STREQ(static_face_details[i].filename, filename)) {
+        const struct FaceDetails *static_details = &static_face_details[i];
         font->unicode_ranges[0] = static_details->coverage1;
         font->unicode_ranges[1] = static_details->coverage2;
         font->unicode_ranges[2] = static_details->coverage3;
@@ -1573,14 +1576,14 @@ FontBLF *blf_font_new_ex(const char *name,
   return font;
 }
 
-FontBLF *blf_font_new(const char *name, const char *filepath)
+FontBLF *blf_font_new_from_filepath(const char *filepath)
 {
-  return blf_font_new_ex(name, filepath, NULL, 0, NULL);
+  return blf_font_new_impl(filepath, NULL, NULL, 0, NULL);
 }
 
-FontBLF *blf_font_new_from_mem(const char *name, const uchar *mem, const size_t mem_size)
+FontBLF *blf_font_new_from_mem(const char *mem_name, const uchar *mem, const size_t mem_size)
 {
-  return blf_font_new_ex(name, NULL, mem, mem_size, NULL);
+  return blf_font_new_impl(NULL, mem_name, mem, mem_size, NULL);
 }
 
 void blf_font_attach_from_mem(FontBLF *font, const uchar *mem, const size_t mem_size)
@@ -1621,8 +1624,8 @@ void blf_font_free(FontBLF *font)
   if (font->filepath) {
     MEM_freeN(font->filepath);
   }
-  if (font->name) {
-    MEM_freeN(font->name);
+  if (font->mem_name) {
+    MEM_freeN(font->mem_name);
   }
 
   BLI_mutex_end(&font->glyph_cache_mutex);

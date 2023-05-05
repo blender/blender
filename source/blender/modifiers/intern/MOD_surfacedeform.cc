@@ -43,8 +43,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 struct SDefAdjacency {
   SDefAdjacency *next;
@@ -73,6 +73,7 @@ struct SDefBindCalcData {
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
   blender::Span<MLoopTri> looptris;
+  blender::Span<int> looptri_polys;
 
   /** Coordinates to bind to, transformed into local space (compatible with `vertexCos`). */
   float (*targetCos)[3];
@@ -390,7 +391,7 @@ BLI_INLINE uint nearestVert(SDefBindCalcData *const data, const float point_co[3
   BLI_bvhtree_find_nearest(
       data->treeData->tree, t_point, &nearest, data->treeData->nearest_callback, data->treeData);
 
-  const blender::IndexRange poly = data->polys[data->looptris[nearest.index].poly];
+  const blender::IndexRange poly = data->polys[data->looptri_polys[nearest.index]];
 
   for (int i = 0; i < poly.size(); i++) {
     const int edge_i = data->corner_edges[poly.start() + i];
@@ -1258,6 +1259,7 @@ static bool surfacedeformBind(Object *ob,
   data.corner_verts = corner_verts;
   data.corner_edges = corner_edges;
   data.looptris = target->looptris();
+  data.looptri_polys = target->looptri_polys();
   data.targetCos = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(target_verts_num, sizeof(float[3]), "SDefTargetBindVertArray"));
   data.bind_verts = smd_orig->verts;

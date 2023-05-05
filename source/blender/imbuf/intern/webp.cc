@@ -158,7 +158,7 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   return ibuf;
 }
 
-bool imb_savewebp(struct ImBuf *ibuf, const char *name, int /*flags*/)
+bool imb_savewebp(struct ImBuf *ibuf, const char *filepath, int /*flags*/)
 {
   const int bytesperpixel = (ibuf->planes + 7) >> 3;
   uchar *encoded_data, *last_row;
@@ -201,15 +201,16 @@ bool imb_savewebp(struct ImBuf *ibuf, const char *name, int /*flags*/)
     }
   }
   else {
-    fprintf(stderr, "WebP: Unsupported bytes per pixel: %d for file: '%s'\n", bytesperpixel, name);
+    fprintf(
+        stderr, "WebP: Unsupported bytes per pixel: %d for file: '%s'\n", bytesperpixel, filepath);
     return false;
   }
 
   if (encoded_data != nullptr) {
-    FILE *fp = BLI_fopen(name, "wb");
+    FILE *fp = BLI_fopen(filepath, "wb");
     if (!fp) {
       free(encoded_data);
-      fprintf(stderr, "WebP: Cannot open file for writing: '%s'\n", name);
+      fprintf(stderr, "WebP: Cannot open file for writing: '%s'\n", filepath);
       return false;
     }
     fwrite(encoded_data, encoded_data_size, 1, fp);

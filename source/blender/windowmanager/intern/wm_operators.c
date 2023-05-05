@@ -1228,7 +1228,7 @@ bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFor
   /* Don't NULL check prop, this can only run on ops with a 'filepath'. */
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
   RNA_property_string_get(op->ptr, prop, filepath);
-  if (BKE_image_path_ensure_ext_from_imformat(filepath, im_format)) {
+  if (BKE_image_path_ext_from_imformat_ensure(filepath, sizeof(filepath), im_format)) {
     RNA_property_string_set(op->ptr, prop, filepath);
     /* NOTE: we could check for and update 'filename' here,
      * but so far nothing needs this. */

@@ -267,7 +267,7 @@ static void image_save_post(ReportList *reports,
                             ImBuf *ibuf,
                             int ok,
                             const ImageSaveOptions *opts,
-                            int save_copy,
+                            const bool save_copy,
                             const char *filepath,
                             bool *r_colorspace_changed)
 {
@@ -350,7 +350,8 @@ static void imbuf_save_post(ImBuf *ibuf, ImBuf *colormanaged_ibuf)
 
 /**
  * \return success.
- * \note `ima->filepath` and `ibuf->filepath` should end up the same.
+ * \note `ima->filepath` and `ibuf->filepath` will reference the same path
+ * (although `ima->filepath` may be blend-file relative).
  * \note for multi-view the first `ibuf` is important to get the settings.
  */
 static bool image_save_single(ReportList *reports,
@@ -887,15 +888,19 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
 /* Render output. */
 
-static void image_render_print_save_message(ReportList *reports, const char *name, int ok, int err)
+static void image_render_print_save_message(ReportList *reports,
+                                            const char *filepath,
+                                            int ok,
+                                            int err)
 {
   if (ok) {
     /* no need to report, just some helpful console info */
-    printf("Saved: '%s'\n", name);
+    printf("Saved: '%s'\n", filepath);
   }
   else {
     /* report on error since users will want to know what failed */
-    BKE_reportf(reports, RPT_ERROR, "Render error (%s) cannot save: '%s'", strerror(err), name);
+    BKE_reportf(
+        reports, RPT_ERROR, "Render error (%s) cannot save: '%s'", strerror(err), filepath);
   }
 }
 
@@ -903,7 +908,7 @@ static int image_render_write_stamp_test(ReportList *reports,
                                          const Scene *scene,
                                          const RenderResult *rr,
                                          ImBuf *ibuf,
-                                         const char *name,
+                                         const char *filepath,
                                          const ImageFormatData *imf,
                                          const bool stamp)
 {
@@ -911,13 +916,13 @@ static int image_render_write_stamp_test(ReportList *reports,
 
   if (stamp) {
     /* writes the name of the individual cameras */
-    ok = BKE_imbuf_write_stamp(scene, rr, ibuf, name, imf);
+    ok = BKE_imbuf_write_stamp(scene, rr, ibuf, filepath, imf);
   }
   else {
-    ok = BKE_imbuf_write(ibuf, name, imf);
+    ok = BKE_imbuf_write(ibuf, filepath, imf);
   }
 
-  image_render_print_save_message(reports, name, ok, errno);
+  image_render_print_save_message(reports, filepath, ok, errno);
 
   return ok;
 }
@@ -973,7 +978,7 @@ bool BKE_image_render_write(ReportList *reports,
           if (BLI_path_extension_check(filepath, ".exr")) {
             filepath[strlen(filepath) - 4] = 0;
           }
-          BKE_image_path_ensure_ext_from_imformat(filepath, &image_format);
+          BKE_image_path_ext_from_imformat_ensure(filepath, sizeof(filepath), &image_format);
 
           ImBuf *ibuf = RE_render_result_rect_to_ibuf(rr, &image_format, dither, view_id);
           ibuf->planes = 24;
@@ -1032,7 +1037,7 @@ bool BKE_image_render_write(ReportList *reports,
           filepath[strlen(filepath) - 4] = 0;
         }
 
-        BKE_image_path_ensure_ext_from_imformat(filepath, &image_format);
+        BKE_image_path_ext_from_imformat_ensure(filepath, sizeof(filepath), &image_format);
         ibuf_arr[2]->planes = 24;
 
         ok = image_render_write_stamp_test(

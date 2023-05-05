@@ -190,9 +190,9 @@ set(SRC
   intern/main.c
   intern/main_idmap.c
   intern/main_namemap.cc
-  intern/mask.c
-  intern/mask_evaluate.c
-  intern/mask_rasterize.c
+  intern/mask.cc
+  intern/mask_evaluate.cc
+  intern/mask_rasterize.cc
   intern/material.cc
   intern/mball.cc
   intern/mball_tessellate.cc
@@ -236,6 +236,7 @@ set(SRC
   intern/node_tree_anonymous_attributes.cc
   intern/node_tree_field_inferencing.cc
   intern/node_tree_update.cc
+  intern/node_tree_zones.cc
   intern/object.cc
   intern/object_deform.c
   intern/object_dupli.cc
@@ -269,6 +270,8 @@ set(SRC
   intern/shader_fx.c
   intern/shrinkwrap.cc
   intern/simulation.cc
+  intern/simulation_state.cc
+  intern/simulation_state_serialize.cc
   intern/softbody.c
   intern/sound.c
   intern/speaker.c
@@ -446,6 +449,7 @@ set(SRC
   BKE_node.h
   BKE_node_runtime.hh
   BKE_node_tree_update.h
+  BKE_node_tree_zones.hh
   BKE_object.h
   BKE_object_deform.h
   BKE_object_facemap.h
@@ -469,6 +473,8 @@ set(SRC
   BKE_shader_fx.h
   BKE_shrinkwrap.h
   BKE_simulation.h
+  BKE_simulation_state.hh
+  BKE_simulation_state_serialize.hh
   BKE_softbody.h
   BKE_sound.h
   BKE_speaker.h

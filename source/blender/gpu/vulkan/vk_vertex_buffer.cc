@@ -20,11 +20,11 @@ VKVertexBuffer::~VKVertexBuffer()
 
 void VKVertexBuffer::bind_as_ssbo(uint binding)
 {
-  VKContext &context = *VKContext::get();
   if (!buffer_.is_allocated()) {
-    allocate(context);
+    allocate();
   }
 
+  VKContext &context = *VKContext::get();
   VKShader *shader = static_cast<VKShader *>(context.shader);
   const VKShaderInterface &shader_interface = shader->interface_get();
   const VKDescriptorSet::Location location = shader_interface.descriptor_set_location(
@@ -68,13 +68,13 @@ void VKVertexBuffer::upload_data() {}
 
 void VKVertexBuffer::duplicate_data(VertBuf * /*dst*/) {}
 
-void VKVertexBuffer::allocate(VKContext &context)
+void VKVertexBuffer::allocate()
 {
-  buffer_.create(context,
-                 size_used_get(),
+  buffer_.create(size_used_get(),
                  usage_,
                  static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                                                     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT));
+  debug::object_label(buffer_.vk_handle(), "VertexBuffer");
 }
 
 }  // namespace blender::gpu

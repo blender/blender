@@ -119,6 +119,7 @@ struct MeshRuntime {
 
   /** Cache for derived triangulation of the mesh, accessed with #Mesh::looptris(). */
   SharedCache<Array<MLoopTri>> looptris_cache;
+  SharedCache<Array<int>> looptri_polys_cache;
 
   /** Cache for BVH trees generated for the mesh. Defined in 'BKE_bvhutil.c' */
   BVHCache *bvh_cache = nullptr;

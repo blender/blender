@@ -64,6 +64,7 @@ struct PBVH_GPU_Args {
   int node_verts_num;
 
   const struct MLoopTri *mlooptri;
+  const int *looptri_polys;
   struct PBVHNode *node;
 
   bool flat_vcol_shading;

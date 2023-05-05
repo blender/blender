@@ -5,6 +5,10 @@ from bpy.types import Operator
 
 from bpy.app.translations import pgettext_data as data_
 
+from bpy.props import (
+    EnumProperty,
+)
+
 
 def build_default_empty_geometry_node_group(name):
     group = bpy.data.node_groups.new(name, 'GeometryNodeTree')
@@ -242,8 +246,102 @@ class NewGeometryNodeTreeAssign(Operator):
         return {'FINISHED'}
 
 
+class SimulationZoneOperator:
+    input_node_type = 'GeometryNodeSimulationInput'
+    output_node_type = 'GeometryNodeSimulationOutput'
+
+    @classmethod
+    def get_output_node(cls, context):
+        node = context.active_node
+        if node.bl_idname == cls.input_node_type:
+            return node.paired_output
+        if node.bl_idname == cls.output_node_type:
+            return node
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        # Needs active node editor and a tree.
+        if not space or space.type != 'NODE_EDITOR' or not space.edit_tree or space.edit_tree.library:
+            return False
+        node = context.active_node
+        if node is None or node.bl_idname not in [cls.input_node_type, cls.output_node_type]:
+            return False
+        if cls.get_output_node(context) is None:
+            return False
+        return True
+
+
+class SimulationZoneItemAddOperator(SimulationZoneOperator, Operator):
+    """Add a state item to the simulation zone"""
+    bl_idname = "node.simulation_zone_item_add"
+    bl_label = "Add State Item"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    default_socket_type = 'GEOMETRY'
+
+    def execute(self, context):
+        node = self.get_output_node(context)
+        state_items = node.state_items
+
+        # Remember index to move the item.
+        dst_index = min(node.active_index + 1, len(state_items))
+        # Empty name so it is based on the type only.
+        state_items.new(self.default_socket_type, "")
+        state_items.move(len(state_items) - 1, dst_index)
+        node.active_index = dst_index
+
+        return {'FINISHED'}
+
+
+class SimulationZoneItemRemoveOperator(SimulationZoneOperator, Operator):
+    """Remove a state item from the simulation zone"""
+    bl_idname = "node.simulation_zone_item_remove"
+    bl_label = "Remove State Item"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        node = self.get_output_node(context)
+        state_items = node.state_items
+
+        if node.active_item:
+            state_items.remove(node.active_item)
+            node.active_index = min(node.active_index, len(state_items) - 1)
+
+        return {'FINISHED'}
+
+
+class SimulationZoneItemMoveOperator(SimulationZoneOperator, Operator):
+    """Move a simulation state item up or down in the list"""
+    bl_idname = "node.simulation_zone_item_move"
+    bl_label = "Move State Item"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    direction: EnumProperty(
+        name="Direction",
+        items=[('UP', "Up", ""), ('DOWN', "Down", "")],
+        default='UP',
+    )
+
+    def execute(self, context):
+        node = self.get_output_node(context)
+        state_items = node.state_items
+
+        if self.direction == 'UP' and node.active_index > 0:
+            state_items.move(node.active_index, node.active_index - 1)
+            node.active_index = node.active_index - 1
+        elif self.direction == 'DOWN' and node.active_index < len(state_items) - 1:
+            state_items.move(node.active_index, node.active_index + 1)
+            node.active_index = node.active_index + 1
+
+        return {'FINISHED'}
+
+
 classes = (
     NewGeometryNodesModifier,
     NewGeometryNodeTreeAssign,
     MoveModifierToNodes,
+    SimulationZoneItemAddOperator,
+    SimulationZoneItemRemoveOperator,
+    SimulationZoneItemMoveOperator,
 )

@@ -609,7 +609,6 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
       add_v3_v3(global_dir, values_ofs);
     }
 
-    t->tsnap.snapElem = SCE_SNAP_MODE_NONE;
     transform_snap_mixed_apply(t, global_dir);
     translate_snap_grid(t, global_dir);
 

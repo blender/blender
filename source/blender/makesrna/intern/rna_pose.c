@@ -505,7 +505,7 @@ static void rna_pose_bgroup_name_index_get(PointerRNA *ptr, char *value, int ind
   grp = BLI_findlink(&pose->agroups, index - 1);
 
   if (grp) {
-    BLI_strncpy(value, grp->name, sizeof(grp->name));
+    strcpy(value, grp->name);
   }
   else {
     value[0] = '\0';

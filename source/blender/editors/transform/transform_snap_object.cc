@@ -749,6 +749,8 @@ static bool raycastMesh(SnapObjectContext *sctx,
   BVHTreeFromMesh treedata;
   snap_object_data_mesh_get(sctx, ob_eval, me_eval, use_hide, &treedata);
 
+  const blender::Span<int> looptri_polys = me_eval->looptri_polys();
+
   if (treedata.tree == nullptr) {
     return retval;
   }
@@ -809,7 +811,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
         retval = true;
 
         if (r_index) {
-          *r_index = treedata.looptri[hit.index].poly;
+          *r_index = looptri_polys[hit.index];
         }
       }
     }

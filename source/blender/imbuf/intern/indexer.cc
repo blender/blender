@@ -1480,11 +1480,11 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
     UNUSED_VARS(build_only_on_bad_performance);
 #endif
 
-#ifdef WITH_AVI
     default:
+#ifdef WITH_AVI
       context = index_fallback_create_context(anim, tcs_in_use, proxy_sizes_to_build, quality);
-      break;
 #endif
+      break;
   }
 
   if (context) {
@@ -1512,11 +1512,11 @@ void IMB_anim_index_rebuild(struct IndexBuildContext *context,
       }
       break;
 #endif
-#ifdef WITH_AVI
     default:
+#ifdef WITH_AVI
       index_rebuild_fallback((FallbackIndexBuilderContext *)context, stop, do_update, progress);
-      break;
 #endif
+      break;
   }
 
   UNUSED_VARS(stop, do_update, progress);
@@ -1530,11 +1530,11 @@ void IMB_anim_index_rebuild_finish(IndexBuildContext *context, const bool stop)
       index_rebuild_ffmpeg_finish((FFmpegIndexBuilderContext *)context, stop);
       break;
 #endif
-#ifdef WITH_AVI
     default:
+#ifdef WITH_AVI
       index_rebuild_fallback_finish((FallbackIndexBuilderContext *)context, stop);
-      break;
 #endif
+      break;
   }
 
   /* static defined at top of the file */

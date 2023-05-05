@@ -391,7 +391,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const eAttrDomain source_domain = eAttrDomain(storage.domain);
 
   Field<int> group_index_field = params.extract_input<Field<int>>("Group Index");
-  attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+  bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (std::is_same_v<T, int> || std::is_same_v<T, float> || std::is_same_v<T, float3>)
     {

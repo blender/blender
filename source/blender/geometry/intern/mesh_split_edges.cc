@@ -46,7 +46,7 @@ static void add_new_vertices(Mesh &mesh, const Span<int> new_to_old_verts_map)
       continue;
     }
 
-    attribute_math::convert_to_static_type(attribute.span.type(), [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(attribute.span.type(), [&](auto dummy) {
       using T = decltype(dummy);
       copy_to_new_verts(attribute.span.typed<T>(), new_to_old_verts_map);
     });
@@ -119,7 +119,7 @@ static void add_new_edges(Mesh &mesh,
     const CPPType &type = attribute.varray.type();
     void *new_data = MEM_malloc_arrayN(new_edges.size(), type.size(), __func__);
 
-    attribute_math::convert_to_static_type(type, [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
       using T = decltype(dummy);
       const VArray<T> src = attribute.varray.typed<T>();
       MutableSpan<T> dst(static_cast<T *>(new_data), new_edges.size());

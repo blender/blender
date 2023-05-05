@@ -512,7 +512,7 @@ static void unpack_generate_paths(const char *filepath,
         }
         if (ftype != IMB_FTYPE_NONE) {
           const int imtype = BKE_ftype_to_imtype(ftype, NULL);
-          BKE_image_path_ensure_ext_from_imtype(temp_filename, imtype);
+          BKE_image_path_ext_from_imtype_ensure(temp_filename, sizeof(temp_filename), imtype);
         }
       }
     }
