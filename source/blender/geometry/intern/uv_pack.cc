@@ -546,6 +546,108 @@ static void pack_islands_alpaca_rotate(const int64_t start_index,
   *r_max_v = next_v1;
 }
 
+/** Frits Göbel, 1979. */
+static void pack_gobel(const Span<UVAABBIsland *> aabbs,
+                       const float scale,
+                       const int m,
+                       MutableSpan<uv_phi> r_phis)
+{
+  for (const int64_t i : aabbs.index_range()) {
+    uv_phi &phi = *(uv_phi *)&r_phis[aabbs[i]->index];
+    phi.rotation = 0.0f;
+    if (i == 0) {
+      phi.translation.x = 0.5f * scale;
+      phi.translation.y = 0.5f * scale;
+      continue;
+    }
+    int xx = (i - 1) % m;
+    int yy = int(i - 1) / m;
+    phi.translation.x = (xx + 0.5f) * scale;
+    phi.translation.y = (yy + 0.5f) * scale;
+    if (xx >= yy) {
+      phi.translation.x += (1 + sqrtf(0.5f)) * scale;
+    }
+    else {
+      phi.translation.y += sqrtf(0.5f) * scale;
+    }
+
+    if (i == m * (m + 1) + 1) {
+      phi.translation.x += (m + sqrtf(0.5f)) * scale;
+      phi.translation.y -= scale;
+    }
+    else if (i > m * (m + 1) + 1) {
+      phi.rotation = DEG2RADF(45.0f);
+      phi.translation.x = ((i - m * (m + 1) - 1.5f) * cosf(phi.rotation) + 1.0f) * scale;
+      phi.translation.y = phi.translation.x;
+    }
+  }
+}
+/* Attempt to find an "Optimal" packing of the islands, e.g. assuming squares or circles. */
+static void pack_island_optimal_pack(const Span<UVAABBIsland *> aabbs,
+                                     const Span<PackIsland *> islands,
+                                     const float scale,
+                                     const float margin,
+                                     const UVPackIsland_Params &params,
+                                     MutableSpan<uv_phi> r_phis,
+                                     float *r_max_u,
+                                     float *r_max_v)
+{
+  *r_max_u = 0.0f;
+  *r_max_v = 0.0f;
+  if (!params.rotate) {
+    /* Alpaca will produce an optimal layout when the inputs are uniform squares. */
+    pack_islands_alpaca_turbo(0, aabbs, params.target_aspect_y, r_phis, r_max_u, r_max_v);
+    return;
+  }
+
+  /* For many rectangle-only inputs, alpaca_rotate can produce an optimal layout. */
+  pack_islands_alpaca_rotate(0, aabbs, params.target_aspect_y, r_phis, r_max_u, r_max_v);
+
+  if (params.shape_method == ED_UVPACK_SHAPE_AABB) {
+    return;
+  }
+  if (params.target_aspect_y != 1.0f) {
+    return;
+  }
+
+  float large_uv = 0.0f;
+  for (const int64_t i : aabbs.index_range()) {
+    large_uv = max_ff(large_uv, aabbs[i]->uv_diagonal.x);
+    large_uv = max_ff(large_uv, aabbs[i]->uv_diagonal.y);
+  }
+
+  int64_t island_count_patch = aabbs.size();
+  if (island_count_patch == 37) {
+    island_count_patch = 38; /* TODO, Cantrell 2002. */
+  }
+  if (island_count_patch == 50) {
+    island_count_patch = 52; /* TODO, Cantrell 2002. */
+  }
+  if (island_count_patch == 51) {
+    island_count_patch = 52; /* TODO, Hajba 2009. */
+  }
+  if (island_count_patch == 65) {
+    island_count_patch = 67; /* TODO, Gobel 1979. */
+  }
+  if (island_count_patch == 66) {
+    island_count_patch = 67; /* TODO, Stenlund 1980. */
+  }
+  /*  See https://www.combinatorics.org/files/Surveys/ds7/ds7v5-2009/ds7-2009.html
+   *  https://erich-friedman.github.io/packing/squinsqu */
+  for (int a = 1; a < 20; a++) {
+    int n = a * a + a + 3 + floorf((a - 1) * sqrtf(2.0f));
+    if (island_count_patch == n) {
+      float max_uv_gobel = large_uv * (a + 1 + sqrtf(0.5f));
+      if (max_uv_gobel < std::max(*r_max_u, *r_max_v)) {
+        pack_gobel(aabbs, large_uv, a, r_phis);
+        *r_max_u = max_uv_gobel;
+        *r_max_v = max_uv_gobel;
+      }
+      return;
+    }
+  }
+}
+
 /* Wrapper around #BLI_box_pack_2d. */
 static void pack_island_box_pack_2d(const Span<UVAABBIsland *> aabbs,
                                     const Span<PackIsland *> islands,
@@ -570,18 +672,25 @@ static void pack_island_box_pack_2d(const Span<UVAABBIsland *> aabbs,
 
   const bool sort_boxes = false; /* Use existing ordering from `aabbs`. */
 
-  /* \note Writes to `*r_max_u` and `*r_max_v`. */
-  BLI_box_pack_2d(box_array, int(aabbs.size()), sort_boxes, r_max_u, r_max_v);
+  float box_max_u = 0.0f;
+  float box_max_v = 0.0f;
+  BLI_box_pack_2d(box_array, int(aabbs.size()), sort_boxes, &box_max_u, &box_max_v);
+  box_max_u *= target_aspect_y;
 
-  *r_max_u *= target_aspect_y;
+  if (std::max(box_max_u / target_aspect_y, box_max_v) <
+      std::max(*r_max_u / target_aspect_y, *r_max_v))
+  {
 
-  /* Write back box_pack UVs. */
-  for (const int64_t i : aabbs.index_range()) {
-    BoxPack *box = box_array + i;
-    uv_phi &phi = *(uv_phi *)&r_phis[aabbs[i]->index];
-    phi.rotation = 0.0f; /* #BLI_box_pack_2d never rotates. */
-    phi.translation.x = (box->x + box->w * 0.5f) * target_aspect_y;
-    phi.translation.y = (box->y + box->h * 0.5f);
+    *r_max_u = box_max_u;
+    *r_max_v = box_max_v;
+    /* Write back box_pack UVs. */
+    for (const int64_t i : aabbs.index_range()) {
+      BoxPack *box = box_array + i;
+      uv_phi &phi = *(uv_phi *)&r_phis[aabbs[i]->index];
+      phi.rotation = 0.0f; /* #BLI_box_pack_2d never rotates. */
+      phi.translation.x = (box->x + box->w * 0.5f) * target_aspect_y;
+      phi.translation.y = (box->y + box->h * 0.5f);
+    }
   }
 
   /* Housekeeping. */
@@ -968,7 +1077,7 @@ static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
   }
 
   UVMinimumEnclosingSquareFinder square_finder(scale, margin, &params);
-  square_finder.best_quad = std::max(*r_max_u / params.target_aspect_y, *r_max_v);
+  square_finder.best_quad = std::max(*r_max_u / params.target_aspect_y, *r_max_v) * 0.999f;
 
   float matrix[2][2];
 
@@ -1181,7 +1290,11 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
    *
    * The current strategy is:
    * - Sort islands in size order.
-   * - Call #BLI_box_pack_2d on the first `alpaca_cutoff` islands.
+   * - Try #pack_island_optimal_pack packer first
+   * - Call #pack_island_xatlas on the first `alpaca_cutoff` islands.
+   * - Also call #BLI_box_pack_2d on the first `alpaca_cutoff` islands.
+   * - Choose the best layout so far.
+   * - Rotate into the minimum bounding square.
    * - Call #pack_islands_alpaca_* on the remaining islands.
    */
 
@@ -1229,10 +1342,10 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
     });
   }
 
-  /* Partition `islands`, largest will go to a slow packer, the rest alpaca_turbo.
+  /* Partition `islands`, largest islands will go to a slow packer, the rest alpaca_turbo.
    * See discussion above for details. */
-  int64_t alpaca_cutoff = 1024;    /* Regular situation, pack 1024 islands with slow packer. */
-  int64_t alpaca_cutoff_fast = 80; /* Reduced problem size, only 80 islands with slow packer. */
+  int64_t alpaca_cutoff = 1024; /* Regular situation, pack `32 * 32` islands with slow packer. */
+  int64_t alpaca_cutoff_fast = 81; /* Reduce problem size, only `N = 9 * 9` with slow packer. */
   if (params.margin_method == ED_UVPACK_MARGIN_FRACTION) {
     if (margin > 0.0f) {
       alpaca_cutoff = alpaca_cutoff_fast;
@@ -1240,9 +1353,20 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   }
   const int64_t max_box_pack = std::min(alpaca_cutoff, islands.size());
 
-  /* Call box_pack_2d (slow for large N.) */
-  float max_u = 0.0f;
-  float max_v = 0.0f;
+  float optimal_pack_u = 0.0f;
+  float optimal_pack_v = 0.0f;
+  pack_island_optimal_pack(aabbs.as_span().take_front(max_box_pack),
+                           islands,
+                           scale,
+                           margin,
+                           params,
+                           r_phis,
+                           &optimal_pack_u,
+                           &optimal_pack_v);
+
+  /* Call xatlas (slow for large N.) */
+  float max_u = 1e30f;
+  float max_v = 1e30f;
   switch (params.shape_method) {
     case ED_UVPACK_SHAPE_CONVEX:
     case ED_UVPACK_SHAPE_CONCAVE:
@@ -1256,15 +1380,31 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                          &max_v);
       break;
     default:
-      pack_island_box_pack_2d(aabbs.as_span().take_front(max_box_pack),
-                              islands,
-                              scale,
-                              margin,
-                              params.target_aspect_y,
-                              r_phis,
-                              &max_u,
-                              &max_v);
       break;
+  }
+
+  /* Call box_pack_2d (slow for large N.) */
+  pack_island_box_pack_2d(aabbs.as_span().take_front(max_box_pack),
+                          islands,
+                          scale,
+                          margin,
+                          params.target_aspect_y,
+                          r_phis,
+                          &max_u,
+                          &max_v);
+
+  if (std::max(optimal_pack_u / params.target_aspect_y, optimal_pack_v) <
+      std::max(max_u / params.target_aspect_y, max_v))
+  {
+
+    pack_island_optimal_pack(aabbs.as_span().take_front(max_box_pack),
+                             islands,
+                             scale,
+                             margin,
+                             params,
+                             r_phis,
+                             &max_u,
+                             &max_v);
   }
 
   /* At this stage, `max_u` and `max_v` contain the box_pack/xatlas UVs. */
