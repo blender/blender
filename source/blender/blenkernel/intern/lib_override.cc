@@ -2638,7 +2638,7 @@ static void lib_override_resync_tagging_finalize(Main *bmain,
  * We need to handle each level independently, since an override at level n may be affected by
  * other overrides from level n + 1 etc. (i.e. from linked overrides it may use).
  */
-static void lib_override_library_main_resync_on_library_indirect_level(
+static bool lib_override_library_main_resync_on_library_indirect_level(
     Main *bmain,
     Scene *scene,
     ViewLayer *view_layer,
@@ -2698,6 +2698,10 @@ static void lib_override_library_main_resync_on_library_indirect_level(
 
     if (id->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) {
       CLOG_INFO(&LOG, 4, "ID %s (%p) was already tagged as needing resync", id->name, id->lib);
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+        override_library_runtime_ensure(id->override_library)->tag |=
+            LIBOVERRIDE_TAG_NEED_RESYNC_ORIGINAL;
+      }
       continue;
     }
 
@@ -2850,12 +2854,17 @@ static void lib_override_library_main_resync_on_library_indirect_level(
 
   /* Check there are no left-over IDs needing resync from the current (or higher) level of indirect
    * library level. */
+  bool process_lib_level_again = false;
+
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (lib_override_library_main_resync_id_skip_check(id, library_indirect_level)) {
       continue;
     }
 
     const bool need_resync = (id->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) != 0;
+    const bool need_reseync_original = (id->override_library->runtime != nullptr &&
+                                        (id->override_library->runtime->tag &
+                                         LIBOVERRIDE_TAG_NEED_RESYNC_ORIGINAL) != 0);
     const bool is_isolated_from_root = (id->override_library->runtime != nullptr &&
                                         (id->override_library->runtime->tag &
                                          LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT) != 0);
@@ -2886,13 +2895,38 @@ static void lib_override_library_main_resync_on_library_indirect_level(
       }
     }
     else if (need_resync) {
-      CLOG_ERROR(&LOG,
-                 "ID override %s from library level %d still found as needing resync, when all "
-                 "IDs from that level should have been processed after tackling library level %d",
-                 id->name,
-                 ID_IS_LINKED(id) ? id->lib->temp_index : 0,
-                 library_indirect_level);
-      id->tag &= ~LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
+      if (need_reseync_original) {
+        CLOG_INFO(&LOG,
+                  2,
+                  "ID override %s from library level %d still found as needing resync after "
+                  "tackling library level %d. Since it was originally tagged as such by "
+                  "RNA/liboverride apply code, this whole level of library needs to be processed "
+                  "another time.",
+                  id->name,
+                  ID_IS_LINKED(id) ? id->lib->temp_index : 0,
+                  library_indirect_level);
+        process_lib_level_again = true;
+        /* Cleanup tag for now, will be re-set by next iteration of this function. */
+        id->override_library->runtime->tag &= ~LIBOVERRIDE_TAG_NEED_RESYNC_ORIGINAL;
+      }
+      else {
+        /* If it was only tagged for resync as part of resync process itself, it means it was
+         * originaly inside of a resync hierarchy, but not in the matching reference hierarchy
+         * anymore. So it did not actually need to be resynced, simply clear the tag. */
+        CLOG_INFO(&LOG,
+                  4,
+                  "ID override %s from library level %d still found as needing resync after "
+                  "tackling library level %d. However, it was not tagged as such by "
+                  "RNA/liboverride apply code, so ignoring it",
+                  id->name,
+                  ID_IS_LINKED(id) ? id->lib->temp_index : 0,
+                  library_indirect_level);
+        id->tag &= ~LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
+      }
+    }
+    else if (need_reseync_original) {
+      /* Just cleanup of temporary tag, the ID has been resynced sucessfully. */
+      id->override_library->runtime->tag &= ~LIBOVERRIDE_TAG_NEED_RESYNC_ORIGINAL;
     }
     else if (is_isolated_from_root) {
       CLOG_ERROR(
@@ -2919,6 +2953,8 @@ static void lib_override_library_main_resync_on_library_indirect_level(
   if (do_reports_recursive_resync_timing) {
     reports->duration.lib_overrides_recursive_resync += PIL_check_seconds_timer() - init_time;
   }
+
+  return process_lib_level_again;
 }
 
 static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
@@ -3025,13 +3061,44 @@ void BKE_lib_override_library_main_resync(Main *bmain,
 
   int library_indirect_level = lib_override_libraries_index_define(bmain);
   while (library_indirect_level >= 0) {
-    /* Update overrides from each indirect level separately. */
-    lib_override_library_main_resync_on_library_indirect_level(bmain,
-                                                               scene,
-                                                               view_layer,
-                                                               override_resync_residual_storage,
-                                                               library_indirect_level,
-                                                               reports);
+    int level_reprocess_count = 0;
+    /* Update overrides from each indirect level separately.
+     *
+     * About the looping here: It may happen that some sub-hierarchies of liboverride are moved
+     * around (the hierarchy in reference data does not match anymore the existing one in
+     * liboverride data). In some cases, these sub-hierarchies won't be resynced then. If some IDs
+     * in these sub-hierarchies actually do need resync, then the whole process needs to be applied
+     * again, until all cases are fully processed.
+     *
+     * In practice, even in very complex and 'dirty'/outdated production files, typically less than
+     * ten reprocesses are enough to cover all cases (in the vast majority of cases, no reprocess
+     * is needed at all). */
+    while (lib_override_library_main_resync_on_library_indirect_level(
+        bmain,
+        scene,
+        view_layer,
+        override_resync_residual_storage,
+        library_indirect_level,
+        reports))
+    {
+      level_reprocess_count++;
+      if (level_reprocess_count > 100) {
+        CLOG_WARN(
+            &LOG,
+            "Need to reprocess resync for library level %d more than %d times, aborting. This is "
+            "either caused by extremely complex liboverride hierarchies, or a bug",
+            library_indirect_level,
+            level_reprocess_count);
+        break;
+      }
+      else {
+        CLOG_INFO(&LOG,
+                  4,
+                  "Applying reprocess %d for resyncing at library level %d",
+                  level_reprocess_count,
+                  library_indirect_level);
+      }
+    }
     library_indirect_level--;
   }
 
