@@ -3855,7 +3855,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
        * For quads, this is sufficient.
        * For pentagons and higher, we might miss internal duplicate triangles, but note
        * that such cases are rare if the source geometry is manifold and non-intersecting. */
-      int pm = permute.size();
+      const int pm = int(permute.size());
       BLI_assert(pm > 3);
       int i0 = permute[i];
       int i1 = permute[(i + 1) % pm];
@@ -3878,7 +3878,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
       }
     }
     if (permute.size() != nverts) {
-      int pm = permute.size();
+      const int pm = int(permute.size());
       /* Add the remaining pm-gon. */
       Array<ParamKey> vkeys_sub(pm);
       Array<const float *> co_sub(pm);

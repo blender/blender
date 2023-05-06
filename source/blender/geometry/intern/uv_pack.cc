@@ -584,9 +584,6 @@ static void pack_gobel(const Span<UVAABBIsland *> aabbs,
 }
 /* Attempt to find an "Optimal" packing of the islands, e.g. assuming squares or circles. */
 static void pack_island_optimal_pack(const Span<UVAABBIsland *> aabbs,
-                                     const Span<PackIsland *> islands,
-                                     const float scale,
-                                     const float margin,
                                      const UVPackIsland_Params &params,
                                      MutableSpan<uv_phi> r_phis,
                                      float *r_max_u,
@@ -1355,14 +1352,8 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
 
   float optimal_pack_u = 0.0f;
   float optimal_pack_v = 0.0f;
-  pack_island_optimal_pack(aabbs.as_span().take_front(max_box_pack),
-                           islands,
-                           scale,
-                           margin,
-                           params,
-                           r_phis,
-                           &optimal_pack_u,
-                           &optimal_pack_v);
+  pack_island_optimal_pack(
+      aabbs.as_span().take_front(max_box_pack), params, r_phis, &optimal_pack_u, &optimal_pack_v);
 
   /* Call xatlas (slow for large N.) */
   float max_u = 1e30f;
@@ -1397,14 +1388,8 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
       std::max(max_u / params.target_aspect_y, max_v))
   {
 
-    pack_island_optimal_pack(aabbs.as_span().take_front(max_box_pack),
-                             islands,
-                             scale,
-                             margin,
-                             params,
-                             r_phis,
-                             &max_u,
-                             &max_v);
+    pack_island_optimal_pack(
+        aabbs.as_span().take_front(max_box_pack), params, r_phis, &max_u, &max_v);
   }
 
   /* At this stage, `max_u` and `max_v` contain the box_pack/xatlas UVs. */
