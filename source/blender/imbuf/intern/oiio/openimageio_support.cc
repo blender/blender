@@ -191,7 +191,6 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, char colorsp
   ImBuf *ibuf = nullptr;
   if (is_float) {
     ibuf = load_pixels<float>(in, width, height, channels, ctx.flags, use_all_planes);
-    ibuf->channels = 4;
   }
   else {
     ibuf = load_pixels<uchar>(in, width, height, channels, ctx.flags, use_all_planes);
