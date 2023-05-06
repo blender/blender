@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -36,7 +36,7 @@
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_subdiv_ccg.h"
@@ -116,17 +116,15 @@ struct PBVHBatch {
   string key;
   GPUBatch *tris = nullptr, *lines = nullptr;
   int tris_count = 0, lines_count = 0;
-  bool is_coarse =
-      false; /* Coarse multires, will use full-sized VBOs only index buffer changes. */
+  /* Coarse multi-resolution, will use full-sized VBOs only index buffer changes. */
+  bool is_coarse = false;
 
   void sort_vbos(Vector<PBVHVbo> &master_vbos)
   {
     struct cmp {
       Vector<PBVHVbo> &master_vbos;
 
-      cmp(Vector<PBVHVbo> &_master_vbos) : master_vbos(_master_vbos)
-      {
-      }
+      cmp(Vector<PBVHVbo> &_master_vbos) : master_vbos(_master_vbos) {}
 
       bool operator()(const int &a, const int &b)
       {
@@ -193,7 +191,7 @@ struct PBVHBatches {
     switch (args->pbvh_type) {
       case PBVH_FACES: {
         for (int i = 0; i < args->totprim; i++) {
-          int face_index = args->mlooptri[args->prim_indices[i]].poly;
+          int face_index = args->looptri_polys[args->prim_indices[i]];
 
           if (args->hide_poly && args->hide_poly[face_index]) {
             continue;
@@ -333,28 +331,26 @@ struct PBVHBatches {
           foreach_faces,
       GPUVertBufRaw *access)
   {
-    float fno[3];
+    const bool *sharp_faces = static_cast<const bool *>(
+        CustomData_get_layer_named(args->pdata, CD_PROP_BOOL, "sharp_face"));
     short no[3];
     int last_poly = -1;
-    bool smooth = false;
+    bool flat = false;
 
-    foreach_faces([&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri *tri) {
-      const MPoly *mp = args->mpoly + tri->poly;
-
-      if (tri->poly != last_poly) {
-        last_poly = tri->poly;
-
-        if (!(mp->flag & ME_SMOOTH)) {
-          smooth = true;
-          BKE_mesh_calc_poly_normal(mp, args->mloop + mp->loopstart, args->vert_positions, fno);
+    foreach_faces([&](int /*buffer_i*/, int tri_i, int vertex_i, const MLoopTri * /*tri*/) {
+      const int poly_i = args->looptri_polys[tri_i];
+      if (args->looptri_polys[tri_i] != last_poly) {
+        last_poly = poly_i;
+        flat = sharp_faces && sharp_faces[poly_i];
+        if (flat) {
+          const float3 fno = blender::bke::mesh::poly_normal_calc(
+              {reinterpret_cast<const float3 *>(args->vert_positions), args->mesh_verts_num},
+              args->corner_verts.slice(args->polys[poly_i]));
           normal_float_to_short_v3(no, fno);
-        }
-        else {
-          smooth = false;
         }
       }
 
-      if (!smooth) {
+      if (!flat) {
         normal_float_to_short_v3(no, args->vert_normals[vertex_i]);
       }
 
@@ -409,7 +405,7 @@ struct PBVHBatches {
         foreach_grids([&](int /*x*/, int /*y*/, int grid_index, CCGElem *elems[4], int /*i*/) {
           float3 no(0.0f, 0.0f, 0.0f);
 
-          const bool smooth = args->grid_flag_mats[grid_index].flag & ME_SMOOTH;
+          const bool smooth = !args->grid_flag_mats[grid_index].sharp;
 
           if (smooth) {
             no = CCG_elem_no(&args->ccg_key, elems[0]);
@@ -548,13 +544,13 @@ struct PBVHBatches {
 
   void fill_vbo_faces(PBVHVbo &vbo, PBVH_GPU_Args *args)
   {
+    const blender::Span<int> corner_verts = args->corner_verts;
     auto foreach_faces =
         [&](std::function<void(int buffer_i, int tri_i, int vertex_i, const MLoopTri *tri)> func) {
           int buffer_i = 0;
-          const MLoop *mloop = args->mloop;
 
           for (int i : IndexRange(args->totprim)) {
-            int face_index = args->mlooptri[args->prim_indices[i]].poly;
+            int face_index = args->looptri_polys[args->prim_indices[i]];
 
             if (args->hide_poly && args->hide_poly[face_index]) {
               continue;
@@ -563,7 +559,7 @@ struct PBVHBatches {
             const MLoopTri *tri = args->mlooptri + args->prim_indices[i];
 
             for (int j : IndexRange(3)) {
-              func(buffer_i, j, mloop[tri->tri[j]].v, tri);
+              func(buffer_i, j, corner_verts[tri->tri[j]], tri);
               buffer_i++;
             }
           }
@@ -622,11 +618,12 @@ struct PBVHBatches {
           uchar fset_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
 
           foreach_faces(
-              [&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const MLoopTri *tri) {
-                if (last_poly != tri->poly) {
-                  last_poly = tri->poly;
+              [&](int /*buffer_i*/, int tri_i, int /*vertex_i*/, const MLoopTri * /*tri*/) {
+                const int poly_i = args->looptri_polys[tri_i];
+                if (last_poly != poly_i) {
+                  last_poly = poly_i;
 
-                  const int fset = face_sets[tri->poly];
+                  const int fset = face_sets[poly_i];
 
                   if (fset != args->face_sets_color_default) {
                     BKE_paint_face_set_overlay_color_get(
@@ -907,7 +904,9 @@ struct PBVHBatches {
 
     if (need_aliases) {
       CustomData *cdata = get_cdata(domain, args);
-      int layer_i = cdata ? CustomData_get_named_layer_index(cdata, type, name.c_str()) : -1;
+      int layer_i = cdata ? CustomData_get_named_layer_index(
+                                cdata, eCustomDataType(type), name.c_str()) :
+                            -1;
       CustomDataLayer *layer = layer_i != -1 ? cdata->layers + layer_i : nullptr;
 
       if (layer) {
@@ -928,8 +927,8 @@ struct PBVHBatches {
               break;
           }
 
-          const char *active_name = CustomData_get_active_layer_name(cdata, type);
-          const char *render_name = CustomData_get_render_layer_name(cdata, type);
+          const char *active_name = CustomData_get_active_layer_name(cdata, eCustomDataType(type));
+          const char *render_name = CustomData_get_render_layer_name(cdata, eCustomDataType(type));
 
           is_active = active_name && STREQ(layer->name, active_name);
           is_render = render_name && STREQ(layer->name, render_name);
@@ -976,23 +975,25 @@ struct PBVHBatches {
         CustomData_get_layer_named(args->pdata, CD_PROP_INT32, "material_index"));
 
     if (mat_index && args->totprim) {
-      int poly_index = args->mlooptri[args->prim_indices[0]].poly;
+      int poly_index = args->looptri_polys[args->prim_indices[0]];
       material_index = mat_index[poly_index];
     }
 
-    const blender::Span<MEdge> edges = args->me->edges();
+    const blender::Span<blender::int2> edges = args->me->edges();
 
     /* Calculate number of edges. */
     int edge_count = 0;
     for (int i = 0; i < args->totprim; i++) {
-      const MLoopTri *lt = args->mlooptri + args->prim_indices[i];
-
-      if (args->hide_poly && args->hide_poly[lt->poly]) {
+      const int tri_i = args->prim_indices[i];
+      const int poly_i = args->looptri_polys[tri_i];
+      if (args->hide_poly && args->hide_poly[poly_i]) {
         continue;
       }
 
+      const MLoopTri *lt = args->mlooptri + args->prim_indices[i];
       int r_edges[3];
-      BKE_mesh_looptri_get_real_edges(edges.data(), args->mloop, lt, r_edges);
+      BKE_mesh_looptri_get_real_edges(
+          edges.data(), args->corner_verts.data(), args->corner_edges.data(), lt, r_edges);
 
       if (r_edges[0] != -1) {
         edge_count++;
@@ -1010,14 +1011,16 @@ struct PBVHBatches {
 
     int vertex_i = 0;
     for (int i = 0; i < args->totprim; i++) {
-      const MLoopTri *lt = args->mlooptri + args->prim_indices[i];
-
-      if (args->hide_poly && args->hide_poly[lt->poly]) {
+      const int tri_i = args->prim_indices[i];
+      const int poly_i = args->looptri_polys[tri_i];
+      if (args->hide_poly && args->hide_poly[poly_i]) {
         continue;
       }
 
+      const MLoopTri *lt = args->mlooptri + args->prim_indices[i];
       int r_edges[3];
-      BKE_mesh_looptri_get_real_edges(edges.data(), args->mloop, lt, r_edges);
+      BKE_mesh_looptri_get_real_edges(
+          edges.data(), args->corner_verts.data(), args->corner_edges.data(), lt, r_edges);
 
       if (r_edges[0] != -1) {
         GPU_indexbuf_add_line_verts(&elb_lines, vertex_i, vertex_i + 1);
@@ -1085,7 +1088,7 @@ struct PBVHBatches {
 
     for (int i : IndexRange(args->totprim)) {
       int grid_index = args->grid_indices[i];
-      bool smooth = args->grid_flag_mats[grid_index].flag & ME_SMOOTH;
+      bool smooth = !args->grid_flag_mats[grid_index].sharp;
       BLI_bitmap *gh = args->grid_hidden[grid_index];
 
       for (int y = 0; y < gridsize - 1; y += skip) {

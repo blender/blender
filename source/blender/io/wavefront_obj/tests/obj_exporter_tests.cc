@@ -50,7 +50,7 @@ class obj_exporter_test : public BlendfileLoadingBaseTest {
   }
 };
 
-const std::string all_objects_file = "io_tests/blend_scene/all_objects.blend";
+const std::string all_objects_file = "io_tests" SEP_STR "blend_scene" SEP_STR "all_objects.blend";
 
 TEST_F(obj_exporter_test, filter_objects_curves_as_mesh)
 {
@@ -93,44 +93,25 @@ TEST_F(obj_exporter_test, filter_objects_selected)
 
 TEST(obj_exporter_utils, append_negative_frame_to_filename)
 {
-  const char path_original[FILE_MAX] = "/my_file.obj";
-  const char path_truth[FILE_MAX] = "/my_file-123.obj";
+  const char path_original[FILE_MAX] = SEP_STR "my_file.obj";
+  const char path_truth[FILE_MAX] = SEP_STR "my_file-123.obj";
   const int frame = -123;
   char path_with_frame[FILE_MAX] = {0};
   const bool ok = append_frame_to_filename(path_original, frame, path_with_frame);
   EXPECT_TRUE(ok);
-  EXPECT_EQ_ARRAY(path_with_frame, path_truth, BLI_strlen_utf8(path_truth));
+  EXPECT_STREQ(path_with_frame, path_truth);
 }
 
 TEST(obj_exporter_utils, append_positive_frame_to_filename)
 {
-  const char path_original[FILE_MAX] = "/my_file.obj";
-  const char path_truth[FILE_MAX] = "/my_file123.obj";
+  const char path_original[FILE_MAX] = SEP_STR "my_file.obj";
+  const char path_truth[FILE_MAX] = SEP_STR "my_file123.obj";
   const int frame = 123;
   char path_with_frame[FILE_MAX] = {0};
   const bool ok = append_frame_to_filename(path_original, frame, path_with_frame);
   EXPECT_TRUE(ok);
-  EXPECT_EQ_ARRAY(path_with_frame, path_truth, BLI_strlen_utf8(path_truth));
+  EXPECT_STREQ(path_with_frame, path_truth);
 }
-
-static std::unique_ptr<OBJWriter> init_writer(const OBJExportParams &params,
-                                              const std::string out_filepath)
-{
-  try {
-    auto writer = std::make_unique<OBJWriter>(out_filepath.c_str(), params);
-    return writer;
-  }
-  catch (const std::system_error &ex) {
-    std::cerr << ex.code().category().name() << ": " << ex.what() << ": " << ex.code().message()
-              << std::endl;
-    return nullptr;
-  }
-}
-
-/* The following is relative to BKE_tempdir_base.
- * Use Latin Capital Letter A with Ogonek, Cyrillic Capital Letter Zhe
- * at the end, to test I/O on non-English file names. */
-const char *const temp_file_path = "output\xc4\x84\xd0\x96.OBJ";
 
 static std::string read_temp_file_in_string(const std::string &file_path)
 {
@@ -144,11 +125,47 @@ static std::string read_temp_file_in_string(const std::string &file_path)
   return res;
 }
 
-TEST(obj_exporter_writer, header)
+class ObjExporterWriterTest : public testing::Test {
+ protected:
+  void SetUp() override
+  {
+    BKE_tempdir_init("");
+  }
+
+  void TearDown() override
+  {
+    BKE_tempdir_session_purge();
+  }
+
+  std::string get_temp_obj_filename()
+  {
+    /* Use Latin Capital Letter A with Ogonek, Cyrillic Capital Letter Zhe
+     * at the end, to test I/O on non-English file names. */
+    const char *const temp_file_path = "output\xc4\x84\xd0\x96.OBJ";
+
+    return std::string(BKE_tempdir_session()) + SEP_STR + std::string(temp_file_path);
+  }
+
+  std::unique_ptr<OBJWriter> init_writer(const OBJExportParams &params,
+                                         const std::string out_filepath)
+  {
+    try {
+      auto writer = std::make_unique<OBJWriter>(out_filepath.c_str(), params);
+      return writer;
+    }
+    catch (const std::system_error &ex) {
+      std::cerr << ex.code().category().name() << ": " << ex.what() << ": " << ex.code().message()
+                << std::endl;
+      return nullptr;
+    }
+  }
+};
+
+TEST_F(ObjExporterWriterTest, header)
 {
   /* Because testing doesn't fully initialize Blender, we need the following. */
   BKE_tempdir_init(nullptr);
-  std::string out_file_path = blender::tests::flags_test_release_dir() + "/" + temp_file_path;
+  std::string out_file_path = get_temp_obj_filename();
   {
     OBJExportParamsDefault _export;
     std::unique_ptr<OBJWriter> writer = init_writer(_export.params, out_file_path);
@@ -161,12 +178,11 @@ TEST(obj_exporter_writer, header)
   const std::string result = read_temp_file_in_string(out_file_path);
   using namespace std::string_literals;
   ASSERT_EQ(result, "# Blender "s + BKE_blender_version_string() + "\n" + "# www.blender.org\n");
-  BLI_delete(out_file_path.c_str(), false, false);
 }
 
-TEST(obj_exporter_writer, mtllib)
+TEST_F(ObjExporterWriterTest, mtllib)
 {
-  std::string out_file_path = blender::tests::flags_test_release_dir() + "/" + temp_file_path;
+  std::string out_file_path = get_temp_obj_filename();
   {
     OBJExportParamsDefault _export;
     std::unique_ptr<OBJWriter> writer = init_writer(_export.params, out_file_path);
@@ -179,7 +195,6 @@ TEST(obj_exporter_writer, mtllib)
   }
   const std::string result = read_temp_file_in_string(out_file_path);
   ASSERT_EQ(result, "mtllib blah.mtl\nmtllib blah.mtl\n");
-  BLI_delete(out_file_path.c_str(), false, false);
 }
 
 TEST(obj_exporter_writer, format_handler_buffer_chunking)
@@ -263,8 +278,9 @@ class obj_exporter_regression_test : public obj_exporter_test {
     std::string out_file_path = tempdir + BLI_path_basename(golden_obj.c_str());
     strncpy(params.filepath, out_file_path.c_str(), FILE_MAX - 1);
     params.blen_filepath = bfile->main->filepath;
-    std::string golden_file_path = blender::tests::flags_test_asset_dir() + "/" + golden_obj;
-    BLI_split_dir_part(golden_file_path.c_str(), params.file_base_for_tests, PATH_MAX);
+    std::string golden_file_path = blender::tests::flags_test_asset_dir() + SEP_STR + golden_obj;
+    BLI_path_split_dir_part(
+        golden_file_path.c_str(), params.file_base_for_tests, sizeof(params.file_base_for_tests));
     export_frame(depsgraph, params, out_file_path.c_str());
     std::string output_str = read_temp_file_in_string(out_file_path);
 
@@ -280,7 +296,8 @@ class obj_exporter_regression_test : public obj_exporter_test {
     if (!golden_mtl.empty()) {
       std::string out_mtl_file_path = tempdir + BLI_path_basename(golden_mtl.c_str());
       std::string output_mtl_str = read_temp_file_in_string(out_mtl_file_path);
-      std::string golden_mtl_file_path = blender::tests::flags_test_asset_dir() + "/" + golden_mtl;
+      std::string golden_mtl_file_path = blender::tests::flags_test_asset_dir() + SEP_STR +
+                                         golden_mtl;
       std::string golden_mtl_str = read_temp_file_in_string(golden_mtl_file_path);
       are_equal = strings_equal_after_first_lines(output_mtl_str, golden_mtl_str);
       if (save_failing_test_output && !are_equal) {
@@ -297,9 +314,9 @@ class obj_exporter_regression_test : public obj_exporter_test {
 TEST_F(obj_exporter_regression_test, all_tris)
 {
   OBJExportParamsDefault _export;
-  compare_obj_export_to_golden("io_tests/blend_geometry/all_tris.blend",
-                               "io_tests/obj/all_tris.obj",
-                               "io_tests/obj/all_tris.mtl",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "all_tris.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "all_tris.obj",
+                               "io_tests" SEP_STR "obj" SEP_STR "all_tris.mtl",
                                _export.params);
 }
 
@@ -308,8 +325,10 @@ TEST_F(obj_exporter_regression_test, all_quads)
   OBJExportParamsDefault _export;
   _export.params.global_scale = 2.0f;
   _export.params.export_materials = false;
-  compare_obj_export_to_golden(
-      "io_tests/blend_geometry/all_quads.blend", "io_tests/obj/all_quads.obj", "", _export.params);
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "all_quads.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "all_quads.obj",
+                               "",
+                               _export.params);
 }
 
 TEST_F(obj_exporter_regression_test, fgons)
@@ -318,8 +337,10 @@ TEST_F(obj_exporter_regression_test, fgons)
   _export.params.forward_axis = IO_AXIS_Y;
   _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
-  compare_obj_export_to_golden(
-      "io_tests/blend_geometry/fgons.blend", "io_tests/obj/fgons.obj", "", _export.params);
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "fgons.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "fgons.obj",
+                               "",
+                               _export.params);
 }
 
 TEST_F(obj_exporter_regression_test, edges)
@@ -328,8 +349,10 @@ TEST_F(obj_exporter_regression_test, edges)
   _export.params.forward_axis = IO_AXIS_Y;
   _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
-  compare_obj_export_to_golden(
-      "io_tests/blend_geometry/edges.blend", "io_tests/obj/edges.obj", "", _export.params);
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "edges.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "edges.obj",
+                               "",
+                               _export.params);
 }
 
 TEST_F(obj_exporter_regression_test, vertices)
@@ -338,16 +361,32 @@ TEST_F(obj_exporter_regression_test, vertices)
   _export.params.forward_axis = IO_AXIS_Y;
   _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
-  compare_obj_export_to_golden(
-      "io_tests/blend_geometry/vertices.blend", "io_tests/obj/vertices.obj", "", _export.params);
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR
+                               "cube_loose_edges_verts.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "cube_loose_edges_verts.obj",
+                               "",
+                               _export.params);
+}
+
+TEST_F(obj_exporter_regression_test, cube_loose_edges)
+{
+  OBJExportParamsDefault _export;
+  _export.params.forward_axis = IO_AXIS_Y;
+  _export.params.up_axis = IO_AXIS_Z;
+  _export.params.export_materials = false;
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "vertices.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "vertices.obj",
+                               "",
+                               _export.params);
 }
 
 TEST_F(obj_exporter_regression_test, non_uniform_scale)
 {
   OBJExportParamsDefault _export;
   _export.params.export_materials = false;
-  compare_obj_export_to_golden("io_tests/blend_geometry/non_uniform_scale.blend",
-                               "io_tests/obj/non_uniform_scale.obj",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR
+                               "non_uniform_scale.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "non_uniform_scale.obj",
                                "",
                                _export.params);
 }
@@ -359,8 +398,10 @@ TEST_F(obj_exporter_regression_test, nurbs_as_nurbs)
   _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
   _export.params.export_curves_as_nurbs = true;
-  compare_obj_export_to_golden(
-      "io_tests/blend_geometry/nurbs.blend", "io_tests/obj/nurbs.obj", "", _export.params);
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "nurbs.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "nurbs.obj",
+                               "",
+                               _export.params);
 }
 
 TEST_F(obj_exporter_regression_test, nurbs_curves_as_nurbs)
@@ -370,8 +411,8 @@ TEST_F(obj_exporter_regression_test, nurbs_curves_as_nurbs)
   _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
   _export.params.export_curves_as_nurbs = true;
-  compare_obj_export_to_golden("io_tests/blend_geometry/nurbs_curves.blend",
-                               "io_tests/obj/nurbs_curves.obj",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "nurbs_curves.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "nurbs_curves.obj",
                                "",
                                _export.params);
 }
@@ -383,8 +424,10 @@ TEST_F(obj_exporter_regression_test, nurbs_as_mesh)
   _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
   _export.params.export_curves_as_nurbs = false;
-  compare_obj_export_to_golden(
-      "io_tests/blend_geometry/nurbs.blend", "io_tests/obj/nurbs_mesh.obj", "", _export.params);
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "nurbs.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "nurbs_mesh.obj",
+                               "",
+                               _export.params);
 }
 
 TEST_F(obj_exporter_regression_test, cube_all_data_triangulated)
@@ -394,8 +437,8 @@ TEST_F(obj_exporter_regression_test, cube_all_data_triangulated)
   _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
   _export.params.export_triangulated_mesh = true;
-  compare_obj_export_to_golden("io_tests/blend_geometry/cube_all_data.blend",
-                               "io_tests/obj/cube_all_data_triangulated.obj",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "cube_all_data.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "cube_all_data_triangulated.obj",
                                "",
                                _export.params);
 }
@@ -406,8 +449,9 @@ TEST_F(obj_exporter_regression_test, cube_normal_edit)
   _export.params.forward_axis = IO_AXIS_Y;
   _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
-  compare_obj_export_to_golden("io_tests/blend_geometry/cube_normal_edit.blend",
-                               "io_tests/obj/cube_normal_edit.obj",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR
+                               "cube_normal_edit.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "cube_normal_edit.obj",
                                "",
                                _export.params);
 }
@@ -419,8 +463,9 @@ TEST_F(obj_exporter_regression_test, cube_vertex_groups)
   _export.params.export_normals = false;
   _export.params.export_uv = false;
   _export.params.export_vertex_groups = true;
-  compare_obj_export_to_golden("io_tests/blend_geometry/cube_vertex_groups.blend",
-                               "io_tests/obj/cube_vertex_groups.obj",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR
+                               "cube_vertex_groups.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "cube_vertex_groups.obj",
                                "",
                                _export.params);
 }
@@ -430,8 +475,9 @@ TEST_F(obj_exporter_regression_test, cubes_positioned)
   OBJExportParamsDefault _export;
   _export.params.export_materials = false;
   _export.params.global_scale = 2.0f;
-  compare_obj_export_to_golden("io_tests/blend_geometry/cubes_positioned.blend",
-                               "io_tests/obj/cubes_positioned.obj",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR
+                               "cubes_positioned.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "cubes_positioned.obj",
                                "",
                                _export.params);
 }
@@ -443,8 +489,9 @@ TEST_F(obj_exporter_regression_test, cubes_vertex_colors)
   _export.params.export_normals = false;
   _export.params.export_uv = false;
   _export.params.export_materials = false;
-  compare_obj_export_to_golden("io_tests/blend_geometry/cubes_vertex_colors.blend",
-                               "io_tests/obj/cubes_vertex_colors.obj",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR
+                               "cubes_vertex_colors.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "cubes_vertex_colors.obj",
                                "",
                                _export.params);
 }
@@ -453,9 +500,10 @@ TEST_F(obj_exporter_regression_test, cubes_with_textures_strip)
 {
   OBJExportParamsDefault _export;
   _export.params.path_mode = PATH_REFERENCE_STRIP;
-  compare_obj_export_to_golden("io_tests/blend_geometry/cubes_with_textures.blend",
-                               "io_tests/obj/cubes_with_textures.obj",
-                               "io_tests/obj/cubes_with_textures.mtl",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR
+                               "cubes_with_textures.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "cubes_with_textures.obj",
+                               "io_tests" SEP_STR "obj" SEP_STR "cubes_with_textures.mtl",
                                _export.params);
 }
 
@@ -463,9 +511,10 @@ TEST_F(obj_exporter_regression_test, cubes_with_textures_relative)
 {
   OBJExportParamsDefault _export;
   _export.params.path_mode = PATH_REFERENCE_RELATIVE;
-  compare_obj_export_to_golden("io_tests/blend_geometry/cubes_with_textures.blend",
-                               "io_tests/obj/cubes_with_textures_rel.obj",
-                               "io_tests/obj/cubes_with_textures_rel.mtl",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR
+                               "cubes_with_textures.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "cubes_with_textures_rel.obj",
+                               "io_tests" SEP_STR "obj" SEP_STR "cubes_with_textures_rel.mtl",
                                _export.params);
 }
 
@@ -476,8 +525,9 @@ TEST_F(obj_exporter_regression_test, suzanne_all_data)
   _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
   _export.params.export_smooth_groups = true;
-  compare_obj_export_to_golden("io_tests/blend_geometry/suzanne_all_data.blend",
-                               "io_tests/obj/suzanne_all_data.obj",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR
+                               "suzanne_all_data.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "suzanne_all_data.obj",
                                "",
                                _export.params);
 }
@@ -486,8 +536,10 @@ TEST_F(obj_exporter_regression_test, all_curves)
 {
   OBJExportParamsDefault _export;
   _export.params.export_materials = false;
-  compare_obj_export_to_golden(
-      "io_tests/blend_scene/all_curves.blend", "io_tests/obj/all_curves.obj", "", _export.params);
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_scene" SEP_STR "all_curves.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "all_curves.obj",
+                               "",
+                               _export.params);
 }
 
 TEST_F(obj_exporter_regression_test, all_curves_as_nurbs)
@@ -495,8 +547,8 @@ TEST_F(obj_exporter_regression_test, all_curves_as_nurbs)
   OBJExportParamsDefault _export;
   _export.params.export_materials = false;
   _export.params.export_curves_as_nurbs = true;
-  compare_obj_export_to_golden("io_tests/blend_scene/all_curves.blend",
-                               "io_tests/obj/all_curves_as_nurbs.obj",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_scene" SEP_STR "all_curves.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "all_curves_as_nurbs.obj",
                                "",
                                _export.params);
 }
@@ -508,9 +560,9 @@ TEST_F(obj_exporter_regression_test, all_objects)
   _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_smooth_groups = true;
   _export.params.export_colors = true;
-  compare_obj_export_to_golden("io_tests/blend_scene/all_objects.blend",
-                               "io_tests/obj/all_objects.obj",
-                               "io_tests/obj/all_objects.mtl",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_scene" SEP_STR "all_objects.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "all_objects.obj",
+                               "io_tests" SEP_STR "obj" SEP_STR "all_objects.mtl",
                                _export.params);
 }
 
@@ -521,9 +573,9 @@ TEST_F(obj_exporter_regression_test, all_objects_mat_groups)
   _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_smooth_groups = true;
   _export.params.export_material_groups = true;
-  compare_obj_export_to_golden("io_tests/blend_scene/all_objects.blend",
-                               "io_tests/obj/all_objects_mat_groups.obj",
-                               "io_tests/obj/all_objects_mat_groups.mtl",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_scene" SEP_STR "all_objects.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "all_objects_mat_groups.obj",
+                               "io_tests" SEP_STR "obj" SEP_STR "all_objects_mat_groups.mtl",
                                _export.params);
 }
 
@@ -532,9 +584,9 @@ TEST_F(obj_exporter_regression_test, materials_without_pbr)
   OBJExportParamsDefault _export;
   _export.params.export_normals = false;
   _export.params.path_mode = PATH_REFERENCE_RELATIVE;
-  compare_obj_export_to_golden("io_tests/blend_geometry/materials_pbr.blend",
-                               "io_tests/obj/materials_without_pbr.obj",
-                               "io_tests/obj/materials_without_pbr.mtl",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "materials_pbr.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "materials_without_pbr.obj",
+                               "io_tests" SEP_STR "obj" SEP_STR "materials_without_pbr.mtl",
                                _export.params);
 }
 
@@ -544,9 +596,9 @@ TEST_F(obj_exporter_regression_test, materials_pbr)
   _export.params.export_normals = false;
   _export.params.path_mode = PATH_REFERENCE_RELATIVE;
   _export.params.export_pbr_extensions = true;
-  compare_obj_export_to_golden("io_tests/blend_geometry/materials_pbr.blend",
-                               "io_tests/obj/materials_pbr.obj",
-                               "io_tests/obj/materials_pbr.mtl",
+  compare_obj_export_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "materials_pbr.blend",
+                               "io_tests" SEP_STR "obj" SEP_STR "materials_pbr.obj",
+                               "io_tests" SEP_STR "obj" SEP_STR "materials_pbr.mtl",
                                _export.params);
 }
 

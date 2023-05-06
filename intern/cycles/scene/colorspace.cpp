@@ -72,7 +72,8 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
 bool ColorSpaceManager::colorspace_is_data(ustring colorspace)
 {
   if (colorspace == u_colorspace_auto || colorspace == u_colorspace_raw ||
-      colorspace == u_colorspace_srgb) {
+      colorspace == u_colorspace_srgb)
+  {
     return false;
   }
 
@@ -200,14 +201,16 @@ void ColorSpaceManager::is_builtin_colorspace(ustring colorspace,
 
     /* Make sure that there is no channel crosstalk. */
     if (fabsf(cR[1]) > 1e-5f || fabsf(cR[2]) > 1e-5f || fabsf(cG[0]) > 1e-5f ||
-        fabsf(cG[2]) > 1e-5f || fabsf(cB[0]) > 1e-5f || fabsf(cB[1]) > 1e-5f) {
+        fabsf(cG[2]) > 1e-5f || fabsf(cB[0]) > 1e-5f || fabsf(cB[1]) > 1e-5f)
+    {
       is_scene_linear = false;
       is_srgb = false;
       break;
     }
     /* Make sure that the three primaries combine linearly. */
     if (!compare_floats(cR[0], cW[0], 1e-6f, 64) || !compare_floats(cG[1], cW[1], 1e-6f, 64) ||
-        !compare_floats(cB[2], cW[2], 1e-6f, 64)) {
+        !compare_floats(cB[2], cW[2], 1e-6f, 64))
+    {
       is_scene_linear = false;
       is_srgb = false;
       break;
@@ -439,6 +442,13 @@ void ColorSpaceManager::free_memory()
 #ifdef WITH_OCIO
   map_free_memory(cached_colorspaces);
   map_free_memory(cached_processors);
+#endif
+}
+
+void ColorSpaceManager::init_fallback_config()
+{
+#ifdef WITH_OCIO
+  OCIO::SetCurrentConfig(OCIO::Config::CreateRaw());
 #endif
 }
 

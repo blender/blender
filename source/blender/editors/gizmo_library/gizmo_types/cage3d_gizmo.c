@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. All rights reserved. */
+ * Copyright 2014 Blender Foundation */
 
 /** \file
  * \ingroup edgizmolib
@@ -38,7 +38,6 @@
 /* own includes */
 #include "../gizmo_library_intern.h"
 
-#define GIZMO_RESIZER_SIZE 10.0f
 #define GIZMO_MARGIN_OFFSET_SCALE 1.5f
 
 static void gizmo_calc_matrix_final_no_offset(const wmGizmo *gz,
@@ -94,7 +93,8 @@ static void gizmo_rect_pivot_from_scale_part(int part,
                                              bool has_translation)
 {
   if (part >= ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z &&
-      part <= ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z) {
+      part <= ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z)
+  {
     int index = (part - ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z);
     int range[3];
     range[2] = index % 3;
@@ -146,7 +146,8 @@ static void cage3d_draw_box_interaction(const RegionView3D *rv3d,
                                         const float margin[3])
 {
   if (highlighted >= ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z &&
-      highlighted <= ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z) {
+      highlighted <= ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z)
+  {
     int index = (highlighted - ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z);
     int range[3];
     range[2] = index % 3;
@@ -322,7 +323,8 @@ static void gizmo_cage3d_draw_intern(
     if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE) {
       for (int i = ED_GIZMO_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z;
            i <= ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z;
-           i++) {
+           i++)
+      {
         if (i == ED_GIZMO_CAGE3D_PART_SCALE_MID_X_MID_Y_MID_Z) {
           continue;
         }
@@ -447,7 +449,8 @@ static int gizmo_cage3d_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
   gizmo_calc_matrix_final_no_offset(gz, data->orig_matrix_final_no_offset, true);
 
   if (gizmo_window_project_3d(
-          C, gz, (const float[2]){UNPACK2(event->mval)}, false, data->orig_mouse) == 0) {
+          C, gz, (const float[2]){UNPACK2(event->mval)}, false, data->orig_mouse) == 0)
+  {
     zero_v3(data->orig_mouse);
   }
 

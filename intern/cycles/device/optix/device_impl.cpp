@@ -151,7 +151,7 @@ unique_ptr<DeviceQueue> OptiXDevice::gpu_queue_create()
   return make_unique<OptiXDeviceQueue>(this);
 }
 
-BVHLayoutMask OptiXDevice::get_bvh_layout_mask() const
+BVHLayoutMask OptiXDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
 {
   /* OptiX has its own internal acceleration structure format. */
   return BVH_LAYOUT_OPTIX;
@@ -181,7 +181,7 @@ string OptiXDevice::compile_kernel_get_common_cflags(const uint kernel_features)
   /* Add OptiX SDK include directory to include paths. */
   common_cflags += string_printf(" -I\"%s\"", get_optix_include_dir().c_str());
 
-  /* Specialization for shader raytracing. */
+  /* Specialization for shader ray-tracing. */
   if (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
     common_cflags += " --keep-device-functions";
   }
@@ -352,7 +352,23 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       return false;
     }
 
-#  if OPTIX_ABI_VERSION >= 55
+#  if OPTIX_ABI_VERSION >= 84
+    OptixTask task = nullptr;
+    OptixResult result = optixModuleCreateWithTasks(context,
+                                                    &module_options,
+                                                    &pipeline_options,
+                                                    ptx_data.data(),
+                                                    ptx_data.size(),
+                                                    nullptr,
+                                                    nullptr,
+                                                    &optix_module,
+                                                    &task);
+    if (result == OPTIX_SUCCESS) {
+      TaskPool pool;
+      execute_optix_task(pool, task, result);
+      pool.wait_work();
+    }
+#  elif OPTIX_ABI_VERSION >= 55
     OptixTask task = nullptr;
     OptixResult result = optixModuleCreateFromPTXWithTasks(context,
                                                            &module_options,
@@ -483,7 +499,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     group_descs[PG_HITL].hitgroup.entryFunctionNameAH = "__anyhit__kernel_optix_local_hit";
   }
 
-  /* Shader raytracing replaces some functions with direct callables. */
+  /* Shader ray-tracing replaces some functions with direct callables. */
   if (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
     group_descs[PG_RGEN_SHADE_SURFACE_RAYTRACE].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
     group_descs[PG_RGEN_SHADE_SURFACE_RAYTRACE].raygen.module = optix_module;
@@ -555,7 +571,11 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   memset(sbt_data.host_pointer, 0, sizeof(SbtRecord) * NUM_PROGRAM_GROUPS);
   for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
     optix_assert(optixSbtRecordPackHeader(groups[i], &sbt_data[i]));
+#  if OPTIX_ABI_VERSION >= 84
+    optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i], nullptr));
+#  else
     optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i]));
+#  endif
   }
   sbt_data.copy_to_device(); /* Upload SBT to device. */
 
@@ -577,14 +597,16 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
 
   OptixPipelineLinkOptions link_options = {};
   link_options.maxTraceDepth = 1;
+#  if OPTIX_ABI_VERSION < 84
   link_options.debugLevel = module_options.debugLevel;
+#  endif
 
   if (use_osl) {
     /* Re-create OSL pipeline in case kernels are reloaded after it has been created before. */
     load_osl_kernels();
   }
   else if (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) {
-    /* Create shader raytracing and MNEE pipeline. */
+    /* Create shader ray-tracing and MNEE pipeline. */
     vector<OptixProgramGroup> pipeline_groups;
     pipeline_groups.reserve(NUM_PROGRAM_GROUPS);
     if (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
@@ -693,7 +715,8 @@ bool OptiXDevice::load_osl_kernels()
   vector<OSLKernel> osl_kernels;
 
   for (ShaderType type = SHADER_TYPE_SURFACE; type <= SHADER_TYPE_BUMP;
-       type = static_cast<ShaderType>(type + 1)) {
+       type = static_cast<ShaderType>(type + 1))
+  {
     const vector<OSL::ShaderGroupRef> &groups = (type == SHADER_TYPE_SURFACE ?
                                                      osl_globals.surface_state :
                                                  type == SHADER_TYPE_VOLUME ?
@@ -768,6 +791,16 @@ bool OptiXDevice::load_osl_kernels()
       return false;
     }
 
+#    if OPTIX_ABI_VERSION >= 84
+    const OptixResult result = optixModuleCreate(context,
+                                                 &module_options,
+                                                 &pipeline_options,
+                                                 ptx_data.data(),
+                                                 ptx_data.size(),
+                                                 nullptr,
+                                                 0,
+                                                 &osl_modules.back());
+#    else
     const OptixResult result = optixModuleCreateFromPTX(context,
                                                         &module_options,
                                                         &pipeline_options,
@@ -776,6 +809,7 @@ bool OptiXDevice::load_osl_kernels()
                                                         nullptr,
                                                         0,
                                                         &osl_modules.back());
+#    endif
     if (result != OPTIX_SUCCESS) {
       set_error(string_printf("Failed to load OptiX OSL services kernel from '%s' (%s)",
                               ptx_filename.c_str(),
@@ -800,7 +834,21 @@ bool OptiXDevice::load_osl_kernels()
       continue;
     }
 
-#    if OPTIX_ABI_VERSION >= 55
+#    if OPTIX_ABI_VERSION >= 84
+    OptixTask task = nullptr;
+    results[i] = optixModuleCreateWithTasks(context,
+                                            &module_options,
+                                            &pipeline_options,
+                                            osl_kernels[i].ptx.data(),
+                                            osl_kernels[i].ptx.size(),
+                                            nullptr,
+                                            nullptr,
+                                            &osl_modules[i],
+                                            &task);
+    if (results[i] == OPTIX_SUCCESS) {
+      execute_optix_task(pool, task, results[i]);
+    }
+#    elif OPTIX_ABI_VERSION >= 55
     OptixTask task = nullptr;
     results[i] = optixModuleCreateFromPTXWithTasks(context,
                                                    &module_options,
@@ -861,12 +909,20 @@ bool OptiXDevice::load_osl_kernels()
   sbt_data.alloc(NUM_PROGRAM_GROUPS + osl_groups.size());
   for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
     optix_assert(optixSbtRecordPackHeader(groups[i], &sbt_data[i]));
+#    if OPTIX_ABI_VERSION >= 84
+    optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i], nullptr));
+#    else
     optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i]));
+#    endif
   }
   for (size_t i = 0; i < osl_groups.size(); ++i) {
     if (osl_groups[i] != NULL) {
       optix_assert(optixSbtRecordPackHeader(osl_groups[i], &sbt_data[NUM_PROGRAM_GROUPS + i]));
+#    if OPTIX_ABI_VERSION >= 84
+      optix_assert(optixProgramGroupGetStackSize(osl_groups[i], &osl_stack_size[i], nullptr));
+#    else
       optix_assert(optixProgramGroupGetStackSize(osl_groups[i], &osl_stack_size[i]));
+#    endif
     }
     else {
       /* Default to "__direct_callable__dummy_services", so that OSL evaluation for empty
@@ -878,7 +934,9 @@ bool OptiXDevice::load_osl_kernels()
 
   OptixPipelineLinkOptions link_options = {};
   link_options.maxTraceDepth = 0;
+#    if OPTIX_ABI_VERSION < 84
   link_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
+#    endif
 
   {
     vector<OptixProgramGroup> pipeline_groups;
@@ -958,7 +1016,8 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
   if (use_fast_trace_bvh ||
       /* The build flags have to match the ones used to query the built-in curve intersection
        * program (see optixBuiltinISModuleGet above) */
-      build_input.type == OPTIX_BUILD_INPUT_TYPE_CURVES) {
+      build_input.type == OPTIX_BUILD_INPUT_TYPE_CURVES)
+  {
     VLOG_INFO << "Using fast to trace OptiX BVH";
     options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
   }
@@ -1437,6 +1496,9 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
       BVHOptiX *const blas = static_cast<BVHOptiX *>(ob->get_geometry()->bvh);
       OptixTraversableHandle handle = blas->traversable_handle;
+      if (handle == 0) {
+        continue;
+      }
 
       OptixInstance &instance = instances[num_instances++];
       memset(&instance, 0, sizeof(instance));
@@ -1462,7 +1524,8 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       }
 
       if (ob->get_geometry()->geometry_type == Geometry::HAIR &&
-          static_cast<const Hair *>(ob->get_geometry())->curve_shape == CURVE_THICK) {
+          static_cast<const Hair *>(ob->get_geometry())->curve_shape == CURVE_THICK)
+      {
         if (pipeline_options.usesMotionBlur && ob->get_geometry()->has_motion_blur()) {
           /* Select between motion blur and non-motion blur built-in intersection module. */
           instance.sbtOffset = PG_HITD_MOTION - PG_HITD;

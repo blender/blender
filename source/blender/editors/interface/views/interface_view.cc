@@ -24,6 +24,7 @@
 #include "BKE_screen.h"
 
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 
 #include "ED_screen.h"
 
@@ -44,6 +45,8 @@ using namespace blender::ui;
 struct ViewLink : public Link {
   std::string idname;
   std::unique_ptr<AbstractView> view;
+
+  static void views_bounds_calc(const uiBlock &block);
 };
 
 template<class T>
@@ -81,6 +84,51 @@ void ui_block_free_views(uiBlock *block)
   }
 }
 
+void ViewLink::views_bounds_calc(const uiBlock &block)
+{
+  Map<AbstractView *, rcti> views_bounds;
+
+  rcti minmax;
+  BLI_rcti_init_minmax(&minmax);
+  LISTBASE_FOREACH (ViewLink *, link, &block.views) {
+    views_bounds.add(link->view.get(), minmax);
+  }
+
+  LISTBASE_FOREACH (uiBut *, but, &block.buttons) {
+    if (but->type != UI_BTYPE_VIEW_ITEM) {
+      continue;
+    }
+    uiButViewItem *view_item_but = static_cast<uiButViewItem *>(but);
+    if (!view_item_but->view_item) {
+      continue;
+    }
+
+    /* Get the view from the button. */
+    AbstractViewItem &view_item = reinterpret_cast<AbstractViewItem &>(*view_item_but->view_item);
+    AbstractView &view = view_item.get_view();
+
+    rcti &bounds = views_bounds.lookup(&view);
+    rcti but_rcti{};
+    BLI_rcti_rctf_copy_round(&but_rcti, &view_item_but->rect);
+    BLI_rcti_do_minmax_rcti(&bounds, &but_rcti);
+  }
+
+  for (const auto item : views_bounds.items()) {
+    const rcti &bounds = item.value;
+    if (BLI_rcti_is_empty(&bounds)) {
+      continue;
+    }
+
+    AbstractView &view = *item.key;
+    view.bounds_ = bounds;
+  }
+}
+
+void ui_block_views_bounds_calc(const uiBlock *block)
+{
+  ViewLink::views_bounds_calc(*block);
+}
+
 void ui_block_views_listen(const uiBlock *block, const wmRegionListenerParams *listener_params)
 {
   ARegion *region = listener_params->region;
@@ -90,6 +138,36 @@ void ui_block_views_listen(const uiBlock *block, const wmRegionListenerParams *l
       ED_region_tag_redraw(region);
     }
   }
+}
+
+uiViewHandle *UI_region_view_find_at(const ARegion *region, const int xy[2], const int pad)
+{
+  /* NOTE: Similar to #ui_but_find_mouse_over_ex(). */
+
+  if (!ui_region_contains_point_px(region, xy)) {
+    return nullptr;
+  }
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    float mx = xy[0], my = xy[1];
+    ui_window_to_block_fl(region, block, &mx, &my);
+
+    LISTBASE_FOREACH (ViewLink *, view_link, &block->views) {
+      std::optional<rcti> bounds = view_link->view->get_bounds();
+      if (!bounds) {
+        continue;
+      }
+
+      rcti padded_bounds = *bounds;
+      if (pad) {
+        BLI_rcti_pad(&padded_bounds, pad, pad);
+      }
+      if (BLI_rcti_isect_pt(&padded_bounds, mx, my)) {
+        return reinterpret_cast<uiViewHandle *>(view_link->view.get());
+      }
+    }
+  }
+
+  return nullptr;
 }
 
 uiViewItemHandle *UI_region_views_find_item_at(const ARegion *region, const int xy[2])
@@ -111,6 +189,34 @@ uiViewItemHandle *UI_region_views_find_active_item(const ARegion *region)
 
   return item_but->view_item;
 }
+
+namespace blender::ui {
+
+std::unique_ptr<DropTargetInterface> region_views_find_drop_target_at(const ARegion *region,
+                                                                      const int xy[2])
+{
+  uiViewItemHandle *hovered_view_item = UI_region_views_find_item_at(region, xy);
+  if (hovered_view_item) {
+    std::unique_ptr<DropTargetInterface> drop_target = view_item_drop_target(hovered_view_item);
+    if (drop_target) {
+      return drop_target;
+    }
+  }
+
+  /* Get style for some sensible padding around the view items. */
+  const uiStyle *style = UI_style_get_dpi();
+  uiViewHandle *hovered_view = UI_region_view_find_at(region, xy, style->buttonspacex);
+  if (hovered_view) {
+    std::unique_ptr<DropTargetInterface> drop_target = view_drop_target(hovered_view);
+    if (drop_target) {
+      return drop_target;
+    }
+  }
+
+  return nullptr;
+}
+
+}  // namespace blender::ui
 
 static StringRef ui_block_view_find_idname(const uiBlock &block, const AbstractView &view)
 {
@@ -187,7 +293,8 @@ uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
     }
 
     if (UI_view_item_matches(reinterpret_cast<const uiViewItemHandle *>(&new_item),
-                             reinterpret_cast<const uiViewItemHandle *>(&old_item))) {
+                             reinterpret_cast<const uiViewItemHandle *>(&old_item)))
+    {
       return old_item_but;
     }
   }

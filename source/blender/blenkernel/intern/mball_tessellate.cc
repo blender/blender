@@ -30,7 +30,7 @@
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_mball_tessellate.h" /* own include */
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
@@ -39,8 +39,8 @@
 
 #include "BLI_strict_flags.h"
 
-/* experimental (faster) normal calculation */
-// #define USE_ACCUM_NORMAL
+/* experimental (faster) normal calculation (see #103021) */
+#define USE_ACCUM_NORMAL
 
 #define MBALL_ARRAY_LEN_INIT 4096
 
@@ -125,9 +125,8 @@ typedef struct process {
   uint totindex;     /* size of memory allocated for indices */
   uint curindex;     /* number of currently added indices */
 
-  float (*co)[3], (*no)[3]; /* surface vertices - positions and normals */
-  uint totvertex;           /* memory size */
-  uint curvertex;           /* currently added vertices */
+  blender::Vector<blender::float3> co; /* surface vertices positions */
+  blender::Vector<blender::float3> no; /* surface vertex normals */
 
   /* memory allocation from common pool */
   MemArena *pgn_elements;
@@ -418,7 +417,8 @@ static float metaball(PROCESS *process, float x, float y, float z)
 
     for (int i = 0; i < 2; i++) {
       if ((node->bb[i].min[0] <= x) && (node->bb[i].max[0] >= x) && (node->bb[i].min[1] <= y) &&
-          (node->bb[i].max[1] >= y) && (node->bb[i].min[2] <= z) && (node->bb[i].max[2] >= z)) {
+          (node->bb[i].max[1] >= y) && (node->bb[i].min[2] <= z) && (node->bb[i].max[2] >= z))
+      {
         if (node->child[i]) {
           process->bvh_queue[front++] = node->child[i];
         }
@@ -940,18 +940,8 @@ static int getedge(EDGELIST *table[], int i1, int j1, int k1, int i2, int j2, in
  */
 static void addtovertices(PROCESS *process, const float v[3], const float no[3])
 {
-  if (UNLIKELY(process->curvertex == process->totvertex)) {
-    process->totvertex = process->totvertex ? process->totvertex * 2 : MBALL_ARRAY_LEN_INIT;
-    process->co = static_cast<float(*)[3]>(
-        MEM_reallocN(process->co, process->totvertex * sizeof(float[3])));
-    process->no = static_cast<float(*)[3]>(
-        MEM_reallocN(process->no, process->totvertex * sizeof(float[3])));
-  }
-
-  copy_v3_v3(process->co[process->curvertex], v);
-  copy_v3_v3(process->no[process->curvertex], no);
-
-  process->curvertex++;
+  process->co.append(v);
+  process->no.append(no);
 }
 
 #ifndef USE_ACCUM_NORMAL
@@ -994,7 +984,7 @@ static int vertid(PROCESS *process, const CORNER *c1, const CORNER *c2)
 #endif
 
   addtovertices(process, v, no); /* save vertex */
-  vid = int(process->curvertex) - 1;
+  vid = int(process->co.size()) - 1;
   setedge(process, c1->i, c1->j, c1->k, c2->i, c2->j, c2->k, vid);
 
   return vid;
@@ -1192,7 +1182,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
              ob->object_to_world); /* to cope with duplicators from BKE_scene_base_iter_next */
   invert_m4_m4(obinv, ob->object_to_world);
 
-  BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
+  BLI_string_split_name_number(ob->id.name + 2, '.', obname, &obnr);
 
   /* make main array */
   BKE_scene_base_iter_next(depsgraph, &iter, &sce_iter, 0, nullptr, nullptr);
@@ -1205,7 +1195,8 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
        * the instancer is visible too. */
       if ((base->flag_legacy & OB_FROMDUPLI) == 0 && ob->parent != nullptr &&
           (ob->parent->transflag & parenting_dupli_transflag) != 0 &&
-          (BKE_object_visibility(ob->parent, deg_eval_mode) & OB_VISIBLE_SELF) == 0) {
+          (BKE_object_visibility(ob->parent, deg_eval_mode) & OB_VISIBLE_SELF) == 0)
+      {
         continue;
       }
 
@@ -1223,7 +1214,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
         char name[MAX_ID_NAME];
         int nr;
 
-        BLI_split_name_num(name, &nr, bob->id.name + 2, '.');
+        BLI_string_split_name_number(bob->id.name + 2, '.', name, &nr);
         if (STREQ(obname, name)) {
           mb = static_cast<MetaBall *>(bob->data);
 
@@ -1392,7 +1383,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
 
 Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-  PROCESS process = {0};
+  PROCESS process{};
   const bool is_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
 
   MetaBall *mb = static_cast<MetaBall *>(ob->data);
@@ -1431,6 +1422,8 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   process.delta = process.size * 0.001f;
 
+  process.co.reserve(MBALL_ARRAY_LEN_INIT);
+  process.no.reserve(MBALL_ARRAY_LEN_INIT);
   process.pgn_elements = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "Metaball memarena");
 
   /* initialize all mainb (MetaElems) */
@@ -1447,7 +1440,8 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
    * the open movie "Sintel", using 0.00001f. */
   if (ob->scale[0] < 0.00001f * (process.allbb.max[0] - process.allbb.min[0]) ||
       ob->scale[1] < 0.00001f * (process.allbb.max[1] - process.allbb.min[1]) ||
-      ob->scale[2] < 0.00001f * (process.allbb.max[2] - process.allbb.min[2])) {
+      ob->scale[2] < 0.00001f * (process.allbb.max[2] - process.allbb.min[2]))
+  {
     freepolygonize(&process);
     return nullptr;
   }
@@ -1460,33 +1454,30 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   freepolygonize(&process);
 
-  Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)ob->data)->name + 2);
+  int corners_num = 0;
+  for (uint i = 0; i < process.curindex; i++) {
+    const int *indices = process.indices[i];
+    const int count = indices[2] != indices[3] ? 4 : 3;
+    corners_num += count;
+  }
 
-  mesh->totvert = int(process.curvertex);
-  CustomData_add_layer_named(
-      &mesh->vdata, CD_PROP_FLOAT3, CD_ASSIGN, process.co, mesh->totvert, "position");
-  process.co = nullptr;
-
-  mesh->totpoly = int(process.curindex);
-  MPoly *mpoly = static_cast<MPoly *>(
-      CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CONSTRUCT, nullptr, mesh->totpoly));
-  MLoop *mloop = static_cast<MLoop *>(
-      CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CONSTRUCT, nullptr, mesh->totpoly * 4));
+  Mesh *mesh = BKE_mesh_new_nomain(int(process.co.size()), 0, int(process.curindex), corners_num);
+  mesh->vert_positions_for_write().copy_from(process.co);
+  blender::MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  blender::MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   int loop_offset = 0;
   for (int i = 0; i < mesh->totpoly; i++) {
     const int *indices = process.indices[i];
 
     const int count = indices[2] != indices[3] ? 4 : 3;
-    mpoly[i].loopstart = loop_offset;
-    mpoly[i].totloop = count;
-    mpoly[i].flag = ME_SMOOTH;
+    poly_offsets[i] = loop_offset;
 
-    mloop[loop_offset].v = uint32_t(indices[0]);
-    mloop[loop_offset + 1].v = uint32_t(indices[1]);
-    mloop[loop_offset + 2].v = uint32_t(indices[2]);
+    corner_verts[loop_offset] = indices[0];
+    corner_verts[loop_offset + 1] = indices[1];
+    corner_verts[loop_offset + 2] = indices[2];
     if (count == 4) {
-      mloop[loop_offset + 3].v = uint32_t(indices[3]);
+      corner_verts[loop_offset + 3] = indices[3];
     }
 
     loop_offset += count;
@@ -1496,13 +1487,10 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   for (int i = 0; i < mesh->totvert; i++) {
     normalize_v3(process.no[i]);
   }
-  memcpy(BKE_mesh_vertex_normals_for_write(mesh),
-         process.no,
+  memcpy(BKE_mesh_vert_normals_for_write(mesh),
+         process.no.data(),
          sizeof(float[3]) * size_t(mesh->totvert));
-  MEM_freeN(process.no);
-  BKE_mesh_vertex_normals_clear_dirty(mesh);
-
-  mesh->totloop = loop_offset;
+  BKE_mesh_vert_normals_clear_dirty(mesh);
 
   BKE_mesh_calc_edges(mesh, false, false);
 

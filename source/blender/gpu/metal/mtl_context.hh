@@ -18,9 +18,9 @@
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#include "intern/GHOST_Context.h"
-#include "intern/GHOST_ContextCGL.h"
-#include "intern/GHOST_Window.h"
+#include "intern/GHOST_Context.hh"
+#include "intern/GHOST_ContextCGL.hh"
+#include "intern/GHOST_Window.hh"
 
 #include "mtl_backend.hh"
 #include "mtl_capabilities.hh"
@@ -46,6 +46,7 @@ namespace blender::gpu {
 class MTLContext;
 class MTLCommandBufferManager;
 class MTLUniformBuf;
+class MTLStorageBuf;
 
 /* Structs containing information on current binding state for textures and samplers. */
 struct MTLTextureBinding {
@@ -336,7 +337,7 @@ struct MTLContextTextureUtils {
 
   template<typename T> void free_cached_pso_map(blender::Map<T, id<MTLComputePipelineState>> &map)
   {
-    for (typename blender::Map<T, id<MTLComputePipelineState>>::MutableItem item : map.items()) {
+    for (typename blender::MutableMapItem<T, id<MTLComputePipelineState>> item : map.items()) {
       [item.value release];
     }
     map.clear();
@@ -436,6 +437,11 @@ struct MTLUniformBufferBinding {
   MTLUniformBuf *ubo;
 };
 
+struct MTLStorageBufferBinding {
+  bool bound;
+  MTLStorageBuf *ssbo;
+};
+
 struct MTLContextGlobalShaderPipelineState {
   bool initialised;
 
@@ -455,11 +461,17 @@ struct MTLContextGlobalShaderPipelineState {
   MTLShader *active_shader;
 
   /* Global Uniform Buffers. */
-  MTLUniformBufferBinding ubo_bindings[MTL_MAX_UNIFORM_BUFFER_BINDINGS];
+  MTLUniformBufferBinding ubo_bindings[MTL_MAX_BUFFER_BINDINGS];
+
+  /* Storage buffer. */
+  MTLStorageBufferBinding ssbo_bindings[MTL_MAX_BUFFER_BINDINGS];
 
   /* Context Texture bindings. */
   MTLTextureBinding texture_bindings[MTL_MAX_TEXTURE_SLOTS];
   MTLSamplerBinding sampler_bindings[MTL_MAX_SAMPLER_SLOTS];
+
+  /* Image bindings. */
+  MTLTextureBinding image_bindings[MTL_MAX_TEXTURE_SLOTS];
 
   /*** --- Render Pipeline State --- ***/
   /* Track global render pipeline state for the current context. The functions in GPU_state.h
@@ -685,8 +697,12 @@ class MTLContext : public Context {
   MTLContextTextureUtils texture_utils_;
 
   /* Texture Samplers. */
-  /* Cache of generated #MTLSamplerState objects based on permutations of `eGPUSamplerState`. */
-  id<MTLSamplerState> sampler_state_cache_[GPU_SAMPLER_MAX];
+  /* Cache of generated #MTLSamplerState objects based on permutations of the members of
+   * `GPUSamplerState`. */
+  id<MTLSamplerState> sampler_state_cache_[GPU_SAMPLER_EXTEND_MODES_COUNT]
+                                          [GPU_SAMPLER_EXTEND_MODES_COUNT]
+                                          [GPU_SAMPLER_FILTERING_TYPES_COUNT];
+  id<MTLSamplerState> custom_sampler_state_cache_[GPU_SAMPLER_CUSTOM_TYPES_COUNT];
   id<MTLSamplerState> default_sampler_state_ = nil;
 
   /* When texture sampler count exceeds the resource bind limit, an
@@ -740,6 +756,11 @@ class MTLContext : public Context {
 
   void debug_group_begin(const char *name, int index) override;
   void debug_group_end() override;
+  bool debug_capture_begin() override;
+  void debug_capture_end() override;
+  void *debug_capture_scope_create(const char *name) override;
+  bool debug_capture_scope_begin(void *scope) override;
+  void debug_capture_scope_end(void *scope) override;
 
   /*** MTLContext Utility functions. */
   /*
@@ -762,12 +783,12 @@ class MTLContext : public Context {
   MTLFrameBuffer *get_default_framebuffer();
 
   /* Context Global-State Texture Binding. */
-  void texture_bind(gpu::MTLTexture *mtl_texture, uint texture_unit);
+  void texture_bind(gpu::MTLTexture *mtl_texture, uint texture_unit, bool is_image);
   void sampler_bind(MTLSamplerState, uint sampler_unit);
-  void texture_unbind(gpu::MTLTexture *mtl_texture);
-  void texture_unbind_all();
+  void texture_unbind(gpu::MTLTexture *mtl_texture, bool is_image);
+  void texture_unbind_all(bool is_image);
+  void sampler_state_cache_init();
   id<MTLSamplerState> get_sampler_from_state(MTLSamplerState state);
-  id<MTLSamplerState> generate_sampler_from_state(MTLSamplerState state);
   id<MTLSamplerState> get_default_sampler_state();
 
   /* Metal Context pipeline state. */
@@ -813,6 +834,7 @@ class MTLContext : public Context {
   /* Compute. */
   bool ensure_compute_pipeline_state();
   void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len);
+  void compute_dispatch_indirect(StorageBuf *indirect_buf);
 
   /* State assignment. */
   void set_viewport(int origin_x, int origin_y, int width, int height);

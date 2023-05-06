@@ -94,7 +94,7 @@ class PathTrace {
   void set_adaptive_sampling(const AdaptiveSampling &adaptive_sampling);
 
   /* Set the parameters for guiding.
-   * Use to setup the guiding structures before each rendering iteration.*/
+   * Use to setup the guiding structures before each rendering iteration. */
   void set_guiding_params(const GuidingParams &params, const bool reset);
 
   /* Sets output driver for render buffer output. */
@@ -119,7 +119,7 @@ class PathTrace {
    */
   void cancel();
 
-  /* Copy an entire render buffer to/from the path trace.  */
+  /* Copy an entire render buffer to/from the path trace. */
 
   /* Copy happens via CPU side buffer: data will be copied from every device of the path trace, and
    * the data will be copied to the device of the given render buffers. */
@@ -294,7 +294,7 @@ class PathTrace {
    * rendering iteration. */
   unique_ptr<openpgl::cpp::SampleStorage> guiding_sample_data_storage_;
 
-  /* The number of already performed training iterations for the guiding field.*/
+  /* The number of already performed training iterations for the guiding field. */
   int guiding_update_count = 0;
 #endif
 

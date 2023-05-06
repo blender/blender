@@ -10,6 +10,7 @@
 
 #include "BKE_asset.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -52,7 +53,7 @@ void ED_asset_generate_preview(const bContext *C, ID *id)
     BKE_previewimg_clear(preview);
   }
 
-  UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, true);
+  UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, !G.background);
 }
 
 bool ED_asset_clear_id(ID *id)

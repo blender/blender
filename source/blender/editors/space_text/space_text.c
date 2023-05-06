@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup sptext
@@ -93,9 +93,7 @@ static void text_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void text_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
-{
-}
+static void text_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static SpaceLink *text_duplicate(SpaceLink *sl)
 {
@@ -291,7 +289,8 @@ static void text_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 
   if (st->text && BLI_rcti_isect_pt(&st->runtime.scroll_region_handle,
                                     win->eventstate->xy[0] - region->winrct.xmin,
-                                    st->runtime.scroll_region_handle.ymin)) {
+                                    st->runtime.scroll_region_handle.ymin))
+  {
     wmcursor = WM_CURSOR_DEFAULT;
   }
 
@@ -303,8 +302,8 @@ static void text_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 static bool text_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   if (drag->type == WM_DRAG_PATH) {
-    /* rule might not work? */
-    if (ELEM(drag->icon, ICON_FILE_SCRIPT, ICON_FILE_TEXT, ICON_FILE_BLANK)) {
+    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    if (ELEM(file_type, 0, FILE_TYPE_PYSCRIPT, FILE_TYPE_TEXT)) {
       return true;
     }
   }
@@ -314,7 +313,7 @@ static bool text_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNU
 static void text_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   /* copy drag path to properties */
-  RNA_string_set(drop->ptr, "filepath", drag->path);
+  RNA_string_set(drop->ptr, "filepath", WM_drag_get_path(drag));
 }
 
 static bool text_drop_paste_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
@@ -397,19 +396,19 @@ static void text_id_remap(ScrArea *UNUSED(area),
   BKE_id_remapper_apply(mappings, (ID **)&stext->text, ID_REMAP_APPLY_ENSURE_REAL);
 }
 
-static void text_blend_read_data(BlendDataReader *UNUSED(reader), SpaceLink *sl)
+static void text_space_blend_read_data(BlendDataReader *UNUSED(reader), SpaceLink *sl)
 {
   SpaceText *st = (SpaceText *)sl;
   memset(&st->runtime, 0x0, sizeof(st->runtime));
 }
 
-static void text_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+static void text_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceText *st = (SpaceText *)sl;
   BLO_read_id_address(reader, parent_id->lib, &st->text);
 }
 
-static void text_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void text_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   BLO_write_struct(writer, SpaceText, sl);
 }
@@ -434,9 +433,9 @@ void ED_spacetype_text(void)
   st->context = text_context;
   st->dropboxes = text_dropboxes;
   st->id_remap = text_id_remap;
-  st->blend_read_data = text_blend_read_data;
-  st->blend_read_lib = text_blend_read_lib;
-  st->blend_write = text_blend_write;
+  st->blend_read_data = text_space_blend_read_data;
+  st->blend_read_lib = text_space_blend_read_lib;
+  st->blend_write = text_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype text region");

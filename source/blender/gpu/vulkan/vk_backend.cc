@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -54,11 +54,12 @@ void VKBackend::platform_exit()
 
 void VKBackend::delete_resources()
 {
+  if (device_.is_initialized()) {
+    device_.deinit();
+  }
 }
 
-void VKBackend::samplers_update()
-{
-}
+void VKBackend::samplers_update() {}
 
 void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)
 {
@@ -66,16 +67,18 @@ void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_
   VKShader *shader = static_cast<VKShader *>(context.shader);
   VKCommandBuffer &command_buffer = context.command_buffer_get();
   VKPipeline &pipeline = shader->pipeline_get();
-  VKDescriptorSet &descriptor_set = pipeline.descriptor_set_get();
-  descriptor_set.update(context.device_get());
-  command_buffer.bind(
-      descriptor_set, shader->vk_pipeline_layout_get(), VK_PIPELINE_BIND_POINT_COMPUTE);
+  VKDescriptorSetTracker &descriptor_set = pipeline.descriptor_set_get();
+  VKPushConstants &push_constants = pipeline.push_constants_get();
+
+  push_constants.update(context);
+  descriptor_set.update(context);
+  command_buffer.bind(*descriptor_set.active_descriptor_set(),
+                      shader->vk_pipeline_layout_get(),
+                      VK_PIPELINE_BIND_POINT_COMPUTE);
   command_buffer.dispatch(groups_x_len, groups_y_len, groups_z_len);
 }
 
-void VKBackend::compute_dispatch_indirect(StorageBuf * /*indirect_buf*/)
-{
-}
+void VKBackend::compute_dispatch_indirect(StorageBuf * /*indirect_buf*/) {}
 
 Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
 {
@@ -142,30 +145,48 @@ VertBuf *VKBackend::vertbuf_alloc()
   return new VKVertexBuffer();
 }
 
-void VKBackend::render_begin()
-{
-}
+void VKBackend::render_begin() {}
 
-void VKBackend::render_end()
-{
-}
+void VKBackend::render_end() {}
 
-void VKBackend::render_step()
-{
-}
+void VKBackend::render_step() {}
 
 shaderc::Compiler &VKBackend::get_shaderc_compiler()
 {
   return shaderc_compiler_;
 }
 
-void VKBackend::capabilities_init(VKContext & /*context*/)
+void VKBackend::capabilities_init()
 {
+  const VkPhysicalDeviceLimits &limits =
+      VKBackend::get().device_get().physical_device_limits_get();
+
   /* Reset all capabilities from previous context. */
   GCaps = {};
   GCaps.compute_shader_support = true;
   GCaps.shader_storage_buffer_objects_support = true;
   GCaps.shader_image_load_store_support = true;
+
+  GCaps.max_texture_size = max_ii(limits.maxImageDimension1D, limits.maxImageDimension2D);
+  GCaps.max_texture_3d_size = limits.maxImageDimension3D;
+  GCaps.max_texture_layers = limits.maxImageArrayLayers;
+  GCaps.max_textures = limits.maxDescriptorSetSampledImages;
+  GCaps.max_textures_vert = limits.maxPerStageDescriptorSampledImages;
+  GCaps.max_textures_geom = limits.maxPerStageDescriptorSampledImages;
+  GCaps.max_textures_frag = limits.maxPerStageDescriptorSampledImages;
+  GCaps.max_samplers = limits.maxSamplerAllocationCount;
+  for (int i = 0; i < 3; i++) {
+    GCaps.max_work_group_count[i] = limits.maxComputeWorkGroupCount[i];
+    GCaps.max_work_group_size[i] = limits.maxComputeWorkGroupSize[i];
+  }
+  GCaps.max_uniforms_vert = limits.maxPerStageDescriptorUniformBuffers;
+  GCaps.max_uniforms_frag = limits.maxPerStageDescriptorUniformBuffers;
+  GCaps.max_batch_indices = limits.maxDrawIndirectCount;
+  GCaps.max_batch_vertices = limits.maxDrawIndexedIndexValue;
+  GCaps.max_vertex_attribs = limits.maxVertexInputAttributes;
+  GCaps.max_varying_floats = limits.maxVertexOutputComponents;
+  GCaps.max_shader_storage_buffer_bindings = limits.maxPerStageDescriptorStorageBuffers;
+  GCaps.max_compute_shader_storage_blocks = limits.maxPerStageDescriptorStorageBuffers;
 }
 
 }  // namespace blender::gpu

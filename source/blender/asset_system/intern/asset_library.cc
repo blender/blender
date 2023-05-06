@@ -29,9 +29,10 @@ using namespace blender::asset_system;
 
 bool asset_system::AssetLibrary::save_catalogs_when_file_is_saved = true;
 
-/* Can probably removed once #WITH_DESTROY_VIA_LOAD_HANDLER gets enabled by default. */
 void AS_asset_libraries_exit()
 {
+  /* NOTE: Can probably removed once #WITH_DESTROY_VIA_LOAD_HANDLER gets enabled by default. */
+
   AssetLibraryService::destroy();
 }
 
@@ -42,19 +43,18 @@ asset_system::AssetLibrary *AS_asset_library_load(const Main *bmain,
   return service->get_asset_library(bmain, library_reference);
 }
 
-/**
- * Loading an asset library at this point only means loading the catalogs. Later on this should
- * invoke reading of asset representations too.
- */
-struct ::AssetLibrary *AS_asset_library_load(const char *library_path)
+struct ::AssetLibrary *AS_asset_library_load(const char *name, const char *library_path)
 {
+  /* NOTE: Loading an asset library at this point only means loading the catalogs.
+   * Later on this should invoke reading of asset representations too. */
+
   AssetLibraryService *service = AssetLibraryService::get();
   asset_system::AssetLibrary *lib;
   if (library_path == nullptr || library_path[0] == '\0') {
     lib = service->get_asset_library_current_file();
   }
   else {
-    lib = service->get_asset_library_on_disk(library_path);
+    lib = service->get_asset_library_on_disk_custom(name, library_path);
   }
   return reinterpret_cast<struct ::AssetLibrary *>(lib);
 }
@@ -75,12 +75,13 @@ std::string AS_asset_library_find_suitable_root_path_from_path(
     const blender::StringRefNull input_path)
 {
   if (bUserAssetLibrary *preferences_lib = BKE_preferences_asset_library_containing_path(
-          &U, input_path.c_str())) {
+          &U, input_path.c_str()))
+  {
     return preferences_lib->path;
   }
 
   char buffer[FILE_MAXDIR];
-  BLI_split_dir_part(input_path.c_str(), buffer, FILE_MAXDIR);
+  BLI_path_split_dir_part(input_path.c_str(), buffer, FILE_MAXDIR);
   return buffer;
 }
 
@@ -127,10 +128,71 @@ void AS_asset_library_remap_ids(const IDRemapper *mappings)
       true);
 }
 
+void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_reference,
+                                              char r_path_buffer[1090 /* FILE_MAX_LIBEXTRA */],
+                                              char **r_dir,
+                                              char **r_group,
+                                              char **r_name)
+{
+  AssetLibraryService *service = AssetLibraryService::get();
+  std::optional<AssetLibraryService::ExplodedPath> exploded =
+      service->resolve_asset_weak_reference_to_exploded_path(*asset_reference);
+
+  if (!exploded) {
+    if (r_dir) {
+      *r_dir = nullptr;
+    }
+    if (r_group) {
+      *r_group = nullptr;
+    }
+    if (r_name) {
+      *r_name = nullptr;
+    }
+    r_path_buffer[0] = '\0';
+    return;
+  }
+
+  BLI_assert(!exploded->group_component.is_empty());
+  BLI_assert(!exploded->name_component.is_empty());
+
+  BLI_strncpy(r_path_buffer, exploded->full_path->c_str(), 1090 /* FILE_MAX_LIBEXTRA */);
+
+  if (!exploded->dir_component.is_empty()) {
+    r_path_buffer[exploded->dir_component.size()] = '\0';
+    r_path_buffer[exploded->dir_component.size() + 1 + exploded->group_component.size()] = '\0';
+
+    if (r_dir) {
+      *r_dir = r_path_buffer;
+    }
+    if (r_group) {
+      *r_group = r_path_buffer + exploded->dir_component.size() + 1;
+    }
+    if (r_name) {
+      *r_name = r_path_buffer + exploded->dir_component.size() + 1 +
+                exploded->group_component.size() + 1;
+    }
+  }
+  else {
+    r_path_buffer[exploded->group_component.size()] = '\0';
+
+    if (r_dir) {
+      *r_dir = nullptr;
+    }
+    if (r_group) {
+      *r_group = r_path_buffer;
+    }
+    if (r_name) {
+      *r_name = r_path_buffer + exploded->group_component.size() + 1;
+    }
+  }
+}
+
 namespace blender::asset_system {
 
-AssetLibrary::AssetLibrary(StringRef root_path)
-    : root_path_(std::make_shared<std::string>(utils::normalize_directory_path(root_path))),
+AssetLibrary::AssetLibrary(eAssetLibraryType library_type, StringRef name, StringRef root_path)
+    : library_type_(library_type),
+      name_(name),
+      root_path_(std::make_shared<std::string>(utils::normalize_directory_path(root_path))),
       asset_storage_(std::make_unique<AssetStorage>()),
       catalog_service(std::make_unique<AssetCatalogService>())
 {
@@ -250,6 +312,16 @@ void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)
     return;
   }
   STRNCPY(asset_data->catalog_simple_name, catalog->simple_name.c_str());
+}
+
+eAssetLibraryType AssetLibrary::library_type() const
+{
+  return library_type_;
+}
+
+StringRefNull AssetLibrary::name() const
+{
+  return name_;
 }
 
 StringRefNull AssetLibrary::root_path() const

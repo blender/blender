@@ -249,7 +249,7 @@ def align_uv_rotation(context, method, axis):
 
 
 class AlignUVRotation(Operator):
-    """Align uv island's rotation"""
+    """Align the UV island's rotation"""
     bl_idname = "uv.align_rotation"
     bl_label = "Align Rotation"
     bl_options = {'REGISTER', 'UNDO'}
@@ -382,7 +382,7 @@ def randomize_uv_transform(context, transform_params):
 
 
 class RandomizeUVTransform(Operator):
-    """Randomize uv island's location, rotation, and scale"""
+    """Randomize the UV island's location, rotation, and scale"""
     bl_idname = "uv.randomize_uv_transform"
     bl_label = "Randomize"
     bl_options = {'REGISTER', 'UNDO'}

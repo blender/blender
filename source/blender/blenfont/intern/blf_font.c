@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup blf
@@ -60,7 +60,7 @@ static FT_Library ft_lib = NULL;
 static FTC_Manager ftc_manager = NULL;
 static FTC_CMapCache ftc_charmap_cache = NULL;
 
-/* Lock for FreeType library, used around face creation and deletion.  */
+/* Lock for FreeType library, used around face creation and deletion. */
 static ThreadMutex ft_lib_mutex;
 
 /* May be set to #UI_widgetbase_draw_cache_flush. */
@@ -128,6 +128,8 @@ static void blf_size_finalizer(void *object)
   FontBLF *font = (FontBLF *)size->generic.data;
   font->ft_size = NULL;
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name FreeType Utilities (Internal)
@@ -516,7 +518,8 @@ static void blf_glyph_draw_buffer(FontBufInfoBLF *buf_info,
       chx >= buf_info->dims[0] ||                /* Out of bounds: right. */
       (ft_pix_to_int(pen_y) + g->dims[1]) < 0 || /* Out of bounds: bottom. */
       ft_pix_to_int(pen_y) >= buf_info->dims[1]  /* Out of bounds: top. */
-  ) {
+  )
+  {
     return;
   }
 
@@ -690,7 +693,8 @@ size_t blf_font_width_to_strlen(
   const int width_i = (int)width;
 
   for (i_prev = i = 0, width_new = pen_x = 0, g_prev = NULL; (i < str_len) && str[i];
-       i_prev = i, width_new = pen_x, g_prev = g) {
+       i_prev = i, width_new = pen_x, g_prev = g)
+  {
     g = blf_glyph_from_utf8_and_step(font, gc, str, str_len, &i);
 
     if (blf_font_width_to_strlen_glyph_process(font, g_prev, g, &pen_x, width_i)) {
@@ -725,7 +729,8 @@ size_t blf_font_width_to_rstrlen(
   i_tmp = i;
   g = blf_glyph_from_utf8_and_step(font, gc, str, str_len, &i_tmp);
   for (width_new = pen_x = 0; (s != NULL);
-       i = i_prev, s = s_prev, g = g_prev, g_prev = NULL, width_new = pen_x) {
+       i = i_prev, s = s_prev, g = g_prev, g_prev = NULL, width_new = pen_x)
+  {
     s_prev = BLI_str_find_prev_char_utf8(s, str);
     i_prev = (size_t)(s_prev - str);
 
@@ -1348,9 +1353,6 @@ static void blf_font_fill(FontBLF *font)
   font->buf_info.col_init[3] = 0;
 }
 
-/**
- * Create an FT_Face for this font if not already existing.
- */
 bool blf_ensure_face(FontBLF *font)
 {
   if (font->face) {
@@ -1430,6 +1432,14 @@ bool blf_ensure_face(FontBLF *font)
 
   font->face_flags = font->face->face_flags;
 
+  /* XXX: Temporarily disable kerning in our main font. Kerning had been accidentally removed
+   * from our font in 3.1. In 3.4 we disable kerning here in the new version to keep spacing the
+   * same
+   * (#101506). Enable again later with change of font, placement, or rendering - Harley. */
+  if (font && font->filepath && BLI_str_endswith(font->filepath, BLF_DEFAULT_PROPORTIONAL_FONT)) {
+    font->face_flags &= ~FT_FACE_FLAG_KERNING;
+  }
+
   if (FT_HAS_MULTIPLE_MASTERS(font)) {
     FT_Get_MM_Var(font->face, &(font->variations));
   }
@@ -1461,7 +1471,7 @@ bool blf_ensure_face(FontBLF *font)
 }
 
 struct FaceDetails {
-  char name[50];
+  char filename[50];
   uint coverage1;
   uint coverage2;
   uint coverage3;
@@ -1471,7 +1481,7 @@ struct FaceDetails {
 /* Details about the fallback fonts we ship, so that we can load only when needed. */
 static const struct FaceDetails static_face_details[] = {
     {"lastresort.woff2", UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX},
-    {"Noto Sans CJK Regular.woff2", 0x30000083L, 0x2BDF3C10L, 0x16L, 0},
+    {"Noto Sans CJK Regular.woff2", 0x30000083L, 0x29DF3C10L, 0x16L, 0},
     {"NotoEmoji-VariableFont_wght.woff2", 0x80000003L, 0x241E4ACL, 0x14000000L, 0x4000000L},
     {"NotoSansArabic-VariableFont_wdth,wght.woff2",
      TT_UCR_ARABIC,
@@ -1503,15 +1513,15 @@ static const struct FaceDetails static_face_details[] = {
  * For normal operation pass NULL as FT_Library object. Pass a custom FT_Library if you
  * want to use the font without its lifetime being managed by the FreeType cache subsystem.
  */
-FontBLF *blf_font_new_ex(const char *name,
-                         const char *filepath,
-                         const uchar *mem,
-                         const size_t mem_size,
-                         void *ft_library)
+static FontBLF *blf_font_new_impl(const char *filepath,
+                                  const char *mem_name,
+                                  const uchar *mem,
+                                  const size_t mem_size,
+                                  void *ft_library)
 {
   FontBLF *font = (FontBLF *)MEM_callocN(sizeof(FontBLF), "blf_font_new");
 
-  font->name = BLI_strdup(name);
+  font->mem_name = mem_name ? BLI_strdup(mem_name) : NULL;
   font->filepath = filepath ? BLI_strdup(filepath) : NULL;
   if (mem) {
     font->mem = (void *)mem;
@@ -1535,12 +1545,10 @@ FontBLF *blf_font_new_ex(const char *name,
   bool face_needed = true;
 
   if (font->filepath) {
-    const struct FaceDetails *static_details = NULL;
-    char filename[256];
+    const char *filename = BLI_path_basename(font->filepath);
     for (int i = 0; i < (int)ARRAY_SIZE(static_face_details); i++) {
-      BLI_split_file_part(font->filepath, filename, sizeof(filename));
-      if (STREQ(static_face_details[i].name, filename)) {
-        static_details = &static_face_details[i];
+      if (STREQ(static_face_details[i].filename, filename)) {
+        const struct FaceDetails *static_details = &static_face_details[i];
         font->unicode_ranges[0] = static_details->coverage1;
         font->unicode_ranges[1] = static_details->coverage2;
         font->unicode_ranges[2] = static_details->coverage3;
@@ -1558,23 +1566,24 @@ FontBLF *blf_font_new_ex(const char *name,
     }
   }
 
-  /* Detect "Last resort" fonts. They have everything. Usually except last 5 bits.  */
+  /* Detect "Last resort" fonts. They have everything. Usually except last 5 bits. */
   if (font->unicode_ranges[0] == 0xffffffffU && font->unicode_ranges[1] == 0xffffffffU &&
-      font->unicode_ranges[2] == 0xffffffffU && font->unicode_ranges[3] >= 0x7FFFFFFU) {
+      font->unicode_ranges[2] == 0xffffffffU && font->unicode_ranges[3] >= 0x7FFFFFFU)
+  {
     font->flags |= BLF_LAST_RESORT;
   }
 
   return font;
 }
 
-FontBLF *blf_font_new(const char *name, const char *filepath)
+FontBLF *blf_font_new_from_filepath(const char *filepath)
 {
-  return blf_font_new_ex(name, filepath, NULL, 0, NULL);
+  return blf_font_new_impl(filepath, NULL, NULL, 0, NULL);
 }
 
-FontBLF *blf_font_new_from_mem(const char *name, const uchar *mem, const size_t mem_size)
+FontBLF *blf_font_new_from_mem(const char *mem_name, const uchar *mem, const size_t mem_size)
 {
-  return blf_font_new_ex(name, NULL, mem, mem_size, NULL);
+  return blf_font_new_impl(NULL, mem_name, mem, mem_size, NULL);
 }
 
 void blf_font_attach_from_mem(FontBLF *font, const uchar *mem, const size_t mem_size)
@@ -1615,8 +1624,8 @@ void blf_font_free(FontBLF *font)
   if (font->filepath) {
     MEM_freeN(font->filepath);
   }
-  if (font->name) {
-    MEM_freeN(font->name);
+  if (font->mem_name) {
+    MEM_freeN(font->mem_name);
   }
 
   BLI_mutex_end(&font->glyph_cache_mutex);

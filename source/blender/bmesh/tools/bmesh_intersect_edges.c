@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 
 /** \file
  * \ingroup bmesh
@@ -408,7 +408,8 @@ static bool bm_edgexedge_isect_cb(void *userdata, int index_a, int index_b, int 
   if (isect_ray_ray_epsilon_v3(co_a, dir_a, co_b, dir_b, data->dist_sq_sq, &lambda_a, &lambda_b)) {
     struct EDBMSplitElem pair_tmp[2];
     if (bm_edgexedge_isect_impl(
-            data, e_a, e_b, co_a, dir_a, co_b, dir_b, lambda_a, lambda_b, pair_tmp)) {
+            data, e_a, e_b, co_a, dir_a, co_b, dir_b, lambda_a, lambda_b, pair_tmp))
+    {
       struct EDBMSplitElem *pair = BLI_stack_push_r(data->pair_stack[thread]);
       pair[0] = pair_tmp[0];
       pair[1] = pair_tmp[1];
@@ -569,8 +570,8 @@ bool BM_mesh_intersect_edges(
   /* Tag and count the edges. */
   int edges_act_len = 0, edges_remain_len = 0;
   BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-    if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) ||
-        (len_squared_v3v3(e->v1->co, e->v2->co) < dist_sq)) {
+    if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) || (len_squared_v3v3(e->v1->co, e->v2->co) < dist_sq))
+    {
       /* Don't test hidden edges or smaller than the minimum distance.
        * These have already been handled in the vertices overlap. */
       BM_elem_index_set(e, 0);

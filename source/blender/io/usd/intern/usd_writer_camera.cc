@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 #include "usd_writer_camera.h"
 #include "usd_hierarchy_iterator.h"
 
@@ -18,9 +18,7 @@
 
 namespace blender::io::usd {
 
-USDCameraWriter::USDCameraWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
-{
-}
+USDCameraWriter::USDCameraWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
 bool USDCameraWriter::is_supported(const HierarchyContext *context) const
 {

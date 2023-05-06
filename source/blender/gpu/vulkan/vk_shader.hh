@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -11,6 +11,7 @@
 
 #include "vk_backend.hh"
 #include "vk_context.hh"
+#include "vk_pipeline.hh"
 
 #include "BLI_string_ref.hh"
 
@@ -78,7 +79,7 @@ class VKShader : public Shader {
   bool finalize_descriptor_set_layouts(VkDevice vk_device,
                                        const VKShaderInterface &shader_interface,
                                        const shader::ShaderCreateInfo &info);
-  bool finalize_pipeline_layout(VkDevice vk_device, const shader::ShaderCreateInfo &info);
+  bool finalize_pipeline_layout(VkDevice vk_device, const VKShaderInterface &shader_interface);
   bool finalize_graphics_pipeline(VkDevice vk_device);
 
   bool is_graphics_shader() const

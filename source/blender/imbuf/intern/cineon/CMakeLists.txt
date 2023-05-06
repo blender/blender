@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
+# Copyright 2006 Blender Foundation
 
 set(INC
   .
@@ -21,11 +21,11 @@ set(SRC
   logImageCore.h
   logmemfile.h
 
-  cineon_dpx.c
-  cineonlib.c
-  dpxlib.c
-  logImageCore.c
-  logmemfile.c
+  cineon_dpx.cc
+  cineonlib.cc
+  dpxlib.cc
+  logImageCore.cc
+  logmemfile.cc
 )
 
 set(LIB

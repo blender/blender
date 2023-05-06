@@ -202,8 +202,9 @@ static void stroke_done(const bContext *C, PaintStroke *stroke)
 
 static int sculpt_curves_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const Paint *paint = BKE_paint_get_active_from_context(C);
-  const Brush *brush = BKE_paint_brush_for_read(paint);
+  Scene *scene = CTX_data_scene(C);
+  Paint *paint = BKE_paint_get_active_from_paintmode(scene, PAINT_MODE_SCULPT_CURVES);
+  const Brush *brush = paint ? BKE_paint_brush_for_read(paint) : nullptr;
   if (brush == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -285,6 +286,11 @@ static void curves_sculptmode_enter(bContext *C)
   CurvesSculpt *curves_sculpt = scene->toolsettings->curves_sculpt;
 
   ob->mode = OB_MODE_SCULPT_CURVES;
+
+  /* Setup cursor color. BKE_paint_init() could be used, but creates an additional brush. */
+  Paint *paint = BKE_paint_get_active_from_paintmode(scene, PAINT_MODE_SCULPT_CURVES);
+  copy_v3_v3_uchar(paint->paint_cursor_col, PAINT_CURSOR_SCULPT_CURVES);
+  paint->paint_cursor_col[3] = 128;
 
   ED_paint_cursor_start(&curves_sculpt->paint, CURVES_SCULPT_mode_poll_view3d);
   paint_init_pivot(ob, scene);
@@ -965,9 +971,10 @@ static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *cust
 
   const uint pos3d = GPU_vertformat_attr_add(format3d, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   const uint col3d = GPU_vertformat_attr_add(format3d, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  const uint siz3d = GPU_vertformat_attr_add(format3d, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
-  immUniform1f("size", 4.0f);
+  immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
+  GPU_program_point_size(true);
   immBegin(GPU_PRIM_POINTS, points_wo.size());
 
   float3 brush_origin_wo = math::transform_point(op_data.curves_to_world_mat, op_data.pos_cu);
@@ -985,6 +992,7 @@ static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *cust
     const float dist_to_point_re = math::distance(pos_re, brush_origin_re);
     const float alpha = 1.0f - ((dist_to_point_re - dist_to_inner_border_re) / alpha_border_re);
 
+    immAttr1f(siz3d, 3.0f);
     immAttr4f(col3d, 0.9f, 0.9f, 0.9f, alpha);
     immVertex3fv(pos3d, pos_wo);
   }

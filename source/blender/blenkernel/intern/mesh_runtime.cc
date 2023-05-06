@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -20,7 +20,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_editmesh_cache.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_shrinkwrap.h"
 #include "BKE_subdiv_ccg.h"
@@ -78,10 +78,10 @@ static void free_bvh_cache(MeshRuntime &mesh_runtime)
   }
 }
 
-static void free_normals(MeshRuntime &mesh_runtime)
+static void reset_normals(MeshRuntime &mesh_runtime)
 {
-  MEM_SAFE_FREE(mesh_runtime.vert_normals);
-  MEM_SAFE_FREE(mesh_runtime.poly_normals);
+  mesh_runtime.vert_normals.clear_and_shrink();
+  mesh_runtime.poly_normals.clear_and_shrink();
   mesh_runtime.vert_normals_dirty = true;
   mesh_runtime.poly_normals_dirty = true;
 }
@@ -101,74 +101,135 @@ MeshRuntime::~MeshRuntime()
   free_bvh_cache(*this);
   free_edit_data(*this);
   free_batch_cache(*this);
-  free_normals(*this);
   if (this->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(this->shrinkwrap_data);
   }
 }
 
+static int reset_bits_and_count(MutableBitSpan bits, const Span<int> indices_to_reset)
+{
+  int count = bits.size();
+  for (const int vert : indices_to_reset) {
+    if (bits[vert]) {
+      bits[vert].reset();
+      count--;
+    }
+  }
+  return count;
+}
+
+static void bit_vector_with_reset_bits_or_empty(const Span<int> indices_to_reset,
+                                                const int indexed_elems_num,
+                                                BitVector<> &r_bits,
+                                                int &r_count)
+{
+  r_bits.resize(0);
+  r_bits.resize(indexed_elems_num, true);
+  r_count = reset_bits_and_count(r_bits, indices_to_reset);
+  if (r_count == 0) {
+    r_bits.clear_and_shrink();
+  }
+}
+
+/**
+ * If there are no loose edges and no loose vertices, all vertices are used by faces.
+ */
+static void try_tag_verts_no_face_none(const Mesh &mesh)
+{
+  if (!mesh.runtime->loose_edges_cache.is_cached() || mesh.loose_edges().count > 0) {
+    return;
+  }
+  if (!mesh.runtime->loose_verts_cache.is_cached() || mesh.loose_verts().count > 0) {
+    return;
+  }
+  mesh.runtime->verts_no_face_cache.ensure([&](LooseVertCache &r_data) {
+    r_data.is_loose_bits.clear_and_shrink();
+    r_data.count = 0;
+  });
+}
+
 }  // namespace blender::bke
+
+const blender::bke::LooseVertCache &Mesh::loose_verts() const
+{
+  using namespace blender::bke;
+  this->runtime->loose_verts_cache.ensure([&](LooseVertCache &r_data) {
+    const Span<int> verts = this->edges().cast<int>();
+    bit_vector_with_reset_bits_or_empty(verts, this->totvert, r_data.is_loose_bits, r_data.count);
+  });
+  return this->runtime->loose_verts_cache.data();
+}
+
+const blender::bke::LooseVertCache &Mesh::verts_no_face() const
+{
+  using namespace blender::bke;
+  this->runtime->verts_no_face_cache.ensure([&](LooseVertCache &r_data) {
+    const Span<int> verts = this->corner_verts();
+    bit_vector_with_reset_bits_or_empty(verts, this->totvert, r_data.is_loose_bits, r_data.count);
+  });
+  return this->runtime->verts_no_face_cache.data();
+}
 
 const blender::bke::LooseEdgeCache &Mesh::loose_edges() const
 {
   using namespace blender::bke;
   this->runtime->loose_edges_cache.ensure([&](LooseEdgeCache &r_data) {
-    blender::BitVector<> &loose_edges = r_data.is_loose_bits;
-    loose_edges.resize(0);
-    loose_edges.resize(this->totedge, true);
-
-    int count = this->totedge;
-    for (const MLoop &loop : this->loops()) {
-      if (loose_edges[loop.e]) {
-        loose_edges[loop.e].reset();
-        count--;
-      }
-    }
-
-    r_data.count = count;
+    const Span<int> edges = this->corner_edges();
+    bit_vector_with_reset_bits_or_empty(edges, this->totedge, r_data.is_loose_bits, r_data.count);
   });
-
   return this->runtime->loose_edges_cache.data();
+}
+
+void Mesh::tag_loose_verts_none() const
+{
+  using namespace blender::bke;
+  this->runtime->loose_verts_cache.ensure([&](LooseVertCache &r_data) {
+    r_data.is_loose_bits.clear_and_shrink();
+    r_data.count = 0;
+  });
+  try_tag_verts_no_face_none(*this);
 }
 
 void Mesh::loose_edges_tag_none() const
 {
   using namespace blender::bke;
   this->runtime->loose_edges_cache.ensure([&](LooseEdgeCache &r_data) {
-    r_data.is_loose_bits.resize(0);
+    r_data.is_loose_bits.clear_and_shrink();
     r_data.count = 0;
   });
+  try_tag_verts_no_face_none(*this);
 }
 
 blender::Span<MLoopTri> Mesh::looptris() const
 {
   this->runtime->looptris_cache.ensure([&](blender::Array<MLoopTri> &r_data) {
     const Span<float3> positions = this->vert_positions();
-    const Span<MPoly> polys = this->polys();
-    const Span<MLoop> loops = this->loops();
+    const blender::OffsetIndices polys = this->polys();
+    const Span<int> corner_verts = this->corner_verts();
 
-    r_data.reinitialize(poly_to_tri_count(polys.size(), loops.size()));
+    r_data.reinitialize(poly_to_tri_count(polys.size(), corner_verts.size()));
 
     if (BKE_mesh_poly_normals_are_dirty(this)) {
-      BKE_mesh_recalc_looptri(loops.data(),
-                              polys.data(),
-                              reinterpret_cast<const float(*)[3]>(positions.data()),
-                              loops.size(),
-                              polys.size(),
-                              r_data.data());
+      blender::bke::mesh::looptris_calc(positions, polys, corner_verts, r_data);
     }
     else {
-      BKE_mesh_recalc_looptri_with_normals(loops.data(),
-                                           polys.data(),
-                                           reinterpret_cast<const float(*)[3]>(positions.data()),
-                                           loops.size(),
-                                           polys.size(),
-                                           r_data.data(),
-                                           BKE_mesh_poly_normals_ensure(this));
+      blender::bke::mesh::looptris_calc_with_normals(
+          positions, polys, corner_verts, this->poly_normals(), r_data);
     }
   });
 
   return this->runtime->looptris_cache.data();
+}
+
+blender::Span<int> Mesh::looptri_polys() const
+{
+  using namespace blender;
+  this->runtime->looptri_polys_cache.ensure([&](blender::Array<int> &r_data) {
+    const OffsetIndices polys = this->polys();
+    r_data.reinitialize(poly_to_tri_count(polys.size(), this->totloop));
+    bke::mesh::looptris_calc_poly_indices(polys, r_data);
+  });
+  return this->runtime->looptri_polys_cache.data();
 }
 
 int BKE_mesh_runtime_looptri_len(const Mesh *mesh)
@@ -182,15 +243,20 @@ const MLoopTri *BKE_mesh_runtime_looptri_ensure(const Mesh *mesh)
   return mesh->looptris().data();
 }
 
+const int *BKE_mesh_runtime_looptri_polys_ensure(const Mesh *mesh)
+{
+  return mesh->looptri_polys().data();
+}
+
 void BKE_mesh_runtime_verttri_from_looptri(MVertTri *r_verttri,
-                                           const MLoop *mloop,
+                                           const int *corner_verts,
                                            const MLoopTri *looptri,
                                            int looptri_num)
 {
   for (int i = 0; i < looptri_num; i++) {
-    r_verttri[i].tri[0] = mloop[looptri[i].tri[0]].v;
-    r_verttri[i].tri[1] = mloop[looptri[i].tri[1]].v;
-    r_verttri[i].tri[2] = mloop[looptri[i].tri[2]].v;
+    r_verttri[i].tri[0] = corner_verts[looptri[i].tri[0]];
+    r_verttri[i].tri[1] = corner_verts[looptri[i].tri[1]];
+    r_verttri[i].tri[2] = corner_verts[looptri[i].tri[2]];
   }
 }
 
@@ -224,15 +290,19 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
 {
   /* Tagging shared caches dirty will free the allocated data if there is only one user. */
   free_bvh_cache(*mesh->runtime);
-  free_normals(*mesh->runtime);
+  reset_normals(*mesh->runtime);
   free_subdiv_ccg(*mesh->runtime);
   mesh->runtime->bounds_cache.tag_dirty();
   mesh->runtime->loose_edges_cache.tag_dirty();
+  mesh->runtime->loose_verts_cache.tag_dirty();
+  mesh->runtime->verts_no_face_cache.tag_dirty();
   mesh->runtime->looptris_cache.tag_dirty();
+  mesh->runtime->looptri_polys_cache.tag_dirty();
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
   mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   if (mesh->runtime->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
+    mesh->runtime->shrinkwrap_data = nullptr;
   }
 }
 
@@ -242,25 +312,35 @@ void BKE_mesh_tag_edges_split(struct Mesh *mesh)
    * Face normals didn't change either, but tag those anyway, since there is no API function to
    * only tag vertex normals dirty. */
   free_bvh_cache(*mesh->runtime);
-  free_normals(*mesh->runtime);
+  reset_normals(*mesh->runtime);
   free_subdiv_ccg(*mesh->runtime);
   mesh->runtime->loose_edges_cache.tag_dirty();
+  mesh->runtime->loose_verts_cache.tag_dirty();
+  mesh->runtime->verts_no_face_cache.tag_dirty();
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
   mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   if (mesh->runtime->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
+    mesh->runtime->shrinkwrap_data = nullptr;
   }
 }
 
-void BKE_mesh_tag_coords_changed(Mesh *mesh)
+void BKE_mesh_tag_face_winding_changed(Mesh *mesh)
 {
-  BKE_mesh_normals_tag_dirty(mesh);
+  mesh->runtime->vert_normals_dirty = true;
+  mesh->runtime->poly_normals_dirty = true;
+}
+
+void BKE_mesh_tag_positions_changed(Mesh *mesh)
+{
+  mesh->runtime->vert_normals_dirty = true;
+  mesh->runtime->poly_normals_dirty = true;
   free_bvh_cache(*mesh->runtime);
   mesh->runtime->looptris_cache.tag_dirty();
   mesh->runtime->bounds_cache.tag_dirty();
 }
 
-void BKE_mesh_tag_coords_changed_uniformly(Mesh *mesh)
+void BKE_mesh_tag_positions_changed_uniformly(Mesh *mesh)
 {
   /* The normals and triangulation didn't change, since all verts moved by the same amount. */
   free_bvh_cache(*mesh->runtime);
@@ -289,6 +369,7 @@ eMeshWrapperType BKE_mesh_wrapper_type(const struct Mesh *mesh)
  * \{ */
 
 /* Draw Engine */
+
 void (*BKE_mesh_batch_cache_dirty_tag_cb)(Mesh *me, eMeshBatchDirtyMode mode) = nullptr;
 void (*BKE_mesh_batch_cache_free_cb)(void *batch_cache) = nullptr;
 
@@ -324,9 +405,10 @@ bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
   }
 
   MutableSpan<float3> positions = me_eval->vert_positions_for_write();
-  MutableSpan<MEdge> edges = me_eval->edges_for_write();
-  MutableSpan<MPoly> polys = me_eval->polys_for_write();
-  MutableSpan<MLoop> loops = me_eval->loops_for_write();
+  MutableSpan<blender::int2> edges = me_eval->edges_for_write();
+  MutableSpan<int> poly_offsets = me_eval->poly_offsets_for_write();
+  MutableSpan<int> corner_verts = me_eval->corner_verts_for_write();
+  MutableSpan<int> corner_edges = me_eval->corner_edges_for_write();
 
   is_valid &= BKE_mesh_validate_all_customdata(
       &me_eval->vdata,
@@ -350,10 +432,11 @@ bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
                                        static_cast<MFace *>(CustomData_get_layer_for_write(
                                            &me_eval->fdata, CD_MFACE, me_eval->totface)),
                                        me_eval->totface,
-                                       loops.data(),
-                                       loops.size(),
-                                       polys.data(),
-                                       polys.size(),
+                                       corner_verts.data(),
+                                       corner_edges.data(),
+                                       corner_verts.size(),
+                                       poly_offsets.data(),
+                                       me_eval->totpoly,
                                        me_eval->deform_verts_for_write().data(),
                                        do_verbose,
                                        do_fixes,

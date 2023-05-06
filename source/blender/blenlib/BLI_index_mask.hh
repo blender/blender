@@ -52,9 +52,7 @@ class IndexMask {
    * Use this method when you know that no indices are skipped. It is more efficient than preparing
    * an integer array all the time.
    */
-  IndexMask(IndexRange range) : indices_(range.as_span())
-  {
-  }
+  IndexMask(IndexRange range) : indices_(range.as_span()) {}
 
   /**
    * Construct an IndexMask from a sorted list of indices. Note, the created IndexMask is only
@@ -66,16 +64,12 @@ class IndexMask {
    * Do this:
    *   do_something_with_an_index_mask({3, 4, 5});
    */
-  IndexMask(const std::initializer_list<int64_t> &indices) : IndexMask(Span<int64_t>(indices))
-  {
-  }
+  IndexMask(const std::initializer_list<int64_t> &indices) : IndexMask(Span<int64_t>(indices)) {}
 
   /**
    * Creates an IndexMask that references the indices [0, n-1].
    */
-  explicit IndexMask(int64_t n) : IndexMask(IndexRange(n))
-  {
-  }
+  explicit IndexMask(int64_t n) : IndexMask(IndexRange(n)) {}
 
   /** Checks that the indices are non-negative and in ascending order. */
   static bool indices_are_valid_index_mask(Span<int64_t> indices)

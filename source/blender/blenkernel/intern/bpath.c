@@ -93,8 +93,8 @@ void BKE_bpath_foreach_path_id(BPathForeachPathData *bpath_data, ID *id)
     return;
   }
 
-  if (id->library_weak_reference != NULL &&
-      (flag & BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES) == 0) {
+  if (id->library_weak_reference != NULL && (flag & BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES) == 0)
+  {
     BKE_bpath_foreach_path_fixed_process(bpath_data, id->library_weak_reference->library_filepath);
   }
 
@@ -174,7 +174,7 @@ bool BKE_bpath_foreach_path_dirfile_fixed_process(BPathForeachPathData *bpath_da
   }
 
   if (bpath_data->callback_function(bpath_data, path_dst, (const char *)path_src)) {
-    BLI_split_dirfile(path_dst, path_dir, path_file, FILE_MAXDIR, FILE_MAXFILE);
+    BLI_path_split_dir_file(path_dst, path_dir, FILE_MAXDIR, path_file, FILE_MAXFILE);
     bpath_data->is_path_modified = true;
     return true;
   }
@@ -441,7 +441,7 @@ static bool relative_rebase_foreach_path_cb(BPathForeachPathData *bpath_data,
     return false;
   }
 
-  BLI_path_normalize(NULL, filepath);
+  BLI_path_normalize(filepath);
 
   /* This may fail, if so it's fine to leave absolute since the path is still valid. */
   BLI_path_rel(filepath, data->basedir_dst);
@@ -531,7 +531,7 @@ static bool absolute_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
     return false; /* Already absolute. */
   }
 
-  BLI_strncpy(path_dst, path_src, FILENAME_MAX);
+  BLI_strncpy(path_dst, path_src, FILE_MAX);
   BLI_path_abs(path_dst, data->basedir);
   if (BLI_path_is_rel(path_dst) == false) {
     data->count_changed++;

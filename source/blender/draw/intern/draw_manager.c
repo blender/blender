@@ -24,7 +24,7 @@
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
@@ -48,7 +48,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_view3d.h"
@@ -76,7 +76,7 @@
 
 #include "draw_color_management.h"
 #include "draw_manager.h"
-#include "draw_manager_profiling.h"
+#include "draw_manager_profiling.hh"
 #include "draw_manager_testing.h"
 #include "draw_manager_text.h"
 #include "draw_shader.h"
@@ -188,7 +188,7 @@ bool DRW_object_is_renderable(const Object *ob)
   if (ob->type == OB_MESH) {
     if ((ob == DST.draw_ctx.object_edit) || DRW_object_is_in_edit_mode(ob)) {
       View3D *v3d = DST.draw_ctx.v3d;
-      if (v3d && v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_OCCLUDE_WIRE) {
+      if (v3d && RETOPOLOGY_ENABLED(v3d)) {
         return false;
       }
     }
@@ -219,13 +219,9 @@ int DRW_object_visibility_in_active_context(const Object *ob)
 bool DRW_object_use_hide_faces(const struct Object *ob)
 {
   if (ob->type == OB_MESH) {
-    const Mesh *me = ob->data;
-
     switch (ob->mode) {
       case OB_MODE_SCULPT:
-        return true;
       case OB_MODE_TEXTURE_PAINT:
-        return (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
       case OB_MODE_VERTEX_PAINT:
       case OB_MODE_WEIGHT_PAINT:
         return true;
@@ -257,7 +253,8 @@ bool DRW_object_is_visible_psys_in_active_context(const Object *object, const Pa
         return false;
       }
       if ((part->childtype == 0) &&
-          (psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED) == 0) {
+          (psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED) == 0)
+      {
         return false;
       }
     }
@@ -836,6 +833,8 @@ static bool id_type_can_have_drawdata(const short id_type)
     case ID_OB:
     case ID_WO:
     case ID_SCE:
+    case ID_TE:
+    case ID_MSK:
       return true;
 
     /* no DrawData */
@@ -1266,7 +1265,8 @@ static bool is_compositor_enabled(void)
   }
 
   if (DST.draw_ctx.v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_CAMERA &&
-      DST.draw_ctx.rv3d->persp != RV3D_CAMOB) {
+      DST.draw_ctx.rv3d->persp != RV3D_CAMOB)
+  {
     return false;
   }
 
@@ -1314,9 +1314,9 @@ static void drw_engines_data_validate(void)
 static bool drw_gpencil_engine_needed(Depsgraph *depsgraph, View3D *v3d)
 {
   const bool exclude_gpencil_rendering = v3d ? (v3d->object_type_exclude_viewport &
-                                                (1 << OB_GPENCIL)) != 0 :
+                                                (1 << OB_GPENCIL_LEGACY)) != 0 :
                                                false;
-  return (!exclude_gpencil_rendering) && DEG_id_type_any_exists(depsgraph, ID_GD);
+  return (!exclude_gpencil_rendering) && DEG_id_type_any_exists(depsgraph, ID_GD_LEGACY);
 }
 
 /* -------------------------------------------------------------------- */
@@ -1573,7 +1573,8 @@ void DRW_draw_callbacks_post_scene(void)
 
       /* XR callbacks (controllers, custom draw functions) for session surface. */
       if (((v3d->flag2 & V3D_XR_SHOW_CONTROLLERS) != 0) ||
-          ((v3d->flag2 & V3D_XR_SHOW_CUSTOM_OVERLAYS) != 0)) {
+          ((v3d->flag2 & V3D_XR_SHOW_CUSTOM_OVERLAYS) != 0))
+      {
         GPU_depth_test(GPU_DEPTH_NONE);
         GPU_apply_state();
 
@@ -1876,7 +1877,7 @@ bool DRW_render_check_grease_pencil(Depsgraph *depsgraph)
   deg_iter_settings.depsgraph = depsgraph;
   deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
-    if (ob->type == OB_GPENCIL) {
+    if (ob->type == OB_GPENCIL_LEGACY) {
       if (DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF) {
         return true;
       }
@@ -1942,7 +1943,8 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
   RenderResult *render_result = RE_engine_get_result(engine);
   RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
   for (RenderView *render_view = render_result->views.first; render_view != NULL;
-       render_view = render_view->next) {
+       render_view = render_view->next)
+  {
     RE_SetActiveRenderView(render, render_view->name);
     DRW_view_reset();
     DST.buffer_finish_called = false;
@@ -2023,7 +2025,8 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
                                                        /*RR_ALL_VIEWS*/ NULL);
   RenderLayer *render_layer = render_result->layers.first;
   for (RenderView *render_view = render_result->views.first; render_view != NULL;
-       render_view = render_view->next) {
+       render_view = render_view->next)
+  {
     RE_SetActiveRenderView(render, render_view->name);
     DRW_view_reset();
     engine_type->draw_engine->render_to_image(data, engine, render_layer, &render_rect);
@@ -2332,14 +2335,15 @@ static void draw_select_framebuffer_depth_only_setup(const int size[2])
 
   if ((g_select_buffer.texture_depth != NULL) &&
       ((GPU_texture_width(g_select_buffer.texture_depth) != size[0]) ||
-       (GPU_texture_height(g_select_buffer.texture_depth) != size[1]))) {
+       (GPU_texture_height(g_select_buffer.texture_depth) != size[1])))
+  {
     GPU_texture_free(g_select_buffer.texture_depth);
     g_select_buffer.texture_depth = NULL;
   }
 
   if (g_select_buffer.texture_depth == NULL) {
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
-    g_select_buffer.texture_depth = GPU_texture_create_2d_ex(
+    g_select_buffer.texture_depth = GPU_texture_create_2d(
         "select_depth", size[0], size[1], 1, GPU_DEPTH_COMPONENT24, usage, NULL);
 
     GPU_framebuffer_texture_attach(
@@ -2598,9 +2602,6 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
 #endif /* USE_GPU_SELECT */
 }
 
-/**
- * object mode select-loop, see: ED_view3d_draw_depth_loop (legacy drawing).
- */
 void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
                          ARegion *region,
                          View3D *v3d,
@@ -2775,6 +2776,25 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
     for (uint remaining = sel_ctx->objects_len; remaining--; obj++) {
       Object *obj_eval = DEG_get_evaluated_object(depsgraph, *obj);
       drw_engines_cache_populate(obj_eval);
+    }
+
+    if (RETOPOLOGY_ENABLED(v3d) && !XRAY_ENABLED(v3d)) {
+      DEGObjectIterSettings deg_iter_settings = {0};
+      deg_iter_settings.depsgraph = depsgraph;
+      deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
+      DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
+        if (ob->type != OB_MESH) {
+          /* The iterator has evaluated meshes for all solid objects.
+           * It also has non-mesh objects however, which are not supported here. */
+          continue;
+        }
+        if (DRW_object_is_in_edit_mode(ob)) {
+          /* Only background (non-edit) objects are used for occlusion. */
+          continue;
+        }
+        drw_engines_cache_populate(ob);
+      }
+      DEG_OBJECT_ITER_END;
     }
 
     drw_engines_cache_finish();
@@ -3281,35 +3301,38 @@ void DRW_gpu_render_context_disable(void *UNUSED(re_gpu_context))
 
 #ifdef WITH_XR_OPENXR
 
-/* XXX
- * There should really be no such getter, but for VR we currently can't easily avoid it. OpenXR
- * needs some low level info for the OpenGL context that will be used for submitting the
- * final framebuffer. VR could in theory create its own context, but that would mean we have to
- * switch to it just to submit the final frame, which has notable performance impact.
- *
- * We could "inject" a context through DRW_opengl_render_context_enable(), but that would have to
- * work from the main thread, which is tricky to get working too. The preferable solution would
- * be using a separate thread for VR drawing where a single context can stay active. */
 void *DRW_xr_opengl_context_get(void)
 {
+  /* XXX: There should really be no such getter, but for VR we currently can't easily avoid it.
+   * OpenXR needs some low level info for the OpenGL context that will be used for submitting the
+   * final frame-buffer. VR could in theory create its own context, but that would mean we have to
+   * switch to it just to submit the final frame, which has notable performance impact.
+   *
+   * We could "inject" a context through DRW_opengl_render_context_enable(), but that would have to
+   * work from the main thread, which is tricky to get working too. The preferable solution would
+   * be using a separate thread for VR drawing where a single context can stay active. */
+
   return DST.gl_context;
 }
 
-/* XXX See comment on DRW_xr_opengl_context_get(). */
 void *DRW_xr_gpu_context_get(void)
 {
+  /* XXX: See comment on #DRW_xr_opengl_context_get(). */
+
   return DST.gpu_context;
 }
 
-/* XXX See comment on DRW_xr_opengl_context_get(). */
 void DRW_xr_drawing_begin(void)
 {
+  /* XXX: See comment on #DRW_xr_opengl_context_get(). */
+
   BLI_ticket_mutex_lock(DST.gl_context_mutex);
 }
 
-/* XXX See comment on DRW_xr_opengl_context_get(). */
 void DRW_xr_drawing_end(void)
 {
+  /* XXX: See comment on #DRW_xr_opengl_context_get(). */
+
   BLI_ticket_mutex_unlock(DST.gl_context_mutex);
 }
 

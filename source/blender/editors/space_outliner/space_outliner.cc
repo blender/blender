@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spoutliner
@@ -92,9 +92,7 @@ static void outliner_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_scrollers_draw(v2d, nullptr);
 }
 
-static void outliner_main_region_free(ARegion * /*region*/)
-{
-}
+static void outliner_main_region_free(ARegion * /*region*/) {}
 
 static void outliner_main_region_listener(const wmRegionListenerParams *params)
 {
@@ -195,6 +193,11 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
         ED_region_tag_redraw(region);
       }
       break;
+    case NC_ASSET:
+      if (ELEM(wmn->action, NA_ADDED, NA_REMOVED)) {
+        ED_region_tag_redraw_no_rebuild(region);
+      }
+      break;
     case NC_MATERIAL:
       switch (wmn->data) {
         case ND_SHADING_LINKS:
@@ -258,7 +261,8 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
       break;
     case NC_NODE:
       if (ELEM(wmn->action, NA_ADDED, NA_REMOVED) &&
-          ELEM(space_outliner->outlinevis, SO_LIBRARIES, SO_DATA_API)) {
+          ELEM(space_outliner->outlinevis, SO_LIBRARIES, SO_DATA_API))
+      {
         ED_region_tag_redraw(region);
       }
       break;
@@ -295,9 +299,7 @@ static void outliner_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void outliner_header_region_free(ARegion * /*region*/)
-{
-}
+static void outliner_header_region_free(ARegion * /*region*/) {}
 
 static void outliner_header_region_listener(const wmRegionListenerParams *params)
 {
@@ -446,7 +448,7 @@ static void outliner_deactivate(struct ScrArea *area)
   ED_region_tag_redraw_no_rebuild(BKE_area_find_region_type(area, RGN_TYPE_WINDOW));
 }
 
-static void outliner_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+static void outliner_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
 
@@ -477,7 +479,9 @@ static void outliner_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   space_outliner->runtime = nullptr;
 }
 
-static void outliner_blend_read_lib(BlendLibReader *reader, ID * /*parent_id*/, SpaceLink *sl)
+static void outliner_space_blend_read_lib(BlendLibReader *reader,
+                                          ID * /*parent_id*/,
+                                          SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
 
@@ -487,7 +491,9 @@ static void outliner_blend_read_lib(BlendLibReader *reader, ID * /*parent_id*/, 
 
     BLI_mempool_iternew(space_outliner->treestore, &iter);
     while ((tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
-      BLO_read_id_address(reader, nullptr, &tselem->id);
+      if (TSE_IS_REAL_ID(tselem)) {
+        BLO_read_id_address(reader, nullptr, &tselem->id);
+      }
     }
     /* rebuild hash table, because it depends on ids too */
     space_outliner->storeflag |= SO_TREESTORE_REBUILD;
@@ -521,7 +527,7 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
       /* TODO the mempool could be moved to #SpaceOutliner_Runtime so that #SpaceOutliner could
        * hold the #TreeStore directly. */
 
-      /* Address relative to the tree-store, as noted above.  */
+      /* Address relative to the tree-store, as noted above. */
       void *data_addr = (void *)POINTER_OFFSET(ts, sizeof(void *));
       /* There should be plenty of memory addresses within the mempool data that we can point into,
        * just double-check we don't potentially end up with a memory address that another DNA
@@ -549,7 +555,7 @@ static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space
   }
 }
 
-static void outliner_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void outliner_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
   write_space_outliner(writer, space_outliner);
@@ -577,9 +583,9 @@ void ED_spacetype_outliner(void)
   st->id_remap = outliner_id_remap;
   st->deactivate = outliner_deactivate;
   st->context = outliner_context;
-  st->blend_read_data = outliner_blend_read_data;
-  st->blend_read_lib = outliner_blend_read_lib;
-  st->blend_write = outliner_blend_write;
+  st->blend_read_data = outliner_space_blend_read_data;
+  st->blend_read_lib = outliner_space_blend_read_lib;
+  st->blend_write = outliner_space_blend_write;
 
   /* regions: main window */
   art = MEM_cnew<ARegionType>("spacetype outliner region");

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup cmpnodes
@@ -256,7 +256,7 @@ class DilateErodeOperation : public NodeOperation {
     input_image.bind_as_texture(shader, "input_tx");
 
     const MorphologicalDistanceFeatherWeights &weights =
-        context().cache_manager().get_morphological_distance_feather_weights(
+        context().cache_manager().morphological_distance_feather_weights.get(
             node_storage(bnode()).falloff, math::abs(get_distance()));
     weights.bind_weights_as_texture(shader, "weights_tx");
     weights.bind_distance_falloffs_as_texture(shader, "falloffs_tx");
@@ -297,7 +297,7 @@ class DilateErodeOperation : public NodeOperation {
     GPU_texture_bind(horizontal_pass_result, texture_image_unit);
 
     const MorphologicalDistanceFeatherWeights &weights =
-        context().cache_manager().get_morphological_distance_feather_weights(
+        context().cache_manager().morphological_distance_feather_weights.get(
             node_storage(bnode()).falloff, math::abs(get_distance()));
     weights.bind_weights_as_texture(shader, "weights_tx");
     weights.bind_distance_falloffs_as_texture(shader, "falloffs_tx");

@@ -86,6 +86,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_film_comp";
     case FILM_CRYPTOMATTE_POST:
       return "eevee_film_cryptomatte_post";
+    case DEFERRED_LIGHT:
+      return "eevee_deferred_light";
     case HIZ_DEBUG:
       return "eevee_hiz_debug";
     case HIZ_UPDATE:
@@ -98,6 +100,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_motion_blur_tiles_flatten_render";
     case MOTION_BLUR_TILE_FLATTEN_VIEWPORT:
       return "eevee_motion_blur_tiles_flatten_viewport";
+    case DEBUG_SURFELS:
+      return "eevee_debug_surfels";
     case DOF_BOKEH_LUT:
       return "eevee_depth_of_field_bokeh_lut";
     case DOF_DOWNSAMPLE:
@@ -142,6 +146,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_light_culling_tile";
     case LIGHT_CULLING_ZBIN:
       return "eevee_light_culling_zbin";
+    case SHADOW_CLIPMAP_CLEAR:
+      return "eevee_shadow_clipmap_clear";
     case SHADOW_DEBUG:
       return "eevee_shadow_debug";
     case SHADOW_PAGE_ALLOCATE:
@@ -237,6 +243,11 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     }
   }
 
+  /* WORKAROUND: Needed because node_tree isn't present in test shaders. */
+  if (pipeline_type == MAT_PIPE_DEFERRED) {
+    info.define("MAT_RENDER_PASS_SUPPORT");
+  }
+
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) {
     info.define("MAT_TRANSPARENT");
     /* Transparent material do not have any velocity specific pipeline. */
@@ -246,7 +257,8 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   }
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT) == false &&
-      pipeline_type == MAT_PIPE_FORWARD) {
+      pipeline_type == MAT_PIPE_FORWARD)
+  {
     /* Opaque forward do support AOVs and render pass if not using transparency. */
     info.additional_info("eevee_aov_out");
     info.additional_info("eevee_render_pass_out");

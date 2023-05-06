@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -239,7 +239,8 @@ void DepsgraphRelationBuilder::build_splineik_pose(Object *object,
   /* Walk to the chain's root/ */
   int segcount = 1;
   for (bPoseChannel *parchan = pchan->parent; parchan != nullptr && segcount < data->chainlen;
-       parchan = parchan->parent, segcount++) {
+       parchan = parchan->parent, segcount++)
+  {
     /* Make Spline IK solver dependent on this bone's result, since it can
      * only run after the standard results of the bone are know. Validate
      * links step on the bone will ensure that users of this bone only grab
@@ -430,7 +431,8 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
         OperationCode opcode = OperationCode::BONE_DONE;
         /* Inheriting parent roll requires access to prev handle's B-Bone properties. */
         if ((pchan->bone->bbone_flag & BBONE_ADD_PARENT_END_ROLL) != 0 &&
-            check_pchan_has_bbone_segments(object, prev)) {
+            check_pchan_has_bbone_segments(object, prev))
+        {
           opcode = OperationCode::BONE_SEGMENTS;
         }
         OperationKey prev_key(&object->id, NodeType::BONE, prev->name, opcode);

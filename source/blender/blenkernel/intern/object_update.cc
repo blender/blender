@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. All rights reserved. */
+ * Copyright 2014 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -8,7 +8,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -29,8 +29,8 @@
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_effect.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -38,7 +38,7 @@
 #include "BKE_light.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -181,7 +181,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
     case OB_LATTICE:
       BKE_lattice_modifiers_calc(depsgraph, scene, ob);
       break;
-    case OB_GPENCIL: {
+    case OB_GPENCIL_LEGACY: {
       BKE_gpencil_prepare_eval_data(depsgraph, scene, ob);
       BKE_gpencil_modifiers_calc(depsgraph, scene, ob);
       BKE_gpencil_update_layer_transforms(depsgraph, ob);
@@ -209,7 +209,8 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
         /* check use of dupli objects here */
         if (psys->part && (psys->part->draw_as == PART_DRAW_REND || use_render_params) &&
             ((psys->part->ren_as == PART_DRAW_OB && psys->part->instance_object) ||
-             (psys->part->ren_as == PART_DRAW_GR && psys->part->instance_collection))) {
+             (psys->part->ren_as == PART_DRAW_GR && psys->part->instance_collection)))
+        {
           ob->transflag |= OB_DUPLIPARTS;
         }
 
@@ -265,7 +266,8 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   for (ModifierData *md = static_cast<ModifierData *>(object->modifiers.first),
                     *md_orig = static_cast<ModifierData *>(object_orig->modifiers.first);
        md != nullptr && md_orig != nullptr;
-       md = md->next, md_orig = md_orig->next) {
+       md = md->next, md_orig = md_orig->next)
+  {
     BLI_assert(md->type == md_orig->type && STREQ(md->name, md_orig->name));
     MEM_SAFE_FREE(md_orig->error);
     if (md->error != nullptr) {
@@ -276,9 +278,7 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   object_sync_boundbox_to_original(object_orig, object);
 }
 
-void BKE_object_eval_uber_transform(Depsgraph * /*depsgraph*/, Object * /*object*/)
-{
-}
+void BKE_object_eval_uber_transform(Depsgraph * /*depsgraph*/, Object * /*object*/) {}
 
 void BKE_object_batch_cache_dirty_tag(Object *ob)
 {
@@ -303,7 +303,7 @@ void BKE_object_batch_cache_dirty_tag(Object *ob)
       }
       break;
     }
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       BKE_gpencil_batch_cache_dirty_tag((struct bGPdata *)ob->data);
       break;
     case OB_CURVES:
@@ -427,7 +427,8 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
   if (object->mode == OB_MODE_PARTICLE_EDIT) {
     for (ParticleSystem *psys = static_cast<ParticleSystem *>(object->particlesystem.first);
          psys != nullptr;
-         psys = psys->next) {
+         psys = psys->next)
+    {
       BKE_particle_batch_cache_dirty_tag(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
     }
   }

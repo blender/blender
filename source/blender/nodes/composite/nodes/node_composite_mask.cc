@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+ * Copyright 2012 Blender Foundation */
 
 /** \file
  * \ingroup cmpnodes
@@ -12,13 +12,17 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "COM_cached_mask.hh"
 #include "COM_node_operation.hh"
+#include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
 /* **************** Mask  ******************** */
 
 namespace blender::nodes::node_composite_mask_cc {
+
+NODE_STORAGE_FUNCS(NodeMask)
 
 static void cmp_node_mask_declare(NodeDeclarationBuilder &b)
 {
@@ -66,13 +70,13 @@ static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *p
 
   uiItemR(layout, ptr, "size_source", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
-  if (node->custom1 & (CMP_NODEFLAG_MASK_FIXED | CMP_NODEFLAG_MASK_FIXED_SCENE)) {
+  if (node->custom1 & (CMP_NODE_MASK_FLAG_SIZE_FIXED | CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE)) {
     uiItemR(layout, ptr, "size_x", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
     uiItemR(layout, ptr, "size_y", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   }
 
   uiItemR(layout, ptr, "use_motion_blur", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  if (node->custom1 & CMP_NODEFLAG_MASK_MOTION_BLUR) {
+  if (node->custom1 & CMP_NODE_MASK_FLAG_MOTION_BLUR) {
     uiItemR(layout, ptr, "motion_blur_samples", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
     uiItemR(layout, ptr, "motion_blur_shutter", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   }
@@ -86,8 +90,76 @@ class MaskOperation : public NodeOperation {
 
   void execute() override
   {
-    get_result("Mask").allocate_invalid();
-    context().set_info_message("Viewport compositor setup not fully supported");
+    Result &output_mask = get_result("Mask");
+    if (!get_mask()) {
+      output_mask.allocate_invalid();
+      return;
+    }
+
+    const Domain domain = compute_domain();
+    CachedMask &cached_mask = context().cache_manager().cached_masks.get(
+        context(),
+        get_mask(),
+        domain.size,
+        get_use_feather(),
+        get_motion_blur_samples(),
+        get_motion_blur_shutter());
+
+    output_mask.allocate_texture(domain);
+    GPU_texture_copy(output_mask.texture(), cached_mask.texture());
+  }
+
+  Domain compute_domain() override
+  {
+    return Domain(compute_size());
+  }
+
+  int2 compute_size()
+  {
+    if (get_flags() & CMP_NODE_MASK_FLAG_SIZE_FIXED) {
+      return get_size();
+    }
+
+    if (get_flags() & CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE) {
+      return get_size() * context().get_render_percentage();
+    }
+
+    return context().get_compositing_region_size();
+  }
+
+  int2 get_size()
+  {
+    return int2(node_storage(bnode()).size_x, node_storage(bnode()).size_y);
+  }
+
+  bool get_use_feather()
+  {
+    return !bool(get_flags() & CMP_NODE_MASK_FLAG_NO_FEATHER);
+  }
+
+  int get_motion_blur_samples()
+  {
+    return use_motion_blur() ? bnode().custom2 : 1;
+  }
+
+  float get_motion_blur_shutter()
+  {
+    return bnode().custom3;
+  }
+
+  bool use_motion_blur()
+  {
+    return get_flags() & CMP_NODE_MASK_FLAG_MOTION_BLUR;
+  }
+
+  CMPNodeMaskFlags get_flags()
+  {
+    return static_cast<CMPNodeMaskFlags>(bnode().custom1);
+  }
+
+  Mask *get_mask()
+  {
+    return reinterpret_cast<Mask *>(bnode().id);
   }
 };
 
@@ -110,8 +182,6 @@ void register_node_type_cmp_mask()
   ntype.initfunc = file_ns::node_composit_init_mask;
   ntype.labelfunc = file_ns::node_mask_label;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  ntype.realtime_compositor_unsupported_message = N_(
-      "Node not supported in the Viewport compositor");
 
   node_type_storage(&ntype, "NodeMask", node_free_standard_storage, node_copy_standard_storage);
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup nodes
@@ -39,7 +39,7 @@
 #include "NOD_texture.h"
 
 #include "node_texture_register.hh"
-#include "node_util.h"
+#include "node_util.hh"
 
 #include "BLT_translation.h"
 

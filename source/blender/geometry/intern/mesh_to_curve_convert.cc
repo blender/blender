@@ -12,14 +12,14 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "GEO_mesh_to_curve.hh"
 
 namespace blender::geometry {
 
 bke::CurvesGeometry create_curve_from_vert_indices(
-    const Mesh &mesh,
+    const bke::AttributeAccessor &mesh_attributes,
     const Span<int> vert_indices,
     const Span<int> curve_offsets,
     const IndexRange cyclic_curves,
@@ -30,7 +30,6 @@ bke::CurvesGeometry create_curve_from_vert_indices(
   curves.offsets_for_write().last() = vert_indices.size();
   curves.fill_curve_types(CURVE_TYPE_POLY);
 
-  const bke::AttributeAccessor mesh_attributes = mesh.attributes();
   bke::MutableAttributeAccessor curves_attributes = curves.attributes_for_write();
 
   if (!cyclic_curves.is_empty()) {
@@ -52,7 +51,7 @@ bke::CurvesGeometry create_curve_from_vert_indices(
       continue;
     }
 
-    const GVArray mesh_attribute = mesh_attributes.lookup(attribute_id, ATTR_DOMAIN_POINT);
+    const GVArray mesh_attribute = *mesh_attributes.lookup(attribute_id, ATTR_DOMAIN_POINT);
     /* Some attributes might not exist if they were builtin attribute on domains that don't
      * have any elements, i.e. a face attribute on the output of the line primitive node. */
     if (!mesh_attribute) {
@@ -60,7 +59,7 @@ bke::CurvesGeometry create_curve_from_vert_indices(
     }
 
     /* Copy attribute based on the map for this curve. */
-    attribute_math::convert_to_static_type(mesh_attribute.type(), [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(mesh_attribute.type(), [&](auto dummy) {
       using T = decltype(dummy);
       bke::SpanAttributeWriter<T> attribute =
           curves_attributes.lookup_or_add_for_write_only_span<T>(attribute_id, ATTR_DOMAIN_POINT);
@@ -82,7 +81,7 @@ struct CurveFromEdgesOutput {
 };
 
 static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
-                                                         Span<std::pair<int, int>> edges)
+                                                         const Span<int2> edges)
 {
   Vector<int> vert_indices;
   vert_indices.reserve(edges.size());
@@ -90,9 +89,9 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
 
   /* Compute the number of edges connecting to each vertex. */
   Array<int> neighbor_count(verts_num, 0);
-  for (const std::pair<int, int> &edge : edges) {
-    neighbor_count[edge.first]++;
-    neighbor_count[edge.second]++;
+  for (const int2 &edge : edges) {
+    neighbor_count[edge[0]]++;
+    neighbor_count[edge[1]]++;
   }
 
   /* Compute an offset into the array of neighbor edges based on the counts. */
@@ -108,8 +107,8 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
   /* Calculate the indices of each vertex's neighboring edges. */
   Array<int> neighbors(edges.size() * 2);
   for (const int i : edges.index_range()) {
-    const int v1 = edges[i].first;
-    const int v2 = edges[i].second;
+    const int v1 = edges[i][0];
+    const int v2 = edges[i][1];
     neighbors[neighbor_offsets[v1] + used_slots[v1]] = v2;
     neighbors[neighbor_offsets[v2] + used_slots[v2]] = v1;
     used_slots[v1]++;
@@ -199,19 +198,17 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
   return {std::move(vert_indices), std::move(curve_offsets), cyclic_curves};
 }
 
-/**
- * Get a separate array of the indices for edges in a selection (a boolean attribute).
- * This helps to make the above algorithm simpler by removing the need to check for selection
- * in many places.
- */
-static Vector<std::pair<int, int>> get_selected_edges(const Mesh &mesh, const IndexMask selection)
+static bke::CurvesGeometry edges_to_curves_convert(
+    const Mesh &mesh,
+    const Span<int2> edges,
+    const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
-  Vector<std::pair<int, int>> selected_edges;
-  const Span<MEdge> edges = mesh.edges();
-  for (const int i : selection) {
-    selected_edges.append({edges[i].v1, edges[i].v2});
-  }
-  return selected_edges;
+  CurveFromEdgesOutput output = edges_to_curve_point_indices(mesh.totvert, edges);
+  return create_curve_from_vert_indices(mesh.attributes(),
+                                        output.vert_indices,
+                                        output.curve_offsets,
+                                        output.cyclic_curves,
+                                        propagation_info);
 }
 
 bke::CurvesGeometry mesh_to_curve_convert(
@@ -219,11 +216,13 @@ bke::CurvesGeometry mesh_to_curve_convert(
     const IndexMask selection,
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
-  Vector<std::pair<int, int>> selected_edges = get_selected_edges(mesh, selection);
-  CurveFromEdgesOutput output = edges_to_curve_point_indices(mesh.totvert, selected_edges);
-
-  return create_curve_from_vert_indices(
-      mesh, output.vert_indices, output.curve_offsets, output.cyclic_curves, propagation_info);
+  const Span<int2> edges = mesh.edges();
+  if (selection.size() == edges.size()) {
+    return edges_to_curves_convert(mesh, edges, propagation_info);
+  }
+  Array<int2> selected_edges(selection.size());
+  array_utils::gather(edges, selection, selected_edges.as_mutable_span());
+  return edges_to_curves_convert(mesh, selected_edges, propagation_info);
 }
 
 }  // namespace blender::geometry

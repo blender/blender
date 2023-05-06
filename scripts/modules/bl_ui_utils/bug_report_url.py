@@ -13,11 +13,21 @@ def url_prefill_from_blender(*, addon_info=None):
 
     fh.write("**System Information**\n")
     fh.write(
-        "Operating system: %s %d Bits\n" % (
+        "Operating system: %s %d Bits" % (
             platform.platform(),
             struct.calcsize("P") * 8,
         )
     )
+    # Windowing Environment (include when dynamically selectable).
+    # This lets us know if WAYLAND/X11 is in use.
+    from _bpy import _ghost_backend
+    ghost_backend = _ghost_backend()
+    if ghost_backend not in {'NONE', 'DEFAULT'}:
+        fh.write(", %s UI" % ghost_backend)
+    del _ghost_backend, ghost_backend
+
+    fh.write("\n")
+
     fh.write(
         "Graphics card: %s %s %s\n" % (
             gpu.platform.renderer_get(),

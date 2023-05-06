@@ -44,7 +44,7 @@
 #include "BKE_instances.hh"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -132,7 +132,8 @@ struct DupliContext {
 };
 
 struct DupliGenerator {
-  short type; /* Dupli Type, see members of #OB_DUPLI. */
+  /** Duplicator Type, see members of #OB_DUPLI. */
+  short type;
   void (*make_duplis)(const DupliContext *ctx);
 };
 
@@ -554,7 +555,7 @@ struct VertexDupliData_Mesh {
 
   int totvert;
   Span<float3> vert_positions;
-  const float (*vert_normals)[3];
+  Span<float3> vert_normals;
 
   const float (*orco)[3];
 };
@@ -735,7 +736,7 @@ static void make_duplis_verts(const DupliContext *ctx)
     vdd.params = vdd_params;
     vdd.totvert = me_eval->totvert;
     vdd.vert_positions = me_eval->vert_positions();
-    vdd.vert_normals = BKE_mesh_vertex_normals_ensure(me_eval);
+    vdd.vert_normals = me_eval->vert_normals();
     vdd.orco = (const float(*)[3])CustomData_get_layer(&me_eval->vdata, CD_ORCO);
 
     make_child_duplis(ctx, &vdd, make_child_duplis_verts_from_mesh);
@@ -980,7 +981,8 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
                                 nullptr,
                                 id,
                                 &geometry_set,
-                                i)) {
+                                i))
+        {
           break;
         }
 
@@ -1011,7 +1013,8 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
                                nullptr,
                                id,
                                &geometry_set,
-                               i)) {
+                               i))
+        {
           make_duplis_geometry_set_impl(
               &sub_ctx, reference.geometry_set(), new_transform, true, false);
         }
@@ -1056,8 +1059,8 @@ struct FaceDupliData_Mesh {
   FaceDupliData_Params params;
 
   int totface;
-  const MPoly *mpoly;
-  const MLoop *mloop;
+  blender::OffsetIndices<int> polys;
+  Span<int> corner_verts;
   Span<float3> vert_positions;
   const float (*orco)[3];
   const float2 *mloopuv;
@@ -1155,16 +1158,13 @@ static DupliObject *face_dupli_from_mesh(const DupliContext *ctx,
                                          const float scale_fac,
 
                                          /* Mesh variables. */
-                                         const MPoly *mpoly,
-                                         const MLoop *mloopstart,
+                                         const Span<int> poly_verts,
                                          const Span<float3> vert_positions)
 {
-  const int coords_len = mpoly->totloop;
-  Array<float3, 64> coords(coords_len);
+  Array<float3, 64> coords(poly_verts.size());
 
-  const MLoop *ml = mloopstart;
-  for (int i = 0; i < coords_len; i++, ml++) {
-    coords[i] = vert_positions[ml->v];
+  for (int i = 0; i < poly_verts.size(); i++) {
+    coords[i] = vert_positions[poly_verts[i]];
   }
 
   return face_dupli(ctx, inst_ob, child_imat, index, use_scale, scale_fac, coords);
@@ -1206,13 +1206,10 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
                                               Object *inst_ob)
 {
   FaceDupliData_Mesh *fdd = (FaceDupliData_Mesh *)userdata;
-  const MPoly *mpoly = fdd->mpoly, *mp;
-  const MLoop *mloop = fdd->mloop;
   const float(*orco)[3] = fdd->orco;
   const float2 *mloopuv = fdd->mloopuv;
   const int totface = fdd->totface;
   const bool use_scale = fdd->params.use_scale;
-  int a;
 
   float child_imat[4][4];
 
@@ -1221,27 +1218,27 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
   mul_m4_m4m4(child_imat, inst_ob->world_to_object, ctx->object->object_to_world);
   const float scale_fac = ctx->object->instance_faces_scale;
 
-  for (a = 0, mp = mpoly; a < totface; a++, mp++) {
-    const MLoop *loopstart = mloop + mp->loopstart;
+  for (const int a : blender::IndexRange(totface)) {
+    const blender::IndexRange poly = fdd->polys[a];
+    const Span<int> poly_verts = fdd->corner_verts.slice(poly);
     DupliObject *dob = face_dupli_from_mesh(fdd->params.ctx,
                                             inst_ob,
                                             child_imat,
                                             a,
                                             use_scale,
                                             scale_fac,
-                                            mp,
-                                            loopstart,
+                                            poly_verts,
                                             fdd->vert_positions);
 
-    const float w = 1.0f / float(mp->totloop);
+    const float w = 1.0f / float(poly.size());
     if (orco) {
-      for (int j = 0; j < mp->totloop; j++) {
-        madd_v3_v3fl(dob->orco, orco[loopstart[j].v], w);
+      for (int j = 0; j < poly.size(); j++) {
+        madd_v3_v3fl(dob->orco, orco[poly_verts[j]], w);
       }
     }
     if (mloopuv) {
-      for (int j = 0; j < mp->totloop; j++) {
-        madd_v2_v2fl(dob->uv, mloopuv[mp->loopstart + j], w);
+      for (int j = 0; j < poly.size(); j++) {
+        madd_v2_v2fl(dob->uv, mloopuv[poly[j]], w);
       }
     }
   }
@@ -1319,8 +1316,8 @@ static void make_duplis_faces(const DupliContext *ctx)
     FaceDupliData_Mesh fdd{};
     fdd.params = fdd_params;
     fdd.totface = me_eval->totpoly;
-    fdd.mpoly = me_eval->polys().data();
-    fdd.mloop = me_eval->loops().data();
+    fdd.polys = me_eval->polys();
+    fdd.corner_verts = me_eval->corner_verts();
     fdd.vert_positions = me_eval->vert_positions();
     fdd.mloopuv = (uv_idx != -1) ? (const float2 *)CustomData_get_layer_n(
                                        &me_eval->ldata, CD_PROP_FLOAT2, uv_idx) :
@@ -1333,7 +1330,8 @@ static void make_duplis_faces(const DupliContext *ctx)
 
 static const DupliGenerator gen_dupli_faces = {
     /*type*/ OB_DUPLIFACES,
-    /*make_duplis*/ make_duplis_faces};
+    /*make_duplis*/ make_duplis_faces,
+};
 
 /** \} */
 
@@ -1387,7 +1385,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
   totchild = psys->totchild;
 
   if ((for_render || part->draw_as == PART_DRAW_REND) &&
-      ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
+      ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR))
+  {
     ParticleSimulationData sim = {nullptr};
     sim.depsgraph = ctx->depsgraph;
     sim.scene = scene;
@@ -1458,8 +1457,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
         }
       }
       else {
-        FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (
-            part->instance_collection, object, mode) {
+        FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (part->instance_collection, object, mode)
+        {
           (void)object;
           totcollection++;
         }
@@ -1486,8 +1485,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
       }
       else {
         a = 0;
-        FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (
-            part->instance_collection, object, mode) {
+        FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (part->instance_collection, object, mode)
+        {
           oblist[a] = object;
           a++;
         }
@@ -1530,7 +1529,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
       /* Some hair paths might be non-existent so they can't be used for duplication. */
       if (hair && psys->pathcache &&
           ((a < totpart && psys->pathcache[a]->segments < 0) ||
-           (a >= totpart && psys->childcache[a - totpart]->segments < 0))) {
+           (a >= totpart && psys->childcache[a - totpart]->segments < 0)))
+      {
         continue;
       }
 
@@ -1581,8 +1581,8 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
       if (part->ren_as == PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
         b = 0;
-        FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (
-            part->instance_collection, object, mode) {
+        FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (part->instance_collection, object, mode)
+        {
           copy_m4_m4(tmat, oblist[b]->object_to_world);
 
           /* Apply collection instance offset. */
@@ -1682,7 +1682,8 @@ static void make_duplis_particles(const DupliContext *ctx)
 
 static const DupliGenerator gen_dupli_particles = {
     /*type*/ OB_DUPLIPARTS,
-    /*make_duplis*/ make_duplis_particles};
+    /*make_duplis*/ make_duplis_particles,
+};
 
 /** \} */
 
@@ -1708,7 +1709,8 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
 
   /* Should the dupli's be generated for this object? - Respect restrict flags. */
   if (DEG_get_mode(ctx->depsgraph) == DAG_EVAL_RENDER ? (visibility_flag & OB_HIDE_RENDER) :
-                                                        (visibility_flag & OB_HIDE_VIEWPORT)) {
+                                                        (visibility_flag & OB_HIDE_VIEWPORT))
+  {
     return nullptr;
   }
 
@@ -1792,7 +1794,8 @@ ListBase *object_duplilist_preview(Depsgraph *depsgraph,
       continue;
     }
     if (const geo_log::ViewerNodeLog *viewer_log =
-            geo_log::GeoModifierLog::find_viewer_node_log_for_path(*viewer_path)) {
+            geo_log::GeoModifierLog::find_viewer_node_log_for_path(*viewer_path))
+    {
       ctx.preview_base_geometry = &viewer_log->geometry;
       make_duplis_geometry_set_impl(
           &ctx, viewer_log->geometry, ob_eval->object_to_world, true, ob_eval->type == OB_CURVES);
@@ -1836,7 +1839,7 @@ static bool find_geonode_attribute_rgba(const DupliObject *dupli,
 
     /* Attempt to look up the attribute. */
     std::optional<bke::AttributeAccessor> attributes = component->attributes();
-    const VArray data = attributes->lookup<ColorGeometry4f>(name);
+    const VArray data = *attributes->lookup<ColorGeometry4f>(name);
 
     /* If the attribute was found and converted to float RGBA successfully, output it. */
     if (data) {

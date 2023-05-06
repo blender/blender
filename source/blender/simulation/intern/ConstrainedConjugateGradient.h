@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation. All rights reserved. */
+ * Copyright Blender Foundation */
 
 #pragma once
 
@@ -89,9 +89,10 @@ EIGEN_DONT_INLINE void constrained_conjugate_gradient(const MatrixType &mat,
 
     RealScalar absOld = absNew;
     absNew = numext::real(residual.dot(z)); /* update the absolute value of r */
-    RealScalar beta =
-        absNew /
-        absOld; /* calculate the Gram-Schmidt value used to create the new search direction */
+
+    /* Calculate the Gram-Schmidt value used to create the new search direction. */
+    RealScalar beta = absNew / absOld;
+
     p = filter * (z + beta * p); /* update search direction */
     i++;
   }
@@ -216,9 +217,7 @@ class ConstrainedConjugateGradient
 
  public:
   /** Default constructor. */
-  ConstrainedConjugateGradient() : Base()
-  {
-  }
+  ConstrainedConjugateGradient() : Base() {}
 
   /** Initialize the solver with matrix \a A for further \c Ax=b solving.
    *
@@ -230,13 +229,9 @@ class ConstrainedConjugateGradient
    * this class becomes invalid. Call compute() to update it with the new
    * matrix A, or modify a copy of A.
    */
-  ConstrainedConjugateGradient(const MatrixType &A) : Base(A)
-  {
-  }
+  ConstrainedConjugateGradient(const MatrixType &A) : Base(A) {}
 
-  ~ConstrainedConjugateGradient()
-  {
-  }
+  ~ConstrainedConjugateGradient() {}
 
   FilterMatrixType &filter()
   {

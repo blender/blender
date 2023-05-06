@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+ * Copyright 2012 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -976,7 +976,7 @@ static SequenceModifierTypeInfo seqModifier_HueCorrect = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Bright/Contrast Modifier
+/** \name Brightness/Contrast Modifier
  * \{ */
 
 typedef struct BrightContrastThreadData {
@@ -1071,7 +1071,7 @@ static void brightcontrast_apply(struct SequenceModifierData *smd, ImBuf *ibuf, 
 }
 
 static SequenceModifierTypeInfo seqModifier_BrightContrast = {
-    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Bright/Contrast"),
+    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Brightness/Contrast"),
     /*struct_name*/ "BrightContrastModifierData",
     /*struct_size*/ sizeof(BrightContrastModifierData),
     /*init_data*/ NULL,

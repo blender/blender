@@ -86,11 +86,11 @@ struct AttributeInit {
     VArray,
     /** #AttributeInitMoveArray. */
     MoveArray,
+    /** #AttributeInitShared. */
+    Shared,
   };
   Type type;
-  AttributeInit(const Type type) : type(type)
-  {
-  }
+  AttributeInit(const Type type) : type(type) {}
 };
 
 /**
@@ -98,18 +98,14 @@ struct AttributeInit {
  * if all attribute element values will be set by the caller after creating the attribute.
  */
 struct AttributeInitConstruct : public AttributeInit {
-  AttributeInitConstruct() : AttributeInit(Type::Construct)
-  {
-  }
+  AttributeInitConstruct() : AttributeInit(Type::Construct) {}
 };
 
 /**
  * Create an attribute using the default value for the data type (almost always "zero").
  */
 struct AttributeInitDefaultValue : public AttributeInit {
-  AttributeInitDefaultValue() : AttributeInit(Type::DefaultValue)
-  {
-  }
+  AttributeInitDefaultValue() : AttributeInit(Type::DefaultValue) {}
 };
 
 /**
@@ -119,9 +115,7 @@ struct AttributeInitDefaultValue : public AttributeInit {
 struct AttributeInitVArray : public AttributeInit {
   GVArray varray;
 
-  AttributeInitVArray(GVArray varray) : AttributeInit(Type::VArray), varray(std::move(varray))
-  {
-  }
+  AttributeInitVArray(GVArray varray) : AttributeInit(Type::VArray), varray(std::move(varray)) {}
 };
 
 /**
@@ -129,16 +123,25 @@ struct AttributeInitVArray : public AttributeInit {
  * Sometimes data is created before a geometry component is available. In that case, it's
  * preferable to move data directly to the created attribute to avoid a new allocation and a copy.
  *
- * Note that this will only have a benefit for attributes that are stored directly as contiguous
- * arrays, so not for some built-in attributes.
- *
  * The array must be allocated with MEM_*, since `attribute_try_create` will free the array if it
  * can't be used directly, and that is generally how Blender expects custom data to be allocated.
  */
 struct AttributeInitMoveArray : public AttributeInit {
   void *data = nullptr;
 
-  AttributeInitMoveArray(void *data) : AttributeInit(Type::MoveArray), data(data)
+  AttributeInitMoveArray(void *data) : AttributeInit(Type::MoveArray), data(data) {}
+};
+
+/**
+ * Create a shared attribute by adding a user to a shared data array.
+ * The sharing info has ownership of the provided contiguous array.
+ */
+struct AttributeInitShared : public AttributeInit {
+  const void *data = nullptr;
+  const ImplicitSharingInfo *sharing_info = nullptr;
+
+  AttributeInitShared(const void *data, const ImplicitSharingInfo &sharing_info)
+      : AttributeInit(Type::Shared), data(data), sharing_info(&sharing_info)
   {
   }
 };
@@ -160,6 +163,21 @@ template<typename T> struct AttributeReader {
    * Domain where the attribute is stored. This also determines the size of the virtual array.
    */
   eAttrDomain domain;
+
+  /**
+   * Information about shared ownership of the attribute array. This will only be provided
+   * if the virtual array directly references the contiguous original attribute array.
+   */
+  const ImplicitSharingInfo *sharing_info;
+
+  const VArray<T> &operator*() const
+  {
+    return this->varray;
+  }
+  VArray<T> &operator*()
+  {
+    return this->varray;
+  }
 
   operator bool() const
   {
@@ -280,15 +298,25 @@ template<typename T> struct SpanAttributeWriter {
 struct GAttributeReader {
   GVArray varray;
   eAttrDomain domain;
+  const ImplicitSharingInfo *sharing_info;
 
   operator bool() const
   {
     return this->varray;
   }
 
+  const GVArray &operator*() const
+  {
+    return this->varray;
+  }
+  GVArray &operator*()
+  {
+    return this->varray;
+  }
+
   template<typename T> AttributeReader<T> typed() const
   {
-    return {varray.typed<T>(), domain};
+    return {varray.typed<T>(), domain, sharing_info};
   }
 };
 
@@ -467,15 +495,15 @@ class AttributeAccessor {
    * Get read-only access to the attribute. If necessary, the attribute is interpolated to the
    * given domain, and converted to the given type, in that order.  The result may be empty.
    */
-  GVArray lookup(const AttributeIDRef &attribute_id,
-                 const std::optional<eAttrDomain> domain,
-                 const std::optional<eCustomDataType> data_type) const;
+  GAttributeReader lookup(const AttributeIDRef &attribute_id,
+                          const std::optional<eAttrDomain> domain,
+                          const std::optional<eCustomDataType> data_type) const;
 
   /**
    * Get read-only access to the attribute whereby the attribute is interpolated to the given
    * domain. The result may be empty.
    */
-  GVArray lookup(const AttributeIDRef &attribute_id, const eAttrDomain domain) const
+  GAttributeReader lookup(const AttributeIDRef &attribute_id, const eAttrDomain domain) const
   {
     return this->lookup(attribute_id, domain, std::nullopt);
   }
@@ -484,7 +512,8 @@ class AttributeAccessor {
    * Get read-only access to the attribute whereby the attribute is converted to the given type.
    * The result may be empty.
    */
-  GVArray lookup(const AttributeIDRef &attribute_id, const eCustomDataType data_type) const
+  GAttributeReader lookup(const AttributeIDRef &attribute_id,
+                          const eCustomDataType data_type) const
   {
     return this->lookup(attribute_id, std::nullopt, data_type);
   }
@@ -494,8 +523,8 @@ class AttributeAccessor {
    * given domain and then converted to the given type, in that order. The result may be empty.
    */
   template<typename T>
-  VArray<T> lookup(const AttributeIDRef &attribute_id,
-                   const std::optional<eAttrDomain> domain = std::nullopt) const
+  AttributeReader<T> lookup(const AttributeIDRef &attribute_id,
+                            const std::optional<eAttrDomain> domain = std::nullopt) const
   {
     const CPPType &cpp_type = CPPType::get<T>();
     const eCustomDataType data_type = cpp_type_to_custom_data_type(cpp_type);
@@ -508,23 +537,23 @@ class AttributeAccessor {
    * If the attribute does not exist, a virtual array with the given default value is returned.
    * If the passed in default value is null, the default value of the type is used (generally 0).
    */
-  GVArray lookup_or_default(const AttributeIDRef &attribute_id,
-                            const eAttrDomain domain,
-                            const eCustomDataType data_type,
-                            const void *default_value = nullptr) const;
+  GAttributeReader lookup_or_default(const AttributeIDRef &attribute_id,
+                                     const eAttrDomain domain,
+                                     const eCustomDataType data_type,
+                                     const void *default_value = nullptr) const;
 
   /**
    * Same as the generic version above, but should be used when the type is known at compile time.
    */
   template<typename T>
-  VArray<T> lookup_or_default(const AttributeIDRef &attribute_id,
-                              const eAttrDomain domain,
-                              const T &default_value) const
+  AttributeReader<T> lookup_or_default(const AttributeIDRef &attribute_id,
+                                       const eAttrDomain domain,
+                                       const T &default_value) const
   {
-    if (VArray<T> varray = this->lookup<T>(attribute_id, domain)) {
+    if (AttributeReader<T> varray = this->lookup<T>(attribute_id, domain)) {
       return varray;
     }
-    return VArray<T>::ForSingle(default_value, this->domain_size(domain));
+    return {VArray<T>::ForSingle(default_value, this->domain_size(domain)), domain};
   }
 
   /**
@@ -558,6 +587,7 @@ class AttributeAccessor {
 
   /**
    * Run the provided function for every attribute.
+   * Attributes should not be removed or added during iteration.
    */
   bool for_all(const AttributeForeachCallback fn) const
   {
@@ -625,6 +655,11 @@ class MutableAttributeAccessor : public AttributeAccessor {
   }
 
   /**
+   * Replace the existing attribute with a new one with a different name.
+   */
+  bool rename(const AttributeIDRef &old_attribute_id, const AttributeIDRef &new_attribute_id);
+
+  /**
    * Create a new attribute.
    * \return True, when a new attribute has been created. False, when it's not possible to create
    * this attribute or there is already an attribute with that id.
@@ -635,6 +670,15 @@ class MutableAttributeAccessor : public AttributeAccessor {
            const AttributeInit &initializer)
   {
     return fn_->add(owner_, attribute_id, domain, data_type, initializer);
+  }
+  template<typename T>
+  bool add(const AttributeIDRef &attribute_id,
+           const eAttrDomain domain,
+           const AttributeInit &initializer)
+  {
+    const CPPType &cpp_type = CPPType::get<T>();
+    const eCustomDataType data_type = cpp_type_to_custom_data_type(cpp_type);
+    return this->add(attribute_id, domain, data_type, initializer);
   }
 
   /**
@@ -812,7 +856,6 @@ class CustomDataAttributes {
 
   std::optional<blender::GMutableSpan> get_for_write(const AttributeIDRef &attribute_id);
   bool create(const AttributeIDRef &attribute_id, eCustomDataType data_type);
-  bool create_by_move(const AttributeIDRef &attribute_id, eCustomDataType data_type, void *buffer);
   bool remove(const AttributeIDRef &attribute_id);
 
   bool foreach_attribute(const AttributeForeachCallback callback, eAttrDomain domain) const;
@@ -824,21 +867,13 @@ class CustomDataAttributes {
 
 inline AttributeIDRef::AttributeIDRef() = default;
 
-inline AttributeIDRef::AttributeIDRef(StringRef name) : name_(name)
-{
-}
+inline AttributeIDRef::AttributeIDRef(StringRef name) : name_(name) {}
 
-inline AttributeIDRef::AttributeIDRef(StringRefNull name) : name_(name)
-{
-}
+inline AttributeIDRef::AttributeIDRef(StringRefNull name) : name_(name) {}
 
-inline AttributeIDRef::AttributeIDRef(const char *name) : name_(name)
-{
-}
+inline AttributeIDRef::AttributeIDRef(const char *name) : name_(name) {}
 
-inline AttributeIDRef::AttributeIDRef(const std::string &name) : name_(name)
-{
-}
+inline AttributeIDRef::AttributeIDRef(const std::string &name) : name_(name) {}
 
 /* The anonymous id is only borrowed, the caller has to keep a reference to it. */
 inline AttributeIDRef::AttributeIDRef(const AnonymousAttributeID &anonymous_id)

@@ -7,7 +7,7 @@
 #include "BLI_task.hh"
 
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -98,7 +98,8 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     return;
   }
   else if (params.node_tree().typeinfo->validate_link(
-               eNodeSocketDatatype(params.other_socket().type), SOCK_FLOAT)) {
+               eNodeSocketDatatype(params.other_socket().type), SOCK_FLOAT))
+  {
     params.add_item(IFACE_("Count"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("GeometryNodeMeshLine");
       node_storage(node).mode = GEO_NODE_MESH_LINE_MODE_OFFSET;
@@ -178,10 +179,10 @@ Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
     return nullptr;
   }
 
-  Mesh *mesh = BKE_mesh_new_nomain(count, count - 1, 0, 0, 0);
+  Mesh *mesh = BKE_mesh_new_nomain(count, count - 1, 0, 0);
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<int2> edges = mesh->edges_for_write();
 
   threading::parallel_invoke(
       1024 < count,
@@ -195,8 +196,8 @@ Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
       [&]() {
         threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
           for (const int i : range) {
-            edges[i].v1 = i;
-            edges[i].v2 = i + 1;
+            edges[i][0] = i;
+            edges[i][1] = i + 1;
           }
         });
       });

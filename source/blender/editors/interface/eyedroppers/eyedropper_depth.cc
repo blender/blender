@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup edinterface
@@ -88,7 +88,8 @@ static int depthdropper_init(bContext *C, wmOperator *op)
     if (rv3d && rv3d->persp == RV3D_CAMOB) {
       View3D *v3d = CTX_wm_view3d(C);
       if (v3d->camera && v3d->camera->data &&
-          BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data))) {
+          BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data)))
+      {
         Camera *camera = (Camera *)v3d->camera->data;
         RNA_pointer_create(&camera->id, &RNA_CameraDOFSettings, &camera->dof, &ddr->ptr);
         ddr->prop = RNA_struct_find_property(&ddr->ptr, "focus_distance");
@@ -102,7 +103,8 @@ static int depthdropper_init(bContext *C, wmOperator *op)
 
   if ((ddr->ptr.data == nullptr) || (ddr->prop == nullptr) ||
       (RNA_property_editable(&ddr->ptr, ddr->prop) == false) ||
-      (RNA_property_type(ddr->prop) != PROP_FLOAT)) {
+      (RNA_property_type(ddr->prop) != PROP_FLOAT))
+  {
     MEM_freeN(ddr);
     return false;
   }
@@ -337,10 +339,12 @@ static bool depthdropper_poll(bContext *C)
   /* check if there's an active button taking depth value */
   if ((CTX_wm_window(C) != nullptr) &&
       (but = UI_context_active_but_prop_get(C, &ptr, &prop, &index_dummy)) &&
-      (but->type == UI_BTYPE_NUM) && (prop != nullptr)) {
+      (but->type == UI_BTYPE_NUM) && (prop != nullptr))
+  {
     if ((RNA_property_type(prop) == PROP_FLOAT) &&
         (RNA_property_subtype(prop) & PROP_UNIT_LENGTH) &&
-        (RNA_property_array_check(prop) == false)) {
+        (RNA_property_array_check(prop) == false))
+    {
       return true;
     }
   }
@@ -349,7 +353,8 @@ static bool depthdropper_poll(bContext *C)
     if (rv3d && rv3d->persp == RV3D_CAMOB) {
       View3D *v3d = CTX_wm_view3d(C);
       if (v3d->camera && v3d->camera->data &&
-          BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data))) {
+          BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data)))
+      {
         return true;
       }
     }

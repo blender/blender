@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edinterface
@@ -44,6 +44,7 @@
 #include "UI_view2d.h"
 
 #include "interface_intern.hh"
+#include "view2d_intern.hh"
 
 static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize);
 
@@ -368,7 +369,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
   /* set 'tot' rect before setting cur? */
   /* XXX confusing stuff here still */
   if (tot_changed) {
-    UI_view2d_totRect_set_resize(v2d, winx, winy, !do_init);
+    view2d_totRect_set_resize(v2d, winx, winy, !do_init);
   }
   else {
     ui_view2d_curRect_validate_resize(v2d, !do_init);
@@ -960,7 +961,7 @@ void UI_view2d_curRect_reset(View2D *v2d)
 
 /* ------------------ */
 
-void UI_view2d_totRect_set_resize(View2D *v2d, int width, int height, bool resize)
+void view2d_totRect_set_resize(View2D *v2d, int width, int height, bool resize)
 {
   /* don't do anything if either value is 0 */
   width = abs(width);
@@ -1021,7 +1022,7 @@ void UI_view2d_totRect_set_resize(View2D *v2d, int width, int height, bool resiz
 
 void UI_view2d_totRect_set(View2D *v2d, int width, int height)
 {
-  UI_view2d_totRect_set_resize(v2d, width, height, false);
+  view2d_totRect_set_resize(v2d, width, height, false);
 }
 
 void UI_view2d_zoom_cache_reset(void)
@@ -1288,7 +1289,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
   immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
   /* Scaling the dots fully with the zoom looks too busy, but a bit of size variation is nice. */
-  const float min_point_size = 2.0f * UI_DPI_FAC;
+  const float min_point_size = 2.0f * UI_SCALE_FAC;
   const float point_size_factor = 1.5f;
   const float max_point_size = point_size_factor * min_point_size;
 
@@ -1367,28 +1368,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
 /** \name Scrollers
  * \{ */
 
-/**
- * View2DScrollers is typedef'd in UI_view2d.h
- *
- * \warning The start of this struct must not change, as view2d_ops.c uses this too.
- * For now, we don't need to have a separate (internal) header for structs like this...
- */
-struct View2DScrollers {
-  /* focus bubbles */
-  /* focus bubbles */
-  /* focus bubbles */
-  int vert_min, vert_max; /* vertical scroll-bar */
-  int hor_min, hor_max;   /* horizontal scroll-bar */
-
-  /** Exact size of slider backdrop. */
-  rcti hor, vert;
-  /* set if sliders are full, we don't draw them */
-  /* int horfull, vertfull; */ /* UNUSED */
-};
-
-void UI_view2d_scrollers_calc(View2D *v2d,
-                              const rcti *mask_custom,
-                              struct View2DScrollers *r_scrollers)
+void view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom, View2DScrollers *r_scrollers)
 {
   rcti vert, hor;
   float fac1, fac2, totsize, scrollsize;
@@ -1515,7 +1495,7 @@ void UI_view2d_scrollers_calc(View2D *v2d,
 void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_full_hide)
 {
   View2DScrollers scrollers;
-  UI_view2d_scrollers_calc(v2d, mask_custom, &scrollers);
+  view2d_scrollers_calc(v2d, mask_custom, &scrollers);
   bTheme *btheme = UI_GetTheme();
   rcti vert, hor;
   const int scroll = view2d_scroll_mapped(v2d->scroll);
@@ -1559,7 +1539,8 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
      *   and only the time-grids with their zoom-ability can do so).
      */
     if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) &&
-        (BLI_rcti_size_x(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) {
+        (BLI_rcti_size_x(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT))
+    {
       state |= UI_SCROLL_ARROWS;
     }
 
@@ -1594,7 +1575,8 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
      *   and only the time-grids with their zoomability can do so)
      */
     if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 && (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) &&
-        (BLI_rcti_size_y(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) {
+        (BLI_rcti_size_y(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT))
+    {
       state |= UI_SCROLL_ARROWS;
     }
 
@@ -1827,7 +1809,8 @@ bool UI_view2d_view_to_region_rcti_clip(const View2D *v2d, const rctf *rect_src,
   rect_tmp.ymax = (rect_src->ymax - v2d->cur.ymin) / cur_size[1];
 
   if (((rect_tmp.xmax < 0.0f) || (rect_tmp.xmin > 1.0f) || (rect_tmp.ymax < 0.0f) ||
-       (rect_tmp.ymin > 1.0f)) == 0) {
+       (rect_tmp.ymin > 1.0f)) == 0)
+  {
     /* Step 2: convert proportional distances to screen coordinates. */
     rect_tmp.xmin = v2d->mask.xmin + (rect_tmp.xmin * mask_size[0]);
     rect_tmp.xmax = v2d->mask.ymin + (rect_tmp.xmax * mask_size[0]);

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -1359,18 +1359,6 @@ msgid "Add Color"
 msgstr "เพิ่มสี"
 
 
-msgid "Root"
-msgstr "ฐาน"
-
-
-msgid "Sharp"
-msgstr "แหลม"
-
-
-msgid "Inverse Square"
-msgstr "จัตุรัสผกผัน"
-
-
 msgid "Repeat"
 msgstr "ทำซ้ำ"
 
@@ -1567,6 +1555,10 @@ msgstr "เฉพาะจุด"
 msgctxt "Light"
 msgid "Area"
 msgstr "พื้นที่"
+
+
+msgid "Inverse Square"
+msgstr "จัตุรัสผกผัน"
 
 
 msgid "Samples"
@@ -1868,10 +1860,6 @@ msgid "Memory"
 msgstr "หน่วยความจำ"
 
 
-msgid "Lines"
-msgstr "เส้น"
-
-
 msgid "Register"
 msgstr "ทะเบียน"
 
@@ -1914,6 +1902,10 @@ msgstr "สะท้อน Y"
 
 msgid "Pattern"
 msgstr "ลวดลาย"
+
+
+msgid "Sharp"
+msgstr "แหลม"
 
 
 msgid "Rings"
@@ -2253,6 +2245,10 @@ msgid "Polygon Center"
 msgstr "ศูนย์กลางโพลิกอน"
 
 
+msgid "Root"
+msgstr "ฐาน"
+
+
 msgid "Intersect"
 msgstr "ตัดกัน"
 
@@ -2356,6 +2352,10 @@ msgstr "แนวฉาก Z"
 
 msgid "Face Area"
 msgstr "พื้นที่ด้าน"
+
+
+msgid "Lines"
+msgstr "เส้น"
 
 
 msgid "Units"
@@ -2584,6 +2584,10 @@ msgid "Paste from Clipboard"
 msgstr "วางจากคลิปบอร์ด"
 
 
+msgid "Selection"
+msgstr "การเลือก"
+
+
 msgid "Report"
 msgstr "รายงาน"
 
@@ -2705,6 +2709,14 @@ msgid "Open"
 msgstr "เปิด"
 
 
+msgid "Show"
+msgstr "แสดง"
+
+
+msgid "Play"
+msgstr "เล่น"
+
+
 msgid "Increment"
 msgstr "จำนวนที่เพิ่มขึ้น"
 
@@ -2715,10 +2727,6 @@ msgstr "ค้นหาทั้งหมด"
 
 msgid "Next"
 msgstr "ถัดไป"
-
-
-msgid "Selection"
-msgstr "การเลือก"
 
 
 msgctxt "Operator"
@@ -3028,6 +3036,10 @@ msgid "Join"
 msgstr "เชื่อมโยง"
 
 
+msgid "Selected Only"
+msgstr "ที่ถูกเลือกเท่านั้น"
+
+
 msgid "Sets the object interaction mode"
 msgstr "ตั้งโหมดที่จะกระทำกับวัตถุ"
 
@@ -3129,10 +3141,6 @@ msgid "(De)select all"
 msgstr "(ยกเลิก)เลือกทั้งหมด"
 
 
-msgid "Show"
-msgstr "แสดง"
-
-
 msgid "Palette"
 msgstr "จานสี"
 
@@ -3140,10 +3148,6 @@ msgstr "จานสี"
 msgctxt "Operator"
 msgid "Mirror"
 msgstr "กระจกสะท้อน"
-
-
-msgid "Selected Only"
-msgstr "ที่ถูกเลือกเท่านั้น"
 
 
 msgid "Axis Lock"
@@ -3303,10 +3307,6 @@ msgid "Path to the matching po file"
 msgstr "ตำแหน่งไปยังไฟล์ po ที่ตรงกัน"
 
 
-msgid "New Image"
-msgstr "ภาพใหม่"
-
-
 msgid "Reset UV projection"
 msgstr "ตั้งค่าการฉาย UV ใหม่"
 
@@ -3355,10 +3355,6 @@ msgstr "พัก"
 
 msgid "Render Anim"
 msgstr "เรนเดอร์อนิเมชัน"
-
-
-msgid "Play"
-msgstr "เล่น"
 
 
 msgctxt "Operator"
@@ -3430,10 +3426,6 @@ msgstr "การแสดงหน้ากาก"
 msgctxt "MovieClip"
 msgid "Scene Setup"
 msgstr "การติดตั้งฉาก"
-
-
-msgid "Lens"
-msgstr "เลนส์"
 
 
 msgid "Transparent"
@@ -3888,6 +3880,10 @@ msgid "Top Line"
 msgstr "เส้นบน"
 
 
+msgid "Lens"
+msgstr "เลนส์"
+
+
 msgid "Lock to Cursor"
 msgstr "ล็อกที่เคอร์เซอร์"
 
@@ -4016,10 +4012,6 @@ msgid "Display Grid Floor"
 msgstr "แสดงพื้นตาราง"
 
 
-msgid "Hidden Wire"
-msgstr "เส้นที่มองไม่เห็น"
-
-
 msgid "Viewport Shading"
 msgstr "วิวพอร์ตแรเงา"
 
@@ -4118,10 +4110,6 @@ msgid "    RNA Context: "
 msgstr "    บริบท RNA: "
 
 
-msgid "[{}]: \"{}\" ({})"
-msgstr "[{}]: \"{}\" ({})"
-
-
 msgctxt "Operator"
 msgid "New"
 msgstr "ใหม่"
@@ -4215,10 +4203,6 @@ msgid "None"
 msgstr "ไม่มี"
 
 
-msgid "Old"
-msgstr "เก่า"
-
-
 msgid "Date"
 msgstr "วันที่"
 
@@ -4255,11 +4239,6 @@ msgstr "คำนวณ"
 msgctxt "Operator"
 msgid "Location"
 msgstr "ตำแหน่ง"
-
-
-msgctxt "Operator"
-msgid "Zoom %d:%d"
-msgstr "ซูม %d:%d"
 
 
 msgid "Zoom %d:%d"
@@ -4753,10 +4732,6 @@ msgstr "ไฟล์:"
 
 msgid "Author:"
 msgstr "ผู้สร้าง:"
-
-
-msgid "author"
-msgstr "ผู้สร้าง"
 
 
 msgid "Version:"
@@ -5647,6 +5622,10 @@ msgstr "แทนที่อันดั้งเดิม"
 
 msgid "Val"
 msgstr "Val"
+
+
+msgid "Old"
+msgstr "เก่า"
 
 
 msgid "Shader Editor"

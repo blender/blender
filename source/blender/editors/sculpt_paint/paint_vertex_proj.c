@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup edsculpt
@@ -113,7 +113,8 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(void *userData,
 
     if (ED_view3d_project_float_object(
             vp_update->region, co, co_ss, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) ==
-        V3D_PROJ_RET_OK) {
+        V3D_PROJ_RET_OK)
+    {
       const float dist_sq = len_squared_v2v2(vp_update->mval_fl, co_ss);
       if (dist_sq > vp_handle->dists_sq[index]) {
         /* bail out! */

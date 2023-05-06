@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup openexr
@@ -22,7 +22,7 @@ void imb_exitopenexr(void);
  */
 bool imb_is_a_openexr(const unsigned char *mem, size_t size);
 
-bool imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags);
+bool imb_save_openexr(struct ImBuf *ibuf, const char *filepath, int flags);
 
 struct ImBuf *imb_load_openexr(const unsigned char *mem, size_t size, int flags, char *colorspace);
 

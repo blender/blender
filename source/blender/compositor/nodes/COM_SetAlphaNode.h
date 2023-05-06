@@ -13,9 +13,7 @@ namespace blender::compositor {
  */
 class SetAlphaNode : public Node {
  public:
-  SetAlphaNode(bNode *editor_node) : Node(editor_node)
-  {
-  }
+  SetAlphaNode(bNode *editor_node) : Node(editor_node) {}
   void convert_to_operations(NodeConverter &converter,
                              const CompositorContext &context) const override;
 };

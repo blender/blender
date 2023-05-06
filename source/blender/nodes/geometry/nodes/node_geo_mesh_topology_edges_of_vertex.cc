@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 
 #include "BLI_task.hh"
@@ -60,7 +60,7 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
                                  const IndexMask mask) const final
   {
     const IndexRange vert_range(mesh.totvert);
-    const Span<MEdge> edges = mesh.edges();
+    const Span<int2> edges = mesh.edges();
     const Array<Vector<int>> vert_to_edge_map = bke::mesh_topology::build_vert_to_edge_map(
         edges, mesh.totvert);
 
@@ -173,11 +173,11 @@ class EdgesOfVertCountInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_POINT) {
       return {};
     }
-    const Span<MEdge> edges = mesh.edges();
+    const Span<int2> edges = mesh.edges();
     Array<int> counts(mesh.totvert, 0);
     for (const int i : edges.index_range()) {
-      counts[edges[i].v1]++;
-      counts[edges[i].v2]++;
+      counts[edges[i][0]]++;
+      counts[edges[i][1]]++;
     }
     return VArray<int>::ForContainer(std::move(counts));
   }
@@ -206,7 +206,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<int> vert_index = params.extract_input<Field<int>>("Vertex Index");
   if (params.output_is_required("Total")) {
     params.set_output("Total",
-                      Field<int>(std::make_shared<FieldAtIndexInput>(
+                      Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           vert_index,
                           Field<int>(std::make_shared<EdgesOfVertCountInput>()),
                           ATTR_DOMAIN_POINT)));

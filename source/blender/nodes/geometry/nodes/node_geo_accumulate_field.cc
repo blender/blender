@@ -15,25 +15,26 @@ NODE_STORAGE_FUNCS(NodeAccumulateField)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  std::string value_in_description = "The values to be accumulated";
-  std::string leading_out_description =
-      "The running total of values in the corresponding group, starting at the first value";
-  std::string trailing_out_description =
-      "The running total of values in the corresponding group, starting at zero";
-  std::string total_out_description = "The total of all of the values in the corresponding group";
+  std::string value_in_description = N_("The values to be accumulated");
+  std::string leading_out_description = N_(
+      "The running total of values in the corresponding group, starting at the first value");
+  std::string trailing_out_description = N_(
+      "The running total of values in the corresponding group, starting at zero");
+  std::string total_out_description = N_(
+      "The total of all of the values in the corresponding group");
 
   b.add_input<decl::Vector>(N_("Value"), "Value Vector")
       .default_value({1.0f, 1.0f, 1.0f})
       .supports_field()
-      .description(N_(value_in_description));
+      .description(value_in_description);
   b.add_input<decl::Float>(N_("Value"), "Value Float")
       .default_value(1.0f)
       .supports_field()
-      .description(N_(value_in_description));
+      .description(value_in_description);
   b.add_input<decl::Int>(N_("Value"), "Value Int")
       .default_value(1)
       .supports_field()
-      .description(N_(value_in_description));
+      .description(value_in_description);
   b.add_input<decl::Int>(N_("Group ID"), "Group Index")
       .supports_field()
       .description(
@@ -41,33 +42,33 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_output<decl::Vector>(N_("Leading"), "Leading Vector")
       .field_source_reference_all()
-      .description(N_(leading_out_description));
+      .description(leading_out_description);
   b.add_output<decl::Float>(N_("Leading"), "Leading Float")
       .field_source_reference_all()
-      .description(N_(leading_out_description));
+      .description(leading_out_description);
   b.add_output<decl::Int>(N_("Leading"), "Leading Int")
       .field_source_reference_all()
-      .description(N_(leading_out_description));
+      .description(leading_out_description);
 
   b.add_output<decl::Vector>(N_("Trailing"), "Trailing Vector")
       .field_source_reference_all()
-      .description(N_(trailing_out_description));
+      .description(trailing_out_description);
   b.add_output<decl::Float>(N_("Trailing"), "Trailing Float")
       .field_source_reference_all()
-      .description(N_(trailing_out_description));
+      .description(trailing_out_description);
   b.add_output<decl::Int>(N_("Trailing"), "Trailing Int")
       .field_source_reference_all()
-      .description(N_(trailing_out_description));
+      .description(trailing_out_description);
 
   b.add_output<decl::Vector>(N_("Total"), "Total Vector")
       .field_source_reference_all()
-      .description(N_(total_out_description));
+      .description(total_out_description);
   b.add_output<decl::Float>(N_("Total"), "Total Float")
       .field_source_reference_all()
-      .description(N_(total_out_description));
+      .description(total_out_description);
   b.add_output<decl::Int>(N_("Total"), "Total Int")
       .field_source_reference_all()
-      .description(N_(total_out_description));
+      .description(total_out_description);
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -277,7 +278,8 @@ template<typename T> class AccumulateFieldInput final : public bke::GeometryFiel
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const AccumulateFieldInput *other_accumulate = dynamic_cast<const AccumulateFieldInput *>(
-            &other)) {
+            &other))
+    {
       return input_ == other_accumulate->input_ &&
              group_index_ == other_accumulate->group_index_ &&
              source_domain_ == other_accumulate->source_domain_ &&
@@ -389,10 +391,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   const eAttrDomain source_domain = eAttrDomain(storage.domain);
 
   Field<int> group_index_field = params.extract_input<Field<int>>("Group Index");
-  attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+  bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
     using T = decltype(dummy);
-    if constexpr (std::is_same_v<T, int> || std::is_same_v<T, float> ||
-                  std::is_same_v<T, float3>) {
+    if constexpr (std::is_same_v<T, int> || std::is_same_v<T, float> || std::is_same_v<T, float3>)
+    {
       const std::string suffix = " " + identifier_suffix<T>();
       Field<T> input_field = params.extract_input<Field<T>>("Value" + suffix);
       if (params.output_is_required("Leading" + suffix)) {

@@ -29,7 +29,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-Main *BKE_main_new()
+Main *BKE_main_new(void)
 {
   Main *bmain = MEM_callocN(sizeof(Main), "new main");
   bmain->lock = MEM_mallocN(sizeof(SpinLock), "main lock");
@@ -40,6 +40,17 @@ Main *BKE_main_new()
 
 void BKE_main_free(Main *mainvar)
 {
+  /* In case this is called on a 'split-by-libraries' list of mains.
+   *
+   * Should not happen in typical usages, but can occur e.g. if a file reading is aborted. */
+  if (mainvar->next) {
+    BKE_main_free(mainvar->next);
+  }
+
+  /* Include this check here as the path may be manipulated after creation. */
+  BLI_assert_msg(!(mainvar->filepath[0] == '/' && mainvar->filepath[1] == '/'),
+                 "'.blend' relative \"//\" must not be used in Main!");
+
   /* also call when reading a file, erase all, etc */
   ListBase *lbarray[INDEX_ID_MAX];
   int a;
@@ -326,7 +337,8 @@ void BKE_main_relations_tag_set(struct Main *bmain,
   GHashIterator *gh_iter;
   for (gh_iter = BLI_ghashIterator_new(bmain->relations->relations_from_pointers);
        !BLI_ghashIterator_done(gh_iter);
-       BLI_ghashIterator_step(gh_iter)) {
+       BLI_ghashIterator_step(gh_iter))
+  {
     MainIDRelationsEntry *entry = BLI_ghashIterator_getValue(gh_iter);
     if (value) {
       entry->tags |= tag;
@@ -618,7 +630,7 @@ ListBase *which_libbase(Main *bmain, short type)
       return &(bmain->particles);
     case ID_WM:
       return &(bmain->wm);
-    case ID_GD:
+    case ID_GD_LEGACY:
       return &(bmain->gpencils);
     case ID_MC:
       return &(bmain->movieclips);
@@ -662,7 +674,7 @@ int set_listbasepointers(Main *bmain, ListBase *lb[/*INDEX_ID_MAX*/])
   lb[INDEX_ID_PAL] = &(bmain->palettes);
 
   /* Referenced by nodes, objects, view, scene etc, before to free after. */
-  lb[INDEX_ID_GD] = &(bmain->gpencils);
+  lb[INDEX_ID_GD_LEGACY] = &(bmain->gpencils);
 
   lb[INDEX_ID_NT] = &(bmain->nodetrees);
   lb[INDEX_ID_IM] = &(bmain->images);

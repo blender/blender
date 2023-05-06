@@ -9,12 +9,14 @@
 #ifdef WIN32
 
 #  include <conio.h>
+#  include <shlwapi.h>
 #  include <stdio.h>
 #  include <stdlib.h>
 
 #  include "MEM_guardedalloc.h"
 
 #  define WIN32_SKIP_HKEY_PROTECTION /* Need to use HKEY. */
+#  include "BLI_fileops.h"
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 #  include "BLI_utildefines.h"
@@ -31,7 +33,7 @@ int BLI_windows_get_executable_dir(char *str)
   int a;
   /* Change to utf support. */
   GetModuleFileName(NULL, str, FILE_MAX);
-  BLI_split_dir_part(str, dir, sizeof(dir)); /* shouldn't be relative */
+  BLI_path_split_dir_part(str, dir, sizeof(dir)); /* shouldn't be relative */
   a = strlen(dir);
   if (dir[a - 1] == '\\') {
     dir[a - 1] = 0;
@@ -176,6 +178,63 @@ bool BLI_windows_register_blend_extension(const bool background)
     MessageBox(0, MBox, "Blender", MB_OK | MB_ICONINFORMATION);
   }
   return true;
+}
+
+/**
+ * Check the registry to see if there is an operation association to a file
+ * extension. Extension *should almost always contain a dot like `.txt`,
+ * but this does allow querying non - extensions *like "Directory", "Drive",
+ * "AllProtocols", etc - anything in Classes with a "shell" branch.
+ */
+static bool BLI_windows_file_operation_is_registered(const char *extension, const char *operation)
+{
+  HKEY hKey;
+  HRESULT hr = AssocQueryKey(ASSOCF_INIT_IGNOREUNKNOWN,
+                             ASSOCKEY_SHELLEXECCLASS,
+                             (LPCTSTR)extension,
+                             (LPCTSTR)operation,
+                             &hKey);
+  if (SUCCEEDED(hr)) {
+    RegCloseKey(hKey);
+    return true;
+  }
+  return false;
+}
+
+bool BLI_windows_external_operation_supported(const char *filepath, const char *operation)
+{
+  if (STREQ(operation, "open") || STREQ(operation, "properties")) {
+    return true;
+  }
+
+  if (BLI_is_dir(filepath)) {
+    return BLI_windows_file_operation_is_registered("Directory", operation);
+  }
+
+  const char *extension = BLI_path_extension(filepath);
+  return BLI_windows_file_operation_is_registered(extension, operation);
+}
+
+bool BLI_windows_external_operation_execute(const char *filepath, const char *operation)
+{
+  WCHAR wpath[FILE_MAX];
+  if (conv_utf_8_to_16(filepath, wpath, ARRAY_SIZE(wpath)) != 0) {
+    return false;
+  }
+
+  WCHAR woperation[FILE_MAX];
+  if (conv_utf_8_to_16(operation, woperation, ARRAY_SIZE(woperation)) != 0) {
+    return false;
+  }
+
+  SHELLEXECUTEINFOW shellinfo = {0};
+  shellinfo.cbSize = sizeof(SHELLEXECUTEINFO);
+  shellinfo.fMask = SEE_MASK_INVOKEIDLIST;
+  shellinfo.lpVerb = woperation;
+  shellinfo.lpFile = wpath;
+  shellinfo.nShow = SW_SHOW;
+
+  return ShellExecuteExW(&shellinfo);
 }
 
 void BLI_windows_get_default_root_dir(char root[4])

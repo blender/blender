@@ -22,7 +22,7 @@
 
 #include "DNA_camera_types.h"
 #include "DNA_curveprofile_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_material_types.h"
@@ -42,14 +42,14 @@
 #include "BKE_colortools.h"
 #include "BKE_curveprofile.h"
 #include "BKE_customdata.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_node.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
@@ -464,7 +464,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
       Object *ob = static_cast<Object *>(
           BLI_findstring(&bmain->objects, "Stroke", offsetof(ID, name) + 2));
-      if (ob && ob->type == OB_GPENCIL) {
+      if (ob && ob->type == OB_GPENCIL_LEGACY) {
         ob->dtx |= OB_USE_GPENCIL_LIGHTS;
       }
     }
@@ -550,7 +550,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
   if (app_template && STREQ(app_template, "2D_Animation")) {
     LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-      if (object->type == OB_GPENCIL) {
+      if (object->type == OB_GPENCIL_LEGACY) {
         /* Set grease pencil object in drawing mode */
         bGPdata *gpd = (bGPdata *)object->data;
         object->mode = OB_MODE_PAINT_GPENCIL;

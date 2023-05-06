@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -25,6 +25,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -76,7 +77,7 @@
 #endif
 
 #include "GHOST_C-api.h"
-#include "GHOST_Path-api.h"
+#include "GHOST_Path-api.hh"
 
 #include "RNA_define.h"
 
@@ -95,7 +96,7 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_asset.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_keyframes_edit.h"
 #include "ED_keyframing.h"
 #include "ED_node.h"
@@ -358,18 +359,59 @@ void WM_init(bContext *C, int argc, const char **argv)
   wm_homefile_read_post(C, params_file_read_post);
 }
 
-void WM_init_splash(bContext *C)
+static bool wm_init_splash_show_on_startup_check()
 {
-  if ((U.uiflag & USER_SPLASH_DISABLE) == 0) {
-    wmWindowManager *wm = CTX_wm_manager(C);
-    wmWindow *prevwin = CTX_wm_window(C);
+  if (U.uiflag & USER_SPLASH_DISABLE) {
+    return false;
+  }
 
-    if (wm->windows.first) {
-      CTX_wm_window_set(C, static_cast<wmWindow *>(wm->windows.first));
-      WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
-      CTX_wm_window_set(C, prevwin);
+  bool use_splash = false;
+
+  const char *blendfile_path = BKE_main_blendfile_path_from_global();
+  if (blendfile_path[0] == '\0') {
+    /* Common case, no file is loaded, show the splash. */
+    use_splash = true;
+  }
+  else {
+    /* A less common case, if there is no user preferences, show the splash screen
+     * so the user has the opportunity to restore settings from a previous version. */
+    const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
+    if (cfgdir) {
+      char userpref[FILE_MAX];
+      BLI_path_join(userpref, sizeof(userpref), cfgdir, BLENDER_USERPREF_FILE);
+      if (!BLI_exists(userpref)) {
+        use_splash = true;
+      }
+    }
+    else {
+      use_splash = true;
     }
   }
+
+  return use_splash;
+}
+
+void WM_init_splash_on_startup(bContext *C)
+{
+  if (!wm_init_splash_show_on_startup_check()) {
+    return;
+  }
+
+  WM_init_splash(C);
+}
+
+void WM_init_splash(bContext *C)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  /* NOTE(@ideasman42): this should practically never happen. */
+  if (UNLIKELY(BLI_listbase_is_empty(&wm->windows))) {
+    return;
+  }
+
+  wmWindow *prevwin = CTX_wm_window(C);
+  CTX_wm_window_set(C, static_cast<wmWindow *>(wm->windows.first));
+  WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
+  CTX_wm_window_set(C, prevwin);
 }
 
 /* free strings of open recent files */
@@ -456,8 +498,9 @@ void WM_exit_ex(bContext *C, const bool do_python)
         BlendFileWriteParams blend_file_write_params{};
         if ((has_edited &&
              BLO_write_file(bmain, filepath, fileflags, &blend_file_write_params, nullptr)) ||
-            BLO_memfile_write_file(undo_memfile, filepath)) {
-          printf("Saved session recovery to '%s'\n", filepath);
+            BLO_memfile_write_file(undo_memfile, filepath))
+        {
+          printf("Saved session recovery to \"%s\"\n", filepath);
         }
       }
     }

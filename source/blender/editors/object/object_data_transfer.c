@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. All rights reserved. */
+ * Copyright 2014 Blender Foundation */
 
 /** \file
  * \ingroup edobj
@@ -519,7 +519,8 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
                                         mix_factor,
                                         NULL,
                                         false,
-                                        op->reports)) {
+                                        op->reports))
+      {
 
         if (data_type == DT_TYPE_LNOR && use_create) {
           ((Mesh *)ob_dst->data)->flag |= ME_AUTOSMOOTH;

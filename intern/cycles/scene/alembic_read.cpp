@@ -470,7 +470,8 @@ static void add_subd_edge_creases(CachedData &cached_data,
                                   chrono_t time)
 {
   if (!(data.crease_indices.valid() && data.crease_lengths.valid() &&
-        data.crease_sharpnesses.valid())) {
+        data.crease_sharpnesses.valid()))
+  {
     return;
   }
 
@@ -519,7 +520,8 @@ static void add_subd_vertex_creases(CachedData &cached_data,
   const FloatArraySamplePtr creases_sharpnesses = data.crease_sharpnesses.getValue(iss);
 
   if (!(creases_indices && creases_sharpnesses) ||
-      creases_indices->size() != creases_sharpnesses->size()) {
+      creases_indices->size() != creases_sharpnesses->size())
+  {
     return;
   }
 

@@ -71,11 +71,9 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
       object_normal_transform(kg, sd, &normal_out);
     }
 
-    normal_out = ensure_valid_reflection(sd->Ng, sd->wi, normal_out);
     stack_store_float3(stack, node.w, normal_out);
   }
-  else
-  {
+  else {
     stack_store_float3(stack, node.w, zero_float3());
   }
 #endif
@@ -129,8 +127,7 @@ ccl_device_noinline void svm_node_displacement(KernelGlobals kg,
 
     stack_store_float3(stack, node.z, dP);
   }
-  else
-  {
+  else {
     stack_store_float3(stack, node.z, zero_float3());
   }
 }
@@ -184,8 +181,7 @@ ccl_device_noinline int svm_node_vector_displacement(
 
     stack_store_float3(stack, displacement_offset, dP);
   }
-  else
-  {
+  else {
     stack_store_float3(stack, displacement_offset, zero_float3());
     (void)data_node;
   }

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 
 #include "node_geometry_util.hh"
@@ -35,8 +35,7 @@ class CornerFaceIndexInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_CORNER) {
       return {};
     }
-    return VArray<int>::ForContainer(
-        bke::mesh_topology::build_loop_to_poly_map(mesh.polys(), mesh.totloop));
+    return VArray<int>::ForContainer(bke::mesh_topology::build_loop_to_poly_map(mesh.polys()));
   }
 
   uint64_t hash() const final
@@ -64,12 +63,12 @@ class CornerIndexInFaceInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_CORNER) {
       return {};
     }
-    const Span<MPoly> polys = mesh.polys();
-    Array<int> loop_to_poly_map = bke::mesh_topology::build_loop_to_poly_map(polys, mesh.totloop);
+    const OffsetIndices polys = mesh.polys();
+    Array<int> loop_to_poly_map = bke::mesh_topology::build_loop_to_poly_map(polys);
     return VArray<int>::ForFunc(
         mesh.totloop, [polys, loop_to_poly_map = std::move(loop_to_poly_map)](const int corner_i) {
           const int poly_i = loop_to_poly_map[corner_i];
-          return corner_i - polys[poly_i].loopstart;
+          return corner_i - polys[poly_i].start();
         });
   }
 
@@ -97,14 +96,14 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<int> corner_index = params.extract_input<Field<int>>("Corner Index");
   if (params.output_is_required("Face Index")) {
     params.set_output("Face Index",
-                      Field<int>(std::make_shared<FieldAtIndexInput>(
+                      Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           corner_index,
                           Field<int>(std::make_shared<CornerFaceIndexInput>()),
                           ATTR_DOMAIN_CORNER)));
   }
   if (params.output_is_required("Index in Face")) {
     params.set_output("Index in Face",
-                      Field<int>(std::make_shared<FieldAtIndexInput>(
+                      Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           corner_index,
                           Field<int>(std::make_shared<CornerIndexInFaceInput>()),
                           ATTR_DOMAIN_CORNER)));

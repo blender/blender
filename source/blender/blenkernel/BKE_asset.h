@@ -42,7 +42,8 @@ struct AssetTagEnsureResult {
   bool is_new;
 };
 
-struct AssetTag *BKE_asset_metadata_tag_add(struct AssetMetaData *asset_data, const char *name);
+struct AssetTag *BKE_asset_metadata_tag_add(struct AssetMetaData *asset_data, const char *name)
+    ATTR_NONNULL(1, 2);
 /**
  * Make sure there is a tag with name \a name, create one if needed.
  */
@@ -67,6 +68,13 @@ struct PreviewImage *BKE_asset_metadata_preview_get_from_id(const struct AssetMe
 
 void BKE_asset_metadata_write(struct BlendWriter *writer, struct AssetMetaData *asset_data);
 void BKE_asset_metadata_read(struct BlendDataReader *reader, struct AssetMetaData *asset_data);
+
+/** Frees the weak reference and its data, and nulls the given pointer. */
+void BKE_asset_weak_reference_free(AssetWeakReference **weak_ref);
+AssetWeakReference *BKE_asset_weak_reference_copy(AssetWeakReference *weak_ref);
+void BKE_asset_weak_reference_write(struct BlendWriter *writer,
+                                    const AssetWeakReference *weak_ref);
+void BKE_asset_weak_reference_read(struct BlendDataReader *reader, AssetWeakReference *weak_ref);
 
 #ifdef __cplusplus
 }

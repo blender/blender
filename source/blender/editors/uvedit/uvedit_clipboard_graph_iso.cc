@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later
  * Copyright (c) 2019 Stefano Quer.
- * Additional code, copyright 2022 Blender Foundation. All rights reserved.
+ * Additional code, copyright 2022 Blender Foundation
  *
  * Originally 6846114 from https://github.com/stefanoquer/graphISO/blob/master/v3
  * graphISO: Tools to compute the Maximum Common Subgraph between two graphs.
@@ -191,7 +191,8 @@ static void generate_next_domains(uint8_t domains[][BDS],
   int bound = 0;
   uint8_t *bd;
   for (i = *bd_pos - 1, bd = &domains[i][L]; i >= 0 && bd[P] == cur_pos - 1;
-       i--, bd = &domains[i][L]) {
+       i--, bd = &domains[i][L])
+  {
 
     uint8_t l_len = partition(left, bd[L], bd[LL], adjmat0[v]);
     uint8_t r_len = partition(right, bd[R], bd[RL], adjmat1[w]);
@@ -256,7 +257,8 @@ static void select_bidomain(
   int best = INT_MAX;
   uint8_t *bd;
   for (i = bd_pos - 1, bd = &domains[i][L]; i >= 0 && bd[P] == current_matching_size;
-       i--, bd = &domains[i][L]) {
+       i--, bd = &domains[i][L])
+  {
     if (connected && current_matching_size > 0 && !bd[ADJ]) {
       continue;
     }
@@ -304,8 +306,13 @@ static uint8_t select_next_w(uint8_t *right, uint8_t *bd)
   return idx;
 }
 
-static void maximum_common_subgraph_internal(
-    int incumbent[][2], int *inc_pos, uint8_t **adjmat0, int n0, uint8_t **adjmat1, int n1)
+static void maximum_common_subgraph_internal(int incumbent[][2],
+                                             int *inc_pos,
+                                             uint8_t **adjmat0,
+                                             int n0,
+                                             uint8_t **adjmat1,
+                                             int n1,
+                                             bool *r_search_abandoned)
 {
   int min = std::min(n0, n1);
 
@@ -332,6 +339,7 @@ static void maximum_common_subgraph_internal(
        * Can occur with moderate sized inputs where the graph has lots of symmetry, e.g. a cube
        * subdivided 3x times.
        */
+      *r_search_abandoned = true;
       *inc_pos = 0;
       break;
     }
@@ -391,7 +399,8 @@ static bool check_automorphism(const GraphISO *g0,
 bool ED_uvedit_clipboard_maximum_common_subgraph(GraphISO *g0_input,
                                                  GraphISO *g1_input,
                                                  int solution[][2],
-                                                 int *solution_length)
+                                                 int *solution_length,
+                                                 bool *r_search_abandoned)
 {
   if (check_automorphism(g0_input, g1_input, solution, solution_length)) {
     return true;
@@ -409,7 +418,8 @@ bool ED_uvedit_clipboard_maximum_common_subgraph(GraphISO *g0_input,
   GraphISO *g1 = g1_input->sort_vertices_by_degree();
 
   int sol_len = 0;
-  maximum_common_subgraph_internal(solution, &sol_len, g0->adjmat, n0, g1->adjmat, n1);
+  maximum_common_subgraph_internal(
+      solution, &sol_len, g0->adjmat, n0, g1->adjmat, n1, r_search_abandoned);
   *solution_length = sol_len;
 
   bool result = (sol_len == n0);

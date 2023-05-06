@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edinterface
@@ -172,9 +172,10 @@ static void hud_region_layout(const bContext *C, ARegion *region)
   ED_region_panels_layout(C, region);
 
   if (region->panels.first &&
-      ((area->flag & AREA_FLAG_REGION_SIZE_UPDATE) || (region->sizey != size_y))) {
-    int winx_new = UI_DPI_FAC * (region->sizex + 0.5f);
-    int winy_new = UI_DPI_FAC * (region->sizey + 0.5f);
+      ((area->flag & AREA_FLAG_REGION_SIZE_UPDATE) || (region->sizey != size_y)))
+  {
+    int winx_new = UI_SCALE_FAC * (region->sizex + 0.5f);
+    int winy_new = UI_SCALE_FAC * (region->sizey + 0.5f);
     View2D *v2d = &region->v2d;
 
     if (region->flag & RGN_FLAG_SIZE_CLAMP_X) {

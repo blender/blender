@@ -24,6 +24,7 @@
 #include "RNA_prototypes.h"
 
 #include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -32,6 +33,7 @@
 
 struct AssetViewListData {
   AssetLibraryReference asset_library_ref;
+  AssetFilterSettings filter_settings;
   bScreen *screen;
   bool show_names;
 };
@@ -45,8 +47,6 @@ static void asset_view_item_but_drag_set(uiBut *but, AssetHandle *asset_handle)
   }
 
   char blend_path[FILE_MAX_LIBEXTRA];
-  /* Context can be null here, it's only needed for a File Browser specific hack that should go
-   * away before too long. */
   ED_asset_handle_get_full_library_path(asset_handle, blend_path);
 
   const eAssetImportMethod import_method =
@@ -68,19 +68,23 @@ static void asset_view_draw_item(uiList *ui_list,
                                  const bContext * /*C*/,
                                  uiLayout *layout,
                                  PointerRNA * /*dataptr*/,
-                                 PointerRNA *itemptr,
+                                 PointerRNA * /*itemptr*/,
                                  int /*icon*/,
                                  PointerRNA * /*active_dataptr*/,
                                  const char * /*active_propname*/,
-                                 int /*index*/,
+                                 int index,
                                  int /*flt_flag*/)
 {
   AssetViewListData *list_data = (AssetViewListData *)ui_list->dyn_data->customdata;
 
-  BLI_assert(RNA_struct_is_a(itemptr->type, &RNA_AssetHandle));
-  AssetHandle *asset_handle = (AssetHandle *)itemptr->data;
+  AssetHandle asset_handle = ED_assetlist_asset_get_by_index(&list_data->asset_library_ref, index);
 
-  uiLayoutSetContextPointer(layout, "asset_handle", itemptr);
+  PointerRNA file_ptr;
+  RNA_pointer_create(&list_data->screen->id,
+                     &RNA_FileSelectEntry,
+                     const_cast<FileDirEntry *>(asset_handle.file_data),
+                     &file_ptr);
+  uiLayoutSetContextPointer(layout, "active_file", &file_ptr);
 
   uiBlock *block = uiLayoutGetBlock(layout);
   const bool show_names = list_data->show_names;
@@ -90,8 +94,8 @@ static void asset_view_draw_item(uiList *ui_list,
   uiBut *but = uiDefIconTextBut(block,
                                 UI_BTYPE_PREVIEW_TILE,
                                 0,
-                                ED_asset_handle_get_preview_icon_id(asset_handle),
-                                show_names ? ED_asset_handle_get_name(asset_handle) : "",
+                                ED_asset_handle_get_preview_icon_id(&asset_handle),
+                                show_names ? ED_asset_handle_get_name(&asset_handle) : "",
                                 0,
                                 0,
                                 size_x,
@@ -103,12 +107,41 @@ static void asset_view_draw_item(uiList *ui_list,
                                 0,
                                 "");
   ui_def_but_icon(but,
-                  ED_asset_handle_get_preview_icon_id(asset_handle),
+                  ED_asset_handle_get_preview_icon_id(&asset_handle),
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
                   UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
   if (!ui_list->dyn_data->custom_drag_optype) {
-    asset_view_item_but_drag_set(but, asset_handle);
+    asset_view_item_but_drag_set(but, &asset_handle);
   }
+}
+
+static void asset_view_filter_items(uiList *ui_list,
+                                    const bContext *C,
+                                    PointerRNA *dataptr,
+                                    const char *propname)
+{
+  AssetViewListData *list_data = (AssetViewListData *)ui_list->dyn_data->customdata;
+  AssetFilterSettings &filter_settings = list_data->filter_settings;
+
+  uiListNameFilter name_filter(*ui_list);
+
+  UI_list_filter_and_sort_items(
+      ui_list,
+      C,
+      [&name_filter, list_data, &filter_settings](
+          const PointerRNA &itemptr, blender::StringRefNull name, int index) {
+        AssetHandle asset = ED_assetlist_asset_get_by_index(&list_data->asset_library_ref, index);
+        if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
+          return UI_LIST_ITEM_NEVER_SHOW;
+        }
+        return name_filter(itemptr, name, index);
+      },
+      dataptr,
+      propname,
+      [list_data](const PointerRNA & /*itemptr*/, int index) -> std::string {
+        AssetHandle asset = ED_assetlist_asset_get_by_index(&list_data->asset_library_ref, index);
+        return ED_asset_handle_get_name(&asset);
+      });
 }
 
 static void asset_view_listener(uiList *ui_list, wmRegionListenerParams *params)
@@ -136,16 +169,15 @@ uiListType *UI_UL_asset_view()
 
   BLI_strncpy(list_type->idname, "UI_UL_asset_view", sizeof(list_type->idname));
   list_type->draw_item = asset_view_draw_item;
+  list_type->filter_items = asset_view_filter_items;
   list_type->listener = asset_view_listener;
 
   return list_type;
 }
 
-static void asset_view_template_refresh_asset_collection(
-    const AssetLibraryReference &asset_library_ref,
-    const AssetFilterSettings &filter_settings,
-    PointerRNA &assets_dataptr,
-    const char *assets_propname)
+static void populate_asset_collection(const AssetLibraryReference &asset_library_ref,
+                                      PointerRNA &assets_dataptr,
+                                      const char *assets_propname)
 {
   PropertyRNA *assets_prop = RNA_struct_find_property(&assets_dataptr, assets_propname);
   if (!assets_prop) {
@@ -156,25 +188,23 @@ static void asset_view_template_refresh_asset_collection(
     RNA_warning("Expected a collection property");
     return;
   }
-  if (!RNA_struct_is_a(RNA_property_pointer_type(&assets_dataptr, assets_prop),
-                       &RNA_AssetHandle)) {
+  if (!RNA_struct_is_a(RNA_property_pointer_type(&assets_dataptr, assets_prop), &RNA_AssetHandle))
+  {
     RNA_warning("Expected a collection property for AssetHandle items");
     return;
   }
 
   RNA_property_collection_clear(&assets_dataptr, assets_prop);
 
-  ED_assetlist_iterate(asset_library_ref, [&](AssetHandle asset) {
-    if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
-      /* Don't do anything else, but return true to continue iterating. */
-      return true;
-    }
+  ED_assetlist_iterate(asset_library_ref, [&](AssetHandle /*asset*/) {
+    /* XXX creating a dummy #RNA_AssetHandle collection item. It's #file_data will be null. This is
+     * because the #FileDirEntry may be freed while iterating, there's a cache for them with a
+     * maximum size. Further code will query as needed it using the collection index. */
 
     PointerRNA itemptr, fileptr;
     RNA_property_collection_add(&assets_dataptr, assets_prop, &itemptr);
 
-    RNA_pointer_create(
-        nullptr, &RNA_FileSelectEntry, const_cast<FileDirEntry *>(asset.file_data), &fileptr);
+    RNA_pointer_create(nullptr, &RNA_FileSelectEntry, nullptr, &fileptr);
     RNA_pointer_set(&itemptr, "file_data", fileptr);
 
     return true;
@@ -221,12 +251,12 @@ void uiTemplateAssetView(uiLayout *layout,
   ED_assetlist_ensure_previews_job(&asset_library_ref, C);
   const int tot_items = ED_assetlist_size(&asset_library_ref);
 
-  asset_view_template_refresh_asset_collection(
-      asset_library_ref, *filter_settings, *assets_dataptr, assets_propname);
+  populate_asset_collection(asset_library_ref, *assets_dataptr, assets_propname);
 
   AssetViewListData *list_data = (AssetViewListData *)MEM_mallocN(sizeof(*list_data),
                                                                   "AssetViewListData");
   list_data->asset_library_ref = asset_library_ref;
+  list_data->filter_settings = *filter_settings;
   list_data->screen = CTX_wm_screen(C);
   list_data->show_names = (display_flags & UI_TEMPLATE_ASSET_DRAW_NO_NAMES) == 0;
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+ * Copyright 2017 Blender Foundation */
 
 /** \file
  * \ingroup sptopbar
@@ -13,9 +13,9 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLO_readfile.h"
 #include "BLT_translation.h"
 
+#include "BKE_blendfile.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
@@ -65,14 +65,10 @@ static SpaceLink *topbar_create(const ScrArea *UNUSED(area), const Scene *UNUSED
 }
 
 /* not spacelink itself */
-static void topbar_free(SpaceLink *UNUSED(sl))
-{
-}
+static void topbar_free(SpaceLink *UNUSED(sl)) {}
 
 /* spacetype; init callback */
-static void topbar_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
-{
-}
+static void topbar_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static SpaceLink *topbar_duplicate(SpaceLink *sl)
 {
@@ -98,13 +94,9 @@ static void topbar_main_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
-static void topbar_operatortypes(void)
-{
-}
+static void topbar_operatortypes(void) {}
 
-static void topbar_keymap(struct wmKeyConfig *UNUSED(keyconf))
-{
-}
+static void topbar_keymap(struct wmKeyConfig *UNUSED(keyconf)) {}
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void topbar_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
@@ -202,7 +194,7 @@ static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
   if (!BLI_listbase_is_empty(&G.recent_files)) {
     for (recent = G.recent_files.first; (recent); recent = recent->next) {
       const char *file = BLI_path_basename(recent->filepath);
-      const int icon = BLO_has_bfile_extension(file) ? ICON_FILE_BLEND : ICON_FILE_BACKUP;
+      const int icon = BKE_blendfile_extension_check(file) ? ICON_FILE_BLEND : ICON_FILE_BACKUP;
       PointerRNA ptr;
       uiItemFullO(layout, "WM_OT_open_mainfile", file, icon, NULL, WM_OP_INVOKE_DEFAULT, 0, &ptr);
       RNA_string_set(&ptr, "filepath", recent->filepath);
@@ -284,7 +276,7 @@ static void undo_history_menu_register(void)
   WM_menutype_add(mt);
 }
 
-static void topbar_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void topbar_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   BLO_write_struct(writer, SpaceTopBar, sl);
 }
@@ -303,7 +295,7 @@ void ED_spacetype_topbar(void)
   st->duplicate = topbar_duplicate;
   st->operatortypes = topbar_operatortypes;
   st->keymap = topbar_keymap;
-  st->blend_write = topbar_blend_write;
+  st->blend_write = topbar_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype topbar main region");

@@ -383,9 +383,9 @@ void imm_draw_circle_wire_3d(uint pos, float x, float y, float radius, int nsegm
 }
 
 void imm_draw_circle_wire_aspect_3d(
-    uint shdr_pos, float x, float y, float radius_x, float radius_y, int nsegments)
+    uint pos, float x, float y, float radius_x, float radius_y, int nsegments)
 {
-  imm_draw_circle_3D(GPU_PRIM_LINE_LOOP, shdr_pos, x, y, radius_x, radius_y, nsegments);
+  imm_draw_circle_3D(GPU_PRIM_LINE_LOOP, pos, x, y, radius_x, radius_y, nsegments);
 }
 
 void imm_draw_circle_dashed_3d(uint pos, float x, float y, float radius, int nsegments)

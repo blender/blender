@@ -143,7 +143,8 @@ static ImBuf *prepare_effect_imbufs(const SeqRenderData *context,
     out = IMB_allocImBuf(x, y, 32, IB_rect);
   }
   else if ((ibuf1 && ibuf1->rect_float) || (ibuf2 && ibuf2->rect_float) ||
-           (ibuf3 && ibuf3->rect_float)) {
+           (ibuf3 && ibuf3->rect_float))
+  {
     /* if any inputs are rectfloat, output is float too */
 
     out = IMB_allocImBuf(x, y, 32, IB_rectfloat);
@@ -652,17 +653,11 @@ static void build_gammatabs(void)
   }
 }
 
-static void init_gammacross(Sequence *UNUSED(seq))
-{
-}
+static void init_gammacross(Sequence *UNUSED(seq)) {}
 
-static void load_gammacross(Sequence *UNUSED(seq))
-{
-}
+static void load_gammacross(Sequence *UNUSED(seq)) {}
 
-static void free_gammacross(Sequence *UNUSED(seq), const bool UNUSED(do_id_user))
-{
-}
+static void free_gammacross(Sequence *UNUSED(seq), const bool UNUSED(do_id_user)) {}
 
 static void do_gammacross_effect_byte(
     float fac, int x, int y, uchar *rect1, uchar *rect2, uchar *out)
@@ -2620,7 +2615,7 @@ float seq_speed_effect_target_frame_get(Scene *scene,
   }
 
   SEQ_effect_handle_get(seq_speed); /* Ensure, that data are initialized. */
-  int frame_index = seq_give_frame_index(scene, seq_speed, timeline_frame);
+  int frame_index = SEQ_give_frame_index(scene, seq_speed, timeline_frame);
   SpeedControlVars *s = (SpeedControlVars *)seq_speed->effectdata;
   const Sequence *source = seq_speed->seq1;
 
@@ -3237,7 +3232,11 @@ void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
   if (vfont->packedfile != NULL) {
     PackedFile *pf = vfont->packedfile;
     /* Create a name that's unique between library data-blocks to avoid loading
-     * a font per strip which will load fonts many times. */
+     * a font per strip which will load fonts many times.
+     *
+     * WARNING: this isn't fool proof!
+     * The #VFont may be renamed which will cause this to load multiple times,
+     * in practice this isn't so likely though. */
     char name[MAX_ID_FULL_NAME];
     BKE_id_full_name_get(name, &vfont->id, 0);
 
@@ -3289,7 +3288,8 @@ static int early_out_text(Sequence *seq, float UNUSED(fac))
   TextVars *data = seq->effectdata;
   if (data->text[0] == 0 || data->text_size < 1.0f ||
       ((data->color[3] == 0.0f) &&
-       (data->shadow_color[3] == 0.0f || (data->flag & SEQ_TEXT_SHADOW) == 0))) {
+       (data->shadow_color[3] == 0.0f || (data->flag & SEQ_TEXT_SHADOW) == 0)))
+  {
     return EARLY_USE_INPUT_1;
   }
   return EARLY_NO_INPUT;
@@ -3420,17 +3420,11 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
 /** \name Sequence Effect Factory
  * \{ */
 
-static void init_noop(Sequence *UNUSED(seq))
-{
-}
+static void init_noop(Sequence *UNUSED(seq)) {}
 
-static void load_noop(Sequence *UNUSED(seq))
-{
-}
+static void load_noop(Sequence *UNUSED(seq)) {}
 
-static void free_noop(Sequence *UNUSED(seq), const bool UNUSED(do_id_user))
-{
-}
+static void free_noop(Sequence *UNUSED(seq), const bool UNUSED(do_id_user)) {}
 
 static int num_inputs_default(void)
 {

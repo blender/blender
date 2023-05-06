@@ -126,7 +126,7 @@ static const int MTL_MAX_FBO_ATTACHED = 16;
 
 /* Samplers */
 struct MTLSamplerState {
-  eGPUSamplerState state;
+  GPUSamplerState state;
 
   /* Mip min and mip max on sampler state always the same.
    * Level range now controlled with textureView to be consistent with GL baseLevel. */
@@ -138,16 +138,28 @@ struct MTLSamplerState {
 
   operator uint() const
   {
-    return uint(state);
+    uint integer_representation = 0;
+    integer_representation |= this->state.filtering;
+    integer_representation |= this->state.extend_x << 8;
+    integer_representation |= this->state.extend_yz << 12;
+    integer_representation |= this->state.custom_type << 16;
+    integer_representation |= this->state.type << 24;
+    return integer_representation;
   }
 
   operator uint64_t() const
   {
-    return uint64_t(state);
+    uint64_t integer_representation = 0;
+    integer_representation |= this->state.filtering;
+    integer_representation |= this->state.extend_x << 8;
+    integer_representation |= this->state.extend_yz << 12;
+    integer_representation |= this->state.custom_type << 16;
+    integer_representation |= this->state.type << 24;
+    return integer_representation;
   }
 };
 
-const MTLSamplerState DEFAULT_SAMPLER_STATE = {GPU_SAMPLER_DEFAULT /*, 0, 9999*/};
+const MTLSamplerState DEFAULT_SAMPLER_STATE = {GPUSamplerState::default_sampler() /*, 0, 9999*/};
 
 class MTLTexture : public Texture {
   friend class MTLContext;
@@ -169,7 +181,6 @@ class MTLTexture : public Texture {
   bool is_baked_ = false;
   MTLTextureDescriptor *texture_descriptor_ = nullptr;
   id<MTLTexture> texture_ = nil;
-  MTLTextureUsage usage_;
 
   /* Texture Storage. */
   id<MTLBuffer> texture_buffer_ = nil;
@@ -272,7 +283,7 @@ class MTLTexture : public Texture {
  protected:
   bool init_internal() override;
   bool init_internal(GPUVertBuf *vbo) override;
-  bool init_internal(const GPUTexture *src,
+  bool init_internal(GPUTexture *src,
                      int mip_offset,
                      int layer_offset) override; /* Texture View */
 
@@ -353,8 +364,8 @@ class MTLTexture : public Texture {
    *
    *  blender::map<INPUT DEFINES STRUCT, compute PSO> update_2d_array_kernel_psos;
    * - Generate compute shader with configured kernel below with variable parameters depending
-   *  on input/output format configurations. Do not need to keep source or descriptors around,
-   *  just PSO, as same input defines will always generate the same code.
+   *   on input/output format configurations. Do not need to keep source or descriptors around,
+   *   just PSO, as same input defines will always generate the same code.
    *
    * - IF datatype IS an exact match e.g. :
    *    - Per-component size matches (e.g. GPU_DATA_UBYTE)
@@ -556,60 +567,6 @@ inline MTLPixelFormat mtl_format_get_writeable_view_format(MTLPixelFormat format
       return format;
   }
   return format;
-}
-
-/* Returns the associated engine data type with a given texture:
- * Definitely not complete, edit according to the METAL specification. */
-inline eGPUDataFormat to_mtl_internal_data_format(eGPUTextureFormat tex_format)
-{
-  switch (tex_format) {
-    case GPU_RGBA8:
-    case GPU_RGBA32F:
-    case GPU_RGBA16F:
-    case GPU_RGBA16:
-    case GPU_RG8:
-    case GPU_RG32F:
-    case GPU_RG16F:
-    case GPU_RG16:
-    case GPU_R8:
-    case GPU_R32F:
-    case GPU_R16F:
-    case GPU_R16:
-    case GPU_RGB16F:
-    case GPU_DEPTH_COMPONENT24:
-    case GPU_DEPTH_COMPONENT16:
-    case GPU_DEPTH_COMPONENT32F:
-    case GPU_SRGB8_A8:
-      return GPU_DATA_FLOAT;
-    case GPU_DEPTH24_STENCIL8:
-    case GPU_DEPTH32F_STENCIL8:
-      return GPU_DATA_UINT_24_8;
-    case GPU_RGBA8UI:
-    case GPU_RGBA32UI:
-    case GPU_RGBA16UI:
-    case GPU_RG8UI:
-    case GPU_RG32UI:
-    case GPU_R8UI:
-    case GPU_R16UI:
-    case GPU_RG16UI:
-    case GPU_R32UI:
-      return GPU_DATA_UINT;
-    case GPU_R8I:
-    case GPU_RG8I:
-    case GPU_R16I:
-    case GPU_R32I:
-    case GPU_RG16I:
-    case GPU_RGBA8I:
-    case GPU_RGBA32I:
-    case GPU_RGBA16I:
-    case GPU_RG32I:
-      return GPU_DATA_INT;
-    case GPU_R11F_G11F_B10F:
-      return GPU_DATA_10_11_11_REV;
-    default:
-      BLI_assert(false && "Texture not yet handled");
-      return GPU_DATA_FLOAT;
-  }
 }
 
 inline MTLTextureUsage mtl_usage_from_gpu(eGPUTextureUsage usage)

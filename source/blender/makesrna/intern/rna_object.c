@@ -88,7 +88,6 @@ const EnumPropertyItem rna_enum_object_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-/* Same as above, but with names that distinguish grease pencil. */
 const EnumPropertyItem rna_enum_workspace_object_mode_items[] = {
     {OB_MODE_OBJECT, "OBJECT", ICON_OBJECT_DATAMODE, "Object Mode", ""},
     {OB_MODE_EDIT, "EDIT", ICON_EDITMODE_HLT, "Edit Mode", ""},
@@ -255,7 +254,7 @@ const EnumPropertyItem rna_enum_object_type_items[] = {
     {OB_CURVES, "CURVES", ICON_OUTLINER_OB_CURVES, "Hair Curves", ""},
     {OB_POINTCLOUD, "POINTCLOUD", ICON_OUTLINER_OB_POINTCLOUD, "Point Cloud", ""},
     {OB_VOLUME, "VOLUME", ICON_OUTLINER_OB_VOLUME, "Volume", ""},
-    {OB_GPENCIL, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
+    {OB_GPENCIL_LEGACY, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
     RNA_ENUM_ITEM_SEPR,
     {OB_ARMATURE, "ARMATURE", ICON_OUTLINER_OB_ARMATURE, "Armature", ""},
     {OB_LATTICE, "LATTICE", ICON_OUTLINER_OB_LATTICE, "Lattice", ""},
@@ -310,7 +309,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 
 #  include "DNA_ID.h"
 #  include "DNA_constraint_types.h"
-#  include "DNA_gpencil_types.h"
+#  include "DNA_gpencil_legacy_types.h"
 #  include "DNA_key_types.h"
 #  include "DNA_lattice_types.h"
 #  include "DNA_node_types.h"
@@ -323,7 +322,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_deform.h"
 #  include "BKE_effect.h"
 #  include "BKE_global.h"
-#  include "BKE_gpencil_modifier.h"
+#  include "BKE_gpencil_modifier_legacy.h"
 #  include "BKE_key.h"
 #  include "BKE_material.h"
 #  include "BKE_mesh.h"
@@ -382,7 +381,7 @@ static void rna_Object_duplicator_visibility_flag_update(Main *UNUSED(bmain),
 static void rna_MaterialIndex_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  if (ob && ob->type == OB_GPENCIL) {
+  if (ob && ob->type == OB_GPENCIL_LEGACY) {
     /* Notifying material property in top-bar. */
     WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
   }
@@ -391,7 +390,7 @@ static void rna_MaterialIndex_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 static void rna_GPencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  if (ob && ob->type == OB_GPENCIL) {
+  if (ob && ob->type == OB_GPENCIL_LEGACY) {
     bGPdata *gpd = (bGPdata *)ob->data;
     DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
@@ -600,7 +599,7 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
       return &RNA_Speaker;
     case OB_LIGHTPROBE:
       return &RNA_LightProbe;
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       return &RNA_GreasePencil;
     case OB_CURVES:
       return &RNA_Curves;
@@ -617,7 +616,7 @@ static bool rna_Object_data_poll(PointerRNA *ptr, const PointerRNA value)
 {
   Object *ob = (Object *)ptr->data;
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     /* GP Object - Don't allow using "Annotation" GP datablocks here */
     bGPdata *gpd = value.data;
     return (gpd->flag & GP_DATA_ANNOTATIONS) == 0;
@@ -654,7 +653,7 @@ static bool rna_Object_parent_override_apply(Main *bmain,
                                              IDOverrideLibraryPropertyOperation *opop)
 {
   BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
              "Unsupported RNA override operation on object parent pointer");
   UNUSED_VARS_NDEBUG(ptr_storage, len_dst, len_src, len_storage, opop);
 
@@ -910,7 +909,7 @@ void rna_object_vgroup_name_index_get(PointerRNA *ptr, char *value, int index)
   const bDeformGroup *dg = BLI_findlink(defbase, index - 1);
 
   if (dg) {
-    BLI_strncpy(value, dg->name, sizeof(dg->name));
+    strcpy(value, dg->name);
   }
   else {
     value[0] = '\0';
@@ -1138,7 +1137,7 @@ static void rna_Object_active_material_set(PointerRNA *ptr,
   BLI_assert(BKE_id_is_in_global_main(value.data));
   BKE_object_material_assign(G_MAIN, ob, value.data, ob->actcol, BKE_MAT_ASSIGN_EXISTING);
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     /* notifying material property in topbar */
     WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
   }
@@ -1377,7 +1376,7 @@ static bool rna_MaterialSlot_material_poll(PointerRNA *ptr, PointerRNA value)
   Object *ob = (Object *)ptr->owner_id;
   Material *ma = (Material *)value.data;
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     /* GP Materials only */
     return (ma->gp_style != NULL);
   }
@@ -1498,9 +1497,7 @@ static PointerRNA rna_Object_material_slots_get(CollectionPropertyIterator *iter
   return ptr;
 }
 
-static void rna_Object_material_slots_end(CollectionPropertyIterator *UNUSED(iter))
-{
-}
+static void rna_Object_material_slots_end(CollectionPropertyIterator *UNUSED(iter)) {}
 
 static PointerRNA rna_Object_display_get(PointerRNA *ptr)
 {
@@ -1686,7 +1683,7 @@ bool rna_Object_constraints_override_apply(Main *bmain,
                                            PointerRNA *UNUSED(ptr_item_storage),
                                            IDOverrideLibraryPropertyOperation *opop)
 {
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_INSERT_AFTER &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on constraints collection");
 
   Object *ob_dst = (Object *)ptr_dst->owner_id;
@@ -1741,8 +1738,8 @@ static void rna_Object_modifier_remove(Object *object,
                                        PointerRNA *md_ptr)
 {
   ModifierData *md = md_ptr->data;
-  if (ED_object_modifier_remove(reports, CTX_data_main(C), CTX_data_scene(C), object, md) ==
-      false) {
+  if (ED_object_modifier_remove(reports, CTX_data_main(C), CTX_data_scene(C), object, md) == false)
+  {
     /* error is already set */
     return;
   }
@@ -1814,7 +1811,7 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
                                          PointerRNA *UNUSED(ptr_item_storage),
                                          IDOverrideLibraryPropertyOperation *opop)
 {
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_INSERT_AFTER &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on modifiers collection");
 
   Object *ob_dst = (Object *)ptr_dst->owner_id;
@@ -1930,7 +1927,7 @@ bool rna_Object_greasepencil_modifiers_override_apply(Main *bmain,
                                                       PointerRNA *UNUSED(ptr_item_storage),
                                                       IDOverrideLibraryPropertyOperation *opop)
 {
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_INSERT_AFTER &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on modifiers collection");
 
   Object *ob_dst = (Object *)ptr_dst->owner_id;
@@ -2237,13 +2234,12 @@ bool rna_Light_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 
 bool rna_GPencil_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
-  return ((Object *)value.owner_id)->type == OB_GPENCIL;
+  return ((Object *)value.owner_id)->type == OB_GPENCIL_LEGACY;
 }
 
 bool rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
 {
-  SculptSession *ss = ((Object *)ptr->owner_id)->sculpt;
-  return (ss && ss->bm);
+  return BKE_object_sculpt_use_dyntopo((Object *)ptr->owner_id);
 }
 
 static void rna_object_lineart_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

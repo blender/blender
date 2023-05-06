@@ -335,11 +335,11 @@ typedef enum eIMBInterpolationFilterMode {
  * Defaults to BL_proxy within the directory of the animation.
  */
 void IMB_anim_set_index_dir(struct anim *anim, const char *dir);
-void IMB_anim_get_fname(struct anim *anim, char *file, int size);
+void IMB_anim_get_filename(struct anim *anim, char *filename, int filename_maxncpy);
 
 int IMB_anim_index_get_frame_index(struct anim *anim, IMB_Timecode_Type tc, int position);
 
-IMB_Proxy_Size IMB_anim_proxy_get_existing(struct anim *anim);
+int IMB_anim_proxy_get_existing(struct anim *anim);
 
 struct IndexBuildContext;
 
@@ -348,7 +348,7 @@ struct IndexBuildContext;
  */
 struct IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
                                                          IMB_Timecode_Type tcs_in_use,
-                                                         IMB_Proxy_Size proxy_sizes_in_use,
+                                                         int proxy_sizes_in_use,
                                                          int quality,
                                                          const bool overwrite,
                                                          struct GSet *file_list,
@@ -386,7 +386,7 @@ bool IMB_anim_get_fps(struct anim *anim, short *frs_sec, float *frs_sec_base, bo
 /**
  * \attention Defined in anim_movie.c
  */
-struct anim *IMB_open_anim(const char *name,
+struct anim *IMB_open_anim(const char *filepath,
                            int ib_flags,
                            int streamindex,
                            char colorspace[IM_MAX_SPACE]);
@@ -677,8 +677,10 @@ void IMB_sampleImageAtLocation(
 /**
  * \attention defined in readimage.c
  */
-struct ImBuf *IMB_loadifffile(
-    int file, const char *filepath, int flags, char colorspace[IM_MAX_SPACE], const char *descr);
+struct ImBuf *IMB_loadifffile(int file,
+                              int flags,
+                              char colorspace[IM_MAX_SPACE],
+                              const char *descr);
 
 /**
  * \attention defined in scaling.c
@@ -789,8 +791,11 @@ void buf_rectfill_area(unsigned char *rect,
 /**
  * Exported for image tools in blender, to quickly allocate 32 bits rect.
  */
-void *imb_alloc_pixels(
-    unsigned int x, unsigned int y, unsigned int channels, size_t typesize, const char *name);
+void *imb_alloc_pixels(unsigned int x,
+                       unsigned int y,
+                       unsigned int channels,
+                       size_t typesize,
+                       const char *alloc_name);
 
 bool imb_addrectImBuf(struct ImBuf *ibuf);
 /**

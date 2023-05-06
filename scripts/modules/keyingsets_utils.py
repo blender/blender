@@ -93,7 +93,7 @@ def RKS_ITER_selected_bones(ksi, context, ks):
 # Generate Callbacks
 
 
-# 'Available' F-Curves
+# "Available" F-Curves.
 def RKS_GEN_available(_ksi, _context, ks, data):
     # try to get the animation data associated with the closest
     # ID-block to the data (neither of which may exist/be easy to find)

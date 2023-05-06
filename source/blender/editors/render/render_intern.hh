@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edrend
@@ -40,6 +40,9 @@ void SCENE_OT_view_layer_remove_unused_lightgroups(struct wmOperatorType *ot);
 
 void SCENE_OT_light_cache_bake(struct wmOperatorType *ot);
 void SCENE_OT_light_cache_free(struct wmOperatorType *ot);
+
+void OBJECT_OT_lightprobe_cache_bake(struct wmOperatorType *ot);
+void OBJECT_OT_lightprobe_cache_free(struct wmOperatorType *ot);
 
 void SCENE_OT_render_view_add(struct wmOperatorType *ot);
 void SCENE_OT_render_view_remove(struct wmOperatorType *ot);

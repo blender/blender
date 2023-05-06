@@ -220,7 +220,8 @@ static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
                SCULPT_TOOL_BOUNDARY,
                SCULPT_TOOL_ROTATE,
                SCULPT_TOOL_SNAKE_HOOK,
-               SCULPT_TOOL_THUMB)) {
+               SCULPT_TOOL_THUMB))
+      {
         return false;
       }
       else if (SCULPT_is_cloth_deform_brush(brush)) {
@@ -268,7 +269,8 @@ static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode m
                SCULPT_TOOL_ELASTIC_DEFORM,
                SCULPT_TOOL_CLOTH,
                SCULPT_TOOL_BOUNDARY,
-               SCULPT_TOOL_POSE)) {
+               SCULPT_TOOL_POSE))
+      {
         return false;
       }
       else {
@@ -372,7 +374,8 @@ static bool paint_brush_update(bContext *C,
       if (ELEM(brush->mask_mtex.brush_map_mode,
                MTEX_MAP_MODE_VIEW,
                MTEX_MAP_MODE_AREA,
-               MTEX_MAP_MODE_RANDOM)) {
+               MTEX_MAP_MODE_RANDOM))
+      {
         do_random_mask = true;
       }
 
@@ -440,7 +443,7 @@ static bool paint_brush_update(bContext *C,
     }
     /* curve strokes do their own rake calculation */
     else if (!(brush->flag & BRUSH_CURVE)) {
-      if (!paint_calculate_rake_rotation(ups, brush, mouse_init)) {
+      if (!paint_calculate_rake_rotation(ups, brush, mouse_init, mode)) {
         /* Not enough motion to define an angle. */
         if (!stroke->rake_started) {
           is_dry_run = true;
@@ -562,7 +565,8 @@ static void paint_brush_stroke_add_step(
     float world_space_position[3];
 
     if (SCULPT_stroke_get_location(
-            C, world_space_position, stroke->last_mouse_position, stroke->original)) {
+            C, world_space_position, stroke->last_mouse_position, stroke->original))
+    {
       copy_v3_v3(stroke->last_world_space_position, world_space_position);
       mul_m4_v3(stroke->vc.obact->object_to_world, stroke->last_world_space_position);
     }
@@ -723,6 +727,12 @@ static float paint_space_stroke_spacing(bContext *C,
 
 static float paint_stroke_overlapped_curve(Brush *br, float x, float spacing)
 {
+  /* Avoid division by small numbers, can happen
+   * on some pen setups. See #105341.
+   */
+
+  spacing = max_ff(spacing, 0.1f);
+
   const int n = 100 / spacing;
   const float h = spacing / 50.0f;
   const float x0 = x - 1;
@@ -1035,7 +1045,8 @@ bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
   }
 
   if (mode == PAINT_MODE_SCULPT_CURVES &&
-      !curves_sculpt_brush_uses_spacing(eBrushCurvesSculptTool(br->curves_sculpt_tool))) {
+      !curves_sculpt_brush_uses_spacing(eBrushCurvesSculptTool(br->curves_sculpt_tool)))
+  {
     return false;
   }
 
@@ -1087,7 +1098,8 @@ bool paint_supports_dynamic_size(Brush *br, ePaintMode mode)
 bool paint_supports_smooth_stroke(Brush *br, ePaintMode mode)
 {
   if (!(br->flag & BRUSH_SMOOTH_STROKE) ||
-      (br->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT | BRUSH_LINE))) {
+      (br->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT | BRUSH_LINE)))
+  {
     return false;
   }
 
@@ -1335,7 +1347,8 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
       }
 
       if ((br->mtex.brush_angle_mode & MTEX_ANGLE_RAKE) ||
-          (br->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE)) {
+          (br->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE))
+      {
         do_rake = true;
         for (j = 0; j < 2; j++) {
           BKE_curve_forward_diff_tangent_bezier(pcp->bez.vec[1][j],
@@ -1553,10 +1566,11 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
 
     if (stroke->stroke_started && (first_modal || ISMOUSE_MOTION(event->type))) {
       if ((br->mtex.brush_angle_mode & MTEX_ANGLE_RAKE) ||
-          (br->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE)) {
+          (br->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE))
+      {
         copy_v2_v2(stroke->ups->last_rake, stroke->last_mouse_position);
       }
-      paint_calculate_rake_rotation(stroke->ups, br, mouse);
+      paint_calculate_rake_rotation(stroke->ups, br, mouse, mode);
     }
   }
   else if (first_modal ||
@@ -1564,7 +1578,8 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
            (!(br->flag & BRUSH_AIRBRUSH) && ISMOUSE_MOTION(event->type)) ||
            /* airbrush */
            ((br->flag & BRUSH_AIRBRUSH) && event->type == TIMER &&
-            event->customdata == stroke->timer)) {
+            event->customdata == stroke->timer))
+  {
     if (paint_smooth_stroke(stroke, &sample_average, mode, mouse, &pressure)) {
       if (stroke->stroke_started) {
         if (paint_space_stroke_enabled(br, mode)) {
@@ -1689,7 +1704,8 @@ bool PAINT_brush_tool_poll(bContext *C)
 
   if (p && ob && BKE_paint_brush(p) &&
       (area && ELEM(area->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) &&
-      (region && region->regiontype == RGN_TYPE_WINDOW)) {
+      (region && region->regiontype == RGN_TYPE_WINDOW))
+  {
     /* Check the current tool is a brush. */
     bToolRef *tref = area->runtime.tool;
     if (tref && tref->runtime && tref->runtime->data_block[0]) {

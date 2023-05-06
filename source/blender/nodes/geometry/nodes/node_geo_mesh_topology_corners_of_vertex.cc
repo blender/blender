@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 
 #include "BLI_task.hh"
@@ -60,8 +60,8 @@ class CornersOfVertInput final : public bke::MeshFieldInput {
                                  const IndexMask mask) const final
   {
     const IndexRange vert_range(mesh.totvert);
-    const Span<MLoop> loops = mesh.loops();
-    Array<Vector<int>> vert_to_loop_map = bke::mesh_topology::build_vert_to_loop_map(loops,
+    const Span<int> corner_verts = mesh.corner_verts();
+    Array<Vector<int>> vert_to_loop_map = bke::mesh_topology::build_vert_to_loop_map(corner_verts,
                                                                                      mesh.totvert);
 
     const bke::MeshFieldContext context{mesh, domain};
@@ -73,7 +73,7 @@ class CornersOfVertInput final : public bke::MeshFieldInput {
     const VArray<int> indices_in_sort = evaluator.get_evaluated<int>(1);
 
     const bke::MeshFieldContext corner_context{mesh, ATTR_DOMAIN_CORNER};
-    fn::FieldEvaluator corner_evaluator{corner_context, loops.size()};
+    fn::FieldEvaluator corner_evaluator{corner_context, corner_verts.size()};
     corner_evaluator.add(sort_weight_);
     corner_evaluator.evaluate();
     const VArray<float> all_sort_weights = corner_evaluator.get_evaluated<float>(0);
@@ -172,10 +172,10 @@ class CornersOfVertCountInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_POINT) {
       return {};
     }
-    const Span<MLoop> loops = mesh.loops();
+    const Span<int> corner_verts = mesh.corner_verts();
     Array<int> counts(mesh.totvert, 0);
-    for (const int i : loops.index_range()) {
-      counts[loops[i].v]++;
+    for (const int i : corner_verts.index_range()) {
+      counts[corner_verts[i]]++;
     }
     return VArray<int>::ForContainer(std::move(counts));
   }
@@ -204,7 +204,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<int> vert_index = params.extract_input<Field<int>>("Vertex Index");
   if (params.output_is_required("Total")) {
     params.set_output("Total",
-                      Field<int>(std::make_shared<FieldAtIndexInput>(
+                      Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           vert_index,
                           Field<int>(std::make_shared<CornersOfVertCountInput>()),
                           ATTR_DOMAIN_POINT)));

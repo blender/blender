@@ -38,6 +38,11 @@ float (*ED_curves_point_normals_array_create(const struct Curves *curves_id))[3]
  */
 void ED_curves_transverts_create(struct Curves *curves_id, struct TransVertStore *tvs);
 
+/**
+ * C wrapper for #CurvesGeometry::offsets_for_write().
+ */
+int *ED_curves_offsets_for_write(struct Curves *curves_id);
+
 /** \} */
 
 #ifdef __cplusplus
@@ -128,6 +133,9 @@ bke::GSpanAttributeWriter ensure_selection_attribute(bke::CurvesGeometry &curves
                                                      eAttrDomain selection_domain,
                                                      eCustomDataType create_type);
 
+/** Apply a change to a single curve or point. Avoid using this when affecting many elements. */
+void apply_selection_operation_at_index(GMutableSpan selection, int index, eSelectOp sel_op);
+
 /**
  * (De)select all the curves.
  *
@@ -167,13 +175,24 @@ void select_random(bke::CurvesGeometry &curves,
                    float probability);
 
 /**
- * Select point or curve at a (screen-space) point.
+ * Helper struct for `closest_elem_find_screen_space`.
  */
-bool select_pick(const ViewContext &vc,
-                 bke::CurvesGeometry &curves,
-                 eAttrDomain selection_domain,
-                 const SelectPick_Params &params,
-                 int2 coord);
+struct FindClosestData {
+  int index = -1;
+  float distance = FLT_MAX;
+};
+
+/**
+ * Find the closest screen-space point or curve in projected region-space.
+ *
+ * \return A new point or curve closer than the \a initial input, if one exists.
+ */
+std::optional<FindClosestData> closest_elem_find_screen_space(const ViewContext &vc,
+                                                              const Object &object,
+                                                              bke::CurvesGeometry &curves,
+                                                              eAttrDomain domain,
+                                                              int2 coord,
+                                                              const FindClosestData &initial);
 
 /**
  * Select points or curves in a (screen-space) rectangle.

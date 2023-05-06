@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -66,24 +66,12 @@ static CLG_LogRef LOG = {"bke.rigidbody"};
 static void rigidbody_update_ob_array(RigidBodyWorld *rbw);
 
 #else
-static void RB_dworld_remove_constraint(void *UNUSED(world), void *UNUSED(con))
-{
-}
-static void RB_dworld_remove_body(void *UNUSED(world), void *UNUSED(body))
-{
-}
-static void RB_dworld_delete(void *UNUSED(world))
-{
-}
-static void RB_body_delete(void *UNUSED(body))
-{
-}
-static void RB_shape_delete(void *UNUSED(shape))
-{
-}
-static void RB_constraint_delete(void *UNUSED(con))
-{
-}
+static void RB_dworld_remove_constraint(void *UNUSED(world), void *UNUSED(con)) {}
+static void RB_dworld_remove_body(void *UNUSED(world), void *UNUSED(body)) {}
+static void RB_dworld_delete(void *UNUSED(world)) {}
+static void RB_body_delete(void *UNUSED(body)) {}
+static void RB_shape_delete(void *UNUSED(shape)) {}
+static void RB_constraint_delete(void *UNUSED(con)) {}
 
 #endif
 
@@ -220,7 +208,8 @@ bool BKE_rigidbody_is_affected_by_simulation(Object *ob)
 
   RigidBodyOb *rbo = ob->rigidbody_object;
   if (rbo == NULL || rbo->flag & RBO_FLAG_KINEMATIC || rbo->type == RBO_TYPE_PASSIVE ||
-      obCompoundParent) {
+      obCompoundParent)
+  {
     return false;
   }
 
@@ -406,7 +395,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
     totvert = mesh->totvert;
     looptri = BKE_mesh_runtime_looptri_ensure(mesh);
     tottri = BKE_mesh_runtime_looptri_len(mesh);
-    const MLoop *mloop = BKE_mesh_loops(mesh);
+    const int *corner_verts = BKE_mesh_corner_verts(mesh);
 
     /* sanity checking - potential case when no data will be present */
     if ((totvert == 0) || (tottri == 0)) {
@@ -431,9 +420,9 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
           const MLoopTri *lt = &looptri[i];
           int vtri[3];
 
-          vtri[0] = mloop[lt->tri[0]].v;
-          vtri[1] = mloop[lt->tri[1]].v;
-          vtri[2] = mloop[lt->tri[2]].v;
+          vtri[0] = corner_verts[lt->tri[0]];
+          vtri[1] = corner_verts[lt->tri[1]];
+          vtri[2] = corner_verts[lt->tri[2]];
 
           RB_trimesh_add_triangle_indices(mdata, i, UNPACK3(vtri));
         }
@@ -599,7 +588,8 @@ static void rigidbody_validate_sim_shape(RigidBodyWorld *rbw, Object *ob, bool r
 
   /* Also don't create a shape if this object is parent of a compound shape */
   if (ob->parent != NULL && ob->parent->rigidbody_object != NULL &&
-      ob->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND) {
+      ob->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND)
+  {
     return;
   }
 
@@ -681,10 +671,10 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
         totvert = mesh->totvert;
         lt = BKE_mesh_runtime_looptri_ensure(mesh);
         tottri = BKE_mesh_runtime_looptri_len(mesh);
-        const MLoop *mloop = BKE_mesh_loops(mesh);
+        const int *corner_verts = BKE_mesh_corner_verts(mesh);
 
         if (totvert > 0 && tottri > 0) {
-          BKE_mesh_calc_volume(positions, totvert, lt, tottri, mloop, &volume, NULL);
+          BKE_mesh_calc_volume(positions, totvert, lt, tottri, corner_verts, &volume, NULL);
           const float volume_scale = mat4_to_volume_scale(ob->object_to_world);
           volume *= fabsf(volume_scale);
         }
@@ -755,10 +745,10 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
         totvert = mesh->totvert;
         looptri = BKE_mesh_runtime_looptri_ensure(mesh);
         tottri = BKE_mesh_runtime_looptri_len(mesh);
-        const MLoop *mloop = BKE_mesh_loops(mesh);
 
         if (totvert > 0 && tottri > 0) {
-          BKE_mesh_calc_volume(positions, totvert, looptri, tottri, mloop, NULL, r_center);
+          BKE_mesh_calc_volume(
+              positions, totvert, looptri, tottri, BKE_mesh_corner_verts(mesh), NULL, r_center);
         }
       }
       break;
@@ -806,7 +796,8 @@ static void rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, bool 
     }
     /* Don't create rigid body object if the parent is a compound shape */
     if (ob->parent != NULL && ob->parent->rigidbody_object != NULL &&
-        ob->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND) {
+        ob->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND)
+    {
       return;
     }
 
@@ -1614,7 +1605,8 @@ static void rigidbody_update_ob_array(RigidBodyWorld *rbw)
     (void)object;
     /* Ignore if this object is the direct child of an object with a compound shape */
     if (object->parent == NULL || object->parent->rigidbody_object == NULL ||
-        object->parent->rigidbody_object->shape != RB_SHAPE_COMPOUND) {
+        object->parent->rigidbody_object->shape != RB_SHAPE_COMPOUND)
+    {
       n++;
     }
   }
@@ -1629,7 +1621,8 @@ static void rigidbody_update_ob_array(RigidBodyWorld *rbw)
   FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->group, object) {
     /* Ignore if this object is the direct child of an object with a compound shape */
     if (object->parent == NULL || object->parent->rigidbody_object == NULL ||
-        object->parent->rigidbody_object->shape != RB_SHAPE_COMPOUND) {
+        object->parent->rigidbody_object->shape != RB_SHAPE_COMPOUND)
+    {
       rbw->objects[i] = object;
       i++;
     }
@@ -1950,8 +1943,8 @@ static void rigidbody_update_external_forces(Depsgraph *depsgraph,
 
     /* update influence of effectors - but don't do it on an effector */
     /* only dynamic bodies need effector update */
-    if (rbo->type == RBO_TYPE_ACTIVE &&
-        ((ob->pd == NULL) || (ob->pd->forcefield == PFIELD_NULL))) {
+    if (rbo->type == RBO_TYPE_ACTIVE && ((ob->pd == NULL) || (ob->pd->forcefield == PFIELD_NULL)))
+    {
       EffectorWeights *effector_weights = rbw->effector_weights;
       EffectedPoint epoint;
       ListBase *effectors;
@@ -2020,7 +2013,8 @@ static void rigidbody_update_simulation_post_step(Depsgraph *depsgraph, RigidBod
     RigidBodyOb *rbo = ob->rigidbody_object;
     /* Reset kinematic state for transformed objects. */
     if (rbo && base && (base->flag & BASE_SELECTED) && (G.moving & G_TRANSFORM_OBJ) &&
-        rbo->shared->physics_object) {
+        rbo->shared->physics_object)
+    {
       RB_body_set_kinematic_state(rbo->shared->physics_object,
                                   rbo->flag & RBO_FLAG_KINEMATIC || rbo->flag & RBO_FLAG_DISABLED);
       RB_body_set_mass(rbo->shared->physics_object, RBO_GET_MASS(rbo));
@@ -2049,7 +2043,8 @@ void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
 
   /* use rigid body transform after cache start frame if objects is not being transformed */
   if (BKE_rigidbody_check_sim_running(rbw, ctime) &&
-      !(ob->base_flag & BASE_SELECTED && G.moving & G_TRANSFORM_OBJ)) {
+      !(ob->base_flag & BASE_SELECTED && G.moving & G_TRANSFORM_OBJ))
+  {
     float mat[4][4], size_mat[4][4], size[3];
 
     normalize_qt(rbo->orn); /* RB_TODO investigate why quaternion isn't normalized at this point */
@@ -2164,7 +2159,8 @@ void BKE_rigidbody_rebuild_world(Depsgraph *depsgraph, Scene *scene, float ctime
     (void)object;
     /* Ignore if this object is the direct child of an object with a compound shape */
     if (object->parent == NULL || object->parent->rigidbody_object == NULL ||
-        object->parent->rigidbody_object->shape != RB_SHAPE_COMPOUND) {
+        object->parent->rigidbody_object->shape != RB_SHAPE_COMPOUND)
+    {
       n++;
     }
   }
@@ -2275,14 +2271,15 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
 #  if defined(__GNUC__) || defined(__clang__)
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wunused-parameter"
+#  elif defined(_MSC_VER)
+/* Suppress unreferenced formal parameter warning. */
+#    pragma warning(disable : 4100)
 #  endif
 
 void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src, const int flag)
 {
 }
-void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, bool rebuild)
-{
-}
+void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, bool rebuild) {}
 
 void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 {
@@ -2302,9 +2299,7 @@ struct RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int f
 {
   return NULL;
 }
-void BKE_rigidbody_world_groups_relink(struct RigidBodyWorld *rbw)
-{
-}
+void BKE_rigidbody_world_groups_relink(struct RigidBodyWorld *rbw) {}
 void BKE_rigidbody_world_id_loop(struct RigidBodyWorld *rbw,
                                  RigidbodyWorldIDFunc func,
                                  void *userdata)
@@ -2323,9 +2318,7 @@ struct RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene)
   return NULL;
 }
 
-void BKE_rigidbody_ensure_local_object(Main *bmain, Object *ob)
-{
-}
+void BKE_rigidbody_ensure_local_object(Main *bmain, Object *ob) {}
 
 bool BKE_rigidbody_add_object(Main *bmain, Scene *scene, Object *ob, int type, ReportList *reports)
 {
@@ -2336,12 +2329,8 @@ bool BKE_rigidbody_add_object(Main *bmain, Scene *scene, Object *ob, int type, R
 void BKE_rigidbody_remove_object(struct Main *bmain, Scene *scene, Object *ob, const bool free_us)
 {
 }
-void BKE_rigidbody_remove_constraint(Main *bmain, Scene *scene, Object *ob, const bool free_us)
-{
-}
-void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
-{
-}
+void BKE_rigidbody_remove_constraint(Main *bmain, Scene *scene, Object *ob, const bool free_us) {}
+void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime) {}
 void BKE_rigidbody_aftertrans_update(
     Object *ob, float loc[3], float rot[3], float quat[4], float rotAxis[3], float rotAngle)
 {
@@ -2350,21 +2339,11 @@ bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float ctime)
 {
   return false;
 }
-void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw)
-{
-}
-void BKE_rigidbody_rebuild_world(Depsgraph *depsgraph, Scene *scene, float ctime)
-{
-}
-void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime)
-{
-}
-void BKE_rigidbody_objects_collection_validate(Scene *scene, RigidBodyWorld *rbw)
-{
-}
-void BKE_rigidbody_constraints_collection_validate(Scene *scene, RigidBodyWorld *rbw)
-{
-}
+void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw) {}
+void BKE_rigidbody_rebuild_world(Depsgraph *depsgraph, Scene *scene, float ctime) {}
+void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime) {}
+void BKE_rigidbody_objects_collection_validate(Scene *scene, RigidBodyWorld *rbw) {}
+void BKE_rigidbody_constraints_collection_validate(Scene *scene, RigidBodyWorld *rbw) {}
 void BKE_rigidbody_main_collection_object_add(Main *bmain, Collection *collection, Object *object)
 {
 }

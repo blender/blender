@@ -191,8 +191,8 @@ EditBone *ED_armature_ebone_find_shared_parent(EditBone *ebone_child[], const ui
   }
 
   /* only need search the first chain */
-  for (EditBone *ebone_iter = ebone_child[0]->parent; ebone_iter;
-       ebone_iter = ebone_iter->parent) {
+  for (EditBone *ebone_iter = ebone_child[0]->parent; ebone_iter; ebone_iter = ebone_iter->parent)
+  {
     if (EBONE_TEMP_UINT(ebone_iter) == ebone_child_tot) {
       return ebone_iter;
     }
@@ -923,9 +923,10 @@ void ED_armature_ebone_selectflag_disable(EditBone *ebone, int flag)
   ED_armature_ebone_selectflag_set(ebone, ebone->flag & ~flag);
 }
 
-/* could be used in more places */
 void ED_armature_ebone_select_set(EditBone *ebone, bool select)
 {
+  /* NOTE: this function could be used in more places. */
+
   int flag;
   if (select) {
     BLI_assert((ebone->flag & BONE_UNSELECTABLE) == 0);

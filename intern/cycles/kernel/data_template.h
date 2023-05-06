@@ -20,6 +20,7 @@ KERNEL_STRUCT_BEGIN(KernelBackground, background)
 /* xyz store direction, w the angle. float4 instead of float3 is used
  * to ensure consistent padding/alignment across devices. */
 KERNEL_STRUCT_MEMBER(background, float4, sun)
+KERNEL_STRUCT_MEMBER(background, int, use_sun_guiding)
 /* Only shader index. */
 KERNEL_STRUCT_MEMBER(background, int, surface_shader)
 KERNEL_STRUCT_MEMBER(background, int, volume_shader)
@@ -39,6 +40,10 @@ KERNEL_STRUCT_MEMBER(background, int, use_mis)
 KERNEL_STRUCT_MEMBER(background, int, lightgroup)
 /* Light Index. */
 KERNEL_STRUCT_MEMBER(background, int, light_index)
+/* Padding. */
+KERNEL_STRUCT_MEMBER(background, int, pad1)
+KERNEL_STRUCT_MEMBER(background, int, pad2)
+KERNEL_STRUCT_MEMBER(background, int, pad3)
 KERNEL_STRUCT_END(KernelBackground)
 
 /* BVH: own BVH2 if no native device acceleration struct used. */

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -28,7 +28,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_curves_types.h"
 #include "DNA_effect_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -61,8 +61,8 @@
 #include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
@@ -75,7 +75,7 @@
 #include "BKE_mask.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
@@ -87,6 +87,7 @@
 #include "BKE_scene.h"
 #include "BKE_shader_fx.h"
 #include "BKE_simulation.h"
+#include "BKE_simulation_state.hh"
 #include "BKE_sound.h"
 #include "BKE_tracking.h"
 #include "BKE_volume.h"
@@ -378,7 +379,8 @@ void DepsgraphNodeBuilder::begin_build()
      * possibly deleted memory. */
     IDInfo *id_info = (IDInfo *)MEM_mallocN(sizeof(IDInfo), "depsgraph id info");
     if (deg_copy_on_write_is_needed(id_node->id_type) &&
-        deg_copy_on_write_is_expanded(id_node->id_cow) && id_node->id_orig != id_node->id_cow) {
+        deg_copy_on_write_is_expanded(id_node->id_cow) && id_node->id_orig != id_node->id_cow)
+    {
       id_info->id_cow = id_node->id_cow;
     }
     else {
@@ -604,7 +606,7 @@ void DepsgraphNodeBuilder::build_id(ID *id)
     case ID_MB:
     case ID_CU_LEGACY:
     case ID_LT:
-    case ID_GD:
+    case ID_GD_LEGACY:
     case ID_CV:
     case ID_PT:
     case ID_VO:
@@ -681,7 +683,8 @@ void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collecti
   if (built_map_.checkIsBuiltAndTag(collection)) {
     id_node = find_id_node(&collection->id);
     if (is_collection_visible && id_node->is_visible_on_build == false &&
-        id_node->is_collection_fully_expanded == true) {
+        id_node->is_collection_fully_expanded == true)
+    {
       /* Collection became visible, make sure nested collections and
        * objects are poked with the new visibility flag, since they
        * might become visible too. */
@@ -815,7 +818,8 @@ void DepsgraphNodeBuilder::build_object(int base_index,
   }
   /* Force field Texture. */
   if ((object->pd != nullptr) && (object->pd->forcefield == PFIELD_TEXTURE) &&
-      (object->pd->tex != nullptr)) {
+      (object->pd->tex != nullptr))
+  {
     build_texture(object->pd->tex);
   }
   /* Object dupligroup. */
@@ -903,6 +907,20 @@ void DepsgraphNodeBuilder::build_object_modifiers(Object *object)
   LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
     OperationNode *modifier_node = add_operation_node(
         &object->id, NodeType::GEOMETRY, OperationCode::MODIFIER, nullptr, modifier->name);
+    if (modifier->type == eModifierType_Nodes) {
+      modifier_node->evaluate = [nmd = reinterpret_cast<NodesModifierData *>(modifier),
+                                 modifier_node](::Depsgraph *depsgraph) {
+        if (!DEG_is_active(depsgraph)) {
+          return;
+        }
+        if (modifier_node->flag & DEPSOP_FLAG_USER_MODIFIED) {
+          if (nmd->simulation_cache &&
+              nmd->simulation_cache->cache_state() == bke::sim::CacheState::Valid) {
+            nmd->simulation_cache->invalidate();
+          }
+        }
+      };
+    }
 
     /* Mute modifier mode if the modifier is not enabled for the dependency graph mode.
      * This handles static (non-animated) mode of the modifier. */
@@ -933,7 +951,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
     case OB_SURF:
     case OB_MBALL:
     case OB_LATTICE:
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
     case OB_CURVES:
     case OB_POINTCLOUD:
     case OB_VOLUME:
@@ -1144,8 +1162,8 @@ void DepsgraphNodeBuilder::build_animation_images(ID *id)
   bool has_image_animation = false;
   if (ELEM(GS(id->name), ID_MA, ID_WO)) {
     bNodeTree *ntree = *BKE_ntree_ptr_from_id(id);
-    if (ntree != nullptr &&
-        ntree->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION) {
+    if (ntree != nullptr && ntree->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION)
+    {
       has_image_animation = true;
     }
   }
@@ -1192,29 +1210,46 @@ void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcurve, int driver_index
 
 void DepsgraphNodeBuilder::build_driver_variables(ID *id, FCurve *fcurve)
 {
-  build_driver_id_property(id, fcurve->rna_path);
+  PointerRNA id_ptr;
+  RNA_id_pointer_create(id, &id_ptr);
+
+  build_driver_id_property(id_ptr, fcurve->rna_path);
+
+  DriverTargetContext driver_target_context;
+  driver_target_context.scene = graph_->scene;
+  driver_target_context.view_layer = graph_->view_layer;
+
   LISTBASE_FOREACH (DriverVar *, dvar, &fcurve->driver->variables) {
     DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
-      if (dtar->id == nullptr) {
+      PointerRNA target_prop;
+      if (!driver_get_target_property(&driver_target_context, dvar, dtar, &target_prop)) {
         continue;
       }
-      build_id(dtar->id);
-      build_driver_id_property(dtar->id, dtar->rna_path);
+
+      /* Property is always expected to be resolved to a non-null RNA property, which is always
+       * relative to some ID. */
+      BLI_assert(target_prop.owner_id);
+
+      ID *target_id = target_prop.owner_id;
+
+      build_id(target_id);
+      build_driver_id_property(target_prop, dtar->rna_path);
     }
     DRIVER_TARGETS_LOOPER_END;
   }
 }
 
-void DepsgraphNodeBuilder::build_driver_id_property(ID *id, const char *rna_path)
+void DepsgraphNodeBuilder::build_driver_id_property(const PointerRNA &target_prop,
+                                                    const char *rna_path_from_target_prop)
 {
-  if (id == nullptr || rna_path == nullptr) {
+  if (rna_path_from_target_prop == nullptr || rna_path_from_target_prop[0] == '\0') {
     return;
   }
-  PointerRNA id_ptr, ptr;
+
+  PointerRNA ptr;
   PropertyRNA *prop;
   int index;
-  RNA_id_pointer_create(id, &id_ptr);
-  if (!RNA_path_resolve_full(&id_ptr, rna_path, &ptr, &prop, &index)) {
+  if (!RNA_path_resolve_full(&target_prop, rna_path_from_target_prop, &ptr, &prop, &index)) {
     return;
   }
   if (prop == nullptr) {
@@ -1599,7 +1634,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
       break;
     }
 
-    case ID_GD: {
+    case ID_GD_LEGACY: {
       /* GPencil evaluation operations. */
       op_node = add_operation_node(obdata,
                                    NodeType::GEOMETRY,

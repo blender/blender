@@ -9,7 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "BLI_math.h"
 #include "BLI_string.h"
@@ -609,7 +609,6 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
       add_v3_v3(global_dir, values_ofs);
     }
 
-    t->tsnap.snapElem = SCE_SNAP_MODE_NONE;
     transform_snap_mixed_apply(t, global_dir);
     translate_snap_grid(t, global_dir);
 
@@ -622,7 +621,8 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
     float incr_dir[3];
     copy_v3_v3(incr_dir, global_dir);
     if (!(transform_snap_is_active(t) && validSnap(t)) &&
-        transform_snap_increment_ex(t, (t->con.mode & CON_APPLY) != 0, incr_dir)) {
+        transform_snap_increment_ex(t, (t->con.mode & CON_APPLY) != 0, incr_dir))
+    {
 
       /* Test for mixed snap with grid. */
       float snap_dist_sq = FLT_MAX;

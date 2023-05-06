@@ -440,7 +440,7 @@ class _GenericBone:
     def _other_bones(self):
         id_data = self.id_data
 
-        # `id_data` is an 'Object' for `PosePone`, otherwise it's an `Armature`.
+        # `id_data` is an `Object` for `PosePone`, otherwise it's an `Armature`.
         if isinstance(self, PoseBone):
             return id_data.pose.bones
         if isinstance(self, EditBone):
@@ -580,7 +580,6 @@ class Mesh(bpy_types.ID):
         vertex_indices = tuple(chain.from_iterable(faces))
         loop_starts = tuple(islice(chain([0], accumulate(face_lengths)), faces_len))
 
-        self.polygons.foreach_set("loop_total", face_lengths)
         self.polygons.foreach_set("loop_start", loop_starts)
         self.polygons.foreach_set("vertices", vertex_indices)
 
@@ -689,7 +688,7 @@ class RNAMetaPropGroup(StructMetaPropGroup, RNAMeta):
     pass
 
 
-# Same as 'Operator'
+# Same as `Operator`.
 # only without 'as_keywords'
 class Gizmo(StructRNA):
     __slots__ = ()
@@ -997,6 +996,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         import os
         import re
         import bpy.utils
+        from bpy.app.translations import pgettext_iface as iface_
 
         layout = self.layout
 
@@ -1031,7 +1031,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             name = display_name(filepath) if display_name else bpy.path.display_name(f)
             props = row.operator(
                 operator,
-                text=name,
+                text=iface_(name),
                 translate=False,
             )
 
@@ -1073,7 +1073,6 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         - preset_operator_defaults (dict of keyword args)
         """
         import bpy
-        from bpy.app.translations import pgettext_iface as iface_
         ext_valid = getattr(self, "preset_extensions", {".py", ".xml"})
         props_default = getattr(self, "preset_operator_defaults", None)
         add_operator = getattr(self, "preset_add_operator", None)
@@ -1083,8 +1082,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             props_default=props_default,
             filter_ext=lambda ext: ext.lower() in ext_valid,
             add_operator=add_operator,
-            display_name=lambda name: iface_(
-                bpy.path.display_name(name, title_case=False))
+            display_name=lambda name: bpy.path.display_name(name, title_case=False)
         )
 
     @classmethod

@@ -657,7 +657,7 @@ void OBJECT_OT_hook_add_selob(wmOperatorType *ot)
                   "use_bone",
                   false,
                   "Active Bone",
-                  "Assign the hook to the hook objects active bone");
+                  "Assign the hook to the hook object's active bone");
 }
 
 static int object_add_hook_newob_exec(bContext *C, wmOperator *op)
@@ -669,7 +669,8 @@ static int object_add_hook_newob_exec(bContext *C, wmOperator *op)
   Object *obedit = CTX_data_edit_object(C);
 
   if (add_hook_object(
-          C, bmain, scene, view_layer, v3d, obedit, NULL, OBJECT_ADDHOOK_NEWOB, op->reports)) {
+          C, bmain, scene, view_layer, v3d, obedit, NULL, OBJECT_ADDHOOK_NEWOB, op->reports))
+  {
     DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, obedit);

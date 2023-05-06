@@ -70,6 +70,7 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_undo.h"
 #include "ED_util.h"
 #include "ED_util_imbuf.h"
 #include "ED_uvedit.h"
@@ -1585,8 +1586,7 @@ static int image_file_browse_exec(bContext *C, wmOperator *op)
 
   /* If loading into a tiled texture, ensure that the filename is tokenized. */
   if (ima->source == IMA_SRC_TILED) {
-    char *filename = (char *)BLI_path_basename(filepath);
-    BKE_image_ensure_tile_token(filename);
+    BKE_image_ensure_tile_token(filepath, sizeof(filepath));
   }
 
   PointerRNA imaptr;
@@ -2073,7 +2073,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
                          "copy",
                          0,
                          "Copy",
-                         "Create a new image file without modifying the current image in blender");
+                         "Create a new image file without modifying the current image in Blender");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   image_operator_prop_allow_tokens(ot);
@@ -2174,7 +2174,8 @@ static int image_save_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* Not writable formats or images without a file-path will go to "Save As". */
   if (!BKE_image_has_packedfile(ima) &&
-      (!BKE_image_has_filepath(ima) || !image_file_format_writable(ima, iuser))) {
+      (!BKE_image_has_filepath(ima) || !image_file_format_writable(ima, iuser)))
+  {
     WM_operator_name_call(C, "IMAGE_OT_save_as", WM_OP_INVOKE_DEFAULT, NULL, event);
     return OPERATOR_CANCELLED;
   }
@@ -2205,7 +2206,6 @@ void IMAGE_OT_save(wmOperatorType *ot)
 
 static int image_save_sequence_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   Image *image = image_from_context(C);
   ImBuf *ibuf, *first_ibuf = NULL;
   int tot = 0;
@@ -2249,7 +2249,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
   }
 
   /* get a filename for menu */
-  BLI_split_dir_part(first_ibuf->name, di, sizeof(di));
+  BLI_path_split_dir_part(first_ibuf->filepath, di, sizeof(di));
   BKE_reportf(op->reports, RPT_INFO, "%d image(s) will be saved in %s", tot, di);
 
   iter = IMB_moviecacheIter_new(image->cache);
@@ -2257,17 +2257,12 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
     ibuf = IMB_moviecacheIter_getImBuf(iter);
 
     if (ibuf != NULL && ibuf->userflags & IB_BITMAPDIRTY) {
-      char name[FILE_MAX];
-      BLI_strncpy(name, ibuf->name, sizeof(name));
-
-      BLI_path_abs(name, BKE_main_blendfile_path(bmain));
-
-      if (0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
+      if (0 == IMB_saveiff(ibuf, ibuf->filepath, IB_rect | IB_zbuf | IB_zbuffloat)) {
         BKE_reportf(op->reports, RPT_ERROR, "Could not write image: %s", strerror(errno));
         break;
       }
 
-      BKE_reportf(op->reports, RPT_INFO, "Saved %s", ibuf->name);
+      BKE_reportf(op->reports, RPT_INFO, "Saved %s", ibuf->filepath);
       ibuf->userflags &= ~IB_BITMAPDIRTY;
     }
 
@@ -2307,7 +2302,8 @@ static bool image_should_be_saved_when_modified(Image *ima)
 static bool image_should_be_saved(Image *ima, bool *is_format_writable)
 {
   if (BKE_image_is_dirty_writable(ima, is_format_writable) &&
-      ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_GENERATED, IMA_SRC_TILED)) {
+      ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_GENERATED, IMA_SRC_TILED))
+  {
     return image_should_be_saved_when_modified(ima);
   }
   return false;
@@ -2835,6 +2831,125 @@ void IMAGE_OT_flip(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Clipboard Copy Operator
+ * \{ */
+
+static int image_clipboard_copy_exec(bContext *C, wmOperator *op)
+{
+  Image *ima = image_from_context(C);
+  if (ima == NULL) {
+    return false;
+  }
+
+  if (G.is_rendering && ima->source == IMA_SRC_VIEWER) {
+    BKE_report(op->reports, RPT_ERROR, "Images cannot be copied while rendering");
+    return false;
+  }
+
+  ImageUser *iuser = image_user_from_context(C);
+  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_WAIT);
+
+  void *lock;
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
+  if (ibuf == NULL) {
+    BKE_image_release_ibuf(ima, ibuf, lock);
+    WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+    return OPERATOR_CANCELLED;
+  }
+
+  WM_clipboard_image_set(ibuf);
+  BKE_image_release_ibuf(ima, ibuf, lock);
+  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool image_clipboard_copy_poll(bContext *C)
+{
+  if (!image_from_context_has_data_poll(C)) {
+    CTX_wm_operator_poll_msg_set(C, "No images available");
+    return false;
+  }
+
+  return true;
+}
+
+void IMAGE_OT_clipboard_copy(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Copy Image";
+  ot->idname = "IMAGE_OT_clipboard_copy";
+  ot->description = "Copy the image to the clipboard";
+
+  /* api callbacks */
+  ot->exec = image_clipboard_copy_exec;
+  ot->poll = image_clipboard_copy_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clipboard Paste Operator
+ * \{ */
+
+static int image_clipboard_paste_exec(bContext *C, wmOperator *op)
+{
+
+  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_WAIT);
+
+  ImBuf *ibuf = WM_clipboard_image_get();
+  if (!ibuf) {
+    WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+    return OPERATOR_CANCELLED;
+  }
+
+  ED_undo_push_op(C, op);
+
+  Main *bmain = CTX_data_main(C);
+  SpaceImage *sima = CTX_wm_space_image(C);
+  Image *ima = BKE_image_add_from_imbuf(bmain, ibuf, "Clipboard");
+  IMB_freeImBuf(ibuf);
+
+  ED_space_image_set(bmain, sima, ima, false);
+  BKE_image_signal(bmain, ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_USER_NEW_IMAGE);
+  WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
+
+  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool image_clipboard_paste_poll(bContext *C)
+{
+  if (!WM_clipboard_image_available()) {
+    CTX_wm_operator_poll_msg_set(C, "No compatible images are on the clipboard");
+    return false;
+  }
+
+  return true;
+}
+
+void IMAGE_OT_clipboard_paste(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Paste Image";
+  ot->idname = "IMAGE_OT_clipboard_paste";
+  ot->description = "Paste new image from the clipboard";
+
+  /* api callbacks */
+  ot->exec = image_clipboard_paste_exec;
+  ot->poll = image_clipboard_paste_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Invert Operators
  * \{ */
 
@@ -3008,6 +3123,7 @@ static int image_scale_exec(bContext *C, wmOperator *op)
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   IMB_scaleImBuf(ibuf, size[0], size[1]);
+  BKE_image_mark_dirty(ima, ibuf);
   BKE_image_release_ibuf(ima, ibuf, NULL);
 
   ED_image_undo_push_end();
@@ -3781,7 +3897,8 @@ static int render_border_exec(bContext *C, wmOperator *op)
   /* Drawing a border surrounding the entire camera view switches off border rendering
    * or the border covers no pixels. */
   if ((border.xmin <= 0.0f && border.xmax >= 1.0f && border.ymin <= 0.0f && border.ymax >= 1.0f) ||
-      (border.xmin == border.xmax || border.ymin == border.ymax)) {
+      (border.xmin == border.xmax || border.ymin == border.ymax))
+  {
     scene->r.mode &= ~R_BORDER;
   }
   else {

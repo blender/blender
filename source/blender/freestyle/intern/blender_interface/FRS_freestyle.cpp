@@ -45,7 +45,7 @@ using namespace Freestyle;
 
 #include "DEG_depsgraph_query.h"
 
-#include "pipeline.h"
+#include "pipeline.hh"
 
 #include "FRS_freestyle.h"
 
@@ -277,8 +277,8 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
   re->i.infostr = TIP_("Freestyle: Mesh loading");
   re->stats_draw(re->sdh, &re->i);
   re->i.infostr = nullptr;
-  if (controller->LoadMesh(
-          re, view_layer, depsgraph)) {  // returns if scene cannot be loaded or if empty
+  if (controller->LoadMesh(re, view_layer, depsgraph)) {
+    /* Returns if scene cannot be loaded or if empty. */
     return;
   }
   if (re->test_break(re->tbh)) {
@@ -300,7 +300,8 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
       }
       for (FreestyleModuleConfig *module_conf = (FreestyleModuleConfig *)config->modules.first;
            module_conf;
-           module_conf = module_conf->next) {
+           module_conf = module_conf->next)
+      {
         if (module_conf->script && module_conf->is_displayed) {
           const char *id_name = module_conf->script->id.name + 2;
           if (G.debug & G_DEBUG_FREESTYLE) {
@@ -345,7 +346,8 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
         cout << "Linesets:" << endl;
       }
       for (FreestyleLineSet *lineset = (FreestyleLineSet *)config->linesets.first; lineset;
-           lineset = lineset->next) {
+           lineset = lineset->next)
+      {
         if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
           if (G.debug & G_DEBUG_FREESTYLE) {
             cout << "  " << layer_count + 1 << ": " << lineset->name << " - "
@@ -387,21 +389,21 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
               logical_and = !logical_and;
             }
             if (test_edge_type_conditions(
-                    conditions, num_edge_types, logical_and, FREESTYLE_FE_RIDGE_VALLEY, true)) {
+                    conditions, num_edge_types, logical_and, FREESTYLE_FE_RIDGE_VALLEY, true))
+            {
               ++use_ridges_and_valleys;
             }
             if (test_edge_type_conditions(conditions,
                                           num_edge_types,
                                           logical_and,
                                           FREESTYLE_FE_SUGGESTIVE_CONTOUR,
-                                          true)) {
+                                          true))
+            {
               ++use_suggestive_contours;
             }
-            if (test_edge_type_conditions(conditions,
-                                          num_edge_types,
-                                          logical_and,
-                                          FREESTYLE_FE_MATERIAL_BOUNDARY,
-                                          true)) {
+            if (test_edge_type_conditions(
+                    conditions, num_edge_types, logical_and, FREESTYLE_FE_MATERIAL_BOUNDARY, true))
+            {
               ++use_material_boundaries;
             }
           }
@@ -555,7 +557,8 @@ static int displayed_layer_count(ViewLayer *view_layer)
       for (FreestyleModuleConfig *module =
                (FreestyleModuleConfig *)view_layer->freestyle_config.modules.first;
            module;
-           module = module->next) {
+           module = module->next)
+      {
         if (module->script && module->is_displayed) {
           count++;
         }
@@ -565,7 +568,8 @@ static int displayed_layer_count(ViewLayer *view_layer)
       for (FreestyleLineSet *lineset =
                (FreestyleLineSet *)view_layer->freestyle_config.linesets.first;
            lineset;
-           lineset = lineset->next) {
+           lineset = lineset->next)
+      {
         if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
           count++;
         }
@@ -595,9 +599,7 @@ void FRS_init_stroke_renderer(Render *re)
   controller->ResetRenderCount();
 }
 
-void FRS_begin_stroke_rendering(Render * /*re*/)
-{
-}
+void FRS_begin_stroke_rendering(Render * /*re*/) {}
 
 void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
 {

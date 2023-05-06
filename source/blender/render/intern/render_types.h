@@ -113,6 +113,10 @@ struct Render {
 
   RenderStats i;
 
+  /**
+   * Optional report list which may be null (borrowed memory).
+   * Callers to rendering functions are responsible for setting can clearing, see: #RE_SetReports.
+   */
   struct ReportList *reports;
 
   void **movie_ctx_arr;

@@ -11,10 +11,8 @@ namespace blender::fn::tests {
 
 TEST(field, ConstantFunction)
 {
-  /* TODO: Figure out how to not use another "FieldOperation(" inside of std::make_shared. */
-  GField constant_field{std::make_shared<FieldOperation>(
-                            FieldOperation(std::make_unique<mf::CustomMF_Constant<int>>(10), {})),
-                        0};
+  GField constant_field{
+      FieldOperation::Create(std::make_unique<mf::CustomMF_Constant<int>>(10), {}), 0};
 
   Array<int> result(4);
 
@@ -30,9 +28,7 @@ TEST(field, ConstantFunction)
 
 class IndexFieldInput final : public FieldInput {
  public:
-  IndexFieldInput() : FieldInput(CPPType::get<int>(), "Index")
-  {
-  }
+  IndexFieldInput() : FieldInput(CPPType::get<int>(), "Index") {}
 
   GVArray get_varray_for_context(const FieldContext & /*context*/,
                                  IndexMask mask,
@@ -105,8 +101,7 @@ TEST(field, InputAndFunction)
   GField index_field{std::make_shared<IndexFieldInput>()};
 
   auto add_fn = mf::build::SI2_SO<int, int, int>("add", [](int a, int b) { return a + b; });
-  GField output_field{
-      std::make_shared<FieldOperation>(FieldOperation(add_fn, {index_field, index_field})), 0};
+  GField output_field{FieldOperation::Create(add_fn, {index_field, index_field}), 0};
 
   Array<int> result(10);
 
@@ -128,11 +123,10 @@ TEST(field, TwoFunctions)
   GField index_field{std::make_shared<IndexFieldInput>()};
 
   auto add_fn = mf::build::SI2_SO<int, int, int>("add", [](int a, int b) { return a + b; });
-  GField add_field{
-      std::make_shared<FieldOperation>(FieldOperation(add_fn, {index_field, index_field})), 0};
+  GField add_field{FieldOperation::Create(add_fn, {index_field, index_field}), 0};
 
   auto add_10_fn = mf::build::SI1_SO<int, int>("add_10", [](int a) { return a + 10; });
-  GField result_field{std::make_shared<FieldOperation>(FieldOperation(add_10_fn, {add_field})), 0};
+  GField result_field{FieldOperation::Create(add_10_fn, {add_field}), 0};
 
   Array<int> result(10);
 
@@ -183,8 +177,8 @@ TEST(field, FunctionTwoOutputs)
   GField index_field_1{std::make_shared<IndexFieldInput>()};
   GField index_field_2{std::make_shared<IndexFieldInput>()};
 
-  std::shared_ptr<FieldOperation> fn = std::make_shared<FieldOperation>(
-      FieldOperation(std::make_unique<TwoOutputFunction>(), {index_field_1, index_field_2}));
+  std::shared_ptr<FieldOperation> fn = FieldOperation::Create(
+      std::make_unique<TwoOutputFunction>(), {index_field_1, index_field_2});
 
   GField result_field_1{fn, 0};
   GField result_field_2{fn, 1};
@@ -214,8 +208,8 @@ TEST(field, TwoFunctionsTwoOutputs)
 {
   GField index_field{std::make_shared<IndexFieldInput>()};
 
-  std::shared_ptr<FieldOperation> fn = std::make_shared<FieldOperation>(
-      FieldOperation(std::make_unique<TwoOutputFunction>(), {index_field, index_field}));
+  std::shared_ptr<FieldOperation> fn = FieldOperation::Create(
+      std::make_unique<TwoOutputFunction>(), {index_field, index_field});
 
   Array<int64_t> mask_indices = {2, 4, 6, 8};
   IndexMask mask = mask_indices.as_span();
@@ -224,8 +218,7 @@ TEST(field, TwoFunctionsTwoOutputs)
   Field<int> intermediate_field{fn, 1};
 
   auto add_10_fn = mf::build::SI1_SO<int, int>("add_10", [](int a) { return a + 10; });
-  Field<int> result_field_2{
-      std::make_shared<FieldOperation>(FieldOperation(add_10_fn, {intermediate_field})), 0};
+  Field<int> result_field_2{FieldOperation::Create(add_10_fn, {intermediate_field}), 0};
 
   FieldContext field_context;
   FieldEvaluator field_evaluator{field_context, &mask};
@@ -247,8 +240,8 @@ TEST(field, TwoFunctionsTwoOutputs)
 
 TEST(field, SameFieldTwice)
 {
-  GField constant_field{
-      std::make_shared<FieldOperation>(std::make_unique<mf::CustomMF_Constant<int>>(10)), 0};
+  GField constant_field{FieldOperation::Create(std::make_unique<mf::CustomMF_Constant<int>>(10)),
+                        0};
 
   FieldContext field_context;
   IndexMask mask{IndexRange(2)};
@@ -268,7 +261,7 @@ TEST(field, SameFieldTwice)
 TEST(field, IgnoredOutput)
 {
   static mf::tests::OptionalOutputsFunction fn;
-  Field<int> field{std::make_shared<FieldOperation>(fn), 0};
+  Field<int> field{FieldOperation::Create(fn), 0};
 
   FieldContext field_context;
   FieldEvaluator field_evaluator{field_context, 10};

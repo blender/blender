@@ -798,7 +798,7 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
   BLI_listbase_clear(&temp_bmain->armatures);
   BKE_main_free(temp_bmain);
   /* We are all done! */
-  BKE_report(op->reports, RPT_INFO, "Copied pose to buffer");
+  BKE_report(op->reports, RPT_INFO, "Copied pose to internal clipboard");
   return OPERATOR_FINISHED;
 }
 
@@ -807,7 +807,7 @@ void POSE_OT_copy(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Copy Pose";
   ot->idname = "POSE_OT_copy";
-  ot->description = "Copies the current pose of the selected bones to copy/paste buffer";
+  ot->description = "Copy the current pose of the selected bones to the internal clipboard";
 
   /* api callbacks */
   ot->exec = pose_copy_exec;
@@ -846,13 +846,13 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 
   BLI_path_join(str, sizeof(str), BKE_tempdir_base(), "copybuffer_pose.blend");
   if (!BKE_copybuffer_read(tmp_bmain, str, op->reports, FILTER_ID_OB)) {
-    BKE_report(op->reports, RPT_ERROR, "Copy buffer is empty");
+    BKE_report(op->reports, RPT_ERROR, "Internal clipboard is empty");
     BKE_main_free(tmp_bmain);
     return OPERATOR_CANCELLED;
   }
   /* Make sure data from this file is usable for pose paste. */
   if (BLI_listbase_count_at_most(&tmp_bmain->objects, 2) != 1) {
-    BKE_report(op->reports, RPT_ERROR, "Copy buffer is not from pose mode");
+    BKE_report(op->reports, RPT_ERROR, "Internal clipboard is not from pose mode");
     BKE_main_free(tmp_bmain);
     return OPERATOR_CANCELLED;
   }
@@ -860,7 +860,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
   Object *object_from = tmp_bmain->objects.first;
   bPose *pose_from = object_from->pose;
   if (pose_from == NULL) {
-    BKE_report(op->reports, RPT_ERROR, "Copy buffer has no pose");
+    BKE_report(op->reports, RPT_ERROR, "Internal clipboard has no pose");
     BKE_main_free(tmp_bmain);
     return OPERATOR_CANCELLED;
   }

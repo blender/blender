@@ -2,7 +2,7 @@
 
 #include "BKE_attribute_math.hh"
 
-namespace blender::attribute_math {
+namespace blender::bke::attribute_math {
 
 ColorGeometry4fMixer::ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> buffer,
                                            ColorGeometry4f default_color)
@@ -128,4 +128,4 @@ void ColorGeometry4bMixer::finalize(const IndexMask mask)
   });
 }
 
-}  // namespace blender::attribute_math
+}  // namespace blender::bke::attribute_math

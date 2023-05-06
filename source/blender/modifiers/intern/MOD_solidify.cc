@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup modifiers
@@ -26,8 +26,8 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
 
 #include "MOD_solidify_util.hh"
 
@@ -59,7 +59,8 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
 
   /* ask for vertexgroups if we need them */
   if (smd->defgrp_name[0] != '\0' || smd->shell_defgrp_name[0] != '\0' ||
-      smd->rim_defgrp_name[0] != '\0') {
+      smd->rim_defgrp_name[0] != '\0')
+  {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   }
 }

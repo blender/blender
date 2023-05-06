@@ -144,7 +144,8 @@ static int validate_array_type(PyObject *seq,
                                    is_dynamic,
                                    check_item_type,
                                    item_type_str,
-                                   error_prefix) == -1) {
+                                   error_prefix) == -1)
+      {
         ok = 0;
       }
 
@@ -247,6 +248,7 @@ static int count_items(PyObject *seq, int dim)
 static int validate_array_length(PyObject *rvalue,
                                  PointerRNA *ptr,
                                  PropertyRNA *prop,
+                                 const bool prop_is_param_dyn_alloc,
                                  int lvalue_dim,
                                  int *r_totitem,
                                  const char *error_prefix)
@@ -266,26 +268,20 @@ static int validate_array_length(PyObject *rvalue,
     return -1;
   }
   if ((RNA_property_flag(prop) & PROP_DYNAMIC) && lvalue_dim == 0) {
-    if (RNA_property_array_length(ptr, prop) != tot) {
-#if 0
-      /* length is flexible */
-      if (!RNA_property_dynamic_array_set_length(ptr, prop, tot)) {
-        /* BLI_snprintf(error_str, error_str_size,
-         *              "%s.%s: array length cannot be changed to %d",
-         *              RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot); */
+    const int tot_expected = RNA_property_array_length(ptr, prop);
+    if (tot_expected != tot) {
+      *r_totitem = tot;
+      if (!prop_is_param_dyn_alloc) {
         PyErr_Format(PyExc_ValueError,
-                     "%s %s.%s: array length cannot be changed to %d",
+                     "%s %s.%s: array length cannot be changed to %d (expected %d)",
                      error_prefix,
                      RNA_struct_identifier(ptr->type),
                      RNA_property_identifier(prop),
-                     tot);
+                     tot,
+                     tot_expected);
         return -1;
       }
-#else
-      *r_totitem = tot;
       return 0;
-
-#endif
     }
 
     len = tot;
@@ -340,6 +336,7 @@ static int validate_array_length(PyObject *rvalue,
 static int validate_array(PyObject *rvalue,
                           PointerRNA *ptr,
                           PropertyRNA *prop,
+                          const bool prop_is_param_dyn_alloc,
                           int lvalue_dim,
                           ItemTypeCheckFunc check_item_type,
                           const char *item_type_str,
@@ -406,11 +403,13 @@ static int validate_array(PyObject *rvalue,
                             (prop_flag & PROP_DYNAMIC) != 0,
                             check_item_type,
                             item_type_str,
-                            error_prefix) == -1) {
+                            error_prefix) == -1)
+    {
       return -1;
     }
 
-    return validate_array_length(rvalue, ptr, prop, lvalue_dim, r_totitem, error_prefix);
+    return validate_array_length(
+        rvalue, ptr, prop, prop_is_param_dyn_alloc, lvalue_dim, r_totitem, error_prefix);
   }
 }
 
@@ -527,15 +526,27 @@ static int py_to_array(PyObject *seq,
   char *data = NULL;
 
   // totdim = RNA_property_array_dimension(ptr, prop, dim_size); /* UNUSED */
+  const int flag = RNA_property_flag(prop);
 
-  if (validate_array(seq, ptr, prop, 0, check_item_type, item_type_str, &totitem, error_prefix) ==
-      -1) {
+  /* Use #ParameterDynAlloc which defines its own array length. */
+  const bool prop_is_param_dyn_alloc = param_data && (flag & PROP_DYNAMIC);
+
+  if (validate_array(seq,
+                     ptr,
+                     prop,
+                     prop_is_param_dyn_alloc,
+                     0,
+                     check_item_type,
+                     item_type_str,
+                     &totitem,
+                     error_prefix) == -1)
+  {
     return -1;
   }
 
   if (totitem) {
     /* NOTE: this code is confusing. */
-    if (param_data && RNA_property_flag(prop) & PROP_DYNAMIC) {
+    if (prop_is_param_dyn_alloc) {
       /* not freeing allocated mem, RNA_parameter_list_free() will do this */
       ParameterDynAlloc *param_alloc = (ParameterDynAlloc *)param_data;
       param_alloc->array_tot = (int)totitem;
@@ -626,9 +637,17 @@ static int py_to_array_index(PyObject *py,
     copy_value_single(py, ptr, prop, NULL, 0, &index, convert_item, rna_set_index);
   }
   else {
-    if (validate_array(
-            py, ptr, prop, lvalue_dim, check_item_type, item_type_str, &totitem, error_prefix) ==
-        -1) {
+    const bool prop_is_param_dyn_alloc = false;
+    if (validate_array(py,
+                       ptr,
+                       prop,
+                       prop_is_param_dyn_alloc,
+                       lvalue_dim,
+                       check_item_type,
+                       item_type_str,
+                       &totitem,
+                       error_prefix) == -1)
+    {
       return -1;
     }
 

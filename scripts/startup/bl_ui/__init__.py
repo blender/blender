@@ -41,6 +41,7 @@ _modules = [
     "properties_physics_common",
     "properties_physics_dynamicpaint",
     "properties_physics_field",
+    "properties_physics_geometry_nodes",
     "properties_physics_rigidbody",
     "properties_physics_rigidbody_constraint",
     "properties_physics_fluid",

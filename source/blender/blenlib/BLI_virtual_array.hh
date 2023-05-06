@@ -210,9 +210,7 @@ template<typename T> class VArrayImpl_For_Span : public VMutableArrayImpl<T> {
   }
 
  protected:
-  VArrayImpl_For_Span(const int64_t size) : VMutableArrayImpl<T>(size)
-  {
-  }
+  VArrayImpl_For_Span(const int64_t size) : VMutableArrayImpl<T>(size) {}
 
   T get(const int64_t index) const final
   {
@@ -818,13 +816,9 @@ template<typename T> class VArray : public VArrayCommon<T> {
   VArray(const VArray &other) = default;
   VArray(VArray &&other) noexcept = default;
 
-  VArray(const VArrayImpl<T> *impl) : VArrayCommon<T>(impl)
-  {
-  }
+  VArray(const VArrayImpl<T> *impl) : VArrayCommon<T>(impl) {}
 
-  VArray(std::shared_ptr<const VArrayImpl<T>> impl) : VArrayCommon<T>(std::move(impl))
-  {
-  }
+  VArray(std::shared_ptr<const VArrayImpl<T>> impl) : VArrayCommon<T>(std::move(impl)) {}
 
   VArray(varray_tag::span /* tag */, Span<T> span)
   {
@@ -918,9 +912,7 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
   VMutableArray(const VMutableArray &other) = default;
   VMutableArray(VMutableArray &&other) noexcept = default;
 
-  VMutableArray(const VMutableArrayImpl<T> *impl) : VArrayCommon<T>(impl)
-  {
-  }
+  VMutableArray(const VMutableArrayImpl<T> *impl) : VArrayCommon<T>(impl) {}
 
   VMutableArray(std::shared_ptr<const VMutableArrayImpl<T>> impl)
       : VArrayCommon<T>(std::move(impl))
@@ -1268,7 +1260,8 @@ inline void devirtualize_varray(const VArray<T> &varray, const Func &func, bool 
 {
   if (enable) {
     if (call_with_devirtualized_parameters(
-            std::make_tuple(VArrayDevirtualizer<T, true, true>{varray}), func)) {
+            std::make_tuple(VArrayDevirtualizer<T, true, true>{varray}), func))
+    {
       return;
     }
   }
@@ -1290,7 +1283,8 @@ inline void devirtualize_varray2(const VArray<T1> &varray1,
     if (call_with_devirtualized_parameters(
             std::make_tuple(VArrayDevirtualizer<T1, true, true>{varray1},
                             VArrayDevirtualizer<T2, true, true>{varray2}),
-            func)) {
+            func))
+    {
       return;
     }
   }

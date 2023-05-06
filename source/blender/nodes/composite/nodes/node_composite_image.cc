@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup cmpnodes
@@ -310,7 +310,8 @@ static void cmp_node_rlayer_create_outputs(bNodeTree *ntree,
         RE_engine_free(engine);
 
         if ((scene->r.mode & R_EDGE_FRS) &&
-            (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS)) {
+            (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS))
+        {
           node_cmp_rlayers_register_pass(
               ntree, node, scene, view_layer, RE_PASSNAME_FREESTYLE, SOCK_RGBA);
         }
@@ -516,6 +517,7 @@ class ImageOperation : public NodeOperation {
     }
 
     ImageUser image_user = compute_image_user_for_output(identifier);
+    BKE_image_ensure_gpu_texture(get_image(), &image_user);
     GPUTexture *image_texture = BKE_image_get_gpu_texture(get_image(), &image_user, nullptr);
 
     const int2 size = int2(GPU_texture_width(image_texture), GPU_texture_height(image_texture));

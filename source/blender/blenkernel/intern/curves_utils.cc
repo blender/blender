@@ -16,7 +16,7 @@ void copy_curve_sizes(const OffsetIndices<int> points_by_curve,
 {
   threading::parallel_for(mask.index_range(), 4096, [&](IndexRange ranges_range) {
     for (const int64_t i : mask.slice(ranges_range)) {
-      sizes[i] = points_by_curve.size(i);
+      sizes[i] = points_by_curve[i].size();
     }
   });
 }
@@ -29,7 +29,7 @@ void copy_curve_sizes(const OffsetIndices<int> points_by_curve,
     for (const IndexRange curves_range : curve_ranges.slice(ranges_range)) {
       threading::parallel_for(curves_range, 4096, [&](IndexRange range) {
         for (const int i : range) {
-          sizes[i] = points_by_curve.size(i);
+          sizes[i] = points_by_curve[i].size();
         }
       });
     }
@@ -101,11 +101,8 @@ void fill_points(const OffsetIndices<int> points_by_curve,
 bke::CurvesGeometry copy_only_curve_domain(const bke::CurvesGeometry &src_curves)
 {
   bke::CurvesGeometry dst_curves(0, src_curves.curves_num());
-  CustomData_copy(&src_curves.curve_data,
-                  &dst_curves.curve_data,
-                  CD_MASK_ALL,
-                  CD_DUPLICATE,
-                  src_curves.curves_num());
+  CustomData_copy(
+      &src_curves.curve_data, &dst_curves.curve_data, CD_MASK_ALL, src_curves.curves_num());
   dst_curves.runtime->type_counts = src_curves.runtime->type_counts;
   return dst_curves;
 }

@@ -126,7 +126,8 @@ void DepthOfField::sync()
 
   /* Balance blur radius between fx dof and jitter dof. */
   if (do_jitter_ && (inst_.sampling.dof_ring_count_get() > 0) && !camera.is_panoramic() &&
-      !inst_.is_viewport()) {
+      !inst_.is_viewport())
+  {
     /* Compute a minimal overblur radius to fill the gaps between the samples.
      * This is just the simplified form of dividing the area of the bokeh by
      * the number of samples. */
@@ -166,7 +167,8 @@ void DepthOfField::sync()
   /* Now that we know the maximum render resolution of every view, using depth of field, allocate
    * the reduced buffers. Color needs to be signed format here. See note in shader for
    * explanation. Do not use texture pool because of needs mipmaps. */
-  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
+                           GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
   reduced_color_tx_.ensure_2d(GPU_RGBA16F, reduce_size, usage, nullptr, DOF_MIP_COUNT);
   reduced_coc_tx_.ensure_2d(GPU_R16F, reduce_size, usage, nullptr, DOF_MIP_COUNT);
   reduced_color_tx_.ensure_mip_views();
@@ -361,6 +363,10 @@ void DepthOfField::tiles_dilate_pass_sync()
 
 void DepthOfField::gather_pass_sync()
 {
+  const GPUSamplerState gather_bilinear = {GPU_SAMPLER_FILTERING_MIPMAP |
+                                           GPU_SAMPLER_FILTERING_LINEAR};
+  const GPUSamplerState gather_nearest = {GPU_SAMPLER_FILTERING_MIPMAP};
+
   for (int pass = 0; pass < 2; pass++) {
     PassSimple &drw_pass = (pass == 0) ? gather_fg_ps_ : gather_bg_ps_;
     SwapChain<TextureFromPool, 2> &color_chain = (pass == 0) ? color_fg_tx_ : color_bg_tx_;
@@ -429,6 +435,10 @@ void DepthOfField::scatter_pass_sync()
 
 void DepthOfField::hole_fill_pass_sync()
 {
+  const GPUSamplerState gather_bilinear = {GPU_SAMPLER_FILTERING_MIPMAP |
+                                           GPU_SAMPLER_FILTERING_LINEAR};
+  const GPUSamplerState gather_nearest = {GPU_SAMPLER_FILTERING_MIPMAP};
+
   hole_fill_ps_.init();
   inst_.sampling.bind_resources(&hole_fill_ps_);
   hole_fill_ps_.shader_set(inst_.shaders.static_shader_get(DOF_GATHER_HOLE_FILL));
@@ -446,7 +456,7 @@ void DepthOfField::hole_fill_pass_sync()
 
 void DepthOfField::resolve_pass_sync()
 {
-  eGPUSamplerState with_filter = GPU_SAMPLER_FILTER;
+  GPUSamplerState with_filter = {GPU_SAMPLER_FILTERING_LINEAR};
   RenderBuffers &render_buffers = inst_.render_buffers;
   eShaderType sh_type = use_bokeh_lut_ ? DOF_RESOLVE_LUT : DOF_RESOLVE;
 

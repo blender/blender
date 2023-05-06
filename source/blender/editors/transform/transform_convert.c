@@ -560,7 +560,8 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
                  CONSTRAINT_TYPE_CLAMPTO,
                  CONSTRAINT_TYPE_ARMATURE,
                  CONSTRAINT_TYPE_OBJECTSOLVER,
-                 CONSTRAINT_TYPE_FOLLOWTRACK)) {
+                 CONSTRAINT_TYPE_FOLLOWTRACK))
+        {
           return true;
         }
 
@@ -588,7 +589,8 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
           bTransLikeConstraint *data = (bTransLikeConstraint *)con->data;
 
           if (ELEM(data->mix_mode, TRANSLIKE_MIX_BEFORE, TRANSLIKE_MIX_BEFORE_FULL) &&
-              ELEM(t->mode, TFM_ROTATION, TFM_TRANSLATION)) {
+              ELEM(t->mode, TFM_ROTATION, TFM_TRANSLATION))
+          {
             return true;
           }
           if (ELEM(data->mix_mode, TRANSLIKE_MIX_BEFORE_SPLIT) && ELEM(t->mode, TFM_ROTATION)) {
@@ -600,7 +602,8 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
           bActionConstraint *data = (bActionConstraint *)con->data;
 
           if (ELEM(data->mix_mode, ACTCON_MIX_BEFORE, ACTCON_MIX_BEFORE_FULL) &&
-              ELEM(t->mode, TFM_ROTATION, TFM_TRANSLATION)) {
+              ELEM(t->mode, TFM_ROTATION, TFM_TRANSLATION))
+          {
             return true;
           }
           if (ELEM(data->mix_mode, ACTCON_MIX_BEFORE_SPLIT) && ELEM(t->mode, TFM_ROTATION)) {
@@ -686,7 +689,8 @@ static int countAndCleanTransDataContainer(TransInfo *t)
   for (TransDataContainer *th_end = t->data_container - 1,
                           *tc = &t->data_container[t->data_container_len - 1];
        tc != th_end;
-       tc--) {
+       tc--)
+  {
     if (tc->data_len == 0) {
       uint index = tc - t->data_container;
       if (index + 1 != t->data_container_len) {
@@ -726,7 +730,8 @@ static void init_proportional_edit(TransInfo *t)
             &TransConvertType_MeshVertCData,
             &TransConvertType_Node,
             &TransConvertType_Object,
-            &TransConvertType_Particle)) {
+            &TransConvertType_Particle))
+  {
     /* Disable proportional editing */
     t->options |= CTX_NO_PET;
     t->flag &= ~T_PROP_EDIT_ALL;
@@ -747,7 +752,8 @@ static void init_proportional_edit(TransInfo *t)
     else if (ELEM(t->data_type,
                   &TransConvertType_Mesh,
                   &TransConvertType_MeshSkin,
-                  &TransConvertType_MeshVertCData)) {
+                  &TransConvertType_MeshVertCData))
+    {
       if (t->flag & T_PROP_CONNECTED) {
         /* Already calculated by transform_convert_mesh_connectivity_distance. */
       }
@@ -793,7 +799,8 @@ static void init_TransDataContainers(TransInfo *t,
             &TransConvertType_MeshEdge,
             &TransConvertType_MeshSkin,
             &TransConvertType_MeshUV,
-            &TransConvertType_MeshVertCData)) {
+            &TransConvertType_MeshVertCData))
+  {
     /* Does not support Multi object editing. */
     return;
   }
@@ -802,7 +809,8 @@ static void init_TransDataContainers(TransInfo *t,
   const short object_type = obact ? obact->type : -1;
 
   if ((object_mode & OB_MODE_EDIT) || (t->data_type == &TransConvertType_GPencil) ||
-      ((object_mode & OB_MODE_POSE) && (object_type == OB_ARMATURE))) {
+      ((object_mode & OB_MODE_POSE) && (object_type == OB_ARMATURE)))
+  {
     if (t->data_container) {
       MEM_freeN(t->data_container);
     }
@@ -886,7 +894,8 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
     return &TransConvertType_Cursor3D;
   }
   if (!(t->options & CTX_PAINT_CURVE) && (t->spacetype == SPACE_VIEW3D) && ob &&
-      (ob->mode == OB_MODE_SCULPT) && ob->sculpt) {
+      (ob->mode == OB_MODE_SCULPT) && ob->sculpt)
+  {
     return &TransConvertType_Sculpt;
   }
   if (t->options & CTX_TEXTURE_SPACE) {
@@ -932,6 +941,9 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
   }
   if (t->spacetype == SPACE_CLIP) {
     if (t->options & CTX_MOVIECLIP) {
+      if (t->region->regiontype == RGN_TYPE_PREVIEW) {
+        return &TransConvertType_TrackingCurves;
+      }
       return &TransConvertType_Tracking;
     }
     if (t->options & CTX_MASK) {
@@ -978,7 +990,8 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
     return NULL;
   }
   if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) &&
-      PE_start_edit(PE_get_current(t->depsgraph, t->scene, ob))) {
+      PE_start_edit(PE_get_current(t->depsgraph, t->scene, ob)))
+  {
     return &TransConvertType_Particle;
   }
   if (ob && ((ob->mode & OB_MODE_ALL_PAINT) || (ob->mode & OB_MODE_SCULPT_CURVES))) {
@@ -1167,7 +1180,8 @@ void animrecord_check_state(TransInfo *t, struct ID *id)
    * - the option to add new actions for each round is not enabled
    */
   if (IS_AUTOKEY_FLAG(scene, INSERTAVAIL) == 0 &&
-      (scene->toolsettings->autokey_flag & ANIMRECORD_FLAG_WITHNLA)) {
+      (scene->toolsettings->autokey_flag & ANIMRECORD_FLAG_WITHNLA))
+  {
     /* if playback has just looped around,
      * we need to add a new NLA track+strip to allow a clean pass to occur */
     if ((sad) && (sad->flag & ANIMPLAY_FLAG_JUMPED)) {

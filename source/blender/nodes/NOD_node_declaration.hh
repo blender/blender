@@ -8,6 +8,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
+#include "BLT_translation.h"
+
 #include "DNA_node_types.h"
 
 struct bNode;
@@ -145,6 +147,7 @@ class SocketDeclaration {
   std::string name;
   std::string identifier;
   std::string description;
+  std::string translation_context;
   /** Defined by whether the socket is part of the node's input or
    * output socket declaration list. Included here for convenience. */
   eNodeSocketInOut in_out;
@@ -275,6 +278,12 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
     return *(Self *)this;
   }
 
+  Self &translation_context(std::string value = BLT_I18NCONTEXT_DEFAULT)
+  {
+    decl_->translation_context = std::move(value);
+    return *(Self *)this;
+  }
+
   Self &no_muted_links(bool value = true)
   {
     decl_->no_mute_links = value;
@@ -313,7 +322,9 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   /**
    * For inputs this means that the input field is evaluated on all geometry inputs. For outputs
    * it means that this contains an anonymous attribute reference that is available on all geometry
-   * outputs.
+   * outputs. This sockets value does not have to be output manually in the node. It's done
+   * automatically by #LazyFunctionForGeometryNode. This allows outputting this field even if the
+   * geometry output does not have to be computed.
    */
   Self &field_on_all()
   {

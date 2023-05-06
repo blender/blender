@@ -392,7 +392,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
 
         fill = tessellate_polygon([[v[0] for v in loop] for loop in loop_list])
         # draw_loops(loop_list)
-        #raise Exception("done loop")
+        # raise Exception("done loop")
         # map to original indices
         fill = [[vert_map[i] for i in f] for f in fill]
 
@@ -417,7 +417,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
 
         if not flip:
             for i, fi in enumerate(fill):
-                fill[i] = tuple([ii for ii in reversed(fi)])
+                fill[i] = tuple(reversed(fi))
 
     return fill
 

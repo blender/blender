@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. All rights reserved. */
+ * Copyright 2016 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -409,8 +409,8 @@ bool BKE_cachefile_filepath_get(const Main *bmain,
     const int frame = (int)BKE_cachefile_time_offset(cache_file, (double)ctime, fps);
 
     char ext[32];
-    BLI_path_frame_strip(r_filepath, ext);
-    BLI_path_frame(r_filepath, frame, frame_len);
+    BLI_path_frame_strip(r_filepath, ext, sizeof(ext));
+    BLI_path_frame(r_filepath, FILE_MAX, frame, frame_len);
     BLI_path_extension_ensure(r_filepath, FILE_MAX, ext);
 
     /* TODO(kevin): store sequence range? */
@@ -432,7 +432,8 @@ bool BKE_cache_file_uses_render_procedural(const CacheFile *cache_file, Scene *s
   RenderEngineType *render_engine_type = RE_engines_find(scene->r.engine);
 
   if (cache_file->type != CACHEFILE_TYPE_ALEMBIC ||
-      !RE_engine_supports_alembic_procedural(render_engine_type, scene)) {
+      !RE_engine_supports_alembic_procedural(render_engine_type, scene))
+  {
     return false;
   }
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup modifiers
@@ -26,7 +26,7 @@
 #include "BKE_image.h"
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_object.h"
 
@@ -35,8 +35,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_util.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_util.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -53,7 +53,6 @@ void MOD_init_texture(MappingInfoModifierData *dmd, const ModifierEvalContext *c
   }
 }
 
-/* TODO: to be renamed to get_texture_coords once we are done with moving modifiers to Mesh. */
 void MOD_get_texture_coords(MappingInfoModifierData *dmd,
                             const ModifierEvalContext * /*ctx*/,
                             Object *ob,
@@ -61,6 +60,9 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
                             float (*cos)[3],
                             float (*r_texco)[3])
 {
+  /* TODO: to be renamed to `get_texture_coords` once we are done with moving modifiers to Mesh. */
+
+  using namespace blender;
   const int verts_num = mesh->totvert;
   int i;
   int texmapping = dmd->texmapping;
@@ -92,23 +94,22 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
   /* UVs need special handling, since they come from faces */
   if (texmapping == MOD_DISP_MAP_UV) {
     if (CustomData_has_layer(&mesh->ldata, CD_PROP_FLOAT2)) {
-      const MPoly *mpoly = BKE_mesh_polys(mesh);
-      const MPoly *mp;
-      const MLoop *mloop = BKE_mesh_loops(mesh);
+      const OffsetIndices polys = mesh->polys();
+      const Span<int> corner_verts = mesh->corner_verts();
       BLI_bitmap *done = BLI_BITMAP_NEW(verts_num, __func__);
-      const int polys_num = mesh->totpoly;
       char uvname[MAX_CUSTOMDATA_LAYER_NAME];
       CustomData_validate_layer_name(&mesh->ldata, CD_PROP_FLOAT2, dmd->uvlayer_name, uvname);
       const float(*mloop_uv)[2] = static_cast<const float(*)[2]>(
           CustomData_get_layer_named(&mesh->ldata, CD_PROP_FLOAT2, uvname));
 
       /* verts are given the UV from the first face that uses them */
-      for (i = 0, mp = mpoly; i < polys_num; i++, mp++) {
-        uint fidx = mp->totloop - 1;
+      for (const int i : polys.index_range()) {
+        const IndexRange poly = polys[i];
+        uint fidx = poly.size() - 1;
 
         do {
-          uint lidx = mp->loopstart + fidx;
-          uint vidx = mloop[lidx].v;
+          uint lidx = poly.start() + fidx;
+          const int vidx = corner_verts[lidx];
 
           if (!BLI_BITMAP_TEST(done, vidx)) {
             /* remap UVs from [0, 1] to [-1, 1] */
@@ -181,10 +182,8 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
       /* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether
        * we really need a copy here. Maybe the CoW ob->data can be directly used. */
       Mesh *mesh_prior_modifiers = BKE_object_get_pre_modified_mesh(ob);
-      mesh = (Mesh *)BKE_id_copy_ex(nullptr,
-                                    &mesh_prior_modifiers->id,
-                                    nullptr,
-                                    (LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_CD_REFERENCE));
+      mesh = (Mesh *)BKE_id_copy_ex(
+          nullptr, &mesh_prior_modifiers->id, nullptr, LIB_ID_COPY_LOCALIZE);
       mesh->runtime->deformed_only = true;
     }
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -63,7 +63,8 @@ static eGPUType get_padded_gpu_type(LinkData *link)
   }
   /* Unless the vec3 is followed by a float we need to treat it as a vec4. */
   if (gputype == GPU_VEC3 && (link->next != nullptr) &&
-      (((GPUInput *)link->next->data)->type != GPU_FLOAT)) {
+      (((GPUInput *)link->next->data)->type != GPU_FLOAT))
+  {
     gputype = GPU_VEC4;
   }
   return gputype;

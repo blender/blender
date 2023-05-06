@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+ * Copyright 2012 Blender Foundation */
 
 /** \file
  * \ingroup pybmesh
@@ -274,7 +274,8 @@ static int bpy_bmesh_select_mode_set(BPy_BMesh *self, PyObject *value)
   BPY_BM_CHECK_INT(self);
 
   if (PyC_FlagSet_ToBitfield(bpy_bm_scene_vert_edge_face_flags, value, &flag, "bm.select_mode") ==
-      -1) {
+      -1)
+  {
     return -1;
   }
   if (flag == 0) {
@@ -989,7 +990,11 @@ static PyObject *bpy_bmesh_free(BPy_BMesh *self)
 
     bm_dealloc_editmode_warn(self);
 
-    if ((self->flag & BPY_BMFLAG_IS_WRAPPED) == 0) {
+    if (self->flag & BPY_BMFLAG_IS_WRAPPED) {
+      /* Ensure further access doesn't return this invalid object, see: #105715. */
+      bm->py_handle = NULL;
+    }
+    else {
       BM_mesh_free(bm);
     }
 
@@ -1014,8 +1019,8 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "O:to_mesh", &py_mesh) ||
-      !(me = PyC_RNA_AsPointer(py_mesh, "Mesh"))) {
+  if (!PyArg_ParseTuple(args, "O:to_mesh", &py_mesh) || !(me = PyC_RNA_AsPointer(py_mesh, "Mesh")))
+  {
     return NULL;
   }
 
@@ -1096,7 +1101,8 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
                                    PyC_ParseBool,
                                    &use_vert_normal) ||
       !(ob = PyC_RNA_AsPointer(py_object, "Object")) ||
-      !(depsgraph = PyC_RNA_AsPointer(py_depsgraph, "Depsgraph"))) {
+      !(depsgraph = PyC_RNA_AsPointer(py_depsgraph, "Depsgraph")))
+  {
     return NULL;
   }
 
@@ -1202,7 +1208,8 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
                                    PyC_ParseBool,
                                    &use_shape_key,
                                    &shape_key_index) ||
-      !(me = PyC_RNA_AsPointer(py_mesh, "Mesh"))) {
+      !(me = PyC_RNA_AsPointer(py_mesh, "Mesh")))
+  {
     return NULL;
   }
 
@@ -1299,14 +1306,9 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTupleAndKeywords(args,
-                                   kw,
-                                   "O!|$O!:transform",
-                                   (char **)kwlist,
-                                   &matrix_Type,
-                                   &mat,
-                                   &PySet_Type,
-                                   &filter)) {
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kw, "O!|$O!:transform", (char **)kwlist, &matrix_Type, &mat, &PySet_Type, &filter))
+  {
     return NULL;
   }
 
@@ -1322,8 +1324,9 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
     return NULL;
   }
 
-  if (filter != NULL && PyC_FlagSet_ToBitfield(
-                            bpy_bm_hflag_all_flags, filter, &filter_flags, "bm.transform") == -1) {
+  if (filter != NULL &&
+      PyC_FlagSet_ToBitfield(bpy_bm_hflag_all_flags, filter, &filter_flags, "bm.transform") == -1)
+  {
     return NULL;
   }
 
@@ -1363,7 +1366,8 @@ static PyObject *bpy_bmesh_calc_volume(BPy_BMElem *self, PyObject *args, PyObjec
   BPY_BM_CHECK_OBJ(self);
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "|$O!:calc_volume", (char **)kwlist, &PyBool_Type, &is_signed)) {
+          args, kw, "|$O!:calc_volume", (char **)kwlist, &PyBool_Type, &is_signed))
+  {
     return NULL;
   }
 
@@ -1828,7 +1832,8 @@ static PyObject *bpy_bmface_copy_from_face_interp(BPy_BMFace *self, PyObject *ar
                         &BPy_BMFace_Type,
                         &py_face,
                         PyC_ParseBool,
-                        &do_vertex)) {
+                        &do_vertex))
+  {
     return NULL;
   }
 
@@ -1870,7 +1875,8 @@ static PyObject *bpy_bmface_copy(BPy_BMFace *self, PyObject *args, PyObject *kw)
                                    PyC_ParseBool,
                                    &do_verts,
                                    PyC_ParseBool,
-                                   &do_edges)) {
+                                   &do_edges))
+  {
     return NULL;
   }
 
@@ -2083,7 +2089,8 @@ static PyObject *bpy_bmloop_copy_from_face_interp(BPy_BMLoop *self, PyObject *ar
                         PyC_ParseBool,
                         &do_vertex,
                         PyC_ParseBool,
-                        &do_multires)) {
+                        &do_multires))
+  {
     return NULL;
   }
 
@@ -2666,7 +2673,8 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
                                      (char **)kwlist,
                                      &keyfunc,
                                      PyC_ParseBool,
-                                     &do_reverse)) {
+                                     &do_reverse))
+    {
       return NULL;
     }
   }
@@ -3328,14 +3336,14 @@ static PySequenceMethods bpy_bmelemseq_as_sequence = {
 };
 
 static PyMappingMethods bpy_bmelemseq_as_mapping = {
-    /*mp_len*/ (lenfunc)bpy_bmelemseq_length,
+    /*mp_length*/ (lenfunc)bpy_bmelemseq_length,
     /*mp_subscript*/ (binaryfunc)bpy_bmelemseq_subscript,
     /*mp_ass_subscript*/ (objobjargproc)NULL,
 };
 
 /* for customdata access */
 static PyMappingMethods bpy_bm_elem_as_mapping = {
-    /*mp_len*/ (lenfunc)NULL, /* Keep this empty, messes up `if elem: ...` test. */
+    /*mp_length*/ (lenfunc)NULL, /* Keep this empty, messes up `if elem: ...` test. */
     /*mp_subscript*/ (binaryfunc)bpy_bmelem_subscript,
     /*mp_ass_subscript*/ (objobjargproc)bpy_bmelem_ass_subscript,
 };
@@ -3464,8 +3472,8 @@ static Py_hash_t bpy_bm_hash(PyObject *self)
   return _Py_HashPointer(((BPy_BMesh *)self)->bm);
 }
 
-/* Type Docstrings
- * =============== */
+/* Type Doc-strings
+ * ================ */
 
 PyDoc_STRVAR(bpy_bmesh_doc, "The BMesh data structure\n");
 PyDoc_STRVAR(bpy_bmvert_doc, "The BMesh vertex type\n");
@@ -3690,7 +3698,7 @@ void BPy_BM_init_types(void)
   BPy_BMFaceSeq_Type.tp_iter = (getiterfunc)bpy_bmelemseq_iter;
   BPy_BMLoopSeq_Type.tp_iter = NULL; /* no mapping */
 
-  /* only 1 iteratir so far */
+  /* Only 1 iterator so far. */
   BPy_BMIter_Type.tp_iternext = (iternextfunc)bpy_bmiter_next;
   BPy_BMIter_Type.tp_iter = PyObject_SelfIter;
 

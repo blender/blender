@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -20,7 +20,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -39,11 +39,10 @@ struct CDDerivedMesh {
   /* these point to data in the DerivedMesh custom data layers,
    * they are only here for efficiency and convenience */
   float (*vert_positions)[3];
-  const float (*vert_normals)[3];
-  MEdge *medge;
+  vec2i *medge;
   MFace *mface;
-  MLoop *mloop;
-  MPoly *mpoly;
+  int *corner_verts;
+  int *corner_edges;
 
   /* Cached */
   struct PBVH *pbvh;
@@ -81,57 +80,27 @@ static void cdDM_copyVertArray(DerivedMesh *dm, float (*r_positions)[3])
   memcpy(r_positions, cddm->vert_positions, sizeof(float[3]) * dm->numVertData);
 }
 
-static void cdDM_copyEdgeArray(DerivedMesh *dm, MEdge *r_edge)
+static void cdDM_copyEdgeArray(DerivedMesh *dm, vec2i *r_edge)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
   memcpy(r_edge, cddm->medge, sizeof(*r_edge) * dm->numEdgeData);
 }
 
-static void cdDM_copyLoopArray(DerivedMesh *dm, MLoop *r_loop)
+static void cdDM_copyCornerVertArray(DerivedMesh *dm, int *r_corner_verts)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  memcpy(r_loop, cddm->mloop, sizeof(*r_loop) * dm->numLoopData);
+  memcpy(r_corner_verts, cddm->corner_verts, sizeof(*r_corner_verts) * dm->numLoopData);
 }
 
-static void cdDM_copyPolyArray(DerivedMesh *dm, MPoly *r_poly)
+static void cdDM_copyCornerEdgeArray(DerivedMesh *dm, int *r_corner_edges)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  memcpy(r_poly, cddm->mpoly, sizeof(*r_poly) * dm->numPolyData);
+  memcpy(r_corner_edges, cddm->corner_edges, sizeof(*r_corner_edges) * dm->numLoopData);
 }
 
-static void cdDM_getVertCo(DerivedMesh *dm, int index, float r_co[3])
+static void cdDM_copyPolyArray(DerivedMesh *dm, int *r_poly_offsets)
 {
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-
-  copy_v3_v3(r_co, cddm->vert_positions[index]);
-}
-
-static void cdDM_getVertNo(DerivedMesh *dm, int index, float r_no[3])
-{
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  copy_v3_v3(r_no, cddm->vert_normals[index]);
-}
-
-static void cdDM_recalc_looptri(DerivedMesh *dm)
-{
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  const uint totpoly = dm->numPolyData;
-  const uint totloop = dm->numLoopData;
-
-  DM_ensure_looptri_data(dm);
-  BLI_assert(totpoly == 0 || cddm->dm.looptris.array_wip != NULL);
-
-  BKE_mesh_recalc_looptri(cddm->mloop,
-                          cddm->mpoly,
-                          cddm->vert_positions,
-                          totloop,
-                          totpoly,
-                          cddm->dm.looptris.array_wip);
-
-  BLI_assert(cddm->dm.looptris.array == NULL);
-  atomic_cas_ptr(
-      (void **)&cddm->dm.looptris.array, cddm->dm.looptris.array, cddm->dm.looptris.array_wip);
-  cddm->dm.looptris.array_wip = nullptr;
+  memcpy(r_poly_offsets, dm->poly_offsets, sizeof(int) * (dm->numPolyData + 1));
 }
 
 static void cdDM_free_internal(CDDerivedMesh *cddm)
@@ -148,10 +117,9 @@ static void cdDM_release(DerivedMesh *dm)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 
-  if (DM_release(dm)) {
-    cdDM_free_internal(cddm);
-    MEM_freeN(cddm);
-  }
+  DM_release(dm);
+  cdDM_free_internal(cddm);
+  MEM_freeN(cddm);
 }
 
 /**************** CDDM interface functions ****************/
@@ -167,25 +135,19 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 
   dm->copyVertArray = cdDM_copyVertArray;
   dm->copyEdgeArray = cdDM_copyEdgeArray;
-  dm->copyLoopArray = cdDM_copyLoopArray;
+  dm->copyCornerVertArray = cdDM_copyCornerVertArray;
+  dm->copyCornerEdgeArray = cdDM_copyCornerEdgeArray;
   dm->copyPolyArray = cdDM_copyPolyArray;
 
   dm->getVertDataArray = DM_get_vert_data_layer;
   dm->getEdgeDataArray = DM_get_edge_data_layer;
-
-  dm->recalcLoopTri = cdDM_recalc_looptri;
-
-  dm->getVertCo = cdDM_getVertCo;
-  dm->getVertNo = cdDM_getVertNo;
 
   dm->release = cdDM_release;
 
   return cddm;
 }
 
-static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
-                                      eCDAllocType alloctype,
-                                      const CustomData_MeshMasks *mask)
+static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh, const CustomData_MeshMasks *mask)
 {
   CDDerivedMesh *cddm = cdDM_create(__func__);
   DerivedMesh *dm = &cddm->dm;
@@ -203,32 +165,24 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
           mesh->totloop,
           mesh->totpoly);
 
-  /* This should actually be dm->deformedOnly = mesh->runtime.deformed_only,
-   * but only if the original mesh had its deformed_only flag correctly set
-   * (which isn't generally the case). */
-  dm->deformedOnly = 1;
-
-  CustomData_merge(&mesh->vdata, &dm->vertData, cddata_masks.vmask, alloctype, mesh->totvert);
-  CustomData_merge(&mesh->edata, &dm->edgeData, cddata_masks.emask, alloctype, mesh->totedge);
+  CustomData_merge(&mesh->vdata, &dm->vertData, cddata_masks.vmask, mesh->totvert);
+  CustomData_merge(&mesh->edata, &dm->edgeData, cddata_masks.emask, mesh->totedge);
   CustomData_merge(&mesh->fdata,
                    &dm->faceData,
                    cddata_masks.fmask | CD_MASK_ORIGINDEX,
-                   alloctype,
                    0 /* `mesh->totface` */);
-  CustomData_merge(&mesh->ldata, &dm->loopData, cddata_masks.lmask, alloctype, mesh->totloop);
-  CustomData_merge(&mesh->pdata, &dm->polyData, cddata_masks.pmask, alloctype, mesh->totpoly);
+  CustomData_merge(&mesh->ldata, &dm->loopData, cddata_masks.lmask, mesh->totloop);
+  CustomData_merge(&mesh->pdata, &dm->polyData, cddata_masks.pmask, mesh->totpoly);
 
   cddm->vert_positions = static_cast<float(*)[3]>(CustomData_get_layer_named_for_write(
       &dm->vertData, CD_PROP_FLOAT3, "position", mesh->totvert));
-  /* Though this may be an unnecessary calculation, simply retrieving the layer may return nothing
-   * or dirty normals. */
-  cddm->vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
-  cddm->medge = static_cast<MEdge *>(
-      CustomData_get_layer_for_write(&dm->edgeData, CD_MEDGE, mesh->totedge));
-  cddm->mloop = static_cast<MLoop *>(
-      CustomData_get_layer_for_write(&dm->loopData, CD_MLOOP, mesh->totloop));
-  cddm->mpoly = static_cast<MPoly *>(
-      CustomData_get_layer_for_write(&dm->polyData, CD_MPOLY, mesh->totpoly));
+  cddm->medge = static_cast<vec2i *>(CustomData_get_layer_named_for_write(
+      &dm->edgeData, CD_PROP_INT32_2D, ".edge_verts", mesh->totedge));
+  cddm->corner_verts = static_cast<int *>(CustomData_get_layer_named_for_write(
+      &dm->loopData, CD_PROP_INT32, ".corner_vert", mesh->totloop));
+  cddm->corner_edges = static_cast<int *>(CustomData_get_layer_named_for_write(
+      &dm->loopData, CD_PROP_INT32, ".corner_edge", mesh->totloop));
+  dm->poly_offsets = static_cast<int *>(MEM_dupallocN(mesh->poly_offset_indices));
 #if 0
   cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 #else
@@ -246,5 +200,5 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
 
 DerivedMesh *CDDM_from_mesh(Mesh *mesh)
 {
-  return cdDM_from_mesh_ex(mesh, CD_REFERENCE, &CD_MASK_MESH);
+  return cdDM_from_mesh_ex(mesh, &CD_MASK_MESH);
 }

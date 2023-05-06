@@ -24,8 +24,6 @@
 #  pragma GCC diagnostic error "-Wsign-conversion"
 #endif
 
-// #define DEBUG_STRSIZE
-
 /* -------------------------------------------------------------------- */
 /** \name String Duplicate/Copy
  * \{ */
@@ -63,12 +61,10 @@ char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
 
 char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
 {
-  size_t srclen = BLI_strnlen(src, maxncpy - 1);
-  BLI_assert(maxncpy != 0);
+  BLI_string_debug_size(dst, maxncpy);
 
-#ifdef DEBUG_STRSIZE
-  memset(dst, 0xff, sizeof(*dst) * maxncpy);
-#endif
+  BLI_assert(maxncpy != 0);
+  size_t srclen = BLI_strnlen(src, maxncpy - 1);
 
   memcpy(dst, src, srclen);
   dst[srclen] = '\0';
@@ -80,11 +76,8 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
                              const char pad,
                              size_t maxncpy)
 {
+  BLI_string_debug_size(dst, maxncpy);
   BLI_assert(maxncpy != 0);
-
-#ifdef DEBUG_STRSIZE
-  memset(dst, 0xff, sizeof(*dst) * maxncpy);
-#endif
 
   if (src[0] == '\0') {
     dst[0] = '\0';
@@ -119,12 +112,10 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
 
 size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
 {
+  BLI_string_debug_size(dst, maxncpy);
+
   size_t srclen = BLI_strnlen(src, maxncpy - 1);
   BLI_assert(maxncpy != 0);
-
-#ifdef DEBUG_STRSIZE
-  memset(dst, 0xff, sizeof(*dst) * maxncpy);
-#endif
 
   memcpy(dst, src, srclen);
   dst[srclen] = '\0';
@@ -138,6 +129,21 @@ size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src)
   return srclen;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name String Append
+ * \{ */
+
+char *BLI_strncat(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
+{
+  BLI_string_debug_size(dst, maxncpy);
+
+  size_t len = BLI_strnlen(dst, maxncpy);
+  if (len < maxncpy) {
+    BLI_strncpy(dst + len, src, maxncpy - len);
+  }
+  return dst;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -149,6 +155,8 @@ size_t BLI_vsnprintf(char *__restrict buffer,
                      const char *__restrict format,
                      va_list arg)
 {
+  BLI_string_debug_size(buffer, maxncpy);
+
   size_t n;
 
   BLI_assert(buffer != NULL);
@@ -172,6 +180,8 @@ size_t BLI_vsnprintf_rlen(char *__restrict buffer,
                           const char *__restrict format,
                           va_list arg)
 {
+  BLI_string_debug_size(buffer, maxncpy);
+
   size_t n;
 
   BLI_assert(buffer != NULL);
@@ -193,12 +203,10 @@ size_t BLI_vsnprintf_rlen(char *__restrict buffer,
 
 size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
 {
+  BLI_string_debug_size(dst, maxncpy);
+
   size_t n;
   va_list arg;
-
-#ifdef DEBUG_STRSIZE
-  memset(dst, 0xff, sizeof(*dst) * maxncpy);
-#endif
 
   va_start(arg, format);
   n = BLI_vsnprintf(dst, maxncpy, format, arg);
@@ -209,12 +217,10 @@ size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict
 
 size_t BLI_snprintf_rlen(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
 {
+  BLI_string_debug_size(dst, maxncpy);
+
   size_t n;
   va_list arg;
-
-#ifdef DEBUG_STRSIZE
-  memset(dst, 0xff, sizeof(*dst) * maxncpy);
-#endif
 
   va_start(arg, format);
   n = BLI_vsnprintf_rlen(dst, maxncpy, format, arg);
@@ -260,8 +266,8 @@ int BLI_sprintf(char *__restrict str, const char *__restrict format, ...)
 
 size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
 {
-
   BLI_assert(dst_maxncpy != 0);
+  BLI_string_debug_size(dst, dst_maxncpy);
 
   size_t len = 0;
   for (; (len < dst_maxncpy) && (*src != '\0'); dst++, src++, len++) {
@@ -316,6 +322,8 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
                            const size_t dst_maxncpy,
                            bool *r_is_complete)
 {
+  BLI_string_debug_size(dst, dst_maxncpy);
+
   size_t len = 0;
   bool is_complete = true;
   const size_t max_strlen = dst_maxncpy - 1; /* Account for trailing zero byte. */
@@ -337,6 +345,8 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
 
 size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const size_t src_maxncpy)
 {
+  BLI_string_debug_size(dst, src_maxncpy); /* `dst` must be at least as big as `src`. */
+
   size_t len = 0;
   for (const char *src_end = src + src_maxncpy; (src < src_end) && *src; src++) {
     char c = *src;
@@ -437,6 +447,8 @@ bool BLI_str_quoted_substr(const char *__restrict str,
                            char *result,
                            size_t result_maxlen)
 {
+  BLI_string_debug_size(result, result_maxlen);
+
   int start_match_ofs, end_match_ofs;
   if (!BLI_str_quoted_substr_range(str, prefix, &start_match_ofs, &end_match_ofs)) {
     return false;
@@ -526,6 +538,8 @@ bool BLI_str_replace_table_exact(char *string,
                                  const char *replace_table[][2],
                                  int replace_table_len)
 {
+  BLI_string_debug_size_after_nil(string, string_len);
+
   for (int i = 0; i < replace_table_len; i++) {
     if (STREQ(string, replace_table[i][0])) {
       BLI_strncpy(string, replace_table[i][1], string_len);
@@ -1098,7 +1112,7 @@ int BLI_string_find_split_words(
 /** \name String Formatting (Numeric)
  * \{ */
 
-static size_t BLI_str_format_int_grouped_ex(char src[16], char dst[16], int num_len)
+static size_t BLI_str_format_int_grouped_ex(char *src, char *dst, int num_len)
 {
   char *p_src = src;
   char *p_dst = dst;
@@ -1122,26 +1136,32 @@ static size_t BLI_str_format_int_grouped_ex(char src[16], char dst[16], int num_
   return (size_t)(p_dst - dst);
 }
 
-size_t BLI_str_format_int_grouped(char dst[16], int num)
+size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], int num)
 {
-  char src[16];
+  BLI_string_debug_size(dst, BLI_STR_FORMAT_INT32_GROUPED_SIZE);
+
+  char src[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
   const int num_len = BLI_snprintf(src, sizeof(src), "%d", num);
 
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
 
-size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num)
+size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], uint64_t num)
 {
-  /* NOTE: Buffer to hold maximum `uint64`, which is 1.8e+19. but
-   * we also need space for commas and null-terminator. */
-  char src[27];
+  BLI_string_debug_size(dst, BLI_STR_FORMAT_UINT64_GROUPED_SIZE);
+
+  char src[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
   const int num_len = BLI_snprintf(src, sizeof(src), "%" PRIu64 "", num);
 
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
 
-void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base_10)
+void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
+                              long long int bytes,
+                              const bool base_10)
 {
+  BLI_string_debug_size(dst, BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE);
+
   double bytes_converted = bytes;
   int order = 0;
   int decimals;
@@ -1159,15 +1179,18 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base
   decimals = MAX2(order - 1, 0);
 
   /* Format value first, stripping away floating zeroes. */
-  const size_t dst_len = 15;
+  const size_t dst_len = BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE;
   size_t len = BLI_snprintf_rlen(dst, dst_len, "%.*f", decimals, bytes_converted);
   len -= (size_t)BLI_str_rstrip_float_zero(dst, '\0');
   dst[len++] = ' ';
   BLI_strncpy(dst + len, base_10 ? units_base_10[order] : units_base_2[order], dst_len - len);
 }
 
-void BLI_str_format_decimal_unit(char dst[7], int number_to_format)
+void BLI_str_format_decimal_unit(char dst[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE],
+                                 int number_to_format)
 {
+  BLI_string_debug_size(dst, BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE);
+
   float number_to_format_converted = number_to_format;
   int order = 0;
   const float base = 1000;
@@ -1179,7 +1202,7 @@ void BLI_str_format_decimal_unit(char dst[7], int number_to_format)
     order++;
   }
 
-  const size_t dst_len = 7;
+  const size_t dst_len = BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE;
   int decimals = 0;
   if ((order > 0) && fabsf(number_to_format_converted) < 100.0f) {
     decimals = 1;
@@ -1187,8 +1210,11 @@ void BLI_str_format_decimal_unit(char dst[7], int number_to_format)
   BLI_snprintf(dst, dst_len, "%.*f%s", decimals, number_to_format_converted, units[order]);
 }
 
-void BLI_str_format_integer_unit(char dst[5], const int number_to_format)
+void BLI_str_format_integer_unit(char dst[BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE],
+                                 const int number_to_format)
 {
+  BLI_string_debug_size(dst, BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE);
+
   float number_to_format_converted = number_to_format;
   int order = 0;
   const float base = 1000;
@@ -1207,7 +1233,7 @@ void BLI_str_format_integer_unit(char dst[5], const int number_to_format)
     order++;
   }
 
-  const size_t dst_len = 5;
+  const size_t dst_len = BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE;
   BLI_snprintf(dst,
                dst_len,
                "%s%s%d%s",
@@ -1216,5 +1242,23 @@ void BLI_str_format_integer_unit(char dst[5], const int number_to_format)
                (int)floorf(fabsf(number_to_format_converted)),
                units[order]);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Debugging
+ * \{ */
+
+#ifdef DEBUG_STRSIZE
+void BLI_string_debug_size_after_nil(char *str, size_t str_maxlen)
+{
+  /* Step over the nil, into the character afterwards. */
+  size_t str_tail = BLI_strnlen(str, str_maxlen) + 2;
+  if (str_tail < str_maxlen) {
+    BLI_string_debug_size(str + str_tail, str_maxlen - str_tail);
+  }
+}
+
+#endif /* DEBUG_STRSIZE */
 
 /** \} */

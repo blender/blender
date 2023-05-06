@@ -36,12 +36,15 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
   if (!e_data.dummy_horizon_tx) {
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
     const float pixel[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    e_data.dummy_horizon_tx = DRW_texture_create_2d(1, 1, GPU_RGBA8, DRW_TEX_WRAP, pixel);
+    e_data.dummy_horizon_tx = DRW_texture_create_2d_ex(
+        1, 1, GPU_RGBA8, usage, DRW_TEX_WRAP, pixel);
   }
 
   if (scene_eval->eevee.flag & SCE_EEVEE_GTAO_ENABLED ||
-      stl->g_data->render_passes & EEVEE_RENDER_PASS_AO) {
+      stl->g_data->render_passes & EEVEE_RENDER_PASS_AO)
+  {
     const float *viewport_size = DRW_viewport_size_get();
     const int fs_size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
@@ -61,8 +64,9 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
     common_data->ao_bounce_fac = (scene_eval->eevee.flag & SCE_EEVEE_GTAO_BOUNCE) ? 1.0f : 0.0f;
 
-    effects->gtao_horizons_renderpass = DRW_texture_pool_query_2d(
-        UNPACK2(effects->hiz_size), GPU_RGBA8, &draw_engine_eevee_type);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+    effects->gtao_horizons_renderpass = DRW_texture_pool_query_2d_ex(
+        UNPACK2(effects->hiz_size), GPU_RGBA8, usage, &draw_engine_eevee_type);
     GPU_framebuffer_ensure_config(
         &fbl->gtao_fb,
         {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(effects->gtao_horizons_renderpass)});
@@ -200,8 +204,8 @@ void EEVEE_occlusion_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     }
 
     if (GPU_mip_render_workaround() ||
-        GPU_type_matches_ex(
-            GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
+        GPU_type_matches_ex(GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL))
+    {
       /* Fix dot corruption on intel HD5XX/HD6XX series. */
       GPU_flush();
     }

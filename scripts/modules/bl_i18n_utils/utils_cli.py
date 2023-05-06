@@ -69,7 +69,7 @@ def language_menu(args, settings):
             continue
         for po_path in os.listdir(po_dir):
             uid = po_to_uid.get(po_path, None)
-            #print("Checking %s, found uid %s" % (po_path, uid))
+            # print("Checking %s, found uid %s" % (po_path, uid))
             po_path = os.path.join(settings.TRUNK_PO_DIR, po_path)
             if uid is not None:
                 po = utils_i18n.I18nMessages(uid=uid, kind='PO', src=po_path, settings=settings)
@@ -131,7 +131,7 @@ def main():
     settings = settings_i18n.I18nSettings()
     settings.load(args.settings)
 
-    if getattr(args, 'template', None) is not None:
+    if getattr(args, "template", None) is not None:
         settings.FILE_NAME_POT = args.template
 
     args.func(args=args, settings=settings)

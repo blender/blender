@@ -66,7 +66,6 @@ static Scene *scene_add(Main *bmain, Scene *scene_old, eSceneCopyMethod method)
   return scene_new;
 }
 
-/** Add a new scene in the sequence editor. */
 Scene *ED_scene_sequencer_add(Main *bmain,
                               bContext *C,
                               eSceneCopyMethod method,
@@ -176,8 +175,8 @@ static bool view_layer_remove_poll(const Scene *scene, const ViewLayer *layer)
   if (act == -1) {
     return false;
   }
-  if ((scene->view_layers.first == scene->view_layers.last) &&
-      (scene->view_layers.first == layer)) {
+  if ((scene->view_layers.first == scene->view_layers.last) && (scene->view_layers.first == layer))
+  {
     /* ensure 1 layer is kept */
     return false;
   }

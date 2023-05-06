@@ -243,7 +243,7 @@ typedef struct bArmatureConstraint {
   ListBase targets;
 } bArmatureConstraint;
 
-/* Single-target subobject constraints --------------------- */
+/* Single-target sub-object constraints --------------------- */
 
 /* Track To Constraint */
 typedef struct bTrackToConstraint {
@@ -625,60 +625,44 @@ typedef struct bTransformCacheConstraint {
 typedef enum eBConstraint_Types {
   /** Invalid/legacy constraint */
   CONSTRAINT_TYPE_NULL = 0,
-  /** Unimplemented non longer :) - during constraints recode, Aligorith */
   CONSTRAINT_TYPE_CHILDOF = 1,
   CONSTRAINT_TYPE_TRACKTO = 2,
   CONSTRAINT_TYPE_KINEMATIC = 3,
   CONSTRAINT_TYPE_FOLLOWPATH = 4,
-  /** Unimplemented no longer :) - Aligorith */
   CONSTRAINT_TYPE_ROTLIMIT = 5,
-  /** Unimplemented no longer :) - Aligorith */
   CONSTRAINT_TYPE_LOCLIMIT = 6,
-  /** Unimplemented no longer :) - Aligorith */
   CONSTRAINT_TYPE_SIZELIMIT = 7,
   CONSTRAINT_TYPE_ROTLIKE = 8,
   CONSTRAINT_TYPE_LOCLIKE = 9,
   CONSTRAINT_TYPE_SIZELIKE = 10,
-  /** Unimplemented no longer :) - Aligorith. Scripts */
   CONSTRAINT_TYPE_PYTHON = 11,
   CONSTRAINT_TYPE_ACTION = 12,
-  /** New Tracking constraint that locks an axis in place - theeth */
   CONSTRAINT_TYPE_LOCKTRACK = 13,
-  /** limit distance */
   CONSTRAINT_TYPE_DISTLIMIT = 14,
-  /** claiming this to be mine :) is in tuhopuu bjornmose */
   CONSTRAINT_TYPE_STRETCHTO = 15,
   /** floor constraint */
   CONSTRAINT_TYPE_MINMAX = 16,
   /* CONSTRAINT_TYPE_DEPRECATED = 17 */
-  /** clampto constraint */
   CONSTRAINT_TYPE_CLAMPTO = 18,
   /** transformation (loc/rot/size -> loc/rot/size) constraint */
   CONSTRAINT_TYPE_TRANSFORM = 19,
   /** shrinkwrap (loc/rot) constraint */
   CONSTRAINT_TYPE_SHRINKWRAP = 20,
-  /** New Tracking constraint that minimizes twisting */
+  /** Tracking constraint that minimizes twisting */
   CONSTRAINT_TYPE_DAMPTRACK = 21,
-  /** Spline-IK - Align 'n' bones to a curve */
   CONSTRAINT_TYPE_SPLINEIK = 22,
   /** Copy transform matrix */
   CONSTRAINT_TYPE_TRANSLIKE = 23,
   /** Maintain volume during scaling */
   CONSTRAINT_TYPE_SAMEVOL = 24,
-  /** Pivot Constraint */
   CONSTRAINT_TYPE_PIVOT = 25,
-  /** Follow Track Constraint */
   CONSTRAINT_TYPE_FOLLOWTRACK = 26,
-  /** Camera Solver Constraint */
   CONSTRAINT_TYPE_CAMERASOLVER = 27,
-  /** Object Solver Constraint */
   CONSTRAINT_TYPE_OBJECTSOLVER = 28,
-  /** Transform Cache Constraint */
   CONSTRAINT_TYPE_TRANSFORM_CACHE = 29,
-  /** Armature Deform Constraint */
   CONSTRAINT_TYPE_ARMATURE = 30,
 
-  /* NOTE: no constraints are allowed to be added after this */
+  /* This should be the last entry in this list. */
   NUM_CONSTRAINT_TYPES,
 } eBConstraint_Types;
 

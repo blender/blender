@@ -403,7 +403,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     time_limit: FloatProperty(
         name="Time Limit",
-        description="Limit the render time (excluding synchronization time)."
+        description="Limit the render time (excluding synchronization time). "
         "Zero disables the limit",
         min=0.0,
         default=0.0,
@@ -1507,7 +1507,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def get_device_types(self, context):
         import _cycles
-        has_cuda, has_optix, has_hip, has_metal, has_oneapi = _cycles.get_device_types()
+        has_cuda, has_optix, has_hip, has_metal, has_oneapi, has_hiprt = _cycles.get_device_types()
 
         list = [('NONE', "None", "Don't use compute device", 0)]
         if has_cuda:
@@ -1541,6 +1541,20 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         name="MetalRT (Experimental)",
         description="MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better "
                     "performance in specific cases. However this support is experimental and some scenes may render incorrectly",
+        default=False,
+    )
+
+    use_hiprt: BoolProperty(
+        name="HIP RT (Experimental)",
+        description="HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. "
+                    "This feature is experimental and some scenes may render incorrectly",
+        default=False,
+    )
+
+    use_oneapirt: BoolProperty(
+        name="Embree on GPU (Experimental)",
+        description="Embree GPU execution will allow to use hardware ray tracing on Intel GPUs, which will provide better performance. "
+                    "However this support is experimental and some scenes may render incorrectly",
         default=False,
     )
 
@@ -1673,19 +1687,19 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 driver_version = "470"
                 col.label(text=iface_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
                           icon='BLANK1', translate=False)
-                col.label(text="and NVIDIA driver version %s or newer" % driver_version,
+                col.label(text=iface_("and NVIDIA driver version %s or newer") % driver_version,
                           icon='BLANK1', translate=False)
             elif device_type == 'HIP':
-                if True:
-                    col.label(text="HIP temporarily disabled due to compiler bugs", icon='BLANK1')
-                else:
-                    import sys
-                    if sys.platform[:3] == "win":
-                        driver_version = "21.Q4"
-                        col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
-                        col.label(text=iface_("and AMD Radeon Pro %s driver or newer") % driver_version,
-                                  icon='BLANK1', translate=False)
-                    elif sys.platform.startswith("linux"):
+                import sys
+                if sys.platform[:3] == "win":
+                    driver_version = "21.Q4"
+                    col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
+                    col.label(text=iface_("and AMD Radeon Pro %s driver or newer") % driver_version,
+                              icon='BLANK1', translate=False)
+                elif sys.platform.startswith("linux"):
+                    if True:
+                        col.label(text="HIP temporarily disabled due to compiler bugs", icon='BLANK1')
+                    else:
                         driver_version = "22.10"
                         col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
                         col.label(text=iface_("and AMD driver version %s or newer") % driver_version, icon='BLANK1',
@@ -1719,7 +1733,8 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 .replace('(TM)', unicodedata.lookup('TRADE MARK SIGN'))
                 .replace('(tm)', unicodedata.lookup('TRADE MARK SIGN'))
                 .replace('(R)', unicodedata.lookup('REGISTERED SIGN'))
-                .replace('(C)', unicodedata.lookup('COPYRIGHT SIGN'))
+                .replace('(C)', unicodedata.lookup('COPYRIGHT SIGN')),
+                translate=False
             )
 
     def draw_impl(self, layout, context):
@@ -1761,6 +1776,17 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 if is_arm64:
                     col.prop(self, "kernel_optimization_level")
                 col.prop(self, "use_metalrt")
+
+        if compute_device_type == 'HIP':
+            has_cuda, has_optix, has_hip, has_metal, has_oneapi, has_hiprt = _cycles.get_device_types()
+            row = layout.row()
+            row.enabled = has_hiprt
+            row.prop(self, "use_hiprt")
+
+        elif compute_device_type == 'ONEAPI' and _cycles.with_embree_gpu:
+            row = layout.row()
+            row.use_property_split = True
+            row.prop(self, "use_oneapirt")
 
     def draw(self, context):
         self.draw_impl(self.layout, context)

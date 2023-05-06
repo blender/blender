@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -228,7 +228,8 @@ short BKE_freestyle_lineset_get_active_index(FreestyleConfig *config)
   short i;
 
   for (lineset = (FreestyleLineSet *)config->linesets.first, i = 0; lineset;
-       lineset = lineset->next, i++) {
+       lineset = lineset->next, i++)
+  {
     if (lineset->flags & FREESTYLE_LINESET_CURRENT) {
       return i;
     }
@@ -242,7 +243,8 @@ void BKE_freestyle_lineset_set_active_index(FreestyleConfig *config, short index
   short i;
 
   for (lineset = (FreestyleLineSet *)config->linesets.first, i = 0; lineset;
-       lineset = lineset->next, i++) {
+       lineset = lineset->next, i++)
+  {
     if (i == index) {
       lineset->flags |= FREESTYLE_LINESET_CURRENT;
     }

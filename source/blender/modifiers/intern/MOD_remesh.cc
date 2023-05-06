@@ -21,7 +21,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_remesh_voxel.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_screen.h"
@@ -32,8 +32,8 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
 
 #include <cstdlib>
 #include <cstring>
@@ -63,10 +63,10 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
   input->co_stride = sizeof(float[3]);
   input->totco = mesh->totvert;
 
-  input->mloop = (DualConLoop)BKE_mesh_loops(mesh);
-  input->loop_stride = sizeof(MLoop);
+  input->mloop = (DualConLoop)mesh->corner_verts().data();
+  input->loop_stride = sizeof(int);
 
-  input->looptri = (DualConTri)BKE_mesh_runtime_looptri_ensure(mesh);
+  input->looptri = (DualConTri)mesh->looptris().data();
   input->tri_stride = sizeof(MLoopTri);
   input->tottri = BKE_mesh_runtime_looptri_len(mesh);
 
@@ -79,8 +79,8 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
 typedef struct {
   Mesh *mesh;
   float (*vert_positions)[3];
-  MPoly *polys;
-  MLoop *loops;
+  int *poly_offsets;
+  int *corner_verts;
   int curvert, curface;
 } DualConOutput;
 
@@ -93,10 +93,10 @@ static void *dualcon_alloc_output(int totvert, int totquad)
     return nullptr;
   }
 
-  output->mesh = BKE_mesh_new_nomain(totvert, 0, 0, 4 * totquad, totquad);
+  output->mesh = BKE_mesh_new_nomain(totvert, 0, totquad, 4 * totquad);
   output->vert_positions = BKE_mesh_vert_positions_for_write(output->mesh);
-  output->polys = BKE_mesh_polys_for_write(output->mesh);
-  output->loops = BKE_mesh_loops_for_write(output->mesh);
+  output->poly_offsets = output->mesh->poly_offsets_for_write().data();
+  output->corner_verts = output->mesh->corner_verts_for_write().data();
 
   return output;
 }
@@ -120,13 +120,9 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
   BLI_assert(output->curface < mesh->totpoly);
   UNUSED_VARS_NDEBUG(mesh);
 
-  MLoop *mloop = output->loops;
-  MPoly *cur_poly = &output->polys[output->curface];
-
-  cur_poly->loopstart = output->curface * 4;
-  cur_poly->totloop = 4;
+  output->poly_offsets[output->curface] = output->curface * 4;
   for (i = 0; i < 4; i++) {
-    mloop[output->curface * 4 + i].v = vert_indices[i];
+    output->corner_verts[output->curface * 4 + i] = vert_indices[i];
   }
 
   output->curface++;
@@ -192,20 +188,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
                                                   rmd->scale,
                                                   rmd->depth));
     BLI_mutex_unlock(&dualcon_mutex);
-
+    output->mesh->poly_offsets_for_write().last() = output->mesh->totloop;
     result = output->mesh;
     MEM_freeN(output);
   }
 
-  if (rmd->flag & MOD_REMESH_SMOOTH_SHADING) {
-    MPoly *mpoly = BKE_mesh_polys_for_write(result);
-    int i, totpoly = result->totpoly;
-
-    /* Apply smooth shading to output faces */
-    for (i = 0; i < totpoly; i++) {
-      mpoly[i].flag |= ME_SMOOTH;
-    }
-  }
+  BKE_mesh_smooth_flag_set(result, rmd->flag & MOD_REMESH_SMOOTH_SHADING);
 
   BKE_mesh_copy_parameters_for_eval(result, mesh);
   BKE_mesh_calc_edges(result, true, false);

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2015 Blender Foundation. All rights reserved. */
+ * Copyright 2015 Blender Foundation */
 
 /** \file
  * \ingroup edgizmolib
@@ -15,12 +15,15 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_screen.h"
 #include "ED_view3d.h"
 
 #include "CLG_log.h"
@@ -245,3 +248,40 @@ bool gizmo_window_project_3d(
   copy_v2_v2(r_co, co);
   return true;
 }
+
+/* -------------------------------------------------------------------- */
+/** \name RNA Utils
+ * \{ */
+
+/* Based on 'rna_GizmoProperties_find_operator'. */
+wmGizmo *gizmo_find_from_properties(const struct IDProperty *properties,
+                                    const int spacetype,
+                                    const int regionid)
+{
+  for (bScreen *screen = G_MAIN->screens.first; screen; screen = screen->id.next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      if (!ELEM(spacetype, SPACE_TYPE_ANY, area->spacetype)) {
+        continue;
+      }
+      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+        if (region->gizmo_map == NULL) {
+          continue;
+        }
+        if (!ELEM(regionid, RGN_TYPE_ANY, region->regiontype)) {
+          continue;
+        }
+
+        LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, WM_gizmomap_group_list(region->gizmo_map)) {
+          LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
+            if (gz->properties == properties) {
+              return gz;
+            }
+          }
+        }
+      }
+    }
+  }
+  return NULL;
+}
+
+/** \} */

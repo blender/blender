@@ -215,7 +215,8 @@ wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
                                                     const wmXrRuntimeData *runtime_data)
 {
   if (runtime_data->session_root_win &&
-      BLI_findindex(&wm->windows, runtime_data->session_root_win) != -1) {
+      BLI_findindex(&wm->windows, runtime_data->session_root_win) != -1)
+  {
     /* Root window is still valid, use it. */
     return runtime_data->session_root_win;
   }
@@ -436,7 +437,8 @@ bool WM_xr_session_state_controller_grip_location_get(const wmXrData *xr,
                                                       float r_location[3])
 {
   if (!WM_xr_session_is_ready(xr) || !xr->runtime->session_state.is_view_data_set ||
-      (subaction_idx >= BLI_listbase_count(&xr->runtime->session_state.controllers))) {
+      (subaction_idx >= BLI_listbase_count(&xr->runtime->session_state.controllers)))
+  {
     zero_v3(r_location);
     return false;
   }
@@ -453,7 +455,8 @@ bool WM_xr_session_state_controller_grip_rotation_get(const wmXrData *xr,
                                                       float r_rotation[4])
 {
   if (!WM_xr_session_is_ready(xr) || !xr->runtime->session_state.is_view_data_set ||
-      (subaction_idx >= BLI_listbase_count(&xr->runtime->session_state.controllers))) {
+      (subaction_idx >= BLI_listbase_count(&xr->runtime->session_state.controllers)))
+  {
     unit_qt(r_rotation);
     return false;
   }
@@ -470,7 +473,8 @@ bool WM_xr_session_state_controller_aim_location_get(const wmXrData *xr,
                                                      float r_location[3])
 {
   if (!WM_xr_session_is_ready(xr) || !xr->runtime->session_state.is_view_data_set ||
-      (subaction_idx >= BLI_listbase_count(&xr->runtime->session_state.controllers))) {
+      (subaction_idx >= BLI_listbase_count(&xr->runtime->session_state.controllers)))
+  {
     zero_v3(r_location);
     return false;
   }
@@ -487,7 +491,8 @@ bool WM_xr_session_state_controller_aim_rotation_get(const wmXrData *xr,
                                                      float r_rotation[4])
 {
   if (!WM_xr_session_is_ready(xr) || !xr->runtime->session_state.is_view_data_set ||
-      (subaction_idx >= BLI_listbase_count(&xr->runtime->session_state.controllers))) {
+      (subaction_idx >= BLI_listbase_count(&xr->runtime->session_state.controllers)))
+  {
     unit_qt(r_rotation);
     return false;
   }
@@ -729,7 +734,8 @@ static bool wm_xr_session_modal_action_test(const ListBase *active_modal_actions
       return true;
     }
     if (action->ot == active_modal_action->ot &&
-        IDP_EqualsProperties(action->op_properties, active_modal_action->op_properties)) {
+        IDP_EqualsProperties(action->op_properties, active_modal_action->op_properties))
+    {
       /* Don't allow duplicate modal operators since this can lead to unwanted modal handler
        * behavior. */
       return false;
@@ -847,12 +853,14 @@ static void wm_xr_session_action_states_interpret(wmXrData *xr,
       const float *state = &((float *)action->states)[subaction_idx];
       float *state_prev = &((float *)action->states_prev)[subaction_idx];
       if (test_float_state(
-              state, action->float_thresholds[subaction_idx], action->axis_flags[subaction_idx])) {
+              state, action->float_thresholds[subaction_idx], action->axis_flags[subaction_idx]))
+      {
         curr = true;
       }
       if (test_float_state(state_prev,
                            action->float_thresholds[subaction_idx],
-                           action->axis_flags[subaction_idx])) {
+                           action->axis_flags[subaction_idx]))
+      {
         prev = true;
       }
       *state_prev = *state;
@@ -861,14 +869,15 @@ static void wm_xr_session_action_states_interpret(wmXrData *xr,
     case XR_VECTOR2F_INPUT: {
       const float(*state)[2] = &((float(*)[2])action->states)[subaction_idx];
       float(*state_prev)[2] = &((float(*)[2])action->states_prev)[subaction_idx];
-      if (test_vec2f_state(*state,
-                           action->float_thresholds[subaction_idx],
-                           action->axis_flags[subaction_idx])) {
+      if (test_vec2f_state(
+              *state, action->float_thresholds[subaction_idx], action->axis_flags[subaction_idx]))
+      {
         curr = true;
       }
       if (test_vec2f_state(*state_prev,
                            action->float_thresholds[subaction_idx],
-                           action->axis_flags[subaction_idx])) {
+                           action->axis_flags[subaction_idx]))
+      {
         prev = true;
       }
       copy_v2_v2(*state_prev, *state);
@@ -893,7 +902,8 @@ static void wm_xr_session_action_states_interpret(wmXrData *xr,
                                       haptic_subaction_path,
                                       &action->haptic_duration,
                                       &action->haptic_frequency,
-                                      &action->haptic_amplitude)) {
+                                      &action->haptic_amplitude))
+        {
           wm_xr_session_haptic_action_add(
               active_haptic_actions, action, haptic_subaction_path, time_now);
         }
@@ -909,8 +919,8 @@ static void wm_xr_session_action_states_interpret(wmXrData *xr,
       wm_xr_session_modal_action_test_add(active_modal_actions, action);
     }
     if (haptic && ((action->haptic_flag & XR_HAPTIC_REPEAT) != 0)) {
-      if (!wm_xr_session_haptic_action_find(
-              active_haptic_actions, action, haptic_subaction_path)) {
+      if (!wm_xr_session_haptic_action_find(active_haptic_actions, action, haptic_subaction_path))
+      {
         /* Apply haptics. */
         if (WM_xr_haptic_action_apply(xr,
                                       action_set_name,
@@ -918,7 +928,8 @@ static void wm_xr_session_action_states_interpret(wmXrData *xr,
                                       haptic_subaction_path,
                                       &action->haptic_duration,
                                       &action->haptic_frequency,
-                                      &action->haptic_amplitude)) {
+                                      &action->haptic_amplitude))
+        {
           wm_xr_session_haptic_action_add(
               active_haptic_actions, action, haptic_subaction_path, time_now);
         }
@@ -944,7 +955,8 @@ static void wm_xr_session_action_states_interpret(wmXrData *xr,
                                       haptic_subaction_path,
                                       &action->haptic_duration,
                                       &action->haptic_frequency,
-                                      &action->haptic_amplitude)) {
+                                      &action->haptic_amplitude))
+        {
           wm_xr_session_haptic_action_add(
               active_haptic_actions, action, haptic_subaction_path, time_now);
         }
@@ -986,7 +998,8 @@ static bool wm_xr_session_action_test_bimanual(const wmXrSessionState *session_s
       const float *state = &((float *)action->states)[*r_subaction_idx_other];
       if (test_float_state(state,
                            action->float_thresholds[*r_subaction_idx_other],
-                           action->axis_flags[*r_subaction_idx_other])) {
+                           action->axis_flags[*r_subaction_idx_other]))
+      {
         bimanual = true;
       }
       break;
@@ -995,7 +1008,8 @@ static bool wm_xr_session_action_test_bimanual(const wmXrSessionState *session_s
       const float(*state)[2] = &((float(*)[2])action->states)[*r_subaction_idx_other];
       if (test_vec2f_state(*state,
                            action->float_thresholds[*r_subaction_idx_other],
-                           action->axis_flags[*r_subaction_idx_other])) {
+                           action->axis_flags[*r_subaction_idx_other]))
+      {
         bimanual = true;
       }
       break;
@@ -1116,8 +1130,8 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
       const bool haptic = (GHOST_XrGetActionCustomdata(
                                xr_context, action_set_name, action->haptic_name) != NULL);
 
-      for (uint subaction_idx = 0; subaction_idx < action->count_subaction_paths;
-           ++subaction_idx) {
+      for (uint subaction_idx = 0; subaction_idx < action->count_subaction_paths; ++subaction_idx)
+      {
         short val = KM_NOTHING;
 
         /* Interpret action states (update modal/haptic action lists, apply haptics, etc). */
@@ -1368,8 +1382,9 @@ bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
 
   char err_out[256] = "unknown";
   bool failure = false;
-  eGPUTextureFormat format =
-      GPU_R8; /* Initialize with some unsupported format to check following switch statement. */
+
+  /* Initialize with some unsupported format to check following switch statement. */
+  eGPUTextureFormat format = GPU_R8;
 
   switch (draw_view->swapchain_format) {
     case GHOST_kXrSwapchainFormatRGBA8:
@@ -1388,7 +1403,7 @@ bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
   BLI_assert(format != GPU_R8);
 
   offscreen = vp->offscreen = GPU_offscreen_create(
-      draw_view->width, draw_view->height, true, format, err_out);
+      draw_view->width, draw_view->height, true, format, GPU_TEXTURE_USAGE_SHADER_READ, err_out);
   if (offscreen) {
     viewport = vp->viewport = GPU_viewport_create();
     if (!viewport) {

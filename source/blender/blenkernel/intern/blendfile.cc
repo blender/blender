@@ -14,6 +14,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BLI_fileops.h"
@@ -61,6 +62,81 @@
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
 #endif
+
+/* -------------------------------------------------------------------- */
+/** \name Blend/Library Paths
+ * \{ */
+
+bool BKE_blendfile_extension_check(const char *str)
+{
+  const char *ext_test[4] = {".blend", ".ble", ".blend.gz", nullptr};
+  return BLI_path_extension_check_array(str, ext_test);
+}
+
+bool BKE_blendfile_library_path_explode(const char *path,
+                                        char *r_dir,
+                                        char **r_group,
+                                        char **r_name)
+{
+  /* We might get some data names with slashes,
+   * so we have to go up in path until we find blend file itself,
+   * then we know next path item is group, and everything else is data name. */
+  char *slash = nullptr, *prev_slash = nullptr, c = '\0';
+
+  r_dir[0] = '\0';
+  if (r_group) {
+    *r_group = nullptr;
+  }
+  if (r_name) {
+    *r_name = nullptr;
+  }
+
+  /* if path leads to an existing directory, we can be sure we're not (in) a library */
+  if (BLI_is_dir(path)) {
+    return false;
+  }
+
+  BLI_strncpy(r_dir, path, FILE_MAX_LIBEXTRA);
+
+  while ((slash = (char *)BLI_path_slash_rfind(r_dir))) {
+    char tc = *slash;
+    *slash = '\0';
+    if (BKE_blendfile_extension_check(r_dir) && BLI_is_file(r_dir)) {
+      break;
+    }
+    if (STREQ(r_dir, BLO_EMBEDDED_STARTUP_BLEND)) {
+      break;
+    }
+
+    if (prev_slash) {
+      *prev_slash = c;
+    }
+    prev_slash = slash;
+    c = tc;
+  }
+
+  if (!slash) {
+    return false;
+  }
+
+  if (slash[1] != '\0') {
+    BLI_assert(strlen(slash + 1) < BLO_GROUP_MAX);
+    if (r_group) {
+      *r_group = slash + 1;
+    }
+  }
+
+  if (prev_slash && (prev_slash[1] != '\0')) {
+    BLI_assert(strlen(prev_slash + 1) < MAX_ID_NAME - 2);
+    if (r_name) {
+      *r_name = prev_slash + 1;
+    }
+  }
+
+  return true;
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Blend File IO (High Level)
@@ -459,7 +535,8 @@ static void handle_subversion_warning(Main *main, BlendFileReadReport *reports)
 {
   if (main->minversionfile > BLENDER_FILE_VERSION ||
       (main->minversionfile == BLENDER_FILE_VERSION &&
-       main->minsubversionfile > BLENDER_FILE_SUBVERSION)) {
+       main->minsubversionfile > BLENDER_FILE_SUBVERSION))
+  {
     BKE_reportf(reports->reports,
                 RPT_WARNING,
                 "File written by newer Blender binary (%d.%d), expect loss of data!",
@@ -476,6 +553,13 @@ void BKE_blendfile_read_setup_ex(bContext *C,
                                  const bool startup_update_defaults,
                                  const char *startup_app_template)
 {
+  if (bfd->main->is_read_invalid) {
+    BKE_reports_prepend(reports->reports,
+                        "File could not be read, critical data corruption detected");
+    BLO_blendfiledata_free(bfd);
+    return;
+  }
+
   if (startup_update_defaults) {
     if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
       BLO_update_defaults_startup_blend(bfd->main, startup_app_template);
@@ -499,15 +583,19 @@ struct BlendFileData *BKE_blendfile_read(const char *filepath,
 {
   /* Don't print startup file loading. */
   if (params->is_startup == false) {
-    printf("Read blend: %s\n", filepath);
+    printf("Read blend: \"%s\"\n", filepath);
   }
 
   BlendFileData *bfd = BLO_read_from_file(filepath, eBLOReadSkip(params->skip_flags), reports);
+  if (bfd && bfd->main->is_read_invalid) {
+    BLO_blendfiledata_free(bfd);
+    bfd = nullptr;
+  }
   if (bfd) {
     handle_subversion_warning(bfd->main, reports);
   }
   else {
-    BKE_reports_prependf(reports->reports, "Loading '%s' failed: ", filepath);
+    BKE_reports_prependf(reports->reports, "Loading \"%s\" failed: ", filepath);
   }
   return bfd;
 }
@@ -519,6 +607,10 @@ struct BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
 {
   BlendFileData *bfd = BLO_read_from_memory(
       filebuf, filelength, eBLOReadSkip(params->skip_flags), reports);
+  if (bfd && bfd->main->is_read_invalid) {
+    BLO_blendfiledata_free(bfd);
+    bfd = nullptr;
+  }
   if (bfd) {
     /* Pass. */
   }
@@ -535,6 +627,10 @@ struct BlendFileData *BKE_blendfile_read_from_memfile(Main *bmain,
 {
   BlendFileData *bfd = BLO_read_from_memfile(
       bmain, BKE_main_blendfile_path(bmain), memfile, params, reports);
+  if (bfd && bfd->main->is_read_invalid) {
+    BLO_blendfiledata_free(bfd);
+    bfd = nullptr;
+  }
   if (bfd) {
     /* Removing the unused workspaces, screens and wm is useless here, setup_app_data will switch
      * those lists with the ones from old bmain, which freeing is much more efficient than
@@ -749,7 +845,7 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
     bool ok_write;
     BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE);
 
-    printf("Writing userprefs: '%s' ", filepath);
+    printf("Writing userprefs: \"%s\" ", filepath);
     if (use_template_userpref) {
       ok_write = BKE_blendfile_userdef_write_app_template(filepath, reports);
     }
@@ -776,7 +872,7 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
       /* Also save app-template prefs */
       BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE);
 
-      printf("Writing userprefs app-template: '%s' ", filepath);
+      printf("Writing userprefs app-template: \"%s\" ", filepath);
       if (BKE_blendfile_userdef_write(filepath, reports) != 0) {
         printf("ok\n");
       }
@@ -844,12 +940,13 @@ bool BKE_blendfile_workspace_config_write(Main *bmain, const char *filepath, Rep
   BKE_blendfile_write_partial_begin(bmain);
 
   for (WorkSpace *workspace = static_cast<WorkSpace *>(bmain->workspaces.first); workspace;
-       workspace = static_cast<WorkSpace *>(workspace->id.next)) {
+       workspace = static_cast<WorkSpace *>(workspace->id.next))
+  {
     BKE_blendfile_write_partial_tag_ID(&workspace->id, true);
   }
 
-  if (BKE_blendfile_write_partial(
-          bmain, filepath, fileflags, BLO_WRITE_PATH_REMAP_NONE, reports)) {
+  if (BKE_blendfile_write_partial(bmain, filepath, fileflags, BLO_WRITE_PATH_REMAP_NONE, reports))
+  {
     retval = true;
   }
 

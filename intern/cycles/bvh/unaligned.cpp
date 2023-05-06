@@ -14,9 +14,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-BVHUnaligned::BVHUnaligned(const vector<Object *> &objects) : objects_(objects)
-{
-}
+BVHUnaligned::BVHUnaligned(const vector<Object *> &objects) : objects_(objects) {}
 
 Transform BVHUnaligned::compute_aligned_space(const BVHObjectBinning &range,
                                               const BVHReference *references) const

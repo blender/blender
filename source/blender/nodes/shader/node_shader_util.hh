@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup nodes
@@ -56,7 +56,7 @@
 #include "NOD_socket_declarations.hh"
 
 #include "node_shader_register.hh"
-#include "node_util.h"
+#include "node_util.hh"
 
 #include "RE_pipeline.h"
 #include "RE_texture.h"
@@ -68,6 +68,11 @@ bool sh_node_poll_default(const struct bNodeType *ntype,
                           const char **r_disabled_hint);
 void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
 void sh_fn_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
+bool line_style_shader_nodes_poll(const struct bContext *C);
+bool world_shader_nodes_poll(const struct bContext *C);
+bool object_shader_nodes_poll(const struct bContext *C);
+bool object_cycles_shader_nodes_poll(const struct bContext *C);
+bool object_eevee_shader_nodes_poll(const struct bContext *C);
 
 /* ********* exec data struct, remains internal *********** */
 

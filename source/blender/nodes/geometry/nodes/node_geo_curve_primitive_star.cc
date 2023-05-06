@@ -59,7 +59,7 @@ static Curves *create_star_curve(const float inner_radius,
 }
 
 static void create_selection_output(CurveComponent &component,
-                                    AutoAnonymousAttributeID &r_attribute)
+                                    AnonymousAttributeIDPtr &r_attribute)
 {
   SpanAttributeWriter<bool> selection =
       component.attributes_for_write()->lookup_or_add_for_write_only_span<bool>(*r_attribute,
@@ -78,12 +78,10 @@ static void node_geo_exec(GeoNodeExecParams params)
                                      std::max(params.extract_input<int>("Points"), 3));
   GeometrySet output = GeometrySet::create_with_curves(curves);
 
-  if (AutoAnonymousAttributeID outer_points_id =
-          params.get_output_anonymous_attribute_id_if_needed("Outer Points")) {
+  if (AnonymousAttributeIDPtr outer_points_id = params.get_output_anonymous_attribute_id_if_needed(
+          "Outer Points"))
+  {
     create_selection_output(output.get_component_for_write<CurveComponent>(), outer_points_id);
-    params.set_output("Outer Points",
-                      AnonymousAttributeFieldInput::Create<bool>(
-                          std::move(outer_points_id), params.attribute_producer_name()));
   }
   params.set_output("Curve", std::move(output));
 }

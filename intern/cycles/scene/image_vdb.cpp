@@ -87,13 +87,9 @@ VDBImageLoader::VDBImageLoader(openvdb::GridBase::ConstPtr grid_, const string &
 }
 #endif
 
-VDBImageLoader::VDBImageLoader(const string &grid_name) : grid_name(grid_name)
-{
-}
+VDBImageLoader::VDBImageLoader(const string &grid_name) : grid_name(grid_name) {}
 
-VDBImageLoader::~VDBImageLoader()
-{
-}
+VDBImageLoader::~VDBImageLoader() {}
 
 bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata)
 {

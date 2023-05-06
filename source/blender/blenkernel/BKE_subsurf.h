@@ -95,7 +95,6 @@ typedef struct CCGDerivedMesh {
     struct CCGFace *face;
   } * faceMap;
 
-  short *edgeFlags;
   struct DMFlagMat *faceFlags;
 
   int *reverseFaceMap;

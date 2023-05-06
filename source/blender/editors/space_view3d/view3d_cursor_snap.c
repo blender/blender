@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -320,7 +320,7 @@ static void v3d_cursor_plane_draw(const RegionView3D *rv3d,
       color_alpha *= max_ff(0.3f, 1.0f - square_f(square_f(1.0f - view_dot)));
     }
 
-    const float scale_mod = U.gizmo_size * 2 * U.dpi_fac / U.pixelsize;
+    const float scale_mod = U.gizmo_size * 2 * UI_SCALE_FAC / U.pixelsize;
 
     float final_scale = (scale_mod * pixel_size);
 
@@ -533,7 +533,8 @@ static bool v3d_cursor_is_snap_invert(SnapCursorDataIntern *data_intern, const w
       if ((ELEM(kmi->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) && (event->modifier & KM_CTRL)) ||
           (ELEM(kmi->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) && (event->modifier & KM_SHIFT)) ||
           (ELEM(kmi->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && (event->modifier & KM_ALT)) ||
-          ((kmi->type == EVT_OSKEY) && (event->modifier & KM_OSKEY))) {
+          ((kmi->type == EVT_OSKEY) && (event->modifier & KM_OSKEY)))
+      {
         return true;
       }
     }
@@ -769,7 +770,8 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     snap_elem_index[0] = index;
   }
   else if (snap_elem &
-           (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+           (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR))
+  {
     snap_elem_index[1] = index;
   }
   else if (snap_elem == SCE_SNAP_MODE_FACE_RAYCAST) {
@@ -1027,7 +1029,7 @@ void ED_view3d_cursor_snap_data_update(V3DSnapCursorState *state,
   }
 }
 
-V3DSnapCursorData *ED_view3d_cursor_snap_data_get()
+V3DSnapCursorData *ED_view3d_cursor_snap_data_get(void)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   return &data_intern->snap_data;

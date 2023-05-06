@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup editors
@@ -48,6 +48,7 @@ struct bPoseChannel;
 struct bScreen;
 struct rctf;
 struct rcti;
+struct wmEvent;
 struct wmGizmo;
 struct wmWindow;
 struct wmWindowManager;
@@ -863,6 +864,20 @@ int ED_view3d_backbuf_sample_size_clamp(struct ARegion *region, float dist);
 
 void ED_view3d_select_id_validate(struct ViewContext *vc);
 
+/** Check if the last auto-dist can be used. */
+bool ED_view3d_autodist_last_check(struct wmWindow *win, const struct wmEvent *event);
+/**
+ * \return true when `r_ofs` is set.
+ * \warning #ED_view3d_autodist_last_check should be called first to ensure the data is available.
+ */
+bool ED_view3d_autodist_last_get(struct wmWindow *win, float r_ofs[3]);
+void ED_view3d_autodist_last_set(struct wmWindow *win,
+                                 const struct wmEvent *event,
+                                 const float ofs[3],
+                                 const bool has_depth);
+/** Clear and free auto-dist data. */
+void ED_view3d_autodist_last_clear(struct wmWindow *win);
+
 /**
  * Get the world-space 3d location from a screen-space 2d point.
  * TODO: Implement #alphaoverride. We don't want to zoom into billboards.
@@ -1312,6 +1327,25 @@ void ED_view3d_shade_update(struct Main *bmain, struct View3D *v3d, struct ScrAr
 #define XRAY_FLAG_ENABLED(v3d) SHADING_XRAY_FLAG_ENABLED((v3d)->shading)
 #define XRAY_ENABLED(v3d) SHADING_XRAY_ENABLED((v3d)->shading)
 #define XRAY_ACTIVE(v3d) SHADING_XRAY_ACTIVE((v3d)->shading)
+
+#define OVERLAY_RETOPOLOGY_ENABLED(overlay) \
+  (((overlay).edit_flag & V3D_OVERLAY_EDIT_RETOPOLOGY) != 0)
+#ifdef __APPLE__
+/* Apple silicon tile depth test requires a higher value to reduce drawing artifacts.*/
+#  define OVERLAY_RETOPOLOGY_MIN_OFFSET_ENABLED 0.0015f
+#  define OVERLAY_RETOPOLOGY_MIN_OFFSET_DISABLED 0.0015f
+#else
+#  define OVERLAY_RETOPOLOGY_MIN_OFFSET_ENABLED FLT_EPSILON
+#  define OVERLAY_RETOPOLOGY_MIN_OFFSET_DISABLED 0.0f
+#endif
+
+#define OVERLAY_RETOPOLOGY_OFFSET(overlay) \
+  (OVERLAY_RETOPOLOGY_ENABLED(overlay) ? \
+       max_ff((overlay).retopology_offset, OVERLAY_RETOPOLOGY_MIN_OFFSET_ENABLED) : \
+       OVERLAY_RETOPOLOGY_MIN_OFFSET_DISABLED)
+
+#define RETOPOLOGY_ENABLED(v3d) (OVERLAY_RETOPOLOGY_ENABLED((v3d)->overlay))
+#define RETOPOLOGY_OFFSET(v3d) (OVERLAY_RETOPOLOGY_OFFSET((v3d)->overlay))
 
 /* view3d_draw_legacy.c */
 

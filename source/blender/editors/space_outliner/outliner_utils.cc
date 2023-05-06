@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+ * Copyright 2017 Blender Foundation */
 
 /** \file
  * \ingroup spoutliner
@@ -52,7 +52,8 @@ void outliner_viewcontext_init(const bContext *C, TreeViewContext *tvc)
 
     if ((tvc->obact->type == OB_ARMATURE) ||
         /* This could be made into its own function. */
-        ((tvc->obact->type == OB_MESH) && tvc->obact->mode & OB_MODE_WEIGHT_PAINT)) {
+        ((tvc->obact->type == OB_MESH) && tvc->obact->mode & OB_MODE_WEIGHT_PAINT))
+    {
       tvc->ob_pose = BKE_object_pose_armature_get(tvc->obact);
     }
   }
@@ -294,7 +295,8 @@ bool outliner_tree_traverse(const SpaceOutliner *space_outliner,
       /* skip */
     }
     else if (!outliner_tree_traverse(
-                 space_outliner, &subtree, filter_te_flag, filter_tselem_flag, func, customdata)) {
+                 space_outliner, &subtree, filter_te_flag, filter_tselem_flag, func, customdata))
+    {
       return false;
     }
   }

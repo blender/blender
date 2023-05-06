@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -10,11 +10,9 @@
 #include "gpu_context_private.hh"
 
 #include "vk_common.hh"
-#include "vk_context.hh"
-
-#include "vk_mem_alloc.h"
 
 namespace blender::gpu {
+class VKContext;
 
 /**
  * Class for handing vulkan buffers (allocation/updating/binding).
@@ -23,6 +21,8 @@ class VKBuffer {
   int64_t size_in_bytes_;
   VkBuffer vk_buffer_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
+  /* Pointer to the virtually mapped memory. */
+  void *mapped_memory_ = nullptr;
 
  public:
   VKBuffer() = default;
@@ -31,14 +31,11 @@ class VKBuffer {
   /** Has this buffer been allocated? */
   bool is_allocated() const;
 
-  bool create(VKContext &context,
-              int64_t size,
-              GPUUsageType usage,
-              VkBufferUsageFlagBits buffer_usage);
-  bool update(VKContext &context, const void *data);
-  bool free(VKContext &context);
-  bool map(VKContext &context, void **r_mapped_memory) const;
-  void unmap(VKContext &context) const;
+  bool create(int64_t size, GPUUsageType usage, VkBufferUsageFlagBits buffer_usage);
+  void clear(VKContext &context, uint32_t clear_value);
+  void update(const void *data) const;
+  void read(void *data) const;
+  bool free();
 
   int64_t size_in_bytes() const
   {
@@ -49,5 +46,19 @@ class VKBuffer {
   {
     return vk_buffer_;
   }
+
+  /**
+   * Get the reference to the mapped memory.
+   *
+   * Can only be called when the buffer is (still) mapped.
+   */
+  void *mapped_memory_get() const;
+
+ private:
+  /** Check if this buffer is mapped. */
+  bool is_mapped() const;
+  bool map();
+  void unmap();
 };
+
 }  // namespace blender::gpu

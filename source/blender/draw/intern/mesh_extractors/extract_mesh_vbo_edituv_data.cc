@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -70,22 +70,19 @@ static void extract_edituv_data_iter_poly_bm(const MeshRenderData *mr,
 }
 
 static void extract_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
-                                               const MPoly *mp,
-                                               const int mp_index,
+                                               const int poly_index,
                                                void *_data)
 {
   MeshExtract_EditUVData_Data *data = static_cast<MeshExtract_EditUVData_Data *>(_data);
-  const MLoop *mloop = mr->mloop;
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
-
+  const IndexRange poly = mr->polys[poly_index];
+  const int ml_index_end = poly.start() + poly.size();
+  for (int ml_index = poly.start(); ml_index < ml_index_end; ml_index += 1) {
     EditLoopData *eldata = &data->vbo_data[ml_index];
     memset(eldata, 0x0, sizeof(*eldata));
-    BMFace *efa = bm_original_face_get(mr, mp_index);
+    BMFace *efa = bm_original_face_get(mr, poly_index);
     if (efa) {
-      BMEdge *eed = bm_original_edge_get(mr, ml->e);
-      BMVert *eve = bm_original_vert_get(mr, ml->v);
+      BMVert *eve = bm_original_vert_get(mr, mr->corner_verts[ml_index]);
+      BMEdge *eed = bm_original_edge_get(mr, mr->corner_edges[ml_index]);
       if (eed && eve) {
         /* Loop on an edge endpoint. */
         BMLoop *l = BM_face_edge_share_loop(efa, eed);
@@ -96,10 +93,9 @@ static void extract_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
         if (eed == nullptr) {
           /* Find if the loop's vert is not part of an edit edge.
            * For this, we check if the previous loop was on an edge. */
-          const int ml_index_last = mp->loopstart + mp->totloop - 1;
-          const int l_prev = (ml_index == mp->loopstart) ? ml_index_last : (ml_index - 1);
-          const MLoop *ml_prev = &mr->mloop[l_prev];
-          eed = bm_original_edge_get(mr, ml_prev->e);
+          const int ml_index_last = poly.start() + poly.size() - 1;
+          const int l_prev = (ml_index == poly.start()) ? ml_index_last : (ml_index - 1);
+          eed = bm_original_edge_get(mr, mr->corner_edges[l_prev]);
         }
         if (eed) {
           /* Mapped points on an edge between two edit verts. */
@@ -171,9 +167,8 @@ static void extract_edituv_data_iter_subdiv_mesh(const DRWSubdivCache *subdiv_ca
                                                  const MeshRenderData *mr,
                                                  void *_data,
                                                  uint subdiv_quad_index,
-                                                 const MPoly *coarse_quad)
+                                                 const int coarse_quad_index)
 {
-  const int coarse_quad_index = int(coarse_quad - mr->mpoly);
   BMFace *coarse_quad_bm = bm_original_face_get(mr, coarse_quad_index);
   extract_edituv_data_iter_subdiv_bm(subdiv_cache, mr, _data, subdiv_quad_index, coarse_quad_bm);
 }

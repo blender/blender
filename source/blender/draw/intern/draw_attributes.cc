@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 #include "draw_attributes.hh"
 
@@ -10,7 +10,8 @@ static bool drw_attributes_has_request(const DRW_Attributes *requests,
   for (int i = 0; i < requests->num_requests; i++) {
     const DRW_AttributeRequest &src_req = requests->requests[i];
     if (src_req.domain == req.domain && src_req.layer_index == req.layer_index &&
-        src_req.cd_type == req.cd_type) {
+        src_req.cd_type == req.cd_type)
+    {
       return true;
     }
   }
@@ -63,7 +64,8 @@ void drw_attributes_add_request(DRW_Attributes *attrs,
                                 const eAttrDomain domain)
 {
   if (attrs->num_requests >= GPU_MAX_ATTR ||
-      drw_attributes_has_request(attrs, {type, layer_index, domain})) {
+      drw_attributes_has_request(attrs, {type, layer_index, domain}))
+  {
     return;
   }
 
@@ -80,9 +82,10 @@ bool drw_custom_data_match_attribute(const CustomData *custom_data,
                                      int *r_layer_index,
                                      eCustomDataType *r_type)
 {
-  const eCustomDataType possible_attribute_types[8] = {
+  const eCustomDataType possible_attribute_types[9] = {
       CD_PROP_BOOL,
       CD_PROP_INT8,
+      CD_PROP_INT32_2D,
       CD_PROP_INT32,
       CD_PROP_FLOAT,
       CD_PROP_FLOAT2,

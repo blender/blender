@@ -8,7 +8,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_curves.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 
@@ -31,10 +31,10 @@ static void set_computed_position_and_offset(GeometryComponent &component,
   MutableAttributeAccessor attributes = *component.attributes_for_write();
 
   /* Optimize the case when `in_positions` references the original positions array. */
-  const VArray<float3> positions_read_only = attributes.lookup<float3>("position");
+  const bke::AttributeReader positions_read_only = attributes.lookup<float3>("position");
   bool positions_are_original = false;
-  if (positions_read_only.is_span() && in_positions.is_span()) {
-    positions_are_original = positions_read_only.get_internal_span().data() ==
+  if (positions_read_only.varray.is_span() && in_positions.is_span()) {
+    positions_are_original = positions_read_only.varray.get_internal_span().data() ==
                              in_positions.get_internal_span().data();
   }
 
@@ -159,7 +159,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_MESH,
                                            GEO_COMPONENT_TYPE_POINT_CLOUD,
                                            GEO_COMPONENT_TYPE_CURVE,
-                                           GEO_COMPONENT_TYPE_INSTANCES}) {
+                                           GEO_COMPONENT_TYPE_INSTANCES})
+  {
     if (geometry.has(type)) {
       set_position_in_component(geometry, type, selection_field, position_field, offset_field);
     }

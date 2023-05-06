@@ -142,7 +142,7 @@ typedef enum {
   /** Do not display Xform gizmo even though it is available. */
   T_NO_GIZMO = 1 << 24,
 } eTFlag;
-ENUM_OPERATORS(eTFlag, T_NO_CURSOR_WRAP);
+ENUM_OPERATORS(eTFlag, T_NO_GIZMO);
 
 #define T_ALL_RESTRICTIONS (T_NO_CONSTRAINT | T_NULL_ONE)
 #define T_PROP_EDIT_ALL (T_PROP_EDIT | T_PROP_CONNECTED | T_PROP_PROJECTED)
@@ -265,6 +265,10 @@ enum {
   TFM_MODAL_AUTOCONSTRAINTPLANE = 29,
 
   TFM_MODAL_PRECISION = 30,
+
+  TFM_MODAL_VERT_EDGE_SLIDE = 31,
+  TFM_MODAL_TRACKBALL = 32,
+  TFM_MODAL_ROTATE_NORMALS = 33,
 };
 
 /** \} */
@@ -287,10 +291,6 @@ typedef struct TransSnap {
   eSnapSourceOP source_operation;
   /* Determines which objects are possible target */
   eSnapTargetOP target_operation;
-  bool align;
-  bool project;
-  bool peel;
-  bool use_backface_culling;
   short face_nearest_steps;
   eTSnap status;
   /* Snapped Element Type (currently for objects only). */
@@ -729,40 +729,6 @@ void transform_final_value_get(const TransInfo *t, float *value, int value_num);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Gizmo
- * \{ */
-
-/* transform_gizmo.c */
-
-#define GIZMO_AXIS_LINE_WIDTH 2.0f
-
-bool gimbal_axis_pose(struct Object *ob, const struct bPoseChannel *pchan, float gmat[3][3]);
-bool gimbal_axis_object(struct Object *ob, float gmat[3][3]);
-
-/**
- * Set the #T_NO_GIZMO flag.
- *
- * \note This maintains the conventional behavior of not displaying the gizmo if the operator has
- * been triggered by shortcuts.
- */
-void transform_gizmo_3d_model_from_constraint_and_mode_init(TransInfo *t);
-
-/**
- * Change the gizmo and its orientation to match the transform state.
- *
- * \note This used while the modal operator is running so changes to the constraint or mode show
- * the gizmo associated with that state, as if it had been the initial gizmo dragged.
- */
-void transform_gizmo_3d_model_from_constraint_and_mode_set(TransInfo *t);
-
-/**
- * Restores the non-modal state of the gizmo.
- */
-void transform_gizmo_3d_model_from_constraint_and_mode_restore(TransInfo *t);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name TransData Creation and General Handling
  * \{ */
 
@@ -845,6 +811,10 @@ void calculateCenter2D(TransInfo *t);
 void calculateCenterLocal(TransInfo *t, const float center_global[3]);
 
 void calculateCenter(TransInfo *t);
+/**
+ * Called every time the view changes due to navigation.
+ * Adjusts the mouse position relative to the object.
+ */
 void tranformViewUpdate(TransInfo *t);
 
 /* API functions for getting center points */

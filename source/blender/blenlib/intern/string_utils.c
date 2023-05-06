@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+ * Copyright 2017 Blender Foundation */
 
 /** \file
  * \ingroup bli
@@ -22,23 +22,26 @@
 #  pragma GCC diagnostic error "-Wsign-conversion"
 #endif
 
-size_t BLI_split_name_num(char *left, int *nr, const char *name, const char delim)
+size_t BLI_string_split_name_number(const char *name,
+                                    const char delim,
+                                    char *r_name_left,
+                                    int *r_number)
 {
   const size_t name_len = strlen(name);
 
-  *nr = 0;
-  memcpy(left, name, (name_len + 1) * sizeof(char));
+  *r_number = 0;
+  memcpy(r_name_left, name, (name_len + 1) * sizeof(char));
 
   /* name doesn't end with a delimiter "foo." */
   if ((name_len > 1 && name[name_len - 1] == delim) == 0) {
     size_t a = name_len;
     while (a--) {
       if (name[a] == delim) {
-        left[a] = '\0'; /* truncate left part here */
-        *nr = atol(name + a + 1);
+        r_name_left[a] = '\0'; /* truncate left part here */
+        *r_number = atol(name + a + 1);
         /* casting down to an int, can overflow for large numbers */
-        if (*nr < 0) {
-          *nr = 0;
+        if (*r_number < 0) {
+          *r_number = 0;
         }
         return a;
       }
@@ -72,9 +75,15 @@ static bool is_char_sep(const char c)
   return ELEM(c, '.', ' ', '-', '_');
 }
 
-void BLI_string_split_suffix(const char *string, char *r_body, char *r_suf, const size_t str_len)
+void BLI_string_split_suffix(const char *string,
+                             const size_t string_maxlen,
+                             char *r_body,
+                             char *r_suf)
 {
-  size_t len = BLI_strnlen(string, str_len);
+  BLI_string_debug_size(r_body, string_maxlen);
+  BLI_string_debug_size(r_suf, string_maxlen);
+
+  size_t len = BLI_strnlen(string, string_maxlen);
   size_t i;
 
   r_body[0] = r_suf[0] = '\0';
@@ -90,9 +99,15 @@ void BLI_string_split_suffix(const char *string, char *r_body, char *r_suf, cons
   memcpy(r_body, string, len + 1);
 }
 
-void BLI_string_split_prefix(const char *string, char *r_pre, char *r_body, const size_t str_len)
+void BLI_string_split_prefix(const char *string,
+                             const size_t string_maxlen,
+                             char *r_pre,
+                             char *r_body)
 {
-  size_t len = BLI_strnlen(string, str_len);
+  BLI_string_debug_size(r_pre, string_maxlen);
+  BLI_string_debug_size(r_body, string_maxlen);
+
+  size_t len = BLI_strnlen(string, string_maxlen);
   size_t i;
 
   r_body[0] = r_pre[0] = '\0';
@@ -114,6 +129,8 @@ size_t BLI_string_flip_side_name(char *r_name,
                                  const bool strip_number,
                                  const size_t name_len)
 {
+  BLI_string_debug_size(r_name, name_len);
+
   size_t len;
   char *prefix = alloca(name_len);  /* The part before the facing */
   char *suffix = alloca(name_len);  /* The part after the facing */
@@ -237,6 +254,8 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
                        char *name,
                        size_t name_len)
 {
+  BLI_string_debug_size_after_nil(name, name_len);
+
   if (name[0] == '\0') {
     BLI_strncpy(name, defname, name_len);
   }
@@ -246,7 +265,7 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
     char *tempname = alloca(name_len);
     char *left = alloca(name_len);
     int number;
-    size_t len = BLI_split_name_num(left, &number, name, delim);
+    size_t len = BLI_string_split_name_number(name, delim, left, &number);
     do {
       /* add 1 to account for \0 */
       const size_t numlen = BLI_snprintf(numstr, sizeof(numstr), "%c%03d", delim, ++number) + 1;
@@ -321,7 +340,7 @@ bool BLI_uniquename(
   BLI_assert(name_len > 1);
 
   /* See if we are given an empty string */
-  if (ELEM(NULL, vlink, defname)) {
+  if (ELEM(NULL, vlink)) {
     return false;
   }
 
@@ -364,6 +383,8 @@ size_t BLI_string_join_array(char *result,
 size_t BLI_string_join_array_by_sep_char(
     char *result, size_t result_len, char sep, const char *strings[], uint strings_len)
 {
+  BLI_string_debug_size(result, result_len);
+
   char *c = result;
   char *c_end = &result[result_len - 1];
   for (uint i = 0; i < strings_len; i++) {

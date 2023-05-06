@@ -215,6 +215,7 @@ static void rna_def_text(BlenderRNA *brna)
   prop = RNA_def_property(srna, "is_modified", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_boolean_funcs(prop, "rna_Text_modified_get", NULL);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_TEXT);
   RNA_def_property_ui_text(
       prop, "Modified", "Text file on disk is different than the one in memory");
 
@@ -237,6 +238,7 @@ static void rna_def_text(BlenderRNA *brna)
   prop = RNA_def_property(srna, "lines", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "TextLine");
   RNA_def_property_ui_text(prop, "Lines", "Lines of text");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_TEXT);
 
   prop = RNA_def_property(srna, "current_line", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);

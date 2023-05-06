@@ -16,6 +16,7 @@
 #include "mtl_index_buffer.hh"
 #include "mtl_query.hh"
 #include "mtl_shader.hh"
+#include "mtl_storage_buffer.hh"
 #include "mtl_uniform_buffer.hh"
 #include "mtl_vertex_buffer.hh"
 
@@ -100,8 +101,7 @@ UniformBuf *MTLBackend::uniformbuf_alloc(int size, const char *name)
 
 StorageBuf *MTLBackend::storagebuf_alloc(int size, GPUUsageType usage, const char *name)
 {
-  /* TODO(Metal): Implement MTLStorageBuf. */
-  return nullptr;
+  return new MTLStorageBuf(size, usage, name);
 }
 
 VertBuf *MTLBackend::vertbuf_alloc()
@@ -398,16 +398,15 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   GCaps.shader_image_load_store_support = ([device supportsFamily:MTLGPUFamilyApple3] ||
                                            MTLBackend::capabilities.supports_family_mac1 ||
                                            MTLBackend::capabilities.supports_family_mac2);
-  /* TODO(Metal): Add support? */
-  GCaps.shader_draw_parameters_support = false;
   GCaps.compute_shader_support = true;
+  GCaps.shader_storage_buffer_objects_support = true;
+  GCaps.shader_draw_parameters_support = true;
+
   GCaps.geometry_shader_support = false;
-  GCaps.shader_storage_buffer_objects_support =
-      false; /* TODO(Metal): implement Storage Buffer support. */
 
   /* Maximum buffer bindings: 31. Consider required slot for uniforms/UBOs/Vertex attributes.
    * Can use argument buffers if a higher limit is required. */
-  GCaps.max_shader_storage_buffer_bindings = 24;
+  GCaps.max_shader_storage_buffer_bindings = 14;
 
   if (GCaps.compute_shader_support) {
     GCaps.max_work_group_count[0] = 65535;
@@ -457,6 +456,18 @@ void MTLBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups
   BLI_assert(ctx != nullptr);
   if (ctx) {
     ctx->compute_dispatch(groups_x_len, groups_y_len, groups_z_len);
+  }
+}
+
+void MTLBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
+{
+  /* Fetch Context.
+   * With Metal, workload submission and resource management occurs within the context.
+   * Call compute dispatch on valid context. */
+  MTLContext *ctx = MTLContext::get();
+  BLI_assert(ctx != nullptr);
+  if (ctx) {
+    ctx->compute_dispatch_indirect(indirect_buf);
   }
 }
 

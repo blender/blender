@@ -16,7 +16,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "bmesh.h"
 
@@ -278,8 +278,8 @@ void bmesh_edit_begin(BMesh * /*bm*/, BMOpTypeFlag /*type_flag*/)
    * until this is shown to be better for certain types of mesh edits. */
 #ifdef BMOP_UNTAN_MULTIRES_ENABLED
   /* switch multires data out of tangent space */
-  if ((type_flag & BMO_OPTYPE_FLAG_UNTAN_MULTIRES) &&
-      CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+  if ((type_flag & BMO_OPTYPE_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS))
+  {
     bmesh_mdisps_space_set(bm, MULTIRES_SPACE_TANGENT, MULTIRES_SPACE_ABSOLUTE);
 
     /* ensure correct normals, if possible */
@@ -378,7 +378,8 @@ void BM_mesh_elem_index_ensure_ex(BMesh *bm, const char htype, int elem_offset[4
 
   if (htype & (BM_FACE | BM_LOOP)) {
     if ((bm->elem_index_dirty & (BM_FACE | BM_LOOP)) ||
-        (elem_offset && (elem_offset[2] || elem_offset[3]))) {
+        (elem_offset && (elem_offset[2] || elem_offset[3])))
+    {
       BMIter iter;
       BMElem *ele;
 

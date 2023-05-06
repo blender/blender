@@ -84,15 +84,11 @@ int AbstractGridView::get_item_count() const
   return items_.size();
 }
 
-GridViewStyle::GridViewStyle(int width, int height) : tile_width(width), tile_height(height)
-{
-}
+GridViewStyle::GridViewStyle(int width, int height) : tile_width(width), tile_height(height) {}
 
 /* ---------------------------------------------------------------------- */
 
-AbstractGridViewItem::AbstractGridViewItem(StringRef identifier) : identifier_(identifier)
-{
-}
+AbstractGridViewItem::AbstractGridViewItem(StringRef identifier) : identifier_(identifier) {}
 
 bool AbstractGridViewItem::matches(const AbstractViewItem &other) const
 {
@@ -314,7 +310,7 @@ class GridViewLayoutBuilder {
   friend class GridViewBuilder;
 
  public:
-  GridViewLayoutBuilder(uiBlock &block);
+  GridViewLayoutBuilder(uiLayout &layout);
 
   void build_from_view(const AbstractGridView &grid_view, const View2D &v2d) const;
 
@@ -324,7 +320,7 @@ class GridViewLayoutBuilder {
   uiLayout *current_layout() const;
 };
 
-GridViewLayoutBuilder::GridViewLayoutBuilder(uiBlock &block) : block_(block)
+GridViewLayoutBuilder::GridViewLayoutBuilder(uiLayout &layout) : block_(*uiLayoutGetBlock(&layout))
 {
 }
 
@@ -340,7 +336,7 @@ void GridViewLayoutBuilder::build_grid_tile(uiLayout &grid_layout,
 void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view,
                                             const View2D &v2d) const
 {
-  uiLayout *prev_layout = current_layout();
+  uiLayout *parent_layout = current_layout();
 
   uiLayout &layout = *uiLayoutColumn(current_layout(), false);
   const GridViewStyle &style = grid_view.get_style();
@@ -372,12 +368,13 @@ void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view,
    * stretch over the entire width. */
   if (grid_view.get_item_count() < cols_per_row) {
     for (int padding_item_idx = 0; padding_item_idx < (cols_per_row - grid_view.get_item_count());
-         padding_item_idx++) {
+         padding_item_idx++)
+    {
       uiItemS(grid_layout);
     }
   }
 
-  UI_block_layout_set_current(&block_, prev_layout);
+  UI_block_layout_set_current(&block_, parent_layout);
 
   build_visible_helper.fill_layout_after_visible(block_);
 }
@@ -389,17 +386,22 @@ uiLayout *GridViewLayoutBuilder::current_layout() const
 
 /* ---------------------------------------------------------------------- */
 
-GridViewBuilder::GridViewBuilder(uiBlock &block) : block_(block)
-{
-}
+GridViewBuilder::GridViewBuilder(uiBlock & /*block*/) {}
 
-void GridViewBuilder::build_grid_view(AbstractGridView &grid_view, const View2D &v2d)
+void GridViewBuilder::build_grid_view(AbstractGridView &grid_view,
+                                      const View2D &v2d,
+                                      uiLayout &layout)
 {
+  uiBlock &block = *uiLayoutGetBlock(&layout);
+
   grid_view.build_items();
-  grid_view.update_from_old(block_);
+  grid_view.update_from_old(block);
   grid_view.change_state_delayed();
 
-  GridViewLayoutBuilder builder(block_);
+  /* Ensure the given layout is actually active. */
+  UI_block_layout_set_current(&block, &layout);
+
+  GridViewLayoutBuilder builder(layout);
   builder.build_from_view(grid_view, v2d);
 }
 

@@ -19,7 +19,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_cloth_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -32,7 +32,7 @@
 #include "BKE_action.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -366,7 +366,7 @@ static void object_defgroup_remove_edit_mode(Object *ob, bDeformGroup *dg)
 
 void BKE_object_defgroup_remove(Object *ob, bDeformGroup *defgroup)
 {
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     BKE_gpencil_vgroup_remove(ob, defgroup);
   }
   else {
@@ -568,7 +568,8 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
   /* now loop through the armature modifiers and identify deform bones */
   for (md = ob->modifiers.first; md; md = !md->next && step1 ? (step1 = 0),
       BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData) :
-                                     md->next) {
+                                     md->next)
+  {
     if (!(md->mode & (eModifierMode_Realtime | eModifierMode_Virtual))) {
       continue;
     }

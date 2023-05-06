@@ -196,6 +196,9 @@ typedef struct Image {
   char eye;
   char views_format;
 
+  /** Offset caused by translation. Used in compositor backdrop for viewer nodes in image space. */
+  int offset_x, offset_y;
+
   /* ImageTile list for UDIMs. */
   int active_tile_index;
   ListBase tiles;

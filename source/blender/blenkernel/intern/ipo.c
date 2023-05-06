@@ -227,7 +227,7 @@ static AdrBit2Path ob_layer_bits[] = {
   } \
   (void)0
 
-/* This function checks if a Blocktype+Adrcode combo, returning a mapping table */
+/* This function checks if a `blocktype+adrcode` combination, returning a mapping table. */
 static AdrBit2Path *adrcode_bitmaps_to_paths(int blocktype, int adrcode, int *tot)
 {
   /* Object layers */
@@ -1614,7 +1614,8 @@ static void icu_to_fcurves(ID *id,
          * - we need radians for RNA to do the right thing
          */
         if (((icu->blocktype == ID_OB) && ELEM(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) ||
-            ((icu->blocktype == ID_PO) && ELEM(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z))) {
+            ((icu->blocktype == ID_PO) && ELEM(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z)))
+        {
           const float fac = (float)M_PI / 18.0f; /* 10.0f * M_PI/180.0f; */
 
           dst->vec[0][1] *= fac;
@@ -1627,7 +1628,8 @@ static void icu_to_fcurves(ID *id,
          * - we now need as 'frames'
          */
         if ((id) && (icu->blocktype == GS(id->name)) &&
-            (fcu->rna_path && STREQ(fcu->rna_path, "eval_time"))) {
+            (fcu->rna_path && STREQ(fcu->rna_path, "eval_time")))
+        {
           Curve *cu = (Curve *)id;
 
           dst->vec[0][1] *= cu->pathlen;
@@ -1644,10 +1646,8 @@ static void icu_to_fcurves(ID *id,
           DriverVar *dvar = fcu->driver->variables.first;
           DriverTarget *dtar = &dvar->targets[0];
 
-          if (ELEM(dtar->transChan,
-                   DTAR_TRANSCHAN_ROTX,
-                   DTAR_TRANSCHAN_ROTY,
-                   DTAR_TRANSCHAN_ROTZ)) {
+          if (ELEM(dtar->transChan, DTAR_TRANSCHAN_ROTX, DTAR_TRANSCHAN_ROTY, DTAR_TRANSCHAN_ROTZ))
+          {
             const float fac = (float)M_PI / 18.0f;
 
             dst->vec[0][0] *= fac;
@@ -2005,7 +2005,8 @@ static void nlastrips_to_animdata(ID *id, ListBase *strips)
         /* trying to add to the current failed (no space),
          * so add a new track to the stack, and add to that...
          */
-        nlt = BKE_nlatrack_add(adt, NULL, false);
+        nlt = BKE_nlatrack_new_tail(&adt->nla_tracks, false);
+        BKE_nlatrack_set_active(&adt->nla_tracks, nlt);
         BKE_nlatrack_add_strip(nlt, strip, false);
       }
 

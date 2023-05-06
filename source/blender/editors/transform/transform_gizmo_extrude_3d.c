@@ -142,7 +142,7 @@ static void gizmo_mesh_extrude_setup(const bContext *C, wmGizmoGroup *gzgroup)
     /* Grease pencil does not use `obedit`. */
     /* GPXX: Remove if OB_MODE_EDIT_GPENCIL is merged with OB_MODE_EDIT */
     const Object *obact = CTX_data_active_object(C);
-    if (obact->type == OB_GPENCIL) {
+    if (obact->type == OB_GPENCIL_LEGACY) {
       op_idname = "GPENCIL_OT_extrude_move";
     }
     else if (obact->type == OB_MESH) {
@@ -233,6 +233,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   Scene *scene = CTX_data_scene(C);
+  RegionView3D *rv3d = CTX_wm_region_data(C);
 
   int axis_type;
   {
@@ -255,7 +256,9 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
                                        &(struct TransformCalcParams){
                                            .orientation_index = V3D_ORIENT_NORMAL + 1,
                                        },
-                                       &tbounds_normal)) {
+                                       &tbounds_normal,
+                                       rv3d))
+    {
       unit_m3(tbounds_normal.axis);
     }
     copy_m3_m3(ggd->data.normal_mat3, tbounds_normal.axis);
@@ -266,7 +269,9 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
                                      &(struct TransformCalcParams){
                                          .orientation_index = ggd->data.orientation_index + 1,
                                      },
-                                     &tbounds)) {
+                                     &tbounds,
+                                     rv3d))
+  {
     return;
   }
 

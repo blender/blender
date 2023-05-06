@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup edanimation
@@ -223,11 +223,6 @@ static PanelType *fmodifier_subpanel_register(ARegionType *region_type,
 /** \name General UI Callbacks and Drawing
  * \{ */
 
-/* XXX! -------------------------------- */
-/* Temporary definition for limits of float number buttons
- * (FLT_MAX tends to infinity with old system). */
-#define UI_FLT_MAX 10000.0f
-
 #define B_REDR 1
 #define B_FMODIFIER_REDRAW 20
 
@@ -308,20 +303,17 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
   uiBlock *block = uiLayoutGetBlock(layout);
 
   uiLayout *sub = uiLayoutRow(layout, true);
-  uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
-  uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
 
   /* Checkbox for 'active' status (for now). */
   uiItemR(sub, ptr, "active", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
   /* Name. */
   if (fmi) {
-    uiItemL(sub, IFACE_(fmi->name), ICON_NONE);
+    uiItemR(sub, ptr, "name", 0, "", ICON_NONE);
   }
   else {
     uiItemL(sub, IFACE_("<Unknown Modifier>"), ICON_NONE);
   }
-
   /* Right align. */
   sub = uiLayoutRow(layout, true);
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);

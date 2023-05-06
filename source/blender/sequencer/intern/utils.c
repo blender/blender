@@ -209,7 +209,7 @@ ListBase *SEQ_get_seqbase_from_sequence(Sequence *seq, ListBase **r_channels, in
 void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 {
   char dir[FILE_MAX];
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
   StripProxy *proxy;
   bool use_proxy;
   bool is_multiview_loaded = false;
@@ -224,8 +224,8 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   /* reset all the previously created anims */
   SEQ_relations_sequence_free_anim(seq);
 
-  BLI_path_join(name, sizeof(name), seq->strip->dir, seq->strip->stripdata->name);
-  BLI_path_abs(name, BKE_main_blendfile_path_from_global());
+  BLI_path_join(filepath, sizeof(filepath), seq->strip->dir, seq->strip->stripdata->name);
+  BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
   proxy = seq->strip->proxy;
 
@@ -253,7 +253,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
     const char *ext = NULL;
     int i;
 
-    BKE_scene_multiview_view_prefix_get(scene, name, prefix, &ext);
+    BKE_scene_multiview_view_prefix_get(scene, filepath, prefix, &ext);
 
     if (prefix[0] != '\0') {
       for (i = 0; i < totfiles; i++) {
@@ -285,13 +285,13 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
         }
         else {
           if (openfile) {
-            sanim->anim = openanim(name,
+            sanim->anim = openanim(filepath,
                                    IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                                    seq->streamindex,
                                    seq->strip->colorspace_settings.name);
           }
           else {
-            sanim->anim = openanim_noload(name,
+            sanim->anim = openanim_noload(filepath,
                                           IB_rect |
                                               ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                                           seq->streamindex,
@@ -317,13 +317,13 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
     BLI_addtail(&seq->anims, sanim);
 
     if (openfile) {
-      sanim->anim = openanim(name,
+      sanim->anim = openanim(filepath,
                              IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                              seq->streamindex,
                              seq->strip->colorspace_settings.name);
     }
     else {
-      sanim->anim = openanim_noload(name,
+      sanim->anim = openanim_noload(filepath,
                                     IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                                     seq->streamindex,
                                     seq->strip->colorspace_settings.name);
@@ -348,8 +348,8 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
   int best_machine = -1;
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if (SEQ_render_is_muted(channels, seq) ||
-        !SEQ_time_strip_intersects_frame(scene, seq, frame)) {
+    if (SEQ_render_is_muted(channels, seq) || !SEQ_time_strip_intersects_frame(scene, seq, frame))
+    {
       continue;
     }
     /* Only use strips that generate an image, not ones that combine
@@ -360,7 +360,8 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
              SEQ_TYPE_SCENE,
              SEQ_TYPE_MOVIE,
              SEQ_TYPE_COLOR,
-             SEQ_TYPE_TEXT)) {
+             SEQ_TYPE_TEXT))
+    {
       if (seq->machine > best_machine) {
         best_seq = seq;
         best_machine = seq->machine;
@@ -407,7 +408,8 @@ Sequence *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se)
   for (iseq = seqbase->first; iseq; iseq = iseq->next) {
     Sequence *seq_found;
     if ((iseq->strip && iseq->strip->stripdata) &&
-        ARRAY_HAS_ITEM(se, iseq->strip->stripdata, iseq->len)) {
+        ARRAY_HAS_ITEM(se, iseq->strip->stripdata, iseq->len))
+    {
       break;
     }
     if ((seq_found = SEQ_sequence_from_strip_elem(&iseq->seqbase, se))) {
@@ -429,7 +431,8 @@ Sequence *SEQ_get_sequence_by_name(ListBase *seqbase, const char *name, bool rec
       return iseq;
     }
     if (recursive && (iseq->seqbase.first) &&
-        (rseq = SEQ_get_sequence_by_name(&iseq->seqbase, name, 1))) {
+        (rseq = SEQ_get_sequence_by_name(&iseq->seqbase, name, 1)))
+    {
       return rseq;
     }
   }

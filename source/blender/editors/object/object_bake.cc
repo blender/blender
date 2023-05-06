@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+ * Copyright 2004 Blender Foundation */
 
 /** \file
  * \ingroup edobj
@@ -28,7 +28,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"

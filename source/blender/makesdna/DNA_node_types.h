@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup DNA
@@ -16,6 +16,8 @@
 #ifdef __cplusplus
 namespace blender {
 template<typename T> class Span;
+template<typename T> class MutableSpan;
+class IndexRange;
 class StringRef;
 class StringRefNull;
 }  // namespace blender
@@ -176,6 +178,7 @@ typedef struct bNodeSocket {
   bool is_output() const;
 
   /** Utility to access the value of the socket. */
+  template<typename T> T *default_value_typed();
   template<typename T> const T *default_value_typed() const;
 
   /* The following methods are only available when #bNodeTree.ensure_topology_cache has been
@@ -330,7 +333,11 @@ typedef struct bNode {
   int16_t custom1, custom2;
   float custom3, custom4;
 
-  /** Optional link to libdata. */
+  /**
+   * Optional link to libdata.
+   *
+   * \see #bNodeType::initfunc & #bNodeType::freefunc for details on ID user-count.
+   */
   struct ID *id;
 
   /** Custom data struct for node properties for storage in files. */
@@ -765,15 +772,15 @@ enum {
   CMP_NODE_INPAINT_SIMPLE = 0,
 };
 
-enum {
+typedef enum CMPNodeMaskFlags {
   /* CMP_NODEFLAG_MASK_AA          = (1 << 0), */ /* DEPRECATED */
-  CMP_NODEFLAG_MASK_NO_FEATHER = (1 << 1),
-  CMP_NODEFLAG_MASK_MOTION_BLUR = (1 << 2),
+  CMP_NODE_MASK_FLAG_NO_FEATHER = (1 << 1),
+  CMP_NODE_MASK_FLAG_MOTION_BLUR = (1 << 2),
 
   /* We may want multiple aspect options, exposed as an rna enum. */
-  CMP_NODEFLAG_MASK_FIXED = (1 << 8),
-  CMP_NODEFLAG_MASK_FIXED_SCENE = (1 << 9),
-};
+  CMP_NODE_MASK_FLAG_SIZE_FIXED = (1 << 8),
+  CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE = (1 << 9),
+} CMPNodeMaskFlags;
 
 enum {
   CMP_NODEFLAG_BLUR_VARIABLE_SIZE = (1 << 0),
@@ -1589,6 +1596,39 @@ typedef struct NodeGeometryUVUnwrap {
   uint8_t method;
 } NodeGeometryUVUnwrap;
 
+typedef struct NodeSimulationItem {
+  char *name;
+  /** #eNodeSocketDatatype. */
+  short socket_type;
+  /** #eAttrDomain. */
+  short attribute_domain;
+  /**
+   * Generates unique identifier for sockets which stays the same even when the item order or
+   * names change.
+   */
+  int identifier;
+} NodeSimulationItem;
+
+typedef struct NodeGeometrySimulationInput {
+  /** bNode.identifier of the corresponding output node. */
+  int32_t output_node_id;
+} NodeGeometrySimulationInput;
+
+typedef struct NodeGeometrySimulationOutput {
+  NodeSimulationItem *items;
+  int items_num;
+  int active_index;
+  /** Number to give unique IDs to state items. */
+  int next_identifier;
+  int _pad;
+
+#ifdef __cplusplus
+  blender::Span<NodeSimulationItem> items_span() const;
+  blender::MutableSpan<NodeSimulationItem> items_span_for_write();
+  blender::IndexRange items_range() const;
+#endif
+} NodeGeometrySimulationOutput;
+
 typedef struct NodeGeometryDistributePointsInVolume {
   /* GeometryNodePointDistributeVolumeMode. */
   uint8_t mode;
@@ -2091,16 +2131,22 @@ typedef enum CMPNodeGlareType {
   CMP_NODE_GLARE_GHOST = 3,
 } CMPNodeGlareType;
 
+/* Stabilize 2D node. Stored in custom1. */
+typedef enum CMPNodeStabilizeInterpolation {
+  CMP_NODE_STABILIZE_INTERPOLATION_NEAREST = 0,
+  CMP_NODE_STABILIZE_INTERPOLATION_BILINEAR = 1,
+  CMP_NODE_STABILIZE_INTERPOLATION_BICUBIC = 2,
+} CMPNodeStabilizeInterpolation;
+
+/* Stabilize 2D node. Stored in custom2. */
+typedef enum CMPNodeStabilizeInverse {
+  CMP_NODE_STABILIZE_FLAG_INVERSE = 1,
+} CMPNodeStabilizeInverse;
+
 /* Plane track deform node. */
 
 enum {
   CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR = 1,
-};
-
-/* Stabilization node. */
-
-enum {
-  CMP_NODEFLAG_STABILIZE_INVERSE = 1,
 };
 
 /* Set Alpha Node. */

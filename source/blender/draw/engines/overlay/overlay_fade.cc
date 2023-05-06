@@ -12,9 +12,7 @@
 
 #include "overlay_private.hh"
 
-void OVERLAY_fade_init(OVERLAY_Data * /*vedata*/)
-{
-}
+void OVERLAY_fade_init(OVERLAY_Data * /*vedata*/) {}
 
 void OVERLAY_fade_cache_init(OVERLAY_Data *vedata)
 {

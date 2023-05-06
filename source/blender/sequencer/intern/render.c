@@ -238,7 +238,7 @@ StripElem *SEQ_render_give_stripelem(const Scene *scene, Sequence *seq, int time
      * all other strips don't use this...
      */
 
-    int frame_index = (int)seq_give_frame_index(scene, seq, timeline_frame);
+    int frame_index = (int)SEQ_give_frame_index(scene, seq, timeline_frame);
 
     if (frame_index == -1 || se == NULL) {
       return NULL;
@@ -313,7 +313,8 @@ static bool sequencer_use_transform(const Sequence *seq)
   const StripTransform *transform = seq->strip->transform;
 
   if (transform->xofs != 0 || transform->yofs != 0 || transform->scale_x != 1 ||
-      transform->scale_y != 1 || transform->rotation != 0) {
+      transform->scale_y != 1 || transform->rotation != 0)
+  {
     return true;
   }
 
@@ -341,7 +342,8 @@ static bool seq_input_have_to_preprocess(const SeqRenderData *context,
   }
 
   if ((seq->flag & (SEQ_FILTERY | SEQ_FLIPX | SEQ_FLIPY | SEQ_MAKE_FLOAT)) ||
-      sequencer_use_crop(seq) || sequencer_use_transform(seq)) {
+      sequencer_use_crop(seq) || sequencer_use_transform(seq))
+  {
     return true;
   }
 
@@ -379,7 +381,8 @@ static bool seq_need_scale_to_render_size(const Sequence *seq, bool is_proxy_ima
   }
   if ((seq->type & SEQ_TYPE_EFFECT) != 0 || seq->type == SEQ_TYPE_MASK ||
       seq->type == SEQ_TYPE_META ||
-      (seq->type == SEQ_TYPE_SCENE && ((seq->flag & SEQ_SCENE_STRIPS) != 0))) {
+      (seq->type == SEQ_TYPE_SCENE && ((seq->flag & SEQ_SCENE_STRIPS) != 0)))
+  {
     return true;
   }
   return false;
@@ -529,7 +532,7 @@ static void sequencer_preprocess_transform_crop(
       break;
     case SEQ_TRANSFORM_FILTER_NEAREST_3x3:
       filter = IMB_FILTER_NEAREST;
-      num_subsamples = context->for_render ? 3 : 1;
+      num_subsamples = 3;
       break;
   }
 
@@ -607,7 +610,8 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
   }
 
   if (sequencer_use_crop(seq) || sequencer_use_transform(seq) || context->rectx != ibuf->x ||
-      context->recty != ibuf->y) {
+      context->recty != ibuf->y)
+  {
     const int x = context->rectx;
     const int y = context->recty;
     preprocessed_ibuf = IMB_allocImBuf(x, y, 32, ibuf->rect_float ? IB_rectfloat : IB_rect);
@@ -889,7 +893,7 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
  */
 static ImBuf *seq_render_image_strip_view(const SeqRenderData *context,
                                           Sequence *seq,
-                                          char *name,
+                                          char *filepath,
                                           char *prefix,
                                           const char *ext,
                                           int view_id)
@@ -903,13 +907,13 @@ static ImBuf *seq_render_image_strip_view(const SeqRenderData *context,
   }
 
   if (prefix[0] == '\0') {
-    ibuf = IMB_loadiffname(name, flag, seq->strip->colorspace_settings.name);
+    ibuf = IMB_loadiffname(filepath, flag, seq->strip->colorspace_settings.name);
   }
   else {
-    char str[FILE_MAX];
-    BKE_scene_multiview_view_prefix_get(context->scene, name, prefix, &ext);
-    seq_multiview_name(context->scene, view_id, prefix, ext, str, FILE_MAX);
-    ibuf = IMB_loadiffname(str, flag, seq->strip->colorspace_settings.name);
+    char filepath_view[FILE_MAX];
+    BKE_scene_multiview_view_prefix_get(context->scene, filepath, prefix, &ext);
+    seq_multiview_name(context->scene, view_id, prefix, ext, filepath_view, FILE_MAX);
+    ibuf = IMB_loadiffname(filepath_view, flag, seq->strip->colorspace_settings.name);
   }
 
   if (ibuf == NULL) {
@@ -949,7 +953,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
                                      float timeline_frame,
                                      bool *r_is_proxy_image)
 {
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
   const char *ext = NULL;
   char prefix[FILE_MAX];
   ImBuf *ibuf = NULL;
@@ -959,8 +963,8 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
     return NULL;
   }
 
-  BLI_path_join(name, sizeof(name), seq->strip->dir, s_elem->name);
-  BLI_path_abs(name, BKE_main_blendfile_path_from_global());
+  BLI_path_join(filepath, sizeof(filepath), seq->strip->dir, s_elem->name);
+  BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
   /* Try to get a proxy image. */
   ibuf = seq_proxy_fetch(context, seq, timeline_frame);
@@ -972,14 +976,15 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
   /* Proxy not found, render original. */
   const int totfiles = seq_num_files(context->scene, seq->views_format, true);
   bool is_multiview_render = seq_image_strip_is_multiview_render(
-      context->scene, seq, totfiles, name, prefix, ext);
+      context->scene, seq, totfiles, filepath, prefix, ext);
 
   if (is_multiview_render) {
     int totviews = BKE_scene_multiview_num_views_get(&context->scene->r);
     ImBuf **ibufs_arr = MEM_callocN(sizeof(ImBuf *) * totviews, "Sequence Image Views Imbufs");
 
     for (int view_id = 0; view_id < totfiles; view_id++) {
-      ibufs_arr[view_id] = seq_render_image_strip_view(context, seq, name, prefix, ext, view_id);
+      ibufs_arr[view_id] = seq_render_image_strip_view(
+          context, seq, filepath, prefix, ext, view_id);
     }
 
     if (ibufs_arr[0] == NULL) {
@@ -1013,7 +1018,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
     MEM_freeN(ibufs_arr);
   }
   else {
-    ibuf = seq_render_image_strip_view(context, seq, name, prefix, ext, context->view_id);
+    ibuf = seq_render_image_strip_view(context, seq, filepath, prefix, ext, context->view_id);
   }
 
   if (ibuf == NULL) {
@@ -1030,19 +1035,19 @@ static ImBuf *seq_render_movie_strip_custom_file_proxy(const SeqRenderData *cont
                                                        Sequence *seq,
                                                        int timeline_frame)
 {
-  char name[PROXY_MAXFILE];
+  char filepath[PROXY_MAXFILE];
   StripProxy *proxy = seq->strip->proxy;
 
   if (proxy->anim == NULL) {
-    if (seq_proxy_get_custom_file_fname(seq, name, context->view_id)) {
-      proxy->anim = openanim(name, IB_rect, 0, seq->strip->colorspace_settings.name);
+    if (seq_proxy_get_custom_file_fname(seq, filepath, context->view_id)) {
+      proxy->anim = openanim(filepath, IB_rect, 0, seq->strip->colorspace_settings.name);
     }
     if (proxy->anim == NULL) {
       return NULL;
     }
   }
 
-  int frameno = (int)seq_give_frame_index(context->scene, seq, timeline_frame) +
+  int frameno = (int)SEQ_give_frame_index(context->scene, seq, timeline_frame) +
                 seq->anim_startofs;
   return IMB_anim_absolute(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
 }
@@ -1073,7 +1078,8 @@ static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
     /* Try to get a proxy image.
      * Movie proxies are handled by ImBuf module with exception of `custom file` setting. */
     if (context->scene->ed->proxy_storage != SEQ_EDIT_PROXY_DIR_STORAGE &&
-        seq->strip->proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
+        seq->strip->proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE)
+    {
       ibuf = seq_render_movie_strip_custom_file_proxy(context, seq, timeline_frame);
     }
     else {
@@ -1658,7 +1664,7 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
                                        bool *r_is_proxy_image)
 {
   ImBuf *ibuf = NULL;
-  float frame_index = seq_give_frame_index(context->scene, seq, timeline_frame);
+  float frame_index = SEQ_give_frame_index(context->scene, seq, timeline_frame);
   int type = (seq->type & SEQ_TYPE_EFFECT) ? SEQ_TYPE_EFFECT : seq->type;
   switch (type) {
     case SEQ_TYPE_META: {
@@ -1761,8 +1767,8 @@ ImBuf *seq_render_strip(const SeqRenderData *context,
   }
 
   /* Proxies are not stored in cache. */
-  if (!SEQ_can_use_proxy(
-          context, seq, SEQ_rendersize_to_proxysize(context->preview_render_size))) {
+  if (!SEQ_can_use_proxy(context, seq, SEQ_rendersize_to_proxysize(context->preview_render_size)))
+  {
     ibuf = seq_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW);
   }
 

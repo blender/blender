@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup edinterface
@@ -148,7 +148,8 @@ uiBut *uiDefAutoButR(uiBlock *block,
         }
       }
       else if (RNA_property_subtype(prop) == PROP_PERCENTAGE ||
-               RNA_property_subtype(prop) == PROP_FACTOR) {
+               RNA_property_subtype(prop) == PROP_FACTOR)
+      {
         but = uiDefButR_prop(block,
                              UI_BTYPE_NUM_SLIDER,
                              0,
@@ -1116,8 +1117,9 @@ static bool ui_key_event_property_match(const char *opname,
 
   bool match = false;
   if (properties) {
-    if (ui_opptr && IDP_EqualsProperties_ex(
-                        properties, static_cast<IDProperty *>(ui_opptr->data), is_strict)) {
+    if (ui_opptr &&
+        IDP_EqualsProperties_ex(properties, static_cast<IDProperty *>(ui_opptr->data), is_strict))
+    {
       match = true;
     }
   }
@@ -1175,7 +1177,8 @@ const char *UI_key_event_operator_string(const bContext *C,
                                     properties,
                                     is_strict,
                                     dyn_data->custom_activate_optype,
-                                    dyn_data->custom_activate_opptr)) {
+                                    dyn_data->custom_activate_opptr))
+    {
       event_val = KM_CLICK;
       event_type = LEFTMOUSE;
     }
@@ -1184,7 +1187,8 @@ const char *UI_key_event_operator_string(const bContext *C,
                                          properties,
                                          is_strict,
                                          dyn_data->custom_drag_optype,
-                                         dyn_data->custom_drag_opptr)) {
+                                         dyn_data->custom_drag_opptr))
+    {
       event_val = KM_CLICK_DRAG;
       event_type = LEFTMOUSE;
     }

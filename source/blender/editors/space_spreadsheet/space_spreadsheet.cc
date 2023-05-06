@@ -297,7 +297,8 @@ Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
             OB_VOLUME,
             OB_CURVES_LEGACY,
             OB_FONT,
-            OB_CURVES)) {
+            OB_CURVES))
+  {
     return nullptr;
   }
 
@@ -335,6 +336,7 @@ static float get_default_column_width(const ColumnValues &values)
       return float_width;
     case SPREADSHEET_VALUE_TYPE_FLOAT:
       return float_width;
+    case SPREADSHEET_VALUE_TYPE_INT32_2D:
     case SPREADSHEET_VALUE_TYPE_FLOAT2:
       return 2.0f * float_width;
     case SPREADSHEET_VALUE_TYPE_FLOAT3:
@@ -356,7 +358,7 @@ static float get_column_width(const ColumnValues &values)
 {
   float data_width = get_default_column_width(values);
   const int fontid = UI_style_get()->widget.uifont_id;
-  BLF_size(fontid, UI_DEFAULT_TEXT_POINTS * U.dpi_fac);
+  BLF_size(fontid, UI_DEFAULT_TEXT_POINTS * UI_SCALE_FAC);
   const StringRefNull name = values.name();
   const float name_width = BLF_width(fontid, name.data(), name.size());
   return std::max<float>(name_width / UI_UNIT_X + 1.0f, data_width);
@@ -370,7 +372,7 @@ static float get_column_width_in_pixels(const ColumnValues &values)
 static int get_index_column_width(const int tot_rows)
 {
   const int fontid = UI_style_get()->widget.uifont_id;
-  BLF_size(fontid, UI_style_get_dpi()->widget.points * U.dpi_fac);
+  BLF_size(fontid, UI_style_get_dpi()->widget.points * UI_SCALE_FAC);
   return std::to_string(std::max(0, tot_rows - 1)).size() * BLF_width(fontid, "0", 1) +
          UI_UNIT_X * 0.75;
 }
@@ -515,9 +517,7 @@ static void spreadsheet_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void spreadsheet_header_region_free(ARegion * /*region*/)
-{
-}
+static void spreadsheet_header_region_free(ARegion * /*region*/) {}
 
 static void spreadsheet_header_region_listener(const wmRegionListenerParams *params)
 {
@@ -569,15 +569,15 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   SpaceSpreadsheet_Runtime *runtime = sspreadsheet->runtime;
   std::stringstream ss;
-  ss << "Rows: ";
+  ss << IFACE_("Rows:") << " ";
   if (runtime->visible_rows != runtime->tot_rows) {
-    char visible_rows_str[16];
+    char visible_rows_str[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
     BLI_str_format_int_grouped(visible_rows_str, runtime->visible_rows);
     ss << visible_rows_str << " / ";
   }
-  char tot_rows_str[16];
+  char tot_rows_str[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
   BLI_str_format_int_grouped(tot_rows_str, runtime->tot_rows);
-  ss << tot_rows_str << "   |   Columns: " << runtime->tot_columns;
+  ss << tot_rows_str << "   |   " << IFACE_("Columns:") << " " << runtime->tot_columns;
   std::string stats_str = ss.str();
 
   UI_ThemeClearColor(TH_BACK);
@@ -602,13 +602,9 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
   UI_block_draw(C, block);
 }
 
-static void spreadsheet_footer_region_free(ARegion * /*region*/)
-{
-}
+static void spreadsheet_footer_region_free(ARegion * /*region*/) {}
 
-static void spreadsheet_footer_region_listener(const wmRegionListenerParams * /*params*/)
-{
-}
+static void spreadsheet_footer_region_listener(const wmRegionListenerParams * /*params*/) {}
 
 static void spreadsheet_dataset_region_listener(const wmRegionListenerParams *params)
 {
@@ -648,13 +644,9 @@ static void spreadsheet_sidebar_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
-static void spreadsheet_right_region_free(ARegion * /*region*/)
-{
-}
+static void spreadsheet_right_region_free(ARegion * /*region*/) {}
 
-static void spreadsheet_right_region_listener(const wmRegionListenerParams * /*params*/)
-{
-}
+static void spreadsheet_right_region_listener(const wmRegionListenerParams * /*params*/) {}
 
 static void spreadsheet_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {

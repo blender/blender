@@ -78,12 +78,11 @@ TEST(serialize, array_to_json)
   JsonFormatter json;
   std::stringstream out;
   ArrayValue value_array;
-  ArrayValue::Items &array = value_array.elements();
-  array.append_as(new IntValue(42));
-  array.append_as(new StringValue("Hello JSON"));
-  array.append_as(new NullValue);
-  array.append_as(new BooleanValue(false));
-  array.append_as(new BooleanValue(true));
+  value_array.append_int(42);
+  value_array.append_str("Hello JSON");
+  value_array.append_null();
+  value_array.append_bool(false);
+  value_array.append_bool(true);
 
   json.serialize(out, value_array);
   EXPECT_EQ(out.str(), "[42,\"Hello JSON\",null,false,true]");
@@ -94,8 +93,7 @@ TEST(serialize, object_to_json)
   JsonFormatter json;
   std::stringstream out;
   DictionaryValue value_object;
-  DictionaryValue::Items &attributes = value_object.elements();
-  attributes.append_as(std::pair(std::string("best_number"), new IntValue(42)));
+  value_object.append_int("best_number", 42);
 
   json.serialize(out, value_object);
   EXPECT_EQ(out.str(), "{\"best_number\":42}");

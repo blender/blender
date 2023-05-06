@@ -11,6 +11,15 @@
 #include "DNA_session_uuid_types.h"
 
 #ifdef __cplusplus
+namespace blender::bke::sim {
+class ModifierSimulationCache;
+}
+using ModifierSimulationCacheHandle = blender::bke::sim::ModifierSimulationCache;
+#else
+typedef struct ModifierSimulationCacheHandle ModifierSimulationCacheHandle;
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -2316,7 +2325,8 @@ typedef struct NodesModifierData {
    * This can be used to help the user to debug a node tree.
    */
   void *runtime_eval_log;
-  void *_pad1;
+
+  ModifierSimulationCacheHandle *simulation_cache;
 } NodesModifierData;
 
 typedef struct MeshToVolumeModifierData {
@@ -2333,14 +2343,7 @@ typedef struct MeshToVolumeModifierData {
    * different. */
   int voxel_amount;
 
-  /** If true, every cell in the enclosed volume gets a density. Otherwise, the interior_band_width
-   * is used. */
-  char fill_volume;
-  char _pad1[3];
-
-  /** Band widths are in object space. */
   float interior_band_width;
-  float exterior_band_width;
 
   float density;
   char _pad2[4];

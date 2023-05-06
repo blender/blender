@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -106,7 +106,8 @@ OperationNode *ComponentNode::find_operation(OperationIDKey key) const
   else {
     for (OperationNode *op_node : operations) {
       if (op_node->opcode == key.opcode && op_node->name_tag == key.name_tag &&
-          STREQ(op_node->name.c_str(), key.name)) {
+          STREQ(op_node->name.c_str(), key.name))
+      {
         node = op_node;
         break;
       }
@@ -167,7 +168,7 @@ OperationNode *ComponentNode::add_operation(const DepsEvalOperationCb &op,
     op_node = (OperationNode *)factory->create_node(this->owner->id_orig, "", name);
 
     /* register opnode in this component's operation set */
-    OperationIDKey key(opcode, name, name_tag);
+    OperationIDKey key(opcode, op_node->name.c_str(), name_tag);
     operations_map->add(key, op_node);
 
     /* Set back-link. */

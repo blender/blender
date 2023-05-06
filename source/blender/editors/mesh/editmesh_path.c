@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+ * Copyright 2004 Blender Foundation */
 
 /** \file
  * \ingroup edmesh
@@ -230,7 +230,8 @@ static void mouse_mesh_shortest_path_vert(Scene *UNUSED(scene),
     node = path;
     do {
       if ((is_path_ordered == false) ||
-          WM_operator_properties_checker_interval_test(&op_params->interval_params, depth)) {
+          WM_operator_properties_checker_interval_test(&op_params->interval_params, depth))
+      {
         verttag_set_cb((BMVert *)node->link, !all_set, &user_data);
         if (is_path_ordered) {
           v_dst_last = node->link;
@@ -429,7 +430,8 @@ static void mouse_mesh_shortest_path_edge(Scene *scene,
     node = path;
     do {
       if ((is_path_ordered == false) ||
-          WM_operator_properties_checker_interval_test(&op_params->interval_params, depth)) {
+          WM_operator_properties_checker_interval_test(&op_params->interval_params, depth))
+      {
         edgetag_set_cb((BMEdge *)node->link, !all_set, &user_data);
         if (is_path_ordered) {
           e_dst_last = node->link;
@@ -564,7 +566,8 @@ static void mouse_mesh_shortest_path_face(Scene *UNUSED(scene),
     node = path;
     do {
       if ((is_path_ordered == false) ||
-          WM_operator_properties_checker_interval_test(&op_params->interval_params, depth)) {
+          WM_operator_properties_checker_interval_test(&op_params->interval_params, depth))
+      {
         facetag_set_cb((BMFace *)node->link, !all_set, &user_data);
         if (is_path_ordered) {
           f_dst_last = node->link;
@@ -720,11 +723,13 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 
   BMElem *ele_src, *ele_dst;
   if (!(ele_src = edbm_elem_active_elem_or_face_get(em->bm)) ||
-      !(ele_dst = edbm_elem_find_nearest(&vc, ele_src->head.htype))) {
+      !(ele_dst = edbm_elem_find_nearest(&vc, ele_src->head.htype)))
+  {
     /* special case, toggle edge tags even when we don't have a path */
     if (((em->selectmode & SCE_SELECT_EDGE) && (op_params.edge_mode != EDGE_MODE_SELECT)) &&
         /* check if we only have a destination edge */
-        ((ele_src == NULL) && (ele_dst = edbm_elem_find_nearest(&vc, BM_EDGE)))) {
+        ((ele_src == NULL) && (ele_dst = edbm_elem_find_nearest(&vc, BM_EDGE))))
+    {
       ele_src = ele_dst;
       track_active = false;
     }
@@ -767,7 +772,8 @@ static int edbm_shortest_path_pick_exec(bContext *C, wmOperator *op)
 
   BMElem *ele_src, *ele_dst;
   if (!(ele_src = edbm_elem_active_elem_or_face_get(em->bm)) ||
-      !(ele_dst = EDBM_elem_from_index_any(em, index))) {
+      !(ele_dst = EDBM_elem_from_index_any(em, index)))
+  {
     return OPERATOR_CANCELLED;
   }
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edrend
@@ -134,8 +134,8 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
     int sizex, sizey;
     BKE_render_resolution(&scene->r, false, &sizex, &sizey);
 
-    sizex += 30 * UI_DPI_FAC;
-    sizey += 60 * UI_DPI_FAC;
+    sizex += 30 * UI_SCALE_FAC;
+    sizey += 60 * UI_SCALE_FAC;
 
     /* arbitrary... miniature image window views don't make much sense */
     if (sizex < 320) {
@@ -156,7 +156,8 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
                        true,
                        false,
                        true,
-                       WIN_ALIGN_LOCATION_CENTER) == nullptr) {
+                       WIN_ALIGN_LOCATION_CENTER) == nullptr)
+    {
       BKE_report(reports, RPT_ERROR, "Failed to open window!");
       return nullptr;
     }
@@ -326,7 +327,8 @@ static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
       if ((WM_window_is_temp_screen(win) &&
            ((ScrArea *)screen->areabase.first)->spacetype == SPACE_IMAGE) ||
-          (win == winshow && winshow != wincur)) {
+          (win == winshow && winshow != wincur))
+      {
         wm_window_raise(win);
         return OPERATOR_FINISHED;
       }

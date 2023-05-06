@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 
 #pragma once
 
@@ -182,6 +182,7 @@ struct USDImportParams {
   bool import_blendshapes;
   bool import_volumes;
   bool import_skeletons;
+  bool import_shapes;
   char *prim_path_mask;
   bool import_subdiv;
   bool import_instance_proxies;
@@ -201,13 +202,22 @@ struct USDImportParams {
   eUSDMtlNameCollisionMode mtl_name_collision_mode;
   eUSDAttrImportMode attr_import_mode;
   bool triangulate_meshes;
-  bool import_shapes;
   bool import_defined_only;
   eUSDTexImportMode import_textures_mode;
   char import_textures_dir[768]; /* FILE_MAXDIR */
   eUSDTexNameCollisionMode tex_name_collision_mode;
   bool import_all_materials;
 };
+
+/* This struct is in place to store the mesh sequence parameters needed when reading a data from a
+ * usd file for the mesh sequence cache.
+ */
+typedef struct USDMeshReadParams {
+  double motion_sample_time; /* USD TimeCode in frames. */
+  int read_flags; /* MOD_MESHSEQ_xxx value that is set from MeshSeqCacheModifierData.read_flag. */
+} USDMeshReadParams;
+
+USDMeshReadParams create_mesh_read_params(double motion_sample_time, int read_flags);
 
 /* The USD_export takes a as_background_job parameter, and returns a boolean.
  *
@@ -252,9 +262,8 @@ void USD_get_transform(struct CacheReader *reader, float r_mat[4][4], float time
 struct Mesh *USD_read_mesh(struct CacheReader *reader,
                            struct Object *ob,
                            struct Mesh *existing_mesh,
-                           double time,
-                           const char **err_str,
-                           int read_flag);
+                           USDMeshReadParams params,
+                           const char **err_str);
 
 bool USD_mesh_topology_changed(struct CacheReader *reader,
                                const struct Object *ob,

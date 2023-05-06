@@ -36,20 +36,23 @@ struct MeshToVolumeResolution {
  */
 float volume_compute_voxel_size(const Depsgraph *depsgraph,
                                 FunctionRef<void(float3 &r_min, float3 &r_max)> bounds_fn,
-                                const MeshToVolumeResolution resolution,
+                                MeshToVolumeResolution resolution,
                                 float exterior_band_width,
                                 const float4x4 &transform);
 /**
- * Add a new VolumeGrid to the Volume by converting the supplied mesh
+ * Add a new fog VolumeGrid to the Volume by converting the supplied mesh.
  */
-VolumeGrid *volume_grid_add_from_mesh(Volume *volume,
-                                      const StringRefNull name,
-                                      const Mesh *mesh,
-                                      const float4x4 &mesh_to_volume_space_transform,
-                                      float voxel_size,
-                                      bool fill_volume,
-                                      float exterior_band_width,
-                                      float interior_band_width,
-                                      float density);
+VolumeGrid *fog_volume_grid_add_from_mesh(Volume *volume,
+                                          StringRefNull name,
+                                          const Mesh *mesh,
+                                          const float4x4 &mesh_to_volume_space_transform,
+                                          float voxel_size,
+                                          float interior_band_width,
+                                          float density);
+/**
+ * Add a new SDF VolumeGrid to the Volume by converting the supplied mesh.
+ */
+VolumeGrid *sdf_volume_grid_add_from_mesh(
+    Volume *volume, StringRefNull name, const Mesh &mesh, float voxel_size, float half_band_width);
 #endif
 }  // namespace blender::geometry

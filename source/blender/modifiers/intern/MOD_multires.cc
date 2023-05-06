@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup modifiers
@@ -21,7 +21,7 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
@@ -29,7 +29,7 @@
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subdiv_deform.h"
-#include "BKE_subdiv_mesh.h"
+#include "BKE_subdiv_mesh.hh"
 #include "BKE_subsurf.h"
 
 #include "UI_interface.h"
@@ -42,8 +42,8 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
 
 struct MultiresRuntimeData {
   /* Cached subdivision surface descriptor, with topology and settings. */
@@ -245,8 +245,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       sculpt_session->totvert = mesh->totvert;
       sculpt_session->totpoly = mesh->totpoly;
       sculpt_session->vert_positions = nullptr;
-      sculpt_session->mpoly = nullptr;
-      sculpt_session->mloop = nullptr;
+      sculpt_session->polys = {};
+      sculpt_session->corner_verts = {};
     }
     // BKE_subdiv_stats_print(&subdiv->stats);
   }

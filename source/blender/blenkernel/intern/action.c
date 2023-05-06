@@ -116,7 +116,8 @@ static void action_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
     /* Fix group links (kind of bad list-in-list search, but this is the most reliable way). */
     for (group_dst = action_dst->groups.first, group_src = action_src->groups.first;
          group_dst && group_src;
-         group_dst = group_dst->next, group_src = group_src->next) {
+         group_dst = group_dst->next, group_src = group_src->next)
+    {
       if (fcurve_src->grp == group_src) {
         fcurve_dst->grp = group_dst;
 
@@ -1408,7 +1409,7 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
          *   single-keyframe curves will increase the overall length by
          *   a phantom frame (#50354)
          */
-        BKE_fcurve_calc_range(fcu, &nmin, &nmax, false, false);
+        BKE_fcurve_calc_range(fcu, &nmin, &nmax, false);
 
         /* compare to the running tally */
         min = min_ff(min, nmin);

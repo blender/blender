@@ -1,11 +1,11 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. All rights reserved. */
+ * Copyright 2018 Blender Foundation */
 
 /** \file
  * \ingroup bke
  */
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_subdiv_ccg.h"
 
 #include "MEM_guardedalloc.h"
@@ -15,7 +15,7 @@
 
 struct CCGMaterialFromMeshData {
   const Mesh *mesh;
-  const MPoly *polys;
+  const bool *sharp_faces;
   const int *material_indices;
 };
 
@@ -24,9 +24,8 @@ static DMFlagMat subdiv_ccg_material_flags_eval(
 {
   CCGMaterialFromMeshData *data = (CCGMaterialFromMeshData *)material_flags_evaluator->user_data;
   BLI_assert(coarse_face_index < data->mesh->totpoly);
-  const MPoly *poly = &data->polys[coarse_face_index];
   DMFlagMat material_flags;
-  material_flags.flag = poly->flag;
+  material_flags.sharp = data->sharp_faces && data->sharp_faces[coarse_face_index];
   material_flags.mat_nr = data->material_indices ? data->material_indices[coarse_face_index] : 0;
   return material_flags;
 }
@@ -45,7 +44,8 @@ void BKE_subdiv_ccg_material_flags_init_from_mesh(
   data->mesh = mesh;
   data->material_indices = (const int *)CustomData_get_layer_named(
       &mesh->pdata, CD_PROP_INT32, "material_index");
-  data->polys = BKE_mesh_polys(mesh);
+  data->sharp_faces = (const bool *)CustomData_get_layer_named(
+      &mesh->pdata, CD_PROP_BOOL, "sharp_face");
   material_flags_evaluator->eval_material_flags = subdiv_ccg_material_flags_eval;
   material_flags_evaluator->free = subdiv_ccg_material_flags_free;
   material_flags_evaluator->user_data = data;

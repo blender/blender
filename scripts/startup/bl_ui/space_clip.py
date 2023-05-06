@@ -230,7 +230,13 @@ class CLIP_HT_header(Header):
             row.prop(tool_settings, "use_proportional_edit_mask", text="", icon_only=True)
             sub = row.row(align=True)
             sub.active = tool_settings.use_proportional_edit_mask
-            sub.prop(tool_settings, "proportional_edit_falloff", text="", icon_only=True)
+            sub.prop_with_popover(
+                tool_settings,
+                "proportional_edit_falloff",
+                text="",
+                icon_only=True,
+                panel="CLIP_PT_proportional_edit",
+            )
 
             row = layout.row()
             row.template_ID(sc, "mask", new="mask.new")
@@ -260,6 +266,22 @@ class CLIP_HT_header(Header):
         sub = row.row(align=True)
         sub.active = sc.show_gizmo
         sub.popover(panel="CLIP_PT_gizmo_display", text="")
+
+
+class CLIP_PT_proportional_edit(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Proportional Editing"
+    bl_ui_units_x = 8
+
+    def draw(self, context):
+        layout = self.layout
+        tool_settings = context.tool_settings
+        col = layout.column()
+        col.active = tool_settings.use_proportional_edit_mask
+
+        col.prop(tool_settings, "proportional_edit_falloff", expand=True)
+        col.prop(tool_settings, "proportional_size")
 
 
 class CLIP_MT_tracking_editor_menus(Menu):
@@ -752,7 +774,7 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
 
         row = layout.row(align=True)
         row.prop(act_track, "use_custom_color", text="")
-        CLIP_PT_track_color_presets.draw_menu(row, 'Custom Color Presets')
+        CLIP_PT_track_color_presets.draw_menu(row, iface_("Custom Color Presets"))
         row.operator("clip.track_copy_color", icon='COPY_ID', text="")
 
         if act_track.use_custom_color:
@@ -890,6 +912,7 @@ class CLIP_PT_tracking_lens(Panel):
     bl_region_type = 'UI'
     bl_category = "Track"
     bl_label = "Lens"
+    bl_translation_context = i18n_contexts.id_camera
     bl_parent_id = 'CLIP_PT_tracking_camera'
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1078,10 +1101,11 @@ class CLIP_PT_2d_cursor(Panel):
 
     @classmethod
     def poll(cls, context):
-        sc = context.space_data
+        if not CLIP_PT_clip_view_panel.poll(context):
+            return False
 
-        if CLIP_PT_clip_view_panel.poll(context):
-            return sc.pivot_point == 'CURSOR' or sc.mode == 'MASK'
+        sc = context.space_data
+        return sc.pivot_point == 'CURSOR' or sc.mode == 'MASK'
 
     def draw(self, context):
         layout = self.layout
@@ -1731,13 +1755,13 @@ class CLIP_MT_marker_pie(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # Use Location Tracking
-        prop = pie.operator("wm.context_set_enum", text="Location")
-        prop.data_path = "space_data.clip.tracking.tracks.active.motion_model"
-        prop.value = "Loc"
+        props = pie.operator("wm.context_set_enum", text="Location")
+        props.data_path = "space_data.clip.tracking.tracks.active.motion_model"
+        props.value = "Loc"
         # Use Affine Tracking
-        prop = pie.operator("wm.context_set_enum", text="Affine")
-        prop.data_path = "space_data.clip.tracking.tracks.active.motion_model"
-        prop.value = "Affine"
+        props = pie.operator("wm.context_set_enum", text="Affine")
+        props.data_path = "space_data.clip.tracking.tracks.active.motion_model"
+        props.value = "Affine"
         # Copy Settings From Active To Selected
         pie.operator("clip.track_settings_to_track", icon='COPYDOWN')
         # Make Settings Default
@@ -1748,13 +1772,13 @@ class CLIP_MT_marker_pie(Menu):
             # Use Brute Force
             pie.prop(track_active, "use_brute", text="Use Brute Force")
             # Match Keyframe
-            prop = pie.operator("wm.context_set_enum", text="Match Previous", icon='KEYFRAME_HLT')
-            prop.data_path = "space_data.clip.tracking.tracks.active.pattern_match"
-            prop.value = 'PREV_FRAME'
+            props = pie.operator("wm.context_set_enum", text="Match Previous", icon='KEYFRAME_HLT')
+            props.data_path = "space_data.clip.tracking.tracks.active.pattern_match"
+            props.value = 'PREV_FRAME'
             # Match Previous Frame
-            prop = pie.operator("wm.context_set_enum", text="Match Keyframe", icon='KEYFRAME')
-            prop.data_path = "space_data.clip.tracking.tracks.active.pattern_match"
-            prop.value = 'KEYFRAME'
+            props = pie.operator("wm.context_set_enum", text="Match Keyframe", icon='KEYFRAME')
+            props.data_path = "space_data.clip.tracking.tracks.active.pattern_match"
+            props.value = 'KEYFRAME'
 
 
 class CLIP_MT_tracking_pie(Menu):
@@ -1772,13 +1796,13 @@ class CLIP_MT_tracking_pie(Menu):
 
         pie = layout.menu_pie()
         # Track Backwards
-        prop = pie.operator("clip.track_markers", icon='TRACKING_BACKWARDS')
-        prop.backwards = True
-        prop.sequence = True
+        props = pie.operator("clip.track_markers", icon='TRACKING_BACKWARDS')
+        props.backwards = True
+        props.sequence = True
         # Track Forwards
-        prop = pie.operator("clip.track_markers", icon='TRACKING_FORWARDS')
-        prop.backwards = False
-        prop.sequence = True
+        props = pie.operator("clip.track_markers", icon='TRACKING_FORWARDS')
+        props.backwards = False
+        props.sequence = True
         # Disable Marker
         pie.operator("clip.disable_markers", icon='HIDE_OFF').action = 'TOGGLE'
         # Detect Features
@@ -1830,11 +1854,11 @@ class CLIP_MT_solving_pie(Menu):
             icon='KEYFRAME',
         ).keyframe = 'KEYFRAME_B'
         # Clean Tracks
-        prop = pie.operator("clip.clean_tracks", icon='X')
+        props = pie.operator("clip.clean_tracks", icon='X')
+        props.frames = 15
+        props.error = 2
         # Filter Tracks
         pie.operator("clip.filter_tracks", icon='FILTER')
-        prop.frames = 15
-        prop.error = 2
 
 
 class CLIP_MT_reconstruction_pie(Menu):
@@ -1926,6 +1950,7 @@ class CLIP_PT_gizmo_display(Panel):
 
 classes = (
     CLIP_UL_tracking_objects,
+    CLIP_PT_proportional_edit,
     CLIP_HT_header,
     CLIP_PT_display,
     CLIP_PT_clip_display,

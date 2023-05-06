@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup spuserpref
@@ -131,7 +131,7 @@ static int preferences_asset_library_add_exec(bContext *UNUSED(C), wmOperator *o
   char dirname[FILE_MAXFILE];
 
   BLI_path_slash_rstrip(path);
-  BLI_split_file_part(path, dirname, sizeof(dirname));
+  BLI_path_split_file_part(path, dirname, sizeof(dirname));
 
   /* NULL is a valid directory path here. A library without path will be created then. */
   const bUserAssetLibrary *new_library = BKE_preferences_asset_library_add(&U, dirname, path);

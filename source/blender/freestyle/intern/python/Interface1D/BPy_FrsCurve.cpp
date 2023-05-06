@@ -55,7 +55,8 @@ static int FrsCurve_init(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
     }
   }
   else if ((void)PyErr_Clear(),
-           PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_2, &Id_Type, &obj)) {
+           PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_2, &Id_Type, &obj))
+  {
     self->c = new Curve(*(((BPy_Id *)obj)->id));
   }
   else {

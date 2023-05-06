@@ -19,9 +19,7 @@
 
 #include "eevee_private.h"
 
-void EEVEE_subsurface_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *UNUSED(vedata))
-{
-}
+void EEVEE_subsurface_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *UNUSED(vedata)) {}
 
 void EEVEE_subsurface_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
@@ -38,16 +36,18 @@ void EEVEE_subsurface_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
      * as the depth buffer we are sampling from. This could be avoided if the stencil is
      * a separate texture but that needs OpenGL 4.4 or ARB_texture_stencil8.
      * OR OpenGL 4.3 / ARB_ES3_compatibility if using a render-buffer instead. */
-    effects->sss_stencil = DRW_texture_pool_query_2d(
-        fs_size[0], fs_size[1], GPU_DEPTH24_STENCIL8, &draw_engine_eevee_type);
-    effects->sss_blur = DRW_texture_pool_query_2d(
-        fs_size[0], fs_size[1], GPU_R11F_G11F_B10F, &draw_engine_eevee_type);
-    effects->sss_irradiance = DRW_texture_pool_query_2d(
-        fs_size[0], fs_size[1], GPU_R11F_G11F_B10F, &draw_engine_eevee_type);
-    effects->sss_radius = DRW_texture_pool_query_2d(
-        fs_size[0], fs_size[1], GPU_R16F, &draw_engine_eevee_type);
-    effects->sss_albedo = DRW_texture_pool_query_2d(
-        fs_size[0], fs_size[1], GPU_R11F_G11F_B10F, &draw_engine_eevee_type);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+
+    effects->sss_stencil = DRW_texture_pool_query_2d_ex(
+        fs_size[0], fs_size[1], GPU_DEPTH24_STENCIL8, usage, &draw_engine_eevee_type);
+    effects->sss_blur = DRW_texture_pool_query_2d_ex(
+        fs_size[0], fs_size[1], GPU_R11F_G11F_B10F, usage, &draw_engine_eevee_type);
+    effects->sss_irradiance = DRW_texture_pool_query_2d_ex(
+        fs_size[0], fs_size[1], GPU_R11F_G11F_B10F, usage, &draw_engine_eevee_type);
+    effects->sss_radius = DRW_texture_pool_query_2d_ex(
+        fs_size[0], fs_size[1], GPU_R16F, usage, &draw_engine_eevee_type);
+    effects->sss_albedo = DRW_texture_pool_query_2d_ex(
+        fs_size[0], fs_size[1], GPU_R11F_G11F_B10F, usage, &draw_engine_eevee_type);
 
     GPUTexture *stencil_tex = effects->sss_stencil;
 
@@ -193,7 +193,7 @@ void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,
   DRW_shgroup_stencil_mask(shgrp, sss_id);
 
   {
-    eGPUSamplerState state = GPU_SAMPLER_DEFAULT;
+    GPUSamplerState state = GPU_SAMPLER_DEFAULT;
 
     DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_subsurface_first_pass_sh_get(),
                                               psl->sss_blur_ps);

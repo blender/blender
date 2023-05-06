@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -126,9 +126,9 @@ static void gpu_viewport_textures_create(GPUViewport *viewport)
 
     /* NOTE: dtxl_color texture requires write support as it may be written to by the realtime
      * compositor. */
-    viewport->color_render_tx[0] = GPU_texture_create_2d_ex(
+    viewport->color_render_tx[0] = GPU_texture_create_2d(
         "dtxl_color", UNPACK2(size), 1, GPU_RGBA16F, usage | GPU_TEXTURE_USAGE_SHADER_WRITE, NULL);
-    viewport->color_overlay_tx[0] = GPU_texture_create_2d_ex(
+    viewport->color_overlay_tx[0] = GPU_texture_create_2d(
         "dtxl_color_overlay", UNPACK2(size), 1, GPU_SRGB8_A8, usage, NULL);
 
     if (GPU_clear_viewport_workaround()) {
@@ -138,13 +138,13 @@ static void gpu_viewport_textures_create(GPUViewport *viewport)
   }
 
   if ((viewport->flag & GPU_VIEWPORT_STEREO) != 0 && viewport->color_render_tx[1] == NULL) {
-    viewport->color_render_tx[1] = GPU_texture_create_2d_ex("dtxl_color_stereo",
-                                                            UNPACK2(size),
-                                                            1,
-                                                            GPU_RGBA16F,
-                                                            usage | GPU_TEXTURE_USAGE_SHADER_WRITE,
-                                                            NULL);
-    viewport->color_overlay_tx[1] = GPU_texture_create_2d_ex(
+    viewport->color_render_tx[1] = GPU_texture_create_2d("dtxl_color_stereo",
+                                                         UNPACK2(size),
+                                                         1,
+                                                         GPU_RGBA16F,
+                                                         usage | GPU_TEXTURE_USAGE_SHADER_WRITE,
+                                                         NULL);
+    viewport->color_overlay_tx[1] = GPU_texture_create_2d(
         "dtxl_color_overlay_stereo", UNPACK2(size), 1, GPU_SRGB8_A8, usage, NULL);
 
     if (GPU_clear_viewport_workaround()) {
@@ -155,13 +155,13 @@ static void gpu_viewport_textures_create(GPUViewport *viewport)
 
   /* Can be shared with GPUOffscreen. */
   if (viewport->depth_tx == NULL) {
-    /* Depth texture can be read back by gizmos #view3d_depths_create .*/
-    viewport->depth_tx = GPU_texture_create_2d_ex("dtxl_depth",
-                                                  UNPACK2(size),
-                                                  1,
-                                                  GPU_DEPTH24_STENCIL8,
-                                                  usage | GPU_TEXTURE_USAGE_HOST_READ,
-                                                  NULL);
+    /* Depth texture can be read back by gizmos #view3d_depths_create. */
+    viewport->depth_tx = GPU_texture_create_2d("dtxl_depth",
+                                               UNPACK2(size),
+                                               1,
+                                               GPU_DEPTH24_STENCIL8,
+                                               usage | GPU_TEXTURE_USAGE_HOST_READ,
+                                               NULL);
     if (GPU_clear_viewport_workaround()) {
       static int depth_clear = 0;
       GPU_texture_clear(viewport->depth_tx, GPU_DATA_UINT_24_8, &depth_clear);
@@ -244,7 +244,8 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
   if (view_settings->curve_mapping) {
     if (viewport->view_settings.curve_mapping) {
       if (view_settings->curve_mapping->changed_timestamp !=
-          viewport->view_settings.curve_mapping->changed_timestamp) {
+          viewport->view_settings.curve_mapping->changed_timestamp)
+      {
         BKE_color_managed_view_settings_free(&viewport->view_settings);
       }
     }

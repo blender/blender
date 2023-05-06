@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -59,6 +59,10 @@ static Mesh *triangulate_mesh_selection(const Mesh &mesh,
   BM_mesh_triangulate(bm, quad_method, ngon_method, min_vertices, true, nullptr, nullptr, nullptr);
   Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, &cd_mask_extra, &mesh);
   BM_mesh_free(bm);
+
+  /* Positions are not changed by the triangulation operation, so the bounds are the same. */
+  result->runtime->bounds_cache = mesh.runtime->bounds_cache;
+
   return result;
 }
 
@@ -77,7 +81,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     const Mesh &mesh_in = *geometry_set.get_mesh_for_read();
 
-    bke::MeshFieldContext context{mesh_in, ATTR_DOMAIN_FACE};
+    const bke::MeshFieldContext context{mesh_in, ATTR_DOMAIN_FACE};
     FieldEvaluator evaluator{context, mesh_in.totpoly};
     evaluator.add(selection_field);
     evaluator.evaluate();

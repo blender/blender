@@ -251,14 +251,14 @@ static void button2d_draw_intern(const bContext *C,
       if (is_3d) {
         const float fac = 2.0f;
         GPU_matrix_translate_2f(-(fac / 2), -(fac / 2));
-        GPU_matrix_scale_2f(fac / (ICON_DEFAULT_WIDTH * UI_DPI_FAC),
-                            fac / (ICON_DEFAULT_HEIGHT * UI_DPI_FAC));
+        GPU_matrix_scale_2f(fac / (ICON_DEFAULT_WIDTH * UI_SCALE_FAC),
+                            fac / (ICON_DEFAULT_HEIGHT * UI_SCALE_FAC));
         pos[0] = 1.0f;
         pos[1] = 1.0f;
       }
       else {
-        pos[0] = gz->matrix_basis[3][0] - (ICON_DEFAULT_WIDTH / 2.0) * UI_DPI_FAC;
-        pos[1] = gz->matrix_basis[3][1] - (ICON_DEFAULT_HEIGHT / 2.0) * UI_DPI_FAC;
+        pos[0] = gz->matrix_basis[3][0] - (ICON_DEFAULT_WIDTH / 2.0) * UI_SCALE_FAC;
+        pos[1] = gz->matrix_basis[3][1] - (ICON_DEFAULT_HEIGHT / 2.0) * UI_SCALE_FAC;
         GPU_matrix_pop();
         need_to_pop = false;
       }
@@ -327,7 +327,7 @@ static int gizmo_button2d_cursor_get(wmGizmo *gz)
 static bool gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box)
 {
   ScrArea *area = CTX_wm_area(C);
-  float rad = CIRCLE_RESOLUTION_3D * U.dpi_fac / 2.0f;
+  float rad = CIRCLE_RESOLUTION_3D * UI_SCALE_FAC / 2.0f;
   const float *co = NULL;
   float matrix_final[4][4];
   float co_proj[3];
@@ -336,7 +336,8 @@ static bool gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box
   if (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
     ARegion *region = CTX_wm_region(C);
     if (ED_view3d_project_float_global(region, matrix_final[3], co_proj, V3D_PROJ_TEST_NOP) ==
-        V3D_PROJ_RET_OK) {
+        V3D_PROJ_RET_OK)
+    {
       float matrix_final_no_offset[4][4];
       const RegionView3D *rv3d = region->regiondata;
       WM_gizmo_calc_matrix_final_no_offset(gz, matrix_final_no_offset);

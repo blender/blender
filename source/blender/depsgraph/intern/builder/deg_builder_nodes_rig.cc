@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -74,7 +74,8 @@ void DepsgraphNodeBuilder::build_ik_pose(Object *object, bPoseChannel *pchan, bC
   }
 
   if (has_operation_node(
-          &object->id, NodeType::EVAL_POSE, rootchan->name, OperationCode::POSE_IK_SOLVER)) {
+          &object->id, NodeType::EVAL_POSE, rootchan->name, OperationCode::POSE_IK_SOLVER))
+  {
     return;
   }
 
@@ -103,10 +104,9 @@ void DepsgraphNodeBuilder::build_splineik_pose(Object *object,
   /* Find the chain's root. */
   bPoseChannel *rootchan = BKE_armature_splineik_solver_find_root(pchan, data);
 
-  if (has_operation_node(&object->id,
-                         NodeType::EVAL_POSE,
-                         rootchan->name,
-                         OperationCode::POSE_SPLINE_IK_SOLVER)) {
+  if (has_operation_node(
+          &object->id, NodeType::EVAL_POSE, rootchan->name, OperationCode::POSE_SPLINE_IK_SOLVER))
+  {
     return;
   }
 

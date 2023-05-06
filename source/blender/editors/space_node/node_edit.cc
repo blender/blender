@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup spnode
@@ -30,6 +30,7 @@
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
 
+#include "BLI_set.hh"
 #include "BLT_translation.h"
 
 #include "DEG_depsgraph.h"
@@ -64,6 +65,7 @@
 #include "NOD_composite.h"
 #include "NOD_geometry.h"
 #include "NOD_shader.h"
+#include "NOD_socket.h"
 #include "NOD_texture.h"
 #include "node_intern.hh" /* own include */
 
@@ -655,7 +657,8 @@ void snode_set_context(const bContext &C)
   }
 
   if (snode->nodetree != ntree || snode->id != id || snode->from != from ||
-      (snode->treepath.last == nullptr && ntree)) {
+      (snode->treepath.last == nullptr && ntree))
+  {
     ED_node_tree_start(snode, ntree, id, from);
   }
 }
@@ -699,7 +702,8 @@ void ED_node_set_active(
              SH_NODE_OUTPUT_MATERIAL,
              SH_NODE_OUTPUT_WORLD,
              SH_NODE_OUTPUT_LIGHT,
-             SH_NODE_OUTPUT_LINESTYLE)) {
+             SH_NODE_OUTPUT_LINESTYLE))
+    {
       for (bNode *node_iter : ntree->all_nodes()) {
         if (node_iter->type == node->type) {
           node_iter->flag &= ~NODE_DO_OUTPUT;
@@ -916,8 +920,8 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
       WM_event_drag_start_mval(event, region, mval);
       float mx, my;
       UI_view2d_region_to_view(&region->v2d, mval.x, mval.y, &mx, &my);
-      const float dx = (mx - nsw->mxstart) / UI_DPI_FAC;
-      const float dy = (my - nsw->mystart) / UI_DPI_FAC;
+      const float dx = (mx - nsw->mxstart) / UI_SCALE_FAC;
+      const float dy = (my - nsw->mystart) / UI_SCALE_FAC;
 
       if (node) {
         float *pwidth = &node->width;
@@ -941,8 +945,8 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         /* Height works the other way round. */
         {
-          float heightmin = UI_DPI_FAC * node->typeinfo->minheight;
-          float heightmax = UI_DPI_FAC * node->typeinfo->maxheight;
+          float heightmin = UI_SCALE_FAC * node->typeinfo->minheight;
+          float heightmax = UI_SCALE_FAC * node->typeinfo->maxheight;
           if (nsw->directions & NODE_RESIZE_TOP) {
             float locmin = nsw->oldlocy - nsw->oldheight;
 
@@ -1099,12 +1103,10 @@ void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
   }
 }
 
-static bool cursor_isect_multi_input_socket(const Span<float2> socket_locations,
-                                            const float2 &cursor,
-                                            const bNodeSocket &socket)
+static bool cursor_isect_multi_input_socket(const float2 &cursor, const bNodeSocket &socket)
 {
   const float node_socket_height = node_socket_calculate_height(socket);
-  const float2 location = socket_locations[socket.index_in_tree()];
+  const float2 location = socket.runtime->location;
   /* `.xmax = socket->locx + NODE_SOCKSIZE * 5.5f`
    * would be the same behavior as for regular sockets.
    * But keep it smaller because for multi-input socket you
@@ -1129,13 +1131,9 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
   rctf rect;
   const float size_sock_padded = NODE_SOCKSIZE + 4;
 
-  snode.edittree->ensure_topology_cache();
-  const Span<float2> socket_locations = snode.runtime->all_socket_locations;
-  if (socket_locations.size() != snode.edittree->all_sockets().size()) {
-    /* Sockets haven't been drawn yet, e.g. when the file is currently opening. */
-    return nullptr;
-  }
-  const Span<bNode *> nodes = snode.edittree->all_nodes();
+  bNodeTree &node_tree = *snode.edittree;
+  node_tree.ensure_topology_cache();
+  const Span<bNode *> nodes = node_tree.all_nodes();
   if (nodes.is_empty()) {
     return nullptr;
   }
@@ -1159,9 +1157,9 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
     if (in_out & SOCK_IN) {
       for (bNodeSocket *sock : node.input_sockets()) {
         if (sock->is_visible()) {
-          const float2 location = socket_locations[sock->index_in_tree()];
+          const float2 location = sock->runtime->location;
           if (sock->flag & SOCK_MULTI_INPUT && !(node.flag & NODE_HIDDEN)) {
-            if (cursor_isect_multi_input_socket(socket_locations, cursor, *sock)) {
+            if (cursor_isect_multi_input_socket(cursor, *sock)) {
               if (!socket_is_occluded(location, node, snode)) {
                 return sock;
               }
@@ -1178,7 +1176,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
     if (in_out & SOCK_OUT) {
       for (bNodeSocket *sock : node.output_sockets()) {
         if (sock->is_visible()) {
-          const float2 location = socket_locations[sock->index_in_tree()];
+          const float2 location = sock->runtime->location;
           if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
             if (!socket_is_occluded(location, node, snode)) {
               return sock;
@@ -1198,16 +1196,14 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
 /** \name Node Link Dimming
  * \{ */
 
-float node_link_dim_factor(const Span<float2> socket_locations,
-                           const View2D &v2d,
-                           const bNodeLink &link)
+float node_link_dim_factor(const View2D &v2d, const bNodeLink &link)
 {
   if (link.fromsock == nullptr || link.tosock == nullptr) {
     return 1.0f;
   }
 
-  const float2 from = socket_locations[link.fromsock->index_in_tree()];
-  const float2 to = socket_locations[link.tosock->index_in_tree()];
+  const float2 from = link.fromsock->runtime->location;
+  const float2 to = link.tosock->runtime->location;
 
   const float min_endpoint_distance = std::min(
       std::max(BLI_rctf_length_x(&v2d.cur, from.x), BLI_rctf_length_y(&v2d.cur, from.y)),
@@ -1220,11 +1216,9 @@ float node_link_dim_factor(const Span<float2> socket_locations,
   return std::clamp(1.0f - min_endpoint_distance / viewport_width * 10.0f, 0.05f, 1.0f);
 }
 
-bool node_link_is_hidden_or_dimmed(const Span<float2> socket_locations,
-                                   const View2D &v2d,
-                                   const bNodeLink &link)
+bool node_link_is_hidden_or_dimmed(const View2D &v2d, const bNodeLink &link)
 {
-  return nodeLinkIsHidden(&link) || node_link_dim_factor(socket_locations, v2d, link) < 0.5f;
+  return nodeLinkIsHidden(&link) || node_link_dim_factor(v2d, link) < 0.5f;
 }
 
 /** \} */
@@ -1254,6 +1248,33 @@ static void node_duplicate_reparent_recursive(bNodeTree *ntree,
   if (parent) {
     nodeDetachNode(ntree, node_map.lookup(node));
     nodeAttachNode(ntree, node_map.lookup(node), node_map.lookup(parent));
+  }
+}
+
+static void remap_pairing(bNodeTree &dst_tree, const Map<bNode *, bNode *> &node_map)
+{
+  /* We don't have the old tree for looking up output nodes by ID,
+   * so we have to build a map first to find copied output nodes in the new tree. */
+  Map<uint32_t, bNode *> dst_output_node_map;
+  for (const auto &item : node_map.items()) {
+    if (item.key->type == GEO_NODE_SIMULATION_OUTPUT) {
+      dst_output_node_map.add_new(item.key->identifier, item.value);
+    }
+  }
+
+  for (bNode *dst_node : node_map.values()) {
+    if (dst_node->type == GEO_NODE_SIMULATION_INPUT) {
+      NodeGeometrySimulationInput *data = static_cast<NodeGeometrySimulationInput *>(
+          dst_node->storage);
+      if (const bNode *output_node = dst_output_node_map.lookup_default(data->output_node_id,
+                                                                        nullptr)) {
+        data->output_node_id = output_node->identifier;
+      }
+      else {
+        data->output_node_id = 0;
+        blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
+      }
+    }
   }
 }
 
@@ -1300,7 +1321,8 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
     /* This creates new links between copied nodes. If keep_inputs is set, also copies input links
      * from unselected (when fromnode is null)! */
     if (link->tonode && (link->tonode->flag & NODE_SELECT) &&
-        (keep_inputs || (link->fromnode && (link->fromnode->flag & NODE_SELECT)))) {
+        (keep_inputs || (link->fromnode && (link->fromnode->flag & NODE_SELECT))))
+    {
       bNodeLink *newlink = MEM_cnew<bNodeLink>("bNodeLink");
       newlink->flag = link->flag;
       newlink->tonode = node_map.lookup(link->tonode);
@@ -1329,6 +1351,10 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
     }
   }
 
+  for (bNode *node : node_map.values()) {
+    nodeDeclarationEnsure(ntree, node);
+  }
+
   /* Clear flags for recursive depth-first iteration. */
   for (bNode *node : ntree->all_nodes()) {
     node->flag &= ~NODE_TEST;
@@ -1339,6 +1365,8 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
       node_duplicate_reparent_recursive(ntree, node_map, node);
     }
   }
+
+  remap_pairing(*ntree, node_map);
 
   /* Deselect old nodes, select the copies instead. */
   for (const auto item : node_map.items()) {
@@ -1398,7 +1426,8 @@ static int node_read_viewlayers_exec(bContext *C, wmOperator * /*op*/)
 
   for (bNode *node : edit_tree.all_nodes()) {
     if ((node->type == CMP_NODE_R_LAYERS) ||
-        (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER)) {
+        (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER))
+    {
       ID *id = node->id;
       if (id == nullptr) {
         continue;
@@ -1500,7 +1529,8 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
         continue;
       }
       if (toggle_flag == NODE_OPTIONS &&
-          !(node->typeinfo->draw_buttons || node->typeinfo->draw_buttons_ex)) {
+          !(node->typeinfo->draw_buttons || node->typeinfo->draw_buttons_ex))
+      {
         continue;
       }
 
@@ -1519,7 +1549,8 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
         continue;
       }
       if (toggle_flag == NODE_OPTIONS &&
-          !(node->typeinfo->draw_buttons || node->typeinfo->draw_buttons_ex)) {
+          !(node->typeinfo->draw_buttons || node->typeinfo->draw_buttons_ex))
+      {
         continue;
       }
 
@@ -1771,6 +1802,9 @@ static int node_delete_exec(bContext *C, wmOperator * /*op*/)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
+  /* Delete paired nodes as well. */
+  node_select_paired(*snode->edittree);
+
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &snode->edittree->nodes) {
     if (node->flag & SELECT) {
       nodeRemoveNode(bmain, snode->edittree, node, true);
@@ -1857,6 +1891,9 @@ static int node_delete_reconnect_exec(bContext *C, wmOperator * /*op*/)
   SpaceNode *snode = CTX_wm_space_node(C);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+
+  /* Delete paired nodes as well. */
+  node_select_paired(*snode->edittree);
 
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &snode->edittree->nodes) {
     if (node->flag & SELECT) {
@@ -2040,6 +2077,7 @@ static int node_output_file_move_active_socket_exec(bContext *C, wmOperator *op)
     nimf->active_input++;
   }
 
+  BKE_ntree_update_tag_node_property(snode->edittree, node);
   ED_node_tree_propagate_change(C, CTX_data_main(C), snode->edittree);
 
   return OPERATOR_FINISHED;
@@ -2119,7 +2157,7 @@ void NODE_OT_node_copy_color(wmOperatorType *ot)
 /** \name Node-Tree Add Interface Socket Operator
  * \{ */
 
-static bNodeSocket *ntree_get_active_interface_socket(ListBase *lb)
+static bNodeSocket *ntree_get_active_interface_socket(const ListBase *lb)
 {
   LISTBASE_FOREACH (bNodeSocket *, socket, lb) {
     if (socket->flag & SELECT) {
@@ -2264,7 +2302,6 @@ static int ntree_socket_change_type_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  /* Don't handle sub-types for now. */
   nodeModifySocketType(ntree, nullptr, iosock, socket_type->idname);
 
   /* Need the extra update here because the loop above does not check for valid links in the node
@@ -2339,6 +2376,155 @@ void NODE_OT_tree_socket_change_type(wmOperatorType *ot)
   prop = RNA_def_enum(ot->srna, "socket_type", DummyRNA_DEFAULT_items, 0, "Socket Type", "");
   RNA_def_enum_funcs(prop, socket_change_type_itemf);
   ot->prop = prop;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Node-Tree Change Interface Socket Subtype Operator
+ * \{ */
+
+static int ntree_socket_change_subtype_exec(bContext *C, wmOperator *op)
+{
+  Main *main = CTX_data_main(C);
+  const int socket_subtype = RNA_enum_get(op->ptr, "socket_subtype");
+
+  PointerRNA io_socket_ptr = CTX_data_pointer_get_type(
+      C, "interface_socket", &RNA_NodeSocketInterface);
+  bNodeSocket *io_socket = static_cast<bNodeSocket *>(io_socket_ptr.data);
+  if (!io_socket) {
+    return OPERATOR_CANCELLED;
+  }
+
+  bNodeTree &node_tree = *reinterpret_cast<bNodeTree *>(io_socket_ptr.owner_id);
+
+  ListBase *sockets;
+  if (node_tree.interface_inputs().contains(io_socket)) {
+    sockets = &node_tree.inputs;
+  }
+  else if (node_tree.interface_outputs().contains(io_socket)) {
+    sockets = &node_tree.outputs;
+  }
+  else {
+    /* The interface socket should be in the inputs or outputs. */
+    BLI_assert_unreachable();
+    return OPERATOR_CANCELLED;
+  }
+
+  nodeModifySocketTypeStatic(&node_tree, nullptr, io_socket, io_socket->type, socket_subtype);
+
+  /* Deactivate sockets. */
+  LISTBASE_FOREACH (bNodeSocket *, socket_iter, sockets) {
+    socket_iter->flag &= ~SELECT;
+  }
+  /* Make the new socket active. */
+  io_socket->flag |= SELECT;
+
+  BKE_ntree_update_tag_interface(&node_tree);
+  ED_node_tree_propagate_change(C, main, &node_tree);
+
+  return OPERATOR_FINISHED;
+}
+
+static Set<int> socket_type_get_subtypes(const eNodeSocketDatatype type)
+{
+  switch (type) {
+    case SOCK_FLOAT:
+      return {PROP_PERCENTAGE,
+              PROP_FACTOR,
+              PROP_ANGLE,
+              PROP_TIME,
+              PROP_TIME_ABSOLUTE,
+              PROP_DISTANCE,
+              PROP_NONE};
+    case SOCK_INT:
+      return {PROP_PERCENTAGE, PROP_FACTOR, PROP_NONE};
+    case SOCK_VECTOR:
+      return {PROP_TRANSLATION,
+              /* Direction doesn't seem to work. */
+              // PROP_DIRECTION,
+              PROP_VELOCITY,
+              PROP_ACCELERATION,
+              PROP_EULER,
+              PROP_XYZ,
+              PROP_NONE};
+    default:
+      return {};
+  }
+}
+
+static const EnumPropertyItem *socket_change_subtype_itemf(bContext *C,
+                                                           PointerRNA * /*ptr*/,
+                                                           PropertyRNA * /*prop*/,
+                                                           bool *r_free)
+{
+  if (!C) {
+    return DummyRNA_NULL_items;
+  }
+  SpaceNode *snode = CTX_wm_space_node(C);
+  if (!snode || !snode->edittree) {
+    return DummyRNA_NULL_items;
+  }
+
+  PointerRNA active_socket_ptr = CTX_data_pointer_get_type(
+      C, "interface_socket", &RNA_NodeSocketInterface);
+  const bNodeSocket *active_socket = static_cast<const bNodeSocket *>(active_socket_ptr.data);
+  if (!active_socket) {
+    return DummyRNA_NULL_items;
+  }
+
+  const Set<int> subtypes = socket_type_get_subtypes(eNodeSocketDatatype(active_socket->type));
+  if (subtypes.is_empty()) {
+    return DummyRNA_NULL_items;
+  }
+
+  EnumPropertyItem *items = nullptr;
+  int items_count = 0;
+  for (const EnumPropertyItem *item = rna_enum_property_subtype_items; item->name != nullptr;
+       item++) {
+    if (subtypes.contains(item->value)) {
+      RNA_enum_item_add(&items, &items_count, item);
+    }
+  }
+
+  if (items_count == 0) {
+    return DummyRNA_NULL_items;
+  }
+
+  RNA_enum_item_end(&items, &items_count);
+  *r_free = true;
+  return items;
+}
+
+static bool ntree_socket_change_subtype_poll(bContext *C)
+{
+  if (!ED_operator_node_editable(C)) {
+    return false;
+  }
+  PointerRNA io_socket_ptr = CTX_data_pointer_get_type(
+      C, "interface_socket", &RNA_NodeSocketInterface);
+  const bNodeSocket *io_socket = static_cast<const bNodeSocket *>(io_socket_ptr.data);
+  if (!io_socket) {
+    return false;
+  }
+  return !socket_type_get_subtypes(eNodeSocketDatatype(io_socket->type)).is_empty();
+}
+
+void NODE_OT_tree_socket_change_subtype(wmOperatorType *ot)
+{
+  ot->name = "Change Node Tree Socket Subtype";
+  ot->description = "Change the subtype of a socket of the active node tree";
+  ot->idname = "NODE_OT_tree_socket_change_subtype";
+
+  ot->invoke = WM_menu_invoke;
+  ot->exec = ntree_socket_change_subtype_exec;
+  ot->poll = ntree_socket_change_subtype_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(
+      ot->srna, "socket_subtype", DummyRNA_DEFAULT_items, 0, "Socket Subtype", "");
+  RNA_def_enum_funcs(ot->prop, socket_change_subtype_itemf);
 }
 
 /** \} */

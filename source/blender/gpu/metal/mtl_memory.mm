@@ -14,7 +14,8 @@ using namespace blender::gpu;
 namespace blender::gpu {
 
 /* -------------------------------------------------------------------- */
-/** \name Memory Management - MTLBufferPool and MTLSafeFreeList implementations. */
+/** \name Memory Management - MTLBufferPool and MTLSafeFreeList implementations
+ * \{ */
 
 void MTLBufferPool::init(id<MTLDevice> mtl_device)
 {
@@ -52,7 +53,8 @@ void MTLBufferPool::free()
   allocations_.clear();
 
   for (std::multiset<blender::gpu::MTLBufferHandle, blender::gpu::CompareMTLBuffer> *buffer_pool :
-       buffer_pools_.values()) {
+       buffer_pools_.values())
+  {
     delete buffer_pool;
   }
   buffer_pools_.clear();
@@ -116,7 +118,8 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
       uint64_t found_size = found_buffer->get_size();
 
       if (found_size >= aligned_alloc_size &&
-          found_size <= (aligned_alloc_size * mtl_buffer_size_threshold_factor_)) {
+          found_size <= (aligned_alloc_size * mtl_buffer_size_threshold_factor_))
+      {
         MTL_LOG_INFO(
             "[MemoryAllocator] Suitable Buffer of size %lld found, for requested size: %lld\n",
             found_size,
@@ -230,7 +233,8 @@ void MTLBufferPool::update_memory_pools()
 
   /* Always free oldest MTLSafeFreeList first. */
   for (int safe_pool_free_index = 0; safe_pool_free_index < completed_safelist_queue_.size();
-       safe_pool_free_index++) {
+       safe_pool_free_index++)
+  {
     MTLSafeFreeList *current_pool = completed_safelist_queue_[safe_pool_free_index];
 
     /* Iterate through all MTLSafeFreeList linked-chunks. */
@@ -257,10 +261,7 @@ void MTLBufferPool::update_memory_pools()
       }
 
       /* Fetch next MTLSafeFreeList chunk, if any. */
-      MTLSafeFreeList *next_list = nullptr;
-      if (current_pool->has_next_pool_ > 0) {
-        next_list = current_pool->next_.load();
-      }
+      MTLSafeFreeList *next_list = current_pool->next_.load();
 
       /* Delete current MTLSafeFreeList */
       current_pool->lock_.unlock();
@@ -396,7 +397,6 @@ MTLSafeFreeList::MTLSafeFreeList()
   in_free_queue_ = false;
   current_list_index_ = 0;
   next_ = nullptr;
-  has_next_pool_ = 0;
 }
 
 void MTLSafeFreeList::insert_buffer(gpu::MTLBuffer *buffer)
@@ -410,12 +410,19 @@ void MTLSafeFreeList::insert_buffer(gpu::MTLBuffer *buffer)
    * insert the buffer into the next available chunk. */
   if (insert_index >= MTLSafeFreeList::MAX_NUM_BUFFERS_) {
 
-    /* Check if first caller to generate next pool. */
-    int has_next = has_next_pool_++;
-    if (has_next == 0) {
-      next_ = new MTLSafeFreeList();
-    }
+    /* Check if first caller to generate next pool in chain.
+     * Otherwise, ensure pool exists or wait for first caller to create next pool. */
     MTLSafeFreeList *next_list = next_.load();
+
+    if (!next_list) {
+      std::unique_lock lock(lock_);
+
+      next_list = next_.load();
+      if (!next_list) {
+        next_list = new MTLSafeFreeList();
+        next_.store(next_list);
+      }
+    }
     BLI_assert(next_list);
     next_list->insert_buffer(buffer);
 

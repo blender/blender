@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 
 /** \file
  * \ingroup edmesh
@@ -17,7 +17,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
@@ -149,7 +149,8 @@ static int geometry_extract_apply(bContext *C,
                            0.1,
                            true,
                            true,
-                           true)) {
+                           true))
+        {
           continue;
         }
       }
@@ -172,7 +173,8 @@ static int geometry_extract_apply(bContext *C,
                            0.1,
                            true,
                            true,
-                           true)) {
+                           true))
+        {
           continue;
         }
       }

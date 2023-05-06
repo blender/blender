@@ -378,6 +378,8 @@ typedef struct BMesh {
    * This allows save invalidation of a #BMesh when it's freed,
    * so the Python object will report it as having been removed,
    * instead of crashing on invalid memory access.
+   *
+   * Doesn't hold a #PyObject reference, cleared when the last object is de-referenced.
    */
   void *py_handle;
 } BMesh;
@@ -429,8 +431,7 @@ enum {
 #define _BM_GENERIC_TYPE_ELEM_CONST \
   const void *, const BMVert *, const BMEdge *, const BMLoop *, const BMFace *, \
       const BMVert_OFlag *, const BMEdge_OFlag *, const BMFace_OFlag *, const BMElem *, \
-      const BMElemF *, const BMHeader *, void *const, BMVert *const, BMEdge *const, \
-      BMLoop *const, BMFace *const, BMElem *const, BMElemF *const, BMHeader *const
+      const BMElemF *, const BMHeader *
 
 #define BM_CHECK_TYPE_ELEM_CONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPES_CONST)
 

@@ -17,6 +17,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
+#include "BLI_tempfile.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.h" /* own include */
@@ -24,7 +25,7 @@
 
 #include "BLT_translation.h"
 
-#include "GHOST_Path-api.h"
+#include "GHOST_Path-api.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -385,7 +386,7 @@ static bool get_path_local_ex(char *targetpath,
   char osx_resourses[FILE_MAX + 4 + 9];
   BLI_path_join(osx_resourses, sizeof(osx_resourses), g_app.program_dirname, "..", "Resources");
   /* Remove the '/../' added above. */
-  BLI_path_normalize(NULL, osx_resourses);
+  BLI_path_normalize(osx_resourses);
   path_base = osx_resourses;
 #endif
   return test_path(targetpath,
@@ -748,7 +749,8 @@ const char *BKE_appdir_folder_id_create(const int folder_id, const char *subfold
             BLENDER_USER_DATAFILES,
             BLENDER_USER_CONFIG,
             BLENDER_USER_SCRIPTS,
-            BLENDER_USER_AUTOSAVE)) {
+            BLENDER_USER_AUTOSAVE))
+  {
     BLI_assert_unreachable();
     return NULL;
   }
@@ -810,13 +812,13 @@ const char *BKE_appdir_resource_path_id(const int folder_id, const bool check_is
  * adds the correct extension (`.com` `.exe` etc) from
  * `$PATHEXT` if necessary. Also on Windows it translates
  * the name to its 8.3 version to prevent problems with
- * spaces and stuff. Final result is returned in \a fullname.
+ * spaces and stuff. Final result is returned in \a program_filepath.
  *
- * \param fullname: The full path and full name of the executable
+ * \param program_filepath: The full path and full name of the executable
  * (must be #FILE_MAX minimum)
  * \param name: The name of the executable (usually `argv[0]`) to be checked
  */
-static void where_am_i(char *fullname, const size_t maxlen, const char *name)
+static void where_am_i(char *program_filepath, const size_t maxlen, const char *program_name)
 {
 #  ifdef WITH_BINRELOC
   /* Linux uses `binreloc` since `argv[0]` is not reliable, call `br_init(NULL)` first. */
@@ -824,7 +826,7 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
     const char *path = NULL;
     path = br_find_exe(NULL);
     if (path) {
-      BLI_strncpy(fullname, path, maxlen);
+      BLI_strncpy(program_filepath, path, maxlen);
       free((void *)path);
       return;
     }
@@ -835,9 +837,9 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
   {
     wchar_t *fullname_16 = MEM_mallocN(maxlen * sizeof(wchar_t), "ProgramPath");
     if (GetModuleFileNameW(0, fullname_16, maxlen)) {
-      conv_utf_16_to_8(fullname_16, fullname, maxlen);
-      if (!BLI_exists(fullname)) {
-        CLOG_ERROR(&LOG, "path can't be found: \"%.*s\"", (int)maxlen, fullname);
+      conv_utf_16_to_8(fullname_16, program_filepath, maxlen);
+      if (!BLI_exists(program_filepath)) {
+        CLOG_ERROR(&LOG, "path can't be found: \"%.*s\"", (int)maxlen, program_filepath);
         MessageBox(
             NULL, "path contains invalid characters or is too long (see console)", "Error", MB_OK);
       }
@@ -850,31 +852,31 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
 #  endif
 
   /* Unix and non Linux. */
-  if (name && name[0]) {
+  if (program_name && program_name[0]) {
 
-    BLI_strncpy(fullname, name, maxlen);
-    if (name[0] == '.') {
-      BLI_path_abs_from_cwd(fullname, maxlen);
+    BLI_strncpy(program_filepath, program_name, maxlen);
+    if (program_name[0] == '.') {
+      BLI_path_abs_from_cwd(program_filepath, maxlen);
 #  ifdef _WIN32
-      BLI_path_program_extensions_add_win32(fullname, maxlen);
+      BLI_path_program_extensions_add_win32(program_filepath, maxlen);
 #  endif
     }
-    else if (BLI_path_slash_rfind(name)) {
+    else if (BLI_path_slash_rfind(program_name)) {
       /* Full path. */
-      BLI_strncpy(fullname, name, maxlen);
+      BLI_strncpy(program_filepath, program_name, maxlen);
 #  ifdef _WIN32
-      BLI_path_program_extensions_add_win32(fullname, maxlen);
+      BLI_path_program_extensions_add_win32(program_filepath, maxlen);
 #  endif
     }
     else {
-      BLI_path_program_search(fullname, maxlen, name);
+      BLI_path_program_search(program_filepath, maxlen, program_name);
     }
     /* Remove "/./" and "/../" so string comparisons can be used on the path. */
-    BLI_path_normalize(NULL, fullname);
+    BLI_path_normalize(program_filepath);
 
 #  if defined(DEBUG)
-    if (!STREQ(name, fullname)) {
-      CLOG_INFO(&LOG, 2, "guessing '%s' == '%s'", name, fullname);
+    if (!STREQ(program_name, program_filepath)) {
+      CLOG_INFO(&LOG, 2, "guessing '%s' == '%s'", program_name, program_filepath);
     }
 #  endif
   }
@@ -889,18 +891,19 @@ void BKE_appdir_program_path_init(const char *argv0)
    * which must point to the Python module for data-files to be detected. */
   STRNCPY(g_app.program_filepath, argv0);
   BLI_path_abs_from_cwd(g_app.program_filepath, sizeof(g_app.program_filepath));
-  BLI_path_normalize(NULL, g_app.program_filepath);
+  BLI_path_normalize(g_app.program_filepath);
 
   if (g_app.program_dirname[0] == '\0') {
     /* First time initializing, the file binary path isn't valid from a Python module.
      * Calling again must set the `filepath` and leave the directory as-is. */
-    BLI_split_dir_part(
+    BLI_path_split_dir_part(
         g_app.program_filepath, g_app.program_dirname, sizeof(g_app.program_dirname));
     g_app.program_filepath[0] = '\0';
   }
 #else
   where_am_i(g_app.program_filepath, sizeof(g_app.program_filepath), argv0);
-  BLI_split_dir_part(g_app.program_filepath, g_app.program_dirname, sizeof(g_app.program_dirname));
+  BLI_path_split_dir_part(
+      g_app.program_filepath, g_app.program_dirname, sizeof(g_app.program_dirname));
 #endif
 }
 
@@ -918,8 +921,8 @@ const char *BKE_appdir_program_dir(void)
   return g_app.program_dirname;
 }
 
-bool BKE_appdir_program_python_search(char *fullpath,
-                                      const size_t fullpath_len,
+bool BKE_appdir_program_python_search(char *program_filepath,
+                                      const size_t program_filepath_maxncpy,
                                       const int version_major,
                                       const int version_minor)
 {
@@ -954,15 +957,16 @@ bool BKE_appdir_program_python_search(char *fullpath,
     if (python_bin_dir) {
 
       for (int i = 0; i < ARRAY_SIZE(python_names); i++) {
-        BLI_path_join(fullpath, fullpath_len, python_bin_dir, python_names[i]);
+        BLI_path_join(program_filepath, program_filepath_maxncpy, python_bin_dir, python_names[i]);
 
         if (
 #ifdef _WIN32
-            BLI_path_program_extensions_add_win32(fullpath, fullpath_len)
+            BLI_path_program_extensions_add_win32(program_filepath, program_filepath_maxncpy)
 #else
-            BLI_exists(fullpath)
+            BLI_exists(program_filepath)
 #endif
-        ) {
+        )
+        {
           is_found = true;
           break;
         }
@@ -972,7 +976,7 @@ bool BKE_appdir_program_python_search(char *fullpath,
 
   if (is_found == false) {
     for (int i = 0; i < ARRAY_SIZE(python_names); i++) {
-      if (BLI_path_program_search(fullpath, fullpath_len, python_names[i])) {
+      if (BLI_path_program_search(program_filepath, program_filepath_maxncpy, python_names[i])) {
         is_found = true;
         break;
       }
@@ -980,7 +984,7 @@ bool BKE_appdir_program_python_search(char *fullpath,
   }
 
   if (is_found == false) {
-    *fullpath = '\0';
+    *program_filepath = '\0';
   }
 
   return is_found;
@@ -1012,7 +1016,8 @@ bool BKE_appdir_app_template_any(void)
     if (BKE_appdir_folder_id_ex(app_template_directory_id[i],
                                 app_template_directory_search[i],
                                 temp_dir,
-                                sizeof(temp_dir))) {
+                                sizeof(temp_dir)))
+    {
       return true;
     }
   }
@@ -1059,7 +1064,8 @@ void BKE_appdir_app_templates(ListBase *templates)
     if (!BKE_appdir_folder_id_ex(app_template_directory_id[i],
                                  app_template_directory_search[i],
                                  subdir,
-                                 sizeof(subdir))) {
+                                 sizeof(subdir)))
+    {
       continue;
     }
 
@@ -1089,7 +1095,7 @@ void BKE_appdir_app_templates(ListBase *templates)
  * Also make sure the temp dir has a trailing slash
  *
  * \param tempdir: The full path to the temporary temp directory.
- * \param tempdir_len: The size of the \a tempdir buffer.
+ * \param tempdir_maxlen: The size of the \a tempdir buffer.
  * \param userdir: Directory specified in user preferences (may be NULL).
  * note that by default this is an empty string, only use when non-empty.
  */
@@ -1098,37 +1104,14 @@ static void where_is_temp(char *tempdir, const size_t tempdir_maxlen, const char
 
   tempdir[0] = '\0';
 
-  if (userdir && BLI_is_dir(userdir)) {
+  if (userdir && userdir[0] != '\0' && BLI_is_dir(userdir)) {
     BLI_strncpy(tempdir, userdir, tempdir_maxlen);
-  }
-
-  if (tempdir[0] == '\0') {
-    const char *env_vars[] = {
-#ifdef WIN32
-        "TEMP",
-#else
-        /* Non standard (could be removed). */
-        "TMP",
-        /* Posix standard. */
-        "TMPDIR",
-#endif
-    };
-    for (int i = 0; i < ARRAY_SIZE(env_vars); i++) {
-      const char *tmp = BLI_getenv(env_vars[i]);
-      if (tmp && (tmp[0] != '\0') && BLI_is_dir(tmp)) {
-        BLI_strncpy(tempdir, tmp, tempdir_maxlen);
-        break;
-      }
-    }
-  }
-
-  if (tempdir[0] == '\0') {
-    BLI_strncpy(tempdir, "/tmp/", tempdir_maxlen);
-  }
-  else {
-    /* add a trailing slash if needed */
+    /* Add a trailing slash if needed. */
     BLI_path_slash_ensure(tempdir, tempdir_maxlen);
+    return;
   }
+
+  BLI_temp_directory_path_get(tempdir, tempdir_maxlen);
 }
 
 static void tempdir_session_create(char *tempdir_session,

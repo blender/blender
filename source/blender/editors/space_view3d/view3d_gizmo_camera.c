@@ -51,7 +51,8 @@ static bool WIDGETGROUP_camera_poll(const bContext *C, wmGizmoGroupType *UNUSED(
     return false;
   }
   if ((v3d->gizmo_show_camera & V3D_GIZMO_SHOW_CAMERA_LENS) == 0 &&
-      (v3d->gizmo_show_camera & V3D_GIZMO_SHOW_CAMERA_DOF_DIST) == 0) {
+      (v3d->gizmo_show_camera & V3D_GIZMO_SHOW_CAMERA_DOF_DIST) == 0)
+  {
     return false;
   }
 

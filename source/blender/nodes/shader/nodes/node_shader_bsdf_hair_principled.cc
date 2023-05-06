@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. All rights reserved. */
+ * Copyright 2018 Blender Foundation */
 
 #include "node_shader_util.hh"
 
@@ -127,6 +127,7 @@ void register_node_type_sh_bsdf_hair_principled()
   sh_node_type_base(
       &ntype, SH_NODE_BSDF_HAIR_PRINCIPLED, "Principled Hair BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
+  ntype.add_ui_poll = object_cycles_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_principled_hair;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   ntype.initfunc = file_ns::node_shader_init_hair_principled;

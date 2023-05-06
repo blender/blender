@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+ * Copyright 2004 Blender Foundation */
 
 /** \file
  * \ingroup spoutliner
@@ -110,7 +110,8 @@ static int outliner_highlight_update(bContext *C, wmOperator * /*op*/, const wmE
   bool changed = false;
 
   if (!hovered_te || !is_over_icon || !(hovered_te->store_elem->flag & TSE_HIGHLIGHTED) ||
-      !(icon_te->store_elem->flag & TSE_HIGHLIGHTED_ICON)) {
+      !(icon_te->store_elem->flag & TSE_HIGHLIGHTED_ICON))
+  {
     /* Clear highlights when nothing is hovered or when a new item is hovered. */
     changed = outliner_flag_set(*space_outliner, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
     if (hovered_te) {
@@ -298,7 +299,8 @@ static void do_item_rename(ARegion *region,
            TSE_RNA_PROPERTY,
            TSE_RNA_ARRAY_ELEM,
            TSE_ID_BASE,
-           TSE_SCENE_OBJECTS_BASE)) {
+           TSE_SCENE_OBJECTS_BASE))
+  {
     /* do nothing */
   }
   else if (ELEM(tselem->type,
@@ -313,7 +315,8 @@ static void do_item_rename(ARegion *region,
                 TSE_R_LAYER_BASE,
                 TSE_SCENE_COLLECTION_BASE,
                 TSE_VIEW_COLLECTION_BASE,
-                TSE_LIBRARY_OVERRIDE_BASE)) {
+                TSE_LIBRARY_OVERRIDE_BASE))
+  {
     BKE_report(reports, RPT_WARNING, "Cannot edit builtin name");
   }
   else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
@@ -423,6 +426,8 @@ static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *even
 
 void OUTLINER_OT_item_rename(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   ot->name = "Rename";
   ot->idname = "OUTLINER_OT_item_rename";
   ot->description = "Rename the active element";
@@ -434,11 +439,12 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna,
-                  "use_active",
-                  false,
-                  "Use Active",
-                  "Rename the active item, rather than the one the mouse is over");
+  prop = RNA_def_boolean(ot->srna,
+                         "use_active",
+                         false,
+                         "Use Active",
+                         "Rename the active item, rather than the one the mouse is over");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
 }
 
 /** \} */
@@ -459,7 +465,8 @@ static void id_delete_tag(bContext *C, ReportList *reports, TreeElement *te, Tre
 
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
     if (!ID_IS_OVERRIDE_LIBRARY_REAL(id) ||
-        (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY) == 0) {
+        (id->override_library->flag & LIBOVERRIDE_FLAG_NO_HIERARCHY) == 0)
+    {
       BKE_reportf(reports,
                   RPT_WARNING,
                   "Cannot delete library override id '%s', it is part of an override hierarchy",
@@ -822,7 +829,7 @@ void OUTLINER_OT_id_copy(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Outliner ID Data Copy";
   ot->idname = "OUTLINER_OT_id_copy";
-  ot->description = "Selected data-blocks are copied to the clipboard";
+  ot->description = "Copy the selected data-blocks to the internal clipboard";
 
   /* callbacks */
   ot->exec = outliner_id_copy_exec;
@@ -863,7 +870,7 @@ void OUTLINER_OT_id_paste(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Outliner ID Data Paste";
   ot->idname = "OUTLINER_OT_id_paste";
-  ot->description = "Data-blocks from the clipboard are pasted";
+  ot->description = "Paste data-blocks from the internal clipboard";
 
   /* callbacks */
   ot->exec = outliner_id_paste_exec;
@@ -896,7 +903,7 @@ static int lib_relocate(
     Library *lib = (Library *)tselem->id;
     char dir[FILE_MAXDIR], filename[FILE_MAX];
 
-    BLI_split_dirfile(lib->filepath_abs, dir, filename, sizeof(dir), sizeof(filename));
+    BLI_path_split_dir_file(lib->filepath_abs, dir, sizeof(dir), filename, sizeof(filename));
 
     printf("%s, %s\n", tselem->id->name, lib->filepath_abs);
 
@@ -1521,7 +1528,8 @@ static void tree_element_show_hierarchy(Scene *scene, SpaceOutliner *space_outli
              TSE_SOME_ID,
              TSE_SCENE_OBJECTS_BASE,
              TSE_VIEW_COLLECTION_BASE,
-             TSE_LAYER_COLLECTION)) {
+             TSE_LAYER_COLLECTION))
+    {
       if (te->idcode == ID_SCE) {
         if (tselem->id != (ID *)scene) {
           tselem->flag |= TSE_CLOSED;

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -150,8 +150,8 @@ static void object_fmap_remove_edit_mode(Object *ob, bFaceMap *fmap, bool do_sel
           BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
             map = BM_ELEM_CD_GET_VOID_P(efa, cd_fmap_offset);
 
-            if (map && *map == fmap_nr &&
-                (!do_selected || BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
+            if (map && *map == fmap_nr && (!do_selected || BM_elem_flag_test(efa, BM_ELEM_SELECT)))
+            {
               *map = -1;
             }
           }

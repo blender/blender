@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
+# Copyright 2006 Blender Foundation
 
 set(INC
   .
@@ -12,7 +12,7 @@ set(INC
   ../depsgraph
   ../draw
   ../functions
-  ../gpencil_modifiers
+  ../gpencil_modifiers_legacy
   ../gpu
   ../ikplugin
   ../imbuf
@@ -72,6 +72,7 @@ set(SRC
   intern/armature_selection.cc
   intern/armature_update.c
   intern/asset.cc
+  intern/asset_weak_reference.cc
   intern/attribute.cc
   intern/attribute_access.cc
   intern/attribute_math.cc
@@ -92,7 +93,7 @@ set(SRC
   intern/cdderivedmesh.cc
   intern/cloth.cc
   intern/collection.c
-  intern/collision.c
+  intern/collision.cc
   intern/colorband.c
   intern/colortools.c
   intern/compute_contexts.cc
@@ -143,11 +144,11 @@ set(SRC
   intern/geometry_fields.cc
   intern/geometry_set.cc
   intern/geometry_set_instances.cc
-  intern/gpencil.c
-  intern/gpencil_curve.c
-  intern/gpencil_geom.cc
-  intern/gpencil_modifier.c
-  intern/gpencil_update_cache.c
+  intern/gpencil_curve_legacy.c
+  intern/gpencil_geom_legacy.cc
+  intern/gpencil_legacy.c
+  intern/gpencil_modifier_legacy.c
+  intern/gpencil_update_cache_legacy.c
   intern/icons.cc
   intern/icons_rasterize.c
   intern/idprop.c
@@ -180,14 +181,14 @@ set(SRC
   intern/lib_remap.c
   intern/library.c
   intern/light.c
-  intern/lightprobe.c
+  intern/lightprobe.cc
   intern/linestyle.cc
   intern/main.c
   intern/main_idmap.c
   intern/main_namemap.cc
-  intern/mask.c
-  intern/mask_evaluate.c
-  intern/mask_rasterize.c
+  intern/mask.cc
+  intern/mask_evaluate.cc
+  intern/mask_rasterize.cc
   intern/material.cc
   intern/mball.cc
   intern/mball_tessellate.cc
@@ -201,7 +202,6 @@ set(SRC
   intern/mesh_iterators.cc
   intern/mesh_legacy_convert.cc
   intern/mesh_mapping.cc
-  intern/mesh_merge.c
   intern/mesh_merge_customdata.cc
   intern/mesh_mirror.cc
   intern/mesh_normals.cc
@@ -232,6 +232,7 @@ set(SRC
   intern/node_tree_anonymous_attributes.cc
   intern/node_tree_field_inferencing.cc
   intern/node_tree_update.cc
+  intern/node_tree_zones.cc
   intern/object.cc
   intern/object_deform.c
   intern/object_dupli.cc
@@ -252,6 +253,7 @@ set(SRC
   intern/pbvh_bmesh.cc
   intern/pbvh_colors.cc
   intern/pbvh_pixels.cc
+  intern/pbvh_pixels_copy.cc
   intern/pbvh_uv_islands.cc
   intern/pointcache.c
   intern/pointcloud.cc
@@ -264,6 +266,8 @@ set(SRC
   intern/shader_fx.c
   intern/shrinkwrap.cc
   intern/simulation.cc
+  intern/simulation_state.cc
+  intern/simulation_state_serialize.cc
   intern/softbody.c
   intern/sound.c
   intern/speaker.c
@@ -287,14 +291,14 @@ set(SRC
   intern/text.c
   intern/text_suggestions.c
   intern/texture.cc
-  intern/tracking.c
-  intern/tracking_auto.c
-  intern/tracking_detect.c
-  intern/tracking_plane_tracker.c
-  intern/tracking_region_tracker.c
-  intern/tracking_solver.c
-  intern/tracking_stabilize.c
-  intern/tracking_util.c
+  intern/tracking.cc
+  intern/tracking_auto.cc
+  intern/tracking_detect.cc
+  intern/tracking_plane_tracker.cc
+  intern/tracking_region_tracker.cc
+  intern/tracking_solver.cc
+  intern/tracking_stabilize.cc
+  intern/tracking_util.cc
   intern/type_conversions.cc
   intern/undo_system.cc
   intern/unit.c
@@ -383,11 +387,11 @@ set(SRC
   BKE_geometry_set.hh
   BKE_geometry_set_instances.hh
   BKE_global.h
-  BKE_gpencil.h
-  BKE_gpencil_curve.h
-  BKE_gpencil_geom.h
-  BKE_gpencil_modifier.h
-  BKE_gpencil_update_cache.h
+  BKE_gpencil_curve_legacy.h
+  BKE_gpencil_geom_legacy.h
+  BKE_gpencil_legacy.h
+  BKE_gpencil_modifier_legacy.h
+  BKE_gpencil_update_cache_legacy.h
   BKE_icons.h
   BKE_idprop.h
   BKE_idprop.hh
@@ -420,6 +424,7 @@ set(SRC
   BKE_mball.h
   BKE_mball_tessellate.h
   BKE_mesh.h
+  BKE_mesh.hh
   BKE_mesh_boolean_convert.hh
   BKE_mesh_fair.h
   BKE_mesh_iterators.h
@@ -440,6 +445,7 @@ set(SRC
   BKE_node.h
   BKE_node_runtime.hh
   BKE_node_tree_update.h
+  BKE_node_tree_zones.hh
   BKE_object.h
   BKE_object_deform.h
   BKE_object_facemap.h
@@ -462,6 +468,8 @@ set(SRC
   BKE_shader_fx.h
   BKE_shrinkwrap.h
   BKE_simulation.h
+  BKE_simulation_state.hh
+  BKE_simulation_state_serialize.hh
   BKE_softbody.h
   BKE_sound.h
   BKE_speaker.h
@@ -470,8 +478,8 @@ set(SRC
   BKE_subdiv_ccg.h
   BKE_subdiv_deform.h
   BKE_subdiv_eval.h
-  BKE_subdiv_foreach.h
-  BKE_subdiv_mesh.h
+  BKE_subdiv_foreach.hh
+  BKE_subdiv_mesh.hh
   BKE_subdiv_modifier.h
   BKE_subdiv_topology.h
   BKE_subsurf.h
@@ -495,6 +503,7 @@ set(SRC
   nla_private.h
   particle_private.h
   tracking_private.h
+
   intern/CCGSubSurf.h
   intern/CCGSubSurf_inline.h
   intern/CCGSubSurf_intern.h
@@ -503,9 +512,10 @@ set(SRC
   intern/lib_intern.h
   intern/multires_inline.h
   intern/multires_reshape.hh
-  intern/multires_unsubdivide.h
+  intern/multires_unsubdivide.hh
   intern/ocean_intern.h
   intern/pbvh_intern.hh
+  intern/pbvh_pixels_copy.hh
   intern/pbvh_uv_islands.hh
   intern/subdiv_converter.h
   intern/subdiv_inline.h
@@ -521,7 +531,7 @@ set(LIB
   bf_depsgraph
   bf_draw
   bf_functions
-  bf_gpencil_modifiers
+  bf_gpencil_modifiers_legacy
   bf_gpu
   bf_ikplugin
   bf_imbuf
@@ -590,28 +600,12 @@ if(WITH_IMAGE_OPENEXR)
   add_definitions(-DWITH_OPENEXR)
 endif()
 
-if(WITH_IMAGE_TIFF)
-  add_definitions(-DWITH_TIFF)
-endif()
-
-if(WITH_OPENIMAGEIO)
-  add_definitions(-DWITH_OPENIMAGEIO)
-endif()
-
 if(WITH_IMAGE_OPENJPEG)
   add_definitions(-DWITH_OPENJPEG)
 endif()
 
-if(WITH_IMAGE_DDS)
-  add_definitions(-DWITH_DDS)
-endif()
-
 if(WITH_IMAGE_CINEON)
   add_definitions(-DWITH_CINEON)
-endif()
-
-if(WITH_IMAGE_HDR)
-  add_definitions(-DWITH_HDR)
 endif()
 
 if(WITH_IMAGE_WEBP)

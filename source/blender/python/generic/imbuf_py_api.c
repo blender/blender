@@ -101,7 +101,8 @@ static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kw, &_parser, &size[0], &size[1], PyC_ParseStringEnum, &method)) {
+          args, kw, &_parser, &size[0], &size[1], PyC_ParseStringEnum, &method))
+  {
     return NULL;
   }
   if (size[0] <= 0 || size[1] <= 0) {
@@ -145,7 +146,8 @@ static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kw, &_parser, &crop.xmin, &crop.ymin, &crop.xmax, &crop.ymax)) {
+          args, kw, &_parser, &crop.xmin, &crop.ymin, &crop.xmax, &crop.ymax))
+  {
     return NULL;
   }
 
@@ -156,7 +158,8 @@ static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
       /* X order. */
       !(crop.xmin <= crop.xmax) ||
       /* Y order. */
-      !(crop.ymin <= crop.ymax)) {
+      !(crop.ymin <= crop.ymax))
+  {
     PyErr_SetString(PyExc_ValueError, "ImBuf crop min/max not in range");
     return NULL;
   }
@@ -261,7 +264,7 @@ static PyObject *py_imbuf_filepath_get(Py_ImBuf *self, void *UNUSED(closure))
 {
   PY_IMBUF_CHECK_OBJ(self);
   ImBuf *ibuf = self->ibuf;
-  return PyC_UnicodeFromBytes(ibuf->name);
+  return PyC_UnicodeFromBytes(ibuf->filepath);
 }
 
 static int py_imbuf_filepath_set(Py_ImBuf *self, PyObject *value, void *UNUSED(closure))
@@ -274,14 +277,14 @@ static int py_imbuf_filepath_set(Py_ImBuf *self, PyObject *value, void *UNUSED(c
   }
 
   ImBuf *ibuf = self->ibuf;
-  const Py_ssize_t value_str_len_max = sizeof(ibuf->name);
+  const Py_ssize_t value_str_len_max = sizeof(ibuf->filepath);
   Py_ssize_t value_str_len;
   const char *value_str = PyUnicode_AsUTF8AndSize(value, &value_str_len);
   if (value_str_len >= value_str_len_max) {
     PyErr_Format(PyExc_TypeError, "filepath length over %zd", value_str_len_max - 1);
     return -1;
   }
-  memcpy(ibuf->name, value_str, value_str_len + 1);
+  memcpy(ibuf->filepath, value_str, value_str_len + 1);
   return 0;
 }
 
@@ -334,8 +337,11 @@ static PyObject *py_imbuf_repr(Py_ImBuf *self)
 {
   const ImBuf *ibuf = self->ibuf;
   if (ibuf != NULL) {
-    return PyUnicode_FromFormat(
-        "<imbuf: address=%p, filepath='%s', size=(%d, %d)>", ibuf, ibuf->name, ibuf->x, ibuf->y);
+    return PyUnicode_FromFormat("<imbuf: address=%p, filepath='%s', size=(%d, %d)>",
+                                ibuf,
+                                ibuf->filepath,
+                                ibuf->x,
+                                ibuf->y);
   }
 
   return PyUnicode_FromString("<imbuf: address=0x0>");
@@ -480,7 +486,7 @@ static PyObject *M_imbuf_load(PyObject *UNUSED(self), PyObject *args, PyObject *
     return NULL;
   }
 
-  ImBuf *ibuf = IMB_loadifffile(file, filepath, IB_rect, NULL, filepath);
+  ImBuf *ibuf = IMB_loadifffile(file, IB_rect, NULL, filepath);
 
   close(file);
 
@@ -490,7 +496,7 @@ static PyObject *M_imbuf_load(PyObject *UNUSED(self), PyObject *args, PyObject *
     return NULL;
   }
 
-  BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
+  BLI_strncpy(ibuf->filepath, filepath, sizeof(ibuf->filepath));
 
   return Py_ImBuf_CreatePyObject(ibuf);
 }
@@ -524,7 +530,7 @@ static PyObject *M_imbuf_write(PyObject *UNUSED(self), PyObject *args, PyObject 
   }
 
   if (filepath == NULL) {
-    filepath = py_imb->ibuf->name;
+    filepath = py_imb->ibuf->filepath;
   }
 
   const bool ok = IMB_saveiff(py_imb->ibuf, filepath, IB_rect);

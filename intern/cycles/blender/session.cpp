@@ -202,7 +202,8 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
       b_scene, background, use_developer_ui);
 
   if (scene->params.modified(scene_params) || session->params.modified(session_params) ||
-      !this->b_render.use_persistent_data()) {
+      !this->b_render.use_persistent_data())
+  {
     /* if scene or session parameters changed, it's easier to simply re-create
      * them rather than trying to distinguish which settings need to be updated
      */
@@ -376,8 +377,8 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
   }
 
   int view_index = 0;
-  for (b_rr.views.begin(b_view_iter); b_view_iter != b_rr.views.end();
-       ++b_view_iter, ++view_index) {
+  for (b_rr.views.begin(b_view_iter); b_view_iter != b_rr.views.end(); ++b_view_iter, ++view_index)
+  {
     b_rview_name = b_view_iter->name();
 
     buffer_params.layer = b_view_layer.name();
@@ -562,7 +563,8 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type_str, const int
   /* Light component passes. */
   else if (strcmp(bake_type, "DIFFUSE") == 0) {
     if ((bake_filter & BL::BakeSettings::pass_filter_DIRECT) &&
-        bake_filter & BL::BakeSettings::pass_filter_INDIRECT) {
+        bake_filter & BL::BakeSettings::pass_filter_INDIRECT)
+    {
       type = PASS_DIFFUSE;
       use_direct_light = true;
       use_indirect_light = true;
@@ -583,7 +585,8 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type_str, const int
   }
   else if (strcmp(bake_type, "GLOSSY") == 0) {
     if ((bake_filter & BL::BakeSettings::pass_filter_DIRECT) &&
-        bake_filter & BL::BakeSettings::pass_filter_INDIRECT) {
+        bake_filter & BL::BakeSettings::pass_filter_INDIRECT)
+    {
       type = PASS_GLOSSY;
       use_direct_light = true;
       use_indirect_light = true;
@@ -604,7 +607,8 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type_str, const int
   }
   else if (strcmp(bake_type, "TRANSMISSION") == 0) {
     if ((bake_filter & BL::BakeSettings::pass_filter_DIRECT) &&
-        bake_filter & BL::BakeSettings::pass_filter_INDIRECT) {
+        bake_filter & BL::BakeSettings::pass_filter_INDIRECT)
+    {
       type = PASS_TRANSMISSION;
       use_direct_light = true;
       use_indirect_light = true;
@@ -1061,7 +1065,7 @@ void BlenderSession::ensure_display_driver_if_needed()
   unique_ptr<BlenderDisplayDriver> display_driver = make_unique<BlenderDisplayDriver>(
       b_engine, b_scene, background);
   display_driver_ = display_driver.get();
-  session->set_display_driver(move(display_driver));
+  session->set_display_driver(std::move(display_driver));
 }
 
 CCL_NAMESPACE_END

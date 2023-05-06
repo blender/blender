@@ -869,10 +869,10 @@
         </space>
         <space_list>
           <ThemeSpaceListGeneric
-            list="#181818"
-            list_title="#ffffff"
-            list_text="#ffffff"
-            list_text_hi="#ffffff"
+            list="#b3b3b3"
+            list_title="#747474"
+            list_text="#333333"
+            list_text_hi="#747474"
             >
           </ThemeSpaceListGeneric>
         </space_list>
@@ -1240,7 +1240,7 @@
             title="#000000"
             text="#000000"
             text_hi="#ffffff"
-            header="#727272ff"
+            header="#b3b3b3ff"
             header_text="#000000"
             header_text_hi="#ffffff"
             button="#7272727f"
@@ -1317,7 +1317,7 @@
             title="#ffffff"
             text="#ffffff"
             text_hi="#ffffff"
-            header="#999999ff"
+            header="#b3b3b3ff"
             header_text="#1a1a1a"
             header_text_hi="#ffffff"
             button="#2f303500"

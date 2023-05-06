@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edanimation
@@ -119,7 +119,8 @@ int ED_markers_post_apply_transform(
         case TFM_TIME_EXTEND: {
           /* apply delta if marker is on the right side of the current frame */
           if ((side == 'B') || (side == 'L' && marker->frame < cfra) ||
-              (side == 'R' && marker->frame >= cfra)) {
+              (side == 'R' && marker->frame >= cfra))
+          {
             marker->frame += round_fl_to_int(value);
             changed_tot++;
           }
@@ -251,7 +252,7 @@ static bool region_position_is_over_marker(View2D *v2d, ListBase *markers, float
   float pixel_distance = UI_view2d_scale_get_x(v2d) *
                          fabsf(nearest_marker->frame - frame_at_position);
 
-  return pixel_distance <= UI_DPI_ICON_SIZE;
+  return pixel_distance <= UI_ICON_SIZE;
 }
 
 /* --------------------------------- */
@@ -419,7 +420,7 @@ static void draw_marker_name(const uchar *text_color,
   }
 #endif
 
-  const int icon_half_width = UI_DPI_ICON_SIZE * 0.6;
+  const int icon_half_width = UI_ICON_SIZE * 0.6;
   const struct uiFontStyleDraw_Params fs_params = {.align = UI_STYLE_TEXT_LEFT, .word_wrap = 0};
   const struct rcti rect = {
       .xmin = marker_x + icon_half_width,
@@ -440,7 +441,7 @@ static void draw_marker_line(const uchar *color, int xpos, int ymin, int ymax)
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
-  immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+  immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
 
   immUniformColor4ubv(color);
   immUniform1i("colors_len", 0); /* "simple" mode */
@@ -482,17 +483,17 @@ static void draw_marker(const uiFontStyle *fstyle,
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  draw_marker_line(line_color, xpos, UI_DPI_FAC * 20, region_height);
+  draw_marker_line(line_color, xpos, UI_SCALE_FAC * 20, region_height);
 
   int icon_id = marker_get_icon_id(marker, flag);
-  UI_icon_draw(xpos - 0.55f * UI_DPI_ICON_SIZE, UI_DPI_FAC * 18, icon_id);
+  UI_icon_draw(xpos - 0.55f * UI_ICON_SIZE, UI_SCALE_FAC * 18, icon_id);
 
   GPU_blend(GPU_BLEND_NONE);
 
-  float name_y = UI_DPI_FAC * 18;
+  float name_y = UI_SCALE_FAC * 18;
   /* Give an offset to the marker that is elevated. */
   if (is_elevated) {
-    name_y += UI_DPI_FAC * 10;
+    name_y += UI_SCALE_FAC * 10;
   }
   draw_marker_name(text_color, fstyle, marker, xpos, xmax, name_y);
 }
@@ -537,7 +538,7 @@ static void get_marker_region_rect(View2D *v2d, rctf *rect)
 
 static void get_marker_clip_frame_range(View2D *v2d, float xscale, int r_range[2])
 {
-  float font_width_max = (10 * UI_DPI_FAC) / xscale;
+  float font_width_max = (10 * UI_SCALE_FAC) / xscale;
   r_range[0] = v2d->cur.xmin - sizeof(((TimeMarker *)NULL)->name) * font_width_max;
   r_range[1] = v2d->cur.xmax + font_width_max;
 }
@@ -812,7 +813,8 @@ static bool ed_marker_move_use_time(MarkerMove *mm)
        (((SpaceAction *)mm->slink)->flag & SACTION_DRAWTIME)) ||
       ((mm->slink->spacetype == SPACE_GRAPH) &&
        (((SpaceGraph *)mm->slink)->flag & SIPO_DRAWTIME)) ||
-      ((mm->slink->spacetype == SPACE_NLA) && (((SpaceNla *)mm->slink)->flag & SNLA_DRAWTIME))) {
+      ((mm->slink->spacetype == SPACE_NLA) && (((SpaceNla *)mm->slink)->flag & SNLA_DRAWTIME)))
+  {
     return true;
   }
 
@@ -1579,7 +1581,8 @@ static void ED_markers_select_leftright(bAnimContext *ac,
 
   LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     if ((mode == MARKERS_LRSEL_LEFT && marker->frame <= scene->r.cfra) ||
-        (mode == MARKERS_LRSEL_RIGHT && marker->frame >= scene->r.cfra)) {
+        (mode == MARKERS_LRSEL_RIGHT && marker->frame >= scene->r.cfra))
+    {
       marker->flag |= SELECT;
     }
   }

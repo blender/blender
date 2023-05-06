@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup edrend
@@ -37,6 +37,7 @@
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_lightprobe.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -53,6 +54,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #ifdef WITH_FREESTYLE
 #  include "BKE_freestyle.h"
@@ -758,7 +760,7 @@ static int new_material_exec(bContext *C, wmOperator * /*op*/)
   }
   else {
     const char *name = DATA_("Material");
-    if (!(ob != nullptr && ob->type == OB_GPENCIL)) {
+    if (!(ob != nullptr && ob->type == OB_GPENCIL_LEGACY)) {
       ma = BKE_material_add(bmain, name);
     }
     else {
@@ -1167,7 +1169,7 @@ void SCENE_OT_view_layer_add_lightgroup(wmOperatorType *ot)
   ot->prop = RNA_def_string(ot->srna,
                             "name",
                             nullptr,
-                            sizeof(((ViewLayerLightgroup *)nullptr)->name),
+                            sizeof(ViewLayerLightgroup::name),
                             "Name",
                             "Name of newly created lightgroup");
 }
@@ -1246,7 +1248,8 @@ static int view_layer_add_used_lightgroups_exec(bContext *C, wmOperator * /*op*/
   GSet *used_lightgroups = get_used_lightgroups(scene);
   GSET_FOREACH_BEGIN (const char *, used_lightgroup, used_lightgroups) {
     if (!BLI_findstring(
-            &view_layer->lightgroups, used_lightgroup, offsetof(ViewLayerLightgroup, name))) {
+            &view_layer->lightgroups, used_lightgroup, offsetof(ViewLayerLightgroup, name)))
+    {
       BKE_view_layer_add_lightgroup(view_layer, used_lightgroup);
     }
   }
@@ -1332,6 +1335,8 @@ enum {
   LIGHTCACHE_SUBSET_ALL = 0,
   LIGHTCACHE_SUBSET_DIRTY,
   LIGHTCACHE_SUBSET_CUBE,
+  LIGHTCACHE_SUBSET_SELECTED,
+  LIGHTCACHE_SUBSET_ACTIVE,
 };
 
 static void light_cache_bake_tag_cache(Scene *scene, wmOperator *op)
@@ -1347,6 +1352,9 @@ static void light_cache_bake_tag_cache(Scene *scene, wmOperator *op)
         break;
       case LIGHTCACHE_SUBSET_DIRTY:
         /* Leave tag untouched. */
+        break;
+      default:
+        BLI_assert_unreachable();
         break;
     }
   }
@@ -1492,6 +1500,169 @@ void SCENE_OT_light_cache_bake(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
+/* NOTE: New version destined to replace the old lightcache bake operator. */
+
+static void lightprobe_cache_bake_start(bContext *C, wmOperator *op)
+{
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Scene *scene = CTX_data_scene(C);
+
+  auto is_irradiance_volume = [](Object *ob) -> bool {
+    return ob->type == OB_LIGHTPROBE &&
+           static_cast<LightProbe *>(ob->data)->type == LIGHTPROBE_TYPE_GRID;
+  };
+
+  auto irradiance_volume_setup = [](Object *ob) {
+    BKE_lightprobe_cache_free(ob);
+    BKE_lightprobe_cache_create(ob);
+    DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  };
+
+  int subset = RNA_enum_get(op->ptr, "subset");
+  switch (subset) {
+    case LIGHTCACHE_SUBSET_ALL: {
+      FOREACH_OBJECT_BEGIN (scene, view_layer, ob) {
+        if (is_irradiance_volume(ob)) {
+          irradiance_volume_setup(ob);
+        }
+      }
+      FOREACH_OBJECT_END;
+      break;
+    }
+    case LIGHTCACHE_SUBSET_DIRTY: {
+      FOREACH_OBJECT_BEGIN (scene, view_layer, ob) {
+        if (is_irradiance_volume(ob) && ob->lightprobe_cache && ob->lightprobe_cache->dirty) {
+          irradiance_volume_setup(ob);
+        }
+      }
+      FOREACH_OBJECT_END;
+      break;
+    }
+    case LIGHTCACHE_SUBSET_SELECTED: {
+      uint objects_len = 0;
+      ObjectsInViewLayerParams parameters;
+      parameters.filter_fn = nullptr;
+      parameters.no_dup_data = true;
+      Object **objects = BKE_view_layer_array_selected_objects_params(
+          view_layer, nullptr, &objects_len, &parameters);
+      for (Object *ob : blender::MutableSpan<Object *>(objects, objects_len)) {
+        if (is_irradiance_volume(ob)) {
+          irradiance_volume_setup(ob);
+        }
+      }
+      MEM_freeN(objects);
+      break;
+    }
+    case LIGHTCACHE_SUBSET_ACTIVE: {
+      Object *active_ob = CTX_data_active_object(C);
+      if (is_irradiance_volume(active_ob)) {
+        irradiance_volume_setup(active_ob);
+      }
+      break;
+    }
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+}
+
+static int lightprobe_cache_bake_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  Scene *scene = CTX_data_scene(C);
+
+  lightprobe_cache_bake_start(C, op);
+
+  WM_event_add_modal_handler(C, op);
+
+  /* store actual owner of job, so modal operator could check for it,
+   * the reason of this is that active scene could change when rendering
+   * several layers from compositor #31800. */
+  op->customdata = scene;
+
+  WM_cursor_wait(false);
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static int lightprobe_cache_bake_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Scene *scene = (Scene *)op->customdata;
+
+  /* No running bake, remove handler and pass through. */
+  if (0 == WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_LIGHT_BAKE)) {
+    return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+  }
+
+  /* Running bake. */
+  switch (event->type) {
+    case EVT_ESCKEY:
+      return OPERATOR_RUNNING_MODAL;
+  }
+  return OPERATOR_PASS_THROUGH;
+}
+
+static void lightprobe_cache_bake_cancel(bContext *C, wmOperator *op)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  Scene *scene = (Scene *)op->customdata;
+
+  /* Kill on cancel, because job is using op->reports. */
+  WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_LIGHT_BAKE);
+}
+
+/* Executes blocking bake. */
+static int lightprobe_cache_bake_exec(bContext *C, wmOperator *op)
+{
+  lightprobe_cache_bake_start(C, op);
+
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_lightprobe_cache_bake(wmOperatorType *ot)
+{
+  static const EnumPropertyItem light_cache_subset_items[] = {
+      {LIGHTCACHE_SUBSET_ALL, "ALL", 0, "All Light Probes", "Bake all light probes"},
+      {LIGHTCACHE_SUBSET_DIRTY,
+       "DIRTY",
+       0,
+       "Dirty Only",
+       "Only bake light probes that are marked as dirty"},
+      {LIGHTCACHE_SUBSET_SELECTED,
+       "SELECTED",
+       0,
+       "Selected Only",
+       "Only bake selected light probes"},
+      {LIGHTCACHE_SUBSET_ACTIVE, "ACTIVE", 0, "Active Only", "Only bake the active light probe"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  /* identifiers */
+  ot->name = "Bake Light Cache";
+  ot->idname = "OBJECT_OT_lightprobe_cache_bake";
+  ot->description = "Bake the active view layer lighting";
+
+  /* api callbacks */
+  ot->invoke = lightprobe_cache_bake_invoke;
+  ot->modal = lightprobe_cache_bake_modal;
+  ot->cancel = lightprobe_cache_bake_cancel;
+  ot->exec = lightprobe_cache_bake_exec;
+
+  ot->prop = RNA_def_int(ot->srna,
+                         "delay",
+                         0,
+                         0,
+                         2000,
+                         "Delay",
+                         "Delay in millisecond before baking starts",
+                         0,
+                         2000);
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+
+  ot->prop = RNA_def_enum(
+      ot->srna, "subset", light_cache_subset_items, 0, "Subset", "Subset of probes to update");
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1539,6 +1710,49 @@ void SCENE_OT_light_cache_free(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = light_cache_free_exec;
   ot->poll = light_cache_free_poll;
+}
+
+/* NOTE: New version destined to replace the old lightcache bake operator. */
+
+static bool lightprobe_cache_free_poll(bContext *C)
+{
+  Object *object = CTX_data_active_object(C);
+
+  return object && object->lightprobe_cache != nullptr;
+}
+
+static int lightprobe_cache_free_exec(bContext *C, wmOperator * /*op*/)
+{
+  Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+
+  /* Kill potential bake job first (see #57011). */
+  wmWindowManager *wm = CTX_wm_manager(C);
+  WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_LIGHT_BAKE);
+
+  if (object->lightprobe_cache == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_lightprobe_cache_free(object);
+
+  DEG_id_tag_update(&object->id, ID_RECALC_COPY_ON_WRITE);
+
+  WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, scene);
+
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_lightprobe_cache_free(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Delete Light Cache";
+  ot->idname = "OBJECT_OT_lightprobe_cache_free";
+  ot->description = "Delete cached indirect lighting";
+
+  /* api callbacks */
+  ot->exec = lightprobe_cache_free_exec;
+  ot->poll = lightprobe_cache_free_poll;
 }
 
 /** \} */
@@ -1829,7 +2043,7 @@ void SCENE_OT_freestyle_lineset_copy(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Copy Line Set";
   ot->idname = "SCENE_OT_freestyle_lineset_copy";
-  ot->description = "Copy the active line set to a buffer";
+  ot->description = "Copy the active line set to the internal clipboard";
 
   /* api callbacks */
   ot->exec = freestyle_lineset_copy_exec;
@@ -1863,7 +2077,7 @@ void SCENE_OT_freestyle_lineset_paste(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Paste Line Set";
   ot->idname = "SCENE_OT_freestyle_lineset_paste";
-  ot->description = "Paste the buffer content to the active line set";
+  ot->description = "Paste the internal clipboard content to the active line set";
 
   /* api callbacks */
   ot->exec = freestyle_lineset_paste_exec;

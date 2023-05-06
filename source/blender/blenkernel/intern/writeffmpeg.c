@@ -103,7 +103,7 @@ typedef struct FFMpegContext {
 
 static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value);
 static void ffmpeg_filepath_get(FFMpegContext *context,
-                                char *string,
+                                char string[FILE_MAX],
                                 const struct RenderData *rd,
                                 bool preview,
                                 const char *suffix);
@@ -383,7 +383,7 @@ static AVFrame *generate_video_frame(FFMpegContext *context, const uint8_t *pixe
     rgb_frame = context->current_frame;
   }
 
-  /* Copy the Blender pixels into the FFmpeg datastructure, taking care of endianness and flipping
+  /* Copy the Blender pixels into the FFMPEG data-structure, taking care of endianness and flipping
    * the image vertically. */
   int linesize = rgb_frame->linesize[0];
   for (int y = 0; y < height; y++) {
@@ -586,7 +586,7 @@ static const AVCodec *get_av1_encoder(
         }
         else {
           /* Is not a square num, set greater side based on longer side, or use a square if both
-             sides are equal. */
+           * sides are equal. */
           int sqrt_p2 = power_of_2_min_i(threads_sqrt);
           if (sqrt_p2 < 2) {
             /* Ensure a default minimum. */
@@ -863,7 +863,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
                                                             255);
   st->avg_frame_rate = av_inv_q(c->time_base);
 
-  if (codec->capabilities & AV_CODEC_CAP_AUTO_THREADS) {
+  if (codec->capabilities & AV_CODEC_CAP_OTHER_THREADS) {
     c->thread_count = 0;
   }
   else {
@@ -1097,7 +1097,7 @@ static int start_ffmpeg_impl(FFMpegContext *context,
   /* Handle to the output file */
   AVFormatContext *of;
   const AVOutputFormat *fmt;
-  char name[FILE_MAX], error[1024];
+  char filepath[FILE_MAX], error[1024];
   const char **exts;
 
   context->ffmpeg_type = rd->ffcodecdata.type;
@@ -1115,14 +1115,14 @@ static int start_ffmpeg_impl(FFMpegContext *context,
   }
 
   /* Determine the correct filename */
-  ffmpeg_filepath_get(context, name, rd, context->ffmpeg_preview, suffix);
+  ffmpeg_filepath_get(context, filepath, rd, context->ffmpeg_preview, suffix);
   PRINT(
       "Starting output to %s(ffmpeg)...\n"
       "  Using type=%d, codec=%d, audio_codec=%d,\n"
       "  video_bitrate=%d, audio_bitrate=%d,\n"
       "  gop_size=%d, autosplit=%d\n"
       "  render width=%d, render height=%d\n",
-      name,
+      filepath,
       context->ffmpeg_type,
       context->ffmpeg_codec,
       context->ffmpeg_audio_codec,
@@ -1155,7 +1155,7 @@ static int start_ffmpeg_impl(FFMpegContext *context,
   enum AVCodecID audio_codec = context->ffmpeg_audio_codec;
   enum AVCodecID video_codec = context->ffmpeg_codec;
 
-  of->url = av_strdup(name);
+  of->url = av_strdup(filepath);
   /* Check if we need to force change the codec because of file type codec restrictions */
   switch (context->ffmpeg_type) {
     case FFMPEG_OGG:
@@ -1217,7 +1217,8 @@ static int start_ffmpeg_impl(FFMpegContext *context,
   if (context->ffmpeg_type == FFMPEG_DV) {
     audio_codec = AV_CODEC_ID_PCM_S16LE;
     if (context->ffmpeg_audio_codec != AV_CODEC_ID_NONE &&
-        rd->ffcodecdata.audio_mixrate != 48000 && rd->ffcodecdata.audio_channels != 2) {
+        rd->ffcodecdata.audio_mixrate != 48000 && rd->ffcodecdata.audio_channels != 2)
+    {
       BKE_report(reports, RPT_ERROR, "FFMPEG only supports 48khz / stereo audio for DV!");
       goto fail;
     }
@@ -1255,7 +1256,7 @@ static int start_ffmpeg_impl(FFMpegContext *context,
     }
   }
   if (!(fmt->flags & AVFMT_NOFILE)) {
-    if (avio_open(&of->pb, name, AVIO_FLAG_WRITE) < 0) {
+    if (avio_open(&of->pb, filepath, AVIO_FLAG_WRITE) < 0) {
       BKE_report(reports, RPT_ERROR, "Could not open file for writing");
       PRINT("Could not open file for writing\n");
       goto fail;
@@ -1277,7 +1278,7 @@ static int start_ffmpeg_impl(FFMpegContext *context,
   }
 
   context->outfile = of;
-  av_dump_format(of, 0, name, 1);
+  av_dump_format(of, 0, filepath, 1);
 
   return 1;
 
@@ -1356,8 +1357,11 @@ static void flush_ffmpeg(AVCodecContext *c, AVStream *stream, AVFormatContext *o
  * ********************************************************************** */
 
 /* Get the output filename-- similar to the other output formats */
-static void ffmpeg_filepath_get(
-    FFMpegContext *context, char *string, const RenderData *rd, bool preview, const char *suffix)
+static void ffmpeg_filepath_get(FFMpegContext *context,
+                                char string[FILE_MAX],
+                                const RenderData *rd,
+                                bool preview,
+                                const char *suffix)
 {
   char autosplit[20];
 
@@ -1378,10 +1382,10 @@ static void ffmpeg_filepath_get(
     efra = rd->efra;
   }
 
-  strcpy(string, rd->pic);
+  BLI_strncpy(string, rd->pic, FILE_MAX);
   BLI_path_abs(string, BKE_main_blendfile_path_from_global());
 
-  BLI_make_existing_file(string);
+  BLI_file_ensure_parent_dir_exists(string);
 
   autosplit[0] = '\0';
 
@@ -1400,15 +1404,15 @@ static void ffmpeg_filepath_get(
     }
 
     if (*fe == NULL) {
-      strcat(string, autosplit);
+      BLI_strncat(string, autosplit, FILE_MAX);
 
       BLI_path_frame_range(string, sfra, efra, 4);
-      strcat(string, *exts);
+      BLI_strncat(string, *exts, FILE_MAX);
     }
     else {
       *(string + strlen(string) - strlen(*fe)) = '\0';
-      strcat(string, autosplit);
-      strcat(string, *fe);
+      BLI_strncat(string, autosplit, FILE_MAX);
+      BLI_strncat(string, *fe, FILE_MAX);
     }
   }
   else {
@@ -1416,15 +1420,18 @@ static void ffmpeg_filepath_get(
       BLI_path_frame_range(string, sfra, efra, 4);
     }
 
-    strcat(string, autosplit);
+    BLI_strncat(string, autosplit, FILE_MAX);
   }
 
   BLI_path_suffix(string, FILE_MAX, suffix, "");
 }
 
-void BKE_ffmpeg_filepath_get(char *string, const RenderData *rd, bool preview, const char *suffix)
+void BKE_ffmpeg_filepath_get(char *filepath,
+                             const RenderData *rd,
+                             bool preview,
+                             const char *suffix)
 {
-  ffmpeg_filepath_get(NULL, string, rd, preview, suffix);
+  ffmpeg_filepath_get(NULL, filepath, rd, preview, suffix);
 }
 
 int BKE_ffmpeg_start(void *context_v,
@@ -1738,7 +1745,8 @@ void BKE_ffmpeg_image_type_verify(RenderData *rd, const ImageFormatData *imf)
 
   if (imf->imtype == R_IMF_IMTYPE_FFMPEG) {
     if (rd->ffcodecdata.type <= 0 || rd->ffcodecdata.codec <= 0 ||
-        rd->ffcodecdata.audio_codec <= 0 || rd->ffcodecdata.video_bitrate <= 1) {
+        rd->ffcodecdata.audio_codec <= 0 || rd->ffcodecdata.video_bitrate <= 1)
+    {
       BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_H264);
       rd->ffcodecdata.constant_rate_factor = FFM_CRF_MEDIUM;
       rd->ffcodecdata.ffmpeg_preset = FFM_PRESET_GOOD;

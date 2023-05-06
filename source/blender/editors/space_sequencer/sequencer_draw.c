@@ -43,7 +43,7 @@
 #include "GPU_viewport.h"
 
 #include "ED_anim_api.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_markers.h"
 #include "ED_mask.h"
 #include "ED_screen.h"
@@ -100,7 +100,8 @@ void color3ubv_from_seq(const Scene *curscene,
   ListBase *channels = SEQ_channels_displayed_get(ed);
 
   if (show_strip_color_tag && (uint)seq->color_tag < SEQUENCE_COLOR_TOT &&
-      seq->color_tag != SEQUENCE_COLOR_NONE) {
+      seq->color_tag != SEQUENCE_COLOR_NONE)
+  {
     bTheme *btheme = UI_GetTheme();
     const ThemeStripColor *strip_color = &btheme->strip_color[seq->color_tag];
     copy_v3_v3_uchar(r_col, strip_color->color);
@@ -413,7 +414,6 @@ static void draw_seq_waveform_overlay(
 
   const float frames_per_pixel = BLI_rctf_size_x(&region->v2d.cur) / region->winx;
   const float samples_per_frame = SOUND_WAVE_SAMPLES_PER_SECOND / FPS;
-  float samples_per_pixel = samples_per_frame * frames_per_pixel;
 
   /* Align strip start with nearest pixel to prevent waveform flickering. */
   const float x1_aligned = align_frame_with_pixel(x1, frames_per_pixel);
@@ -439,15 +439,17 @@ static void draw_seq_waveform_overlay(
   size_t wave_data_len = 0;
 
   /* Offset must be also aligned, otherwise waveform flickers when moving left handle. */
-  const float strip_offset = align_frame_with_pixel(seq->startofs + seq->anim_startofs,
-                                                    frames_per_pixel);
-  float start_sample = strip_offset * samples_per_frame;
-  start_sample += seq->sound->offset_time * SOUND_WAVE_SAMPLES_PER_SECOND;
+  float start_frame = SEQ_time_left_handle_frame_get(scene, seq);
+
   /* Add off-screen part of strip to offset. */
-  start_sample += (frame_start - x1_aligned) * samples_per_frame;
+  start_frame += (frame_start - x1_aligned);
+  start_frame += seq->sound->offset_time / FPS;
 
   for (int i = 0; i < pixels_to_draw; i++) {
-    float sample = start_sample + i * samples_per_pixel;
+    float timeline_frame = start_frame + i * frames_per_pixel;
+    /* TODO: Use linear interpolation between frames to avoid bad drawing quality. */
+    float frame_index = SEQ_give_frame_index(scene, seq, timeline_frame);
+    float sample = frame_index * samples_per_frame;
     int sample_index = round_fl_to_int(sample);
 
     if (sample_index < 0) {
@@ -468,6 +470,8 @@ static void draw_seq_waveform_overlay(
       value_min = (1.0f - f) * value_min + f * waveform->data[sample_index * 3 + 3];
       value_max = (1.0f - f) * value_max + f * waveform->data[sample_index * 3 + 4];
       rms = (1.0f - f) * rms + f * waveform->data[sample_index * 3 + 5];
+
+      float samples_per_pixel = samples_per_frame * frames_per_pixel;
       if (samples_per_pixel > 1.0f) {
         /* We need to sum up the values we skip over until the next step. */
         float next_pos = sample + samples_per_pixel;
@@ -690,7 +694,8 @@ static void draw_seq_handle(const Scene *scene,
 
   /* Draw numbers for start and end of the strip next to its handles. */
   if (y_threshold &&
-      (((seq->flag & SELECT) && (G.moving & G_TRANSFORM_SEQ)) || (seq->flag & whichsel))) {
+      (((seq->flag & SELECT) && (G.moving & G_TRANSFORM_SEQ)) || (seq->flag & whichsel)))
+  {
 
     char numstr[64];
     size_t numstr_len;
@@ -1250,8 +1255,8 @@ static void draw_seq_fcurve_overlay(
     float prev_val = INT_MIN;
     bool skip = false;
 
-    for (int timeline_frame = eval_start; timeline_frame <= eval_end;
-         timeline_frame += eval_step) {
+    for (int timeline_frame = eval_start; timeline_frame <= eval_end; timeline_frame += eval_step)
+    {
       curve_val = evaluate_fcurve(fcu, timeline_frame);
       CLAMP(curve_val, 0.0f, 1.0f);
 
@@ -1327,13 +1332,14 @@ static void draw_seq_strip(const bContext *C,
   bool y_threshold;
   if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_NAME) ||
       (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_SOURCE) ||
-      (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_DURATION)) {
+      (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_DURATION))
+  {
 
     /* Calculate height needed for drawing text on strip. */
-    text_margin_y = y2 - min_ff(0.40f, 20 * U.dpi_fac * pixely);
+    text_margin_y = y2 - min_ff(0.40f, 20 * UI_SCALE_FAC * pixely);
 
     /* Is there enough space for drawing something else than text? */
-    y_threshold = ((y2 - y1) / pixely) > 20 * U.dpi_fac;
+    y_threshold = ((y2 - y1) / pixely) > 20 * UI_SCALE_FAC;
   }
   else {
     text_margin_y = y2;
@@ -1365,19 +1371,21 @@ static void draw_seq_strip(const bContext *C,
   x2 = SEQ_time_right_handle_frame_get(scene, seq);
 
   if ((seq->type == SEQ_TYPE_META) ||
-      ((seq->type == SEQ_TYPE_SCENE) && (seq->flag & SEQ_SCENE_STRIPS))) {
+      ((seq->type == SEQ_TYPE_SCENE) && (seq->flag & SEQ_SCENE_STRIPS)))
+  {
     drawmeta_contents(scene, seq, x1, y1, x2, y2, show_strip_color_tag);
   }
 
   if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
       (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS) &&
-      ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
+      ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE))
+  {
     draw_seq_strip_thumbnail(
         v2d, C, scene, seq, y1, y_threshold ? text_margin_y : y2, pixelx, pixely);
   }
 
-  if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
-      (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_FCURVES)) {
+  if ((sseq->flag & SEQ_SHOW_OVERLAY) && (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_FCURVES))
+  {
     draw_seq_fcurve_overlay(scene, v2d, seq, x1, y1, x2, y2, pixelx);
   }
 
@@ -1416,14 +1424,15 @@ static void draw_seq_strip(const bContext *C,
   if (seq->type == SEQ_TYPE_SOUND_RAM) {
     if (!y_threshold && (sseq->timeline_overlay.flag & SEQ_TIMELINE_NO_WAVEFORMS) == 0 &&
         ((sseq->timeline_overlay.flag & SEQ_TIMELINE_ALL_WAVEFORMS) ||
-         (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM))) {
+         (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM)))
+    {
       return;
     }
   }
 
   if (sseq->flag & SEQ_SHOW_OVERLAY) {
     /* Don't draw strip if there is not enough vertical or horizontal space. */
-    if (((x2 - x1) > 32 * pixelx * U.dpi_fac) && ((y2 - y1) > 8 * pixely * U.dpi_fac)) {
+    if (((x2 - x1) > 32 * pixelx * UI_SCALE_FAC) && ((y2 - y1) > 8 * pixely * UI_SCALE_FAC)) {
       /* Depending on the vertical space, draw text on top or in the center of strip. */
       draw_seq_text_overlay(
           scene, v2d, seq, sseq, x1, x2, y_threshold ? text_margin_y : y1, y2, seq_active);
@@ -1650,7 +1659,7 @@ static void sequencer_draw_borders_overlay(const SpaceSeq *sseq,
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
-  immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+  immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
 
   immUniformThemeColor(TH_BACK);
   immUniform1i("colors_len", 0); /* Simple dashes. */
@@ -1909,7 +1918,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
     GPU_matrix_identity_projection_set();
   }
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
-  GPUTexture *texture = GPU_texture_create_2d_ex(
+  GPUTexture *texture = GPU_texture_create_2d(
       "seq_display_buf", ibuf->x, ibuf->y, 1, format, usage, NULL);
   GPU_texture_update(texture, data, display_buffer);
   GPU_texture_filter_mode(texture, false);
@@ -2076,7 +2085,8 @@ static void seq_draw_image_origin_and_outline(const bContext *C, Sequence *seq, 
     return;
   }
   if ((sseq->flag & SEQ_SHOW_OVERLAY) == 0 ||
-      (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_OUTLINE_SELECTED) == 0) {
+      (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_OUTLINE_SELECTED) == 0)
+  {
     return;
   }
   if (ELEM(sseq->mainb, SEQ_DRAW_IMG_WAVEFORM, SEQ_DRAW_IMG_VECTORSCOPE, SEQ_DRAW_IMG_HISTOGRAM)) {
@@ -2181,7 +2191,8 @@ void sequencer_draw_preview(const bContext *C,
 
   /* Draw background. */
   if (!draw_backdrop &&
-      (!draw_overlay || (sseq->overlay_frame_type == SEQ_OVERLAY_FRAME_TYPE_REFERENCE))) {
+      (!draw_overlay || (sseq->overlay_frame_type == SEQ_OVERLAY_FRAME_TYPE_REFERENCE)))
+  {
     sequencer_preview_clear();
 
     if (sseq->flag & SEQ_USE_ALPHA) {
@@ -2283,11 +2294,13 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
         continue;
       }
       if (min_ii(SEQ_time_left_handle_frame_get(scene, seq), SEQ_time_start_frame_get(seq)) >
-          v2d->cur.xmax) {
+          v2d->cur.xmax)
+      {
         continue;
       }
       if (max_ii(SEQ_time_right_handle_frame_get(scene, seq),
-                 SEQ_time_content_end_frame_get(scene, seq)) < v2d->cur.xmin) {
+                 SEQ_time_content_end_frame_get(scene, seq)) < v2d->cur.xmin)
+      {
         continue;
       }
       if (seq->machine + 1.0f < v2d->cur.ymin) {
@@ -2470,7 +2483,7 @@ static bool draw_cache_view_iter_fn(void *userdata,
 
   if ((cache_type & SEQ_CACHE_STORE_FINAL_OUT) &&
       (drawdata->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT)) {
-    stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_DPI_FAC * U.pixelsize) - v2d->cur.ymin;
+    stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_SCALE_FAC * U.pixelsize) - v2d->cur.ymin;
     stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
     stripe_top = stripe_bot + stripe_ht;
     vbo = drawdata->final_out_vbo;
@@ -2485,7 +2498,8 @@ static bool draw_cache_view_iter_fn(void *userdata,
     vert_count = &drawdata->raw_vert_count;
   }
   else if ((cache_type & SEQ_CACHE_STORE_PREPROCESSED) &&
-           (drawdata->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED)) {
+           (drawdata->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED))
+  {
     stripe_ofs_y = drawdata->stripe_ofs_y;
     stripe_ht = drawdata->stripe_ht;
     stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + (stripe_ofs_y + stripe_ht) + stripe_ofs_y;
@@ -2494,7 +2508,8 @@ static bool draw_cache_view_iter_fn(void *userdata,
     vert_count = &drawdata->preprocessed_vert_count;
   }
   else if ((cache_type & SEQ_CACHE_STORE_COMPOSITE) &&
-           (drawdata->cache_flag & SEQ_CACHE_VIEW_COMPOSITE)) {
+           (drawdata->cache_flag & SEQ_CACHE_VIEW_COMPOSITE))
+  {
     stripe_ofs_y = drawdata->stripe_ofs_y;
     stripe_ht = drawdata->stripe_ht;
     stripe_top = seq->machine + SEQ_STRIP_OFSTOP - stripe_ofs_y;
@@ -2551,7 +2566,7 @@ static void draw_cache_view(const bContext *C)
 
   float stripe_bot, stripe_top;
   float stripe_ofs_y = UI_view2d_region_to_view_y(v2d, 1.0f) - v2d->cur.ymin;
-  float stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_DPI_FAC * U.pixelsize) -
+  float stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_SCALE_FAC * U.pixelsize) -
                     v2d->cur.ymin;
 
   CLAMP_MAX(stripe_ht, 0.2f);
@@ -2572,7 +2587,8 @@ static void draw_cache_view(const bContext *C)
     }
 
     if (SEQ_time_left_handle_frame_get(scene, seq) > v2d->cur.xmax ||
-        SEQ_time_right_handle_frame_get(scene, seq) < v2d->cur.xmin) {
+        SEQ_time_right_handle_frame_get(scene, seq) < v2d->cur.xmin)
+    {
       continue;
     }
 

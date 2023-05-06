@@ -241,7 +241,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
   }
 
   /**
-   * Reset for each "redraw". When rendering using ogl render,
+   * Reset for each "redraw". When rendering using OpenGL render,
    * we accumulate the redraw inside the drawing loop in eevee_draw_scene().
    */
   if (DRW_state_is_opengl_render()) {
@@ -295,7 +295,8 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 
     if (((effects->taa_total_sample == 0) ||
          (effects->taa_current_sample < effects->taa_total_sample)) ||
-        (!view_is_valid) || DRW_state_is_image_render()) {
+        (!view_is_valid) || DRW_state_is_image_render())
+    {
       if (view_is_valid) {
         /* Viewport rendering updates the matrices in `eevee_draw_scene` */
         if (!DRW_state_is_image_render()) {
@@ -392,7 +393,8 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
       /* Do reprojection for noise reduction */
       /* TODO: do AA jitter if in only render view. */
       if (!DRW_state_is_image_render() && (effects->enabled_effects & EFFECT_TAA_REPROJECT) != 0 &&
-          stl->g_data->valid_taa_history) {
+          stl->g_data->valid_taa_history)
+      {
         GPU_framebuffer_bind(effects->target_buffer);
         DRW_draw_pass(psl->taa_resolve);
         SWAP_BUFFERS_TAA();
@@ -411,9 +413,9 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
       effects->taa_current_sample += 1;
     }
     else {
-      if (!DRW_state_is_playback() &&
-          ((effects->taa_total_sample == 0) ||
-           (effects->taa_current_sample < effects->taa_total_sample))) {
+      if (!DRW_state_is_playback() && ((effects->taa_total_sample == 0) ||
+                                       (effects->taa_current_sample < effects->taa_total_sample)))
+      {
         DRW_viewport_request_redraw();
       }
     }

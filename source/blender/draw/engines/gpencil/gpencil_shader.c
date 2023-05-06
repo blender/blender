@@ -21,7 +21,6 @@ extern char datatoc_gpencil_vfx_frag_glsl[];
 
 extern char datatoc_common_colormanagement_lib_glsl[];
 extern char datatoc_common_fullscreen_vert_glsl[];
-extern char datatoc_common_smaa_lib_glsl[];
 extern char datatoc_common_view_lib_glsl[];
 
 static struct {

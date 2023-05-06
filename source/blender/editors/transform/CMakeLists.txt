@@ -31,7 +31,7 @@ set(SRC
   transform_convert_cursor.c
   transform_convert_curve.c
   transform_convert_curves.cc
-  transform_convert_gpencil.c
+  transform_convert_gpencil_legacy.c
   transform_convert_graph.c
   transform_convert_lattice.c
   transform_convert_mask.c
@@ -51,10 +51,13 @@ set(SRC
   transform_convert_sequencer.c
   transform_convert_sequencer_image.c
   transform_convert_tracking.c
+  transform_convert_tracking_curves.c
   transform_draw_cursors.c
   transform_generics.c
   transform_gizmo_2d.c
   transform_gizmo_3d.cc
+  transform_gizmo_3d_cage.cc
+  transform_gizmo_3d_shear.cc
   transform_gizmo_extrude_3d.c
   transform_input.c
   transform_mode.c
@@ -99,6 +102,7 @@ set(SRC
   transform_convert.h
   transform_data.h
   transform_draw_cursors.h
+  transform_gizmo.h
   transform_mode.h
   transform_orientations.h
   transform_snap.h

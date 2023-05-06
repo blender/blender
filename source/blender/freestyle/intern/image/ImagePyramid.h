@@ -24,9 +24,7 @@ class ImagePyramid {
   std::vector<GrayImage *> _levels;
 
  public:
-  ImagePyramid()
-  {
-  }
+  ImagePyramid() {}
   ImagePyramid(const ImagePyramid &iBrother);
   // ImagePyramid(const GrayImage& level0, unsigned nbLevels);
   virtual ~ImagePyramid();
@@ -81,9 +79,7 @@ class GaussianPyramid : public ImagePyramid {
   GaussianPyramid(const GrayImage &level0, unsigned nbLevels, float iSigma = 1.0f);
   GaussianPyramid(GrayImage *level0, unsigned nbLevels, float iSigma = 1.0f);
   GaussianPyramid(const GaussianPyramid &iBrother);
-  virtual ~GaussianPyramid()
-  {
-  }
+  virtual ~GaussianPyramid() {}
 
   virtual void BuildPyramid(const GrayImage &level0, unsigned nbLevels);
   virtual void BuildPyramid(GrayImage *level0, unsigned nbLevels);

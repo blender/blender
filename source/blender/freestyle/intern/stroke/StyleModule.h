@@ -37,9 +37,7 @@ class StyleModule {
     _inter = inter;
   }
 
-  virtual ~StyleModule()
-  {
-  }
+  virtual ~StyleModule() {}
 
   StrokeLayer *execute()
   {
@@ -70,7 +68,8 @@ class StyleModule {
 
     StrokeLayer *sl = new StrokeLayer;
     for (Operators::StrokesContainer::iterator it = strokes_set->begin(); it != strokes_set->end();
-         ++it) {
+         ++it)
+    {
       sl->AddStroke(*it);
     }
 

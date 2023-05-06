@@ -161,6 +161,20 @@ const EnumPropertyItem rna_enum_driver_target_rotation_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem rna_enum_driver_target_context_property_items[] = {
+    {DTAR_CONTEXT_PROPERTY_ACTIVE_SCENE,
+     "ACTIVE_SCENE",
+     ICON_NONE,
+     "Active Scene",
+     "Currently evaluating scene"},
+    {DTAR_CONTEXT_PROPERTY_ACTIVE_VIEW_LAYER,
+     "ACTIVE_VIEW_LAYER",
+     ICON_NONE,
+     "Active View Layer",
+     "Currently evaluating view layer"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "WM_api.h"
@@ -204,6 +218,51 @@ static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
+/**
+ * \warning this isn't efficient but it's unavoidable
+ * when only the #ID and the #DriverVar are known.
+ */
+static FCurve *rna_FCurve_find_driver_by_variable(ID *owner_id, DriverVar *dvar)
+{
+  AnimData *adt = BKE_animdata_from_id(owner_id);
+  BLI_assert(adt != NULL);
+  LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
+    ChannelDriver *driver = fcu->driver;
+    if (driver == NULL) {
+      continue;
+    }
+    if (BLI_findindex(&driver->variables, dvar) != -1) {
+      return fcu;
+    }
+  }
+  return NULL;
+}
+
+/**
+ * \warning this isn't efficient but it's unavoidable
+ * when only the #ID and the #DriverTarget are known.
+ */
+static FCurve *rna_FCurve_find_driver_by_target(ID *owner_id, DriverTarget *dtar)
+{
+  AnimData *adt = BKE_animdata_from_id(owner_id);
+  BLI_assert(adt != NULL);
+  LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
+    ChannelDriver *driver = fcu->driver;
+    if (driver == NULL) {
+      continue;
+    }
+    LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+      /* NOTE: Use #MAX_DRIVER_TARGETS instead of `dvar->num_targets` because
+       * it's possible RNA holds a reference to a target that has been removed.
+       * In this case it's best to return the #FCurve it belongs to instead of nothing. */
+      if (ARRAY_HAS_ITEM(dtar, &dvar->targets[0], MAX_DRIVER_TARGETS)) {
+        return fcu;
+      }
+    }
+  }
+  return NULL;
+}
+
 static bool rna_ChannelDriver_is_simple_expression_get(PointerRNA *ptr)
 {
   ChannelDriver *driver = ptr->data;
@@ -211,18 +270,25 @@ static bool rna_ChannelDriver_is_simple_expression_get(PointerRNA *ptr)
   return BKE_driver_has_simple_expression(driver);
 }
 
-static void rna_ChannelDriver_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_ChannelDriver_update_data_impl(Main *bmain,
+                                               Scene *scene,
+                                               ID *owner_id,
+                                               ChannelDriver *driver)
 {
-  ID *id = ptr->owner_id;
-  ChannelDriver *driver = ptr->data;
-
   driver->flag &= ~DRIVER_FLAG_INVALID;
 
   /* TODO: this really needs an update guard... */
   DEG_relations_tag_update(bmain);
-  DEG_id_tag_update(id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(owner_id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
   WM_main_add_notifier(NC_SCENE | ND_FRAME, scene);
+}
+
+static void rna_ChannelDriver_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  ID *id = ptr->owner_id;
+  ChannelDriver *driver = ptr->data;
+  rna_ChannelDriver_update_data_impl(bmain, scene, id, driver);
 }
 
 static void rna_ChannelDriver_update_expr(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -238,31 +304,45 @@ static void rna_ChannelDriver_update_expr(Main *bmain, Scene *scene, PointerRNA 
 
 static void rna_DriverTarget_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  PointerRNA driverptr;
-  ChannelDriver *driver;
-  FCurve *fcu;
-  AnimData *adt = BKE_animdata_from_id(ptr->owner_id);
-
-  /* find the driver this belongs to and update it */
-  for (fcu = adt->drivers.first; fcu; fcu = fcu->next) {
-    driver = fcu->driver;
-    fcu->flag &= ~FCURVE_DISABLED;
-
-    if (driver) {
-      /* FIXME: need to be able to search targets for required one. */
-      // BLI_findindex(&driver->targets, ptr->data) != -1)
-      RNA_pointer_create(ptr->owner_id, &RNA_Driver, driver, &driverptr);
-      rna_ChannelDriver_update_data(bmain, scene, &driverptr);
-    }
+  DriverTarget *dtar = (DriverTarget *)ptr->data;
+  FCurve *fcu = rna_FCurve_find_driver_by_target(ptr->owner_id, dtar);
+  BLI_assert(fcu); /* This hints at an internal error, data may be corrupt. */
+  if (UNLIKELY(fcu == NULL)) {
+    return;
   }
+  /* Find function ensures it's never NULL. */
+  ChannelDriver *driver = fcu->driver;
+  fcu->flag &= ~FCURVE_DISABLED;
+  rna_ChannelDriver_update_data_impl(bmain, scene, ptr->owner_id, driver);
 }
 
-static void rna_DriverTarget_update_name(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_DriverVariable_update_name(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  ChannelDriver *driver = ptr->data;
-  rna_DriverTarget_update_data(bmain, scene, ptr);
-
+  DriverVar *dvar = (DriverVar *)ptr->data;
+  FCurve *fcu = rna_FCurve_find_driver_by_variable(ptr->owner_id, dvar);
+  BLI_assert(fcu); /* This hints at an internal error, data may be corrupt. */
+  if (UNLIKELY(fcu == NULL)) {
+    return;
+  }
+  /* Find function ensures it's never NULL. */
+  ChannelDriver *driver = fcu->driver;
+  fcu->flag &= ~FCURVE_DISABLED;
+  rna_ChannelDriver_update_data_impl(bmain, scene, ptr->owner_id, driver);
   BKE_driver_invalidate_expression(driver, false, true);
+}
+
+static void rna_DriverVariable_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  DriverVar *dvar = (DriverVar *)ptr->data;
+  FCurve *fcu = rna_FCurve_find_driver_by_variable(ptr->owner_id, dvar);
+  BLI_assert(fcu); /* This hints at an internal error, data may be corrupt. */
+  if (UNLIKELY(fcu == NULL)) {
+    return;
+  }
+  /* Find function ensures it's never NULL. */
+  ChannelDriver *driver = fcu->driver;
+  fcu->flag &= ~FCURVE_DISABLED;
+  rna_ChannelDriver_update_data_impl(bmain, scene, ptr->owner_id, driver);
 }
 
 /* ----------- */
@@ -586,7 +666,7 @@ static void rna_FCurve_group_set(PointerRNA *ptr,
 /* calculate time extents of F-Curve */
 static void rna_FCurve_range(FCurve *fcu, float range[2])
 {
-  BKE_fcurve_calc_range(fcu, range, range + 1, false, false);
+  BKE_fcurve_calc_range(fcu, range, range + 1, false);
 }
 
 static bool rna_FCurve_is_empty_get(PointerRNA *ptr)
@@ -612,6 +692,7 @@ static void rna_tag_animation_update(Main *bmain, ID *id)
 static void rna_FCurve_update_data_ex(ID *id, FCurve *fcu, Main *bmain)
 {
   sort_time_fcurve(fcu);
+  /* TODO: Blender 4.0 should call BKE_fcurve_deduplicate_keys(fcu) here. */
   BKE_fcurve_handles_recalc(fcu);
 
   rna_tag_animation_update(bmain, id);
@@ -756,6 +837,12 @@ static void rna_FModifier_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
   }
 
   rna_tag_animation_update(bmain, id);
+}
+
+static void rna_fModifier_name_set(PointerRNA *ptr, const char *value)
+{
+  FModifier *fcm = (FModifier *)ptr->data;
+  BKE_fmodifier_name_set(fcm, value);
 }
 
 static void rna_FModifier_verify_data_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -991,24 +1078,12 @@ static BezTriple *rna_FKeyframe_points_insert(
 
 static void rna_FKeyframe_points_add(ID *id, FCurve *fcu, Main *bmain, int tot)
 {
-  if (tot > 0) {
-    BezTriple *bezt;
-
-    fcu->bezt = MEM_recallocN(fcu->bezt, sizeof(BezTriple) * (fcu->totvert + tot));
-
-    bezt = fcu->bezt + fcu->totvert;
-    fcu->totvert += tot;
-
-    while (tot--) {
-      /* Defaults, ignoring user-preference gives predictable results for API. */
-      bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
-      bezt->ipo = BEZT_IPO_BEZ;
-      bezt->h1 = bezt->h2 = HD_AUTO_ANIM;
-      bezt++;
-    }
-
-    rna_tag_animation_update(bmain, id);
+  if (tot <= 0) {
+    return;
   }
+
+  ED_keyframes_add(fcu, tot);
+  rna_tag_animation_update(bmain, id);
 }
 
 static void rna_FKeyframe_points_remove(
@@ -1035,6 +1110,24 @@ static void rna_FKeyframe_points_clear(ID *id, FCurve *fcu, Main *bmain)
 {
   BKE_fcurve_delete_keys_all(fcu);
 
+  rna_tag_animation_update(bmain, id);
+}
+
+static void rna_FKeyframe_points_sort(ID *id, FCurve *fcu, Main *bmain)
+{
+  sort_time_fcurve(fcu);
+  rna_tag_animation_update(bmain, id);
+}
+
+static void rna_FKeyframe_points_deduplicate(ID *id, FCurve *fcu, Main *bmain)
+{
+  BKE_fcurve_deduplicate_keys(fcu);
+  rna_tag_animation_update(bmain, id);
+}
+
+static void rna_FKeyframe_points_handles_recalc(ID *id, FCurve *fcu, Main *bmain)
+{
+  BKE_fcurve_handles_recalc(fcu);
   rna_tag_animation_update(bmain, id);
 }
 
@@ -1662,12 +1755,12 @@ static void rna_def_fmodifier(BlenderRNA *brna)
   RNA_def_struct_refine_func(srna, "rna_FModifierType_refine");
   RNA_def_struct_ui_text(srna, "F-Modifier", "Modifier for values of F-Curve");
 
-#  if 0  /* XXX not used yet */
   /* name */
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_fModifier_name_set");
+  RNA_def_property_ui_text(prop, "Name", "F-Curve Modifier name");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER | NA_RENAME, NULL);
   RNA_def_struct_name_property(srna, prop);
-  RNA_def_property_ui_text(prop, "Name", "Short description of F-Curve Modifier");
-#  endif /* XXX not used yet */
 
   /* type */
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -1879,6 +1972,14 @@ static void rna_def_drivertarget(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, prop_local_space_items);
   RNA_def_property_ui_text(prop, "Transform Space", "Space in which transforms are used");
   RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
+
+  prop = RNA_def_property(srna, "context_property", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "context_property");
+  RNA_def_property_enum_items(prop, rna_enum_driver_target_context_property_items);
+  RNA_def_property_enum_default(prop, DTAR_CONTEXT_PROPERTY_ACTIVE_SCENE);
+  RNA_def_property_ui_text(
+      prop, "Context Property", "Type of a context-dependent data-block to access property from");
+  RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 }
 
 static void rna_def_drivervar(BlenderRNA *brna)
@@ -1907,6 +2008,11 @@ static void rna_def_drivervar(BlenderRNA *brna)
        ICON_DRIVER_DISTANCE,
        "Distance",
        "Distance between two bones or objects"},
+      {DVAR_TYPE_CONTEXT_PROP,
+       "CONTEXT_PROP",
+       ICON_RNA,
+       "Context Property",
+       "Use the value from some RNA property within the current evaluation context"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -1924,14 +2030,14 @@ static void rna_def_drivervar(BlenderRNA *brna)
       "Name",
       "Name to use in scripted expressions/functions (no spaces or dots are allowed, "
       "and must start with a letter)");
-  RNA_def_property_update(prop, 0, "rna_DriverTarget_update_name"); /* XXX */
+  RNA_def_property_update(prop, 0, "rna_DriverVariable_update_name");
 
   /* Enums */
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_type_items);
   RNA_def_property_enum_funcs(prop, NULL, "rna_DriverVariable_type_set", NULL);
   RNA_def_property_ui_text(prop, "Type", "Driver variable type");
-  RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); /* XXX */
+  RNA_def_property_update(prop, 0, "rna_DriverVariable_update_data");
 
   /* Targets */
   /* TODO: for nicer api, only expose the relevant props via subclassing,
@@ -2320,6 +2426,22 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "clear", "rna_FKeyframe_points_clear");
   RNA_def_function_ui_description(func, "Remove all keyframes from an F-Curve");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+
+  func = RNA_def_function(srna, "sort", "rna_FKeyframe_points_sort");
+  RNA_def_function_ui_description(func, "Ensure all keyframe points are chronologically sorted");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+
+  func = RNA_def_function(srna, "deduplicate", "rna_FKeyframe_points_deduplicate");
+  RNA_def_function_ui_description(
+      func,
+      "Ensure there are no duplicate keys. Assumes that the points have already been sorted");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+
+  func = RNA_def_function(srna, "handles_recalc", "rna_FKeyframe_points_handles_recalc");
+  RNA_def_function_ui_description(func,
+                                  "Update handles after modifications to the keyframe points, to "
+                                  "update things like auto-clamping");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 }
 

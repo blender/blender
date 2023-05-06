@@ -26,9 +26,7 @@ using Alembic::AbcGeom::kVertexScope;
 using Alembic::AbcGeom::OPoints;
 using Alembic::AbcGeom::OPointsSchema;
 
-ABCPointsWriter::ABCPointsWriter(const ABCWriterConstructorArgs &args) : ABCAbstractWriter(args)
-{
-}
+ABCPointsWriter::ABCPointsWriter(const ABCWriterConstructorArgs &args) : ABCAbstractWriter(args) {}
 
 void ABCPointsWriter::create_alembic_objects(const HierarchyContext * /*context*/)
 {

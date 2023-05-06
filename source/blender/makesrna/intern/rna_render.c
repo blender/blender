@@ -307,12 +307,12 @@ static void engine_update_render_passes(RenderEngine *engine,
 
 /* RenderEngine registration */
 
-static void rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
+static bool rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
 {
   RenderEngineType *et = RNA_struct_blender_type_get(type);
 
   if (!et) {
-    return;
+    return false;
   }
 
   /* Stop all renders in case we were using this one. */
@@ -322,6 +322,7 @@ static void rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
   RNA_struct_free_extension(type, &et->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
   BLI_freelinkN(&R_engines, et);
+  return true;
 }
 
 static StructRNA *rna_RenderEngine_register(Main *bmain,
@@ -332,43 +333,51 @@ static StructRNA *rna_RenderEngine_register(Main *bmain,
                                             StructCallbackFunc call,
                                             StructFreeFunc free)
 {
-  RenderEngineType *et, dummyet = {NULL};
-  RenderEngine dummyengine = {NULL};
-  PointerRNA dummyptr;
-  int have_function[9];
+  const char *error_prefix = "Registering render engine class:";
+  RenderEngineType *et, dummy_et = {NULL};
+  RenderEngine dummy_engine = {NULL};
+  PointerRNA dummy_engine_ptr;
+  bool have_function[9];
 
   /* setup dummy engine & engine type to store static properties in */
-  dummyengine.type = &dummyet;
-  dummyet.flag |= RE_USE_SHADING_NODES_CUSTOM;
-  RNA_pointer_create(NULL, &RNA_RenderEngine, &dummyengine, &dummyptr);
+  dummy_engine.type = &dummy_et;
+  dummy_et.flag |= RE_USE_SHADING_NODES_CUSTOM;
+  RNA_pointer_create(NULL, &RNA_RenderEngine, &dummy_engine, &dummy_engine_ptr);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, have_function) != 0) {
+  if (validate(&dummy_engine_ptr, data, have_function) != 0) {
     return NULL;
   }
 
-  if (strlen(identifier) >= sizeof(dummyet.idname)) {
+  if (strlen(identifier) >= sizeof(dummy_et.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering render engine class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
-                (int)sizeof(dummyet.idname));
+                (int)sizeof(dummy_et.idname));
     return NULL;
   }
 
-  /* check if we have registered this engine type before, and remove it */
-  for (et = R_engines.first; et; et = et->next) {
-    if (STREQ(et->idname, dummyet.idname)) {
-      if (et->rna_ext.srna) {
-        rna_RenderEngine_unregister(bmain, et->rna_ext.srna);
-      }
-      break;
+  /* Check if we have registered this engine type before, and remove it. */
+  et = BLI_findstring(&R_engines, dummy_et.idname, offsetof(RenderEngineType, idname));
+  if (et) {
+    StructRNA *srna = et->rna_ext.srna;
+    if (!(srna && rna_RenderEngine_unregister(bmain, srna))) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s '%s', bl_idname '%s' %s",
+                  error_prefix,
+                  identifier,
+                  dummy_et.idname,
+                  srna ? "is built-in" : "could not be unregistered");
+      return NULL;
     }
   }
 
   /* create a new engine type */
   et = MEM_mallocN(sizeof(RenderEngineType), "python render engine");
-  memcpy(et, &dummyet, sizeof(dummyet));
+  memcpy(et, &dummy_et, sizeof(dummy_et));
 
   et->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, et->idname, &RNA_RenderEngine);
   et->rna_ext.data = data;
@@ -406,7 +415,7 @@ static StructRNA *rna_RenderEngine_refine(PointerRNA *ptr)
 
 static void rna_RenderEngine_tempdir_get(PointerRNA *UNUSED(ptr), char *value)
 {
-  BLI_strncpy(value, BKE_tempdir_session(), FILE_MAX);
+  strcpy(value, BKE_tempdir_session());
 }
 
 static int rna_RenderEngine_tempdir_length(PointerRNA *UNUSED(ptr))

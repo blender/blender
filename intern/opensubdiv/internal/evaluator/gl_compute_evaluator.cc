@@ -243,13 +243,15 @@ bool GLComputeEvaluator::Compile(BufferDescriptor const &srcDesc,
 
   // create a stencil kernel
   if (!_stencilKernel.Compile(
-          srcDesc, dstDesc, duDesc, dvDesc, duuDesc, duvDesc, dvvDesc, _workGroupSize)) {
+          srcDesc, dstDesc, duDesc, dvDesc, duuDesc, duvDesc, dvvDesc, _workGroupSize))
+  {
     return false;
   }
 
   // create a patch kernel
   if (!_patchKernel.Compile(
-          srcDesc, dstDesc, duDesc, dvDesc, duuDesc, duvDesc, dvvDesc, _workGroupSize)) {
+          srcDesc, dstDesc, duDesc, dvDesc, duuDesc, duvDesc, dvvDesc, _workGroupSize))
+  {
     return false;
   }
 
@@ -570,9 +572,7 @@ bool GLComputeEvaluator::EvalPatches(GLuint srcBuffer,
 }
 // ---------------------------------------------------------------------------
 
-GLComputeEvaluator::_StencilKernel::_StencilKernel() : program(0)
-{
-}
+GLComputeEvaluator::_StencilKernel::_StencilKernel() : program(0) {}
 GLComputeEvaluator::_StencilKernel::~_StencilKernel()
 {
   if (program) {
@@ -617,9 +617,7 @@ bool GLComputeEvaluator::_StencilKernel::Compile(BufferDescriptor const &srcDesc
 
 // ---------------------------------------------------------------------------
 
-GLComputeEvaluator::_PatchKernel::_PatchKernel() : program(0)
-{
-}
+GLComputeEvaluator::_PatchKernel::_PatchKernel() : program(0) {}
 GLComputeEvaluator::_PatchKernel::~_PatchKernel()
 {
   if (program) {

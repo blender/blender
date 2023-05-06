@@ -10,8 +10,8 @@ void AnimationClipExporter::exportAnimationClips(Scene *sce)
   std::map<std::string, COLLADASW::ColladaAnimationClip *> clips;
 
   std::vector<std::vector<std::string>>::iterator anim_meta_entry;
-  for (anim_meta_entry = anim_meta.begin(); anim_meta_entry != anim_meta.end();
-       ++anim_meta_entry) {
+  for (anim_meta_entry = anim_meta.begin(); anim_meta_entry != anim_meta.end(); ++anim_meta_entry)
+  {
     std::vector<std::string> entry = *anim_meta_entry;
     std::string action_id = entry[0];
     std::string action_name = entry[1];

@@ -8,7 +8,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_geometry_set.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "GEO_mesh_primitive_cuboid.hh"
 
@@ -108,8 +108,8 @@ static void calculate_positions(const CuboidConfig &config, MutableSpan<float3> 
  * Hence they are passed as 1,4,3,2 when calculating polys clockwise, and 1,2,3,4 for
  * anti-clockwise.
  */
-static void define_quad(MutableSpan<MPoly> polys,
-                        MutableSpan<MLoop> loops,
+static void define_quad(MutableSpan<int> poly_offsets,
+                        MutableSpan<int> corner_verts,
                         const int poly_index,
                         const int loop_index,
                         const int vert_1,
@@ -117,23 +117,17 @@ static void define_quad(MutableSpan<MPoly> polys,
                         const int vert_3,
                         const int vert_4)
 {
-  MPoly &poly = polys[poly_index];
-  poly.loopstart = loop_index;
-  poly.totloop = 4;
+  poly_offsets[poly_index] = loop_index;
 
-  MLoop &loop_1 = loops[loop_index];
-  loop_1.v = vert_1;
-  MLoop &loop_2 = loops[loop_index + 1];
-  loop_2.v = vert_2;
-  MLoop &loop_3 = loops[loop_index + 2];
-  loop_3.v = vert_3;
-  MLoop &loop_4 = loops[loop_index + 3];
-  loop_4.v = vert_4;
+  corner_verts[loop_index] = vert_1;
+  corner_verts[loop_index + 1] = vert_2;
+  corner_verts[loop_index + 2] = vert_3;
+  corner_verts[loop_index + 3] = vert_4;
 }
 
 static void calculate_polys(const CuboidConfig &config,
-                            MutableSpan<MPoly> polys,
-                            MutableSpan<MLoop> loops)
+                            MutableSpan<int> poly_offsets,
+                            MutableSpan<int> corner_verts)
 {
   int loop_index = 0;
   int poly_index = 0;
@@ -152,7 +146,8 @@ static void calculate_polys(const CuboidConfig &config,
       const int vert_3 = vert_2 + 1;
       const int vert_4 = vert_1 + 1;
 
-      define_quad(polys, loops, poly_index, loop_index, vert_1, vert_2, vert_3, vert_4);
+      define_quad(
+          poly_offsets, corner_verts, poly_index, loop_index, vert_1, vert_2, vert_3, vert_4);
       loop_index += 4;
       poly_index++;
     }
@@ -165,8 +160,8 @@ static void calculate_polys(const CuboidConfig &config,
 
   for ([[maybe_unused]] const int z : IndexRange(config.edges_z)) {
     for (const int x : IndexRange(config.edges_x)) {
-      define_quad(polys,
-                  loops,
+      define_quad(poly_offsets,
+                  corner_verts,
                   poly_index,
                   loop_index,
                   vert_1_start + x,
@@ -188,8 +183,8 @@ static void calculate_polys(const CuboidConfig &config,
 
   for ([[maybe_unused]] const int y : IndexRange(config.edges_y)) {
     for (const int x : IndexRange(config.edges_x)) {
-      define_quad(polys,
-                  loops,
+      define_quad(poly_offsets,
+                  corner_verts,
                   poly_index,
                   loop_index,
                   vert_1_start + x,
@@ -212,8 +207,8 @@ static void calculate_polys(const CuboidConfig &config,
       vert_2_start += (config.verts_x - 2) * (config.verts_y - 2);
     }
     for (const int x : IndexRange(config.edges_x)) {
-      define_quad(polys,
-                  loops,
+      define_quad(poly_offsets,
+                  corner_verts,
                   poly_index,
                   loop_index,
                   vert_1_start + x,
@@ -258,7 +253,8 @@ static void calculate_polys(const CuboidConfig &config,
         vert_3 = vert_2 + 2;
       }
 
-      define_quad(polys, loops, poly_index, loop_index, vert_1, vert_2, vert_3, vert_4);
+      define_quad(
+          poly_offsets, corner_verts, poly_index, loop_index, vert_1, vert_2, vert_3, vert_4);
       loop_index += 4;
       poly_index++;
     }
@@ -305,7 +301,8 @@ static void calculate_polys(const CuboidConfig &config,
         vert_4 = vert_1 + config.verts_x;
       }
 
-      define_quad(polys, loops, poly_index, loop_index, vert_1, vert_4, vert_3, vert_2);
+      define_quad(
+          poly_offsets, corner_verts, poly_index, loop_index, vert_1, vert_4, vert_3, vert_2);
       loop_index += 4;
       poly_index++;
     }
@@ -403,20 +400,24 @@ Mesh *create_cuboid_mesh(const float3 &size,
 {
   const CuboidConfig config(size, verts_x, verts_y, verts_z);
 
-  Mesh *mesh = BKE_mesh_new_nomain(
-      config.vertex_count, 0, 0, config.loop_count, config.poly_count);
+  Mesh *mesh = BKE_mesh_new_nomain(config.vertex_count, 0, config.poly_count, config.loop_count);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<MPoly> polys = mesh->polys_for_write();
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
+  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
+  BKE_mesh_smooth_flag_set(mesh, false);
 
   calculate_positions(config, positions);
 
-  calculate_polys(config, polys, loops);
+  calculate_polys(config, poly_offsets, corner_verts);
   BKE_mesh_calc_edges(mesh, false, false);
 
   if (uv_id) {
     calculate_uvs(config, mesh, uv_id);
   }
+
+  const float3 bounds = size * 0.5f;
+  mesh->bounds_set_eager({-bounds, bounds});
+  mesh->tag_loose_verts_none();
 
   return mesh;
 }

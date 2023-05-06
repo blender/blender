@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 
 #pragma once
 
@@ -35,7 +35,9 @@ struct Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(struct MirrorModi
                                                                struct Object *ob,
                                                                const struct Mesh *mesh,
                                                                int axis,
-                                                               bool use_correct_order_on_merge);
+                                                               bool use_correct_order_on_merge,
+                                                               int **r_vert_merge_map,
+                                                               int *r_vert_merge_map_len);
 
 #ifdef __cplusplus
 }

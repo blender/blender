@@ -1,4 +1,4 @@
-// Copyright 2013 Blender Foundation. All rights reserved.
+// Copyright 2013 Blender Foundation
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -44,7 +44,8 @@ void stringSplit(vector<string> *tokens,
   }
   // Append token which might be at the end of the string.
   if ((token_length != 0) ||
-      (!skip_empty && token_start > 0 && separators.find(str[token_start - 1]) != string::npos)) {
+      (!skip_empty && token_start > 0 && separators.find(str[token_start - 1]) != string::npos))
+  {
     string token = str.substr(token_start, token_length);
     tokens->push_back(token);
   }

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -95,11 +95,11 @@ class GLShader : public Shader {
 
 class GLLogParser : public GPULogParser {
  public:
-  char *parse_line(char *log_line, GPULogItem &log_item) override;
+  const char *parse_line(const char *log_line, GPULogItem &log_item) override;
 
  protected:
-  char *skip_severity_prefix(char *log_line, GPULogItem &log_item);
-  char *skip_severity_keyword(char *log_line, GPULogItem &log_item);
+  const char *skip_severity_prefix(const char *log_line, GPULogItem &log_item);
+  const char *skip_severity_keyword(const char *log_line, GPULogItem &log_item);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLLogParser");
 };

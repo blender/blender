@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup nodes
@@ -25,7 +25,7 @@
 #include "UI_resources.h"
 
 #include "node_common.h"
-#include "node_util.h"
+#include "node_util.hh"
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
@@ -211,7 +211,8 @@ void ntreeCompositTagRender(Scene *scene)
    * ideally render struct would store own main AND original G_MAIN. */
 
   for (Scene *sce_iter = (Scene *)G_MAIN->scenes.first; sce_iter;
-       sce_iter = (Scene *)sce_iter->id.next) {
+       sce_iter = (Scene *)sce_iter->id.next)
+  {
     if (sce_iter->nodetree) {
       for (bNode *node : sce_iter->nodetree->all_nodes()) {
         if (node->id == (ID *)scene || node->type == CMP_NODE_COMPOSITE) {
@@ -226,9 +227,10 @@ void ntreeCompositTagRender(Scene *scene)
   BKE_ntree_update_main(G_MAIN, nullptr);
 }
 
-/* XXX after render animation system gets a refresh, this call allows composite to end clean */
 void ntreeCompositClearTags(bNodeTree *ntree)
 {
+  /* XXX: after render animation system gets a refresh, this call allows composite to end clean. */
+
   if (ntree == nullptr) {
     return;
   }

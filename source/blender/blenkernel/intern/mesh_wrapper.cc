@@ -7,7 +7,7 @@
  * output of a modified mesh.
  *
  * This API handles the case when the modifier stack outputs a mesh which does not have
- * #Mesh data (#MPoly, #MLoop, #MEdge, etc).
+ * #Mesh data (#Mesh::polys(), corner verts, corner edges, edges, etc).
  * Currently this is used so the resulting mesh can have #BMEditMesh data,
  * postponing the converting until it's needed or avoiding conversion entirely
  * which can be an expensive operation.
@@ -34,13 +34,13 @@
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_subdiv.h"
-#include "BKE_subdiv_mesh.h"
+#include "BKE_subdiv_mesh.hh"
 #include "BKE_subdiv_modifier.h"
 
 #include "DEG_depsgraph.h"

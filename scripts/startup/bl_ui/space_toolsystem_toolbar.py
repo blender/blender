@@ -31,21 +31,45 @@ def generate_from_enum_ex(
         type,
         attr,
         cursor='DEFAULT',
-        tooldef_keywords={},
-        exclude_filter={},
+        tooldef_keywords=None,
+        icon_map=None,
+        use_separators=True,
 ):
+    if tooldef_keywords is None:
+        tooldef_keywords = {}
+
     tool_defs = []
-    for enum in type.bl_rna.properties[attr].enum_items_static:
-        name = enum.name
-        idname = enum.identifier
-        if idname in exclude_filter:
-            continue
+
+    enum_items = getattr(
+        type.bl_rna.properties[attr],
+        "enum_items_static_ui" if use_separators else
+        "enum_items_static",
+    )
+
+    for enum in enum_items:
+        if use_separators:
+            if not (name := enum.name):
+                # Empty string for a UI Separator.
+                tool_defs.append(None)
+                continue
+            if not (idname := enum.identifier):
+                # This is a heading, there is no purpose in showing headings here.
+                continue
+        else:
+            name = enum.name
+            idname = enum.identifier
+
+        icon = icon_prefix + idname.lower()
+        if icon_map is not None:
+            icon = icon_map.get(icon, icon)
+
         tool_defs.append(
             ToolDef.from_dict(
                 dict(
                     idname=idname_prefix + name,
                     label=name,
-                    icon=icon_prefix + idname.lower(),
+                    description=enum.description,
+                    icon=icon,
                     cursor=cursor,
                     data_block=idname,
                     **tooldef_keywords,
@@ -451,6 +475,7 @@ class _defs_view3d_add:
             for item in km.keymap_items:
                 if item.propvalue == propvalue:
                     return item
+            return None
 
         if km is not None:
             kmi_snap = keymap_item_from_propvalue('SNAP_ON')
@@ -1259,6 +1284,20 @@ class _defs_edit_curve:
         )
 
 
+class _defs_edit_text:
+
+    @ToolDef.from_fn
+    def select_text():
+        return dict(
+            idname="builtin.select_text",
+            label="Select Text",
+            cursor='TEXT',
+            icon="ops.generic.select_box",
+            widget=None,
+            keymap=(),
+        )
+
+
 class _defs_pose:
 
     @ToolDef.from_fn
@@ -1315,6 +1354,9 @@ class _defs_sculpt:
             icon_prefix="brush.sculpt.",
             type=bpy.types.Brush,
             attr="sculpt_tool",
+            # TODO(@ideasman42): we may want to enable this,
+            # it causes awkward grouping with 2x column button layout.
+            use_separators=False,
         )
 
     @ToolDef.from_fn
@@ -1408,6 +1450,7 @@ class _defs_sculpt:
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.trim_box_gesture")
             layout.prop(props, "trim_mode", expand=False)
+            layout.prop(props, "trim_orientation", expand=False)
             layout.prop(props, "trim_extrude_mode", expand=False)
             layout.prop(props, "use_cursor_depth", expand=False)
         return dict(
@@ -2093,13 +2136,13 @@ class _defs_gpencil_paint:
 
 class _defs_gpencil_edit:
     def is_segment(context):
-        ts = context.scene.tool_settings
+        tool_settings = context.scene.tool_settings
         if context.mode == 'EDIT_GPENCIL':
-            return ts.gpencil_selectmode_edit == 'SEGMENT'
+            return tool_settings.gpencil_selectmode_edit == 'SEGMENT'
         elif context.mode == 'SCULPT_GPENCIL':
-            return ts.use_gpencil_select_mask_segment
+            return tool_settings.use_gpencil_select_mask_segment
         elif context.mode == 'VERTEX_GPENCIL':
-            return ts.use_gpencil_vertex_select_mask_segment
+            return tool_settings.use_gpencil_vertex_select_mask_segment
         else:
             return False
 
@@ -2282,10 +2325,15 @@ class _defs_gpencil_sculpt:
         if context is None:
             return True
         ob = context.active_object
-        ts = context.scene.tool_settings
-        return ob and ob.type == 'GPENCIL' and (ts.use_gpencil_select_mask_point or
-                                                ts.use_gpencil_select_mask_stroke or
-                                                ts.use_gpencil_select_mask_segment)
+        tool_settings = context.scene.tool_settings
+        return (
+            ob is not None and
+            ob.type == 'GPENCIL' and (
+                tool_settings.use_gpencil_select_mask_point or
+                tool_settings.use_gpencil_select_mask_stroke or
+                tool_settings.use_gpencil_select_mask_segment
+            )
+        )
 
     @staticmethod
     def generate_from_brushes(context):
@@ -2319,103 +2367,18 @@ class _defs_gpencil_weight:
 
 class _defs_curves_sculpt:
 
-    @ToolDef.from_fn
-    def selection_paint():
-        return dict(
-            idname="builtin_brush.selection_paint",
-            label="Selection Paint",
-            icon="ops.generic.select_paint",
-            data_block="SELECTION_PAINT",
-        )
-
-    @ToolDef.from_fn
-    def comb():
-        return dict(
-            idname="builtin_brush.comb",
-            label="Comb",
-            icon="ops.curves.sculpt_comb",
-            data_block='COMB',
-        )
-
-    @ToolDef.from_fn
-    def add():
-        return dict(
-            idname="builtin_brush.add",
-            label="Add",
-            icon="ops.curves.sculpt_add",
-            data_block='ADD',
-        )
-
-    @ToolDef.from_fn
-    def delete():
-        return dict(
-            idname="builtin_brush.delete",
-            label="Delete",
-            icon="ops.curves.sculpt_delete",
-            data_block='DELETE',
-        )
-
-    @ToolDef.from_fn
-    def snake_hook():
-        return dict(
-            idname="builtin_brush.snake_hook",
-            label="Snake Hook",
-            icon="ops.curves.sculpt_snake_hook",
-            data_block='SNAKE_HOOK',
-        )
-
-    @ToolDef.from_fn
-    def grow_shrink():
-        return dict(
-            idname="builtin_brush.grow_shrink",
-            label="Grow/Shrink",
-            icon="ops.curves.sculpt_grow_shrink",
-            data_block='GROW_SHRINK',
-        )
-
-    @ToolDef.from_fn
-    def pinch():
-        return dict(
-            idname="builtin_brush.pinch",
-            label="Pinch",
-            icon="ops.curves.sculpt_pinch",
-            data_block='PINCH',
-        )
-
-    @ToolDef.from_fn
-    def smooth():
-        return dict(
-            idname="builtin_brush.smooth",
-            label="Smooth",
-            icon="ops.curves.sculpt_smooth",
-            data_block='SMOOTH',
-        )
-
-    @ToolDef.from_fn
-    def puff():
-        return dict(
-            idname="builtin_brush.puff",
-            label="Puff",
-            icon="ops.curves.sculpt_puff",
-            data_block='PUFF',
-        )
-
-    @ToolDef.from_fn
-    def density():
-        return dict(
-            idname="builtin_brush.density",
-            label="Density",
-            icon="ops.curves.sculpt_density",
-            data_block="DENSITY",
-        )
-
-    @ToolDef.from_fn
-    def slide():
-        return dict(
-            idname="builtin_brush.slide",
-            label="Slide",
-            icon="ops.curves.sculpt_slide",
-            data_block="SLIDE",
+    @staticmethod
+    def generate_from_brushes(context):
+        return generate_from_enum_ex(
+            context,
+            idname_prefix="builtin_brush.",
+            icon_prefix="ops.curves.sculpt_",
+            type=bpy.types.Brush,
+            attr="curves_sculpt_tool",
+            icon_map={
+                # Use the generic icon for selection painting.
+                "ops.curves.sculpt_selection_paint": "ops.generic.select_paint",
+            },
         )
 
 
@@ -2426,10 +2389,15 @@ class _defs_gpencil_vertex:
         if context is None:
             return True
         ob = context.active_object
-        ts = context.scene.tool_settings
-        return ob and ob.type == 'GPENCIL' and (ts.use_gpencil_vertex_select_mask_point or
-                                                ts.use_gpencil_vertex_select_mask_stroke or
-                                                ts.use_gpencil_vertex_select_mask_segment)
+        tool_settings = context.scene.tool_settings
+        return (
+            ob is not None and
+            ob.type == 'GPENCIL' and (
+                tool_settings.use_gpencil_vertex_select_mask_point or
+                tool_settings.use_gpencil_vertex_select_mask_stroke or
+                tool_settings.use_gpencil_vertex_select_mask_segment
+            )
+        )
 
     @staticmethod
     def generate_from_brushes(context):
@@ -2563,6 +2531,18 @@ class _defs_sequencer_generic:
         )
 
     @ToolDef.from_fn
+    def retime():
+        return dict(
+            idname="builtin.retime",
+            label="Retime",
+            icon="ops.sequencer.retime",
+            widget="SEQUENCER_GGT_gizmo_retime",
+            operator=None,
+            keymap=None,
+            options={'KEYMAP_FALLBACK'},
+        )
+
+    @ToolDef.from_fn
     def sample():
         return dict(
             idname="builtin.sample",
@@ -2639,7 +2619,6 @@ class _defs_sequencer_select:
             row = layout.row()
             row.use_property_split = False
             row.prop(props, "mode", text="", expand=True, icon_only=True)
-            pass
         return dict(
             idname="builtin.select_box",
             label="Select Box",
@@ -2656,7 +2635,7 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_label = "Tools"  # not visible
     bl_options = {'HIDE_HEADER'}
 
-    # Satisfy the 'ToolSelectPanelHelper' API.
+    # Satisfy the `ToolSelectPanelHelper` API.
     keymap_prefix = "Image Editor Tool:"
 
     # Default group to use as a fallback.
@@ -2751,7 +2730,7 @@ class NODE_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_label = "Tools"  # not visible
     bl_options = {'HIDE_HEADER'}
 
-    # Satisfy the 'ToolSelectPanelHelper' API.
+    # Satisfy the `ToolSelectPanelHelper` API.
     keymap_prefix = "Node Editor Tool:"
 
     # Default group to use as a fallback.
@@ -2815,7 +2794,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_label = "Tools"  # not visible
     bl_options = {'HIDE_HEADER'}
 
-    # Satisfy the 'ToolSelectPanelHelper' API.
+    # Satisfy the `ToolSelectPanelHelper` API.
     keymap_prefix = "3D View Tool:"
 
     # Default group to use as a fallback.
@@ -3015,6 +2994,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_transform.shear,
         ],
         'EDIT_TEXT': [
+            _defs_edit_text.select_text,
             _defs_view3d_generic.cursor,
             None,
             *_tools_annotate,
@@ -3170,19 +3150,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             ),
         ],
         'SCULPT_CURVES': [
-            _defs_curves_sculpt.selection_paint,
-            None,
-            _defs_curves_sculpt.add,
-            _defs_curves_sculpt.delete,
-            _defs_curves_sculpt.density,
-            None,
-            _defs_curves_sculpt.comb,
-            _defs_curves_sculpt.snake_hook,
-            _defs_curves_sculpt.grow_shrink,
-            _defs_curves_sculpt.pinch,
-            _defs_curves_sculpt.puff,
-            _defs_curves_sculpt.smooth,
-            _defs_curves_sculpt.slide,
+            _defs_curves_sculpt.generate_from_brushes,
             None,
             *_tools_annotate,
         ],
@@ -3195,7 +3163,7 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_label = "Tools"  # not visible
     bl_options = {'HIDE_HEADER'}
 
-    # Satisfy the 'ToolSelectPanelHelper' API.
+    # Satisfy the `ToolSelectPanelHelper` API.
     keymap_prefix = "Sequence Editor Tool:"
 
     # Default group to use as a fallback.
@@ -3255,6 +3223,7 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
         'SEQUENCER': [
             *_tools_select,
             _defs_sequencer_generic.blade,
+            _defs_sequencer_generic.retime,
         ],
         'SEQUENCER_PREVIEW': [
             *_tools_select,

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. All rights reserved. */
+ * Copyright 2018 Blender Foundation */
 
 /** \file
  * \ingroup cmpnodes
@@ -180,7 +180,8 @@ void ntreeCompositCryptomatteUpdateLayerNames(const Scene *scene, bNode *node)
 
   if (session) {
     for (blender::StringRef layer_name :
-         blender::bke::cryptomatte::BKE_cryptomatte_layer_names_get(*session)) {
+         blender::bke::cryptomatte::BKE_cryptomatte_layer_names_get(*session))
+    {
       CryptomatteLayer *layer = MEM_cnew<CryptomatteLayer>(__func__);
       layer_name.copy(layer->name);
       BLI_addtail(&n->runtime.layers, layer);
@@ -201,7 +202,8 @@ void ntreeCompositCryptomatteLayerPrefix(const Scene *scene,
 
   if (session) {
     for (blender::StringRef layer_name :
-         blender::bke::cryptomatte::BKE_cryptomatte_layer_names_get(*session)) {
+         blender::bke::cryptomatte::BKE_cryptomatte_layer_names_get(*session))
+    {
       if (first_layer_name.empty()) {
         first_layer_name = layer_name;
       }
@@ -286,7 +288,8 @@ static bool node_poll_cryptomatte(const bNodeType * /*ntype*/,
 
     /* See node_composit_poll_rlayers. */
     for (scene = static_cast<Scene *>(G.main->scenes.first); scene;
-         scene = static_cast<Scene *>(scene->id.next)) {
+         scene = static_cast<Scene *>(scene->id.next))
+    {
       if (scene->nodetree == ntree) {
         break;
       }

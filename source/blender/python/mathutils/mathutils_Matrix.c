@@ -737,7 +737,8 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
     float tvec[3];
 
     if (mathutils_array_parse(
-            tvec, 3, 3, vec, "Matrix.Rotation(angle, size, axis), invalid 'axis' arg") == -1) {
+            tvec, 3, 3, vec, "Matrix.Rotation(angle, size, axis), invalid 'axis' arg") == -1)
+    {
       return NULL;
     }
 
@@ -775,7 +776,8 @@ static PyObject *C_Matrix_Translation(PyObject *cls, PyObject *value)
   unit_m4(mat);
 
   if (mathutils_array_parse(
-          mat[3], 3, 4, value, "mathutils.Matrix.Translation(vector), invalid vector arg") == -1) {
+          mat[3], 3, 4, value, "mathutils.Matrix.Translation(vector), invalid vector arg") == -1)
+  {
     return NULL;
   }
 
@@ -847,7 +849,8 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
     vec_num = (matSize == 2 ? 2 : 3);
     if (mathutils_array_parse(
             tvec, vec_num, vec_num, vec, "Matrix.Scale(factor, size, axis), invalid 'axis' arg") ==
-        -1) {
+        -1)
+    {
       return NULL;
     }
   }
@@ -980,7 +983,8 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
                               vec_num,
                               vec_num,
                               axis,
-                              "Matrix.OrthoProjection(axis, size), invalid 'axis' arg") == -1) {
+                              "Matrix.OrthoProjection(axis, size), invalid 'axis' arg") == -1)
+    {
       return NULL;
     }
 
@@ -1148,7 +1152,8 @@ static PyObject *C_Matrix_LocRotScale(PyObject *cls, PyObject *args)
     zero_v3(loc);
   }
   else if (mathutils_array_parse(
-               loc, 3, 3, loc_obj, "Matrix.LocRotScale(), invalid location argument") == -1) {
+               loc, 3, 3, loc_obj, "Matrix.LocRotScale(), invalid location argument") == -1)
+  {
     return NULL;
   }
 
@@ -1203,7 +1208,8 @@ static PyObject *C_Matrix_LocRotScale(PyObject *cls, PyObject *args)
     float scale[3];
 
     if (mathutils_array_parse(
-            scale, 3, 3, scale_obj, "Matrix.LocRotScale(), invalid scale argument") == -1) {
+            scale, 3, 3, scale_obj, "Matrix.LocRotScale(), invalid scale argument") == -1)
+    {
       return NULL;
     }
 
@@ -2438,7 +2444,8 @@ static int Matrix_ass_item_row(MatrixObject *self, int row, PyObject *value)
   }
 
   if (mathutils_array_parse(
-          vec, self->col_num, self->col_num, value, "matrix[i] = value assignment") == -1) {
+          vec, self->col_num, self->col_num, value, "matrix[i] = value assignment") == -1)
+  {
     return -1;
   }
 
@@ -2466,7 +2473,8 @@ static int Matrix_ass_item_col(MatrixObject *self, int col, PyObject *value)
   }
 
   if (mathutils_array_parse(
-          vec, self->row_num, self->row_num, value, "matrix[i] = value assignment") == -1) {
+          vec, self->row_num, self->row_num, value, "matrix[i] = value assignment") == -1)
+  {
     return -1;
   }
 
@@ -2546,8 +2554,8 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
     PyObject *item = value_fast_items[row - begin];
 
     if (mathutils_array_parse(
-            vec, self->col_num, self->col_num, item, "matrix[begin:end] = value assignment") ==
-        -1) {
+            vec, self->col_num, self->col_num, item, "matrix[begin:end] = value assignment") == -1)
+    {
       Py_DECREF(value_fast);
       return -1;
     }
@@ -2977,7 +2985,7 @@ static PySequenceMethods Matrix_SeqMethods = {
 };
 
 static PyMappingMethods Matrix_AsMapping = {
-    /*mp_len*/ (lenfunc)Matrix_len,
+    /*mp_length*/ (lenfunc)Matrix_len,
     /*mp_subscript*/ (binaryfunc)Matrix_subscript,
     /*mp_ass_subscript*/ (objobjargproc)Matrix_ass_subscript,
 };
@@ -3692,8 +3700,8 @@ static PyObject *MatrixAccess_subscript(MatrixAccessObject *self, PyObject *item
   if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
-    if (PySlice_GetIndicesEx(item, MatrixAccess_len(self), &start, &stop, &step, &slicelength) <
-        0) {
+    if (PySlice_GetIndicesEx(item, MatrixAccess_len(self), &start, &stop, &step, &slicelength) < 0)
+    {
       return NULL;
     }
 
@@ -3760,7 +3768,7 @@ static PyObject *MatrixAccess_iter(MatrixAccessObject *self)
 }
 
 static PyMappingMethods MatrixAccess_AsMapping = {
-    /*mp_len*/ (lenfunc)MatrixAccess_len,
+    /*mp_length*/ (lenfunc)MatrixAccess_len,
     /*mp_subscript*/ (binaryfunc)MatrixAccess_subscript,
     /*mp_ass_subscript*/ (objobjargproc)MatrixAccess_ass_subscript,
 };

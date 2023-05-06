@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 #include "usd_writer_transform.h"
 #include "usd_hierarchy_iterator.h"
 
@@ -44,9 +44,7 @@ void get_export_conversion_matrix(const USDExportParams &params, float r_mat[4][
   }
 }
 
-USDTransformWriter::USDTransformWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
-{
-}
+USDTransformWriter::USDTransformWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
 pxr::UsdGeomXformable USDTransformWriter::create_xformable() const
 {

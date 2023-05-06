@@ -21,6 +21,7 @@ extern "C" {
 
 struct AssetHandle;
 
+struct AssetRepresentation *ED_asset_handle_get_representation(const struct AssetHandle *asset);
 const char *ED_asset_handle_get_name(const struct AssetHandle *asset);
 struct AssetMetaData *ED_asset_handle_get_metadata(const struct AssetHandle *asset);
 struct ID *ED_asset_handle_get_local_id(const struct AssetHandle *asset);
@@ -31,6 +32,7 @@ void ED_asset_handle_get_full_library_path(
     /* `1090` for #FILE_MAX_LIBEXTRA,
      * rely on warnings to let us know if this gets out of sync. */
     char r_full_lib_path[1090]);
+bool ED_asset_handle_get_use_relative_path(const struct AssetHandle *asset);
 
 #ifdef __cplusplus
 }
@@ -44,12 +46,5 @@ void ED_asset_handle_get_full_library_path(
  * returns it. Otherwise a reasonable method should be used, usually "Append (Reuse Data)". */
 std::optional<eAssetImportMethod> ED_asset_handle_get_import_method(
     const struct AssetHandle *asset);
-
-namespace blender::ed::asset {
-
-/** If the ID already exists in the database, return it, otherwise add it. */
-ID *get_local_id_from_asset_or_append_and_reuse(Main &bmain, AssetHandle asset);
-
-}  // namespace blender::ed::asset
 
 #endif

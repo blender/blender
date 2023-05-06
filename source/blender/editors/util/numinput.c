@@ -323,7 +323,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 #endif
   {
     if (((event->modifier & (KM_CTRL | KM_ALT)) == 0) && (event_ascii != '\0') &&
-        strchr("01234567890@%^&*-+/{}()[]<>.|", event_ascii)) {
+        strchr("01234567890@%^&*-+/{}()[]<>.|", event_ascii))
+    {
       if (!(n->flag & NUM_EDIT_FULL)) {
         n->flag |= NUM_EDITED;
         n->flag |= NUM_EDIT_FULL;

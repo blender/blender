@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+ * Copyright 2012 Blender Foundation */
 
 /** \file
  * \ingroup intern_locale
@@ -33,8 +33,8 @@ static void bl_locale_global_cache()
     locale_global = std::locale();
     facet_global = &std::use_facet<char_message_facet>(locale_global);
   }
-  catch (const std::bad_cast
-             &e) { /* if std::has_facet<char_message_facet>(l) == false, LC_ALL = "C" case */
+  /* `if std::has_facet<char_message_facet>(l) == false`, LC_ALL = "C" case. */
+  catch (const std::bad_cast &e) {
 #ifndef NDEBUG
     std::cout << "bl_locale_global_cache:" << e.what() << " \n";
 #endif

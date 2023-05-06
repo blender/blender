@@ -42,6 +42,7 @@
 #include "../gizmo_library_intern.h"
 
 #define MVAL_MAX_PX_DIST 12.0f
+#define RING_2D_RESOLUTION 32
 
 typedef struct MoveGizmo3D {
   wmGizmo gizmo;
@@ -77,8 +78,6 @@ typedef struct MoveInteraction {
   struct SnapObjectContext *snap_context_v3d;
 
 } MoveInteraction;
-
-#define DIAL_RESOLUTION 32
 
 /* -------------------------------------------------------------------- */
 
@@ -116,10 +115,10 @@ static void move_geom_draw(const wmGizmo *gz,
 
   if (draw_style == ED_GIZMO_MOVE_STYLE_RING_2D) {
     if (filled) {
-      imm_draw_circle_fill_3d(pos, 0.0f, 0.0f, radius, DIAL_RESOLUTION);
+      imm_draw_circle_fill_3d(pos, 0.0f, 0.0f, radius, RING_2D_RESOLUTION);
     }
     else {
-      imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, radius, DIAL_RESOLUTION);
+      imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, radius, RING_2D_RESOLUTION);
     }
   }
   else if (draw_style == ED_GIZMO_MOVE_STYLE_CROSS_2D) {
@@ -252,7 +251,8 @@ static int gizmo_move_modal(bContext *C,
     float mval_proj_init[2], mval_proj_curr[2];
     if ((gizmo_window_project_2d(C, gz, inter->init.mval, 2, false, mval_proj_init) == false) ||
         (gizmo_window_project_2d(
-             C, gz, (const float[2]){UNPACK2(event->mval)}, 2, false, mval_proj_curr) == false)) {
+             C, gz, (const float[2]){UNPACK2(event->mval)}, 2, false, mval_proj_curr) == false))
+    {
       return OPERATOR_RUNNING_MODAL;
     }
     sub_v2_v2v2(prop_delta, mval_proj_curr, mval_proj_init);
@@ -289,7 +289,8 @@ static int gizmo_move_modal(bContext *C,
               NULL,
               &dist_px,
               co,
-              NULL)) {
+              NULL))
+      {
         float matrix_space_inv[4][4];
         invert_m4_m4(matrix_space_inv, gz->matrix_space);
         mul_v3_m4v3(move->prop_co, matrix_space_inv, co);

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -81,28 +81,28 @@ static void extract_vert_idx_iter_poly_bm(const MeshRenderData * /*mr*/,
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-static void extract_edge_idx_iter_ledge_bm(const MeshRenderData *mr,
-                                           const BMEdge *eed,
-                                           const int ledge_index,
-                                           void *data)
+static void extract_edge_idx_iter_loose_edge_bm(const MeshRenderData *mr,
+                                                const BMEdge *eed,
+                                                const int ledge_index,
+                                                void *data)
 {
   (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = BM_elem_index_get(eed);
   (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = BM_elem_index_get(eed);
 }
 
-static void extract_vert_idx_iter_ledge_bm(const MeshRenderData *mr,
-                                           const BMEdge *eed,
-                                           const int ledge_index,
-                                           void *data)
+static void extract_vert_idx_iter_loose_edge_bm(const MeshRenderData *mr,
+                                                const BMEdge *eed,
+                                                const int ledge_index,
+                                                void *data)
 {
   (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = BM_elem_index_get(eed->v1);
   (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = BM_elem_index_get(eed->v2);
 }
 
-static void extract_vert_idx_iter_lvert_bm(const MeshRenderData *mr,
-                                           const BMVert *eve,
-                                           const int lvert_index,
-                                           void *data)
+static void extract_vert_idx_iter_loose_vert_bm(const MeshRenderData *mr,
+                                                const BMVert *eve,
+                                                const int lvert_index,
+                                                void *data)
 {
   const int offset = mr->loop_len + (mr->edge_loose_len * 2);
 
@@ -110,71 +110,63 @@ static void extract_vert_idx_iter_lvert_bm(const MeshRenderData *mr,
 }
 
 static void extract_poly_idx_iter_poly_mesh(const MeshRenderData *mr,
-                                            const MPoly *mp,
-                                            const int mp_index,
+                                            const int poly_index,
                                             void *data)
 {
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    (*(int32_t **)data)[ml_index] = (mr->p_origindex) ? mr->p_origindex[mp_index] : mp_index;
+  for (const int ml_index : mr->polys[poly_index]) {
+    (*(int32_t **)data)[ml_index] = (mr->p_origindex) ? mr->p_origindex[poly_index] : poly_index;
   }
 }
 
 static void extract_edge_idx_iter_poly_mesh(const MeshRenderData *mr,
-                                            const MPoly *mp,
-                                            const int /*mp_index*/,
+                                            const int poly_index,
                                             void *data)
 {
-  const MLoop *mloop = mr->mloop;
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
-    (*(int32_t **)data)[ml_index] = (mr->e_origindex) ? mr->e_origindex[ml->e] : ml->e;
+  for (const int ml_index : mr->polys[poly_index]) {
+    const int edge = mr->corner_edges[ml_index];
+    (*(int32_t **)data)[ml_index] = (mr->e_origindex) ? mr->e_origindex[edge] : edge;
   }
 }
 
 static void extract_vert_idx_iter_poly_mesh(const MeshRenderData *mr,
-                                            const MPoly *mp,
-                                            const int /*mp_index*/,
+                                            const int poly_index,
                                             void *data)
 {
-  const MLoop *mloop = mr->mloop;
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
-    (*(int32_t **)data)[ml_index] = (mr->v_origindex) ? mr->v_origindex[ml->v] : ml->v;
+  for (const int ml_index : mr->polys[poly_index]) {
+    const int vert = mr->corner_verts[ml_index];
+    (*(int32_t **)data)[ml_index] = (mr->v_origindex) ? mr->v_origindex[vert] : vert;
   }
 }
 
-static void extract_edge_idx_iter_ledge_mesh(const MeshRenderData *mr,
-                                             const MEdge * /*med*/,
-                                             const int ledge_index,
-                                             void *data)
+static void extract_edge_idx_iter_loose_edge_mesh(const MeshRenderData *mr,
+                                                  const int2 /*edge*/,
+                                                  const int ledge_index,
+                                                  void *data)
 {
-  const int e_index = mr->ledges[ledge_index];
+  const int e_index = mr->loose_edges[ledge_index];
   const int e_orig = (mr->e_origindex) ? mr->e_origindex[e_index] : e_index;
   (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = e_orig;
   (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = e_orig;
 }
 
-static void extract_vert_idx_iter_ledge_mesh(const MeshRenderData *mr,
-                                             const MEdge *med,
-                                             const int ledge_index,
-                                             void *data)
+static void extract_vert_idx_iter_loose_edge_mesh(const MeshRenderData *mr,
+                                                  const int2 edge,
+                                                  const int ledge_index,
+                                                  void *data)
 {
-  int v1_orig = (mr->v_origindex) ? mr->v_origindex[med->v1] : med->v1;
-  int v2_orig = (mr->v_origindex) ? mr->v_origindex[med->v2] : med->v2;
+  int v1_orig = (mr->v_origindex) ? mr->v_origindex[edge[0]] : edge[0];
+  int v2_orig = (mr->v_origindex) ? mr->v_origindex[edge[1]] : edge[1];
   (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = v1_orig;
   (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = v2_orig;
 }
 
-static void extract_vert_idx_iter_lvert_mesh(const MeshRenderData *mr,
-                                             const int lvert_index,
-                                             void *data)
+static void extract_vert_idx_iter_loose_vert_mesh(const MeshRenderData *mr,
+                                                  const int lvert_index,
+                                                  void *data)
 {
   const int offset = mr->loop_len + (mr->edge_loose_len * 2);
 
-  const int v_index = mr->lverts[lvert_index];
+  const int v_index = mr->loose_verts[lvert_index];
   const int v_orig = (mr->v_origindex) ? mr->v_origindex[v_index] : v_index;
   (*(int32_t **)data)[offset + lvert_index] = v_orig;
 }
@@ -334,8 +326,8 @@ constexpr MeshExtract create_extractor_edge_idx()
   extractor.init = extract_select_idx_init;
   extractor.iter_poly_bm = extract_edge_idx_iter_poly_bm;
   extractor.iter_poly_mesh = extract_edge_idx_iter_poly_mesh;
-  extractor.iter_ledge_bm = extract_edge_idx_iter_ledge_bm;
-  extractor.iter_ledge_mesh = extract_edge_idx_iter_ledge_mesh;
+  extractor.iter_loose_edge_bm = extract_edge_idx_iter_loose_edge_bm;
+  extractor.iter_loose_edge_mesh = extract_edge_idx_iter_loose_edge_mesh;
   extractor.init_subdiv = extract_edge_idx_init_subdiv;
   extractor.iter_loose_geom_subdiv = extract_edge_idx_loose_geom_subdiv;
   extractor.data_type = MR_DATA_NONE;
@@ -351,10 +343,10 @@ constexpr MeshExtract create_extractor_vert_idx()
   extractor.init = extract_select_idx_init;
   extractor.iter_poly_bm = extract_vert_idx_iter_poly_bm;
   extractor.iter_poly_mesh = extract_vert_idx_iter_poly_mesh;
-  extractor.iter_ledge_bm = extract_vert_idx_iter_ledge_bm;
-  extractor.iter_ledge_mesh = extract_vert_idx_iter_ledge_mesh;
-  extractor.iter_lvert_bm = extract_vert_idx_iter_lvert_bm;
-  extractor.iter_lvert_mesh = extract_vert_idx_iter_lvert_mesh;
+  extractor.iter_loose_edge_bm = extract_vert_idx_iter_loose_edge_bm;
+  extractor.iter_loose_edge_mesh = extract_vert_idx_iter_loose_edge_mesh;
+  extractor.iter_loose_vert_bm = extract_vert_idx_iter_loose_vert_bm;
+  extractor.iter_loose_vert_mesh = extract_vert_idx_iter_loose_vert_mesh;
   extractor.init_subdiv = extract_vert_idx_init_subdiv;
   extractor.iter_loose_geom_subdiv = extract_vert_idx_loose_geom_subdiv;
   extractor.data_type = MR_DATA_NONE;
@@ -381,15 +373,14 @@ static void extract_fdot_idx_iter_poly_bm(const MeshRenderData * /*mr*/,
 }
 
 static void extract_fdot_idx_iter_poly_mesh(const MeshRenderData *mr,
-                                            const MPoly * /*mp*/,
-                                            const int mp_index,
+                                            const int poly_index,
                                             void *data)
 {
   if (mr->p_origindex != nullptr) {
-    (*(int32_t **)data)[mp_index] = mr->p_origindex[mp_index];
+    (*(int32_t **)data)[poly_index] = mr->p_origindex[poly_index];
   }
   else {
-    (*(int32_t **)data)[mp_index] = mp_index;
+    (*(int32_t **)data)[poly_index] = poly_index;
   }
 }
 

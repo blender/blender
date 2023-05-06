@@ -340,7 +340,8 @@ TEST_F(ImagePartialUpdateTest, mark_multiple_chunks)
   PartialUpdateRegion changed_region;
   int num_chunks_found = 0;
   while (BKE_image_partial_update_get_next_change(partial_update_user, &changed_region) ==
-         ePartialUpdateIterResult::ChangeAvailable) {
+         ePartialUpdateIterResult::ChangeAvailable)
+  {
     BLI_rcti_isect(&changed_region.region, &region, nullptr);
     num_chunks_found++;
   }

@@ -132,7 +132,19 @@ static eGPBrush_Presets gpencil_get_brush_preset_from_tool(bToolRef *tool,
       break;
     }
     case CTX_MODE_WEIGHT_GPENCIL: {
-      return GP_BRUSH_PRESET_DRAW_WEIGHT;
+      if (STREQ(tool->runtime->data_block, "DRAW")) {
+        return GP_BRUSH_PRESET_WEIGHT_DRAW;
+      }
+      if (STREQ(tool->runtime->data_block, "BLUR")) {
+        return GP_BRUSH_PRESET_WEIGHT_BLUR;
+      }
+      if (STREQ(tool->runtime->data_block, "AVERAGE")) {
+        return GP_BRUSH_PRESET_WEIGHT_AVERAGE;
+      }
+      if (STREQ(tool->runtime->data_block, "SMEAR")) {
+        return GP_BRUSH_PRESET_WEIGHT_SMEAR;
+      }
+      break;
     }
     case CTX_MODE_VERTEX_GPENCIL: {
       if (STREQ(tool->runtime->data_block, "DRAW")) {
@@ -350,7 +362,8 @@ static bool palette_poll(bContext *C)
   Paint *paint = BKE_paint_get_active_from_context(C);
 
   if (paint && paint->palette != nullptr && !ID_IS_LINKED(paint->palette) &&
-      !ID_IS_OVERRIDE_LIBRARY(paint->palette)) {
+      !ID_IS_OVERRIDE_LIBRARY(paint->palette))
+  {
     return true;
   }
 
@@ -799,7 +812,8 @@ static Brush *brush_tool_cycle(Main *bmain, Paint *paint, Brush *brush_orig, con
   brush = first_brush;
   do {
     if ((brush->ob_mode & paint->runtime.ob_mode) &&
-        (brush_tool(brush, paint->runtime.tool_offset) == tool)) {
+        (brush_tool(brush, paint->runtime.tool_offset) == tool))
+    {
       return brush;
     }
 
@@ -880,7 +894,8 @@ static bool brush_generic_tool_set(bContext *C,
   }
 
   if (((brush == nullptr) && create_missing) &&
-      ((brush_orig == nullptr) || brush_tool(brush_orig, paint->runtime.tool_offset) != tool)) {
+      ((brush_orig == nullptr) || brush_tool(brush_orig, paint->runtime.tool_offset) != tool))
+  {
     brush = BKE_brush_add(bmain, tool_name, eObjectMode(paint->runtime.ob_mode));
     id_us_min(&brush->id); /* fake user only */
     brush_tool_set(brush, paint->runtime.tool_offset, tool);
@@ -1501,6 +1516,8 @@ void ED_operatortypes_paint(void)
   WM_operatortype_append(PAINT_OT_vert_select_hide);
   WM_operatortype_append(PAINT_OT_vert_select_linked);
   WM_operatortype_append(PAINT_OT_vert_select_linked_pick);
+  WM_operatortype_append(PAINT_OT_vert_select_more);
+  WM_operatortype_append(PAINT_OT_vert_select_less);
 
   /* vertex */
   WM_operatortype_append(PAINT_OT_vertex_paint_toggle);
@@ -1518,6 +1535,8 @@ void ED_operatortypes_paint(void)
   WM_operatortype_append(PAINT_OT_face_select_linked);
   WM_operatortype_append(PAINT_OT_face_select_linked_pick);
   WM_operatortype_append(PAINT_OT_face_select_all);
+  WM_operatortype_append(PAINT_OT_face_select_more);
+  WM_operatortype_append(PAINT_OT_face_select_less);
   WM_operatortype_append(PAINT_OT_face_select_hide);
 
   WM_operatortype_append(PAINT_OT_face_vert_reveal);

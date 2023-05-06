@@ -80,9 +80,7 @@ class directory_iterator {
     const WIN32_FIND_DATAW &find_data_;
   };
 
-  directory_iterator() : path_info_("", find_data_), h_find_(INVALID_HANDLE_VALUE)
-  {
-  }
+  directory_iterator() : path_info_("", find_data_), h_find_(INVALID_HANDLE_VALUE) {}
 
   explicit directory_iterator(const string &path) : path_(path), path_info_(path, find_data_)
   {
@@ -163,9 +161,7 @@ class directory_iterator {
  public:
   class path_info {
    public:
-    explicit path_info(const string &path) : path_(path), entry_(NULL)
-    {
-    }
+    explicit path_info(const string &path) : path_(path), entry_(NULL) {}
 
     string path()
     {
@@ -182,9 +178,7 @@ class directory_iterator {
     const struct dirent *entry_;
   };
 
-  directory_iterator() : path_info_(""), name_list_(NULL), num_entries_(-1), cur_entry_(-1)
-  {
-  }
+  directory_iterator() : path_info_(""), name_list_(NULL), num_entries_(-1), cur_entry_(-1) {}
 
   explicit directory_iterator(const string &path) : path_(path), path_info_(path_), cur_entry_(0)
   {
@@ -242,7 +236,8 @@ class directory_iterator {
   bool skip_dots()
   {
     while (strcmp(name_list_[cur_entry_]->d_name, ".") == 0 ||
-           strcmp(name_list_[cur_entry_]->d_name, "..") == 0) {
+           strcmp(name_list_[cur_entry_]->d_name, "..") == 0)
+    {
       if (!step()) {
         return false;
       }
@@ -484,12 +479,14 @@ static string path_unc_to_short(const string &path)
 {
   size_t len = path.size();
   if ((len > 3) && (path[0] == DIR_SEP) && (path[1] == DIR_SEP) && (path[2] == '?') &&
-      ((path[3] == DIR_SEP) || (path[3] == DIR_SEP_ALT))) {
+      ((path[3] == DIR_SEP) || (path[3] == DIR_SEP_ALT)))
+  {
     if ((len > 5) && (path[5] == ':')) {
       return path.substr(4, len - 4);
     }
     else if ((len > 7) && (path.substr(4, 3) == "UNC") &&
-             ((path[7] == DIR_SEP) || (path[7] == DIR_SEP_ALT))) {
+             ((path[7] == DIR_SEP) || (path[7] == DIR_SEP_ALT)))
+    {
       return "\\\\" + path.substr(8, len - 8);
     }
   }
@@ -815,7 +812,7 @@ static string path_source_replace_includes_recursive(const string &_source,
   const size_t source_length = source.length();
   size_t index = 0;
   /* Information about where we are in the source. */
-  size_t line_number = 0, column_number = 1;
+  size_t column_number = 1;
   /* Currently gathered non-preprocessor token.
    * Store as start/length rather than token itself to avoid overhead of
    * memory re-allocations on each character concatenation.
@@ -848,7 +845,6 @@ static string path_source_replace_includes_recursive(const string &_source,
         preprocessor_line = "";
       }
       column_number = 0;
-      ++line_number;
     }
     else if (ch == '#' && column_number == 1 && !inside_preprocessor) {
       /* Append all possible non-preprocessor token to the result. */

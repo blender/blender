@@ -1853,8 +1853,6 @@ def pyrna2sphinx(basepath):
                 fw("   %s\n\n" % operator_description)
                 for prop in op.args:
                     write_param("   ", fw, prop)
-                if op.args:
-                    fw("\n")
 
                 location = op.get_location()
                 if location != (None, None):
@@ -1865,8 +1863,11 @@ def pyrna2sphinx(basepath):
                     else:
                         url_base = API_BASEURL
 
-                    fw("   :file: `%s\\:%d <%s/%s$%d>`_\n\n" %
+                    fw("   :File: `%s\\:%d <%s/%s#L%d>`__\n\n" %
                        (location[0], location[1], url_base, location[0], location[1]))
+
+                if op.args:
+                    fw("\n")
 
             file.close()
 

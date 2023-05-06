@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup nodes
@@ -25,9 +25,9 @@
 
 #include "NOD_texture.h"
 #include "node_common.h"
-#include "node_exec.h"
+#include "node_exec.hh"
 #include "node_texture_util.hh"
-#include "node_util.h"
+#include "node_util.hh"
 
 #include "DEG_depsgraph.h"
 
@@ -113,9 +113,7 @@ static void localize(bNodeTree *localtree, bNodeTree * /*ntree*/)
   }
 }
 #else
-static void localize(bNodeTree * /*localtree*/, bNodeTree * /*ntree*/)
-{
-}
+static void localize(bNodeTree * /*localtree*/, bNodeTree * /*ntree*/) {}
 #endif
 
 static void update(bNodeTree *ntree)
@@ -263,8 +261,8 @@ static void tex_free_delegates(bNodeTreeExec *exec)
   int th, a;
 
   for (th = 0; th < BLENDER_MAX_THREADS; th++) {
-    for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[th].first); nts;
-         nts = nts->next) {
+    for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[th].first); nts; nts = nts->next)
+    {
       for (ns = nts->stack, a = 0; a < exec->stacksize; a++, ns++) {
         if (ns->data && !ns->is_copy) {
           MEM_freeN(ns->data);
@@ -283,8 +281,8 @@ void ntreeTexEndExecTree_internal(bNodeTreeExec *exec)
     tex_free_delegates(exec);
 
     for (a = 0; a < BLENDER_MAX_THREADS; a++) {
-      for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[a].first); nts;
-           nts = nts->next) {
+      for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[a].first); nts; nts = nts->next)
+      {
         if (nts->stack) {
           MEM_freeN(nts->stack);
         }

@@ -165,9 +165,9 @@ set(OPENMP_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${
 set(OPENMP_HASH_TYPE MD5)
 set(OPENMP_FILE openmp-${OPENMP_VERSION}.src.tar.xz)
 
-set(OPENIMAGEIO_VERSION v2.4.6.0)
+set(OPENIMAGEIO_VERSION v2.4.9.0)
 set(OPENIMAGEIO_URI https://github.com/OpenImageIO/oiio/archive/refs/tags/${OPENIMAGEIO_VERSION}.tar.gz)
-set(OPENIMAGEIO_HASH c7acc1b9a8fda04ef48f7de1feda4dae)
+set(OPENIMAGEIO_HASH 7da92a7d6029921a8599a977ff1efa2a)
 set(OPENIMAGEIO_HASH_TYPE MD5)
 set(OPENIMAGEIO_FILE OpenImageIO-${OPENIMAGEIO_VERSION}.tar.gz)
 
@@ -478,9 +478,9 @@ set(SQLITE_HASH_TYPE SHA1)
 set(SQLITE_FILE sqlite-autoconf-${SQLLITE_LONG_VERSION}.tar.gz)
 set(SQLITE_CPE "cpe:2.3:a:sqlite:sqlite:${SQLITE_VERSION}:*:*:*:*:*:*:*")
 
-set(EMBREE_VERSION 3.13.4)
+set(EMBREE_VERSION 4.0.1)
 set(EMBREE_URI https://github.com/embree/embree/archive/v${EMBREE_VERSION}.zip)
-set(EMBREE_HASH 52d0be294d6c88ba7a6c9e046796e7be)
+set(EMBREE_HASH dd26617719a587e126b341d1b32f7fd0)
 set(EMBREE_HASH_TYPE MD5)
 set(EMBREE_FILE embree-v${EMBREE_VERSION}.zip)
 
@@ -528,16 +528,16 @@ set(XR_OPENXR_SDK_HASH a2623ebab3d0b340bc16311b14f02075)
 set(XR_OPENXR_SDK_HASH_TYPE MD5)
 set(XR_OPENXR_SDK_FILE OpenXR-SDK-${XR_OPENXR_SDK_VERSION}.tar.gz)
 
-set(WL_PROTOCOLS_VERSION 1.21)
+set(WL_PROTOCOLS_VERSION 1.31)
 set(WL_PROTOCOLS_FILE wayland-protocols-${WL_PROTOCOLS_VERSION}.tar.gz)
 set(WL_PROTOCOLS_URI https://gitlab.freedesktop.org/wayland/wayland-protocols/-/archive/${WL_PROTOCOLS_VERSION}/${WL_PROTOCOLS_FILE})
-set(WL_PROTOCOLS_HASH af5ca07e13517cdbab33504492cef54a)
+set(WL_PROTOCOLS_HASH a28ff59a56e2ebb746048b6ef8d931d6)
 set(WL_PROTOCOLS_HASH_TYPE MD5)
 
-set(WAYLAND_VERSION 1.21.0)
+set(WAYLAND_VERSION 1.22.0)
 set(WAYLAND_FILE wayland-${WAYLAND_VERSION}.tar.xz)
-set(WAYLAND_URI https://gitlab.freedesktop.org/wayland/wayland/-/releases/1.21.0/downloads/wayland-${WAYLAND_VERSION}.tar.xz)
-set(WAYLAND_HASH f2653a2293bcd882d756c6a83d278903)
+set(WAYLAND_URI https://gitlab.freedesktop.org/wayland/wayland/-/releases/${WAYLAND_VERSION}/downloads/wayland-${WAYLAND_VERSION}.tar.xz)
+set(WAYLAND_HASH 7410ab549e3928fce9381455b17b0803)
 set(WAYLAND_HASH_TYPE MD5)
 
 set(WAYLAND_LIBDECOR_VERSION 0.1.0)
@@ -579,9 +579,9 @@ set(ZSTD_HASH_TYPE SHA256)
 set(ZSTD_FILE zstd-${ZSTD_VERSION}.tar.gz)
 set(ZSTD_CPE "cpe:2.3:a:facebook:zstandard:${ZSTD_VERSION}:*:*:*:*:*:*:*")
 
-set(SSE2NEON_VERSION fe5ff00bb8d19b327714a3c290f3e2ce81ba3525)
+set(SSE2NEON_VERSION v1.6.0)
 set(SSE2NEON_URI https://github.com/DLTcollab/sse2neon/archive/${SSE2NEON_VERSION}.tar.gz)
-set(SSE2NEON_HASH 0780253525d299c31775ef95853698d03db9c7739942af8570000f4a25a5d605)
+set(SSE2NEON_HASH 06f4693219deccb91b457135d836fc514a1c0a57e9fa66b143982901d2d19677)
 set(SSE2NEON_HASH_TYPE SHA256)
 set(SSE2NEON_FILE sse2neon-${SSE2NEON_VERSION}.tar.gz)
 
@@ -592,22 +592,22 @@ set(BROTLI_HASH_TYPE SHA256)
 set(BROTLI_FILE brotli-v${BROTLI_VERSION}.tar.gz)
 set(BROTLI_CPE "cpe:2.3:a:google:brotli:${BROTLI_VERSION}:*:*:*:*:*:*:*")
 
-set(OPENPGL_VERSION v0.4.1-beta)
-set(OPENPGL_SHORT_VERSION 0.4.1)
+set(OPENPGL_VERSION v0.5.0)
+set(OPENPGL_SHORT_VERSION 0.5.0)
 set(OPENPGL_URI https://github.com/OpenPathGuidingLibrary/openpgl/archive/refs/tags/${OPENPGL_VERSION}.tar.gz)
-set(OPENPGL_HASH db63f5dac5cfa8c110ede241f0c413f00db0c4748697381c4fa23e0f9e82a754)
+set(OPENPGL_HASH 1ec806d434d45e43e098f82ee9be0cb74928343898c57490b34ff80584e9805a)
 set(OPENPGL_HASH_TYPE SHA256)
 set(OPENPGL_FILE openpgl-${OPENPGL_VERSION}.tar.gz)
 
-set(LEVEL_ZERO_VERSION v1.8.5)
+set(LEVEL_ZERO_VERSION v1.8.8)
 set(LEVEL_ZERO_URI https://github.com/oneapi-src/level-zero/archive/refs/tags/${LEVEL_ZERO_VERSION}.tar.gz)
-set(LEVEL_ZERO_HASH b6e9663bbcc53c148d32376998298bec6f7c434ef2218c61fa708963e3a09394)
+set(LEVEL_ZERO_HASH 3553ae8fa0d2d69c4210a8f3428bd6612bd8bb8a627faf52c3658a01851e66d2)
 set(LEVEL_ZERO_HASH_TYPE SHA256)
 set(LEVEL_ZERO_FILE level-zero-${LEVEL_ZERO_VERSION}.tar.gz)
 
-set(DPCPP_VERSION 20221019)
-set(DPCPP_URI https://github.com/intel/llvm/archive/refs/tags/sycl-nightly/${DPCPP_VERSION}.tar.gz)
-set(DPCPP_HASH 2f533946e91ce3829431758ea17b0b834b960c1a796e9e4563c86e03eb9603a2)
+set(DPCPP_VERSION 2022-12)
+set(DPCPP_URI https://github.com/intel/llvm/archive/refs/tags/${DPCPP_VERSION}.tar.gz)
+set(DPCPP_HASH 13151d5ae79f7c9c4a9b072a0c486ae7b3c4993e301bb1268c92214451025790)
 set(DPCPP_HASH_TYPE SHA256)
 set(DPCPP_FILE DPCPP-${DPCPP_VERSION}.tar.gz)
 
@@ -620,9 +620,9 @@ set(DPCPP_FILE DPCPP-${DPCPP_VERSION}.tar.gz)
 # will take care of building them, unpack is being done in dpcpp_deps.cmake
 
 # Source llvm/lib/SYCLLowerIR/CMakeLists.txt
-set(VCINTRINSICS_VERSION abce9184b7a3a7fe1b02289b9285610d9dc45465)
+set(VCINTRINSICS_VERSION 782fbf7301dc73acaa049a4324c976ad94f587f7)
 set(VCINTRINSICS_URI https://github.com/intel/vc-intrinsics/archive/${VCINTRINSICS_VERSION}.tar.gz)
-set(VCINTRINSICS_HASH 3e9fd471246b87633b26f7e15e17ab7733d357458c53d5c5881c03929d6c551f)
+set(VCINTRINSICS_HASH f4c0ccad8c1f77760364c551c65e8e1cf194d058889fa46d3b1b2d19ec4dc33f)
 set(VCINTRINSICS_HASH_TYPE SHA256)
 set(VCINTRINSICS_FILE vc-intrinsics-${VCINTRINSICS_VERSION}.tar.gz)
 
@@ -656,6 +656,13 @@ set(SPIRV_HEADERS_URI https://github.com/KhronosGroup/SPIRV-Headers/archive/${SP
 set(SPIRV_HEADERS_HASH ec8ecb471a62672697846c436501638ab25447ae9d4a6761e0bfe8a9a839502a)
 set(SPIRV_HEADERS_HASH_TYPE SHA256)
 set(SPIRV_HEADERS_FILE SPIR-V-Headers-${SPIRV_HEADERS_VERSION}.tar.gz)
+
+# Source llvm/sycl/plugins/unified_runtime/CMakeLists.txt
+set(UNIFIED_RUNTIME_VERSION fd711c920acc4434cb52ff18b078c082d9d7f44d)
+set(UNIFIED_RUNTIME_URI https://github.com/oneapi-src/unified-runtime/archive/${UNIFIED_RUNTIME_VERSION}.tar.gz)
+set(UNIFIED_RUNTIME_HASH 535ca2ee78f68c5e7e62b10f1bbabd909179488885566e6d9b1fc50e8a1be65f)
+set(UNIFIED_RUNTIME_HASH_TYPE SHA256)
+set(UNIFIED_RUNTIME_FILE unified-runtime-${UNIFIED_RUNTIME_VERSION}.tar.gz)
 
 ######################
 ### DPCPP DEPS END ###
@@ -730,9 +737,9 @@ set(GMMLIB_HASH c1f33e1519edfc527127baeb0436b783430dfd256c643130169a3a71dc86aff9
 set(GMMLIB_HASH_TYPE SHA256)
 set(GMMLIB_FILE ${GMMLIB_VERSION}.tar.gz)
 
-set(OCLOC_VERSION 22.49.25018.21)
+set(OCLOC_VERSION 23.05.25593.18)
 set(OCLOC_URI https://github.com/intel/compute-runtime/archive/refs/tags/${OCLOC_VERSION}.tar.gz)
-set(OCLOC_HASH 92362dae08b503a34e5d3820ed284198c452bcd5e7504d90eb69887b20492c06)
+set(OCLOC_HASH 122415028e631922ae999c996954dfd98ce9a32decd564d5484c31476ec9306e)
 set(OCLOC_HASH_TYPE SHA256)
 set(OCLOC_FILE ocloc-${OCLOC_VERSION}.tar.gz)
 

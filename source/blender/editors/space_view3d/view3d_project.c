@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spview3d
@@ -139,7 +139,8 @@ static eV3DProjStatus ed_view3d_project__internal(const ARegion *region,
   const float fy = ((float)region->winy / 2.0f) * (1.0f + (vec4[1] * scalar));
 
   if ((flag & V3D_PROJ_TEST_CLIP_WIN) &&
-      (fx <= 0.0f || fy <= 0.0f || fx >= (float)region->winx || fy >= (float)region->winy)) {
+      (fx <= 0.0f || fy <= 0.0f || fx >= (float)region->winx || fy >= (float)region->winy))
+  {
     return V3D_PROJ_RET_CLIP_WIN;
   }
 
@@ -159,8 +160,8 @@ eV3DProjStatus ED_view3d_project_short_ex(const ARegion *region,
   float tvec[2];
   eV3DProjStatus ret = ed_view3d_project__internal(region, perspmat, is_local, co, tvec, flag);
   if (ret == V3D_PROJ_RET_OK) {
-    if ((tvec[0] > -32700.0f && tvec[0] < 32700.0f) &&
-        (tvec[1] > -32700.0f && tvec[1] < 32700.0f)) {
+    if ((tvec[0] > -32700.0f && tvec[0] < 32700.0f) && (tvec[1] > -32700.0f && tvec[1] < 32700.0f))
+    {
       r_co[0] = (short)floorf(tvec[0]);
       r_co[1] = (short)floorf(tvec[1]);
     }
@@ -182,7 +183,8 @@ eV3DProjStatus ED_view3d_project_int_ex(const ARegion *region,
   eV3DProjStatus ret = ed_view3d_project__internal(region, perspmat, is_local, co, tvec, flag);
   if (ret == V3D_PROJ_RET_OK) {
     if ((tvec[0] > -2140000000.0f && tvec[0] < 2140000000.0f) &&
-        (tvec[1] > -2140000000.0f && tvec[1] < 2140000000.0f)) {
+        (tvec[1] > -2140000000.0f && tvec[1] < 2140000000.0f))
+    {
       r_co[0] = (int)floorf(tvec[0]);
       r_co[1] = (int)floorf(tvec[1]);
     }
@@ -357,7 +359,8 @@ static void view3d_win_to_ray_segment(const struct Depsgraph *depsgraph,
 bool ED_view3d_clip_segment(const RegionView3D *rv3d, float ray_start[3], float ray_end[3])
 {
   if ((rv3d->rflag & RV3D_CLIPPING) &&
-      (clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6, ray_start, ray_end) == false)) {
+      (clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6, ray_start, ray_end) == false))
+  {
     return false;
   }
   return true;

@@ -2,14 +2,14 @@
 
 #pragma once
 
+#include "BLI_vector.hh"
+
 /** \file
  * \ingroup bke
  */
 
 struct PBVHGPUFormat;
-struct MLoop;
 struct MLoopTri;
-struct MPoly;
 struct MeshElemMap;
 
 /* Axis-aligned bounding box */
@@ -71,7 +71,7 @@ struct PBVHNode {
   const int *vert_indices;
   unsigned int uniq_verts, face_verts;
 
-  /* Array of indices into the Mesh's MLoop array.
+  /* Array of indices into the Mesh's corner array.
    * PBVH_FACES only.
    */
   int *loop_indices;
@@ -157,12 +157,13 @@ struct PBVH {
   float (*vert_normals)[3];
   bool *hide_vert;
   float (*vert_positions)[3];
-  const MPoly *mpoly;
+  blender::OffsetIndices<int> polys;
   bool *hide_poly;
-  /** Material indices. Only valid for polygon meshes. */
-  const int *material_indices;
-  const MLoop *mloop;
+  /** Only valid for polygon meshes. */
+  const int *corner_verts;
+  /* Owned by the #PBVH, because after deformations they have to be recomputed. */
   const MLoopTri *looptri;
+  const int *looptri_polys;
   CustomData *vdata;
   CustomData *ldata;
   CustomData *pdata;
@@ -189,7 +190,6 @@ struct PBVH {
 
   /* flag are verts/faces deformed */
   bool deformed;
-  bool respect_hide;
 
   /* Dynamic topology */
   float bm_max_edge_len;
@@ -284,11 +284,10 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,
                                     float *dist_sq,
                                     bool use_original);
 
-void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode);
+void pbvh_bmesh_normals_update(blender::Span<PBVHNode *> nodes);
 
 /* pbvh_pixels.hh */
 
 void pbvh_node_pixels_free(PBVHNode *node);
 void pbvh_pixels_free(PBVH *pbvh);
-void pbvh_pixels_free_brush_test(PBVHNode *node);
 void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node);

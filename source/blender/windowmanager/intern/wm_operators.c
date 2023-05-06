@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -73,7 +73,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "ED_fileselect.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"
 #include "ED_undo.h"
@@ -446,7 +446,8 @@ static const char *wm_context_member_from_ptr(const bContext *C,
     { \
       const char *ctx_member = member; \
       if (RNA_struct_is_a((rna_ptr)->type, &(rna_type)) && \
-          (rna_ptr)->data == (CTX_data_pointer_get_type(C, ctx_member, &(rna_type)).data)) { \
+          (rna_ptr)->data == (CTX_data_pointer_get_type(C, ctx_member, &(rna_type)).data)) \
+      { \
         member_id = ctx_member; \
         break; \
       } \
@@ -1411,7 +1412,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
   uiTemplateOperatorPropertyButs(
       C, col, op, UI_BUT_LABEL_ALIGN_NONE, UI_TEMPLATE_OP_PROPS_SHOW_TITLE);
 
-  UI_block_bounds_set_popup(block, 6 * U.dpi_fac, NULL);
+  UI_block_bounds_set_popup(block, 6 * UI_SCALE_FAC, NULL);
 
   return block;
 }
@@ -1486,7 +1487,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *userD
 
   /* center around the mouse */
   UI_block_bounds_set_popup(
-      block, 6 * U.dpi_fac, (const int[2]){data->width / -2, data->height / 2});
+      block, 6 * UI_SCALE_FAC, (const int[2]){data->width / -2, data->height / 2});
 
   return block;
 }
@@ -1510,7 +1511,7 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *userDa
 
   UI_block_func_set(block, NULL, NULL, NULL);
 
-  UI_block_bounds_set_popup(block, 6 * U.dpi_fac, NULL);
+  UI_block_bounds_set_popup(block, 6 * UI_SCALE_FAC, NULL);
 
   return block;
 }
@@ -1549,7 +1550,7 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width)
 {
   wmOpPopUp *data = MEM_callocN(sizeof(wmOpPopUp), "WM_operator_ui_popup");
   data->op = op;
-  data->width = width * U.dpi_fac;
+  data->width = width * UI_SCALE_FAC;
   /* Actual used height depends on the content. */
   data->height = 0;
   data->free_op = true; /* if this runs and gets registered we may want not to free it */
@@ -1619,7 +1620,7 @@ int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width)
   wmOpPopUp *data = MEM_callocN(sizeof(wmOpPopUp), "WM_operator_props_dialog_popup");
 
   data->op = op;
-  data->width = width * U.dpi_fac;
+  data->width = width * UI_SCALE_FAC;
   /* Actual height depends on the content. */
   data->height = 0;
   data->free_op = true; /* if this runs and gets registered we may want not to free it */
@@ -2173,8 +2174,8 @@ void WM_paint_cursor_remove_by_type(wmWindowManager *wm, void *draw_fn, void (*f
 /** \name Radial Control Operator
  * \{ */
 
-#define WM_RADIAL_CONTROL_DISPLAY_SIZE (200 * UI_DPI_FAC)
-#define WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE (35 * UI_DPI_FAC)
+#define WM_RADIAL_CONTROL_DISPLAY_SIZE (200 * UI_SCALE_FAC)
+#define WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE (35 * UI_SCALE_FAC)
 #define WM_RADIAL_CONTROL_DISPLAY_WIDTH \
   (WM_RADIAL_CONTROL_DISPLAY_SIZE - WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE)
 #define WM_RADIAL_MAX_STR 10
@@ -2304,16 +2305,17 @@ static void radial_control_set_tex(RadialControl *rc)
       if ((ibuf = BKE_brush_gen_radial_control_imbuf(
                rc->image_id_ptr.data,
                rc->use_secondary_tex,
-               !ELEM(rc->subtype, PROP_NONE, PROP_PIXEL, PROP_DISTANCE)))) {
+               !ELEM(rc->subtype, PROP_NONE, PROP_PIXEL, PROP_DISTANCE))))
+      {
 
-        rc->texture = GPU_texture_create_2d_ex("radial_control",
-                                               ibuf->x,
-                                               ibuf->y,
-                                               1,
-                                               GPU_R8,
-                                               GPU_TEXTURE_USAGE_SHADER_READ |
-                                                   GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
-                                               ibuf->rect_float);
+        rc->texture = GPU_texture_create_2d("radial_control",
+                                            ibuf->x,
+                                            ibuf->y,
+                                            1,
+                                            GPU_R8,
+                                            GPU_TEXTURE_USAGE_SHADER_READ |
+                                                GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
+                                            ibuf->rect_float);
 
         GPU_texture_filter_mode(rc->texture, true);
         GPU_texture_swizzle_set(rc->texture, "111r");
@@ -2336,8 +2338,9 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
     PointerRNA *fill_ptr;
     PropertyRNA *fill_prop;
 
-    if (rc->fill_col_override_prop && RNA_property_boolean_get(&rc->fill_col_override_test_ptr,
-                                                               rc->fill_col_override_test_prop)) {
+    if (rc->fill_col_override_prop &&
+        RNA_property_boolean_get(&rc->fill_col_override_test_ptr, rc->fill_col_override_test_prop))
+    {
       fill_ptr = &rc->fill_col_override_ptr;
       fill_prop = rc->fill_col_override_prop;
     }
@@ -2558,7 +2561,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 
   immUnbindProgram();
 
-  BLF_size(fontid, 1.75f * fstyle_points * U.dpi_fac);
+  BLF_size(fontid, 1.75f * fstyle_points * UI_SCALE_FAC);
   UI_GetThemeColor4fv(TH_TEXT_HI, text_color);
   BLF_color4fv(fontid, text_color);
 
@@ -2631,7 +2634,8 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
     PropertyType prop_type = RNA_property_type(*r_prop);
 
     if (((flags & RC_PROP_REQUIRE_BOOL) && (prop_type != PROP_BOOLEAN)) ||
-        ((flags & RC_PROP_REQUIRE_FLOAT) && (prop_type != PROP_FLOAT))) {
+        ((flags & RC_PROP_REQUIRE_FLOAT) && (prop_type != PROP_FLOAT)))
+    {
       MEM_freeN(str);
       BKE_reportf(op->reports, RPT_ERROR, "Property from path '%s' is not a float", name);
       return 0;
@@ -2673,7 +2677,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &use_secondary_ptr,
                                &use_secondary_prop,
                                0,
-                               (RC_PROP_ALLOW_MISSING | RC_PROP_REQUIRE_BOOL))) {
+                               (RC_PROP_ALLOW_MISSING | RC_PROP_REQUIRE_BOOL)))
+  {
     return 0;
   }
 
@@ -2695,12 +2700,14 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
   }
 
   if (!radial_control_get_path(
-          &ctx_ptr, op, "rotation_path", &rc->rot_ptr, &rc->rot_prop, 0, RC_PROP_REQUIRE_FLOAT)) {
+          &ctx_ptr, op, "rotation_path", &rc->rot_ptr, &rc->rot_prop, 0, RC_PROP_REQUIRE_FLOAT))
+  {
     return 0;
   }
 
   if (!radial_control_get_path(
-          &ctx_ptr, op, "color_path", &rc->col_ptr, &rc->col_prop, 4, RC_PROP_REQUIRE_FLOAT)) {
+          &ctx_ptr, op, "color_path", &rc->col_ptr, &rc->col_prop, 4, RC_PROP_REQUIRE_FLOAT))
+  {
     return 0;
   }
 
@@ -2710,7 +2717,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &rc->fill_col_ptr,
                                &rc->fill_col_prop,
                                3,
-                               RC_PROP_REQUIRE_FLOAT)) {
+                               RC_PROP_REQUIRE_FLOAT))
+  {
     return 0;
   }
 
@@ -2720,7 +2728,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &rc->fill_col_override_ptr,
                                &rc->fill_col_override_prop,
                                3,
-                               RC_PROP_REQUIRE_FLOAT)) {
+                               RC_PROP_REQUIRE_FLOAT))
+  {
     return 0;
   }
   if (!radial_control_get_path(&ctx_ptr,
@@ -2729,7 +2738,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &rc->fill_col_override_test_ptr,
                                &rc->fill_col_override_test_prop,
                                0,
-                               RC_PROP_REQUIRE_BOOL)) {
+                               RC_PROP_REQUIRE_BOOL))
+  {
     return 0;
   }
 
@@ -2742,7 +2752,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &rc->zoom_ptr,
                                &rc->zoom_prop,
                                2,
-                               RC_PROP_REQUIRE_FLOAT | RC_PROP_ALLOW_MISSING)) {
+                               RC_PROP_REQUIRE_FLOAT | RC_PROP_ALLOW_MISSING))
+  {
     return 0;
   }
 
@@ -2821,7 +2832,8 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
             PROP_FACTOR,
             PROP_PERCENTAGE,
             PROP_ANGLE,
-            PROP_PIXEL)) {
+            PROP_PIXEL))
+  {
     BKE_report(op->reports,
                RPT_ERROR,
                "Property must be a none, distance, factor, percentage, angle, or pixel");
@@ -3085,7 +3097,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
   }
 
   if (!handled && (event->val == KM_RELEASE) && (rc->init_event == event->type) &&
-      RNA_boolean_get(op->ptr, "release_confirm")) {
+      RNA_boolean_get(op->ptr, "release_confirm"))
+  {
     ret = OPERATOR_FINISHED;
   }
 
@@ -3462,7 +3475,7 @@ static int previews_id_ensure_callback(LibraryIDLinkCallbackData *cb_data)
 {
   const int cb_flag = cb_data->cb_flag;
 
-  if (cb_flag & IDWALK_CB_EMBEDDED) {
+  if (cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING)) {
     return IDWALK_RET_NOP;
   }
 

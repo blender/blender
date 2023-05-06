@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -95,7 +95,7 @@ static void wm_platform_support_create_link(char *link)
   BLI_dynstr_free(ds);
 }
 
-bool WM_platform_support_perform_checks()
+bool WM_platform_support_perform_checks(void)
 {
   char title[WM_PLATFORM_SUPPORT_TEXT_SIZE];
   char message[WM_PLATFORM_SUPPORT_TEXT_SIZE];
@@ -109,7 +109,8 @@ bool WM_platform_support_perform_checks()
   /* Check if previous check matches the current check. Don't update the approval when running in
    * `background`. this could have been triggered by installing add-ons via installers. */
   if (support_level != GPU_SUPPORT_LEVEL_UNSUPPORTED && !G.factory_startup &&
-      wm_platform_support_check_approval(platform_key, !G.background)) {
+      wm_platform_support_check_approval(platform_key, !G.background))
+  {
     /* If it matches the user has confirmed and wishes to use it. */
     return result;
   }

@@ -233,7 +233,8 @@ FSMenuEntry *ED_fsmenu_get_entry(struct FSMenu *fsmenu, FSMenuCategory category,
   FSMenuEntry *fsm_iter;
 
   for (fsm_iter = ED_fsmenu_get_category(fsmenu, category); fsm_iter && idx;
-       fsm_iter = fsm_iter->next) {
+       fsm_iter = fsm_iter->next)
+  {
     idx--;
   }
 
@@ -356,7 +357,8 @@ short fsmenu_can_save(struct FSMenu *fsmenu, FSMenuCategory category, int idx)
   FSMenuEntry *fsm_iter;
 
   for (fsm_iter = ED_fsmenu_get_category(fsmenu, category); fsm_iter && idx;
-       fsm_iter = fsm_iter->next) {
+       fsm_iter = fsm_iter->next)
+  {
     idx--;
   }
 
@@ -533,7 +535,8 @@ bool fsmenu_write_file(struct FSMenu *fsmenu, const char *filepath)
   bool has_error = false;
   has_error |= (fprintf(fp, "[Bookmarks]\n") < 0);
   for (fsm_iter = ED_fsmenu_get_category(fsmenu, FS_CATEGORY_BOOKMARKS); fsm_iter;
-       fsm_iter = fsm_iter->next) {
+       fsm_iter = fsm_iter->next)
+  {
     if (fsm_iter->path && fsm_iter->save) {
       fsmenu_entry_generate_name(fsm_iter, fsm_name, sizeof(fsm_name));
       if (fsm_iter->name[0] && !STREQ(fsm_iter->name, fsm_name)) {
@@ -545,7 +548,8 @@ bool fsmenu_write_file(struct FSMenu *fsmenu, const char *filepath)
   has_error = (fprintf(fp, "[Recent]\n") < 0);
   for (fsm_iter = ED_fsmenu_get_category(fsmenu, FS_CATEGORY_RECENT);
        fsm_iter && (nwritten < FSMENU_RECENT_MAX);
-       fsm_iter = fsm_iter->next, nwritten++) {
+       fsm_iter = fsm_iter->next, nwritten++)
+  {
     if (fsm_iter->path && fsm_iter->save) {
       fsmenu_entry_generate_name(fsm_iter, fsm_name, sizeof(fsm_name));
       if (fsm_iter->name[0] && !STREQ(fsm_iter->name, fsm_name)) {
@@ -825,11 +829,11 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
       CFURLGetFileSystemRepresentation(cfURL, false, (UInt8 *)defPath, FILE_MAX);
 
       /* Get name of the volume. */
-      char name[FILE_MAXFILE] = "";
+      char display_name[FILE_MAXFILE] = "";
       CFStringRef nameString = NULL;
       CFURLCopyResourcePropertyForKey(cfURL, kCFURLVolumeLocalizedNameKey, &nameString, NULL);
       if (nameString != NULL) {
-        CFStringGetCString(nameString, name, sizeof(name), kCFStringEncodingUTF8);
+        CFStringGetCString(nameString, display_name, sizeof(display_name), kCFStringEncodingUTF8);
         CFRelease(nameString);
       }
 
@@ -854,8 +858,12 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
         CFRelease(localKey);
       }
 
-      fsmenu_insert_entry(
-          fsmenu, FS_CATEGORY_SYSTEM, defPath, name[0] ? name : NULL, icon, FS_INSERT_SORTED);
+      fsmenu_insert_entry(fsmenu,
+                          FS_CATEGORY_SYSTEM,
+                          defPath,
+                          display_name[0] ? display_name : NULL,
+                          icon,
+                          FS_INSERT_SORTED);
     }
 
     CFRelease(volEnum);
@@ -889,7 +897,8 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
         CFStringRef pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
 
         if (pathString == NULL ||
-            !CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingUTF8)) {
+            !CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingUTF8))
+        {
           continue;
         }
 
@@ -982,9 +991,9 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
       const char *const xdg_runtime_dir = BLI_getenv("XDG_RUNTIME_DIR");
       if (xdg_runtime_dir != NULL) {
         struct direntry *dirs;
-        char name[FILE_MAX];
-        BLI_path_join(name, sizeof(name), xdg_runtime_dir, "gvfs/");
-        const uint dirs_num = BLI_filelist_dir_contents(name, &dirs);
+        char filepath[FILE_MAX];
+        BLI_path_join(filepath, sizeof(filepath), xdg_runtime_dir, "gvfs/");
+        const uint dirs_num = BLI_filelist_dir_contents(filepath, &dirs);
         for (uint i = 0; i < dirs_num; i++) {
           if (dirs[i].type & S_IFDIR) {
             const char *dirname = dirs[i].relname;
@@ -998,7 +1007,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
                 const char *label_test = label + 6;
                 label = *label_test ? label_test : dirname;
               }
-              BLI_snprintf(line, sizeof(line), "%s%s", name, dirname);
+              BLI_snprintf(line, sizeof(line), "%s%s", filepath, dirname);
               fsmenu_insert_entry(
                   fsmenu, FS_CATEGORY_SYSTEM, line, label, ICON_NETWORK_DRIVE, FS_INSERT_SORTED);
               found = 1;
@@ -1033,7 +1042,14 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
   FS_UDIR_PATH(U.fontdir, ICON_FILE_FONT)
   FS_UDIR_PATH(U.textudir, ICON_FILE_IMAGE)
-  FS_UDIR_PATH(U.pythondir, ICON_FILE_SCRIPT)
+  LISTBASE_FOREACH (bUserScriptDirectory *, script_dir, &U.script_directories) {
+    fsmenu_insert_entry(fsmenu,
+                        FS_CATEGORY_OTHER,
+                        script_dir->dir_path,
+                        script_dir->name,
+                        ICON_FILE_SCRIPT,
+                        FS_INSERT_LAST);
+  }
   FS_UDIR_PATH(U.sounddir, ICON_FILE_SOUND)
   FS_UDIR_PATH(U.tempdir, ICON_TEMP)
 

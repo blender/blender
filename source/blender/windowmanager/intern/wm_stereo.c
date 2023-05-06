@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2015 Blender Foundation. All rights reserved. */
+ * Copyright 2015 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -275,7 +275,8 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
   *win_src->stereo3d_format = s3dd->stereo3d_format;
 
   if (prev_display_mode == S3D_DISPLAY_PAGEFLIP &&
-      prev_display_mode != win_src->stereo3d_format->display_mode) {
+      prev_display_mode != win_src->stereo3d_format->display_mode)
+  {
     /* in case the hardware supports pageflip but not the display */
     if ((win_dst = wm_window_copy_test(C, win_src, false, false))) {
       /* pass */

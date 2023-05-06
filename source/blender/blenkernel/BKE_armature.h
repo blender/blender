@@ -560,7 +560,8 @@ void BKE_pchan_bbone_deform_segment_index(const struct bPoseChannel *pchan,
 #define FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN(_ob, _pchan) \
   for (bPoseChannel *_pchan = (_ob)->pose->chanbase.first; _pchan; _pchan = _pchan->next) { \
     if (PBONE_VISIBLE(((bArmature *)(_ob)->data), (_pchan)->bone) && \
-        ((_pchan)->bone->flag & BONE_SELECTED)) {
+        ((_pchan)->bone->flag & BONE_SELECTED)) \
+    {
 #define FOREACH_PCHAN_SELECTED_IN_OBJECT_END \
   } \
   } \

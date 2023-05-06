@@ -198,9 +198,7 @@ struct LockedNode {
   Vector<const OutputSocket *> delayed_required_outputs;
   Vector<const OutputSocket *> delayed_unused_outputs;
 
-  LockedNode(const Node &node, NodeState &node_state) : node(node), node_state(node_state)
-  {
-  }
+  LockedNode(const Node &node, NodeState &node_state) : node(node), node_state(node_state) {}
 };
 
 class Executor;
@@ -1059,7 +1057,8 @@ class Executor {
         /* Forward the value to the outside of the graph. */
         const int graph_output_index = self_.graph_outputs_.index_of_try(target_socket);
         if (graph_output_index != -1 &&
-            params_->get_output_usage(graph_output_index) != ValueUsage::Unused) {
+            params_->get_output_usage(graph_output_index) != ValueUsage::Unused)
+        {
           void *dst_buffer = params_->get_output_data_ptr(graph_output_index);
           if (is_last_target) {
             type.move_construct(value_to_forward.get(), dst_buffer);
@@ -1108,7 +1107,8 @@ class Executor {
       if (node_state.missing_required_inputs == 0 ||
           (locked_node.node.is_function() && static_cast<const FunctionNode &>(locked_node.node)
                                                  .function()
-                                                 .allow_missing_requested_inputs())) {
+                                                 .allow_missing_requested_inputs()))
+      {
         this->schedule_node(locked_node, current_task, false);
       }
     }

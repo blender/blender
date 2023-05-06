@@ -330,7 +330,8 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals, int id, float3 P, in
   if (info.data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT ||
       info.data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3 ||
       info.data_type == IMAGE_DATA_TYPE_NANOVDB_FPN ||
-      info.data_type == IMAGE_DATA_TYPE_NANOVDB_FP16) {
+      info.data_type == IMAGE_DATA_TYPE_NANOVDB_FP16)
+  {
     return make_float4(
         TEX_IMAGE_MISSING_R, TEX_IMAGE_MISSING_G, TEX_IMAGE_MISSING_B, TEX_IMAGE_MISSING_A);
   }

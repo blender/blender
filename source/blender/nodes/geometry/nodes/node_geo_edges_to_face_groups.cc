@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 
 #include "BLI_atomic_disjoint_set.hh"
@@ -52,11 +52,10 @@ class FaceSetFromBoundariesInput final : public bke::MeshFieldInput {
     evaluator.evaluate();
     const IndexMask non_boundary_edges = evaluator.get_evaluated_as_mask(0);
 
-    const Span<MPoly> polys = mesh.polys();
-    const Span<MLoop> loops = mesh.loops();
+    const OffsetIndices polys = mesh.polys();
 
     const Array<Vector<int, 2>> edge_to_face_map = bke::mesh_topology::build_edge_to_poly_map(
-        polys, loops, mesh.totedge);
+        polys, mesh.corner_edges(), mesh.totedge);
 
     AtomicDisjointSet islands(polys.size());
     for (const int edge : non_boundary_edges) {

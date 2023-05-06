@@ -7,9 +7,7 @@
 
 namespace blender::compositor {
 
-CornerPinNode::CornerPinNode(bNode *editor_node) : Node(editor_node)
-{
-}
+CornerPinNode::CornerPinNode(bNode *editor_node) : Node(editor_node) {}
 
 void CornerPinNode::convert_to_operations(NodeConverter &converter,
                                           const CompositorContext & /*context*/) const

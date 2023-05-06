@@ -600,14 +600,21 @@ static IDProperty *idp_from_PySequence(const char *name, PyObject *ob)
   bool use_buffer = false;
 
   if (PyObject_CheckBuffer(ob)) {
-    PyObject_GetBuffer(ob, &buffer, PyBUF_SIMPLE | PyBUF_FORMAT);
-    const char format = PyC_StructFmt_type_from_str(buffer.format);
-    if (PyC_StructFmt_type_is_float_any(format) ||
-        (PyC_StructFmt_type_is_int_any(format) && buffer.itemsize == 4)) {
-      use_buffer = true;
+    if (PyObject_GetBuffer(ob, &buffer, PyBUF_SIMPLE | PyBUF_FORMAT) == -1) {
+      /* Request failed. A `PyExc_BufferError` will have been raised,
+       * so clear it to silently fall back to accessing as a sequence. */
+      PyErr_Clear();
     }
     else {
-      PyBuffer_Release(&buffer);
+      const char format = PyC_StructFmt_type_from_str(buffer.format);
+      if (PyC_StructFmt_type_is_float_any(format) ||
+          (PyC_StructFmt_type_is_int_any(format) && buffer.itemsize == 4))
+      {
+        use_buffer = true;
+      }
+      else {
+        PyBuffer_Release(&buffer);
+      }
     }
   }
 
@@ -731,7 +738,8 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
      * obviously this isn't a complete solution, but helps for common cases. */
     prop_exist = IDP_GetPropertyFromGroup(group, prop->name);
     if ((prop_exist != NULL) && (prop_exist->type == prop->type) &&
-        (prop_exist->subtype == prop->subtype)) {
+        (prop_exist->subtype == prop->subtype))
+    {
       /* Preserve prev/next links!!! See #42593. */
       prop->prev = prop_exist->prev;
       prop->next = prop_exist->next;
@@ -746,7 +754,13 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
       MEM_freeN(prop);
     }
     else {
+      const bool overridable = prop_exist ?
+                                   (prop_exist->flag & IDP_FLAG_OVERRIDABLE_LIBRARY) != 0 :
+                                   false;
       IDP_ReplaceInGroup_ex(group, prop, prop_exist);
+      if (overridable) {
+        prop->flag |= IDP_FLAG_OVERRIDABLE_LIBRARY;
+      }
     }
   }
 
@@ -1614,7 +1628,7 @@ static PySequenceMethods BPy_IDGroup_Seq = {
 };
 
 static PyMappingMethods BPy_IDGroup_Mapping = {
-    /*mp_len*/ (lenfunc)BPy_IDGroup_Map_Len,
+    /*mp_length*/ (lenfunc)BPy_IDGroup_Map_Len,
     /*mp_subscript*/ (binaryfunc)BPy_IDGroup_Map_GetItem,
     /*mp_ass_subscript*/ (objobjargproc)BPy_IDGroup_Map_SetItem,
 };
@@ -1988,7 +2002,7 @@ static int BPy_IDArray_ass_subscript(BPy_IDArray *self, PyObject *item, PyObject
 }
 
 static PyMappingMethods BPy_IDArray_AsMapping = {
-    /*mp_len*/ (lenfunc)BPy_IDArray_Len,
+    /*mp_length*/ (lenfunc)BPy_IDArray_Len,
     /*mp_subscript*/ (binaryfunc)BPy_IDArray_subscript,
     /*mp_ass_subscript*/ (objobjargproc)BPy_IDArray_ass_subscript,
 };

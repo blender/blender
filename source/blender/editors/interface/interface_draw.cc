@@ -728,7 +728,8 @@ void ui_draw_but_WAVEFORM(ARegion * /*region*/,
                   SCOPES_WAVEFRM_RGB_PARADE,
                   SCOPES_WAVEFRM_YCC_601,
                   SCOPES_WAVEFRM_YCC_709,
-                  SCOPES_WAVEFRM_YCC_JPEG)) {
+                  SCOPES_WAVEFRM_YCC_JPEG))
+    {
       const int rgb = (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB_PARADE);
 
       GPU_matrix_push();
@@ -1098,7 +1099,8 @@ static void ui_draw_colorband_handle(uint shdr_pos,
 
     float viewport_size[4];
     GPU_viewport_size_get_f(viewport_size);
-    immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+    immUniform2f(
+        "viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
 
     immUniform1i("colors_len", 2); /* "advanced" mode */
     immUniform4f("color", 0.8f, 0.8f, 0.8f, 1.0f);
@@ -1672,7 +1674,7 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   }
 
   cmp = cuma->curve;
-  GPU_point_size(max_ff(1.0f, min_ff(UI_DPI_FAC / but->block->aspect * 4.0f, 4.0f)));
+  GPU_point_size(max_ff(1.0f, min_ff(UI_SCALE_FAC / but->block->aspect * 4.0f, 4.0f)));
   immBegin(GPU_PRIM_POINTS, cuma->totpoint);
   for (int a = 0; a < cuma->totpoint; a++) {
     const float fx = rect->xmin + zoomx * (cmp[a].x - offsx);
@@ -1931,7 +1933,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   GPU_line_smooth(false);
   if (path_len > 0) {
     GPU_blend(GPU_BLEND_NONE);
-    GPU_point_size(max_ff(3.0f, min_ff(UI_DPI_FAC / but->block->aspect * 5.0f, 5.0f)));
+    GPU_point_size(max_ff(3.0f, min_ff(UI_SCALE_FAC / but->block->aspect * 5.0f, 5.0f)));
     immBegin(GPU_PRIM_POINTS, path_len);
     for (int i = 0; i < path_len; i++) {
       fx = rect->xmin + zoomx * (pts[i].x - offsx);
@@ -1946,7 +1948,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   if (selected_free_points > 0) {
     GPU_line_smooth(false);
     GPU_blend(GPU_BLEND_NONE);
-    GPU_point_size(max_ff(2.0f, min_ff(UI_DPI_FAC / but->block->aspect * 4.0f, 4.0f)));
+    GPU_point_size(max_ff(2.0f, min_ff(UI_SCALE_FAC / but->block->aspect * 4.0f, 4.0f)));
     immBegin(GPU_PRIM_POINTS, selected_free_points * 2);
     for (int i = 0; i < path_len; i++) {
       if (point_draw_handles(&pts[i])) {
@@ -1968,7 +1970,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   pts = profile->segments;
   const int segments_len = uint(profile->segments_len);
   if (segments_len > 0 && pts) {
-    GPU_point_size(max_ff(2.0f, min_ff(UI_DPI_FAC / but->block->aspect * 3.0f, 3.0f)));
+    GPU_point_size(max_ff(2.0f, min_ff(UI_SCALE_FAC / but->block->aspect * 3.0f, 3.0f)));
     immBegin(GPU_PRIM_POINTS, segments_len);
     for (int i = 0; i < segments_len; i++) {
       fx = rect->xmin + zoomx * (pts[i].x - offsx);
@@ -2034,7 +2036,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
   }
   else if ((scopes->track_search) &&
            ((!scopes->track_preview) ||
-            (scopes->track_preview->x != width || scopes->track_preview->y != height))) {
+            (scopes->track_preview->x != width || scopes->track_preview->y != height)))
+  {
     if (scopes->track_preview) {
       IMB_freeImBuf(scopes->track_preview);
     }

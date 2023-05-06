@@ -11,17 +11,11 @@ CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_NATIVE_VECTOR_TYPES__
 #  ifdef __KERNEL_SSE__
-__forceinline int3::int3()
-{
-}
+__forceinline int3::int3() {}
 
-__forceinline int3::int3(const __m128i &a) : m128(a)
-{
-}
+__forceinline int3::int3(const __m128i &a) : m128(a) {}
 
-__forceinline int3::int3(const int3 &a) : m128(a.m128)
-{
-}
+__forceinline int3::int3(const int3 &a) : m128(a.m128) {}
 
 __forceinline int3::operator const __m128i &() const
 {
@@ -54,6 +48,18 @@ __forceinline int &int3::operator[](int i)
   util_assert(i < 3);
   return *(&x + i);
 }
+
+__forceinline int packed_int3::operator[](int i) const
+{
+  util_assert(i < 3);
+  return *(&x + i);
+}
+
+__forceinline int &packed_int3::operator[](int i)
+{
+  util_assert(i < 3);
+  return *(&x + i);
+}
 #  endif
 
 ccl_device_inline int3 make_int3(int x, int y, int z)
@@ -78,6 +84,12 @@ ccl_device_inline int3 make_int3(int i)
 #else
   return {i, i, i, i};
 #endif
+}
+
+ccl_device_inline packed_int3 make_packed_int3(int x, int y, int z)
+{
+  packed_int3 a = {x, y, z};
+  return a;
 }
 
 ccl_device_inline void print_int3(ccl_private const char *label, const int3 a)

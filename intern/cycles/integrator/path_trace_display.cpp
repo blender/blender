@@ -9,7 +9,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-PathTraceDisplay::PathTraceDisplay(unique_ptr<DisplayDriver> driver) : driver_(move(driver))
+PathTraceDisplay::PathTraceDisplay(unique_ptr<DisplayDriver> driver) : driver_(std::move(driver))
 {
 }
 
@@ -117,7 +117,8 @@ void PathTraceDisplay::copy_pixels_to_texture(
   const int texture_height = texture_state_.size.y;
 
   if (texture_x == 0 && texture_y == 0 && pixels_width == texture_width &&
-      pixels_height == texture_height) {
+      pixels_height == texture_height)
+  {
     const size_t size_in_bytes = sizeof(half4) * texture_width * texture_height;
     memcpy(mapped_rgba_pixels, rgba_pixels, size_in_bytes);
   }

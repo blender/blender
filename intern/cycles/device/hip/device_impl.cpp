@@ -35,7 +35,7 @@ bool HIPDevice::have_precompiled_kernels()
   return path_exists(fatbins_path);
 }
 
-BVHLayoutMask HIPDevice::get_bvh_layout_mask() const
+BVHLayoutMask HIPDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
 {
   return BVH_LAYOUT_BVH2;
 }
@@ -499,12 +499,11 @@ void HIPDevice::free_host(void *shared_pointer)
   hipHostFree(shared_pointer);
 }
 
-bool HIPDevice::transform_host_pointer(void *&device_pointer, void *&shared_pointer)
+void HIPDevice::transform_host_pointer(void *&device_pointer, void *&shared_pointer)
 {
   HIPContextScope scope(this);
 
   hip_assert(hipHostGetDevicePointer((hipDeviceptr_t *)&device_pointer, shared_pointer, 0));
-  return true;
 }
 
 void HIPDevice::copy_host_to_device(void *device_pointer, void *host_pointer, size_t size)
@@ -813,7 +812,8 @@ void HIPDevice::tex_alloc(device_texture &mem)
   if (mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
       mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 &&
       mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
-      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FP16) {
+      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FP16)
+  {
     /* Bindless textures. */
     hipResourceDesc resDesc;
     memset(&resDesc, 0, sizeof(resDesc));

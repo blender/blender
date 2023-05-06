@@ -14,6 +14,7 @@ set(SRC
   binning.cpp
   build.cpp
   embree.cpp
+  hiprt.cpp
   multi.cpp
   node.cpp
   optix.cpp
@@ -39,6 +40,7 @@ set(SRC_HEADERS
   binning.h
   build.h
   embree.h
+  hiprt.h
   multi.h
   node.h
   optix.h
@@ -61,6 +63,11 @@ if(WITH_CYCLES_EMBREE)
   list(APPEND LIB
     ${EMBREE_LIBRARIES}
   )
+  if(EMBREE_SYCL_SUPPORT)
+    list(APPEND LIB
+      ${SYCL_LIBRARIES}
+    )
+  endif()
 endif()
 
 cycles_add_library(cycles_bvh "${LIB}" ${SRC} ${SRC_HEADERS})

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup modifiers
@@ -20,7 +20,7 @@
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
@@ -36,8 +36,8 @@
 
 #include "BLO_read_write.h"
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 static void initData(ModifierData *md)
 {
@@ -154,7 +154,7 @@ static void deformVerts(ModifierData *md,
   }
 
   /* make new mesh */
-  psmd->mesh_final = BKE_mesh_copy_for_eval(mesh_src, false);
+  psmd->mesh_final = BKE_mesh_copy_for_eval(mesh_src);
   BKE_mesh_vert_coords_apply(psmd->mesh_final, vertexCos);
 
   BKE_mesh_tessface_ensure(psmd->mesh_final);
@@ -185,7 +185,7 @@ static void deformVerts(ModifierData *md,
       /* Make a persistent copy of the mesh. We don't actually need
        * all this data, just some topology for remapping. Could be
        * optimized once. */
-      psmd->mesh_original = BKE_mesh_copy_for_eval(mesh_original, false);
+      psmd->mesh_original = BKE_mesh_copy_for_eval(mesh_original);
     }
 
     BKE_mesh_tessface_ensure(psmd->mesh_original);
@@ -201,7 +201,8 @@ static void deformVerts(ModifierData *md,
    * instance. */
   if (had_mesh_final && (psmd->mesh_final->totvert != psmd->totdmvert ||
                          psmd->mesh_final->totedge != psmd->totdmedge ||
-                         psmd->mesh_final->totface != psmd->totdmface)) {
+                         psmd->mesh_final->totface != psmd->totdmface))
+  {
     psys->recalc |= ID_RECALC_PSYS_RESET;
   }
   psmd->totdmvert = psmd->mesh_final->totvert;

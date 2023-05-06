@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 #pragma once
 
@@ -29,9 +29,7 @@ class BCSample {
   BCBoneMatrixMap bonemats; /* For Armature animation */
 
  public:
-  BCSample(Object *ob) : obmat(ob)
-  {
-  }
+  BCSample(Object *ob) : obmat(ob) {}
 
   ~BCSample();
 

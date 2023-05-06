@@ -47,14 +47,10 @@ static SpaceLink *statusbar_create(const ScrArea *UNUSED(area), const Scene *UNU
 }
 
 /* not spacelink itself */
-static void statusbar_free(SpaceLink *UNUSED(sl))
-{
-}
+static void statusbar_free(SpaceLink *UNUSED(sl)) {}
 
 /* spacetype; init callback */
-static void statusbar_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
-{
-}
+static void statusbar_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static SpaceLink *statusbar_duplicate(SpaceLink *sl)
 {
@@ -74,13 +70,9 @@ static void statusbar_header_region_init(wmWindowManager *UNUSED(wm), ARegion *r
   ED_region_header_init(region);
 }
 
-static void statusbar_operatortypes(void)
-{
-}
+static void statusbar_operatortypes(void) {}
 
-static void statusbar_keymap(struct wmKeyConfig *UNUSED(keyconf))
-{
-}
+static void statusbar_keymap(struct wmKeyConfig *UNUSED(keyconf)) {}
 
 static void statusbar_header_region_listener(const wmRegionListenerParams *params)
 {
@@ -132,7 +124,7 @@ static void statusbar_header_region_message_subscribe(const wmRegionMessageSubsc
   WM_msg_subscribe_rna_anon_prop(mbus, ViewLayer, name, &msg_sub_value_region_tag_redraw);
 }
 
-static void statusbar_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void statusbar_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   BLO_write_struct(writer, SpaceStatusBar, sl);
 }
@@ -151,7 +143,7 @@ void ED_spacetype_statusbar(void)
   st->duplicate = statusbar_duplicate;
   st->operatortypes = statusbar_operatortypes;
   st->keymap = statusbar_keymap;
-  st->blend_write = statusbar_blend_write;
+  st->blend_write = statusbar_space_blend_write;
 
   /* regions: header window */
   art = MEM_callocN(sizeof(*art), "spacetype statusbar header region");

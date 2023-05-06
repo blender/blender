@@ -622,7 +622,7 @@ void drw_uniform_attrs_pool_update(GHash *table,
   }
 }
 
-GPUUniformBuf *drw_ensure_layer_attribute_buffer()
+GPUUniformBuf *drw_ensure_layer_attribute_buffer(void)
 {
   DRWData *data = DST.vmempool;
 
@@ -649,7 +649,8 @@ GPUUniformBuf *drw_ensure_layer_attribute_buffer()
     float value[4];
 
     if (BKE_view_layer_find_rgba_attribute(
-            DST.draw_ctx.scene, DST.draw_ctx.view_layer, attr->name, value)) {
+            DST.draw_ctx.scene, DST.draw_ctx.view_layer, attr->name, value))
+    {
       LayerAttribute *item = &buffer[count++];
 
       memcpy(item->data, value, sizeof(item->data));
@@ -685,7 +686,7 @@ DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(GHash *table,
   return buffer ? &buffer->ubos : NULL;
 }
 
-GHash *DRW_uniform_attrs_pool_new()
+GHash *DRW_uniform_attrs_pool_new(void)
 {
   return GPU_uniform_attr_list_hash_new("obattr_hash");
 }

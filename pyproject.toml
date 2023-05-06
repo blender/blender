@@ -33,7 +33,8 @@ aggressive = 2
 
 # Exclude:
 # - `./extern/` because it's maintained separately.
-# - `./scripts/addons*` & `./tools/` because they are external repositories
+# - `./tools/svn_rev_map/` contains data-files which are slow to re-format and don't benefit from formatting.
+# - `./scripts/addons*` because it is an external repository.
 #   which can contain their own configuration and be handled separately.
 # - `./scripts/modules/rna_manual_reference.py` because it's a generated data-file.
 exclude = """
@@ -41,7 +42,8 @@ exclude = """
 ./scripts/addons/*,
 ./scripts/addons_contrib/*,
 ./scripts/modules/rna_manual_reference.py,
-./tools/*,
+./tools/svn_rev_map/sha1_to_rev.py,
+./tools/svn_rev_map/rev_to_sha1.py,
 """
 
 # Omit settings such as `jobs`, `in_place` & `recursive` as they can cause editor utilities that auto-format on save

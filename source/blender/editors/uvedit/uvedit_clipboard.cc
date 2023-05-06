@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup eduv
@@ -24,6 +24,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_mesh_mapping.h" /* UvElementMap */
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 
@@ -43,10 +44,14 @@ class UV_ClipboardBuffer {
   ~UV_ClipboardBuffer();
 
   void append(UvElementMap *element_map, const int cd_loop_uv_offset);
+  /**
+   * \return True when found.
+   */
   bool find_isomorphism(UvElementMap *dest_element_map,
                         int island_index,
+                        int cd_loop_uv_offset,
                         blender::Vector<int> &r_label,
-                        int cd_loop_uv_offset);
+                        bool *r_search_abandoned);
 
   void write_uvs(UvElementMap *element_map,
                  int island_index,
@@ -63,7 +68,7 @@ static UV_ClipboardBuffer *uv_clipboard = nullptr;
 
 UV_ClipboardBuffer::~UV_ClipboardBuffer()
 {
-  for (const int index : graph.index_range()) {
+  for (const int64_t index : graph.index_range()) {
     delete graph[index];
   }
   graph.clear();
@@ -194,12 +199,16 @@ void UV_ClipboardBuffer::write_uvs(UvElementMap *element_map,
   BLI_assert(unique_uv == label.size());
 }
 
-/* Call the external isomorphism solver. */
+/**
+ * Call the external isomorphism solver.
+ * \return True when found.
+ */
 static bool find_isomorphism(UvElementMap *dest,
                              const int dest_island_index,
                              GraphISO *graph_source,
+                             const int cd_loop_uv_offset,
                              blender::Vector<int> &r_label,
-                             int cd_loop_uv_offset)
+                             bool *r_search_abandoned)
 {
 
   const int island_total_unique_uvs = dest->island_total_unique_uvs[dest_island_index];
@@ -212,12 +221,12 @@ static bool find_isomorphism(UvElementMap *dest,
 
   int(*solution)[2] = (int(*)[2])MEM_mallocN(graph_source->n * sizeof(*solution), __func__);
   int solution_length = 0;
-  const bool result = ED_uvedit_clipboard_maximum_common_subgraph(
-      graph_source, graph_dest, solution, &solution_length);
+  const bool found = ED_uvedit_clipboard_maximum_common_subgraph(
+      graph_source, graph_dest, solution, &solution_length, r_search_abandoned);
 
   /* Todo: Implement "Best Effort" / "Nearest Match" paste functionality here. */
 
-  if (result) {
+  if (found) {
     BLI_assert(solution_length == dest->island_total_unique_uvs[dest_island_index]);
     for (int i = 0; i < solution_length; i++) {
       int index_s = solution[i][0];
@@ -230,20 +239,23 @@ static bool find_isomorphism(UvElementMap *dest,
 
   MEM_SAFE_FREE(solution);
   delete graph_dest;
-  return result;
+  return found;
 }
 
 bool UV_ClipboardBuffer::find_isomorphism(UvElementMap *dest_element_map,
-                                          int dest_island_index,
+                                          const int dest_island_index,
+                                          const int cd_loop_uv_offset,
                                           blender::Vector<int> &r_label,
-                                          int cd_loop_uv_offset)
+                                          bool *r_search_abandoned)
 {
-  for (int source_island_index : graph.index_range()) {
+  for (const int64_t source_island_index : graph.index_range()) {
     if (::find_isomorphism(dest_element_map,
                            dest_island_index,
                            graph[source_island_index],
+                           cd_loop_uv_offset,
                            r_label,
-                           cd_loop_uv_offset)) {
+                           r_search_abandoned))
+    {
       const int island_total_unique_uvs =
           dest_element_map->island_total_unique_uvs[dest_island_index];
       const int island_offset = offset[source_island_index];
@@ -293,7 +305,7 @@ static int uv_copy_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int uv_paste_exec(bContext *C, wmOperator * /*op*/)
+static int uv_paste_exec(bContext *C, wmOperator *op)
 {
   /* TODO: Restore `UvClipboard` from system clipboard. */
   if (!uv_clipboard) {
@@ -306,6 +318,9 @@ static int uv_paste_exec(bContext *C, wmOperator * /*op*/)
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, ((View3D *)nullptr), &objects_len);
 
+  bool changed_multi = false;
+  int complicated_search = 0;
+  int total_search = 0;
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(ob);
@@ -320,25 +335,46 @@ static int uv_paste_exec(bContext *C, wmOperator * /*op*/)
       continue;
     }
 
+    bool changed = false;
+
     for (int i = 0; i < dest_element_map->total_islands; i++) {
+      total_search++;
       blender::Vector<int> label;
+      bool search_abandoned = false;
       const bool found = uv_clipboard->find_isomorphism(
-          dest_element_map, i, label, cd_loop_uv_offset);
+          dest_element_map, i, cd_loop_uv_offset, label, &search_abandoned);
       if (!found) {
+        if (search_abandoned) {
+          complicated_search++;
+        }
         continue; /* No source UVs can be found that is isomorphic to this island. */
       }
 
       uv_clipboard->write_uvs(dest_element_map, i, cd_loop_uv_offset, label);
+      changed = true; /* UVs were moved. */
     }
 
     BM_uv_element_map_free(dest_element_map);
-    DEG_id_tag_update(static_cast<ID *>(ob->data), 0);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+
+    if (changed) {
+      changed_multi = true;
+
+      DEG_id_tag_update(static_cast<ID *>(ob->data), 0);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+    }
+  }
+
+  if (complicated_search) {
+    BKE_reportf(op->reports,
+                RPT_WARNING,
+                "Skipped %d of %d island(s), geometry was too complicated to detect a match",
+                complicated_search,
+                total_search);
   }
 
   MEM_freeN(objects);
 
-  return OPERATOR_FINISHED;
+  return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void UV_OT_copy(wmOperatorType *ot)

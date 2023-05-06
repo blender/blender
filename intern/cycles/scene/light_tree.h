@@ -8,8 +8,11 @@
 #include "scene/scene.h"
 
 #include "util/boundbox.h"
+#include "util/task.h"
 #include "util/types.h"
 #include "util/vector.h"
+
+#include <variant>
 
 CCL_NAMESPACE_BEGIN
 
@@ -22,9 +25,7 @@ struct OrientationBounds {
   float theta_o; /* angle bounding the normals */
   float theta_e; /* angle bounding the light emissions */
 
-  __forceinline OrientationBounds()
-  {
-  }
+  __forceinline OrientationBounds() {}
 
   __forceinline OrientationBounds(const float3 &axis_, float theta_o_, float theta_e_)
       : axis(axis_), theta_o(theta_o_), theta_e(theta_e_)
@@ -41,6 +42,11 @@ struct OrientationBounds {
   {
   }
 
+  __forceinline bool is_empty() const
+  {
+    return is_zero(axis);
+  }
+
   float calculate_measure() const;
 };
 
@@ -52,77 +58,246 @@ OrientationBounds merge(const OrientationBounds &cone_a, const OrientationBounds
  * The light tree construction is based on PBRT's BVH construction.
  */
 
-/* Light Tree Primitive
- * Struct that indexes into the scene's triangle and light arrays. */
-struct LightTreePrimitive {
-  /* `prim_id >= 0` is an index into an object's local triangle index,
-   * otherwise `-prim_id-1`(`~prim`) is an index into device lights array. */
-  int prim_id;
-  int object_id;
+/* Light Tree uses the bounding box, the orientation bounding cone, and the energy of a cluster to
+ * compute the Surface Area Orientation Heuristic (SAOH). */
+struct LightTreeMeasure {
+  BoundBox bbox = BoundBox::empty;
+  OrientationBounds bcone = OrientationBounds::empty;
+  float energy = 0.0f;
 
-  float energy;
-  float3 centroid;
-  OrientationBounds bcone;
-  BoundBox bbox;
+  enum empty_t { empty = 0 };
 
-  LightTreePrimitive(Scene *scene, int prim_id, int object_id);
+  __forceinline LightTreeMeasure() = default;
 
-  inline bool is_triangle() const
-  {
-    return prim_id >= 0;
-  };
-};
+  __forceinline LightTreeMeasure(empty_t) {}
 
-/* Light Tree Bucket Info
- * Struct used to determine splitting costs in the light BVH. */
-struct LightTreeBucketInfo {
-  LightTreeBucketInfo()
-      : energy(0.0f), bbox(BoundBox::empty), bcone(OrientationBounds::empty), count(0)
+  __forceinline LightTreeMeasure(const BoundBox &bbox,
+                                 const OrientationBounds &bcone,
+                                 const float &energy)
+      : bbox(bbox), bcone(bcone), energy(energy)
   {
   }
 
-  float energy; /* Total energy in the partition */
-  BoundBox bbox;
-  OrientationBounds bcone;
-  int count;
+  __forceinline LightTreeMeasure(const LightTreeMeasure &other)
+      : bbox(other.bbox), bcone(other.bcone), energy(other.energy)
+  {
+  }
 
-  static const int num_buckets = 12;
+  __forceinline bool is_zero() const
+  {
+    return energy == 0;
+  }
+
+  __forceinline void add(const LightTreeMeasure &measure)
+  {
+    if (!measure.is_zero()) {
+      bbox.grow(measure.bbox);
+      bcone = merge(bcone, measure.bcone);
+      energy += measure.energy;
+    }
+  }
+
+  /* Taken from Eq. 2 in the paper. */
+  __forceinline float calculate()
+  {
+    float area = bbox.area();
+    float area_measure = area == 0 ? len(bbox.size()) : area;
+    return energy * area_measure * bcone.calculate_measure();
+  }
+
+  __forceinline void reset()
+  {
+    *this = {};
+  }
+
+  bool transform(const Transform &tfm)
+  {
+    float scale_squared;
+    if (transform_uniform_scale(tfm, scale_squared)) {
+      bbox = bbox.transformed(&tfm);
+      bcone.axis = transform_direction(&tfm, bcone.axis) * inversesqrtf(scale_squared);
+      energy *= scale_squared;
+      return true;
+    }
+    return false;
+  }
 };
+
+LightTreeMeasure operator+(const LightTreeMeasure &a, const LightTreeMeasure &b);
+
+struct LightTreeNode;
+
+/* Light Tree Emitter
+ * An emitter is a built-in light, an emissive mesh, or an emissive triangle. */
+struct LightTreeEmitter {
+  /* If the emitter is a mesh, point to the root node of its subtree. */
+  unique_ptr<LightTreeNode> root;
+
+  union {
+    int light_id; /* Index into device lights array. */
+    int prim_id;  /* Index into an object's local triangle index. */
+  };
+
+  int object_id;
+  float3 centroid;
+
+  LightTreeMeasure measure;
+
+  LightTreeEmitter(Object *object, int object_id); /* Mesh emitter. */
+  LightTreeEmitter(Scene *scene, int prim_id, int object_id, bool with_transformation = false);
+
+  __forceinline bool is_mesh() const
+  {
+    return root != nullptr;
+  };
+
+  __forceinline bool is_triangle() const
+  {
+    return !is_mesh() && prim_id >= 0;
+  };
+
+  __forceinline bool is_light() const
+  {
+    return !is_mesh() && light_id < 0;
+  };
+};
+
+/* Light Tree Bucket
+ * Struct used to determine splitting costs in the light BVH. */
+struct LightTreeBucket {
+  LightTreeMeasure measure;
+  int count = 0;
+  static const int num_buckets = 12;
+
+  LightTreeBucket() = default;
+
+  LightTreeBucket(const LightTreeMeasure &measure, const int &count)
+      : measure(measure), count(count)
+  {
+  }
+
+  void add(const LightTreeEmitter &emitter)
+  {
+    measure.add(emitter.measure);
+    count++;
+  }
+};
+
+LightTreeBucket operator+(const LightTreeBucket &a, const LightTreeBucket &b);
 
 /* Light Tree Node */
 struct LightTreeNode {
-  BoundBox bbox;
-  OrientationBounds bcone;
-  float energy;
+  LightTreeMeasure measure;
   uint bit_trail;
-  int num_prims = -1;
-  union {
-    int first_prim_index;  /* leaf nodes contain an index to first primitive. */
-    int right_child_index; /* interior nodes contain an index to second child. */
+  int object_id;
+
+  /* A bitmask of `LightTreeNodeType`, as in the building process an instance node can also be a
+   * leaf or an inner node. */
+  int type;
+
+  struct Leaf {
+    /* The number of emitters a leaf node stores. */
+    int num_emitters = -1;
+    /* Index to first emitter. */
+    int first_emitter_index = -1;
   };
-  LightTreeNode() = default;
 
-  LightTreeNode(const BoundBox &bbox,
-                const OrientationBounds &bcone,
-                const float &energy,
-                const uint &bit_trial)
-      : bbox(bbox), bcone(bcone), energy(energy), bit_trail(bit_trial)
+  struct Inner {
+    /* Inner node has two children. */
+    unique_ptr<LightTreeNode> children[2];
+  };
+
+  struct Instance {
+    LightTreeNode *reference = nullptr;
+  };
+
+  std::variant<Leaf, Inner, Instance> variant_type;
+
+  LightTreeNode(const LightTreeMeasure &measure, const uint &bit_trial)
+      : measure(measure), bit_trail(bit_trial), variant_type(Inner())
   {
+    type = LIGHT_TREE_INNER;
   }
 
-  void make_leaf(const uint &first_prim_index, const int &num_prims)
+  ~LightTreeNode() = default;
+
+  __forceinline void add(const LightTreeEmitter &emitter)
   {
-    this->first_prim_index = first_prim_index;
-    this->num_prims = num_prims;
-  }
-  void make_interior(const int &right_child_index)
-  {
-    this->right_child_index = right_child_index;
+    measure.add(emitter.measure);
   }
 
-  inline bool is_leaf() const
+  __forceinline Leaf &get_leaf()
   {
-    return num_prims >= 0;
+    return std::get<Leaf>(variant_type);
+  }
+
+  __forceinline Inner &get_inner()
+  {
+    return std::get<Inner>(variant_type);
+  }
+
+  __forceinline Instance &get_instance()
+  {
+    return std::get<Instance>(variant_type);
+  }
+
+  void make_leaf(const int &first_emitter_index, const int &num_emitters)
+  {
+    variant_type = Leaf();
+    Leaf &leaf = get_leaf();
+
+    leaf.first_emitter_index = first_emitter_index;
+    leaf.num_emitters = num_emitters;
+    type = LIGHT_TREE_LEAF;
+  }
+
+  void make_distant(const int &first_emitter_index, const int &num_emitters)
+  {
+    variant_type = Leaf();
+    Leaf &leaf = get_leaf();
+
+    leaf.first_emitter_index = first_emitter_index;
+    leaf.num_emitters = num_emitters;
+    type = LIGHT_TREE_DISTANT;
+  }
+
+  void make_instance(LightTreeNode *reference, const int &object_id)
+  {
+    variant_type = Instance();
+    Instance &instance = get_instance();
+
+    instance.reference = reference;
+    this->object_id = object_id;
+    type = LIGHT_TREE_INSTANCE;
+  }
+
+  LightTreeNode *get_reference()
+  {
+    assert(is_instance());
+    if (type == LIGHT_TREE_INSTANCE) {
+      return get_instance().reference;
+    }
+    return this;
+  }
+
+  __forceinline bool is_instance() const
+  {
+    return type & LIGHT_TREE_INSTANCE;
+  }
+
+  __forceinline bool is_leaf() const
+  {
+    return type & LIGHT_TREE_LEAF;
+  }
+
+  __forceinline bool is_inner() const
+  {
+    return type & LIGHT_TREE_INNER;
+  }
+
+  __forceinline bool is_distant() const
+  {
+    return type == LIGHT_TREE_DISTANT;
   }
 };
 
@@ -131,28 +306,80 @@ struct LightTreeNode {
  * BVH-like data structure that keeps track of lights
  * and considers additional orientation and energy information */
 class LightTree {
-  vector<LightTreeNode> nodes_;
+  unique_ptr<LightTreeNode> root_;
+
+  /* Local lights, distant lights and mesh lights are added to separate vectors for light tree
+   * construction. They are all considered as `emitters_`. */
+  vector<LightTreeEmitter> emitters_;
+  vector<LightTreeEmitter> local_lights_;
+  vector<LightTreeEmitter> distant_lights_;
+  vector<LightTreeEmitter> mesh_lights_;
+
+  std::unordered_map<Mesh *, int> offset_map_;
+
+  Progress &progress_;
+
   uint max_lights_in_leaf_;
 
  public:
-  LightTree(vector<LightTreePrimitive> &prims,
-            const int &num_distant_lights,
-            uint max_lights_in_leaf);
+  std::atomic<int> num_nodes = 0;
+  size_t num_triangles = 0;
 
-  const vector<LightTreeNode> &get_nodes() const;
+  /* An inner node itself or its left and right child. */
+  enum Child {
+    self = -1,
+    left = 0,
+    right = 1,
+  };
+
+  LightTree(Scene *scene, DeviceScene *dscene, Progress &progress, uint max_lights_in_leaf);
+
+  /* Returns a pointer to the root node. */
+  LightTreeNode *build(Scene *scene, DeviceScene *dscene);
+
+  /* NOTE: Always use this function to create a new node so the number of nodes is in sync. */
+  unique_ptr<LightTreeNode> create_node(const LightTreeMeasure &measure, const uint &bit_trial)
+  {
+    num_nodes++;
+    return make_unique<LightTreeNode>(measure, bit_trial);
+  }
+
+  size_t num_emitters()
+  {
+    return emitters_.size();
+  }
+
+  const LightTreeEmitter &get_emitter(int index) const
+  {
+    return emitters_.at(index);
+  }
 
  private:
-  int recursive_build(
-      int start, int end, vector<LightTreePrimitive> &prims, uint bit_trail, int depth);
-  float min_split_saoh(const BoundBox &centroid_bbox,
+  /* Thread. */
+  TaskPool task_pool;
+  /* Do not spawn a thread if less than this amount of emitters are to be processed. */
+  enum { MIN_EMITTERS_PER_THREAD = 4096 };
+
+  void recursive_build(Child child,
+                       LightTreeNode *inner,
                        int start,
                        int end,
-                       const BoundBox &bbox,
-                       const OrientationBounds &bcone,
-                       int &split_dim,
-                       int &split_bucket,
-                       int &num_left_prims,
-                       const vector<LightTreePrimitive> &prims);
+                       LightTreeEmitter *emitters,
+                       uint bit_trail,
+                       int depth);
+
+  bool should_split(LightTreeEmitter *emitters,
+                    const int start,
+                    int &middle,
+                    const int end,
+                    LightTreeMeasure &measure,
+                    int &split_dim);
+
+  /* Check whether the light tree can use this triangle as light-emissive. */
+  bool triangle_usable_as_light(Mesh *mesh, int prim_id);
+
+  /* Add all the emissive triangles of a mesh to the light tree. */
+  void add_mesh(Scene *scene, Mesh *mesh, int object_id);
 };
 
 CCL_NAMESPACE_END

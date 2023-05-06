@@ -15,7 +15,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
@@ -822,7 +822,8 @@ static bool select_grouped_collection(bContext *C, Object *ob)
 
   for (collection = bmain->collections.first;
        collection && (collection_count < COLLECTION_MENU_MAX);
-       collection = collection->id.next) {
+       collection = collection->id.next)
+  {
     if (BKE_collection_has_object(collection, ob)) {
       ob_collections[collection_count] = collection;
       collection_count++;
@@ -1461,7 +1462,7 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Select Random";
-  ot->description = "Set select on random visible objects";
+  ot->description = "Select or deselect random visible objects";
   ot->idname = "OBJECT_OT_select_random";
 
   /* api callbacks */

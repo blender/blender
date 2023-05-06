@@ -48,11 +48,15 @@ static void create_transform_data_for_node(TransData &td,
 
   /* account for parents (nested nodes) */
   if (node.parent) {
-    nodeToView(node.parent, node.locx, node.locy, &locx, &locy);
+    nodeToView(node.parent,
+               node.locx + roundf(node.offsetx),
+               node.locy + roundf(node.offsety),
+               &locx,
+               &locy);
   }
   else {
-    locx = node.locx;
-    locy = node.locy;
+    locx = node.locx + roundf(node.offsetx);
+    locy = node.locy + roundf(node.offsety);
   }
 
   /* use top-left corner as the transform origin for nodes */
@@ -142,7 +146,7 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
   tc->data_2d = MEM_cnew_array<TransData2D>(tc->data_len, __func__);
 
   for (const int i : nodes.index_range()) {
-    create_transform_data_for_node(tc->data[i], tc->data_2d[i], *nodes[i], UI_DPI_FAC);
+    create_transform_data_for_node(tc->data[i], tc->data_2d[i], *nodes[i], UI_SCALE_FAC);
   }
 }
 
@@ -157,7 +161,8 @@ static void node_snap_grid_apply(TransInfo *t)
   using namespace blender;
 
   if (!(transform_snap_is_active(t) &&
-        (t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)))) {
+        (t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID))))
+  {
     return;
   }
 
@@ -197,7 +202,7 @@ static void node_snap_grid_apply(TransInfo *t)
 static void flushTransNodes(TransInfo *t)
 {
   using namespace blender::ed;
-  const float dpi_fac = UI_DPI_FAC;
+  const float dpi_fac = UI_SCALE_FAC;
   SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
 
   TransCustomDataNode *customdata = (TransCustomDataNode *)t->custom.type.data;
@@ -244,11 +249,16 @@ static void flushTransNodes(TransInfo *t)
 
       /* account for parents (nested nodes) */
       if (node->parent) {
-        nodeFromView(node->parent, loc[0], loc[1], &loc[0], &loc[1]);
+        nodeFromView(node->parent,
+                     loc[0] - roundf(node->offsetx),
+                     loc[1] - roundf(node->offsety),
+                     &node->locx,
+                     &node->locy);
       }
-
-      node->locx = loc[0];
-      node->locy = loc[1];
+      else {
+        node->locx = loc[0] - roundf(node->offsetx);
+        node->locy = loc[1] - roundf(node->offsety);
+      }
     }
 
     /* handle intersection with noodles */

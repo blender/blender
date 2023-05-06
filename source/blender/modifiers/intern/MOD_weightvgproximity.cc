@@ -31,7 +31,7 @@
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
@@ -50,10 +50,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
-#include "MOD_weightvg_util.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
+#include "MOD_weightvg_util.hh"
 
 //#define USE_TIMEIT
 
@@ -67,7 +67,7 @@
  **************************************/
 
 /* Util macro. */
-#define OUT_OF_MEMORY() ((void)printf("WeightVGProximity: Out of memory.\n"))
+#define OUT_OF_MEMORY() (void)printf("WeightVGProximity: Out of memory.\n")
 
 struct Vert2GeomData {
   /* Read-only data */
@@ -516,12 +516,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* Get our vertex coordinates. */
   if (index_num != verts_num) {
-    float(*tv_cos)[3] = BKE_mesh_vert_coords_alloc(mesh, nullptr);
+    const float(*tv_cos)[3] = BKE_mesh_vert_positions(mesh);
     v_cos = static_cast<float(*)[3]>(MEM_malloc_arrayN(index_num, sizeof(float[3]), __func__));
     for (i = 0; i < index_num; i++) {
       copy_v3_v3(v_cos[i], tv_cos[indices[i]]);
     }
-    MEM_freeN(tv_cos);
   }
   else {
     v_cos = BKE_mesh_vert_coords_alloc(mesh, nullptr);

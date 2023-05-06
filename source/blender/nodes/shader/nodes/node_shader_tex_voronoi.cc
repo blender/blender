@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 #include "node_shader_util.hh"
 
@@ -57,7 +57,8 @@ static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext * /*C*/, Poi
   uiItemR(layout, ptr, "feature", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   int feature = RNA_enum_get(ptr, "feature");
   if (!ELEM(feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS) &&
-      RNA_enum_get(ptr, "voronoi_dimensions") != 1) {
+      RNA_enum_get(ptr, "voronoi_dimensions") != 1)
+  {
     uiItemR(layout, ptr, "distance", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   }
 }

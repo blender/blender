@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 #include "usd_common.h"
 #include "usd.h"
@@ -18,9 +18,9 @@ namespace blender::io::usd {
 
 void ensure_usd_plugin_path_registered()
 {
-  /* if PXR_PYTHON_SUPPORT_ENABLED is defined, we *must* be dynamic and
-     the plugins are placed relative to the USD shared library hence no
-     hinting is required. */
+  /* If #PXR_PYTHON_SUPPORT_ENABLED is defined, we *must* be dynamic and
+   * the plugins are placed relative to the USD shared library hence no
+   * hinting is required. */
 #ifndef PXR_PYTHON_SUPPORT_ENABLED
   static bool plugin_path_registered = false;
   if (plugin_path_registered) {
@@ -34,7 +34,7 @@ void ensure_usd_plugin_path_registered()
   if (blender_usd_datafiles) {
     const std::string blender_usd_data_folder = blender_usd_datafiles;
     /* The trailing slash indicates to the USD library that the path is a directory. */
-    pxr::PlugRegistry::GetInstance().RegisterPlugins(blender_usd_data_folder + "/");
+    pxr::PlugRegistry::GetInstance().RegisterPlugins(blender_usd_data_folder + SEP_STR);
   }
 #endif
 }

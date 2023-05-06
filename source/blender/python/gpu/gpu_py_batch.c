@@ -71,7 +71,8 @@ static PyObject *pygpu_batch__tp_new(PyTypeObject *UNUSED(type), PyObject *args,
                                         &BPyGPUVertBuf_Type,
                                         &py_vertbuf,
                                         &BPyGPUIndexBuf_Type,
-                                        &py_indexbuf)) {
+                                        &py_indexbuf))
+  {
     return NULL;
   }
 
@@ -136,8 +137,8 @@ static PyObject *pygpu_batch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *py_bu
     return NULL;
   }
 
-  if (GPU_vertbuf_get_vertex_len(self->batch->verts[0]) !=
-      GPU_vertbuf_get_vertex_len(py_buf->buf)) {
+  if (GPU_vertbuf_get_vertex_len(self->batch->verts[0]) != GPU_vertbuf_get_vertex_len(py_buf->buf))
+  {
     PyErr_Format(PyExc_TypeError,
                  "Expected %d length, got %d",
                  GPU_vertbuf_get_vertex_len(self->batch->verts[0]),
@@ -231,6 +232,91 @@ static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(
+    pygpu_batch_draw_instanced_doc,
+    ".. method:: draw_instanced(program, *, instance_start=0, instance_count=0)\n"
+    "\n"
+    "   Draw multiple instances of the drawing program with the parameters assigned\n"
+    "   to the batch. In the vertex shader, `gl_InstanceID` will contain the instance\n"
+    "   number being drawn.\n"
+    "\n"
+    "   :arg program: Program that performs the drawing operations.\n"
+    "   :type program: :class:`gpu.types.GPUShader`\n"
+    "   :arg instance_start: Number of the first instance to draw.\n"
+    "   :type instance_start: int\n"
+    "   :arg instance_count: Number of instances to draw. When not provided or set to 0\n"
+    "      the number of instances will be determined by the number of rows in the first\n"
+    "      vertex buffer.\n"
+    "   :type instance_count: int\n");
+static PyObject *pygpu_batch_draw_instanced(BPyGPUBatch *self, PyObject *args, PyObject *kw)
+{
+  BPyGPUShader *py_program = NULL;
+  int instance_start = 0;
+  int instance_count = 0;
+
+  static const char *_keywords[] = {"program", "instance_start", "instance_count", NULL};
+  static _PyArg_Parser _parser = {
+      "O!" /* `program` */
+      "|$" /* Optional keyword only arguments. */
+      "i"  /* `instance_start` */
+      "i"  /* `instance_count' */
+      ":GPUBatch.draw_instanced",
+      _keywords,
+      0,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kw, &_parser, &BPyGPUShader_Type, &py_program, &instance_start, &instance_count))
+  {
+    return NULL;
+  }
+
+  GPU_batch_set_shader(self->batch, py_program->shader);
+  GPU_batch_draw_instance_range(self->batch, instance_start, instance_count);
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(pygpu_batch_draw_range_doc,
+             ".. method:: draw_range(program, *, elem_start=0, elem_count=0)\n"
+             "\n"
+             "   Run the drawing program with the parameters assigned to the batch. Only draw\n"
+             "   the `elem_count` elements of the index buffer starting at `elem_start` \n"
+             "\n"
+             "   :arg program: Program that performs the drawing operations.\n"
+             "   :type program: :class:`gpu.types.GPUShader`\n"
+             "   :arg elem_start: First index to draw. When not provided or set to 0 drawing\n"
+             "      will start from the first element of the index buffer.\n"
+             "   :type elem_start: int\n"
+             "   :arg elem_count: Number of elements of the index buffer to draw. When not\n"
+             "      provided or set to 0 all elements from `elem_start` to the end of the\n"
+             "      index buffer will be drawn.\n"
+             "   :type elem_count: int\n");
+static PyObject *pygpu_batch_draw_range(BPyGPUBatch *self, PyObject *args, PyObject *kw)
+{
+  BPyGPUShader *py_program = NULL;
+  int elem_start = 0;
+  int elem_count = 0;
+
+  static const char *_keywords[] = {"program", "elem_start", "elem_count", NULL};
+  static _PyArg_Parser _parser = {
+      "O!" /* `program` */
+      "|$" /* Optional keyword only arguments. */
+      "i"  /* `elem_start' */
+      "i"  /* `elem_count' */
+      ":GPUBatch.draw_range",
+      _keywords,
+      0,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kw, &_parser, &BPyGPUShader_Type, &py_program, &elem_start, &elem_count))
+  {
+    return NULL;
+  }
+
+  GPU_batch_set_shader(self->batch, py_program->shader);
+  GPU_batch_draw_range(self->batch, elem_start, elem_count);
+  Py_RETURN_NONE;
+}
+
 static PyObject *pygpu_batch_program_use_begin(BPyGPUBatch *self)
 {
   if (!pygpu_batch_is_program_or_error(self)) {
@@ -253,6 +339,14 @@ static struct PyMethodDef pygpu_batch__tp_methods[] = {
     {"vertbuf_add", (PyCFunction)pygpu_batch_vertbuf_add, METH_O, pygpu_batch_vertbuf_add_doc},
     {"program_set", (PyCFunction)pygpu_batch_program_set, METH_O, pygpu_batch_program_set_doc},
     {"draw", (PyCFunction)pygpu_batch_draw, METH_VARARGS, pygpu_batch_draw_doc},
+    {"draw_instanced",
+     (PyCFunction)pygpu_batch_draw_instanced,
+     METH_VARARGS | METH_KEYWORDS,
+     pygpu_batch_draw_instanced_doc},
+    {"draw_range",
+     (PyCFunction)pygpu_batch_draw_range,
+     METH_VARARGS | METH_KEYWORDS,
+     pygpu_batch_draw_range_doc},
     {"_program_use_begin", (PyCFunction)pygpu_batch_program_use_begin, METH_NOARGS, ""},
     {"_program_use_end", (PyCFunction)pygpu_batch_program_use_end, METH_NOARGS, ""},
     {NULL, NULL, 0, NULL},

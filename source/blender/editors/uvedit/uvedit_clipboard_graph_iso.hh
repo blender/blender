@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later
  * Copyright (c) 2019 Stefano Quer.
- * Additional code, copyright 2022 Blender Foundation. All rights reserved.
+ * Additional code, copyright 2022 Blender Foundation
  *
  * Originally 6846114 from https://github.com/stefanoquer/graphISO/blob/master/v3
  * graphISO: Tools to compute the Maximum Common Subgraph between two graphs.
@@ -31,10 +31,10 @@ class GraphISO {
   void calculate_degrees() const;
 };
 
-/* Find the maximum common subgraph between two graphs.
+/**
+ * Find the maximum common subgraph between two graphs.
  * (Can be used to find graph ismorphism.)
+ * \return True when found.
  */
-bool ED_uvedit_clipboard_maximum_common_subgraph(GraphISO *,
-                                                 GraphISO *,
-                                                 int solution[][2],
-                                                 int *solution_length);
+bool ED_uvedit_clipboard_maximum_common_subgraph(
+    GraphISO *, GraphISO *, int solution[][2], int *solution_length, bool *r_search_abandoned);

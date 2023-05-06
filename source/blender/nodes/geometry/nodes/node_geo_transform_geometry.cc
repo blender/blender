@@ -14,7 +14,7 @@
 
 #include "BKE_curves.hh"
 #include "BKE_instances.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_volume.h"
 
@@ -30,7 +30,8 @@ static bool use_translate(const float3 rotation, const float3 scale)
     return false;
   }
   if (compare_ff(scale.x, 1.0f, 1e-9f) != 1 || compare_ff(scale.y, 1.0f, 1e-9f) != 1 ||
-      compare_ff(scale.z, 1.0f, 1e-9f) != 1) {
+      compare_ff(scale.z, 1.0f, 1e-9f) != 1)
+  {
     return false;
   }
   return true;
@@ -54,27 +55,34 @@ static void transform_positions(MutableSpan<float3> positions, const float4x4 &m
   });
 }
 
-static void translate_mesh(Mesh &mesh, const float3 translation)
-{
-  if (!math::is_zero(translation)) {
-    translate_positions(mesh.vert_positions_for_write(), translation);
-    BKE_mesh_tag_coords_changed_uniformly(&mesh);
-  }
-}
-
 static void transform_mesh(Mesh &mesh, const float4x4 &transform)
 {
   transform_positions(mesh.vert_positions_for_write(), transform);
-  BKE_mesh_tag_coords_changed(&mesh);
+  BKE_mesh_tag_positions_changed(&mesh);
 }
 
 static void translate_pointcloud(PointCloud &pointcloud, const float3 translation)
 {
+  if (math::is_zero(translation)) {
+    return;
+  }
+
+  std::optional<Bounds<float3>> bounds;
+  if (pointcloud.runtime->bounds_cache.is_cached()) {
+    bounds = pointcloud.runtime->bounds_cache.data();
+  }
+
   MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
   SpanAttributeWriter position = attributes.lookup_or_add_for_write_span<float3>(
       "position", ATTR_DOMAIN_POINT);
   translate_positions(position.span, translation);
   position.finish();
+
+  if (bounds) {
+    bounds->min += translation;
+    bounds->max += translation;
+    pointcloud.runtime->bounds_cache.ensure([&](Bounds<float3> &r_data) { r_data = *bounds; });
+  }
 }
 
 static void transform_pointcloud(PointCloud &pointcloud, const float4x4 &transform)
@@ -125,7 +133,7 @@ static void transform_volume(GeoNodeExecParams &params,
     VolumeGrid *volume_grid = BKE_volume_grid_get_for_write(&volume, i);
     float4x4 grid_matrix;
     BKE_volume_grid_transform_matrix(volume_grid, grid_matrix.ptr());
-    grid_matrix *= transform;
+    grid_matrix = transform * grid_matrix;
     const float determinant = math::determinant(grid_matrix);
     if (!BKE_volume_grid_determinant_valid(determinant)) {
       found_too_small_scale = true;
@@ -199,7 +207,7 @@ static void translate_geometry_set(GeoNodeExecParams &params,
     curves->geometry.wrap().translate(translation);
   }
   if (Mesh *mesh = geometry.get_mesh_for_write()) {
-    translate_mesh(*mesh, translation);
+    BKE_mesh_translate(mesh, translation, false);
   }
   if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
     translate_pointcloud(*pointcloud, translation);

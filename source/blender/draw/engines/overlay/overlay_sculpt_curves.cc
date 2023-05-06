@@ -52,7 +52,7 @@ static bool everything_selected(const Curves &curves_id)
 {
   using namespace blender;
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-  const VArray<bool> selection = curves.attributes().lookup_or_default<bool>(
+  const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
       ".selection", ATTR_DOMAIN_POINT, true);
   return selection.is_single() && selection.get_internal_single();
 }
@@ -99,8 +99,8 @@ void OVERLAY_sculpt_curves_cache_populate(OVERLAY_Data *vedata, Object *object)
 {
   populate_selection_overlay(vedata, object);
   const View3DOverlay &overlay = vedata->stl->pd->overlay;
-  if ((overlay.flag & V3D_OVERLAY_SCULPT_CURVES_CAGE) &&
-      overlay.sculpt_curves_cage_opacity > 0.0f) {
+  if ((overlay.flag & V3D_OVERLAY_SCULPT_CURVES_CAGE) && overlay.sculpt_curves_cage_opacity > 0.0f)
+  {
     populate_edit_overlay(vedata, object);
   }
 }

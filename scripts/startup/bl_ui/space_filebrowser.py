@@ -538,6 +538,7 @@ class FILEBROWSER_MT_context_menu(FileBrowserMenu, Menu):
         layout.operator("file.next", text="Forward")
         layout.operator("file.parent", text="Go to Parent")
         layout.operator("file.refresh", text="Refresh")
+        layout.menu("FILEBROWSER_MT_operations_menu")
 
         layout.separator()
 
@@ -705,6 +706,15 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
     bl_label = "Asset Metadata"
     bl_options = {'HIDE_HEADER'}
 
+    @staticmethod
+    def metadata_prop(layout, asset_data, propname):
+        """
+        Only display properties that are either set or can be modified (i.e. the
+        asset is in the current file). Empty, non-editable fields are not really useful.
+        """
+        if getattr(asset_data, propname) or not asset_data.is_property_readonly(propname):
+            layout.prop(asset_data, propname)
+
     def draw(self, context):
         layout = self.layout
         wm = context.window_manager
@@ -744,8 +754,11 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
         row.prop(wm, "asset_path_dummy", text="Source", icon='CURRENT_FILE' if is_local_asset else 'NONE')
         row.operator("asset.open_containing_blend_file", text="", icon='TOOL_SETTINGS')
 
-        layout.prop(asset_file_handle.asset_data, "description")
-        layout.prop(asset_file_handle.asset_data, "author")
+        asset_data = asset_file_handle.asset_data
+        self.metadata_prop(layout, asset_data, "description")
+        self.metadata_prop(layout, asset_data, "license")
+        self.metadata_prop(layout, asset_data, "copyright")
+        self.metadata_prop(layout, asset_data, "author")
 
 
 class ASSETBROWSER_PT_metadata_preview(asset_utils.AssetMetaDataPanel, Panel):

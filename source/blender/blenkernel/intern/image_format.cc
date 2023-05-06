@@ -80,28 +80,22 @@ int BKE_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
   if (imtype == R_IMF_IMTYPE_IRIS) {
     return IMB_FTYPE_IMAGIC;
   }
-#ifdef WITH_HDR
   if (imtype == R_IMF_IMTYPE_RADHDR) {
     return IMB_FTYPE_RADHDR;
   }
-#endif
   if (imtype == R_IMF_IMTYPE_PNG) {
     r_options->quality = 15;
     return IMB_FTYPE_PNG;
   }
-#ifdef WITH_DDS
   if (imtype == R_IMF_IMTYPE_DDS) {
     return IMB_FTYPE_DDS;
   }
-#endif
   if (imtype == R_IMF_IMTYPE_BMP) {
     return IMB_FTYPE_BMP;
   }
-#ifdef WITH_TIFF
   if (imtype == R_IMF_IMTYPE_TIFF) {
     return IMB_FTYPE_TIF;
   }
-#endif
   if (ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
     return IMB_FTYPE_OPENEXR;
   }
@@ -139,27 +133,21 @@ char BKE_ftype_to_imtype(const int ftype, const ImbFormatOptions *options)
   if (ftype == IMB_FTYPE_IMAGIC) {
     return R_IMF_IMTYPE_IRIS;
   }
-#ifdef WITH_HDR
   if (ftype == IMB_FTYPE_RADHDR) {
     return R_IMF_IMTYPE_RADHDR;
   }
-#endif
   if (ftype == IMB_FTYPE_PNG) {
     return R_IMF_IMTYPE_PNG;
   }
-#ifdef WITH_DDS
   if (ftype == IMB_FTYPE_DDS) {
     return R_IMF_IMTYPE_DDS;
   }
-#endif
   if (ftype == IMB_FTYPE_BMP) {
     return R_IMF_IMTYPE_BMP;
   }
-#ifdef WITH_TIFF
   if (ftype == IMB_FTYPE_TIF) {
     return R_IMF_IMTYPE_TIFF;
   }
-#endif
   if (ftype == IMB_FTYPE_OPENEXR) {
     return R_IMF_IMTYPE_OPENEXR;
   }
@@ -327,11 +315,9 @@ char BKE_imtype_from_arg(const char *imtype_arg)
   if (STREQ(imtype_arg, "IRIS")) {
     return R_IMF_IMTYPE_IRIS;
   }
-#ifdef WITH_DDS
   if (STREQ(imtype_arg, "DDS")) {
     return R_IMF_IMTYPE_DDS;
   }
-#endif
   if (STREQ(imtype_arg, "JPEG")) {
     return R_IMF_IMTYPE_JPEG90;
   }
@@ -353,16 +339,12 @@ char BKE_imtype_from_arg(const char *imtype_arg)
   if (STREQ(imtype_arg, "BMP")) {
     return R_IMF_IMTYPE_BMP;
   }
-#ifdef WITH_HDR
   if (STREQ(imtype_arg, "HDR")) {
     return R_IMF_IMTYPE_RADHDR;
   }
-#endif
-#ifdef WITH_TIFF
   if (STREQ(imtype_arg, "TIFF")) {
     return R_IMF_IMTYPE_TIFF;
   }
-#endif
 #ifdef WITH_OPENEXR
   if (STREQ(imtype_arg, "OPEN_EXR")) {
     return R_IMF_IMTYPE_OPENEXR;
@@ -404,7 +386,7 @@ char BKE_imtype_from_arg(const char *imtype_arg)
 
 /* File Paths */
 
-static bool do_add_image_extension(char *string,
+static bool do_add_image_extension(char *filepath,
                                    const char imtype,
                                    const ImageFormatData *im_format)
 {
@@ -413,79 +395,72 @@ static bool do_add_image_extension(char *string,
   (void)im_format; /* may be unused, depends on build options */
 
   if (imtype == R_IMF_IMTYPE_IRIS) {
-    if (!BLI_path_extension_check(string, extension_test = ".rgb")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".rgb")) {
       extension = extension_test;
     }
   }
   else if (imtype == R_IMF_IMTYPE_IRIZ) {
-    if (!BLI_path_extension_check(string, extension_test = ".rgb")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".rgb")) {
       extension = extension_test;
     }
   }
-#ifdef WITH_HDR
   else if (imtype == R_IMF_IMTYPE_RADHDR) {
-    if (!BLI_path_extension_check(string, extension_test = ".hdr")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".hdr")) {
       extension = extension_test;
     }
   }
-#endif
   else if (ELEM(imtype,
                 R_IMF_IMTYPE_PNG,
                 R_IMF_IMTYPE_FFMPEG,
                 R_IMF_IMTYPE_H264,
                 R_IMF_IMTYPE_THEORA,
                 R_IMF_IMTYPE_XVID,
-                R_IMF_IMTYPE_AV1)) {
-    if (!BLI_path_extension_check(string, extension_test = ".png")) {
+                R_IMF_IMTYPE_AV1))
+  {
+    if (!BLI_path_extension_check(filepath, extension_test = ".png")) {
       extension = extension_test;
     }
   }
-#ifdef WITH_DDS
   else if (imtype == R_IMF_IMTYPE_DDS) {
-    if (!BLI_path_extension_check(string, extension_test = ".dds")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".dds")) {
       extension = extension_test;
     }
   }
-#endif
   else if (ELEM(imtype, R_IMF_IMTYPE_TARGA, R_IMF_IMTYPE_RAWTGA)) {
-    if (!BLI_path_extension_check(string, extension_test = ".tga")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".tga")) {
       extension = extension_test;
     }
   }
   else if (imtype == R_IMF_IMTYPE_BMP) {
-    if (!BLI_path_extension_check(string, extension_test = ".bmp")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".bmp")) {
       extension = extension_test;
     }
   }
-#ifdef WITH_TIFF
   else if (imtype == R_IMF_IMTYPE_TIFF) {
-    if (!BLI_path_extension_check_n(string, extension_test = ".tif", ".tiff", nullptr)) {
+    if (!BLI_path_extension_check_n(filepath, extension_test = ".tif", ".tiff", nullptr)) {
       extension = extension_test;
     }
   }
-#endif
-#ifdef WITH_OPENIMAGEIO
   else if (imtype == R_IMF_IMTYPE_PSD) {
-    if (!BLI_path_extension_check(string, extension_test = ".psd")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".psd")) {
       extension = extension_test;
     }
   }
-#endif
 #ifdef WITH_OPENEXR
   else if (ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
-    if (!BLI_path_extension_check(string, extension_test = ".exr")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".exr")) {
       extension = extension_test;
     }
   }
 #endif
 #ifdef WITH_CINEON
   else if (imtype == R_IMF_IMTYPE_CINEON) {
-    if (!BLI_path_extension_check(string, extension_test = ".cin")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".cin")) {
       extension = extension_test;
     }
   }
   else if (imtype == R_IMF_IMTYPE_DPX) {
-    if (!BLI_path_extension_check(string, extension_test = ".dpx")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".dpx")) {
       extension = extension_test;
     }
   }
@@ -494,12 +469,12 @@ static bool do_add_image_extension(char *string,
   else if (imtype == R_IMF_IMTYPE_JP2) {
     if (im_format) {
       if (im_format->jp2_codec == R_IMF_JP2_CODEC_JP2) {
-        if (!BLI_path_extension_check(string, extension_test = ".jp2")) {
+        if (!BLI_path_extension_check(filepath, extension_test = ".jp2")) {
           extension = extension_test;
         }
       }
       else if (im_format->jp2_codec == R_IMF_JP2_CODEC_J2K) {
-        if (!BLI_path_extension_check(string, extension_test = ".j2c")) {
+        if (!BLI_path_extension_check(filepath, extension_test = ".j2c")) {
           extension = extension_test;
         }
       }
@@ -508,7 +483,7 @@ static bool do_add_image_extension(char *string,
       }
     }
     else {
-      if (!BLI_path_extension_check(string, extension_test = ".jp2")) {
+      if (!BLI_path_extension_check(filepath, extension_test = ".jp2")) {
         extension = extension_test;
       }
     }
@@ -516,13 +491,13 @@ static bool do_add_image_extension(char *string,
 #endif
 #ifdef WITH_WEBP
   else if (imtype == R_IMF_IMTYPE_WEBP) {
-    if (!BLI_path_extension_check(string, extension_test = ".webp")) {
+    if (!BLI_path_extension_check(filepath, extension_test = ".webp")) {
       extension = extension_test;
     }
   }
 #endif
   else {  //   R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90 etc
-    if (!BLI_path_extension_check_n(string, extension_test = ".jpg", ".jpeg", nullptr)) {
+    if (!BLI_path_extension_check_n(filepath, extension_test = ".jpg", ".jpeg", nullptr)) {
       extension = extension_test;
     }
   }
@@ -530,27 +505,27 @@ static bool do_add_image_extension(char *string,
   if (extension) {
     /* prefer this in many cases to avoid .png.tga, but in certain cases it breaks */
     /* remove any other known image extension */
-    if (BLI_path_extension_check_array(string, imb_ext_image)) {
-      return BLI_path_extension_replace(string, FILE_MAX, extension);
+    if (BLI_path_extension_check_array(filepath, imb_ext_image)) {
+      return BLI_path_extension_replace(filepath, FILE_MAX, extension);
     }
 
-    return BLI_path_extension_ensure(string, FILE_MAX, extension);
+    return BLI_path_extension_ensure(filepath, FILE_MAX, extension);
   }
 
   return false;
 }
 
-int BKE_image_path_ensure_ext_from_imformat(char *string, const ImageFormatData *im_format)
+int BKE_image_path_ensure_ext_from_imformat(char *filepath, const ImageFormatData *im_format)
 {
-  return do_add_image_extension(string, im_format->imtype, im_format);
+  return do_add_image_extension(filepath, im_format->imtype, im_format);
 }
 
-int BKE_image_path_ensure_ext_from_imtype(char *string, const char imtype)
+int BKE_image_path_ensure_ext_from_imtype(char *filepath, const char imtype)
 {
-  return do_add_image_extension(string, imtype, nullptr);
+  return do_add_image_extension(filepath, imtype, nullptr);
 }
 
-static void do_makepicstring(char *string,
+static void do_makepicstring(char filepath[FILE_MAX],
                              const char *base,
                              const char *relbase,
                              int frame,
@@ -560,26 +535,26 @@ static void do_makepicstring(char *string,
                              const bool use_frames,
                              const char *suffix)
 {
-  if (string == nullptr) {
+  if (filepath == nullptr) {
     return;
   }
-  BLI_strncpy(string, base, FILE_MAX - 10); /* weak assumption */
-  BLI_path_abs(string, relbase);
+  BLI_strncpy(filepath, base, FILE_MAX - 10); /* weak assumption */
+  BLI_path_abs(filepath, relbase);
 
   if (use_frames) {
-    BLI_path_frame(string, frame, 4);
+    BLI_path_frame(filepath, FILE_MAX, frame, 4);
   }
 
   if (suffix) {
-    BLI_path_suffix(string, FILE_MAX, suffix, "");
+    BLI_path_suffix(filepath, FILE_MAX, suffix, "");
   }
 
   if (use_ext) {
-    do_add_image_extension(string, imtype, im_format);
+    do_add_image_extension(filepath, imtype, im_format);
   }
 }
 
-void BKE_image_path_from_imformat(char *string,
+void BKE_image_path_from_imformat(char *filepath,
                                   const char *base,
                                   const char *relbase,
                                   int frame,
@@ -589,10 +564,10 @@ void BKE_image_path_from_imformat(char *string,
                                   const char *suffix)
 {
   do_makepicstring(
-      string, base, relbase, frame, im_format->imtype, im_format, use_ext, use_frames, suffix);
+      filepath, base, relbase, frame, im_format->imtype, im_format, use_ext, use_frames, suffix);
 }
 
-void BKE_image_path_from_imtype(char *string,
+void BKE_image_path_from_imtype(char *filepath,
                                 const char *base,
                                 const char *relbase,
                                 int frame,
@@ -601,7 +576,7 @@ void BKE_image_path_from_imtype(char *string,
                                 const bool use_frames,
                                 const char *suffix)
 {
-  do_makepicstring(string, base, relbase, frame, imtype, nullptr, use_ext, use_frames, suffix);
+  do_makepicstring(filepath, base, relbase, frame, imtype, nullptr, use_ext, use_frames, suffix);
 }
 
 /* ImBuf Conversion */
@@ -619,18 +594,17 @@ void BKE_image_format_to_imbuf(ImBuf *ibuf, const ImageFormatData *imf)
   if (imtype == R_IMF_IMTYPE_IRIS) {
     ibuf->ftype = IMB_FTYPE_IMAGIC;
   }
-#ifdef WITH_HDR
   else if (imtype == R_IMF_IMTYPE_RADHDR) {
     ibuf->ftype = IMB_FTYPE_RADHDR;
   }
-#endif
   else if (ELEM(imtype,
                 R_IMF_IMTYPE_PNG,
                 R_IMF_IMTYPE_FFMPEG,
                 R_IMF_IMTYPE_H264,
                 R_IMF_IMTYPE_THEORA,
                 R_IMF_IMTYPE_XVID,
-                R_IMF_IMTYPE_AV1)) {
+                R_IMF_IMTYPE_AV1))
+  {
     ibuf->ftype = IMB_FTYPE_PNG;
 
     if (imtype == R_IMF_IMTYPE_PNG) {
@@ -641,15 +615,12 @@ void BKE_image_format_to_imbuf(ImBuf *ibuf, const ImageFormatData *imf)
       ibuf->foptions.quality = compress;
     }
   }
-#ifdef WITH_DDS
   else if (imtype == R_IMF_IMTYPE_DDS) {
     ibuf->ftype = IMB_FTYPE_DDS;
   }
-#endif
   else if (imtype == R_IMF_IMTYPE_BMP) {
     ibuf->ftype = IMB_FTYPE_BMP;
   }
-#ifdef WITH_TIFF
   else if (imtype == R_IMF_IMTYPE_TIFF) {
     ibuf->ftype = IMB_FTYPE_TIF;
 
@@ -669,7 +640,6 @@ void BKE_image_format_to_imbuf(ImBuf *ibuf, const ImageFormatData *imf)
       ibuf->foptions.flag |= TIF_COMPRESS_PACKBITS;
     }
   }
-#endif
 #ifdef WITH_OPENEXR
   else if (ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
     ibuf->ftype = IMB_FTYPE_OPENEXR;
@@ -789,11 +759,9 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
   if (ftype == IMB_FTYPE_IMAGIC) {
     im_format->imtype = R_IMF_IMTYPE_IRIS;
   }
-#ifdef WITH_HDR
   else if (ftype == IMB_FTYPE_RADHDR) {
     im_format->imtype = R_IMF_IMTYPE_RADHDR;
   }
-#endif
   else if (ftype == IMB_FTYPE_PNG) {
     im_format->imtype = R_IMF_IMTYPE_PNG;
 
@@ -803,16 +771,12 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
 
     im_format->compress = quality;
   }
-
-#ifdef WITH_DDS
   else if (ftype == IMB_FTYPE_DDS) {
     im_format->imtype = R_IMF_IMTYPE_DDS;
   }
-#endif
   else if (ftype == IMB_FTYPE_BMP) {
     im_format->imtype = R_IMF_IMTYPE_BMP;
   }
-#ifdef WITH_TIFF
   else if (ftype == IMB_FTYPE_TIF) {
     im_format->imtype = R_IMF_IMTYPE_TIFF;
     if (custom_flags & TIF_16BIT) {
@@ -831,7 +795,6 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
       im_format->tiff_codec = R_IMF_TIFF_CODEC_PACKBITS;
     }
   }
-#endif
 
 #ifdef WITH_OPENEXR
   else if (ftype == IMB_FTYPE_OPENEXR) {

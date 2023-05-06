@@ -12,8 +12,6 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
-#include "BLI_math_vector_types.hh"
-#include "BLI_user_counter.hh"
 #include "BLI_vector_set.hh"
 
 #include "BKE_attribute.hh"
@@ -41,23 +39,21 @@ class Instances;
 }  // namespace blender::bke
 
 class GeometryComponent;
+using GeometryComponentPtr = blender::ImplicitSharingPtr<GeometryComponent>;
 
 /**
- * This is the base class for specialized geometry component types. A geometry component handles
- * a user count to allow avoiding duplication when it is wrapped with #UserCounter. It also handles
- * the attribute API, which generalizes storing and modifying generic information on a geometry.
+ * This is the base class for specialized geometry component types. A geometry component uses
+ * implicit sharing to avoid read-only copies. It also integrates with attribute API, which
+ * generalizes storing and modifying generic information on a geometry.
  */
-class GeometryComponent {
+class GeometryComponent : public blender::ImplicitSharingMixin {
  private:
-  /* The reference count has two purposes. When it becomes zero, the component is freed. When it is
-   * larger than one, the component becomes immutable. */
-  mutable std::atomic<int> users_ = 1;
   GeometryComponentType type_;
 
  public:
   GeometryComponent(GeometryComponentType type);
   virtual ~GeometryComponent() = default;
-  static GeometryComponent *create(GeometryComponentType component_type);
+  static GeometryComponentPtr create(GeometryComponentType component_type);
 
   int attribute_domain_size(eAttrDomain domain) const;
 
@@ -71,19 +67,22 @@ class GeometryComponent {
   /* The returned component should be of the same type as the type this is called on. */
   virtual GeometryComponent *copy() const = 0;
 
+  /** Remove referenced data from the geometry component. */
+  virtual void clear() = 0;
+
   /* Direct data is everything except for instances of objects/collections.
    * If this returns true, the geometry set can be cached and is still valid after e.g. modifier
    * evaluation ends. Instances can only be valid as long as the data they instance is valid. */
   virtual bool owns_direct_data() const = 0;
   virtual void ensure_owns_direct_data() = 0;
 
-  void user_add() const;
-  void user_remove() const;
-  bool is_mutable() const;
-
   GeometryComponentType type() const;
 
   virtual bool is_empty() const;
+
+ private:
+  void delete_self() override;
+  void delete_data_only() override;
 };
 
 template<typename T>
@@ -109,7 +108,6 @@ inline constexpr bool is_geometry_component_v = std::is_base_of_v<GeometryCompon
  */
 struct GeometrySet {
  private:
-  using GeometryComponentPtr = blender::UserCounter<class GeometryComponent>;
   /* Indexed by #GeometryComponentType. */
   std::array<GeometryComponentPtr, GEO_COMPONENT_TYPE_ENUM_SIZE> components_;
 
@@ -193,6 +191,11 @@ struct GeometrySet {
    * access to their data, which might be freed later if this geometry set outlasts the data.
    */
   void ensure_owns_direct_data();
+  /**
+   * Same as #ensure_owns_direct_data but also turns object/collection instances into geometry
+   * instances so that they can be owned.
+   */
+  void ensure_owns_all_data();
 
   using AttributeForeachCallback =
       blender::FunctionRef<void(const blender::bke::AttributeIDRef &attribute_id,
@@ -385,7 +388,7 @@ class MeshComponent : public GeometryComponent {
   ~MeshComponent();
   GeometryComponent *copy() const override;
 
-  void clear();
+  void clear() override;
   bool has_mesh() const;
   /**
    * Clear the component and replace it with the new mesh.
@@ -439,7 +442,7 @@ class PointCloudComponent : public GeometryComponent {
   ~PointCloudComponent();
   GeometryComponent *copy() const override;
 
-  void clear();
+  void clear() override;
   bool has_pointcloud() const;
   /**
    * Clear the component and replace it with the new point cloud.
@@ -501,7 +504,7 @@ class CurveComponent : public GeometryComponent {
   ~CurveComponent();
   GeometryComponent *copy() const override;
 
-  void clear();
+  void clear() override;
   bool has_curves() const;
   /**
    * Clear the component and replace it with the new curve.
@@ -542,7 +545,7 @@ class InstancesComponent : public GeometryComponent {
   ~InstancesComponent();
   GeometryComponent *copy() const override;
 
-  void clear();
+  void clear() override;
 
   const blender::bke::Instances *get_for_read() const;
   blender::bke::Instances *get_for_write();
@@ -576,7 +579,7 @@ class VolumeComponent : public GeometryComponent {
   ~VolumeComponent();
   GeometryComponent *copy() const override;
 
-  void clear();
+  void clear() override;
   bool has_volume() const;
   /**
    * Clear the component and replace it with the new volume.
@@ -628,6 +631,8 @@ class GeometryComponentEditData final : public GeometryComponent {
   GeometryComponent *copy() const final;
   bool owns_direct_data() const final;
   void ensure_owns_direct_data() final;
+
+  void clear() override;
 
   /**
    * The first node that does topology changing operations on curves should store the curve point

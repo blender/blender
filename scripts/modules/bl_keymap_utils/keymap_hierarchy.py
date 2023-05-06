@@ -204,6 +204,9 @@ _km_hierarchy = [
         ('Grease Pencil Stroke Sculpt (Clone)', 'EMPTY', 'WINDOW', []),
         ('Grease Pencil Stroke Weight Mode', 'EMPTY', 'WINDOW', []),
         ('Grease Pencil Stroke Weight (Draw)', 'EMPTY', 'WINDOW', []),
+        ('Grease Pencil Stroke Weight (Blur)', 'EMPTY', 'WINDOW', []),
+        ('Grease Pencil Stroke Weight (Average)', 'EMPTY', 'WINDOW', []),
+        ('Grease Pencil Stroke Weight (Smear)', 'EMPTY', 'WINDOW', []),
         ('Grease Pencil Stroke Vertex Mode', 'EMPTY', 'WINDOW', []),
         ('Grease Pencil Stroke Vertex (Draw)', 'EMPTY', 'WINDOW', []),
         ('Grease Pencil Stroke Vertex (Blur)', 'EMPTY', 'WINDOW', []),
@@ -226,4 +229,5 @@ _km_hierarchy = [
     ('Transform Modal Map', 'EMPTY', 'WINDOW', []),
     ('Eyedropper Modal Map', 'EMPTY', 'WINDOW', []),
     ('Eyedropper ColorRamp PointSampling Map', 'EMPTY', 'WINDOW', []),
+    ('Mesh Filter Modal Map', 'EMPTY', 'WINDOW', []),
 ]

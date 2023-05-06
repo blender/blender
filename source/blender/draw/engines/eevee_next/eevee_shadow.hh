@@ -216,6 +216,9 @@ class ShadowModule {
   int3 dispatch_depth_scan_size_;
   /* Ratio between tile-map pixel world "radius" and film pixel world "radius". */
   float tilemap_projection_ratio_;
+  float pixel_world_radius_;
+  int2 usage_tag_fb_resolution_;
+  int usage_tag_fb_lod_ = 5;
 
   /* Statistics that are read back to CPU after a few frame (to avoid stall). */
   SwapChain<ShadowStatisticsBuf, 5> statistics_buf_;
@@ -254,7 +257,8 @@ class ShadowModule {
   /** Tile to physical page mapping. This is an array texture with one layer per view. */
   Texture render_map_tx_ = {"ShadowRenderMap",
                             GPU_R32UI,
-                            GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE,
+                            GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
+                                GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
                             int2(SHADOW_TILEMAP_RES),
                             64,
                             nullptr,

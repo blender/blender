@@ -15,7 +15,7 @@ Audaspace is written in C++ 11 so a fairly recent compiler (g++ 4.8.2, clang 3.3
 - Jack (output device)
 - libsndfile (file access)
 - ffmpeg (file access)
-- Python (language binding)
+- Python (language binding, needs NumPy as well)
 
 Getting the Code
 ----------------

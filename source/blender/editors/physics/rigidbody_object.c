@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup editor_physics
@@ -49,7 +49,8 @@ static bool operator_rigidbody_editable_poll(Scene *scene)
   if (scene == NULL || ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene) ||
       (scene->rigidbody_world != NULL && scene->rigidbody_world->group != NULL &&
        (ID_IS_LINKED(scene->rigidbody_world->group) ||
-        ID_IS_OVERRIDE_LIBRARY(scene->rigidbody_world->group)))) {
+        ID_IS_OVERRIDE_LIBRARY(scene->rigidbody_world->group))))
+  {
     return false;
   }
   return true;

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 #pragma once
 
@@ -154,10 +154,12 @@ typedef struct CPPTypeHandle CPPTypeHandle;
  * Defines the appearance and behavior of a socket in the UI.
  */
 typedef struct bNodeSocketType {
-  /* Identifier name */
+  /** Identifier name. */
   char idname[64];
-  /* Type label */
+  /** Type label. */
   char label[64];
+  /** Sub-type label. */
+  char subtype_label[64];
 
   void (*draw)(struct bContext *C,
                struct uiLayout *layout,
@@ -271,9 +273,20 @@ typedef struct bNodeType {
   /** Check and update if internal ID data has changed. */
   void (*group_update_func)(struct bNodeTree *ntree, struct bNode *node);
 
-  /** Initialize a new node instance of this type after creation. */
+  /**
+   * Initialize a new node instance of this type after creation.
+   *
+   * \note Assignments to `node->id` must not increment the user of the ID.
+   * This is handled by the caller of this callback.
+   */
   void (*initfunc)(struct bNodeTree *ntree, struct bNode *node);
-  /** Free the node instance. */
+  /**
+   * Free the node instance.
+   *
+   * \note Access to `node->id` must be avoided in this function as this is called
+   * while freeing #Main, the state of this ID is undefined.
+   * Higher level logic to remove the node handles the user-count.
+   */
   void (*freefunc)(struct bNode *node);
   /** Make a copy of the node instance. */
   void (*copyfunc)(struct bNodeTree *dest_ntree,
@@ -284,6 +297,12 @@ typedef struct bNodeType {
   void (*initfunc_api)(const struct bContext *C, struct PointerRNA *ptr);
   void (*freefunc_api)(struct PointerRNA *ptr);
   void (*copyfunc_api)(struct PointerRNA *ptr, const struct bNode *src_node);
+
+  /**
+   * An additional poll test for deciding whether nodes should be an option in search menus.
+   * Potentially more strict poll than #poll(), but doesn't have to check the same things.
+   */
+  bool (*add_ui_poll)(const struct bContext *C);
 
   /**
    * Can this node type be added to a node tree?
@@ -334,11 +353,6 @@ typedef struct bNodeType {
 
   /* Execute a geometry node. */
   NodeGeometryExecFunction geometry_node_execute;
-  /**
-   * If true, the geometry nodes evaluator can call the execute function multiple times to improve
-   * performance by specifying required data in one call and using it for calculations in another.
-   */
-  bool geometry_node_execute_supports_laziness;
 
   /* Declares which sockets the node has. */
   NodeDeclareFunction declare;
@@ -452,7 +466,7 @@ typedef struct bNodeTreeType {
 struct bNodeTreeType *ntreeTypeFind(const char *idname);
 void ntreeTypeAdd(struct bNodeTreeType *nt);
 void ntreeTypeFreeLink(const struct bNodeTreeType *nt);
-bool ntreeIsRegistered(struct bNodeTree *ntree);
+bool ntreeIsRegistered(const struct bNodeTree *ntree);
 struct GHashIterator *ntreeTypeGetIterator(void);
 
 /* Helper macros for iterating over tree types. */
@@ -460,7 +474,8 @@ struct GHashIterator *ntreeTypeGetIterator(void);
   { \
     GHashIterator *__node_tree_type_iter__ = ntreeTypeGetIterator(); \
     for (; !BLI_ghashIterator_done(__node_tree_type_iter__); \
-         BLI_ghashIterator_step(__node_tree_type_iter__)) { \
+         BLI_ghashIterator_step(__node_tree_type_iter__)) \
+    { \
       bNodeTreeType *ntype = (bNodeTreeType *)BLI_ghashIterator_getValue(__node_tree_type_iter__);
 
 #define NODE_TREE_TYPES_END \
@@ -620,7 +635,7 @@ struct GHashIterator *nodeTypeGetIterator(void);
 struct bNodeSocketType *nodeSocketTypeFind(const char *idname);
 void nodeRegisterSocketType(struct bNodeSocketType *stype);
 void nodeUnregisterSocketType(struct bNodeSocketType *stype);
-bool nodeSocketIsRegistered(struct bNodeSocket *sock);
+bool nodeSocketIsRegistered(const struct bNodeSocket *sock);
 struct GHashIterator *nodeSocketTypeGetIterator(void);
 const char *nodeSocketTypeLabel(const bNodeSocketType *stype);
 
@@ -628,13 +643,15 @@ bool nodeIsStaticSocketType(const struct bNodeSocketType *stype);
 const char *nodeStaticSocketType(int type, int subtype);
 const char *nodeStaticSocketInterfaceType(int type, int subtype);
 const char *nodeStaticSocketLabel(int type, int subtype);
+const char *nodeSocketSubTypeLabel(int subtype);
 
 /* Helper macros for iterating over node types. */
 #define NODE_SOCKET_TYPES_BEGIN(stype) \
   { \
     GHashIterator *__node_socket_type_iter__ = nodeSocketTypeGetIterator(); \
     for (; !BLI_ghashIterator_done(__node_socket_type_iter__); \
-         BLI_ghashIterator_step(__node_socket_type_iter__)) { \
+         BLI_ghashIterator_step(__node_socket_type_iter__)) \
+    { \
       bNodeSocketType *stype = (bNodeSocketType *)BLI_ghashIterator_getValue( \
           __node_socket_type_iter__);
 
@@ -644,7 +661,7 @@ const char *nodeStaticSocketLabel(int type, int subtype);
   } \
   ((void)0)
 
-struct bNodeSocket *nodeFindSocket(struct bNode *node,
+struct bNodeSocket *nodeFindSocket(const struct bNode *node,
                                    eNodeSocketInOut in_out,
                                    const char *identifier);
 struct bNodeSocket *nodeAddSocket(struct bNodeTree *ntree,
@@ -727,6 +744,18 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
 bNode *node_copy(bNodeTree *dst_tree, const bNode &src_node, int flag, bool use_unique);
 
 /**
+ * Move socket default from \a src (input socket) to locations specified by \a dst (output socket).
+ * Result value moved in specific location. (potentially multiple group nodes socket values, if \a
+ * dst is a group input node).
+ * \note Conceptually, the effect should be such that the evaluation of
+ * this graph again returns the value in src.
+ */
+void node_socket_move_default_value(Main &bmain,
+                                    bNodeTree &tree,
+                                    bNodeSocket &src,
+                                    bNodeSocket &dst);
+
+/**
  * Free the node itself.
  *
  * \note ID user reference-counting and changing the `nodes_by_id` vector are up to the caller.
@@ -757,14 +786,13 @@ void nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
 
 void nodeToView(const struct bNode *node, float x, float y, float *rx, float *ry);
 void nodeFromView(const struct bNode *node, float x, float y, float *rx, float *ry);
-bool nodeAttachNodeCheck(const struct bNode *node, const struct bNode *parent);
 void nodeAttachNode(struct bNodeTree *ntree, struct bNode *node, struct bNode *parent);
 void nodeDetachNode(struct bNodeTree *ntree, struct bNode *node);
 
 void nodePositionRelative(struct bNode *from_node,
-                          struct bNode *to_node,
-                          struct bNodeSocket *from_sock,
-                          struct bNodeSocket *to_sock);
+                          const struct bNode *to_node,
+                          const struct bNodeSocket *from_sock,
+                          const struct bNodeSocket *to_sock);
 void nodePositionPropagate(struct bNode *node);
 
 /**
@@ -790,11 +818,7 @@ void nodeFindNode(struct bNodeTree *ntree,
  */
 struct bNode *nodeFindRootParent(bNode *node);
 
-/**
- * \returns true if \a child has \a parent as a parent/grandparent/... etc.
- * \note Recursive
- */
-bool nodeIsChildOf(const bNode *parent, const bNode *child);
+bool nodeIsParentAndChild(const bNode *parent, const bNode *child);
 
 /**
  * Iterate over a chain of nodes, starting with \a node_start, executing
@@ -1554,6 +1578,15 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_IMAGE 1191
 #define GEO_NODE_INTERPOLATE_CURVES 1192
 #define GEO_NODE_EDGES_TO_FACE_GROUPS 1193
+#define GEO_NODE_POINTS_TO_SDF_VOLUME 1194
+#define GEO_NODE_MESH_TO_SDF_VOLUME 1195
+#define GEO_NODE_SDF_VOLUME_SPHERE 1196
+#define GEO_NODE_MEAN_FILTER_SDF_VOLUME 1197
+#define GEO_NODE_OFFSET_SDF_VOLUME 1198
+#define GEO_NODE_INDEX_OF_NEAREST 1199
+/* Function nodes use the range starting at 1200. */
+#define GEO_NODE_SIMULATION_INPUT 2100
+#define GEO_NODE_SIMULATION_OUTPUT 2101
 
 /** \} */
 

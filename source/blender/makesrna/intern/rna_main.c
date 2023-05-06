@@ -63,7 +63,7 @@ static bool rna_Main_is_dirty_get(PointerRNA *ptr)
 static void rna_Main_filepath_get(PointerRNA *ptr, char *value)
 {
   Main *bmain = (Main *)ptr->data;
-  BLI_strncpy(value, bmain->filepath, sizeof(bmain->filepath));
+  strcpy(value, bmain->filepath);
 }
 
 static int rna_Main_filepath_length(PointerRNA *ptr)
@@ -332,8 +332,8 @@ void RNA_def_main(BlenderRNA *brna)
       {"grease_pencils",
        "GreasePencil",
        "rna_Main_gpencils_begin",
-       "Grease Pencil",
-       "Grease Pencil data-blocks",
+       "Grease Pencil (legacy)",
+       "Grease Pencil (legacy) data-blocks",
        RNA_def_main_gpencil},
       {"movieclips",
        "MovieClip",

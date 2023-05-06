@@ -68,6 +68,7 @@ void DRW_globals_update(void)
   UI_GetThemeColor4fv(TH_EDGE_FACESEL, gb->color_edge_face_select);
   UI_GetThemeColor4fv(TH_FACE, gb->color_face);
   UI_GetThemeColor4fv(TH_FACE_SELECT, gb->color_face_select);
+  UI_GetThemeColor4fv(TH_FACE_RETOPOLOGY, gb->color_face_retopology);
   UI_GetThemeColor4fv(TH_FACE_BACK, gb->color_face_back);
   UI_GetThemeColor4fv(TH_FACE_FRONT, gb->color_face_front);
   UI_GetThemeColor4fv(TH_NORMAL, gb->color_normal);
@@ -175,8 +176,8 @@ void DRW_globals_update(void)
                     max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f);
   gb->size_vertex_gpencil = U.pixelsize * UI_GetThemeValuef(TH_GP_VERTEX_SIZE);
   gb->size_face_dot = U.pixelsize * UI_GetThemeValuef(TH_FACEDOT_SIZE);
-  gb->size_edge = U.pixelsize * (1.0f / 2.0f); /* TODO: Theme. */
-  gb->size_edge_fix = U.pixelsize * (0.5f + 2.0f * (2.0f * (gb->size_edge * (float)M_SQRT1_2)));
+  gb->size_edge = U.pixelsize * max_ff(1.0f, UI_GetThemeValuef(TH_EDGE_WIDTH)) / 2.0f;
+  gb->size_edge_fix = U.pixelsize * (0.5f + 2.0f * (1.0f * (gb->size_edge * (float)M_SQRT1_2)));
 
   gb->pixel_fac = *DRW_viewport_pixelsize_get();
 
@@ -219,7 +220,7 @@ void DRW_globals_update(void)
 
     BKE_colorband_evaluate_table_rgba(&ramp, &colors, &col_size);
 
-    G_draw.ramp = GPU_texture_create_1d_ex(
+    G_draw.ramp = GPU_texture_create_1d(
         "ramp", col_size, 1, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, colors);
 
     MEM_freeN(colors);
@@ -229,7 +230,8 @@ void DRW_globals_update(void)
   bool user_weight_ramp = (U.flag & USER_CUSTOM_RANGE) != 0;
 
   if (weight_ramp_custom != user_weight_ramp ||
-      (user_weight_ramp && memcmp(&weight_ramp_copy, &U.coba_weight, sizeof(ColorBand)) != 0)) {
+      (user_weight_ramp && memcmp(&weight_ramp_copy, &U.coba_weight, sizeof(ColorBand)) != 0))
+  {
     DRW_TEXTURE_FREE_SAFE(G_draw.weight_ramp);
   }
 
@@ -243,9 +245,7 @@ void DRW_globals_update(void)
 
 /* ********************************* SHGROUP ************************************* */
 
-void DRW_globals_free(void)
-{
-}
+void DRW_globals_free(void) {}
 
 DRWView *DRW_view_create_with_zoffset(const DRWView *parent_view,
                                       const RegionView3D *rv3d,
@@ -415,7 +415,8 @@ bool DRW_object_is_flat(Object *ob, int *r_axis)
             OB_FONT,
             OB_CURVES,
             OB_POINTCLOUD,
-            OB_VOLUME)) {
+            OB_VOLUME))
+  {
     /* Non-meshes object cannot be considered as flat. */
     return false;
   }
@@ -477,6 +478,6 @@ static GPUTexture *DRW_create_weight_colorramp_texture(void)
     pixels[i][3] = 1.0f;
   }
 
-  return GPU_texture_create_1d_ex(
+  return GPU_texture_create_1d(
       "weight_color_ramp", 256, 1, GPU_SRGB8_A8, GPU_TEXTURE_USAGE_SHADER_READ, pixels[0]);
 }

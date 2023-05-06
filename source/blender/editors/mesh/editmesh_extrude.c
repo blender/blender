@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+ * Copyright 2004 Blender Foundation */
 
 /** \file
  * \ingroup edmesh
@@ -61,7 +61,8 @@ static void edbm_extrude_edge_exclude_mirror(
 
         BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
           if (BM_elem_flag_test(edge, hflag) && BM_edge_is_boundary(edge) &&
-              BM_elem_flag_test(edge->l->f, hflag)) {
+              BM_elem_flag_test(edge->l->f, hflag))
+          {
             float co1[3], co2[3];
 
             copy_v3_v3(co1, edge->v1->co);
@@ -787,7 +788,8 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
           if ((ED_view3d_project_float_object(vc.region, eed->v1->co, co1, V3D_PROJ_TEST_NOP) ==
                V3D_PROJ_RET_OK) &&
               (ED_view3d_project_float_object(vc.region, eed->v2->co, co2, V3D_PROJ_TEST_NOP) ==
-               V3D_PROJ_RET_OK)) {
+               V3D_PROJ_RET_OK))
+          {
             /* 2D rotate by 90d while adding.
              *  (x, y) = (y, -x)
              *

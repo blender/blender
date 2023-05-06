@@ -105,7 +105,8 @@ static BMLoop *bm_loop_find_other_radial_loop_with_visible_face(BMLoop *l_src,
   if (l_iter != l_src) {
     do {
       if (BM_elem_flag_test(l_iter->f, BM_ELEM_TAG) && UL(l_iter)->is_select_edge &&
-          BM_loop_uv_share_edge_check(l_src, l_iter, cd_loop_uv_offset)) {
+          BM_loop_uv_share_edge_check(l_src, l_iter, cd_loop_uv_offset))
+      {
         /* Check UVs are contiguous. */
         if (l_other == NULL) {
           l_other = l_iter;
@@ -131,7 +132,8 @@ static BMLoop *bm_loop_find_other_fan_loop_with_visible_face(BMLoop *l_src,
   if (l_iter != l_src) {
     do {
       if (BM_elem_flag_test(l_iter->f, BM_ELEM_TAG) &&
-          BM_loop_uv_share_edge_check(l_src, l_iter, cd_loop_uv_offset)) {
+          BM_loop_uv_share_edge_check(l_src, l_iter, cd_loop_uv_offset))
+      {
         /* Check UVs are contiguous. */
         if (l_other == NULL) {
           l_other = l_iter;
@@ -371,7 +373,8 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
     BMEdge *e_prev = i ? l_init->e : l_init->prev->e;
     BMLoop *l_iter = l_init;
     while (((l_iter = bm_vert_step_fan_loop_uv(l_iter, &e_prev, cd_loop_uv_offset)) != l_init) &&
-           (l_iter != NULL) && (UL(l_iter)->side == 0)) {
+           (l_iter != NULL) && (UL(l_iter)->side == 0))
+    {
       uv_fan_count_contiguous += 1;
       /* Keep. */
       UL(l_iter)->side = 1;
@@ -621,7 +624,8 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
       else {
         if (UL(l_other)->side != side) {
           if ((UL(l_other)->side_was_swapped == false) &&
-              uv_rip_pairs_loop_change_sides_test(l_other, l_step, aspect_y, cd_loop_uv_offset)) {
+              uv_rip_pairs_loop_change_sides_test(l_other, l_step, aspect_y, cd_loop_uv_offset))
+          {
             UV_SET_SIDE_AND_REMOVE_FROM_RAIL(l_other, side);
           }
         }
@@ -651,7 +655,8 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
                 if (UL(l_other)->side != side) {
                   if ((UL(l_other)->side_was_swapped == false) &&
                       uv_rip_pairs_loop_change_sides_test(
-                          l_other, l_step, aspect_y, cd_loop_uv_offset)) {
+                          l_other, l_step, aspect_y, cd_loop_uv_offset))
+                  {
                     UV_SET_SIDE_AND_REMOVE_FROM_RAIL(l_other, side);
                   }
                 }

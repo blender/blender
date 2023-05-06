@@ -15,9 +15,7 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
   SpaceNode *snode;
 
  public:
-  SpaceNodeAccessor(SpaceNode *snode) : snode(snode)
-  {
-  }
+  SpaceNodeAccessor(SpaceNode *snode) : snode(snode) {}
 
   Image *get_image(Main *bmain) override
   {
@@ -87,17 +85,22 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
    * screen.
    */
   void init_ss_to_texture_matrix(const ARegion *region,
+                                 const float image_offset[2],
                                  const float image_resolution[2],
                                  float r_uv_to_texture[4][4]) const override
   {
     unit_m4(r_uv_to_texture);
     float display_resolution[2];
+    float image_display_offset[2];
     mul_v2_v2fl(display_resolution, image_resolution, snode->zoom);
+    mul_v2_v2fl(image_display_offset, image_offset, snode->zoom);
     const float scale_x = display_resolution[0] / region->winx;
     const float scale_y = display_resolution[1] / region->winy;
-    const float translate_x = ((region->winx - display_resolution[0]) * 0.5f + snode->xof) /
+    const float translate_x = ((region->winx - display_resolution[0]) * 0.5f + snode->xof +
+                               image_display_offset[0]) /
                               region->winx;
-    const float translate_y = ((region->winy - display_resolution[1]) * 0.5f + snode->yof) /
+    const float translate_y = ((region->winy - display_resolution[1]) * 0.5f + snode->yof +
+                               image_display_offset[1]) /
                               region->winy;
 
     r_uv_to_texture[0][0] = scale_x;

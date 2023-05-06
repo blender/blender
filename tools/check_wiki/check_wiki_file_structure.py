@@ -28,7 +28,8 @@ from typing import (
 # Constants
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
-SOURCE_DIR = os.path.normpath(os.path.join(CURRENT_DIR, "..", "..", ".."))
+SOURCE_DIR = os.path.normpath(os.path.join(CURRENT_DIR, "..", ".."))
+
 WIKI_URL = "https://wiki.blender.org/wiki/Source/File_Structure"
 WIKI_URL_EDIT = "https://wiki.blender.org/w/index.php?title=Source/File_Structure&action=edit"
 

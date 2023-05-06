@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+ * Copyright 2017 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -26,8 +26,8 @@
 
 #include "BKE_curve.h"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_update_cache.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_update_cache_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -41,7 +41,7 @@
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -353,12 +353,11 @@ ViewLayer *get_original_view_layer(const Depsgraph *depsgraph, const IDNode *id_
   return nullptr;
 }
 
-/* Remove all view layers but the one which corresponds to an input one. */
-void scene_remove_unused_view_layers(const Depsgraph *depsgraph,
-                                     const IDNode *id_node,
-                                     Scene *scene_cow)
+/* Remove all bases from all view layers except the input one. */
+void scene_minimize_unused_view_layers(const Depsgraph *depsgraph,
+                                       const IDNode *id_node,
+                                       Scene *scene_cow)
 {
-  const ViewLayer *view_layer_input;
   if (depsgraph->is_render_pipeline_depsgraph) {
     /* If the dependency graph is used for post-processing (such as compositor) we do need to
      * have access to its view layer names so can not remove any view layers.
@@ -370,39 +369,35 @@ void scene_remove_unused_view_layers(const Depsgraph *depsgraph,
      * NOTE: Need to keep view layers for all scenes, even indirect ones. This is because of
      * render layer node possibly pointing to another scene. */
     LISTBASE_FOREACH (ViewLayer *, view_layer, &scene_cow->view_layers) {
-      view_layer->basact = nullptr;
+      BKE_view_layer_free_object_content(view_layer);
     }
     return;
   }
-  if (id_node->linked_state == DEG_ID_LINKED_INDIRECTLY) {
-    /* Indirectly linked scenes means it's not an input scene and not a set scene, and is pulled
-     * via some driver. Such scenes should not have view layers after copy. */
-    view_layer_input = nullptr;
-  }
-  else {
-    view_layer_input = get_original_view_layer(depsgraph, id_node);
-  }
+
+  const ViewLayer *view_layer_input = get_original_view_layer(depsgraph, id_node);
   ViewLayer *view_layer_eval = nullptr;
   /* Find evaluated view layer. At the same time we free memory used by
    * all other of the view layers. */
   for (ViewLayer *view_layer_cow = reinterpret_cast<ViewLayer *>(scene_cow->view_layers.first),
                  *view_layer_next;
        view_layer_cow != nullptr;
-       view_layer_cow = view_layer_next) {
+       view_layer_cow = view_layer_next)
+  {
     view_layer_next = view_layer_cow->next;
     if (view_layer_input != nullptr && STREQ(view_layer_input->name, view_layer_cow->name)) {
       view_layer_eval = view_layer_cow;
     }
     else {
-      BKE_view_layer_free_ex(view_layer_cow, false);
+      BKE_view_layer_free_object_content(view_layer_cow);
     }
   }
-  /* Make evaluated view layer the only one in the evaluated scene (if it exists). */
+
+  /* Make evaluated view layer the first one in the evaluated scene (if it exists). This is for
+   * legacy sake, as this used to remove all other view layers, automatically making the evaluated
+   * one the first. Some other code may still assume it is. */
   if (view_layer_eval != nullptr) {
-    view_layer_eval->prev = view_layer_eval->next = nullptr;
+    BLI_listbase_swaplinks(&scene_cow->view_layers, scene_cow->view_layers.first, view_layer_eval);
   }
-  scene_cow->view_layers.first = view_layer_eval;
-  scene_cow->view_layers.last = view_layer_eval;
 }
 
 void scene_remove_all_bases(Scene *scene_cow)
@@ -467,7 +462,7 @@ void scene_setup_view_layers_before_remap(const Depsgraph *depsgraph,
                                           const IDNode *id_node,
                                           Scene *scene_cow)
 {
-  scene_remove_unused_view_layers(depsgraph, id_node, scene_cow);
+  scene_minimize_unused_view_layers(depsgraph, id_node, scene_cow);
   /* If dependency graph is used for post-processing we don't need any bases and can free of them.
    * Do it before re-mapping to make that process faster. */
   if (depsgraph->is_render_pipeline_depsgraph) {
@@ -739,7 +734,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
     }
     /* FIXME: This is a temporary fix to update the runtime pointers properly, see #96216. Should
      * be removed at some point. */
-    case ID_GD: {
+    case ID_GD_LEGACY: {
       bGPdata *gpd_cow = (bGPdata *)id_cow;
       bGPDlayer *gpl = (bGPDlayer *)(gpd_cow->layers.first);
       if (gpl != nullptr && gpl->runtime.gpl_orig == nullptr) {
@@ -892,8 +887,9 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph, const IDNode 
     }
     /* In case we don't need to do a copy-on-write, we can use the update cache of the grease
      * pencil data to do an update-on-write. */
-    if (id_type == ID_GD && BKE_gpencil_can_avoid_full_copy_on_write(
-                                (const ::Depsgraph *)depsgraph, (bGPdata *)id_orig)) {
+    if (id_type == ID_GD_LEGACY && BKE_gpencil_can_avoid_full_copy_on_write(
+                                       (const ::Depsgraph *)depsgraph, (bGPdata *)id_orig))
+    {
       BKE_gpencil_update_on_write((bGPdata *)id_orig, (bGPdata *)id_cow);
       return id_cow;
     }

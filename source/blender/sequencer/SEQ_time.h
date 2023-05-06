@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+ * Copyright 2004 Blender Foundation */
 
 #pragma once
 
@@ -73,6 +73,8 @@ int SEQ_time_find_next_prev_edit(struct Scene *scene,
 bool SEQ_time_strip_intersects_frame(const struct Scene *scene,
                                      const struct Sequence *seq,
                                      int timeline_frame);
+/* Convert timeline frame so strip frame index. */
+float SEQ_give_frame_index(const struct Scene *scene, struct Sequence *seq, float timeline_frame);
 /**
  * Returns true if strip has frames without content to render.
  */
@@ -132,11 +134,12 @@ float SEQ_time_content_end_frame_get(const struct Scene *scene, const struct Seq
  */
 void SEQ_time_start_frame_set(const struct Scene *scene, struct Sequence *seq, int timeline_frame);
 /**
- * Update length of meta-strip after any contained strip length or position has changed.
+ * Update meta strip content start and end, update sound playback range.
+ * To be used after any contained strip length or position has changed.
+ *
  * \note this function is currently only used internally and in versioning code.
  */
 void SEQ_time_update_meta_strip_range(const struct Scene *scene, struct Sequence *seq_meta);
-
 #ifdef __cplusplus
 }
 #endif

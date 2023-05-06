@@ -214,7 +214,6 @@ typedef struct View3DOverlay {
   /** Armature edit/pose mode settings. */
   float xray_alpha_bone;
   float bone_wire_alpha;
-  char _pad1[4];
 
   /** Darken Inactive. */
   float fade_alpha;
@@ -222,6 +221,7 @@ typedef struct View3DOverlay {
   /** Other settings. */
   float wireframe_threshold;
   float wireframe_opacity;
+  float retopology_offset;
 
   /** Grease pencil settings. */
   float gpencil_paper_opacity;
@@ -552,6 +552,7 @@ enum {
   V3D_OVERLAY_SCULPT_SHOW_MASK = (1 << 14),
   V3D_OVERLAY_SCULPT_SHOW_FACE_SETS = (1 << 15),
   V3D_OVERLAY_SCULPT_CURVES_CAGE = (1 << 16),
+  V3D_OVERLAY_SHOW_LIGHT_COLORS = (1 << 17),
 };
 
 /** #View3DOverlay.edit_flag */
@@ -560,7 +561,7 @@ enum {
   V3D_OVERLAY_EDIT_LOOP_NORMALS = (1 << 1),
   V3D_OVERLAY_EDIT_FACE_NORMALS = (1 << 2),
 
-  V3D_OVERLAY_EDIT_OCCLUDE_WIRE = (1 << 3),
+  V3D_OVERLAY_EDIT_RETOPOLOGY = (1 << 3),
 
   V3D_OVERLAY_EDIT_WEIGHT = (1 << 4),
 
@@ -629,6 +630,7 @@ enum {
   V3D_ORIENT_VIEW = 3,
   V3D_ORIENT_GIMBAL = 4,
   V3D_ORIENT_CURSOR = 5,
+  V3D_ORIENT_PARENT = 6,
   V3D_ORIENT_CUSTOM = 1024,
   /** Runtime only, never saved to DNA. */
   V3D_ORIENT_CUSTOM_MATRIX = (V3D_ORIENT_CUSTOM - 1),

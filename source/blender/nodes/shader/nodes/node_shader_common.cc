@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup shdnodes
@@ -14,7 +14,7 @@
 
 #include "NOD_common.h"
 #include "node_common.h"
-#include "node_exec.h"
+#include "node_exec.hh"
 #include "node_shader_util.hh"
 
 #include "RNA_access.h"
@@ -110,6 +110,6 @@ void register_node_type_sh_custom_group(bNodeType *ntype)
   if (ntype->insert_link == nullptr) {
     ntype->insert_link = node_insert_link_default;
   }
-
+  ntype->declare_dynamic = blender::nodes::node_group_declare_dynamic;
   ntype->gpu_fn = gpu_group_execute;
 }

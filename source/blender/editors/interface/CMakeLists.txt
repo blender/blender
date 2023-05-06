@@ -20,6 +20,7 @@ set(INC
   ../../python
   ../../render
   ../../windowmanager
+  ../../../../intern/ghost
   ../../../../intern/guardedalloc
   ../../bmesh
   # RNA_prototypes.h
@@ -45,6 +46,7 @@ set(SRC
   interface_context_path.cc
   interface_drag.cc
   interface_draw.cc
+  interface_drop.cc
   interface_dropboxes.cc
   interface_handlers.cc
   interface_icons.cc
@@ -87,6 +89,7 @@ set(SRC
   eyedroppers/eyedropper_intern.hh
   interface_intern.hh
   interface_regions_intern.hh
+  view2d_intern.hh
 )
 
 set(LIB

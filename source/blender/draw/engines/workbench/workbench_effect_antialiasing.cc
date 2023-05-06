@@ -3,7 +3,7 @@
 #include "workbench_private.hh"
 
 #include "BLI_jitter_2d.h"
-#include "smaa_textures.h"
+#include "BLI_smaa_textures.h"
 
 namespace blender::workbench {
 

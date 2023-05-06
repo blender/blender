@@ -208,7 +208,8 @@ void MemoryBuffer::copy_from(const MemoryBuffer *src,
     copy_single_elem_from(src, channel_offset, elem_size, to_channel_offset);
   }
   else if (!src->is_a_single_elem() && elem_size == src->get_num_channels() &&
-           elem_size == this->get_num_channels()) {
+           elem_size == this->get_num_channels())
+  {
     BLI_assert(to_channel_offset == 0);
     BLI_assert(channel_offset == 0);
     copy_rows_from(src, area, to_x, to_y);

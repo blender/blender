@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup blf
@@ -43,28 +43,36 @@ void BLF_cache_flush_set_fn(void (*cache_flush_fn)(void));
 /**
  * Loads a font, or returns an already loaded font and increments its reference count.
  */
-int BLF_load(const char *name) ATTR_NONNULL();
-int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size) ATTR_NONNULL();
-bool BLF_is_loaded(const char *name) ATTR_NONNULL();
+int BLF_load(const char *filepath) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1, 2);
 
-int BLF_load_unique(const char *name) ATTR_NONNULL();
-int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size) ATTR_NONNULL();
+bool BLF_is_loaded(const char *filepath) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+bool BLF_is_loaded_mem(const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
-void BLF_unload(const char *name) ATTR_NONNULL();
+int BLF_load_unique(const char *filepath) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size)
+    ATTR_NONNULL(1, 2);
+
+void BLF_unload(const char *filepath) ATTR_NONNULL(1);
+#if 0 /* Not needed at the moment. */
+void BLF_unload_mem(const char *name) ATTR_NONNULL(1);
+#endif
+
 void BLF_unload_id(int fontid);
 void BLF_unload_all(void);
 
-char *BLF_display_name_from_file(const char *filepath);
+char *BLF_display_name_from_file(const char *filepath) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /**
  * Check if font supports a particular glyph.
  */
-bool BLF_has_glyph(int fontid, unsigned int unicode);
+bool BLF_has_glyph(int fontid, unsigned int unicode) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Attach a file with metrics information from memory.
  */
-void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size);
+void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size) ATTR_NONNULL(2);
 
 void BLF_aspect(int fontid, float x, float y, float z);
 void BLF_position(int fontid, float x, float y, float z);
@@ -140,7 +148,7 @@ void BLF_boundbox_foreach_glyph(int fontid,
 size_t BLF_str_offset_from_cursor_position(int fontid,
                                            const char *str,
                                            size_t str_len,
-                                           int location_x);
+                                           int location_x) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
 
 /**
  * Return bounds of the glyph rect at the string offset.
@@ -148,18 +156,25 @@ size_t BLF_str_offset_from_cursor_position(int fontid,
 bool BLF_str_offset_to_glyph_bounds(int fontid,
                                     const char *str,
                                     size_t str_offset,
-                                    struct rcti *glyph_bounds);
+                                    struct rcti *glyph_bounds) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(2, 4);
 
 /**
  * Get the string byte offset that fits within a given width.
  */
-size_t BLF_width_to_strlen(
-    int fontid, const char *str, size_t str_len, float width, float *r_width) ATTR_NONNULL(2);
+size_t BLF_width_to_strlen(int fontid,
+                           const char *str,
+                           size_t str_len,
+                           float width,
+                           float *r_width) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
 /**
  * Same as BLF_width_to_strlen but search from the string end.
  */
-size_t BLF_width_to_rstrlen(
-    int fontid, const char *str, size_t str_len, float width, float *r_width) ATTR_NONNULL(2);
+size_t BLF_width_to_rstrlen(int fontid,
+                            const char *str,
+                            size_t str_len,
+                            float width,
+                            float *r_width) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
 
 /**
  * This function return the bounding box of the string
@@ -268,26 +283,6 @@ void BLF_buffer_col(int fontid, const float rgba[4]) ATTR_NONNULL(2);
 void BLF_draw_buffer_ex(int fontid, const char *str, size_t str_len, struct ResultBLF *r_info)
     ATTR_NONNULL(2);
 void BLF_draw_buffer(int fontid, const char *str, size_t str_len) ATTR_NONNULL(2);
-
-/**
- * Add a path to the font dir paths.
- */
-void BLF_dir_add(const char *path) ATTR_NONNULL();
-
-/**
- * Remove a path from the font dir paths.
- */
-void BLF_dir_rem(const char *path) ATTR_NONNULL();
-
-/**
- * Return an array with all the font dir (this can be used for file-selector).
- */
-char **BLF_dir_get(int *ndir) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-
-/**
- * Free the data return by #BLF_dir_get.
- */
-void BLF_dir_free(char **dirs, int count) ATTR_NONNULL();
 
 /* blf_thumbs.c */
 

@@ -255,12 +255,12 @@ static StructRNA *rna_KeyingSetInfo_refine(PointerRNA *ptr)
   return (ksi->rna_ext.srna) ? ksi->rna_ext.srna : &RNA_KeyingSetInfo;
 }
 
-static void rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
+static bool rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
 {
   KeyingSetInfo *ksi = RNA_struct_blender_type_get(type);
 
   if (ksi == NULL) {
-    return;
+    return false;
   }
 
   /* free RNA data referencing this */
@@ -271,6 +271,7 @@ static void rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
 
   /* unlink Blender-side data */
   ANIM_keyingset_info_unregister(bmain, ksi);
+  return true;
 }
 
 static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
@@ -281,39 +282,51 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
                                              StructCallbackFunc call,
                                              StructFreeFunc free)
 {
-  KeyingSetInfo dummyksi = {NULL};
+  const char *error_prefix = "Registering keying set info class:";
+  KeyingSetInfo dummy_ksi = {NULL};
   KeyingSetInfo *ksi;
-  PointerRNA dummyptr = {NULL};
-  int have_function[3];
+  PointerRNA dummy_ksi_ptr = {NULL};
+  bool have_function[3];
 
   /* setup dummy type info to store static properties in */
   /* TODO: perhaps we want to get users to register
    * as if they're using 'KeyingSet' directly instead? */
-  RNA_pointer_create(NULL, &RNA_KeyingSetInfo, &dummyksi, &dummyptr);
+  RNA_pointer_create(NULL, &RNA_KeyingSetInfo, &dummy_ksi, &dummy_ksi_ptr);
 
   /* validate the python class */
-  if (validate(&dummyptr, data, have_function) != 0) {
+  if (validate(&dummy_ksi_ptr, data, have_function) != 0) {
     return NULL;
   }
 
-  if (strlen(identifier) >= sizeof(dummyksi.idname)) {
+  if (strlen(identifier) >= sizeof(dummy_ksi.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering keying set info class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
-                (int)sizeof(dummyksi.idname));
+                (int)sizeof(dummy_ksi.idname));
     return NULL;
   }
 
   /* check if we have registered this info before, and remove it */
-  ksi = ANIM_keyingset_info_find_name(dummyksi.idname);
-  if (ksi && ksi->rna_ext.srna) {
-    rna_KeyingSetInfo_unregister(bmain, ksi->rna_ext.srna);
+  ksi = ANIM_keyingset_info_find_name(dummy_ksi.idname);
+  if (ksi) {
+    StructRNA *srna = ksi->rna_ext.srna;
+    if (!(srna && rna_KeyingSetInfo_unregister(bmain, srna))) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "%s '%s', bl_idname '%s' %s",
+                  error_prefix,
+                  identifier,
+                  dummy_ksi.idname,
+                  srna ? "is built-in" : "could not be unregistered");
+      return NULL;
+    }
   }
 
   /* create a new KeyingSetInfo type */
   ksi = MEM_mallocN(sizeof(KeyingSetInfo), "python keying set info");
-  memcpy(ksi, &dummyksi, sizeof(KeyingSetInfo));
+  memcpy(ksi, &dummy_ksi, sizeof(KeyingSetInfo));
 
   /* set RNA-extensions info */
   ksi->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, ksi->idname, &RNA_KeyingSetInfo);
@@ -573,7 +586,16 @@ static void rna_KeyingSet_paths_clear(KeyingSet *keyingset, ReportList *reports)
 /* needs wrapper function to push notifier */
 static NlaTrack *rna_NlaTrack_new(ID *id, AnimData *adt, Main *bmain, bContext *C, NlaTrack *track)
 {
-  NlaTrack *new_track = BKE_nlatrack_add(adt, track, ID_IS_OVERRIDE_LIBRARY(id));
+  NlaTrack *new_track;
+
+  if (track == NULL) {
+    new_track = BKE_nlatrack_new_tail(&adt->nla_tracks, ID_IS_OVERRIDE_LIBRARY(id));
+  }
+  else {
+    new_track = BKE_nlatrack_new_after(&adt->nla_tracks, track, ID_IS_OVERRIDE_LIBRARY(id));
+  }
+
+  BKE_nlatrack_set_active(&adt->nla_tracks, new_track);
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, NULL);
 
@@ -696,7 +718,7 @@ bool rna_AnimaData_override_apply(Main *bmain,
                                   IDOverrideLibraryPropertyOperation *opop)
 {
   BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
              "Unsupported RNA override operation on animdata pointer");
   UNUSED_VARS_NDEBUG(ptr_storage, len_dst, len_src, len_storage, opop);
 
@@ -735,7 +757,7 @@ bool rna_NLA_tracks_override_apply(Main *bmain,
                                    PointerRNA *UNUSED(ptr_item_storage),
                                    IDOverrideLibraryPropertyOperation *opop)
 {
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_INSERT_AFTER &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on constraints collection");
 
   AnimData *anim_data_dst = (AnimData *)ptr_dst->data;
@@ -743,7 +765,10 @@ bool rna_NLA_tracks_override_apply(Main *bmain,
 
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
-   * So we should always find 'anchor' track in both _src *and* _dst. */
+   * So we should always find 'anchor' track in both _src *and* _dst.
+   *
+   * This is only true however is NLA tracks do not get removed from linked data. Otherwise, an
+   * index-based reference may lead to lost data. */
   NlaTrack *nla_track_anchor = NULL;
 #  if 0
   /* This is not working so well with index-based insertion, especially in case some tracks get
@@ -763,7 +788,7 @@ bool rna_NLA_tracks_override_apply(Main *bmain,
   }
 
   if (nla_track_src == NULL) {
-    BLI_assert(nla_track_src != NULL);
+    /* Can happen if tracks were removed from linked data. */
     return false;
   }
 

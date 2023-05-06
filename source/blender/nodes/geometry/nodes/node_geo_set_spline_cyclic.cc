@@ -25,7 +25,7 @@ static void set_cyclic(bke::CurvesGeometry &curves,
   AttributeWriter<bool> cyclics = attributes.lookup_or_add_for_write<bool>("cyclic",
                                                                            ATTR_DOMAIN_CURVE);
 
-  bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
+  const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, curves.curves_num()};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(cyclic_field, cyclics.varray);

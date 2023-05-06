@@ -46,7 +46,8 @@ TEST(LockfreeLinkList, InsertMultiple)
   /* Check rest of the nodes. */
   int node_index = 0;
   for (LockfreeLinkNode *node = BLI_linklist_lockfree_begin(&list); node != nullptr;
-       node = node->next, ++node_index) {
+       node = node->next, ++node_index)
+  {
     EXPECT_EQ(node, &nodes[node_index]);
     if (node_index != nodes_num - 1) {
       EXPECT_EQ(node->next, &nodes[node_index + 1]);
@@ -93,7 +94,8 @@ TEST(LockfreeLinkList, InsertMultipleConcurrent)
   bool *visited_nodes = (bool *)MEM_callocN(sizeof(bool) * nodes_num, "visited nodes");
   /* First, we make sure that none of the nodes are added twice. */
   for (LockfreeLinkNode *node_v = BLI_linklist_lockfree_begin(&list); node_v != nullptr;
-       node_v = node_v->next) {
+       node_v = node_v->next)
+  {
     IndexedNode *node = (IndexedNode *)node_v;
     EXPECT_GE(node->index, 0);
     EXPECT_LT(node->index, nodes_num);

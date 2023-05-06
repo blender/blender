@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup editors
@@ -73,6 +73,7 @@ void ED_init_node_socket_type_virtual(struct bNodeSocketType *stype);
 void ED_node_sample_set(const float col[4]);
 void ED_node_draw_snap(
     struct View2D *v2d, const float cent[2], float size, NodeBorder border, unsigned int pos);
+void ED_node_type_draw_color(const char *idname, float *r_color);
 
 /* node_draw.cc */
 

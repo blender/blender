@@ -53,9 +53,7 @@ class PinchOperation : public CurvesSculptStrokeOperation {
   friend struct PinchOperationExecutor;
 
  public:
-  PinchOperation(const bool invert_pinch) : invert_pinch_(invert_pinch)
-  {
-  }
+  PinchOperation(const bool invert_pinch) : invert_pinch_(invert_pinch) {}
 
   void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
 };
@@ -84,9 +82,7 @@ struct PinchOperationExecutor {
 
   float2 brush_pos_re_;
 
-  PinchOperationExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  PinchOperationExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(PinchOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {
@@ -109,7 +105,7 @@ struct PinchOperationExecutor {
 
     transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
-    point_factors_ = curves_->attributes().lookup_or_default<float>(
+    point_factors_ = *curves_->attributes().lookup_or_default<float>(
         ".selection", ATTR_DOMAIN_POINT, 1.0f);
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 

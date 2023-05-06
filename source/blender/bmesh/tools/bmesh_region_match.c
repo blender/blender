@@ -499,7 +499,8 @@ static void bm_uuidwalk_pass_add(UUIDWalk *uuidwalk,
       void **val_p;
       if (!BLI_ghash_haskey(uuidwalk->verts_uuid, l_iter->v) &&
           !BLI_ghash_ensure_p(verts_uuid_pass, l_iter->v, &val_p) &&
-          (bm_vert_is_uuid_connect(uuidwalk, l_iter->v) == true)) {
+          (bm_vert_is_uuid_connect(uuidwalk, l_iter->v) == true))
+      {
         const UUID_Int uuid = bm_uuidwalk_calc_vert_uuid(uuidwalk, l_iter->v);
         *val_p = (void *)uuid;
       }
@@ -510,7 +511,8 @@ static void bm_uuidwalk_pass_add(UUIDWalk *uuidwalk,
         do {
           if (!BLI_ghash_haskey(uuidwalk->faces_uuid, l_iter_radial->f) &&
               !BLI_gset_haskey(faces_step_next, l_iter_radial->f) &&
-              bm_uuidwalk_face_test(uuidwalk, l_iter_radial->f)) {
+              bm_uuidwalk_face_test(uuidwalk, l_iter_radial->f))
+          {
             BLI_gset_insert(faces_step_next, l_iter_radial->f);
 
             /* add to fstep */
@@ -771,13 +773,15 @@ static BMFace **bm_mesh_region_match_pair(
         UUIDFaceStepItem *fstep_item_dst;
         for (fstep_item_src = fstep_src->items.first, fstep_item_dst = fstep_dst->items.first;
              fstep_item_src && fstep_item_dst;
-             fstep_item_src = fstep_item_src->next, fstep_item_dst = fstep_item_dst->next) {
+             fstep_item_src = fstep_item_src->next, fstep_item_dst = fstep_item_dst->next)
+        {
           while ((fstep_item_dst != NULL) && (fstep_item_dst->uuid < fstep_item_src->uuid)) {
             fstep_item_dst = fstep_item_dst->next;
           }
 
           if ((fstep_item_dst == NULL) || (fstep_item_src->uuid != fstep_item_dst->uuid) ||
-              (fstep_item_src->list_len > fstep_item_dst->list_len)) {
+              (fstep_item_src->list_len > fstep_item_dst->list_len))
+          {
             /* if the target walker has less than the source
              * then the islands don't match, bail early */
             ok = false;
@@ -935,7 +939,8 @@ static void bm_face_region_pivot_edge_use_best(GHash *gh,
 
   if ((*r_e_pivot_best == NULL) ||
       ((e_pivot_best_id[0] != e_pivot_test_id[0]) ? (e_pivot_best_id[0] < e_pivot_test_id[0]) :
-                                                    (e_pivot_best_id[1] < e_pivot_test_id[1]))) {
+                                                    (e_pivot_best_id[1] < e_pivot_test_id[1])))
+  {
     e_pivot_best_id[0] = e_pivot_test_id[0];
     e_pivot_best_id[1] = e_pivot_test_id[1];
 

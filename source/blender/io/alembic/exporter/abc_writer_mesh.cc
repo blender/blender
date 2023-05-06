@@ -16,7 +16,7 @@
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
@@ -176,8 +176,8 @@ void ABCGenericMeshWriter::do_write(HierarchyContext &context)
 
   m_custom_data_config.pack_uvs = args_.export_params->packuv;
   m_custom_data_config.mesh = mesh;
-  m_custom_data_config.mpoly = mesh->polys_for_write().data();
-  m_custom_data_config.mloop = mesh->loops_for_write().data();
+  m_custom_data_config.poly_offsets = mesh->poly_offsets_for_write().data();
+  m_custom_data_config.corner_verts = mesh->corner_verts_for_write().data();
   m_custom_data_config.totpoly = mesh->totpoly;
   m_custom_data_config.totloop = mesh->totloop;
   m_custom_data_config.totvert = mesh->totvert;
@@ -394,7 +394,7 @@ void ABCGenericMeshWriter::get_geo_groups(Object *object,
                                           std::map<std::string, std::vector<int32_t>> &geo_groups)
 {
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan<int> material_indices = attributes.lookup_or_default<int>(
+  const VArraySpan<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
 
   for (const int i : material_indices.index_range()) {
@@ -449,26 +449,31 @@ static void get_topology(struct Mesh *mesh,
                          std::vector<int32_t> &loop_counts,
                          bool &r_has_flat_shaded_poly)
 {
-  const Span<MPoly> polys = mesh->polys();
-  const Span<MLoop> loops = mesh->loops();
-  r_has_flat_shaded_poly = false;
+  const OffsetIndices polys = mesh->polys();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
+      "sharp_face", ATTR_DOMAIN_FACE, false);
+  for (const int i : sharp_faces.index_range()) {
+    if (sharp_faces[i]) {
+      r_has_flat_shaded_poly = true;
+      break;
+    }
+  }
 
   poly_verts.clear();
   loop_counts.clear();
-  poly_verts.reserve(loops.size());
+  poly_verts.reserve(corner_verts.size());
   loop_counts.reserve(polys.size());
 
   /* NOTE: data needs to be written in the reverse order. */
   for (const int i : polys.index_range()) {
-    const MPoly &poly = polys[i];
-    loop_counts.push_back(poly.totloop);
+    const IndexRange poly = polys[i];
+    loop_counts.push_back(poly.size());
 
-    r_has_flat_shaded_poly |= (poly.flag & ME_SMOOTH) == 0;
-
-    const MLoop *loop = &loops[poly.loopstart + (poly.totloop - 1)];
-
-    for (int j = 0; j < poly.totloop; j++, loop--) {
-      poly_verts.push_back(loop->v);
+    int corner = poly.start() + (poly.size() - 1);
+    for (int j = 0; j < poly.size(); j++, corner--) {
+      poly_verts.push_back(corner_verts[corner]);
     }
   }
 }
@@ -486,13 +491,13 @@ static void get_edge_creases(struct Mesh *mesh,
   if (!creases) {
     return;
   }
-  const Span<MEdge> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
   for (const int i : edges.index_range()) {
     const float sharpness = creases[i];
 
     if (sharpness != 0.0f) {
-      indices.push_back(edges[i].v1);
-      indices.push_back(edges[i].v2);
+      indices.push_back(edges[i][0]);
+      indices.push_back(edges[i][1]);
       sharpnesses.push_back(sharpness);
     }
   }
@@ -532,7 +537,8 @@ static void get_loop_normals(struct Mesh *mesh,
   /* If all polygons are smooth shaded, and there are no custom normals, we don't need to export
    * normals at all. This is also done by other software, see #71246. */
   if (!has_flat_shaded_poly && !CustomData_has_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL) &&
-      (mesh->flag & ME_AUTOSMOOTH) == 0) {
+      (mesh->flag & ME_AUTOSMOOTH) == 0)
+  {
     return;
   }
 
@@ -545,20 +551,18 @@ static void get_loop_normals(struct Mesh *mesh,
 
   /* NOTE: data needs to be written in the reverse order. */
   int abc_index = 0;
-  const Span<MPoly> polys = mesh->polys();
+  const OffsetIndices polys = mesh->polys();
 
   for (const int i : polys.index_range()) {
-    const MPoly *mp = &polys[i];
-    for (int j = mp->totloop - 1; j >= 0; j--, abc_index++) {
-      int blender_index = mp->loopstart + j;
+    const IndexRange poly = polys[i];
+    for (int j = poly.size() - 1; j >= 0; j--, abc_index++) {
+      int blender_index = poly[j];
       copy_yup_from_zup(normals[abc_index].getValue(), lnors[blender_index]);
     }
   }
 }
 
-ABCMeshWriter::ABCMeshWriter(const ABCWriterConstructorArgs &args) : ABCGenericMeshWriter(args)
-{
-}
+ABCMeshWriter::ABCMeshWriter(const ABCWriterConstructorArgs &args) : ABCGenericMeshWriter(args) {}
 
 Mesh *ABCMeshWriter::get_export_mesh(Object *object_eval, bool & /*r_needsfree*/)
 {

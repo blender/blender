@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 
 #include "BLI_task.hh"
@@ -42,7 +42,7 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
                                  const IndexMask mask) const final
   {
     const IndexRange corner_range(mesh.totloop);
-    const Span<MPoly> polys = mesh.polys();
+    const OffsetIndices polys = mesh.polys();
 
     const bke::MeshFieldContext context{mesh, domain};
     fn::FieldEvaluator evaluator{context, &mask};
@@ -52,7 +52,7 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
     const VArray<int> corner_indices = evaluator.get_evaluated<int>(0);
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
 
-    Array<int> loop_to_poly_map = bke::mesh_topology::build_loop_to_poly_map(polys, mesh.totloop);
+    Array<int> loop_to_poly_map = bke::mesh_topology::build_loop_to_poly_map(polys);
 
     Array<int> offset_corners(mask.min_array_size());
     threading::parallel_for(mask.index_range(), 2048, [&](const IndexRange range) {
@@ -64,9 +64,8 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
           continue;
         }
 
-        const int poly_i = loop_to_poly_map[corner_i];
-        const IndexRange poly_range(polys[poly_i].loopstart, polys[poly_i].totloop);
-        offset_corners[selection_i] = apply_offset_in_cyclic_range(poly_range, corner_i, offset);
+        const IndexRange poly = polys[loop_to_poly_map[corner_i]];
+        offset_corners[selection_i] = apply_offset_in_cyclic_range(poly, corner_i, offset);
       }
     });
 
@@ -87,7 +86,8 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const final
   {
     if (const OffsetCornerInFaceFieldInput *other_field =
-            dynamic_cast<const OffsetCornerInFaceFieldInput *>(&other)) {
+            dynamic_cast<const OffsetCornerInFaceFieldInput *>(&other))
+    {
       return other_field->corner_index_ == corner_index_ && other_field->offset_ == offset_;
     }
     return false;

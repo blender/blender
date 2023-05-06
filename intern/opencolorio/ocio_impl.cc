@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+ * Copyright 2012 Blender Foundation */
 
 #include <cassert>
 #include <iostream>
@@ -477,14 +477,16 @@ void OCIOImpl::colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config_,
 
     /* Make sure that there is no channel crosstalk. */
     if (fabsf(cR[1]) > 1e-5f || fabsf(cR[2]) > 1e-5f || fabsf(cG[0]) > 1e-5f ||
-        fabsf(cG[2]) > 1e-5f || fabsf(cB[0]) > 1e-5f || fabsf(cB[1]) > 1e-5f) {
+        fabsf(cG[2]) > 1e-5f || fabsf(cB[0]) > 1e-5f || fabsf(cB[1]) > 1e-5f)
+    {
       is_scene_linear = false;
       is_srgb = false;
       break;
     }
     /* Make sure that the three primaries combine linearly. */
     if (!compare_floats(cR[0], cW[0], 1e-6f, 64) || !compare_floats(cG[1], cW[1], 1e-6f, 64) ||
-        !compare_floats(cB[2], cW[2], 1e-6f, 64)) {
+        !compare_floats(cB[2], cW[2], 1e-6f, 64))
+    {
       is_scene_linear = false;
       is_srgb = false;
       break;

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
 "Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"
@@ -821,6 +821,10 @@ msgid "Paste text from clipboard"
 msgstr "Arbeletik testua itsatsi"
 
 
+msgid "Selection"
+msgstr "Hautaketa"
+
+
 msgid "Console output type"
 msgstr "Kontsolaren irteera-mota"
 
@@ -1004,6 +1008,10 @@ msgid "Execute selected file"
 msgstr "Hautatutako fitxategia exekutatu"
 
 
+msgid "Play"
+msgstr "Erreproduzitu"
+
+
 msgctxt "Operator"
 msgid "Increment Number in Filename"
 msgstr "Fitxategi-izenean Zenbakia Inkrementatu"
@@ -1162,10 +1170,6 @@ msgstr "Tartea aldatu"
 
 msgid "Change font spacing"
 msgstr "Letra-tipo tartea aldatu"
-
-
-msgid "Selection"
-msgstr "Hautaketa"
 
 
 msgctxt "Operator"
@@ -1669,10 +1673,6 @@ msgstr "Objectuaren Izena"
 
 msgid "Prev"
 msgstr "Aurrekoa"
-
-
-msgid "Play"
-msgstr "Erreproduzitu"
 
 
 msgctxt "Operator"
@@ -2359,22 +2359,6 @@ msgstr "Blender Fitxategi Bista"
 
 msgid "unable to open the file"
 msgstr "Ezin izan da fitxategia ireki"
-
-
-msgid "File format is not supported in file '%s'"
-msgstr "Fitxategi formatuak ez dauka euskarririk '%s' fitxategian"
-
-
-msgid "File path '%s' invalid"
-msgstr "'%s' fitxategi-helbidea baliogabea"
-
-
-msgid "Unknown error loading '%s'"
-msgstr "Errore ezezaguna '%s' kargatzean"
-
-
-msgid "Could not read '%s'"
-msgstr "Ezin izan da '%s' irakurri"
 
 
 msgid "'%s': nothing indicated"

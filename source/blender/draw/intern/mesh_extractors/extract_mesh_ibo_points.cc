@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -69,56 +69,52 @@ static void extract_points_iter_poly_bm(const MeshRenderData * /*mr*/,
 }
 
 static void extract_points_iter_poly_mesh(const MeshRenderData *mr,
-                                          const MPoly *mp,
-                                          const int /*mp_index*/,
+                                          const int poly_index,
                                           void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  const MLoop *mloop = mr->mloop;
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
-    vert_set_mesh(elb, mr, ml->v, ml_index);
+  for (const int ml_index : mr->polys[poly_index]) {
+    vert_set_mesh(elb, mr, mr->corner_verts[ml_index], ml_index);
   }
 }
 
-static void extract_points_iter_ledge_bm(const MeshRenderData *mr,
-                                         const BMEdge *eed,
-                                         const int ledge_index,
-                                         void *_userdata)
+static void extract_points_iter_loose_edge_bm(const MeshRenderData *mr,
+                                              const BMEdge *eed,
+                                              const int ledge_index,
+                                              void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
   vert_set_bm(elb, eed->v1, mr->loop_len + (ledge_index * 2));
   vert_set_bm(elb, eed->v2, mr->loop_len + (ledge_index * 2) + 1);
 }
 
-static void extract_points_iter_ledge_mesh(const MeshRenderData *mr,
-                                           const MEdge *med,
-                                           const int ledge_index,
-                                           void *_userdata)
+static void extract_points_iter_loose_edge_mesh(const MeshRenderData *mr,
+                                                const int2 edge,
+                                                const int ledge_index,
+                                                void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  vert_set_mesh(elb, mr, med->v1, mr->loop_len + (ledge_index * 2));
-  vert_set_mesh(elb, mr, med->v2, mr->loop_len + (ledge_index * 2) + 1);
+  vert_set_mesh(elb, mr, edge[0], mr->loop_len + (ledge_index * 2));
+  vert_set_mesh(elb, mr, edge[1], mr->loop_len + (ledge_index * 2) + 1);
 }
 
-static void extract_points_iter_lvert_bm(const MeshRenderData *mr,
-                                         const BMVert *eve,
-                                         const int lvert_index,
-                                         void *_userdata)
+static void extract_points_iter_loose_vert_bm(const MeshRenderData *mr,
+                                              const BMVert *eve,
+                                              const int lvert_index,
+                                              void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
   const int offset = mr->loop_len + (mr->edge_loose_len * 2);
   vert_set_bm(elb, eve, offset + lvert_index);
 }
 
-static void extract_points_iter_lvert_mesh(const MeshRenderData *mr,
-                                           const int lvert_index,
-                                           void *_userdata)
+static void extract_points_iter_loose_vert_mesh(const MeshRenderData *mr,
+                                                const int lvert_index,
+                                                void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
   const int offset = mr->loop_len + (mr->edge_loose_len * 2);
-  vert_set_mesh(elb, mr, mr->lverts[lvert_index], offset + lvert_index);
+  vert_set_mesh(elb, mr, mr->loose_verts[lvert_index], offset + lvert_index);
 }
 
 static void extract_points_task_reduce(void *_userdata_to, void *_userdata_from)
@@ -203,7 +199,7 @@ static void extract_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cache,
                                             const MeshRenderData *mr,
                                             void *_data,
                                             uint subdiv_quad_index,
-                                            const MPoly * /*coarse_quad*/)
+                                            const int /*coarse_quad_index*/)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
   extract_points_iter_subdiv_common(elb, mr, subdiv_cache, subdiv_quad_index, false);
@@ -297,10 +293,10 @@ constexpr MeshExtract create_extractor_points()
   extractor.init = extract_points_init;
   extractor.iter_poly_bm = extract_points_iter_poly_bm;
   extractor.iter_poly_mesh = extract_points_iter_poly_mesh;
-  extractor.iter_ledge_bm = extract_points_iter_ledge_bm;
-  extractor.iter_ledge_mesh = extract_points_iter_ledge_mesh;
-  extractor.iter_lvert_bm = extract_points_iter_lvert_bm;
-  extractor.iter_lvert_mesh = extract_points_iter_lvert_mesh;
+  extractor.iter_loose_edge_bm = extract_points_iter_loose_edge_bm;
+  extractor.iter_loose_edge_mesh = extract_points_iter_loose_edge_mesh;
+  extractor.iter_loose_vert_bm = extract_points_iter_loose_vert_bm;
+  extractor.iter_loose_vert_mesh = extract_points_iter_loose_vert_mesh;
   extractor.task_reduce = extract_points_task_reduce;
   extractor.finish = extract_points_finish;
   extractor.init_subdiv = extract_points_init_subdiv;

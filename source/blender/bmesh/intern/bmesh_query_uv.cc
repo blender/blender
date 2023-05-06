@@ -20,11 +20,11 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
-BMUVOffsets BM_uv_map_get_offsets(const BMesh *bm)
+BMUVOffsets BM_uv_map_get_offsets_from_layer(const BMesh *bm, const int layer)
 {
   using namespace blender;
   using namespace blender::bke;
-  const int layer_index = CustomData_get_active_layer_index(&bm->ldata, CD_PROP_FLOAT2);
+  const int layer_index = CustomData_get_layer_index_n(&bm->ldata, CD_PROP_FLOAT2, layer);
   if (layer_index == -1) {
     return {-1, -1, -1, -1};
   }
@@ -42,6 +42,12 @@ BMUVOffsets BM_uv_map_get_offsets(const BMesh *bm)
       &bm->ldata, CD_PROP_BOOL, BKE_uv_map_pin_name_get(name, buffer));
 
   return offsets;
+}
+
+BMUVOffsets BM_uv_map_get_offsets(const BMesh *bm)
+{
+  const int layer = CustomData_get_active_layer(&bm->ldata, CD_PROP_FLOAT2);
+  return BM_uv_map_get_offsets_from_layer(bm, layer);
 }
 
 static void uv_aspect(const BMLoop *l,

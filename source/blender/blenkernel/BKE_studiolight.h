@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006-2007 Blender Foundation. All rights reserved. */
+ * Copyright 2006-2007 Blender Foundation */
 
 #pragma once
 
@@ -99,7 +99,7 @@ typedef struct StudioLight {
   int index;
   int flag;
   char name[FILE_MAXFILE];
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
   char *path_irr_cache;
   char *path_sh_cache;
   int icon_id_irradiance;
@@ -142,8 +142,8 @@ struct ListBase *BKE_studiolight_listbase(void);
  */
 void BKE_studiolight_ensure_flag(StudioLight *sl, int flag);
 void BKE_studiolight_refresh(void);
-StudioLight *BKE_studiolight_load(const char *path, int type);
-StudioLight *BKE_studiolight_create(const char *path,
+StudioLight *BKE_studiolight_load(const char *filepath, int type);
+StudioLight *BKE_studiolight_create(const char *filepath,
                                     const SolidLight light[4],
                                     const float light_ambient[3]);
 /**

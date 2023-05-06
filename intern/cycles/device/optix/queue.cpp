@@ -15,9 +15,7 @@ CCL_NAMESPACE_BEGIN
 
 /* CUDADeviceQueue */
 
-OptiXDeviceQueue::OptiXDeviceQueue(OptiXDevice *device) : CUDADeviceQueue(device)
-{
-}
+OptiXDeviceQueue::OptiXDeviceQueue(OptiXDevice *device) : CUDADeviceQueue(device) {}
 
 void OptiXDeviceQueue::init_execution()
 {
@@ -82,7 +80,8 @@ bool OptiXDeviceQueue::enqueue(DeviceKernel kernel,
   }
   if (kernel == DEVICE_KERNEL_SHADER_EVAL_DISPLACE ||
       kernel == DEVICE_KERNEL_SHADER_EVAL_BACKGROUND ||
-      kernel == DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY) {
+      kernel == DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY)
+  {
     cuda_device_assert(cuda_device_,
                        cuMemcpyHtoDAsync(launch_params_ptr + offsetof(KernelParamsOptiX, offset),
                                          args.values[2],  // &d_offset

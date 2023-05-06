@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup modifiers
@@ -23,7 +23,7 @@
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
@@ -34,8 +34,8 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 #include "eigen_capi.h"
 
@@ -45,9 +45,6 @@ struct LaplacianSystem {
   float *ring_areas;    /* Total area per ring. */
   float *vlengths;      /* Total sum of lengths(edges) per vertex. */
   float *vweights;      /* Total sum of weights per vertex. */
-  int edges_num;        /* Number of edges. */
-  int loops_num;        /* Number of edges. */
-  int polys_num;        /* Number of faces. */
   int verts_num;        /* Number of verts. */
   short *ne_fa_num;     /* Number of neighbors faces around vertex. */
   short *ne_ed_num;     /* Number of neighbors Edges around vertex. */
@@ -55,32 +52,15 @@ struct LaplacianSystem {
 
   /* Pointers to data. */
   float (*vertexCos)[3];
-  const MPoly *mpoly;
-  const MLoop *mloop;
-  const MEdge *medges;
+  blender::Span<blender::int2> edges;
+  blender::OffsetIndices<int> polys;
+  blender::Span<int> corner_verts;
   LinearSolver *context;
 
   /* Data. */
   float min_area;
   float vert_centroid[3];
 };
-
-static float compute_volume(const float center[3],
-                            float (*vertexCos)[3],
-                            const MPoly *mpoly,
-                            int polys_num,
-                            const MLoop *mloop);
-static LaplacianSystem *init_laplacian_system(int a_numEdges,
-                                              int a_numPolys,
-                                              int a_numLoops,
-                                              int a_numVerts);
-static void delete_laplacian_system(LaplacianSystem *sys);
-static void fill_laplacian_matrix(LaplacianSystem *sys);
-static void init_data(ModifierData *md);
-static void init_laplacian_matrix(LaplacianSystem *sys);
-static void memset_laplacian_system(LaplacianSystem *sys, int val);
-static void volume_preservation(LaplacianSystem *sys, float vini, float vend, short flag);
-static void validate_solution(LaplacianSystem *sys, short flag, float lambda, float lambda_border);
 
 static void delete_laplacian_system(LaplacianSystem *sys)
 {
@@ -97,16 +77,13 @@ static void delete_laplacian_system(LaplacianSystem *sys)
     EIG_linear_solver_delete(sys->context);
   }
   sys->vertexCos = nullptr;
-  sys->mpoly = nullptr;
-  sys->mloop = nullptr;
-  sys->medges = nullptr;
   MEM_freeN(sys);
 }
 
 static void memset_laplacian_system(LaplacianSystem *sys, int val)
 {
-  memset(sys->eweights, val, sizeof(float) * sys->edges_num);
-  memset(sys->fweights, val, sizeof(float[3]) * sys->loops_num);
+  memset(sys->eweights, val, sizeof(float) * sys->edges.size());
+  memset(sys->fweights, val, sizeof(float[3]) * sys->corner_verts.size());
   memset(sys->ne_ed_num, val, sizeof(short) * sys->verts_num);
   memset(sys->ne_fa_num, val, sizeof(short) * sys->verts_num);
   memset(sys->ring_areas, val, sizeof(float) * sys->verts_num);
@@ -115,20 +92,14 @@ static void memset_laplacian_system(LaplacianSystem *sys, int val)
   memset(sys->zerola, val, sizeof(bool) * sys->verts_num);
 }
 
-static LaplacianSystem *init_laplacian_system(int a_numEdges,
-                                              int a_numPolys,
-                                              int a_numLoops,
-                                              int a_numVerts)
+static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numLoops, int a_numVerts)
 {
   LaplacianSystem *sys;
   sys = static_cast<LaplacianSystem *>(MEM_callocN(sizeof(LaplacianSystem), __func__));
-  sys->edges_num = a_numEdges;
-  sys->polys_num = a_numPolys;
-  sys->loops_num = a_numLoops;
   sys->verts_num = a_numVerts;
 
-  sys->eweights = MEM_cnew_array<float>(sys->edges_num, __func__);
-  sys->fweights = MEM_cnew_array<float[3]>(sys->loops_num, __func__);
+  sys->eweights = MEM_cnew_array<float>(a_numEdges, __func__);
+  sys->fweights = MEM_cnew_array<float[3]>(a_numLoops, __func__);
   sys->ne_ed_num = MEM_cnew_array<short>(sys->verts_num, __func__);
   sys->ne_fa_num = MEM_cnew_array<short>(sys->verts_num, __func__);
   sys->ring_areas = MEM_cnew_array<float>(sys->verts_num, __func__);
@@ -141,23 +112,23 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges,
 
 static float compute_volume(const float center[3],
                             float (*vertexCos)[3],
-                            const MPoly *mpoly,
-                            int polys_num,
-                            const MLoop *mloop)
+                            const blender::OffsetIndices<int> polys,
+                            const blender::Span<int> corner_verts)
 {
-  int i;
   float vol = 0.0f;
 
-  for (i = 0; i < polys_num; i++) {
-    const MPoly *mp = &mpoly[i];
-    const MLoop *l_first = &mloop[mp->loopstart];
-    const MLoop *l_prev = l_first + 1;
-    const MLoop *l_curr = l_first + 2;
-    const MLoop *l_term = l_first + mp->totloop;
+  for (const int i : polys.index_range()) {
+    const blender::IndexRange poly = polys[i];
+    int corner_first = poly.start();
+    int corner_prev = corner_first + 1;
+    int corner_curr = corner_first + 2;
+    int corner_term = corner_first + poly.size();
 
-    for (; l_curr != l_term; l_prev = l_curr, l_curr++) {
-      vol += volume_tetrahedron_signed_v3(
-          center, vertexCos[l_first->v], vertexCos[l_prev->v], vertexCos[l_curr->v]);
+    for (; corner_curr != corner_term; corner_prev = corner_curr, corner_curr++) {
+      vol += volume_tetrahedron_signed_v3(center,
+                                          vertexCos[corner_verts[corner_first]],
+                                          vertexCos[corner_verts[corner_prev]],
+                                          vertexCos[corner_verts[corner_curr]]);
     }
   }
 
@@ -196,9 +167,9 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
   int i;
   uint idv1, idv2;
 
-  for (i = 0; i < sys->edges_num; i++) {
-    idv1 = sys->medges[i].v1;
-    idv2 = sys->medges[i].v2;
+  for (i = 0; i < sys->edges.size(); i++) {
+    idv1 = sys->edges[i][0];
+    idv2 = sys->edges[i][1];
 
     v1 = sys->vertexCos[idv1];
     v2 = sys->vertexCos[idv2];
@@ -217,47 +188,50 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
     sys->eweights[i] = w1;
   }
 
-  for (i = 0; i < sys->polys_num; i++) {
-    const MPoly *mp = &sys->mpoly[i];
-    const MLoop *l_next = &sys->mloop[mp->loopstart];
-    const MLoop *l_term = l_next + mp->totloop;
-    const MLoop *l_prev = l_term - 2;
-    const MLoop *l_curr = l_term - 1;
+  const blender::Span<int> corner_verts = sys->corner_verts;
 
-    for (; l_next != l_term; l_prev = l_curr, l_curr = l_next, l_next++) {
-      const float *v_prev = sys->vertexCos[l_prev->v];
-      const float *v_curr = sys->vertexCos[l_curr->v];
-      const float *v_next = sys->vertexCos[l_next->v];
-      const uint l_curr_index = l_curr - sys->mloop;
+  for (const int i : sys->polys.index_range()) {
+    const blender::IndexRange poly = sys->polys[i];
+    int corner_next = poly.start();
+    int corner_term = corner_next + poly.size();
+    int corner_prev = corner_term - 2;
+    int corner_curr = corner_term - 1;
 
-      sys->ne_fa_num[l_curr->v] += 1;
+    for (; corner_next != corner_term;
+         corner_prev = corner_curr, corner_curr = corner_next, corner_next++)
+    {
+      const float *v_prev = sys->vertexCos[corner_verts[corner_prev]];
+      const float *v_curr = sys->vertexCos[corner_verts[corner_curr]];
+      const float *v_next = sys->vertexCos[corner_verts[corner_next]];
+
+      sys->ne_fa_num[corner_verts[corner_curr]] += 1;
 
       areaf = area_tri_v3(v_prev, v_curr, v_next);
 
       if (areaf < sys->min_area) {
-        sys->zerola[l_curr->v] = true;
+        sys->zerola[corner_verts[corner_curr]] = true;
       }
 
-      sys->ring_areas[l_prev->v] += areaf;
-      sys->ring_areas[l_curr->v] += areaf;
-      sys->ring_areas[l_next->v] += areaf;
+      sys->ring_areas[corner_verts[corner_prev]] += areaf;
+      sys->ring_areas[corner_verts[corner_curr]] += areaf;
+      sys->ring_areas[corner_verts[corner_next]] += areaf;
 
       w1 = cotangent_tri_weight_v3(v_curr, v_next, v_prev) / 2.0f;
       w2 = cotangent_tri_weight_v3(v_next, v_prev, v_curr) / 2.0f;
       w3 = cotangent_tri_weight_v3(v_prev, v_curr, v_next) / 2.0f;
 
-      sys->fweights[l_curr_index][0] += w1;
-      sys->fweights[l_curr_index][1] += w2;
-      sys->fweights[l_curr_index][2] += w3;
+      sys->fweights[corner_curr][0] += w1;
+      sys->fweights[corner_curr][1] += w2;
+      sys->fweights[corner_curr][2] += w3;
 
-      sys->vweights[l_curr->v] += w2 + w3;
-      sys->vweights[l_next->v] += w1 + w3;
-      sys->vweights[l_prev->v] += w1 + w2;
+      sys->vweights[corner_verts[corner_curr]] += w2 + w3;
+      sys->vweights[corner_verts[corner_next]] += w1 + w3;
+      sys->vweights[corner_verts[corner_prev]] += w1 + w2;
     }
   }
-  for (i = 0; i < sys->edges_num; i++) {
-    idv1 = sys->medges[i].v1;
-    idv2 = sys->medges[i].v2;
+  for (i = 0; i < sys->edges.size(); i++) {
+    idv1 = sys->edges[i][0];
+    idv2 = sys->edges[i][1];
     /* if is boundary, apply scale-dependent umbrella operator only with neighbors in boundary */
     if (sys->ne_ed_num[idv1] != sys->ne_fa_num[idv1] &&
         sys->ne_ed_num[idv2] != sys->ne_fa_num[idv2]) {
@@ -272,60 +246,73 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
   int i;
   uint idv1, idv2;
 
-  for (i = 0; i < sys->polys_num; i++) {
-    const MPoly *mp = &sys->mpoly[i];
-    const MLoop *l_next = &sys->mloop[mp->loopstart];
-    const MLoop *l_term = l_next + mp->totloop;
-    const MLoop *l_prev = l_term - 2;
-    const MLoop *l_curr = l_term - 1;
+  const blender::Span<int> corner_verts = sys->corner_verts;
 
-    for (; l_next != l_term; l_prev = l_curr, l_curr = l_next, l_next++) {
-      const uint l_curr_index = l_curr - sys->mloop;
+  for (const int i : sys->polys.index_range()) {
+    const blender::IndexRange poly = sys->polys[i];
+    int corner_next = poly.start();
+    int corner_term = corner_next + poly.size();
+    int corner_prev = corner_term - 2;
+    int corner_curr = corner_term - 1;
+
+    for (; corner_next != corner_term;
+         corner_prev = corner_curr, corner_curr = corner_next, corner_next++)
+    {
 
       /* Is ring if number of faces == number of edges around vertex. */
-      if (sys->ne_ed_num[l_curr->v] == sys->ne_fa_num[l_curr->v] &&
-          sys->zerola[l_curr->v] == false) {
+      if (sys->ne_ed_num[corner_verts[corner_curr]] == sys->ne_fa_num[corner_verts[corner_curr]] &&
+          sys->zerola[corner_verts[corner_curr]] == false)
+      {
         EIG_linear_solver_matrix_add(sys->context,
-                                     l_curr->v,
-                                     l_next->v,
-                                     sys->fweights[l_curr_index][2] * sys->vweights[l_curr->v]);
+                                     corner_verts[corner_curr],
+                                     corner_verts[corner_next],
+                                     sys->fweights[corner_curr][2] *
+                                         sys->vweights[corner_verts[corner_curr]]);
         EIG_linear_solver_matrix_add(sys->context,
-                                     l_curr->v,
-                                     l_prev->v,
-                                     sys->fweights[l_curr_index][1] * sys->vweights[l_curr->v]);
+                                     corner_verts[corner_curr],
+                                     corner_verts[corner_prev],
+                                     sys->fweights[corner_curr][1] *
+                                         sys->vweights[corner_verts[corner_curr]]);
       }
-      if (sys->ne_ed_num[l_next->v] == sys->ne_fa_num[l_next->v] &&
-          sys->zerola[l_next->v] == false) {
+      if (sys->ne_ed_num[corner_verts[corner_next]] == sys->ne_fa_num[corner_verts[corner_next]] &&
+          sys->zerola[corner_verts[corner_next]] == false)
+      {
         EIG_linear_solver_matrix_add(sys->context,
-                                     l_next->v,
-                                     l_curr->v,
-                                     sys->fweights[l_curr_index][2] * sys->vweights[l_next->v]);
+                                     corner_verts[corner_next],
+                                     corner_verts[corner_curr],
+                                     sys->fweights[corner_curr][2] *
+                                         sys->vweights[corner_verts[corner_next]]);
         EIG_linear_solver_matrix_add(sys->context,
-                                     l_next->v,
-                                     l_prev->v,
-                                     sys->fweights[l_curr_index][0] * sys->vweights[l_next->v]);
+                                     corner_verts[corner_next],
+                                     corner_verts[corner_prev],
+                                     sys->fweights[corner_curr][0] *
+                                         sys->vweights[corner_verts[corner_next]]);
       }
-      if (sys->ne_ed_num[l_prev->v] == sys->ne_fa_num[l_prev->v] &&
-          sys->zerola[l_prev->v] == false) {
+      if (sys->ne_ed_num[corner_verts[corner_prev]] == sys->ne_fa_num[corner_verts[corner_prev]] &&
+          sys->zerola[corner_verts[corner_prev]] == false)
+      {
         EIG_linear_solver_matrix_add(sys->context,
-                                     l_prev->v,
-                                     l_curr->v,
-                                     sys->fweights[l_curr_index][1] * sys->vweights[l_prev->v]);
+                                     corner_verts[corner_prev],
+                                     corner_verts[corner_curr],
+                                     sys->fweights[corner_curr][1] *
+                                         sys->vweights[corner_verts[corner_prev]]);
         EIG_linear_solver_matrix_add(sys->context,
-                                     l_prev->v,
-                                     l_next->v,
-                                     sys->fweights[l_curr_index][0] * sys->vweights[l_prev->v]);
+                                     corner_verts[corner_prev],
+                                     corner_verts[corner_next],
+                                     sys->fweights[corner_curr][0] *
+                                         sys->vweights[corner_verts[corner_prev]]);
       }
     }
   }
 
-  for (i = 0; i < sys->edges_num; i++) {
-    idv1 = sys->medges[i].v1;
-    idv2 = sys->medges[i].v2;
+  for (i = 0; i < sys->edges.size(); i++) {
+    idv1 = sys->edges[i][0];
+    idv2 = sys->edges[i][1];
     /* Is boundary */
     if (sys->ne_ed_num[idv1] != sys->ne_fa_num[idv1] &&
         sys->ne_ed_num[idv2] != sys->ne_fa_num[idv2] && sys->zerola[idv1] == false &&
-        sys->zerola[idv2] == false) {
+        sys->zerola[idv2] == false)
+    {
       EIG_linear_solver_matrix_add(
           sys->context, idv1, idv2, sys->eweights[i] * sys->vlengths[idv1]);
       EIG_linear_solver_matrix_add(
@@ -341,8 +328,7 @@ static void validate_solution(LaplacianSystem *sys, short flag, float lambda, fl
   float vini = 0.0f, vend = 0.0f;
 
   if (flag & MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME) {
-    vini = compute_volume(
-        sys->vert_centroid, sys->vertexCos, sys->mpoly, sys->polys_num, sys->mloop);
+    vini = compute_volume(sys->vert_centroid, sys->vertexCos, sys->polys, sys->corner_verts);
   }
   for (i = 0; i < sys->verts_num; i++) {
     if (sys->zerola[i] == false) {
@@ -363,8 +349,7 @@ static void validate_solution(LaplacianSystem *sys, short flag, float lambda, fl
     }
   }
   if (flag & MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME) {
-    vend = compute_volume(
-        sys->vert_centroid, sys->vertexCos, sys->mpoly, sys->polys_num, sys->mloop);
+    vend = compute_volume(sys->vert_centroid, sys->vertexCos, sys->polys, sys->corner_verts);
     volume_preservation(sys, vini, vend, flag);
   }
 }
@@ -380,14 +365,14 @@ static void laplaciansmoothModifier_do(
   int defgrp_index;
   const bool invert_vgroup = (smd->flag & MOD_LAPLACIANSMOOTH_INVERT_VGROUP) != 0;
 
-  sys = init_laplacian_system(mesh->totedge, mesh->totpoly, mesh->totloop, verts_num);
+  sys = init_laplacian_system(mesh->totedge, mesh->totloop, verts_num);
   if (!sys) {
     return;
   }
 
-  sys->mpoly = BKE_mesh_polys(mesh);
-  sys->mloop = BKE_mesh_loops(mesh);
-  sys->medges = BKE_mesh_edges(mesh);
+  sys->edges = mesh->edges();
+  sys->polys = mesh->polys();
+  sys->corner_verts = mesh->corner_verts();
   sys->vertexCos = vertexCos;
   sys->min_area = 0.00001f;
   MOD_get_vgroup(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);

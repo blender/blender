@@ -8,7 +8,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_modifier_types.h"
@@ -34,7 +34,7 @@
 #include "BKE_paint.h"
 #include "BKE_volume.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_object.h"
 #include "ED_uvedit.h"
 
@@ -132,7 +132,8 @@ const EnumPropertyItem rna_enum_proportional_falloff_curve_only_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-/* keep for operators, not used here */
+/* Keep for operators, not used here. */
+
 const EnumPropertyItem rna_enum_mesh_select_mode_items[] = {
     {SCE_SELECT_VERTEX, "VERT", ICON_VERTEXSEL, "Vertex", "Vertex selection mode"},
     {SCE_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edge", "Edge selection mode"},
@@ -279,12 +280,8 @@ const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
    "Output image in uncompressed Targa format"},
 
 #if 0 /* UNUSED (so far) */
-#  ifdef WITH_DDS
-#    define R_IMF_ENUM_DDS \
-      {R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
-#  else
-#    define R_IMF_ENUM_DDS
-#  endif
+#  define R_IMF_ENUM_DDS \
+    {R_IMF_IMTYPE_DDS, "DDS", ICON_FILE_IMAGE, "DDS", "Output image in DDS format"},
 #endif
 
 #ifdef WITH_OPENJPEG
@@ -326,23 +323,15 @@ const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
 #  define R_IMF_ENUM_EXR
 #endif
 
-#ifdef WITH_HDR
-#  define R_IMF_ENUM_HDR \
-    {R_IMF_IMTYPE_RADHDR, \
-     "HDR", \
-     ICON_FILE_IMAGE, \
-     "Radiance HDR", \
-     "Output image in Radiance HDR format"},
-#else
-#  define R_IMF_ENUM_HDR
-#endif
+#define R_IMF_ENUM_HDR \
+  {R_IMF_IMTYPE_RADHDR, \
+   "HDR", \
+   ICON_FILE_IMAGE, \
+   "Radiance HDR", \
+   "Output image in Radiance HDR format"},
 
-#ifdef WITH_TIFF
-#  define R_IMF_ENUM_TIFF \
-    {R_IMF_IMTYPE_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
-#else
-#  define R_IMF_ENUM_TIFF
-#endif
+#define R_IMF_ENUM_TIFF \
+  {R_IMF_IMTYPE_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", "Output image in TIFF format"},
 
 #ifdef WITH_WEBP
 #  define R_IMF_ENUM_WEBP \
@@ -639,6 +628,11 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
      ICON_ORIENTATION_CURSOR,
      "Cursor",
      "Align the transformation axes to the 3D cursor"},
+    {V3D_ORIENT_PARENT,
+     "PARENT",
+     ICON_BLANK1,
+     "Parent",
+     "Align the transformation axes to the object's parent space"},
     // {V3D_ORIENT_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
     {0, NULL, 0, NULL, NULL},
 };
@@ -667,7 +661,7 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 #  include "BKE_context.h"
 #  include "BKE_freestyle.h"
 #  include "BKE_global.h"
-#  include "BKE_gpencil.h"
+#  include "BKE_gpencil_legacy.h"
 #  include "BKE_idprop.h"
 #  include "BKE_image.h"
 #  include "BKE_image_format.h"
@@ -724,7 +718,7 @@ static void rna_Gpencil_extend_selection(bContext *C, PointerRNA *UNUSED(ptr))
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  if ((ob) && (ob->type == OB_GPENCIL)) {
+  if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
     bGPdata *gpd = (bGPdata *)ob->data;
     CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
       if ((gps->flag & GP_STROKE_SELECT) && (gps->totpoints > 1)) {
@@ -1193,7 +1187,9 @@ static char *rna_ImageFormatSettings_path(const PointerRNA *ptr)
       for (node = ntree->nodes.first; node; node = node->next) {
         if (node->type == CMP_NODE_OUTPUT_FILE) {
           if (&((NodeImageMultiFile *)node->storage)->format == imf) {
-            return BLI_sprintfN("nodes['%s'].format", node->name);
+            char node_name_esc[sizeof(node->name) * 2];
+            BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
+            return BLI_sprintfN("nodes[\"%s\"].format", node_name_esc);
           }
           else {
             bNodeSocket *sock;
@@ -1201,8 +1197,14 @@ static char *rna_ImageFormatSettings_path(const PointerRNA *ptr)
             for (sock = node->inputs.first; sock; sock = sock->next) {
               NodeImageMultiFileSocket *sockdata = sock->storage;
               if (&sockdata->format == imf) {
+                char node_name_esc[sizeof(node->name) * 2];
+                BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
+
+                char socketdata_path_esc[sizeof(sockdata->path) * 2];
+                BLI_str_escape(socketdata_path_esc, sockdata->path, sizeof(socketdata_path_esc));
+
                 return BLI_sprintfN(
-                    "nodes['%s'].file_slots['%s'].format", node->name, sockdata->path);
+                    "nodes[\"%s\"].file_slots[\"%s\"].format", node_name_esc, socketdata_path_esc);
               }
             }
           }
@@ -1937,10 +1939,9 @@ static void object_simplify_update(Object *ob)
   ob->id.tag &= ~LIB_TAG_DOIT;
 
   for (md = ob->modifiers.first; md; md = md->next) {
-    if (ELEM(md->type,
-             eModifierType_Subsurf,
-             eModifierType_Multires,
-             eModifierType_ParticleSystem)) {
+    if (ELEM(
+            md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem))
+    {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
   }
@@ -2766,7 +2767,8 @@ static void rna_FFmpegSettings_codec_update(Main *UNUSED(bmain),
             AV_CODEC_ID_H264,
             AV_CODEC_ID_MPEG4,
             AV_CODEC_ID_VP9,
-            AV_CODEC_ID_DNXHD)) {
+            AV_CODEC_ID_DNXHD))
+  {
     /* Constant Rate Factor (CRF) setting is only available for H264,
      * MPEG4 and WEBM/VP9 codecs. So changing encoder quality mode to
      * CBR as CRF is not supported.
@@ -2790,7 +2792,7 @@ static void rna_def_gpencil_interpolate(BlenderRNA *brna)
                          "Grease Pencil Interpolate Settings",
                          "Settings for Grease Pencil interpolation tools");
 
-  /* custom curvemap */
+  /* Custom curve-map. */
   prop = RNA_def_property(srna, "interpolation_curve", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "custom_ipo");
   RNA_def_property_struct_type(prop, "CurveMapping");
@@ -3234,7 +3236,13 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE_LEGACY);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
-  prop = RNA_def_property(srna, "proportional_size", PROP_FLOAT, PROP_DISTANCE);
+  prop = RNA_def_property(srna, "proportional_size", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "proportional_size");
+  RNA_def_property_ui_text(
+      prop, "Proportional Size", "Display size for proportional editing circle");
+  RNA_def_property_range(prop, 0.00001, 5000.0);
+
+  prop = RNA_def_property(srna, "proportional_distance", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "proportional_size");
   RNA_def_property_ui_text(
       prop, "Proportional Size", "Display size for proportional editing circle");
@@ -3405,7 +3413,8 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PROJECT);
   RNA_def_property_ui_text(prop,
                            "Project Individual Elements",
-                           "Project individual elements on the surface of other objects");
+                           "Project individual elements on the surface of other objects (Always "
+                           "enabled with Face Nearest)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
   prop = RNA_def_property(srna, "use_snap_backface_culling", PROP_BOOLEAN, PROP_NONE);
@@ -3774,7 +3783,7 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem scale_overlap_modes[] = {
-      {SEQ_OVERLAP_EXPAND, "EXPAND", 0, "Expand", "Move strips so transformed strips fits"},
+      {SEQ_OVERLAP_EXPAND, "EXPAND", 0, "Expand", "Move strips so transformed strips fit"},
       {SEQ_OVERLAP_OVERWRITE,
        "OVERWRITE",
        0,
@@ -4213,7 +4222,7 @@ static void rna_def_unit_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Unit Scale",
-      "Scale to use when converting between blender units and dimensions."
+      "Scale to use when converting between Blender units and dimensions."
       " When working at microscopic or astronomical scale, a small or large unit scale"
       " respectively can be used to avoid numerical precision problems");
   RNA_def_property_range(prop, 1e-9f, 1e+9f);
@@ -4273,7 +4282,7 @@ static void rna_def_view_layer_eevee(BlenderRNA *brna)
 static void rna_def_view_layer_aovs(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
-  /*  PropertyRNA *prop; */
+  // PropertyRNA *prop;
 
   FunctionRNA *func;
   PropertyRNA *parm;
@@ -4286,6 +4295,14 @@ static void rna_def_view_layer_aovs(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(srna, "add", "BKE_view_layer_add_aov");
   parm = RNA_def_pointer(func, "aov", "AOV", "", "Newly created AOV");
   RNA_def_function_return(func, parm);
+
+  /* Defined in `rna_layer.c`. */
+  func = RNA_def_function(srna, "remove", "rna_ViewLayer_remove_aov");
+  parm = RNA_def_pointer(func, "aov", "AOV", "", "AOV to remove");
+  RNA_def_function_ui_description(func, "Remove an AOV");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
 
 static void rna_def_view_layer_aov(BlenderRNA *brna)
@@ -5708,7 +5725,6 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
   };
 #  endif
 
-#  ifdef WITH_TIFF
   static const EnumPropertyItem tiff_codec_items[] = {
       {R_IMF_TIFF_CODEC_NONE, "NONE", 0, "None", ""},
       {R_IMF_TIFF_CODEC_DEFLATE, "DEFLATE", 0, "Deflate", ""},
@@ -5716,7 +5732,6 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
       {R_IMF_TIFF_CODEC_PACKBITS, "PACKBITS", 0, "Pack Bits", ""},
       {0, NULL, 0, NULL, NULL},
   };
-#  endif
 
   static const EnumPropertyItem color_management_items[] = {
       {R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE, "FOLLOW_SCENE", 0, "Follow Scene", ""},
@@ -5833,14 +5848,12 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 #  endif
 
-#  ifdef WITH_TIFF
   /* TIFF */
   prop = RNA_def_property(srna, "tiff_codec", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "tiff_codec");
   RNA_def_property_enum_items(prop, tiff_codec_items);
   RNA_def_property_ui_text(prop, "Compression", "Compression mode for TIFF");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-#  endif
 
   /* Cineon and DPX */
 
@@ -6440,6 +6453,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   prop = RNA_def_property(srna, "hair_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, hair_shape_type_items);
   RNA_def_property_ui_text(prop, "Curves Shape Type", "Curves shape type");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVES);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_render_update");
 
   prop = RNA_def_property(srna, "hair_subdiv", PROP_INT, PROP_NONE);
@@ -6625,7 +6639,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "bake_biasdist");
   RNA_def_property_range(prop, 0.0, 1000.0);
   RNA_def_property_ui_text(
-      prop, "Bias", "Bias towards faces further away from the object (in blender units)");
+      prop, "Bias", "Bias towards faces further away from the object (in Blender units)");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "use_bake_multires", PROP_BOOLEAN, PROP_NONE);
@@ -7224,7 +7238,7 @@ static void rna_def_scene_display(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_SCENE | NA_EDITED, "rna_Scene_set_update");
 
-  prop = RNA_def_property(srna, "matcap_ssao_distance", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "matcap_ssao_distance", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_ui_text(
       prop, "Distance", "Distance of object that contribute to the Cavity/Edge effect");
   RNA_def_property_range(prop, 0.0f, 100000.0f);
@@ -7318,7 +7332,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   prop = RNA_def_property(srna, "gi_diffuse_bounces", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(prop,
                            "Diffuse Bounces",
-                           "Number of time the light is reinjected inside light grids, "
+                           "Number of times the light is reinjected inside light grids, "
                            "0 disable indirect diffuse light");
   RNA_def_property_range(prop, 0, INT_MAX);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
@@ -7782,8 +7796,8 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Shadow Pool Size",
                            "Size of the shadow pool, "
-                           "bigger pool size allows for more shadows in the scene "
-                           "but might not fits into GPU memory");
+                           "a bigger pool size allows for more shadows in the scene "
+                           "but might not fit into GPU memory");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 

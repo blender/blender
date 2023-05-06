@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spview3d
@@ -925,7 +925,8 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
                                                    NULL,
                                                    &ob_dummy,
                                                    obmat,
-                                                   NULL) != 0) {
+                                                   NULL) != 0)
+    {
       if (use_depth) {
         copy_v3_v3(cursor_co, ray_co);
       }
@@ -1025,7 +1026,8 @@ void ED_view3d_cursor3d_update(bContext *C,
       if ((ED_view3d_project_float_global(
                region, cursor_prev.location, co_2d_prev, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) &&
           (ED_view3d_project_float_global(
-               region, cursor_curr->location, co_2d_curr, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK)) {
+               region, cursor_curr->location, co_2d_curr, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK))
+      {
         rv3d->ofs_lock[0] += (co_2d_curr[0] - co_2d_prev[0]) / (region->winx * 0.5f);
         rv3d->ofs_lock[1] += (co_2d_curr[1] - co_2d_prev[1]) / (region->winy * 0.5f);
       }
@@ -1198,7 +1200,8 @@ static int toggle_xray_exec(bContext *C, wmOperator *op)
   Object *obact = CTX_data_active_object(C);
 
   if (obact && ((obact->mode & OB_MODE_POSE) ||
-                ((obact->mode & OB_MODE_WEIGHT_PAINT) && BKE_object_pose_armature_get(obact)))) {
+                ((obact->mode & OB_MODE_WEIGHT_PAINT) && BKE_object_pose_armature_get(obact))))
+  {
     v3d->overlay.flag ^= V3D_OVERLAY_BONE_SELECT;
   }
   else {

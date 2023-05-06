@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -19,6 +19,7 @@
 
 #include "CLG_log.h"
 
+#include "gl_backend.hh"
 #include "gl_context.hh"
 #include "gl_uniform_buffer.hh"
 
@@ -67,7 +68,8 @@ static void APIENTRY debug_callback(GLenum /*source*/,
    *       In this case invoking `GPU_type_matches` would fail and
    *       therefore the message is checked before the platform matching. */
   if (TRIM_NVIDIA_BUFFER_INFO && STRPREFIX(message, "Buffer detailed info") &&
-      GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+      GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL))
+  {
     /** Suppress buffer infos flooding the output. */
     return;
   }
@@ -326,7 +328,8 @@ static const char *to_str_suffix(GLenum type)
 void object_label(GLenum type, GLuint object, const char *name)
 {
   if ((G.debug & G_DEBUG_GPU) &&
-      (epoxy_gl_version() >= 43 || epoxy_has_gl_extension("GL_KHR_debug"))) {
+      (epoxy_gl_version() >= 43 || epoxy_has_gl_extension("GL_KHR_debug")))
+  {
     char label[64];
     SNPRINTF(label, "%s%s%s", to_str_prefix(type), name, to_str_suffix(type));
     /* Small convenience for caller. */
@@ -365,7 +368,8 @@ namespace blender::gpu {
 void GLContext::debug_group_begin(const char *name, int index)
 {
   if ((G.debug & G_DEBUG_GPU) &&
-      (epoxy_gl_version() >= 43 || epoxy_has_gl_extension("GL_KHR_debug"))) {
+      (epoxy_gl_version() >= 43 || epoxy_has_gl_extension("GL_KHR_debug")))
+  {
     /* Add 10 to avoid collision with other indices from other possible callback layers. */
     index += 10;
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, index, -1, name);
@@ -375,10 +379,52 @@ void GLContext::debug_group_begin(const char *name, int index)
 void GLContext::debug_group_end()
 {
   if ((G.debug & G_DEBUG_GPU) &&
-      (epoxy_gl_version() >= 43 || epoxy_has_gl_extension("GL_KHR_debug"))) {
+      (epoxy_gl_version() >= 43 || epoxy_has_gl_extension("GL_KHR_debug")))
+  {
     glPopDebugGroup();
   }
 }
+
+bool GLContext::debug_capture_begin()
+{
+  return GLBackend::get()->debug_capture_begin();
+}
+
+bool GLBackend::debug_capture_begin()
+{
+#ifdef WITH_RENDERDOC
+  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
+    return renderdoc_.start_frame_capture(nullptr, nullptr);
+  }
+#endif
+  return false;
+}
+
+void GLContext::debug_capture_end()
+{
+  GLBackend::get()->debug_capture_end();
+}
+
+void GLBackend::debug_capture_end()
+{
+#ifdef WITH_RENDERDOC
+  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
+    renderdoc_.end_frame_capture(nullptr, nullptr);
+  }
+#endif
+}
+
+void *GLContext::debug_capture_scope_create(const char * /*name*/)
+{
+  return nullptr;
+}
+
+bool GLContext::debug_capture_scope_begin(void * /*scope*/)
+{
+  return false;
+}
+
+void GLContext::debug_capture_scope_end(void * /*scope*/) {}
 
 /** \} */
 

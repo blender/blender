@@ -109,7 +109,7 @@ struct kernel_gpu_##name \
            const uint metal_global_id, \
            const ushort metal_local_id, \
            const ushort metal_local_size, \
-           const ushort metal_grid_id, \
+           const uint metal_grid_id, \
            uint simdgroup_size, \
            uint simd_lane_index, \
            uint simd_group_index, \
@@ -122,7 +122,7 @@ kernel void cycles_metal_##name(device const kernel_gpu_##name *params_struct, \
                                 const uint metal_global_id [[thread_position_in_grid]], \
                                 const ushort metal_local_id   [[thread_position_in_threadgroup]], \
                                 const ushort metal_local_size [[threads_per_threadgroup]], \
-                                const ushort metal_grid_id    [[threadgroup_position_in_grid]], \
+                                const uint metal_grid_id    [[threadgroup_position_in_grid]], \
                                 uint simdgroup_size [[threads_per_simdgroup]], \
                                 uint simd_lane_index [[thread_index_in_simdgroup]], \
                                 uint simd_group_index [[simdgroup_index_in_threadgroup]], \
@@ -135,7 +135,7 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
                   const uint metal_global_id, \
                   const ushort metal_local_id, \
                   const ushort metal_local_size, \
-                  const ushort metal_grid_id, \
+                  const uint metal_grid_id, \
                   uint simdgroup_size, \
                   uint simd_lane_index, \
                   uint simd_group_index, \
@@ -143,6 +143,7 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
 
 #define ccl_gpu_kernel_postfix
 #define ccl_gpu_kernel_call(x) context.x
+#define ccl_gpu_kernel_within_bounds(i,n) true
 
 /* define a function object where "func" is the lambda body, and additional parameters are used to specify captured state  */
 #define ccl_gpu_kernel_lambda(func, ...) \

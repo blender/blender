@@ -79,6 +79,9 @@ template<typename T> uint64_t vector_hash(const T &vec)
 
 template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> {
 
+  BLI_STATIC_ASSERT(alignof(T) <= sizeof(T),
+                    "VecBase is not compatible with aligned type for now.");
+
   static constexpr int type_length = Size;
 
   using base_type = T;
@@ -176,14 +179,34 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
 
   /** Swizzling. */
 
-  template<BLI_ENABLE_IF_VEC(Size, >= 3)> VecBase<T, 2> xy() const
+  template<BLI_ENABLE_IF_VEC(Size, >= 2)> VecBase<T, 2> xy() const
   {
     return *reinterpret_cast<const VecBase<T, 2> *>(this);
   }
 
-  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 3> xyz() const
+  template<BLI_ENABLE_IF_VEC(Size, >= 3)> VecBase<T, 2> yz() const
+  {
+    return *reinterpret_cast<const VecBase<T, 2> *>(&((*this)[1]));
+  }
+
+  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 2> zw() const
+  {
+    return *reinterpret_cast<const VecBase<T, 2> *>(&((*this)[2]));
+  }
+
+  template<BLI_ENABLE_IF_VEC(Size, >= 3)> VecBase<T, 3> xyz() const
   {
     return *reinterpret_cast<const VecBase<T, 3> *>(this);
+  }
+
+  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 3> yzw() const
+  {
+    return *reinterpret_cast<const VecBase<T, 3> *>(&((*this)[1]));
+  }
+
+  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 4> xyzw() const
+  {
+    return *reinterpret_cast<const VecBase<T, 4> *>(this);
   }
 
 #undef BLI_ENABLE_IF_VEC
@@ -200,9 +223,7 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     unroll<Size>([&](auto i) { (*this)[i] = ptr[i]; });
   }
 
-  VecBase(const T (*ptr)[Size]) : VecBase(static_cast<const T *>(ptr[0]))
-  {
-  }
+  VecBase(const T (*ptr)[Size]) : VecBase(static_cast<const T *>(ptr[0])) {}
 
   /** Conversion from other vector types. */
 
@@ -622,6 +643,7 @@ template<typename T> struct AssertUnitEpsilon {
 
 }  // namespace math
 
+using char2 = blender::VecBase<int8_t, 2>;
 using char3 = blender::VecBase<int8_t, 3>;
 
 using uchar3 = blender::VecBase<uint8_t, 3>;

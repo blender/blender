@@ -35,6 +35,10 @@ class AssetStorage;
  * to also include asset indexes and more.
  */
 class AssetLibrary {
+  eAssetLibraryType library_type_;
+  /** The name this asset library will be displayed in the UI as. Will also be used as a weak way
+   * to identify an asset library (e.g. by #AssetWeakReference). */
+  std::string name_;
   /** If this is an asset library on disk, the top-level directory path. Normalized using
    * #normalize_directory_path(). Shared pointer so assets can safely point to it, and don't have
    * to hold a copy (which is the size of `std::string` + the allocated buffer, if no short string
@@ -63,6 +67,8 @@ class AssetLibrary {
    * #import_method_ above, it's just a default. */
   bool may_override_import_method_ = false;
 
+  bool use_relative_path_ = true;
+
   bCallbackFuncStore on_save_callback_store_{};
 
  public:
@@ -77,9 +83,13 @@ class AssetLibrary {
 
  public:
   /**
+   * \param name: The name this asset library will be displayed in the UI as. Will also be used as
+   *              a weak way to identify an asset library (e.g. by #AssetWeakReference). Make sure
+   *              this is set for any custom (not builtin) asset library. That is,
+   *              #ASSET_LIBRARY_CUSTOM ones.
    * \param root_path: If this is an asset library on disk, the top-level directory path.
    */
-  AssetLibrary(StringRef root_path = "");
+  AssetLibrary(eAssetLibraryType library_type, StringRef name = "", StringRef root_path = "");
   ~AssetLibrary();
 
   /**
@@ -147,6 +157,8 @@ class AssetLibrary {
    */
   AssetIdentifier asset_identifier_from_library(StringRef relative_asset_path);
 
+  eAssetLibraryType library_type() const;
+  StringRefNull name() const;
   StringRefNull root_path() const;
 };
 

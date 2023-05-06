@@ -39,7 +39,7 @@
 #include "BKE_context.h"
 #include "BKE_cpp_types.h"
 #include "BKE_global.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idtype.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -239,12 +239,12 @@ void *gmp_alloc(size_t size)
 {
   return scalable_malloc(size);
 }
-void *gmp_realloc(void *ptr, size_t old_size, size_t new_size)
+void *gmp_realloc(void *ptr, size_t UNUSED(old_size), size_t new_size)
 {
   return scalable_realloc(ptr, new_size);
 }
 
-void gmp_free(void *ptr, size_t size)
+void gmp_free(void *ptr, size_t UNUSED(size))
 {
   scalable_free(ptr);
 }
@@ -577,11 +577,9 @@ int main(int argc,
     WM_exit(C);
   }
   else {
-    /* When no file is loaded, show the splash screen. */
-    const char *blendfile_path = BKE_main_blendfile_path_from_global();
-    if (blendfile_path[0] == '\0') {
-      WM_init_splash(C);
-    }
+    /* Shows the splash as needed. */
+    WM_init_splash_on_startup(C);
+
     WM_main(C);
   }
   /* Neither #WM_exit, #WM_main return, this quiets CLANG's `unreachable-code-return` warning. */

@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 import bpy
 from bpy.types import Panel
+from bpy.app.translations import contexts as i18n_contexts
 from rna_prop_ui import PropertyPanel
 from bl_ui.utils import PresetPanel
 
@@ -67,6 +68,7 @@ class DATA_PT_context_camera(CameraButtonsPanel, Panel):
 
 class DATA_PT_lens(CameraButtonsPanel, Panel):
     bl_label = "Lens"
+    bl_translation_context = i18n_contexts.id_camera
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',

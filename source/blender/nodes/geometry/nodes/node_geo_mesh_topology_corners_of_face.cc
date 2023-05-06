@@ -2,7 +2,7 @@
 
 #include "BLI_task.hh"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 
@@ -49,7 +49,7 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask mask) const final
   {
-    const Span<MPoly> polys = mesh.polys();
+    const OffsetIndices polys = mesh.polys();
 
     const bke::MeshFieldContext context{mesh, domain};
     fn::FieldEvaluator evaluator{context, &mask};
@@ -80,8 +80,7 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
           continue;
         }
 
-        const MPoly &poly = polys[poly_i];
-        const IndexRange corners(poly.loopstart, poly.totloop);
+        const IndexRange corners = polys[poly_i];
 
         const int index_in_sort_wrapped = mod_i(index_in_sort, corners.size());
         if (use_sorting) {
@@ -137,11 +136,6 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
   }
 };
 
-static int get_poly_totloop(const MPoly &poly)
-{
-  return poly.totloop;
-}
-
 class CornersOfFaceCountInput final : public bke::MeshFieldInput {
  public:
   CornersOfFaceCountInput() : bke::MeshFieldInput(CPPType::get<int>(), "Face Corner Count")
@@ -156,7 +150,9 @@ class CornersOfFaceCountInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_FACE) {
       return {};
     }
-    return VArray<int>::ForDerivedSpan<MPoly, get_poly_totloop>(mesh.polys());
+    const OffsetIndices polys = mesh.polys();
+    return VArray<int>::ForFunc(mesh.totpoly,
+                                [polys](const int64_t i) { return polys[i].size(); });
   }
 
   uint64_t hash() const final
@@ -183,7 +179,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<int> face_index = params.extract_input<Field<int>>("Face Index");
   if (params.output_is_required("Total")) {
     params.set_output("Total",
-                      Field<int>(std::make_shared<FieldAtIndexInput>(
+                      Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           face_index,
                           Field<int>(std::make_shared<CornersOfFaceCountInput>()),
                           ATTR_DOMAIN_FACE)));

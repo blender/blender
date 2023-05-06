@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -615,10 +615,18 @@ typedef enum eWM_EventFlag {
    */
   WM_EVENT_IS_REPEAT = (1 << 1),
   /**
+   * Generated for consecutive track-pad or NDOF-motion events,
+   * the repeat chain is broken by key/button events,
+   * or cursor motion exceeding #WM_EVENT_CURSOR_MOTION_THRESHOLD.
+   *
+   * Changing the type of track-pad or gesture event also breaks the chain.
+   */
+  WM_EVENT_IS_CONSECUTIVE = (1 << 2),
+  /**
    * Mouse-move events may have this flag set to force creating a click-drag event
    * even when the threshold has not been met.
    */
-  WM_EVENT_FORCE_DRAG_THRESHOLD = (1 << 2),
+  WM_EVENT_FORCE_DRAG_THRESHOLD = (1 << 3),
 } eWM_EventFlag;
 ENUM_OPERATORS(eWM_EventFlag, WM_EVENT_FORCE_DRAG_THRESHOLD);
 
@@ -713,7 +721,18 @@ typedef struct wmEvent {
   /** Custom data type, stylus, 6-DOF, see `wm_event_types.h`. */
   short custom;
   short customdata_free;
-  /** Ascii, unicode, mouse-coords, angles, vectors, NDOF data, drag-drop info. */
+  /**
+   * The #wmEvent::type implies the following #wmEvent::custodata.
+   *
+   * - #EVT_ACTIONZONE_AREA / #EVT_ACTIONZONE_FULLSCREEN / #EVT_ACTIONZONE_FULLSCREEN:
+   *   Uses #sActionzoneData.
+   * - #EVT_DROP: uses #ListBase of #wmDrag (also #wmEvent::custom == #EVT_DATA_DRAGDROP).
+   *   Typically set to #wmWindowManger::drags.
+   * - #EVT_FILESELECT: uses #wmOperator.
+   * - #EVT_XR_ACTION: uses #wmXrActionData (also #wmEvent::custom == #EVT_DATA_XR).
+   * - #NDOF_MOTION: uses #wmNDOFMotionData (also #wmEvent::custom == #EVT_DATA_NDOF_MOTION).
+   * - #TIMER: uses #wmTimer (also #wmEvent::custom == #EVT_DATA_TIMER).
+   */
   void *customdata;
 
   /* Previous State. */
@@ -756,7 +775,7 @@ typedef struct wmEvent {
  *
  * Always check for <= this value since it may be zero.
  */
-#define WM_EVENT_CURSOR_MOTION_THRESHOLD ((float)U.move_threshold * U.dpi_fac)
+#define WM_EVENT_CURSOR_MOTION_THRESHOLD ((float)U.move_threshold * UI_SCALE_FAC)
 
 /** Motion progress, for modal handlers. */
 typedef enum {
@@ -848,6 +867,11 @@ typedef struct wmXrActionData {
 typedef enum {
   /** Do not attempt to free custom-data pointer even if non-NULL. */
   WM_TIMER_NO_FREE_CUSTOM_DATA = 1 << 0,
+
+  /* Internal flags, should not be used outside of WM code. */
+  /** This timer has been tagged for removal and deletion, handled by WM code to ensure timers are
+   * deleted in a safe context. */
+  WM_TIMER_TAGGED_FOR_REMOVAL = 1 << 16,
 } wmTimerFlags;
 
 typedef struct wmTimer {
@@ -881,10 +905,11 @@ typedef struct wmTimer {
 } wmTimer;
 
 typedef struct wmOperatorType {
-  /** Text for UI, undo. */
+  /** Text for UI, undo (should not exceed #OP_MAX_TYPENAME). */
   const char *name;
-  /** Unique identifier. */
+  /** Unique identifier (must not exceed #OP_MAX_TYPENAME). */
   const char *idname;
+  /** Translation context (must not exceed #BKE_ST_MAXNAME) */
   const char *translation_context;
   /** Use for tool-tips and Python docs. */
   const char *description;
@@ -1075,6 +1100,7 @@ typedef struct wmDragAsset {
   int id_type;
   struct AssetMetaData *metadata;
   int import_method; /* eAssetImportType */
+  bool use_relative_path;
 
   /* FIXME: This is temporary evil solution to get scene/view-layer/etc in the copy callback of the
    * #wmDropBox.
@@ -1106,6 +1132,13 @@ typedef struct wmDragAssetListItem {
 
   bool is_external;
 } wmDragAssetListItem;
+
+typedef struct wmDragPath {
+  char *path;
+  /* Note that even though the enum type uses bit-flags, this should never have multiple type-bits
+   * set, so `ELEM()` like comparison is possible. */
+  int file_type; /* eFileSel_File_Types */
+} wmDragPath;
 
 typedef char *(*WMDropboxTooltipFunc)(struct bContext *,
                                       struct wmDrag *,
@@ -1144,7 +1177,6 @@ typedef struct wmDrag {
   /** See 'WM_DRAG_' defines above. */
   int type;
   void *poin;
-  char path[1024]; /* FILE_MAX */
   double value;
 
   /** If no icon but imbuf should be drawn around cursor. */

@@ -1,12 +1,12 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spnode
  */
 
 #include "DNA_ID.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -15,7 +15,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"
 #include "BKE_node.h"
@@ -198,7 +198,8 @@ void ED_node_set_active_viewer_key(SpaceNode *snode)
     /* A change in active viewer may result in the change of the output node used by the
      * compositor, so we need to get notified about such changes. */
     if (snode->nodetree->active_viewer_key.value != path->parent_key.value &&
-        snode->nodetree->type == NTREE_COMPOSIT) {
+        snode->nodetree->type == NTREE_COMPOSIT)
+    {
       DEG_id_tag_update(&snode->nodetree->id, ID_RECALC_NTREE_OUTPUT);
       WM_main_add_notifier(NC_NODE, nullptr);
     }
@@ -402,9 +403,14 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
         case ND_FRAME:
           node_area_tag_tree_recalc(snode, area);
           break;
-        case ND_COMPO_RESULT:
+        case ND_COMPO_RESULT: {
           ED_area_tag_redraw(area);
+          /* Backdrop image offset is calculated during compositing so gizmos need to be updated
+           * afterwards. */
+          const ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+          WM_gizmomap_tag_refresh(region->gizmo_map);
           break;
+        }
         case ND_TRANSFORM_DONE:
           node_area_tag_recalc_auto_compositing(snode, area);
           break;
@@ -616,8 +622,8 @@ static void node_cursor(wmWindow *win, ScrArea *area, ARegion *region)
   node_set_cursor(*win, *snode, snode->runtime->cursor);
 
   /* XXX snode->runtime->cursor is in placing new nodes space */
-  snode->runtime->cursor[0] /= UI_DPI_FAC;
-  snode->runtime->cursor[1] /= UI_DPI_FAC;
+  snode->runtime->cursor[0] /= UI_SCALE_FAC;
+  snode->runtime->cursor[1] /= UI_SCALE_FAC;
 }
 
 /* Initialize main region, setting handlers. */
@@ -670,8 +676,9 @@ static bool node_collection_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEv
 static bool node_ima_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   if (drag->type == WM_DRAG_PATH) {
-    /* rule might not work? */
-    return ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE);
+    const eFileSel_File_Types file_type = static_cast<eFileSel_File_Types>(
+        WM_drag_get_path_file_type(drag));
+    return ELEM(file_type, 0, FILE_TYPE_IMAGE, FILE_TYPE_MOVIE);
   }
   return WM_drag_is_ID_type(drag, ID_IM);
 }
@@ -702,10 +709,14 @@ static void node_id_path_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *dr
   if (id) {
     RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
     RNA_struct_property_unset(drop->ptr, "filepath");
+    return;
   }
-  else if (drag->path[0]) {
-    RNA_string_set(drop->ptr, "filepath", drag->path);
+
+  const char *path = WM_drag_get_path(drag);
+  if (path) {
+    RNA_string_set(drop->ptr, "filepath", path);
     RNA_struct_property_unset(drop->ptr, "name");
+    return;
   }
 }
 
@@ -945,7 +956,7 @@ static void node_id_remap_cb(ID *old_id, ID *new_id, void *user_data)
       snode->from = new_id;
     }
   }
-  else if (GS(old_id->name) == ID_GD) {
+  else if (GS(old_id->name) == ID_GD_LEGACY) {
     if ((ID *)snode->gpd == old_id) {
       snode->gpd = (bGPdata *)new_id;
       id_us_min(old_id);
@@ -1027,7 +1038,7 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
   }
 }
 
-static void node_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+static void node_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceNode *snode = (SpaceNode *)sl;
 
@@ -1041,7 +1052,7 @@ static void node_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   snode->runtime = nullptr;
 }
 
-static void node_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+static void node_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceNode *snode = (SpaceNode *)sl;
 
@@ -1092,7 +1103,7 @@ static void node_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink
   }
 }
 
-static void node_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void node_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceNode *snode = (SpaceNode *)sl;
   BLO_write_struct(writer, SpaceNode, snode);
@@ -1129,9 +1140,9 @@ void ED_spacetype_node()
   st->space_subtype_item_extend = node_space_subtype_item_extend;
   st->space_subtype_get = node_space_subtype_get;
   st->space_subtype_set = node_space_subtype_set;
-  st->blend_read_data = node_blend_read_data;
-  st->blend_read_lib = node_blend_read_lib;
-  st->blend_write = node_blend_write;
+  st->blend_read_data = node_space_blend_read_data;
+  st->blend_read_lib = node_space_blend_read_lib;
+  st->blend_write = node_space_blend_write;
 
   /* regions: main window */
   art = MEM_cnew<ARegionType>("spacetype node region");

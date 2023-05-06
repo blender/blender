@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 #include "node_shader_util.hh"
 
@@ -183,7 +183,8 @@ class MusgraveFunction : public mf::MultiFunction {
     if (ELEM(musgrave_type,
              SHD_MUSGRAVE_RIDGED_MULTIFRACTAL,
              SHD_MUSGRAVE_HYBRID_MULTIFRACTAL,
-             SHD_MUSGRAVE_HETERO_TERRAIN)) {
+             SHD_MUSGRAVE_HETERO_TERRAIN))
+    {
       builder.single_input<float>("Offset");
     }
     if (ELEM(musgrave_type, SHD_MUSGRAVE_RIDGED_MULTIFRACTAL, SHD_MUSGRAVE_HYBRID_MULTIFRACTAL)) {

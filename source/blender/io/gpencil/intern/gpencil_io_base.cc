@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup bgpencil
@@ -9,7 +9,7 @@
 #include "BLI_path_util.h"
 #include "BLI_span.hh"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
@@ -17,8 +17,8 @@
 
 #include "BKE_camera.h"
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -136,7 +136,7 @@ void GpencilIO::create_object_list()
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *object = base->object;
 
-    if (object->type != OB_GPENCIL) {
+    if (object->type != OB_GPENCIL_LEGACY) {
       continue;
     }
     if ((params_.select_mode == GP_EXPORT_ACTIVE) && (params_.ob != object)) {

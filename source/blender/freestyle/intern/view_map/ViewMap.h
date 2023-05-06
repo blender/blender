@@ -308,9 +308,7 @@ class ViewVertex : public Interface0D {
 
  public:
   /** Destructor. */
-  virtual ~ViewVertex()
-  {
-  }
+  virtual ~ViewVertex() {}
 
   /* accessors */
   /** Returns the nature of the vertex. */
@@ -327,9 +325,7 @@ class ViewVertex : public Interface0D {
   }
 
   /* Replaces old edge by new edge */
-  virtual void Replace(ViewEdge *, ViewEdge *)
-  {
-  }
+  virtual void Replace(ViewEdge *, ViewEdge *) {}
 
  public:
   /* iterators access */
@@ -779,9 +775,7 @@ class NonTVertex : public ViewVertex {
 
  public:
   /** destructor. */
-  virtual ~NonTVertex()
-  {
-  }
+  virtual ~NonTVertex() {}
 
   /* accessors */
   /** Returns the SVertex on top of which this NonTVertex is built. */
@@ -1230,7 +1224,8 @@ class ViewEdge : public Interface1D {
               iMin,
               iMax,
               Vec2r(current->vertexA()->point2D()[0], current->vertexA()->point2D()[1]),
-              Vec2r(current->vertexB()->point2D()[0], current->vertexB()->point2D()[1]))) {
+              Vec2r(current->vertexB()->point2D()[0], current->vertexB()->point2D()[1])))
+      {
         return true;
       }
       current = current->nextEdge();
@@ -1249,7 +1244,8 @@ class ViewEdge : public Interface1D {
               iMin,
               iMax,
               Vec2r(current->vertexA()->point2D()[0], current->vertexA()->point2D()[1]),
-              Vec2r(current->vertexB()->point2D()[0], current->vertexB()->point2D()[1]))) {
+              Vec2r(current->vertexB()->point2D()[0], current->vertexB()->point2D()[1])))
+      {
         return false;
       }
       current = current->nextEdge();
@@ -1469,7 +1465,8 @@ class ViewShape {
           for (vector<ViewVertex::directedViewEdge>::iterator ve = vedges.begin(),
                                                               veend = vedges.end();
                ve != veend;
-               ve++) {
+               ve++)
+          {
             ViewEdge *current = (ViewEdge *)((ve)->first)->userdata;
             newEdges.push_back(ViewVertex::directedViewEdge(current, ve->second));
           }

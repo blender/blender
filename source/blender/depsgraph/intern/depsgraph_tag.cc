@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -71,7 +71,7 @@ void depsgraph_geometry_tag_to_component(const ID *id, NodeType *component_type)
 
 bool is_selectable_data_id_type(const ID_Type id_type)
 {
-  return ELEM(id_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_GD, ID_CV, ID_PT, ID_VO);
+  return ELEM(id_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_GD_LEGACY, ID_CV, ID_PT, ID_VO);
 }
 
 void depsgraph_select_tag_to_component_opcode(const ID *id,
@@ -585,7 +585,7 @@ NodeType geometry_tag_to_component(const ID *id)
         case OB_FONT:
         case OB_LATTICE:
         case OB_MBALL:
-        case OB_GPENCIL:
+        case OB_GPENCIL_LEGACY:
         case OB_CURVES:
         case OB_POINTCLOUD:
         case OB_VOLUME:
@@ -609,7 +609,7 @@ NodeType geometry_tag_to_component(const ID *id)
       return NodeType::UNDEFINED;
     case ID_LP:
       return NodeType::PARAMETERS;
-    case ID_GD:
+    case ID_GD_LEGACY:
       return NodeType::GEOMETRY;
     case ID_PAL: /* Palettes */
       return NodeType::PARAMETERS;

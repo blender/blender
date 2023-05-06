@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup shdnodes
@@ -45,7 +45,8 @@ static void node_shader_buts_map_range(uiLayout *layout, bContext * /*C*/, Point
   uiItemR(layout, ptr, "interpolation_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   if (!ELEM(RNA_enum_get(ptr, "interpolation_type"),
             NODE_MAP_RANGE_SMOOTHSTEP,
-            NODE_MAP_RANGE_SMOOTHERSTEP)) {
+            NODE_MAP_RANGE_SMOOTHERSTEP))
+  {
     uiItemR(layout, ptr, "clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   }
 }
@@ -213,7 +214,8 @@ static int gpu_shader_map_range(GPUMaterial *mat,
     ret = GPU_stack_link(mat, node, "map_range_linear", in, out, GPU_constant(&clamp));
   }
   if (ret && storage.clamp && !use_vector &&
-      !ELEM(storage.interpolation_type, NODE_MAP_RANGE_SMOOTHSTEP, NODE_MAP_RANGE_SMOOTHERSTEP)) {
+      !ELEM(storage.interpolation_type, NODE_MAP_RANGE_SMOOTHSTEP, NODE_MAP_RANGE_SMOOTHERSTEP))
+  {
     GPU_link(mat, "clamp_range", out[0].link, in[3].link, in[4].link, &out[0].link);
   }
   return ret;

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation. All rights reserved. */
+ * Copyright Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -566,12 +566,12 @@ static void ccd_update_deflector_hash(Depsgraph *depsgraph,
 
 static int count_mesh_quads(Mesh *me)
 {
-  int a, result = 0;
-  const MPoly *mp = BKE_mesh_polys(me);
-
-  if (mp) {
-    for (a = me->totpoly; a > 0; a--, mp++) {
-      if (mp->totloop == 4) {
+  int result = 0;
+  const int *poly_offsets = BKE_mesh_poly_offsets(me);
+  if (poly_offsets) {
+    for (int i = 0; i < me->totpoly; i++) {
+      const int poly_size = poly_offsets[i + 1] - poly_offsets[i];
+      if (poly_size == 4) {
         result++;
       }
     }
@@ -583,16 +583,14 @@ static void add_mesh_quad_diag_springs(Object *ob)
 {
   Mesh *me = ob->data;
   // BodyPoint *bp; /* UNUSED */
-  int a;
-
   if (ob->soft) {
     int nofquads;
     // float s_shear = ob->soft->shearstiff*ob->soft->shearstiff;
 
     nofquads = count_mesh_quads(me);
     if (nofquads) {
-      const MLoop *mloop = BKE_mesh_loops(me);
-      const MPoly *mp = BKE_mesh_polys(me);
+      const int *corner_verts = BKE_mesh_corner_verts(me);
+      const int *poly_offsets = BKE_mesh_poly_offsets(me);
       BodySpring *bs;
 
       /* resize spring-array to hold additional quad springs */
@@ -600,17 +598,17 @@ static void add_mesh_quad_diag_springs(Object *ob)
                                         sizeof(BodySpring) * (ob->soft->totspring + nofquads * 2));
 
       /* fill the tail */
-      a = 0;
       bs = &ob->soft->bspring[ob->soft->totspring];
       // bp = ob->soft->bpoint; /* UNUSED */
-      for (a = me->totpoly; a > 0; a--, mp++) {
-        if (mp->totloop == 4) {
-          bs->v1 = mloop[mp->loopstart + 0].v;
-          bs->v2 = mloop[mp->loopstart + 2].v;
+      for (int a = 0; a < me->totpoly; a++) {
+        const int poly_size = poly_offsets[a + 1] - poly_offsets[a];
+        if (poly_size == 4) {
+          bs->v1 = corner_verts[poly_offsets[a] + 0];
+          bs->v2 = corner_verts[poly_offsets[a] + 2];
           bs->springtype = SB_STIFFQUAD;
           bs++;
-          bs->v1 = mloop[mp->loopstart + 1].v;
-          bs->v2 = mloop[mp->loopstart + 3].v;
+          bs->v1 = corner_verts[poly_offsets[a] + 1];
+          bs->v2 = corner_verts[poly_offsets[a] + 3];
           bs->springtype = SB_STIFFQUAD;
           bs++;
         }
@@ -1005,7 +1003,8 @@ static int sb_detect_aabb_collisionCached(float UNUSED(force[3]),
         if (ccdm) {
           if ((aabbmax[0] < ccdm->bbmin[0]) || (aabbmax[1] < ccdm->bbmin[1]) ||
               (aabbmax[2] < ccdm->bbmin[2]) || (aabbmin[0] > ccdm->bbmax[0]) ||
-              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2])) {
+              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2]))
+          {
             /* boxes don't intersect */
             BLI_ghashIterator_step(ihash);
             continue;
@@ -1077,7 +1076,8 @@ static int sb_detect_face_pointCached(const float face_v1[3],
           outerfacethickness = ob->pd->pdef_sboft;
           if ((aabbmax[0] < ccdm->bbmin[0]) || (aabbmax[1] < ccdm->bbmin[1]) ||
               (aabbmax[2] < ccdm->bbmin[2]) || (aabbmin[0] > ccdm->bbmax[0]) ||
-              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2])) {
+              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2]))
+          {
             /* boxes don't intersect */
             BLI_ghashIterator_step(ihash);
             continue;
@@ -1174,7 +1174,8 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
 
           if ((aabbmax[0] < ccdm->bbmin[0]) || (aabbmax[1] < ccdm->bbmin[1]) ||
               (aabbmax[2] < ccdm->bbmin[2]) || (aabbmin[0] > ccdm->bbmax[0]) ||
-              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2])) {
+              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2]))
+          {
             /* boxes don't intersect */
             BLI_ghashIterator_step(ihash);
             continue;
@@ -1191,7 +1192,8 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
         while (a--) {
           if ((aabbmax[0] < mima->minx) || (aabbmin[0] > mima->maxx) ||
               (aabbmax[1] < mima->miny) || (aabbmin[1] > mima->maxy) ||
-              (aabbmax[2] < mima->minz) || (aabbmin[2] > mima->maxz)) {
+              (aabbmax[2] < mima->minz) || (aabbmin[2] > mima->maxz))
+          {
             mima++;
             vt++;
             continue;
@@ -1222,7 +1224,8 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
           normalize_v3(d_nvect);
           if (isect_line_segment_tri_v3(nv1, nv2, face_v1, face_v2, face_v3, &t, NULL) ||
               isect_line_segment_tri_v3(nv2, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
-              isect_line_segment_tri_v3(nv3, nv1, face_v1, face_v2, face_v3, &t, NULL)) {
+              isect_line_segment_tri_v3(nv3, nv1, face_v1, face_v2, face_v3, &t, NULL))
+          {
             madd_v3_v3fl(force, d_nvect, -0.5f);
             *damp = tune * ob->pd->pdef_sbdamp;
             deflected = 2;
@@ -1261,7 +1264,8 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
                                          &damp,
                                          feedback,
                                          ob,
-                                         timenow)) {
+                                         timenow))
+      {
         madd_v3_v3fl(sb->bpoint[bf->v1].force, feedback, tune);
         madd_v3_v3fl(sb->bpoint[bf->v2].force, feedback, tune);
         madd_v3_v3fl(sb->bpoint[bf->v3].force, feedback, tune);
@@ -1282,7 +1286,8 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
                                        &damp,
                                        feedback,
                                        ob,
-                                       timenow)) {
+                                       timenow))
+        {
           madd_v3_v3fl(sb->bpoint[bf->v1].force, feedback, tune);
           madd_v3_v3fl(sb->bpoint[bf->v2].force, feedback, tune);
           madd_v3_v3fl(sb->bpoint[bf->v3].force, feedback, tune);
@@ -1350,7 +1355,8 @@ static int sb_detect_edge_collisionCached(const float edge_v1[3],
 
           if ((aabbmax[0] < ccdm->bbmin[0]) || (aabbmax[1] < ccdm->bbmin[1]) ||
               (aabbmax[2] < ccdm->bbmin[2]) || (aabbmin[0] > ccdm->bbmax[0]) ||
-              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2])) {
+              (aabbmin[1] > ccdm->bbmax[1]) || (aabbmin[2] > ccdm->bbmax[2]))
+          {
             /* boxes don't intersect */
             BLI_ghashIterator_step(ihash);
             continue;
@@ -1367,7 +1373,8 @@ static int sb_detect_edge_collisionCached(const float edge_v1[3],
         while (a--) {
           if ((aabbmax[0] < mima->minx) || (aabbmin[0] > mima->maxx) ||
               (aabbmax[1] < mima->miny) || (aabbmin[1] > mima->maxy) ||
-              (aabbmax[2] < mima->minz) || (aabbmin[2] > mima->maxz)) {
+              (aabbmax[2] < mima->minz) || (aabbmin[2] > mima->maxz))
+          {
             mima++;
             vt++;
             continue;
@@ -1440,7 +1447,8 @@ static void _scan_for_ext_spring_forces(
         /* +++ springs colliding */
         if (ob->softflag & OB_SB_EDGECOLL) {
           if (sb_detect_edge_collisionCached(
-                  sb->bpoint[bs->v1].pos, sb->bpoint[bs->v2].pos, &damp, feedback, ob, timenow)) {
+                  sb->bpoint[bs->v1].pos, sb->bpoint[bs->v2].pos, &damp, feedback, ob, timenow))
+          {
             add_v3_v3(bs->ext_force, feedback);
             bs->flag |= BSF_INTERSECT;
             // bs->cf=damp;
@@ -1655,7 +1663,8 @@ static int sb_detect_vertex_collisionCached(float opco[3],
           maxz = ccdm->bbmax[2];
 
           if ((opco[0] < minx) || (opco[1] < miny) || (opco[2] < minz) || (opco[0] > maxx) ||
-              (opco[1] > maxy) || (opco[2] > maxz)) {
+              (opco[1] > maxy) || (opco[2] > maxz))
+          {
             /* Outside the padded bound-box -> collision object is too far away. */
             BLI_ghashIterator_step(ihash);
             continue;
@@ -1679,7 +1688,8 @@ static int sb_detect_vertex_collisionCached(float opco[3],
         /* Use mesh. */
         while (a--) {
           if ((opco[0] < mima->minx) || (opco[0] > mima->maxx) || (opco[1] < mima->miny) ||
-              (opco[1] > mima->maxy) || (opco[2] < mima->minz) || (opco[2] > mima->maxz)) {
+              (opco[1] > mima->maxy) || (opco[2] < mima->minz) || (opco[2] > mima->maxz))
+          {
             mima++;
             vt++;
             continue;
@@ -2052,8 +2062,8 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
         kd = sb->goalfrict * sb_fric_force_scale(ob);
         add_v3_v3v3(auxvect, velgoal, bp->vec);
 
-        if (forcetime >
-            0.0f) { /* make sure friction does not become rocket motor on time reversal */
+        /* Make sure friction does not become rocket motor on time reversal. */
+        if (forcetime > 0.0f) {
           bp->force[0] -= kd * (auxvect[0]);
           bp->force[1] -= kd * (auxvect[1]);
           bp->force[2] -= kd * (auxvect[2]);
@@ -2663,7 +2673,7 @@ static void mesh_to_softbody(Object *ob)
 {
   SoftBody *sb;
   Mesh *me = ob->data;
-  const MEdge *medge = BKE_mesh_edges(me);
+  const vec2i *edge = CustomData_get_layer_named(&me->edata, CD_PROP_INT32_2D, ".edge_verts");
   BodyPoint *bp;
   BodySpring *bs;
   int a, totedge;
@@ -2718,11 +2728,11 @@ static void mesh_to_softbody(Object *ob)
 
   /* but we only optionally add body edge springs */
   if (ob->softflag & OB_SB_EDGES) {
-    if (medge) {
+    if (edge) {
       bs = sb->bspring;
-      for (a = me->totedge; a > 0; a--, medge++, bs++) {
-        bs->v1 = medge->v1;
-        bs->v2 = medge->v2;
+      for (a = me->totedge; a > 0; a--, edge++, bs++) {
+        bs->v1 = edge->x;
+        bs->v2 = edge->y;
         bs->springtype = SB_EDGE;
       }
 
@@ -2755,22 +2765,23 @@ static void mesh_faces_to_scratch(Object *ob)
   BodyFace *bodyface;
   int a;
   const float(*vert_positions)[3] = BKE_mesh_vert_positions(me);
-  const MPoly *polys = BKE_mesh_polys(me);
-  const MLoop *loops = BKE_mesh_loops(me);
+  const int *poly_offsets = BKE_mesh_poly_offsets(me);
+  const int *corner_verts = BKE_mesh_corner_verts(me);
 
   /* Allocate and copy faces. */
 
   sb->scratch->totface = poly_to_tri_count(me->totpoly, me->totloop);
   looptri = lt = MEM_mallocN(sizeof(*looptri) * sb->scratch->totface, __func__);
-  BKE_mesh_recalc_looptri(loops, polys, vert_positions, me->totloop, me->totpoly, looptri);
+  BKE_mesh_recalc_looptri(
+      corner_verts, poly_offsets, vert_positions, me->totvert, me->totloop, me->totpoly, looptri);
 
   bodyface = sb->scratch->bodyface = MEM_mallocN(sizeof(BodyFace) * sb->scratch->totface,
                                                  "SB_body_Faces");
 
   for (a = 0; a < sb->scratch->totface; a++, lt++, bodyface++) {
-    bodyface->v1 = loops[lt->tri[0]].v;
-    bodyface->v2 = loops[lt->tri[1]].v;
-    bodyface->v3 = loops[lt->tri[2]].v;
+    bodyface->v1 = corner_verts[lt->tri[0]];
+    bodyface->v2 = corner_verts[lt->tri[1]];
+    bodyface->v3 = corner_verts[lt->tri[2]];
     zero_v3(bodyface->ext_force);
     bodyface->ext_force[0] = bodyface->ext_force[1] = bodyface->ext_force[2] = 0.0f;
     bodyface->flag = 0;
@@ -3534,7 +3545,8 @@ void sbObjectStep(struct Depsgraph *depsgraph,
 
   /* verify if we need to create the softbody data */
   if (sb->bpoint == NULL ||
-      ((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) {
+      ((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob)))
+  {
 
     switch (ob->type) {
       case OB_MESH:
@@ -3582,13 +3594,15 @@ void sbObjectStep(struct Depsgraph *depsgraph,
   cache_result = BKE_ptcache_read(&pid, (float)framenr + scene->r.subframe, can_simulate);
 
   if (cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED ||
-      (!can_simulate && cache_result == PTCACHE_READ_OLD)) {
+      (!can_simulate && cache_result == PTCACHE_READ_OLD))
+  {
     softbody_to_object(ob, vertexCos, numVerts, sb->local);
 
     BKE_ptcache_validate(cache, framenr);
 
     if (cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED &&
-        can_write_cache) {
+        can_write_cache)
+    {
       BKE_ptcache_write(&pid, framenr);
     }
 
@@ -3600,9 +3614,10 @@ void sbObjectStep(struct Depsgraph *depsgraph,
     /* pass */
   }
   else if (/*ob->id.lib || */
-           /* "library linking & pointcaches" has to be solved properly at some point */
-           (cache->flag & PTCACHE_BAKED)) {
-    /* if baked and nothing in cache, do nothing */
+           /* "library linking & point-caches" has to be solved properly at some point. */
+           (cache->flag & PTCACHE_BAKED))
+  {
+    /* If baked and nothing in cache, do nothing. */
     if (can_write_cache) {
       BKE_ptcache_invalidate(cache);
     }
@@ -3614,8 +3629,8 @@ void sbObjectStep(struct Depsgraph *depsgraph,
   }
 
   /* if on second frame, write cache for first frame */
-  if (cache->simframe == startframe &&
-      (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0)) {
+  if (cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0))
+  {
     BKE_ptcache_write(&pid, startframe);
   }
 

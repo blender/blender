@@ -11,6 +11,43 @@
 
 #include "node_geometry_util.hh"
 
+namespace blender::nodes {
+
+template<typename T>
+void copy_with_checked_indices(const VArray<T> &src,
+                               const VArray<int> &indices,
+                               const IndexMask mask,
+                               MutableSpan<T> dst)
+{
+  const IndexRange src_range = src.index_range();
+  devirtualize_varray2(src, indices, [&](const auto src, const auto indices) {
+    threading::parallel_for(mask.index_range(), 4096, [&](IndexRange range) {
+      for (const int i : mask.slice(range)) {
+        const int index = indices[i];
+        if (src_range.contains(index)) {
+          dst[i] = src[index];
+        }
+        else {
+          dst[i] = {};
+        }
+      }
+    });
+  });
+}
+
+void copy_with_checked_indices(const GVArray &src,
+                               const VArray<int> &indices,
+                               const IndexMask mask,
+                               GMutableSpan dst)
+{
+  bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    copy_with_checked_indices(src.typed<T>(), indices, mask, dst.typed<T>());
+  });
+}
+
+}  // namespace blender::nodes
+
 namespace blender::nodes::node_geo_sample_index_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometrySampleIndex);
@@ -133,28 +170,6 @@ static const GeometryComponent *find_source_component(const GeometrySet &geometr
 }
 
 template<typename T>
-void copy_with_indices(const VArray<T> &src,
-                       const VArray<int> &indices,
-                       const IndexMask mask,
-                       MutableSpan<T> dst)
-{
-  const IndexRange src_range = src.index_range();
-  devirtualize_varray2(src, indices, [&](const auto src, const auto indices) {
-    threading::parallel_for(mask.index_range(), 4096, [&](IndexRange range) {
-      for (const int i : mask.slice(range)) {
-        const int index = indices[i];
-        if (src_range.contains(index)) {
-          dst[i] = src[index];
-        }
-        else {
-          dst[i] = {};
-        }
-      }
-    });
-  });
-}
-
-template<typename T>
 void copy_with_clamped_indices(const VArray<T> &src,
                                const VArray<int> &indices,
                                const IndexMask mask,
@@ -233,15 +248,15 @@ class SampleIndexFunction : public mf::MultiFunction {
       return;
     }
 
-    attribute_math::convert_to_static_type(type, [&](auto dummy) {
-      using T = decltype(dummy);
-      if (clamp_) {
+    if (clamp_) {
+      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
+        using T = decltype(dummy);
         copy_with_clamped_indices(src_data_->typed<T>(), indices, mask, dst.typed<T>());
-      }
-      else {
-        copy_with_indices(src_data_->typed<T>(), indices, mask, dst.typed<T>());
-      }
-    });
+      });
+    }
+    else {
+      copy_with_checked_indices(*src_data_, indices, mask, dst);
+    }
   }
 };
 
@@ -322,7 +337,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     if (index >= 0 && index < domain_size) {
       const IndexMask mask = IndexRange(index, 1);
-      bke::GeometryFieldContext geometry_context(*component, domain);
+      const bke::GeometryFieldContext geometry_context(*component, domain);
       FieldEvaluator evaluator(geometry_context, &mask);
       evaluator.add(value_field);
       evaluator.evaluate();

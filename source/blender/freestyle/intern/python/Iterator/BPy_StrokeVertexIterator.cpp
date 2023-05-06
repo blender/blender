@@ -53,7 +53,8 @@ static int StrokeVertexIterator_init(BPy_StrokeVertexIterator *self,
   PyObject *brother = nullptr, *stroke = nullptr;
 
   if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist_1, &StrokeVertexIterator_Type, &brother)) {
+          args, kwds, "O!", (char **)kwlist_1, &StrokeVertexIterator_Type, &brother))
+  {
     self->sv_it = new StrokeInternal::StrokeVertexIterator(
         *(((BPy_StrokeVertexIterator *)brother)->sv_it));
     self->reversed = ((BPy_StrokeVertexIterator *)brother)->reversed;
@@ -62,7 +63,8 @@ static int StrokeVertexIterator_init(BPy_StrokeVertexIterator *self,
 
   else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(
-               args, kwds, "|O!", (char **)kwlist_2, &Stroke_Type, &stroke)) {
+               args, kwds, "|O!", (char **)kwlist_2, &Stroke_Type, &stroke))
+  {
     if (!stroke) {
       self->sv_it = new StrokeInternal::StrokeVertexIterator();
     }

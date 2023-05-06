@@ -12,7 +12,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -25,6 +25,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -36,11 +37,11 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
@@ -61,8 +62,6 @@
 
 ENUM_OPERATORS(eUserpref_StatusBar_Flag, STATUSBAR_SHOW_VERSION)
 
-#define MAX_INFO_NUM_LEN 16
-
 struct SceneStats {
   uint64_t totvert, totvertsel, totvertsculpt;
   uint64_t totedge, totedgesel;
@@ -76,15 +75,19 @@ struct SceneStats {
 
 struct SceneStatsFmt {
   /* Totals */
-  char totvert[MAX_INFO_NUM_LEN], totvertsel[MAX_INFO_NUM_LEN], totvertsculpt[MAX_INFO_NUM_LEN];
-  char totface[MAX_INFO_NUM_LEN], totfacesel[MAX_INFO_NUM_LEN];
-  char totedge[MAX_INFO_NUM_LEN], totedgesel[MAX_INFO_NUM_LEN], totfacesculpt[MAX_INFO_NUM_LEN];
-  char totbone[MAX_INFO_NUM_LEN], totbonesel[MAX_INFO_NUM_LEN];
-  char totobj[MAX_INFO_NUM_LEN], totobjsel[MAX_INFO_NUM_LEN];
-  char totlamp[MAX_INFO_NUM_LEN], totlampsel[MAX_INFO_NUM_LEN];
-  char tottri[MAX_INFO_NUM_LEN];
-  char totgplayer[MAX_INFO_NUM_LEN], totgpframe[MAX_INFO_NUM_LEN];
-  char totgpstroke[MAX_INFO_NUM_LEN], totgppoint[MAX_INFO_NUM_LEN];
+  char totvert[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totvertsel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
+      totvertsculpt[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totface[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totfacesel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totedge[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totedgesel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
+      totfacesculpt[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totbone[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totbonesel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totobj[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totobjsel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totlamp[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], totlampsel[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char tottri[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totgplayer[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
+      totgpframe[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totgpstroke[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
+      totgppoint[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
 };
 
 static bool stats_mesheval(const Mesh *me_eval, bool is_selected, SceneStats *stats)
@@ -162,7 +165,7 @@ static void stats_object(Object *ob,
         stats->totlampsel++;
       }
       break;
-    case OB_GPENCIL: {
+    case OB_GPENCIL_LEGACY: {
       if (is_selected) {
         bGPdata *gpd = (bGPdata *)ob->data;
         if (!BLI_gset_add(objects_gset, gpd)) {
@@ -228,7 +231,8 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 
       /* if this is a connected child and its parent is being moved, remove our root */
       if ((ebo->flag & BONE_CONNECTED) && (ebo->flag & BONE_ROOTSEL) && ebo->parent &&
-          (ebo->parent->flag & BONE_TIPSEL)) {
+          (ebo->parent->flag & BONE_TIPSEL))
+      {
         stats->totvertsel--;
       }
 
@@ -554,7 +558,7 @@ static void get_stats_string(char *info,
     *ofs += BLI_snprintf_rlen(
         info + *ofs, len - *ofs, TIP_("Bones:%s/%s"), stats_fmt->totbonesel, stats_fmt->totbone);
   }
-  else if ((ob) && (ob->type == OB_GPENCIL)) {
+  else if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
     *ofs += BLI_snprintf_rlen(info + *ofs,
                               len - *ofs,
                               TIP_("Layers:%s | Frames:%s | Strokes:%s | Points:%s"),
@@ -599,7 +603,7 @@ static const char *info_statusbar_string(Main *bmain,
                                          ViewLayer *view_layer,
                                          char statusbar_flag)
 {
-  char formatted_mem[15];
+  char formatted_mem[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE];
   size_t ofs = 0;
   static char info[256];
   int len = sizeof(info);
@@ -612,6 +616,24 @@ static const char *info_statusbar_string(Main *bmain,
     if (format_stats(bmain, scene, view_layer, nullptr, &stats_fmt)) {
       get_stats_string(info + ofs, len, &ofs, scene, view_layer, &stats_fmt);
     }
+  }
+
+  /* Scene Duration. */
+  if (statusbar_flag & STATUSBAR_SHOW_SCENE_DURATION) {
+    if (info[0]) {
+      ofs += BLI_snprintf_rlen(info + ofs, len - ofs, " | ");
+    }
+    const int relative_current_frame = (scene->r.cfra - scene->r.sfra) + 1;
+    const int frame_count = (scene->r.efra - scene->r.sfra) + 1;
+    char timecode[32];
+    BLI_timecode_string_from_time(
+        timecode, sizeof(timecode), -2, FRA2TIME(frame_count), FPS, U.timecode_style);
+    ofs += BLI_snprintf_rlen(info + ofs,
+                             len - ofs,
+                             TIP_("Duration: %s (Frame %i/%i)"),
+                             timecode,
+                             relative_current_frame,
+                             frame_count);
   }
 
   /* Memory status. */
@@ -666,7 +688,8 @@ const char *ED_info_statistics_string(Main *bmain, Scene *scene, ViewLayer *view
 {
   const eUserpref_StatusBar_Flag statistics_status_bar_flag = STATUSBAR_SHOW_STATS |
                                                               STATUSBAR_SHOW_MEMORY |
-                                                              STATUSBAR_SHOW_VERSION;
+                                                              STATUSBAR_SHOW_VERSION |
+                                                              STATUSBAR_SHOW_SCENE_DURATION;
 
   return info_statusbar_string(bmain, scene, view_layer, statistics_status_bar_flag);
 }
@@ -774,7 +797,7 @@ void ED_info_draw_stats(
     stats_row(col1, labels[OBJ], col2, stats_fmt.totobjsel, stats_fmt.totobj, y, height);
     stats_row(col1, labels[BONES], col2, stats_fmt.totbonesel, stats_fmt.totbone, y, height);
   }
-  else if ((ob) && (ob->type == OB_GPENCIL)) {
+  else if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
     stats_row(col1, labels[LAYERS], col2, stats_fmt.totgplayer, nullptr, y, height);
     stats_row(col1, labels[FRAMES], col2, stats_fmt.totgpframe, nullptr, y, height);
     stats_row(col1, labels[STROKES], col2, stats_fmt.totgpstroke, nullptr, y, height);

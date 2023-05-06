@@ -116,8 +116,7 @@ class Manager {
   ~Manager();
 
   /**
-   * Create a new resource handle for the given object. Can be called multiple time with the
-   * same object **successively** without duplicating the data.
+   * Create a new resource handle for the given object.
    */
   ResourceHandle resource_handle(const ObjectRef ref);
   /**

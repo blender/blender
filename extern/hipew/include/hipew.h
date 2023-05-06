@@ -43,9 +43,9 @@ extern "C" {
 #define HIP_TRSA_OVERRIDE_FORMAT 0x01
 #define HIP_TRSF_READ_AS_INTEGER 0x01
 #define HIP_TRSF_NORMALIZED_COORDINATES 0x02
-#define HIP_LAUNCH_PARAM_END ((void*)0x00)
 #define HIP_LAUNCH_PARAM_BUFFER_POINTER ((void*)0x01)
 #define HIP_LAUNCH_PARAM_BUFFER_SIZE ((void*)0x02)
+#define HIP_LAUNCH_PARAM_END ((void*)0x03)
 
 /* Functions which changed 3.1 -> 3.2 for 64 bit stuff,
  * the cuda library has both the old ones for compatibility and new
@@ -55,6 +55,7 @@ extern "C" {
 #define hipMemGetInfo hipMemGetInfo
 #define hipMemAllocPitch hipMemAllocPitch
 #define hipMemGetAddressRange hipMemGetAddressRange
+#define hipMemcpy hipMemcpy
 #define hipMemcpyHtoD hipMemcpyHtoD
 #define hipMemcpyDtoH hipMemcpyDtoH
 #define hipMemcpyDtoD hipMemcpyDtoD
@@ -68,6 +69,7 @@ extern "C" {
 #define hipMemsetD32 hipMemsetD32
 #define hipArrayCreate hipArrayCreate
 #define hipArray3DCreate hipArray3DCreate
+#define hipPointerGetAttributes hipPointerGetAttributes
 #define hipTexRefSetAddress hipTexRefSetAddress
 #define hipTexRefGetAddress hipTexRefGetAddress
 #define hipStreamDestroy hipStreamDestroy
@@ -84,7 +86,7 @@ typedef uint32_t hipuint32_t;
 typedef uint64_t hipuint64_t;
 #endif
 
-#if defined(__x86_64) || defined(AMD64) || defined(_M_AMD64) || defined (__aarch64__)
+#if defined(__x86_64) || defined(AMD64) || defined(_M_AMD64) || defined (__aarch64__) || defined(__ppc64__) || defined(__PPC64__)
 typedef unsigned long long hipDeviceptr_t;
 #else
 typedef unsigned int hipDeviceptr_t;
@@ -108,10 +110,19 @@ typedef struct hipMipmappedArray_st* hipMipmappedArray_t;
 typedef struct ihipEvent_t* hipEvent_t;
 typedef struct ihipStream_t* hipStream_t;
 typedef unsigned long long hipTextureObject_t;
+typedef void* hipExternalMemory_t;
 
 typedef struct HIPuuid_st {
   char bytes[16];
 } HIPuuid;
+
+typedef enum hipMemcpyKind {
+    hipMemcpyHostToHost = 0,
+    hipMemcpyHostToDevice = 1,
+    hipMemcpyDeviceToHost = 2,
+    hipMemcpyDeviceToDevice = 3,
+    hipMemcpyDefault = 4
+} hipMemcpyKind;
 
 typedef enum hipChannelFormatKind {
     hipChannelFormatKindSigned = 0,
@@ -1048,28 +1059,105 @@ typedef enum HIPGLmap_flags_enum {
   HIP_GL_MAP_RESOURCE_FLAGS_WRITE_DISCARD = 0x02,
 } HIPGLmap_flags;
 
+typedef enum hipExternalMemoryHandleType_enum {
+  hipExternalMemoryHandleTypeOpaqueFd = 1,
+  hipExternalMemoryHandleTypeOpaqueWin32 = 2,
+  hipExternalMemoryHandleTypeOpaqueWin32Kmt = 3,
+  hipExternalMemoryHandleTypeD3D12Heap = 4,
+  hipExternalMemoryHandleTypeD3D12Resource = 5,
+  hipExternalMemoryHandleTypeD3D11Resource = 6,
+  hipExternalMemoryHandleTypeD3D11ResourceKmt = 7,
+} hipExternalMemoryHandleType;
+
+typedef struct hipExternalMemoryHandleDesc_st {
+  hipExternalMemoryHandleType type;
+  union {
+    int fd;
+    struct {
+      void *handle;
+      const void *name;
+    } win32;
+  } handle;
+  unsigned long long size;
+  unsigned int flags;
+} hipExternalMemoryHandleDesc;
+
+typedef struct hipExternalMemoryBufferDesc_st {
+  unsigned long long offset;
+  unsigned long long size;
+  unsigned int flags;
+} hipExternalMemoryBufferDesc;
+
 /**
 * hipRTC related
 */
 typedef struct _hiprtcProgram* hiprtcProgram;
 
 typedef enum hiprtcResult {
-    HIPRTC_SUCCESS = 0,
-    HIPRTC_ERROR_OUT_OF_MEMORY = 1,
-    HIPRTC_ERROR_PROGRAM_CREATION_FAILURE = 2,
-    HIPRTC_ERROR_INVALID_INPUT = 3,
-    HIPRTC_ERROR_INVALID_PROGRAM = 4,
-    HIPRTC_ERROR_INVALID_OPTION = 5,
-    HIPRTC_ERROR_COMPILATION = 6,
-    HIPRTC_ERROR_BUILTIN_OPERATION_FAILURE = 7,
-    HIPRTC_ERROR_NO_NAME_EXPRESSIONS_AFTER_COMPILATION = 8,
-    HIPRTC_ERROR_NO_LOWERED_NAMES_BEFORE_COMPILATION = 9,
-    HIPRTC_ERROR_NAME_EXPRESSION_NOT_VALID = 10,
-    HIPRTC_ERROR_INTERNAL_ERROR = 11
+	  HIPRTC_SUCCESS = 0,
+	  HIPRTC_ERROR_OUT_OF_MEMORY = 1,
+	  HIPRTC_ERROR_PROGRAM_CREATION_FAILURE = 2,
+	  HIPRTC_ERROR_INVALID_INPUT = 3,
+	  HIPRTC_ERROR_INVALID_PROGRAM = 4,
+	  HIPRTC_ERROR_INVALID_OPTION = 5,
+	  HIPRTC_ERROR_COMPILATION = 6,
+	  HIPRTC_ERROR_BUILTIN_OPERATION_FAILURE = 7,
+	  HIPRTC_ERROR_NO_NAME_EXPRESSIONS_AFTER_COMPILATION = 8,
+	  HIPRTC_ERROR_NO_LOWERED_NAMES_BEFORE_COMPILATION = 9,
+	  HIPRTC_ERROR_NAME_EXPRESSION_NOT_VALID = 10,
+	  HIPRTC_ERROR_INTERNAL_ERROR = 11,
+	  HIPRTC_ERROR_LINKING = 100
 } hiprtcResult;
+
+typedef enum hiprtcJIT_option {
+	HIPRTC_JIT_MAX_REGISTERS = 0,
+	HIPRTC_JIT_THREADS_PER_BLOCK,
+	HIPRTC_JIT_WALL_TIME,
+	HIPRTC_JIT_INFO_LOG_BUFFER,
+	HIPRTC_JIT_INFO_LOG_BUFFER_SIZE_BYTES,
+	HIPRTC_JIT_ERROR_LOG_BUFFER,
+	HIPRTC_JIT_ERROR_LOG_BUFFER_SIZE_BYTES,
+	HIPRTC_JIT_OPTIMIZATION_LEVEL,
+	HIPRTC_JIT_TARGET_FROM_HIPCONTEXT,
+	HIPRTC_JIT_TARGET,
+	HIPRTC_JIT_FALLBACK_STRATEGY,
+	HIPRTC_JIT_GENERATE_DEBUG_INFO,
+	HIPRTC_JIT_LOG_VERBOSE,
+	HIPRTC_JIT_GENERATE_LINE_INFO,
+	HIPRTC_JIT_CACHE_MODE,
+	HIPRTC_JIT_NEW_SM3X_OPT,
+	HIPRTC_JIT_FAST_COMPILE,
+	HIPRTC_JIT_GLOBAL_SYMBOL_NAMES,
+	HIPRTC_JIT_GLOBAL_SYMBOL_ADDRESS,
+	HIPRTC_JIT_GLOBAL_SYMBOL_COUNT,
+	HIPRTC_JIT_LTO,
+	HIPRTC_JIT_FTZ,
+	HIPRTC_JIT_PREC_DIV,
+	HIPRTC_JIT_PREC_SQRT,
+	HIPRTC_JIT_FMA,
+	HIPRTC_JIT_NUM_OPTIONS,
+} hiprtcJIT_option;
+
+typedef enum hiprtcJITInputType {
+	HIPRTC_JIT_INPUT_CUBIN = 0,
+	HIPRTC_JIT_INPUT_PTX,
+	HIPRTC_JIT_INPUT_FATBINARY,
+	HIPRTC_JIT_INPUT_OBJECT,
+	HIPRTC_JIT_INPUT_LIBRARY,
+	HIPRTC_JIT_INPUT_NVVM,
+	HIPRTC_JIT_NUM_LEGACY_INPUT_TYPES,
+	HIPRTC_JIT_INPUT_LLVM_BITCODE = 100,
+	HIPRTC_JIT_INPUT_LLVM_BUNDLED_BITCODE = 101,
+	HIPRTC_JIT_INPUT_LLVM_ARCHIVES_OF_BUNDLED_BITCODE = 102,
+	HIPRTC_JIT_NUM_INPUT_TYPES = ( HIPRTC_JIT_NUM_LEGACY_INPUT_TYPES + 3 )
+} hiprtcJITInputType;
+
+typedef struct ihiprtcLinkState* hiprtcLinkState;
 
 /* Function types. */
 typedef hipError_t HIPAPI thipGetErrorName(hipError_t error, const char** pStr);
+typedef const char* HIPAPI thipGetErrorString(hipError_t error);
+typedef hipError_t HIPAPI thipGetLastError(hipError_t error);
 typedef hipError_t HIPAPI thipInit(unsigned int Flags);
 typedef hipError_t HIPAPI thipDriverGetVersion(int* driverVersion);
 typedef hipError_t HIPAPI thipGetDevice(int* device);
@@ -1078,6 +1166,8 @@ typedef hipError_t HIPAPI thipGetDeviceProperties(hipDeviceProp_t* props, int de
 typedef hipError_t HIPAPI thipDeviceGet(hipDevice_t* device, int ordinal);
 typedef hipError_t HIPAPI thipDeviceGetName(char* name, int len, hipDevice_t dev);
 typedef hipError_t HIPAPI thipDeviceGetAttribute(int* pi, hipDeviceAttribute_t attrib, hipDevice_t dev);
+typedef hipError_t HIPAPI thipDeviceGetLimit(size_t* pValue, enum hipLimit_t limit);
+typedef hipError_t HIPAPI thipDeviceSetLimit(enum hipLimit_t limit, size_t value);
 typedef hipError_t HIPAPI thipDeviceComputeCapability(int* major, int* minor, hipDevice_t dev);
 typedef hipError_t HIPAPI thipDevicePrimaryCtxRetain(hipCtx_t* pctx, hipDevice_t dev);
 typedef hipError_t HIPAPI thipDevicePrimaryCtxRelease(hipDevice_t dev);
@@ -1114,13 +1204,14 @@ typedef hipError_t HIPAPI thipMemGetAddressRange(hipDeviceptr_t* pbase, size_t* 
 typedef hipError_t HIPAPI thipHostMalloc(void** pp, size_t bytesize, unsigned int flags);
 typedef hipError_t HIPAPI thipHostFree(void* p);
 typedef hipError_t HIPAPI thipMemHostAlloc(void** pp, size_t bytesize, unsigned int Flags);
+typedef hipError_t HIPAPI thipHostRegister(void* p, size_t bytesize, unsigned int Flags);
 typedef hipError_t HIPAPI thipHostGetDevicePointer(hipDeviceptr_t* pdptr, void* p, unsigned int Flags);
 typedef hipError_t HIPAPI thipHostGetFlags(unsigned int* pFlags, void* p);
 typedef hipError_t HIPAPI thipMallocManaged(hipDeviceptr_t* dptr, size_t bytesize, unsigned int flags);
 typedef hipError_t HIPAPI thipDeviceGetByPCIBusId(hipDevice_t* dev, const char* pciBusId);
 typedef hipError_t HIPAPI thipDeviceGetPCIBusId(char* pciBusId, int len, hipDevice_t dev);
-typedef hipError_t HIPAPI thipMemHostUnregister(void* p);
-typedef hipError_t HIPAPI thipMemcpy(hipDeviceptr_t dst, hipDeviceptr_t src, size_t ByteCount);
+typedef hipError_t HIPAPI thipHostUnregister(void* p);
+typedef hipError_t HIPAPI thipMemcpy(void* dst, const void* src, size_t ByteCount, hipMemcpyKind kind);
 typedef hipError_t HIPAPI thipMemcpyPeer(hipDeviceptr_t dstDevice, hipCtx_t dstContext, hipDeviceptr_t srcDevice, hipCtx_t srcContext, size_t ByteCount);
 typedef hipError_t HIPAPI thipMemcpyHtoD(hipDeviceptr_t dstDevice, void* srcHost, size_t ByteCount);
 typedef hipError_t HIPAPI thipMemcpyDtoH(void* dstHost, hipDeviceptr_t srcDevice, size_t ByteCount);
@@ -1130,8 +1221,10 @@ typedef hipError_t HIPAPI thipMemcpyParam2D(const hip_Memcpy2D* pCopy);
 typedef hipError_t HIPAPI thipDrvMemcpy3D(const HIP_MEMCPY3D* pCopy);
 typedef hipError_t HIPAPI thipMemcpyHtoDAsync(hipDeviceptr_t dstDevice, const void* srcHost, size_t ByteCount, hipStream_t hStream);
 typedef hipError_t HIPAPI thipMemcpyDtoHAsync(void* dstHost, hipDeviceptr_t srcDevice, size_t ByteCount, hipStream_t hStream);
+typedef hipError_t HIPAPI thipMemcpyDtoDAsync(hipDeviceptr_t dstDevice, hipDeviceptr_t srcDevice, size_t ByteCount, hipStream_t hStream);
 typedef hipError_t HIPAPI thipMemcpyParam2DAsync(const hip_Memcpy2D* pCopy, hipStream_t hStream);
 typedef hipError_t HIPAPI thipDrvMemcpy3DAsync(const HIP_MEMCPY3D* pCopy, hipStream_t hStream);
+typedef hipError_t HIPAPI thipMemset(void* dstDevice, int value, size_t sizeBytes);
 typedef hipError_t HIPAPI thipMemsetD8(hipDeviceptr_t dstDevice, unsigned char uc, size_t N);
 typedef hipError_t HIPAPI thipMemsetD16(hipDeviceptr_t dstDevice, unsigned short us, size_t N);
 typedef hipError_t HIPAPI thipMemsetD32(hipDeviceptr_t dstDevice, unsigned int ui, size_t N);
@@ -1144,7 +1237,8 @@ typedef hipError_t HIPAPI thipMemsetD2D32Async(hipDeviceptr_t dstDevice, size_t 
 typedef hipError_t HIPAPI thipArrayCreate(hArray ** pHandle, const HIP_ARRAY_DESCRIPTOR* pAllocateArray);
 typedef hipError_t HIPAPI thipArrayDestroy(hArray hArray);
 typedef hipError_t HIPAPI thipArray3DCreate(hArray * pHandle, const HIP_ARRAY3D_DESCRIPTOR* pAllocateArray);
-typedef hipError_t HIPAPI hipPointerGetAttributes(hipPointerAttribute_t* attributes, const void* ptr);
+typedef hipError_t HIPAPI thipPointerGetAttributes(hipPointerAttribute_t* attributes, const void* ptr);
+typedef hipError_t HIPAPI thipStreamCreate(hipStream_t* phStream);
 typedef hipError_t HIPAPI thipStreamCreateWithFlags(hipStream_t* phStream, unsigned int Flags);
 typedef hipError_t HIPAPI thipStreamCreateWithPriority(hipStream_t* phStream, unsigned int flags, int priority);
 typedef hipError_t HIPAPI thipStreamGetPriority(hipStream_t hStream, int* priority);
@@ -1189,7 +1283,10 @@ typedef hipError_t HIPAPI thipGraphicsMapResources(unsigned int count, hipGraphi
 typedef hipError_t HIPAPI thipGraphicsUnmapResources(unsigned int count, hipGraphicsResource* resources, hipStream_t hStream);
 typedef hipError_t HIPAPI thipGraphicsGLRegisterBuffer(hipGraphicsResource* pCudaResource, GLuint buffer, unsigned int Flags);
 typedef hipError_t HIPAPI thipGLGetDevices(unsigned int* pHipDeviceCount, int* pHipDevices, unsigned int hipDeviceCount, hipGLDeviceList deviceList);
-typedef hiprtcResult HIPAPI thiprtcGetErrorString(hiprtcResult result);
+typedef hipError_t HIPAPI thipImportExternalMemory(hipExternalMemory_t* extMem_out, const hipExternalMemoryHandleDesc* memHandleDesc);
+typedef hipError_t HIPAPI thipExternalMemoryGetMappedBuffer(void **devPtr, hipExternalMemory_t extMem, const hipExternalMemoryBufferDesc *bufferDesc);
+typedef hipError_t HIPAPI thipDestroyExternalMemory(hipExternalMemory_t extMem);
+typedef const char* HIPAPI thiprtcGetErrorString(hiprtcResult result);
 typedef hiprtcResult HIPAPI thiprtcAddNameExpression(hiprtcProgram prog, const char* name_expression);
 typedef hiprtcResult HIPAPI thiprtcCompileProgram(hiprtcProgram prog, int numOptions, const char** options);
 typedef hiprtcResult HIPAPI thiprtcCreateProgram(hiprtcProgram* prog, const char* src, const char* name, int numHeaders, const char** headers, const char** includeNames);
@@ -1197,20 +1294,30 @@ typedef hiprtcResult HIPAPI thiprtcDestroyProgram(hiprtcProgram* prog);
 typedef hiprtcResult HIPAPI thiprtcGetLoweredName(hiprtcProgram prog, const char* name_expression, const char** lowered_name);
 typedef hiprtcResult HIPAPI thiprtcGetProgramLog(hiprtcProgram prog, char* log);
 typedef hiprtcResult HIPAPI thiprtcGetProgramLogSize(hiprtcProgram prog, size_t* logSizeRet);
+typedef hiprtcResult HIPAPI thiprtcGetBitcode( hiprtcProgram prog, char* bitcode );
+typedef hiprtcResult HIPAPI thiprtcGetBitcodeSize( hiprtcProgram prog, size_t* bitcodeSizeRet );
 typedef hiprtcResult HIPAPI thiprtcGetCode(hiprtcProgram prog, char* code);
 typedef hiprtcResult HIPAPI thiprtcGetCodeSize(hiprtcProgram prog, size_t* codeSizeRet);
-
+typedef hiprtcResult HIPAPI thiprtcLinkCreate( unsigned int num_options, hiprtcJIT_option* option_ptr, void** option_vals_pptr, hiprtcLinkState* hip_link_state_ptr );
+typedef hiprtcResult HIPAPI thiprtcLinkAddFile( hiprtcLinkState hip_link_state, hiprtcJITInputType input_type, const char* file_path, unsigned int num_options, hiprtcJIT_option* options_ptr, void** option_values );
+typedef hiprtcResult HIPAPI thiprtcLinkAddData( hiprtcLinkState hip_link_state, hiprtcJITInputType input_type, void* image, size_t image_size, const char* name, unsigned int num_options, hiprtcJIT_option* options_ptr, void** option_values );
+typedef hiprtcResult HIPAPI thiprtcLinkComplete( hiprtcLinkState hip_link_state, void** bin_out, size_t* size_out );
+typedef hiprtcResult HIPAPI thiprtcLinkDestroy( hiprtcLinkState hip_link_state );
 
 /* Function declarations. */
 extern thipGetErrorName *hipGetErrorName;
+extern thipGetErrorString* hipGetErrorString;
+extern thipGetLastError* hipGetLastError;
 extern thipInit *hipInit;
 extern thipDriverGetVersion *hipDriverGetVersion;
 extern thipGetDevice *hipGetDevice;
 extern thipGetDeviceCount *hipGetDeviceCount;
 extern thipGetDeviceProperties *hipGetDeviceProperties;
-extern thipDeviceGet* hipDeviceGet;
+extern thipDeviceGet *hipDeviceGet;
 extern thipDeviceGetName *hipDeviceGetName;
 extern thipDeviceGetAttribute *hipDeviceGetAttribute;
+extern thipDeviceGetLimit *hipDeviceGetLimit;
+extern thipDeviceSetLimit *hipDeviceSetLimit;
 extern thipDeviceComputeCapability *hipDeviceComputeCapability;
 extern thipDevicePrimaryCtxRetain *hipDevicePrimaryCtxRetain;
 extern thipDevicePrimaryCtxRelease *hipDevicePrimaryCtxRelease;
@@ -1246,11 +1353,14 @@ extern thipFree *hipFree;
 extern thipMemGetAddressRange *hipMemGetAddressRange;
 extern thipHostMalloc *hipHostMalloc;
 extern thipHostFree *hipHostFree;
+extern thipHostRegister *hipHostRegister;
 extern thipHostGetDevicePointer *hipHostGetDevicePointer;
 extern thipHostGetFlags *hipHostGetFlags;
+extern thipHostUnregister *hipHostUnregister;
 extern thipMallocManaged *hipMallocManaged;
 extern thipDeviceGetByPCIBusId *hipDeviceGetByPCIBusId;
 extern thipDeviceGetPCIBusId *hipDeviceGetPCIBusId;
+extern thipMemcpy *hipMemcpy;
 extern thipMemcpyPeer *hipMemcpyPeer;
 extern thipMemcpyHtoD *hipMemcpyHtoD;
 extern thipMemcpyDtoH *hipMemcpyDtoH;
@@ -1260,8 +1370,10 @@ extern thipMemcpyParam2D *hipMemcpyParam2D;
 extern thipDrvMemcpy3D *hipDrvMemcpy3D;
 extern thipMemcpyHtoDAsync *hipMemcpyHtoDAsync;
 extern thipMemcpyDtoHAsync *hipMemcpyDtoHAsync;
+extern thipMemcpyDtoDAsync *hipMemcpyDtoDAsync;
 extern thipMemcpyParam2DAsync *hipMemcpyParam2DAsync;
 extern thipDrvMemcpy3DAsync *hipDrvMemcpy3DAsync;
+extern thipMemset *hipMemset;
 extern thipMemsetD8 *hipMemsetD8;
 extern thipMemsetD16 *hipMemsetD16;
 extern thipMemsetD32 *hipMemsetD32;
@@ -1271,6 +1383,8 @@ extern thipMemsetD32Async *hipMemsetD32Async;
 extern thipArrayCreate *hipArrayCreate;
 extern thipArrayDestroy *hipArrayDestroy;
 extern thipArray3DCreate *hipArray3DCreate;
+extern thipPointerGetAttributes *hipPointerGetAttributes;
+extern thipStreamCreate* hipStreamCreate;
 extern thipStreamCreateWithFlags *hipStreamCreateWithFlags;
 extern thipStreamCreateWithPriority *hipStreamCreateWithPriority;
 extern thipStreamGetPriority *hipStreamGetPriority;
@@ -1316,6 +1430,9 @@ extern thipGraphicsUnmapResources *hipGraphicsUnmapResources;
 
 extern thipGraphicsGLRegisterBuffer *hipGraphicsGLRegisterBuffer;
 extern thipGLGetDevices *hipGLGetDevices;
+extern thipImportExternalMemory *hipImportExternalMemory;
+extern thipExternalMemoryGetMappedBuffer *hipExternalMemoryGetMappedBuffer;
+extern thipDestroyExternalMemory *hipDestroyExternalMemory;
 
 extern thiprtcGetErrorString* hiprtcGetErrorString;
 extern thiprtcAddNameExpression* hiprtcAddNameExpression;
@@ -1325,9 +1442,17 @@ extern thiprtcDestroyProgram* hiprtcDestroyProgram;
 extern thiprtcGetLoweredName* hiprtcGetLoweredName;
 extern thiprtcGetProgramLog* hiprtcGetProgramLog;
 extern thiprtcGetProgramLogSize* hiprtcGetProgramLogSize;
+extern thiprtcGetBitcode* hiprtcGetBitcode;
+extern thiprtcGetBitcodeSize* hiprtcGetBitcodeSize;
 extern thiprtcGetCode* hiprtcGetCode;
 extern thiprtcGetCodeSize* hiprtcGetCodeSize;
+extern thiprtcLinkCreate* hiprtcLinkCreate;
+extern thiprtcLinkAddFile* hiprtcLinkAddFile;
+extern thiprtcLinkAddData* hiprtcLinkAddData;
+extern thiprtcLinkComplete* hiprtcLinkComplete;
+extern thiprtcLinkDestroy* hiprtcLinkDestroy;
 
+/* HIPEW API. */
 
 enum {
   HIPEW_SUCCESS = 0,
@@ -1344,7 +1469,6 @@ int hipewInit(hipuint32_t flags);
 const char *hipewErrorString(hipError_t result);
 const char *hipewCompilerPath(void);
 int hipewCompilerVersion(void);
-int hipewNvrtcVersion(void);
 
 #ifdef __cplusplus
 }

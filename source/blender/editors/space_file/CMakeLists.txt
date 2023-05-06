@@ -29,7 +29,7 @@ set(INC_SYS
 
 set(SRC
   asset_catalog_tree_view.cc
-  file_draw.c
+  file_draw.cc
   file_indexer.cc
   file_ops.c
   file_panels.c
@@ -66,28 +66,12 @@ if(WITH_IMAGE_OPENEXR)
   add_definitions(-DWITH_OPENEXR)
 endif()
 
-if(WITH_OPENIMAGEIO)
-  add_definitions(-DWITH_OPENIMAGEIO)
-endif()
-
-if(WITH_IMAGE_TIFF)
-  add_definitions(-DWITH_TIFF)
-endif()
-
 if(WITH_IMAGE_OPENJPEG)
   add_definitions(-DWITH_OPENJPEG)
 endif()
 
-if(WITH_IMAGE_DDS)
-  add_definitions(-DWITH_DDS)
-endif()
-
 if(WITH_IMAGE_CINEON)
   add_definitions(-DWITH_CINEON)
-endif()
-
-if(WITH_IMAGE_HDR)
-  add_definitions(-DWITH_HDR)
 endif()
 
 if(WITH_IMAGE_WEBP)

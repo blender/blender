@@ -249,6 +249,13 @@ endif()
 if(WITH_CYCLES_DEVICE_HIP)
   add_definitions(-DWITH_HIP)
 
+  if(WITH_CYCLES_DEVICE_HIPRT)
+    include_directories(
+      ${HIPRT_INCLUDE_DIR}
+    )
+    add_definitions(-DWITH_HIPRT)
+  endif()
+
   if(WITH_HIP_DYNLOAD)
     include_directories(
       ../../extern/hipew/include
@@ -281,6 +288,10 @@ endif()
 
 if(WITH_CYCLES_EMBREE)
   add_definitions(-DWITH_EMBREE)
+  if(WITH_CYCLES_DEVICE_ONEAPI AND EMBREE_SYCL_SUPPORT)
+    add_definitions(-DWITH_EMBREE_GPU)
+  endif()
+  add_definitions(-DEMBREE_MAJOR_VERSION=${EMBREE_MAJOR_VERSION})
   include_directories(
     SYSTEM
     ${EMBREE_INCLUDE_DIRS}
@@ -391,6 +402,10 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_check_cxx_compiler_flag(CMAKE_CXX_FLAGS _has_no_error_unused_macros "-Wno-error=unused-macros")
   unset(_has_no_error_unused_macros)
+endif()
+
+if(WITH_USD)
+  add_definitions(-DWITH_USD)
 endif()
 
 if(WITH_CYCLES_HYDRA_RENDER_DELEGATE AND (NOT WITH_USD))

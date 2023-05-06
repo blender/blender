@@ -56,17 +56,17 @@ static void set_handle_type(bke::CurvesGeometry &curves,
                             const HandleType new_handle_type,
                             const Field<bool> &selection_field)
 {
-  bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_POINT};
+  const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_POINT};
   fn::FieldEvaluator evaluator{field_context, curves.points_num()};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   if (mode & GEO_NODE_CURVE_HANDLE_LEFT) {
-    curves.handle_types_left_for_write().fill_indices(selection, new_handle_type);
+    curves.handle_types_left_for_write().fill_indices(selection.indices(), new_handle_type);
   }
   if (mode & GEO_NODE_CURVE_HANDLE_RIGHT) {
-    curves.handle_types_right_for_write().fill_indices(selection, new_handle_type);
+    curves.handle_types_right_for_write().fill_indices(selection.indices(), new_handle_type);
   }
 
   /* Eagerly calculate automatically derived handle positions if necessary. */

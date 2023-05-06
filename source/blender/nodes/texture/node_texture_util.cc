@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup nodes
@@ -21,6 +21,8 @@
  * over other previous ones.
  */
 
+#include "NOD_add_node_search.hh"
+
 #include "node_texture_util.hh"
 
 bool tex_node_poll_default(const bNodeType * /*ntype*/,
@@ -40,6 +42,7 @@ void tex_node_type_base(struct bNodeType *ntype, int type, const char *name, sho
 
   ntype->poll = tex_node_poll_default;
   ntype->insert_link = node_insert_link_default;
+  ntype->gather_add_node_search_ops = blender::nodes::search_node_add_ops_for_basic_node;
 }
 
 static void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, short thread)

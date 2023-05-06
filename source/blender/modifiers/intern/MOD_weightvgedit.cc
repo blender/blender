@@ -27,7 +27,7 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h" /* Texture masking. */
@@ -45,10 +45,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
-#include "MOD_weightvg_util.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
+#include "MOD_weightvg_util.hh"
 
 /**************************************
  * Modifiers functions.               *

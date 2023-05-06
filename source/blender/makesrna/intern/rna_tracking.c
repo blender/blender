@@ -310,7 +310,8 @@ static void rna_trackingPlaneMarker_frame_set(PointerRNA *ptr, int value)
   LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
     LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
       if (plane_marker >= plane_track->markers &&
-          plane_marker < plane_track->markers + plane_track->markersnr) {
+          plane_marker < plane_track->markers + plane_track->markersnr)
+      {
         plane_track_of_marker = plane_track;
         break;
       }

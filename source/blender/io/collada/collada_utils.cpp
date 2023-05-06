@@ -39,7 +39,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_node.h"
@@ -719,7 +719,7 @@ float bc_get_property(Bone *bone, std::string key, float def)
         result = float(IDP_Double(property));
         break;
       case IDP_BOOLEAN:
-        result = (float)(IDP_Bool(property));
+        result = float(IDP_Bool(property));
         break;
       default:
         result = def;
@@ -769,7 +769,7 @@ void bc_enable_fcurves(bAction *act, char *bone_name)
   char prefix[200];
 
   if (bone_name) {
-    char bone_name_esc[sizeof(((Bone *)nullptr)->name) * 2];
+    char bone_name_esc[sizeof(Bone::name) * 2];
     BLI_str_escape(bone_name_esc, bone_name, sizeof(bone_name_esc));
     BLI_snprintf(prefix, sizeof(prefix), "pose.bones[\"%s\"]", bone_name_esc);
   }
@@ -865,7 +865,8 @@ bool bc_has_animations(Object *ob)
   /* Check for object, light and camera transform animations */
   if ((bc_getSceneObjectAction(ob) && bc_getSceneObjectAction(ob)->curves.first) ||
       (bc_getSceneLightAction(ob) && bc_getSceneLightAction(ob)->curves.first) ||
-      (bc_getSceneCameraAction(ob) && bc_getSceneCameraAction(ob)->curves.first)) {
+      (bc_getSceneCameraAction(ob) && bc_getSceneCameraAction(ob)->curves.first))
+  {
     return true;
   }
 
@@ -964,7 +965,8 @@ void bc_create_restpose_mat(BCExportSettings &export_settings,
 
   if (!has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_loc") &&
       !has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_rot") &&
-      !has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_scale")) {
+      !has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_scale"))
+  {
     /* No need */
     copy_m4_m4(to_mat, from_mat);
     return;

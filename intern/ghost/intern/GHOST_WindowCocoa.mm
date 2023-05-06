@@ -1,10 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
-#include "GHOST_WindowCocoa.h"
-#include "GHOST_ContextNone.h"
-#include "GHOST_Debug.h"
-#include "GHOST_SystemCocoa.h"
+#include "GHOST_WindowCocoa.hh"
+#include "GHOST_ContextNone.hh"
+#include "GHOST_Debug.hh"
+#include "GHOST_SystemCocoa.hh"
 
 /* Don't generate OpenGL deprecation warning. This is a known thing, and is not something easily
  * solvable in a short term. */
@@ -12,10 +12,10 @@
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#include "GHOST_ContextCGL.h"
+#include "GHOST_ContextCGL.hh"
 
 #ifdef WITH_VULKAN_BACKEND
-#  include "GHOST_ContextVK.h"
+#  include "GHOST_ContextVK.hh"
 #endif
 
 #include <Cocoa/Cocoa.h>
@@ -264,13 +264,13 @@
 /* NSView for handling input and drawing. */
 #define COCOA_VIEW_CLASS CocoaOpenGLView
 #define COCOA_VIEW_BASE_CLASS NSOpenGLView
-#include "GHOST_WindowViewCocoa.h"
+#include "GHOST_WindowViewCocoa.hh"
 #undef COCOA_VIEW_CLASS
 #undef COCOA_VIEW_BASE_CLASS
 
 #define COCOA_VIEW_CLASS CocoaMetalView
 #define COCOA_VIEW_BASE_CLASS NSView
-#include "GHOST_WindowViewCocoa.h"
+#include "GHOST_WindowViewCocoa.hh"
 #undef COCOA_VIEW_CLASS
 #undef COCOA_VIEW_BASE_CLASS
 
@@ -484,10 +484,12 @@ void GHOST_WindowCocoa::setTitle(const char *title)
       associatedFileName = [windowTitle substringWithRange:fileStrRange];
       [m_window setTitle:[associatedFileName lastPathComponent]];
 
-      @try {
+      @try
+      {
         [m_window setRepresentedFilename:associatedFileName];
       }
-      @catch (NSException *e) {
+      @catch (NSException *e)
+      {
         printf("\nInvalid file path given in window title");
       }
     }
@@ -815,7 +817,7 @@ GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType ty
 {
 #ifdef WITH_VULKAN_BACKEND
   if (type == GHOST_kDrawingContextTypeVulkan) {
-    GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual, m_metalLayer, 1, 0, true);
+    GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual, m_metalLayer, 1, 2, true);
 
     if (!context->initializeDrawingContext()) {
       delete context;

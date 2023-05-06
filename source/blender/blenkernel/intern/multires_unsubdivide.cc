@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -20,7 +20,8 @@
 
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
+#include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
@@ -32,7 +33,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "multires_reshape.hh"
-#include "multires_unsubdivide.h"
+#include "multires_unsubdivide.hh"
 
 /* This is done in the following steps:
  *
@@ -213,7 +214,8 @@ static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex
         BM_ITER_ELEM (neighbor_v, &iter_a, f, BM_VERTS_OF_FACE) {
           int neighbor_vertex_index = BM_elem_index_get(neighbor_v);
           if (!visited_verts[neighbor_vertex_index] && neighbor_v != diagonal_v &&
-              is_vertex_diagonal(neighbor_v, diagonal_v)) {
+              is_vertex_diagonal(neighbor_v, diagonal_v))
+          {
             BLI_gsqueue_push(queue, &neighbor_v);
             visited_verts[neighbor_vertex_index] = true;
             BM_elem_flag_set(neighbor_v, BM_ELEM_TAG, true);
@@ -642,19 +644,18 @@ static void store_grid_data(MultiresUnsubdivideContext *context,
                             int grid_y)
 {
   Mesh *original_mesh = context->original_mesh;
-  const MPoly *polys = BKE_mesh_polys(original_mesh);
-  const MLoop *loops = BKE_mesh_loops(original_mesh);
-  const MPoly *poly = &polys[BM_elem_index_get(f)];
+  const blender::OffsetIndices polys = original_mesh->polys();
+  const blender::Span<int> corner_verts = original_mesh->corner_verts();
+  const blender::IndexRange poly = polys[BM_elem_index_get(f)];
 
   const int corner_vertex_index = BM_elem_index_get(v);
 
   /* Calculates an offset to write the grids correctly oriented in the main
    * #MultiresUnsubdivideGrid. */
   int loop_offset = 0;
-  for (int i = 0; i < poly->totloop; i++) {
-    const int loop_index = poly->loopstart + i;
-    const MLoop *l = &loops[loop_index];
-    if (l->v == corner_vertex_index) {
+  for (int i = 0; i < poly.size(); i++) {
+    const int loop_index = poly[i];
+    if (corner_verts[loop_index] == corner_vertex_index) {
       loop_offset = i;
       break;
     }
@@ -667,8 +668,8 @@ static void store_grid_data(MultiresUnsubdivideContext *context,
   float(*face_grid)[3] = static_cast<float(*)[3]>(
       MEM_calloc_arrayN(face_grid_area, sizeof(float[3]), "face_grid"));
 
-  for (int i = 0; i < poly->totloop; i++) {
-    const int loop_index = poly->loopstart + i;
+  for (int i = 0; i < poly.size(); i++) {
+    const int loop_index = poly[i];
     MDisps *mdisp = &context->original_mdisp[loop_index];
     int quad_loop = i - loop_offset;
     if (quad_loop < 0) {
@@ -903,10 +904,10 @@ static void multires_unsubdivide_add_original_index_datalayers(Mesh *mesh)
   multires_unsubdivide_free_original_datalayers(mesh);
 
   int *l_index = static_cast<int *>(CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, mesh->totloop, lname));
+      &mesh->ldata, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totloop, lname));
 
   int *v_index = static_cast<int *>(CustomData_add_layer_named(
-      &mesh->vdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, mesh->totvert, vname));
+      &mesh->vdata, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totvert, vname));
 
   /* Initialize these data-layer with the indices in the current mesh. */
   for (int i = 0; i < mesh->totloop; i++) {
@@ -921,7 +922,7 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
     MultiresUnsubdivideContext *context)
 {
   Mesh *original_mesh = context->original_mesh;
-  const MPoly *original_polys = BKE_mesh_polys(original_mesh);
+  const blender::OffsetIndices original_polys = original_mesh->polys();
 
   Mesh *base_mesh = context->base_mesh;
 
@@ -939,8 +940,8 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
       bm_original_mesh, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
 
   /* Get the mapping data-layer. */
-  context->base_to_orig_vmap = static_cast<int *>(CustomData_get_layer_named_for_write(
-      &base_mesh->vdata, CD_PROP_INT32, vname, base_mesh->totvert));
+  context->base_to_orig_vmap = static_cast<const int *>(
+      CustomData_get_layer_named(&base_mesh->vdata, CD_PROP_INT32, vname));
 
   /* Tag the base mesh vertices in the original mesh. */
   for (int i = 0; i < base_mesh->totvert; i++) {
@@ -949,37 +950,30 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
     BM_elem_flag_set(v, BM_ELEM_TAG, true);
   }
 
-  /* Create a map from loop index to poly index for the original mesh. */
-  context->loop_to_face_map = static_cast<int *>(
-      MEM_calloc_arrayN(original_mesh->totloop, sizeof(int), "loop map"));
-
-  for (int i = 0; i < original_mesh->totpoly; i++) {
-    const MPoly *poly = &original_polys[i];
-    for (int l = 0; l < poly->totloop; l++) {
-      int original_loop_index = l + poly->loopstart;
-      context->loop_to_face_map[original_loop_index] = i;
-    }
-  }
+  context->loop_to_face_map = blender::bke::mesh_topology::build_loop_to_poly_map(original_polys);
 }
 
 /**
  * Checks the orientation of the loops to flip the x and y axis when extracting the grid if
  * necessary.
  */
-static bool multires_unsubdivide_flip_grid_x_axis(
-    const MPoly *polys, const MLoop *loops, int poly, int loop, int v_x)
+static bool multires_unsubdivide_flip_grid_x_axis(const blender::OffsetIndices<int> polys,
+                                                  const blender::Span<int> corner_verts,
+                                                  int poly_index,
+                                                  int loop,
+                                                  int v_x)
 {
-  const MPoly *p = &polys[poly];
+  const blender::IndexRange poly = polys[poly_index];
 
-  const MLoop *l_first = &loops[p->loopstart];
-  if ((loop == (p->loopstart + (p->totloop - 1))) && l_first->v == v_x) {
+  const int v_first = corner_verts[poly.start()];
+  if ((loop == (poly.start() + (poly.size() - 1))) && v_first == v_x) {
     return true;
   }
 
   int next_l_index = loop + 1;
-  if (next_l_index < p->loopstart + p->totloop) {
-    const MLoop *l_next = &loops[next_l_index];
-    if (l_next->v == v_x) {
+  if (next_l_index < poly.start() + poly.size()) {
+    const int v_next = corner_verts[next_l_index];
+    if (v_next == v_x) {
       return true;
     }
   }
@@ -1006,8 +1000,8 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
   int *base_to_orig_vmap = static_cast<int *>(
       MEM_calloc_arrayN(base_mesh->totvert, sizeof(int), "base vmap"));
 
-  context->base_to_orig_vmap = static_cast<int *>(CustomData_get_layer_named_for_write(
-      &base_mesh->vdata, CD_PROP_INT32, vname, base_mesh->totvert));
+  context->base_to_orig_vmap = static_cast<const int *>(
+      CustomData_get_layer_named(&base_mesh->vdata, CD_PROP_INT32, vname));
   for (int i = 0; i < base_mesh->totvert; i++) {
     base_to_orig_vmap[i] = context->base_to_orig_vmap[i];
   }
@@ -1027,8 +1021,6 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
    * so they can be used from #BMesh. */
   multires_unsubdivide_add_original_index_datalayers(base_mesh);
 
-  const int base_l_layer_index = CustomData_get_named_layer_index(
-      &base_mesh->ldata, CD_PROP_INT32, lname);
   BMesh *bm_base_mesh = get_bmesh_from_mesh(base_mesh);
   BMIter iter, iter_a, iter_b;
   BMVert *v;
@@ -1038,11 +1030,11 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
   BM_mesh_elem_table_ensure(bm_base_mesh, BM_FACE);
 
   /* Get the data-layer that contains the loops indices. */
-  const int base_l_offset = CustomData_get_n_offset(
-      &bm_base_mesh->ldata, CD_PROP_INT32, base_l_layer_index);
+  const int base_l_offset = CustomData_get_offset_named(
+      &bm_base_mesh->ldata, CD_PROP_INT32, lname);
 
-  const MPoly *polys = BKE_mesh_polys(base_mesh);
-  const MLoop *loops = BKE_mesh_loops(base_mesh);
+  const blender::OffsetIndices polys = base_mesh->polys();
+  const blender::Span<int> corner_verts = base_mesh->corner_verts();
 
   /* Main loop for extracting the grids. Iterates over the base mesh vertices. */
   BM_ITER_MESH (v, &iter, bm_base_mesh, BM_VERTS_OF_MESH) {
@@ -1072,8 +1064,8 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
         BMVert *base_corner_y = BM_vert_at_index(bm_base_mesh, corner_y_index);
         /* If this is the correct loop in the base mesh, the original vertex and the two corners
          * should be in the loop's face. */
-        if (BM_vert_in_face(base_corner_x, base_face) &&
-            BM_vert_in_face(base_corner_y, base_face)) {
+        if (BM_vert_in_face(base_corner_x, base_face) && BM_vert_in_face(base_corner_y, base_face))
+        {
           /* Get the index of the loop. */
           const int base_mesh_loop_index = BM_ELEM_CD_GET_INT(lb, base_l_offset);
           const int base_mesh_face_index = BM_elem_index_get(base_face);
@@ -1081,7 +1073,7 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
           /* Check the orientation of the loops in case that is needed to flip the x and y axis
            * when extracting the grid. */
           const bool flip_grid = multires_unsubdivide_flip_grid_x_axis(
-              polys, loops, base_mesh_face_index, base_mesh_loop_index, corner_x_index);
+              polys, corner_verts, base_mesh_face_index, base_mesh_loop_index, corner_x_index);
 
           /* Extract the grid for that loop. */
           context->base_mesh_grids[base_mesh_loop_index].grid_index = base_mesh_loop_index;
@@ -1106,7 +1098,6 @@ static void multires_unsubdivide_private_extract_data_free(MultiresUnsubdivideCo
   if (context->bm_original_mesh != nullptr) {
     BM_mesh_free(context->bm_original_mesh);
   }
-  MEM_SAFE_FREE(context->loop_to_face_map);
 }
 
 void multires_unsubdivide_context_init(MultiresUnsubdivideContext *context,
@@ -1146,7 +1137,7 @@ bool multires_unsubdivide_to_basemesh(MultiresUnsubdivideContext *context)
   context->num_total_levels = context->num_new_levels + context->num_original_levels;
 
   /* Store the new base-mesh as a mesh in context, free bmesh. */
-  context->base_mesh = BKE_mesh_new_nomain(0, 0, 0, 0, 0);
+  context->base_mesh = BKE_mesh_new_nomain(0, 0, 0, 0);
 
   BMeshToMeshParams bm_to_me_params{};
   bm_to_me_params.calc_object_remap = true;
@@ -1183,8 +1174,8 @@ static void multires_create_grids_in_unsubdivided_base_mesh(MultiresUnsubdivideC
   if (CustomData_has_layer(&base_mesh->ldata, CD_MDISPS)) {
     CustomData_free_layers(&base_mesh->ldata, CD_MDISPS, base_mesh->totloop);
   }
-  MDisps *mdisps = static_cast<MDisps *>(CustomData_add_layer(
-      &base_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, nullptr, base_mesh->totloop));
+  MDisps *mdisps = static_cast<MDisps *>(
+      CustomData_add_layer(&base_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, base_mesh->totloop));
 
   const int totdisp = pow_i(BKE_ccg_gridsize(context->num_total_levels), 2);
   const int totloop = base_mesh->totloop;
@@ -1222,8 +1213,8 @@ int multiresModifier_rebuild_subdiv(Depsgraph *depsgraph,
 
   multires_force_sculpt_rebuild(object);
 
-  MultiresUnsubdivideContext unsubdiv_context = {0};
-  MultiresReshapeContext reshape_context = {0};
+  MultiresUnsubdivideContext unsubdiv_context{};
+  MultiresReshapeContext reshape_context{};
 
   multires_unsubdivide_context_init(&unsubdiv_context, mesh, mmd);
 

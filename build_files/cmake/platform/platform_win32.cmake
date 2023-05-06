@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2016 Blender Foundation. All rights reserved.
+# Copyright 2016 Blender Foundation
 
 # Libraries configuration for Windows.
 
@@ -114,12 +114,13 @@ add_definitions(-D_WIN32_WINNT=0x603)
 # First generate the manifest for tests since it will not need the dependency on the CRT.
 configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/tests.exe.manifest @ONLY)
 
-if(WITH_WINDOWS_BUNDLE_CRT)
-  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
-  set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
-  set(CMAKE_INSTALL_OPENMP_LIBRARIES ${WITH_OPENMP})
-  include(InstallRequiredSystemLibraries)
+# Always detect CRT paths, but only manually install with WITH_WINDOWS_BUNDLE_CRT.
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
+set(CMAKE_INSTALL_OPENMP_LIBRARIES ${WITH_OPENMP})
+include(InstallRequiredSystemLibraries)
 
+if(WITH_WINDOWS_BUNDLE_CRT)
   # ucrtbase(d).dll cannot be in the manifest, due to the way windows 10 handles
   # redirects for this dll, for details see #88813.
   foreach(lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
@@ -141,7 +142,9 @@ if(WITH_WINDOWS_BUNDLE_CRT)
   install(FILES ${CMAKE_BINARY_DIR}/blender.crt.manifest DESTINATION ./blender.crt)
   set(BUNDLECRT "<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.crt\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
 endif()
-set(BUNDLECRT "${BUNDLECRT}<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.shared\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
+if(NOT WITH_PYTHON_MODULE)
+  set(BUNDLECRT "${BUNDLECRT}<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.shared\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
+endif()
 configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/blender.exe.manifest @ONLY)
 
 
@@ -178,8 +181,8 @@ if(NOT MSVC_CLANG)
 endif()
 
 if(WITH_WINDOWS_SCCACHE AND CMAKE_VS_MSBUILD_COMMAND)
-    message(WARNING "Disabling sccache, sccache is not supported with msbuild")
-    set(WITH_WINDOWS_SCCACHE OFF)
+  message(WARNING "Disabling sccache, sccache is not supported with msbuild")
+  set(WITH_WINDOWS_SCCACHE OFF)
 endif()
 
 # Debug Symbol format
@@ -484,14 +487,12 @@ if(WITH_IMAGE_OPENEXR)
   endif()
 endif()
 
-if(WITH_IMAGE_TIFF)
-  # Try to find tiff first then complain and set static and maybe wrong paths
-  windows_find_package(TIFF)
-  if(NOT TIFF_FOUND)
-    warn_hardcoded_paths(libtiff)
-    set(TIFF_LIBRARY ${LIBDIR}/tiff/lib/libtiff.lib)
-    set(TIFF_INCLUDE_DIR ${LIBDIR}/tiff/include)
-  endif()
+# Try to find tiff first then complain and set static and maybe wrong paths
+windows_find_package(TIFF)
+if(NOT TIFF_FOUND)
+  warn_hardcoded_paths(libtiff)
+  set(TIFF_LIBRARY ${LIBDIR}/tiff/lib/libtiff.lib)
+  set(TIFF_INCLUDE_DIR ${LIBDIR}/tiff/include)
 endif()
 
 if(WITH_JACK)
@@ -522,6 +523,28 @@ if(WITH_PYTHON)
   set(PYTHON_LIBRARIES debug "${PYTHON_LIBRARY_DEBUG}" optimized "${PYTHON_LIBRARY}" )
 endif()
 
+if(NOT WITH_WINDOWS_FIND_MODULES)
+  # even if boost is off, we still need to install the dlls when we use our lib folder since
+  # some of the other dependencies may need them. For this to work, BOOST_VERSION,
+  # BOOST_POSTFIX, and BOOST_DEBUG_POSTFIX need to be set.
+  set(BOOST ${LIBDIR}/boost)
+  set(BOOST_INCLUDE_DIR ${BOOST}/include)
+  set(BOOST_LIBPATH ${BOOST}/lib)
+  set(BOOST_VERSION_HEADER ${BOOST_INCLUDE_DIR}/boost/version.hpp)
+  if(EXISTS ${BOOST_VERSION_HEADER})
+    file(STRINGS "${BOOST_VERSION_HEADER}" BOOST_LIB_VERSION REGEX "#define BOOST_LIB_VERSION ")
+    if(BOOST_LIB_VERSION MATCHES "#define BOOST_LIB_VERSION \"([0-9_]+)\"")
+      set(BOOST_VERSION "${CMAKE_MATCH_1}")
+    endif()
+  endif()
+  if(NOT BOOST_VERSION)
+    message(FATAL_ERROR "Unable to determine Boost version")
+  endif()
+  set(BOOST_POSTFIX "vc142-mt-x64-${BOOST_VERSION}")
+  set(BOOST_DEBUG_POSTFIX "vc142-mt-gyd-x64-${BOOST_VERSION}")
+  set(BOOST_PREFIX "")
+endif()
+
 if(WITH_BOOST)
   if(WITH_CYCLES AND WITH_CYCLES_OSL)
     set(boost_extra_libs wave)
@@ -537,22 +560,6 @@ if(WITH_BOOST)
   endif()
   if(NOT Boost_FOUND)
     warn_hardcoded_paths(BOOST)
-    set(BOOST ${LIBDIR}/boost)
-    set(BOOST_INCLUDE_DIR ${BOOST}/include)
-    set(BOOST_LIBPATH ${BOOST}/lib)
-    set(BOOST_VERSION_HEADER ${BOOST_INCLUDE_DIR}/boost/version.hpp)
-    if(EXISTS ${BOOST_VERSION_HEADER})
-      file(STRINGS "${BOOST_VERSION_HEADER}" BOOST_LIB_VERSION REGEX "#define BOOST_LIB_VERSION ")
-      if(BOOST_LIB_VERSION MATCHES "#define BOOST_LIB_VERSION \"([0-9_]+)\"")
-        set(BOOST_VERSION "${CMAKE_MATCH_1}")
-      endif()
-    endif()
-    if(NOT BOOST_VERSION)
-      message(FATAL_ERROR "Unable to determine Boost version")
-    endif()
-    set(BOOST_POSTFIX "vc142-mt-x64-${BOOST_VERSION}")
-    set(BOOST_DEBUG_POSTFIX "vc142-mt-gyd-x64-${BOOST_VERSION}")
-    set(BOOST_PREFIX "")
     # This is file new in 3.4 if it does not exist, assume we are building against 3.3 libs
     set(BOOST_34_TRIGGER_FILE ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python310-${BOOST_DEBUG_POSTFIX}.lib)
     if(NOT EXISTS ${BOOST_34_TRIGGER_FILE})
@@ -602,25 +609,18 @@ if(WITH_BOOST)
   set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 endif()
 
-if(WITH_OPENIMAGEIO)
-  windows_find_package(OpenImageIO)
-  if(NOT OpenImageIO_FOUND)
-    set(OPENIMAGEIO ${LIBDIR}/OpenImageIO)
-    set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
-    set(OPENIMAGEIO_INCLUDE_DIR ${OPENIMAGEIO}/include)
-    set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO_INCLUDE_DIR})
-    set(OIIO_OPTIMIZED optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO.lib optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util.lib)
-    set(OIIO_DEBUG debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_d.lib debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util_d.lib)
-    set(OPENIMAGEIO_LIBRARIES ${OIIO_OPTIMIZED} ${OIIO_DEBUG})
-  endif()
-  set(OPENIMAGEIO_DEFINITIONS "-DUSE_TBB=0")
+windows_find_package(OpenImageIO)
+if(NOT OpenImageIO_FOUND)
+  set(OPENIMAGEIO ${LIBDIR}/OpenImageIO)
+  set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
+  set(OPENIMAGEIO_INCLUDE_DIR ${OPENIMAGEIO}/include)
+  set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO_INCLUDE_DIR})
+  set(OIIO_OPTIMIZED optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO.lib optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util.lib)
+  set(OIIO_DEBUG debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_d.lib debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util_d.lib)
+  set(OPENIMAGEIO_LIBRARIES ${OIIO_OPTIMIZED} ${OIIO_DEBUG})
   set(OPENIMAGEIO_IDIFF "${OPENIMAGEIO}/bin/idiff.exe")
-  # If the .dll does not exist, assume it is a static OIIO
-  if(NOT EXISTS ${OPENIMAGEIO}/bin/OpenImageIO.dll)
-    add_definitions(-DOIIO_STATIC_DEFINE)
-  endif()
-  add_definitions(-DOIIO_NO_SSE=1)
 endif()
+add_definitions(-DOIIO_NO_SSE=1)
 
 if(WITH_LLVM)
   set(LLVM_ROOT_DIR ${LIBDIR}/llvm CACHE PATH "Path to the LLVM installation")
@@ -848,27 +848,75 @@ endif()
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
   windows_find_package(Embree)
   if(NOT Embree_FOUND)
+    set(EMBREE_ROOT_DIR ${LIBDIR}/embree)
     set(EMBREE_INCLUDE_DIRS ${LIBDIR}/embree/include)
-    set(EMBREE_LIBRARIES
-      optimized ${LIBDIR}/embree/lib/embree3.lib
-      optimized ${LIBDIR}/embree/lib/embree_avx2.lib
-      optimized ${LIBDIR}/embree/lib/embree_avx.lib
-      optimized ${LIBDIR}/embree/lib/embree_sse42.lib
-      optimized ${LIBDIR}/embree/lib/lexers.lib
-      optimized ${LIBDIR}/embree/lib/math.lib
-      optimized ${LIBDIR}/embree/lib/simd.lib
-      optimized ${LIBDIR}/embree/lib/sys.lib
-      optimized ${LIBDIR}/embree/lib/tasking.lib
 
-      debug ${LIBDIR}/embree/lib/embree3_d.lib
-      debug ${LIBDIR}/embree/lib/embree_avx2_d.lib
-      debug ${LIBDIR}/embree/lib/embree_avx_d.lib
-      debug ${LIBDIR}/embree/lib/embree_sse42_d.lib
-      debug ${LIBDIR}/embree/lib/lexers_d.lib
-      debug ${LIBDIR}/embree/lib/math_d.lib
-      debug ${LIBDIR}/embree/lib/simd_d.lib
-      debug ${LIBDIR}/embree/lib/sys_d.lib
-      debug ${LIBDIR}/embree/lib/tasking_d.lib
+    if(EXISTS ${LIBDIR}/embree/include/embree4/rtcore_config.h)
+      set(EMBREE_MAJOR_VERSION 4)
+    else()
+      set(EMBREE_MAJOR_VERSION 3)
+    endif()
+
+    file(READ ${LIBDIR}/embree/include/embree${EMBREE_MAJOR_VERSION}/rtcore_config.h _embree_config_header)
+    if(_embree_config_header MATCHES "#define EMBREE_STATIC_LIB")
+      set(EMBREE_STATIC_LIB TRUE)
+    else()
+      set(EMBREE_STATIC_LIB FALSE)
+    endif()
+
+    if(_embree_config_header MATCHES "#define EMBREE_SYCL_SUPPORT")
+      set(EMBREE_SYCL_SUPPORT TRUE)
+    else()
+      set(EMBREE_SYCL_SUPPORT FALSE)
+    endif()
+
+    set(EMBREE_LIBRARIES
+      optimized ${LIBDIR}/embree/lib/embree${EMBREE_MAJOR_VERSION}.lib
+      debug ${LIBDIR}/embree/lib/embree${EMBREE_MAJOR_VERSION}_d.lib
+    )
+
+    if(EMBREE_SYCL_SUPPORT)
+      set(EMBREE_LIBRARIES
+        ${EMBREE_LIBRARIES}
+        optimized ${LIBDIR}/embree/lib/embree4_sycl.lib
+        debug ${LIBDIR}/embree/lib/embree4_sycl_d.lib
+      )
+    endif()
+
+    if(EMBREE_STATIC_LIB)
+      set(EMBREE_LIBRARIES
+        ${EMBREE_LIBRARIES}
+        optimized ${LIBDIR}/embree/lib/embree_avx2.lib
+        optimized ${LIBDIR}/embree/lib/embree_avx.lib
+        optimized ${LIBDIR}/embree/lib/embree_sse42.lib
+        optimized ${LIBDIR}/embree/lib/lexers.lib
+        optimized ${LIBDIR}/embree/lib/math.lib
+        optimized ${LIBDIR}/embree/lib/simd.lib
+        optimized ${LIBDIR}/embree/lib/sys.lib
+        optimized ${LIBDIR}/embree/lib/tasking.lib
+        debug ${LIBDIR}/embree/lib/embree_avx2_d.lib
+        debug ${LIBDIR}/embree/lib/embree_avx_d.lib
+        debug ${LIBDIR}/embree/lib/embree_sse42_d.lib
+        debug ${LIBDIR}/embree/lib/lexers_d.lib
+        debug ${LIBDIR}/embree/lib/math_d.lib
+        debug ${LIBDIR}/embree/lib/simd_d.lib
+        debug ${LIBDIR}/embree/lib/sys_d.lib
+        debug ${LIBDIR}/embree/lib/tasking_d.lib
+      )
+
+      if(EMBREE_SYCL_SUPPORT)
+        set(EMBREE_LIBRARIES
+          ${EMBREE_LIBRARIES}
+          optimized ${LIBDIR}/embree/lib/embree_rthwif.lib
+          debug ${LIBDIR}/embree/lib/embree_rthwif_d.lib
+        )
+      endif()
+    endif()
+  endif()
+  if(NOT EMBREE_STATIC_LIB)
+    list(APPEND PLATFORM_BUNDLED_LIBRARIES
+      RELEASE ${EMBREE_ROOT_DIR}/bin/embree${EMBREE_MAJOR_VERSION}.dll
+      DEBUG ${EMBREE_ROOT_DIR}/bin/embree${EMBREE_MAJOR_VERSION}_d.dll
     )
   endif()
 endif()
@@ -994,6 +1042,23 @@ if(WITH_VULKAN_BACKEND)
   endif()
 endif()
 
+if(WITH_VULKAN_BACKEND)
+  if(EXISTS ${LIBDIR}/shaderc)
+    set(SHADERC_FOUND On)
+    set(SHADERC_ROOT_DIR ${LIBDIR}/shaderc)
+    set(SHADERC_INCLUDE_DIR ${SHADERC_ROOT_DIR}/include)
+    set(SHADERC_INCLUDE_DIRS ${SHADERC_INCLUDE_DIR})
+    set(SHADERC_LIBRARY
+      DEBUG ${SHADERC_ROOT_DIR}/lib/shaderc_shared_d.lib
+      OPTIMIZED ${SHADERC_ROOT_DIR}/lib/shaderc_shared.lib
+    )
+    set(SHADERC_LIBRARIES ${SHADERC_LIBRARY})
+  else()
+    message(WARNING "Shaderc was not found, disabling WITH_VULKAN_BACKEND")
+    set(WITH_VULKAN_BACKEND OFF)
+  endif()
+endif()
+
 if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
   find_package(openpgl QUIET)
   if(openpgl_FOUND)
@@ -1010,7 +1075,7 @@ endif()
 set(ZSTD_INCLUDE_DIRS ${LIBDIR}/zstd/include)
 set(ZSTD_LIBRARIES ${LIBDIR}/zstd/lib/zstd_static.lib)
 
-if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
+if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_SYCL_SUPPORT)))
   set(LEVEL_ZERO_ROOT_DIR ${LIBDIR}/level_zero)
   set(CYCLES_SYCL ${LIBDIR}/dpcpp CACHE PATH "Path to oneAPI DPC++ compiler")
   if(EXISTS ${CYCLES_SYCL} AND NOT SYCL_ROOT_DIR)
@@ -1021,8 +1086,9 @@ if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
     ${SYCL_ROOT_DIR}/bin/sycl[0-9].dll
   )
   foreach(sycl_runtime_library IN LISTS _sycl_runtime_libraries_glob)
-    string(REPLACE ".dll" "$<$<CONFIG:Debug>:d>.dll" sycl_runtime_library ${sycl_runtime_library})
-    list(APPEND _sycl_runtime_libraries ${sycl_runtime_library})
+    string(REPLACE ".dll" "d.dll" sycl_runtime_library_debug ${sycl_runtime_library})
+    list(APPEND _sycl_runtime_libraries RELEASE ${sycl_runtime_library})
+    list(APPEND _sycl_runtime_libraries DEBUG ${sycl_runtime_library_debug})
   endforeach()
   unset(_sycl_runtime_libraries_glob)
 
@@ -1035,12 +1101,14 @@ if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
 
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
+
+  set(SYCL_LIBRARIES optimized ${SYCL_LIBRARY} debug ${SYCL_LIBRARY_DEBUG})
 endif()
 
 
 # Environment variables to run precompiled executables that needed libraries.
 list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ";" _library_paths)
-set(PLATFORM_ENV_BUILD_DIRS "${LIBDIR}/OpenImageIO/bin\;${LIBDIR}/boost/lib\;${LIBDIR}/openexr/bin\;${LIBDIR}/imath/bin\;${PATH}")
+set(PLATFORM_ENV_BUILD_DIRS "${LIBDIR}/tbb/bin\;${LIBDIR}/OpenImageIO/bin\;${LIBDIR}/boost/lib\;${LIBDIR}/openexr/bin\;${LIBDIR}/imath/bin\;${PATH}")
 set(PLATFORM_ENV_BUILD "PATH=${PLATFORM_ENV_BUILD_DIRS}")
 # Install needs the additional folders from PLATFORM_ENV_BUILD_DIRS as well, as tools like idiff and abcls use the release mode dlls
 set(PLATFORM_ENV_INSTALL "PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/blender.shared/\;${PLATFORM_ENV_BUILD_DIRS}\;$ENV{PATH}")

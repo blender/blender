@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_attribute_math.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "BLI_map.hh"
 #include "BLI_set.hh"
@@ -25,7 +25,7 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
                                     const Span<int> next_indices,
                                     MutableSpan<bool> r_selection)
 {
-  const Span<MEdge> edges = src_mesh.edges();
+  const Span<int2> edges = src_mesh.edges();
 
   Array<bool> selection(src_mesh.totvert, false);
 
@@ -45,9 +45,10 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
   }
 
   for (const int i : edges.index_range()) {
-    const MEdge &edge = edges[i];
-    if ((selection[edge.v1] && selection[edge.v2]) &&
-        (edge.v1 == next_indices[edge.v2] || edge.v2 == next_indices[edge.v1])) {
+    const int2 &edge = edges[i];
+    if ((selection[edge[0]] && selection[edge[1]]) &&
+        (edge[0] == next_indices[edge[1]] || edge[1] == next_indices[edge[0]]))
+    {
       r_selection[i] = true;
     }
   }
@@ -71,7 +72,7 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask /*mask*/) const final
   {
-    bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
+    const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator evaluator{context, mesh.totvert};
     evaluator.add(next_vertex_);
     evaluator.add(start_vertices_);
@@ -106,7 +107,8 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const PathToEdgeSelectionFieldInput *other_field =
-            dynamic_cast<const PathToEdgeSelectionFieldInput *>(&other)) {
+            dynamic_cast<const PathToEdgeSelectionFieldInput *>(&other))
+    {
       return other_field->start_vertices_ == start_vertices_ &&
              other_field->next_vertex_ == next_vertex_;
     }

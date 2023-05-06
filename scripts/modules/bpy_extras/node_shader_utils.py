@@ -372,7 +372,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             self, self.node_principled_bsdf,
             self.node_principled_bsdf.inputs["Metallic"],
             grid_row_diff=0,
-            colorspace_name='Non-Color',
+            colorspace_name="Non-Color",
         )
 
     metallic_texture = property(metallic_texture_get)
@@ -671,6 +671,7 @@ class ShaderImageTextureWrapper():
             tree.links.new(node_image.outputs["Alpha" if self.use_alpha else "Color"], self.socket_dst)
             if self.use_alpha:
                 self.owner_shader.material.blend_method = 'BLEND'
+                self.owner_shader.material.show_transparent_back = False
 
             self._node_image = node_image
         return self._node_image
@@ -783,32 +784,32 @@ class ShaderImageTextureWrapper():
     def translation_get(self):
         if self.node_mapping is None:
             return Vector((0.0, 0.0, 0.0))
-        return self.node_mapping.inputs['Location'].default_value
+        return self.node_mapping.inputs["Location"].default_value
 
     @_set_check
     def translation_set(self, translation):
-        self.node_mapping.inputs['Location'].default_value = translation
+        self.node_mapping.inputs["Location"].default_value = translation
 
     translation = property(translation_get, translation_set)
 
     def rotation_get(self):
         if self.node_mapping is None:
             return Vector((0.0, 0.0, 0.0))
-        return self.node_mapping.inputs['Rotation'].default_value
+        return self.node_mapping.inputs["Rotation"].default_value
 
     @_set_check
     def rotation_set(self, rotation):
-        self.node_mapping.inputs['Rotation'].default_value = rotation
+        self.node_mapping.inputs["Rotation"].default_value = rotation
 
     rotation = property(rotation_get, rotation_set)
 
     def scale_get(self):
         if self.node_mapping is None:
             return Vector((1.0, 1.0, 1.0))
-        return self.node_mapping.inputs['Scale'].default_value
+        return self.node_mapping.inputs["Scale"].default_value
 
     @_set_check
     def scale_set(self, scale):
-        self.node_mapping.inputs['Scale'].default_value = scale
+        self.node_mapping.inputs["Scale"].default_value = scale
 
     scale = property(scale_get, scale_set)

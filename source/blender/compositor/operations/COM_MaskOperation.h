@@ -63,6 +63,14 @@ class MaskOperation : public MultiThreadedOperation {
     mask_height_inv_ = 1.0f / (float)height;
     mask_px_ofs_[1] = mask_height_inv_ * 0.5f;
   }
+  int get_mask_width()
+  {
+    return mask_width_;
+  }
+  int get_mask_height()
+  {
+    return mask_height_;
+  }
   void set_framenumber(int frame_number)
   {
     frame_number_ = frame_number;

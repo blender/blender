@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup sequencer
@@ -141,7 +141,7 @@ static DiskCacheFile *seq_disk_cache_add_file_to_list(SeqDiskCache *disk_cache, 
 
   DiskCacheFile *cache_file = MEM_callocN(sizeof(DiskCacheFile), "SeqDiskCacheFile");
   char dir[FILE_MAXDIR], file[FILE_MAX];
-  BLI_split_dirfile(path, dir, file, sizeof(dir), sizeof(file));
+  BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
   BLI_strncpy(cache_file->path, path, sizeof(cache_file->path));
   BLI_strncpy(cache_file->dir, dir, sizeof(cache_file->dir));
   BLI_strncpy(cache_file->file, file, sizeof(cache_file->file));
@@ -176,7 +176,7 @@ static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, char *path)
     }
 
     char file[FILE_MAX];
-    BLI_split_dirfile(fl->path, NULL, file, 0, sizeof(file));
+    BLI_path_split_file_part(fl->path, file, sizeof(file));
 
     bool is_dir = BLI_is_dir(fl->path);
     if (is_dir && !FILENAME_IS_CURRPAR(file)) {
@@ -287,7 +287,8 @@ static void seq_disk_cache_update_file(SeqDiskCache *disk_cache, char *path)
 static void seq_disk_cache_get_project_dir(SeqDiskCache *disk_cache, char *path, size_t path_len)
 {
   char cache_dir[FILE_MAX];
-  BLI_split_file_part(BKE_main_blendfile_path(disk_cache->bmain), cache_dir, sizeof(cache_dir));
+  BLI_path_split_file_part(
+      BKE_main_blendfile_path(disk_cache->bmain), cache_dir, sizeof(cache_dir));
   /* Use suffix, so that the cache directory name does not conflict with the bmain's blend file. */
   const char *suffix = "_seq_cache";
   strncat(cache_dir, suffix, sizeof(cache_dir) - strlen(cache_dir) - 1);
@@ -306,8 +307,8 @@ static void seq_disk_cache_get_dir(
   BLI_snprintf(
       scene_name, sizeof(scene_name), "%s-%" PRId64, scene->id.name, disk_cache->timestamp);
   BLI_strncpy(seq_name, seq->name, sizeof(seq_name));
-  BLI_filename_make_safe(scene_name);
-  BLI_filename_make_safe(seq_name);
+  BLI_path_make_safe_filename(scene_name);
+  BLI_path_make_safe_filename(seq_name);
 
   BLI_path_join(path, path_len, project_dir, scene_name, seq_name);
 }
@@ -333,11 +334,11 @@ static void seq_disk_cache_get_file_path(SeqDiskCache *disk_cache,
   BLI_path_append(path, path_len, cache_filename);
 }
 
-static void seq_disk_cache_create_version_file(char *path)
+static void seq_disk_cache_create_version_file(char *filepath)
 {
-  BLI_make_existing_file(path);
+  BLI_file_ensure_parent_dir_exists(filepath);
 
-  FILE *file = BLI_fopen(path, "w");
+  FILE *file = BLI_fopen(filepath, "w");
   if (file) {
     fprintf(file, "%d", DCACHE_CURRENT_VERSION);
     fclose(file);
@@ -552,8 +553,9 @@ bool seq_disk_cache_write_file(SeqDiskCache *disk_cache, SeqCacheKey *key, ImBuf
   char filepath[FILE_MAX];
 
   seq_disk_cache_get_file_path(disk_cache, key, filepath, sizeof(filepath));
-  BLI_make_existing_file(filepath);
+  BLI_file_ensure_parent_dir_exists(filepath);
 
+  /* Touch the file. */
   FILE *file = BLI_fopen(filepath, "rb+");
   if (!file) {
     file = BLI_fopen(filepath, "wb+");
@@ -567,8 +569,8 @@ bool seq_disk_cache_write_file(SeqDiskCache *disk_cache, SeqCacheKey *key, ImBuf
   DiskCacheFile *cache_file = seq_disk_cache_get_file_entry_by_path(disk_cache, filepath);
   DiskCacheHeader header;
   memset(&header, 0, sizeof(header));
-  /* #BLI_make_existing_file() above may create an empty file. This is fine, don't attempt reading
-   * the header in that case. */
+  /* The file may be empty when touched (above).
+   * This is fine, don't attempt reading the header in that case. */
   if (cache_file->fstat.st_size != 0 && !seq_disk_cache_read_header(file, &header)) {
     fclose(file);
     seq_disk_cache_delete_file(disk_cache, cache_file);
@@ -605,7 +607,7 @@ ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key)
   DiskCacheHeader header;
 
   seq_disk_cache_get_file_path(disk_cache, key, filepath, sizeof(filepath));
-  BLI_make_existing_file(filepath);
+  BLI_file_ensure_parent_dir_exists(filepath);
 
   FILE *file = BLI_fopen(filepath, "rb");
   if (!file) {

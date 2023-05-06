@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup shdnodes
@@ -33,7 +33,7 @@ void register_node_type_sh_invert()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR);
+  sh_node_type_base(&ntype, SH_NODE_INVERT, "Invert Color", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::gpu_shader_invert;
 

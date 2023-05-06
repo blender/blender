@@ -45,7 +45,8 @@ template<class Point> class Polygon {
     Point p;
     for (typename vector<Point>::const_iterator it = poly.getVertices().begin();
          it != poly.getVertices().end();
-         it++) {
+         it++)
+    {
       p = *it;
       _vertices.push_back(p);
     }
@@ -56,9 +57,7 @@ template<class Point> class Polygon {
     userdata2 = 0;
   }
 
-  virtual ~Polygon()
-  {
-  }
+  virtual ~Polygon() {}
 
   //
   // Accessors
@@ -105,8 +104,8 @@ template<class Point> class Polygon {
   {
     _vertices.clear();
     Point p;
-    for (typename vector<Point>::const_iterator it = vertices.begin(); it != vertices.end();
-         it++) {
+    for (typename vector<Point>::const_iterator it = vertices.begin(); it != vertices.end(); it++)
+    {
       p = *it;
       _vertices.push_back(p);
     }
@@ -164,22 +163,16 @@ template<class Point> class Polygon {
 ///////////////////////////////////////////////////////////////////////////////
 class Polygon3r : public Polygon<Vec3r> {
  public:
-  inline Polygon3r() : Polygon<Vec3r>()
-  {
-  }
+  inline Polygon3r() : Polygon<Vec3r>() {}
 
   inline Polygon3r(const vector<Vec3r> &vertices, const Vec3r &normal) : Polygon<Vec3r>(vertices)
   {
     setNormal(normal);
   }
 
-  inline Polygon3r(const Polygon3r &poly) : Polygon<Vec3r>(poly), _normal(poly._normal)
-  {
-  }
+  inline Polygon3r(const Polygon3r &poly) : Polygon<Vec3r>(poly), _normal(poly._normal) {}
 
-  virtual ~Polygon3r()
-  {
-  }
+  virtual ~Polygon3r() {}
 
   void setNormal(const Vec3r &normal)
   {

@@ -339,9 +339,7 @@ void IK_QSphericalSegment::UpdateAngleApply()
 
 // IK_QNullSegment
 
-IK_QNullSegment::IK_QNullSegment() : IK_QSegment(0, false)
-{
-}
+IK_QNullSegment::IK_QNullSegment() : IK_QSegment(0, false) {}
 
 // IK_QRevoluteSegment
 
@@ -427,9 +425,7 @@ void IK_QRevoluteSegment::SetWeight(int axis, double weight)
 
 // IK_QSwingSegment
 
-IK_QSwingSegment::IK_QSwingSegment() : IK_QSegment(2, false), m_limit_x(false), m_limit_z(false)
-{
-}
+IK_QSwingSegment::IK_QSwingSegment() : IK_QSegment(2, false), m_limit_x(false), m_limit_z(false) {}
 
 void IK_QSwingSegment::SetBasis(const Matrix3d &basis)
 {

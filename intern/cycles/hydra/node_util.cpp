@@ -370,6 +370,16 @@ VtValue convertFromCyclesArray(const array<SrcType> &value)
   return VtValue(convertedValue);
 }
 
+template<> VtValue convertFromCyclesArray<float2, GfVec2f>(const array<float2> &value)
+{
+  VtVec2fArray convertedValue;
+  convertedValue.reserve(value.size());
+  for (const auto &element : value) {
+    convertedValue.push_back(GfVec2f(element.x, element.y));
+  }
+  return VtValue(convertedValue);
+}
+
 template<> VtValue convertFromCyclesArray<float3, GfVec3f>(const array<float3> &value)
 {
   VtVec3fArray convertedValue;

@@ -17,6 +17,7 @@ FN_FIELD_CPP_TYPE_MAKE(blender::ColorGeometry4b);
 FN_FIELD_CPP_TYPE_MAKE(bool);
 FN_FIELD_CPP_TYPE_MAKE(int8_t);
 FN_FIELD_CPP_TYPE_MAKE(int32_t);
+FN_FIELD_CPP_TYPE_MAKE(blender::int2);
 FN_FIELD_CPP_TYPE_MAKE(std::string);
 
 BLI_VECTOR_CPP_TYPE_MAKE(blender::fn::ValueOrField<std::string>);
@@ -31,6 +32,7 @@ void FN_register_cpp_types()
   FN_FIELD_CPP_TYPE_REGISTER(bool);
   FN_FIELD_CPP_TYPE_REGISTER(int8_t);
   FN_FIELD_CPP_TYPE_REGISTER(int32_t);
+  FN_FIELD_CPP_TYPE_REGISTER(blender::int2);
   FN_FIELD_CPP_TYPE_REGISTER(std::string);
 
   BLI_VECTOR_CPP_TYPE_REGISTER(blender::fn::ValueOrField<std::string>);

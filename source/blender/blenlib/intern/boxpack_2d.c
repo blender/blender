@@ -266,7 +266,8 @@ static int vertex_sort(const void *p1, const void *p2, void *vs_ctx_p)
 
 /** \} */
 
-void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r_tot_y)
+void BLI_box_pack_2d(
+    BoxPack *boxarray, const uint len, const bool sort_boxes, float *r_tot_x, float *r_tot_y)
 {
   uint box_index, verts_pack_len, i, j, k;
   uint *vertex_pack_indices; /* an array of indices used for sorting verts */
@@ -284,8 +285,11 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
     return;
   }
 
-  /* Sort boxes, biggest first */
-  qsort(boxarray, (size_t)len, sizeof(BoxPack), box_areasort);
+  if (sort_boxes) {
+    /* Sort boxes, biggest first.
+     * Be careful, qsort is not deterministic! */
+    qsort(boxarray, (size_t)len, sizeof(BoxPack), box_areasort);
+  }
 
   /* Add verts to the boxes, these are only used internally. */
   vert = MEM_mallocN(sizeof(BoxVert[4]) * (size_t)len, "BoxPack Verts");
@@ -420,7 +424,8 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
           if (/* Constrain boxes to positive X/Y values */
               box_xmin_get(box) < 0.0f || box_ymin_get(box) < 0.0f ||
               /* check for last intersected */
-              (vert->isect_cache[j] && box_isect(box, vert->isect_cache[j]))) {
+              (vert->isect_cache[j] && box_isect(box, vert->isect_cache[j])))
+          {
             /* Here we check that the last intersected
              * box will intersect with this one using
              * isect_cache that can store a pointer to a

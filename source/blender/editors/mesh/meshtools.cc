@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+ * Copyright 2004 Blender Foundation */
 
 /** \file
  * \ingroup edmesh
@@ -33,7 +33,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_multires.h"
@@ -56,6 +56,7 @@
 #include "WM_types.h"
 
 using blender::float3;
+using blender::int2;
 using blender::MutableSpan;
 using blender::Span;
 
@@ -73,9 +74,10 @@ static void join_mesh_single(Depsgraph *depsgraph,
                              Object *ob_src,
                              const float imat[4][4],
                              float3 **vert_positions_pp,
-                             MEdge **medge_pp,
-                             MLoop **mloop_pp,
-                             MPoly **mpoly_pp,
+                             blender::int2 **medge_pp,
+                             int **corner_verts_pp,
+                             int **corner_edges_pp,
+                             int *all_poly_offsets,
                              CustomData *vdata,
                              CustomData *edata,
                              CustomData *ldata,
@@ -98,13 +100,13 @@ static void join_mesh_single(Depsgraph *depsgraph,
 
   Mesh *me = static_cast<Mesh *>(ob_src->data);
   float3 *vert_positions = *vert_positions_pp;
-  MEdge *medge = *medge_pp;
-  MLoop *mloop = *mloop_pp;
-  MPoly *mpoly = *mpoly_pp;
+  blender::int2 *edge = *medge_pp;
+  int *corner_verts = *corner_verts_pp;
+  int *corner_edges = *corner_edges_pp;
 
   if (me->totvert) {
     /* standard data */
-    CustomData_merge(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
+    CustomData_merge_layout(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
     CustomData_copy_data_named(&me->vdata, vdata, 0, *vertofs, me->totvert);
 
     /* vertex groups */
@@ -204,12 +206,11 @@ static void join_mesh_single(Depsgraph *depsgraph,
   }
 
   if (me->totedge) {
-    CustomData_merge(&me->edata, edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
+    CustomData_merge_layout(&me->edata, edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
     CustomData_copy_data_named(&me->edata, edata, 0, *edgeofs, me->totedge);
 
-    for (a = 0; a < me->totedge; a++, medge++) {
-      medge->v1 += *vertofs;
-      medge->v2 += *vertofs;
+    for (a = 0; a < me->totedge; a++, edge++) {
+      (*edge) += *vertofs;
     }
   }
 
@@ -225,12 +226,12 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    CustomData_merge(&me->ldata, ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
+    CustomData_merge_layout(&me->ldata, ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
     CustomData_copy_data_named(&me->ldata, ldata, 0, *loopofs, me->totloop);
 
-    for (a = 0; a < me->totloop; a++, mloop++) {
-      mloop->v += *vertofs;
-      mloop->e += *edgeofs;
+    for (a = 0; a < me->totloop; a++) {
+      corner_verts[a] += *vertofs;
+      corner_edges[a] += *edgeofs;
     }
   }
 
@@ -249,7 +250,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    CustomData_merge(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
+    CustomData_merge_layout(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
     CustomData_copy_data_named(&me->pdata, pdata, 0, *polyofs, me->totpoly);
 
     /* Apply matmap. In case we don't have material indices yet, create them if more than one
@@ -258,7 +259,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
         CustomData_get_layer_named_for_write(pdata, CD_PROP_INT32, "material_index", totpoly));
     if (!material_indices && totcol > 1) {
       material_indices = (int *)CustomData_add_layer_named(
-          pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, totpoly, "material_index");
+          pdata, CD_PROP_INT32, CD_SET_DEFAULT, totpoly, "material_index");
     }
     if (material_indices) {
       for (a = 0; a < me->totpoly; a++) {
@@ -266,8 +267,10 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    for (a = 0; a < me->totpoly; a++, mpoly++) {
-      mpoly->loopstart += *loopofs;
+    const Span<int> src_poly_offsets = me->poly_offsets();
+    int *poly_offsets = all_poly_offsets + *polyofs;
+    for (const int i : blender::IndexRange(me->totpoly)) {
+      poly_offsets[i] = src_poly_offsets[i] + *loopofs;
     }
 
     /* Face maps. */
@@ -294,9 +297,9 @@ static void join_mesh_single(Depsgraph *depsgraph,
   *edgeofs += me->totedge;
   *medge_pp += me->totedge;
   *loopofs += me->totloop;
-  *mloop_pp += me->totloop;
+  *corner_verts_pp += me->totloop;
+  *corner_edges_pp += me->totloop;
   *polyofs += me->totpoly;
-  *mpoly_pp += me->totpoly;
 }
 
 /* Face Sets IDs are a sparse sequence, so this function offsets all the IDs by face_set_offset and
@@ -333,9 +336,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Material **matar = nullptr, *ma;
   Mesh *me;
-  MEdge *medge = nullptr;
-  MPoly *mpoly = nullptr;
-  MLoop *mloop = nullptr;
+  blender::int2 *edge = nullptr;
   Key *key, *nkey = nullptr;
   float imat[4][4];
   int a, b, totcol, totmat = 0, totedge = 0, totvert = 0;
@@ -415,14 +416,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
                 MESH_MAX_VERTS);
     return OPERATOR_CANCELLED;
   }
-
-  /* remove tessface to ensure we don't hold references to invalid faces */
-  BKE_mesh_tessface_clear(me);
-
-  /* Clear any run-time data.
-   * Even though this mesh wont typically have run-time data, the Python API can for e.g.
-   * create loop-triangle cache here, which is confusing when left in the mesh, see: #90798. */
-  BKE_mesh_runtime_clear_geometry(me);
 
   /* new material indices and material array */
   if (totmat) {
@@ -584,10 +577,15 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   CustomData_reset(&pdata);
 
   float3 *vert_positions = (float3 *)CustomData_add_layer_named(
-      &vdata, CD_PROP_FLOAT3, CD_SET_DEFAULT, nullptr, totvert, "position");
-  medge = (MEdge *)CustomData_add_layer(&edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, totedge);
-  mloop = (MLoop *)CustomData_add_layer(&ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, totloop);
-  mpoly = (MPoly *)CustomData_add_layer(&pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, totpoly);
+      &vdata, CD_PROP_FLOAT3, CD_SET_DEFAULT, totvert, "position");
+  edge = (int2 *)CustomData_add_layer_named(
+      &edata, CD_PROP_INT32_2D, CD_CONSTRUCT, totedge, ".edge_verts");
+  int *corner_verts = (int *)CustomData_add_layer_named(
+      &ldata, CD_PROP_INT32, CD_CONSTRUCT, totloop, ".corner_vert");
+  int *corner_edges = (int *)CustomData_add_layer_named(
+      &ldata, CD_PROP_INT32, CD_CONSTRUCT, totloop, ".corner_edge");
+  int *poly_offsets = static_cast<int *>(MEM_malloc_arrayN(totpoly + 1, sizeof(int), __func__));
+  poly_offsets[totpoly] = totloop;
 
   vertofs = 0;
   edgeofs = 0;
@@ -610,9 +608,10 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
                    ob,
                    imat,
                    &vert_positions,
-                   &medge,
-                   &mloop,
-                   &mpoly,
+                   &edge,
+                   &corner_verts,
+                   &corner_edges,
+                   poly_offsets,
                    &vdata,
                    &edata,
                    &ldata,
@@ -644,9 +643,10 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
                        ob_iter,
                        imat,
                        &vert_positions,
-                       &medge,
-                       &mloop,
-                       &mpoly,
+                       &edge,
+                       &corner_verts,
+                       &corner_edges,
+                       poly_offsets,
                        &vdata,
                        &edata,
                        &ldata,
@@ -676,10 +676,13 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   /* return to mesh we're merging to */
   me = static_cast<Mesh *>(ob->data);
 
-  CustomData_free(&me->vdata, me->totvert);
-  CustomData_free(&me->edata, me->totedge);
-  CustomData_free(&me->ldata, me->totloop);
-  CustomData_free(&me->pdata, me->totpoly);
+  BKE_mesh_clear_geometry(me);
+
+  if (totpoly) {
+    me->poly_offset_indices = poly_offsets;
+    me->runtime->poly_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
+        poly_offsets);
+  }
 
   me->totvert = totvert;
   me->totedge = totedge;
@@ -1052,7 +1055,7 @@ static float *editmesh_get_mirror_uv(
         BMLoop *l;
 
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          float *luv2 = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_PROP_FLOAT2);
+          float *luv2 = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
           if ((fabsf(luv[0] - vec[0]) < 0.001f) && (fabsf(luv[1] - vec[1]) < 0.001f)) {
             return luv;
           }
@@ -1224,20 +1227,19 @@ static void ed_mesh_pick_face_vert__mpoly_find(
     ARegion *region,
     const float mval[2],
     /* mesh data (evaluated) */
-    const MPoly *mp,
+    const blender::IndexRange poly,
     const Span<float3> vert_positions,
-    const MLoop *mloop,
+    const int *corner_verts,
     /* return values */
     float *r_len_best,
     int *r_v_idx_best)
 {
-  const MLoop *ml;
-  int j = mp->totloop;
-  for (ml = &mloop[mp->loopstart]; j--; ml++) {
+  for (int j = poly.size(); j--;) {
     float sco[2];
-    const int v_idx = ml->v;
+    const int v_idx = corner_verts[poly[j]];
     if (ED_view3d_project_float_object(region, vert_positions[v_idx], sco, V3D_PROJ_TEST_NOP) ==
-        V3D_PROJ_RET_OK) {
+        V3D_PROJ_RET_OK)
+    {
       const float len_test = len_manhattan_v2v2(mval, sco);
       if (len_test < *r_len_best) {
         *r_len_best = len_test;
@@ -1271,8 +1273,8 @@ bool ED_mesh_pick_face_vert(
     float len_best = FLT_MAX;
 
     const Span<float3> vert_positions = me_eval->vert_positions();
-    const Span<MPoly> polys = me_eval->polys();
-    const Span<MLoop> loops = me_eval->loops();
+    const blender::OffsetIndices polys = me_eval->polys();
+    const Span<int> corner_verts = me_eval->corner_verts();
 
     const int *index_mp_to_orig = (const int *)CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
@@ -1280,8 +1282,13 @@ bool ED_mesh_pick_face_vert(
     if (index_mp_to_orig) {
       for (const int i : polys.index_range()) {
         if (index_mp_to_orig[i] == poly_index) {
-          ed_mesh_pick_face_vert__mpoly_find(
-              region, mval_f, &polys[i], vert_positions, loops.data(), &len_best, &v_idx_best);
+          ed_mesh_pick_face_vert__mpoly_find(region,
+                                             mval_f,
+                                             polys[i],
+                                             vert_positions,
+                                             corner_verts.data(),
+                                             &len_best,
+                                             &v_idx_best);
         }
       }
     }
@@ -1289,9 +1296,9 @@ bool ED_mesh_pick_face_vert(
       if (poly_index < polys.size()) {
         ed_mesh_pick_face_vert__mpoly_find(region,
                                            mval_f,
-                                           &polys[poly_index],
+                                           polys[poly_index],
                                            vert_positions,
-                                           loops.data(),
+                                           corner_verts.data(),
                                            &len_best,
                                            &v_idx_best);
       }
@@ -1342,7 +1349,8 @@ static void ed_mesh_pick_vert__mapFunc(void *userData,
   }
   float sco[2];
   if (ED_view3d_project_float_object(data->region, co, sco, V3D_PROJ_TEST_CLIP_DEFAULT) ==
-      V3D_PROJ_RET_OK) {
+      V3D_PROJ_RET_OK)
+  {
     const float len = len_manhattan_v2v2(data->mval_f, sco);
     if (len < data->len_best) {
       data->len_best = len;

@@ -7,7 +7,7 @@
  * actual mode switching logic is per-object type.
  */
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_workspace_types.h"
@@ -21,7 +21,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
@@ -41,7 +41,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "ED_armature.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_screen.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_undo.h"
@@ -109,7 +109,8 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
   switch (ob->type) {
     case OB_MESH:
       if (mode & (OB_MODE_EDIT | OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT |
-                  OB_MODE_TEXTURE_PAINT)) {
+                  OB_MODE_TEXTURE_PAINT))
+      {
         return true;
       }
       if (mode & OB_MODE_PARTICLE_EDIT) {
@@ -136,7 +137,7 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
         return true;
       }
       break;
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       if (mode & (OB_MODE_EDIT_GPENCIL | OB_MODE_ALL_PAINT_GPENCIL)) {
         return true;
       }
@@ -193,7 +194,7 @@ bool ED_object_mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportL
     return (mode == OB_MODE_OBJECT);
   }
 
-  if ((ob->type == OB_GPENCIL) && (mode == OB_MODE_EDIT)) {
+  if ((ob->type == OB_GPENCIL_LEGACY) && (mode == OB_MODE_EDIT)) {
     mode = OB_MODE_EDIT_GPENCIL;
   }
 
@@ -291,7 +292,7 @@ static bool ed_object_mode_generic_exit_ex(
     }
     ED_object_particle_edit_mode_exit_ex(scene, ob);
   }
-  else if (ob->type == OB_GPENCIL) {
+  else if (ob->type == OB_GPENCIL_LEGACY) {
     /* Accounted for above. */
     BLI_assert((ob->mode & OB_MODE_OBJECT) == 0);
     if (only_test) {
@@ -355,7 +356,7 @@ void ED_object_posemode_set_for_weight_paint(bContext *C,
                                              Object *ob,
                                              const bool is_mode_set)
 {
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     GpencilVirtualModifierData virtualModifierData;
     GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(ob,
                                                                              &virtualModifierData);

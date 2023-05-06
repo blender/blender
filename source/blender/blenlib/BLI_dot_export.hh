@@ -89,9 +89,7 @@ class Cluster {
  public:
   Attributes attributes;
 
-  Cluster(Graph &graph) : graph_(graph)
-  {
-  }
+  Cluster(Graph &graph) : graph_(graph) {}
 
  public:
   void export__declare_nodes_and_clusters(std::stringstream &ss) const;
@@ -127,9 +125,7 @@ class Node {
  public:
   Attributes attributes;
 
-  Node(Graph &graph) : graph_(graph)
-  {
-  }
+  Node(Graph &graph) : graph_(graph) {}
 
  public:
   void set_parent_cluster(Cluster *cluster);
@@ -206,9 +202,7 @@ class Edge : blender::NonCopyable, blender::NonMovable {
   Attributes attributes;
 
  public:
-  Edge(NodePort a, NodePort b) : a_(std::move(a)), b_(std::move(b))
-  {
-  }
+  Edge(NodePort a, NodePort b) : a_(std::move(a)), b_(std::move(b)) {}
 
   void set_arrowhead(Attr_arrowType type)
   {
@@ -233,18 +227,14 @@ class Edge : blender::NonCopyable, blender::NonMovable {
 
 class DirectedEdge : public Edge {
  public:
-  DirectedEdge(NodePort from, NodePort to) : Edge(std::move(from), std::move(to))
-  {
-  }
+  DirectedEdge(NodePort from, NodePort to) : Edge(std::move(from), std::move(to)) {}
 
   void export__as_edge_statement(std::stringstream &ss) const;
 };
 
 class UndirectedEdge : public Edge {
  public:
-  UndirectedEdge(NodePort a, NodePort b) : Edge(std::move(a), std::move(b))
-  {
-  }
+  UndirectedEdge(NodePort a, NodePort b) : Edge(std::move(a), std::move(b)) {}
 
   void export__as_edge_statement(std::stringstream &ss) const;
 };

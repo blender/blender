@@ -29,9 +29,7 @@ class VertexRep : public Rep {
     _PointSize = 0.0f;
   }
 
-  inline ~VertexRep()
-  {
-  }
+  inline ~VertexRep() {}
 
   /** Accept the corresponding visitor */
   virtual void accept(SceneVisitor &v)

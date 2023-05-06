@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2017-12-25 14:01+0100\n"
 "Last-Translator: UMAR HARUNA ABDULLAHI <umarbrowser20@gmail.com>\n"
 "Language-Team: BlenderNigeria <pyc0der@outlook.com>\n"

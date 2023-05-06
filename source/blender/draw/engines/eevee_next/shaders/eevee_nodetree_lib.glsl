@@ -29,14 +29,16 @@ bool closure_select(float weight, inout float total_weight, inout float r)
   float x = weight / total_weight;
   bool chosen = (r < x);
   /* Assuming that if r is in the interval [0,x] or [x,1], it's still uniformly distributed within
-   * that interval, so you remapping to [0,1] again to explore this space of probability. */
+   * that interval, so remapping to [0,1] again to explore this space of probability. */
   r = (chosen) ? (r / x) : ((r - x) / (1.0 - x));
   return chosen;
 }
 
 #define SELECT_CLOSURE(destination, random, candidate) \
   if (closure_select(candidate.weight, destination.weight, random)) { \
+    float tmp = destination.weight; \
     destination = candidate; \
+    destination.weight = tmp; \
   }
 
 float g_closure_rand;
@@ -238,15 +240,15 @@ float F_eta(float a, float b)
 void output_aov(vec4 color, float value, uint hash)
 {
 #if defined(MAT_AOV_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
-  for (int i = 0; i < AOV_MAX && i < aov_buf.color_len; i++) {
+  for (uint i = 0; i < AOV_MAX && i < aov_buf.color_len; i++) {
     if (aov_buf.hash_color[i] == hash) {
-      imageStore(aov_color_img, ivec3(gl_FragCoord.xy, i), color);
+      imageStore(aov_color_img, ivec3(ivec2(gl_FragCoord.xy), i), color);
       return;
     }
   }
-  for (int i = 0; i < AOV_MAX && i < aov_buf.value_len; i++) {
+  for (uint i = 0; i < AOV_MAX && i < aov_buf.value_len; i++) {
     if (aov_buf.hash_value[i] == hash) {
-      imageStore(aov_value_img, ivec3(gl_FragCoord.xy, i), vec4(value));
+      imageStore(aov_value_img, ivec3(ivec2(gl_FragCoord.xy), i), vec4(value));
       return;
     }
   }

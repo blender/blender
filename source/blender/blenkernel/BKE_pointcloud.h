@@ -13,6 +13,10 @@
 #  include "BLI_bounds_types.hh"
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_shared_cache.hh"
+
+#  include "DNA_pointcloud_types.h"
+
+#  include "BKE_customdata.h"
 #endif
 
 #ifdef __cplusplus
@@ -45,14 +49,28 @@ struct PointCloudRuntime {
 };
 
 }  // namespace blender::bke
+
+inline blender::Span<blender::float3> PointCloud::positions() const
+{
+  return {static_cast<const blender::float3 *>(
+              CustomData_get_layer_named(&this->pdata, CD_PROP_FLOAT3, "position")),
+          this->totpoint};
+}
+
+inline blender::MutableSpan<blender::float3> PointCloud::positions_for_write()
+{
+  return {static_cast<blender::float3 *>(CustomData_get_layer_named_for_write(
+              &this->pdata, CD_PROP_FLOAT3, "position", this->totpoint)),
+          this->totpoint};
+}
+
 #endif
 
 void *BKE_pointcloud_add(struct Main *bmain, const char *name);
 void *BKE_pointcloud_add_default(struct Main *bmain, const char *name);
 struct PointCloud *BKE_pointcloud_new_nomain(int totpoint);
 void BKE_pointcloud_nomain_to_pointcloud(struct PointCloud *pointcloud_src,
-                                         struct PointCloud *pointcloud_dst,
-                                         bool take_ownership);
+                                         struct PointCloud *pointcloud_dst);
 
 struct BoundBox *BKE_pointcloud_boundbox_get(struct Object *ob);
 
@@ -60,7 +78,7 @@ bool BKE_pointcloud_attribute_required(const struct PointCloud *pointcloud, cons
 
 /* Dependency Graph */
 
-struct PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src, bool reference);
+struct PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src);
 
 void BKE_pointcloud_data_update(struct Depsgraph *depsgraph,
                                 struct Scene *scene,

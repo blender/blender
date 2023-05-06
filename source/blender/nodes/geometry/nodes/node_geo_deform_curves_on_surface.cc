@@ -4,7 +4,7 @@
 #include "BKE_curves.hh"
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
@@ -29,8 +29,8 @@
 
 namespace blender::nodes::node_geo_deform_curves_on_surface_cc {
 
-using attribute_math::mix3;
 using bke::CurvesGeometry;
+using bke::attribute_math::mix3;
 using geometry::ReverseUVSampler;
 
 NODE_STORAGE_FUNCS(NodeGeometryCurveTrim)
@@ -67,11 +67,11 @@ static void deform_curves(const CurvesGeometry &curves,
   const float4x4 curves_to_surface = math::invert(surface_to_curves);
 
   const Span<float3> surface_positions_old = surface_mesh_old.vert_positions();
-  const Span<MLoop> surface_loops_old = surface_mesh_old.loops();
+  const Span<int> surface_corner_verts_old = surface_mesh_old.corner_verts();
   const Span<MLoopTri> surface_looptris_old = surface_mesh_old.looptris();
 
   const Span<float3> surface_positions_new = surface_mesh_new.vert_positions();
-  const Span<MLoop> surface_loops_new = surface_mesh_new.loops();
+  const Span<int> surface_corner_verts_new = surface_mesh_new.corner_verts();
   const Span<MLoopTri> surface_looptris_new = surface_mesh_new.looptris();
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -102,13 +102,13 @@ static void deform_curves(const CurvesGeometry &curves,
       const int corner_1_new = looptri_new.tri[1];
       const int corner_2_new = looptri_new.tri[2];
 
-      const int vert_0_old = surface_loops_old[corner_0_old].v;
-      const int vert_1_old = surface_loops_old[corner_1_old].v;
-      const int vert_2_old = surface_loops_old[corner_2_old].v;
+      const int vert_0_old = surface_corner_verts_old[corner_0_old];
+      const int vert_1_old = surface_corner_verts_old[corner_1_old];
+      const int vert_2_old = surface_corner_verts_old[corner_2_old];
 
-      const int vert_0_new = surface_loops_new[corner_0_new].v;
-      const int vert_1_new = surface_loops_new[corner_1_new].v;
-      const int vert_2_new = surface_loops_new[corner_2_new].v;
+      const int vert_0_new = surface_corner_verts_new[corner_0_new];
+      const int vert_1_new = surface_corner_verts_new[corner_1_new];
+      const int vert_2_new = surface_corner_verts_new[corner_2_new];
 
       const float3 &normal_0_old = corner_normals_old[corner_0_old];
       const float3 &normal_1_old = corner_normals_old[corner_1_old];
@@ -298,13 +298,13 @@ static void node_geo_exec(GeoNodeExecParams params)
                              TIP_("Curves are not attached to any UV map"));
     return;
   }
-  const VArraySpan<float2> uv_map_orig = mesh_attributes_orig.lookup<float2>(uv_map_name,
-                                                                             ATTR_DOMAIN_CORNER);
-  const VArraySpan<float2> uv_map_eval = mesh_attributes_eval.lookup<float2>(uv_map_name,
-                                                                             ATTR_DOMAIN_CORNER);
-  const VArraySpan<float3> rest_positions = mesh_attributes_eval.lookup<float3>(rest_position_name,
-                                                                                ATTR_DOMAIN_POINT);
-  const VArraySpan<float2> surface_uv_coords = curves.attributes().lookup_or_default(
+  const VArraySpan uv_map_orig = *mesh_attributes_orig.lookup<float2>(uv_map_name,
+                                                                      ATTR_DOMAIN_CORNER);
+  const VArraySpan uv_map_eval = *mesh_attributes_eval.lookup<float2>(uv_map_name,
+                                                                      ATTR_DOMAIN_CORNER);
+  const VArraySpan rest_positions = *mesh_attributes_eval.lookup<float3>(rest_position_name,
+                                                                         ATTR_DOMAIN_POINT);
+  const VArraySpan surface_uv_coords = *curves.attributes().lookup_or_default<float2>(
       "surface_uv_coordinate", ATTR_DOMAIN_CURVE, float2(0));
 
   const Span<MLoopTri> looptris_orig = surface_mesh_orig->looptris();
@@ -374,7 +374,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                   invalid_uv_count);
     /* Then also deform edit curve information for use in sculpt mode. */
     const CurvesGeometry &curves_orig = edit_hints->curves_id_orig.geometry.wrap();
-    const VArraySpan<float2> surface_uv_coords_orig = curves_orig.attributes().lookup_or_default(
+    const VArraySpan<float2> surface_uv_coords_orig = *curves_orig.attributes().lookup_or_default(
         "surface_uv_coordinate", ATTR_DOMAIN_CURVE, float2(0));
     if (!surface_uv_coords_orig.is_empty()) {
       deform_curves(curves_orig,

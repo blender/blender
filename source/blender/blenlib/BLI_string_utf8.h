@@ -103,6 +103,11 @@ size_t BLI_str_utf8_as_utf32(char32_t *__restrict dst_w,
 size_t BLI_str_utf32_as_utf8(char *__restrict dst, const char32_t *__restrict src, size_t maxncpy)
     ATTR_NONNULL(1, 2);
 /**
+ * \return The UTF-32 len in UTF-8 with a clamped length.
+ */
+size_t BLI_str_utf32_as_utf8_len_ex(const char32_t *src, size_t src_maxlen) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1);
+/**
  * \return The UTF-32 len in UTF-8.
  */
 size_t BLI_str_utf32_as_utf8_len(const char32_t *src) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
@@ -166,6 +171,20 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
  */
 int BLI_wcwidth(char32_t ucs) ATTR_WARN_UNUSED_RESULT;
 int BLI_wcswidth(const char32_t *pwcs, size_t n) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+
+/**
+ * Return the uppercase of a 32-bit character or the character when no case change is needed.
+ *
+ * \note A 1:1 mapping doesn't account for multiple characters as part of conversion in some cases.
+ */
+char32_t BLI_str_utf32_char_to_upper(char32_t wc);
+/**
+ * Return the lowercase of a 32-bit character or the character when no case change is needed.
+ *
+ * \note A 1:1 mapping doesn't account for multiple characters as part of conversion in some cases.
+ */
+char32_t BLI_str_utf32_char_to_lower(char32_t wc);
+
 /**
  * \warning can return -1 on bad chars.
  */

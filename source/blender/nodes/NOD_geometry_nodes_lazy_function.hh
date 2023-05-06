@@ -26,6 +26,8 @@
 
 #include "BLI_compute_context.hh"
 
+#include "BKE_simulation_state.hh"
+
 struct Object;
 struct Depsgraph;
 
@@ -44,6 +46,16 @@ struct GeoNodesModifierData {
   Depsgraph *depsgraph = nullptr;
   /** Optional logger. */
   geo_eval_log::GeoModifierLog *eval_log = nullptr;
+
+  /** Read-only simulation states around the current frame. */
+  const bke::sim::ModifierSimulationState *current_simulation_state = nullptr;
+  const bke::sim::ModifierSimulationState *prev_simulation_state = nullptr;
+  const bke::sim::ModifierSimulationState *next_simulation_state = nullptr;
+  float simulation_state_mix_factor = 0.0f;
+  /** Used when the evaluation should create a new simulation state. */
+  bke::sim::ModifierSimulationState *current_simulation_state_for_write = nullptr;
+  float simulation_time_delta = 0.0f;
+
   /**
    * Some nodes should be executed even when their output is not used (e.g. active viewer nodes and
    * the node groups they are contained in).
@@ -149,6 +161,14 @@ struct GeometryNodeLazyFunctionGraphMapping {
    */
   Map<const bNode *, const lf::FunctionNode *> group_node_map;
   Map<const bNode *, const lf::FunctionNode *> viewer_node_map;
+  Map<const bNode *, const lf::FunctionNode *> sim_output_node_map;
+
+  /* Indexed by #bNodeSocket::index_in_all_outputs. */
+  Array<int> lf_input_index_for_output_bsocket_usage;
+  /* Indexed by #bNodeSocket::index_in_all_outputs. */
+  Array<int> lf_input_index_for_attribute_propagation_to_output;
+  /* Indexed by #bNodeSocket::index_in_tree. */
+  Array<int> lf_index_by_bsocket;
 };
 
 /**
@@ -219,6 +239,34 @@ class GeometryNodesLazyFunctionLogger : public fn::lazy_function::GraphExecutor:
   void log_before_node_execute(const lf::FunctionNode &node,
                                const lf::Params &params,
                                const lf::Context &context) const override;
+};
+
+std::unique_ptr<LazyFunction> get_simulation_output_lazy_function(
+    const bNode &node, GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
+std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
+    const bNodeTree &node_tree,
+    const bNode &node,
+    GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
+std::unique_ptr<LazyFunction> get_switch_node_lazy_function(const bNode &node);
+
+bke::sim::SimulationZoneID get_simulation_zone_id(const ComputeContext &context,
+                                                  const int output_node_id);
+
+/**
+ * An anonymous attribute created by a node.
+ */
+class NodeAnonymousAttributeID : public bke::AnonymousAttributeID {
+  std::string long_name_;
+  std::string socket_name_;
+
+ public:
+  NodeAnonymousAttributeID(const Object &object,
+                           const ComputeContext &compute_context,
+                           const bNode &bnode,
+                           const StringRef identifier,
+                           const StringRef name);
+
+  std::string user_name() const override;
 };
 
 /**

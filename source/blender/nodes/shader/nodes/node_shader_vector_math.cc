@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup shdnodes
@@ -48,19 +48,22 @@ class SocketSearchOp {
 static void sh_node_vector_math_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   if (!params.node_tree().typeinfo->validate_link(
-          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_VECTOR)) {
+          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_VECTOR))
+  {
     return;
   }
 
   const int weight = ELEM(params.other_socket().type, SOCK_VECTOR, SOCK_RGBA) ? 0 : -1;
 
   for (const EnumPropertyItem *item = rna_enum_node_vec_math_items; item->identifier != nullptr;
-       item++) {
+       item++)
+  {
     if (item->name != nullptr && item->identifier[0] != '\0') {
       if ((params.in_out() == SOCK_OUT) && ELEM(item->value,
                                                 NODE_VECTOR_MATH_LENGTH,
                                                 NODE_VECTOR_MATH_DISTANCE,
-                                                NODE_VECTOR_MATH_DOT_PRODUCT)) {
+                                                NODE_VECTOR_MATH_DOT_PRODUCT))
+      {
         params.add_item(IFACE_(item->name),
                         SocketSearchOp{"Value", (NodeVectorMathOperation)item->value},
                         weight);

@@ -8,7 +8,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_curves.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "BLI_task.hh"
 
@@ -79,25 +79,20 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
     loop_len += face.size();
   }
 
-  Mesh *mesh = BKE_mesh_new_nomain(vert_len, edge_len, 0, loop_len, poly_len);
+  Mesh *mesh = BKE_mesh_new_nomain(vert_len, edge_len, poly_len, loop_len);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
-  MutableSpan<MPoly> polys = mesh->polys_for_write();
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
+  mesh->edges_for_write().copy_from(result.edge.as_span().cast<int2>());
+  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   for (const int i : IndexRange(result.vert.size())) {
     positions[i] = float3(float(result.vert[i].x), float(result.vert[i].y), 0.0f);
   }
-  for (const int i : IndexRange(result.edge.size())) {
-    edges[i].v1 = result.edge[i].first;
-    edges[i].v2 = result.edge[i].second;
-  }
   int i_loop = 0;
   for (const int i : IndexRange(result.face.size())) {
-    polys[i].loopstart = i_loop;
-    polys[i].totloop = result.face[i].size();
+    poly_offsets[i] = i_loop;
     for (const int j : result.face[i].index_range()) {
-      loops[i_loop].v = result.face[i][j];
+      corner_verts[i_loop] = result.face[i][j];
       i_loop++;
     }
   }
@@ -105,6 +100,7 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
   /* The delaunay triangulation doesn't seem to return all of the necessary edges, even in
    * triangulation mode. */
   BKE_mesh_calc_edges(mesh, true, false);
+  BKE_mesh_smooth_flag_set(mesh, false);
   return mesh;
 }
 

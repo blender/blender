@@ -53,7 +53,7 @@ ccl_device_forceinline void guiding_record_surface_segment(KernelGlobals kg,
 #endif
 }
 
-/* Records the surface scattering event at the current vertex position of the segment.*/
+/* Records the surface scattering event at the current vertex position of the segment. */
 ccl_device_forceinline void guiding_record_surface_bounce(KernelGlobals kg,
                                                           IntegratorState state,
                                                           ccl_private const ShaderData *sd,
@@ -134,7 +134,7 @@ ccl_device_forceinline void guiding_record_bssrdf_segment(KernelGlobals kg,
 }
 
 /* Records the transmission of the path at the point of entry while passing
- * the surface boundary.*/
+ * the surface boundary. */
 ccl_device_forceinline void guiding_record_bssrdf_weight(KernelGlobals kg,
                                                          IntegratorState state,
                                                          const Spectrum weight,
@@ -161,7 +161,7 @@ ccl_device_forceinline void guiding_record_bssrdf_weight(KernelGlobals kg,
 /* Records the direction at the point of entry the path takes when sampling the SSS contribution.
  * If not terminated this function is usually followed by a call of
  * guiding_record_volume_transmission to record the transmittance between the point of entry and
- * the point of exit.*/
+ * the point of exit. */
 ccl_device_forceinline void guiding_record_bssrdf_bounce(KernelGlobals kg,
                                                          IntegratorState state,
                                                          const float pdf,
@@ -216,7 +216,7 @@ ccl_device_forceinline void guiding_record_volume_segment(KernelGlobals kg,
 #endif
 }
 
-/* Records the volume scattering event at the current vertex position of the segment.*/
+/* Records the volume scattering event at the current vertex position of the segment. */
 ccl_device_forceinline void guiding_record_volume_bounce(KernelGlobals kg,
                                                          IntegratorState state,
                                                          ccl_private const ShaderData *sd,
@@ -247,7 +247,7 @@ ccl_device_forceinline void guiding_record_volume_bounce(KernelGlobals kg,
 }
 
 /* Records the transmission (a.k.a. transmittance weight) between the current path segment
- * and the next one, when the path is inside or passes a volume.*/
+ * and the next one, when the path is inside or passes a volume. */
 ccl_device_forceinline void guiding_record_volume_transmission(KernelGlobals kg,
                                                                IntegratorState state,
                                                                const float3 transmittance_weight)
@@ -264,7 +264,8 @@ ccl_device_forceinline void guiding_record_volume_transmission(KernelGlobals kg,
         (transmittance_weight[1] < 0.f || !std::isfinite(transmittance_weight[1]) ||
          std::isnan(transmittance_weight[1])) ||
         (transmittance_weight[2] < 0.f || !std::isfinite(transmittance_weight[2]) ||
-         std::isnan(transmittance_weight[2]))) {
+         std::isnan(transmittance_weight[2])))
+    {
     }
     else {
       openpgl::cpp::SetTransmittanceWeight(state->guiding.path_segment,
@@ -330,7 +331,7 @@ ccl_device_forceinline void guiding_record_light_surface_segment(
 /* Records/Adds a final path segment when the path leaves the scene and
  * intersects with a background light (e.g., background color,
  * distant light, or env map). The vertex for this segment is placed along
- * the current ray far out the scene.*/
+ * the current ray far out the scene. */
 ccl_device_forceinline void guiding_record_background(KernelGlobals kg,
                                                       IntegratorState state,
                                                       const Spectrum L,
@@ -359,7 +360,7 @@ ccl_device_forceinline void guiding_record_background(KernelGlobals kg,
 
 /* Records the scattered contribution of a next event estimation
  * (i.e., a direct light estimate scattered at the current path vertex
- * towards the previous vertex).*/
+ * towards the previous vertex). */
 ccl_device_forceinline void guiding_record_direct_light(KernelGlobals kg,
                                                         IntegratorShadowState state)
 {
@@ -397,7 +398,7 @@ ccl_device_forceinline void guiding_record_continuation_probability(
 /* Path guiding debug render passes. */
 
 /* Write a set of path guiding related debug information (e.g., guiding probability at first
- * bounce) into separate rendering passes.*/
+ * bounce) into separate rendering passes. */
 ccl_device_forceinline void guiding_write_debug_passes(KernelGlobals kg,
                                                        IntegratorState state,
                                                        ccl_private const ShaderData *sd,
@@ -454,8 +455,14 @@ ccl_device_forceinline bool guiding_bsdf_init(KernelGlobals kg,
                                               ccl_private float &rand)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
+#  if OPENPGL_VERSION_MINOR >= 5
   if (kg->opgl_surface_sampling_distribution->Init(
-          kg->opgl_guiding_field, guiding_point3f(P), rand, true)) {
+          kg->opgl_guiding_field, guiding_point3f(P), rand)) {
+#  else
+  if (kg->opgl_surface_sampling_distribution->Init(
+          kg->opgl_guiding_field, guiding_point3f(P), rand, true))
+  {
+#  endif
     kg->opgl_surface_sampling_distribution->ApplyCosineProduct(guiding_point3f(N));
     return true;
   }
@@ -506,8 +513,14 @@ ccl_device_forceinline bool guiding_phase_init(KernelGlobals kg,
     return false;
   }
 
+#  if OPENPGL_VERSION_MINOR >= 5
   if (kg->opgl_volume_sampling_distribution->Init(
-          kg->opgl_guiding_field, guiding_point3f(P), rand, true)) {
+          kg->opgl_guiding_field, guiding_point3f(P), rand)) {
+#  else
+  if (kg->opgl_volume_sampling_distribution->Init(
+          kg->opgl_guiding_field, guiding_point3f(P), rand, true))
+  {
+#  endif
     kg->opgl_volume_sampling_distribution->ApplySingleLobeHenyeyGreensteinProduct(guiding_vec3f(D),
                                                                                   g);
     return true;

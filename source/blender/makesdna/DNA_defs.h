@@ -73,9 +73,7 @@ namespace blender::dna::internal {
 
 template<class T> class ShallowDataConstRef {
  public:
-  constexpr explicit ShallowDataConstRef(const T &ref) : ref_(ref)
-  {
-  }
+  constexpr explicit ShallowDataConstRef(const T &ref) : ref_(ref) {}
 
   inline const T *get_pointer() const
   {

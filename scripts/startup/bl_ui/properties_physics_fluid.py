@@ -82,8 +82,7 @@ class PhysicButtonsPanel:
 
         md = context.fluid
         flow = md.flow_settings
-        if (flow.flow_behavior == 'OUTFLOW'):
-            return True
+        return (flow.flow_behavior == 'OUTFLOW')
 
     @staticmethod
     def poll_fluid_flow_liquid(context):
@@ -92,8 +91,7 @@ class PhysicButtonsPanel:
 
         md = context.fluid
         flow = md.flow_settings
-        if (flow.flow_type == 'LIQUID'):
-            return True
+        return (flow.flow_type == 'LIQUID')
 
 
 class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
@@ -879,7 +877,7 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
             col.prop(domain, "mesh_concave_lower", text="Lower")
 
         # TODO (sebbas): for now just interpolate any upres grids, ie not sampling highres grids
-        #col.prop(domain, "highres_sampling", text="Flow Sampling:")
+        # col.prop(domain, "highres_sampling", text="Flow Sampling:")
 
         if domain.cache_type == 'MODULAR':
             col.separator()

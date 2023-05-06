@@ -53,7 +53,8 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
     if (BM_edge_rotate_check(e) &&
         /* faces are tagged */
         BMO_face_flag_test(bm, e->l->f, FACE_MARK) &&
-        BMO_face_flag_test(bm, e->l->radial_next->f, FACE_MARK)) {
+        BMO_face_flag_test(bm, e->l->radial_next->f, FACE_MARK))
+    {
       edge_array[edge_array_len] = e;
       edge_array_len++;
     }

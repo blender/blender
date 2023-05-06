@@ -120,15 +120,15 @@ def _draw_add_remove_buttons(
     list_length,
 ):
     """Draw the +/- buttons to add and remove list entries."""
-    add_op = layout.operator(UILIST_OT_entry_add.bl_idname, text="", icon='ADD')
-    add_op.list_path = list_path
-    add_op.active_index_path = active_index_path
+    props = layout.operator(UILIST_OT_entry_add.bl_idname, text="", icon='ADD')
+    props.list_path = list_path
+    props.active_index_path = active_index_path
 
     row = layout.row()
     row.enabled = list_length > 0
-    remove_op = row.operator(UILIST_OT_entry_remove.bl_idname, text="", icon='REMOVE')
-    remove_op.list_path = list_path
-    remove_op.active_index_path = active_index_path
+    props = row.operator(UILIST_OT_entry_remove.bl_idname, text="", icon='REMOVE')
+    props.list_path = list_path
+    props.active_index_path = active_index_path
 
 
 def _draw_move_buttons(
@@ -141,15 +141,15 @@ def _draw_move_buttons(
     """Draw the up/down arrows to move elements in the list."""
     col = layout.column()
     col.enabled = list_length > 1
-    move_up_op = layout.operator(UILIST_OT_entry_move.bl_idname, text="", icon='TRIA_UP')
-    move_up_op.direction = 'UP'
-    move_up_op.list_path = list_path
-    move_up_op.active_index_path = active_index_path
+    props = layout.operator(UILIST_OT_entry_move.bl_idname, text="", icon='TRIA_UP')
+    props.direction = 'UP'
+    props.list_path = list_path
+    props.active_index_path = active_index_path
 
-    move_down_op = layout.operator(UILIST_OT_entry_move.bl_idname, text="", icon='TRIA_DOWN')
-    move_down_op.direction = 'DOWN'
-    move_down_op.list_path = list_path
-    move_down_op.active_index_path = active_index_path
+    props = layout.operator(UILIST_OT_entry_move.bl_idname, text="", icon='TRIA_DOWN')
+    props.direction = 'DOWN'
+    props.list_path = list_path
+    props.active_index_path = active_index_path
 
 
 def _get_context_attr(context, data_path):
@@ -157,7 +157,7 @@ def _get_context_attr(context, data_path):
     return context.path_resolve(data_path)
 
 
-def _set_context_attr(context, data_path, value) -> None:
+def _set_context_attr(context, data_path, value):
     """Set the value of a context member based on its data path."""
     owner_path, attr_name = data_path.rsplit('.', 1)
     owner = context.path_resolve(owner_path)
@@ -172,10 +172,10 @@ class GenericUIListOperator:
     list_path: StringProperty()
     active_index_path: StringProperty()
 
-    def get_list(self, context) -> str:
+    def get_list(self, context):
         return _get_context_attr(context, self.list_path)
 
-    def get_active_index(self, context) -> str:
+    def get_active_index(self, context):
         return _get_context_attr(context, self.active_index_path)
 
     def set_active_index(self, context, index):
@@ -226,9 +226,11 @@ class UILIST_OT_entry_move(GenericUIListOperator, Operator):
 
     direction: EnumProperty(
         name="Direction",
-        items=(('UP', 'UP', 'UP'),
-               ('DOWN', 'DOWN', 'DOWN')),
-        default='UP'
+        items=(
+            ('UP', 'UP', 'UP'),
+            ('DOWN', 'DOWN', 'DOWN'),
+        ),
+        default='UP',
     )
 
     def execute(self, context):

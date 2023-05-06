@@ -21,12 +21,8 @@ using namespace Geometry;
 
 class GeomCleaner {
  public:
-  inline GeomCleaner()
-  {
-  }
-  inline ~GeomCleaner()
-  {
-  }
+  inline GeomCleaner() {}
+  inline ~GeomCleaner() {}
 
   /** Sorts an array of Indexed vertices
    *    iVertices
@@ -158,9 +154,7 @@ class IndexedVertex {
   unsigned _index;
 
  public:
-  inline IndexedVertex()
-  {
-  }
+  inline IndexedVertex() {}
 
   inline IndexedVertex(Vec3f iVector, unsigned iIndex)
   {

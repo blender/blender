@@ -23,13 +23,9 @@ NODE_DEFINE(ParticleSystem)
   return type;
 }
 
-ParticleSystem::ParticleSystem() : Node(get_node_type())
-{
-}
+ParticleSystem::ParticleSystem() : Node(get_node_type()) {}
 
-ParticleSystem::~ParticleSystem()
-{
-}
+ParticleSystem::~ParticleSystem() {}
 
 void ParticleSystem::tag_update(Scene *scene)
 {
@@ -43,9 +39,7 @@ ParticleSystemManager::ParticleSystemManager()
   need_update_ = true;
 }
 
-ParticleSystemManager::~ParticleSystemManager()
-{
-}
+ParticleSystemManager::~ParticleSystemManager() {}
 
 void ParticleSystemManager::device_update_particles(Device *,
                                                     DeviceScene *dscene,

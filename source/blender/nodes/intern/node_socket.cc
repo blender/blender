@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup nodes
@@ -537,6 +537,7 @@ static bNodeSocketType *make_standard_socket_type(int type, int subtype)
   const char *socket_idname = nodeStaticSocketType(type, subtype);
   const char *interface_idname = nodeStaticSocketInterfaceType(type, subtype);
   const char *socket_label = nodeStaticSocketLabel(type, subtype);
+  const char *socket_subtype_label = nodeSocketSubTypeLabel(subtype);
   bNodeSocketType *stype;
   StructRNA *srna;
 
@@ -544,6 +545,7 @@ static bNodeSocketType *make_standard_socket_type(int type, int subtype)
   stype->free_self = (void (*)(bNodeSocketType * stype)) MEM_freeN;
   BLI_strncpy(stype->idname, socket_idname, sizeof(stype->idname));
   BLI_strncpy(stype->label, socket_label, sizeof(stype->label));
+  BLI_strncpy(stype->subtype_label, socket_subtype_label, sizeof(stype->subtype_label));
 
   /* set the RNA type
    * uses the exact same identifier as the socket type idname */

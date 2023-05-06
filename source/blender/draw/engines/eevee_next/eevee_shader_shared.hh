@@ -26,8 +26,8 @@ class ShadowPunctual;
 
 using namespace draw;
 
-constexpr eGPUSamplerState no_filter = GPU_SAMPLER_DEFAULT;
-constexpr eGPUSamplerState with_filter = GPU_SAMPLER_FILTER;
+constexpr GPUSamplerState no_filter = GPUSamplerState::default_sampler();
+constexpr GPUSamplerState with_filter = {GPU_SAMPLER_FILTERING_LINEAR};
 
 #endif
 
@@ -48,6 +48,10 @@ enum eDebugMode : uint32_t {
    * Show incorrectly downsample tiles in red.
    */
   DEBUG_HIZ_VALIDATION = 2u,
+  /**
+   * Display IrradianceCache surfels.
+   */
+  DEBUG_IRRADIANCE_CACHE_SURFELS = 3u,
   /**
    * Show tiles depending on their status.
    */
@@ -624,7 +628,7 @@ struct LightData {
   float radius_squared;
   /** NOTE: It is ok to use float3 here. A float is declared right after it.
    * float3 is also aligned to 16 bytes. */
-  float3 color;
+  packed_float3 color;
   /** Light Type. */
   eLightType type;
   /** Spot size. Aligned to size of float2. */
@@ -822,6 +826,21 @@ static inline ShadowTileDataPacked shadow_tile_pack(ShadowTileData tile)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Debug
+ * \{ */
+
+struct DebugSurfel {
+  packed_float3 position;
+  int _pad0;
+  packed_float3 normal;
+  int _pad1;
+  float4 color;
+};
+BLI_STATIC_ASSERT_ALIGN(DebugSurfel, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Hierarchical-Z Buffer
  * \{ */
 
@@ -928,6 +947,7 @@ using DepthOfFieldDataBuf = draw::UniformBuffer<DepthOfFieldData>;
 using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, true>;
 using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;
 using FilmDataBuf = draw::UniformBuffer<FilmData>;
+using DebugSurfelBuf = draw::StorageArrayBuffer<DebugSurfel, 64>;
 using HiZDataBuf = draw::UniformBuffer<HiZData>;
 using LightCullingDataBuf = draw::StorageBuffer<LightCullingData>;
 using LightCullingKeyBuf = draw::StorageArrayBuffer<uint, LIGHT_CHUNK, true>;

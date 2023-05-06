@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2002-2009 Blender Foundation. All rights reserved. */
+ * Copyright 2002-2009 Blender Foundation */
 
 /** \file
  * \ingroup edsculpt
@@ -152,8 +152,8 @@ typedef struct Temp_UvData {
   int ncounter;
 } Temp_UVData;
 
-static void HC_relaxation_iteration_uv(BMEditMesh *em,
-                                       UvSculptData *sculptdata,
+static void HC_relaxation_iteration_uv(UvSculptData *sculptdata,
+                                       const int cd_loop_uv_offset,
                                        const float mouse_coord[2],
                                        float alpha,
                                        float radius,
@@ -220,15 +220,10 @@ static void HC_relaxation_iteration_uv(BMEditMesh *em,
       apply_sculpt_data_constraints(sculptdata, sculptdata->uv[i].uv);
 
       for (element = sculptdata->uv[i].element; element; element = element->next) {
-        float(*luv)[2];
-        BMLoop *l;
-
         if (element->separate && element != sculptdata->uv[i].element) {
           break;
         }
-
-        l = element->l;
-        luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_PROP_FLOAT2);
+        float(*luv)[2] = BM_ELEM_CD_GET_FLOAT2_P(element->l, cd_loop_uv_offset);
         copy_v2_v2(*luv, sculptdata->uv[i].uv);
       }
     }
@@ -244,8 +239,8 @@ static void HC_relaxation_iteration_uv(BMEditMesh *em,
  * all the `HC_*` and `laplacian_*` specific functions can probably be removed.
  */
 
-static void laplacian_relaxation_iteration_uv(BMEditMesh *em,
-                                              UvSculptData *sculptdata,
+static void laplacian_relaxation_iteration_uv(UvSculptData *sculptdata,
+                                              const int cd_loop_uv_offset,
                                               const float mouse_coord[2],
                                               float alpha,
                                               float radius,
@@ -303,15 +298,11 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em,
       apply_sculpt_data_constraints(sculptdata, sculptdata->uv[i].uv);
 
       for (element = sculptdata->uv[i].element; element; element = element->next) {
-        float(*luv)[2];
-        BMLoop *l;
-
         if (element->separate && element != sculptdata->uv[i].element) {
           break;
         }
 
-        l = element->l;
-        luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_PROP_FLOAT2);
+        float(*luv)[2] = BM_ELEM_CD_GET_FLOAT2_P(element->l, cd_loop_uv_offset);
         copy_v2_v2(*luv, sculptdata->uv[i].uv);
       }
     }
@@ -361,8 +352,8 @@ static float tri_weight_v3(int method, const float *v1, const float *v2, const f
   return 0.0f;
 }
 
-static void relaxation_iteration_uv(BMEditMesh *em,
-                                    UvSculptData *sculptdata,
+static void relaxation_iteration_uv(UvSculptData *sculptdata,
+                                    const int cd_loop_uv_offset,
                                     const float mouse_coord[2],
                                     const float alpha,
                                     const float radius_squared,
@@ -370,19 +361,17 @@ static void relaxation_iteration_uv(BMEditMesh *em,
                                     const int method)
 {
   if (method == UV_SCULPT_TOOL_RELAX_HC) {
-    HC_relaxation_iteration_uv(em, sculptdata, mouse_coord, alpha, radius_squared, aspect_ratio);
+    HC_relaxation_iteration_uv(
+        sculptdata, cd_loop_uv_offset, mouse_coord, alpha, radius_squared, aspect_ratio);
     return;
   }
   if (method == UV_SCULPT_TOOL_RELAX_LAPLACIAN) {
     laplacian_relaxation_iteration_uv(
-        em, sculptdata, mouse_coord, alpha, radius_squared, aspect_ratio);
+        sculptdata, cd_loop_uv_offset, mouse_coord, alpha, radius_squared, aspect_ratio);
     return;
   }
 
   struct UvElement **head_table = BM_uv_element_map_ensure_head_table(sculptdata->elementMap);
-
-  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
-  BLI_assert(cd_loop_uv_offset >= 0);
 
   const int total_uvs = sculptdata->elementMap->total_uvs;
   float(*delta_buf)[3] = (float(*)[3])MEM_callocN(total_uvs * sizeof(float[3]), __func__);
@@ -501,6 +490,8 @@ static void uv_sculpt_stroke_apply(bContext *C,
   radius = radius * radius;
   radius_root = sqrtf(radius);
 
+  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
+
   /*
    * Pinch Tool
    */
@@ -528,15 +519,10 @@ static void uv_sculpt_stroke_apply(bContext *C,
         apply_sculpt_data_constraints(sculptdata, sculptdata->uv[i].uv);
 
         for (element = sculptdata->uv[i].element; element; element = element->next) {
-          float(*luv)[2];
-          BMLoop *l;
-
           if (element->separate && element != sculptdata->uv[i].element) {
             break;
           }
-
-          l = element->l;
-          luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_PROP_FLOAT2);
+          float(*luv)[2] = BM_ELEM_CD_GET_FLOAT2_P(element->l, cd_loop_uv_offset);
           copy_v2_v2(*luv, sculptdata->uv[i].uv);
         }
       }
@@ -547,8 +533,13 @@ static void uv_sculpt_stroke_apply(bContext *C,
    * Relax Tool
    */
   else if (tool == UV_SCULPT_TOOL_RELAX) {
-    relaxation_iteration_uv(
-        em, sculptdata, co, alpha, radius, aspectRatio, toolsettings->uv_relax_method);
+    relaxation_iteration_uv(sculptdata,
+                            cd_loop_uv_offset,
+                            co,
+                            alpha,
+                            radius,
+                            aspectRatio,
+                            toolsettings->uv_relax_method);
   }
 
   /*
@@ -571,15 +562,10 @@ static void uv_sculpt_stroke_apply(bContext *C,
       apply_sculpt_data_constraints(sculptdata, sculptdata->uv[uvindex].uv);
 
       for (element = sculptdata->uv[uvindex].element; element; element = element->next) {
-        float(*luv)[2];
-        BMLoop *l;
-
         if (element->separate && element != sculptdata->uv[uvindex].element) {
           break;
         }
-
-        l = element->l;
-        luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_PROP_FLOAT2);
+        float(*luv)[2] = BM_ELEM_CD_GET_FLOAT2_P(element->l, cd_loop_uv_offset);
         copy_v2_v2(*luv, sculptdata->uv[uvindex].uv);
       }
     }

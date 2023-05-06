@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spimage
@@ -82,7 +82,8 @@ void ED_space_image_sync(struct Main *bmain, struct Image *image, bool ignore_re
           continue;
         }
         if (ignore_render_viewer && sima->image &&
-            ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+            ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE))
+        {
           continue;
         }
         ED_space_image_set(bmain, sima, image, true);

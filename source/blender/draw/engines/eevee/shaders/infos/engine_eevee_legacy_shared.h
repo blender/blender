@@ -16,50 +16,58 @@ typedef struct CommonUniformBlock CommonUniformBlock;
 #  endif
 #endif
 
+/* NOTE: AMD-based macOS platforms experience performance and correctness issues with EEVEE
+ * material closure evaluation. Using singular closure evaluation, rather than the compound
+ * function calls reduces register overflow, by limiting the simultaneous number of live
+ * registers used by the virtual GPU function stack. */
+#if (defined(GPU_METAL) && defined(GPU_ATI))
+#  define DO_SPLIT_CLOSURE_EVAL 1
+#endif
+
 struct CommonUniformBlock {
-  mat4 pastViewProjectionMatrix;
-  vec4 hizUvScale; /* To correct mip level texel misalignment */
+  mat4 _pastViewProjectionMatrix;
+  vec4 _hizUvScale; /* To correct mip level texel misalignment */
   /* Ambient Occlusion */
-  vec4 aoParameters[2];
+  vec4 _aoParameters[2];
   /* Volumetric */
-  ivec4 volTexSize;
-  vec4 volDepthParameters; /* Parameters to the volume Z equation */
-  vec4 volInvTexSize;
-  vec4 volJitter;
-  vec4 volCoordScale; /* To convert volume uvs to screen uvs */
-  float volHistoryAlpha;
-  float volShadowSteps;
-  bool volUseLights;
-  bool volUseSoftShadows;
+  ivec4 _volTexSize;
+  vec4 _volDepthParameters; /* Parameters to the volume Z equation */
+  vec4 _volInvTexSize;
+  vec4 _volJitter;
+  vec4 _volCoordScale; /* To convert volume uvs to screen uvs */
+  float _volHistoryAlpha;
+  float _volShadowSteps;
+  bool _volUseLights;
+  bool _volUseSoftShadows;
   /* Screen Space Reflections */
-  vec4 ssrParameters;
-  float ssrBorderFac;
-  float ssrMaxRoughness;
-  float ssrFireflyFac;
-  float ssrBrdfBias;
-  bool ssrToggle;
-  bool ssrefractToggle;
+  vec4 _ssrParameters;
+  float _ssrBorderFac;
+  float _ssrMaxRoughness;
+  float _ssrFireflyFac;
+  float _ssrBrdfBias;
+  bool _ssrToggle;
+  bool _ssrefractToggle;
   /* SubSurface Scattering */
-  float sssJitterThreshold;
-  bool sssToggle;
+  float _sssJitterThreshold;
+  bool _sssToggle;
   /* Specular */
-  bool specToggle;
+  bool _specToggle;
   /* Lights */
-  int laNumLight;
+  int _laNumLight;
   /* Probes */
-  int prbNumPlanar;
-  int prbNumRenderCube;
-  int prbNumRenderGrid;
-  int prbIrradianceVisSize;
-  float prbIrradianceSmooth;
-  float prbLodCubeMax;
+  int _prbNumPlanar;
+  int _prbNumRenderCube;
+  int _prbNumRenderGrid;
+  int _prbIrradianceVisSize;
+  float _prbIrradianceSmooth;
+  float _prbLodCubeMax;
   /* Misc */
-  int rayType;
-  float rayDepth;
-  float alphaHashOffset;
-  float alphaHashScale;
-  vec4 cameraUvScaleBias;
-  vec4 planarClipPlane;
+  int _rayType;
+  float _rayDepth;
+  float _alphaHashOffset;
+  float _alphaHashScale;
+  vec4 _cameraUvScaleBias;
+  vec4 _planarClipPlane;
 };
 BLI_STATIC_ASSERT_ALIGN(CommonUniformBlock, 16)
 
@@ -94,17 +102,17 @@ struct GridData {
 BLI_STATIC_ASSERT_ALIGN(GridData, 16)
 
 struct ProbeBlock {
-  CubeData probes_data[MAX_PROBE];
+  CubeData _probes_data[MAX_PROBE];
 };
 BLI_STATIC_ASSERT_ALIGN(ProbeBlock, 16)
 
 struct GridBlock {
-  GridData grids_data[MAX_GRID];
+  GridData _grids_data[MAX_GRID];
 };
 BLI_STATIC_ASSERT_ALIGN(GridBlock, 16)
 
 struct PlanarBlock {
-  PlanarData planars_data[MAX_PLANAR];
+  PlanarData _planars_data[MAX_PLANAR];
 };
 BLI_STATIC_ASSERT_ALIGN(PlanarBlock, 16)
 
@@ -133,9 +141,9 @@ struct ShadowCascadeData {
 BLI_STATIC_ASSERT_ALIGN(ShadowCascadeData, 16)
 
 struct ShadowBlock {
-  ShadowData shadows_data[MAX_SHADOW];
-  ShadowCubeData shadows_cube_data[MAX_SHADOW_CUBE];
-  ShadowCascadeData shadows_cascade_data[MAX_SHADOW_CASCADE];
+  ShadowData _shadows_data[MAX_SHADOW];
+  ShadowCubeData _shadows_cube_data[MAX_SHADOW_CUBE];
+  ShadowCascadeData _shadows_cascade_data[MAX_SHADOW_CASCADE];
 };
 BLI_STATIC_ASSERT_ALIGN(ShadowBlock, 16)
 
@@ -151,20 +159,20 @@ struct LightData {
 BLI_STATIC_ASSERT_ALIGN(LightData, 16)
 
 struct LightBlock {
-  LightData lights_data[MAX_LIGHT];
+  LightData _lights_data[MAX_LIGHT];
 };
 BLI_STATIC_ASSERT_ALIGN(LightBlock, 16)
 
 struct RenderpassBlock {
-  bool renderPassDiffuse;
-  bool renderPassDiffuseLight;
-  bool renderPassGlossy;
-  bool renderPassGlossyLight;
-  bool renderPassEmit;
-  bool renderPassSSSColor;
-  bool renderPassEnvironment;
-  bool renderPassAOV;
-  uint renderPassAOVActive;
+  bool _renderPassDiffuse;
+  bool _renderPassDiffuseLight;
+  bool _renderPassGlossy;
+  bool _renderPassGlossyLight;
+  bool _renderPassEmit;
+  bool _renderPassSSSColor;
+  bool _renderPassEnvironment;
+  bool _renderPassAOV;
+  uint _renderPassAOVActive;
 };
 BLI_STATIC_ASSERT_ALIGN(RenderpassBlock, 16)
 
@@ -174,10 +182,10 @@ BLI_STATIC_ASSERT_ALIGN(RenderpassBlock, 16)
 #define SSS_LUT_BIAS (0.5 / float(SSS_LUT_SIZE))
 
 struct SSSProfileBlock {
-  vec4 sss_kernel[MAX_SSS_SAMPLES];
-  vec4 radii_max_radius;
-  float avg_inv_radius;
-  int sss_samples;
+  vec4 _sss_kernel[MAX_SSS_SAMPLES];
+  vec4 _radii_max_radius;
+  float _avg_inv_radius;
+  int _sss_samples;
 };
 BLI_STATIC_ASSERT_ALIGN(SSSProfileBlock, 16)
 
@@ -186,75 +194,75 @@ BLI_STATIC_ASSERT_ALIGN(SSSProfileBlock, 16)
 #  if defined(USE_GPU_SHADER_CREATE_INFO)
 
 /* Keep compatibility_with old global scope syntax. */
-#    define pastViewProjectionMatrix common_block.pastViewProjectionMatrix
-#    define hizUvScale common_block.hizUvScale
-#    define aoParameters common_block.aoParameters
-#    define volTexSize common_block.volTexSize
-#    define volDepthParameters common_block.volDepthParameters
-#    define volInvTexSize common_block.volInvTexSize
-#    define volJitter common_block.volJitter
-#    define volCoordScale common_block.volCoordScale
-#    define volHistoryAlpha common_block.volHistoryAlpha
-#    define volShadowSteps common_block.volShadowSteps
-#    define volUseLights common_block.volUseLights
-#    define volUseSoftShadows common_block.volUseSoftShadows
-#    define ssrParameters common_block.ssrParameters
-#    define ssrBorderFac common_block.ssrBorderFac
-#    define ssrMaxRoughness common_block.ssrMaxRoughness
-#    define ssrFireflyFac common_block.ssrFireflyFac
-#    define ssrBrdfBias common_block.ssrBrdfBias
-#    define ssrToggle common_block.ssrToggle
-#    define ssrefractToggle common_block.ssrefractToggle
-#    define sssJitterThreshold common_block.sssJitterThreshold
-#    define sssToggle common_block.sssToggle
-#    define specToggle common_block.specToggle
-#    define laNumLight common_block.laNumLight
-#    define prbNumPlanar common_block.prbNumPlanar
-#    define prbNumRenderCube common_block.prbNumRenderCube
-#    define prbNumRenderGrid common_block.prbNumRenderGrid
-#    define prbIrradianceVisSize common_block.prbIrradianceVisSize
-#    define prbIrradianceSmooth common_block.prbIrradianceSmooth
-#    define prbLodCubeMax common_block.prbLodCubeMax
-#    define rayType common_block.rayType
-#    define rayDepth common_block.rayDepth
-#    define alphaHashOffset common_block.alphaHashOffset
-#    define alphaHashScale common_block.alphaHashScale
-#    define cameraUvScaleBias common_block.cameraUvScaleBias
-#    define planarClipPlane common_block.planarClipPlane
+#    define pastViewProjectionMatrix common_block._pastViewProjectionMatrix
+#    define hizUvScale common_block._hizUvScale
+#    define aoParameters common_block._aoParameters
+#    define volTexSize common_block._volTexSize
+#    define volDepthParameters common_block._volDepthParameters
+#    define volInvTexSize common_block._volInvTexSize
+#    define volJitter common_block._volJitter
+#    define volCoordScale common_block._volCoordScale
+#    define volHistoryAlpha common_block._volHistoryAlpha
+#    define volShadowSteps common_block._volShadowSteps
+#    define volUseLights common_block._volUseLights
+#    define volUseSoftShadows common_block._volUseSoftShadows
+#    define ssrParameters common_block._ssrParameters
+#    define ssrBorderFac common_block._ssrBorderFac
+#    define ssrMaxRoughness common_block._ssrMaxRoughness
+#    define ssrFireflyFac common_block._ssrFireflyFac
+#    define ssrBrdfBias common_block._ssrBrdfBias
+#    define ssrToggle common_block._ssrToggle
+#    define ssrefractToggle common_block._ssrefractToggle
+#    define sssJitterThreshold common_block._sssJitterThreshold
+#    define sssToggle common_block._sssToggle
+#    define specToggle common_block._specToggle
+#    define laNumLight common_block._laNumLight
+#    define prbNumPlanar common_block._prbNumPlanar
+#    define prbNumRenderCube common_block._prbNumRenderCube
+#    define prbNumRenderGrid common_block._prbNumRenderGrid
+#    define prbIrradianceVisSize common_block._prbIrradianceVisSize
+#    define prbIrradianceSmooth common_block._prbIrradianceSmooth
+#    define prbLodCubeMax common_block._prbLodCubeMax
+#    define rayType common_block._rayType
+#    define rayDepth common_block._rayDepth
+#    define alphaHashOffset common_block._alphaHashOffset
+#    define alphaHashScale common_block._alphaHashScale
+#    define cameraUvScaleBias common_block._cameraUvScaleBias
+#    define planarClipPlane common_block._planarClipPlane
 
 /* ProbeBlock */
-#    define probes_data probe_block.probes_data
+#    define probes_data probe_block._probes_data
 
 /* GridBlock */
-#    define grids_data grid_block.grids_data
+#    define grids_data grid_block._grids_data
 
 /* PlanarBlock */
-#    define planars_data planar_block.planars_data
+#    define planars_data planar_block._planars_data
 
 /* ShadowBlock */
-#    define shadows_data shadow_block.shadows_data
-#    define shadows_cube_data shadow_block.shadows_cube_data
-#    define shadows_cascade_data shadow_block.shadows_cascade_data
+#    define shadows_data shadow_block._shadows_data
+#    define shadows_cube_data shadow_block._shadows_cube_data
+#    define shadows_cascade_data shadow_block._shadows_cascade_data
 
 /* LightBlock */
-#    define lights_data light_block.lights_data
+#    define lights_data light_block._lights_data
 
 /* RenderpassBlock */
-#    define renderPassDiffuse renderpass_block.renderPassDiffuse
-#    define renderPassDiffuseLight renderpass_block.renderPassDiffuseLight
-#    define renderPassGlossy renderpass_block.renderPassGlossy
-#    define renderPassGlossyLight renderpass_block.renderPassGlossyLight
-#    define renderPassEmit renderpass_block.renderPassEmit
-#    define renderPassSSSColor renderpass_block.renderPassSSSColor
-#    define renderPassEnvironment renderpass_block.renderPassEnvironment
-#    define renderPassAOV renderpass_block.renderPassAOV
-#    define renderPassAOVActive renderpass_block.renderPassAOVActive
+#    define renderPassDiffuse renderpass_block._renderPassDiffuse
+#    define renderPassDiffuseLight renderpass_block._renderPassDiffuseLight
+#    define renderPassGlossy renderpass_block._renderPassGlossy
+#    define renderPassGlossyLight renderpass_block._renderPassGlossyLight
+#    define renderPassEmit renderpass_block._renderPassEmit
+#    define renderPassSSSColor renderpass_block._renderPassSSSColor
+#    define renderPassEnvironment renderpass_block._renderPassEnvironment
+#    define renderPassAOV renderpass_block._renderPassAOV
+#    define renderPassAOVActive renderpass_block._renderPassAOVActive
 
 /* SSSProfileBlock */
-#    define sss_kernel sssProfile.sss_kernel
-#    define radii_max_radius sssProfile.radii_max_radius
-#    define avg_inv_radius sssProfile.avg_inv_radius
-#    define sss_samples sssProfile.sss_samples
+#    define sss_kernel sssProfile._sss_kernel
+#    define radii_max_radius sssProfile._radii_max_radius
+#    define avg_inv_radius sssProfile._avg_inv_radius
+#    define sss_samples sssProfile._sss_samples
 
 #  endif /* USE_GPU_SHADER_CREATE_INFO */
 

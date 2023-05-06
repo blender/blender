@@ -23,7 +23,7 @@
 #include "DNA_curves_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_defaults.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -48,7 +48,7 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
@@ -56,7 +56,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_node.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.h"
@@ -185,8 +185,15 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
 
   /* nodetree is integral part of material, no libdata */
   if (ma->nodetree) {
-    BLO_write_struct(writer, bNodeTree, ma->nodetree);
-    ntreeBlendWrite(writer, ma->nodetree);
+    BLO_Write_IDBuffer *temp_embedded_id_buffer = BLO_write_allocate_id_buffer();
+    BLO_write_init_id_buffer_from_id(
+        temp_embedded_id_buffer, &ma->nodetree->id, BLO_write_is_undo(writer));
+    BLO_write_struct_at_address(
+        writer, bNodeTree, ma->nodetree, BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
+    ntreeBlendWrite(
+        writer,
+        reinterpret_cast<bNodeTree *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
+    BLO_write_destroy_id_buffer(&temp_embedded_id_buffer);
   }
 
   BKE_previewimg_blend_write(writer, ma->preview);
@@ -328,7 +335,7 @@ Material ***BKE_object_material_array_p(Object *ob)
     MetaBall *mb = static_cast<MetaBall *>(ob->data);
     return &(mb->mat);
   }
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     bGPdata *gpd = static_cast<bGPdata *>(ob->data);
     return &(gpd->mat);
   }
@@ -361,7 +368,7 @@ short *BKE_object_material_len_p(Object *ob)
     MetaBall *mb = static_cast<MetaBall *>(ob->data);
     return &(mb->totcol);
   }
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     bGPdata *gpd = static_cast<bGPdata *>(ob->data);
     return &(gpd->totcol);
   }
@@ -392,7 +399,7 @@ Material ***BKE_id_material_array_p(ID *id)
       return &(((Curve *)id)->mat);
     case ID_MB:
       return &(((MetaBall *)id)->mat);
-    case ID_GD:
+    case ID_GD_LEGACY:
       return &(((bGPdata *)id)->mat);
     case ID_CV:
       return &(((Curves *)id)->mat);
@@ -418,7 +425,7 @@ short *BKE_id_material_len_p(ID *id)
       return &(((Curve *)id)->totcol);
     case ID_MB:
       return &(((MetaBall *)id)->totcol);
-    case ID_GD:
+    case ID_GD_LEGACY:
       return &(((bGPdata *)id)->totcol);
     case ID_CV:
       return &(((Curves *)id)->totcol);
@@ -480,7 +487,7 @@ bool BKE_object_material_slot_used(Object *object, short actcol)
     case ID_MB:
       /* Meta-elements don't support materials at the moment. */
       return false;
-    case ID_GD:
+    case ID_GD_LEGACY:
       return BKE_gpencil_material_index_used((bGPdata *)ob_data, actcol - 1);
     default:
       return false;
@@ -1090,7 +1097,7 @@ void BKE_object_material_remap(Object *ob, const uint *remap)
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
     BKE_curve_material_remap(static_cast<Curve *>(ob->data), remap, ob->totcol);
   }
-  else if (ob->type == OB_GPENCIL) {
+  else if (ob->type == OB_GPENCIL_LEGACY) {
     BKE_gpencil_material_remap(static_cast<bGPdata *>(ob->data), remap, ob->totcol);
   }
   else {
@@ -1309,7 +1316,8 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
   const int actcol = ob->actcol;
 
   for (Object *obt = static_cast<Object *>(bmain->objects.first); obt;
-       obt = static_cast<Object *>(obt->id.next)) {
+       obt = static_cast<Object *>(obt->id.next))
+  {
     if (obt->data == ob->data) {
       /* Can happen when object material lists are used, see: #52953 */
       if (actcol > obt->totcol) {
@@ -1347,7 +1355,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
     }
   }
   /* check indices from gpencil */
-  else if (ob->type == OB_GPENCIL) {
+  else if (ob->type == OB_GPENCIL_LEGACY) {
     BKE_gpencil_material_index_reassign((bGPdata *)ob->data, ob->totcol, actcol - 1);
   }
 
@@ -1390,7 +1398,8 @@ static bool ntree_foreach_texnode_recursive(bNodeTree *nodetree,
   const bool do_color_attributes = (slot_filter & PAINT_SLOT_COLOR_ATTRIBUTE) != 0;
   for (bNode *node : nodetree->all_nodes()) {
     if (do_image_nodes && node->typeinfo->nclass == NODE_CLASS_TEXTURE &&
-        node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id) {
+        node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id)
+    {
       if (!callback(node, userdata)) {
         return false;
       }
@@ -1402,8 +1411,8 @@ static bool ntree_foreach_texnode_recursive(bNodeTree *nodetree,
     }
     else if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
       /* recurse into the node group and see if it contains any textures */
-      if (!ntree_foreach_texnode_recursive(
-              (bNodeTree *)node->id, callback, userdata, slot_filter)) {
+      if (!ntree_foreach_texnode_recursive((bNodeTree *)node->id, callback, userdata, slot_filter))
+      {
         return false;
       }
     }
@@ -1569,7 +1578,8 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const struct Ob
       ma->paint_clone_slot != prev_paint_clone_slot ||
       (ma->texpaintslot && prev_texpaintslot &&
        memcmp(ma->texpaintslot, prev_texpaintslot, sizeof(*ma->texpaintslot) * ma->tot_slots) !=
-           0)) {
+           0))
+  {
     DEG_id_tag_update(&ma->id, ID_RECALC_SHADING | ID_RECALC_COPY_ON_WRITE);
   }
 

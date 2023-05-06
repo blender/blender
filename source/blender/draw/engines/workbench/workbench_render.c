@@ -66,9 +66,8 @@ static bool workbench_render_framebuffers_init(void)
   if (dtxl->color == NULL) {
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
     BLI_assert(dtxl->depth == NULL);
-    dtxl->color = GPU_texture_create_2d_ex(
-        "txl.color", UNPACK2(size), 1, GPU_RGBA16F, usage, NULL);
-    dtxl->depth = GPU_texture_create_2d_ex(
+    dtxl->color = GPU_texture_create_2d("txl.color", UNPACK2(size), 1, GPU_RGBA16F, usage, NULL);
+    dtxl->depth = GPU_texture_create_2d(
         "txl.depth", UNPACK2(size), 1, GPU_DEPTH24_STENCIL8, usage, NULL);
   }
 
@@ -121,7 +120,7 @@ static void workbench_render_result_z(struct RenderLayer *rl,
 
     int pix_num = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
 
-    /* Convert ogl depth [0..1] to view Z [near..far] */
+    /* Convert GPU depth [0..1] to view Z [near..far] */
     if (DRW_view_is_persp_get(NULL)) {
       for (int i = 0; i < pix_num; i++) {
         if (rp->rect[i] == 1.0f) {

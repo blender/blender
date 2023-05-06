@@ -340,7 +340,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         msgctxt = bl_rna.translation_context or default_context
 
         if bl_rna.name and (bl_rna.name != bl_rna.identifier or
-                            (msgctxt != default_context and not hasattr(bl_rna, 'bl_label'))):
+                            (msgctxt != default_context and not hasattr(bl_rna, "bl_label"))):
             process_msg(msgs, msgctxt, bl_rna.name, msgsrc, reports, check_ctxt_rna, settings)
 
         if bl_rna.description:
@@ -349,14 +349,14 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
             process_msg(msgs, default_context, cls.__doc__, msgsrc, reports, check_ctxt_rna_tip, settings)
 
         # Panels' "tabs" system.
-        if hasattr(bl_rna, 'bl_category') and bl_rna.bl_category:
+        if hasattr(bl_rna, "bl_category") and bl_rna.bl_category:
             process_msg(msgs, default_context, bl_rna.bl_category, msgsrc, reports, check_ctxt_rna, settings)
 
-        if hasattr(bl_rna, 'bl_label') and bl_rna.bl_label:
+        if hasattr(bl_rna, "bl_label") and bl_rna.bl_label:
             process_msg(msgs, msgctxt, bl_rna.bl_label, msgsrc, reports, check_ctxt_rna, settings)
 
         # Tools Panels definitions.
-        if hasattr(bl_rna, 'tools_all') and bl_rna.tools_all:
+        if hasattr(bl_rna, "tools_all") and bl_rna.tools_all:
             walk_tools_definitions(cls)
 
         walk_properties(cls)
@@ -472,7 +472,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
 ##### Python source code #####
 def dump_py_messages_from_files(msgs, reports, files, settings):
     """
-    Dump text inlined in the python files given, e.g. 'My Name' in:
+    Dump text inlined in the python files given, e.g. "My Name" in:
         layout.prop("someprop", text="My Name")
     """
     import ast
@@ -501,9 +501,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         Recursively get strings, needed in case we have "Blah" + "Blah", passed as an argument in that case it won't
         evaluate to a string. However, break on some kind of stopper nodes, like e.g. Subscript.
         """
-        # New in py 3.8: all constants are of type 'ast.Constant'.
-        # 'ast.Str' will have to be removed when we officially switch to this version.
-        if type(node) in {ast.Str, getattr(ast, "Constant", None)}:
+        if type(node) == ast.Constant:
             eval_str = ast.literal_eval(node)
             if eval_str and type(eval_str) == str:
                 yield (is_split, eval_str, (node,))
@@ -559,7 +557,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         #     foobar(text="Foo", text_ctxt=i18n_ctxt.id_object)
         if type(node) == ast.Attribute:
             if node.attr in i18n_ctxt_ids:
-                #print(node, node.attr, getattr(i18n_contexts, node.attr))
+                # print(node, node.attr, getattr(i18n_contexts, node.attr))
                 return getattr(i18n_contexts, node.attr)
         return i18n_contexts.default
 
@@ -692,6 +690,15 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
                 else:
                     continue
 
+                # Skip function if it's marked as not translatable.
+                do_translate = True
+                for kw in node.keywords:
+                    if kw.arg == "translate" and not kw.value.value:
+                        do_translate = False
+                        break
+                if not do_translate:
+                    continue
+
                 func_args = func_translate_args.get(func_id, {})
 
                 # First try to get i18n contexts, for every possible msgid id.
@@ -746,7 +753,8 @@ def dump_py_messages(msgs, reports, addons, settings, addons_only=False):
             return []
         if os.path.isdir(path):
             return [os.path.join(dpath, fn) for dpath, _, fnames in os.walk(path) for fn in fnames
-                    if not fn.startswith("_") and fn.endswith(".py")]
+                    if fn.endswith(".py") and (fn == "__init__.py"
+                                               or not fn.startswith("_"))]
         return [path]
 
     files = []
@@ -921,8 +929,57 @@ def dump_template_messages(msgs, reports, settings):
                         reports, None, settings)
 
 
+def dump_asset_messages(msgs, reports, settings):
+    # Where to search for assets, relative to the local user resources.
+    assets_dir = os.path.join(bpy.utils.resource_path('LOCAL'), "datafiles", "assets")
+
+    # Parse the catalog sidecar file
+    catalog_file = os.path.join(assets_dir, settings.ASSET_CATALOG_FILE)
+    with open(catalog_file, encoding="utf8") as f:
+        data = f.readlines()
+
+    catalogs = set()
+
+    for line in data:
+        if (line == "\n" or line.startswith("VERSION") or line.startswith("#")):
+            continue
+        _UUID, catalog_path, _simple_catalog_name = line.split(":")
+        catalogs.update(catalog_path.split("/"))
+
+    msgsrc = "Asset catalog from " + settings.ASSET_CATALOG_FILE
+    for catalog in sorted(catalogs):
+        process_msg(msgs, settings.DEFAULT_CONTEXT, catalog, msgsrc,
+                    reports, None, settings)
+
+    # Parse the asset blend files
+    asset_files = {}
+
+    bfiles = glob.glob(assets_dir + "/**/*.blend", recursive=True)
+    for bfile in bfiles:
+        basename = os.path.basename(bfile)
+        bpy.ops.wm.open_mainfile(filepath=bfile)
+        # For now, only parse node groups.
+        # Perhaps some other assets will need to be extracted later?
+        for asset_type in ("node_groups",):
+            for asset in getattr(bpy.data, asset_type):
+                if asset.asset_data is None:  # Not an asset
+                    continue
+                assets = asset_files.setdefault(basename, [])
+                assets.append((asset.name, asset.asset_data.description))
+
+    for asset_file in sorted(asset_files):
+        for asset in sorted(asset_files[asset_file]):
+            name, description = asset
+            msgsrc = "Asset name from file " + asset_file
+            process_msg(msgs, settings.DEFAULT_CONTEXT, name, msgsrc,
+                        reports, None, settings)
+            msgsrc = "Asset description from file " + asset_file
+            process_msg(msgs, settings.DEFAULT_CONTEXT, description, msgsrc,
+                        reports, None, settings)
+
+
 def dump_addon_bl_info(msgs, reports, module, settings):
-    for prop in ('name', 'location', 'description'):
+    for prop in ('name', 'location', 'description', 'warning'):
         process_msg(
             msgs,
             settings.DEFAULT_CONTEXT,
@@ -973,6 +1030,7 @@ def dump_messages(do_messages, do_checks, settings):
     dump_preset_messages(msgs, reports, settings)
 
     # Get strings from startup templates.
+    # This loads each startup blend file in turn.
     dump_template_messages(msgs, reports, settings)
 
     # Get strings from addons' bl_info.
@@ -1011,6 +1069,10 @@ def dump_messages(do_messages, do_checks, settings):
     for cat in settings.LANGUAGES_CATEGORIES:
         process_msg(msgs, settings.DEFAULT_CONTEXT, cat[1],
                     "Language categories’ labels from bl_i18n_utils/settings.py", reports, None, settings)
+
+    # Get strings from asset catalogs and blend files.
+    # This loads each asset blend file in turn.
+    dump_asset_messages(msgs, reports, settings)
 
     # pot.check()
     pot.unescape()  # Strings gathered in py/C source code may contain escaped chars...

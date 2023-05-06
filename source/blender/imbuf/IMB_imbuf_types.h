@@ -26,7 +26,7 @@ extern "C" {
  */
 
 #define IMB_MIPMAP_LEVELS 20
-#define IMB_FILENAME_SIZE 1024
+#define IMB_FILEPATH_SIZE 1024
 
 typedef struct DDSData {
   /** DDS fourcc info */
@@ -59,26 +59,18 @@ enum eImbFileType {
   IMB_FTYPE_BMP = 4,
   IMB_FTYPE_OPENEXR = 5,
   IMB_FTYPE_IMAGIC = 6,
-#ifdef WITH_OPENIMAGEIO
   IMB_FTYPE_PSD = 7,
-#endif
 #ifdef WITH_OPENJPEG
   IMB_FTYPE_JP2 = 8,
 #endif
-#ifdef WITH_HDR
   IMB_FTYPE_RADHDR = 9,
-#endif
-#ifdef WITH_TIFF
   IMB_FTYPE_TIF = 10,
-#endif
 #ifdef WITH_CINEON
   IMB_FTYPE_CINEON = 11,
   IMB_FTYPE_DPX = 12,
 #endif
 
-#ifdef WITH_DDS
   IMB_FTYPE_DDS = 13,
-#endif
 #ifdef WITH_WEBP
   IMB_FTYPE_WEBP = 14,
 #endif
@@ -115,13 +107,11 @@ enum eImbFileType {
 
 #define RAWTGA 1
 
-#ifdef WITH_TIFF
-#  define TIF_16BIT (1 << 8)
-#  define TIF_COMPRESS_NONE (1 << 7)
-#  define TIF_COMPRESS_DEFLATE (1 << 6)
-#  define TIF_COMPRESS_LZW (1 << 5)
-#  define TIF_COMPRESS_PACKBITS (1 << 4)
-#endif
+#define TIF_16BIT (1 << 8)
+#define TIF_COMPRESS_NONE (1 << 7)
+#define TIF_COMPRESS_DEFLATE (1 << 6)
+#define TIF_COMPRESS_LZW (1 << 5)
+#define TIF_COMPRESS_PACKBITS (1 << 4)
 
 typedef struct ImbFormatOptions {
   short flag;
@@ -231,12 +221,10 @@ typedef struct ImBuf {
   enum eImbFileType ftype;
   /** file format specific flags */
   ImbFormatOptions foptions;
-  /** filename associated with this image */
-  char name[IMB_FILENAME_SIZE];
+  /** The absolute file path associated with this image. */
+  char filepath[IMB_FILEPATH_SIZE];
 
   /* memory cache limiter */
-  /** handle for cache limiter */
-  struct MEM_CacheLimiterHandle_s *c_handle;
   /** reference counter for multiple users */
   int refcounter;
 
@@ -297,31 +285,27 @@ enum {
 /** \} */
 
 /* dds */
-#ifdef WITH_DDS
-#  ifndef DDS_MAKEFOURCC
-#    define DDS_MAKEFOURCC(ch0, ch1, ch2, ch3) \
-      ((unsigned long)(unsigned char)(ch0) | ((unsigned long)(unsigned char)(ch1) << 8) | \
-       ((unsigned long)(unsigned char)(ch2) << 16) | ((unsigned long)(unsigned char)(ch3) << 24))
-#  endif /* DDS_MAKEFOURCC */
+#ifndef DDS_MAKEFOURCC
+#  define DDS_MAKEFOURCC(ch0, ch1, ch2, ch3) \
+    ((unsigned long)(unsigned char)(ch0) | ((unsigned long)(unsigned char)(ch1) << 8) | \
+     ((unsigned long)(unsigned char)(ch2) << 16) | ((unsigned long)(unsigned char)(ch3) << 24))
+#endif /* DDS_MAKEFOURCC */
 
 /*
  * FOURCC codes for DX compressed-texture pixel formats.
  */
 
-#  define FOURCC_DDS (DDS_MAKEFOURCC('D', 'D', 'S', ' '))
-#  define FOURCC_DXT1 (DDS_MAKEFOURCC('D', 'X', 'T', '1'))
-#  define FOURCC_DXT2 (DDS_MAKEFOURCC('D', 'X', 'T', '2'))
-#  define FOURCC_DXT3 (DDS_MAKEFOURCC('D', 'X', 'T', '3'))
-#  define FOURCC_DXT4 (DDS_MAKEFOURCC('D', 'X', 'T', '4'))
-#  define FOURCC_DXT5 (DDS_MAKEFOURCC('D', 'X', 'T', '5'))
+#define FOURCC_DDS (DDS_MAKEFOURCC('D', 'D', 'S', ' '))
+#define FOURCC_DX10 (DDS_MAKEFOURCC('D', 'X', '1', '0'))
+#define FOURCC_DXT1 (DDS_MAKEFOURCC('D', 'X', 'T', '1'))
+#define FOURCC_DXT2 (DDS_MAKEFOURCC('D', 'X', 'T', '2'))
+#define FOURCC_DXT3 (DDS_MAKEFOURCC('D', 'X', 'T', '3'))
+#define FOURCC_DXT4 (DDS_MAKEFOURCC('D', 'X', 'T', '4'))
+#define FOURCC_DXT5 (DDS_MAKEFOURCC('D', 'X', 'T', '5'))
 
-#endif /* DDS */
 extern const char *imb_ext_image[];
 extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
-
-/** Image formats that can only be loaded via filepath. */
-extern const char *imb_ext_image_filepath_only[];
 
 /* -------------------------------------------------------------------- */
 /** \name Imbuf Color Management Flag

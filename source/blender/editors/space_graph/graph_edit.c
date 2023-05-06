@@ -80,6 +80,11 @@ static const EnumPropertyItem prop_graphkeys_insertkey_types[] = {
      0,
      "Only Selected Channels",
      "Insert a keyframe on selected F-Curves using each curve's current value"},
+    {GRAPHKEYS_INSERTKEY_ACTIVE,
+     "ACTIVE",
+     0,
+     "Only Active F-Curve",
+     "Insert a keyframe on the active F-Curve using the curve's current value"},
     {GRAPHKEYS_INSERTKEY_ACTIVE | GRAPHKEYS_INSERTKEY_CURSOR,
      "CURSOR_ACTIVE",
      0,
@@ -475,6 +480,7 @@ static short copy_graph_keys(bAnimContext *ac)
 
 static eKeyPasteError paste_graph_keys(bAnimContext *ac,
                                        const eKeyPasteOffset offset_mode,
+                                       const eKeyPasteValueOffset value_offset_mode,
                                        const eKeyMergeMode merge_mode,
                                        bool flip)
 {
@@ -495,7 +501,8 @@ static eKeyPasteError paste_graph_keys(bAnimContext *ac,
   }
 
   /* Paste keyframes. */
-  const eKeyPasteError ok = paste_animedit_keys(ac, &anim_data, offset_mode, merge_mode, flip);
+  const eKeyPasteError ok = paste_animedit_keys(
+      ac, &anim_data, offset_mode, value_offset_mode, merge_mode, flip);
 
   /* Clean up. */
   ANIM_animdata_freelist(&anim_data);
@@ -516,7 +523,7 @@ static int graphkeys_copy_exec(bContext *C, wmOperator *op)
 
   /* Copy keyframes. */
   if (copy_graph_keys(&ac)) {
-    BKE_report(op->reports, RPT_ERROR, "No keyframes copied to keyframes copy/paste buffer");
+    BKE_report(op->reports, RPT_ERROR, "No keyframes copied to the internal clipboard");
     return OPERATOR_CANCELLED;
   }
 
@@ -529,7 +536,7 @@ void GRAPH_OT_copy(wmOperatorType *ot)
   /* Identifiers */
   ot->name = "Copy Keyframes";
   ot->idname = "GRAPH_OT_copy";
-  ot->description = "Copy selected keyframes to the copy/paste buffer";
+  ot->description = "Copy selected keyframes to the internal clipboard";
 
   /* API callbacks */
   ot->exec = graphkeys_copy_exec;
@@ -544,6 +551,7 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
   bAnimContext ac;
 
   const eKeyPasteOffset offset_mode = RNA_enum_get(op->ptr, "offset");
+  const eKeyPasteValueOffset value_offset_mode = RNA_enum_get(op->ptr, "value_offset");
   const eKeyMergeMode merge_mode = RNA_enum_get(op->ptr, "merge");
   const bool flipped = RNA_boolean_get(op->ptr, "flipped");
 
@@ -555,7 +563,8 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
   /* Ac.reports by default will be the global reports list, which won't show warnings. */
   ac.reports = op->reports;
 
-  const eKeyPasteError kf_empty = paste_graph_keys(&ac, offset_mode, merge_mode, flipped);
+  const eKeyPasteError kf_empty = paste_graph_keys(
+      &ac, offset_mode, value_offset_mode, merge_mode, flipped);
   switch (kf_empty) {
     case KEYFRAME_PASTE_OK:
       break;
@@ -565,7 +574,7 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
 
     case KEYFRAME_PASTE_NOTHING_TO_PASTE:
-      BKE_report(op->reports, RPT_ERROR, "No data in buffer to paste");
+      BKE_report(op->reports, RPT_ERROR, "No data in the internal clipboard to paste");
       return OPERATOR_CANCELLED;
   }
 
@@ -596,7 +605,8 @@ void GRAPH_OT_paste(wmOperatorType *ot)
   ot->name = "Paste Keyframes";
   ot->idname = "GRAPH_OT_paste";
   ot->description =
-      "Paste keyframes from copy/paste buffer for the selected channels, starting on the current "
+      "Paste keyframes from the internal clipboard for the selected channels, starting on the "
+      "current "
       "frame";
 
   /* API callbacks */
@@ -614,8 +624,14 @@ void GRAPH_OT_paste(wmOperatorType *ot)
                "offset",
                rna_enum_keyframe_paste_offset_items,
                KEYFRAME_PASTE_OFFSET_CFRA_START,
-               "Offset",
+               "Frame Offset",
                "Paste time offset of keys");
+  RNA_def_enum(ot->srna,
+               "value_offset",
+               rna_enum_keyframe_paste_offset_value,
+               KEYFRAME_PASTE_VALUE_OFFSET_NONE,
+               "Value Offset",
+               "Paste keys with a value offset");
   RNA_def_enum(ot->srna,
                "merge",
                rna_enum_keyframe_paste_merge_items,
@@ -2843,7 +2859,7 @@ void GRAPH_OT_fmodifier_add(wmOperatorType *ot)
   ot->prop = prop;
 
   RNA_def_boolean(
-      ot->srna, "only_active", 1, "Only Active", "Only add F-Modifier to active F-Curve");
+      ot->srna, "only_active", false, "Only Active", "Only add F-Modifier to active F-Curve");
 }
 
 /** \} */

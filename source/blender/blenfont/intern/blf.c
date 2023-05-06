@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup blf
@@ -21,6 +21,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_fileops.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
@@ -41,7 +42,6 @@
   } \
   ((void)0)
 
-/* Font array. */
 FontBLF *global_font[BLF_MAX_FONT] = {NULL};
 
 /* XXX: should these be made into global_font_'s too? */
@@ -94,11 +94,26 @@ bool blf_font_id_is_valid(int fontid)
   return blf_get(fontid) != NULL;
 }
 
-static int blf_search(const char *name)
+static int blf_search_by_mem_name(const char *mem_name)
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     const FontBLF *font = global_font[i];
-    if (font && STREQ(font->name, name)) {
+    if (font == NULL || font->mem_name == NULL) {
+      continue;
+    }
+    if (font && STREQ(font->mem_name, mem_name)) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+static int blf_search_by_filepath(const char *filepath)
+{
+  for (int i = 0; i < BLF_MAX_FONT; i++) {
+    const FontBLF *font = global_font[i];
+    if (font && STREQ(font->filepath, filepath)) {
       return i;
     }
   }
@@ -126,25 +141,30 @@ bool BLF_has_glyph(int fontid, uint unicode)
   return false;
 }
 
-bool BLF_is_loaded(const char *name)
+bool BLF_is_loaded(const char *filepath)
 {
-  return blf_search(name) >= 0;
+  return blf_search_by_filepath(filepath) >= 0;
 }
 
-int BLF_load(const char *name)
+bool BLF_is_loaded_mem(const char *name)
+{
+  return blf_search_by_mem_name(name) >= 0;
+}
+
+int BLF_load(const char *filepath)
 {
   /* check if we already load this font. */
-  int i = blf_search(name);
+  int i = blf_search_by_filepath(filepath);
   if (i >= 0) {
     FontBLF *font = global_font[i];
     font->reference_count++;
     return i;
   }
 
-  return BLF_load_unique(name);
+  return BLF_load_unique(filepath);
 }
 
-int BLF_load_unique(const char *name)
+int BLF_load_unique(const char *filepath)
 {
   /* Don't search in the cache!! make a new
    * object font, this is for keep fonts threads safe.
@@ -155,25 +175,17 @@ int BLF_load_unique(const char *name)
     return -1;
   }
 
-  char *filepath = blf_dir_search(name);
-  if (!filepath) {
-    printf("Can't find font: %s\n", name);
+  /* This isn't essential, it will just cause confusing behavior to load a font
+   * that appears to succeed, then doesn't show up. */
+  if (!BLI_exists(filepath)) {
+    printf("Can't find font: %s\n", filepath);
     return -1;
   }
 
-  FontBLF *font = blf_font_new(name, filepath);
-
-  /* XXX: Temporarily disable kerning in our main font. Kerning had been accidentally removed from
-   * our font in 3.1. In 3.4 we disable kerning here in the new version to keep spacing the same
-   * (#101506). Enable again later with change of font, placement, or rendering - Harley. */
-  if (font && BLI_str_endswith(filepath, BLF_DEFAULT_PROPORTIONAL_FONT)) {
-    font->face_flags &= ~FT_FACE_FLAG_KERNING;
-  }
-
-  MEM_freeN(filepath);
+  FontBLF *font = blf_font_new_from_filepath(filepath);
 
   if (!font) {
-    printf("Can't load font: %s\n", name);
+    printf("Can't load font: %s\n", filepath);
     return -1;
   }
 
@@ -193,7 +205,7 @@ void BLF_metrics_attach(int fontid, uchar *mem, int mem_size)
 
 int BLF_load_mem(const char *name, const uchar *mem, int mem_size)
 {
-  int i = blf_search(name);
+  int i = blf_search_by_mem_name(name);
   if (i >= 0) {
     // font = global_font[i]; /* UNUSED */
     return i;
@@ -229,12 +241,15 @@ int BLF_load_mem_unique(const char *name, const uchar *mem, int mem_size)
   return i;
 }
 
-void BLF_unload(const char *name)
+void BLF_unload(const char *filepath)
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     FontBLF *font = global_font[i];
+    if (font == NULL || font->filepath == NULL) {
+      continue;
+    }
 
-    if (font && STREQ(font->name, name)) {
+    if (STREQ(font->filepath, filepath)) {
       BLI_assert(font->reference_count > 0);
       font->reference_count--;
 
@@ -875,9 +890,7 @@ void blf_draw_buffer__start(FontBLF *font)
     srgb_to_linearrgb_v4(buf_info->col_float, buf_info->col_init);
   }
 }
-void blf_draw_buffer__end(void)
-{
-}
+void blf_draw_buffer__end(void) {}
 
 void BLF_draw_buffer_ex(int fontid,
                         const char *str,
@@ -928,7 +941,8 @@ void BLF_state_print(int fontid)
   FontBLF *font = blf_get(fontid);
   if (font) {
     printf("fontid %d %p\n", fontid, (void *)font);
-    printf("  name:    '%s'\n", font->name);
+    printf("  mem_name:    '%s'\n", font->mem_name ? font->mem_name : "<none>");
+    printf("  filepath:    '%s'\n", font->filepath ? font->filepath : "<none>");
     printf("  size:     %f\n", font->size);
     printf("  pos:      %d %d %d\n", UNPACK3(font->pos));
     printf("  aspect:   (%d) %.6f %.6f %.6f\n",

@@ -260,9 +260,7 @@ class Operators {
   static void reset(bool removeStrokes = true);
 
  private:
-  Operators()
-  {
-  }
+  Operators() {}
 
   static I1DContainer _current_view_edges_set;
   static I1DContainer _current_chains_set;

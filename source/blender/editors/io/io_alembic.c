@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. All rights reserved. */
+ * Copyright 2016 Blender Foundation */
 
 /** \file
  * \ingroup editor/io
@@ -280,6 +280,9 @@ void WM_OT_alembic_export(wmOperatorType *ot)
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
 
+  PropertyRNA *prop = RNA_def_string(ot->srna, "filter_glob", "*.abc", 0, "", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
   RNA_def_int(ot->srna,
               "start",
               INT_MIN,
@@ -490,7 +493,7 @@ static int cmp_frame(const void *a, const void *b)
   return 0;
 }
 
-static int get_sequence_len(char *filename, int *ofs)
+static int get_sequence_len(const char *filename, int *ofs)
 {
   int frame;
   int numdigit;
@@ -500,12 +503,14 @@ static int get_sequence_len(char *filename, int *ofs)
   }
 
   char path[FILE_MAX];
-  BLI_path_abs(filename, BKE_main_blendfile_path_from_global());
-  BLI_split_dir_part(filename, path, FILE_MAX);
+  BLI_path_split_dir_part(filename, path, FILE_MAX);
 
   if (path[0] == '\0') {
     /* The filename had no path, so just use the blend file path. */
-    BLI_split_dir_part(BKE_main_blendfile_path_from_global(), path, FILE_MAX);
+    BLI_path_split_dir_part(BKE_main_blendfile_path_from_global(), path, FILE_MAX);
+  }
+  else {
+    BLI_path_abs(path, BKE_main_blendfile_path_from_global());
   }
 
   DIR *dir = opendir(path);
@@ -672,6 +677,9 @@ void WM_OT_alembic_import(wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
+
+  PropertyRNA *prop = RNA_def_string(ot->srna, "filter_glob", "*.abc", 0, "", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 
   RNA_def_float(
       ot->srna,

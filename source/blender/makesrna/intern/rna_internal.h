@@ -292,7 +292,7 @@ struct IDProperty **rna_ID_idprops(struct PointerRNA *ptr);
 void rna_ID_fake_user_set(struct PointerRNA *ptr, bool value);
 void **rna_ID_instance(PointerRNA *ptr);
 struct IDProperty **rna_PropertyGroup_idprops(struct PointerRNA *ptr);
-void rna_PropertyGroup_unregister(struct Main *bmain, struct StructRNA *type);
+bool rna_PropertyGroup_unregister(struct Main *bmain, struct StructRNA *type);
 struct StructRNA *rna_PropertyGroup_register(struct Main *bmain,
                                              struct ReportList *reports,
                                              void *data,
@@ -468,6 +468,7 @@ void RNA_api_region_view3d(struct StructRNA *srna);
 void RNA_api_texture(struct StructRNA *srna);
 void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop, bool metastrip);
 void RNA_api_sequence_elements(BlenderRNA *brna, PropertyRNA *cprop);
+void RNA_api_sequence_retiming_handles(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_api_sound(struct StructRNA *srna);
 void RNA_api_vfont(struct StructRNA *srna);
 void RNA_api_workspace(struct StructRNA *srna);

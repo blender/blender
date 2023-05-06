@@ -101,22 +101,19 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
     MutableSpan<float3> positions = curves.positions_for_write();
     if (use_proportional_edit) {
       const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-      const VArray<bool> selection = curves.attributes().lookup_or_default<bool>(
+      const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
           ".selection", ATTR_DOMAIN_POINT, true);
       threading::parallel_for(curves.curves_range(), 512, [&](const IndexRange range) {
         Vector<float> closest_distances;
         for (const int curve_i : range) {
           const IndexRange points = points_by_curve[curve_i];
           const bool has_any_selected = ed::curves::has_anything_selected(selection, points);
-          if (!has_any_selected) {
+          if (!has_any_selected && use_connected_only) {
             for (const int point_i : points) {
               TransData &td = tc.data[point_i];
-              td.flag |= TD_NOTCONNECTED;
-              td.dist = FLT_MAX;
+              td.flag |= TD_SKIP;
             }
-            if (use_connected_only) {
-              continue;
-            }
+            continue;
           }
 
           closest_distances.reinitialize(points.size());

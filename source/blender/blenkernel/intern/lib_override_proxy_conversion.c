@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. All rights reserved. */
+ * Copyright 2016 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -63,7 +63,7 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
   ob_proxy->proxy->id.tag |= LIB_TAG_DOIT;
   ob_proxy->proxy->id.newid = &ob_proxy->id;
   BKE_lib_override_library_init(&ob_proxy->id, &ob_proxy->proxy->id);
-  ob_proxy->id.override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+  ob_proxy->id.override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
 
   ob_proxy->proxy->proxy_from = NULL;
   ob_proxy->proxy = ob_proxy->proxy_group = NULL;
@@ -130,7 +130,8 @@ void BKE_lib_override_library_main_proxy_convert(Main *bmain, BlendFileReadRepor
     FOREACH_SCENE_OBJECT_END;
 
     for (LinkNode *proxy_object_iter = proxy_objects.list; proxy_object_iter != NULL;
-         proxy_object_iter = proxy_object_iter->next) {
+         proxy_object_iter = proxy_object_iter->next)
+    {
       Object *proxy_object = proxy_object_iter->link;
       lib_override_library_proxy_convert_do(bmain, scene, proxy_object, reports);
     }

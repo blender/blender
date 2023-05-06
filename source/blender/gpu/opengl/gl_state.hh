@@ -64,7 +64,7 @@ class GLStateManager : public StateManager {
 
   void issue_barrier(eGPUBarrier barrier_bits) override;
 
-  void texture_bind(Texture *tex, eGPUSamplerState sampler, int unit) override;
+  void texture_bind(Texture *tex, GPUSamplerState sampler, int unit) override;
   /**
    * Bind the texture to slot 0 for editing purpose. Used by legacy pipeline.
    */
@@ -147,6 +147,9 @@ static inline GLbitfield to_gl(eGPUBarrier barrier_bits)
   }
   if (barrier_bits & GPU_BARRIER_UNIFORM) {
     barrier |= GL_UNIFORM_BARRIER_BIT;
+  }
+  if (barrier_bits & GPU_BARRIER_BUFFER_UPDATE) {
+    barrier |= GL_BUFFER_UPDATE_BARRIER_BIT;
   }
   return barrier;
 }

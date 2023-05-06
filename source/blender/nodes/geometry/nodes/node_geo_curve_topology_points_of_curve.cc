@@ -151,7 +151,7 @@ class CurvePointCountInput final : public bke::CurvesFieldInput {
     }
     const OffsetIndices points_by_curve = curves.points_by_curve();
     return VArray<int>::ForFunc(curves.curves_num(), [points_by_curve](const int64_t curve_i) {
-      return points_by_curve.size(curve_i);
+      return points_by_curve[curve_i].size();
     });
   }
 
@@ -230,7 +230,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<int> curve_index = params.extract_input<Field<int>>("Curve Index");
   if (params.output_is_required("Total")) {
     params.set_output("Total",
-                      Field<int>(std::make_shared<FieldAtIndexInput>(
+                      Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           curve_index,
                           Field<int>(std::make_shared<CurvePointCountInput>()),
                           ATTR_DOMAIN_CURVE)));

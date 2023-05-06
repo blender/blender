@@ -32,7 +32,7 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_layer_types.h"
@@ -264,7 +264,7 @@ static bool graphedit_get_context(bAnimContext *ac, SpaceGraph *sipo)
   ac->ads = sipo->ads;
 
   /* set settings for Graph Editor - "Selected = Editable" */
-  if (sipo->flag & SIPO_SELCUVERTSONLY) {
+  if (U.animation_flag & USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) {
     sipo->ads->filterflag |= ADS_FILTER_SELEDIT;
   }
   else {
@@ -1025,7 +1025,8 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 
     /* Only consider if F-Curve involves `pose.bones`. */
     if (fcu->rna_path &&
-        BLI_str_quoted_substr(fcu->rna_path, "pose.bones[", bone_name, sizeof(bone_name))) {
+        BLI_str_quoted_substr(fcu->rna_path, "pose.bones[", bone_name, sizeof(bone_name)))
+    {
       /* Get bone-name, and check if this bone is selected. */
       pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
 
@@ -1062,7 +1063,8 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 
     /* Only consider if F-Curve involves `sequence_editor.sequences`. */
     if (fcu->rna_path &&
-        BLI_str_quoted_substr(fcu->rna_path, "sequences_all[", seq_name, sizeof(seq_name))) {
+        BLI_str_quoted_substr(fcu->rna_path, "sequences_all[", seq_name, sizeof(seq_name)))
+    {
       /* Get strip name, and check if this strip is selected. */
       Editing *ed = SEQ_editing_get(scene);
       if (ed) {
@@ -1324,7 +1326,8 @@ static size_t animfilter_fcurves(ListBase *anim_data,
    */
   for (fcu = first;
        (fcu = animfilter_fcurve_next(ads, fcu, fcurve_type, filter_mode, owner, owner_id));
-       fcu = fcu->next) {
+       fcu = fcu->next)
+  {
     if (UNLIKELY(fcurve_type == ANIMTYPE_NLACURVE)) {
       /* NLA Control Curve - Basically the same as normal F-Curves,
        * except we need to set some stuff differently */
@@ -1366,7 +1369,8 @@ static size_t animfilter_act_group(bAnimContext *ac,
       /* Care about hierarchy but group isn't expanded. */
       ((filter_mode & ANIMFILTER_LIST_VISIBLE) && EXPANDED_AGRP(ac, agrp) == 0) &&
       /* Care about selection status. */
-      (filter_mode & (ANIMFILTER_SEL | ANIMFILTER_UNSEL))) {
+      (filter_mode & (ANIMFILTER_SEL | ANIMFILTER_UNSEL)))
+  {
     /* If the group itself isn't selected appropriately,
      * we shouldn't consider its children either. */
     if (ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) == 0) {
@@ -1692,7 +1696,8 @@ static size_t animdata_filter_shapekey(bAnimContext *ac,
 
       /* Skip shapekey if the name doesn't match the filter string. */
       if (ads != NULL && ads->searchstr[0] != '\0' &&
-          name_matches_dopesheet_filter(ads, kb->name) == false) {
+          name_matches_dopesheet_filter(ads, kb->name) == false)
+      {
         continue;
       }
 
@@ -1756,7 +1761,8 @@ static size_t animdata_filter_gpencil_layers_data(ListBase *anim_data,
 
     /* skip layer if the name doesn't match the filter string */
     if (ads != NULL && ads->searchstr[0] != '\0' &&
-        name_matches_dopesheet_filter(ads, gpl->info) == false) {
+        name_matches_dopesheet_filter(ads, gpl->info) == false)
+    {
       continue;
     }
 
@@ -1835,8 +1841,8 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
   ViewLayer *view_layer = (ViewLayer *)ac->view_layer;
 
   /* Include all annotation datablocks. */
-  if (((ads->filterflag & ADS_FILTER_ONLYSEL) == 0) ||
-      (ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
+  if (((ads->filterflag & ADS_FILTER_ONLYSEL) == 0) || (ads->filterflag & ADS_FILTER_INCL_HIDDEN))
+  {
     LISTBASE_FOREACH (bGPdata *, gpd, &ac->bmain->gpencils) {
       if (gpd->flag & GP_DATA_ANNOTATIONS) {
         items += animdata_filter_gpencil_data(anim_data, ads, gpd, filter_mode);
@@ -1847,7 +1853,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
   BKE_view_layer_synced_ensure(scene, view_layer);
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     /* Only consider this object if it has got some GP data (saving on all the other tests) */
-    if (base->object && (base->object->type == OB_GPENCIL)) {
+    if (base->object && (base->object->type == OB_GPENCIL_LEGACY)) {
       Object *ob = base->object;
 
       /* firstly, check if object can be included, by the following factors:
@@ -1863,7 +1869,8 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
         /* Layer visibility - we check both object and base,
          * since these may not be in sync yet. */
         if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) == 0 ||
-            (base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
+            (base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0)
+        {
           continue;
         }
 
@@ -2806,7 +2813,7 @@ static size_t animdata_filter_dopesheet_ob(
     }
 
     /* object data */
-    if ((ob->data) && (ob->type != OB_GPENCIL)) {
+    if ((ob->data) && (ob->type != OB_GPENCIL_LEGACY)) {
       tmp_items += animdata_filter_ds_obdata(ac, &tmp_data, ads, ob, filter_mode);
     }
 
@@ -2816,7 +2823,8 @@ static size_t animdata_filter_dopesheet_ob(
     }
 
     /* grease pencil */
-    if ((ob->type == OB_GPENCIL) && (ob->data) && !(ads->filterflag & ADS_FILTER_NOGPENCIL)) {
+    if ((ob->type == OB_GPENCIL_LEGACY) && (ob->data) && !(ads->filterflag & ADS_FILTER_NOGPENCIL))
+    {
       tmp_items += animdata_filter_ds_gpencil(ac, &tmp_data, ads, ob->data, filter_mode);
     }
   }
@@ -3079,7 +3087,8 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads,
   if ((filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
     /* layer visibility - we check both object and base, since these may not be in sync yet */
     if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) == 0 ||
-        (base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
+        (base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0)
+    {
       return false;
     }
 
@@ -3244,7 +3253,8 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac,
   BKE_view_layer_synced_ensure(scene, view_layer);
   ListBase *object_bases = BKE_view_layer_object_bases_get(view_layer);
   if ((filter_mode & ANIMFILTER_LIST_CHANNELS) && !(ads->flag & ADS_FLAG_NO_DB_SORT) &&
-      (object_bases->first != object_bases->last)) {
+      (object_bases->first != object_bases->last))
+  {
     /* Filter list of bases (i.e. objects), sort them, then add their contents normally... */
     /* TODO: Cache the old sorted order - if the set of bases hasn't changed, don't re-sort... */
     Base **sorted_bases;

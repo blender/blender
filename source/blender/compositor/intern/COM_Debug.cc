@@ -457,9 +457,9 @@ void DebugInfo::export_operation(const NodeOperation *op, MemoryBuffer *render)
 
   const std::string file_name = operation_class_name(op) + "_" + std::to_string(op->get_id()) +
                                 ".png";
-  const std::string path = get_operations_export_dir() + file_name;
-  BLI_make_existing_file(path.c_str());
-  IMB_saveiff(ibuf, path.c_str(), ibuf->flags);
+  const std::string filepath = get_operations_export_dir() + file_name;
+  BLI_file_ensure_parent_dir_exists(filepath.c_str());
+  IMB_saveiff(ibuf, filepath.c_str(), ibuf->flags);
   IMB_freeImBuf(ibuf);
 }
 

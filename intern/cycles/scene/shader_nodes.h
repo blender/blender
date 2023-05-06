@@ -53,9 +53,7 @@ class TextureMapping {
 
 class TextureNode : public ShaderNode {
  public:
-  explicit TextureNode(const NodeType *node_type) : ShaderNode(node_type)
-  {
-  }
+  explicit TextureNode(const NodeType *node_type) : ShaderNode(node_type) {}
   TextureMapping tex_mapping;
   NODE_SOCKET_API_STRUCT_MEMBER(float3, tex_mapping, translation)
   NODE_SOCKET_API_STRUCT_MEMBER(float3, tex_mapping, rotation)
@@ -168,6 +166,8 @@ class SkyTextureNode : public TextureNode {
   NODE_SOCKET_API(float, ozone_density)
   NODE_SOCKET_API(float3, vector)
   ImageHandle handle;
+
+  void simplify_settings(Scene *scene);
 
   float get_sun_size()
   {
@@ -723,6 +723,8 @@ class EmissionNode : public ShaderNode {
   NODE_SOCKET_API(float3, color)
   NODE_SOCKET_API(float, strength)
   NODE_SOCKET_API(float, surface_mix_weight)
+
+  bool from_auto_conversion = false;
 };
 
 class BackgroundNode : public ShaderNode {

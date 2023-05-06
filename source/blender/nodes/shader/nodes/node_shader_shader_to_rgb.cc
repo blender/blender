@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 #include "node_shader_util.hh"
 
@@ -34,6 +34,7 @@ void register_node_type_sh_shadertorgb()
 
   sh_node_type_base(&ntype, SH_NODE_SHADERTORGB, "Shader to RGB", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::node_declare;
+  ntype.add_ui_poll = object_eevee_shader_nodes_poll;
   ntype.gpu_fn = file_ns::node_shader_gpu_shadertorgb;
 
   nodeRegisterType(&ntype);

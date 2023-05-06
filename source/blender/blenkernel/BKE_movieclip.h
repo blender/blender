@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. All rights reserved. */
+ * Copyright 2011 Blender Foundation */
 
 #pragma once
 
@@ -21,9 +21,9 @@ struct MovieDistortion;
 
 /**
  * Checks if image was already loaded, then returns same image otherwise creates new.
- * does not load ibuf itself pass on optional frame for #name images.
+ * does not load ibuf itself pass on optional frame for `filepath` images.
  */
-struct MovieClip *BKE_movieclip_file_add(struct Main *bmain, const char *name);
+struct MovieClip *BKE_movieclip_file_add(struct Main *bmain, const char *filepath);
 struct MovieClip *BKE_movieclip_file_add_exists_ex(struct Main *bmain,
                                                    const char *filepath,
                                                    bool *r_exists);
@@ -106,9 +106,9 @@ bool BKE_movieclip_proxy_enabled(struct MovieClip *clip);
 float BKE_movieclip_remap_scene_to_clip_frame(const struct MovieClip *clip, float framenr);
 float BKE_movieclip_remap_clip_to_scene_frame(const struct MovieClip *clip, float framenr);
 
-void BKE_movieclip_filename_for_frame(struct MovieClip *clip,
+void BKE_movieclip_filepath_for_frame(struct MovieClip *clip,
                                       const struct MovieClipUser *user,
-                                      char *name);
+                                      char *filepath);
 
 /**
  * Read image buffer from the given movie clip without acquiring the #LOCK_MOVIECLIP lock.

@@ -112,9 +112,31 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences,
     device.has_peer_memory = false;
   }
 
-  if (get_boolean(cpreferences, "use_metalrt")) {
-    device.use_metalrt = true;
+  bool accumulated_use_hardware_raytracing = false;
+  foreach (
+      DeviceInfo &info,
+      (device.multi_devices.size() != 0 ? device.multi_devices : vector<DeviceInfo>({device})))
+  {
+    if (info.type == DEVICE_METAL && !get_boolean(cpreferences, "use_metalrt")) {
+      info.use_hardware_raytracing = false;
+    }
+
+    if (info.type == DEVICE_ONEAPI && !get_boolean(cpreferences, "use_oneapirt")) {
+      info.use_hardware_raytracing = false;
+    }
+
+    if (info.type == DEVICE_HIP && !get_boolean(cpreferences, "use_hiprt")) {
+      info.use_hardware_raytracing = false;
+    }
+
+    /* There is an accumulative logic here, because Multi-devices are support only for
+     * the same backend + CPU in Blender right now, and both oneAPI and Metal have a
+     * global boolean backend setting (see above) for enabling/disabling HW RT,
+     * so all sub-devices in the multi-device should enable (or disable) HW RT
+     * simultaneously (and CPU device are expected to ignore `use_hardware_raytracing` setting). */
+    accumulated_use_hardware_raytracing |= info.use_hardware_raytracing;
   }
+  device.use_hardware_raytracing = accumulated_use_hardware_raytracing;
 
   if (preview) {
     /* Disable specialization for preview renders. */

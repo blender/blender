@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup cmpnodes
@@ -126,7 +126,7 @@ class ScaleOperation : public NodeOperation {
   /* Scale by the render resolution percentage. */
   float2 get_scale_render_percent()
   {
-    return float2(context().get_scene()->r.size / 100.0f);
+    return float2(context().get_render_percentage());
   }
 
   float2 get_scale_render_size()

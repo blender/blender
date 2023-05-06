@@ -9,13 +9,20 @@
 #include "AS_asset_representation.h"
 #include "AS_asset_representation.hh"
 
+#include "BKE_blendfile.h"
+
+#include "BLI_string.h"
+
 #include "DNA_space_types.h"
 
-#include "BLO_readfile.h"
+#include "DNA_space_types.h"
 
 #include "ED_asset_handle.h"
 
-#include "WM_api.h"
+AssetRepresentation *ED_asset_handle_get_representation(const AssetHandle *asset)
+{
+  return asset->file_data->asset;
+}
 
 const char *ED_asset_handle_get_name(const AssetHandle *asset)
 {
@@ -53,36 +60,16 @@ void ED_asset_handle_get_full_library_path(const AssetHandle *asset_handle,
 {
   *r_full_lib_path = '\0';
 
-  std::string asset_path = AS_asset_representation_full_path_get(asset_handle->file_data->asset);
-  if (asset_path.empty()) {
+  std::string library_path = AS_asset_representation_full_library_path_get(
+      asset_handle->file_data->asset);
+  if (library_path.empty()) {
     return;
   }
 
-  BLO_library_path_explode(asset_path.c_str(), r_full_lib_path, nullptr, nullptr);
+  BLI_strncpy(r_full_lib_path, library_path.c_str(), FILE_MAX);
 }
 
-namespace blender::ed::asset {
-
-ID *get_local_id_from_asset_or_append_and_reuse(Main &bmain, const AssetHandle asset)
+bool ED_asset_handle_get_use_relative_path(const AssetHandle *asset)
 {
-  if (ID *local_id = ED_asset_handle_get_local_id(&asset)) {
-    return local_id;
-  }
-
-  char blend_path[FILE_MAX_LIBEXTRA];
-  ED_asset_handle_get_full_library_path(&asset, blend_path);
-  const char *id_name = ED_asset_handle_get_name(&asset);
-
-  return WM_file_append_datablock(&bmain,
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                                  blend_path,
-                                  ED_asset_handle_get_id_type(&asset),
-                                  id_name,
-                                  BLO_LIBLINK_APPEND_RECURSIVE |
-                                      BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR |
-                                      BLO_LIBLINK_APPEND_LOCAL_ID_REUSE);
+  return AS_asset_representation_use_relative_path_get(asset->file_data->asset);
 }
-
-}  // namespace blender::ed::asset

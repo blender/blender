@@ -7,7 +7,7 @@ import os
 import re
 import struct
 import tempfile
-#import time
+# import time
 
 from bl_i18n_utils import (
     settings,
@@ -173,7 +173,7 @@ def list_po_dir(root_path, settings):
     isocodes = dict(e for e in isocodes if os.path.isfile(e[1]))
     for num_id, name, uid in settings.LANGUAGES[2:]:  # Skip "default" and "en" languages!
         best_po = find_best_isocode_matches(uid, isocodes)
-        #print(uid, "->", best_po)
+        # print(uid, "->", best_po)
         if best_po:
             isocode = best_po[0]
             yield (True, uid, num_id, name, isocode, isocodes[isocode])
@@ -438,7 +438,7 @@ class I18nMessages:
     # Avoid parsing again!
     # Keys should be (pseudo) file-names, values are tuples (hash, I18nMessages)
     # Note: only used by po parser currently!
-    #_parser_cache = {}
+    # _parser_cache = {}
 
     def __init__(self, uid=None, kind=None, key=None, src=None, settings=settings):
         self.settings = settings
@@ -473,7 +473,7 @@ class I18nMessages:
 
     @staticmethod
     def _new_messages():
-        return getattr(collections, 'OrderedDict', dict)()
+        return getattr(collections, "OrderedDict", dict)()
 
     @classmethod
     def gen_empty_messages(cls, uid, blender_ver, blender_hash, time, year, default_copyright=True, settings=settings):
@@ -791,7 +791,7 @@ class I18nMessages:
                 k &= src_to_msg[src_enum]
             msgmap["enum_label"]["key"] = k
         rlbl = getattr(msgs, msgmap["rna_label"]["msgstr"])
-        #print("rna label: " + rlbl, rlbl in msgid_to_msg, rlbl in msgstr_to_msg)
+        # print("rna label: " + rlbl, rlbl in msgid_to_msg, rlbl in msgstr_to_msg)
         if rlbl:
             k = ctxt_to_msg[rna_ctxt].copy()
             if k and rlbl in msgid_to_msg:
@@ -831,7 +831,7 @@ class I18nMessages:
 
         # Tips (they never have a specific context).
         etip = getattr(msgs, msgmap["enum_tip"]["msgstr"])
-        #print("enum tip: " + etip)
+        # print("enum tip: " + etip)
         if etip:
             k = ctxt_to_msg[self.settings.DEFAULT_CONTEXT].copy()
             if etip in msgid_to_msg:
@@ -845,7 +845,7 @@ class I18nMessages:
                 k &= src_to_msg[src_enum]
             msgmap["enum_tip"]["key"] = k
         rtip = getattr(msgs, msgmap["rna_tip"]["msgstr"])
-        #print("rna tip: " + rtip)
+        # print("rna tip: " + rtip)
         if rtip:
             k = ctxt_to_msg[self.settings.DEFAULT_CONTEXT].copy()
             if k and rtip in msgid_to_msg:
@@ -860,7 +860,7 @@ class I18nMessages:
             msgmap["rna_tip"]["key"] = k
             # print(k)
         btip = getattr(msgs, msgmap["but_tip"]["msgstr"])
-        #print("button tip: " + btip)
+        # print("button tip: " + btip)
         if btip and btip not in {rtip, etip}:
             k = ctxt_to_msg[self.settings.DEFAULT_CONTEXT].copy()
             if btip in msgid_to_msg:
@@ -1038,7 +1038,7 @@ class I18nMessages:
                     msgstr_lines.append(line)
                 else:
                     self.parsing_errors.append((line_nr, "regular string outside msgctxt, msgid or msgstr scope"))
-                    #self.parsing_errors += (str(comment_lines), str(msgctxt_lines), str(msgid_lines), str(msgstr_lines))
+                    # self.parsing_errors += (str(comment_lines), str(msgctxt_lines), str(msgid_lines), str(msgstr_lines))
 
         # If no final empty line, last message is not finalized!
         if reading_msgstr:
@@ -1046,7 +1046,7 @@ class I18nMessages:
         self.unescape()
 
     def write(self, kind, dest):
-        self.writers[kind](self, dest)
+        return self.writers[kind](self, dest)
 
     def write_messages_to_po(self, fname, compact=False):
         """
@@ -1126,8 +1126,8 @@ class I18nMessages:
                 "-o",
                 fname,
             )
-            ret = subprocess.call(cmd)
-            return
+            ret = subprocess.run(cmd, capture_output=True)
+            return ret
         # XXX Code below is currently broken (generates corrupted mo files it seems :( )!
         # Using http://www.gnu.org/software/gettext/manual/html_node/MO-Files.html notation.
         # Not generating hash table!
@@ -1427,7 +1427,7 @@ class I18n:
         self.unescape()
 
     def write(self, kind, langs=set()):
-        self.writers[kind](self, langs)
+        return self.writers[kind](self, langs)
 
     def write_to_po(self, langs=set()):
         """

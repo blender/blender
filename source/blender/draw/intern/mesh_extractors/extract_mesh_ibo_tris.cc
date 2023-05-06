@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -30,7 +30,7 @@ static void extract_tris_init(const MeshRenderData *mr,
                               void *tls_data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(tls_data);
-  GPU_indexbuf_init(elb, GPU_PRIM_TRIS, mr->poly_sorted.visible_tri_len, mr->loop_len);
+  GPU_indexbuf_init(elb, GPU_PRIM_TRIS, mr->poly_sorted->visible_tri_len, mr->loop_len);
 }
 
 static void extract_tris_iter_poly_bm(const MeshRenderData *mr,
@@ -38,7 +38,7 @@ static void extract_tris_iter_poly_bm(const MeshRenderData *mr,
                                       const int f_index,
                                       void *_data)
 {
-  int tri_first_index = mr->poly_sorted.tri_first_index[f_index];
+  int tri_first_index = mr->poly_sorted->tri_first_index[f_index];
   if (tri_first_index == -1) {
     return;
   }
@@ -60,21 +60,22 @@ static void extract_tris_iter_poly_bm(const MeshRenderData *mr,
 }
 
 static void extract_tris_iter_poly_mesh(const MeshRenderData *mr,
-                                        const MPoly *mp,
-                                        const int mp_index,
+                                        const int poly_index,
                                         void *_data)
 {
-  int tri_first_index = mr->poly_sorted.tri_first_index[mp_index];
+  int tri_first_index = mr->poly_sorted->tri_first_index[poly_index];
   if (tri_first_index == -1) {
     return;
   }
 
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
-  int tri_first_index_real = poly_to_tri_count(mp_index, mp->loopstart);
+  const IndexRange poly = mr->polys[poly_index];
 
-  int tri_len = mp->totloop - 2;
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
+  int tri_first_index_real = poly_to_tri_count(poly_index, poly.start());
+
+  int tri_len = poly.size() - 2;
   for (int offs = 0; offs < tri_len; offs++) {
-    const MLoopTri *mlt = &mr->mlooptri[tri_first_index_real + offs];
+    const MLoopTri *mlt = &mr->looptris[tri_first_index_real + offs];
     int tri_index = tri_first_index + offs;
     GPU_indexbuf_set_tri_verts(elb, tri_index, mlt->tri[0], mlt->tri[1], mlt->tri[2]);
   }
@@ -99,7 +100,7 @@ static void extract_tris_finish(const MeshRenderData *mr,
       if (cache->tris_per_mat[i] == nullptr) {
         cache->tris_per_mat[i] = GPU_indexbuf_calloc();
       }
-      const int mat_tri_len = mr->poly_sorted.mat_tri_len[i];
+      const int mat_tri_len = mr->poly_sorted->mat_tri_len[i];
       /* Multiply by 3 because these are triangle indices. */
       const int start = mat_start * 3;
       const int len = mat_tri_len * 3;
@@ -189,7 +190,8 @@ static void extract_tris_single_mat_iter_looptri_mesh(const MeshRenderData *mr,
                                                       void *_data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
-  const bool hidden = mr->use_hide && mr->hide_poly && mr->hide_poly[mlt->poly];
+  const int poly_i = mr->looptri_polys[mlt_index];
+  const bool hidden = mr->use_hide && mr->hide_poly && mr->hide_poly[poly_i];
   if (hidden) {
     GPU_indexbuf_set_tri_restart(elb, mlt_index);
   }

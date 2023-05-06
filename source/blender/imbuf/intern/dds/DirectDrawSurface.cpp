@@ -523,7 +523,7 @@ const FormatDescriptor s_d3dFormats[] = {
     {D3DFMT_L16, 16, 16, 0, 0, 0}, /* DXGI_FORMAT_R16_UNORM */
 };
 
-const uint s_d3dFormatCount = sizeof(s_d3dFormats) / sizeof(s_d3dFormats[0]);
+const uint s_d3dFormatCount = ARRAY_SIZE(s_d3dFormats);
 
 } /* namespace */
 
@@ -532,7 +532,8 @@ static uint findD3D9Format(uint bitcount, uint rmask, uint gmask, uint bmask, ui
   for (int i = 0; i < s_d3dFormatCount; i++) {
     if (s_d3dFormats[i].bitcount == bitcount && s_d3dFormats[i].rmask == rmask &&
         s_d3dFormats[i].gmask == gmask && s_d3dFormats[i].bmask == bmask &&
-        s_d3dFormats[i].amask == amask) {
+        s_d3dFormats[i].amask == amask)
+    {
       return s_d3dFormats[i].format;
     }
   }
@@ -690,7 +691,8 @@ void DDSHeader::setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask
 {
   /* Make sure the masks are correct. */
   if ((rmask & gmask) || (rmask & bmask) || (rmask & amask) || (gmask & bmask) ||
-      (gmask & amask) || (bmask & amask)) {
+      (gmask & amask) || (bmask & amask))
+  {
     printf("DDS: bad RGBA masks, pixel format not set\n");
     return;
   }
@@ -912,7 +914,8 @@ bool DirectDrawSurface::isSupported() const
              DXGI_FORMAT_BC2_UNORM,
              DXGI_FORMAT_BC3_UNORM,
              DXGI_FORMAT_BC4_UNORM,
-             DXGI_FORMAT_BC5_UNORM)) {
+             DXGI_FORMAT_BC5_UNORM))
+    {
       return true;
     }
 
@@ -928,7 +931,8 @@ bool DirectDrawSurface::isSupported() const
               FOURCC_DXT5,
               FOURCC_RXGB,
               FOURCC_ATI1,
-              FOURCC_ATI2)) {
+              FOURCC_ATI2))
+    {
       /* Unknown fourcc code. */
       return false;
     }
@@ -941,7 +945,8 @@ bool DirectDrawSurface::isSupported() const
   }
 
   if (isTextureCube() &&
-      (header.caps.caps2 & DDSCAPS2_CUBEMAP_ALL_FACES) != DDSCAPS2_CUBEMAP_ALL_FACES) {
+      (header.caps.caps2 & DDSCAPS2_CUBEMAP_ALL_FACES) != DDSCAPS2_CUBEMAP_ALL_FACES)
+  {
     /* Cube-maps must contain all faces. */
     return false;
   }
@@ -968,7 +973,8 @@ bool DirectDrawSurface::hasAlpha() const
   }
   if (header.pf.flags & DDPF_FOURCC) {
     if (header.pf.fourcc == FOURCC_RXGB || header.pf.fourcc == FOURCC_ATI1 ||
-        header.pf.fourcc == FOURCC_ATI2 || header.pf.flags & DDPF_NORMAL) {
+        header.pf.fourcc == FOURCC_ATI2 || header.pf.flags & DDPF_NORMAL)
+    {
       return false;
     }
 
@@ -1244,7 +1250,8 @@ void DirectDrawSurface::readBlock(ColorBlock *rgba)
     block.decodeBlock(rgba);
   }
   else if (fourcc == FOURCC_DXT4 || header.pf.fourcc == FOURCC_DXT5 ||
-           header.pf.fourcc == FOURCC_RXGB) {
+           header.pf.fourcc == FOURCC_RXGB)
+  {
     BlockDXT5 block;
     mem_read(stream, block);
     block.decodeBlock(rgba);

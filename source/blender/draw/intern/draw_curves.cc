@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+ * Copyright 2017 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -33,7 +33,13 @@
 
 BLI_INLINE eParticleRefineShaderType drw_curves_shader_type_get()
 {
-  if (GPU_compute_shader_support() && GPU_shader_storage_buffer_objects_support()) {
+  /* NOTE: Curve refine is faster using transform feedback via vertex processing pipeline with
+   * Metal and Apple Silicon GPUs. This is also because vertex work can more easily be executed in
+   * parallel with fragment work, whereas compute inserts an explicit dependency,
+   * due to switching of command encoder types. */
+  if (GPU_compute_shader_support() && GPU_shader_storage_buffer_objects_support() &&
+      (GPU_backend_get_type() != GPU_BACKEND_METAL))
+  {
     return PART_REFINE_SHADER_COMPUTE;
   }
   if (GPU_transform_feedback_support()) {
@@ -329,7 +335,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
    * use for now because we can't use a per-point radius yet. */
   const blender::bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves.curves_num() >= 1) {
-    blender::VArray<float> radii = curves.attributes().lookup_or_default(
+    blender::VArray<float> radii = *curves.attributes().lookup_or_default(
         "radius", ATTR_DOMAIN_POINT, 0.005f);
     const blender::IndexRange first_curve_points = curves.points_by_curve()[0];
     const float first_radius = radii[first_curve_points.first()];

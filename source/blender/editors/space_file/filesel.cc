@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spfile
@@ -77,7 +77,7 @@ static void fileselect_initialize_params_common(SpaceFile *sfile, FileSelectPara
 
   if (!params->dir[0]) {
     if (blendfile_path[0] != '\0') {
-      BLI_split_dir_part(blendfile_path, params->dir, sizeof(params->dir));
+      BLI_path_split_dir_part(blendfile_path, params->dir, sizeof(params->dir));
     }
     else {
       const char *doc_path = BKE_appdir_folder_default();
@@ -147,11 +147,11 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     sfile->params = static_cast<FileSelectParams *>(
         MEM_callocN(sizeof(FileSelectParams), "fileselparams"));
     /* set path to most recently opened .blend */
-    BLI_split_dirfile(blendfile_path,
-                      sfile->params->dir,
-                      sfile->params->file,
-                      sizeof(sfile->params->dir),
-                      sizeof(sfile->params->file));
+    BLI_path_split_dir_file(blendfile_path,
+                            sfile->params->dir,
+                            sizeof(sfile->params->dir),
+                            sfile->params->file,
+                            sizeof(sfile->params->file));
     sfile->params->filter_glob[0] = '\0';
     sfile->params->thumbnail_size = U_default.file_space_data.thumbnail_size;
     sfile->params->details_flags = U_default.file_space_data.details_flags;
@@ -180,15 +180,15 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     }
 
     if (is_filepath && RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-      char name[FILE_MAX];
-      RNA_string_get(op->ptr, "filepath", name);
+      char filepath[FILE_MAX];
+      RNA_string_get(op->ptr, "filepath", filepath);
       if (params->type == FILE_LOADLIB) {
-        BLI_strncpy(params->dir, name, sizeof(params->dir));
+        BLI_strncpy(params->dir, filepath, sizeof(params->dir));
         params->file[0] = '\0';
       }
       else {
-        BLI_split_dirfile(
-            name, params->dir, params->file, sizeof(params->dir), sizeof(params->file));
+        BLI_path_split_dir_file(
+            filepath, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
       }
     }
     else {
@@ -203,13 +203,13 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     }
 
     if (params->dir[0]) {
-      BLI_path_normalize_dir(blendfile_path, params->dir, sizeof(params->dir));
       BLI_path_abs(params->dir, blendfile_path);
+      BLI_path_normalize_dir(params->dir, sizeof(params->dir));
     }
 
     params->flag = 0;
-    if (is_directory == true && is_filename == false && is_filepath == false &&
-        is_files == false) {
+    if (is_directory == true && is_filename == false && is_filepath == false && is_files == false)
+    {
       params->flag |= FILE_DIRSEL_ONLY;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "check_existing"))) {
@@ -630,8 +630,8 @@ void ED_fileselect_window_params_get(const wmWindow *win, int win_size[2], bool 
   /* Get DPI/pixel-size independent size to be stored in preferences. */
   WM_window_set_dpi(win); /* Ensure the DPI is taken from the right window. */
 
-  win_size[0] = WM_window_pixels_x(win) / UI_DPI_FAC;
-  win_size[1] = WM_window_pixels_y(win) / UI_DPI_FAC;
+  win_size[0] = WM_window_pixels_x(win) / UI_SCALE_FAC;
+  win_size[1] = WM_window_pixels_y(win) / UI_SCALE_FAC;
 
   *is_maximized = WM_window_is_maximized(win);
 }
@@ -783,7 +783,8 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const rcti *r
   rowmax = (rect->ymax - layout->offset_top) / (layout->tile_h + 2 * layout->tile_border_y);
 
   if (is_inside(colmin, rowmin, layout->flow_columns, layout->rows) ||
-      is_inside(colmax, rowmax, layout->flow_columns, layout->rows)) {
+      is_inside(colmax, rowmax, layout->flow_columns, layout->rows))
+  {
     CLAMP(colmin, 0, layout->flow_columns - 1);
     CLAMP(rowmin, 0, layout->rows - 1);
     CLAMP(colmax, 0, layout->flow_columns - 1);
@@ -931,7 +932,8 @@ FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
 
     for (FileAttributeColumnType column = FileAttributeColumnType(0);
          column < ATTRIBUTE_COLUMN_MAX;
-         column = FileAttributeColumnType(int(column) + 1)) {
+         column = FileAttributeColumnType(int(column) + 1))
+    {
       if (!file_attribute_column_type_enabled(params, column)) {
         continue;
       }
@@ -967,7 +969,7 @@ float file_font_pointsize(void)
 #else
   const uiStyle *style = UI_style_get();
   UI_fontstyle_set(&style->widget);
-  return style->widget.points * UI_DPI_FAC;
+  return style->widget.points * UI_SCALE_FAC;
 #endif
 }
 
@@ -995,9 +997,10 @@ static void file_attribute_columns_widths(const FileSelectParams *params, FileLa
     for (FileAttributeColumnType column_type =
              FileAttributeColumnType(int(ATTRIBUTE_COLUMN_MAX) - 1);
          column_type >= 0;
-         column_type = FileAttributeColumnType(int(column_type) - 1)) {
-      if ((column_type == COLUMN_NAME) ||
-          !file_attribute_column_type_enabled(params, column_type)) {
+         column_type = FileAttributeColumnType(int(column_type) - 1))
+    {
+      if ((column_type == COLUMN_NAME) || !file_attribute_column_type_enabled(params, column_type))
+      {
         continue;
       }
       remwidth -= columns[column_type].width;
@@ -1218,7 +1221,7 @@ int autocomplete_directory(struct bContext *C, char *str, void * /*arg_v*/)
     DIR *dir;
     struct dirent *de;
 
-    BLI_split_dir_part(str, dirname, sizeof(dirname));
+    BLI_path_split_dir_part(str, dirname, sizeof(dirname));
 
     dir = opendir(dirname);
 
@@ -1377,7 +1380,8 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
   BLI_assert(params->rename_flag != 0);
 
   if ((params->rename_flag & (FILE_PARAMS_RENAME_ACTIVE | FILE_PARAMS_RENAME_POSTSCROLL_ACTIVE)) !=
-      0) {
+      0)
+  {
     return;
   }
 

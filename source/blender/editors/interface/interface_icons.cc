@@ -29,7 +29,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_dynamicpaint_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
@@ -912,20 +912,20 @@ void UI_icons_reload_internal_textures()
       icongltex.invw = 1.0f / b32buf->x;
       icongltex.invh = 1.0f / b32buf->y;
 
-      icongltex.tex[0] = GPU_texture_create_2d_ex(
+      icongltex.tex[0] = GPU_texture_create_2d(
           "icons", b32buf->x, b32buf->y, 2, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
       GPU_texture_update_mipmap(icongltex.tex[0], 0, GPU_DATA_UBYTE, b32buf->rect);
       GPU_texture_update_mipmap(icongltex.tex[0], 1, GPU_DATA_UBYTE, b16buf->rect);
     }
 
     if (need_icons_with_border && icongltex.tex[1] == nullptr) {
-      icongltex.tex[1] = GPU_texture_create_2d_ex("icons_border",
-                                                  b32buf_border->x,
-                                                  b32buf_border->y,
-                                                  2,
-                                                  GPU_RGBA8,
-                                                  GPU_TEXTURE_USAGE_SHADER_READ,
-                                                  nullptr);
+      icongltex.tex[1] = GPU_texture_create_2d("icons_border",
+                                               b32buf_border->x,
+                                               b32buf_border->y,
+                                               2,
+                                               GPU_RGBA8,
+                                               GPU_TEXTURE_USAGE_SHADER_READ,
+                                               nullptr);
       GPU_texture_update_mipmap(icongltex.tex[1], 0, GPU_DATA_UBYTE, b32buf_border->rect);
       GPU_texture_update_mipmap(icongltex.tex[1], 1, GPU_DATA_UBYTE, b16buf_border->rect);
     }
@@ -1114,9 +1114,7 @@ static void free_iconfile_list(ListBase *list)
 
 #else
 
-void UI_icons_reload_internal_textures()
-{
-}
+void UI_icons_reload_internal_textures() {}
 
 #endif /* WITH_HEADLESS */
 
@@ -1617,16 +1615,16 @@ static void icon_draw_cache_texture_flush_ex(GPUTexture *texture,
     return;
   }
 
-  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR);
+  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_ICON_MULTI);
   GPU_shader_bind(shader);
 
-  const int data_binding = GPU_shader_get_ubo_binding(shader, "multi_rect_data");
+  const int data_binding = GPU_shader_get_ubo_binding(shader, "multi_icon_data");
   GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(
-      sizeof(MultiRectCallData), texture_draw_calls->drawcall_cache, __func__);
+      sizeof(MultiIconCallData), texture_draw_calls->drawcall_cache, __func__);
   GPU_uniformbuf_bind(ubo, data_binding);
 
   const int img_binding = GPU_shader_get_sampler_binding(shader, "image");
-  GPU_texture_bind_ex(texture, GPU_SAMPLER_ICON, img_binding, false);
+  GPU_texture_bind_ex(texture, GPUSamplerState::icon_sampler(), img_binding);
 
   GPUBatch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
@@ -1741,7 +1739,7 @@ static void icon_draw_texture(float x,
                               bool with_border,
                               const IconTextOverlay *text_overlay)
 {
-  const float zoom_factor = w / UI_DPI_ICON_SIZE;
+  const float zoom_factor = w / UI_ICON_SIZE;
   float text_width = 0.0f;
 
   /* No need to show if too zoomed out, otherwise it just adds noise. */
@@ -1798,7 +1796,7 @@ static void icon_draw_texture(float x,
   GPU_shader_bind(shader);
 
   const int img_binding = GPU_shader_get_sampler_binding(shader, "image");
-  const int color_loc = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR);
+  const int color_loc = GPU_shader_get_uniform(shader, "finalColor");
   const int rect_tex_loc = GPU_shader_get_uniform(shader, "rect_icon");
   const int rect_geom_loc = GPU_shader_get_uniform(shader, "rect_geom");
 
@@ -1818,7 +1816,7 @@ static void icon_draw_texture(float x,
   GPU_shader_uniform_float_ex(shader, rect_geom_loc, 4, 1, geom_color);
   GPU_shader_uniform_1f(shader, "text_width", text_width);
 
-  GPU_texture_bind_ex(texture, GPU_SAMPLER_ICON, img_binding, false);
+  GPU_texture_bind_ex(texture, GPUSamplerState::icon_sampler(), img_binding);
 
   GPUBatch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
@@ -2217,6 +2215,15 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
         case GP_BRUSH_ICON_GPBRUSH_WEIGHT:
           br->id.icon_id = ICON_GPBRUSH_WEIGHT;
           break;
+        case GP_BRUSH_ICON_GPBRUSH_BLUR:
+          br->id.icon_id = ICON_BRUSH_BLUR;
+          break;
+        case GP_BRUSH_ICON_GPBRUSH_AVERAGE:
+          br->id.icon_id = ICON_BRUSH_BLUR;
+          break;
+        case GP_BRUSH_ICON_GPBRUSH_SMEAR:
+          br->id.icon_id = ICON_BRUSH_BLUR;
+          break;
         default:
           br->id.icon_id = ICON_GPBRUSH_PEN;
           break;
@@ -2293,7 +2300,8 @@ int UI_icon_from_library(const ID *id)
   }
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
     if (!ID_IS_OVERRIDE_LIBRARY_REAL(id) ||
-        (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) != 0) {
+        (id->override_library->flag & LIBOVERRIDE_FLAG_SYSTEM_DEFINED) != 0)
+    {
       return ICON_LIBRARY_DATA_OVERRIDE_NONEDITABLE;
     }
     return ICON_LIBRARY_DATA_OVERRIDE;
@@ -2377,7 +2385,7 @@ int UI_icon_from_idcode(const int idcode)
       return ICON_FILE;
     case ID_CU_LEGACY:
       return ICON_CURVE_DATA;
-    case ID_GD:
+    case ID_GD_LEGACY:
       return ICON_OUTLINER_DATA_GREASEPENCIL;
     case ID_GR:
       return ICON_OUTLINER_COLLECTION;
@@ -2492,13 +2500,13 @@ int UI_icon_color_from_collection(const Collection *collection)
 void UI_icon_draw(float x, float y, int icon_id)
 {
   UI_icon_draw_ex(
-      x, y, icon_id, U.inv_dpi_fac, 1.0f, 0.0f, nullptr, false, UI_NO_ICON_OVERLAY_TEXT);
+      x, y, icon_id, UI_INV_SCALE_FAC, 1.0f, 0.0f, nullptr, false, UI_NO_ICON_OVERLAY_TEXT);
 }
 
 void UI_icon_draw_alpha(float x, float y, int icon_id, float alpha)
 {
   UI_icon_draw_ex(
-      x, y, icon_id, U.inv_dpi_fac, alpha, 0.0f, nullptr, false, UI_NO_ICON_OVERLAY_TEXT);
+      x, y, icon_id, UI_INV_SCALE_FAC, alpha, 0.0f, nullptr, false, UI_NO_ICON_OVERLAY_TEXT);
 }
 
 void UI_icon_draw_preview(float x, float y, int icon_id, float aspect, float alpha, int size)

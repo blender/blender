@@ -138,7 +138,8 @@ void DisplaceSimpleOperation::update_memory_buffer_partial(MemoryBuffer *output,
   const float height = this->get_height();
   const MemoryBuffer *input_color = inputs[0];
   for (BuffersIterator<float> it = output->iterate_with(inputs.drop_front(1), area); !it.is_end();
-       ++it) {
+       ++it)
+  {
     float scale_x = *it.in(1);
     float scale_y = *it.in(2);
 

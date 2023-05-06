@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup sequencer
@@ -52,7 +52,7 @@ void SEQUENCER_OT_rename_channel(struct wmOperatorType *ot)
 
   /* Api callbacks. */
   ot->invoke = sequencer_rename_channel_invoke;
-  ot->poll = sequencer_edit_poll;
+  ot->poll = sequencer_edit_with_channel_region_poll;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

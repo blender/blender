@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup bgpencil
@@ -10,10 +10,10 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_material.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_object.h"
 
 #include "gpencil_io_import_base.hh"
@@ -34,7 +34,7 @@ Object *GpencilImporter::create_object()
                                                                    ushort(0);
 
   Object *ob_gpencil = ED_object_add_type(params_.C,
-                                          OB_GPENCIL,
+                                          OB_GPENCIL_LEGACY,
                                           (params_.filename[0] != '\0') ? params_.filename :
                                                                           nullptr,
                                           cur_loc,

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup cmpnodes
@@ -93,7 +93,7 @@ void register_node_type_cmp_invert()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, CMP_NODE_INVERT, "Invert Color", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::cmp_node_invert_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_invert;
   ntype.initfunc = file_ns::node_composit_init_invert;

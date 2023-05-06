@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 
 /** \file
  * \ingroup editor/io
@@ -529,8 +529,6 @@ static void up_axis_update(struct Main *UNUSED(main),
 
 void WM_OT_usd_export(struct wmOperatorType *ot)
 {
-  PropertyRNA *prop;
-
   ot->name = "Export USD";
   ot->description = "Export current scene in a USD archive";
   ot->idname = WM_OT_USD_EXPORT_IDNAME;
@@ -572,6 +570,9 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
               "take the end frame of the current scene",
               INT_MIN,
               INT_MAX);
+
+  PropertyRNA *prop = RNA_def_string(ot->srna, "filter_glob", "*.usd", 0, "", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 
   RNA_def_boolean(ot->srna,
                   "selected_objects_only",
@@ -871,7 +872,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   "overwrite_textures",
                   false,
                   "Overwrite Textures",
-                  "Allow overwriting existing texture files when exporting textures");
+                  "Overwrite existing files when exporting textures");
 
   RNA_def_float(ot->srna,
                 "light_intensity_scale",
@@ -1119,6 +1120,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
                                    .import_skeletons = import_skeletons,
                                    .prim_path_mask = prim_path_mask,
                                    .import_shapes = import_shapes,
+                                   .prim_path_mask = prim_path_mask,
                                    .import_subdiv = import_subdiv,
                                    .import_instance_proxies = import_instance_proxies,
                                    .create_collection = create_collection,
@@ -1183,6 +1185,9 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
+
+  PropertyRNA *prop = RNA_def_string(ot->srna, "filter_glob", "*.usd", 0, "", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 
   RNA_def_float(
       ot->srna,
@@ -1266,7 +1271,7 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
                  0,
                  "Path Mask",
                  "Import only the primitive at the given path and its descendents.  "
-                 "Multiple paths may be specified in a list delimited by spaces, commas or somicolons");
+                 "Multiple paths may be specified in a list delimited by commas or semicolons");
 
   RNA_def_boolean(ot->srna, "import_guide", false, "Guide", "Import guide geometry");
 

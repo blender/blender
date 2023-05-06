@@ -499,7 +499,8 @@ static PyObject *pygpu_shader_info_fragment_out(BPyGPUShaderCreateInfo *self,
                                         &pygpu_type,
                                         &name,
                                         PyC_ParseStringEnum,
-                                        &blend_type)) {
+                                        &blend_type))
+  {
     return nullptr;
   }
 
@@ -604,13 +605,15 @@ static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
                                         PyC_ParseStringEnum,
                                         &pygpu_imagetype,
                                         &name,
-                                        &py_qualifiers)) {
+                                        &py_qualifiers))
+  {
     return nullptr;
   }
 
   if (py_qualifiers &&
       PyC_FlagSet_ToBitfield(
-          pygpu_qualifiers, py_qualifiers, (int *)&qualifier, "shader_info.image") == -1) {
+          pygpu_qualifiers, py_qualifiers, (int *)&qualifier, "shader_info.image") == -1)
+  {
     return nullptr;
   }
 
@@ -775,7 +778,8 @@ static PyObject *pygpu_shader_info_push_constant(BPyGPUShaderCreateInfo *self,
       nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, PyC_ParseStringEnum, &pygpu_type, &name, &array_size)) {
+          args, kwds, &_parser, PyC_ParseStringEnum, &pygpu_type, &name, &array_size))
+  {
     return nullptr;
   }
 

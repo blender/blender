@@ -84,7 +84,8 @@ ccl_device_inline float3 operator/(const float3 a, const float f)
 #  if defined(__KERNEL_SSE__)
   return float3(_mm_div_ps(a.m128, _mm_set1_ps(f)));
 #  else
-  return make_float3(a.x / f, a.y / f, a.z / f);
+  float invf = 1.0f / f;
+  return make_float3(a.x * invf, a.y * invf, a.z * invf);
 #  endif
 }
 

@@ -244,7 +244,8 @@ static PyObject *pygpu_vertbuf__tp_new(PyTypeObject *UNUSED(type), PyObject *arg
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, &BPyGPUVertFormat_Type, &params.py_fmt, &params.len)) {
+          args, kwds, &_parser, &BPyGPUVertFormat_Type, &params.py_fmt, &params.len))
+  {
     return NULL;
   }
 

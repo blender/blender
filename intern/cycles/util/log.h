@@ -24,12 +24,8 @@ class StubStream {
 
 class LogMessageVoidify {
  public:
-  LogMessageVoidify()
-  {
-  }
-  void operator&(const StubStream &)
-  {
-  }
+  LogMessageVoidify() {}
+  void operator&(const StubStream &) {}
 };
 
 #  define LOG_SUPPRESS() (true) ? ((void)0) : LogMessageVoidify() & StubStream()
@@ -40,8 +36,7 @@ class LogMessageVoidify {
 
 #  define CHECK(expression) LOG_SUPPRESS()
 
-#  define CHECK_NOTNULL(expression) LOG_SUPPRESS()
-#  define CHECK_NULL(expression) LOG_SUPPRESS()
+#  define CHECK_NOTNULL(expression) (expression)
 
 #  define CHECK_NEAR(actual, expected, eps) LOG_SUPPRESS()
 
@@ -54,8 +49,7 @@ class LogMessageVoidify {
 
 #  define DCHECK(expression) LOG_SUPPRESS()
 
-#  define DCHECK_NOTNULL(expression) LOG_SUPPRESS()
-#  define DCHECK_NULL(expression) LOG_SUPPRESS()
+#  define DCHECK_NOTNULL(expression) (expression)
 
 #  define DCHECK_NEAR(actual, expected, eps) LOG_SUPPRESS()
 

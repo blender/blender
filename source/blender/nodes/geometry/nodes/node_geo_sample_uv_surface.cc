@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_attribute_math.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
+#include "BKE_mesh_sample.hh"
 #include "BKE_type_conversions.hh"
 
 #include "UI_interface.h"
@@ -105,80 +106,6 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-class SampleMeshBarycentricFunction : public mf::MultiFunction {
-  GeometrySet source_;
-  GField src_field_;
-
-  /**
-   * Use the most complex domain for now ensuring no information is lost. In the future, it should
-   * be possible to use the most complex domain required by the field inputs, to simplify sampling
-   * and avoid domain conversions.
-   */
-  eAttrDomain domain_ = ATTR_DOMAIN_CORNER;
-
-  mf::Signature signature_;
-
-  std::optional<bke::MeshFieldContext> source_context_;
-  std::unique_ptr<FieldEvaluator> source_evaluator_;
-  const GVArray *source_data_;
-
-  Span<MLoopTri> looptris_;
-
- public:
-  SampleMeshBarycentricFunction(GeometrySet geometry, GField src_field)
-      : source_(std::move(geometry)), src_field_(std::move(src_field))
-  {
-    source_.ensure_owns_direct_data();
-    this->evaluate_source();
-
-    mf::SignatureBuilder builder{"Sample Barycentric Triangles", signature_};
-    builder.single_input<int>("Triangle Index");
-    builder.single_input<float3>("Barycentric Weight");
-    builder.single_output("Value", src_field_.cpp_type());
-    this->set_signature(&signature_);
-  }
-
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
-  {
-    const VArraySpan<int> triangle_indices = params.readonly_single_input<int>(0,
-                                                                               "Triangle Index");
-    const VArraySpan<float3> bary_weights = params.readonly_single_input<float3>(
-        1, "Barycentric Weight");
-    GMutableSpan dst = params.uninitialized_single_output(2, "Value");
-
-    attribute_math::convert_to_static_type(src_field_.cpp_type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      const VArray<T> src_typed = source_data_->typed<T>();
-      MutableSpan<T> dst_typed = dst.typed<T>();
-      for (const int i : mask) {
-        const int triangle_index = triangle_indices[i];
-        if (triangle_indices[i] != -1) {
-          dst_typed[i] = attribute_math::mix3(bary_weights[i],
-                                              src_typed[looptris_[triangle_index].tri[0]],
-                                              src_typed[looptris_[triangle_index].tri[1]],
-                                              src_typed[looptris_[triangle_index].tri[2]]);
-        }
-        else {
-          dst_typed[i] = {};
-        }
-      }
-    });
-  }
-
- private:
-  void evaluate_source()
-  {
-    const Mesh &mesh = *source_.get_mesh_for_read();
-    looptris_ = mesh.looptris();
-    source_context_.emplace(bke::MeshFieldContext{mesh, domain_});
-    const int domain_size = mesh.attributes().domain_size(domain_);
-    source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, domain_size);
-    source_evaluator_->add(src_field_);
-    source_evaluator_->evaluate();
-    source_data_ = &source_evaluator_->get_evaluated(0);
-  }
-};
-
 class ReverseUVSampleFunction : public mf::MultiFunction {
   GeometrySet source_;
   Field<float2> src_uv_map_field_;
@@ -218,29 +145,17 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
     MutableSpan<float3> bary_weights = params.uninitialized_single_output_if_required<float3>(
         3, "Barycentric Weights");
 
-    Array<ReverseUVSampler::Result> results(mask.min_array_size());
-    reverse_uv_sampler_->sample_many(sample_uvs, results);
-
-    if (!is_valid.is_empty()) {
-      std::transform(results.begin(),
-                     results.end(),
-                     is_valid.begin(),
-                     [](const ReverseUVSampler::Result &result) {
-                       return result.type == ReverseUVSampler::ResultType::Ok;
-                     });
-    }
-    if (!tri_index.is_empty()) {
-      std::transform(results.begin(),
-                     results.end(),
-                     tri_index.begin(),
-                     [](const ReverseUVSampler::Result &result) { return result.looptri_index; });
-    }
-
-    if (!bary_weights.is_empty()) {
-      std::transform(results.begin(),
-                     results.end(),
-                     bary_weights.begin(),
-                     [](const ReverseUVSampler::Result &result) { return result.bary_weights; });
+    for (const int i : mask) {
+      const ReverseUVSampler::Result result = reverse_uv_sampler_->sample(sample_uvs[i]);
+      if (!is_valid.is_empty()) {
+        is_valid[i] = result.type == ReverseUVSampler::ResultType::Ok;
+      }
+      if (!tri_index.is_empty()) {
+        tri_index[i] = result.looptri_index;
+      }
+      if (!bary_weights.is_empty()) {
+        bary_weights[i] = result.bary_weights;
+      }
     }
   }
 
@@ -335,7 +250,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   /* Use the output of the UV sampling to interpolate the mesh attribute. */
   GField field = get_input_attribute_field(params, data_type);
   auto sample_op = FieldOperation::Create(
-      std::make_shared<SampleMeshBarycentricFunction>(std::move(geometry), std::move(field)),
+      std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(std::move(geometry),
+                                                                     std::move(field)),
       {Field<int>(uv_op, 1), Field<float3>(uv_op, 2)});
   output_attribute_field(params, GField(sample_op, 0));
 }

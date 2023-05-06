@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 #include "usd.h"
 
 #include "usd_hierarchy_iterator.h"
@@ -185,7 +185,7 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
     case OB_SPEAKER:
     case OB_LIGHTPROBE:
     case OB_LATTICE:
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
     case OB_POINTCLOUD:
     case OB_CURVES:
       return nullptr;

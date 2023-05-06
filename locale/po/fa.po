@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2012-10-31 17:00-0800\n"
 "Last-Translator: Amin Babaeipanah <translate@leomoon.com>\n"
 "Language-Team: LeoMoon Studios <blender@leomoon.com>\n"
@@ -426,10 +426,6 @@ msgstr "ﺪﯾﺩ ﻥﺍﺪﯿﻣ ﺖﯿﻌﺿﻭ"
 
 msgid "Weight"
 msgstr "ﻥﺯﻭ"
-
-
-msgid "Grease Pencil"
-msgstr "ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
 
 
 msgid "Particles"
@@ -1484,6 +1480,10 @@ msgid "Size"
 msgstr "ﻩﺯﺍﺪﻧﺍ"
 
 
+msgid "Grease Pencil"
+msgstr "ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
+
+
 msgid "Save"
 msgstr "ﻩﺮﯿﺧﺫ"
 
@@ -2420,10 +2420,6 @@ msgid "Add Shader"
 msgstr "ﻥﺯ ﻪﯾﺎﺳ ﻥﺩﻭﺰﻓﺍ"
 
 
-msgid "Bright Contrast"
-msgstr "ﻦﺷﻭﺭ ﺖﺳﺍﺮﺘﻨﮐ"
-
-
 msgid "Reflection"
 msgstr "ﺱﺎﮑﻌﻧﺍ"
 
@@ -2797,6 +2793,10 @@ msgstr "ﻥﻮﯿﺳﺍﺭﻮﮐﺩ ﻡﺎﻧ"
 
 msgid "Open"
 msgstr "ﻥﺩﺮﮐ‌ﺯﺎﺑ"
+
+
+msgid "Play"
+msgstr "ﺶﺨﭘ"
 
 
 msgid "Limit"
@@ -3181,10 +3181,6 @@ msgstr "ﻪﻨﯿﻤﮐ ﻥﺎﻣﺯ"
 
 msgid "Render Delay"
 msgstr "ﺭﺪﻧﺭ ﺮﯿﺧﺎﺗ"
-
-
-msgid "Play"
-msgstr "ﺶﺨﭘ"
 
 
 msgid "Random Order"
@@ -3733,10 +3729,6 @@ msgid "Transform:"
 msgstr "ﻞﯾﺪﺒﺗ:"
 
 
-msgid "Old"
-msgstr "ﯽﻤﯾﺪﻗ"
-
-
 msgid "Date"
 msgstr "ﺦﯾﺭﺎﺗ"
 
@@ -3819,10 +3811,6 @@ msgstr "ﻞﯾﺎﻓ:"
 
 msgid "Author:"
 msgstr "ﻩﺪﻨﺴﯾﻮﻧ:"
-
-
-msgid "author"
-msgstr "ﻩﺪﻨﺴﯾﻮﻧ"
 
 
 msgid "Version:"
@@ -4198,6 +4186,10 @@ msgstr "ﺖﮐﺮﺣ"
 
 msgid "On"
 msgstr "ﻦﺷﻭﺭ"
+
+
+msgid "Old"
+msgstr "ﯽﻤﯾﺪﻗ"
 
 
 msgid "Blender File View"

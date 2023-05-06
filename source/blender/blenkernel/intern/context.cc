@@ -11,7 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_collection_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -410,7 +410,8 @@ static int ctx_data_base_collection_get(const bContext *C, const char *member, L
 {
   ListBase ctx_object_list;
   if ((ctx_data_collection_get(C, member, &ctx_object_list) == false) ||
-      BLI_listbase_is_empty(&ctx_object_list)) {
+      BLI_listbase_is_empty(&ctx_object_list))
+  {
     BLI_listbase_clear(list);
     return 0;
   }
@@ -426,7 +427,8 @@ static int ctx_data_base_collection_get(const bContext *C, const char *member, L
 
   CollectionPointerLink *ctx_object;
   for (ctx_object = static_cast<CollectionPointerLink *>(ctx_object_list.first); ctx_object;
-       ctx_object = ctx_object->next) {
+       ctx_object = ctx_object->next)
+  {
     Object *ob = static_cast<Object *>(ctx_object->ptr.data);
     Base *base = BKE_view_layer_base_find(view_layer, ob);
     if (base != nullptr) {
@@ -1491,6 +1493,11 @@ AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid)
 
   *r_is_valid = false;
   return AssetHandle{nullptr};
+}
+
+AssetRepresentation *CTX_wm_asset(const bContext *C)
+{
+  return static_cast<AssetRepresentation *>(ctx_data_pointer_get(C, "asset"));
 }
 
 Depsgraph *CTX_data_depsgraph_pointer(const bContext *C)

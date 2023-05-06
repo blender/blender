@@ -229,7 +229,8 @@ static int lib_id_fake_user_toggle_exec(bContext *C, wmOperator *op)
   ID *id = (ID *)idptr.data;
 
   if (!BKE_id_is_editable(CTX_data_main(C), id) ||
-      ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB, ID_WS)) {
+      ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB, ID_WS))
+  {
     BKE_report(op->reports, RPT_ERROR, "Data-block type does not support fake user");
     return OPERATOR_CANCELLED;
   }
@@ -313,7 +314,7 @@ static int lib_id_override_editable_toggle_exec(bContext *C, wmOperator * /*op*/
   const bool is_system_override = BKE_lib_override_library_is_system_defined(bmain, id);
   if (is_system_override) {
     /* A system override is not editable. Make it an editable (non-system-defined) one. */
-    id->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+    id->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
   }
   else {
     /* Reset override, which makes it non-editable (i.e. a system define override). */

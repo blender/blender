@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 #include "usd_writer_abstract.h"
 #include "usd_hierarchy_iterator.h"
 #include "usd_writer_material.h"

@@ -96,7 +96,7 @@ class AddPresetBase:
             # Reset preset name
             wm = bpy.data.window_managers[0]
             if name == wm.preset_name:
-                wm.preset_name = 'New Preset'
+                wm.preset_name = data_("New Preset")
 
             filename = self.as_filename(name)
 

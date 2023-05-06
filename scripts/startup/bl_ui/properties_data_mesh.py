@@ -4,7 +4,7 @@ from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 
 from bpy.app.translations import (
-    pgettext_tip as iface_,
+    pgettext_iface as iface_,
     pgettext_tip as tip_,
 )
 
@@ -63,12 +63,12 @@ class MESH_MT_shape_key_context_menu(Menu):
         layout.operator("object.join_shapes")
         layout.operator("object.shape_key_transfer")
         layout.separator()
-        op = layout.operator("object.shape_key_remove", icon='X', text="Delete All Shape Keys")
-        op.all = True
-        op.apply_mix = False
-        op = layout.operator("object.shape_key_remove", text="Apply All Shape Keys")
-        op.all = True
-        op.apply_mix = True
+        props = layout.operator("object.shape_key_remove", icon='X', text="Delete All Shape Keys")
+        props.all = True
+        props.apply_mix = False
+        props = layout.operator("object.shape_key_remove", text="Apply All Shape Keys")
+        props.all = True
+        props.apply_mix = True
         layout.separator()
         layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move to Top").type = 'TOP'
         layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move to Bottom").type = 'BOTTOM'
@@ -604,7 +604,7 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         colliding_names = []
         for collection in (
                 # Built-in names.
-                {"shade_smooth": None, "crease": None},
+                {"crease": None},
                 mesh.attributes,
                 None if ob is None else ob.vertex_groups,
         ):
@@ -674,12 +674,12 @@ class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
 
         row = layout.row()
         row.emboss = 'NONE'
-        prop = row.operator(
+        props = row.operator(
             "geometry.color_attribute_render_set",
             text="",
             icon='RESTRICT_RENDER_OFF' if active_render else 'RESTRICT_RENDER_ON',
         )
-        prop.name = attribute.name
+        props.name = attribute.name
 
 
 class MESH_UL_color_attributes_selector(UIList, ColorAttributesListBase):

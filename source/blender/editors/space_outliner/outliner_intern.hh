@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spoutliner
@@ -127,7 +127,7 @@ struct TreeElementIcon {
         ID_AC, \
         ID_BR, \
         ID_PA, \
-        ID_GD, \
+        ID_GD_LEGACY, \
         ID_LS, \
         ID_LP, \
         ID_CV, \

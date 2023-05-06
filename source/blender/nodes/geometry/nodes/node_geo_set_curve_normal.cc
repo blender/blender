@@ -30,12 +30,12 @@ static void set_normal_mode(bke::CurvesGeometry &curves,
                             const NormalMode mode,
                             const Field<bool> &selection_field)
 {
-  bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
+  const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, curves.curves_num()};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-  curves.normal_mode_for_write().fill_indices(selection, mode);
+  curves.normal_mode_for_write().fill_indices(selection.indices(), mode);
   curves.tag_normals_changed();
 }
 

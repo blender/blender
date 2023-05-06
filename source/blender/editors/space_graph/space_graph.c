@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spgraph
@@ -68,7 +68,7 @@ static SpaceLink *graph_create(const ScrArea *UNUSED(area), const Scene *scene)
 
   /* settings for making it easier by default to just see what you're interested in tweaking */
   sipo->ads->filterflag |= ADS_FILTER_ONLYSEL;
-  sipo->flag |= SIPO_SELVHANDLESONLY | SIPO_SHOW_MARKERS;
+  sipo->flag |= SIPO_SHOW_MARKERS;
 
   /* header */
   region = MEM_callocN(sizeof(ARegion), "header for graphedit");
@@ -142,8 +142,9 @@ static void graph_init(struct wmWindowManager *wm, ScrArea *area)
 
   /* init dopesheet data if non-existent (i.e. for old files) */
   if (sipo->ads == NULL) {
+    wmWindow *win = WM_window_find_by_area(wm, area);
     sipo->ads = MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
-    sipo->ads->source = (ID *)WM_window_get_active_scene(wm->winactive);
+    sipo->ads->source = win ? (ID *)WM_window_get_active_scene(win) : NULL;
   }
 
   /* force immediate init of any invalid F-Curve colors */
@@ -181,6 +182,28 @@ static void graph_main_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
+/* Draw a darker area above 1 and below -1. */
+static void draw_normalization_borders(Scene *scene, View2D *v2d)
+{
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  GPUVertFormat *format = immVertexFormat();
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformThemeColorShadeAlpha(TH_BACK, -25, -180);
+
+  if (v2d->cur.ymax >= 1) {
+    immRectf(pos, scene->r.sfra, 1, scene->r.efra, v2d->cur.ymax);
+  }
+  if (v2d->cur.ymin <= -1) {
+    immRectf(pos, scene->r.sfra, v2d->cur.ymin, scene->r.efra, -1);
+  }
+
+  GPU_blend(GPU_BLEND_NONE);
+  immUnbindProgram();
+}
+
 static void graph_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
@@ -204,6 +227,10 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   /* start and end frame (in F-Curve mode only) */
   if (sipo->mode != SIPO_MODE_DRIVERS) {
     ANIM_draw_framerange(scene, v2d);
+  }
+
+  if (sipo->mode == SIPO_MODE_ANIMATION && (sipo->flag & SIPO_NORMALIZE)) {
+    draw_normalization_borders(scene, v2d);
   }
 
   /* draw data */
@@ -313,7 +340,7 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
   {
     rcti rect;
     BLI_rcti_init(
-        &rect, 0, 15 * UI_DPI_FAC, 15 * UI_DPI_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
+        &rect, 0, 15 * UI_SCALE_FAC, 15 * UI_SCALE_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
     UI_view2d_draw_scale_y__values(region, v2d, &rect, TH_SCROLL_TEXT);
   }
 }
@@ -590,7 +617,8 @@ static void graph_listener(const wmSpaceTypeListenerParams *params)
       break;
     case NC_WINDOW:
       if (sipo->runtime.flag &
-          (SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC | SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR)) {
+          (SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC | SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR))
+      {
         /* force redraw/refresh after undo/redo - prevents "black curve" problem */
         ED_area_tag_refresh(area);
       }
@@ -806,7 +834,7 @@ static void graph_space_subtype_item_extend(bContext *UNUSED(C),
   RNA_enum_items_add(item, totitem, rna_enum_space_graph_mode_items);
 }
 
-static void graph_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+static void graph_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceGraph *sipo = (SpaceGraph *)sl;
 
@@ -814,7 +842,7 @@ static void graph_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   memset(&sipo->runtime, 0x0, sizeof(sipo->runtime));
 }
 
-static void graph_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+static void graph_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceGraph *sipo = (SpaceGraph *)sl;
   bDopeSheet *ads = sipo->ads;
@@ -825,7 +853,7 @@ static void graph_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLin
   }
 }
 
-static void graph_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void graph_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceGraph *sipo = (SpaceGraph *)sl;
   ListBase tmpGhosts = sipo->runtime.ghost_curves;
@@ -862,9 +890,9 @@ void ED_spacetype_ipo(void)
   st->space_subtype_item_extend = graph_space_subtype_item_extend;
   st->space_subtype_get = graph_space_subtype_get;
   st->space_subtype_set = graph_space_subtype_set;
-  st->blend_read_data = graph_blend_read_data;
-  st->blend_read_lib = graph_blend_read_lib;
-  st->blend_write = graph_blend_write;
+  st->blend_read_data = graph_space_blend_read_data;
+  st->blend_read_lib = graph_space_blend_read_lib;
+  st->blend_write = graph_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");

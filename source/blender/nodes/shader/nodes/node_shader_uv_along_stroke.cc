@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 #include "node_shader_util.hh"
 
@@ -29,6 +29,7 @@ void register_node_type_sh_uvalongstroke()
 
   sh_node_type_base(&ntype, SH_NODE_UVALONGSTROKE, "UV Along Stroke", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
+  ntype.add_ui_poll = line_style_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_uvalongstroke;
 
   nodeRegisterType(&ntype);

@@ -24,6 +24,8 @@ class GPUTest : public ::testing::Test {
   GHOST_ContextHandle ghost_context;
   struct GPUContext *context;
 
+  int32_t prev_g_debug_;
+
  protected:
   GPUTest(GHOST_TDrawingContextType draw_context_type, eGPUBackendType gpu_backend_type)
       : draw_context_type(draw_context_type), gpu_backend_type(gpu_backend_type)
@@ -36,9 +38,7 @@ class GPUTest : public ::testing::Test {
 
 class GPUOpenGLTest : public GPUTest {
  public:
-  GPUOpenGLTest() : GPUTest(GHOST_kDrawingContextTypeOpenGL, GPU_BACKEND_OPENGL)
-  {
-  }
+  GPUOpenGLTest() : GPUTest(GHOST_kDrawingContextTypeOpenGL, GPU_BACKEND_OPENGL) {}
 };
 
 #define GPU_OPENGL_TEST(test_name) \
@@ -50,9 +50,7 @@ class GPUOpenGLTest : public GPUTest {
 #ifdef WITH_METAL_BACKEND
 class GPUMetalTest : public GPUTest {
  public:
-  GPUMetalTest() : GPUTest(GHOST_kDrawingContextTypeMetal, GPU_BACKEND_METAL)
-  {
-  }
+  GPUMetalTest() : GPUTest(GHOST_kDrawingContextTypeMetal, GPU_BACKEND_METAL) {}
 };
 #  define GPU_METAL_TEST(test_name) \
     TEST_F(GPUMetalTest, test_name) \
@@ -66,9 +64,7 @@ class GPUMetalTest : public GPUTest {
 #ifdef WITH_VULKAN_BACKEND
 class GPUVulkanTest : public GPUTest {
  public:
-  GPUVulkanTest() : GPUTest(GHOST_kDrawingContextTypeVulkan, GPU_BACKEND_VULKAN)
-  {
-  }
+  GPUVulkanTest() : GPUTest(GHOST_kDrawingContextTypeVulkan, GPU_BACKEND_VULKAN) {}
 };
 #  define GPU_VULKAN_TEST(test_name) \
     TEST_F(GPUVulkanTest, test_name) \

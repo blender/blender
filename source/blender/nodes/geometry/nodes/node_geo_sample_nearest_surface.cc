@@ -5,7 +5,7 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_sample.hh"
 
 #include "UI_interface.h"
@@ -111,71 +111,32 @@ static void get_closest_mesh_looptris(const Mesh &mesh,
   free_bvhtree_from_mesh(&tree_data);
 }
 
-/**
- * \note Multi-threading for this function is provided by the field evaluator. Since the #call
- * function could be called many times, calculate the data from the source geometry once and store
- * it for later.
- */
 class SampleNearestSurfaceFunction : public mf::MultiFunction {
   GeometrySet source_;
-  GField src_field_;
-
-  /**
-   * This function is meant to sample the surface of a mesh rather than take the value from
-   * individual elements, so use the most complex domain, ensuring no information is lost. In the
-   * future, it should be possible to use the most complex domain required by the field inputs, to
-   * simplify sampling and avoid domain conversions.
-   */
-  eAttrDomain domain_ = ATTR_DOMAIN_CORNER;
-
-  mf::Signature signature_;
-
-  std::optional<bke::MeshFieldContext> source_context_;
-  std::unique_ptr<FieldEvaluator> source_evaluator_;
-  const GVArray *source_data_;
 
  public:
-  SampleNearestSurfaceFunction(GeometrySet geometry, GField src_field)
-      : source_(std::move(geometry)), src_field_(std::move(src_field))
+  SampleNearestSurfaceFunction(GeometrySet geometry) : source_(std::move(geometry))
   {
     source_.ensure_owns_direct_data();
-    this->evaluate_source_field();
-
-    mf::SignatureBuilder builder{"Sample Nearest Surface", signature_};
-    builder.single_input<float3>("Position");
-    builder.single_output("Value", src_field_.cpp_type(), mf::ParamFlag::SupportsUnusedOutput);
-    this->set_signature(&signature_);
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Sample Nearest Surface", signature};
+      builder.single_input<float3>("Position");
+      builder.single_output<int>("Triangle Index");
+      builder.single_output<float3>("Sample Position");
+      return signature;
+    }();
+    this->set_signature(&signature);
   }
 
   void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &positions = params.readonly_single_input<float3>(0, "Position");
-    GMutableSpan dst = params.uninitialized_single_output_if_required(1, "Value");
-
-    const MeshComponent &mesh_component = *source_.get_component_for_read<MeshComponent>();
-    BLI_assert(mesh_component.has_mesh());
-    const Mesh &mesh = *mesh_component.get_for_read();
-    BLI_assert(mesh.totpoly > 0);
-
-    /* Find closest points on the mesh surface. */
-    Array<int> looptri_indices(mask.min_array_size());
-    Array<float3> sampled_positions(mask.min_array_size());
-    get_closest_mesh_looptris(mesh, positions, mask, looptri_indices, {}, sampled_positions);
-
-    MeshAttributeInterpolator interp(&mesh, mask, sampled_positions, looptri_indices);
-    interp.sample_data(*source_data_, domain_, eAttributeMapMode::INTERPOLATED, dst);
-  }
-
- private:
-  void evaluate_source_field()
-  {
+    MutableSpan<int> triangle_index = params.uninitialized_single_output<int>(1, "Triangle Index");
+    MutableSpan<float3> sample_position = params.uninitialized_single_output<float3>(
+        2, "Sample Position");
     const Mesh &mesh = *source_.get_mesh_for_read();
-    source_context_.emplace(bke::MeshFieldContext{mesh, domain_});
-    const int domain_size = mesh.attributes().domain_size(domain_);
-    source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, domain_size);
-    source_evaluator_->add(src_field_);
-    source_evaluator_->evaluate();
-    source_data_ = &source_evaluator_->get_evaluated(0);
+    get_closest_mesh_looptris(mesh, positions, mask, triangle_index, {}, sample_position);
   }
 };
 
@@ -245,11 +206,22 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  Field<float3> positions = params.extract_input<Field<float3>>("Sample Position");
+  auto nearest_op = FieldOperation::Create(
+      std::make_shared<SampleNearestSurfaceFunction>(geometry),
+      {params.extract_input<Field<float3>>("Sample Position")});
+  Field<int> triangle_indices(nearest_op, 0);
+  Field<float3> nearest_positions(nearest_op, 1);
+
+  Field<float3> bary_weights = Field<float3>(FieldOperation::Create(
+      std::make_shared<bke::mesh_surface_sample::BaryWeightFromPositionFn>(geometry),
+      {nearest_positions, triangle_indices}));
+
   GField field = get_input_attribute_field(params, data_type);
-  auto fn = std::make_shared<SampleNearestSurfaceFunction>(std::move(geometry), std::move(field));
-  auto op = FieldOperation::Create(std::move(fn), {std::move(positions)});
-  output_attribute_field(params, GField(std::move(op)));
+  auto sample_op = FieldOperation::Create(
+      std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(geometry, std::move(field)),
+      {triangle_indices, bary_weights});
+
+  output_attribute_field(params, GField(sample_op));
 }
 
 }  // namespace blender::nodes::node_geo_sample_nearest_surface_cc

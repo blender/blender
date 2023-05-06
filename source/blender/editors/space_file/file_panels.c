@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup spfile
@@ -237,7 +237,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
     if (WM_operator_name_poll(mutable_ctx, "asset.bundle_install")) {
       uiItemS(col);
       uiItemMenuEnumO(col,
-                      mutable_ctx,
+                      C,
                       "asset.bundle_install",
                       "asset_library_ref",
                       "Copy Bundle to Asset Library...",

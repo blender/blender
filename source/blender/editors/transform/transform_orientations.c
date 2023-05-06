@@ -230,6 +230,101 @@ static TransformOrientation *createMeshSpace(bContext *C,
   return addMatrixSpace(C, mat, name, overwrite);
 }
 
+static bool test_rotmode_euler(short rotmode)
+{
+  return ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT) ? 0 : 1;
+}
+
+/* could move into BLI_math however this is only useful for display/editing purposes */
+static void axis_angle_to_gimbal_axis(float gmat[3][3], const float axis[3], const float angle)
+{
+  /* X/Y are arbitrary axes, most importantly Z is the axis of rotation. */
+
+  float cross_vec[3];
+  float quat[4];
+
+  /* this is an un-scientific method to get a vector to cross with
+   * XYZ intentionally YZX */
+  cross_vec[0] = axis[1];
+  cross_vec[1] = axis[2];
+  cross_vec[2] = axis[0];
+
+  /* X-axis */
+  cross_v3_v3v3(gmat[0], cross_vec, axis);
+  normalize_v3(gmat[0]);
+  axis_angle_to_quat(quat, axis, angle);
+  mul_qt_v3(quat, gmat[0]);
+
+  /* Y-axis */
+  axis_angle_to_quat(quat, axis, M_PI_2);
+  copy_v3_v3(gmat[1], gmat[0]);
+  mul_qt_v3(quat, gmat[1]);
+
+  /* Z-axis */
+  copy_v3_v3(gmat[2], axis);
+
+  normalize_m3(gmat);
+}
+
+bool gimbal_axis_pose(Object *ob, const bPoseChannel *pchan, float gmat[3][3])
+{
+  float mat[3][3], tmat[3][3], obmat[3][3];
+  if (test_rotmode_euler(pchan->rotmode)) {
+    eulO_to_gimbal_axis(mat, pchan->eul, pchan->rotmode);
+  }
+  else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+    axis_angle_to_gimbal_axis(mat, pchan->rotAxis, pchan->rotAngle);
+  }
+  else { /* quat */
+    return 0;
+  }
+
+  /* apply bone transformation */
+  mul_m3_m3m3(tmat, pchan->bone->bone_mat, mat);
+
+  if (pchan->parent) {
+    float parent_mat[3][3];
+
+    copy_m3_m4(parent_mat,
+               (pchan->bone->flag & BONE_HINGE) ? pchan->parent->bone->arm_mat :
+                                                  pchan->parent->pose_mat);
+    mul_m3_m3m3(mat, parent_mat, tmat);
+
+    /* needed if object transformation isn't identity */
+    copy_m3_m4(obmat, ob->object_to_world);
+    mul_m3_m3m3(gmat, obmat, mat);
+  }
+  else {
+    /* needed if object transformation isn't identity */
+    copy_m3_m4(obmat, ob->object_to_world);
+    mul_m3_m3m3(gmat, obmat, tmat);
+  }
+
+  normalize_m3(gmat);
+  return true;
+}
+
+bool gimbal_axis_object(Object *ob, float gmat[3][3])
+{
+  if (test_rotmode_euler(ob->rotmode)) {
+    eulO_to_gimbal_axis(gmat, ob->rot, ob->rotmode);
+  }
+  else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+    axis_angle_to_gimbal_axis(gmat, ob->rotAxis, ob->rotAngle);
+  }
+  else { /* quat */
+    return 0;
+  }
+
+  if (ob->parent) {
+    float parent_mat[3][3];
+    copy_m3_m4(parent_mat, ob->parent->object_to_world);
+    normalize_m3(parent_mat);
+    mul_m3_m3m3(gmat, parent_mat, gmat);
+  }
+  return 1;
+}
+
 bool transform_orientations_create_from_axis(float mat[3][3],
                                              const float x[3],
                                              const float y[3],
@@ -485,6 +580,33 @@ void ED_transform_calc_orientation_from_type(const bContext *C, float r_mat[3][3
       scene, view_layer, v3d, rv3d, ob, obedit, orient_index, pivot_point, r_mat);
 }
 
+static void handle_armature_parent_orientation(Object *ob, float r_mat[3][3])
+{
+  bPoseChannel *active_pchan = BKE_pose_channel_active(ob, false);
+
+  /* Check if target bone is a child. */
+  if (active_pchan->parent) {
+    /* For child, show parent local regardless if "local location" is set for parent bone. */
+    transform_orientations_create_from_axis(r_mat, UNPACK3(active_pchan->parent->pose_mat));
+    return;
+  }
+
+  /* For root, use local transform of armature object. */
+  transform_orientations_create_from_axis(r_mat, UNPACK3(ob->object_to_world));
+}
+
+static void handle_object_parent_orientation(Object *ob, float r_mat[3][3])
+{
+  /* If object has parent, then orient to parent. */
+  if (ob->parent) {
+    transform_orientations_create_from_axis(r_mat, UNPACK3(ob->parent->object_to_world));
+  }
+  else {
+    /* If object doesn't have parent, then orient to world. */
+    unit_m3(r_mat);
+  }
+}
+
 short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
                                                  ViewLayer *view_layer,
                                                  const View3D *v3d,
@@ -514,6 +636,20 @@ short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
       /* If not gimbal, fall through to normal. */
       ATTR_FALLTHROUGH;
     }
+    case V3D_ORIENT_PARENT: {
+      if (ob) {
+        if (ob->mode & OB_MODE_POSE) {
+          handle_armature_parent_orientation(ob, r_mat);
+          break;
+        }
+        else {
+          handle_object_parent_orientation(ob, r_mat);
+          break;
+        }
+      }
+      /* No break; we define 'parent' as 'normal' otherwise. */
+      ATTR_FALLTHROUGH;
+    }
     case V3D_ORIENT_NORMAL: {
       if (obedit || (ob && ob->mode & OB_MODE_POSE)) {
         ED_getTransformOrientationMatrix(scene, view_layer, v3d, ob, obedit, pivot_point, r_mat);
@@ -526,7 +662,7 @@ short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
       if (ob) {
         if (ob->mode & OB_MODE_POSE) {
           /* Each bone moves on its own local axis, but to avoid confusion,
-           * use the active pones axis for display #33575, this works as expected on a single
+           * use the active bone's axis for display #33575, this works as expected on a single
            * bone and users who select many bones will understand what's going on and what local
            * means when they start transforming. */
           ED_getTransformOrientationMatrix(scene, view_layer, v3d, ob, obedit, pivot_point, r_mat);
@@ -646,6 +782,8 @@ const char *transform_orientations_spacename_get(TransInfo *t, const short orien
       return TIP_("view");
     case V3D_ORIENT_CURSOR:
       return TIP_("cursor");
+    case V3D_ORIENT_PARENT:
+      return TIP_("parent");
     case V3D_ORIENT_CUSTOM_MATRIX:
       return TIP_("custom");
     case V3D_ORIENT_CUSTOM:
@@ -1039,7 +1177,8 @@ int getTransformOrientation_ex(const Scene *scene,
               if (flag) {
                 float tvec[3];
                 if ((around == V3D_AROUND_LOCAL_ORIGINS) ||
-                    ELEM(flag, SEL_F2, SEL_F1 | SEL_F3, SEL_F1 | SEL_F2 | SEL_F3)) {
+                    ELEM(flag, SEL_F2, SEL_F1 | SEL_F3, SEL_F1 | SEL_F2 | SEL_F3))
+                {
                   BKE_nurb_bezt_calc_normal(nu, bezt, tvec);
                   add_v3_v3(normal, tvec);
                 }
@@ -1163,10 +1302,10 @@ int getTransformOrientation_ex(const Scene *scene,
               add_v3_v3(plane, tmat[1]);
               ok = true;
             }
-            else if ((ok == false) &&
-                     ((ebone->flag & BONE_TIPSEL) ||
-                      ((ebone->flag & BONE_ROOTSEL) &&
-                       (ebone->parent && ebone->flag & BONE_CONNECTED) == false))) {
+            else if ((ok == false) && ((ebone->flag & BONE_TIPSEL) ||
+                                       ((ebone->flag & BONE_ROOTSEL) &&
+                                        (ebone->parent && ebone->flag & BONE_CONNECTED) == false)))
+            {
               ED_armature_ebone_to_mat3(ebone, tmat);
               add_v3_v3(fallback_normal, tmat[2]);
               add_v3_v3(fallback_plane, tmat[1]);

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /* Paint a color made from hash of node pointer. */
 //#define DEBUG_PIXEL_NODES
@@ -51,7 +51,7 @@ struct ImageData {
 struct TexturePaintingUserData {
   Object *ob;
   Brush *brush;
-  PBVHNode **nodes;
+  Span<PBVHNode *> nodes;
   ImageData image_data;
 };
 
@@ -511,6 +511,36 @@ static void do_mark_dirty_regions(void *__restrict userdata,
   PBVHNode *node = data->nodes[n];
   BKE_pbvh_pixels_mark_image_dirty(*node, *data->image_data.image, *data->image_data.image_user);
 }
+/* -------------------------------------------------------------------- */
+
+/** \name Fix non-manifold edge bleeding.
+ * \{ */
+
+static Vector<image::TileNumber> collect_dirty_tiles(Span<PBVHNode *> nodes)
+{
+  Vector<image::TileNumber> dirty_tiles;
+  for (PBVHNode *node : nodes) {
+    BKE_pbvh_pixels_collect_dirty_tiles(*node, dirty_tiles);
+  }
+  return dirty_tiles;
+}
+static void fix_non_manifold_seam_bleeding(PBVH &pbvh,
+                                           TexturePaintingUserData &user_data,
+                                           Span<TileNumber> tile_numbers_to_fix)
+{
+  for (image::TileNumber tile_number : tile_numbers_to_fix) {
+    BKE_pbvh_pixels_copy_pixels(
+        pbvh, *user_data.image_data.image, *user_data.image_data.image_user, tile_number);
+  }
+}
+
+static void fix_non_manifold_seam_bleeding(Object &ob, TexturePaintingUserData &user_data)
+{
+  Vector<image::TileNumber> dirty_tiles = collect_dirty_tiles(user_data.nodes);
+  fix_non_manifold_seam_bleeding(*ob.sculpt->pbvh, user_data, dirty_tiles);
+}
+
+/** \} */
 
 }  // namespace blender::ed::sculpt_paint::paint::image
 
@@ -550,8 +580,7 @@ bool SCULPT_use_image_paint_brush(PaintModeSettings *settings, Object *ob)
 void SCULPT_do_paint_brush_image(PaintModeSettings *paint_mode_settings,
                                  Sculpt *sd,
                                  Object *ob,
-                                 PBVHNode **texnodes,
-                                 int texnodes_num)
+                                 Span<PBVHNode *> texnodes)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
 
@@ -565,12 +594,13 @@ void SCULPT_do_paint_brush_image(PaintModeSettings *paint_mode_settings,
   }
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, texnodes_num);
-  BLI_task_parallel_range(0, texnodes_num, &data, do_push_undo_tile, &settings);
-  BLI_task_parallel_range(0, texnodes_num, &data, do_paint_pixels, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, texnodes.size());
+  BLI_task_parallel_range(0, texnodes.size(), &data, do_push_undo_tile, &settings);
+  BLI_task_parallel_range(0, texnodes.size(), &data, do_paint_pixels, &settings);
+  fix_non_manifold_seam_bleeding(*ob, data);
 
   TaskParallelSettings settings_flush;
 
-  BKE_pbvh_parallel_range_settings(&settings_flush, false, texnodes_num);
-  BLI_task_parallel_range(0, texnodes_num, &data, do_mark_dirty_regions, &settings_flush);
+  BKE_pbvh_parallel_range_settings(&settings_flush, false, texnodes.size());
+  BLI_task_parallel_range(0, texnodes.size(), &data, do_mark_dirty_regions, &settings_flush);
 }

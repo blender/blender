@@ -1,9 +1,11 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_array_utils.hh"
+
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_bvhutils.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 
 #include "UI_interface.h"
@@ -147,11 +149,10 @@ static void get_closest_mesh_polys(const Mesh &mesh,
   Array<int> looptri_indices(positions.size());
   get_closest_mesh_looptris(mesh, positions, mask, looptri_indices, r_distances_sq, r_positions);
 
-  const Span<MLoopTri> looptris = mesh.looptris();
+  const Span<int> looptri_polys = mesh.looptri_polys();
 
   for (const int i : mask) {
-    const MLoopTri &looptri = looptris[looptri_indices[i]];
-    r_poly_indices[i] = looptri.poly;
+    r_poly_indices[i] = looptri_polys[looptri_indices[i]];
   }
 }
 
@@ -164,8 +165,8 @@ static void get_closest_mesh_corners(const Mesh &mesh,
                                      const MutableSpan<float3> r_positions)
 {
   const Span<float3> vert_positions = mesh.vert_positions();
-  const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const OffsetIndices polys = mesh.polys();
+  const Span<int> corner_verts = mesh.corner_verts();
 
   BLI_assert(mesh.totloop > 0);
   Array<int> poly_indices(positions.size());
@@ -174,15 +175,13 @@ static void get_closest_mesh_corners(const Mesh &mesh,
   for (const int i : mask) {
     const float3 position = positions[i];
     const int poly_index = poly_indices[i];
-    const MPoly &poly = polys[poly_index];
 
     /* Find the closest vertex in the polygon. */
     float min_distance_sq = FLT_MAX;
     int closest_vert_index = 0;
     int closest_loop_index = 0;
-    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-      const MLoop &loop = loops[loop_index];
-      const int vertex_index = loop.v;
+    for (const int loop_index : polys[poly_index]) {
+      const int vertex_index = corner_verts[loop_index];
       const float distance_sq = math::distance_squared(position, vert_positions[vertex_index]);
       if (distance_sq < min_distance_sq) {
         min_distance_sq = distance_sq;
@@ -257,7 +256,7 @@ class SampleNearestFunction : public mf::MultiFunction {
     const VArray<float3> &positions = params.readonly_single_input<float3>(0, "Position");
     MutableSpan<int> indices = params.uninitialized_single_output<int>(1, "Index");
     if (!src_component_) {
-      indices.fill_indices(mask, 0);
+      indices.fill_indices(mask.indices(), 0);
       return;
     }
 
@@ -265,19 +264,18 @@ class SampleNearestFunction : public mf::MultiFunction {
       case GEO_COMPONENT_TYPE_MESH: {
         const MeshComponent &component = *static_cast<const MeshComponent *>(src_component_);
         const Mesh &mesh = *component.get_for_read();
-        Array<float> distances(mask.min_array_size());
         switch (domain_) {
           case ATTR_DOMAIN_POINT:
-            get_closest_mesh_points(mesh, positions, mask, indices, distances, {});
+            get_closest_mesh_points(mesh, positions, mask, indices, {}, {});
             break;
           case ATTR_DOMAIN_EDGE:
-            get_closest_mesh_edges(mesh, positions, mask, indices, distances, {});
+            get_closest_mesh_edges(mesh, positions, mask, indices, {}, {});
             break;
           case ATTR_DOMAIN_FACE:
-            get_closest_mesh_polys(mesh, positions, mask, indices, distances, {});
+            get_closest_mesh_polys(mesh, positions, mask, indices, {}, {});
             break;
           case ATTR_DOMAIN_CORNER:
-            get_closest_mesh_corners(mesh, positions, mask, indices, distances, {});
+            get_closest_mesh_corners(mesh, positions, mask, indices, {}, {});
             break;
           default:
             break;
@@ -288,8 +286,7 @@ class SampleNearestFunction : public mf::MultiFunction {
         const PointCloudComponent &component = *static_cast<const PointCloudComponent *>(
             src_component_);
         const PointCloud &points = *component.get_for_read();
-        Array<float> distances(mask.min_array_size());
-        get_closest_pointcloud_points(points, positions, mask, indices, distances);
+        get_closest_pointcloud_points(points, positions, mask, indices, {});
         break;
       }
       default:

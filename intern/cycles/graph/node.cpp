@@ -13,9 +13,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Node Type */
 
-NodeOwner::~NodeOwner()
-{
-}
+NodeOwner::~NodeOwner() {}
 
 Node::Node(const NodeType *type_, ustring name_) : name(name_), type(type_)
 {
@@ -35,9 +33,7 @@ Node::Node(const NodeType *type_, ustring name_) : name(name_), type(type_)
   }
 }
 
-Node::~Node()
-{
-}
+Node::~Node() {}
 
 #ifndef NDEBUG
 static bool is_socket_float3(const SocketType &socket)

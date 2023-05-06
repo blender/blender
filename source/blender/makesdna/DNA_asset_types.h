@@ -11,6 +11,16 @@
 #include "DNA_uuid_types.h"
 
 #ifdef __cplusplus
+#  include <memory>
+
+namespace blender::asset_system {
+class AssetLibrary;
+class AssetIdentifier;
+}  // namespace blender::asset_system
+
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -72,6 +82,12 @@ typedef struct AssetMetaData {
   /** Optional description of this asset for display in the UI. Dynamic length. */
   char *description;
 
+  /** Optional copyright of this asset for display in the UI. Dynamic length. */
+  char *copyright;
+
+  /** Optional license of this asset for display in the UI. Dynamic length. */
+  char *license;
+
   /** User defined tags for this asset. The asset manager uses these for filtering, but how they
    * function exactly (e.g. how they are registered to provide a list of searchable available tags)
    * is up to the asset-engine. */
@@ -110,6 +126,10 @@ typedef enum eAssetImportMethod {
   ASSET_IMPORT_APPEND_REUSE = 2,
 } eAssetImportMethod;
 
+typedef enum eAssetLibrary_Flag {
+  ASSET_LIBRARY_RELATIVE_PATH = (1 << 0),
+} eAssetLibrary_Flag;
+
 /**
  * Information to identify an asset library. May be either one of the predefined types (current
  * 'Main', builtin library, project library), or a custom type as defined in the Preferences.
@@ -129,11 +149,57 @@ typedef struct AssetLibraryReference {
 } AssetLibraryReference;
 
 /**
+ * Information to refer to an asset (may be stored in files) on a "best effort" basis. It should
+ * work well enough for many common cases, but can break. For example when the location of the
+ * asset changes, the available asset libraries in the Preferences change, an asset library is
+ * renamed, or when a file storing this is opened on a different system (with different
+ * Preferences).
+ *
+ * #AssetWeakReference is similar to #AssetIdentifier, but is designed for file storage, not for
+ * runtime references.
+ *
+ * It has two main components:
+ * - A reference to the asset library: The #eAssetLibraryType and if that is not enough to identify
+ *   the library, a library name (typically given by the user, but may change).
+ * - An identifier for the asset within the library: A relative path currently, which can break if
+ *   the asset is moved. Could also be a unique key for a database for example.
+ *
+ * \note Needs freeing through the destructor, so either use a smart pointer or #MEM_delete() for
+ *       explicit freeing.
+ */
+typedef struct AssetWeakReference {
+  char _pad[6];
+
+  short asset_library_type; /* #eAssetLibraryType */
+  /** If #asset_library_type is not enough to identify the asset library, this string can provide
+   * further location info (allocated string). Null otherwise. */
+  const char *asset_library_identifier;
+
+  const char *relative_asset_identifier;
+
+#ifdef __cplusplus
+  AssetWeakReference();
+  AssetWeakReference(AssetWeakReference &&);
+  AssetWeakReference(const AssetWeakReference &) = delete;
+  /** Enables use with `std::unique_ptr<AssetWeakReference>`. */
+  ~AssetWeakReference();
+
+  static std::unique_ptr<AssetWeakReference> make_reference(
+      const blender::asset_system::AssetLibrary &library,
+      const blender::asset_system::AssetIdentifier &asset_identifier);
+#endif
+} AssetWeakReference;
+
+/**
  * To be replaced by #AssetRepresentation!
  *
  * Not part of the core design, we should try to get rid of it. Only needed to wrap FileDirEntry
  * into a type with PropertyGroup as base, so we can have an RNA collection of #AssetHandle's to
  * pass to the UI.
+ *
+ * \warning Never store this! When using #ED_assetlist_iterate(), only access it within the
+ *          iterator function. The contained file data can be freed since the file cache has a
+ *          maximum number of items.
  */
 #
 #

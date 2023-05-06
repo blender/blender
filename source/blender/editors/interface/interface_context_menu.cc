@@ -66,7 +66,7 @@ static IDProperty *shortcut_property_from_rna(bContext *C, uiBut *but)
   /* Create ID property of data path, to pass to the operator. */
   const IDPropertyTemplate val = {0};
   IDProperty *prop = IDP_New(IDP_GROUP, &val, __func__);
-  IDP_AddToGroup(prop, IDP_NewString(final_data_path, "data_path", strlen(final_data_path) + 1));
+  IDP_AddToGroup(prop, IDP_NewString(final_data_path, "data_path"));
 
   MEM_freeN((void *)final_data_path);
 
@@ -128,7 +128,8 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int /*event*/)
 
   /* complex code to change name of button */
   if (WM_key_event_operator_string(
-          C, idname, but->opcontext, prop, true, shortcut_str, sizeof(shortcut_str))) {
+          C, idname, but->opcontext, prop, true, shortcut_str, sizeof(shortcut_str)))
+  {
     ui_but_add_shortcut(but, shortcut_str, true);
   }
   else {
@@ -180,8 +181,8 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
   uiItemL(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"), ICON_HAND);
   uiItemR(layout, &ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
 
-  const int bounds_offset[2] = {int(-100 * U.dpi_fac), int(36 * U.dpi_fac)};
-  UI_block_bounds_set_popup(block, 6 * U.dpi_fac, bounds_offset);
+  const int bounds_offset[2] = {int(-100 * UI_SCALE_FAC), int(36 * UI_SCALE_FAC)};
+  UI_block_bounds_set_popup(block, 6 * UI_SCALE_FAC, bounds_offset);
 
   shortcut_free_operator_property(prop);
 
@@ -241,8 +242,8 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
   uiItemL(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut"), ICON_HAND);
   uiItemR(layout, &ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
 
-  const int bounds_offset[2] = {int(-100 * U.dpi_fac), int(36 * U.dpi_fac)};
-  UI_block_bounds_set_popup(block, 6 * U.dpi_fac, bounds_offset);
+  const int bounds_offset[2] = {int(-100 * UI_SCALE_FAC), int(36 * UI_SCALE_FAC)};
+  UI_block_bounds_set_popup(block, 6 * UI_SCALE_FAC, bounds_offset);
 
 #ifdef USE_KEYMAP_ADD_HACK
   g_kmi_id_hack = kmi_id;
@@ -440,7 +441,7 @@ static void ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
   UNUSED_VARS_NDEBUG(subtype);
 
   RNA_property_string_get(ptr, prop, filepath);
-  BLI_split_dirfile(filepath, dir, file, sizeof(dir), sizeof(file));
+  BLI_path_split_dir_file(filepath, dir, sizeof(dir), file, sizeof(file));
 
   if (file[0]) {
     BLI_assert(subtype == PROP_FILEPATH);
@@ -969,7 +970,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     if (((prop_type == PROP_POINTER) ||
          (prop_type == PROP_STRING && but->type == UI_BTYPE_SEARCH_MENU &&
           ((uiButSearch *)but)->items_update_fn == ui_rna_collection_search_update_fn)) &&
-        ui_jump_to_target_button_poll(C)) {
+        ui_jump_to_target_button_poll(C))
+    {
       uiItemO(layout,
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Jump to Target"),
               ICON_NONE,

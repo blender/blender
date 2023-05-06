@@ -273,27 +273,27 @@ static void customdata_version_242(Mesh *me)
   int a, mtfacen, mcoln;
 
   if (!me->vdata.totlayer) {
-    CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, me->mvert, me->totvert);
+    CustomData_add_layer_with_data(&me->vdata, CD_MVERT, me->mvert, me->totvert, NULL);
 
     if (me->dvert) {
-      CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_ASSIGN, me->dvert, me->totvert);
+      CustomData_add_layer_with_data(&me->vdata, CD_MDEFORMVERT, me->dvert, me->totvert, NULL);
     }
   }
 
   if (!me->edata.totlayer) {
-    CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, me->medge, me->totedge);
+    CustomData_add_layer_with_data(&me->edata, CD_MEDGE, me->medge, me->totedge, NULL);
   }
 
   if (!me->fdata.totlayer) {
-    CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, me->mface, me->totface);
+    CustomData_add_layer_with_data(&me->fdata, CD_MFACE, me->mface, me->totface, NULL);
 
     if (me->tface) {
       if (me->mcol) {
         MEM_freeN(me->mcol);
       }
 
-      me->mcol = CustomData_add_layer(&me->fdata, CD_MCOL, CD_SET_DEFAULT, NULL, me->totface);
-      me->mtface = CustomData_add_layer(&me->fdata, CD_MTFACE, CD_SET_DEFAULT, NULL, me->totface);
+      me->mcol = CustomData_add_layer(&me->fdata, CD_MCOL, CD_SET_DEFAULT, me->totface);
+      me->mtface = CustomData_add_layer(&me->fdata, CD_MTFACE, CD_SET_DEFAULT, me->totface);
 
       mtf = me->mtface;
       mcol = me->mcol;
@@ -308,7 +308,7 @@ static void customdata_version_242(Mesh *me)
       me->tface = NULL;
     }
     else if (me->mcol) {
-      me->mcol = CustomData_add_layer(&me->fdata, CD_MCOL, CD_ASSIGN, me->mcol, me->totface);
+      CustomData_add_layer_with_data(&me->fdata, CD_MCOL, me->mcol, me->totface, NULL);
     }
   }
 
@@ -849,7 +849,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
   if (bmain->versionfile <= 224) {
     bSound *sound;
-    Scene *sce;
     Mesh *me;
     bScreen *screen;
 
@@ -867,10 +866,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       if ((me->flag & ME_SUBSURF) && (me->subdivr == 0)) {
         me->subdivr = me->subdiv;
       }
-    }
-
-    for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
-      sce->r.stereomode = 1; /* no stereo */
     }
 
     /* some oldfile patch, moved from set_func_space */
@@ -895,9 +890,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     bScreen *screen;
     Object *ob;
 
-    /* As of now, this insures that the transition from the old Track system
-     * to the new full constraint Track is painless for everyone. - theeth
-     */
+    /* NOTE(@theeth): As of now, this insures that the transition from the old Track system
+     * to the new full constraint Track is painless for everyone. */
     ob = bmain->objects.first;
 
     while (ob) {
@@ -1307,7 +1301,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         /* Cannot call stuff now (pointers!), done in #setup_app_data. */
         ob->id.recalc |= ID_RECALC_ALL;
 
-        /* new generic xray option */
+        /* New generic X-ray option. */
         arm = blo_do_versions_newlibadr(fd, lib, ob->data);
         enum { ARM_DRAWXRAY = (1 << 1) };
         if (arm->flag & ARM_DRAWXRAY) {
@@ -1401,8 +1395,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
       }
 
-      if ((ob->softflag & OB_SB_ENABLE) &&
-          !BKE_modifiers_findby_type(ob, eModifierType_Softbody)) {
+      if ((ob->softflag & OB_SB_ENABLE) && !BKE_modifiers_findby_type(ob, eModifierType_Softbody))
+      {
         if (ob->softflag & OB_SB_POSTDEF) {
           md = ob->modifiers.first;
 
@@ -1938,8 +1932,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     /* unless the file was created 2.44.3 but not 2.45, update the constraints */
     if (!(bmain->versionfile == 244 && bmain->subversionfile == 3) &&
-        ((bmain->versionfile < 245) ||
-         (bmain->versionfile == 245 && bmain->subversionfile == 0))) {
+        ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile == 0)))
+    {
       for (ob = bmain->objects.first; ob; ob = ob->id.next) {
         ListBase *list;
         list = &ob->constraints;

@@ -107,24 +107,24 @@ int BIF_countTransformOrientation(const struct bContext *C);
 /* to be able to add operator properties to other operators */
 
 #define P_MIRROR (1 << 0)
-#define P_MIRROR_DUMMY (P_MIRROR | (1 << 9))
-#define P_PROPORTIONAL (1 << 1)
-#define P_ORIENT_AXIS (1 << 2)
-#define P_ORIENT_AXIS_ORTHO (1 << 16)
-#define P_ORIENT_MATRIX (1 << 17)
-#define P_SNAP (1 << 3)
-#define P_GEO_SNAP (P_SNAP | (1 << 4))
-#define P_ALIGN_SNAP (P_GEO_SNAP | (1 << 5))
-#define P_CONSTRAINT (1 << 6)
-#define P_OPTIONS (1 << 7)
-#define P_CORRECT_UV (1 << 8)
-#define P_NO_DEFAULTS (1 << 10)
-#define P_NO_TEXSPACE (1 << 11)
-#define P_CENTER (1 << 12)
-#define P_GPENCIL_EDIT (1 << 13)
-#define P_CURSOR_EDIT (1 << 14)
-#define P_CLNOR_INVALIDATE (1 << 15)
-#define P_VIEW2D_EDGE_PAN (1 << 16)
+#define P_MIRROR_DUMMY (P_MIRROR | (1 << 1))
+#define P_PROPORTIONAL (1 << 2)
+#define P_ORIENT_AXIS (1 << 3)
+#define P_ORIENT_AXIS_ORTHO (1 << 4)
+#define P_ORIENT_MATRIX (1 << 5)
+#define P_SNAP (1 << 6)
+#define P_GEO_SNAP (P_SNAP | (1 << 7))
+#define P_ALIGN_SNAP (P_GEO_SNAP | (1 << 8))
+#define P_CONSTRAINT (1 << 9)
+#define P_OPTIONS (1 << 10)
+#define P_CORRECT_UV (1 << 11)
+#define P_NO_DEFAULTS (1 << 12)
+#define P_NO_TEXSPACE (1 << 13)
+#define P_CENTER (1 << 14)
+#define P_GPENCIL_EDIT (1 << 15)
+#define P_CURSOR_EDIT (1 << 16)
+#define P_CLNOR_INVALIDATE (1 << 17)
+#define P_VIEW2D_EDGE_PAN (1 << 18)
 /* For properties performed when confirming the transformation. */
 #define P_POST_TRANSFORM (1 << 19)
 
@@ -150,6 +150,10 @@ short ED_transform_calc_orientation_from_type_ex(const struct Scene *scene,
                                                  short orientation_index,
                                                  int pivot_point,
                                                  float r_mat[3][3]);
+
+bool ED_transform_calc_pivot_pos(const struct bContext *C,
+                                 const short pivot_type,
+                                 float r_pivot_pos[3]);
 
 /* transform gizmos */
 
@@ -201,7 +205,8 @@ struct TransformCalcParams {
  */
 int ED_transform_calc_gizmo_stats(const struct bContext *C,
                                   const struct TransformCalcParams *params,
-                                  struct TransformBounds *tbounds);
+                                  struct TransformBounds *tbounds,
+                                  struct RegionView3D *rv3d);
 
 /**
  * Iterates over all the strips and finds the closest snapping candidate of either \a frame_1 or \a

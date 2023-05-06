@@ -14,18 +14,18 @@ PATHS: Tuple[str, ...] = (
     "doc",
     "release/datafiles",
     "release/lts",
-    "release/scripts/freestyle",
-    "release/scripts/modules",
-    "release/scripts/presets",
-    "release/scripts/startup",
-    "release/scripts/templates_py",
+    "scripts/freestyle",
+    "scripts/modules",
+    "scripts/presets",
+    "scripts/startup",
+    "scripts/templates_py",
     "source/blender",
     "tools",
     "tests",
 )
 
 SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(
-    os.path.join(os.path.dirname(__file__), "..", "..", ".."))))
+    os.path.join(os.path.dirname(__file__), "..", ".."))))
 
 PATHS = tuple(
     os.path.join(SOURCE_DIR, p.replace("/", os.sep))
@@ -39,7 +39,7 @@ PATHS_EXCLUDE: Set[str] = set(
         "tools/svn_rev_map/sha1_to_rev.py",
         "tools/svn_rev_map/rev_to_sha1.py",
         "tools/svn_rev_map/rev_to_sha1.py",
-        "release/scripts/modules/rna_manual_reference.py",
+        "scripts/modules/rna_manual_reference.py",
     )
 )
 

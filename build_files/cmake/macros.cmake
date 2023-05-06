@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
+# Copyright 2006 Blender Foundation
 
 macro(list_insert_after
   list_id item_check item_add
@@ -702,6 +702,7 @@ macro(remove_strict_flags)
   endif()
 
   if(MSVC)
+    remove_cc_flag(/w34100) # Restore warn C4100 (unreferenced formal parameter) back to w4
     remove_cc_flag(/w34189) # Restore warn C4189 (unused variable) back to w4
   endif()
 
@@ -721,7 +722,7 @@ macro(remove_extra_strict_flags)
   endif()
 
   if(MSVC)
-    # TODO
+    remove_cc_flag(/w34100) # Restore warn C4100 (unreferenced formal parameter) back to w4
   endif()
 endmacro()
 
@@ -1090,7 +1091,7 @@ function(msgfmt_simple
   add_custom_command(
     OUTPUT  ${_file_to}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
-    COMMAND "$<TARGET_FILE:msgfmt>" ${_file_from} ${_file_to}
+    COMMAND ${CMAKE_COMMAND} -E env ${PLATFORM_ENV_BUILD} "$<TARGET_FILE:msgfmt>" ${_file_from} ${_file_to}
     DEPENDS msgfmt ${_file_from})
 
   set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
@@ -1299,16 +1300,29 @@ macro(windows_install_shared_manifest)
   endif()
   if(WINDOWS_INSTALL_DEBUG)
     set(WINDOWS_CONFIGURATIONS "${WINDOWS_CONFIGURATIONS};Debug")
-    list(APPEND WINDOWS_SHARED_MANIFEST_DEBUG ${WINDOWS_INSTALL_FILES})
   endif()
   if(WINDOWS_INSTALL_RELEASE)
-    list(APPEND WINDOWS_SHARED_MANIFEST_RELEASE ${WINDOWS_INSTALL_FILES})
     set(WINDOWS_CONFIGURATIONS "${WINDOWS_CONFIGURATIONS};Release;RelWithDebInfo;MinSizeRel")
   endif()
-  install(FILES ${WINDOWS_INSTALL_FILES}
-          CONFIGURATIONS ${WINDOWS_CONFIGURATIONS}
-          DESTINATION "./blender.shared"
-  )
+  if(NOT WITH_PYTHON_MODULE)
+    # Blender executable with manifest.
+    if(WINDOWS_INSTALL_DEBUG)
+      list(APPEND WINDOWS_SHARED_MANIFEST_DEBUG ${WINDOWS_INSTALL_FILES})
+    endif()
+    if(WINDOWS_INSTALL_RELEASE)
+      list(APPEND WINDOWS_SHARED_MANIFEST_RELEASE ${WINDOWS_INSTALL_FILES})
+    endif()
+    install(FILES ${WINDOWS_INSTALL_FILES}
+            CONFIGURATIONS ${WINDOWS_CONFIGURATIONS}
+            DESTINATION "./blender.shared"
+    )
+  else()
+    # Python module without manifest.
+    install(FILES ${WINDOWS_INSTALL_FILES}
+            CONFIGURATIONS ${WINDOWS_CONFIGURATIONS}
+            DESTINATION "./bpy"
+    )
+  endif()
 endmacro()
 
 macro(windows_generate_manifest)
@@ -1325,24 +1339,48 @@ macro(windows_generate_manifest)
 endmacro()
 
 macro(windows_generate_shared_manifest)
-  windows_generate_manifest(
-    FILES "${WINDOWS_SHARED_MANIFEST_DEBUG}"
-    OUTPUT "${CMAKE_BINARY_DIR}/Debug/blender.shared.manifest"
-    NAME "blender.shared"
-  )
-  windows_generate_manifest(
-    FILES "${WINDOWS_SHARED_MANIFEST_RELEASE}"
-    OUTPUT "${CMAKE_BINARY_DIR}/Release/blender.shared.manifest"
-    NAME "blender.shared"
-  )
-  install(
-    FILES ${CMAKE_BINARY_DIR}/Release/blender.shared.manifest
-    DESTINATION "./blender.shared"
-    CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
-  )
-  install(
-    FILES ${CMAKE_BINARY_DIR}/Debug/blender.shared.manifest
-    DESTINATION "./blender.shared"
-    CONFIGURATIONS Debug
-  )
+  if(WINDOWS_SHARED_MANIFEST_DEBUG)
+    windows_generate_manifest(
+      FILES "${WINDOWS_SHARED_MANIFEST_DEBUG}"
+      OUTPUT "${CMAKE_BINARY_DIR}/Debug/blender.shared.manifest"
+      NAME "blender.shared"
+    )
+    install(
+      FILES ${CMAKE_BINARY_DIR}/Debug/blender.shared.manifest
+      DESTINATION "./blender.shared"
+      CONFIGURATIONS Debug
+    )
+  endif()
+  if(WINDOWS_SHARED_MANIFEST_RELEASE)
+    windows_generate_manifest(
+      FILES "${WINDOWS_SHARED_MANIFEST_RELEASE}"
+      OUTPUT "${CMAKE_BINARY_DIR}/Release/blender.shared.manifest"
+      NAME "blender.shared"
+    )
+    install(
+      FILES ${CMAKE_BINARY_DIR}/Release/blender.shared.manifest
+      DESTINATION "./blender.shared"
+      CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+    )
+  endif()
+endmacro()
+
+macro(windows_process_platform_bundled_libraries library_deps)
+  if(NOT "${library_deps}" STREQUAL "")
+    set(next_library_mode "ALL")
+    foreach(library ${library_deps})
+      string(TOUPPER "${library}" library_upper)
+      if(("${library_upper}" STREQUAL "RELEASE") OR
+         ("${library_upper}" STREQUAL "DEBUG") OR
+         ("${library_upper}" STREQUAL "ALL"))
+        set(next_library_mode "${library_upper}")
+      else()
+        windows_install_shared_manifest(
+            FILES ${library}
+            ${next_library_mode}
+        )
+        set(next_library_mode "ALL")
+      endif()
+    endforeach()
+  endif()
 endmacro()

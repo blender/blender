@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edinterface
@@ -136,8 +136,8 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
     if (ELEM(but_iter->type, UI_BTYPE_LABEL, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
       continue;
     }
-    if (mem[hash_mod] ==
-        ui_popup_string_hash(but_iter->str, but_iter->flag & UI_BUT_HAS_SEP_CHAR)) {
+    if (mem[hash_mod] == ui_popup_string_hash(but_iter->str, but_iter->flag & UI_BUT_HAS_SEP_CHAR))
+    {
       return but_iter;
     }
   }
@@ -475,7 +475,6 @@ static void create_title_button(uiLayout *layout, const char *title, int icon)
   uiItemS(layout);
 }
 
-/* Used to directly create a popup menu that is not refreshed on redraw. */
 uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
                                     const char *title,
                                     const char *block_name,

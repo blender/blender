@@ -622,7 +622,8 @@ static bool key_inside_circle(const PEData *data, float rad, const float co[3], 
 
   /* TODO: should this check V3D_PROJ_TEST_CLIP_BB too? */
   if (ED_view3d_project_int_global(data->vc.region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) !=
-      V3D_PROJ_RET_OK) {
+      V3D_PROJ_RET_OK)
+  {
     return 0;
   }
 
@@ -650,12 +651,14 @@ static bool key_inside_rect(PEData *data, const float co[3])
   int screen_co[2];
 
   if (ED_view3d_project_int_global(data->vc.region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) !=
-      V3D_PROJ_RET_OK) {
+      V3D_PROJ_RET_OK)
+  {
     return 0;
   }
 
   if (screen_co[0] > data->rect->xmin && screen_co[0] < data->rect->xmax &&
-      screen_co[1] > data->rect->ymin && screen_co[1] < data->rect->ymax) {
+      screen_co[1] > data->rect->ymin && screen_co[1] < data->rect->ymax)
+  {
     return key_test_depth(data, co, screen_co);
   }
 
@@ -1264,7 +1267,8 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
   const float dist = ED_view3d_select_dist_px() * 0.01f;
 
   if (edit == NULL || edit->psys == NULL || (pset->flag & PE_DEFLECT_EMITTER) == 0 ||
-      (edit->psys->flag & PSYS_GLOBAL_HAIR)) {
+      (edit->psys->flag & PSYS_GLOBAL_HAIR))
+  {
     return;
   }
 
@@ -1453,7 +1457,7 @@ void recalc_emitter_field(Depsgraph *UNUSED(depsgraph), Object *UNUSED(ob), Part
   nor = vec + 3;
 
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
   const MFace *mfaces = (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
   for (i = 0; i < totface; i++, vec += 6, nor += 6) {
     const MFace *mface = &mfaces[i];
@@ -3769,7 +3773,8 @@ static void brush_cut(PEData *data, int pa_index)
   }
 
   if (ED_view3d_project_int_global(region, key->co, screen_co, V3D_PROJ_TEST_CLIP_NEAR) !=
-      V3D_PROJ_RET_OK) {
+      V3D_PROJ_RET_OK)
+  {
     return;
   }
 
@@ -3797,7 +3802,8 @@ static void brush_cut(PEData *data, int pa_index)
 
       if ((ED_view3d_project_int_global(region, key->co, screen_co, V3D_PROJ_TEST_CLIP_NEAR) !=
            V3D_PROJ_RET_OK) ||
-          key_test_depth(data, key->co, screen_co) == 0) {
+          key_test_depth(data, key->co, screen_co) == 0)
+      {
         x0 = (float)screen_co[0];
         x1 = (float)screen_co[1];
 
@@ -4347,7 +4353,8 @@ static void brush_add_count_iter(void *__restrict iter_data_v,
                               0,
                               0,
                               0,
-                              0)) {
+                              0))
+  {
     if (psys->part->use_modifier_stack && !BKE_mesh_is_deformed_only(psmd_eval->mesh_final)) {
       add_pars[iter].num = add_pars[iter].num_dmcache;
       add_pars[iter].num_dmcache = DMCACHE_ISCHILD;
@@ -4761,7 +4768,8 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
   if (((pset->brushtype == PE_BRUSH_ADD) ?
            (sqrtf(dx * dx + dy * dy) > pset->brush[PE_BRUSH_ADD].step) :
            (dx != 0 || dy != 0)) ||
-      bedit->first) {
+      bedit->first)
+  {
     PEData data = bedit->data;
     data.context = C; /* TODO(mai): why isn't this set in bedit->data? */
 

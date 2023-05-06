@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -412,10 +412,6 @@ msgstr "Krommes"
 
 msgid "Filename"
 msgstr "Bestandsnaam"
-
-
-msgid "Grease Pencil"
-msgstr "Vetkrijt"
 
 
 msgid "Images"
@@ -1387,6 +1383,10 @@ msgid "Fonts"
 msgstr "Lettertypen"
 
 
+msgid "Grease Pencil"
+msgstr "Vetkrijt"
+
+
 msgid "Particles Settings"
 msgstr "Deeltjes Instellingen"
 
@@ -1501,10 +1501,6 @@ msgstr "Tijd"
 
 msgid "Compression"
 msgstr "Compressie"
-
-
-msgid "Number"
-msgstr "Nummer"
 
 
 msgid "Maximum Resolution"
@@ -1957,22 +1953,6 @@ msgid "Subtract Color"
 msgstr "Trek Kleur Af"
 
 
-msgid "Smoother"
-msgstr "Gladder"
-
-
-msgid "Root"
-msgstr "Wortel"
-
-
-msgid "Sharp"
-msgstr "Scherp"
-
-
-msgid "Inverse Square"
-msgstr "Inverse Wortel"
-
-
 msgid "Cloth Simulation"
 msgstr "Kledingsimulatie"
 
@@ -2031,10 +2011,6 @@ msgstr "Aangepast Icoon"
 
 msgid "Forward"
 msgstr "Vooruit"
-
-
-msgid "Second"
-msgstr "Seconde"
 
 
 msgid "Clip End"
@@ -2260,6 +2236,10 @@ msgid "Falloff Type"
 msgstr "Type Afvlakking"
 
 
+msgid "Inverse Square"
+msgstr "Inverse Wortel"
+
+
 msgid "Shadow Color"
 msgstr "Schaduwkleur"
 
@@ -2416,6 +2396,10 @@ msgid "Size 2"
 msgstr "Grootte 2"
 
 
+msgid "Number"
+msgstr "Nummer"
+
+
 msgid "Random Size"
 msgstr "Willekeurige Grootte"
 
@@ -2430,6 +2414,10 @@ msgstr "Geavanceerd"
 
 msgid "Rotations"
 msgstr "Rotaties"
+
+
+msgid "Mirror Object"
+msgstr "Spiegel Object"
 
 
 msgid "Speed of Sound"
@@ -2487,6 +2475,10 @@ msgstr "Spiegel X"
 
 msgid "Mirror Y"
 msgstr "Spiegel Y"
+
+
+msgid "Sharp"
+msgstr "Scherp"
 
 
 msgid "Workspace"
@@ -2711,6 +2703,10 @@ msgid "Calculate Holes"
 msgstr "Bereken Gaten"
 
 
+msgid "Active Point"
+msgstr "Actieve Punt"
+
+
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Clip"
@@ -2878,6 +2874,10 @@ msgid "Split Normals"
 msgstr "Splits Normalen"
 
 
+msgid "Root"
+msgstr "Wortel"
+
+
 msgid "Size X"
 msgstr "Grote X"
 
@@ -2928,10 +2928,6 @@ msgstr "Overschrijven"
 
 msgid "Time Mode"
 msgstr "Tijdsmodus"
-
-
-msgid "Mirror Object"
-msgstr "Spiegel Object"
 
 
 msgid "Mirror Axis"
@@ -3956,6 +3952,10 @@ msgstr "Open nieuwe map"
 msgctxt "Operator"
 msgid "Execute File Window"
 msgstr "Voer Bestand Scherm Uit"
+
+
+msgid "Play"
+msgstr "Afspelen"
 
 
 msgctxt "Operator"
@@ -6054,10 +6054,6 @@ msgid "Export UV Layout"
 msgstr "Exporteer UV Indeling"
 
 
-msgid "New Image"
-msgstr "Nieuwe Afbeelding"
-
-
 msgid "Selected Faces"
 msgstr "Geselecteerde Vlakken"
 
@@ -6210,10 +6206,6 @@ msgstr "Tijd Min"
 
 msgid "Search Path"
 msgstr "Zoek Pad"
-
-
-msgid "Play"
-msgstr "Afspelen"
 
 
 msgid "Export grease pencil to PDF"
@@ -6449,10 +6441,6 @@ msgstr "Palet Kleur"
 
 msgid "Custom Shape"
 msgstr "Aangepaste Vorm"
-
-
-msgid "Active Point"
-msgstr "Actieve Punt"
 
 
 msgctxt "MovieClip"
@@ -7719,10 +7707,6 @@ msgid "Copy All Materials to Selected"
 msgstr "Kopieer Alle Materialen naar Geselecteerde"
 
 
-msgid "Old"
-msgstr "Oud"
-
-
 msgid "Date"
 msgstr "Datum"
 
@@ -7802,6 +7786,10 @@ msgstr "Lege Ruimte"
 msgctxt "Operator"
 msgid "Resume"
 msgstr "Hervat"
+
+
+msgid "Second"
+msgstr "Seconde"
 
 
 msgid "Auto-Step"
@@ -8397,10 +8385,6 @@ msgstr "Bestand:"
 
 msgid "Author:"
 msgstr "Auteur:"
-
-
-msgid "author"
-msgstr "auteur"
 
 
 msgid "Version:"
@@ -9074,10 +9058,6 @@ msgid "Copy All to Selected"
 msgstr "Kopieer Alles naar Geselecteerd"
 
 
-msgid "Value:"
-msgstr "Waarde:"
-
-
 msgid "Value: %s"
 msgstr "Waarde: %s"
 
@@ -9447,6 +9427,10 @@ msgid "Movies"
 msgstr "Films"
 
 
+msgid "Value:"
+msgstr "Waarde:"
+
+
 msgid "Add Modifier"
 msgstr "Voeg Aanpasser Toe"
 
@@ -9609,6 +9593,10 @@ msgstr "Pad:"
 
 msgid "Speed:"
 msgstr "Snelheid:"
+
+
+msgid "Old"
+msgstr "Oud"
 
 
 msgid "Random Roughness"

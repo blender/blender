@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -81,7 +81,7 @@ static void id_type_init(void)
   INIT_TYPE(ID_NT);
   INIT_TYPE(ID_BR);
   INIT_TYPE(ID_PA);
-  INIT_TYPE(ID_GD);
+  INIT_TYPE(ID_GD_LEGACY);
   INIT_TYPE(ID_WM);
   INIT_TYPE(ID_MC);
   INIT_TYPE(ID_MSK);
@@ -114,7 +114,8 @@ const IDTypeInfo *BKE_idtype_get_info_from_idcode(const short id_code)
   int id_index = BKE_idtype_idcode_to_index(id_code);
 
   if (id_index >= 0 && id_index < ARRAY_SIZE(id_types) && id_types[id_index] != NULL &&
-      id_types[id_index]->name[0] != '\0') {
+      id_types[id_index]->name[0] != '\0')
+  {
     return id_types[id_index];
   }
 
@@ -220,7 +221,7 @@ uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
     CASE_IDFILTER(CA);
     CASE_IDFILTER(CF);
     CASE_IDFILTER(CU_LEGACY);
-    CASE_IDFILTER(GD);
+    CASE_IDFILTER(GD_LEGACY);
     CASE_IDFILTER(GR);
     CASE_IDFILTER(CV);
     CASE_IDFILTER(IM);
@@ -278,7 +279,7 @@ short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
     CASE_IDFILTER(CA);
     CASE_IDFILTER(CF);
     CASE_IDFILTER(CU_LEGACY);
-    CASE_IDFILTER(GD);
+    CASE_IDFILTER(GD_LEGACY);
     CASE_IDFILTER(GR);
     CASE_IDFILTER(CV);
     CASE_IDFILTER(IM);
@@ -334,7 +335,7 @@ int BKE_idtype_idcode_to_index(const short idcode)
     CASE_IDINDEX(CA);
     CASE_IDINDEX(CF);
     CASE_IDINDEX(CU_LEGACY);
-    CASE_IDINDEX(GD);
+    CASE_IDINDEX(GD_LEGACY);
     CASE_IDINDEX(GR);
     CASE_IDINDEX(CV);
     CASE_IDINDEX(IM);
@@ -393,7 +394,7 @@ short BKE_idtype_idcode_from_index(const int index)
     CASE_IDCODE(CA);
     CASE_IDCODE(CF);
     CASE_IDCODE(CU_LEGACY);
-    CASE_IDCODE(GD);
+    CASE_IDCODE(GD_LEGACY);
     CASE_IDCODE(GR);
     CASE_IDCODE(CV);
     CASE_IDCODE(IM);

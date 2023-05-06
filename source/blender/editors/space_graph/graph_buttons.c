@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup spgraph
@@ -895,11 +895,35 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
            DTAR_TRANSCHAN_ROTX,
            DTAR_TRANSCHAN_ROTY,
            DTAR_TRANSCHAN_ROTZ,
-           DTAR_TRANSCHAN_ROTW)) {
+           DTAR_TRANSCHAN_ROTW))
+  {
     uiItemR(sub, &dtar_ptr, "rotation_mode", 0, IFACE_("Mode"), ICON_NONE);
   }
 
   uiItemR(sub, &dtar_ptr, "transform_space", 0, IFACE_("Space"), ICON_NONE);
+}
+
+/* Settings for 'Context Property' driver variable type. */
+static void graph_panel_driverVar__contextProp(uiLayout *layout, ID *id, DriverVar *dvar)
+{
+  DriverTarget *dtar = &dvar->targets[0];
+
+  /* Initialize RNA pointer to the target. */
+  PointerRNA dtar_ptr;
+  RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr);
+
+  /* Target Property. */
+  {
+    uiLayout *row = uiLayoutRow(layout, false);
+    uiItemR(row, &dtar_ptr, "context_property", 0, NULL, ICON_NONE);
+  }
+
+  /* Target Path */
+  {
+    uiLayout *col = uiLayoutColumn(layout, true);
+    uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID));
+    uiTemplatePathBuilder(col, &dtar_ptr, "data_path", NULL, IFACE_("Path"));
+  }
 }
 
 /* ----------------------------------------------------------------- */
@@ -942,6 +966,7 @@ static void graph_panel_drivers_header(const bContext *C, Panel *panel)
   }
 
   graph_draw_driven_property_enabled_btn(panel->layout, ale->id, fcu, IFACE_("Driver"));
+  MEM_freeN(ale);
 }
 
 static void graph_draw_driven_property_panel(uiLayout *layout, ID *id, FCurve *fcu)
@@ -1212,6 +1237,9 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
       case DVAR_TYPE_TRANSFORM_CHAN: /* transform channel */
         graph_panel_driverVar__transChan(box, id, dvar);
         break;
+      case DVAR_TYPE_CONTEXT_PROP: /* context property */
+        graph_panel_driverVar__contextProp(box, id, dvar);
+        break;
     }
 
     /* 3) value of variable */
@@ -1229,7 +1257,8 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
                 DTAR_TRANSCHAN_ROTY,
                 DTAR_TRANSCHAN_ROTZ,
                 DTAR_TRANSCHAN_ROTW) &&
-           dvar->targets[0].rotation_mode != DTAR_ROTMODE_QUATERNION)) {
+           dvar->targets[0].rotation_mode != DTAR_ROTMODE_QUATERNION))
+      {
         BLI_snprintf(
             valBuf, sizeof(valBuf), "%.3f (%4.1f°)", dvar->curval, RAD2DEGF(dvar->curval));
       }
@@ -1323,7 +1352,7 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
   uiBut *but = NULL;
 
   /* Get active property to show driver properties for */
-  but = UI_context_active_but_prop_get((bContext *)C, &ptr, &prop, &index);
+  but = UI_region_active_but_prop_get(CTX_wm_region(C), &ptr, &prop, &index);
   if (but) {
     FCurve *fcu;
     bool driven, special;
@@ -1414,8 +1443,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *panel)
     /* this is an operator button which calls a 'add modifier' operator...
      * a menu might be nicer but would be tricky as we need some custom filtering
      */
-    uiItemMenuEnumO(
-        row, (bContext *)C, "GRAPH_OT_fmodifier_add", "type", IFACE_("Add Modifier"), ICON_NONE);
+    uiItemMenuEnumO(row, C, "GRAPH_OT_fmodifier_add", "type", IFACE_("Add Modifier"), ICON_NONE);
 
     /* copy/paste (as sub-row) */
     row = uiLayoutRow(row, true);

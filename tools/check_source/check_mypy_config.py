@@ -23,7 +23,7 @@ PATHS: Tuple[Tuple[str, Tuple[Any, ...], Dict[str, str]], ...] = (
 )
 
 SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(
-    os.path.join(os.path.dirname(__file__), "..", "..", ".."))))
+    os.path.join(os.path.dirname(__file__), "..", ".."))))
 
 PATHS_EXCLUDE = set(
     os.path.join(SOURCE_DIR, p.replace("/", os.sep))
@@ -58,6 +58,7 @@ PATHS_EXCLUDE = set(
         "tools/utils/git_log.py",
         "tools/utils/git_log_review_commits.py",
         "tools/utils/git_log_review_commits_advanced.py",
+        "tools/utils/gitea_inactive_developers.py",
         "tools/utils/make_cursor_gui.py",
         "tools/utils/make_gl_stipple_from_xpm.py",
         "tools/utils/make_shape_2d_from_blend.py",

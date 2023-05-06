@@ -67,6 +67,15 @@ const AssetIdentifier &AssetRepresentation::get_identifier() const
   return identifier_;
 }
 
+std::unique_ptr<AssetWeakReference> AssetRepresentation::make_weak_reference() const
+{
+  if (!owner_asset_library_) {
+    return nullptr;
+  }
+
+  return AssetWeakReference::make_reference(*owner_asset_library_, identifier_);
+}
+
 StringRefNull AssetRepresentation::get_name() const
 {
   if (is_local_id_) {
@@ -97,6 +106,19 @@ bool AssetRepresentation::may_override_import_method() const
   return owner_asset_library_->may_override_import_method_;
 }
 
+bool AssetRepresentation::get_use_relative_path() const
+{
+  if (!owner_asset_library_) {
+    return false;
+  }
+  return owner_asset_library_->use_relative_path_;
+}
+
+ID *AssetRepresentation::local_id() const
+{
+  return is_local_id_ ? local_asset_id_ : nullptr;
+}
+
 bool AssetRepresentation::is_local_id() const
 {
   return is_local_id_;
@@ -111,12 +133,19 @@ const AssetLibrary &AssetRepresentation::owner_asset_library() const
 
 using namespace blender;
 
-const std::string AS_asset_representation_full_path_get(const AssetRepresentation *asset_handle)
+std::string AS_asset_representation_full_path_get(const AssetRepresentation *asset_handle)
 {
   const asset_system::AssetRepresentation *asset =
       reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
   const asset_system::AssetIdentifier &identifier = asset->get_identifier();
   return identifier.full_path();
+}
+
+std::string AS_asset_representation_full_library_path_get(const AssetRepresentation *asset_handle)
+{
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
+  return asset->get_identifier().full_library_path();
 }
 
 std::optional<eAssetImportMethod> AS_asset_representation_import_method_get(
@@ -132,6 +161,13 @@ bool AS_asset_representation_may_override_import_method(const AssetRepresentatio
   const asset_system::AssetRepresentation *asset =
       reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
   return asset->may_override_import_method();
+}
+
+bool AS_asset_representation_use_relative_path_get(const AssetRepresentation *asset_handle)
+{
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
+  return asset->get_use_relative_path();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -152,11 +188,27 @@ AssetMetaData *AS_asset_representation_metadata_get(const AssetRepresentation *a
   return &asset->get_metadata();
 }
 
+ID *AS_asset_representation_local_id_get(const AssetRepresentation *asset_handle)
+{
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
+  return asset->local_id();
+}
+
 bool AS_asset_representation_is_local_id(const AssetRepresentation *asset_handle)
 {
   const asset_system::AssetRepresentation *asset =
       reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
   return asset->is_local_id();
+}
+
+AssetWeakReference *AS_asset_representation_weak_reference_create(
+    const AssetRepresentation *asset_handle)
+{
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
+  std::unique_ptr<AssetWeakReference> weak_ref = asset->make_weak_reference();
+  return MEM_new<AssetWeakReference>(__func__, std::move(*weak_ref));
 }
 
 /** \} */

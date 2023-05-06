@@ -8,7 +8,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_defaults.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -23,7 +23,7 @@
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -416,7 +416,7 @@ static int brush_undo_preserve_cb(LibraryIDLinkCallbackData *cb_data)
 static void brush_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
 {
   /* Whole Brush is preserved across undo-steps. */
-  BKE_lib_id_swap(nullptr, id_new, id_old);
+  BKE_lib_id_swap(nullptr, id_new, id_old, false, 0);
 
   /* `id_new` now has content from `id_old`, we need to ensure those old ID pointers are valid.
    * NOTE: Since we want to re-use all old pointers here, code is much simpler than for Scene. */
@@ -521,6 +521,7 @@ static void brush_defaults(Brush *brush)
   FROM_DEFAULT(stencil_dimension);
   FROM_DEFAULT(mtex);
   FROM_DEFAULT(mask_mtex);
+  FROM_DEFAULT(falloff_shape);
 
 #undef FROM_DEFAULT
 #undef FROM_DEFAULT_PTR
@@ -613,7 +614,8 @@ bool BKE_brush_delete(Main *bmain, Brush *brush)
     return false;
   }
   if (ID_REAL_USERS(brush) <= 1 && ID_EXTRA_USERS(brush) == 0 &&
-      BKE_library_ID_is_indirectly_used(bmain, brush)) {
+      BKE_library_ID_is_indirectly_used(bmain, brush))
+  {
     return false;
   }
 
@@ -1275,14 +1277,57 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       break;
     }
-    case GP_BRUSH_PRESET_DRAW_WEIGHT: {
+    case GP_BRUSH_PRESET_WEIGHT_DRAW: {
       brush->gpencil_settings->icon_id = GP_BRUSH_ICON_GPBRUSH_WEIGHT;
       brush->gpencil_weight_tool = GPWEIGHT_TOOL_DRAW;
 
       brush->size = 25.0f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
 
-      brush->gpencil_settings->draw_strength = 0.8f;
+      brush->alpha = 0.3f;
+      brush->gpencil_settings->draw_strength = 0.3f;
+      brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
+      brush->gpencil_settings->sculpt_mode_flag |= GP_SCULPT_FLAGMODE_APPLY_POSITION;
+
+      break;
+    }
+    case GP_BRUSH_PRESET_WEIGHT_BLUR: {
+      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_VERTEX_BLUR;
+      brush->gpencil_weight_tool = GPWEIGHT_TOOL_BLUR;
+
+      brush->size = 50.0f;
+      brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
+
+      brush->alpha = 0.3f;
+      brush->gpencil_settings->draw_strength = 0.3f;
+      brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
+      brush->gpencil_settings->sculpt_mode_flag |= GP_SCULPT_FLAGMODE_APPLY_POSITION;
+
+      break;
+    }
+    case GP_BRUSH_PRESET_WEIGHT_AVERAGE: {
+      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_VERTEX_BLUR;
+      brush->gpencil_weight_tool = GPWEIGHT_TOOL_AVERAGE;
+
+      brush->size = 50.0f;
+      brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
+
+      brush->alpha = 0.3f;
+      brush->gpencil_settings->draw_strength = 0.3f;
+      brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
+      brush->gpencil_settings->sculpt_mode_flag |= GP_SCULPT_FLAGMODE_APPLY_POSITION;
+
+      break;
+    }
+    case GP_BRUSH_PRESET_WEIGHT_SMEAR: {
+      brush->gpencil_settings->icon_id = GP_BRUSH_ICON_VERTEX_BLUR;
+      brush->gpencil_weight_tool = GPWEIGHT_TOOL_SMEAR;
+
+      brush->size = 50.0f;
+      brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
+
+      brush->alpha = 0.3f;
+      brush->gpencil_settings->draw_strength = 0.3f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
       brush->gpencil_settings->sculpt_mode_flag |= GP_SCULPT_FLAGMODE_APPLY_POSITION;
 
@@ -1568,12 +1613,31 @@ void BKE_brush_gpencil_weight_presets(Main *bmain, ToolSettings *ts, const bool 
   Paint *weightpaint = &ts->gp_weightpaint->paint;
   Brush *brush_prev = weightpaint->brush;
   Brush *brush, *deft_weight;
-  /* Vertex Draw brush. */
-  brush = gpencil_brush_ensure(bmain, ts, "Draw Weight", OB_MODE_WEIGHT_GPENCIL, &r_new);
+
+  /* Weight Draw brush. */
+  brush = gpencil_brush_ensure(bmain, ts, "Weight Draw", OB_MODE_WEIGHT_GPENCIL, &r_new);
   if ((reset) || (r_new)) {
-    BKE_gpencil_brush_preset_set(bmain, brush, GP_BRUSH_PRESET_DRAW_WEIGHT);
+    BKE_gpencil_brush_preset_set(bmain, brush, GP_BRUSH_PRESET_WEIGHT_DRAW);
   }
   deft_weight = brush; /* save default brush. */
+
+  /* Weight Blur brush. */
+  brush = gpencil_brush_ensure(bmain, ts, "Weight Blur", OB_MODE_WEIGHT_GPENCIL, &r_new);
+  if ((reset) || (r_new)) {
+    BKE_gpencil_brush_preset_set(bmain, brush, GP_BRUSH_PRESET_WEIGHT_BLUR);
+  }
+
+  /* Weight Average brush. */
+  brush = gpencil_brush_ensure(bmain, ts, "Weight Average", OB_MODE_WEIGHT_GPENCIL, &r_new);
+  if ((reset) || (r_new)) {
+    BKE_gpencil_brush_preset_set(bmain, brush, GP_BRUSH_PRESET_WEIGHT_AVERAGE);
+  }
+
+  /* Weight Smear brush. */
+  brush = gpencil_brush_ensure(bmain, ts, "Weight Smear", OB_MODE_WEIGHT_GPENCIL, &r_new);
+  if ((reset) || (r_new)) {
+    BKE_gpencil_brush_preset_set(bmain, brush, GP_BRUSH_PRESET_WEIGHT_SMEAR);
+  }
 
   /* Set default brush. */
   if (reset || brush_prev == nullptr) {
@@ -1865,17 +1929,17 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_PAINT:
       br->hardness = 0.4f;
       br->spacing = 10;
-      br->alpha = 0.6f;
+      br->alpha = 1.0f;
       br->flow = 1.0f;
       br->tip_scale_x = 1.0f;
       br->tip_roundness = 1.0f;
       br->density = 1.0f;
       br->flag &= ~BRUSH_SPACE_ATTEN;
-      copy_v3_fl(br->rgb, 1.0f);
-      zero_v3(br->secondary_rgb);
+      zero_v3(br->rgb);
+      copy_v3_fl(br->secondary_rgb, 1.0f);
       break;
     case SCULPT_TOOL_SMEAR:
-      br->alpha = 1.0f;
+      br->alpha = 0.6f;
       br->spacing = 5;
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
@@ -2575,4 +2639,28 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool
   }
 
   return im;
+}
+
+bool BKE_brush_has_cube_tip(const Brush *brush, ePaintMode paint_mode)
+{
+  switch (paint_mode) {
+    case PAINT_MODE_SCULPT: {
+      if (brush->sculpt_tool == SCULPT_TOOL_MULTIPLANE_SCRAPE) {
+        return true;
+      }
+
+      if (ELEM(brush->sculpt_tool, SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_PAINT) &&
+          brush->tip_roundness < 1.0f)
+      {
+        return true;
+      }
+
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+
+  return false;
 }

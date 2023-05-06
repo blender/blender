@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <cstdint>
+#include <memory>
 
 #include "BLI_array.hh"
 #include "BLI_hash.hh"
@@ -70,7 +71,8 @@ SymmetricSeparableBlurWeights::SymmetricSeparableBlurWeights(int type, float rad
     weights[i] /= sum;
   }
 
-  texture_ = GPU_texture_create_1d("Weights", size, 1, GPU_R16F, weights.data());
+  texture_ = GPU_texture_create_1d(
+      "Weights", size, 1, GPU_R16F, GPU_TEXTURE_USAGE_GENERAL, weights.data());
 }
 
 SymmetricSeparableBlurWeights::~SymmetricSeparableBlurWeights()
@@ -88,6 +90,33 @@ void SymmetricSeparableBlurWeights::bind_as_texture(GPUShader *shader,
 void SymmetricSeparableBlurWeights::unbind_as_texture() const
 {
   GPU_texture_unbind(texture_);
+}
+
+/* --------------------------------------------------------------------
+ * Symmetric Separable Blur Weights Container.
+ */
+
+void SymmetricSeparableBlurWeightsContainer::reset()
+{
+  /* First, delete all resources that are no longer needed. */
+  map_.remove_if([](auto item) { return !item.value->needed; });
+
+  /* Second, reset the needed status of the remaining resources to false to ready them to track
+   * their needed status for the next evaluation. */
+  for (auto &value : map_.values()) {
+    value->needed = false;
+  }
+}
+
+SymmetricSeparableBlurWeights &SymmetricSeparableBlurWeightsContainer::get(int type, float radius)
+{
+  const SymmetricSeparableBlurWeightsKey key(type, radius);
+
+  auto &weights = *map_.lookup_or_add_cb(
+      key, [&]() { return std::make_unique<SymmetricSeparableBlurWeights>(type, radius); });
+
+  weights.needed = true;
+  return weights;
 }
 
 }  // namespace blender::realtime_compositor

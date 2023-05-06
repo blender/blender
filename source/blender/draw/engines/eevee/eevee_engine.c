@@ -19,6 +19,8 @@
 
 #include "DNA_world_types.h"
 
+#include "GPU_context.h"
+
 #include "IMB_imbuf.h"
 
 #include "eevee_private.h"
@@ -228,7 +230,8 @@ static void eevee_draw_scene(void *vedata)
     bool taa_use_reprojection = (stl->effects->enabled_effects & EFFECT_TAA_REPROJECT) != 0;
 
     if (DRW_state_is_image_render() || taa_use_reprojection ||
-        ((stl->effects->enabled_effects & EFFECT_TAA) != 0)) {
+        ((stl->effects->enabled_effects & EFFECT_TAA) != 0))
+    {
       int samp = taa_use_reprojection ? stl->effects->taa_reproject_sample + 1 :
                                         stl->effects->taa_current_sample;
       BLI_halton_3d(primes, offset, samp, r);
@@ -254,14 +257,16 @@ static void eevee_draw_scene(void *vedata)
 
     if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) &&
         (stl->effects->taa_current_sample > 1) && !DRW_state_is_image_render() &&
-        !taa_use_reprojection) {
+        !taa_use_reprojection)
+    {
       DRW_view_set_active(stl->effects->taa_view);
     }
     /* when doing viewport rendering the overrides needs to be recalculated for
      * every loop as this normally happens once inside
      * `EEVEE_temporal_sampling_init` */
     else if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) &&
-             (stl->effects->taa_current_sample > 1) && DRW_state_is_image_render()) {
+             (stl->effects->taa_current_sample > 1) && DRW_state_is_image_render())
+    {
       EEVEE_temporal_sampling_update_matrices(vedata);
     }
 
@@ -280,7 +285,7 @@ static void eevee_draw_scene(void *vedata)
     SET_FLAG_FROM_TEST(clear_bits, (stl->effects->enabled_effects & EFFECT_SSS), GPU_STENCIL_BIT);
     GPU_framebuffer_clear(fbl->main_fb, clear_bits, clear_col, clear_depth, clear_stencil);
 
-    /* Depth prepass */
+    /* Depth pre-pass. */
     DRW_stats_group_start("Prepass");
     DRW_draw_pass(psl->depth_ps);
     DRW_stats_group_end();
@@ -340,13 +345,24 @@ static void eevee_draw_scene(void *vedata)
     DRW_view_set_active(NULL);
 
     if (DRW_state_is_image_render() && (stl->effects->enabled_effects & EFFECT_SSR) &&
-        !stl->effects->ssr_was_valid_double_buffer) {
+        !stl->effects->ssr_was_valid_double_buffer)
+    {
       /* SSR needs one iteration to start properly. */
       loop_len++;
       /* Reset sampling (and accumulation) after the first sample to avoid
        * washed out first bounce for SSR. */
       EEVEE_temporal_sampling_reset(vedata);
       stl->effects->ssr_was_valid_double_buffer = stl->g_data->valid_double_buffer;
+    }
+
+    /* Perform render step between samples to allow flushing of freed temporary GPUBackend
+     * resources. This prevents the GPU backend accumulating a high amount of in-flight memory when
+     * performing renders using eevee_draw_scene. e.g. During file thumbnail generation. */
+    if (loop_len > 2) {
+      if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+        GPU_flush();
+        GPU_render_step();
+      }
     }
   }
 

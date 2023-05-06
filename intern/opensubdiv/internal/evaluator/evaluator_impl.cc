@@ -1,4 +1,4 @@
-// Copyright 2018 Blender Foundation. All rights reserved.
+// Copyright 2018 Blender Foundation
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -495,7 +495,8 @@ OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
   vector<const StencilTable *> all_face_varying_stencils;
   all_face_varying_stencils.reserve(num_face_varying_channels);
   for (int face_varying_channel = 0; face_varying_channel < num_face_varying_channels;
-       ++face_varying_channel) {
+       ++face_varying_channel)
+  {
     StencilTableFactory::Options face_varying_stencil_options;
     face_varying_stencil_options.generateOffsets = stencil_generate_offsets;
     face_varying_stencil_options.generateIntermediateLevels = stencil_generate_intermediate_levels;
@@ -532,7 +533,8 @@ OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
     }
   }
   for (int face_varying_channel = 0; face_varying_channel < num_face_varying_channels;
-       ++face_varying_channel) {
+       ++face_varying_channel)
+  {
     const StencilTable *table = StencilTableFactory::AppendLocalPointStencilTableFaceVarying(
         *refiner,
         all_face_varying_stencils[face_varying_channel],

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup editor/io
@@ -11,11 +11,11 @@
 
 #  include "MEM_guardedalloc.h"
 
-#  include "DNA_gpencil_types.h"
+#  include "DNA_gpencil_legacy_types.h"
 #  include "DNA_space_types.h"
 
 #  include "BKE_context.h"
-#  include "BKE_gpencil.h"
+#  include "BKE_gpencil_legacy.h"
 #  include "BKE_report.h"
 
 #  include "BLT_translation.h"
@@ -32,7 +32,7 @@
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_query.h"
 
-#  include "ED_gpencil.h"
+#  include "ED_gpencil_legacy.h"
 
 #  include "io_gpencil.h"
 
@@ -66,7 +66,8 @@ static int wm_gpencil_import_svg_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
 
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false) ||
-      !RNA_struct_find_property(op->ptr, "directory")) {
+      !RNA_struct_find_property(op->ptr, "directory"))
+  {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }

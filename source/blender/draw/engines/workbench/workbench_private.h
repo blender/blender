@@ -499,7 +499,7 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
                                           int mat_nr,
                                           Image *ima,
                                           ImageUser *iuser,
-                                          eGPUSamplerState sampler,
+                                          GPUSamplerState sampler,
                                           eWORKBENCH_DataType datatype);
 
 #define WORKBENCH_OBJECT_DATATYPE(ob) \

@@ -62,7 +62,7 @@ ContinuationIndentWidth: 4
 BreakBeforeBraces: Custom
 BraceWrapping: {
     AfterClass: 'false',
-    AfterControlStatement: 'false',
+    AfterControlStatement: 'MultiLine',
     AfterEnum : 'false',
     AfterFunction : 'true',
     AfterNamespace : 'false',
@@ -130,7 +130,7 @@ PenaltyReturnTypeOnItsOwnLine: 10000
 #
 PenaltyBreakAssignment: 100
 
-AllowShortFunctionsOnASingleLine: None
+AllowShortFunctionsOnASingleLine: Empty
 
 SortIncludes: true
 

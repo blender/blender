@@ -55,8 +55,8 @@ static void wm_msg_rna_gset_key_free(void *key_p)
 {
   wmMsgSubscribeKey_RNA *key = key_p;
   wmMsgSubscribeValueLink *msg_lnk_next;
-  for (wmMsgSubscribeValueLink *msg_lnk = key->head.values.first; msg_lnk;
-       msg_lnk = msg_lnk_next) {
+  for (wmMsgSubscribeValueLink *msg_lnk = key->head.values.first; msg_lnk; msg_lnk = msg_lnk_next)
+  {
     msg_lnk_next = msg_lnk->next;
     wm_msg_subscribe_value_free(&key->head, msg_lnk);
   }
@@ -97,7 +97,8 @@ static void wm_msg_rna_update_by_id(struct wmMsgBus *mbus, ID *id_src, ID *id_ds
       /* Remove any non-persistent values, so a single persistent
        * value doesn't modify behavior for the rest. */
       for (wmMsgSubscribeValueLink *msg_lnk = key->head.values.first, *msg_lnk_next; msg_lnk;
-           msg_lnk = msg_lnk_next) {
+           msg_lnk = msg_lnk_next)
+      {
         msg_lnk_next = msg_lnk->next;
         if (msg_lnk->params.is_persistent == false) {
           if (msg_lnk->params.tag) {
@@ -125,7 +126,8 @@ static void wm_msg_rna_update_by_id(struct wmMsgBus *mbus, ID *id_src, ID *id_ds
         PointerRNA ptr;
         PropertyRNA *prop = NULL;
         if (RNA_path_resolve(&idptr, key->msg.params.data_path, &ptr, &prop) &&
-            (prop == NULL) == (key->msg.params.prop == NULL)) {
+            (prop == NULL) == (key->msg.params.prop == NULL))
+        {
           key->msg.params.ptr = ptr;
           key->msg.params.prop = prop;
           remove = false;
@@ -134,7 +136,8 @@ static void wm_msg_rna_update_by_id(struct wmMsgBus *mbus, ID *id_src, ID *id_ds
 
       if (remove) {
         for (wmMsgSubscribeValueLink *msg_lnk = key->head.values.first, *msg_lnk_next; msg_lnk;
-             msg_lnk = msg_lnk_next) {
+             msg_lnk = msg_lnk_next)
+        {
           msg_lnk_next = msg_lnk->next;
           if (msg_lnk->params.is_persistent == false) {
             if (msg_lnk->params.tag) {
@@ -169,7 +172,8 @@ static void wm_msg_rna_remove_by_id(struct wmMsgBus *mbus, const ID *id)
     if (key->msg.params.ptr.owner_id == id) {
       /* Clear here so we can decrement 'messages_tag_count'. */
       for (wmMsgSubscribeValueLink *msg_lnk = key->head.values.first, *msg_lnk_next; msg_lnk;
-           msg_lnk = msg_lnk_next) {
+           msg_lnk = msg_lnk_next)
+      {
         msg_lnk_next = msg_lnk->next;
         if (msg_lnk->params.tag) {
           mbus->messages_tag_count -= 1;

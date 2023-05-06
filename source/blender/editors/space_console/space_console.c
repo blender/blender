@@ -86,9 +86,7 @@ static void console_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void console_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
-{
-}
+static void console_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static SpaceLink *console_duplicate(SpaceLink *sl)
 {
@@ -174,7 +172,7 @@ static bool path_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNU
 static void path_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   char pathname[FILE_MAX + 2];
-  BLI_snprintf(pathname, sizeof(pathname), "\"%s\"", drag->path);
+  BLI_snprintf(pathname, sizeof(pathname), "\"%s\"", WM_drag_get_path(drag));
   RNA_string_set(drop->ptr, "text", pathname);
 }
 
@@ -309,7 +307,7 @@ static void console_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   }
 }
 
-static void console_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void console_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceConsole *con = (SpaceConsole *)sl;
 
@@ -337,7 +335,7 @@ void ED_spacetype_console(void)
   st->keymap = console_keymap;
   st->dropboxes = console_dropboxes;
   st->blend_read_data = console_blend_read_data;
-  st->blend_write = console_blend_write;
+  st->blend_write = console_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype console region");

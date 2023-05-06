@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import bpy
+from bpy.app.translations import contexts as i18n_contexts
 from bpy_extras.node_utils import find_node_input
 from bl_ui.utils import PresetPanel
 
@@ -318,7 +319,7 @@ class CYCLES_RENDER_PT_sampling_path_guiding(CyclesButtonsPanel, Panel):
 
         col = layout.column(align=True)
         col.prop(cscene, "use_surface_guiding", text="Surface")
-        col.prop(cscene, "use_volume_guiding", text="Volume")
+        col.prop(cscene, "use_volume_guiding", text="Volume", text_ctxt=i18n_contexts.id_id)
 
 
 class CYCLES_RENDER_PT_sampling_path_guiding_debug(CyclesDebugButtonsPanel, Panel):
@@ -530,7 +531,7 @@ class CYCLES_RENDER_PT_light_paths_max_bounces(CyclesButtonsPanel, Panel):
         col.prop(cscene, "diffuse_bounces", text="Diffuse")
         col.prop(cscene, "glossy_bounces", text="Glossy")
         col.prop(cscene, "transmission_bounces", text="Transmission")
-        col.prop(cscene, "volume_bounces", text="Volume")
+        col.prop(cscene, "volume_bounces", text="Volume", text_ctxt=i18n_contexts.id_id)
 
         col = layout.column(align=True)
         col.prop(cscene, "transparent_max_bounces", text="Transparent")
@@ -980,7 +981,7 @@ class CYCLES_RENDER_PT_passes_light(CyclesButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_transmission_indirect", text="Indirect")
         col.prop(view_layer, "use_pass_transmission_color", text="Color")
 
-        col = layout.column(heading="Volume", align=True)
+        col = layout.column(heading="Volume", heading_ctxt=i18n_contexts.id_id, align=True)
         col.prop(cycles_view_layer, "use_pass_volume_direct", text="Direct")
         col.prop(cycles_view_layer, "use_pass_volume_indirect", text="Indirect")
 
@@ -1577,6 +1578,7 @@ class CYCLES_WORLD_PT_surface(CyclesButtonsPanel, Panel):
 
 class CYCLES_WORLD_PT_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
+    bl_translation_context = i18n_contexts.id_id
     bl_context = "world"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1696,6 +1698,7 @@ class CYCLES_WORLD_PT_settings_surface(CyclesButtonsPanel, Panel):
 
 class CYCLES_WORLD_PT_settings_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
+    bl_translation_context = i18n_contexts.id_id
     bl_parent_id = "CYCLES_WORLD_PT_settings"
     bl_context = "world"
 
@@ -1791,6 +1794,7 @@ class CYCLES_MATERIAL_PT_surface(CyclesButtonsPanel, Panel):
 
 class CYCLES_MATERIAL_PT_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
+    bl_translation_context = i18n_contexts.id_id
     bl_context = "material"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1874,6 +1878,7 @@ class CYCLES_MATERIAL_PT_settings_surface(CyclesButtonsPanel, Panel):
 
 class CYCLES_MATERIAL_PT_settings_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
+    bl_translation_context = i18n_contexts.id_id
     bl_parent_id = "CYCLES_MATERIAL_PT_settings"
     bl_context = "material"
 

@@ -147,7 +147,8 @@ static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *ef
     Curve *cu = eff->ob->data;
     if (cu->flag & CU_PATH) {
       if (eff->ob->runtime.curve_cache == NULL ||
-          eff->ob->runtime.curve_cache->anim_path_accum_length == NULL) {
+          eff->ob->runtime.curve_cache->anim_path_accum_length == NULL)
+      {
         BKE_displist_make_curveTypes(depsgraph, eff->scene, eff->ob, false);
       }
 
@@ -511,7 +512,8 @@ static float eff_calc_visibility(ListBase *colliders,
                                   &hit,
                                   eff_tri_ray_hit,
                                   NULL,
-                                  raycast_flag) != -1) {
+                                  raycast_flag) != -1)
+      {
         absorption = col->ob->pd->absorption;
 
         /* visibility is only between 0 and 1, calculated from 1-absorption */
@@ -660,12 +662,12 @@ bool closest_point_on_surface(SurfaceModifierData *surmd,
     }
 
     if (surface_vel) {
-      const MLoop *mloop = bvhtree->loop;
+      const int *corner_verts = bvhtree->corner_verts;
       const MLoopTri *lt = &bvhtree->looptri[nearest.index];
 
-      copy_v3_v3(surface_vel, surmd->runtime.vert_velocities[mloop[lt->tri[0]].v]);
-      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[mloop[lt->tri[1]].v]);
-      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[mloop[lt->tri[2]].v]);
+      copy_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[lt->tri[0]]]);
+      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[lt->tri[1]]]);
+      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[lt->tri[2]]]);
 
       mul_v3_fl(surface_vel, (1.0f / 3.0f));
     }
@@ -703,7 +705,7 @@ bool get_effector_data(EffectorCache *eff,
     /* TODO: hair and points object support */
     const Mesh *me_eval = BKE_object_get_evaluated_mesh(eff->ob);
     const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
-    const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
+    const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(me_eval);
     if (me_eval != NULL) {
       copy_v3_v3(efd->loc, positions[*efd->index]);
       copy_v3_v3(efd->nor, vert_normals[*efd->index]);

@@ -122,7 +122,8 @@ static pxr::SdfLayerHandle get_layer_handle(const pxr::UsdAttribute &attribute)
 {
   for (auto PropertySpec : attribute.GetPropertyStack(pxr::UsdTimeCode::EarliestTime())) {
     if (PropertySpec->HasDefaultValue() ||
-        PropertySpec->GetLayer()->GetNumTimeSamplesForPath(PropertySpec->GetPath()) > 0) {
+        PropertySpec->GetLayer()->GetNumTimeSamplesForPath(PropertySpec->GetPath()) > 0)
+    {
       return PropertySpec->GetLayer();
     }
   }
@@ -209,7 +210,8 @@ static float get_opacity_threshold(const pxr::UsdShadeShader &usd_shader,
 
   pxr::VtValue val;
   if (opacity_threshold_input.GetAttr().HasAuthoredValue() &&
-      opacity_threshold_input.GetAttr().Get(&val)) {
+      opacity_threshold_input.GetAttr().Get(&val))
+  {
     return val.Get<float>();
   }
 
@@ -303,7 +305,8 @@ static void set_viewport_material_props(Material *mtl, const pxr::UsdShadeShader
   if (pxr::UsdShadeInput diffuse_color_input = usd_preview.GetInput(usdtokens::diffuseColor)) {
     pxr::VtValue val;
     if (diffuse_color_input.GetAttr().HasAuthoredValue() &&
-        diffuse_color_input.GetAttr().Get(&val) && val.IsHolding<pxr::GfVec3f>()) {
+        diffuse_color_input.GetAttr().Get(&val) && val.IsHolding<pxr::GfVec3f>())
+    {
       pxr::GfVec3f color = val.UncheckedGet<pxr::GfVec3f>();
       mtl->r = color[0];
       mtl->g = color[1];
@@ -314,7 +317,8 @@ static void set_viewport_material_props(Material *mtl, const pxr::UsdShadeShader
   if (pxr::UsdShadeInput metallic_input = usd_preview.GetInput(usdtokens::metallic)) {
     pxr::VtValue val;
     if (metallic_input.GetAttr().HasAuthoredValue() && metallic_input.GetAttr().Get(&val) &&
-        val.IsHolding<float>()) {
+        val.IsHolding<float>())
+    {
       mtl->metallic = val.Get<float>();
     }
   }
@@ -322,7 +326,8 @@ static void set_viewport_material_props(Material *mtl, const pxr::UsdShadeShader
   if (pxr::UsdShadeInput roughness_input = usd_preview.GetInput(usdtokens::roughness)) {
     pxr::VtValue val;
     if (roughness_input.GetAttr().HasAuthoredValue() && roughness_input.GetAttr().Get(&val) &&
-        val.IsHolding<float>()) {
+        val.IsHolding<float>())
+    {
       mtl->roughness = val.Get<float>();
     }
   }
@@ -508,7 +513,8 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
   }
 
   if (pxr::UsdShadeInput clearcoat_roughness_input = usd_shader.GetInput(
-          usdtokens::clearcoatRoughness)) {
+          usdtokens::clearcoatRoughness))
+  {
     set_node_input(
         clearcoat_roughness_input, principled, "Clearcoat Roughness", ntree, column, &context);
   }
@@ -761,7 +767,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
 
         char file[FILE_MAXFILE];
         char dir[FILE_MAXDIR];
-        BLI_split_dirfile(file_path.c_str(), dir, file, sizeof(dir), sizeof(file));
+        BLI_path_split_dir_file(file_path.c_str(), dir, sizeof(dir), file, sizeof(file));
 
         if (strlen(dir) == 0) {
           /* No directory in path, assume asset is a sibling of the layer. */
@@ -854,7 +860,8 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   NodeTexImage *storage = static_cast<NodeTexImage *>(tex_image->storage);
   storage->extension = get_image_extension(usd_shader, storage->extension);
   if (import_textures && params_.import_textures_mode == USD_TEX_IMPORT_PACK &&
-      !BKE_image_has_packedfile(image)) {
+      !BKE_image_has_packedfile(image))
+  {
     BKE_image_packfiles(nullptr, image, ID_BLEND_PATH(bmain_, &image->id));
     if (BLI_is_dir(temp_textures_dir())) {
       BLI_delete(temp_textures_dir(), true, true);
@@ -890,10 +897,27 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(
 
   /* Set the texmap name. */
   pxr::UsdShadeInput varname_input = usd_shader.GetInput(usdtokens::varname);
+
+  /* First check if the shader's "varname" input is connected to another source,
+   * and use that instead if so. */
+  if (varname_input) {
+    for (const pxr::UsdShadeConnectionSourceInfo &source_info :
+         varname_input.GetConnectedSources()) {
+      pxr::UsdShadeShader shader = pxr::UsdShadeShader(source_info.source.GetPrim());
+      pxr::UsdShadeInput secondary_varname_input = shader.GetInput(source_info.sourceName);
+      if (secondary_varname_input) {
+        varname_input = secondary_varname_input;
+        break;
+      }
+    }
+  }
+
   if (varname_input) {
     pxr::VtValue varname_val;
-    if (varname_input.Get(&varname_val) && varname_val.IsHolding<pxr::TfToken>()) {
-      std::string varname = varname_val.Get<pxr::TfToken>().GetString();
+    /* The varname input may be a string or TfToken, so just cast it to a string.
+     * The Cast function is defined to provide an empty result if it fails. */
+    if (varname_input.Get(&varname_val) && varname_val.CanCastToTypeid(typeid(std::string))) {
+      std::string varname = varname_val.Cast<std::string>().Get<std::string>();
       if (!varname.empty()) {
         NodeShaderUVMap *storage = (NodeShaderUVMap *)uv_map->storage;
         BLI_strncpy(storage->uv_map, varname.c_str(), sizeof(storage->uv_map));
@@ -925,7 +949,7 @@ void USDMaterialReader::pack_imported_textures(Material *material, bool delete_t
     }
 
     char dir_path[FILE_MAXDIR];
-    BLI_split_dir_part(image->filepath, dir_path, sizeof(dir_path));
+    BLI_path_split_dir_part(image->filepath, dir_path, sizeof(dir_path));
 
     if (BLI_path_cmp_normalized(dir_path, temp_textures_dir()) == 0) {
       /* Texture was saved to the temporary import directory, so pack it. */

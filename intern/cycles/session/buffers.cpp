@@ -56,9 +56,7 @@ NODE_DEFINE(BufferPass)
   return type;
 }
 
-BufferPass::BufferPass() : Node(get_node_type())
-{
-}
+BufferPass::BufferPass() : Node(get_node_type()) {}
 
 BufferPass::BufferPass(const Pass *scene_pass)
     : Node(get_node_type()),
@@ -232,12 +230,14 @@ bool BufferParams::modified(const BufferParams &other) const
   }
 
   if (full_x != other.full_x || full_y != other.full_y || full_width != other.full_width ||
-      full_height != other.full_height) {
+      full_height != other.full_height)
+  {
     return true;
   }
 
   if (window_x != other.window_x || window_y != other.window_y ||
-      window_width != other.window_width || window_height != other.window_height) {
+      window_width != other.window_width || window_height != other.window_height)
+  {
     return true;
   }
 
@@ -251,7 +251,8 @@ bool BufferParams::modified(const BufferParams &other) const
 
   if (exposure != other.exposure ||
       use_approximate_shadow_catcher != other.use_approximate_shadow_catcher ||
-      use_transparent_background != other.use_transparent_background) {
+      use_transparent_background != other.use_transparent_background)
+  {
     return true;
   }
 
@@ -262,9 +263,7 @@ bool BufferParams::modified(const BufferParams &other) const
  * Render Buffers.
  */
 
-RenderBuffers::RenderBuffers(Device *device) : buffer(device, "RenderBuffers", MEM_READ_WRITE)
-{
-}
+RenderBuffers::RenderBuffers(Device *device) : buffer(device, "RenderBuffers", MEM_READ_WRITE) {}
 
 RenderBuffers::~RenderBuffers()
 {
@@ -356,7 +355,8 @@ void render_buffers_host_copy_denoised(RenderBuffers *dst,
   float *dst_pixel = dst->buffer.data();
 
   for (int i = 0; i < dst_num_pixels;
-       ++i, src_pixel += src_pass_stride, dst_pixel += dst_pass_stride) {
+       ++i, src_pixel += src_pass_stride, dst_pixel += dst_pass_stride)
+  {
     for (int pass_offset_idx = 0; pass_offset_idx < num_passes; ++pass_offset_idx) {
       const int dst_pass_offset = pass_offsets[pass_offset_idx].dst_offset;
       const int src_pass_offset = pass_offsets[pass_offset_idx].src_offset;

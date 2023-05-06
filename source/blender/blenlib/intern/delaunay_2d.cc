@@ -1361,7 +1361,8 @@ void dc_tri(CDTArrangement<T> *cdt,
       while (filtered_incircle(basel_sym->vert->co,
                                basel->vert->co,
                                lcand->next->vert->co,
-                               lcand->rot->next->vert->co) > 0.0) {
+                               lcand->rot->next->vert->co) > 0.0)
+      {
         if (dbg_level > 1) {
           std::cout << "incircle says to remove lcand\n";
           std::cout << "  lcand" << lcand << "\n";
@@ -1380,7 +1381,8 @@ void dc_tri(CDTArrangement<T> *cdt,
       while (filtered_incircle(basel_sym->vert->co,
                                basel->vert->co,
                                rcand->next->vert->co,
-                               sym(rcand)->next->next->vert->co) > 0.0) {
+                               sym(rcand)->next->next->vert->co) > 0.0)
+      {
         if (dbg_level > 0) {
           std::cout << "incircle says to remove rcand\n";
           std::cout << "  rcand" << rcand << "\n";
@@ -1404,10 +1406,11 @@ void dc_tri(CDTArrangement<T> *cdt,
     }
     /* The next cross edge to be connected is to either `lcand->next->vert` or `rcand->next->vert`;
      * if both are valid, choose the appropriate one using the #incircle test. */
-    if (!valid_lcand || (valid_rcand && filtered_incircle(lcand->next->vert->co,
-                                                          lcand->vert->co,
-                                                          rcand->vert->co,
-                                                          rcand->next->vert->co) > 0)) {
+    if (!valid_lcand ||
+        (valid_rcand &&
+         filtered_incircle(
+             lcand->next->vert->co, lcand->vert->co, rcand->vert->co, rcand->next->vert->co) > 0))
+    {
       if (dbg_level > 0) {
         std::cout << "connecting rcand\n";
         std::cout << "  se1=basel_sym" << basel_sym << "\n";
@@ -1582,9 +1585,7 @@ template<typename T> class CrossData {
   SymEdge<T> *in;
   SymEdge<T> *out;
 
-  CrossData() : lambda(T(0)), vert(nullptr), in(nullptr), out(nullptr)
-  {
-  }
+  CrossData() : lambda(T(0)), vert(nullptr), in(nullptr), out(nullptr) {}
   CrossData(T l, CDTVert<T> *v, SymEdge<T> *i, SymEdge<T> *o) : lambda(l), vert(v), in(i), out(o)
   {
   }
@@ -1755,7 +1756,8 @@ void fill_crossdata_for_intersect(const FatCo<T> &curco,
     }
     case isect_result<vec2<T>>::LINE_LINE_COLINEAR: {
       if (distance_squared(va->co.approx, v2->co.approx) <=
-          distance_squared(vb->co.approx, v2->co.approx)) {
+          distance_squared(vb->co.approx, v2->co.approx))
+      {
         fill_crossdata_for_through_vert(va, se_vcva, cd, cd_next);
       }
       else {
@@ -1984,7 +1986,8 @@ void add_edge_constraint(
       for (j = i - 1; j > 0; --j) {
         cd_prev = &crossings[j];
         if ((cd_prev->lambda == 0.0 && cd_prev->vert != v) ||
-            (cd_prev->lambda != 0.0 && cd_prev->in->vert != v && cd_prev->in->next->vert != v)) {
+            (cd_prev->lambda != 0.0 && cd_prev->in->vert != v && cd_prev->in->next->vert != v))
+        {
           break;
         }
         cd_prev->lambda = -1.0; /* Mark cd_prev as 'deleted'. */
@@ -2264,7 +2267,8 @@ int add_face_constraints(CDT_state<T> *cdt_state,
       int id = cdt_state->need_ids ? f : 0;
       add_face_ids(cdt_state, face_symedge0, id, fedge_start, fedge_end);
       if (cdt_state->need_ids ||
-          ELEM(output_type, CDT_CONSTRAINTS_VALID_BMESH, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES)) {
+          ELEM(output_type, CDT_CONSTRAINTS_VALID_BMESH, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES))
+      {
         add_face_ids(cdt_state, face_symedge0, f, fedge_start, fedge_end);
       }
     }
@@ -2336,9 +2340,7 @@ template<typename T> struct EdgeToSort {
   CDTEdge<T> *e{nullptr};
 
   EdgeToSort() = default;
-  EdgeToSort(const EdgeToSort &other) : len_squared(other.len_squared), e(other.e)
-  {
-  }
+  EdgeToSort(const EdgeToSort &other) : len_squared(other.len_squared), e(other.e) {}
   EdgeToSort(EdgeToSort &&other) noexcept : len_squared(std::move(other.len_squared)), e(other.e)
   {
   }
@@ -2391,12 +2393,14 @@ template<typename T> void remove_non_constraint_edges_leave_valid_bmesh(CDT_stat
     CDTFace<T> *fleft = se->face;
     CDTFace<T> *fright = sym(se)->face;
     if (fleft != cdt->outer_face && fright != cdt->outer_face &&
-        (fleft->input_ids.size() > 0 || fright->input_ids.size() > 0)) {
+        (fleft->input_ids.size() > 0 || fright->input_ids.size() > 0))
+    {
       /* Is there another #SymEdge with same left and right faces?
        * Or is there a vertex not part of e touching the same left and right faces? */
       for (SymEdge<T> *se2 = se->next; dissolve && se2 != se; se2 = se2->next) {
         if (sym(se2)->face == fright ||
-            (se2->vert != se->next->vert && vert_touches_face(se2->vert, fright))) {
+            (se2->vert != se->next->vert && vert_touches_face(se2->vert, fright)))
+        {
           dissolve = false;
         }
       }

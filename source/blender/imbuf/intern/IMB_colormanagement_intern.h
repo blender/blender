@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+ * Copyright 2012 Blender Foundation */
 
 #pragma once
 
@@ -15,7 +15,8 @@ extern "C" {
 #endif
 
 struct ImBuf;
-struct OCIO_ConstCPUProcessorRcPtr;
+struct OCIO_ConstCPUProcessorRc;
+typedef struct OCIO_ConstCPUProcessorRc *OCIO_ConstCPUProcessorRcPtr;
 
 extern float imbuf_luma_coefficients[3];
 extern float imbuf_scene_linear_to_xyz[3][3];
@@ -34,8 +35,8 @@ typedef struct ColorSpace {
   char name[MAX_COLORSPACE_NAME];
   char description[MAX_COLORSPACE_DESCRIPTION];
 
-  struct OCIO_ConstCPUProcessorRcPtr *to_scene_linear;
-  struct OCIO_ConstCPUProcessorRcPtr *from_scene_linear;
+  OCIO_ConstCPUProcessorRcPtr *to_scene_linear;
+  OCIO_ConstCPUProcessorRcPtr *from_scene_linear;
 
   char (*aliases)[MAX_COLORSPACE_NAME];
   int num_aliases;
@@ -57,8 +58,8 @@ typedef struct ColorManagedDisplay {
   char name[MAX_COLORSPACE_NAME];
   ListBase views; /* LinkData.data -> ColorManagedView */
 
-  struct OCIO_ConstCPUProcessorRcPtr *to_scene_linear;
-  struct OCIO_ConstCPUProcessorRcPtr *from_scene_linear;
+  OCIO_ConstCPUProcessorRcPtr *to_scene_linear;
+  OCIO_ConstCPUProcessorRcPtr *from_scene_linear;
 } ColorManagedDisplay;
 
 typedef struct ColorManagedView {

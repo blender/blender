@@ -16,8 +16,8 @@
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -56,9 +56,9 @@
 #include "BKE_effect.h"
 #include "BKE_geometry_set.h"
 #include "BKE_geometry_set.hh"
-#include "BKE_gpencil_curve.h"
-#include "BKE_gpencil_geom.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_curve_legacy.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
@@ -71,7 +71,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_nla.h"
 #include "BKE_node.h"
@@ -100,7 +100,7 @@
 #include "ED_armature.h"
 #include "ED_curve.h"
 #include "ED_curves.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
 #include "ED_node.h"
@@ -127,7 +127,8 @@ using blender::Vector;
 
 /* This is an exact copy of the define in `rna_light.c`
  * kept here because of linking order.
- * Icons are only defined here */
+ * Icons are only defined here. */
+
 const EnumPropertyItem rna_enum_light_type_items[] = {
     {LA_LOCAL, "POINT", ICON_LIGHT_POINT, "Point", "Omnidirectional point light source"},
     {LA_SUN, "SUN", ICON_LIGHT_SUN, "Sun", "Constant direction parallel ray light source"},
@@ -687,7 +688,8 @@ static int object_add_exec(bContext *C, wmOperator *op)
   float loc[3], rot[3], radius;
   WM_operator_view3d_unit_defaults(C, op);
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr)) {
+          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
   radius = RNA_float_get(op->ptr, "radius");
@@ -756,7 +758,8 @@ static int lightprobe_add_exec(bContext *C, wmOperator *op)
   float loc[3], rot[3];
   WM_operator_view3d_unit_defaults(C, op);
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr)) {
+          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
   int type = RNA_enum_get(op->ptr, "type");
@@ -848,7 +851,8 @@ static int effector_add_exec(bContext *C, wmOperator *op)
   float loc[3], rot[3];
   WM_operator_view3d_unit_defaults(C, op);
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr)) {
+          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
   const ePFieldType type = static_cast<ePFieldType>(RNA_enum_get(op->ptr, "type"));
@@ -927,7 +931,8 @@ static int object_camera_add_exec(bContext *C, wmOperator *op)
   bool enter_editmode;
   float loc[3], rot[3];
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr)) {
+          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
   Object *ob = ED_object_add_type(C, OB_CAMERA, nullptr, loc, rot, false, local_view_bits);
@@ -988,7 +993,8 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
   float loc[3], rot[3];
   WM_operator_view3d_unit_defaults(C, op);
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr)) {
+          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -1060,7 +1066,8 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 
   WM_operator_view3d_unit_defaults(C, op);
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr)) {
+          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
   if (obedit && obedit->type == OB_FONT) {
@@ -1115,7 +1122,8 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 
   WM_operator_view3d_unit_defaults(C, op);
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr)) {
+          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
   if ((obedit == nullptr) || (obedit->type != OB_ARMATURE)) {
@@ -1177,7 +1185,8 @@ static int object_empty_add_exec(bContext *C, wmOperator *op)
 
   WM_operator_view3d_unit_defaults(C, op);
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr)) {
+          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
   ob = ED_object_add_type(C, OB_EMPTY, nullptr, loc, rot, false, local_view_bits);
@@ -1238,7 +1247,8 @@ static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, const wmEv
     float rot[3];
 
     if (!ED_object_add_generic_get_opts(
-            C, op, 'Z', nullptr, rot, nullptr, nullptr, &local_view_bits, nullptr)) {
+            C, op, 'Z', nullptr, rot, nullptr, nullptr, &local_view_bits, nullptr))
+    {
       return OPERATOR_CANCELLED;
     }
     ob = ED_object_add_type(C, OB_EMPTY, nullptr, nullptr, rot, false, local_view_bits);
@@ -1304,7 +1314,7 @@ static bool object_gpencil_add_poll(bContext *C)
     return false;
   }
 
-  if (obact && obact->type == OB_GPENCIL) {
+  if (obact && obact->type == OB_GPENCIL_LEGACY) {
     if (obact->mode != OB_MODE_OBJECT) {
       return false;
     }
@@ -1316,7 +1326,8 @@ static bool object_gpencil_add_poll(bContext *C)
 static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C), *ob_orig = ob;
-  bGPdata *gpd = (ob && (ob->type == OB_GPENCIL)) ? static_cast<bGPdata *>(ob->data) : nullptr;
+  bGPdata *gpd = (ob && (ob->type == OB_GPENCIL_LEGACY)) ? static_cast<bGPdata *>(ob->data) :
+                                                           nullptr;
 
   const int type = RNA_enum_get(op->ptr, "type");
   const bool use_in_front = RNA_boolean_get(op->ptr, "use_in_front");
@@ -1331,7 +1342,8 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
   /* NOTE: We use 'Y' here (not 'Z'), as. */
   WM_operator_view3d_unit_defaults(C, op);
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Y', loc, rot, nullptr, nullptr, &local_view_bits, nullptr)) {
+          C, op, 'Y', loc, rot, nullptr, nullptr, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
   /* Add new object if not currently editing a GP object. */
@@ -1361,7 +1373,7 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
       }
     }
 
-    ob = ED_object_add_type(C, OB_GPENCIL, ob_name, loc, rot, true, local_view_bits);
+    ob = ED_object_add_type(C, OB_GPENCIL_LEGACY, ob_name, loc, rot, true, local_view_bits);
     gpd = static_cast<bGPdata *>(ob->data);
     newob = true;
   }
@@ -1590,7 +1602,8 @@ static int object_light_add_exec(bContext *C, wmOperator *op)
 
   WM_operator_view3d_unit_defaults(C, op);
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr)) {
+          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
   ob = ED_object_add_type(C, OB_LAMP, get_light_defname(type), loc, rot, false, local_view_bits);
@@ -1682,7 +1695,7 @@ static std::optional<CollectionAddInfo> collection_add_info_get_from_op(bContext
         BLI_findlink(&bmain->collections, RNA_enum_get(op->ptr, "collection")));
   }
 
-  if (update_location_if_necessary) {
+  if (update_location_if_necessary && CTX_wm_region_view3d(C)) {
     int mval[2];
     if (!RNA_property_is_set(op->ptr, prop_location) && object_add_drop_xy_get(C, op, &mval)) {
       ED_object_location_from_view(C, add_info.loc);
@@ -1703,7 +1716,8 @@ static std::optional<CollectionAddInfo> collection_add_info_get_from_op(bContext
                                       nullptr,
                                       nullptr,
                                       &add_info.local_view_bits,
-                                      nullptr)) {
+                                      nullptr))
+  {
     return std::nullopt;
   }
 
@@ -1926,15 +1940,18 @@ static int object_data_instance_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  int mval[2];
-  if (!RNA_property_is_set(op->ptr, prop_location) && object_add_drop_xy_get(C, op, &mval)) {
-    ED_object_location_from_view(C, loc);
-    ED_view3d_cursor3d_position(C, mval, false, loc);
-    RNA_property_float_set_array(op->ptr, prop_location, loc);
+  if (CTX_wm_region_view3d(C)) {
+    int mval[2];
+    if (!RNA_property_is_set(op->ptr, prop_location) && object_add_drop_xy_get(C, op, &mval)) {
+      ED_object_location_from_view(C, loc);
+      ED_view3d_cursor3d_position(C, mval, false, loc);
+      RNA_property_float_set_array(op->ptr, prop_location, loc);
+    }
   }
 
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr)) {
+          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -1982,7 +1999,8 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
   ushort local_view_bits;
   float loc[3], rot[3];
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr)) {
+          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
   Object *ob = ED_object_add_type(C, OB_SPEAKER, nullptr, loc, rot, false, local_view_bits);
@@ -1993,7 +2011,8 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
   {
     /* create new data for NLA hierarchy */
     AnimData *adt = BKE_animdata_ensure_id(&ob->id);
-    NlaTrack *nlt = BKE_nlatrack_add(adt, nullptr, is_liboverride);
+    NlaTrack *nlt = BKE_nlatrack_new_tail(&adt->nla_tracks, is_liboverride);
+    BKE_nlatrack_set_active(&adt->nla_tracks, nlt);
     NlaStrip *strip = BKE_nla_add_soundstrip(bmain, scene, static_cast<Speaker *>(ob->data));
     strip->start = scene->r.cfra;
     strip->end += strip->start;
@@ -2041,7 +2060,8 @@ static int object_curves_random_add_exec(bContext *C, wmOperator *op)
   ushort local_view_bits;
   float loc[3], rot[3];
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr)) {
+          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -2076,7 +2096,8 @@ static int object_curves_empty_hair_add_exec(bContext *C, wmOperator *op)
 
   ushort local_view_bits;
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', nullptr, nullptr, nullptr, nullptr, &local_view_bits, nullptr)) {
+          C, op, 'Z', nullptr, nullptr, nullptr, nullptr, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -2158,7 +2179,8 @@ static int object_pointcloud_add_exec(bContext *C, wmOperator *op)
   ushort local_view_bits;
   float loc[3], rot[3];
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr)) {
+          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -2194,7 +2216,8 @@ void OBJECT_OT_pointcloud_add(wmOperatorType *ot)
 void ED_object_base_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
 {
   if (ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0 &&
-      BKE_library_ID_is_indirectly_used(bmain, ob)) {
+      BKE_library_ID_is_indirectly_used(bmain, ob))
+  {
     /* We cannot delete indirectly used object... */
     printf(
         "WARNING, undeletable object '%s', should have been caught before reaching this "
@@ -2254,7 +2277,8 @@ static int object_delete_exec(bContext *C, wmOperator *op)
     }
 
     if (ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0 &&
-        BKE_library_ID_is_indirectly_used(bmain, ob)) {
+        BKE_library_ID_is_indirectly_used(bmain, ob))
+    {
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "Cannot delete object '%s' from scene '%s', indirectly used objects need at "
@@ -2265,7 +2289,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
     }
 
     /* if grease pencil object, set cache as dirty */
-    if (ob->type == OB_GPENCIL) {
+    if (ob->type == OB_GPENCIL_LEGACY) {
       bGPdata *gpd = (bGPdata *)ob->data;
       DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     }
@@ -2504,8 +2528,8 @@ static void make_object_duplilist_real(bContext *C,
 
   Object *object_eval = DEG_get_evaluated_object(depsgraph, base->object);
 
-  if (!(base->object->transflag & OB_DUPLI) &&
-      !BKE_object_has_geometry_set_instances(object_eval)) {
+  if (!(base->object->transflag & OB_DUPLI) && !BKE_object_has_geometry_set_instances(object_eval))
+  {
     return;
   }
 
@@ -2760,7 +2784,7 @@ static const EnumPropertyItem convert_target_items[] = {
 #else
      "Mesh from Curve, Surface, Metaball, or Text objects"},
 #endif
-    {OB_GPENCIL,
+    {OB_GPENCIL_LEGACY,
      "GPENCIL",
      ICON_OUTLINER_OB_GREASEPENCIL,
      "Grease Pencil",
@@ -2816,7 +2840,8 @@ static bool object_convert_poll(bContext *C)
   Object *obact = base_act ? base_act->object : nullptr;
 
   if (obact == nullptr || obact->data == nullptr || ID_IS_LINKED(obact) ||
-      ID_IS_OVERRIDE_LIBRARY(obact) || ID_IS_OVERRIDE_LIBRARY(obact->data)) {
+      ID_IS_OVERRIDE_LIBRARY(obact) || ID_IS_OVERRIDE_LIBRARY(obact->data))
+  {
     return false;
   }
 
@@ -2944,7 +2969,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
        * But at the very least, do not do that with linked IDs! */
       if ((!BKE_id_is_editable(bmain, &ob->id) ||
            (ob->data && !BKE_id_is_editable(bmain, static_cast<ID *>(ob->data)))) &&
-          !keep_original) {
+          !keep_original)
+      {
         keep_original = true;
         BKE_report(op->reports,
                    RPT_INFO,
@@ -2979,7 +3005,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         if (ob->type == OB_MESH) {
           BKE_object_free_modifiers(ob, 0); /* after derivedmesh calls! */
         }
-        if (ob->type == OB_GPENCIL) {
+        if (ob->type == OB_GPENCIL_LEGACY) {
           BKE_object_free_modifiers(ob, 0); /* after derivedmesh calls! */
           BKE_object_free_shaderfx(ob, 0);
         }
@@ -3012,7 +3038,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         }
       }
     }
-    else if (ob->type == OB_MESH && target == OB_GPENCIL) {
+    else if (ob->type == OB_MESH && target == OB_GPENCIL_LEGACY) {
       ob->flag |= OB_DONE;
 
       /* Create a new grease pencil object and copy transformations. */
@@ -3153,7 +3179,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
       Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
       Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
-      me_eval = BKE_mesh_copy_for_eval(me_eval, false);
+      me_eval = BKE_mesh_copy_for_eval(me_eval);
       BKE_object_material_from_eval_data(bmain, newob, &me_eval->id);
       Mesh *new_mesh = (Mesh *)newob->data;
       BKE_mesh_nomain_to_mesh(me_eval, new_mesh, newob);
@@ -3220,7 +3246,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* other users */
         if (ID_REAL_USERS(&cu->id) > 1) {
           for (ob1 = static_cast<Object *>(bmain->objects.first); ob1;
-               ob1 = static_cast<Object *>(ob1->id.next)) {
+               ob1 = static_cast<Object *>(ob1->id.next))
+          {
             if (ob1->data == ob->data) {
               ob1->type = OB_CURVES_LEGACY;
               DEG_id_tag_update(&ob1->id,
@@ -3244,7 +3271,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* Meshes doesn't use the "curve cache". */
         BKE_object_free_curve_cache(newob);
       }
-      else if (target == OB_GPENCIL) {
+      else if (target == OB_GPENCIL_LEGACY) {
         ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
         Object *ob_gpencil = ED_gpencil_add_object(C, newob->loc, local_view_bits);
         copy_v3_v3(ob_gpencil->rot, newob->rot);
@@ -3279,7 +3306,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* Meshes don't use the "curve cache". */
         BKE_object_free_curve_cache(newob);
       }
-      else if (target == OB_GPENCIL) {
+      else if (target == OB_GPENCIL_LEGACY) {
         if (ob->type != OB_CURVES_LEGACY) {
           ob->flag &= ~OB_DONE;
           BKE_report(op->reports, RPT_ERROR, "Convert Surfaces to Grease Pencil is not supported");
@@ -3381,8 +3408,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       }
 
       Mesh *new_mesh = static_cast<Mesh *>(BKE_id_new(bmain, ID_ME, newob->id.name + 2));
+      newob->data = new_mesh;
+      newob->type = OB_MESH;
+
       if (const Mesh *mesh_eval = geometry.get_mesh_for_read()) {
-        BKE_mesh_nomain_to_mesh(BKE_mesh_copy_for_eval(mesh_eval, false), new_mesh, newob);
+        BKE_mesh_nomain_to_mesh(BKE_mesh_copy_for_eval(mesh_eval), new_mesh, newob);
         BKE_object_material_from_eval_data(bmain, newob, &mesh_eval->id);
         new_mesh->attributes_for_write().remove_anonymous();
       }
@@ -3390,6 +3420,9 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         bke::AnonymousAttributePropagationInfo propagation_info;
         propagation_info.propagate_all = false;
         Mesh *mesh = bke::curve_to_wire_mesh(curves_eval->geometry.wrap(), propagation_info);
+        if (!mesh) {
+          mesh = BKE_mesh_new_nomain(0, 0, 0, 0);
+        }
         BKE_mesh_nomain_to_mesh(mesh, new_mesh, newob);
         BKE_object_material_from_eval_data(bmain, newob, &curves_eval->id);
       }
@@ -3399,9 +3432,6 @@ static int object_convert_exec(bContext *C, wmOperator *op)
                     "Object '%s' has no evaluated mesh or curves data",
                     ob->id.name + 2);
       }
-
-      newob->data = new_mesh;
-      newob->type = OB_MESH;
 
       BKE_object_free_derived_caches(newob);
       BKE_object_free_modifiers(newob, 0);
@@ -3447,7 +3477,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         if (ob_mball->type == OB_MBALL) {
           Object *ob_basis = nullptr;
           if (!BKE_mball_is_basis(ob_mball) &&
-              ((ob_basis = BKE_mball_basis_find(scene, ob_mball)) && (ob_basis->flag & OB_DONE))) {
+              ((ob_basis = BKE_mball_basis_find(scene, ob_mball)) && (ob_basis->flag & OB_DONE)))
+          {
             ED_object_base_free_and_unlink(bmain, scene, ob_mball);
           }
         }
@@ -3527,7 +3558,7 @@ static void object_convert_ui(bContext * /*C*/, wmOperator *op)
   if (target == OB_MESH) {
     uiItemR(layout, op->ptr, "merge_customdata", 0, nullptr, ICON_NONE);
   }
-  else if (target == OB_GPENCIL) {
+  else if (target == OB_GPENCIL_LEGACY) {
     uiItemR(layout, op->ptr, "thickness", 0, nullptr, ICON_NONE);
     uiItemR(layout, op->ptr, "angle", 0, nullptr, ICON_NONE);
     uiItemR(layout, op->ptr, "offset", 0, nullptr, ICON_NONE);
@@ -3745,9 +3776,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
     Base *base_src = nullptr;
     Object *object_new = nullptr;
 
-    DuplicateObjectLink(Base *base_src) : base_src(base_src)
-    {
-    }
+    DuplicateObjectLink(Base *base_src) : base_src(base_src) {}
   };
 
   blender::Vector<DuplicateObjectLink> object_base_links;
@@ -3923,7 +3952,7 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
 
     DEG_id_tag_update(&ob_add->id, ID_RECALC_TRANSFORM);
   }
-  else {
+  else if (CTX_wm_region_view3d(C)) {
     int mval[2];
     if (object_add_drop_xy_get(C, op, &mval)) {
       ED_object_location_from_view(C, basen->object->loc);
@@ -4025,7 +4054,7 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
 
     MEM_freeN(objects);
   }
-  else {
+  else if (CTX_wm_region_view3d(C)) {
     int mval[2];
     if (object_add_drop_xy_get(C, op, &mval)) {
       float cursor[3];
@@ -4101,11 +4130,12 @@ static bool object_join_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
 
   if (ob == nullptr || ob->data == nullptr || ID_IS_LINKED(ob) || ID_IS_OVERRIDE_LIBRARY(ob) ||
-      ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+      ID_IS_OVERRIDE_LIBRARY(ob->data))
+  {
     return false;
   }
 
-  if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_ARMATURE, OB_GPENCIL)) {
+  if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_ARMATURE, OB_GPENCIL_LEGACY)) {
     return ED_operator_screenactive(C);
   }
   return false;
@@ -4132,7 +4162,7 @@ static int object_join_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     bGPdata *gpd = (bGPdata *)ob->data;
     if ((!gpd) || GPENCIL_ANY_MODE(gpd)) {
       BKE_report(op->reports, RPT_ERROR, "This data does not support joining in this mode");
@@ -4150,7 +4180,7 @@ static int object_join_exec(bContext *C, wmOperator *op)
   else if (ob->type == OB_ARMATURE) {
     ret = ED_armature_join_objects_exec(C, op);
   }
-  else if (ob->type == OB_GPENCIL) {
+  else if (ob->type == OB_GPENCIL_LEGACY) {
     ret = ED_gpencil_join_objects_exec(C, op);
   }
 
@@ -4207,7 +4237,8 @@ static bool join_shapes_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
 
   if (ob == nullptr || ob->data == nullptr || ID_IS_LINKED(ob) || ID_IS_OVERRIDE_LIBRARY(ob) ||
-      ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+      ID_IS_OVERRIDE_LIBRARY(ob->data))
+  {
     return false;
   }
 

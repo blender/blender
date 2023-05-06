@@ -60,9 +60,7 @@ static void text_font_begin(const TextDrawContext *tdc)
   BLF_size(tdc->font_id, (float)tdc->lheight_px);
 }
 
-static void text_font_end(const TextDrawContext *UNUSED(tdc))
-{
-}
+static void text_font_end(const TextDrawContext *UNUSED(tdc)) {}
 
 static int text_font_draw(const TextDrawContext *tdc, int x, int y, const char *str)
 {
@@ -935,7 +933,8 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
                   (pix_bardiff * (lhlstart - st->top) / st->runtime.viewlines);
       }
       else if (lhlstart > st->top + st->runtime.viewlines && hlstart < barstart + barheight &&
-               hlstart > barstart) {
+               hlstart > barstart)
+      {
         /* push hl start down */
         hlstart = barstart + barheight;
       }
@@ -949,8 +948,8 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
       }
 
       /* the end of the highlight is in the current viewport */
-      if (st->runtime.viewlines && lhlend >= st->top &&
-          lhlend <= st->top + st->runtime.viewlines) {
+      if (st->runtime.viewlines && lhlend >= st->top && lhlend <= st->top + st->runtime.viewlines)
+      {
         /* Speed the progression of the end of the highlight through the scroll-bar. */
         hlend = (((pix_available - pix_bardiff) * lhlend) / ltexth) +
                 (pix_bardiff * (lhlend - st->top) / st->runtime.viewlines);
@@ -960,7 +959,8 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
         hlend = barstart;
       }
       else if (lhlend > st->top + st->runtime.viewlines &&
-               lhlstart < st->top + st->runtime.viewlines && hlend < barstart + barheight) {
+               lhlstart < st->top + st->runtime.viewlines && hlend < barstart + barheight)
+      {
         /* fill out end */
         hlend = barstart + barheight;
       }
@@ -1455,7 +1455,8 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
 
   /* Don't highlight brackets if syntax HL is off or bracket in string or comment. */
   if (!linep->format || linep->format[fc] == FMT_TYPE_STRING ||
-      linep->format[fc] == FMT_TYPE_COMMENT) {
+      linep->format[fc] == FMT_TYPE_COMMENT)
+  {
     return;
   }
 

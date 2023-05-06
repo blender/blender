@@ -102,7 +102,9 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_scatter_no_geom)
 #endif
 
 /* EEVEE_shaders_volumes_scatter_with_lights_sh_get */
-GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_scatter_with_lights_common).define("VOLUME_LIGHTING");
+GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_scatter_with_lights_common)
+    .define("VOLUME_LIGHTING")
+    .define("IRRADIANCE_HL2");
 
 GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_scatter_with_lights)
     .additional_info("eevee_legacy_volumes_scatter_with_lights_common")

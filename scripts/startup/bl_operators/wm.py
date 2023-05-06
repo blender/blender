@@ -1345,6 +1345,7 @@ rna_custom_property_name = StringProperty(
     maxlen=63,
 )
 
+# Most useful entries of rna_enum_property_subtype_items:
 rna_custom_property_type_items = (
     ('FLOAT', "Float", "A single floating-point value"),
     ('FLOAT_ARRAY', "Float Array", "An array of floating-point values"),
@@ -1356,9 +1357,22 @@ rna_custom_property_type_items = (
     ('PYTHON', "Python", "Edit a python value directly, for unsupported property types"),
 )
 
-# Most useful entries of rna_enum_property_subtype_items for number arrays:
-rna_vector_subtype_items = (
-    ('NONE', "Plain Data", "Data values without special behavior"),
+rna_custom_property_subtype_none_item = ('NONE', "Plain Data", "Data values without special behavior")
+
+rna_custom_property_subtype_number_items = (
+    rna_custom_property_subtype_none_item,
+    ('PIXEL', "Pixel", ""),
+    ('PERCENTAGE', "Percentage", ""),
+    ('FACTOR', "Factor", ""),
+    ('ANGLE', "Angle", ""),
+    ('TIME_ABSOLUTE', "Time", "Time specified in seconds"),
+    ('DISTANCE', "Distance", ""),
+    ('POWER', "Power", ""),
+    ('TEMPERATURE', "Temperature", ""),
+)
+
+rna_custom_property_subtype_vector_items = (
+    rna_custom_property_subtype_none_item,
     ('COLOR', "Linear Color", "Color in the linear space"),
     ('COLOR_GAMMA', "Gamma-Corrected Color", "Color in the gamma corrected space"),
     ('EULER', "Euler Angles", "Euler rotation angles in radians"),
@@ -1373,6 +1387,17 @@ class WM_OT_properties_edit(Operator):
     # register only because invoke_props_popup requires.
     bl_options = {'REGISTER', 'INTERNAL'}
 
+    def subtype_items_cb(self, context):
+        match self.property_type:
+            case 'FLOAT':
+                return rna_custom_property_subtype_number_items
+            case 'FLOAT_ARRAY':
+                return rna_custom_property_subtype_vector_items
+        return ()
+
+    def property_type_update_cb(self, context):
+        self.subtype = 'NONE'
+
     # Common settings used for all property types. Generally, separate properties are used for each
     # type to improve the experience when choosing UI data values.
 
@@ -1381,6 +1406,7 @@ class WM_OT_properties_edit(Operator):
     property_type: EnumProperty(
         name="Type",
         items=rna_custom_property_type_items,
+        update=property_type_update_cb
     )
     is_overridable_library: BoolProperty(
         name="Library Overridable",
@@ -1481,7 +1507,7 @@ class WM_OT_properties_edit(Operator):
     )
     subtype: EnumProperty(
         name="Subtype",
-        items=WM_OT_properties_edit.subtype_items,
+        items=subtype_items_cb,
     )
 
     # String properties.
@@ -1496,9 +1522,6 @@ class WM_OT_properties_edit(Operator):
         name="Value",
         description="Python value for unsupported custom property types",
     )
-
-    type_items = rna_custom_property_type_items
-    subtype_items = rna_vector_subtype_items
 
     # Helper method to avoid repetitive code to retrieve a single value from sequences and non-sequences.
     @staticmethod
@@ -1567,15 +1590,7 @@ class WM_OT_properties_edit(Operator):
         return 'PYTHON'
 
     def _init_subtype(self, subtype):
-        subtype = subtype or 'NONE'
-        subtype_items = rna_vector_subtype_items
-
-        # Add a temporary enum entry to preserve unknown subtypes
-        if not any(subtype == item[0] for item in subtype_items):
-            subtype_items += ((subtype, subtype, ""),)
-
-        WM_OT_properties_edit.subtype_items = subtype_items
-        self.subtype = subtype
+        self.subtype = subtype or 'NONE'
 
     # Fill the operator's properties with the UI data properties from the existing custom property.
     # Note that if the UI data doesn't exist yet, the access will create it and use those default values.
@@ -1894,7 +1909,6 @@ class WM_OT_properties_edit(Operator):
             col.prop(self, "max_float")
 
             col = layout.column()
-            col.prop(self, "is_overridable_library")
             col.prop(self, "use_soft_limits")
 
             col = layout.column(align=True)
@@ -1905,9 +1919,7 @@ class WM_OT_properties_edit(Operator):
             layout.prop(self, "step_float")
             layout.prop(self, "precision")
 
-            # Subtype is only supported for float properties currently.
-            if self.property_type != 'FLOAT':
-                layout.prop(self, "subtype")
+            layout.prop(self, "subtype")
         elif self.property_type in {'INT', 'INT_ARRAY'}:
             if self.property_type == 'INT_ARRAY':
                 layout.prop(self, "array_length")
@@ -1923,7 +1935,6 @@ class WM_OT_properties_edit(Operator):
             col.prop(self, "max_int")
 
             col = layout.column()
-            col.prop(self, "is_overridable_library")
             col.prop(self, "use_soft_limits")
 
             col = layout.column(align=True)
@@ -1948,6 +1959,8 @@ class WM_OT_properties_edit(Operator):
             layout.prop(self, "eval_string")
         else:
             layout.prop(self, "description")
+
+        layout.prop(self, "is_overridable_library")
 
 
 # Edit the value of a custom property with the given name on the RNA struct at the given data path.

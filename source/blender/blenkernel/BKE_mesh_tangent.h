@@ -6,8 +6,10 @@
  */
 
 #ifdef __cplusplus
-extern "C" {
+#  include "BLI_offset_indices.hh"
 #endif
+
+#ifdef __cplusplus
 
 struct ReportList;
 
@@ -15,38 +17,52 @@ struct ReportList;
  * Compute simplified tangent space normals, i.e.
  * tangent vector + sign of bi-tangent one, which combined with
  * split normals can be used to recreate the full tangent space.
- * NOTE: * The mesh should be made of only tris and quads!
+ *
+ * \note The mesh should be made of only triangles and quads!
  */
 void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
                                           int numVerts,
-                                          const struct MLoop *mloops,
+                                          const int *corner_verts,
                                           float (*r_looptangent)[4],
                                           const float (*loop_normals)[3],
                                           const float (*loopuv)[2],
                                           int numLoops,
-                                          const struct MPoly *mpolys,
-                                          int numPolys,
+                                          blender::OffsetIndices<int> polys,
                                           struct ReportList *reports);
+
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Wrapper around BKE_mesh_calc_loop_tangent_single_ex, which takes care of most boilerplate code.
  * \note
  * - There must be a valid loop's CD_NORMALS available.
- * - The mesh should be made of only tris and quads!
+ * - The mesh should be made of only triangles and quads!
  */
 void BKE_mesh_calc_loop_tangent_single(struct Mesh *mesh,
                                        const char *uvmap,
                                        float (*r_looptangents)[4],
                                        struct ReportList *reports);
 
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+
 /**
  * See: #BKE_editmesh_loop_tangent_calc (matching logic).
  */
 void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
-                                   const struct MPoly *mpoly,
-                                   uint mpoly_len,
-                                   const struct MLoop *mloop,
+                                   blender::OffsetIndices<int> polys,
+                                   const int *corner_verts,
                                    const struct MLoopTri *looptri,
+                                   const int *looptri_polys,
                                    uint looptri_len,
+                                   const bool *sharp_faces,
 
                                    struct CustomData *loopdata,
                                    bool calc_active_tangent,
@@ -72,7 +88,7 @@ void BKE_mesh_add_loop_tangent_named_layer_for_uv(struct CustomData *uv_data,
                                                   int numLoopData,
                                                   const char *layer_name);
 
-#define DM_TANGENT_MASK_ORCO (1 << 9)
+#  define DM_TANGENT_MASK_ORCO (1 << 9)
 /**
  * Here we get some useful information such as active uv layer name and
  * search if it is already in tangent_names.
@@ -91,6 +107,4 @@ void BKE_mesh_calc_loop_tangent_step_0(const struct CustomData *loopData,
                                        char *rren_uv_name,
                                        short *rtangent_mask);
 
-#ifdef __cplusplus
-}
 #endif

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+ * Copyright 2004 Blender Foundation */
 
 /** \file
  * \ingroup edmesh
@@ -435,7 +435,8 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
             if (BLI_kdtree_4d_find_nearest(tree_4d, plane, &nearest) != -1) {
               if (nearest.dist <= thresh) {
                 if ((fabsf(plane[3] - nearest.co[3]) <= thresh) &&
-                    (angle_v3v3(plane, nearest.co) <= thresh_radians)) {
+                    (angle_v3v3(plane, nearest.co) <= thresh_radians))
+                {
                   select = true;
                 }
               }
@@ -459,7 +460,8 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
             fface = CustomData_bmesh_get(&bm->pdata, face->head.data, CD_FREESTYLE_FACE);
             if (((fface != NULL) && (fface->flag & FREESTYLE_FACE_MARK)) ==
-                ((face_data_value & SIMFACE_DATA_TRUE) != 0)) {
+                ((face_data_value & SIMFACE_DATA_TRUE) != 0))
+            {
               select = true;
             }
             break;
@@ -888,7 +890,8 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
             fedge = CustomData_bmesh_get(&bm->edata, edge->head.data, CD_FREESTYLE_EDGE);
             if (((fedge != NULL) && (fedge->flag & FREESTYLE_EDGE_MARK)) ==
-                ((edge_data_value & SIMEDGE_DATA_TRUE) != 0)) {
+                ((edge_data_value & SIMEDGE_DATA_TRUE) != 0))
+            {
               select = true;
             }
             break;
@@ -1393,7 +1396,8 @@ static bool edbm_select_similar_poll_property(const bContext *UNUSED(C),
               SIMFACE_AREA,
               SIMFACE_PERIMETER,
               SIMFACE_NORMAL,
-              SIMFACE_COPLANAR)) {
+              SIMFACE_COPLANAR))
+    {
       return false;
     }
   }

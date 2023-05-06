@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -157,7 +157,7 @@ static bool gesture_box_apply(bContext *C, wmOperator *op)
   retval = op->type->exec(C, op);
   OPERATOR_RETVAL_CHECK(retval);
 
-  return 1;
+  return (retval & OPERATOR_FINISHED) ? 1 : 0;
 }
 
 int WM_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -580,7 +580,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
           }
           /* Make a simple distance check to get a smoother lasso
            * add only when at least 2 pixels between this and previous location. */
-          else if ((x * x + y * y) > pow2f(2.0f * UI_DPI_FAC)) {
+          else if ((x * x + y * y) > pow2f(2.0f * UI_SCALE_FAC)) {
             lasso[gesture->points][0] = event->xy[0] - gesture->winrct.xmin;
             lasso[gesture->points][1] = event->xy[1] - gesture->winrct.ymin;
             gesture->points++;

@@ -11,6 +11,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -19,7 +20,7 @@
 
 #include "BKE_ccg.h"
 #include "BKE_context.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -42,6 +43,8 @@
 
 /* For undo push. */
 #include "sculpt_intern.hh"
+
+using blender::Vector;
 
 /* Return true if the element should be hidden/shown. */
 static bool is_effected(PartialVisArea area,
@@ -81,7 +84,7 @@ static void partialvis_update_mesh(Object *ob,
       CustomData_get_layer_named_for_write(&me->vdata, CD_PROP_BOOL, ".hide_vert", me->totvert));
   if (hide_vert == nullptr) {
     hide_vert = static_cast<bool *>(CustomData_add_layer_named(
-        &me->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, nullptr, me->totvert, ".hide_vert"));
+        &me->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, me->totvert, ".hide_vert"));
   }
 
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
@@ -296,8 +299,7 @@ static void clip_planes_from_rect(bContext *C,
  * inside the clip_planes volume. If mode is outside, get all nodes
  * that lie at least partially outside the volume. If showing all, get
  * all nodes. */
-static void get_pbvh_nodes(
-    PBVH *pbvh, PBVHNode ***nodes, int *totnode, float clip_planes[4][4], PartialVisArea mode)
+static Vector<PBVHNode *> get_pbvh_nodes(PBVH *pbvh, float clip_planes[4][4], PartialVisArea mode)
 {
   BKE_pbvh_SearchCallback cb = nullptr;
 
@@ -317,7 +319,7 @@ static void get_pbvh_nodes(
   PBVHFrustumPlanes frustum{};
   frustum.planes = clip_planes;
   frustum.num_planes = 4;
-  BKE_pbvh_search_gather(pbvh, cb, &frustum, nodes, totnode);
+  return blender::bke::pbvh::search_gather(pbvh, cb, &frustum);
 }
 
 static int hide_show_exec(bContext *C, wmOperator *op)
@@ -329,11 +331,9 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   PartialVisAction action;
   PartialVisArea area;
   PBVH *pbvh;
-  PBVHNode **nodes;
   PBVHType pbvh_type;
   float clip_planes[4][4];
   rcti rect;
-  int totnode;
 
   /* Read operator properties. */
   action = PartialVisAction(RNA_enum_get(op->ptr, "action"));
@@ -343,9 +343,9 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   clip_planes_from_rect(C, depsgraph, clip_planes, &rect);
 
   pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
-  BLI_assert(ob->sculpt->pbvh == pbvh);
+  BLI_assert(BKE_object_sculpt_pbvh_get(ob) == pbvh);
 
-  get_pbvh_nodes(pbvh, &nodes, &totnode, clip_planes, area);
+  Vector<PBVHNode *> nodes = get_pbvh_nodes(pbvh, clip_planes, area);
   pbvh_type = BKE_pbvh_type(pbvh);
 
   negate_m4(clip_planes);
@@ -360,22 +360,18 @@ static int hide_show_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  for (int i = 0; i < totnode; i++) {
+  for (PBVHNode *node : nodes) {
     switch (pbvh_type) {
       case PBVH_FACES:
-        partialvis_update_mesh(ob, pbvh, nodes[i], action, area, clip_planes);
+        partialvis_update_mesh(ob, pbvh, node, action, area, clip_planes);
         break;
       case PBVH_GRIDS:
-        partialvis_update_grids(depsgraph, ob, pbvh, nodes[i], action, area, clip_planes);
+        partialvis_update_grids(depsgraph, ob, pbvh, node, action, area, clip_planes);
         break;
       case PBVH_BMESH:
-        partialvis_update_bmesh(ob, pbvh, nodes[i], action, area, clip_planes);
+        partialvis_update_bmesh(ob, pbvh, node, action, area, clip_planes);
         break;
     }
-  }
-
-  if (nodes) {
-    MEM_freeN(nodes);
   }
 
   /* End undo. */

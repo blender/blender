@@ -613,18 +613,8 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
   /* experimental */
   tot = mesh->totface;
 
-  psys_interpolate_face(mesh,
-                        positions,
-                        BKE_mesh_vertex_normals_ensure(mesh),
-                        mface,
-                        0,
-                        0,
-                        pa->fuv,
-                        co,
-                        nor,
-                        0,
-                        0,
-                        0);
+  psys_interpolate_face(
+      mesh, positions, BKE_mesh_vert_normals_ensure(mesh), mface, 0, 0, pa->fuv, co, nor, 0, 0, 0);
 
   normalize_v3(nor);
   negate_v3(nor);
@@ -910,7 +900,8 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   }
 
   if (!BKE_mesh_is_deformed_only(final_mesh) &&
-      !CustomData_get_layer(&final_mesh->fdata, CD_ORIGINDEX)) {
+      !CustomData_get_layer(&final_mesh->fdata, CD_ORIGINDEX))
+  {
     printf(
         "Can't create particles with the current modifier stack, disable destructive modifiers\n");
     // XXX error("Can't paint with the current modifier stack, disable destructive modifiers");

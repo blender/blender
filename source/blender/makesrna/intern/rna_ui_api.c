@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup RNA
@@ -139,7 +139,8 @@ static void rna_uiItemR_with_popover(uiLayout *layout,
     return;
   }
   if ((RNA_property_type(prop) != PROP_ENUM) &&
-      !ELEM(RNA_property_subtype(prop), PROP_COLOR, PROP_COLOR_GAMMA)) {
+      !ELEM(RNA_property_subtype(prop), PROP_COLOR, PROP_COLOR_GAMMA))
+  {
     RNA_warning(
         "property is not an enum or color: %s.%s", RNA_struct_identifier(ptr->type), propname);
     return;

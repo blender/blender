@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -262,7 +262,8 @@ void BKE_cryptomatte_matte_id_to_entries(NodeCryptomatte *node_storage, const ch
   /* Update the matte_id so the files can be opened in versions that don't
    * use `CryptomatteEntry`. */
   if (matte_id != node_storage->matte_id && node_storage->matte_id &&
-      STREQ(node_storage->matte_id, matte_id)) {
+      STREQ(node_storage->matte_id, matte_id))
+  {
     MEM_SAFE_FREE(node_storage->matte_id);
     node_storage->matte_id = static_cast<char *>(MEM_dupallocN(matte_id));
   }
@@ -329,8 +330,9 @@ void BKE_cryptomatte_store_metadata(const struct CryptomatteSession *session,
                                     RenderResult *render_result,
                                     const ViewLayer *view_layer)
 {
-  for (const blender::Map<std::string, blender::bke::cryptomatte::CryptomatteLayer>::Item item :
-       session->layers.items()) {
+  for (const blender::MapItem<std::string, blender::bke::cryptomatte::CryptomatteLayer> item :
+       session->layers.items())
+  {
     const blender::StringRefNull layer_name(item.key);
     const blender::bke::cryptomatte::CryptomatteLayer &layer = item.value;
 
@@ -457,7 +459,7 @@ static std::string to_manifest(const CryptomatteLayer *layer)
   bool is_first = true;
   const blender::Map<std::string, CryptomatteHash> &const_map = layer->hashes;
   manifest << "{";
-  for (blender::Map<std::string, CryptomatteHash>::Item item : const_map.items()) {
+  for (blender::MapItem<std::string, CryptomatteHash> item : const_map.items()) {
     if (is_first) {
       is_first = false;
     }
@@ -501,9 +503,7 @@ StringRef BKE_cryptomatte_extract_layer_name(const StringRef render_pass_name)
   return render_pass_name.substr(0, last_token);
 }
 
-CryptomatteHash::CryptomatteHash(uint32_t hash) : hash(hash)
-{
-}
+CryptomatteHash::CryptomatteHash(uint32_t hash) : hash(hash) {}
 
 CryptomatteHash CryptomatteHash::from_hex_encoded(blender::StringRef hex_encoded)
 {
@@ -546,7 +546,7 @@ void CryptomatteLayer::add_hash(blender::StringRef name, CryptomatteHash cryptom
 std::optional<std::string> CryptomatteLayer::operator[](float encoded_hash) const
 {
   const blender::Map<std::string, CryptomatteHash> &const_map = hashes;
-  for (blender::Map<std::string, CryptomatteHash>::Item item : const_map.items()) {
+  for (blender::MapItem<std::string, CryptomatteHash> item : const_map.items()) {
     if (BKE_cryptomatte_hash_to_float(item.value.hash) == encoded_hash) {
       return std::make_optional(item.key);
     }

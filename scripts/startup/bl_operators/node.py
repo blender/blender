@@ -9,9 +9,11 @@ from bpy.types import (
 from bpy.props import (
     BoolProperty,
     CollectionProperty,
-    EnumProperty,
-    IntProperty,
+    FloatVectorProperty,
     StringProperty,
+)
+from mathutils import (
+    Vector,
 )
 
 from bpy.app.translations import pgettext_tip as tip_
@@ -26,13 +28,9 @@ class NodeSetting(PropertyGroup):
     )
 
 
-# Base class for node 'Add' operators
+# Base class for node "Add" operators.
 class NodeAddOperator:
 
-    type: StringProperty(
-        name="Node Type",
-        description="Node type",
-    )
     use_transform: BoolProperty(
         name="Use Transform",
         description="Start transform operator after inserting the node",
@@ -58,20 +56,17 @@ class NodeAddOperator:
         else:
             space.cursor_location = tree.view_center
 
-    # XXX explicit node_type argument is usually not necessary,
-    # but required to make search operator work:
-    # add_search has to override the 'type' property
-    # since it's hardcoded in bpy_operator_wrap.c ...
-    def create_node(self, context, node_type=None):
+    # Deselect all nodes in the tree.
+    @staticmethod
+    def deselect_nodes(context):
         space = context.space_data
         tree = space.edit_tree
-
-        if node_type is None:
-            node_type = self.type
-
-        # select only the new node
         for n in tree.nodes:
             n.select = False
+
+    def create_node(self, context, node_type):
+        space = context.space_data
+        tree = space.edit_tree
 
         try:
             node = tree.nodes.new(type=node_type)
@@ -111,14 +106,6 @@ class NodeAddOperator:
         return (space and (space.type == 'NODE_EDITOR') and
                 space.edit_tree and not space.edit_tree.library)
 
-    # Default execute simply adds a node
-    def execute(self, context):
-        if self.properties.is_property_set("type"):
-            self.create_node(context)
-            return {'FINISHED'}
-        else:
-            return {'CANCELLED'}
-
     # Default invoke stores the mouse position to place the node correctly
     # and optionally invokes the transform operator
     def invoke(self, context, event):
@@ -131,6 +118,28 @@ class NodeAddOperator:
 
         return result
 
+
+# Simple basic operator for adding a node.
+class NODE_OT_add_node(NodeAddOperator, Operator):
+    """Add a node to the active tree"""
+    bl_idname = "node.add_node"
+    bl_label = "Add Node"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    type: StringProperty(
+        name="Node Type",
+        description="Node type",
+    )
+
+    # Default execute simply adds a node.
+    def execute(self, context):
+        if self.properties.is_property_set("type"):
+            self.deselect_nodes(context)
+            self.create_node(context, self.type)
+            return {'FINISHED'}
+        else:
+            return {'CANCELLED'}
+
     @classmethod
     def description(cls, _context, properties):
         nodetype = properties["type"]
@@ -141,16 +150,49 @@ class NodeAddOperator:
             return ""
 
 
-# Simple basic operator for adding a node
-class NODE_OT_add_node(NodeAddOperator, Operator):
-    '''Add a node to the active tree'''
-    bl_idname = "node.add_node"
-    bl_label = "Add Node"
+class NODE_OT_add_simulation_zone(NodeAddOperator, Operator):
+    """Add simulation zone input and output nodes to the active tree"""
+    bl_idname = "node.add_simulation_zone"
+    bl_label = "Add Simulation Zone"
     bl_options = {'REGISTER', 'UNDO'}
+
+    input_node_type = "GeometryNodeSimulationInput"
+    output_node_type = "GeometryNodeSimulationOutput"
+    offset: FloatVectorProperty(
+        name="Offset",
+        description="Offset of nodes from the cursor when added",
+        size=2,
+        default=(150, 0),
+    )
+
+    def execute(self, context):
+        space = context.space_data
+        tree = space.edit_tree
+
+        props = self.properties
+
+        self.deselect_nodes(context)
+        input_node = self.create_node(context, self.input_node_type)
+        output_node = self.create_node(context, self.output_node_type)
+        if input_node is None or output_node is None:
+            return {'CANCELLED'}
+
+        # Simulation input must be paired with the output.
+        input_node.pair_with_output(output_node)
+
+        input_node.location -= Vector(self.offset)
+        output_node.location += Vector(self.offset)
+
+        # Connect geometry sockets by default.
+        from_socket = input_node.outputs.get("Geometry")
+        to_socket = output_node.inputs.get("Geometry")
+        tree.links.new(to_socket, from_socket)
+
+        return {'FINISHED'}
 
 
 class NODE_OT_collapse_hide_unused_toggle(Operator):
-    '''Toggle collapsed nodes and hide unused sockets'''
+    """Toggle collapsed nodes and hide unused sockets"""
     bl_idname = "node.collapse_hide_unused_toggle"
     bl_label = "Collapse and Hide Unused Sockets"
     bl_options = {'REGISTER', 'UNDO'}
@@ -181,7 +223,7 @@ class NODE_OT_collapse_hide_unused_toggle(Operator):
 
 
 class NODE_OT_tree_path_parent(Operator):
-    '''Go to parent node tree'''
+    """Go to parent node tree"""
     bl_idname = "node.tree_path_parent"
     bl_label = "Parent Node Tree"
     bl_options = {'REGISTER', 'UNDO'}
@@ -204,6 +246,7 @@ classes = (
     NodeSetting,
 
     NODE_OT_add_node,
+    NODE_OT_add_simulation_zone,
     NODE_OT_collapse_hide_unused_toggle,
     NODE_OT_tree_path_parent,
 )

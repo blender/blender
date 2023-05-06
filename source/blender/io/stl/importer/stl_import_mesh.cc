@@ -7,9 +7,10 @@
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
@@ -60,7 +61,7 @@ void STLMeshHelper::add_triangle(const float3 &a,
   }
 }
 
-Mesh *STLMeshHelper::to_mesh(Main *bmain, char *mesh_name)
+Mesh *STLMeshHelper::to_mesh()
 {
   if (degenerate_tris_num_ > 0) {
     std::cout << "STL Importer: " << degenerate_tris_num_ << " degenerate triangles were removed"
@@ -71,31 +72,18 @@ Mesh *STLMeshHelper::to_mesh(Main *bmain, char *mesh_name)
               << std::endl;
   }
 
-  Mesh *mesh = BKE_mesh_add(bmain, mesh_name);
-  /* User count is already 1 here, but will be set later in #BKE_mesh_assign_object. */
-  id_us_min(&mesh->id);
+  Mesh *mesh = BKE_mesh_new_nomain(verts_.size(), 0, tris_.size(), tris_.size() * 3);
 
-  mesh->totvert = verts_.size();
-  CustomData_add_layer_named(
-      &mesh->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, mesh->totvert, "position");
   mesh->vert_positions_for_write().copy_from(verts_);
 
-  mesh->totpoly = tris_.size();
-  mesh->totloop = tris_.size() * 3;
-  CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
-  CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
-  MutableSpan<MPoly> polys = mesh->polys_for_write();
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
-  threading::parallel_for(tris_.index_range(), 2048, [&](IndexRange tris_range) {
-    for (const int i : tris_range) {
-      polys[i].loopstart = 3 * i;
-      polys[i].totloop = 3;
-
-      loops[3 * i].v = tris_[i].v1;
-      loops[3 * i + 1].v = tris_[i].v2;
-      loops[3 * i + 2].v = tris_[i].v3;
+  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  threading::parallel_for(poly_offsets.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      poly_offsets[i] = i * 3;
     }
   });
+
+  array_utils::copy(tris_.as_span().cast<int>(), mesh->corner_verts_for_write());
 
   /* NOTE: edges must be calculated first before setting custom normals. */
   BKE_mesh_calc_edges(mesh, false, false);

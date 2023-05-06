@@ -72,9 +72,10 @@ struct DrawPrototype {
   uint group_id;
   /* Resource handle associated with this call. Also reference visibility. */
   uint resource_handle;
+  /* Custom extra value to be used by the engines. */
+  uint custom_id;
   /* Number of instances. */
   uint instance_len;
-  uint _pad0;
 };
 BLI_STATIC_ASSERT_ALIGN(DrawPrototype, 16)
 

@@ -97,7 +97,8 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
   if (params.in_out() == SOCK_IN) {
     if (params.node_tree().typeinfo->validate_link(eNodeSocketDatatype(params.other_socket().type),
-                                                   SOCK_FLOAT)) {
+                                                   SOCK_FLOAT))
+    {
       params.add_item(IFACE_("Start (Factor)"),
                       SocketSearchOp{"Start", GEO_NODE_CURVE_SAMPLE_FACTOR});
       params.add_item(IFACE_("End (Factor)"), SocketSearchOp{"End", GEO_NODE_CURVE_SAMPLE_FACTOR});
@@ -124,7 +125,7 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
     return;
   }
 
-  bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
+  const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
   evaluator.add(selection_field);
   evaluator.add(start_field);

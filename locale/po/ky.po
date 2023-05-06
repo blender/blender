@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -227,10 +227,6 @@ msgstr "Чачылар"
 
 msgid "Filename"
 msgstr "Файл аты"
-
-
-msgid "Grease Pencil"
-msgstr "Эскиз карандашы"
 
 
 msgid "Images"
@@ -785,6 +781,10 @@ msgstr "Өлчөмү"
 
 msgid "Fonts"
 msgstr "Ариптер"
+
+
+msgid "Grease Pencil"
+msgstr "Эскиз карандашы"
 
 
 msgid "Save"
@@ -1929,6 +1929,10 @@ msgid "Open"
 msgstr "Ачуу"
 
 
+msgid "Play"
+msgstr "Ойнотуу"
+
+
 msgid "Increment"
 msgstr "Өсүү"
 
@@ -2006,6 +2010,10 @@ msgstr "Текстти коюу"
 
 msgid "Eraser"
 msgstr "Өчүргүч"
+
+
+msgid "Sigma"
+msgstr "Сигма"
 
 
 msgctxt "Operator"
@@ -2633,10 +2641,6 @@ msgid "PNG Image (.png)"
 msgstr "PNG сүрөт (.png)"
 
 
-msgid "New Image"
-msgstr "Жаңы сүрөт"
-
-
 msgctxt "Operator"
 msgid "Reset"
 msgstr "Түшүрүү"
@@ -2653,10 +2657,6 @@ msgstr "Фон сүрөтүн өчүрүү"
 
 msgid "Save a Collada file"
 msgstr "Collada файлын сактоо"
-
-
-msgid "Play"
-msgstr "Ойнотуу"
 
 
 msgctxt "Operator"
@@ -2719,10 +2719,6 @@ msgstr "Чечим"
 
 msgid "Tracking Settings"
 msgstr "Трекингдин ырастоолору"
-
-
-msgid "Lens"
-msgstr "Объектив"
 
 
 msgid "Post Processing"
@@ -3038,6 +3034,10 @@ msgid "UV Editor"
 msgstr "UV-редактор"
 
 
+msgid "Lens"
+msgstr "Объектив"
+
+
 msgid "Speaker"
 msgstr "Үн булагы"
 
@@ -3232,10 +3232,6 @@ msgstr "Ырастоолорду түшүрүү"
 msgctxt "Operator"
 msgid "Statistics"
 msgstr "Статистика"
-
-
-msgid "[{}]: \"{}\" ({})"
-msgstr "[{}]: \"{}\" ({})"
 
 
 msgid "Tracking"
@@ -3464,10 +3460,6 @@ msgid "Author:"
 msgstr "Автору:"
 
 
-msgid "author"
-msgstr "автор"
-
-
 msgid "Version:"
 msgstr "Версиясы:"
 
@@ -3613,6 +3605,10 @@ msgid "Apply"
 msgstr "Колдонуу"
 
 
+msgid "Untitled"
+msgstr "Аты жок"
+
+
 msgctxt "Curve"
 msgid "Surface"
 msgstr "Бет"
@@ -3620,10 +3616,6 @@ msgstr "Бет"
 
 msgid "Hex"
 msgstr "Hex"
-
-
-msgid "Value:"
-msgstr "Мааниси:"
 
 
 msgid "Zoom in"
@@ -3834,10 +3826,6 @@ msgid "Stone"
 msgstr "Таш"
 
 
-msgid "Untitled"
-msgstr "Аты жок"
-
-
 msgid "OK"
 msgstr "ООБА"
 
@@ -3860,6 +3848,10 @@ msgstr "Жокко чыгаруу"
 
 msgid "File name"
 msgstr "Файл аты"
+
+
+msgid "Value:"
+msgstr "Мааниси:"
 
 
 msgid "Add Modifier"
@@ -3959,10 +3951,6 @@ msgstr "Анизотропия"
 
 msgid "BSDF"
 msgstr "BSDF"
-
-
-msgid "Sigma"
-msgstr "Сигма"
 
 
 msgid "Transparency"

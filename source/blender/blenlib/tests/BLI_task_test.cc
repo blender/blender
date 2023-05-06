@@ -271,7 +271,8 @@ TEST(task, ListBaseIter)
   EXPECT_EQ(items_num, 0);
   LinkData *item;
   for (i = 0, item = (LinkData *)list.first; i < ITEMS_NUM && item != nullptr;
-       i++, item = item->next) {
+       i++, item = item->next)
+  {
     EXPECT_EQ(POINTER_AS_INT(item->data), i);
   }
   EXPECT_EQ(ITEMS_NUM, i);

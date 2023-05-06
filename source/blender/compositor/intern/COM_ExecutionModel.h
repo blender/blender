@@ -45,9 +45,7 @@ class ExecutionModel {
  public:
   ExecutionModel(CompositorContext &context, Span<NodeOperation *> operations);
 
-  virtual ~ExecutionModel()
-  {
-  }
+  virtual ~ExecutionModel() {}
 
   virtual void execute(ExecutionSystem &exec_system) = 0;
 

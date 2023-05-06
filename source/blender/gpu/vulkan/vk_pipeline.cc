@@ -1,38 +1,43 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation */
 
 /** \file
  * \ingroup gpu
  */
 
 #include "vk_pipeline.hh"
+#include "vk_backend.hh"
 #include "vk_context.hh"
 #include "vk_memory.hh"
 
 namespace blender::gpu {
 
-VKPipeline::VKPipeline(VkPipeline vk_pipeline, VKDescriptorSet &&vk_descriptor_set)
-    : vk_pipeline_(vk_pipeline)
+VKPipeline::VKPipeline(VkPipeline vk_pipeline,
+                       VkDescriptorSetLayout vk_descriptor_set_layout,
+                       VKPushConstants &&push_constants)
+    : vk_pipeline_(vk_pipeline),
+      descriptor_set_(vk_descriptor_set_layout),
+      push_constants_(std::move(push_constants))
 {
-  descriptor_set_ = std::move(vk_descriptor_set);
 }
 
 VKPipeline::~VKPipeline()
 {
   VK_ALLOCATION_CALLBACKS
-  VkDevice vk_device = VKContext::get()->device_get();
+  const VKDevice &device = VKBackend::get().device_get();
   if (vk_pipeline_ != VK_NULL_HANDLE) {
-    vkDestroyPipeline(vk_device, vk_pipeline_, vk_allocation_callbacks);
+    vkDestroyPipeline(device.device_get(), vk_pipeline_, vk_allocation_callbacks);
   }
 }
 
-VKPipeline VKPipeline::create_compute_pipeline(VKContext &context,
-                                               VkShaderModule compute_module,
-                                               VkDescriptorSetLayout &descriptor_set_layout,
-                                               VkPipelineLayout &pipeline_layout)
+VKPipeline VKPipeline::create_compute_pipeline(
+    VkShaderModule compute_module,
+    VkDescriptorSetLayout &descriptor_set_layout,
+    VkPipelineLayout &pipeline_layout,
+    const VKPushConstants::Layout &push_constants_layout)
 {
   VK_ALLOCATION_CALLBACKS
-  VkDevice vk_device = context.device_get();
+  const VKDevice &device = VKBackend::get().device_get();
   VkComputePipelineCreateInfo pipeline_info = {};
   pipeline_info.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
   pipeline_info.flags = 0;
@@ -44,15 +49,19 @@ VKPipeline VKPipeline::create_compute_pipeline(VKContext &context,
   pipeline_info.layout = pipeline_layout;
   pipeline_info.stage.pName = "main";
 
-  VkPipeline pipeline;
-  if (vkCreateComputePipelines(
-          vk_device, nullptr, 1, &pipeline_info, vk_allocation_callbacks, &pipeline) !=
-      VK_SUCCESS) {
+  VkPipeline vk_pipeline;
+  if (vkCreateComputePipelines(device.device_get(),
+                               nullptr,
+                               1,
+                               &pipeline_info,
+                               vk_allocation_callbacks,
+                               &vk_pipeline) != VK_SUCCESS)
+  {
     return VKPipeline();
   }
 
-  VKDescriptorSet descriptor_set = context.descriptor_pools_get().allocate(descriptor_set_layout);
-  return VKPipeline(pipeline, std::move(descriptor_set));
+  VKPushConstants push_constants(&push_constants_layout);
+  return VKPipeline(vk_pipeline, descriptor_set_layout, std::move(push_constants));
 }
 
 VkPipeline VKPipeline::vk_handle() const

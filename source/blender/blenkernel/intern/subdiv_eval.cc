@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. All rights reserved. */
+ * Copyright 2018 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -10,13 +10,13 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BLI_bitmap.h"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
+#include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_subdiv.h"
 
 #include "MEM_guardedalloc.h"
@@ -78,55 +78,37 @@ bool BKE_subdiv_eval_begin(Subdiv *subdiv,
 }
 
 static void set_coarse_positions(Subdiv *subdiv,
-                                 const Mesh *mesh,
-                                 const float (*coarse_vertex_cos)[3])
+                                 const blender::Span<blender::float3> positions,
+                                 const blender::bke::LooseVertCache &verts_no_face)
 {
-  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
-  const MPoly *mpoly = BKE_mesh_polys(mesh);
-  const MLoop *mloop = BKE_mesh_loops(mesh);
-  /* Mark vertices which needs new coordinates. */
-  /* TODO(sergey): This is annoying to calculate this on every update,
-   * maybe it's better to cache this mapping. Or make it possible to have
-   * OpenSubdiv's vertices match mesh ones? */
-  BLI_bitmap *vertex_used_map = BLI_BITMAP_NEW(mesh->totvert, "vert used map");
-  for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
-    const MPoly *poly = &mpoly[poly_index];
-    for (int corner = 0; corner < poly->totloop; corner++) {
-      const MLoop *loop = &mloop[poly->loopstart + corner];
-      BLI_BITMAP_ENABLE(vertex_used_map, loop->v);
-    }
+  using namespace blender;
+  OpenSubdiv_Evaluator *evaluator = subdiv->evaluator;
+  if (verts_no_face.count == 0) {
+    evaluator->setCoarsePositions(
+        evaluator, reinterpret_cast<const float *>(positions.data()), 0, positions.size());
+    return;
   }
-  /* Use a temporary buffer so we do not upload vertices one at a time to the GPU. */
-  float(*buffer)[3] = static_cast<float(*)[3]>(
-      MEM_mallocN(sizeof(float[3]) * mesh->totvert, __func__));
-  int manifold_vertex_count = 0;
-  for (int vertex_index = 0, manifold_vertex_index = 0; vertex_index < mesh->totvert;
-       vertex_index++) {
-    if (!BLI_BITMAP_TEST_BOOL(vertex_used_map, vertex_index)) {
+  Array<float3> used_vert_positions(positions.size() - verts_no_face.count);
+  const BitSpan bits = verts_no_face.is_loose_bits;
+  int used_vert_count = 0;
+  for (const int vert : positions.index_range()) {
+    if (bits[vert]) {
       continue;
     }
-    const float *vertex_co;
-    if (coarse_vertex_cos != nullptr) {
-      vertex_co = coarse_vertex_cos[vertex_index];
-    }
-    else {
-      vertex_co = positions[vertex_index];
-    }
-    copy_v3_v3(&buffer[manifold_vertex_index][0], vertex_co);
-    manifold_vertex_index++;
-    manifold_vertex_count++;
+    used_vert_positions[used_vert_count] = positions[vert];
+    used_vert_count++;
   }
-  subdiv->evaluator->setCoarsePositions(
-      subdiv->evaluator, &buffer[0][0], 0, manifold_vertex_count);
-  MEM_freeN(vertex_used_map);
-  MEM_freeN(buffer);
+  evaluator->setCoarsePositions(evaluator,
+                                reinterpret_cast<const float *>(used_vert_positions.data()),
+                                0,
+                                used_vert_positions.size());
 }
 
 /* Context which is used to fill face varying data in parallel. */
 struct FaceVaryingDataFromUVContext {
   OpenSubdiv_TopologyRefiner *topology_refiner;
   const Mesh *mesh;
-  const MPoly *polys;
+  blender::OffsetIndices<int> polys;
   const float (*mloopuv)[2];
   float (*buffer)[2];
   int layer_index;
@@ -139,8 +121,7 @@ static void set_face_varying_data_from_uv_task(void *__restrict userdata,
   FaceVaryingDataFromUVContext *ctx = static_cast<FaceVaryingDataFromUVContext *>(userdata);
   OpenSubdiv_TopologyRefiner *topology_refiner = ctx->topology_refiner;
   const int layer_index = ctx->layer_index;
-  const MPoly *mpoly = &ctx->polys[face_index];
-  const float(*mluv)[2] = &ctx->mloopuv[mpoly->loopstart];
+  const float(*mluv)[2] = &ctx->mloopuv[ctx->polys[face_index].start()];
 
   /* TODO(sergey): OpenSubdiv's C-API converter can change winding of
    * loops of a face, need to watch for that, to prevent wrong UVs assigned.
@@ -173,7 +154,7 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
   ctx.layer_index = layer_index;
   ctx.mloopuv = mluv;
   ctx.mesh = mesh;
-  ctx.polys = BKE_mesh_polys(mesh);
+  ctx.polys = mesh->polys();
   ctx.buffer = buffer;
 
   TaskParallelSettings parallel_range_settings;
@@ -245,13 +226,20 @@ bool BKE_subdiv_eval_refine_from_mesh(Subdiv *subdiv,
                                       const Mesh *mesh,
                                       const float (*coarse_vertex_cos)[3])
 {
+  using namespace blender;
   if (subdiv->evaluator == nullptr) {
     /* NOTE: This situation is supposed to be handled by begin(). */
     BLI_assert_msg(0, "Is not supposed to happen");
     return false;
   }
   /* Set coordinates of base mesh vertices. */
-  set_coarse_positions(subdiv, mesh, coarse_vertex_cos);
+  set_coarse_positions(
+      subdiv,
+      coarse_vertex_cos ?
+          Span(reinterpret_cast<const float3 *>(coarse_vertex_cos), mesh->totvert) :
+          mesh->vert_positions(),
+      mesh->verts_no_face());
+
   /* Set face-varying data to UV maps. */
   const int num_uv_layers = CustomData_number_of_layers(&mesh->ldata, CD_PROP_FLOAT2);
   for (int layer_index = 0; layer_index < num_uv_layers; layer_index++) {

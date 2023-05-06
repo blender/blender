@@ -126,7 +126,8 @@ static PyObject *pygpu_shader__tp_new(PyTypeObject *UNUSED(type), PyObject *args
                                         &params.geocode,
                                         &params.libcode,
                                         &params.defines,
-                                        &params.name)) {
+                                        &params.name))
+  {
     return NULL;
   }
 
@@ -219,7 +220,8 @@ static bool pygpu_shader_uniform_vector_impl(PyObject *args,
 
   *r_count = 1;
   if (!PyArg_ParseTuple(
-          args, "iOi|i:GPUShader.uniform_vector_*", r_location, &buffer, r_length, r_count)) {
+          args, "iOi|i:GPUShader.uniform_vector_*", r_location, &buffer, r_length, r_count))
+  {
     return false;
   }
 
@@ -286,8 +288,8 @@ static PyObject *pygpu_shader_uniform_vector_int(BPyGPUShader *self, PyObject *a
 
   Py_buffer pybuffer;
 
-  if (!pygpu_shader_uniform_vector_impl(
-          args, sizeof(int), &location, &length, &count, &pybuffer)) {
+  if (!pygpu_shader_uniform_vector_impl(args, sizeof(int), &location, &length, &count, &pybuffer))
+  {
     return NULL;
   }
 
@@ -528,7 +530,8 @@ static PyObject *pygpu_shader_uniform_sampler(BPyGPUShader *self, PyObject *args
   const char *name;
   BPyGPUTexture *py_texture;
   if (!PyArg_ParseTuple(
-          args, "sO!:GPUShader.uniform_sampler", &name, &BPyGPUTexture_Type, &py_texture)) {
+          args, "sO!:GPUShader.uniform_sampler", &name, &BPyGPUTexture_Type, &py_texture))
+  {
     return NULL;
   }
 
@@ -851,7 +854,8 @@ static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg
                                         pyc_parse_buitinshader_w_backward_compatibility,
                                         &pygpu_bultinshader,
                                         PyC_ParseStringEnum,
-                                        &pygpu_config)) {
+                                        &pygpu_config))
+  {
     return NULL;
   }
 

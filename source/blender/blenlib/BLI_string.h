@@ -17,6 +17,21 @@
 extern "C" {
 #endif
 
+/* Buffer size of maximum `uint64` plus commas and terminator. */
+#define BLI_STR_FORMAT_UINT64_GROUPED_SIZE 27
+
+/* Buffer size of maximum `int32` with commas and terminator. */
+#define BLI_STR_FORMAT_INT32_GROUPED_SIZE 15
+
+/* Buffer size of maximum `int64` formatted as byte size (with GiB for example). */
+#define BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE 15
+
+/* Buffer size of maximum `int32` formatted as compact decimal size ("15.6M" for example). */
+#define BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE 7
+
+/* Buffer size of maximum `int32` formatted as very short decimal size ("15B" for example). */
+#define BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE 5
+
 /**
  * Duplicates the first \a len bytes of cstring \a str
  * into a newly mallocN'd string and returns it. \a str
@@ -26,7 +41,7 @@ extern "C" {
  * \param len: The number of bytes to duplicate
  * \retval Returns the duplicated string
  */
-char *BLI_strdupn(const char *str, size_t len) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+char *BLI_strdupn(const char *str, size_t len) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /**
  * Duplicates the cstring \a str into a newly mallocN'd
@@ -35,7 +50,7 @@ char *BLI_strdupn(const char *str, size_t len) ATTR_MALLOC ATTR_WARN_UNUSED_RESU
  * \param str: The string to be duplicated
  * \retval Returns the duplicated string
  */
-char *BLI_strdup(const char *str) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL() ATTR_MALLOC;
+char *BLI_strdup(const char *str) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) ATTR_MALLOC;
 
 /**
  * Appends the two strings, and returns new mallocN'ed string
@@ -45,7 +60,7 @@ char *BLI_strdup(const char *str) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL() ATTR_MA
  */
 char *BLI_strdupcat(const char *__restrict str1,
                     const char *__restrict str2) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL() ATTR_MALLOC;
+    ATTR_NONNULL(1, 2) ATTR_MALLOC;
 
 /**
  * Like strncpy but ensures dst is always
@@ -57,7 +72,8 @@ char *BLI_strdupcat(const char *__restrict str1,
  * the size of dst)
  * \retval Returns dst
  */
-char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t maxncpy) ATTR_NONNULL();
+char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t maxncpy)
+    ATTR_NONNULL(1, 2);
 
 /**
  * Like BLI_strncpy but ensures dst is always padded by given char,
@@ -72,7 +88,7 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t maxnc
 char *BLI_strncpy_ensure_pad(char *__restrict dst,
                              const char *__restrict src,
                              char pad,
-                             size_t maxncpy) ATTR_NONNULL();
+                             size_t maxncpy) ATTR_NONNULL(1, 2);
 
 /**
  * Like strncpy but ensures dst is always
@@ -89,10 +105,13 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
  */
 size_t BLI_strncpy_rlen(char *__restrict dst,
                         const char *__restrict src,
-                        size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+                        size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 
 size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
+    ATTR_NONNULL(1, 2);
+
+char *BLI_strncat(char *__restrict dst, const char *__restrict src, size_t maxncpy)
+    ATTR_NONNULL(1, 2);
 
 /**
  * Return the range of the quoted string (excluding quotes) `str` after `prefix`.
@@ -114,7 +133,7 @@ bool BLI_str_quoted_substr_range(const char *__restrict str,
 #if 0 /* UNUSED */
 char *BLI_str_quoted_substrN(const char *__restrict str,
                              const char *__restrict prefix) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL() ATTR_MALLOC;
+    ATTR_NONNULL(1, 2) ATTR_MALLOC;
 #endif
 /**
  * Fills \a result with text within "" that appear after some the contents of \a prefix.
@@ -149,7 +168,7 @@ bool BLI_str_quoted_substr(const char *__restrict str,
 char *BLI_str_replaceN(const char *__restrict str,
                        const char *__restrict substr_old,
                        const char *__restrict substr_new) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL() ATTR_MALLOC;
+    ATTR_NONNULL(1, 2, 3) ATTR_MALLOC;
 
 /**
  * In-place replace every \a src to \a dst in \a str.
@@ -158,7 +177,7 @@ char *BLI_str_replaceN(const char *__restrict str,
  * \param src: The character to replace.
  * \param dst: The character to replace with.
  */
-void BLI_str_replace_char(char *str, char src, char dst) ATTR_NONNULL();
+void BLI_str_replace_char(char *str, char src, char dst) ATTR_NONNULL(1);
 
 /**
  * Simple exact-match string replacement.
@@ -226,7 +245,7 @@ int BLI_sprintf(char *__restrict str, const char *__restrict format, ...) ATTR_N
  * \note This is used for creating animation paths in blend files.
  */
 size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
-    ATTR_NONNULL();
+    ATTR_NONNULL(1, 2);
 /**
  * This roughly matches C and Python's string escaping with double quotes - `"`.
  *
@@ -244,7 +263,7 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
                            size_t src_maxncpy,
                            /* Additional arguments. */
                            size_t dst_maxncpy,
-                           bool *r_is_complete) ATTR_NONNULL();
+                           bool *r_is_complete) ATTR_NONNULL(1, 2, 5);
 /**
  * See #BLI_str_unescape_ex doc-string.
  *
@@ -256,7 +275,7 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
  * \note This is used for parsing animation paths in blend files (runs often).
  */
 size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, size_t src_maxncpy)
-    ATTR_NONNULL();
+    ATTR_NONNULL(1, 2);
 
 /**
  * Find the first un-escaped quote in the string (to find the end of the string).
@@ -266,7 +285,7 @@ size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, size_t
  *
  * \return The pointer to the first un-escaped quote.
  */
-const char *BLI_str_escape_find_quote(const char *str) ATTR_NONNULL();
+const char *BLI_str_escape_find_quote(const char *str) ATTR_NONNULL(1);
 
 /**
  * Format ints with decimal grouping.
@@ -276,7 +295,8 @@ const char *BLI_str_escape_find_quote(const char *str) ATTR_NONNULL();
  * \param num: Number to format
  * \return The length of \a dst
  */
-size_t BLI_str_format_int_grouped(char dst[16], int num) ATTR_NONNULL();
+size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], int num)
+    ATTR_NONNULL(1);
 /**
  * Format uint64_t with decimal grouping.
  * 1000 -> 1,000
@@ -285,7 +305,8 @@ size_t BLI_str_format_int_grouped(char dst[16], int num) ATTR_NONNULL();
  * \param num: Number to format
  * \return The length of \a dst
  */
-size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num) ATTR_NONNULL();
+size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], uint64_t num)
+    ATTR_NONNULL(1);
 /**
  * Format a size in bytes using binary units.
  * 1000 -> 1 KB
@@ -296,7 +317,9 @@ size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num) ATTR_NONNULL();
  * \param bytes: Number to format.
  * \param base_10: Calculate using base 10 (GB, MB, ...) or 2 (GiB, MiB, ...).
  */
-void BLI_str_format_byte_unit(char dst[15], long long int bytes, bool base_10) ATTR_NONNULL();
+void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
+                              long long int bytes,
+                              bool base_10) ATTR_NONNULL(1);
 /**
  * Format a count to up to 6 places (plus '\0' terminator) string using long number
  * names abbreviations. Used to produce a compact representation of large numbers.
@@ -315,7 +338,8 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, bool base_10) A
  *
  * Length of 7 is the maximum of the resulting string, for example, `-15.5K\0`.
  */
-void BLI_str_format_decimal_unit(char dst[7], int number_to_format) ATTR_NONNULL();
+void BLI_str_format_decimal_unit(char dst[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE],
+                                 int number_to_format) ATTR_NONNULL(1);
 /**
  * Format a count to up to 3 places (plus minus sign, plus '\0' terminator) string using long
  * number names abbreviations. Used to produce a compact representation of large numbers as
@@ -337,56 +361,58 @@ void BLI_str_format_decimal_unit(char dst[7], int number_to_format) ATTR_NONNULL
  *
  * Length of 5 is the maximum of the resulting string, for example, `-15K\0`.
  */
-void BLI_str_format_integer_unit(char dst[5], int number_to_format) ATTR_NONNULL();
+void BLI_str_format_integer_unit(char dst[BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE],
+                                 int number_to_format) ATTR_NONNULL(1);
 /**
  * Compare two strings without regard to case.
  *
  * \retval True if the strings are equal, false otherwise.
  */
-int BLI_strcaseeq(const char *a, const char *b) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int BLI_strcaseeq(const char *a, const char *b) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 /**
  * Portable replacement for `strcasestr` (not available in MSVC)
  */
-char *BLI_strcasestr(const char *s, const char *find) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+char *BLI_strcasestr(const char *s, const char *find) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 /**
  * Variation of #BLI_strcasestr with string length limited to \a len
  */
 char *BLI_strncasestr(const char *s, const char *find, size_t len) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
-int BLI_strcasecmp(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+    ATTR_NONNULL(1, 2);
+int BLI_strcasecmp(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 int BLI_strncasecmp(const char *s1, const char *s2, size_t len) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
+    ATTR_NONNULL(1, 2);
 /**
  * Case insensitive, *natural* string comparison,
  * keeping numbers in order.
  */
-int BLI_strcasecmp_natural(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int BLI_strcasecmp_natural(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1, 2);
 /**
- * Like strcmp, but will ignore any heading/trailing pad char for comparison.
+ * Like `strcmp`, but will ignore any heading/trailing pad char for comparison.
  * So e.g. if pad is '*', '*world' and 'world*' will compare equal.
  */
 int BLI_strcmp_ignore_pad(const char *str1, const char *str2, char pad) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
+    ATTR_NONNULL(1, 2);
 
 /**
  * Determine the length of a fixed-size string.
  */
-size_t BLI_strnlen(const char *str, size_t maxlen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+size_t BLI_strnlen(const char *str, size_t maxlen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /**
  * String case conversion, not affected by locale.
  */
 
-void BLI_str_tolower_ascii(char *str, size_t len) ATTR_NONNULL();
-void BLI_str_toupper_ascii(char *str, size_t len) ATTR_NONNULL();
+void BLI_str_tolower_ascii(char *str, size_t len) ATTR_NONNULL(1);
+void BLI_str_toupper_ascii(char *str, size_t len) ATTR_NONNULL(1);
 
-char BLI_tolower_ascii(const char c);
-char BLI_toupper_ascii(const char c);
+char BLI_tolower_ascii(const char c) ATTR_WARN_UNUSED_RESULT;
+char BLI_toupper_ascii(const char c) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Strip white-space from end of the string.
  */
-void BLI_str_rstrip(char *str) ATTR_NONNULL();
+void BLI_str_rstrip(char *str) ATTR_NONNULL(1);
 /**
  * Strip trailing zeros from a float, eg:
  *   0.0000 -> 0.0
@@ -396,7 +422,7 @@ void BLI_str_rstrip(char *str) ATTR_NONNULL();
  * \param pad:
  * \return The number of zeros stripped.
  */
-int BLI_str_rstrip_float_zero(char *str, char pad) ATTR_NONNULL();
+int BLI_str_rstrip_float_zero(char *str, char pad) ATTR_NONNULL(1);
 
 /**
  * Return index of a string in a string array.
@@ -408,7 +434,7 @@ int BLI_str_rstrip_float_zero(char *str, char pad) ATTR_NONNULL();
  */
 int BLI_str_index_in_array_n(const char *__restrict str,
                              const char **__restrict str_array,
-                             int str_array_len) ATTR_NONNULL();
+                             int str_array_len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 /**
  * Return index of a string in a string array.
  *
@@ -416,8 +442,9 @@ int BLI_str_index_in_array_n(const char *__restrict str,
  * \param str_array: Array of strings, (must be NULL-terminated).
  * \return The index of str in str_array or -1.
  */
-int BLI_str_index_in_array(const char *__restrict str, const char **__restrict str_array)
-    ATTR_NONNULL();
+int BLI_str_index_in_array(const char *__restrict str,
+                           const char **__restrict str_array) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1, 2);
 
 /**
  * Find if a string starts with another string.
@@ -426,7 +453,8 @@ int BLI_str_index_in_array(const char *__restrict str, const char **__restrict s
  * \param start: The string we look for at the start.
  * \return If str starts with start.
  */
-bool BLI_str_startswith(const char *__restrict str, const char *__restrict start) ATTR_NONNULL();
+bool BLI_str_startswith(const char *__restrict str,
+                        const char *__restrict start) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 /**
  * Find if a string ends with another string.
  *
@@ -434,9 +462,9 @@ bool BLI_str_startswith(const char *__restrict str, const char *__restrict start
  * \param end: The string we look for at the end.
  * \return If str ends with end.
  */
-bool BLI_str_endswith(const char *__restrict str, const char *__restrict end) ATTR_NONNULL();
+bool BLI_str_endswith(const char *__restrict str, const char *__restrict end) ATTR_NONNULL(1, 2);
 bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, size_t length)
-    ATTR_NONNULL();
+    ATTR_NONNULL(1, 2);
 
 /**
  * Find the first char matching one of the chars in \a delim, from left.
@@ -449,7 +477,7 @@ bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, s
  * \return The length of the prefix (i.e. *sep - str).
  */
 size_t BLI_str_partition(const char *str, const char delim[], const char **sep, const char **suf)
-    ATTR_NONNULL();
+    ATTR_NONNULL(1, 2, 3, 4);
 /**
  * Find the first char matching one of the chars in \a delim, from right.
  *
@@ -461,7 +489,7 @@ size_t BLI_str_partition(const char *str, const char delim[], const char **sep, 
  * \return The length of the prefix (i.e. *sep - str).
  */
 size_t BLI_str_rpartition(const char *str, const char delim[], const char **sep, const char **suf)
-    ATTR_NONNULL();
+    ATTR_NONNULL(1, 2, 3, 4);
 /**
  * Find the first char matching one of the chars in \a delim, either from left or right.
  *
@@ -481,12 +509,14 @@ size_t BLI_str_partition_ex(const char *str,
                             const char **suf,
                             bool from_right) ATTR_NONNULL(1, 3, 4, 5);
 
-int BLI_string_max_possible_word_count(int str_len);
-bool BLI_string_has_word_prefix(const char *haystack, const char *needle, size_t needle_len);
+int BLI_string_max_possible_word_count(int str_len) ATTR_WARN_UNUSED_RESULT;
+bool BLI_string_has_word_prefix(const char *haystack,
+                                const char *needle,
+                                size_t needle_len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 bool BLI_string_all_words_matched(const char *name,
                                   const char *str,
                                   int (*words)[2],
-                                  int words_len);
+                                  int words_len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3);
 
 /**
  * Find the ranges needed to split \a str into its individual words.
@@ -502,7 +532,7 @@ int BLI_string_find_split_words(const char *str,
                                 size_t len,
                                 char delim,
                                 int r_words[][2],
-                                int words_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+                                int words_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 4);
 
 /* -------------------------------------------------------------------- */
 /** \name String Copy/Format Macros
@@ -570,6 +600,22 @@ int BLI_string_find_split_words(const char *str,
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name String Debugging
+ * \{ */
+#ifdef DEBUG_STRSIZE
+#  define BLI_string_debug_size(str, str_maxncpy) memset(str, 0xff, sizeof(*(str)) * str_maxncpy)
+/**
+ * Fill `str` with a non-nil value after the trailing nil character,
+ * use to ensure buffer sizes passed to string functions are correct.
+ */
+void BLI_string_debug_size_after_nil(char *str, size_t str_maxncpy);
+#else
+#  define BLI_string_debug_size(str, str_maxncpy) (void)(0 ? ((str) + (str_maxncpy)) : 0)
+#  define BLI_string_debug_size_after_nil(str, str_maxncpy) BLI_string_debug_size(str, str_maxncpy)
+#endif /* !DEBUG_STRSIZE */
+
+/** \} */
 #ifdef __cplusplus
 }
 #endif

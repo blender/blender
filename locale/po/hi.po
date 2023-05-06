@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -453,10 +453,6 @@ msgstr "भार"
 
 msgid "Brushes"
 msgstr "तूलिका"
-
-
-msgid "Grease Pencil"
-msgstr "तैलीय पेंसिल"
 
 
 msgid "Images"
@@ -1445,6 +1441,10 @@ msgid "Fonts"
 msgstr "मुद्र्"
 
 
+msgid "Grease Pencil"
+msgstr "तैलीय पेंसिल"
+
+
 msgid "Save"
 msgstr "सहेजें"
 
@@ -1539,10 +1539,6 @@ msgstr "समाप्तिम"
 
 msgid "Time"
 msgstr "समय"
-
-
-msgid "Number"
-msgstr "संख्या"
 
 
 msgid "Delete"
@@ -1854,12 +1850,8 @@ msgid "Add Color"
 msgstr "रंग जोड़ें"
 
 
-msgid "Root"
-msgstr "मूल"
-
-
-msgid "Sharp"
-msgstr "पैना"
+msgid "Puff"
+msgstr "कश"
 
 
 msgid "Repeat"
@@ -2478,6 +2470,10 @@ msgid "Roughness 2"
 msgstr "खुरदरापन २"
 
 
+msgid "Number"
+msgstr "संख्या"
+
+
 msgid "Show particle number"
 msgstr "कण संख्या दिखाएँ"
 
@@ -2563,14 +2559,6 @@ msgid "Memory"
 msgstr "स्मृति"
 
 
-msgid "Modified"
-msgstr "संशोधित"
-
-
-msgid "Lines"
-msgstr "लाइनों"
-
-
 msgid "Register"
 msgstr "पंजीकृत करें"
 
@@ -2621,6 +2609,10 @@ msgstr "पारदर्शिता सरणि जानकारी मे
 
 msgid "Calculate Alpha"
 msgstr "पारदर्शिता गणना"
+
+
+msgid "Sharp"
+msgstr "पैना"
 
 
 msgid "Sin"
@@ -3025,6 +3017,10 @@ msgid "Seam"
 msgstr "सीवन"
 
 
+msgid "Root"
+msgstr "मूल"
+
+
 msgid "Ball"
 msgstr "गेंद"
 
@@ -3144,6 +3140,10 @@ msgstr "यादृच्छिक"
 
 msgid "Use distance between affected object's vertices and target object, or target object's geometry"
 msgstr "प्रभावित ऑब्जेक्ट सकें और लक्ष्य ऑब्जेक्ट के बीच दूरी का उपयोग करें, या लक्ष्य वस्तु की ज्यामिति"
+
+
+msgid "Lines"
+msgstr "लाइनों"
 
 
 msgid "Tracks"
@@ -3384,10 +3384,6 @@ msgstr "प्रक्षेपण"
 
 msgid "Air"
 msgstr "वायु"
-
-
-msgid "Wrap"
-msgstr "आच्छादन"
 
 
 msgid "At"
@@ -3810,6 +3806,14 @@ msgid "Open"
 msgstr "खोलें"
 
 
+msgid "Show"
+msgstr "दिखाएँ"
+
+
+msgid "Play"
+msgstr "चलाएँ"
+
+
 msgid "Next"
 msgstr "अगला"
 
@@ -3845,6 +3849,10 @@ msgstr "सीमा"
 
 msgid "Modifier"
 msgstr "संशोधक"
+
+
+msgid "Sigma"
+msgstr "सिग्मा"
 
 
 msgid "Create a new image"
@@ -4157,10 +4165,6 @@ msgstr "चिन्ह"
 
 msgid "Reset"
 msgstr "पूर्ववत करें"
-
-
-msgid "Show"
-msgstr "दिखाएँ"
 
 
 msgid "Fill the whole mask with a given value, or invert its values"
@@ -4490,6 +4494,10 @@ msgid "Cylinder Projection"
 msgstr "बेलन प्रक्षेपण"
 
 
+msgid "Modified"
+msgstr "संशोधित"
+
+
 msgctxt "Operator"
 msgid "Pin"
 msgstr "कील"
@@ -4547,6 +4555,10 @@ msgid "Pan Right"
 msgstr "दाएँ पैन करें"
 
 
+msgid "Wrap"
+msgstr "आच्छादन"
+
+
 msgctxt "Operator"
 msgid "Demo"
 msgstr "प्रदर्शित करें"
@@ -4558,10 +4570,6 @@ msgstr "पिछ"
 
 msgid "Pause"
 msgstr "विराम दें"
-
-
-msgid "Play"
-msgstr "चलाएँ"
 
 
 msgctxt "Operator"
@@ -4693,10 +4701,6 @@ msgid "Color Presets"
 msgstr "पूर्वनिश्चित रंग"
 
 
-msgid "Lens"
-msgstr "केन्द्रण-वीक्ष"
-
-
 msgid "Cloth Presets"
 msgstr "पूर्वनिश्चित कपड़ा"
 
@@ -4813,10 +4817,6 @@ msgstr "संपादन योग्य"
 
 msgid "Tip"
 msgstr "युक्ति"
-
-
-msgid "Puff"
-msgstr "कश"
 
 
 msgid "Enemy"
@@ -5211,6 +5211,10 @@ msgid "Replace Text"
 msgstr "पाठ बदलें"
 
 
+msgid "Lens"
+msgstr "केन्द्रण-वीक्ष"
+
+
 msgid "Lock Camera to View"
 msgstr "प्रतिबिंबक की तालाबंदी देखने के लिए"
 
@@ -5313,10 +5317,6 @@ msgstr "चयनित बाह्य रेखा"
 
 msgid "Relationship Lines"
 msgstr "संबंध रेखाएँ"
-
-
-msgid "Unknown"
-msgstr "अज्ञात"
 
 
 msgid "Search"
@@ -5546,10 +5546,6 @@ msgid "Update Trunk"
 msgstr "अद्यतन ट्रंक"
 
 
-msgid "[{}]: \"{}\" ({})"
-msgstr "[{}]: \"{}\" ({})"
-
-
 msgctxt "Operator"
 msgid "New"
 msgstr "नई"
@@ -5567,6 +5563,10 @@ msgstr "व्यक्त..."
 msgctxt "Operator"
 msgid "Manual"
 msgstr "नियम पुस्तिका"
+
+
+msgid "Unknown"
+msgstr "अज्ञात"
 
 
 msgid "After"
@@ -5686,10 +5686,6 @@ msgid "All"
 msgstr "सभी"
 
 
-msgid "Old"
-msgstr "पुराने"
-
-
 msgid "Date"
 msgstr "दिनांक"
 
@@ -5698,16 +5694,16 @@ msgid "Roughness End"
 msgstr "खुरदरापन समाप्त"
 
 
+msgid "Use Timing"
+msgstr "समय का उपयोग करें"
+
+
 msgid "Spacing: %g"
 msgstr "रिक्ति: %g"
 
 
 msgid "%d fluid particles for this frame"
 msgstr "इस गठन के लिए %d तरल पदार्थ कणों"
-
-
-msgid "Use Timing"
-msgstr "समय का उपयोग करें"
 
 
 msgid "Structural"
@@ -6021,10 +6017,6 @@ msgid "Author:"
 msgstr "लेखक:"
 
 
-msgid "author"
-msgstr "लेखक"
-
-
 msgid "Version:"
 msgstr "संस्करण:"
 
@@ -6235,10 +6227,6 @@ msgstr "गति पथ गठन विस्तार के लिए अम
 
 msgid "Loading failed: "
 msgstr "उद्भरण में विफल: "
-
-
-msgid "Loading '%s' failed: "
-msgstr "उद्भरण में  '%s' विफल: "
 
 
 msgid "Not enough free memory"
@@ -6510,10 +6498,6 @@ msgstr "शॉर्टकट हटाएँ"
 
 msgid "Hex"
 msgstr "हेक्स"
-
-
-msgid "Value:"
-msgstr "मान:"
 
 
 msgid "Pos"
@@ -6886,6 +6870,10 @@ msgid "File name"
 msgstr "संचिका का नाम"
 
 
+msgid "Value:"
+msgstr "मान:"
+
+
 msgid "Add Modifier"
 msgstr "संशोधक जोड़ें"
 
@@ -7066,6 +7054,10 @@ msgid "Dot"
 msgstr "बिन्दु"
 
 
+msgid "Old"
+msgstr "पुराने"
+
+
 msgid "AO"
 msgstr "ए ओ"
 
@@ -7076,10 +7068,6 @@ msgstr "बीएसडीएफ़"
 
 msgid "IOR"
 msgstr "आईओआर"
-
-
-msgid "Sigma"
-msgstr "सिग्मा"
 
 
 msgid "W1"

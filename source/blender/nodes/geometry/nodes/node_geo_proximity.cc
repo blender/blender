@@ -162,7 +162,7 @@ class ProximityFunction : public mf::MultiFunction {
      * comparison per vertex, so it's likely not worth it. */
     MutableSpan<float> distances = params.uninitialized_single_output<float>(2, "Distance");
 
-    distances.fill_indices(mask, FLT_MAX);
+    distances.fill_indices(mask.indices(), FLT_MAX);
 
     bool success = false;
     if (target_.has_mesh()) {
@@ -177,10 +177,10 @@ class ProximityFunction : public mf::MultiFunction {
 
     if (!success) {
       if (!positions.is_empty()) {
-        positions.fill_indices(mask, float3(0));
+        positions.fill_indices(mask.indices(), float3(0));
       }
       if (!distances.is_empty()) {
-        distances.fill_indices(mask, 0.0f);
+        distances.fill_indices(mask.indices(), 0.0f);
       }
       return;
     }
@@ -198,10 +198,10 @@ class ProximityFunction : public mf::MultiFunction {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set_target = params.extract_input<GeometrySet>("Target");
-  geometry_set_target.ensure_owns_direct_data();
+  GeometrySet target = params.extract_input<GeometrySet>("Target");
+  target.ensure_owns_direct_data();
 
-  if (!geometry_set_target.has_mesh() && !geometry_set_target.has_pointcloud()) {
+  if (!target.has_mesh() && !target.has_pointcloud()) {
     params.set_default_remaining_outputs();
     return;
   }
@@ -210,9 +210,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float3> position_field = params.extract_input<Field<float3>>("Source Position");
 
   auto proximity_fn = std::make_unique<ProximityFunction>(
-      std::move(geometry_set_target), GeometryNodeProximityTargetType(storage.target_element));
-  auto proximity_op = std::make_shared<FieldOperation>(
-      FieldOperation(std::move(proximity_fn), {std::move(position_field)}));
+      std::move(target), GeometryNodeProximityTargetType(storage.target_element));
+  auto proximity_op = FieldOperation::Create(std::move(proximity_fn), {std::move(position_field)});
 
   params.set_output("Position", Field<float3>(proximity_op, 0));
   params.set_output("Distance", Field<float>(proximity_op, 1));

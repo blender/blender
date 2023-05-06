@@ -338,7 +338,8 @@ static int add_primitive_cube_gizmo_exec(bContext *C, wmOperator *op)
                                 "create_cube matrix=%m4 size=%f calc_uvs=%b",
                                 matrix,
                                 1.0f,
-                                calc_uvs)) {
+                                calc_uvs))
+  {
     return OPERATOR_CANCELLED;
   }
 

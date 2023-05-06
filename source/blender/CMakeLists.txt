@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
+# Copyright 2006 Blender Foundation
 
 set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_ID.h
@@ -29,8 +29,8 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_fluid_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_freestyle_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_genfile.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_gpencil_legacy_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_gpencil_modifier_types.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_gpencil_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_gpu_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_image_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_ipo_types.h
@@ -120,6 +120,7 @@ set(SRC_DNA_DEFAULTS_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_space_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_speaker_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_texture_defaults.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_userdef_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_vec_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_view3d_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_volume_defaults.h
@@ -144,9 +145,10 @@ add_subdirectory(simulation)
 add_subdirectory(geometry)
 add_subdirectory(gpu)
 add_subdirectory(imbuf)
+add_subdirectory(imbuf/intern/oiio)
 add_subdirectory(nodes)
 add_subdirectory(modifiers)
-add_subdirectory(gpencil_modifiers)
+add_subdirectory(gpencil_modifiers_legacy)
 add_subdirectory(sequencer)
 add_subdirectory(shader_fx)
 add_subdirectory(io)
@@ -162,14 +164,6 @@ endif()
 
 if(WITH_IMAGE_OPENEXR)
   add_subdirectory(imbuf/intern/openexr)
-endif()
-
-if(WITH_OPENIMAGEIO)
-  add_subdirectory(imbuf/intern/oiio)
-endif()
-
-if(WITH_IMAGE_DDS)
-  add_subdirectory(imbuf/intern/dds)
 endif()
 
 if(WITH_IMAGE_CINEON)

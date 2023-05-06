@@ -221,8 +221,8 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
     ls->D = z * B + sin_from_cos(z) * safe_normalize(C_ - dot(C_, B) * B);
 
     /* calculate intersection with the planar triangle */
-    if (!ray_triangle_intersect(
-            P, ls->D, 0.0f, FLT_MAX, V[0], V[1], V[2], &ls->u, &ls->v, &ls->t)) {
+    if (!ray_triangle_intersect(P, ls->D, 0.0f, FLT_MAX, V[0], V[1], V[2], &ls->u, &ls->v, &ls->t))
+    {
       ls->pdf = 0.0f;
       return false;
     }
@@ -304,9 +304,8 @@ ccl_device_forceinline bool triangle_light_tree_parameters(
 
   cos_theta_u = FLT_MAX;
 
-  const int object = kemitter->mesh_light.object_id;
   float3 vertices[3];
-  triangle_world_space_vertices(kg, object, kemitter->prim, -1.0f, vertices);
+  triangle_vertices(kg, kemitter->triangle.id, vertices);
 
   bool shape_above_surface = false;
   for (int i = 0; i < 3; i++) {

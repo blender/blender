@@ -281,7 +281,29 @@ class DOPESHEET_HT_editor_buttons:
         row.prop(tool_settings, "use_proportional_action", text="", icon_only=True)
         sub = row.row(align=True)
         sub.active = tool_settings.use_proportional_action
-        sub.prop(tool_settings, "proportional_edit_falloff", text="", icon_only=True)
+        sub.prop_with_popover(
+            tool_settings,
+            "proportional_edit_falloff",
+            text="",
+            icon_only=True,
+            panel="DOPESHEET_PT_proportional_edit",
+        )
+
+
+class DOPESHEET_PT_proportional_edit(Panel):
+    bl_space_type = 'DOPESHEET_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Proportional Editing"
+    bl_ui_units_x = 8
+
+    def draw(self, context):
+        layout = self.layout
+        tool_settings = context.tool_settings
+        col = layout.column()
+        col.active = tool_settings.use_proportional_action
+
+        col.prop(tool_settings, "proportional_edit_falloff", expand=True)
+        col.prop(tool_settings, "proportional_size")
 
 
 class DOPESHEET_MT_editor_menus(Menu):
@@ -822,6 +844,7 @@ class DOPESHEET_PT_gpencil_layer_display(LayersDopeSheetPanel, GreasePencilLayer
 
 classes = (
     DOPESHEET_HT_header,
+    DOPESHEET_PT_proportional_edit,
     DOPESHEET_MT_editor_menus,
     DOPESHEET_MT_view,
     DOPESHEET_MT_select,

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+ * Copyright 2017 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -745,8 +745,8 @@ void gpu_select_pick_cache_load_id(void)
         }
       }
       else {
-        if (depth_buf_subrect_depth_any_filled(
-                rect_depth, rect_depth->next, &ps->cache.sub_rect)) {
+        if (depth_buf_subrect_depth_any_filled(rect_depth, rect_depth->next, &ps->cache.sub_rect))
+        {
           gpu_select_load_id_pass_nearest(rect_depth, rect_depth->next);
         }
       }

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004-2008 Blender Foundation. All rights reserved. */
+ * Copyright 2004-2008 Blender Foundation */
 
 /** \file
  * \ingroup spview3d
@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -37,10 +37,6 @@
 #include "UI_resources.h"
 
 #include "view3d_intern.h"
-
-#define B_SEL_VERT 110
-#define B_SEL_EDGE 111
-#define B_SEL_FACE 112
 
 /* -------------------------------------------------------------------- */
 /** \name Toggle Matcap Flip Operator

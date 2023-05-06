@@ -21,11 +21,84 @@ namespace blender::draw::image_engine {
 
 constexpr float EPSILON_UV_BOUNDS = 0.00001f;
 
+class BaseTextureMethod {
+ protected:
+  IMAGE_InstanceData *instance_data;
+
+ protected:
+  BaseTextureMethod(IMAGE_InstanceData *instance_data) : instance_data(instance_data) {}
+
+ public:
+  /**
+   * \brief Ensure enough texture infos are allocated in `instance_data`.
+   */
+  virtual void ensure_texture_infos() = 0;
+
+  /**
+   * \brief Update the uv and region bounds of all texture_infos of instance_data.
+   */
+  virtual void update_bounds(const ARegion *region) = 0;
+
+  virtual void ensure_gpu_textures_allocation() = 0;
+};
+
+/**
+ * Uses a single texture that covers the area. Every zoom/pan change requires a full
+ * update of the texture.
+ */
+class OneTexture : public BaseTextureMethod {
+ public:
+  OneTexture(IMAGE_InstanceData *instance_data) : BaseTextureMethod(instance_data) {}
+  void ensure_texture_infos() override
+  {
+    instance_data->texture_infos.resize(1);
+  }
+
+  void update_bounds(const ARegion *region) override
+  {
+    float4x4 mat = math::invert(float4x4(instance_data->ss_to_texture));
+    float2 region_uv_min = math::transform_point(mat, float3(0.0f, 0.0f, 0.0f)).xy();
+    float2 region_uv_max = math::transform_point(mat, float3(1.0f, 1.0f, 0.0f)).xy();
+
+    TextureInfo &texture_info = instance_data->texture_infos[0];
+    texture_info.tile_id = int2(0);
+    texture_info.need_full_update = false;
+    rctf new_clipping_uv_bounds;
+    BLI_rctf_init(&new_clipping_uv_bounds,
+                  region_uv_min.x,
+                  region_uv_max.x,
+                  region_uv_min.y,
+                  region_uv_max.y);
+
+    if (memcmp(&new_clipping_uv_bounds, &texture_info.clipping_uv_bounds, sizeof(rctf))) {
+      texture_info.clipping_uv_bounds = new_clipping_uv_bounds;
+      texture_info.need_full_update = true;
+    }
+
+    rcti new_clipping_bounds;
+    BLI_rcti_init(&new_clipping_bounds, 0, region->winx, 0, region->winy);
+    if (memcmp(&new_clipping_bounds, &texture_info.clipping_bounds, sizeof(rcti))) {
+      texture_info.clipping_bounds = new_clipping_bounds;
+      texture_info.need_full_update = true;
+    }
+  }
+
+  void ensure_gpu_textures_allocation() override
+  {
+    TextureInfo &texture_info = instance_data->texture_infos[0];
+    int2 texture_size = int2(BLI_rcti_size_x(&texture_info.clipping_bounds),
+                             BLI_rcti_size_y(&texture_info.clipping_bounds));
+    texture_info.ensure_gpu_texture(texture_size);
+  }
+};
+
 /**
  * \brief Screen space method using a multiple textures covering the region.
  *
+ * This method improves panning speed, but has some drawing artifacts and
+ * therefore isn't selected.
  */
-template<size_t Divisions> class ScreenTileTextures {
+template<size_t Divisions> class ScreenTileTextures : public BaseTextureMethod {
  public:
   static const size_t TexturesPerDimension = Divisions + 1;
   static const size_t TexturesRequired = TexturesPerDimension * TexturesPerDimension;
@@ -38,19 +111,17 @@ template<size_t Divisions> class ScreenTileTextures {
   struct TextureInfoBounds {
     TextureInfo *info = nullptr;
     rctf uv_bounds;
+    /* Offset of this tile to be drawn on the screen (number of tiles from bottom left corner). */
+    int2 tile_id;
   };
 
-  IMAGE_InstanceData *instance_data;
-
  public:
-  ScreenTileTextures(IMAGE_InstanceData *instance_data) : instance_data(instance_data)
-  {
-  }
+  ScreenTileTextures(IMAGE_InstanceData *instance_data) : BaseTextureMethod(instance_data) {}
 
   /**
    * \brief Ensure enough texture infos are allocated in `instance_data`.
    */
-  void ensure_texture_infos()
+  void ensure_texture_infos() override
   {
     instance_data->texture_infos.resize(TexturesRequired);
   }
@@ -58,7 +129,7 @@ template<size_t Divisions> class ScreenTileTextures {
   /**
    * \brief Update the uv and region bounds of all texture_infos of instance_data.
    */
-  void update_bounds(const ARegion *region)
+  void update_bounds(const ARegion *region) override
   {
     /* determine uv_area of the region. */
     Vector<TextureInfo *> unassigned_textures;
@@ -78,13 +149,22 @@ template<size_t Divisions> class ScreenTileTextures {
     rctf region_uv_bounds;
     BLI_rctf_init(
         &region_uv_bounds, region_uv_min.x, region_uv_max.x, region_uv_min.y, region_uv_max.y);
-    update_region_bounds_from_uv_bounds(region_uv_bounds, float2(region->winx, region->winy));
+    update_region_bounds_from_uv_bounds(region_uv_bounds, int2(region->winx, region->winy));
   }
 
-  void ensure_gpu_textures_allocation()
+  /**
+   * Get the texture size of a single texture for the current settings.
+   */
+  int2 gpu_texture_size() const
   {
     float2 viewport_size = DRW_viewport_size_get();
     int2 texture_size(ceil(viewport_size.x / Divisions), ceil(viewport_size.y / Divisions));
+    return texture_size;
+  }
+
+  void ensure_gpu_textures_allocation() override
+  {
+    int2 texture_size = gpu_texture_size();
     for (TextureInfo &info : instance_data->texture_infos) {
       info.ensure_gpu_texture(texture_size);
     }
@@ -109,6 +189,7 @@ template<size_t Divisions> class ScreenTileTextures {
     for (int x = 0; x < TexturesPerDimension; x++) {
       for (int y = 0; y < TexturesPerDimension; y++) {
         TextureInfoBounds texture_info_bounds;
+        texture_info_bounds.tile_id = int2(x, y);
         BLI_rctf_init(&texture_info_bounds.uv_bounds,
                       uv_coords[x][y].x,
                       uv_coords[x + 1][y + 1].x,
@@ -127,8 +208,10 @@ template<size_t Divisions> class ScreenTileTextures {
       bool assigned = false;
       for (TextureInfoBounds &info_bound : info_bounds) {
         if (info_bound.info == nullptr &&
-            BLI_rctf_compare(&info_bound.uv_bounds, &info.clipping_uv_bounds, 0.001)) {
+            BLI_rctf_compare(&info_bound.uv_bounds, &info.clipping_uv_bounds, 0.001))
+        {
           info_bound.info = &info;
+          info.tile_id = info_bound.tile_id;
           assigned = true;
           break;
         }
@@ -145,20 +228,34 @@ template<size_t Divisions> class ScreenTileTextures {
     for (TextureInfoBounds &info_bound : info_bounds) {
       if (info_bound.info == nullptr) {
         info_bound.info = unassigned_textures.pop_last();
+        info_bound.info->tile_id = info_bound.tile_id;
         info_bound.info->need_full_update = true;
         info_bound.info->clipping_uv_bounds = info_bound.uv_bounds;
       }
     }
   }
 
-  void update_region_bounds_from_uv_bounds(const rctf &region_uv_bounds, const float2 region_size)
+  void update_region_bounds_from_uv_bounds(const rctf &region_uv_bounds, const int2 region_size)
   {
     rctf region_bounds;
     BLI_rctf_init(&region_bounds, 0.0, region_size.x, 0.0, region_size.y);
     float4x4 uv_to_screen;
     BLI_rctf_transform_calc_m4_pivot_min(&region_uv_bounds, &region_bounds, uv_to_screen.ptr());
+    int2 tile_origin(0);
+    for (const TextureInfo &info : instance_data->texture_infos) {
+      if (info.tile_id == int2(0)) {
+        tile_origin = int2(math::transform_point(
+            uv_to_screen,
+            float3(info.clipping_uv_bounds.xmin, info.clipping_uv_bounds.ymin, 0.0)));
+        break;
+      }
+    }
+
+    const int2 texture_size = gpu_texture_size();
     for (TextureInfo &info : instance_data->texture_infos) {
-      info.update_region_bounds_from_uv_bounds(uv_to_screen);
+      int2 bottom_left = tile_origin + texture_size * info.tile_id;
+      int2 top_right = bottom_left + texture_size;
+      BLI_rcti_init(&info.clipping_bounds, bottom_left.x, top_right.x, bottom_left.y, top_right.y);
     }
   }
 };
@@ -200,7 +297,8 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     for (const TextureInfo &info : instance_data->texture_infos) {
       DRWShadingGroup *shgrp_sub = DRW_shgroup_create_sub(shgrp);
       DRW_shgroup_uniform_ivec2_copy(shgrp_sub, "offset", info.offset());
-      DRW_shgroup_uniform_texture_ex(shgrp_sub, "imageTexture", info.texture, GPU_SAMPLER_DEFAULT);
+      DRW_shgroup_uniform_texture_ex(
+          shgrp_sub, "imageTexture", info.texture, GPUSamplerState::default_sampler());
       DRW_shgroup_call_obmat(shgrp_sub, info.batch, image_mat);
     }
   }
@@ -393,8 +491,8 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
             &extracted_buffer, texture_region_width, texture_region_height, 32, IB_rectfloat);
 
         int offset = 0;
-        for (int y = gpu_texture_region_to_update.ymin; y < gpu_texture_region_to_update.ymax;
-             y++) {
+        for (int y = gpu_texture_region_to_update.ymin; y < gpu_texture_region_to_update.ymax; y++)
+        {
           float yf = y / (float)texture_height;
           float v = info.clipping_uv_bounds.ymax * yf + info.clipping_uv_bounds.ymin * (1.0 - yf) -
                     tile_offset_y;
@@ -498,7 +596,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
         tile_buffer.y * (texture_info.clipping_uv_bounds.ymin - image_tile.get_tile_y_offset()),
         tile_buffer.y * (texture_info.clipping_uv_bounds.ymax - image_tile.get_tile_y_offset()));
     BLI_rctf_transform_calc_m4_pivot_min(&tile_area, &texture_area, uv_to_texel.ptr());
-    invert_m4(uv_to_texel.ptr());
+    uv_to_texel = math::invert(uv_to_texel);
 
     rctf crop_rect;
     rctf *crop_rect_ptr = nullptr;
@@ -585,6 +683,6 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     DRW_view_set_active(nullptr);
     GPU_framebuffer_bind(dfbl->default_fb);
   }
-};  // namespace clipping
+};
 
 }  // namespace blender::draw::image_engine

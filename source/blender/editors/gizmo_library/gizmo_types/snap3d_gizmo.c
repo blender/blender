@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup edgizmolib
@@ -123,30 +123,9 @@ void ED_gizmotypes_snap_3d_data_get(const struct bContext *C,
 /** \name RNA callbacks
  * \{ */
 
-/* Based on 'rna_GizmoProperties_find_operator'. */
 static SnapGizmo3D *gizmo_snap_rna_find_operator(PointerRNA *ptr)
 {
-  IDProperty *properties = ptr->data;
-  for (bScreen *screen = G_MAIN->screens.first; screen; screen = screen->id.next) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area->spacetype != SPACE_VIEW3D) {
-        continue;
-      }
-      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-        if (region->regiontype == RGN_TYPE_WINDOW && region->gizmo_map) {
-          wmGizmoMap *gzmap = region->gizmo_map;
-          LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, WM_gizmomap_group_list(gzmap)) {
-            LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
-              if (gz->properties == properties) {
-                return (SnapGizmo3D *)gz;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  return NULL;
+  return (SnapGizmo3D *)gizmo_find_from_properties(ptr->data, SPACE_VIEW3D, RGN_TYPE_WINDOW);
 }
 
 static V3DSnapCursorState *gizmo_snap_state_from_rna_get(struct PointerRNA *ptr)
@@ -243,7 +222,8 @@ static bool snap_cursor_poll(ARegion *region, void *data)
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)data;
   if (!(snap_gizmo->gizmo.state & WM_GIZMO_STATE_HIGHLIGHT) &&
-      !(snap_gizmo->gizmo.flag & WM_GIZMO_DRAW_VALUE)) {
+      !(snap_gizmo->gizmo.flag & WM_GIZMO_DRAW_VALUE))
+  {
     return false;
   }
 

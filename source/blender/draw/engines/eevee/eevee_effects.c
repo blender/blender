@@ -118,8 +118,13 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
                                   });
   }
   else {
-    DRW_texture_ensure_2d(
-        &txl->maxzbuffer, UNPACK2(effects->hiz_size), GPU_DEPTH_COMPONENT24, DRW_TEX_MIPMAP);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ |
+                             GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    DRW_texture_ensure_2d_ex(&txl->maxzbuffer,
+                             UNPACK2(effects->hiz_size),
+                             GPU_DEPTH_COMPONENT24,
+                             usage,
+                             DRW_TEX_MIPMAP);
     GPU_framebuffer_ensure_config(&fbl->maxzbuffer_fb,
                                   {
                                       GPU_ATTACHMENT_TEXTURE(txl->maxzbuffer),
@@ -146,10 +151,13 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
    * Used for SSReflections & SSRefractions.
    */
   if ((effects->enabled_effects & EFFECT_RADIANCE_BUFFER) != 0) {
-    DRW_texture_ensure_2d(&txl->filtered_radiance,
-                          UNPACK2(effects->hiz_size),
-                          GPU_R11F_G11F_B10F,
-                          DRW_TEX_FILTER | DRW_TEX_MIPMAP);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ |
+                             GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    DRW_texture_ensure_2d_ex(&txl->filtered_radiance,
+                             UNPACK2(effects->hiz_size),
+                             GPU_R11F_G11F_B10F,
+                             usage,
+                             DRW_TEX_FILTER | DRW_TEX_MIPMAP);
 
     GPU_framebuffer_ensure_config(&fbl->radiance_filtered_fb,
                                   {
@@ -166,8 +174,9 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
    * Normal buffer for deferred passes.
    */
   if ((effects->enabled_effects & EFFECT_NORMAL_BUFFER) != 0) {
-    effects->ssr_normal_input = DRW_texture_pool_query_2d(
-        size_fs[0], size_fs[1], GPU_RG16, &draw_engine_eevee_type);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    effects->ssr_normal_input = DRW_texture_pool_query_2d_ex(
+        size_fs[0], size_fs[1], GPU_RG16, usage, &draw_engine_eevee_type);
 
     GPU_framebuffer_texture_attach(fbl->main_fb, effects->ssr_normal_input, 1, 0);
   }
@@ -179,8 +188,9 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
    * Motion vector buffer for correct TAA / motion blur.
    */
   if ((effects->enabled_effects & EFFECT_VELOCITY_BUFFER) != 0) {
-    effects->velocity_tx = DRW_texture_pool_query_2d(
-        size_fs[0], size_fs[1], GPU_RGBA16, &draw_engine_eevee_type);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    effects->velocity_tx = DRW_texture_pool_query_2d_ex(
+        size_fs[0], size_fs[1], GPU_RGBA16, usage, &draw_engine_eevee_type);
 
     GPU_framebuffer_ensure_config(&fbl->velocity_fb,
                                   {
@@ -245,7 +255,8 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
     DRW_PASS_CREATE(psl->color_downsample_ps, DRW_STATE_WRITE_COLOR);
     grp = DRW_shgroup_create(EEVEE_shaders_effect_downsample_sh_get(), psl->color_downsample_ps);
-    DRW_shgroup_uniform_texture_ex(grp, "source", txl->filtered_radiance, GPU_SAMPLER_FILTER);
+    const GPUSamplerState sampler_state = {GPU_SAMPLER_FILTERING_LINEAR};
+    DRW_shgroup_uniform_texture_ex(grp, "source", txl->filtered_radiance, sampler_state);
     DRW_shgroup_uniform_vec2(grp, "texelSize", e_data.texel_size, 1);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
@@ -379,7 +390,8 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src, int l
   GPU_framebuffer_bind(fbl->main_fb);
 
   if (GPU_mip_render_workaround() ||
-      GPU_type_matches(GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+      GPU_type_matches(GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_ANY))
+  {
     /* Fix dot corruption on intel HD5XX/HD6XX series. */
     GPU_flush();
   }
@@ -492,7 +504,8 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   if (!stl->g_data->valid_double_buffer &&
       ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0) &&
-      (DRW_state_is_image_render() == false)) {
+      (DRW_state_is_image_render() == false))
+  {
     /* If history buffer is not valid request another frame.
      * This fix black reflections on area resize. */
     DRW_viewport_request_redraw();

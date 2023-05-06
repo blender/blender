@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+ * Copyright 2017 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -36,7 +36,13 @@
 
 BLI_INLINE eParticleRefineShaderType drw_hair_shader_type_get()
 {
-  if (GPU_compute_shader_support() && GPU_shader_storage_buffer_objects_support()) {
+  /* NOTE: Hair refine is faster using transform feedback via vertex processing pipeline with Metal
+   * and Apple Silicon GPUs. This is also because vertex work can more easily be executed in
+   * parallel with fragment work, whereas compute inserts an explicit dependency,
+   * due to switching of command encoder types. */
+  if (GPU_compute_shader_support() && GPU_shader_storage_buffer_objects_support() &&
+      (GPU_backend_get_type() != GPU_BACKEND_METAL))
+  {
     return PART_REFINE_SHADER_COMPUTE;
   }
   if (GPU_transform_feedback_support()) {

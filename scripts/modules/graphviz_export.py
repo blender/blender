@@ -25,8 +25,8 @@ def compat_str(text, line_length=0):
             text_ls.append(text)
         text = '\n  '.join(text_ls)
 
-    #text = text.replace('.', '.\n')
-    #text = text.replace(']', ']\n')
+    # text = text.replace('.', '.\n')
+    # text = text.replace(']', ']\n')
     text = text.replace("\n", "\\n")
     text = text.replace('"', '\\"')
     return text
@@ -91,7 +91,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
             parent_name = parent.name
             connected = bone.use_connect
         elif FAKE_PARENT:
-            parent_name = 'Object::%s' % obj.name
+            parent_name = "Object::%s" % obj.name
             connected = False
         else:
             continue
@@ -135,7 +135,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
             if not rna_path.startswith("pose.bones["):
                 return None
 
-            #rna_path_bone = rna_path[:rna_path.index("]") + 1]
+            # rna_path_bone = rna_path[:rna_path.index("]") + 1]
             # return obj.path_resolve(rna_path_bone)
             bone_name = rna_path.split("[")[1].split("]")[0]
             return obj.pose.bones[bone_name[1:-1]]

@@ -2,7 +2,10 @@
 import bpy
 from bpy.types import Menu
 from bl_ui import node_add_menu
-from bpy.app.translations import pgettext_iface as iface_
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    contexts as i18n_contexts,
+)
 
 
 class NODE_MT_geometry_node_GEO_ATTRIBUTE(Menu):
@@ -217,6 +220,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_SAMPLE(Menu):
     def draw(self, _context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeProximity")
+        node_add_menu.add_node_type(layout, "GeometryNodeIndexOfNearest")
         node_add_menu.add_node_type(layout, "GeometryNodeRaycast")
         node_add_menu.add_node_type(layout, "GeometryNodeSampleIndex")
         node_add_menu.add_node_type(layout, "GeometryNodeSampleNearest")
@@ -238,6 +242,7 @@ class NODE_MT_geometry_node_GEO_INPUT(Menu):
 class NODE_MT_geometry_node_GEO_INPUT_CONSTANT(Menu):
     bl_idname = "NODE_MT_geometry_node_GEO_INPUT_CONSTANT"
     bl_label = "Constant"
+    bl_translation_context = i18n_contexts.id_nodetree
 
     def draw(self, _context):
         layout = self.layout
@@ -375,7 +380,7 @@ class NODE_MT_geometry_node_GEO_MESH_OPERATIONS(Menu):
     bl_idname = "NODE_MT_geometry_node_GEO_MESH_OPERATIONS"
     bl_label = "Operations"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeDualMesh")
         node_add_menu.add_node_type(layout, "GeometryNodeEdgePathsToCurves")
@@ -385,6 +390,8 @@ class NODE_MT_geometry_node_GEO_MESH_OPERATIONS(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeMeshBoolean")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshToCurve")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshToPoints")
+        if context.preferences.experimental.use_new_volume_nodes:
+            node_add_menu.add_node_type(layout, "GeometryNodeMeshToSDFVolume")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshToVolume")
         node_add_menu.add_node_type(layout, "GeometryNodeScaleElements")
         node_add_menu.add_node_type(layout, "GeometryNodeSplitEdges")
@@ -417,13 +424,13 @@ class NODE_MT_geometry_node_mesh_topology(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "GeometryNodeCornersOfFace"),
-        node_add_menu.add_node_type(layout, "GeometryNodeCornersOfVertex"),
-        node_add_menu.add_node_type(layout, "GeometryNodeEdgesOfCorner"),
-        node_add_menu.add_node_type(layout, "GeometryNodeEdgesOfVertex"),
-        node_add_menu.add_node_type(layout, "GeometryNodeFaceOfCorner"),
-        node_add_menu.add_node_type(layout, "GeometryNodeOffsetCornerInFace"),
-        node_add_menu.add_node_type(layout, "GeometryNodeVertexOfCorner"),
+        node_add_menu.add_node_type(layout, "GeometryNodeCornersOfFace")
+        node_add_menu.add_node_type(layout, "GeometryNodeCornersOfVertex")
+        node_add_menu.add_node_type(layout, "GeometryNodeEdgesOfCorner")
+        node_add_menu.add_node_type(layout, "GeometryNodeEdgesOfVertex")
+        node_add_menu.add_node_type(layout, "GeometryNodeFaceOfCorner")
+        node_add_menu.add_node_type(layout, "GeometryNodeOffsetCornerInFace")
+        node_add_menu.add_node_type(layout, "GeometryNodeVertexOfCorner")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -442,16 +449,28 @@ class NODE_MT_category_GEO_POINT(Menu):
     bl_idname = "NODE_MT_category_GEO_POINT"
     bl_label = "Point"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeDistributePointsInVolume")
         node_add_menu.add_node_type(layout, "GeometryNodeDistributePointsOnFaces")
         layout.separator()
         node_add_menu.add_node_type(layout, "GeometryNodePoints")
         node_add_menu.add_node_type(layout, "GeometryNodePointsToVertices")
+        if context.preferences.experimental.use_new_volume_nodes:
+            node_add_menu.add_node_type(layout, "GeometryNodePointsToSDFVolume")
         node_add_menu.add_node_type(layout, "GeometryNodePointsToVolume")
         layout.separator()
         node_add_menu.add_node_type(layout, "GeometryNodeSetPointRadius")
+        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+
+
+class NODE_MT_category_simulation(Menu):
+    bl_idname = "NODE_MT_category_simulation"
+    bl_label = "Simulation"
+
+    def draw(self, _context):
+        layout = self.layout
+        node_add_menu.add_simulation_zone(layout, label="Simulation Zone")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -584,11 +603,17 @@ class NODE_MT_category_GEO_VECTOR(Menu):
 class NODE_MT_category_GEO_VOLUME(Menu):
     bl_idname = "NODE_MT_category_GEO_VOLUME"
     bl_label = "Volume"
+    bl_translation_context = i18n_contexts.id_id
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeVolumeCube")
         node_add_menu.add_node_type(layout, "GeometryNodeVolumeToMesh")
+        if context.preferences.experimental.use_new_volume_nodes:
+            layout.separator()
+            node_add_menu.add_node_type(layout, "GeometryNodeMeanFilterSDFVolume")
+            node_add_menu.add_node_type(layout, "GeometryNodeOffsetSDFVolume")
+            node_add_menu.add_node_type(layout, "GeometryNodeSDFVolumeSphere")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -631,6 +656,8 @@ class NODE_MT_geometry_node_add_all(Menu):
         layout.menu("NODE_MT_category_GEO_POINT")
         layout.menu("NODE_MT_category_GEO_VOLUME")
         layout.separator()
+        layout.menu("NODE_MT_category_simulation")
+        layout.separator()
         layout.menu("NODE_MT_geometry_node_GEO_MATERIAL")
         layout.menu("NODE_MT_category_GEO_TEXTURE")
         layout.menu("NODE_MT_category_GEO_UTILITIES")
@@ -670,6 +697,7 @@ classes = (
     NODE_MT_category_PRIMITIVES_MESH,
     NODE_MT_geometry_node_mesh_topology,
     NODE_MT_category_GEO_POINT,
+    NODE_MT_category_simulation,
     NODE_MT_category_GEO_VOLUME,
     NODE_MT_geometry_node_GEO_MATERIAL,
     NODE_MT_category_GEO_TEXTURE,

@@ -259,4 +259,25 @@ TEST(math_vec_types, DivideFloatByVectorSmall)
   EXPECT_FLOAT_EQ(result.y, 1.0f);
 }
 
+TEST(math_vec_types, SwizzleReinterpret)
+{
+  const float2 v01(0, 1);
+  const float2 v12(1, 2);
+  const float2 v23(2, 3);
+  const float3 v012(0, 1, 2);
+  const float3 v123(1, 2, 3);
+  const float4 v0123(0, 1, 2, 3);
+  /* Identity. */
+  EXPECT_EQ(v01.xy(), v01);
+  EXPECT_EQ(v012.xyz(), v012);
+  EXPECT_EQ(v0123.xyzw(), v0123);
+  /* Masking. */
+  EXPECT_EQ(v012.xy(), v01);
+  EXPECT_EQ(v0123.xyz(), v012);
+  /* Offset. */
+  EXPECT_EQ(v0123.yz(), v12);
+  EXPECT_EQ(v0123.zw(), v23);
+  EXPECT_EQ(v0123.yzw(), v123);
+}
+
 }  // namespace blender::tests

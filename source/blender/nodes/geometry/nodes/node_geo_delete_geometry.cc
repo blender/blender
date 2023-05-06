@@ -14,14 +14,12 @@
 #include "BKE_curves.hh"
 #include "BKE_customdata.h"
 #include "BKE_instances.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_delete_geometry_cc {
-
-using blender::bke::CustomDataAttributes;
 
 template<typename T>
 static void copy_data_based_on_map(const Span<T> src,
@@ -46,7 +44,7 @@ static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes
                             bke::MutableAttributeAccessor dst_attributes,
                             const Span<eAttrDomain> domains)
 {
-  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     GAttributeReader attribute = src_attributes.lookup(attribute_id);
     if (!attribute) {
@@ -77,7 +75,7 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
                                           const eAttrDomain domain,
                                           const IndexMask mask)
 {
-  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     GAttributeReader attribute = src_attributes.lookup(attribute_id);
     if (!attribute) {
@@ -106,7 +104,7 @@ static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind
                                          const eAttrDomain domain,
                                          const Span<int> index_map)
 {
-  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     GAttributeReader attribute = src_attributes.lookup(attribute_id);
     if (!attribute) {
@@ -123,7 +121,7 @@ static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind
       continue;
     }
 
-    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
       VArraySpan<T> span{attribute.varray.typed<T>()};
       MutableSpan<T> out_span = result_attribute.span.typed<T>();
@@ -140,15 +138,12 @@ static void copy_face_corner_attributes(const Map<AttributeIDRef, AttributeKind>
                                         const Span<int> selected_poly_indices,
                                         const Mesh &mesh_in)
 {
-  const Span<MPoly> polys = mesh_in.polys();
+  const OffsetIndices polys = mesh_in.polys();
   Vector<int64_t> indices;
   indices.reserve(selected_loops_num);
   for (const int src_poly_index : selected_poly_indices) {
-    const MPoly &src_poly = polys[src_poly_index];
-    const int src_loop_start = src_poly.loopstart;
-    const int tot_loop = src_poly.totloop;
-    for (const int i : IndexRange(tot_loop)) {
-      indices.append_unchecked(src_loop_start + i);
+    for (const int corner : polys[src_poly_index]) {
+      indices.append_unchecked(corner);
     }
   }
   copy_attributes_based_on_mask(
@@ -158,8 +153,8 @@ static void copy_face_corner_attributes(const Map<AttributeIDRef, AttributeKind>
 static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh, Mesh &dst_mesh, Span<int> edge_map)
 {
   BLI_assert(src_mesh.totedge == edge_map.size());
-  const Span<MEdge> src_edges = src_mesh.edges();
-  MutableSpan<MEdge> dst_edges = dst_mesh.edges_for_write();
+  const Span<int2> src_edges = src_mesh.edges();
+  MutableSpan<int2> dst_edges = dst_mesh.edges_for_write();
 
   threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange range) {
     for (const int i_src : range) {
@@ -179,8 +174,8 @@ static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
 {
   BLI_assert(src_mesh.totvert == vertex_map.size());
   BLI_assert(src_mesh.totedge == edge_map.size());
-  const Span<MEdge> src_edges = src_mesh.edges();
-  MutableSpan<MEdge> dst_edges = dst_mesh.edges_for_write();
+  const Span<int2> src_edges = src_mesh.edges();
+  MutableSpan<int2> dst_edges = dst_mesh.edges_for_write();
 
   threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange range) {
     for (const int i_src : range) {
@@ -188,12 +183,9 @@ static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
       if (i_dst == -1) {
         continue;
       }
-      const MEdge &e_src = src_edges[i_src];
-      MEdge &e_dst = dst_edges[i_dst];
 
-      e_dst = e_src;
-      e_dst.v1 = vertex_map[e_src.v1];
-      e_dst.v2 = vertex_map[e_src.v2];
+      dst_edges[i_dst][0] = vertex_map[src_edges[i_src][0]];
+      dst_edges[i_dst][1] = vertex_map[src_edges[i_src][1]];
     }
   });
 }
@@ -205,28 +197,30 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> masked_poly_indices,
                                           Span<int> new_loop_starts)
 {
-  const Span<MPoly> src_polys = src_mesh.polys();
-  const Span<MLoop> src_loops = src_mesh.loops();
-  MutableSpan<MPoly> dst_polys = dst_mesh.polys_for_write();
-  MutableSpan<MLoop> dst_loops = dst_mesh.loops_for_write();
+  const OffsetIndices src_polys = src_mesh.polys();
+  const Span<int> src_corner_verts = src_mesh.corner_verts();
+  const Span<int> src_corner_edges = src_mesh.corner_edges();
+  MutableSpan<int> dst_poly_offsets = dst_mesh.poly_offsets_for_write();
+  MutableSpan<int> dst_corner_verts = dst_mesh.corner_verts_for_write();
+  MutableSpan<int> dst_corner_edges = dst_mesh.corner_edges_for_write();
 
   threading::parallel_for(masked_poly_indices.index_range(), 512, [&](const IndexRange range) {
     for (const int i_dst : range) {
       const int i_src = masked_poly_indices[i_dst];
+      const IndexRange poly_src = src_polys[i_src];
+      const Span<int> src_poly_verts = src_corner_verts.slice(poly_src);
+      const Span<int> src_poly_edges = src_corner_edges.slice(poly_src);
 
-      const MPoly &mp_src = src_polys[i_src];
-      MPoly &mp_dst = dst_polys[i_dst];
-      const int i_ml_src = mp_src.loopstart;
-      const int i_ml_dst = new_loop_starts[i_dst];
+      dst_poly_offsets[i_dst] = new_loop_starts[i_dst];
+      MutableSpan<int> dst_poly_verts = dst_corner_verts.slice(dst_poly_offsets[i_dst],
+                                                               poly_src.size());
+      MutableSpan<int> dst_poly_edges = dst_corner_edges.slice(dst_poly_offsets[i_dst],
+                                                               poly_src.size());
 
-      const MLoop *ml_src = &src_loops[i_ml_src];
-      MLoop *ml_dst = &dst_loops[i_ml_dst];
+      dst_poly_verts.copy_from(src_poly_verts);
 
-      mp_dst = mp_src;
-      mp_dst.loopstart = i_ml_dst;
-      for (int i : IndexRange(mp_src.totloop)) {
-        ml_dst[i].v = ml_src[i].v;
-        ml_dst[i].e = edge_map[ml_src[i].e];
+      for (const int i : IndexRange(poly_src.size())) {
+        dst_poly_edges[i] = edge_map[src_poly_edges[i]];
       }
     }
   });
@@ -238,29 +232,28 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> masked_poly_indices,
                                           Span<int> new_loop_starts)
 {
-  const Span<MPoly> src_polys = src_mesh.polys();
-  const Span<MLoop> src_loops = src_mesh.loops();
-  MutableSpan<MPoly> dst_polys = dst_mesh.polys_for_write();
-  MutableSpan<MLoop> dst_loops = dst_mesh.loops_for_write();
+  const OffsetIndices src_polys = src_mesh.polys();
+  const Span<int> src_corner_verts = src_mesh.corner_verts();
+  const Span<int> src_corner_edges = src_mesh.corner_edges();
+  MutableSpan<int> dst_poly_offsets = dst_mesh.poly_offsets_for_write();
+  MutableSpan<int> dst_corner_verts = dst_mesh.corner_verts_for_write();
+  MutableSpan<int> dst_corner_edges = dst_mesh.corner_edges_for_write();
 
   threading::parallel_for(masked_poly_indices.index_range(), 512, [&](const IndexRange range) {
     for (const int i_dst : range) {
       const int i_src = masked_poly_indices[i_dst];
+      const IndexRange poly_src = src_polys[i_src];
+      const Span<int> src_poly_verts = src_corner_verts.slice(poly_src);
+      const Span<int> src_poly_edges = src_corner_edges.slice(poly_src);
 
-      const MPoly &mp_src = src_polys[i_src];
-      MPoly &mp_dst = dst_polys[i_dst];
-      const int i_ml_src = mp_src.loopstart;
-      const int i_ml_dst = new_loop_starts[i_dst];
+      dst_poly_offsets[i_dst] = new_loop_starts[i_dst];
+      MutableSpan<int> dst_poly_verts = dst_corner_verts.slice(dst_poly_offsets[i_dst],
+                                                               poly_src.size());
+      MutableSpan<int> dst_poly_edges = dst_corner_edges.slice(dst_poly_offsets[i_dst],
+                                                               poly_src.size());
 
-      const MLoop *ml_src = &src_loops[i_ml_src];
-      MLoop *ml_dst = &dst_loops[i_ml_dst];
-
-      mp_dst = mp_src;
-      mp_dst.loopstart = i_ml_dst;
-      for (int i : IndexRange(mp_src.totloop)) {
-        ml_dst[i].v = ml_src[i].v;
-        ml_dst[i].e = ml_src[i].e;
-      }
+      dst_poly_verts.copy_from(src_poly_verts);
+      dst_poly_edges.copy_from(src_poly_edges);
     }
   });
 }
@@ -272,28 +265,31 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> masked_poly_indices,
                                           Span<int> new_loop_starts)
 {
-  const Span<MPoly> src_polys = src_mesh.polys();
-  const Span<MLoop> src_loops = src_mesh.loops();
-  MutableSpan<MPoly> dst_polys = dst_mesh.polys_for_write();
-  MutableSpan<MLoop> dst_loops = dst_mesh.loops_for_write();
+  const OffsetIndices src_polys = src_mesh.polys();
+  const Span<int> src_corner_verts = src_mesh.corner_verts();
+  const Span<int> src_corner_edges = src_mesh.corner_edges();
+  MutableSpan<int> dst_poly_offsets = dst_mesh.poly_offsets_for_write();
+  MutableSpan<int> dst_corner_verts = dst_mesh.corner_verts_for_write();
+  MutableSpan<int> dst_corner_edges = dst_mesh.corner_edges_for_write();
 
   threading::parallel_for(masked_poly_indices.index_range(), 512, [&](const IndexRange range) {
     for (const int i_dst : range) {
       const int i_src = masked_poly_indices[i_dst];
+      const IndexRange poly_src = src_polys[i_src];
+      const Span<int> src_poly_verts = src_corner_verts.slice(poly_src);
+      const Span<int> src_poly_edges = src_corner_edges.slice(poly_src);
 
-      const MPoly &mp_src = src_polys[i_src];
-      MPoly &mp_dst = dst_polys[i_dst];
-      const int i_ml_src = mp_src.loopstart;
-      const int i_ml_dst = new_loop_starts[i_dst];
+      dst_poly_offsets[i_dst] = new_loop_starts[i_dst];
+      MutableSpan<int> dst_poly_verts = dst_corner_verts.slice(dst_poly_offsets[i_dst],
+                                                               poly_src.size());
+      MutableSpan<int> dst_poly_edges = dst_corner_edges.slice(dst_poly_offsets[i_dst],
+                                                               poly_src.size());
 
-      const MLoop *ml_src = &src_loops[i_ml_src];
-      MLoop *ml_dst = &dst_loops[i_ml_dst];
-
-      mp_dst = mp_src;
-      mp_dst.loopstart = i_ml_dst;
-      for (int i : IndexRange(mp_src.totloop)) {
-        ml_dst[i].v = vertex_map[ml_src[i].v];
-        ml_dst[i].e = edge_map[ml_src[i].e];
+      for (const int i : IndexRange(poly_src.size())) {
+        dst_poly_verts[i] = vertex_map[src_poly_verts[i]];
+      }
+      for (const int i : IndexRange(poly_src.size())) {
+        dst_poly_edges[i] = edge_map[src_poly_edges[i]];
       }
     }
   });
@@ -308,7 +304,7 @@ static void delete_curves_selection(GeometrySet &geometry_set,
   const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
 
   const int domain_size = src_curves.attributes().domain_size(selection_domain);
-  bke::CurvesFieldContext field_context{src_curves, selection_domain};
+  const bke::CurvesFieldContext field_context{src_curves, selection_domain};
   fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -340,7 +336,7 @@ static void separate_point_cloud_selection(
 {
   const PointCloud &src_pointcloud = *geometry_set.get_pointcloud_for_read();
 
-  bke::PointCloudFieldContext field_context{src_pointcloud};
+  const bke::PointCloudFieldContext field_context{src_pointcloud};
   fn::FieldEvaluator evaluator{field_context, src_pointcloud.totpoint};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -412,14 +408,14 @@ static void compute_selected_edges_from_vertex_selection(const Mesh &mesh,
                                                          int *r_selected_edges_num)
 {
   BLI_assert(mesh.totedge == r_edge_map.size());
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
 
   int selected_edges_num = 0;
   for (const int i : IndexRange(mesh.totedge)) {
-    const MEdge &edge = edges[i];
+    const int2 &edge = edges[i];
 
     /* Only add the edge if both vertices will be in the new mesh. */
-    if (vertex_selection[edge.v1] && vertex_selection[edge.v2]) {
+    if (vertex_selection[edge[0]] && vertex_selection[edge[1]]) {
       r_edge_map[i] = selected_edges_num;
       selected_edges_num++;
     }
@@ -439,20 +435,19 @@ static void compute_selected_polys_from_vertex_selection(const Mesh &mesh,
                                                          int *r_selected_loops_num)
 {
   BLI_assert(mesh.totvert == vertex_selection.size());
-  const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const OffsetIndices polys = mesh.polys();
+  const Span<int> corner_verts = mesh.corner_verts();
 
   r_selected_poly_indices.reserve(mesh.totpoly);
   r_loop_starts.reserve(mesh.totloop);
 
   int selected_loops_num = 0;
   for (const int i : polys.index_range()) {
-    const MPoly &poly_src = polys[i];
+    const IndexRange poly_src = polys[i];
 
     bool all_verts_in_selection = true;
-    const Span<MLoop> poly_loops = loops.slice(poly_src.loopstart, poly_src.totloop);
-    for (const MLoop &loop : poly_loops) {
-      if (!vertex_selection[loop.v]) {
+    for (const int vert : corner_verts.slice(poly_src)) {
+      if (!vertex_selection[vert]) {
         all_verts_in_selection = false;
         break;
       }
@@ -461,7 +456,7 @@ static void compute_selected_polys_from_vertex_selection(const Mesh &mesh,
     if (all_verts_in_selection) {
       r_selected_poly_indices.append_unchecked(i);
       r_loop_starts.append_unchecked(selected_loops_num);
-      selected_loops_num += poly_src.totloop;
+      selected_loops_num += poly_src.size();
     }
   }
 
@@ -481,21 +476,21 @@ static void compute_selected_verts_and_edges_from_edge_selection(const Mesh &mes
                                                                  int *r_selected_edges_num)
 {
   BLI_assert(mesh.totedge == edge_selection.size());
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
 
   int selected_edges_num = 0;
   int selected_verts_num = 0;
   for (const int i : IndexRange(mesh.totedge)) {
-    const MEdge &edge = edges[i];
+    const int2 &edge = edges[i];
     if (edge_selection[i]) {
       r_edge_map[i] = selected_edges_num;
       selected_edges_num++;
-      if (r_vertex_map[edge.v1] == -1) {
-        r_vertex_map[edge.v1] = selected_verts_num;
+      if (r_vertex_map[edge[0]] == -1) {
+        r_vertex_map[edge[0]] = selected_verts_num;
         selected_verts_num++;
       }
-      if (r_vertex_map[edge.v2] == -1) {
-        r_vertex_map[edge.v2] = selected_verts_num;
+      if (r_vertex_map[edge[1]] == -1) {
+        r_vertex_map[edge[1]] = selected_verts_num;
         selected_verts_num++;
       }
     }
@@ -543,20 +538,19 @@ static void compute_selected_polys_from_edge_selection(const Mesh &mesh,
                                                        int *r_selected_polys_num,
                                                        int *r_selected_loops_num)
 {
-  const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const OffsetIndices polys = mesh.polys();
+  const Span<int> corner_edges = mesh.corner_edges();
 
   r_selected_poly_indices.reserve(mesh.totpoly);
   r_loop_starts.reserve(mesh.totloop);
 
   int selected_loops_num = 0;
   for (const int i : polys.index_range()) {
-    const MPoly &poly_src = polys[i];
+    const IndexRange poly_src = polys[i];
 
     bool all_edges_in_selection = true;
-    const Span<MLoop> poly_loops = loops.slice(poly_src.loopstart, poly_src.totloop);
-    for (const MLoop &loop : poly_loops) {
-      if (!edge_selection[loop.e]) {
+    for (const int edge : corner_edges.slice(poly_src)) {
+      if (!edge_selection[edge]) {
         all_edges_in_selection = false;
         break;
       }
@@ -565,7 +559,7 @@ static void compute_selected_polys_from_edge_selection(const Mesh &mesh,
     if (all_edges_in_selection) {
       r_selected_poly_indices.append_unchecked(i);
       r_loop_starts.append_unchecked(selected_loops_num);
-      selected_loops_num += poly_src.totloop;
+      selected_loops_num += poly_src.size();
     }
   }
 
@@ -714,19 +708,19 @@ static void compute_selected_polys_from_poly_selection(const Mesh &mesh,
                                                        int *r_selected_loops_num)
 {
   BLI_assert(mesh.totpoly == poly_selection.size());
-  const Span<MPoly> polys = mesh.polys();
+  const OffsetIndices polys = mesh.polys();
 
   r_selected_poly_indices.reserve(mesh.totpoly);
   r_loop_starts.reserve(mesh.totloop);
 
   int selected_loops_num = 0;
   for (const int i : polys.index_range()) {
-    const MPoly &poly_src = polys[i];
+    const IndexRange poly_src = polys[i];
     /* We keep this one. */
     if (poly_selection[i]) {
       r_selected_poly_indices.append_unchecked(i);
       r_loop_starts.append_unchecked(selected_loops_num);
-      selected_loops_num += poly_src.totloop;
+      selected_loops_num += poly_src.size();
     }
   }
   *r_selected_polys_num = r_selected_poly_indices.size();
@@ -748,8 +742,8 @@ static void compute_selected_mesh_data_from_poly_selection_edge_face(
 {
   BLI_assert(mesh.totpoly == poly_selection.size());
   BLI_assert(mesh.totedge == r_edge_map.size());
-  const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const OffsetIndices polys = mesh.polys();
+  const Span<int> corner_edges = mesh.corner_edges();
 
   r_edge_map.fill(-1);
 
@@ -759,19 +753,18 @@ static void compute_selected_mesh_data_from_poly_selection_edge_face(
   int selected_loops_num = 0;
   int selected_edges_num = 0;
   for (const int i : polys.index_range()) {
-    const MPoly &poly_src = polys[i];
+    const IndexRange poly_src = polys[i];
     /* We keep this one. */
     if (poly_selection[i]) {
       r_selected_poly_indices.append_unchecked(i);
       r_loop_starts.append_unchecked(selected_loops_num);
-      selected_loops_num += poly_src.totloop;
+      selected_loops_num += poly_src.size();
 
       /* Add the vertices and the edges. */
-      const Span<MLoop> poly_loops = loops.slice(poly_src.loopstart, poly_src.totloop);
-      for (const MLoop &loop : poly_loops) {
+      for (const int edge : corner_edges.slice(poly_src)) {
         /* Check first if it has not yet been added. */
-        if (r_edge_map[loop.e] == -1) {
-          r_edge_map[loop.e] = selected_edges_num;
+        if (r_edge_map[edge] == -1) {
+          r_edge_map[edge] = selected_edges_num;
           selected_edges_num++;
         }
       }
@@ -799,8 +792,9 @@ static void compute_selected_mesh_data_from_poly_selection(const Mesh &mesh,
 {
   BLI_assert(mesh.totpoly == poly_selection.size());
   BLI_assert(mesh.totedge == r_edge_map.size());
-  const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const OffsetIndices polys = mesh.polys();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const Span<int> corner_edges = mesh.corner_edges();
 
   r_vertex_map.fill(-1);
   r_edge_map.fill(-1);
@@ -812,23 +806,24 @@ static void compute_selected_mesh_data_from_poly_selection(const Mesh &mesh,
   int selected_verts_num = 0;
   int selected_edges_num = 0;
   for (const int i : polys.index_range()) {
-    const MPoly &poly_src = polys[i];
+    const IndexRange poly_src = polys[i];
     /* We keep this one. */
     if (poly_selection[i]) {
       r_selected_poly_indices.append_unchecked(i);
       r_loop_starts.append_unchecked(selected_loops_num);
-      selected_loops_num += poly_src.totloop;
+      selected_loops_num += poly_src.size();
 
       /* Add the vertices and the edges. */
-      const Span<MLoop> poly_loops = loops.slice(poly_src.loopstart, poly_src.totloop);
-      for (const MLoop &loop : poly_loops) {
+      for (const int corner : poly_src) {
+        const int vert = corner_verts[corner];
+        const int edge = corner_edges[corner];
         /* Check first if it has not yet been added. */
-        if (r_vertex_map[loop.v] == -1) {
-          r_vertex_map[loop.v] = selected_verts_num;
+        if (r_vertex_map[vert] == -1) {
+          r_vertex_map[vert] = selected_verts_num;
           selected_verts_num++;
         }
-        if (r_edge_map[loop.e] == -1) {
-          r_edge_map[loop.e] = selected_edges_num;
+        if (r_edge_map[edge] == -1) {
+          r_edge_map[edge] = selected_edges_num;
           selected_edges_num++;
         }
       }
@@ -861,6 +856,9 @@ static void do_mesh_separation(GeometrySet &geometry_set,
   Map<AttributeIDRef, AttributeKind> attributes;
   geometry_set.gather_attributes_for_propagation(
       {GEO_COMPONENT_TYPE_MESH}, GEO_COMPONENT_TYPE_MESH, false, propagation_info, attributes);
+  attributes.remove(".edge_verts");
+  attributes.remove(".corner_vert");
+  attributes.remove(".corner_edge");
 
   switch (mode) {
     case GEO_NODE_DELETE_GEOMETRY_MODE_ALL: {
@@ -915,9 +913,8 @@ static void do_mesh_separation(GeometrySet &geometry_set,
       mesh_out = BKE_mesh_new_nomain_from_template(&mesh_in,
                                                    selected_verts_num,
                                                    selected_edges_num,
-                                                   0,
-                                                   selected_loops_num,
-                                                   selected_polys_num);
+                                                   selected_polys_num,
+                                                   selected_loops_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
       copy_masked_edges_to_new_mesh(mesh_in, *mesh_out, vertex_map, edge_map);
@@ -988,15 +985,10 @@ static void do_mesh_separation(GeometrySet &geometry_set,
           BLI_assert_unreachable();
           break;
       }
-      mesh_out = BKE_mesh_new_nomain_from_template(&mesh_in,
-                                                   mesh_in.totvert,
-                                                   selected_edges_num,
-                                                   0,
-                                                   selected_loops_num,
-                                                   selected_polys_num);
+      mesh_out = BKE_mesh_new_nomain_from_template(
+          &mesh_in, mesh_in.totvert, selected_edges_num, selected_polys_num, selected_loops_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
-      mesh_out->vert_positions_for_write().copy_from(mesh_in.vert_positions());
       copy_masked_edges_to_new_mesh(mesh_in, *mesh_out, edge_map);
       copy_masked_polys_to_new_mesh(
           mesh_in, *mesh_out, edge_map, selected_poly_indices, new_loop_starts);
@@ -1020,6 +1012,9 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                   selected_loops_num,
                                   selected_poly_indices,
                                   mesh_in);
+
+      /* Positions are not changed by the operation, so the bounds are the same. */
+      mesh_out->runtime->bounds_cache = mesh_in.runtime->bounds_cache;
       break;
     }
     case GEO_NODE_DELETE_GEOMETRY_MODE_ONLY_FACE: {
@@ -1054,10 +1049,9 @@ static void do_mesh_separation(GeometrySet &geometry_set,
           break;
       }
       mesh_out = BKE_mesh_new_nomain_from_template(
-          &mesh_in, mesh_in.totvert, mesh_in.totedge, 0, selected_loops_num, selected_polys_num);
+          &mesh_in, mesh_in.totvert, mesh_in.totedge, selected_polys_num, selected_loops_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
-      mesh_out->vert_positions_for_write().copy_from(mesh_in.vert_positions());
       mesh_out->edges_for_write().copy_from(mesh_in.edges());
       copy_masked_polys_to_new_mesh(mesh_in, *mesh_out, selected_poly_indices, new_loop_starts);
 
@@ -1077,6 +1071,9 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                   selected_loops_num,
                                   selected_poly_indices,
                                   mesh_in);
+
+      /* Positions are not changed by the operation, so the bounds are the same. */
+      mesh_out->runtime->bounds_cache = mesh_in.runtime->bounds_cache;
       break;
     }
   }
@@ -1091,7 +1088,7 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
                                     const AnonymousAttributePropagationInfo &propagation_info)
 {
   const Mesh &src_mesh = *geometry_set.get_mesh_for_read();
-  bke::MeshFieldContext field_context{src_mesh, selection_domain};
+  const bke::MeshFieldContext field_context{src_mesh, selection_domain};
   fn::FieldEvaluator evaluator{field_context, src_mesh.attributes().domain_size(selection_domain)};
   evaluator.add(selection_field);
   evaluator.evaluate();

@@ -40,7 +40,7 @@ class MTLBatch : public Batch {
     VertexBufferID bufferIds[GPU_BATCH_VBO_MAX_LEN] = {};
     /* Cache life index compares a cache entry with the active MTLBatch state.
      * This is initially set to the cache life index of MTLBatch. If the batch has been modified,
-     * this index is incremented to cheaply invalidate existing cache entries.  */
+     * this index is incremented to cheaply invalidate existing cache entries. */
     uint32_t cache_life_index = 0;
   };
 
@@ -80,10 +80,7 @@ class MTLBatch : public Batch {
   ~MTLBatch(){};
 
   void draw(int v_first, int v_count, int i_first, int i_count) override;
-  void draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset) override
-  {
-    /* TODO(Metal): Support indirect draw commands. */
-  }
+  void draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset) override;
   void multi_draw_indirect(GPUStorageBuf *indirect_buf,
                            int count,
                            intptr_t offset,
@@ -94,7 +91,7 @@ class MTLBatch : public Batch {
 
   /* Returns an initialized RenderComandEncoder for drawing if all is good.
    * Otherwise, nil. */
-  id<MTLRenderCommandEncoder> bind(uint v_first, uint v_count, uint i_first, uint i_count);
+  id<MTLRenderCommandEncoder> bind(uint v_count);
   void unbind();
 
   /* Convenience getters. */
@@ -118,6 +115,7 @@ class MTLBatch : public Batch {
  private:
   void shader_bind();
   void draw_advanced(int v_first, int v_count, int i_first, int i_count);
+  void draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offset);
   int prepare_vertex_binding(MTLVertBuf *verts,
                              MTLRenderPipelineStateDescriptor &desc,
                              const MTLShaderInterface *interface,
@@ -126,8 +124,7 @@ class MTLBatch : public Batch {
 
   id<MTLBuffer> get_emulated_toplogy_buffer(GPUPrimType &in_out_prim_type, uint32_t &v_count);
 
-  void prepare_vertex_descriptor_and_bindings(
-      MTLVertBuf **buffers, int &num_buffers, int v_first, int v_count, int i_first, int i_count);
+  void prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int &num_buffers);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MTLBatch");
 };

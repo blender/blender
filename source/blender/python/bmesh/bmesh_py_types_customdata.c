@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+ * Copyright 2012 Blender Foundation */
 
 /** \file
  * \ingroup pybmesh
@@ -785,11 +785,11 @@ static PyObject *bpy_bmlayercollection_subscript_slice(BPy_BMLayerCollection *se
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (start >= len) {
-    start = len - 1;
+  if (start > len) {
+    start = len;
   }
-  if (stop >= len) {
-    stop = len - 1;
+  if (stop > len) {
+    stop = len;
   }
 
   tuple = PyTuple_New(stop - start);
@@ -899,7 +899,7 @@ static PySequenceMethods bpy_bmlayercollection_as_sequence = {
 };
 
 static PyMappingMethods bpy_bmlayercollection_as_mapping = {
-    /*mp_len*/ (lenfunc)bpy_bmlayercollection_length,
+    /*mp_length*/ (lenfunc)bpy_bmlayercollection_length,
     /*mp_subscript*/ (binaryfunc)bpy_bmlayercollection_subscript,
     /*mp_ass_subscript*/ (objobjargproc)NULL,
 };
@@ -915,7 +915,7 @@ static PyObject *bpy_bmlayercollection_iter(BPy_BMLayerCollection *self)
 
   BPY_BM_CHECK_OBJ(self);
 
-  ret = bpy_bmlayercollection_subscript_slice(self, 0, PY_SSIZE_T_MIN);
+  ret = bpy_bmlayercollection_subscript_slice(self, 0, PY_SSIZE_T_MAX);
 
   if (ret) {
     iter = PyObject_GetIter(ret);
@@ -1149,7 +1149,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
         PyErr_SetString(PyExc_ValueError, "BMElem[layer]: layer is from another mesh");
         return NULL;
       }
-      ret = BPy_BMLoopUV_CreatePyObject(py_ele->bm, (BMLoop *)py_ele->ele);
+      ret = BPy_BMLoopUV_CreatePyObject(py_ele->bm, (BMLoop *)py_ele->ele, py_layer->index);
       break;
     }
     case CD_PROP_BYTE_COLOR: {
@@ -1266,8 +1266,8 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
     }
     case CD_SHAPEKEY: {
       float tmp_val[3];
-      if (UNLIKELY(mathutils_array_parse(tmp_val, 3, 3, py_value, "BMVert[shape] = value") ==
-                   -1)) {
+      if (UNLIKELY(mathutils_array_parse(tmp_val, 3, 3, py_value, "BMVert[shape] = value") == -1))
+      {
         ret = -1;
       }
       else {

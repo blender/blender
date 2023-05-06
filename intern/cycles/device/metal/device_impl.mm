@@ -39,7 +39,7 @@ bool MetalDevice::is_device_cancelled(int ID)
   return get_device_by_ID(ID, lock) == nullptr;
 }
 
-BVHLayoutMask MetalDevice::get_bvh_layout_mask() const
+BVHLayoutMask MetalDevice::get_bvh_layout_mask(uint /*kernel_features*/) const
 {
   return use_metalrt ? BVH_LAYOUT_METAL : BVH_LAYOUT_BVH2;
 }
@@ -100,16 +100,15 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     }
     case METAL_GPU_AMD: {
       max_threads_per_threadgroup = 128;
-      use_metalrt = info.use_metalrt;
       break;
     }
     case METAL_GPU_APPLE: {
       max_threads_per_threadgroup = 512;
-      use_metalrt = info.use_metalrt;
       break;
     }
   }
 
+  use_metalrt = info.use_hardware_raytracing;
   if (auto metalrt = getenv("CYCLES_METALRT")) {
     use_metalrt = (atoi(metalrt) != 0);
   }
@@ -310,7 +309,9 @@ bool MetalDevice::use_local_atomic_sort() const
   return DebugFlags().metal.use_local_atomic_sort;
 }
 
-void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_features)
+string MetalDevice::preprocess_source(MetalPipelineType pso_type,
+                                      const uint kernel_features,
+                                      string *source)
 {
   string global_defines;
   if (use_adaptive_compilation()) {
@@ -353,6 +354,61 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
   NSOperatingSystemVersion macos_ver = [processInfo operatingSystemVersion];
   global_defines += "#define __KERNEL_METAL_MACOS__ " + to_string(macos_ver.majorVersion) + "\n";
 
+  /* Replace specific KernelData "dot" dereferences with a Metal function_constant identifier of
+   * the same character length. Build a string of all active constant values which is then hashed
+   * in order to identify the PSO.
+   */
+  if (pso_type != PSO_GENERIC) {
+    if (source) {
+      const double starttime = time_dt();
+
+#  define KERNEL_STRUCT_BEGIN(name, parent) \
+    string_replace_same_length(*source, "kernel_data." #parent ".", "kernel_data_" #parent "_");
+
+      bool next_member_is_specialized = true;
+
+#  define KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE next_member_is_specialized = false;
+
+#  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
+    if (!next_member_is_specialized) { \
+      string_replace( \
+          *source, "kernel_data_" #parent "_" #name, "kernel_data." #parent ".__unused_" #name); \
+      next_member_is_specialized = true; \
+    }
+
+#  include "kernel/data_template.h"
+
+#  undef KERNEL_STRUCT_MEMBER
+#  undef KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
+#  undef KERNEL_STRUCT_BEGIN
+
+      metal_printf("KernelData patching took %.1f ms\n", (time_dt() - starttime) * 1000.0);
+    }
+
+    /* Opt in to all of available specializations. This can be made more granular for the
+     * PSO_SPECIALIZED_INTERSECT case in order to minimize the number of specialization requests,
+     * but the overhead should be negligible as these are very quick to (re)build and aren't
+     * serialized to disk via MTLBinaryArchives.
+     */
+    global_defines += "#define __KERNEL_USE_DATA_CONSTANTS__\n";
+  }
+
+#  if 0
+  metal_printf("================\n%s================\n",
+               global_defines.c_str());
+#  endif
+
+  if (source) {
+    *source = global_defines + *source;
+  }
+
+  MD5Hash md5;
+  md5.append(global_defines);
+  return md5.get_hex();
+}
+
+void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_features)
+{
   string &source = this->source[pso_type];
   source = "\n#include \"kernel/device/metal/kernel.metal\"\n";
   source = path_source_replace_includes(source, path_get("source"));
@@ -361,62 +417,7 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
    * With Metal function constants we can generate a single variant of the kernel source which can
    * be repeatedly respecialized.
    */
-  string baked_constants;
-
-  /* Replace specific KernelData "dot" dereferences with a Metal function_constant identifier of
-   * the same character length. Build a string of all active constant values which is then hashed
-   * in order to identify the PSO.
-   */
-  if (pso_type != PSO_GENERIC) {
-    const double starttime = time_dt();
-
-#  define KERNEL_STRUCT_BEGIN(name, parent) \
-    string_replace_same_length(source, "kernel_data." #parent ".", "kernel_data_" #parent "_");
-
-    bool next_member_is_specialized = true;
-
-#  define KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE next_member_is_specialized = false;
-
-    /* Add constants to md5 so that 'get_best_pipeline' is able to return a suitable match. */
-#  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
-    if (next_member_is_specialized) { \
-      baked_constants += string(#parent "." #name "=") + \
-                         to_string(_type(launch_params.data.parent.name)) + "\n"; \
-    } \
-    else { \
-      string_replace( \
-          source, "kernel_data_" #parent "_" #name, "kernel_data." #parent ".__unused_" #name); \
-      next_member_is_specialized = true; \
-    }
-
-#  include "kernel/data_template.h"
-
-    /* Opt in to all of available specializations. This can be made more granular for the
-     * PSO_SPECIALIZED_INTERSECT case in order to minimize the number of specialization requests,
-     * but the overhead should be negligible as these are very quick to (re)build and aren't
-     * serialized to disk via MTLBinaryArchives.
-     */
-    global_defines += "#define __KERNEL_USE_DATA_CONSTANTS__\n";
-
-    metal_printf("KernelData patching took %.1f ms\n", (time_dt() - starttime) * 1000.0);
-  }
-
-  source = global_defines + source;
-#  if 0
-  metal_printf("================\n%s================\n\%s================\n",
-               global_defines.c_str(),
-               baked_constants.c_str());
-#  endif
-
-  /* Generate an MD5 from the source and include any baked constants. This is used when caching
-   * PSOs. */
-  MD5Hash md5;
-  md5.append(baked_constants);
-  md5.append(source);
-  if (use_metalrt) {
-    md5.append(std::to_string(kernel_features & METALRT_FEATURE_MASK));
-  }
-  source_md5[pso_type] = md5.get_hex();
+  global_defines_md5[pso_type] = preprocess_source(pso_type, kernel_features, &source);
 }
 
 bool MetalDevice::load_kernels(const uint _kernel_features)
@@ -450,9 +451,49 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
 
 bool MetalDevice::make_source_and_check_if_compile_needed(MetalPipelineType pso_type)
 {
-  if (this->source[pso_type].empty()) {
+  string defines_md5 = preprocess_source(pso_type, kernel_features);
+
+  /* Rebuild the source string if the injected block of #defines has changed. */
+  if (global_defines_md5[pso_type] != defines_md5) {
     make_source(pso_type, kernel_features);
   }
+
+  string constant_values;
+  if (pso_type != PSO_GENERIC) {
+    bool next_member_is_specialized = true;
+
+#  define KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE next_member_is_specialized = false;
+
+    /* Add specialization constants to md5 so that 'get_best_pipeline' is able to return a suitable
+     * match. */
+#  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
+    if (next_member_is_specialized) { \
+      constant_values += string(#parent "." #name "=") + \
+                         to_string(_type(launch_params.data.parent.name)) + "\n"; \
+    } \
+    else { \
+      next_member_is_specialized = true; \
+    }
+
+#  include "kernel/data_template.h"
+
+#  undef KERNEL_STRUCT_MEMBER
+#  undef KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
+
+#  if 0
+    metal_printf("================\n%s================\n",
+                constant_values.c_str());
+#  endif
+  }
+
+  MD5Hash md5;
+  md5.append(constant_values);
+  md5.append(source[pso_type]);
+  if (use_metalrt) {
+    md5.append(string_printf("metalrt_features=%d", kernel_features & METALRT_FEATURE_MASK));
+  }
+  kernels_md5[pso_type] = md5.get_hex();
+
   return MetalDeviceKernels::should_load_kernels(this, pso_type);
 }
 
@@ -539,6 +580,11 @@ void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
     thread_scoped_lock lock(existing_devices_mutex);
     if (MetalDevice *instance = get_device_by_ID(device_id, lock)) {
       if (mtlLibrary) {
+        if (error && [error localizedDescription]) {
+          VLOG_WARNING << "MSL compilation messages: "
+                       << [[error localizedDescription] UTF8String];
+        }
+
         instance->mtlLibrary[pso_type] = mtlLibrary;
 
         starttime = time_dt();
@@ -762,6 +808,7 @@ void MetalDevice::generic_free(device_memory &mem)
       mem.shared_pointer = 0;
 
       /* Free device memory. */
+      delayed_free_list.push_back(mmem.mtlBuffer);
       mmem.mtlBuffer = nil;
     }
 
@@ -883,6 +930,11 @@ void MetalDevice::cancel()
 
 bool MetalDevice::is_ready(string &status) const
 {
+  if (!error_msg.empty()) {
+    /* Avoid hanging if we had an error. */
+    return true;
+  }
+
   int num_loaded = MetalDeviceKernels::get_loaded_kernel_count(this, PSO_GENERIC);
   if (num_loaded < DEVICE_KERNEL_NUM) {
     status = string_printf("%d / %d render kernels loaded (may take a few minutes the first time)",
@@ -890,6 +942,17 @@ bool MetalDevice::is_ready(string &status) const
                            DEVICE_KERNEL_NUM);
     return false;
   }
+
+  if (int num_requests = MetalDeviceKernels::num_incomplete_specialization_requests()) {
+    status = string_printf("%d kernels to optimize", num_requests);
+  }
+  else if (kernel_specialization_level == PSO_SPECIALIZED_INTERSECT) {
+    status = "Using optimized intersection kernels";
+  }
+  else if (kernel_specialization_level == PSO_SPECIALIZED_SHADE) {
+    status = "Using optimized kernels";
+  }
+
   metal_printf("MetalDevice::is_ready(...) --> true\n");
   return true;
 }
@@ -926,7 +989,7 @@ void MetalDevice::optimize_for_scene(Scene *scene)
   }
 
   if (specialize_in_background) {
-    if (!MetalDeviceKernels::any_specialization_happening_now()) {
+    if (MetalDeviceKernels::num_incomplete_specialization_requests() == 0) {
       dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
                      specialize_kernels_fn);
     }
@@ -969,8 +1032,7 @@ void MetalDevice::const_copy_to(const char *name, void *host, size_t size)
         offsetof(KernelParamsMetal, integrator_state), host, size, pointer_block_size);
   }
 #  define KERNEL_DATA_ARRAY(data_type, tex_name) \
-    else if (strcmp(name, #tex_name) == 0) \
-    { \
+    else if (strcmp(name, #tex_name) == 0) { \
       update_launch_pointers(offsetof(KernelParamsMetal, tex_name), host, size, size); \
     }
 #  include "kernel/data_arrays.h"
@@ -1033,9 +1095,8 @@ void MetalDevice::tex_alloc(device_texture &mem)
   }
   MTLStorageMode storage_mode = MTLStorageModeManaged;
   if (@available(macos 10.15, *)) {
-    if ([mtlDevice hasUnifiedMemory] &&
-        device_vendor !=
-            METAL_GPU_INTEL) { /* Intel GPUs don't support MTLStorageModeShared for MTLTextures */
+    /* Intel GPUs don't support MTLStorageModeShared for MTLTextures. */
+    if ([mtlDevice hasUnifiedMemory] && device_vendor != METAL_GPU_INTEL) {
       storage_mode = MTLStorageModeShared;
     }
   }

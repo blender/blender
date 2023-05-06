@@ -89,25 +89,15 @@ class DenoiseFilter {
   }
 
 #else
-  void init_and_lock_denoiser(MemoryBuffer * /*output*/)
-  {
-  }
+  void init_and_lock_denoiser(MemoryBuffer * /*output*/) {}
 
-  void deinit_and_unlock_denoiser()
-  {
-  }
+  void deinit_and_unlock_denoiser() {}
 
-  void set_image(const StringRef /*name*/, MemoryBuffer * /*buffer*/)
-  {
-  }
+  void set_image(const StringRef /*name*/, MemoryBuffer * /*buffer*/) {}
 
-  template<typename T> void set(const StringRef /*option_name*/, T /*value*/)
-  {
-  }
+  template<typename T> void set(const StringRef /*option_name*/, T /*value*/) {}
 
-  void execute()
-  {
-  }
+  void execute() {}
 #endif
 };
 

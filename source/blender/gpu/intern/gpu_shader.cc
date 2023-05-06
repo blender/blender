@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -500,6 +500,8 @@ const char *GPU_shader_get_name(GPUShader *shader)
   return unwrap(shader)->name_get();
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Shader cache warming
  * \{ */
@@ -736,6 +738,8 @@ void GPU_shader_uniform_4fv_array(GPUShader *sh, const char *name, int len, cons
 
 /** \} */
 
+namespace blender::gpu {
+
 /* -------------------------------------------------------------------- */
 /** \name sRGB Rendering Workaround
  *
@@ -746,8 +750,6 @@ void GPU_shader_uniform_4fv_array(GPUShader *sh, const char *name, int len, cons
  * For this reason we have a uniform to switch the transform on and off depending on the current
  * frame-buffer color-space.
  * \{ */
-
-namespace blender::gpu {
 
 static int g_shader_builtin_srgb_transform = 0;
 static bool g_shader_builtin_srgb_is_dirty = false;
@@ -774,6 +776,6 @@ void Shader::set_framebuffer_srgb_target(int use_srgb_to_linear)
   }
 }
 
-}  // namespace blender::gpu
-
 /** \} */
+
+}  // namespace blender::gpu

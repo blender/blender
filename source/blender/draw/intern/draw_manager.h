@@ -46,7 +46,9 @@ struct Object;
 #define DRW_DEBUG_USE_UNIFORM_NAME 0
 #define DRW_UNIFORM_BUFFER_NAME 64
 
-/* ------------ Profiling --------------- */
+/* -------------------------------------------------------------------- */
+/** \name Profiling
+ * \{ */
 
 #define USE_PROFILE
 
@@ -82,11 +84,15 @@ struct Object;
 
 #endif /* USE_PROFILE */
 
-/* ------------ Data Structure --------------- */
-/**
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Data Structure
+ *
  * Data structure to for registered draw engines that can store draw manager
  * specific data.
- */
+ * \{ */
+
 typedef struct DRWRegisteredDrawEngine {
   void /*DRWRegisteredDrawEngine*/ *next, *prev;
   DrawEngineType *draw_engine;
@@ -356,7 +362,7 @@ struct DRWUniform {
         GPUTexture *texture;
         GPUTexture **texture_ref;
       };
-      eGPUSamplerState sampler_state;
+      GPUSamplerState sampler_state;
     };
     /* DRW_UNIFORM_BLOCK */
     union {
@@ -473,15 +479,18 @@ struct DRWView {
 /* Needed to assert that alignment is the same in C++ and C. */
 BLI_STATIC_ASSERT_ALIGN(DRWView, 16);
 
-/* ------------ Data Chunks --------------- */
-/**
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Data Chunks
+ *
  * In order to keep a cache friendly data structure,
- * we alloc most of our little data into chunks of multiple item.
+ * we allocate most of our little data into chunks of multiple item.
  * Iteration, allocation and memory usage are better.
  * We lose a bit of memory by allocating more than what we need
  * but it's counterbalanced by not needing the linked-list pointers
  * for each item.
- */
+ * \{ */
 
 typedef struct DRWUniformChunk {
   struct DRWUniformChunk *next; /* single-linked list */
@@ -516,9 +525,13 @@ typedef struct DRWCommandSmallChunk {
 BLI_STATIC_ASSERT_ALIGN(DRWCommandChunk, 16);
 #endif
 
-/* ------------- Memory Pools ------------ */
+/** \} */
 
-/* Contains memory pools information */
+/* -------------------------------------------------------------------- */
+/** \name Memory Pools
+ * \{ */
+
+/** Contains memory pools information. */
 typedef struct DRWData {
   /** Instance data. */
   DRWInstanceDataList *idatalist;
@@ -558,7 +571,11 @@ typedef struct DRWData {
   struct CurvesUniformBufPool *curves_ubos;
 } DRWData;
 
-/* ------------- DRAW MANAGER ------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Draw Manager
+ * \{ */
 
 typedef struct DupliKey {
   struct Object *ob;
@@ -663,7 +680,11 @@ typedef struct DRWManager {
 
 extern DRWManager DST; /* TODO: get rid of this and allow multi-threaded rendering. */
 
-/* --------------- FUNCTIONS ------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Functions
+ * \{ */
 
 void drw_texture_set_parameters(GPUTexture *tex, DRWTextureFlag flags);
 
@@ -724,6 +745,8 @@ void DRW_mesh_get_attributes(struct Object *object,
 
 void DRW_manager_begin_sync(void);
 void DRW_manager_end_sync(void);
+
+/** \} */
 
 #ifdef __cplusplus
 }

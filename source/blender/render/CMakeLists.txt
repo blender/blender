@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
+# Copyright 2006 Blender Foundation
 
 
 set(INC
@@ -47,7 +47,7 @@ set(SRC
   RE_texture.h
   RE_texture_margin.h
 
-  intern/pipeline.h
+  intern/pipeline.hh
   intern/render_result.h
   intern/render_types.h
   intern/texture_common.h

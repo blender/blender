@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+ * Copyright 2022 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -39,7 +39,7 @@ class VKVertexBuffer : public VertBuf {
   void duplicate_data(VertBuf *dst) override;
 
  private:
-  void allocate(VKContext &context);
+  void allocate();
 };
 
 }  // namespace blender::gpu

@@ -470,7 +470,7 @@ static struct PyMethodDef pygpu_state__tp_methods[] = {
      pygpu_state_scissor_get_doc},
     {"scissor_test_set",
      (PyCFunction)pygpu_state_scissor_test_set,
-     METH_VARARGS,
+     METH_O,
      pygpu_state_scissor_test_set_doc},
     {"line_width_set",
      (PyCFunction)pygpu_state_line_width_set,

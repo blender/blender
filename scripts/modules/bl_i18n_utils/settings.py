@@ -243,7 +243,7 @@ PYGETTEXT_KEYWORDS = (() +
 
     tuple(("{}\\((?:[^\"',]+,){{1,2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf",
-                     "CTX_wm_operator_poll_msg_set")) +
+                     "CTX_wm_operator_poll_msg_set", "WM_report", "WM_reportf")) +
 
     tuple(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("BMO_error_raise",)) +
@@ -365,11 +365,10 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     # Sub-strings.
     "all",
     "all and invert unselected",
-    "and AMD driver version 22.10 or newer",
-    "and AMD Radeon Pro 21.Q4 driver or newer",
-    "and Linux driver version xx.xx.23904 or newer",
-    "and NVIDIA driver version 470 or newer",
-    "and Windows driver version 101.3430 or newer",
+    "and AMD driver version %s or newer",
+    "and AMD Radeon Pro %s driver or newer",
+    "and NVIDIA driver version %s or newer",
+    "and Windows driver version %s or newer",
     "available with",
     "brown fox",
     "can't save image while rendering",
@@ -379,6 +378,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "custom",
     "custom matrix",
     "custom orientation",
+    "drag-",
     "edge data",
     "exp(A)",
     "expected a timeline/animation area to be active",
@@ -392,6 +392,9 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "image file not found",
     "image format is read-only",
     "image path can't be written to",
+    "in %i days",
+    "in %i hours",
+    "in %i minutes",
     "in memory to enable editing!",
     "insufficient content",
     "into",
@@ -403,7 +406,8 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "name",
     "non-triangle face",
     "normal",
-    "or AMD with macOS 12.3 or newer",
+    "on {:%Y-%m-%d}",
+    "or AMD with macOS %s or newer",
     "performance impact!",
     "positions", "no positions",
     "read",
@@ -433,6 +437,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "view",
     "virtual parents",
     "which was replaced by the Asset Browser",
+    "within seconds",
     "write",
 }
 WARN_MSGID_NOT_CAPITALIZED_ALLOWED |= set(lng[2] for lng in LANGUAGES)
@@ -522,11 +527,13 @@ REL_GIT_I18N_PO_DIR = os.path.join("po")
 REL_POTFILES_SOURCE_DIR = os.path.join("source")
 
 # Where to search for preset names (relative to SOURCE_DIR).
-REL_PRESETS_DIR = os.path.join("release", "scripts", "presets")
+REL_PRESETS_DIR = os.path.join("scripts", "presets")
 
 # Where to search for templates (relative to SOURCE_DIR).
-REL_TEMPLATES_DIR = os.path.join("release", "scripts", "startup",
-                                 "bl_app_templates_system")
+REL_TEMPLATES_DIR = os.path.join("scripts", "startup", "bl_app_templates_system")
+
+# Name of the built-in asset catalog file.
+ASSET_CATALOG_FILE = "blender_assets.cats.txt"
 
 # The template messages file (relative to I18N_DIR).
 REL_FILE_NAME_POT = os.path.join(REL_BRANCHES_DIR, DOMAIN + ".pot")

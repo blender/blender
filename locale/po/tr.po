@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2023-02-05 22:00+0300\n"
 "Last-Translator: Emir SARI <emir_sari@îcloud.com>\n"
 "Language-Team: Turkish <>\n"
@@ -1933,14 +1933,6 @@ msgid "Vector font data-blocks"
 msgstr "Vektör Yazıtipi veri blokları"
 
 
-msgid "Grease Pencil"
-msgstr "Gres Kalemi"
-
-
-msgid "Grease Pencil data-blocks"
-msgstr "Gres Kalemi veri blokları"
-
-
 msgid "Hair Curves"
 msgstr "Kıl Eğrileri"
 
@@ -2123,6 +2115,10 @@ msgstr "Şekil Anahtarları"
 
 msgid "Shape Key data-blocks"
 msgstr "Şekil Anahtarı veri blokları"
+
+
+msgid "Simulations"
+msgstr "Benzetimler"
 
 
 msgid "Sounds"
@@ -4347,8 +4343,8 @@ msgid "Use Global Coordinates"
 msgstr "Evrensel Kordinatları Kullan"
 
 
-msgid "Simulations"
-msgstr "Benzetimler"
+msgid "Grease Pencil"
+msgstr "Gres Kalemi"
 
 
 msgid "Save"
@@ -4477,10 +4473,6 @@ msgstr "Yerel"
 
 msgid "Global"
 msgstr "Evrensel"
-
-
-msgid "Curve Preset"
-msgstr "Eğri Önayarı"
 
 
 msgid "Erase"
@@ -5016,10 +5008,6 @@ msgid "Point Source"
 msgstr "Nokta Kaynağı"
 
 
-msgid "Wrap"
-msgstr "Sar"
-
-
 msgid "Z Axis"
 msgstr "Z Eks"
 
@@ -5112,6 +5100,10 @@ msgid "Open"
 msgstr "Aç"
 
 
+msgid "Play"
+msgstr "Oynat"
+
+
 msgid "Limit"
 msgstr "Sınır"
 
@@ -5141,10 +5133,6 @@ msgstr "Görseli Olarak Kaydet"
 
 msgid "Save the image with another name and/or settings"
 msgstr "Görseli başka ad ve/veya ayarlarla kaydet"
-
-
-msgid "Create a new image file without modifying the current image in blender"
-msgstr "Blender'daki geçerli dosyayı değiştirmeden yeni bir görsel dosyası oluştur"
 
 
 msgid "Save As Render"
@@ -5303,8 +5291,8 @@ msgid "Unwrap"
 msgstr "Açılım"
 
 
-msgid "Play"
-msgstr "Oynat"
+msgid "Wrap"
+msgstr "Sar"
 
 
 msgid "State"
@@ -5469,10 +5457,6 @@ msgstr "Başlangıç Penceresini Göster"
 
 msgid "Tooltips"
 msgstr "İpuçları"
-
-
-msgid "TimeCode Style"
-msgstr "Zaman Kodu Biçimi"
 
 
 msgid "Minimal Info"
@@ -5756,10 +5740,6 @@ msgid "Lightness:"
 msgstr "Aydınlık:"
 
 
-msgid "Value:"
-msgstr "Değer:"
-
-
 msgid "Alpha:"
 msgstr "Alfa:"
 
@@ -5982,6 +5962,10 @@ msgstr "Dosya adı"
 
 msgid "Cursor X"
 msgstr "İmleç X"
+
+
+msgid "Value:"
+msgstr "Değer:"
 
 
 msgid " (String)"

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup edphys
@@ -706,7 +706,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   PTCacheEditKey *ekey;
   BVHTreeFromMesh bvhtree = {NULL};
   const MFace *mface = NULL, *mf;
-  const MEdge *medge = NULL, *me;
+  const vec2i *edges = NULL, *edge;
   Mesh *mesh, *target_mesh;
   int numverts;
   int k;
@@ -763,7 +763,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_FACES, 2);
   }
   else if (mesh->totedge != 0) {
-    medge = BKE_mesh_edges(mesh);
+    edges = CustomData_get_layer_named(&mesh->edata, CD_PROP_INT32_2D, ".edge_verts");
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_EDGES, 2);
   }
   else {
@@ -773,7 +773,8 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
 
   int i;
   for (i = 0, tpa = target_psys->particles, pa = psys->particles; i < target_psys->totpart;
-       i++, tpa++, pa++) {
+       i++, tpa++, pa++)
+  {
     float from_co[3];
     BVHTreeNearest nearest;
 
@@ -824,9 +825,9 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
       }
     }
     else {
-      me = &medge[nearest.index];
+      edge = &edges[nearest.index];
 
-      tpa->fuv[1] = line_point_factor_v3(nearest.co, positions[me->v1], positions[me->v2]);
+      tpa->fuv[1] = line_point_factor_v3(nearest.co, positions[edge->x], positions[edge->y]);
       tpa->fuv[0] = 1.0f - tpa->fuv[1];
       tpa->fuv[2] = tpa->fuv[3] = 0.0f;
       tpa->foffset = 0.0f;
@@ -857,7 +858,8 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
 
       if (edit_point) {
         for (k = 0, key = pa->hair, tkey = tpa->hair, ekey = edit_point->keys; k < tpa->totkey;
-             k++, key++, tkey++, ekey++) {
+             k++, key++, tkey++, ekey++)
+        {
           float co_orig[3];
 
           if (from_global) {
@@ -1128,8 +1130,8 @@ static bool copy_particle_systems_to_object(const bContext *C,
   psys_start = totpsys > 0 ? tmp_psys[0] : NULL;
 
   /* now append psys to the object and make modifiers */
-  for (i = 0, psys_from = PSYS_FROM_FIRST; i < totpsys;
-       ++i, psys_from = PSYS_FROM_NEXT(psys_from)) {
+  for (i = 0, psys_from = PSYS_FROM_FIRST; i < totpsys; ++i, psys_from = PSYS_FROM_NEXT(psys_from))
+  {
     ParticleSystemModifierData *psmd;
 
     psys = tmp_psys[i];
@@ -1164,7 +1166,8 @@ static bool copy_particle_systems_to_object(const bContext *C,
    * the remapping otherwise makes final_dm invalid!
    */
   for (psys = psys_start, psys_from = PSYS_FROM_FIRST, i = 0; psys;
-       psys = psys->next, psys_from = PSYS_FROM_NEXT(psys_from), i++) {
+       psys = psys->next, psys_from = PSYS_FROM_NEXT(psys_from), i++)
+  {
     float(*from_mat)[4], (*to_mat)[4];
 
     switch (space) {

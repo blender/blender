@@ -5,7 +5,10 @@
 #include <string>
 #include <vector>
 
+#include "asset_library_service.hh"
+
 #include "BKE_appdir.h"
+#include "BKE_callbacks.h"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
@@ -35,10 +38,13 @@ class AssetLibraryTestBase : public testing::Test {
   {
     testing::Test::SetUpTestSuite();
     CLG_init();
+    /* Current File library needs this. */
+    BKE_callback_global_init();
   }
 
   static void TearDownTestSuite()
   {
+    BKE_callback_global_finalize();
     CLG_exit();
     testing::Test::TearDownTestSuite();
   }
@@ -56,6 +62,8 @@ class AssetLibraryTestBase : public testing::Test {
 
   void TearDown() override
   {
+    AssetLibraryService::destroy();
+
     if (!temp_library_path_.empty()) {
       BLI_delete(temp_library_path_.c_str(), true, true);
       temp_library_path_ = "";

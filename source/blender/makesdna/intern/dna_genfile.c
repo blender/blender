@@ -1485,7 +1485,8 @@ static int compress_reconstruct_steps(ReconstructStep *steps, const int old_step
             if (prev_step->data.memcpy.old_offset + prev_step->data.memcpy.size ==
                     step->data.memcpy.old_offset &&
                 prev_step->data.memcpy.new_offset + prev_step->data.memcpy.size ==
-                    step->data.memcpy.new_offset) {
+                    step->data.memcpy.new_offset)
+            {
               prev_step->data.memcpy.size += step->data.memcpy.size;
               break;
             }

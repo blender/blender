@@ -1,12 +1,12 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup draw
  */
 
+#include "BLI_array_utils.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string.h"
 
 #include "draw_subdivision.h"
 #include "extract_mesh.hh"
@@ -31,7 +31,7 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
   /* HACK to fix #68857 */
   if (extract_type == MR_EXTRACT_BMESH && cache->cd_used.edit_uv == 1) {
     int layer = CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2);
-    if (layer != -1) {
+    if (layer != -1 && !CustomData_layer_is_anonymous(cd_ldata, CD_PROP_FLOAT2, layer)) {
       uv_layers |= (1 << layer);
     }
   }
@@ -91,8 +91,10 @@ static void extract_uv_init(const MeshRenderData *mr,
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, v_len);
 
-  float2 *uv_data = static_cast<float2 *>(GPU_vertbuf_get_data(vbo));
-  for (int i = 0; i < MAX_MTFACE; i++) {
+  MutableSpan<float2> uv_data(static_cast<float2 *>(GPU_vertbuf_get_data(vbo)),
+                              v_len * format.attr_len);
+  int vbo_index = 0;
+  for (const int i : IndexRange(MAX_MTFACE)) {
     if (uv_layers & (1 << i)) {
       if (mr->extract_type == MR_EXTRACT_BMESH) {
         int cd_ofs = CustomData_get_n_offset(cd_ldata, CD_PROP_FLOAT2, i);
@@ -102,18 +104,17 @@ static void extract_uv_init(const MeshRenderData *mr,
           BMLoop *l_iter, *l_first;
           l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
           do {
-            float *luv = BM_ELEM_CD_GET_FLOAT_P(l_iter, cd_ofs);
-            memcpy(uv_data, luv, sizeof(*uv_data));
-            uv_data++;
+            uv_data[vbo_index] = BM_ELEM_CD_GET_FLOAT_P(l_iter, cd_ofs);
+            vbo_index++;
           } while ((l_iter = l_iter->next) != l_first);
         }
       }
       else {
-        const float2 *layer_data = static_cast<const float2 *>(
-            CustomData_get_layer_n(cd_ldata, CD_PROP_FLOAT2, i));
-        for (int ml_index = 0; ml_index < mr->loop_len; ml_index++, uv_data++, layer_data++) {
-          memcpy(uv_data, layer_data, sizeof(*uv_data));
-        }
+        const Span<float2> uv_map(
+            static_cast<const float2 *>(CustomData_get_layer_n(cd_ldata, CD_PROP_FLOAT2, i)),
+            mr->loop_len);
+        array_utils::copy(uv_map, uv_data.slice(vbo_index, mr->loop_len));
+        vbo_index += mr->loop_len;
       }
     }
   }

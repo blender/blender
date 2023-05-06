@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2019 Blender Foundation. All rights reserved.
+# Copyright 2019 Blender Foundation
 
 # This suppresses the warning "This file includes at least one deprecated or antiquated
 # header which may be removed without further notice at a future date", which is caused
@@ -36,6 +36,13 @@ find_file(
 
 if(USD_IMAGING_HEADERS)
   add_definitions(-DUSD_HAS_IMAGING)
+endif()
+
+if(WIN32)
+  # Some USD library headers trigger the "unreferenced formal parameter"
+  # warning alert.
+  # Silence them by restore warn C4100 back to w4
+  remove_cc_flag(/w34100)
 endif()
 
 set(INC
@@ -183,7 +190,7 @@ if(WITH_GTESTS)
     tests/usd_stage_creation_test.cc
     tests/usd_tests_common.cc
     tests/usd_tests_common.h
-
+    tests/usd_usdz_export_test.cc
     intern/usd_writer_material.h
   )
   if(USD_IMAGING_HEADERS)

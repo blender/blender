@@ -29,9 +29,8 @@
 #  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
 
-#  include "BLO_readfile.h" /* only for BLO_has_bfile_extension */
-
 #  include "BKE_blender_version.h"
+#  include "BKE_blendfile.h"
 #  include "BKE_context.h"
 
 #  include "BKE_global.h"
@@ -150,8 +149,8 @@ static bool parse_int_range_relative(const char *str,
                                      const char **r_err_msg)
 {
   if (parse_int_relative(str, str_end_range, pos, neg, &r_value_range[0], r_err_msg) &&
-      parse_int_relative(
-          str_end_range + 2, str_end_test, pos, neg, &r_value_range[1], r_err_msg)) {
+      parse_int_relative(str_end_range + 2, str_end_test, pos, neg, &r_value_range[1], r_err_msg))
+  {
     return true;
   }
   return false;
@@ -330,7 +329,8 @@ static int (*parse_int_range_relative_clamp_n(const char *str,
                  parse_int_range_relative_clamp(
                      str, str_end_range, str_end, pos, neg, min, max, values[i], r_err_msg) :
                  parse_int_relative_clamp(
-                     str, str_end, pos, neg, min, max, &values[i][0], r_err_msg)) {
+                     str, str_end, pos, neg, min, max, &values[i][0], r_err_msg))
+    {
       if (str_end_range == NULL) {
         values[i][1] = values[i][0];
       }
@@ -396,7 +396,8 @@ static void arg_py_context_restore(bContext *C, struct BlendePyContextStore *c_p
   /* script may load a file, check old data is valid before using */
   if (c_py->has_win) {
     if ((c_py->win == NULL) || ((BLI_findindex(&G_MAIN->wm, c_py->wm) != -1) &&
-                                (BLI_findindex(&c_py->wm->windows, c_py->win) != -1))) {
+                                (BLI_findindex(&c_py->wm->windows, c_py->win) != -1)))
+    {
       CTX_wm_window_set(C, c_py->win);
     }
   }
@@ -583,6 +584,9 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   BLI_args_print_arg_doc(ba, "--debug-gpu");
   BLI_args_print_arg_doc(ba, "--debug-gpu-force-workarounds");
   BLI_args_print_arg_doc(ba, "--debug-gpu-disable-ssbo");
+#  ifdef WITH_RENDERDOC
+  BLI_args_print_arg_doc(ba, "--debug-gpu-renderdoc");
+#  endif
   BLI_args_print_arg_doc(ba, "--debug-wm");
 #  ifdef WITH_XR_OPENXR
   BLI_args_print_arg_doc(ba, "--debug-xr");
@@ -1118,6 +1122,19 @@ static int arg_handle_debug_gpu_set(int UNUSED(argc),
   G.debug |= G_DEBUG_GPU;
   return 0;
 }
+
+#  ifdef WITH_RENDERDOC
+static const char arg_handle_debug_gpu_renderdoc_set_doc[] =
+    "\n"
+    "\tEnable Renderdoc integration for GPU frame grabbing and debugging.";
+static int arg_handle_debug_gpu_renderdoc_set(int UNUSED(argc),
+                                              const char **UNUSED(argv),
+                                              void *UNUSED(data))
+{
+  G.debug |= G_DEBUG_GPU_RENDERDOC | G_DEBUG_GPU;
+  return 0;
+}
+#  endif
 
 static const char arg_handle_gpu_backend_set_doc[] =
     "\n"
@@ -1660,7 +1677,8 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
                                                               MINAFRAME,
                                                               MAXFRAME,
                                                               &frames_range_len,
-                                                              &err_msg)) == NULL) {
+                                                              &err_msg)) == NULL)
+      {
         fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
         return 1;
       }
@@ -1759,7 +1777,8 @@ static int arg_handle_frame_start_set(int argc, const char **argv, void *data)
                                     MINAFRAME,
                                     MAXFRAME,
                                     &scene->r.sfra,
-                                    &err_msg)) {
+                                    &err_msg))
+      {
         fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
       }
       else {
@@ -1792,7 +1811,8 @@ static int arg_handle_frame_end_set(int argc, const char **argv, void *data)
                                     MINAFRAME,
                                     MAXFRAME,
                                     &scene->r.efra,
-                                    &err_msg)) {
+                                    &err_msg))
+      {
         fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
       }
       else {
@@ -2045,7 +2065,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
   BLI_strncpy(filepath, argv[0], sizeof(filepath));
   BLI_path_slash_native(filepath);
   BLI_path_abs_from_cwd(filepath, sizeof(filepath));
-  BLI_path_normalize(NULL, filepath);
+  BLI_path_normalize(filepath);
 
   /* load the file */
   BKE_reports_init(&reports, RPT_PRINT);
@@ -2071,7 +2091,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
       return -1;
     }
 
-    if (BLO_has_bfile_extension(filepath)) {
+    if (BKE_blendfile_extension_check(filepath)) {
       /* Just pretend a file was loaded, so the user can press Save and it'll
        * save at the filepath from the CLI. */
       STRNCPY(G_MAIN->filepath, filepath);
@@ -2141,8 +2161,8 @@ void main_args_setup(bContext *C, bArgs *ba)
   BLI_args_add(ba, NULL, "--log-show-timestamp", CB(arg_handle_log_show_timestamp_set), ba);
   BLI_args_add(ba, NULL, "--log-file", CB(arg_handle_log_file_set), ba);
 
-  /* GPU backend selection should be part of ARG_PASS_ENVIRONMENT for correct GPU context selection
-   * for anim player. */
+  /* GPU backend selection should be part of #ARG_PASS_ENVIRONMENT for correct GPU context
+   * selection for animation player. */
   BLI_args_add(ba, NULL, "--gpu-backend", CB(arg_handle_gpu_backend_set), NULL);
 
   /* Pass: Background Mode & Settings
@@ -2246,6 +2266,9 @@ void main_args_setup(bContext *C, bArgs *ba)
                CB_EX(arg_handle_debug_mode_generic_set, jobs),
                (void *)G_DEBUG_JOBS);
   BLI_args_add(ba, NULL, "--debug-gpu", CB(arg_handle_debug_gpu_set), NULL);
+#  ifdef WITH_RENDERDOC
+  BLI_args_add(ba, NULL, "--debug-gpu-renderdoc", CB(arg_handle_debug_gpu_renderdoc_set), NULL);
+#  endif
 
   BLI_args_add(ba,
                NULL,

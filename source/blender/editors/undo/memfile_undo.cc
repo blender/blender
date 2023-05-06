@@ -239,21 +239,39 @@ static void memfile_undosys_step_decode(struct bContext *C,
             bmain, id, memfile_undosys_step_id_reused_cb, nullptr, IDWALK_READONLY);
       }
 
+      /* NOTE: Tagging `ID_RECALC_COPY_ON_WRITE` here should not be needed in practice, since
+       * modified IDs should already have other depsgraph update tags anyway.
+       * However, for the sake of consistency, it's better to effectively use it,
+       * since content of that ID pointer does have been modified. */
+      uint recalc_flags = id->recalc | ((id->tag & LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) ?
+                                            ID_RECALC_COPY_ON_WRITE :
+                                            IDRecalcFlag(0));
       /* Tag depsgraph to update data-block for changes that happened between the
        * current and the target state, see direct_link_id_restore_recalc(). */
-      if (id->recalc != 0) {
-        DEG_id_tag_update_ex(bmain, id, id->recalc);
+      if (recalc_flags != 0) {
+        DEG_id_tag_update_ex(bmain, id, recalc_flags);
       }
 
       bNodeTree *nodetree = ntreeFromID(id);
-      if (nodetree != nullptr && nodetree->id.recalc != 0) {
-        DEG_id_tag_update_ex(bmain, &nodetree->id, nodetree->id.recalc);
+      if (nodetree != nullptr) {
+        recalc_flags = nodetree->id.recalc;
+        if (id->tag & LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) {
+          recalc_flags |= ID_RECALC_COPY_ON_WRITE;
+        }
+        if (recalc_flags != 0) {
+          DEG_id_tag_update_ex(bmain, &nodetree->id, recalc_flags);
+        }
       }
       if (GS(id->name) == ID_SCE) {
         Scene *scene = (Scene *)id;
-        if (scene->master_collection != nullptr && scene->master_collection->id.recalc != 0) {
-          DEG_id_tag_update_ex(
-              bmain, &scene->master_collection->id, scene->master_collection->id.recalc);
+        if (scene->master_collection != nullptr) {
+          recalc_flags = scene->master_collection->id.recalc;
+          if (id->tag & LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) {
+            recalc_flags |= ID_RECALC_COPY_ON_WRITE;
+          }
+          if (recalc_flags != 0) {
+            DEG_id_tag_update_ex(bmain, &scene->master_collection->id, recalc_flags);
+          }
         }
       }
 
@@ -264,7 +282,7 @@ static void memfile_undosys_step_decode(struct bContext *C,
 
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
       /* Clear temporary tag. */
-      id->tag &= ~LIB_TAG_UNDO_OLD_ID_REUSED;
+      id->tag &= ~(LIB_TAG_UNDO_OLD_ID_REUSED | LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE);
 
       /* We only start accumulating from this point, any tags set up to here
        * are already part of the current undo state. This is done in a second

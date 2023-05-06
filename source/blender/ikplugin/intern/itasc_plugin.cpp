@@ -260,7 +260,8 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
 
   /* now that we know how many segment we have, set the flag */
   for (rootbone = segcount, segcount = 0, curchan = pchan_tip; segcount < rootbone;
-       segcount++, curchan = curchan->parent) {
+       segcount++, curchan = curchan->parent)
+  {
     chanlist[segcount] = curchan;
     curchan->flag |= POSE_CHAIN;
   }
@@ -949,17 +950,20 @@ static int convert_channels(struct Depsgraph *depsgraph,
     flag = 0;
     if (!(pchan->ikflag & BONE_IK_NO_XDOF) && !(pchan->ikflag & BONE_IK_NO_XDOF_TEMP) &&
         (!(pchan->ikflag & BONE_IK_XLIMIT) || pchan->limitmin[0] < 0.0f ||
-         pchan->limitmax[0] > 0.0f)) {
+         pchan->limitmax[0] > 0.0f))
+    {
       flag |= IK_XDOF;
     }
     if (!(pchan->ikflag & BONE_IK_NO_YDOF) && !(pchan->ikflag & BONE_IK_NO_YDOF_TEMP) &&
         (!(pchan->ikflag & BONE_IK_YLIMIT) || pchan->limitmin[1] < 0.0f ||
-         pchan->limitmax[1] > 0.0f)) {
+         pchan->limitmax[1] > 0.0f))
+    {
       flag |= IK_YDOF;
     }
     if (!(pchan->ikflag & BONE_IK_NO_ZDOF) && !(pchan->ikflag & BONE_IK_NO_ZDOF_TEMP) &&
         (!(pchan->ikflag & BONE_IK_ZLIMIT) || pchan->limitmin[2] < 0.0f ||
-         pchan->limitmax[2] > 0.0f)) {
+         pchan->limitmax[2] > 0.0f))
+    {
       flag |= IK_ZDOF;
     }
 
@@ -1069,7 +1073,8 @@ static void convert_pose(IK_Scene *ikscene)
   rot = ikscene->jointArray(0);
   for (joint = a = 0, ikchan = ikscene->channels;
        a < ikscene->numchan && joint < ikscene->numjoint;
-       a++, ikchan++) {
+       a++, ikchan++)
+  {
     pchan = ikchan->pchan;
     bone = pchan->bone;
 
@@ -1112,7 +1117,8 @@ static void BKE_pose_rest(IK_Scene *ikscene)
   rot = ikscene->jointArray(0);
   for (joint = a = 0, ikchan = ikscene->channels;
        a < ikscene->numchan && joint < ikscene->numjoint;
-       a++, ikchan++) {
+       a++, ikchan++)
+  {
     pchan = ikchan->pchan;
     bone = pchan->bone;
 
@@ -1389,7 +1395,8 @@ static IK_Scene *convert_tree(
       }
     }
     if ((ikchan->jointType & IK_SWING) &&
-        (pchan->ikflag & (BONE_IK_XLIMIT | BONE_IK_ZLIMIT | BONE_IK_ROTCTL))) {
+        (pchan->ikflag & (BONE_IK_XLIMIT | BONE_IK_ZLIMIT | BONE_IK_ROTCTL)))
+    {
       joint = bone->name;
       joint += ":SW";
       if (pchan->ikflag & BONE_IK_XLIMIT) {
@@ -1426,7 +1433,8 @@ static IK_Scene *convert_tree(
   /* for each target, we need to add an end effector in the armature */
   for (numtarget = 0, polarcon = nullptr, ret = true, target = (PoseTarget *)tree->targets.first;
        target;
-       target = (PoseTarget *)target->next) {
+       target = (PoseTarget *)target->next)
+  {
     condata = (bKinematicConstraint *)target->con->data;
     pchan = tree->pchan[target->tip];
 
@@ -1519,7 +1527,8 @@ static IK_Scene *convert_tree(
     /* add the end effector
      * estimate the average bone length, used to clamp feedback error */
     for (bone_count = 0, bone_length = 0.0f, a = iktarget->channel; a >= 0;
-         a = tree->parent[a], bone_count++) {
+         a = tree->parent[a], bone_count++)
+    {
       bone_length += ikscene->blScale * tree->pchan[a]->bone->length;
     }
     bone_length /= bone_count;
@@ -1619,7 +1628,8 @@ static IK_Scene *convert_tree(
     }
   }
   if (!ret || !scene->addCache(ikscene->cache) || !scene->addSolver(ikscene->solver) ||
-      !scene->initialize()) {
+      !scene->initialize())
+  {
     delete ikscene;
     ikscene = nullptr;
   }
@@ -1769,7 +1779,8 @@ static void execute_scene(struct Depsgraph *depsgraph,
     /* how many times do we reiterate? */
     for (i = 0; i < ikparam->numiter; i++) {
       if (ikscene->armature->getMaxJointChange() < ikparam->precision ||
-          ikscene->armature->getMaxEndEffectorChange() < ikparam->precision) {
+          ikscene->armature->getMaxEndEffectorChange() < ikparam->precision)
+      {
         break;
       }
       ikscene->scene->update(timestamp, timestep, numstep, true, false, simulation);

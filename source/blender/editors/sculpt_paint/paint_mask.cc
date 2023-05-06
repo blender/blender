@@ -21,14 +21,16 @@
 #include "BLI_math_matrix.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_rect.h"
+#include "BLI_span.hh"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -53,6 +55,9 @@
 
 /* For undo push. */
 #include "sculpt_intern.hh"
+
+using blender::Span;
+using blender::Vector;
 
 static const EnumPropertyItem mode_items[] = {
     {PAINT_MASK_FLOOD_VALUE,
@@ -86,7 +91,7 @@ static void mask_flood_fill_set_elem(float *elem, PaintMaskFloodMode mode, float
 struct MaskTaskData {
   Object *ob;
   PBVH *pbvh;
-  PBVHNode **nodes;
+  Span<PBVHNode *> nodes;
   bool multires;
 
   PaintMaskFloodMode mode;
@@ -136,8 +141,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   PBVH *pbvh;
-  PBVHNode **nodes;
-  int totnode;
+  Vector<PBVHNode *> nodes;
   bool multires;
 
   PaintMaskFloodMode mode = PaintMaskFloodMode(RNA_enum_get(op->ptr, "mode"));
@@ -150,7 +154,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   pbvh = ob->sculpt->pbvh;
   multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
-  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
+  nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
 
   SCULPT_undo_push_begin(ob, op);
 
@@ -163,8 +167,8 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   data.value = value;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, mask_flood_fill_task_cb, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+  BLI_task_parallel_range(0, nodes.size(), &data, mask_flood_fill_task_cb, &settings);
 
   if (multires) {
     multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
@@ -173,10 +177,6 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
   SCULPT_undo_push_end(ob);
-
-  if (nodes) {
-    MEM_freeN(nodes);
-  }
 
   SCULPT_tag_update_overlays(C);
 
@@ -288,8 +288,7 @@ struct SculptGestureContext {
   LineGestureData line;
 
   /* Task Callback Data. */
-  PBVHNode **nodes;
-  int totnode;
+  Vector<PBVHNode *> nodes;
 };
 
 struct SculptGestureOperation {
@@ -366,7 +365,7 @@ static void sculpt_gesture_lasso_px_cb(int x, int x_end, int y, void *user_data)
 
 static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOperator *op)
 {
-  SculptGestureContext *sgcontext = MEM_cnew<SculptGestureContext>(__func__);
+  SculptGestureContext *sgcontext = MEM_new<SculptGestureContext>(__func__);
   sgcontext->shape_type = SCULPT_GESTURE_SHAPE_LASSO;
 
   sculpt_gesture_context_init_common(C, op, sgcontext);
@@ -417,7 +416,7 @@ static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOpera
 
 static SculptGestureContext *sculpt_gesture_init_from_box(bContext *C, wmOperator *op)
 {
-  SculptGestureContext *sgcontext = MEM_cnew<SculptGestureContext>(__func__);
+  SculptGestureContext *sgcontext = MEM_new<SculptGestureContext>(__func__);
   sgcontext->shape_type = SCULPT_GESTURE_SHAPE_BOX;
 
   sculpt_gesture_context_init_common(C, op, sgcontext);
@@ -493,7 +492,7 @@ static void sculpt_gesture_line_calculate_plane_points(SculptGestureContext *sgc
 
 static SculptGestureContext *sculpt_gesture_init_from_line(bContext *C, wmOperator *op)
 {
-  SculptGestureContext *sgcontext = MEM_cnew<SculptGestureContext>(__func__);
+  SculptGestureContext *sgcontext = MEM_new<SculptGestureContext>(__func__);
   sgcontext->shape_type = SCULPT_GESTURE_SHAPE_LINE;
 
   sculpt_gesture_context_init_common(C, op, sgcontext);
@@ -542,8 +541,7 @@ static void sculpt_gesture_context_free(SculptGestureContext *sgcontext)
   MEM_SAFE_FREE(sgcontext->lasso.mask_px);
   MEM_SAFE_FREE(sgcontext->gesture_points);
   MEM_SAFE_FREE(sgcontext->operation);
-  MEM_SAFE_FREE(sgcontext->nodes);
-  MEM_SAFE_FREE(sgcontext);
+  MEM_delete(sgcontext);
 }
 
 static void flip_plane(float out[4], const float in[4], const char symm)
@@ -587,7 +585,8 @@ static void sculpt_gesture_flip_for_symmetry_pass(SculptGestureContext *sgcontex
   flip_plane(sgcontext->line.side_plane[1], sgcontext->line.true_side_plane[1], symmpass);
 }
 
-static void sculpt_gesture_update_effected_nodes_by_line_plane(SculptGestureContext *sgcontext)
+static Vector<PBVHNode *> sculpt_gesture_update_effected_nodes_by_line_plane(
+    SculptGestureContext *sgcontext)
 {
   SculptSession *ss = sgcontext->ss;
   float clip_planes[3][4];
@@ -599,11 +598,8 @@ static void sculpt_gesture_update_effected_nodes_by_line_plane(SculptGestureCont
   frustum.planes = clip_planes;
   frustum.num_planes = sgcontext->line.use_side_planes ? 3 : 1;
 
-  BKE_pbvh_search_gather(ss->pbvh,
-                         BKE_pbvh_node_frustum_contain_AABB,
-                         &frustum,
-                         &sgcontext->nodes,
-                         &sgcontext->totnode);
+  return sgcontext->nodes = blender::bke::pbvh::search_gather(
+             ss->pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum);
 }
 
 static void sculpt_gesture_update_effected_nodes_by_clip_planes(SculptGestureContext *sgcontext)
@@ -617,11 +613,8 @@ static void sculpt_gesture_update_effected_nodes_by_clip_planes(SculptGestureCon
   frustum.planes = clip_planes;
   frustum.num_planes = 4;
 
-  BKE_pbvh_search_gather(ss->pbvh,
-                         BKE_pbvh_node_frustum_contain_AABB,
-                         &frustum,
-                         &sgcontext->nodes,
-                         &sgcontext->totnode);
+  sgcontext->nodes = blender::bke::pbvh::search_gather(
+      ss->pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum);
 }
 
 static void sculpt_gesture_update_effected_nodes(SculptGestureContext *sgcontext)
@@ -716,8 +709,6 @@ static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext, w
       sculpt_gesture_update_effected_nodes(sgcontext);
 
       operation->sculpt_gesture_apply_for_symmetry_pass(C, sgcontext);
-
-      MEM_SAFE_FREE(sgcontext->nodes);
     }
   }
 
@@ -758,6 +749,9 @@ static void face_set_gesture_apply_task_cb(void *__restrict userdata,
   PBVHFaceIter fd;
   BKE_pbvh_face_iter_begin (sgcontext->ss->pbvh, node, fd) {
     if (sculpt_gesture_is_face_effected(sgcontext, &fd)) {
+      if (sgcontext->ss->hide_poly && sgcontext->ss->hide_poly[fd.face.i]) {
+        continue;
+      }
       SCULPT_face_set_set(sgcontext->ss, fd.face, face_set_operation->new_face_set_id);
       any_updated = true;
     }
@@ -773,9 +767,9 @@ static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext * /*C*/,
                                                             SculptGestureContext *sgcontext)
 {
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->nodes.size());
   BLI_task_parallel_range(
-      0, sgcontext->totnode, sgcontext, face_set_gesture_apply_task_cb, &settings);
+      0, sgcontext->nodes.size(), sgcontext, face_set_gesture_apply_task_cb, &settings);
 }
 
 static void sculpt_gesture_face_set_end(bContext * /*C*/, SculptGestureContext *sgcontext)
@@ -862,8 +856,9 @@ static void sculpt_gesture_mask_apply_for_symmetry_pass(bContext * /*C*/,
                                                         SculptGestureContext *sgcontext)
 {
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->totnode);
-  BLI_task_parallel_range(0, sgcontext->totnode, sgcontext, mask_gesture_apply_task_cb, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->nodes.size());
+  BLI_task_parallel_range(
+      0, sgcontext->nodes.size(), sgcontext, mask_gesture_apply_task_cb, &settings);
 }
 
 static void sculpt_gesture_mask_end(bContext *C, SculptGestureContext *sgcontext)
@@ -1033,8 +1028,10 @@ static void sculpt_gesture_trim_shape_origin_normal_get(SculptGestureContext *sg
    */
   switch (trim_operation->orientation) {
     case SCULPT_GESTURE_TRIM_ORIENTATION_VIEW:
-      copy_v3_v3(r_origin, sgcontext->world_space_view_origin);
+      mul_v3_m4v3(
+          r_origin, sgcontext->vc.obact->object_to_world, sgcontext->ss->gesture_initial_location);
       copy_v3_v3(r_normal, sgcontext->world_space_view_normal);
+      negate_v3(r_normal);
       break;
     case SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE:
       mul_v3_m4v3(
@@ -1141,8 +1138,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   const int trim_totverts = tot_screen_points * 2;
   const int trim_totpolys = (2 * (tot_screen_points - 2)) + (2 * tot_screen_points);
-  trim_operation->mesh = BKE_mesh_new_nomain(
-      trim_totverts, 0, 0, trim_totpolys * 3, trim_totpolys);
+  trim_operation->mesh = BKE_mesh_new_nomain(trim_totverts, 0, trim_totpolys, trim_totpolys * 3);
   trim_operation->true_mesh_co = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(trim_totverts, sizeof(float[3]), "mesh orco"));
 
@@ -1168,14 +1164,30 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   const float(*ob_imat)[4] = vc->obact->world_to_object;
 
-  /* Write vertices coordinates for the front face. */
+  /* Write vertices coordinatesSCULPT_GESTURE_TRIM_DIFFERENCE for the front face. */
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(trim_operation->mesh);
   float depth_point[3];
-  madd_v3_v3v3fl(depth_point, shape_origin, shape_normal, depth_front);
+
+  /* Get origin point for SCULPT_GESTURE_TRIM_ORIENTATION_VIEW.
+   * Note: for projection extrusion we add depth_front here
+   * instead of in the loop.
+   */
+  if (trim_operation->extrude_mode == SCULPT_GESTURE_TRIM_EXTRUDE_FIXED) {
+    copy_v3_v3(depth_point, shape_origin);
+  }
+  else {
+    madd_v3_v3v3fl(depth_point, shape_origin, shape_normal, depth_front);
+  }
+
   for (int i = 0; i < tot_screen_points; i++) {
     float new_point[3];
     if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
       ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
+
+      /* For fixed mode we add the shape normal here to avoid projection errors. */
+      if (trim_operation->extrude_mode == SCULPT_GESTURE_TRIM_EXTRUDE_FIXED) {
+        madd_v3_v3fl(new_point, shape_normal, depth_front);
+      }
     }
     else {
       ED_view3d_win_to_3d_on_plane(region, shape_plane, screen_points[i], false, new_point);
@@ -1225,55 +1237,61 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   BLI_polyfill_calc(screen_points, tot_screen_points, 0, r_tris);
 
   /* Write the front face triangle indices. */
-  MPoly *polys = BKE_mesh_polys_for_write(trim_operation->mesh);
-  MLoop *loops = BKE_mesh_loops_for_write(trim_operation->mesh);
-  MPoly *mp = polys;
-  MLoop *ml = loops;
-  for (int i = 0; i < tot_tris_face; i++, mp++, ml += 3) {
-    mp->loopstart = int(ml - loops);
-    mp->totloop = 3;
-    ml[0].v = r_tris[i][0];
-    ml[1].v = r_tris[i][1];
-    ml[2].v = r_tris[i][2];
+  blender::MutableSpan<int> poly_offsets = trim_operation->mesh->poly_offsets_for_write();
+  blender::MutableSpan<int> corner_verts = trim_operation->mesh->corner_verts_for_write();
+  int poly_index = 0;
+  int loop_index = 0;
+  for (int i = 0; i < tot_tris_face; i++) {
+    poly_offsets[poly_index] = loop_index;
+    corner_verts[loop_index + 0] = r_tris[i][0];
+    corner_verts[loop_index + 1] = r_tris[i][1];
+    corner_verts[loop_index + 2] = r_tris[i][2];
+    poly_index++;
+    loop_index += 3;
   }
 
   /* Write the back face triangle indices. */
-  for (int i = 0; i < tot_tris_face; i++, mp++, ml += 3) {
-    mp->loopstart = int(ml - loops);
-    mp->totloop = 3;
-    ml[0].v = r_tris[i][0] + tot_screen_points;
-    ml[1].v = r_tris[i][1] + tot_screen_points;
-    ml[2].v = r_tris[i][2] + tot_screen_points;
+  for (int i = 0; i < tot_tris_face; i++) {
+    poly_offsets[poly_index] = loop_index;
+    corner_verts[loop_index + 0] = r_tris[i][0] + tot_screen_points;
+    corner_verts[loop_index + 1] = r_tris[i][1] + tot_screen_points;
+    corner_verts[loop_index + 2] = r_tris[i][2] + tot_screen_points;
+    poly_index++;
+    loop_index += 3;
   }
 
   MEM_freeN(r_tris);
 
   /* Write the indices for the lateral triangles. */
-  for (int i = 0; i < tot_screen_points; i++, mp++, ml += 3) {
-    mp->loopstart = int(ml - loops);
-    mp->totloop = 3;
+  for (int i = 0; i < tot_screen_points; i++) {
+    poly_offsets[poly_index] = loop_index;
     int current_index = i;
     int next_index = current_index + 1;
     if (next_index >= tot_screen_points) {
       next_index = 0;
     }
-    ml[0].v = next_index + tot_screen_points;
-    ml[1].v = next_index;
-    ml[2].v = current_index;
+    corner_verts[loop_index + 0] = next_index + tot_screen_points;
+    corner_verts[loop_index + 1] = next_index;
+    corner_verts[loop_index + 2] = current_index;
+    poly_index++;
+    loop_index += 3;
   }
 
-  for (int i = 0; i < tot_screen_points; i++, mp++, ml += 3) {
-    mp->loopstart = int(ml - loops);
-    mp->totloop = 3;
+  for (int i = 0; i < tot_screen_points; i++) {
+    poly_offsets[poly_index] = loop_index;
     int current_index = i;
     int next_index = current_index + 1;
     if (next_index >= tot_screen_points) {
       next_index = 0;
     }
-    ml[0].v = current_index;
-    ml[1].v = current_index + tot_screen_points;
-    ml[2].v = next_index + tot_screen_points;
+    corner_verts[loop_index + 0] = current_index;
+    corner_verts[loop_index + 1] = current_index + tot_screen_points;
+    corner_verts[loop_index + 2] = next_index + tot_screen_points;
+    poly_index++;
+    loop_index += 3;
   }
+
+  BKE_mesh_smooth_flag_set(trim_operation->mesh, false);
 
   BKE_mesh_calc_edges(trim_operation->mesh, false, false);
   sculpt_gesture_trim_normals_update(sgcontext);
@@ -1540,12 +1558,12 @@ static void sculpt_gesture_project_apply_for_symmetry_pass(bContext * /*C*/,
                                                            SculptGestureContext *sgcontext)
 {
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->nodes.size());
 
   switch (sgcontext->shape_type) {
     case SCULPT_GESTURE_SHAPE_LINE:
       BLI_task_parallel_range(
-          0, sgcontext->totnode, sgcontext, project_line_gesture_apply_task_cb, &settings);
+          0, sgcontext->nodes.size(), sgcontext, project_line_gesture_apply_task_cb, &settings);
       break;
     case SCULPT_GESTURE_SHAPE_LASSO:
     case SCULPT_GESTURE_SHAPE_BOX:
@@ -1686,7 +1704,11 @@ static int sculpt_trim_gesture_box_invoke(bContext *C, wmOperator *op, const wmE
 
 static int sculpt_trim_gesture_lasso_exec(bContext *C, wmOperator *op)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *object = CTX_data_active_object(C);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, object, false, true, false);
+
   SculptSession *ss = object->sculpt;
   if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
     /* Not supported in Multires and Dyntopo. */

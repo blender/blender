@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup edobj
@@ -79,8 +79,8 @@ static int volume_import_exec(bContext *C, wmOperator *op)
   ListBase ranges = ED_image_filesel_detect_sequences(bmain, op, false);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
     char filename[FILE_MAX];
-    BLI_split_file_part(range->filepath, filename, sizeof(filename));
-    BLI_path_extension_replace(filename, sizeof(filename), "");
+    BLI_path_split_file_part(range->filepath, filename, sizeof(filename));
+    BLI_path_extension_strip(filename);
 
     Object *object = object_volume_add(C, op, filename);
     Volume *volume = (Volume *)object->data;

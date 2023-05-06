@@ -29,7 +29,8 @@ class MetalDevice : public Device {
   id<MTLArgumentEncoder> mtlAncillaryArgEncoder =
       nil; /* encoder used for fetching device pointers from MTLBuffers */
   string source[PSO_NUM];
-  string source_md5[PSO_NUM];
+  string kernels_md5[PSO_NUM];
+  string global_defines_md5[PSO_NUM];
 
   bool capture_enabled = false;
 
@@ -99,7 +100,7 @@ class MetalDevice : public Device {
 
   virtual void cancel() override;
 
-  virtual BVHLayoutMask get_bvh_layout_mask() const override;
+  virtual BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;
 
   void set_error(const string &error) override;
 
@@ -114,6 +115,10 @@ class MetalDevice : public Device {
   bool use_adaptive_compilation();
 
   bool use_local_atomic_sort() const;
+
+  string preprocess_source(MetalPipelineType pso_type,
+                           const uint kernel_features,
+                           string *source = nullptr);
 
   bool make_source_and_check_if_compile_needed(MetalPipelineType pso_type);
 

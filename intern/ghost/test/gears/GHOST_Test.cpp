@@ -27,11 +27,11 @@
 #  include <GL/gl.h>
 #endif  // defined(WIN32) || defined(__APPLE__)
 
-#include "GHOST_Rect.h"
+#include "GHOST_Rect.hh"
 
-#include "GHOST_IEvent.h"
-#include "GHOST_IEventConsumer.h"
-#include "GHOST_ISystem.h"
+#include "GHOST_IEvent.hh"
+#include "GHOST_IEventConsumer.hh"
+#include "GHOST_ISystem.hh"
 
 #define LEFT_EYE 0
 #define RIGHT_EYE 1
@@ -381,7 +381,7 @@ void StereoProjection(float left,
 class Application : public GHOST_IEventConsumer {
  public:
   Application(GHOST_ISystem *system);
-  ~Application(void);
+  ~Application();
   virtual bool processEvent(GHOST_IEvent *event);
 
   GHOST_ISystem *m_system;
@@ -431,7 +431,7 @@ Application::Application(GHOST_ISystem *system)
   m_gearsTimer = system->installTimer(0 /*delay*/, 20 /*interval*/, gearsTimerProc, m_mainWindow);
 }
 
-Application::~Application(void)
+Application::~Application()
 {
   // Dispose windows
   if (m_system->validWindow(m_mainWindow)) {

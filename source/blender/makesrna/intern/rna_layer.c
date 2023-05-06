@@ -201,6 +201,17 @@ static PointerRNA rna_ViewLayer_depsgraph_get(PointerRNA *ptr)
   return PointerRNA_NULL;
 }
 
+static void rna_ViewLayer_remove_aov(struct ViewLayer *view_layer,
+                                     ReportList *reports,
+                                     struct ViewLayerAOV *aov)
+{
+  if (BLI_findindex(&view_layer->aovs, aov) == -1) {
+    BKE_reportf(reports, RPT_ERROR, "AOV not found in view-layer '%s'", view_layer->name);
+    return;
+  }
+  BKE_view_layer_remove_aov(view_layer, aov);
+}
+
 static void rna_LayerObjects_selected_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   ViewLayer *view_layer = (ViewLayer *)ptr->data;

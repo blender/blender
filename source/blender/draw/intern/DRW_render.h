@@ -41,7 +41,7 @@
 #include "draw_view.h"
 
 #include "draw_debug.h"
-#include "draw_manager_profiling.h"
+#include "draw_manager_profiling.hh"
 #include "draw_state.h"
 #include "draw_view_data.h"
 
@@ -534,11 +534,11 @@ void DRW_shgroup_clear_framebuffer(DRWShadingGroup *shgroup,
 void DRW_shgroup_uniform_texture_ex(DRWShadingGroup *shgroup,
                                     const char *name,
                                     const struct GPUTexture *tex,
-                                    eGPUSamplerState sampler_state);
+                                    GPUSamplerState sampler_state);
 void DRW_shgroup_uniform_texture_ref_ex(DRWShadingGroup *shgroup,
                                         const char *name,
                                         GPUTexture **tex,
-                                        eGPUSamplerState sampler_state);
+                                        GPUSamplerState sampler_state);
 void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup,
                                  const char *name,
                                  const struct GPUTexture *tex);

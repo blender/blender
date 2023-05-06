@@ -72,15 +72,20 @@ void IDP_FreeArray(struct IDProperty *prop);
 /**
  * \param st: The string to assign.
  * \param name: The property name.
- * \param maxlen: The size of the new string (including the \0 terminator).
+ * \param maxncpy: The maximum size of the string (including the `\0` terminator).
  * \return The new string property.
  */
-struct IDProperty *IDP_NewString(const char *st,
-                                 const char *name,
-                                 int maxlen) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(2 /* 'name 'arg */); /* maxlen excludes '\0' */
-void IDP_AssignString(struct IDProperty *prop, const char *st, int maxlen)
-    ATTR_NONNULL(); /* maxlen excludes '\0' */
+struct IDProperty *IDP_NewStringMaxSize(const char *st,
+                                        const char *name,
+                                        int maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
+struct IDProperty *IDP_NewString(const char *st, const char *name) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(2);
+/**
+ * \param st: The string to assign.
+ * \param maxncpy: The maximum size of the string (including the `\0` terminator).
+ */
+void IDP_AssignStringMaxSize(struct IDProperty *prop, const char *st, int maxncpy) ATTR_NONNULL();
+void IDP_AssignString(struct IDProperty *prop, const char *st) ATTR_NONNULL();
 void IDP_ConcatStringC(struct IDProperty *prop, const char *st) ATTR_NONNULL();
 void IDP_ConcatString(struct IDProperty *str1, struct IDProperty *append) ATTR_NONNULL();
 void IDP_FreeString(struct IDProperty *prop) ATTR_NONNULL();
@@ -185,17 +190,17 @@ struct IDProperty *IDP_CopyProperty_ex(const struct IDProperty *prop,
  * Copy content from source #IDProperty into destination one,
  * freeing destination property's content first.
  */
-void IDP_CopyPropertyContent(struct IDProperty *dst, struct IDProperty *src) ATTR_NONNULL();
+void IDP_CopyPropertyContent(struct IDProperty *dst, const struct IDProperty *src) ATTR_NONNULL();
 
 /**
  * \param is_strict: When false treat missing items as a match.
  */
-bool IDP_EqualsProperties_ex(struct IDProperty *prop1,
-                             struct IDProperty *prop2,
+bool IDP_EqualsProperties_ex(const struct IDProperty *prop1,
+                             const struct IDProperty *prop2,
                              bool is_strict) ATTR_WARN_UNUSED_RESULT;
 
-bool IDP_EqualsProperties(struct IDProperty *prop1,
-                          struct IDProperty *prop2) ATTR_WARN_UNUSED_RESULT;
+bool IDP_EqualsProperties(const struct IDProperty *prop1,
+                          const struct IDProperty *prop2) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Allocate a new ID.

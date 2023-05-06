@@ -284,7 +284,8 @@ static PyObject *pygpu_framebuffer__tp_new(PyTypeObject *UNUSED(self),
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, &depth_attachment, &color_attachements)) {
+          args, kwds, &_parser, &depth_attachment, &color_attachements))
+  {
     return NULL;
   }
 
@@ -297,7 +298,7 @@ static PyObject *pygpu_framebuffer__tp_new(PyTypeObject *UNUSED(self),
   if (!pygpu_framebuffer_new_parse_arg(depth_attachment, &config[0])) {
     return NULL;
   }
-  if (config[0].tex && !GPU_texture_depth(config[0].tex)) {
+  if (config[0].tex && !GPU_texture_has_depth_format(config[0].tex)) {
     PyErr_SetString(PyExc_ValueError, "Depth texture with incompatible format");
     return NULL;
   }
@@ -514,7 +515,8 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
                                         PyC_ParseStringEnum,
                                         &pygpu_dataformat,
                                         &BPyGPU_BufferType,
-                                        &py_buffer)) {
+                                        &py_buffer))
+  {
     return NULL;
   }
 
@@ -598,7 +600,8 @@ static PyObject *pygpu_framebuffer_read_depth(BPyGPUFrameBuffer *self,
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, &x, &y, &w, &h, &BPyGPU_BufferType, &py_buffer)) {
+          args, kwds, &_parser, &x, &y, &w, &h, &BPyGPU_BufferType, &py_buffer))
+  {
     return NULL;
   }
 

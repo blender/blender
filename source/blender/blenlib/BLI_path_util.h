@@ -38,54 +38,56 @@ void BLI_setenv_if_new(const char *env, const char *val) ATTR_NONNULL(1);
 const char *BLI_getenv(const char *env) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
 /**
- * Ensures that the parent directory of `name` exists.
- *
- * \return true on success (i.e. given path now exists on file-system), false otherwise.
+ * Copies directory and file components from `filepath` into `dir` and `file`, e.g.
+ * `/foo/bar.txt` to `/foo/` and `bar.txt`
  */
-bool BLI_make_existing_file(const char *name);
+void BLI_path_split_dir_file(const char *filepath,
+                             char *dir,
+                             size_t dir_maxncpy,
+                             char *file,
+                             size_t file_maxncpy) ATTR_NONNULL(1, 2, 4);
 /**
- * Converts `/foo/bar.txt` to `/foo/` and `bar.txt`
- *
- * - Won't change \a string.
- * - Won't create any directories.
- * - Doesn't use CWD, or deal with relative paths.
- * - Only fill's in \a dir and \a file when they are non NULL.
+ * Copies the parent directory part of `filepath` into `dir`, max length `dir_maxncpy`.
  */
-void BLI_split_dirfile(const char *string, char *dir, char *file, size_t dirlen, size_t filelen);
+void BLI_path_split_dir_part(const char *filepath, char *dir, size_t dir_maxncpy)
+    ATTR_NONNULL(1, 2);
 /**
- * Copies the parent directory part of string into `dir`, max length `dirlen`.
+ * Copies the leaf filename part of `filepath` into `file`, max length `file_maxncpy`.
  */
-void BLI_split_dir_part(const char *string, char *dir, size_t dirlen);
+void BLI_path_split_file_part(const char *filepath, char *file, size_t file_maxncpy)
+    ATTR_NONNULL(1, 2);
 /**
- * Copies the leaf filename part of string into `file`, max length `filelen`.
+ * Returns a pointer to the last extension (e.g. the position of the last period).
+ * Returns a pointer to the nil byte when no extension is found.
  */
-void BLI_split_file_part(const char *string, char *file, size_t filelen);
+const char *BLI_path_extension_or_end(const char *filepath)
+    ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 /**
  * Returns a pointer to the last extension (e.g. the position of the last period).
  * Returns NULL if there is no extension.
  */
-const char *BLI_path_extension(const char *filepath) ATTR_NONNULL();
+const char *BLI_path_extension(const char *filepath) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Append a filename to a dir, ensuring slash separates.
  * \return The new length of `dst`.
  */
-size_t BLI_path_append(char *__restrict dst, size_t maxlen, const char *__restrict file)
-    ATTR_NONNULL();
+size_t BLI_path_append(char *__restrict dst, size_t dst_maxncpy, const char *__restrict file)
+    ATTR_NONNULL(1, 3);
 /**
  * A version of #BLI_path_append that ensures a trailing slash if there is space in `dst`.
  * \return The new length of `dst`.
  */
-size_t BLI_path_append_dir(char *__restrict dst, size_t maxlen, const char *__restrict dir)
-    ATTR_NONNULL();
+size_t BLI_path_append_dir(char *__restrict dst, size_t dst_maxncpy, const char *__restrict dir)
+    ATTR_NONNULL(1, 3);
 
 /**
  * See #BLI_path_join doc-string.
  */
 size_t BLI_path_join_array(char *__restrict dst,
-                           const size_t dst_len,
+                           const size_t dst_maxncpy,
                            const char *path_array[],
-                           const int path_array_num);
+                           const int path_array_num) ATTR_NONNULL(1, 3);
 
 /**
  * Join multiple strings into a path, ensuring only a single path separator between each,
@@ -104,7 +106,7 @@ size_t BLI_path_join_array(char *__restrict dst,
  */
 #define BLI_path_join(...) VA_NARGS_CALL_OVERLOAD(_BLI_path_join_, __VA_ARGS__)
 
-#define _BLI_PATH_JOIN_ARGS_1 char *__restrict dst, size_t dst_len, const char *a
+#define _BLI_PATH_JOIN_ARGS_1 char *__restrict dst, size_t dst_maxncpy, const char *a
 #define _BLI_PATH_JOIN_ARGS_2 _BLI_PATH_JOIN_ARGS_1, const char *b
 #define _BLI_PATH_JOIN_ARGS_3 _BLI_PATH_JOIN_ARGS_2, const char *c
 #define _BLI_PATH_JOIN_ARGS_4 _BLI_PATH_JOIN_ARGS_3, const char *d
@@ -129,52 +131,52 @@ BLI_INLINE size_t _BLI_path_join_12(_BLI_PATH_JOIN_ARGS_10) ATTR_NONNULL();
 BLI_INLINE size_t _BLI_path_join_3(_BLI_PATH_JOIN_ARGS_1)
 {
   const char *path_array[] = {a};
-  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
 }
 BLI_INLINE size_t _BLI_path_join_4(_BLI_PATH_JOIN_ARGS_2)
 {
   const char *path_array[] = {a, b};
-  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
 }
 BLI_INLINE size_t _BLI_path_join_5(_BLI_PATH_JOIN_ARGS_3)
 {
   const char *path_array[] = {a, b, c};
-  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
 }
 BLI_INLINE size_t _BLI_path_join_6(_BLI_PATH_JOIN_ARGS_4)
 {
   const char *path_array[] = {a, b, c, d};
-  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
 }
 BLI_INLINE size_t _BLI_path_join_7(_BLI_PATH_JOIN_ARGS_5)
 {
   const char *path_array[] = {a, b, c, d, e};
-  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
 }
 BLI_INLINE size_t _BLI_path_join_8(_BLI_PATH_JOIN_ARGS_6)
 {
   const char *path_array[] = {a, b, c, d, e, f};
-  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
 }
 BLI_INLINE size_t _BLI_path_join_9(_BLI_PATH_JOIN_ARGS_7)
 {
   const char *path_array[] = {a, b, c, d, e, f, g};
-  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
 }
 BLI_INLINE size_t _BLI_path_join_10(_BLI_PATH_JOIN_ARGS_8)
 {
   const char *path_array[] = {a, b, c, d, e, f, g, h};
-  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
 }
 BLI_INLINE size_t _BLI_path_join_11(_BLI_PATH_JOIN_ARGS_9)
 {
   const char *path_array[] = {a, b, c, d, e, f, g, h, i};
-  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
 }
 BLI_INLINE size_t _BLI_path_join_12(_BLI_PATH_JOIN_ARGS_10)
 {
   const char *path_array[] = {a, b, c, d, e, f, g, h, i, j};
-  return BLI_path_join_array(dst, dst_len, path_array, ARRAY_SIZE(path_array));
+  return BLI_path_join_array(dst, dst_maxncpy, path_array, ARRAY_SIZE(path_array));
 }
 
 #undef _BLI_PATH_JOIN_ARGS_1
@@ -194,7 +196,7 @@ BLI_INLINE size_t _BLI_path_join_12(_BLI_PATH_JOIN_ARGS_10)
  * \return The pointer into \a path string immediately after last slash,
  * or start of \a path if none found.
  */
-const char *BLI_path_basename(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+const char *BLI_path_basename(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 /**
  * Get an element of the path at an index, eg:
  * `/some/path/file.txt` where an index of:
@@ -210,59 +212,61 @@ const char *BLI_path_basename(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_
 bool BLI_path_name_at_index(const char *__restrict path,
                             int index,
                             int *__restrict r_offset,
-                            int *__restrict r_len) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+                            int *__restrict r_len) ATTR_NONNULL(1, 3, 4) ATTR_WARN_UNUSED_RESULT;
 
 /** Return true only if #containee_path is contained in #container_path. */
-bool BLI_path_contains(const char *container_path,
-                       const char *containee_path) ATTR_WARN_UNUSED_RESULT;
+bool BLI_path_contains(const char *container_path, const char *containee_path)
+    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 
 /**
- * \return pointer to the leftmost path separator in string (or NULL when not found).
+ * \return pointer to the leftmost path separator in path (or NULL when not found).
  */
-const char *BLI_path_slash_find(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+const char *BLI_path_slash_find(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 /**
- * \return pointer to the rightmost path separator in string (or NULL when not found).
+ * \return pointer to the rightmost path separator in path (or NULL when not found).
  */
-const char *BLI_path_slash_rfind(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+const char *BLI_path_slash_rfind(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 /**
- * Appends a slash to string if there isn't one there already.
- * Returns the new length of the string.
+ * Appends a slash to path if there isn't one there already.
+ * Returns the new length of the path.
  */
-int BLI_path_slash_ensure(char *string, size_t string_maxlen) ATTR_NONNULL(1);
+int BLI_path_slash_ensure(char *path, size_t path_maxncpy) ATTR_NONNULL(1);
 /**
- * Removes the last slash and everything after it to the end of string, if there is one.
+ * Removes the last slash and everything after it to the end of path, if there is one.
  */
-void BLI_path_slash_rstrip(char *string) ATTR_NONNULL();
+void BLI_path_slash_rstrip(char *path) ATTR_NONNULL(1);
 /**
  * Changes to the path separators to the native ones for this OS.
  */
-void BLI_path_slash_native(char *path) ATTR_NONNULL();
+void BLI_path_slash_native(char *path) ATTR_NONNULL(1);
 
 #ifdef _WIN32
-bool BLI_path_program_extensions_add_win32(char *name, size_t maxlen);
+bool BLI_path_program_extensions_add_win32(char *program_name, size_t program_name_maxncpy);
 #endif
 /**
  * Search for a binary (executable)
  */
-bool BLI_path_program_search(char *fullname, size_t maxlen, const char *name);
+bool BLI_path_program_search(char *program_filepath,
+                             size_t program_filepath_maxncpy,
+                             const char *program_name) ATTR_NONNULL(1, 3);
 
 /**
- * \return true when `str` end with `ext` (case insensitive).
+ * \return true when `path` end with `ext` (case insensitive).
  */
-bool BLI_path_extension_check(const char *str, const char *ext)
-    ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
-bool BLI_path_extension_check_n(const char *str, ...) ATTR_NONNULL(1) ATTR_SENTINEL(0);
+bool BLI_path_extension_check(const char *path, const char *ext)
+    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
+bool BLI_path_extension_check_n(const char *path, ...) ATTR_NONNULL(1) ATTR_SENTINEL(0);
 /**
- * \return true when `str` ends with any of the suffixes in `ext_array`.
+ * \return true when `path` ends with any of the suffixes in `ext_array`.
  */
-bool BLI_path_extension_check_array(const char *str, const char **ext_array)
-    ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+bool BLI_path_extension_check_array(const char *path, const char **ext_array)
+    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 /**
  * Semicolon separated wildcards, eg: `*.zip;*.py;*.exe`
- * does `str` match any of the semicolon-separated glob patterns in #fnmatch.
+ * does `path` match any of the semicolon-separated glob patterns in #fnmatch.
  */
-bool BLI_path_extension_check_glob(const char *str, const char *ext_fnmatch)
-    ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+bool BLI_path_extension_check_glob(const char *path, const char *ext_fnmatch)
+    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 /**
  * Does basic validation of the given glob string, to prevent common issues from string
  * truncation.
@@ -272,59 +276,85 @@ bool BLI_path_extension_check_glob(const char *str, const char *ext_fnmatch)
  *
  * \returns true if it had to modify given \a ext_fnmatch pattern.
  */
-bool BLI_path_extension_glob_validate(char *ext_fnmatch) ATTR_NONNULL();
+bool BLI_path_extension_glob_validate(char *ext_fnmatch) ATTR_NONNULL(1);
 /**
  * Removes any existing extension on the end of \a path and appends \a ext.
  * \return false if there was no room.
  */
-bool BLI_path_extension_replace(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
+bool BLI_path_extension_replace(char *path, size_t path_maxncpy, const char *ext)
+    ATTR_NONNULL(1, 3);
+/**
+ * Remove the file extension.
+ * \return true if a change was made to `path`.
+ */
+bool BLI_path_extension_strip(char *path) ATTR_NONNULL(1);
 /**
  * Strip's trailing '.'s and adds the extension only when needed
  */
-bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
+bool BLI_path_extension_ensure(char *path, size_t path_maxncpy, const char *ext)
+    ATTR_NONNULL(1, 3);
 /**
  * Ensure `filepath` has a file component, adding `filename` when it's empty or ends with a slash.
  * \return true if the `filename` was appended to `filepath`.
  */
-bool BLI_path_filename_ensure(char *filepath, size_t maxlen, const char *filename) ATTR_NONNULL();
+bool BLI_path_filename_ensure(char *filepath, size_t filepath_maxncpy, const char *filename)
+    ATTR_NONNULL(1, 3);
 /**
- * Looks for a sequence of decimal digits in string, preceding any filename extension,
+ * Looks for a sequence of decimal digits in `path`, preceding any filename extension,
  * returning the integer value if found, or 0 if not.
  *
- * \param string: String to scan.
- * \param head: Optional area to return copy of part of string prior to digits,
+ * \param path: String to scan.
+ * \param head: Optional area to return copy of part of `path` prior to digits,
  * or before dot if no digits.
- * \param tail: Optional area to return copy of part of string following digits,
+ * \param tail: Optional area to return copy of part of `path` following digits,
  * or from dot if no digits.
  * \param r_digits_len: Optional to return number of digits found.
  */
-int BLI_path_sequence_decode(const char *string,
+int BLI_path_sequence_decode(const char *path,
                              char *head,
+                             size_t head_maxncpy,
                              char *tail,
+                             size_t tail_maxncpy,
                              unsigned short *r_digits_len);
 /**
- * Returns in area pointed to by string a string of the form `<head><pic><tail>`,
+ * Returns in area pointed to by `path` a string of the form `<head><pic><tail>`,
  * where pic is formatted as `numlen` digits with leading zeroes.
  */
-void BLI_path_sequence_encode(
-    char *string, const char *head, const char *tail, unsigned short numlen, int pic);
+void BLI_path_sequence_encode(char *path,
+                              size_t path_maxncpy,
+                              const char *head,
+                              const char *tail,
+                              unsigned short numlen,
+                              int pic);
 
 /**
- * Remove redundant characters from \a path and optionally make absolute.
+ * Remove redundant characters from \a path.
  *
- * \param relabase: The path this is relative to, or ignored when NULL.
- * \param path: Can be any input, and this function converts it to a regular full path.
- * Also removes garbage from directory paths, like `/../` or double slashes etc.
+ * The following operations are performed:
+ * - Redundant path components such as `//`, `/./` & `./` (prefix) are stripped.
+ *   (with the exception of `//` prefix used for blend-file relative paths).
+ * - `..` are resolved so `<parent>/../<child>/` resolves to `<child>/`.
+ *   Note that the resulting path may begin with `..` if it's relative.
  *
- * \note \a path isn't protected for max string names.
+ * Details:
+ * - The slash direction is expected to be native (see #SEP).
+ *   When calculating a canonical paths you may need to run #BLI_path_slash_native first.
+ *   #BLI_path_cmp_normalized can be used for canonical path comparison.
+ * - Trailing slashes are left intact (unlike Python which strips them).
+ * - Handling paths beginning with `..` depends on them being absolute or relative.
+ *   For absolute paths they are removed (e.g. `/../path` becomes `/path`).
+ *   For relative paths they are kept as it's valid to reference paths above a relative location
+ *   such as `//../parent` or `../parent`.
+ *
+ * \param path: The path to a file or directory which can be absolute or relative.
  */
-void BLI_path_normalize(const char *relabase, char *path) ATTR_NONNULL(2);
+void BLI_path_normalize(char *path) ATTR_NONNULL(1);
 /**
  * Cleanup file-path ensuring a trailing slash.
  *
  * \note Same as #BLI_path_normalize but adds a trailing slash.
  */
-void BLI_path_normalize_dir(const char *relabase, char *dir, size_t dir_maxlen) ATTR_NONNULL(2);
+void BLI_path_normalize_dir(char *dir, size_t dir_maxncpy) ATTR_NONNULL(1);
 
 /**
  * Make given name safe to be used in paths.
@@ -352,8 +382,8 @@ void BLI_path_normalize_dir(const char *relabase, char *dir, size_t dir_maxlen) 
  * \note On Windows, it also checks for forbidden names
  * (see https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx ).
  */
-bool BLI_filename_make_safe_ex(char *fname, bool allow_tokens) ATTR_NONNULL(1);
-bool BLI_filename_make_safe(char *fname) ATTR_NONNULL(1);
+bool BLI_path_make_safe_filename_ex(char *fname, bool allow_tokens) ATTR_NONNULL(1);
+bool BLI_path_make_safe_filename(char *fname) ATTR_NONNULL(1);
 
 /**
  * Make given path OS-safe.
@@ -370,14 +400,14 @@ bool BLI_path_make_safe(char *path) ATTR_NONNULL(1);
  *
  * On success, the resulting path will always have a trailing slash.
  */
-bool BLI_path_parent_dir(char *path) ATTR_NONNULL();
+bool BLI_path_parent_dir(char *path) ATTR_NONNULL(1);
 /**
  * Go back until the directory is found.
  *
  * Strips off nonexistent (or non-accessible) sub-directories from the end of `dir`,
  * leaving the path of the lowest-level directory that does exist and we can read.
  */
-bool BLI_path_parent_dir_until_exists(char *path) ATTR_NONNULL();
+bool BLI_path_parent_dir_until_exists(char *path) ATTR_NONNULL(1);
 
 /**
  * If path begins with "//", strips that and replaces it with `basepath` directory.
@@ -389,29 +419,29 @@ bool BLI_path_parent_dir_until_exists(char *path) ATTR_NONNULL();
  * \param basepath: The directory to base relative paths with.
  * \return true if the path was relative (started with "//").
  */
-bool BLI_path_abs(char *path, const char *basepath) ATTR_NONNULL();
+bool BLI_path_abs(char *path, const char *basepath) ATTR_NONNULL(1, 2);
 /**
  * Replaces "#" character sequence in last slash-separated component of `path`
  * with frame as decimal integer, with leading zeroes as necessary, to make digits.
  */
-bool BLI_path_frame(char *path, int frame, int digits) ATTR_NONNULL();
+bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits) ATTR_NONNULL(1);
 /**
  * Replaces "#" character sequence in last slash-separated component of `path`
  * with sta and end as decimal integers, with leading zeroes as necessary, to make digits
  * digits each, with a hyphen in-between.
  */
-bool BLI_path_frame_range(char *path, int sta, int end, int digits) ATTR_NONNULL();
+bool BLI_path_frame_range(char *path, int sta, int end, int digits) ATTR_NONNULL(1);
 /**
  * Get the frame from a filename formatted by blender's frame scheme
  */
-bool BLI_path_frame_get(char *path, int *r_frame, int *r_digits_len) ATTR_NONNULL();
+bool BLI_path_frame_get(const char *path, int *r_frame, int *r_digits_len) ATTR_NONNULL(1, 2, 3);
 /**
  * Given a `path` with digits representing frame numbers, replace the digits with the '#'
  * character and extract the extension.
  * So:      `/some/path_123.jpeg`
  * Becomes: `/some/path_###` with `r_ext` set to `.jpeg`.
  */
-void BLI_path_frame_strip(char *path, char *r_ext) ATTR_NONNULL();
+void BLI_path_frame_strip(char *path, char *r_ext, size_t ext_maxncpy) ATTR_NONNULL(1, 2);
 /**
  * Check if we have '#' chars, usable for #BLI_path_frame, #BLI_path_frame_range
  */
@@ -430,18 +460,18 @@ bool BLI_path_is_abs_from_cwd(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED
  * This is _not_ something Blender's internal paths support, instead they use the "//" prefix.
  * In most cases #BLI_path_abs should be used instead.
  */
-bool BLI_path_abs_from_cwd(char *path, size_t maxlen) ATTR_NONNULL();
+bool BLI_path_abs_from_cwd(char *path, size_t path_maxncpy) ATTR_NONNULL(1);
 /**
  * Replaces `file` with a relative version (prefixed by "//") such that #BLI_path_abs, given
- * the same `relfile`, will convert it back to its original value.
+ * the same `basename`, will convert it back to its original value.
  */
-void BLI_path_rel(char *file, const char *relfile) ATTR_NONNULL();
+void BLI_path_rel(char *path, const char *basename) ATTR_NONNULL(1);
 
 /**
  * Does path begin with the special "//" prefix that Blender uses to indicate
  * a path relative to the .blend file.
  */
-bool BLI_path_is_rel(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+bool BLI_path_is_rel(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 /**
  * Return true if the path is a UNC share.
  */
@@ -451,27 +481,28 @@ bool BLI_path_is_unc(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
  * Creates a display string from path to be used menus and the user interface.
  * Like `bpy.path.display_name()`.
  */
-void BLI_path_to_display_name(char *display_name, int maxlen, const char *name) ATTR_NONNULL();
+void BLI_path_to_display_name(char *display_name, int display_name_maxncpy, const char *name)
+    ATTR_NONNULL(1, 3);
 
 #if defined(WIN32)
 void BLI_path_normalize_unc_16(wchar_t *path_16);
-void BLI_path_normalize_unc(char *path_16, int maxlen);
+void BLI_path_normalize_unc(char *path, int path_maxncpy);
 #endif
 
 /**
- * Appends a suffix to the string, fitting it before the extension
+ * Appends a suffix to the `path`, fitting it before the extension
  *
- * string = `Foo.png`, suffix = `123`, separator = `_`.
+ * path = `Foo.png`, suffix = `123`, separator = `_`.
  * `Foo.png` -> `Foo_123.png`.
  *
- * \param string: original (and final) string
- * \param maxlen: Maximum length of string
- * \param suffix: String to append to the original string
- * \param sep: Optional separator character
- * \return true if succeeded
+ * \param path: original (and final) string.
+ * \param path_maxncpy: Maximum length of path.
+ * \param suffix: String to append to the original path.
+ * \param sep: Optional separator character.
+ * \return true if succeeded.
  */
-bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char *sep)
-    ATTR_NONNULL();
+bool BLI_path_suffix(char *path, size_t path_maxncpy, const char *suffix, const char *sep)
+    ATTR_NONNULL(1, 3, 4);
 
 /* Path string comparisons: case-insensitive for Windows, case-sensitive otherwise. */
 #if defined(WIN32)

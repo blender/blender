@@ -863,7 +863,8 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
       }
       /* Numbers (digits not part of an identifier and periods followed by digits) */
       else if ((prev != FMT_TYPE_DEFAULT && text_check_digit(*str)) ||
-               (*str == '.' && text_check_digit(*(str + 1)))) {
+               (*str == '.' && text_check_digit(*(str + 1))))
+      {
         *fmt = FMT_TYPE_NUMERAL;
       }
       /* Booleans */
@@ -936,6 +937,7 @@ void ED_text_format_register_pov(void)
   tft.format_identifier = txtfmt_pov_format_identifier;
   tft.format_line = txtfmt_pov_format_line;
   tft.ext = ext;
+  tft.comment_line = "//";
 
   ED_text_format_register(&tft);
 }

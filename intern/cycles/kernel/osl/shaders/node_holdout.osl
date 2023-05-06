@@ -3,6 +3,4 @@
 
 #include "stdcycles.h"
 
-shader node_holdout(output closure color Holdout = holdout())
-{
-}
+shader node_holdout(output closure color Holdout = holdout()) {}

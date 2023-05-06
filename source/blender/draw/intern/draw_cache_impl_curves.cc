@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+ * Copyright 2017 Blender Foundation */
 
 /** \file
  * \ingroup draw
@@ -256,43 +256,21 @@ static void curves_batch_cache_ensure_edit_points_pos(const bke::CurvesGeometry 
 }
 
 static void curves_batch_cache_ensure_edit_points_selection(const bke::CurvesGeometry &curves,
-                                                            const eAttrDomain selection_domain,
                                                             CurvesBatchCache &cache)
 {
   static GPUVertFormat format_data = {0};
-  static uint selection_id;
   if (format_data.attr_len == 0) {
-    selection_id = GPU_vertformat_attr_add(
-        &format_data, "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format_data, "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   }
 
   GPU_vertbuf_init_with_format(cache.edit_points_selection, &format_data);
   GPU_vertbuf_data_alloc(cache.edit_points_selection, curves.points_num());
+  MutableSpan<float> data(static_cast<float *>(GPU_vertbuf_get_data(cache.edit_points_selection)),
+                          curves.points_num());
 
-  const OffsetIndices points_by_curve = curves.points_by_curve();
-
-  const VArray<bool> selection = curves.attributes().lookup_or_default<bool>(
-      ".selection", selection_domain, true);
-  switch (selection_domain) {
-    case ATTR_DOMAIN_POINT:
-      for (const int point_i : selection.index_range()) {
-        const float point_selection = selection[point_i] ? 1.0f : 0.0f;
-        GPU_vertbuf_attr_set(cache.edit_points_selection, selection_id, point_i, &point_selection);
-      }
-      break;
-    case ATTR_DOMAIN_CURVE:
-      for (const int curve_i : curves.curves_range()) {
-        const float curve_selection = selection[curve_i] ? 1.0f : 0.0f;
-        const IndexRange points = points_by_curve[curve_i];
-        for (const int point_i : points) {
-          GPU_vertbuf_attr_set(
-              cache.edit_points_selection, selection_id, point_i, &curve_selection);
-        }
-      }
-      break;
-    default:
-      break;
-  }
+  const VArray<float> attribute = *curves.attributes().lookup_or_default<float>(
+      ".selection", ATTR_DOMAIN_POINT, true);
+  attribute.materialize(data);
 }
 
 static void curves_batch_cache_ensure_edit_lines(const bke::CurvesGeometry &curves,
@@ -365,14 +343,14 @@ static void curves_batch_ensure_attribute(const Curves &curves,
    * the Blender convention, it should be `vec4(s, s, s, 1)`. This could be resolved using a
    * similar texture state swizzle to map the attribute correctly as for volume attributes, so we
    * can control the conversion ourselves. */
-  VArray<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
+  bke::AttributeReader<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
       request.attribute_name, request.domain, {0.0f, 0.0f, 0.0f, 1.0f});
 
   MutableSpan<ColorGeometry4f> vbo_span{
       static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(attr_vbo)),
       attributes.domain_size(request.domain)};
 
-  attribute.materialize(vbo_span);
+  attribute.varray.materialize(vbo_span);
 
   /* Existing final data may have been for a different attribute (with a different name or domain),
    * free the data. */
@@ -773,8 +751,7 @@ void DRW_curves_batch_cache_create_requested(Object *ob)
     curves_batch_cache_ensure_edit_points_pos(curves_orig, deformation.positions, cache);
   }
   if (DRW_vbo_requested(cache.edit_points_selection)) {
-    curves_batch_cache_ensure_edit_points_selection(
-        curves_orig, eAttrDomain(curves_id->selection_domain), cache);
+    curves_batch_cache_ensure_edit_points_selection(curves_orig, cache);
   }
   if (DRW_ibo_requested(cache.edit_lines_ibo)) {
     curves_batch_cache_ensure_edit_lines(curves_orig, cache);

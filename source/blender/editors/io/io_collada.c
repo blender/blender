@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup collada
@@ -44,7 +44,6 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent *
   return OPERATOR_RUNNING_MODAL;
 }
 
-/* function used for WM_OT_save_mainfile too */
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
@@ -94,7 +93,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
   /* Avoid File write exceptions in Collada */
   if (!BLI_exists(filepath)) {
-    BLI_make_existing_file(filepath);
+    BLI_file_ensure_parent_dir_exists(filepath);
     if (!BLI_file_touch(filepath)) {
       BKE_report(op->reports, RPT_ERROR, "Can't create export file");
       fprintf(stdout, "Collada export: Can not create: %s\n", filepath);
@@ -374,8 +373,6 @@ static bool wm_collada_export_check(bContext *UNUSED(C), wmOperator *op)
 
 void WM_OT_collada_export(wmOperatorType *ot)
 {
-  struct StructRNA *func = ot->srna;
-
   static const EnumPropertyItem prop_bc_export_mesh_type[] = {
       {BC_MESH_TYPE_VIEW, "view", 0, "Viewport", "Apply modifier's viewport settings"},
       {BC_MESH_TYPE_RENDER, "render", 0, "Render", "Apply modifier's render settings"},
@@ -457,20 +454,23 @@ void WM_OT_collada_export(wmOperatorType *ot)
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
 
-  RNA_def_enum(func,
+  PropertyRNA *prop = RNA_def_string(ot->srna, "filter_glob", "*.dae", 0, "", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
+  RNA_def_enum(ot->srna,
                "prop_bc_export_ui_section",
                prop_bc_export_ui_section,
                0,
                "Export Section",
                "Only for User Interface organization");
 
-  RNA_def_boolean(func,
+  RNA_def_boolean(ot->srna,
                   "apply_modifiers",
                   0,
                   "Apply Modifiers",
-                  "Apply modifiers to exported mesh (non destructive))");
+                  "Apply modifiers to exported mesh (non destructive)");
 
-  RNA_def_int(func,
+  RNA_def_int(ot->srna,
               "export_mesh_type",
               0,
               INT_MIN,
@@ -480,83 +480,83 @@ void WM_OT_collada_export(wmOperatorType *ot)
               INT_MIN,
               INT_MAX);
 
-  RNA_def_enum(func,
+  RNA_def_enum(ot->srna,
                "export_mesh_type_selection",
                prop_bc_export_mesh_type,
                0,
                "Resolution",
                "Modifier resolution for export");
 
-  RNA_def_enum(func,
+  RNA_def_enum(ot->srna,
                "export_global_forward_selection",
                prop_bc_export_global_forward,
                BC_DEFAULT_FORWARD,
                "Global Forward Axis",
                "Global Forward axis for export");
 
-  RNA_def_enum(func,
+  RNA_def_enum(ot->srna,
                "export_global_up_selection",
                prop_bc_export_global_up,
                BC_DEFAULT_UP,
                "Global Up Axis",
                "Global Up axis for export");
 
-  RNA_def_boolean(func,
+  RNA_def_boolean(ot->srna,
                   "apply_global_orientation",
                   false,
                   "Apply Global Orientation",
                   "Rotate all root objects to match the global orientation settings "
                   "otherwise set the global orientation per Collada asset");
 
-  RNA_def_boolean(func, "selected", false, "Selection Only", "Export only selected elements");
+  RNA_def_boolean(ot->srna, "selected", false, "Selection Only", "Export only selected elements");
 
-  RNA_def_boolean(func,
+  RNA_def_boolean(ot->srna,
                   "include_children",
                   false,
                   "Include Children",
                   "Export all children of selected objects (even if not selected)");
 
-  RNA_def_boolean(func,
+  RNA_def_boolean(ot->srna,
                   "include_armatures",
                   false,
                   "Include Armatures",
                   "Export related armatures (even if not selected)");
 
-  RNA_def_boolean(func,
+  RNA_def_boolean(ot->srna,
                   "include_shapekeys",
                   false,
                   "Include Shape Keys",
                   "Export all Shape Keys from Mesh Objects");
 
-  RNA_def_boolean(func,
+  RNA_def_boolean(ot->srna,
                   "deform_bones_only",
                   false,
                   "Deform Bones Only",
                   "Only export deforming bones with armatures");
 
   RNA_def_boolean(
-      func,
+      ot->srna,
       "include_animations",
       true,
       "Include Animations",
       "Export animations if available (exporting animations will enforce the decomposition of "
       "node transforms into  <translation> <rotation> and <scale> components)");
 
-  RNA_def_boolean(func,
+  RNA_def_boolean(ot->srna,
                   "include_all_actions",
                   true,
                   "Include all Actions",
                   "Export also unassigned actions (this allows you to export entire animation "
                   "libraries for your character(s))");
 
-  RNA_def_enum(func,
+  RNA_def_enum(ot->srna,
                "export_animation_type_selection",
                prop_bc_export_animation_type,
                0,
                "Key Type",
                "Type for exported animations (use sample keys or Curve keys)");
 
-  RNA_def_int(func,
+  RNA_def_int(ot->srna,
               "sampling_rate",
               1,
               1,
@@ -566,7 +566,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
               1,
               INT_MAX);
 
-  RNA_def_boolean(func,
+  RNA_def_boolean(ot->srna,
                   "keep_smooth_curves",
                   0,
                   "Keep Smooth curves",
@@ -574,48 +574,51 @@ void WM_OT_collada_export(wmOperatorType *ot)
                   "inverse parent matrix "
                   "is the unity matrix, otherwise you may end up with odd results)");
 
-  RNA_def_boolean(func,
+  RNA_def_boolean(ot->srna,
                   "keep_keyframes",
                   0,
                   "Keep Keyframes",
                   "Use existing keyframes as additional sample points (this helps when you want "
                   "to keep manual tweaks)");
 
-  RNA_def_boolean(func,
+  RNA_def_boolean(ot->srna,
                   "keep_flat_curves",
                   0,
                   "All Keyed Curves",
                   "Export also curves which have only one key or are totally flat");
 
   RNA_def_boolean(
-      func, "active_uv_only", 0, "Only Selected UV Map", "Export only the selected UV Map");
+      ot->srna, "active_uv_only", 0, "Only Selected UV Map", "Export only the selected UV Map");
 
-  RNA_def_boolean(func,
+  RNA_def_boolean(ot->srna,
                   "use_texture_copies",
                   1,
                   "Copy",
                   "Copy textures to same folder where the .dae file is exported");
 
-  RNA_def_boolean(
-      func, "triangulate", 1, "Triangulate", "Export polygons (quads and n-gons) as triangles");
+  RNA_def_boolean(ot->srna,
+                  "triangulate",
+                  1,
+                  "Triangulate",
+                  "Export polygons (quads and n-gons) as triangles");
 
-  RNA_def_boolean(func,
+  RNA_def_boolean(ot->srna,
                   "use_object_instantiation",
                   1,
                   "Use Object Instances",
                   "Instantiate multiple Objects from same Data");
 
   RNA_def_boolean(
-      func,
+      ot->srna,
       "use_blender_profile",
       1,
       "Use Blender Profile",
       "Export additional Blender specific information (for material, shaders, bones, etc.)");
 
   RNA_def_boolean(
-      func, "sort_by_name", 0, "Sort by Object name", "Sort exported data by Object name");
+      ot->srna, "sort_by_name", 0, "Sort by Object name", "Sort exported data by Object name");
 
-  RNA_def_int(func,
+  RNA_def_int(ot->srna,
               "export_object_transformation_type",
               0,
               INT_MIN,
@@ -625,14 +628,14 @@ void WM_OT_collada_export(wmOperatorType *ot)
               INT_MIN,
               INT_MAX);
 
-  RNA_def_enum(func,
+  RNA_def_enum(ot->srna,
                "export_object_transformation_type_selection",
                prop_bc_export_transformation_type,
                0,
                "Transform",
                "Object Transformation type for translation, scale and rotation");
 
-  RNA_def_int(func,
+  RNA_def_int(ot->srna,
               "export_animation_transformation_type",
               0,
               INT_MIN,
@@ -644,7 +647,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
               INT_MIN,
               INT_MAX);
 
-  RNA_def_enum(func,
+  RNA_def_enum(ot->srna,
                "export_animation_transformation_type_selection",
                prop_bc_export_transformation_type,
                0,
@@ -653,27 +656,26 @@ void WM_OT_collada_export(wmOperatorType *ot)
                "Note: The Animation transformation type in the Anim Tab "
                "is always equal to the Object transformation type in the Geom tab");
 
-  RNA_def_boolean(func,
+  RNA_def_boolean(ot->srna,
                   "open_sim",
                   0,
                   "Export to SL/OpenSim",
                   "Compatibility mode for SL, OpenSim and other compatible online worlds");
 
-  RNA_def_boolean(func,
+  RNA_def_boolean(ot->srna,
                   "limit_precision",
                   0,
                   "Limit Precision",
                   "Reduce the precision of the exported data to 6 digits");
 
   RNA_def_boolean(
-      func,
+      ot->srna,
       "keep_bind_info",
       0,
       "Keep Bind Info",
       "Store Bindpose information in custom bone properties for later use during Collada export");
 }
 
-/* function used for WM_OT_save_mainfile too */
 static int wm_collada_import_exec(bContext *C, wmOperator *op)
 {
   char filename[FILE_MAX];
@@ -776,6 +778,9 @@ void WM_OT_collada_import(wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
+
+  PropertyRNA *prop = RNA_def_string(ot->srna, "filter_glob", "*.dae", 0, "", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 
   RNA_def_boolean(ot->srna,
                   "import_units",

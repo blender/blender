@@ -348,7 +348,8 @@ void PathTrace::update_work_buffer_params_if_needed(const RenderWork &render_wor
   }
 
   if (render_state_.need_reset_params ||
-      render_state_.resolution_divider != render_work.resolution_divider) {
+      render_state_.resolution_divider != render_work.resolution_divider)
+  {
     update_effective_work_buffer_params(render_work);
   }
 
@@ -565,7 +566,8 @@ void PathTrace::denoise(const RenderWork &render_work)
   if (denoiser_->denoise_buffer(render_state_.effective_big_tile_params,
                                 buffer_to_denoise,
                                 get_num_samples_in_buffer(),
-                                allow_inplace_modification)) {
+                                allow_inplace_modification))
+  {
     render_state_.has_denoised_result = true;
   }
 
@@ -574,7 +576,7 @@ void PathTrace::denoise(const RenderWork &render_work)
 
 void PathTrace::set_output_driver(unique_ptr<OutputDriver> driver)
 {
-  output_driver_ = move(driver);
+  output_driver_ = std::move(driver);
 }
 
 void PathTrace::set_display_driver(unique_ptr<DisplayDriver> driver)
@@ -585,7 +587,7 @@ void PathTrace::set_display_driver(unique_ptr<DisplayDriver> driver)
   destroy_gpu_resources();
 
   if (driver) {
-    display_ = make_unique<PathTraceDisplay>(move(driver));
+    display_ = make_unique<PathTraceDisplay>(std::move(driver));
   }
   else {
     display_ = nullptr;
@@ -1036,7 +1038,12 @@ bool PathTrace::get_render_tile_pixels(const PassAccessor &pass_accessor,
   }
 
   if (big_tile_denoise_work_ && render_state_.has_denoised_result) {
-    return big_tile_denoise_work_->get_render_tile_pixels(pass_accessor, destination);
+    /* Only use the big tile denoised buffer to access the denoised passes.
+     * The guiding passes are allowed to be modified in-place for the needs of the denoiser,
+     * so copy those from the original devices buffers. */
+    if (pass_accessor.get_pass_access_info().mode == PassMode::DENOISED) {
+      return big_tile_denoise_work_->get_render_tile_pixels(pass_accessor, destination);
+    }
   }
 
   bool success = true;
@@ -1144,6 +1151,8 @@ static const char *device_type_for_description(const DeviceType type)
       return "OptiX";
     case DEVICE_HIP:
       return "HIP";
+    case DEVICE_HIPRT:
+      return "HIPRT";
     case DEVICE_ONEAPI:
       return "oneAPI";
     case DEVICE_DUMMY:
@@ -1343,7 +1352,7 @@ void PathTrace::guiding_prepare_structures()
      * per update to be limited, for reproducible results and reasonable training size.
      *
      * Idea: we could stochastically discard samples with a probability of 1/num_samples_per_update
-     * we can then update only after the num_samples_per_update iterations are rendered.  */
+     * we can then update only after the num_samples_per_update iterations are rendered. */
     render_scheduler_.set_limit_samples_per_update(4);
   }
   else {

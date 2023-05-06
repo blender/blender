@@ -35,9 +35,7 @@ class NodeCamera : public Node {
   NodeCamera(const NodeCamera &iBrother);
 #endif
 
-  virtual ~NodeCamera()
-  {
-  }
+  virtual ~NodeCamera() {}
 
   /** Accept the corresponding visitor */
   virtual void accept(SceneVisitor &v);

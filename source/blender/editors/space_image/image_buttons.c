@@ -31,7 +31,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_image.h"
 #include "ED_screen.h"
 
@@ -654,7 +654,8 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
 
     /* view */
     if (BLI_listbase_count_at_most(&rr->views, 2) > 1 &&
-        ((!show_stereo) || !RE_RenderResult_is_stereo(rr))) {
+        ((!show_stereo) || !RE_RenderResult_is_stereo(rr)))
+    {
       rview = BLI_findlink(&rr->views, iuser->view);
       display_name = rview ? rview->name : "";
 
@@ -676,7 +677,8 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
 
   /* stereo image */
   else if ((BKE_image_is_stereo(image) && (!show_stereo)) ||
-           (BKE_image_is_multiview(image) && !BKE_image_is_stereo(image))) {
+           (BKE_image_is_multiview(image) && !BKE_image_is_stereo(image)))
+  {
     ImageView *iv;
     int nr = 0;
 
@@ -789,7 +791,7 @@ void uiTemplateImage(uiLayout *layout,
     else if (ima->type == IMA_TYPE_R_RESULT) {
       /* browse layer/passes */
       RenderResult *rr;
-      const float dpi_fac = UI_DPI_FAC;
+      const float dpi_fac = UI_SCALE_FAC;
       const int menus_width = 230 * dpi_fac;
 
       /* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
@@ -880,7 +882,7 @@ void uiTemplateImage(uiLayout *layout,
   if (ima->type == IMA_TYPE_MULTILAYER && ima->rr) {
     uiItemS(layout);
 
-    const float dpi_fac = UI_DPI_FAC;
+    const float dpi_fac = UI_SCALE_FAC;
     uiblock_layer_pass_buttons(layout, ima, ima->rr, iuser, 230 * dpi_fac, NULL);
   }
 
@@ -994,7 +996,8 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
            R_IMF_CHAN_DEPTH_12,
            R_IMF_CHAN_DEPTH_16,
            R_IMF_CHAN_DEPTH_24,
-           R_IMF_CHAN_DEPTH_32) == 0) {
+           R_IMF_CHAN_DEPTH_32) == 0)
+  {
     uiItemR(uiLayoutRow(col, true), imfptr, "color_depth", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
   }
 
@@ -1162,7 +1165,7 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
   /* render layers and passes */
   if (ima && iuser) {
     RenderResult *rr;
-    const float dpi_fac = UI_DPI_FAC;
+    const float dpi_fac = UI_SCALE_FAC;
     const int menus_width = 160 * dpi_fac;
     const bool is_render_result = (ima->type == IMA_TYPE_R_RESULT);
 
@@ -1223,7 +1226,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
 
     eGPUTextureFormat texture_format = IMB_gpu_get_texture_format(
         ibuf, ima->flag & IMA_HIGH_BITDEPTH, ibuf->planes >= 8);
-    const char *texture_format_description = GPU_texture_format_description(texture_format);
+    const char *texture_format_description = GPU_texture_format_name(texture_format);
     ofs += BLI_snprintf_rlen(str + ofs, len - ofs, TIP_(",  %s"), texture_format_description);
 
     uiItemL(col, str, ICON_NONE);
@@ -1250,8 +1253,8 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
     }
     else if (ima->source == IMA_SRC_SEQUENCE && ibuf) {
       /* Image sequence frame number + filename */
-      const char *filename = BLI_path_slash_rfind(ibuf->name);
-      filename = (filename == NULL) ? ibuf->name : filename + 1;
+      const char *filename = BLI_path_slash_rfind(ibuf->filepath);
+      filename = (filename == NULL) ? ibuf->filepath : filename + 1;
       BLI_snprintf(str, MAX_IMAGE_INFO_LEN, TIP_("Frame %d: %s"), framenr, filename);
     }
     else {

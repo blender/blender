@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup bmesh
@@ -841,7 +841,7 @@ void BM_data_layer_add(BMesh *bm, CustomData *data, int type)
   /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = NULL;
 
-  CustomData_add_layer(data, type, CD_SET_DEFAULT, NULL, 0);
+  CustomData_add_layer(data, type, CD_SET_DEFAULT, 0);
 
   update_data_blocks(bm, &olddata, data);
   if (olddata.layers) {
@@ -856,7 +856,7 @@ void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *
   /* The pool is now owned by `olddata` and must not be shared. */
   data->pool = NULL;
 
-  CustomData_add_layer_named(data, type, CD_SET_DEFAULT, NULL, 0, name);
+  CustomData_add_layer_named(data, type, CD_SET_DEFAULT, 0, name);
 
   update_data_blocks(bm, &olddata, data);
   if (olddata.layers) {
@@ -1132,7 +1132,8 @@ static void bm_loop_walk_data(struct LoopWalkCtx *lwc, BMLoop *l_walk)
       BLI_assert(l_other->v == l_walk->v);
       if (BM_elem_flag_test(l_other, BM_ELEM_INTERNAL_TAG)) {
         if (CustomData_data_equals(
-                lwc->type, lwc->data_ref, BM_ELEM_CD_GET_VOID_P(l_other, lwc->cd_layer_offset))) {
+                lwc->type, lwc->data_ref, BM_ELEM_CD_GET_VOID_P(l_other, lwc->cd_layer_offset)))
+        {
           bm_loop_walk_data(lwc, l_other);
         }
       }

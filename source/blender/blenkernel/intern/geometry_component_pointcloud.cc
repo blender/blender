@@ -12,9 +12,7 @@
 /** \name Geometry Component Implementation
  * \{ */
 
-PointCloudComponent::PointCloudComponent() : GeometryComponent(GEO_COMPONENT_TYPE_POINT_CLOUD)
-{
-}
+PointCloudComponent::PointCloudComponent() : GeometryComponent(GEO_COMPONENT_TYPE_POINT_CLOUD) {}
 
 PointCloudComponent::~PointCloudComponent()
 {
@@ -25,7 +23,7 @@ GeometryComponent *PointCloudComponent::copy() const
 {
   PointCloudComponent *new_component = new PointCloudComponent();
   if (pointcloud_ != nullptr) {
-    new_component->pointcloud_ = BKE_pointcloud_copy_for_eval(pointcloud_, false);
+    new_component->pointcloud_ = BKE_pointcloud_copy_for_eval(pointcloud_);
     new_component->ownership_ = GeometryOwnershipType::Owned;
   }
   return new_component;
@@ -33,7 +31,7 @@ GeometryComponent *PointCloudComponent::copy() const
 
 void PointCloudComponent::clear()
 {
-  BLI_assert(this->is_mutable());
+  BLI_assert(this->is_mutable() || this->is_expired());
   if (pointcloud_ != nullptr) {
     if (ownership_ == GeometryOwnershipType::Owned) {
       BKE_id_free(nullptr, pointcloud_);
@@ -72,7 +70,7 @@ PointCloud *PointCloudComponent::get_for_write()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ == GeometryOwnershipType::ReadOnly) {
-    pointcloud_ = BKE_pointcloud_copy_for_eval(pointcloud_, false);
+    pointcloud_ = BKE_pointcloud_copy_for_eval(pointcloud_);
     ownership_ = GeometryOwnershipType::Owned;
   }
   return pointcloud_;
@@ -92,7 +90,7 @@ void PointCloudComponent::ensure_owns_direct_data()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ != GeometryOwnershipType::Owned) {
-    pointcloud_ = BKE_pointcloud_copy_for_eval(pointcloud_, false);
+    pointcloud_ = BKE_pointcloud_copy_for_eval(pointcloud_);
     ownership_ = GeometryOwnershipType::Owned;
   }
 }
@@ -141,11 +139,9 @@ static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
                                                  ATTR_DOMAIN_POINT,
                                                  CD_PROP_FLOAT3,
                                                  CD_PROP_FLOAT3,
-                                                 BuiltinAttributeProvider::NonCreatable,
+                                                 BuiltinAttributeProvider::Creatable,
                                                  BuiltinAttributeProvider::NonDeletable,
                                                  point_access,
-                                                 make_array_read_attribute<float3>,
-                                                 make_array_write_attribute<float3>,
                                                  tag_component_positions_changed);
   static BuiltinCustomDataLayerProvider radius("radius",
                                                ATTR_DOMAIN_POINT,
@@ -154,8 +150,6 @@ static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
                                                BuiltinAttributeProvider::Creatable,
                                                BuiltinAttributeProvider::Deletable,
                                                point_access,
-                                               make_array_read_attribute<float>,
-                                               make_array_write_attribute<float>,
                                                tag_component_radius_changed);
   static BuiltinCustomDataLayerProvider id("id",
                                            ATTR_DOMAIN_POINT,
@@ -164,8 +158,6 @@ static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
                                            BuiltinAttributeProvider::Creatable,
                                            BuiltinAttributeProvider::Deletable,
                                            point_access,
-                                           make_array_read_attribute<int>,
-                                           make_array_write_attribute<int>,
                                            nullptr);
   static CustomDataAttributeProvider point_custom_data(ATTR_DOMAIN_POINT, point_access);
   return ComponentAttributeProviders({&position, &radius, &id}, {&point_custom_data});

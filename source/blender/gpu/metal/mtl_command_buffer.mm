@@ -8,7 +8,7 @@
 #include "mtl_debug.hh"
 #include "mtl_framebuffer.hh"
 
-#include "intern/GHOST_ContextCGL.h"
+#include "intern/GHOST_ContextCGL.hh"
 
 #include <fstream>
 
@@ -153,7 +153,8 @@ bool MTLCommandBufferManager::submit(bool wait)
   /* If we have too many active command buffers in flight, wait until completed to avoid running
    * out. We can increase */
   if (MTLCommandBufferManager::num_active_cmd_bufs >=
-      (GHOST_ContextCGL::max_command_buffer_count - 1)) {
+      (GHOST_ContextCGL::max_command_buffer_count - 1))
+  {
     wait = true;
     MTL_LOG_WARNING(
         "Maximum number of command buffers in flight. Host will wait until GPU work has "
@@ -325,7 +326,8 @@ id<MTLRenderCommandEncoder> MTLCommandBufferManager::ensure_begin_render_command
   /* Begin new command encoder if the currently active one is
    * incompatible or requires updating. */
   if (active_command_encoder_type_ != MTL_RENDER_COMMAND_ENCODER ||
-      active_frame_buffer_ != ctx_framebuffer || force_begin) {
+      active_frame_buffer_ != ctx_framebuffer || force_begin)
+  {
     this->end_active_command_encoder();
 
     /* Determine if this is a re-bind of the same frame-buffer. */
@@ -465,7 +467,8 @@ bool MTLCommandBufferManager::do_break_submission()
   /* Use optimized heuristic to split heavy command buffer submissions to better saturate the
    * hardware and also reduce stalling from individual large submissions. */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY) ||
-      GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+      GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY))
+  {
     return ((current_draw_call_count_ > 30000) || (vertex_submitted_count_ > 100000000) ||
             (encoder_count_ > 25));
   }
@@ -511,20 +514,23 @@ bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
      * NOTE(Metal): MTLFence/MTLEvent may be required to synchronize work if
      * untracked resources are ever used. */
     if ([context_.device hasUnifiedMemory] &&
-        (active_command_encoder_type_ != MTL_COMPUTE_COMMAND_ENCODER)) {
+        (active_command_encoder_type_ != MTL_COMPUTE_COMMAND_ENCODER))
+    {
       return false;
     }
 
     /* Resolve scope. */
     MTLBarrierScope scope = 0;
-    if (barrier_bits & GPU_BARRIER_SHADER_IMAGE_ACCESS ||
-        barrier_bits & GPU_BARRIER_TEXTURE_FETCH) {
+    if (barrier_bits & GPU_BARRIER_SHADER_IMAGE_ACCESS || barrier_bits & GPU_BARRIER_TEXTURE_FETCH)
+    {
       bool is_compute = (active_command_encoder_type_ != MTL_RENDER_COMMAND_ENCODER);
       scope |= (is_compute ? 0 : MTLBarrierScopeRenderTargets) | MTLBarrierScopeTextures;
     }
     if (barrier_bits & GPU_BARRIER_SHADER_STORAGE ||
         barrier_bits & GPU_BARRIER_VERTEX_ATTRIB_ARRAY ||
-        barrier_bits & GPU_BARRIER_ELEMENT_ARRAY || barrier_bits & GPU_BARRIER_UNIFORM) {
+        barrier_bits & GPU_BARRIER_ELEMENT_ARRAY || barrier_bits & GPU_BARRIER_UNIFORM ||
+        barrier_bits & GPU_BARRIER_BUFFER_UPDATE)
+    {
       scope = scope | MTLBarrierScopeBuffers;
     }
 
@@ -714,7 +720,8 @@ void MTLRenderPassState::bind_vertex_sampler(MTLSamplerBinding &sampler_binding,
   /* If sampler state has not changed for the given slot, we do not need to fetch. */
   if (this->cached_vertex_sampler_state_bindings[slot].sampler_state == nil ||
       !(this->cached_vertex_sampler_state_bindings[slot].binding_state == sampler_binding.state) ||
-      use_argument_buffer_for_samplers) {
+      use_argument_buffer_for_samplers)
+  {
 
     id<MTLSamplerState> sampler_state = (sampler_binding.state == DEFAULT_SAMPLER_STATE) ?
                                             ctx.get_default_sampler_state() :
@@ -754,7 +761,8 @@ void MTLRenderPassState::bind_fragment_sampler(MTLSamplerBinding &sampler_bindin
   if (this->cached_fragment_sampler_state_bindings[slot].sampler_state == nil ||
       !(this->cached_fragment_sampler_state_bindings[slot].binding_state ==
         sampler_binding.state) ||
-      use_argument_buffer_for_samplers) {
+      use_argument_buffer_for_samplers)
+  {
 
     id<MTLSamplerState> sampler_state = (sampler_binding.state == DEFAULT_SAMPLER_STATE) ?
                                             ctx.get_default_sampler_state() :
@@ -794,7 +802,8 @@ void MTLComputeState::bind_compute_sampler(MTLSamplerBinding &sampler_binding,
   if (this->cached_compute_sampler_state_bindings[slot].sampler_state == nil ||
       !(this->cached_compute_sampler_state_bindings[slot].binding_state ==
         sampler_binding.state) ||
-      use_argument_buffer_for_samplers) {
+      use_argument_buffer_for_samplers)
+  {
 
     id<MTLSamplerState> sampler_state = (sampler_binding.state == DEFAULT_SAMPLER_STATE) ?
                                             ctx.get_default_sampler_state() :
@@ -827,7 +836,8 @@ void MTLRenderPassState::bind_vertex_buffer(id<MTLBuffer> buffer, uint buffer_of
 
   BufferBindingCached &current_vert_ubo_binding = this->cached_vertex_buffer_bindings[index];
   if (current_vert_ubo_binding.offset != buffer_offset ||
-      current_vert_ubo_binding.metal_buffer != buffer || current_vert_ubo_binding.is_bytes) {
+      current_vert_ubo_binding.metal_buffer != buffer || current_vert_ubo_binding.is_bytes)
+  {
 
     id<MTLRenderCommandEncoder> rec = this->cmd.get_active_render_command_encoder();
     BLI_assert(rec != nil);
@@ -856,7 +866,8 @@ void MTLRenderPassState::bind_fragment_buffer(id<MTLBuffer> buffer, uint buffer_
 
   BufferBindingCached &current_frag_ubo_binding = this->cached_fragment_buffer_bindings[index];
   if (current_frag_ubo_binding.offset != buffer_offset ||
-      current_frag_ubo_binding.metal_buffer != buffer || current_frag_ubo_binding.is_bytes) {
+      current_frag_ubo_binding.metal_buffer != buffer || current_frag_ubo_binding.is_bytes)
+  {
 
     id<MTLRenderCommandEncoder> rec = this->cmd.get_active_render_command_encoder();
     BLI_assert(rec != nil);
@@ -888,7 +899,8 @@ void MTLComputeState::bind_compute_buffer(id<MTLBuffer> buffer,
 
   BufferBindingCached &current_comp_ubo_binding = this->cached_compute_buffer_bindings[index];
   if (current_comp_ubo_binding.offset != buffer_offset ||
-      current_comp_ubo_binding.metal_buffer != buffer || current_comp_ubo_binding.is_bytes) {
+      current_comp_ubo_binding.metal_buffer != buffer || current_comp_ubo_binding.is_bytes)
+  {
 
     id<MTLComputeCommandEncoder> rec = this->cmd.get_active_compute_command_encoder();
     BLI_assert(rec != nil);

@@ -6,7 +6,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 
@@ -34,16 +34,15 @@ struct EdgeMapEntry {
   int face_index_2;
 };
 
-static Array<EdgeMapEntry> create_edge_map(const Span<MPoly> polys,
-                                           const Span<MLoop> loops,
+static Array<EdgeMapEntry> create_edge_map(const OffsetIndices<int> polys,
+                                           const Span<int> corner_edges,
                                            const int total_edges)
 {
   Array<EdgeMapEntry> edge_map(total_edges, {0, 0, 0});
 
   for (const int i_poly : polys.index_range()) {
-    const MPoly &mpoly = polys[i_poly];
-    for (const MLoop &loop : loops.slice(mpoly.loopstart, mpoly.totloop)) {
-      EdgeMapEntry &entry = edge_map[loop.e];
+    for (const int edge : corner_edges.slice(polys[i_poly])) {
+      EdgeMapEntry &entry = edge_map[edge];
       if (entry.face_count == 0) {
         entry.face_index_1 = i_poly;
       }
@@ -68,26 +67,20 @@ class AngleFieldInput final : public bke::MeshFieldInput {
                                  const IndexMask /*mask*/) const final
   {
     const Span<float3> positions = mesh.vert_positions();
-    const Span<MPoly> polys = mesh.polys();
-    const Span<MLoop> loops = mesh.loops();
-    Array<EdgeMapEntry> edge_map = create_edge_map(polys, loops, mesh.totedge);
+    const OffsetIndices polys = mesh.polys();
+    const Span<int> corner_verts = mesh.corner_verts();
+    const Span<int> corner_edges = mesh.corner_edges();
+    Array<EdgeMapEntry> edge_map = create_edge_map(polys, corner_edges, mesh.totedge);
 
     auto angle_fn =
-        [edge_map = std::move(edge_map), positions, polys, loops](const int i) -> float {
+        [edge_map = std::move(edge_map), positions, polys, corner_verts](const int i) -> float {
       if (edge_map[i].face_count != 2) {
         return 0.0f;
       }
-      const MPoly &mpoly_1 = polys[edge_map[i].face_index_1];
-      const MPoly &mpoly_2 = polys[edge_map[i].face_index_2];
-      float3 normal_1, normal_2;
-      BKE_mesh_calc_poly_normal(&mpoly_1,
-                                &loops[mpoly_1.loopstart],
-                                reinterpret_cast<const float(*)[3]>(positions.data()),
-                                normal_1);
-      BKE_mesh_calc_poly_normal(&mpoly_2,
-                                &loops[mpoly_2.loopstart],
-                                reinterpret_cast<const float(*)[3]>(positions.data()),
-                                normal_2);
+      const IndexRange poly_1 = polys[edge_map[i].face_index_1];
+      const IndexRange poly_2 = polys[edge_map[i].face_index_2];
+      const float3 normal_1 = bke::mesh::poly_normal_calc(positions, corner_verts.slice(poly_1));
+      const float3 normal_2 = bke::mesh::poly_normal_calc(positions, corner_verts.slice(poly_2));
       return angle_normalized_v3v3(normal_1, normal_2);
     };
 
@@ -124,40 +117,33 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
                                  const IndexMask /*mask*/) const final
   {
     const Span<float3> positions = mesh.vert_positions();
-    const Span<MEdge> edges = mesh.edges();
-    const Span<MPoly> polys = mesh.polys();
-    const Span<MLoop> loops = mesh.loops();
-    Array<EdgeMapEntry> edge_map = create_edge_map(polys, loops, mesh.totedge);
+    const Span<int2> edges = mesh.edges();
+    const OffsetIndices polys = mesh.polys();
+    const Span<int> corner_verts = mesh.corner_verts();
+    const Span<int> corner_edges = mesh.corner_edges();
+    Array<EdgeMapEntry> edge_map = create_edge_map(polys, corner_edges, mesh.totedge);
 
-    auto angle_fn =
-        [edge_map = std::move(edge_map), positions, edges, polys, loops](const int i) -> float {
+    auto angle_fn = [edge_map = std::move(edge_map), positions, edges, polys, corner_verts](
+                        const int i) -> float {
       if (edge_map[i].face_count != 2) {
         return 0.0f;
       }
-      const MPoly &mpoly_1 = polys[edge_map[i].face_index_1];
-      const MPoly &mpoly_2 = polys[edge_map[i].face_index_2];
+      const IndexRange poly_1 = polys[edge_map[i].face_index_1];
+      const IndexRange poly_2 = polys[edge_map[i].face_index_2];
 
       /* Find the normals of the 2 polys. */
-      float3 poly_1_normal, poly_2_normal;
-      BKE_mesh_calc_poly_normal(&mpoly_1,
-                                &loops[mpoly_1.loopstart],
-                                reinterpret_cast<const float(*)[3]>(positions.data()),
-                                poly_1_normal);
-      BKE_mesh_calc_poly_normal(&mpoly_2,
-                                &loops[mpoly_2.loopstart],
-                                reinterpret_cast<const float(*)[3]>(positions.data()),
-                                poly_2_normal);
+      const float3 poly_1_normal = bke::mesh::poly_normal_calc(positions,
+                                                               corner_verts.slice(poly_1));
+      const float3 poly_2_normal = bke::mesh::poly_normal_calc(positions,
+                                                               corner_verts.slice(poly_2));
 
       /* Find the centerpoint of the axis edge */
-      const float3 edge_centerpoint = (positions[edges[i].v1] + positions[edges[i].v2]) * 0.5f;
+      const float3 edge_centerpoint = (positions[edges[i][0]] + positions[edges[i][1]]) * 0.5f;
 
       /* Get the centerpoint of poly 2 and subtract the edge centerpoint to get a tangent
        * normal for poly 2. */
-      float3 poly_center_2;
-      BKE_mesh_calc_poly_center(&mpoly_2,
-                                &loops[mpoly_2.loopstart],
-                                reinterpret_cast<const float(*)[3]>(positions.data()),
-                                poly_center_2);
+      const float3 poly_center_2 = bke::mesh::poly_center_calc(positions,
+                                                               corner_verts.slice(poly_2));
       const float3 poly_2_tangent = math::normalize(poly_center_2 - edge_centerpoint);
       const float concavity = math::dot(poly_1_normal, poly_2_tangent);
 

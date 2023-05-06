@@ -16,7 +16,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
@@ -30,7 +30,7 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_mask.h"
@@ -54,6 +54,105 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Channel helper functions
+ * \{ */
+
+static bool get_normalized_fcurve_bounds(FCurve *fcu,
+                                         bAnimContext *ac,
+                                         const bAnimListElem *ale,
+                                         const bool include_handles,
+                                         const float range[2],
+                                         rctf *r_bounds)
+{
+  const bool fcu_selection_only = false;
+  const bool found_bounds = BKE_fcurve_calc_bounds(
+      fcu, fcu_selection_only, include_handles, range, r_bounds);
+
+  if (!found_bounds) {
+    return false;
+  }
+
+  const short mapping_flag = ANIM_get_normalization_flags(ac);
+
+  float offset;
+  const float unit_fac = ANIM_unit_mapping_get_factor(
+      ac->scene, ale->id, fcu, mapping_flag, &offset);
+
+  r_bounds->ymin = (r_bounds->ymin + offset) * unit_fac;
+  r_bounds->ymax = (r_bounds->ymax + offset) * unit_fac;
+
+  const float min_height = 0.01f;
+  const float height = BLI_rctf_size_y(r_bounds);
+  if (height < min_height) {
+    r_bounds->ymin -= (min_height - height) / 2;
+    r_bounds->ymax += (min_height - height) / 2;
+  }
+  return true;
+}
+
+static bool get_gpencil_bounds(bGPDlayer *gpl, const float range[2], rctf *r_bounds)
+{
+  bool found_start = false;
+  int start_frame = 0;
+  int end_frame = 1;
+  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+    if (gpf->framenum < range[0]) {
+      continue;
+    }
+    if (gpf->framenum > range[1]) {
+      break;
+    }
+    if (!found_start) {
+      start_frame = gpf->framenum;
+      found_start = true;
+    }
+    end_frame = gpf->framenum;
+  }
+  r_bounds->xmin = start_frame;
+  r_bounds->xmax = end_frame;
+  r_bounds->ymin = 0;
+  r_bounds->ymax = 1;
+
+  return found_start;
+}
+
+static bool get_channel_bounds(bAnimContext *ac,
+                               bAnimListElem *ale,
+                               const float range[2],
+                               const bool include_handles,
+                               rctf *r_bounds)
+{
+  bool found_bounds = false;
+  switch (ale->datatype) {
+    case ALE_GPFRAME: {
+      bGPDlayer *gpl = (bGPDlayer *)ale->data;
+      found_bounds = get_gpencil_bounds(gpl, range, r_bounds);
+      break;
+    }
+    case ALE_FCURVE: {
+      FCurve *fcu = (FCurve *)ale->key_data;
+      found_bounds = get_normalized_fcurve_bounds(fcu, ac, ale, include_handles, range, r_bounds);
+      break;
+    }
+  }
+  return found_bounds;
+}
+
+/* Pad the given rctf with regions that could block the view.
+ * For example Markers and Time Scrubbing. */
+static void add_region_padding(bContext *C, ARegion *region, rctf *bounds)
+{
+  BLI_rctf_scale(bounds, 1.1f);
+
+  const float pad_top = UI_TIME_SCRUB_MARGIN_Y;
+  const float pad_bottom = BLI_listbase_is_empty(ED_context_get_markers(C)) ?
+                               V2D_SCROLL_HANDLE_HEIGHT :
+                               UI_MARKER_MARGIN_Y;
+  BLI_rctf_pad_y(bounds, region->winy, pad_bottom, pad_top);
+}
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Public Channel Selection API
@@ -631,6 +730,49 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
   anim_flush_channel_setting_down(ac, setting, mode, match, matchLevel);
 }
 
+void ANIM_frame_channel_y_extents(bContext *C, bAnimContext *ac)
+{
+
+  ARegion *window_region = BKE_area_find_region_type(ac->area, RGN_TYPE_WINDOW);
+
+  if (!window_region) {
+    return;
+  }
+
+  ListBase anim_data = {NULL, NULL};
+  const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
+                      ANIMFILTER_FCURVESONLY | ANIMFILTER_CURVE_VISIBLE);
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+
+  rctf bounds = {.xmin = FLT_MAX, .xmax = -FLT_MAX, .ymin = FLT_MAX, .ymax = -FLT_MAX};
+  const bool include_handles = false;
+  float frame_range[2] = {window_region->v2d.cur.xmin, window_region->v2d.cur.xmax};
+  if (ac->scene->r.flag & SCER_PRV_RANGE) {
+    frame_range[0] = ac->scene->r.psfra;
+    frame_range[1] = ac->scene->r.pefra;
+  }
+
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    rctf channel_bounds;
+    const bool found_bounds = get_channel_bounds(
+        ac, ale, frame_range, include_handles, &channel_bounds);
+    if (found_bounds) {
+      BLI_rctf_union(&bounds, &channel_bounds);
+    }
+  }
+
+  if (!BLI_rctf_is_valid(&bounds)) {
+    ANIM_animdata_freelist(&anim_data);
+    return;
+  }
+
+  add_region_padding(C, window_region, &bounds);
+
+  window_region->v2d.cur.ymin = bounds.ymin;
+  window_region->v2d.cur.ymax = bounds.ymax;
+
+  ANIM_animdata_freelist(&anim_data);
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1009,7 +1151,8 @@ static void rearrange_animchannel_add_to_islands(ListBase *islands,
        * (it was either wrong sel status, or full already) */
       (is_sel == 0) ||
       /* 4) hidden status changes */
-      ((island->flag & REORDER_ISLAND_HIDDEN) != is_hidden)) {
+      ((island->flag & REORDER_ISLAND_HIDDEN) != is_hidden))
+  {
     /* create a new island now */
     island = MEM_callocN(sizeof(tReorderChannelIsland), "tReorderChannelIsland");
     BLI_addtail(islands, island);
@@ -2711,7 +2854,8 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
   UI_view2d_region_to_view(v2d, rect->xmax, rect->ymax - 2, &rectf.xmax, &rectf.ymax);
 
   /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
+            ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   float ymax;
@@ -2739,7 +2883,7 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
     }
 
     /* if channel is within border-select region, alter it */
-    if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
+    if (ymax >= rectf.ymin && ymin <= rectf.ymax) {
       /* set selection flags only */
       ANIM_channel_setting_set(ac, ale, ACHANNEL_SETTING_SELECT, selectmode);
 
@@ -2869,7 +3013,8 @@ static bool rename_anim_channels(bAnimContext *ac, int channel_index)
 
   /* Don't allow renaming linked/liboverride channels. */
   if (ale->fcurve_owner_id != NULL &&
-      (ID_IS_LINKED(ale->fcurve_owner_id) || ID_IS_OVERRIDE_LIBRARY(ale->fcurve_owner_id))) {
+      (ID_IS_LINKED(ale->fcurve_owner_id) || ID_IS_OVERRIDE_LIBRARY(ale->fcurve_owner_id)))
+  {
     ANIM_animdata_freelist(&anim_data);
     return false;
   }
@@ -3643,87 +3788,6 @@ static void ANIM_OT_channel_select_keys(wmOperatorType *ot)
 /** \name View Channel Operator
  * \{ */
 
-static void get_normalized_fcurve_bounds(FCurve *fcu,
-                                         bAnimContext *ac,
-                                         const bAnimListElem *ale,
-                                         const bool include_handles,
-                                         const float range[2],
-                                         rctf *r_bounds)
-{
-  const bool fcu_selection_only = false;
-  BKE_fcurve_calc_bounds(fcu,
-                         &r_bounds->xmin,
-                         &r_bounds->xmax,
-                         &r_bounds->ymin,
-                         &r_bounds->ymax,
-                         fcu_selection_only,
-                         include_handles,
-                         range);
-  const short mapping_flag = ANIM_get_normalization_flags(ac);
-
-  const float min_height = 0.01f;
-  const float height = BLI_rctf_size_y(r_bounds);
-  if (height < min_height) {
-    r_bounds->ymin -= (min_height - height) / 2;
-    r_bounds->ymax += (min_height - height) / 2;
-  }
-
-  float offset;
-  const float unit_fac = ANIM_unit_mapping_get_factor(
-      ac->scene, ale->id, fcu, mapping_flag, &offset);
-
-  r_bounds->ymin = (r_bounds->ymin + offset) * unit_fac;
-  r_bounds->ymax = (r_bounds->ymax + offset) * unit_fac;
-}
-
-static void get_gpencil_bounds(bGPDlayer *gpl, const float range[2], rctf *r_bounds)
-{
-  bool found_start = false;
-  int start_frame = 0;
-  int end_frame = 1;
-  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-    if (gpf->framenum < range[0]) {
-      continue;
-    }
-    if (gpf->framenum > range[1]) {
-      break;
-    }
-    if (!found_start) {
-      start_frame = gpf->framenum;
-      found_start = true;
-    }
-    end_frame = gpf->framenum;
-  }
-  r_bounds->xmin = start_frame;
-  r_bounds->xmax = end_frame;
-  r_bounds->ymin = 0;
-  r_bounds->ymax = 1;
-}
-
-static bool get_channel_bounds(bAnimContext *ac,
-                               bAnimListElem *ale,
-                               const float range[2],
-                               const bool include_handles,
-                               rctf *r_bounds)
-{
-  bool found_bounds = false;
-  switch (ale->datatype) {
-    case ALE_GPFRAME: {
-      bGPDlayer *gpl = (bGPDlayer *)ale->data;
-      get_gpencil_bounds(gpl, range, r_bounds);
-      found_bounds = true;
-      break;
-    }
-    case ALE_FCURVE: {
-      FCurve *fcu = (FCurve *)ale->key_data;
-      get_normalized_fcurve_bounds(fcu, ac, ale, include_handles, range, r_bounds);
-      found_bounds = true;
-      break;
-    }
-  }
-  return found_bounds;
-}
-
 static void get_view_range(Scene *scene, const bool use_preview_range, float r_range[2])
 {
   if (use_preview_range && scene->r.flag & SCER_PRV_RANGE) {
@@ -3731,31 +3795,8 @@ static void get_view_range(Scene *scene, const bool use_preview_range, float r_r
     r_range[1] = scene->r.pefra;
   }
   else {
-    r_range[0] = -FLT_MAX;
-    r_range[1] = FLT_MAX;
-  }
-}
-
-/* Pad the given rctf with regions that could block the view.
- * For example Markers and Time Scrubbing. */
-static void add_region_padding(bContext *C, bAnimContext *ac, rctf *bounds)
-{
-  BLI_rctf_scale(bounds, 1.1f);
-
-  const float pad_top = UI_TIME_SCRUB_MARGIN_Y;
-  const float pad_bottom = BLI_listbase_is_empty(ED_context_get_markers(C)) ?
-                               V2D_SCROLL_HANDLE_HEIGHT :
-                               UI_MARKER_MARGIN_Y;
-  BLI_rctf_pad_y(bounds, ac->region->winy, pad_bottom, pad_top);
-}
-
-/* Find the window region in the bAnimContext area and move it to bounds. */
-static void move_graph_view(bContext *C, bAnimContext *ac, rctf *bounds, const int smooth_viewtx)
-{
-  LISTBASE_FOREACH (ARegion *, region, &ac->area->regionbase) {
-    if (region->regiontype == RGN_TYPE_WINDOW) {
-      UI_view2d_smooth_view(C, region, bounds, smooth_viewtx);
-    }
+    r_range[0] = scene->r.sfra;
+    r_range[1] = scene->r.efra;
   }
 }
 
@@ -3765,6 +3806,11 @@ static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
 
   /* Get editor data. */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+  ARegion *window_region = BKE_area_find_region_type(ac.area, RGN_TYPE_WINDOW);
+
+  if (!window_region) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3800,13 +3846,19 @@ static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
 
   if (!valid_bounds) {
     ANIM_animdata_freelist(&anim_data);
+    WM_report(RPT_WARNING, "No keyframes to focus on");
     return OPERATOR_CANCELLED;
   }
 
-  add_region_padding(C, &ac, &bounds);
+  add_region_padding(C, window_region, &bounds);
+
+  if (ac.spacetype == SPACE_ACTION) {
+    bounds.ymin = window_region->v2d.cur.ymin;
+    bounds.ymax = window_region->v2d.cur.ymax;
+  }
 
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-  move_graph_view(C, &ac, &bounds, smooth_viewtx);
+  UI_view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
 
   ANIM_animdata_freelist(&anim_data);
 
@@ -3852,6 +3904,12 @@ static int graphkeys_channel_view_pick_invoke(bContext *C, wmOperator *op, const
     return OPERATOR_CANCELLED;
   }
 
+  ARegion *window_region = BKE_area_find_region_type(ac.area, RGN_TYPE_WINDOW);
+
+  if (!window_region) {
+    return OPERATOR_CANCELLED;
+  }
+
   ListBase anim_data = {NULL, NULL};
   const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
                       ANIMFILTER_LIST_CHANNELS);
@@ -3867,6 +3925,7 @@ static int graphkeys_channel_view_pick_invoke(bContext *C, wmOperator *op, const
 
   float range[2];
   const bool use_preview_range = RNA_boolean_get(op->ptr, "use_preview_range");
+
   get_view_range(ac.scene, use_preview_range, range);
 
   rctf bounds;
@@ -3875,13 +3934,19 @@ static int graphkeys_channel_view_pick_invoke(bContext *C, wmOperator *op, const
 
   if (!found_bounds) {
     ANIM_animdata_freelist(&anim_data);
+    WM_report(RPT_WARNING, "No keyframes to focus on");
     return OPERATOR_CANCELLED;
   }
 
-  add_region_padding(C, &ac, &bounds);
+  add_region_padding(C, window_region, &bounds);
+
+  if (ac.spacetype == SPACE_ACTION) {
+    bounds.ymin = window_region->v2d.cur.ymin;
+    bounds.ymax = window_region->v2d.cur.ymax;
+  }
 
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-  move_graph_view(C, &ac, &bounds, smooth_viewtx);
+  UI_view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
 
   ANIM_animdata_freelist(&anim_data);
 
@@ -3956,9 +4021,10 @@ void ED_operatortypes_animchannels(void)
   WM_operatortype_append(ANIM_OT_channels_ungroup);
 }
 
-/* TODO: check on a poll callback for this, to get hotkeys into menus */
 void ED_keymap_animchannels(wmKeyConfig *keyconf)
 {
+  /* TODO: check on a poll callback for this, to get hotkeys into menus. */
+
   WM_keymap_ensure(keyconf, "Animation Channels", 0, 0);
 }
 

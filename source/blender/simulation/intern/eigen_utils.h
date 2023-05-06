@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation. All rights reserved. */
+ * Copyright Blender Foundation */
 
 #pragma once
 
@@ -32,9 +32,7 @@ class Vector3 : public Eigen::Vector3f {
  public:
   typedef float *ctype;
 
-  Vector3()
-  {
-  }
+  Vector3() {}
 
   Vector3(const ctype &v)
   {
@@ -64,9 +62,7 @@ class Matrix3 : public Eigen::Matrix3f {
  public:
   typedef float (*ctype)[3];
 
-  Matrix3()
-  {
-  }
+  Matrix3() {}
 
   Matrix3(const ctype &v)
   {
@@ -102,9 +98,7 @@ class lVector3f : public Eigen::VectorXf {
  public:
   typedef Eigen::VectorXf base_t;
 
-  lVector3f()
-  {
-  }
+  lVector3f() {}
 
   template<typename T> lVector3f &operator=(T rhs)
   {
@@ -135,9 +129,7 @@ typedef Eigen::SparseMatrix<Scalar> lMatrix;
  * matrix can be filled using construct().
  */
 struct lMatrix3fCtor {
-  lMatrix3fCtor()
-  {
-  }
+  lMatrix3fCtor() {}
 
   void reset()
   {

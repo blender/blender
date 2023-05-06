@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -12,13 +12,19 @@
 
 #include "gpu_shader_private.hh"
 
+#include "vk_buffer.hh"
 #include "vk_common.hh"
+#include "vk_resource_tracker.hh"
+#include "vk_uniform_buffer.hh"
 
 namespace blender::gpu {
-class VKStorageBuffer;
-class VKVertexBuffer;
 class VKIndexBuffer;
+class VKShaderInterface;
+class VKStorageBuffer;
 class VKTexture;
+class VKUniformBuffer;
+class VKVertexBuffer;
+class VKDescriptorSetTracker;
 
 /**
  * In vulkan shader resources (images and buffers) are grouped in descriptor sets.
@@ -26,10 +32,9 @@ class VKTexture;
  * The resources inside a descriptor set can be updated and bound per set.
  *
  * Currently Blender only supports a single descriptor set per shader, but it is planned to be able
- * to use 2 descriptor sets per shader. Only for each #blender::gpu::shader::Frequency.
+ * to use 2 descriptor sets per shader. One for each #blender::gpu::shader::Frequency.
  */
 class VKDescriptorSet : NonCopyable {
-  struct Binding;
 
  public:
   /**
@@ -50,12 +55,10 @@ class VKDescriptorSet : NonCopyable {
      */
     uint32_t binding;
 
-    Location() = default;
+    Location(uint32_t binding) : binding(binding) {}
 
    public:
-    Location(const ShaderInput *shader_input) : binding(shader_input->location)
-    {
-    }
+    Location() = default;
 
     bool operator==(const Location &other) const
     {
@@ -67,40 +70,12 @@ class VKDescriptorSet : NonCopyable {
       return binding;
     }
 
-    friend struct Binding;
-  };
-
- private:
-  struct Binding {
-    Location location;
-    VkDescriptorType type;
-
-    VkBuffer vk_buffer = VK_NULL_HANDLE;
-    VkDeviceSize buffer_size = 0;
-
-    VkImageView vk_image_view = VK_NULL_HANDLE;
-
-    Binding()
-    {
-      location.binding = 0;
-    }
-
-    bool is_buffer() const
-    {
-      return ELEM(type, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-    }
-
-    bool is_image() const
-    {
-      return ELEM(type, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-    }
+    friend class VKDescriptorSetTracker;
+    friend class VKShaderInterface;
   };
 
   VkDescriptorPool vk_descriptor_pool_ = VK_NULL_HANDLE;
   VkDescriptorSet vk_descriptor_set_ = VK_NULL_HANDLE;
-
-  /** A list of bindings that needs to be updated.*/
-  Vector<Binding> bindings_;
 
  public:
   VKDescriptorSet() = default;
@@ -108,6 +83,7 @@ class VKDescriptorSet : NonCopyable {
       : vk_descriptor_pool_(vk_descriptor_pool), vk_descriptor_set_(vk_descriptor_set)
   {
   }
+  VKDescriptorSet(VKDescriptorSet &&other);
   virtual ~VKDescriptorSet();
 
   VKDescriptorSet &operator=(VKDescriptorSet &&other)
@@ -127,21 +103,69 @@ class VKDescriptorSet : NonCopyable {
   {
     return vk_descriptor_pool_;
   }
+  void mark_freed();
+};
 
-  void bind_as_ssbo(VKVertexBuffer &buffer, Location location);
-  void bind_as_ssbo(VKIndexBuffer &buffer, Location location);
-  void bind(VKStorageBuffer &buffer, Location location);
-  void image_bind(VKTexture &texture, Location location);
+class VKDescriptorSetTracker : protected VKResourceTracker<VKDescriptorSet> {
+  friend class VKDescriptorSet;
+
+ public:
+  struct Binding {
+    VKDescriptorSet::Location location;
+    VkDescriptorType type;
+
+    VkBuffer vk_buffer = VK_NULL_HANDLE;
+    VkDeviceSize buffer_size = 0;
+
+    VkImageView vk_image_view = VK_NULL_HANDLE;
+
+    Binding()
+    {
+      location.binding = 0;
+    }
+
+    bool is_buffer() const
+    {
+      return ELEM(type, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+    }
+
+    bool is_image() const
+    {
+      return ELEM(type, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+    }
+  };
+
+ private:
+  /** A list of bindings that needs to be updated. */
+  Vector<Binding> bindings_;
+  VkDescriptorSetLayout layout_;
+
+ public:
+  VKDescriptorSetTracker() {}
+
+  VKDescriptorSetTracker(VkDescriptorSetLayout layout) : layout_(layout) {}
+
+  void bind_as_ssbo(VKVertexBuffer &buffer, VKDescriptorSet::Location location);
+  void bind_as_ssbo(VKIndexBuffer &buffer, VKDescriptorSet::Location location);
+  void bind(VKStorageBuffer &buffer, VKDescriptorSet::Location location);
+  void bind(VKUniformBuffer &buffer, VKDescriptorSet::Location location);
+  void image_bind(VKTexture &texture, VKDescriptorSet::Location location);
 
   /**
    * Update the descriptor set on the device.
    */
-  void update(VkDevice vk_device);
+  void update(VKContext &context);
 
-  void mark_freed();
+  std::unique_ptr<VKDescriptorSet> &active_descriptor_set()
+  {
+    return active_resource();
+  }
+
+ protected:
+  std::unique_ptr<VKDescriptorSet> create_resource(VKContext &context) override;
 
  private:
-  Binding &ensure_location(Location location);
+  Binding &ensure_location(VKDescriptorSet::Location location);
 };
 
 }  // namespace blender::gpu

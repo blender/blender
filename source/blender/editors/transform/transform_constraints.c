@@ -34,6 +34,7 @@
 #include "UI_resources.h"
 
 #include "transform.h"
+#include "transform_gizmo.h"
 #include "transform_orientations.h"
 #include "transform_snap.h"
 
@@ -303,7 +304,8 @@ void transform_constraint_snap_axis_to_edge(const TransInfo *t,
   const float *edge_dir = t->tsnap.snapNormal;
   bool is_aligned = fabsf(dot_v3v3(axis, edge_dir)) > (1.0f - CONSTRAIN_EPSILON);
   if (!is_aligned &&
-      isect_ray_ray_v3(t->tsnap.snap_source, axis, edge_snap_point, edge_dir, &lambda, NULL)) {
+      isect_ray_ray_v3(t->tsnap.snap_source, axis, edge_snap_point, edge_dir, &lambda, NULL))
+  {
     mul_v3_v3fl(r_out, axis, lambda);
   }
 }
@@ -575,7 +577,8 @@ static void constraints_rotation_impl(const TransInfo *t,
   }
   /* don't flip axis if asked to or if num input */
   if (r_angle &&
-      !((mode & CON_NOFLIP) || hasNumInput(&t->num) || (t->flag & T_INPUT_IS_VALUES_FINAL))) {
+      !((mode & CON_NOFLIP) || hasNumInput(&t->num) || (t->flag & T_INPUT_IS_VALUES_FINAL)))
+  {
     float view_vector[3];
     view_vector_calc(t, t->center_global, view_vector);
     if (dot_v3v3(r_axis, view_vector) > 0.0f) {
@@ -777,7 +780,14 @@ static void drawLine(
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  float viewport[4];
+  GPU_viewport_size_get_f(viewport);
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+  immUniform2fv("viewportSize", &viewport[2]);
+  immUniform1f("lineWidth", U.pixelsize * 2.0f);
+
   immUniformColor3ubv(col2);
 
   immBegin(GPU_PRIM_LINES, 2);

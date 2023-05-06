@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
+# Copyright 2006 Blender Foundation
 
 set(INC
   ..
@@ -11,6 +11,7 @@ set(INC
   ../../editors/include
   ../../gpu
   ../../imbuf
+  ../../imbuf/intern/oiio
   ../../makesdna
   ../../makesrna
   ../../windowmanager
@@ -207,28 +208,12 @@ if(WITH_IMAGE_CINEON)
   add_definitions(-DWITH_CINEON)
 endif()
 
-if(WITH_IMAGE_DDS)
-  add_definitions(-DWITH_DDS)
-endif()
-
-if(WITH_IMAGE_HDR)
-  add_definitions(-DWITH_HDR)
-endif()
-
 if(WITH_IMAGE_OPENEXR)
   add_definitions(-DWITH_OPENEXR)
 endif()
 
-if(WITH_OPENIMAGEIO)
-  add_definitions(-DWITH_OPENIMAGEIO)
-endif()
-
 if(WITH_IMAGE_OPENJPEG)
   add_definitions(-DWITH_OPENJPEG)
-endif()
-
-if(WITH_IMAGE_TIFF)
-  add_definitions(-DWITH_TIFF)
 endif()
 
 if(WITH_WEBP)
@@ -314,6 +299,10 @@ if(WITH_IO_WAVEFRONT_OBJ)
   add_definitions(-DWITH_IO_WAVEFRONT_OBJ)
 endif()
 
+if(WITH_IO_PLY)
+  add_definitions(-DWITH_IO_PLY)
+endif()
+
 if(WITH_IO_STL)
   add_definitions(-DWITH_IO_STL)
 endif()
@@ -348,13 +337,6 @@ if(WITH_USD)
   add_definitions(-DWITH_USD)
   list(APPEND INC
     ../../io/usd
-  )
-endif()
-
-if(WITH_OPENIMAGEIO)
-  add_definitions(-DWITH_OPENIMAGEIO)
-  list(APPEND INC
-    ../../imbuf/intern/oiio
   )
 endif()
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006-2007 Blender Foundation. All rights reserved. */
+ * Copyright 2006-2007 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -48,9 +48,9 @@ static int last_studiolight_id = 0;
  */
 #define STUDIOLIGHT_LOAD_CACHED_FILES
 
-static const char *STUDIOLIGHT_LIGHTS_FOLDER = "studiolights/studio/";
-static const char *STUDIOLIGHT_WORLD_FOLDER = "studiolights/world/";
-static const char *STUDIOLIGHT_MATCAP_FOLDER = "studiolights/matcap/";
+static const char *STUDIOLIGHT_LIGHTS_FOLDER = "studiolights" SEP_STR "studio" SEP_STR;
+static const char *STUDIOLIGHT_WORLD_FOLDER = "studiolights" SEP_STR "world" SEP_STR;
+static const char *STUDIOLIGHT_MATCAP_FOLDER = "studiolights" SEP_STR "matcap" SEP_STR;
 
 static const char *STUDIOLIGHT_WORLD_DEFAULT = "forest.exr";
 static const char *STUDIOLIGHT_MATCAP_DEFAULT = "basic_1.exr";
@@ -141,7 +141,7 @@ static void studiolight_free(struct StudioLight *sl)
 static struct StudioLight *studiolight_create(int flag)
 {
   struct StudioLight *sl = MEM_callocN(sizeof(*sl), __func__);
-  sl->path[0] = 0x00;
+  sl->filepath[0] = 0x00;
   sl->name[0] = 0x00;
   sl->path_irr_cache = NULL;
   sl->path_sh_cache = NULL;
@@ -201,7 +201,7 @@ static struct StudioLight *studiolight_create(int flag)
 
 static void studiolight_load_solid_light(StudioLight *sl)
 {
-  LinkNode *lines = BLI_file_read_as_lines(sl->path);
+  LinkNode *lines = BLI_file_read_as_lines(sl->filepath);
   if (lines) {
     READ_VEC3("light_ambient", sl->light_ambient, lines);
     READ_SOLIDLIGHT(sl->light, 0, lines);
@@ -238,7 +238,7 @@ static void studiolight_load_solid_light(StudioLight *sl)
 
 static void studiolight_write_solid_light(StudioLight *sl)
 {
-  FILE *fp = BLI_fopen(sl->path, "wb");
+  FILE *fp = BLI_fopen(sl->filepath, "wb");
   if (fp) {
     DynStr *str = BLI_dynstr_new();
 
@@ -393,7 +393,7 @@ static void studiolight_multilayer_addpass(void *base,
 static void studiolight_load_equirect_image(StudioLight *sl)
 {
   if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
-    ImBuf *ibuf = IMB_loadiffname(sl->path, IB_multilayer, NULL);
+    ImBuf *ibuf = IMB_loadiffname(sl->filepath, IB_multilayer, NULL);
     ImBuf *specular_ibuf = NULL;
     ImBuf *diffuse_ibuf = NULL;
     const bool failed = (ibuf == NULL);
@@ -478,16 +478,16 @@ static void studiolight_create_equirect_radiance_gputexture(StudioLight *sl)
     BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EXTERNAL_IMAGE_LOADED);
     ImBuf *ibuf = sl->equirect_radiance_buffer;
 
-    sl->equirect_radiance_gputexture = GPU_texture_create_2d_ex("studiolight_radiance",
-                                                                ibuf->x,
-                                                                ibuf->y,
-                                                                1,
-                                                                GPU_RGBA16F,
-                                                                GPU_TEXTURE_USAGE_SHADER_READ,
-                                                                ibuf->rect_float);
+    sl->equirect_radiance_gputexture = GPU_texture_create_2d("studiolight_radiance",
+                                                             ibuf->x,
+                                                             ibuf->y,
+                                                             1,
+                                                             GPU_RGBA16F,
+                                                             GPU_TEXTURE_USAGE_SHADER_READ,
+                                                             ibuf->rect_float);
     GPUTexture *tex = sl->equirect_radiance_gputexture;
     GPU_texture_filter_mode(tex, true);
-    GPU_texture_wrap_mode(tex, true, true);
+    GPU_texture_extend_mode(tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
   }
   sl->flag |= STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE;
 }
@@ -504,7 +504,7 @@ static void studiolight_create_matcap_gputexture(StudioLightImage *sli)
     copy_v3_v3(*offset3, *offset4);
   }
 
-  sli->gputexture = GPU_texture_create_2d_ex(
+  sli->gputexture = GPU_texture_create_2d(
       "matcap", ibuf->x, ibuf->y, 1, GPU_R11F_G11F_B10F, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
   GPU_texture_update(sli->gputexture, GPU_DATA_FLOAT, gpu_matcap_3components);
 
@@ -539,16 +539,16 @@ static void studiolight_create_equirect_irradiance_gputexture(StudioLight *sl)
   if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
     BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECT_IRRADIANCE_IMAGE_CALCULATED);
     ImBuf *ibuf = sl->equirect_irradiance_buffer;
-    sl->equirect_irradiance_gputexture = GPU_texture_create_2d_ex("studiolight_irradiance",
-                                                                  ibuf->x,
-                                                                  ibuf->y,
-                                                                  1,
-                                                                  GPU_RGBA16F,
-                                                                  GPU_TEXTURE_USAGE_SHADER_READ,
-                                                                  ibuf->rect_float);
+    sl->equirect_irradiance_gputexture = GPU_texture_create_2d("studiolight_irradiance",
+                                                               ibuf->x,
+                                                               ibuf->y,
+                                                               1,
+                                                               GPU_RGBA16F,
+                                                               GPU_TEXTURE_USAGE_SHADER_READ,
+                                                               ibuf->rect_float);
     GPUTexture *tex = sl->equirect_irradiance_gputexture;
     GPU_texture_filter_mode(tex, true);
-    GPU_texture_wrap_mode(tex, true, true);
+    GPU_texture_extend_mode(tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
   }
   sl->flag |= STUDIOLIGHT_EQUIRECT_IRRADIANCE_GPUTEXTURE;
 }
@@ -570,7 +570,8 @@ static void studiolight_calculate_radiance_buffer(ImBuf *ibuf,
                                                   const float zsign)
 {
   ITER_PIXELS (
-      float, colbuf, 4, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE) {
+      float, colbuf, 4, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE)
+  {
     float direction[3];
     direction[index_x] = xsign * (x - 0.5f);
     direction[index_y] = ysign * (y - 0.5f);
@@ -683,7 +684,8 @@ static void studiolight_spherical_harmonics_calculate_coefficients(StudioLight *
                  sl->radiance_cubemap_buffers[face]->rect_float,
                  4,
                  STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE,
-                 STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE) {
+                 STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE)
+    {
       float color[3], cubevec[3], weight;
       studiolight_calculate_cubemap_vector_weight(cubevec, &weight, face, x, y);
       mul_v3_v3fl(color, pixel, weight);
@@ -977,7 +979,8 @@ BLI_INLINE void studiolight_evaluate_specular_radiance_buffer(ImBuf *radiance_bu
                radiance_buffer->rect_float,
                4,
                STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE,
-               STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE) {
+               STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE)
+  {
     float direction[3];
     direction[zoffset] = zsign * 0.5f;
     direction[xoffset] = x - 0.5f;
@@ -1130,7 +1133,8 @@ static void studiolight_calculate_irradiance_equirect_image(StudioLight *sl)
                  colbuf,
                  4,
                  STUDIOLIGHT_IRRADIANCE_EQUIRECT_WIDTH,
-                 STUDIOLIGHT_IRRADIANCE_EQUIRECT_HEIGHT) {
+                 STUDIOLIGHT_IRRADIANCE_EQUIRECT_HEIGHT)
+    {
       float dir[3];
       equirect_to_direction(dir, x, y);
       studiolight_spherical_harmonics_eval(sl, pixel, dir);
@@ -1147,23 +1151,24 @@ static void studiolight_calculate_irradiance_equirect_image(StudioLight *sl)
   sl->flag |= STUDIOLIGHT_EQUIRECT_IRRADIANCE_IMAGE_CALCULATED;
 }
 
-static StudioLight *studiolight_add_file(const char *path, int flag)
+static StudioLight *studiolight_add_file(const char *filepath, int flag)
 {
   char filename[FILE_MAXFILE];
-  BLI_split_file_part(path, filename, FILE_MAXFILE);
+  BLI_path_split_file_part(filepath, filename, FILE_MAXFILE);
 
   if ((((flag & STUDIOLIGHT_TYPE_STUDIO) != 0) && BLI_path_extension_check(filename, ".sl")) ||
-      BLI_path_extension_check_array(filename, imb_ext_image)) {
+      BLI_path_extension_check_array(filename, imb_ext_image))
+  {
     StudioLight *sl = studiolight_create(STUDIOLIGHT_EXTERNAL_FILE | flag);
-    BLI_strncpy(sl->name, filename, FILE_MAXFILE);
-    BLI_strncpy(sl->path, path, FILE_MAXFILE);
+    STRNCPY(sl->name, filename);
+    STRNCPY(sl->filepath, filepath);
 
     if ((flag & STUDIOLIGHT_TYPE_STUDIO) != 0) {
       studiolight_load_solid_light(sl);
     }
     else {
-      sl->path_irr_cache = BLI_string_joinN(path, ".irr");
-      sl->path_sh_cache = BLI_string_joinN(path, ".sh2");
+      sl->path_irr_cache = BLI_string_joinN(filepath, ".irr");
+      sl->path_sh_cache = BLI_string_joinN(filepath, ".sh2");
     }
     BLI_addtail(&studiolights, sl);
     return sl;
@@ -1573,13 +1578,13 @@ void BKE_studiolight_remove(StudioLight *sl)
   }
 }
 
-StudioLight *BKE_studiolight_load(const char *path, int type)
+StudioLight *BKE_studiolight_load(const char *filepath, int type)
 {
-  StudioLight *sl = studiolight_add_file(path, type | STUDIOLIGHT_USER_DEFINED);
+  StudioLight *sl = studiolight_add_file(filepath, type | STUDIOLIGHT_USER_DEFINED);
   return sl;
 }
 
-StudioLight *BKE_studiolight_create(const char *path,
+StudioLight *BKE_studiolight_create(const char *filepath,
                                     const SolidLight light[4],
                                     const float light_ambient[3])
 {
@@ -1588,8 +1593,8 @@ StudioLight *BKE_studiolight_create(const char *path,
                                        STUDIOLIGHT_SPECULAR_HIGHLIGHT_PASS);
 
   char filename[FILE_MAXFILE];
-  BLI_split_file_part(path, filename, FILE_MAXFILE);
-  STRNCPY(sl->path, path);
+  BLI_path_split_file_part(filepath, filename, FILE_MAXFILE);
+  STRNCPY(sl->filepath, filepath);
   STRNCPY(sl->name, filename);
 
   memcpy(sl->light, light, sizeof(*light) * 4);

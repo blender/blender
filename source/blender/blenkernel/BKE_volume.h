@@ -76,6 +76,7 @@ VolumeGrid *BKE_volume_grid_get_for_write(struct Volume *volume, int grid_index)
 const VolumeGrid *BKE_volume_grid_active_get_for_read(const struct Volume *volume);
 /* Tries to find a grid with the given name. Make sure that the volume has been loaded. */
 const VolumeGrid *BKE_volume_grid_find_for_read(const struct Volume *volume, const char *name);
+VolumeGrid *BKE_volume_grid_find_for_write(struct Volume *volume, const char *name);
 
 /* Tries to set the name of the velocity field. If no such grid exists with the given base name,
  * this will try common post-fixes in order to detect velocity fields split into multiple grids.
@@ -129,7 +130,7 @@ void BKE_volume_grid_transform_matrix_set(const struct Volume *volume,
  * file path. Grids are shared with the source data-block, not copied. */
 
 struct Volume *BKE_volume_new_for_eval(const struct Volume *volume_src);
-struct Volume *BKE_volume_copy_for_eval(struct Volume *volume_src, bool reference);
+struct Volume *BKE_volume_copy_for_eval(struct Volume *volume_src);
 
 struct VolumeGrid *BKE_volume_grid_add(struct Volume *volume,
                                        const char *name,

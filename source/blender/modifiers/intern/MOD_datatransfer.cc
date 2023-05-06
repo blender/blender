@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. All rights reserved. */
+ * Copyright 2014 Blender Foundation */
 
 /** \file
  * \ingroup modifiers
@@ -22,7 +22,7 @@
 #include "BKE_data_transfer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_modifier.h"
@@ -39,8 +39,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 /**************************************
  * Modifiers functions.               *
@@ -176,12 +176,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   const float(*me_positions)[3] = BKE_mesh_vert_positions(me);
-  const MEdge *me_edges = BKE_mesh_edges(me);
+  const blender::Span<blender::int2> me_edges = me->edges();
   const float(*result_positions)[3] = BKE_mesh_vert_positions(result);
-  const MEdge *result_edges = BKE_mesh_edges(result);
+  const blender::Span<blender::int2> result_edges = result->edges();
 
-  if (((result == me) || (me_positions == result_positions) || (me_edges == result_edges)) &&
-      (dtmd->data_types & DT_TYPES_AFFECT_MESH)) {
+  if (((result == me) || (me_positions == result_positions) ||
+       (me_edges.data() == result_edges.data())) &&
+      (dtmd->data_types & DT_TYPES_AFFECT_MESH))
+  {
     /* We need to duplicate data here, otherwise setting custom normals, edges' sharpness, etc.,
      * could modify org mesh, see #43671. */
     result = (Mesh *)BKE_id_copy_ex(nullptr, &me_mod->id, nullptr, LIB_ID_COPY_LOCALIZE);
@@ -212,7 +214,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                                   dtmd->mix_factor,
                                   dtmd->defgrp_name,
                                   invert_vgroup,
-                                  &reports)) {
+                                  &reports))
+  {
     result->runtime->is_original_bmesh = false;
   }
 

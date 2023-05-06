@@ -354,10 +354,8 @@ void BKE_constraint_mat_convertspace(Object *ob,
           }
 
           /* use pose-space as stepping stone for other spaces */
-          if (ELEM(to,
-                   CONSTRAINT_SPACE_WORLD,
-                   CONSTRAINT_SPACE_PARLOCAL,
-                   CONSTRAINT_SPACE_CUSTOM)) {
+          if (ELEM(to, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_PARLOCAL, CONSTRAINT_SPACE_CUSTOM))
+          {
             /* call self with slightly different values */
             BKE_constraint_mat_convertspace(
                 ob, pchan, cob, mat, CONSTRAINT_SPACE_POSE, to, keep_scale);
@@ -399,7 +397,8 @@ void BKE_constraint_mat_convertspace(Object *ob,
                  CONSTRAINT_SPACE_WORLD,
                  CONSTRAINT_SPACE_LOCAL,
                  CONSTRAINT_SPACE_OWNLOCAL,
-                 CONSTRAINT_SPACE_CUSTOM)) {
+                 CONSTRAINT_SPACE_CUSTOM))
+        {
           /* call self with slightly different values */
           BKE_constraint_mat_convertspace(
               ob, pchan, cob, mat, CONSTRAINT_SPACE_POSE, to, keep_scale);
@@ -546,7 +545,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
     }
   }
   else if (me_eval) {
-    const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
+    const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(me_eval);
     const MDeformVert *dvert = CustomData_get_layer(&me_eval->vdata, CD_MDEFORMVERT);
     const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
     int numVerts = me_eval->totvert;
@@ -1509,7 +1508,8 @@ static void followpath_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
                             NULL,
                             (data->followflag & FOLLOWPATH_FOLLOW) ? quat : NULL,
                             &radius,
-                            NULL)) { /* quat_pt is quat or NULL. */
+                            NULL))
+      {
         float totmat[4][4];
         unit_m4(totmat);
 
@@ -4230,7 +4230,8 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
     ShrinkwrapTreeData tree;
 
     if (BKE_shrinkwrap_init_tree(
-            &tree, target_eval, scon->shrinkType, scon->shrinkMode, do_track_normal)) {
+            &tree, target_eval, scon->shrinkType, scon->shrinkMode, do_track_normal))
+    {
       BLI_space_transform_from_matrices(&transform, cob->matrix, ct->tar->object_to_world);
 
       switch (scon->shrinkType) {

@@ -21,10 +21,7 @@ static fn::Field<int> get_count_input_max_one(const fn::Field<int> &count_field)
       "Clamp Above One",
       [](int value) { return std::max(1, value); },
       mf::build::exec_presets::AllSpanOrSingle());
-  auto clamp_op = std::make_shared<fn::FieldOperation>(
-      fn::FieldOperation(max_one_fn, {count_field}));
-
-  return fn::Field<int>(std::move(clamp_op));
+  return fn::Field<int>(fn::FieldOperation::Create(max_one_fn, {count_field}));
 }
 
 static fn::Field<int> get_count_input_from_length(const fn::Field<float> &length_field)
@@ -39,9 +36,9 @@ static fn::Field<int> get_count_input_from_length(const fn::Field<float> &length
       },
       mf::build::exec_presets::AllSpanOrSingle());
 
-  auto get_count_op = std::make_shared<fn::FieldOperation>(fn::FieldOperation(
+  auto get_count_op = fn::FieldOperation::Create(
       get_count_fn,
-      {fn::Field<float>(std::make_shared<bke::CurveLengthFieldInput>()), length_field}));
+      {fn::Field<float>(std::make_shared<bke::CurveLengthFieldInput>()), length_field});
 
   return fn::Field<int>(std::move(get_count_op));
 }
@@ -60,7 +57,8 @@ static bool interpolate_attribute_to_curves(const bke::AttributeIDRef &attribute
            "handle_type_left",
            "handle_type_right",
            "handle_left",
-           "handle_right")) {
+           "handle_right"))
+  {
     return type_counts[CURVE_TYPE_BEZIER] != 0;
   }
   if (ELEM(attribute_id.name(), "nurbs_weight")) {
@@ -94,9 +92,9 @@ static void retrieve_attribute_spans(const Span<bke::AttributeIDRef> ids,
                                      Vector<GMutableSpan> &dst,
                                      Vector<bke::GSpanAttributeWriter> &dst_attributes)
 {
+  const bke::AttributeAccessor src_attributes = src_curves.attributes();
   for (const int i : ids.index_range()) {
-    GVArray src_attribute = src_curves.attributes().lookup(ids[i], ATTR_DOMAIN_POINT);
-    BLI_assert(src_attribute);
+    const GVArray src_attribute = *src_attributes.lookup(ids[i], ATTR_DOMAIN_POINT);
     src.append(src_attribute.get_internal_span());
 
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(src_attribute.type());
@@ -318,7 +316,8 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
     /* For every attribute, evaluate attributes from every curve in the range in the original
      * curve's "evaluated points", then use linear interpolation to sample to the result. */
     for (const int i_attribute : attributes.dst.index_range()) {
-      attribute_math::convert_to_static_type(attributes.src[i_attribute].type(), [&](auto dummy) {
+      const CPPType &type = attributes.src[i_attribute].type();
+      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
         using T = decltype(dummy);
         Span<T> src = attributes.src[i_attribute].typed<T>();
         MutableSpan<T> dst = attributes.dst[i_attribute].typed<T>();
@@ -334,7 +333,7 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
                                              dst.slice(dst_points));
           }
           else {
-            evaluated_buffer.reinitialize(sizeof(T) * evaluated_points_by_curve.size(i_curve));
+            evaluated_buffer.reinitialize(sizeof(T) * evaluated_points_by_curve[i_curve].size());
             MutableSpan<T> evaluated = evaluated_buffer.as_mutable_span().cast<T>();
             src_curves.interpolate_to_evaluated(i_curve, src.slice(src_points), evaluated);
 
@@ -443,7 +442,8 @@ CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
 
     /* Evaluate generic point attributes directly to the result attributes. */
     for (const int i_attribute : attributes.dst.index_range()) {
-      attribute_math::convert_to_static_type(attributes.src[i_attribute].type(), [&](auto dummy) {
+      const CPPType &type = attributes.src[i_attribute].type();
+      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
         using T = decltype(dummy);
         Span<T> src = attributes.src[i_attribute].typed<T>();
         MutableSpan<T> dst = attributes.dst[i_attribute].typed<T>();

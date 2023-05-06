@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup intern_mem
@@ -10,6 +10,9 @@
 
 #ifdef __GNUC__
 #  define UNUSED(x) UNUSED_##x __attribute__((__unused__))
+#elif defined(_MSC_VER)
+/* NOTE: This suppresses the warning for the line, not the attribute. */
+#  define UNUSED(x) UNUSED_##x __pragma(warning(suppress : 4100))
 #else
 #  define UNUSED(x) UNUSED_##x
 #endif

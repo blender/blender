@@ -105,7 +105,8 @@ static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwd
                                        convert_v4,
                                        emission,
                                        &shininess,
-                                       &priority)) {
+                                       &priority))
+  {
     self->m = new FrsMaterial(line, diffuse, ambient, specular, emission, shininess, priority);
   }
   else {

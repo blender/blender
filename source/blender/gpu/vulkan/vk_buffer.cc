@@ -1,18 +1,19 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+ * Copyright 2023 Blender Foundation */
 
 /** \file
  * \ingroup gpu
  */
 
 #include "vk_buffer.hh"
+#include "vk_backend.hh"
+#include "vk_context.hh"
 
 namespace blender::gpu {
 
 VKBuffer::~VKBuffer()
 {
-  VKContext &context = *VKContext::get();
-  free(context);
+  free();
 }
 
 bool VKBuffer::is_allocated() const
@@ -24,9 +25,8 @@ static VmaAllocationCreateFlagBits vma_allocation_flags(GPUUsageType usage)
 {
   switch (usage) {
     case GPU_USAGE_STATIC:
-      return static_cast<VmaAllocationCreateFlagBits>(
-          VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT);
     case GPU_USAGE_DYNAMIC:
+    case GPU_USAGE_STREAM:
       return static_cast<VmaAllocationCreateFlagBits>(
           VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT);
     case GPU_USAGE_DEVICE_ONLY:
@@ -34,7 +34,6 @@ static VmaAllocationCreateFlagBits vma_allocation_flags(GPUUsageType usage)
           VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT |
           VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT);
     case GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY:
-    case GPU_USAGE_STREAM:
       break;
   }
   BLI_assert_msg(false, "Unimplemented GPUUsageType");
@@ -42,16 +41,16 @@ static VmaAllocationCreateFlagBits vma_allocation_flags(GPUUsageType usage)
                                                   VMA_ALLOCATION_CREATE_MAPPED_BIT);
 }
 
-bool VKBuffer::create(VKContext &context,
-                      int64_t size_in_bytes,
+bool VKBuffer::create(int64_t size_in_bytes,
                       GPUUsageType usage,
                       VkBufferUsageFlagBits buffer_usage)
 {
   BLI_assert(!is_allocated());
 
   size_in_bytes_ = size_in_bytes;
+  const VKDevice &device = VKBackend::get().device_get();
 
-  VmaAllocator allocator = context.mem_allocator_get();
+  VmaAllocator allocator = device.mem_allocator_get();
   VkBufferCreateInfo create_info = {};
   create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
   create_info.flags = 0;
@@ -61,7 +60,7 @@ bool VKBuffer::create(VKContext &context,
    * exclusive resource handling. */
   create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
   create_info.queueFamilyIndexCount = 1;
-  create_info.pQueueFamilyIndices = context.queue_family_ptr_get();
+  create_info.pQueueFamilyIndices = device.queue_family_ptr_get();
 
   VmaAllocationCreateInfo vma_create_info = {};
   vma_create_info.flags = vma_allocation_flags(usage);
@@ -70,36 +69,73 @@ bool VKBuffer::create(VKContext &context,
 
   VkResult result = vmaCreateBuffer(
       allocator, &create_info, &vma_create_info, &vk_buffer_, &allocation_, nullptr);
-  return result == VK_SUCCESS;
-}
-
-bool VKBuffer::update(VKContext &context, const void *data)
-{
-  void *mapped_memory;
-  bool result = map(context, &mapped_memory);
-  if (result) {
-    memcpy(mapped_memory, data, size_in_bytes_);
-    unmap(context);
+  if (result != VK_SUCCESS) {
+    return false;
   }
-  return result;
+
+  /* All buffers are mapped to virtual memory. */
+  return map();
 }
 
-bool VKBuffer::map(VKContext &context, void **r_mapped_memory) const
+void VKBuffer::update(const void *data) const
 {
-  VmaAllocator allocator = context.mem_allocator_get();
-  VkResult result = vmaMapMemory(allocator, allocation_, r_mapped_memory);
+  BLI_assert_msg(is_mapped(), "Cannot update a non-mapped buffer.");
+  memcpy(mapped_memory_, data, size_in_bytes_);
+
+  const VKDevice &device = VKBackend::get().device_get();
+  VmaAllocator allocator = device.mem_allocator_get();
+  vmaFlushAllocation(allocator, allocation_, 0, VK_WHOLE_SIZE);
+}
+
+void VKBuffer::clear(VKContext &context, uint32_t clear_value)
+{
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  command_buffer.fill(*this, clear_value);
+}
+
+void VKBuffer::read(void *data) const
+{
+  BLI_assert_msg(is_mapped(), "Cannot read a non-mapped buffer.");
+  memcpy(data, mapped_memory_, size_in_bytes_);
+}
+
+void *VKBuffer::mapped_memory_get() const
+{
+  BLI_assert_msg(is_mapped(), "Cannot access a non-mapped buffer.");
+  return mapped_memory_;
+}
+
+bool VKBuffer::is_mapped() const
+{
+  return mapped_memory_ != nullptr;
+}
+
+bool VKBuffer::map()
+{
+  BLI_assert(!is_mapped());
+  const VKDevice &device = VKBackend::get().device_get();
+  VmaAllocator allocator = device.mem_allocator_get();
+  VkResult result = vmaMapMemory(allocator, allocation_, &mapped_memory_);
   return result == VK_SUCCESS;
 }
 
-void VKBuffer::unmap(VKContext &context) const
+void VKBuffer::unmap()
 {
-  VmaAllocator allocator = context.mem_allocator_get();
+  BLI_assert(is_mapped());
+  const VKDevice &device = VKBackend::get().device_get();
+  VmaAllocator allocator = device.mem_allocator_get();
   vmaUnmapMemory(allocator, allocation_);
+  mapped_memory_ = nullptr;
 }
 
-bool VKBuffer::free(VKContext &context)
+bool VKBuffer::free()
 {
-  VmaAllocator allocator = context.mem_allocator_get();
+  if (is_mapped()) {
+    unmap();
+  }
+
+  const VKDevice &device = VKBackend::get().device_get();
+  VmaAllocator allocator = device.mem_allocator_get();
   vmaDestroyBuffer(allocator, vk_buffer_, allocation_);
   return true;
 }

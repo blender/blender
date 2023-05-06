@@ -9,7 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -49,6 +49,7 @@
 
 #include "transform.h"
 #include "transform_convert.h"
+#include "transform_gizmo.h"
 #include "transform_mode.h"
 #include "transform_orientations.h"
 #include "transform_snap.h"
@@ -146,7 +147,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   t->flag = 0;
 
   if (obact && !(t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) &&
-      ELEM(object_mode, OB_MODE_EDIT, OB_MODE_EDIT_GPENCIL)) {
+      ELEM(object_mode, OB_MODE_EDIT, OB_MODE_EDIT_GPENCIL))
+  {
     t->obedit_type = obact->type;
   }
   else {
@@ -209,7 +211,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   t->remove_on_cancel = false;
 
   if (op && (prop = RNA_struct_find_property(op->ptr, "remove_on_cancel")) &&
-      RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_is_set(op->ptr, prop))
+  {
     if (RNA_property_boolean_get(op->ptr, prop)) {
       t->remove_on_cancel = true;
     }
@@ -315,7 +318,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   setTransformViewAspect(t, t->aspect);
 
   if (op && (prop = RNA_struct_find_property(op->ptr, "center_override")) &&
-      RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_is_set(op->ptr, prop))
+  {
     RNA_property_float_get_array(op->ptr, prop, t->center_global);
     mul_v3_v3(t->center_global, t->aspect);
     t->flag |= T_OVERRIDE_CENTER;
@@ -338,7 +342,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   bool t_values_set_is_array = false;
 
   if (op && (prop = RNA_struct_find_property(op->ptr, "value")) &&
-      RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_is_set(op->ptr, prop))
+  {
     float values[4] = {0}; /* in case value isn't length 4, avoid uninitialized memory. */
     if (RNA_property_array_check(prop)) {
       RNA_property_float_get_array(op->ptr, prop, values);
@@ -404,7 +409,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
 
     if (op && ((prop = RNA_struct_find_property(op->ptr, "orient_type")) &&
-               RNA_property_is_set(op->ptr, prop))) {
+               RNA_property_is_set(op->ptr, prop)))
+    {
       orient_type_set = RNA_property_enum_get(op->ptr, prop);
       if (orient_type_set >= V3D_ORIENT_CUSTOM + BIF_countTransformOrientation(C)) {
         orient_type_set = V3D_ORIENT_GLOBAL;
@@ -419,12 +425,22 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       t->orient_axis_ortho = RNA_property_enum_get(op->ptr, prop);
     }
 
-    if (op && ((prop = RNA_struct_find_property(op->ptr, "orient_matrix")) &&
-               RNA_property_is_set(op->ptr, prop))) {
+    /* The properties "orient_matrix" and "orient_matrix_type" are used to store the orientation
+     * calculated in the first operator call. This allows for reuse of the orientation during
+     * subsequent calls of the same operator. When making adjustments through the Redo panel
+     * (#OP_IS_REPEAT), reusing the orientation prevents unpredictable changes that can occur when
+     * using #V3D_ORIENT_VIEW. However, when activated by #SCREEN_OT_repeat_last
+     * (#OP_IS_REPEAT_LAST), it's best to avoid reusing the orientation to prevent unintended
+     * changes. */
+    if (op && !(op->flag & OP_IS_REPEAT_LAST) &&
+        ((prop = RNA_struct_find_property(op->ptr, "orient_matrix")) &&
+         RNA_property_is_set(op->ptr, prop)))
+    {
       RNA_property_float_get_array(op->ptr, prop, &custom_matrix[0][0]);
 
       if ((prop = RNA_struct_find_property(op->ptr, "orient_matrix_type")) &&
-          RNA_property_is_set(op->ptr, prop)) {
+          RNA_property_is_set(op->ptr, prop))
+      {
         orient_type_matrix_set = RNA_property_enum_get(op->ptr, prop);
       }
       else if (orient_type_set == -1) {
@@ -506,7 +522,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   if (op && ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) &&
-             RNA_property_is_set(op->ptr, prop))) {
+             RNA_property_is_set(op->ptr, prop)))
+  {
     if (RNA_property_boolean_get(op->ptr, prop)) {
       t->flag |= T_RELEASE_CONFIRM;
     }
@@ -514,14 +531,16 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   else {
     /* Release confirms preference should not affect node editor (#69288, #70504). */
     if (ISMOUSE_BUTTON(t->launch_event) &&
-        ((U.flag & USER_RELEASECONFIRM) || (t->spacetype == SPACE_NODE))) {
+        ((U.flag & USER_RELEASECONFIRM) || (t->spacetype == SPACE_NODE)))
+    {
       /* Global "release confirm" on mouse bindings */
       t->flag |= T_RELEASE_CONFIRM;
     }
   }
 
-  if (op && ((prop = RNA_struct_find_property(op->ptr, "mirror")) &&
-             RNA_property_is_set(op->ptr, prop))) {
+  if (op &&
+      ((prop = RNA_struct_find_property(op->ptr, "mirror")) && RNA_property_is_set(op->ptr, prop)))
+  {
     if (!RNA_property_boolean_get(op->ptr, prop)) {
       t->flag |= T_NO_MIRROR;
     }
@@ -583,7 +602,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
 
     if (op && ((prop = RNA_struct_find_property(op->ptr, "proportional_size")) &&
-               RNA_property_is_set(op->ptr, prop))) {
+               RNA_property_is_set(op->ptr, prop)))
+    {
       t->prop_size = RNA_property_float_get(op->ptr, prop);
     }
     else {
@@ -597,7 +617,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
 
     if (op && ((prop = RNA_struct_find_property(op->ptr, "proportional_edit_falloff")) &&
-               RNA_property_is_set(op->ptr, prop))) {
+               RNA_property_is_set(op->ptr, prop)))
+    {
       t->prop_mode = RNA_property_enum_get(op->ptr, prop);
     }
     else {
@@ -610,7 +631,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   if (t->obedit_type == OB_MESH) {
     if (op && (prop = RNA_struct_find_property(op->ptr, "use_automerge_and_split")) &&
-        RNA_property_is_set(op->ptr, prop)) {
+        RNA_property_is_set(op->ptr, prop))
+    {
       if (RNA_property_boolean_get(op->ptr, prop)) {
         t->flag |= T_AUTOMERGE | T_AUTOSPLIT;
       }
@@ -704,8 +726,9 @@ void postTrans(bContext *C, TransInfo *t)
   if (t->data_len_all != 0) {
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       /* free data malloced per trans-data */
-      if (ELEM(t->obedit_type, OB_CURVES_LEGACY, OB_SURF, OB_GPENCIL) ||
-          (t->spacetype == SPACE_GRAPH)) {
+      if (ELEM(t->obedit_type, OB_CURVES_LEGACY, OB_SURF, OB_GPENCIL_LEGACY) ||
+          (t->spacetype == SPACE_GRAPH))
+      {
         TransData *td = tc->data;
         for (int a = 0; a < tc->data_len; a++, td++) {
           if (td->flag & TD_BEZTRIPLE) {
@@ -871,7 +894,8 @@ void calculateCenterCursor(TransInfo *t, float r_center[3])
   /* If edit or pose mode, move cursor in local space */
   if (t->options & CTX_PAINT_CURVE) {
     if (ED_view3d_project_float_global(t->region, cursor, r_center, V3D_PROJ_TEST_NOP) !=
-        V3D_PROJ_RET_OK) {
+        V3D_PROJ_RET_OK)
+    {
       r_center[0] = t->region->winx / 2.0f;
       r_center[1] = t->region->winy / 2.0f;
     }
@@ -1158,8 +1182,6 @@ void calculateCenter(TransInfo *t)
   calculateZfac(t);
 }
 
-/* Called every time the view changes due to navigation.
- * Adjusts the mouse position relative to the object. */
 void tranformViewUpdate(TransInfo *t)
 {
   float zoom_prev = t->zfac;
@@ -1214,7 +1236,8 @@ void calculatePropRatio(TransInfo *t)
           td->factor = 1.0f;
         }
         else if ((connected && (td->flag & TD_NOTCONNECTED || td->dist > t->prop_size)) ||
-                 (connected == 0 && td->rdist > t->prop_size)) {
+                 (connected == 0 && td->rdist > t->prop_size))
+        {
           td->factor = 0.0f;
           restoreElement(td);
         }

@@ -214,14 +214,15 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
   const rcti *rect_visible = ED_region_visible_rect(region);
 
   if ((navgroup->state.rect_visible.xmax == rect_visible->xmax) &&
-      (navgroup->state.rect_visible.ymax == rect_visible->ymax)) {
+      (navgroup->state.rect_visible.ymax == rect_visible->ymax))
+  {
     return;
   }
 
   navgroup->state.rect_visible = *rect_visible;
 
   const float icon_size = GIZMO_SIZE;
-  const float icon_offset_mini = icon_size * GIZMO_MINI_OFFSET_FAC * UI_DPI_FAC;
+  const float icon_offset_mini = icon_size * GIZMO_MINI_OFFSET_FAC * UI_SCALE_FAC;
   const float co[2] = {
       roundf(rect_visible->xmax - (icon_offset_mini * 0.75f)),
       roundf(rect_visible->ymax - (icon_offset_mini * 0.75f)),

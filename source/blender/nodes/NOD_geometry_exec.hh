@@ -18,6 +18,7 @@ namespace blender::nodes {
 
 using bke::AnonymousAttributeFieldInput;
 using bke::AnonymousAttributeID;
+using bke::AnonymousAttributeIDPtr;
 using bke::AnonymousAttributePropagationInfo;
 using bke::AttributeAccessor;
 using bke::AttributeFieldInput;
@@ -26,7 +27,6 @@ using bke::AttributeKind;
 using bke::AttributeMetaData;
 using bke::AttributeReader;
 using bke::AttributeWriter;
-using bke::AutoAnonymousAttributeID;
 using bke::GAttributeReader;
 using bke::GAttributeWriter;
 using bke::GSpanAttributeWriter;
@@ -42,42 +42,29 @@ using fn::ValueOrField;
 using geo_eval_log::NamedAttributeUsage;
 using geo_eval_log::NodeWarningType;
 
-/**
- * An anonymous attribute created by a node.
- */
-class NodeAnonymousAttributeID : public AnonymousAttributeID {
-  std::string long_name_;
-  std::string socket_name_;
-
- public:
-  NodeAnonymousAttributeID(const Object &object,
-                           const ComputeContext &compute_context,
-                           const bNode &bnode,
-                           const StringRef identifier,
-                           const StringRef name);
-
-  std::string user_name() const override;
-};
-
 class GeoNodeExecParams {
  private:
   const bNode &node_;
   lf::Params &params_;
   const lf::Context &lf_context_;
-  const Map<StringRef, int> &lf_input_for_output_bsocket_usage_;
-  const Map<StringRef, int> &lf_input_for_attribute_propagation_to_output_;
+  const Span<int> lf_input_for_output_bsocket_usage_;
+  const Span<int> lf_input_for_attribute_propagation_to_output_;
+  const FunctionRef<AnonymousAttributeIDPtr(int)> get_output_attribute_id_;
 
  public:
   GeoNodeExecParams(const bNode &node,
                     lf::Params &params,
                     const lf::Context &lf_context,
-                    const Map<StringRef, int> &lf_input_for_output_bsocket_usage,
-                    const Map<StringRef, int> &lf_input_for_attribute_propagation_to_output)
+                    const Span<int> lf_input_for_output_bsocket_usage,
+                    const Span<int> lf_input_for_attribute_propagation_to_output,
+                    const FunctionRef<AnonymousAttributeIDPtr(int)> get_output_attribute_id)
       : node_(node),
         params_(params),
         lf_context_(lf_context),
         lf_input_for_output_bsocket_usage_(lf_input_for_output_bsocket_usage),
-        lf_input_for_attribute_propagation_to_output_(lf_input_for_attribute_propagation_to_output)
+        lf_input_for_attribute_propagation_to_output_(
+            lf_input_for_attribute_propagation_to_output),
+        get_output_attribute_id_(get_output_attribute_id)
   {
   }
 
@@ -194,36 +181,11 @@ class GeoNodeExecParams {
 
   /**
    * Returns true when the output has to be computed.
-   * Nodes that support laziness could use the #lazy_output_is_required variant to possibly avoid
-   * some computations.
    */
   bool output_is_required(StringRef identifier) const
   {
     const int index = this->get_output_index(identifier);
     return params_.get_output_usage(index) != lf::ValueUsage::Unused;
-  }
-
-  /**
-   * Tell the evaluator that a specific input is required.
-   * This returns true when the input will only be available in the next execution.
-   * False is returned if the input is available already.
-   * This can only be used when the node supports laziness.
-   */
-  bool lazy_require_input(StringRef identifier)
-  {
-    const int index = this->get_input_index(identifier);
-    return params_.try_get_input_data_ptr_or_request(index) == nullptr;
-  }
-
-  /**
-   * Asks the evaluator if a specific output is required right now. If this returns false, the
-   * value might still need to be computed later.
-   * This can only be used when the node supports laziness.
-   */
-  bool lazy_output_is_required(StringRef identifier)
-  {
-    const int index = this->get_output_index(identifier);
-    return params_.get_output_usage(index) == lf::ValueUsage::Used;
   }
 
   /**
@@ -265,8 +227,6 @@ class GeoNodeExecParams {
    */
   void error_message_add(const NodeWarningType type, StringRef message) const;
 
-  std::string attribute_producer_name() const;
-
   void set_default_remaining_outputs();
 
   void used_named_attribute(StringRef attribute_name, NamedAttributeUsage usage);
@@ -276,7 +236,9 @@ class GeoNodeExecParams {
    */
   bool anonymous_attribute_output_is_required(const StringRef output_identifier)
   {
-    const int lf_index = lf_input_for_output_bsocket_usage_.lookup(output_identifier);
+    const int lf_index =
+        lf_input_for_output_bsocket_usage_[node_.output_by_identifier(output_identifier)
+                                               .index_in_all_outputs()];
     return params_.get_input<bool>(lf_index);
   }
 
@@ -284,21 +246,14 @@ class GeoNodeExecParams {
    * Return a new anonymous attribute id for the given output. None is returned if the anonymous
    * attribute is not needed.
    */
-  AutoAnonymousAttributeID get_output_anonymous_attribute_id_if_needed(
+  AnonymousAttributeIDPtr get_output_anonymous_attribute_id_if_needed(
       const StringRef output_identifier, const bool force_create = false)
   {
     if (!this->anonymous_attribute_output_is_required(output_identifier) && !force_create) {
       return {};
     }
     const bNodeSocket &output_socket = node_.output_by_identifier(output_identifier);
-    const GeoNodesLFUserData &user_data = *this->user_data();
-    const ComputeContext &compute_context = *user_data.compute_context;
-    return MEM_new<NodeAnonymousAttributeID>(__func__,
-                                             *user_data.modifier_data->self_object,
-                                             compute_context,
-                                             node_,
-                                             output_identifier,
-                                             output_socket.name);
+    return get_output_attribute_id_(output_socket.index());
   }
 
   /**
@@ -307,7 +262,9 @@ class GeoNodeExecParams {
   AnonymousAttributePropagationInfo get_output_propagation_info(
       const StringRef output_identifier) const
   {
-    const int lf_index = lf_input_for_attribute_propagation_to_output_.lookup(output_identifier);
+    const int lf_index =
+        lf_input_for_attribute_propagation_to_output_[node_.output_by_identifier(output_identifier)
+                                                          .index_in_all_outputs()];
     const bke::AnonymousAttributeSet &set = params_.get_input<bke::AnonymousAttributeSet>(
         lf_index);
     AnonymousAttributePropagationInfo info;

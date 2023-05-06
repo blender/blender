@@ -15,7 +15,7 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_fields.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 
 #include "UI_interface.h"
@@ -135,18 +135,18 @@ static void node_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, out_socket_value_color4f, data_type == CD_PROP_COLOR);
 }
 
-static Array<Vector<int>> build_vert_to_vert_by_edge_map(const Span<MEdge> edges,
+static Array<Vector<int>> build_vert_to_vert_by_edge_map(const Span<int2> edges,
                                                          const int verts_num)
 {
   Array<Vector<int>> map(verts_num);
-  for (const MEdge &edge : edges) {
-    map[edge.v1].append(edge.v2);
-    map[edge.v2].append(edge.v1);
+  for (const int2 &edge : edges) {
+    map[edge[0]].append(edge[1]);
+    map[edge[1]].append(edge[0]);
   }
   return map;
 }
 
-static Array<Vector<int>> build_edge_to_edge_by_vert_map(const Span<MEdge> edges,
+static Array<Vector<int>> build_edge_to_edge_by_vert_map(const Span<int2> edges,
                                                          const int verts_num,
                                                          const IndexMask edge_mask)
 {
@@ -158,8 +158,8 @@ static Array<Vector<int>> build_edge_to_edge_by_vert_map(const Span<MEdge> edges
     for (const int edge_i : edge_mask.slice(range)) {
 
       Vector<int> &self_edges = map[edge_i];
-      const Span<int> vert_1_edges = vert_to_edge_map[edges[edge_i].v1];
-      const Span<int> vert_2_edges = vert_to_edge_map[edges[edge_i].v2];
+      const Span<int> vert_1_edges = vert_to_edge_map[edges[edge_i][0]];
+      const Span<int> vert_2_edges = vert_to_edge_map[edges[edge_i][1]];
 
       self_edges.reserve(vert_1_edges.size() - 1 + vert_2_edges.size() - 1);
 
@@ -178,35 +178,33 @@ static Array<Vector<int>> build_edge_to_edge_by_vert_map(const Span<MEdge> edges
   return map;
 }
 
-static Array<Vector<int>> build_face_to_edge_by_loop_map(const Span<MPoly> polys,
-                                                         const Span<MLoop> loops,
+static Array<Vector<int>> build_face_to_edge_by_loop_map(const OffsetIndices<int> polys,
+                                                         const Span<int> corner_edges,
                                                          const int edges_num)
 {
   Array<Vector<int>> map(edges_num);
   for (const int i : polys.index_range()) {
-    const MPoly &poly = polys[i];
-    for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-      map[loop.e].append(i);
+    for (const int edge : corner_edges.slice(polys[i])) {
+      map[edge].append(i);
     }
   }
   return map;
 }
 
-static Array<Vector<int>> build_face_to_face_by_edge_map(const Span<MPoly> polys,
-                                                         const Span<MLoop> loops,
+static Array<Vector<int>> build_face_to_face_by_edge_map(const OffsetIndices<int> polys,
+                                                         const Span<int> corner_edges,
                                                          const int edges_num,
                                                          const IndexMask poly_mask)
 {
   Array<Vector<int>> map(polys.size());
-  Array<Vector<int>> faces_by_edge = build_face_to_edge_by_loop_map(polys, loops, edges_num);
+  Array<Vector<int>> faces_by_edge = build_face_to_edge_by_loop_map(
+      polys, corner_edges, edges_num);
 
   threading::parallel_for(poly_mask.index_range(), 1024, [&](IndexRange range) {
     for (const int poly_i : poly_mask.slice(range)) {
-      const MPoly &poly = polys[poly_i];
-      for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-        const int edge_i = loop.e;
-        if (faces_by_edge[edge_i].size() > 1) {
-          for (const int neighbor : faces_by_edge[edge_i]) {
+      for (const int edge : corner_edges.slice(polys[poly_i])) {
+        if (faces_by_edge[edge].size() > 1) {
+          for (const int neighbor : faces_by_edge[edge]) {
             if (neighbor != poly_i) {
               map[poly_i].append(neighbor);
             }
@@ -224,20 +222,19 @@ static Array<Vector<int>> create_mesh_map(const Mesh &mesh,
 {
   switch (domain) {
     case ATTR_DOMAIN_POINT: {
-      const Span<MEdge> edges = mesh.edges();
+      const Span<int2> edges = mesh.edges();
       const int verts_num = mesh.totvert;
       return build_vert_to_vert_by_edge_map(edges, verts_num);
     }
     case ATTR_DOMAIN_EDGE: {
-      const Span<MEdge> edges = mesh.edges();
+      const Span<int2> edges = mesh.edges();
       const int verts_num = mesh.totvert;
       return build_edge_to_edge_by_vert_map(edges, verts_num, mask);
     }
     case ATTR_DOMAIN_FACE: {
-      const Span<MPoly> polys = mesh.polys();
-      const Span<MLoop> loops = mesh.loops();
+      const OffsetIndices polys = mesh.polys();
       const int edges_num = mesh.totedge;
-      return build_face_to_face_by_edge_map(polys, loops, edges_num, mask);
+      return build_face_to_face_by_edge_map(polys, mesh.corner_edges(), edges_num, mask);
     }
     case ATTR_DOMAIN_CORNER: {
       return {};
@@ -249,17 +246,20 @@ static Array<Vector<int>> create_mesh_map(const Mesh &mesh,
 }
 
 template<typename T>
-static void blur_on_mesh_exec(const Span<float> neighbor_weights,
-                              const Span<Vector<int>> neighbors_map,
-                              const int iterations,
-                              MutableSpan<T> main_buffer,
-                              MutableSpan<T> tmp_buffer)
+static Span<T> blur_on_mesh_exec(const Span<float> neighbor_weights,
+                                 const Span<Vector<int>> neighbors_map,
+                                 const int iterations,
+                                 const MutableSpan<T> buffer_a,
+                                 const MutableSpan<T> buffer_b)
 {
-  MutableSpan<T> src = main_buffer;
-  MutableSpan<T> dst = tmp_buffer;
+  /* Source is set to buffer_b even though it is actually in buffer_a because the loop below starts
+   * with swapping both. */
+  MutableSpan<T> src = buffer_b;
+  MutableSpan<T> dst = buffer_a;
 
   for ([[maybe_unused]] const int64_t iteration : IndexRange(iterations)) {
-    attribute_math::DefaultMixer<T> mixer{dst, IndexMask(0)};
+    std::swap(src, dst);
+    bke::attribute_math::DefaultMixer<T> mixer{dst, IndexMask(0)};
     threading::parallel_for(dst.index_range(), 1024, [&](const IndexRange range) {
       for (const int64_t index : range) {
         const Span<int> neighbors = neighbors_map[index];
@@ -271,57 +271,49 @@ static void blur_on_mesh_exec(const Span<float> neighbor_weights,
       }
       mixer.finalize(range);
     });
-    std::swap(src, dst);
   }
 
-  /* The last computed values are in #src now. If the main buffer is #dst, the values have to be
-   * copied once more. */
-  if (dst.data() == main_buffer.data()) {
-    threading::parallel_for(dst.index_range(), 1024, [&](const IndexRange range) {
-      initialized_copy_n(
-          src.data() + range.start(), range.size(), main_buffer.data() + range.start());
-    });
-  }
+  return dst;
 }
 
-static void blur_on_mesh(const Mesh &mesh,
-                         const eAttrDomain domain,
-                         const int iterations,
-                         const Span<float> neighbor_weights,
-                         GMutableSpan main_buffer,
-                         GMutableSpan tmp_buffer)
+static GSpan blur_on_mesh(const Mesh &mesh,
+                          const eAttrDomain domain,
+                          const int iterations,
+                          const Span<float> neighbor_weights,
+                          const GMutableSpan buffer_a,
+                          const GMutableSpan buffer_b)
 {
   Array<Vector<int>> neighbors_map = create_mesh_map(mesh, domain, neighbor_weights.index_range());
   if (neighbors_map.is_empty()) {
-    return;
+    return buffer_a;
   }
-  attribute_math::convert_to_static_type(main_buffer.type(), [&](auto dummy) {
+  GSpan result_buffer;
+  bke::attribute_math::convert_to_static_type(buffer_a.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_same_v<T, bool>) {
-      blur_on_mesh_exec<T>(neighbor_weights,
-                           neighbors_map,
-                           iterations,
-                           main_buffer.typed<T>(),
-                           tmp_buffer.typed<T>());
+      result_buffer = blur_on_mesh_exec<T>(
+          neighbor_weights, neighbors_map, iterations, buffer_a.typed<T>(), buffer_b.typed<T>());
     }
   });
+  return result_buffer;
 }
 
 template<typename T>
-static void blur_on_curve_exec(const bke::CurvesGeometry &curves,
-                               const Span<float> neighbor_weights,
-                               const int iterations,
-                               MutableSpan<T> main_buffer,
-                               MutableSpan<T> tmp_buffer)
+static Span<T> blur_on_curve_exec(const bke::CurvesGeometry &curves,
+                                  const Span<float> neighbor_weights,
+                                  const int iterations,
+                                  const MutableSpan<T> buffer_a,
+                                  const MutableSpan<T> buffer_b)
 {
-  MutableSpan<T> src = main_buffer;
-  MutableSpan<T> dst = tmp_buffer;
+  MutableSpan<T> src = buffer_b;
+  MutableSpan<T> dst = buffer_a;
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const VArray<bool> cyclic = curves.cyclic();
 
   for ([[maybe_unused]] const int iteration : IndexRange(iterations)) {
-    attribute_math::DefaultMixer<T> mixer{dst, IndexMask(0)};
+    std::swap(src, dst);
+    bke::attribute_math::DefaultMixer<T> mixer{dst, IndexMask(0)};
     threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
       for (const int curve_i : range) {
         const IndexRange points = points_by_curve[curve_i];
@@ -342,53 +334,43 @@ static void blur_on_curve_exec(const bke::CurvesGeometry &curves,
         const float first_neighbor_weight = neighbor_weights[first_i];
         const int last_i = points.last();
         const float last_neighbor_weight = neighbor_weights[last_i];
+
+        /* First point. */
+        mixer.set(first_i, src[first_i], 1.0f);
+        mixer.mix_in(first_i, src[first_i + 1], first_neighbor_weight);
+        /* Last point. */
+        mixer.set(last_i, src[last_i], 1.0f);
+        mixer.mix_in(last_i, src[last_i - 1], last_neighbor_weight);
+
         if (cyclic[curve_i]) {
           /* First point. */
-          mixer.set(first_i, src[first_i], 1.0f);
-          mixer.mix_in(first_i, src[first_i + 1], first_neighbor_weight);
           mixer.mix_in(first_i, src[last_i], first_neighbor_weight);
           /* Last point. */
-          mixer.set(last_i, src[last_i], 1.0f);
-          mixer.mix_in(last_i, src[last_i - 1], last_neighbor_weight);
           mixer.mix_in(last_i, src[first_i], last_neighbor_weight);
-        }
-        else {
-          /* First point. */
-          mixer.set(first_i, src[first_i], 1.0f);
-          mixer.mix_in(first_i, src[first_i + 1], first_neighbor_weight);
-          /* Last point. */
-          mixer.set(last_i, src[last_i], 1.0f);
-          mixer.mix_in(last_i, src[last_i - 1], last_neighbor_weight);
         }
       }
       mixer.finalize(points_by_curve[range]);
     });
-    std::swap(src, dst);
   }
 
-  /* The last computed values are in #src now. If the main buffer is #dst, the values have to be
-   * copied once more. */
-  if (dst.data() == main_buffer.data()) {
-    threading::parallel_for(dst.index_range(), 1024, [&](const IndexRange range) {
-      initialized_copy_n(
-          src.data() + range.start(), range.size(), main_buffer.data() + range.start());
-    });
-  }
+  return dst;
 }
 
-static void blur_on_curves(const bke::CurvesGeometry &curves,
-                           const int iterations,
-                           const Span<float> neighbor_weights,
-                           GMutableSpan main_buffer,
-                           GMutableSpan tmp_buffer)
+static GSpan blur_on_curves(const bke::CurvesGeometry &curves,
+                            const int iterations,
+                            const Span<float> neighbor_weights,
+                            const GMutableSpan buffer_a,
+                            const GMutableSpan buffer_b)
 {
-  attribute_math::convert_to_static_type(main_buffer.type(), [&](auto dummy) {
+  GSpan result_buffer;
+  bke::attribute_math::convert_to_static_type(buffer_a.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_same_v<T, bool>) {
-      blur_on_curve_exec<T>(
-          curves, neighbor_weights, iterations, main_buffer.typed<T>(), tmp_buffer.typed<T>());
+      result_buffer = blur_on_curve_exec<T>(
+          curves, neighbor_weights, iterations, buffer_a.typed<T>(), buffer_b.typed<T>());
     }
   });
+  return result_buffer;
 }
 
 class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
@@ -411,39 +393,41 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
   {
     const int64_t domain_size = context.attributes()->domain_size(context.domain());
 
-    GArray<> main_buffer(*type_, domain_size);
+    GArray<> buffer_a(*type_, domain_size);
 
     FieldEvaluator evaluator(context, domain_size);
 
-    evaluator.add_with_destination(value_field_, main_buffer.as_mutable_span());
+    evaluator.add_with_destination(value_field_, buffer_a.as_mutable_span());
     evaluator.add(weight_field_);
     evaluator.evaluate();
 
     /* Blurring does not make sense with a less than 2 elements. */
     if (domain_size <= 1) {
-      return GVArray::ForGArray(std::move(main_buffer));
+      return GVArray::ForGArray(std::move(buffer_a));
     }
 
     if (iterations_ <= 0) {
-      return GVArray::ForGArray(std::move(main_buffer));
+      return GVArray::ForGArray(std::move(buffer_a));
     }
 
     VArraySpan<float> neighbor_weights = evaluator.get_evaluated<float>(1);
-    GArray<> tmp_buffer(*type_, domain_size);
+    GArray<> buffer_b(*type_, domain_size);
 
+    GSpan result_buffer;
     switch (context.type()) {
       case GEO_COMPONENT_TYPE_MESH:
         if (ELEM(context.domain(), ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE)) {
           if (const Mesh *mesh = context.mesh()) {
-            blur_on_mesh(
-                *mesh, context.domain(), iterations_, neighbor_weights, main_buffer, tmp_buffer);
+            result_buffer = blur_on_mesh(
+                *mesh, context.domain(), iterations_, neighbor_weights, buffer_a, buffer_b);
           }
         }
         break;
       case GEO_COMPONENT_TYPE_CURVE:
         if (context.domain() == ATTR_DOMAIN_POINT) {
           if (const bke::CurvesGeometry *curves = context.curves()) {
-            blur_on_curves(*curves, iterations_, neighbor_weights, main_buffer, tmp_buffer);
+            result_buffer = blur_on_curves(
+                *curves, iterations_, neighbor_weights, buffer_a, buffer_b);
           }
         }
         break;
@@ -451,7 +435,11 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
         break;
     }
 
-    return GVArray::ForGArray(std::move(main_buffer));
+    BLI_assert(ELEM(result_buffer.data(), buffer_a.data(), buffer_b.data()));
+    if (result_buffer.data() == buffer_a.data()) {
+      return GVArray::ForGArray(std::move(buffer_a));
+    }
+    return GVArray::ForGArray(std::move(buffer_b));
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
@@ -468,7 +456,8 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const BlurAttributeFieldInput *other_blur = dynamic_cast<const BlurAttributeFieldInput *>(
-            &other)) {
+            &other))
+    {
       return weight_field_ == other_blur->weight_field_ &&
              value_field_ == other_blur->value_field_ && iterations_ == other_blur->iterations_;
     }
@@ -505,7 +494,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const int iterations = params.extract_input<int>("Iterations");
   Field<float> weight_field = params.extract_input<Field<float>>("Weight");
 
-  attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+  bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
     using T = decltype(dummy);
     static const std::string identifier = "Value_" + identifier_suffix(data_type);
     Field<T> value_field = params.extract_input<Field<T>>(identifier);

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup bli
@@ -189,11 +189,13 @@ bool BLI_mmap_read(BLI_mmap_file *file, void *dest, size_t offset, size_t length
   memcpy(dest, file->memory + offset, length);
 #else
   /* On Windows, we use exception handling to be notified of errors. */
-  __try {
+  __try
+  {
     memcpy(dest, file->memory + offset, length);
   }
   __except (GetExceptionCode() == EXCEPTION_IN_PAGE_ERROR ? EXCEPTION_EXECUTE_HANDLER :
-                                                            EXCEPTION_CONTINUE_SEARCH) {
+                                                            EXCEPTION_CONTINUE_SEARCH)
+  {
     file->io_error = true;
     return false;
   }

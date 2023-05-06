@@ -67,9 +67,7 @@ BlenderSync::BlenderSync(BL::RenderEngine &b_engine,
   max_subdivisions = RNA_int_get(&cscene, "max_subdivisions");
 }
 
-BlenderSync::~BlenderSync()
-{
-}
+BlenderSync::~BlenderSync() {}
 
 void BlenderSync::reset(BL::BlendData &b_data, BL::Scene &b_scene)
 {
@@ -171,7 +169,8 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
           }
 
           if (updated_geometry ||
-              (object_subdivision_type(b_ob, preview, experimental) != Mesh::SUBDIVISION_NONE)) {
+              (object_subdivision_type(b_ob, preview, experimental) != Mesh::SUBDIVISION_NONE))
+          {
             BL::ID key = BKE_object_is_modified(b_ob) ? b_ob : b_ob.data();
             geometry_map.set_recalc(key);
 
@@ -279,7 +278,8 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
   geometry_synced.clear(); /* use for objects and motion sync */
 
   if (scene->need_motion() == Scene::MOTION_PASS || scene->need_motion() == Scene::MOTION_NONE ||
-      scene->camera->get_motion_position() == MOTION_POSITION_CENTER) {
+      scene->camera->get_motion_position() == MOTION_POSITION_CENTER)
+  {
     sync_objects(b_depsgraph, b_v3d);
   }
   sync_motion(b_render, b_depsgraph, b_v3d, b_override, width, height, python_thread_state);
@@ -447,7 +447,8 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
   /* No denoising support for vertex color baking, vertices packed into image
    * buffer have no relation to neighbors. */
   if (scene->bake_manager->get_baking() &&
-      b_scene.render().bake().target() != BL::BakeSettings::target_IMAGE_TEXTURES) {
+      b_scene.render().bake().target() != BL::BakeSettings::target_IMAGE_TEXTURES)
+  {
     denoise_params.use = false;
   }
 
@@ -636,6 +637,10 @@ static bool get_known_pass_type(BL::RenderPass &b_pass, PassType &type, PassMode
   MAP_PASS("AdaptiveAuxBuffer", PASS_ADAPTIVE_AUX_BUFFER, false);
   MAP_PASS("Debug Sample Count", PASS_SAMPLE_COUNT, false);
 
+  MAP_PASS("Guiding Color", PASS_GUIDING_COLOR, false);
+  MAP_PASS("Guiding Probability", PASS_GUIDING_PROBABILITY, false);
+  MAP_PASS("Guiding Average Roughness", PASS_GUIDING_AVG_ROUGHNESS, false);
+
   if (string_startswith(name, cryptomatte_prefix)) {
     type = PASS_CRYPTOMATTE;
     mode = PassMode::DENOISED;
@@ -686,18 +691,6 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
   }
   scene->film->set_cryptomatte_passes(cryptomatte_passes);
 
-  /* Path guiding debug passes. */
-#ifdef WITH_CYCLES_DEBUG
-  b_engine.add_pass("Guiding Color", 3, "RGB", b_view_layer.name().c_str());
-  pass_add(scene, PASS_GUIDING_COLOR, "Guiding Color", PassMode::NOISY);
-
-  b_engine.add_pass("Guiding Probability", 1, "X", b_view_layer.name().c_str());
-  pass_add(scene, PASS_GUIDING_PROBABILITY, "Guiding Probability", PassMode::NOISY);
-
-  b_engine.add_pass("Guiding Average Roughness", 1, "X", b_view_layer.name().c_str());
-  pass_add(scene, PASS_GUIDING_AVG_ROUGHNESS, "Guiding Average Roughness", PassMode::NOISY);
-#endif
-
   unordered_set<string> expected_passes;
 
   /* Custom AOV passes. */
@@ -719,7 +712,8 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
   BL::ViewLayer::lightgroups_iterator b_lightgroup_iter;
   for (b_view_layer.lightgroups.begin(b_lightgroup_iter);
        b_lightgroup_iter != b_view_layer.lightgroups.end();
-       ++b_lightgroup_iter) {
+       ++b_lightgroup_iter)
+  {
     BL::Lightgroup b_lightgroup(*b_lightgroup_iter);
 
     string name = string_printf("Combined_%s", b_lightgroup.name().c_str());
@@ -742,7 +736,8 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
     }
 
     if (pass_type == PASS_MOTION &&
-        (b_view_layer.use_motion_blur() && b_scene.render().use_motion_blur())) {
+        (b_view_layer.use_motion_blur() && b_scene.render().use_motion_blur()))
+    {
       continue;
     }
 

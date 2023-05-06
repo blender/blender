@@ -58,7 +58,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -662,7 +662,8 @@ short psys_get_current_num(Object *ob)
   }
 
   for (psys = static_cast<ParticleSystem *>(ob->particlesystem.first), i = 0; psys;
-       psys = psys->next, i++) {
+       psys = psys->next, i++)
+  {
     if (psys->flag & PSYS_CURRENT) {
       return i;
     }
@@ -680,7 +681,8 @@ void psys_set_current_num(Object *ob, int index)
   }
 
   for (psys = static_cast<ParticleSystem *>(ob->particlesystem.first), i = 0; psys;
-       psys = psys->next, i++) {
+       psys = psys->next, i++)
+  {
     if (i == index) {
       psys->flag |= PSYS_CURRENT;
     }
@@ -2137,8 +2139,8 @@ void psys_particle_on_dm(Mesh *mesh_final,
   const float(*orcodata)[3];
   int mapindex;
 
-  if (!psys_map_index_on_dm(
-          mesh_final, from, index, index_dmcache, fw, foffset, &mapindex, mapfw)) {
+  if (!psys_map_index_on_dm(mesh_final, from, index, index_dmcache, fw, foffset, &mapindex, mapfw))
+  {
     if (vec) {
       vec[0] = vec[1] = vec[2] = 0.0;
     }
@@ -2160,7 +2162,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
   }
 
   orcodata = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh_final->vdata, CD_ORCO));
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh_final);
+  const blender::Span<blender::float3> vert_normals = mesh_final->vert_normals();
 
   if (from == PART_FROM_VERT) {
     const float(*vert_positions)[3] = BKE_mesh_vert_positions(mesh_final);
@@ -2203,7 +2205,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
     if (from == PART_FROM_VOLUME) {
       psys_interpolate_face(mesh_final,
                             vert_positions,
-                            vert_normals,
+                            reinterpret_cast<const float(*)[3]>(vert_normals.data()),
                             mface,
                             mtface,
                             orcodata,
@@ -2226,7 +2228,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
     else {
       psys_interpolate_face(mesh_final,
                             vert_positions,
-                            vert_normals,
+                            reinterpret_cast<const float(*)[3]>(vert_normals.data()),
                             mface,
                             mtface,
                             orcodata,
@@ -2246,7 +2248,8 @@ float psys_particle_value_from_verts(Mesh *mesh, short from, ParticleData *pa, f
   int mapindex;
 
   if (!psys_map_index_on_dm(
-          mesh, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, &mapindex, mapfw)) {
+          mesh, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, &mapindex, mapfw))
+  {
     return 0.0f;
   }
 
@@ -2487,7 +2490,8 @@ bool do_guides(Depsgraph *depsgraph,
                               guidedir,
                               nullptr,
                               &radius,
-                              &weight) == 0) {
+                              &weight) == 0)
+        {
           return 0;
         }
       }
@@ -2782,7 +2786,8 @@ static bool psys_thread_context_init_path(ParticleThreadContext *ctx,
     ParticleEditSettings *pset = &scene->toolsettings->particle;
 
     if ((use_render_params == 0) &&
-        (psys_orig_edit_get(psys) == nullptr || pset->flag & PE_DRAW_PART) == 0) {
+        (psys_orig_edit_get(psys) == nullptr || pset->flag & PE_DRAW_PART) == 0)
+    {
       totchild = 0;
     }
 
@@ -3905,7 +3910,8 @@ static void psys_face_mat(Object *ob, Mesh *mesh, ParticleData *pa, float mat[4]
       CustomData_get_for_write(&mesh->fdata, i, CD_ORIGSPACE, mesh->totface));
 
   if (orco &&
-      (orcodata = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->vdata, CD_ORCO)))) {
+      (orcodata = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->vdata, CD_ORCO))))
+  {
     copy_v3_v3(v[0], orcodata[mface->v1]);
     copy_v3_v3(v[1], orcodata[mface->v2]);
     copy_v3_v3(v[2], orcodata[mface->v3]);
@@ -4078,21 +4084,24 @@ void object_remove_particle_system(Main *bmain,
                PART_FLUID_SPRAY,
                PART_FLUID_SPRAYFOAM,
                PART_FLUID_SPRAYBUBBLE,
-               PART_FLUID_SPRAYFOAMBUBBLE)) {
+               PART_FLUID_SPRAYFOAMBUBBLE))
+      {
         fmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_SPRAY;
       }
       if (ELEM(psys->part->type,
                PART_FLUID_FOAM,
                PART_FLUID_SPRAYFOAM,
                PART_FLUID_FOAMBUBBLE,
-               PART_FLUID_SPRAYFOAMBUBBLE)) {
+               PART_FLUID_SPRAYFOAMBUBBLE))
+      {
         fmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_FOAM;
       }
       if (ELEM(psys->part->type,
                PART_FLUID_BUBBLE,
                PART_FLUID_FOAMBUBBLE,
                PART_FLUID_SPRAYBUBBLE,
-               PART_FLUID_SPRAYFOAMBUBBLE)) {
+               PART_FLUID_SPRAYFOAMBUBBLE))
+      {
         fmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_BUBBLE;
       }
       if (psys->part->type == PART_FLUID_TRACER) {
@@ -4104,7 +4113,8 @@ void object_remove_particle_system(Main *bmain,
                PART_FLUID_SPRAYFOAM,
                PART_FLUID_SPRAYBUBBLE,
                PART_FLUID_FOAMBUBBLE,
-               PART_FLUID_SPRAYFOAMBUBBLE)) {
+               PART_FLUID_SPRAYFOAMBUBBLE))
+      {
         fmd->domain->sndparticle_combined_export = SNDPARTICLE_COMBINED_EXPORT_OFF;
       }
     }
@@ -4326,7 +4336,8 @@ static void get_cpa_texture(Mesh *mesh,
 
       if (ELEM(texco, TEXCO_UV, TEXCO_ORCO) &&
           (ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME) == 0 ||
-           part->distr == PART_DISTR_GRID)) {
+           part->distr == PART_DISTR_GRID))
+      {
         texco = TEXCO_GLOB;
       }
 
@@ -4347,7 +4358,8 @@ static void get_cpa_texture(Mesh *mesh,
                                     fw,
                                     mtex->uvname,
                                     texvec,
-                                    (part->from == PART_FROM_VERT))) {
+                                    (part->from == PART_FROM_VERT)))
+          {
             break;
           }
           /* no break, failed to get uv's, so let's try orco's */
@@ -4414,7 +4426,8 @@ void psys_get_texture(
       short texco = mtex->texco;
 
       if (texco == TEXCO_UV && (ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME) == 0 ||
-                                part->distr == PART_DISTR_GRID)) {
+                                part->distr == PART_DISTR_GRID))
+      {
         texco = TEXCO_GLOB;
       }
 
@@ -4435,7 +4448,8 @@ void psys_get_texture(
                               pa->fuv,
                               mtex->uvname,
                               texvec,
-                              (part->from == PART_FROM_VERT))) {
+                              (part->from == PART_FROM_VERT)))
+          {
             break;
           }
           /* no break, failed to get uv's, so let's try orco's */
@@ -4946,7 +4960,8 @@ bool psys_get_particle_state(ParticleSimulationData *sim,
 
       if (!always) {
         if ((state->time < 0.0f && !(part->flag & PART_UNBORN)) ||
-            (state->time > 1.0f && !(part->flag & PART_DIED))) {
+            (state->time > 1.0f && !(part->flag & PART_DIED)))
+        {
           return false;
         }
       }
@@ -4968,7 +4983,8 @@ bool psys_get_particle_state(ParticleSimulationData *sim,
   if (pa) {
     if (!always) {
       if ((cfra < pa->time && (part->flag & PART_UNBORN) == 0) ||
-          (cfra >= pa->dietime && (part->flag & PART_DIED) == 0)) {
+          (cfra >= pa->dietime && (part->flag & PART_DIED) == 0))
+      {
         return false;
       }
     }
@@ -5305,6 +5321,7 @@ void psys_apply_hair_lattice(Depsgraph *depsgraph, Scene *scene, Object *ob, Par
 }
 
 /* Draw Engine */
+
 void (*BKE_particle_batch_cache_dirty_tag_cb)(ParticleSystem *psys, int mode) = nullptr;
 void (*BKE_particle_batch_cache_free_cb)(ParticleSystem *psys) = nullptr;
 
@@ -5342,7 +5359,8 @@ void BKE_particle_system_blend_write(BlendWriter *writer, ListBase *particles)
       }
 
       if (psys->part->fluid && (psys->part->phystype == PART_PHYS_FLUID) &&
-          (psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS)) {
+          (psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS))
+      {
         BLO_write_struct_array(
             writer, ParticleSpring, psys->tot_fluidsprings, psys->fluid_springs);
       }

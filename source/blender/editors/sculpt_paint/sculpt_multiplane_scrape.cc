@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup edsculpt
@@ -211,7 +211,7 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
 
 /* Public functions. */
 
-void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -231,10 +231,10 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
   float temp[3];
   float mat[4][4];
 
-  SCULPT_calc_brush_plane(sd, ob, nodes, totnode, area_no_sp, area_co);
+  SCULPT_calc_brush_plane(sd, ob, nodes, area_no_sp, area_co);
 
   if (brush->sculpt_plane != SCULPT_DISP_DIR_AREA || (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
-    SCULPT_calc_area_normal(sd, ob, nodes, totnode, area_no);
+    SCULPT_calc_area_normal(sd, ob, nodes, area_no);
   }
   else {
     copy_v3_v3(area_no, area_no_sp);
@@ -281,19 +281,18 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
     sample_data.ob = ob;
     sample_data.brush = brush;
     sample_data.nodes = nodes;
-    sample_data.totnode = totnode;
     sample_data.mat = mat;
 
     MultiplaneScrapeSampleData mssd = {{{0}}};
 
     TaskParallelSettings sample_settings;
-    BKE_pbvh_parallel_range_settings(&sample_settings, true, totnode);
+    BKE_pbvh_parallel_range_settings(&sample_settings, true, nodes.size());
     sample_settings.func_reduce = calc_multiplane_scrape_surface_reduce;
     sample_settings.userdata_chunk = &mssd;
     sample_settings.userdata_chunk_size = sizeof(MultiplaneScrapeSampleData);
 
     BLI_task_parallel_range(
-        0, totnode, &sample_data, calc_multiplane_scrape_surface_task_cb, &sample_settings);
+        0, nodes.size(), &sample_data, calc_multiplane_scrape_surface_task_cb, &sample_settings);
 
     float sampled_plane_normals[2][3];
     float sampled_plane_co[2][3];
@@ -377,8 +376,9 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
   plane_from_point_normal_v3(data.multiplane_scrape_planes[0], area_co, plane_no);
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_multiplane_scrape_brush_task_cb_ex, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+  BLI_task_parallel_range(
+      0, nodes.size(), &data, do_multiplane_scrape_brush_task_cb_ex, &settings);
 }
 
 void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,

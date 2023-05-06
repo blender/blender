@@ -20,7 +20,7 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_light_types.h"
@@ -50,7 +50,7 @@
 #include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -695,7 +695,7 @@ static int acf_object_icon(bAnimListElem *ale)
       return ICON_OUTLINER_OB_VOLUME;
     case OB_EMPTY:
       return ICON_OUTLINER_OB_EMPTY;
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       return ICON_OUTLINER_OB_GREASEPENCIL;
     default:
       return ICON_OBJECT_DATA;
@@ -4483,7 +4483,9 @@ void ANIM_channel_draw(
   if (ac->sl) {
     if (ELEM(ac->spacetype, SPACE_ACTION, SPACE_GRAPH) &&
         (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE) ||
-         acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE))) {
+         acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)) &&
+        !ELEM(ale->type, ANIMTYPE_GPLAYER, ANIMTYPE_DSGPENCIL))
+    {
       /* for F-Curves, draw color-preview of curve left to the visibility icon */
       if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
         FCurve *fcu = (FCurve *)ale->data;
@@ -4575,7 +4577,8 @@ void ANIM_channel_draw(
    *  - Exception for graph editor, which needs extra space for the scroll bar.
    */
   if (ac->spacetype == SPACE_GRAPH &&
-      ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_GROUP)) {
+      ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_GROUP))
+  {
     offset = V2D_SCROLL_WIDTH;
   }
   else {
@@ -4613,8 +4616,8 @@ void ANIM_channel_draw(
     }
 
     /* check if there's enough space for the toggles if the sliders are drawn too */
-    if (!(draw_sliders) ||
-        (BLI_rcti_size_x(&v2d->mask) > ANIM_UI_get_channel_button_width() / 2)) {
+    if (!(draw_sliders) || (BLI_rcti_size_x(&v2d->mask) > ANIM_UI_get_channel_button_width() / 2))
+    {
       /* protect... */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
         offset += ICON_WIDTH;
@@ -4657,7 +4660,8 @@ void ANIM_channel_draw(
      *   to keep a clean line down the side.
      */
     if ((draw_sliders) &&
-        ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_SHAPEKEY, ANIMTYPE_GPLAYER)) {
+        ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_SHAPEKEY, ANIMTYPE_GPLAYER))
+    {
       /* adjust offset */
       offset += SLIDER_WIDTH;
     }
@@ -4804,7 +4808,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
   /* try to resolve the path stored in the F-Curve */
   if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
     /* set the special 'replace' flag if on a keyframe */
-    if (fcurve_frame_has_keyframe(fcu, cfra, 0)) {
+    if (fcurve_frame_has_keyframe(fcu, cfra)) {
       flag |= INSERTKEY_REPLACE;
     }
 
@@ -4866,7 +4870,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
     FCurve *fcu = ED_action_fcurve_ensure(bmain, act, NULL, &ptr, rna_path, 0);
 
     /* set the special 'replace' flag if on a keyframe */
-    if (fcurve_frame_has_keyframe(fcu, remapped_frame, 0)) {
+    if (fcurve_frame_has_keyframe(fcu, remapped_frame)) {
       flag |= INSERTKEY_REPLACE;
     }
 
@@ -4926,7 +4930,7 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C,
 
   if (fcu && prop) {
     /* set the special 'replace' flag if on a keyframe */
-    if (fcurve_frame_has_keyframe(fcu, cfra, 0)) {
+    if (fcurve_frame_has_keyframe(fcu, cfra)) {
       flag |= INSERTKEY_REPLACE;
     }
 
@@ -4948,28 +4952,31 @@ static void draw_setting_widget(bAnimContext *ac,
                                 bAnimListElem *ale,
                                 const bAnimChannelType *acf,
                                 uiBlock *block,
-                                int xpos,
-                                int ypos,
-                                int setting)
+                                const int xpos,
+                                const int ypos,
+                                const eAnimChannel_Settings setting)
 {
-  short ptrsize, butType;
-  bool negflag;
   bool usetoggle = true;
-  int flag, icon;
-  void *ptr;
+  int icon;
   const char *tooltip;
-  uiBut *but = NULL;
-  bool enabled;
 
   /* get the flag and the pointer to that flag */
-  flag = acf->setting_flag(ac, setting, &negflag);
-  ptr = acf->setting_ptr(ale, setting, &ptrsize);
-  enabled = ANIM_channel_setting_get(ac, ale, setting);
+  bool negflag;
+  const int flag = acf->setting_flag(ac, setting, &negflag);
+
+  short ptrsize;
+  void *ptr = acf->setting_ptr(ale, setting, &ptrsize);
+
+  if (!ptr || !flag) {
+    return;
+  }
+
+  const bool enabled = ANIM_channel_setting_get(ac, ale, setting);
 
   /* get the base icon for the setting */
   switch (setting) {
     case ACHANNEL_SETTING_VISIBLE: /* visibility eyes */
-      // icon = ((enabled) ? ICON_HIDE_OFF : ICON_HIDE_ON);
+      // icon = (enabled ? ICON_HIDE_OFF : ICON_HIDE_ON);
       icon = ICON_HIDE_ON;
 
       if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
@@ -4994,13 +5001,13 @@ static void draw_setting_widget(bAnimContext *ac,
       break;
 
     case ACHANNEL_SETTING_EXPAND: /* expanded triangle */
-      // icon = ((enabled) ? ICON_TRIA_DOWN : ICON_TRIA_RIGHT);
+      // icon = (enabled ? ICON_TRIA_DOWN : ICON_TRIA_RIGHT);
       icon = ICON_TRIA_RIGHT;
       tooltip = TIP_("Make channels grouped under this channel visible");
       break;
 
     case ACHANNEL_SETTING_SOLO: /* NLA Tracks only */
-      // icon = ((enabled) ? ICON_SOLO_OFF : ICON_SOLO_ON);
+      // icon = (enabled ? ICON_SOLO_OFF : ICON_SOLO_ON);
       icon = ICON_SOLO_OFF;
       tooltip = TIP_(
           "NLA Track is the only one evaluated in this animation data-block, with all others "
@@ -5011,7 +5018,7 @@ static void draw_setting_widget(bAnimContext *ac,
 
     case ACHANNEL_SETTING_PROTECT: /* protected lock */
       /* TODO: what about when there's no protect needed? */
-      // icon = ((enabled) ? ICON_LOCKED : ICON_UNLOCKED);
+      // icon = (enabled ? ICON_LOCKED : ICON_UNLOCKED);
       icon = ICON_UNLOCKED;
 
       if (ale->datatype != ALE_NLASTRIP) {
@@ -5023,7 +5030,7 @@ static void draw_setting_widget(bAnimContext *ac,
       break;
 
     case ACHANNEL_SETTING_MUTE: /* muted speaker */
-      icon = ((enabled) ? ICON_CHECKBOX_DEHLT : ICON_CHECKBOX_HLT);
+      icon = (enabled ? ICON_CHECKBOX_DEHLT : ICON_CHECKBOX_HLT);
       usetoggle = false;
 
       if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
@@ -5044,7 +5051,7 @@ static void draw_setting_widget(bAnimContext *ac,
       break;
 
     case ACHANNEL_SETTING_PINNED: /* pin icon */
-      // icon = ((enabled) ? ICON_PINNED : ICON_UNPINNED);
+      // icon = (enabled ? ICON_PINNED : ICON_UNPINNED);
       icon = ICON_UNPINNED;
 
       if (ale->type == ANIMTYPE_NLAACTION) {
@@ -5063,6 +5070,7 @@ static void draw_setting_widget(bAnimContext *ac,
   }
 
   /* type of button */
+  short butType;
   if (usetoggle) {
     if (negflag) {
       butType = UI_BTYPE_ICON_TOGGLE_N;
@@ -5079,100 +5087,99 @@ static void draw_setting_widget(bAnimContext *ac,
       butType = UI_BTYPE_TOGGLE;
     }
   }
+
   /* draw button for setting */
-  if (ptr && flag) {
-    switch (ptrsize) {
-      case sizeof(int): /* integer pointer for setting */
-        but = uiDefIconButBitI(block,
-                               butType,
-                               flag,
-                               0,
-                               icon,
-                               xpos,
-                               ypos,
-                               ICON_WIDTH,
-                               ICON_WIDTH,
-                               ptr,
-                               0,
-                               0,
-                               0,
-                               0,
-                               tooltip);
-        break;
+  uiBut *but = NULL;
+  switch (ptrsize) {
+    case sizeof(int): /* integer pointer for setting */
+      but = uiDefIconButBitI(block,
+                             butType,
+                             flag,
+                             0,
+                             icon,
+                             xpos,
+                             ypos,
+                             ICON_WIDTH,
+                             ICON_WIDTH,
+                             ptr,
+                             0,
+                             0,
+                             0,
+                             0,
+                             tooltip);
+      break;
 
-      case sizeof(short): /* short pointer for setting */
-        but = uiDefIconButBitS(block,
-                               butType,
-                               flag,
-                               0,
-                               icon,
-                               xpos,
-                               ypos,
-                               ICON_WIDTH,
-                               ICON_WIDTH,
-                               ptr,
-                               0,
-                               0,
-                               0,
-                               0,
-                               tooltip);
-        break;
+    case sizeof(short): /* short pointer for setting */
+      but = uiDefIconButBitS(block,
+                             butType,
+                             flag,
+                             0,
+                             icon,
+                             xpos,
+                             ypos,
+                             ICON_WIDTH,
+                             ICON_WIDTH,
+                             ptr,
+                             0,
+                             0,
+                             0,
+                             0,
+                             tooltip);
+      break;
 
-      case sizeof(char): /* char pointer for setting */
-        but = uiDefIconButBitC(block,
-                               butType,
-                               flag,
-                               0,
-                               icon,
-                               xpos,
-                               ypos,
-                               ICON_WIDTH,
-                               ICON_WIDTH,
-                               ptr,
-                               0,
-                               0,
-                               0,
-                               0,
-                               tooltip);
-        break;
-    }
+    case sizeof(char): /* char pointer for setting */
+      but = uiDefIconButBitC(block,
+                             butType,
+                             flag,
+                             0,
+                             icon,
+                             xpos,
+                             ypos,
+                             ICON_WIDTH,
+                             ICON_WIDTH,
+                             ptr,
+                             0,
+                             0,
+                             0,
+                             0,
+                             tooltip);
+      break;
+  }
+  if (!but) {
+    return;
+  }
 
-    /* set call to send relevant notifiers and/or perform type-specific updates */
-    if (but) {
-      switch (setting) {
-        /* Settings needing flushing up/down hierarchy. */
-        case ACHANNEL_SETTING_VISIBLE: /* Graph Editor - 'visibility' toggles */
-        case ACHANNEL_SETTING_PROTECT: /* General - protection flags */
-        case ACHANNEL_SETTING_MUTE:    /* General - muting flags */
-        case ACHANNEL_SETTING_PINNED:  /* NLA Actions - 'map/nomap' */
-        case ACHANNEL_SETTING_MOD_OFF:
-        case ACHANNEL_SETTING_ALWAYS_VISIBLE:
-          UI_but_funcN_set(but,
-                           achannel_setting_flush_widget_cb,
-                           MEM_dupallocN(ale),
-                           POINTER_FROM_INT(setting));
-          break;
+  /* set call to send relevant notifiers and/or perform type-specific updates */
+  switch (setting) {
+    /* Settings needing flushing up/down hierarchy. */
+    case ACHANNEL_SETTING_VISIBLE: /* Graph Editor - 'visibility' toggles */
+    case ACHANNEL_SETTING_PROTECT: /* General - protection flags */
+    case ACHANNEL_SETTING_MUTE:    /* General - muting flags */
+    case ACHANNEL_SETTING_PINNED:  /* NLA Actions - 'map/nomap' */
+    case ACHANNEL_SETTING_MOD_OFF:
+    case ACHANNEL_SETTING_ALWAYS_VISIBLE:
+      UI_but_funcN_set(
+          but, achannel_setting_flush_widget_cb, MEM_dupallocN(ale), POINTER_FROM_INT(setting));
+      break;
 
-        /* settings needing special attention */
-        case ACHANNEL_SETTING_SOLO: /* NLA Tracks - Solo toggle */
-          UI_but_funcN_set(but, achannel_nlatrack_solo_widget_cb, MEM_dupallocN(ale), NULL);
-          break;
+    /* settings needing special attention */
+    case ACHANNEL_SETTING_SOLO: /* NLA Tracks - Solo toggle */
+      UI_but_funcN_set(but, achannel_nlatrack_solo_widget_cb, MEM_dupallocN(ale), NULL);
+      break;
 
-        /* no flushing */
-        case ACHANNEL_SETTING_EXPAND: /* expanding - cannot flush,
-                                       * otherwise all would open/close at once */
-        default:
-          UI_but_func_set(but, achannel_setting_widget_cb, NULL, NULL);
-          break;
-      }
+    /* no flushing */
+    case ACHANNEL_SETTING_EXPAND: /* expanding - cannot flush,
+                                   * otherwise all would open/close at once */
+    default:
+      UI_but_func_set(but, achannel_setting_widget_cb, NULL, NULL);
+      break;
+  }
 
-      if ((ale->fcurve_owner_id != NULL && !BKE_id_is_editable(ac->bmain, ale->fcurve_owner_id)) ||
-          (ale->fcurve_owner_id == NULL && ale->id != NULL &&
-           !BKE_id_is_editable(ac->bmain, ale->id))) {
-        if (setting != ACHANNEL_SETTING_EXPAND) {
-          UI_but_disable(but, TIP_("Can't edit this property from a linked data-block"));
-        }
-      }
+  if ((ale->fcurve_owner_id != NULL && !BKE_id_is_editable(ac->bmain, ale->fcurve_owner_id)) ||
+      (ale->fcurve_owner_id == NULL && ale->id != NULL && !BKE_id_is_editable(ac->bmain, ale->id)))
+  {
+    if (setting != ACHANNEL_SETTING_EXPAND) {
+      UI_but_disable(but, TIP_("Can't edit this property from a linked data-block"));
     }
   }
 }
@@ -5227,7 +5234,9 @@ void ANIM_channel_draw_widgets(const bContext *C,
   if (ac->sl) {
     if (ELEM(ac->spacetype, SPACE_ACTION, SPACE_GRAPH) &&
         (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE) ||
-         acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE))) {
+         acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)) &&
+        (ale->type != ANIMTYPE_GPLAYER))
+    {
       /* Pin toggle. */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)) {
         draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_ALWAYS_VISIBLE);
@@ -5260,7 +5269,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
      *       a callback available (e.g. broken F-Curve rename)
      */
     if (acf->name_prop(ale, &ptr, &prop)) {
-      const short margin_x = 3 * round_fl_to_int(UI_DPI_FAC);
+      const short margin_x = 3 * round_fl_to_int(UI_SCALE_FAC);
       const short width = ac->region->winx - offset - (margin_x * 2);
       uiBut *but;
 
@@ -5327,8 +5336,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
     }
 
     /* check if there's enough space for the toggles if the sliders are drawn too */
-    if (!(draw_sliders) ||
-        (BLI_rcti_size_x(&v2d->mask) > ANIM_UI_get_channel_button_width() / 2)) {
+    if (!(draw_sliders) || (BLI_rcti_size_x(&v2d->mask) > ANIM_UI_get_channel_button_width() / 2))
+    {
       /* protect... */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
         offset -= ICON_WIDTH;
@@ -5362,7 +5371,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
 
       /* NLA Action "pushdown" */
       if ((ale->type == ANIMTYPE_NLAACTION) && (ale->adt && ale->adt->action) &&
-          !(ale->adt->flag & ADT_NLA_EDIT_ON)) {
+          !(ale->adt->flag & ADT_NLA_EDIT_ON))
+      {
         uiBut *but;
         PointerRNA *opptr_b;
 
@@ -5404,7 +5414,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
                                 ANIMTYPE_NLACURVE,
                                 ANIMTYPE_SHAPEKEY,
                                 ANIMTYPE_GPLAYER)) ||
-        ale->type == ANIMTYPE_SHAPEKEY) {
+        ale->type == ANIMTYPE_SHAPEKEY)
+    {
       /* adjust offset */
       /* TODO: make slider width dynamic,
        * so that they can be easier to use when the view is wide enough. */

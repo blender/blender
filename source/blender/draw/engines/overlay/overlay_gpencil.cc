@@ -7,11 +7,11 @@
 
 #include "DRW_render.h"
 
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 
 #include "UI_resources.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -45,7 +45,7 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
   Scene *scene = draw_ctx->scene;
   ToolSettings *ts = scene->toolsettings;
 
-  if (gpd == nullptr || ob->type != OB_GPENCIL) {
+  if (gpd == nullptr || ob->type != OB_GPENCIL_LEGACY) {
     return;
   }
 
@@ -97,7 +97,8 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
                             (ts->gpencil_selectmode_edit != GP_SELECTMODE_STROKE));
 
   if (!GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd) &&
-      ((!GPENCIL_VERTEX_MODE(gpd) && !GPENCIL_PAINT_MODE(gpd)) || use_vertex_mask)) {
+      ((!GPENCIL_VERTEX_MODE(gpd) && !GPENCIL_PAINT_MODE(gpd)) || use_vertex_mask))
+  {
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
                      DRW_STATE_BLEND_ALPHA;
     DRW_PASS_CREATE(psl->edit_gpencil_ps, state | pd->clipping_state);
@@ -187,7 +188,8 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
         DRW_shgroup_uniform_vec3_copy(grp, "pPosition", ts->gp_sculpt.guide.location);
       }
       else if (ts->gp_sculpt.guide.reference_point == GP_GUIDE_REF_OBJECT &&
-               ts->gp_sculpt.guide.reference_object != nullptr) {
+               ts->gp_sculpt.guide.reference_object != nullptr)
+      {
         UI_GetThemeColor4fv(TH_GIZMO_SECONDARY, color);
         DRW_shgroup_uniform_vec3_copy(grp, "pPosition", ts->gp_sculpt.guide.reference_object->loc);
       }
@@ -223,7 +225,7 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
   pd->edit_curve.show_handles = v3d->overlay.handle_display != CURVE_HANDLE_NONE;
   pd->edit_curve.handle_display = v3d->overlay.handle_display;
 
-  if (gpd == nullptr || ob->type != OB_GPENCIL) {
+  if (gpd == nullptr || ob->type != OB_GPENCIL_LEGACY) {
     return;
   }
 
@@ -440,7 +442,8 @@ void OVERLAY_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob)
   /* don't show object extras in set's */
   if ((ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) == 0) {
     if ((v3d->gp_flag & V3D_GP_SHOW_MATERIAL_NAME) && (ob->mode == OB_MODE_EDIT_GPENCIL) &&
-        DRW_state_show_text()) {
+        DRW_state_show_text())
+    {
       OVERLAY_gpencil_color_names(ob);
     }
   }

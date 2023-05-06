@@ -50,6 +50,22 @@ if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
   list(APPEND LIB ${Epoxy_LIBRARIES} ${SDL2_LIBRARIES})
 endif()
 
+if(WITH_USD)
+  # Silence warning from USD headers using deprecated TBB header.
+  add_definitions(
+    -D__TBB_show_deprecation_message_atomic_H
+    -D__TBB_show_deprecation_message_task_H
+  )
+
+  list(APPEND INC_SYS
+    ${USD_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    cycles_hydra
+    ${USD_LIBRARIES}
+  )
+endif()
+
 cycles_external_libraries_append(LIB)
 
 # Common configuration.

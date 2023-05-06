@@ -826,7 +826,7 @@ static void rna_def_mask_splines(BlenderRNA *brna)
                                  NULL,
                                  NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
-  RNA_def_property_ui_text(prop, "Active Spline", "Active spline of masking layer");
+  RNA_def_property_ui_text(prop, "Active Point", "Active point of masking layer");
 }
 
 static void rna_def_maskSplinePoints(BlenderRNA *brna)

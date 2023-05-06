@@ -33,7 +33,7 @@
 #include "ED_fileselect.h"
 #include "ED_geometry.h"
 #include "ED_gizmo_library.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_lattice.h"
 #include "ED_markers.h"
 #include "ED_mask.h"
@@ -193,6 +193,7 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
   ED_keymap_paint(keyconf);
   ED_keymap_mask(keyconf);
   ED_keymap_marker(keyconf);
+  ED_keymap_sculpt(keyconf);
 
   ED_keymap_view2d(keyconf);
   ED_keymap_ui(keyconf);
@@ -297,9 +298,7 @@ static SpaceLink *xxx_create(const ScrArea *UNUSED(area), const Scene *UNUSED(sc
 }
 
 /* not spacelink itself */
-static void xxx_free(SpaceLink *UNUSED(sl))
-{
-}
+static void xxx_free(SpaceLink *UNUSED(sl)) {}
 
 /* spacetype; init callback for usage, should be re-doable. */
 static void xxx_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+ * Copyright 2004 Blender Foundation */
 
 /** \file
  * \ingroup spoutliner
@@ -78,7 +78,8 @@ void ED_outliner_select_sync_flag_outliners(const bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
 
   for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
-       screen = static_cast<bScreen *>(screen->id.next)) {
+       screen = static_cast<bScreen *>(screen->id.next))
+  {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
         if (sl->spacetype == SPACE_OUTLINER) {
@@ -351,7 +352,8 @@ void ED_outliner_select_sync_from_outliner(bContext *C, SpaceOutliner *space_out
                                                        SO_LIBRARIES,
                                                        SO_OVERRIDES_LIBRARY,
                                                        SO_DATA_API,
-                                                       SO_ID_ORPHANS)) {
+                                                       SO_ID_ORPHANS))
+  {
     return;
   }
 

@@ -409,6 +409,8 @@ TEST(string, StrCursorStepNextUtf32Empty)
   EXPECT_FALSE(BLI_str_cursor_step_next_utf32(empty, len, &pos));
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_next_utf32_single
  * \{ */
@@ -422,6 +424,8 @@ TEST(string, StrCursorStepNextUtf32Single)
   EXPECT_TRUE(BLI_str_cursor_step_next_utf32(single, len, &pos) && pos == 1);
   EXPECT_FALSE(BLI_str_cursor_step_next_utf32(single, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_next_utf32_simple
@@ -438,6 +442,8 @@ TEST(string, StrCursorStepNextUtf32Simple)
   EXPECT_TRUE(BLI_str_cursor_step_next_utf32(simple, len, &pos) && pos == 3);
   EXPECT_FALSE(BLI_str_cursor_step_next_utf32(simple, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_next_utf32_allcombining
@@ -456,6 +462,8 @@ TEST(string, StrCursorStepNextUtf32AllCombining)
   pos = 3;
   EXPECT_FALSE(BLI_str_cursor_step_next_utf32(allcombining, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_next_utf32_complex
@@ -479,6 +487,8 @@ TEST(string, StrCursorStepNextUtf32Complex)
   pos = 5;
   EXPECT_FALSE(BLI_str_cursor_step_next_utf32(complex, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_next_utf32_invalid
@@ -509,6 +519,8 @@ TEST(string, StrCursorStepNextUtf32Invalid)
   EXPECT_FALSE(BLI_str_cursor_step_next_utf32(invalid, len, &pos));
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_prev_utf32_empty
  * \{ */
@@ -520,6 +532,8 @@ TEST(string, StrCursorStepPrevUtf32Empty)
   int pos = 0;
   EXPECT_FALSE(BLI_str_cursor_step_prev_utf32(emtpy, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_prev_utf32_single
@@ -533,6 +547,8 @@ TEST(string, StrCursorStepPrevUtf32Single)
   EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(single, len, &pos) && pos == 0);
   EXPECT_FALSE(BLI_str_cursor_step_prev_utf32(single, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_prev_utf32_simple
@@ -548,6 +564,8 @@ TEST(string, StrCursorStepPrevUtf32Simple)
   EXPECT_TRUE(BLI_str_cursor_step_prev_utf32(simple, len, &pos) && pos == 0);
   EXPECT_FALSE(BLI_str_cursor_step_prev_utf32(simple, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_prev_utf32_allcombining
@@ -566,6 +584,8 @@ TEST(string, StrCursorStepPrevUtf32AllCombining)
   pos = 0;
   EXPECT_FALSE(BLI_str_cursor_step_prev_utf32(allcombining, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_prev_utf32_complex
@@ -589,6 +609,8 @@ TEST(string, StrCursorStepPrevUtf32Complex)
   pos = 0;
   EXPECT_FALSE(BLI_str_cursor_step_prev_utf32(complex, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_prev_utf32_invalid
@@ -619,6 +641,8 @@ TEST(string, StrCursorStepPrevUtf32Invalid)
   EXPECT_FALSE(BLI_str_cursor_step_prev_utf32(invalid, len, &pos));
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_next_utf8_empty
  * \{ */
@@ -632,6 +656,8 @@ TEST(string, StrCursorStepNextUtf8Empty)
   EXPECT_FALSE(BLI_str_cursor_step_next_utf8(empty, len, &pos));
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_next_utf8_single
  * \{ */
@@ -643,6 +669,8 @@ TEST(string, StrCursorStepNextUtf8Single)
   EXPECT_TRUE(BLI_str_cursor_step_next_utf8(single, len, &pos) && pos == 1);
   EXPECT_FALSE(BLI_str_cursor_step_next_utf8(single, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_next_utf8_simple
@@ -659,6 +687,8 @@ TEST(string, StrCursorStepNextUtf8Simple)
   EXPECT_TRUE(BLI_str_cursor_step_next_utf8(simple, len, &pos) && pos == 3);
   EXPECT_FALSE(BLI_str_cursor_step_next_utf8(simple, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_next_utf8_allcombining
@@ -683,6 +713,8 @@ TEST(string, StrCursorStepNextUtf8AllCombining)
   pos = 6;
   EXPECT_FALSE(BLI_str_cursor_step_next_utf8(allcombining, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_next_utf8_complex
@@ -717,6 +749,8 @@ TEST(string, StrCursorStepNextUtf8AllComplex)
   EXPECT_FALSE(BLI_str_cursor_step_next_utf8(complex, len, &pos));
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_next_utf8_invalid
  * \{ */
@@ -746,6 +780,8 @@ TEST(string, StrCursorStepNextUtf8Invalid)
   EXPECT_FALSE(BLI_str_cursor_step_next_utf8(invalid, len, &pos));
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_prev_utf8_empty
  * \{ */
@@ -760,6 +796,8 @@ TEST(string, StrCursorStepPrevUtf8Empty)
   EXPECT_FALSE(BLI_str_cursor_step_prev_utf8(empty, len, &pos));
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_prev_utf8_single
  * \{ */
@@ -772,6 +810,8 @@ TEST(string, StrCursorStepPrevUtf8Single)
   EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(single, len, &pos) && pos == 0);
   EXPECT_FALSE(BLI_str_cursor_step_prev_utf8(single, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_prev_utf8_single
@@ -787,6 +827,8 @@ TEST(string, StrCursorStepPrevUtf8Simple)
   EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(simple, len, &pos) && pos == 0);
   EXPECT_FALSE(BLI_str_cursor_step_prev_utf8(simple, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_prev_utf8_allcombining
@@ -811,6 +853,8 @@ TEST(string, StrCursorStepPrevUtf8AllCombining)
   pos = 0;
   EXPECT_FALSE(BLI_str_cursor_step_prev_utf8(allcombining, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_prev_utf8_complex
@@ -844,6 +888,8 @@ TEST(string, StrCursorStepPrevUtf8Complex)
   pos = 0;
   EXPECT_FALSE(BLI_str_cursor_step_prev_utf8(complex, len, &pos));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_prev_utf8_invalid

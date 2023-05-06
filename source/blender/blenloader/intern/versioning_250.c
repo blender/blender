@@ -72,6 +72,8 @@
 
 #include "readfile.h"
 
+#include "versioning_common.h"
+
 #include <errno.h>
 
 /* Make preferences read-only, use versioning_userdef.c. */
@@ -100,16 +102,16 @@ static void area_add_header_region(ScrArea *area, ListBase *lb)
   region->v2d.flag = (V2D_PIXELOFS_X | V2D_PIXELOFS_Y);
 }
 
-static void sequencer_init_preview_region(ARegion *region)
+void sequencer_init_preview_region(ARegion *region)
 {
   /* XXX a bit ugly still, copied from space_sequencer */
   /* NOTE: if you change values here, also change them in space_sequencer.c, sequencer_new */
   region->regiontype = RGN_TYPE_PREVIEW;
   region->alignment = RGN_ALIGN_TOP;
-  region->flag |= RGN_FLAG_HIDDEN;
-  region->v2d.keepzoom = V2D_KEEPASPECT | V2D_KEEPZOOM;
-  region->v2d.minzoom = 0.00001f;
-  region->v2d.maxzoom = 100000.0f;
+  region->flag &= ~RGN_FLAG_HIDDEN;
+  region->v2d.keepzoom = V2D_KEEPASPECT | V2D_KEEPZOOM | V2D_LIMITZOOM;
+  region->v2d.minzoom = 0.001f;
+  region->v2d.maxzoom = 1000.0f;
   region->v2d.tot.xmin = -960.0f; /* 1920 width centered */
   region->v2d.tot.ymin = -540.0f; /* 1080 height centered */
   region->v2d.tot.xmax = 960.0f;
@@ -431,7 +433,7 @@ static void versions_gpencil_add_main(Main *bmain, ListBase *lb, ID *id, const c
   BLI_addtail(lb, id);
   id->us = 1;
   id->flag = LIB_FAKEUSER;
-  *((short *)id->name) = ID_GD;
+  *((short *)id->name) = ID_GD_LEGACY;
 
   BKE_id_new_name_validate(bmain, lb, id, name, false);
   /* alphabetic insertion: is in BKE_id_new_name_validate */
@@ -638,7 +640,7 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
   /* don't know, if anybody used that this way, but just in case, upgrade to new way... */
   if ((seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) && !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
-    BLI_snprintf(seq->strip->proxy->dir, FILE_MAXDIR, "%s/BL_proxy", seq->strip->dir);
+    BLI_snprintf(seq->strip->proxy->dir, FILE_MAXDIR, "%s" SEP_STR "BL_proxy", seq->strip->dir);
   }
 #undef SEQ_USE_PROXY_CUSTOM_DIR
 #undef SEQ_USE_PROXY_CUSTOM_FILE
@@ -774,7 +776,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       part->clength = 1.0f;
     }
 
-    /* set old pointcaches to have disk cache flag */
+    /* Set old point-caches to have disk cache flag. */
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 
 #if 0
@@ -906,7 +908,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     /* Add default gravity to scenes */
     for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
       if ((sce->physics_settings.flag & PHYS_GLOBAL_GRAVITY) == 0 &&
-          is_zero_v3(sce->physics_settings.gravity)) {
+          is_zero_v3(sce->physics_settings.gravity))
+      {
         sce->physics_settings.gravity[0] = sce->physics_settings.gravity[1] = 0.0f;
         sce->physics_settings.gravity[2] = -9.81f;
         sce->physics_settings.flag = PHYS_GLOBAL_GRAVITY;
@@ -1404,7 +1407,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     /* initialize to sane default so toggling on border shows something */
     for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
       if (sce->r.border.xmin == 0.0f && sce->r.border.ymin == 0.0f && sce->r.border.xmax == 0.0f &&
-          sce->r.border.ymax == 0.0f) {
+          sce->r.border.ymax == 0.0f)
+      {
         sce->r.border.xmin = 0.0f;
         sce->r.border.ymin = 0.0f;
         sce->r.border.xmax = 1.0f;

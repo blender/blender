@@ -177,6 +177,8 @@ typedef struct AudioData {
   char _pad2[4];
 } AudioData;
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Render Layers
  * \{ */
@@ -670,8 +672,7 @@ typedef struct RenderData {
   /** Frames to jump during render/playback. */
   int frame_step;
 
-  /** Standalone player stereo settings. */ /* XXX deprecated since .2.5 */
-  short stereomode DNA_DEPRECATED;
+  char _pad10[2];
 
   /** For the dimensions presets menu. */
   short dimensionspreset;
@@ -1980,6 +1981,7 @@ typedef struct Scene {
 
   struct PreviewImage *preview;
 
+  /** ViewLayer, defined in DNA_layer_types.h */
   ListBase view_layers;
   /** Not an actual data-block, but memory owned by scene. */
   struct Collection *master_collection;
@@ -2190,7 +2192,7 @@ extern const char *RE_engine_id_CYCLES;
 #define BASE_EDITABLE(v3d, base) \
   (BASE_VISIBLE(v3d, base) && !ID_IS_LINKED((base)->object) && \
    (!ID_IS_OVERRIDE_LIBRARY_REAL((base)->object) || \
-    ((base)->object->id.override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) == 0))
+    ((base)->object->id.override_library->flag & LIBOVERRIDE_FLAG_SYSTEM_DEFINED) == 0))
 #define BASE_SELECTED_EDITABLE(v3d, base) \
   (BASE_EDITABLE(v3d, base) && (((base)->flag & BASE_SELECTED) != 0))
 
@@ -2296,10 +2298,6 @@ typedef enum eSnapMode {
   SCE_SNAP_MODE_EDGE_PERPENDICULAR = (1 << 5),
   SCE_SNAP_MODE_FACE_NEAREST = (1 << 8),
 
-  SCE_SNAP_MODE_GEOM = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE_RAYCAST |
-                        SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT |
-                        SCE_SNAP_MODE_FACE_NEAREST),
-
   /** #ToolSettings.snap_node_mode */
   SCE_SNAP_MODE_NODE_X = (1 << 0),
   SCE_SNAP_MODE_NODE_Y = (1 << 1),
@@ -2311,8 +2309,12 @@ typedef enum eSnapMode {
 /* Due to dependency conflicts with Cycles, header cannot directly include `BLI_utildefines.h`. */
 /* TODO: move this macro to a more general place. */
 #ifdef ENUM_OPERATORS
-ENUM_OPERATORS(eSnapMode, SCE_SNAP_MODE_GRID)
+ENUM_OPERATORS(eSnapMode, SCE_SNAP_MODE_FACE_NEAREST)
 #endif
+
+#define SCE_SNAP_MODE_GEOM \
+  (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE_RAYCAST | \
+   SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_FACE_NEAREST)
 
 /** #SequencerToolSettings.snap_mode */
 #define SEQ_SNAP_TO_STRIPS (1 << 0)

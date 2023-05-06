@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup render
@@ -715,7 +715,8 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
       for (RenderPass *rpass = static_cast<RenderPass *>(rl->passes.first),
                       *rpassp = static_cast<RenderPass *>(rlp->passes.first);
            rpass && rpassp;
-           rpass = rpass->next) {
+           rpass = rpass->next)
+      {
         /* For save buffers, skip any passes that are only saved to disk. */
         if (rpass->rect == nullptr || rpassp->rect == nullptr) {
           continue;
@@ -758,8 +759,8 @@ void render_result_single_layer_end(Render *re)
     return;
   }
 
-  if (re->pushedresult->rectx == re->result->rectx &&
-      re->pushedresult->recty == re->result->recty) {
+  if (re->pushedresult->rectx == re->result->rectx && re->pushedresult->recty == re->result->recty)
+  {
     /* find which layer in re->pushedresult should be replaced */
     RenderLayer *rl = static_cast<RenderLayer *>(re->result->layers.first);
 
@@ -851,8 +852,8 @@ static void render_result_exr_file_cache_path(Scene *sce,
   /* If root is relative, use either current .blend file dir, or temp one if not saved. */
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
   if (blendfile_path[0] != '\0') {
-    BLI_split_dirfile(blendfile_path, dirname, filename, sizeof(dirname), sizeof(filename));
-    BLI_path_extension_replace(filename, sizeof(filename), ""); /* strip '.blend' */
+    BLI_path_split_dir_file(blendfile_path, dirname, sizeof(dirname), filename, sizeof(filename));
+    BLI_path_extension_strip(filename); /* Strip `.blend`. */
     BLI_hash_md5_buffer(blendfile_path, strlen(blendfile_path), path_digest);
   }
   else {
@@ -947,7 +948,8 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
    */
   if (ibuf->rect) {
     if (BKE_imtype_valid_depths(imf->imtype) &
-        (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_24 | R_IMF_CHAN_DEPTH_32)) {
+        (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_24 | R_IMF_CHAN_DEPTH_32))
+    {
       if (imf->depth == R_IMF_CHAN_DEPTH_8) {
         /* Higher depth bits are supported but not needed for current file output. */
         ibuf->rect_float = nullptr;

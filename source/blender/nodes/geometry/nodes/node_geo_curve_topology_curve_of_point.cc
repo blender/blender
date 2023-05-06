@@ -104,12 +104,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (params.output_is_required("Curve Index")) {
     params.set_output(
         "Curve Index",
-        Field<int>(std::make_shared<FieldAtIndexInput>(
+        Field<int>(std::make_shared<EvaluateAtIndexInput>(
             point_index, Field<int>(std::make_shared<CurveOfPointInput>()), ATTR_DOMAIN_POINT)));
   }
   if (params.output_is_required("Index in Curve")) {
     params.set_output("Index in Curve",
-                      Field<int>(std::make_shared<FieldAtIndexInput>(
+                      Field<int>(std::make_shared<EvaluateAtIndexInput>(
                           point_index,
                           Field<int>(std::make_shared<PointIndexInCurveInput>()),
                           ATTR_DOMAIN_POINT)));

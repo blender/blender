@@ -243,7 +243,7 @@ class OBJECT_PT_instancing(ObjectButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        # FONT objects need (vertex) instancing for the 'Object Font' feature
+        # FONT objects need (vertex) instancing for the "Object Font" feature.
         return (ob.type in {'MESH', 'EMPTY', 'FONT'})
 
     def draw(self, context):
@@ -276,7 +276,7 @@ class OBJECT_PT_instancing_size(ObjectButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        return ob.instance_type == 'FACES'
+        return (ob is not None) and (ob.instance_type == 'FACES')
 
     def draw_header(self, context):
 
@@ -304,7 +304,8 @@ class OBJECT_PT_lineart(ObjectButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        lineart = context.object.lineart
+        ob = context.object
+        lineart = ob.lineart
 
         layout.use_property_split = True
 
@@ -325,7 +326,7 @@ class OBJECT_PT_lineart(ObjectButtonsPanel, Panel):
 
 
 class OBJECT_PT_motion_paths(MotionPathButtonsPanel, Panel):
-    #bl_label = "Object Motion Paths"
+    # bl_label = "Object Motion Paths"
     bl_context = "object"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -344,7 +345,7 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel, Panel):
 
 
 class OBJECT_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
-    #bl_label = "Object Motion Paths"
+    # bl_label = "Object Motion Paths"
     bl_context = "object"
     bl_parent_id = "OBJECT_PT_motion_paths"
     bl_options = {'DEFAULT_CLOSED'}
@@ -385,7 +386,7 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
         col.prop(ob, "hide_viewport", text="Viewports", toggle=False, invert_checkbox=True)
         col.prop(ob, "hide_render", text="Renders", toggle=False, invert_checkbox=True)
 
-        if context.object.type == 'GPENCIL':
+        if ob.type == 'GPENCIL':
             col = layout.column(heading="Grease Pencil")
             col.prop(ob, "use_grease_pencil_lights", toggle=False)
 

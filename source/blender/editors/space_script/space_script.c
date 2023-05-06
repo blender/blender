@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spscript
@@ -76,9 +76,7 @@ static void script_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void script_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
-{
-}
+static void script_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static SpaceLink *script_duplicate(SpaceLink *sl)
 {
@@ -148,7 +146,7 @@ static void script_main_region_listener(const wmRegionListenerParams *UNUSED(par
 #endif
 }
 
-static void script_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+static void script_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceScript *scpt = (SpaceScript *)sl;
   /*scpt->script = NULL; - 2.45 set to null, better re-run the script */
@@ -160,7 +158,7 @@ static void script_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLi
   }
 }
 
-static void script_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void script_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceScript *scr = (SpaceScript *)sl;
   scr->but_refs = NULL;
@@ -181,8 +179,8 @@ void ED_spacetype_script(void)
   st->duplicate = script_duplicate;
   st->operatortypes = script_operatortypes;
   st->keymap = script_keymap;
-  st->blend_read_lib = script_blend_read_lib;
-  st->blend_write = script_blend_write;
+  st->blend_read_lib = script_space_blend_read_lib;
+  st->blend_write = script_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype script region");

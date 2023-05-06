@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "DRW_render.h"
 
@@ -309,7 +309,7 @@ typedef struct GPENCIL_PrivateData {
   float fade_3d_object_opacity;
   /* Mask opacity uniform. */
   float mask_opacity;
-  /* Xray transparency in solid mode. */
+  /* X-ray transparency in solid mode. */
   float xray_alpha;
   /* Mask invert uniform. */
   int mask_invert;

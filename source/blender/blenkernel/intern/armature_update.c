@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2015 Blender Foundation. All rights reserved. */
+ * Copyright 2015 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -594,7 +594,8 @@ static void splineik_evaluate_bone(
   if (ik_data->xzScaleMode != CONSTRAINT_SPLINEIK_XZS_NONE) {
     /* First, apply the original scale if enabled. */
     if (ik_data->xzScaleMode == CONSTRAINT_SPLINEIK_XZS_ORIGINAL ||
-        (ik_data->flag & CONSTRAINT_SPLINEIK_USE_ORIGINAL_SCALE) != 0) {
+        (ik_data->flag & CONSTRAINT_SPLINEIK_USE_ORIGINAL_SCALE) != 0)
+    {
       float scale;
 
       /* X-axis scale. */

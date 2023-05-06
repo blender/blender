@@ -113,9 +113,7 @@ Object::Object() : Node(get_node_type())
   intersects_volume = false;
 }
 
-Object::~Object()
-{
-}
+Object::~Object() {}
 
 void Object::update_motion()
 {
@@ -298,7 +296,8 @@ float Object::compute_volume_step_size() const
     Shader *shader = static_cast<Shader *>(node);
     if (shader->has_volume) {
       if ((shader->get_heterogeneous_volume() && shader->has_volume_spatial_varying) ||
-          (shader->has_volume_attribute_dependency)) {
+          (shader->has_volume_attribute_dependency))
+      {
         step_rate = fminf(shader->get_volume_step_rate(), step_rate);
       }
     }
@@ -372,6 +371,34 @@ int Object::get_device_index() const
   return index;
 }
 
+bool Object::usable_as_light() const
+{
+  Geometry *geom = get_geometry();
+  if (!geom->is_mesh() && !geom->is_volume()) {
+    return false;
+  }
+  /* Skip non-traceable objects. */
+  if (!is_traceable()) {
+    return false;
+  }
+  /* Skip if we are not visible for BSDFs. */
+  if (!(get_visibility() & (PATH_RAY_DIFFUSE | PATH_RAY_GLOSSY | PATH_RAY_TRANSMIT))) {
+    return false;
+  }
+  /* Skip if we have no emission shaders. */
+  /* TODO(sergey): Ideally we want to avoid such duplicated loop, since it'll
+   * iterate all geometry shaders twice (when counting and when calculating
+   * triangle area.
+   */
+  foreach (Node *node, geom->get_used_shaders()) {
+    Shader *shader = static_cast<Shader *>(node);
+    if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /* Object Manager */
 
 ObjectManager::ObjectManager()
@@ -380,9 +407,7 @@ ObjectManager::ObjectManager()
   need_flags_update = true;
 }
 
-ObjectManager::~ObjectManager()
-{
-}
+ObjectManager::~ObjectManager() {}
 
 static float object_volume_density(const Transform &tfm, Geometry *geom)
 {
@@ -449,8 +474,8 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   }
   else if (geom->is_volume()) {
     Volume *volume = static_cast<Volume *>(geom);
-    if (volume->attributes.find(ATTR_STD_VOLUME_VELOCITY) &&
-        volume->get_velocity_scale() != 0.0f) {
+    if (volume->attributes.find(ATTR_STD_VOLUME_VELOCITY) && volume->get_velocity_scale() != 0.0f)
+    {
       flag |= SD_OBJECT_HAS_VOLUME_MOTION;
       kobject.velocity_scale = volume->get_velocity_scale();
     }
@@ -571,9 +596,11 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 void ObjectManager::device_update_prim_offsets(Device *device, DeviceScene *dscene, Scene *scene)
 {
   if (!scene->integrator->get_use_light_tree()) {
-    BVHLayoutMask layout_mask = device->get_bvh_layout_mask();
+    BVHLayoutMask layout_mask = device->get_bvh_layout_mask(dscene->data.kernel_features);
     if (layout_mask != BVH_LAYOUT_METAL && layout_mask != BVH_LAYOUT_MULTI_METAL &&
-        layout_mask != BVH_LAYOUT_MULTI_METAL_EMBREE) {
+        layout_mask != BVH_LAYOUT_MULTI_METAL_EMBREE && layout_mask != BVH_LAYOUT_HIPRT &&
+        layout_mask != BVH_LAYOUT_MULTI_HIPRT && layout_mask != BVH_LAYOUT_MULTI_HIPRT_EMBREE)
+    {
       return;
     }
   }

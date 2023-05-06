@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+ * Copyright 2012 Blender Foundation */
 
 /** \file
  * \ingroup pybmesh
@@ -43,12 +43,9 @@ static PyObject *bpy_bm_utils_vert_collapse_edge(PyObject *UNUSED(self), PyObjec
   BMesh *bm;
   BMEdge *e_new = NULL;
 
-  if (!PyArg_ParseTuple(args,
-                        "O!O!:vert_collapse_edge",
-                        &BPy_BMVert_Type,
-                        &py_vert,
-                        &BPy_BMEdge_Type,
-                        &py_edge)) {
+  if (!PyArg_ParseTuple(
+          args, "O!O!:vert_collapse_edge", &BPy_BMVert_Type, &py_vert, &BPy_BMEdge_Type, &py_edge))
+  {
     return NULL;
   }
 
@@ -116,7 +113,8 @@ static PyObject *bpy_bm_utils_vert_collapse_faces(PyObject *UNUSED(self), PyObje
                         &BPy_BMEdge_Type,
                         &py_edge,
                         &fac,
-                        &do_join_faces)) {
+                        &do_join_faces))
+  {
     return NULL;
   }
 
@@ -196,12 +194,9 @@ static PyObject *bpy_bm_utils_vert_splice(PyObject *UNUSED(self), PyObject *args
 
   bool ok;
 
-  if (!PyArg_ParseTuple(args,
-                        "O!O!:vert_splice",
-                        &BPy_BMVert_Type,
-                        &py_vert,
-                        &BPy_BMVert_Type,
-                        &py_vert_target)) {
+  if (!PyArg_ParseTuple(
+          args, "O!O!:vert_splice", &BPy_BMVert_Type, &py_vert, &BPy_BMVert_Type, &py_vert_target))
+  {
     return NULL;
   }
 
@@ -315,13 +310,9 @@ static PyObject *bpy_bm_utils_edge_split(PyObject *UNUSED(self), PyObject *args)
   BMVert *v_new = NULL;
   BMEdge *e_new = NULL;
 
-  if (!PyArg_ParseTuple(args,
-                        "O!O!f:edge_split",
-                        &BPy_BMEdge_Type,
-                        &py_edge,
-                        &BPy_BMVert_Type,
-                        &py_vert,
-                        &fac)) {
+  if (!PyArg_ParseTuple(
+          args, "O!O!f:edge_split", &BPy_BMEdge_Type, &py_edge, &BPy_BMVert_Type, &py_vert, &fac))
+  {
     return NULL;
   }
 
@@ -372,7 +363,8 @@ static PyObject *bpy_bm_utils_edge_rotate(PyObject *UNUSED(self), PyObject *args
   BMEdge *e_new = NULL;
 
   if (!PyArg_ParseTuple(
-          args, "O!|O&:edge_rotate", &BPy_BMEdge_Type, &py_edge, PyC_ParseBool, &do_ccw)) {
+          args, "O!|O&:edge_rotate", &BPy_BMEdge_Type, &py_edge, PyC_ParseBool, &do_ccw))
+  {
     return NULL;
   }
 
@@ -446,7 +438,8 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args,
                                    PyC_ParseBool,
                                    &edge_exists,
                                    &BPy_BMEdge_Type,
-                                   &py_edge_example)) {
+                                   &py_edge_example))
+  {
     return NULL;
   }
 
@@ -460,7 +453,8 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args,
 
   /* this doubles for checking that the verts are in the same mesh */
   if ((l_a = BM_face_vert_share_loop(py_face->f, py_vert_a->v)) &&
-      (l_b = BM_face_vert_share_loop(py_face->f, py_vert_b->v))) {
+      (l_b = BM_face_vert_share_loop(py_face->f, py_vert_b->v)))
+  {
     /* pass */
   }
   else {
@@ -564,7 +558,8 @@ static PyObject *bpy_bm_utils_face_split_edgenet(PyObject *UNUSED(self),
                                    (char **)kwlist,
                                    &BPy_BMFace_Type,
                                    &py_face,
-                                   &edge_seq)) {
+                                   &edge_seq))
+  {
     return NULL;
   }
 
@@ -674,12 +669,9 @@ static PyObject *bpy_bm_utils_face_vert_separate(PyObject *UNUSED(self), PyObjec
   BMLoop *l;
   BMVert *v_old, *v_new;
 
-  if (!PyArg_ParseTuple(args,
-                        "O!O!:face_vert_separate",
-                        &BPy_BMFace_Type,
-                        &py_face,
-                        &BPy_BMVert_Type,
-                        &py_vert)) {
+  if (!PyArg_ParseTuple(
+          args, "O!O!:face_vert_separate", &BPy_BMFace_Type, &py_face, &BPy_BMVert_Type, &py_vert))
+  {
     return NULL;
   }
 

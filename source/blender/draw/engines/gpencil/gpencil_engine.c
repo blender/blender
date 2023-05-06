@@ -7,8 +7,8 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -23,7 +23,7 @@
 #include "BLI_memblock.h"
 
 #include "DNA_camera_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
@@ -111,8 +111,9 @@ void GPENCIL_engine_init(void *ved)
 
     stl->pd->v3d_color_type = (v3d->shading.type == OB_SOLID) ? v3d->shading.color_type : -1;
     /* Special case: If Vertex Paint mode, use always Vertex mode. */
-    if (v3d->shading.type == OB_SOLID && ctx->obact && ctx->obact->type == OB_GPENCIL &&
-        ctx->obact->mode == OB_MODE_VERTEX_GPENCIL) {
+    if (v3d->shading.type == OB_SOLID && ctx->obact && ctx->obact->type == OB_GPENCIL_LEGACY &&
+        ctx->obact->mode == OB_MODE_VERTEX_GPENCIL)
+    {
       stl->pd->v3d_color_type = V3D_SHADING_VERTEX_COLOR;
     }
 
@@ -235,7 +236,7 @@ void GPENCIL_cache_init(void *ved)
     pd->do_fast_drawing = false;
 
     pd->obact = draw_ctx->obact;
-    if (pd->obact && pd->obact->type == OB_GPENCIL && !(pd->draw_depth_only)) {
+    if (pd->obact && pd->obact->type == OB_GPENCIL_LEGACY && !(pd->draw_depth_only)) {
       /* Check if active object has a temp stroke data. */
       bGPdata *gpd = (bGPdata *)pd->obact->data;
       if (gpd->runtime.sbuffer_used > 0) {
@@ -473,8 +474,8 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
                     iter->pd->use_multiedit_lines_only;
   bool is_onion = gpl && gpf && gpf->runtime.onion_id != 0;
   bool hide_onion = is_onion && ((gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN) != 0);
-  if ((hide_material) || (!show_stroke && !show_fill) || (only_lines && !is_onion) ||
-      (hide_onion)) {
+  if ((hide_material) || (!show_stroke && !show_fill) || (only_lines && !is_onion) || (hide_onion))
+  {
     return;
   }
 
@@ -536,7 +537,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
     gpencil_drawcall_add(iter, geom, vfirst, vcount);
   }
 
-  iter->stroke_index_last = gps->runtime.stroke_start + gps->totpoints + 1;
+  iter->stroke_index_last = gps->runtime.vertex_start + gps->totpoints + 1;
 }
 
 static void gpencil_sbuffer_cache_populate_fast(GPENCIL_Data *vedata, gpIterPopulateData *iter)
@@ -592,7 +593,7 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
     return;
   }
 
-  if (ob->data && (ob->type == OB_GPENCIL) && (ob->dt >= OB_SOLID)) {
+  if (ob->data && (ob->type == OB_GPENCIL_LEGACY) && (ob->dt >= OB_SOLID)) {
     gpIterPopulateData iter = {0};
     iter.ob = ob;
     iter.pd = pd;
@@ -917,7 +918,8 @@ void GPENCIL_draw_scene(void *ved)
 
   /* Fade 3D objects. */
   if ((!pd->is_render) && (pd->fade_3d_object_opacity > -1.0f) && (pd->obact != NULL) &&
-      (pd->obact->type == OB_GPENCIL)) {
+      (pd->obact->type == OB_GPENCIL_LEGACY))
+  {
     float background_color[3];
     ED_view3d_background_color_get(pd->scene, pd->v3d, background_color);
     /* Blend color. */

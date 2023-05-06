@@ -55,11 +55,13 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
     ImageFrame *frame = MEM_callocN(sizeof(ImageFrame), "image_frame");
 
     /* use the first file in the list as base filename */
-    frame->framenr = BLI_path_sequence_decode(filename, head, tail, &digits);
+    frame->framenr = BLI_path_sequence_decode(
+        filename, head, sizeof(head), tail, sizeof(tail), &digits);
 
     /* still in the same sequence */
     if (do_frame_range && (range != NULL) && STREQLEN(base_head, head, FILE_MAX) &&
-        STREQLEN(base_tail, tail, FILE_MAX)) {
+        STREQLEN(base_tail, tail, FILE_MAX))
+    {
       /* Set filepath to first frame in the range. */
       if (frame->framenr < range_first_frame) {
         BLI_path_join(range->filepath, sizeof(range->filepath), dir, filename);
@@ -148,7 +150,8 @@ ListBase ED_image_filesel_detect_sequences(Main *bmain, wmOperator *op, const bo
 
   /* File browser. */
   if (RNA_struct_property_is_set(op->ptr, "directory") &&
-      RNA_struct_property_is_set(op->ptr, "files")) {
+      RNA_struct_property_is_set(op->ptr, "files"))
+  {
     const bool was_relative = BLI_path_is_rel(filepath);
 
     image_sequence_get_frame_ranges(op, &ranges);

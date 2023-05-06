@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup cmpnodes
@@ -282,7 +282,8 @@ class RGBCurvesShaderNode : public ShaderNode {
     /* If the RGB curves do nothing, use a function that skips RGB computations. */
     if (BKE_curvemapping_is_map_identity(curve_mapping, 0) &&
         BKE_curvemapping_is_map_identity(curve_mapping, 1) &&
-        BKE_curvemapping_is_map_identity(curve_mapping, 2)) {
+        BKE_curvemapping_is_map_identity(curve_mapping, 2))
+    {
       GPU_stack_link(material,
                      &bnode(),
                      "curves_combined_only",

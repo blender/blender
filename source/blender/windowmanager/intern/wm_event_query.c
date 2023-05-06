@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -103,6 +103,7 @@ void WM_event_print(const wmEvent *event)
       struct FlagIdentifierPair flag_data[] = {
           {"SCROLL_INVERT", WM_EVENT_SCROLL_INVERT},
           {"IS_REPEAT", WM_EVENT_IS_REPEAT},
+          {"IS_CONSECUTIVE", WM_EVENT_IS_CONSECUTIVE},
           {"FORCE_DRAG_THRESHOLD", WM_EVENT_FORCE_DRAG_THRESHOLD},
       };
       event_ids_from_flag(flag_id, sizeof(flag_id), flag_data, ARRAY_SIZE(flag_data), event->flag);
@@ -337,6 +338,43 @@ bool WM_cursor_test_motion_and_update(const int mval[2])
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Event Consecutive Checks
+ * \{ */
+
+bool WM_event_consecutive_gesture_test(const wmEvent *event)
+{
+  return ISMOUSE_GESTURE(event->type) || (event->type == NDOF_MOTION);
+}
+
+bool WM_event_consecutive_gesture_test_break(const wmWindow *win, const wmEvent *event)
+{
+  /* Cursor motion breaks the chain. */
+  if (ISMOUSE_MOTION(event->type)) {
+    /* Mouse motion is checked because the user may navigate to a new area
+     * and perform the same gesture - logically it's best to view this as two separate gestures. */
+    if (len_manhattan_v2v2_int(event->xy, win->event_queue_consecutive_gesture_xy) >
+        WM_EVENT_CURSOR_MOTION_THRESHOLD)
+    {
+      return true;
+    }
+  }
+  else if (ISKEYBOARD_OR_BUTTON(event->type)) {
+    /* Modifiers are excluded because from a user perspective,
+     * releasing a modifier (for e.g.) should not begin a new action. */
+    if (!ISKEYMODIFIER(event->type)) {
+      return true;
+    }
+  }
+  else if (event->type == WINDEACTIVATE) {
+    return true;
+  }
+
+  return false;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Event Click/Drag Checks
  *
  * Values under this limit are detected as clicks.
@@ -362,7 +400,7 @@ int WM_event_drag_threshold(const struct wmEvent *event)
     /* Typically keyboard, could be NDOF button or other less common types. */
     drag_threshold = U.drag_threshold;
   }
-  return drag_threshold * U.dpi_fac;
+  return drag_threshold * UI_SCALE_FAC;
 }
 
 bool WM_event_drag_test_with_delta(const wmEvent *event, const int drag_delta[2])

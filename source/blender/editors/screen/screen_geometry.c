@@ -177,7 +177,8 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
       /* Keep timeline small in video edit workspace. */
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         if (area->spacetype == SPACE_ACTION && area->v1->vec.y == screen_rect->ymin &&
-            screen_geom_area_height(area) <= headery * facy + 1) {
+            screen_geom_area_height(area) <= headery * facy + 1)
+        {
           ScrEdge *se = BKE_screen_find_edge(screen, area->v2, area->v3);
           if (se) {
             const int yval = area->v1->vec.y + headery - 1;
@@ -284,7 +285,7 @@ short screen_geom_find_area_split_point(const ScrArea *area,
 {
   const int cur_area_width = screen_geom_area_width(area);
   const int cur_area_height = screen_geom_area_height(area);
-  const short area_min_x = AREAMINX * U.dpi_fac;
+  const short area_min_x = AREAMINX * UI_SCALE_FAC;
   const short area_min_y = ED_area_headersize();
 
   /* area big enough? */

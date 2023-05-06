@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 #include "node_shader_util.hh"
 
@@ -15,7 +15,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .subtype(PROP_FACTOR);
   b.add_input<decl::Float>(N_("Weight")).unavailable();
-  b.add_output<decl::Shader>(N_("Volume"));
+  b.add_output<decl::Shader>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
+      .translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static int node_shader_gpu_volume_scatter(GPUMaterial *mat,

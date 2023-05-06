@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup nodes
@@ -46,9 +46,9 @@
 #include "NOD_common.h"
 
 #include "node_common.h"
-#include "node_exec.h"
+#include "node_exec.hh"
 #include "node_shader_util.hh"
-#include "node_util.h"
+#include "node_util.hh"
 
 using blender::Array;
 using blender::Vector;
@@ -473,7 +473,8 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
         /* find external links to this input */
         for (bNodeLink *tlink = static_cast<bNodeLink *>(ntree->links.first);
              tlink != glinks_first->next;
-             tlink = tlink->next) {
+             tlink = tlink->next)
+        {
           if (tlink->tonode == gnode && STREQ(tlink->tosock->identifier, identifier)) {
             nodeAddLink(ntree, tlink->fromnode, tlink->fromsock, link->tonode, link->tosock);
           }
@@ -485,7 +486,8 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
     /* output links */
     for (bNodeLink *tlink = static_cast<bNodeLink *>(ntree->links.first);
          tlink != glinks_first->next;
-         tlink = tlink->next) {
+         tlink = tlink->next)
+    {
       if (tlink->fromnode == gnode) {
         const char *identifier = tlink->fromsock->identifier;
         /* find internal links to this output */
@@ -515,7 +517,8 @@ static void ntree_shader_groups_flatten(bNodeTree *localtree)
   /* This is effectively recursive as the flattened groups will add
    * nodes at the end of the list, which will also get evaluated. */
   for (bNode *node = static_cast<bNode *>(localtree->nodes.first), *node_next; node;
-       node = node_next) {
+       node = node_next)
+  {
     if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id != nullptr) {
       flatten_group_do(localtree, node);
       /* Continue even on new flattened nodes. */
@@ -544,7 +547,8 @@ static bool ntree_branch_count_and_tag_nodes(bNode *fromnode, bNode *tonode, voi
 {
   branchIterData *iter = (branchIterData *)userdata;
   if (fromnode->runtime->tmp_flag == -1 &&
-      (iter->node_filter == nullptr || iter->node_filter(fromnode))) {
+      (iter->node_filter == nullptr || iter->node_filter(fromnode)))
+  {
     fromnode->runtime->tmp_flag = iter->node_count;
     iter->node_count++;
   }
@@ -684,7 +688,8 @@ static bool ntree_weight_tree_tag_nodes(bNode *fromnode, bNode *tonode, void *us
     *node_count += (tonode->type == SH_NODE_MIX_SHADER) ? 4 : 1;
   }
   if (fromnode->runtime->tmp_flag == -1 &&
-      ELEM(fromnode->type, SH_NODE_ADD_SHADER, SH_NODE_MIX_SHADER)) {
+      ELEM(fromnode->type, SH_NODE_ADD_SHADER, SH_NODE_MIX_SHADER))
+  {
     fromnode->runtime->tmp_flag = *node_count;
     *node_count += (fromnode->type == SH_NODE_MIX_SHADER) ? 4 : 1;
   }

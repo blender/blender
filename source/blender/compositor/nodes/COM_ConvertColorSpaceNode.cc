@@ -71,7 +71,8 @@ bool ConvertColorSpaceNode::performs_conversion(NodeConvertColorSpace &settings)
   }
 
   if (STREQLEN(
-          settings.from_color_space, settings.to_color_space, sizeof(settings.from_color_space))) {
+          settings.from_color_space, settings.to_color_space, sizeof(settings.from_color_space)))
+  {
     CLOG_INFO(&LOG,
               2,
               "Color space conversion bypassed for node: %s. To and from are the same: %s.",

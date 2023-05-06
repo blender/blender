@@ -470,7 +470,8 @@ static bool calc_bbox(struct InteractivePlaceData *ipd, BoundBox *bounds)
   }
 
   if ((ipd->step_index == STEP_DEPTH) &&
-      (compare_v3v3(ipd->step[0].co_dst, ipd->step[1].co_dst, FLT_EPSILON) == false)) {
+      (compare_v3v3(ipd->step[0].co_dst, ipd->step[1].co_dst, FLT_EPSILON) == false))
+  {
 
     for (int i = 0; i < ARRAY_SIZE(quad_base); i++) {
       add_v3_v3v3(quad_secondary[i], quad_base[i], delta_local);
@@ -605,7 +606,8 @@ static void draw_primitive_view_impl(const struct bContext *C,
   }
   else if (ELEM(ipd->primitive_type,
                 PLACE_PRIMITIVE_TYPE_SPHERE_UV,
-                PLACE_PRIMITIVE_TYPE_SPHERE_ICO)) {
+                PLACE_PRIMITIVE_TYPE_SPHERE_ICO))
+  {
     /* See bound-box diagram for reference. */
 
     /* Primary Side. */
@@ -783,7 +785,8 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
   }
 
   if (ipd->step[STEP_BASE].is_degenerate_view_align ||
-      ipd->step[STEP_DEPTH].is_degenerate_view_align) {
+      ipd->step[STEP_DEPTH].is_degenerate_view_align)
+  {
     RegionView3D *rv3d = ipd->region->regiondata;
     float axis_view[3];
     add_v3_v3v3(axis_view, rv3d->viewinv[0], rv3d->viewinv[1]);
@@ -909,9 +912,12 @@ static void view3d_interactive_add_exit(bContext *C, wmOperator *op)
   struct InteractivePlaceData *ipd = op->customdata;
   ED_view3d_cursor_snap_deactive(ipd->snap_state);
 
-  ED_region_draw_cb_exit(ipd->region->type, ipd->draw_handle_view);
-
-  ED_region_tag_redraw(ipd->region);
+  if (ipd->region != NULL) {
+    if (ipd->draw_handle_view != NULL) {
+      ED_region_draw_cb_exit(ipd->region->type, ipd->draw_handle_view);
+    }
+    ED_region_tag_redraw(ipd->region);
+  }
 
   MEM_freeN(ipd);
 }
@@ -1145,11 +1151,12 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
           if (ELEM(ipd->primitive_type,
                    PLACE_PRIMITIVE_TYPE_CYLINDER,
                    PLACE_PRIMITIVE_TYPE_SPHERE_UV,
-                   PLACE_PRIMITIVE_TYPE_SPHERE_ICO)) {
+                   PLACE_PRIMITIVE_TYPE_SPHERE_ICO))
+          {
             RNA_float_set(&op_props, "radius", 1.0f);
           }
-          if (ELEM(
-                  ipd->primitive_type, PLACE_PRIMITIVE_TYPE_CYLINDER, PLACE_PRIMITIVE_TYPE_CONE)) {
+          if (ELEM(ipd->primitive_type, PLACE_PRIMITIVE_TYPE_CYLINDER, PLACE_PRIMITIVE_TYPE_CONE))
+          {
             RNA_float_set(&op_props, "depth", 2.0f);
           }
           if (ipd->primitive_type == PLACE_PRIMITIVE_TYPE_CONE) {
@@ -1195,13 +1202,15 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
                 ipd->step[STEP_BASE].plane,
                 mval_fl,
                 ipd->step[STEP_BASE].is_degenerate_view_align ? ipd->view_plane : NULL,
-                ipd->step[STEP_BASE].co_dst)) {
+                ipd->step[STEP_BASE].co_dst))
+        {
           /* pass */
         }
 
         if (ipd->use_snap && (ipd->snap_to == PLACE_SNAP_TO_DEFAULT)) {
           if (idp_snap_calc_incremental(
-                  ipd->scene, ipd->v3d, ipd->region, ipd->co_src, ipd->step[STEP_BASE].co_dst)) {
+                  ipd->scene, ipd->v3d, ipd->region, ipd->co_src, ipd->step[STEP_BASE].co_dst))
+          {
           }
         }
       }
@@ -1217,13 +1226,15 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
                 ipd->step[STEP_DEPTH].plane,
                 mval_fl,
                 ipd->step[STEP_DEPTH].is_degenerate_view_align ? ipd->view_plane : NULL,
-                ipd->step[STEP_DEPTH].co_dst)) {
+                ipd->step[STEP_DEPTH].co_dst))
+        {
           /* pass */
         }
 
         if (ipd->use_snap && (ipd->snap_to == PLACE_SNAP_TO_DEFAULT)) {
           if (idp_snap_calc_incremental(
-                  ipd->scene, ipd->v3d, ipd->region, ipd->co_src, ipd->step[STEP_DEPTH].co_dst)) {
+                  ipd->scene, ipd->v3d, ipd->region, ipd->co_src, ipd->step[STEP_DEPTH].co_dst))
+          {
           }
         }
       }

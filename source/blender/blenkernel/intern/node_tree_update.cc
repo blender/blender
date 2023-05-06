@@ -53,6 +53,7 @@ static void add_tree_tag(bNodeTree *ntree, const eNodeTreeChangedFlag flag)
 {
   ntree->runtime->changed_flag |= flag;
   ntree->runtime->topology_cache_mutex.tag_dirty();
+  ntree->runtime->tree_zones_cache_mutex.tag_dirty();
 }
 
 static void add_node_tag(bNodeTree *ntree, bNode *node, const eNodeTreeChangedFlag flag)
@@ -172,9 +173,7 @@ struct NodeTreeRelations {
   std::optional<MultiValueMap<bNodeTree *, ObjectModifierPair>> modifiers_users_;
 
  public:
-  NodeTreeRelations(Main *bmain) : bmain_(bmain)
-  {
-  }
+  NodeTreeRelations(Main *bmain) : bmain_(bmain) {}
 
   void ensure_all_trees()
   {
@@ -489,7 +488,8 @@ class NodeTreeMainUpdater {
     }
 
     if (ntree.runtime->changed_flag & NTREE_CHANGED_INTERFACE ||
-        ntree.runtime->changed_flag & NTREE_CHANGED_ANY) {
+        ntree.runtime->changed_flag & NTREE_CHANGED_ANY)
+    {
       result.interface_changed = true;
     }
 
@@ -571,6 +571,16 @@ class NodeTreeMainUpdater {
     if (ntree.runtime->changed_flag & NTREE_CHANGED_INTERFACE) {
       if (ELEM(node.type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
         return true;
+      }
+    }
+    /* Check paired simulation zone nodes. */
+    if (node.type == GEO_NODE_SIMULATION_INPUT) {
+      const NodeGeometrySimulationInput *data = static_cast<const NodeGeometrySimulationInput *>(
+          node.storage);
+      if (const bNode *output_node = ntree.node_by_id(data->output_node_id)) {
+        if (output_node->runtime->changed_flag & NTREE_CHANGED_NODE_PROPERTY) {
+          return true;
+        }
       }
     }
     return false;
@@ -724,7 +734,8 @@ class NodeTreeMainUpdater {
     for (const StringRefNull idname : {"ShaderNodeOutputMaterial",
                                        "ShaderNodeOutputLight",
                                        "ShaderNodeOutputWorld",
-                                       "ShaderNodeOutputAOV"}) {
+                                       "ShaderNodeOutputAOV"})
+    {
       const Span<const bNode *> nodes = ntree.nodes_by_type(idname);
       if (!nodes.is_empty()) {
         ntree.runtime->runtime_flag |= NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT;
@@ -808,7 +819,8 @@ class NodeTreeMainUpdater {
 
     /* The topology hash can only be used when only topology-changing operations have been done. */
     if (tree.runtime->changed_flag ==
-        (tree.runtime->changed_flag & (NTREE_CHANGED_LINK | NTREE_CHANGED_REMOVED_NODE))) {
+        (tree.runtime->changed_flag & (NTREE_CHANGED_LINK | NTREE_CHANGED_REMOVED_NODE)))
+    {
       if (old_topology_hash == new_topology_hash) {
         return false;
       }
@@ -849,7 +861,8 @@ class NodeTreeMainUpdater {
     if (node.type == NODE_GROUP) {
       const bNodeTree *node_group = reinterpret_cast<const bNodeTree *>(node.id);
       if (node_group != nullptr &&
-          node_group->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT) {
+          node_group->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT)
+      {
         return true;
       }
     }

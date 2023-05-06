@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup spinfo
@@ -574,9 +574,9 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
 
   /* escape if not our timer */
   if ((reports->reporttimer == NULL) || (reports->reporttimer != event->customdata) ||
-      ((report = BKE_reports_last_displayable(reports)) == NULL)
-      /* may have been deleted */
-  ) {
+      ((report = BKE_reports_last_displayable(reports)) == NULL))
+  {
+    /* May have been deleted. */
     return OPERATOR_PASS_THROUGH;
   }
 

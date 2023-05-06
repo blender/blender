@@ -81,9 +81,7 @@ Canvas::~Canvas()
   delete _steerableViewMap;
 }
 
-void Canvas::preDraw()
-{
-}
+void Canvas::preDraw() {}
 
 void Canvas::Draw()
 {
@@ -132,7 +130,8 @@ void Canvas::Clear()
   if (!_StyleModules.empty()) {
     for (deque<StyleModule *>::iterator s = _StyleModules.begin(), send = _StyleModules.end();
          s != send;
-         ++s) {
+         ++s)
+    {
       if (*s) {
         delete (*s);
       }
@@ -190,7 +189,8 @@ void Canvas::RemoveStyleModule(uint index)
   if (!_StyleModules.empty()) {
     for (deque<StyleModule *>::iterator s = _StyleModules.begin(), send = _StyleModules.end();
          s != send;
-         ++s, ++i) {
+         ++s, ++i)
+    {
       if (i == index) {
         // remove shader
         if (*s) {
@@ -205,7 +205,8 @@ void Canvas::RemoveStyleModule(uint index)
   if (!_Layers.empty()) {
     i = 0;
     for (deque<StrokeLayer *>::iterator sl = _Layers.begin(), slend = _Layers.end(); sl != slend;
-         ++sl, ++i) {
+         ++sl, ++i)
+    {
       if (i == index) {
         // remove layer
         if (*sl) {
@@ -236,7 +237,8 @@ void Canvas::ReplaceStyleModule(uint index, StyleModule *iStyleModule)
   uint i = 0;
   for (deque<StyleModule *>::iterator s = _StyleModules.begin(), send = _StyleModules.end();
        s != send;
-       ++s, ++i) {
+       ++s, ++i)
+  {
     if (i == index) {
       if (*s) {
         delete *s;
@@ -420,11 +422,11 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, uint iNbLevels
       }
     }
     // soc qtmp.save(base + QString::number(i) + ".bmp", "BMP");
-    stringstream filename;
-    filename << base;
-    filename << i << ".bmp";
+    stringstream filepath;
+    filepath << base;
+    filepath << i << ".bmp";
     qtmp->ftype = IMB_FTYPE_BMP;
-    IMB_saveiff(qtmp, const_cast<char *>(filename.str().c_str()), 0);
+    IMB_saveiff(qtmp, const_cast<char *>(filepath.str().c_str()), 0);
   }
 
 #if 0

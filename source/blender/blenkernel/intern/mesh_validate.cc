@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. All rights reserved. */
+ * Copyright 2011 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -27,7 +27,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "DEG_depsgraph.h"
 
@@ -41,6 +41,9 @@ using blender::Span;
 #define INVALID_LOOP_EDGE_MARKER 4294967295u
 
 static CLG_LogRef LOG = {"bke.mesh"};
+
+void strip_loose_polysloops(Mesh *me, blender::BitSpan polys_to_remove);
+void mesh_strip_edges(Mesh *me);
 
 /* -------------------------------------------------------------------- */
 /** \name Internal functions
@@ -209,13 +212,14 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
 bool BKE_mesh_validate_arrays(Mesh *mesh,
                               float (*vert_positions)[3],
                               uint totvert,
-                              MEdge *medges,
+                              blender::int2 *edges,
                               uint totedge,
                               MFace *mfaces,
                               uint totface,
-                              MLoop *mloops,
+                              int *corner_verts,
+                              int *corner_edges,
                               uint totloop,
-                              MPoly *mpolys,
+                              int *poly_offsets,
                               uint totpoly,
                               MDeformVert *dverts, /* assume totvert length */
                               const bool do_verbose,
@@ -224,32 +228,31 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 {
 #define REMOVE_EDGE_TAG(_me) \
   { \
-    _me->v2 = _me->v1; \
+    _me[0] = _me[1]; \
     free_flag.edges = do_fixes; \
   } \
   (void)0
-#define IS_REMOVED_EDGE(_me) (_me->v2 == _me->v1)
+#define IS_REMOVED_EDGE(_me) (_me[0] == _me[1])
 
-#define REMOVE_LOOP_TAG(_ml) \
+#define REMOVE_LOOP_TAG(corner) \
   { \
-    _ml->e = INVALID_LOOP_EDGE_MARKER; \
+    corner_edges[corner] = INVALID_LOOP_EDGE_MARKER; \
     free_flag.polyloops = do_fixes; \
   } \
   (void)0
-#define REMOVE_POLY_TAG(_mp) \
-  { \
-    _mp->totloop *= -1; \
-    free_flag.polyloops = do_fixes; \
-  } \
-  (void)0
+  blender::BitVector<> polys_to_remove(totpoly);
 
   blender::bke::AttributeWriter<int> material_indices =
       mesh->attributes_for_write().lookup_for_write<int>("material_index");
   blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
 
-  MEdge *me;
-  MLoop *ml;
-  MPoly *mp;
+#if 0
+  const blender::OffsetIndices<int> polys({poly_offsets, totpoly + 1});
+  for (const int i : polys.index_range()) {
+    BLI_assert(polys[i].size() > 2);
+  }
+#endif
+
   uint i, j;
   int *v;
 
@@ -297,14 +300,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     recalc_flag.edges = do_fixes;
   }
 
-  const float(*vert_normals)[3] = nullptr;
-  if (!BKE_mesh_vertex_normals_are_dirty(mesh)) {
-    vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
-  }
-
   for (i = 0; i < totvert; i++) {
-    bool fix_normal = true;
-
     for (j = 0; j < 3; j++) {
       if (!isfinite(vert_positions[i][j])) {
         PRINT_ERR("\tVertex %u: has invalid coordinate", i);
@@ -315,68 +311,44 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
           fix_flag.verts = true;
         }
       }
-
-      if (vert_normals && vert_normals[i][j] != 0.0f) {
-        fix_normal = false;
-        break;
-      }
-    }
-
-    if (vert_normals && fix_normal) {
-      /* If the vertex normal accumulates to zero or isn't part of a face, the location is used.
-       * When the location is also zero, a zero normal warning should not be raised.
-       * since this is the expected behavior of normal calculation.
-       *
-       * This avoids false positives but isn't foolproof as it's possible the vertex
-       * is part of a polygon that has a normal which this vertex should be using,
-       * although it's also possible degenerate/opposite faces accumulate to a zero vector.
-       * To detect this a full normal recalculation would be needed, which is out of scope
-       * for a basic validity check (see "Vertex Normal" in the doc-string). */
-      if (!is_zero_v3(vert_positions[i])) {
-        PRINT_ERR("\tVertex %u: has zero normal, assuming Z-up normal", i);
-        if (do_fixes) {
-          float *normal = (float *)vert_normals[i];
-          normal[2] = 1.0f;
-          fix_flag.verts = true;
-        }
-      }
     }
   }
 
-  for (i = 0, me = medges; i < totedge; i++, me++) {
+  for (i = 0; i < totedge; i++) {
+    blender::int2 &edge = edges[i];
     bool remove = false;
 
-    if (me->v1 == me->v2) {
-      PRINT_ERR("\tEdge %u: has matching verts, both %u", i, me->v1);
+    if (edge[0] == edge[1]) {
+      PRINT_ERR("\tEdge %u: has matching verts, both %d", i, edge[0]);
       remove = do_fixes;
     }
-    if (me->v1 >= totvert) {
-      PRINT_ERR("\tEdge %u: v1 index out of range, %u", i, me->v1);
+    if (edge[0] >= totvert) {
+      PRINT_ERR("\tEdge %u: v1 index out of range, %d", i, edge[0]);
       remove = do_fixes;
     }
-    if (me->v2 >= totvert) {
-      PRINT_ERR("\tEdge %u: v2 index out of range, %u", i, me->v2);
+    if (edge[1] >= totvert) {
+      PRINT_ERR("\tEdge %u: v2 index out of range, %d", i, edge[1]);
       remove = do_fixes;
     }
 
-    if ((me->v1 != me->v2) && BLI_edgehash_haskey(edge_hash, me->v1, me->v2)) {
+    if ((edge[0] != edge[1]) && BLI_edgehash_haskey(edge_hash, edge[0], edge[1])) {
       PRINT_ERR("\tEdge %u: is a duplicate of %d",
                 i,
-                POINTER_AS_INT(BLI_edgehash_lookup(edge_hash, me->v1, me->v2)));
+                POINTER_AS_INT(BLI_edgehash_lookup(edge_hash, edge[0], edge[1])));
       remove = do_fixes;
     }
 
     if (remove == false) {
-      if (me->v1 != me->v2) {
-        BLI_edgehash_insert(edge_hash, me->v1, me->v2, POINTER_FROM_INT(i));
+      if (edge[0] != edge[1]) {
+        BLI_edgehash_insert(edge_hash, edge[0], edge[1], POINTER_FROM_INT(i));
       }
     }
     else {
-      REMOVE_EDGE_TAG(me);
+      REMOVE_EDGE_TAG(edge);
     }
   }
 
-  if (mfaces && !mpolys) {
+  if (mfaces && !poly_offsets) {
 #define REMOVE_FACE_TAG(_mf) \
   { \
     _mf->v3 = 0; \
@@ -560,7 +532,9 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     SortPoly *prev_sp, *sp = sort_polys;
     int prev_end;
 
-    for (i = 0, mp = mpolys; i < totpoly; i++, mp++, sp++) {
+    for (const int64_t i : blender::IndexRange(totpoly)) {
+      const int poly_start = poly_offsets[i];
+      const int poly_size = poly_offsets[i + 1] - poly_start;
       sp->index = i;
 
       /* Material index, isolated from other tests here. While large indices are clamped,
@@ -573,22 +547,20 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         }
       }
 
-      if (mp->loopstart < 0 || mp->totloop < 3) {
+      if (poly_start < 0 || poly_size < 3) {
         /* Invalid loop data. */
-        PRINT_ERR("\tPoly %u is invalid (loopstart: %d, totloop: %d)",
-                  sp->index,
-                  mp->loopstart,
-                  mp->totloop);
+        PRINT_ERR(
+            "\tPoly %u is invalid (loopstart: %d, totloop: %d)", sp->index, poly_start, poly_size);
         sp->invalid = true;
       }
-      else if (mp->loopstart + mp->totloop > totloop) {
+      else if (poly_start + poly_size > totloop) {
         /* Invalid loop data. */
         PRINT_ERR(
             "\tPoly %u uses loops out of range "
             "(loopstart: %d, loopend: %d, max number of loops: %u)",
             sp->index,
-            mp->loopstart,
-            mp->loopstart + mp->totloop - 1,
+            poly_start,
+            poly_start + poly_size - 1,
             totloop - 1);
         sp->invalid = true;
       }
@@ -596,44 +568,50 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         /* Poly itself is valid, for now. */
         int v1, v2; /* v1 is prev loop vert idx, v2 is current loop one. */
         sp->invalid = false;
-        sp->verts = v = (int *)MEM_mallocN(sizeof(int) * mp->totloop, "Vert idx of SortPoly");
-        sp->numverts = mp->totloop;
-        sp->loopstart = mp->loopstart;
+        sp->verts = v = (int *)MEM_mallocN(sizeof(int) * poly_size, "Vert idx of SortPoly");
+        sp->numverts = poly_size;
+        sp->loopstart = poly_start;
 
         /* Ideally we would only have to do that once on all vertices
          * before we start checking each poly, but several polys can use same vert,
          * so we have to ensure here all verts of current poly are cleared. */
-        for (j = 0, ml = &mloops[sp->loopstart]; j < mp->totloop; j++, ml++) {
-          if (ml->v < totvert) {
-            BLI_BITMAP_DISABLE(vert_tag, ml->v);
+        for (j = 0; j < poly_size; j++) {
+          const int vert = corner_verts[sp->loopstart + j];
+          if (vert < totvert) {
+            BLI_BITMAP_DISABLE(vert_tag, vert);
           }
         }
 
         /* Test all poly's loops' vert idx. */
-        for (j = 0, ml = &mloops[sp->loopstart]; j < mp->totloop; j++, ml++, v++) {
-          if (ml->v >= totvert) {
+        for (j = 0; j < poly_size; j++, v++) {
+          const int vert = corner_verts[sp->loopstart + j];
+          if (vert >= totvert) {
             /* Invalid vert idx. */
-            PRINT_ERR("\tLoop %u has invalid vert reference (%u)", sp->loopstart + j, ml->v);
+            PRINT_ERR("\tLoop %u has invalid vert reference (%d)", sp->loopstart + j, vert);
             sp->invalid = true;
           }
-          else if (BLI_BITMAP_TEST(vert_tag, ml->v)) {
-            PRINT_ERR("\tPoly %u has duplicated vert reference at corner (%u)", i, j);
+          else if (BLI_BITMAP_TEST(vert_tag, vert)) {
+            PRINT_ERR("\tPoly %u has duplicated vert reference at corner (%u)", uint(i), j);
             sp->invalid = true;
           }
           else {
-            BLI_BITMAP_ENABLE(vert_tag, ml->v);
+            BLI_BITMAP_ENABLE(vert_tag, vert);
           }
-          *v = ml->v;
+          *v = vert;
         }
 
         if (sp->invalid) {
+          sp++;
           continue;
         }
 
         /* Test all poly's loops. */
-        for (j = 0, ml = &mloops[sp->loopstart]; j < mp->totloop; j++, ml++) {
-          v1 = ml->v;
-          v2 = mloops[sp->loopstart + (j + 1) % mp->totloop].v;
+        for (j = 0; j < poly_size; j++) {
+          const int corner = sp->loopstart + j;
+          const int vert = corner_verts[corner];
+          const int edge_i = corner_edges[corner];
+          v1 = vert;
+          v2 = corner_verts[sp->loopstart + (j + 1) % poly_size];
           if (!BLI_edgehash_haskey(edge_hash, v1, v2)) {
             /* Edge not existing. */
             PRINT_ERR("\tPoly %u needs missing edge (%d, %d)", sp->index, v1, v2);
@@ -644,44 +622,45 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
               sp->invalid = true;
             }
           }
-          else if (ml->e >= totedge) {
+          else if (edge_i >= totedge) {
             /* Invalid edge idx.
              * We already know from previous text that a valid edge exists, use it (if allowed)! */
             if (do_fixes) {
-              int prev_e = ml->e;
-              ml->e = POINTER_AS_INT(BLI_edgehash_lookup(edge_hash, v1, v2));
+              int prev_e = edge_i;
+              corner_edges[corner] = POINTER_AS_INT(BLI_edgehash_lookup(edge_hash, v1, v2));
               fix_flag.loops_edge = true;
-              PRINT_ERR("\tLoop %u has invalid edge reference (%d), fixed using edge %u",
-                        sp->loopstart + j,
+              PRINT_ERR("\tLoop %d has invalid edge reference (%d), fixed using edge %d",
+                        corner,
                         prev_e,
-                        ml->e);
+                        corner_edges[corner]);
             }
             else {
-              PRINT_ERR("\tLoop %u has invalid edge reference (%u)", sp->loopstart + j, ml->e);
+              PRINT_ERR("\tLoop %d has invalid edge reference (%d)", corner, edge_i);
               sp->invalid = true;
             }
           }
           else {
-            me = &medges[ml->e];
-            if (IS_REMOVED_EDGE(me) ||
-                !((me->v1 == v1 && me->v2 == v2) || (me->v1 == v2 && me->v2 == v1))) {
+            const blender::int2 &edge = edges[edge_i];
+            if (IS_REMOVED_EDGE(edge) ||
+                !((edge[0] == v1 && edge[1] == v2) || (edge[0] == v2 && edge[1] == v1)))
+            {
               /* The pointed edge is invalid (tagged as removed, or vert idx mismatch),
                * and we already know from previous test that a valid one exists,
                * use it (if allowed)! */
               if (do_fixes) {
-                int prev_e = ml->e;
-                ml->e = POINTER_AS_INT(BLI_edgehash_lookup(edge_hash, v1, v2));
+                int prev_e = edge_i;
+                corner_edges[corner] = POINTER_AS_INT(BLI_edgehash_lookup(edge_hash, v1, v2));
                 fix_flag.loops_edge = true;
                 PRINT_ERR(
                     "\tPoly %u has invalid edge reference (%d, is_removed: %d), fixed using edge "
-                    "%u",
+                    "%d",
                     sp->index,
                     prev_e,
-                    IS_REMOVED_EDGE(me),
-                    ml->e);
+                    IS_REMOVED_EDGE(edge),
+                    corner_edges[corner]);
               }
               else {
-                PRINT_ERR("\tPoly %u has invalid edge reference (%u)", sp->index, ml->e);
+                PRINT_ERR("\tPoly %u has invalid edge reference (%d)", sp->index, edge_i);
                 sp->invalid = true;
               }
             }
@@ -693,6 +672,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
           qsort(sp->verts, sp->numverts, sizeof(int), int_cmp);
         }
       }
+      sp++;
     }
 
     MEM_freeN(vert_tag);
@@ -747,7 +727,8 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
        */
       if (sp->invalid) {
         if (do_fixes) {
-          REMOVE_POLY_TAG((&mpolys[sp->index]));
+          polys_to_remove[sp->index].set();
+          free_flag.polyloops = do_fixes;
           /* DO NOT REMOVE ITS LOOPS!!!
            * As already invalid polys are at the end of the SortPoly list, the loops they
            * were the only users have already been tagged as "to remove" during previous
@@ -759,10 +740,11 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       else {
         /* Unused loops. */
         if (prev_end < sp->loopstart) {
-          for (j = prev_end, ml = &mloops[prev_end]; j < sp->loopstart; j++, ml++) {
+          int corner;
+          for (j = prev_end, corner = prev_end; j < sp->loopstart; j++, corner++) {
             PRINT_ERR("\tLoop %u is unused.", j);
             if (do_fixes) {
-              REMOVE_LOOP_TAG(ml);
+              REMOVE_LOOP_TAG(corner);
             }
           }
           prev_end = sp->loopstart + sp->numverts;
@@ -777,7 +759,8 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
                     prev_end,
                     sp->index);
           if (do_fixes) {
-            REMOVE_POLY_TAG((&mpolys[sp->index]));
+            polys_to_remove[sp->index].set();
+            free_flag.polyloops = do_fixes;
             /* DO NOT REMOVE ITS LOOPS!!!
              * They might be used by some next, valid poly!
              * Just not updating prev_end/prev_sp vars is enough to ensure the loops
@@ -792,10 +775,11 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     }
     /* We may have some remaining unused loops to get rid of! */
     if (prev_end < totloop) {
-      for (j = prev_end, ml = &mloops[prev_end]; j < totloop; j++, ml++) {
+      int corner;
+      for (j = prev_end, corner = prev_end; j < totloop; j++, corner++) {
         PRINT_ERR("\tLoop %u is unused.", j);
         if (do_fixes) {
-          REMOVE_LOOP_TAG(ml);
+          REMOVE_LOOP_TAG(corner);
         }
       }
     }
@@ -862,11 +846,11 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     }
 
     if (free_flag.polyloops) {
-      BKE_mesh_strip_loose_polysloops(mesh);
+      strip_loose_polysloops(mesh, polys_to_remove);
     }
 
     if (free_flag.edges) {
-      BKE_mesh_strip_loose_edges(mesh);
+      mesh_strip_edges(mesh);
     }
 
     if (recalc_flag.edges) {
@@ -948,38 +932,80 @@ static bool mesh_validate_customdata(CustomData *data,
 
   PRINT_MSG("%s: Checking %d CD layers...\n", __func__, data->totlayer);
 
+  /* Set dummy values so the layer-type is always initialized on first access. */
+  int layer_num = -1;
+  int layer_num_type = -1;
+
   while (i < data->totlayer) {
     CustomDataLayer *layer = &data->layers[i];
+    const eCustomDataType type = eCustomDataType(layer->type);
     bool ok = true;
 
-    if (CustomData_layertype_is_singleton(layer->type)) {
-      const int layer_tot = CustomData_number_of_layers(data, layer->type);
-      if (layer_tot > 1) {
-        PRINT_ERR("\tCustomDataLayer type %d is a singleton, found %d in Mesh structure\n",
+    /* Count layers when the type changes. */
+    if (layer_num_type != type) {
+      layer_num = CustomData_number_of_layers(data, type);
+      layer_num_type = type;
+    }
+
+    /* Validate active index, for a time this could be set to a negative value, see: #105860. */
+    int *active_index_array[] = {
+        &layer->active,
+        &layer->active_rnd,
+        &layer->active_clone,
+        &layer->active_mask,
+    };
+    for (int *active_index : Span(active_index_array, ARRAY_SIZE(active_index_array))) {
+      if (*active_index < 0) {
+        PRINT_ERR("\tCustomDataLayer type %d has a negative active index (%d)\n",
                   layer->type,
-                  layer_tot);
+                  *active_index);
+        if (do_fixes) {
+          *active_index = 0;
+          has_fixes = true;
+        }
+      }
+      else {
+        if (*active_index >= layer_num) {
+          PRINT_ERR("\tCustomDataLayer type %d has an out of bounds active index (%d >= %d)\n",
+                    layer->type,
+                    *active_index,
+                    layer_num);
+          if (do_fixes) {
+            BLI_assert(layer_num > 0);
+            *active_index = layer_num - 1;
+            has_fixes = true;
+          }
+        }
+      }
+    }
+
+    if (CustomData_layertype_is_singleton(type)) {
+      if (layer_num > 1) {
+        PRINT_ERR("\tCustomDataLayer type %d is a singleton, found %d in Mesh structure\n",
+                  type,
+                  layer_num);
         ok = false;
       }
     }
 
     if (mask != 0) {
-      eCustomDataMask layer_typemask = CD_TYPE_AS_MASK(layer->type);
+      eCustomDataMask layer_typemask = CD_TYPE_AS_MASK(type);
       if ((layer_typemask & mask) == 0) {
-        PRINT_ERR("\tCustomDataLayer type %d which isn't in the mask\n", layer->type);
+        PRINT_ERR("\tCustomDataLayer type %d which isn't in the mask\n", type);
         ok = false;
       }
     }
 
     if (ok == false) {
       if (do_fixes) {
-        CustomData_free_layer(data, layer->type, 0, i);
+        CustomData_free_layer(data, type, 0, i);
         has_fixes = true;
       }
     }
 
     if (ok) {
       if (CustomData_layer_validate(layer, totitems, do_fixes)) {
-        PRINT_ERR("\tCustomDataLayer type %d has some invalid data\n", layer->type);
+        PRINT_ERR("\tCustomDataLayer type %d has some invalid data\n", type);
         has_fixes = do_fixes;
       }
       i++;
@@ -1067,9 +1093,10 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
                                    true,
                                    &changed);
   MutableSpan<float3> positions = me->vert_positions_for_write();
-  MutableSpan<MEdge> edges = me->edges_for_write();
-  MutableSpan<MPoly> polys = me->polys_for_write();
-  MutableSpan<MLoop> loops = me->loops_for_write();
+  MutableSpan<blender::int2> edges = me->edges_for_write();
+  MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
+  MutableSpan<int> corner_verts = me->corner_verts_for_write();
+  MutableSpan<int> corner_edges = me->corner_edges_for_write();
 
   BKE_mesh_validate_arrays(
       me,
@@ -1079,10 +1106,11 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
       edges.size(),
       (MFace *)CustomData_get_layer_for_write(&me->fdata, CD_MFACE, me->totface),
       me->totface,
-      loops.data(),
-      loops.size(),
-      polys.data(),
-      polys.size(),
+      corner_verts.data(),
+      corner_edges.data(),
+      corner_verts.size(),
+      poly_offsets.data(),
+      me->totpoly,
       me->deform_verts_for_write().data(),
       do_verbose,
       true,
@@ -1119,9 +1147,10 @@ bool BKE_mesh_is_valid(Mesh *me)
       &changed);
 
   MutableSpan<float3> positions = me->vert_positions_for_write();
-  MutableSpan<MEdge> edges = me->edges_for_write();
-  MutableSpan<MPoly> polys = me->polys_for_write();
-  MutableSpan<MLoop> loops = me->loops_for_write();
+  MutableSpan<blender::int2> edges = me->edges_for_write();
+  MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
+  MutableSpan<int> corner_verts = me->corner_verts_for_write();
+  MutableSpan<int> corner_edges = me->corner_edges_for_write();
 
   is_valid &= BKE_mesh_validate_arrays(
       me,
@@ -1131,21 +1160,15 @@ bool BKE_mesh_is_valid(Mesh *me)
       edges.size(),
       (MFace *)CustomData_get_layer_for_write(&me->fdata, CD_MFACE, me->totface),
       me->totface,
-      loops.data(),
-      loops.size(),
-      polys.data(),
-      polys.size(),
+      corner_verts.data(),
+      corner_edges.data(),
+      corner_verts.size(),
+      poly_offsets.data(),
+      me->totpoly,
       me->deform_verts_for_write().data(),
       do_verbose,
       do_fixes,
       &changed);
-
-  if (!me->runtime->vert_normals_dirty) {
-    BLI_assert(me->runtime->vert_normals || me->totvert == 0);
-  }
-  if (!me->runtime->poly_normals_dirty) {
-    BLI_assert(me->runtime->poly_normals || me->totpoly == 0);
-  }
 
   BLI_assert(changed == false);
 
@@ -1183,62 +1206,36 @@ bool BKE_mesh_validate_material_indices(Mesh *me)
 /** \name Mesh Stripping (removing invalid data)
  * \{ */
 
-void BKE_mesh_strip_loose_faces(Mesh *me)
+void strip_loose_polysloops(Mesh *me, blender::BitSpan polys_to_remove)
 {
-  /* NOTE: We need to keep this for edge creation (for now?), and some old `readfile.c` code. */
-  MFace *f;
-  int a, b;
-  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&me->fdata, CD_MFACE, me->totface);
+  MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
+  MutableSpan<int> corner_edges = me->corner_edges_for_write();
 
-  for (a = b = 0, f = mfaces; a < me->totface; a++, f++) {
-    if (f->v3) {
-      if (a != b) {
-        memcpy(&mfaces[b], f, sizeof(mfaces[b]));
-        CustomData_copy_data(&me->fdata, &me->fdata, a, b, 1);
-      }
-      b++;
-    }
-  }
-  if (a != b) {
-    CustomData_free_elem(&me->fdata, b, a - b);
-    me->totface = b;
-  }
-}
-
-void BKE_mesh_strip_loose_polysloops(Mesh *me)
-{
-  MutableSpan<MPoly> polys = me->polys_for_write();
-  MutableSpan<MLoop> loops = me->loops_for_write();
-
-  MPoly *p;
-  MLoop *l;
   int a, b;
   /* New loops idx! */
   int *new_idx = (int *)MEM_mallocN(sizeof(int) * me->totloop, __func__);
 
-  for (a = b = 0, p = polys.data(); a < me->totpoly; a++, p++) {
+  for (a = b = 0; a < me->totpoly; a++) {
     bool invalid = false;
-    int i = p->loopstart;
-    int stop = i + p->totloop;
+    int start = poly_offsets[a];
+    int size = poly_offsets[a + 1] - start;
+    int stop = start + size;
 
-    if (stop > me->totloop || stop < i || p->loopstart < 0) {
+    if (polys_to_remove[a]) {
+      invalid = true;
+    }
+    else if (stop > me->totloop || stop < start || size < 0) {
       invalid = true;
     }
     else {
-      l = &loops[i];
-      i = stop - i;
       /* If one of the poly's loops is invalid, the whole poly is invalid! */
-      for (; i--; l++) {
-        if (l->e == INVALID_LOOP_EDGE_MARKER) {
-          invalid = true;
-          break;
-        }
+      if (corner_edges.slice(start, size).as_span().contains(INVALID_LOOP_EDGE_MARKER)) {
+        invalid = true;
       }
     }
 
-    if (p->totloop >= 3 && !invalid) {
+    if (size >= 3 && !invalid) {
       if (a != b) {
-        memcpy(&polys[b], p, sizeof(polys[b]));
         CustomData_copy_data(&me->pdata, &me->pdata, a, b, 1);
       }
       b++;
@@ -1250,10 +1247,10 @@ void BKE_mesh_strip_loose_polysloops(Mesh *me)
   }
 
   /* And now, get rid of invalid loops. */
-  for (a = b = 0, l = loops.data(); a < me->totloop; a++, l++) {
-    if (l->e != INVALID_LOOP_EDGE_MARKER) {
+  int corner = 0;
+  for (a = b = 0; a < me->totloop; a++, corner++) {
+    if (corner_edges[corner] != INVALID_LOOP_EDGE_MARKER) {
       if (a != b) {
-        memcpy(&loops[b], l, sizeof(loops[b]));
         CustomData_copy_data(&me->ldata, &me->ldata, a, b, 1);
       }
       new_idx[a] = b;
@@ -1270,24 +1267,27 @@ void BKE_mesh_strip_loose_polysloops(Mesh *me)
     me->totloop = b;
   }
 
+  poly_offsets[me->totpoly] = me->totloop;
+
   /* And now, update polys' start loop index. */
   /* NOTE: At this point, there should never be any poly using a striped loop! */
-  for (const int i : polys.index_range()) {
-    polys[i].loopstart = new_idx[polys[i].loopstart];
+  for (const int i : blender::IndexRange(me->totpoly)) {
+    poly_offsets[i] = new_idx[poly_offsets[i]];
+    BLI_assert(poly_offsets[i] >= 0);
   }
 
   MEM_freeN(new_idx);
 }
 
-void BKE_mesh_strip_loose_edges(Mesh *me)
+void mesh_strip_edges(Mesh *me)
 {
-  MEdge *e;
+  blender::int2 *e;
   int a, b;
   uint *new_idx = (uint *)MEM_mallocN(sizeof(int) * me->totedge, __func__);
-  MutableSpan<MEdge> edges = me->edges_for_write();
+  MutableSpan<blender::int2> edges = me->edges_for_write();
 
   for (a = b = 0, e = edges.data(); a < me->totedge; a++, e++) {
-    if (e->v1 != e->v2) {
+    if ((*e)[0] != (*e)[1]) {
       if (a != b) {
         memcpy(&edges[b], e, sizeof(edges[b]));
         CustomData_copy_data(&me->edata, &me->edata, a, b, 1);
@@ -1307,9 +1307,9 @@ void BKE_mesh_strip_loose_edges(Mesh *me)
   /* And now, update loops' edge indices. */
   /* XXX We hope no loop was pointing to a striped edge!
    *     Else, its e will be set to INVALID_LOOP_EDGE_MARKER :/ */
-  MutableSpan<MLoop> loops = me->loops_for_write();
-  for (MLoop &loop : loops) {
-    loop.e = new_idx[loop.e];
+  MutableSpan<int> corner_edges = me->corner_edges_for_write();
+  for (const int i : corner_edges.index_range()) {
+    corner_edges[i] = new_idx[corner_edges[i]];
   }
 
   MEM_freeN(new_idx);
@@ -1346,16 +1346,18 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
   /* write new edges into a temporary CustomData */
   CustomData edgeData;
   CustomData_reset(&edgeData);
-  CustomData_add_layer(&edgeData, CD_MEDGE, CD_SET_DEFAULT, nullptr, numEdges);
-  CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, numEdges);
+  CustomData_add_layer_named(&edgeData, CD_PROP_INT32_2D, CD_CONSTRUCT, numEdges, ".edge_verts");
+  CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, numEdges);
 
-  MEdge *med = (MEdge *)CustomData_get_layer_for_write(&edgeData, CD_MEDGE, mesh->totedge);
+  blender::int2 *ege = (blender::int2 *)CustomData_get_layer_named_for_write(
+      &edgeData, CD_PROP_INT32_2D, ".edge_verts", mesh->totedge);
   int *index = (int *)CustomData_get_layer_for_write(&edgeData, CD_ORIGINDEX, mesh->totedge);
 
   EdgeSetIterator *ehi = BLI_edgesetIterator_new(eh);
   for (int i = 0; BLI_edgesetIterator_isDone(ehi) == false;
-       BLI_edgesetIterator_step(ehi), i++, med++, index++) {
-    BLI_edgesetIterator_getKey(ehi, &med->v1, &med->v2);
+       BLI_edgesetIterator_step(ehi), i++, ege++, index++)
+  {
+    BLI_edgesetIterator_getKey(ehi, &(*ege)[0], &(*ege)[1]);
     *index = ORIGINDEX_NONE;
   }
   BLI_edgesetIterator_free(ehi);

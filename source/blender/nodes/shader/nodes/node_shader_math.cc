@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup shdnodes
@@ -46,7 +46,8 @@ class SocketSearchOp {
 static void sh_node_math_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   if (!params.node_tree().typeinfo->validate_link(
-          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_FLOAT)) {
+          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_FLOAT))
+  {
     return;
   }
 

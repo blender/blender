@@ -429,8 +429,8 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
         if (flag & INSERTKEY_CYCLE_AWARE) {
           /* If replacing an end point of a cyclic curve without offset,
            * modify the other end too. */
-          if (ELEM(i, 0, fcu->totvert - 1) &&
-              BKE_fcurve_get_cycle_type(fcu) == FCU_CYCLE_PERFECT) {
+          if (ELEM(i, 0, fcu->totvert - 1) && BKE_fcurve_get_cycle_type(fcu) == FCU_CYCLE_PERFECT)
+          {
             replace_bezt_keyframe_ypos(&fcu->bezt[i == 0 ? fcu->totvert - 1 : 0], bezt);
           }
         }
@@ -1567,7 +1567,8 @@ int insert_keyframe(Main *bmain,
                                          &remapped_context,
                                          values[array_index],
                                          keytype,
-                                         flag)) {
+                                         flag))
+        {
           ret++;
           exclude = array_index;
           break;
@@ -1624,7 +1625,8 @@ int insert_keyframe(Main *bmain,
   /* Key a single index. */
   else {
     if (array_index >= 0 && array_index < value_count &&
-        BLI_BITMAP_TEST_BOOL(successful_remaps, array_index)) {
+        BLI_BITMAP_TEST_BOOL(successful_remaps, array_index))
+    {
       ret += insert_keyframe_fcurve_value(bmain,
                                           reports,
                                           &ptr,
@@ -1657,6 +1659,29 @@ int insert_keyframe(Main *bmain,
   }
 
   return ret;
+}
+
+void ED_keyframes_add(FCurve *fcu, int num_keys_to_add)
+{
+  BLI_assert_msg(num_keys_to_add >= 0, "cannot remove keyframes with this function");
+
+  if (num_keys_to_add == 0) {
+    return;
+  }
+
+  fcu->bezt = MEM_recallocN(fcu->bezt, sizeof(BezTriple) * (fcu->totvert + num_keys_to_add));
+  BezTriple *bezt = fcu->bezt + fcu->totvert; /* Pointer to the first new one. '*/
+
+  fcu->totvert += num_keys_to_add;
+
+  /* Iterate over the new keys to update their settings. */
+  while (num_keys_to_add--) {
+    /* Defaults, ignoring user-preference gives predictable results for API. */
+    bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
+    bezt->ipo = BEZT_IPO_BEZ;
+    bezt->h1 = bezt->h2 = HD_AUTO_ANIM;
+    bezt++;
+  }
 }
 
 /* ************************************************** */
@@ -2284,8 +2309,8 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
             /* Get bone-name, and check if this bone is selected. */
             bPoseChannel *pchan = NULL;
             char bone_name[sizeof(pchan->name)];
-            if (BLI_str_quoted_substr(
-                    fcu->rna_path, "pose.bones[", bone_name, sizeof(bone_name))) {
+            if (BLI_str_quoted_substr(fcu->rna_path, "pose.bones[", bone_name, sizeof(bone_name)))
+            {
               pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
               /* Delete if bone is selected. */
               if ((pchan) && (pchan->bone)) {
@@ -2570,7 +2595,8 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
         }
         else if ((ptr.type == &RNA_Object) &&
                  (strstr(identifier, "location") || strstr(identifier, "rotation") ||
-                  strstr(identifier, "scale"))) {
+                  strstr(identifier, "scale")))
+        {
           /* NOTE: Keep this label in sync with the "ID" case in
            * keyingsets_utils.py :: get_transform_generators_base_info()
            */
@@ -2852,7 +2878,7 @@ bool autokeyframe_cfra_can_key(const Scene *scene, ID *id)
      * For whole block, only key if there's a keyframe on that frame already
      * This is a valid assumption when we're blocking + tweaking
      */
-    return id_frame_has_keyframe(id, cfra, ANIMFILTER_KEYS_LOCAL);
+    return id_frame_has_keyframe(id, cfra);
   }
 
   /* Normal Mode (or treat as being normal mode):
@@ -2871,15 +2897,14 @@ bool autokeyframe_cfra_can_key(const Scene *scene, ID *id)
 
 /* --------------- API/Per-Datablock Handling ------------------- */
 
-bool fcurve_frame_has_keyframe(const FCurve *fcu, float frame, short filter)
+bool fcurve_frame_has_keyframe(const FCurve *fcu, float frame)
 {
   /* quick sanity check */
   if (ELEM(NULL, fcu, fcu->bezt)) {
     return false;
   }
 
-  /* We either include all regardless of muting, or only non-muted. */
-  if ((filter & ANIMFILTER_KEYS_MUTED) || (fcu->flag & FCURVE_MUTED) == 0) {
+  if ((fcu->flag & FCURVE_MUTED) == 0) {
     bool replace;
     int i = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, frame, fcu->totvert, &replace);
 
@@ -2926,7 +2951,7 @@ bool fcurve_is_changed(PointerRNA ptr,
  * Since we're only concerned whether a keyframe exists,
  * we can simply loop until a match is found.
  */
-static bool action_frame_has_keyframe(bAction *act, float frame, short filter)
+static bool action_frame_has_keyframe(bAction *act, float frame)
 {
   FCurve *fcu;
 
@@ -2935,8 +2960,7 @@ static bool action_frame_has_keyframe(bAction *act, float frame, short filter)
     return false;
   }
 
-  /* if only check non-muted, check if muted */
-  if ((filter & ANIMFILTER_KEYS_MUTED) || (act->flag & ACT_MUTED)) {
+  if (act->flag & ACT_MUTED) {
     return false;
   }
 
@@ -2946,7 +2970,7 @@ static bool action_frame_has_keyframe(bAction *act, float frame, short filter)
   for (fcu = act->curves.first; fcu; fcu = fcu->next) {
     /* only check if there are keyframes (currently only of type BezTriple) */
     if (fcu->bezt && fcu->totvert) {
-      if (fcurve_frame_has_keyframe(fcu, frame, filter)) {
+      if (fcurve_frame_has_keyframe(fcu, frame)) {
         return true;
       }
     }
@@ -2957,7 +2981,7 @@ static bool action_frame_has_keyframe(bAction *act, float frame, short filter)
 }
 
 /* Checks whether an Object has a keyframe for a given frame */
-static bool object_frame_has_keyframe(Object *ob, float frame, short filter)
+static bool object_frame_has_keyframe(Object *ob, float frame)
 {
   /* error checking */
   if (ob == NULL) {
@@ -2972,49 +2996,8 @@ static bool object_frame_has_keyframe(Object *ob, float frame, short filter)
      */
     float ob_frame = BKE_nla_tweakedit_remap(ob->adt, frame, NLATIME_CONVERT_UNMAP);
 
-    if (action_frame_has_keyframe(ob->adt->action, ob_frame, filter)) {
+    if (action_frame_has_keyframe(ob->adt->action, ob_frame)) {
       return true;
-    }
-  }
-
-  /* Try shape-key keyframes (if available, and allowed by filter). */
-  if (!(filter & ANIMFILTER_KEYS_LOCAL) && !(filter & ANIMFILTER_KEYS_NOSKEY)) {
-    Key *key = BKE_key_from_object(ob);
-
-    /* Shape-keys can have keyframes ('Relative Shape Keys')
-     * or depend on time (old 'Absolute Shape Keys'). */
-
-    /* 1. test for relative (with keyframes) */
-    if (id_frame_has_keyframe((ID *)key, frame, filter)) {
-      return true;
-    }
-
-    /* 2. test for time */
-    /* TODO: yet to be implemented (this feature may evolve before then anyway). */
-  }
-
-  /* try materials */
-  if (!(filter & ANIMFILTER_KEYS_LOCAL) && !(filter & ANIMFILTER_KEYS_NOMAT)) {
-    /* if only active, then we can skip a lot of looping */
-    if (filter & ANIMFILTER_KEYS_ACTIVE) {
-      Material *ma = BKE_object_material_get(ob, (ob->actcol + 1));
-
-      /* we only retrieve the active material... */
-      if (id_frame_has_keyframe((ID *)ma, frame, filter)) {
-        return true;
-      }
-    }
-    else {
-      int a;
-
-      /* loop over materials */
-      for (a = 0; a < ob->totcol; a++) {
-        Material *ma = BKE_object_material_get(ob, a + 1);
-
-        if (id_frame_has_keyframe((ID *)ma, frame, filter)) {
-          return true;
-        }
-      }
     }
   }
 
@@ -3024,7 +3007,7 @@ static bool object_frame_has_keyframe(Object *ob, float frame, short filter)
 
 /* --------------- API ------------------- */
 
-bool id_frame_has_keyframe(ID *id, float frame, short filter)
+bool id_frame_has_keyframe(ID *id, float frame)
 {
   /* sanity checks */
   if (id == NULL) {
@@ -3034,7 +3017,7 @@ bool id_frame_has_keyframe(ID *id, float frame, short filter)
   /* perform special checks for 'macro' types */
   switch (GS(id->name)) {
     case ID_OB: /* object */
-      return object_frame_has_keyframe((Object *)id, frame, filter);
+      return object_frame_has_keyframe((Object *)id, frame);
 #if 0
     /* XXX TODO... for now, just use 'normal' behavior */
     case ID_SCE: /* scene */
@@ -3046,7 +3029,7 @@ bool id_frame_has_keyframe(ID *id, float frame, short filter)
 
       /* only check keyframes in active action */
       if (adt) {
-        return action_frame_has_keyframe(adt->action, frame, filter);
+        return action_frame_has_keyframe(adt->action, frame);
       }
       break;
     }

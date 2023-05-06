@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup spseq
@@ -75,11 +75,13 @@ static bool check_seq_need_thumbnails(const Scene *scene, Sequence *seq, rctf *v
     return false;
   }
   if (min_ii(SEQ_time_left_handle_frame_get(scene, seq), SEQ_time_start_frame_get(seq)) >
-      view_area->xmax) {
+      view_area->xmax)
+  {
     return false;
   }
   if (max_ii(SEQ_time_right_handle_frame_get(scene, seq),
-             SEQ_time_content_end_frame_get(scene, seq)) < view_area->xmin) {
+             SEQ_time_content_end_frame_get(scene, seq)) < view_area->xmin)
+  {
     return false;
   }
   if (seq->machine + 1.0f < view_area->ymin) {
@@ -187,6 +189,7 @@ static SeqRenderData sequencer_thumbnail_context_init(const bContext *C)
   SEQ_render_new_render_data(bmain, depsgraph, scene, 0, 0, sseq->render_size, false, &context);
   context.view_id = BKE_scene_multiview_view_id_get(&scene->r, STEREO_LEFT_NAME);
   context.use_proxies = false;
+  context.scene = scene;
 
   return context;
 }
@@ -292,13 +295,15 @@ static void sequencer_thumbnail_start_job_if_necessary(
   /* Job start requested, but over area which has been processed. Unless `thumbnail_is_missing` is
    * true, ignore this request as all images are in view. */
   if (v2d->cur.xmax == sseq->runtime.last_thumbnail_area.xmax &&
-      v2d->cur.ymax == sseq->runtime.last_thumbnail_area.ymax && !thumbnail_is_missing) {
+      v2d->cur.ymax == sseq->runtime.last_thumbnail_area.ymax && !thumbnail_is_missing)
+  {
     return;
   }
 
   /* Stop the job first as view has changed. Pointless to continue old job. */
   if (v2d->cur.xmax != sseq->runtime.last_thumbnail_area.xmax ||
-      v2d->cur.ymax != sseq->runtime.last_thumbnail_area.ymax) {
+      v2d->cur.ymax != sseq->runtime.last_thumbnail_area.ymax)
+  {
     WM_jobs_stop(CTX_wm_manager(C), NULL, thumbnail_start_job);
   }
 
@@ -439,7 +444,7 @@ void draw_seq_strip_thumbnail(View2D *v2d,
   }
 
   /* If width of the strip too small ignore drawing thumbnails. */
-  if ((y2 - y1) / pixely <= 20 * U.dpi_fac) {
+  if ((y2 - y1) / pixely <= 20 * UI_SCALE_FAC) {
     return;
   }
 

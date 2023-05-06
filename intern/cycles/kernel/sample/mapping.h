@@ -84,8 +84,8 @@ ccl_device_inline void sample_uniform_cone(const float3 N,
 ccl_device_inline float pdf_uniform_cone(const float3 N, float3 D, float angle)
 {
   float zMin = cosf(angle);
-  float z = dot(N, D);
-  if (z > zMin) {
+  float z = precise_angle(N, D);
+  if (z < angle) {
     return M_1_2PI_F / (1.0f - zMin);
   }
   return 0.0f;

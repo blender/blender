@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 #pragma once
 
 /** \file
@@ -133,21 +133,26 @@ void BKE_curvemapping_table_RGBA(const struct CurveMapping *cumap, float **array
 void BKE_curvemapping_get_range_minimums(const struct CurveMapping *curve_mapping,
                                          float minimums[4]);
 
-/** Get the reciprocal of the difference between the maximum and the minimum x value of each curve
+/**
+ * Get the reciprocal of the difference between the maximum and the minimum x value of each curve
  * map table. Evaluation parameters can be multiplied by this value to be normalized. If the
- * difference is zero, 1^8 is returned. */
+ * difference is zero, 1^8 is returned.
+ */
 void BKE_curvemapping_compute_range_dividers(const struct CurveMapping *curve_mapping,
                                              float dividers[4]);
 
-/** Compute the slopes at the start and end points of each curve map. The slopes are multiplied by
+/**
+ * Compute the slopes at the start and end points of each curve map. The slopes are multiplied by
  * the range of the curve map to compensate for parameter normalization. If the slope is vertical,
- * 1^8 is returned.  */
+ * 1^8 is returned.
+ */
 void BKE_curvemapping_compute_slopes(const struct CurveMapping *curve_mapping,
                                      float start_slopes[4],
                                      float end_slopes[4]);
 
-/** Check if the curve map at the index is identity, that is, does nothing. A curve map is said to
- * be identity if:
+/**
+ * Check if the curve map at the index is identity, that is, does nothing.
+ * A curve map is said to be identity if:
  * - The curve mapping uses extrapolation.
  * - Its range is 1.
  * - The slope at its start point is 1.

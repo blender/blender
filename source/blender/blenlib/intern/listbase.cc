@@ -511,8 +511,8 @@ int BLI_listbase_count_at_most(const ListBase *listbase, const int count_max)
   Link *link;
   int count = 0;
 
-  for (link = static_cast<Link *>(listbase->first); link && count != count_max;
-       link = link->next) {
+  for (link = static_cast<Link *>(listbase->first); link && count != count_max; link = link->next)
+  {
     count++;
   }
 
@@ -754,7 +754,8 @@ void *BLI_listbase_string_or_index_find(const ListBase *listbase,
 
   int index_iter;
   for (link = static_cast<Link *>(listbase->first), index_iter = 0; link;
-       link = link->next, index_iter++) {
+       link = link->next, index_iter++)
+  {
     if (string != nullptr && string[0] != '\0') {
       const char *string_iter = ((const char *)link) + string_offset;
 

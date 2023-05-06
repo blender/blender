@@ -82,7 +82,7 @@ static const char *path_basename(const char *path)
 /* -------------------------------------------------------------------- */
 /* Write a PNG from RGBA pixels */
 
-static bool write_png(const char *name, const uint *pixels, const int width, const int height)
+static bool write_png(const char *filepath, const uint *pixels, const int width, const int height)
 {
   png_structp png_ptr;
   png_infop info_ptr;
@@ -94,15 +94,15 @@ static bool write_png(const char *name, const uint *pixels, const int width, con
   const int compression = 9;
   int i;
 
-  fp = fopen(name, "wb");
+  fp = fopen(filepath, "wb");
   if (fp == NULL) {
-    printf("%s: Cannot open file for writing '%s'\n", __func__, name);
+    printf("%s: Cannot open file for writing '%s'\n", __func__, filepath);
     return false;
   }
 
   png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   if (png_ptr == NULL) {
-    printf("%s: Cannot png_create_write_struct for file: '%s'\n", __func__, name);
+    printf("%s: Cannot png_create_write_struct for file: '%s'\n", __func__, filepath);
     fclose(fp);
     return false;
   }
@@ -110,14 +110,14 @@ static bool write_png(const char *name, const uint *pixels, const int width, con
   info_ptr = png_create_info_struct(png_ptr);
   if (info_ptr == NULL) {
     png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-    printf("%s: Cannot png_create_info_struct for file: '%s'\n", __func__, name);
+    printf("%s: Cannot png_create_info_struct for file: '%s'\n", __func__, filepath);
     fclose(fp);
     return false;
   }
 
   if (setjmp(png_jmpbuf(png_ptr))) {
     png_destroy_write_struct(&png_ptr, &info_ptr);
-    printf("%s: Cannot setjmp for file: '%s'\n", __func__, name);
+    printf("%s: Cannot setjmp for file: '%s'\n", __func__, filepath);
     fclose(fp);
     return false;
   }
@@ -148,7 +148,7 @@ static bool write_png(const char *name, const uint *pixels, const int width, con
   /* allocate memory for an array of row-pointers */
   row_pointers = (png_bytepp)malloc(height * sizeof(png_bytep));
   if (row_pointers == NULL) {
-    printf("%s: Cannot allocate row-pointers array for file '%s'\n", __func__, name);
+    printf("%s: Cannot allocate row-pointers array for file '%s'\n", __func__, filepath);
     png_destroy_write_struct(&png_ptr, &info_ptr);
     if (fp) {
       fclose(fp);
@@ -219,8 +219,8 @@ static struct IconInfo *icon_merge_context_info_for_icon_head(struct IconMergeCo
   for (int i = 0; i < context->num_read_icons; i++) {
     struct IconInfo *read_icon_info = &context->read_icons[i];
     const struct IconHead *read_icon_head = &read_icon_info->head;
-    if (read_icon_head->orig_x == icon_head->orig_x &&
-        read_icon_head->orig_y == icon_head->orig_y) {
+    if (read_icon_head->orig_x == icon_head->orig_x && read_icon_head->orig_y == icon_head->orig_y)
+    {
       return read_icon_info;
     }
   }

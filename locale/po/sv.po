@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -897,10 +897,6 @@ msgid "Global"
 msgstr "Global"
 
 
-msgid "Root"
-msgstr "Rot"
-
-
 msgid "Repeat"
 msgstr "Upprepa"
 
@@ -1325,6 +1321,10 @@ msgid "Sculpt"
 msgstr "Skulptera"
 
 
+msgid "Root"
+msgstr "Rot"
+
+
 msgid "Active Clone"
 msgstr "Klona aktivt"
 
@@ -1451,10 +1451,6 @@ msgstr "Färgkälla"
 
 msgid "Air"
 msgstr "Luft"
-
-
-msgid "Wrap"
-msgstr "Radbrytning"
 
 
 msgid "Object Constraints"
@@ -1758,6 +1754,10 @@ msgid "Restrict Render Unselected"
 msgstr "Begränsa rendering till markering"
 
 
+msgid "Selected Only"
+msgstr "Bara Markerad"
+
+
 msgctxt "Operator"
 msgid "Multires Subdivide"
 msgstr "Dela upp i flera upplösningsnivåer"
@@ -1877,10 +1877,6 @@ msgstr "Spegel"
 msgctxt "Operator"
 msgid "Particle Edit Toggle"
 msgstr "Redigera partiklar på/av"
-
-
-msgid "Selected Only"
-msgstr "Bara Markerad"
 
 
 msgctxt "Operator"
@@ -2006,6 +2002,10 @@ msgid "Toggle display of selected object(s) separately and centered in view"
 msgstr "Visa/göm markerade objekt separat, och centrerat i vyn"
 
 
+msgid "Wrap"
+msgstr "Radbrytning"
+
+
 msgctxt "Operator"
 msgid "View Documentation"
 msgstr "Visa dokumentation"
@@ -2086,10 +2086,6 @@ msgstr "Rastrering"
 
 msgid "Bone Constraints"
 msgstr "Benbegränsningar"
-
-
-msgid "Lens"
-msgstr "Lins"
 
 
 msgid "Cloth Presets"
@@ -2440,12 +2436,12 @@ msgid "3D View far clipping distance"
 msgstr "Bortre beskärningsgräns i 3D-vyn"
 
 
+msgid "Lens"
+msgstr "Lins"
+
+
 msgid "Lock to Object"
 msgstr "Lås till objekt"
-
-
-msgid "3D region in this space, in case of quad view the camera region"
-msgstr "3D-område i detta rum, kameraområde vid 4-vägsvy"
 
 
 msgid "Texture slot name"
@@ -2583,10 +2579,6 @@ msgstr "Förälder"
 msgctxt "Operator"
 msgid "Clear"
 msgstr "Nollställ"
-
-
-msgid "Old"
-msgstr "Gammal"
 
 
 msgid "Date"
@@ -2727,6 +2719,10 @@ msgstr "Y-förskjutning"
 
 msgid "Path:"
 msgstr "Bana:"
+
+
+msgid "Old"
+msgstr "Gammal"
 
 
 msgid "IOR"

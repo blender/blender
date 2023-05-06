@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 #pragma once
 
 #include "usd_writer_abstract.h"
+
+#include "BKE_attribute.hh"
 
 #include <pxr/usd/usdGeom/mesh.h>
 
@@ -38,10 +40,6 @@ class USDGenericMeshWriter : public USDAbstractWriter {
   void assign_materials(const HierarchyContext &context,
                         pxr::UsdGeomMesh usd_mesh,
                         const MaterialFaceGroups &usd_face_groups);
-  void write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
-  void write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh,
-                     const CustomDataLayer *layer,
-                     const char *name_override = nullptr);
   void write_vertex_colors(const Mesh *mesh,
                            pxr::UsdGeomMesh usd_mesh,
                            const CustomDataLayer *layer);
@@ -50,8 +48,15 @@ class USDGenericMeshWriter : public USDAbstractWriter {
                            pxr::UsdGeomMesh usd_mesh,
                            bool as_point_groups);
   void write_face_maps(const Object *ob, const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+  void write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_surface_velocity(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+
+  void write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+  void write_color_data(const Mesh *mesh,
+                        pxr::UsdGeomMesh usd_mesh,
+                        const bke::AttributeIDRef &attribute_id,
+                        const bke::AttributeMetaData &meta_data);
 
  protected:
   ModifierData *m_subsurf_mod;

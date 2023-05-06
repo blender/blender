@@ -4,7 +4,6 @@ from bpy.types import Header, Menu, Panel
 
 from bpy.app.translations import (
     contexts as i18n_contexts,
-    pgettext_iface as iface_,
 )
 
 
@@ -484,6 +483,10 @@ class OUTLINER_PT_filter(Panel):
             row = sub.row()
             row.label(icon='CAMERA_DATA')
             row.prop(space, "use_filter_object_camera", text="Cameras")
+        if bpy.data.grease_pencils:
+            row = sub.row()
+            row.label(icon='STROKE')
+            row.prop(space, "use_filter_object_grease_pencil", text="Grease Pencil")
         row = sub.row()
         row.label(icon='EMPTY_DATA')
         row.prop(space, "use_filter_object_empty", text="Empties")

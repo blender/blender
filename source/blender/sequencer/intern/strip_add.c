@@ -176,6 +176,7 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDa
 
   if (!load_data->effect.seq1) {
     seq->len = 1; /* Effect is generator, set non zero length. */
+    seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
     SEQ_time_right_handle_frame_set(scene, seq, load_data->effect.end_frame);
   }
 
@@ -201,16 +202,16 @@ void SEQ_add_image_load_file(Scene *scene, Sequence *seq, size_t strip_frame, ch
 void SEQ_add_image_init_alpha_mode(Sequence *seq)
 {
   if (seq->strip && seq->strip->stripdata) {
-    char name[FILE_MAX];
+    char filepath[FILE_MAX];
     ImBuf *ibuf;
 
-    BLI_path_join(name, sizeof(name), seq->strip->dir, seq->strip->stripdata->name);
-    BLI_path_abs(name, BKE_main_blendfile_path_from_global());
+    BLI_path_join(filepath, sizeof(filepath), seq->strip->dir, seq->strip->stripdata->name);
+    BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
     /* Initialize input color space. */
     if (seq->type == SEQ_TYPE_IMAGE) {
       ibuf = IMB_loadiffname(
-          name, IB_test | IB_alphamode_detect, seq->strip->colorspace_settings.name);
+          filepath, IB_test | IB_alphamode_detect, seq->strip->colorspace_settings.name);
 
       /* Byte images are default to straight alpha, however sequencer
        * works in premul space, so mark strip to be premultiplied first.
@@ -234,6 +235,10 @@ Sequence *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   seq->len = load_data->image.len;
   Strip *strip = seq->strip;
   strip->stripdata = MEM_callocN(load_data->image.len * sizeof(StripElem), "stripelem");
+
+  if (seq->len == 1) {
+    seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
+  }
 
   /* Multiview settings. */
   if (load_data->use_multiview) {
@@ -320,7 +325,8 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   Strip *strip = seq->strip;
   /* We only need 1 element to store the filename. */
   StripElem *se = strip->stripdata = MEM_callocN(sizeof(StripElem), "stripelem");
-  BLI_split_dirfile(load_data->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
+  BLI_path_split_dir_file(
+      load_data->path, strip->dir, sizeof(strip->dir), se->name, sizeof(se->name));
 
   if (seq != NULL && seq->sound != NULL) {
     if (load_data->flags & SEQ_LOAD_SOUND_MONO) {
@@ -433,6 +439,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
     if (load_data->flags & SEQ_LOAD_MOVIE_SYNC_FPS) {
       scene->r.frs_sec = fps_denom;
       scene->r.frs_sec_base = fps_num;
+      DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_FPS | ID_RECALC_SEQUENCER_STRIPS);
     }
 
     load_data->r_video_stream_start = IMD_anim_get_offset(anim_arr[0]);
@@ -495,7 +502,8 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   strip->stripdata->orig_width = orig_width;
   strip->stripdata->orig_height = orig_height;
   strip->stripdata->orig_fps = video_fps;
-  BLI_split_dirfile(load_data->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
+  BLI_path_split_dir_file(
+      load_data->path, strip->dir, sizeof(strip->dir), se->name, sizeof(se->name));
 
   seq_add_set_view_transform(scene, seq, load_data);
   seq_add_set_name(scene, seq, load_data);
@@ -518,7 +526,8 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
            SEQ_TYPE_SCENE,
            SEQ_TYPE_META,
            SEQ_TYPE_MOVIECLIP,
-           SEQ_TYPE_MASK) == 0) {
+           SEQ_TYPE_MASK) == 0)
+  {
     return;
   }
 

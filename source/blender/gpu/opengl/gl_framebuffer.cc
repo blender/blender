@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -162,7 +162,8 @@ void GLFrameBuffer::update_attachments()
       continue;
     }
     GLuint gl_tex = static_cast<GLTexture *>(unwrap(attach.tex))->tex_id_;
-    if (attach.layer > -1 && GPU_texture_cube(attach.tex) && !GPU_texture_array(attach.tex)) {
+    if (attach.layer > -1 && GPU_texture_is_cube(attach.tex) && !GPU_texture_is_array(attach.tex))
+    {
       /* Could be avoided if ARB_direct_state_access is required. In this case
        * #glFramebufferTextureLayer would bind the correct face. */
       GLenum gl_target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + attach.layer;

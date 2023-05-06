@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+ * Copyright 2005 Blender Foundation */
 
 /** \file
  * \ingroup shdnodes
@@ -136,7 +136,7 @@ void register_node_type_sh_valtorgb()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER);
+  sh_fn_node_type_base(&ntype, SH_NODE_VALTORGB, "Color Ramp", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_valtorgb_declare;
   ntype.initfunc = file_ns::node_shader_init_valtorgb;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 #include "node_shader_util.hh"
 
@@ -30,7 +30,7 @@ void register_node_type_sh_brightcontrast()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR);
+  sh_node_type_base(&ntype, SH_NODE_BRIGHTCONTRAST, "Brightness/Contrast", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::gpu_shader_brightcontrast;
 

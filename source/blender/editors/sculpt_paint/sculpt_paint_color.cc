@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup edsculpt
@@ -11,6 +11,7 @@
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_task.h"
+#include "BLI_vector.hh"
 
 #include "DNA_meshdata_types.h"
 
@@ -31,6 +32,8 @@
 
 #include <cmath>
 #include <cstdlib>
+
+using blender::Vector;
 
 static void do_color_smooth_task_cb_exec(void *__restrict userdata,
                                          const int n,
@@ -252,13 +255,11 @@ static void sample_wet_paint_reduce(const void *__restrict /*userdata*/,
 void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
                            Sculpt *sd,
                            Object *ob,
-                           PBVHNode **nodes,
-                           int totnode,
-                           PBVHNode **texnodes,
-                           int texnodes_num)
+                           Span<PBVHNode *> nodes,
+                           Span<PBVHNode *> texnodes)
 {
   if (SCULPT_use_image_paint_brush(paint_mode_settings, ob)) {
-    SCULPT_do_paint_brush_image(paint_mode_settings, sd, ob, texnodes, texnodes_num);
+    SCULPT_do_paint_brush_image(paint_mode_settings, sd, ob, texnodes);
     return;
   }
 
@@ -278,30 +279,13 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
 
   BKE_curvemapping_init(brush->curve);
 
-  float area_no[3];
   float mat[4][4];
-  float scale[4][4];
-  float tmat[4][4];
 
   /* If the brush is round the tip does not need to be aligned to the surface, so this saves a
    * whole iteration over the affected nodes. */
   if (brush->tip_roundness < 1.0f) {
-    SCULPT_calc_area_normal(sd, ob, nodes, totnode, area_no);
+    SCULPT_cube_tip_init(sd, ob, brush, mat);
 
-    cross_v3_v3v3(mat[0], area_no, ss->cache->grab_delta_symmetry);
-    mat[0][3] = 0;
-    cross_v3_v3v3(mat[1], area_no, mat[0]);
-    mat[1][3] = 0;
-    copy_v3_v3(mat[2], area_no);
-    mat[2][3] = 0;
-    copy_v3_v3(mat[3], ss->cache->location);
-    mat[3][3] = 1;
-    normalize_m4(mat);
-
-    scale_m4_fl(scale, ss->cache->radius);
-    mul_m4_m4m4(tmat, mat, scale);
-    mul_v3_fl(tmat[1], brush->tip_scale_x);
-    invert_m4_m4(mat, tmat);
     if (is_zero_m4(mat)) {
       return;
     }
@@ -317,8 +301,8 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
     data.mat = mat;
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    BLI_task_parallel_range(0, totnode, &data, do_color_smooth_task_cb_exec, &settings);
+    BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+    BLI_task_parallel_range(0, nodes.size(), &data, do_color_smooth_task_cb_exec, &settings);
     return;
   }
 
@@ -338,11 +322,12 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
     zero_v4(swptd.color);
 
     TaskParallelSettings settings_sample;
-    BKE_pbvh_parallel_range_settings(&settings_sample, true, totnode);
+    BKE_pbvh_parallel_range_settings(&settings_sample, true, nodes.size());
     settings_sample.func_reduce = sample_wet_paint_reduce;
     settings_sample.userdata_chunk = &swptd;
     settings_sample.userdata_chunk_size = sizeof(SampleWetPaintTLSData);
-    BLI_task_parallel_range(0, totnode, &task_data, do_sample_wet_paint_task_cb, &settings_sample);
+    BLI_task_parallel_range(
+        0, nodes.size(), &task_data, do_sample_wet_paint_task_cb, &settings_sample);
 
     if (swptd.tot_samples > 0 && is_finite_v4(swptd.color)) {
       copy_v4_v4(wet_color, swptd.color);
@@ -371,8 +356,8 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
   data.mat = mat;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_paint_brush_task_cb_ex, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+  BLI_task_parallel_range(0, nodes.size(), &data, do_paint_brush_task_cb_ex, &settings);
 }
 
 static void do_smear_brush_task_cb_exec(void *__restrict userdata,
@@ -542,7 +527,7 @@ static void do_smear_store_prev_colors_task_cb_exec(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
@@ -571,15 +556,16 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   data.nodes = nodes;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
 
   /* Smooth colors mode. */
   if (ss->cache->alt_smooth) {
-    BLI_task_parallel_range(0, totnode, &data, do_color_smooth_task_cb_exec, &settings);
+    BLI_task_parallel_range(0, nodes.size(), &data, do_color_smooth_task_cb_exec, &settings);
   }
   else {
     /* Smear mode. */
-    BLI_task_parallel_range(0, totnode, &data, do_smear_store_prev_colors_task_cb_exec, &settings);
-    BLI_task_parallel_range(0, totnode, &data, do_smear_brush_task_cb_exec, &settings);
+    BLI_task_parallel_range(
+        0, nodes.size(), &data, do_smear_store_prev_colors_task_cb_exec, &settings);
+    BLI_task_parallel_range(0, nodes.size(), &data, do_smear_brush_task_cb_exec, &settings);
   }
 }

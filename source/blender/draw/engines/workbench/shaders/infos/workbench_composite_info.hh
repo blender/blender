@@ -77,7 +77,8 @@ GPU_SHADER_CREATE_INFO(workbench_next_resolve_curvature)
 GPU_SHADER_CREATE_INFO(workbench_next_resolve_cavity)
     .define("WORKBENCH_CAVITY")
 
-    /* TODO(@pragma37): GPU_SAMPLER_REPEAT is set in CavityEffect, it doesn't work here? */
+    /* TODO(@pragma37): GPU_SAMPLER_EXTEND_MODE_REPEAT is set in CavityEffect,
+     * it doesn't work here? */
     .sampler(8, ImageType::FLOAT_2D, "jitter_tx")
 
     .uniform_buf(5, "vec4", "cavity_samples[512]");

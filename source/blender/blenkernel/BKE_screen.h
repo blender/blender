@@ -155,6 +155,14 @@ typedef struct wmRegionMessageSubscribeParams {
   struct ARegion *region;
 } wmRegionMessageSubscribeParams;
 
+typedef struct RegionPollParams {
+  const struct bScreen *screen;
+  const struct ScrArea *area;
+  const struct ARegion *region;
+
+  /* For now only WM context members here, could add the scene or even #bContext if needed. */
+} RegionPollParams;
+
 typedef struct ARegionType {
   struct ARegionType *next, *prev;
 
@@ -164,6 +172,13 @@ typedef struct ARegionType {
   void (*init)(struct wmWindowManager *wm, struct ARegion *region);
   /* exit is called when the region is hidden or removed */
   void (*exit)(struct wmWindowManager *wm, struct ARegion *region);
+  /**
+   * Optional callback to decide whether the region should be treated as existing given the
+   * current context. When returning false, the region will be kept in storage, but is not
+   * available to the user in any way. Callbacks can assume that context has the owning area and
+   * space-data set.
+   */
+  bool (*poll)(const RegionPollParams *params);
   /* draw entirely, view changes should be handled here */
   void (*draw)(const struct bContext *C, struct ARegion *region);
   /**
@@ -559,6 +574,7 @@ bool BKE_screen_area_map_blend_read_data(struct BlendDataReader *reader,
                                          struct ScrAreaMap *area_map);
 /**
  * And as patch for 2.48 and older.
+ * For the saved 2.50 files without `regiondata`.
  */
 void BKE_screen_view3d_do_versions_250(struct View3D *v3d, ListBase *regions);
 void BKE_screen_area_blend_read_lib(struct BlendLibReader *reader,

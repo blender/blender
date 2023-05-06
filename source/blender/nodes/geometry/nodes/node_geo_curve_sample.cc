@@ -43,15 +43,15 @@ static void node_declare(NodeDeclarationBuilder &b)
     node_storage(node).use_all_curves = false;
   });
 
-  b.add_output<decl::Float>(N_("Value"), "Value_Float").dependent_field();
-  b.add_output<decl::Int>(N_("Value"), "Value_Int").dependent_field();
-  b.add_output<decl::Vector>(N_("Value"), "Value_Vector").dependent_field();
-  b.add_output<decl::Color>(N_("Value"), "Value_Color").dependent_field();
-  b.add_output<decl::Bool>(N_("Value"), "Value_Bool").dependent_field();
+  b.add_output<decl::Float>(N_("Value"), "Value_Float").dependent_field({6, 7, 8});
+  b.add_output<decl::Int>(N_("Value"), "Value_Int").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>(N_("Value"), "Value_Vector").dependent_field({6, 7, 8});
+  b.add_output<decl::Color>(N_("Value"), "Value_Color").dependent_field({6, 7, 8});
+  b.add_output<decl::Bool>(N_("Value"), "Value_Bool").dependent_field({6, 7, 8});
 
-  b.add_output<decl::Vector>(N_("Position")).dependent_field();
-  b.add_output<decl::Vector>(N_("Tangent")).dependent_field();
-  b.add_output<decl::Vector>(N_("Normal")).dependent_field();
+  b.add_output<decl::Vector>(N_("Position")).dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>(N_("Tangent")).dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>(N_("Normal")).dependent_field({6, 7, 8});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -282,13 +282,13 @@ class SampleCurveFunction : public mf::MultiFunction {
 
     auto return_default = [&]() {
       if (!sampled_positions.is_empty()) {
-        sampled_positions.fill_indices(mask, {0, 0, 0});
+        sampled_positions.fill_indices(mask.indices(), {0, 0, 0});
       }
       if (!sampled_tangents.is_empty()) {
-        sampled_tangents.fill_indices(mask, {0, 0, 0});
+        sampled_tangents.fill_indices(mask.indices(), {0, 0, 0});
       }
       if (!sampled_normals.is_empty()) {
-        sampled_normals.fill_indices(mask, {0, 0, 0});
+        sampled_normals.fill_indices(mask.indices(), {0, 0, 0});
       }
     };
 
@@ -325,18 +325,18 @@ class SampleCurveFunction : public mf::MultiFunction {
 
     auto fill_invalid = [&](const IndexMask mask) {
       if (!sampled_positions.is_empty()) {
-        sampled_positions.fill_indices(mask, float3(0));
+        sampled_positions.fill_indices(mask.indices(), float3(0));
       }
       if (!sampled_tangents.is_empty()) {
-        sampled_tangents.fill_indices(mask, float3(0));
+        sampled_tangents.fill_indices(mask.indices(), float3(0));
       }
       if (!sampled_normals.is_empty()) {
-        sampled_normals.fill_indices(mask, float3(0));
+        sampled_normals.fill_indices(mask.indices(), float3(0));
       }
       if (!sampled_values.is_empty()) {
-        attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
+        bke::attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
           using T = decltype(dummy);
-          sampled_values.typed<T>().fill_indices(mask, {});
+          sampled_values.typed<T>().fill_indices(mask.indices(), {});
         });
       }
     };
@@ -384,7 +384,7 @@ class SampleCurveFunction : public mf::MultiFunction {
         source_data_->materialize_compressed_to_uninitialized(points, src_original_values.data());
         src_evaluated_values.reinitialize(evaluated_points.size());
         curves.interpolate_to_evaluated(curve_i, src_original_values, src_evaluated_values);
-        attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
+        bke::attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
           using T = decltype(dummy);
           const Span<T> src_evaluated_values_typed = src_evaluated_values.as_span().typed<T>();
           MutableSpan<T> sampled_values_typed = sampled_values.typed<T>();

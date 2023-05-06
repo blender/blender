@@ -20,7 +20,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_paint.h"
 
@@ -95,9 +95,7 @@ struct SnakeHookOperatorExecutor {
   float2 brush_pos_re_;
   float2 brush_pos_diff_re_;
 
-  SnakeHookOperatorExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  SnakeHookOperatorExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(SnakeHookOperation &self,
                const bContext &C,
@@ -125,7 +123,7 @@ struct SnakeHookOperatorExecutor {
 
     transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
-    curve_factors_ = curves_->attributes().lookup_or_default(
+    curve_factors_ = *curves_->attributes().lookup_or_default(
         ".selection", ATTR_DOMAIN_CURVE, 1.0f);
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 

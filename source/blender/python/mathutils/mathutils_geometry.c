@@ -67,20 +67,23 @@ static PyObject *M_Geometry_intersect_ray_tri(PyObject *UNUSED(self), PyObject *
                         &py_ray,
                         &py_ray_off,
                         PyC_ParseBool,
-                        &clip)) {
+                        &clip))
+  {
     return NULL;
   }
 
   if (((mathutils_array_parse(dir, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_ray, error_prefix) !=
         -1) &&
        (mathutils_array_parse(
-            orig, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_ray_off, error_prefix) != -1)) == 0) {
+            orig, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_ray_off, error_prefix) != -1)) == 0)
+  {
     return NULL;
   }
 
   for (i = 0; i < ARRAY_SIZE(tri); i++) {
     if (mathutils_array_parse(
-            tri[i], 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_tri[i], error_prefix) == -1) {
+            tri[i], 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_tri[i], error_prefix) == -1)
+    {
       return NULL;
     }
   }
@@ -181,7 +184,8 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
                               ix_vec_num,
                               ix_vec_num | MU_ARRAY_SPILL | MU_ARRAY_ZERO,
                               py_lines[3],
-                              error_prefix) != -1)) == 0) {
+                              error_prefix) != -1)) == 0)
+  {
     return NULL;
   }
 
@@ -238,13 +242,14 @@ static PyObject *M_Geometry_intersect_sphere_sphere_2d(PyObject *UNUSED(self), P
   float v_ab[2];
   float dist;
 
-  if (!PyArg_ParseTuple(
-          args, "OfOf:intersect_sphere_sphere_2d", &py_v_a, &rad_a, &py_v_b, &rad_b)) {
+  if (!PyArg_ParseTuple(args, "OfOf:intersect_sphere_sphere_2d", &py_v_a, &rad_a, &py_v_b, &rad_b))
+  {
     return NULL;
   }
 
   if (((mathutils_array_parse(v_a, 2, 2, py_v_a, error_prefix) != -1) &&
-       (mathutils_array_parse(v_b, 2, 2, py_v_b, error_prefix) != -1)) == 0) {
+       (mathutils_array_parse(v_b, 2, 2, py_v_b, error_prefix) != -1)) == 0)
+  {
     return NULL;
   }
 
@@ -258,7 +263,8 @@ static PyObject *M_Geometry_intersect_sphere_sphere_2d(PyObject *UNUSED(self), P
       /* fully-contained in the other */
       (dist < fabsf(rad_a - rad_b)) ||
       /* co-incident */
-      (dist < FLT_EPSILON)) {
+      (dist < FLT_EPSILON))
+  {
     /* out of range */
     PyTuple_SET_ITEMS(ret, Py_INCREF_RET(Py_None), Py_INCREF_RET(Py_None));
   }
@@ -302,14 +308,16 @@ static PyObject *M_Geometry_intersect_tri_tri_2d(PyObject *UNUSED(self), PyObjec
                         &tri_pair_py[0][2],
                         &tri_pair_py[1][0],
                         &tri_pair_py[1][1],
-                        &tri_pair_py[1][2])) {
+                        &tri_pair_py[1][2]))
+  {
     return NULL;
   }
 
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < 3; j++) {
       if (mathutils_array_parse(
-              tri_pair[i][j], 2, 2 | MU_ARRAY_SPILL, tri_pair_py[i][j], error_prefix) == -1) {
+              tri_pair[i][j], 2, 2 | MU_ARRAY_SPILL, tri_pair_py[i][j], error_prefix) == -1)
+      {
         return NULL;
       }
     }
@@ -340,7 +348,8 @@ static PyObject *M_Geometry_normal(PyObject *UNUSED(self), PyObject *args)
   }
 
   if ((coords_len = mathutils_array_parse_alloc_v(
-           (float **)&coords, 3 | MU_ARRAY_SPILL, args, "normal")) == -1) {
+           (float **)&coords, 3 | MU_ARRAY_SPILL, args, "normal")) == -1)
+  {
     return NULL;
   }
 
@@ -384,7 +393,8 @@ static PyObject *M_Geometry_area_tri(PyObject *UNUSED(self), PyObject *args)
 
   if ((((len = mathutils_array_parse(tri[0], 2, 3, py_tri[0], error_prefix)) != -1) &&
        (mathutils_array_parse(tri[1], len, len, py_tri[1], error_prefix) != -1) &&
-       (mathutils_array_parse(tri[2], len, len, py_tri[2], error_prefix) != -1)) == 0) {
+       (mathutils_array_parse(tri[2], len, len, py_tri[2], error_prefix) != -1)) == 0)
+  {
     return NULL;
   }
 
@@ -501,7 +511,8 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
                         &py_plane_co,
                         &py_plane_no,
                         PyC_ParseBool,
-                        &no_flip)) {
+                        &no_flip))
+  {
     return NULL;
   }
 
@@ -509,7 +520,8 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
        (mathutils_array_parse(line_b, 3, 3 | MU_ARRAY_SPILL, py_line_b, error_prefix) != -1) &&
        (mathutils_array_parse(plane_co, 3, 3 | MU_ARRAY_SPILL, py_plane_co, error_prefix) != -1) &&
        (mathutils_array_parse(plane_no, 3, 3 | MU_ARRAY_SPILL, py_plane_no, error_prefix) !=
-        -1)) == 0) {
+        -1)) == 0)
+  {
     return NULL;
   }
 
@@ -554,7 +566,8 @@ static PyObject *M_Geometry_intersect_plane_plane(PyObject *UNUSED(self), PyObje
                         &py_plane_a_co,
                         &py_plane_a_no,
                         &py_plane_b_co,
-                        &py_plane_b_no)) {
+                        &py_plane_b_no))
+  {
     return NULL;
   }
 
@@ -565,7 +578,8 @@ static PyObject *M_Geometry_intersect_plane_plane(PyObject *UNUSED(self), PyObje
        (mathutils_array_parse(plane_b_co, 3, 3 | MU_ARRAY_SPILL, py_plane_b_co, error_prefix) !=
         -1) &&
        (mathutils_array_parse(plane_b_no, 3, 3 | MU_ARRAY_SPILL, py_plane_b_no, error_prefix) !=
-        -1)) == 0) {
+        -1)) == 0)
+  {
     return NULL;
   }
 
@@ -624,14 +638,16 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
                         &py_sphere_co,
                         &sphere_radius,
                         PyC_ParseBool,
-                        &clip)) {
+                        &clip))
+  {
     return NULL;
   }
 
   if (((mathutils_array_parse(line_a, 3, 3 | MU_ARRAY_SPILL, py_line_a, error_prefix) != -1) &&
        (mathutils_array_parse(line_b, 3, 3 | MU_ARRAY_SPILL, py_line_b, error_prefix) != -1) &&
        (mathutils_array_parse(sphere_co, 3, 3 | MU_ARRAY_SPILL, py_sphere_co, error_prefix) !=
-        -1)) == 0) {
+        -1)) == 0)
+  {
     return NULL;
   }
 
@@ -644,18 +660,21 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
   switch (isect_line_sphere_v3(line_a, line_b, sphere_co, sphere_radius, isect_a, isect_b)) {
     case 1:
       if (!(!clip || (((lambda = line_point_factor_v3(isect_a, line_a, line_b)) >= 0.0f) &&
-                      (lambda <= 1.0f)))) {
+                      (lambda <= 1.0f))))
+      {
         use_a = false;
       }
       use_b = false;
       break;
     case 2:
       if (!(!clip || (((lambda = line_point_factor_v3(isect_a, line_a, line_b)) >= 0.0f) &&
-                      (lambda <= 1.0f)))) {
+                      (lambda <= 1.0f))))
+      {
         use_a = false;
       }
       if (!(!clip || (((lambda = line_point_factor_v3(isect_b, line_a, line_b)) >= 0.0f) &&
-                      (lambda <= 1.0f)))) {
+                      (lambda <= 1.0f))))
+      {
         use_b = false;
       }
       break;
@@ -709,14 +728,16 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyO
                         &py_sphere_co,
                         &sphere_radius,
                         PyC_ParseBool,
-                        &clip)) {
+                        &clip))
+  {
     return NULL;
   }
 
   if (((mathutils_array_parse(line_a, 2, 2 | MU_ARRAY_SPILL, py_line_a, error_prefix) != -1) &&
        (mathutils_array_parse(line_b, 2, 2 | MU_ARRAY_SPILL, py_line_b, error_prefix) != -1) &&
        (mathutils_array_parse(sphere_co, 2, 2 | MU_ARRAY_SPILL, py_sphere_co, error_prefix) !=
-        -1)) == 0) {
+        -1)) == 0)
+  {
     return NULL;
   }
 
@@ -729,18 +750,21 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyO
   switch (isect_line_sphere_v2(line_a, line_b, sphere_co, sphere_radius, isect_a, isect_b)) {
     case 1:
       if (!(!clip || (((lambda = line_point_factor_v2(isect_a, line_a, line_b)) >= 0.0f) &&
-                      (lambda <= 1.0f)))) {
+                      (lambda <= 1.0f))))
+      {
         use_a = false;
       }
       use_b = false;
       break;
     case 2:
       if (!(!clip || (((lambda = line_point_factor_v2(isect_a, line_a, line_b)) >= 0.0f) &&
-                      (lambda <= 1.0f)))) {
+                      (lambda <= 1.0f))))
+      {
         use_a = false;
       }
       if (!(!clip || (((lambda = line_point_factor_v2(isect_b, line_a, line_b)) >= 0.0f) &&
-                      (lambda <= 1.0f)))) {
+                      (lambda <= 1.0f))))
+      {
         use_b = false;
       }
       break;
@@ -790,7 +814,8 @@ static PyObject *M_Geometry_intersect_point_line(PyObject *UNUSED(self), PyObjec
        (mathutils_array_parse(
             line_a, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_line_a, error_prefix) != -1) &&
        (mathutils_array_parse(
-            line_b, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_line_b, error_prefix) != -1)) == 0) {
+            line_b, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_line_b, error_prefix) != -1)) == 0)
+  {
     return NULL;
   }
 
@@ -830,13 +855,14 @@ static PyObject *M_Geometry_intersect_point_tri(PyObject *UNUSED(self), PyObject
     return NULL;
   }
 
-  if (mathutils_array_parse(pt, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_pt, error_prefix) ==
-      -1) {
+  if (mathutils_array_parse(pt, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_pt, error_prefix) == -1)
+  {
     return NULL;
   }
   for (i = 0; i < ARRAY_SIZE(tri); i++) {
     if (mathutils_array_parse(
-            tri[i], 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_tri[i], error_prefix) == -1) {
+            tri[i], 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_tri[i], error_prefix) == -1)
+    {
       return NULL;
     }
   }
@@ -875,13 +901,14 @@ static PyObject *M_Geometry_closest_point_on_tri(PyObject *UNUSED(self), PyObjec
     return NULL;
   }
 
-  if (mathutils_array_parse(pt, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_pt, error_prefix) ==
-      -1) {
+  if (mathutils_array_parse(pt, 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_pt, error_prefix) == -1)
+  {
     return NULL;
   }
   for (i = 0; i < ARRAY_SIZE(tri); i++) {
     if (mathutils_array_parse(
-            tri[i], 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_tri[i], error_prefix) == -1) {
+            tri[i], 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_tri[i], error_prefix) == -1)
+    {
       return NULL;
     }
   }
@@ -1000,7 +1027,8 @@ static PyObject *M_Geometry_distance_point_to_plane(PyObject *UNUSED(self), PyOb
   if (((mathutils_array_parse(pt, 3, 3 | MU_ARRAY_SPILL, py_pt, error_prefix) != -1) &&
        (mathutils_array_parse(plane_co, 3, 3 | MU_ARRAY_SPILL, py_plane_co, error_prefix) != -1) &&
        (mathutils_array_parse(plane_no, 3, 3 | MU_ARRAY_SPILL, py_plane_no, error_prefix) !=
-        -1)) == 0) {
+        -1)) == 0)
+  {
     return NULL;
   }
 
@@ -1041,7 +1069,8 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
                         "OOOOOOO:barycentric_transform",
                         &py_pt_src,
                         UNPACK3_EX(&, py_tri_src, ),
-                        UNPACK3_EX(&, py_tri_dst, ))) {
+                        UNPACK3_EX(&, py_tri_dst, )))
+  {
     return NULL;
   }
 
@@ -1052,7 +1081,8 @@ static PyObject *M_Geometry_barycentric_transform(PyObject *UNUSED(self), PyObje
     if (((mathutils_array_parse(tri_src[i], 3, 3 | MU_ARRAY_SPILL, py_tri_src[i], error_prefix) !=
           -1) &&
          (mathutils_array_parse(tri_dst[i], 3, 3 | MU_ARRAY_SPILL, py_tri_dst[i], error_prefix) !=
-          -1)) == 0) {
+          -1)) == 0)
+    {
       return NULL;
     }
   }
@@ -1098,7 +1128,8 @@ static PyObject *M_Geometry_points_in_planes(PyObject *UNUSED(self), PyObject *a
   }
 
   if ((planes_len = mathutils_array_parse_alloc_v(
-           (float **)&planes, 4, py_planes, "points_in_planes")) == -1) {
+           (float **)&planes, 4, py_planes, "points_in_planes")) == -1)
+  {
     return NULL;
   }
 
@@ -1175,7 +1206,8 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject 
   for (i = 0; i < 4; i++) {
     int dims_tmp;
     if ((dims_tmp = mathutils_array_parse(
-             data[i], 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_data[i], error_prefix)) == -1) {
+             data[i], 2, 3 | MU_ARRAY_SPILL | MU_ARRAY_ZERO, py_data[i], error_prefix)) == -1)
+    {
       return NULL;
     }
     dims = max_ii(dims, dims_tmp);
@@ -1404,8 +1436,9 @@ static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlis
       return NULL; /* exception set */
     }
 
+    const bool sort_boxes = true; /* Caution: BLI_box_pack_2d sorting is non-deterministic. */
     /* Non Python function */
-    BLI_box_pack_2d(boxarray, len, &tot_width, &tot_height);
+    BLI_box_pack_2d(boxarray, len, sort_boxes, &tot_width, &tot_height);
 
     boxPack_ToPyObject(boxlist, boxarray);
     MEM_freeN(boxarray);
@@ -1596,7 +1629,8 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject *UNUSED(self), PyObject *ar
                         &faces,
                         &output_type,
                         &epsilon,
-                        &need_ids)) {
+                        &need_ids))
+  {
     return NULL;
   }
 
@@ -1804,6 +1838,7 @@ static struct PyModuleDef M_Geometry_module_def = {
 };
 
 /*----------------------------MODULE INIT-------------------------*/
+
 PyMODINIT_FUNC PyInit_mathutils_geometry(void)
 {
   PyObject *submodule = PyModule_Create(&M_Geometry_module_def);

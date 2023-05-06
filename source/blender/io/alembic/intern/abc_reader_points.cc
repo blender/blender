@@ -15,7 +15,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 
 using Alembic::AbcGeom::kWrapExisting;
@@ -134,7 +134,7 @@ struct Mesh *AbcPointsReader::read_mesh(struct Mesh *existing_mesh,
   Mesh *new_mesh = nullptr;
 
   if (existing_mesh->totvert != positions->size()) {
-    new_mesh = BKE_mesh_new_nomain(positions->size(), 0, 0, 0, 0);
+    new_mesh = BKE_mesh_new_nomain(positions->size(), 0, 0, 0);
   }
 
   Mesh *mesh_to_export = new_mesh ? new_mesh : existing_mesh;

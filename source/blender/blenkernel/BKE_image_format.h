@@ -29,7 +29,7 @@ void BKE_image_format_blend_write(struct BlendWriter *writer, struct ImageFormat
 
 /* File Paths */
 
-void BKE_image_path_from_imformat(char *string,
+void BKE_image_path_from_imformat(char *filepath,
                                   const char *base,
                                   const char *relbase,
                                   int frame,
@@ -37,7 +37,7 @@ void BKE_image_path_from_imformat(char *string,
                                   bool use_ext,
                                   bool use_frames,
                                   const char *suffix);
-void BKE_image_path_from_imtype(char *string,
+void BKE_image_path_from_imtype(char *filepath,
                                 const char *base,
                                 const char *relbase,
                                 int frame,
@@ -45,8 +45,9 @@ void BKE_image_path_from_imtype(char *string,
                                 bool use_ext,
                                 bool use_frames,
                                 const char *suffix);
-int BKE_image_path_ensure_ext_from_imformat(char *string, const struct ImageFormatData *im_format);
-int BKE_image_path_ensure_ext_from_imtype(char *string, char imtype);
+int BKE_image_path_ensure_ext_from_imformat(char *filepath,
+                                            const struct ImageFormatData *im_format);
+int BKE_image_path_ensure_ext_from_imtype(char *filepath, char imtype);
 
 /* File Types */
 

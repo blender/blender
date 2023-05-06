@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+ * Copyright 2009 Blender Foundation */
 
 /** \file
  * \ingroup spview3d
@@ -103,7 +103,8 @@ bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBase *lb,
     if (umi->type == USER_MENU_TYPE_OPERATOR) {
       bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
       if (STREQ(ot->idname, umi_op->op_idname) && (opcontext == umi_op->opcontext) &&
-          IDP_EqualsProperties(prop, umi_op->prop)) {
+          IDP_EqualsProperties(prop, umi_op->prop))
+      {
         return umi_op;
       }
     }
@@ -134,7 +135,8 @@ struct bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(struct ListBase *l
     if (umi->type == USER_MENU_TYPE_PROP) {
       bUserMenuItem_Prop *umi_pr = (bUserMenuItem_Prop *)umi;
       if (STREQ(context_data_path, umi_pr->context_data_path) && STREQ(prop_id, umi_pr->prop_id) &&
-          (prop_index == umi_pr->prop_index)) {
+          (prop_index == umi_pr->prop_index))
+      {
         return umi_pr;
       }
     }
@@ -270,8 +272,8 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         if (ptr.type != NULL) {
           PropertyRNA *prop = NULL;
           PointerRNA prop_ptr = ptr;
-          if ((data_path == NULL) ||
-              RNA_path_resolve_full(&ptr, data_path, &prop_ptr, NULL, NULL)) {
+          if ((data_path == NULL) || RNA_path_resolve_full(&ptr, data_path, &prop_ptr, NULL, NULL))
+          {
             prop = RNA_struct_find_property(&prop_ptr, umi_pr->prop_id);
             if (prop) {
               ok = true;

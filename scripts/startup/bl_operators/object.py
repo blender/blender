@@ -618,7 +618,6 @@ class MakeDupliFace(Operator):
             mesh.vertices.foreach_set("co", face_verts)
             mesh.loops.foreach_set("vertex_index", faces)
             mesh.polygons.foreach_set("loop_start", range(0, nbr_faces * 4, 4))
-            mesh.polygons.foreach_set("loop_total", (4,) * nbr_faces)
             mesh.update()  # generates edge data
 
             ob_new = bpy.data.objects.new(mesh.name, mesh)
@@ -655,6 +654,11 @@ class IsolateTypeRender(Operator):
     bl_idname = "object.isolate_type_render"
     bl_label = "Restrict Render Unselected"
     bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return (ob is not None)
 
     def execute(self, context):
         act_type = context.object.type

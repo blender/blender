@@ -57,7 +57,7 @@ void get_material_image(Object *ob,
                         int material_index,
                         ::Image *&image,
                         ImageUser *&iuser,
-                        eGPUSamplerState &sampler_state);
+                        GPUSamplerState &sampler_state);
 
 struct SceneState {
   Scene *scene = nullptr;
@@ -106,7 +106,7 @@ struct ObjectState {
   bool sculpt_pbvh = false;
   bool texture_paint_mode = false;
   ::Image *image_paint_override = nullptr;
-  eGPUSamplerState override_sampler_state = GPU_SAMPLER_DEFAULT;
+  GPUSamplerState override_sampler_state = GPUSamplerState::default_sampler();
   bool draw_shadow = false;
   bool use_per_material_batches = false;
 
@@ -184,8 +184,9 @@ class MeshPass : public PassMain {
   void draw(ObjectRef &ref,
             GPUBatch *batch,
             ResourceHandle handle,
+            uint material_index,
             ::Image *image = nullptr,
-            eGPUSamplerState sampler_state = eGPUSamplerState::GPU_SAMPLER_DEFAULT,
+            GPUSamplerState sampler_state = GPUSamplerState::default_sampler(),
             ImageUser *iuser = nullptr);
 };
 

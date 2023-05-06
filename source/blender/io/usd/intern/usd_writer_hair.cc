@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 #include "usd_writer_hair.h"
 #include "usd_hierarchy_iterator.h"
 
@@ -17,9 +17,7 @@
 
 namespace blender::io::usd {
 
-USDHairWriter::USDHairWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
-{
-}
+USDHairWriter::USDHairWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
 // This was copied from source/intern/cycles/blender/blender_curves.cpp
 static float shaperadius(float shape, float root, float tip, float time)

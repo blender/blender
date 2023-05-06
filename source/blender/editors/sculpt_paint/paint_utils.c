@@ -272,9 +272,10 @@ static void imapaint_pick_uv(
 
   const MLoopTri *lt = BKE_mesh_runtime_looptri_ensure(me_eval);
   const int tottri = BKE_mesh_runtime_looptri_len(me_eval);
+  const int *looptri_polys = BKE_mesh_runtime_looptri_polys_ensure(me_eval);
 
   const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
-  const MLoop *mloop = BKE_mesh_loops(me_eval);
+  const int *corner_verts = BKE_mesh_corner_verts(me_eval);
   const int *index_mp_to_orig = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
   /* get the needed opengl matrices */
@@ -294,7 +295,8 @@ static void imapaint_pick_uv(
   /* test all faces in the derivedmesh with the original index of the picked face */
   /* face means poly here, not triangle, indeed */
   for (i = 0; i < tottri; i++, lt++) {
-    findex = index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
+    const int poly_i = looptri_polys[i];
+    findex = index_mp_to_orig ? index_mp_to_orig[poly_i] : poly_i;
 
     if (findex == faceindex) {
       const float(*mloopuv)[2];
@@ -302,20 +304,21 @@ static void imapaint_pick_uv(
       float tri_co[3][3];
 
       for (int j = 3; j--;) {
-        copy_v3_v3(tri_co[j], positions[mloop[lt->tri[j]].v]);
+        copy_v3_v3(tri_co[j], positions[corner_verts[lt->tri[j]]]);
       }
 
       if (mode == PAINT_CANVAS_SOURCE_MATERIAL) {
         const Material *ma;
         const TexPaintSlot *slot;
 
-        ma = BKE_object_material_get(
-            ob_eval, material_indices == NULL ? 1 : material_indices[lt->poly] + 1);
+        ma = BKE_object_material_get(ob_eval,
+                                     material_indices == NULL ? 1 : material_indices[poly_i] + 1);
         slot = &ma->texpaintslot[ma->paint_active_slot];
 
         if (!(slot && slot->uvname &&
               (mloopuv = CustomData_get_layer_named(
-                   &me_eval->ldata, CD_PROP_FLOAT2, slot->uvname)))) {
+                   &me_eval->ldata, CD_PROP_FLOAT2, slot->uvname))))
+        {
           mloopuv = CustomData_get_layer(&me_eval->ldata, CD_PROP_FLOAT2);
         }
       }
@@ -537,7 +540,7 @@ void paint_sample_color(
   /* No sample found; sample directly from the GPU front buffer. */
   {
     float rgba_f[4];
-    GPU_frontbuffer_read_pixels(
+    GPU_frontbuffer_read_color(
         x + region->winrct.xmin, y + region->winrct.ymin, 1, 1, 4, GPU_DATA_FLOAT, &rgba_f);
 
     if (use_palette) {
@@ -693,6 +696,68 @@ void PAINT_OT_face_select_all(wmOperatorType *ot)
   WM_operator_properties_select_all(ot);
 }
 
+static int paint_select_more_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  Mesh *mesh = BKE_mesh_from_object(ob);
+  if (mesh == NULL || mesh->totpoly == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const bool face_step = RNA_boolean_get(op->ptr, "face_step");
+  paintface_select_more(mesh, face_step);
+  paintface_flush_flags(C, ob, true, false);
+
+  ED_region_tag_redraw(CTX_wm_region(C));
+  return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_face_select_more(wmOperatorType *ot)
+{
+  ot->name = "Select More";
+  ot->description = "Select Faces connected to existing selection";
+  ot->idname = "PAINT_OT_face_select_more";
+
+  ot->exec = paint_select_more_exec;
+  ot->poll = facemask_paint_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(
+      ot->srna, "face_step", true, "Face Step", "Also select faces that only touch on a corner");
+}
+
+static int paint_select_less_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  Mesh *mesh = BKE_mesh_from_object(ob);
+  if (mesh == NULL || mesh->totpoly == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const bool face_step = RNA_boolean_get(op->ptr, "face_step");
+  paintface_select_less(mesh, face_step);
+  paintface_flush_flags(C, ob, true, false);
+
+  ED_region_tag_redraw(CTX_wm_region(C));
+  return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_face_select_less(wmOperatorType *ot)
+{
+  ot->name = "Select Less";
+  ot->description = "Deselect Faces connected to existing selection";
+  ot->idname = "PAINT_OT_face_select_less";
+
+  ot->exec = paint_select_less_exec;
+  ot->poll = facemask_paint_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(
+      ot->srna, "face_step", true, "Face Step", "Also deselect faces that only touch on a corner");
+}
+
 static int vert_select_all_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
@@ -794,6 +859,72 @@ void PAINT_OT_vert_select_linked_pick(wmOperatorType *ot)
                   true,
                   "Select",
                   "Whether to select or deselect linked vertices under the cursor");
+}
+
+static int paintvert_select_more_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  Mesh *mesh = BKE_mesh_from_object(ob);
+  if (mesh == NULL || mesh->totpoly == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const bool face_step = RNA_boolean_get(op->ptr, "face_step");
+  paintvert_select_more(mesh, face_step);
+
+  paintvert_flush_flags(ob);
+  paintvert_tag_select_update(C, ob);
+  ED_region_tag_redraw(CTX_wm_region(C));
+
+  return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_vert_select_more(wmOperatorType *ot)
+{
+  ot->name = "Select More";
+  ot->description = "Select Vertices connected to existing selection";
+  ot->idname = "PAINT_OT_vert_select_more";
+
+  ot->exec = paintvert_select_more_exec;
+  ot->poll = vert_paint_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(
+      ot->srna, "face_step", true, "Face Step", "Also select faces that only touch on a corner");
+}
+
+static int paintvert_select_less_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  Mesh *mesh = BKE_mesh_from_object(ob);
+  if (mesh == NULL || mesh->totpoly == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const bool face_step = RNA_boolean_get(op->ptr, "face_step");
+  paintvert_select_less(mesh, face_step);
+
+  paintvert_flush_flags(ob);
+  paintvert_tag_select_update(C, ob);
+  ED_region_tag_redraw(CTX_wm_region(C));
+
+  return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_vert_select_less(wmOperatorType *ot)
+{
+  ot->name = "Select Less";
+  ot->description = "Deselect Vertices connected to existing selection";
+  ot->idname = "PAINT_OT_vert_select_less";
+
+  ot->exec = paintvert_select_less_exec;
+  ot->poll = vert_paint_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(
+      ot->srna, "face_step", true, "Face Step", "Also deselect faces that only touch on a corner");
 }
 
 static int face_select_hide_exec(bContext *C, wmOperator *op)

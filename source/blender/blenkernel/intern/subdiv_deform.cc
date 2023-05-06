@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+ * Copyright 2019 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -18,8 +18,8 @@
 #include "BKE_customdata.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_eval.h"
-#include "BKE_subdiv_foreach.h"
-#include "BKE_subdiv_mesh.h"
+#include "BKE_subdiv_foreach.hh"
+#include "BKE_subdiv_mesh.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -189,7 +189,8 @@ void BKE_subdiv_deform_coarse_vertices(Subdiv *subdiv,
   /* Make sure evaluator is up to date with possible new topology, and that
    * is refined for the new positions of coarse vertices. */
   if (!BKE_subdiv_eval_begin_from_mesh(
-          subdiv, coarse_mesh, vertex_cos, SUBDIV_EVALUATOR_TYPE_CPU, nullptr)) {
+          subdiv, coarse_mesh, vertex_cos, SUBDIV_EVALUATOR_TYPE_CPU, nullptr))
+  {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
      * - Something totally bad happened, and OpenSubdiv rejected our

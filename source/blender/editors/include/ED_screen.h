@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+ * Copyright 2008 Blender Foundation */
 
 /** \file
  * \ingroup editors
@@ -292,7 +292,8 @@ void ED_screen_draw_edges(struct wmWindow *win);
  * for file read and first use, for scaling window, area moves.
  */
 void ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
-void ED_screen_ensure_updated(struct wmWindowManager *wm,
+void ED_screen_ensure_updated(struct bContext *C,
+                              struct wmWindowManager *wm,
                               struct wmWindow *win,
                               struct bScreen *screen);
 void ED_screen_do_listen(struct bContext *C, const struct wmNotifier *note);
@@ -521,9 +522,12 @@ bool ED_operator_objectmode(struct bContext *C);
  * to be displayed to the user explaining why the operator can't be used in current context.
  */
 bool ED_operator_objectmode_poll_msg(struct bContext *C);
+bool ED_operator_objectmode_with_view3d_poll_msg(struct bContext *C);
 
 bool ED_operator_view3d_active(struct bContext *C);
 bool ED_operator_region_view3d_active(struct bContext *C);
+bool ED_operator_region_gizmo_active(struct bContext *C);
+
 /**
  * Generic for any view2d which uses anim_ops.
  */

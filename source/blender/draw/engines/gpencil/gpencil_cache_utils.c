@@ -8,13 +8,13 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_view3d.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.h"
 #include "BKE_object.h"
 
@@ -49,7 +49,8 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd, Object *ob)
   for (int i = 0; i < tot_materials; i++) {
     MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, i + 1);
     if (((gp_style != NULL) && (gp_style->flag & GP_MATERIAL_IS_STROKE_HOLDOUT)) ||
-        (gp_style->flag & GP_MATERIAL_IS_FILL_HOLDOUT)) {
+        (gp_style->flag & GP_MATERIAL_IS_FILL_HOLDOUT))
+    {
       tgp_ob->do_mat_holdout = true;
       break;
     }
@@ -299,7 +300,8 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
     LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl->mask_layers) {
       bGPDlayer *gpl_mask = BKE_gpencil_layer_named_get(gpd, mask->name);
       if (gpl_mask && (gpl_mask != gpl) && ((gpl_mask->flag & GP_LAYER_HIDE) == 0) &&
-          ((mask->flag & GP_MASK_HIDE) == 0)) {
+          ((mask->flag & GP_MASK_HIDE) == 0))
+      {
         int index = BLI_findindex(&gpd->layers, gpl_mask);
         if (index < GP_MAX_MASKBITS) {
           const bool invert = (mask->flag & GP_MASK_INVERT) != 0;

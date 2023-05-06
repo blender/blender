@@ -20,6 +20,7 @@
 #include "mtl_debug.hh"
 #include "mtl_index_buffer.hh"
 #include "mtl_shader.hh"
+#include "mtl_storage_buffer.hh"
 #include "mtl_vertex_buffer.hh"
 
 #include <string>
@@ -35,6 +36,14 @@ void MTLBatch::draw(int v_first, int v_count, int i_first, int i_count)
     this->shader_in_use_ = false;
   }
   this->draw_advanced(v_first, v_count, i_first, i_count);
+}
+
+void MTLBatch::draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset)
+{
+  if (this->flag & GPU_BATCH_INVALID) {
+    this->shader_in_use_ = false;
+  }
+  this->draw_advanced_indirect(indirect_buf, offset);
 }
 
 void MTLBatch::shader_bind()
@@ -394,7 +403,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
   return -1;
 }
 
-id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_first, uint v_count, uint i_first, uint i_count)
+id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_count)
 {
   /* Setup draw call and render pipeline state here. Called by every draw, but setup here so that
    * MTLDrawList only needs to perform setup a single time. */
@@ -440,7 +449,7 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_first, uint v_count, uint i_fi
    * shader's input.
    * A unique vertex descriptor will result in a new PipelineStateObject
    * being generated for the currently bound shader. */
-  prepare_vertex_descriptor_and_bindings(buffers, num_buffers, v_first, v_count, i_first, i_count);
+  prepare_vertex_descriptor_and_bindings(buffers, num_buffers);
 
   /* Prepare Vertex Buffers - Run before RenderCommandEncoder in case BlitCommandEncoder buffer
    * data operations are required. */
@@ -583,12 +592,9 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_first, uint v_count, uint i_fi
   return rec;
 }
 
-void MTLBatch::unbind()
-{
-}
+void MTLBatch::unbind() {}
 
-void MTLBatch::prepare_vertex_descriptor_and_bindings(
-    MTLVertBuf **buffers, int &num_buffers, int v_first, int v_count, int i_first, int i_count)
+void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int &num_buffers)
 {
 
   /* Here we populate the MTLContext vertex descriptor and resolve which buffers need to be bound.
@@ -619,7 +625,7 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(
    * Vertex Descriptors are required to generate a pipeline state, based on the current Batch's
    * buffer bindings. These bindings are a unique matching, depending on what input attributes a
    * batch has in its buffers, and those which are supported by the shader interface.
-
+   *
    * We iterate through the buffers and resolve which attributes satisfy the requirements of the
    * currently bound shader. We cache this data, for a given Batch<->ShderInterface pairing in a
    * VAO cache to avoid the need to recalculate this data. */
@@ -745,8 +751,8 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
 #endif
 
   /* Setup RenderPipelineState for batch. */
-  MTLContext *ctx = reinterpret_cast<MTLContext *>(GPU_context_active_get());
-  id<MTLRenderCommandEncoder> rec = this->bind(v_first, v_count, i_first, i_count);
+  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  id<MTLRenderCommandEncoder> rec = this->bind(v_count);
   if (rec == nil) {
     return;
   }
@@ -882,6 +888,84 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
   this->unbind();
 }
 
+void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offset)
+{
+  /* Setup RenderPipelineState for batch. */
+  MTLContext *ctx = reinterpret_cast<MTLContext *>(GPU_context_active_get());
+  id<MTLRenderCommandEncoder> rec = this->bind(0);
+  if (rec == nil) {
+    printf("Failed to open Render Command encoder for DRAW INDIRECT\n");
+    return;
+  }
+
+  /* Render using SSBO Vertex Fetch not supported by Draw Indirect.
+   * NOTE: Add support? */
+  if (active_shader_->get_uses_ssbo_vertex_fetch()) {
+    printf("Draw indirect for SSBO vertex fetch disabled\n");
+    return;
+  }
+
+  /* Fetch IndexBuffer and resolve primitive type. */
+  MTLIndexBuf *mtl_elem = static_cast<MTLIndexBuf *>(reinterpret_cast<IndexBuf *>(this->elem));
+  MTLPrimitiveType mtl_prim_type = gpu_prim_type_to_metal(this->prim_type);
+
+  if (mtl_needs_topology_emulation(this->prim_type)) {
+    BLI_assert_msg(false, "Metal Topology emulation unsupported for draw indirect.\n");
+    return;
+  }
+
+  /* Fetch indirect buffer Metal handle. */
+  MTLStorageBuf *mtlssbo = static_cast<MTLStorageBuf *>(unwrap(indirect_buf));
+  id<MTLBuffer> mtl_indirect_buf = mtlssbo->get_metal_buffer();
+  BLI_assert(mtl_indirect_buf != nil);
+  if (mtl_indirect_buf == nil) {
+    MTL_LOG_WARNING("Metal Indirect Draw Storage Buffer is nil.\n");
+    return;
+  }
+
+  if (mtl_elem == NULL) {
+    /* Set depth stencil state (requires knowledge of primitive type). */
+    ctx->ensure_depth_stencil_state(mtl_prim_type);
+
+    /* Issue draw call. */
+    [rec drawPrimitives:mtl_prim_type indirectBuffer:mtl_indirect_buf indirectBufferOffset:offset];
+    ctx->main_command_buffer.register_draw_counters(1);
+  }
+  else {
+    /* Fetch index buffer. May return an index buffer of a differing format,
+     * if index buffer optimization is used. In these cases, final_prim_type and
+     * index_count get updated with the new properties. */
+    MTLIndexType index_type = MTLIndexBuf::gpu_index_type_to_metal(mtl_elem->index_type_);
+    GPUPrimType final_prim_type = this->prim_type;
+    uint index_count = 0;
+
+    id<MTLBuffer> index_buffer = mtl_elem->get_index_buffer(final_prim_type, index_count);
+    mtl_prim_type = gpu_prim_type_to_metal(final_prim_type);
+    BLI_assert(index_buffer != nil);
+
+    if (index_buffer != nil) {
+
+      /* Set depth stencil state (requires knowledge of primitive type). */
+      ctx->ensure_depth_stencil_state(mtl_prim_type);
+
+      /* Issue draw call. */
+      [rec drawIndexedPrimitives:mtl_prim_type
+                       indexType:index_type
+                     indexBuffer:index_buffer
+               indexBufferOffset:0
+                  indirectBuffer:mtl_indirect_buf
+            indirectBufferOffset:offset];
+      ctx->main_command_buffer.register_draw_counters(1);
+    }
+    else {
+      BLI_assert_msg(false, "Index buffer does not have backing Metal buffer");
+    }
+  }
+
+  /* End of draw. */
+  this->unbind();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -925,7 +1009,8 @@ id<MTLBuffer> MTLBatch::get_emulated_toplogy_buffer(GPUPrimType &in_out_prim_typ
 
   /* Check if topology buffer exists and is valid. */
   if (this->emulated_topology_buffer_ != nullptr &&
-      (emulated_topology_type_ != input_prim_type || topology_buffer_input_v_count_ != v_count)) {
+      (emulated_topology_type_ != input_prim_type || topology_buffer_input_v_count_ != v_count))
+  {
 
     /* Release existing topology buffer. */
     emulated_topology_buffer_->free();
@@ -1011,4 +1096,4 @@ id<MTLBuffer> MTLBatch::get_emulated_toplogy_buffer(GPUPrimType &in_out_prim_typ
 
 /** \} */
 
-}  // blender::gpu
+}  // namespace blender::gpu

@@ -440,7 +440,7 @@ struct UndoImageBuf {
    */
   struct UndoImageBuf *post;
 
-  char ibuf_name[IMB_FILENAME_SIZE];
+  char ibuf_filepath[IMB_FILEPATH_SIZE];
 
   UndoImageTile **tiles;
 
@@ -471,7 +471,7 @@ static UndoImageBuf *ubuf_from_image_no_tiles(Image *image, const ImBuf *ibuf)
   ubuf->tiles = static_cast<UndoImageTile **>(
       MEM_callocN(sizeof(*ubuf->tiles) * ubuf->tiles_len, __func__));
 
-  BLI_strncpy(ubuf->ibuf_name, ibuf->name, sizeof(ubuf->ibuf_name));
+  BLI_strncpy(ubuf->ibuf_filepath, ibuf->filepath, sizeof(ubuf->ibuf_filepath));
   ubuf->image_state.source = image->source;
   ubuf->image_state.use_float = ibuf->rect_float != nullptr;
 
@@ -514,7 +514,8 @@ static void ubuf_ensure_compat_ibuf(const UndoImageBuf *ubuf, ImBuf *ibuf)
   }
 
   if (ibuf->x == ubuf->image_dims[0] && ibuf->y == ubuf->image_dims[1] &&
-      (ubuf->image_state.use_float ? (void *)ibuf->rect_float : (void *)ibuf->rect)) {
+      (ubuf->image_state.use_float ? (void *)ibuf->rect_float : (void *)ibuf->rect))
+  {
     return;
   }
 
@@ -638,10 +639,10 @@ static void uhandle_free_list(ListBase *undo_handles)
 
 static UndoImageBuf *uhandle_lookup_ubuf(UndoImageHandle *uh,
                                          const Image * /*image*/,
-                                         const char *ibuf_name)
+                                         const char *ibuf_filepath)
 {
   LISTBASE_FOREACH (UndoImageBuf *, ubuf, &uh->buffers) {
-    if (STREQ(ubuf->ibuf_name, ibuf_name)) {
+    if (STREQ(ubuf->ibuf_filepath, ibuf_filepath)) {
       return ubuf;
     }
   }
@@ -650,7 +651,7 @@ static UndoImageBuf *uhandle_lookup_ubuf(UndoImageHandle *uh,
 
 static UndoImageBuf *uhandle_add_ubuf(UndoImageHandle *uh, Image *image, ImBuf *ibuf)
 {
-  BLI_assert(uhandle_lookup_ubuf(uh, image, ibuf->name) == nullptr);
+  BLI_assert(uhandle_lookup_ubuf(uh, image, ibuf->filepath) == nullptr);
   UndoImageBuf *ubuf = ubuf_from_image_no_tiles(image, ibuf);
   BLI_addtail(&uh->buffers, ubuf);
 
@@ -661,7 +662,7 @@ static UndoImageBuf *uhandle_add_ubuf(UndoImageHandle *uh, Image *image, ImBuf *
 
 static UndoImageBuf *uhandle_ensure_ubuf(UndoImageHandle *uh, Image *image, ImBuf *ibuf)
 {
-  UndoImageBuf *ubuf = uhandle_lookup_ubuf(uh, image, ibuf->name);
+  UndoImageBuf *ubuf = uhandle_lookup_ubuf(uh, image, ibuf->filepath);
   if (ubuf == nullptr) {
     ubuf = uhandle_add_ubuf(uh, image, ibuf);
   }
@@ -744,11 +745,12 @@ static UndoImageBuf *ubuf_lookup_from_reference(ImageUndoStep *us_prev,
   /* Use name lookup because the pointer is cleared for previous steps. */
   UndoImageHandle *uh_prev = uhandle_lookup_by_name(&us_prev->handles, image, tile_number);
   if (uh_prev != nullptr) {
-    UndoImageBuf *ubuf_reference = uhandle_lookup_ubuf(uh_prev, image, ubuf->ibuf_name);
+    UndoImageBuf *ubuf_reference = uhandle_lookup_ubuf(uh_prev, image, ubuf->ibuf_filepath);
     if (ubuf_reference) {
       ubuf_reference = ubuf_reference->post;
       if ((ubuf_reference->image_dims[0] == ubuf->image_dims[0]) &&
-          (ubuf_reference->image_dims[1] == ubuf->image_dims[1])) {
+          (ubuf_reference->image_dims[1] == ubuf->image_dims[1]))
+      {
         return ubuf_reference;
       }
     }
@@ -805,7 +807,7 @@ static bool image_undosys_step_encode(struct bContext *C, struct Main * /*bmain*
       us_reference = reinterpret_cast<ImageUndoStep *>(us_reference->step.prev);
     }
 
-    /* Initialize undo tiles from ptiles (if they exist). */
+    /* Initialize undo tiles from paint-tiles (if they exist). */
     for (PaintTile *ptile : us->paint_tile_map->map.values()) {
       if (ptile->valid) {
         UndoImageHandle *uh = uhandle_ensure(&us->handles, ptile->image, &ptile->iuser);
@@ -837,7 +839,8 @@ static bool image_undosys_step_encode(struct bContext *C, struct Main * /*bmain*
         UndoImageBuf *ubuf_post = ubuf_pre->post;
 
         if (ubuf_pre->image_dims[0] != ubuf_post->image_dims[0] ||
-            ubuf_pre->image_dims[1] != ubuf_post->image_dims[1]) {
+            ubuf_pre->image_dims[1] != ubuf_post->image_dims[1])
+        {
           ubuf_from_image_all_tiles(ubuf_post, ibuf);
         }
         else {
@@ -857,7 +860,8 @@ static bool image_undosys_step_encode(struct bContext *C, struct Main * /*bmain*
                   ((ubuf_pre->tiles[i] == nullptr) ||
                    /* In this case the paint stroke as has added a tile
                     * which we have a duplicate reference available. */
-                   (ubuf_pre->tiles[i]->users == 1))) {
+                   (ubuf_pre->tiles[i]->users == 1)))
+              {
                 if (ubuf_pre->tiles[i] != nullptr) {
                   /* If we have a reference, re-use this single use tile for the post state. */
                   BLI_assert(ubuf_pre->tiles[i]->users == 1);

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+ * Copyright 2017 Blender Foundation */
 
 #pragma once
 
@@ -34,18 +34,21 @@ typedef bool (*UniquenameCheckCallback)(void *arg, const char *name);
  * \param delim: Delimiter character`.
  * \return Length of \a left.
  */
-size_t BLI_split_name_num(char *left, int *nr, const char *name, char delim);
-bool BLI_string_is_decimal(const char *string) ATTR_NONNULL();
+size_t BLI_string_split_name_number(const char *name, char delim, char *r_name_left, int *r_number)
+    ATTR_NONNULL(1, 3, 4);
+bool BLI_string_is_decimal(const char *string) ATTR_NONNULL(1);
 
 /**
- * Based on `BLI_split_dirfile()` / `os.path.splitext()`,
+ * Based on `BLI_path_split_dir_file()` / `os.path.splitext()`,
  * `"a.b.c"` -> (`"a.b"`, `".c"`).
  */
-void BLI_string_split_suffix(const char *string, char *r_body, char *r_suf, size_t str_len);
+void BLI_string_split_suffix(const char *string, size_t string_maxlen, char *r_body, char *r_suf)
+    ATTR_NONNULL(1, 3, 4);
 /**
  * `"a.b.c"` -> (`"a."`, `"b.c"`).
  */
-void BLI_string_split_prefix(const char *string, char *r_pre, char *r_body, size_t str_len);
+void BLI_string_split_prefix(const char *string, size_t string_maxlen, char *r_pre, char *r_body)
+    ATTR_NONNULL(1, 3, 4);
 
 /**
  * A version of #BLI_string_join_array_by_sep_charN that takes a table array.
@@ -54,7 +57,7 @@ void BLI_string_split_prefix(const char *string, char *r_pre, char *r_body, size
 char *BLI_string_join_array_by_sep_char_with_tableN(char sep,
                                                     char *table[],
                                                     const char *strings[],
-                                                    uint strings_len) ATTR_NONNULL();
+                                                    uint strings_len) ATTR_NONNULL(2, 3);
 
 #define BLI_string_join_by_sep_char_with_tableN(sep, table, ...) \
   BLI_string_join_array_by_sep_char_with_tableN( \
@@ -74,7 +77,7 @@ char *BLI_string_join_array_by_sep_char_with_tableN(char sep,
 size_t BLI_string_flip_side_name(char *r_name,
                                  const char *from_name,
                                  bool strip_number,
-                                 size_t name_len);
+                                 size_t name_len) ATTR_NONNULL(1, 2);
 
 /**
  * Ensures name is unique (according to criteria specified by caller in unique_check callback),
@@ -93,7 +96,7 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
                        const char *defname,
                        char delim,
                        char *name,
-                       size_t name_len);
+                       size_t name_len) ATTR_NONNULL(1, 3, 5);
 /**
  * Ensures that the specified block has a unique name within the containing list,
  * incrementing its numeric suffix as necessary. Returns true if name had to be adjusted.
@@ -110,7 +113,7 @@ bool BLI_uniquename(struct ListBase *list,
                     const char *defname,
                     char delim,
                     int name_offset,
-                    size_t name_len);
+                    size_t name_len) ATTR_NONNULL(1, 3);
 
 /* Expand array functions. */
 

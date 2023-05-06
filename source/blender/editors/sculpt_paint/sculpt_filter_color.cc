@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup edsculpt
@@ -12,6 +12,7 @@
 #include "BLI_task.h"
 
 #include "DNA_meshdata_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_paint.h"
@@ -30,6 +31,9 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include <cmath>
 #include <cstdlib>
 
@@ -45,6 +49,8 @@ enum eSculptColorFilterTypes {
   COLOR_FILTER_BLUE,
   COLOR_FILTER_SMOOTH,
 };
+
+static const float fill_filter_default_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 static EnumPropertyItem prop_color_filter_types[] = {
     {COLOR_FILTER_FILL, "FILL", 0, "Fill", "Fill with a specific color"},
@@ -258,29 +264,15 @@ static void sculpt_color_presmooth_init(SculptSession *ss)
   }
 }
 
-static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object *ob)
 {
-  Object *ob = CTX_data_active_object(C);
-  SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  SculptSession *ss = ob->sculpt;
+
   const int mode = RNA_enum_get(op->ptr, "type");
   float filter_strength = RNA_float_get(op->ptr, "strength");
-
-  if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
-    SCULPT_undo_push_end(ob);
-    SCULPT_filter_cache_free(ss);
-    SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COLOR);
-    return OPERATOR_FINISHED;
-  }
-
-  if (event->type != MOUSEMOVE) {
-    return OPERATOR_RUNNING_MODAL;
-  }
-
-  const float len = event->prev_press_xy[0] - event->xy[0];
-  filter_strength = filter_strength * -len * 0.001f;
-
   float fill_color[3];
+
   RNA_float_get_array(op->ptr, "fill_color", fill_color);
   IMB_colormanagement_srgb_to_scene_linear_v3(fill_color, fill_color);
 
@@ -299,35 +291,67 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
 
-  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
-  BLI_task_parallel_range(0, ss->filter_cache->totnode, &data, color_filter_task_cb, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
+  BLI_task_parallel_range(
+      0, ss->filter_cache->nodes.size(), &data, color_filter_task_cb, &settings);
 
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
+}
+
+static void sculpt_color_filter_end(bContext *C, Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+
+  SCULPT_undo_push_end(ob);
+  SCULPT_filter_cache_free(ss);
+  SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COLOR);
+}
+
+static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+
+  if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
+    sculpt_color_filter_end(C, ob);
+    return OPERATOR_FINISHED;
+  }
+
+  if (event->type != MOUSEMOVE) {
+    return OPERATOR_RUNNING_MODAL;
+  }
+
+  const float len = (event->prev_press_xy[0] - event->xy[0]) * 0.001f;
+  float filter_strength = ss->filter_cache->start_filter_strength * -len;
+  RNA_float_set(op->ptr, "strength", filter_strength);
+
+  sculpt_color_filter_apply(C, op, ob);
 
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int sculpt_color_filter_init(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-  View3D *v3d = CTX_wm_view3d(C);
   SculptSession *ss = ob->sculpt;
-  PBVH *pbvh = ob->sculpt->pbvh;
-  if (v3d->shading.type == OB_SOLID) {
-    v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
-  }
+  View3D *v3d = CTX_wm_view3d(C);
+
+  int mval[2];
+  RNA_int_get_array(op->ptr, "start_mouse", mval);
 
   const bool use_automasking = SCULPT_is_automasking_enabled(sd, ss, nullptr);
   if (use_automasking) {
     /* Increment stroke id for auto-masking system. */
     SCULPT_stroke_id_next(ob);
 
-    /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
-     * Filter Tool. */
-    float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
-    SculptCursorGeometryInfo sgi;
-    SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
+    if (v3d) {
+      /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
+       * Filter Tool. */
+      float mval_fl[2] = {float(mval[0]), float(mval[1])};
+      SculptCursorGeometryInfo sgi;
+      SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
+    }
   }
 
   /* Disable for multires and dyntopo for now */
@@ -335,6 +359,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
+  const PBVHType pbvh_type_prev = BKE_pbvh_type(ss->pbvh);
   SCULPT_undo_push_begin(ob, op);
   BKE_sculpt_color_layer_create_if_needed(ob);
 
@@ -342,8 +367,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
    * earlier steps modifying the data. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, true);
-
-  if (BKE_pbvh_type(pbvh) == PBVH_FACES && !ob->sculpt->pmap) {
+  if (pbvh_type_prev == PBVH_FACES && !ob->sculpt->pmap) {
     return OPERATOR_CANCELLED;
   }
 
@@ -351,16 +375,76 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
                            ob,
                            sd,
                            SCULPT_UNDO_COLOR,
-                           event->mval,
+                           mval,
                            RNA_float_get(op->ptr, "area_normal_radius"),
                            RNA_float_get(op->ptr, "strength"));
   FilterCache *filter_cache = ss->filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
   filter_cache->automasking = SCULPT_automasking_cache_init(sd, nullptr, ob);
+
+  return OPERATOR_PASS_THROUGH;
+}
+
+static int sculpt_color_filter_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+
+  if (sculpt_color_filter_init(C, op) == OPERATOR_CANCELLED) {
+    return OPERATOR_CANCELLED;
+  }
+
+  sculpt_color_filter_apply(C, op, ob);
+  sculpt_color_filter_end(C, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object *ob = CTX_data_active_object(C);
+  View3D *v3d = CTX_wm_view3d(C);
+  if (v3d && v3d->shading.type == OB_SOLID) {
+    v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
+  }
+
+  RNA_int_set_array(op->ptr, "start_mouse", event->mval);
+
+  if (sculpt_color_filter_init(C, op) == OPERATOR_CANCELLED) {
+    return OPERATOR_CANCELLED;
+  }
+
   ED_paint_tool_update_sticky_shading_color(C, ob);
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
+}
+
+static const char *sculpt_color_filter_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
+{
+  int mode = RNA_enum_get(ptr, "type");
+  EnumPropertyItem *item = prop_color_filter_types;
+
+  while (item->identifier) {
+    if (item->value == mode) {
+      return item->name;
+    }
+
+    item++;
+  }
+
+  BLI_assert_unreachable();
+  return "error";
+}
+
+static void sculpt_color_filter_ui(bContext * /*C*/, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+
+  uiItemR(layout, op->ptr, "strength", 0, nullptr, ICON_NONE);
+
+  if (RNA_enum_get(op->ptr, "type") == COLOR_FILTER_FILL) {
+    uiItemR(layout, op->ptr, "fill_color", 0, nullptr, ICON_NONE);
+  }
 }
 
 void SCULPT_OT_color_filter(wmOperatorType *ot)
@@ -372,17 +456,28 @@ void SCULPT_OT_color_filter(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = sculpt_color_filter_invoke;
+  ot->exec = sculpt_color_filter_exec;
   ot->modal = sculpt_color_filter_modal;
   ot->poll = SCULPT_mode_poll;
+  ot->ui = sculpt_color_filter_ui;
+  ot->get_name = sculpt_color_filter_get_name;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* rna */
   SCULPT_mesh_filter_properties(ot);
 
-  RNA_def_enum(ot->srna, "type", prop_color_filter_types, COLOR_FILTER_HUE, "Filter Type", "");
+  RNA_def_enum(ot->srna, "type", prop_color_filter_types, COLOR_FILTER_FILL, "Filter Type", "");
 
-  PropertyRNA *prop = RNA_def_float_color(
-      ot->srna, "fill_color", 3, nullptr, 0.0f, FLT_MAX, "Fill Color", "", 0.0f, 1.0f);
+  PropertyRNA *prop = RNA_def_float_color(ot->srna,
+                                          "fill_color",
+                                          3,
+                                          fill_filter_default_color,
+                                          0.0f,
+                                          FLT_MAX,
+                                          "Fill Color",
+                                          "",
+                                          0.0f,
+                                          1.0f);
   RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
 }

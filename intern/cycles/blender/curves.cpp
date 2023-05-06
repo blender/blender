@@ -20,13 +20,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-ParticleCurveData::ParticleCurveData()
-{
-}
+ParticleCurveData::ParticleCurveData() {}
 
-ParticleCurveData::~ParticleCurveData()
-{
-}
+ParticleCurveData::~ParticleCurveData() {}
 
 static float shaperadius(float shape, float root, float tip, float time)
 {
@@ -59,13 +55,15 @@ static bool ObtainCacheParticleData(
 
   for (BL::Modifier &b_mod : b_ob->modifiers) {
     if ((b_mod.type() == b_mod.type_PARTICLE_SYSTEM) &&
-        (background ? b_mod.show_render() : b_mod.show_viewport())) {
+        (background ? b_mod.show_render() : b_mod.show_viewport()))
+    {
       BL::ParticleSystemModifier psmd((const PointerRNA)b_mod.ptr);
       BL::ParticleSystem b_psys((const PointerRNA)psmd.particle_system().ptr);
       BL::ParticleSettings b_part((const PointerRNA)b_psys.settings().ptr);
 
       if ((b_part.render_type() == BL::ParticleSettings::render_type_PATH) &&
-          (b_part.type() == BL::ParticleSettings::type_HAIR)) {
+          (b_part.type() == BL::ParticleSettings::type_HAIR))
+      {
         int shader = clamp(b_part.material() - 1, 0, hair->get_used_shaders().size() - 1);
         int display_step = background ? b_part.render_step() : b_part.display_step();
         int totparts = b_psys.particles.length();
@@ -154,13 +152,15 @@ static bool ObtainCacheParticleUV(Hair *hair,
 
   for (BL::Modifier &b_mod : b_ob->modifiers) {
     if ((b_mod.type() == b_mod.type_PARTICLE_SYSTEM) &&
-        (background ? b_mod.show_render() : b_mod.show_viewport())) {
+        (background ? b_mod.show_render() : b_mod.show_viewport()))
+    {
       BL::ParticleSystemModifier psmd((const PointerRNA)b_mod.ptr);
       BL::ParticleSystem b_psys((const PointerRNA)psmd.particle_system().ptr);
       BL::ParticleSettings b_part((const PointerRNA)b_psys.settings().ptr);
 
       if ((b_part.render_type() == BL::ParticleSettings::render_type_PATH) &&
-          (b_part.type() == BL::ParticleSettings::type_HAIR)) {
+          (b_part.type() == BL::ParticleSettings::type_HAIR))
+      {
         int totparts = b_psys.particles.length();
         int totchild = background ? b_psys.child_particles.length() :
                                     (int)((float)b_psys.child_particles.length() *
@@ -216,13 +216,15 @@ static bool ObtainCacheParticleVcol(Hair *hair,
 
   for (BL::Modifier &b_mod : b_ob->modifiers) {
     if ((b_mod.type() == b_mod.type_PARTICLE_SYSTEM) &&
-        (background ? b_mod.show_render() : b_mod.show_viewport())) {
+        (background ? b_mod.show_render() : b_mod.show_viewport()))
+    {
       BL::ParticleSystemModifier psmd((const PointerRNA)b_mod.ptr);
       BL::ParticleSystem b_psys((const PointerRNA)psmd.particle_system().ptr);
       BL::ParticleSettings b_part((const PointerRNA)b_psys.settings().ptr);
 
       if ((b_part.render_type() == BL::ParticleSettings::render_type_PATH) &&
-          (b_part.type() == BL::ParticleSettings::type_HAIR)) {
+          (b_part.type() == BL::ParticleSettings::type_HAIR))
+      {
         int totparts = b_psys.particles.length();
         int totchild = background ? b_psys.child_particles.length() :
                                     (int)((float)b_psys.child_particles.length() *
@@ -287,7 +289,8 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
   for (int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
     for (int curve = CData->psys_firstcurve[sys];
          curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys];
-         curve++) {
+         curve++)
+    {
       num_keys += CData->curve_keynum[curve];
       num_curves++;
     }
@@ -302,12 +305,14 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
   for (int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
     for (int curve = CData->psys_firstcurve[sys];
          curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys];
-         curve++) {
+         curve++)
+    {
       size_t num_curve_keys = 0;
 
       for (int curvekey = CData->curve_firstkey[curve];
            curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve];
-           curvekey++) {
+           curvekey++)
+      {
         const float3 ickey_loc = CData->curvekey_co[curvekey];
         const float curve_time = CData->curvekey_time[curvekey];
         const float curve_length = CData->curve_length[curve];
@@ -315,7 +320,8 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
         float radius = shaperadius(
             CData->psys_shape[sys], CData->psys_rootradius[sys], CData->psys_tipradius[sys], time);
         if (CData->psys_closetip[sys] &&
-            (curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1)) {
+            (curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1))
+        {
           radius = 0.0f;
         }
         hair->add_curve_key(ickey_loc, radius);
@@ -437,7 +443,8 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, int 
   for (int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
     for (int curve = CData->psys_firstcurve[sys];
          curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys];
-         curve++) {
+         curve++)
+    {
       /* Curve lengths may not match! Curves can be clipped. */
       int curve_key_end = (num_curves + 1 < (int)hair->get_curve_first_key().size() ?
                                hair->get_curve_first_key()[num_curves + 1] :
@@ -448,7 +455,8 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, int 
       if (!is_num_keys_different) {
         for (int curvekey = CData->curve_firstkey[curve];
              curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve];
-             curvekey++) {
+             curvekey++)
+        {
           if (i < hair->get_curve_keys().size()) {
             mP[i] = CurveSegmentMotionCV(CData, sys, curve, curvekey);
             if (!have_motion) {
@@ -493,13 +501,15 @@ bool BlenderSync::object_has_particle_hair(BL::Object b_ob)
   /* Test if the object has a particle modifier with hair. */
   for (BL::Modifier &b_mod : b_ob.modifiers) {
     if ((b_mod.type() == b_mod.type_PARTICLE_SYSTEM) &&
-        (preview ? b_mod.show_viewport() : b_mod.show_render())) {
+        (preview ? b_mod.show_viewport() : b_mod.show_render()))
+    {
       BL::ParticleSystemModifier psmd((const PointerRNA)b_mod.ptr);
       BL::ParticleSystem b_psys((const PointerRNA)psmd.particle_system().ptr);
       BL::ParticleSettings b_part((const PointerRNA)b_psys.settings().ptr);
 
       if ((b_part.render_type() == BL::ParticleSettings::render_type_PATH) &&
-          (b_part.type() == BL::ParticleSettings::type_HAIR)) {
+          (b_part.type() == BL::ParticleSettings::type_HAIR))
+      {
         return true;
       }
     }
@@ -613,59 +623,60 @@ void BlenderSync::sync_particle_hair(
   }
 }
 
-static std::optional<BL::FloatAttribute> find_curves_radius_attribute(BL::Curves b_curves)
+static const float *find_radius_attribute(BL::Curves b_curves)
 {
   for (BL::Attribute &b_attribute : b_curves.attributes) {
     if (b_attribute.name() != "radius") {
       continue;
     }
-    if (b_attribute.domain() != BL::Attribute::domain_POINT) {
-      continue;
-    }
     if (b_attribute.data_type() != BL::Attribute::data_type_FLOAT) {
       continue;
     }
-    return BL::FloatAttribute{b_attribute};
+    BL::FloatAttribute b_float_attribute{b_attribute};
+    if (b_float_attribute.data.length() == 0) {
+      return nullptr;
+    }
+    return static_cast<const float *>(b_float_attribute.data[0].ptr.data);
   }
-  return std::nullopt;
+  return nullptr;
 }
 
-static BL::FloatVectorAttribute find_curves_position_attribute(BL::Curves b_curves)
+static const float (*find_position_attribute(BL::Curves b_curves))[3]
 {
   for (BL::Attribute &b_attribute : b_curves.attributes) {
     if (b_attribute.name() != "position") {
       continue;
     }
-    if (b_attribute.domain() != BL::Attribute::domain_POINT) {
-      continue;
-    }
     if (b_attribute.data_type() != BL::Attribute::data_type_FLOAT_VECTOR) {
       continue;
     }
-    return BL::FloatVectorAttribute{b_attribute};
+    BL::FloatVectorAttribute b_float3_attribute{b_attribute};
+    if (b_float3_attribute.data.length() == 0) {
+      return nullptr;
+    }
+    return static_cast<const float(*)[3]>(b_float3_attribute.data[0].ptr.data);
   }
   /* The position attribute must exist. */
   assert(false);
-  return BL::FloatVectorAttribute{b_curves.attributes[0]};
+  return nullptr;
 }
 
 template<typename TypeInCycles, typename GetValueAtIndex>
-static void fill_generic_attribute(BL::Curves &b_curves,
+static void fill_generic_attribute(const int num_curves,
+                                   const int num_points,
                                    TypeInCycles *data,
                                    const AttributeElement element,
                                    const GetValueAtIndex &get_value_at_index)
 {
   switch (element) {
     case ATTR_ELEMENT_CURVE_KEY: {
-      const int num_points = b_curves.points.length();
       for (int i = 0; i < num_points; i++) {
         data[i] = get_value_at_index(i);
       }
       break;
     }
     case ATTR_ELEMENT_CURVE: {
-      const int num_verts = b_curves.curves.length();
-      for (int i = 0; i < num_verts; i++) {
+      for (int i = 0; i < num_curves; i++) {
         data[i] = get_value_at_index(i);
       }
       break;
@@ -680,11 +691,13 @@ static void fill_generic_attribute(BL::Curves &b_curves,
 static void attr_create_motion(Hair *hair, BL::Attribute &b_attribute, const float motion_scale)
 {
   if (!(b_attribute.domain() == BL::Attribute::domain_POINT) &&
-      (b_attribute.data_type() == BL::Attribute::data_type_FLOAT_VECTOR)) {
+      (b_attribute.data_type() == BL::Attribute::data_type_FLOAT_VECTOR))
+  {
     return;
   }
 
   BL::FloatVectorAttribute b_vector_attribute(b_attribute);
+  const float(*src)[3] = static_cast<const float(*)[3]>(b_vector_attribute.data[0].ptr.data);
   const int num_curve_keys = hair->get_curve_keys().size();
 
   /* Find or add attribute */
@@ -702,23 +715,24 @@ static void attr_create_motion(Hair *hair, BL::Attribute &b_attribute, const flo
     float3 *mP = attr_mP->data_float3() + step * num_curve_keys;
 
     for (int i = 0; i < num_curve_keys; i++) {
-      mP[i] = P[i] + get_float3(b_vector_attribute.data[i].vector()) * relative_time;
+      mP[i] = P[i] + make_float3(src[i][0], src[i][1], src[i][2]) * relative_time;
     }
   }
 }
 
 static void attr_create_uv(AttributeSet &attributes,
-                           BL::Curves &b_curves,
+                           const int num_curves,
+                           const int num_points,
                            BL::Attribute &b_attribute,
                            const ustring name)
 {
   BL::Float2Attribute b_float2_attribute{b_attribute};
+  const float(*src)[2] = static_cast<const float(*)[2]>(b_float2_attribute.data[0].ptr.data);
   Attribute *attr = attributes.add(ATTR_STD_UV, name);
 
   float2 *data = attr->data_float2();
-  fill_generic_attribute(b_curves, data, ATTR_ELEMENT_CURVE, [&](int i) {
-    BL::Array<float, 2> v = b_float2_attribute.data[i].vector();
-    return make_float2(v[0], v[1]);
+  fill_generic_attribute(num_curves, num_points, data, ATTR_ELEMENT_CURVE, [&](int i) {
+    return make_float2(src[i][0], src[i][1]);
   });
 }
 
@@ -728,6 +742,9 @@ static void attr_create_generic(Scene *scene,
                                 const bool need_motion,
                                 const float motion_scale)
 {
+  const int num_keys = b_curves.points.length();
+  const int num_curves = b_curves.curves.length();
+
   AttributeSet &attributes = hair->attributes;
   static const ustring u_velocity("velocity");
   const bool need_uv = hair->need_attribute(scene, ATTR_STD_UV);
@@ -746,8 +763,9 @@ static void attr_create_generic(Scene *scene,
 
     /* Weak, use first float2 attribute as standard UV. */
     if (need_uv && !have_uv && b_data_type == BL::Attribute::data_type_FLOAT2 &&
-        b_domain == BL::Attribute::domain_CURVE) {
-      attr_create_uv(attributes, b_curves, b_attribute, name);
+        b_domain == BL::Attribute::domain_CURVE)
+    {
+      attr_create_uv(attributes, num_curves, num_keys, b_attribute, name);
       have_uv = true;
       continue;
     }
@@ -777,57 +795,80 @@ static void attr_create_generic(Scene *scene,
     switch (b_data_type) {
       case BL::Attribute::data_type_FLOAT: {
         BL::FloatAttribute b_float_attribute{b_attribute};
+        const float *src = static_cast<const float *>(b_float_attribute.data[0].ptr.data);
         Attribute *attr = attributes.add(name, TypeFloat, element);
         float *data = attr->data_float();
-        fill_generic_attribute(
-            b_curves, data, element, [&](int i) { return b_float_attribute.data[i].value(); });
+        fill_generic_attribute(num_curves, num_keys, data, element, [&](int i) { return src[i]; });
         break;
       }
       case BL::Attribute::data_type_BOOLEAN: {
         BL::BoolAttribute b_bool_attribute{b_attribute};
+        const bool *src = static_cast<const bool *>(b_bool_attribute.data[0].ptr.data);
         Attribute *attr = attributes.add(name, TypeFloat, element);
         float *data = attr->data_float();
-        fill_generic_attribute(b_curves, data, element, [&](int i) {
-          return (float)b_bool_attribute.data[i].value();
-        });
+        fill_generic_attribute(
+            num_curves, num_keys, data, element, [&](int i) { return float(src[i]); });
         break;
       }
       case BL::Attribute::data_type_INT: {
         BL::IntAttribute b_int_attribute{b_attribute};
+        const int *src = static_cast<const int *>(b_int_attribute.data[0].ptr.data);
         Attribute *attr = attributes.add(name, TypeFloat, element);
         float *data = attr->data_float();
-        fill_generic_attribute(b_curves, data, element, [&](int i) {
-          return (float)b_int_attribute.data[i].value();
+        fill_generic_attribute(
+            num_curves, num_keys, data, element, [&](int i) { return float(src[i]); });
+        break;
+      }
+      case BL::Attribute::data_type_INT32_2D: {
+        BL::Int2Attribute b_int2_attribute{b_attribute};
+        const int2 *src = static_cast<const int2 *>(b_int2_attribute.data[0].ptr.data);
+        Attribute *attr = attributes.add(name, TypeFloat2, element);
+        float2 *data = attr->data_float2();
+        fill_generic_attribute(num_curves, num_keys, data, element, [&](int i) {
+          return make_float2(float(src[i][0]), float(src[i][1]));
         });
         break;
       }
       case BL::Attribute::data_type_FLOAT_VECTOR: {
         BL::FloatVectorAttribute b_vector_attribute{b_attribute};
+        const float(*src)[3] = static_cast<const float(*)[3]>(b_vector_attribute.data[0].ptr.data);
         Attribute *attr = attributes.add(name, TypeVector, element);
         float3 *data = attr->data_float3();
-        fill_generic_attribute(b_curves, data, element, [&](int i) {
-          BL::Array<float, 3> v = b_vector_attribute.data[i].vector();
-          return make_float3(v[0], v[1], v[2]);
+        fill_generic_attribute(num_curves, num_keys, data, element, [&](int i) {
+          return make_float3(src[i][0], src[i][1], src[i][2]);
+        });
+        break;
+      }
+      case BL::Attribute::data_type_BYTE_COLOR: {
+        BL::ByteColorAttribute b_color_attribute{b_attribute};
+        const uchar(*src)[4] = static_cast<const uchar(*)[4]>(b_color_attribute.data[0].ptr.data);
+        Attribute *attr = attributes.add(name, TypeRGBA, element);
+        float4 *data = attr->data_float4();
+        fill_generic_attribute(num_curves, num_keys, data, element, [&](int i) {
+          return make_float4(color_srgb_to_linear(byte_to_float(src[i][0])),
+                             color_srgb_to_linear(byte_to_float(src[i][1])),
+                             color_srgb_to_linear(byte_to_float(src[i][2])),
+                             color_srgb_to_linear(byte_to_float(src[i][3])));
         });
         break;
       }
       case BL::Attribute::data_type_FLOAT_COLOR: {
         BL::FloatColorAttribute b_color_attribute{b_attribute};
+        const float(*src)[4] = static_cast<const float(*)[4]>(b_color_attribute.data[0].ptr.data);
         Attribute *attr = attributes.add(name, TypeRGBA, element);
         float4 *data = attr->data_float4();
-        fill_generic_attribute(b_curves, data, element, [&](int i) {
-          BL::Array<float, 4> v = b_color_attribute.data[i].color();
-          return make_float4(v[0], v[1], v[2], v[3]);
+        fill_generic_attribute(num_curves, num_keys, data, element, [&](int i) {
+          return make_float4(src[i][0], src[i][1], src[i][2], src[i][3]);
         });
         break;
       }
       case BL::Attribute::data_type_FLOAT2: {
         BL::Float2Attribute b_float2_attribute{b_attribute};
+        const float(*src)[2] = static_cast<const float(*)[2]>(b_float2_attribute.data[0].ptr.data);
         Attribute *attr = attributes.add(name, TypeFloat2, element);
         float2 *data = attr->data_float2();
-        fill_generic_attribute(b_curves, data, element, [&](int i) {
-          BL::Array<float, 2> v = b_float2_attribute.data[i].vector();
-          return make_float2(v[0], v[1]);
+        fill_generic_attribute(num_curves, num_keys, data, element, [&](int i) {
+          return make_float2(src[i][0], src[i][1]);
         });
         break;
       }
@@ -838,27 +879,28 @@ static void attr_create_generic(Scene *scene,
   }
 }
 
-static float4 hair_point_as_float4(BL::FloatVectorAttribute b_attr_position,
-                                   std::optional<BL::FloatAttribute> b_attr_radius,
-                                   const int index)
+static float4 curve_point_as_float4(const float (*b_attr_position)[3],
+                                    const float *b_attr_radius,
+                                    const int index)
 {
-  float4 mP = float3_to_float4(get_float3(b_attr_position.data[index].vector()));
-  mP.w = b_attr_radius ? b_attr_radius->data[index].value() : 0.005f;
+  float4 mP = make_float4(
+      b_attr_position[index][0], b_attr_position[index][1], b_attr_position[index][2], 0.0f);
+  mP.w = b_attr_radius ? b_attr_radius[index] : 0.005f;
   return mP;
 }
 
-static float4 interpolate_hair_points(BL::FloatVectorAttribute b_attr_position,
-                                      std::optional<BL::FloatAttribute> b_attr_radius,
-                                      const int first_point_index,
-                                      const int num_points,
-                                      const float step)
+static float4 interpolate_curve_points(const float (*b_attr_position)[3],
+                                       const float *b_attr_radius,
+                                       const int first_point_index,
+                                       const int num_points,
+                                       const float step)
 {
   const float curve_t = step * (num_points - 1);
   const int point_a = clamp((int)curve_t, 0, num_points - 1);
   const int point_b = min(point_a + 1, num_points - 1);
   const float t = curve_t - (float)point_a;
-  return lerp(hair_point_as_float4(b_attr_position, b_attr_radius, first_point_index + point_a),
-              hair_point_as_float4(b_attr_position, b_attr_radius, first_point_index + point_b),
+  return lerp(curve_point_as_float4(b_attr_position, b_attr_radius, first_point_index + point_a),
+              curve_point_as_float4(b_attr_position, b_attr_radius, first_point_index + point_b),
               t);
 }
 
@@ -868,8 +910,6 @@ static void export_hair_curves(Scene *scene,
                                const bool need_motion,
                                const float motion_scale)
 {
-  /* TODO: optimize so we can straight memcpy arrays from Blender? */
-
   const int num_keys = b_curves.points.length();
   const int num_curves = b_curves.curves.length();
 
@@ -883,7 +923,6 @@ static void export_hair_curves(Scene *scene,
   /* Add requested attributes. */
   float *attr_intercept = NULL;
   float *attr_length = NULL;
-  float *attr_random = NULL;
 
   if (hair->need_attribute(scene, ATTR_STD_CURVE_INTERCEPT)) {
     attr_intercept = hair->attributes.add(ATTR_STD_CURVE_INTERCEPT)->data_float();
@@ -892,28 +931,40 @@ static void export_hair_curves(Scene *scene,
     attr_length = hair->attributes.add(ATTR_STD_CURVE_LENGTH)->data_float();
   }
   if (hair->need_attribute(scene, ATTR_STD_CURVE_RANDOM)) {
-    attr_random = hair->attributes.add(ATTR_STD_CURVE_RANDOM)->data_float();
+    float *attr_random = hair->attributes.add(ATTR_STD_CURVE_RANDOM)->data_float();
+    for (int i = 0; i < num_curves; i++) {
+      attr_random[i] = hash_uint2_to_float(i, 0);
+    }
   }
 
-  BL::FloatVectorAttribute b_attr_position = find_curves_position_attribute(b_curves);
-  std::optional<BL::FloatAttribute> b_attr_radius = find_curves_radius_attribute(b_curves);
+  const int *point_offsets = static_cast<const int *>(b_curves.curve_offset_data[0].ptr.data);
+  const float(*b_attr_position)[3] = find_position_attribute(b_curves);
+  const float *b_attr_radius = find_radius_attribute(b_curves);
+
+  std::copy(point_offsets, point_offsets + num_curves, curve_first_key);
+  std::fill(curve_shader, curve_shader + num_curves, 0);
+  if (b_attr_radius) {
+    std::copy(b_attr_radius, b_attr_radius + num_keys, curve_radius);
+  }
+  else {
+    std::fill(curve_radius, curve_radius + num_keys, 0.005f);
+  }
 
   /* Export curves and points. */
   for (int i = 0; i < num_curves; i++) {
-    const int first_point_index = b_curves.curve_offset_data[i].value();
-    const int num_points = b_curves.curve_offset_data[i + 1].value() - first_point_index;
+    const int first_point_index = point_offsets[i];
+    const int num_points = point_offsets[i + 1] - first_point_index;
 
     float3 prev_co = zero_float3();
     float length = 0.0f;
 
     /* Position and radius. */
     for (int j = 0; j < num_points; j++) {
-      const int point_offset = first_point_index + j;
-      const float3 co = get_float3(b_attr_position.data[point_offset].vector());
-      const float radius = b_attr_radius ? b_attr_radius->data[point_offset].value() : 0.005f;
+      const int point = first_point_index + j;
+      const float3 co = make_float3(
+          b_attr_position[point][0], b_attr_position[point][1], b_attr_position[point][2]);
 
-      curve_keys[point_offset] = co;
-      curve_radius[point_offset] = radius;
+      curve_keys[point] = co;
 
       if (attr_length || attr_intercept) {
         if (j > 0) {
@@ -922,7 +973,7 @@ static void export_hair_curves(Scene *scene,
         prev_co = co;
 
         if (attr_intercept) {
-          attr_intercept[point_offset] = length;
+          attr_intercept[point] = length;
         }
       }
     }
@@ -930,8 +981,8 @@ static void export_hair_curves(Scene *scene,
     /* Normalized 0..1 attribute along curve. */
     if (attr_intercept && length > 0.0f) {
       for (int j = 1; j < num_points; j++) {
-        const int point_offset = first_point_index + j;
-        attr_intercept[point_offset] /= length;
+        const int point = first_point_index + j;
+        attr_intercept[point] /= length;
       }
     }
 
@@ -939,15 +990,6 @@ static void export_hair_curves(Scene *scene,
     if (attr_length) {
       attr_length[i] = length;
     }
-
-    /* Random number per curve. */
-    if (attr_random != NULL) {
-      attr_random[i] = hash_uint2_to_float(i, 0);
-    }
-
-    /* Curve. */
-    curve_shader[i] = 0;
-    curve_first_key[i] = first_point_index;
   }
 
   attr_create_generic(scene, hair, b_curves, need_motion, motion_scale);
@@ -972,12 +1014,13 @@ static void export_hair_curves_motion(Hair *hair, BL::Curves b_curves, int motio
   int num_motion_keys = 0;
   int curve_index = 0;
 
-  BL::FloatVectorAttribute b_attr_position = find_curves_position_attribute(b_curves);
-  std::optional<BL::FloatAttribute> b_attr_radius = find_curves_radius_attribute(b_curves);
+  const int *point_offsets = static_cast<const int *>(b_curves.curve_offset_data[0].ptr.data);
+  const float(*b_attr_position)[3] = find_position_attribute(b_curves);
+  const float *b_attr_radius = find_radius_attribute(b_curves);
 
   for (int i = 0; i < num_curves; i++) {
-    const int first_point_index = b_curves.curve_offset_data[i].value();
-    const int num_points = b_curves.curve_offset_data[i + 1].value() - first_point_index;
+    const int first_point_index = point_offsets[i];
+    const int num_points = point_offsets[i + 1] - first_point_index;
 
     Hair::Curve curve = hair->get_curve(curve_index);
     curve_index++;
@@ -985,10 +1028,10 @@ static void export_hair_curves_motion(Hair *hair, BL::Curves b_curves, int motio
     if (num_points == curve.num_keys) {
       /* Number of keys matches. */
       for (int i = 0; i < num_points; i++) {
-        int point_index = first_point_index + i;
+        int point = first_point_index + i;
 
-        if (point_index < num_keys) {
-          mP[num_motion_keys] = hair_point_as_float4(b_attr_position, b_attr_radius, point_index);
+        if (point < num_keys) {
+          mP[num_motion_keys] = curve_point_as_float4(b_attr_position, b_attr_radius, point);
           num_motion_keys++;
 
           if (!have_motion) {
@@ -1007,7 +1050,7 @@ static void export_hair_curves_motion(Hair *hair, BL::Curves b_curves, int motio
       const float step_size = curve.num_keys > 1 ? 1.0f / (curve.num_keys - 1) : 0.0f;
       for (int i = 0; i < curve.num_keys; i++) {
         const float step = i * step_size;
-        mP[num_motion_keys] = interpolate_hair_points(
+        mP[num_motion_keys] = interpolate_curve_points(
             b_attr_position, b_attr_radius, first_point_index, num_points, step);
         num_motion_keys++;
       }
@@ -1073,7 +1116,8 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, H
   for (const SocketType &socket : new_hair.type->inputs) {
     /* Those sockets are updated in sync_object, so do not modify them. */
     if (socket.name == "use_motion_blur" || socket.name == "motion_steps" ||
-        socket.name == "used_shaders") {
+        socket.name == "used_shaders")
+    {
       continue;
     }
     hair->set_value(socket, new_hair, socket);

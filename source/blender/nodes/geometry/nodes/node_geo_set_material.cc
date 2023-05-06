@@ -12,7 +12,7 @@
 #include "DNA_volume_types.h"
 
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 namespace blender::nodes::node_geo_set_material_cc {
 
@@ -53,7 +53,7 @@ static void assign_material_to_faces(Mesh &mesh, const IndexMask selection, Mate
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
   SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
       "material_index", ATTR_DOMAIN_FACE);
-  material_indices.span.fill_indices(selection, new_material_index);
+  material_indices.span.fill_indices(selection.indices(), new_material_index);
   material_indices.finish();
 }
 
@@ -78,7 +78,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         }
       }
       else {
-        bke::MeshFieldContext field_context{*mesh, ATTR_DOMAIN_FACE};
+        const bke::MeshFieldContext field_context{*mesh, ATTR_DOMAIN_FACE};
         fn::FieldEvaluator selection_evaluator{field_context, mesh->totpoly};
         selection_evaluator.add(selection_field);
         selection_evaluator.evaluate();

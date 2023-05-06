@@ -5,11 +5,11 @@
  * \ingroup draw
  */
 #include "DNA_camera_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_shader_fx_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 
 #include "BLI_link_utils.h"
 #include "BLI_memblock.h"
@@ -37,7 +37,8 @@ static bool effect_is_active(bGPdata *gpd, ShaderFxData *fx, bool is_viewport)
   }
 
   if (((fx->mode & eShaderFxMode_Realtime) && (is_viewport == true)) ||
-      ((fx->mode & eShaderFxMode_Render) && (is_viewport == false))) {
+      ((fx->mode & eShaderFxMode_Render) && (is_viewport == false)))
+  {
     return true;
   }
 

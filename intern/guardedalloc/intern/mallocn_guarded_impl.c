@@ -450,10 +450,10 @@ void *MEM_guarded_mallocN(size_t len, const char *str)
 #endif
     return (++memh);
   }
-  print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
+  print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total " SIZET_FORMAT "\n",
               SIZET_ARG(len),
               str,
-              (uint)mem_in_use);
+              mem_in_use);
   return NULL;
 }
 
@@ -463,11 +463,11 @@ void *MEM_guarded_malloc_arrayN(size_t len, size_t size, const char *str)
   if (UNLIKELY(!MEM_size_safe_multiply(len, size, &total_size))) {
     print_error(
         "Malloc array aborted due to integer overflow: "
-        "len=" SIZET_FORMAT "x" SIZET_FORMAT " in %s, total %u\n",
+        "len=" SIZET_FORMAT "x" SIZET_FORMAT " in %s, total " SIZET_FORMAT "\n",
         SIZET_ARG(len),
         SIZET_ARG(size),
         str,
-        (uint)mem_in_use);
+        mem_in_use);
     abort();
     return NULL;
   }
@@ -523,10 +523,10 @@ void *MEM_guarded_mallocN_aligned(size_t len, size_t alignment, const char *str)
 #endif
     return (++memh);
   }
-  print_error("aligned_malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
+  print_error("aligned_malloc returns null: len=" SIZET_FORMAT " in %s, total " SIZET_FORMAT "\n",
               SIZET_ARG(len),
               str,
-              (uint)mem_in_use);
+              mem_in_use);
   return NULL;
 }
 
@@ -547,10 +547,10 @@ void *MEM_guarded_callocN(size_t len, const char *str)
 #endif
     return (++memh);
   }
-  print_error("Calloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
+  print_error("Calloc returns null: len=" SIZET_FORMAT " in %s, total " SIZET_FORMAT "\n",
               SIZET_ARG(len),
               str,
-              (uint)mem_in_use);
+              mem_in_use);
   return NULL;
 }
 
@@ -560,11 +560,11 @@ void *MEM_guarded_calloc_arrayN(size_t len, size_t size, const char *str)
   if (UNLIKELY(!MEM_size_safe_multiply(len, size, &total_size))) {
     print_error(
         "Calloc array aborted due to integer overflow: "
-        "len=" SIZET_FORMAT "x" SIZET_FORMAT " in %s, total %u\n",
+        "len=" SIZET_FORMAT "x" SIZET_FORMAT " in %s, total " SIZET_FORMAT "\n",
         SIZET_ARG(len),
         SIZET_ARG(size),
         str,
-        (uint)mem_in_use);
+        mem_in_use);
     abort();
     return NULL;
   }

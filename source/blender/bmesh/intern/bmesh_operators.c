@@ -599,7 +599,8 @@ void BMO_mesh_selected_remap(BMesh *bm,
       ese->ele = BMO_slot_map_elem_get(slot_elem_map, ese->ele);
 
       if (UNLIKELY((ese->ele == NULL) ||
-                   (check_select && (BM_elem_flag_test(ese->ele, BM_ELEM_SELECT) == false)))) {
+                   (check_select && (BM_elem_flag_test(ese->ele, BM_ELEM_SELECT) == false))))
+      {
         BLI_remlink(&bm->selected, ese);
         MEM_freeN(ese);
       }
@@ -823,7 +824,8 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm,
     if (htype & BM_VERT) {
       BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
         if ((!respecthide || !BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) &&
-            BM_elem_flag_test_bool(ele, hflag) == test_for_enabled) {
+            BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
+        {
           output->data.buf[i] = ele;
           i++;
         }
@@ -833,7 +835,8 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm,
     if (htype & BM_EDGE) {
       BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
         if ((!respecthide || !BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) &&
-            BM_elem_flag_test_bool(ele, hflag) == test_for_enabled) {
+            BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
+        {
           output->data.buf[i] = ele;
           i++;
         }
@@ -843,7 +846,8 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm,
     if (htype & BM_FACE) {
       BM_ITER_MESH (ele, &iter, bm, BM_FACES_OF_MESH) {
         if ((!respecthide || !BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) &&
-            BM_elem_flag_test_bool(ele, hflag) == test_for_enabled) {
+            BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
+        {
           output->data.buf[i] = ele;
           i++;
         }

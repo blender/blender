@@ -15,7 +15,7 @@
 
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_volume.h"
 
 namespace blender::nodes::node_geo_volume_cube_cc {
@@ -49,7 +49,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(32)
       .min(2);
 
-  b.add_output<decl::Geometry>(N_("Volume"));
+  b.add_output<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
+      .translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static float map(const float x,
@@ -128,8 +129,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  if (bounds_min.x == bounds_max.x || bounds_min.y == bounds_max.y ||
-      bounds_min.z == bounds_max.z) {
+  if (bounds_min.x == bounds_max.x || bounds_min.y == bounds_max.y || bounds_min.z == bounds_max.z)
+  {
     params.error_message_add(NodeWarningType::Error,
                              TIP_("Bounding box volume must be greater than 0"));
     params.set_default_remaining_outputs();

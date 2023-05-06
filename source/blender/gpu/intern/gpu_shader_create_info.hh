@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+ * Copyright 2021 Blender Foundation */
 
 /** \file
  * \ingroup gpu
@@ -21,8 +21,8 @@
 
 namespace blender::gpu::shader {
 
-#ifndef GPU_SHADER_CREATE_INFO
 /* Helps intellisense / auto-completion. */
+#ifndef GPU_SHADER_CREATE_INFO
 #  define GPU_SHADER_INTERFACE_INFO(_interface, _inst_name) \
     StageInterfaceInfo _interface(#_interface, _inst_name); \
     _interface
@@ -291,8 +291,10 @@ struct StageInterfaceInfo {
   };
 
   StringRefNull name;
-  /** Name of the instance of the block (used to access).
-   *  Can be empty string (i.e: "") only if not using geometry shader. */
+  /**
+   * Name of the instance of the block (used to access).
+   * Can be empty string (i.e: "") only if not using geometry shader.
+   */
   StringRefNull instance_name;
   /** List of all members of the interface. */
   Vector<InOut> inouts;
@@ -442,7 +444,7 @@ struct ShaderCreateInfo {
 
   struct Sampler {
     ImageType type;
-    eGPUSamplerState sampler;
+    GPUSamplerState sampler;
     StringRefNull name;
   };
 
@@ -687,7 +689,7 @@ struct ShaderCreateInfo {
                 ImageType type,
                 StringRefNull name,
                 Frequency freq = Frequency::PASS,
-                eGPUSamplerState sampler = (eGPUSamplerState)-1)
+                GPUSamplerState sampler = GPUSamplerState::internal_sampler())
   {
     Resource res(Resource::BindType::SAMPLER, slot);
     res.sampler.type = type;

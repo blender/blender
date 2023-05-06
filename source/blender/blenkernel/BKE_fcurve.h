@@ -44,7 +44,7 @@ typedef struct CfraElem {
 /* ************** F-Curve Modifiers *************** */
 
 /**
- * F-Curve Modifier Type-Info (fmi):
+ * F-Curve Modifier Type-Info (`fmi`):
  * This struct provides function pointers for runtime, so that functions can be
  * written more generally (with fewer/no special exceptions for various modifiers).
  *
@@ -240,6 +240,10 @@ void BKE_fcurves_free(ListBase *list);
  */
 void BKE_fcurves_copy(ListBase *dst, ListBase *src);
 
+/* Set fcurve modifier name and ensure uniqueness.
+ * Pass new name string when it's been edited otherwise pass empty string. */
+void BKE_fmodifier_name_set(struct FModifier *fcm, const char *name);
+
 /**
  * Callback used by lib_query to walk over all ID usages
  * (mimics `foreach_id` callback of #IDTypeInfo structure).
@@ -366,24 +370,25 @@ int BKE_fcurve_pathcache_find_array(struct FCurvePathCache *fcache,
                                     int fcurve_result_len);
 
 /**
- * Calculate the extents of F-Curve's keyframes.
+ * Calculate the x range of the given F-Curve's data.
+ * \return true if a range has been found.
  */
-bool BKE_fcurve_calc_range(
-    const struct FCurve *fcu, float *min, float *max, bool do_sel_only, bool do_min_length);
+bool BKE_fcurve_calc_range(const struct FCurve *fcu,
+                           float *r_min,
+                           float *r_max,
+                           bool selected_keys_only);
 
 /**
- * Calculate the extents of F-Curve's data.
- * \param range Only calculate the bounds of the FCurve in the given range.
+ * Calculate the x and y extents of F-Curve's data.
+ * \param frame_range: Only calculate the bounds of the FCurve in the given range.
  * Does the full range if NULL.
+ * \return true if the bounds have been found.
  */
 bool BKE_fcurve_calc_bounds(const struct FCurve *fcu,
-                            float *xmin,
-                            float *xmax,
-                            float *ymin,
-                            float *ymax,
-                            bool do_sel_only,
+                            bool selected_keys_only,
                             bool include_handles,
-                            const float range[2]);
+                            const float frame_range[2],
+                            struct rctf *r_bounds);
 
 /**
  * Return an array of keyed frames, rounded to `interval`.
@@ -415,6 +420,7 @@ int BKE_fcurve_active_keyframe_index(const struct FCurve *fcu);
  * Move the indexed keyframe to the given value,
  * and move the handles with it to ensure the slope remains the same.
  */
+void BKE_fcurve_keyframe_move_time_with_handles(BezTriple *keyframe, const float new_time);
 void BKE_fcurve_keyframe_move_value_with_handles(struct BezTriple *keyframe, float new_value);
 
 /* .............. */
@@ -472,6 +478,14 @@ bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
                                        float *r_pdelta);
 
 /**
+ * Resize the FCurve 'bezt' array to fit the given length.
+ *
+ * \param new_totvert new number of elements in the FCurve's `bezt` array.
+ * Constraint: `0 <= new_totvert <= fcu->totvert`
+ */
+void BKE_fcurve_bezt_shrink(struct FCurve *fcu, int new_totvert);
+
+/**
  * Delete a keyframe from an F-curve at a specific index.
  */
 void BKE_fcurve_delete_key(struct FCurve *fcu, int index);
@@ -497,6 +511,21 @@ void BKE_fcurve_delete_keys_all(struct FCurve *fcu);
 void BKE_fcurve_merge_duplicate_keys(struct FCurve *fcu,
                                      const int sel_flag,
                                      const bool use_handle);
+
+/**
+ * Ensure the FCurve is a proper function, such that every X-coordinate of the
+ * timeline has only one value of the FCurve. In other words, removes duplicate
+ * keyframes.
+ *
+ * Contrary to #BKE_fcurve_merge_duplicate_keys, which is intended for
+ * interactive use, and where selection matters, this is a simpler deduplication
+ * where the last duplicate "wins".
+ *
+ * Assumes the keys are sorted (see #sort_time_fcurve).
+ *
+ * After deduplication, call `BKE_fcurve_handles_recalc(fcu);`
+ */
+void BKE_fcurve_deduplicate_keys(struct FCurve *fcu);
 
 /* -------- Curve Sanity -------- */
 

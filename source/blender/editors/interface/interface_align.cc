@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2015 Blender Foundation. All rights reserved. */
+ * Copyright 2015 Blender Foundation */
 
 /** \file
  * \ingroup edinterface
@@ -270,7 +270,8 @@ static void block_align_stitch_neighbors(ButAlign *butal,
    * it may have both of its stitching flags
    * set, but would not be the case of its immediate neighbor! */
   while ((butal->flags[side] & stitch_s1) && (butal = butal->neighbors[side_s1]) &&
-         (butal->flags[side] & stitch_s2)) {
+         (butal->flags[side] & stitch_s2))
+  {
     butal_neighbor = butal->neighbors[side];
 
     /* If we actually do have a neighbor, we directly set its values accordingly,

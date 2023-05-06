@@ -1,4 +1,4 @@
-// Copyright 2020 Blender Foundation. All rights reserved.
+// Copyright 2020 Blender Foundation
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -133,7 +133,8 @@ bool isEqualGeometry(const MeshTopology &mesh_topology, const OpenSubdiv_Convert
 float getEffectiveVertexSharpness(const OpenSubdiv_Converter *converter, const int vertex_index)
 {
   if (converter->isInfiniteSharpVertex != nullptr &&
-      converter->isInfiniteSharpVertex(converter, vertex_index)) {
+      converter->isInfiniteSharpVertex(converter, vertex_index))
+  {
     return OpenSubdiv::Sdc::Crease::SHARPNESS_INFINITE;
   }
 

@@ -14,7 +14,7 @@ import sys
 import os
 
 MODULE_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "utils"))
-SOURCE_DIR = os.path.normpath(os.path.join(MODULE_DIR, "..", "..", "..", ".git"))
+SOURCE_DIR = os.path.normpath(os.path.join(MODULE_DIR, "..", "..", ".git"))
 
 sys.path.append(MODULE_DIR)
 

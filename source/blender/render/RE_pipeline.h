@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+ * Copyright 2006 Blender Foundation */
 
 /** \file
  * \ingroup render
@@ -54,7 +54,7 @@ typedef struct RenderView {
   float *rectf;
   /* if this exists, result of composited layers */
   float *rectz;
-  /* optional, 32 bits version of picture, used for sequencer, ogl render and image curves */
+  /* optional, 32 bits version of picture, used for sequencer, OpenGL render and image curves */
   int *rect32;
 
 } RenderView;
@@ -71,7 +71,7 @@ typedef struct RenderPass {
   char view[64];     /* EXR_VIEW_MAXNAME */
   int view_id;       /* quick lookup */
 
-  int pad;
+  char _pad0[4];
 } RenderPass;
 
 /**
@@ -105,7 +105,7 @@ typedef struct RenderResult {
   /* The following rect32, rectf and rectz buffers are for temporary storage only,
    * for RenderResult structs created in #RE_AcquireResultImage - which do not have RenderView */
 
-  /* optional, 32 bits version of picture, used for ogl render and image curves */
+  /* Optional, 32 bits version of picture, used for OpenGL render and image curves. */
   int *rect32;
   /* if this exists, a copy of one of layers, or result of composited layers */
   float *rectf;
@@ -130,7 +130,7 @@ typedef struct RenderResult {
   int framenr;
 
   /* for acquire image, to indicate if it there is a combined layer */
-  int have_combined;
+  bool have_combined;
 
   /* render info text */
   char *text;
@@ -356,7 +356,7 @@ void RE_RenderAnim(struct Render *re,
 void RE_RenderFreestyleStrokes(struct Render *re,
                                struct Main *bmain,
                                struct Scene *scene,
-                               int render);
+                               bool render);
 void RE_RenderFreestyleExternal(struct Render *re);
 #endif
 
@@ -415,7 +415,7 @@ void *RE_gpu_context_get(Render *re);
  */
 float RE_filter_value(int type, float x);
 
-int RE_seq_render_active(struct Scene *scene, struct RenderData *rd);
+bool RE_seq_render_active(struct Scene *scene, struct RenderData *rd);
 
 /**
  * Used in the interface to decide whether to show layers or passes.

@@ -3,7 +3,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 
@@ -31,13 +31,12 @@ static VArray<int> construct_edge_verts_gvarray(const Mesh &mesh,
                                                 const VertNumber vertex,
                                                 const eAttrDomain domain)
 {
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
   if (domain == ATTR_DOMAIN_EDGE) {
     if (vertex == VertNumber::V1) {
-      return VArray<int>::ForFunc(edges.size(),
-                                  [edges](const int i) -> int { return edges[i].v1; });
+      return VArray<int>::ForFunc(edges.size(), [edges](const int i) { return edges[i][0]; });
     }
-    return VArray<int>::ForFunc(edges.size(), [edges](const int i) -> int { return edges[i].v2; });
+    return VArray<int>::ForFunc(edges.size(), [edges](const int i) { return edges[i][1]; });
   }
   return {};
 }
@@ -84,18 +83,18 @@ static VArray<float3> construct_edge_positions_gvarray(const Mesh &mesh,
                                                        const eAttrDomain domain)
 {
   const Span<float3> positions = mesh.vert_positions();
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
 
   if (vertex == VertNumber::V1) {
     return mesh.attributes().adapt_domain<float3>(
         VArray<float3>::ForFunc(
-            edges.size(), [positions, edges](const int i) { return positions[edges[i].v1]; }),
+            edges.size(), [positions, edges](const int i) { return positions[edges[i][0]]; }),
         ATTR_DOMAIN_EDGE,
         domain);
   }
   return mesh.attributes().adapt_domain<float3>(
       VArray<float3>::ForFunc(edges.size(),
-                              [positions, edges](const int i) { return positions[edges[i].v2]; }),
+                              [positions, edges](const int i) { return positions[edges[i][1]]; }),
       ATTR_DOMAIN_EDGE,
       domain);
 }
@@ -126,7 +125,8 @@ class EdgePositionFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const EdgePositionFieldInput *other_field = dynamic_cast<const EdgePositionFieldInput *>(
-            &other)) {
+            &other))
+    {
       return vertex_ == other_field->vertex_;
     }
     return false;

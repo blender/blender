@@ -257,7 +257,7 @@ bool rna_Cache_use_disk_cache_override_apply(Main *UNUSED(bmain),
                                              IDOverrideLibraryPropertyOperation *opop)
 {
   BLI_assert(RNA_property_type(prop_dst) == PROP_BOOLEAN);
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE);
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE);
   UNUSED_VARS_NDEBUG(opop);
 
   RNA_property_boolean_set(ptr_dst, prop_dst, RNA_property_boolean_get(ptr_src, prop_src));
@@ -310,7 +310,7 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
     }
 
     if (use_new_name) {
-      BLI_filename_make_safe(cache->name);
+      BLI_path_make_safe_filename(cache->name);
 
       if (pid2 && cache->flag & PTCACHE_DISK_CACHE) {
         char old_name[80];
@@ -667,7 +667,8 @@ static void rna_FieldSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
     /* In the case of specific force-fields that are using the #EffectorData's normal, we need to
      * rebuild mesh and BVH-tree for #SurfaceModifier to work correctly. */
     if (ELEM(ob->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS) ||
-        ob->pd->forcefield == PFIELD_GUIDE) {
+        ob->pd->forcefield == PFIELD_GUIDE)
+    {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
 
@@ -841,8 +842,8 @@ static char *rna_EffectorWeight_path(const PointerRNA *ptr)
     md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
     if (md) {
       FluidModifierData *fmd = (FluidModifierData *)md;
-      if (fmd->type == MOD_FLUID_TYPE_DOMAIN && fmd->domain &&
-          fmd->domain->effector_weights == ew) {
+      if (fmd->type == MOD_FLUID_TYPE_DOMAIN && fmd->domain && fmd->domain->effector_weights == ew)
+      {
         char name_esc[sizeof(md->name) * 2];
         BLI_str_escape(name_esc, md->name, sizeof(name_esc));
         return BLI_sprintfN("modifiers[\"%s\"].domain_settings.effector_weights", name_esc);
@@ -1150,7 +1151,7 @@ static void rna_def_collision(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "deflect", 1);
   RNA_def_property_ui_text(
-      prop, "Enabled", "Enable this objects as a collider for physics systems");
+      prop, "Enabled", "Enable this object as a collider for physics systems");
   RNA_def_property_update(prop, 0, "rna_CollisionSettings_dependency_update");
 
   /* Particle Interaction */

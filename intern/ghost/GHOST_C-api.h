@@ -912,6 +912,27 @@ extern char *GHOST_getClipboard(bool selection);
 extern void GHOST_putClipboard(const char *buffer, bool selection);
 
 /**
+ * Returns GHOST_kSuccess if the clipboard contains an image.
+ */
+extern GHOST_TSuccess GHOST_hasClipboardImage(void);
+
+/**
+ * Get image data from the Clipboard
+ * \param r_width: the returned image width in pixels.
+ * \param r_height: the returned image height in pixels.
+ * \return pointer uint array in RGBA byte order. Caller must free.
+ */
+extern uint *GHOST_getClipboardImage(int *r_width, int *r_height);
+
+/**
+ * Put image data to the Clipboard
+ * \param rgba: uint array in RGBA byte order.
+ * \param width: the image width in pixels.
+ * \param height: the image height in pixels.
+ */
+extern GHOST_TSuccess GHOST_putClipboardImage(uint *rgba, int width, int height);
+
+/**
  * Set the Console State
  * \param action: console state
  * \return current status (1 -visible, 0 - hidden)
@@ -924,14 +945,9 @@ extern bool GHOST_setConsoleWindowState(GHOST_TConsoleWindowState action);
 extern bool GHOST_UseNativePixels(void);
 
 /**
- * Warp the cursor, if supported.
+ * Return features which are supported by the GHOST back-end.
  */
-extern bool GHOST_SupportsCursorWarp(void);
-
-/**
- * Support positioning windows (when false `wmWindow.x,y` are meaningless).
- */
-extern bool GHOST_SupportsWindowPosition(void);
+extern GHOST_TCapabilityFlag GHOST_GetCapabilities(void);
 
 /**
  * Assign the callback which generates a back-trace (may be NULL).
@@ -942,6 +958,11 @@ extern void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn);
  * Focus window after opening, or put them in the background.
  */
 extern void GHOST_UseWindowFocus(bool use_focus);
+
+/**
+ * Focus and raise windows on mouse hover.
+ */
+extern void GHOST_SetAutoFocus(bool auto_focus);
 
 /**
  * If window was opened using native pixel size, it returns scaling factor.
@@ -1198,7 +1219,7 @@ int GHOST_XrGetControllerModelData(GHOST_XrContextHandle xr_context,
  * Get Vulkan handles for the given context.
  *
  * These handles are the same for a given context.
- * Should should only be called when using a Vulkan context.
+ * Should only be called when using a Vulkan context.
  * Other contexts will not return any handles and leave the
  * handles where the parameters are referring to unmodified.
  *
@@ -1234,7 +1255,7 @@ void GHOST_GetVulkanHandles(GHOST_ContextHandle context,
  * At the start of each frame the correct command buffer should be
  * retrieved with this function.
  *
- * Should should only be called when using a Vulkan context.
+ * Should only be called when using a Vulkan context.
  * Other contexts will not return any handles and leave the
  * handles where the parameters are referring to unmodified.
  *
@@ -1248,10 +1269,10 @@ void GHOST_GetVulkanHandles(GHOST_ContextHandle context,
 void GHOST_GetVulkanCommandBuffer(GHOST_ContextHandle context, void *r_command_buffer);
 
 /**
- * Gets the Vulkan backbuffer related resource handles associated with the Vulkan context.
- * Needs to be called after each swap event as the backbuffer will change.
+ * Gets the Vulkan back-buffer related resource handles associated with the Vulkan context.
+ * Needs to be called after each swap event as the back-buffer will change.
  *
- * Should should only be called when using a Vulkan context with an active swap chain.
+ * Should only be called when using a Vulkan context with an active swap chain.
  * Other contexts will not return any handles and leave the
  * handles where the parameters are referring to unmodified.
  *

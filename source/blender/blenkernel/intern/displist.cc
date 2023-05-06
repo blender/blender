@@ -36,7 +36,7 @@
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_vfont.h"
@@ -603,7 +603,8 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
   if (pretessellatePoint) {
     VirtualModifierData virtualModifierData;
     for (ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData); md;
-         md = md->next) {
+         md = md->next)
+    {
       const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
 
       if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
@@ -738,16 +739,14 @@ static GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
     blender::bke::ScopedModifierTimer modifier_timer{*md};
 
     if (!geometry_set.has_mesh()) {
-      geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0, 0));
+      geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0));
     }
     Mesh *mesh = geometry_set.get_mesh_for_write();
 
     if (mti->type == eModifierTypeType_OnlyDeform) {
-      int totvert;
-      float(*vertex_coords)[3] = BKE_mesh_vert_coords_alloc(mesh, &totvert);
-      mti->deformVerts(md, &mectx_deform, mesh, vertex_coords, totvert);
-      BKE_mesh_vert_coords_apply(mesh, vertex_coords);
-      MEM_freeN(vertex_coords);
+      mti->deformVerts(
+          md, &mectx_deform, mesh, BKE_mesh_vert_positions_for_write(mesh), mesh->totvert);
+      BKE_mesh_tag_positions_changed(mesh);
     }
     else {
       Mesh *output_mesh = mti->modifyMesh(md, &mectx_apply, mesh);
@@ -885,7 +884,7 @@ static GeometrySet evaluate_surface_object(Depsgraph *depsgraph,
   GeometrySet geometry_set = curve_calc_modifiers_post(
       depsgraph, scene, ob, r_dispbase, for_render);
   if (!geometry_set.has_mesh()) {
-    geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0, 0));
+    geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0));
   }
   return geometry_set;
 }
@@ -1041,13 +1040,15 @@ static void calc_bevfac_mapping(const Curve *cu,
 
   if ((BKE_nurb_check_valid_u(nu) == false) ||
       /* not essential, but skips unnecessary calculation */
-      (min_ff(cu->bevfac1, cu->bevfac2) == 0.0f && max_ff(cu->bevfac1, cu->bevfac2) == 1.0f)) {
+      (min_ff(cu->bevfac1, cu->bevfac2) == 0.0f && max_ff(cu->bevfac1, cu->bevfac2) == 1.0f))
+  {
     calc_bevfac_mapping_default(bl, r_start, r_firstblend, r_steps, r_lastblend);
     return;
   }
 
   if (ELEM(cu->bevfac1_mapping, CU_BEVFAC_MAP_SEGMENT, CU_BEVFAC_MAP_SPLINE) ||
-      ELEM(cu->bevfac2_mapping, CU_BEVFAC_MAP_SEGMENT, CU_BEVFAC_MAP_SPLINE)) {
+      ELEM(cu->bevfac2_mapping, CU_BEVFAC_MAP_SEGMENT, CU_BEVFAC_MAP_SPLINE))
+  {
     for (i = 0; i < SEGMENTSU(nu); i++) {
       total_length += bl->seglen[i];
     }
@@ -1130,7 +1131,8 @@ static GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
   BKE_curve_bevelList_make(ob, deformed_nurbs, for_render);
 
   if ((cu->flag & CU_PATH) ||
-      DEG_get_eval_flags_for_id(depsgraph, &ob->id) & DAG_EVAL_NEED_CURVE_PATH) {
+      DEG_get_eval_flags_for_id(depsgraph, &ob->id) & DAG_EVAL_NEED_CURVE_PATH)
+  {
     BKE_anim_path_calc_data(ob);
   }
 

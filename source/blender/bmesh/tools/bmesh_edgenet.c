@@ -213,7 +213,8 @@ begin:
             /* flush flag down the path */
             vn_next->flag &= ~VNINFO_FLAG_IS_MIXFACE;
             if ((vn_curr->flag & VNINFO_FLAG_IS_MIXFACE) || (vn_next->face == -1) ||
-                (vn_next->face != vn_curr->face)) {
+                (vn_next->face != vn_curr->face))
+            {
               vn_next->flag |= VNINFO_FLAG_IS_MIXFACE;
             }
 

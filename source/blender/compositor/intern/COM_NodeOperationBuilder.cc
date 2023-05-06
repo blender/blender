@@ -51,7 +51,7 @@ void NodeOperationBuilder::convert_to_operations(ExecutionSystem *system)
    * so multiple operations can use the same node input.
    */
   blender::MultiValueMap<NodeInput *, NodeOperationInput *> inverse_input_map;
-  for (Map<NodeOperationInput *, NodeInput *>::MutableItem item : input_map_.items()) {
+  for (MutableMapItem<NodeOperationInput *, NodeInput *> item : input_map_.items()) {
     inverse_input_map.add(item.value, item.key);
   }
 
@@ -385,7 +385,8 @@ void NodeOperationBuilder::resolve_proxies()
   for (const Link &link : links_) {
     /* don't replace links from proxy to proxy, since we may need them for replacing others! */
     if (link.from()->get_operation().get_flags().is_proxy_operation &&
-        !link.to()->get_operation().get_flags().is_proxy_operation) {
+        !link.to()->get_operation().get_flags().is_proxy_operation)
+    {
       proxy_links.append(link);
     }
   }
@@ -413,8 +414,8 @@ void NodeOperationBuilder::determine_canvases()
   /* Determine all canvas areas of the operations. */
   const rcti &preferred_area = COM_AREA_NONE;
   for (NodeOperation *op : operations_) {
-    if (op->is_output_operation(context_->is_rendering()) &&
-        !op->get_flags().is_preview_operation) {
+    if (op->is_output_operation(context_->is_rendering()) && !op->get_flags().is_preview_operation)
+    {
       rcti canvas = COM_AREA_NONE;
       op->determine_canvas(preferred_area, canvas);
       op->set_canvas(canvas);
@@ -422,8 +423,8 @@ void NodeOperationBuilder::determine_canvases()
   }
 
   for (NodeOperation *op : operations_) {
-    if (op->is_output_operation(context_->is_rendering()) &&
-        op->get_flags().is_preview_operation) {
+    if (op->is_output_operation(context_->is_rendering()) && op->get_flags().is_preview_operation)
+    {
       rcti canvas = COM_AREA_NONE;
       op->determine_canvas(preferred_area, canvas);
       op->set_canvas(canvas);

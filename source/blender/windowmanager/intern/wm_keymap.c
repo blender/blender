@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+ * Copyright 2007 Blender Foundation */
 
 /** \file
  * \ingroup wm
@@ -450,7 +450,8 @@ bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
         !BLI_str_endswith(keymap->idname, " (fallback)") &&
         /* This is an exception which may be empty.
          * Longer term we might want a flag to indicate an empty key-map is intended. */
-        !STREQ(keymap->idname, "Node Tool: Tweak")) {
+        !STREQ(keymap->idname, "Node Tool: Tweak"))
+    {
       CLOG_WARN(WM_LOG_KEYMAPS, "empty keymap '%s'", keymap->idname);
     }
   }
@@ -1099,7 +1100,8 @@ const char *WM_key_event_string(const short type, const bool compact)
         return IFACE_("OS");
       } break;
       case EVT_TABKEY:
-        return key_event_glyph_or_text(font_id, IFACE_("Tab"), "\xe2\xad\xbe");
+        return key_event_glyph_or_text(
+            font_id, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Tab"), "\xe2\xad\xbe");
       case EVT_BACKSPACEKEY:
         return key_event_glyph_or_text(font_id, IFACE_("Bksp"), "\xe2\x8c\xab");
       case EVT_ESCKEY:
@@ -1251,7 +1253,8 @@ int WM_modalkeymap_items_to_string(const wmKeyMap *km,
     totlen += WM_keymap_item_to_string(kmi, compact, &result[totlen], result_len - totlen);
 
     if ((kmi = wm_modalkeymap_find_propvalue_iter(km, kmi, propvalue)) == NULL ||
-        totlen >= (result_len - 2)) {
+        totlen >= (result_len - 2))
+    {
       break;
     }
 

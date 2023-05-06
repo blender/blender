@@ -72,7 +72,8 @@ struct AllSpanOrSingle {
       }
       else if constexpr (ELEM(ParamTag::category,
                               ParamCategory::SingleOutput,
-                              ParamCategory::SingleMutable)) {
+                              ParamCategory::SingleMutable))
+      {
         T *ptr = std::get<I>(loaded_params);
         return BasicDevirtualizer<T *>{ptr};
       }
@@ -106,7 +107,8 @@ template<size_t... Indices> struct SomeSpanOrSingle {
       }
       else if constexpr (ELEM(ParamTag::category,
                               ParamCategory::SingleOutput,
-                              ParamCategory::SingleMutable)) {
+                              ParamCategory::SingleMutable))
+      {
         T *ptr = std::get<I>(loaded_params);
         return BasicDevirtualizer<T *>{ptr};
       }
@@ -125,7 +127,7 @@ namespace detail {
  */
 template<typename MaskT, typename... Args, typename... ParamTags, size_t... I, typename ElementFn>
 /* Perform additional optimizations on this loop because it is a very hot loop. For example, the
- * math node in geometry nodes is processed here.  */
+ * math node in geometry nodes is processed here. */
 #if (defined(__GNUC__) && !defined(__clang__))
 [[gnu::optimize("-funroll-loops")]] [[gnu::optimize("O3")]]
 #endif
@@ -297,7 +299,8 @@ inline void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
           }
           else if constexpr (ELEM(ParamTag::category,
                                   ParamCategory::SingleOutput,
-                                  ParamCategory::SingleMutable)) {
+                                  ParamCategory::SingleMutable))
+          {
             /* For outputs, just pass a pointer. This is important so that `__restrict` works. */
             if (sliced_mask_is_range) {
               /* Can write into the caller-provided buffer directly. */
@@ -407,6 +410,9 @@ inline void execute_element_fn_as_multi_function(const ElementFn element_fn,
                         std::forward<decltype(args)>(args)...);
         });
   }
+  else {
+    UNUSED_VARS(exec_preset);
+  }
 
   /* If devirtualized execution was disabled or not possible, use a fallback method which is
    * slower but always works. */
@@ -433,7 +439,8 @@ inline void execute_element_fn_as_multi_function(const ElementFn element_fn,
             }
             else if constexpr (ELEM(ParamTag::category,
                                     ParamCategory::SingleOutput,
-                                    ParamCategory::SingleMutable)) {
+                                    ParamCategory::SingleMutable))
+            {
               T *ptr = std::get<I>(loaded_params);
               return ptr;
             }

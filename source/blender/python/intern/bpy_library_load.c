@@ -58,6 +58,10 @@ typedef struct {
   BlendFileReadReport bf_reports;
 
   int flag;
+
+  bool create_liboverrides;
+  eBKELibLinkOverride liboverride_flags;
+
   PyObject *dict;
   /* Borrowed reference to the `bmain`, taken from the RNA instance of #RNA_BlendDataLibraries.
    * Defaults to #G.main, Otherwise use a temporary #Main when `bmain_is_temp` is true. */
@@ -137,7 +141,14 @@ static PyTypeObject bpy_lib_Type = {
 
 PyDoc_STRVAR(
     bpy_lib_load_doc,
-    ".. method:: load(filepath, link=False, relative=False, assets_only=False)\n"
+    ".. method:: load("
+    "filepath, "
+    "link=False, "
+    "relative=False, "
+    "assets_only=False, "
+    "create_liboverrides=False, "
+    "reuse_liboverrides=False, "
+    "create_liboverrides_runtime=False)\n"
     "\n"
     "   Returns a context manager which exposes 2 library objects on entering.\n"
     "   Each object has attributes matching bpy.data which are lists of strings to be linked.\n"
@@ -149,7 +160,16 @@ PyDoc_STRVAR(
     "   :arg relative: When True the path is stored relative to the open blend file.\n"
     "   :type relative: bool\n"
     "   :arg assets_only: If True, only list data-blocks marked as assets.\n"
-    "   :type assets_only: bool\n");
+    "   :type assets_only: bool\n"
+    "   :arg create_liboverrides: If True and ``link`` is True, liboverrides will\n"
+    "      be created for linked data.\n"
+    "   :type create_liboverrides: bool\n"
+    "   :arg reuse_liboverrides: If True and ``create_liboverride`` is True,\n"
+    "      search for existing liboverride first.\n"
+    "   :type reuse_liboverrides: bool\n"
+    "   :arg create_liboverrides_runtime: If True and ``create_liboverride`` is True,\n"
+    "      create (or search for existing) runtime liboverride.\n"
+    "   :type create_liboverrides_runtime: bool\n");
 static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *kw)
 {
   Main *bmain_base = CTX_data_main(BPY_context_get());
@@ -157,8 +177,19 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
   BPy_Library *ret;
   const char *filepath = NULL;
   bool is_rel = false, is_link = false, use_assets_only = false;
+  bool create_liboverrides = false, reuse_liboverrides = false,
+       create_liboverrides_runtime = false;
 
-  static const char *_keywords[] = {"filepath", "link", "relative", "assets_only", NULL};
+  static const char *_keywords[] = {
+      "filepath",
+      "link",
+      "relative",
+      "assets_only",
+      "create_liboverrides",
+      "reuse_liboverrides",
+      "create_liboverrides_runtime",
+      NULL,
+  };
   static _PyArg_Parser _parser = {
       "s" /* `filepath` */
       /* Optional keyword only arguments. */
@@ -166,6 +197,9 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
       "O&" /* `link` */
       "O&" /* `relative` */
       "O&" /* `assets_only` */
+      "O&" /* `create_liboverrides` */
+      "O&" /* `reuse_liboverrides` */
+      "O&" /* `create_liboverrides_runtime` */
       ":load",
       _keywords,
       0,
@@ -179,7 +213,29 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
                                         PyC_ParseBool,
                                         &is_rel,
                                         PyC_ParseBool,
-                                        &use_assets_only)) {
+                                        &use_assets_only,
+                                        PyC_ParseBool,
+                                        &create_liboverrides,
+                                        PyC_ParseBool,
+                                        &reuse_liboverrides,
+                                        PyC_ParseBool,
+                                        &create_liboverrides_runtime))
+  {
+    return NULL;
+  }
+
+  if (!is_link && create_liboverrides) {
+    PyErr_SetString(PyExc_ValueError, "`link` is False but `create_liboverrides` is True");
+    return NULL;
+  }
+  if (!create_liboverrides && reuse_liboverrides) {
+    PyErr_SetString(PyExc_ValueError,
+                    "`create_liboverrides` is False but `reuse_liboverrides` is True");
+    return NULL;
+  }
+  if (!create_liboverrides && create_liboverrides_runtime) {
+    PyErr_SetString(PyExc_ValueError,
+                    "`create_liboverrides` is False but `create_liboverrides_runtime` is True");
     return NULL;
   }
 
@@ -195,6 +251,12 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
   ret->blo_handle = NULL;
   ret->flag = ((is_link ? FILE_LINK : 0) | (is_rel ? FILE_RELPATH : 0) |
                (use_assets_only ? FILE_ASSETS_ONLY : 0));
+  ret->create_liboverrides = create_liboverrides;
+  ret->liboverride_flags =
+      create_liboverrides ?
+          ((reuse_liboverrides ? BKE_LIBLINK_OVERRIDE_USE_EXISTING_LIBOVERRIDES : 0) |
+           (create_liboverrides_runtime ? BKE_LIBLINK_OVERRIDE_CREATE_RUNTIME : 0)) :
+          0;
 
   ret->dict = _PyDict_NewPresized(INDEX_ID_MAX);
 
@@ -267,6 +329,8 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
 
   self_from->blo_handle = NULL;
   self_from->flag = 0;
+  self_from->create_liboverrides = false;
+  self_from->liboverride_flags = BKE_LIBLINK_OVERRIDE_INIT;
   self_from->dict = from_dict; /* owns the dict */
 
   /* return pair */
@@ -290,7 +354,8 @@ static void bpy_lib_exit_warn_idname(BPy_Library *self,
                        "load: '%s' does not contain %s[\"%s\"]",
                        self->abspath,
                        name_plural,
-                       idname)) {
+                       idname))
+  {
     /* Spurious errors can appear at shutdown */
     if (PyErr_ExceptionMatches(PyExc_Warning)) {
       PyErr_WriteUnraisable((PyObject *)self);
@@ -307,7 +372,8 @@ static void bpy_lib_exit_warn_type(BPy_Library *self, PyObject *item)
                        1,
                        "load: '%s' expected a string type, not a %.200s",
                        self->abspath,
-                       Py_TYPE(item)->tp_name)) {
+                       Py_TYPE(item)->tp_name))
+  {
     /* Spurious errors can appear at shutdown */
     if (PyErr_ExceptionMatches(PyExc_Warning)) {
       PyErr_WriteUnraisable((PyObject *)self);
@@ -339,6 +405,10 @@ static bool bpy_lib_exit_lapp_context_items_cb(BlendfileLinkAppendContext *lapp_
   const int py_list_index = POINTER_AS_INT(
       BKE_blendfile_link_append_context_item_userdata_get(lapp_context, item));
   ID *new_id = BKE_blendfile_link_append_context_item_newid_get(lapp_context, item);
+  ID *liboverride_id = data->py_library->create_liboverrides ?
+                           BKE_blendfile_link_append_context_item_liboverrideid_get(lapp_context,
+                                                                                    item) :
+                           NULL;
 
   BLI_assert(py_list_index < data->py_list_size);
 
@@ -349,7 +419,12 @@ static bool bpy_lib_exit_lapp_context_items_cb(BlendfileLinkAppendContext *lapp_
   BLI_assert(item_src != Py_None);
 
   PyObject *py_item;
-  if (new_id != NULL) {
+  if (liboverride_id != NULL) {
+    PointerRNA newid_ptr;
+    RNA_id_pointer_create(liboverride_id, &newid_ptr);
+    py_item = pyrna_struct_CreatePyObject(&newid_ptr);
+  }
+  else if (new_id != NULL) {
     PointerRNA newid_ptr;
     RNA_id_pointer_create(new_id, &newid_ptr);
     py_item = pyrna_struct_CreatePyObject(&newid_ptr);
@@ -374,6 +449,10 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 {
   Main *bmain = self->bmain;
   const bool do_append = ((self->flag & FILE_LINK) == 0);
+  const bool create_liboverrides = self->create_liboverrides;
+  /* Code in #bpy_lib_load should have raised exception in case of incompatible parameter values.
+   */
+  BLI_assert(!do_append || !create_liboverrides);
 
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
@@ -437,6 +516,9 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
   BKE_blendfile_link(lapp_context, NULL);
   if (do_append) {
     BKE_blendfile_append(lapp_context, NULL);
+  }
+  else if (create_liboverrides) {
+    BKE_blendfile_override(lapp_context, self->liboverride_flags, NULL);
   }
 
   /* If enabled, replace named items in given lists by the final matching new ID pointer. */

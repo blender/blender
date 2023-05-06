@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+ * Copyright 2004 Blender Foundation */
 
 /** \file
  * \ingroup edmesh
@@ -913,7 +913,8 @@ static bool seam_connected_recursive(BMEdge *edge,
 
       const float *luv_far = BM_ELEM_CD_GET_FLOAT_P(loop->prev, cd_loop_uv_offset);
       if (seam_connected_recursive(
-              loop->prev->e, luv_anchor, luv_far, needle, visited, cd_loop_uv_offset)) {
+              loop->prev->e, luv_anchor, luv_far, needle, visited, cd_loop_uv_offset))
+      {
         return true;
       }
     }
@@ -929,7 +930,8 @@ static bool seam_connected_recursive(BMEdge *edge,
 
       const float *luv_far = BM_ELEM_CD_GET_FLOAT_P(loop->next->next, cd_loop_uv_offset);
       if (seam_connected_recursive(
-              loop->next->e, luv_anchor, luv_far, needle, visited, cd_loop_uv_offset)) {
+              loop->next->e, luv_anchor, luv_far, needle, visited, cd_loop_uv_offset))
+      {
         return true;
       }
     }
@@ -974,7 +976,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
                                        const bool use_seams,
                                        const bool do_islands)
 {
-  /* In uv sync selection, all UVs are visible. */
+  /* In uv sync selection, all UVs (from unhidden geometry) are visible. */
   const bool face_selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION);
 
   BMVert *ev;
@@ -1429,7 +1431,8 @@ BMEdge *EDBM_verts_mirror_get_edge(BMEditMesh *em, BMEdge *e)
   if ((v1_mirr = EDBM_verts_mirror_get(em, e->v1)) &&
       (v2_mirr = EDBM_verts_mirror_get(em, e->v2)) &&
       /* While highly unlikely, a zero length central edges vertices can match, see #89342. */
-      LIKELY(v1_mirr != v2_mirr)) {
+      LIKELY(v1_mirr != v2_mirr))
+  {
     return BM_edge_exists(v1_mirr, v2_mirr);
   }
 
@@ -1957,7 +1960,8 @@ void EDBM_project_snap_verts(
                                                     NULL,
                                                     NULL,
                                                     co_proj,
-                                                    NULL)) {
+                                                    NULL))
+        {
           mul_v3_m4v3(eve->co, obedit->world_to_object, co_proj);
         }
       }

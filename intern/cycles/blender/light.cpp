@@ -169,7 +169,8 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d, bool use_portal)
       ObjectKey key(b_world, 0, b_world, false);
 
       if (light_map.add_or_update(&light, b_world, b_world, key) || world_recalc ||
-          b_world.ptr.data != world_map) {
+          b_world.ptr.data != world_map)
+      {
         light->set_light_type(LIGHT_BACKGROUND);
         if (sampling_method == SAMPLING_MANUAL) {
           light->set_map_resolution(get_int(cworld, "sample_map_resolution"));

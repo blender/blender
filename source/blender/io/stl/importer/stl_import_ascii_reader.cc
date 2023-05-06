@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <cstdio>
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "BLI_fileops.hh"
 #include "BLI_memory_utils.hh"
@@ -111,13 +111,13 @@ static inline void parse_float3(StringBuffer &buf, float out[3])
   }
 }
 
-Mesh *read_stl_ascii(const char *filepath, Main *bmain, char *mesh_name, bool use_custom_normals)
+Mesh *read_stl_ascii(const char *filepath, const bool use_custom_normals)
 {
   size_t buffer_len;
   void *buffer = BLI_file_read_text_as_mem(filepath, 0, &buffer_len);
   if (buffer == nullptr) {
     fprintf(stderr, "STL Importer: cannot read from ASCII STL file: '%s'\n", filepath);
-    return BKE_mesh_add(bmain, mesh_name);
+    return nullptr;
   }
   BLI_SCOPED_DEFER([&]() { MEM_freeN(buffer); });
 
@@ -154,7 +154,7 @@ Mesh *read_stl_ascii(const char *filepath, Main *bmain, char *mesh_name, bool us
     }
   }
 
-  return stl_mesh.to_mesh(bmain, mesh_name);
+  return stl_mesh.to_mesh();
 }
 
 }  // namespace blender::io::stl

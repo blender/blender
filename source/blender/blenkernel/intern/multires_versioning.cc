@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+ * Copyright 2020 Blender Foundation */
 
 /** \file
  * \ingroup bke
@@ -46,7 +46,8 @@ static Subdiv *subdiv_for_simple_to_catmull_clark(Object *object, MultiresModifi
   BKE_subdiv_converter_free(&converter);
 
   if (!BKE_subdiv_eval_begin_from_mesh(
-          subdiv, base_mesh, nullptr, SUBDIV_EVALUATOR_TYPE_CPU, nullptr)) {
+          subdiv, base_mesh, nullptr, SUBDIV_EVALUATOR_TYPE_CPU, nullptr))
+  {
     BKE_subdiv_free(subdiv);
     return nullptr;
   }
@@ -66,7 +67,8 @@ void multires_do_versions_simple_to_catmull_clark(Object *object, MultiresModifi
     Subdiv *subdiv = subdiv_for_simple_to_catmull_clark(object, mmd);
     MultiresReshapeContext reshape_context;
     if (!multires_reshape_context_create_from_subdiv(
-            &reshape_context, object, mmd, subdiv, mmd->totlvl)) {
+            &reshape_context, object, mmd, subdiv, mmd->totlvl))
+    {
       BKE_subdiv_free(subdiv);
       return;
     }
@@ -81,8 +83,8 @@ void multires_do_versions_simple_to_catmull_clark(Object *object, MultiresModifi
   /* Calculate the new tangent displacement against the new Catmull-Clark limit surface. */
   {
     MultiresReshapeContext reshape_context;
-    if (!multires_reshape_context_create_from_modifier(
-            &reshape_context, object, mmd, mmd->totlvl)) {
+    if (!multires_reshape_context_create_from_modifier(&reshape_context, object, mmd, mmd->totlvl))
+    {
       return;
     }
     multires_reshape_object_grids_to_tangent_displacement(&reshape_context);

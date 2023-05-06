@@ -87,12 +87,7 @@ template<typename T, eValueType V> class PrimitiveValue;
 using IntValue = PrimitiveValue<int64_t, eValueType::Int>;
 using DoubleValue = PrimitiveValue<double, eValueType::Double>;
 using BooleanValue = PrimitiveValue<bool, eValueType::Boolean>;
-
-template<typename Container, eValueType V, typename ContainerItem = typename Container::value_type>
-class ContainerValue;
-/* ArrayValue stores its items as shared pointer as it shares data with a lookup table that can
- * be created by calling `create_lookup`. */
-using ArrayValue = ContainerValue<Vector<std::shared_ptr<Value>>, eValueType::Array>;
+class ArrayValue;
 
 /**
  * Class containing a (de)serializable value.
@@ -116,9 +111,7 @@ class Value {
 
  protected:
   Value() = delete;
-  explicit Value(eValueType type) : type_(type)
-  {
-  }
+  explicit Value(eValueType type) : type_(type) {}
 
  public:
   virtual ~Value() = default;
@@ -177,9 +170,7 @@ class PrimitiveValue : public Value {
   T inner_value_{};
 
  public:
-  explicit PrimitiveValue(const T value) : Value(V), inner_value_(value)
-  {
-  }
+  explicit PrimitiveValue(const T value) : Value(V), inner_value_(value) {}
 
   const T value() const
   {
@@ -189,9 +180,7 @@ class PrimitiveValue : public Value {
 
 class NullValue : public Value {
  public:
-  NullValue() : Value(eValueType::Null)
-  {
-  }
+  NullValue() : Value(eValueType::Null) {}
 };
 
 class StringValue : public Value {
@@ -199,9 +188,7 @@ class StringValue : public Value {
   std::string string_;
 
  public:
-  StringValue(const StringRef string) : Value(eValueType::String), string_(string)
-  {
-  }
+  StringValue(const StringRef string) : Value(eValueType::String), string_(string) {}
 
   const std::string &value() const
   {
@@ -222,7 +209,7 @@ template<
     eValueType V,
 
     /** Type of the data inside the container. */
-    typename ContainerItem>
+    typename ContainerItem = typename Container::value_type>
 class ContainerValue : public Value {
  public:
   using Items = Container;
@@ -232,9 +219,7 @@ class ContainerValue : public Value {
   Container inner_value_;
 
  public:
-  ContainerValue() : Value(V)
-  {
-  }
+  ContainerValue() : Value(V) {}
 
   const Container &elements() const
   {
@@ -245,6 +230,18 @@ class ContainerValue : public Value {
   {
     return inner_value_;
   }
+};
+
+class ArrayValue : public ContainerValue<Vector<std::shared_ptr<Value>>, eValueType::Array> {
+ public:
+  void append(std::shared_ptr<Value> value);
+  void append_bool(bool value);
+  void append_int(int value);
+  void append_double(double value);
+  void append_str(std::string value);
+  void append_null();
+  std::shared_ptr<DictionaryValue> append_dict();
+  std::shared_ptr<ArrayValue> append_array();
 };
 
 /**
@@ -270,14 +267,21 @@ class DictionaryValue
    *
    * The lookup is owned by the caller.
    */
-  const Lookup create_lookup() const
-  {
-    Lookup result;
-    for (const Item &item : elements()) {
-      result.add_as(item.first, item.second);
-    }
-    return result;
-  }
+  const Lookup create_lookup() const;
+
+  const std::shared_ptr<Value> *lookup(const StringRef key) const;
+  std::optional<StringRefNull> lookup_str(const StringRef key) const;
+  std::optional<int64_t> lookup_int(const StringRef key) const;
+  std::optional<double> lookup_double(const StringRef key) const;
+  const DictionaryValue *lookup_dict(const StringRef key) const;
+  const ArrayValue *lookup_array(const StringRef key) const;
+
+  void append(std::string key, std::shared_ptr<Value> value);
+  void append_int(std::string key, int64_t value);
+  void append_double(std::string key, double value);
+  void append_str(std::string key, std::string value);
+  std::shared_ptr<DictionaryValue> append_dict(std::string key);
+  std::shared_ptr<ArrayValue> append_array(std::string key);
 };
 
 /**
@@ -309,5 +313,8 @@ class JsonFormatter : public Formatter {
   void serialize(std::ostream &os, const Value &value) override;
   std::unique_ptr<Value> deserialize(std::istream &is) override;
 };
+
+void write_json_file(StringRef path, const Value &value);
+std::shared_ptr<Value> read_json_file(StringRef path);
 
 }  // namespace blender::io::serialize

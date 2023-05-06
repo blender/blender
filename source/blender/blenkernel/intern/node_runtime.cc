@@ -255,7 +255,37 @@ struct ToposortNodeState {
   bool is_in_stack = false;
 };
 
-static void toposort_from_start_node(const ToposortDirection direction,
+static Vector<const bNode *> get_implicit_origin_nodes(const bNodeTree &ntree, bNode &node)
+{
+  Vector<const bNode *> origin_nodes;
+  if (node.type == GEO_NODE_SIMULATION_OUTPUT) {
+    for (const bNode *sim_input_node :
+         ntree.runtime->nodes_by_type.lookup(nodeTypeFind("GeometryNodeSimulationInput")))
+    {
+      const auto &storage = *static_cast<const NodeGeometrySimulationInput *>(
+          sim_input_node->storage);
+      if (storage.output_node_id == node.identifier) {
+        origin_nodes.append(sim_input_node);
+      }
+    }
+  }
+  return origin_nodes;
+}
+
+static Vector<const bNode *> get_implicit_target_nodes(const bNodeTree &ntree, bNode &node)
+{
+  Vector<const bNode *> target_nodes;
+  if (node.type == GEO_NODE_SIMULATION_INPUT) {
+    const auto &storage = *static_cast<const NodeGeometrySimulationInput *>(node.storage);
+    if (const bNode *sim_output_node = ntree.node_by_id(storage.output_node_id)) {
+      target_nodes.append(sim_output_node);
+    }
+  }
+  return target_nodes;
+}
+
+static void toposort_from_start_node(const bNodeTree &ntree,
+                                     const ToposortDirection direction,
                                      bNode &start_node,
                                      MutableSpan<ToposortNodeState> node_states,
                                      Vector<bNode *> &r_sorted_nodes,
@@ -265,6 +295,7 @@ static void toposort_from_start_node(const ToposortDirection direction,
     bNode *node;
     int socket_index = 0;
     int link_index = 0;
+    int implicit_link_index = 0;
   };
 
   Stack<Item, 64> nodes_to_check;
@@ -273,6 +304,25 @@ static void toposort_from_start_node(const ToposortDirection direction,
   while (!nodes_to_check.is_empty()) {
     Item &item = nodes_to_check.peek();
     bNode &node = *item.node;
+    bool pushed_node = false;
+
+    auto handle_linked_node = [&](bNode &linked_node) {
+      ToposortNodeState &linked_node_state = node_states[linked_node.index()];
+      if (linked_node_state.is_done) {
+        /* The linked node has already been visited. */
+        return true;
+      }
+      if (linked_node_state.is_in_stack) {
+        r_cycle_detected = true;
+      }
+      else {
+        nodes_to_check.push({&linked_node});
+        linked_node_state.is_in_stack = true;
+        pushed_node = true;
+      }
+      return false;
+    };
+
     const Span<bNodeSocket *> sockets = (direction == ToposortDirection::LeftToRight) ?
                                             node.runtime->inputs :
                                             node.runtime->outputs;
@@ -297,24 +347,38 @@ static void toposort_from_start_node(const ToposortDirection direction,
       }
       bNodeSocket &linked_socket = *socket.runtime->directly_linked_sockets[item.link_index];
       bNode &linked_node = *linked_socket.runtime->owner_node;
-      ToposortNodeState &linked_node_state = node_states[linked_node.index()];
-      if (linked_node_state.is_done) {
+      if (handle_linked_node(linked_node)) {
         /* The linked node has already been visited. */
         item.link_index++;
         continue;
       }
-      if (linked_node_state.is_in_stack) {
-        r_cycle_detected = true;
-      }
-      else {
-        nodes_to_check.push({&linked_node});
-        linked_node_state.is_in_stack = true;
-      }
       break;
     }
 
-    /* If no other element has been pushed, the current node can be pushed to the sorted list. */
-    if (&item == &nodes_to_check.peek()) {
+    if (!pushed_node) {
+      /* Some nodes are internally linked without an explicit `bNodeLink`. The toposort should
+       * still order them correctly and find cycles. */
+      const Vector<const bNode *> implicitly_linked_nodes =
+          (direction == ToposortDirection::LeftToRight) ? get_implicit_origin_nodes(ntree, node) :
+                                                          get_implicit_target_nodes(ntree, node);
+      while (true) {
+        if (item.implicit_link_index == implicitly_linked_nodes.size()) {
+          /* All implicitly linked nodes have already been visited. */
+          break;
+        }
+        const bNode &linked_node = *implicitly_linked_nodes[item.implicit_link_index];
+        if (handle_linked_node(const_cast<bNode &>(linked_node))) {
+          /* The implicitly linked node has already been visited. */
+          item.implicit_link_index++;
+          continue;
+        }
+        break;
+      }
+    }
+
+    /* If no other element has been pushed, the current node can be pushed to the sorted list.
+     */
+    if (!pushed_node) {
       ToposortNodeState &node_state = node_states[node.index()];
       node_state.is_done = true;
       node_state.is_in_stack = false;
@@ -342,11 +406,13 @@ static void update_toposort(const bNodeTree &ntree,
     }
     if ((direction == ToposortDirection::LeftToRight) ?
             node->runtime->has_available_linked_outputs :
-            node->runtime->has_available_linked_inputs) {
+            node->runtime->has_available_linked_inputs)
+    {
       /* Ignore non-start nodes. */
       continue;
     }
-    toposort_from_start_node(direction, *node, node_states, r_sorted_nodes, r_cycle_detected);
+    toposort_from_start_node(
+        ntree, direction, *node, node_states, r_sorted_nodes, r_cycle_detected);
   }
 
   if (r_sorted_nodes.size() < tree_runtime.nodes_by_id.size()) {
@@ -357,7 +423,8 @@ static void update_toposort(const bNodeTree &ntree,
         continue;
       }
       /* Start toposort at this node which is somewhere in the middle of a loop. */
-      toposort_from_start_node(direction, *node, node_states, r_sorted_nodes, r_cycle_detected);
+      toposort_from_start_node(
+          ntree, direction, *node, node_states, r_sorted_nodes, r_cycle_detected);
     }
   }
 
@@ -425,10 +492,10 @@ static void ensure_topology_cache(const bNodeTree &ntree)
     update_socket_vectors_and_owner_node(ntree);
     update_internal_link_inputs(ntree);
     update_directly_linked_links_and_sockets(ntree);
+    update_nodes_by_type(ntree);
     threading::parallel_invoke(
         tree_runtime.nodes_by_id.size() > 32,
         [&]() { update_logical_origins(ntree); },
-        [&]() { update_nodes_by_type(ntree); },
         [&]() { update_sockets_by_identifier(ntree); },
         [&]() {
           update_toposort(ntree,

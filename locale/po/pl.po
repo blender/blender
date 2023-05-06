@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.5.0 Beta (b'5fd4d47206ff')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 13:46:36\n"
+"POT-Creation-Date: 2023-04-28 17:39:28\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -1012,10 +1012,6 @@ msgstr "Ścieżka do pliku .blend"
 
 msgid "Vector Fonts"
 msgstr "Czcionki wektorowe"
-
-
-msgid "Grease Pencil"
-msgstr "Szkicownik"
 
 
 msgid "Images"
@@ -2536,10 +2532,6 @@ msgstr "Grubość jaką ma ściana na 'zewnątrz'"
 
 msgid "Enabled"
 msgstr "Włączony"
-
-
-msgid "Enable this objects as a collider for physics systems"
-msgstr "Włącz kolizje dla tego obiektu w systemach fizycznych"
 
 
 msgid "Kill Particles"
@@ -6060,6 +6052,10 @@ msgid "Size"
 msgstr "Rozmiar"
 
 
+msgid "Grease Pencil"
+msgstr "Szkicownik"
+
+
 msgid "Save"
 msgstr "Zapisz"
 
@@ -6451,12 +6447,20 @@ msgid "Open"
 msgstr "Otwórz"
 
 
+msgid "Play"
+msgstr "Start"
+
+
 msgid "Remove Pack"
 msgstr "Usuń paczkę (rozpakuj)"
 
 
 msgid "Limit"
 msgstr "Ograniczenie"
+
+
+msgid "Sigma"
+msgstr "Sigma"
 
 
 msgid "Add a constraint to the active object"
@@ -6512,10 +6516,6 @@ msgstr "Obróć zaznaczone obiekty"
 
 msgid "Pinned"
 msgstr "Przypięty"
-
-
-msgid "Play"
-msgstr "Start"
 
 
 msgid "Property Name"
@@ -6598,16 +6598,16 @@ msgid "Animated"
 msgstr "Animowana"
 
 
-msgid "Unknown"
-msgstr "Nieznany"
-
-
 msgid "3D View"
 msgstr "Widok 3D"
 
 
 msgid "Active object is not a mesh"
 msgstr "Aktywny obiekt nie jest siatką"
+
+
+msgid "Unknown"
+msgstr "Nieznany"
 
 
 msgctxt "Operator"
@@ -6630,6 +6630,11 @@ msgstr "Temperatura"
 msgctxt "Image"
 msgid "New"
 msgstr "Nowy"
+
+
+msgctxt "Operator"
+msgid "Online Manual"
+msgstr "Instrukcja Obsługi online"
 
 
 msgid "Slot %d"
@@ -7382,10 +7387,6 @@ msgid "No pose to copy"
 msgstr "Brak pozy do skopiowania"
 
 
-msgid "Copy buffer is empty"
-msgstr "Bufor kopiowania jest pusty"
-
-
 msgid "Programming error: missing clear transform function or keying set name"
 msgstr "Błąd programowania: Brak funkcji wyczyść transformację lub nazwy zestawu kluczowania"
 
@@ -7655,11 +7656,6 @@ msgstr "Usuń Skrót"
 
 
 msgctxt "Operator"
-msgid "Online Manual"
-msgstr "Instrukcja Obsługi online"
-
-
-msgctxt "Operator"
 msgid "Online Python Reference"
 msgstr "Referencja Python online"
 
@@ -7690,10 +7686,6 @@ msgstr "Nie odnaleziono prawidłowego 'po' dla języka '%s' pod '%s'"
 
 msgid "Hex"
 msgstr "Hex"
-
-
-msgid "Value:"
-msgstr "Wartość:"
 
 
 msgid "(Gamma Corrected)"
@@ -8698,10 +8690,6 @@ msgid "|%i multiuser armature object(s)"
 msgstr "|%i obiektów szkielet z wieloma użytkownikami"
 
 
-msgid "This operator does not support an active mirror modifier"
-msgstr "Ten operator nie obsługuje aktywnego modyfikatora lustro"
-
-
 msgid "Editmode lattice is not supported yet"
 msgstr "Tryb edycji kraty jeszcze nie jest obsługiwany"
 
@@ -9186,10 +9174,6 @@ msgid "Action has already been stashed"
 msgstr "Akcja została już przytrzymana (stashed)"
 
 
-msgid "No keyframes copied to keyframes copy/paste buffer"
-msgstr "Nie skopiowano klatek kluczowych do bufora kopiuj/wklej klatek kluczowych"
-
-
 msgid "Keyframe pasting is not available for mask mode"
 msgstr "Wklejanie klatek kluczowych nie dostępne dla trybu maski"
 
@@ -9400,6 +9384,10 @@ msgstr "Prop:"
 
 msgid "Driver Value:"
 msgstr "Wartość Sterownika:"
+
+
+msgid "Value:"
+msgstr "Wartość:"
 
 
 msgid "Update Dependencies"
@@ -10476,10 +10464,6 @@ msgid "No valid driver data to create copy of"
 msgstr "Brak prawidłowych danych sterownika do utworzenia kopii"
 
 
-msgid "Registering keying set info class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja keying set info class: '%s' jest za długie, maksymalna długość: %d"
-
-
 msgid "NlaTrack '%s' cannot be removed"
 msgstr "Nla Track '%s5 nie możliwy do usunięcia"
 
@@ -10733,10 +10717,6 @@ msgid "Unable to create socket"
 msgstr "Utworzenie złącza niemożliwe"
 
 
-msgid "Registering node tree class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja node tree class: '%s' jest za długie, maksymalna długość: %d"
-
-
 msgid "Node tree '%s' has undefined type %s"
 msgstr "Drzewo nodów (node tree) '%s' posiada niezdefiniowany typ %s"
 
@@ -10755,10 +10735,6 @@ msgstr "Nie znaleziono noda '%s' w drzewie nodów (node tree)"
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "Nie znaleziono złącza '%s' w nodzie"
-
-
-msgid "Registering node class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja node class: '%s' jest za długie, maksymalna długość: %d"
 
 
 msgid "Registering node socket class: '%s' is too long, maximum length is %d"
@@ -10836,10 +10812,6 @@ msgstr "Nie odnaleziono grupy kości '%s' w tym obiekcie"
 
 msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "Nie odnaleziono ogranicznika '%s' w kości pozy (pose bone) '%s'"
-
-
-msgid "Registering render engine class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja render engine class: '%s' jest za długie, maksymalna długość: %d"
 
 
 msgid "A non convex collision shape was passed to the function, use only convex collision shapes"
@@ -10930,22 +10902,6 @@ msgid "Region not found in space type"
 msgstr "Nie odnaleziono regionu w typie przestrzeni"
 
 
-msgid "Registering panel class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja panel class: '%s' jest za długie, maksymalna długość: %d"
-
-
-msgid "Registering uilist class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja uilist class: '%s' jest za długie, maksymalna długość: %d"
-
-
-msgid "Registering header class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja header class: '%s' jest za długie, maksymalna długość: %d"
-
-
-msgid "Registering menu class: '%s' is too long, maximum length is %d"
-msgstr "Rejestracja menu class: '%s' jest za długie, maksymalna długość: %d"
-
-
 msgid "Excluded path is no longer valid"
 msgstr "Wykluczona ścieżka nie jest już prawidłowa"
 
@@ -11000,10 +10956,6 @@ msgstr "SzorstkośćU"
 
 msgid "RoughnessV"
 msgstr "SzorstkośćV"
-
-
-msgid "Sigma"
-msgstr "Sigma"
 
 
 msgid "View Vector"
@@ -11209,11 +11161,6 @@ msgid "Hue Correct"
 msgstr "Korekta barwy"
 
 
-msgctxt "Sequence"
-msgid "Bright/Contrast"
-msgstr "Jasność/Kontrast"
-
-
 msgid "Strips must be the same length"
 msgstr "Paski muszą być tej samej długości"
 
@@ -11242,36 +11189,8 @@ msgid "Context window not set"
 msgstr "Nie ustalono okna kontekstu"
 
 
-msgid "Cannot read file '%s': %s"
-msgstr "Nie udało się odczytać pliku '%s': %s"
-
-
-msgid "File format is not supported in file '%s'"
-msgstr "Nieobsługiwany format w pliku '%s'"
-
-
-msgid "File path '%s' invalid"
-msgstr "Ścieżka '%s' nieprawidłowa"
-
-
-msgid "Unknown error loading '%s'"
-msgstr "Nieznany błąd podczas odczytu '%s'"
-
-
-msgid "Could not read '%s'"
-msgstr "Nie udało się odczytać '%s'"
-
-
-msgid "Cannot save blend file, path '%s' is not writable"
-msgstr "Nie udało się zapisać pliku blend, ścieżka '%s' nie możliwa do zapisu"
-
-
 msgid "Cannot overwrite used library '%.240s'"
 msgstr "Nie udało się nadpisać używanej biblioteki '%.240s'"
-
-
-msgid "Can't read alternative start-up file: '%s'"
-msgstr "Nie udało się odczytać alternatywnego pliku startowego: '%s'"
 
 
 msgid "Not a library"

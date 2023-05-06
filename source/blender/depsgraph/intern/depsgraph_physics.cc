@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. All rights reserved. */
+ * Copyright 2018 Blender Foundation */
 
 /** \file
  * \ingroup depsgraph
@@ -104,7 +104,8 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
       continue;
     }
     if (filter_function == nullptr ||
-        filter_function(ob1, BKE_modifiers_findby_type(ob1, (ModifierType)modifier_type))) {
+        filter_function(ob1, BKE_modifiers_findby_type(ob1, (ModifierType)modifier_type)))
+    {
       DEG_add_object_pointcache_relation(handle, ob1, DEG_OB_COMP_TRANSFORM, name);
       DEG_add_object_pointcache_relation(handle, ob1, DEG_OB_COMP_GEOMETRY, name);
     }
@@ -134,7 +135,8 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
     DEG_add_object_pointcache_relation(handle, relation->ob, DEG_OB_COMP_TRANSFORM, name);
 
     if (relation->psys || ELEM(relation->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS) ||
-        relation->pd->forcefield == PFIELD_GUIDE) {
+        relation->pd->forcefield == PFIELD_GUIDE)
+    {
       /* TODO(sergey): Consider going more granular with more dedicated
        * particle system operation. */
       DEG_add_object_pointcache_relation(handle, relation->ob, DEG_OB_COMP_GEOMETRY, name);

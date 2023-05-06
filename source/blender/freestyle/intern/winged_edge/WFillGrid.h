@@ -27,9 +27,7 @@ class WFillGrid {
     _polygon_id = 0;
   }
 
-  virtual ~WFillGrid()
-  {
-  }
+  virtual ~WFillGrid() {}
 
   void fillGrid();
 
