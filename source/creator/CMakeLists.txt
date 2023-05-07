@@ -27,7 +27,7 @@ if(HAVE_FEENABLEEXCEPT)
 endif()
 
 if(WITH_STRSIZE_DEBUG)
-  add_definitions(-DDEBUG_STRSIZE)
+  add_definitions(-DWITH_STRSIZE_DEBUG)
 endif()
 
 if(WITH_TBB)

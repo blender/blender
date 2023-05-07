@@ -603,7 +603,7 @@ int BLI_string_find_split_words(const char *str,
 /* -------------------------------------------------------------------- */
 /** \name String Debugging
  * \{ */
-#ifdef DEBUG_STRSIZE
+#ifdef WITH_STRSIZE_DEBUG
 #  define BLI_string_debug_size(str, str_maxncpy) memset(str, 0xff, sizeof(*(str)) * str_maxncpy)
 /**
  * Fill `str` with a non-nil value after the trailing nil character,
@@ -613,7 +613,7 @@ void BLI_string_debug_size_after_nil(char *str, size_t str_maxncpy);
 #else
 #  define BLI_string_debug_size(str, str_maxncpy) (void)(0 ? ((str) + (str_maxncpy)) : 0)
 #  define BLI_string_debug_size_after_nil(str, str_maxncpy) BLI_string_debug_size(str, str_maxncpy)
-#endif /* !DEBUG_STRSIZE */
+#endif /* !WITH_STRSIZE_DEBUG */
 
 /** \} */
 #ifdef __cplusplus

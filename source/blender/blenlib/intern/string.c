@@ -1249,7 +1249,7 @@ void BLI_str_format_integer_unit(char dst[BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE
 /** \name String Debugging
  * \{ */
 
-#ifdef DEBUG_STRSIZE
+#ifdef WITH_STRSIZE_DEBUG
 void BLI_string_debug_size_after_nil(char *str, size_t str_maxlen)
 {
   /* Step over the nil, into the character afterwards. */
@@ -1259,6 +1259,6 @@ void BLI_string_debug_size_after_nil(char *str, size_t str_maxlen)
   }
 }
 
-#endif /* DEBUG_STRSIZE */
+#endif /* WITH_STRSIZE_DEBUG */
 
 /** \} */
