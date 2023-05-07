@@ -16,6 +16,8 @@
 
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 using Alembic::AbcGeom::CameraSample;
 using Alembic::AbcGeom::ICamera;
 using Alembic::AbcGeom::ICompoundProperty;
@@ -45,14 +47,14 @@ bool AbcCameraReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::ICamera::matches(alembic_header)) {
-    *err_str =
+    *err_str = N_(
         "Object type mismatch, Alembic object path pointed to Camera when importing, but not any "
-        "more.";
+        "more.");
     return false;
   }
 
   if (ob->type != OB_CAMERA) {
-    *err_str = "Object type mismatch, Alembic object path points to Camera.";
+    *err_str = N_("Object type mismatch, Alembic object path points to Camera.");
     return false;
   }
 

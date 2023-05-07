@@ -19,6 +19,8 @@
 
 #include "BLI_listbase.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_curve.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.h"
@@ -60,14 +62,14 @@ bool AbcCurveReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::ICurves::matches(alembic_header)) {
-    *err_str =
+    *err_str = N_(
         "Object type mismatch, Alembic object path pointed to Curves when importing, but not any "
-        "more.";
+        "more.");
     return false;
   }
 
   if (ob->type != OB_CURVES_LEGACY) {
-    *err_str = "Object type mismatch, Alembic object path points to Curves.";
+    *err_str = N_("Object type mismatch, Alembic object path points to Curves.");
     return false;
   }
 

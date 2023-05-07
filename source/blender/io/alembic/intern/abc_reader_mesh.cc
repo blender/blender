@@ -25,6 +25,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_attribute.hh"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -632,14 +634,14 @@ bool AbcMeshReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::IPolyMesh::matches(alembic_header)) {
-    *err_str =
+    *err_str = N_(
         "Object type mismatch, Alembic object path pointed to PolyMesh when importing, but not "
-        "any more.";
+        "any more.");
     return false;
   }
 
   if (ob->type != OB_MESH) {
-    *err_str = "Object type mismatch, Alembic object path points to PolyMesh.";
+    *err_str = N_("Object type mismatch, Alembic object path points to PolyMesh.");
     return false;
   }
 
@@ -969,14 +971,14 @@ bool AbcSubDReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::ISubD::matches(alembic_header)) {
-    *err_str =
+    *err_str = N_(
         "Object type mismatch, Alembic object path pointed to SubD when importing, but not any "
-        "more.";
+        "more.");
     return false;
   }
 
   if (ob->type != OB_MESH) {
-    *err_str = "Object type mismatch, Alembic object path points to SubD.";
+    *err_str = N_("Object type mismatch, Alembic object path points to SubD.");
     return false;
   }
 

@@ -119,7 +119,7 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
 #endif
 
         if (n->val_flag[i] & NUM_INVALID) {
-          STRNCPY(val, "Invalid");
+          STRNCPY(val, TIP_("Invalid"));
         }
         else {
           BKE_unit_value_as_string_adaptive(val,

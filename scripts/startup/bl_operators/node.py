@@ -90,7 +90,7 @@ class NodeAddOperator:
             except AttributeError as e:
                 self.report(
                     {'ERROR_INVALID_INPUT'},
-                    "Node has no attribute " + setting.name)
+                    tip_("Node has no attribute %s") % setting.name)
                 print(str(e))
                 # Continue despite invalid attribute
 
