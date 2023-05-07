@@ -17,6 +17,7 @@ set(INC
   ../../windowmanager
   ../../../../intern/atomic
   ../../../../intern/guardedalloc
+  ../../../../extern/fmtlib/include
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
