@@ -648,7 +648,7 @@ static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
                 RPT_WARNING,
                 "Unable to stat '%s': %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unknown error stating file"));
+                errno ? strerror(errno) : TIP_("unknown error statting file"));
   }
 
   text->flags &= ~TXT_ISDIRTY;

@@ -277,7 +277,7 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
   int old_flag = fcu->flag;
 
   if ((ptr->owner_id == NULL) && (ptr->data == NULL)) {
-    BKE_report(reports, RPT_ERROR, "No RNA pointer available to retrieve values for this fcurve");
+    BKE_report(reports, RPT_ERROR, "No RNA pointer available to retrieve values for this F-curve");
     return;
   }
 
@@ -288,7 +288,7 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
 
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Could not update flags for this fcurve, as RNA path is invalid for the given ID "
+                "Could not update flags for this F-curve, as RNA path is invalid for the given ID "
                 "(ID = %s, path = %s)",
                 idname,
                 fcu->rna_path);

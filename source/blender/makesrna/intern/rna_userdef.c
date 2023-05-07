@@ -1608,8 +1608,7 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
   prop = RNA_def_property(srna, "widget_text_cursor", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, NULL, "widget_text_cursor");
   RNA_def_property_array(prop, 3);
-  RNA_def_property_ui_text(
-      prop, "Text Cursor", "Color of the interface widgets text insertion cursor (caret)");
+  RNA_def_property_ui_text(prop, "Text Cursor", "Color of the text insertion cursor (caret)");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "panel_roundness", PROP_FLOAT, PROP_FACTOR);

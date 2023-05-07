@@ -1518,7 +1518,7 @@ static void rna_def_field(BlenderRNA *brna)
   prop = RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "falloff");
   RNA_def_property_enum_items(prop, falloff_items);
-  RNA_def_property_ui_text(prop, "Fall-Off", "");
+  RNA_def_property_ui_text(prop, "Falloff", "");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "texture_mode", PROP_ENUM, PROP_NONE);
@@ -1613,7 +1613,7 @@ static void rna_def_field(BlenderRNA *brna)
   prop = RNA_def_property(srna, "distance_min", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "mindist");
   RNA_def_property_range(prop, 0.0f, 1000.0f);
-  RNA_def_property_ui_text(prop, "Minimum Distance", "Minimum distance for the field's fall-off");
+  RNA_def_property_ui_text(prop, "Minimum Distance", "Minimum distance for the field's falloff");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "distance_max", PROP_FLOAT, PROP_DISTANCE);
@@ -1627,7 +1627,7 @@ static void rna_def_field(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "minrad");
   RNA_def_property_range(prop, 0.0f, 1000.0f);
   RNA_def_property_ui_text(
-      prop, "Minimum Radial Distance", "Minimum radial distance for the field's fall-off");
+      prop, "Minimum Radial Distance", "Minimum radial distance for the field's falloff");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "radial_max", PROP_FLOAT, PROP_NONE);
@@ -1666,7 +1666,7 @@ static void rna_def_field(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_min_distance", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_USEMIN);
-  RNA_def_property_ui_text(prop, "Use Min", "Use a minimum distance for the field's fall-off");
+  RNA_def_property_ui_text(prop, "Use Min", "Use a minimum distance for the field's falloff");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "use_max_distance", PROP_BOOLEAN, PROP_NONE);
@@ -1677,8 +1677,8 @@ static void rna_def_field(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_radial_min", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_USEMINR);
   RNA_def_property_ui_text(
-      prop, "Use Min", "Use a minimum radial distance for the field's fall-off");
-  /* "Use a minimum angle for the field's fall-off" */
+      prop, "Use Min", "Use a minimum radial distance for the field's falloff");
+  /* "Use a minimum angle for the field's falloff" */
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "use_radial_max", PROP_BOOLEAN, PROP_NONE);
@@ -1727,7 +1727,7 @@ static void rna_def_field(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_multiple_springs", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_MULTIPLE_SPRINGS);
   RNA_def_property_ui_text(
-      prop, "Multiple Springs", "Every point is effected by multiple springs");
+      prop, "Multiple Springs", "Every point is affected by multiple springs");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "use_smoke_density", PROP_BOOLEAN, PROP_NONE);

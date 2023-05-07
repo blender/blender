@@ -2253,7 +2253,7 @@ static int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 void FILE_OT_parent(struct wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Parent File";
+  ot->name = "Parent Directory";
   ot->description = "Move to parent directory";
   ot->idname = "FILE_OT_parent";
 

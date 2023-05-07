@@ -4274,7 +4274,7 @@ static void rna_def_modifier_gpencildash(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Offset",
-      "Offset into each stroke before the beginning of  the dashed segment generation");
+      "Offset into each stroke before the beginning of the dashed segment generation");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   /* Common properties. */

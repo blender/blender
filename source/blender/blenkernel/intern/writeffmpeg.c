@@ -734,7 +734,8 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   if (c->time_base.num != 1) {
     AVRational new_time_base;
     if (av_reduce(
-            &new_time_base.num, &new_time_base.den, c->time_base.num, c->time_base.den, INT_MAX)) {
+            &new_time_base.num, &new_time_base.den, c->time_base.num, c->time_base.den, INT_MAX))
+    {
       /* Exact reduction was possible. Use the new value. */
       c->time_base = new_time_base;
     }
@@ -1219,7 +1220,7 @@ static int start_ffmpeg_impl(FFMpegContext *context,
     if (context->ffmpeg_audio_codec != AV_CODEC_ID_NONE &&
         rd->ffcodecdata.audio_mixrate != 48000 && rd->ffcodecdata.audio_channels != 2)
     {
-      BKE_report(reports, RPT_ERROR, "FFMPEG only supports 48khz / stereo audio for DV!");
+      BKE_report(reports, RPT_ERROR, "FFmpeg only supports 48khz / stereo audio for DV!");
       goto fail;
     }
   }
