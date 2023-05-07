@@ -1152,6 +1152,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
                                       blender::geometry::UVPackIsland_Params *params)
 {
   blender::Vector<FaceIsland *> island_vector;
+  blender::Vector<bool> pinned_vector;
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
@@ -1175,7 +1176,8 @@ static void uvedit_pack_islands_multi(const Scene *scene,
 
     bool only_selected_faces = params->only_selected_faces;
     bool only_selected_uvs = params->only_selected_uvs;
-    if (params->ignore_pinned && params->pin_unselected) {
+    const bool ignore_pinned = params->pin_method == ED_UVPACK_PIN_IGNORED;
+    if (ignore_pinned && params->pin_unselected) {
       only_selected_faces = false;
       only_selected_uvs = false;
     }
@@ -1192,12 +1194,14 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     /* Remove from linked list and append to blender::Vector. */
     LISTBASE_FOREACH_MUTABLE (struct FaceIsland *, island, &island_list) {
       BLI_remlink(&island_list, island);
-      if (params->ignore_pinned && island_has_pins(scene, island, params)) {
+      const bool pinned = island_has_pins(scene, island, params);
+      if (ignore_pinned && pinned) {
         MEM_freeN(island->faces);
         MEM_freeN(island);
         continue;
       }
       island_vector.append(island);
+      pinned_vector.append(pinned);
     }
   }
 
@@ -1241,6 +1245,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     blender::geometry::PackIsland *pack_island = new blender::geometry::PackIsland();
     pack_island->caller_index = i;
     pack_island->aspect_y = face_island->aspect_y;
+    pack_island->pinned = pinned_vector[i];
     pack_island_vector.append(pack_island);
 
     for (int i = 0; i < face_island->faces_len; i++) {
@@ -1307,7 +1312,8 @@ static void uvedit_pack_islands_multi(const Scene *scene,
   for (int64_t i : pack_island_vector.index_range()) {
     blender::geometry::PackIsland *pack_island = pack_island_vector[i];
     FaceIsland *island = island_vector[pack_island->caller_index];
-    pack_island->build_transformation(scale, pack_island->angle, matrix);
+    const float island_scale = pack_island->can_scale_(*params) ? scale : 1.0f;
+    pack_island->build_transformation(island_scale, pack_island->angle, matrix);
     invert_m2_m2(matrix_inverse, matrix);
 
     /* Add base_offset, post transform. */
@@ -1399,7 +1405,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   pack_island_params.rotate = RNA_boolean_get(op->ptr, "rotate");
   pack_island_params.scale_to_fit = RNA_boolean_get(op->ptr, "scale");
   pack_island_params.merge_overlap = RNA_boolean_get(op->ptr, "merge_overlap");
-  pack_island_params.ignore_pinned = false;
+  pack_island_params.pin_method = eUVPackIsland_PinMethod(RNA_enum_get(op->ptr, "pin_method"));
   pack_island_params.margin_method = eUVPackIsland_MarginMethod(
       RNA_enum_get(op->ptr, "margin_method"));
   pack_island_params.margin = RNA_float_get(op->ptr, "margin");
@@ -1445,6 +1451,20 @@ static const EnumPropertyItem pack_shape_method_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem pinned_islands_method_items[] = {
+    {ED_UVPACK_PIN_NORMAL, "NORMAL", 0, "Normal", "Pin information is not used"},
+    {ED_UVPACK_PIN_IGNORED, "IGNORED", 0, "Ignored", "Pinned islands are not packed"},
+    {ED_UVPACK_PIN_LOCK_SCALE, "SCALE", 0, "Locked scale", "Pinned islands won't rescale"},
+    {ED_UVPACK_PIN_LOCK_ROTATION, "ROTATION", 0, "Locked rotation", "Pinned islands won't rotate"},
+    {ED_UVPACK_PIN_LOCK_ROTATION_SCALE,
+     "ROTATION_SCALE",
+     0,
+     "Locked rotation and scale",
+     "Pinned islands will translate only"},
+    {ED_UVPACK_PIN_LOCK_ALL, "LOCKED", 0, "Locked position", "Pinned islands are locked in place"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 void UV_OT_pack_islands(wmOperatorType *ot)
 {
   static const EnumPropertyItem pack_target[] = {
@@ -1487,6 +1507,12 @@ void UV_OT_pack_islands(wmOperatorType *ot)
                "");
   RNA_def_float_factor(
       ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
+  RNA_def_enum(ot->srna,
+               "pin_method",
+               pinned_islands_method_items,
+               ED_UVPACK_PIN_NORMAL,
+               "Pinned Islands",
+               "");
   RNA_def_enum(ot->srna,
                "shape_method",
                pack_shape_method_items,
@@ -2203,7 +2229,7 @@ void ED_uvedit_live_unwrap(const Scene *scene, Object **objects, int objects_len
     blender::geometry::UVPackIsland_Params pack_island_params;
     pack_island_params.setFromUnwrapOptions(options);
     pack_island_params.rotate = true;
-    pack_island_params.ignore_pinned = true;
+    pack_island_params.pin_method = ED_UVPACK_PIN_IGNORED;
     pack_island_params.margin_method = ED_UVPACK_MARGIN_SCALED;
     pack_island_params.margin = scene->toolsettings->uvcalc_margin;
 
@@ -2345,7 +2371,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
   blender::geometry::UVPackIsland_Params pack_island_params;
   pack_island_params.setFromUnwrapOptions(options);
   pack_island_params.rotate = true;
-  pack_island_params.ignore_pinned = true;
+  pack_island_params.pin_method = ED_UVPACK_PIN_IGNORED;
   pack_island_params.margin_method = eUVPackIsland_MarginMethod(
       RNA_enum_get(op->ptr, "margin_method"));
   pack_island_params.margin = RNA_float_get(op->ptr, "margin");

@@ -343,8 +343,12 @@ static void fix_large_angle(const float v_fix[3],
   *r_a2 += fix_amount * (1.0f - weight);
 }
 
-static void p_triangle_angles(
-    const float v1[3], const float v2[3], const float v3[3], double *r_a1, double *r_a2, double *r_a3)
+static void p_triangle_angles(const float v1[3],
+                              const float v2[3],
+                              const float v3[3],
+                              double *r_a1,
+                              double *r_a2,
+                              double *r_a3)
 {
   *r_a1 = angle_v3v3v3(v3, v1, v2);
   *r_a2 = angle_v3v3v3(v1, v2, v3);
@@ -4122,6 +4126,7 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
     geometry::PackIsland *pack_island = new geometry::PackIsland();
     pack_island->caller_index = i;
     pack_island->aspect_y = handle->aspect_y;
+    pack_island->pinned = chart->has_pins;
 
     for (PFace *f = chart->faces; f; f = f->nextlink) {
       PVert *v0 = f->edge->vert;
@@ -4137,10 +4142,11 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
 
   for (const int64_t i : pack_island_vector.index_range()) {
     PackIsland *pack_island = pack_island_vector[i];
+    const float island_scale = pack_island->can_scale_(params) ? scale : 1.0f;
     PChart *chart = handle->charts[pack_island->caller_index];
 
     float matrix[2][2];
-    pack_island->build_transformation(scale, pack_island->angle, matrix);
+    pack_island->build_transformation(island_scale, pack_island->angle, matrix);
     for (PVert *v = chart->verts; v; v = v->nextlink) {
       blender::geometry::mul_v2_m2_add_v2v2(v->uv, matrix, v->uv, pack_island->pre_translate);
     }
