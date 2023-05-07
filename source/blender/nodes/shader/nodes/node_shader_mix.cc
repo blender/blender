@@ -38,19 +38,29 @@ static void sh_node_mix_declare(NodeDeclarationBuilder &b)
       .default_value(float3(0.5f))
       .subtype(PROP_FACTOR);
 
-  b.add_input<decl::Float>(N_("A"), "A_Float")
+  b.add_input<decl::Float>(CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "A"), "A_Float")
       .min(-10000.0f)
       .max(10000.0f)
-      .is_default_link_socket();
-  b.add_input<decl::Float>(N_("B"), "B_Float").min(-10000.0f).max(10000.0f);
+      .is_default_link_socket()
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+  b.add_input<decl::Float>(CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "B"), "B_Float")
+      .min(-10000.0f)
+      .max(10000.0f)
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
 
-  b.add_input<decl::Vector>(N_("A"), "A_Vector").is_default_link_socket();
-  b.add_input<decl::Vector>(N_("B"), "B_Vector");
+  b.add_input<decl::Vector>(CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "A"), "A_Vector")
+      .is_default_link_socket()
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+  b.add_input<decl::Vector>(CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "B"), "B_Vector")
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
 
-  b.add_input<decl::Color>(N_("A"), "A_Color")
+  b.add_input<decl::Color>(CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "A"), "A_Color")
       .default_value({0.5f, 0.5f, 0.5f, 1.0f})
-      .is_default_link_socket();
-  b.add_input<decl::Color>(N_("B"), "B_Color").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+      .is_default_link_socket()
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+  b.add_input<decl::Color>(CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "B"), "B_Color")
+      .default_value({0.5f, 0.5f, 0.5f, 1.0f})
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
 
   b.add_output<decl::Float>(N_("Result"), "Result_Float");
   b.add_output<decl::Vector>(N_("Result"), "Result_Vector");
@@ -171,7 +181,7 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
   }
   else {
     params.add_item(
-        IFACE_("A"),
+        CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, "A"),
         [type](LinkSearchOpParams &params) {
           bNode &node = params.add_node("ShaderNodeMix");
           node_storage(node).data_type = type;
@@ -180,7 +190,7 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
         weight);
     weight--;
     params.add_item(
-        IFACE_("B"),
+        CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, "B"),
         [type](LinkSearchOpParams &params) {
           bNode &node = params.add_node("ShaderNodeMix");
           node_storage(node).data_type = type;
