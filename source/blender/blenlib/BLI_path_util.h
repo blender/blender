@@ -412,6 +412,20 @@ bool BLI_path_parent_dir(char *path) ATTR_NONNULL(1);
 bool BLI_path_parent_dir_until_exists(char *path) ATTR_NONNULL(1);
 
 /**
+ * In the simple case this is similar to `BLI_path_slash_rfind(dirname)`
+ * however it behaves differently when there are redundant characters:
+ *
+ * `/test///dir/./file`
+ *             ^
+ * `/test/dir/subdir//file`
+ *                  ^
+ * \return The position after the parent paths last character or NULL on failure.
+ * Neither `path` or `&path[path_len - 1]` are ever returned.
+ */
+const char *BLI_path_parent_dir_end(const char *path, size_t path_len)
+    ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+
+/**
  * If path begins with "//", strips that and replaces it with `basepath` directory.
  *
  * \note Also converts drive-letter prefix to something more sensible

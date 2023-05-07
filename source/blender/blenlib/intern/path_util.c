@@ -752,6 +752,33 @@ bool BLI_path_suffix(char *path, size_t path_maxncpy, const char *suffix, const 
   return true;
 }
 
+const char *BLI_path_parent_dir_end(const char *path, size_t path_len)
+{
+  const char *path_end = path + path_len - 1;
+  const char *p = path_end;
+  while (p >= path) {
+    if (BLI_path_slash_is_native_compat(*p)) {
+      break;
+    }
+    p--;
+  }
+  while (p > path) {
+    if (BLI_path_slash_is_native_compat(*(p - 1))) {
+      p -= 1; /* Skip `/`. */
+    }
+    else if ((p + 1 > path) && (*(p - 1) == '.') && BLI_path_slash_is_native_compat(*p - 2)) {
+      p -= 2; /* Skip `/.` (actually `/./` but the last slash was already skipped) */
+    }
+    else {
+      break;
+    }
+  }
+  if ((p > path) && (p != path_end)) {
+    return p;
+  }
+  return NULL;
+}
+
 bool BLI_path_parent_dir(char *path)
 {
   /* Use #BLI_path_name_at_index instead of checking if the strings ends with `parent_dir`

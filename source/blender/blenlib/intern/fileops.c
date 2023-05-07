@@ -285,6 +285,89 @@ bool BLI_file_touch(const char *filepath)
   return false;
 }
 
+static bool dir_create_recursive(char *dirname, int len)
+{
+  BLI_assert(strlen(dirname) == len);
+  BLI_assert(BLI_exists(dirname) == 0);
+  /* Caller must ensure the path doesn't have trailing slashes. */
+  BLI_assert(len && !BLI_path_slash_is_native_compat(dirname[len - 1]));
+
+  bool ret = true;
+  char *dirname_parent_end = (char *)BLI_path_parent_dir_end(dirname, len);
+  if (dirname_parent_end) {
+    const char dirname_parent_end_value = *dirname_parent_end;
+    *dirname_parent_end = '\0';
+#ifdef WIN32
+    /* Check special case `c:\foo`, don't try create `c:`, harmless but unnecessary. */
+    if (dirname[0] && !(isalpha(dirname[0]) && (dirname[1] == ':') && dirname[2] == '\0'))
+#endif
+    {
+      const int mode = BLI_exists(dirname);
+      if (mode != 0) {
+        if (!S_ISDIR(mode)) {
+          ret = false;
+        }
+      }
+      else if (!dir_create_recursive(dirname, dirname_parent_end - dirname)) {
+        ret = false;
+      }
+    }
+    *dirname_parent_end = dirname_parent_end_value;
+  }
+  if (ret) {
+#ifdef WIN32
+    if (umkdir(dirname) == -1) {
+      ret = false;
+    }
+#else
+    if (mkdir(dirname, 0777) != 0) {
+      ret = false;
+    }
+#endif
+  }
+  return ret;
+}
+
+bool BLI_dir_create_recursive(const char *dirname)
+{
+  const int mode = BLI_exists(dirname);
+  if (mode != 0) {
+    /* The file exists, either it's a directory (ok), or not,
+     * in which case this function can't do anything useful
+     * (the caller could remove it and re-run this function).  */
+    return S_ISDIR(mode) ? true : false;
+  }
+
+  size_t len;
+  char *dirname_mut;
+
+#ifdef MAXPATHLEN
+  char static_buf[MAXPATHLEN];
+  len = BLI_strncpy_rlen(static_buf, dirname, sizeof(static_buf));
+  dirname_mut = static_buf;
+#else
+  len = strlen(dirname);
+  dirname_mut = MEM_mallocN(len + 1, __func__);
+  memcpy(dirname_mut, dirname, len + 1)
+#endif
+
+  while ((len > 0) && BLI_path_slash_is_native_compat(dirname_mut[len - 1])) {
+    len--;
+  }
+  dirname_mut[len] = '\0';
+
+  const bool ret = (len > 0) && dir_create_recursive(dirname_mut, len);
+
+  /* Ensure the string was properly restored. */
+  BLI_assert(memcmp(dirname, dirname_mut, len) == 0);
+
+#ifndef MAXPATHLEN
+  MEM_freeN(dirname_mut);
+#endif
+
+  return ret;
+}
+
 bool BLI_file_ensure_parent_dir_exists(const char *filepath)
 {
   char di[FILE_MAX];
@@ -609,52 +692,6 @@ int BLI_create_symlink(const char *file, const char *to)
 #  endif
 
 /** \return true on success (i.e. given path now exists on FS), false otherwise. */
-bool BLI_dir_create_recursive(const char *dirname)
-{
-  char *lslash;
-  char tmp[MAXPATHLEN];
-  bool ret = true;
-
-  /* First remove possible slash at the end of the dirname.
-   * This routine otherwise tries to create
-   * blah1/blah2/ (with slash) after creating
-   * blah1/blah2 (without slash) */
-
-  BLI_strncpy(tmp, dirname, sizeof(tmp));
-  BLI_path_slash_native(tmp);
-  BLI_path_slash_rstrip(tmp);
-
-  /* check special case "c:\foo", don't try create "c:", harmless but prints an error below */
-  if (isalpha(tmp[0]) && (tmp[1] == ':') && tmp[2] == '\0') {
-    return true;
-  }
-
-  if (BLI_is_dir(tmp)) {
-    return true;
-  }
-  else if (BLI_exists(tmp)) {
-    return false;
-  }
-
-  lslash = (char *)BLI_path_slash_rfind(tmp);
-
-  if (lslash) {
-    /* Split about the last slash and recurse */
-    *lslash = 0;
-    if (!BLI_dir_create_recursive(tmp)) {
-      ret = false;
-    }
-  }
-
-  if (ret && dirname[0]) { /* patch, this recursive loop tries to create a nameless directory */
-    if (umkdir(dirname) == -1) {
-      printf("Unable to create directory %s\n", dirname);
-      ret = false;
-    }
-  }
-  return ret;
-}
-
 int BLI_rename(const char *from, const char *to)
 {
   if (!BLI_exists(from)) {
@@ -1285,56 +1322,6 @@ int BLI_create_symlink(const char *file, const char *to)
   return symlink(to, file);
 }
 #  endif
-
-bool BLI_dir_create_recursive(const char *dirname)
-{
-  char *lslash;
-  size_t size;
-#  ifdef MAXPATHLEN
-  char static_buf[MAXPATHLEN];
-#  endif
-  char *tmp;
-  bool ret = true;
-
-  const int mode = BLI_exists(dirname);
-  if (mode != 0) {
-    /* The file exists, either it's a directory (ok), or not,
-     * in which case this function can't do anything useful
-     * (the caller could remove it and re-run this function).  */
-    return S_ISDIR(mode) ? true : false;
-  }
-
-#  ifdef MAXPATHLEN
-  size = MAXPATHLEN;
-  tmp = static_buf;
-#  else
-  size = strlen(dirname) + 1;
-  tmp = MEM_mallocN(size, __func__);
-#  endif
-
-  BLI_strncpy(tmp, dirname, size);
-
-  /* Avoids one useless recursion in case of '/foo/bar/' path... */
-  BLI_path_slash_rstrip(tmp);
-
-  lslash = (char *)BLI_path_slash_rfind(tmp);
-  if (lslash) {
-    /* Split about the last slash and recurse */
-    *lslash = 0;
-    if (!BLI_dir_create_recursive(tmp)) {
-      ret = false;
-    }
-  }
-
-#  ifndef MAXPATHLEN
-  MEM_freeN(tmp);
-#  endif
-
-  if (ret) {
-    ret = (mkdir(dirname, 0777) == 0);
-  }
-  return ret;
-}
 
 int BLI_rename(const char *from, const char *to)
 {
