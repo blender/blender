@@ -603,7 +603,7 @@ static bool bpath_list_append(BPathForeachPathData *bpath_data,
   struct PathStore *path_store = MEM_mallocN(sizeof(struct PathStore) + path_size, __func__);
   char *filepath = (char *)(path_store + 1);
 
-  BLI_strncpy(filepath, path_src, path_size);
+  memcpy(filepath, path_src, path_size);
   BLI_addtail(path_list, path_store);
   return false;
 }

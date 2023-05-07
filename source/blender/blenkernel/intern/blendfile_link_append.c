@@ -245,7 +245,7 @@ void BKE_blendfile_link_append_context_library_add(BlendfileLinkAppendContext *l
 
   const size_t libname_size = strlen(libname) + 1;
   char *libpath = BLI_memarena_alloc(lapp_context->memarena, libname_size);
-  BLI_strncpy(libpath, libname, libname_size);
+  memcpy(libpath, libname, libname_size);
 
   lib_context->path = libpath;
   lib_context->blo_handle = blo_handle;
@@ -266,7 +266,7 @@ BlendfileLinkAppendContextItem *BKE_blendfile_link_append_context_item_add(
   const size_t idname_size = strlen(idname) + 1;
 
   item->name = BLI_memarena_alloc(lapp_context->memarena, idname_size);
-  BLI_strncpy(item->name, idname, idname_size);
+  memcpy(item->name, idname, idname_size);
   item->idcode = idcode;
   item->libraries = BLI_BITMAP_NEW_MEMARENA(lapp_context->memarena, lapp_context->num_libraries);
 

@@ -2984,10 +2984,9 @@ static bool file_filenum_poll(bContext *C)
  * Looks for a string of digits within filename (using BLI_path_sequence_decode) and adjusts it by
  * add.
  */
-static void filenum_newname(char *filename, size_t filename_size, int add)
+static void filenum_newname(char *filename, size_t filename_maxncpy, int add)
 {
   char head[FILE_MAXFILE], tail[FILE_MAXFILE];
-  char filename_temp[FILE_MAXFILE];
   int pic;
   ushort digits;
 
@@ -3009,8 +3008,7 @@ static void filenum_newname(char *filename, size_t filename_size, int add)
   if (pic < 0) {
     pic = 0;
   }
-  BLI_path_sequence_encode(filename_temp, sizeof(filename_temp), head, tail, digits, pic);
-  BLI_strncpy(filename, filename_temp, filename_size);
+  BLI_path_sequence_encode(filename, filename_maxncpy, head, tail, digits, pic);
 }
 
 static int file_filenum_exec(bContext *C, wmOperator *op)
