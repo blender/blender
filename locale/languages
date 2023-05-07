@@ -29,7 +29,7 @@
 12:Portuguese (Português):pt_PT
 15:Russian (Русский):ru_RU
 18:Ukrainian (Українська):uk_UA
-41:Vietnamese (tiếng Việt):vi_VN
+41:Vietnamese (Tiếng Việt):vi_VN
 14:Traditional Chinese (繁體中文):zh_TW
 #
 0:Starting:
@@ -46,14 +46,14 @@
 6:Finnish (Suomi):fi_FI
 43:Hausa (Hausa):ha
 33:Hebrew (תירִבְעִ):he_IL
-40:Hindi (मानक हिन्दी):hi_IN
+40:Hindi (हिन्दी):hi_IN
 16:Croatian (Hrvatski):hr_HR
 31:Hungarian (Magyar):hu_HU
 27:Indonesian (Bahasa indonesia):id_ID
-# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #44:Kazakh (қазақша):kk_KZ
+# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #44:Kazakh (Қазақша):kk_KZ
 29:Kyrgyz (Кыргыз тили):ky_KG
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #25:Nepali (नेपाली):ne_NP
-3:Dutch (Nederlandse taal):nl_NL
+3:Dutch (Nederlands):nl_NL
 19:Polish (Polski):pl_PL
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #20:Romanian (Român):ro_RO
 17:Serbian (Српски):sr_RS
